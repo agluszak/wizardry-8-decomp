@@ -1,0 +1,2 @@
+vendor/ghidra/exports/*.gzf filter=lfs diff=lfs merge=lfs -text
+

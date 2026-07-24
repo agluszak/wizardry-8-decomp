@@ -1,0 +1,22 @@
+.env
+config/local-inputs.yml
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+*.log
+.DS_Store
+
+# Live Ghidra projects and all extracted proprietary inputs stay outside git.
+*.gpr
+*.rep/
+ghidra-project/
+vendor/ghidra/exports/*.gzf
+
+# Project-owned FID databases are generated from curated known libraries.
+# Their manifests/configuration are tracked; generated databases are exported explicitly.
+build/fid/
+vendor/msvc600/

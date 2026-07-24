@@ -1,0 +1,38 @@
+schema: wiz8.known-binaries
+format_version: 1
+binaries:
+  - id: wiz8-gog-base
+    variant: gog-base
+    path: Wiz8.exe
+    sha256: 18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2
+    role: canonical-matching-target
+  - id: wiz8-retail-2001-12-23
+    variant: retail-2001-12-23
+    path: Wiz8.exe
+    sha256: c3639d43568a1ed233be85c6b3b8129b1a4661e65717220e0514c815aa972edd
+    role: protected-official-oracle
+  - id: wiz8-demo
+    variant: demo
+    path: Wiz8.EXE
+    sha256: 8acda50afe39f7e6a867272300a09463fd94aed9a510008fcdefc662143346e4
+    role: cross-build-oracle
+  - id: wiz8-unofficial-1261
+    variant: gog-1261
+    path: Wiz8New.exe
+    sha256: 57a3072c2f8307de84e2f54ac58d3fcd7cf3cef18088bf0f0fdec2ac9202b2b1
+    role: cross-build-oracle
+  - id: wiz8-fan-128
+    variant: gog-128
+    path: Wiz8_v128.exe
+    sha256: fdca6d9cd0940034191e82b8e2900de26bb25e381c74128dcb8967360a9fb824
+    role: fan-patch-target
+  - id: wiz8-fan-128-support
+    variant: gog-128
+    path: Wiz8.dll
+    sha256: 28953363c6090f12a7a466397b619c43e6f26da28dbc5f8554d822ee66259378
+    role: fan-patch-support
+  - id: wiz8-fan-128-cfagent
+    variant: gog-128
+    path: cfagent1.28.dll
+    sha256: 5a801041a36b5acda9c7c754d27402d57a0407e86d64eff81397b7794ba5f6ba
+    role: fan-patch-support

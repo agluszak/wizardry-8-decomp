@@ -1,0 +1,30 @@
+schema: wiz8.variants-config
+format_version: 1
+variants:
+  gog-base:
+    base: gog-media
+    overlays: []
+    oracle: false
+    canonical_candidate: true
+  retail-2001-12-23:
+    base: gog-media
+    overlays: [official-2001-12-23-patch]
+    oracle: true
+    canonical_candidate: false
+    notes: protected retail executable; useful as an oracle but not the initial matching target
+canonical_matching_target:
+  variant: gog-base
+  module: Wiz8.exe
+  evidence: unpacked executable with direct entry point and MSVC 6.0 toolchain evidence
+  gog-1261:
+    base: gog-media
+    overlays: [patch-1261]
+    oracle: true
+  gog-128:
+    base: gog-media
+    overlays: [patch-128]
+    oracle: true
+  demo:
+    base: demo
+    overlays: []
+    oracle: true

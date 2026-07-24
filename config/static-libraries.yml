@@ -1,0 +1,168 @@
+schema: wiz8.static-libraries
+format_version: 1
+
+toolchains:
+  - id: vc6-rtm
+    family: Microsoft Visual C++ 6.0 RTM
+    repository: https://github.com/archaic-msvc/msvc600.git
+    commit: 34d4fc4004e880b8d5c44ae5babd7229eeaad993
+    image: wizardry8-msvc600:rtm
+    status: candidate
+  - id: vc6-sp5
+    family: Microsoft Visual C++ 6.0 SP5
+    repository: https://github.com/archaic-msvc/msvc600_sp5.git
+    commit: b0b07e29108e2695eb0274c2a377a7b7d7326150
+    image: wizardry8-msvc600:sp5
+    status: candidate
+  - id: vc6-sp5-vcpp
+    family: Microsoft Visual C++ 6.0 SP5 Processor Pack
+    repository: https://github.com/archaic-msvc/msvc600_sp5_vcpp.git
+    commit: 762e9382c751613c341daa766f0e22cdeb07152c
+    image: wizardry8-msvc600:sp5-vcpp
+    status: candidate
+  - id: vc6-sp6
+    family: Microsoft Visual C++ 6.0 SP6
+    repository: https://github.com/archaic-msvc/msvc600_sp6.git
+    commit: 1f4223a77122220d28e8670788b3f9fd6bb2c4d1
+    image: wizardry8-msvc600:sp6
+    status: candidate
+
+toolchain_evidence:
+  selection_confidence: family-confirmed-exact-build-unresolved
+  evidence:
+    - The canonical executable reports LINK 6.0 and imports MSVCP60.dll and MSVCRT.dll.
+    - SurRender PDB paths contain an explicit msvc6 directory component.
+    - The canonical Rich header contains product/build records 10/8447, 11/8447, 11/8168, and 48/9044.
+    - The SP5 repository contains LINK.EXE 6.0.8447.0, while its compiler probe emits C/C++ records different from the canonical binary's dominant 8447 records.
+    - Product 48/build 9044 is consistent with the separately tested Processor Pack optimizer candidate.
+  uncertainty:
+    - No single complete archaic-msvc repository reproduces every Rich record in the canonical executable.
+    - The msvc600_sp3 and msvc600_sp4 repositories contain libraries and headers but no compiler executable, so they must be tested as overlays rather than standalone toolchains.
+    - Rich records describe all linked objects and do not by themselves prove which compiler built each statically linked library.
+
+libraries:
+  - id: zlib-1.0.4
+    family: zlib
+    version: 1.0.4
+    status: confirmed
+    scope:
+      - gog-base/Wiz8.exe
+    evidence:
+      - "deflate 1.0.4 Copyright 1995-1996 Jean-loup Gailly"
+      - "inflate 1.0.4 Copyright 1995-1996 Mark Adler"
+    source:
+      url: https://zlib.net/fossils/zlib-1.0.4.tar.gz
+      sha256: e5c260cd3db1370fb3e0c193e9cbd9f127a9bd055d622b3fb55b82747f6e5b24
+      archive_root: zlib-1.0.4
+    seed_variants:
+      - id: release-md-o2
+        flags: [/nologo, /c, /O2, /MD]
+      - id: release-md-o1
+        flags: [/nologo, /c, /O1, /MD]
+    compilation_units:
+      - adler32.c
+      - compress.c
+      - crc32.c
+      - deflate.c
+      - gzio.c
+      - infblock.c
+      - infcodes.c
+      - inffast.c
+      - inflate.c
+      - inftrees.c
+      - infutil.c
+      - trees.c
+      - uncompr.c
+      - zutil.c
+
+  - id: ijg-jpeg-6
+    family: Independent JPEG Group JPEG library
+    version: "6"
+    status: confirmed
+    scope:
+      - gog-base/Dll/srEXT_JPEGImporter.dll
+    evidence:
+      - "Copyright (C) 1995, Thomas G. Lane"
+      - Later 6a and 6b sources identify themselves with 1996 and 1998 copyright strings respectively.
+    source:
+      url: https://www.nic.funet.fi/pub/sci/graphics/packages/jpeg/jpegsrc.v6.tar.gz
+      sha256: 6311cbbb24b57bc7fb68bd788a9876bb63673302fded219070b39147fb124de7
+      archive_root: jpeg-6
+    source_overlay: config/fid-overlays/ijg-jpeg-6
+    seed_variants:
+      - id: release-md-o2
+        flags: [/nologo, /c, /O2, /MD]
+      - id: release-md-o1
+        flags: [/nologo, /c, /O1, /MD]
+    compilation_units:
+      - jcapimin.c
+      - jcapistd.c
+      - jccoefct.c
+      - jccolor.c
+      - jcdctmgr.c
+      - jchuff.c
+      - jcinit.c
+      - jcmainct.c
+      - jcmarker.c
+      - jcmaster.c
+      - jcomapi.c
+      - jcparam.c
+      - jcphuff.c
+      - jcprepct.c
+      - jcsample.c
+      - jctrans.c
+      - jdapimin.c
+      - jdapistd.c
+      - jdatadst.c
+      - jdatasrc.c
+      - jdcoefct.c
+      - jdcolor.c
+      - jddctmgr.c
+      - jdhuff.c
+      - jdinput.c
+      - jdmainct.c
+      - jdmarker.c
+      - jdmaster.c
+      - jdmerge.c
+      - jdphuff.c
+      - jdpostct.c
+      - jdsample.c
+      - jdtrans.c
+      - jerror.c
+      - jfdctflt.c
+      - jfdctfst.c
+      - jfdctint.c
+      - jidctflt.c
+      - jidctfst.c
+      - jidctint.c
+      - jidctred.c
+      - jquant1.c
+      - jquant2.c
+      - jutils.c
+      - jmemmgr.c
+      - jmemnobs.c
+
+  - id: infozip-unzip-5.4
+    family: Info-ZIP UnZip
+    version: "5.4"
+    status: confirmed
+    scope:
+      - gog-base/Dll/srEXT_Unzip.dll
+    evidence:
+      - PE FileVersion and ProductVersion are 5.4.
+      - Version resource identifies Info-ZIP's UnZip DLL for Win32.
+    source: null
+    seed_variants: []
+
+  - id: sirtech-surrender-1.42.2.9
+    family: Sir-Tech SurRender3D
+    version: 1.42.2.9
+    status: confirmed-symbol-oracle
+    scope:
+      - gog-base/sr.dll
+      - gog-base/Dll/srDD_*.dll
+    evidence:
+      - PE version resources report 1.42.2.9.
+      - Exported decorated C++ symbols provide a symbol-rich first-party renderer oracle.
+    source: null
+    seed_variants: []

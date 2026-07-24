@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wizardry8-decomp"
+version = "0.1.0"
+description = "Reproducible Wizardry 8 binary-corpus and Ghidra bootstrap tooling"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "capstone>=5.0.6,<6",
+  "pefile>=2024.8.26",
+  "pydantic>=2.11,<3",
+  "pyghidra==3.1.0",
+  "python-dotenv>=1.1,<2",
+  "pyyaml>=6.0.2,<7",
+  "rich>=14,<15",
+  "typer>=0.16,<1",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4,<10",
+  "pytest-cov>=6.2,<8",
+]
+
+[project.scripts]
+wiz8 = "wiz8decomp.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["tools/wiz8decomp"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

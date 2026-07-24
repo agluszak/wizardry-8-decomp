@@ -1,0 +1,220 @@
+{
+  "common_symbols_source": "Ghidra/Features/FunctionID/data/common_symbols_win32.txt",
+  "database": "vendor/ghidra/fid/wizardry8-static-msvc6.fidb",
+  "format_version": 1,
+  "kind": "static-libraries",
+  "libraries": [
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 277,
+      "total_attempted": 282,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 13,
+      "variant": "vc6-rtm-release-md-o1",
+      "version": "6"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 193,
+      "total_attempted": 198,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 10,
+      "variant": "vc6-rtm-release-md-o2",
+      "version": "6"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 20,
+      "variant": "vc6-rtm-release-md-o1",
+      "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-rtm-release-md-o2",
+      "version": "1.0.4"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 277,
+      "total_attempted": 282,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 13,
+      "variant": "vc6-sp5-release-md-o1",
+      "version": "6"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 193,
+      "total_attempted": 198,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 10,
+      "variant": "vc6-sp5-release-md-o2",
+      "version": "6"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 20,
+      "variant": "vc6-sp5-release-md-o1",
+      "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-sp5-release-md-o2",
+      "version": "1.0.4"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 273,
+      "total_attempted": 282,
+      "total_excluded": 9,
+      "unresolved_symbol_count": 13,
+      "variant": "vc6-sp5-vcpp-release-md-o1",
+      "version": "6"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 188,
+      "total_attempted": 197,
+      "total_excluded": 9,
+      "unresolved_symbol_count": 10,
+      "variant": "vc6-sp5-vcpp-release-md-o2",
+      "version": "6"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 20,
+      "variant": "vc6-sp5-vcpp-release-md-o1",
+      "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-sp5-vcpp-release-md-o2",
+      "version": "1.0.4"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 277,
+      "total_attempted": 282,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 13,
+      "variant": "vc6-sp6-release-md-o1",
+      "version": "6"
+    },
+    {
+      "family": "Independent JPEG Group JPEG library",
+      "seed_programs": 46,
+      "total_added": 193,
+      "total_attempted": 198,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 10,
+      "variant": "vc6-sp6-release-md-o2",
+      "version": "6"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 20,
+      "variant": "vc6-sp6-release-md-o1",
+      "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-sp6-release-md-o2",
+      "version": "1.0.4"
+    }
+  ],
+  "schema": "wiz8.fid-database",
+  "sha256": "065d3397cb8841013bd5bdd0134c81e50569245c09c47e9fc7051ad618182ea3",
+  "size": 191531,
+  "toolchain_evidence": {
+    "evidence": [
+      "The canonical executable reports LINK 6.0 and imports MSVCP60.dll and MSVCRT.dll.",
+      "SurRender PDB paths contain an explicit msvc6 directory component.",
+      "The canonical Rich header contains product/build records 10/8447, 11/8447, 11/8168, and 48/9044.",
+      "The SP5 repository contains LINK.EXE 6.0.8447.0, while its compiler probe emits C/C++ records different from the canonical binary's dominant 8447 records.",
+      "Product 48/build 9044 is consistent with the separately tested Processor Pack optimizer candidate."
+    ],
+    "selection_confidence": "family-confirmed-exact-build-unresolved",
+    "uncertainty": [
+      "No single complete archaic-msvc repository reproduces every Rich record in the canonical executable.",
+      "The msvc600_sp3 and msvc600_sp4 repositories contain libraries and headers but no compiler executable, so they must be tested as overlays rather than standalone toolchains.",
+      "Rich records describe all linked objects and do not by themselves prove which compiler built each statically linked library."
+    ]
+  },
+  "toolchains": [
+    {
+      "commit": "34d4fc4004e880b8d5c44ae5babd7229eeaad993",
+      "family": "Microsoft Visual C++ 6.0 RTM",
+      "id": "vc6-rtm",
+      "image": "wizardry8-msvc600:rtm",
+      "repository": "https://github.com/archaic-msvc/msvc600.git",
+      "status": "candidate"
+    },
+    {
+      "commit": "b0b07e29108e2695eb0274c2a377a7b7d7326150",
+      "family": "Microsoft Visual C++ 6.0 SP5",
+      "id": "vc6-sp5",
+      "image": "wizardry8-msvc600:sp5",
+      "repository": "https://github.com/archaic-msvc/msvc600_sp5.git",
+      "status": "candidate"
+    },
+    {
+      "commit": "762e9382c751613c341daa766f0e22cdeb07152c",
+      "family": "Microsoft Visual C++ 6.0 SP5 Processor Pack",
+      "id": "vc6-sp5-vcpp",
+      "image": "wizardry8-msvc600:sp5-vcpp",
+      "repository": "https://github.com/archaic-msvc/msvc600_sp5_vcpp.git",
+      "status": "candidate"
+    },
+    {
+      "commit": "1f4223a77122220d28e8670788b3f9fd6bb2c4d1",
+      "family": "Microsoft Visual C++ 6.0 SP6",
+      "id": "vc6-sp6",
+      "image": "wizardry8-msvc600:sp6",
+      "repository": "https://github.com/archaic-msvc/msvc600_sp6.git",
+      "status": "candidate"
+    }
+  ]
+}

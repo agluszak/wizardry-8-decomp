@@ -1,0 +1,34 @@
+/* Win32 configuration for the pristine IJG JPEG release 6 sources.
+ * This is a project-owned build overlay; the downloaded archive is unchanged.
+ */
+#define HAVE_PROTOTYPES
+#define HAVE_UNSIGNED_CHAR
+#define HAVE_UNSIGNED_SHORT
+#undef CHAR_IS_UNSIGNED
+#define HAVE_STDDEF_H
+#define HAVE_STDLIB_H
+#undef NEED_BSD_STRINGS
+#undef NEED_SYS_TYPES_H
+#undef NEED_FAR_POINTERS
+#undef NEED_SHORT_EXTERNAL_NAMES
+#undef INCOMPLETE_TYPES_BROKEN
+
+#ifdef JPEG_INTERNALS
+#undef RIGHT_SHIFT_IS_UNSIGNED
+#undef INLINE
+#undef DEFAULT_MAX_MEM
+#undef NO_MKTEMP
+#endif
+
+#ifdef JPEG_CJPEG_DJPEG
+#define BMP_SUPPORTED
+#define GIF_SUPPORTED
+#define PPM_SUPPORTED
+#undef RLE_SUPPORTED
+#define TARGA_SUPPORTED
+#define TWO_FILE_COMMANDLINE
+#define USE_SETMODE
+#undef NEED_SIGNAL_CATCHER
+#undef DONT_USE_B_MODE
+#undef PROGRESS_REPORT
+#endif

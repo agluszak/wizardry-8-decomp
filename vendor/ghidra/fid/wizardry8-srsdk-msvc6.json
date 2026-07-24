@@ -1,0 +1,27 @@
+{
+  "common_symbols_source": "Ghidra/Features/FunctionID/data/common_symbols_win32.txt",
+  "database": "vendor/ghidra/fid/wizardry8-srsdk-msvc6.fidb",
+  "format_version": 1,
+  "library": {
+    "compiler": "windows",
+    "family": "Sir-Tech SRS SDK",
+    "language": "x86:LE:32:default",
+    "variant": "msvc6-release",
+    "version": "1.42.2.9"
+  },
+  "schema": "wiz8.fid-database",
+  "seed_programs": [
+    "wiz8--gog-base--sr--cec1caf85861",
+    "wiz8--gog-base--srdd-directx6--2968987f843f",
+    "wiz8--gog-base--srdd-directx7--3623f1cb66cd",
+    "wiz8--gog-base--srdd-glide2x--e19987fb5bc9",
+    "wiz8--gog-base--srdd-opengl--a176aa711039",
+    "wiz8--gog-base--srdd-software--8866a254569f"
+  ],
+  "sha256": "cdba76e12b55f8e9f5dc763049e493e97de6f61cfb53f5d994c1a9c2e96901fa",
+  "size": 143024,
+  "total_added": 1695,
+  "total_attempted": 4341,
+  "total_excluded": 2646,
+  "unresolved_symbol_count": 983
+}

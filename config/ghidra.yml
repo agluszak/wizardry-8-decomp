@@ -1,0 +1,24 @@
+schema: wiz8.ghidra
+format_version: 1
+required_version: 12.1.2
+required_release: PUBLIC
+required_pyghidra: 3.1.0
+project_name: wizardry8
+language: x86:LE:32:default
+compiler_spec: windows
+analysis:
+  enabled: true
+  timeout_seconds: 1800
+fid:
+  static_database: vendor/ghidra/fid/wizardry8-static-msvc6.fidb
+  srs_database: vendor/ghidra/fid/wizardry8-srsdk-msvc6.fidb
+  compiler_family: msvc
+  compiler_version: "6.0"
+  language: x86:LE:32:default
+  seed_programs:
+    - wiz8--gog-base--sr--cec1caf85861
+    - wiz8--gog-base--srdd-directx6--2968987f843f
+    - wiz8--gog-base--srdd-directx7--3623f1cb66cd
+    - wiz8--gog-base--srdd-glide2x--e19987fb5bc9
+    - wiz8--gog-base--srdd-opengl--a176aa711039
+    - wiz8--gog-base--srdd-software--8866a254569f
