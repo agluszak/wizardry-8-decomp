@@ -1,0 +1,4 @@
+address,provisional_name,owner,confidence,evidence
+004126f0,InitializeSlfArchives,wiz8-file-system,strong,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
+00412a10,RefreshSlfArchives,wiz8-file-system,strong,Closes or reopens each of six configured SLF archives and recreates optional file mappings
+00412bb0,OpenSlfArchive,wiz8-file-system,strong,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries

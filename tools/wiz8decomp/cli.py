@@ -378,6 +378,16 @@ def ghidra_apply_wiz8_class_model(
     _run_action(lambda: apply_wiz8_class_model(_settings(), program))
 
 
+@ghidra_app.command("apply-wiz8-format-model")
+def ghidra_apply_wiz8_format_model(
+    program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
+) -> None:
+    """Apply reviewed Wizardry 8 container and data-format types."""
+    from .ghidra.apply_wiz8_format_model import apply_wiz8_format_model
+
+    _run_action(lambda: apply_wiz8_format_model(_settings(), program))
+
+
 @daemon_app.command("start")
 def daemon_start(program: Optional[str] = typer.Option(None, "--program")) -> None:
     from .ghidra.query_daemon import start_daemon

@@ -1,0 +1,16 @@
+filename,callsite_size_argument,english_destination,status,evidence
+racesattrs.cfdat,0x1c0,0x00614cf0,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+racesabilities.cfdat,0x140,0x00615130,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+racesresists.cfdat,0x300,0x00615270,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+racesfaerieitems.cfdat,0x18,0x006164c4,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesattrs.cfdat,0x1a4,0x00614e24,conflicting,Race attributes at the advertised 0x1c0 size would overlap this destination; no record shape is asserted
+classesskills.cfdat,0x7f8,0x00615840,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesbonusskills.cfdat,0x3c,0x006161dc,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesprofskills.cfdat,0xf0,0x00616218,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesabilities.cfdat,0xb4,0x0061507c,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classeshps.cfdat,0x3c,0x00615570,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesmaglvloffs.cfdat,0x3c,0x00616310,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesmagschools.cfdat,0x0f,0x0061634c,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesitems.cfdat,0x168,0x0061635c,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+classesexpgroup.cfdat,0x0f,0x004ef1e0,conflicting,The English seed destination lies in executable code and is not accepted as a data layout
+skillsattrs.cfdat,0x290,0x006155b0,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
