@@ -103,3 +103,19 @@ initializes the item ID at `+0x00`, stack quantity at `+0x04`, uses or charges a
 `+0x05`, identified state at `+0x06`, and an optional flag at `+0x0b`. The party's
 500-entry item pool begins at `0x00685191`; its active count is `0x00686901`. The
 separate item-in-hand instance begins at `0x006874cb`, preceded by its validity byte.
+
+The monster record now has a caller-grounded encounter and faction slice. `MonGen::GenerateEncounter`
+at `0x0048ad20` rolls `W8Dice group_size` at `+0x0c1`, then considers exactly two
+three-byte companion records at `+0x0c5`; each contains a signed species ID and a spawn chance.
+The same function rejects the `deleted` byte at `+0x267`. Every one of the 595 records stores
+its own zero-based database index at `+0x187`.
+
+`MonsterGroupCalcDefaultDisposition` at `0x00511250` establishes the unaligned hostility
+range at `+0x25b` and faction ID at `+0x25f`; the adjacent group-update path uses a positive
+range as its party-proximity threshold. The faction constants are recovered from the
+contiguous 21-name table beginning with `UNALIGNED`, and `GetFactionDisposition` at
+`0x00535ad0` independently asserts that same `0..20` domain. It maps ratings below 34 to
+hostile, ratings through 66 to neutral, and higher ratings to friendly. The byte at `+0x0d2`
+is deliberately named only as a disposition-cache factor: the canonical group update squares
+it and scales the result before comparing timestamps, but its original designer-facing unit is
+not yet known.

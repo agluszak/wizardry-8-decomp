@@ -48,12 +48,64 @@ typedef struct W8ItemDatabaseRecord {
     uint8_t unknown_0cb[0x42];          /* 0x0cb */
 } W8ItemDatabaseRecord;                 /* 0x10d */
 
+typedef enum W8Faction {
+    W8_FACTION_UNALIGNED = 0,
+    W8_FACTION_PARTY = 1,
+    W8_FACTION_DARK_SAVANT = 2,
+    W8_FACTION_COSMIC_LORDS = 3,
+    W8_FACTION_UMPANI = 4,
+    W8_FACTION_TRANG = 5,
+    W8_FACTION_MOOK = 6,
+    W8_FACTION_RATTKIN_COMMON = 7,
+    W8_FACTION_RATTKIN_MAFIA = 8,
+    W8_FACTION_BROTHERHOOD = 9,
+    W8_FACTION_HIGARDI_BANK = 10,
+    W8_FACTION_HIGARDI_HLL = 11,
+    W8_FACTION_HIGARDI_COMMON = 12,
+    W8_FACTION_TRYNNIE = 13,
+    W8_FACTION_MAD_MARTEN = 14,
+    W8_FACTION_RAPAX_COMMON = 15,
+    W8_FACTION_RAPAX_TEMPLAR = 16,
+    W8_FACTION_RAPAX_ARMY = 17,
+    W8_FACTION_KINGS_ASSASINS = 18,
+    W8_FACTION_FILLER3 = 19,
+    W8_FACTION_FILLER4 = 20,
+    W8_FACTION_COUNT = 21
+} W8Faction;
+
+typedef enum W8FactionDisposition {
+    W8_FACTION_HOSTILE = 0,
+    W8_FACTION_NEUTRAL = 1,
+    W8_FACTION_FRIENDLY = 2
+} W8FactionDisposition;
+
+typedef struct W8MonsterCompanion {
+    int16_t species_id;                 /* 0x00: less than one means absent */
+    uint8_t spawn_chance_percent;       /* 0x02 */
+} W8MonsterCompanion;                   /* 0x03 */
+
 typedef struct W8MonsterDatabaseRecord {
     W8WideChar name_00[24];             /* 0x000: suffix after '#' removed at load */
     W8WideChar name_30[24];             /* 0x030: suffix after '#' removed at load */
     W8WideChar name_60[24];             /* 0x060: suffix after '#' removed at load */
     W8WideChar name_90[24];             /* 0x090: suffix after '#' removed at load */
-    uint8_t fields_0c0[0x1d7];          /* 0x0c0: not yet field-reconciled */
+    uint8_t unknown_0c0;                /* 0x0c0 */
+    W8Dice group_size;                  /* 0x0c1 */
+    W8MonsterCompanion companions[2];   /* 0x0c5 */
+    uint8_t unknown_0cb[5];             /* 0x0cb */
+    uint8_t flags_0d0;                  /* 0x0d0: bit zero uses NPC disposition */
+    uint8_t unknown_0d1;                /* 0x0d1 */
+    uint8_t disposition_cache_factor;   /* 0x0d2: squared then scaled for cache duration */
+    uint8_t unknown_0d3[0xb4];          /* 0x0d3 */
+    int16_t record_id;                  /* 0x187: equals the database index */
+    uint8_t unknown_189[0xd2];          /* 0x189 */
+    int32_t hostility_range;            /* 0x25b: unaligned default/proximity hostility */
+    int32_t faction_id;                 /* 0x25f: W8Faction value */
+    uint8_t unknown_263[4];             /* 0x263 */
+    uint8_t deleted;                    /* 0x267 */
+    uint8_t unknown_268[2];             /* 0x268 */
+    uint8_t flag_26a;                   /* 0x26a: selects alternate group configuration */
+    uint8_t unknown_26b[0x2c];          /* 0x26b */
 } W8MonsterDatabaseRecord;              /* 0x297 */
 
 typedef struct W8LevelDatabaseRecord {

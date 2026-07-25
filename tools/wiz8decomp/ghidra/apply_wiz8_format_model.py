@@ -190,6 +190,49 @@ def apply_wiz8_format_model(
                         (0x0CB, ArrayDataType(byte, 0x42, 1), "unknown_0cb", "unreviewed fields"),
                     ],
                 )
+                faction = EnumDataType(category, "W8Faction", 4, dtm)
+                for name, value in (
+                    ("W8_FACTION_UNALIGNED", 0),
+                    ("W8_FACTION_PARTY", 1),
+                    ("W8_FACTION_DARK_SAVANT", 2),
+                    ("W8_FACTION_COSMIC_LORDS", 3),
+                    ("W8_FACTION_UMPANI", 4),
+                    ("W8_FACTION_TRANG", 5),
+                    ("W8_FACTION_MOOK", 6),
+                    ("W8_FACTION_RATTKIN_COMMON", 7),
+                    ("W8_FACTION_RATTKIN_MAFIA", 8),
+                    ("W8_FACTION_BROTHERHOOD", 9),
+                    ("W8_FACTION_HIGARDI_BANK", 10),
+                    ("W8_FACTION_HIGARDI_HLL", 11),
+                    ("W8_FACTION_HIGARDI_COMMON", 12),
+                    ("W8_FACTION_TRYNNIE", 13),
+                    ("W8_FACTION_MAD_MARTEN", 14),
+                    ("W8_FACTION_RAPAX_COMMON", 15),
+                    ("W8_FACTION_RAPAX_TEMPLAR", 16),
+                    ("W8_FACTION_RAPAX_ARMY", 17),
+                    ("W8_FACTION_KINGS_ASSASINS", 18),
+                    ("W8_FACTION_FILLER3", 19),
+                    ("W8_FACTION_FILLER4", 20),
+                ):
+                    faction.add(name, value)
+                faction = dtm.addDataType(faction, DataTypeConflictHandler.REPLACE_HANDLER)
+                faction_disposition = EnumDataType(category, "W8FactionDisposition", 1, dtm)
+                faction_disposition.add("W8_FACTION_HOSTILE", 0)
+                faction_disposition.add("W8_FACTION_NEUTRAL", 1)
+                faction_disposition.add("W8_FACTION_FRIENDLY", 2)
+                faction_disposition = dtm.addDataType(
+                    faction_disposition, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+                monster_companion = _structure(
+                    dtm,
+                    category,
+                    "W8MonsterCompanion",
+                    0x03,
+                    [
+                        (0x00, short, "species_id", "less than one means absent"),
+                        (0x02, byte, "spawn_chance_percent", "tested before spawning"),
+                    ],
+                )
                 monster_record = _structure(
                     dtm,
                     category,
@@ -205,12 +248,43 @@ def apply_wiz8_format_model(
                         for offset in (0x00, 0x30, 0x60, 0x90)
                     ]
                     + [
+                        (0x0C0, byte, "unknown_0c0", "unreviewed field"),
+                        (0x0C1, dice, "group_size", "rolled when a group is spawned"),
                         (
-                            0x0C0,
-                            ArrayDataType(byte, 0x1D7, 1),
-                            "fields_0c0",
-                            "not yet field-reconciled",
-                        )
+                            0x0C5,
+                            ArrayDataType(monster_companion, 2, 3),
+                            "companions",
+                            "two optional species and spawn-chance records",
+                        ),
+                        (0x0CB, ArrayDataType(byte, 5, 1), "unknown_0cb", "unreviewed fields"),
+                        (0x0D0, byte, "flags_0d0", "bit zero uses NPC disposition"),
+                        (0x0D1, byte, "unknown_0d1", "unreviewed field"),
+                        (
+                            0x0D2,
+                            byte,
+                            "disposition_cache_factor",
+                            "squared then scaled for disposition cache duration",
+                        ),
+                        (0x0D3, ArrayDataType(byte, 0xB4, 1), "unknown_0d3", "unreviewed fields"),
+                        (0x187, short, "record_id", "equals the zero-based database index"),
+                        (0x189, ArrayDataType(byte, 0xD2, 1), "unknown_189", "unreviewed fields"),
+                        (
+                            0x25B,
+                            integer,
+                            "hostility_range",
+                            "controls unaligned default and proximity-triggered hostility",
+                        ),
+                        (0x25F, faction, "faction_id", "W8Faction value"),
+                        (0x263, ArrayDataType(byte, 4, 1), "unknown_263", "unreviewed fields"),
+                        (0x267, byte, "deleted", "nonzero records are rejected by loaders"),
+                        (0x268, ArrayDataType(byte, 2, 1), "unknown_268", "unreviewed fields"),
+                        (
+                            0x26A,
+                            byte,
+                            "flag_26a",
+                            "selects an alternate monster-group configuration",
+                        ),
+                        (0x26B, ArrayDataType(byte, 0x2C, 1), "unknown_26b", "unreviewed fields"),
                     ],
                 )
                 level_record = _structure(
@@ -347,6 +421,11 @@ def apply_wiz8_format_model(
                     ),
                     0x004E57C0: (monster_record_pointer, [("monster_id", dword)]),
                     0x00517970: (integer, [("dice", dice_pointer)]),
+                    0x005179B0: (
+                        integer,
+                        [("base", integer), ("exponent", integer)],
+                    ),
+                    0x00535AD0: (faction_disposition, [("faction", byte)]),
                     0x0051B5C0: (
                         PointerDataType(word, dtm),
                         [
@@ -437,6 +516,9 @@ def apply_wiz8_format_model(
                                 dice,
                                 item_instance,
                                 item_record,
+                                faction,
+                                faction_disposition,
+                                monster_companion,
                                 monster_record,
                                 level_record,
                                 fact_record,
