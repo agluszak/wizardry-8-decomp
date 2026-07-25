@@ -2,9 +2,12 @@
 
 #include "srImporter.h"
 
+class srIStreamOpener;
+
 class srCore {
 public:
     SR_DLL_IMPORT srSurfaceIOManager* getSurfaceIOManager() const;
+    SR_DLL_IMPORT srIStreamOpener* getIStreamOpener() const;
 
     srRegistry* getRegistry() const { return registry_; }
 

@@ -9,6 +9,7 @@ option(WIZ8_BUILD_TOOLCHAIN_PROBE "Configure the VC6 Rich-header probe" OFF)
 set(FID_ZLIB_SOURCE "" CACHE PATH "Pinned zlib source tree used for FID seeds")
 set(FID_JPEG_SOURCE "" CACHE PATH "Pinned IJG JPEG source tree used for FID seeds")
 set(FID_INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP source tree used for FID seeds")
+set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
 set(RECCMP_PROJECT_DIR_HOST "" CACHE PATH "Host path to the reccmp project")
 set(RECCMP_BUILD_DIR_HOST "" CACHE PATH "Host path to this build directory")
 
@@ -112,6 +113,44 @@ if(WIZ8_BUILD_DECOMP)
             "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n  SREXT_JPEGIMPORTER:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.pdb'\n"
         )
     endif()
+endif()
+
+if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
+    # This is the exact VC6 static-library source set from the release-5.4
+    # windll/visualc/lib project. Sir-Tech links these upstream objects into
+    # srEXT_Unzip.dll and adds a narrow SurRender adapter afterward.
+    set(INFOZIP_UNZIP_SOURCES
+        api.c
+        crc32.c
+        crctab.c
+        crypt.c
+        explode.c
+        extract.c
+        fileio.c
+        globals.c
+        inflate.c
+        list.c
+        match.c
+        win32/nt.c
+        process.c
+        ttyio.c
+        unreduce.c
+        unshrink.c
+        win32/win32.c
+        windll/windll.c
+        zipinfo.c
+    )
+    list(TRANSFORM INFOZIP_UNZIP_SOURCES PREPEND "${INFOZIP_SOURCE}/")
+    add_library(INFOZIP_UNZIP_5_4 STATIC EXCLUDE_FROM_ALL ${INFOZIP_UNZIP_SOURCES})
+    target_compile_options(INFOZIP_UNZIP_5_4 PRIVATE /nologo /W3 /GX /O2 /Zp4)
+    target_compile_definitions(INFOZIP_UNZIP_5_4 PRIVATE
+        NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL UNZIPLIB
+    )
+    target_include_directories(INFOZIP_UNZIP_5_4 PRIVATE
+        "${INFOZIP_SOURCE}"
+        "${INFOZIP_SOURCE}/windll"
+        "${INFOZIP_SOURCE}/win32"
+    )
 endif()
 
 function(wiz8_add_fid_seed TARGET_NAME SOURCE_ROOT)
