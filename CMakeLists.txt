@@ -137,10 +137,10 @@ if(WIZ8_BUILD_DECOMP)
             "emit_bits=jcphuff_emit_bits;dump_buffer=jcphuff_dump_buffer;emit_restart=jcphuff_emit_restart;flush_bits=jcphuff_flush_bits")
     set_source_files_properties("${IJG_JPEG_SOURCE}/jcmainct.c" PROPERTIES
         COMPILE_DEFINITIONS
-            "process_data_simple_main=jcmainct_process_data_simple_main")
+            "start_pass_main=jcmainct_start_pass_main;process_data_simple_main=jcmainct_process_data_simple_main")
     set_source_files_properties("${IJG_JPEG_SOURCE}/jdmainct.c" PROPERTIES
         COMPILE_DEFINITIONS
-            "process_data_simple_main=jdmainct_process_data_simple_main")
+            "start_pass_main=jdmainct_start_pass_main;process_data_simple_main=jdmainct_process_data_simple_main")
     set_source_files_properties("${IJG_JPEG_SOURCE}/jcmaster.c" PROPERTIES
         COMPILE_DEFINITIONS
             "initial_setup=jcmaster_initial_setup;per_scan_setup=jcmaster_per_scan_setup")
@@ -161,6 +161,7 @@ if(WIZ8_BUILD_DECOMP)
         "${IJG_JPEG_SOURCE}/jdatasrc.c"
     )
     set_source_files_properties(${IJG_STDIO_SOURCES} PROPERTIES
+        OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
         COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
     )
 

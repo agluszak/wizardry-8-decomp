@@ -30,12 +30,13 @@ the main interface-recovery problem for a replacement build.
 
 ## Code ownership
 
-The reviewed inventory now accounts for 250 addresses: 241 functions discovered by the current
-Ghidra database plus nine code entries recovered directly from vtable references and disassembly.
+The reviewed inventory now accounts for 384 addresses. The initial 250-address Ghidra census
+missed 133 private IJG functions plus the file-local Sir-Tech error callback at `0x100010D0`.
+All 134 starts have now been created and named in the live program.
 Source-built Function ID evidence identifies 160 functions as IJG JPEG release 6 and `0x10015915`
 as `__DllMainCRTStartup@12`. For the JPEG matches, all tested compiler rows agree on one source
 symbol at 156 addresses. The linked PDB, object map, body sizes, and in-object sequence resolve the
-remaining 40 IJG bodies. This includes four identical-body pairs which FID alone cannot separate:
+remaining 173 IJG bodies. This includes four identical-body pairs which FID alone cannot separate:
 
 | Address | Candidate symbols |
 | --- | --- |
@@ -45,13 +46,13 @@ remaining 40 IJG bodies. This includes four identical-body pairs which FID alone
 | `0x100129B0` | `jpeg_free_large` in `jmemnobs.c` |
 
 The observed link layout provides a useful first ownership boundary. The tracked inventory assigns
-196 addresses to IJG JPEG 6, three to the small Sir-Tech codec adapter, 32 to the SurRender plugin,
+329 addresses to IJG JPEG 6, four to the small Sir-Tech codec adapter, 32 to the SurRender plugin,
 and 19 to VC6 runtime/glue (including the separately identified CRT entry point):
 
 | Range | Discovered functions | Interpretation |
 | --- | ---: | --- |
-| `0x10001000`-`0x100013DF` | 3 | Sir-Tech codec adapter around the IJG API |
-| `0x100013E0`-`0x10014B6F` | 196 | IJG JPEG 6, including 36 internal bodies below the FID threshold |
+| `0x10001000`-`0x100013DF` | 4 | Sir-Tech codec adapter around the IJG API |
+| `0x100013E0`-`0x10014B6F` | 329 | Complete IJG JPEG 6 linked function set |
 | `0x10014B70`-`0x100155D5` | 23 currently defined, plus missed entries | Sir-Tech SurRender plugin and import/export adapter |
 | `0x100155D6` onward | 19 currently defined, plus thunks | compiler, import, exception, and DLL-startup glue |
 
@@ -166,9 +167,11 @@ matches for:
 | `0x10015450` | surface class ID | 100% |
 | `0x100155D0` | library version export | 100% |
 
-The report now covers all 196 IJG functions in the reviewed map plus 15 recovered adapter, plug-in,
-surface, and CRT identities. All 211 are implemented, aggregate accuracy is 97.34%, and 93 functions
-are address-aligned. The larger denominator includes every recovered public operation:
+The report now covers all 329 linked IJG functions plus 15 recovered adapter, plug-in, surface, and
+CRT identities. All 344 are implemented, aggregate accuracy is 98.82%, and 333 functions are
+address-aligned. The original Sir-Tech configuration omits both `fflush` and `ferror` from the IJG
+stdio destination; reproducing that fact removes the former `0x20` tail drift and puts every IJG
+translation unit at its original address. The larger denominator includes every recovered public operation:
 `getSurfaceDesc` is 51.79%, `importSurface` is 17.25%, and `exportSurface` is 78.86%. The low import
 score reflects unresolved
 local/control-flow selection rather than missing behavior; its allocation branches, vtable install,
