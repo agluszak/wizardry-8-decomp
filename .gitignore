@@ -20,3 +20,9 @@ vendor/ghidra/exports/*.gzf
 # Their manifests/configuration are tracked; generated databases are exported explicitly.
 build/fid/
 vendor/msvc600/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
