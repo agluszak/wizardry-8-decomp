@@ -10,10 +10,10 @@ the resulting FID database are tracked.
 
 ```sh
 uv run wiz8 ghidra fid inventory
-uv run wiz8 ghidra fid build-image
-uv run wiz8 ghidra fid build-seeds
-uv run wiz8 ghidra fid extract-libraries
-uv run wiz8 ghidra fid build
+just ghidra fid build-image
+just ghidra fid build-seeds
+just ghidra fid extract-libraries
+just ghidra fid build
 uv run wiz8 ghidra fid match --program wiz8--gog-base--wiz8--18a74ff61c65
 ```
 

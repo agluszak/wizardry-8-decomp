@@ -127,18 +127,31 @@ minimal import-library definition. It was generated from and checked against `sr
 `cec1caf85861c34bc4583ef1c69209e96a6930bdfc9af545c429f7470a8b6165`; it does not contain engine
 code.
 
-## Compilable skeleton
+## Matching build
 
 The owned `plugin.cpp` now builds a `0x48`-byte wrapper with the proven `0x44`-byte importer/exporter
 subobject, registers `jpeg` and `jpg` through the original `SR.DLL`, and preserves exports and
-ordinals 1 and 2. The operation methods remain deliberate stubs until the IJG state is typed.
+ordinals 1 and 2. The three public SurRender operation methods remain deliberate stubs; the lower
+codec adapter is now recovered.
 
-The skeleton was compiled and linked successfully using the pinned VC6 SP5 image with `/MD /O2
-/GX /GR-`, preferred base `0x10000000`, and incremental linking disabled. The verified link order is
-the adapter object, all 46 exact IJG release-6 `/MD /O2` objects, then the SurRender plug-in object.
-With dead stripping disabled while the adapter is stubbed, the candidate has `.text` size `0x13DB2`
-and starts its three adapter placeholders at `0x10001000`, followed immediately by the IJG object
-run. The resulting test DLL is a 32-bit PE with exactly the two original export names and ordinals,
-and imports `SR.dll`, `MSVCRT.dll`, and `KERNEL32.dll`. This proves the narrow ABI, source corpus,
-object order, and import library are linkable; it is not yet a drop-in replacement because JPEG
-decode and encode still return failure/no data.
+The root `CMakeLists.txt` owns the product build. It compiles the pinned pristine IJG release-6
+source with the two SurRender stdio adaptations, then links the recovered adapter and plug-in using
+the VC6 SP5 image, `/MD /O2 /GX /GR-`, base `0x10000000`, and `/OPT:NOREF`. The image contains pinned
+32-bit Windows CMake 3.26.6 and drives the original NMake/VC6 tools under Wine. The build emits a VC6
+PDB, linker map, the exact two exports, and a local `reccmp-build.yml`.
+
+`reccmp` is pinned to commit `574601de72a0ddabdcf2d386ddb6f9d727af4ce1`. The accepted IJG
+identities used by comparison are in `config/analysis/reccmp/srext-jpegimporter.csv`. A complete
+comparison currently proves exact machine-code matches for:
+
+| Original address | Recovered function | Match |
+| --- | --- | ---: |
+| `0x10001000` | header adapter | 100% |
+| `0x100010D0` | IJG error callback | 100% |
+| `0x100010F0` | encoder adapter | 100% |
+| `0x10001290` | decoder adapter | 100% |
+
+The complete 24-function report is 90.93% accurate, with 19 functions already address-aligned.
+This proves that upstream IJG remains upstream source: only the Sir-Tech adapter and SurRender ABI
+are manually recovered. The next content boundary is `getSurfaceDesc`, `importSurface`, and
+`exportSurface` at `0x10014E60`, `0x10014F30`, and `0x10015200`.

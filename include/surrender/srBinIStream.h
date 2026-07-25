@@ -5,16 +5,16 @@
 class srBinStream {
 public:
     enum e_seekDir {
-        SEEK_BEGIN = 0,
-        SEEK_CURRENT = 1,
-        SEEK_END = 2
+        SR_SEEK_BEGIN = 0,
+        SR_SEEK_CURRENT = 1,
+        SR_SEEK_END = 2
     };
 
     virtual ~srBinStream() {}
+    virtual unsigned long getSize() = 0;
     virtual srBinStream& seek(unsigned long position) = 0;
     virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
     virtual unsigned long tell() = 0;
-    virtual unsigned long getSize() = 0;
 
     SR_DLL_IMPORT bool good() const;
 };

@@ -8,14 +8,21 @@ RUN dpkg --add-architecture i386 \
  && apt-get install -y --no-install-recommends \
       ca-certificates \
       git \
-      python3 \
+      unzip \
+      wget \
       wine \
       wine32 \
  && rm -rf /var/lib/apt/lists/*
 
 ENV WINEARCH=win32 \
     WINEDEBUG=-all \
-    WINEPREFIX=/root/.wine
+    WINEPREFIX=/root/.wine \
+    INCLUDE="C:\\msvc\\VC98\\Include;C:\\msvc\\VC98\\MFC\\Include;C:\\msvc\\VC98\\ATL\\Include" \
+    LIB="C:\\msvc\\VC98\\Lib;C:\\msvc\\VC98\\MFC\\Lib" \
+    COMSPEC="C:\\windows\\system32\\cmd.exe" \
+    TMP="Z:\\out\\tmp" \
+    TEMP="Z:\\out\\tmp" \
+    WINEPATH="C:\\cmake\\bin;C:\\msvc\\Common\\MSDev98\\Bin;C:\\msvc\\VC98\\Bin"
 
 RUN wineboot --init || true
 
@@ -29,6 +36,13 @@ RUN git init /root/.wine/drive_c/msvc \
  && git -C /root/.wine/drive_c/msvc checkout --detach FETCH_HEAD \
  && test "$(git -C /root/.wine/drive_c/msvc rev-parse HEAD)" = "${MSVC_REF}"
 
-COPY entrypoint.py /entrypoint.py
+# A native Windows CMake drives NMake and VC6 inside the same Wine prefix.
+RUN wget -O /tmp/cmake.zip \
+      https://github.com/Kitware/CMake/releases/download/v3.26.6/cmake-3.26.6-windows-i386.zip \
+ && echo "dc3f535d880d1ffa7cfa86a0eefdc1fc9bf8b9ede59d1deb7a2bb41f0a58d2d4  /tmp/cmake.zip" \
+      | sha256sum -c - \
+ && unzip /tmp/cmake.zip -d /root/.wine/drive_c \
+ && mv /root/.wine/drive_c/cmake-3.26.6-windows-i386 /root/.wine/drive_c/cmake \
+ && rm /tmp/cmake.zip
 
-ENTRYPOINT ["python3", "/entrypoint.py"]
+ENTRYPOINT ["/usr/bin/wine"]

@@ -23,6 +23,7 @@ dependencies = [
 dev = [
   "pytest>=8.4,<10",
   "pytest-cov>=6.2,<8",
+  "reccmp",
   "ruff>=0.12,<1",
 ]
 
@@ -38,3 +39,6 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.uv.sources]
+reccmp = { git = "https://github.com/agluszak/reccmp", rev = "574601de72a0ddabdcf2d386ddb6f9d727af4ce1" }

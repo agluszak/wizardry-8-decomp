@@ -1,0 +1,8 @@
+targets:
+  SREXT_JPEGIMPORTER:
+    filename: srEXT_JPEGImporter.dll
+    source-root: src/srext_jpegimporter
+    data-sources:
+      - config/analysis/reccmp/srext-jpegimporter.csv
+    hash:
+      sha256: 0bf545937bd86ce2195c08b6dbf6b70e1a1071a9fce449ccb9f06dfa384de490

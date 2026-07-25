@@ -343,7 +343,7 @@ def ghidra_fid_build_seeds(
     toolchain: Optional[list[str]] = typer.Option(None, "--toolchain", help="Pinned candidate ID; repeat to select several."),
     library: Optional[list[str]] = typer.Option(None, "--library", help="Static-library ID; repeat to select several."),
 ) -> None:
-    """Compile pinned static-library object seeds with the container."""
+    """Build CMake-defined static-library object seeds with pinned toolchains."""
     from .ghidra.fid_seeds import build_seed_objects
     _run_action(lambda: build_seed_objects(_settings(), toolchain, library))
 
@@ -395,10 +395,3 @@ def ghidra_restore_project() -> None:
 def report_bootstrap() -> None:
     from .reports.bootstrap import bootstrap_report
     _run_action(lambda: bootstrap_report(_settings()))
-
-
-@app.command("test")
-def test_command(pytest_args: Optional[list[str]] = typer.Argument(None)) -> None:
-    """Run pytest inside the uv-managed environment."""
-    completed = subprocess.run([sys.executable, "-m", "pytest", *(pytest_args or [])], cwd=_settings().repo_dir, check=False)
-    raise typer.Exit(completed.returncode)

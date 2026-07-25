@@ -182,13 +182,19 @@ def select_toolchains(
     if unknown:
         raise RuntimeError(f"unknown toolchain id(s): {', '.join(unknown)}")
     selected = [by_id[item] for item in dict.fromkeys(ids)]
-    incompatible = [item.id for item in selected if capability is not None and capability not in item.capabilities]
+    incompatible = [
+        item.id
+        for item in selected
+        if capability is not None and capability not in item.capabilities
+    ]
     if incompatible:
         raise RuntimeError(f"toolchain(s) do not provide {capability}: {', '.join(incompatible)}")
     return selected
 
 
-def select_libraries(config: StaticLibrariesConfig, ids: list[str] | None = None) -> list[StaticLibrary]:
+def select_libraries(
+    config: StaticLibrariesConfig, ids: list[str] | None = None
+) -> list[StaticLibrary]:
     by_id = {library.id: library for library in config.libraries}
     if not ids:
         return sorted(config.libraries, key=lambda item: item.id)
@@ -347,7 +353,9 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
     return result
 
 
-def build_toolchain_images(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
+def build_toolchain_images(
+    settings: Settings, toolchain_ids: list[str] | None = None
+) -> dict[str, Any]:
     config = load_static_libraries(settings)
     docker = tool_version("docker", ("--version",))
     if docker["executable"] is None:
@@ -391,19 +399,29 @@ def build_toolchain_images(settings: Settings, toolchain_ids: list[str] | None =
     return summary
 
 
-def _docker_run(
+def _docker_cmake_build(
     settings: Settings,
     toolchain: Toolchain,
-    arguments: list[str],
     *,
-    sources: Path,
     output: Path,
+    target: str,
+    definitions: dict[str, str],
+    source_mounts: dict[str, Path] | None = None,
     log_name: str,
 ) -> None:
     docker = tool_version("docker", ("--version",))
     if docker["executable"] is None:
         raise RuntimeError("docker is required to build MSVC600 FID seeds")
     output.mkdir(parents=True, exist_ok=True)
+    (output / "tmp").mkdir(exist_ok=True)
+    volumes = [
+        "--volume",
+        f"{settings.repo_dir.resolve()}:/repo:ro",
+        "--volume",
+        f"{output.resolve()}:/out",
+    ]
+    for name, source in sorted((source_mounts or {}).items()):
+        volumes.extend(["--volume", f"{source.resolve()}:/sources/{name}:ro"])
     run(
         [
             docker["executable"],
@@ -411,16 +429,72 @@ def _docker_run(
             "--rm",
             "--network",
             "none",
-            "--volume",
-            f"{sources.resolve()}:/src:ro",
-            "--volume",
-            f"{output.resolve()}:/out",
+            *volumes,
             toolchain.image,
-            *arguments,
+            r"C:\cmake\bin\cmake.exe",
+            "-S",
+            "Z:/repo",
+            "-B",
+            "Z:/out",
+            "-G",
+            "NMake Makefiles",
+            "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+            *[f"-D{key}={value}" for key, value in sorted(definitions.items())],
         ],
         cwd=settings.repo_dir,
-        log_path=settings.build_dir / "logs" / "fid" / f"{log_name}.json",
+        log_path=settings.build_dir / "logs" / "fid" / f"{log_name}-configure.json",
     )
+    run(
+        [
+            docker["executable"],
+            "run",
+            "--rm",
+            "--network",
+            "none",
+            *volumes,
+            toolchain.image,
+            r"C:\cmake\bin\cmake.exe",
+            "--build",
+            "Z:/out",
+            "--target",
+            target,
+        ],
+        cwd=settings.repo_dir,
+        log_path=settings.build_dir / "logs" / "fid" / f"{log_name}-build.json",
+    )
+
+
+def _cmake_seed_target(library: str, variant: str) -> str:
+    normalize = lambda value: re.sub(r"[^a-z0-9]+", "_", value.casefold()).strip("_")
+    return f"fid_{normalize(library)}_{normalize(variant)}"
+
+
+def _publish_cmake_objects(source: Path, output: Path) -> list[dict[str, Any]]:
+    objects = sorted(source.rglob("*.obj"), key=lambda path: path.as_posix().casefold())
+    if not objects:
+        raise RuntimeError(f"CMake target produced no COFF objects under {source}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{output.name}.", dir=output.parent))
+    backup = output.with_name(f".{output.name}.previous")
+    try:
+        for index, source_object in enumerate(objects):
+            stem = re.sub(r"[^A-Za-z0-9_.-]+", "-", source_object.stem).strip("-.")
+            destination = temporary / f"{index:04d}--{stem or 'object'}.obj"
+            shutil.copyfile(source_object, destination)
+            _normalize_coff_timestamp(destination)
+        manifest = tree_manifest(temporary)
+        if backup.exists():
+            shutil.rmtree(backup)
+        if output.exists():
+            output.replace(backup)
+        temporary.replace(output)
+        shutil.rmtree(backup, ignore_errors=True)
+        return manifest
+    except Exception:
+        shutil.rmtree(temporary, ignore_errors=True)
+        if backup.exists() and not output.exists():
+            backup.replace(output)
+        raise
 
 
 def _docker_copy_from_image(
@@ -468,7 +542,9 @@ def _configured_seed_keys(config: StaticLibrariesConfig) -> set[tuple[str, str, 
         if "compiler" in toolchain.capabilities
         for library in config.libraries
         for variant in library.seed_variants
-        if library.source is not None and library.source.sha256 is not None and library.compilation_units
+        if library.source is not None
+        and library.source.sha256 is not None
+        and library.compilation_units
     }
     precompiled = {
         (toolchain.id, archive.library, archive.variant)
@@ -479,7 +555,9 @@ def _configured_seed_keys(config: StaticLibrariesConfig) -> set[tuple[str, str, 
     return compiled | precompiled
 
 
-def _write_archive_members(archive_path: Path, output: Path) -> tuple[list[dict[str, Any]], dict[str, int]]:
+def _write_archive_members(
+    archive_path: Path, output: Path
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
     members = read_coff_archive(archive_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=f".{output.name}.", dir=output.parent))
@@ -539,7 +617,9 @@ def extract_precompiled_objects(
             if not archive.seed:
                 continue
             if archive.library not in library_ids:
-                raise RuntimeError(f"{toolchain.id}/{archive.id} references unknown library {archive.library}")
+                raise RuntimeError(
+                    f"{toolchain.id}/{archive.id} references unknown library {archive.library}"
+                )
             selected_keys.add((toolchain.id, archive.library, archive.variant))
             archive_path = archive_root / toolchain.id / f"{archive.id}.lib"
             if not archive_path.is_file() or sha256_file(archive_path) != archive.sha256:
@@ -564,7 +644,9 @@ def extract_precompiled_objects(
                     "toolchain": toolchain.id,
                     "toolchain_commit": toolchain.commit,
                     "library": archive.library,
-                    "version": next(item.version for item in config.libraries if item.id == archive.library),
+                    "version": next(
+                        item.version for item in config.libraries if item.id == archive.library
+                    ),
                     "variant": archive.variant,
                     "flags": [],
                     "source_kind": "precompiled-archive",
@@ -589,10 +671,15 @@ def extract_precompiled_objects(
             key = (record["toolchain"], record["library"], record["variant"])
             if key in configured_keys and key not in selected_keys:
                 preserved.append(record)
-    combined = sorted(preserved + records, key=lambda item: (item["toolchain"], item["library"], item["variant"]))
+    combined = sorted(
+        preserved + records, key=lambda item: (item["toolchain"], item["library"], item["variant"])
+    )
     result = {
         "schema": "wiz8.fid-seed-objects",
-        "toolchains": [item.model_dump(mode="json") for item in sorted(config.toolchains, key=lambda item: item.id)],
+        "toolchains": [
+            item.model_dump(mode="json")
+            for item in sorted(config.toolchains, key=lambda item: item.id)
+        ],
         "libraries": combined,
     }
     atomic_json(manifest_path, result)
@@ -635,62 +722,87 @@ def build_seed_objects(
     config = load_static_libraries(settings)
     source_root = _fid_root(settings) / "sources" / "unpacked"
     output_root = _fid_root(settings) / "objects"
-    records = []
+    records: list[dict[str, Any]] = []
     selected_toolchains = select_toolchains(config, toolchain_ids, capability="compiler")
     selected_libraries = select_libraries(config, library_ids)
+    prepared_sources: dict[str, Path] = {}
+    cmake_variables = {
+        "zlib-1.0.4": "FID_ZLIB_SOURCE",
+        "ijg-jpeg-6": "FID_JPEG_SOURCE",
+        "infozip-unzip-5.4": "FID_INFOZIP_SOURCE",
+    }
+    for library in selected_libraries:
+        if library.source is None or library.source.sha256 is None or not library.compilation_units:
+            continue
+        pristine = source_root / library.id / library.source.archive_root
+        prepared_sources[library.id] = _prepared_source(settings, library, pristine)
+
     for toolchain in selected_toolchains:
-        for library in selected_libraries:
-            if library.source is None or library.source.sha256 is None or not library.compilation_units:
-                continue
-            pristine = source_root / library.id / library.source.archive_root
-            source = _prepared_source(settings, library, pristine)
-            for variant in library.seed_variants:
-                output = output_root / toolchain.id / library.id / variant.id
-                output.mkdir(parents=True, exist_ok=True)
-                for unit in library.compilation_units:
-                    object_path = output / (Path(unit).stem + ".obj")
-                    windows_unit = unit.replace("/", "\\")
-                    arguments = [
-                        "CL.EXE",
-                        *variant.flags,
-                        f"/FoZ:\\out\\{object_path.name}",
-                        f"Z:\\src\\{windows_unit}",
-                    ]
-                    _docker_run(
-                        settings,
-                        toolchain,
-                        arguments,
-                        sources=source,
-                        output=output,
-                        log_name=f"compile-{toolchain.id}-{library.id}-{variant.id}-{Path(unit).stem}",
+        temporary = Path(tempfile.mkdtemp(prefix=f"cmake-{toolchain.id}-", dir=_fid_root(settings)))
+        try:
+            definitions = {
+                "WIZ8_BUILD_DECOMP": "OFF",
+                "WIZ8_BUILD_FID_SEEDS": "ON",
+            }
+            mounts: dict[str, Path] = {}
+            for index, (library_id, source) in enumerate(sorted(prepared_sources.items())):
+                variable = cmake_variables.get(library_id)
+                if variable is None:
+                    raise RuntimeError(f"no CMake FID target is defined for {library_id}")
+                mount_name = f"source-{index}"
+                mounts[mount_name] = source
+                definitions[variable] = f"Z:/sources/{mount_name}"
+            _docker_cmake_build(
+                settings,
+                toolchain,
+                output=temporary,
+                target="fid-seeds",
+                definitions=definitions,
+                source_mounts=mounts,
+                log_name=f"cmake-seeds-{toolchain.id}",
+            )
+
+            for library in selected_libraries:
+                if library.id not in prepared_sources:
+                    continue
+                for variant in library.seed_variants:
+                    target = _cmake_seed_target(library.id, variant.id)
+                    cmake_objects = temporary / "CMakeFiles" / f"{target}.dir"
+                    output = output_root / toolchain.id / library.id / variant.id
+                    manifest = _publish_cmake_objects(cmake_objects, output)
+                    records.append(
+                        {
+                            "toolchain": toolchain.id,
+                            "toolchain_commit": toolchain.commit,
+                            "library": library.id,
+                            "version": library.version,
+                            "variant": variant.id,
+                            "flags": variant.flags,
+                            "source_kind": "cmake-object-library",
+                            "cmake_target": target,
+                            "object_count": len(manifest),
+                            "tree_hash": tree_hash(manifest),
+                            "objects": manifest,
+                        }
                     )
-                    if not object_path.is_file():
-                        raise RuntimeError(f"compiler did not produce {object_path}")
-                    _normalize_coff_timestamp(object_path)
-                manifest = tree_manifest(output)
-                records.append(
-                    {
-                        "toolchain": toolchain.id,
-                        "toolchain_commit": toolchain.commit,
-                        "library": library.id,
-                        "version": library.version,
-                        "variant": variant.id,
-                        "flags": variant.flags,
-                        "source_kind": "compiled-source",
-                        "object_count": len(manifest),
-                        "tree_hash": tree_hash(manifest),
-                        "objects": manifest,
-                    }
-                )
+        finally:
+            shutil.rmtree(temporary, ignore_errors=True)
     manifest_path = settings.build_dir / "manifests" / "fid-seed-objects.json"
-    selected_pairs = {(toolchain.id, library.id) for toolchain in selected_toolchains for library in selected_libraries}
+    selected_pairs = {
+        (toolchain.id, library.id)
+        for toolchain in selected_toolchains
+        for library in selected_libraries
+    }
     configured_keys = _configured_seed_keys(config)
     preserved = []
     if manifest_path.is_file() and (toolchain_ids or library_ids):
         previous = json.loads(manifest_path.read_text(encoding="utf-8"))
         for record in previous.get("libraries", []):
             key = (record["toolchain"], record["library"], record["variant"])
-            if key in configured_keys and (record["toolchain"], record["library"]) not in selected_pairs:
+            if (
+                key in configured_keys
+                and (record["toolchain"], record["library"]) not in selected_pairs
+            ):
                 preserved.append(record)
     combined = sorted(
         preserved + records,
@@ -698,7 +810,10 @@ def build_seed_objects(
     )
     result = {
         "schema": "wiz8.fid-seed-objects",
-        "toolchains": [item.model_dump(mode="json") for item in sorted(config.toolchains, key=lambda item: item.id)],
+        "toolchains": [
+            item.model_dump(mode="json")
+            for item in sorted(config.toolchains, key=lambda item: item.id)
+        ],
         "libraries": combined,
     }
     atomic_json(manifest_path, result)
@@ -707,25 +822,21 @@ def build_seed_objects(
 
 def probe_toolchains(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
     config = load_static_libraries(settings)
-    probe = settings.repo_dir / "docker" / "msvc600" / "probes"
-    arguments = [
-        "CL.EXE",
-        "/nologo",
-        "/O2",
-        "/MD",
-        "/FeZ:\\out\\rich_probe.exe",
-        "Z:\\src\\rich_probe.cpp",
-    ]
     records = []
     for toolchain in select_toolchains(config, toolchain_ids, capability="compiler"):
         output = _fid_root(settings) / "toolchain-probes" / toolchain.id
-        _docker_run(
+        if output.exists():
+            shutil.rmtree(output)
+        _docker_cmake_build(
             settings,
             toolchain,
-            arguments,
-            sources=probe,
             output=output,
-            log_name=f"toolchain-probe-{toolchain.id}",
+            target="fid-probe",
+            definitions={
+                "WIZ8_BUILD_DECOMP": "OFF",
+                "WIZ8_BUILD_TOOLCHAIN_PROBE": "ON",
+            },
+            log_name=f"cmake-toolchain-probe-{toolchain.id}",
         )
         executable = output / "rich_probe.exe"
         if not executable.is_file():

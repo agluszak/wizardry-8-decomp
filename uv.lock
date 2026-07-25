@@ -102,6 +102,29 @@ wheels = [
 ]
 
 [[package]]
+name = "cydifflib"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/16/3d/37bd6a166e657259470ec12ad4c6fe8f544e67529c9b046f6450d6d890ed/cydifflib-1.2.0.tar.gz", hash = "sha256:b8fb1bd1a1ac4360aacd9210baed6e342a1e1a3972e033b0aeaad7f6c536d96d", size = 340192, upload-time = "2025-04-11T13:33:15.338Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0c/c5/65dd6a94a87d3212d527a17511432c24a5c4a6f27587a403fa5b57ac33f5/cydifflib-1.2.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:8a55c225a61cbbba7d0c4262f1bb946a02ea220e981135eed4750c3d7c80b181", size = 224662, upload-time = "2025-04-11T13:32:12.846Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/65/b7084cdcafa17c9887d3c72e853c57d1159313dba81b73d303f9ccfb9b5d/cydifflib-1.2.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:37c4972b06030534aa9ee9b206f2db5adf6f5142dacf78fa992ee93495c6c3c6", size = 205837, upload-time = "2025-04-11T13:32:13.961Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/ad/0837f0704245d3aae2e8f435760bd09adc82373fe162ce465f774212d65d/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3671402af5a53d1b504121822e9cfd02dc13bc3ea3ab37e6860e13e7eb2f6366", size = 239828, upload-time = "2025-04-11T13:32:15.693Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/34/43843ae2ded5a5566ec7bbb1599c2015ab7997452b2b247c861a16f79076/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:d4c7ad24e181d3e0d03ddb614d6fb7352f6368f9ba458f92753acf85ec3e97a4", size = 271497, upload-time = "2025-04-11T13:32:16.773Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/92/1fe6d155c6060659c67eeead9199946203ffc2fed99afb5adaf8f3060267/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:b4af68c428e5fb24610767a4dc95abea954cb715d5a4edb3651137f643e533a2", size = 238592, upload-time = "2025-04-11T13:32:18.038Z" },
+    { url = "https://files.pythonhosted.org/packages/70/31/4f262564dc0fc9291875097ffa3a0179737ea015be1292f9e8d4a9651076/cydifflib-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c9ee8c24d54d70f9cac19b44dc71ec34d360a8b47494e4f73c076e746ab08def", size = 258763, upload-time = "2025-04-11T13:32:19.132Z" },
+    { url = "https://files.pythonhosted.org/packages/94/70/78c832f5047ba68d1743e494113e5a6d4a9f3bf8bc3d27004bf752ede61b/cydifflib-1.2.0-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f0b8e85d8d8df17f9b434e4cbdad9be74e1f4bd2884c3012edba7a6607a2a943", size = 262246, upload-time = "2025-04-11T13:32:20.369Z" },
+    { url = "https://files.pythonhosted.org/packages/82/e2/7b22f50ba01aeb878ede706253fa5bbef89b008f73b97141bd10b23bd7e0/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:156cbfab6afa4f9bc4e478b7e3e3897aba900fd363bf20634ab9091d7f04b9dd", size = 1231223, upload-time = "2025-04-11T13:32:21.635Z" },
+    { url = "https://files.pythonhosted.org/packages/96/06/4cd0c7f5e1852ce58ac7b7db595dcf0719d2d5484cda31962c4e23a3b943/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:073fb5f360c3bb30595e015225011c63102324eaf5cda1d71a23d72c1f3e7c62", size = 1417784, upload-time = "2025-04-11T13:32:22.92Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/dc/10c2cdf30136a7ff849d86cf4113501f6199219bd8d32bdf0e68ce04ec44/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_ppc64le.whl", hash = "sha256:7018128e9eb7fdaeb57828c64b7221fcc64be531f683f9b3fe94693d9bacc0bf", size = 1340243, upload-time = "2025-04-11T13:32:26.248Z" },
+    { url = "https://files.pythonhosted.org/packages/41/60/fb065008486c4ba0b97f2fddc3aa21399da598c324c4e330660558d2364a/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_s390x.whl", hash = "sha256:311ced28dd4d54f738e621b37a876f6348e2cea74ba4c6ad6f291df4f2fff113", size = 1463121, upload-time = "2025-04-11T13:32:27.667Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/96/5c32bff584c16dca3bccab52b4672cace3f46667b2eaafbacb61ffc35dec/cydifflib-1.2.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:6205d54c81ffcfa1d1a8bea6b27f1216838df1cc338fc4711e9afae7c7885ae0", size = 1311940, upload-time = "2025-04-11T13:32:29.017Z" },
+    { url = "https://files.pythonhosted.org/packages/91/5b/d4c4363b13c8e2ec2ea94811bc41412c0cc5c15cb01f8a37c938f5ef3404/cydifflib-1.2.0-cp313-cp313-win32.whl", hash = "sha256:fa14f4c3f6dca9b96fdffd67ff730cb411faa7179b444685097a83914050d297", size = 177197, upload-time = "2025-04-11T13:32:30.266Z" },
+    { url = "https://files.pythonhosted.org/packages/38/98/ff838de79ff3cd8d483bc95b359d47d09c4863662bb56bf1560b05d2b45c/cydifflib-1.2.0-cp313-cp313-win_amd64.whl", hash = "sha256:9cf9034f4df63f201c09ad09441febd9e2683d40d1126d696a6549d724227967", size = 203955, upload-time = "2025-04-11T13:32:31.448Z" },
+    { url = "https://files.pythonhosted.org/packages/43/ea/6524aa88a99694a24f05d75e24ba88051d2bbc2984c4a886d9f93ba9feef/cydifflib-1.2.0-cp313-cp313-win_arm64.whl", hash = "sha256:dea9ae3b69d26fca4824c26b15a2fb0eae7b5ed0ba0fc9d56b99830d95cc524c", size = 167083, upload-time = "2025-04-11T13:32:32.964Z" },
+]
+
+[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -249,6 +272,24 @@ wheels = [
 ]
 
 [[package]]
+name = "pydemumble"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/a9/1a78b7b6ed256c7bfec610e20658a3c8ed726a4c1a4652f2a17059c3563c/pydemumble-0.0.1.tar.gz", hash = "sha256:715f34fa999add1ef9337d1aae32d3b4b2a2a8dea0ddf363fcb1dac10593ca43", size = 1298294, upload-time = "2025-02-15T05:19:10.803Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/69/62/d479f63a145e50fb42dfa1090d0f5a58b3af94d02990e84c09c7b8cc2e7c/pydemumble-0.0.1-cp312-abi3-macosx_10_14_x86_64.whl", hash = "sha256:2dc4848ad97afb897877ee537820b38f427e30fe0a3b8dac25fe5c7b44d60cf0", size = 150273, upload-time = "2025-02-15T05:18:52.897Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/3e/4acec3739eef2b05779d250cbb9420feb61d8a3a1945651826620c03be12/pydemumble-0.0.1-cp312-abi3-macosx_11_0_arm64.whl", hash = "sha256:f5c770fde6b5929b5b386fe99960e6c237d62860c0eea0267f179034716c3ca0", size = 143501, upload-time = "2025-02-15T05:18:53.946Z" },
+    { url = "https://files.pythonhosted.org/packages/97/23/2ca50587a14cff273f3c4bb42dd42c87efd921ed09974bd7c43fcd8e02bc/pydemumble-0.0.1-cp312-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:94d7348778ed7a483cec06554b6367decb9c16da1a1b251e56faa21f2f34b4cc", size = 175584, upload-time = "2025-02-15T05:18:54.952Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/88/504c1bcd70bf970e387eaf789fd89637d01b333ba2c1b0975977fc7f0d64/pydemumble-0.0.1-cp312-abi3-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:18c83eeab994eab54640d347564799dd651857d06b1cdaf60fb81d2215c55a20", size = 190161, upload-time = "2025-02-15T05:18:56.077Z" },
+    { url = "https://files.pythonhosted.org/packages/df/5c/c9f981ea7b10817ec3b71a9d1790deb2c90031ec800e974cf432701efe49/pydemumble-0.0.1-cp312-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:24ff7fe892dd90e9a73e8a8e8225247820613b2ac9e6b6d5cf916f3a1d51cc1d", size = 181234, upload-time = "2025-02-15T05:18:57.211Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/ee/e249299975181286cfdbffcd070856e950451d1859aeb564a5ca28ac18a5/pydemumble-0.0.1-cp312-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:488c2ee1c743d0989bdc67c802c941900db77cc8150fb100f38eca2e3a462d5b", size = 588544, upload-time = "2025-02-15T05:18:58.351Z" },
+    { url = "https://files.pythonhosted.org/packages/81/bb/06c2a4861a3f7945d2918f6142bf688eaf4fa6424ddd46e792f00399fee6/pydemumble-0.0.1-cp312-abi3-musllinux_1_2_i686.whl", hash = "sha256:20a3e1e672ab210139640658f4ef3b4e7abe48f4562fc14947b538b95ab3e1c2", size = 653900, upload-time = "2025-02-15T05:18:59.443Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/23/7edfc6c6f4fba5fa3f371cdc3ecd774ab98bc4efb8a688a89b802a553f13/pydemumble-0.0.1-cp312-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:76f8bd943d8eec3b65beb09e97fd3a5994a519700243e5ecaf6a6a3ebe3e3809", size = 607638, upload-time = "2025-02-15T05:19:00.684Z" },
+    { url = "https://files.pythonhosted.org/packages/28/a2/b4f22086fb6d479cd01410cd0a57c39748736315a7a6a753f2d6ab9e6b22/pydemumble-0.0.1-cp312-abi3-win32.whl", hash = "sha256:63b965b89401ededcf8fc879196586a6427f4d4ba2be32953170b1965f34b51b", size = 143771, upload-time = "2025-02-15T05:19:01.838Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/7c/d7dc551b63c79795cad5a3c35b0799437e0d34de8d93a3ffb3539bbc8930/pydemumble-0.0.1-cp312-abi3-win_amd64.whl", hash = "sha256:6dd17d309a9b7bd2eaf697e9b07d35d5c88ce30026d12cf6e58d8a9900a737c4", size = 171611, upload-time = "2025-02-15T05:19:02.881Z" },
+]
+
+[[package]]
 name = "pyghidra"
 version = "3.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -268,6 +309,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/c3/b2/bc9c9196916376152d655522fdcebac55e66de6603a76a02bca1b6414f6c/pygments-2.20.0.tar.gz", hash = "sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f", size = 4955991, upload-time = "2026-03-29T13:29:33.898Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl", hash = "sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176", size = 1231151, upload-time = "2026-03-29T13:29:30.038Z" },
+]
+
+[[package]]
+name = "pystache"
+version = "0.6.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/89/0a712ca22930b8c71bced8703e5bb45669c31690ea81afe15f6cb284550c/pystache-0.6.8.tar.gz", hash = "sha256:3707518e6a4d26dd189b07c10c669b1fc17df72684617c327bd3550e7075c72c", size = 101892, upload-time = "2025-03-18T11:54:47.595Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/78/ffd13a516219129cef6a754a11ba2a1c0d69f1e281af4f6bca9ed5327219/pystache-0.6.8-py3-none-any.whl", hash = "sha256:7211e000974a6e06bce2d4d5cad8df03bcfffefd367209117376e4527a1c3cb8", size = 82051, upload-time = "2025-03-18T11:54:45.813Z" },
 ]
 
 [[package]]
@@ -346,6 +396,21 @@ wheels = [
 ]
 
 [[package]]
+name = "reccmp"
+version = "0.1.6"
+source = { git = "https://github.com/agluszak/reccmp?rev=574601de72a0ddabdcf2d386ddb6f9d727af4ce1#574601de72a0ddabdcf2d386ddb6f9d727af4ce1" }
+dependencies = [
+    { name = "capstone" },
+    { name = "colorama" },
+    { name = "cydifflib" },
+    { name = "pydantic" },
+    { name = "pydemumble" },
+    { name = "pyghidra" },
+    { name = "pystache" },
+    { name = "ruamel-yaml" },
+]
+
+[[package]]
 name = "rich"
 version = "14.3.4"
 source = { registry = "https://pypi.org/simple" }
@@ -356,6 +421,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/e9/67/cae617f1351490c25a4b8ac3b8b63a4dda609295d8222bad12242dfdc629/rich-14.3.4.tar.gz", hash = "sha256:817e02727f2b25b40ef56f5aa2217f400c8489f79ca8f46ea2b70dd5e14558a9", size = 230524, upload-time = "2026-04-11T02:57:45.419Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b3/76/6d163cfac87b632216f71879e6b2cf17163f773ff59c00b5ff4900a80fa3/rich-14.3.4-py3-none-any.whl", hash = "sha256:07e7adb4690f68864777b1450859253bed81a99a31ac321ac1817b2313558952", size = 310480, upload-time = "2026-04-11T02:57:47.484Z" },
+]
+
+[[package]]
+name = "ruamel-yaml"
+version = "0.19.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/3b/ebda527b56beb90cb7652cb1c7e4f91f48649fbcd8d2eb2fb6e77cd3329b/ruamel_yaml-0.19.1.tar.gz", hash = "sha256:53eb66cd27849eff968ebf8f0bf61f46cdac2da1d1f3576dd4ccee9b25c31993", size = 142709, upload-time = "2026-01-02T16:50:31.84Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/0c/51f6841f1d84f404f92463fc2b1ba0da357ca1e3db6b7fbda26956c3b82a/ruamel_yaml-0.19.1-py3-none-any.whl", hash = "sha256:27592957fedf6e0b62f281e96effd28043345e0e66001f97683aa9a40c667c93", size = 118102, upload-time = "2026-01-02T16:50:29.201Z" },
 ]
 
 [[package]]
@@ -447,6 +521,7 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "reccmp" },
     { name = "ruff" },
 ]
 
@@ -466,5 +541,6 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=8.4,<10" },
     { name = "pytest-cov", specifier = ">=6.2,<8" },
+    { name = "reccmp", git = "https://github.com/agluszak/reccmp?rev=574601de72a0ddabdcf2d386ddb6f9d727af4ce1" },
     { name = "ruff", specifier = ">=0.12,<1" },
 ]

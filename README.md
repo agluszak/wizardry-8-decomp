@@ -1,7 +1,9 @@
 # Wizardry 8 matching decompilation
 
 This repository contains reproducible tooling and analysis metadata, not Wizardry 8 game files.
-All commands use the single typed `wiz8` CLI through `uv`.
+`just` is the normal task surface: it invokes CMake, reccmp, and pytest directly, while `just wiz8`
+and `just ghidra` forward corpus- and Ghidra-specific arguments to the typed Python CLI. CMake owns
+all compilation units and compiler flags for recovered binaries and source-built FID seeds.
 
 Copy `.env.example` to `.env`, set the three absolute machine paths, and copy
 `config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. Input paths in
@@ -9,19 +11,34 @@ that file are relative to `WIZ8_INPUT_DIR`; roles are explicit and are never gue
 
 ```sh
 uv sync
-uv run wiz8 doctor
-uv run wiz8 inputs scan
-uv run wiz8 extract all
-uv run wiz8 variants materialize
-uv run wiz8 inventory
-uv run wiz8 pipeline verify
-uv run wiz8 ghidra import --all
-uv run wiz8 ghidra fid build-image
-uv run wiz8 ghidra fid build-seeds
-uv run wiz8 ghidra fid extract-libraries
-uv run wiz8 ghidra fid build
-uv run wiz8 report bootstrap
+just wiz8 doctor
+just wiz8 inputs scan
+just wiz8 extract all
+just wiz8 variants materialize
+just wiz8 inventory
+just wiz8 pipeline verify
+just ghidra import --all
+just ghidra fid build-image
+just ghidra fid build-seeds
+just ghidra fid extract-libraries
+just ghidra fid build
+just wiz8 report bootstrap
 ```
+
+The active matching target has a PDB-backed build and comparison loop:
+
+```sh
+just build-image
+just build
+just compare
+just compare --verbose 0x10001000
+just test
+```
+
+The complete comparison is important: it loads the accepted IJG identities needed to prove calls
+across object files. `just configure` asks reccmp to find the hash-pinned original in the materialized
+GOG DLL tree. Build products and `reccmp-build.yml` remain under `WIZ8_WORK_DIR`; the local original
+path is written only to the gitignored `reccmp-user.yml`.
 
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.

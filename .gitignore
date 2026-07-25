@@ -1,5 +1,6 @@
 .env
 config/local-inputs.yml
+reccmp-user.yml
 .venv/
 __pycache__/
 *.py[cod]

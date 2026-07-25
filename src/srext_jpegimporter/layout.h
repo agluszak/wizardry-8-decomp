@@ -5,18 +5,18 @@
 // typed.
 
 struct JpegCodecState32 {
-    void* pixels;                 // +0x00
-    unsigned long width;          // +0x04
-    unsigned long height;         // +0x08
-    void* output_stream_cookie;   // +0x0c
-    void* input_stream_cookie;    // +0x10
-    unsigned long parameter_14;   // +0x14
-    unsigned long parameter_18;   // +0x18
-    unsigned long parameter_1c;   // +0x1c
-    unsigned long quality;        // +0x20
-    unsigned long parameter_24;   // +0x24
-    unsigned long failed;         // +0x28
-    unsigned long components;     // +0x2c
+    unsigned char* pixels;        // +0x00
+    unsigned long width;          // +0x04: IJG output/image width
+    unsigned long height;         // +0x08: IJG output/image height
+    void* output_stdio_cookie;    // +0x0c: ignored by the SurRender fwrite bridge
+    void* input_stdio_cookie;     // +0x10: ignored by the SurRender fread bridge
+    int arithmetic_coding;        // +0x14 -> jpeg_compress_struct::arith_code
+    int ccir601_sampling;         // +0x18 -> jpeg_compress_struct::CCIR601_sampling
+    int smoothing_factor;         // +0x1c -> jpeg_compress_struct::smoothing_factor
+    int quality;                  // +0x20 -> jpeg_set_quality
+    unsigned long unknown_24;     // +0x24: not read by any of the three codec adapters
+    int failed;                   // +0x28: nonzero after the IJG error callback
+    int components;               // +0x2c: IJG output_components
 };
 
 struct JpegExportOptions32 {

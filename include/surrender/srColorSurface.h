@@ -19,20 +19,21 @@ public:
 template <class T>
 class srVector4T;
 
-namespace srPixelConvert {
-enum e_surfaceType {
-    SURFACE_L8 = 0x02,
-    SURFACE_BGR24 = 0x0c,
-    SURFACE_BGRA32 = 0x0e,
-    SURFACE_COPY = 0x18
-};
+class srPixelConvert {
+public:
+    enum e_surfaceType {
+        SURFACE_L8 = 0x02,
+        SURFACE_BGR24 = 0x0c,
+        SURFACE_BGRA32 = 0x0e,
+        SURFACE_COPY = 0x18
+    };
 
-struct PixelFormat {
-    unsigned long words[5];
-};
+    struct PixelFormat {
+        unsigned long words[5];
+    };
 
-SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);
-}
+    static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);
+};
 
 class srColorSurfaceIFace : public srClass {
 public:
@@ -110,7 +111,12 @@ protected:
     virtual void minify(srColorSurfaceIFace& source) = 0;
 };
 
-class srColorSurface : public srColorSurfaceIFace {
+// The concrete implementation lives in SR.DLL.  Its primary interface is at
+// offset zero, but declaring it as a C++ subclass here would require inventing
+// definitions for every SDK-owned virtual override merely to call its imported
+// constructor.  Keep the concrete storage opaque and cross the proven
+// zero-offset interface boundary explicitly at call sites.
+class srColorSurface {
 public:
     SR_DLL_IMPORT srColorSurface(srPixelConvert::e_surfaceType type,
                                  unsigned long width,
@@ -119,7 +125,18 @@ public:
     SR_DLL_IMPORT srColorSurface& operator=(const srColorSurface& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();
+
+    long rowPitch() const { return row_pitch_; }
+    srColorSurfaceIFace* asInterface() {
+        return reinterpret_cast<srColorSurfaceIFace*>(this);
+    }
+
+private:
+    unsigned char unknown_04_[0x20];
+    long row_pitch_; // +0x24
+    unsigned char unknown_28_[0x34];
 };
 
 typedef char srSurfaceDesc_must_be_0x28[
     (sizeof(srColorSurfaceIFace::SurfaceDesc) == 0x28) ? 1 : -1];
+typedef char srColorSurface_must_be_0x5c[(sizeof(srColorSurface) == 0x5c) ? 1 : -1];
