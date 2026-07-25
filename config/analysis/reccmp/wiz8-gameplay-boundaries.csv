@@ -6,3 +6,4 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 004aca60,102,CanSpellBackfire,wiz8-spell-system,structurally-strong,,Typed switch semantics and control-flow cases agree; candidate retains a separate true-return block and is not byte-exact
 004acb40,61,MinimumCasterLevelForSpellLevel,wiz8-spell-system,exact,649880237ae6e55d4df2f0ccfcc79f459e41a6bdb57711253ae74e907fa35228,VC6 SP5 O2 G6 MD switch body and local jump-table relocations match exactly
 004acba0,85,GetMinimumCasterLevelForSpell,wiz8-spell-system,exact,bb490ccad29b8f851d5c0f3e8ee00b2c3cc7f778aa3f671f2a620e4974094758,VC6 SP5 O2 G6 MD body matches after masking the spell-record and local jump-table relocations
+00535ad0,100,GetFactionDisposition,wiz8-factions,exact,8166d9a0a4cfcb3ed073f966e33115d60f4512f670bcb6785a5300e114a113f4,VC6 SP5 O2 G6 MD body matches after masking imported assertion strings and faction-table relocations

@@ -17,6 +17,19 @@ typedef struct W8SpellRuntimeRecord {
     unsigned char unknown_13b[0x84];
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 
+typedef struct W8FactionRuntimeRecord {
+    signed char disposition_score;      /* 0x00 */
+    unsigned char unknown_01[0x0d];
+} W8FactionRuntimeRecord;               /* 0x0e */
+
+typedef unsigned char W8FactionDisposition;
+
+enum {
+    W8_FACTION_HOSTILE = 0,
+    W8_FACTION_NEUTRAL = 1,
+    W8_FACTION_FRIENDLY = 2
+};
+
 #pragma pack(pop)
 
 #ifdef __cplusplus
@@ -24,6 +37,7 @@ extern "C" {
 #endif
 
 extern W8SpellRuntimeRecord* g_spell_records;
+extern W8FactionRuntimeRecord g_factions[21];
 
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -36,6 +50,7 @@ unsigned char CanSpellBackfire(int spell_id);
 #endif
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
+W8FactionDisposition GetFactionDisposition(signed char faction);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,11 @@
 #include "gameplay_boundaries.h"
 
 extern unsigned int GetRandomNumber(unsigned int upper_bound);
+extern __declspec(dllimport) void srAssertFail(
+    const char* expression,
+    const char* source_path,
+    int line,
+    const char* message);
 
 static __inline int MinimumCasterLevel(int spell_level)
 {
@@ -78,4 +83,34 @@ int MinimumCasterLevelForSpellLevel(int spell_level)
 int GetMinimumCasterLevelForSpell(int spell_id)
 {
     return MinimumCasterLevel(g_spell_records[spell_id].spell_level);
+}
+
+// FUNCTION: WIZ8 0x00535AD0
+W8FactionDisposition GetFactionDisposition(signed char faction)
+{
+    signed char disposition_score;
+
+    if (faction < 0) {
+        srAssertFail(
+            "bFaction >= 0",
+            "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp",
+            0xaf,
+            0);
+    }
+    if (faction >= 21) {
+        srAssertFail(
+            "bFaction < FACTION_COUNT",
+            "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp",
+            0xb0,
+            0);
+    }
+
+    disposition_score = g_factions[faction].disposition_score;
+    if (disposition_score < 34) {
+        return W8_FACTION_HOSTILE;
+    }
+    if (disposition_score < 67) {
+        return W8_FACTION_NEUTRAL;
+    }
+    return W8_FACTION_FRIENDLY;
 }
