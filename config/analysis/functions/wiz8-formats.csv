@@ -8,6 +8,7 @@ address,provisional_name,owner,confidence,evidence
 004aca60,CanSpellBackfire,wiz8-gameplay-database,strong,The canonical casting failure path uses this target-type and spell-ID predicate to decide whether a failed spell can backfire
 004acb40,MinimumCasterLevelForSpellLevel,wiz8-gameplay-database,strong,Maps spell levels one through seven to minimum caster levels 1 3 5 8 11 14 and 18
 004acba0,GetMinimumCasterLevelForSpell,wiz8-gameplay-database,strong,Loads a spell's level and returns the corresponding minimum caster level
+004ff3b0,GetProfessionCasterLevel,wiz8-character-system,strong,Returns the selected profession level plus its magic-level offset or minus one for the no-magic sentinel
 00517970,RollDice,wiz8-gameplay-database,strong,Returns the signed base plus count independent rolls in the range one through sides
 005179b0,IntegerPower,wiz8-gameplay-database,strong,Multiplies the integer base by itself exponent times and is used to derive the monster disposition cache duration
 005179d0,ClampInteger,wiz8-engine-code,strong,Clamps an integer through a pointer to the inclusive minimum and maximum arguments
@@ -29,6 +30,16 @@ address,provisional_name,owner,confidence,evidence
 005064a0,LoadFactState,wiz8-save-game,strong,Reads exactly 1000 fact-state bytes and reconciles state-dependent NPC data and initial-mode facts
 00506670,HandleFactChange,wiz8-local-code,strong,The only caller is SetFact and the fact-ID switch performs corresponding world NPC faction trigger and location side effects
 005080f0,EvaluateFact,wiz8-local-code,strong,Computes special and derived facts recursively and otherwise returns the persisted byte for the requested fact ID
+0052a2f0,RecalculateCharacterHitPoints,wiz8-character-system,strong,Combines all fifteen profession levels with the corresponding hit-point factors then reconciles current and maximum hit points
+00551a60,RecalculateCharacterResistances,wiz8-character-system,strong,Builds six realm resistances then applies the selected race's six resistance adjustment records and character bonuses
+00553d90,IsCharacterSkillAvailable,wiz8-character-system,strong,Checks the 41 by 15 profession skill matrix then bonus professional caster and expert-skill exceptions
+00553f10,PracticeCharacterSkill,wiz8-character-system,strong,Consumes usage points to advance an available skill and dispatches the character skill-increase notification
+00557350,DetermineEligibleProfessions,wiz8-character-system,strong,Compares seven current attributes and creation-budget adjustments against all fifteen profession minimum records
+00557430,AddCharacterStartingEquipment,wiz8-character-system,strong,Adds six profession item IDs or the dedicated Faerie replacement row and then applies profession-specific extras
+005df0d0,ConstructProfessionInfoDialog,wiz8-ui,strong,ProfRaceInfoDialog constructor asserts PROF_COUNT and copies one profession's seven attribute minimums
+005df250,PopulateProfessionInfoDialog,wiz8-ui,strong,Displays three profession abilities plus the bonus and four professional skills from the canonical tables
+005df570,ConstructRaceInfoDialog,wiz8-ui,strong,ProfRaceInfoDialog constructor asserts RACE_COUNT and copies seven attribute minimums for the eleven playable races
+005df6f0,PopulateRaceInfoDialog,wiz8-ui,strong,Displays five race ability IDs from the sixteen-record race ability table
 004126f0,InitializeSlfArchives,wiz8-file-system,strong,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
 00412a10,RefreshSlfArchives,wiz8-file-system,strong,Closes or reopens each of six configured SLF archives and recreates optional file mappings
 00412bb0,OpenSlfArchive,wiz8-file-system,strong,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries

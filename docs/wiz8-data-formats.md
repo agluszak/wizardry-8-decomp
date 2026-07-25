@@ -43,20 +43,29 @@ the Win32 constants passed internally. They are declared in
 ## Cosmic Forge override blobs
 
 Fan-patch module `cfagent1.28.dll` exposes fifteen `.cfdat` filenames and English
-destination addresses. They are valuable evidence about table ownership, but they do
-not yet establish record layouts.
+destination addresses. They are valuable table-ownership evidence, but the unused size
+arguments still must not be treated as `sizeof` values.
 
 The loader at `0x10003dd0` receives a size-like fourth argument at every call site but
 never reads it. Instead it accepts any file up to `0x1000` bytes and passes the file's
-actual size to `WriteProcessMemory`. Consequently, constants such as `0x1c0` for
-`racesattrs.cfdat` are not safe `sizeof` evidence. Indeed, writing `0x1c0` bytes at the
-seed destination `0x00614cf0` would overlap the `classesattrs.cfdat` destination at
-`0x00614e24`. `classesexpgroup.cfdat` is more clearly inconsistent: its English seed
-destination `0x004ef1e0` lies in executable code.
+actual size to `WriteProcessMemory`. Canonical consumers now resolve most of the layouts.
+The race dialog proves that `racesattrs.cfdat` is eleven playable-race records of seven
+32-bit attribute minimums, or `0x134` bytes rather than the call site's `0x1c0`. The
+profession counterpart is fifteen records of the same `0x1c` shape.
 
-`config/analysis/wiz8/cfdat-overrides.csv` therefore preserves these call-site facts
-and conflicts without installing guessed arrays in Ghidra. Record counts and fields
-must come from the canonical readers and writers, not from these unused arguments.
+The largest correction is `classesskills.cfdat`. `IsCharacterSkillAvailable` indexes it
+as a skill-major matrix of 41 skills by fifteen professions, making the real extent
+`0x99c`; the `0x7f8` argument covers only 34 skill rows and omits the seven expert skills.
+Adjacent consumers independently establish fifteen profession hit-point floats, three
+ability IDs, one bonus skill, four professional skills, one caster-level offset, a byte
+spellbook mask, and six starting item IDs. Race tables contain sixteen five-ability
+records and sixteen resistance profiles with six adjustment pairs. The special Faerie
+equipment blob is a replacement six-item row selected when race ID five is active.
+
+`classesexpgroup.cfdat` remains rejected because its English seed destination
+`0x004ef1e0` lies in executable code. `config/analysis/wiz8/cfdat-overrides.csv` keeps both
+the patch argument and the independently proven canonical extent so the disagreement is
+not erased.
 
 ## Gameplay databases
 

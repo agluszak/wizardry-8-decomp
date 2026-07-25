@@ -138,7 +138,7 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
     assert {row["kind"] for row in hooks} == {"hook", "inline-fix"}
 
 
-def test_cfdat_override_evidence_does_not_promote_unused_sizes_to_layouts() -> None:
+def test_cfdat_override_evidence_separates_callsite_and_canonical_sizes() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/analysis/wiz8/cfdat-overrides.csv").open(
         newline="", encoding="utf-8"
@@ -146,10 +146,13 @@ def test_cfdat_override_evidence_does_not_promote_unused_sizes_to_layouts() -> N
         rows = list(csv.DictReader(stream))
 
     assert len(rows) == 15
-    assert {row["status"] for row in rows} == {"untyped", "conflicting"}
+    assert {row["status"] for row in rows} == {"typed", "partially-typed", "conflicting"}
     by_name = {row["filename"]: row for row in rows}
     assert by_name["racesattrs.cfdat"]["english_destination"] == "0x00614cf0"
-    assert by_name["classesattrs.cfdat"]["status"] == "conflicting"
+    assert by_name["racesattrs.cfdat"]["canonical_size"] == "0x134"
+    assert by_name["classesattrs.cfdat"]["status"] == "typed"
+    assert by_name["classesskills.cfdat"]["callsite_size_argument"] == "0x7f8"
+    assert by_name["classesskills.cfdat"]["canonical_size"] == "0x99c"
     assert by_name["classesexpgroup.cfdat"]["english_destination"] == "0x004ef1e0"
 
 

@@ -192,6 +192,91 @@ def apply_wiz8_format_model(
                         (0x0CB, ArrayDataType(byte, 0x42, 1), "unknown_0cb", "unreviewed fields"),
                     ],
                 )
+                spellbook_mask = EnumDataType(category, "W8SpellbookMask", 1, dtm)
+                spellbook_mask.add("W8_SPELLBOOK_NONE", 0)
+                spellbook_mask.add("W8_SPELLBOOK_WIZARDRY", 1)
+                spellbook_mask.add("W8_SPELLBOOK_DIVINITY", 2)
+                spellbook_mask.add("W8_SPELLBOOK_ALCHEMY", 4)
+                spellbook_mask.add("W8_SPELLBOOK_PSIONICS", 8)
+                spellbook_mask = dtm.addDataType(
+                    spellbook_mask, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+                attribute_minimums = _structure(
+                    dtm,
+                    category,
+                    "W8AttributeMinimums",
+                    0x1C,
+                    [(0x00, ArrayDataType(integer, 7, 4), "values", "seven core attributes")],
+                )
+                profession_abilities = _structure(
+                    dtm,
+                    category,
+                    "W8ProfessionAbilities",
+                    0x0C,
+                    [(0x00, ArrayDataType(integer, 3, 4), "ability_ids", "-1 terminates the list")],
+                )
+                race_abilities = _structure(
+                    dtm,
+                    category,
+                    "W8RaceAbilities",
+                    0x14,
+                    [(0x00, ArrayDataType(integer, 5, 4), "ability_ids", "-1 is unused")],
+                )
+                resistance_adjustment = _structure(
+                    dtm,
+                    category,
+                    "W8RaceResistanceAdjustment",
+                    0x08,
+                    [
+                        (0x00, integer, "resistance_index", "-1 terminates the list"),
+                        (
+                            0x04,
+                            integer,
+                            "adjustment_or_attribute",
+                            "values above 1000 select character data",
+                        ),
+                    ],
+                )
+                resistance_profile = _structure(
+                    dtm,
+                    category,
+                    "W8RaceResistanceProfile",
+                    0x30,
+                    [
+                        (
+                            0x00,
+                            ArrayDataType(resistance_adjustment, 6, 0x08),
+                            "adjustments",
+                            "six resistance adjustment slots",
+                        )
+                    ],
+                )
+                skill_attributes = _structure(
+                    dtm,
+                    category,
+                    "W8SkillAttributes",
+                    0x10,
+                    [
+                        (0x00, integer, "category", "zero through four; four is expert"),
+                        (0x04, integer, "unknown_04", "unreviewed skill attribute"),
+                        (0x08, integer, "unknown_08", "unreviewed skill attribute"),
+                        (0x0C, integer, "unknown_0c", "unreviewed skill attribute"),
+                    ],
+                )
+                profession_skills = _structure(
+                    dtm,
+                    category,
+                    "W8ProfessionSkills",
+                    0x10,
+                    [(0x00, ArrayDataType(integer, 4, 4), "skill_ids", "four professional skills")],
+                )
+                starting_equipment = _structure(
+                    dtm,
+                    category,
+                    "W8StartingEquipment",
+                    0x18,
+                    [(0x00, ArrayDataType(integer, 6, 4), "item_ids", "-1 is unused")],
+                )
                 faction = EnumDataType(category, "W8Faction", 4, dtm)
                 for name, value in (
                     ("W8_FACTION_UNALIGNED", 0),
@@ -432,6 +517,7 @@ def apply_wiz8_format_model(
                 level_record_pointer = PointerDataType(level_record, dtm)
                 fact_record_pointer = PointerDataType(fact_record, dtm)
                 spell_record_pointer = PointerDataType(spell_record, dtm)
+                profession_skill_availability = ArrayDataType(integer, 15, 4)
                 seek_origin = EnumDataType(category, "W8VirtualFileSeekOrigin", 1, dtm)
                 seek_origin.add("W8_SEEK_BEGIN", 1)
                 seek_origin.add("W8_SEEK_END", 2)
@@ -450,6 +536,23 @@ def apply_wiz8_format_model(
                     archive_state_pointer,
                 )
                 for raw_address, data_type in (
+                    (0x00614CF0, ArrayDataType(attribute_minimums, 11, 0x1C)),
+                    (0x00614E24, ArrayDataType(attribute_minimums, 15, 0x1C)),
+                    (0x0061507C, ArrayDataType(profession_abilities, 15, 0x0C)),
+                    (0x00615130, ArrayDataType(race_abilities, 16, 0x14)),
+                    (0x00615270, ArrayDataType(resistance_profile, 16, 0x30)),
+                    (0x00615570, ArrayDataType(float_type, 15, 4)),
+                    (0x006155B0, ArrayDataType(skill_attributes, 41, 0x10)),
+                    (
+                        0x00615840,
+                        ArrayDataType(profession_skill_availability, 41, 0x3C),
+                    ),
+                    (0x006161DC, ArrayDataType(integer, 15, 4)),
+                    (0x00616218, ArrayDataType(profession_skills, 15, 0x10)),
+                    (0x00616310, ArrayDataType(integer, 15, 4)),
+                    (0x0061634C, ArrayDataType(spellbook_mask, 15, 1)),
+                    (0x0061635C, ArrayDataType(starting_equipment, 15, 0x18)),
+                    (0x006164C4, starting_equipment),
                     (0x0060A6C0, integer),
                     (0x0060A6C4, integer),
                     (0x0060A6C8, integer),
@@ -506,6 +609,10 @@ def apply_wiz8_format_model(
                     0x004ACA60: (byte, [("spell_id", integer)]),
                     0x004ACB40: (integer, [("spell_level", integer)]),
                     0x004ACBA0: (integer, [("spell_id", integer)]),
+                    0x004FF3B0: (
+                        integer,
+                        [("character", generic_pointer), ("profession_id", integer)],
+                    ),
                     0x004126F0: (dword, []),
                     0x00412A10: (dword, []),
                     0x00412BB0: (
@@ -555,6 +662,34 @@ def apply_wiz8_format_model(
                             ("include_quantity", byte),
                         ],
                     ),
+                    0x0052A2F0: (void, [("character", generic_pointer)]),
+                    0x00551A60: (void, [("character", generic_pointer)]),
+                    0x00553D90: (
+                        byte,
+                        [
+                            ("character", generic_pointer),
+                            ("skill_id", dword),
+                            ("expert_realm_flags", generic_pointer),
+                        ],
+                    ),
+                    0x00553F10: (
+                        void,
+                        [
+                            ("character", generic_pointer),
+                            ("skill_id", integer),
+                            ("usage_points", integer),
+                            ("suppress_notification", byte),
+                        ],
+                    ),
+                    0x00557350: (
+                        void,
+                        [
+                            ("character", generic_pointer),
+                            ("creation_budget", generic_pointer),
+                            ("eligibility", PointerDataType(byte, dtm)),
+                        ],
+                    ),
+                    0x00557430: (void, [("character", generic_pointer)]),
                     0x0051C020: (
                         void,
                         [
@@ -612,6 +747,20 @@ def apply_wiz8_format_model(
                     (0x0060A6C0, "g_random_encounter_limit"),
                     (0x0060A6C4, "g_random_encounter_budget"),
                     (0x0060A6C8, "g_encounter_culling_time_seconds"),
+                    (0x00614CF0, "g_race_attribute_minimums"),
+                    (0x00614E24, "g_profession_attribute_minimums"),
+                    (0x0061507C, "g_profession_abilities"),
+                    (0x00615130, "g_race_abilities"),
+                    (0x00615270, "g_race_resistance_profiles"),
+                    (0x00615570, "g_profession_hit_point_factors"),
+                    (0x006155B0, "g_skill_attributes"),
+                    (0x00615840, "g_profession_skill_availability"),
+                    (0x006161DC, "g_profession_bonus_skills"),
+                    (0x00616218, "g_profession_skills"),
+                    (0x00616310, "g_profession_magic_level_offsets"),
+                    (0x0061634C, "g_profession_spellbooks"),
+                    (0x0061635C, "g_profession_starting_equipment"),
+                    (0x006164C4, "g_faerie_starting_equipment"),
                     (0x0065BE18, "g_spell_database_version"),
                     (0x0065BE1C, "g_spell_records"),
                     (0x006836A4, "g_level_records"),
@@ -650,6 +799,15 @@ def apply_wiz8_format_model(
                                 dice,
                                 item_instance,
                                 item_record,
+                                spellbook_mask,
+                                attribute_minimums,
+                                profession_abilities,
+                                race_abilities,
+                                resistance_adjustment,
+                                resistance_profile,
+                                skill_attributes,
+                                profession_skills,
+                                starting_equipment,
                                 faction,
                                 faction_disposition,
                                 monster_companion,
@@ -666,6 +824,20 @@ def apply_wiz8_format_model(
                             "0x0060a6c0",
                             "0x0060a6c4",
                             "0x0060a6c8",
+                            "0x00614cf0",
+                            "0x00614e24",
+                            "0x0061507c",
+                            "0x00615130",
+                            "0x00615270",
+                            "0x00615570",
+                            "0x006155b0",
+                            "0x00615840",
+                            "0x006161dc",
+                            "0x00616218",
+                            "0x00616310",
+                            "0x0061634c",
+                            "0x0061635c",
+                            "0x006164c4",
                             "0x0065be18",
                             "0x0065be1c",
                             "0x006836a4",

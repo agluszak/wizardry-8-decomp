@@ -79,6 +79,60 @@ typedef enum W8FactionDisposition {
     W8_FACTION_FRIENDLY = 2
 } W8FactionDisposition;
 
+enum {
+    W8_CORE_ATTRIBUTE_COUNT = 7,
+    W8_PROFESSION_COUNT = 15,
+    W8_RACE_COUNT = 16,
+    W8_PLAYABLE_RACE_COUNT = 11,
+    W8_SKILL_COUNT = 41
+};
+
+typedef uint8_t W8SpellbookMask;
+
+enum {
+    W8_SPELLBOOK_NONE = 0,
+    W8_SPELLBOOK_WIZARDRY = 1,
+    W8_SPELLBOOK_DIVINITY = 2,
+    W8_SPELLBOOK_ALCHEMY = 4,
+    W8_SPELLBOOK_PSIONICS = 8
+};
+
+typedef struct W8AttributeMinimums {
+    int32_t values[W8_CORE_ATTRIBUTE_COUNT];
+} W8AttributeMinimums;                  /* 0x1c */
+
+typedef struct W8ProfessionAbilities {
+    int32_t ability_ids[3];             /* -1 terminates the displayed list */
+} W8ProfessionAbilities;                /* 0x0c */
+
+typedef struct W8RaceAbilities {
+    int32_t ability_ids[5];             /* -1 denotes an unused slot */
+} W8RaceAbilities;                      /* 0x14 */
+
+typedef struct W8RaceResistanceAdjustment {
+    int32_t resistance_index;           /* -1 terminates this race's list */
+    int32_t adjustment_or_attribute;    /* values above 1000 select character data */
+} W8RaceResistanceAdjustment;           /* 0x08 */
+
+typedef struct W8RaceResistanceProfile {
+    W8RaceResistanceAdjustment adjustments[6];
+} W8RaceResistanceProfile;              /* 0x30 */
+
+typedef struct W8SkillAttributes {
+    int32_t category;                   /* 0..4; category four is expert skills */
+    int32_t unknown_04;
+    int32_t unknown_08;
+    int32_t unknown_0c;
+} W8SkillAttributes;                    /* 0x10 */
+
+typedef struct W8ProfessionSkills {
+    int32_t skill_ids[4];
+} W8ProfessionSkills;                   /* 0x10 */
+
+typedef struct W8StartingEquipment {
+    int32_t item_ids[6];                /* -1 denotes an unused slot */
+} W8StartingEquipment;                  /* 0x18 */
+
 typedef struct W8MonsterCompanion {
     int16_t species_id;                 /* 0x00: less than one means absent */
     uint8_t spawn_chance_percent;       /* 0x02 */

@@ -1,16 +1,16 @@
-filename,callsite_size_argument,english_destination,status,evidence
-racesattrs.cfdat,0x1c0,0x00614cf0,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-racesabilities.cfdat,0x140,0x00615130,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-racesresists.cfdat,0x300,0x00615270,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-racesfaerieitems.cfdat,0x18,0x006164c4,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesattrs.cfdat,0x1a4,0x00614e24,conflicting,Race attributes at the advertised 0x1c0 size would overlap this destination; no record shape is asserted
-classesskills.cfdat,0x7f8,0x00615840,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesbonusskills.cfdat,0x3c,0x006161dc,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesprofskills.cfdat,0xf0,0x00616218,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesabilities.cfdat,0xb4,0x0061507c,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classeshps.cfdat,0x3c,0x00615570,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesmaglvloffs.cfdat,0x3c,0x00616310,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesmagschools.cfdat,0x0f,0x0061634c,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesitems.cfdat,0x168,0x0061635c,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
-classesexpgroup.cfdat,0x0f,0x004ef1e0,conflicting,The English seed destination lies in executable code and is not accepted as a data layout
-skillsattrs.cfdat,0x290,0x006155b0,untyped,CFAgent passes this size but LoadGameInfoOverride does not read the argument and writes the actual file size
+filename,callsite_size_argument,canonical_size,english_destination,status,evidence
+racesattrs.cfdat,0x1c0,0x134,0x00614cf0,typed,The race dialog copies seven 32-bit attribute minimums for exactly eleven playable races
+racesabilities.cfdat,0x140,0x140,0x00615130,typed,The race dialog indexes sixteen records of five 32-bit ability IDs with minus one as the unused sentinel
+racesresists.cfdat,0x300,0x300,0x00615270,partially-typed,Resistance recalculation indexes sixteen race profiles containing six pairs of resistance index and adjustment values
+racesfaerieitems.cfdat,0x18,0x18,0x006164c4,typed,Starting equipment selects this six-item row instead of the profession row when the race ID is five
+classesattrs.cfdat,0x1a4,0x1a4,0x00614e24,typed,Profession selection and the profession dialog index fifteen records of seven 32-bit attribute minimums
+classesskills.cfdat,0x7f8,0x99c,0x00615840,typed,Skill availability indexes a skill-major matrix of 41 skills by fifteen professions; the callsite size covers only 34 rows
+classesbonusskills.cfdat,0x3c,0x3c,0x006161dc,typed,Skill checks and the profession dialog index one 32-bit bonus skill ID for each of fifteen professions
+classesprofskills.cfdat,0xf0,0xf0,0x00616218,typed,Skill checks and the profession dialog index four 32-bit professional skill IDs for each of fifteen professions
+classesabilities.cfdat,0xb4,0xb4,0x0061507c,typed,The profession dialog indexes fifteen records of three 32-bit ability IDs with minus one as the unused sentinel
+classeshps.cfdat,0x3c,0x3c,0x00615570,typed,Hit-point recalculation iterates fifteen single-precision profession factors in parallel with character profession levels
+classesmaglvloffs.cfdat,0x3c,0x3c,0x00616310,typed,Caster-level calculation indexes one signed 32-bit offset for each profession and treats minus 255 as no magic
+classesmagschools.cfdat,0x0f,0x0f,0x0061634c,typed,Spell eligibility uses fifteen byte masks with Wizardry Divinity Alchemy and Psionics bits one two four and eight
+classesitems.cfdat,0x168,0x168,0x0061635c,typed,Starting equipment indexes fifteen profession records of six 32-bit item IDs with minus one as the unused sentinel
+classesexpgroup.cfdat,0x0f,,0x004ef1e0,conflicting,The English seed destination lies in executable code and is not accepted as a data layout
+skillsattrs.cfdat,0x290,0x290,0x006155b0,partially-typed,The exact extent is 41 records of four 32-bit fields; the first field is the zero-through-four UI and advancement category
