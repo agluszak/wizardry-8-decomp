@@ -24,6 +24,7 @@ recovery work.
 | `0x0042b580` | `GetLoadedLevelID` | 6 | Returns the current level identifier used by triggers, monster code, save handling, and utility paths. Its name comes from the verified CFAgent oracle. |
 | `0x00451280` | `GetWorld` | 6 | Returns the authoritative world object pointer used by 83 canonical callers. Its name comes from the verified CFAgent oracle. |
 | `0x0051b9e0` | `GetItemInHand` | 19 | Returns `-1` when the item-in-hand validity byte is clear, otherwise the item ID at offset zero of the packed 12-byte instance. Its name comes from the verified CFAgent oracle. |
+| `0x0042b550` | `LevelGetFolderNameByID` | 33 | Bounds-checks the 47-entry level metadata table and returns its 50-byte folder-name field. The packed `0x6b` record also carries a 50-byte level name and a three-letter location code. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
 `src/wiz8/spell_backfire.cpp`, and `src/wiz8/state_getters.c`
@@ -34,7 +35,7 @@ already exact compression and plug-in targets. The review map is
 `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
-instruction scheduling to the canonical order. With `/O2 /G6 /MD`, fifteen bodies match exactly after
+instruction scheduling to the canonical order. With `/O2 /G6 /MD`, sixteen bodies match exactly after
 masking COFF relocations where needed:
 
 | Function | Result | Relocation-normalized SHA-256 |
@@ -55,11 +56,12 @@ masking COFF relocations where needed:
 | `GetLoadedLevelID` | exact, 6/6 bytes | `76811197299fd7215ff45276752d25eaa8889353ee70ada1fd839c8a55d34ffc` |
 | `GetWorld` | exact, 6/6 bytes | `76811197299fd7215ff45276752d25eaa8889353ee70ada1fd839c8a55d34ffc` |
 | `GetItemInHand` | exact, 19/19 bytes | `b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14` |
+| `LevelGetFolderNameByID` | exact, 33/33 bytes | `0e02b69da5480ffc3bd971ad5330ef56843d43cae98b4f89dc8c42f212cc25d7` |
 
 `GetRandomNumber` is the first proven exception to the unit's `/G6` scheduling. Its isolated
 `random_number.c` object is exact with `/G5`; `/G6` preserves the semantics but moves the multiply
 constant load and zeroing instruction. This is kept as a per-source CMake option rather than
-weakening the exact `/G6` evidence for the other fifteen bodies.
+weakening the exact `/G6` evidence for the other sixteen bodies.
 
 `CanSpellBackfire` is retained because the typed semantics and all exception sets are grounded in
 the canonical body, but it is intentionally classified as `structurally-strong`, not exact. The

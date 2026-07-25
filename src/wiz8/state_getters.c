@@ -6,6 +6,15 @@ int GetLoadedLevelID(void)
     return g_loaded_level_id;
 }
 
+// FUNCTION: WIZ8 0x0042B550
+const char* LevelGetFolderNameByID(int level_id)
+{
+    if (level_id >= 47 || level_id < 0) {
+        return 0;
+    }
+    return g_level_folders[level_id].folder_name;
+}
+
 // FUNCTION: WIZ8 0x00451280
 W8World* GetWorld(void)
 {

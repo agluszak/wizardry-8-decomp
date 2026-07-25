@@ -47,6 +47,15 @@ typedef struct W8ItemInstance {
     unsigned char flag_0b;
 } W8ItemInstance;                        /* 0x0c */
 
+typedef struct W8LevelFolderRecord {
+    char folder_name[50];
+    char level_name[50];                 /* 0x32 */
+    char location_code[4];               /* 0x64: three-letter code plus NUL */
+    signed char unknown_68;
+    signed char unknown_69;
+    signed char unknown_6a;
+} W8LevelFolderRecord;                   /* 0x6b */
+
 typedef struct W8World W8World;
 
 typedef unsigned char W8FactionDisposition;
@@ -75,6 +84,7 @@ extern int g_loaded_level_id;
 extern W8World* g_world;
 extern unsigned char g_item_in_hand_valid;
 extern W8ItemInstance g_item_in_hand;
+extern W8LevelFolderRecord g_level_folders[47];
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
@@ -95,6 +105,7 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
 int GetLoadedLevelID(void);
+const char* LevelGetFolderNameByID(int level_id);
 W8World* GetWorld(void);
 int GetItemInHand(void);
 

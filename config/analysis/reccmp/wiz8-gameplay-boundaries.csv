@@ -16,3 +16,4 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 0042b580,6,GetLoadedLevelID,wiz8-level-system,exact,76811197299fd7215ff45276752d25eaa8889353ee70ada1fd839c8a55d34ffc,VC6 SP5 O2 G6 MD getter matches after masking the loaded-level global relocation
 00451280,6,GetWorld,wiz8-world-system,exact,76811197299fd7215ff45276752d25eaa8889353ee70ada1fd839c8a55d34ffc,VC6 SP5 O2 G6 MD getter matches after masking the world-pointer global relocation
 0051b9e0,19,GetItemInHand,wiz8-item-system,exact,b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14,VC6 SP5 O2 G6 MD body matches after masking item-validity and item-record relocations
+0042b550,33,LevelGetFolderNameByID,wiz8-level-system,exact,0e02b69da5480ffc3bd971ad5330ef56843d43cae98b4f89dc8c42f212cc25d7,VC6 SP5 O2 G6 MD bounds check and 0x6b table lookup match after masking the level-folder table relocation
