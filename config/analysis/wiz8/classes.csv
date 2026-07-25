@@ -1,0 +1,4 @@
+class_name,confidence,vtable,slots,constructor,destructor,scalar_deleting_destructor,minimum_size,secondary_vtables,source_path,evidence
+GrCycle,strong,005ece78,16,004a5e50,004a6610,004a5f00,0x1d8,005eceb8@0x18:13,Engine Code\GrCycle.cpp,Primary slots 4 and 11 directly reference the exact source path; constructor and destructor install primary and secondary vtables
+Monster,strong,005ed200,31,004bea20,004bee50,004beba0,0x628,,Engine Code\Monster.cpp,Slots 5 12 and 26 directly reference the exact source path; constructor writes this vtable after initializing fields through offset 0x624
+MonsterInfoDialog,strong,005ef910,14,005d5e30,005d5f00,005d5ee0,0x130,,Dialog Code\MonsterInfoDialog.cpp,Slot 3 directly references the exact source path; constructor loads Data\Dialogs\popup_monsterinfo.sti and writes this vtable

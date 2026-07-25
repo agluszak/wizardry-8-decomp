@@ -1,0 +1,150 @@
+relative_path,subsystem,canonical_absolute_path,demo_absolute_path,variants
+3D Code\IList.cpp,3D Code,C:\Projects\Wizardry 8\3D Code\IList.cpp,E:\Wizardry 8\3D Code\IList.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+3D Code\PList.cpp,3D Code,C:\Projects\Wizardry 8\3D Code\PList.cpp,E:\Wizardry 8\3D Code\PList.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\AssayDialog.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\AssayDialog.cpp,E:\Wizardry 8\Dialog Code\AssayDialog.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\DialogInterface.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\DialogInterface.cpp,E:\Wizardry 8\Dialog Code\DialogInterface.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\MonsterInfoDialog.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\MonsterInfoDialog.cpp,E:\Wizardry 8\Dialog Code\MonsterInfoDialog.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\ProfRaceInfoDialog.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\ProfRaceInfoDialog.cpp,E:\Wizardry 8\Dialog Code\ProfRaceInfoDialog.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\SpellInfoDialog.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\SpellInfoDialog.cpp,E:\Wizardry 8\Dialog Code\SpellInfoDialog.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\StatInfoDialogs.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\StatInfoDialogs.cpp,E:\Wizardry 8\Dialog Code\StatInfoDialogs.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\stButton.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\stButton.cpp,E:\Wizardry 8\Dialog Code\stButton.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\stListBox.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\stListBox.cpp,E:\Wizardry 8\Dialog Code\stListBox.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Dialog Code\stMessageDialog.cpp,Dialog Code,C:\Projects\Wizardry 8\Dialog Code\stMessageDialog.cpp,E:\Wizardry 8\Dialog Code\stMessageDialog.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\3d.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\3d.cpp,E:\Wizardry 8\Engine Code\3d.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\3dapi.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\3dapi.cpp,E:\Wizardry 8\Engine Code\3dapi.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\AmbientSound.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\AmbientSound.cpp,E:\Wizardry 8\Engine Code\AmbientSound.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\AniMesh.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\AniMesh.cpp,E:\Wizardry 8\Engine Code\AniMesh.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\AnimObj.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\AnimObj.cpp,E:\Wizardry 8\Engine Code\AnimObj.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\AnimRep.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\AnimRep.cpp,E:\Wizardry 8\Engine Code\AnimRep.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Bink.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Bink.cpp,E:\Wizardry 8\Engine Code\Bink.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\BitArray.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\BitArray.cpp,E:\Wizardry 8\Engine Code\BitArray.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Camera.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Camera.cpp,E:\Wizardry 8\Engine Code\Camera.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Cursor3d.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Cursor3d.cpp,E:\Wizardry 8\Engine Code\Cursor3d.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Environment.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Environment.cpp,E:\Wizardry 8\Engine Code\Environment.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\GameData.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\GameData.cpp,E:\Wizardry 8\Engine Code\GameData.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\gap.c,Engine Code,,E:\Wizardry 8\Engine Code\gap.c,demo
+Engine Code\GDCamera.cpp,Engine Code,,E:\Wizardry 8\Engine Code\GDCamera.cpp,demo
+Engine Code\GDFileIO.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\GDFileIO.cpp,E:\Wizardry 8\Engine Code\GDFileIO.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\GDProp.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\GDProp.cpp,E:\Wizardry 8\Engine Code\GDProp.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\GrCycle.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\GrCycle.cpp,E:\Wizardry 8\Engine Code\GrCycle.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\GrObject.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\GrObject.cpp,E:\Wizardry 8\Engine Code\GrObject.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Item.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Item.cpp,E:\Wizardry 8\Engine Code\Item.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\LevelFile.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\LevelFile.cpp,E:\Wizardry 8\Engine Code\LevelFile.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Levels.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Levels.cpp,E:\Wizardry 8\Engine Code\Levels.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\materials.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\materials.cpp,E:\Wizardry 8\Engine Code\materials.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Missile.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Missile.cpp,E:\Wizardry 8\Engine Code\Missile.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\MonGen.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\MonGen.cpp,E:\Wizardry 8\Engine Code\MonGen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Monster.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Monster.cpp,E:\Wizardry 8\Engine Code\Monster.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Navigator.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Navigator.cpp,E:\Wizardry 8\Engine Code\Navigator.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\OctBuildPreTree.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\OctBuildPreTree.cpp,E:\Wizardry 8\Engine Code\OctBuildPreTree.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\OctBuildTree.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\OctBuildTree.cpp,E:\Wizardry 8\Engine Code\OctBuildTree.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\OctPath.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\OctPath.cpp,E:\Wizardry 8\Engine Code\OctPath.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\OctPrePath.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\OctPrePath.cpp,E:\Wizardry 8\Engine Code\OctPrePath.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\OctPreTree.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\OctPreTree.cpp,E:\Wizardry 8\Engine Code\OctPreTree.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Octree.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Octree.cpp,E:\Wizardry 8\Engine Code\Octree.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\OctSubMesh.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\OctSubMesh.cpp,E:\Wizardry 8\Engine Code\OctSubMesh.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\PathAI.CPP,Engine Code,C:\Projects\Wizardry 8\Engine Code\PathAI.CPP,E:\Wizardry 8\Engine Code\PathAI.CPP,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\PolyPick.cpp,Engine Code,,E:\Wizardry 8\Engine Code\PolyPick.cpp,demo
+Engine Code\Prop.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Prop.cpp,E:\Wizardry 8\Engine Code\Prop.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\quad.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\quad.cpp,E:\Wizardry 8\Engine Code\quad.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Quality.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Quality.cpp,E:\Wizardry 8\Engine Code\Quality.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\ReadLevel.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\ReadLevel.cpp,E:\Wizardry 8\Engine Code\ReadLevel.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\ReadMesh.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\ReadMesh.cpp,E:\Wizardry 8\Engine Code\ReadMesh.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\SoundEvent.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\SoundEvent.cpp,E:\Wizardry 8\Engine Code\SoundEvent.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Spells.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Spells.cpp,E:\Wizardry 8\Engine Code\Spells.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\stCube.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\stCube.cpp,E:\Wizardry 8\Engine Code\stCube.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\stMeshModel.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\stMeshModel.cpp,E:\Wizardry 8\Engine Code\stMeshModel.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\stModelInstance.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\stModelInstance.cpp,E:\Wizardry 8\Engine Code\stModelInstance.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\stParticle.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\stParticle.cpp,E:\Wizardry 8\Engine Code\stParticle.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\stScript.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\stScript.cpp,E:\Wizardry 8\Engine Code\stScript.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Trigger.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Trigger.cpp,E:\Wizardry 8\Engine Code\Trigger.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\UpdateMesh.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\UpdateMesh.cpp,E:\Wizardry 8\Engine Code\UpdateMesh.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Engine Code\Video2.cpp,Engine Code,C:\Projects\Wizardry 8\Engine Code\Video2.cpp,E:\Wizardry 8\Engine Code\Video2.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Arnika.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Arnika.cpp,E:\Wizardry 8\Level Specific Code\Arnika.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Ascension.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Ascension.cpp,E:\Wizardry 8\Level Specific Code\Ascension.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Cosmic Circle.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Cosmic Circle.cpp,E:\Wizardry 8\Level Specific Code\Cosmic Circle.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\MartensBluff1.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\MartensBluff1.cpp,E:\Wizardry 8\Level Specific Code\MartensBluff1.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\MartensBluff2.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\MartensBluff2.cpp,E:\Wizardry 8\Level Specific Code\MartensBluff2.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\MasterFunctionList.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\MasterFunctionList.cpp,E:\Wizardry 8\Level Specific Code\MasterFunctionList.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Monastery2.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Monastery2.cpp,E:\Wizardry 8\Level Specific Code\Monastery2.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\MtGigasOuter.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\MtGigasOuter.cpp,E:\Wizardry 8\Level Specific Code\MtGigasOuter.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Rift1.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Rift1.cpp,E:\Wizardry 8\Level Specific Code\Rift1.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\SeaCaves.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\SeaCaves.cpp,E:\Wizardry 8\Level Specific Code\SeaCaves.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Swamp.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Swamp.cpp,E:\Wizardry 8\Level Specific Code\Swamp.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Trynnie1.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Trynnie1.cpp,E:\Wizardry 8\Level Specific Code\Trynnie1.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Level Specific Code\Trynnie2.cpp,Level Specific Code,C:\Projects\Wizardry 8\Level Specific Code\Trynnie2.cpp,E:\Wizardry 8\Level Specific Code\Trynnie2.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\ButtonSound.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\ButtonSound.cpp,E:\Wizardry 8\Local Code\ButtonSound.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\CharGeneration.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\CharGeneration.cpp,E:\Wizardry 8\Local Code\CharGeneration.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\chunk.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\chunk.cpp,E:\Wizardry 8\Local Code\chunk.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Combat Attack.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Combat Attack.cpp,E:\Wizardry 8\Local Code\Combat Attack.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Combat Hostility.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Combat Hostility.cpp,E:\Wizardry 8\Local Code\Combat Hostility.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Combat Party Movement.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Combat Party Movement.cpp,E:\Wizardry 8\Local Code\Combat Party Movement.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Combat Range.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Combat Range.cpp,E:\Wizardry 8\Local Code\Combat Range.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Combat Sound.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Combat Sound.cpp,E:\Wizardry 8\Local Code\Combat Sound.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Combat.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Combat.cpp,E:\Wizardry 8\Local Code\Combat.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Conditions & Enchantments.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Conditions & Enchantments.cpp,E:\Wizardry 8\Local Code\Conditions & Enchantments.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Configuration.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Configuration.cpp,E:\Wizardry 8\Local Code\Configuration.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Controls.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Controls.cpp,E:\Wizardry 8\Local Code\Controls.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Factions.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Factions.cpp,E:\Wizardry 8\Local Code\Factions.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Formation & Facing.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Formation & Facing.cpp,E:\Wizardry 8\Local Code\Formation & Facing.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Game Difficulty.cpp,Local Code,,E:\Wizardry 8\Local Code\Game Difficulty.cpp,demo
+Local Code\Gameloop.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Gameloop.cpp,E:\Wizardry 8\Local Code\Gameloop.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Gameplay Init.cpp,Local Code,,E:\Wizardry 8\Local Code\Gameplay Init.cpp,demo
+Local Code\Gameplay Mods.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Gameplay Mods.cpp,E:\Wizardry 8\Local Code\Gameplay Mods.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\GameplayCode.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\GameplayCode.cpp,E:\Wizardry 8\Local Code\GameplayCode.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\GameplayDatabase.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\GameplayDatabase.cpp,E:\Wizardry 8\Local Code\GameplayDatabase.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\GameplayTime.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\GameplayTime.cpp,E:\Wizardry 8\Local Code\GameplayTime.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\GroupAttacks.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\GroupAttacks.cpp,E:\Wizardry 8\Local Code\GroupAttacks.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Health Stamina Mana.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Health Stamina Mana.cpp,E:\Wizardry 8\Local Code\Health Stamina Mana.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\InputMapper.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\InputMapper.cpp,E:\Wizardry 8\Local Code\InputMapper.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\ItemManager.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\ItemManager.cpp,E:\Wizardry 8\Local Code\ItemManager.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\LoadSaveGame.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\LoadSaveGame.cpp,E:\Wizardry 8\Local Code\LoadSaveGame.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Magic Effects.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Magic Effects.cpp,E:\Wizardry 8\Local Code\Magic Effects.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Magic.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Magic.cpp,E:\Wizardry 8\Local Code\Magic.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\MonsterAI.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\MonsterAI.cpp,E:\Wizardry 8\Local Code\MonsterAI.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\MonsterGroup.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\MonsterGroup.cpp,E:\Wizardry 8\Local Code\MonsterGroup.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\MonsterManager.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\MonsterManager.cpp,E:\Wizardry 8\Local Code\MonsterManager.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Noise.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Noise.cpp,E:\Wizardry 8\Local Code\Noise.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\NPC Manager.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\NPC Manager.cpp,E:\Wizardry 8\Local Code\NPC Manager.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\NPC Scripting Facts.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\NPC Scripting Facts.cpp,E:\Wizardry 8\Local Code\NPC Scripting Facts.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\NPC Scripting.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\NPC Scripting.cpp,E:\Wizardry 8\Local Code\NPC Scripting.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Party Import.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Party Import.cpp,E:\Wizardry 8\Local Code\Party Import.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\PC Item.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\PC Item.cpp,E:\Wizardry 8\Local Code\PC Item.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\QuoteManager.cpp,Local Code,,E:\Wizardry 8\Local Code\QuoteManager.cpp,demo
+Local Code\RegionManager.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\RegionManager.cpp,E:\Wizardry 8\Local Code\RegionManager.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\search.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\search.cpp,E:\Wizardry 8\Local Code\search.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Sight.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Sight.cpp,E:\Wizardry 8\Local Code\Sight.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Strings.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Strings.cpp,E:\Wizardry 8\Local Code\Strings.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Targeting.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Targeting.cpp,E:\Wizardry 8\Local Code\Targeting.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\Test.cpp,Local Code,,E:\Wizardry 8\Local Code\Test.cpp,demo
+Local Code\ThingEditorShared.cpp,Local Code,,E:\Wizardry 8\Local Code\ThingEditorShared.cpp,demo
+Local Code\Traps.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\Traps.cpp,E:\Wizardry 8\Local Code\Traps.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\UtilityFunctions.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\UtilityFunctions.cpp,E:\Wizardry 8\Local Code\UtilityFunctions.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Code\VideoObjectManager.cpp,Local Code,C:\Projects\Wizardry 8\Local Code\VideoObjectManager.cpp,E:\Wizardry 8\Local Code\VideoObjectManager.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\AutomapScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\AutomapScreen.cpp,E:\Wizardry 8\Local Screens\AutomapScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\CGSSpellsPage.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\CGSSpellsPage.cpp,E:\Wizardry 8\Local Screens\CGSSpellsPage.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\CGSStatsPage.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\CGSStatsPage.cpp,E:\Wizardry 8\Local Screens\CGSStatsPage.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\IntroScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\IntroScreen.cpp,E:\Wizardry 8\Local Screens\IntroScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MainGameScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MainGameScreen.cpp,E:\Wizardry 8\Local Screens\MainGameScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MainMenuScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MainMenuScreen.cpp,E:\Wizardry 8\Local Screens\MainMenuScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSButtons.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSButtons.cpp,E:\Wizardry 8\Local Screens\MGSButtons.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSFormation.cpp,Local Screens,,E:\Wizardry 8\Local Screens\MGSFormation.cpp,demo
+Local Screens\MGSKeyboard.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSKeyboard.cpp,E:\Wizardry 8\Local Screens\MGSKeyboard.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSPartyMovement.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSPartyMovement.cpp,E:\Wizardry 8\Local Screens\MGSPartyMovement.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSPortraitCombat.cpp,Local Screens,,E:\Wizardry 8\Local Screens\MGSPortraitCombat.cpp,demo
+Local Screens\MGSPortraits.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSPortraits.cpp,E:\Wizardry 8\Local Screens\MGSPortraits.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSRadarMap.cpp,Local Screens,,E:\Wizardry 8\Local Screens\MGSRadarMap.cpp,demo
+Local Screens\MGSSpellCasting.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSSpellCasting.cpp,E:\Wizardry 8\Local Screens\MGSSpellCasting.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSSpellIcons.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSSpellIcons.cpp,E:\Wizardry 8\Local Screens\MGSSpellIcons.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSTextBox.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSTextBox.cpp,E:\Wizardry 8\Local Screens\MGSTextBox.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\MGSUseItemSelect.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\MGSUseItemSelect.cpp,E:\Wizardry 8\Local Screens\MGSUseItemSelect.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\mipe.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\mipe.cpp,E:\Wizardry 8\Local Screens\mipe.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\mipeEdit.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\mipeEdit.cpp,E:\Wizardry 8\Local Screens\mipeEdit.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\NPCInteractionSubscreen.cpp,Local Screens,,E:\Wizardry 8\Local Screens\NPCInteractionSubscreen.cpp,demo
+Local Screens\OptionsScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\OptionsScreen.cpp,E:\Wizardry 8\Local Screens\OptionsScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\PleaseWaitScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\PleaseWaitScreen.cpp,E:\Wizardry 8\Local Screens\PleaseWaitScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\RCSCommon.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\RCSCommon.cpp,E:\Wizardry 8\Local Screens\RCSCommon.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\RCSItemsPage.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\RCSItemsPage.cpp,E:\Wizardry 8\Local Screens\RCSItemsPage.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\RCSStatsPage.cpp,Local Screens,,E:\Wizardry 8\Local Screens\RCSStatsPage.cpp,demo
+Local Screens\ReviewCharacterScreen.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\ReviewCharacterScreen.cpp,E:\Wizardry 8\Local Screens\ReviewCharacterScreen.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
+Local Screens\Screens.cpp,Local Screens,C:\Projects\Wizardry 8\Local Screens\Screens.cpp,E:\Wizardry 8\Local Screens\Screens.cpp,demo|gog-1261|gog-1261-new|gog-128-base|gog-128-patch|gog-base
