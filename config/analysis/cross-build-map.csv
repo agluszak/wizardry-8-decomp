@@ -1,0 +1,43 @@
+symbol,canonical_entry,variant,entry,automated_classification,review_decision,evidence
+DecompressInit,00415850,demo,00415bb0,structurally-strong,manually-confirmed,Unique instruction fingerprint size call degree zlib version string and wrapper position
+DecompressInit,00415850,gog-1261,00415850,exact,manually-confirmed,Unique byte-identical body
+DecompressInit,00415850,gog-128,00415910,structurally-strong,manually-confirmed,Unique instruction fingerprint size call degree zlib version string and wrapper position
+Decompress,004158b0,demo,00415c10,exact,manually-confirmed,Unique byte-identical body
+Decompress,004158b0,gog-1261,004158b0,exact,manually-confirmed,Unique byte-identical body
+Decompress,004158b0,gog-128,00415970,exact,manually-confirmed,Unique byte-identical body
+DecompressFini,004158f0,demo,00415c50,structurally-strong,manually-confirmed,Unique instruction fingerprint size call degree and wrapper position
+DecompressFini,004158f0,gog-1261,004158f0,exact,manually-confirmed,Unique byte-identical body
+DecompressFini,004158f0,gog-128,004159b0,exact,manually-confirmed,Unique byte-identical body
+GrCycle::GrCycle,004a5e50,demo,004a87c0,structurally-strong,manually-confirmed,Unique instruction fingerprint and identical dual-vptr constructor shape
+GrCycle::GrCycle,004a5e50,gog-1261,004a5e50,exact,manually-confirmed,Unique byte-identical body
+GrCycle::GrCycle,004a5e50,gog-128,004a6010,structurally-strong,manually-confirmed,Unique instruction fingerprint and identical dual-vptr constructor shape
+GrCycle::scalar_deleting_destructor,004a5f00,demo,004a8870,candidate,manually-confirmed,Primary vtable slot zero calls the mapped complete destructor then conditionally deletes this
+GrCycle::scalar_deleting_destructor,004a5f00,gog-1261,004a5f00,exact,manually-confirmed,Unique byte-identical body at the same primary vtable slot
+GrCycle::scalar_deleting_destructor,004a5f00,gog-128,004a60c0,candidate,manually-confirmed,Primary vtable slot zero calls the mapped complete destructor then conditionally deletes this
+GrCycle::GrCycle_copy,004a5f20,demo,004a8890,candidate,manually-confirmed,Adjacent copy constructor rebuilds the secondary subobject and copies the same owned cycle state
+GrCycle::GrCycle_copy,004a5f20,gog-1261,004a5f20,exact,manually-confirmed,Unique byte-identical body
+GrCycle::GrCycle_copy,004a5f20,gog-128,004a60e0,structurally-strong,manually-confirmed,Unique instruction fingerprint size strings and call neighborhood
+GrCycle::~GrCycle,004a6610,demo,004a8f80,structurally-strong,manually-confirmed,Unique instruction fingerprint and matching dual-vptr teardown
+GrCycle::~GrCycle,004a6610,gog-1261,004a6610,exact,manually-confirmed,Unique byte-identical body
+GrCycle::~GrCycle,004a6610,gog-128,004a67d0,structurally-strong,manually-confirmed,Unique instruction fingerprint and matching teardown despite changed caller degree
+Monster::Monster,004bea20,demo,004c16f0,structurally-strong,manually-confirmed,Unique instruction fingerprint and identical three-array constructor layout
+Monster::Monster,004bea20,gog-1261,004bea20,exact,manually-confirmed,Unique byte-identical body
+Monster::Monster,004bea20,gog-128,004bebd0,structurally-strong,manually-confirmed,Unique instruction fingerprint and identical three-array constructor layout
+Monster::scalar_deleting_destructor,004beba0,demo,004c1870,candidate,manually-confirmed,Vtable slot zero calls the mapped complete destructor then conditionally deletes this
+Monster::scalar_deleting_destructor,004beba0,gog-1261,004beba0,exact,manually-confirmed,Unique byte-identical body at the same vtable slot
+Monster::scalar_deleting_destructor,004beba0,gog-128,004bed50,candidate,manually-confirmed,Vtable slot zero calls the mapped complete destructor then conditionally deletes this
+Monster::Monster_copy,004bebd0,demo,004c18a0,structurally-strong,manually-confirmed,Unique instruction fingerprint and identical three-array copy-constructor layout
+Monster::Monster_copy,004bebd0,gog-1261,004bebd0,exact,manually-confirmed,Unique byte-identical body
+Monster::Monster_copy,004bebd0,gog-128,004bed80,structurally-strong,manually-confirmed,Unique instruction fingerprint and identical three-array copy-constructor layout
+Monster::~Monster,004bee50,demo,004c1b20,structurally-strong,manually-confirmed,Unique instruction fingerprint source string and teardown shape
+Monster::~Monster,004bee50,gog-1261,004bee50,exact,manually-confirmed,Unique byte-identical body
+Monster::~Monster,004bee50,gog-128,004bf000,candidate,manually-confirmed,Equal size unique srLight string and mapped constructor-vtable neighborhood with one patched callee
+MonsterInfoDialog::MonsterInfoDialog,005d5e30,demo,005defa0,structurally-strong,manually-confirmed,Unique instruction fingerprint popup asset string and member-construction layout
+MonsterInfoDialog::MonsterInfoDialog,005d5e30,gog-1261,005d5e30,exact,manually-confirmed,Unique byte-identical body
+MonsterInfoDialog::MonsterInfoDialog,005d5e30,gog-128,005d5ed0,structurally-strong,manually-confirmed,Unique instruction fingerprint popup asset string and member-construction layout
+MonsterInfoDialog::scalar_deleting_destructor,005d5ee0,demo,005df050,candidate,manually-confirmed,Vtable slot zero calls the mapped complete destructor then conditionally deletes this
+MonsterInfoDialog::scalar_deleting_destructor,005d5ee0,gog-1261,005d5ee0,exact,manually-confirmed,Unique byte-identical body at the same vtable slot
+MonsterInfoDialog::scalar_deleting_destructor,005d5ee0,gog-128,005d5f80,exact,manually-confirmed,Unique byte-identical body at the same vtable slot
+MonsterInfoDialog::~MonsterInfoDialog,005d5f00,demo,005df070,candidate,manually-confirmed,Adjacent vtable-owned destructor restores the same table and destroys the same three members
+MonsterInfoDialog::~MonsterInfoDialog,005d5f00,gog-1261,005d5f00,exact,manually-confirmed,Unique byte-identical body
+MonsterInfoDialog::~MonsterInfoDialog,005d5f00,gog-128,005d5fa0,candidate,manually-confirmed,Adjacent vtable-owned destructor restores the same table and destroys the same three members

@@ -81,3 +81,58 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
             "Data\\Dialogs\\popup_monsterinfo.sti and writes this vtable"
         ),
     }
+
+
+def test_reviewed_cross_build_map_is_separate_and_explicit() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/cross-build-map.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        mappings = list(csv.DictReader(stream))
+    with (repository / "config/analysis/cross-build-rejections.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rejections = list(csv.DictReader(stream))
+    with (repository / "config/analysis/cross-build-oracles.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        oracles = list(csv.DictReader(stream))
+
+    assert len(mappings) == 42
+    assert len({(row["symbol"], row["variant"]) for row in mappings}) == 42
+    assert {row["variant"] for row in mappings} == {"demo", "gog-1261", "gog-128"}
+    assert {row["automated_classification"] for row in mappings} == {
+        "candidate",
+        "exact",
+        "structurally-strong",
+    }
+    assert {row["review_decision"] for row in mappings} == {"manually-confirmed"}
+    assert {row["review_decision"] for row in rejections} == {"rejected"}
+    retail = next(row for row in oracles if row["variant"] == "retail-2001-12-23")
+    assert retail["status"] == "protected-unavailable"
+    assert retail["program"] == ""
+
+
+def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/functions/wiz8-cfagent-oracle.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        symbols = list(csv.DictReader(stream))
+    with (repository / "config/analysis/fan-patch-128-hooks.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        hooks = list(csv.DictReader(stream))
+
+    assert len(symbols) == 47
+    assert len({row["address"] for row in symbols}) == 47
+    assert {row["owner"] for row in symbols} == {"fan-patch-oracle"}
+    assert {row["confidence"] for row in symbols} == {"strong"}
+    by_name = {row["provisional_name"]: row["address"] for row in symbols}
+    assert by_name["StartCombat"] == "004e7090"
+    assert by_name["GetFact"] == "00506280"
+    assert by_name["SetFact"] == "005061a0"
+
+    assert len(hooks) == 26
+    assert {row["ownership"] for row in hooks} == {"fan-patch-injected"}
+    assert {row["kind"] for row in hooks} == {"hook", "inline-fix"}

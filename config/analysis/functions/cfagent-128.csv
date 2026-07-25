@@ -1,0 +1,8 @@
+address,provisional_name,owner,confidence,evidence
+10003850,CFAgent::InstallRelativeHook,fan-patch,strong,Reads the hook prologue finds its three-NOP marker writes a relative target and installs it with WriteProcessMemory
+10003bf0,CFAgent::WaitForExecutableInitialization,fan-patch,strong,Polls the target process for a fixed 16-byte startup signature and logs read failures
+10004050,CFAgent::ResolveWiz8Addresses,fan-patch,strong,Seeds English addresses signature-scans 49 functions and derives all hook and return sites
+10004810,CFAgent::LoadEnglishWiz8SeedAddresses,fan-patch,strong,Assigns the complete fixed English executable address table used as signature-scan starting points
+10004f90,CFAgent::VerifyWiz8TargetBytes,fan-patch,strong,Builds expected instruction byte arrays and invokes CheckMemory for 88 named target functions and hook sites
+10007880,CFAgent::CheckMemory,fan-patch,strong,Reads target-process bytes and compares them with the supplied expected signature
+1000df50,CFAgent::Initialize,fan-patch,strong,Top-level initializer resolves and verifies targets installs hooks and loads Cosmic Forge data overrides

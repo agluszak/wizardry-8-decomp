@@ -1,0 +1,6 @@
+variant,program,status,role,evidence
+gog-base,wiz8--gog-base--wiz8--18a74ff61c65,available,canonical,Reviewed unprotected GOG executable
+demo,wiz8--demo--wiz8--8acda50afe39,available,older-official-oracle,Unprotected official demo with shifted and older implementations
+gog-1261,wiz8--gog-1261--wiz8new--57a3072c2f83,available,unofficial-patch-oracle,Patch executable retains byte-identical canonical functions alongside patch changes
+gog-128,wiz8--gog-128--wiz8-v128--fdca6d9cd094,available,fan-patch-target,Fan-patched executable; mappings identify original bodies but do not classify injected support code as original
+retail-2001-12-23,,protected-unavailable,protected-official-oracle,The protected executable exposes stxt sections rather than a trustworthy static body map and is not assigned speculative function addresses

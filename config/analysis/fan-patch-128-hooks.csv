@@ -1,0 +1,27 @@
+name,kind,module,initializer,ownership,evidence
+FixSkyIndexCheck,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+FixSpellIndexCheck1,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+FixSpellIndexCheck2,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+FixSpellIndexCheck3,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+FixSpellIndexCheck4,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+FixSpellIndexCheck5,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+FixTeleportCheck,inline-fix,cfagent1.28.dll,1000df50,fan-patch-injected,Passed to the CFAgent initializer after target discovery and byte verification
+HookAcquiredItemCheck,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnActivateTrigger,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnCastSpellAtParty,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnCompareFactInCommand,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnGetLocationIDFromCode,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnInventoryAction,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnLocationLoaded,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnMonGenActivated,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnMonsterKilled,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnPickUpItem,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnProcessLocationID,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnRunNPCScriptCommand,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnSetFact,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnSpellTrigger,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnSpellTriggerParam2A,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnSpellTriggerParam2B,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnStartCombat,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnUseItem,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification
+HookOnVersionPrint,hook,cfagent1.28.dll,1000df50,fan-patch-injected,Installed through the CFAgent hook writer after target discovery and byte verification

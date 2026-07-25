@@ -1,0 +1,4 @@
+symbol,canonical_entry,variant,rejected_entry,automated_classification,review_decision,evidence
+Monster::Monster,004bea20,gog-128,004bea20,exact,rejected,Address equality is accidental: the 1.28 body is 95 bytes while the canonical constructor is 376 bytes; reviewed mapping is 0x004bebd0
+GrCycle::scalar_deleting_destructor,004a5f00,demo,0042a810,candidate,rejected,Generic 30-byte deleting-destructor fingerprint but unrelated vtable and complete-destructor target
+MonsterInfoDialog::~MonsterInfoDialog,005d5f00,demo,005e8ac0,candidate,rejected,Shared 137-byte instruction fingerprint but wrong vtable neighborhood and four callers; reviewed mapping is 0x005df070

@@ -84,6 +84,7 @@ def apply_function_map(
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
+    from ghidra.app.cmd.disassemble import DisassembleCommand
     from ghidra.app.cmd.function import CreateFunctionCmd
     from ghidra.program.model.listing import CodeUnit
     from ghidra.program.model.symbol import SourceType
@@ -115,10 +116,30 @@ def apply_function_map(
                         )
                         continue
                     function = function_manager.getFunctionAt(address)
+                    instruction = listing.getInstructionAt(address)
+                    if (
+                        function is not None
+                        and function.getBody().getNumAddresses() <= 1
+                        and instruction is None
+                        and not dry_run
+                    ):
+                        function_manager.removeFunction(address)
+                        function = None
                     if function is None:
                         if dry_run:
                             stats["created"] += 1
                             continue
+                        if listing.getInstructionAt(address) is None:
+                            disassemble = DisassembleCommand(address, None, True)
+                            if not disassemble.applyTo(program):
+                                stats["failed"] += 1
+                                failures.append(
+                                    {
+                                        "address": f"0x{identity.address:08x}",
+                                        "error": str(disassemble.getStatusMsg()),
+                                    }
+                                )
+                                continue
                         command = CreateFunctionCmd(address)
                         if not command.applyTo(program):
                             stats["failed"] += 1
@@ -151,9 +172,7 @@ def apply_function_map(
                     if already_named:
                         stats["already_applied"] += 1
                     elif not dry_run:
-                        conflicting_symbol = symbol_table.getSymbol(
-                            simple_name, address, namespace
-                        )
+                        conflicting_symbol = symbol_table.getSymbol(simple_name, address, namespace)
                         if (
                             conflicting_symbol is not None
                             and conflicting_symbol != function.getSymbol()
