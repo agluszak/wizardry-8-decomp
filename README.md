@@ -1,4 +1,4 @@
-# Wizardry 8 matching-decompilation bootstrap
+# Wizardry 8 matching decompilation
 
 This repository contains reproducible tooling and analysis metadata, not Wizardry 8 game files.
 All commands use the single typed `wiz8` CLI through `uv`.
@@ -26,6 +26,9 @@ uv run wiz8 report bootstrap
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
+Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
+ownership and interface findings are in
+[docs/targets/srext-jpegimporter.md](docs/targets/srext-jpegimporter.md).
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
