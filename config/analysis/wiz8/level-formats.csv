@@ -1,0 +1,7 @@
+extension,file_count,header_size,record_layout,loader,status,evidence
+.WPT,35,0x10,waypoint 0x10 then link 0x0e,0x00459650,typed,All canonical headers use version two; counts include index-zero sentinels and some archive entries retain ignored trailing bytes
+.OCT,34,,,0x0042bc10,sectioned,ReadOctFile diagnostics enumerate header pre-region octree leaf polygon region trigger submesh mesh prop particle and lookup sections
+.PVL,34,,,,untyped,Paired by basename with the canonical OCT and STS files
+.STS,34,,,,untyped,Paired by basename with the canonical OCT and PVL files
+.RLK,26,,,,untyped,Optional files are absent or zero length for several levels
+.LVL,2,,,,untyped,Only the two sky-level payloads use this extension in the canonical archive

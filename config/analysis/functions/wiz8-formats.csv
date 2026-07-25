@@ -43,3 +43,6 @@ address,provisional_name,owner,confidence,evidence
 004126f0,InitializeSlfArchives,wiz8-file-system,strong,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
 00412a10,RefreshSlfArchives,wiz8-file-system,strong,Closes or reopens each of six configured SLF archives and recreates optional file mappings
 00412bb0,OpenSlfArchive,wiz8-file-system,strong,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries
+0042bc10,ReadOctFile,wiz8-octree-engine,strong,Embedded failure diagnostics identify ReadOctFile and enumerate its octree preregion mesh trigger and lookup sections
+00459540,OctPath::WriteWaypointFile,wiz8-pathfinding,strong,OctPath.cpp writes a version-two WPT header followed by 0x10-byte waypoints and 0x0e-byte links
+00459650,OctPath::ReadWaypointFile,wiz8-pathfinding,strong,OctPath.cpp reads WPT versions one and two then materializes the runtime adjacency and hash structures

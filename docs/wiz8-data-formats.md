@@ -40,6 +40,37 @@ The seek-origin values are Wizardry-specific (`1` begin, `2` end, `4` current), 
 the Win32 constants passed internally. They are declared in
 `config/types/wiz8/virtual_file.h`.
 
+## Level and waypoint files
+
+`Levels\LEVELS.SLF` contains 4,956 entries. The structural corpus is 35 `.WPT`, 34
+`.OCT`, 34 `.PVL`, 34 `.STS`, 26 optional `.RLK`, and two sky `.LVL` files; the other
+entries are level-local assets. `config/analysis/wiz8/level-formats.csv` records this
+inventory without copying any payload.
+
+The waypoint format is now fully bounded by `OctPath::ReadWaypointFile` at `0x00459650`
+and `OctPath::WriteWaypointFile` at `0x00459540`. A `0x10`-byte header contains the file
+version, an unknown dword, and waypoint/link counts. All 35
+canonical files use version two. Both counts include an all-zero index-zero sentinel. The
+header is followed by `waypoint_count` records of `0x10` bytes and `link_count` records of
+`0x0e` bytes:
+
+```text
+waypoint:  uint16 flags, uint16 first_link, float position[3]
+link:      uint32 flags, uint16 source, uint16 destination,
+           float distance, uint16 next_link
+```
+
+Version-one link records omit `source`; the loader reads the other fields individually and
+inserts zero. Several archived version-two files have bytes beyond the computed record end.
+The canonical loader closes the file immediately after the declared link array, so those
+tails are retained archive/editor residue rather than part of the runtime format.
+
+`ReadOctFile` at `0x0042bc10` is identified directly by its diagnostics. Its current section
+inventory includes the header, pre-regions, octree nodes and leaves, leaf grid, polygon and
+region lists, triggers, submeshes, mesh/prop/particle link and lookup tables, alpha bits, and
+prop-sun bits. Those sections remain separately untyped; the name is an anchor for the next
+map-format pass rather than a claim that the large `.OCT` layout is complete.
+
 ## Cosmic Forge override blobs
 
 Fan-patch module `cfagent1.28.dll` exposes fifteen `.cfdat` filenames and English

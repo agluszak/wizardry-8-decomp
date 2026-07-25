@@ -174,3 +174,18 @@ def test_gameplay_database_record_boundaries_match_the_corpus() -> None:
     by_path = {row["archive_path"]: row for row in rows}
     assert by_path["DATABASES\\MONSTERS.DBS"]["runtime_record_size"] == "0x297"
     assert by_path["DATABASES\\SPELLTABLES.DBS"]["runtime_record_size"] == "0x1bf"
+
+
+def test_level_format_inventory_preserves_typed_waypoint_boundary() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/level-formats.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    by_extension = {row["extension"]: row for row in rows}
+    assert by_extension[".WPT"]["file_count"] == "35"
+    assert by_extension[".WPT"]["header_size"] == "0x10"
+    assert by_extension[".WPT"]["record_layout"] == "waypoint 0x10 then link 0x0e"
+    assert by_extension[".WPT"]["loader"] == "0x00459650"
+    assert by_extension[".OCT"]["loader"] == "0x0042bc10"

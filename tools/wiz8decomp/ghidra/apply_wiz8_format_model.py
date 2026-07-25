@@ -90,6 +90,47 @@ def apply_wiz8_format_model(
                         (0x114, dword, "unknown_114", "unreviewed directory field"),
                     ],
                 )
+                waypoint_header = _structure(
+                    dtm,
+                    category,
+                    "W8WaypointFileHeader",
+                    0x10,
+                    [
+                        (0x00, dword, "version", "canonical files use version two"),
+                        (0x04, dword, "unknown_04", "usually zero"),
+                        (0x08, dword, "waypoint_count", "includes index-zero sentinel"),
+                        (0x0C, dword, "link_count", "includes index-zero sentinel"),
+                    ],
+                )
+                waypoint = _structure(
+                    dtm,
+                    category,
+                    "W8WaypointDisk",
+                    0x10,
+                    [
+                        (0x00, word, "flags", "waypoint flags"),
+                        (0x02, word, "first_link", "index into waypoint links"),
+                        (0x04, ArrayDataType(float_type, 3, 4), "position", "XYZ position"),
+                    ],
+                )
+                waypoint_link = _structure(
+                    dtm,
+                    category,
+                    "W8WaypointLinkDisk",
+                    0x0E,
+                    [
+                        (0x00, dword, "flags", "path link flags"),
+                        (
+                            0x04,
+                            word,
+                            "source_waypoint",
+                            "absent from version-one files",
+                        ),
+                        (0x06, word, "destination_waypoint", "destination index"),
+                        (0x08, float_type, "distance", "path distance"),
+                        (0x0C, word, "next_link", "next edge for the same source"),
+                    ],
+                )
                 live_entry = _structure(
                     dtm,
                     category,
@@ -793,6 +834,9 @@ def apply_wiz8_format_model(
                             for data_type in (
                                 header,
                                 directory_entry,
+                                waypoint_header,
+                                waypoint,
+                                waypoint_link,
                                 live_entry,
                                 archive_state,
                                 configuration,
