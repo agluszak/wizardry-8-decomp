@@ -63,7 +63,8 @@ and their evidence are tracked in `config/analysis/functions/srext-jpegimporter.
 The binary strings establish the class name `srJPEGImporter` and the error paths
 `srJPEGImporter::importSurface` and `srJPEGImporter::exportSurface`. The constructor at
 `0x10014D40` registers both `jpeg` and `jpg` as importer and exporter types. Export options recognize
-`QUALITY`, default it to 100, and clamp the parsed value before calling the JPEG encoder.
+`QUALITY`, default it to 100, and truncate the parsed floating-point value to the original byte field
+before calling the JPEG encoder.
 
 The allocation and field accesses prove a two-object layout. The `0x48`-byte plugin wrapper owns a
 four-byte plugin vptr followed by a `0x44`-byte `srJPEGImporter`. The importer object begins with
@@ -116,6 +117,10 @@ void exportSurface(srBinOStream&, srColorSurfaceIFace&,
 The first recovered SurRender headers are under `include/surrender/`. They encode the proven
 multiple-inheritance shape, the virtual `srBinStream` base used by directional streams, the exact
 `0x28`-byte surface-description record, and the 52 observed `srColorSurface` vtable positions.
+The plugin constructs a zero-data `srJPEGColorSurface` wrapper around the imported concrete
+`srColorSurface`. This typed inheritance accounts for the original call to the `SR.DLL` constructor
+followed by installation of the extension-local vtable; no raw vptr assignment is needed in owned
+source.
 Unknown option fields remain explicit; only the export option-string pointer at `+0x08` is currently
 semantic. The `0x0C` declarations are the observed prefix needed by this plug-in, not yet a claim
 that no later SDK build extends either record.
@@ -131,8 +136,9 @@ code.
 
 The owned `plugin.cpp` now builds a `0x48`-byte wrapper with the proven `0x44`-byte importer/exporter
 subobject, registers `jpeg` and `jpg` through the original `SR.DLL`, and preserves exports and
-ordinals 1 and 2. The three public SurRender operation methods remain deliberate stubs; the lower
-codec adapter is now recovered.
+ordinals 1 and 2. `getSurfaceDesc`, pixel import, pixel export, `QUALITY` parsing, surface lifetime,
+and the four locally owned surface runtime-class methods now have typed implementations. The IJG
+implementation itself remains the pristine upstream release-6 source.
 
 The root `CMakeLists.txt` owns the product build. It compiles the pinned pristine IJG release-6
 source with the two SurRender stdio adaptations, then links the recovered adapter and plug-in using
@@ -150,8 +156,16 @@ comparison currently proves exact machine-code matches for:
 | `0x100010D0` | IJG error callback | 100% |
 | `0x100010F0` | encoder adapter | 100% |
 | `0x10001290` | decoder adapter | 100% |
+| `0x10014E30` | header operation | effectively 100% |
+| `0x10015400` | export-option initialization | 100% |
+| `0x10015450` | surface class ID | 100% |
+| `0x100155D0` | library version export | 100% |
 
-The complete 24-function report is 90.93% accurate, with 19 functions already address-aligned.
+The complete 32-function report is 87.55% accurate, with 20 functions already address-aligned.
+The larger denominator now includes every recovered public operation: `getSurfaceDesc` is 51.79%,
+`importSurface` is 15.42%, and `exportSurface` is 78.23%. The low import score reflects unresolved
+local/control-flow selection rather than missing behavior; its allocation branches, vtable install,
+decode failure cleanup, and 1/3/4-component row conversions are all represented.
 This proves that upstream IJG remains upstream source: only the Sir-Tech adapter and SurRender ABI
-are manually recovered. The next content boundary is `getSurfaceDesc`, `importSurface`, and
-`exportSurface` at `0x10014E60`, `0x10014F30`, and `0x10015200`.
+are manually recovered. The remaining JPEG work is exact compiler/link refinement and a drop-in
+runtime test against the original `SR.DLL`.

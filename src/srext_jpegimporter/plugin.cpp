@@ -1,3 +1,5 @@
+#include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 #include <new>
 
@@ -7,6 +9,20 @@
 
 #include "codec_adapter.h"
 #include "layout.h"
+
+class srJPEGColorSurface : public srColorSurface {
+public:
+    srJPEGColorSurface(
+        srPixelConvert::e_surfaceType type,
+        unsigned long width,
+        unsigned long height)
+        : srColorSurface(type, width, height) {}
+
+    virtual const char* getClassName() const;
+    virtual unsigned long getClassID() const;
+    virtual srRegistry::ClassNode* getClassNode() const;
+    virtual srColorSurfaceIFace* clone();
+};
 
 class srJPEGImporter :
     public srSurfaceIOManager::SurfaceImporter,
@@ -118,27 +134,36 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
         return 0;
     }
 
-    srPixelConvert::e_surfaceType surface_type;
-    switch (codec_.components) {
-    case 1:
-        surface_type = srPixelConvert::SURFACE_L8;
-        break;
-    case 3:
-        surface_type = srPixelConvert::SURFACE_BGR24;
-        break;
-    case 4:
-        surface_type = srPixelConvert::SURFACE_BGRA32;
-        break;
-    default:
+    const int components = codec_.components;
+    const unsigned long height = codec_.height;
+    const unsigned long width = codec_.width;
+    srJPEGColorSurface* surface;
+    if (components == 1) {
+        void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
+        surface = storage == 0
+            ? 0
+            : new (storage) srJPEGColorSurface(
+                  srPixelConvert::SURFACE_L8, width, height);
+    }
+    else if (components == 3) {
+        void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
+        surface = storage == 0
+            ? 0
+            : new (storage) srJPEGColorSurface(
+                  srPixelConvert::SURFACE_BGR24, width, height);
+    }
+    else if (components == 4) {
+        void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
+        surface = storage == 0
+            ? 0
+            : new (storage) srJPEGColorSurface(
+                  srPixelConvert::SURFACE_BGRA32, width, height);
+    }
+    else {
         return 0;
     }
 
-    void* storage = srHeap.allocate(sizeof(srColorSurface));
-    srColorSurface* surface = storage == 0
-        ? 0
-        : new (storage) srColorSurface(surface_type, codec_.width, codec_.height);
-
-    const unsigned long data_size = codec_.components * codec_.width * codec_.height;
+    const unsigned long data_size = components * height * width;
     unsigned char* decoded = static_cast<unsigned char*>(::operator new(data_size));
     codec_.pixels = decoded;
     stream.seek(0, srBinStream::SR_SEEK_BEGIN);
@@ -151,36 +176,39 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
         return 0;
     }
 
-    const unsigned char* source = decoded;
-    for (unsigned long y = 0; y < codec_.height; ++y) {
+    unsigned long rgb_row_offset = 0;
+    const unsigned char* source_row = decoded;
+    for (unsigned long y = 0; y < height; ++y) {
         unsigned char* destination =
             static_cast<unsigned char*>(surface->asInterface()->getDataPtr())
             + surface->rowPitch() * y;
-        if (codec_.components == 1) {
-            memcpy(destination, source, codec_.width);
+        if (components == 1) {
+            memcpy(destination, source_row, width);
         }
-        else if (codec_.components == 3) {
-            for (unsigned long x = 0; x < codec_.width; ++x) {
-                destination[0] = source[2];
-                destination[1] = source[1];
-                destination[2] = source[0];
+        else if (components == 3) {
+            const unsigned char* source = decoded + rgb_row_offset + 1;
+            for (unsigned long x = 0; x < width; ++x) {
+                destination[0] = source[1];
+                destination[1] = source[0];
+                destination[2] = source[-1];
                 destination += 3;
                 source += 3;
             }
         }
-        else {
-            for (unsigned long x = 0; x < codec_.width; ++x) {
-                destination[0] = source[2];
-                destination[1] = source[1];
-                destination[2] = source[0];
-                destination[3] = source[3];
-                destination += 4;
-                source += 4;
+        else if (components == 4) {
+            const unsigned long* source =
+                reinterpret_cast<const unsigned long*>(source_row);
+            unsigned long* destination_pixel =
+                reinterpret_cast<unsigned long*>(destination);
+            for (unsigned long x = 0; x < width; ++x) {
+                const unsigned long pixel = *source++;
+                *destination_pixel++ =
+                    ((pixel & 0x00ff0000UL | pixel >> 16) >> 8)
+                    | ((pixel << 16 | pixel & 0x0000ff00UL) << 8);
             }
         }
-        if (codec_.components != 3 && codec_.components != 4) {
-            source += codec_.width * codec_.components;
-        }
+        rgb_row_offset += width * 3;
+        source_row += components * width;
     }
 
     srJPEG_active_input_stream = 0;
@@ -188,11 +216,111 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     return surface->asInterface();
 }
 
-void srJPEGImporter::exportSurface(
-    srBinOStream&,
-    srColorSurfaceIFace&,
-    const srSurfaceIOManager::ExportInfo&)
+// FUNCTION: SREXT_JPEGIMPORTER 0x10015400
+static void initializeExportOptions(JpegExportOptions32* options)
 {
+    options->limit_200 = 200;
+    options->quality = 100;
+    options->smoothing_factor = 0;
+    options->pointer_08 = 0;
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x10015200
+void srJPEGImporter::exportSurface(
+    srBinOStream& stream,
+    srColorSurfaceIFace& source,
+    const srSurfaceIOManager::ExportInfo& options)
+{
+    srJPEG_active_output_stream = &stream;
+    stream.seek(0, srBinStream::SR_SEEK_BEGIN);
+
+    initializeExportOptions(&export_options_);
+    export_options_.quality = 100;
+    if (options.option_string != 0) {
+        const unsigned long length = strlen(options.option_string) + 1;
+        char* option_string = static_cast<char*>(::operator new(length));
+        strcpy(option_string, options.option_string);
+        for (char* cursor = option_string; *cursor != '\0'; ++cursor) {
+            *cursor = static_cast<char>(toupper(*cursor));
+        }
+        char* quality = strstr(option_string, "QUALITY");
+        if (quality != 0) {
+            quality = strchr(quality, '=');
+            if (quality != 0) {
+                while (*quality == ' ' || *quality == '=') {
+                    ++quality;
+                }
+                char* end = strchr(quality, ';');
+                if (end != 0) {
+                    *end = '\0';
+                }
+                export_options_.quality = static_cast<unsigned char>(atof(quality));
+            }
+        }
+        ::operator delete(option_string);
+    }
+
+    srColorSurface* source_surface = srColorSurface::fromInterface(source);
+    void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
+    srJPEGColorSurface* copy = storage == 0
+        ? 0
+        : new (storage) srJPEGColorSurface(
+              srPixelConvert::SURFACE_COPY,
+              source_surface->width(),
+              source_surface->height());
+    copy->asInterface()->copy(source);
+
+    memset(&codec_, 0, sizeof(codec_));
+    codec_.pixels = static_cast<unsigned char*>(copy->asInterface()->getDataPtr());
+    codec_.width = source_surface->width();
+    codec_.height = source_surface->height();
+    codec_.output_stdio_cookie = 0;
+    codec_.arithmetic_coding = 0;
+    codec_.ccir601_sampling = 0;
+    codec_.smoothing_factor = export_options_.smoothing_factor;
+    codec_.quality = export_options_.quality;
+    srJPEG_encode_adapter(&codec_);
+    copy->asInterface()->release();
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x10015450
+unsigned long srJPEGColorSurface::getClassID() const
+{
+    return 0x3110;
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x10015460
+const char* srJPEGColorSurface::getClassName() const
+{
+    return sGetClassName();
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x10015470
+srRegistry::ClassNode* srJPEGColorSurface::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x3110);
+    if (node == 0) {
+        srRegistry* parent_registry = srCore.getRegistry();
+        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x3100);
+        if (parent == 0) {
+            parent = parent_registry->registerClass(
+                srColorSurfaceIFace::sGetClassName(),
+                srClass::sGetClassNode(),
+                0x3100,
+                1);
+        }
+        node = registry->registerClass(sGetClassName(), parent, 0x3110, 0);
+    }
+    return node;
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x100154E0
+srColorSurfaceIFace* srJPEGColorSurface::clone()
+{
+    srColorSurface* result = static_cast<srColorSurface*>(vInstance());
+    *result = *this;
+    return result;
 }
 
 const char* srJPEGPlugin::getDescription() const
@@ -214,3 +342,5 @@ extern "C" srPlugin* __cdecl srInitPlugin()
 
 typedef char srJPEGImporter_must_be_0x44[(sizeof(srJPEGImporter) == 0x44) ? 1 : -1];
 typedef char srJPEGPlugin_must_be_0x48[(sizeof(srJPEGPlugin) == 0x48) ? 1 : -1];
+typedef char srJPEGColorSurface_must_be_0x5c[
+    (sizeof(srJPEGColorSurface) == 0x5c) ? 1 : -1];

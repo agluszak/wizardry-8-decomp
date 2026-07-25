@@ -22,7 +22,7 @@ struct JpegCodecState32 {
 struct JpegExportOptions32 {
     unsigned long limit_200;      // +0x00: initialized to 200
     unsigned char quality;        // +0x04: 75 at construction, 100 per export
-    unsigned char flag_05;        // +0x05
+    unsigned char smoothing_factor; // +0x05 -> jpeg_compress_struct::smoothing_factor
     unsigned char padding_06[2];
     void* pointer_08;             // +0x08
 };
