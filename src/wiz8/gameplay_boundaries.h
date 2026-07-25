@@ -25,7 +25,11 @@ typedef struct W8FactionRuntimeRecord {
 typedef struct W8Character {
     unsigned char unknown_0000[4];
     unsigned char in_party;              /* 0x0004 */
-    unsigned char unknown_0005[0x185d];
+    unsigned char unknown_0005[0x64];
+    int current_profession;               /* 0x0069 */
+    unsigned char unknown_006d[0x20];
+    int profession_levels[15];            /* 0x008d */
+    unsigned char unknown_00c9[0x1799];
 } W8Character;                           /* 0x1862 */
 
 typedef unsigned char W8FactionDisposition;
@@ -45,6 +49,7 @@ extern "C" {
 extern W8SpellRuntimeRecord* g_spell_records;
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8Character* g_party_characters;
+extern int g_profession_magic_level_offsets[15];
 
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -60,6 +65,7 @@ int GetMinimumCasterLevelForSpell(int spell_id);
 W8FactionDisposition GetFactionDisposition(signed char faction);
 void StripMonsterNameSuffix(unsigned short* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
+int GetProfessionCasterLevel(W8Character* character, int profession_id);
 
 #ifdef __cplusplus
 }
