@@ -2,19 +2,25 @@ from __future__ import annotations
 
 import json
 import shutil
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from ..config import Settings
 from ..inputs.manifest import InputRecord
 from ..inputs.scan import load_manifest
+from ..manifest_models import (
+    VariantProvenance,
+    VariantProvenanceManifest,
+    load_generated_document,
+    variant_provenance_path,
+    write_generated_document,
+)
 from ..paths import atomic_json, ensure_safe_generated_target, tree_hash, tree_manifest
-from ..subprocesses import CommandResult, tool_version
+from ..subprocesses import CommandResult
 from .archives import extract_inno, extract_with_7z
 from .installers import extract_installshield
 from .iso import extract_iso
-
 
 EXTRACTED_NAMES = {
     "gog-media": "gog-base",
@@ -75,7 +81,7 @@ def _provenance(
             for command in commands
         ],
         "wine_used": wine_used,
-        "created_at_utc_non_authoritative": datetime.now(timezone.utc).isoformat(),
+        "created_at_utc_non_authoritative": datetime.now(UTC).isoformat(),
         "output_tree_sha256": tree_hash(files),
         "files": files,
     }
@@ -175,13 +181,13 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
         "gog-128": ("gog-base", "patch-128"),
         "demo": ("demo", None),
     }
-    records: list[dict[str, Any]] = []
+    records: list[VariantProvenance] = []
     for variant, (base_name, patch_name) in specs.items():
         destination = variants / variant
         marker = destination / ".wiz8-variant.json"
         if destination.exists():
             if marker.is_file():
-                records.append(json.loads(marker.read_text(encoding="utf-8")))
+                records.append(load_generated_document(marker, VariantProvenance))
                 continue
             raise RuntimeError(f"refusing to replace unmarked variant tree: {destination}")
         base = _game_root(extracted / base_name, demo=variant == "demo")
@@ -196,31 +202,34 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
         if patch_name:
             overlay_files.extend(_apply_overlay(_overlay_root(extracted / patch_name), destination))
         files = tree_manifest(destination)
-        record = {
-            "schema": "wiz8.variant-provenance",
-            "format_version": 1,
-            "variant": variant,
-            "base_extraction": base_name,
-            "patch_extraction": patch_name,
-            "patch_chain": [patch_name] if patch_name else [],
-            "overlay_files": overlay_files,
-            "files": files,
-            "output_tree_sha256": tree_hash(files),
-            "created_at_utc_non_authoritative": datetime.now(timezone.utc).isoformat(),
-        }
-        atomic_json(marker, record)
-        atomic_json(settings.build_dir / "manifests" / "variants" / f"{variant}.json", record)
+        record = VariantProvenance(
+            variant=variant,
+            base_extraction=base_name,
+            patch_extraction=patch_name,
+            patch_chain=[patch_name] if patch_name else [],
+            overlay_files=overlay_files,
+            files=files,
+            output_tree_sha256=tree_hash(files),
+            created_at_utc_non_authoritative=datetime.now(UTC).isoformat(),
+        )
+        write_generated_document(marker, record)
+        write_generated_document(
+            settings.build_dir / "manifests" / "variants" / f"{variant}.json", record
+        )
         records.append(record)
-    output = {"schema": "wiz8.variants", "format_version": 1, "variants": records}
-    atomic_json(settings.build_dir / "manifests" / "variants.json", output)
-    return output
+    output = VariantProvenanceManifest(variants=records)
+    write_generated_document(variant_provenance_path(settings), output)
+    return output.model_dump(mode="json", by_alias=True)
 
 
 def variant_diff(settings: Settings) -> dict[str, Any]:
     manifests: dict[str, dict[str, dict[str, Any]]] = {}
     for path in sorted((settings.work_dir / "variants").glob("*/.wiz8-variant.json")):
-        data = json.loads(path.read_text(encoding="utf-8"))
-        manifests[data["variant"]] = {entry["path"].casefold(): entry for entry in data["files"]}
+        document = load_generated_document(path, VariantProvenance)
+        data = document.model_dump(mode="json", by_alias=True)
+        manifests[document.variant] = {
+            entry["path"].casefold(): entry for entry in data["files"]
+        }
     base = manifests.get("gog-base", {})
     comparisons: dict[str, Any] = {}
     for variant, files in sorted(manifests.items()):

@@ -6,6 +6,7 @@ from typing import Any
 
 from ..config import Settings
 from ..inputs.scan import load_manifest
+from ..manifest_models import load_variant_module_inventory, load_variant_provenance
 from ..paths import atomic_json, atomic_write
 
 
@@ -15,7 +16,10 @@ def _load(path: Path, default: Any) -> Any:
 
 def bootstrap_report(settings: Settings) -> dict[str, Any]:
     inputs = load_manifest(settings).model_dump(mode="json", by_alias=True)
-    variants = _load(settings.build_dir / "manifests" / "variants.json", {"variants": []})
+    variants = load_variant_provenance(settings).model_dump(mode="json", by_alias=True)
+    variant_modules = load_variant_module_inventory(settings).model_dump(
+        mode="json", by_alias=True
+    )
     modules = _load(settings.build_dir / "manifests" / "modules.json", {"modules": []})
     module_diff = _load(settings.build_dir / "reports" / "module-diff.json", {"comparisons": []})
     compilers = _load(settings.build_dir / "reports" / "compiler-evidence.json", {"modules": []})
@@ -27,6 +31,7 @@ def bootstrap_report(settings: Settings) -> dict[str, Any]:
         "format_version": 1,
         "inputs": inputs["files"],
         "variants": variants.get("variants", []),
+        "variant_module_inventory": variant_modules["variants"],
         "modules": modules["modules"],
         "module_diff": module_diff,
         "compiler_evidence": compilers,

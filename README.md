@@ -25,3 +25,12 @@ uv run wiz8 report bootstrap
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
+
+Variant materialization and PE inventory intentionally produce separate validated documents:
+
+- `build/manifests/variant-provenance.json` records how each runnable tree was assembled.
+- `build/manifests/variant-module-inventory.json` records module counts for each tree.
+
+Their exact schemas are checked when loaded; command order cannot change the meaning of either
+path. Generated state is disposable, so these initial schemas deliberately have no compatibility
+version or migration layer.

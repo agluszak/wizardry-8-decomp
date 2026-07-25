@@ -4,13 +4,17 @@ import csv
 import io
 import json
 from collections import defaultdict
-from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from ..manifest_models import (
+    VariantModuleInventory,
+    VariantModuleSummary,
+    variant_module_inventory_path,
+    write_generated_document,
+)
 from ..paths import atomic_json, atomic_write
 from .pe import inspect_pe, is_pe
-
 
 MIDDLEWARE_PREFIXES = ("mss", "bink", "smack", "mp3dec", "lua", "d3dim", "secdrv", "drvmgt")
 
@@ -92,15 +96,16 @@ def inventory(settings: Settings) -> dict[str, Any]:
             modules.append(module)
     result = {"schema": "wiz8.modules", "format_version": 1, "modules": modules}
     atomic_json(settings.build_dir / "manifests" / "modules.json", result)
-    variants = {
-        "schema": "wiz8.variant-inventory",
-        "format_version": 1,
-        "variants": [
-            {"id": variant, "module_count": sum(item["variant"] == variant for item in modules), "tree": str((variants_root / variant).resolve())}
+    variants = VariantModuleInventory(
+        variants=[
+            VariantModuleSummary(
+                id=variant,
+                module_count=sum(item["variant"] == variant for item in modules),
+            )
             for variant in sorted({item["variant"] for item in modules})
-        ],
-    }
-    atomic_json(settings.build_dir / "manifests" / "variants.json", variants)
+        ]
+    )
+    write_generated_document(variant_module_inventory_path(settings), variants)
     diff = _module_diff(modules)
     atomic_json(settings.build_dir / "reports" / "module-diff.json", diff)
     compiler = {
@@ -158,4 +163,3 @@ def load_inventory(settings: Settings) -> dict[str, Any]:
     if not path.is_file():
         return inventory(settings)
     return json.loads(path.read_text(encoding="utf-8"))
-
