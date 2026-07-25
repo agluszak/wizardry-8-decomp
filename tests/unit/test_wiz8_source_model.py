@@ -237,3 +237,20 @@ def test_save_game_section_vocabulary_is_unique_and_bidirectional() -> None:
     assert by_tag["STAT"]["evidence"] == "Fixed 0x314-byte W8SaveStatusHeader"
     assert by_tag["NPCF"]["consumer"] == "0x00506480/0x005064a0"
     assert {row["direction"] for row in rows} == {"save", "load", "both"}
+
+
+def test_string_database_inventory_preserves_footer_index_boundaries() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/string-databases.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 3
+    by_path = {row["archive_path"]: row for row in rows}
+    assert by_path["DATABASES\\ITEMDESC.DBS"]["record_count"] == "1000"
+    assert by_path["DATABASES\\ITEMDESC.DBS"]["maximum_code_units"] == "474"
+    assert by_path["DATABASES\\SPELLDESC.DBS"]["record_count"] == "160"
+    assert by_path["DATABASES\\SPELLEFFECT.DBS"]["maximum_code_units"] == "0"
+    assert {row["encoded"] for row in rows} == {"false"}
+    assert {row["consumer"] for row in rows} == {"0x0052ff80"}

@@ -1,0 +1,4 @@
+archive_path,canonical_size,demo_size,record_count,maximum_code_units,encoded,consumer,status,evidence
+DATABASES\ITEMDESC.DBS,129185,129025,1000,474,false,0x0052ff80,typed,"Canonical retail and patch builds agree; the demo has the same record count and structural footer with different text lengths"
+DATABASES\SPELLDESC.DBS,25227,24439,160,270,false,0x0052ff80,typed,"Canonical retail and patch builds agree; the demo has the same record count and structural footer with different text lengths"
+DATABASES\SPELLEFFECT.DBS,2573,2573,160,0,false,0x0052ff80,typed,"All builds are byte-size identical structurally; every record has an empty text payload"

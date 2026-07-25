@@ -206,6 +206,20 @@ through `ReplaceOrCreateItem`. When `level_scaled` is nonzero it filters candida
 the current party level and the selected item record. The exact designer meaning of the
 leading nonzero selector remains unnamed because this consumer only tests it as enabled.
 
+The item and spell description files share one indexed string-database format consumed by
+`GetStringFromStringDatabase` at `0x0052ff80`. A packed five-byte header stores version one
+and an encoding flag. Each variable record begins with two 32-bit metadata values and a
+32-bit UTF-16 code-unit count. The file ends with one 32-bit absolute offset per record,
+followed by the record count and a zero dword. The reader finds the offset table relative to
+EOF, so record text does not need a fixed stride. It rejects strings longer than 2,000 code
+units and optionally transforms each code unit when the header flag is nonzero.
+
+The reviewed `ItemDesc.dbs` has 1,000 records; `SpellDesc.dbs` and `SpellEffect.dbs` each
+have 160. The latter currently stores empty text payloads in every slot. All available files
+use the unencoded form. Demo item/spell descriptions have different byte lengths but retain
+the same counts and valid footer indexes. Only sizes and structural metadata are tracked;
+the description text itself is not exported.
+
 ## Save-game container
 
 The main save is a nested tagged container, not a single raw memory image. `SaveGame` at

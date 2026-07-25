@@ -732,6 +732,47 @@ def apply_wiz8_format_model(
                         ),
                     ],
                 )
+                string_database_header = _structure(
+                    dtm,
+                    category,
+                    "W8StringDatabaseHeader",
+                    0x05,
+                    [
+                        (0x00, dword, "version", "one in the reviewed corpus"),
+                        (
+                            0x04,
+                            byte,
+                            "encoded",
+                            "nonzero applies the code-unit transform",
+                        ),
+                    ],
+                )
+                string_database_record = _structure(
+                    dtm,
+                    category,
+                    "W8StringDatabaseRecordHeader",
+                    0x0C,
+                    [
+                        (0x00, dword, "metadata_00", "optional caller metadata"),
+                        (0x04, dword, "metadata_04", "optional caller metadata"),
+                        (
+                            0x08,
+                            dword,
+                            "code_unit_count",
+                            "reader accepts at most 2000 UTF-16 code units",
+                        ),
+                    ],
+                )
+                string_database_footer = _structure(
+                    dtm,
+                    category,
+                    "W8StringDatabaseFooter",
+                    0x08,
+                    [
+                        (0x00, dword, "record_count", "offset count before the suffix"),
+                        (0x04, dword, "reserved", "zero in the reviewed corpus"),
+                    ],
+                )
                 spell_realm = EnumDataType(category, "W8SpellRealm", 4, dtm)
                 spell_realm.add("W8_SPELL_REALM_FIRE", 0)
                 spell_realm.add("W8_SPELL_REALM_WATER", 1)
@@ -976,6 +1017,16 @@ def apply_wiz8_format_model(
                     0x00512D00: (dword, []),
                     0x00513090: (dword, []),
                     0x00513260: (dword, [("save_context", generic_pointer)]),
+                    0x0052FF80: (
+                        dword,
+                        [
+                            ("path", char_pointer),
+                            ("index", integer),
+                            ("output", PointerDataType(word, dtm)),
+                            ("metadata_04", PointerDataType(dword, dtm)),
+                            ("metadata_00", PointerDataType(dword, dtm)),
+                        ],
+                    ),
                     0x00535AD0: (faction_disposition, [("faction", byte)]),
                     0x0051B5C0: (
                         PointerDataType(word, dtm),
@@ -1173,6 +1224,9 @@ def apply_wiz8_format_model(
                                 npc_record,
                                 save_section_tag,
                                 save_status_header,
+                                string_database_header,
+                                string_database_record,
+                                string_database_footer,
                                 spell_realm,
                                 spell_record,
                             )
