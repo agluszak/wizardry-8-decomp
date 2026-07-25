@@ -151,3 +151,23 @@ def test_cfdat_override_evidence_does_not_promote_unused_sizes_to_layouts() -> N
     assert by_name["racesattrs.cfdat"]["english_destination"] == "0x00614cf0"
     assert by_name["classesattrs.cfdat"]["status"] == "conflicting"
     assert by_name["classesexpgroup.cfdat"]["english_destination"] == "0x004ef1e0"
+
+
+def test_gameplay_database_record_boundaries_match_the_corpus() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/database-records.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 5
+    for row in rows:
+        file_size = int(row["file_size"])
+        header_size = int(row["header_size"], 0)
+        record_count = int(row["record_count"])
+        disk_record_size = int(row["disk_record_size"], 0)
+        assert file_size == header_size + record_count * disk_record_size
+
+    by_path = {row["archive_path"]: row for row in rows}
+    assert by_path["DATABASES\\MONSTERS.DBS"]["runtime_record_size"] == "0x297"
+    assert by_path["DATABASES\\SPELLTABLES.DBS"]["runtime_record_size"] == "0x1bf"

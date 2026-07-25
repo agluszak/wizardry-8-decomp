@@ -1,0 +1,6 @@
+archive_path,file_size,header_size,record_count,disk_record_size,runtime_record_size,loader,status,evidence
+DATABASES\ITEMS.DBS,220315,0x04,819,0x10d,0x10d,0x0054a400,partially-typed,File arithmetic and InitializeItemDatabase both establish count followed by contiguous 0x10d records
+DATABASES\MONSTERS.DBS,394489,0x04,595,0x297,0x297,0x0054a8a0,partially-typed,File arithmetic and LoadMonsterDatabaseRecord both establish 0x297 records; first four 0x30 fields are UTF-16 names normalized after loading
+DATABASES\LEVELS.DBS,12964,0x04,60,0xd8,0xd8,0x0054ae20,partially-typed,File arithmetic and InitializeLevelDatabase both establish count followed by contiguous 0xd8 records
+DATABASES\FACT.DBS,380908,0x04,807,0x1d8,0x1d8,,partially-typed,File arithmetic establishes fixed 0x1d8 records; first record confirms a 32-bit identifier and 256-byte FACT symbolic name
+DATABASES\SPELLTABLES.DBS,105608,0x08,150,0x2c0,0x1bf,0x004acc10,partially-typed,InitializeSpellDatabase reads count and version then skips 0x101 and retains 0x1bf bytes for every record

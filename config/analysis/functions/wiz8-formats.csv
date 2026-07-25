@@ -1,4 +1,13 @@
 address,provisional_name,owner,confidence,evidence
+00404c80,OpenVirtualFile,wiz8-file-system,strong,Opens a physical file or resolves a read-only member through the initialized SLF archive table
+00404e10,CloseVirtualFile,wiz8-file-system,strong,Closes a physical handle or releases an SLF-backed virtual-file slot
+00404ea0,ReadVirtualFile,wiz8-file-system,strong,Reads bytes from either a physical handle or an SLF archive entry and reports the completed byte count
+00405030,SeekVirtualFile,wiz8-file-system,strong,Seeks a physical handle or SLF-backed entry using Wizardry origin values 1 2 and 4
+004acc10,InitializeSpellDatabase,wiz8-gameplay-database,strong,Reads the count and version from SpellTables.dbs then skips 0x101 and loads 0x1bf bytes for each spell
+00517ea0,StripMonsterNameSuffix,wiz8-gameplay-database,strong,Finds the first wide '#' in a monster name field and terminates the string there
+0054a400,InitializeItemDatabase,wiz8-gameplay-database,strong,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
+0054a8a0,LoadMonsterDatabaseRecord,wiz8-gameplay-database,strong,Seeks to index times 0x297 plus the count header and reads one monster record
+0054ae20,InitializeLevelDatabase,wiz8-gameplay-database,strong,Reads the Levels.dbs count then allocates and loads contiguous 0xd8-byte records
 004126f0,InitializeSlfArchives,wiz8-file-system,strong,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
 00412a10,RefreshSlfArchives,wiz8-file-system,strong,Closes or reopens each of six configured SLF archives and recreates optional file mappings
 00412bb0,OpenSlfArchive,wiz8-file-system,strong,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries

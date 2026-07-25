@@ -26,9 +26,13 @@ def apply_wiz8_format_model(
         ByteDataType,
         CategoryPath,
         CharDataType,
+        DataTypeConflictHandler,
         DWordDataType,
+        EnumDataType,
+        IntegerDataType,
         PointerDataType,
         QWordDataType,
+        VoidDataType,
         WordDataType,
     )
     from ghidra.program.model.symbol import SourceType
@@ -47,7 +51,9 @@ def apply_wiz8_format_model(
                 char = CharDataType.dataType
                 word = WordDataType.dataType
                 dword = DWordDataType.dataType
+                integer = IntegerDataType.dataType
                 qword = QWordDataType.dataType
+                void = VoidDataType.dataType
                 generic_pointer = PointerDataType(dtm)
                 char_pointer = PointerDataType(char, dtm)
 
@@ -125,6 +131,114 @@ def apply_wiz8_format_model(
                         (0x102, byte, "map_file", "create a read-only file mapping"),
                     ],
                 )
+                item_record = _structure(
+                    dtm,
+                    category,
+                    "W8ItemDatabaseRecord",
+                    0x10D,
+                    [
+                        (
+                            0x000,
+                            ArrayDataType(word, 30, 2),
+                            "display_name",
+                            "30 UTF-16 code units",
+                        ),
+                        (
+                            0x03C,
+                            ArrayDataType(byte, 0xD1, 1),
+                            "fields_03c",
+                            "not yet field-reconciled",
+                        ),
+                    ],
+                )
+                monster_record = _structure(
+                    dtm,
+                    category,
+                    "W8MonsterDatabaseRecord",
+                    0x297,
+                    [
+                        (
+                            offset,
+                            ArrayDataType(word, 24, 2),
+                            f"name_{offset:02x}",
+                            "UTF-16 name; suffix after '#' removed at load",
+                        )
+                        for offset in (0x00, 0x30, 0x60, 0x90)
+                    ]
+                    + [
+                        (
+                            0x0C0,
+                            ArrayDataType(byte, 0x1D7, 1),
+                            "fields_0c0",
+                            "not yet field-reconciled",
+                        )
+                    ],
+                )
+                level_record = _structure(
+                    dtm,
+                    category,
+                    "W8LevelDatabaseRecord",
+                    0xD8,
+                    [
+                        (
+                            0x00,
+                            ArrayDataType(word, 30, 2),
+                            "display_name",
+                            "30 UTF-16 code units",
+                        ),
+                        (
+                            0x3C,
+                            ArrayDataType(byte, 0x9C, 1),
+                            "fields_03c",
+                            "not yet field-reconciled",
+                        ),
+                    ],
+                )
+                fact_record = _structure(
+                    dtm,
+                    category,
+                    "W8FactDatabaseRecord",
+                    0x1D8,
+                    [
+                        (0x000, dword, "identifier", "32-bit fact identifier"),
+                        (
+                            0x004,
+                            ArrayDataType(char, 256, 1),
+                            "symbolic_name",
+                            "FACT_* identifier",
+                        ),
+                        (
+                            0x104,
+                            ArrayDataType(byte, 0xD4, 1),
+                            "fields_104",
+                            "not yet field-reconciled",
+                        ),
+                    ],
+                )
+                spell_record = _structure(
+                    dtm,
+                    category,
+                    "W8SpellRuntimeRecord",
+                    0x1BF,
+                    [
+                        (
+                            0x000,
+                            ArrayDataType(byte, 0x1BF, 1),
+                            "fields",
+                            "runtime record retained by Spells.cpp",
+                        )
+                    ],
+                )
+
+                item_record_pointer = PointerDataType(item_record, dtm)
+                monster_record_pointer = PointerDataType(monster_record, dtm)
+                level_record_pointer = PointerDataType(level_record, dtm)
+                spell_record_pointer = PointerDataType(spell_record, dtm)
+                seek_origin = EnumDataType(category, "W8VirtualFileSeekOrigin", 1, dtm)
+                seek_origin.add("W8_SEEK_BEGIN", 1)
+                seek_origin.add("W8_SEEK_END", 2)
+                seek_origin.add("W8_SEEK_CURRENT", 4)
+                seek_origin = dtm.addDataType(seek_origin, DataTypeConflictHandler.REPLACE_HANDLER)
 
                 address_space = program.getAddressFactory().getDefaultAddressSpace()
                 _apply_data(
@@ -137,8 +251,46 @@ def apply_wiz8_format_model(
                     address_space.getAddress(0x006EB724),
                     archive_state_pointer,
                 )
+                for raw_address, data_type in (
+                    (0x0065BE18, dword),
+                    (0x0065BE1C, spell_record_pointer),
+                    (0x006836A4, level_record_pointer),
+                    (0x00683F78, dword),
+                    (0x00683F84, dword),
+                    (0x00683F90, dword),
+                    (0x006840C7, ArrayDataType(monster_record_pointer, 1000, 4)),
+                    (0x0068516C, item_record_pointer),
+                ):
+                    _apply_data(program, address_space.getAddress(raw_address), data_type)
 
                 signatures: dict[int, tuple[Any, list[tuple[str, Any]]]] = {
+                    0x00404C80: (
+                        integer,
+                        [
+                            ("path", char_pointer),
+                            ("open_flags", dword),
+                            ("overlapped", byte),
+                        ],
+                    ),
+                    0x00404E10: (void, [("handle", integer)]),
+                    0x00404EA0: (
+                        dword,
+                        [
+                            ("handle", integer),
+                            ("buffer", generic_pointer),
+                            ("size", dword),
+                            ("bytes_read", PointerDataType(dword, dtm)),
+                        ],
+                    ),
+                    0x00405030: (
+                        dword,
+                        [
+                            ("handle", integer),
+                            ("offset", integer),
+                            ("origin", seek_origin),
+                        ],
+                    ),
+                    0x004ACC10: (dword, []),
                     0x004126F0: (dword, []),
                     0x00412A10: (dword, []),
                     0x00412BB0: (
@@ -149,6 +301,14 @@ def apply_wiz8_format_model(
                             ("allow_fallback", byte),
                         ],
                     ),
+                    0x004E57C0: (monster_record_pointer, [("monster_id", dword)]),
+                    0x00517EA0: (void, [("name", PointerDataType(word, dtm))]),
+                    0x0054A400: (dword, []),
+                    0x0054A8A0: (
+                        byte,
+                        [("monster_index", dword), ("record", monster_record_pointer)],
+                    ),
+                    0x0054AE20: (dword, []),
                 }
                 typed_functions: list[str] = []
                 for raw_address, (return_type, arguments) in signatures.items():
@@ -181,6 +341,14 @@ def apply_wiz8_format_model(
                 symbol_table = program.getSymbolTable()
                 for raw_address, name in (
                     (0x006000C8, "g_slf_configurations"),
+                    (0x0065BE18, "g_spell_database_version"),
+                    (0x0065BE1C, "g_spell_records"),
+                    (0x006836A4, "g_level_records"),
+                    (0x00683F78, "g_item_record_count"),
+                    (0x00683F84, "g_monster_record_count"),
+                    (0x00683F90, "g_level_record_count"),
+                    (0x006840C7, "g_monster_record_cache"),
+                    (0x0068516C, "g_item_records"),
                     (0x006EB724, "g_slf_archives"),
                 ):
                     address = address_space.getAddress(raw_address)
@@ -201,10 +369,26 @@ def apply_wiz8_format_model(
                                 live_entry,
                                 archive_state,
                                 configuration,
+                                item_record,
+                                monster_record,
+                                level_record,
+                                fact_record,
+                                spell_record,
                             )
                         ],
                         "typed_functions": typed_functions,
-                        "typed_globals": ["0x006000c8", "0x006eb724"],
+                        "typed_globals": [
+                            "0x006000c8",
+                            "0x0065be18",
+                            "0x0065be1c",
+                            "0x006836a4",
+                            "0x00683f78",
+                            "0x00683f84",
+                            "0x00683f90",
+                            "0x006840c7",
+                            "0x0068516c",
+                            "0x006eb724",
+                        ],
                     }
                 )
             finally:
