@@ -1,18 +1,31 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import re
 import shutil
 import struct
 import tarfile
+import tempfile
 import urllib.request
+import zipfile
 from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from ..binary.coff_archive import coff_member_kind, read_coff_archive
 from ..binary.rich_header import parse_rich_header
 from ..config import Settings
-from ..paths import atomic_json, atomic_write, ensure_safe_generated_target, sha256_file, tree_hash, tree_manifest
+from ..paths import (
+    atomic_json,
+    atomic_write,
+    ensure_safe_generated_target,
+    sha256_file,
+    tree_hash,
+    tree_manifest,
+)
 from ..subprocesses import run, tool_version
 
 
@@ -42,6 +55,22 @@ class StaticLibrary(BaseModel):
     compilation_units: list[str] = Field(default_factory=list)
 
 
+class PrecompiledArchive(BaseModel):
+    id: str
+    library: str
+    variant: str
+    path: str
+    sha256: str
+    seed: bool = True
+
+    @field_validator("sha256")
+    @classmethod
+    def full_sha256(cls, value: str) -> str:
+        if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+            raise ValueError("precompiled archive SHA-256 must be a full lowercase digest")
+        return value
+
+
 class Toolchain(BaseModel):
     id: str
     family: str
@@ -49,6 +78,8 @@ class Toolchain(BaseModel):
     commit: str
     image: str
     status: str
+    capabilities: list[str]
+    precompiled_archives: list[PrecompiledArchive] = Field(default_factory=list)
 
     @field_validator("id")
     @classmethod
@@ -62,6 +93,24 @@ class Toolchain(BaseModel):
     def full_git_commit(cls, value: str) -> str:
         if len(value) != 40 or any(char not in "0123456789abcdef" for char in value):
             raise ValueError("toolchain commit must be a full lowercase Git object ID")
+        return value
+
+    @field_validator("capabilities")
+    @classmethod
+    def known_capabilities(cls, value: list[str]) -> list[str]:
+        unknown = sorted(set(value) - {"compiler", "precompiled-libraries"})
+        if unknown:
+            raise ValueError(f"unknown toolchain capabilities: {', '.join(unknown)}")
+        if not value:
+            raise ValueError("toolchain must expose at least one capability")
+        return list(dict.fromkeys(value))
+
+    @field_validator("precompiled_archives")
+    @classmethod
+    def unique_archive_ids(cls, value: list[PrecompiledArchive]) -> list[PrecompiledArchive]:
+        ids = [archive.id for archive in value]
+        if len(ids) != len(set(ids)):
+            raise ValueError("precompiled archive ids must be unique per toolchain")
         return value
 
 
@@ -88,19 +137,65 @@ class StaticLibrariesConfig(BaseModel):
             raise ValueError("toolchain ids must be unique")
         return value
 
+    @field_validator("libraries")
+    @classmethod
+    def unique_libraries(cls, value: list[StaticLibrary]) -> list[StaticLibrary]:
+        ids = [library.id for library in value]
+        if len(ids) != len(set(ids)):
+            raise ValueError("static-library ids must be unique")
+        return value
+
+    @model_validator(mode="after")
+    def valid_archive_references(self) -> StaticLibrariesConfig:
+        library_ids = {library.id for library in self.libraries}
+        for toolchain in self.toolchains:
+            has_archives = bool(toolchain.precompiled_archives)
+            if has_archives != ("precompiled-libraries" in toolchain.capabilities):
+                raise ValueError(
+                    f"{toolchain.id} must declare both precompiled-libraries capability and archives"
+                )
+            unknown = sorted(
+                {archive.library for archive in toolchain.precompiled_archives} - library_ids
+            )
+            if unknown:
+                raise ValueError(
+                    f"{toolchain.id} precompiled archives reference unknown libraries: {', '.join(unknown)}"
+                )
+        return self
+
 
 def load_static_libraries(settings: Settings) -> StaticLibrariesConfig:
     path = settings.repo_dir / "config" / "static-libraries.yml"
     return StaticLibrariesConfig.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
 
 
-def select_toolchains(config: StaticLibrariesConfig, ids: list[str] | None = None) -> list[Toolchain]:
+def select_toolchains(
+    config: StaticLibrariesConfig,
+    ids: list[str] | None = None,
+    *,
+    capability: str | None = None,
+) -> list[Toolchain]:
     by_id = {toolchain.id: toolchain for toolchain in config.toolchains}
     if not ids:
-        return sorted(config.toolchains, key=lambda item: item.id)
+        selected = sorted(config.toolchains, key=lambda item: item.id)
+        return [item for item in selected if capability is None or capability in item.capabilities]
     unknown = sorted(set(ids) - set(by_id))
     if unknown:
         raise RuntimeError(f"unknown toolchain id(s): {', '.join(unknown)}")
+    selected = [by_id[item] for item in dict.fromkeys(ids)]
+    incompatible = [item.id for item in selected if capability is not None and capability not in item.capabilities]
+    if incompatible:
+        raise RuntimeError(f"toolchain(s) do not provide {capability}: {', '.join(incompatible)}")
+    return selected
+
+
+def select_libraries(config: StaticLibrariesConfig, ids: list[str] | None = None) -> list[StaticLibrary]:
+    by_id = {library.id: library for library in config.libraries}
+    if not ids:
+        return sorted(config.libraries, key=lambda item: item.id)
+    unknown = sorted(set(ids) - set(by_id))
+    if unknown:
+        raise RuntimeError(f"unknown static-library id(s): {', '.join(unknown)}")
     return [by_id[item] for item in dict.fromkeys(ids)]
 
 
@@ -112,6 +207,19 @@ def _fid_root(settings: Settings) -> Path:
 
 def static_inventory(settings: Settings) -> dict[str, Any]:
     config = load_static_libraries(settings)
+    precompiled = {
+        archive.library
+        for toolchain in config.toolchains
+        for archive in toolchain.precompiled_archives
+    }
+    source_seedable = {
+        library.id
+        for library in config.libraries
+        if library.source is not None
+        and library.source.sha256 is not None
+        and library.seed_variants
+        and library.compilation_units
+    }
     result = {
         "schema": "wiz8.static-library-inventory",
         "format_version": 1,
@@ -121,10 +229,7 @@ def static_inventory(settings: Settings) -> dict[str, Any]:
         "seedable_now": [
             library.id
             for library in config.libraries
-            if library.source is not None
-            and library.source.sha256 is not None
-            and library.seed_variants
-            and library.compilation_units
+            if library.id in source_seedable or library.id in precompiled
         ],
         "blocked": [
             {
@@ -136,12 +241,7 @@ def static_inventory(settings: Settings) -> dict[str, Any]:
                 ),
             }
             for library in config.libraries
-            if not (
-                library.source is not None
-                and library.source.sha256 is not None
-                and library.seed_variants
-                and library.compilation_units
-            )
+            if library.id not in source_seedable and library.id not in precompiled
         ],
     }
     atomic_json(settings.build_dir / "reports" / "static-libraries.json", result)
@@ -156,7 +256,7 @@ def static_inventory(settings: Settings) -> dict[str, Any]:
         lines.append(
             f"| {library.family} | {library.version} | {library.status} | "
             f"{', '.join(f'`{item}`' for item in library.scope)} | "
-            f"{'ready' if library.id in seedable else 'blocked'} |"
+            f"{'exact archive' if library.id in precompiled else 'source build' if library.id in seedable else 'blocked'} |"
         )
     lines.extend(
         [
@@ -189,6 +289,21 @@ def _safe_extract_tar(archive: Path, destination: Path) -> None:
         stream.extractall(destination, members=members)
 
 
+def _safe_extract_zip(archive: Path, destination: Path) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    root = destination.resolve()
+    with zipfile.ZipFile(archive) as stream:
+        members = stream.infolist()
+        for member in members:
+            target = (destination / member.filename).resolve()
+            if target != root and root not in target.parents:
+                raise RuntimeError(f"archive member escapes extraction root: {member.filename}")
+            mode = member.external_attr >> 16
+            if mode & 0o170000 == 0o120000:
+                raise RuntimeError(f"unsupported archive symlink: {member.filename}")
+        stream.extractall(destination, members=members)
+
+
 def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
     config = load_static_libraries(settings)
     root = _fid_root(settings) / "sources"
@@ -204,7 +319,7 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
         archive = archives / f"{library.id}{suffix}"
         if not archive.is_file() or sha256_file(archive) != source.sha256:
             payload = _download(source.url)
-            if __import__("hashlib").sha256(payload).hexdigest() != source.sha256:
+            if hashlib.sha256(payload).hexdigest() != source.sha256:
                 raise RuntimeError(f"download hash mismatch for {library.id}")
             atomic_write(archive, payload)
         destination = unpacked / library.id
@@ -212,7 +327,10 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
         if not expected_root.is_dir():
             if destination.exists():
                 shutil.rmtree(destination)
-            _safe_extract_tar(archive, destination)
+            if zipfile.is_zipfile(archive):
+                _safe_extract_zip(archive, destination)
+            else:
+                _safe_extract_tar(archive, destination)
         if not expected_root.is_dir():
             raise RuntimeError(f"{library.id} archive did not contain {source.archive_root}")
         manifest = tree_manifest(expected_root)
@@ -308,6 +426,183 @@ def _docker_run(
     )
 
 
+def _docker_copy_from_image(
+    settings: Settings,
+    toolchain: Toolchain,
+    image_path: str,
+    output: Path,
+    *,
+    log_name: str,
+) -> None:
+    docker = tool_version("docker", ("--version",))
+    if docker["executable"] is None:
+        raise RuntimeError("docker is required to extract pinned MSVC600 library snapshots")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    container_path = "/root/.wine/drive_c/msvc/" + image_path.replace("\\", "/").lstrip("/")
+    run(
+        [
+            docker["executable"],
+            "run",
+            "--rm",
+            "--network",
+            "none",
+            "--volume",
+            f"{output.parent.resolve()}:/out",
+            "--entrypoint",
+            "/bin/cp",
+            toolchain.image,
+            container_path,
+            f"/out/{output.name}",
+        ],
+        cwd=settings.repo_dir,
+        log_path=settings.build_dir / "logs" / "fid" / f"{log_name}.json",
+    )
+    if not output.is_file():
+        raise RuntimeError(
+            f"{toolchain.image} did not contain {image_path}; "
+            f"build the pinned image with 'wiz8 ghidra fid build-image --toolchain {toolchain.id}'"
+        )
+
+
+def _configured_seed_keys(config: StaticLibrariesConfig) -> set[tuple[str, str, str]]:
+    compiled = {
+        (toolchain.id, library.id, variant.id)
+        for toolchain in config.toolchains
+        if "compiler" in toolchain.capabilities
+        for library in config.libraries
+        for variant in library.seed_variants
+        if library.source is not None and library.source.sha256 is not None and library.compilation_units
+    }
+    precompiled = {
+        (toolchain.id, archive.library, archive.variant)
+        for toolchain in config.toolchains
+        for archive in toolchain.precompiled_archives
+        if archive.seed
+    }
+    return compiled | precompiled
+
+
+def _write_archive_members(archive_path: Path, output: Path) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    members = read_coff_archive(archive_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{output.name}.", dir=output.parent))
+    backup = output.with_name(f".{output.name}.previous")
+    records: list[dict[str, Any]] = []
+    counts: dict[str, int] = {}
+    try:
+        for member in members:
+            kind = coff_member_kind(member.data)
+            counts[kind] = counts.get(kind, 0) + 1
+            if kind != "coff-i386":
+                continue
+            digest = hashlib.sha256(member.data).hexdigest()
+            basename = Path(member.name.replace("\\", "/")).stem
+            slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", basename).strip("-.") or "member"
+            filename = f"{member.index:04d}--{slug[:64]}--{digest[:12]}.obj"
+            atomic_write(temporary / filename, member.data)
+            records.append(
+                {
+                    "path": filename,
+                    "size": len(member.data),
+                    "sha256": digest,
+                    "archive_member": member.name,
+                    "archive_member_index": member.index,
+                    "kind": kind,
+                }
+            )
+        if backup.exists():
+            shutil.rmtree(backup)
+        if output.exists():
+            output.replace(backup)
+        temporary.replace(output)
+        if backup.exists():
+            shutil.rmtree(backup)
+    except Exception:
+        shutil.rmtree(temporary, ignore_errors=True)
+        if backup.exists() and not output.exists():
+            backup.replace(output)
+        raise
+    return records, counts
+
+
+def extract_precompiled_objects(
+    settings: Settings,
+    toolchain_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Extract exact i386 COFF members from pinned VC6 library snapshots."""
+    config = load_static_libraries(settings)
+    toolchains = select_toolchains(config, toolchain_ids, capability="precompiled-libraries")
+    library_ids = {library.id for library in config.libraries}
+    records: list[dict[str, Any]] = []
+    selected_keys: set[tuple[str, str, str]] = set()
+    archive_root = _fid_root(settings) / "precompiled-archives"
+    object_root = _fid_root(settings) / "objects"
+    for toolchain in toolchains:
+        for archive in sorted(toolchain.precompiled_archives, key=lambda item: item.id):
+            if not archive.seed:
+                continue
+            if archive.library not in library_ids:
+                raise RuntimeError(f"{toolchain.id}/{archive.id} references unknown library {archive.library}")
+            selected_keys.add((toolchain.id, archive.library, archive.variant))
+            archive_path = archive_root / toolchain.id / f"{archive.id}.lib"
+            if not archive_path.is_file() or sha256_file(archive_path) != archive.sha256:
+                _docker_copy_from_image(
+                    settings,
+                    toolchain,
+                    archive.path,
+                    archive_path,
+                    log_name=f"copy-{toolchain.id}-{archive.id}",
+                )
+            actual_hash = sha256_file(archive_path)
+            if actual_hash != archive.sha256:
+                raise RuntimeError(
+                    f"archive hash mismatch for {toolchain.id}/{archive.id}: "
+                    f"expected {archive.sha256}, got {actual_hash}"
+                )
+            output = object_root / toolchain.id / archive.library / archive.variant
+            output.parent.mkdir(parents=True, exist_ok=True)
+            objects, member_counts = _write_archive_members(archive_path, output)
+            records.append(
+                {
+                    "toolchain": toolchain.id,
+                    "toolchain_commit": toolchain.commit,
+                    "library": archive.library,
+                    "version": next(item.version for item in config.libraries if item.id == archive.library),
+                    "variant": archive.variant,
+                    "flags": [],
+                    "source_kind": "precompiled-archive",
+                    "archive": {
+                        "id": archive.id,
+                        "path": archive.path,
+                        "sha256": archive.sha256,
+                        "member_counts": dict(sorted(member_counts.items())),
+                    },
+                    "object_count": len(objects),
+                    "tree_hash": tree_hash(objects),
+                    "objects": objects,
+                }
+            )
+
+    manifest_path = settings.build_dir / "manifests" / "fid-seed-objects.json"
+    preserved: list[dict[str, Any]] = []
+    configured_keys = _configured_seed_keys(config)
+    if manifest_path.is_file():
+        previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for record in previous.get("libraries", []):
+            key = (record["toolchain"], record["library"], record["variant"])
+            if key in configured_keys and key not in selected_keys:
+                preserved.append(record)
+    combined = sorted(preserved + records, key=lambda item: (item["toolchain"], item["library"], item["variant"]))
+    result = {
+        "schema": "wiz8.fid-seed-objects",
+        "format_version": 1,
+        "toolchains": [item.model_dump(mode="json") for item in sorted(config.toolchains, key=lambda item: item.id)],
+        "libraries": combined,
+    }
+    atomic_json(manifest_path, result)
+    return result
+
+
 def _normalize_coff_timestamp(path: Path) -> None:
     data = bytearray(path.read_bytes())
     if len(data) < 20:
@@ -335,14 +630,20 @@ def _prepared_source(settings: Settings, library: StaticLibrary, pristine: Path)
     return prepared
 
 
-def build_seed_objects(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
+def build_seed_objects(
+    settings: Settings,
+    toolchain_ids: list[str] | None = None,
+    library_ids: list[str] | None = None,
+) -> dict[str, Any]:
     fetch_seed_sources(settings)
     config = load_static_libraries(settings)
     source_root = _fid_root(settings) / "sources" / "unpacked"
     output_root = _fid_root(settings) / "objects"
     records = []
-    for toolchain in select_toolchains(config, toolchain_ids):
-        for library in config.libraries:
+    selected_toolchains = select_toolchains(config, toolchain_ids, capability="compiler")
+    selected_libraries = select_libraries(config, library_ids)
+    for toolchain in selected_toolchains:
+        for library in selected_libraries:
             if library.source is None or library.source.sha256 is None or not library.compilation_units:
                 continue
             pristine = source_root / library.id / library.source.archive_root
@@ -379,18 +680,33 @@ def build_seed_objects(settings: Settings, toolchain_ids: list[str] | None = Non
                         "version": library.version,
                         "variant": variant.id,
                         "flags": variant.flags,
+                        "source_kind": "compiled-source",
                         "object_count": len(manifest),
                         "tree_hash": tree_hash(manifest),
                         "objects": manifest,
                     }
                 )
+    manifest_path = settings.build_dir / "manifests" / "fid-seed-objects.json"
+    selected_pairs = {(toolchain.id, library.id) for toolchain in selected_toolchains for library in selected_libraries}
+    configured_keys = _configured_seed_keys(config)
+    preserved = []
+    if manifest_path.is_file() and (toolchain_ids or library_ids):
+        previous = json.loads(manifest_path.read_text(encoding="utf-8"))
+        for record in previous.get("libraries", []):
+            key = (record["toolchain"], record["library"], record["variant"])
+            if key in configured_keys and (record["toolchain"], record["library"]) not in selected_pairs:
+                preserved.append(record)
+    combined = sorted(
+        preserved + records,
+        key=lambda item: (item["toolchain"], item["library"], item["variant"]),
+    )
     result = {
         "schema": "wiz8.fid-seed-objects",
         "format_version": 1,
-        "toolchains": [item.model_dump(mode="json") for item in select_toolchains(config, toolchain_ids)],
-        "libraries": records,
+        "toolchains": [item.model_dump(mode="json") for item in sorted(config.toolchains, key=lambda item: item.id)],
+        "libraries": combined,
     }
-    atomic_json(settings.build_dir / "manifests" / "fid-seed-objects.json", result)
+    atomic_json(manifest_path, result)
     return result
 
 
@@ -406,7 +722,7 @@ def probe_toolchains(settings: Settings, toolchain_ids: list[str] | None = None)
         "Z:\\src\\rich_probe.cpp",
     ]
     records = []
-    for toolchain in select_toolchains(config, toolchain_ids):
+    for toolchain in select_toolchains(config, toolchain_ids, capability="compiler"):
         output = _fid_root(settings) / "toolchain-probes" / toolchain.id
         _docker_run(
             settings,

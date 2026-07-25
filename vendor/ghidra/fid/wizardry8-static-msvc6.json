@@ -25,6 +25,46 @@
       "version": "6"
     },
     {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 118,
+      "total_attempted": 123,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 175,
+      "variant": "vc6-rtm-target-runtime-md-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 118,
+      "total_attempted": 123,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 126,
+      "variant": "vc6-rtm-upstream-release-mt-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Microsoft Visual C++ Standard C++ Library",
+      "seed_programs": 51,
+      "total_added": 786,
+      "total_attempted": 1205,
+      "total_excluded": 419,
+      "unresolved_symbol_count": 127,
+      "variant": "vc6-rtm-vc6-rtm-through-sp4-multithreaded-static",
+      "version": "6.0"
+    },
+    {
+      "family": "Microsoft Visual C++ C Runtime",
+      "seed_programs": 593,
+      "total_added": 1171,
+      "total_attempted": 1300,
+      "total_excluded": 129,
+      "unresolved_symbol_count": 388,
+      "variant": "vc6-rtm-vc6-rtm-multithreaded-static",
+      "version": "6.0"
+    },
+    {
       "family": "zlib",
       "seed_programs": 14,
       "total_added": 76,
@@ -43,6 +83,36 @@
       "unresolved_symbol_count": 16,
       "variant": "vc6-rtm-release-md-o2",
       "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-rtm-release-md-o2-g6",
+      "version": "1.0.4"
+    },
+    {
+      "family": "Microsoft Visual C++ C Runtime",
+      "seed_programs": 593,
+      "total_added": 1171,
+      "total_attempted": 1300,
+      "total_excluded": 129,
+      "unresolved_symbol_count": 388,
+      "variant": "vc6-sp3-libraries-vc6-sp3-multithreaded-static",
+      "version": "6.0"
+    },
+    {
+      "family": "Microsoft Visual C++ C Runtime",
+      "seed_programs": 598,
+      "total_added": 1225,
+      "total_attempted": 1358,
+      "total_excluded": 133,
+      "unresolved_symbol_count": 401,
+      "variant": "vc6-sp4-libraries-vc6-sp4-multithreaded-static",
+      "version": "6.0"
     },
     {
       "family": "Independent JPEG Group JPEG library",
@@ -65,6 +135,46 @@
       "version": "6"
     },
     {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 118,
+      "total_attempted": 123,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 175,
+      "variant": "vc6-sp5-target-runtime-md-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 118,
+      "total_attempted": 123,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 126,
+      "variant": "vc6-sp5-upstream-release-mt-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Microsoft Visual C++ Standard C++ Library",
+      "seed_programs": 51,
+      "total_added": 786,
+      "total_attempted": 1205,
+      "total_excluded": 419,
+      "unresolved_symbol_count": 127,
+      "variant": "vc6-sp5-vc6-sp5-through-sp6-multithreaded-static",
+      "version": "6.0"
+    },
+    {
+      "family": "Microsoft Visual C++ C Runtime",
+      "seed_programs": 598,
+      "total_added": 1226,
+      "total_attempted": 1359,
+      "total_excluded": 133,
+      "unresolved_symbol_count": 401,
+      "variant": "vc6-sp5-vc6-sp5-multithreaded-static",
+      "version": "6.0"
+    },
+    {
       "family": "zlib",
       "seed_programs": 14,
       "total_added": 76,
@@ -82,6 +192,16 @@
       "total_excluded": 2,
       "unresolved_symbol_count": 16,
       "variant": "vc6-sp5-release-md-o2",
+      "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-sp5-release-md-o2-g6",
       "version": "1.0.4"
     },
     {
@@ -105,6 +225,26 @@
       "version": "6"
     },
     {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 117,
+      "total_attempted": 123,
+      "total_excluded": 6,
+      "unresolved_symbol_count": 174,
+      "variant": "vc6-sp5-vcpp-target-runtime-md-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 117,
+      "total_attempted": 123,
+      "total_excluded": 6,
+      "unresolved_symbol_count": 126,
+      "variant": "vc6-sp5-vcpp-upstream-release-mt-o2",
+      "version": "5.4"
+    },
+    {
       "family": "zlib",
       "seed_programs": 14,
       "total_added": 76,
@@ -122,6 +262,16 @@
       "total_excluded": 2,
       "unresolved_symbol_count": 16,
       "variant": "vc6-sp5-vcpp-release-md-o2",
+      "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-sp5-vcpp-release-md-o2-g6",
       "version": "1.0.4"
     },
     {
@@ -145,6 +295,36 @@
       "version": "6"
     },
     {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 118,
+      "total_attempted": 123,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 175,
+      "variant": "vc6-sp6-target-runtime-md-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Info-ZIP UnZip",
+      "seed_programs": 19,
+      "total_added": 118,
+      "total_attempted": 123,
+      "total_excluded": 5,
+      "unresolved_symbol_count": 126,
+      "variant": "vc6-sp6-upstream-release-mt-o2",
+      "version": "5.4"
+    },
+    {
+      "family": "Microsoft Visual C++ C Runtime",
+      "seed_programs": 598,
+      "total_added": 1225,
+      "total_attempted": 1358,
+      "total_excluded": 133,
+      "unresolved_symbol_count": 403,
+      "variant": "vc6-sp6-vc6-sp6-multithreaded-static",
+      "version": "6.0"
+    },
+    {
       "family": "zlib",
       "seed_programs": 14,
       "total_added": 76,
@@ -163,11 +343,21 @@
       "unresolved_symbol_count": 16,
       "variant": "vc6-sp6-release-md-o2",
       "version": "1.0.4"
+    },
+    {
+      "family": "zlib",
+      "seed_programs": 14,
+      "total_added": 76,
+      "total_attempted": 78,
+      "total_excluded": 2,
+      "unresolved_symbol_count": 16,
+      "variant": "vc6-sp6-release-md-o2-g6",
+      "version": "1.0.4"
     }
   ],
   "schema": "wiz8.fid-database",
-  "sha256": "065d3397cb8841013bd5bdd0134c81e50569245c09c47e9fc7051ad618182ea3",
-  "size": 191531,
+  "sha256": "82722ebfbeaf0610405a94bb5fb6c04daf8995e96d57fb6155ba48d7f46430a1",
+  "size": 1005611,
   "toolchain_evidence": {
     "evidence": [
       "The canonical executable reports LINK 6.0 and imports MSVCP60.dll and MSVCRT.dll.",
@@ -185,36 +375,182 @@
   },
   "toolchains": [
     {
+      "capabilities": [
+        "compiler",
+        "precompiled-libraries"
+      ],
       "commit": "34d4fc4004e880b8d5c44ae5babd7229eeaad993",
       "family": "Microsoft Visual C++ 6.0 RTM",
       "id": "vc6-rtm",
       "image": "wizardry8-msvc600:rtm",
+      "precompiled_archives": [
+        {
+          "id": "libcmt",
+          "library": "msvc-crt-static",
+          "path": "VC98/Lib/LIBCMT.LIB",
+          "seed": true,
+          "sha256": "1ef9c27b4f76031e40fcbdf7d518adc4969f90d6a00dd1ea88697907268c1b2b",
+          "variant": "vc6-rtm-multithreaded-static"
+        },
+        {
+          "id": "libcpmt",
+          "library": "msvc-cpp-static",
+          "path": "VC98/Lib/LIBCPMT.LIB",
+          "seed": true,
+          "sha256": "919e3d9c8610a29f7a4a513df25ea2be6500cea742ddd613f5652f24fa4df98c",
+          "variant": "vc6-rtm-through-sp4-multithreaded-static"
+        }
+      ],
       "repository": "https://github.com/archaic-msvc/msvc600.git",
       "status": "candidate"
     },
     {
+      "capabilities": [
+        "compiler",
+        "precompiled-libraries"
+      ],
       "commit": "b0b07e29108e2695eb0274c2a377a7b7d7326150",
       "family": "Microsoft Visual C++ 6.0 SP5",
       "id": "vc6-sp5",
       "image": "wizardry8-msvc600:sp5",
+      "precompiled_archives": [
+        {
+          "id": "libcmt",
+          "library": "msvc-crt-static",
+          "path": "VC98/Lib/LIBCMT.LIB",
+          "seed": true,
+          "sha256": "28b9f04962378ec4668072f37d7fd2835cd6cacc17b40cf22002c57bd8e76714",
+          "variant": "vc6-sp5-multithreaded-static"
+        },
+        {
+          "id": "libcpmt",
+          "library": "msvc-cpp-static",
+          "path": "VC98/Lib/LIBCPMT.LIB",
+          "seed": true,
+          "sha256": "08cd1b3ba2eab087c2d2acabf7a6919362aff59ed87141f167cbe12bee6a732c",
+          "variant": "vc6-sp5-through-sp6-multithreaded-static"
+        }
+      ],
       "repository": "https://github.com/archaic-msvc/msvc600_sp5.git",
       "status": "candidate"
     },
     {
+      "capabilities": [
+        "compiler",
+        "precompiled-libraries"
+      ],
       "commit": "762e9382c751613c341daa766f0e22cdeb07152c",
       "family": "Microsoft Visual C++ 6.0 SP5 Processor Pack",
       "id": "vc6-sp5-vcpp",
       "image": "wizardry8-msvc600:sp5-vcpp",
+      "precompiled_archives": [
+        {
+          "id": "libcmt",
+          "library": "msvc-crt-static",
+          "path": "VC98/Lib/LIBCMT.LIB",
+          "seed": false,
+          "sha256": "28b9f04962378ec4668072f37d7fd2835cd6cacc17b40cf22002c57bd8e76714",
+          "variant": "vc6-sp5-vcpp-multithreaded-static"
+        },
+        {
+          "id": "libcpmt",
+          "library": "msvc-cpp-static",
+          "path": "VC98/Lib/LIBCPMT.LIB",
+          "seed": false,
+          "sha256": "08cd1b3ba2eab087c2d2acabf7a6919362aff59ed87141f167cbe12bee6a732c",
+          "variant": "vc6-sp5-vcpp-multithreaded-static"
+        }
+      ],
       "repository": "https://github.com/archaic-msvc/msvc600_sp5_vcpp.git",
       "status": "candidate"
     },
     {
+      "capabilities": [
+        "compiler",
+        "precompiled-libraries"
+      ],
       "commit": "1f4223a77122220d28e8670788b3f9fd6bb2c4d1",
       "family": "Microsoft Visual C++ 6.0 SP6",
       "id": "vc6-sp6",
       "image": "wizardry8-msvc600:sp6",
+      "precompiled_archives": [
+        {
+          "id": "libcmt",
+          "library": "msvc-crt-static",
+          "path": "VC98/Lib/LIBCMT.LIB",
+          "seed": true,
+          "sha256": "a541c95e5ffdd6d5573d1976f5e5d0038f2c4fb0bcb02975c68948bf1d6e452a",
+          "variant": "vc6-sp6-multithreaded-static"
+        },
+        {
+          "id": "libcpmt",
+          "library": "msvc-cpp-static",
+          "path": "VC98/Lib/LIBCPMT.LIB",
+          "seed": false,
+          "sha256": "08cd1b3ba2eab087c2d2acabf7a6919362aff59ed87141f167cbe12bee6a732c",
+          "variant": "vc6-sp6-multithreaded-static"
+        }
+      ],
       "repository": "https://github.com/archaic-msvc/msvc600_sp6.git",
       "status": "candidate"
+    },
+    {
+      "capabilities": [
+        "precompiled-libraries"
+      ],
+      "commit": "efb7eccebd6c6fe129c234691512fa6ab66d5620",
+      "family": "Microsoft Visual C++ 6.0 SP3 library snapshot",
+      "id": "vc6-sp3-libraries",
+      "image": "wizardry8-msvc600:sp3-libraries",
+      "precompiled_archives": [
+        {
+          "id": "libcmt",
+          "library": "msvc-crt-static",
+          "path": "VC98/lib/libcmt.lib",
+          "seed": true,
+          "sha256": "7922ed5dfd9da6d945a601f28b17e1cd67db97a87d995b579bfcade16e6e5765",
+          "variant": "vc6-sp3-multithreaded-static"
+        },
+        {
+          "id": "libcpmt",
+          "library": "msvc-cpp-static",
+          "path": "VC98/lib/libcpmt.lib",
+          "seed": false,
+          "sha256": "919e3d9c8610a29f7a4a513df25ea2be6500cea742ddd613f5652f24fa4df98c",
+          "variant": "vc6-sp3-multithreaded-static"
+        }
+      ],
+      "repository": "https://github.com/archaic-msvc/msvc600_sp3.git",
+      "status": "exact-precompiled-library-snapshot"
+    },
+    {
+      "capabilities": [
+        "precompiled-libraries"
+      ],
+      "commit": "6cee9b1913b36285defd361753416e4c20056abb",
+      "family": "Microsoft Visual C++ 6.0 SP4 library snapshot",
+      "id": "vc6-sp4-libraries",
+      "image": "wizardry8-msvc600:sp4-libraries",
+      "precompiled_archives": [
+        {
+          "id": "libcmt",
+          "library": "msvc-crt-static",
+          "path": "VC98/lib/libcmt.lib",
+          "seed": true,
+          "sha256": "5dc8e4bc5377ca3d385b747e937f1cba4519431776d7c8f28d9cb852d79b0160",
+          "variant": "vc6-sp4-multithreaded-static"
+        },
+        {
+          "id": "libcpmt",
+          "library": "msvc-cpp-static",
+          "path": "VC98/lib/libcpmt.lib",
+          "seed": false,
+          "sha256": "919e3d9c8610a29f7a4a513df25ea2be6500cea742ddd613f5652f24fa4df98c",
+          "variant": "vc6-sp4-multithreaded-static"
+        }
+      ],
+      "repository": "https://github.com/archaic-msvc/msvc600_sp4.git",
+      "status": "exact-precompiled-library-snapshot"
     }
   ]
 }

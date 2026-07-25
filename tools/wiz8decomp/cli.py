@@ -7,13 +7,11 @@ import os
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
 from typing import Any, Optional
 
 import typer
 from rich.console import Console
 from rich.json import JSON
-from rich.table import Table
 
 from .config import (
     REQUIRED_GHIDRA_RELEASE,
@@ -22,7 +20,7 @@ from .config import (
     ghidra_version,
     load_settings,
 )
-from .subprocesses import resolve_executable, tool_version
+from .subprocesses import tool_version
 
 app = typer.Typer(help="Wizardry 8 reproducible decompilation bootstrap CLI.", no_args_is_help=True, add_completion=False)
 inputs_app = typer.Typer(help="Discover and inspect immutable local inputs.", no_args_is_help=True)
@@ -40,6 +38,7 @@ ghidra_app.add_typer(daemon_app, name="daemon")
 ghidra_app.add_typer(fid_app, name="fid")
 app.add_typer(report_app, name="report")
 console = Console()
+_JSON_OUTPUT = False
 
 
 class CliState:
@@ -53,9 +52,11 @@ def main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable debug logging."),
     json_output: bool = typer.Option(False, "--json", help="Render command results as JSON."),
 ) -> None:
+    global _JSON_OUTPUT
     state = CliState()
     state.verbose = verbose
     state.json_output = json_output
+    _JSON_OUTPUT = json_output
     ctx.obj = state
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
@@ -70,7 +71,9 @@ def _settings():
 
 
 def _emit(value: Any, *, force_json: bool = False) -> None:
-    if force_json or isinstance(value, (dict, list)):
+    if _JSON_OUTPUT or force_json:
+        sys.stdout.write(json.dumps(value, indent=2, sort_keys=False, ensure_ascii=False) + "\n")
+    elif isinstance(value, (dict, list)):
         console.print(JSON.from_data(value))
     else:
         console.print(value)
@@ -314,10 +317,24 @@ def ghidra_fid_probe_toolchain(
 @fid_app.command("build-seeds")
 def ghidra_fid_build_seeds(
     toolchain: Optional[list[str]] = typer.Option(None, "--toolchain", help="Pinned candidate ID; repeat to select several."),
+    library: Optional[list[str]] = typer.Option(None, "--library", help="Static-library ID; repeat to select several."),
 ) -> None:
     """Compile pinned static-library object seeds with the container."""
     from .ghidra.fid_seeds import build_seed_objects
-    _run_action(lambda: build_seed_objects(_settings(), toolchain))
+    _run_action(lambda: build_seed_objects(_settings(), toolchain, library))
+
+
+@fid_app.command("extract-libraries")
+def ghidra_fid_extract_libraries(
+    toolchain: Optional[list[str]] = typer.Option(
+        None,
+        "--toolchain",
+        help="Pinned precompiled-library snapshot ID; repeat to select several.",
+    ),
+) -> None:
+    """Extract exact COFF objects from pinned VC6 library snapshots."""
+    from .ghidra.fid_seeds import extract_precompiled_objects
+    _run_action(lambda: extract_precompiled_objects(_settings(), toolchain))
 
 
 @fid_app.command("build")

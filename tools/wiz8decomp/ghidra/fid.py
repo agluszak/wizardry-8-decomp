@@ -4,6 +4,7 @@ import csv
 import io
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,15 @@ def _find_fid_file(manager: Any, path: Path) -> Any | None:
         if Path(str(fid_file.getPath())).resolve() == path.resolve():
             return fid_file
     return None
+
+
+def _fid_file_path(fid_file: Any) -> Path:
+    return Path(str(fid_file.getPath())).resolve()
+
+
+def _is_authoritative_fid_name(name: str) -> bool:
+    """Reject compiler-local labels that are unstable between library builds."""
+    return re.fullmatch(r"\$L\d+", name) is None
 
 
 def fid_status(settings: Settings) -> dict[str, Any]:
@@ -152,10 +162,17 @@ def _cached_seed_manifest(settings: Settings) -> dict[str, Any] | None:
     expected = {
         (toolchain.id, library.id, variant.id, tuple(variant.flags))
         for toolchain in config.toolchains
+        if "compiler" in toolchain.capabilities
         for library in config.libraries
         for variant in library.seed_variants
         if library.source is not None and library.source.sha256 is not None and library.compilation_units
     }
+    expected.update(
+        (toolchain.id, archive.library, archive.variant, ())
+        for toolchain in config.toolchains
+        for archive in toolchain.precompiled_archives
+        if archive.seed
+    )
     actual = {
         (item["toolchain"], item["library"], item["variant"], tuple(item["flags"]))
         for item in manifest.get("libraries", [])
@@ -172,7 +189,7 @@ def _cached_seed_manifest(settings: Settings) -> dict[str, Any] | None:
 
 
 def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool = False) -> dict[str, Any]:
-    from .fid_seeds import build_seed_objects, load_static_libraries
+    from .fid_seeds import build_seed_objects
     from .import_programs import HASH_OPTION, PATH_OPTION
 
     stop_daemon(settings, quiet=True)
@@ -182,7 +199,6 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
     object_manifest = _cached_seed_manifest(settings) if use_cached_objects else None
     if object_manifest is None:
         object_manifest = build_seed_objects(settings)
-    config = load_static_libraries(settings)
     records = []
     for library_record in object_manifest["libraries"]:
         toolchain = library_record["toolchain"]
@@ -225,6 +241,7 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                     options.setString("WIZ8_FID_VARIANT", variant)
                     options.setString("WIZ8_FID_TOOLCHAIN", toolchain)
                     options.setString("WIZ8_FID_TOOLCHAIN_COMMIT", toolchain_commit)
+                    options.setString("WIZ8_FID_SOURCE_KIND", library_record.get("source_kind", "compiled-source"))
                 finally:
                     program.endTransaction(transaction, True)
                 records.append({
@@ -361,12 +378,26 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     manager = FidFileManager.getInstance()
     fid_file = _find_fid_file(manager, path) or manager.addUserFidFile(File(str(path)))
     previous = []
+    active_databases = []
+    target_path = path.resolve()
     for candidate in manager.getFidFiles():
         previous.append((candidate, bool(candidate.isActive())))
-        candidate.setActive(candidate == fid_file)
+        candidate_path = _fid_file_path(candidate)
+        selected = candidate_path == target_path
+        candidate.setActive(selected)
+        if selected:
+            active_databases.append(candidate_path.as_posix())
+    # getFidFiles() and getUserAddedFiles() may expose different Java wrapper
+    # instances for the same configured database.  Path identity is stable.
+    fid_file.setActive(True)
+    if target_path.as_posix() not in active_databases:
+        active_databases.append(target_path.as_posix())
+    if active_databases != [target_path.as_posix()]:
+        raise RuntimeError(f"failed to select exactly one FID database: {active_databases}")
     program_name = resolve_program_name(settings, selector)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     matches: list[dict[str, Any]] = []
+    excluded_internal_matches = 0
     service = FidService()
     score_threshold = threshold if threshold is not None else float(service.getDefaultScoreThreshold())
     try:
@@ -374,27 +405,33 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
             query_service = manager.openFidQueryService(program.getLanguage(), False)
             try:
                 results = service.processProgram(program, query_service, score_threshold, TaskMonitor.DUMMY)
+                # FID match records resolve names through their owning database.
+                # Materialize every value before closing the query service.
+                for result in results:
+                    for match in result.matches:
+                        function_record = match.getFunctionRecord()
+                        library = match.getLibraryRecord()
+                        fid_name = str(function_record.getName())
+                        if not _is_authoritative_fid_name(fid_name):
+                            excluded_internal_matches += 1
+                            continue
+                        matches.append({
+                            "target_address": str(result.function.getEntryPoint()),
+                            "target_name": str(result.function.getName()),
+                            "fid_name": fid_name,
+                            "score": float(match.getOverallScore()),
+                            "primary_score": float(match.getPrimaryFunctionCodeUnitScore()),
+                            "child_score": float(match.getChildFunctionCodeUnitScore()),
+                            "parent_score": float(match.getParentFunctionCodeUnitScore()),
+                            "match_mode": str(match.getPrimaryFunctionMatchMode()),
+                            "library_family": str(library.getLibraryFamilyName()),
+                            "library_version": str(library.getLibraryVersion()),
+                            "library_variant": str(library.getLibraryVariant()),
+                            "seed_domain_path": str(function_record.getDomainPath()),
+                            "seed_entry": f"0x{function_record.getEntryPoint():x}",
+                        })
             finally:
                 query_service.close()
-            for result in results:
-                for match in result.matches:
-                    function_record = match.getFunctionRecord()
-                    library = match.getLibraryRecord()
-                    matches.append({
-                        "target_address": str(result.function.getEntryPoint()),
-                        "target_name": str(result.function.getName()),
-                        "fid_name": str(function_record.getName()),
-                        "score": float(match.getOverallScore()),
-                        "primary_score": float(match.getPrimaryFunctionCodeUnitScore()),
-                        "child_score": float(match.getChildFunctionCodeUnitScore()),
-                        "parent_score": float(match.getParentFunctionCodeUnitScore()),
-                        "match_mode": str(match.getPrimaryFunctionMatchMode()),
-                        "library_family": str(library.getLibraryFamilyName()),
-                        "library_version": str(library.getLibraryVersion()),
-                        "library_variant": str(library.getLibraryVariant()),
-                        "seed_domain_path": str(function_record.getDomainPath()),
-                        "seed_entry": f"0x{function_record.getEntryPoint():x}",
-                    })
     finally:
         project.close()
         for candidate, was_active in previous:
@@ -414,10 +451,12 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
         "program": program_name,
         "database_sha256": sha256_file(path),
         "database_kind": database_kind,
+        "active_databases": active_databases,
         "threshold": score_threshold,
         "match_count": len(matches),
         "unique_target_count": unique_targets,
         "ambiguous_target_count": sum(1 for address in {item["target_address"] for item in matches} if sum(item["target_address"] == address for item in matches) > 1),
+        "excluded_internal_match_count": excluded_internal_matches,
         "evidence_csv": output.relative_to(settings.repo_dir).as_posix(),
         "mutated_program": False,
     }

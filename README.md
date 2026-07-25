@@ -15,10 +15,13 @@ uv run wiz8 extract all
 uv run wiz8 variants materialize
 uv run wiz8 inventory
 uv run wiz8 ghidra import --all
+uv run wiz8 ghidra fid build-image
+uv run wiz8 ghidra fid build-seeds
+uv run wiz8 ghidra fid extract-libraries
+uv run wiz8 ghidra fid build
 uv run wiz8 report bootstrap
 ```
 
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
-See [docs/bootstrap.md](docs/bootstrap.md) and [docs/ghidra.md](docs/ghidra.md).
-
+The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).

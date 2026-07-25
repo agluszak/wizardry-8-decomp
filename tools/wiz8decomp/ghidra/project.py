@@ -55,6 +55,11 @@ def configured_modules(
 
 
 def resolve_program_name(settings: Settings, selector: str | None) -> str:
+    # Reproducible FID seed programs are project-owned analysis inputs rather
+    # than configured game modules.  Their complete content-addressed names may
+    # be queried directly for compiler comparison.
+    if selector and selector.startswith("fid--"):
+        return selector
     modules = configured_modules(settings, all_modules=True)
     names = [item["program_name"] for item in modules]
     if selector:

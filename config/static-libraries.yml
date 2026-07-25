@@ -8,24 +8,113 @@ toolchains:
     commit: 34d4fc4004e880b8d5c44ae5babd7229eeaad993
     image: wizardry8-msvc600:rtm
     status: candidate
+    capabilities: [compiler, precompiled-libraries]
+    precompiled_archives:
+      - id: libcmt
+        library: msvc-crt-static
+        variant: vc6-rtm-multithreaded-static
+        path: VC98/Lib/LIBCMT.LIB
+        sha256: 1ef9c27b4f76031e40fcbdf7d518adc4969f90d6a00dd1ea88697907268c1b2b
+      - id: libcpmt
+        library: msvc-cpp-static
+        variant: vc6-rtm-through-sp4-multithreaded-static
+        path: VC98/Lib/LIBCPMT.LIB
+        sha256: 919e3d9c8610a29f7a4a513df25ea2be6500cea742ddd613f5652f24fa4df98c
   - id: vc6-sp5
     family: Microsoft Visual C++ 6.0 SP5
     repository: https://github.com/archaic-msvc/msvc600_sp5.git
     commit: b0b07e29108e2695eb0274c2a377a7b7d7326150
     image: wizardry8-msvc600:sp5
     status: candidate
+    capabilities: [compiler, precompiled-libraries]
+    precompiled_archives:
+      - id: libcmt
+        library: msvc-crt-static
+        variant: vc6-sp5-multithreaded-static
+        path: VC98/Lib/LIBCMT.LIB
+        sha256: 28b9f04962378ec4668072f37d7fd2835cd6cacc17b40cf22002c57bd8e76714
+      - id: libcpmt
+        library: msvc-cpp-static
+        variant: vc6-sp5-through-sp6-multithreaded-static
+        path: VC98/Lib/LIBCPMT.LIB
+        sha256: 08cd1b3ba2eab087c2d2acabf7a6919362aff59ed87141f167cbe12bee6a732c
   - id: vc6-sp5-vcpp
     family: Microsoft Visual C++ 6.0 SP5 Processor Pack
     repository: https://github.com/archaic-msvc/msvc600_sp5_vcpp.git
     commit: 762e9382c751613c341daa766f0e22cdeb07152c
     image: wizardry8-msvc600:sp5-vcpp
     status: candidate
+    capabilities: [compiler, precompiled-libraries]
+    precompiled_archives:
+      - id: libcmt
+        library: msvc-crt-static
+        variant: vc6-sp5-vcpp-multithreaded-static
+        path: VC98/Lib/LIBCMT.LIB
+        sha256: 28b9f04962378ec4668072f37d7fd2835cd6cacc17b40cf22002c57bd8e76714
+        seed: false
+      - id: libcpmt
+        library: msvc-cpp-static
+        variant: vc6-sp5-vcpp-multithreaded-static
+        path: VC98/Lib/LIBCPMT.LIB
+        sha256: 08cd1b3ba2eab087c2d2acabf7a6919362aff59ed87141f167cbe12bee6a732c
+        seed: false
   - id: vc6-sp6
     family: Microsoft Visual C++ 6.0 SP6
     repository: https://github.com/archaic-msvc/msvc600_sp6.git
     commit: 1f4223a77122220d28e8670788b3f9fd6bb2c4d1
     image: wizardry8-msvc600:sp6
     status: candidate
+    capabilities: [compiler, precompiled-libraries]
+    precompiled_archives:
+      - id: libcmt
+        library: msvc-crt-static
+        variant: vc6-sp6-multithreaded-static
+        path: VC98/Lib/LIBCMT.LIB
+        sha256: a541c95e5ffdd6d5573d1976f5e5d0038f2c4fb0bcb02975c68948bf1d6e452a
+      - id: libcpmt
+        library: msvc-cpp-static
+        variant: vc6-sp6-multithreaded-static
+        path: VC98/Lib/LIBCPMT.LIB
+        sha256: 08cd1b3ba2eab087c2d2acabf7a6919362aff59ed87141f167cbe12bee6a732c
+        seed: false
+  - id: vc6-sp3-libraries
+    family: Microsoft Visual C++ 6.0 SP3 library snapshot
+    repository: https://github.com/archaic-msvc/msvc600_sp3.git
+    commit: efb7eccebd6c6fe129c234691512fa6ab66d5620
+    image: wizardry8-msvc600:sp3-libraries
+    status: exact-precompiled-library-snapshot
+    capabilities: [precompiled-libraries]
+    precompiled_archives:
+      - id: libcmt
+        library: msvc-crt-static
+        variant: vc6-sp3-multithreaded-static
+        path: VC98/lib/libcmt.lib
+        sha256: 7922ed5dfd9da6d945a601f28b17e1cd67db97a87d995b579bfcade16e6e5765
+      - id: libcpmt
+        library: msvc-cpp-static
+        variant: vc6-sp3-multithreaded-static
+        path: VC98/lib/libcpmt.lib
+        sha256: 919e3d9c8610a29f7a4a513df25ea2be6500cea742ddd613f5652f24fa4df98c
+        seed: false
+  - id: vc6-sp4-libraries
+    family: Microsoft Visual C++ 6.0 SP4 library snapshot
+    repository: https://github.com/archaic-msvc/msvc600_sp4.git
+    commit: 6cee9b1913b36285defd361753416e4c20056abb
+    image: wizardry8-msvc600:sp4-libraries
+    status: exact-precompiled-library-snapshot
+    capabilities: [precompiled-libraries]
+    precompiled_archives:
+      - id: libcmt
+        library: msvc-crt-static
+        variant: vc6-sp4-multithreaded-static
+        path: VC98/lib/libcmt.lib
+        sha256: 5dc8e4bc5377ca3d385b747e937f1cba4519431776d7c8f28d9cb852d79b0160
+      - id: libcpmt
+        library: msvc-cpp-static
+        variant: vc6-sp4-multithreaded-static
+        path: VC98/lib/libcpmt.lib
+        sha256: 919e3d9c8610a29f7a4a513df25ea2be6500cea742ddd613f5652f24fa4df98c
+        seed: false
 
 toolchain_evidence:
   selection_confidence: family-confirmed-exact-build-unresolved
@@ -57,6 +146,8 @@ libraries:
     seed_variants:
       - id: release-md-o2
         flags: [/nologo, /c, /O2, /MD]
+      - id: release-md-o2-g6
+        flags: [/nologo, /c, /O2, /MD, /G6]
       - id: release-md-o1
         flags: [/nologo, /c, /O1, /MD]
     compilation_units:
@@ -151,6 +242,64 @@ libraries:
     evidence:
       - PE FileVersion and ProductVersion are 5.4.
       - Version resource identifies Info-ZIP's UnZip DLL for Win32.
+      - The DLL Rich header contains 23 product 10/build 8447 records and one product 11/build 8447 record.
+      - The release Visual C project supplies the exact Win32 DLL source list and release flags.
+    source:
+      url: https://ftpmirror.infania.net/sites/os2bbs.com/archive/unzip540.zip
+      sha256: b8c5a17798cd44050042fc1538df4102509d932dcab49eff3061f3065d00b45b
+      archive_root: .
+    seed_variants:
+      - id: upstream-release-mt-o2
+        flags: [/nologo, /Zp4, /MT, /W3, /GX, /O2, /I, 'Z:\src', /I, 'Z:\src\windll', /I, 'Z:\src\win32', /D, NDEBUG, /D, WIN32, /D, _WINDOWS, /D, WINDLL, /D, USE_EF_UT_TIME, /D, DLL, /c]
+      - id: target-runtime-md-o2
+        flags: [/nologo, /Zp4, /MD, /W3, /GX, /O2, /I, 'Z:\src', /I, 'Z:\src\windll', /I, 'Z:\src\win32', /D, NDEBUG, /D, WIN32, /D, _WINDOWS, /D, WINDLL, /D, USE_EF_UT_TIME, /D, DLL, /c]
+    compilation_units:
+      - api.c
+      - crc32.c
+      - crctab.c
+      - crypt.c
+      - explode.c
+      - extract.c
+      - fileio.c
+      - globals.c
+      - inflate.c
+      - list.c
+      - match.c
+      - win32/nt.c
+      - process.c
+      - ttyio.c
+      - unreduce.c
+      - unshrink.c
+      - win32/win32.c
+      - windll/windll.c
+      - zipinfo.c
+
+  - id: msvc-crt-static
+    family: Microsoft Visual C++ C Runtime
+    version: "6.0"
+    status: exact-precompiled-candidate
+    scope:
+      - vc6-rtm/libcmt.lib
+      - vc6-sp3/libcmt.lib
+      - vc6-sp4/libcmt.lib
+      - vc6-sp5/libcmt.lib
+      - vc6-sp6/libcmt.lib
+    evidence:
+      - The pinned archaic-msvc RTM and service-pack snapshots contain exact multithreaded static CRT archives.
+      - Wizardry first-party modules import MSVCRT.dll, so matches from this archive are support-code evidence rather than proof that the game used /MT.
+    source: null
+    seed_variants: []
+
+  - id: msvc-cpp-static
+    family: Microsoft Visual C++ Standard C++ Library
+    version: "6.0"
+    status: exact-precompiled-candidate
+    scope:
+      - vc6-rtm-through-sp4/libcpmt.lib
+      - vc6-sp5-through-sp6/libcpmt.lib
+    evidence:
+      - RTM, SP3, and SP4 share one byte-identical archive; SP5, Processor Pack, and SP6 share a second byte-identical archive.
+      - Wizardry first-party modules import MSVCP60.dll, so matches must be interpreted conservatively.
     source: null
     seed_variants: []
 
