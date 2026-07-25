@@ -10,6 +10,10 @@ address,provisional_name,owner,confidence,evidence
 004acba0,GetMinimumCasterLevelForSpell,wiz8-gameplay-database,strong,Loads a spell's level and returns the corresponding minimum caster level
 00517970,RollDice,wiz8-gameplay-database,strong,Returns the signed base plus count independent rolls in the range one through sides
 005179b0,IntegerPower,wiz8-gameplay-database,strong,Multiplies the integer base by itself exponent times and is used to derive the monster disposition cache duration
+005179d0,ClampInteger,wiz8-engine-code,strong,Clamps an integer through a pointer to the inclusive minimum and maximum arguments
+0048c110,MonGen::LoadAll,wiz8-engine-code,strong,The embedded diagnostic names MonGen LoadAll and the function restores encounter state then applies the current level's bounds
+0048c810,UpdateRandomEncounterBudget,wiz8-engine-code,strong,Replenishes the current level's encounter budget by elapsed time and clamps both budget and active-encounter limit
+0048c8e0,CullExpiredEncounters,wiz8-engine-code,strong,Compares active encounter ages with the configured culling time and removes sufficiently distant expired groups
 00535ad0,GetFactionDisposition,wiz8-factions,strong,Asserts a faction ID from zero through twenty and maps its rating below 34 to hostile through 66 to neutral and above 66 to friendly
 0048ad20,MonGen::GenerateEncounter,wiz8-engine-code,strong,The embedded diagnostic names MonGen GenerateEncounter and its canonical body rolls group size and two optional companion records
 00511250,MonsterGroupCalcDefaultDisposition,wiz8-local-code,strong,The embedded assertion text names MonsterGroupCalcDefaultDisposition and the canonical body selects NPC faction or unaligned hostility disposition

@@ -110,7 +110,15 @@ typedef struct W8MonsterDatabaseRecord {
 
 typedef struct W8LevelDatabaseRecord {
     W8WideChar display_name[30];         /* 0x00 */
-    uint8_t fields_03c[0x9c];           /* 0x3c: not yet field-reconciled */
+    int32_t maximum_random_encounters;   /* 0x3c */
+    int32_t minimum_random_encounters;   /* 0x40 */
+    int32_t maximum_encounter_budget;    /* 0x44 */
+    int32_t minimum_encounter_budget;    /* 0x48 */
+    int32_t encounter_budget_period;     /* 0x4c: elapsed-time divisor */
+    int32_t encounter_culling_seconds;   /* 0x50 */
+    float unknown_054;                  /* 0x54 */
+    int32_t level_id;                   /* 0x58: equals the database index */
+    uint8_t reserved_05c[0x7c];         /* 0x5c: zero in the reviewed corpus */
 } W8LevelDatabaseRecord;                /* 0xd8 */
 
 typedef struct W8FactDatabaseRecord {

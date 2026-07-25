@@ -98,6 +98,16 @@ the final `0x74` bytes at `+0x14b` form the sound basename used below
 `Data\\Spells\\Sounds`. The target-type values and the remaining effect-dispatch fields
 stay opaque pending their enum recovery.
 
+The 60 level records carry more than their leading UTF-16 display names. MonGen clamps the
+runtime random-encounter limit between `minimum_random_encounters` at `+0x40` and
+`maximum_random_encounters` at `+0x3c`. A separate encounter budget is bounded by `+0x48`
+and `+0x44`; `UpdateRandomEncounterBudget` at `0x0048c810` replenishes it using elapsed time
+divided by the period at `+0x4c`. The developer menu independently identifies the runtime
+value initialized from `+0x50` as the encounter culling time in seconds, and
+`CullExpiredEncounters` at `0x0048c8e0` enforces it. Every record's `level_id` at `+0x58`
+equals its zero-based array index; the remaining `0x7c` bytes from `+0x5c` are zero across
+the reviewed GOG corpus.
+
 The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
 reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`

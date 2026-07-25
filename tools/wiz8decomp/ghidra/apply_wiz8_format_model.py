@@ -303,9 +303,37 @@ def apply_wiz8_format_model(
                         ),
                         (
                             0x3C,
-                            ArrayDataType(byte, 0x9C, 1),
-                            "fields_03c",
-                            "not yet field-reconciled",
+                            integer,
+                            "maximum_random_encounters",
+                            "upper bound for the runtime encounter limit",
+                        ),
+                        (
+                            0x40,
+                            integer,
+                            "minimum_random_encounters",
+                            "lower bound for the runtime encounter limit",
+                        ),
+                        (0x44, integer, "maximum_encounter_budget", "upper budget bound"),
+                        (0x48, integer, "minimum_encounter_budget", "lower budget bound"),
+                        (
+                            0x4C,
+                            integer,
+                            "encounter_budget_period",
+                            "elapsed-time divisor for budget replenishment",
+                        ),
+                        (
+                            0x50,
+                            integer,
+                            "encounter_culling_seconds",
+                            "developer-menu encounter culling time",
+                        ),
+                        (0x54, float_type, "unknown_054", "unreviewed level scale"),
+                        (0x58, integer, "level_id", "equals the zero-based database index"),
+                        (
+                            0x5C,
+                            ArrayDataType(byte, 0x7C, 1),
+                            "reserved_05c",
+                            "zero in the reviewed corpus",
                         ),
                     ],
                 )
@@ -421,6 +449,9 @@ def apply_wiz8_format_model(
                     archive_state_pointer,
                 )
                 for raw_address, data_type in (
+                    (0x0060A6C0, integer),
+                    (0x0060A6C4, integer),
+                    (0x0060A6C8, integer),
                     (0x0065BE18, dword),
                     (0x0065BE1C, spell_record_pointer),
                     (0x006836A4, level_record_pointer),
@@ -486,6 +517,14 @@ def apply_wiz8_format_model(
                         integer,
                         [("base", integer), ("exponent", integer)],
                     ),
+                    0x005179D0: (
+                        void,
+                        [
+                            ("value", PointerDataType(integer, dtm)),
+                            ("minimum", integer),
+                            ("maximum", integer),
+                        ],
+                    ),
                     0x00535AD0: (faction_disposition, [("faction", byte)]),
                     0x0051B5C0: (
                         PointerDataType(word, dtm),
@@ -511,6 +550,9 @@ def apply_wiz8_format_model(
                         [("monster_index", dword), ("record", monster_record_pointer)],
                     ),
                     0x0054AE20: (dword, []),
+                    0x0048C110: (byte, [("save_handle", integer)]),
+                    0x0048C810: (void, [("reset_budget", byte)]),
+                    0x0048C8E0: (void, []),
                 }
                 typed_functions: list[str] = []
                 for raw_address, (return_type, arguments) in signatures.items():
@@ -543,6 +585,9 @@ def apply_wiz8_format_model(
                 symbol_table = program.getSymbolTable()
                 for raw_address, name in (
                     (0x006000C8, "g_slf_configurations"),
+                    (0x0060A6C0, "g_random_encounter_limit"),
+                    (0x0060A6C4, "g_random_encounter_budget"),
+                    (0x0060A6C8, "g_encounter_culling_time_seconds"),
                     (0x0065BE18, "g_spell_database_version"),
                     (0x0065BE1C, "g_spell_records"),
                     (0x006836A4, "g_level_records"),
@@ -590,6 +635,9 @@ def apply_wiz8_format_model(
                         "typed_functions": typed_functions,
                         "typed_globals": [
                             "0x006000c8",
+                            "0x0060a6c0",
+                            "0x0060a6c4",
+                            "0x0060a6c8",
                             "0x0065be18",
                             "0x0065be1c",
                             "0x006836a4",
