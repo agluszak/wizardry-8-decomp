@@ -22,6 +22,12 @@ typedef struct W8FactionRuntimeRecord {
     unsigned char unknown_01[0x0d];
 } W8FactionRuntimeRecord;               /* 0x0e */
 
+typedef struct W8Character {
+    unsigned char unknown_0000[4];
+    unsigned char in_party;              /* 0x0004 */
+    unsigned char unknown_0005[0x185d];
+} W8Character;                           /* 0x1862 */
+
 typedef unsigned char W8FactionDisposition;
 
 enum {
@@ -38,6 +44,7 @@ extern "C" {
 
 extern W8SpellRuntimeRecord* g_spell_records;
 extern W8FactionRuntimeRecord g_factions[21];
+extern W8Character* g_party_characters;
 
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -51,6 +58,8 @@ unsigned char CanSpellBackfire(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 W8FactionDisposition GetFactionDisposition(signed char faction);
+void StripMonsterNameSuffix(unsigned short* name);
+unsigned int CharacterPointerToPartySlot(W8Character* character);
 
 #ifdef __cplusplus
 }

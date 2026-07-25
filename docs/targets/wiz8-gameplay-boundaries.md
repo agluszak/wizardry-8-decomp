@@ -15,6 +15,8 @@ recovery work.
 | `0x004acb40` | `MinimumCasterLevelForSpellLevel` | 61 | Maps spell levels 2-7 to caster levels 3, 5, 8, 11, 14, and 18, with level 1 as the default. |
 | `0x004acba0` | `GetMinimumCasterLevelForSpell` | 85 | Reads the spell level at offset `0x56` and applies the same mapping inline. |
 | `0x00535ad0` | `GetFactionDisposition` | 100 | Enforces the signed faction domain `0..20`, reads the first byte of each 14-byte faction record, and classifies scores as hostile below 34, neutral below 67, or friendly. |
+| `0x00517ea0` | `StripMonsterNameSuffix` | 26 | Finds the first wide `#` marker in any of the monster record's four display-name buffers and truncates the suffix in place. |
+| `0x00517ec0` | `CharacterPointerToPartySlot` | 105 | Validates the character's `in_party` byte and converts its pointer to an index in the eight-element, `0x1862`-stride party array. Its reviewed name originated in the CFAgent hook oracle; the implementation is original Wizardry code. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c` and `src/wiz8/spell_backfire.cpp`
 and retain explicit `FUNCTION`
@@ -24,7 +26,7 @@ already exact compression and plug-in targets. The review map is
 `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
-instruction scheduling to the canonical order. With `/O2 /G6 /MD`, seven bodies match exactly after
+instruction scheduling to the canonical order. With `/O2 /G6 /MD`, nine bodies match exactly after
 masking COFF relocations where needed:
 
 | Function | Result | Relocation-normalized SHA-256 |
@@ -36,6 +38,8 @@ masking COFF relocations where needed:
 | `MinimumCasterLevelForSpellLevel` | exact, 61/61 bytes | `649880237ae6e55d4df2f0ccfcc79f459e41a6bdb57711253ae74e907fa35228` |
 | `GetMinimumCasterLevelForSpell` | exact, 85/85 bytes | `bb490ccad29b8f851d5c0f3e8ee00b2c3cc7f778aa3f671f2a620e4974094758` |
 | `GetFactionDisposition` | exact, 100/100 bytes | `8166d9a0a4cfcb3ed073f966e33115d60f4512f670bcb6785a5300e114a113f4` |
+| `StripMonsterNameSuffix` | exact, 26/26 bytes | `fcc9db3bf744139df99cc283507aff3d58c1deb75cf8bedbb4a3beef5e5698cf` |
+| `CharacterPointerToPartySlot` | exact, 105/105 bytes | `ba51c3d9a068fa8b79e4fbe5fb88e160d773ee10dbbe561891b0a9186aaff725` |
 
 `CanSpellBackfire` is retained because the typed semantics and all exception sets are grounded in
 the canonical body, but it is intentionally classified as `structurally-strong`, not exact. The
