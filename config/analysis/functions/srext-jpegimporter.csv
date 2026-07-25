@@ -199,37 +199,37 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 10014b20,34,jcopy_block_row,jcopy_block_row,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10014b50,27,jzero_far,jzero_far,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10014b70,39,srInitPlugin,srInitPlugin,sirtech-plugin,exact,PE export ordinal 2; allocates 0x48 bytes and constructs the plugin object
-10014ba0,,,getPluginDescription,sirtech-plugin,strong,Vtable entry returning the literal SurRender JPEG-importer/exporter plug-in description
-10014bb0,30,FUN_10014bb0,,sirtech-plugin,strong,Scalar deleting destructor for the complete plugin object
-10014bd0,14,FUN_10014bd0,,sirtech-plugin,strong,Complete plugin destructor; delegates to the importer/exporter teardown
-10014be0,189,FUN_10014be0,,sirtech-plugin,strong,IJG stdio read callback bridged to the active srBinIStream
+10014ba0,6,srJPEGPlugin_getDescription,srJPEGPlugin_getDescription,sirtech-plugin,strong,Vtable entry returning the literal SurRender JPEG-importer/exporter plug-in description
+10014bb0,30,srJPEGPlugin_scalar_deleting_destructor,srJPEGPlugin_scalar_deleting_destructor,sirtech-plugin,strong,Scalar deleting destructor for the complete plugin object
+10014bd0,14,srJPEGPlugin_destructor,srJPEGPlugin_destructor,sirtech-plugin,strong,Complete plugin destructor; delegates to the importer/exporter teardown
+10014be0,189,jpeg_srBinIStream_read_callback,jpeg_srBinIStream_read_callback,sirtech-plugin,strong,IJG stdio read callback bridged to the active srBinIStream
 10014c8a,21,Catch@10014c8a,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-10014cc0,106,FUN_10014cc0,,sirtech-plugin,strong,IJG stdio write callback bridged to the active srBinOStream
+10014cc0,106,jpeg_srBinOStream_write_callback,jpeg_srBinOStream_write_callback,sirtech-plugin,strong,IJG stdio write callback bridged to the active srBinOStream
 10014d17,21,Catch@10014d17,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-10014d40,105,FUN_10014d40,srJPEGImporter_ctor,sirtech-plugin,strong,Constructs Importer and Exporter bases and registers jpeg and jpg
-10014db0,30,FUN_10014db0,,sirtech-plugin,strong,Scalar deleting destructor reached from the importer vtable
-10014dd0,60,FUN_10014dd0,srJPEGImporter_dtor,sirtech-plugin,strong,Removes both importer and exporter registrations
-10014e10,20,FUN_10014e10,,sirtech-plugin,strong,Initializes quality to 200 and format byte to 0x4b
-10014e30,47,FUN_10014e30,,sirtech-plugin,strong,Reads JPEG dimensions and component count through the codec adapter
-10014e60,,,,sirtech-plugin,strong,Importer vtable entry; validates input and fills a surface-info record; missing from current Ghidra function inventory
-10014f30,,,importSurface,sirtech-plugin,strong,Importer vtable entry; decodes JPEG data and copies it into an srColorSurface; missing from current Ghidra function inventory
-100151d0,35,FUN_100151d0,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-10015200,,,exportSurface,sirtech-plugin,strong,Exporter vtable entry; parses QUALITY and encodes an srColorSurface; missing from current Ghidra function inventory
-10015400,23,FUN_10015400,,sirtech-plugin,strong,Initializes export options with default quality 100
-10015420,6,FUN_10015420,,sirtech-plugin,strong,Vtable entry returning the JPEG type name
-10015430,18,FUN_10015430,,sirtech-plugin,strong,Releases storage through srHeap
-10015450,,,,sirtech-plugin,strong,Returns SurRender type identifier 0x3110; missing from current Ghidra function inventory
-10015460,,,,sirtech-plugin,candidate,Tail jump through an SR.DLL import; missing from current Ghidra function inventory
-10015470,,,,sirtech-plugin,strong,Registers SurRender type identifiers 0x3100 and 0x3110; missing from current Ghidra function inventory
-100154e0,25,FUN_100154e0,,sirtech-plugin,strong,Clones and assigns an srColorSurface
+10014d40,105,srJPEGImporter_constructor,srJPEGImporter_constructor,sirtech-plugin,strong,Constructs Importer and Exporter bases and registers jpeg and jpg
+10014db0,30,srJPEGImporter_scalar_deleting_destructor,srJPEGImporter_scalar_deleting_destructor,sirtech-plugin,strong,Scalar deleting destructor reached from the importer vtable
+10014dd0,60,srJPEGImporter_destructor,srJPEGImporter_destructor,sirtech-plugin,strong,Removes both importer and exporter registrations
+10014e10,20,srJPEGImporter_initialize_codec_options,srJPEGImporter_initialize_codec_options,sirtech-plugin,strong,Initializes quality to 200 and format byte to 0x4b
+10014e30,47,srJPEGImporter_read_header,srJPEGImporter_read_header,sirtech-plugin,strong,Reads JPEG dimensions and component count through the codec adapter
+10014e60,194,srJPEGImporter_getSurfaceDesc,srJPEGImporter_getSurfaceDesc,sirtech-plugin,exact-signature,"SurfaceImporter vtable slot 2; exact SR.DLL base signature is int getSurfaceDesc(SurfaceDesc&, srBinIStream&, const ImportInfo&)"
+10014f30,667,srJPEGImporter_importSurface,srJPEGImporter_importSurface,sirtech-plugin,strong,"SurfaceImporter vtable slot 3; decodes JPEG pixels and returns srColorSurfaceIFace* from (srBinIStream&, const ImportInfo&)"
+100151d0,35,srColorSurface_scalar_deleting_destructor,srColorSurface_scalar_deleting_destructor,sirtech-plugin,strong,Local deleting destructor installed at srColorSurface vtable slot 5
+10015200,499,srJPEGImporter_exportSurface,srJPEGImporter_exportSurface,sirtech-plugin,strong,"SurfaceExporter vtable slot 2; exact manager call shape is void exportSurface(srBinOStream&, srColorSurfaceIFace&, const ExportInfo&)"
+10015400,23,srJPEGImporter_initialize_export_options,srJPEGImporter_initialize_export_options,sirtech-plugin,strong,Initializes export options with default quality 100
+10015420,6,srJPEGImporter_getTypeName,srJPEGImporter_getTypeName,sirtech-plugin,strong,Vtable entry returning the JPEG type name
+10015430,18,srHeap_free_wrapper,srHeap_free_wrapper,sirtech-plugin,strong,Releases storage through srHeap
+10015450,6,srColorSurface_getClassID,srColorSurface_getClassID,sirtech-plugin,exact,Local srColorSurface vtable slot 1 returns class ID 0x3110
+10015460,6,SR.DLL::srColorSurface::sGetClassName,srColorSurface_getClassName,sirtech-plugin,exact,Local srColorSurface vtable slot 0 tail-jumps to the exact decorated SR.DLL sGetClassName export
+10015470,106,srColorSurface_getClassNode,srColorSurface_getClassNode,sirtech-plugin,strong,Local srColorSurface vtable slot 2 resolves or registers class IDs 0x3100 and 0x3110
+100154e0,25,srColorSurface_clone,srColorSurface_clone,sirtech-plugin,strong,Local srColorSurface vtable slot 7 creates an instance through slot 6 and assigns this surface
 10015540,11,FUN_10015540,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
 10015550,12,FUN_10015550,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
 10015580,11,FUN_10015580,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
 10015590,12,FUN_10015590,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
 100155b0,26,FUN_100155b0,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
 100155d0,6,srGetLibraryVersion,srGetLibraryVersion,sirtech-plugin,exact,"PE export ordinal 1; body is mov eax,0x012a0209; ret"
-100155e0,,,,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10015420
-100155f0,,,,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10014db0
+100155e0,8,srJPEGImporter_exporter_getTypeName_thunk,srJPEGImporter_exporter_getTypeName_thunk,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10015420
+100155f0,8,srJPEGImporter_exporter_destructor_thunk,srJPEGImporter_exporter_destructor_thunk,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10014db0
 100156a0,6,copy,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
 100156e8,6,getDataPtr,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
 10015790,6,setjmp3,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"

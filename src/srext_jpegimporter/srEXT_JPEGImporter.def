@@ -1,0 +1,5 @@
+LIBRARY srEXT_JPEGImporter
+
+EXPORTS
+    srGetLibraryVersion @1
+    srInitPlugin @2

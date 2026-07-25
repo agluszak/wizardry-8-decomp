@@ -71,15 +71,74 @@ four-byte importer and exporter vptrs, a `0x30`-byte codec-operation record, and
 options record. These exact offsets are represented in `src/srext_jpegimporter/layout.h`; fields
 without semantic evidence remain named by offset.
 
-The current auto-analysis missed important function starts even though the vtables reference them:
+The original auto-analysis missed important function starts even though the vtables reference them:
 
 - `0x10014E60` validates an input JPEG and returns surface metadata;
 - `0x10014F30` imports and converts JPEG pixels into an `srColorSurface`;
 - `0x10015200` exports an `srColorSurface` and parses the `QUALITY` option;
-- `0x10015450`, `0x10015460`, and `0x10015470` implement SurRender type/registration helpers;
+- `0x10015450`, `0x10015460`, and `0x10015470` implement the emitted
+  `srColorSurface` runtime-class slots;
 - `0x100155E0` and `0x100155F0` are exporter-base this-adjusting thunks.
 
-These functions must be created in the reviewed analysis model before the 241-function Ghidra count
-can be treated as complete. The next recovery step is to type the vtables at `0x10016D68`,
-`0x10016D70`, and `0x10016D7C`, then recover the `srJPEGImporter` object layout from the three large
-methods rather than assigning names from proximity alone.
+All eight starts now exist in the live Ghidra program. The reviewed function map records their body
+sizes, method roles, and signatures. Ghidra also now contains the exact release-6 definitions for
+`jpeg_compress_struct` (`0x168`), `jpeg_decompress_struct` (`0x2C8`), `jpeg_error_mgr` (`0x84`),
+`jpeg_memory_mgr` (`0x30`), and the other public/internal IJG records. Fifty-nine target functions
+have exact prototypes applied directly from `jpeglib.h` or `jpegint.h`; the remaining named IJG
+functions are file-local routines for which the headers intentionally provide no declaration.
+
+The `srJPEGPlugin`, `srJPEGImporter`, codec-state, export-option, surface-description, pixel-format,
+and four vtable structures are installed as Ghidra data types. Applying the typed virtual signature
+at `0x10014E60`, for example, now renders the outputs as `description->width`, `height`, `pitch`, and
+`pixel_format` rather than anonymous pointer offsets. The four relevant vtables are:
+
+| Address | Object | Slots |
+| --- | --- | --- |
+| `0x10016D68` | complete `srJPEGPlugin` | deleting destructor, description |
+| `0x10016D70` | `srSurfaceIOManager::SurfaceExporter` subobject | adjusted type name, adjusted destructor, `exportSurface` |
+| `0x10016D7C` | `srSurfaceIOManager::SurfaceImporter` subobject | type name, deleting destructor, `getSurfaceDesc`, `importSurface` |
+| `0x10016D8C` | locally emitted `srColorSurface` | 52 slots through `minify` |
+
+The importer/exporter signatures are not inferred from stack cleanup alone. `SR.DLL` exports the
+base `getSurfaceDesc` decorated symbol, and its manager call sites establish the other two contracts:
+
+```cpp
+int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc&, srBinIStream&,
+                   const srSurfaceIOManager::ImportInfo&);
+srColorSurfaceIFace* importSurface(srBinIStream&,
+                                   const srSurfaceIOManager::ImportInfo&);
+void exportSurface(srBinOStream&, srColorSurfaceIFace&,
+                   const srSurfaceIOManager::ExportInfo&);
+```
+
+## Recovered SDK boundary
+
+The first recovered SurRender headers are under `include/surrender/`. They encode the proven
+multiple-inheritance shape, the virtual `srBinStream` base used by directional streams, the exact
+`0x28`-byte surface-description record, and the 52 observed `srColorSurface` vtable positions.
+Unknown option fields remain explicit; only the export option-string pointer at `+0x08` is currently
+semantic. The `0x0C` declarations are the observed prefix needed by this plug-in, not yet a claim
+that no later SDK build extends either record.
+
+`config/analysis/surrender/jpeg-sr-imports.csv` records every one of the 69 `SR.DLL` imports with
+its exact decorated name, ordinal, demangled signature, calling convention, importing module, and a
+representative code or vtable reference. `src/srext_jpegimporter/sr-jpeg-imports.def` is the matching
+minimal import-library definition. It was generated from and checked against `sr.dll` SHA-256
+`cec1caf85861c34bc4583ef1c69209e96a6930bdfc9af545c429f7470a8b6165`; it does not contain engine
+code.
+
+## Compilable skeleton
+
+The owned `plugin.cpp` now builds a `0x48`-byte wrapper with the proven `0x44`-byte importer/exporter
+subobject, registers `jpeg` and `jpg` through the original `SR.DLL`, and preserves exports and
+ordinals 1 and 2. The operation methods remain deliberate stubs until the IJG state is typed.
+
+The skeleton was compiled and linked successfully using the pinned VC6 SP5 image with `/MD /O2
+/GX /GR-`, preferred base `0x10000000`, and incremental linking disabled. The verified link order is
+the adapter object, all 46 exact IJG release-6 `/MD /O2` objects, then the SurRender plug-in object.
+With dead stripping disabled while the adapter is stubbed, the candidate has `.text` size `0x13DB2`
+and starts its three adapter placeholders at `0x10001000`, followed immediately by the IJG object
+run. The resulting test DLL is a 32-bit PE with exactly the two original export names and ordinals,
+and imports `SR.dll`, `MSVCRT.dll`, and `KERNEL32.dll`. This proves the narrow ABI, source corpus,
+object order, and import library are linkable; it is not yet a drop-in replacement because JPEG
+decode and encode still return failure/no data.
