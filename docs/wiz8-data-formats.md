@@ -85,3 +85,21 @@ The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
 reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`
 preserves the corpus arithmetic and consumer evidence.
+
+The item model has progressed beyond its record boundary. `FormatItemDisplayName` at
+`0x0051b5c0` establishes the generic-name index at `+0x03f` and selects the leading
+UTF-16 display name when an item is identified. `ReplaceOrCreateItem` establishes the
+quantity-kind byte at `+0x066` and its adjacent four-byte `W8Dice` at `+0x067`.
+`RollDice` at `0x00517970` confirms that layout as a signed base, count, and sides.
+
+`MergeItems` at `0x0051f2f0` scans each item record for two order-independent ingredient
+IDs at `+0x0b9` and `+0x0bd`. A skill byte of `0xff` at `+0x0c9` bypasses the skill
+requirement; otherwise the function checks the minimum at `+0x0ca` and awards skill
+progress. These names come from behavior in the canonical function, not the payload's
+human-readable item names.
+
+Runtime item instances are `0x0c` bytes. `ReplaceOrCreateItem` at `0x0051c020`
+initializes the item ID at `+0x00`, stack quantity at `+0x04`, uses or charges at
+`+0x05`, identified state at `+0x06`, and an optional flag at `+0x0b`. The party's
+500-entry item pool begins at `0x00685191`; its active count is `0x00686901`. The
+separate item-in-hand instance begins at `0x006874cb`, preceded by its validity byte.

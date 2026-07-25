@@ -4,7 +4,9 @@ address,provisional_name,owner,confidence,evidence
 00404ea0,ReadVirtualFile,wiz8-file-system,strong,Reads bytes from either a physical handle or an SLF archive entry and reports the completed byte count
 00405030,SeekVirtualFile,wiz8-file-system,strong,Seeks a physical handle or SLF-backed entry using Wizardry origin values 1 2 and 4
 004acc10,InitializeSpellDatabase,wiz8-gameplay-database,strong,Reads the count and version from SpellTables.dbs then skips 0x101 and loads 0x1bf bytes for each spell
+00517970,RollDice,wiz8-gameplay-database,strong,Returns the signed base plus count independent rolls in the range one through sides
 00517ea0,StripMonsterNameSuffix,wiz8-gameplay-database,strong,Finds the first wide '#' in a monster name field and terminates the string there
+0051b5c0,FormatItemDisplayName,wiz8-gameplay-database,strong,Selects identified or generic item text and optionally appends the stack count
 0054a400,InitializeItemDatabase,wiz8-gameplay-database,strong,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
 0054a8a0,LoadMonsterDatabaseRecord,wiz8-gameplay-database,strong,Seeks to index times 0x297 plus the count header and reads one monster record
 0054ae20,InitializeLevelDatabase,wiz8-gameplay-database,strong,Reads the Levels.dbs count then allocates and loads contiguous 0xd8-byte records

@@ -32,6 +32,7 @@ def apply_wiz8_format_model(
         IntegerDataType,
         PointerDataType,
         QWordDataType,
+        ShortDataType,
         VoidDataType,
         WordDataType,
     )
@@ -53,6 +54,7 @@ def apply_wiz8_format_model(
                 dword = DWordDataType.dataType
                 integer = IntegerDataType.dataType
                 qword = QWordDataType.dataType
+                short = ShortDataType.dataType
                 void = VoidDataType.dataType
                 generic_pointer = PointerDataType(dtm)
                 char_pointer = PointerDataType(char, dtm)
@@ -131,6 +133,31 @@ def apply_wiz8_format_model(
                         (0x102, byte, "map_file", "create a read-only file mapping"),
                     ],
                 )
+                dice = _structure(
+                    dtm,
+                    category,
+                    "W8Dice",
+                    0x04,
+                    [
+                        (0x00, short, "base", "signed additive base"),
+                        (0x02, byte, "count", "number of independent rolls"),
+                        (0x03, byte, "sides", "one through this value per roll"),
+                    ],
+                )
+                item_instance = _structure(
+                    dtm,
+                    category,
+                    "W8ItemInstance",
+                    0x0C,
+                    [
+                        (0x00, integer, "item_id", "-1 is empty"),
+                        (0x04, byte, "stack_count", "quantity-kind one"),
+                        (0x05, byte, "uses_or_charges", "quantity-kinds two through four"),
+                        (0x06, byte, "identified", "nonzero when identified"),
+                        (0x07, ArrayDataType(byte, 4, 1), "unknown_07", "unreviewed state"),
+                        (0x0B, byte, "unknown_0b", "optional initialization flag"),
+                    ],
+                )
                 item_record = _structure(
                     dtm,
                     category,
@@ -143,12 +170,24 @@ def apply_wiz8_format_model(
                             "display_name",
                             "30 UTF-16 code units",
                         ),
+                        (0x03C, ArrayDataType(byte, 3, 1), "unknown_03c", "unreviewed fields"),
                         (
-                            0x03C,
-                            ArrayDataType(byte, 0xD1, 1),
-                            "fields_03c",
-                            "not yet field-reconciled",
+                            0x03F,
+                            word,
+                            "unidentified_name_index",
+                            "generic-name string-table index",
                         ),
+                        (0x041, byte, "flags_041", "bit zero starts identified"),
+                        (0x042, ArrayDataType(byte, 0x24, 1), "unknown_042", "unreviewed fields"),
+                        (0x066, byte, "quantity_kind", "zero none; one stack; two-four uses"),
+                        (0x067, dice, "initial_quantity", "initial stack/use dice"),
+                        (0x06B, ArrayDataType(byte, 0x4E, 1), "unknown_06b", "unreviewed fields"),
+                        (0x0B9, integer, "combine_ingredient_a", "first recipe item ID"),
+                        (0x0BD, integer, "combine_ingredient_b", "second recipe item ID"),
+                        (0x0C1, ArrayDataType(byte, 8, 1), "unknown_0c1", "unreviewed fields"),
+                        (0x0C9, byte, "combine_skill", "0xff means no skill check"),
+                        (0x0CA, byte, "combine_minimum_skill", "required skill value"),
+                        (0x0CB, ArrayDataType(byte, 0x42, 1), "unknown_0cb", "unreviewed fields"),
                     ],
                 )
                 monster_record = _structure(
@@ -231,6 +270,8 @@ def apply_wiz8_format_model(
                 )
 
                 item_record_pointer = PointerDataType(item_record, dtm)
+                dice_pointer = PointerDataType(dice, dtm)
+                item_instance_pointer = PointerDataType(item_instance, dtm)
                 monster_record_pointer = PointerDataType(monster_record, dtm)
                 level_record_pointer = PointerDataType(level_record, dtm)
                 spell_record_pointer = PointerDataType(spell_record, dtm)
@@ -260,6 +301,9 @@ def apply_wiz8_format_model(
                     (0x00683F90, dword),
                     (0x006840C7, ArrayDataType(monster_record_pointer, 1000, 4)),
                     (0x0068516C, item_record_pointer),
+                    (0x00685191, ArrayDataType(item_instance, 500, 0x0C)),
+                    (0x00686901, dword),
+                    (0x006874CB, item_instance),
                 ):
                     _apply_data(program, address_space.getAddress(raw_address), data_type)
 
@@ -302,6 +346,24 @@ def apply_wiz8_format_model(
                         ],
                     ),
                     0x004E57C0: (monster_record_pointer, [("monster_id", dword)]),
+                    0x00517970: (integer, [("dice", dice_pointer)]),
+                    0x0051B5C0: (
+                        PointerDataType(word, dtm),
+                        [
+                            ("item", item_instance_pointer),
+                            ("include_quantity", byte),
+                        ],
+                    ),
+                    0x0051C020: (
+                        void,
+                        [
+                            ("item", item_instance_pointer),
+                            ("item_id", dword),
+                            ("maximum_quantity", byte),
+                            ("force_identified", byte),
+                            ("mark_special", byte),
+                        ],
+                    ),
                     0x00517EA0: (void, [("name", PointerDataType(word, dtm))]),
                     0x0054A400: (dword, []),
                     0x0054A8A0: (
@@ -349,6 +411,9 @@ def apply_wiz8_format_model(
                     (0x00683F90, "g_level_record_count"),
                     (0x006840C7, "g_monster_record_cache"),
                     (0x0068516C, "g_item_records"),
+                    (0x00685191, "g_party_item_pool"),
+                    (0x00686901, "g_party_item_count"),
+                    (0x006874CB, "g_item_in_hand"),
                     (0x006EB724, "g_slf_archives"),
                 ):
                     address = address_space.getAddress(raw_address)
@@ -369,6 +434,8 @@ def apply_wiz8_format_model(
                                 live_entry,
                                 archive_state,
                                 configuration,
+                                dice,
+                                item_instance,
                                 item_record,
                                 monster_record,
                                 level_record,
@@ -387,6 +454,9 @@ def apply_wiz8_format_model(
                             "0x00683f90",
                             "0x006840c7",
                             "0x0068516c",
+                            "0x00685191",
+                            "0x00686901",
+                            "0x006874cb",
                             "0x006eb724",
                         ],
                     }
