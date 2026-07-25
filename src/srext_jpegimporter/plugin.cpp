@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 #include <new>
 
 #include "surrender/srCore.h"
@@ -12,6 +13,16 @@
 
 class srJPEGColorSurface : public srColorSurface {
 public:
+    static void* operator new(size_t size)
+    {
+        return srHeap.allocate(size);
+    }
+
+    static void operator delete(void* memory)
+    {
+        srHeap.free(memory);
+    }
+
     srJPEGColorSurface(
         srPixelConvert::e_surfaceType type,
         unsigned long width,
@@ -23,6 +34,9 @@ public:
     virtual srRegistry::ClassNode* getClassNode() const;
     virtual srColorSurfaceIFace* clone();
 };
+
+// SYNTHETIC: SREXT_JPEGIMPORTER 0x100151D0
+// srJPEGColorSurface::`scalar deleting destructor'
 
 class srJPEGImporter :
     public srSurfaceIOManager::SurfaceImporter,
@@ -45,37 +59,71 @@ public:
         const srSurfaceIOManager::ExportInfo& options);
 
 private:
+    void initializeCodecOptions();
     bool readHeader(void* input_cookie);
 
     JpegCodecState32 codec_;
     JpegExportOptions32 export_options_;
 };
 
+// SYNTHETIC: SREXT_JPEGIMPORTER 0x10014DB0
+// srJPEGImporter::`scalar deleting destructor'
+// SYNTHETIC: SREXT_JPEGIMPORTER 0x100155E0
+// ?getTypeName@srJPEGImporter@@W3BEPBDXZ
+// SYNTHETIC: SREXT_JPEGIMPORTER 0x100155F0
+// ??_EsrJPEGImporter@@W3AEPAXI@Z
+
 class srJPEGPlugin : public srPlugin {
 public:
-    virtual ~srJPEGPlugin() {}
+    virtual ~srJPEGPlugin();
     virtual const char* getDescription() const;
 
 private:
     srJPEGImporter jpeg_importer_;
 };
 
+// SYNTHETIC: SREXT_JPEGIMPORTER 0x10014BB0
+// srJPEGPlugin::`scalar deleting destructor'
+// SYNTHETIC: SREXT_JPEGIMPORTER 0x10014BD0
+// srJPEGPlugin::~srJPEGPlugin
+
+srJPEGPlugin::~srJPEGPlugin()
+{
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x10014D40
 srJPEGImporter::srJPEGImporter()
 {
     srSurfaceIOManager* manager = srCore.getSurfaceIOManager();
-    addToImporters(manager, "jpeg");
-    addToImporters(manager, "jpg");
-    addToExporters(manager, "jpeg");
-    addToExporters(manager, "jpg");
+    if (manager != 0) {
+        addToImporters(manager, "jpg");
+        addToImporters(manager, "jpeg");
+        addToExporters(manager, "jpg");
+        addToExporters(manager, "jpeg");
+    }
+    initializeCodecOptions();
 }
 
+// FUNCTION: SREXT_JPEGIMPORTER 0x10014DD0
 srJPEGImporter::~srJPEGImporter()
 {
     srSurfaceIOManager* manager = srCore.getSurfaceIOManager();
-    removeFromImporters(manager);
-    removeFromExporters(manager);
+    if (manager != 0) {
+        removeFromImporters(manager);
+        removeFromExporters(manager);
+    }
 }
 
+// FUNCTION: SREXT_JPEGIMPORTER 0x10014E10
+void srJPEGImporter::initializeCodecOptions()
+{
+    export_options_.limit_200 = 200;
+    export_options_.quality = 75;
+    export_options_.smoothing_factor = 0;
+    export_options_.pointer_08 = 0;
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x10015420
 const char* srJPEGImporter::getTypeName() const
 {
     return "JPEG";
@@ -139,25 +187,16 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     const unsigned long width = codec_.width;
     srJPEGColorSurface* surface;
     if (components == 1) {
-        void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
-        surface = storage == 0
-            ? 0
-            : new (storage) srJPEGColorSurface(
-                  srPixelConvert::SURFACE_L8, width, height);
+        surface = new srJPEGColorSurface(
+            srPixelConvert::SURFACE_L8, width, height);
     }
     else if (components == 3) {
-        void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
-        surface = storage == 0
-            ? 0
-            : new (storage) srJPEGColorSurface(
-                  srPixelConvert::SURFACE_BGR24, width, height);
+        surface = new srJPEGColorSurface(
+            srPixelConvert::SURFACE_BGR24, width, height);
     }
     else if (components == 4) {
-        void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
-        surface = storage == 0
-            ? 0
-            : new (storage) srJPEGColorSurface(
-                  srPixelConvert::SURFACE_BGRA32, width, height);
+        surface = new srJPEGColorSurface(
+            srPixelConvert::SURFACE_BGRA32, width, height);
     }
     else {
         return 0;
@@ -261,13 +300,10 @@ void srJPEGImporter::exportSurface(
     }
 
     srColorSurface* source_surface = srColorSurface::fromInterface(source);
-    void* storage = srHeap.allocate(sizeof(srJPEGColorSurface));
-    srJPEGColorSurface* copy = storage == 0
-        ? 0
-        : new (storage) srJPEGColorSurface(
-              srPixelConvert::SURFACE_COPY,
-              source_surface->width(),
-              source_surface->height());
+    srJPEGColorSurface* copy = new srJPEGColorSurface(
+        srPixelConvert::SURFACE_COPY,
+        source_surface->width(),
+        source_surface->height());
     copy->asInterface()->copy(source);
 
     memset(&codec_, 0, sizeof(codec_));
@@ -323,9 +359,19 @@ srColorSurfaceIFace* srJPEGColorSurface::clone()
     return result;
 }
 
+// FUNCTION: SREXT_JPEGIMPORTER 0x10014BA0
 const char* srJPEGPlugin::getDescription() const
 {
     return "SurRender JPEG-importer/exporter plug-in";
+}
+
+// FUNCTION: SREXT_JPEGIMPORTER 0x100155B0
+extern "C" BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID)
+{
+    if (reason == DLL_PROCESS_ATTACH) {
+        DisableThreadLibraryCalls(instance);
+    }
+    return TRUE;
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x100155D0

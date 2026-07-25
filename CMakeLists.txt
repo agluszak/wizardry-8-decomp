@@ -164,6 +164,12 @@ if(WIZ8_BUILD_DECOMP)
         OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
         COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
     )
+    # The original lifetime functions have no C++ EH prologues. The stream
+    # bridge below is the separately compiled unit that owns the two catch-all
+    # handlers and retains /GX.
+    set_source_files_properties(src/srext_jpegimporter/plugin.cpp PROPERTIES
+        COMPILE_OPTIONS "/GX-"
+    )
 
     set(SR_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/sr.lib")
     add_custom_command(
@@ -184,6 +190,7 @@ if(WIZ8_BUILD_DECOMP)
         src/srext_jpegimporter/stream_bridge.cpp
         src/srext_jpegimporter/plugin.cpp
         src/srext_jpegimporter/srEXT_JPEGImporter.def
+        src/srext_jpegimporter/srEXT_JPEGImporter.rc
     )
     add_dependencies(SREXT_JPEGIMPORTER surrender_import_library)
     target_include_directories(SREXT_JPEGIMPORTER PRIVATE

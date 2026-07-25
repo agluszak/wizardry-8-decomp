@@ -328,3 +328,13 @@ address|name|size|type
 10014210|finish_pass1|42|library
 10014a70|finish_pass2|1|library
 10014a80|new_color_map_2_quant|18|library
+10015530|$E25|10|function
+10015540|$E22|11|function
+10015550|$E24|12|function
+10015560|$E23|11|function
+10015570|$E31|10|function
+10015580|$E28|11|function
+10015590|$E30|12|function
+100155a0|$E29|11|function
+1001a228|_Wios_init|1|global
+1001a229|_Ios_init|1|global

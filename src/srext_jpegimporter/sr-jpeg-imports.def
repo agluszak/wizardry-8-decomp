@@ -1,72 +1,72 @@
-LIBRARY SR
+LIBRARY sr
 
 EXPORTS
-    ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z @81
-    ??1srColorSurface@@MAE@XZ @203
-    ??4srColorSurface@@QAEAAV0@ABV0@@Z @293
-    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PBD@Z @554
-    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PBD@Z @556
-    ?adjust@srColorSurfaceIFace@@UAEXABV?$srVector4T@M@@00@Z @559
-    ?adjustSaturation@srColorSurfaceIFace@@UAEXN@Z @560
-    ?allocate@srHeap@@QAEPAXK@Z @568
-    ?blit@srColorSurface@@UAEXJJAAVsrColorSurfaceIFace@@JJJJ@Z @592
-    ?blit@srColorSurfaceIFace@@UAEXABUBlitInfo@1@AAV1@@Z @593
-    ?changePixelFormat@srColorSurface@@UAEHABUPixelFormat@srPixelConvert@@H@Z @607
-    ?composite@srColorSurfaceIFace@@UAEXJJAAV1@JJJJN@Z @639
-    ?copy@srColorSurfaceIFace@@UAEXAAV1@@Z @647
-    ?copyColorChannel@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z @648
-    ?copyNoScaling@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z @650
-    ?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @705
-    ?fill@srColorSurface@@UAEXK@Z @766
-    ?flipColorChannels@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z @812
-    ?flipRectangle@srColorSurface@@UAEXABURectangle@srColorSurfaceIFace@@@Z @820
-    ?free@srHeap@@QAEXPAX@Z @839
-    ?getChannelStatistics@srColorSurfaceIFace@@UAEXAAVsrStat@@W4e_index@srARGB@@@Z @917
-    ?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z @933
-    ?getDataPtr@srColorSurface@@UAEPAXXZ @959
-    ?getDataSize@srColorSurface@@UAEJXZ @961
-    ?getPalette@srColorSurface@@UAEPAVsrPalette@@XZ @1142
-    ?getPixel@srColorSurfaceIFace@@UAEKJJ@Z @1153
-    ?getPixelColumn@srColorSurface@@UAEXPAKJJJ@Z @1154
-    ?getPixelRaw@srColorSurface@@UAEKJJ@Z @1159
-    ?getPixelRow@srColorSurface@@UAEXPAKJJJ@Z @1162
-    ?getPixelRowRaw@srColorSurface@@UAEXPAXJJJ@Z @1163
-    ?getPixels@srColorSurface@@UAEXPAKPBVsrVector2i@@J@Z @1165
-    ?getPixelsRaw@srColorSurface@@UAEXPAXPBVsrVector2i@@J@Z @1167
-    ?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ @1246
-    ?good@srBinStream@@QBE_NXZ @1342
-    ?magnify@srColorSurfaceIFace@@MAEXAAV1@@Z @1442
-    ?mapPixelFormat@srPixelConvert@@SAXW4e_surfaceType@1@AAUPixelFormat@1@@Z @1445
-    ?minify@srColorSurfaceIFace@@MAEXAAV1@@Z @1455
-    ?read@srBinIStream@@QAEAAV1@PAXK@Z @1556
-    ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z @1560
-    ?release@srClass@@QBEHXZ @1565
-    ?remapPixels@srColorSurfaceIFace@@UAEXABVsrARGB@@0@Z @1576
-    ?removeFromExporters@Exporter@srIOManager@@IAEXPAV2@@Z @1582
-    ?removeFromImporters@Importer@srIOManager@@IAEXPAV2@@Z @1583
-    ?rescale@srColorSurface@@UAEHJJ@Z @1592
-    ?resize@srColorSurface@@UAEHJJ@Z @1614
-    ?sGetClassName@srColorSurface@@SAPBDXZ @1642
-    ?sGetClassName@srColorSurfaceIFace@@SAPBDXZ @1643
-    ?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ @1660
-    ?scale@srColorSurfaceIFace@@MAEXAAV1@@Z @1666
-    ?scaleFast@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z @1674
-    ?scaleHorizontal@srColorSurfaceIFace@@MAEXAAV1@@Z @1676
-    ?scaleVertical@srColorSurfaceIFace@@MAEXAAV1@@Z @1679
-    ?setHLine@srColorSurface@@UAEXJJJK@Z @1785
-    ?setLine@srColorSurfaceIFace@@UAEXJJJJK@Z @1790
-    ?setPalette@srColorSurface@@UAEXPAVsrPalette@@@Z @1816
-    ?setPixel@srColorSurfaceIFace@@UAEXJJK@Z @1824
-    ?setPixelColumn@srColorSurface@@UAEXPBKJJJ@Z @1825
-    ?setPixelRaw@srColorSurface@@UAEXJJK@Z @1827
-    ?setPixelRow@srColorSurface@@UAEXPBKJJJ@Z @1830
-    ?setPixelRowRaw@srColorSurface@@UAEXPBXJJJ@Z @1831
-    ?setPixels@srColorSurface@@UAEXPBKPBVsrVector2i@@J@Z @1833
-    ?setPixelsRaw@srColorSurface@@UAEXPBXPBVsrVector2i@@J@Z @1835
-    ?setVLine@srColorSurface@@UAEXJJJK@Z @1900
-    ?srCore@@3V0@A @1947
-    ?srHeap@@3V0@A @1954
-    ?swapPixelRows@srColorSurface@@UAEXJJJJJ@Z @1972
-    ?vInstance@srColorSurface@@UAEPAVsrClass@@XZ @2026
-    ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z @2036
-    ?write@srBinOStream@@QAEAAV1@PBXK@Z @2055
+    ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z
+    ??1srColorSurface@@MAE@XZ
+    ??4srColorSurface@@QAEAAV0@ABV0@@Z
+    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PBD@Z
+    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PBD@Z
+    ?adjust@srColorSurfaceIFace@@UAEXABV?$srVector4T@M@@00@Z
+    ?adjustSaturation@srColorSurfaceIFace@@UAEXN@Z
+    ?allocate@srHeap@@QAEPAXK@Z
+    ?blit@srColorSurface@@UAEXJJAAVsrColorSurfaceIFace@@JJJJ@Z
+    ?blit@srColorSurfaceIFace@@UAEXABUBlitInfo@1@AAV1@@Z
+    ?changePixelFormat@srColorSurface@@UAEHABUPixelFormat@srPixelConvert@@H@Z
+    ?composite@srColorSurfaceIFace@@UAEXJJAAV1@JJJJN@Z
+    ?copy@srColorSurfaceIFace@@UAEXAAV1@@Z
+    ?copyColorChannel@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z
+    ?copyNoScaling@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z
+    ?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?fill@srColorSurface@@UAEXK@Z
+    ?flipColorChannels@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z
+    ?flipRectangle@srColorSurface@@UAEXABURectangle@srColorSurfaceIFace@@@Z
+    ?free@srHeap@@QAEXPAX@Z
+    ?getChannelStatistics@srColorSurfaceIFace@@UAEXAAVsrStat@@W4e_index@srARGB@@@Z
+    ?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z
+    ?getDataPtr@srColorSurface@@UAEPAXXZ
+    ?getDataSize@srColorSurface@@UAEJXZ
+    ?getPalette@srColorSurface@@UAEPAVsrPalette@@XZ
+    ?getPixel@srColorSurfaceIFace@@UAEKJJ@Z
+    ?getPixelColumn@srColorSurface@@UAEXPAKJJJ@Z
+    ?getPixelRaw@srColorSurface@@UAEKJJ@Z
+    ?getPixelRow@srColorSurface@@UAEXPAKJJJ@Z
+    ?getPixelRowRaw@srColorSurface@@UAEXPAXJJJ@Z
+    ?getPixels@srColorSurface@@UAEXPAKPBVsrVector2i@@J@Z
+    ?getPixelsRaw@srColorSurface@@UAEXPAXPBVsrVector2i@@J@Z
+    ?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ
+    ?good@srBinStream@@QBE_NXZ
+    ?magnify@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?mapPixelFormat@srPixelConvert@@SAXW4e_surfaceType@1@AAUPixelFormat@1@@Z
+    ?minify@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?read@srBinIStream@@QAEAAV1@PAXK@Z
+    ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
+    ?release@srClass@@QBEHXZ
+    ?remapPixels@srColorSurfaceIFace@@UAEXABVsrARGB@@0@Z
+    ?removeFromExporters@Exporter@srIOManager@@IAEXPAV2@@Z
+    ?removeFromImporters@Importer@srIOManager@@IAEXPAV2@@Z
+    ?rescale@srColorSurface@@UAEHJJ@Z
+    ?resize@srColorSurface@@UAEHJJ@Z
+    ?sGetClassName@srColorSurface@@SAPBDXZ
+    ?sGetClassName@srColorSurfaceIFace@@SAPBDXZ
+    ?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ
+    ?scale@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?scaleFast@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z
+    ?scaleHorizontal@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?scaleVertical@srColorSurfaceIFace@@MAEXAAV1@@Z
+    ?setHLine@srColorSurface@@UAEXJJJK@Z
+    ?setLine@srColorSurfaceIFace@@UAEXJJJJK@Z
+    ?setPalette@srColorSurface@@UAEXPAVsrPalette@@@Z
+    ?setPixel@srColorSurfaceIFace@@UAEXJJK@Z
+    ?setPixelColumn@srColorSurface@@UAEXPBKJJJ@Z
+    ?setPixelRaw@srColorSurface@@UAEXJJK@Z
+    ?setPixelRow@srColorSurface@@UAEXPBKJJJ@Z
+    ?setPixelRowRaw@srColorSurface@@UAEXPBXJJJ@Z
+    ?setPixels@srColorSurface@@UAEXPBKPBVsrVector2i@@J@Z
+    ?setPixelsRaw@srColorSurface@@UAEXPBXPBVsrVector2i@@J@Z
+    ?setVLine@srColorSurface@@UAEXJJJK@Z
+    ?srCore@@3V0@A
+    ?srHeap@@3V0@A
+    ?swapPixelRows@srColorSurface@@UAEXJJJJJ@Z
+    ?vInstance@srColorSurface@@UAEPAVsrClass@@XZ
+    ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ?write@srBinOStream@@QAEAAV1@PBXK@Z

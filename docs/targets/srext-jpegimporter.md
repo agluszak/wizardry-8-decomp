@@ -26,11 +26,14 @@ complete-object vtable at `0x10016D68`.
 
 There are 98 imported functions: 69 from `SR.DLL`, 24 from `MSVCRT.DLL`, four from
 `MSVCP60.DLL`, and `DisableThreadLibraryCalls` from `KERNEL32.DLL`. The dependency on `SR.DLL` is
-the main interface-recovery problem for a replacement build.
+the main interface-recovery problem for a replacement build. The rebuilt image now has this exact
+module and symbol set. Marking the four recovered importer/exporter interfaces as
+`__declspec(novtable)` removes three spurious abstract-base vtables and the otherwise spurious
+`MSVCRT!_purecall` import.
 
 ## Code ownership
 
-The reviewed inventory now accounts for 384 addresses. The initial 250-address Ghidra census
+The reviewed inventory now accounts for 388 addresses. The initial 250-address Ghidra census
 missed 133 private IJG functions plus the file-local Sir-Tech error callback at `0x100010D0`.
 All 134 starts have now been created and named in the live program.
 Source-built Function ID evidence identifies 160 functions as IJG JPEG release 6 and `0x10015915`
@@ -47,7 +50,7 @@ remaining 173 IJG bodies. This includes four identical-body pairs which FID alon
 
 The observed link layout provides a useful first ownership boundary. The tracked inventory assigns
 329 addresses to IJG JPEG 6, four to the small Sir-Tech codec adapter, 32 to the SurRender plugin,
-and 19 to VC6 runtime/glue (including the separately identified CRT entry point):
+and 23 to VC6 runtime/glue (including the separately identified CRT entry point):
 
 | Range | Discovered functions | Interpretation |
 | --- | ---: | --- |
@@ -63,9 +66,15 @@ and their evidence are tracked in `config/analysis/functions/srext-jpegimporter.
 
 The binary strings establish the class name `srJPEGImporter` and the error paths
 `srJPEGImporter::importSurface` and `srJPEGImporter::exportSurface`. The constructor at
-`0x10014D40` registers both `jpeg` and `jpg` as importer and exporter types. Export options recognize
+`0x10014D40` null-checks the surface manager, registers `jpg` and then `jpeg` as importer and
+exporter types, and initializes the persistent codec options to limit 200 and quality 75. Export options recognize
 `QUALITY`, default it to 100, and truncate the parsed floating-point value to the original byte field
 before calling the JPEG encoder.
+
+The stdio bridge is also recovered rather than treated as ordinary CRT code. Its `fread` and
+`fwrite` replacements catch every exception from the active SurRender stream and rethrow the exact
+input- or output-corruption string embedded in the original. The user `DllMain` at `0x100155B0`
+calls `DisableThreadLibraryCalls` only for `DLL_PROCESS_ATTACH` and otherwise returns success.
 
 The allocation and field accesses prove a two-object layout. The `0x48`-byte plugin wrapper owns a
 four-byte plugin vptr followed by a `0x44`-byte `srJPEGImporter`. The importer object begins with
@@ -82,7 +91,9 @@ The original auto-analysis missed important function starts even though the vtab
   `srColorSurface` runtime-class slots;
 - `0x100155E0` and `0x100155F0` are exporter-base this-adjusting thunks.
 
-All eight starts now exist in the live Ghidra program. The reviewed function map records their body
+All eight starts now exist in the live Ghidra program. Four previously missed MSVCP60 static-init
+starts at `0x10015530`, `0x10015560`, `0x10015570`, and `0x100155A0` were also created. The current
+map applies 369 accepted identities with no failures. The reviewed function map records their body
 sizes, method roles, and signatures. Ghidra also now contains the exact release-6 definitions for
 `jpeg_compress_struct` (`0x168`), `jpeg_decompress_struct` (`0x2C8`), `jpeg_error_mgr` (`0x84`),
 `jpeg_memory_mgr` (`0x30`), and the other public/internal IJG records. Fifty-nine target functions
@@ -143,7 +154,9 @@ implementation itself remains the pristine upstream release-6 source.
 
 The root `CMakeLists.txt` owns the product build. It compiles the pinned pristine IJG release-6
 source with the two SurRender stdio adaptations, then links the recovered adapter and plug-in using
-the VC6 SP5 image, `/MD /O2 /GX /GR-`, base `0x10000000`, `/OPT:NOREF`, and `/OPT:NOICF`. The product
+the VC6 SP5 image, `/MD /O2 /GR-`, base `0x10000000`, `/OPT:NOREF`, and `/OPT:NOICF`. The stream
+bridge retains `/GX` for its two explicit handlers; the recovered plug-in unit uses `/GX-` to
+reproduce the observed lifetime functions without synthetic unwind prologues. The product
 uses the explicit original object order: the decisive tail is `jmemmgr.c`, `jmemnobs.c`,
 `jquant1.c`, `jquant2.c`, and `jutils.c`. FID seed discovery remains glob-based because link order is
 irrelevant there. The image contains pinned
@@ -162,17 +175,25 @@ matches for:
 | `0x100010D0` | IJG error callback | 100% |
 | `0x100010F0` | encoder adapter | 100% |
 | `0x10001290` | decoder adapter | 100% |
+| `0x10014B70` | plug-in factory | 100% |
+| `0x10014BA0`-`0x10014BD0` | plug-in description and lifetime | 100% |
+| `0x10014BE0`, `0x10014CC0` | SurRender stream bridges | effectively 100% |
+| `0x10014D40`-`0x10014E10` | importer lifetime and option initialization | 100% |
 | `0x10014E30` | header operation | effectively 100% |
+| `0x100151D0` | surface deleting destructor | 100% |
 | `0x10015400` | export-option initialization | 100% |
 | `0x10015450` | surface class ID | 100% |
+| `0x100155B0` | user `DllMain` | 100% |
 | `0x100155D0` | library version export | 100% |
 
-The report now covers all 329 linked IJG functions plus 15 recovered adapter, plug-in, surface, and
-CRT identities. All 344 are implemented, aggregate accuracy is 98.82%, and 333 functions are
-address-aligned. The original Sir-Tech configuration omits both `fflush` and `ferror` from the IJG
+The report now covers 366 code and data identities, including all 329 linked IJG functions, every
+reviewed first-party/lifetime function, the four concrete vtables, and the two active-stream globals.
+All 366 are implemented, aggregate accuracy is 98.91%, and 333 functions are address-aligned. The
+four vtables compare at 100%; the globals match byte-for-byte; the PE exports, import set, and version
+resource also match the original. The original Sir-Tech configuration omits both `fflush` and `ferror` from the IJG
 stdio destination; reproducing that fact removes the former `0x20` tail drift and puts every IJG
 translation unit at its original address. The larger denominator includes every recovered public operation:
-`getSurfaceDesc` is 51.79%, `importSurface` is 17.25%, and `exportSurface` is 78.86%. The low import
+`getSurfaceDesc` is 53.57%, `importSurface` is 29.41%, and `exportSurface` is 69.69%. The low import
 score reflects unresolved
 local/control-flow selection rather than missing behavior; its allocation branches, vtable install,
 decode failure cleanup, and 1/3/4-component row conversions are all represented.

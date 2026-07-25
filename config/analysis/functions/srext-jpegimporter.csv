@@ -337,9 +337,9 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 10014bb0,30,srJPEGPlugin_scalar_deleting_destructor,srJPEGPlugin_scalar_deleting_destructor,sirtech-plugin,strong,Scalar deleting destructor for the complete plugin object
 10014bd0,14,srJPEGPlugin_destructor,srJPEGPlugin_destructor,sirtech-plugin,strong,Complete plugin destructor; delegates to the importer/exporter teardown
 10014be0,189,jpeg_srBinIStream_read_callback,jpeg_srBinIStream_read_callback,sirtech-plugin,strong,IJG stdio read callback bridged to the active srBinIStream
-10014c8a,21,Catch@10014c8a,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
+10014c8a,21,Catch@10014c8a,fread_catch_corrupt_input,sirtech-plugin,exact,Compiler-generated catch-all handler rethrows the recovered input-stream corruption string from fread
 10014cc0,106,jpeg_srBinOStream_write_callback,jpeg_srBinOStream_write_callback,sirtech-plugin,strong,IJG stdio write callback bridged to the active srBinOStream
-10014d17,21,Catch@10014d17,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
+10014d17,21,Catch@10014d17,fwrite_catch_corrupt_output,sirtech-plugin,exact,Compiler-generated catch-all handler rethrows the recovered output-stream corruption string from fwrite
 10014d40,105,srJPEGImporter_constructor,srJPEGImporter_constructor,sirtech-plugin,strong,Constructs Importer and Exporter bases and registers jpeg and jpg
 10014db0,30,srJPEGImporter_scalar_deleting_destructor,srJPEGImporter_scalar_deleting_destructor,sirtech-plugin,strong,Scalar deleting destructor reached from the importer vtable
 10014dd0,60,srJPEGImporter_destructor,srJPEGImporter_destructor,sirtech-plugin,strong,Removes both importer and exporter registrations
@@ -356,11 +356,15 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 10015460,6,SR.DLL::srColorSurface::sGetClassName,srColorSurface_getClassName,sirtech-plugin,exact,Local srColorSurface vtable slot 0 tail-jumps to the exact decorated SR.DLL sGetClassName export
 10015470,106,srColorSurface_getClassNode,srColorSurface_getClassNode,sirtech-plugin,strong,Local srColorSurface vtable slot 2 resolves or registers class IDs 0x3100 and 0x3110
 100154e0,25,srColorSurface_clone,srColorSurface_clone,sirtech-plugin,strong,Local srColorSurface vtable slot 7 creates an instance through slot 6 and assigns this surface
-10015540,11,FUN_10015540,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-10015550,12,FUN_10015550,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-10015580,11,FUN_10015580,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-10015590,12,FUN_10015590,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
-100155b0,26,FUN_100155b0,,sirtech-plugin,candidate,Function inside the reviewed SurRender plugin region; semantic identity not yet established
+10015530,10,FUN_10015530,ios_base_init_dynamic_initializer,msvc6-runtime-glue,exact,Compiler-generated initializer constructs std::ios_base::Init and registers its destructor
+10015540,11,FUN_10015540,ios_base_init_constructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::ios_base::Init constructor
+10015550,12,FUN_10015550,ios_base_init_atexit_registration,msvc6-runtime-glue,exact,Compiler-generated wrapper registers the std::ios_base::Init destructor with atexit
+10015560,11,FUN_10015560,ios_base_init_destructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::ios_base::Init destructor
+10015570,10,FUN_10015570,wios_init_dynamic_initializer,msvc6-runtime-glue,exact,Compiler-generated initializer constructs std::_Winit and registers its destructor
+10015580,11,FUN_10015580,wios_init_constructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::_Winit constructor
+10015590,12,FUN_10015590,wios_init_atexit_registration,msvc6-runtime-glue,exact,Compiler-generated wrapper registers the std::_Winit destructor with atexit
+100155a0,11,FUN_100155a0,wios_init_destructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::_Winit destructor
+100155b0,26,FUN_100155b0,DllMain,sirtech-plugin,exact,User DLL callback called by __DllMainCRTStartup invokes DisableThreadLibraryCalls only for DLL_PROCESS_ATTACH
 100155d0,6,srGetLibraryVersion,srGetLibraryVersion,sirtech-plugin,exact,"PE export ordinal 1; body is mov eax,0x012a0209; ret"
 100155e0,8,srJPEGImporter_exporter_getTypeName_thunk,srJPEGImporter_exporter_getTypeName_thunk,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10015420
 100155f0,8,srJPEGImporter_exporter_destructor_thunk,srJPEGImporter_exporter_destructor_thunk,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10014db0

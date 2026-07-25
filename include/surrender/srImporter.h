@@ -10,7 +10,7 @@ public:
     class Exporter;
 };
 
-class srIOManager::Importer {
+class __declspec(novtable) srIOManager::Importer {
 public:
     virtual const char* getTypeName() const = 0;
     virtual ~Importer() {}
@@ -47,7 +47,7 @@ typedef char srSurfaceImportInfo_must_be_0x0c[
 typedef char srSurfaceExportInfo_must_be_0x0c[
     (sizeof(srSurfaceIOManager::ExportInfo) == 0x0c) ? 1 : -1];
 
-class srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
+class __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
     virtual SR_DLL_IMPORT int getSurfaceDesc(
         srColorSurfaceIFace::SurfaceDesc& description,

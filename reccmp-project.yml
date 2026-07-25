@@ -4,6 +4,7 @@ targets:
     source-root: src/srext_jpegimporter
     data-sources:
       - config/analysis/reccmp/srext-jpegimporter.csv
+      - config/analysis/reccmp/srext-jpegimporter-symbols.csv
     hash:
       sha256: 0bf545937bd86ce2195c08b6dbf6b70e1a1071a9fce449ccb9f06dfa384de490
   SREXT_UNZIP:

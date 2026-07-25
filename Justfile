@@ -20,7 +20,7 @@ build target=jpeg_target: configure
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
         --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
         {{vc6_image}} \
-        'C:\cmake\bin\cmake.exe' --build Z:/out --target {{target}}
+        cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& C:\cmake\bin\cmake.exe --build Z:/out --target {{target}}"
 
 # Configure the active VC6 CMake build and reccmp's machine-local original path.
 configure: _jpeg-sources

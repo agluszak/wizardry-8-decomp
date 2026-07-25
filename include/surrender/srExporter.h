@@ -3,7 +3,7 @@
 #include "srBinOStream.h"
 #include "srImporter.h"
 
-class srIOManager::Exporter {
+class __declspec(novtable) srIOManager::Exporter {
 public:
     virtual const char* getTypeName() const = 0;
     virtual ~Exporter() {}
@@ -17,7 +17,7 @@ protected:
     SR_DLL_IMPORT void removeFromExporters(srIOManager* manager);
 };
 
-class srSurfaceIOManager::SurfaceExporter : public srIOManager::Exporter {
+class __declspec(novtable) srSurfaceIOManager::SurfaceExporter : public srIOManager::Exporter {
 public:
     virtual void exportSurface(
         srBinOStream& stream,
