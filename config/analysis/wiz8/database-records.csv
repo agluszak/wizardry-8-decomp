@@ -2,5 +2,5 @@ archive_path,file_size,header_size,record_count,disk_record_size,runtime_record_
 DATABASES\ITEMS.DBS,220315,0x04,819,0x10d,0x10d,0x0054a400,partially-typed,File arithmetic and InitializeItemDatabase both establish count followed by contiguous 0x10d records
 DATABASES\MONSTERS.DBS,394489,0x04,595,0x297,0x297,0x0054a8a0,partially-typed,File arithmetic and LoadMonsterDatabaseRecord establish 0x297 records; encounter and faction callers type group dice companions flags record ID hostility range faction and deletion fields
 DATABASES\LEVELS.DBS,12964,0x04,60,0xd8,0xd8,0x0054ae20,partially-typed,Loader and MonGen consumers type display name encounter limits encounter budget timing culling timeout and zero-based level ID
-DATABASES\FACT.DBS,380908,0x04,807,0x1d8,0x1d8,,partially-typed,File arithmetic establishes fixed 0x1d8 records; first record confirms a 32-bit identifier and 256-byte FACT symbolic name
+DATABASES\FACT.DBS,380908,0x04,807,0x1d8,0x1d8,0x0054ad00,typed,Loader and payload establish a 32-bit identifier followed by a 256-byte FACT symbolic name and 106-code-unit optional UTF-16 designer annotation
 DATABASES\SPELLTABLES.DBS,105608,0x08,150,0x2c0,0x1bf,0x004acc10,partially-typed,InitializeSpellDatabase retains 0x1bf bytes; canonical consumers type names spellbooks spell-point cost effect dice level realm radius and sound resource

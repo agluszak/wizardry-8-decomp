@@ -124,7 +124,7 @@ typedef struct W8LevelDatabaseRecord {
 typedef struct W8FactDatabaseRecord {
     uint32_t identifier;                /* 0x000: first record contains zero */
     char symbolic_name[256];            /* 0x004: FACT_* identifier */
-    uint8_t fields_104[0xd4];           /* 0x104: not yet field-reconciled */
+    W8WideChar description[106];        /* 0x104: optional designer annotation */
 } W8FactDatabaseRecord;                 /* 0x1d8 */
 
 typedef enum W8SpellRealm {

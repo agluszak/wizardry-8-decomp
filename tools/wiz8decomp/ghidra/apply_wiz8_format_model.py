@@ -352,9 +352,9 @@ def apply_wiz8_format_model(
                         ),
                         (
                             0x104,
-                            ArrayDataType(byte, 0xD4, 1),
-                            "fields_104",
-                            "not yet field-reconciled",
+                            ArrayDataType(word, 106, 2),
+                            "description",
+                            "optional designer annotation in UTF-16",
                         ),
                     ],
                 )
@@ -430,6 +430,7 @@ def apply_wiz8_format_model(
                 item_instance_pointer = PointerDataType(item_instance, dtm)
                 monster_record_pointer = PointerDataType(monster_record, dtm)
                 level_record_pointer = PointerDataType(level_record, dtm)
+                fact_record_pointer = PointerDataType(fact_record, dtm)
                 spell_record_pointer = PointerDataType(spell_record, dtm)
                 seek_origin = EnumDataType(category, "W8VirtualFileSeekOrigin", 1, dtm)
                 seek_origin.add("W8_SEEK_BEGIN", 1)
@@ -455,14 +456,18 @@ def apply_wiz8_format_model(
                     (0x0065BE18, dword),
                     (0x0065BE1C, spell_record_pointer),
                     (0x006836A4, level_record_pointer),
+                    (0x006836AC, fact_record_pointer),
                     (0x00683F78, dword),
                     (0x00683F84, dword),
+                    (0x00683F8C, dword),
                     (0x00683F90, dword),
                     (0x006840C7, ArrayDataType(monster_record_pointer, 1000, 4)),
                     (0x0068516C, item_record_pointer),
                     (0x00685191, ArrayDataType(item_instance, 500, 0x0C)),
                     (0x00686901, dword),
                     (0x006874CB, item_instance),
+                    (0x00688290, byte),
+                    (0x00689B78, ArrayDataType(byte, 1000, 1)),
                 ):
                     _apply_data(program, address_space.getAddress(raw_address), data_type)
 
@@ -525,6 +530,23 @@ def apply_wiz8_format_model(
                             ("maximum", integer),
                         ],
                     ),
+                    0x005061A0: (
+                        void,
+                        [
+                            ("fact_id", integer),
+                            ("value", byte),
+                            ("suppress_side_effects", byte),
+                        ],
+                    ),
+                    0x00506280: (byte, [("fact_id", integer)]),
+                    0x00506310: (void, []),
+                    0x00506480: (void, [("save_handle", integer)]),
+                    0x005064A0: (void, [("save_handle", integer)]),
+                    0x00506670: (
+                        void,
+                        [("fact_id", integer), ("value", byte)],
+                    ),
+                    0x005080F0: (byte, [("fact_id", integer)]),
                     0x00535AD0: (faction_disposition, [("faction", byte)]),
                     0x0051B5C0: (
                         PointerDataType(word, dtm),
@@ -549,6 +571,8 @@ def apply_wiz8_format_model(
                         byte,
                         [("monster_index", dword), ("record", monster_record_pointer)],
                     ),
+                    0x0054AD00: (dword, []),
+                    0x0054AE00: (void, []),
                     0x0054AE20: (dword, []),
                     0x0048C110: (byte, [("save_handle", integer)]),
                     0x0048C810: (void, [("reset_budget", byte)]),
@@ -591,14 +615,18 @@ def apply_wiz8_format_model(
                     (0x0065BE18, "g_spell_database_version"),
                     (0x0065BE1C, "g_spell_records"),
                     (0x006836A4, "g_level_records"),
+                    (0x006836AC, "g_fact_records"),
                     (0x00683F78, "g_item_record_count"),
                     (0x00683F84, "g_monster_record_count"),
+                    (0x00683F8C, "g_fact_record_count"),
                     (0x00683F90, "g_level_record_count"),
                     (0x006840C7, "g_monster_record_cache"),
                     (0x0068516C, "g_item_records"),
                     (0x00685191, "g_party_item_pool"),
                     (0x00686901, "g_party_item_count"),
                     (0x006874CB, "g_item_in_hand"),
+                    (0x00688290, "g_log_fact_checks"),
+                    (0x00689B78, "g_fact_values"),
                     (0x006EB724, "g_slf_archives"),
                 ):
                     address = address_space.getAddress(raw_address)
@@ -641,14 +669,18 @@ def apply_wiz8_format_model(
                             "0x0065be18",
                             "0x0065be1c",
                             "0x006836a4",
+                            "0x006836ac",
                             "0x00683f78",
                             "0x00683f84",
+                            "0x00683f8c",
                             "0x00683f90",
                             "0x006840c7",
                             "0x0068516c",
                             "0x00685191",
                             "0x00686901",
                             "0x006874cb",
+                            "0x00688290",
+                            "0x00689b78",
                             "0x006eb724",
                         ],
                     }

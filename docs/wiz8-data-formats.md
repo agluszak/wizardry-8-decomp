@@ -108,6 +108,22 @@ value initialized from `+0x50` as the encounter culling time in seconds, and
 equals its zero-based array index; the remaining `0x7c` bytes from `+0x5c` are zero across
 the reviewed GOG corpus.
 
+`Fact.dbs` is a definition table rather than the mutable quest state. Each of its 807
+`0x1d8`-byte records contains a 32-bit identifier, a 256-byte `FACT_*` symbolic name, and a
+106-code-unit UTF-16 designer annotation. Only 77 annotations are nonempty in the reviewed
+corpus; two retain characters after an earlier terminator, so the complete fixed buffer is
+preserved rather than normalized into a single host string.
+
+`InitializeFactDatabase` at `0x0054ad00` loads those records into `g_fact_records`. The
+mutable state is a separate 1,000-byte `g_fact_values` array at `0x00689b78`; both
+`SaveFactState` and `LoadFactState` persist exactly those 1,000 bytes. `InitializeFactState`
+zeros the same extent before installing mode-dependent defaults. `EvaluateFact` at
+`0x005080f0` returns the stored byte for ordinary IDs but computes special facts from live
+party, NPC, faction, and world state, including recursive fact checks. `SetFact` stores a byte
+and, unless suppressed by its third argument, dispatches `HandleFactChange` to perform the
+associated trigger, NPC, faction, and location side effects. The 807 definition count and
+1,000-byte state capacity are therefore intentionally distinct.
+
 The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
 reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`

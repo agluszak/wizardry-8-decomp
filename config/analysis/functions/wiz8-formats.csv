@@ -21,7 +21,14 @@ address,provisional_name,owner,confidence,evidence
 0051b5c0,FormatItemDisplayName,wiz8-gameplay-database,strong,Selects identified or generic item text and optionally appends the stack count
 0054a400,InitializeItemDatabase,wiz8-gameplay-database,strong,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
 0054a8a0,LoadMonsterDatabaseRecord,wiz8-gameplay-database,strong,Seeks to index times 0x297 plus the count header and reads one monster record
+0054ad00,InitializeFactDatabase,wiz8-gameplay-database,strong,Reads the Fact.dbs count then allocates and loads contiguous 0x1d8-byte definition records
+0054ae00,DestroyFactDatabase,wiz8-gameplay-database,strong,Frees the fact definition array and clears its global pointer
 0054ae20,InitializeLevelDatabase,wiz8-gameplay-database,strong,Reads the Levels.dbs count then allocates and loads contiguous 0xd8-byte records
+00506310,InitializeFactState,wiz8-game-state,strong,Clears exactly 1000 persisted fact bytes then installs the initial mode-dependent facts through SetFact
+00506480,SaveFactState,wiz8-save-game,strong,Writes exactly 1000 fact-state bytes to the supplied save handle
+005064a0,LoadFactState,wiz8-save-game,strong,Reads exactly 1000 fact-state bytes and reconciles state-dependent NPC data and initial-mode facts
+00506670,HandleFactChange,wiz8-local-code,strong,The only caller is SetFact and the fact-ID switch performs corresponding world NPC faction trigger and location side effects
+005080f0,EvaluateFact,wiz8-local-code,strong,Computes special and derived facts recursively and otherwise returns the persisted byte for the requested fact ID
 004126f0,InitializeSlfArchives,wiz8-file-system,strong,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
 00412a10,RefreshSlfArchives,wiz8-file-system,strong,Closes or reopens each of six configured SLF archives and recreates optional file mappings
 00412bb0,OpenSlfArchive,wiz8-file-system,strong,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries
