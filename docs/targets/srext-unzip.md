@@ -87,6 +87,10 @@ The recovered SurRender declarations now include `srConfig`, `srStringTable`,
 `srIStreamOpener::Opener`, and the virtual-base `srBinIMStream` hierarchy. These declarations come
 from exact decorated `SR.DLL` imports and the three local tables, not from guessed SDK headers.
 
+The owned `src/srext_unzip/infozip_adapter.c` now implements the five-argument wrapper. VC6 SP5
+produces the same 142-byte body as `0x1000DA10`, instruction for instruction, including the exact
+`ret 0x14`; only link-time relocations remain to be resolved when the complete DLL target is linked.
+
 ## Source archive provenance
 
 The pinned archive has SHA-256

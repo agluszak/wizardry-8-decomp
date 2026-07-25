@@ -151,6 +151,22 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
         "${INFOZIP_SOURCE}/windll"
         "${INFOZIP_SOURCE}/win32"
     )
+
+    add_library(SREXT_UNZIP_INFOZIP_ADAPTER OBJECT EXCLUDE_FROM_ALL
+        src/srext_unzip/infozip_adapter.c
+    )
+    target_compile_options(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+        /nologo /W3 /GX /O2 /Zp4
+    )
+    target_compile_definitions(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+        NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL UNZIPLIB
+    )
+    target_include_directories(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+        "${INFOZIP_SOURCE}"
+        "${INFOZIP_SOURCE}/windll"
+        "${INFOZIP_SOURCE}/win32"
+    )
+    add_dependencies(INFOZIP_UNZIP_5_4 SREXT_UNZIP_INFOZIP_ADAPTER)
 endif()
 
 function(wiz8_add_fid_seed TARGET_NAME SOURCE_ROOT)
