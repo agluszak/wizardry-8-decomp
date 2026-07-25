@@ -33,6 +33,8 @@ The second reviewed library boundary covers Info-ZIP 5.4 and its SurRender adapt
 [docs/targets/srext-unzip.md](docs/targets/srext-unzip.md).
 The canonical executable's recovered zlib block is documented in
 [docs/libraries/zlib-1.0.4.md](docs/libraries/zlib-1.0.4.md).
+Its exact compiler-support matches are separated in
+[docs/libraries/msvc6-runtime.md](docs/libraries/msvc6-runtime.md).
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
