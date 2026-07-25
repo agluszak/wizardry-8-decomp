@@ -61,9 +61,9 @@ The imported Ghidra program originally omitted 19 real entries, including:
   `0x1000D910`-`0x1000DA01`;
 - import thunks at `0x10011640` and `0x10011646`.
 
-`uv run wiz8 ghidra apply-functions ...` now creates those entries and applies all 154 reviewed
+`uv run wiz8 ghidra apply-functions ...` now creates those entries and applies all 176 reviewed
 exact, high-confidence, and structurally strong identities. The program contains the complete
-176-address census; candidate names are deliberately excluded. `uv run wiz8 ghidra
+176-address census with no candidate-only rows. `uv run wiz8 ghidra
 apply-unzip-model` installs the object and callback structures, applies the callback prototypes,
 and types the local tables.
 
@@ -71,11 +71,12 @@ The opener vtable at `0x10015054` contains the destructor at `0x10011220`, the s
 method at `0x100106B0`, and the description method at `0x10011200`. The wrapper vtable at
 `0x10015060` contains the destructor at `0x10011280` and description method at `0x10011210`.
 
-The third local table is the owned memory-stream implementation at `0x10015030`. Its seven entries
-are the local deleting destructor followed by imported `srBinIMStream` `getSize`, two `seek`
-overloads, `tell`, `srBinIStream::vget`, and `srBinIMStream::vread`. Its vbtable at `0x1001504C`
-places the virtual `srBinStream` base at `+0x1C`. The complete allocation is `0x2C` bytes, and the
-local owner pointer at `+0x14` is passed to `free` by the destructor at `0x10011350`.
+The owned memory-stream implementation has two local vtables. The five-slot `srBinStream` table at
+`0x10015030` contains the deleting destructor, `getSize`, the one-argument `seek`, the directional
+`seek`, and `tell`. The two-slot `srBinIStream` table at `0x10015044` contains `vget` and `vread`.
+Its vbtable at `0x1001504C` places the virtual `srBinStream` base at `+0x1C`. The complete allocation
+is `0x2C` bytes, and the local owner pointer at `+0x14` is passed to `free` by the destructor at
+`0x10011350`.
 
 All 22 imported SR functions already carry their exact demangled parameter types and calling
 conventions. The other three SR imports are the global objects `srCore`, `srHeap`, and `srConfig`.
@@ -102,7 +103,7 @@ from exact decorated `SR.DLL` imports and the three local tables, not from guess
 
 The owned `src/srext_unzip/infozip_adapter.c` now implements the five-argument wrapper. VC6 SP5
 produces the same 142-byte body as `0x1000DA10`, instruction for instruction, including the exact
-`ret 0x14`; only link-time relocations remain to be resolved when the complete DLL target is linked.
+`ret 0x14`; the linked comparison is now 100% after resolving the upstream call target.
 
 ## Reconstructed DLL status
 
@@ -112,8 +113,13 @@ a PDB and exports the original interface (`srGetLibraryVersion` ordinal 1 and `s
 ordinal 2). `just build SREXT_UNZIP` is the canonical build and `just compare SREXT_UNZIP` selects
 the corresponding reccmp target.
 
-The expanded comparison covers 140 identities. One hundred sixteen are implemented, with 94.61%
-aggregate accuracy and 78.39% progress. Eighty functions already occupy their original addresses.
+The comparison covers 153 code identities and all four local vtables. Every compared identity is
+implemented, with 96.02% aggregate accuracy; 103 code functions already occupy their original
+addresses. The remaining 23 entries in the 176-address census are explicitly classified rather
+than omitted: five linker import thunks are consumed by reccmp's import resolution, and eighteen
+source-generated EH cleanup funclets have no public PDB symbols. Their parent functions, cleanup
+objects, stack offsets, and conditional-state bits are recorded in the function map.
+
 The six zcrypt bodies, both descriptions,
 `srGetLibraryVersion`, the adapter constructor, callback table, small-string constructors and
 assignment, and many upstream Info-ZIP functions are exact. The source-defined Info-ZIP `DllMain` is now present;
@@ -127,9 +133,11 @@ The concrete subclass adds the `malloc` owner at `+0x14`; VC6 naturally emits th
 deleting destructor, adjustment thunk, and virtual `srBinStream` subobject at `+0x1c`. The
 intermediate `srBinIStream` and `srBinIMStream` declarations are `novtable` client interfaces:
 `SR.DLL` proves that both destructor bodies are empty, while `srBinStream::~srBinStream` only
-restores the imported base vtable. With that declaration, the locally compiled owner destructor has
-the same instruction sequence as the original apart from unresolved vtable relocations and scores
-84.62%. Decorated imports further correct `srBinIStream::vget` to return `unsigned short` and
+restores the imported base vtable. The vtable symbols are now paired, so the opener, wrapper, and
+owned-stream destructors, deleting destructors, and virtual-base adjustors all compare at 100%.
+Dedicated vtable comparison reports all four local vtables as exact, and raw-data comparison reports
+the owned-stream vbtable as exact. This also exposed and corrected the ABI order of the two `seek`
+overloads. Decorated imports further correct `srBinIStream::vget` to return `unsigned short` and
 establish `srBinIMStream::vread` as a private virtual.
 
 The ZIP-path parser is now recovered in owned source. `srZipOpener::open` accepts direct paths that
@@ -153,8 +161,8 @@ The generated image reproduces the original exports by name and ordinal and ever
 25 from `SR.DLL`, 32 from KERNEL32, 41 from MSVCRT, 14 from ADVAPI32, and two from USER32. Its
 `.rsrc` section has the same 840-byte virtual size, 4096-byte raw size, and complete version-resource
 dictionary as the original. Both images are `0x19000` bytes in memory and have identical raw section
-sizes. Remaining section drift is small: `.text` is 944 virtual bytes larger, `.rdata` 48 bytes
-larger, `.data` 32 bytes smaller, and `.reloc` 56 bytes smaller. The 39-byte file-size excess is the
+sizes. Remaining section drift is small: `.text` is 928 virtual bytes larger, `.rdata` 48 bytes
+larger, `.data` 32 bytes smaller, and `.reloc` 50 bytes smaller. The 39-byte file-size excess is the
 recompiled image's CodeView/PDB record.
 
 ## Source archive provenance

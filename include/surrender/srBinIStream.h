@@ -12,8 +12,8 @@ public:
 
     virtual ~srBinStream() {}
     virtual unsigned long getSize() = 0;
-    virtual srBinStream& seek(unsigned long position) = 0;
     virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
+    virtual srBinStream& seek(unsigned long position) = 0;
     virtual unsigned long tell() = 0;
 
     bool good() const;
@@ -46,9 +46,9 @@ class __declspec(novtable) srBinIMStream : public srBinIStream {
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
     virtual SR_DLL_IMPORT unsigned long getSize();
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position);
     virtual SR_DLL_IMPORT srBinStream& seek(
         unsigned long position, srBinStream::e_seekDir direction);
+    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position);
     virtual SR_DLL_IMPORT unsigned long tell();
 
 private:

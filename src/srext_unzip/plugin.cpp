@@ -40,12 +40,7 @@ typedef char srOwnedBinIMStream_must_be_0x2c[
     (sizeof(srOwnedBinIMStream) == 0x2c) ? 1 : -1];
 
 struct srInlineString {
-    srInlineString()
-    {
-        inline_[0] = '\0';
-        data_ = inline_;
-        size_ = 1;
-    }
+    srInlineString();
     srInlineString(const char* source);
     srInlineString(const srInlineString& source)
     {
@@ -148,7 +143,8 @@ public:
     srUnzipPlugin()
     {
         opener_ = new srZipOpener;
-        srCore.getIStreamOpener()->addStreamType(opener_, "zip");
+        srIStreamOpener* stream_opener = srCore.getIStreamOpener();
+        stream_opener->addStreamType(opener_, "zip");
     }
 
     virtual ~srUnzipPlugin();
@@ -441,6 +437,14 @@ srUnzipPlugin::~srUnzipPlugin()
 srOwnedBinIMStream::~srOwnedBinIMStream()
 {
     free(allocation_);
+}
+
+// FUNCTION: SREXT_UNZIP 0x100113C0
+srInlineString::srInlineString()
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
 }
 
 // FUNCTION: SREXT_UNZIP 0x100113D0
