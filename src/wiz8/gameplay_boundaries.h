@@ -73,10 +73,20 @@ typedef struct W8World {
     W8MonsterGeneratorVector* monster_generators; /* 0xc4 */
 } W8World;
 
+typedef struct W8Vector3Double {
+    double x;
+    double y;
+    double z;
+} W8Vector3Double;
+
 typedef struct W8Vector3 {
     float x;
     float y;
     float z;
+#ifdef __cplusplus
+    W8Vector3* VectorFromThreeFloats(double source_x, double source_y, double source_z);
+    W8Vector3* Copy3DVector(const W8Vector3Double* source);
+#endif
 } W8Vector3;
 
 typedef struct W8WorldItem {

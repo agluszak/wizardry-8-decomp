@@ -1,4 +1,5 @@
 address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
+00421680,25,VectorFromThreeFloats,wiz8-vector-math,exact,8c7237c51fbcb1cbc3cd5e637a53cd257c04edf6f47958caf465882cf3af655f,VC6 SP5 O2 G6 MD thiscall method is byte-exact and proves three scalar double inputs float output and this return
 00517970,53,RollDice,wiz8-gameplay-database,exact,9e88bdc5744063e0d522ea20c95810352faed566df73a58552566ce96017ab63,VC6 SP5 O2 G6 MD body matches after masking the one external-call relocation
 005179b0,24,IntegerPower,wiz8-gameplay-database,exact,4454e70e52316ed73ef32bf813e14e16145c25fa3f402079afd9de08ecc375e8,VC6 SP5 O2 G6 MD body is byte-exact
 005179d0,25,ClampInteger,wiz8-engine-code,exact,13755985809557446cbd5b7e269ef859eeb4fbaab4313ec284ad3d8232cf7b17,VC6 SP5 O2 G6 MD body is byte-exact
@@ -18,6 +19,7 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 0051b9e0,19,GetItemInHand,wiz8-item-system,exact,b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14,VC6 SP5 O2 G6 MD body matches after masking item-validity and item-record relocations
 0042b550,33,LevelGetFolderNameByID,wiz8-level-system,exact,0e02b69da5480ffc3bd971ad5330ef56843d43cae98b4f89dc8c42f212cc25d7,VC6 SP5 O2 G6 MD bounds check and 0x6b table lookup match after masking the level-folder table relocation
 00444170,109,GetLocationVarIDByName,wiz8-location-variables,exact,d0e75111187a799a90b2c25b05469b9acd6a91b11984a5582c4bca7f35b800d9,VC6 SP5 O2 G6 MD search matches after masking name level current-level and _stricmp relocations
+00446110,25,Copy3DVector,wiz8-vector-math,exact,d2c6b969f7e840e9b66f67645f81ca73443a3440a6172050a5bb642d96fd1f9c,VC6 SP5 O2 G6 MD thiscall method is byte-exact and proves a 24-byte double source 12-byte float destination and this return
 0048bdc0,100,FindMonGenByName,wiz8-monster-system,structurally-strong,,Typed vector traversal and 32-byte name comparison agree; current VC6 output differs in invariant-load scheduling and epilogue placement
 004f6b90,179,CreateWorldItem,wiz8-item-system,exact,9f728370ebab904577b40d6b5b75d5ce4a963ad1eb8f57f05ddb4eef98280c94,Provisional semantic name; VC6 SP5 O2 G6 MD allocation initialization copy and list-insertion body matches after masking eight call and global relocations
 004f6c50,103,SpawnItem,wiz8-item-system,exact,b2b9177917fde0f54d3033f2cf8deaf6ddc44fa7546707e7ecbd912f5ec9e120,VC6 SP5 O2 G6 MD wrapper matches after masking constructor allocator assertion string and imported assertion relocations

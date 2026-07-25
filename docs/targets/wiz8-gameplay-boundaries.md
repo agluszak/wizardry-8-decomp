@@ -7,6 +7,7 @@ recovery work.
 
 | Address | Function | Canonical size | Evidence |
 | --- | --- | ---: | --- |
+| `0x00421680` | `VectorFromThreeFloats` | 25 | Converts three scalar doubles into a three-float vector and returns `this`; its verified CFAgent name is used by 149 canonical callers. |
 | `0x00517970` | `RollDice` | 53 | Reads packed `W8Dice`; performs `count` independent `GetRandomNumber(sides) + 1` rolls after the signed base. |
 | `0x005179b0` | `IntegerPower` | 24 | Returns one for exponent zero; otherwise multiplies by the base exactly `exponent` times. |
 | `0x005179d0` | `ClampInteger` | 25 | Stores the maximum above range, the minimum below range, and otherwise leaves the value unchanged. |
@@ -26,26 +27,27 @@ recovery work.
 | `0x0051b9e0` | `GetItemInHand` | 19 | Returns `-1` when the item-in-hand validity byte is clear, otherwise the item ID at offset zero of the packed 12-byte instance. Its name comes from the verified CFAgent oracle. |
 | `0x0042b550` | `LevelGetFolderNameByID` | 33 | Bounds-checks the 47-entry level metadata table and returns its 50-byte folder-name field. The packed `0x6b` record also carries a 50-byte level name and a three-letter location code. Its name comes from the verified CFAgent oracle. |
 | `0x00444170` | `GetLocationVarIDByName` | 109 | Case-insensitively scans the location-variable name table and accepts only an entry whose parallel level-ID slot equals the currently loaded level. Its verified CFAgent name is used by 97 canonical callers. |
+| `0x00446110` | `Copy3DVector` | 25 | Converts a packed three-double source into a three-float destination and returns `this`; its name comes from the verified CFAgent oracle. |
 | `0x0048bdc0` | `FindMonGenByName` | 100 | Traverses the world object's monster-generator pointer vector and compares the complete 32-byte generator-name field. Its verified CFAgent name is used by seven canonical callers. |
 | `0x004f6b90` | `CreateWorldItem` | 179 | Allocates and zeroes the `0xad`-byte runtime item, initializes its packed item instance at `+0x09`, copies the position to `+0x15`, and optionally inserts it into the world-item list. The descriptive name is provisional; the complete implementation and layout are exact. |
 | `0x004f6c50` | `SpawnItem` | 103 | Materializes a packed item instance unless the item ID is `-1`, passes it with a three-component position to the world-item allocator, and preserves the original `ItemManager.cpp:398` assertion. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
-`src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`, and
-`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, and
-`src/wiz8/item_spawning.cpp`
-and retain explicit `FUNCTION`
+`src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`,
+`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`,
+`src/wiz8/item_spawning.cpp`, and `src/wiz8/vector_conversions.cpp`, and retain explicit `FUNCTION`
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
 `just build WIZ8_GAMEPLAY_BOUNDARIES`; it uses the pinned SP5 `/O2 /G6 /MD` environment alongside the
 already exact compression and plug-in targets. The review map is
 `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
-instruction scheduling to the canonical order. With `/O2 /G6 /MD`, nineteen bodies match exactly after
+instruction scheduling to the canonical order. With `/O2 /G6 /MD`, twenty-one bodies match exactly after
 masking COFF relocations where needed:
 
 | Function | Result | Relocation-normalized SHA-256 |
 | --- | --- | --- |
+| `VectorFromThreeFloats` | exact, 25/25 bytes | `8c7237c51fbcb1cbc3cd5e637a53cd257c04edf6f47958caf465882cf3af655f` |
 | `RollDice` | exact, 53/53 bytes | `9e88bdc5744063e0d522ea20c95810352faed566df73a58552566ce96017ab63` |
 | `IntegerPower` | exact, 24/24 bytes | `4454e70e52316ed73ef32bf813e14e16145c25fa3f402079afd9de08ecc375e8` |
 | `ClampInteger` | exact, 25/25 bytes | `13755985809557446cbd5b7e269ef859eeb4fbaab4313ec284ad3d8232cf7b17` |
@@ -64,13 +66,14 @@ masking COFF relocations where needed:
 | `GetItemInHand` | exact, 19/19 bytes | `b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14` |
 | `LevelGetFolderNameByID` | exact, 33/33 bytes | `0e02b69da5480ffc3bd971ad5330ef56843d43cae98b4f89dc8c42f212cc25d7` |
 | `GetLocationVarIDByName` | exact, 109/109 bytes | `d0e75111187a799a90b2c25b05469b9acd6a91b11984a5582c4bca7f35b800d9` |
+| `Copy3DVector` | exact, 25/25 bytes | `d2c6b969f7e840e9b66f67645f81ca73443a3440a6172050a5bb642d96fd1f9c` |
 | `CreateWorldItem` | exact, 179/179 bytes | `9f728370ebab904577b40d6b5b75d5ce4a963ad1eb8f57f05ddb4eef98280c94` |
 | `SpawnItem` | exact, 103/103 bytes | `b2b9177917fde0f54d3033f2cf8deaf6ddc44fa7546707e7ecbd912f5ec9e120` |
 
 `GetRandomNumber` is the first proven exception to the unit's `/G6` scheduling. Its isolated
 `random_number.c` object is exact with `/G5`; `/G6` preserves the semantics but moves the multiply
 constant load and zeroing instruction. This is kept as a per-source CMake option rather than
-weakening the exact `/G6` evidence for the other nineteen bodies.
+weakening the exact `/G6` evidence for the other twenty-one bodies.
 
 `CanSpellBackfire` is retained because the typed semantics and all exception sets are grounded in
 the canonical body, but it is intentionally classified as `structurally-strong`, not exact. The
