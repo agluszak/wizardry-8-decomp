@@ -230,6 +230,14 @@ if(WIZ8_BUILD_DECOMP AND ZLIB_SOURCE)
     target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
 endif()
 
+if(WIZ8_BUILD_DECOMP)
+    add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
+        src/wiz8/gameplay_boundaries.c
+    )
+    target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
+    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8)
+endif()
+
 if(WIZ8_BUILD_DECOMP AND SGP_SOURCE)
     add_library(WIZ8_SGP_DIRECTDRAW OBJECT "${SGP_SOURCE}/DirectDraw Calls.c")
     target_compile_definitions(WIZ8_SGP_DIRECTDRAW PRIVATE WIZ8_PRECOMPILED_HEADERS)

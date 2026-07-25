@@ -981,7 +981,7 @@ def apply_wiz8_format_model(
                     0x00517970: (integer, [("dice", dice_pointer)]),
                     0x005179B0: (
                         integer,
-                        [("base", integer), ("exponent", integer)],
+                        [("base", integer), ("exponent", dword)],
                     ),
                     0x005179D0: (
                         void,

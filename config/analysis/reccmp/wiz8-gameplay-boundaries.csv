@@ -1,0 +1,4 @@
+address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
+00517970,53,RollDice,wiz8-gameplay-database,exact,9e88bdc5744063e0d522ea20c95810352faed566df73a58552566ce96017ab63,VC6 SP5 O2 G6 MD body matches after masking the one external-call relocation
+005179b0,24,IntegerPower,wiz8-gameplay-database,exact,4454e70e52316ed73ef32bf813e14e16145c25fa3f402079afd9de08ecc375e8,VC6 SP5 O2 G6 MD body is byte-exact
+005179d0,25,ClampInteger,wiz8-engine-code,exact,13755985809557446cbd5b7e269ef859eeb4fbaab4313ec284ad3d8232cf7b17,VC6 SP5 O2 G6 MD body is byte-exact

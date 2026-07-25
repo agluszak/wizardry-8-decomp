@@ -254,3 +254,20 @@ def test_string_database_inventory_preserves_footer_index_boundaries() -> None:
     assert by_path["DATABASES\\SPELLEFFECT.DBS"]["maximum_code_units"] == "0"
     assert {row["encoded"] for row in rows} == {"false"}
     assert {row["consumer"] for row in rows} == {"0x0052ff80"}
+
+
+def test_initial_owned_wiz8_boundaries_are_exact() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/reccmp/wiz8-gameplay-boundaries.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 3
+    assert {row["confidence"] for row in rows} == {"exact"}
+    assert {int(row["size"]) for row in rows} == {24, 25, 53}
+    assert all(len(row["relocation_masked_sha256"]) == 64 for row in rows)
+    source = (repository / "src/wiz8/gameplay_boundaries.c").read_text(encoding="utf-8")
+    for row in rows:
+        assert f"// FUNCTION: WIZ8 0x{row['address'].upper()}" in source
+        assert row["symbol"] in source
