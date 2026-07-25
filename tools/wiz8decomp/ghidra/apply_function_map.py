@@ -151,6 +151,17 @@ def apply_function_map(
                     if already_named:
                         stats["already_applied"] += 1
                     elif not dry_run:
+                        conflicting_symbol = symbol_table.getSymbol(
+                            simple_name, address, namespace
+                        )
+                        if (
+                            conflicting_symbol is not None
+                            and conflicting_symbol != function.getSymbol()
+                            and not conflicting_symbol.delete()
+                        ):
+                            raise RuntimeError(
+                                f"could not remove same-address label {identity.name}"
+                            )
                         function.setParentNamespace(namespace)
                         function.setName(simple_name, SourceType.USER_DEFINED)
                         stats["renamed"] += 1

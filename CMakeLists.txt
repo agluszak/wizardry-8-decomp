@@ -60,9 +60,102 @@ function(wiz8_collect_infozip_units RESULT SOURCE_ROOT)
 endfunction()
 
 if(WIZ8_BUILD_DECOMP)
-    wiz8_collect_ijg_units(IJG_JPEG_UNITS "${IJG_JPEG_SOURCE}")
+    # Product link order recovered from the original address map. In
+    # particular, the two memory-manager objects precede quantization and
+    # jutils; the discovery glob remains appropriate only for FID seeds.
+    set(IJG_JPEG_UNITS
+        jcapimin.c
+        jcapistd.c
+        jccoefct.c
+        jccolor.c
+        jcdctmgr.c
+        jchuff.c
+        jcinit.c
+        jcmainct.c
+        jcmarker.c
+        jcmaster.c
+        jcomapi.c
+        jcparam.c
+        jcphuff.c
+        jcprepct.c
+        jcsample.c
+        jctrans.c
+        jdapimin.c
+        jdapistd.c
+        jdatadst.c
+        jdatasrc.c
+        jdcoefct.c
+        jdcolor.c
+        jddctmgr.c
+        jdhuff.c
+        jdinput.c
+        jdmainct.c
+        jdmarker.c
+        jdmaster.c
+        jdmerge.c
+        jdphuff.c
+        jdpostct.c
+        jdsample.c
+        jdtrans.c
+        jerror.c
+        jfdctflt.c
+        jfdctfst.c
+        jfdctint.c
+        jidctflt.c
+        jidctfst.c
+        jidctint.c
+        jidctred.c
+        jmemmgr.c
+        jmemnobs.c
+        jquant1.c
+        jquant2.c
+        jutils.c
+    )
     set(IJG_JPEG_SOURCES ${IJG_JPEG_UNITS})
     list(TRANSFORM IJG_JPEG_SOURCES PREPEND "${IJG_JPEG_SOURCE}/")
+
+    # IJG repeats private helper names across translation units. Qualifying
+    # those static identifiers changes only COFF/PDB names, not machine code,
+    # and gives reccmp durable, unambiguous source ownership.
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jccoefct.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "start_pass_coef=jccoefct_start_pass_coef;start_iMCU_row=jccoefct_start_iMCU_row;compress_output=jccoefct_compress_output")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jctrans.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "start_pass_coef=jctrans_start_pass_coef;start_iMCU_row=jctrans_start_iMCU_row;compress_output=jctrans_compress_output")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jccolor.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "grayscale_convert=jccolor_grayscale_convert;null_convert=jccolor_null_convert")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdcolor.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "grayscale_convert=jdcolor_grayscale_convert;null_convert=jdcolor_null_convert;build_ycc_rgb_table=jdcolor_build_ycc_rgb_table")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jchuff.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "emit_bits=jchuff_emit_bits;dump_buffer=jchuff_dump_buffer;emit_restart=jchuff_emit_restart;flush_bits=jchuff_flush_bits")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jcphuff.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "emit_bits=jcphuff_emit_bits;dump_buffer=jcphuff_dump_buffer;emit_restart=jcphuff_emit_restart;flush_bits=jcphuff_flush_bits")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jcmainct.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "process_data_simple_main=jcmainct_process_data_simple_main")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdmainct.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "process_data_simple_main=jdmainct_process_data_simple_main")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jcmaster.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "initial_setup=jcmaster_initial_setup;per_scan_setup=jcmaster_per_scan_setup")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdinput.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "start_input_pass=jdinput_start_input_pass;per_scan_setup=jdinput_per_scan_setup;initial_setup=jdinput_initial_setup")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdcoefct.c" PROPERTIES
+        COMPILE_DEFINITIONS
+            "start_input_pass=jdcoefct_start_input_pass;start_iMCU_row=jdcoefct_start_iMCU_row")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdhuff.c" PROPERTIES
+        COMPILE_DEFINITIONS "process_restart=jdhuff_process_restart")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdphuff.c" PROPERTIES
+        COMPILE_DEFINITIONS "process_restart=jdphuff_process_restart")
+    set_source_files_properties("${IJG_JPEG_SOURCE}/jdmerge.c" PROPERTIES
+        COMPILE_DEFINITIONS "build_ycc_rgb_table=jdmerge_build_ycc_rgb_table")
     set(IJG_STDIO_SOURCES
         "${IJG_JPEG_SOURCE}/jdatadst.c"
         "${IJG_JPEG_SOURCE}/jdatasrc.c"

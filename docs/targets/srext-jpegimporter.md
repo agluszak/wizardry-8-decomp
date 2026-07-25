@@ -33,16 +33,16 @@ the main interface-recovery problem for a replacement build.
 The reviewed inventory now accounts for 250 addresses: 241 functions discovered by the current
 Ghidra database plus nine code entries recovered directly from vtable references and disassembly.
 Source-built Function ID evidence identifies 160 functions as IJG JPEG release 6 and `0x10015915`
-as `__DllMainCRTStartup@12`. For the JPEG matches,
-all tested compiler rows agree on one source symbol at 156 addresses. Four addresses are deliberately
-left ambiguous because the machine bodies are shared by two source routines:
+as `__DllMainCRTStartup@12`. For the JPEG matches, all tested compiler rows agree on one source
+symbol at 156 addresses. The linked PDB, object map, body sizes, and in-object sequence resolve the
+remaining 40 IJG bodies. This includes four identical-body pairs which FID alone cannot separate:
 
 | Address | Candidate symbols |
 | --- | --- |
-| `0x10001450` | `jpeg_destroy_compress`, `jpeg_destroy_decompress` |
-| `0x10007E80` | `jpeg_destroy_compress`, `jpeg_destroy_decompress` |
-| `0x10012990` | `jpeg_free_small`, `jpeg_free_large` |
-| `0x100129B0` | `jpeg_free_small`, `jpeg_free_large` |
+| `0x10001450` | `jpeg_destroy_compress` in `jcapimin.c` |
+| `0x10007E80` | `jpeg_destroy_decompress` in `jdapimin.c` |
+| `0x10012990` | `jpeg_free_small` in `jmemnobs.c` |
+| `0x100129B0` | `jpeg_free_large` in `jmemnobs.c` |
 
 The observed link layout provides a useful first ownership boundary. The tracked inventory assigns
 196 addresses to IJG JPEG 6, three to the small Sir-Tech codec adapter, 32 to the SurRender plugin,
@@ -142,13 +142,18 @@ implementation itself remains the pristine upstream release-6 source.
 
 The root `CMakeLists.txt` owns the product build. It compiles the pinned pristine IJG release-6
 source with the two SurRender stdio adaptations, then links the recovered adapter and plug-in using
-the VC6 SP5 image, `/MD /O2 /GX /GR-`, base `0x10000000`, and `/OPT:NOREF`. The image contains pinned
+the VC6 SP5 image, `/MD /O2 /GX /GR-`, base `0x10000000`, `/OPT:NOREF`, and `/OPT:NOICF`. The product
+uses the explicit original object order: the decisive tail is `jmemmgr.c`, `jmemnobs.c`,
+`jquant1.c`, `jquant2.c`, and `jutils.c`. FID seed discovery remains glob-based because link order is
+irrelevant there. The image contains pinned
 32-bit Windows CMake 3.26.6 and drives the original NMake/VC6 tools under Wine. The build emits a VC6
 PDB, linker map, the exact two exports, and a local `reccmp-build.yml`.
 
 `reccmp` is pinned to commit `574601de72a0ddabdcf2d386ddb6f9d727af4ce1`. The accepted IJG
-identities used by comparison are in `config/analysis/reccmp/srext-jpegimporter.csv`. A complete
-comparison currently proves exact machine-code matches for:
+identities used by comparison are in `config/analysis/reccmp/srext-jpegimporter.csv`. Repeated IJG
+private names are qualified per translation unit in PDB/COFF only; this removes ambiguous comparison
+pairing without changing machine code. A complete comparison currently proves exact machine-code
+matches for:
 
 | Original address | Recovered function | Match |
 | --- | --- | ---: |
@@ -161,9 +166,11 @@ comparison currently proves exact machine-code matches for:
 | `0x10015450` | surface class ID | 100% |
 | `0x100155D0` | library version export | 100% |
 
-The complete 32-function report is 87.55% accurate, with 20 functions already address-aligned.
-The larger denominator now includes every recovered public operation: `getSurfaceDesc` is 51.79%,
-`importSurface` is 15.42%, and `exportSurface` is 78.23%. The low import score reflects unresolved
+The report now covers all 196 IJG functions in the reviewed map plus 15 recovered adapter, plug-in,
+surface, and CRT identities. All 211 are implemented, aggregate accuracy is 97.34%, and 93 functions
+are address-aligned. The larger denominator includes every recovered public operation:
+`getSurfaceDesc` is 51.79%, `importSurface` is 17.25%, and `exportSurface` is 78.86%. The low import
+score reflects unresolved
 local/control-flow selection rather than missing behavior; its allocation branches, vtable install,
 decode failure cleanup, and 1/3/4-component row conversions are all represented.
 This proves that upstream IJG remains upstream source: only the Sir-Tech adapter and SurRender ABI

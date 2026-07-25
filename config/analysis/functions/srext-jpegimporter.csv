@@ -3,18 +3,18 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 100010f0,403,FUN_100010f0,,sirtech-codec-adapter,strong,Calls the IJG compression API over caller-owned pixels and output stream
 10001290,334,FUN_10001290,,sirtech-codec-adapter,strong,Calls the IJG decompression API and copies scanlines into caller-owned storage
 100013e0,97,jpeg_create_compress,jpeg_create_compress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10001450,12,FUN_10001450,jpeg_destroy_compress|jpeg_destroy_decompress,ijg-jpeg-6,ambiguous,Source-built FID rows match identical machine bodies from multiple source symbols
+10001450,12,FUN_10001450,jpeg_destroy_compress,ijg-jpeg-6,strong,Identical destroy body resolved to jcapimin.c by position between jpeg_create_compress and jpeg_suppress_tables
 10001470,78,jpeg_suppress_tables,jpeg_suppress_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100014c0,258,jpeg_finish_compress,jpeg_finish_compress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10001690,117,jpeg_start_compress,jpeg_start_compress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10001710,196,jpeg_write_scanlines,jpeg_write_scanlines,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100018b0,187,jinit_c_coef_controller,jinit_c_coef_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10001970,167,FUN_10001970,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10001970,167,FUN_10001970,start_pass_coef,ijg-jpeg-6,strong,Exact linked address and in-object order in jccoefct.c
 10001a20,78,start_iMCU_row,start_iMCU_row,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10001f30,486,compress_output,compress_output,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10002120,528,jinit_color_converter,jinit_color_converter,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10002570,174,FUN_10002570,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-10002790,103,FUN_10002790,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10002570,174,FUN_10002570,rgb_gray_convert,ijg-jpeg-6,strong,Exact linked address and in-object order in jccolor.c
+10002790,103,FUN_10002790,grayscale_convert,ijg-jpeg-6,strong,Exact linked address and in-object order in jccolor.c
 100028b0,145,jinit_forward_dct,jinit_forward_dct,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10002eb0,282,jpeg_make_c_derived_tbl,jpeg_make_c_derived_tbl,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10002fd0,558,jpeg_gen_optimal_table,jpeg_gen_optimal_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
@@ -27,30 +27,30 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 10003990,160,htest_one_block,htest_one_block,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10003b40,183,jinit_compress_master,jinit_compress_master,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10003c00,135,jinit_c_main_controller,jinit_c_main_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003ce0,176,FUN_10003ce0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10003ce0,176,FUN_10003ce0,process_data_simple_main,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmainct.c
 10003d90,97,jinit_marker_writer,jinit_marker_writer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003e00,79,FUN_10003e00,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10003e00,79,FUN_10003e00,write_any_marker,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
 10003e50,60,emit_byte,emit_byte,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10003e90,32,emit_marker,emit_marker,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10003eb0,40,emit_2bytes,emit_2bytes,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003ee0,59,FUN_10003ee0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10003ee0,59,FUN_10003ee0,write_file_header,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
 10003f20,151,emit_jfif_app0,emit_jfif_app0,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10003fc0,146,emit_adobe_app14,emit_adobe_app14,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004060,246,FUN_10004060,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10004060,246,FUN_10004060,write_frame_header,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
 10004160,201,emit_dqt,emit_dqt,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10004230,184,emit_sof,emit_sof,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100043b0,191,emit_dht,emit_dht,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004470,1,FUN_10004470,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10004470,1,FUN_10004470,emit_dac,ijg-jpeg-6,strong,Exact one-byte stub and linked position in jcmarker.c
 10004480,42,emit_dri,emit_dri,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100044b0,221,emit_sos,emit_sos,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100045b0,128,FUN_100045b0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+100045b0,128,FUN_100045b0,write_tables_only,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
 10004630,191,jinit_c_master_control,jinit_c_master_control,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100046f0,461,initial_setup,initial_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100048c0,927,validate_script,validate_script,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004c60,433,FUN_10004c60,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10004c60,433,FUN_10004c60,prepare_for_pass,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmaster.c
 10004e20,255,select_scan_parameters,select_scan_parameters,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10004f20,458,per_scan_setup,per_scan_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100050f0,43,FUN_100050f0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+100050f0,43,FUN_100050f0,pass_startup,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmaster.c
 100051a0,35,jpeg_abort,jpeg_abort,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100051d0,31,jpeg_destroy,jpeg_destroy,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100051f0,31,jpeg_alloc_quant_table,jpeg_alloc_quant_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
@@ -72,15 +72,15 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 100060b0,28,flush_bits,flush_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100060d0,95,emit_eobrun,emit_eobrun,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10006130,49,emit_buffered_bits,emit_buffered_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006330,190,FUN_10006330,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10006330,190,FUN_10006330,encode_mcu_DC_refine,ijg-jpeg-6,strong,Exact linked address and in-object order in jcphuff.c
 10006750,172,jinit_c_prep_controller,jinit_c_prep_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100069d0,52,expand_bottom_edge,expand_bottom_edge,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10006c50,292,create_context_buffer,create_context_buffer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10006d80,387,jinit_downsampler,jinit_downsampler,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100070e0,92,expand_right_edge,expand_right_edge,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10007140,70,FUN_10007140,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10007140,70,FUN_10007140,fullsize_downsample,ijg-jpeg-6,strong,Exact linked address and in-object order in jcsample.c
 10007e00,118,jpeg_create_decompress,jpeg_create_decompress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10007e80,12,FUN_10007e80,jpeg_destroy_compress|jpeg_destroy_decompress,ijg-jpeg-6,ambiguous,Source-built FID rows match identical machine bodies from multiple source symbols
+10007e80,12,FUN_10007e80,jpeg_destroy_decompress,ijg-jpeg-6,strong,Identical destroy body resolved to jdapimin.c by position between jpeg_create_decompress and jpeg_read_header
 10007f00,112,jpeg_read_header,jpeg_read_header,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10007f70,156,jpeg_consume_input,jpeg_consume_input,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10008030,410,default_decompress_parms,default_decompress_parms,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
@@ -91,15 +91,15 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 10008590,188,FUN_10008590,jpeg_read_raw_data,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10008760,61,jpeg_stdio_dest,jpeg_stdio_dest,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10008860,108,jpeg_stdio_src,jpeg_stdio_src,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100088e0,121,FUN_100088e0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-10008960,61,FUN_10008960,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+100088e0,121,FUN_100088e0,fill_input_buffer,ijg-jpeg-6,strong,Body size and in-object order identify jdatasrc.c fill_input_buffer after jpeg_stdio_src
+10008960,61,FUN_10008960,skip_input_data,ijg-jpeg-6,strong,Body size and in-object order identify jdatasrc.c skip_input_data
 100089b0,264,jinit_d_coef_controller,jinit_d_coef_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10008ae0,81,start_iMCU_row,start_iMCU_row,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008b40,79,FUN_10008b40,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10008b40,79,FUN_10008b40,start_output_pass,ijg-jpeg-6,strong,Body size and in-object order identify jdcoefct.c start_output_pass
 100091e0,240,smoothing_ok,smoothing_ok,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10009940,423,jinit_color_deconverter,jinit_color_deconverter,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10009b00,188,build_ycc_rgb_table,build_ycc_rgb_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10009cf0,135,FUN_10009cf0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10009cf0,135,FUN_10009cf0,null_convert,ijg-jpeg-6,strong,Body size and in-object order identify jdcolor.c null_convert
 10009f30,121,jinit_inverse_dct,jinit_inverse_dct,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000a220,489,jpeg_make_d_derived_tbl,jpeg_make_d_derived_tbl,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000a410,253,jpeg_fill_bit_buffer,jpeg_fill_bit_buffer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
@@ -110,21 +110,21 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 1000acc0,57,start_input_pass,start_input_pass,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000ad00,421,per_scan_setup,per_scan_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000aeb0,170,latch_quant_tables,latch_quant_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000af80,199,FUN_1000af80,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000af80,199,FUN_1000af80,consume_markers,ijg-jpeg-6,strong,Disassembly implements marker consumption; jdinput.c order places it after the tiny finish_input_pass setter
 1000b050,501,initial_setup,initial_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b250,68,FUN_1000b250,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000b250,68,FUN_1000b250,reset_input_controller,ijg-jpeg-6,strong,Body size and terminal position identify jdinput.c reset_input_controller
 1000b2a0,205,jinit_d_main_controller,jinit_d_main_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000b370,173,alloc_funny_pointers,alloc_funny_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000b4a0,326,make_funny_pointers,make_funny_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b5f0,116,FUN_1000b5f0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-1000b670,322,FUN_1000b670,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000b5f0,116,FUN_1000b5f0,process_data_simple_main,ijg-jpeg-6,strong,Body size and in-object order identify jdmainct.c process_data_simple_main
+1000b670,322,FUN_1000b670,process_data_context_main,ijg-jpeg-6,strong,Body size and in-object order identify jdmainct.c process_data_context_main
 1000b7c0,270,set_wraparound_pointers,set_wraparound_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000b8d0,153,set_bottom_pointers,set_bottom_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000b9a0,249,jpeg_resync_to_restart,jpeg_resync_to_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000baa0,271,next_marker,next_marker,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000bbb0,133,jinit_marker_reader,jinit_marker_reader,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000c0b0,161,skip_variable,skip_variable,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000c160,543,FUN_1000c160,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000c160,543,FUN_1000c160,read_markers,ijg-jpeg-6,strong,Body size and in-object order identify jdmarker.c read_markers
 1000c4d0,169,get_soi,get_soi,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000c580,807,get_sof,get_sof,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000c8b0,792,get_sos,get_sos,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
@@ -133,45 +133,45 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 1000d0a0,617,get_dqt,get_dqt,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000d310,240,get_dri,get_dri,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000d400,158,first_marker,first_marker,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d4a0,139,FUN_1000d4a0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000d4a0,139,FUN_1000d4a0,read_restart_marker,ijg-jpeg-6,strong,Body size and in-object order identify jdmarker.c read_restart_marker
 1000d530,52,reset_marker_reader,reset_marker_reader,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000d570,530,jpeg_calc_output_dimensions,jpeg_calc_output_dimensions,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000d7a0,131,use_merged_upsample,use_merged_upsample,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000d8b0,52,jinit_master_decompress,jinit_master_decompress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000d8f0,472,master_selection,master_selection,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000dad0,121,prepare_range_limit_table,prepare_range_limit_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000db50,348,FUN_1000db50,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000db50,348,FUN_1000db50,prepare_for_output_pass,ijg-jpeg-6,strong,Body size and in-object order identify jdmaster.c prepare_for_output_pass
 1000dce0,133,jinit_merged_upsampler,jinit_merged_upsampler,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000dd70,188,build_ycc_rgb_table,build_ycc_rgb_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000df20,58,FUN_1000df20,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000df20,58,FUN_1000df20,merged_1v_upsample,ijg-jpeg-6,strong,Body size and in-object order identify jdmerge.c merged_1v_upsample
 1000e2d0,110,jinit_phuff_decoder,jinit_phuff_decoder,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000e890,131,process_restart,process_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000f120,143,jinit_d_post_controller,jinit_d_post_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000f330,163,FUN_1000f330,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-1000f3e0,166,FUN_1000f3e0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000f330,163,FUN_1000f330,post_process_prepass,ijg-jpeg-6,strong,Body size and in-object order identify jdpostct.c post_process_prepass
+1000f3e0,166,FUN_1000f3e0,post_process_2pass,ijg-jpeg-6,strong,Body size and in-object order identify jdpostct.c post_process_2pass
 1000f490,500,jinit_upsampler,jinit_upsampler,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 1000fd80,76,jpeg_std_error,jpeg_std_error,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000fdd0,86,FUN_1000fdd0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+1000fdd0,86,FUN_1000fdd0,error_exit,ijg-jpeg-6,strong,Body size and first internal position identify jerror.c error_exit after jpeg_std_error
 10011d50,310,jinit_memory_mgr,jinit_memory_mgr,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10011e90,303,alloc_small,alloc_small,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10011fc0,29,out_of_memory,out_of_memory,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10011fe0,161,alloc_large,alloc_large,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012090,168,alloc_sarray,alloc_sarray,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012140,176,alloc_barray,alloc_barray,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100121f0,110,FUN_100121f0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-10012260,110,FUN_10012260,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-100122d0,385,FUN_100122d0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+100121f0,110,FUN_100121f0,request_virt_sarray,ijg-jpeg-6,strong,Memory-manager source order identifies request_virt_sarray after alloc_barray
+10012260,110,FUN_10012260,request_virt_barray,ijg-jpeg-6,strong,Memory-manager source order identifies request_virt_barray after request_virt_sarray
+100122d0,385,FUN_100122d0,realize_virt_arrays,ijg-jpeg-6,strong,Memory-manager source order identifies realize_virt_arrays before virtual-array I/O helpers
 100125b0,154,do_sarray_io,do_sarray_io,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 100127a0,159,do_barray_io,do_barray_io,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012840,241,free_pool,free_pool,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012980,15,jpeg_get_small,jpeg_get_small,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012990,13,FID_conflict:jpeg_free_small,jpeg_free_large|jpeg_free_small,ijg-jpeg-6,ambiguous,Source-built FID rows match identical machine bodies from multiple source symbols
+10012990,13,FID_conflict:jpeg_free_small,jpeg_free_small,ijg-jpeg-6,strong,Identical free body resolved by jmemnobs.c order after jpeg_get_small
 100129a0,15,jpeg_get_large,jpeg_get_large,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100129b0,13,FID_conflict:jpeg_free_small,jpeg_free_large|jpeg_free_small,ijg-jpeg-6,ambiguous,Source-built FID rows match identical machine bodies from multiple source symbols
-100129c0,5,FUN_100129c0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-100129d0,20,FUN_100129d0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-100129f0,3,FUN_100129f0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
-10012a00,1,FUN_10012a00,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+100129b0,13,FID_conflict:jpeg_free_small,jpeg_free_large,ijg-jpeg-6,strong,Identical free body resolved by jmemnobs.c order after jpeg_get_large
+100129c0,5,FUN_100129c0,jpeg_mem_available,ijg-jpeg-6,strong,Exact jmemnobs.c object position after jpeg_free_large
+100129d0,20,FUN_100129d0,jpeg_open_backing_store,ijg-jpeg-6,strong,Exact jmemnobs.c object position after jpeg_mem_available
+100129f0,3,FUN_100129f0,jpeg_mem_init,ijg-jpeg-6,strong,Exact jmemnobs.c object position before jpeg_mem_term
+10012a00,1,FUN_10012a00,jpeg_mem_term,ijg-jpeg-6,strong,Exact one-byte terminal function in jmemnobs.c
 10012a10,154,jinit_1pass_quantizer,jinit_1pass_quantizer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012ab0,350,create_colormap,create_colormap,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012c10,233,select_ncolors,select_ncolors,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
@@ -179,7 +179,7 @@ address,size,current_name,provisional_name,owner,confidence,evidence
 10012d20,316,create_colorindex,create_colorindex,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012e60,28,largest_input_value,largest_input_value,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10012e80,64,alloc_fs_workspace,alloc_fs_workspace,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012ec0,236,FUN_10012ec0,,ijg-jpeg-6,candidate,Internal function inside the contiguous IJG library region; no accepted FID name
+10012ec0,236,FUN_10012ec0,start_pass_1_quant,ijg-jpeg-6,strong,Body size and in-object order identify jquant1.c start_pass_1_quant
 10012fb0,88,create_odither_tables,create_odither_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10013010,102,make_odither_array,make_odither_array,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
 10013660,302,jinit_2pass_quantizer,jinit_2pass_quantizer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
