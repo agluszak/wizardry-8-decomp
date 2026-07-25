@@ -1,0 +1,94 @@
+repository: https://github.com/ja2-stracciatella/ja2-stracciatella.git
+revision: 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033
+tree: 52766c4237e63d7a3d619796784947ed1681f24e
+subject: Initial Import
+author_date: 2004-09-06T14:51:38Z
+source_root: sgp
+license:
+  path: sgp/SFI Source Code license agreement.txt
+  blob: b66aabc6f7affb4fca0b6cc2d6288f3225ecd0b1
+  policy: oracle-only
+  reason: >-
+    The SFI source agreement is non-commercial and imposes redistribution
+    conditions. No released source is copied into this repository.
+
+compile_model:
+  confirmed_definitions:
+    - WIZ8_PRECOMPILED_HEADERS
+  confirmed_absent_definitions:
+    - JA2
+    - JA2_PRECOMPILED_HEADERS
+    - UTIL
+    - UTILS
+  release_evidence:
+    - _DEBUG is absent in the matching VC6 SP5 release build.
+    - MemAlloc and MemFree therefore reduce to malloc and free in MemMan.h.
+  missing_product_headers:
+    - WIZ8 SGP ALL.H
+    - builddefines.h
+    - WizLibs.h
+  recovered_overlay: config/sgp-overlays
+  overlay_scope: >-
+    Only the declarations required to compile DirectDraw Calls.c are present;
+    the overlay is not claimed to reconstruct the complete Wizardry PCH.
+
+active_wiz8_pch_sources:
+  - sgp/Button Sound Control.c
+  - sgp/Button System.c
+  - sgp/Compression.c
+  - sgp/Container.c
+  - sgp/Cursor Control.c
+  - sgp/DEBUG.C
+  - sgp/DbMan.c
+  - sgp/DirectDraw Calls.c
+  - sgp/DirectX Common.c
+  - sgp/English.c
+  - sgp/ExceptionHandling.cpp
+  - sgp/FileMan.c
+  - sgp/Font.c
+  - sgp/Install.c
+  - sgp/LibraryDataBase.c
+  - sgp/Mutex Manager.c
+  - sgp/PCX.C
+  - sgp/Random.c
+  - sgp/RegInst.c
+  - sgp/STCI.c
+  - sgp/himage.c
+  - sgp/impTGA.c
+  - sgp/input.c
+  - sgp/line.c
+  - sgp/mousesystem.c
+  - sgp/sgp.c
+  - sgp/shading.c
+  - sgp/soundman.c
+  - sgp/timer.c
+  - sgp/video.c
+  - sgp/vobject.c
+  - sgp/vobject_blitters.c
+  - sgp/vsurface.c
+
+commented_wiz8_pch_sources:
+  - path: sgp/MemMan.c
+    line: 23
+    note: The complete JA2/Wizardry PCH branch is commented out in the release.
+
+additional_wizardry_evidence:
+  - {path: sgp/Button System.h, line: 189, kind: shared-with-wizardry-comment}
+  - {path: sgp/ExceptionHandling.h, line: 13, kind: wizardry-release-branch}
+  - {path: sgp/JA2 SGP ALL.H, line: 48, kind: includes-wizshare}
+  - {path: sgp/LibraryDataBase.h, line: 48, kind: wizardry-header-branch}
+  - {path: sgp/Standard Gaming Platform.dsp, line: 618, kind: wizshare-project-entry}
+  - {path: sgp/Types.h, line: 32, kind: wizardry-type-comment}
+  - {path: sgp/WizShare.h, line: 1, kind: wizardry-shared-memory-header}
+  - {path: sgp/mousesystem.h, line: 206, kind: shared-with-wizardry-comment}
+  - {path: sgp/random.h, line: 19, kind: wizardry-feature-comment}
+  - {path: sgp/shading.h, line: 19, kind: wizardry-exclusion-comment}
+  - {path: sgp/vobject.h, line: 25, kind: wizardry-abi-constant-comment}
+
+directdraw_probe:
+  source: sgp/DirectDraw Calls.c
+  source_blob: 2bdc93c4baf998c914eca8fce8322c2f314e24fa
+  toolchain: msvc600-sp5
+  flags: [/O2, /MD, /DNDEBUG, /DWIZ8_PRECOMPILED_HEADERS]
+  exact_relocation_masked_functions: 13
+
