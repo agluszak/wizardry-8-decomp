@@ -6,3 +6,8 @@ targets:
       - config/analysis/reccmp/srext-jpegimporter.csv
     hash:
       sha256: 0bf545937bd86ce2195c08b6dbf6b70e1a1071a9fce449ccb9f06dfa384de490
+  SREXT_UNZIP:
+    filename: srEXT_Unzip.dll
+    source-root: src/srext_unzip
+    hash:
+      sha256: dba6cdc5741ae57574e019ab8f37935362bc288bee738bc711460f34d7647f62

@@ -1,0 +1,28 @@
+LIBRARY SR
+
+EXPORTS
+    ??0srBinStream@@IAE@XZ @65
+    ??0srBinIMStream@@QAE@PBXK@Z @52
+    ??1Opener@srIStreamOpener@@UAE@XZ @177
+    ??1srBinStream@@UAE@XZ @196
+    ??_7srBinStream@@6B@ @402
+    ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z @546
+    ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z @547
+    ?allocate@srHeap@@QAEPAXK@Z @568
+    ?exists@srConfig@@QBEHPBD@Z @755
+    ?free@srHeap@@QAEXPAX@Z @839
+    ?get@srConfig@@QBEPBDPBD@Z @855
+    ?getBool@srConfig@@QBEHPBD@Z @898
+    ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ @1062
+    ?getSize@srBinIMStream@@UAEKXZ @1216
+    ?getString@srStringTable@@QBEPADJ@Z @1237
+    ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z @1691
+    ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z @1692
+    ?srConfig@@3V0@A @1946
+    ?srCore@@3V0@A @1947
+    ?srHeap@@3V0@A @1954
+    ?tell@srBinIMStream@@UAEKXZ @1976
+    ?vget@srBinIStream@@MAEGXZ @2043
+    ?vread@srBinIMStream@@EAEKPAXK@Z @2050
+    ??0srStringTable@@QAE@XZ @145
+    ??1srStringTable@@QAE@XZ @238

@@ -110,7 +110,7 @@ if(WIZ8_BUILD_DECOMP)
 
     if(RECCMP_PROJECT_DIR_HOST AND RECCMP_BUILD_DIR_HOST)
         file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reccmp-build.yml" CONTENT
-            "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n  SREXT_JPEGIMPORTER:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.pdb'\n"
+            "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n  SREXT_JPEGIMPORTER:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.pdb'\n  SREXT_UNZIP:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.pdb'\n"
         )
     endif()
 endif()
@@ -154,6 +154,7 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
 
     add_library(SREXT_UNZIP_INFOZIP_ADAPTER OBJECT EXCLUDE_FROM_ALL
         src/srext_unzip/infozip_adapter.c
+        src/srext_unzip/plugin.cpp
     )
     target_compile_options(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
         /nologo /W3 /GX /O2 /Zp4
@@ -162,11 +163,55 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
         NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL UNZIPLIB
     )
     target_include_directories(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+        include
         "${INFOZIP_SOURCE}"
         "${INFOZIP_SOURCE}/windll"
         "${INFOZIP_SOURCE}/win32"
     )
     add_dependencies(INFOZIP_UNZIP_5_4 SREXT_UNZIP_INFOZIP_ADAPTER)
+
+    set(SR_UNZIP_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/sr-unzip.lib")
+    add_custom_command(
+        OUTPUT "${SR_UNZIP_IMPORT_LIBRARY}"
+        COMMAND lib.exe /nologo /machine:ix86
+            "/def:${CMAKE_CURRENT_SOURCE_DIR}/src/srext_unzip/sr-unzip-imports.def"
+            "/out:${SR_UNZIP_IMPORT_LIBRARY}"
+        DEPENDS src/srext_unzip/sr-unzip-imports.def
+        VERBATIM
+    )
+    add_custom_target(surrender_unzip_import_library
+        DEPENDS "${SR_UNZIP_IMPORT_LIBRARY}")
+
+    # The original image places the complete Info-ZIP object sequence before
+    # Sir-Tech's narrow wrapper and SurRender plug-in object.
+    add_library(SREXT_UNZIP SHARED
+        ${INFOZIP_UNZIP_SOURCES}
+        src/srext_unzip/infozip_adapter.c
+        src/srext_unzip/plugin.cpp
+        src/srext_unzip/srEXT_Unzip.def
+    )
+    add_dependencies(SREXT_UNZIP surrender_unzip_import_library)
+    target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /GX /O2 /Zp4)
+    target_compile_definitions(SREXT_UNZIP PRIVATE
+        NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL UNZIPLIB
+    )
+    target_include_directories(SREXT_UNZIP PRIVATE
+        include
+        "${INFOZIP_SOURCE}"
+        "${INFOZIP_SOURCE}/windll"
+        "${INFOZIP_SOURCE}/win32"
+    )
+    target_link_libraries(SREXT_UNZIP PRIVATE "${SR_UNZIP_IMPORT_LIBRARY}")
+    target_link_options(SREXT_UNZIP PRIVATE
+        /DEBUGTYPE:CV
+        /OPT:NOICF
+        "/MAP:${CMAKE_CURRENT_BINARY_DIR}/srEXT_Unzip.map"
+    )
+    set_target_properties(SREXT_UNZIP PROPERTIES
+        OUTPUT_NAME srEXT_Unzip
+        PREFIX ""
+        PDB_NAME srEXT_Unzip
+    )
 endif()
 
 function(wiz8_add_fid_seed TARGET_NAME SOURCE_ROOT)

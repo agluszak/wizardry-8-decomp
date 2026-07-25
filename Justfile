@@ -43,10 +43,10 @@ configure: _jpeg-sources
         -DRECCMP_BUILD_DIR_HOST="$WIZ8_WORK_DIR/decomp/srext-jpegimporter"
 
 # Compare through reccmp itself; extra arguments are passed unchanged.
-compare *args:
+compare target=jpeg_target *args:
     cd "$WIZ8_WORK_DIR/decomp/srext-jpegimporter" && \
         uv run --project {{repo}} reccmp-reccmp \
-        --target {{jpeg_target}} --no-color {{args}}
+        --target {{target}} --no-color {{args}}
 
 # Build the pinned VC6 SP5 image used by the active matching target.
 build-image:

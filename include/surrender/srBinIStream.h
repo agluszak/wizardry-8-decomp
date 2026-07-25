@@ -20,7 +20,16 @@ public:
 
 protected:
     SR_DLL_IMPORT srBinStream();
+
+private:
+    // The ZIP extension's owned memory-stream subclass proves that the
+    // virtual srBinStream subobject is 0x10 bytes: a vptr followed by 0x0c
+    // bytes of SR.DLL-owned stream state.
+    unsigned char unknown_04_[0x0c];
 };
+
+typedef char srBinStream_must_be_0x10[
+    (sizeof(srBinStream) == 0x10) ? 1 : -1];
 
 // The vbtable accesses in the JPEG extension prove that srBinStream is a
 // virtual base of both directional stream interfaces.
@@ -30,7 +39,7 @@ public:
     SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
 
 protected:
-    virtual SR_DLL_IMPORT unsigned char vget();
+    virtual SR_DLL_IMPORT unsigned short vget();
 };
 
 class srBinIMStream : public srBinIStream {
@@ -42,11 +51,9 @@ public:
         unsigned long position, srBinStream::e_seekDir direction);
     virtual SR_DLL_IMPORT unsigned long tell();
 
-protected:
+private:
     virtual SR_DLL_IMPORT unsigned long vread(
         void* destination, unsigned long size);
-
-private:
     // The imported implementation owns the prefix through +0x13. The ZIP
     // extension's zero-data wrapper adds its malloc owner at +0x14 and places
     // the virtual srBinStream base at +0x1c.

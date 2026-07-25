@@ -1,0 +1,5 @@
+LIBRARY srEXT_Unzip
+
+EXPORTS
+    srGetLibraryVersion @1
+    srInitPlugin @2

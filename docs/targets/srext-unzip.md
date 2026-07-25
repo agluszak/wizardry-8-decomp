@@ -91,6 +91,31 @@ The owned `src/srext_unzip/infozip_adapter.c` now implements the five-argument w
 produces the same 142-byte body as `0x1000DA10`, instruction for instruction, including the exact
 `ret 0x14`; only link-time relocations remain to be resolved when the complete DLL target is linked.
 
+## Reconstructed DLL status
+
+The `SREXT_UNZIP` CMake target now links the pinned 19-file Info-ZIP source set, the exact
+five-argument wrapper, and the first typed SurRender plug-in slice into `srEXT_Unzip.dll`. It emits
+a PDB and exports the original interface (`srGetLibraryVersion` ordinal 1 and `srInitPlugin`
+ordinal 2). `just build SREXT_UNZIP` is the canonical build and `just compare SREXT_UNZIP` selects
+the corresponding reccmp target.
+
+The first targeted comparison covers seven PDB identities. Six are implemented, with 82.06%
+aggregate accuracy and 70.33% progress: both description functions and `srGetLibraryVersion` are
+exact, `srZipAdapter::openMember` at `0x10011060` is 67.68%, and the DLL startup helper is 91.78%.
+The separately compiled `srWizUnzipToMemory` body at `0x1000DA10` remains an instruction-for-
+instruction match.
+
+The recovered stream hierarchy is now enforced by compile-time sizes: `srBinStream` is `0x10`,
+the adapter state is `0x20`, the complete opener is `0x24`, and the owned memory stream is `0x2c`.
+The concrete subclass adds the `malloc` owner at `+0x14`; VC6 naturally emits the vbtable,
+deleting destructor, adjustment thunk, and virtual `srBinStream` subobject at `+0x1c`. Decorated
+imports further correct `srBinIStream::vget` to return `unsigned short` and establish
+`srBinIMStream::vread` as a private virtual.
+
+The broad ZIP-path parser at `0x100106B0` remains a deliberate stub. Completing that method,
+applying the 100 reviewed Info-ZIP identities, and refining the linked layout belong to the
+follow-on full-model and full-comparison beads rather than this memory-stream slice.
+
 ## Source archive provenance
 
 The pinned archive has SHA-256
