@@ -189,3 +189,20 @@ def test_level_format_inventory_preserves_typed_waypoint_boundary() -> None:
     assert by_extension[".WPT"]["record_layout"] == "waypoint 0x10 then link 0x0e"
     assert by_extension[".WPT"]["loader"] == "0x00459650"
     assert by_extension[".OCT"]["loader"] == "0x0042bc10"
+
+
+def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/variable-databases.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 1
+    npc = rows[0]
+    assert npc["archive_path"] == "DATABASES\\NPC.DBS"
+    assert npc["file_size"] == "118674"
+    assert npc["record_count"] == "146"
+    assert npc["fixed_record_size"] == "0x309"
+    assert npc["tail_layout"] == "uint32 count then count times 0x06 fact rules"
+    assert npc["loader"] == "0x0054aac0"

@@ -22,6 +22,8 @@ address,provisional_name,owner,confidence,evidence
 0051b5c0,FormatItemDisplayName,wiz8-gameplay-database,strong,Selects identified or generic item text and optionally appends the stack count
 0054a400,InitializeItemDatabase,wiz8-gameplay-database,strong,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
 0054a8a0,LoadMonsterDatabaseRecord,wiz8-gameplay-database,strong,Seeks to index times 0x297 plus the count header and reads one monster record
+0054aac0,InitializeNpcDatabase,wiz8-gameplay-database,strong,Loads 146 fixed 0x309-byte NPC records and each version-two variable fact-rule tail
+0054ac90,DestroyNpcDatabase,wiz8-gameplay-database,strong,Destroys each NPC record's runtime rule container then frees the fixed record array
 0054ad00,InitializeFactDatabase,wiz8-gameplay-database,strong,Reads the Fact.dbs count then allocates and loads contiguous 0x1d8-byte definition records
 0054ae00,DestroyFactDatabase,wiz8-gameplay-database,strong,Frees the fact definition array and clears its global pointer
 0054ae20,InitializeLevelDatabase,wiz8-gameplay-database,strong,Reads the Levels.dbs count then allocates and loads contiguous 0xd8-byte records
@@ -30,6 +32,7 @@ address,provisional_name,owner,confidence,evidence
 005064a0,LoadFactState,wiz8-save-game,strong,Reads exactly 1000 fact-state bytes and reconciles state-dependent NPC data and initial-mode facts
 00506670,HandleFactChange,wiz8-local-code,strong,The only caller is SetFact and the fact-ID switch performs corresponding world NPC faction trigger and location side effects
 005080f0,EvaluateFact,wiz8-local-code,strong,Computes special and derived facts recursively and otherwise returns the persisted byte for the requested fact ID
+00509aa0,CreateNpcRuntimeNode,wiz8-npc-system,strong,Allocates a 0x13d-byte runtime node and binds the indexed NPC database record then conditionally initializes inventory and full RPC character state
 0052a2f0,RecalculateCharacterHitPoints,wiz8-character-system,strong,Combines all fifteen profession levels with the corresponding hit-point factors then reconciles current and maximum hit points
 00551a60,RecalculateCharacterResistances,wiz8-character-system,strong,Builds six realm resistances then applies the selected race's six resistance adjustment records and character bonuses
 00553d90,IsCharacterSkillAvailable,wiz8-character-system,strong,Checks the 41 by 15 profession skill matrix then bonus professional caster and expert-skill exceptions

@@ -484,6 +484,76 @@ def apply_wiz8_format_model(
                         ),
                     ],
                 )
+                npc_fact_rule = _structure(
+                    dtm,
+                    category,
+                    "W8NpcFactRule",
+                    0x06,
+                    [
+                        (0x00, dword, "fact_id", "fact or derived-fact identifier"),
+                        (0x04, word, "flags", "predicate and operator bits"),
+                    ],
+                )
+                npc_record = _structure(
+                    dtm,
+                    category,
+                    "W8NpcDatabaseRecord",
+                    0x309,
+                    [
+                        (0x000, word, "version", "two in all reviewed records"),
+                        (0x002, word, "unknown_002", "unreviewed field"),
+                        (
+                            0x004,
+                            ArrayDataType(word, 40, 2),
+                            "name_aliases",
+                            "packed null-terminated UTF-16 aliases",
+                        ),
+                        (
+                            0x054,
+                            byte,
+                            "spawn_mode",
+                            "zero creates a persistent runtime node",
+                        ),
+                        (0x055, byte, "has_inventory", "initializes runtime inventory"),
+                        (0x056, byte, "unknown_056", "unreviewed flag"),
+                        (
+                            0x057,
+                            byte,
+                            "has_rpc_character",
+                            "allocates a full 0x1862-byte character state",
+                        ),
+                        (0x058, dword, "record_id", "equals the zero-based index"),
+                        (0x05C, ArrayDataType(byte, 0x18, 1), "unknown_05c", "unreviewed"),
+                        (
+                            0x074,
+                            ArrayDataType(char, 0x29, 1),
+                            "entity_aliases",
+                            "packed null-terminated aliases",
+                        ),
+                        (
+                            0x09D,
+                            byte,
+                            "unknown_09d",
+                            "zero enables the version-two rule tail",
+                        ),
+                        (
+                            0x09E,
+                            ArrayDataType(char, 0x26, 1),
+                            "script_aliases",
+                            "packed null-terminated aliases",
+                        ),
+                        (0x0C4, ArrayDataType(byte, 0x206, 1), "unknown_0c4", "unreviewed"),
+                        (
+                            0x2CA,
+                            generic_pointer,
+                            "fact_rules_runtime",
+                            "runtime-owned rule container",
+                        ),
+                        (0x2CE, ArrayDataType(byte, 0x1D, 1), "unknown_2ce", "unreviewed"),
+                        (0x2EB, dword, "unknown_2eb", "copied into the runtime node"),
+                        (0x2EF, ArrayDataType(byte, 0x1A, 1), "unknown_2ef", "unreviewed"),
+                    ],
+                )
                 spell_realm = EnumDataType(category, "W8SpellRealm", 4, dtm)
                 spell_realm.add("W8_SPELL_REALM_FIRE", 0)
                 spell_realm.add("W8_SPELL_REALM_WATER", 1)
@@ -557,6 +627,7 @@ def apply_wiz8_format_model(
                 monster_record_pointer = PointerDataType(monster_record, dtm)
                 level_record_pointer = PointerDataType(level_record, dtm)
                 fact_record_pointer = PointerDataType(fact_record, dtm)
+                npc_record_pointer = PointerDataType(npc_record, dtm)
                 spell_record_pointer = PointerDataType(spell_record, dtm)
                 profession_skill_availability = ArrayDataType(integer, 15, 4)
                 seek_origin = EnumDataType(category, "W8VirtualFileSeekOrigin", 1, dtm)
@@ -599,10 +670,12 @@ def apply_wiz8_format_model(
                     (0x0060A6C8, integer),
                     (0x0065BE18, dword),
                     (0x0065BE1C, spell_record_pointer),
+                    (0x006836A0, npc_record_pointer),
                     (0x006836A4, level_record_pointer),
                     (0x006836AC, fact_record_pointer),
                     (0x00683F78, dword),
                     (0x00683F84, dword),
+                    (0x00683F88, dword),
                     (0x00683F8C, dword),
                     (0x00683F90, dword),
                     (0x006840C7, ArrayDataType(monster_record_pointer, 1000, 4)),
@@ -695,6 +768,7 @@ def apply_wiz8_format_model(
                         [("fact_id", integer), ("value", byte)],
                     ),
                     0x005080F0: (byte, [("fact_id", integer)]),
+                    0x00509AA0: (generic_pointer, [("npc_id", integer)]),
                     0x00535AD0: (faction_disposition, [("faction", byte)]),
                     0x0051B5C0: (
                         PointerDataType(word, dtm),
@@ -747,6 +821,8 @@ def apply_wiz8_format_model(
                         byte,
                         [("monster_index", dword), ("record", monster_record_pointer)],
                     ),
+                    0x0054AAC0: (dword, []),
+                    0x0054AC90: (void, []),
                     0x0054AD00: (dword, []),
                     0x0054AE00: (void, []),
                     0x0054AE20: (dword, []),
@@ -804,10 +880,12 @@ def apply_wiz8_format_model(
                     (0x006164C4, "g_faerie_starting_equipment"),
                     (0x0065BE18, "g_spell_database_version"),
                     (0x0065BE1C, "g_spell_records"),
+                    (0x006836A0, "g_npc_records"),
                     (0x006836A4, "g_level_records"),
                     (0x006836AC, "g_fact_records"),
                     (0x00683F78, "g_item_record_count"),
                     (0x00683F84, "g_monster_record_count"),
+                    (0x00683F88, "g_npc_record_count"),
                     (0x00683F8C, "g_fact_record_count"),
                     (0x00683F90, "g_level_record_count"),
                     (0x006840C7, "g_monster_record_cache"),
@@ -858,6 +936,8 @@ def apply_wiz8_format_model(
                                 monster_record,
                                 level_record,
                                 fact_record,
+                                npc_fact_rule,
+                                npc_record,
                                 spell_realm,
                                 spell_record,
                             )
@@ -884,10 +964,12 @@ def apply_wiz8_format_model(
                             "0x006164c4",
                             "0x0065be18",
                             "0x0065be1c",
+                            "0x006836a0",
                             "0x006836a4",
                             "0x006836ac",
                             "0x00683f78",
                             "0x00683f84",
+                            "0x00683f88",
                             "0x00683f8c",
                             "0x00683f90",
                             "0x006840c7",

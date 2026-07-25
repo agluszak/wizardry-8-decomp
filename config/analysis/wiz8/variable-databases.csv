@@ -1,0 +1,2 @@
+archive_path,file_size,record_count,fixed_record_size,tail_layout,loader,status,evidence
+DATABASES\NPC.DBS,118674,146,0x309,uint32 count then count times 0x06 fact rules,0x0054aac0,partially-typed,"All five variants parse exactly; every fixed record has version two and record_id equal to its zero-based index; 774 variable rules follow the fixed records"

@@ -164,6 +164,20 @@ and, unless suppressed by its third argument, dispatches `HandleFactChange` to p
 associated trigger, NPC, faction, and location side effects. The 807 definition count and
 1,000-byte state capacity are therefore intentionally distinct.
 
+`NPC.dbs` is a mixed fixed-and-variable database rather than another fixed-stride table.
+Its leading count is followed by 146 packed `0x309`-byte version-two records. Each record
+then owns a 32-bit rule count and that many six-byte `W8NpcFactRule` values. The rule is a
+32-bit fact ID followed by a 16-bit predicate/operator field. All five available builds have
+the same 774 rules and parse exactly to byte 118,674; no archive bytes are left unexplained.
+
+`InitializeNpcDatabase` at `0x0054aac0` performs that two-part load and constructs a runtime
+rule container at record offset `+0x2ca`; `DestroyNpcDatabase` at `0x0054ac90` tears those
+containers down before freeing the fixed array. Every record's dword at `+0x58` equals its
+zero-based index. `CreateNpcRuntimeNode` at `0x00509aa0` binds one indexed record to a
+`0x13d`-byte runtime node, initializes inventory when `+0x55` is nonzero, and allocates a
+full `0x1862`-byte RPC character state when `+0x57` is nonzero. Packed display, entity, and
+script aliases are retained as fixed buffers; their proprietary contents are not tracked.
+
 The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
 reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`
