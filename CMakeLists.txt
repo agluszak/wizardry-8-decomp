@@ -235,6 +235,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/gameplay_boundaries.c
         src/wiz8/random_number.c
         src/wiz8/spell_backfire.cpp
+        src/wiz8/state_getters.c
     )
     set_source_files_properties(src/wiz8/random_number.c PROPERTIES COMPILE_OPTIONS /G5)
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)

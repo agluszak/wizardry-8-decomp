@@ -13,3 +13,6 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 00506280,132,GetFact,wiz8-game-state,exact,bd49cf8863d372e24a72e6ad01c04fd9772d3bb8726df41cf5aa5d1a9870db33,VC6 SP5 O2 G6 MD body matches after masking EvaluateFact logging fact-record and wide-string relocations
 005061a0,219,SetFact,wiz8-game-state,exact,929c978d5088d599d032ddca2689f8d01b8adb0526aaa15a3de0621f77f760cf,VC6 SP5 O2 G6 MD body matches after masking state journal side-effect logging record and string relocations
 0040efa0,50,GetRandomNumber,wiz8-engine-code,exact,438ef441f48956b35998a4c1aa63c4da1d0a0fc45436883376b4a7bc849897bb,VC6 SP5 O2 G5 MD body matches after masking the imported rand relocation
+0042b580,6,GetLoadedLevelID,wiz8-level-system,exact,76811197299fd7215ff45276752d25eaa8889353ee70ada1fd839c8a55d34ffc,VC6 SP5 O2 G6 MD getter matches after masking the loaded-level global relocation
+00451280,6,GetWorld,wiz8-world-system,exact,76811197299fd7215ff45276752d25eaa8889353ee70ada1fd839c8a55d34ffc,VC6 SP5 O2 G6 MD getter matches after masking the world-pointer global relocation
+0051b9e0,19,GetItemInHand,wiz8-item-system,exact,b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14,VC6 SP5 O2 G6 MD body matches after masking item-validity and item-record relocations

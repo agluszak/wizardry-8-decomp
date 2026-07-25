@@ -263,10 +263,12 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 14
+    assert len(rows) == 17
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 13
+    assert len(exact) == 16
     assert {int(row["size"]) for row in exact} == {
+        6,
+        19,
         24,
         25,
         26,
@@ -291,6 +293,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/gameplay_boundaries.c",
             "src/wiz8/random_number.c",
             "src/wiz8/spell_backfire.cpp",
+            "src/wiz8/state_getters.c",
         )
     )
     for row in rows:

@@ -38,6 +38,17 @@ typedef struct W8FactDatabaseRecord {
     unsigned short description[106];     /* 0x104 */
 } W8FactDatabaseRecord;                  /* 0x1d8 */
 
+typedef struct W8ItemInstance {
+    int item_id;
+    unsigned char quantity;
+    unsigned char charges;
+    unsigned char identified;
+    unsigned char unknown_07[4];
+    unsigned char flag_0b;
+} W8ItemInstance;                        /* 0x0c */
+
+typedef struct W8World W8World;
+
 typedef unsigned char W8FactionDisposition;
 
 enum {
@@ -60,6 +71,10 @@ extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
 extern unsigned char g_fact_values[1001];
 extern int g_fact_record_count;
+extern int g_loaded_level_id;
+extern W8World* g_world;
+extern unsigned char g_item_in_hand_valid;
+extern W8ItemInstance g_item_in_hand;
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
@@ -79,6 +94,9 @@ unsigned int CharacterPointerToPartySlot(W8Character* character);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
+int GetLoadedLevelID(void);
+W8World* GetWorld(void);
+int GetItemInHand(void);
 
 #ifdef __cplusplus
 }
