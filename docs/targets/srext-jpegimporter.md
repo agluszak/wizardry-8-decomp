@@ -156,8 +156,12 @@ implementation itself remains the pristine upstream release-6 source.
 The root `CMakeLists.txt` owns the product build. It compiles the pinned pristine IJG release-6
 source with the two SurRender stdio adaptations, then links the recovered adapter and plug-in using
 the VC6 SP5 image, `/MD /O2 /GR-`, base `0x10000000`, `/OPT:NOREF`, and `/OPT:NOICF`. The stream
-bridge retains `/GX` for its two explicit handlers; the recovered plug-in unit uses `/GX-` to
-reproduce the observed lifetime functions without synthetic unwind prologues. The product
+bridge retains `/GX` for its two explicit handlers. `getSurfaceDesc`, `importSurface`, and
+`exportSurface` do have a synthesized SEH frame in the original (the classic `fs:[0]`-chained
+prologue) even though the simpler lifetime functions do not; they are split out of `plugin.cpp` into
+`src/srext_jpegimporter/surface_transfer.cpp`, sharing the class declarations through
+`plugin_classes.h`, so that file can build at the project's default `/GX` while `plugin.cpp` keeps
+`/GX-` for the lifetime functions that must stay prologue-free. The product
 uses the explicit original object order: the decisive tail is `jmemmgr.c`, `jmemnobs.c`,
 `jquant1.c`, `jquant2.c`, and `jutils.c`. FID seed discovery remains glob-based because link order is
 irrelevant there. The image contains pinned
@@ -189,15 +193,19 @@ matches for:
 
 The report now covers 366 code and data identities, including all 329 linked IJG functions, every
 reviewed first-party/lifetime function, the four concrete vtables, and the two active-stream globals.
-All 366 are implemented, aggregate accuracy is 98.92%, and 333 functions are address-aligned. The
+All 366 are implemented, aggregate accuracy is 99.00%, and 333 functions are address-aligned. The
 four vtables compare at 100%; the globals match byte-for-byte; the PE exports, import set, and version
 resource also match the original. The original Sir-Tech configuration omits both `fflush` and `ferror` from the IJG
 stdio destination; reproducing that fact removes the former `0x20` tail drift and puts every IJG
 translation unit at its original address. The larger denominator includes every recovered public operation:
-`getSurfaceDesc` is 53.57%, `importSurface` is 29.41%, and `exportSurface` is 74.14%. The low import
-score reflects unresolved
-local/control-flow selection rather than missing behavior; its allocation branches, vtable install,
-decode failure cleanup, and 1/3/4-component row conversions are all represented.
+`getSurfaceDesc` is 53.57%, `importSurface` is 49.77%, and `exportSurface` is 95.95%. `exportSurface`
+and `importSurface`'s object-construction dispatch both improved substantially once the missing SEH
+frame was restored (74.14% to 95.95%, and a chained `dec`/`sub`/`je` cascade matching a `switch`
+statement instead of the `if`/`else if` chain the source previously used). The remaining
+`importSurface` gap is now narrower and localized to the row-conversion loop's register allocation
+and stack-slot layout, which still needs further alignment; its allocation branches, vtable install,
+decode failure cleanup, and 1/3/4-component row conversions are all represented, so the drift is
+codegen-shape, not missing behavior.
 This proves that upstream IJG remains upstream source: only the Sir-Tech adapter and SurRender ABI
 are manually recovered.
 

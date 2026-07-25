@@ -166,9 +166,11 @@ if(WIZ8_BUILD_DECOMP)
         OBJECT_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
         COMPILE_OPTIONS "/FI${CMAKE_CURRENT_SOURCE_DIR}/src/srext_jpegimporter/ijg_stdio_override.h"
     )
-    # The original lifetime functions have no C++ EH prologues. The stream
-    # bridge below is the separately compiled unit that owns the two catch-all
-    # handlers and retains /GX.
+    # The simple lifetime functions (constructors, destructors, accessors) have
+    # no C++ EH prologue in the original; getSurfaceDesc/importSurface/
+    # exportSurface do have one (a synthesized SEH frame installed via
+    # fs:[0]). They are split into surface_transfer.cpp, compiled at the
+    # project default /GX, so plugin.cpp can keep /GX- for the rest.
     set_source_files_properties(src/srext_jpegimporter/plugin.cpp PROPERTIES
         COMPILE_OPTIONS "/GX-"
     )
@@ -191,6 +193,7 @@ if(WIZ8_BUILD_DECOMP)
         ${IJG_JPEG_SOURCES}
         src/srext_jpegimporter/stream_bridge.cpp
         src/srext_jpegimporter/plugin.cpp
+        src/srext_jpegimporter/surface_transfer.cpp
         src/srext_jpegimporter/srEXT_JPEGImporter.def
         src/srext_jpegimporter/srEXT_JPEGImporter.rc
     )
