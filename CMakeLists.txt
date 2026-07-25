@@ -24,7 +24,7 @@ endif()
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "/O2 /MD /Z7 /DNDEBUG" CACHE STRING "" FORCE)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2 /MD /GX /GR- /Z7 /DNDEBUG" CACHE STRING "" FORCE)
 set(CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO
-    "/DEBUG /INCREMENTAL:NO /OPT:NOREF /BASE:0x10000000"
+    "/DEBUG /INCREMENTAL:NO /BASE:0x10000000"
     CACHE STRING "" FORCE)
 
 function(wiz8_collect_ijg_units RESULT SOURCE_ROOT)
@@ -101,6 +101,8 @@ if(WIZ8_BUILD_DECOMP)
     target_link_libraries(SREXT_JPEGIMPORTER PRIVATE "${SR_IMPORT_LIBRARY}")
     target_link_options(SREXT_JPEGIMPORTER PRIVATE
         /DEBUGTYPE:CV
+        /OPT:NOREF
+        /OPT:NOICF
         "/MAP:${CMAKE_CURRENT_BINARY_DIR}/srEXT_JPEGImporter.map"
     )
     set_target_properties(SREXT_JPEGIMPORTER PROPERTIES
@@ -204,10 +206,17 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
         GENERATED TRUE
     )
 
-    # The original image places the complete Info-ZIP object sequence before
-    # Sir-Tech's narrow wrapper and SurRender plug-in object.
+    set(SREXT_UNZIP_INFOZIP_SOURCES ${INFOZIP_UNZIP_SOURCES})
+    list(REMOVE_ITEM SREXT_UNZIP_INFOZIP_SOURCES
+        "${INFOZIP_SOURCE}/api.c"
+        "${INFOZIP_SOURCE}/windll/windll.c")
+
+    # The original image places the Info-ZIP object sequence before Sir-Tech's
+    # narrowed WinDLL front end, memory wrapper, and SurRender plug-in object.
     add_library(SREXT_UNZIP SHARED
-        ${INFOZIP_UNZIP_SOURCES}
+        src/srext_unzip/api_subset.c
+        ${SREXT_UNZIP_INFOZIP_SOURCES}
+        src/srext_unzip/windll_subset.c
         src/srext_unzip/infozip_adapter.c
         src/srext_unzip/plugin.cpp
         src/srext_unzip/srEXT_Unzip.def
@@ -227,6 +236,7 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
     target_link_libraries(SREXT_UNZIP PRIVATE "${SR_UNZIP_IMPORT_LIBRARY}")
     target_link_options(SREXT_UNZIP PRIVATE
         /DEBUGTYPE:CV
+        /OPT:REF
         /OPT:NOICF
         "/MAP:${CMAKE_CURRENT_BINARY_DIR}/srEXT_Unzip.map"
     )

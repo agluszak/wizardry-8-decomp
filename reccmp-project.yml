@@ -11,5 +11,6 @@ targets:
     source-root: src/srext_unzip
     data-sources:
       - config/analysis/reccmp/srext-unzip.csv
+      - config/analysis/reccmp/srext-unzip-symbols.csv
     hash:
       sha256: dba6cdc5741ae57574e019ab8f37935362bc288bee738bc711460f34d7647f62

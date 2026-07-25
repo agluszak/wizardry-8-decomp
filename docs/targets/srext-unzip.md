@@ -27,12 +27,12 @@ The module imports 114 functions: 41 from `MSVCRT.DLL`, 32 from `KERNEL32.DLL`, 
 
 ## Function ownership
 
-The reviewed inventory accounts for 172 addresses: 157 functions discovered by Ghidra plus 15
+The reviewed inventory accounts for 176 addresses: 157 functions discovered by Ghidra plus 19
 entries recovered directly from vtables, callback tables, and disassembly.
 
 | Range | Addresses | Interpretation |
 | --- | ---: | --- |
-| `0x10001000`-`0x100106AF` | 114 | Info-ZIP UnZip 5.4 |
+| `0x10001000`-`0x100106AF` | 118 | Info-ZIP UnZip 5.4 |
 | `0x100106B0`-`0x10011635` | 31 | Sir-Tech SurRender stream adapter and plugin |
 | `0x10011640` onward | 27 | import, exception, CRT, and DLL-startup glue |
 
@@ -43,25 +43,27 @@ come from eight builds: RTM, SP5, SP5 Processor Pack, and SP6 compilers, each us
 where the producing recipe is not, so the tracked inventory retains the full matching-variant set
 instead of promoting one compiler hypothesis.
 
-No competing FID names were found. Source order, call graph, and linked-object evidence resolve the
-remaining 14 bodies: four static extraction helpers, `DllMain`, `Wiz_NoPrinting`, the exact Sir-Tech
-`srWizUnzipToMemory` adaptation, and six encryption functions from the public-domain zcrypt 2.8
-overlay. The complete address map and per-function evidence live in
-`config/analysis/functions/srext-unzip.csv`; the 113 accepted public-library identities used by
+No competing FID names were found. Source order, call graph, callback references, and linked-object
+evidence resolve the remaining bodies, including the hidden WinDLL callbacks, `DllMain`,
+`Wiz_NoPrinting`, the exact Sir-Tech `srWizUnzipToMemory` adaptation, and six encryption functions
+from the public-domain zcrypt 2.8 overlay. The complete address map and per-function evidence live in
+`config/analysis/functions/srext-unzip.csv`; the accepted public-library identities used by
 reccmp live in `config/analysis/reccmp/srext-unzip.csv`.
 
 ## Repaired Ghidra model
 
-The imported Ghidra program originally omitted 15 real entries, including:
+The imported Ghidra program originally omitted 19 real entries, including:
 
 - `0x10011200` and `0x10011210`, which return the opener and plugin descriptions;
 - the stream-adapter destructor and adjustment thunks at `0x10011310`-`0x100113B0`;
 - the Info-ZIP DLL callback table at `0x100115C0`-`0x100115F0`;
+- `DllMessagePrint`, `UzpPassword`, `DummySound`, and `Wiz_StatReportCB` at
+  `0x1000D910`-`0x1000DA01`;
 - import thunks at `0x10011640` and `0x10011646`.
 
-`uv run wiz8 ghidra apply-functions ...` now creates those entries and applies all 150 reviewed
+`uv run wiz8 ghidra apply-functions ...` now creates those entries and applies all 154 reviewed
 exact, high-confidence, and structurally strong identities. The program contains the complete
-172-address census; candidate names are deliberately excluded. `uv run wiz8 ghidra
+176-address census; candidate names are deliberately excluded. `uv run wiz8 ghidra
 apply-unzip-model` installs the object and callback structures, applies the callback prototypes,
 and types the local tables.
 
@@ -110,8 +112,9 @@ a PDB and exports the original interface (`srGetLibraryVersion` ordinal 1 and `s
 ordinal 2). `just build SREXT_UNZIP` is the canonical build and `just compare SREXT_UNZIP` selects
 the corresponding reccmp target.
 
-The expanded comparison covers 136 identities. One hundred eleven are implemented, with 94.14%
-aggregate accuracy and 76.83% progress. The six zcrypt bodies, both descriptions,
+The expanded comparison covers 140 identities. One hundred sixteen are implemented, with 94.61%
+aggregate accuracy and 78.39% progress. Eighty functions already occupy their original addresses.
+The six zcrypt bodies, both descriptions,
 `srGetLibraryVersion`, the adapter constructor, callback table, small-string constructors and
 assignment, and many upstream Info-ZIP functions are exact. The source-defined Info-ZIP `DllMain` is now present;
 that requires omitting `UNZIPLIB` on the real DLL target while retaining it on diagnostic library
@@ -140,11 +143,19 @@ The callback ABI is exact. The password callback appends the `srZipAdapter*` aft
 standard arguments (it is the fifth parameter), while the print/service, replace, and message
 callbacks are instruction-exact no-op bridges.
 
-The generated image reproduces the original exports by name and ordinal and all 25 `SR.DLL`
-imports by decorated name, including the imported `srBinStream` vtable. Its `.rsrc` section has the
-same 840-byte virtual size, 4096-byte raw size, and complete version-resource dictionary as the
-original. Remaining PE-level drift is confined to linked code/data sizes and five additional
-KERNEL32 plus five additional MSVCRT imports introduced by the not-yet-matched runtime/link shape.
+The target uses narrowed source equivalents of Info-ZIP's `api.c` and `windll.c`: the original DLL
+retains only the five memory-extraction API helpers and eight WinDLL setup/callback functions, while
+the stock archive also contains unused version, validation, extraction, grep, and general-purpose
+entry points. This source partition removes the stock-only code and its imports without changing the
+upstream helper bodies.
+
+The generated image reproduces the original exports by name and ordinal and every imported symbol:
+25 from `SR.DLL`, 32 from KERNEL32, 41 from MSVCRT, 14 from ADVAPI32, and two from USER32. Its
+`.rsrc` section has the same 840-byte virtual size, 4096-byte raw size, and complete version-resource
+dictionary as the original. Both images are `0x19000` bytes in memory and have identical raw section
+sizes. Remaining section drift is small: `.text` is 944 virtual bytes larger, `.rdata` 48 bytes
+larger, `.data` 32 bytes smaller, and `.reloc` 56 bytes smaller. The 39-byte file-size excess is the
+recompiled image's CodeView/PDB record.
 
 ## Source archive provenance
 
@@ -170,5 +181,6 @@ fetch manifest records both the base archive and overlay hashes.
 The root CMake project also exposes `INFOZIP_UNZIP_5_4`, using the exact 19-source VC6 static-library
 set from the archive's `windll/visualc/lib` project. `just build INFOZIP_UNZIP_5_4` compiles and
 archives that source unchanged with the target-derived `/MD /O2 /Zp4` configuration. The complete
-`srEXT_Unzip.dll` target links the same ordered source set with only the owned SurRender adapter and
-the small `Wiz_UnzipToMemory` adaptation described above.
+`srEXT_Unzip.dll` target links the same ordered computational objects, replacing only the two broad
+front-end objects with their evidenced retained subsets, the owned SurRender adapter, and the small
+`Wiz_UnzipToMemory` adaptation described above.

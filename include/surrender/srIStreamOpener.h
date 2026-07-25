@@ -4,9 +4,9 @@
 
 class srIStreamOpener {
 public:
-    class Opener {
+    class __declspec(novtable) Opener {
     public:
-        virtual SR_DLL_IMPORT ~Opener();
+        virtual SR_DLL_IMPORT ~Opener() {}
         virtual srBinIStream* open(char* path) = 0;
         virtual const char* getDescription() const = 0;
     };

@@ -4,7 +4,7 @@
 // proven by every srEXT_* wrapper vtable: deleting destructor first, textual
 // description second.
 
-class srPlugin {
+class __declspec(novtable) srPlugin {
 public:
     virtual ~srPlugin() {}
     virtual const char* getDescription() const = 0;

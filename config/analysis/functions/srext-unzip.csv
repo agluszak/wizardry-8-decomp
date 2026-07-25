@@ -105,7 +105,11 @@ address,size,current_name,provisional_name,owner,confidence,fid_variants,evidenc
 1000d830,24,FUN_1000d830,DllMain,infozip-unzip-5.4,high,,Exact windll.c process-attach body storing hInst and returning TRUE
 1000d850,81,FUN_1000d850,_Wiz_Init@8,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp5-vcpp-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000d8b0,92,FUN_1000d8b0,win_fprintf,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
+1000d910,41,,DllMessagePrint,infozip-unzip-5.4,exact,,Static WinDLL message callback stored by Wiz_Init; exact upstream UnZip 5.4 source body
+1000d940,67,,UzpPassword,infozip-unzip-5.4,exact,,Password callback retained from the public zcrypt-enabled WinDLL front end
 1000d990,12,FUN_1000d990,Wiz_NoPrinting,infozip-unzip-5.4,exact,,Exact windll.c setter body writing fNoPrinting and returning with ret 4
+1000d9a0,1,,DummySound,infozip-unzip-5.4,exact,,Empty default sound callback installed by Wiz_Init
+1000d9b0,82,,Wiz_StatReportCB,infozip-unzip-5.4,exact,,Status bridge dispatching sound and service callbacks from Info-ZIP into the host callback table
 1000da10,142,FUN_1000da10,srWizUnzipToMemory,sirtech-unzip-adapter,exact,vc6-sp5-target-runtime-md-o2,Owned source compiles to an instruction-for-instruction identical 142-byte body
 1000daa0,748,FUN_1000daa0,zi_end_central,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000dd90,1580,FUN_1000dd90,zipinfo,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous

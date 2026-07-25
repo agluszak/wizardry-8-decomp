@@ -105,6 +105,7 @@ address|name|size|type
 1000d830|DllMain|24|library
 1000d850|_Wiz_Init@8|81|library
 1000d8b0|win_fprintf|92|library
+1000d940|UzpPassword|67|library
 1000d990|Wiz_NoPrinting|12|library
 1000daa0|zi_end_central|748|library
 1000dd90|zipinfo|1580|library

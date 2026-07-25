@@ -1,0 +1,10 @@
+address|symbol|size|type
+100099f0|_process_zipfiles|1251|library
+1000d830|_DllMain@12|24|function
+1000d850|_Wiz_Init@8|81|function
+1000d8b0|_win_fprintf|92|function
+1000d910|_DllMessagePrint@16|41|function
+1000d940|_UzpPassword@24|67|function
+1000d990|_Wiz_NoPrinting@4|12|function
+1000d9a0|_DummySound@0|1|function
+1000d9b0|_Wiz_StatReportCB@20|82|function
