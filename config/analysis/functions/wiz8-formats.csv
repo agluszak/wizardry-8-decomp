@@ -4,6 +4,10 @@ address,provisional_name,owner,confidence,evidence
 00404ea0,ReadVirtualFile,wiz8-file-system,strong,Reads bytes from either a physical handle or an SLF archive entry and reports the completed byte count
 00405030,SeekVirtualFile,wiz8-file-system,strong,Seeks a physical handle or SLF-backed entry using Wizardry origin values 1 2 and 4
 004acc10,InitializeSpellDatabase,wiz8-gameplay-database,strong,Reads the count and version from SpellTables.dbs then skips 0x101 and loads 0x1bf bytes for each spell
+004ac9d0,GetSpellTargetType,wiz8-gameplay-database,strong,Returns the target-type field at runtime offset 0x137 and optionally normalizes type one to zero
+004aca60,CanSpellBackfire,wiz8-gameplay-database,strong,The canonical casting failure path uses this target-type and spell-ID predicate to decide whether a failed spell can backfire
+004acb40,MinimumCasterLevelForSpellLevel,wiz8-gameplay-database,strong,Maps spell levels one through seven to minimum caster levels 1 3 5 8 11 14 and 18
+004acba0,GetMinimumCasterLevelForSpell,wiz8-gameplay-database,strong,Loads a spell's level and returns the corresponding minimum caster level
 00517970,RollDice,wiz8-gameplay-database,strong,Returns the signed base plus count independent rolls in the range one through sides
 005179b0,IntegerPower,wiz8-gameplay-database,strong,Multiplies the integer base by itself exponent times and is used to derive the monster disposition cache duration
 00535ad0,GetFactionDisposition,wiz8-factions,strong,Asserts a faction ID from zero through twenty and maps its rating below 34 to hostile through 66 to neutral and above 66 to friendly

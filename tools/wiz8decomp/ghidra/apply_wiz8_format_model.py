@@ -29,6 +29,7 @@ def apply_wiz8_format_model(
         DataTypeConflictHandler,
         DWordDataType,
         EnumDataType,
+        FloatDataType,
         IntegerDataType,
         PointerDataType,
         QWordDataType,
@@ -52,6 +53,7 @@ def apply_wiz8_format_model(
                 char = CharDataType.dataType
                 word = WordDataType.dataType
                 dword = DWordDataType.dataType
+                float_type = FloatDataType.dataType
                 integer = IntegerDataType.dataType
                 qword = QWordDataType.dataType
                 short = ShortDataType.dataType
@@ -328,18 +330,70 @@ def apply_wiz8_format_model(
                         ),
                     ],
                 )
+                spell_realm = EnumDataType(category, "W8SpellRealm", 4, dtm)
+                spell_realm.add("W8_SPELL_REALM_FIRE", 0)
+                spell_realm.add("W8_SPELL_REALM_WATER", 1)
+                spell_realm.add("W8_SPELL_REALM_AIR", 2)
+                spell_realm.add("W8_SPELL_REALM_EARTH", 3)
+                spell_realm.add("W8_SPELL_REALM_MENTAL", 4)
+                spell_realm.add("W8_SPELL_REALM_DIVINE", 5)
+                spell_realm = dtm.addDataType(spell_realm, DataTypeConflictHandler.REPLACE_HANDLER)
                 spell_record = _structure(
                     dtm,
                     category,
                     "W8SpellRuntimeRecord",
                     0x1BF,
                     [
+                        (0x000, ArrayDataType(char, 64, 1), "database_name", "database name"),
+                        (0x040, ArrayDataType(byte, 8, 1), "unknown_040", "unreviewed fields"),
+                        (0x048, byte, "alchemy_spell", "belongs to the Alchemy spellbook"),
+                        (0x049, integer, "spell_point_cost", "cost per power level"),
+                        (0x04D, ArrayDataType(byte, 4, 1), "unknown_04d", "unreviewed fields"),
+                        (0x051, dice, "effect_dice", "effect magnitude dice"),
+                        (0x055, byte, "unknown_055", "unreviewed flag"),
+                        (0x056, integer, "spell_level", "zero through seven"),
                         (
-                            0x000,
-                            ArrayDataType(byte, 0x1BF, 1),
-                            "fields",
-                            "runtime record retained by Spells.cpp",
-                        )
+                            0x05A,
+                            byte,
+                            "wizardry_spell",
+                            "belongs to the Wizardry spellbook",
+                        ),
+                        (
+                            0x05B,
+                            ArrayDataType(char, 64, 1),
+                            "resource_name",
+                            "visual or MLS resource basename",
+                        ),
+                        (
+                            0x09B,
+                            ArrayDataType(word, 64, 2),
+                            "display_name",
+                            "64 UTF-16 code units",
+                        ),
+                        (0x11B, ArrayDataType(byte, 4, 1), "unknown_11b", "unreviewed fields"),
+                        (0x11F, byte, "divinity_spell", "belongs to the Divinity spellbook"),
+                        (0x120, byte, "psionics_spell", "belongs to the Psionics spellbook"),
+                        (0x121, float_type, "effect_radius", "effect radius or range"),
+                        (0x125, ArrayDataType(byte, 0x0E, 1), "unknown_125", "unreviewed fields"),
+                        (0x133, spell_realm, "realm", "six-value spell realm"),
+                        (
+                            0x137,
+                            integer,
+                            "target_type",
+                            "targeting domain not yet enumerated",
+                        ),
+                        (
+                            0x13B,
+                            ArrayDataType(byte, 0x10, 1),
+                            "unknown_13b",
+                            "effect fields not yet reconciled",
+                        ),
+                        (
+                            0x14B,
+                            ArrayDataType(char, 0x74, 1),
+                            "sound_name",
+                            "relative to Data\\Spells\\Sounds",
+                        ),
                     ],
                 )
 
@@ -409,6 +463,13 @@ def apply_wiz8_format_model(
                         ],
                     ),
                     0x004ACC10: (dword, []),
+                    0x004AC9D0: (
+                        integer,
+                        [("spell_id", integer), ("normalize_single_target", byte)],
+                    ),
+                    0x004ACA60: (byte, [("spell_id", integer)]),
+                    0x004ACB40: (integer, [("spell_level", integer)]),
+                    0x004ACBA0: (integer, [("spell_id", integer)]),
                     0x004126F0: (dword, []),
                     0x00412A10: (dword, []),
                     0x00412BB0: (
@@ -522,6 +583,7 @@ def apply_wiz8_format_model(
                                 monster_record,
                                 level_record,
                                 fact_record,
+                                spell_realm,
                                 spell_record,
                             )
                         ],

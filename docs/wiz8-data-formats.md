@@ -81,6 +81,23 @@ suffixes beginning with `#` from four adjacent `0x30`-byte UTF-16 name fields.
 `count * 0x1bf`, then skips `0x101` bytes before each runtime read. The ignored prefix
 is retained in the disk declaration but is not represented in the runtime type.
 
+The retained spell body begins with a 64-byte database name. Four membership bytes at
+`+0x048`, `+0x05a`, `+0x11f`, and `+0x120` select the Alchemy, Wizardry, Divinity, and
+Psionics books; this mapping is established by the canonical character-skill mask and by
+spells shared between books. The cost per power level is the unaligned integer at `+0x049`,
+followed by `W8Dice effect_dice` at `+0x051` and the level at `+0x056`.
+
+The resource basename at `+0x05b` is consumed by the spell visual/MLS creation paths. A
+64-code-unit UTF-16 display name begins at `+0x09b`. The realm at `+0x133` has the complete
+six-value Fire, Water, Air, Earth, Mental, and Divine domain and directly indexes a
+character's six spell-point pools. The float at `+0x121` is the effect radius or range, and
+`GetSpellTargetType` at `0x004ac9d0` returns the 32-bit targeting field at `+0x137`.
+`GetMinimumCasterLevelForSpell` at `0x004acba0` maps the record's spell level to the
+canonical minimum caster-level sequence `1, 3, 5, 8, 11, 14, 18`.
+the final `0x74` bytes at `+0x14b` form the sound basename used below
+`Data\\Spells\\Sounds`. The target-type values and the remaining effect-dispatch fields
+stay opaque pending their enum recovery.
+
 The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
 reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`

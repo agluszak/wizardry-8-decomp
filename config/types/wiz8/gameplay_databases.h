@@ -119,8 +119,37 @@ typedef struct W8FactDatabaseRecord {
     uint8_t fields_104[0xd4];           /* 0x104: not yet field-reconciled */
 } W8FactDatabaseRecord;                 /* 0x1d8 */
 
+typedef enum W8SpellRealm {
+    W8_SPELL_REALM_FIRE = 0,
+    W8_SPELL_REALM_WATER = 1,
+    W8_SPELL_REALM_AIR = 2,
+    W8_SPELL_REALM_EARTH = 3,
+    W8_SPELL_REALM_MENTAL = 4,
+    W8_SPELL_REALM_DIVINE = 5,
+    W8_SPELL_REALM_COUNT = 6
+} W8SpellRealm;
+
 typedef struct W8SpellRuntimeRecord {
-    uint8_t fields[0x1bf];              /* runtime portion retained by Spells.cpp */
+    char database_name[64];             /* 0x000 */
+    uint8_t unknown_040[8];             /* 0x040 */
+    uint8_t alchemy_spell;              /* 0x048 */
+    int32_t spell_point_cost;           /* 0x049: per power level */
+    uint8_t unknown_04d[4];             /* 0x04d */
+    W8Dice effect_dice;                 /* 0x051 */
+    uint8_t unknown_055;                /* 0x055 */
+    int32_t spell_level;                /* 0x056: zero through seven */
+    uint8_t wizardry_spell;             /* 0x05a */
+    char resource_name[64];             /* 0x05b: visual/MLS resource basename */
+    W8WideChar display_name[64];         /* 0x09b */
+    uint8_t unknown_11b[4];             /* 0x11b */
+    uint8_t divinity_spell;             /* 0x11f */
+    uint8_t psionics_spell;             /* 0x120 */
+    float effect_radius;                /* 0x121 */
+    uint8_t unknown_125[0x0e];          /* 0x125 */
+    W8SpellRealm realm;                 /* 0x133 */
+    int32_t target_type;                /* 0x137: domain not yet enumerated */
+    uint8_t unknown_13b[0x10];          /* 0x13b */
+    char sound_name[0x74];              /* 0x14b: relative to Data\Spells\Sounds */
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 
 typedef struct W8SpellDiskRecord {
