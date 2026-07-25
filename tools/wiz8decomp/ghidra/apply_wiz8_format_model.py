@@ -554,6 +554,66 @@ def apply_wiz8_format_model(
                         (0x2EF, ArrayDataType(byte, 0x1A, 1), "unknown_2ef", "unreviewed"),
                     ],
                 )
+                save_section_tag = EnumDataType(category, "W8SaveSectionTag", 4, dtm)
+                for name, value in (
+                    ("W8_SAVE_GVER", 0x52455647),
+                    ("W8_SAVE_GSTA", 0x41545347),
+                    ("W8_SAVE_SHOT", 0x544F4853),
+                    ("W8_SAVE_TEXT", 0x54584554),
+                    ("W8_SAVE_TVAR", 0x52415654),
+                    ("W8_SAVE_NPCI", 0x4943504E),
+                    ("W8_SAVE_NPCT", 0x5443504E),
+                    ("W8_SAVE_NPCF", 0x4643504E),
+                    ("W8_SAVE_FATA", 0x41544146),
+                    ("W8_SAVE_JRNL", 0x4C4E524A),
+                    ("W8_SAVE_HYPN", 0x4E505948),
+                    ("W8_SAVE_LVLS", 0x534C564C),
+                    ("W8_SAVE_STAT", 0x54415453),
+                    ("W8_SAVE_MONS", 0x534E4F4D),
+                    ("W8_SAVE_ITEM", 0x4D455449),
+                    ("W8_SAVE_CUBE", 0x45425543),
+                    ("W8_SAVE_MONG", 0x474E4F4D),
+                    ("W8_SAVE_LOCK", 0x4B434F4C),
+                    ("W8_SAVE_TRES", 0x53455254),
+                    ("W8_SAVE_AUTO", 0x4F545541),
+                    ("W8_SAVE_TRIG", 0x47495254),
+                    ("W8_SAVE_APST", 0x54535041),
+                    ("W8_SAVE_CUBS", 0x53425543),
+                    ("W8_SAVE_MGNS", 0x534E474D),
+                    ("W8_SAVE_LCKS", 0x534B434C),
+                    ("W8_SAVE_AMBS", 0x53424D41),
+                    ("W8_SAVE_PART", 0x54524150),
+                    ("W8_SAVE_LGHT", 0x5448474C),
+                ):
+                    save_section_tag.add(name, value)
+                save_section_tag = dtm.addDataType(
+                    save_section_tag, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+                save_status_header = _structure(
+                    dtm,
+                    category,
+                    "W8SaveStatusHeader",
+                    0x314,
+                    [
+                        (0x000, float_type, "version", "2.0 in the canonical build"),
+                        (0x004, integer, "unknown_004", "restored as one when zero"),
+                        (0x008, integer, "unknown_008", "restored as one when zero"),
+                        (0x00C, integer, "unknown_00c", "restored as one when zero"),
+                        (0x010, integer, "unknown_010", "restored as one when zero"),
+                        (
+                            0x014,
+                            ArrayDataType(byte, 0x100, 1),
+                            "global_status",
+                            "copied to and from the canonical global state",
+                        ),
+                        (
+                            0x114,
+                            ArrayDataType(byte, 0x200, 1),
+                            "reserved_114",
+                            "zeroed by SaveStatusHeader",
+                        ),
+                    ],
+                )
                 spell_realm = EnumDataType(category, "W8SpellRealm", 4, dtm)
                 spell_realm.add("W8_SPELL_REALM_FIRE", 0)
                 spell_realm.add("W8_SPELL_REALM_WATER", 1)
@@ -769,6 +829,14 @@ def apply_wiz8_format_model(
                     ),
                     0x005080F0: (byte, [("fact_id", integer)]),
                     0x00509AA0: (generic_pointer, [("npc_id", integer)]),
+                    0x005123F0: (
+                        dword,
+                        [("slot_name", char_pointer), ("screenshot", generic_pointer)],
+                    ),
+                    0x00512920: (dword, [("slot_name", char_pointer)]),
+                    0x00512D00: (dword, []),
+                    0x00513090: (dword, []),
+                    0x00513260: (dword, [("save_context", generic_pointer)]),
                     0x00535AD0: (faction_disposition, [("faction", byte)]),
                     0x0051B5C0: (
                         PointerDataType(word, dtm),
@@ -938,6 +1006,8 @@ def apply_wiz8_format_model(
                                 fact_record,
                                 npc_fact_rule,
                                 npc_record,
+                                save_section_tag,
+                                save_status_header,
                                 spell_realm,
                                 spell_record,
                             )

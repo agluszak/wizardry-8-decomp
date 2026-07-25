@@ -178,6 +178,25 @@ zero-based index. `CreateNpcRuntimeNode` at `0x00509aa0` binds one indexed recor
 full `0x1862`-byte RPC character state when `+0x57` is nonzero. Packed display, entity, and
 script aliases are retained as fixed buffers; their proprietary contents are not tracked.
 
+## Save-game container
+
+The main save is a nested tagged container, not a single raw memory image. `SaveGame` at
+`0x005123f0` creates the slot and writes FourCC sections; `LoadGame` at `0x00512920`
+enumerates and dispatches them. The reviewed vocabulary currently contains 28 exact tags in
+`config/analysis/wiz8/save-game-sections.csv`. Top-level sections include version, game
+status, screenshot, text, NPC, fact, journal, and optional state. Each `LVLS` record owns
+nested level sections for status, monsters, items, encounter state, locks, triggers, ambient
+state, particles, and lights. Tags are stored as little-endian 32-bit integers, so the C enum
+retains the numeric constants used by the switch statements.
+
+The nested `STAT` payload begins with a fixed `0x314`-byte `W8SaveStatusHeader`.
+`SaveStatusHeader` at `0x00513260` zeroes the complete record, writes version `2.0`, four
+32-bit state values, and a `0x100`-byte global-status block. `LoadStatusHeader` at
+`0x00513090` reads exactly `0x314` bytes, rejects a different version, restores those fields,
+and substitutes one for any zero among the four state values. The remaining `0x200` bytes
+are reserved and zero in newly written records. Later variable-size monster, item, and
+character records remain separate serializers and are not folded into this header.
+
 The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
 reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`

@@ -206,3 +206,21 @@ def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
     assert npc["fixed_record_size"] == "0x309"
     assert npc["tail_layout"] == "uint32 count then count times 0x06 fact rules"
     assert npc["loader"] == "0x0054aac0"
+
+
+def test_save_game_section_vocabulary_is_unique_and_bidirectional() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/save-game-sections.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 28
+    assert len({row["tag"] for row in rows}) == 28
+    assert len({int(row["value"], 0) for row in rows}) == 28
+    by_tag = {row["tag"]: row for row in rows}
+    assert by_tag["GVER"]["consumer"] == "0x005123f0"
+    assert by_tag["GSTA"]["consumer"] == "0x00512290"
+    assert by_tag["STAT"]["evidence"] == "Fixed 0x314-byte W8SaveStatusHeader"
+    assert by_tag["NPCF"]["consumer"] == "0x00506480/0x005064a0"
+    assert {row["direction"] for row in rows} == {"save", "load", "both"}

@@ -1,0 +1,29 @@
+tag,value,scope,direction,consumer,evidence
+GVER,0x52455647,game,save,0x005123f0,SaveGame writes three version dwords 1 2 and 4
+GSTA,0x41545347,game,load,0x00512290,GetSaveGameLevel searches this section and loads the game-status record
+SHOT,0x544f4853,game,save,0x005123f0,SaveGame writes a fixed 0x2588-byte screenshot record
+TEXT,0x54584554,game,both,0x0058fb50/0x0058fc30,SaveGame and LoadGame dispatch the paired text state handlers
+TVAR,0x52415654,game,both,0x004441e0/0x00444310,Optional paired variable-state handlers
+NPCI,0x4943504e,game,both,0x00575290/0x005750d0,Paired NPC interaction handlers
+NPCT,0x5443504e,game,both,0x00509f00/0x00509fc0,Paired NPC runtime handlers
+NPCF,0x4643504e,game,both,0x00506480/0x005064a0,Exactly 1000 persisted fact bytes
+FATA,0x41544146,game,both,0x00536030/0x00536070,Paired global-state handlers
+JRNL,0x4c4e524a,game,both,0x00558a90/0x00558b20,Paired journal-state handlers
+HYPN,0x4e505948,game,both,0x00516580/0x00516310,Optional paired state handlers
+LVLS,0x534c564c,level,both,0x00513260/0x00513650,Level identifier and nested level-status sections
+STAT,0x54415453,level,both,0x00513260/0x00513090,Fixed 0x314-byte W8SaveStatusHeader
+MONS,0x534e4f4d,level,both,0x005145a0/0x00513650,Monster-group and monster counts and records
+ITEM,0x4d455449,level,both,0x00514be0/0x00514c80,Item count followed by serialized item records
+CUBE,0x45425543,level,both,0x0048ead0/0x0048e7b0,Paired cube-state handlers
+MONG,0x474e4f4d,level,both,0x0048c020/0x0048c110,Random-encounter generator state
+LOCK,0x4b434f4c,level,both,0x0043cb30/0x0043ccf0,Paired lock-state handlers
+TRES,0x53455254,level,both,0x0043d120/0x0043d1f0,Paired treasure-state handlers
+AUTO,0x4f545541,level,both,0x00581ce0/0x00581e60,Paired automap-state handlers
+TRIG,0x47495254,level,both,0x0043c810/0x0043c860,Paired trigger-state handlers
+APST,0x54535041,level,both,0x0044e830/0x0044e9a0,Paired area-persistent-state handlers
+CUBS,0x53425543,level,both,0x0048e6d0/0x0048e470,Paired cube-substate handlers
+MGNS,0x534e474d,level,both,0x0048c3b0/0x0048c470,Paired encounter-generator-substate handlers
+LCKS,0x534b434c,level,both,0x0043cb30/0x0043ccf0,Paired lock-substate handlers
+AMBS,0x53424d41,level,both,0x0047b140/0x0047b270,Paired ambient-state handlers
+PART,0x54524150,level,both,0x0049b150/0x0049b3b0,Paired particle-state handlers
+LGHT,0x5448474c,level,both,0x0049d120/0x0049d390,Paired light-state handlers

@@ -18,6 +18,20 @@ address,provisional_name,owner,confidence,evidence
 00535ad0,GetFactionDisposition,wiz8-factions,strong,Asserts a faction ID from zero through twenty and maps its rating below 34 to hostile through 66 to neutral and above 66 to friendly
 0048ad20,MonGen::GenerateEncounter,wiz8-engine-code,strong,The embedded diagnostic names MonGen GenerateEncounter and its canonical body rolls group size and two optional companion records
 00511250,MonsterGroupCalcDefaultDisposition,wiz8-local-code,strong,The embedded assertion text names MonsterGroupCalcDefaultDisposition and the canonical body selects NPC faction or unaligned hostility disposition
+00512290,GetSaveGameLevel,wiz8-save-game,strong,The demo diagnostic names the function and the canonical body opens the selected save and searches its GSTA section
+005123f0,SaveGame,wiz8-save-game,strong,The demo diagnostics name the function and the canonical body writes the tagged game and level state sections
+00512920,LoadGame,wiz8-save-game,strong,The demo diagnostic names the function and the canonical body dispatches tagged sections from the selected save
+00512d00,VerifyDataSubdirs,wiz8-save-game,strong,The demo diagnostics name the function and the canonical body validates Saves Characters and NPCs directories
+00513090,LoadStatusHeader,wiz8-save-game,strong,The demo diagnostics name the function and the canonical body reads and validates a fixed 0x314-byte versioned status header
+00513260,SaveStatusHeader,wiz8-save-game,strong,The demo diagnostics name the function and the canonical body writes the fixed status header and tagged level-state sections
+00513650,LoadItemStatus,wiz8-save-game,strong,The demo diagnostic names the function and the canonical body selects one LVLS record then dispatches its nested status sections
+00513c20,LoadMonsterGroup,wiz8-save-game,strong,The demo diagnostics name the function and its size assertion names pMonsterGroup
+00513d80,LoadMonster,wiz8-save-game,strong,The demo diagnostics name the function and its size assertion names pMonsterInfo
+005145a0,SaveMonsterStatus,wiz8-save-game,strong,The demo diagnostics identify failed SaveMonster and SaveMonsterGroup calls in this canonical section writer
+00514be0,SaveItemFile,wiz8-save-game,strong,The demo diagnostic names the function and the canonical body writes one serialized item
+00514c80,LoadItem,wiz8-save-game,strong,The demo diagnostics name the function and the canonical body allocates and appends one serialized item
+00515090,SaveCharacter,wiz8-save-game,strong,The demo diagnostics name the function and identify separate Characters and NPCs paths
+005152b0,LoadCharacter,wiz8-save-game,strong,The demo diagnostics name the function and identify separate Characters and NPCs paths
 00517ea0,StripMonsterNameSuffix,wiz8-gameplay-database,strong,Finds the first wide '#' in a monster name field and terminates the string there
 0051b5c0,FormatItemDisplayName,wiz8-gameplay-database,strong,Selects identified or generic item text and optionally appends the stack count
 0054a400,InitializeItemDatabase,wiz8-gameplay-database,strong,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
