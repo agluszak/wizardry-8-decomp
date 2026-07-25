@@ -234,6 +234,8 @@ if(WIZ8_BUILD_DECOMP)
     add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
         src/wiz8/gameplay_boundaries.c
         src/wiz8/location_variables.c
+        src/wiz8/item_spawning.cpp
+        src/wiz8/monster_generators.cpp
         src/wiz8/random_number.c
         src/wiz8/spell_backfire.cpp
         src/wiz8/state_getters.c

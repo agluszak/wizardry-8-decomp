@@ -56,7 +56,30 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
-typedef struct W8World W8World;
+typedef struct W8MonsterGenerator {
+    unsigned char unknown_00[0x24];
+    char name[32];                        /* 0x24 */
+} W8MonsterGenerator;
+
+typedef struct W8MonsterGeneratorVector {
+    int unknown_00;
+    int count;                            /* 0x04 */
+    int capacity;
+    W8MonsterGenerator** data;            /* 0x0c */
+} W8MonsterGeneratorVector;
+
+typedef struct W8World {
+    unsigned char unknown_000[0xc4];
+    W8MonsterGeneratorVector* monster_generators; /* 0xc4 */
+} W8World;
+
+typedef struct W8Vector3 {
+    float x;
+    float y;
+    float z;
+} W8Vector3;
+
+typedef struct W8WorldItem W8WorldItem;
 
 typedef unsigned char W8FactionDisposition;
 
@@ -113,6 +136,12 @@ const char* LevelGetFolderNameByID(int level_id);
 W8World* GetWorld(void);
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
+W8MonsterGenerator* FindMonGenByName(const char* name);
+W8WorldItem* SpawnItem(
+    int item_id,
+    const W8Vector3* position,
+    int unknown,
+    unsigned char add_to_world);
 
 #ifdef __cplusplus
 }

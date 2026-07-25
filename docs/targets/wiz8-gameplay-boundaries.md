@@ -26,10 +26,13 @@ recovery work.
 | `0x0051b9e0` | `GetItemInHand` | 19 | Returns `-1` when the item-in-hand validity byte is clear, otherwise the item ID at offset zero of the packed 12-byte instance. Its name comes from the verified CFAgent oracle. |
 | `0x0042b550` | `LevelGetFolderNameByID` | 33 | Bounds-checks the 47-entry level metadata table and returns its 50-byte folder-name field. The packed `0x6b` record also carries a 50-byte level name and a three-letter location code. Its name comes from the verified CFAgent oracle. |
 | `0x00444170` | `GetLocationVarIDByName` | 109 | Case-insensitively scans the location-variable name table and accepts only an entry whose parallel level-ID slot equals the currently loaded level. Its verified CFAgent name is used by 97 canonical callers. |
+| `0x0048bdc0` | `FindMonGenByName` | 100 | Traverses the world object's monster-generator pointer vector and compares the complete 32-byte generator-name field. Its verified CFAgent name is used by seven canonical callers. |
+| `0x004f6c50` | `SpawnItem` | 103 | Materializes a packed item instance unless the item ID is `-1`, passes it with a three-component position to the world-item allocator, and preserves the original `ItemManager.cpp:398` assertion. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
 `src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`, and
-`src/wiz8/state_getters.c`
+`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, and
+`src/wiz8/item_spawning.cpp`
 and retain explicit `FUNCTION`
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
 `just build WIZ8_GAMEPLAY_BOUNDARIES`; it uses the pinned SP5 `/O2 /G6 /MD` environment alongside the
@@ -37,7 +40,7 @@ already exact compression and plug-in targets. The review map is
 `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
-instruction scheduling to the canonical order. With `/O2 /G6 /MD`, seventeen bodies match exactly after
+instruction scheduling to the canonical order. With `/O2 /G6 /MD`, eighteen bodies match exactly after
 masking COFF relocations where needed:
 
 | Function | Result | Relocation-normalized SHA-256 |
@@ -60,13 +63,19 @@ masking COFF relocations where needed:
 | `GetItemInHand` | exact, 19/19 bytes | `b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14` |
 | `LevelGetFolderNameByID` | exact, 33/33 bytes | `0e02b69da5480ffc3bd971ad5330ef56843d43cae98b4f89dc8c42f212cc25d7` |
 | `GetLocationVarIDByName` | exact, 109/109 bytes | `d0e75111187a799a90b2c25b05469b9acd6a91b11984a5582c4bca7f35b800d9` |
+| `SpawnItem` | exact, 103/103 bytes | `b2b9177917fde0f54d3033f2cf8deaf6ddc44fa7546707e7ecbd912f5ec9e120` |
 
 `GetRandomNumber` is the first proven exception to the unit's `/G6` scheduling. Its isolated
 `random_number.c` object is exact with `/G5`; `/G6` preserves the semantics but moves the multiply
 constant load and zeroing instruction. This is kept as a per-source CMake option rather than
-weakening the exact `/G6` evidence for the other seventeen bodies.
+weakening the exact `/G6` evidence for the other eighteen bodies.
 
 `CanSpellBackfire` is retained because the typed semantics and all exception sets are grounded in
 the canonical body, but it is intentionally classified as `structurally-strong`, not exact. The
 current VC6 output emits a separate true-return block for one nested switch. That unresolved
 code-layout difference is recorded instead of being hidden behind a misleading hash.
+
+`FindMonGenByName` is likewise retained as `structurally-strong`. Its typed world and vector layout,
+loop bounds, fallback element selection, and fixed-width `strncmp` all agree with the canonical body,
+but VC6 schedules the invariant name/import loads ahead of the initial count comparison and places the
+success epilogue differently. No exact hash is claimed for that layout mismatch.

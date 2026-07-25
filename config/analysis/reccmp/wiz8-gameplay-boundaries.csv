@@ -18,3 +18,5 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 0051b9e0,19,GetItemInHand,wiz8-item-system,exact,b9095c14c2ad5c66b33be97c13da5f36816cee38f6b3d5faff013d7909fd2c14,VC6 SP5 O2 G6 MD body matches after masking item-validity and item-record relocations
 0042b550,33,LevelGetFolderNameByID,wiz8-level-system,exact,0e02b69da5480ffc3bd971ad5330ef56843d43cae98b4f89dc8c42f212cc25d7,VC6 SP5 O2 G6 MD bounds check and 0x6b table lookup match after masking the level-folder table relocation
 00444170,109,GetLocationVarIDByName,wiz8-location-variables,exact,d0e75111187a799a90b2c25b05469b9acd6a91b11984a5582c4bca7f35b800d9,VC6 SP5 O2 G6 MD search matches after masking name level current-level and _stricmp relocations
+0048bdc0,100,FindMonGenByName,wiz8-monster-system,structurally-strong,,Typed vector traversal and 32-byte name comparison agree; current VC6 output differs in invariant-load scheduling and epilogue placement
+004f6c50,103,SpawnItem,wiz8-item-system,exact,b2b9177917fde0f54d3033f2cf8deaf6ddc44fa7546707e7ecbd912f5ec9e120,VC6 SP5 O2 G6 MD wrapper matches after masking constructor allocator assertion string and imported assertion relocations
