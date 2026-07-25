@@ -113,36 +113,36 @@ address,size,current_name,provisional_name,owner,confidence,fid_variants,evidenc
 1000faa0,1978,FUN_1000faa0,zi_short,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10010280,677,FUN_10010280,zi_showMacTypeCreator,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10010530,384,FUN_10010530,zi_time,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
-100106b0,941,FUN_100106b0,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10010a60,751,FUN_10010a60,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10010d50,210,FUN_10010d50,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10010e30,122,FUN_10010e30,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10010eb0,166,FUN_10010eb0,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10010f60,38,FUN_10010f60,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10010f90,131,FUN_10010f90,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10011020,50,FUN_10011020,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
-10011060,296,FUN_10011060,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
+100106b0,941,FUN_100106b0,srZipOpener::open,sirtech-unzip-adapter,strong,,Opener vtable slot; recovered source implements direct .zip paths and ZIP_PATH prefix search
+10010a60,751,FUN_10010a60,srZipOpener::openArchivePath,sirtech-unzip-adapter,strong,,Recovered helper splits optional @ prefix then .zip archive and member components; method name is descriptive
+10010d50,210,FUN_10010d50,srInlineString::substring_constructor,sirtech-unzip-adapter,strong,,Recovered 0x0c string constructor copies the half-open source range through srHeap
+10010e30,122,FUN_10010e30,srInlineString::c_string_constructor,sirtech-unzip-adapter,strong,,Recovered 0x0c string constructor from a nullable C string
+10010eb0,166,FUN_10010eb0,srZipAdapter::constructor,sirtech-unzip-adapter,exact,,Recovered source is instruction-exact modulo the separately named Wiz_NoPrinting target
+10010f60,38,FUN_10010f60,srInlineString::destructor,sirtech-unzip-adapter,strong,,Recovered string destructor is instruction-exact modulo SR import symbol presentation
+10010f90,131,FUN_10010f90,srInlineString::assign,sirtech-unzip-adapter,strong,,Recovered C-string assignment is instruction-exact modulo SR import symbol presentation
+10011020,50,FUN_10011020,srZipAdapter::destructor,sirtech-unzip-adapter,strong,,Recovered destructor releases the callback record then the archive-path string
+10011060,296,FUN_10011060,srZipAdapter::openMember,sirtech-unzip-adapter,strong,,Recovered source reads ZIP_CASE_INSENSITIVE and wraps an unambiguous Info-ZIP memory result
 10011190,99,srInitPlugin,srInitPlugin,sirtech-unzip-adapter,exact,,PE export ordinal 2; allocates the wrapper and opener and registers the .zip stream type
 10011200,,,srZipOpener::getDescription,sirtech-unzip-adapter,strong,,Opener vtable entry returning the SurRender .zip opener description
 10011210,,,srUnzipPlugin::getDescription,sirtech-unzip-adapter,strong,,Plugin vtable entry returning the SurRender unzip plug-in description
-10011220,30,FUN_10011220,,sirtech-unzip-adapter,strong,,Scalar deleting destructor for the ZIP opener object
-10011240,63,FUN_10011240,,sirtech-unzip-adapter,strong,,ZIP opener destructor; destroys its owned adapter state
-10011280,30,FUN_10011280,,sirtech-unzip-adapter,strong,,Scalar deleting destructor for the complete plugin wrapper
-100112a0,84,FUN_100112a0,,sirtech-unzip-adapter,strong,,Complete plugin destructor; releases the owned opener
+10011220,30,FUN_10011220,srZipOpener::scalar_deleting_destructor,sirtech-unzip-adapter,strong,,Scalar deleting destructor for the ZIP opener object
+10011240,63,FUN_10011240,srZipOpener::destructor,sirtech-unzip-adapter,strong,,ZIP opener destructor; destroys its owned adapter state
+10011280,30,FUN_10011280,srUnzipPlugin::scalar_deleting_destructor,sirtech-unzip-adapter,strong,,Scalar deleting destructor for the complete plugin wrapper
+100112a0,84,FUN_100112a0,srUnzipPlugin::destructor,sirtech-unzip-adapter,strong,,Complete plugin destructor; releases the owned opener
 10011300,,,nullsub_10011300,sirtech-unzip-adapter,strong,,One-byte no-op reached only from the exception-unwind thunk at 0x10011983; semantic owner remains unresolved
 10011310,,,srOwnedBinIMStream::scalar_deleting_destructor_adjustor,sirtech-unzip-adapter,strong,,First owned-memory-stream vtable slot; adjusts across the virtual base then jumps to 0x10011320
 10011320,,,srOwnedBinIMStream::scalar_deleting_destructor,sirtech-unzip-adapter,strong,,Complete scalar deleting destructor for the 0x2c owned memory stream
-10011350,46,FUN_10011350,,sirtech-unzip-adapter,strong,,Stream adapter destructor; frees its owned buffer
+10011350,46,FUN_10011350,srOwnedBinIMStream::destructor,sirtech-unzip-adapter,strong,,Virtual-base destructor body frees the owned Info-ZIP result buffer
 10011380,,,srOwnedBinIMStream::getSize_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to imported srBinIMStream::getSize
 10011390,,,srOwnedBinIMStream::seek_from_start_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to the imported one-argument srBinIMStream::seek
 100113a0,,,srOwnedBinIMStream::seek_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to the imported two-argument srBinIMStream::seek
 100113b0,,,srOwnedBinIMStream::tell_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to imported srBinIMStream::tell
-100113c0,14,FUN_100113c0,,sirtech-unzip-adapter,strong,,Initializes the plugin's small-string representation
-100113d0,496,FUN_100113d0,,sirtech-unzip-adapter,strong,,Combines ZIP path components into the returned stream path
+100113c0,14,FUN_100113c0,srInlineString::default_constructor,sirtech-unzip-adapter,strong,,Initializes the 0x0c string to inline empty storage; recovered body is instruction-exact
+100113d0,496,FUN_100113d0,srInlineString::concatenate,sirtech-unzip-adapter,strong,,Combines two inline-string path components into a returned value
 100115c0,,,discardPrintOrService,sirtech-unzip-adapter,strong,,Shared Info-ZIP print and service callback body returning zero and popping two arguments
 100115d0,,,discardReplace,sirtech-unzip-adapter,strong,,Info-ZIP replace callback returning zero and popping one argument
 100115e0,,,discardMessage,sirtech-unzip-adapter,strong,,Info-ZIP application-message callback popping 0x34 argument bytes
-100115f0,,,noteArchive,sirtech-unzip-adapter,strong,,Info-ZIP password callback copies the archive path and increments the adapter count
+100115f0,,,noteArchive,sirtech-unzip-adapter,exact,,Info-ZIP password callback takes the adapter as its fifth stack argument then copies the archive path and increments the adapter count
 10011630,6,srGetLibraryVersion,srGetLibraryVersion,sirtech-unzip-adapter,exact,,"PE export ordinal 1; body is mov eax,0x012a0209; ret"
 10011640,,,thunk_srBinIMStream_vread,msvc6-runtime-glue,strong,,Six-byte jump through IAT slot 0x100121b4 for srBinIMStream::vread
 10011646,,,thunk_srBinIStream_vget,msvc6-runtime-glue,strong,,Six-byte jump through IAT slot 0x100121b0 for srBinIStream::vget

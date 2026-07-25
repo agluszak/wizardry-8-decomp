@@ -11,6 +11,8 @@ public:
         const char* strings, const char* separators, int preserve_empty);
     SR_DLL_IMPORT char* getString(long index) const;
 
+    long count() const { return count_; }
+
 private:
     unsigned char unknown_00_[8];
     long count_;

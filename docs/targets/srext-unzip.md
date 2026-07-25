@@ -59,7 +59,7 @@ The imported Ghidra program originally omitted 15 real entries, including:
 - the Info-ZIP DLL callback table at `0x100115C0`-`0x100115F0`;
 - import thunks at `0x10011640` and `0x10011646`.
 
-`uv run wiz8 ghidra apply-functions ...` now creates those entries and applies all 134 reviewed
+`uv run wiz8 ghidra apply-functions ...` now creates those entries and applies all 150 reviewed
 exact, high-confidence, and structurally strong identities. The program contains the complete
 172-address census; candidate names are deliberately excluded. `uv run wiz8 ghidra
 apply-unzip-model` installs the object and callback structures, applies the callback prototypes,
@@ -110,9 +110,10 @@ a PDB and exports the original interface (`srGetLibraryVersion` ordinal 1 and `s
 ordinal 2). `just build SREXT_UNZIP` is the canonical build and `just compare SREXT_UNZIP` selects
 the corresponding reccmp target.
 
-The expanded comparison covers 120 identities. Ninety-five are implemented, with 95.95% aggregate
-accuracy and 75.96% progress. The six zcrypt bodies, both descriptions, `srGetLibraryVersion`, and
-many upstream Info-ZIP functions are exact. The source-defined Info-ZIP `DllMain` is now present;
+The expanded comparison covers 136 identities. One hundred eleven are implemented, with 94.14%
+aggregate accuracy and 76.83% progress. The six zcrypt bodies, both descriptions,
+`srGetLibraryVersion`, the adapter constructor, callback table, small-string constructors and
+assignment, and many upstream Info-ZIP functions are exact. The source-defined Info-ZIP `DllMain` is now present;
 that requires omitting `UNZIPLIB` on the real DLL target while retaining it on diagnostic library
 targets. The separately compiled `srWizUnzipToMemory` body at `0x1000DA10` remains an
 instruction-for-instruction match.
@@ -120,13 +121,30 @@ instruction-for-instruction match.
 The recovered stream hierarchy is now enforced by compile-time sizes: `srBinStream` is `0x10`,
 the adapter state is `0x20`, the complete opener is `0x24`, and the owned memory stream is `0x2c`.
 The concrete subclass adds the `malloc` owner at `+0x14`; VC6 naturally emits the vbtable,
-deleting destructor, adjustment thunk, and virtual `srBinStream` subobject at `+0x1c`. Decorated
-imports further correct `srBinIStream::vget` to return `unsigned short` and establish
-`srBinIMStream::vread` as a private virtual.
+deleting destructor, adjustment thunk, and virtual `srBinStream` subobject at `+0x1c`. The
+intermediate `srBinIStream` and `srBinIMStream` declarations are `novtable` client interfaces:
+`SR.DLL` proves that both destructor bodies are empty, while `srBinStream::~srBinStream` only
+restores the imported base vtable. With that declaration, the locally compiled owner destructor has
+the same instruction sequence as the original apart from unresolved vtable relocations and scores
+84.62%. Decorated imports further correct `srBinIStream::vget` to return `unsigned short` and
+establish `srBinIMStream::vread` as a private virtual.
 
-The broad ZIP-path parser at `0x100106B0` remains a deliberate stub. Completing that method and
-refining the linked layout are now the dominant gaps; library identity and Ghidra function coverage
-are no longer blockers.
+The ZIP-path parser is now recovered in owned source. `srZipOpener::open` accepts direct paths that
+contain `.zip`; otherwise it reads `ZIP_PATH`, splits it on semicolons, trims spaces from each
+prefix, and tries the requested member beneath each prefix. `openArchivePath` records an optional
+prefix before `@`, separates the `.zip` archive name from the member after its path separator, and
+passes both to the typed adapter. This is substantive behavior rather than a placeholder, although
+its temporary-object shape still needs matching refinement.
+
+The callback ABI is exact. The password callback appends the `srZipAdapter*` after Info-ZIP's four
+standard arguments (it is the fifth parameter), while the print/service, replace, and message
+callbacks are instruction-exact no-op bridges.
+
+The generated image reproduces the original exports by name and ordinal and all 25 `SR.DLL`
+imports by decorated name, including the imported `srBinStream` vtable. Its `.rsrc` section has the
+same 840-byte virtual size, 4096-byte raw size, and complete version-resource dictionary as the
+original. Remaining PE-level drift is confined to linked code/data sizes and five additional
+KERNEL32 plus five additional MSVCRT imports introduced by the not-yet-matched runtime/link shape.
 
 ## Source archive provenance
 

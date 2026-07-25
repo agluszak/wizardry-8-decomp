@@ -16,6 +16,7 @@ set(RECCMP_BUILD_DIR_HOST "" CACHE PATH "Host path to this build directory")
 if(NOT MSVC)
     message(FATAL_ERROR "The matching build requires the pinned MSVC 6 container")
 endif()
+enable_language(RC)
 if(WIZ8_BUILD_DECOMP AND NOT IJG_JPEG_SOURCE)
     message(FATAL_ERROR "IJG_JPEG_SOURCE must point at the pinned IJG release 6 tree")
 endif()
@@ -182,6 +183,27 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
     add_custom_target(surrender_unzip_import_library
         DEPENDS "${SR_UNZIP_IMPORT_LIBRARY}")
 
+    find_program(CVTRES_EXECUTABLE cvtres.exe REQUIRED)
+    set(SREXT_UNZIP_RESOURCE_RES
+        "${CMAKE_CURRENT_BINARY_DIR}/srEXT_Unzip_resource.res")
+    set(SREXT_UNZIP_RESOURCE_OBJECT
+        "${CMAKE_CURRENT_BINARY_DIR}/srEXT_Unzip_resource.obj")
+    add_custom_command(
+        OUTPUT "${SREXT_UNZIP_RESOURCE_OBJECT}"
+        COMMAND "${CMAKE_RC_COMPILER}"
+            "/fo${SREXT_UNZIP_RESOURCE_RES}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/srext_unzip/srEXT_Unzip.rc"
+        COMMAND "${CVTRES_EXECUTABLE}" /nologo /machine:ix86
+            "/out:${SREXT_UNZIP_RESOURCE_OBJECT}"
+            "${SREXT_UNZIP_RESOURCE_RES}"
+        DEPENDS src/srext_unzip/srEXT_Unzip.rc
+        VERBATIM
+    )
+    set_source_files_properties("${SREXT_UNZIP_RESOURCE_OBJECT}" PROPERTIES
+        EXTERNAL_OBJECT TRUE
+        GENERATED TRUE
+    )
+
     # The original image places the complete Info-ZIP object sequence before
     # Sir-Tech's narrow wrapper and SurRender plug-in object.
     add_library(SREXT_UNZIP SHARED
@@ -189,6 +211,7 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
         src/srext_unzip/infozip_adapter.c
         src/srext_unzip/plugin.cpp
         src/srext_unzip/srEXT_Unzip.def
+        "${SREXT_UNZIP_RESOURCE_OBJECT}"
     )
     add_dependencies(SREXT_UNZIP surrender_unzip_import_library)
     target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /GX /O2 /Zp4)

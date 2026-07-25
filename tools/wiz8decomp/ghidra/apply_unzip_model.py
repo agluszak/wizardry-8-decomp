@@ -128,9 +128,9 @@ def apply_unzip_model(settings: Settings, selector: str = "srEXT_Unzip.dll") -> 
                     [
                         ("destination", char_pointer),
                         ("destination_size", integer),
-                        ("adapter", generic_pointer),
                         ("entry", const_char_pointer),
                         ("archive", const_char_pointer),
+                        ("adapter", generic_pointer),
                     ],
                     "__stdcall",
                 )

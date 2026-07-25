@@ -2,7 +2,7 @@
 
 #include "srHeap.h"
 
-class srBinStream {
+class SR_DLL_IMPORT srBinStream {
 public:
     enum e_seekDir {
         SR_SEEK_BEGIN = 0,
@@ -10,16 +10,16 @@ public:
         SR_SEEK_END = 2
     };
 
-    virtual SR_DLL_IMPORT ~srBinStream();
+    virtual ~srBinStream() {}
     virtual unsigned long getSize() = 0;
     virtual srBinStream& seek(unsigned long position) = 0;
     virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
     virtual unsigned long tell() = 0;
 
-    SR_DLL_IMPORT bool good() const;
+    bool good() const;
 
 protected:
-    SR_DLL_IMPORT srBinStream();
+    srBinStream();
 
 private:
     // The ZIP extension's owned memory-stream subclass proves that the
@@ -33,7 +33,7 @@ typedef char srBinStream_must_be_0x10[
 
 // The vbtable accesses in the JPEG extension prove that srBinStream is a
 // virtual base of both directional stream interfaces.
-class srBinIStream : public virtual srBinStream {
+class __declspec(novtable) srBinIStream : public virtual srBinStream {
 public:
     virtual ~srBinIStream() {}
     SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
@@ -42,7 +42,7 @@ protected:
     virtual SR_DLL_IMPORT unsigned short vget();
 };
 
-class srBinIMStream : public srBinIStream {
+class __declspec(novtable) srBinIMStream : public srBinIStream {
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
     virtual SR_DLL_IMPORT unsigned long getSize();
