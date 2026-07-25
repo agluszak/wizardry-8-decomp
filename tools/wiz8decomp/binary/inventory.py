@@ -77,7 +77,7 @@ def _module_diff(modules: list[dict[str, Any]]) -> dict[str, Any]:
                 "imports_removed": sorted({item["module"] for item in baseline["imports"]} - {item["module"] for item in other["imports"]}, key=str.casefold),
                 "injection_indicators": (["added PE sections: " + ", ".join(added)] if added else []) + (["new imported modules"] if {item["module"] for item in other["imports"]} - {item["module"] for item in baseline["imports"]} else []),
             })
-    return {"schema": "wiz8.module-diff", "format_version": 1, "comparisons": comparisons}
+    return {"schema": "wiz8.module-diff", "comparisons": comparisons}
 
 
 def inventory(settings: Settings) -> dict[str, Any]:
@@ -94,7 +94,7 @@ def inventory(settings: Settings) -> dict[str, Any]:
             module["classification"] = classification
             module["classification_evidence"] = reasons
             modules.append(module)
-    result = {"schema": "wiz8.modules", "format_version": 1, "modules": modules}
+    result = {"schema": "wiz8.modules", "modules": modules}
     atomic_json(settings.build_dir / "manifests" / "modules.json", result)
     variants = VariantModuleInventory(
         variants=[
@@ -110,7 +110,6 @@ def inventory(settings: Settings) -> dict[str, Any]:
     atomic_json(settings.build_dir / "reports" / "module-diff.json", diff)
     compiler = {
         "schema": "wiz8.compiler-evidence",
-        "format_version": 1,
         "modules": [
             {"identity": item["identity"], "hypothesis": item["compiler_hypothesis"], "rich_header": item["rich_header"]}
             for item in modules if item["classification"] in {"first-party-game", "renderer", "fan-patch", "setup"}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -14,8 +15,7 @@ from .manifest import Evidence, InputManifest, InputRecord
 
 class LocalInputs(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
-    schema_id: str = Field(alias="schema")
-    format_version: int
+    schema_id: Literal["wiz8.local-inputs"] = Field(alias="schema")
     inputs: dict[str, str]
 
 
@@ -27,8 +27,6 @@ def load_local_inputs(settings: Settings) -> dict[str, str]:
             "relative to WIZ8_INPUT_DIR"
         )
     config = LocalInputs.model_validate(yaml.safe_load(path.read_text(encoding="utf-8")))
-    if config.schema_id != "wiz8.local-inputs" or config.format_version != 1:
-        raise ValueError("unsupported config/local-inputs.yml schema or format_version")
     resolved: dict[str, str] = {}
     seen: set[str] = set()
     for role, raw_path in sorted(config.inputs.items()):

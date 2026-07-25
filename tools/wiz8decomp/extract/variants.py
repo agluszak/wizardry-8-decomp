@@ -63,7 +63,6 @@ def _provenance(
     files = tree_manifest(destination)
     value = {
         "schema": "wiz8.extraction-provenance",
-        "format_version": 1,
         "role": role,
         "input_relative_path": record.relative_path,
         "input_sha256": record.sha256,
@@ -241,6 +240,6 @@ def variant_diff(settings: Settings) -> dict[str, Any]:
             "changed": sorted(files[key]["path"] for key in files.keys() & base.keys() if files[key]["sha256"] != base[key]["sha256"]),
             "identical": sum(1 for key in files.keys() & base.keys() if files[key]["sha256"] == base[key]["sha256"]),
         }
-    result = {"schema": "wiz8.variant-diff", "format_version": 1, "base": "gog-base", "comparisons": comparisons}
+    result = {"schema": "wiz8.variant-diff", "base": "gog-base", "comparisons": comparisons}
     atomic_json(settings.build_dir / "reports" / "variant-diff.json", result)
     return result

@@ -1,5 +1,4 @@
 schema: wiz8.modules-config
-format_version: 1
 selection_rules:
   - match: "Wiz8.exe"
     classification: first-party-game

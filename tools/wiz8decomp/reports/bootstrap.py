@@ -28,7 +28,6 @@ def bootstrap_report(settings: Settings) -> dict[str, Any]:
     first_party = [item for item in modules["modules"] if item.get("classification") in {"first-party-game", "renderer"}]
     report = {
         "schema": "wiz8.bootstrap-report",
-        "format_version": 1,
         "inputs": inputs["files"],
         "variants": variants.get("variants", []),
         "variant_module_inventory": variant_modules["variants"],

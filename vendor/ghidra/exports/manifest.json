@@ -115,6 +115,5 @@
       "sha256": "9130dd2f924a5f77fa6b325b0179188716cbea126277b75dc3c163a342bd5611"
     }
   ],
-  "format_version": 1,
   "schema": "wiz8.ghidra-exports"
 }

@@ -59,7 +59,7 @@ def fid_status(settings: Settings) -> dict[str, Any]:
             "manifest": manifest.relative_to(settings.repo_dir).as_posix(),
             "manifest_exists": manifest.is_file(),
         })
-    return {"schema": "wiz8.fid-status", "format_version": 1, "databases": databases}
+    return {"schema": "wiz8.fid-status", "databases": databases}
 
 
 def build_srs_fid(settings: Settings) -> dict[str, Any]:
@@ -113,7 +113,6 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
             database.saveDatabase("wizardry8 reproducible FID build", TaskMonitor.DUMMY)
             summary = {
                 "schema": "wiz8.fid-database",
-                "format_version": 1,
                 "database": path.relative_to(settings.repo_dir).as_posix(),
                 "sha256": sha256_file(path),
                 "size": path.stat().st_size,
@@ -253,7 +252,7 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                     "sha256": object_record["sha256"],
                     "function_count": program.getFunctionManager().getFunctionCount(),
                 })
-    result = {"schema": "wiz8.fid-seed-import", "format_version": 1, "programs": records}
+    result = {"schema": "wiz8.fid-seed-import", "programs": records}
     atomic_json(settings.build_dir / "manifests" / "fid-seed-import.json", result)
     return result
 
@@ -349,7 +348,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
             backup_path.unlink()
     summary = {
         "schema": "wiz8.fid-database",
-        "format_version": 1,
         "kind": "static-libraries",
         "database": path.relative_to(settings.repo_dir).as_posix(),
         "sha256": sha256_file(path),
@@ -447,7 +445,6 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     unique_targets = len({item["target_address"] for item in matches})
     summary = {
         "schema": "wiz8.fid-match",
-        "format_version": 1,
         "program": program_name,
         "database_sha256": sha256_file(path),
         "database_kind": database_kind,

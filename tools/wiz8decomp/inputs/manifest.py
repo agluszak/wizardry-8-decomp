@@ -30,7 +30,6 @@ class InputRecord(BaseModel):
 class InputManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
     schema_id: Literal["wiz8.input-manifest"] = Field("wiz8.input-manifest", alias="schema")
-    format_version: int = 1
     input_root_label: str = "WIZ8_INPUT_DIR"
     files: list[InputRecord]
     ambiguities: list[dict[str, Any]] = Field(default_factory=list)

@@ -1,7 +1,6 @@
 {
   "common_symbols_source": "Ghidra/Features/FunctionID/data/common_symbols_win32.txt",
   "database": "vendor/ghidra/fid/wizardry8-srsdk-msvc6.fidb",
-  "format_version": 1,
   "library": {
     "compiler": "windows",
     "family": "Sir-Tech SRS SDK",

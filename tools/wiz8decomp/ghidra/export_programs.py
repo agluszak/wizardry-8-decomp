@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 from ..config import Settings
@@ -16,8 +15,8 @@ def export_project(settings: Settings) -> dict[str, Any]:
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
-    from java.io import File
     from ghidra.util.task import TaskMonitor
+    from java.io import File
 
     output_dir = settings.repo_dir / "vendor" / "ghidra" / "exports"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -34,7 +33,7 @@ def export_project(settings: Settings) -> dict[str, Any]:
             records.append({"program": name, "path": output.relative_to(settings.repo_dir).as_posix(), "sha256": sha256_file(output), "binary_sha256": module["sha256"]})
     finally:
         project.close()
-    result = {"schema": "wiz8.ghidra-exports", "format_version": 1, "exports": records}
+    result = {"schema": "wiz8.ghidra-exports", "exports": records}
     atomic_json(output_dir / "manifest.json", result)
     return result
 
@@ -43,8 +42,8 @@ def restore_project(settings: Settings) -> dict[str, Any]:
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
-    from java.io import File
     from ghidra.util.task import TaskMonitor
+    from java.io import File
 
     manifest_path = settings.repo_dir / "vendor" / "ghidra" / "exports" / "manifest.json"
     if not manifest_path.is_file():
@@ -72,4 +71,4 @@ def restore_project(settings: Settings) -> dict[str, Any]:
                 restored[-1].update({"language": str(program.getLanguageID()), "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()), "function_count": program.getFunctionManager().getFunctionCount(), "memory_block_count": len(program.getMemory().getBlocks())})
     finally:
         project.close()
-    return {"schema": "wiz8.ghidra-restore", "format_version": 1, "programs": restored}
+    return {"schema": "wiz8.ghidra-restore", "programs": restored}

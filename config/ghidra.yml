@@ -1,5 +1,4 @@
 schema: wiz8.ghidra
-format_version: 1
 required_version: 12.1.2
 required_release: PUBLIC
 required_pyghidra: 3.1.0

@@ -1,5 +1,4 @@
 schema: wiz8.known-binaries
-format_version: 1
 binaries:
   - id: wiz8-gog-base
     variant: gog-base

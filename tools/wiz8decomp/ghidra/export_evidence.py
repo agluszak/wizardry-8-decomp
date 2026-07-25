@@ -15,7 +15,6 @@ from .project import resolve_program_name
 from .query import execute_query, function_metadata
 from .query_daemon import stop_daemon
 
-
 FUNCTION_FIELDS = [
     "program", "variant", "entry", "size", "name", "namespace", "thunk", "thunk_target",
     "calling_convention", "prototype", "caller_count", "callee_count", "referenced_strings",
@@ -100,7 +99,7 @@ def export_evidence(
     finally:
         project.close()
     _csv(settings.build_dir / "evidence" / "functions" / f"{program_name}.csv", FUNCTION_FIELDS, rows)
-    summary = {"schema": "wiz8.ghidra-evidence", "format_version": 1, "program": program_name, "function_count": len(rows), "mode": "targeted" if address else "all", "output": str(output.relative_to(settings.repo_dir))}
+    summary = {"schema": "wiz8.ghidra-evidence", "program": program_name, "function_count": len(rows), "mode": "targeted" if address else "all", "output": str(output.relative_to(settings.repo_dir))}
     atomic_json(output / "manifest.json", summary)
     return summary
 
@@ -145,7 +144,7 @@ def cross_build_candidates(settings: Settings) -> dict[str, Any]:
     path = settings.build_dir / "evidence" / "cross-build-candidates.csv"
     _csv(path, ["category", "left_program", "left_entry", "right_program", "right_entry", "size", "evidence"], candidates)
     counts = {category: sum(item["category"] == category for item in candidates) for category in ("exact", "strong-candidate", "weak-candidate")}
-    summary = {"schema": "wiz8.cross-build", "format_version": 1, "counts": counts, "unmatched_functions": max(0, len(rows) - len({(item['left_program'], item['left_entry']) for item in candidates} | {(item['right_program'], item['right_entry']) for item in candidates}))}
+    summary = {"schema": "wiz8.cross-build", "counts": counts, "unmatched_functions": max(0, len(rows) - len({(item['left_program'], item['left_entry']) for item in candidates} | {(item['right_program'], item['right_entry']) for item in candidates}))}
     atomic_json(settings.build_dir / "reports" / "cross-build-summary.json", summary)
     lines = ["# Cross-build function candidates", "", "These are syntactic candidates, not claims of semantic equivalence.", "", *[f"- {key}: {value}" for key, value in counts.items()], f"- unmatched function records: {summary['unmatched_functions']}", ""]
     atomic_write(settings.build_dir / "reports" / "cross-build-summary.md", "\n".join(lines))

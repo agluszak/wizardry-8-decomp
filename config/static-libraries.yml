@@ -1,5 +1,4 @@
 schema: wiz8.static-libraries
-format_version: 1
 
 toolchains:
   - id: vc6-rtm

@@ -1,5 +1,4 @@
 schema: wiz8.variants-config
-format_version: 1
 variants:
   gog-base:
     base: gog-media

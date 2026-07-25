@@ -1,5 +1,4 @@
 schema: wiz8.local-inputs
-format_version: 1
 inputs:
   gog-media: relative/path/to/gog-installer-or-iso
   demo: relative/path/to/demo-installer
@@ -7,4 +6,3 @@ inputs:
   patch-128: relative/path/to/patch-128-archive
   official-2001-12-23-patch: relative/path/to/official-patch-archive
   compatibility-fix: relative/path/to/compatibility-fix-archive
-

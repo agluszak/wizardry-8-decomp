@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Any
 
 from ..config import Settings
@@ -88,7 +87,6 @@ def import_programs(
                 "memory_block_count": len(program.getMemory().getBlocks()),
             }
             records.append(record)
-    result = {"schema": "wiz8.ghidra-import", "format_version": 1, "programs": records}
+    result = {"schema": "wiz8.ghidra-import", "programs": records}
     atomic_json(settings.build_dir / "manifests" / "ghidra-import.json", result)
     return result
-

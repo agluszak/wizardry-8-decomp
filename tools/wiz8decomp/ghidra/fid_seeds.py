@@ -10,7 +10,7 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -121,10 +121,9 @@ class ToolchainEvidence(BaseModel):
 
 
 class StaticLibrariesConfig(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    schema_name: str = Field(alias="schema")
-    format_version: int
+    schema_name: Literal["wiz8.static-libraries"] = Field(alias="schema")
     toolchains: list[Toolchain]
     toolchain_evidence: ToolchainEvidence
     libraries: list[StaticLibrary]
@@ -222,7 +221,6 @@ def static_inventory(settings: Settings) -> dict[str, Any]:
     }
     result = {
         "schema": "wiz8.static-library-inventory",
-        "format_version": 1,
         "toolchains": [toolchain.model_dump(mode="json") for toolchain in config.toolchains],
         "toolchain_evidence": config.toolchain_evidence.model_dump(mode="json"),
         "libraries": [library.model_dump(mode="json") for library in config.libraries],
@@ -344,7 +342,7 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                 "file_count": len(manifest),
             }
         )
-    result = {"schema": "wiz8.fid-source-fetch", "format_version": 1, "sources": records}
+    result = {"schema": "wiz8.fid-source-fetch", "sources": records}
     atomic_json(settings.build_dir / "manifests" / "fid-sources.json", result)
     return result
 
@@ -386,7 +384,6 @@ def build_toolchain_images(settings: Settings, toolchain_ids: list[str] | None =
         )
     summary = {
         "schema": "wiz8.fid-toolchain-image",
-        "format_version": 1,
         "docker": docker,
         "toolchains": records,
     }
@@ -595,7 +592,6 @@ def extract_precompiled_objects(
     combined = sorted(preserved + records, key=lambda item: (item["toolchain"], item["library"], item["variant"]))
     result = {
         "schema": "wiz8.fid-seed-objects",
-        "format_version": 1,
         "toolchains": [item.model_dump(mode="json") for item in sorted(config.toolchains, key=lambda item: item.id)],
         "libraries": combined,
     }
@@ -702,7 +698,6 @@ def build_seed_objects(
     )
     result = {
         "schema": "wiz8.fid-seed-objects",
-        "format_version": 1,
         "toolchains": [item.model_dump(mode="json") for item in sorted(config.toolchains, key=lambda item: item.id)],
         "libraries": combined,
     }
@@ -747,7 +742,6 @@ def probe_toolchains(settings: Settings, toolchain_ids: list[str] | None = None)
         )
     result = {
         "schema": "wiz8.fid-toolchain-probe",
-        "format_version": 1,
         "toolchains": records,
     }
     atomic_json(settings.build_dir / "reports" / "fid-toolchain-probe.json", result)
