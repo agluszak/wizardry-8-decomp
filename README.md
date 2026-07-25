@@ -29,6 +29,8 @@ The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
 ownership and interface findings are in
 [docs/targets/srext-jpegimporter.md](docs/targets/srext-jpegimporter.md).
+The second reviewed library boundary covers Info-ZIP 5.4 and its SurRender adapter in
+[docs/targets/srext-unzip.md](docs/targets/srext-unzip.md).
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
