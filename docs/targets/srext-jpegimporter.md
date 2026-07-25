@@ -65,6 +65,12 @@ The binary strings establish the class name `srJPEGImporter` and the error paths
 `0x10014D40` registers both `jpeg` and `jpg` as importer and exporter types. Export options recognize
 `QUALITY`, default it to 100, and clamp the parsed value before calling the JPEG encoder.
 
+The allocation and field accesses prove a two-object layout. The `0x48`-byte plugin wrapper owns a
+four-byte plugin vptr followed by a `0x44`-byte `srJPEGImporter`. The importer object begins with
+four-byte importer and exporter vptrs, a `0x30`-byte codec-operation record, and a `0x0C`-byte export
+options record. These exact offsets are represented in `src/srext_jpegimporter/layout.h`; fields
+without semantic evidence remain named by offset.
+
 The current auto-analysis missed important function starts even though the vtables reference them:
 
 - `0x10014E60` validates an input JPEG and returns surface metadata;
