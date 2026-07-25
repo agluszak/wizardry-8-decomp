@@ -42,10 +42,10 @@ def test_wiz8_zlib_map_covers_library_and_owned_boundary() -> None:
 
     assert len(identities) == 51
     assert [identity.name for identity in identities[:5]] == [
-        "wiz8_zalloc",
-        "wiz8_zfree",
-        "wiz8_inflate_create",
-        "wiz8_inflate_read",
-        "wiz8_inflate_destroy",
+        "ZAlloc",
+        "ZFree",
+        "DecompressInit",
+        "Decompress",
+        "DecompressFini",
     ]
     assert sum(identity.owner == "zlib-1.0.4" for identity in identities) == 46

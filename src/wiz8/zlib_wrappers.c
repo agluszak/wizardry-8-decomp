@@ -3,29 +3,29 @@
 #include "zlib.h"
 
 // FUNCTION: WIZ8 0x00415820
-voidpf wiz8_zalloc(voidpf opaque, uInt items, uInt size)
+voidpf ZAlloc(voidpf opaque, uInt items, uInt size)
 {
     (void)opaque;
     return malloc(items * size);
 }
 
 // FUNCTION: WIZ8 0x00415840
-void wiz8_zfree(voidpf opaque, voidpf allocation)
+void ZFree(voidpf opaque, voidpf allocation)
 {
     (void)opaque;
     free(allocation);
 }
 
 // FUNCTION: WIZ8 0x00415850
-z_streamp wiz8_inflate_create(Bytef* input, uInt input_size)
+z_streamp DecompressInit(Bytef* input, uInt input_size)
 {
     z_streamp stream = (z_streamp)malloc(sizeof(z_stream));
     if (stream == Z_NULL) {
         return Z_NULL;
     }
 
-    stream->zalloc = wiz8_zalloc;
-    stream->zfree = wiz8_zfree;
+    stream->zalloc = ZAlloc;
+    stream->zfree = ZFree;
     stream->opaque = Z_NULL;
     if (inflateInit(stream) != Z_OK) {
         free(stream);
@@ -38,7 +38,7 @@ z_streamp wiz8_inflate_create(Bytef* input, uInt input_size)
 }
 
 // FUNCTION: WIZ8 0x004158B0
-uInt wiz8_inflate_read(z_streamp stream, Bytef* output, uInt output_size)
+uInt Decompress(z_streamp stream, Bytef* output, uInt output_size)
 {
     if (stream->avail_in == 0) {
         return 0;
@@ -51,7 +51,7 @@ uInt wiz8_inflate_read(z_streamp stream, Bytef* output, uInt output_size)
 }
 
 // FUNCTION: WIZ8 0x004158F0
-void wiz8_inflate_destroy(z_streamp stream)
+void DecompressFini(z_streamp stream)
 {
     inflateEnd(stream);
     free(stream);

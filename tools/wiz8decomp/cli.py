@@ -358,6 +358,16 @@ def ghidra_apply_zlib_model(
     _run_action(lambda: apply_zlib_model(_settings(), program))
 
 
+@ghidra_app.command("apply-sgp-model")
+def ghidra_apply_sgp_model(
+    program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
+) -> None:
+    """Apply source-backed SGP DirectDraw types and signatures."""
+    from .ghidra.apply_sgp_model import apply_sgp_model
+
+    _run_action(lambda: apply_sgp_model(_settings(), program))
+
+
 @daemon_app.command("start")
 def daemon_start(program: Optional[str] = typer.Option(None, "--program")) -> None:
     from .ghidra.query_daemon import start_daemon

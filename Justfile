@@ -4,6 +4,8 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 repo := justfile_directory()
 vc6_image := "wizardry8-msvc600:sp5"
 jpeg_target := "SREXT_JPEGIMPORTER"
+sgp_revision := "5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033"
+sgp_repository := "https://github.com/ja2-stracciatella/ja2-stracciatella.git"
 
 default:
     @just --list
@@ -19,12 +21,13 @@ build target=jpeg_target: configure
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4:/zlib:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
+        --volume "$WIZ8_WORK_DIR/oracles/ja2-sgp-5ac0a9d/sgp:/sgp:ro" \
         --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
         {{vc6_image}} \
         cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& C:\cmake\bin\cmake.exe --build Z:/out --target {{target}}"
 
 # Configure the active VC6 CMake build and reccmp's machine-local original path.
-configure: _jpeg-sources
+configure: _jpeg-sources _sgp-source
     mkdir -p "$WIZ8_WORK_DIR/decomp/srext-jpegimporter/tmp"
     uv run reccmp-project detect \
         --search-path "$WIZ8_WORK_DIR/variants/gog-base/Dll" \
@@ -34,6 +37,7 @@ configure: _jpeg-sources
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4:/zlib:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
+        --volume "$WIZ8_WORK_DIR/oracles/ja2-sgp-5ac0a9d/sgp:/sgp:ro" \
         --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
         {{vc6_image}} \
         'C:\cmake\bin\cmake.exe' \
@@ -41,6 +45,7 @@ configure: _jpeg-sources
         -DIJG_JPEG_SOURCE=Z:/jpeg \
         -DZLIB_SOURCE=Z:/zlib \
         -DINFOZIP_SOURCE=Z:/infozip \
+        -DSGP_SOURCE=Z:/sgp \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DRECCMP_PROJECT_DIR_HOST={{repo}} \
         -DRECCMP_BUILD_DIR_HOST="$WIZ8_WORK_DIR/decomp/srext-jpegimporter"
@@ -69,3 +74,15 @@ wiz8 *args:
 # Prepare verified source trees used by CMake and FID.
 _jpeg-sources:
     uv run wiz8 ghidra fid fetch-sources
+
+# Materialize the exact licensed SGP oracle outside the repository.
+_sgp-source:
+    mkdir -p "$WIZ8_WORK_DIR/oracles"
+    if [ ! -d "$WIZ8_WORK_DIR/oracles/ja2-stracciatella/.git" ]; then \
+        git clone --filter=blob:none {{sgp_repository}} "$WIZ8_WORK_DIR/oracles/ja2-stracciatella"; \
+    fi
+    if [ ! -e "$WIZ8_WORK_DIR/oracles/ja2-sgp-5ac0a9d/.git" ]; then \
+        git -C "$WIZ8_WORK_DIR/oracles/ja2-stracciatella" worktree add --detach \
+            "$WIZ8_WORK_DIR/oracles/ja2-sgp-5ac0a9d" {{sgp_revision}}; \
+    fi
+    test "$(git -C "$WIZ8_WORK_DIR/oracles/ja2-sgp-5ac0a9d" rev-parse HEAD)" = {{sgp_revision}}

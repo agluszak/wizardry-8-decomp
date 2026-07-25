@@ -11,6 +11,7 @@ set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered g
 set(FID_JPEG_SOURCE "" CACHE PATH "Pinned IJG JPEG source tree used for FID seeds")
 set(FID_INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP source tree used for FID seeds")
 set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
+set(SGP_SOURCE "" CACHE PATH "Pinned released SGP source tree used as a comparison oracle")
 set(RECCMP_PROJECT_DIR_HOST "" CACHE PATH "Host path to the reccmp project")
 set(RECCMP_BUILD_DIR_HOST "" CACHE PATH "Host path to this build directory")
 
@@ -227,6 +228,15 @@ if(WIZ8_BUILD_DECOMP AND ZLIB_SOURCE)
         src/wiz8/zlib_wrappers.c
     )
     target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
+endif()
+
+if(WIZ8_BUILD_DECOMP AND SGP_SOURCE)
+    add_library(WIZ8_SGP_DIRECTDRAW OBJECT "${SGP_SOURCE}/DirectDraw Calls.c")
+    target_compile_definitions(WIZ8_SGP_DIRECTDRAW PRIVATE WIZ8_PRECOMPILED_HEADERS)
+    target_include_directories(WIZ8_SGP_DIRECTDRAW PRIVATE
+        config/sgp-overlays
+        "${SGP_SOURCE}"
+    )
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

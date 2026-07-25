@@ -67,16 +67,17 @@ consistent with the executable's mixed 8447/8168/9044 Rich records and the unava
 
 ## Recovered Wizardry boundary
 
-The five game-owned functions are now compilable C in `src/wiz8/zlib_wrappers.c`. Their names are
-descriptive recovered names, not a claim about unavailable original symbols:
+The five game-owned functions are now compilable C in `src/wiz8/zlib_wrappers.c`. The pinned SGP
+initial import contains this same boundary in `sgp/Compression.c`, so these are source-backed
+original names rather than descriptive placeholders:
 
 | Address | Recovered function | Behavior |
 | --- | --- | --- |
-| `0x00415820` | `wiz8_zalloc` | multiply `items * size`, call imported `malloc` |
-| `0x00415840` | `wiz8_zfree` | ignore the opaque context, call imported `free` |
-| `0x00415850` | `wiz8_inflate_create` | allocate a `0x38`-byte `z_stream`, install callbacks, call `inflateInit_`, and retain the caller's input span |
-| `0x004158B0` | `wiz8_inflate_read` | set the output span, call `inflate(..., Z_PARTIAL_FLUSH)`, and return bytes produced |
-| `0x004158F0` | `wiz8_inflate_destroy` | call `inflateEnd` and free the stream |
+| `0x00415820` | `ZAlloc` | multiply `items * size`, call imported `malloc` |
+| `0x00415840` | `ZFree` | ignore the opaque context, call imported `free` |
+| `0x00415850` | `DecompressInit` | allocate a `0x38`-byte `z_stream`, install callbacks, call `inflateInit_`, and retain the caller's input span |
+| `0x004158B0` | `Decompress` | set the output span, call `inflate(..., Z_PARTIAL_FLUSH)`, and return bytes produced |
+| `0x004158F0` | `DecompressFini` | call `inflateEnd` and free the stream |
 
 `just build WIZ8_ZLIB_WRAPPERS` compiles this source with the pinned VC6 SP5 `/O2 /MD` toolchain
 against the pristine zlib 1.0.4 headers. Masking only COFF relocation fields, every resulting body
@@ -84,11 +85,11 @@ is byte-exact against the canonical executable:
 
 | Function | Size | Relocation-normalized SHA-256 |
 | --- | ---: | --- |
-| `wiz8_zalloc` | 20 | `700a399b5e19bf990286dbd979f67666bb7c07081a2d2a680c6ef64208752ea0` |
-| `wiz8_zfree` | 13 | `63e4417e0067e692fa73a952f0d05010d0cb3de2aa0a70158e4b77ab2ede7f80` |
-| `wiz8_inflate_create` | 92 | `f014577ffe8c54f5ee596331f0d946e2744bf4c06cd9e49f334686879dc7a84e` |
-| `wiz8_inflate_read` | 52 | `08c5436c2c1a757aa99d8640d853437ba2676511d87433c084e9de962812c516` |
-| `wiz8_inflate_destroy` | 23 | `1a71a7db964a267e97b227a93fb0c56369eecb9619d248ffbc31d9ecf4400234` |
+| `ZAlloc` | 20 | `700a399b5e19bf990286dbd979f67666bb7c07081a2d2a680c6ef64208752ea0` |
+| `ZFree` | 13 | `63e4417e0067e692fa73a952f0d05010d0cb3de2aa0a70158e4b77ab2ede7f80` |
+| `DecompressInit` | 92 | `f014577ffe8c54f5ee596331f0d946e2744bf4c06cd9e49f334686879dc7a84e` |
+| `Decompress` | 52 | `08c5436c2c1a757aa99d8640d853437ba2676511d87433c084e9de962812c516` |
+| `DecompressFini` | 23 | `1a71a7db964a267e97b227a93fb0c56369eecb9619d248ffbc31d9ecf4400234` |
 
 ## Applied Ghidra model
 
