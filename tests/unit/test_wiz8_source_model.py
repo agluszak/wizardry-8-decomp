@@ -198,14 +198,21 @@ def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 1
-    npc = rows[0]
+    assert len(rows) == 2
+    by_path = {row["archive_path"]: row for row in rows}
+    npc = by_path["DATABASES\\NPC.DBS"]
     assert npc["archive_path"] == "DATABASES\\NPC.DBS"
     assert npc["file_size"] == "118674"
     assert npc["record_count"] == "146"
     assert npc["fixed_record_size"] == "0x309"
     assert npc["tail_layout"] == "uint32 count then count times 0x06 fact rules"
     assert npc["loader"] == "0x0054aac0"
+
+    encounters = by_path["DATABASES\\ENCOUNTERTABLES.DBS"]
+    assert encounters["file_size"] == "114919"
+    assert encounters["record_count"] == "72"
+    assert encounters["fixed_record_size"] == "0x108"
+    assert encounters["loader"] == "0x0048a7a0"
 
 
 def test_save_game_section_vocabulary_is_unique_and_bidirectional() -> None:

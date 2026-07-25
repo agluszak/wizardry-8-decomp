@@ -131,6 +131,90 @@ def apply_wiz8_format_model(
                         (0x0C, word, "next_link", "next edge for the same source"),
                     ],
                 )
+                encounter_time = EnumDataType(category, "W8EncounterTimeCondition", 1, dtm)
+                encounter_time.add("W8_ENCOUNTER_DAY", 0)
+                encounter_time.add("W8_ENCOUNTER_NIGHT", 1)
+                encounter_time.add("W8_ENCOUNTER_ANY_TIME", 2)
+                encounter_time = dtm.addDataType(
+                    encounter_time, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+                encounter_header = _structure(
+                    dtm,
+                    category,
+                    "W8EncounterTableDiskHeader",
+                    0x108,
+                    [
+                        (0x000, byte, "record_kind", "four in the reviewed corpus"),
+                        (0x001, ArrayDataType(char, 256, 1), "name", "table name"),
+                        (0x101, dword, "unknown_101", "unreviewed table field"),
+                        (0x105, word, "version", "two in the reviewed corpus"),
+                        (0x107, byte, "entry_count", "column count after the header"),
+                    ],
+                )
+                encounter_script_name = _structure(
+                    dtm,
+                    category,
+                    "W8EncounterScriptName",
+                    0x40,
+                    [(0x00, ArrayDataType(char, 64, 1), "value", "script name")],
+                )
+                encounter_byte_vector = _structure(
+                    dtm,
+                    category,
+                    "W8EncounterByteVector",
+                    0x10,
+                    [
+                        (0x00, dword, "unknown_00", "runtime container field"),
+                        (0x04, integer, "count", "active values"),
+                        (0x08, integer, "capacity", "allocated values"),
+                        (0x0C, PointerDataType(byte, dtm), "values", "byte values"),
+                    ],
+                )
+                encounter_table = _structure(
+                    dtm,
+                    category,
+                    "W8EncounterTableRuntime",
+                    0x158,
+                    [
+                        (0x000, generic_pointer, "vtable", "runtime table vtable"),
+                        (0x004, integer, "species_count", "active species IDs"),
+                        (0x008, integer, "species_capacity", "allocated species IDs"),
+                        (
+                            0x00C,
+                            PointerDataType(word, dtm),
+                            "species_ids",
+                            "monster database IDs",
+                        ),
+                        (
+                            0x010,
+                            encounter_byte_vector,
+                            "rarity_class",
+                            "values 3 7 20 or 70",
+                        ),
+                        (
+                            0x020,
+                            encounter_byte_vector,
+                            "time_condition",
+                            "W8EncounterTimeCondition values",
+                        ),
+                        (
+                            0x030,
+                            encounter_byte_vector,
+                            "challenge_level",
+                            "values one through fifty",
+                        ),
+                        (
+                            0x040,
+                            ArrayDataType(byte, 0x10, 1),
+                            "script_names_runtime",
+                            "runtime string container",
+                        ),
+                        (0x050, ArrayDataType(char, 256, 1), "name", "table name"),
+                        (0x150, dword, "unknown_150", "copied from disk offset 0x101"),
+                        (0x154, byte, "version_two_flags", "version-two trailing byte"),
+                        (0x155, ArrayDataType(byte, 3, 1), "padding_155", "alignment"),
+                    ],
+                )
                 live_entry = _structure(
                     dtm,
                     category,
@@ -688,6 +772,7 @@ def apply_wiz8_format_model(
                 level_record_pointer = PointerDataType(level_record, dtm)
                 fact_record_pointer = PointerDataType(fact_record, dtm)
                 npc_record_pointer = PointerDataType(npc_record, dtm)
+                encounter_table_pointer = PointerDataType(encounter_table, dtm)
                 spell_record_pointer = PointerDataType(spell_record, dtm)
                 profession_skill_availability = ArrayDataType(integer, 15, 4)
                 seek_origin = EnumDataType(category, "W8VirtualFileSeekOrigin", 1, dtm)
@@ -730,6 +815,12 @@ def apply_wiz8_format_model(
                     (0x0060A6C8, integer),
                     (0x0065BE18, dword),
                     (0x0065BE1C, spell_record_pointer),
+                    (0x0065BA24, dword),
+                    (0x0065BA28, dword),
+                    (0x0065BA2C, PointerDataType(encounter_table_pointer, dtm)),
+                    (0x0065BA3C, dword),
+                    (0x0065BA40, dword),
+                    (0x0065BA44, PointerDataType(char_pointer, dtm)),
                     (0x006836A0, npc_record_pointer),
                     (0x006836A4, level_record_pointer),
                     (0x006836AC, fact_record_pointer),
@@ -895,6 +986,14 @@ def apply_wiz8_format_model(
                     0x0054AE00: (void, []),
                     0x0054AE20: (dword, []),
                     0x0048C110: (byte, [("save_handle", integer)]),
+                    0x0048A7A0: (dword, []),
+                    0x0048B9A0: (
+                        dword,
+                        [
+                            ("table", encounter_table_pointer),
+                            ("candidate_indices", generic_pointer),
+                        ],
+                    ),
                     0x0048C810: (void, [("reset_budget", byte)]),
                     0x0048C8E0: (void, []),
                 }
@@ -948,6 +1047,12 @@ def apply_wiz8_format_model(
                     (0x006164C4, "g_faerie_starting_equipment"),
                     (0x0065BE18, "g_spell_database_version"),
                     (0x0065BE1C, "g_spell_records"),
+                    (0x0065BA24, "g_encounter_table_count"),
+                    (0x0065BA28, "g_encounter_table_capacity"),
+                    (0x0065BA2C, "g_encounter_tables"),
+                    (0x0065BA3C, "g_encounter_name_count"),
+                    (0x0065BA40, "g_encounter_name_capacity"),
+                    (0x0065BA44, "g_encounter_names"),
                     (0x006836A0, "g_npc_records"),
                     (0x006836A4, "g_level_records"),
                     (0x006836AC, "g_fact_records"),
@@ -983,6 +1088,11 @@ def apply_wiz8_format_model(
                                 waypoint_header,
                                 waypoint,
                                 waypoint_link,
+                                encounter_time,
+                                encounter_header,
+                                encounter_script_name,
+                                encounter_byte_vector,
+                                encounter_table,
                                 live_entry,
                                 archive_state,
                                 configuration,
@@ -1034,6 +1144,12 @@ def apply_wiz8_format_model(
                             "0x006164c4",
                             "0x0065be18",
                             "0x0065be1c",
+                            "0x0065ba24",
+                            "0x0065ba28",
+                            "0x0065ba2c",
+                            "0x0065ba3c",
+                            "0x0065ba40",
+                            "0x0065ba44",
                             "0x006836a0",
                             "0x006836a4",
                             "0x006836ac",

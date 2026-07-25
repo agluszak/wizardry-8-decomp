@@ -178,6 +178,20 @@ zero-based index. `CreateNpcRuntimeNode` at `0x00509aa0` binds one indexed recor
 full `0x1862`-byte RPC character state when `+0x57` is nonzero. Packed display, entity, and
 script aliases are retained as fixed buffers; their proprietary contents are not tracked.
 
+`EncounterTables.dbs` is another columnar variable database. The canonical file begins with
+35 fixed 256-byte name slots, followed by 72 table records. Each table has a packed `0x108`
+header and parallel arrays of 16-bit monster species IDs, rarity-class bytes, time-condition
+bytes, challenge-level bytes, and fixed 64-byte script names. Version-two records finish with
+one extra flags byte. The four retail/patched trees contain 1,259 entries; the demo retains the
+same table structure with two additional entries. Both layouts parse exactly to EOF.
+
+`SelectEncounterCandidates` at `0x0048b9a0` establishes the selector meanings. Rarity classes
+are the four exact values `3`, `7`, `20`, and `70`; challenge levels range from 1 through 50
+and are compared with the party's effective level. Time condition zero accepts daytime
+(05:00 through 22:00), one accepts nighttime, and two accepts either. The chosen entry's
+16-bit ID is passed directly to `GetMonsterDataByID`, proving species ownership. The table
+name, script-name payloads, and remaining header dword stay structurally typed but unnamed.
+
 ## Save-game container
 
 The main save is a nested tagged container, not a single raw memory image. `SaveGame` at

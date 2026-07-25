@@ -15,6 +15,8 @@ address,provisional_name,owner,confidence,evidence
 0048c110,MonGen::LoadAll,wiz8-engine-code,strong,The embedded diagnostic names MonGen LoadAll and the function restores encounter state then applies the current level's bounds
 0048c810,UpdateRandomEncounterBudget,wiz8-engine-code,strong,Replenishes the current level's encounter budget by elapsed time and clamps both budget and active-encounter limit
 0048c8e0,CullExpiredEncounters,wiz8-engine-code,strong,Compares active encounter ages with the configured culling time and removes sufficiently distant expired groups
+0048a7a0,InitializeEncounterTables,wiz8-engine-code,strong,MonGen.cpp loads EncounterTables.dbs into 72 runtime tables with columnar species rarity time challenge and script-name data
+0048b9a0,SelectEncounterCandidates,wiz8-engine-code,strong,Filters one encounter table by party challenge level weighted rarity and the recovered day night or any-time selector
 00535ad0,GetFactionDisposition,wiz8-factions,strong,Asserts a faction ID from zero through twenty and maps its rating below 34 to hostile through 66 to neutral and above 66 to friendly
 0048ad20,MonGen::GenerateEncounter,wiz8-engine-code,strong,The embedded diagnostic names MonGen GenerateEncounter and its canonical body rolls group size and two optional companion records
 00511250,MonsterGroupCalcDefaultDisposition,wiz8-local-code,strong,The embedded assertion text names MonsterGroupCalcDefaultDisposition and the canonical body selects NPC faction or unaligned hostility disposition
