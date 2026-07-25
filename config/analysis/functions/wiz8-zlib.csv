@@ -1,7 +1,9 @@
 address,size,current_name,provisional_name,owner,confidence,evidence
-00415850,92,FUN_00415850,,sirtech-compression-adapter,strong,Allocates and initializes the game-owned z_stream wrapper before calling inflateInit_
-004158b0,52,FUN_004158b0,,sirtech-compression-adapter,strong,Feeds caller input through inflate and returns the consumed byte count
-004158f0,23,FUN_004158f0,,sirtech-compression-adapter,strong,Calls inflateEnd and frees the game-owned wrapper
+00415820,20,not-defined,wiz8_zalloc,sirtech-compression-adapter,strong,Configured z_stream allocator callback multiplies item count by size and calls the executable CRT malloc import
+00415840,13,not-defined,wiz8_zfree,sirtech-compression-adapter,strong,Configured z_stream deallocator callback ignores opaque and calls the executable CRT free import
+00415850,92,FUN_00415850,wiz8_inflate_create,sirtech-compression-adapter,strong,Allocates and initializes the game-owned z_stream wrapper before calling inflateInit_
+004158b0,52,FUN_004158b0,wiz8_inflate_read,sirtech-compression-adapter,strong,Feeds caller output through inflate with Z_PARTIAL_FLUSH and returns the produced byte count
+004158f0,23,FUN_004158f0,wiz8_inflate_destroy,sirtech-compression-adapter,strong,Calls inflateEnd and frees the game-owned wrapper
 00415910,77,FUN_00415910,inflateReset,zlib-1.0.4,high,State writes and inflate_blocks_reset call match inflate.c exactly
 00415960,85,FUN_00415960,inflateEnd,zlib-1.0.4,high,Frees the block state and inflate state through the configured allocator
 004159c0,263,FUN_004159c0,inflateInit2_,zlib-1.0.4,high,Checks version 1.0.4 and z_stream size then allocates the inflate state and block window

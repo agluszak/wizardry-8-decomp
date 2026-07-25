@@ -34,3 +34,18 @@ def test_load_function_identities_rejects_duplicate_addresses(tmp_path: Path) ->
 
     with pytest.raises(ValueError, match="duplicate accepted function addresses"):
         load_function_identities(path)
+
+
+def test_wiz8_zlib_map_covers_library_and_owned_boundary() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    identities = load_function_identities(repository / "config/analysis/functions/wiz8-zlib.csv")
+
+    assert len(identities) == 51
+    assert [identity.name for identity in identities[:5]] == [
+        "wiz8_zalloc",
+        "wiz8_zfree",
+        "wiz8_inflate_create",
+        "wiz8_inflate_read",
+        "wiz8_inflate_destroy",
+    ]
+    assert sum(identity.owner == "zlib-1.0.4" for identity in identities) == 46

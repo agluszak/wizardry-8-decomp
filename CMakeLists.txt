@@ -7,6 +7,7 @@ option(WIZ8_BUILD_FID_SEEDS "Configure source-built FID seed objects" OFF)
 option(WIZ8_BUILD_TOOLCHAIN_PROBE "Configure the VC6 Rich-header probe" OFF)
 
 set(FID_ZLIB_SOURCE "" CACHE PATH "Pinned zlib source tree used for FID seeds")
+set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered game code")
 set(FID_JPEG_SOURCE "" CACHE PATH "Pinned IJG JPEG source tree used for FID seeds")
 set(FID_INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP source tree used for FID seeds")
 set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
@@ -217,6 +218,15 @@ if(WIZ8_BUILD_DECOMP)
             "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n  SREXT_JPEGIMPORTER:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.pdb'\n  SREXT_UNZIP:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.pdb'\n"
         )
     endif()
+endif()
+
+if(WIZ8_BUILD_DECOMP AND ZLIB_SOURCE)
+    # These five functions are Wizardry-owned adapters around pristine zlib
+    # 1.0.4, not a second copy of the library implementation.
+    add_library(WIZ8_ZLIB_WRAPPERS OBJECT
+        src/wiz8/zlib_wrappers.c
+    )
+    target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

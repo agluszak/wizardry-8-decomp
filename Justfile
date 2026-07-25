@@ -17,6 +17,7 @@ build target=jpeg_target: configure
     docker run --rm --network none \
         --volume "{{repo}}:/repo:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
+        --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4:/zlib:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
         --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
         {{vc6_image}} \
@@ -31,12 +32,14 @@ configure: _jpeg-sources
     docker run --rm --network none \
         --volume "{{repo}}:/repo:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
+        --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4:/zlib:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
         --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
         {{vc6_image}} \
         'C:\cmake\bin\cmake.exe' \
         -S Z:/repo -B Z:/out -G 'NMake Makefiles' \
         -DIJG_JPEG_SOURCE=Z:/jpeg \
+        -DZLIB_SOURCE=Z:/zlib \
         -DINFOZIP_SOURCE=Z:/infozip \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DRECCMP_PROJECT_DIR_HOST={{repo}} \
