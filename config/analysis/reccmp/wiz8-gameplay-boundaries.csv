@@ -10,3 +10,4 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 00517ea0,26,StripMonsterNameSuffix,wiz8-gameplay-database,exact,fcc9db3bf744139df99cc283507aff3d58c1deb75cf8bedbb4a3beef5e5698cf,VC6 SP5 O2 G6 MD body matches after masking the imported wcschr relocation
 00517ec0,105,CharacterPointerToPartySlot,wiz8-character-system,exact,ba51c3d9a068fa8b79e4fbe5fb88e160d773ee10dbbe561891b0a9186aaff725,VC6 SP5 O2 G6 MD body matches after masking assertion formatting global-party and string relocations
 004ff3b0,82,GetProfessionCasterLevel,wiz8-character-system,exact,a9d9c20d53f78c3eaf03ef10a24468a2cb2a63254148cefe7bf67ca06526a75e,VC6 SP5 O2 G6 MD body matches after masking assertion profession-table and string relocations
+00506280,132,GetFact,wiz8-game-state,exact,bd49cf8863d372e24a72e6ad01c04fd9772d3bb8726df41cf5aa5d1a9870db33,VC6 SP5 O2 G6 MD body matches after masking EvaluateFact logging fact-record and wide-string relocations

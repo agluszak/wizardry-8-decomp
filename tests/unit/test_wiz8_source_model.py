@@ -263,9 +263,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 11
+    assert len(rows) == 12
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 10
+    assert len(exact) == 11
     assert {int(row["size"]) for row in exact} == {
         24,
         25,
@@ -277,6 +277,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         85,
         100,
         105,
+        132,
     }
     assert all(len(row["relocation_masked_sha256"]) == 64 for row in exact)
     backfire = next(row for row in rows if row["symbol"] == "CanSpellBackfire")

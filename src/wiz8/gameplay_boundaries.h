@@ -32,6 +32,12 @@ typedef struct W8Character {
     unsigned char unknown_00c9[0x1799];
 } W8Character;                           /* 0x1862 */
 
+typedef struct W8FactDatabaseRecord {
+    unsigned int identifier;
+    char symbolic_name[256];             /* 0x004 */
+    unsigned short description[106];     /* 0x104 */
+} W8FactDatabaseRecord;                  /* 0x1d8 */
+
 typedef unsigned char W8FactionDisposition;
 
 enum {
@@ -50,6 +56,8 @@ extern W8SpellRuntimeRecord* g_spell_records;
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8Character* g_party_characters;
 extern int g_profession_magic_level_offsets[15];
+extern W8FactDatabaseRecord* g_fact_records;
+extern unsigned char g_log_fact_checks;
 
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -66,6 +74,7 @@ W8FactionDisposition GetFactionDisposition(signed char faction);
 void StripMonsterNameSuffix(unsigned short* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
+unsigned char GetFact(int fact_id);
 
 #ifdef __cplusplus
 }

@@ -9,6 +9,8 @@ extern __declspec(dllimport) void srAssertFail(
     int line,
     const char* message);
 extern char* FormatDiagnostic(const char* format, ...);
+extern unsigned char EvaluateFact(int fact_id);
+extern void WriteGameLog(int channel, const wchar_t* format, ...);
 
 static __inline int MinimumCasterLevel(int spell_level)
 {
@@ -178,4 +180,30 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id)
         return -1;
     }
     return character->profession_levels[profession_id] + magic_level_offset;
+}
+
+// FUNCTION: WIZ8 0x00506280
+unsigned char GetFact(int fact_id)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+
+    if (fact_id > 1000) {
+        return 0;
+    }
+
+    value = EvaluateFact(fact_id);
+    if (g_log_fact_checks) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(
+            5,
+            L"Checking fact %S which is %s",
+            g_fact_records[fact_id].symbolic_name,
+            display_value);
+    }
+    return value;
 }
