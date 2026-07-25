@@ -79,7 +79,20 @@ typedef struct W8Vector3 {
     float z;
 } W8Vector3;
 
-typedef struct W8WorldItem W8WorldItem;
+typedef struct W8WorldItem {
+    int runtime_id;                      /* 0x00 */
+    void* unknown_04;
+    unsigned char unknown_08;
+    W8ItemInstance item;                 /* 0x09 */
+    W8Vector3 position;                  /* 0x15 */
+    unsigned char unknown_21[4];
+    int unknown_25;
+    unsigned int flags;                  /* 0x29 */
+    unsigned char unknown_2d[8];
+    int unknown_35;
+    int sector_id;                       /* 0x39 */
+    unsigned char unknown_3d[0x70];
+} W8WorldItem;                           /* 0xad */
 
 typedef unsigned char W8FactionDisposition;
 
@@ -112,6 +125,8 @@ extern int g_location_variable_count;
 extern char** g_location_variable_names;
 extern int g_location_variable_level_count;
 extern int* g_location_variable_levels;
+extern int g_next_world_item_id;
+extern void* g_world_item_list;
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
@@ -137,6 +152,11 @@ W8World* GetWorld(void);
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
 W8MonsterGenerator* FindMonGenByName(const char* name);
+W8WorldItem* CreateWorldItem(
+    const W8ItemInstance* item,
+    const W8Vector3* position,
+    int unknown,
+    unsigned char add_to_world);
 W8WorldItem* SpawnItem(
     int item_id,
     const W8Vector3* position,
