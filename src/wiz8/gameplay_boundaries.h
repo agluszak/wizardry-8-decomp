@@ -85,6 +85,10 @@ extern W8World* g_world;
 extern unsigned char g_item_in_hand_valid;
 extern W8ItemInstance g_item_in_hand;
 extern W8LevelFolderRecord g_level_folders[47];
+extern int g_location_variable_count;
+extern char** g_location_variable_names;
+extern int g_location_variable_level_count;
+extern int* g_location_variable_levels;
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
@@ -108,6 +112,7 @@ int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 W8World* GetWorld(void);
 int GetItemInHand(void);
+int GetLocationVarIDByName(const char* name);
 
 #ifdef __cplusplus
 }
