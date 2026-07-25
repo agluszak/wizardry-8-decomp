@@ -55,5 +55,15 @@ members. Byte-identical archives are recorded but seeded only once.
 - COFF-local names such as `$L264` vary between snapshots and are excluded from query evidence;
   they remain in the FID graph so parent/child scoring is not weakened.
 
+### Rejected match: `Wiz8.exe` `0x004146E0`
+
+FID offers `jzero_far` for `0x004146E0` at score 14.68. The 27-byte body is byte-identical to the
+IJG function, but it is only a generic zero-fill loop. Its eight callers belong to Sir-Tech code:
+the dominant callers reference `C:\Projects\SGP\DirectDraw Calls.c`, and another references
+`C:\Projects\Wizardry 8\Engine Code\Video2.cpp`. The main executable has no neighboring IJG
+corpus, while its `JPEGImporter` string refers to the separate plugin architecture. This match is
+therefore rejected as library-ownership evidence and must not transfer the IJG name into the main
+program.
+
 The MSVC static archives are support-code oracles. Their presence in the FID corpus does not imply
 that Wizardry was linked with `/MT`; the observed first-party binaries use the DLL runtimes.

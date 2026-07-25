@@ -31,6 +31,8 @@ ownership and interface findings are in
 [docs/targets/srext-jpegimporter.md](docs/targets/srext-jpegimporter.md).
 The second reviewed library boundary covers Info-ZIP 5.4 and its SurRender adapter in
 [docs/targets/srext-unzip.md](docs/targets/srext-unzip.md).
+The canonical executable's recovered zlib block is documented in
+[docs/libraries/zlib-1.0.4.md](docs/libraries/zlib-1.0.4.md).
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
