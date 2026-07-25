@@ -1,5 +1,5 @@
 address,size,current_name,provisional_name,owner,confidence,fid_variants,evidence
-10001000,11,FUN_10001000,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
+10001000,11,FUN_10001000,setFileNotFound,infozip-unzip-5.4,high,,Exact Info-ZIP 5.4 api.c body and source-order identity; increments G.filenotfound
 10001010,108,FUN_10001010,unzipToMemory,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10001080,118,FUN_10001080,redirect_outfile,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10001100,84,FUN_10001100,writeToMemory,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp5-vcpp-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
@@ -7,21 +7,21 @@ address,size,current_name,provisional_name,owner,confidence,fid_variants,evidenc
 100011c0,286,FUN_100011c0,crc32,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 100012e0,20,FUN_100012e0,get_crc_table,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10001300,59,FUN_10001300,make_crc_table,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
-10001340,30,FUN_10001340,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-10001360,111,FUN_10001360,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-100013d0,70,FUN_100013d0,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-10001420,546,FUN_10001420,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-10001650,115,FUN_10001650,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-100016d0,226,FUN_100016d0,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
+10001340,30,FUN_10001340,decrypt_byte,infozip-zcrypt-2.8,high,,Exact zcrypt28 crypt.c function order constants and body shape
+10001360,111,FUN_10001360,update_keys,infozip-zcrypt-2.8,high,,Exact zcrypt28 crypt.c function order CRC key-update constants and body shape
+100013d0,70,FUN_100013d0,init_keys,infozip-zcrypt-2.8,high,,Exact zcrypt28 crypt.c function order three key constants and update_keys loop
+10001420,546,FUN_10001420,decrypt,infozip-zcrypt-2.8,high,,Exact zcrypt28 crypt.c function order encrypted-header and password-prompt control flow
+10001650,115,FUN_10001650,testp,infozip-zcrypt-2.8,high,,Exact zcrypt28 crypt.c static helper between decrypt and testkey
+100016d0,226,FUN_100016d0,testkey,infozip-zcrypt-2.8,high,,Exact zcrypt28 crypt.c static helper and 12-byte encrypted-header loop
 100017c0,987,FUN_100017c0,explode,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10001ba0,181,FUN_10001ba0,get_tree,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10001c60,1747,FUN_10001c60,explode_lit8,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10002340,1747,FUN_10002340,explode_lit4,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10002a20,1543,FUN_10002a20,explode_nolit8,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10003030,1543,FUN_10003030,explode_nolit4,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
-10003640,4704,FUN_10003640,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-100048c0,813,FUN_100048c0,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-10004bf0,2118,FUN_10004bf0,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
+10003640,4704,FUN_10003640,extract_or_test_files,infozip-unzip-5.4,high,,Exact extract.c public function position before the two static member helpers
+100048c0,813,FUN_100048c0,store_info,infozip-unzip-5.4,high,,Exact extract.c static helper order and compilation-unit section identity
+10004bf0,2118,FUN_10004bf0,extract_or_test_member,infozip-unzip-5.4,high,,Exact extract.c static helper order and compilation-unit section identity
 10005440,1378,FUN_10005440,_TestExtraField,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10005a10,178,FUN_10005a10,test_compr_eb,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10005ad0,505,FUN_10005ad0,memextract,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
@@ -32,7 +32,7 @@ address,size,current_name,provisional_name,owner,confidence,fid_variants,evidenc
 10005ec0,84,FUN_10005ec0,undefer_input,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp5-vcpp-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10005f20,106,FUN_10005f20,defer_leftover_input,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp5-vcpp-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10005f90,255,FUN_10005f90,readbuf,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
-10006090,304,FUN_10006090,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
+10006090,304,FUN_10006090,readbyte,infozip-unzip-5.4,high,,Exact fileio.c position between readbuf and flush and the NEXTBYTE refill implementation
 100061c0,487,FUN_100061c0,flush,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 100063b0,79,FUN_100063b0,disk_error,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10006400,440,FUN_10006400,_UzpMessagePrnt@16,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
@@ -102,11 +102,11 @@ address,size,current_name,provisional_name,owner,confidence,fid_variants,evidenc
 1000d590,436,FUN_1000d590,zstat_win32,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000d750,126,FUN_1000d750,_FileTime2utime,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000d7d0,85,FUN_1000d7d0,_VFatFileTime2utime,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
-1000d830,24,FUN_1000d830,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
+1000d830,24,FUN_1000d830,DllMain,infozip-unzip-5.4,high,,Exact windll.c process-attach body storing hInst and returning TRUE
 1000d850,81,FUN_1000d850,_Wiz_Init@8,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-rtm-upstream-release-mt-o2|vc6-sp5-target-runtime-md-o2|vc6-sp5-upstream-release-mt-o2|vc6-sp5-vcpp-target-runtime-md-o2|vc6-sp5-vcpp-upstream-release-mt-o2|vc6-sp6-target-runtime-md-o2|vc6-sp6-upstream-release-mt-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000d8b0,92,FUN_1000d8b0,win_fprintf,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
-1000d990,12,FUN_1000d990,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
-1000da10,142,FUN_1000da10,,infozip-unzip-5.4,candidate,,Internal function in the contiguous Info-ZIP 5.4 region; no accepted FID name
+1000d990,12,FUN_1000d990,Wiz_NoPrinting,infozip-unzip-5.4,exact,,Exact windll.c setter body writing fNoPrinting and returning with ret 4
+1000da10,142,FUN_1000da10,srWizUnzipToMemory,sirtech-unzip-adapter,exact,vc6-sp5-target-runtime-md-o2,Owned source compiles to an instruction-for-instruction identical 142-byte body
 1000daa0,748,FUN_1000daa0,zi_end_central,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000dd90,1580,FUN_1000dd90,zipinfo,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 1000e3e0,5785,FUN_1000e3e0,zi_long,infozip-unzip-5.4,high,vc6-rtm-target-runtime-md-o2|vc6-sp5-target-runtime-md-o2|vc6-sp6-target-runtime-md-o2,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
@@ -123,29 +123,29 @@ address,size,current_name,provisional_name,owner,confidence,fid_variants,evidenc
 10011020,50,FUN_10011020,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
 10011060,296,FUN_10011060,,sirtech-unzip-adapter,candidate,,Function in the reviewed SurRender ZIP adapter and plugin region
 10011190,99,srInitPlugin,srInitPlugin,sirtech-unzip-adapter,exact,,PE export ordinal 2; allocates the wrapper and opener and registers the .zip stream type
-10011200,,,,sirtech-unzip-adapter,strong,,Opener vtable entry returning the SurRender .zip opener description
-10011210,,,,sirtech-unzip-adapter,strong,,Plugin vtable entry returning the SurRender unzip plug-in description
+10011200,,,srZipOpener::getDescription,sirtech-unzip-adapter,strong,,Opener vtable entry returning the SurRender .zip opener description
+10011210,,,srUnzipPlugin::getDescription,sirtech-unzip-adapter,strong,,Plugin vtable entry returning the SurRender unzip plug-in description
 10011220,30,FUN_10011220,,sirtech-unzip-adapter,strong,,Scalar deleting destructor for the ZIP opener object
 10011240,63,FUN_10011240,,sirtech-unzip-adapter,strong,,ZIP opener destructor; destroys its owned adapter state
 10011280,30,FUN_10011280,,sirtech-unzip-adapter,strong,,Scalar deleting destructor for the complete plugin wrapper
 100112a0,84,FUN_100112a0,,sirtech-unzip-adapter,strong,,Complete plugin destructor; releases the owned opener
-10011300,,,,sirtech-unzip-adapter,strong,,No-op virtual method referenced by the stream adapter vtable
-10011310,,,,sirtech-unzip-adapter,strong,,This-adjusting thunk into the stream adapter destructor
-10011320,,,,sirtech-unzip-adapter,strong,,Stream adapter scalar deleting destructor
+10011300,,,nullsub_10011300,sirtech-unzip-adapter,strong,,One-byte no-op reached only from the exception-unwind thunk at 0x10011983; semantic owner remains unresolved
+10011310,,,srOwnedBinIMStream::scalar_deleting_destructor_adjustor,sirtech-unzip-adapter,strong,,First owned-memory-stream vtable slot; adjusts across the virtual base then jumps to 0x10011320
+10011320,,,srOwnedBinIMStream::scalar_deleting_destructor,sirtech-unzip-adapter,strong,,Complete scalar deleting destructor for the 0x2c owned memory stream
 10011350,46,FUN_10011350,,sirtech-unzip-adapter,strong,,Stream adapter destructor; frees its owned buffer
-10011380,,,,sirtech-unzip-adapter,strong,,This-adjusting thunk through an SR.DLL stream virtual
-10011390,,,,sirtech-unzip-adapter,strong,,This-adjusting thunk through an SR.DLL stream virtual
-100113a0,,,,sirtech-unzip-adapter,strong,,This-adjusting thunk through an SR.DLL stream virtual
-100113b0,,,,sirtech-unzip-adapter,strong,,This-adjusting thunk through an SR.DLL stream virtual
+10011380,,,srOwnedBinIMStream::getSize_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to imported srBinIMStream::getSize
+10011390,,,srOwnedBinIMStream::seek_from_start_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to the imported one-argument srBinIMStream::seek
+100113a0,,,srOwnedBinIMStream::seek_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to the imported two-argument srBinIMStream::seek
+100113b0,,,srOwnedBinIMStream::tell_adjustor,sirtech-unzip-adapter,strong,,Vtable slot adjusts through the virtual base and jumps to imported srBinIMStream::tell
 100113c0,14,FUN_100113c0,,sirtech-unzip-adapter,strong,,Initializes the plugin's small-string representation
 100113d0,496,FUN_100113d0,,sirtech-unzip-adapter,strong,,Combines ZIP path components into the returned stream path
-100115c0,,,,sirtech-unzip-adapter,strong,,Info-ZIP DLL callback stub returning zero and popping two arguments
-100115d0,,,,sirtech-unzip-adapter,strong,,Info-ZIP DLL callback stub returning zero and popping one argument
-100115e0,,,,sirtech-unzip-adapter,strong,,Info-ZIP DLL callback stub popping 0x34 argument bytes
-100115f0,,,,sirtech-unzip-adapter,strong,,Info-ZIP DLL callback copying a filename and incrementing the adapter count
+100115c0,,,discardPrintOrService,sirtech-unzip-adapter,strong,,Shared Info-ZIP print and service callback body returning zero and popping two arguments
+100115d0,,,discardReplace,sirtech-unzip-adapter,strong,,Info-ZIP replace callback returning zero and popping one argument
+100115e0,,,discardMessage,sirtech-unzip-adapter,strong,,Info-ZIP application-message callback popping 0x34 argument bytes
+100115f0,,,noteArchive,sirtech-unzip-adapter,strong,,Info-ZIP password callback copies the archive path and increments the adapter count
 10011630,6,srGetLibraryVersion,srGetLibraryVersion,sirtech-unzip-adapter,exact,,"PE export ordinal 1; body is mov eax,0x012a0209; ret"
-10011640,,,,msvc6-runtime-glue,strong,,Post-plugin import thunk missing from the current Ghidra function inventory
-10011646,,,,msvc6-runtime-glue,strong,,Post-plugin import thunk missing from the current Ghidra function inventory
+10011640,,,thunk_srBinIMStream_vread,msvc6-runtime-glue,strong,,Six-byte jump through IAT slot 0x100121b4 for srBinIMStream::vread
+10011646,,,thunk_srBinIStream_vget,msvc6-runtime-glue,strong,,Six-byte jump through IAT slot 0x100121b0 for srBinIStream::vget
 10011650,52,FUN_10011650,__allmul,msvc6-crt,high,vc6-rtm-vc6-rtm-multithreaded-static|vc6-sp3-libraries-vc6-sp3-multithreaded-static|vc6-sp4-libraries-vc6-sp4-multithreaded-static|vc6-sp5-vc6-sp5-multithreaded-static|vc6-sp6-vc6-sp6-multithreaded-static,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10011690,104,FUN_10011690,__aulldiv,msvc6-crt,high,vc6-rtm-vc6-rtm-multithreaded-static|vc6-sp3-libraries-vc6-sp3-multithreaded-static|vc6-sp4-libraries-vc6-sp4-multithreaded-static|vc6-sp5-vc6-sp5-multithreaded-static|vc6-sp6-vc6-sp6-multithreaded-static,Every matching source-built or pinned-library FID row agrees on this symbol; build recipe remains variant-ambiguous
 10011700,6,operator_new,,msvc6-runtime-glue,candidate,,"Function in the post-plugin import, exception, or DLL-startup region"

@@ -193,7 +193,7 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
     add_dependencies(SREXT_UNZIP surrender_unzip_import_library)
     target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /GX /O2 /Zp4)
     target_compile_definitions(SREXT_UNZIP PRIVATE
-        NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL UNZIPLIB
+        NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL
     )
     target_include_directories(SREXT_UNZIP PRIVATE
         include

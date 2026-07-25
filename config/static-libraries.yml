@@ -243,10 +243,16 @@ libraries:
       - Version resource identifies Info-ZIP's UnZip DLL for Win32.
       - The DLL Rich header contains 23 product 10/build 8447 records and one product 11/build 8447 record.
       - The release Visual C project supplies the exact Win32 DLL source list and release flags.
+      - Six previously unnamed functions are the public-domain zcrypt 2.8 encryption overlay distributed for UnZip 5.4.
     source:
       url: https://ftpmirror.infania.net/sites/os2bbs.com/archive/unzip540.zip
       sha256: b8c5a17798cd44050042fc1538df4102509d932dcab49eff3061f3065d00b45b
       archive_root: .
+    source_overlay_archives:
+      - url: https://ftp.zx.net.nz/pub/mirror/ftp.leo.org/pub/comp/os/os2/leo/archiver/zcrypt28.zip
+        sha256: fb02bc8d818da7c27ca02bf0d51e9c51e49ddce5262356b87d15f32295c4a6b3
+        archive_root: .
+        members: [crypt.c, crypt.h]
     seed_variants:
       - id: upstream-release-mt-o2
         flags: [/nologo, /Zp4, /MT, /W3, /GX, /O2, /I, 'Z:\src', /I, 'Z:\src\windll', /I, 'Z:\src\win32', /D, NDEBUG, /D, WIN32, /D, _WINDOWS, /D, WINDLL, /D, USE_EF_UT_TIME, /D, DLL, /c]

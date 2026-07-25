@@ -35,6 +35,10 @@ class SourceArchive(BaseModel):
     archive_root: str
 
 
+class SourceOverlayArchive(SourceArchive):
+    members: list[str]
+
+
 class SeedVariant(BaseModel):
     id: str
     flags: list[str]
@@ -51,6 +55,7 @@ class StaticLibrary(BaseModel):
     evidence: list[str]
     source: SourceArchive | None = None
     source_overlay: str | None = None
+    source_overlay_archives: list[SourceOverlayArchive] = Field(default_factory=list)
     seed_variants: list[SeedVariant] = Field(default_factory=list)
     compilation_units: list[str] = Field(default_factory=list)
 
@@ -337,6 +342,51 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                 _safe_extract_tar(archive, destination)
         if not expected_root.is_dir():
             raise RuntimeError(f"{library.id} archive did not contain {source.archive_root}")
+        overlay_records = []
+        for index, overlay in enumerate(library.source_overlay_archives):
+            if overlay.sha256 is None:
+                raise RuntimeError(f"{library.id} source overlay must have a pinned SHA-256")
+            suffix = (
+                ".tar.gz"
+                if overlay.url.endswith((".tar.gz", ".tgz"))
+                else Path(overlay.url).suffix
+            )
+            overlay_archive = archives / f"{library.id}-overlay-{index}{suffix}"
+            if (
+                not overlay_archive.is_file()
+                or sha256_file(overlay_archive) != overlay.sha256
+            ):
+                payload = _download(overlay.url)
+                if hashlib.sha256(payload).hexdigest() != overlay.sha256:
+                    raise RuntimeError(f"download hash mismatch for {library.id} overlay {index}")
+                atomic_write(overlay_archive, payload)
+            with tempfile.TemporaryDirectory(dir=root) as temporary:
+                overlay_destination = Path(temporary)
+                if zipfile.is_zipfile(overlay_archive):
+                    _safe_extract_zip(overlay_archive, overlay_destination)
+                else:
+                    _safe_extract_tar(overlay_archive, overlay_destination)
+                overlay_root = (overlay_destination / overlay.archive_root).resolve()
+                for member in overlay.members:
+                    source_path = (overlay_root / member).resolve()
+                    if source_path != overlay_root and overlay_root not in source_path.parents:
+                        raise RuntimeError(
+                            f"{library.id} overlay member escapes source root: {member}"
+                        )
+                    if not source_path.is_file():
+                        raise RuntimeError(
+                            f"{library.id} overlay archive did not contain {member}"
+                        )
+                    destination_path = expected_root / member
+                    destination_path.parent.mkdir(parents=True, exist_ok=True)
+                    atomic_write(destination_path, source_path.read_bytes())
+            overlay_records.append(
+                {
+                    "url": overlay.url,
+                    "archive_sha256": overlay.sha256,
+                    "members": overlay.members,
+                }
+            )
         manifest = tree_manifest(expected_root)
         records.append(
             {
@@ -346,6 +396,7 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                 "archive_sha256": source.sha256,
                 "source_tree_hash": tree_hash(manifest),
                 "file_count": len(manifest),
+                "overlays": overlay_records,
             }
         )
     result = {"schema": "wiz8.fid-source-fetch", "sources": records}
