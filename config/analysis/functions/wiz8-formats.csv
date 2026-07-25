@@ -9,6 +9,8 @@ address,provisional_name,owner,confidence,evidence
 004acb40,MinimumCasterLevelForSpellLevel,wiz8-gameplay-database,strong,Maps spell levels one through seven to minimum caster levels 1 3 5 8 11 14 and 18
 004acba0,GetMinimumCasterLevelForSpell,wiz8-gameplay-database,strong,Loads a spell's level and returns the corresponding minimum caster level
 004ff3b0,GetProfessionCasterLevel,wiz8-character-system,strong,Returns the selected profession level plus its magic-level offset or minus one for the no-magic sentinel
+004f88a0,FindItemTableByName,wiz8-item-generation,strong,Case-insensitively searches the 114 named ItemTables.dbs records and returns the table index or minus one
+004f88f0,GenerateItemsFromTable,wiz8-item-generation,strong,Filters forty packed table slots then performs weighted selection and creates up to the requested number of item instances
 00517970,RollDice,wiz8-gameplay-database,strong,Returns the signed base plus count independent rolls in the range one through sides
 005179b0,IntegerPower,wiz8-gameplay-database,strong,Multiplies the integer base by itself exponent times and is used to derive the monster disposition cache duration
 005179d0,ClampInteger,wiz8-engine-code,strong,Clamps an integer through a pointer to the inclusive minimum and maximum arguments
@@ -37,6 +39,7 @@ address,provisional_name,owner,confidence,evidence
 00517ea0,StripMonsterNameSuffix,wiz8-gameplay-database,strong,Finds the first wide '#' in a monster name field and terminates the string there
 0051b5c0,FormatItemDisplayName,wiz8-gameplay-database,strong,Selects identified or generic item text and optionally appends the stack count
 0054a400,InitializeItemDatabase,wiz8-gameplay-database,strong,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
+0054a510,InitializeItemTables,wiz8-gameplay-database,strong,Loads 15 fixed category labels and 114 contiguous 0x1f1-byte item-generation tables
 0054a8a0,LoadMonsterDatabaseRecord,wiz8-gameplay-database,strong,Seeks to index times 0x297 plus the count header and reads one monster record
 0054aac0,InitializeNpcDatabase,wiz8-gameplay-database,strong,Loads 146 fixed 0x309-byte NPC records and each version-two variable fact-rule tail
 0054ac90,DestroyNpcDatabase,wiz8-gameplay-database,strong,Destroys each NPC record's runtime rule container then frees the fixed record array

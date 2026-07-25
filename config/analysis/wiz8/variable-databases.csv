@@ -1,3 +1,4 @@
 archive_path,file_size,record_count,fixed_record_size,tail_layout,loader,status,evidence
 DATABASES\NPC.DBS,118674,146,0x309,uint32 count then count times 0x06 fact rules,0x0054aac0,partially-typed,"All five variants parse exactly; every fixed record has version two and record_id equal to its zero-based index; 774 variable rules follow the fixed records"
 DATABASES\ENCOUNTERTABLES.DBS,114919,72,0x108,"35 0x100-byte names then per-table columnar species rarity time challenge and 0x40-byte script-name arrays",0x0048a7a0,typed,"Canonical retail and patched variants parse exactly with 1259 entries; the demo has the same 72 tables and two additional entries"
+DATABASES\ITEMTABLES.DBS,60506,114,0x1f1,"15 0x100-byte category names then 114 fixed item-table records",0x0054a510,partially-typed,"All five variants are identical and parse exactly; every table has forty packed 0x05-byte weighted item slots"

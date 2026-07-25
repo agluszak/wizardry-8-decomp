@@ -198,7 +198,7 @@ def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 2
+    assert len(rows) == 3
     by_path = {row["archive_path"]: row for row in rows}
     npc = by_path["DATABASES\\NPC.DBS"]
     assert npc["archive_path"] == "DATABASES\\NPC.DBS"
@@ -213,6 +213,12 @@ def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
     assert encounters["record_count"] == "72"
     assert encounters["fixed_record_size"] == "0x108"
     assert encounters["loader"] == "0x0048a7a0"
+
+    item_tables = by_path["DATABASES\\ITEMTABLES.DBS"]
+    assert item_tables["file_size"] == "60506"
+    assert item_tables["record_count"] == "114"
+    assert item_tables["fixed_record_size"] == "0x1f1"
+    assert item_tables["loader"] == "0x0054a510"
 
 
 def test_save_game_section_vocabulary_is_unique_and_bidirectional() -> None:

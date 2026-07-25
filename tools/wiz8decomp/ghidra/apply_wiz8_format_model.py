@@ -317,6 +317,40 @@ def apply_wiz8_format_model(
                         (0x0CB, ArrayDataType(byte, 0x42, 1), "unknown_0cb", "unreviewed fields"),
                     ],
                 )
+                item_table_entry = _structure(
+                    dtm,
+                    category,
+                    "W8ItemTableEntry",
+                    0x05,
+                    [
+                        (0x00, short, "selector_00", "zero disables the slot"),
+                        (0x02, short, "item_id", "index into Items.dbs"),
+                        (0x04, byte, "weight", "weighted random selection"),
+                    ],
+                )
+                item_table = _structure(
+                    dtm,
+                    category,
+                    "W8ItemTableRecord",
+                    0x1F1,
+                    [
+                        (0x000, ArrayDataType(char, 256, 1), "name", "lookup name"),
+                        (0x100, dword, "category_id", "category-name index"),
+                        (
+                            0x104,
+                            ArrayDataType(item_table_entry, 40, 5),
+                            "entries",
+                            "forty weighted item slots",
+                        ),
+                        (
+                            0x1CC,
+                            byte,
+                            "level_scaled",
+                            "filter candidates against current party level",
+                        ),
+                        (0x1CD, ArrayDataType(byte, 0x24, 1), "unknown_1cd", "unreviewed"),
+                    ],
+                )
                 spellbook_mask = EnumDataType(category, "W8SpellbookMask", 1, dtm)
                 spellbook_mask.add("W8_SPELLBOOK_NONE", 0)
                 spellbook_mask.add("W8_SPELLBOOK_WIZARDRY", 1)
@@ -766,6 +800,7 @@ def apply_wiz8_format_model(
                 )
 
                 item_record_pointer = PointerDataType(item_record, dtm)
+                item_table_pointer = PointerDataType(item_table, dtm)
                 dice_pointer = PointerDataType(dice, dtm)
                 item_instance_pointer = PointerDataType(item_instance, dtm)
                 monster_record_pointer = PointerDataType(monster_record, dtm)
@@ -821,10 +856,14 @@ def apply_wiz8_format_model(
                     (0x0065BA3C, dword),
                     (0x0065BA40, dword),
                     (0x0065BA44, PointerDataType(char_pointer, dtm)),
+                    (0x006836B0, PointerDataType(item_table_pointer, dtm)),
+                    (0x006836B4, PointerDataType(char_pointer, dtm)),
                     (0x006836A0, npc_record_pointer),
                     (0x006836A4, level_record_pointer),
                     (0x006836AC, fact_record_pointer),
                     (0x00683F78, dword),
+                    (0x00683F7C, dword),
+                    (0x00683F80, dword),
                     (0x00683F84, dword),
                     (0x00683F88, dword),
                     (0x00683F8C, dword),
@@ -877,6 +916,15 @@ def apply_wiz8_format_model(
                     0x004FF3B0: (
                         integer,
                         [("character", generic_pointer), ("profession_id", integer)],
+                    ),
+                    0x004F88A0: (integer, [("name", char_pointer)]),
+                    0x004F88F0: (
+                        dword,
+                        [
+                            ("output_items", generic_pointer),
+                            ("table_id", dword),
+                            ("maximum_items", dword),
+                        ],
                     ),
                     0x004126F0: (dword, []),
                     0x00412A10: (dword, []),
@@ -976,6 +1024,7 @@ def apply_wiz8_format_model(
                     ),
                     0x00517EA0: (void, [("name", PointerDataType(word, dtm))]),
                     0x0054A400: (dword, []),
+                    0x0054A510: (dword, []),
                     0x0054A8A0: (
                         byte,
                         [("monster_index", dword), ("record", monster_record_pointer)],
@@ -1053,10 +1102,14 @@ def apply_wiz8_format_model(
                     (0x0065BA3C, "g_encounter_name_count"),
                     (0x0065BA40, "g_encounter_name_capacity"),
                     (0x0065BA44, "g_encounter_names"),
+                    (0x006836B0, "g_item_tables"),
+                    (0x006836B4, "g_item_table_category_names"),
                     (0x006836A0, "g_npc_records"),
                     (0x006836A4, "g_level_records"),
                     (0x006836AC, "g_fact_records"),
                     (0x00683F78, "g_item_record_count"),
+                    (0x00683F7C, "g_item_table_count"),
+                    (0x00683F80, "g_item_table_category_count"),
                     (0x00683F84, "g_monster_record_count"),
                     (0x00683F88, "g_npc_record_count"),
                     (0x00683F8C, "g_fact_record_count"),
@@ -1099,6 +1152,8 @@ def apply_wiz8_format_model(
                                 dice,
                                 item_instance,
                                 item_record,
+                                item_table_entry,
+                                item_table,
                                 spellbook_mask,
                                 attribute_minimums,
                                 profession_abilities,
@@ -1150,10 +1205,14 @@ def apply_wiz8_format_model(
                             "0x0065ba3c",
                             "0x0065ba40",
                             "0x0065ba44",
+                            "0x006836b0",
+                            "0x006836b4",
                             "0x006836a0",
                             "0x006836a4",
                             "0x006836ac",
                             "0x00683f78",
+                            "0x00683f7c",
+                            "0x00683f80",
                             "0x00683f84",
                             "0x00683f88",
                             "0x00683f8c",

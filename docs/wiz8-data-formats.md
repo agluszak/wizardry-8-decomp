@@ -192,6 +192,20 @@ and are compared with the party's effective level. Time condition zero accepts d
 16-bit ID is passed directly to `GetMonsterDataByID`, proving species ownership. The table
 name, script-name payloads, and remaining header dword stay structurally typed but unnamed.
 
+`ItemTables.dbs` contains a separate item-generation model shared unchanged by all five
+builds. A count of 15 fixed 256-byte category labels is followed by 114 packed `0x1f1`-byte
+tables. Every table has a 256-byte lookup name, a 32-bit category ID, forty five-byte
+`W8ItemTableEntry` slots, a level-scaling byte, and 36 bytes whose meaning remains under
+review. The category IDs are all valid indices into the leading label array, and all active
+item IDs are valid indices into the 819-record item database.
+
+`FindItemTableByName` at `0x004f88a0` performs the case-insensitive table lookup.
+`GenerateItemsFromTable` at `0x004f88f0` ignores slots whose leading signed field is zero,
+sums the one-byte weights, selects without replacement, and materializes each selected item
+through `ReplaceOrCreateItem`. When `level_scaled` is nonzero it filters candidates against
+the current party level and the selected item record. The exact designer meaning of the
+leading nonzero selector remains unnamed because this consumer only tests it as enabled.
+
 ## Save-game container
 
 The main save is a nested tagged container, not a single raw memory image. `SaveGame` at
