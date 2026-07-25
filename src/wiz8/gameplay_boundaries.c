@@ -1,6 +1,7 @@
 #include "gameplay_boundaries.h"
 
 #include <wchar.h>
+#include <stdio.h>
 
 extern unsigned int GetRandomNumber(unsigned int upper_bound);
 extern __declspec(dllimport) void srAssertFail(
@@ -11,6 +12,9 @@ extern __declspec(dllimport) void srAssertFail(
 extern char* FormatDiagnostic(const char* format, ...);
 extern unsigned char EvaluateFact(int fact_id);
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
+/* Provisional semantic name for the journal/notification path at 0x005588f0. */
+extern void RecordFactChangeForJournal(int fact_id);
+extern void HandleFactChange(int fact_id, unsigned char value);
 
 static __inline int MinimumCasterLevel(int spell_level)
 {
@@ -206,4 +210,46 @@ unsigned char GetFact(int fact_id)
             display_value);
     }
     return value;
+}
+
+// FUNCTION: WIZ8 0x005061A0
+void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects)
+{
+    unsigned char previous_value;
+    wchar_t display_value[10];
+
+    if (fact_id > 1000) {
+        return;
+    }
+
+    previous_value = g_fact_values[fact_id];
+    g_fact_values[fact_id] = (unsigned char)value;
+
+    if (fact_id < g_fact_record_count) {
+        if (value) {
+            sprintf((char*)display_value, "TRUE");
+        } else {
+            sprintf((char*)display_value, "FALSE");
+        }
+    }
+
+    if (!suppress_side_effects) {
+        if (g_fact_values[fact_id] != previous_value) {
+            RecordFactChangeForJournal(fact_id);
+        }
+        HandleFactChange(fact_id, value);
+
+        if (g_log_fact_checks) {
+            if (value) {
+                wcscpy(display_value, L"TRUE");
+            } else {
+                wcscpy(display_value, L"FALSE");
+            }
+            WriteGameLog(
+                5,
+                L"%S set to %s",
+                g_fact_records[fact_id].symbolic_name,
+                display_value);
+        }
+    }
 }

@@ -19,6 +19,7 @@ recovery work.
 | `0x00517ec0` | `CharacterPointerToPartySlot` | 105 | Validates the character's `in_party` byte and converts its pointer to an index in the eight-element, `0x1862`-stride party array. Its reviewed name originated in the CFAgent hook oracle; the implementation is original Wizardry code. |
 | `0x004ff3b0` | `GetProfessionCasterLevel` | 82 | Resolves profession `-1` through the character's current profession at `+0x69`, adds the corresponding unaligned profession level at `+0x8d`, and preserves the `-255` no-magic sentinel. |
 | `0x00506280` | `GetFact` | 132 | Delegates derived-state evaluation to `EvaluateFact`, optionally logs the `FACT_*` symbolic name from the `0x1d8`-byte definition record, and preserves the original upper-ID guard. Its name comes from the verified CFAgent oracle. |
+| `0x005061a0` | `SetFact` | 219 | Writes the mutable fact byte, records actual transitions through the journal/notification path at `0x005588f0`, dispatches `HandleFactChange` unless suppressed, and optionally logs the definition's `FACT_*` name. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c` and `src/wiz8/spell_backfire.cpp`
 and retain explicit `FUNCTION`
@@ -28,7 +29,7 @@ already exact compression and plug-in targets. The review map is
 `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
-instruction scheduling to the canonical order. With `/O2 /G6 /MD`, eleven bodies match exactly after
+instruction scheduling to the canonical order. With `/O2 /G6 /MD`, twelve bodies match exactly after
 masking COFF relocations where needed:
 
 | Function | Result | Relocation-normalized SHA-256 |
@@ -44,6 +45,7 @@ masking COFF relocations where needed:
 | `CharacterPointerToPartySlot` | exact, 105/105 bytes | `ba51c3d9a068fa8b79e4fbe5fb88e160d773ee10dbbe561891b0a9186aaff725` |
 | `GetProfessionCasterLevel` | exact, 82/82 bytes | `a9d9c20d53f78c3eaf03ef10a24468a2cb2a63254148cefe7bf67ca06526a75e` |
 | `GetFact` | exact, 132/132 bytes | `bd49cf8863d372e24a72e6ad01c04fd9772d3bb8726df41cf5aa5d1a9870db33` |
+| `SetFact` | exact, 219/219 bytes | `929c978d5088d599d032ddca2689f8d01b8adb0526aaa15a3de0621f77f760cf` |
 
 `CanSpellBackfire` is retained because the typed semantics and all exception sets are grounded in
 the canonical body, but it is intentionally classified as `structurally-strong`, not exact. The

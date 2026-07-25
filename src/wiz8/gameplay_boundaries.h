@@ -58,6 +58,8 @@ extern W8Character* g_party_characters;
 extern int g_profession_magic_level_offsets[15];
 extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
+extern unsigned char g_fact_values[1001];
+extern int g_fact_record_count;
 
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -75,6 +77,7 @@ void StripMonsterNameSuffix(unsigned short* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char GetFact(int fact_id);
+void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
 
 #ifdef __cplusplus
 }
