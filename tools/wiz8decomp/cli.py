@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from typing import Any, Optional
+from typing import Annotated, Any, Optional
 
 import typer
 from rich.console import Console
@@ -20,6 +20,7 @@ from .config import (
     ghidra_version,
     load_settings,
 )
+from .pipeline import PipelineStage
 from .subprocesses import tool_version
 
 app = typer.Typer(help="Wizardry 8 reproducible decompilation bootstrap CLI.", no_args_is_help=True, add_completion=False)
@@ -30,6 +31,7 @@ ghidra_app = typer.Typer(help="Own Ghidra projects, queries, daemon, and exports
 daemon_app = typer.Typer(help="Manage the persistent read-only query daemon.", no_args_is_help=True)
 fid_app = typer.Typer(help="Build and query project-owned Function ID databases.", no_args_is_help=True)
 report_app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
+pipeline_app = typer.Typer(help="Verify and clean generated pipeline stages.", no_args_is_help=True)
 app.add_typer(inputs_app, name="inputs")
 app.add_typer(extract_app, name="extract")
 app.add_typer(variants_app, name="variants")
@@ -37,6 +39,7 @@ app.add_typer(ghidra_app, name="ghidra")
 ghidra_app.add_typer(daemon_app, name="daemon")
 ghidra_app.add_typer(fid_app, name="fid")
 app.add_typer(report_app, name="report")
+app.add_typer(pipeline_app, name="pipeline")
 console = Console()
 _JSON_OUTPUT = False
 
@@ -208,6 +211,27 @@ def variants_materialize() -> None:
 def variants_diff() -> None:
     from .extract.variants import variant_diff
     _run_action(lambda: variant_diff(_settings()))
+
+
+@pipeline_app.command("verify")
+def pipeline_verify() -> None:
+    """Rehash generated trees and verify every complete stage recipe."""
+    from .pipeline import verify_pipeline
+
+    result = verify_pipeline(_settings())
+    _emit(result)
+    if not result["ok"]:
+        raise typer.Exit(1)
+
+
+@pipeline_app.command("clean")
+def pipeline_clean(
+    stage: Annotated[PipelineStage, typer.Option("--stage", help="Generated stage to remove.")],
+) -> None:
+    """Remove one explicit generated stage and its downstream derived evidence."""
+    from .pipeline import clean_pipeline
+
+    _run_action(lambda: clean_pipeline(_settings(), stage))
 
 
 @app.command("inventory")

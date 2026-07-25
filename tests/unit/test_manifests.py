@@ -52,8 +52,12 @@ def test_variant_documents_have_distinct_paths_and_strict_schemas(tmp_path: Path
                 patch_extraction=None,
                 patch_chain=[],
                 overlay_files=[],
+                input_hashes=["1" * 64],
+                configuration_hash="2" * 64,
+                implementation_revision="3" * 64,
+                tool_versions={},
                 files=[],
-                output_tree_sha256="0" * 64,
+                output_tree_hash="0" * 64,
                 created_at_utc_non_authoritative="ignored",
             )
         ]

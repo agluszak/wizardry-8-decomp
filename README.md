@@ -14,6 +14,7 @@ uv run wiz8 inputs scan
 uv run wiz8 extract all
 uv run wiz8 variants materialize
 uv run wiz8 inventory
+uv run wiz8 pipeline verify
 uv run wiz8 ghidra import --all
 uv run wiz8 ghidra fid build-image
 uv run wiz8 ghidra fid build-seeds
@@ -34,3 +35,15 @@ Variant materialization and PE inventory intentionally produce separate validate
 Their exact schemas are checked when loaded; command order cannot change the meaning of either
 path. Generated state is disposable, so these initial schemas deliberately have no compatibility
 version or migration layer.
+
+Extraction and variant trees are published only after successful construction in a temporary
+sibling directory. Their receipts bind input hashes, the relevant configuration, implementation
+source hashes, extractor identities, and the complete output tree. `uv run wiz8 pipeline verify`
+rehashes those trees. A rejected generated tree must be removed explicitly with either:
+
+```sh
+uv run wiz8 pipeline clean --stage variants
+uv run wiz8 pipeline clean --stage extractions
+```
+
+Cleaning `extractions` also removes downstream variants; neither command touches configured inputs.

@@ -7,7 +7,7 @@ name = "wizardry8-decomp"
 version = "0.1.0"
 description = "Reproducible Wizardry 8 binary-corpus and Ghidra bootstrap tooling"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
   "capstone>=5.0.6,<6",
   "pefile>=2024.8.26",
@@ -23,6 +23,7 @@ dependencies = [
 dev = [
   "pytest>=8.4,<10",
   "pytest-cov>=6.2,<8",
+  "ruff>=0.12,<1",
 ]
 
 [project.scripts]
