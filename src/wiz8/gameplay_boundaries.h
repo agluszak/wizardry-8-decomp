@@ -9,15 +9,33 @@ typedef struct W8Dice {
     unsigned char sides;
 } W8Dice;
 
+typedef struct W8SpellRuntimeRecord {
+    unsigned char unknown_000[0x56];
+    int spell_level;                    /* 0x056 */
+    unsigned char unknown_05a[0xdd];
+    int target_type;                    /* 0x137 */
+    unsigned char unknown_13b[0x84];
+} W8SpellRuntimeRecord;                 /* 0x1bf */
+
 #pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+extern W8SpellRuntimeRecord* g_spell_records;
+
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
 void ClampInteger(int* value, int minimum, int maximum);
+int GetSpellTargetType(int spell_id, unsigned char normalize_single_target);
+#ifdef __cplusplus
+bool CanSpellBackfire(int spell_id);
+#else
+unsigned char CanSpellBackfire(int spell_id);
+#endif
+int MinimumCasterLevelForSpellLevel(int spell_level);
+int GetMinimumCasterLevelForSpell(int spell_id);
 
 #ifdef __cplusplus
 }

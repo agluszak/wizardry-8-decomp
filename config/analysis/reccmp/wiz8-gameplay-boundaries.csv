@@ -2,3 +2,7 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 00517970,53,RollDice,wiz8-gameplay-database,exact,9e88bdc5744063e0d522ea20c95810352faed566df73a58552566ce96017ab63,VC6 SP5 O2 G6 MD body matches after masking the one external-call relocation
 005179b0,24,IntegerPower,wiz8-gameplay-database,exact,4454e70e52316ed73ef32bf813e14e16145c25fa3f402079afd9de08ecc375e8,VC6 SP5 O2 G6 MD body is byte-exact
 005179d0,25,ClampInteger,wiz8-engine-code,exact,13755985809557446cbd5b7e269ef859eeb4fbaab4313ec284ad3d8232cf7b17,VC6 SP5 O2 G6 MD body is byte-exact
+004ac9d0,47,GetSpellTargetType,wiz8-spell-system,exact,c801093b8ae5b3030e9db8e3d0fd1e4e6ad874ba8ea20eb0882f8802bce55dc5,VC6 SP5 O2 G6 MD body matches after masking the spell-record global relocation
+004aca60,102,CanSpellBackfire,wiz8-spell-system,structurally-strong,,Typed switch semantics and control-flow cases agree; candidate retains a separate true-return block and is not byte-exact
+004acb40,61,MinimumCasterLevelForSpellLevel,wiz8-spell-system,exact,649880237ae6e55d4df2f0ccfcc79f459e41a6bdb57711253ae74e907fa35228,VC6 SP5 O2 G6 MD switch body and local jump-table relocations match exactly
+004acba0,85,GetMinimumCasterLevelForSpell,wiz8-spell-system,exact,bb490ccad29b8f851d5c0f3e8ee00b2c3cc7f778aa3f671f2a620e4974094758,VC6 SP5 O2 G6 MD body matches after masking the spell-record and local jump-table relocations
