@@ -68,8 +68,8 @@ The binary strings establish the class name `srJPEGImporter` and the error paths
 `srJPEGImporter::importSurface` and `srJPEGImporter::exportSurface`. The constructor at
 `0x10014D40` null-checks the surface manager, registers `jpg` and then `jpeg` as importer and
 exporter types, and initializes the persistent codec options to limit 200 and quality 75. Export options recognize
-`QUALITY`, default it to 100, and truncate the parsed floating-point value to the original byte field
-before calling the JPEG encoder.
+`QUALITY`, default it to 100, clamp the parsed floating-point value to `[0.0, 1.0]`, multiply it by
+100, and truncate the result to the original byte field before calling the JPEG encoder.
 
 The stdio bridge is also recovered rather than treated as ordinary CRT code. Its `fread` and
 `fwrite` replacements catch every exception from the active SurRender stream and rethrow the exact
@@ -127,7 +127,8 @@ void exportSurface(srBinOStream&, srColorSurfaceIFace&,
 ## Recovered SDK boundary
 
 The first recovered SurRender headers are under `include/surrender/`. They encode the proven
-multiple-inheritance shape, the virtual `srBinStream` base used by directional streams, the exact
+multiple-inheritance shape, the virtual `srBinStream` base used by directional streams, the
+directional output stream's protected virtual `vput(char)` slot and resulting vptr/vbptr layout, the exact
 `0x28`-byte surface-description record, and the 52 observed `srColorSurface` vtable positions.
 The plugin constructs a zero-data `srJPEGColorSurface` wrapper around the imported concrete
 `srColorSurface`. This typed inheritance accounts for the original call to the `SR.DLL` constructor
@@ -188,15 +189,43 @@ matches for:
 
 The report now covers 366 code and data identities, including all 329 linked IJG functions, every
 reviewed first-party/lifetime function, the four concrete vtables, and the two active-stream globals.
-All 366 are implemented, aggregate accuracy is 98.91%, and 333 functions are address-aligned. The
+All 366 are implemented, aggregate accuracy is 98.92%, and 333 functions are address-aligned. The
 four vtables compare at 100%; the globals match byte-for-byte; the PE exports, import set, and version
 resource also match the original. The original Sir-Tech configuration omits both `fflush` and `ferror` from the IJG
 stdio destination; reproducing that fact removes the former `0x20` tail drift and puts every IJG
 translation unit at its original address. The larger denominator includes every recovered public operation:
-`getSurfaceDesc` is 53.57%, `importSurface` is 29.41%, and `exportSurface` is 69.69%. The low import
+`getSurfaceDesc` is 53.57%, `importSurface` is 29.41%, and `exportSurface` is 74.14%. The low import
 score reflects unresolved
 local/control-flow selection rather than missing behavior; its allocation branches, vtable install,
 decode failure cleanup, and 1/3/4-component row conversions are all represented.
 This proves that upstream IJG remains upstream source: only the Sir-Tech adapter and SurRender ABI
-are manually recovered. The remaining JPEG work is exact compiler/link refinement and a drop-in
-runtime test against the original `SR.DLL`.
+are manually recovered.
+
+## Runtime replacement proof
+
+The rebuilt DLL was installed only in a reflinked copy of the materialized GOG tree and exercised
+with Wine 9.0 in a dedicated 32-bit prefix. The original game loaded, unloaded, and loaded the
+replacement extension again during normal startup, then remained running for the 20-second smoke
+window. The only diagnostics were the pre-existing Wine display and wined3d warnings.
+
+A small VC6 harness loaded the original `sr.dll`, called `srInit`, constructed each extension through
+`srInitPlugin`, and invoked the recovered importer and exporter vtables. Both original and rebuilt
+extensions behaved identically for RGB input, IJG-generated grayscale input, a truncated JPEG, and
+malformed non-JPEG data. Three consecutive RGB imports in one process also produced the same
+surface dimensions and success state, exercising cleanup of the global active-stream bridge.
+
+The output tests use `srBinOMStream` from the original `sr.dll`, including its hidden complete-object
+constructor flag and virtual `srBinStream` base. Every case was repeated three times. Original and
+rebuilt output was byte-identical according to size and FNV-1a:
+
+| Option | Encoded bytes | FNV-1a |
+| --- | ---: | --- |
+| absent | 301,859 | `5c89dfdb` |
+| `QUALITY=0.1` | 18,730 | `7479d645` |
+| `QUALITY=1.0` | 301,859 | `5c89dfdb` |
+| `QUALITY=bogus` | 7,982 | `79ece4cf` |
+
+All outputs begin with the JPEG `FFD8` marker. Destruction of each stream and surface, deletion of
+the plugin, `FreeLibrary`, `srExit`, and repeated process runs completed without an exception or
+Wine error. This validates the recovered normalized `QUALITY` semantics as well as the
+`srBinOStream` primary-vptr/vbptr ABI against the original engine.

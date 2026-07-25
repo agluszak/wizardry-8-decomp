@@ -293,7 +293,15 @@ void srJPEGImporter::exportSurface(
                 if (end != 0) {
                     *end = '\0';
                 }
-                export_options_.quality = static_cast<unsigned char>(atof(quality));
+                double normalized_quality = atof(quality);
+                if (normalized_quality < 0.0) {
+                    normalized_quality = 0.0;
+                }
+                else if (normalized_quality > 1.0) {
+                    normalized_quality = 1.0;
+                }
+                export_options_.quality = static_cast<unsigned char>(
+                    normalized_quality * 100.0);
             }
         }
         ::operator delete(option_string);
