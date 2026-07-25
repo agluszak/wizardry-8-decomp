@@ -165,6 +165,41 @@ sizes. Remaining section drift is small: `.text` is 928 virtual bytes larger, `.
 larger, `.data` 32 bytes smaller, and `.reloc` 50 bytes smaller. The 39-byte file-size excess is the
 recompiled image's CodeView/PDB record.
 
+## Runtime replacement proof
+
+The rebuilt DLL was installed only in a reflinked copy of the materialized GOG tree and loaded with
+Wine 9.0 in a dedicated 32-bit prefix. A VC6 harness initializes the original `sr.dll`, loads either
+the original or rebuilt extension by explicit path, calls `srInitPlugin`, obtains the opener from the
+recovered eight-byte plugin layout, and invokes the typed opener and stream interfaces. It destroys
+every returned stream through its virtual destructor, deletes the plugin, unloads the DLL, calls
+`srExit`, and unloads `sr.dll`.
+
+The test archive contains a 29-byte `folder/member.txt` and a 22-byte `Case.TXT`. Original and
+rebuilt extensions produce the same results:
+
+| Scenario | Result |
+| --- | --- |
+| direct `tmp\\runtime.zip/folder/member.txt` | 29 bytes, FNV-1a `368f826b` |
+| `ZIP_PATH=tmp\\runtime.zip/` plus `folder/member.txt` | same 29-byte member |
+| exact `Case.TXT` | 22 bytes, FNV-1a `0b3e85e4` |
+| lowercase `case.txt`, case-insensitive disabled | null stream |
+| lowercase `case.txt`, case-insensitive enabled | exact 22-byte member |
+| `evidence@tmp\\runtime.zip/folder/member.txt` | exact 29-byte member |
+| missing archive | null stream |
+| corrupt `.zip` file | null stream |
+| wildcard matching both members | null stream, confirming multi-match rejection |
+
+Each successful path was opened, read, and destroyed three times in one plug-in lifetime. No
+exception, heap diagnostic, or Wine error occurred in either original or rebuilt runs; Wine emitted
+only its generic read-access warning for the host `Z:` drive. This exercises registration, direct
+and configured lookup, case policy, member splitting, callback-count rejection, extracted-buffer
+ownership, repeated use, and clean unload against the original engine.
+
+Normal game startup does not request `srEXT_Unzip.dll` in this installation, so the executable's
+20-second smoke run is not claimed as extension coverage. The explicit harness is the relevant
+drop-in test: it uses the unmodified game `sr.dll` and the extension's real exported factory and
+SurRender vtables.
+
 ## Source archive provenance
 
 The pinned archive has SHA-256
