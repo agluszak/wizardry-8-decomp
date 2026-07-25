@@ -3,7 +3,6 @@
 #include <wchar.h>
 #include <stdio.h>
 
-extern unsigned int GetRandomNumber(unsigned int upper_bound);
 extern __declspec(dllimport) void srAssertFail(
     const char* expression,
     const char* source_path,

@@ -20,8 +20,10 @@ recovery work.
 | `0x004ff3b0` | `GetProfessionCasterLevel` | 82 | Resolves profession `-1` through the character's current profession at `+0x69`, adds the corresponding unaligned profession level at `+0x8d`, and preserves the `-255` no-magic sentinel. |
 | `0x00506280` | `GetFact` | 132 | Delegates derived-state evaluation to `EvaluateFact`, optionally logs the `FACT_*` symbolic name from the `0x1d8`-byte definition record, and preserves the original upper-ID guard. Its name comes from the verified CFAgent oracle. |
 | `0x005061a0` | `SetFact` | 219 | Writes the mutable fact byte, records actual transitions through the journal/notification path at `0x005588f0`, dispatches `HandleFactChange` unless suppressed, and optionally logs the definition's `FACT_*` name. Its name comes from the verified CFAgent oracle. |
+| `0x0040efa0` | `GetRandomNumber` | 50 | Returns zero for a zero bound; otherwise scales VC6 `rand()` by `RAND_MAX` before wrapping the inclusive upper endpoint. Its name comes from the verified CFAgent oracle and it has 365 canonical callers. |
 
-The owned definitions live in `src/wiz8/gameplay_boundaries.c` and `src/wiz8/spell_backfire.cpp`
+The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`, and
+`src/wiz8/spell_backfire.cpp`
 and retain explicit `FUNCTION`
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
 `just build WIZ8_GAMEPLAY_BOUNDARIES`; it uses the pinned SP5 `/O2 /G6 /MD` environment alongside the
@@ -46,6 +48,12 @@ masking COFF relocations where needed:
 | `GetProfessionCasterLevel` | exact, 82/82 bytes | `a9d9c20d53f78c3eaf03ef10a24468a2cb2a63254148cefe7bf67ca06526a75e` |
 | `GetFact` | exact, 132/132 bytes | `bd49cf8863d372e24a72e6ad01c04fd9772d3bb8726df41cf5aa5d1a9870db33` |
 | `SetFact` | exact, 219/219 bytes | `929c978d5088d599d032ddca2689f8d01b8adb0526aaa15a3de0621f77f760cf` |
+| `GetRandomNumber` | exact, 50/50 bytes | `438ef441f48956b35998a4c1aa63c4da1d0a0fc45436883376b4a7bc849897bb` |
+
+`GetRandomNumber` is the first proven exception to the unit's `/G6` scheduling. Its isolated
+`random_number.c` object is exact with `/G5`; `/G6` preserves the semantics but moves the multiply
+constant load and zeroing instruction. This is kept as a per-source CMake option rather than
+weakening the exact `/G6` evidence for the other twelve bodies.
 
 `CanSpellBackfire` is retained because the typed semantics and all exception sets are grounded in
 the canonical body, but it is intentionally classified as `structurally-strong`, not exact. The

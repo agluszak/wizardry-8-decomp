@@ -263,14 +263,15 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 13
+    assert len(rows) == 14
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 12
+    assert len(exact) == 13
     assert {int(row["size"]) for row in exact} == {
         24,
         25,
         26,
         47,
+        50,
         53,
         61,
         82,
@@ -286,7 +287,11 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     assert backfire["relocation_masked_sha256"] == ""
     source = "\n".join(
         (repository / path).read_text(encoding="utf-8")
-        for path in ("src/wiz8/gameplay_boundaries.c", "src/wiz8/spell_backfire.cpp")
+        for path in (
+            "src/wiz8/gameplay_boundaries.c",
+            "src/wiz8/random_number.c",
+            "src/wiz8/spell_backfire.cpp",
+        )
     )
     for row in rows:
         assert f"// FUNCTION: WIZ8 0x{row['address'].upper()}" in source

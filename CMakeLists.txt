@@ -233,8 +233,10 @@ endif()
 if(WIZ8_BUILD_DECOMP)
     add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
         src/wiz8/gameplay_boundaries.c
+        src/wiz8/random_number.c
         src/wiz8/spell_backfire.cpp
     )
+    set_source_files_properties(src/wiz8/random_number.c PROPERTIES COMPILE_OPTIONS /G5)
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
     target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8)
 endif()
