@@ -28,7 +28,9 @@ to reproduce code you already understand.
 5. **`just verify-boundaries`** for the verdict, and `just compare WIZ8` for link-level problems it
    cannot see — wrong import names, unreachable functions, stale links. Only the first decides
    whether a body matches; see the warning below before reading any reccmp percentage.
-6. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
+6. `just check-markers`: the `// FUNCTION:` marker must sit immediately above its declaration, with
+   any explanation above the marker rather than between the two.
+7. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
    relevant test counts in `tests/unit/test_wiz8_source_model.py`.
 
 Comparison masks COFF `DIR32`/`DIR32NB`/`REL32` relocation fields, so global addresses and call

@@ -66,11 +66,11 @@ extern unsigned char Function44F060(void);
 extern void Function47B5F0(void);
 extern unsigned char Function4285C0(void);
 
-// FUNCTION: WIZ8 0x00421BB0
 /* Brings the renderer up, shows the window and, when the INSPECTOR switch was
    given, loads that extension from the DLL subdirectory before returning to the
    original working directory. Each gate that fails returns straight out with
    the callee's own false still in AL. */
+// FUNCTION: WIZ8 0x00421BB0
 unsigned char Function421BB0(void* instance, unsigned short show_command, void* window_proc)
 {
     MEMORYSTATUS status;

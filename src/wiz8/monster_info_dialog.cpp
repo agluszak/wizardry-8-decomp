@@ -22,8 +22,8 @@ struct W8MonsterInfoDialog {
     void ResetSubobjectAndRefresh();
 };
 
-// FUNCTION: WIZ8 0x005D6E60
 // Primary vtable slot 12.
+// FUNCTION: WIZ8 0x005D6E60
 void W8MonsterInfoDialog::ClearField41IfEnabled()
 {
     if (m_field_50) {
@@ -31,8 +31,8 @@ void W8MonsterInfoDialog::ClearField41IfEnabled()
     }
 }
 
-// FUNCTION: WIZ8 0x005DBDE0
 // Primary vtable slot 2.
+// FUNCTION: WIZ8 0x005DBDE0
 void W8MonsterInfoDialog::ResetSubobjectAndRefresh()
 {
     m_sub58.Reset();

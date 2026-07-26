@@ -59,6 +59,10 @@ compare target=jpeg_target *args: _check-build-dir
         uv run --project {{repo}} reccmp-reccmp \
         --target {{target}} --no-color {{args}}
 
+# Check that every reccmp address marker names the declaration below it.
+check-markers *args:
+    uv run --project {{repo}} wiz8 check-markers {{args}}
+
 # Check reviewed bodies against the original by relocation-masked comparison.
 # This is the matching criterion; `compare` measures the linked image, where our
 # globals sit at other addresses, and scores byte-exact bodies well under 100%.

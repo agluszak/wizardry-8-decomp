@@ -136,12 +136,12 @@ unsigned char InitializeLevelDatabase(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054A510
 /* ItemTables.DBS carries two arrays: category names, each a fixed 0x100-byte
    buffer, then the tables themselves. Both are arrays of pointers, cleared
    before use. The category reads are unchecked in the original while the table
    reads are not, and the per-table allocation is cleared before its own null
    check rather than after; both are reproduced. */
+// FUNCTION: WIZ8 0x0054A510
 unsigned char InitializeItemTables(void)
 {
     char path[60];
@@ -195,10 +195,10 @@ unsigned char InitializeItemTables(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054AAC0
 /* NPC.DBS records carry an optional sub-list, stored after the record when its
    leading count exceeds one and its 0x9D flag is clear: a count, then that many
    six-byte elements appended to a freshly created list. */
+// FUNCTION: WIZ8 0x0054AAC0
 unsigned char InitializeNpcDatabase(void)
 {
     char path[60];
@@ -273,12 +273,12 @@ void DestroyNpcDatabase(void)
     }
 }
 
-// FUNCTION: WIZ8 0x0054A8A0
 /* Seeks straight to one record rather than holding the file open, and strips the
    four name fields afterwards. The failed seek leaves the handle open where
    every other failure closes it, as elsewhere in this unit. The bytes-read
    out-parameter is the index's own incoming slot, dead once it has been copied
    into a register. */
+// FUNCTION: WIZ8 0x0054A8A0
 unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
 {
     char path[60];
@@ -309,10 +309,10 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054A4F0
 /* Unlike its fact and level siblings this one guards the free and then leaves
    the pointer dangling rather than clearing it. Both halves of that asymmetry
    are the original's. */
+// FUNCTION: WIZ8 0x0054A4F0
 void DestroyItemDatabase(void)
 {
     if (g_item_records) {
@@ -327,9 +327,9 @@ void DestroyLevelDatabase(void)
     g_level_records = 0;
 }
 
-// FUNCTION: WIZ8 0x0054A880
 /* A generic guarded free, called from three unrelated subsystems, so it is named
    for what it does rather than for any one database. */
+// FUNCTION: WIZ8 0x0054A880
 void FreeIfNotNull(void* block)
 {
     if (block) {
@@ -337,9 +337,9 @@ void FreeIfNotNull(void* block)
     }
 }
 
-// FUNCTION: WIZ8 0x0054B4C0
 /* Both buffers are cleared only after both allocations succeed, so a failed
    second allocation leaves the first one live and unzeroed. */
+// FUNCTION: WIZ8 0x0054B4C0
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
 {
     status->buffer_04 = malloc(0xc310);

@@ -9,9 +9,9 @@ struct W8Prop {
     void Method44C830(W8World* world);
 };
 
-// FUNCTION: WIZ8 0x0046DED0
 // Source unit is Engine Code\3d.cpp; the assertion at line 344 is what names
 // and types World::plsProps.
+// FUNCTION: WIZ8 0x0046DED0
 void WorldUpdateProps(W8World* world)
 {
     int count;

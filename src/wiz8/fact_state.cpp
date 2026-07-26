@@ -15,29 +15,28 @@ extern void Function58AAD0(int channel, const wchar_t* format, const char* name,
 extern void Function55A0A0(int handle);
 extern void Function524CA0(W8NPCItemList* list);
 
-// FUNCTION: WIZ8 0x00506480
 /* The whole 1001-byte fact array minus its last entry goes to the save file in
    one write. The original passes the address of its own parameter as the
    bytes-written out-parameter: the handle has already been copied into a
    register, so the incoming slot is dead and doubles as the scratch the callee
    requires. Reproduced literally, because a separate local would cost a stack
    frame the canonical body does not have. */
+// FUNCTION: WIZ8 0x00506480
 void SaveFactState(int save_handle)
 {
     WriteVirtualFile(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
 }
 
-// FUNCTION: WIZ8 0x00506310
 /* Clears every fact, then seeds the ones a fresh party starts with. A party
    imported from Wizardry 7 gets a different set, keyed off the option byte and
    flag mask the importer unpacked.
-
    The canonical body clears the suppression flag twice, once inside the
    innermost branch ahead of an early return and once at the exit. That
    duplication is VC6's, not the source's: writing both out costs a byte,
    because the compiler then merges the two argument cleanups into one
    add esp,0x10 where the original keeps an add esp,0xc and a pop ecx. One
    trailing call, duplicated by the compiler, is byte-exact. */
+// FUNCTION: WIZ8 0x00506310
 void InitializeFactState(void)
 {
     memset(g_fact_values, 0, 1000);
@@ -93,10 +92,10 @@ static __inline unsigned char CheckFactLogged(int fact_id)
     return value;
 }
 
-// FUNCTION: WIZ8 0x005064A0
 /* Reads the fact array back, then re-applies the consequences that do not
    survive a save. As in SaveFactState the handle's own incoming slot doubles as
    the bytes-read scratch. */
+// FUNCTION: WIZ8 0x005064A0
 void LoadFactState(int save_handle)
 {
     W8NPCItemList* list;

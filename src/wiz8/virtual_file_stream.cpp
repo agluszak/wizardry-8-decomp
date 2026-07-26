@@ -16,9 +16,9 @@ struct W8VirtualFileBinIStream {
     unsigned int Read(void* buffer, unsigned int size);
 };
 
-// FUNCTION: WIZ8 0x0047D5C0
 // Primary vtable slot 1. Note the original reuses the `size` parameter slot as
 // the completed-count out-parameter, and returns it branchlessly.
+// FUNCTION: WIZ8 0x0047D5C0
 unsigned int W8VirtualFileBinIStream::Read(void* buffer, unsigned int size)
 {
     if (ReadVirtualFile(m_hFile, buffer, size, &size)) {

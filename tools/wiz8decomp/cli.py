@@ -187,6 +187,25 @@ def _reccmp_original(target: str) -> Path | None:
     return resolved if resolved.is_file() else None
 
 
+@app.command("check-markers")
+def check_markers_command(
+    paths: Annotated[
+        list[Path] | None,
+        typer.Option(help="Files or directories to scan; defaults to src and include."),
+    ] = None,
+) -> None:
+    """Check that each reccmp address marker names the declaration below it."""
+
+    def action() -> dict[str, Any]:
+        from .markers import check_marker_hygiene
+
+        settings = _settings()
+        roots = paths or [settings.repo_dir / "src", settings.repo_dir / "include"]
+        return check_marker_hygiene(list(roots), settings.repo_dir)
+
+    _run_action(action)
+
+
 @app.command("verify-boundaries")
 def verify_boundaries_command(
     mapping: Annotated[

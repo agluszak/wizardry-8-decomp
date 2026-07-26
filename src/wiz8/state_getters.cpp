@@ -8,9 +8,9 @@ int GetLoadedLevelID(void)
     return g_loaded_level_id;
 }
 
-// FUNCTION: WIZ8 0x0042B500
 // The original bounds-checks only the upper end, so a negative level_id reads
 // before the table. Reproduced as-is; LevelGetFolderNameByID checks both ends.
+// FUNCTION: WIZ8 0x0042B500
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code)
 {
     if (level_id >= 47) {

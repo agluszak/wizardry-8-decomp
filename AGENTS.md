@@ -48,6 +48,12 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   FID sources, oracles, Ghidra projects - and may be shared between checkouts. `just configure` and
   `just compare` still refuse to run when a build directory's cache names a different checkout,
   which catches a moved or copied working copy; `just wiz8 check-build-dir` reports it on demand.
+- **Keep the `// FUNCTION:` marker immediately above its declaration** - no blank line and no
+  comment between them. reccmp binds a marker to whatever declaration follows it, so prose in the
+  gap detaches the marker from its function rather than merely reading untidily. Put the prose above
+  the marker. `just check-markers` gates this, and also that no address is claimed twice within a
+  module. `// LIBRARY:` markers are exempt from the adjacency rule, having no owned definition to
+  sit against.
 - **Verify a ported body with `just verify-boundaries`.** It masks relocated operands and compares
   against the original image, which is the criterion `relocation_masked_sha256` records, and it
   reports `regressed` when a reviewed-exact body stops matching and `promotable` when a near miss

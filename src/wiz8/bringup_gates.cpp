@@ -55,9 +55,9 @@ extern unsigned char Function4E2F40(void);
 extern unsigned int g_mswheel_roll_message;
 extern bool g_flag_6505a9;
 
-// FUNCTION: WIZ8 0x005B1740
 /* Shared success stub. BringUpEngine uses it as a gate and the 62-entry frame
    dispatch table parks it in seventeen slots. */
+// FUNCTION: WIZ8 0x005B1740
 unsigned char Function5B1740(int unused)
 {
     return 1;
@@ -127,16 +127,16 @@ extern void Function401F70(void);
 extern void Function404BC0(void);
 extern void Function428B80(void);
 
-// FUNCTION: WIZ8 0x004023A0
 /* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
+// FUNCTION: WIZ8 0x004023A0
 void Function4023A0(void)
 {
 }
 
-// FUNCTION: WIZ8 0x00404B00
 /* Clears the pointer table, then walks it releasing each entry. The walk can
    never see a live entry because the clear precedes it, but both are in the
    original and the compiler kept them, so both are reproduced. */
+// FUNCTION: WIZ8 0x00404B00
 void Function404B00(void)
 {
     unsigned short** table;
@@ -174,8 +174,8 @@ extern unsigned char g_run_flag_6f0628;
 extern unsigned char gfApplicationActive;
 extern unsigned char gfSGPInputReceived;
 
-// FUNCTION: WIZ8 0x00404BD0
 /* The caller shifts the result right by ten and stores kilobytes. */
+// FUNCTION: WIZ8 0x00404BD0
 unsigned int QueryAvailableMemory(void)
 {
     MEMORYSTATUS status;
@@ -244,11 +244,11 @@ extern int g_provider_650e58;
 extern int g_listener_650e5c;
 extern unsigned char g_buffer_7dc000[];
 
-// FUNCTION: WIZ8 0x004086D0
 /* Walks the Miles 3D providers for the one whose name matches the configured
    string, opens it and its listener, and records whether the provider exposes
    EAX environment selection. Any failure leaves the subsystem closed and still
    reports success, so audio never blocks bring-up. */
+// FUNCTION: WIZ8 0x004086D0
 bool Function4086D0(void)
 {
     int next;
@@ -299,10 +299,10 @@ bool Function4086D0(void)
     return true;
 }
 
-// FUNCTION: WIZ8 0x00401950
 /* Switches are matched by prefix with _strnicmp, so each comparison carries its
    own length. The line is copied first because strtok writes through it, and
    the delimiter set is copied to a stack word rather than used in place. */
+// FUNCTION: WIZ8 0x00401950
 void ProcessCommandLine(char* pCommandLine)
 {
     char delimiters[4];
@@ -344,13 +344,13 @@ void ProcessCommandLine(char* pCommandLine)
     free(copy);
 }
 
-// FUNCTION: WIZ8 0x00407EC0
 /* Builds the default key binding table: a head node carrying the count and a
    0x1f8-byte array of 252 key codes. The original writes them through a
    post-incrementing cursor, one mov and one add per entry, which an indexed
    write does not reproduce - VC6 folds those into half the instructions.
    Neither allocation is checked. The codes are transcribed from the canonical
    encoding rather than by hand. */
+// FUNCTION: WIZ8 0x00407EC0
 W8BindingNode* Function407EC0(void)
 {
     W8BindingNode* node;
@@ -617,10 +617,10 @@ W8BindingNode* Function407EC0(void)
     return node;
 }
 
-// FUNCTION: WIZ8 0x00407D30
 /* Publishes the three values 0x00422AF0 reports, narrowed to their field
    widths, then - when given a source node - allocates a head and a copy of it.
    Either allocation failing abandons the whole thing, leaking the first. */
+// FUNCTION: WIZ8 0x00407D30
 bool Function407D30(unsigned short code, W8BindingNode* source)
 {
     unsigned int first;
@@ -657,10 +657,10 @@ bool Function407D30(unsigned short code, W8BindingNode* source)
     return true;
 }
 
-// FUNCTION: WIZ8 0x00405740
 /* Appends the subdirectory to the working directory and prepends the result to
    PATH, so plug-in DLLs load from the shipped subdirectory. Every string call
    here is inlined by VC6, which is why the body is mostly rep movs. */
+// FUNCTION: WIZ8 0x00405740
 bool SetModuleSubdirectory(const char* subdirectory)
 {
     char path[520];
@@ -688,12 +688,12 @@ bool SetModuleSubdirectory(const char* subdirectory)
     return true;
 }
 
-// FUNCTION: WIZ8 0x004017F0
 /* Registered with atexit as BringUpEngine's first act. Guarded twice: a once
    flag so a second exit does nothing, and a separate teardown flag so the long
    release sequence runs at most once. The engine flag BringUpEngine sets on
    success decides how much of it applies. Any message left in the buffer is
    shown before handing off. */
+// FUNCTION: WIZ8 0x004017F0
 void ShutdownHandler(void)
 {
     unsigned char engine_up;
@@ -735,11 +735,11 @@ void ShutdownHandler(void)
     Function428B80();
 }
 
-// FUNCTION: WIZ8 0x00401570
 /* The window init sequence. Registers the window class, points module loading
    at the DLL subdirectory, then runs each bring-up gate in order and abandons
    the whole sequence the moment one reports failure. Like the smaller gates it
    returns the flag it raises at the end. */
+// FUNCTION: WIZ8 0x00401570
 bool BringUpEngine(void* instance, int show_command)
 {
     void* buffer;
@@ -789,12 +789,12 @@ bool BringUpEngine(void* instance, int show_command)
     return true;
 }
 
-// FUNCTION: WIZ8 0x00401670
 /* A running instance is found by class and title both spelled "Wizardry 8"; it
    is raised and this one exits. Otherwise the video configuration file gates
    startup: absent, 3DSetup.EXE is spawned to write it and the check repeats,
    and still absent ends the run. The message loop ticks a frame whenever no
    message is waiting and the application is active, and waits otherwise. */
+// FUNCTION: WIZ8 0x00401670
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     MSG message;
