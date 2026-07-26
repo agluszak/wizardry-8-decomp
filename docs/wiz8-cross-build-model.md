@@ -34,10 +34,10 @@ speculative static function addresses. The 1.28 executable is a fan-patch target
 original-body mappings do not make `Wiz8.dll`, `cfagent1.28.dll`, detours, or injected code original
 Wizardry source.
 
-The already reviewed SGP mappings remain in
-`config/analysis/sgp/directdraw-cross-build.csv`. Those 13 source-built identities are independent
-evidence and should be joined with this map by canonical address when preparing a function for
-recovery.
+The already reviewed SGP mappings remain in `config/analysis/functions/wiz8-sgp.csv`, with
+per-build observations in `config/analysis/sgp/harness.csv`. Those source-built identities are
+independent evidence and should be joined with this map by canonical address when preparing a
+function for recovery.
 
 ## Fan-patch symbol oracle
 

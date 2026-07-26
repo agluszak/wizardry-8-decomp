@@ -89,8 +89,8 @@ All 13 bodies are also exact in the playable demo at addresses shifted by `+0x36
 the canonical addresses in the base executable and both files materialized for 1.261; the 1.28
 tree's base executable is likewise exact. The packed/rewritten `Wiz8_v128.exe` and protected retail
 executable do not contain the same relocation-masked byte sequences, so no names are transferred to
-them from this byte matcher. The complete address matrix is
-`config/analysis/sgp/directdraw-cross-build.csv`.
+them from this byte matcher. The complete per-build observations are the `directdraw` rows in
+`config/analysis/sgp/harness.csv`.
 
 The oracle also resolves the independently reconstructed zlib boundary. The five exact functions
 at `0x00415820` through `0x004158F0` are the retained decompression half of `sgp/Compression.c`,
@@ -114,8 +114,8 @@ The retained functions preserve source order from lines 14, 19, 24, 55, and 80 a
 `0x00415820` through `0x004158F0`. The next function, zlib's `inflateReset`, starts at `0x00415910`.
 This supports the linker-order hypothesis that `Compression.obj` immediately preceded the selected
 zlib objects, with the four later source COMDATs eliminated rather than moved elsewhere. The full
-machine report is `config/analysis/sgp/compression-harness.csv`; the reviewed source-line and
-object-order resolution is `config/analysis/sgp/compression-functions.csv`.
+machine observations are the `compression` rows in `config/analysis/sgp/harness.csv`; the reviewed
+source-line and object-order resolution is in `config/analysis/sgp/reviewed-findings.csv`.
 
 ## `Random.c`: a complete unit, and a name correction
 
@@ -148,7 +148,8 @@ Two project-profile flags are proven by this unit, not incidental:
 two exact functions and one absent one, which invites the wrong conclusion that Wizardry modified or
 dropped `Chance`. It did neither.
 
-The complete address matrix is `config/analysis/sgp/random-cross-build.csv`. The whole unit sits in
+The complete address matrix is represented by the `random` rows in
+`config/analysis/sgp/harness.csv`. The whole unit sits in
 the demo at the same `+0x360` shift as the DirectDraw block, is identical in the 1.261 and 1.28 base
 executables, and is absent from the packed `Wiz8_v128.exe` and the protected retail executable —
 recorded as unavailable rather than as absent.
@@ -172,9 +173,11 @@ masked before comparison.
 Each candidate is classified as `exact`, `relocation-equivalent`,
 `near-source-with-wiz8-modifications`, `absent-or-stripped`, or `ambiguous-generic`. Executables
 that cannot be compared statically remain in the report with an orthogonal `unavailable` state and
-a reason, rather than being mislabeled absent. The tracked reports are
-`config/analysis/sgp/directdraw-harness.csv`, `config/analysis/sgp/random-harness.csv`,
-`config/analysis/sgp/compression-harness.csv`, and `config/analysis/sgp/fileman-harness.csv`.
+a reason, rather than being mislabeled absent. All units share the generated
+`config/analysis/sgp/harness.csv`; conclusions that require human review live in
+`config/analysis/sgp/reviewed-findings.csv`. Accepted identities remain in
+`config/analysis/functions/wiz8-sgp.csv`, and source-path evidence remains in
+`config/analysis/sgp/wiz8-source-paths.csv`.
 
 The common profile reproduces all 13 established `DirectDraw Calls.c` functions in each of the
 five comparable builds and all three `Random.c` functions in the same builds. These results preserve the legacy
@@ -210,8 +213,9 @@ Two near matches are deliberately not promoted as exact:
   `TRUE` to `FALSE`. The identity remains exact for the canonical executable, while the patched
   module is recorded as a Wizardry modification.
 
-The byte offsets, similarities, and behavioral deltas are tracked in
-`config/analysis/sgp/fileman-near-matches.csv`.
+The byte offsets and behavioral deltas are tracked in the `fileman` rows of
+`config/analysis/sgp/reviewed-findings.csv`; the generated similarities remain in the matching
+rows of `config/analysis/sgp/harness.csv`.
 
 ### `Random`, not `GetRandomNumber`
 

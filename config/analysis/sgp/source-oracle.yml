@@ -111,24 +111,21 @@ reusable_harness:
     - near-source-with-wiz8-modifications
     - absent-or-stripped
     - ambiguous-generic
-  reports:
-    - config/analysis/sgp/directdraw-harness.csv
-    - config/analysis/sgp/random-harness.csv
-    - config/analysis/sgp/compression-harness.csv
-    - config/analysis/sgp/fileman-harness.csv
+  report: config/analysis/sgp/harness.csv
+  reviewed_findings: config/analysis/sgp/reviewed-findings.csv
 
 fileman_unit:
   source: sgp/FileMan.c
   selected_flags: [/O2, /Ob2, /G5, /MD]
   emitted_functions: 43
   exact_source_identities: 15
-  near_matches: config/analysis/sgp/fileman-near-matches.csv
+  reviewed_findings: config/analysis/sgp/reviewed-findings.csv
   wizardry_layout_differences:
     LibraryHeaderStruct: {released_size: 0x20, wizardry_stride: 0x28}
 
 compression_unit:
   source: sgp/Compression.c
-  functions: config/analysis/sgp/compression-functions.csv
+  reviewed_findings: config/analysis/sgp/reviewed-findings.csv
   selected_flags: [/O2, /Ob2, /G5, /MD]
   emitted_functions: 9
   retained_functions: 5

@@ -5,6 +5,20 @@ import yaml
 from wiz8decomp.sgp_oracle import BuildText, CoffFunction, _evaluate, classify_body
 
 
+def _harness_rows(repository: Path, unit: str) -> list[dict[str, str]]:
+    with (repository / "config/analysis/sgp/harness.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        return [row for row in csv.DictReader(stream) if row["unit"] == unit]
+
+
+def _reviewed_rows(repository: Path, unit: str) -> list[dict[str, str]]:
+    with (repository / "config/analysis/sgp/reviewed-findings.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        return [row for row in csv.DictReader(stream) if row["unit"] == unit]
+
+
 def test_sgp_oracle_tracks_the_complete_reviewed_census() -> None:
     repository = Path(__file__).resolve().parents[2]
     oracle = yaml.safe_load(
@@ -48,30 +62,26 @@ def test_random_unit_is_complete_and_consistent_across_builds() -> None:
         newline="", encoding="utf-8"
     ) as stream:
         unit = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/Random.c"]
-    with (repository / "config/analysis/sgp/random-cross-build.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        cross_build = list(csv.DictReader(stream))
+    harness = _harness_rows(repository, "random")
 
     # Wizardry does not define JA2, so PRERANDOM_GENERATOR is off and the unit
     # compiles to exactly these three functions. All three are exact.
     assert [row["provisional_name"] for row in unit] == ["InitializeRandom", "Random", "Chance"]
     assert {row["authority"] for row in unit} == {"source-backed"}
 
-    assert [row["function"] for row in cross_build] == [
-        "InitializeRandom",
-        "Random",
-        "Chance",
-    ]
-    for row, mapping in zip(unit, cross_build, strict=True):
-        assert mapping["gog_base"] == row["address"]
-        assert row["size"] == mapping["size"]
+    for row in unit:
+        mappings = [entry for entry in harness if entry["function"] == row["provisional_name"]]
+        by_build = {entry["build"]: entry for entry in mappings}
+        assert by_build["gog_base"]["address"] == row["address"]
+        assert row["size"] == by_build["gog_base"]["size"]
         # The demo carries the whole unit at the same +0x360 shift as DirectDraw Calls.c.
-        assert int(mapping["demo"], 16) - int(mapping["gog_base"], 16) == 0x360
+        assert int(by_build["demo"]["address"], 16) - int(row["address"], 16) == 0x360
         # The packed 1.28 patch executable and the protected retail build are
         # recorded as unavailable, never as absent.
-        assert mapping["gog_128_patch"] == ""
-        assert mapping["retail_2001_12_23"] == ""
+        assert by_build["gog_128_patch"]["classification"] == "unavailable"
+        assert by_build["retail_2001_12_23"]["classification"] == "unavailable"
+        assert by_build["gog_128_patch"]["address"] == ""
+        assert by_build["retail_2001_12_23"]["address"] == ""
 
 
 def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
@@ -119,6 +129,15 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
         "gog_base",
         "gog_1261",
         "gog_128_base",
+    }
+
+
+def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    assert {path.name for path in (repository / "config/analysis/sgp").glob("*.csv")} == {
+        "harness.csv",
+        "reviewed-findings.csv",
+        "wiz8-source-paths.csv",
     }
 
 
@@ -181,14 +200,8 @@ def test_configured_project_profile_does_not_fall_back_to_per_unit_flags() -> No
 
 def test_compression_unit_classifies_every_emitted_function() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/sgp/compression-harness.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        harness = list(csv.DictReader(stream))
-    with (repository / "config/analysis/sgp/compression-functions.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        reviewed = list(csv.DictReader(stream))
+    harness = _harness_rows(repository, "compression")
+    reviewed = _reviewed_rows(repository, "compression")
 
     assert len(harness) == 9 * 7
     assert {row["flags"] for row in harness} == {"/O2 /Ob2 /G5 /MD"}
@@ -217,14 +230,8 @@ def test_compression_unit_classifies_every_emitted_function() -> None:
 
 def test_fileman_exact_and_near_results_stay_separate() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/sgp/fileman-harness.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        harness = list(csv.DictReader(stream))
-    with (repository / "config/analysis/sgp/fileman-near-matches.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        near = list(csv.DictReader(stream))
+    harness = _harness_rows(repository, "fileman")
+    near = _reviewed_rows(repository, "fileman")
     with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
@@ -235,6 +242,6 @@ def test_fileman_exact_and_near_results_stay_separate() -> None:
     assert len(exact) == 15
     assert {row["confidence"] for row in exact} == {"exact"}
     assert {row["function"] for row in near} == {"FileCheckEndOfFile", "GetFileFirst"}
-    assert near[0]["source_behavior"].endswith("0x20-byte stride")
-    assert near[0]["wiz8_behavior"].endswith("0x28-byte stride")
-    assert near[1]["build"] == "gog_1261_new"
+    assert "stride 0x20" in near[0]["details"]
+    assert "stride 0x28" in near[0]["details"]
+    assert near[1]["build_scope"] == "gog_1261_new"

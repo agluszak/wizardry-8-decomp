@@ -1,3 +1,0 @@
-function,source_line,build,address,similarity,differing_offsets,source_behavior,wiz8_behavior,evidence
-FileCheckEndOfFile,1792,all-five-comparable,00405570,0.974026,0x8e-0x90|0x96,Indexes LibraryHeaderStruct with a 0x20-byte stride,Indexes LibraryHeaderStruct with a 0x28-byte stride,Instruction diff changes shl-by-5 into multiply-by-5 then scale-by-8; FileOpenStruct remains 0x10 bytes
-GetFileFirst,1512,gog_1261_new,00405270,0.990741,0x75,Marks fFindInfoInUse[iWhich] TRUE after FindFirstFile,Stores FALSE after FindFirstFile,Single immediate byte differs from every other comparable build

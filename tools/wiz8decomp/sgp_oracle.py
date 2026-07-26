@@ -447,6 +447,7 @@ def _evaluate(
 
 def _write_report(path: Path, rows: list[dict[str, Any]]) -> None:
     fields = [
+        "unit",
         "function",
         "size",
         "flags",
@@ -476,6 +477,7 @@ def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> di
     builds = _load_builds(settings, config)
     compiled = _compile_units(settings, config, units)
     summaries = []
+    generated_rows = []
     for unit in units:
         rows = _evaluate(
             compiled[unit["id"]],
@@ -483,12 +485,11 @@ def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> di
             float(config["near_match_threshold"]),
             tuple(config["project_flag_hypothesis"]),
         )
-        report = settings.repo_dir / unit["report"]
-        _write_report(report, rows)
+        generated_rows.extend({"unit": unit["id"], **row} for row in rows)
         summaries.append(
             {
                 "unit": unit["id"],
-                "report": unit["report"],
+                "report": config["report"],
                 "functions": len({row["function"] for row in rows}),
                 "rows": len(rows),
                 "classifications": {
@@ -497,6 +498,23 @@ def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> di
                 },
             }
         )
+    report = settings.repo_dir / config["report"]
+    selected_ids = {unit["id"] for unit in units}
+    if unit_ids and report.is_file():
+        with report.open(newline="", encoding="utf-8") as stream:
+            generated_rows.extend(
+                row for row in csv.DictReader(stream) if row["unit"] not in selected_ids
+            )
+    unit_order = {unit["id"]: index for index, unit in enumerate(config["units"])}
+    build_order = {build.identifier: index for index, build in enumerate(builds)}
+    generated_rows.sort(
+        key=lambda row: (
+            unit_order[row["unit"]],
+            row["function"].casefold(),
+            build_order[row["build"]],
+        )
+    )
+    _write_report(report, generated_rows)
     return {
         "schema": "wiz8.sgp-harness-run",
         "flag_combinations": len(_flag_combinations(config)),

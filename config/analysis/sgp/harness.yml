@@ -16,6 +16,7 @@ flag_axes:
   runtime: [/MD, /MT]
 
 near_match_threshold: 0.75
+report: config/analysis/sgp/harness.csv
 
 builds:
   - {id: demo, variant: demo, module: Wiz8.EXE}
@@ -35,19 +36,15 @@ units:
     target: WIZ8_SGP_DIRECTDRAW
     source: DirectDraw Calls.c
     overlay: directdraw
-    report: config/analysis/sgp/directdraw-harness.csv
   - id: random
     target: WIZ8_SGP_RANDOM
     source: Random.c
     overlay: random
-    report: config/analysis/sgp/random-harness.csv
   - id: compression
     target: WIZ8_SGP_COMPRESSION
     source: Compression.c
     overlay: compression
-    report: config/analysis/sgp/compression-harness.csv
   - id: fileman
     target: WIZ8_SGP_FILEMAN
     source: FileMan.c
     overlay: fileman
-    report: config/analysis/sgp/fileman-harness.csv
