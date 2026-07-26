@@ -117,3 +117,31 @@ VC6 lowers a counted `for` over `base[i]` into a guard plus a rotated `do`/`whil
 branch, and sinks the `base` load past the guard because it is only needed inside the loop. Rolling
 the cursor by hand defeats both. Any near-miss that is a few bytes long with a duplicated comparison
 should try the counted-`for`-over-index form first.
+
+
+## `IList`
+
+`3D Code\IList.cpp` is `PList`'s integer sibling: the same shape — elements at `+0x00`, count at
+`+0x08`, reached through free functions — but the elements are `int`.
+
+| Address | Function | Size |
+| --- | --- | ---: |
+| `0x005E2A60` | `IListFreeData` | 56 |
+| `0x005E2B50` | `IListClear` | 43 |
+| `0x005E2C80` | `IListGetAt` | 55 |
+
+What separates the two types is the failure value: `IListGetAt` returns `-1` where `PListGetAt`
+returns null. A sentinel of `-1` only makes sense for a list of integers, so the element type is
+established by behaviour rather than assumed from the `I`/`P` naming.
+
+`IListClear` resets only the count and leaves the allocation in place, while `IListFreeData` releases
+the element array through the CRT and returns TRUE. Every assertion in the unit names its parameter
+`pls`, matching the `pls` Hungarian prefix already seen on `gXStatus.plsMonsterList`.
+
+So the three containers recovered so far are distinct and must not be merged:
+
+| Type | vptr | Elements | Count | Accessors |
+| --- | --- | --- | --- | --- |
+| `W8PtrVector` | yes, at `+0x00` | `+0x0C` | `+0x04` | methods |
+| `W8PList` | no | `+0x00` | `+0x08` | free functions |
+| `W8IList` | no | `+0x00` (ints) | `+0x08` | free functions |

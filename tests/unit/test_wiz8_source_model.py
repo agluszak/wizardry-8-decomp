@@ -474,9 +474,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 52
+    assert len(rows) == 55
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 45
+    assert len(exact) == 48
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -489,9 +489,12 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         26,
         33,
         40,
+        43,
         47,
         50,
         53,
+        55,
+        56,
         57,
         61,
         70,
@@ -546,6 +549,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/location_variables.c",
             "src/wiz8/local_code/UtilityFunctions.cpp",
             "src/wiz8/grcycle_behaviour.cpp",
+            "src/wiz8/ilist.c",
             "src/wiz8/item_mesh.cpp",
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/message_box.cpp",

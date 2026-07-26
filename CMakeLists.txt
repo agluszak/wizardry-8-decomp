@@ -255,6 +255,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/UtilityFunctions.cpp
         src/wiz8/chunk_io.cpp
         src/wiz8/grcycle_behaviour.cpp
+        src/wiz8/ilist.c
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp

@@ -249,6 +249,18 @@ extern int g_message_box_line_capacity;
 extern int g_message_sequence;
 
 
+/* 3D Code\IList.cpp: the integer sibling of W8PList, same shape with int
+   elements, which is why a failed lookup returns -1 rather than null. */
+typedef struct W8IList {
+    int* data;                            /* 0x00 */
+    int unknown_04;
+    int count;                            /* 0x08 */
+} W8IList;
+
+unsigned char IListFreeData(W8IList* pls);
+void IListClear(W8IList* pls);
+int IListGetAt(W8IList* pls, int index);
+
 unsigned int PListGetCount(W8PList* ppl);
 void* PListGetAt(W8PList* ppl, int index);
 int PListIndexOf(void* list, void* target);
