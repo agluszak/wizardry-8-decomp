@@ -62,6 +62,13 @@ def resolve_program_name(settings: Settings, selector: str | None) -> str:
         return selector
     modules = configured_modules(settings, all_modules=True)
     names = [item["program_name"] for item in modules]
+    canonical = [
+        item["program_name"]
+        for item in modules
+        if item["variant"] == "gog-base" and item["module_name"].casefold() == "wiz8.exe"
+    ]
+    if selector is not None and selector.casefold() == "wiz8" and len(canonical) == 1:
+        return canonical[0]
     if selector:
         exact = [name for name in names if name == selector]
         prefixes = [name for name in names if name.startswith(selector)]
@@ -70,7 +77,6 @@ def resolve_program_name(settings: Settings, selector: str | None) -> str:
         if len(matches) != 1:
             raise ValueError(f"program selector {selector!r} matched {len(matches)} programs: {', '.join(matches)}")
         return matches[0]
-    canonical = [item["program_name"] for item in modules if item["variant"] == "gog-base" and item["module_name"].casefold() == "wiz8.exe"]
     if len(canonical) == 1:
         return canonical[0]
     if names:
