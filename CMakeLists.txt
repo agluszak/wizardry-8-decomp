@@ -239,6 +239,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/gameplay_boundaries.c
         src/wiz8/location_variables.c
         src/wiz8/item_spawning.cpp
+        src/wiz8/message_box.cpp
         src/wiz8/monster_generators.cpp
         src/wiz8/monster_location.c
         src/wiz8/monster_lookup.c

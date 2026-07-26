@@ -37,6 +37,7 @@ recovery work.
 | `0x005222d0` | `GetOriginOfCharacterItem` | 201 | Reports where an item pointer lives for a given party character: the 8-slot equipped array at `+0x1029`, the 12-slot carried array at `+0xf5d`, or a fixed-address, non-per-character shared item pool, each `0xc` bytes per slot. Its name comes from the verified CFAgent oracle. |
 | `0x004e5620` | `MonsterGetScriptPartByLocationIndex` | 245 | Bounds-checked accessor over `gXStatus.plsMonsterList`/`plsUnbornMonsterList`, dispatching on whether `monster_list_index` is `< 10000`, in `[10000, 20000)`, or `>= 20000` (the first and third cases share the same first-list path). Its name comes from the verified CFAgent oracle. |
 | `0x004e5550` | `MonsterGetIndexByLocationID` | 199 | Linearly searches the same two `PList`s for a `W8MonsterInfo` whose `location_id` (offset `0x00`) matches, returning the encounter-list index offset by `10000`, or asserting/`-1` when `assert_on_failure` is set. Its name comes from the verified CFAgent oracle. |
+| `0x00528a80` | `AddLinesToMessageBox` | 199 | Allocates and zeroes a `0x24`-byte message-line node, stamps its type/text/extra fields and a running sequence counter, and appends the node's pointer to a global grow-by-exactly-one pointer array. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/character_items.c`, `src/wiz8/gameplay_boundaries.c`,
 `src/wiz8/random_number.c`,
@@ -156,6 +157,25 @@ against both this pair's lists and the earlier monster-group lists — this is a
 type-erased `PList`, not a per-element-type template instantiation. Both functions are
 `structurally-strong` for the same register-role and loop-peeling reasons as the rest of this
 section.
+
+`AddLinesToMessageBox` is the first function in this file outside the `PList`-backed lookup family,
+and it is byte-exact. Its parameters are recovered from its 8 call sites (e.g. `0x004EEFFD`, which
+builds a `swprintf`-formatted wide string via `operator_new(0x400)` and a small 8-byte extra-data
+node before calling in with a literal type constant): `type`, a wide `text` pointer, and an `extra`
+payload pointer. The body allocates a `0x24`-byte node with `new`, zero-initializes it, stamps four
+fields plus a running `g_message_sequence` counter, then appends the node's pointer into a global
+`W8MessageBoxLine**` array that grows to exactly `count + 1` (never doubled) whenever the existing
+capacity is too small. Matching the original exactly needed two adjustments past a first working
+draft: comparing `new_capacity > g_message_box_line_capacity` instead of the mathematically
+equivalent `g_message_box_line_capacity < new_capacity` (VC6 preserves the source's operand order in
+the emitted `cmp`, so the flipped comparison produced `cmp eax,edx`/`jge` instead of the original's
+`cmp edx,eax`/`jle`), and reading the old array pointer only inside the grow branch instead of
+caching it before the capacity check (matching the original's lazy load at `0x00528ACF`, which
+Ghidra's own decompile pseudocode does not preserve since it reorders reads that have no
+control-flow dependency). With both fixes, a standalone `WIZ8_GAMEPLAY_BOUNDARIES` build's object
+code is byte-identical to the canonical function after masking its 17 global/import-call
+relocations, confirmed by extracting the compiled bytes directly from the `.obj`'s `.text` section
+and comparing against the original bytes read out of the imported Ghidra program.
 
 The two Ghidra auto-analysis signature artifacts found above — `PListIndexOf` (`0x005E2890`) and
 `GetOriginOfCharacterItem` (`0x005222D0`) — are corrected in the Ghidra project itself, not just in

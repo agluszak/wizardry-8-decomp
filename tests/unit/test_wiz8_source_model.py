@@ -263,9 +263,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 30
+    assert len(rows) == 31
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 23
+    assert len(exact) == 24
     assert {int(row["size"]) for row in exact} == {
         6,
         19,
@@ -285,6 +285,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         109,
         132,
         179,
+        199,
         219,
     }
     assert all(len(row["relocation_masked_sha256"]) == 64 for row in exact)
@@ -316,6 +317,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/gameplay_boundaries.c",
             "src/wiz8/location_variables.c",
             "src/wiz8/item_spawning.cpp",
+            "src/wiz8/message_box.cpp",
             "src/wiz8/monster_generators.cpp",
             "src/wiz8/monster_location.c",
             "src/wiz8/monster_lookup.c",

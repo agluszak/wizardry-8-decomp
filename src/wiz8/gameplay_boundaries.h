@@ -126,6 +126,18 @@ typedef struct W8NPCItemListVector {
     W8NPCItemList** data;                 /* 0x0c */
 } W8NPCItemListVector;
 
+typedef struct W8MessageBoxLine {
+    int unknown_00;                       /* initialized to -1 */
+    int unknown_04;
+    int unknown_08;
+    int type;                             /* 0x0c: message category, e.g. combat log channel */
+    unsigned short* text;                 /* 0x10 */
+    int unknown_14;
+    int unknown_18;
+    void* extra;                          /* 0x1c: caller-owned payload, e.g. format-arg storage */
+    int sequence;                         /* 0x20: copied from a running global counter */
+} W8MessageBoxLine;                       /* 0x24 */
+
 typedef unsigned char W8FactionDisposition;
 
 enum {
@@ -166,6 +178,13 @@ extern void* g_monster_group_encounter_list;
    from the equipped/carried slots GetOriginOfCharacterItem also searches. */
 extern unsigned char g_shared_item_pool[];
 extern unsigned int g_shared_item_pool_count;
+
+extern W8MessageBoxLine** g_message_box_lines;
+extern int g_message_box_line_count;
+extern int g_message_box_line_capacity;
+/* Provisional name: a running counter stamped onto each new line's `sequence`
+   field; distinct from g_message_box_line_count. */
+extern int g_message_sequence;
 
 unsigned int PListGetCount(void* list);
 void* PListGetAt(void* list, unsigned int index);
@@ -228,6 +247,7 @@ void GetOriginOfCharacterItem(
     void* item,
     unsigned char* origin,
     unsigned short* slot);
+void AddLinesToMessageBox(int type, unsigned short* text, void* extra);
 
 #ifdef __cplusplus
 }
