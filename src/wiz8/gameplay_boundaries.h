@@ -205,6 +205,23 @@ extern int g_profession_magic_level_offsets[15];
 extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
 extern unsigned char g_fact_values[1001];
+/* Suppresses the journal entry and its sound in the fact-change recorder at
+   0x005588F0, which consults this before displaying anything. InitializeFactState
+   brackets its whole run of SetFact calls with it. */
+extern unsigned char g_fact_notifications_suppressed;
+/* The Wizardry 7 party import, read from Saves\\Import by the parser at
+   0x00558D00 and named for that path. It stores up to six 0x248-byte character
+   records, then unpacks one option byte and a 96-bit flag mask into the
+   following. Set when an import loaded successfully. */
+extern unsigned char g_import_party_loaded;
+extern int g_import_character_count;
+/* Four mutually exclusive high bits of the imported option byte, mapped to 0-3,
+   or -1 when no import applies. InitializeFactState turns 1 and 2 into two
+   different facts and everything else into a third. */
+extern int g_import_ending_choice;
+/* One byte per bit of the imported 96-bit mask. Only elements 5 and 11 are
+   consumed so far, by InitializeFactState. */
+extern unsigned char g_import_flags[0x60];
 extern int g_fact_record_count;
 extern W8ItemDatabaseRecord* g_item_records;
 extern int g_item_record_count;
@@ -300,6 +317,8 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
 void SaveFactState(int save_handle);
+void InitializeFactState(void);
+void SetFactNotificationsSuppressed(unsigned char suppressed);
 unsigned char InitializeFactDatabase(void);
 unsigned char InitializeItemDatabase(void);
 unsigned char InitializeLevelDatabase(void);

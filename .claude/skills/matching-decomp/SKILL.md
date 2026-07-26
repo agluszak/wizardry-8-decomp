@@ -64,6 +64,12 @@ original's exact instruction sequence, and reccmp fell from 77.03% to 65.25% pur
 register swap touches more operands. Reverting on that number was wrong: neither body is exact, and
 the structurally-aligned one is a byte away rather than a shape away.
 
+**A duplicated tail in the decompiler output is often the compiler's, not the source's.** Ghidra
+shows what the binary does, so a compiler-duplicated epilogue appears as a real second copy. Writing
+it out literally can cost bytes: on `InitializeFactState` the duplicated call before an early return
+made VC6 merge two argument cleanups into one `add esp,0x10` where the original keeps `add esp,0xc`
+and `pop ecx`. Writing the tail once, and letting the compiler duplicate it, was byte-exact.
+
 **Diff whole instructions, not mnemonics.** A diff that compares only the mnemonic silently hides
 operand and register differences, which are exactly what most near-misses consist of. Compare the
 full instruction text and the encoded size, normalising only branch targets. A one-byte delta with
@@ -83,6 +89,9 @@ Ranked by how often it has been the answer here:
 | `lea r,[x+1]` where canonical has `mov r,x` then `inc r` | two source variables where the original reused one | merge them into a single variable stepped by `++` |
 | A second cursor built with `lea` where canonical has `add r,imm` | the original advances one base pointer in place | reuse and mutate the base rather than deriving each cursor |
 | Index cleared *after* the cursor is computed | initialisation order | assign the index before the pointer, with an empty `for` init |
+| `cmp r,1`/`jne` chain where canonical has `dec r`/`je` | an if/else-if chain where the original wrote a `switch` | use `switch`; VC6 emits the dec/je ladder for small dense cases |
+| A constant materialised into a register then pushed, where canonical pushes it directly | one call with a selected argument, where the original wrote a call per branch | put the whole call in each branch and let VC6 tail-merge them |
+| Two argument cleanups merged into one `add esp,N` | a tail the *compiler* duplicated, written out literally in the source | write the tail once and let VC6 duplicate it |
 | Duplicated `return` epilogue | separate `if`s where the original used one short-circuit `\|\|` | merge into `\|\|` |
 | Loop's first comparison duplicated, two `return` epilogues | hand-rolled cursor in a `do`/`while` | use a counted `for` indexing the array; let VC6 strength-reduce it |
 | Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
