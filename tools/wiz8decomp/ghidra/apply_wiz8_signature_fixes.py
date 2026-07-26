@@ -38,11 +38,12 @@ def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
         return PointerDataType(_type_for(dtm, spec[:-1], evidence_program), dtm)
     if spec in base_types:
         return base_types[spec]
-    reviewed = dtm.getDataType(
-        DataTypePath(CategoryPath(f"/{evidence_program}/classes"), spec)
-    )
-    if reviewed is not None:
-        return reviewed
+    for category in ("classes", "formats/slf"):
+        reviewed = dtm.getDataType(
+            DataTypePath(CategoryPath(f"/{evidence_program}/{category}"), spec)
+        )
+        if reviewed is not None:
+            return reviewed
     raise ValueError(f"unsupported reviewed signature type: {spec}")
 
 

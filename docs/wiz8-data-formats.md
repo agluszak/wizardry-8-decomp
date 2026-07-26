@@ -120,6 +120,11 @@ the archive bytes and their canonical loaders:
 `0x0054a8a0` seeks directly to `4 + index * 0x297`, reads one record, and removes
 suffixes beginning with `#` from four adjacent `0x30`-byte UTF-16 name fields.
 `GetMonsterDataByID` at `0x004e57c0` lazily allocates and caches those records.
+The adjacent `MonsterManager.cpp` lookup cluster establishes a separate 16-byte runtime
+`W8MonsterInfo`: its location identifier is at `+0x00`, its database species identifier at
+`+0x08`, and its live `Monster` pointer at `+0x0c`; the word at `+0x04` remains opaque. Keeping
+these consumers in their original translation unit also reproduces the cache lookup being inlined
+into `GetMonsterDataByLocationID`.
 
 `InitializeSpellDatabase` at `0x004acc10` reads a count and version, allocates
 `count * 0x1bf`, then skips `0x101` bytes before each runtime read. The ignored prefix

@@ -21,3 +21,7 @@ wiz8,W8PList,0x8,0x4,count,int32,exact,classes:wiz8:W8PList,used pointer slots
 wiz8,W8IList,0x0,0x4,data,pointer,exact,classes:wiz8:W8IList,integer element array
 wiz8,W8IList,0x4,0x4,capacity,int32,exact,classes:wiz8:W8IList,allocated integer slots
 wiz8,W8IList,0x8,0x4,count,int32,exact,classes:wiz8:W8IList,used integer slots
+wiz8,W8MonsterInfo,0x0,0x4,location_id,int32,exact,classes:wiz8:W8MonsterInfo,compared by MonsterGetIndexByLocationID
+wiz8,W8MonsterInfo,0x4,0x4,unknown_04,bytes,exact,classes:wiz8:W8MonsterInfo,opaque storage between the two reviewed identifiers
+wiz8,W8MonsterInfo,0x8,0x4,monster_species,int32,exact,classes:wiz8:W8MonsterInfo,index passed to GetMonsterDataByID
+wiz8,W8MonsterInfo,0xc,0x4,monster,pointer,exact,classes:wiz8:W8MonsterInfo,live Monster object returned by GetMonsterByLocationID

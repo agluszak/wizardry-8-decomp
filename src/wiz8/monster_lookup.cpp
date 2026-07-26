@@ -1,8 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
-#include <stdlib.h>
-
 // FUNCTION: WIZ8 0x00510B60
 W8MonsterGroup* FindFirstMonsterByID(int monster_id)
 {
@@ -73,33 +71,4 @@ search_encounter:
 
 done:
     return group;
-}
-
-#define MAX_MONSTERS_IN_DATABASE 1000
-
-// FUNCTION: WIZ8 0x004E57C0
-W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species)
-{
-    W8MonsterRecord* record;
-
-    if (monster_species >= MAX_MONSTERS_IN_DATABASE) {
-        srAssertFail(
-            "uiMonsterSpecies < MAX_MONSTERS_IN_DATABASE",
-            "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp",
-            0x5f3,
-            0);
-    }
-    record = g_monster_record_cache[monster_species];
-    if (record == 0) {
-        record = (W8MonsterRecord*)malloc(sizeof(W8MonsterRecord));
-        if (record == 0) {
-            return 0;
-        }
-        if (!LoadMonsterDatabaseRecord(monster_species, record)) {
-            free(record);
-            return 0;
-        }
-        g_monster_record_cache[monster_species] = record;
-    }
-    return record;
 }

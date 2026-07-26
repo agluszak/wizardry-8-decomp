@@ -254,6 +254,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/controls_regions.cpp
         src/wiz8/gameplay_boundaries.cpp
         src/wiz8/location_variables.cpp
+        src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
         src/wiz8/chunk_io.cpp
         src/wiz8/grcycle_behaviour.cpp
@@ -268,7 +269,6 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/monster_cycles.cpp
         src/wiz8/monster_info_dialog.cpp
         src/wiz8/monster_generators.cpp
-        src/wiz8/monster_location.cpp
         src/wiz8/monster_lookup.cpp
         src/wiz8/npc_item_lists.cpp
         src/wiz8/spell_backfire.cpp

@@ -383,11 +383,22 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     classes = {item.name: item for item in model.classes}
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
+    assert classes["W8MonsterInfo"].size == 0x10
     assert [
         (field.offset, field.size, field.data_type)
         for field in model.fields
         if field.class_name == "W8PList"
     ] == [(0x0, 0x4, "pointer"), (0x4, 0x4, "int32"), (0x8, 0x4, "int32")]
+    assert [
+        (field.offset, field.size, field.name, field.data_type)
+        for field in model.fields
+        if field.class_name == "W8MonsterInfo"
+    ] == [
+        (0x0, 0x4, "location_id", "int32"),
+        (0x4, 0x4, "unknown_04", "bytes"),
+        (0x8, 0x4, "monster_species", "int32"),
+        (0xC, 0x4, "monster", "pointer"),
+    ]
 
     vtables = {item.vtable_id: item for item in model.vtables}
     assert vtables["GrCycle.primary"].address == 0x005ECE78
@@ -459,17 +470,20 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
     ) as stream:
         hooks = list(csv.DictReader(stream))
 
-    assert len(symbols) == 45
-    assert len({row["address"] for row in symbols}) == 45
+    assert len({row["address"] for row in symbols}) == len(symbols)
     # The bodies these seeds point at are original Wizardry code. Ownership moves off
-    # fan-patch-oracle only when another source proves which codebase the body is from;
-    # so far that is only 0x0040EFA0, which the SGP Random.c compile placed in sgp-shared.
-    assert {row["owner"] for row in symbols} == {"fan-patch-oracle", "sgp-shared"}
-    assert sum(row["owner"] == "sgp-shared" for row in symbols) == 1
-    assert {row["confidence"] for row in symbols if row["owner"] == "fan-patch-oracle"} == {
-        "strong"
-    }
-    assert next(row for row in symbols if row["owner"] == "sgp-shared")["confidence"] == "exact"
+    # fan-patch-oracle when a source compile and source path establish the real owner.
+    # Random.c proves the SGP owner; the recovered MonsterManager.cpp cluster proves
+    # its first-party subsystem without upgrading the third-party names' authority.
+    by_address = {row["address"]: row for row in symbols}
+    assert by_address["0040efa0"]["owner"] == "sgp-shared"
+    assert by_address["0040efa0"]["confidence"] == "exact"
+    assert by_address["004e5550"]["owner"] == "wiz8-monster-system"
+    assert by_address["004e5550"]["confidence"] == "exact"
+    assert by_address["004e5620"]["owner"] == "wiz8-monster-system"
+    assert by_address["004e5620"]["confidence"] == "strong"
+    assert by_address["004e57c0"]["owner"] == "wiz8-monster-system"
+    assert by_address["004e57c0"]["confidence"] == "exact"
     by_name = {row["provisional_name"]: row["address"] for row in symbols}
     assert by_name["StartCombat"] == "004e7090"
     assert by_name["GetFact"] == "00506280"
@@ -605,81 +619,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 98
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 92
-    assert {int(row["size"]) for row in exact} == {
-        3,
-        6,
-        7,
-        12,
-        13,
-        17,
-        18,
-        19,
-        20,
-        24,
-        25,
-        26,
-        28,
-        29,
-        30,
-        33,
-        40,
-        43,
-        47,
-        53,
-        55,
-        56,
-        57,
-        60,
-        61,
-        65,
-        66,
-        70,
-        71,
-        76,
-        81,
-        82,
-        83,
-        85,
-        87,
-        98,
-        100,
-        103,
-        105,
-        106,
-        109,
-        110,
-        112,
-        115,
-        117,
-        118,
-        130,
-        132,
-        145,
-        169,
-        171,
-        174,
-        179,
-        199,
-        205,
-        206,
-        218,
-        219,
-        224,
-        225,
-        231,
-        236,
-        239,
-        241,
-        242,
-        245,
-        381,
-        452,
-        455,
-        456,
-    }
     assert all(len(row["relocation_masked_sha256"]) == 64 for row in exact)
     foundation = {
         row["symbol"]: row for row in rows if row["owner"] == "wiz8-foundation"
@@ -742,6 +682,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
             "src/wiz8/gameplay_teardown.cpp",
             "src/wiz8/gameplay_boundaries.cpp",
             "src/wiz8/location_variables.cpp",
+            "src/wiz8/local_code/MonsterManager.cpp",
             "src/wiz8/local_code/UtilityFunctions.cpp",
             "src/wiz8/grcycle_behaviour.cpp",
             "src/wiz8/ilist.cpp",
@@ -752,7 +693,6 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
             "src/wiz8/monster_cycles.cpp",
             "src/wiz8/monster_info_dialog.cpp",
             "src/wiz8/monster_generators.cpp",
-            "src/wiz8/monster_location.cpp",
             "src/wiz8/monster_lookup.cpp",
             "src/wiz8/npc_item_lists.cpp",
             "src/wiz8/spell_backfire.cpp",

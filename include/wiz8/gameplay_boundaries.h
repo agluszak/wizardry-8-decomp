@@ -379,8 +379,13 @@ void* PListGetAt(W8PList* ppl, int index);
 int PListIndexOf(W8PList* ppl, void* pEntry);
 W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
 
+typedef struct W8Monster W8Monster;
+
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
+    unsigned char unknown_04[4];
+    unsigned int monster_species;         /* 0x08 */
+    W8Monster* monster;                   /* 0x0c: live engine object, if any */
 } W8MonsterInfo;
 
 extern W8PList* g_monster_list;            /* gXStatus.plsMonsterList */
@@ -392,6 +397,13 @@ unsigned int MonsterGetIndexByLocationID(
     const char* caller_file,
     int location_id,
     unsigned char assert_on_failure);
+W8MonsterInfo* MonsterInfoFromID(
+    int caller_line,
+    const char* caller_file,
+    int location_id,
+    unsigned char assert_on_failure);
+W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
+W8Monster* GetMonsterByLocationID(int location_id);
 
 unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
