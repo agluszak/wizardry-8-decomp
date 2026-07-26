@@ -123,45 +123,6 @@ W8FactionDisposition GetFactionDisposition(signed char faction)
     return W8_FACTION_FRIENDLY;
 }
 
-// FUNCTION: WIZ8 0x00517EA0
-void StripMonsterNameSuffix(unsigned short* name)
-{
-    wchar_t* suffix = wcschr((wchar_t*)name, L'#');
-
-    if (suffix != 0) {
-        *suffix = L'\0';
-    }
-}
-
-// FUNCTION: WIZ8 0x00517EC0
-unsigned int CharacterPointerToPartySlot(W8Character* character)
-{
-    unsigned int slot;
-    W8Character* party_character;
-
-    if (!character->in_party) {
-        srAssertFail(
-            "pPC->fInParty",
-            "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
-            0x1c8,
-            "PCPtrToPCSlot: ERROR - called for non-party character");
-    }
-
-    party_character = g_party_characters;
-    for (slot = 0; slot < 8; ++slot, ++party_character) {
-        if (character == party_character) {
-            return slot;
-        }
-    }
-
-    srAssertFail(
-        "FALSE",
-        "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
-        0x1d1,
-        FormatDiagnostic("PCPtrToPCSlot: ERROR - no match on ptr %d", character));
-    return 0;
-}
-
 // FUNCTION: WIZ8 0x004FF3B0
 int GetProfessionCasterLevel(W8Character* character, int profession_id)
 {

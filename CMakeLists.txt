@@ -241,6 +241,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/controls_regions.cpp
         src/wiz8/gameplay_boundaries.c
         src/wiz8/location_variables.c
+        src/wiz8/local_code/UtilityFunctions.cpp
         src/wiz8/chunk_io.cpp
         src/wiz8/grcycle_behaviour.cpp
         src/wiz8/item_mesh.cpp

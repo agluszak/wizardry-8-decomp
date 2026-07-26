@@ -411,6 +411,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/chunk_io.cpp",
             "src/wiz8/gameplay_boundaries.c",
             "src/wiz8/location_variables.c",
+            "src/wiz8/local_code/UtilityFunctions.cpp",
             "src/wiz8/grcycle_behaviour.cpp",
             "src/wiz8/item_mesh.cpp",
             "src/wiz8/item_spawning.cpp",
