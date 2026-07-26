@@ -41,3 +41,57 @@ int IListGetAt(W8IList* pls, int index)
     }
     return -1;
 }
+
+// FUNCTION: WIZ8 0x005E29A0
+unsigned char IListInit(W8IList* pls)
+{
+    int* data;
+
+    if (!pls) {
+        srAssertFail("pls", ILIST_CPP, 0x64, 0);
+    }
+    if (pls->data) {
+        free(pls->data);
+    }
+    data = (int*)malloc(10 * sizeof(int));
+    pls->data = data;
+    pls->capacity = 10;
+    pls->count = 0;
+    return data != 0;
+}
+
+// FUNCTION: WIZ8 0x005E2A00
+unsigned char IListDestroy(W8IList* pls)
+{
+    /* The 0x9a assertion is IListFreeData's, inlined here; VC6 merges the two
+       null tests into one. */
+    if (!pls) {
+        srAssertFail("pls", ILIST_CPP, 0x83, 0);
+        srAssertFail("pls", ILIST_CPP, 0x9a, 0);
+    }
+    free(pls->data);
+    pls->data = 0;
+    free(pls);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005E2CC0
+int IListIndexOf(W8IList* pls, int value)
+{
+    int count;
+    int index;
+
+    if (!pls) {
+        srAssertFail("pls", ILIST_CPP, 0x21e, 0);
+    }
+    count = pls->count;
+    for (index = 0; index < count; ++index) {
+        if (pls->data[index] == value) {
+            goto done;
+        }
+    }
+    index = -1;
+
+done:
+    return index;
+}

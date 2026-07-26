@@ -253,10 +253,13 @@ extern int g_message_sequence;
    elements, which is why a failed lookup returns -1 rather than null. */
 typedef struct W8IList {
     int* data;                            /* 0x00 */
-    int unknown_04;
+    int capacity;                         /* 0x04: IListInit allocates 10 */
     int count;                            /* 0x08 */
 } W8IList;
 
+unsigned char IListInit(W8IList* pls);
+unsigned char IListDestroy(W8IList* pls);
+int IListIndexOf(W8IList* pls, int value);
 unsigned char IListFreeData(W8IList* pls);
 void IListClear(W8IList* pls);
 int IListGetAt(W8IList* pls, int index);

@@ -474,9 +474,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 55
+    assert len(rows) == 58
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 48
+    assert len(exact) == 50
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -497,9 +497,11 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         56,
         57,
         61,
+        66,
         70,
         76,
         82,
+        83,
         85,
         98,
         100,

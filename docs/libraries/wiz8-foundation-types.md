@@ -126,9 +126,12 @@ should try the counted-`for`-over-index form first.
 
 | Address | Function | Size |
 | --- | --- | ---: |
+| `0x005E29A0` | `IListInit` | 81 (structurally-strong) |
+| `0x005E2A00` | `IListDestroy` | 83 |
 | `0x005E2A60` | `IListFreeData` | 56 |
 | `0x005E2B50` | `IListClear` | 43 |
 | `0x005E2C80` | `IListGetAt` | 55 |
+| `0x005E2CC0` | `IListIndexOf` | 66 |
 
 What separates the two types is the failure value: `IListGetAt` returns `-1` where `PListGetAt`
 returns null. A sentinel of `-1` only makes sense for a list of integers, so the element type is
@@ -145,3 +148,25 @@ So the three containers recovered so far are distinct and must not be merged:
 | `W8PtrVector` | yes, at `+0x00` | `+0x0C` | `+0x04` | methods |
 | `W8PList` | no | `+0x00` | `+0x08` | free functions |
 | `W8IList` | no | `+0x00` (ints) | `+0x08` | free functions |
+
+
+`IListInit` establishes the middle field: it allocates ten ints and stores `10` at `+0x04`, so the
+layout is `data` / `capacity` / `count`. It is the one near-miss in the unit — VC6 materialises the
+success boolean into `cl` early where the original defers a trailing `setne al` past both field
+stores, and three source orderings all produce the early form.
+
+`IListDestroy` asserts twice under a single null test because `IListFreeData` is inlined into it and
+VC6 merges the two null checks — a useful reminder that two assertion line numbers in one guard
+means an inlined callee, not two checks in the source.
+
+`IListIndexOf` matched on the first attempt using the counted-`for`-over-index shape, confirming the
+technique found on `PListIndexOf` generalises rather than being a one-off.
+
+## A folded getter
+
+`0x005E2C70` is a 13-byte count getter, and a count getter is byte-identical for both list types. It
+sits **inside** `IList.cpp`'s run, flanked by `IList` functions on both sides, while `PList.cpp`'s
+own functions occupy `0x005E2780`–`0x005E28F0`. That is identical-COMDAT folding: both units defined
+the same getter, the linker kept one body, and callers of either resolve to it. The repository
+applies the name `PListGetCount` because its callers use it on `PList` objects, but the retained
+COMDAT belongs to `IList.cpp`, and the address should not be read as evidence for either unit alone.
