@@ -21,14 +21,11 @@ W8MonsterGenerator* FindMonGenByName(const char* name)
             generator = *element;
 
             if (strncmp(name, generator->name, sizeof(generator->name)) == 0) {
-                goto found;
+                return generator;
             }
             generators = g_world->monster_generators;
             ++index;
         } while (index < generators->count);
     }
     return 0;
-
-found:
-    return generator;
 }

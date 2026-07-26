@@ -45,7 +45,7 @@ int IListGetAt(W8IList* pls, int index)
 // FUNCTION: WIZ8 0x005E29A0
 unsigned char IListInit(W8IList* pls)
 {
-    int* data;
+    unsigned char created;
 
     if (!pls) {
         srAssertFail("pls", ILIST_CPP, 0x64, 0);
@@ -53,11 +53,16 @@ unsigned char IListInit(W8IList* pls)
     if (pls->data) {
         free(pls->data);
     }
-    data = (int*)malloc(10 * sizeof(int));
-    pls->data = data;
+    /* The original sets the flags immediately after the store and materialises
+       the result only at the return, as a bare `setne al` with no zero-extend.
+       Comparing in the return statement instead makes VC6 compute the value
+       early into CL and widen it; a byte local assigned here reproduces the
+       original's split between testing and materialising. */
+    pls->data = (int*)malloc(10 * sizeof(int));
+    created = pls->data != 0;
     pls->capacity = 10;
     pls->count = 0;
-    return data != 0;
+    return created;
 }
 
 // FUNCTION: WIZ8 0x005E2A00

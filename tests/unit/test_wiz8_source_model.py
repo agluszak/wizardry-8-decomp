@@ -566,7 +566,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
 
     assert len(rows) == 60
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 55
+    assert len(exact) == 56
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -590,6 +590,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         66,
         70,
         76,
+        81,
         82,
         83,
         85,

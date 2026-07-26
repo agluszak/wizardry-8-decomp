@@ -13,6 +13,7 @@ from typing import Annotated, Any, Optional
 import typer
 from rich.console import Console
 from rich.json import JSON
+from rich.markup import escape
 
 from .config import (
     REQUIRED_GHIDRA_RELEASE,
@@ -216,6 +217,74 @@ def verify_boundaries_command(
             / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
         )
         return verify_boundaries(mapping_path, object_root, image or _reccmp_original("WIZ8"))
+
+    _run_action(action)
+
+
+@app.command("diff-boundary")
+def diff_boundary_command(
+    symbol: Annotated[str, typer.Argument(help="Reviewed symbol, e.g. IListInit.")],
+    mapping: Annotated[
+        Path | None,
+        typer.Option(help="Reviewed boundary map; defaults to the gameplay boundaries."),
+    ] = None,
+    objects: Annotated[
+        Path | None,
+        typer.Option(help="Root of built objects; defaults to the gameplay-boundaries target."),
+    ] = None,
+    image: Annotated[
+        Path | None, typer.Option(help="Original Wiz8.exe; defaults to the reccmp WIZ8 target.")
+    ] = None,
+    all_lines: Annotated[
+        bool, typer.Option("--all", help="Show matching instructions too, not only differences.")
+    ] = False,
+) -> None:
+    """Align a near miss against the original, instruction by instruction.
+
+    Relocated operands and branch displacements that only moved because the
+    bodies differ in size are reported as such, so what is left is the real
+    difference.
+    """
+
+    def action() -> dict[str, Any]:
+        from .boundaries import diff_boundary
+
+        settings = _settings()
+        original = image or _reccmp_original("WIZ8")
+        if original is None:
+            raise RuntimeError("no original Wiz8.exe configured; pass --image")
+        result = diff_boundary(
+            mapping
+            or (settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv"),
+            objects
+            or (
+                settings.repo_dir
+                / "build"
+                / "decomp"
+                / "CMakeFiles"
+                / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
+            ),
+            original,
+            symbol,
+        )
+        console.print(
+            f"[bold]{result['symbol']}[/bold] {result['address']} "
+            f"({result['confidence']}): canonical {result['canonical_size']}B/"
+            f"{result['canonical_instructions']} insns, ours {result['our_size']}B/"
+            f"{result['our_instructions']} insns, {result['differing']} differing"
+        )
+        marker = {"differ": "[red]>>[/red]", "reloc": "[yellow]~~[/yellow]", "same": "  "}
+        for line in result["lines"]:
+            if line["state"] == "same" and not all_lines:
+                continue
+            # Memory operands are written [reg + disp]; rich would read them as
+            # markup and silently delete the operand being compared.
+            console.print(
+                f"{marker[line['state']]} \\[{line['index']:3}] "
+                f"{escape(line['canonical']):<38} | {escape(line['ours'])}",
+                highlight=False,
+            )
+        return {key: value for key, value in result.items() if key != "lines"}
 
     _run_action(action)
 
