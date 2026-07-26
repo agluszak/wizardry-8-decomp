@@ -10,13 +10,16 @@ from .query_daemon import stop_daemon
 from .reviewed_signatures import load_reviewed_signatures
 
 
-def _type_for(dtm: Any, spec: str) -> Any:
+def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
     from ghidra.program.model.data import (
+        CategoryPath,
         CharDataType,
+        DataTypePath,
         IntegerDataType,
         PointerDataType,
         ShortDataType,
         UnsignedCharDataType,
+        UnsignedIntegerDataType,
         UnsignedShortDataType,
         VoidDataType,
     )
@@ -26,16 +29,21 @@ def _type_for(dtm: Any, spec: str) -> Any:
         "int": IntegerDataType.dataType,
         "char": CharDataType.dataType,
         "short": ShortDataType.dataType,
+        "unsigned int": UnsignedIntegerDataType.dataType,
         "unsigned char": UnsignedCharDataType.dataType,
         "unsigned short": UnsignedShortDataType.dataType,
     }
     spec = spec.strip()
     if spec.endswith("*"):
-        return PointerDataType(_type_for(dtm, spec[:-1]), dtm)
-    try:
+        return PointerDataType(_type_for(dtm, spec[:-1], evidence_program), dtm)
+    if spec in base_types:
         return base_types[spec]
-    except KeyError as error:
-        raise ValueError(f"unsupported reviewed signature type: {spec}") from error
+    reviewed = dtm.getDataType(
+        DataTypePath(CategoryPath(f"/{evidence_program}/classes"), spec)
+    )
+    if reviewed is not None:
+        return reviewed
+    raise ValueError(f"unsupported reviewed signature type: {spec}")
 
 
 def apply_reviewed_signatures(
@@ -75,9 +83,12 @@ def apply_reviewed_signatures(
                         dtm,
                         CategoryPath(f"/{evidence_program}/signatures"),
                         f"signature_{reviewed.address:08x}",
-                        _type_for(dtm, reviewed.return_type),
+                        _type_for(dtm, reviewed.return_type, evidence_program),
                         [
-                            (argument_name, _type_for(dtm, type_spec))
+                            (
+                                argument_name,
+                                _type_for(dtm, type_spec, evidence_program),
+                            )
                             for argument_name, type_spec in reviewed.parameters
                         ],
                         reviewed.calling_convention,

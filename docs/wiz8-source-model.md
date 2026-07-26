@@ -66,11 +66,12 @@ than inferred:
 | `b` / `ub` / `us` | 34 / 14 / 19 | byte, unsigned byte, `UINT16` |
 | `g` / `gp` / `gui` | 33 / 16 / 14 | global, global pointer, global `UINT32` |
 | `psr` | 24 | pointer to a SurRender object |
-| `pls` | 13 | pointer to a `PList`, matching the already-reviewed `gXStatus.plsMonsterList` |
+| `pls` | 13 | list-bearing pointer; both `PList.cpp` and `IList.cpp` use it, so the concrete list type needs consumer evidence |
 | `pac` / `pst` / `h` | 17 / 17 / 13 | pointer to char array, pointer to struct, handle |
 
-This directly types fields the disassembly leaves opaque: `pWorld->plsProps` and `pWorld->psrMeshes`
-name two `W8World` members and say one is a `PList` and the other a SurRender object.
+This narrows fields the disassembly leaves opaque, but it does not replace consumer evidence.
+`pWorld->plsProps` is a `PList` because its users call the reviewed PList accessors; `psrMeshes`
+identifies a SurRender-facing pointer independently.
 
 An `m_` member prefix is **not** a project-wide convention, and an earlier revision of this document
 wrongly said it was. Only 70 distinct `m_` identifiers appear, and 147 of the 195 member-access

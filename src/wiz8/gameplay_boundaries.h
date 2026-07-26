@@ -160,7 +160,7 @@ typedef struct W8PtrVector {
    count at +0x08, accessed through free functions. */
 typedef struct W8PList {
     void** data;                          /* 0x00 */
-    int unknown_04;
+    int capacity;                         /* 0x04: PListInit allocates 10 */
     int count;                            /* 0x08 */
 } W8PList;
 
@@ -284,14 +284,14 @@ extern char** g_location_variable_names;
 extern int g_location_variable_level_count;
 extern int* g_location_variable_levels;
 extern int g_next_world_item_id;
-extern void* g_world_item_list;
+extern W8PList* g_world_item_list;
 /* Elements are W8NPCItemList*. */
 extern W8PtrVector* g_npc_item_lists;
 /* 0x006840C7: lazily populated cache of runtime monster records, one slot per
    species ID. MAX_MONSTERS_IN_DATABASE comes from the canonical assertion text. */
 extern W8MonsterRecord* g_monster_record_cache[1000];
-extern void* g_monster_group_species_list;
-extern void* g_monster_group_encounter_list;
+extern W8PList* g_monster_group_species_list;
+extern W8PList* g_monster_group_encounter_list;
 /* Provisional name: a fixed-address, non-per-character item pool distinct
    from the equipped/carried slots GetOriginOfCharacterItem also searches. */
 extern unsigned char g_shared_item_pool[];
@@ -320,19 +320,29 @@ unsigned char IListDestroy(W8IList* pls);
 int IListIndexOf(W8IList* pls, int value);
 unsigned char IListFreeData(W8IList* pls);
 void IListClear(W8IList* pls);
+int IListRemove(W8IList* pls, int value);
 int IListGetAt(W8IList* pls, int index);
 
+W8PList* PListCreate(void);
+unsigned char PListInit(W8PList* ppl);
+unsigned char PListDestroy(W8PList* ppl);
+unsigned char PListFreeData(W8PList* ppl);
+int PListAdd(W8PList* ppl, void* pEntry);
+int PListInsert(W8PList* ppl, int position, void* pEntry);
+void PListClear(W8PList* ppl);
+void* PListRemove(W8PList* ppl, void* pEntry);
+void* PListRemoveAt(W8PList* ppl, int position);
 unsigned int PListGetCount(W8PList* ppl);
 void* PListGetAt(W8PList* ppl, int index);
-int PListIndexOf(void* list, void* target);
+int PListIndexOf(W8PList* ppl, void* pEntry);
 W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
 
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
 } W8MonsterInfo;
 
-extern void* g_monster_list;              /* gXStatus.plsMonsterList */
-extern void* g_unborn_monster_list;       /* gXStatus.plsUnbornMonsterList */
+extern W8PList* g_monster_list;            /* gXStatus.plsMonsterList */
+extern W8PList* g_unborn_monster_list;     /* gXStatus.plsUnbornMonsterList */
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 unsigned int MonsterGetIndexByLocationID(

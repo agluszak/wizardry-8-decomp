@@ -28,6 +28,7 @@ def apply_reviewed_class_model(
         ByteDataType,
         CategoryPath,
         DataTypeConflictHandler,
+        IntegerDataType,
         PointerDataType,
     )
     from ghidra.program.model.symbol import SourceType
@@ -63,11 +64,12 @@ def apply_reviewed_class_model(
                 generic_pointer = PointerDataType(dtm)
                 fields_by_class: dict[str, list[Any]] = {}
                 for field in model.fields:
-                    data_type = (
-                        generic_pointer
-                        if field.data_type == "pointer"
-                        else ArrayDataType(byte, field.size, 1)
-                    )
+                    if field.data_type == "pointer":
+                        data_type = generic_pointer
+                    elif field.data_type == "int32":
+                        data_type = IntegerDataType.dataType
+                    else:
+                        data_type = ArrayDataType(byte, field.size, 1)
                     fields_by_class.setdefault(field.class_name, []).append(
                         (field.offset, data_type, field.name, field.description)
                     )

@@ -17,6 +17,7 @@ from .reviewed_signatures import load_reviewed_signatures
 def _expected_type_name(spec: str) -> str:
     aliases = {
         "unsigned char": "uchar",
+        "unsigned int": "uint",
         "unsigned short": "ushort",
     }
     pointer_depth = 0

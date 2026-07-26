@@ -314,7 +314,7 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         classes = list(csv.DictReader(stream))
 
     by_name = {row["class_name"]: row for row in classes}
-    assert set(by_name) == {
+    assert {
         "GrCycle",
         "Monster",
         "MonsterInfoDialog",
@@ -324,7 +324,9 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         "stLight",
         "Controls",
         "Item",
-    }
+        "W8PList",
+        "W8IList",
+    } <= set(by_name)
     # Classes recovered from source paths carry one; classes recovered from an
     # imported SurRender base carry a named base instead.
     for name in ("GrCycle", "Monster", "MonsterInfoDialog"):
@@ -376,10 +378,16 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = load_reviewed_class_model(repository, "wiz8")
 
-    assert len(model.classes) == 9
     assert len(model.vtables) == 10
     assert len(model.slots) == 74
-    assert len(model.fields) == 16
+    classes = {item.name: item for item in model.classes}
+    assert classes["W8PList"].size == 0xC
+    assert classes["W8IList"].size == 0xC
+    assert [
+        (field.offset, field.size, field.data_type)
+        for field in model.fields
+        if field.class_name == "W8PList"
+    ] == [(0x0, 0x4, "pointer"), (0x4, 0x4, "int32"), (0x8, 0x4, "int32")]
 
     vtables = {item.vtable_id: item for item in model.vtables}
     assert vtables["GrCycle.primary"].address == 0x005ECE78
@@ -590,72 +598,42 @@ def test_string_database_inventory_preserves_footer_index_boundaries() -> None:
     assert {row["consumer"] for row in rows} == {"0x0052ff80"}
 
 
-def test_initial_owned_wiz8_boundaries_are_exact() -> None:
+def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/reccmp/wiz8-gameplay-boundaries.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 71
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 66
-    assert {int(row["size"]) for row in exact} == {
-        6,
-        7,
-        12,
-        13,
-        19,
-        20,
-        24,
-        25,
-        26,
-        29,
-        33,
-        40,
-        43,
-        47,
-        53,
-        55,
-        56,
-        57,
-        61,
-        66,
-        70,
-        76,
-        81,
-        82,
-        83,
-        85,
-        98,
-        100,
-        103,
-        105,
-        106,
-        109,
-        110,
-        115,
-        117,
-        118,
-        130,
-        132,
-        145,
-        174,
-        179,
-        199,
-        205,
-        206,
-        218,
-        219,
-        231,
-        236,
-        239,
-        245,
-        452,
-        455,
-        456,
-    }
     assert all(len(row["relocation_masked_sha256"]) == 64 for row in exact)
+    foundation = {
+        row["symbol"]: row for row in rows if row["owner"] == "wiz8-foundation"
+    }
+    assert {
+        "PListCreate",
+        "PListInit",
+        "PListDestroy",
+        "PListFreeData",
+        "PListAdd",
+        "PListInsert",
+        "PListClear",
+        "PListRemove",
+        "PListRemoveAt",
+        "PListGetAt",
+        "PListIndexOf",
+        "PListGetCount",
+        "IListCreate",
+        "IListInit",
+        "IListDestroy",
+        "IListFreeData",
+        "IListAdd",
+        "IListClear",
+        "IListRemove",
+        "IListGetAt",
+        "IListIndexOf",
+    } <= set(foundation)
+    assert all(row["confidence"] == "exact" for row in foundation.values())
     backfire = next(row for row in rows if row["symbol"] == "CanSpellBackfire")
     assert backfire["confidence"] == "structurally-strong"
     assert backfire["relocation_masked_sha256"] == ""

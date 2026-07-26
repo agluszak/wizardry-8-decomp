@@ -15,3 +15,9 @@ wiz8,MonsterInfoDialog,0x54,0x4,constructor_argument_54,pointer,strong,classes:w
 wiz8,MonsterInfoDialog,0x58,0x4c,member_58,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member constructed and destroyed as one subobject
 wiz8,MonsterInfoDialog,0xa4,0x48,member_a4,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member constructed and destroyed as one subobject
 wiz8,MonsterInfoDialog,0xec,0x44,member_ec,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member; minimum extent follows access at 0x129
+wiz8,W8PList,0x0,0x4,data,pointer,exact,classes:wiz8:W8PList,pointer element array
+wiz8,W8PList,0x4,0x4,capacity,int32,exact,classes:wiz8:W8PList,allocated pointer slots
+wiz8,W8PList,0x8,0x4,count,int32,exact,classes:wiz8:W8PList,used pointer slots
+wiz8,W8IList,0x0,0x4,data,pointer,exact,classes:wiz8:W8IList,integer element array
+wiz8,W8IList,0x4,0x4,capacity,int32,exact,classes:wiz8:W8IList,allocated integer slots
+wiz8,W8IList,0x8,0x4,count,int32,exact,classes:wiz8:W8IList,used integer slots

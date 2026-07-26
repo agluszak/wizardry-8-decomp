@@ -118,7 +118,11 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
         owner = classes_by_name.get(field.class_name)
         if owner is None:
             raise ValueError(f"{fields_path}: unknown class {field.class_name}")
-        if not field.name or field.size <= 0 or field.data_type not in {"bytes", "pointer"}:
+        if not field.name or field.size <= 0 or field.data_type not in {
+            "bytes",
+            "int32",
+            "pointer",
+        }:
             raise ValueError(f"{fields_path}: invalid field {field.class_name}+0x{field.offset:x}")
         key = (field.class_name, field.offset)
         if key in field_keys or field.offset < last_end.get(field.class_name, 0):
@@ -127,6 +131,8 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             raise ValueError(f"{fields_path}: field exceeds {field.class_name} size")
         if field.data_type == "pointer" and field.size != 4:
             raise ValueError(f"{fields_path}: reviewed x86 pointer field must be four bytes")
+        if field.data_type == "int32" and field.size != 4:
+            raise ValueError(f"{fields_path}: reviewed int32 field must be four bytes")
         field_keys.add(key)
         last_end[field.class_name] = field.offset + field.size
 
