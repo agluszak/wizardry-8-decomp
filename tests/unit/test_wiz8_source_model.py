@@ -619,7 +619,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 107
+    assert len(rows) == 108
     exact = [row for row in rows if row["confidence"] == "exact"]
     assert {int(row["size"]) for row in exact} == {
         1,

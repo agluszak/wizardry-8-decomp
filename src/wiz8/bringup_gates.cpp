@@ -165,7 +165,7 @@ void Function404B00(void)
 }
 
 extern unsigned char FileExists(const char* path);
-extern void ProcessCommandLine(char* command_line);
+
 extern unsigned char Function42B830(void);
 extern void Function4E3340(void);
 extern void* g_instance_6f062c;
@@ -207,6 +207,61 @@ extern int g_dword_5ff60c;
 extern unsigned char g_flag_650e38;
 extern W8BindingNode* g_binding_head_6eb704;
 extern unsigned char g_block_6eb6a0[0x64];
+
+extern void Function4086C0(int enable);
+extern void Function4277D0(void);
+extern void Function427A30(const char* path);
+extern void Function422970(int enable);
+extern void Function42BC00(void);
+extern unsigned char gfLoadAtStartup;
+extern unsigned char gfUsingBoundsChecker;
+extern unsigned char gfCapturingVideo;
+extern char* gzStringDataOverride;
+
+// FUNCTION: WIZ8 0x00401950
+/* Switches are matched by prefix with _strnicmp, so each comparison carries its
+   own length. The line is copied first because strtok writes through it, and
+   the delimiter set is copied to a stack word rather than used in place. */
+void ProcessCommandLine(char* pCommandLine)
+{
+    char delimiters[4];
+    char* copy;
+    char* token;
+
+    *(unsigned int*)delimiters = *(unsigned int*)"\t =";
+    copy = (char*)malloc(strlen(pCommandLine) + 1);
+    if (!copy) {
+        return;
+    }
+    memcpy(copy, pCommandLine, strlen(pCommandLine) + 1);
+    token = strtok(copy, delimiters);
+    while (token) {
+        if (_strnicmp(token, "/NOSOUND", 8) == 0) {
+            Function4086C0(0);
+        } else if (_strnicmp(token, "/INSPECTOR", 10) == 0) {
+            Function4277D0();
+        } else if (_strnicmp(token, "/VIDEOCFG", 9) == 0) {
+            token = strtok(NULL, delimiters);
+            Function427A30(token);
+        } else if (_strnicmp(token, "/LOAD", 5) == 0) {
+            gfLoadAtStartup = 1;
+        } else if (_strnicmp(token, "/WINDOW", 7) == 0) {
+            Function422970(0);
+        } else if (_strnicmp(token, "/BC", 7) == 0) {
+            gfUsingBoundsChecker = 1;
+        } else if (_strnicmp(token, "/CAPTURE", 7) == 0) {
+            gfCapturingVideo = 1;
+        } else if (_strnicmp(token, "/NOOCT", 6) == 0) {
+            Function42BC00();
+        } else if (_strnicmp(token, "/STRINGDATA", 0xb) == 0) {
+            token = strtok(NULL, delimiters);
+            gzStringDataOverride = (char*)malloc(strlen(token) + 1);
+            memcpy(gzStringDataOverride, token, strlen(token) + 1);
+        }
+        token = strtok(NULL, delimiters);
+    }
+    free(copy);
+}
 
 // FUNCTION: WIZ8 0x00407D30
 /* Publishes the three values 0x00422AF0 reports, narrowed to their field
