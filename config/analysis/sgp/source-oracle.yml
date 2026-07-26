@@ -107,3 +107,16 @@ reusable_harness:
   reports:
     - config/analysis/sgp/directdraw-harness.csv
     - config/analysis/sgp/random-harness.csv
+    - config/analysis/sgp/compression-harness.csv
+
+compression_unit:
+  source: sgp/Compression.c
+  functions: config/analysis/sgp/compression-functions.csv
+  selected_flags: [/O2, /Ob1, /G5, /MD]
+  emitted_functions: 9
+  retained_functions: 5
+  stripped_functions: 4
+  object_order_hypothesis: >-
+    Compression.obj immediately precedes the selected zlib objects. The five
+    retained COMDATs preserve source order at 0x00415820 through 0x004158F0;
+    inflateReset begins at 0x00415910 after alignment.

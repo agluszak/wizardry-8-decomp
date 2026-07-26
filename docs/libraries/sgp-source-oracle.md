@@ -96,6 +96,27 @@ The oracle also resolves the independently reconstructed zlib boundary. The five
 at `0x00415820` through `0x004158F0` are the retained decompression half of `sgp/Compression.c`,
 with original names `ZAlloc`, `ZFree`, `DecompressInit`, `Decompress`, and `DecompressFini`.
 
+### `Compression.c`: retained decompression half
+
+The per-unit sweep compiles all nine functions emitted by `Compression.c` and selects
+`/O2 /Ob1 /G5 /MD`. `ZAlloc`, `ZFree`, `DecompressInit`, and `Decompress` each have one unique
+relocation-masked candidate in all five comparable executables. `CompressedBufferSize`,
+`CompressInit`, and `Compress` have no exact, relocation-equivalent, or near candidate in any of
+those builds.
+
+`CompressFini` and `DecompressFini` require one more piece of evidence: after relocation masking
+their 23-byte bodies are identical, so the generic harness correctly reports both as
+`ambiguous-generic`. The sole canonical candidate at `0x004158F0` calls `0x00415960`, the separately
+source-identified `inflateEnd`, not `deflateEnd`. It is therefore `DecompressFini`; with no second
+candidate, `CompressFini` was stripped along with the other three compression-only COMDATs.
+
+The retained functions preserve source order from lines 14, 19, 24, 55, and 80 at addresses
+`0x00415820` through `0x004158F0`. The next function, zlib's `inflateReset`, starts at `0x00415910`.
+This supports the linker-order hypothesis that `Compression.obj` immediately preceded the selected
+zlib objects, with the four later source COMDATs eliminated rather than moved elsewhere. The full
+machine report is `config/analysis/sgp/compression-harness.csv`; the reviewed source-line and
+object-order resolution is `config/analysis/sgp/compression-functions.csv`.
+
 ## `Random.c`: a complete unit, and a name correction
 
 `Random.c` is the first translation unit recovered in full. Its own header settles the build

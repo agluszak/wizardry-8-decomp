@@ -285,6 +285,11 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     # Random into Chance, which plain /O2 (/Ob1) will not do. /G6 mismatches
     # Random and Chance.
     wiz8_add_sgp_unit(WIZ8_SGP_RANDOM "Random.c" random /G5 /Ob2)
+
+    # Compression.c brackets the linked zlib objects. The whole released unit
+    # is retained in the probe even though Wizardry only kept its decompression
+    # half after COMDAT elimination.
+    wiz8_add_sgp_unit(WIZ8_SGP_COMPRESSION "Compression.c" compression)
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

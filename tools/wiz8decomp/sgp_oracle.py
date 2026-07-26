@@ -367,6 +367,20 @@ def _evaluate(
                         }
                     )
             evaluated.append((function, matches))
+
+        # Relocation masking can make distinct source functions identical. A
+        # single binary hit is not enough to assign either identity in that
+        # case: for example, Compression.c's CompressFini and DecompressFini
+        # differ only in the relocated deflateEnd/inflateEnd call target.
+        fingerprints: dict[bytes, int] = {}
+        for function, _matches in evaluated:
+            fingerprints[function.masked_body] = fingerprints.get(function.masked_body, 0) + 1
+        for function, matches in evaluated:
+            if fingerprints[function.masked_body] < 2:
+                continue
+            for match in matches:
+                if match["classification"] in {"exact", "relocation-equivalent"}:
+                    match["classification"] = "ambiguous-generic"
         candidates.append((flags, evaluated))
     _best_index, (flags, evaluated) = max(
         enumerate(candidates),
@@ -389,6 +403,11 @@ def _evaluate(
         for match in matches:
             build = match["build"]
             addresses = [build.base + position for position in match["positions"]] if build.base else []
+            address = (
+                f"{addresses[0]:08x}"
+                if len(addresses) == 1 and match["classification"] != "ambiguous-generic"
+                else ""
+            )
             rows.append(
                 {
                     "function": function.name,
@@ -397,7 +416,7 @@ def _evaluate(
                     "build": build.identifier,
                     "module_sha256": build.module_sha256,
                     "classification": match["classification"],
-                    "address": f"{addresses[0]:08x}" if len(addresses) == 1 else "",
+                    "address": address,
                     "hit_count": len(addresses),
                     "similarity": f"{match['similarity']:.6f}",
                     "relocation_masked_sha256": hashlib.sha256(function.masked_body).hexdigest(),

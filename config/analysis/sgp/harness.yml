@@ -36,3 +36,8 @@ units:
     source: Random.c
     overlay: random
     report: config/analysis/sgp/random-harness.csv
+  - id: compression
+    target: WIZ8_SGP_COMPRESSION
+    source: Compression.c
+    overlay: compression
+    report: config/analysis/sgp/compression-harness.csv

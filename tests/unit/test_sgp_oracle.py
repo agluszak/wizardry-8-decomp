@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 
 import yaml
-from wiz8decomp.sgp_oracle import CoffFunction, classify_body
+from wiz8decomp.sgp_oracle import BuildText, CoffFunction, _evaluate, classify_body
 
 
 def test_sgp_oracle_tracks_the_complete_reviewed_census() -> None:
@@ -96,7 +96,11 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
         (repository / "config/analysis/sgp/harness.yml").read_text(encoding="utf-8")
     )
     assert harness["schema"] == "wiz8.sgp-harness"
-    assert {unit["id"] for unit in harness["units"]} == {"directdraw", "random"}
+    assert {unit["id"] for unit in harness["units"]} == {
+        "compression",
+        "directdraw",
+        "random",
+    }
     assert set(harness["flag_axes"]) == {
         "optimization",
         "inlining",
@@ -144,3 +148,59 @@ def test_relocation_masked_matcher_uses_the_five_way_vocabulary() -> None:
         ]
         == "absent-or-stripped"
     )
+
+
+def test_source_functions_with_the_same_masked_body_remain_ambiguous() -> None:
+    first = CoffFunction("First", b"\xe8\0\0\0\0\xc3", (1,))
+    second = CoffFunction("Second", b"\xe8\x11\x22\x33\x44\xc3", (1,))
+    build = BuildText("test", "0" * 64, 0x400000, b"\xe8\xaa\xbb\xcc\xdd\xc3", None)
+
+    rows = _evaluate([(("/O2",), [first, second])], [build], 0.75)
+
+    assert {row["classification"] for row in rows} == {"ambiguous-generic"}
+    assert {row["address"] for row in rows} == {""}
+    assert {row["hit_count"] for row in rows} == {1}
+
+
+def test_compression_unit_classifies_every_emitted_function() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/sgp/compression-harness.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        harness = list(csv.DictReader(stream))
+    with (repository / "config/analysis/sgp/compression-functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        reviewed = list(csv.DictReader(stream))
+
+    assert len(harness) == 9 * 7
+    assert {row["flags"] for row in harness} == {"/O2 /Ob1 /G5 /MD"}
+    assert sum(row["classification"] == "unavailable" for row in harness) == 18
+    ambiguous = {
+        row["function"]
+        for row in harness
+        if row["classification"] == "ambiguous-generic"
+    }
+    assert ambiguous == {"CompressFini", "DecompressFini"}
+
+    assert [row["function"] for row in reviewed] == [
+        "ZAlloc",
+        "ZFree",
+        "DecompressInit",
+        "Decompress",
+        "DecompressFini",
+        "CompressedBufferSize",
+        "CompressInit",
+        "Compress",
+        "CompressFini",
+    ]
+    assert [row["source_line"] for row in reviewed[:5]] == ["14", "19", "24", "55", "80"]
+    assert {row["canonical_classification"] for row in reviewed[:5]} == {
+        "relocation-equivalent"
+    }
+    assert {row["canonical_classification"] for row in reviewed[5:]} == {
+        "absent-or-stripped"
+    }
+    assert reviewed[4]["canonical_address"] == "004158f0"
+    assert "inflateEnd" in reviewed[4]["evidence"]
+    assert "inflateEnd" in reviewed[-1]["evidence"]
