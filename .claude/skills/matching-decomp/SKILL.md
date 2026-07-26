@@ -16,21 +16,28 @@ to reproduce code you already understand.
    in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
 3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.
 4. Compare the emitted COMDAT against every build with relocation masking.
-4a. **Also run `just compare WIZ8`.** The relocation-masked object comparison proves the instruction
-   encoding; reccmp compares the *linked image* and catches things the object test cannot — wrong
-   import names, stale links, and whether the function is even reachable. Use both; they measure
-   different things and the repo's `relocation_masked_sha256` column is the object-level criterion.
-5. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
+5. **Also run `just compare WIZ8`.** The two measure different things and you want both: the
+   relocation-masked object comparison proves the instruction encoding, which is what the
+   `relocation_masked_sha256` column records, while reccmp compares the *linked image* and
+   additionally catches wrong import names, unreachable functions, and stale links.
+6. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
    relevant test counts in `tests/unit/test_wiz8_source_model.py`.
 
 Comparison masks COFF `DIR32`/`DIR32NB`/`REL32` relocation fields, so global addresses and call
 targets are irrelevant to the match — only instruction shape matters. Externs may therefore be
 declared with any convenient name.
 
-**Relink before trusting reccmp.** `WIZ8_WORK_DIR` is shared between checkouts, so the linked
-`Wiz8.exe`/`Wiz8.pdb` may have been produced from a *different* working copy. A stale link showed
-functions at 34–43% that were actually 92–94%; the PDB's embedded source paths reveal whose tree it
-came from. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number.
+**Relink before trusting reccmp.** A successful `just build` does not guarantee the link step
+reran, and a stale `Wiz8.exe`/`Wiz8.pdb` reports correct functions at 34–43% when they are actually
+92–94%. Delete both and rebuild before reading any reccmp number.
+
+To check whose sources a build dir belongs to, read `RECCMP_PROJECT_DIR_HOST` in its
+`CMakeCache.txt`. The PDB itself is not the signal — the container build records `Z:\repo\...`
+paths, and reccmp maps them to a host tree through that cache variable. If it names a checkout other
+than yours, every number from that build dir is about someone else's code.
+
+Each checkout must have its own `WIZ8_WORK_DIR`; see `.env.example` and AGENTS.md. If two share one,
+the caches overwrite each other and both agents intermittently measure the other's build.
 
 ## Reading a near-miss
 

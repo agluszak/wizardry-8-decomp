@@ -31,6 +31,20 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
 
 - Prefer repository commands: `just test`, `just build <target>`, `just compare`, `just wiz8 ...`,
   and `just ghidra ...`.
+- **Every checkout needs its own `WIZ8_WORK_DIR`.** It holds mutable build state: the CMake cache
+  whose `RECCMP_PROJECT_DIR_HOST` decides which sources reccmp maps addresses through, the linked
+  `Wiz8.exe`/`Wiz8.pdb`, live Ghidra projects, and the daemon. Two checkouts sharing one directory
+  overwrite each other silently, and the symptom is a *wrong measurement rather than an error*:
+  `just compare` will read an image linked from the other checkout and report correct functions at
+  30-40% similar. Share the large read-only trees (`extracted`, `variants`, `fid`, `oracles`) with
+  `cp -al` hardlink copies; plain symlinks fail because generated targets must resolve to real
+  paths under `WIZ8_WORK_DIR`. See `.env.example`.
+- **Verify a ported body with `just compare <target>`, not only with a byte comparison of the
+  object.** The two measure different things: a relocation-masked COMDAT comparison proves the
+  instruction encoding, which is what the `relocation_masked_sha256` column records, while reccmp
+  compares the linked image and additionally catches wrong import names, unreachable functions, and
+  stale links. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number, because a
+  successful `just build` does not guarantee the link step reran.
 - Use `just ghidra query <program> ...` directly. The query command automatically starts and reuses
   the persistent read-only Ghidra daemon, switches it when the requested program changes, and
   recovers it after mutating Ghidra commands stop it. Do not manually manage the daemon in normal
