@@ -16,12 +16,21 @@ to reproduce code you already understand.
    in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
 3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.
 4. Compare the emitted COMDAT against every build with relocation masking.
+4a. **Also run `just compare WIZ8`.** The relocation-masked object comparison proves the instruction
+   encoding; reccmp compares the *linked image* and catches things the object test cannot — wrong
+   import names, stale links, and whether the function is even reachable. Use both; they measure
+   different things and the repo's `relocation_masked_sha256` column is the object-level criterion.
 5. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
    relevant test counts in `tests/unit/test_wiz8_source_model.py`.
 
 Comparison masks COFF `DIR32`/`DIR32NB`/`REL32` relocation fields, so global addresses and call
 targets are irrelevant to the match — only instruction shape matters. Externs may therefore be
 declared with any convenient name.
+
+**Relink before trusting reccmp.** `WIZ8_WORK_DIR` is shared between checkouts, so the linked
+`Wiz8.exe`/`Wiz8.pdb` may have been produced from a *different* working copy. A stale link showed
+functions at 34–43% that were actually 92–94%; the PDB's embedded source paths reveal whose tree it
+came from. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number.
 
 ## Reading a near-miss
 
