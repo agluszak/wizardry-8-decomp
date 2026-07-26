@@ -3,6 +3,8 @@ import csv
 from collections import Counter
 from pathlib import Path
 
+from wiz8decomp.provenance import validate_provenance
+
 
 def test_wiz8_source_tree_preserves_raw_cpp_paths() -> None:
     repository = Path(__file__).resolve().parents[2]
@@ -84,6 +86,56 @@ def test_ptr_vector_instantiations_are_inventoried() -> None:
     assert "W8MonsterGeneratorVector" not in header
     # The leading word is a vptr, not padding.
     assert "void* vptr;" in header
+
+
+def test_allocator_layers_preserve_identity_provenance_and_ownership_signal() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/wiz8/allocator-layers.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    by_address = {row["address"]: row for row in rows}
+    assert len(rows) == len(by_address) == 8
+    assert set(by_address) == {
+        "005e1c10",
+        "005e1ce0",
+        "005eb1a0",
+        "005eb1c4",
+        "005eb1f8",
+        "005eb224",
+        "005ebab8",
+        "005ebac0",
+    }
+    for row in rows:
+        validate_provenance(row["name_origin"], row["authority"])
+
+    assert by_address["005e1c10"]["address_kind"] == "function"
+    assert by_address["005e1c10"]["authority"] == "descriptive"
+    assert by_address["005e1ce0"]["address_kind"] == "import-thunk"
+    assert by_address["005e1ce0"]["authority"] == "abi-backed"
+    assert {
+        row["ownership_signal"] for row in rows if row["allocator_family"] == "global-cpp"
+    } == {"first-party-cpp-object"}
+    assert {
+        row["ownership_signal"]
+        for row in rows
+        if row["allocator_family"] == "surrender-heap"
+    } == {"surrender-facing-object"}
+
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        runtime = {row["address"]: row for row in csv.DictReader(stream)}
+    assert runtime["005e1c10"]["provisional_name"] == "operator_delete"
+    assert runtime["005e1ce0"]["provisional_name"] == "operator_new_import_thunk"
+
+    with (repository / "evidence/observations/surrender/wiz8-sr-imports.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        sr_imports = {row["iat_address"]: row for row in csv.DictReader(stream)}
+    assert sr_imports["005ebab8"]["decorated_name"] == "?free@srHeap@@QAEXPAX@Z"
+    assert sr_imports["005ebac0"]["decorated_name"] == "?allocate@srHeap@@QAEPAXK@Z"
 
 
 def test_startup_spine_separates_library_from_first_party() -> None:

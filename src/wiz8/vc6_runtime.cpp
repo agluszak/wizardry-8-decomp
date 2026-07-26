@@ -25,8 +25,14 @@
 // LIBRARY: WIZ8 0x004011AC
 // atexit
 
+// LIBRARY: WIZ8 0x005E1C10
+// operator delete
+
 // LIBRARY: WIZ8 0x005E1CA0
 // __allmul
+
+// LIBRARY: WIZ8 0x005E1CE0
+// operator new import thunk
 
 // LIBRARY: WIZ8 0x005E1CF0
 // __alldiv

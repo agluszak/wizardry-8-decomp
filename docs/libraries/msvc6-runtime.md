@@ -24,3 +24,30 @@ inflating Wizardry source-recovery counts.
 The agreement across snapshots is deliberately not described as evidence for one VC6 service
 pack. Compiler selection still has to use discriminating code bodies, Rich records, and eventual
 rebuild comparison.
+
+## Allocation ABI
+
+The canonical executable's global C++ allocation boundary is asymmetric:
+
+| Address | Shape | Reviewed identity |
+| --- | --- | --- |
+| `0x005E1CE0` | `jmp dword ptr [0x005EB1BC]` | six-byte import thunk to MSVCRT `operator new` |
+| `0x005E1C10` | push argument, call `0x005E1C1D`, pop, return | local `operator delete` wrapper |
+| `0x005E1C1D` | `jmp dword ptr [0x005EB224]` | six-byte import thunk to MSVCRT `free` |
+
+Calling both outer entries "import thunks" hides a real distinction. The `operator new` identity is
+read directly from the imported decorated export and is therefore ABI-backed. The delete wrapper
+is not imported under that name: its descriptive identity comes from its exact forwarding body and
+the compiler-generated destructor sites that call it. Both callable identities are reviewed in
+`evidence/reviewed/wiz8/functions.csv`; the IAT identities and their ownership meaning
+are reviewed separately in `evidence/reviewed/wiz8/allocator-layers.csv` because an IAT slot is data,
+not a function.
+
+This is the old VC6 Microsoft-extension allocation contract, not standard throwing `new`. The
+pinned VC6 CRT source implements that `operator new(unsigned int)` as `_nh_malloc(size, 1)` and
+returns its result. `Wiz8.exe` imports neither a new-handler setter nor `_CxxThrowException`, and its
+generated code treats allocation failure as an ordinary null result. For example, the pointer-array
+constructor at `0x00509890` leaves the global null if object allocation fails and stores capacity
+zero if backing allocation fails; `GetMonsterDataByID` likewise frees a failed record load and
+returns null. Ported code must preserve these explicit null paths, for example with a nothrow
+allocation boundary, rather than assuming modern throwing `new` semantics.

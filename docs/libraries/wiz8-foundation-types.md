@@ -69,10 +69,27 @@ and `FindMonGenByName`. It is this template's accessor, not a quirk of those two
 
 ## Allocator as an ownership discriminator
 
-This container allocates through the global `operator new`, whereas SurRender's own types allocate
-through `srHeap` — which `Wiz8.exe` imports as one of the nine plain-C symbols in
-`evidence/observations/surrender/wiz8-sr-imports.csv`. Which allocator a body calls is therefore a usable
-first-party-versus-vendor signal elsewhere in the image.
+Allocator choice is a class-recovery signal because three independently named allocation families
+coexist in the same image:
+
+| Allocation family | Typical ownership signal | Proven example |
+| --- | --- | --- |
+| global `operator new` / `operator delete` | first-party C++ object or template | this polymorphic pointer array |
+| CRT `malloc` / `free` / `realloc` | C-style record, cache, or resizable buffer | `GetMonsterDataByID`'s `0x297`-byte record cache |
+| `srHeap::allocate` / `srHeap::free` | SurRender-facing or header-inline SR type | the inline string recovered in `srEXT_Unzip.dll` |
+
+The reviewed address-to-family relationship lives in
+`evidence/reviewed/wiz8/allocator-layers.csv`. The exact SurRender decorated imports remain in
+`evidence/observations/surrender/wiz8-sr-imports.csv`. This discriminator is supporting ownership
+evidence, not proof by itself: a boundary adapter can deliberately allocate through a vendor heap,
+so call sites and layout still have to agree.
+
+The global `operator new` returns null in this executable's VC6 ABI. The constructor above therefore
+has two semantic failure paths: a failed object allocation leaves the owner null, while a failed
+backing allocation retains the object but stores capacity zero. See
+`docs/libraries/msvc6-runtime.md` for the import shape and porting contract. The much denser delete
+surface is not anomalous: template instantiations emit ordinary and scalar-deleting destructor
+forms, both of which eventually reach the shared delete wrapper.
 
 
 ## `PList`
