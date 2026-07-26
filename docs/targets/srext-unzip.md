@@ -47,7 +47,7 @@ No competing FID names were found. Source order, call graph, callback references
 evidence resolve the remaining bodies, including the hidden WinDLL callbacks, `DllMain`,
 `Wiz_NoPrinting`, the exact Sir-Tech `srWizUnzipToMemory` adaptation, and six encryption functions
 from the public-domain zcrypt 2.8 overlay. The complete address map and per-function evidence live in
-`config/analysis/functions/srext-unzip.csv`; the accepted public-library identities used by
+`evidence/reviewed/srext-unzip/functions.csv`; the accepted public-library identities used by
 reccmp live in `config/analysis/reccmp/srext-unzip.csv`.
 
 ## Repaired Ghidra model

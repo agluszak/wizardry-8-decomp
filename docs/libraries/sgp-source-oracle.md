@@ -20,9 +20,9 @@ The SGP workflow deliberately separates four roles:
 - `evidence/reviewed/sgp/findings.csv` contains conclusions that require human review, while
   `evidence/observations/sgp/source-paths.csv` contains binary path observations.
 
-Accepted identities currently remain in the compatibility map
-`config/analysis/functions/wiz8-sgp.csv`. They will move into the canonical WIZ8 function catalog;
-until then, the compatibility map is the input used by Ghidra and matching tools.
+Accepted identities live once in the canonical WIZ8 function catalog at
+`evidence/reviewed/wiz8/functions.csv`. Multiple SGP and CFAgent observations for one address are
+retained as separate rows in `evidence/reviewed/wiz8/function-evidence.csv`.
 
 ## Wizardry branches and overlays
 
@@ -134,7 +134,7 @@ types with:
 
 ```sh
 just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
-  --map config/analysis/functions/wiz8-sgp.csv
+  --map evidence/reviewed/wiz8/functions.csv
 just ghidra apply-sgp-model wiz8--gog-base--wiz8--18a74ff61c65
 ```
 

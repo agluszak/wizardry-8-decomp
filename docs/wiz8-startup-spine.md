@@ -12,8 +12,8 @@ runtime target links the real CRT and the real Win32 import libraries and the li
 exactly as `imperialism-decomp` links `gdi32 user32 winmm vfw32 …` rather than reimplementing them.
 
 Not being a recovery target is not an excuse to leave them as `FUN_`. They are recorded in
-`config/analysis/functions/wiz8-vc6-runtime.csv` and applied by
-`just ghidra apply-functions … --map config/analysis/functions/wiz8-vc6-runtime.csv`, so the
+`evidence/reviewed/wiz8/functions.csv` and applied by
+`just ghidra apply-functions … --map evidence/reviewed/wiz8/functions.csv`, so the
 disassembly reads correctly:
 
 | Address | Name | Provenance |

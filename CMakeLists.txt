@@ -235,7 +235,7 @@ if(WIZ8_BUILD_DECOMP AND ZLIB_SOURCE)
     target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
 
     # The canonical executable statically links pristine zlib 1.0.4; 46 of its
-    # bodies are already reviewed in config/analysis/functions/wiz8-zlib.csv.
+    # bodies are already reviewed in evidence/reviewed/wiz8/functions.csv.
     # Build the pinned source as a real library so bring-up resolves inflate*
     # by linking it, rather than by stubbing library code.
     wiz8_collect_zlib_units(WIZ8_ZLIB_UNITS "${ZLIB_SOURCE}")

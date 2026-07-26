@@ -322,10 +322,14 @@ def test_reviewed_cross_build_map_is_separate_and_explicit() -> None:
 
 def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/functions/wiz8-cfagent-oracle.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        symbols = list(csv.DictReader(stream))
+        symbols = [
+            row
+            for row in csv.DictReader(stream)
+            if "fan-patch-signature" in row["name_origin"].split("|")
+        ]
     with (repository / "config/analysis/fan-patch-128-hooks.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
@@ -338,7 +342,10 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
     # so far that is only 0x0040EFA0, which the SGP Random.c compile placed in sgp-shared.
     assert {row["owner"] for row in symbols} == {"fan-patch-oracle", "sgp-shared"}
     assert sum(row["owner"] == "sgp-shared" for row in symbols) == 1
-    assert {row["confidence"] for row in symbols} == {"strong"}
+    assert {row["confidence"] for row in symbols if row["owner"] == "fan-patch-oracle"} == {
+        "strong"
+    }
+    assert next(row for row in symbols if row["owner"] == "sgp-shared")["confidence"] == "exact"
     by_name = {row["provisional_name"]: row["address"] for row in symbols}
     assert by_name["StartCombat"] == "004e7090"
     assert by_name["GetFact"] == "00506280"

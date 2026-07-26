@@ -54,10 +54,12 @@ def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
 
 def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        functions = list(csv.DictReader(stream))
+        functions = [
+            row for row in csv.DictReader(stream) if row["source_path"].startswith("sgp/")
+        ]
     with (repository / "evidence/observations/sgp/source-paths.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
@@ -80,7 +82,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
 
 def test_random_unit_is_complete_and_consistent_across_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         unit = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/Random.c"]
@@ -108,19 +110,22 @@ def test_random_unit_is_complete_and_consistent_across_builds() -> None:
 
 def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
     repository = Path(__file__).resolve().parents[2]
-    rows = []
-    for name in ("wiz8-sgp.csv", "wiz8-cfagent-oracle.csv"):
-        path = repository / "config/analysis/functions" / name
-        with path.open(newline="", encoding="utf-8") as stream:
-            entries = [row for row in csv.DictReader(stream) if row["address"] == "0040efa0"]
-        assert len(entries) == 1, name
-        rows.extend(entries)
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = [row for row in csv.DictReader(stream) if row["address"] == "0040efa0"]
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["provisional_name"] == "Random"
+    assert row["aliases"] == "GetRandomNumber"
+    assert set(row["name_origin"].split("|")) == {"sgp-source", "fan-patch-signature"}
+    assert row["authority"] == "source-backed"
 
-    for row in rows:
-        assert row["provisional_name"] == "Random"
-        assert row["aliases"] == "GetRandomNumber"
-        assert set(row["name_origin"].split("|")) == {"sgp-source", "fan-patch-signature"}
-        assert row["authority"] == "source-backed"
+    with (repository / "evidence/reviewed/wiz8/function-evidence.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        evidence = [row for row in csv.DictReader(stream) if row["address"] == "0040efa0"]
+    assert {row["origin"] for row in evidence} == {"cfagent-oracle", "sgp"}
 
 
 def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None:
@@ -283,7 +288,7 @@ def test_container_unit_separates_retained_stack_list_apis_from_stripped_familie
         if row["canonical_address"] == "00405c00"
     } == {"StackSize", "ListSize"}
 
-    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         accepted = [
@@ -308,7 +313,7 @@ def test_fileman_exact_and_near_results_stay_separate() -> None:
     repository = Path(__file__).resolve().parents[2]
     harness = _harness_rows(repository, "fileman")
     near = _reviewed_rows(repository, "fileman")
-    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         exact = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/FileMan.c"]
@@ -344,7 +349,7 @@ def test_library_database_units_keep_exact_near_and_interior_results_distinct() 
     dbman = _harness_rows(repository, "dbman")
     reviewed_library = _reviewed_rows(repository, "librarydatabase")
     reviewed_dbman = _reviewed_rows(repository, "dbman")
-    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         accepted = [

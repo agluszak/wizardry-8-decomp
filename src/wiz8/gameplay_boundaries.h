@@ -310,7 +310,7 @@ unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_in
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
                        signed char excluded_faction);
-/* 0x0054A8A0, reviewed in config/analysis/functions/wiz8-formats.csv. */
+/* 0x0054A8A0, reviewed in evidence/reviewed/wiz8/functions.csv. */
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 int GetLocationIDFromCode(const char* location_code);
 /* 0x0042A370, not yet recovered. */

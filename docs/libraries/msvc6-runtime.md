@@ -17,7 +17,7 @@ across all five snapshots.
 | `0x005E1EF1` | 81 | `?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z` | array unwind after construction failure |
 
 Ghidra already recognizes `__aulldiv`, `__allmul`, and `__aullshr`. The reviewed map in
-`config/analysis/functions/wiz8-vc6-runtime.csv` supplies the five missing names with their original
+`evidence/reviewed/wiz8/functions.csv` supplies the missing names with their original
 decorated spelling. Keeping these functions classified as compiler support prevents them from
 inflating Wizardry source-recovery counts.
 

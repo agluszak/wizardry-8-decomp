@@ -34,7 +34,7 @@ speculative static function addresses. The 1.28 executable is a fan-patch target
 original-body mappings do not make `Wiz8.dll`, `cfagent1.28.dll`, detours, or injected code original
 Wizardry source.
 
-The already reviewed SGP mappings remain in `config/analysis/functions/wiz8-sgp.csv`, with
+The already reviewed SGP mappings live in `evidence/reviewed/wiz8/functions.csv`, with
 per-build observations in `evidence/snapshots/sgp/harness.csv`. Those source-built identities are
 independent evidence and should be joined with this map by canonical address when preparing a
 function for recovery.
@@ -50,7 +50,7 @@ validating the target prologue.
 
 This makes names such as `pW8FUNC_StartCombat`, `pW8FUNC_GetFact`, and `pW8FUNC_SetFact` strong
 external symbol evidence, not original source. The first 47 unambiguous and semantically useful
-seed identities are tracked in `config/analysis/functions/wiz8-cfagent-oracle.csv`; duplicated,
+seed identities are tracked in `evidence/reviewed/wiz8/functions.csv`; corroborating,
 derived, or placeholder-style patch labels were deliberately not applied. The 26 named fixes and
 hooks are inventoried separately in `config/analysis/fan-patch-128-hooks.csv` and are explicitly
 owned by the fan patch.

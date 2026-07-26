@@ -378,9 +378,9 @@ Replay the tracked model with:
 
 ```sh
 just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
-  --map config/analysis/functions/wiz8-classes.csv
+  --map evidence/reviewed/wiz8/functions.csv
 just ghidra apply-wiz8-class-model wiz8--gog-base--wiz8--18a74ff61c65
 ```
 
-The authoritative evidence rows are `config/analysis/wiz8/classes.csv` and
-`config/analysis/functions/wiz8-classes.csv`.
+The authoritative class relationships are in `config/analysis/wiz8/classes.csv`; their constructor
+and destructor identities live in `evidence/reviewed/wiz8/functions.csv`.

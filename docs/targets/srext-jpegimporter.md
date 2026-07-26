@@ -60,7 +60,7 @@ and 23 to VC6 runtime/glue (including the separately identified CRT entry point)
 | `0x100155D6` onward | 19 currently defined, plus thunks | compiler, import, exception, and DLL-startup glue |
 
 The range interpretation is a review aid, not a blanket naming rule. Individual reviewed addresses
-and their evidence are tracked in `config/analysis/functions/srext-jpegimporter.csv`.
+and their evidence are tracked in `evidence/reviewed/srext-jpegimporter/functions.csv`.
 
 ## Recovered plugin behavior
 

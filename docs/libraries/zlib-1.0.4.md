@@ -8,12 +8,9 @@ source archive whose SHA-256 is
 
 ## Recovered ownership
 
-The reviewed map in `config/analysis/functions/wiz8-zlib.csv` accounts for 51 entries:
-
-| Ownership | Entries | Interpretation |
-| --- | ---: | --- |
-| Sir-Tech adapter | 5 | Game-owned allocation callbacks plus create, streaming, and cleanup wrappers |
-| zlib 1.0.4 | 46 | Inflate, retained deflate helpers, compression trees, Adler-32, and allocators |
+The reviewed identities live in the canonical `evidence/reviewed/wiz8/functions.csv` catalog.
+Ownership distinguishes Sir-Tech's allocation and stream adapters from bodies compiled from zlib
+itself; current counts are generated from that catalog rather than maintained here.
 
 The zlib-owned range begins at `0x00415910` with `inflateReset` and ends at `0x0041A7ED` with
 `inflate_fast`. The next defined function at `0x0041A7F0` is game code, and the larger function at
@@ -93,7 +90,7 @@ is byte-exact against the canonical executable:
 
 ## Applied Ghidra model
 
-`uv run wiz8 ghidra apply-functions ... --map config/analysis/functions/wiz8-zlib.csv` creates the
+`uv run wiz8 ghidra apply-functions ... --map evidence/reviewed/wiz8/functions.csv` creates the
 28 starts missed by the initial canonical analysis and applies all 51 reviewed identities. The two
 additional starts beyond the earlier census are the Wizardry allocator callbacks.
 

@@ -32,10 +32,14 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
 
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/functions/wiz8-vc6-runtime.csv").open(
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        expected = {int(row["address"], 16) for row in csv.DictReader(stream)}
+        expected = {
+            int(row["address"], 16)
+            for row in csv.DictReader(stream)
+            if row["owner"] == "msvc6-runtime"
+        }
 
     source = (repository / "src/wiz8/vc6_runtime.cpp").read_text(encoding="utf-8")
     actual = {

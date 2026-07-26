@@ -13,7 +13,14 @@ from wiz8decomp.provenance import (
 )
 
 REPOSITORY = Path(__file__).resolve().parents[2]
-FUNCTION_MAPS = sorted((REPOSITORY / "config/analysis/functions").glob("*.csv"))
+FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
+
+
+def _wiz8_rows() -> list[dict[str, str]]:
+    with (REPOSITORY / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        return list(csv.DictReader(stream))
 
 
 def test_authority_is_the_strongest_ceiling_among_the_origins() -> None:
@@ -99,6 +106,8 @@ def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
         rows = list(csv.DictReader(stream))
 
     assert rows, f"{path.name} is empty"
+    assert len({row["address"] for row in rows}) == len(rows)
+    assert {row["program"] for row in rows} == {path.parent.name}
     for number, row in enumerate(rows, start=2):
         assert "name_origin" in row and "authority" in row, f"{path.name}:{number} lacks provenance"
         try:
@@ -107,10 +116,27 @@ def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
             raise AssertionError(f"{path.name}:{number}: {error}") from error
 
 
+def test_wiz8_function_evidence_is_many_to_one_without_duplicate_identities() -> None:
+    functions = _wiz8_rows()
+    with (REPOSITORY / "evidence/reviewed/wiz8/function-evidence.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        evidence = list(csv.DictReader(stream))
+
+    assert len(functions) == 234
+    assert len({row["address"] for row in functions}) == 234
+    assert len({(row["program"], row["address"], row["origin"]) for row in evidence}) == len(
+        evidence
+    )
+    by_address = {row["address"] for row in functions}
+    assert {row["address"] for row in evidence} <= by_address
+    assert {
+        row["origin"] for row in evidence if row["address"] == "0040efa0"
+    } == {"cfagent-oracle", "sgp"}
+
+
 def test_cfagent_names_remain_external_semantic_until_corroborated() -> None:
-    path = REPOSITORY / "config/analysis/functions/wiz8-cfagent-oracle.csv"
-    with path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
+    rows = [row for row in _wiz8_rows() if "fan-patch-signature" in row["name_origin"].split("|")]
 
     assert len(rows) == 47
     unpromoted = [row for row in rows if row["name_origin"] == "fan-patch-signature"]
@@ -144,11 +170,9 @@ def test_only_sgp_and_upstream_source_matches_are_source_backed() -> None:
 
 
 def test_the_demo_supplies_names_only_through_retained_diagnostics() -> None:
-    path = REPOSITORY / "config/analysis/functions/wiz8-formats.csv"
-    with path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
-
-    demo_named = [row for row in rows if "official-demo" in row["name_origin"].split("|")]
+    demo_named = [
+        row for row in _wiz8_rows() if "official-demo" in row["name_origin"].split("|")
+    ]
 
     assert len(demo_named) == 14
     for row in demo_named:

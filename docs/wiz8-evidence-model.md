@@ -31,7 +31,7 @@ exists to prevent.
 | `authority` | May the name be trusted as Sir-Tech's original? | `source-backed` |
 | `confidence` | How certain is the *match* that produced the row? | `exact`, `strong`, `candidate` |
 
-`owner` and `confidence` are already in use across `config/analysis/functions/*.csv` and keep their
+`owner` and `confidence` are already in use across `evidence/reviewed/*/functions.csv` and keep their
 current meanings. `name_origin` and `authority` are the additions.
 
 Two further columns apply where a layout rather than a name is at stake:
@@ -169,7 +169,7 @@ indistinguishable from a recovered one, which is exactly the failure this taxono
 ## Applying it
 
 `name_origin` and `authority` are required on every row of every reviewed identity CSV under
-`config/analysis/functions/`, validated against the closed vocabularies and the ceiling rule by
+`evidence/reviewed/*/functions.csv`, validated against the closed vocabularies and the ceiling rule by
 `tests/unit/test_provenance.py`. `wiz8decomp.provenance` owns the vocabulary; the function-map
 loader rejects any row that violates it, and `apply-functions` writes the origin, authority and
 aliases into the Ghidra plate comment so the provenance is visible while reading the program.
@@ -198,22 +198,6 @@ instead of inheriting the authority of the database it happens to live in. This 
 `_is_authoritative_fid_name`, which rejects Ghidra defaults and compiler-local labels; that filter
 decides whether a name exists at all, while this decides what it proves.
 
-## Current distribution
-
-The 773 reviewed function identities classify as:
-
-| Authority | Rows | Where from |
-| --- | ---: | --- |
-| `source-backed` | 514 | IJG JPEG 6, Info-ZIP 5.4 and zcrypt 2.8, zlib 1.0.4, SGP DirectDraw, Compression and Random |
-| `abi-backed` | 22 | PE export ordinals, pinned VC6 library symbol tables, linker import thunks |
-| `string-backed` | 29 | 11 class members from vtable-referenced source paths, 18 named by embedded diagnostics |
-| `external-semantic` | 46 | CFAgent signature seeds |
-| `descriptive` | 162 | Behaviour-derived names |
-
-`0x0040EFA0` is counted twice: it appears in both the SGP map and the CFAgent map, which is exactly
-what promotion looks like — the fan-patch oracle still records that CFAgent found the address, and
-both maps now apply the source-backed name.
-
-Fourteen of the 18 diagnostic-named functions are named by strings **only the demo retains** — the
-canonical retail build dropped them. That is the demo oracle already paying for itself: those 14
-canonical addresses carry Sir-Tech's own names for functions retail no longer identifies.
+Current authority counts are generated from the canonical catalogs rather than copied into this
+document. Multiple sources for one address are rows in `function-evidence.csv`, not duplicate
+function identities.
