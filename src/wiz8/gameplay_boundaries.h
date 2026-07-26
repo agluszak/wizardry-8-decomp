@@ -266,6 +266,11 @@ extern unsigned char g_import_flags[0x60];
 extern int g_fact_record_count;
 extern W8ItemDatabaseRecord* g_item_records;
 extern int g_item_record_count;
+/* gXStatus.uiMonstersInDatabase, named by the assertion at GameplayDatabase.cpp
+   line 320. It sits immediately below the NPC count, so the database counts are
+   fields of one gXStatus structure rather than separate globals; they are kept
+   separate here until that structure is recovered. */
+extern unsigned int g_monster_record_count;
 extern W8NpcDatabaseRecord* g_npc_records;
 extern unsigned int g_npc_record_count;
 extern W8ItemTableRecord** g_item_tables;

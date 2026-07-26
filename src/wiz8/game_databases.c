@@ -1,4 +1,5 @@
 #include "gameplay_boundaries.h"
+#include "sr_api.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -16,6 +17,9 @@ extern void Function5E2530(void* list, unsigned int index, void* element);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
 extern void Function55ADA0(void* sub_list);
 extern void CloseVirtualFile(int handle);
+extern unsigned char FileSeek(int handle, int offset, int origin);
+
+#define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
    open it, read a record count, allocate count * stride, then read the records
@@ -259,4 +263,40 @@ void DestroyNpcDatabase(void)
         free(g_npc_records);
         g_npc_records = 0;
     }
+}
+
+// FUNCTION: WIZ8 0x0054A8A0
+/* Seeks straight to one record rather than holding the file open, and strips the
+   four name fields afterwards. The failed seek leaves the handle open where
+   every other failure closes it, as elsewhere in this unit. The bytes-read
+   out-parameter is the index's own incoming slot, dead once it has been copied
+   into a register. */
+unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
+{
+    char path[60];
+    unsigned int index = uiMonsterIndex;
+    int handle;
+
+    if (!(index < g_monster_record_count)) {
+        srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase",
+                     GAMEPLAY_DATABASE_CPP, 0x140, 0);
+    }
+    sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
+    handle = FileOpen(path, 1, 0);
+    if (!handle) {
+        return 0;
+    }
+    if (!FileSeek(handle, index * 0x297 + 4, 1)) {
+        return 0;
+    }
+    if (!ReadVirtualFile(handle, record, 0x297, (unsigned int*)&uiMonsterIndex)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    CloseVirtualFile(handle);
+    StripMonsterNameSuffix((unsigned short*)record);
+    StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x30));
+    StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x60));
+    StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x90));
+    return 1;
 }

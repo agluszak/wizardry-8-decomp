@@ -97,6 +97,7 @@ Ranked by how often it has been the answer here:
 | Loop's first comparison duplicated, two `return` epilogues | hand-rolled cursor in a `do`/`while` | use a counted `for` indexing the array; let VC6 strength-reduce it |
 | Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
 | Dead guards missing | `goto` let VC6 range-propagate and delete them | same fix — an inlined helper keeps the value opaque |
+| A parameter reloaded from its stack slot mid-body, costing an extra `lea` in an address chain | its address is taken elsewhere, so VC6 forces it to memory | copy it into a local and use that for the arithmetic; the slot still serves as the address |
 | Registers clear in the wrong order | declaration/initialization order | reorder the initializers |
 | `neg eax` where canonical has `neg al` | callee's **return type** is byte-sized, not `int` | narrow the extern declaration |
 
