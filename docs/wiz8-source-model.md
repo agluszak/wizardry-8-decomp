@@ -156,6 +156,27 @@ Porting it reproduces 70/70 bytes, proving `CYCLE_NUM_UNIQUE = 27`, the current-
 `0xAC + 27 * 0x10 = 0x25C` — exactly where the constructor starts the second array, so the two
 independent readings agree.
 
+## `MonsterInfoDialog`: offsets without names
+
+`Dialog Code\MonsterInfoDialog.cpp` contains **no assertions at all**, so the whole
+expression-mining route is unavailable and no member name is recoverable from it. Its layout is
+still provable, because the matching build does not need names.
+
+Two of its primary vtable slots are small enough to port directly. Slot 12 at `0x005D6E60` is
+twelve bytes with no relocations and clears a byte at `0x41` when a byte at `0x50` is set. Slot 2 at
+`0x005DBDE0` is twenty bytes and calls a method on the subobject at `0x58` — the first of the three
+the reviewed complete destructor tears down. Both reproduce exactly, and both also match in the demo.
+
+The fields therefore keep positional names. This is the honest split: offsets are evidence, names
+are not, and a class can have one without the other.
+
+## `GrCycle` is abstract
+
+Eight of `GrCycle`'s sixteen primary slots — 5 through 9, 12, 13 and 15 — point at a single thunk
+that jumps to MSVCRT's `_purecall`. They are pure virtual, so `GrCycle` is an abstract base. This
+also corroborates `SetBehaviour`, which calls its own slot 9: a non-virtual method of an abstract
+base calling a pure virtual its concrete derived class implements.
+
 ## Named bases from imported SurRender vftables
 
 `Wiz8.exe` imports 461 decorated C++ symbols from `SR.DLL`, covering 49 classes, 28 of which import

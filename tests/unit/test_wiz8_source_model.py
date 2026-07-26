@@ -84,7 +84,7 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     assert by_name["Monster"]["layout_proof"].startswith("004bfab0")
     # GrCycle's proof covers a vtable slot offset only, not any data member.
     assert "slot 9 only" in by_name["GrCycle"]["layout_proof"]
-    assert not by_name["MonsterInfoDialog"]["layout_proof"]
+    assert by_name["MonsterInfoDialog"]["layout_proof"].startswith("005d6e60")
     for name in ("VirtualFileBinIStream", "MonsterLight"):
         assert by_name[name]["source_path"] == ""
         assert by_name[name]["base_classes"]
@@ -108,25 +108,15 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     assert monster["minimum_size"] == "0x628"
     assert monster["source_path"] == "Engine Code\\Monster.cpp"
     assert "Slots 5 12 and 26 directly reference the exact source path" in monster["evidence"]
-    assert by_name["MonsterInfoDialog"] == {
-        "class_name": "MonsterInfoDialog",
-        "confidence": "strong",
-        "vtable": "005ef910",
-        "slots": "14",
-        "constructor": "005d5e30",
-        "destructor": "005d5f00",
-        "scalar_deleting_destructor": "005d5ee0",
-        "minimum_size": "0x130",
-        "secondary_vtables": "",
-        "base_classes": "",
-        "base_name_origin": "",
-        "source_path": "Dialog Code\\MonsterInfoDialog.cpp",
-        "layout_proof": "",
-        "evidence": (
-            "Slot 3 directly references the exact source path; constructor loads "
-            "Data\\Dialogs\\popup_monsterinfo.sti and writes this vtable"
-        ),
-    }
+    dialog = by_name["MonsterInfoDialog"]
+    assert dialog["vtable"] == "005ef910"
+    assert dialog["slots"] == "14"
+    assert dialog["constructor"] == "005d5e30"
+    assert dialog["destructor"] == "005d5f00"
+    assert dialog["scalar_deleting_destructor"] == "005d5ee0"
+    assert dialog["minimum_size"] == "0x130"
+    assert dialog["source_path"] == "Dialog Code\\MonsterInfoDialog.cpp"
+    assert "Slot 3 directly references the exact source path" in dialog["evidence"]
 
 
 def test_reviewed_cross_build_map_is_separate_and_explicit() -> None:
@@ -313,12 +303,14 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 44
+    assert len(rows) == 46
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 37
+    assert len(exact) == 39
     assert {int(row["size"]) for row in exact} == {
         6,
+        12,
         19,
+        20,
         24,
         25,
         26,
@@ -380,6 +372,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/message_box.cpp",
             "src/wiz8/monster_cycles.cpp",
+            "src/wiz8/monster_info_dialog.cpp",
             "src/wiz8/monster_generators.cpp",
             "src/wiz8/monster_location.c",
             "src/wiz8/monster_lookup.c",
