@@ -93,22 +93,23 @@ def test_ptr_vector_instantiations_are_inventoried() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    # One hand-rolled growable pointer array, instantiated once per element type.
+    # Candidate instantiations of one hand-rolled growable-vector template.
     assert len(rows) == 75
     assert len({row["vtable"] for row in rows}) == 75
 
     # The virtual count is not uniform, so the inventory records a determination
     # per vtable instead of asserting that every instantiation has exactly one.
     verdicts = collections.Counter(row["single_virtual"] for row in rows)
-    assert verdicts == {"yes": 35, "no": 31, "adjacent-vtable": 9}
+    assert verdicts == {"yes": 35, "no": 30, "adjacent-vtable": 10}
 
-    # The one type replaced two separately-named structs.
+    # One template replaced two separately-named structs. Its virtual destructor
+    # accounts for the leading vptr without spelling a fake data member.
     header = (repository / "include/wiz8/gameplay_boundaries.h").read_text(encoding="utf-8")
+    vector_header = (repository / "include/wiz8/vector.h").read_text(encoding="utf-8")
     assert "W8PtrVector" in header
     assert "W8NPCItemListVector" not in header
     assert "W8MonsterGeneratorVector" not in header
-    # The leading word is a vptr, not padding.
-    assert "void* vptr;" in header
+    assert "virtual ~W8GrowableVector();" in vector_header
 
 
 def test_allocator_layers_preserve_identity_provenance_and_ownership_signal() -> None:
@@ -403,8 +404,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = load_reviewed_class_model(repository, "wiz8")
 
-    assert len(model.vtables) == 13
-    assert len(model.slots) == 69
+    assert len(model.vtables) == 14
+    assert len(model.slots) == 70
     classes = {item.name: item for item in model.classes}
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
@@ -440,6 +441,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert vtables["W8DialogMember005DB1B0.primary"].slot_count == 1
     assert vtables["W8DialogPtrVector005EF898.primary"].slot_count == 1
     assert vtables["W8DialogPtrVectorBase005EF89C.primary"].slot_count == 1
+    assert vtables["W8GrowableVector<int>.primary"].slot_count == 1
 
     monster_fields = [field for field in model.fields if field.class_name == "Monster"]
     assert [(field.offset, field.size) for field in monster_fields] == [
@@ -497,11 +499,18 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
 
     grcycle_header = (repository / "include/wiz8/grcycle.h").read_text(encoding="utf-8")
     dialog_header = (repository / "include/wiz8/monster_info_dialog.h").read_text(encoding="utf-8")
+    item_table_header = (repository / "include/wiz8/item_tables.h").read_text(encoding="utf-8")
     assert "public W8GrCycleBase004B6900" in grcycle_header
     assert "public W8GrCycleBase00451EC0" in grcycle_header
     assert "class W8MonsterInfoDialog : public W8DialogBase005DC7A0" in dialog_header
     assert "W8DialogMember005E0C40 m_member_58" in dialog_header
     assert "W8DialogPtrVector005EF898 m_vector_01c" in dialog_header
+    vector_header = (repository / "include/wiz8/vector.h").read_text(encoding="utf-8")
+    assert "class W8GrowableVector" in vector_header
+    assert "W8GrowableVector<W8WorldItem*>* output_items" in item_table_header
+    assert "W8GrowableVector<int> candidates" in (
+        repository / "src/wiz8/local_code/ItemManager.cpp"
+    ).read_text(encoding="utf-8")
 
     apply_script = (
         repository / "tools/wiz8decomp/ghidra/apply_wiz8_class_model.py"

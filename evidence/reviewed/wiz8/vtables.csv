@@ -6,6 +6,7 @@ wiz8,MonsterInfoDialog.primary,MonsterInfoDialog,005ef910,0x0,primary,14,strong,
 wiz8,W8DialogMember005DB1B0.primary,W8DialogMember005DB1B0,005efa98,0x0,primary,1,exact,classes:wiz8:W8DialogMember005DB1B0
 wiz8,W8DialogPtrVector005EF898.primary,W8DialogPtrVector005EF898,005ef898,0x0,primary,1,exact,classes:wiz8:W8DialogPtrVector005EF898
 wiz8,W8DialogPtrVectorBase005EF89C.primary,W8DialogPtrVectorBase005EF89C,005ef89c,0x0,primary,1,exact,classes:wiz8:W8DialogPtrVectorBase005EF89C
+wiz8,W8GrowableVector<int>.primary,W8GrowableVector<int>,005ec0e0,0x0,primary,1,strong,classes:wiz8:W8GrowableVector<int>
 wiz8,VirtualFileBinIStream.primary,VirtualFileBinIStream,005ec6a0,0x0,primary,2,strong,classes:wiz8:VirtualFileBinIStream
 wiz8,VirtualFileBinIStream.secondary_0x10,VirtualFileBinIStream,005ec68c,0x10,secondary,7,strong,classes:wiz8:VirtualFileBinIStream
 wiz8,MonsterLight.primary,MonsterLight,005ecd18,0x0,primary,13,strong,classes:wiz8:MonsterLight

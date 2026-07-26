@@ -1,10 +1,12 @@
 # Wizardry foundation types
 
-## The growable pointer array
+## The growable vector template
 
 Two separately-named structs in this repository — `W8NPCItemListVector` and
-`W8MonsterGeneratorVector` — were the same type: one instantiation each of a hand-rolled growable
-pointer array. They are now a single `W8PtrVector` in `include/wiz8/gameplay_boundaries.h`.
+`W8MonsterGeneratorVector` — were not separate container designs. They are uses of one hand-rolled
+`W8GrowableVector<T>` template, now defined once in `include/wiz8/vector.h`. `W8PtrVector` is only
+an erased `void*` specialization retained for consumers whose element type has not yet been
+recovered; new source-owned code uses the known specialization directly.
 
 The layout is read off a constructor such as `0x005098B0`:
 
@@ -22,7 +24,7 @@ mov  [esi+0x08], 5                capacity
 | `0x00` | `vptr` | **not padding** — these are polymorphic C++ objects |
 | `0x04` | `int count` | |
 | `0x08` | `int capacity` | 5 in every decoded instantiation |
-| `0x0C` | `void** data` | `operator new(capacity * 4)` |
+| `0x0C` | `T* data` | `operator new(capacity * sizeof(T))` |
 
 Size `0x10`. If the backing allocation fails the constructor stores capacity `0` rather than `5`,
 which is why the field is read rather than assumed.
@@ -33,18 +35,21 @@ delete` the object itself on the low bit of the hidden flag.
 
 ## Scale, and one claim that does not generalise
 
-Scanning `.text` for that destructor shape finds a broad family of distinct vtables. The per-vtable
-virtual count is not uniform: some are proven single-entry tables, some have another code pointer,
-and some abut the next instantiation too closely to decide from this scan alone. The canonical
-per-vtable observations live in `evidence/observations/wiz8/ptr-vector-instantiations.csv`; this
-document deliberately does not copy their live counts.
+Scanning `.text` for that destructor shape finds a broad family of candidate template
+instantiations. The scan does not establish every element type, nor does a following code pointer
+by itself prove another virtual slot: tightly packed specialization vtables can be adjacent. The
+canonical per-vtable observations live in
+`evidence/observations/wiz8/ptr-vector-instantiations.csv`; this document deliberately does not
+promote that mechanical inventory into named source types.
 
 ## Why this kept being rediscovered
 
 A per-element-type vtable plus a shared capacity-5 default is what a template instantiated once per
-element type looks like. Each instantiation gets its own vtable and its own destructor bodies,
-clustered by translation unit exactly as COMDAT emission places them — so each one looks like a
-fresh, unrelated struct until the shape is recognised.
+element type looks like. Each specialization gets its own vtable and destructor COMDATs, clustered
+by translation unit exactly as VC6 emits them — so one source template can look like many unrelated
+binary classes until the shared shape is recognised. `GenerateItemsFromTable` makes the distinction
+concrete: it uses `W8GrowableVector<int>` for candidate indices and
+`W8GrowableVector<W8WorldItem*>` for its output, both from the same definition.
 
 The bounds-checked element accessor is inlined into its callers, which explains the in-loop
 `cmp index, count` / `jge` guard around the `lea` that
@@ -58,7 +63,7 @@ coexist in the same image:
 
 | Allocation family | Typical ownership signal | Proven example |
 | --- | --- | --- |
-| global `operator new` / `operator delete` | first-party C++ object or template | this polymorphic pointer array |
+| global `operator new` / `operator delete` | first-party C++ object or template | this polymorphic vector template |
 | CRT `malloc` / `free` / `realloc` | C-style record, cache, or resizable buffer | `GetMonsterDataByID`'s `0x297`-byte record cache |
 | `srHeap::allocate` / `srHeap::free` | SurRender-facing or header-inline SR type | the inline string recovered in `srEXT_Unzip.dll` |
 
@@ -136,7 +141,7 @@ So the three containers recovered so far are distinct and must not be merged:
 
 | Type | vptr | Elements | Count | Accessors |
 | --- | --- | --- | --- | --- |
-| `W8PtrVector` | yes, at `+0x00` | `+0x0C` | `+0x04` | methods |
+| `W8GrowableVector<T>` | yes, at `+0x00` | `+0x0C` | `+0x04` | methods |
 | `W8PList` | no | `+0x00` | `+0x08` | free functions |
 | `W8IList` | no | `+0x00` (ints) | `+0x08` | free functions |
 

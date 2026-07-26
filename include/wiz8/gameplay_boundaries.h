@@ -1,6 +1,8 @@
 #ifndef WIZ8_GAMEPLAY_BOUNDARIES_H
 #define WIZ8_GAMEPLAY_BOUNDARIES_H
 
+#include "wiz8/item_tables.h"
+
 /* Shared recovered Wizardry interfaces used by matching translation units. */
 
 #pragma pack(push, 1)
@@ -47,7 +49,8 @@ typedef struct W8Character {
     int current_profession;               /* 0x0069 */
     unsigned char unknown_006d[8];
     int faction;                          /* 0x0075: compared against the caller's faction */
-    unsigned char unknown_0079[0x14];
+    unsigned char unknown_0079[0x10];
+    unsigned int level;                   /* 0x0089: averaged across occupied slots */
     int profession_levels[15];            /* 0x008d */
     unsigned char unknown_00c9[0x1c];
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
@@ -131,21 +134,8 @@ typedef struct W8NpcDatabaseRecord {
     unsigned char unknown_2ce[0x3b];
 } W8NpcDatabaseRecord;                   /* 0x309 */
 
-/* One Data\Databases\ItemTables.DBS record. The record opens with a
-   NUL-terminated table name, which FindItemTableByName compares against; the
-   name's field width is not established, so only its start is typed. */
-typedef struct W8ItemTableRecord {
-    char name[1];                        /* 0x000: NUL-terminated, width unknown */
-    unsigned char unknown_001[0x1f0];
-} W8ItemTableRecord;                     /* 0x1f1 */
-
-/* One Data\Databases\Items.DBS record, and its LEVELS.DBS sibling. As with
-   W8MonsterRecord only the disk and runtime stride is established; the leading
-   field is a display name. */
-typedef struct W8ItemDatabaseRecord {
-    unsigned char unknown_000[0x10d];
-} W8ItemDatabaseRecord;                  /* 0x10d */
-
+/* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
+   established; the leading field is a display name. */
 typedef struct W8LevelDatabaseRecord {
     unsigned char unknown_000[0xd8];
 } W8LevelDatabaseRecord;                 /* 0xd8 */
@@ -208,20 +198,6 @@ typedef struct W8MonsterGroup {
     unsigned char flag_ca;                /* 0xca */
     unsigned char unknown_cb[0x60];
 } W8MonsterGroup;                         /* 0x12b */
-
-/* Hand-rolled growable pointer array, instantiated once per element type. The
-   executable contains 75 distinct instantiations, each with its own one-entry
-   vtable whose single virtual is the destructor; see
-   docs/libraries/wiz8-foundation-types.md. The leading word is a VPTR, not
-   padding: these are polymorphic C++ objects. Every decoded constructor
-   allocates the object with operator new(0x10) and a backing store of
-   operator new(capacity * 4) with capacity 5. */
-typedef struct W8PtrVector {
-    void* vptr;                           /* 0x00: one virtual, the destructor */
-    int count;                            /* 0x04 */
-    int capacity;                         /* 0x08 */
-    void** data;                          /* 0x0c */
-} W8PtrVector;                            /* 0x10 */
 
 /* 3D Code\PList.cpp. Distinct from W8PtrVector: no vptr, elements at +0x00 and
    count at +0x08, accessed through free functions. */
@@ -545,7 +521,6 @@ unsigned char InitializeItemTables(void);
 void DestroyItemTables(void);
 unsigned char InitializeNpcDatabase(void);
 void DestroyNpcDatabase(void);
-int FindItemTableByName(const char* name);
 void DestroyFactDatabase(void);
 void DestroyItemDatabase(void);
 void DestroyLevelDatabase(void);

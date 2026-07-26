@@ -226,6 +226,13 @@ through `ReplaceOrCreateItem`. When `level_scaled` is nonzero it filters candida
 the current party level and the selected item record. The exact designer meaning of the
 leading nonzero selector remains unnamed because this consumer only tests it as enabled.
 
+The source-owned `Local Code\ItemManager.cpp` reconstruction now uses the packed definitions in
+`include/wiz8/item_tables.h`. Its support bodies are byte-exact: `0x004ef420` averages the level
+field at `W8Character +0x89` across occupied party slots, and `0x004addf0` grows the local
+vtable-`0x005ec0e0` candidate-index vector. The 951-byte generator itself is structurally strong:
+all observed filtering, fallback, weighted retry, removal and item-materialization branches are
+present, while its current VC6 allocation and loop shape remain a reviewed near miss.
+
 The item and spell description files share one indexed string-database format consumed by
 `GetStringFromStringDatabase` at `0x0052ff80`. A packed five-byte header stores version one
 and an encoding flag. Each variable record begins with two 32-bit metadata values and a

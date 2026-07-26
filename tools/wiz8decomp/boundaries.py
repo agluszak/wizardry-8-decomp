@@ -46,12 +46,21 @@ from .sgp_oracle import (
 )
 
 DECORATED = re.compile(r"^\?(?P<method>[^@]+)@(?P<owner>[^@]*)@@")
+INT_TEMPLATE_MEMBER = re.compile(
+    r"^\?(?P<method>[^@]+)@\?\$(?P<owner>[^@]+)@H@@"
+)
 SPECIAL_MEMBER = re.compile(r"^\?\?(?P<kind>0|1|_G|_E)(?P<owner>[^@]+)@@")
 CLASS_PREFIX = "W8"
 
 
 def symbol_candidates(decorated: str) -> tuple[str, ...]:
     """Names a reviewed row could use for this COFF symbol, most specific first."""
+
+    int_template = INT_TEMPLATE_MEMBER.match(decorated)
+    if int_template is not None:
+        method = int_template.group("method")
+        owner = int_template.group("owner")
+        return (f"{owner}<int>::{method}", method)
 
     special = SPECIAL_MEMBER.match(decorated)
     if special is not None:

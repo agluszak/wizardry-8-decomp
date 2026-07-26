@@ -27,6 +27,13 @@ def test_a_decorated_method_is_offered_under_the_names_a_review_may_use() -> Non
     )[-1] == "method_00446110"
 
 
+def test_an_int_template_method_retains_its_specialization() -> None:
+    assert symbol_candidates("?Grow@?$W8GrowableVector@H@@QAEHH@Z") == (
+        "W8GrowableVector<int>::Grow",
+        "Grow",
+    )
+
+
 def test_msvc_special_members_are_offered_under_their_class_names() -> None:
     assert symbol_candidates("??0W8GrCycleBase004B6900@@QAE@XZ") == (
         "W8GrCycleBase004B6900::W8GrCycleBase004B6900",

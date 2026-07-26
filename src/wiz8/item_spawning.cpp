@@ -4,12 +4,6 @@
 #include <malloc.h>
 #include <string.h>
 
-extern void ReplaceOrCreateItem(
-    W8ItemInstance* item,
-    int item_id,
-    int quantity,
-    int charges,
-    int identified);
 /* Provisional semantic names for item helpers at the stated canonical addresses. */
 extern void InitializeItemInstance( /* 0x00520070 */
     W8ItemInstance* item,

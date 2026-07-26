@@ -5,7 +5,7 @@ vtable,slot0_destructor,single_virtual,destructor_bodies,source_unit,element_typ
 005ebfe8,0042bbd0,adjacent-vtable,2,,
 005ebfec,0042bb40,yes,1,,
 005ec004,00438f40,yes,2,,
-005ec0e0,00446130,no,2,,
+005ec0e0,00446130,adjacent-vtable,2,,candidate index
 005ec160,004461b0,no,2,,
 005ec168,00446160,no,2,,
 005ec170,00446200,yes,2,,

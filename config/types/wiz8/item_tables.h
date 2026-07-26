@@ -7,7 +7,7 @@
 
 typedef struct W8ItemTableEntry {
     int16_t selector_00;                /* 0x00: zero disables the slot */
-    int16_t item_id;                    /* 0x02: index into Items.dbs */
+    uint16_t item_id;                   /* 0x02: index into Items.dbs */
     uint8_t weight;                     /* 0x04: weighted random selection */
 } W8ItemTableEntry;                     /* 0x05 */
 

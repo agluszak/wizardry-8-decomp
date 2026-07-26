@@ -43,3 +43,10 @@ W8WorldItem* SpawnItem(
     unsigned char add_to_world);
 
 }
+
+void ReplaceOrCreateItem(
+    W8ItemInstance* item,
+    int item_id,
+    int quantity,
+    int charges,
+    int identified);
