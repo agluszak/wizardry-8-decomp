@@ -186,6 +186,19 @@ static __inline W8MonsterRecord* GetMonsterDataByIDInline(unsigned int monster_s
     return record;
 }
 
+// FUNCTION: WIZ8 0x004E5720
+W8MonsterRecord* Function4E5720(W8MonsterInfo* monster_info)
+{
+    if (monster_info == 0) {
+        srAssertFail(
+            "pMonsterInfo != NULL",
+            MONSTER_MANAGER_CPP,
+            0x5e9,
+            0);
+    }
+    return GetMonsterDataByIDInline(monster_info->monster_species);
+}
+
 // FUNCTION: WIZ8 0x004E57C0
 W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species)
 {
@@ -288,6 +301,24 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
     }
     result = record->float_1ba * g_monster_record_float_scale;
     return result;
+}
+
+// FUNCTION: WIZ8 0x004E5A50
+void Function4E5A50(W8MonsterInfo* monster_info)
+{
+    W8Monster* monster = monster_info->monster;
+
+    if (monster != 0) {
+        int count = monster->Function4C6A50();
+        if (count > 1) {
+            int value = ((monster_info->value_27 - monster_info->value_2b) * count) /
+                        monster_info->value_27;
+            if (value >= count - 1) {
+                value = count - 1;
+            }
+            monster->Function4C6990(value);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004E5AA0

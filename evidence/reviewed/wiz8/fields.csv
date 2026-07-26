@@ -32,6 +32,8 @@ wiz8,W8MonsterInfo,0x0,0x4,location_id,int32,exact,classes:wiz8:W8MonsterInfo,co
 wiz8,W8MonsterInfo,0x4,0x4,unknown_04,bytes,exact,classes:wiz8:W8MonsterInfo,opaque storage between the two reviewed identifiers
 wiz8,W8MonsterInfo,0x8,0x4,monster_species,int32,exact,classes:wiz8:W8MonsterInfo,index passed to GetMonsterDataByID
 wiz8,W8MonsterInfo,0xc,0x4,monster,pointer,exact,classes:wiz8:W8MonsterInfo,live Monster object returned by GetMonsterByLocationID
+wiz8,W8MonsterInfo,0x27,0x4,value_27,int32,exact,classes:wiz8:W8MonsterInfo,initialized from a database dice roll by 0x004e3930 and used as the divisor by 0x004e5a50
+wiz8,W8MonsterInfo,0x2b,0x4,value_2b,int32,exact,classes:wiz8:W8MonsterInfo,initialized with value_27 by 0x004e3930 and subtracted from it by 0x004e5a50
 wiz8,W8MonsterManagerState,0x0,0x8c0,entries,bytes,exact,classes:wiz8:W8MonsterManagerState,eight W8MonsterManagerEntry values with the constructor iterator's 0x118 stride
 wiz8,W8MonsterManagerState,0x8c0,0xf7,unknown_8c0,bytes,exact,classes:wiz8:W8MonsterManagerState,opaque storage before the unaligned pointer-vector member
 wiz8,W8MonsterManagerState,0x9b7,0x4,vector_vptr,pointer,exact,classes:wiz8:W8MonsterManagerState,polymorphic pointer-vector vptr restored by the exact destructor

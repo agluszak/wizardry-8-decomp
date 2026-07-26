@@ -433,15 +433,26 @@ struct W8Monster {
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
     unsigned char Function4CA4C0();
+    int Function4C6A50();
+    void Function4C6990(int value);
 };
 #endif
 
+#pragma pack(push, 1)
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
     unsigned char unknown_04[4];
     unsigned int monster_species;         /* 0x08 */
     W8Monster* monster;                   /* 0x0c: live engine object, if any */
-} W8MonsterInfo;
+    unsigned char unknown_10[0x17];
+    int value_27;                         /* 0x27: initialized from a database dice roll */
+    int value_2b;                         /* 0x2b: initialized to the same rolled value */
+    unsigned char unknown_2f[0x3f6];
+} W8MonsterInfo;                          /* 0x425 */
+#pragma pack(pop)
+
+typedef char W8MonsterInfo_size_must_be_0x425[
+    sizeof(W8MonsterInfo) == 0x425 ? 1 : -1];
 
 extern W8PList* g_monster_list;            /* gXStatus.plsMonsterList */
 extern W8PList* g_unborn_monster_list;     /* gXStatus.plsUnbornMonsterList */
@@ -449,6 +460,7 @@ extern float g_monster_record_float_scale; /* 0x005ed4f0, provisional name */
 extern int g_monster_info_iterator_index;  /* 0x00683698, retained cursor */
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
+W8MonsterRecord* Function4E5720(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(
     int caller_line,
     const char* caller_file,
@@ -462,6 +474,7 @@ W8MonsterInfo* MonsterInfoFromID(
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
 W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
+void Function4E5A50(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);

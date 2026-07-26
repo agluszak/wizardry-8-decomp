@@ -408,7 +408,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     classes = {item.name: item for item in model.classes}
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
-    assert classes["W8MonsterInfo"].size == 0x10
+    assert classes["W8MonsterInfo"].size == 0x425
     assert [
         (field.offset, field.size, field.data_type)
         for field in model.fields
@@ -423,6 +423,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x4, 0x4, "unknown_04", "bytes"),
         (0x8, 0x4, "monster_species", "int32"),
         (0xC, 0x4, "monster", "pointer"),
+        (0x27, 0x4, "value_27", "int32"),
+        (0x2B, 0x4, "value_2b", "int32"),
     ]
 
     vtables = {item.vtable_id: item for item in model.vtables}
