@@ -635,7 +635,10 @@ def ghidra_query(ctx: typer.Context, program: str, command: str) -> None:
         result, transport = query(_settings(), program, command, list(ctx.args))
         return {"transport": transport, "program": program, "command": command, "result": result}
 
-    _run_action(action)
+    # Query payloads contain decompiler listings and comments whose long lines
+    # Rich would reflow to the current terminal width. Emit ordinary JSON so
+    # callers receive the same parseable bytes in a TTY, a pipe, and CI.
+    _run_action(action, force_json=True)
 
 
 @ghidra_app.command("export-evidence")
