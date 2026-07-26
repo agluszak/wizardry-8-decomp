@@ -23,6 +23,15 @@ void Function4E3AF0(unsigned int monster_list_index, int value);
 void Function4E4280(W8MonsterInfo* monster_info);
 void Function4E4DB0(W8MonsterInfo* monster_info, int value, int reason);
 void Function4E46F0(W8MonsterInfo* monster_info, int value);
+void __fastcall Function452C90(W8MonsterMember18* member);
+void __fastcall Function4537E0(W8MonsterMember18* member);
+unsigned int Function5100B0(
+    int caller_line,
+    const char* caller_file,
+    int monster_group_id,
+    unsigned char assert_on_failure);
+W8MonsterGroup* Function5101B0(unsigned int monster_group_index);
+void Function510350(W8MonsterGroup* monster_group);
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
    Each record owns one instantiation of the polymorphic pointer-vector family
@@ -485,6 +494,49 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
     return 0;
 }
 
+// FUNCTION: WIZ8 0x004E5EA0
+void Function4E5EA0(void)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+
+        if (static_cast<unsigned int>(monster_info->value_2b) > 0) {
+            Function452C90(&monster_info->monster->member_18);
+            if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
+                monster_info->flag_255 = 0;
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004E6020
+void Function4E6020(W8MonsterInfo* monster_info, int value)
+{
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x85b, 0);
+    }
+    switch (value) {
+    case 0:
+    case 2:
+        if (monster_info->value_2fd == 1 &&
+            monster_info->monster->member_18.value_5c == 0) {
+            Function4537E0(&monster_info->monster->member_18);
+            monster_info->flag_255 = 0;
+        }
+        break;
+    }
+    monster_info->value_2fd = value;
+    Function510350(
+        Function5101B0(
+            Function5100B0(
+                0x872,
+                MONSTER_MANAGER_CPP,
+                monster_info->monster_group_id,
+                1)));
+}
+
 // FUNCTION: WIZ8 0x004E60B0
 void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value)
 {
@@ -534,7 +586,7 @@ void Function4E6130(W8MonsterInfo* monster_info)
     }
     Function4C61C0(monster_info->monster, 0);
     Function4C5A00(monster_info->monster, 1);
-    monster_info->monster->unknown_0a0 = 1;
+    monster_info->monster->member_18.unknown_88 = 1;
     monster_info->monster->m_cycles[22].unknown_09 = 0;
 }
 

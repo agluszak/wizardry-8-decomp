@@ -530,16 +530,18 @@ struct W8MonsterCycle {
 struct W8MonsterMember18 {
     unsigned char unknown_00[0x0c];
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
-};                                          /* reviewed prefix 0x10 */
+    unsigned char unknown_10[0x4c];
+    int value_5c;                           /* 0x5c: Monster +0x74 */
+    unsigned char unknown_60[0x28];
+    unsigned char unknown_88;               /* 0x88: Monster +0xa0 */
+    unsigned char unknown_89[3];
+    signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
+    unsigned char unknown_8d[7];
+};                                          /* 0x94: through the cycle array at Monster +0xac */
 
 struct W8Monster {
     unsigned char unknown_000[0x18];
     W8MonsterMember18 member_18;            /* 0x018: positional member proven by 0x004e4600 */
-    unsigned char unknown_028[0x78];
-    unsigned char unknown_0a0;              /* 0x0a0: set when an unborn monster becomes live */
-    unsigned char unknown_0a1[3];
-    signed char m_bCurrentCycle;             /* 0x0a4: substituted for the -1 sentinel */
-    unsigned char unknown_0a5[7];
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
@@ -547,12 +549,17 @@ struct W8Monster {
     int Function4C6A50();
     void Function4C6990(int value);
 };
+
+typedef char W8MonsterCycle_size_must_be_0x10[
+    sizeof(W8MonsterCycle) == 0x10 ? 1 : -1];
+typedef char W8MonsterMember18_size_must_be_0x94[
+    sizeof(W8MonsterMember18) == 0x94 ? 1 : -1];
 #endif
 
 #pragma pack(push, 1)
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
-    unsigned char unknown_04[4];
+    int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
     unsigned int monster_species;         /* 0x08 */
     W8Monster* monster;                   /* 0x0c: live engine object, if any */
     unsigned char unknown_10[0x17];
@@ -564,7 +571,11 @@ typedef struct W8MonsterInfo {
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
     unsigned char unknown_24c[2];
     unsigned char flag_24e;                 /* 0x24e: state transition gate in 0x004e60b0 */
-    unsigned char unknown_24f[0x1d6];
+    unsigned char unknown_24f[6];
+    unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
+    unsigned char unknown_256[0xa7];
+    int value_2fd;                          /* 0x2fd: transition state in 0x004e6020 */
+    unsigned char unknown_301[0x124];
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
 
@@ -598,6 +609,8 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
 void Function4E5D00(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
+void Function4E5EA0(void);
+void Function4E6020(W8MonsterInfo* monster_info, int value);
 void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value);
 void Function4E6130(W8MonsterInfo* monster_info);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);

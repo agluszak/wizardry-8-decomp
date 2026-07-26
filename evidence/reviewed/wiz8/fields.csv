@@ -7,9 +7,13 @@ wiz8,GrCycle,0x1a8,0x30,fields,bytes,strong,classes:wiz8:GrCycle,GrCycle-owned f
 wiz8,Monster,0x0,0x4,vptr,pointer,strong,classes:wiz8:Monster,vtable Monster.primary
 wiz8,Monster,0x4,0x20,base_and_fields,bytes,strong,classes:wiz8:Monster,base-class and fields before positional member +0x18 field +0x0c are not yet reviewed
 wiz8,Monster,0x24,0x4,member18_flags_0c,int32,exact,classes:wiz8:Monster,exact-width bitfield at positional member +0x18 field +0x0c; 0x004e4600 clears bit 0x20000000
-wiz8,Monster,0x28,0x78,unknown_028,bytes,strong,classes:wiz8:Monster,opaque storage between the reviewed +0x24 flags and +0xa0 byte
-wiz8,Monster,0xa0,0x1,unknown_0a0,bytes,exact,classes:wiz8:Monster,set to one by exact consumer 0x004e6130 when an unborn monster becomes live
-wiz8,Monster,0xa1,0xb,unknown_0a1,bytes,strong,classes:wiz8:Monster,opaque storage before the array at +0xac
+wiz8,Monster,0x28,0x4c,member18_unknown_10,bytes,strong,classes:wiz8:Monster,opaque storage in the positional +0x18 member before its reviewed +0x5c field
+wiz8,Monster,0x74,0x4,member18_value_5c,int32,exact,classes:wiz8:Monster,exact 0x004e6020 tests positional member +0x18 field +0x5c before calling 0x004537e0 on that member
+wiz8,Monster,0x78,0x28,member18_unknown_60,bytes,strong,classes:wiz8:Monster,opaque storage in the positional +0x18 member before its reviewed +0x88 byte
+wiz8,Monster,0xa0,0x1,member18_unknown_88,bytes,exact,classes:wiz8:Monster,positional member +0x18 field +0x88 is set to one by exact consumer 0x004e6130 when an unborn monster becomes live
+wiz8,Monster,0xa1,0x3,member18_unknown_89,bytes,strong,classes:wiz8:Monster,opaque positional member storage before the current-cycle byte
+wiz8,Monster,0xa4,0x1,member18_current_cycle_8c,bytes,exact,classes:wiz8:Monster,GetNumSubsPerCycle substitutes this signed byte when its cycle argument is -1
+wiz8,Monster,0xa5,0x7,member18_unknown_8d,bytes,strong,classes:wiz8:Monster,opaque tail of the positional +0x18 member before the cycle array
 wiz8,Monster,0xac,0x12c,subobject_array_ac_prefix,bytes,strong,classes:wiz8:Monster,leading storage of the 27 adjacent 0x10-byte subobjects through cycle 18 byte +0x0b
 wiz8,Monster,0x1d8,0x4,cycle18_pointer_0c,pointer,exact,classes:wiz8:Monster,exact consumer 0x004e60b0 dereferences cycle 18 field +0x0c then reads signed byte +0xa7
 wiz8,Monster,0x1dc,0x39,subobject_array_ac_middle,bytes,strong,classes:wiz8:Monster,remainder through cycle 22 byte +0x08
@@ -51,7 +55,7 @@ wiz8,W8MonsterManagerEntry,0xe0,0x4,vector_capacity,int32,exact,classes:wiz8:W8M
 wiz8,W8MonsterManagerEntry,0xe4,0x4,vector_data,pointer,exact,classes:wiz8:W8MonsterManagerEntry,twenty-byte backing allocation released by the exact destructor
 wiz8,W8MonsterManagerEntry,0xe8,0x30,unknown_0e8,bytes,exact,classes:wiz8:W8MonsterManagerEntry,opaque tail completing the 0x118 array stride
 wiz8,W8MonsterInfo,0x0,0x4,location_id,int32,exact,classes:wiz8:W8MonsterInfo,compared by MonsterGetIndexByLocationID
-wiz8,W8MonsterInfo,0x4,0x4,unknown_04,bytes,exact,classes:wiz8:W8MonsterInfo,opaque storage between the two reviewed identifiers
+wiz8,W8MonsterInfo,0x4,0x4,monster_group_id,int32,exact,classes:wiz8:W8MonsterInfo,0x004e6020 passes this value to the GroupIndex lookup whose retained diagnostic names its ID parameter
 wiz8,W8MonsterInfo,0x8,0x4,monster_species,int32,exact,classes:wiz8:W8MonsterInfo,index passed to GetMonsterDataByID
 wiz8,W8MonsterInfo,0xc,0x4,monster,pointer,exact,classes:wiz8:W8MonsterInfo,live Monster object returned by GetMonsterByLocationID
 wiz8,W8MonsterInfo,0x27,0x4,value_27,int32,exact,classes:wiz8:W8MonsterInfo,initialized from a database dice roll by 0x004e3930 and used as the divisor by 0x004e5a50
@@ -59,6 +63,8 @@ wiz8,W8MonsterInfo,0x2b,0x4,value_2b,int32,exact,classes:wiz8:W8MonsterInfo,init
 wiz8,W8MonsterInfo,0x1e7,0x7,attribute_adjustments_1e7,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 reads the selected byte as signed before adding it to the unsigned database attribute
 wiz8,W8MonsterInfo,0x247,0x5,converted_attributes_247,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 stores the five converted attributes after clamping each result to 1 through 125
 wiz8,W8MonsterInfo,0x24e,0x1,flag_24e,bytes,exact,classes:wiz8:W8MonsterInfo,read and replaced by exact transition body 0x004e60b0
+wiz8,W8MonsterInfo,0x255,0x1,flag_255,bytes,exact,classes:wiz8:W8MonsterInfo,reset by exact consumers 0x004e5ea0 and 0x004e6020
+wiz8,W8MonsterInfo,0x2fd,0x4,value_2fd,int32,exact,classes:wiz8:W8MonsterInfo,tested and replaced by exact transition body 0x004e6020 then consumed by the selected MonsterGroup update
 wiz8,W8MonsterManagerState,0x0,0x8c0,entries,bytes,exact,classes:wiz8:W8MonsterManagerState,eight W8MonsterManagerEntry values with the constructor iterator's 0x118 stride
 wiz8,W8MonsterManagerState,0x8c0,0xf7,unknown_8c0,bytes,exact,classes:wiz8:W8MonsterManagerState,opaque storage before the unaligned pointer-vector member
 wiz8,W8MonsterManagerState,0x9b7,0x4,vector_vptr,pointer,exact,classes:wiz8:W8MonsterManagerState,polymorphic pointer-vector vptr restored by the exact destructor

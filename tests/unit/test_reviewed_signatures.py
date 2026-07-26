@@ -8,6 +8,7 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     signatures = load_reviewed_signatures(repository, "wiz8")
 
     by_address = {item.address: item for item in signatures}
+    assert by_address[0x004ADDF0].this_type == "W8GrowableVector<int> *"
     assert by_address[0x005222D0].parameters == (
         ("character_index", "int"),
         ("item", "void *"),
@@ -59,6 +60,11 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     assert by_address[0x004E5B50].parameters == (("monster_species", "unsigned int"),)
     assert by_address[0x004E5E50].return_type == "W8MonsterInfo *"
     assert by_address[0x004E5E50].parameters == (("monster_species", "unsigned int"),)
+    assert by_address[0x004E5EA0].parameters == ()
+    assert by_address[0x004E6020].parameters == (
+        ("monster_info", "W8MonsterInfo *"),
+        ("value", "int"),
+    )
     assert by_address[0x004E6780].return_type == "unsigned int"
     assert by_address[0x004E6780].parameters == (
         ("record", "W8MonsterDatabaseRecord *"),

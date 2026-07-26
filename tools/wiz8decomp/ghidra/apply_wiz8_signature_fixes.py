@@ -88,18 +88,19 @@ def apply_reviewed_signatures(
                         if not isinstance(namespace, GhidraClass):
                             program.getSymbolTable().convertNamespaceToClass(namespace)
                     before = function.getPrototypeString(False, False)
+                    parameters = [
+                        (
+                            argument_name,
+                            _type_for(dtm, type_spec, evidence_program),
+                        )
+                        for argument_name, type_spec in reviewed.parameters
+                    ]
                     signature = _function_type(
                         dtm,
                         CategoryPath(f"/{evidence_program}/signatures"),
                         f"signature_{reviewed.address:08x}",
                         _type_for(dtm, reviewed.return_type, evidence_program),
-                        [
-                            (
-                                argument_name,
-                                _type_for(dtm, type_spec, evidence_program),
-                            )
-                            for argument_name, type_spec in reviewed.parameters
-                        ],
+                        parameters,
                         reviewed.calling_convention,
                     )
                     signature.setVarArgs(reviewed.variadic)
@@ -114,6 +115,27 @@ def apply_reviewed_signatures(
                         raise RuntimeError(
                             f"failed to apply signature at 0x{reviewed.address:08x}: "
                             f"{command.getStatusMsg()}"
+                        )
+                    if reviewed.this_type is not None:
+                        # Ghidra derives an auto-parameter's datatype from a
+                        # GhidraClass namespace and will not let callers edit it.
+                        # Canonical class layouts live in our reviewed datatype
+                        # category instead, so preserve the ABI-selected storage
+                        # as an explicit custom parameter before applying the
+                        # reviewed this type.
+                        function.setCustomVariableStorage(True)
+                        function_parameters = function.getParameters()
+                        if (
+                            not function_parameters
+                            or function_parameters[0].getName() != "this"
+                        ):
+                            raise RuntimeError(
+                                f"__thiscall signature at 0x{reviewed.address:08x} "
+                                "did not materialize a this parameter"
+                            )
+                        function_parameters[0].setDataType(
+                            _type_for(dtm, reviewed.this_type, evidence_program),
+                            SourceType.USER_DEFINED,
                         )
                     applied.append(
                         {

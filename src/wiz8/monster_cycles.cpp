@@ -17,7 +17,7 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
             "GetNumSubsPerCycle() -> Invalid cycle num.");
     }
     if (bCycle == -1) {
-        bCycle = m_bCurrentCycle;
+        bCycle = member_18.m_bCurrentCycle;
     }
     return m_cycles[bCycle].ubNumSubs;
 }

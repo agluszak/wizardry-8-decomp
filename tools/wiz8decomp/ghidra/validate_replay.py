@@ -171,6 +171,11 @@ def validate_reviewed_replay(
                     (name, _expected_type_name(data_type))
                     for name, data_type in reviewed.parameters
                 )
+                if reviewed.this_type is not None:
+                    expected_parameters = (
+                        ("this", _expected_type_name(reviewed.this_type)),
+                        *expected_parameters,
+                    )
                 actual = (
                     function.getCallingConventionName(),
                     function.getReturnType().getDisplayName(),
@@ -192,8 +197,7 @@ def validate_reviewed_replay(
                         (
                             parameter
                             for parameter in parameters
-                            if parameter.isAutoParameter()
-                            and parameter.getName() == "this"
+                            if parameter.getName() == "this"
                         ),
                         None,
                     )

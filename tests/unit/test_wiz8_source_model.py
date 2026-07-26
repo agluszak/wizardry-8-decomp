@@ -410,6 +410,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
     assert classes["W8MonsterInfo"].size == 0x425
+    assert classes["W8GrowableVector<W8WorldItem *>"].size == 0x10
     assert [
         (field.offset, field.size, field.data_type)
         for field in model.fields
@@ -418,10 +419,20 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert [
         (field.offset, field.size, field.name, field.data_type)
         for field in model.fields
+        if field.class_name == "W8GrowableVector<W8WorldItem *>"
+    ] == [
+        (0x0, 0x4, "vptr", "pointer"),
+        (0x4, 0x4, "count", "int32"),
+        (0x8, 0x4, "capacity", "int32"),
+        (0xC, 0x4, "data", "pointer"),
+    ]
+    assert [
+        (field.offset, field.size, field.name, field.data_type)
+        for field in model.fields
         if field.class_name == "W8MonsterInfo"
     ] == [
         (0x0, 0x4, "location_id", "int32"),
-        (0x4, 0x4, "unknown_04", "bytes"),
+        (0x4, 0x4, "monster_group_id", "int32"),
         (0x8, 0x4, "monster_species", "int32"),
         (0xC, 0x4, "monster", "pointer"),
         (0x27, 0x4, "value_27", "int32"),
@@ -429,6 +440,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x1E7, 0x7, "attribute_adjustments_1e7", "bytes"),
         (0x247, 0x5, "converted_attributes_247", "bytes"),
         (0x24E, 0x1, "flag_24e", "bytes"),
+        (0x255, 0x1, "flag_255", "bytes"),
+        (0x2FD, 0x4, "value_2fd", "int32"),
     ]
 
     vtables = {item.vtable_id: item for item in model.vtables}
@@ -448,9 +461,13 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x0, 0x4),
         (0x4, 0x20),
         (0x24, 0x4),
-        (0x28, 0x78),
+        (0x28, 0x4C),
+        (0x74, 0x4),
+        (0x78, 0x28),
         (0xA0, 0x1),
-        (0xA1, 0xB),
+        (0xA1, 0x3),
+        (0xA4, 0x1),
+        (0xA5, 0x7),
         (0xAC, 0x12C),
         (0x1D8, 0x4),
         (0x1DC, 0x39),
@@ -775,7 +792,8 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
         # destructor and have no separate source declaration to mark.
         if row["symbol"].endswith("::scalar_deleting_destructor"):
             continue
-        marker = f"// FUNCTION: WIZ8 0x{row['address'].upper()}"
+        marker_kind = "TEMPLATE" if "<" in row["symbol"] else "FUNCTION"
+        marker = f"// {marker_kind}: WIZ8 0x{row['address'].upper()}"
         assert marker in source, (
             f"{row['symbol']} is mapped at {row['address']} but no source compiled into "
             f"WIZ8_GAMEPLAY_BOUNDARIES carries {marker}"
