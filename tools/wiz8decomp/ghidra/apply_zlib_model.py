@@ -4,9 +4,7 @@ from typing import Any
 
 from ..config import Settings
 from .apply_unzip_model import _function_type, _structure
-from .environment import start_pyghidra
 from .project import resolve_program_name
-from .query_daemon import stop_daemon
 
 CATEGORY = "/wiz8/zlib_1_0_4"
 
@@ -14,11 +12,14 @@ CATEGORY = "/wiz8/zlib_1_0_4"
 def apply_zlib_model(
     settings: Settings,
     selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
+    *,
+    materialize: bool = True,
 ) -> dict[str, Any]:
     """Install the reviewed zlib 1.0.4 layouts and function prototypes."""
 
-    stop_daemon(settings, quiet=True)
-    start_pyghidra(settings)
+    from .cache import open_for_mutation
+
+    settings = open_for_mutation(settings, selector, materialize=materialize)
     import pyghidra
     from ghidra.app.cmd.function import ApplyFunctionSignatureCmd, FunctionRenameOption
     from ghidra.program.model.data import (

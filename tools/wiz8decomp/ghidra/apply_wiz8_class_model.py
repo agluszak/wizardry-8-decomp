@@ -4,9 +4,7 @@ from typing import Any
 
 from ..config import Settings
 from .apply_unzip_model import _apply_data, _structure
-from .environment import start_pyghidra
 from .project import resolve_program_name
-from .query_daemon import stop_daemon
 from .reviewed_class_model import load_reviewed_class_model
 
 
@@ -15,12 +13,14 @@ def apply_reviewed_class_model(
     selector: str,
     *,
     evidence_program: str,
+    materialize: bool = True,
 ) -> dict[str, Any]:
     """Materialize canonical class, field, and vtable records in Ghidra."""
 
     model = load_reviewed_class_model(settings.repo_dir, evidence_program)
-    stop_daemon(settings, quiet=True)
-    start_pyghidra(settings)
+    from .cache import open_for_mutation
+
+    settings = open_for_mutation(settings, selector, materialize=materialize)
     import pyghidra
     from ghidra.app.cmd.function import CreateFunctionCmd
     from ghidra.program.model.data import (
@@ -168,5 +168,9 @@ def apply_reviewed_class_model(
 def apply_wiz8_class_model(
     settings: Settings,
     selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
+    *,
+    materialize: bool = True,
 ) -> dict[str, Any]:
-    return apply_reviewed_class_model(settings, selector, evidence_program="wiz8")
+    return apply_reviewed_class_model(
+        settings, selector, evidence_program="wiz8", materialize=materialize
+    )

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from wiz8decomp.ghidra.project import program_name
 from wiz8decomp.ghidra.query import validate_query_arguments
 

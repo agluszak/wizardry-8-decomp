@@ -579,6 +579,44 @@ def ghidra_cache_status(program: str | None = typer.Argument(None)) -> None:
     _run_action(lambda: cache_status(_settings(), program))
 
 
+@cache_app.command("prune")
+def ghidra_cache_prune(
+    keep: Annotated[
+        int, typer.Option(help="How many of this agent's materializations to retain.")
+    ] = 3,
+) -> None:
+    """Drop this agent's older materialized projects.
+
+    Only this agent's own root is touched. Another agent's projects are not ours
+    to remove and one of them may be open, so other roots are only reported.
+    """
+
+    def action() -> dict[str, Any]:
+        from .config import ghidra_agent_id
+        from .ghidra.cache import prune_materializations
+
+        settings = _settings()
+        agents_root = settings.work_dir / "ghidra-agents"
+        mine = agents_root / ghidra_agent_id()
+        removed = prune_materializations(mine, max(1, keep))
+        others = {}
+        if agents_root.is_dir():
+            for path in sorted(agents_root.iterdir()):
+                if not path.is_dir() or path == mine:
+                    continue
+                projects = path / "projects"
+                if projects.is_dir():
+                    others[path.name] = len([p for p in projects.iterdir() if p.is_dir()])
+        return {
+            "agent": ghidra_agent_id(),
+            "kept": keep,
+            "evicted": removed,
+            "other_agents": others,
+        }
+
+    _run_action(action)
+
+
 @ghidra_app.command("validate-replay")
 def ghidra_validate_replay(program: str) -> None:
     """Validate an existing materialized program against canonical reviewed evidence."""

@@ -65,6 +65,11 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   names, unreachable functions, stale links) and for whole-image progress, never to choose between
   two candidate bodies. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number,
   because a successful `just build` does not guarantee the link step reran.
+- Materialized Ghidra projects are disposable and are pruned to the newest three per agent
+  (`WIZ8_GHIDRA_KEEP_MATERIALIZATIONS`). The materialization key covers the reviewed evidence, so
+  recording an identity or a layout invalidates the cache and rebuilds a 51MB project; without
+  eviction one session left 2.4GB. `just ghidra cache prune` clears the backlog for this agent only -
+  another agent's projects are not ours to remove and one may be open.
 - **Set `WIZ8_GHIDRA_AGENT_ID` in every checkout's `.env`.** It separates this checkout's Ghidra
   project from every other agent's, and it has no default: two checkouts that leave it unset share
   one per-agent project root and collide on its lock, which fails as `LockException: Unable to lock

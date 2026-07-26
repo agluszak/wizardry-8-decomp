@@ -3,9 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..config import Settings
-from .environment import start_pyghidra
 from .project import resolve_program_name
-from .query_daemon import stop_daemon
 
 CATEGORY = "/wiz8/srext_unzip"
 
@@ -64,9 +62,15 @@ def _apply_data(program: Any, address: Any, data_type: Any) -> None:
     )
 
 
-def apply_unzip_model(settings: Settings, selector: str = "srEXT_Unzip.dll") -> dict[str, Any]:
-    stop_daemon(settings, quiet=True)
-    start_pyghidra(settings)
+def apply_unzip_model(
+    settings: Settings,
+    selector: str = "srEXT_Unzip.dll",
+    *,
+    materialize: bool = True,
+) -> dict[str, Any]:
+    from .cache import open_for_mutation
+
+    settings = open_for_mutation(settings, selector, materialize=materialize)
     import pyghidra
     from ghidra.app.cmd.function import ApplyFunctionSignatureCmd, FunctionRenameOption
     from ghidra.program.model.data import (

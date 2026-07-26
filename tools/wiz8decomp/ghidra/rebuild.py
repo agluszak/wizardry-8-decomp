@@ -37,13 +37,19 @@ def reviewed_replay_actions(
                 materialize=False,
             ),
         ),
-        ("zlib_model", lambda: apply_zlib_model(settings, program_name)),
-        ("sgp_model", lambda: apply_sgp_model(settings, program_name)),
-        ("wiz8_format_model", lambda: apply_wiz8_format_model(settings, program_name)),
-        ("reviewed_class_model", lambda: apply_wiz8_class_model(settings, program_name)),
+        ("zlib_model", lambda: apply_zlib_model(settings, program_name, materialize=False)),
+        ("sgp_model", lambda: apply_sgp_model(settings, program_name, materialize=False)),
+        (
+            "wiz8_format_model",
+            lambda: apply_wiz8_format_model(settings, program_name, materialize=False),
+        ),
+        (
+            "reviewed_class_model",
+            lambda: apply_wiz8_class_model(settings, program_name, materialize=False),
+        ),
         (
             "reviewed_signatures",
-            lambda: apply_wiz8_signature_fixes(settings, program_name),
+            lambda: apply_wiz8_signature_fixes(settings, program_name, materialize=False),
         ),
     ]
 

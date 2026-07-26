@@ -4,9 +4,7 @@ from typing import Any
 
 from ..config import Settings
 from .apply_unzip_model import _function_type
-from .environment import start_pyghidra
 from .project import resolve_program_name
-from .query_daemon import stop_daemon
 from .reviewed_signatures import load_reviewed_signatures
 
 
@@ -54,12 +52,14 @@ def apply_reviewed_signatures(
     selector: str,
     *,
     evidence_program: str,
+    materialize: bool = True,
 ) -> dict[str, Any]:
     """Materialize canonical reviewed function signatures in Ghidra."""
 
     signatures = load_reviewed_signatures(settings.repo_dir, evidence_program)
-    stop_daemon(settings, quiet=True)
-    start_pyghidra(settings)
+    from .cache import open_for_mutation
+
+    settings = open_for_mutation(settings, selector, materialize=materialize)
     import pyghidra
     from ghidra.app.cmd.function import ApplyFunctionSignatureCmd, FunctionRenameOption
     from ghidra.program.model.data import CategoryPath
@@ -132,5 +132,7 @@ def apply_reviewed_signatures(
 def apply_wiz8_signature_fixes(
     settings: Settings,
     selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
+    *,
+    materialize: bool = True,
 ) -> dict[str, Any]:
     return apply_reviewed_signatures(settings, selector, evidence_program="wiz8")

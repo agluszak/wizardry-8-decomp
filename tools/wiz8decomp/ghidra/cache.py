@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import shutil
 from contextlib import contextmanager
 from pathlib import Path
 from time import perf_counter
@@ -132,6 +134,46 @@ def _materialization_identity(
         "replay_input_sha256": replay_hash,
         "materialization_key": hashlib.sha256(payload.encode("utf-8")).hexdigest(),
     }
+
+
+def materialization_keep_count() -> int:
+    """How many of this agent's materializations to retain.
+
+    The key covers the reviewed evidence, so recording an identity or a layout -
+    an ordinary part of porting - invalidates the cache and builds another
+    project. Without eviction they accumulate at 51MB each; one session left
+    2.4GB across 45 of them.
+    """
+
+    raw = os.environ.get("WIZ8_GHIDRA_KEEP_MATERIALIZATIONS", "3")
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return 3
+
+
+def prune_materializations(root: Path, keep: int, current: Path | None = None) -> list[str]:
+    """Drop all but the newest `keep` projects under one agent's root.
+
+    Only ever called with this agent's own root. Another agent's projects are
+    not ours to remove, and one of them may be open.
+    """
+
+    projects_dir = root / "projects"
+    if not projects_dir.is_dir():
+        return []
+    projects = [path for path in projects_dir.iterdir() if path.is_dir()]
+    resolved_current = current.resolve() if current is not None else None
+    ordered = sorted(projects, key=lambda path: path.stat().st_mtime, reverse=True)
+    removed: list[str] = []
+    for index, path in enumerate(ordered):
+        if index < keep:
+            continue
+        if resolved_current is not None and path.resolve() == resolved_current:
+            continue
+        shutil.rmtree(path, ignore_errors=True)
+        removed.append(path.name)
+    return removed
 
 
 def _agent_settings(settings: Settings, identity: dict[str, str]) -> tuple[Settings, Path, Path]:
@@ -269,7 +311,11 @@ def materialize_program(
             "phases": phases,
         }
         atomic_json(marker_path, marker)
+        evicted = prune_materializations(
+            root, materialization_keep_count(), effective.project_dir
+        )
         report = {
+            "evicted": evicted,
             **marker,
             "status": "materialized",
             "project_dir": str(effective.project_dir),
@@ -299,3 +345,35 @@ def cache_status(settings: Settings, selector: str | None = None) -> dict[str, A
         "materialized": marker is not None,
         "project_dir": str(effective.project_dir),
     }
+
+
+def open_for_mutation(
+    settings: Settings,
+    selector: str | None = None,
+    *,
+    materialize: bool = True,
+) -> Settings:
+    """Prepare a mutating Ghidra command and return the settings it must use.
+
+    A mutation has to run against the caller's own materialized project. Opening
+    `settings.project_dir` instead reaches the shared one, where it contends for
+    a lock another agent may hold - or takes a lock that blocks them - which is
+    exactly what per-agent materialization exists to prevent. Every mutating
+    command goes through here so that isolation is not something each one has to
+    remember.
+
+    `materialize=False` is for the reviewed replay, which these same commands
+    make up: it already runs inside `materialize_program` holding its lock, so
+    materializing again would recurse into itself.
+    """
+
+    # Deferred for the same reason query_daemon defers its import of this
+    # module: the two refer to each other.
+    from .query_daemon import stop_daemon
+
+    effective = settings
+    if materialize:
+        effective, _ = materialize_program(settings, selector)
+    stop_daemon(effective, quiet=True)
+    start_pyghidra(effective)
+    return effective

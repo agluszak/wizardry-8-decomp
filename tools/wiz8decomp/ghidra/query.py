@@ -110,7 +110,7 @@ def _strings(program: Any, pattern: str | None = None) -> dict[str, Any]:
     values = []
     listing = program.getListing()
     iterator = listing.getDefinedData(True)
-    regex = re.compile(pattern, re.I) if pattern else None
+    regex = re.compile(pattern, re.IGNORECASE) if pattern else None
     while iterator.hasNext():
         data = iterator.next()
         if data.hasStringValue():
@@ -122,7 +122,7 @@ def _strings(program: Any, pattern: str | None = None) -> dict[str, Any]:
 
 
 def _functions(program: Any, pattern: str | None = None) -> dict[str, Any]:
-    regex = re.compile(pattern, re.I) if pattern else None
+    regex = re.compile(pattern, re.IGNORECASE) if pattern else None
     values = []
     iterator = program.getFunctionManager().getFunctions(True)
     while iterator.hasNext():

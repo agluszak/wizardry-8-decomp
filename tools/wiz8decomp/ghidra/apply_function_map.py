@@ -7,9 +7,7 @@ from typing import Any
 
 from ..config import Settings
 from ..provenance import ProvenanceError, format_name_origin, validate_provenance
-from .environment import start_pyghidra
 from .project import resolve_program_name
-from .query_daemon import stop_daemon
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
 
@@ -130,15 +128,9 @@ def apply_function_map(
     if not identities:
         raise ValueError(f"function map has no accepted identities: {mapping_path}")
 
-    if materialize:
-        # Direct mutating commands must select an isolated per-agent project.
-        # Reviewed replay already runs inside materialize_program while its
-        # lock is held, so that caller explicitly skips this recursive step.
-        from .cache import materialize_program
+    from .cache import open_for_mutation
 
-        settings, _ = materialize_program(settings, selector)
-    stop_daemon(settings, quiet=True)
-    start_pyghidra(settings)
+    settings = open_for_mutation(settings, selector, materialize=materialize)
     import pyghidra
     from ghidra.app.cmd.disassemble import DisassembleCommand
     from ghidra.app.cmd.function import CreateFunctionCmd

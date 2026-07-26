@@ -24,14 +24,18 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "apply_function_map",
         lambda *_args, **_kwargs: calls.append("functions"),
     )
-    monkeypatch.setattr(rebuild, "apply_zlib_model", lambda *_args: calls.append("zlib"))
-    monkeypatch.setattr(rebuild, "apply_sgp_model", lambda *_args: calls.append("sgp"))
-    monkeypatch.setattr(rebuild, "apply_wiz8_format_model", lambda *_args: calls.append("formats"))
-    monkeypatch.setattr(rebuild, "apply_wiz8_class_model", lambda *_args: calls.append("classes"))
+    monkeypatch.setattr(rebuild, "apply_zlib_model", lambda *_args, **_kwargs: calls.append("zlib"))
+    monkeypatch.setattr(rebuild, "apply_sgp_model", lambda *_args, **_kwargs: calls.append("sgp"))
+    monkeypatch.setattr(
+        rebuild, "apply_wiz8_format_model", lambda *_args, **_kwargs: calls.append("formats")
+    )
+    monkeypatch.setattr(
+        rebuild, "apply_wiz8_class_model", lambda *_args, **_kwargs: calls.append("classes")
+    )
     monkeypatch.setattr(
         rebuild,
         "apply_wiz8_signature_fixes",
-        lambda *_args: calls.append("signatures"),
+        lambda *_args, **_kwargs: calls.append("signatures"),
     )
     monkeypatch.setattr(
         rebuild,

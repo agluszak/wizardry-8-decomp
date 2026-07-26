@@ -140,3 +140,103 @@ def test_a_missing_agent_identity_is_refused_rather_than_defaulted(monkeypatch) 
     monkeypatch.setenv("WIZ8_GHIDRA_AGENT_ID", "  ")
     with pytest.raises(config.GhidraAgentIdMissing):
         config.ghidra_agent_id()
+
+
+def test_every_mutating_apply_command_opens_its_own_project() -> None:
+    """A mutation that skips materialization reaches the shared project.
+
+    It then contends for a lock another agent may hold, or takes one that
+    blocks them. Checked structurally rather than by running Ghidra, so a new
+    apply command that forgets it fails here instead of in the field.
+    """
+
+    ghidra = Path(__file__).resolve().parents[2] / "tools" / "wiz8decomp" / "ghidra"
+    commands = sorted(ghidra.glob("apply_*.py"))
+
+    assert len(commands) >= 7
+    for module in commands:
+        source = module.read_text(encoding="utf-8")
+        if "def apply_" not in source:
+            continue
+        assert "open_for_mutation" in source, (
+            f"{module.name} mutates Ghidra without materializing a per-agent project"
+        )
+        assert "start_pyghidra(settings)" not in source, (
+            f"{module.name} starts Ghidra on the incoming settings rather than the "
+            "materialized ones"
+        )
+        assert "materialize: bool = True" in source, (
+            f"{module.name} cannot be told to skip materialization, so the reviewed "
+            "replay - which is made of these commands - would recurse into itself"
+        )
+
+
+def test_the_replay_never_materializes_recursively() -> None:
+    # reviewed_replay_actions runs inside materialize_program while it holds the
+    # lock, so every command it invokes must skip materializing.
+    rebuild = (
+        Path(__file__).resolve().parents[2]
+        / "tools"
+        / "wiz8decomp"
+        / "ghidra"
+        / "rebuild.py"
+    ).read_text(encoding="utf-8")
+    calls = [line for line in rebuild.splitlines() if "apply_" in line and "(" in line]
+    applied = [line for line in calls if "lambda" in line or "settings," in line]
+
+    assert applied
+    assert rebuild.count("materialize=False") >= 6
+
+
+def _materialization(root: Path, name: str, age: float) -> Path:
+    path = root / "projects" / name
+    path.mkdir(parents=True)
+    (path / "wizardry8.gpr").write_text("", encoding="utf-8")
+    import os
+
+    os.utime(path, (age, age))
+    return path
+
+
+def test_pruning_keeps_the_newest_and_drops_the_rest(tmp_path: Path) -> None:
+    root = tmp_path / "agent"
+    oldest = _materialization(root, "aaaa", 1000)
+    middle = _materialization(root, "bbbb", 2000)
+    newest = _materialization(root, "cccc", 3000)
+
+    evicted = cache.prune_materializations(root, keep=2)
+
+    assert evicted == ["aaaa"]
+    assert not oldest.exists()
+    assert middle.exists()
+    assert newest.exists()
+
+
+def test_the_current_project_survives_even_when_it_is_the_oldest(tmp_path: Path) -> None:
+    # It is about to be used. Evicting it would delete the very project the
+    # caller materialized.
+    root = tmp_path / "agent"
+    current = _materialization(root, "aaaa", 1000)
+    _materialization(root, "bbbb", 2000)
+    _materialization(root, "cccc", 3000)
+
+    evicted = cache.prune_materializations(root, keep=1, current=current)
+
+    assert current.exists()
+    assert sorted(evicted) == ["bbbb"]
+
+
+def test_pruning_an_agent_with_nothing_materialized_is_not_an_error(tmp_path: Path) -> None:
+    assert cache.prune_materializations(tmp_path / "absent", keep=3) == []
+
+
+def test_the_keep_count_is_configurable_and_never_zero(monkeypatch) -> None:
+    monkeypatch.setenv("WIZ8_GHIDRA_KEEP_MATERIALIZATIONS", "5")
+    assert cache.materialization_keep_count() == 5
+
+    # Keeping none would delete the project the caller is about to open.
+    monkeypatch.setenv("WIZ8_GHIDRA_KEEP_MATERIALIZATIONS", "0")
+    assert cache.materialization_keep_count() == 1
+
+    monkeypatch.setenv("WIZ8_GHIDRA_KEEP_MATERIALIZATIONS", "not a number")
+    assert cache.materialization_keep_count() == 3
