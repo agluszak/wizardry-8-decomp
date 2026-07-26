@@ -81,6 +81,35 @@ run, accepted only when it begins a recognised prologue - and is not a substitut
 function identity. The exception-metadata snapshot's `function_start` is read rather than derived and
 should be preferred wherever both cover the same function.
 
+The derived anchors are nonetheless trustworthy enough to attribute a function to a translation unit,
+and the translation-unit report consumes them for that. The check that licenses it is agreement: on
+the functions both sources know, the snapshot's derived enclosing function and the reviewed table's
+Ghidra-resolved `containing_function` name the same unit every time. A function whose assertions name
+two units has been inlined into and anchors neither.
+
+### Polymorphism ABI - `evidence/snapshots/polymorphism/`
+
+Vtables are found through the relocation table, which is the image's own complete index of absolute
+addresses: a vtable is a run of consecutive relocated `.rdata` slots pointing into code, and a value
+that is not a relocated slot cannot be part of one.
+
+Ending a run is the part that is easy to get wrong. Two tables of one class sit adjacent, so a naive
+maximal run reports a single table holding the sum of both slot counts. The rule is that a table must
+be referred to in order to be used, so a run is cut at any slot address appearing as a relocated
+operand in code. Splitting only at decodable constructor stores is *not* sufficient - it misses
+secondary tables whose store does not decode, and those are exactly the cases where a neighbouring
+count was overstated.
+
+Constructor stores are collected separately because they carry what a bare reference does not:
+`mov [reg+N], offset table` places the pointer at offset `N` in the object, so offset `0` marks a
+primary table and any other offset marks the base subobject at that offset. Note that `N` is the
+instruction's displacement, which equals the subobject offset only when the register holds the start
+of the object; a compiler addressing the object from a shifted base produces a negative displacement.
+
+Slot kinds are read rather than guessed. `_purecall` is resolved through the import table by name, so
+pure-virtual slots need no per-build address, and a slot pointing at a jump thunk is reported with the
+demangled library method the class inherited.
+
 ## What these channels cannot do
 
 * They do not recover first-party class *names*. No Wiz8 class name survives anywhere in the image:

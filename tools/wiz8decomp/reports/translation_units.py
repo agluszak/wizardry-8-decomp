@@ -36,7 +36,33 @@ def _read_rows(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(stream))
 
 
-def derive_intervals(assertions: list[dict[str, str]]) -> list[TranslationUnitInterval]:
+def call_site_anchors(rows: list[dict[str, str]], program: str) -> dict[int, str]:
+    """Function-to-unit anchors recovered statically from assertion call sites.
+
+    The reviewed assertion table resolves its containing function through Ghidra
+    and so covers only what has been imported; the call-site snapshot derives the
+    enclosing function from inter-function padding and therefore covers the whole
+    image. A function whose assertions name two units has been inlined into, so
+    it anchors neither.
+    """
+    units_by_anchor: dict[int, set[str]] = defaultdict(set)
+    for row in rows:
+        if row.get("program") != program or not row.get("function_start"):
+            continue
+        source_path = _source_path(row["source_path"])
+        if source_path is None:
+            continue
+        units_by_anchor[int(row["function_start"], 16)].add(source_path)
+    return {
+        anchor: next(iter(units))
+        for anchor, units in units_by_anchor.items()
+        if len(units) == 1
+    }
+
+
+def derive_intervals(
+    assertions: list[dict[str, str]], extra_anchors: dict[int, str] | None = None
+) -> list[TranslationUnitInterval]:
     anchors_by_unit: dict[str, set[int]] = defaultdict(set)
     owners_by_anchor: dict[int, set[str]] = defaultdict(set)
     for row in assertions:
@@ -44,6 +70,9 @@ def derive_intervals(assertions: list[dict[str, str]]) -> list[TranslationUnitIn
         if source_path is None:
             continue
         anchor = int(row["containing_function"], 16)
+        anchors_by_unit[source_path].add(anchor)
+        owners_by_anchor[anchor].add(source_path)
+    for anchor, source_path in (extra_anchors or {}).items():
         anchors_by_unit[source_path].add(anchor)
         owners_by_anchor[anchor].add(source_path)
 
@@ -139,12 +168,18 @@ def render_gameplay_map_csv(
     assertions: list[dict[str, str]],
     gameplay: list[dict[str, str]],
     intervals: list[TranslationUnitInterval],
+    extra_anchors: dict[int, str] | None = None,
 ) -> tuple[str, dict[str, int]]:
     direct: dict[int, str] = {}
+    reviewed: set[int] = set()
     for row in assertions:
         source_path = _source_path(row["source_path"])
         if source_path is not None:
-            direct[int(row["containing_function"], 16)] = source_path
+            anchor = int(row["containing_function"], 16)
+            direct[anchor] = source_path
+            reviewed.add(anchor)
+    for anchor, source_path in (extra_anchors or {}).items():
+        direct.setdefault(anchor, source_path)
 
     rows: list[dict[str, str]] = []
     counts = {"direct": 0, "inferred": 0, "gap": 0, "external": 0}
@@ -172,6 +207,8 @@ def render_gameplay_map_csv(
             upper = containing.upper
             bounds = "inclusive"
             evidence = "the function itself contains an assertion naming this source path"
+            if address not in reviewed:
+                evidence += "; anchor recovered statically from the call-site snapshot"
         elif containing is not None:
             attribution = "inferred"
             source_path = containing.source_path
@@ -224,25 +261,76 @@ def render_gameplay_map_csv(
     )
 
 
+def _canonical_program(repo_dir: Path) -> str | None:
+    """The program name whose addresses this report is written in terms of.
+
+    Other builds carry the same source paths at different addresses, so mixing
+    them would corrupt the interval map rather than extend it.
+    """
+    import yaml
+
+    variants = repo_dir / "config" / "variants.yml"
+    inventory = repo_dir / "build" / "manifests" / "modules.json"
+    if not variants.is_file() or not inventory.is_file():
+        return None
+    import json
+
+    variant = yaml.safe_load(variants.read_text(encoding="utf-8"))["canonical_matching_target"][
+        "variant"
+    ]
+    from ..ghidra.project import program_name
+
+    for module in json.loads(inventory.read_text(encoding="utf-8"))["modules"]:
+        if module["variant"] == variant and module.get("classification") == "first-party-game":
+            return program_name(module)
+    return None
+
+
+def load_call_site_anchors(repo_dir: Path) -> dict[int, str]:
+    """Anchors contributed by the call-site snapshot, if it is available.
+
+    Optional by design: the report predates the snapshot and still works without
+    it. Shared so that every consumer of the attribution counts derives them from
+    the same anchor set rather than reporting two numbers for one fact.
+    """
+    snapshot = repo_dir / "evidence" / "snapshots" / "call-sites" / "assertions.csv"
+    program = _canonical_program(repo_dir)
+    if not snapshot.is_file() or not program:
+        return {}
+    return call_site_anchors(_read_rows(snapshot), program)
+
+
 def translation_unit_report(settings: Any) -> dict[str, Any]:
     assertions = _read_rows(
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
     )
     gameplay = _read_rows(settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv")
-    intervals = derive_intervals(assertions)
+    extra_anchors = load_call_site_anchors(settings.repo_dir)
+
+    intervals = derive_intervals(assertions, extra_anchors)
     interval_csv = render_interval_csv(intervals)
-    gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
+    gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals, extra_anchors)
 
     report_dir = settings.build_dir / "reports" / "translation-units"
     interval_path = report_dir / "translation-unit-intervals.csv"
     gameplay_path = report_dir / "gameplay-translation-units.csv"
     atomic_write(interval_path, interval_csv)
     atomic_write(gameplay_path, gameplay_csv)
+    reviewed_anchors = {
+        int(row["containing_function"], 16)
+        for row in assertions
+        if _source_path(row["source_path"]) is not None
+    }
     return {
         "translation_units": len(intervals),
         "gaps": max(len(intervals) - 1, 0),
         "gameplay_functions": len(gameplay),
         "attribution": counts,
+        "anchors": {
+            "reviewed": len(reviewed_anchors),
+            "call_site_snapshot": len(extra_anchors),
+            "added_by_snapshot": len(set(extra_anchors) - reviewed_anchors),
+        },
         "outputs": [
             str(interval_path.relative_to(settings.repo_dir)),
             str(gameplay_path.relative_to(settings.repo_dir)),
