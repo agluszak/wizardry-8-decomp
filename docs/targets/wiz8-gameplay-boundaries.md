@@ -156,3 +156,15 @@ against both this pair's lists and the earlier monster-group lists — this is a
 type-erased `PList`, not a per-element-type template instantiation. Both functions are
 `structurally-strong` for the same register-role and loop-peeling reasons as the rest of this
 section.
+
+The two Ghidra auto-analysis signature artifacts found above — `PListIndexOf` (`0x005E2890`) and
+`GetOriginOfCharacterItem` (`0x005222D0`) — are corrected in the Ghidra project itself, not just in
+this document's prose, by:
+
+```sh
+just ghidra apply-wiz8-signature-fixes wiz8--gog-base--wiz8--18a74ff61c65
+```
+
+`tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py` applies both corrected signatures via
+`ApplyFunctionSignatureCmd`, so a fresh analysis session (or a re-import) sees the true parameter
+counts and types instead of the standalone-decompile artifacts described above.
