@@ -68,6 +68,17 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* One Data\Databases\NPC.DBS record. Only the stride and the sub-list pointer
+   the loader fills and the destructor tears down are established. */
+typedef struct W8NpcDatabaseRecord {
+    unsigned short count_00;             /* 0x000: sub-list loads only when this exceeds 1 */
+    unsigned char unknown_002[0x9b];
+    unsigned char flag_9d;               /* 0x09d: and only when this is clear */
+    unsigned char unknown_09e[0x22c];
+    void* sub_list;                      /* 0x2ca */
+    unsigned char unknown_2ce[0x3b];
+} W8NpcDatabaseRecord;                   /* 0x309 */
+
 /* One Data\Databases\ItemTables.DBS record. The record opens with a
    NUL-terminated table name, which FindItemTableByName compares against; the
    name's field width is not established, so only its start is typed. */
@@ -228,6 +239,8 @@ extern unsigned char g_import_flags[0x60];
 extern int g_fact_record_count;
 extern W8ItemDatabaseRecord* g_item_records;
 extern int g_item_record_count;
+extern W8NpcDatabaseRecord* g_npc_records;
+extern unsigned int g_npc_record_count;
 extern W8ItemTableRecord** g_item_tables;
 extern unsigned int g_item_table_count;
 extern char** g_item_table_category_names;
@@ -327,6 +340,8 @@ unsigned char InitializeFactDatabase(void);
 unsigned char InitializeItemDatabase(void);
 unsigned char InitializeLevelDatabase(void);
 unsigned char InitializeItemTables(void);
+unsigned char InitializeNpcDatabase(void);
+void DestroyNpcDatabase(void);
 int FindItemTableByName(const char* name);
 void DestroyFactDatabase(void);
 int GetLoadedLevelID(void);

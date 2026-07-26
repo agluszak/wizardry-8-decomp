@@ -7,6 +7,14 @@
 extern unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
                                      unsigned int* done);
 extern int FileOpen(const char* path, int mode, int flags);
+/* 0x005E1CE0, the operator new import thunk, and two unidentified members of
+   the PList family at 0x005E22C0 and 0x005E2530 that create a list and store an
+   element at an index. */
+extern void* operator_new_import_thunk(unsigned int size);
+extern void* Function5E22C0(void);
+extern void Function5E2530(void* list, unsigned int index, void* element);
+/* 0x0055ADA0, not yet identified; releases one record's sub-list. */
+extern void Function55ADA0(void* sub_list);
 extern void CloseVirtualFile(int handle);
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
@@ -173,4 +181,82 @@ unsigned char InitializeItemTables(void)
     }
     CloseVirtualFile(handle);
     return 1;
+}
+
+// FUNCTION: WIZ8 0x0054AAC0
+/* NPC.DBS records carry an optional sub-list, stored after the record when its
+   leading count exceeds one and its 0x9D flag is clear: a count, then that many
+   six-byte elements appended to a freshly created list. */
+unsigned char InitializeNpcDatabase(void)
+{
+    char path[60];
+    unsigned int index;
+    unsigned int entry;
+    unsigned int entry_count;
+    unsigned int transferred;
+    int handle;
+    void* element;
+
+    sprintf(path, "%s\\%s.%s", "Data\\Databases", "NPC", "DBS");
+    handle = FileOpen(path, 1, 0);
+    if (!handle) {
+        return 0;
+    }
+    if (!ReadVirtualFile(handle, &g_npc_record_count, 4, &transferred)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    g_npc_records = (W8NpcDatabaseRecord*)malloc(g_npc_record_count * 0x309);
+    if (!g_npc_records) {
+        return 0;
+    }
+    for (index = 0; index < g_npc_record_count; ++index) {
+        if (!ReadVirtualFile(handle, &g_npc_records[index], 0x309, &transferred)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        g_npc_records[index].sub_list = 0;
+        if (g_npc_records[index].flag_9d == 0 && g_npc_records[index].count_00 > 1) {
+            entry_count = 0;
+            if (!ReadVirtualFile(handle, &entry_count, 4, &transferred)) {
+                CloseVirtualFile(handle);
+                return 0;
+            }
+            if (entry_count > 0) {
+                g_npc_records[index].sub_list = Function5E22C0();
+                for (entry = 0; entry < entry_count; ++entry) {
+                    element = operator_new_import_thunk(6);
+                    if (!element) {
+                        CloseVirtualFile(handle);
+                        return 0;
+                    }
+                    memset(element, 0, 6);
+                    if (!ReadVirtualFile(handle, element, 6, &transferred)) {
+                        CloseVirtualFile(handle);
+                        return 0;
+                    }
+                    Function5E2530(g_npc_records[index].sub_list, entry, element);
+                }
+            }
+        }
+    }
+    CloseVirtualFile(handle);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0054AC90
+void DestroyNpcDatabase(void)
+{
+    unsigned int index;
+
+    if (g_npc_records) {
+        for (index = 0; index < g_npc_record_count; ++index) {
+            if (g_npc_records[index].sub_list) {
+                Function55ADA0(g_npc_records[index].sub_list);
+                g_npc_records[index].sub_list = 0;
+            }
+        }
+        free(g_npc_records);
+        g_npc_records = 0;
+    }
 }

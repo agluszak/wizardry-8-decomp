@@ -85,6 +85,7 @@ Ranked by how often it has been the answer here:
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `JL`/`JE` where canonical has `JB`/`JBE` | field or variable is **unsigned** | change the type |
+| `JE` where canonical has `JBE` on an unsigned value | source wrote `if (x)` where the original wrote `if (x > 0)` | spell the comparison out; truthiness and `> 0` differ in encoding even though they agree in meaning |
 | Register roles permuted | control-flow shape is wrong | fix the flow; registers follow |
 | `lea r,[x+1]` where canonical has `mov r,x` then `inc r` | two source variables where the original reused one | merge them into a single variable stepped by `++` |
 | A second cursor built with `lea` where canonical has `add r,imm` | the original advances one base pointer in place | reuse and mutate the base rather than deriving each cursor |
