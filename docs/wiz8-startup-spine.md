@@ -120,13 +120,23 @@ gate fails. It then registers the window class from `"Wizardry8"` / `"Wizardry8k
 module loader at the `"DLL"` subdirectory the shipped tree uses for plug-ins, and runs a chain of
 bool-returning gates, each of which aborts `WinMain` on failure:
 
-```text
-0x004018C0  0x00404B00  0x00404BA0  0x005B1740  0x004023A0
-0x00401EA0  0x00421BB0(hInstance, showCmd, 0x004011E0)  0x00405E60  0x00402970
-```
+Profiling each gate by the imports and literals inside its own extent identifies most of them, and
+they line up with the subsystems the roadmap expects:
 
-`0x00421BB0` receives `0x004011E0`, which is the window procedure. The gates themselves are
-enumerated but not individually named.
+| Gate | Subsystem | Evidence |
+| --- | --- | --- |
+| `0x0040F020` | SGP DirectDraw / window class | references `C:\Projects\SGP\DirectDraw Calls.c` |
+| `0x00405740` | module search path | rewrites `PATH` so plug-ins load from the `DLL` subdirectory |
+| `0x004018C0` | SGP configuration | `"%s\sgp.ini"`, `PIXEL_DEPTH`, `GetPrivateProfileIntA` |
+| `0x00404B00` | diagnostic formatting | `vsprintf` |
+| `0x00401EA0` | input hook | `SetWindowsHookExA` bound to `GetCurrentThreadId` |
+| `0x00421BB0` | renderer window, extensions | `srGERD::isWindowOpen`, `srExtension::load`, `ShowWindow` |
+| `0x004023A0` | texture defaults | `srTextureMap::setupDefaultValues` |
+
+`0x00421BB0` receives `0x004011E0`, the window procedure, and its `srExtension::load` call is how
+the `srEXT_*` plug-ins — including the JPEG importer this repository already recovered — enter the
+process. `0x00404BA0`, `0x00405E60`, `0x00402970` and `0x005B1740` remain too small to characterise
+from imports or literals alone.
 
 The shutdown handler at `0x004017F0` is guarded by a once-flag at `0x00650DB5`, clears the run flag
 at `0x006F0628`, and tears down through `0x00408850` and `0x004E34B0`.
@@ -153,6 +163,12 @@ Recorded explicitly rather than guessed:
   `MainMenuScreen.cpp` and `ReviewCharacterScreen.cpp` — which is what identifies this as the
   screen/state table rather than a generic callback array. The other 40 handlers fall outside the
   current interval coverage and are recorded unattributed.
-* No node on the spine is attributable to an original translation unit yet. The assertion map covers
-  606 functions and none of them is on this path, which is consistent with startup code that
+* One node *is* attributable: `0x0040F020` references `C:\Projects\SGP\DirectDraw Calls.c`, the
+  SGP translation unit whose thirteen functions are already source-matched. The rest are not, and
+  the assertion map's 606 functions include none of this path — consistent with startup code that
   asserts little.
+
+A profiling caveat worth repeating: inter-function padding in this executable contains the byte
+pattern `FF 15 C8 B2 5E 00`, which disassembles as a call to BINKW32 `_BinkGetRects`. Any tool that
+reads past a function's end will report that import spuriously. Bound profiling by the padding scan,
+and treat a lone `_BinkGetRects` hit at a function's tail as an artifact rather than a real call.
