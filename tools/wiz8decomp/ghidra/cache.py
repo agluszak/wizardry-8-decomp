@@ -31,6 +31,32 @@ def seed_manifest_path(settings: Settings) -> Path:
     return settings.repo_dir / "vendor" / "ghidra" / "exports" / "manifest.json"
 
 
+# Modules under ghidra/ that cannot change what the replay writes into a
+# program: transports, caches, importers and exporters. Hashing them into the
+# materialization key means editing the cache or the daemon invalidates every
+# agent's project and forces a full re-import, which is pure cost - during one
+# session the tooling edits alone rebuilt several 51MB projects.
+#
+# This is a deny-list rather than an allow-list on purpose. A module nobody has
+# classified still feeds the key, so the mistake is a needless rebuild rather
+# than a stale program, and only a file positively known to be inert is dropped.
+REPLAY_INERT_MODULES = frozenset(
+    {
+        "__init__.py",
+        "analyze.py",
+        "cache.py",
+        "environment.py",
+        "export_evidence.py",
+        "export_programs.py",
+        "fid.py",
+        "fid_seeds.py",
+        "import_programs.py",
+        "query.py",
+        "query_daemon.py",
+    }
+)
+
+
 def _replay_input_paths(settings: Settings) -> list[Path]:
     roots = [
         settings.repo_dir / "tools" / "wiz8decomp" / "ghidra",
@@ -49,6 +75,7 @@ def _replay_input_paths(settings: Settings) -> list[Path]:
                 for path in root.rglob("*")
                 if path.is_file()
                 and path.suffix.casefold() in {".csv", ".json", ".py", ".yaml", ".yml"}
+                and path.name not in REPLAY_INERT_MODULES
             )
     return sorted(
         {path for path in paths if path.is_file()},

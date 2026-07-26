@@ -240,3 +240,38 @@ def test_the_keep_count_is_configurable_and_never_zero(monkeypatch) -> None:
 
     monkeypatch.setenv("WIZ8_GHIDRA_KEEP_MATERIALIZATIONS", "not a number")
     assert cache.materialization_keep_count() == 3
+
+
+def test_replay_plumbing_does_not_invalidate_the_materialization(tmp_path: Path) -> None:
+    """Editing a transport or a cache must not force every agent to re-import.
+
+    The key exists to notice changes that alter what the replay writes into a
+    program. Hashing the daemon or this very module into it means routine
+    tooling work rebuilds a 51MB project for nothing.
+    """
+
+    settings = _settings(tmp_path)
+    ghidra = settings.repo_dir / "tools" / "wiz8decomp" / "ghidra"
+    ghidra.mkdir(parents=True)
+    (ghidra / "rebuild.py").write_text("replay order", encoding="utf-8")
+    (ghidra / "apply_zlib_model.py").write_text("writes types", encoding="utf-8")
+    (ghidra / "query_daemon.py").write_text("transport", encoding="utf-8")
+    (ghidra / "cache.py").write_text("this module", encoding="utf-8")
+
+    names = {path.name for path in cache._replay_input_paths(settings)}
+
+    assert "rebuild.py" in names
+    assert "apply_zlib_model.py" in names
+    assert "query_daemon.py" not in names
+    assert "cache.py" not in names
+
+
+def test_an_unclassified_module_still_feeds_the_key(tmp_path: Path) -> None:
+    # The deny-list errs toward a needless rebuild rather than a stale program:
+    # a module nobody has classified is assumed to matter.
+    settings = _settings(tmp_path)
+    ghidra = settings.repo_dir / "tools" / "wiz8decomp" / "ghidra"
+    ghidra.mkdir(parents=True)
+    (ghidra / "apply_something_new.py").write_text("unknown", encoding="utf-8")
+
+    assert "apply_something_new.py" in {p.name for p in cache._replay_input_paths(settings)}

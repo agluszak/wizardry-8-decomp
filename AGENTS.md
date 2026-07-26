@@ -76,6 +76,11 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   names, unreachable functions, stale links) and for whole-image progress, never to choose between
   two candidate bodies. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number,
   because a successful `just build` does not guarantee the link step reran.
+- The materialization key covers the reviewed evidence and the replay modules only. Editing the
+  daemon, the cache or another transport no longer invalidates it; editing an `apply_*` module or an
+  evidence CSV still does, and should. An unclassified module under `tools/wiz8decomp/ghidra/` feeds
+  the key by default, so the cost of overlooking one is a needless rebuild rather than a stale
+  program.
 - Materialized Ghidra projects are disposable and are pruned to the newest three per agent
   (`WIZ8_GHIDRA_KEEP_MATERIALIZATIONS`). The materialization key covers the reviewed evidence, so
   recording an identity or a layout invalidates the cache and rebuilds a 51MB project; without
