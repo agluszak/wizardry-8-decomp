@@ -95,6 +95,63 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* The game settings block that 0x0054B560 clears and fills with defaults. Every
+   address that function writes falls inside the 0xa4 bytes it clears first, so
+   this is one structure rather than a run of separate globals. Only offsets are
+   established - nothing here names a setting - so the fields keep positional
+   names. */
+typedef struct W8GameSettings {
+    unsigned char field_000;             /* 0x000 */
+    unsigned char field_001;             /* 0x001 */
+    unsigned char unknown_002[0x4];
+    int field_006;                       /* 0x006 */
+    unsigned char field_00a;             /* 0x00a */
+    unsigned char field_00b;             /* 0x00b */
+    unsigned char field_00c;             /* 0x00c */
+    int field_00d;                       /* 0x00d */
+    int field_011;                       /* 0x011 */
+    int field_015;                       /* 0x015 */
+    int field_019;                       /* 0x019 */
+    int field_01d;                       /* 0x01d */
+    int field_021;                       /* 0x021 */
+    int field_025;                       /* 0x025 */
+    unsigned char field_029;             /* 0x029 */
+    unsigned char field_02a;             /* 0x02a */
+    unsigned char field_02b;             /* 0x02b */
+    unsigned char field_02c;             /* 0x02c */
+    unsigned char unknown_02d[0x1];
+    unsigned char field_02e;             /* 0x02e */
+    unsigned char field_02f;             /* 0x02f */
+    unsigned char field_030;             /* 0x030 */
+    unsigned char field_031;             /* 0x031 */
+    unsigned char field_032;             /* 0x032 */
+    unsigned char field_033;             /* 0x033 */
+    unsigned char field_034;             /* 0x034 */
+    unsigned char field_035;             /* 0x035 */
+    unsigned char field_036;             /* 0x036 */
+    int field_037;                       /* 0x037 */
+    unsigned char field_03b;             /* 0x03b */
+    int field_03c;                       /* 0x03c */
+    unsigned char field_040;             /* 0x040 */
+    unsigned char field_041;             /* 0x041 */
+    unsigned char field_042;             /* 0x042 */
+    unsigned char field_043;             /* 0x043 */
+    unsigned char unknown_044[0x1];
+    unsigned char field_045;             /* 0x045 */
+    unsigned char unknown_046[0x1];
+    unsigned char field_047;             /* 0x047 */
+    unsigned char field_048;             /* 0x048 */
+    unsigned char field_049;             /* 0x049 */
+    unsigned char field_04a;             /* 0x04a */
+    unsigned char field_04b;             /* 0x04b */
+    unsigned char field_04c;             /* 0x04c */
+    unsigned char field_04d;             /* 0x04d */
+    unsigned char field_04e;             /* 0x04e */
+    unsigned char field_04f;             /* 0x04f */
+    unsigned char field_050;             /* 0x050 */
+    unsigned char unknown_051[0x53];
+} W8GameSettings;                        /* 0x0a4 */
+
 /* One party slot row. Only the three fields the reset touches are established,
    plus the leading flag UtilityFunctions reads as slot-occupied. */
 typedef struct W8PartySlotRow {
@@ -341,6 +398,14 @@ extern int g_loaded_level_id;
 extern W8World* g_world;
 extern unsigned char g_item_in_hand_valid;
 extern W8ItemInstance g_item_in_hand;
+/* The party's carried pool, bounded by the count that follows it in memory;
+   0x0054B100 walks it by address rather than by index. */
+extern W8ItemInstance g_party_item_pool[];
+extern int g_party_item_count;
+/* Starting item ids, terminated by the address after the last, with 0xffffffff
+   marking an empty slot. */
+extern unsigned int g_starting_item_ids[];
+extern unsigned int g_starting_item_ids_end[];
 extern W8LevelFolderRecord g_level_folders[47];
 extern int g_location_variable_count;
 extern char** g_location_variable_names;
@@ -519,6 +584,8 @@ unsigned char InitializeItemDatabase(void);
 unsigned char InitializeLevelDatabase(void);
 unsigned char InitializeItemTables(void);
 void DestroyItemTables(void);
+void Function54B100(void);
+void Function54B560(void);
 unsigned char InitializeNpcDatabase(void);
 void DestroyNpcDatabase(void);
 void DestroyFactDatabase(void);

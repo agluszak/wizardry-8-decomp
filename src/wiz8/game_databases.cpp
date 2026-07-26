@@ -21,6 +21,22 @@ extern void Function5E2530(void* list, unsigned int index, void* element);
 extern void __fastcall Function52DB80(void* self);
 extern void Function54B300(unsigned int slot);
 extern W8GlobalStatus g_status_685170;
+extern W8GameSettings g_settings_6850c8;
+extern void Function47B5F0(void);
+extern void Function47B5B0(int id);
+extern unsigned int Function428E60(void);
+extern int Function429800(void);
+extern int g_dword_685189;
+extern int g_dword_68518d;
+extern int g_dword_686a70;
+extern unsigned int g_dwords_686a50[8];
+extern unsigned char g_flag_687511;
+extern void Function58FD30(void);
+extern void Function520070(W8ItemInstance* item, int a, int b);
+extern int Function518230(int a, int b, int c);
+extern void Function554580(unsigned char* target);
+extern void ReplaceOrCreateItem(W8ItemInstance* item, unsigned int id, int a, int b, int c);
+extern void AddItemToParty(W8ItemInstance* item, int a, int b);
 extern bool g_flag_68517c;
 extern bool g_flag_687599;
 extern bool g_flag_683fa0;
@@ -573,4 +589,119 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     }
     CloseVirtualFile(handle);
     return 1;
+}
+
+/* The new-game reset. It repeats Function54AF30's status-block cycle inline
+   rather than calling it, clears the item in hand and the carried pool, then
+   grants the starting items. The pool and the id list are both walked by
+   address against the symbol that follows them, not by index. */
+// FUNCTION: WIZ8 0x0054B100
+void Function54B100(void)
+{
+    W8ItemInstance item;
+    W8ItemInstance* slot;
+    unsigned int* id;
+    unsigned int index;
+
+    if (g_status_685170.buffers.buffer_04) {
+        free(g_status_685170.buffers.buffer_04);
+        g_status_685170.buffers.buffer_04 = 0;
+    }
+    if (g_status_685170.buffers.buffer_08) {
+        free(g_status_685170.buffers.buffer_08);
+        g_status_685170.buffers.buffer_08 = 0;
+    }
+    memset(&g_status_685170, 0, sizeof(g_status_685170));
+    g_status_685170.buffers.buffer_04 = malloc(0xc310);
+    if (g_status_685170.buffers.buffer_04) {
+        g_status_685170.buffers.buffer_08 = malloc(0x830);
+        if (g_status_685170.buffers.buffer_08) {
+            memset(g_status_685170.buffers.buffer_04, 0, 0xc310);
+            memset(g_status_685170.buffers.buffer_08, 0, 0x830);
+        }
+    }
+    Function58FD30();
+    Function520070(&g_item_in_hand, 0, 1);
+    slot = g_party_item_pool;
+    do {
+        Function520070(slot, 0, 1);
+        ++slot;
+    } while (slot < (W8ItemInstance*)&g_party_item_count);
+    id = g_starting_item_ids;
+    do {
+        if (*id != 0xffffffff) {
+            ReplaceOrCreateItem(&item, *id, 1, 1, 1);
+            item.quantity = 1;
+            AddItemToParty(&item, 0, 0);
+        }
+        ++id;
+    } while (id < g_starting_item_ids_end);
+    g_dword_685189 = 500;
+    g_dword_68518d = Function518230(1, 1, -1);
+    g_dword_686a70 = -1;
+    Function554580(&g_flag_687511);
+    for (index = 0; index < 8; ++index) {
+        g_dwords_686a50[index] = 0xffffffff;
+    }
+}
+
+/* Clears the settings block and writes its defaults. The constants 0, 1, 0x40
+   and 0xff are each used many times over, which is why VC6 holds them in
+   registers rather than spelling out immediates. */
+// FUNCTION: WIZ8 0x0054B560
+void Function54B560(void)
+{
+    memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
+    g_settings_6850c8.field_02e = 0x40;
+    g_settings_6850c8.field_030 = 0x40;
+    g_settings_6850c8.field_006 = 1;
+    g_settings_6850c8.field_00a = 0;
+    g_settings_6850c8.field_00b = 0;
+    g_settings_6850c8.field_00c = 1;
+    g_settings_6850c8.field_029 = 1;
+    g_settings_6850c8.field_02a = 1;
+    g_settings_6850c8.field_02b = 1;
+    g_settings_6850c8.field_02c = 1;
+    g_settings_6850c8.field_000 = 0;
+    g_settings_6850c8.field_036 = 0;
+    g_settings_6850c8.field_03b = 0;
+    g_settings_6850c8.field_00d = 1;
+    g_settings_6850c8.field_011 = 0x9c4;
+    g_settings_6850c8.field_015 = 1000;
+    g_settings_6850c8.field_019 = 5000;
+    g_settings_6850c8.field_01d = 1;
+    g_settings_6850c8.field_021 = 1;
+    g_settings_6850c8.field_025 = 600;
+    g_settings_6850c8.field_02f = 0x1f;
+    g_settings_6850c8.field_031 = 0x13;
+    g_settings_6850c8.field_032 = 0xff;
+    g_settings_6850c8.field_033 = 0xff;
+    g_settings_6850c8.field_034 = 0xff;
+    g_settings_6850c8.field_035 = 0xff;
+    g_settings_6850c8.field_037 = 0x40200000;
+    g_settings_6850c8.field_03c = 0x3f800000;
+    g_settings_6850c8.field_040 = 1;
+    g_settings_6850c8.field_042 = 1;
+    g_settings_6850c8.field_041 = 0;
+    g_settings_6850c8.field_043 = 1;
+    g_settings_6850c8.field_001 = 1;
+    g_settings_6850c8.field_045 = 0;
+    g_settings_6850c8.field_047 = 0;
+    g_settings_6850c8.field_048 = 1;
+    g_settings_6850c8.field_049 = 1;
+    g_settings_6850c8.field_04a = 1;
+    g_settings_6850c8.field_04b = 1;
+    g_settings_6850c8.field_04c = 0;
+    g_settings_6850c8.field_04d = 1;
+    g_settings_6850c8.field_04e = 1;
+    g_settings_6850c8.field_04f = 0;
+    g_settings_6850c8.field_050 = 1;
+    Function47B5F0();
+    if (Function428E60() <= 0x4000000) {
+        Function47B5B0(0xb);
+        Function47B5B0(0xc);
+    }
+    if (Function429800() != 1) {
+        Function47B5B0(0x10);
+    }
 }
