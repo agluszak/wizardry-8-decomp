@@ -89,6 +89,12 @@ editor label are not interchangeable evidence. Every reviewed identity therefore
 name came from and how far that may be trusted, validated against a closed vocabulary. The model is
 [docs/wiz8-evidence-model.md](docs/wiz8-evidence-model.md).
 
+No Wiz8 build carries debug information, and the game was linked without RTTI, so class and type
+evidence comes from what survived anyway: C++ exception metadata, the SurRender export tables, and
+the literals passed to diagnostic calls. What each of those channels can and cannot establish is
+[docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md); `wiz8 eh-metadata`,
+`wiz8 surrender-abi` and `wiz8 call-sites` produce them.
+
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
 - `build/manifests/variant-provenance.json` records how each runnable tree was assembled.

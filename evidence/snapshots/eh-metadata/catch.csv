@@ -1,0 +1,2 @@
+program,funcinfo,try_index,try_low,try_high,catch_high,catch_index,adjectives,type_descriptor,type_name,catch_object_offset,handler
+wiz8--demo--wiz8--8acda50afe39,005fd390,0,0,0,1,0,00000008,00616dc0,.?AVError@srIOManager@@,-28,0047eac7

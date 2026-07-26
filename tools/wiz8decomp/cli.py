@@ -499,6 +499,48 @@ def debug_artifacts_command(
     )
 
 
+@app.command("eh-metadata")
+def eh_metadata_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+) -> None:
+    """Extract MSVC exception metadata from every first-party executable."""
+    from .eh_metadata import sweep_eh_metadata
+
+    _run_action(lambda: sweep_eh_metadata(_settings(), update_snapshot=update_snapshot))
+
+
+@app.command("surrender-abi")
+def surrender_abi_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+) -> None:
+    """Decode every SurRender export table into an original-ABI class surface."""
+    from .surrender_abi import sweep_surrender_abi
+
+    _run_action(lambda: sweep_surrender_abi(_settings(), update_snapshot=update_snapshot))
+
+
+@app.command("call-sites")
+def call_sites_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+) -> None:
+    """Recover assertion and runtime-class-name literals from every build."""
+    from .call_sites import sweep_call_sites
+
+    _run_action(lambda: sweep_call_sites(_settings(), update_snapshot=update_snapshot))
+
+
 @sgp_app.command("sweep")
 def sgp_sweep(
     unit: list[str] | None = typer.Option(
