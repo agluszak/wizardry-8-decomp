@@ -591,3 +591,11 @@ def report_bootstrap() -> None:
     from .reports.bootstrap import bootstrap_report
 
     _run_action(lambda: bootstrap_report(_settings()))
+
+
+@report_app.command("translation-units")
+def report_translation_units() -> None:
+    """Regenerate assertion-bounded source intervals and gameplay ownership."""
+    from .reports.translation_units import translation_unit_report
+
+    _run_action(lambda: translation_unit_report(_settings()))
