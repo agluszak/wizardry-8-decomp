@@ -145,37 +145,6 @@ typedef struct W8World {
     W8PtrVector* monster_generators;      /* 0xc4: elements are W8MonsterGenerator* */
 } W8World;
 
-typedef struct W8Vector3Double {
-    double x;
-    double y;
-    double z;
-} W8Vector3Double;
-
-typedef struct W8Vector3 {
-    float x;
-    float y;
-    float z;
-#ifdef __cplusplus
-    W8Vector3* VectorFromThreeFloats(double source_x, double source_y, double source_z);
-    W8Vector3* Copy3DVector(const W8Vector3Double* source);
-#endif
-} W8Vector3;
-
-typedef struct W8WorldItem {
-    int runtime_id;                      /* 0x00 */
-    void* unknown_04;
-    unsigned char unknown_08;
-    W8ItemInstance item;                 /* 0x09 */
-    W8Vector3 position;                  /* 0x15 */
-    unsigned char unknown_21[4];
-    int unknown_25;
-    unsigned int flags;                  /* 0x29 */
-    unsigned char unknown_2d[8];
-    int unknown_35;
-    int sector_id;                       /* 0x39 */
-    unsigned char unknown_3d[0x70];
-} W8WorldItem;                           /* 0xad */
-
 typedef struct W8NPCRecordRef {
     unsigned char unknown_00[0x58];
     int record_id;                        /* 0x058: matches W8NpcDatabaseRecord::record_id */
@@ -355,16 +324,6 @@ W8World* GetWorld(void);
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
 W8MonsterGenerator* FindMonGenByName(const char* name);
-W8WorldItem* CreateWorldItem(
-    const W8ItemInstance* item,
-    const W8Vector3* position,
-    int unknown,
-    unsigned char add_to_world);
-W8WorldItem* SpawnItem(
-    int item_id,
-    const W8Vector3* position,
-    int unknown,
-    unsigned char add_to_world);
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);

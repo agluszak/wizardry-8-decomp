@@ -147,14 +147,24 @@ def render_gameplay_map_csv(
             direct[int(row["containing_function"], 16)] = source_path
 
     rows: list[dict[str, str]] = []
-    counts = {"direct": 0, "inferred": 0, "gap": 0}
+    counts = {"direct": 0, "inferred": 0, "gap": 0, "external": 0}
     for function in sorted(gameplay, key=lambda row: int(row["address"], 16)):
         address = int(function["address"], 16)
         containing = next(
             (interval for interval in intervals if interval.lower <= address <= interval.upper),
             None,
         )
-        if address in direct:
+        if function["owner"] == "surrender-template":
+            attribution = "external"
+            source_path = ""
+            lower = 0
+            upper = 0
+            bounds = ""
+            evidence = (
+                "SurRender template body; reviewed vendor ownership overrides "
+                "address-range inference"
+            )
+        elif address in direct:
             assert containing is not None and containing.source_path == direct[address]
             attribution = "direct"
             source_path = direct[address]

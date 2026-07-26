@@ -1,4 +1,4 @@
-#include "gameplay_boundaries.h"
+#include "item_spawning.h"
 #include "sr_api.h"
 
 #include <malloc.h>
@@ -26,7 +26,7 @@ extern int AddWorldItemToList(void* list, W8WorldItem* item); /* 0x005E2480 */
 // FUNCTION: WIZ8 0x004F6B90
 W8WorldItem* CreateWorldItem(
     const W8ItemInstance* item,
-    const W8Vector3* position,
+    const srVector3T<float>* position,
     int unknown,
     unsigned char add_to_world)
 {
@@ -58,7 +58,7 @@ W8WorldItem* CreateWorldItem(
 // FUNCTION: WIZ8 0x004F6C50
 W8WorldItem* SpawnItem(
     int item_id,
-    const W8Vector3* position,
+    const srVector3T<float>* position,
     int unknown,
     unsigned char add_to_world)
 {

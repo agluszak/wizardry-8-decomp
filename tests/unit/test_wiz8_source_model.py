@@ -139,6 +139,39 @@ def test_allocator_layers_preserve_identity_provenance_and_ownership_signal() ->
     assert sr_imports["005ebac0"]["decorated_name"] == "?allocate@srHeap@@QAEPAXK@Z"
 
 
+def test_surrender_math_templates_preserve_exported_names_and_layouts() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/surrender/math-types.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert {row["type_name"] for row in rows} == {
+        "srVector2T",
+        "srVector3T",
+        "srVector4T",
+        "srMatrix3T",
+        "srMatrix4T",
+        "srVector2i",
+        "srVector3i",
+    }
+    assert {row["name_origin"] for row in rows} == {"original-export"}
+    assert {row["authority"] for row in rows} == {"abi-backed"}
+    by_name = {row["type_name"]: row for row in rows}
+    assert by_name["srVector3T"]["scalar_instantiations"] == "float|double"
+    assert by_name["srVector3T"]["scalar_codes"] == "M|N"
+    assert by_name["srVector3T"]["size_bytes"] == "12|24"
+    assert by_name["srMatrix4T"]["size_bytes"] == "64|128"
+
+    header = (repository / "include/surrender/srMath.h").read_text(encoding="utf-8")
+    gameplay_header = (repository / "src/wiz8/gameplay_boundaries.h").read_text(
+        encoding="utf-8"
+    )
+    item_header = (repository / "src/wiz8/item_spawning.h").read_text(encoding="utf-8")
+    assert "W8Vector3" not in header + gameplay_header + item_header
+    assert "srVector3T<float> position" in item_header
+
+
 def test_startup_spine_separates_library_from_first_party() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/reviewed/wiz8/startup-spine.csv").open(
@@ -418,8 +451,8 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
     ) as stream:
         hooks = list(csv.DictReader(stream))
 
-    assert len(symbols) == 47
-    assert len({row["address"] for row in symbols}) == 47
+    assert len(symbols) == 45
+    assert len({row["address"] for row in symbols}) == 45
     # The bodies these seeds point at are original Wizardry code. Ownership moves off
     # fan-patch-oracle only when another source proves which codebase the body is from;
     # so far that is only 0x0040EFA0, which the SGP Random.c compile placed in sgp-shared.

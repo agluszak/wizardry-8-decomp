@@ -282,7 +282,7 @@ if(WIZ8_BUILD_DECOMP)
     set_source_files_properties(src/wiz8/random_number.c PROPERTIES COMPILE_OPTIONS /G5)
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8)
+    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8 include)
 
     # Matching source stays free of synthetic implementations. This umbrella
     # preserves the old object-target name while giving the executable work a

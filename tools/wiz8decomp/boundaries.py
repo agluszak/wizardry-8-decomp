@@ -52,7 +52,10 @@ def symbol_candidates(decorated: str) -> tuple[str, ...]:
 
     match = DECORATED.match(decorated)
     if match is None:
-        return (decorated.lstrip("_").split("@")[0],)
+        # Template owners carry additional @-delimited arguments, so the
+        # simple class regex above cannot recover a qualified owner. The bare
+        # member name is still unambiguous in the reviewed boundary map.
+        return (decorated.lstrip("_?").split("@")[0],)
     method = match.group("method")
     owner = match.group("owner")
     names = [f"{owner}::{method}"]

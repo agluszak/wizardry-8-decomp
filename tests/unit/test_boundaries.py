@@ -22,9 +22,9 @@ def test_a_decorated_method_is_offered_under_the_names_a_review_may_use() -> Non
         "GrCycle::SetBehaviour",
         "SetBehaviour",
     )
-    assert symbol_candidates("?Copy3DVector@W8Vector3@@QAEPAU1@PBUW8Vector3Double@@@Z")[-1] == (
-        "Copy3DVector"
-    )
+    assert symbol_candidates(
+        "?method_00446110@?$srVector3T@M@@QAEPAV1@PBV?$srVector3T@N@@@Z"
+    )[-1] == "method_00446110"
 
 
 def test_undecorated_names_lose_only_the_c_prefix_and_stdcall_suffix() -> None:
@@ -87,5 +87,8 @@ def test_reccmp_similarity_is_not_the_matching_criterion() -> None:
 
     with MAPPING.open(newline="", encoding="utf-8") as stream:
         rows = {row["symbol"]: row for row in csv.DictReader(stream)}
+
+    assert rows["method_00421680"]["owner"] == "surrender-template"
+    assert rows["method_00446110"]["owner"] == "surrender-template"
 
     assert rows["AddLinesToMessageBox"]["confidence"] == "exact"

@@ -1,10 +1,10 @@
 #pragma once
 
+#include "srMath.h"
 #include "srTypeRegistry.h"
 
 class srPalette;
 class srStat;
-class srVector2i;
 
 class srARGB {
 public:
@@ -15,9 +15,6 @@ public:
         INDEX_BLUE = 3
     };
 };
-
-template <class T>
-class srVector4T;
 
 class srPixelConvert {
 public:

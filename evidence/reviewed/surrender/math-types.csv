@@ -1,0 +1,8 @@
+type_name,kind,scalar_instantiations,scalar_codes,layout,size_bytes,name_origin,authority,evidence
+srVector2T,template,float,M,two contiguous scalars,8,original-export,abi-backed,"Wiz8.exe imports srVector2T<float>; SR.DLL operator>> 0x10031910 stores floats at +0 and +4"
+srVector3T,template,float|double,M|N,three contiguous scalars,12|24,original-export,abi-backed,"Wiz8.exe imports both instantiations; SR.DLL operators 0x10031970 and 0x100319A0 store at float offsets 0/4/8 and double offsets 0/8/16"
+srVector4T,template,float,M,four contiguous scalars,16,original-export,abi-backed,"Wiz8.exe imports srVector4T<float>; SR.DLL operator>> 0x100319D0 stores floats at +0/+4/+8/+12"
+srMatrix3T,template,float|double,M|N,three contiguous srVector3T elements,36|72,original-export,abi-backed,"Wiz8.exe imports both instantiations; SR.DLL operators 0x10031B50 and 0x10031BE0 iterate three vectors with strides 0x0C and 0x18"
+srMatrix4T,template,float|double,M|N,four contiguous srVector4T elements,64|128,original-export,abi-backed,"Wiz8.exe imports both instantiations; SR.DLL operators 0x10031B80 and 0x10031C10 iterate four vectors with strides 0x10 and 0x20"
+srVector2i,class,int,,two contiguous signed integers,8,original-export,abi-backed,"Wiz8.exe imports srVector2i; SR.DLL operator>> 0x10031A50 stores dwords at +0 and +4"
+srVector3i,class,int,,three contiguous signed integers,12,original-export,abi-backed,"Wiz8.exe imports srVector3i; SR.DLL operator>> 0x10031A80 stores dwords at +0/+4/+8"

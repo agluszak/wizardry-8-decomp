@@ -31,9 +31,17 @@ def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     rendered_intervals = render_interval_csv(intervals)
     rendered_gameplay, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
     assert counts["direct"] + counts["inferred"] >= 25
+    assert counts["external"] == 2
 
     mapped = list(csv.DictReader(io.StringIO(rendered_gameplay)))
     assert Counter(row["attribution"] for row in mapped) == counts
+    external = [row for row in mapped if row["attribution"] == "external"]
+    assert {row["symbol"] for row in external} == {
+        "method_00421680",
+        "method_00446110",
+    }
+    assert all(not row["source_path"] for row in external)
+    assert all(not row["interval_lower"] and not row["interval_upper"] for row in external)
     assert len(list(csv.DictReader(io.StringIO(rendered_intervals)))) == 225
     assert (
         next(row for row in mapped if row["symbol"] == "GetMonsterDataByID")["source_path"]

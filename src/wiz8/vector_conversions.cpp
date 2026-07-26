@@ -1,19 +1,19 @@
-#include "gameplay_boundaries.h"
+#include "surrender/srMath.h"
 
 // FUNCTION: WIZ8 0x00421680
-W8Vector3* W8Vector3::VectorFromThreeFloats(
-    double source_x,
-    double source_y,
-    double source_z)
+srVector3T<float>* srVector3T<float>::method_00421680(
+    double source_0,
+    double source_1,
+    double source_2)
 {
-    x = (float)source_x;
-    y = (float)source_y;
-    z = (float)source_z;
+    x = (float)source_0;
+    y = (float)source_1;
+    z = (float)source_2;
     return this;
 }
 
 // FUNCTION: WIZ8 0x00446110
-W8Vector3* W8Vector3::Copy3DVector(const W8Vector3Double* source)
+srVector3T<float>* srVector3T<float>::method_00446110(const srVector3T<double>* source)
 {
     x = (float)source->x;
     y = (float)source->y;
