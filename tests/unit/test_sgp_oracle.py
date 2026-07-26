@@ -1,4 +1,5 @@
 import csv
+import hashlib
 from pathlib import Path
 
 import yaml
@@ -26,7 +27,8 @@ def test_sgp_oracle_tracks_the_complete_reviewed_census() -> None:
     )
 
     assert oracle["revision"] == "5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033"
-    assert oracle["license"]["policy"] == "oracle-only"
+    assert oracle["license"]["policy"] == "vendored-noncommercial"
+    assert oracle["vendored_source"]["root"] == "third_party/sfi-sgp/sgp"
     assert len(oracle["active_wiz8_pch_sources"]) == 33
     assert len(oracle["commented_wiz8_pch_sources"]) == 1
     assert len(oracle["additional_wizardry_evidence"]) == 11
@@ -43,12 +45,13 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     ) as stream:
         paths = list(csv.DictReader(stream))
 
-    assert len(functions) == 31
+    assert len(functions) == 35
     assert {row["confidence"] for row in functions} == {"exact"}
     assert {row["owner"] for row in functions} == {"sgp-shared"}
     assert {row["source_path"] for row in functions} == {
         "sgp/DirectDraw Calls.c",
         "sgp/FileMan.c",
+        "sgp/LibraryDataBase.c",
         "sgp/Random.c",
     }
     assert len(paths) == 7
@@ -110,8 +113,10 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
     assert harness["project_flag_hypothesis"] == ["/O2", "/Ob2", "/G5", "/MD"]
     assert {unit["id"] for unit in harness["units"]} == {
         "compression",
+        "dbman",
         "directdraw",
         "fileman",
+        "librarydatabase",
         "random",
     }
     assert set(harness["flag_axes"]) == {
@@ -245,3 +250,49 @@ def test_fileman_exact_and_near_results_stay_separate() -> None:
     assert "stride 0x20" in near[0]["details"]
     assert "stride 0x28" in near[0]["details"]
     assert near[1]["build_scope"] == "gog_1261_new"
+
+
+def test_vendored_sgp_source_retains_license_and_pinned_units() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    source = repository / "third_party/sfi-sgp/sgp"
+    expected = {
+        "LibraryDataBase.c": "9322504f3557c8b704fb990d84fbe9be5640f5c34dcb1d9b8da632dfc0c2681a",
+        "DbMan.c": "0d42da2c0be7e9c0f2935e0b5b619257997228a8f753aa5e0021793bd90b7d20",
+        "SFI Source Code license agreement.txt": (
+            "f78ace6a6cfd40cb1b49de2e5fd4a113ebc58cab4864e4a4e5fffd428005c7fd"
+        ),
+    }
+    for relative, digest in expected.items():
+        assert hashlib.sha256((source / relative).read_bytes()).hexdigest() == digest
+    assert not [path for path in source.iterdir() if path.suffix.casefold() == ".lib"]
+
+
+def test_library_database_units_keep_exact_near_and_interior_results_distinct() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    library = _harness_rows(repository, "librarydatabase")
+    dbman = _harness_rows(repository, "dbman")
+    reviewed_library = _reviewed_rows(repository, "librarydatabase")
+    reviewed_dbman = _reviewed_rows(repository, "dbman")
+    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        accepted = [
+            row for row in csv.DictReader(stream) if row["source_path"] == "sgp/LibraryDataBase.c"
+        ]
+
+    assert len(library) == 23 * 7
+    assert len(dbman) == 20 * 7
+    assert {row["flags"] for row in library + dbman} == {"/O2 /Ob2 /G5 /MD"}
+    assert {row["provisional_name"] for row in accepted} == {
+        "ShutDownFileDatabase",
+        "CreateRealFileHandle",
+        "GetLibraryAndFileIDFromLibraryFileHandle",
+        "CompareDirEntryFileNames",
+    }
+    assert {row["function"] for row in reviewed_library} == {
+        "CheckIfFileExistInLibrary",
+        "CompareFileNames",
+    }
+    assert reviewed_dbman[0]["function"] == "DbExists"
+    assert reviewed_dbman[0]["canonical_classification"] == "rejected-interior-match"
+    assert reviewed_dbman[0]["canonical_address"] == "00519bee"

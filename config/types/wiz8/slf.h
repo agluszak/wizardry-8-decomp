@@ -5,24 +5,31 @@
 
 #pragma pack(push, 1)
 
-typedef struct W8SlfHeader {
-    char archive_name[256];             /* 0x000 */
-    char base_path[256];                /* 0x100 */
-    uint32_t file_count;                /* 0x200 */
-    uint32_t second_count;              /* 0x204: meaning not yet established */
-    uint32_t unknown_208;               /* 0x208 */
-    uint32_t unknown_20c;               /* 0x20c */
-    uint32_t unknown_210;               /* 0x210 */
-} W8SlfHeader;                          /* 0x214 */
+typedef struct LIBHEADER {
+    char sLibName[256];                 /* 0x000 */
+    char sPathToLibrary[256];           /* 0x100 */
+    int32_t iEntries;                   /* 0x200 */
+    int32_t iUsed;                      /* 0x204 */
+    uint16_t iSort;                     /* 0x208 */
+    uint16_t iVersion;                  /* 0x20a */
+    uint8_t fContainsSubDirectories;    /* 0x20c */
+    uint8_t padding_20d[3];             /* 0x20d */
+    int32_t iReserved;                  /* 0x210 */
+} LIBHEADER;                            /* 0x214: SGP source name */
+typedef LIBHEADER W8SlfHeader;          /* compatibility alias */
 
-typedef struct W8SlfDirectoryEntry {
-    char path[256];                     /* 0x000 */
-    uint32_t data_offset;               /* 0x100 */
-    uint32_t data_size;                 /* 0x104 */
-    uint32_t status_108;                /* 0x108: low byte zero means active */
-    uint64_t file_time;                 /* 0x10c: Windows FILETIME representation */
-    uint32_t unknown_114;               /* 0x114 */
-} W8SlfDirectoryEntry;                  /* 0x118 */
+typedef struct DIRENTRY {
+    char sFileName[256];                /* 0x000 */
+    uint32_t uiOffset;                  /* 0x100 */
+    uint32_t uiLength;                  /* 0x104 */
+    uint8_t ubState;                    /* 0x108: FILE_OK is zero */
+    uint8_t ubReserved;                 /* 0x109 */
+    uint8_t padding_10a[2];             /* 0x10a */
+    uint64_t sFileTime;                 /* 0x10c: Win32 FILETIME */
+    uint16_t usReserved2;               /* 0x114 */
+    uint8_t padding_116[2];             /* 0x116 */
+} DIRENTRY;                             /* 0x118: SGP source name */
+typedef DIRENTRY W8SlfDirectoryEntry;   /* compatibility alias */
 
 typedef struct W8SlfLiveEntry {
     char *path;                          /* 0x00: separately allocated */

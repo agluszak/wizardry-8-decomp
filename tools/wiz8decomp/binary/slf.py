@@ -7,8 +7,8 @@ from pathlib import Path
 SLF_HEADER_SIZE = 0x214
 SLF_DIRECTORY_ENTRY_SIZE = 0x118
 
-_HEADER = struct.Struct("<256s256sIIIII")
-_DIRECTORY_ENTRY = struct.Struct("<256sIIIQI")
+_HEADER = struct.Struct("<256s256siiHHB3xi")
+_DIRECTORY_ENTRY = struct.Struct("<256sIIBB2xQH2x")
 
 
 def _cstring(raw: bytes) -> str:
@@ -20,10 +20,11 @@ class SlfHeader:
     archive_name: str
     base_path: str
     file_count: int
-    second_count: int
-    unknown_208: int
-    unknown_20c: int
-    unknown_210: int
+    used_count: int
+    sort_order: int
+    version: int
+    contains_subdirectories: bool
+    reserved: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,8 +33,9 @@ class SlfDirectoryEntry:
     data_offset: int
     data_size: int
     status: int
+    reserved_byte: int
     file_time: int
-    unknown_114: int
+    reserved_word: int
 
     @property
     def is_active(self) -> bool:
@@ -64,10 +66,11 @@ def read_slf(path: Path) -> SlfArchive:
             archive_name=_cstring(unpacked_header[0]),
             base_path=_cstring(unpacked_header[1]),
             file_count=unpacked_header[2],
-            second_count=unpacked_header[3],
-            unknown_208=unpacked_header[4],
-            unknown_20c=unpacked_header[5],
-            unknown_210=unpacked_header[6],
+            used_count=unpacked_header[3],
+            sort_order=unpacked_header[4],
+            version=unpacked_header[5],
+            contains_subdirectories=bool(unpacked_header[6]),
+            reserved=unpacked_header[7],
         )
 
         directory_size = header.file_count * SLF_DIRECTORY_ENTRY_SIZE
@@ -89,8 +92,9 @@ def read_slf(path: Path) -> SlfArchive:
                 data_offset=unpacked_entry[1],
                 data_size=unpacked_entry[2],
                 status=unpacked_entry[3],
-                file_time=unpacked_entry[4],
-                unknown_114=unpacked_entry[5],
+                reserved_byte=unpacked_entry[4],
+                file_time=unpacked_entry[5],
+                reserved_word=unpacked_entry[6],
             )
             if entry.data_offset + entry.data_size > directory_offset:
                 raise ValueError(f"SLF entry {entry.path!r} extends into the directory: {path}")

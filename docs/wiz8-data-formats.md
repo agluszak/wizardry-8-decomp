@@ -5,8 +5,9 @@ local corpus. Unknown fields remain unknown.
 
 ## SLF archives
 
-The canonical `OpenSlfArchive` routine at `0x00412bb0` establishes the container
-layout directly:
+The vendored SGP `LibraryDataBase.c` names the on-disk structures `LIBHEADER` and `DIRENTRY`.
+Their declarations establish the field meanings; the canonical `InitializeLibrary` routine at
+`0x00412bb0` independently establishes that Wizardry uses those exact sizes and offsets:
 
 - it reads a `0x214`-byte header from offset zero;
 - it seeks to `file_count * -0x118` relative to EOF;
@@ -20,14 +21,17 @@ bytes and contains 3,612 entries, with its directory beginning at `0x07892649`.
 These values are observations, not identities: mtimes and corpus paths are not part of
 the format.
 
-The tracked declarations are in `config/types/wiz8/slf.h`. The parser in
+The tracked declarations are in `config/types/wiz8/slf.h` with the SGP names canonical and the old
+`W8SlfHeader`/`W8SlfDirectoryEntry` names retained only as compatibility aliases. The parser in
 `tools/wiz8decomp/binary/slf.py` reads only the header and EOF directory; it does not
 extract payloads.
 
-Six packed `W8SlfConfiguration` records begin at `0x006000c8`. The initialized game
-allocates six `W8SlfArchiveState` records of `0x28` bytes and stores their pointer at
+Six packed `W8SlfConfiguration` records begin at `0x006000c8`. They correspond to the six paths
+embedded by Wizardry's missing `WizLibs.c`. The initialized game allocates six
+`LibraryHeaderStruct` records of `0x28` bytes and stores their pointer at
 `0x006eb724`. The optional mapping fields at `+0x20` and `+0x24` are populated by
-`CreateFileMappingA` and `MapViewOfFile`.
+`CreateFileMappingA` and `MapViewOfFile`; these are Wizardry's extension of the released SGP
+structure's `0x20`-byte common prefix.
 
 The game wraps physical and archived files behind one integer handle API:
 

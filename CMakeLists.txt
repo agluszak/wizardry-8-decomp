@@ -12,7 +12,8 @@ set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered g
 set(FID_JPEG_SOURCE "" CACHE PATH "Pinned IJG JPEG source tree used for FID seeds")
 set(FID_INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP source tree used for FID seeds")
 set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
-set(SGP_SOURCE "" CACHE PATH "Pinned released SGP source tree used as a comparison oracle")
+set(SGP_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/sfi-sgp/sgp" CACHE PATH
+    "Vendored SFI-licensed Standard Gaming Platform source tree")
 set(RECCMP_PROJECT_DIR_HOST "" CACHE PATH "Host path to the reccmp project")
 set(RECCMP_BUILD_DIR_HOST "" CACHE PATH "Host path to this build directory")
 
@@ -266,7 +267,7 @@ endif()
 if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     set(WIZ8_SGP_SWEEP_FLAGS "" CACHE STRING
         "Semicolon-separated flags appended to every configured SGP oracle unit")
-    # One probe target per released SGP translation unit. Each unit gets only the
+    # One target per released SGP translation unit. Each unit gets only the
     # WIZ8 SGP ALL.H surface its own source proves necessary, plus the shared
     # empty builddefines.h overlay. The common release profile is the primary
     # hypothesis: the released VC6 SGP project stores release flags at project
@@ -301,6 +302,11 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     wiz8_add_sgp_unit(WIZ8_SGP_COMPRESSION "Compression.c" compression)
 
     wiz8_add_sgp_unit(WIZ8_SGP_FILEMAN "FileMan.c" fileman)
+
+    # Wizardry's six embedded SLF paths recover the missing WizLibs.h library
+    # count used by LibraryDataBase.c. DbMan.c has no product-private surface.
+    wiz8_add_sgp_unit(WIZ8_SGP_LIBRARY_DATABASE "LibraryDataBase.c" librarydatabase)
+    wiz8_add_sgp_unit(WIZ8_SGP_DBMAN "DbMan.c" dbman)
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

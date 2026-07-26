@@ -9,9 +9,10 @@ initial-import root.
 
 The source is covered by the Strategy First Source Code License Agreement. Its terms are not a
 normal permissive open-source grant: they restrict use to non-commercial purposes and impose
-conditions on redistribution and derivative works. We therefore pin and compile the source only as
-a local oracle. No released SGP source is copied into this repository. The exact license artifact is
-`sgp/SFI Source Code license agreement.txt`, Git blob
+conditions on redistribution and derivative works. This project is non-commercial and accepts
+those conditions, so the pinned tree is vendored at `third_party/sfi-sgp/sgp` with the verbatim
+license. Modified licensed files must carry the notices and dates required by the agreement. The
+exact license artifact is `sgp/SFI Source Code license agreement.txt`, Git blob
 `b66aabc6f7affb4fca0b6cc2d6288f3225ecd0b1`.
 
 ## Wizardry branches
@@ -60,9 +61,8 @@ fields produces 13 exact functions in the canonical executable:
 just build WIZ8_SGP_DIRECTDRAW
 ```
 
-The prerequisite Just recipe clones the oracle into `WIZ8_WORK_DIR`, creates a detached worktree at
-the pinned commit, and verifies `HEAD` before CMake sees it. The licensed source and COFF object stay
-outside git.
+The tracked provenance pins the original revision and tree. CMake compiles the vendored source
+directly; generated COFF objects remain outside git under `WIZ8_WORK_DIR`.
 
 | Address | Source identity | Size |
 | --- | --- | ---: |
@@ -216,6 +216,32 @@ Two near matches are deliberately not promoted as exact:
 The byte offsets and behavioral deltas are tracked in the `fileman` rows of
 `config/analysis/sgp/reviewed-findings.csv`; the generated similarities remain in the matching
 rows of `config/analysis/sgp/harness.csv`.
+
+## `LibraryDataBase.c` and `DbMan.c`: vendored SLF subsystem
+
+These units are compiled directly from `third_party/sfi-sgp/sgp`; they are no longer treated as
+implementation that needs independent reconstruction. `LibraryDataBase.c` emits 23 functions and
+`DbMan.c` emits 20 under the common project profile.
+
+Four `LibraryDataBase.c` identities are exact in all five comparable executables:
+
+| Address | Source identity | Size |
+| --- | --- | ---: |
+| `0x00412B10` | `ShutDownFileDatabase` | 145 |
+| `0x00413680` | `CreateRealFileHandle` | 175 |
+| `0x00413730` | `GetLibraryAndFileIDFromLibraryFileHandle` | 31 |
+| `0x00413D00` | `CompareDirEntryFileNames` | 83 |
+
+`CheckIfFileExistInLibrary` and `CompareFileNames` retain the source behavior but index Wizardry's
+`0x28`-byte `LibraryHeaderStruct`, which extends the released `0x20`-byte structure with the file
+mapping handle and view already observed in the binary. The disk structures are unchanged:
+`LIBHEADER` is `0x214`, `DIRENTRY` is `0x118`, `FileHeaderStruct` is `0x0C`, and `FileOpenStruct` is
+`0x10`. Their source names and fields are installed under `/wiz8/sgp`, together with the extended
+runtime structure and `DatabaseManagerHeaderStruct` global at `0x006EB720`.
+
+`DbExists` is not promoted. Its 14-byte source wrapper occurs at `0x00519BEE`, fourteen bytes into
+an existing 31-byte function after a range guard; it is an interior sequence rather than a function
+start. The rejection is retained in `reviewed-findings.csv`.
 
 ### `Random`, not `GetRandomNumber`
 

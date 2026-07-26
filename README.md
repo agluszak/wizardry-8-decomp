@@ -5,6 +5,10 @@ This repository contains reproducible tooling and analysis metadata, not Wizardr
 and `just ghidra` forward corpus- and Ghidra-specific arguments to the typed Python CLI. CMake owns
 all compilation units and compiler flags for recovered binaries and source-built FID seeds.
 
+The shared Standard Gaming Platform source is distributed under Strategy First's non-commercial
+SFI Source Code License Agreement in `third_party/sfi-sgp/sgp`. This project accepts those terms;
+the vendored subtree is not offered under broader or commercial-use terms.
+
 Copy `.env.example` to `.env`, set the three absolute machine paths, and copy
 `config/local-inputs.example.yml` to the gitignored `config/local-inputs.yml`. Input paths in
 that file are relative to `WIZ8_INPUT_DIR`; roles are explicit and are never guessed from names.

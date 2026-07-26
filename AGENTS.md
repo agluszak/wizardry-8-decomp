@@ -15,6 +15,10 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
 - Use the single SGP project flag hypothesis in `config/analysis/sgp/harness.yml`. Do not infer
   per-translation-unit flags from sparse matches; reconsider the project profile only against a
   larger recovered corpus.
+- SGP is vendored under `third_party/sfi-sgp` under the non-commercial SFI-SCLA. Preserve its
+  verbatim license. Do not remove upstream notices; prominently mark modified licensed files with
+  the change and date. Prefer adapting this source over independently reconstructing identical SGP
+  code from the binary.
 - Never commit game binaries, extracted trees, Ghidra projects, or build products. They belong in
   `WIZ8_WORK_DIR` or the gitignored `build/` directory.
 

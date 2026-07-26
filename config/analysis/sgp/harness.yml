@@ -1,5 +1,6 @@
 schema: wiz8.sgp-harness
 source_revision: 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033
+source_root: third_party/sfi-sgp/sgp
 toolchain: vc6-sp5
 
 # Primary hypothesis: Wizardry compiled the SGP static-library project with one
@@ -48,3 +49,11 @@ units:
     target: WIZ8_SGP_FILEMAN
     source: FileMan.c
     overlay: fileman
+  - id: librarydatabase
+    target: WIZ8_SGP_LIBRARY_DATABASE
+    source: LibraryDataBase.c
+    overlay: librarydatabase
+  - id: dbman
+    target: WIZ8_SGP_DBMAN
+    source: DbMan.c
+    overlay: dbman

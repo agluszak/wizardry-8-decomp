@@ -59,7 +59,8 @@ Two further columns apply where a layout rather than a name is at stake:
 | `descriptive` | We named it from observed behaviour. No external source claims this name. |
 
 `sgp-source` is deliberately narrower than `original-source`: it also asserts the licence and
-oracle-only handling described in [docs/libraries/sgp-source-oracle.md](libraries/sgp-source-oracle.md).
+vendored non-commercial handling described in
+[docs/libraries/sgp-source-oracle.md](libraries/sgp-source-oracle.md).
 
 ## `authority` vocabulary and its ceiling rule
 

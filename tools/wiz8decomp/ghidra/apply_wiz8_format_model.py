@@ -67,13 +67,19 @@ def apply_wiz8_format_model(
                     "W8SlfHeader",
                     0x214,
                     [
-                        (0x000, ArrayDataType(char, 256, 1), "archive_name", "archive name"),
-                        (0x100, ArrayDataType(char, 256, 1), "base_path", "payload base path"),
-                        (0x200, dword, "file_count", "number of EOF directory records"),
-                        (0x204, dword, "second_count", "meaning not yet established"),
-                        (0x208, dword, "unknown_208", "unreviewed header field"),
-                        (0x20C, dword, "unknown_20c", "unreviewed header field"),
-                        (0x210, dword, "unknown_210", "unreviewed header field"),
+                        (0x000, ArrayDataType(char, 256, 1), "sLibName", "source: library name"),
+                        (
+                            0x100,
+                            ArrayDataType(char, 256, 1),
+                            "sPathToLibrary",
+                            "source: payload base path",
+                        ),
+                        (0x200, integer, "iEntries", "source: EOF directory record count"),
+                        (0x204, integer, "iUsed", "source: used entry count"),
+                        (0x208, word, "iSort", "source: sort mode"),
+                        (0x20A, word, "iVersion", "source: archive version"),
+                        (0x20C, byte, "fContainsSubDirectories", "source: subdirectory flag"),
+                        (0x210, integer, "iReserved", "source: reserved field"),
                     ],
                 )
                 directory_entry = _structure(
@@ -82,12 +88,13 @@ def apply_wiz8_format_model(
                     "W8SlfDirectoryEntry",
                     0x118,
                     [
-                        (0x000, ArrayDataType(char, 256, 1), "path", "payload path"),
-                        (0x100, dword, "data_offset", "payload offset from archive start"),
-                        (0x104, dword, "data_size", "payload byte size"),
-                        (0x108, dword, "status_108", "low byte zero means active"),
-                        (0x10C, qword, "file_time", "Windows FILETIME representation"),
-                        (0x114, dword, "unknown_114", "unreviewed directory field"),
+                        (0x000, ArrayDataType(char, 256, 1), "sFileName", "source: payload path"),
+                        (0x100, dword, "uiOffset", "source: payload offset"),
+                        (0x104, dword, "uiLength", "source: payload byte size"),
+                        (0x108, byte, "ubState", "source: FILE_OK is zero"),
+                        (0x109, byte, "ubReserved", "source: reserved byte"),
+                        (0x10C, qword, "sFileTime", "source: Win32 FILETIME"),
+                        (0x114, word, "usReserved2", "source: reserved word"),
                     ],
                 )
                 waypoint_header = _structure(

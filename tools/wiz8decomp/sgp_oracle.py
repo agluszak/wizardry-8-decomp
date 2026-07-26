@@ -18,7 +18,6 @@ import yaml
 from .config import Settings
 from .ghidra.fid_seeds import _docker_cmake_build, load_static_libraries
 from .paths import atomic_write, sha256_file
-from .subprocesses import run
 
 RELOCATION_TYPES = frozenset({0x06, 0x07, 0x14})
 CLASSIFICATION_RANK = {
@@ -285,18 +284,11 @@ def _compile_units(
     config: dict[str, Any],
     units: list[dict[str, Any]],
 ) -> dict[str, list[tuple[tuple[str, ...], list[CoffFunction]]]]:
-    source = settings.work_dir / "oracles" / f"ja2-sgp-{config['source_revision'][:7]}" / "sgp"
+    source = settings.repo_dir / config["source_root"]
     if not source.is_dir():
-        raise RuntimeError("pinned SGP source is missing; run 'just _sgp-source'")
-    head = run(
-        ["git", "-C", source, "rev-parse", "HEAD"],
-        cwd=settings.repo_dir,
-        log_path=settings.build_dir / "logs" / "sgp" / "source-revision.json",
-    ).stdout.strip()
-    if head != config["source_revision"]:
-        raise RuntimeError(
-            f"SGP source revision mismatch: expected {config['source_revision']}, got {head}"
-        )
+        raise RuntimeError(f"vendored SGP source is missing: {source}")
+    if not (source / "SFI Source Code license agreement.txt").is_file():
+        raise RuntimeError("vendored SGP source is missing its required SFI license")
     toolchains = {item.id: item for item in load_static_libraries(settings).toolchains}
     toolchain = toolchains.get(config["toolchain"])
     if toolchain is None or "compiler" not in toolchain.capabilities:
@@ -313,7 +305,7 @@ def _compile_units(
                 "WIZ8_BUILD_DECOMP": "OFF",
                 "WIZ8_BUILD_FID_SEEDS": "OFF",
                 "WIZ8_BUILD_SGP_PROBES": "ON",
-                "SGP_SOURCE": "Z:/sources/sgp",
+                "SGP_SOURCE": "Z:/repo/third_party/sfi-sgp/sgp",
                 "WIZ8_SGP_SWEEP_FLAGS": ";".join(flags),
             }
             for unit in units:
@@ -323,7 +315,6 @@ def _compile_units(
                     output=output,
                     target=unit["target"],
                     definitions=definitions,
-                    source_mounts={"sgp": source},
                     log_name=f"sgp-{unit['id']}-flags-{index:02d}",
                 )
                 objects = sorted((output / "CMakeFiles" / f"{unit['target']}.dir").rglob("*.obj"))

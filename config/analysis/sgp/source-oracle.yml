@@ -7,10 +7,15 @@ source_root: sgp
 license:
   path: sgp/SFI Source Code license agreement.txt
   blob: b66aabc6f7affb4fca0b6cc2d6288f3225ecd0b1
-  policy: oracle-only
+  policy: vendored-noncommercial
   reason: >-
-    The SFI source agreement is non-commercial and imposes redistribution
-    conditions. No released source is copied into this repository.
+    The project is non-commercial and accepts the SFI source agreement's
+    redistribution conditions. The source is vendored with the verbatim
+    license and provenance at third_party/sfi-sgp.
+vendored_source:
+  root: third_party/sfi-sgp/sgp
+  policy: preserve-upstream-files-verbatim-or-mark-modifications-with-date
+  excluded_prebuilt_binaries: [SMACKW32.LIB, ddraw.lib, mss32.lib]
 
 compile_model:
   project_flag_hypothesis: [/O2, /Ob2, /G5, /MD]
@@ -134,3 +139,19 @@ compression_unit:
     Compression.obj immediately precedes the selected zlib objects. The five
     retained COMDATs preserve source order at 0x00415820 through 0x004158F0;
     inflateReset begins at 0x00415910 after alignment.
+
+library_database_units:
+  sources: [sgp/LibraryDataBase.c, sgp/DbMan.c]
+  selected_flags: [/O2, /Ob2, /G5, /MD]
+  wizardry_library_count: 6
+  exact_source_identities: 4
+  rejected_interior_matches: [DbExists]
+  layouts:
+    LIBHEADER: {size: 0x214, layout_origin: sgp-source}
+    DIRENTRY: {size: 0x118, layout_origin: sgp-source}
+    FileHeaderStruct: {size: 0x0c, layout_origin: sgp-source}
+    FileOpenStruct: {size: 0x10, layout_origin: sgp-source}
+    LibraryHeaderStruct:
+      released_size: 0x20
+      wizardry_size: 0x28
+      layout_origin: sgp-source|wizardry-binary-extension

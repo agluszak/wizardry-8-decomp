@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..config import Settings
-from .apply_unzip_model import _function_type, _structure
+from .apply_unzip_model import _apply_data, _function_type, _structure
 from .environment import start_pyghidra
 from .project import resolve_program_name
 from .query_daemon import stop_daemon
@@ -31,8 +31,11 @@ def apply_sgp_model(
         EnumDataType,
         IntegerDataType,
         PointerDataType,
+        QWordDataType,
+        ShortDataType,
         TypedefDataType,
         VoidDataType,
+        WordDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -50,7 +53,10 @@ def apply_sgp_model(
                 char = CharDataType.dataType
                 dword = DWordDataType.dataType
                 integer = IntegerDataType.dataType
+                qword = QWordDataType.dataType
+                short = ShortDataType.dataType
                 void = VoidDataType.dataType
+                word = WordDataType.dataType
                 generic_pointer = PointerDataType(dtm)
 
                 def com_interface(name: str) -> Any:
@@ -206,6 +212,163 @@ def apply_sgp_model(
                     ],
                 )
 
+                # LibraryDataBase.h is the source authority for the SLF disk
+                # records and the common prefix of Wizardry's archive state.
+                # Wizardry extends the released 0x20-byte LibraryHeaderStruct
+                # with its independently observed mapping handle and view.
+                lib_header = _structure(
+                    dtm,
+                    category,
+                    "LIBHEADER",
+                    0x214,
+                    [
+                        (0x000, ArrayDataType(char, 256, 1), "sLibName", "source name"),
+                        (
+                            0x100,
+                            ArrayDataType(char, 256, 1),
+                            "sPathToLibrary",
+                            "source base path",
+                        ),
+                        (0x200, integer, "iEntries", "source directory count"),
+                        (0x204, integer, "iUsed", "source used count"),
+                        (0x208, word, "iSort", "source sort mode"),
+                        (0x20A, word, "iVersion", "source archive version"),
+                        (
+                            0x20C,
+                            boolean,
+                            "fContainsSubDirectories",
+                            "source subdirectory flag",
+                        ),
+                        (0x210, integer, "iReserved", "source reserved field"),
+                    ],
+                )
+                dir_entry = _structure(
+                    dtm,
+                    category,
+                    "DIRENTRY",
+                    0x118,
+                    [
+                        (0x000, ArrayDataType(char, 256, 1), "sFileName", "source path"),
+                        (0x100, dword, "uiOffset", "source payload offset"),
+                        (0x104, dword, "uiLength", "source payload length"),
+                        (0x108, byte, "ubState", "source FILE_OK state"),
+                        (0x109, byte, "ubReserved", "source reserved byte"),
+                        (0x10C, qword, "sFileTime", "source Win32 FILETIME"),
+                        (0x114, word, "usReserved2", "source reserved word"),
+                    ],
+                )
+                file_header = _structure(
+                    dtm,
+                    category,
+                    "FileHeaderStruct",
+                    0x0C,
+                    [
+                        (0x00, PointerDataType(char, dtm), "pFileName", "source file name"),
+                        (0x04, dword, "uiFileLength", "source file length"),
+                        (0x08, dword, "uiFileOffset", "source archive offset"),
+                    ],
+                )
+                file_open = _structure(
+                    dtm,
+                    category,
+                    "FileOpenStruct",
+                    0x10,
+                    [
+                        (0x00, dword, "uiFileID", "source one-based file ID"),
+                        (0x04, dword, "uiFilePosInFile", "source logical position"),
+                        (
+                            0x08,
+                            dword,
+                            "uiActualPositionInLibrary",
+                            "source archive position",
+                        ),
+                        (
+                            0x0C,
+                            PointerDataType(file_header, dtm),
+                            "pFileHeader",
+                            "source live entry",
+                        ),
+                    ],
+                )
+                library_header = _structure(
+                    dtm,
+                    category,
+                    "LibraryHeaderStruct",
+                    0x28,
+                    [
+                        (0x00, PointerDataType(char, dtm), "sLibraryPath", "source path"),
+                        (0x04, generic_pointer, "hLibraryHandle", "source Win32 handle"),
+                        (0x08, word, "usNumberOfEntries", "source active entry count"),
+                        (0x0A, boolean, "fLibraryOpen", "source open flag"),
+                        (
+                            0x0C,
+                            dword,
+                            "uiIdOfOtherFileAlreadyOpenedLibrary",
+                            "source serialization field",
+                        ),
+                        (0x10, integer, "iNumFilesOpen", "source open count"),
+                        (0x14, integer, "iSizeOfOpenFileArray", "source capacity"),
+                        (
+                            0x18,
+                            PointerDataType(file_header, dtm),
+                            "pFileHeader",
+                            "source entries",
+                        ),
+                        (
+                            0x1C,
+                            PointerDataType(file_open, dtm),
+                            "pOpenFiles",
+                            "source open slots",
+                        ),
+                        (0x20, generic_pointer, "hFileMapping", "Wizardry extension"),
+                        (0x24, generic_pointer, "pMappedFile", "Wizardry extension"),
+                    ],
+                )
+                real_file_open = _structure(
+                    dtm,
+                    category,
+                    "RealFileOpenStruct",
+                    0x08,
+                    [
+                        (0x00, dword, "uiFileID", "source one-based file ID"),
+                        (0x04, generic_pointer, "hRealFileHandle", "source Win32 handle"),
+                    ],
+                )
+                real_file_header = _structure(
+                    dtm,
+                    category,
+                    "RealFileHeaderStruct",
+                    0x0C,
+                    [
+                        (0x00, integer, "iNumFilesOpen", "source open count"),
+                        (0x04, integer, "iSizeOfOpenFileArray", "source capacity"),
+                        (
+                            0x08,
+                            PointerDataType(real_file_open, dtm),
+                            "pRealFilesOpen",
+                            "source slots",
+                        ),
+                    ],
+                )
+                database_manager = _structure(
+                    dtm,
+                    category,
+                    "DatabaseManagerHeaderStruct",
+                    0x18,
+                    [
+                        (0x00, PointerDataType(char, dtm), "sManagerName", "source name"),
+                        (
+                            0x04,
+                            PointerDataType(library_header, dtm),
+                            "pLibraries",
+                            "source archive states",
+                        ),
+                        (0x08, word, "usNumberOfLibraries", "source library count"),
+                        (0x0A, boolean, "fInitialized", "source initialized flag"),
+                        (0x0C, real_file_header, "RealFiles", "source physical file state"),
+                    ],
+                )
+
                 file_open_flags = EnumDataType(category, "SGP_FILE_OPEN_FLAGS", 4, dtm)
                 for name, value in (
                     ("FILE_ACCESS_READ", 0x01),
@@ -261,9 +424,12 @@ def apply_sgp_model(
                 palette_pointer_pointer = PointerDataType(palette_pointer, dtm)
                 iunknown_pointer = PointerDataType(iunknown, dtm)
                 char_pointer = PointerDataType(char, dtm)
+                char_pointer_pointer = PointerDataType(char_pointer, dtm)
                 dword_pointer = PointerDataType(dword, dtm)
                 get_file_pointer = PointerDataType(get_file, dtm)
                 win32_find_data_pointer = PointerDataType(win32_find_data, dtm)
+                short_pointer = PointerDataType(short, dtm)
+                dir_entry_pointer_pointer = PointerDataType(PointerDataType(dir_entry, dtm), dtm)
 
                 signatures: dict[int, list[tuple[str, Any]]] = {
                     0x0040F0B0: [
@@ -445,6 +611,60 @@ def apply_sgp_model(
                         )
                     applied.append(f"0x{raw_address:08x}")
 
+                library_signatures: dict[int, tuple[Any, list[tuple[str, Any]]]] = {
+                    0x00412B10: (boolean, []),
+                    0x00413680: (hwfile, [("hFile", generic_pointer)]),
+                    0x00413730: (
+                        boolean,
+                        [
+                            ("hlibFile", hwfile),
+                            ("pLibraryID", short_pointer),
+                            ("pFileNum", dword_pointer),
+                        ],
+                    ),
+                    0x00413D00: (
+                        integer,
+                        [("arg1", char_pointer_pointer), ("arg2", dir_entry_pointer_pointer)],
+                    ),
+                }
+                for raw_address, (return_type, arguments) in library_signatures.items():
+                    address = address_space.getAddress(raw_address)
+                    function = program.getFunctionManager().getFunctionAt(address)
+                    if function is None:
+                        raise RuntimeError(f"no function at 0x{raw_address:08x}")
+                    signature = _function_type(
+                        dtm,
+                        category,
+                        f"signature_{function.getName()}",
+                        return_type,
+                        arguments,
+                        "__cdecl",
+                    )
+                    command = ApplyFunctionSignatureCmd(
+                        address,
+                        signature,
+                        SourceType.USER_DEFINED,
+                        True,
+                        FunctionRenameOption.NO_CHANGE,
+                    )
+                    if not command.applyTo(program):
+                        raise RuntimeError(
+                            f"failed to apply signature at 0x{raw_address:08x}: "
+                            f"{command.getStatusMsg()}"
+                        )
+                    applied.append(f"0x{raw_address:08x}")
+
+                database_address = address_space.getAddress(0x006EB720)
+                _apply_data(program, database_address, database_manager)
+                symbol_table = program.getSymbolTable()
+                database_symbol = symbol_table.getPrimarySymbol(database_address)
+                if database_symbol is None:
+                    symbol_table.createLabel(
+                        database_address, "gFileDataBase", SourceType.USER_DEFINED
+                    )
+                elif database_symbol.getName() != "gFileDataBase":
+                    database_symbol.setName("gFileDataBase", SourceType.USER_DEFINED)
+
                 commit = True
                 result.update(
                     {
@@ -461,9 +681,18 @@ def apply_sgp_model(
                                 sgp_filetime,
                                 get_file,
                                 win32_find_data,
+                                lib_header,
+                                dir_entry,
+                                file_header,
+                                file_open,
+                                library_header,
+                                real_file_open,
+                                real_file_header,
+                                database_manager,
                             )
                         ],
                         "typed_functions": applied,
+                        "typed_globals": ["0x006eb720"],
                     }
                 )
             finally:
