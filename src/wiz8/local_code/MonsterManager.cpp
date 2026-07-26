@@ -7,6 +7,8 @@
 #define MAX_MONSTERS_IN_DATABASE 1000
 
 extern "C" char* String(const char* format, ...);
+int Function4A87A0(const char* name);
+unsigned char Function47B610(int index);
 
 // FUNCTION: WIZ8 0x004E5550
 unsigned int MonsterGetIndexByLocationID(
@@ -241,4 +243,22 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
         result = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
     }
     return result;
+}
+
+// FUNCTION: WIZ8 0x004E5B50
+int Function4E5B50(unsigned int monster_species)
+{
+    W8MonsterRecord* record;
+
+    record = GetMonsterDataByIDInline(monster_species);
+    if (record == 0) {
+        return -1;
+    }
+    if (Function4A87A0(record->cycle_name_189) != 0) {
+        return 0;
+    }
+    if (Function47B610(0xe) != 0) {
+        return record->value_257;
+    }
+    return record->value_253;
 }

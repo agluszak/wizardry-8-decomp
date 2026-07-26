@@ -128,6 +128,9 @@ into `GetMonsterDataByLocationID`.
 The adjacent consumer at `0x004e5990` establishes a float at monster-record offset `+0x1ba`; it
 multiplies that value by the global float at `0x005ed4f0`. Its designer-facing meaning remains
 unresolved, so both the source and reviewed model retain the positional `float_1ba` name.
+The exact body at `0x004e5b50` also establishes the byte string at `+0x189` as a case-insensitive
+`GrCycle` lookup key and selects one of the still-semantic-unknown integers at `+0x253` and `+0x257`.
+Those integers remain positionally named until a canonical consumer establishes their meaning.
 
 `InitializeSpellDatabase` at `0x004acc10` reads a count and version, allocates
 `count * 0x1bf`, then skips `0x101` bytes before each runtime read. The ignored prefix

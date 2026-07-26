@@ -520,14 +520,26 @@ def apply_wiz8_format_model(
                         ),
                         (0x0D3, ArrayDataType(byte, 0xB4, 1), "unknown_0d3", "unreviewed fields"),
                         (0x187, short, "record_id", "equals the zero-based database index"),
-                        (0x189, ArrayDataType(byte, 0x31, 1), "unknown_189", "unreviewed fields"),
+                        (
+                            0x189,
+                            ArrayDataType(char, 0x31, 1),
+                            "cycle_name_189",
+                            "case-insensitive GrCycle lookup key",
+                        ),
                         (
                             0x1BA,
                             float_type,
                             "float_1ba",
                             "scaled by the global at 0x005ed4f0 by canonical consumers",
                         ),
-                        (0x1BE, ArrayDataType(byte, 0x9D, 1), "unknown_1be", "unreviewed fields"),
+                        (0x1BE, ArrayDataType(byte, 0x95, 1), "unknown_1be", "unreviewed fields"),
+                        (0x253, integer, "value_253", "selected by consumer 0x004e5b50"),
+                        (
+                            0x257,
+                            integer,
+                            "value_257",
+                            "alternate selected value in consumer 0x004e5b50",
+                        ),
                         (
                             0x25B,
                             integer,
