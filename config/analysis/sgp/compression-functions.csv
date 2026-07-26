@@ -1,10 +1,10 @@
 function,source_line,source_order,size,best_flags,canonical_classification,canonical_address,object_order_hypothesis,evidence
-ZAlloc,14,1,20,/O2 /Ob1 /G5 /MD,relocation-equivalent,00415820,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
-ZFree,19,2,13,/O2 /Ob1 /G5 /MD,relocation-equivalent,00415840,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
-DecompressInit,24,3,92,/O2 /Ob1 /G5 /MD,relocation-equivalent,00415850,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
-Decompress,55,4,52,/O2 /Ob1 /G5 /MD,relocation-equivalent,004158b0,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
-DecompressFini,80,5,23,/O2 /Ob1 /G5 /MD,relocation-equivalent,004158f0,Compression.obj immediately precedes the selected zlib objects,Sole masked candidate calls known inflateEnd at 00415960
-CompressedBufferSize,92,6,19,/O2 /Ob1 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,No exact relocation-equivalent or near candidate in any comparable build
-CompressInit,99,7,94,/O2 /Ob1 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,No exact relocation-equivalent or near candidate in any comparable build
-Compress,130,8,52,/O2 /Ob1 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,No exact relocation-equivalent or near candidate in any comparable build
-CompressFini,155,9,23,/O2 /Ob1 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,Masked body collides with DecompressFini but the sole candidate calls inflateEnd rather than deflateEnd
+ZAlloc,14,1,20,/O2 /Ob2 /G5 /MD,relocation-equivalent,00415820,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
+ZFree,19,2,13,/O2 /Ob2 /G5 /MD,relocation-equivalent,00415840,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
+DecompressInit,24,3,92,/O2 /Ob2 /G5 /MD,relocation-equivalent,00415850,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
+Decompress,55,4,52,/O2 /Ob2 /G5 /MD,relocation-equivalent,004158b0,Compression.obj immediately precedes the selected zlib objects,Unique relocation-masked candidate in every comparable build
+DecompressFini,80,5,23,/O2 /Ob2 /G5 /MD,relocation-equivalent,004158f0,Compression.obj immediately precedes the selected zlib objects,Sole masked candidate calls known inflateEnd at 00415960
+CompressedBufferSize,92,6,19,/O2 /Ob2 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,No exact relocation-equivalent or near candidate in any comparable build
+CompressInit,99,7,94,/O2 /Ob2 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,No exact relocation-equivalent or near candidate in any comparable build
+Compress,130,8,52,/O2 /Ob2 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,No exact relocation-equivalent or near candidate in any comparable build
+CompressFini,155,9,23,/O2 /Ob2 /G5 /MD,absent-or-stripped,,Later Compression.c COMDATs were eliminated,Masked body collides with DecompressFini but the sole candidate calls inflateEnd rather than deflateEnd

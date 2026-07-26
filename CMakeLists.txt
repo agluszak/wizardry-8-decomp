@@ -260,9 +260,10 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         "Semicolon-separated flags appended to every configured SGP oracle unit")
     # One probe target per released SGP translation unit. Each unit gets only the
     # WIZ8 SGP ALL.H surface its own source proves necessary, plus the shared
-    # empty builddefines.h overlay. Per-unit compile options are part of the
-    # finding: the flags recorded here are the ones that reproduce the Wizardry
-    # bodies, not a house style.
+    # empty builddefines.h overlay. The common release profile is the primary
+    # hypothesis: the released VC6 SGP project stores release flags at project
+    # scope, and none of the probed units has a release per-file override.
+    set(WIZ8_SGP_PROJECT_FLAGS /O2 /Ob2 /G5 /MD)
     function(wiz8_add_sgp_unit target source overlay)
         add_library(${target} OBJECT "${SGP_SOURCE}/${source}")
         target_compile_definitions(${target} PRIVATE WIZ8_PRECOMPILED_HEADERS)
@@ -271,6 +272,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
             config/sgp-overlays/common
             "${SGP_SOURCE}"
         )
+        target_compile_options(${target} PRIVATE ${WIZ8_SGP_PROJECT_FLAGS})
         if(ARGN)
             target_compile_options(${target} PRIVATE ${ARGN})
         endif()
@@ -281,15 +283,16 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
 
     wiz8_add_sgp_unit(WIZ8_SGP_DIRECTDRAW "DirectDraw Calls.c" directdraw)
 
-    # Random.c needs /Ob2 as well as the Pentium scheduler: Wizardry inlined
-    # Random into Chance, which plain /O2 (/Ob1) will not do. /G6 mismatches
-    # Random and Chance.
-    wiz8_add_sgp_unit(WIZ8_SGP_RANDOM "Random.c" random /G5 /Ob2)
+    # Random.c proves two axes of the common profile: /Ob2 inlines Random into
+    # Chance, while /G6 mismatches both arithmetic functions.
+    wiz8_add_sgp_unit(WIZ8_SGP_RANDOM "Random.c" random)
 
     # Compression.c brackets the linked zlib objects. The whole released unit
     # is retained in the probe even though Wizardry only kept its decompression
     # half after COMDAT elimination.
     wiz8_add_sgp_unit(WIZ8_SGP_COMPRESSION "Compression.c" compression)
+
+    wiz8_add_sgp_unit(WIZ8_SGP_FILEMAN "FileMan.c" fileman)
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

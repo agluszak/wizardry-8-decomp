@@ -2,6 +2,11 @@ schema: wiz8.sgp-harness
 source_revision: 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033
 toolchain: vc6-sp5
 
+# Primary hypothesis: Wizardry compiled the SGP static-library project with one
+# release profile. A unit may have several equally scoring sweep candidates;
+# prefer this common profile among ties rather than inventing per-file flags.
+project_flag_hypothesis: [/O2, /Ob2, /G5, /MD]
+
 # Later MSVC options override earlier options. These axes are appended after
 # each unit's known-good defaults so the same target can test alternatives.
 flag_axes:
@@ -41,3 +46,8 @@ units:
     source: Compression.c
     overlay: compression
     report: config/analysis/sgp/compression-harness.csv
+  - id: fileman
+    target: WIZ8_SGP_FILEMAN
+    source: FileMan.c
+    overlay: fileman
+    report: config/analysis/sgp/fileman-harness.csv

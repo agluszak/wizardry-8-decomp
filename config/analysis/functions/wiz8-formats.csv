@@ -1,8 +1,8 @@
 address,provisional_name,owner,confidence,name_origin,authority,evidence
-00404c80,OpenVirtualFile,wiz8-file-system,strong,descriptive,descriptive,Opens a physical file or resolves a read-only member through the initialized SLF archive table
+00404c80,FileOpen,sgp-shared,exact,sgp-source,source-backed,Source name and complete body recovered from pinned SGP FileMan.c; opens a physical file or resolves a read-only member through the initialized SLF archive table; former descriptive name OpenVirtualFile
 00404e10,CloseVirtualFile,wiz8-file-system,strong,descriptive,descriptive,Closes a physical handle or releases an SLF-backed virtual-file slot
 00404ea0,ReadVirtualFile,wiz8-file-system,strong,descriptive,descriptive,Reads bytes from either a physical handle or an SLF archive entry and reports the completed byte count
-00405030,SeekVirtualFile,wiz8-file-system,strong,descriptive,descriptive,Seeks a physical handle or SLF-backed entry using Wizardry origin values 1 2 and 4
+00405030,FileSeek,sgp-shared,exact,sgp-source,source-backed,Source name and complete body recovered from pinned SGP FileMan.c; seeks a physical handle or SLF-backed entry using origin values 1 2 and 4; former descriptive name SeekVirtualFile
 004acc10,InitializeSpellDatabase,wiz8-gameplay-database,strong,descriptive,descriptive,Reads the count and version from SpellTables.dbs then skips 0x101 and loads 0x1bf bytes for each spell
 004ac9d0,GetSpellTargetType,wiz8-gameplay-database,strong,descriptive,descriptive,Returns the target-type field at runtime offset 0x137 and optionally normalizes type one to zero
 004aca60,CanSpellBackfire,wiz8-gameplay-database,strong,descriptive,descriptive,The canonical casting failure path uses this target-type and spell-ID predicate to decide whether a failed spell can backfire

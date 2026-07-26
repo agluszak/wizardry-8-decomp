@@ -54,9 +54,7 @@ class BuildText:
 def _coff_name(data: bytes, raw: bytes, string_table: int) -> str:
     if raw[:4] == b"\0\0\0\0":
         offset = struct.unpack_from("<I", raw, 4)[0]
-        return data[string_table + offset :].split(b"\0", 1)[0].decode(
-            "utf-8", errors="replace"
-        )
+        return data[string_table + offset :].split(b"\0", 1)[0].decode("utf-8", errors="replace")
     return raw[:8].rstrip(b"\0").decode("utf-8", errors="replace")
 
 
@@ -98,9 +96,7 @@ def parse_coff_functions(path: Path) -> list[CoffFunction]:
     while symbol_index < symbol_count:
         raw = data[symbol_table + symbol_index * 18 : symbol_table + symbol_index * 18 + 18]
         name = _coff_name(data, raw, string_table)
-        value, section, symbol_type, storage, auxiliary_count = struct.unpack_from(
-            "<IhHBB", raw, 8
-        )
+        value, section, symbol_type, storage, auxiliary_count = struct.unpack_from("<IhHBB", raw, 8)
         symbols.append((name, value, section, symbol_type, storage))
         symbol_index += 1 + auxiliary_count
 
@@ -298,11 +294,15 @@ def _compile_units(
         log_path=settings.build_dir / "logs" / "sgp" / "source-revision.json",
     ).stdout.strip()
     if head != config["source_revision"]:
-        raise RuntimeError(f"SGP source revision mismatch: expected {config['source_revision']}, got {head}")
+        raise RuntimeError(
+            f"SGP source revision mismatch: expected {config['source_revision']}, got {head}"
+        )
     toolchains = {item.id: item for item in load_static_libraries(settings).toolchains}
     toolchain = toolchains.get(config["toolchain"])
     if toolchain is None or "compiler" not in toolchain.capabilities:
-        raise RuntimeError(f"configured SGP toolchain is not compiler-capable: {config['toolchain']}")
+        raise RuntimeError(
+            f"configured SGP toolchain is not compiler-capable: {config['toolchain']}"
+        )
     results = {unit["id"]: [] for unit in units}
     sweep_root = settings.work_dir / "sgp" / "sweeps"
     sweep_root.mkdir(parents=True, exist_ok=True)
@@ -341,10 +341,9 @@ def _evaluate(
     variants: list[tuple[tuple[str, ...], list[CoffFunction]]],
     builds: list[BuildText],
     threshold: float,
+    preferred_flags: tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
-    candidates: list[
-        tuple[tuple[str, ...], list[tuple[CoffFunction, list[dict[str, Any]]]]]
-    ] = []
+    candidates: list[tuple[tuple[str, ...], list[tuple[CoffFunction, list[dict[str, Any]]]]]] = []
     for flags, functions in variants:
         evaluated = []
         for function in functions:
@@ -382,9 +381,14 @@ def _evaluate(
                 if match["classification"] in {"exact", "relocation-equivalent"}:
                     match["classification"] = "ambiguous-generic"
         candidates.append((flags, evaluated))
-    _best_index, (flags, evaluated) = max(
-        enumerate(candidates),
-        key=lambda indexed: (
+
+    def score(
+        indexed: tuple[
+            int,
+            tuple[tuple[str, ...], list[tuple[CoffFunction, list[dict[str, Any]]]]],
+        ],
+    ) -> tuple[int, int, int]:
+        return (
             sum(
                 CLASSIFICATION_RANK[match["classification"]]
                 for _function, matches in indexed[1][1]
@@ -396,13 +400,28 @@ def _evaluate(
                 for match in matches
             ),
             -indexed[0],
-        ),
-    )
+        )
+
+    if preferred_flags is None:
+        _best_index, (flags, evaluated) = max(enumerate(candidates), key=score)
+    else:
+        selected = next(
+            (indexed for indexed in enumerate(candidates) if indexed[1][0] == preferred_flags),
+            None,
+        )
+        if selected is None:
+            raise RuntimeError(f"project flag hypothesis is outside the sweep: {preferred_flags}")
+        # Do not infer historical per-file overrides from sparse matches. The
+        # project profile remains fixed until a larger unit corpus justifies a
+        # project-wide change.
+        _selected_index, (flags, evaluated) = selected
     rows = []
     for function, matches in sorted(evaluated, key=lambda item: item[0].name.casefold()):
         for match in matches:
             build = match["build"]
-            addresses = [build.base + position for position in match["positions"]] if build.base else []
+            addresses = (
+                [build.base + position for position in match["positions"]] if build.base else []
+            )
             address = (
                 f"{addresses[0]:08x}"
                 if len(addresses) == 1 and match["classification"] != "ambiguous-generic"
@@ -458,7 +477,12 @@ def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> di
     compiled = _compile_units(settings, config, units)
     summaries = []
     for unit in units:
-        rows = _evaluate(compiled[unit["id"]], builds, float(config["near_match_threshold"]))
+        rows = _evaluate(
+            compiled[unit["id"]],
+            builds,
+            float(config["near_match_threshold"]),
+            tuple(config["project_flag_hypothesis"]),
+        )
         report = settings.repo_dir / unit["report"]
         _write_report(report, rows)
         summaries.append(

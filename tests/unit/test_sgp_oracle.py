@@ -29,11 +29,12 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     ) as stream:
         paths = list(csv.DictReader(stream))
 
-    assert len(functions) == 16
+    assert len(functions) == 31
     assert {row["confidence"] for row in functions} == {"exact"}
     assert {row["owner"] for row in functions} == {"sgp-shared"}
     assert {row["source_path"] for row in functions} == {
         "sgp/DirectDraw Calls.c",
+        "sgp/FileMan.c",
         "sgp/Random.c",
     }
     assert len(paths) == 7
@@ -96,9 +97,11 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
         (repository / "config/analysis/sgp/harness.yml").read_text(encoding="utf-8")
     )
     assert harness["schema"] == "wiz8.sgp-harness"
+    assert harness["project_flag_hypothesis"] == ["/O2", "/Ob2", "/G5", "/MD"]
     assert {unit["id"] for unit in harness["units"]} == {
         "compression",
         "directdraw",
+        "fileman",
         "random",
     }
     assert set(harness["flag_axes"]) == {
@@ -143,9 +146,7 @@ def test_relocation_masked_matcher_uses_the_five_way_vocabulary() -> None:
         == "near-source-with-wiz8-modifications"
     )
     assert (
-        classify_body(function, b"\xcc" * len(function.body), near_threshold=0.75)[
-            "classification"
-        ]
+        classify_body(function, b"\xcc" * len(function.body), near_threshold=0.75)["classification"]
         == "absent-or-stripped"
     )
 
@@ -162,6 +163,22 @@ def test_source_functions_with_the_same_masked_body_remain_ambiguous() -> None:
     assert {row["hit_count"] for row in rows} == {1}
 
 
+def test_configured_project_profile_does_not_fall_back_to_per_unit_flags() -> None:
+    matching = CoffFunction("Example", b"\xc3", ())
+    different = CoffFunction("Example", b"\x90\xc3", ())
+    build = BuildText("test", "0" * 64, 0x400000, b"\xc3", None)
+
+    rows = _evaluate(
+        [(("/O1",), [matching]), (("/O2",), [different])],
+        [build],
+        0.75,
+        ("/O2",),
+    )
+
+    assert {row["flags"] for row in rows} == {"/O2"}
+    assert {row["classification"] for row in rows} == {"absent-or-stripped"}
+
+
 def test_compression_unit_classifies_every_emitted_function() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/analysis/sgp/compression-harness.csv").open(
@@ -174,13 +191,9 @@ def test_compression_unit_classifies_every_emitted_function() -> None:
         reviewed = list(csv.DictReader(stream))
 
     assert len(harness) == 9 * 7
-    assert {row["flags"] for row in harness} == {"/O2 /Ob1 /G5 /MD"}
+    assert {row["flags"] for row in harness} == {"/O2 /Ob2 /G5 /MD"}
     assert sum(row["classification"] == "unavailable" for row in harness) == 18
-    ambiguous = {
-        row["function"]
-        for row in harness
-        if row["classification"] == "ambiguous-generic"
-    }
+    ambiguous = {row["function"] for row in harness if row["classification"] == "ambiguous-generic"}
     assert ambiguous == {"CompressFini", "DecompressFini"}
 
     assert [row["function"] for row in reviewed] == [
@@ -195,12 +208,33 @@ def test_compression_unit_classifies_every_emitted_function() -> None:
         "CompressFini",
     ]
     assert [row["source_line"] for row in reviewed[:5]] == ["14", "19", "24", "55", "80"]
-    assert {row["canonical_classification"] for row in reviewed[:5]} == {
-        "relocation-equivalent"
-    }
-    assert {row["canonical_classification"] for row in reviewed[5:]} == {
-        "absent-or-stripped"
-    }
+    assert {row["canonical_classification"] for row in reviewed[:5]} == {"relocation-equivalent"}
+    assert {row["canonical_classification"] for row in reviewed[5:]} == {"absent-or-stripped"}
     assert reviewed[4]["canonical_address"] == "004158f0"
     assert "inflateEnd" in reviewed[4]["evidence"]
     assert "inflateEnd" in reviewed[-1]["evidence"]
+
+
+def test_fileman_exact_and_near_results_stay_separate() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/sgp/fileman-harness.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        harness = list(csv.DictReader(stream))
+    with (repository / "config/analysis/sgp/fileman-near-matches.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        near = list(csv.DictReader(stream))
+    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        exact = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/FileMan.c"]
+
+    assert len(harness) == 43 * 7
+    assert {row["flags"] for row in harness} == {"/O2 /Ob2 /G5 /MD"}
+    assert len(exact) == 15
+    assert {row["confidence"] for row in exact} == {"exact"}
+    assert {row["function"] for row in near} == {"FileCheckEndOfFile", "GetFileFirst"}
+    assert near[0]["source_behavior"].endswith("0x20-byte stride")
+    assert near[0]["wiz8_behavior"].endswith("0x28-byte stride")
+    assert near[1]["build"] == "gog_1261_new"

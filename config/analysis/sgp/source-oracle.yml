@@ -13,6 +13,12 @@ license:
     conditions. No released source is copied into this repository.
 
 compile_model:
+  project_flag_hypothesis: [/O2, /Ob2, /G5, /MD]
+  flag_scope: project-wide
+  flag_scope_evidence: >-
+    The released VC6 Standard Gaming Platform.dsp stores release flags on the
+    project configuration. DirectDraw Calls.c, Random.c, Compression.c, and
+    FileMan.c have no release per-file compiler overrides.
   confirmed_definitions:
     - WIZ8_PRECOMPILED_HEADERS
   confirmed_absent_definitions:
@@ -29,8 +35,9 @@ compile_model:
     - WizLibs.h
   recovered_overlay: config/sgp-overlays
   overlay_scope: >-
-    Only the declarations required to compile DirectDraw Calls.c are present;
-    the overlay is not claimed to reconstruct the complete Wizardry PCH.
+    Each configured unit receives only the declarations its released source
+    proves necessary; the overlays are not claimed to reconstruct the complete
+    Wizardry PCH.
 
 active_wiz8_pch_sources:
   - sgp/Button Sound Control.c
@@ -108,11 +115,21 @@ reusable_harness:
     - config/analysis/sgp/directdraw-harness.csv
     - config/analysis/sgp/random-harness.csv
     - config/analysis/sgp/compression-harness.csv
+    - config/analysis/sgp/fileman-harness.csv
+
+fileman_unit:
+  source: sgp/FileMan.c
+  selected_flags: [/O2, /Ob2, /G5, /MD]
+  emitted_functions: 43
+  exact_source_identities: 15
+  near_matches: config/analysis/sgp/fileman-near-matches.csv
+  wizardry_layout_differences:
+    LibraryHeaderStruct: {released_size: 0x20, wizardry_stride: 0x28}
 
 compression_unit:
   source: sgp/Compression.c
   functions: config/analysis/sgp/compression-functions.csv
-  selected_flags: [/O2, /Ob1, /G5, /MD]
+  selected_flags: [/O2, /Ob2, /G5, /MD]
   emitted_functions: 9
   retained_functions: 5
   stripped_functions: 4

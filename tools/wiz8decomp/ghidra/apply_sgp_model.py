@@ -15,7 +15,7 @@ def apply_sgp_model(
     settings: Settings,
     selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> dict[str, Any]:
-    """Install the source-backed DirectDraw wrapper types and prototypes."""
+    """Install the source-backed DirectDraw and SGP FileMan types and prototypes."""
 
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
@@ -25,9 +25,13 @@ def apply_sgp_model(
         ArrayDataType,
         ByteDataType,
         CategoryPath,
+        CharDataType,
+        DataTypeConflictHandler,
         DWordDataType,
+        EnumDataType,
         IntegerDataType,
         PointerDataType,
+        TypedefDataType,
         VoidDataType,
     )
     from ghidra.program.model.symbol import SourceType
@@ -43,6 +47,7 @@ def apply_sgp_model(
                 dtm = program.getDataTypeManager()
                 category = CategoryPath(CATEGORY)
                 byte = ByteDataType.dataType
+                char = CharDataType.dataType
                 dword = DWordDataType.dataType
                 integer = IntegerDataType.dataType
                 void = VoidDataType.dataType
@@ -152,6 +157,96 @@ def apply_sgp_model(
                     [(0x00, ArrayDataType(byte, 0x64, 1), "raw", "DirectDraw blit effects")],
                 )
 
+                boolean = dtm.addDataType(
+                    TypedefDataType(category, "BOOLEAN", byte, dtm),
+                    DataTypeConflictHandler.REPLACE_HANDLER,
+                )
+                hwfile = dtm.addDataType(
+                    TypedefDataType(category, "HWFILE", dword, dtm),
+                    DataTypeConflictHandler.REPLACE_HANDLER,
+                )
+                sgp_filetime = _structure(
+                    dtm,
+                    category,
+                    "SGP_FILETIME",
+                    0x08,
+                    [
+                        (0x00, dword, "dwLowDateTime", "low 32 bits of Win32 file time"),
+                        (0x04, dword, "dwHighDateTime", "high 32 bits of Win32 file time"),
+                    ],
+                )
+                get_file = _structure(
+                    dtm,
+                    category,
+                    "GETFILESTRUCT",
+                    0x110,
+                    [
+                        (0x000, integer, "iFindHandle", "index in FileMan's 20-slot find table"),
+                        (0x004, ArrayDataType(char, 260, 1), "zFileName", "Win32 file name"),
+                        (0x108, dword, "uiFileSize", "low 32-bit file size or -1 for directories"),
+                        (0x10C, dword, "uiFileAttribs", "SGP file-attribute flags"),
+                    ],
+                )
+                win32_find_data = _structure(
+                    dtm,
+                    category,
+                    "WIN32_FIND_DATAA",
+                    0x140,
+                    [
+                        (0x000, dword, "dwFileAttributes", "Win32 file attributes"),
+                        (0x004, sgp_filetime, "ftCreationTime", "creation time"),
+                        (0x00C, sgp_filetime, "ftLastAccessTime", "last access time"),
+                        (0x014, sgp_filetime, "ftLastWriteTime", "last write time"),
+                        (0x01C, dword, "nFileSizeHigh", "high file-size word"),
+                        (0x020, dword, "nFileSizeLow", "low file-size word"),
+                        (0x024, dword, "dwReserved0", "reserved"),
+                        (0x028, dword, "dwReserved1", "reserved"),
+                        (0x02C, ArrayDataType(char, 260, 1), "cFileName", "long file name"),
+                        (0x130, ArrayDataType(char, 14, 1), "cAlternateFileName", "8.3 file name"),
+                    ],
+                )
+
+                file_open_flags = EnumDataType(category, "SGP_FILE_OPEN_FLAGS", 4, dtm)
+                for name, value in (
+                    ("FILE_ACCESS_READ", 0x01),
+                    ("FILE_ACCESS_WRITE", 0x02),
+                    ("FILE_ACCESS_READWRITE", 0x03),
+                    ("FILE_CREATE_NEW", 0x10),
+                    ("FILE_CREATE_ALWAYS", 0x20),
+                    ("FILE_OPEN_EXISTING", 0x40),
+                    ("FILE_OPEN_ALWAYS", 0x80),
+                    ("FILE_TRUNCATE_EXISTING", 0x100),
+                ):
+                    file_open_flags.add(name, value)
+                file_open_flags = dtm.addDataType(
+                    file_open_flags, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+
+                file_seek_origin = EnumDataType(category, "SGP_FILE_SEEK_ORIGIN", 1, dtm)
+                file_seek_origin.add("FILE_SEEK_FROM_START", 0x01)
+                file_seek_origin.add("FILE_SEEK_FROM_END", 0x02)
+                file_seek_origin.add("FILE_SEEK_FROM_CURRENT", 0x04)
+                file_seek_origin = dtm.addDataType(
+                    file_seek_origin, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+
+                file_attributes = EnumDataType(category, "SGP_FILE_ATTRIBUTES", 4, dtm)
+                for name, value in (
+                    ("FILE_IS_READONLY", 0x001),
+                    ("FILE_IS_DIRECTORY", 0x002),
+                    ("FILE_IS_HIDDEN", 0x004),
+                    ("FILE_IS_NORMAL", 0x008),
+                    ("FILE_IS_ARCHIVE", 0x010),
+                    ("FILE_IS_SYSTEM", 0x020),
+                    ("FILE_IS_TEMPORARY", 0x040),
+                    ("FILE_IS_COMPRESSED", 0x080),
+                    ("FILE_IS_OFFLINE", 0x100),
+                ):
+                    file_attributes.add(name, value)
+                file_attributes = dtm.addDataType(
+                    file_attributes, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+
                 dd_pointer = PointerDataType(direct_draw, dtm)
                 surface1_pointer = PointerDataType(surface1, dtm)
                 surface2_pointer = PointerDataType(surface2, dtm)
@@ -165,6 +260,10 @@ def apply_sgp_model(
                 surface2_pointer_pointer = PointerDataType(surface2_pointer, dtm)
                 palette_pointer_pointer = PointerDataType(palette_pointer, dtm)
                 iunknown_pointer = PointerDataType(iunknown, dtm)
+                char_pointer = PointerDataType(char, dtm)
+                dword_pointer = PointerDataType(dword, dtm)
+                get_file_pointer = PointerDataType(get_file, dtm)
+                win32_find_data_pointer = PointerDataType(win32_find_data, dtm)
 
                 signatures: dict[int, list[tuple[str, Any]]] = {
                     0x0040F0B0: [
@@ -264,6 +363,88 @@ def apply_sgp_model(
                         )
                     applied.append(f"0x{raw_address:08x}")
 
+                file_signatures: dict[int, tuple[Any, list[tuple[str, Any]]]] = {
+                    0x00404BF0: (boolean, [("strFilename", char_pointer)]),
+                    0x00404C40: (boolean, [("strFilename", char_pointer)]),
+                    0x00404C80: (
+                        hwfile,
+                        [
+                            ("strFilename", char_pointer),
+                            ("uiOptions", file_open_flags),
+                            ("fDeleteOnClose", boolean),
+                        ],
+                    ),
+                    0x00404FB0: (
+                        boolean,
+                        [
+                            ("hFile", hwfile),
+                            ("pDest", generic_pointer),
+                            ("uiBytesToWrite", dword),
+                            ("puiBytesWritten", dword_pointer),
+                        ],
+                    ),
+                    0x00405030: (
+                        boolean,
+                        [
+                            ("hFile", hwfile),
+                            ("uiDistance", dword),
+                            ("uiHow", file_seek_origin),
+                        ],
+                    ),
+                    0x004051D0: (boolean, [("pcDirectory", char_pointer)]),
+                    0x004051F0: (boolean, [("pcDirectory", char_pointer)]),
+                    0x00405200: (boolean, [("pcDirectory", char_pointer)]),
+                    0x00405270: (
+                        boolean,
+                        [("pSpec", char_pointer), ("pGFStruct", get_file_pointer)],
+                    ),
+                    0x00405300: (boolean, [("pGFStruct", get_file_pointer)]),
+                    0x00405350: (void, [("pGFStruct", get_file_pointer)]),
+                    0x00405390: (
+                        void,
+                        [
+                            ("pGFStruct", get_file_pointer),
+                            ("pW32Struct", win32_find_data_pointer),
+                        ],
+                    ),
+                    0x004054D0: (
+                        boolean,
+                        [
+                            ("strSrcFile", char_pointer),
+                            ("strDstFile", char_pointer),
+                            ("fFailIfExists", boolean),
+                        ],
+                    ),
+                    0x004054F0: (file_attributes, [("strFilename", char_pointer)]),
+                    0x00405550: (boolean, [("strFilename", char_pointer)]),
+                }
+                for raw_address, (return_type, arguments) in file_signatures.items():
+                    address = address_space.getAddress(raw_address)
+                    function = program.getFunctionManager().getFunctionAt(address)
+                    if function is None:
+                        raise RuntimeError(f"no function at 0x{raw_address:08x}")
+                    signature = _function_type(
+                        dtm,
+                        category,
+                        f"signature_{function.getName()}",
+                        return_type,
+                        arguments,
+                        "__cdecl",
+                    )
+                    command = ApplyFunctionSignatureCmd(
+                        address,
+                        signature,
+                        SourceType.USER_DEFINED,
+                        True,
+                        FunctionRenameOption.NO_CHANGE,
+                    )
+                    if not command.applyTo(program):
+                        raise RuntimeError(
+                            f"failed to apply signature at 0x{raw_address:08x}: "
+                            f"{command.getStatusMsg()}"
+                        )
+                    applied.append(f"0x{raw_address:08x}")
+
                 commit = True
                 result.update(
                     {
@@ -277,6 +458,9 @@ def apply_sgp_model(
                                 surface_desc,
                                 palette_entry,
                                 blt_fx,
+                                sgp_filetime,
+                                get_file,
+                                win32_find_data,
                             )
                         ],
                         "typed_functions": applied,

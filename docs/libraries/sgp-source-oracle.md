@@ -98,8 +98,8 @@ with original names `ZAlloc`, `ZFree`, `DecompressInit`, `Decompress`, and `Deco
 
 ### `Compression.c`: retained decompression half
 
-The per-unit sweep compiles all nine functions emitted by `Compression.c` and selects
-`/O2 /Ob1 /G5 /MD`. `ZAlloc`, `ZFree`, `DecompressInit`, and `Decompress` each have one unique
+The per-unit sweep compiles all nine functions emitted by `Compression.c` under the common
+`/O2 /Ob2 /G5 /MD` project profile. `ZAlloc`, `ZFree`, `DecompressInit`, and `Decompress` each have one unique
 relocation-masked candidate in all five comparable executables. `CompressedBufferSize`,
 `CompressInit`, and `Compress` have no exact, relocation-equivalent, or near candidate in any of
 those builds.
@@ -136,7 +136,7 @@ All three bodies are relocation-masked exact, and each matches at exactly one ad
 | `0x0040EFA0` | `Random` | 50 | 39 |
 | `0x0040EFE0` | `Chance` | 51 | 54 |
 
-Two per-unit compile flags are part of the finding, not incidental:
+Two project-profile flags are proven by this unit, not incidental:
 
 * `/G5` is required. Under `/G6` only `InitializeRandom` — which contains no arithmetic — still
   matches; both `Random` and `Chance` diverge.
@@ -164,20 +164,54 @@ uv run wiz8 sgp sweep --unit random
 ```
 
 For each unit the harness compiles all 16 combinations of `/O1` or `/O2`, `/Ob1` or `/Ob2`, `/G5`
-or `/G6`, and `/MD` or `/MT` with VC6 SP5. It selects one flag combination for the complete
-translation unit by scoring every emitted function against every reviewed executable; flags are
-never selected independently per function. COFF relocation fields are masked before comparison.
+or `/G6`, and `/MD` or `/MT` with VC6 SP5. All tracked reports use the single project hypothesis
+`/O2 /Ob2 /G5 /MD`; a sparse unit is not allowed to invent its own historical flags. The profile
+can be reconsidered later against the aggregate recovered-unit corpus. COFF relocation fields are
+masked before comparison.
 
 Each candidate is classified as `exact`, `relocation-equivalent`,
 `near-source-with-wiz8-modifications`, `absent-or-stripped`, or `ambiguous-generic`. Executables
 that cannot be compared statically remain in the report with an orthogonal `unavailable` state and
 a reason, rather than being mislabeled absent. The tracked reports are
-`config/analysis/sgp/directdraw-harness.csv` and `config/analysis/sgp/random-harness.csv`.
+`config/analysis/sgp/directdraw-harness.csv`, `config/analysis/sgp/random-harness.csv`,
+`config/analysis/sgp/compression-harness.csv`, and `config/analysis/sgp/fileman-harness.csv`.
 
-The sweep selects `/O2 /Ob1 /G5 /MD` for `DirectDraw Calls.c` and reproduces all 13 established
-functions in each of the five comparable builds. It selects `/O2 /Ob2 /G5 /MD` for `Random.c` and
-reproduces all three functions in the same five builds. These results preserve the legacy
+The common profile reproduces all 13 established `DirectDraw Calls.c` functions in each of the
+five comparable builds and all three `Random.c` functions in the same builds. These results preserve the legacy
 cross-build address matrices while making the compiler search and negative results reproducible.
+
+The released VC6 `Standard Gaming Platform.dsp` supports project-wide treatment: release compiler
+options live on the project configuration, and the four currently probed units have no release
+per-file overrides. This is evidence for flag scope, not proof that Wizardry used the same project
+file; the profile remains a testable working hypothesis.
+
+## `FileMan.c`: exact file-system boundary and two reviewed forks
+
+`FileMan.c` emits 43 external functions under the common project profile. Fifteen have exact
+relocation-masked identities in the canonical executable: `FileExists`, `FileExistsNoDB`,
+`FileOpen`, `FileWrite`, `FileSeek`, `DirectoryExists`, `MakeFileManDirectory`,
+`GetExecutableDirectory`, `GetFileFirst`, `GetFileNext`, `GetFileClose`, `W32toSGPFileFind`,
+`FileCopy`, `FileGetAttributes`, and `FileClearAttributes`. Except for the one patch-specific case
+below, the same identities recur in all five comparable modules. They are source-backed in
+`config/analysis/functions/wiz8-sgp.csv`; the earlier descriptive names `OpenVirtualFile` and
+`SeekVirtualFile` remain aliases of `FileOpen` and `FileSeek`.
+
+The SGP model installs `HWFILE`, the one-byte `BOOLEAN`, `SGP_FILE_OPEN_FLAGS`,
+`SGP_FILE_SEEK_ORIGIN`, `SGP_FILE_ATTRIBUTES`, the `0x110`-byte `GETFILESTRUCT`, the `0x08`-byte
+`SGP_FILETIME`, the `0x140`-byte `WIN32_FIND_DATAA`, and all fifteen exact prototypes.
+
+Two near matches are deliberately not promoted as exact:
+
+* Every comparable build's `FileCheckEndOfFile` differs at four stable bytes. The released source
+  indexes `LibraryHeaderStruct` with a `0x20` stride; Wizardry multiplies by `0x28`. Its nested
+  `FileOpenStruct` indexing remains `0x10`, isolating the change to the Wizardry library header.
+* `GetFileFirst` is exact in the demo, base executable, 1.261 base, and 1.28 base. Only
+  `Wiz8New.exe` changes the immediate stored to `fFindInfoInUse[iWhich]` after `FindFirstFile` from
+  `TRUE` to `FALSE`. The identity remains exact for the canonical executable, while the patched
+  module is recorded as a Wizardry modification.
+
+The byte offsets, similarities, and behavioral deltas are tracked in
+`config/analysis/sgp/fileman-near-matches.csv`.
 
 ### `Random`, not `GetRandomNumber`
 
