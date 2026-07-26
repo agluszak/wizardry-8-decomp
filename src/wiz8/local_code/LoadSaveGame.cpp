@@ -77,6 +77,77 @@ struct W8WorldItemOwner {
 extern void Function50F6A0(W8MonsterGroup* group, int unknown);
 extern void Function48C750(W8MonsterGroup* group);
 
+/* 0x004E3720, 0x004F69F0 and 0x00443A50, not yet identified; named by address
+   as elsewhere in src/wiz8. All three take no argument and return nothing, and
+   run before the header is read, so they read as teardown of whatever the
+   previous level left behind. */
+extern void Function4E3720(void);
+extern void Function4F69F0(void);
+extern void Function443A50(void);
+
+/* Four counts the header carries, each falling back to one when the save
+   records zero, and the 256-byte block it hands over whole. Their meaning is
+   not established, so all five keep positional names. */
+extern int g_status_count_6874ba;
+extern int g_status_count_6874be;
+extern int g_status_count_6874c2;
+extern int g_status_count_6874c6;
+extern unsigned char g_status_block_686a74[0x100];
+
+/* The fixed 0x314-byte header every save begins with. Only the fields
+   LoadStatusHeader forwards are established; the rest is read and kept. */
+struct W8StatusHeader {
+    float version;                       /* 0x000 */
+    int value_004;                       /* 0x004 */
+    int value_008;                       /* 0x008 */
+    int value_00c;                       /* 0x00c */
+    int value_010;                       /* 0x010 */
+    unsigned char block_014[0x100];      /* 0x014 */
+    unsigned char unknown_114[0x200];
+};                                       /* 0x314 */
+
+// FUNCTION: WIZ8 0x00513090
+/* Reads and validates the header, then publishes the four counts and the block
+   it carries. The version gate is an equality test against 2.0f held in .rdata,
+   not a range, so a save written by any other version is refused outright.
+
+   Each count is published first and only then corrected, rather than being
+   tested before the store: the canonical writes all four globals, loads 1 once,
+   and revisits each that turned out to be zero. */
+unsigned char LoadStatusHeader(W8Chunk* chunk)
+{
+    unsigned int transferred;
+    W8StatusHeader header;
+
+    Function4E3720();
+    Function4F69F0();
+    Function443A50();
+    if (!chunk->Read(&header, sizeof(header), &transferred)) {
+        return 0;
+    }
+    if (header.version != 2.0f) {
+        return 0;
+    }
+    g_status_count_6874ba = header.value_004;
+    g_status_count_6874be = header.value_008;
+    g_status_count_6874c2 = header.value_00c;
+    g_status_count_6874c6 = header.value_010;
+    if (header.value_004 == 0) {
+        g_status_count_6874ba = 1;
+    }
+    if (header.value_008 == 0) {
+        g_status_count_6874be = 1;
+    }
+    if (header.value_00c == 0) {
+        g_status_count_6874c2 = 1;
+    }
+    if (header.value_010 == 0) {
+        g_status_count_6874c6 = 1;
+    }
+    memcpy(g_status_block_686a74, header.block_014, 0x100);
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x00513C20
 /* Reads one saved monster group and files it under the species or the encounter
    list. The record's own size leads it, and the assertion that bounds it names
