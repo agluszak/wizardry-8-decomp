@@ -1,6 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 
+from wiz8decomp.ghidra import apply_wiz8_signature_fixes as signature_fixes
 from wiz8decomp.ghidra import rebuild
 
 
@@ -67,3 +68,19 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "validation",
     ]
     assert (settings.build_dir / "reports/ghidra-replay/canonical.json").is_file()
+
+
+def test_wiz8_signature_wrapper_preserves_replay_materialization_flag(monkeypatch) -> None:
+    calls: list[bool] = []
+
+    def record_apply(*_args, materialize: bool = True, **_kwargs):
+        calls.append(materialize)
+        return {}
+
+    monkeypatch.setattr(signature_fixes, "apply_reviewed_signatures", record_apply)
+
+    signature_fixes.apply_wiz8_signature_fixes(
+        SimpleNamespace(), "canonical", materialize=False
+    )
+
+    assert calls == [False]

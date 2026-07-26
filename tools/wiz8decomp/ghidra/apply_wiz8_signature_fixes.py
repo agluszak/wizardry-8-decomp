@@ -135,4 +135,6 @@ def apply_wiz8_signature_fixes(
     *,
     materialize: bool = True,
 ) -> dict[str, Any]:
-    return apply_reviewed_signatures(settings, selector, evidence_program="wiz8")
+    return apply_reviewed_signatures(
+        settings, selector, evidence_program="wiz8", materialize=materialize
+    )
