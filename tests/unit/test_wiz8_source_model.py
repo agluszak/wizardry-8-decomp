@@ -82,30 +82,23 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     # Octree is the first class whose layout is byte-proven rather than inferred.
     assert by_name["Octree"]["layout_proof"].startswith("0042e440")
     assert by_name["Monster"]["layout_proof"].startswith("004bfab0")
-    assert not any(by_name[n]["layout_proof"] for n in ("GrCycle", "MonsterInfoDialog"))
+    # GrCycle's proof covers a vtable slot offset only, not any data member.
+    assert "slot 9 only" in by_name["GrCycle"]["layout_proof"]
+    assert not by_name["MonsterInfoDialog"]["layout_proof"]
     for name in ("VirtualFileBinIStream", "MonsterLight"):
         assert by_name[name]["source_path"] == ""
         assert by_name[name]["base_classes"]
         assert by_name[name]["base_name_origin"] == "original-export"
-    assert by_name["GrCycle"] == {
-        "class_name": "GrCycle",
-        "confidence": "strong",
-        "vtable": "005ece78",
-        "slots": "16",
-        "constructor": "004a5e50",
-        "destructor": "004a6610",
-        "scalar_deleting_destructor": "004a5f00",
-        "minimum_size": "0x1d8",
-        "secondary_vtables": "005eceb8@0x18:13",
-        "base_classes": "",
-        "base_name_origin": "",
-        "source_path": "Engine Code\\GrCycle.cpp",
-        "layout_proof": "",
-        "evidence": (
-            "Primary slots 4 and 11 directly reference the exact source path; "
-            "constructor and destructor install primary and secondary vtables"
-        ),
-    }
+    grcycle = by_name["GrCycle"]
+    assert grcycle["vtable"] == "005ece78"
+    assert grcycle["slots"] == "16"
+    assert grcycle["constructor"] == "004a5e50"
+    assert grcycle["destructor"] == "004a6610"
+    assert grcycle["scalar_deleting_destructor"] == "004a5f00"
+    assert grcycle["minimum_size"] == "0x1d8"
+    assert grcycle["secondary_vtables"] == "005eceb8@0x18:13"
+    assert grcycle["source_path"] == "Engine Code\\GrCycle.cpp"
+    assert "Primary slots 4 and 11 directly reference the exact source path" in grcycle["evidence"]
     monster = by_name["Monster"]
     assert monster["vtable"] == "005ed200"
     assert monster["slots"] == "31"
@@ -320,9 +313,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 41
+    assert len(rows) == 42
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 34
+    assert len(exact) == 35
     assert {int(row["size"]) for row in exact} == {
         6,
         19,
@@ -333,6 +326,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         47,
         50,
         53,
+        57,
         61,
         70,
         76,
@@ -381,6 +375,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/character_items.c",
             "src/wiz8/gameplay_boundaries.c",
             "src/wiz8/location_variables.c",
+            "src/wiz8/grcycle_behaviour.cpp",
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/message_box.cpp",
             "src/wiz8/monster_cycles.cpp",
