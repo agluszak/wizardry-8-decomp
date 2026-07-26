@@ -22,6 +22,10 @@ extern void __fastcall Function52DB80(void* self);
 extern void Function54B300(unsigned int slot);
 extern W8GlobalStatus g_status_685170;
 extern W8GameSettings g_settings_6850c8;
+extern unsigned char g_monster_slot_block[0x1a0a];
+extern W8MonsterSlot g_monster_slots_6836b8[];
+extern int SetCountdownClock(int delay);
+extern int Random(int limit);
 extern void Function47B5F0(void);
 extern void Function47B5B0(int id);
 extern unsigned int Function428E60(void);
@@ -704,4 +708,92 @@ void Function54B560(void)
     if (Function429800() != 1) {
         Function47B5B0(0x10);
     }
+}
+
+/* Resets one 0x118-byte slot. The tier it stores twice comes from the character
+   the slot belongs to: the status block's first buffer is an array of
+   W8Character at the 0x1862 stride, and the field at 0x0b01 - the same one
+   party-member selection thresholds against 0x12 and 0x0f - decides between 1
+   and 2 here. The five countdown clocks and the Random call share one stack
+   cleanup, as consecutive cdecl calls do. */
+// FUNCTION: WIZ8 0x0054B300
+void Function54B300(unsigned int slot)
+{
+    W8MonsterSlot* record = &g_monster_slots_6836b8[slot];
+    int tier;
+
+    memset(record, 0, sizeof(W8MonsterSlot));
+    record->field_000 = 0;
+    record->field_001 = -1;
+    record->field_075 = -1;
+    record->field_079 = 6;
+    record->field_099 = 0;
+    tier = 1;
+    if (((W8Character*)g_status_685170.buffers.buffer_04)[slot].unknown_0b01 >= 0xf) {
+        tier = 2;
+    }
+    record->field_089 = tier;
+    record->field_08d = tier;
+    record->field_085 = -1;
+    record->field_09a = 0;
+    record->field_09b = 0;
+    record->field_07d = SetCountdownClock(0);
+    record->field_081 = 0;
+    record->field_091 = SetCountdownClock(0);
+    record->field_095 = SetCountdownClock(Random(5000) + 5000);
+    record->field_0ca = SetCountdownClock(0);
+    record->field_09c = 0;
+    record->field_09d = 0;
+    record->field_09e = 0;
+    record->field_09f = 0;
+    record->field_0a3 = -1;
+    record->field_0a7 = 0;
+    record->field_0ab = 0x90;
+    record->field_0bd = 0;
+    record->field_0c2 = -1;
+    record->field_0be = -1;
+    record->field_0c6 = 0;
+    record->field_071 = 0;
+    record->field_0bc = 0;
+    record->field_0ac = 0;
+    record->field_0b0 = 0;
+    record->field_0b8 = 0;
+    record->field_0b4 = 0;
+    record->field_0ce = 0;
+    record->field_0cf = 0;
+    record->field_0d0 = 0;
+    record->field_0d1 = 0;
+    record->field_0d6 = 0;
+    record->field_0e8 = 0;
+    record->field_0d2 = SetCountdownClock(0);
+}
+
+/* Neither class is identified. Only what this constructor call establishes is
+   declared: an allocation size and a constructor signature. */
+struct W8GameplayObjectA {
+    /* Only the allocation size is recovered; no field is identified. */
+    unsigned char storage[0x6c];
+
+    W8GameplayObjectA();
+};
+
+struct W8GameplayObjectB {
+    unsigned char storage[0x24];
+
+    W8GameplayObjectB(float limit, int flag);
+};
+
+
+/* The block 0x0054AF30 and 0x0054B300 also work through; cleared here as bytes,
+   which is why it is reached by a second, byte-wide declaration. */
+extern unsigned char g_monster_slot_block[0x1a0a];
+extern void* g_object_683fd7;
+extern void* g_object_685067;
+
+// FUNCTION: WIZ8 0x0054AFD0
+void Function54AFD0(void)
+{
+    memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
+    g_object_683fd7 = new W8GameplayObjectA();
+    g_object_685067 = new W8GameplayObjectB(300.0f, 0);
 }

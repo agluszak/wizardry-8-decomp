@@ -95,6 +95,54 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* One 0x118-byte slot in the block at 0x006836B8 that 0x0054B300 resets.
+   Only the offsets that reset touches are established, so the fields keep
+   positional names. */
+typedef struct W8MonsterSlot {
+    unsigned char field_000;
+    int field_001;
+    unsigned char unknown_005[0x6c];
+    int field_071;
+    int field_075;
+    int field_079;
+    int field_07d;
+    int field_081;
+    int field_085;
+    int field_089;
+    int field_08d;
+    int field_091;
+    int field_095;
+    unsigned char field_099;
+    unsigned char field_09a;
+    unsigned char field_09b;
+    unsigned char field_09c;
+    unsigned char field_09d;
+    unsigned char field_09e;
+    int field_09f;
+    int field_0a3;
+    int field_0a7;
+    unsigned char field_0ab;
+    int field_0ac;
+    int field_0b0;
+    int field_0b4;
+    int field_0b8;
+    unsigned char field_0bc;
+    unsigned char field_0bd;
+    int field_0be;
+    int field_0c2;
+    int field_0c6;
+    int field_0ca;
+    unsigned char field_0ce;
+    unsigned char field_0cf;
+    unsigned char field_0d0;
+    unsigned char field_0d1;
+    int field_0d2;
+    unsigned short field_0d6;
+    unsigned char unknown_0d8[0x10];
+    unsigned char field_0e8;
+    unsigned char unknown_0e9[0x2f];
+} W8MonsterSlot;                         /* 0x118 */
+
 /* The game settings block that 0x0054B560 clears and fills with defaults. Every
    address that function writes falls inside the 0xa4 bytes it clears first, so
    this is one structure rather than a run of separate globals. Only offsets are
@@ -586,6 +634,7 @@ unsigned char InitializeItemTables(void);
 void DestroyItemTables(void);
 void Function54B100(void);
 void Function54B560(void);
+void Function54B300(unsigned int slot);
 unsigned char InitializeNpcDatabase(void);
 void DestroyNpcDatabase(void);
 void DestroyFactDatabase(void);
