@@ -1,0 +1,8 @@
+container,role,size,sha256,detected_type,container_technology,installer_technology,listing_method,member_count,artifact_member_count
+CosmicForge_UNICODE.rar,unassigned,6529980,a54b734819f8d765635104d04e4d5e0e37260eb12252ef7b80e34e3455db582f,archive,RAR,,unrar-password-assisted-temporary-extraction,59,0
+setup_wizardry_8_2001_12_23_(22306).exe,gog-media,1414563528,48e31728ef2615f4e1ee3e34c901feec8ea428a474fc9c7386cc11018311a68d,installer,,Inno Setup,verified-extraction-receipt,251,0
+wiz8_fix.zip,compatibility-fix,390693,c6e18575cc8358f6e6276400b4d6df5b7077bed5a67c354716cafba826b437fb,archive,ZIP,,verified-extraction-receipt,1,0
+Wiz8NetDemo.exe,demo,147997791,84ea41880949d71acc3c59ded05713b7ede7f5b920b4c7169bb1a9fc822d0f7e,installer,Cab,,verified-extraction-receipt,87,0
+Wiz8Patch2001_12_23_release.zip,official-2001-12-23-patch,3894810,5e1a106e1030938e3cb54a1aeea2dc8d24d497801dd5a9b4962896ac5c017064,archive,ZIP,,verified-extraction-receipt,23,0
+Wizardry8FanPatchV1.28Build6709.7z,patch-128,10216022,14ad488a931bf854b2837e2bdec6dc2d4eebb1065eb09aa23c0692b3d9362f2c,archive,7z,,verified-extraction-receipt,322,0
+Wizardry8UnofficialPatchV1.261.7z,patch-1261,880222,cf9c7a4491b7aa3c49ef401580085736e8464cb4128fd5c6aff65e16d21d5de9,archive,7z,,verified-extraction-receipt,1,0

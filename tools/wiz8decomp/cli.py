@@ -455,6 +455,30 @@ def inventory_command(json_output: bool = typer.Option(False, "--json", help="Em
     _run_action(lambda: inventory(_settings()), force_json=json_output)
 
 
+@app.command("debug-artifacts")
+def debug_artifacts_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+    archive_password: str | None = typer.Option(
+        None,
+        "--archive-password",
+        envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD",
+        help="Password for an encrypted unassigned archive; it is never written to reports.",
+    ),
+) -> None:
+    """Sweep every available EXE/DLL and every configured input container."""
+    from .debug_artifacts import sweep_debug_artifacts
+
+    _run_action(
+        lambda: sweep_debug_artifacts(
+            _settings(), update_snapshot=update_snapshot, archive_password=archive_password
+        )
+    )
+
+
 @sgp_app.command("sweep")
 def sgp_sweep(
     unit: list[str] | None = typer.Option(
