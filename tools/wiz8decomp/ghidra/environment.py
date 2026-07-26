@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 from ..config import (
     REQUIRED_GHIDRA_RELEASE,
@@ -27,9 +26,13 @@ def validate_environment(settings: Settings) -> dict[str, str]:
     return {"ghidra_version": version, "ghidra_release": release, "pyghidra_version": pyghidra.__version__}
 
 
-def start_pyghidra(settings: Settings) -> None:
+def start_pyghidra(settings: Settings, *, max_heap: str | None = None) -> None:
     validate_environment(settings)
     import pyghidra
 
-    pyghidra.start()
-
+    if pyghidra.started():
+        return
+    launcher = pyghidra.HeadlessPyGhidraLauncher(install_dir=settings.ghidra_install_dir)
+    if max_heap is not None:
+        launcher.add_vmargs(f"-Xmx{max_heap}")
+    launcher.start()

@@ -11,7 +11,7 @@ from typing import Any
 import yaml
 
 from ..config import Settings
-from ..paths import atomic_json, atomic_write, sha256_file
+from ..paths import atomic_json, atomic_write, json_hash, sha256_file
 from .environment import start_pyghidra
 from .project import resolve_program_name
 from .query_daemon import stop_daemon
@@ -40,9 +40,82 @@ def _fid_file_path(fid_file: Any) -> Path:
     return Path(str(fid_file.getPath())).resolve()
 
 
+def _seed_provenance(settings: Settings, kind: str) -> dict[str, dict[str, Any]]:
+    manifest_path = _database_path(settings, kind).with_suffix(".json")
+    if not manifest_path.is_file():
+        return {}
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    groups = manifest.get("seed_groups", {})
+    return {
+        program: {**groups.get(record.get("seed_group"), {}), **record}
+        for program, record in manifest.get("seed_provenance", {}).items()
+    }
+
+
+def _provenance_for_domain(
+    provenance: dict[str, dict[str, Any]], domain_path: str
+) -> dict[str, Any] | None:
+    return provenance.get(domain_path.rstrip("/").rsplit("/", 1)[-1])
+
+
+def _verified_existing_fid_summary(path: Path, input_sha256: str) -> dict[str, Any] | None:
+    summary_path = path.with_suffix(".json")
+    if not path.is_file() or not summary_path.is_file():
+        return None
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if summary.get("input_sha256") != input_sha256:
+        return None
+    if summary.get("sha256") != sha256_file(path):
+        return None
+    return summary
+
+
+def _normalize_seed_provenance(
+    records: list[dict[str, Any]],
+) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+    groups: dict[str, dict[str, Any]] = {}
+    programs: dict[str, dict[str, Any]] = {}
+    for record in records:
+        group_key = "/".join((record["toolchain"], record["library"], record["variant"]))
+        group = {
+            key: record[key]
+            for key in (
+                "toolchain",
+                "toolchain_commit",
+                "library",
+                "variant",
+                "source_kind",
+                "archive",
+                "source",
+            )
+            if key in record
+        }
+        previous = groups.setdefault(group_key, group)
+        if previous != group:
+            raise RuntimeError(f"conflicting FID seed provenance group: {group_key}")
+        programs[record["program"]] = {
+            "seed_group": group_key,
+            **{
+                key: record[key]
+                for key in (
+                    "object_path",
+                    "object_sha256",
+                    "archive_member",
+                    "archive_member_index",
+                )
+                if key in record
+            },
+        }
+    return dict(sorted(groups.items())), dict(sorted(programs.items()))
+
+
 def _is_authoritative_fid_name(name: str) -> bool:
-    """Reject compiler-local labels that are unstable between library builds."""
-    return re.fullmatch(r"\$L\d+", name) is None
+    """Reject Ghidra defaults and compiler-local labels as symbol authority."""
+    return re.fullmatch(
+        r"(?:\$L\d+|(?:FUN|LAB|SUB|DAT|PTR|OFF|UNK|EXT)_[0-9A-Fa-f]+|thunk_.+|"
+        r"switchD_[0-9A-Fa-f]+(?:::[0-9A-Fa-f]+)?)",
+        name,
+    ) is None
 
 
 def fid_status(settings: Settings) -> dict[str, Any]:
@@ -147,7 +220,7 @@ def _seed_program_name(toolchain: str, library: str, variant: str, object_path: 
 
 
 def _cached_seed_manifest(settings: Settings) -> dict[str, Any] | None:
-    from .fid_seeds import load_static_libraries
+    from .fid_seeds import load_static_libraries, validate_seed_manifest
 
     path = settings.build_dir / "manifests" / "fid-seed-objects.json"
     if not path.is_file():
@@ -178,26 +251,25 @@ def _cached_seed_manifest(settings: Settings) -> dict[str, Any] | None:
     }
     if expected != actual:
         return None
-    for item in manifest["libraries"]:
-        root = settings.work_dir / "fid" / "objects" / item["toolchain"] / item["library"] / item["variant"]
-        for record in item["objects"]:
-            path = root / record["path"]
-            if not path.is_file() or sha256_file(path) != record["sha256"]:
-                return None
+    try:
+        validate_seed_manifest(settings, manifest, require_complete=True)
+    except RuntimeError:
+        return None
     return manifest
 
 
 def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool = False) -> dict[str, Any]:
-    from .fid_seeds import build_seed_objects
+    from .fid_seeds import build_all_seed_objects
     from .import_programs import HASH_OPTION, PATH_OPTION
 
     stop_daemon(settings, quiet=True)
-    start_pyghidra(settings)
+    start_pyghidra(settings, max_heap="16G")
     import pyghidra
+    from java.lang import System
 
     object_manifest = _cached_seed_manifest(settings) if use_cached_objects else None
     if object_manifest is None:
-        object_manifest = build_seed_objects(settings)
+        object_manifest = build_all_seed_objects(settings)
     records = []
     for library_record in object_manifest["libraries"]:
         toolchain = library_record["toolchain"]
@@ -208,6 +280,19 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
         for object_record in library_record["objects"]:
             object_path = root / object_record["path"]
             name = _seed_program_name(toolchain, library, variant, object_path)
+            provenance = {
+                "toolchain_commit": toolchain_commit,
+                "source_kind": library_record.get("source_kind", "compiled-source"),
+                "object_path": object_record["path"],
+                "object_sha256": object_record["sha256"],
+            }
+            for key in ("archive_member", "archive_member_index"):
+                if key in object_record:
+                    provenance[key] = object_record[key]
+            if "archive" in library_record:
+                provenance["archive"] = library_record["archive"]
+            if "source" in library_record:
+                provenance["source"] = library_record["source"]
             project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
             try:
                 domain_file = project.getProjectData().getFile("/" + name)
@@ -216,7 +301,9 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                         existing = program.getOptions("Program Information").getString(HASH_OPTION, None)
                     if existing != object_record["sha256"]:
                         raise RuntimeError(f"refusing to replace FID seed {name}: byte hash changed")
-                    records.append({"program": name, "status": "already-imported", "toolchain": toolchain, "library": library, "variant": variant, "sha256": existing})
+                    records.append({"program": name, "status": "already-imported", "toolchain": toolchain, "library": library, "variant": variant, "sha256": existing, **provenance})
+                    if len(records) % 100 == 0:
+                        System.gc()
                     continue
             finally:
                 project.close()
@@ -241,6 +328,9 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                     options.setString("WIZ8_FID_TOOLCHAIN", toolchain)
                     options.setString("WIZ8_FID_TOOLCHAIN_COMMIT", toolchain_commit)
                     options.setString("WIZ8_FID_SOURCE_KIND", library_record.get("source_kind", "compiled-source"))
+                    options.setString("WIZ8_FID_OBJECT_SHA256", object_record["sha256"])
+                    if "archive_member" in object_record:
+                        options.setString("WIZ8_FID_ARCHIVE_MEMBER", object_record["archive_member"])
                 finally:
                     program.endTransaction(transaction, True)
                 records.append({
@@ -251,7 +341,10 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                     "variant": variant,
                     "sha256": object_record["sha256"],
                     "function_count": program.getFunctionManager().getFunctionCount(),
+                    **provenance,
                 })
+                if len(records) % 100 == 0:
+                    System.gc()
     result = {"schema": "wiz8.fid-seed-import", "programs": records}
     atomic_json(settings.build_dir / "manifests" / "fid-seed-import.json", result)
     return result
@@ -276,6 +369,30 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     ghidra_config = _config(settings)
     path = _database_path(settings, "static")
     path.parent.mkdir(parents=True, exist_ok=True)
+    seed_groups, seed_provenance = _normalize_seed_provenance(imported["programs"])
+    common_path = settings.ghidra_install_dir / "Ghidra" / "Features" / "FunctionID" / "data" / "common_symbols_win32.txt"
+    input_identity = {
+        "schema": "wiz8.fid-build-input",
+        "builder_version": 2,
+        "language": ghidra_config["language"],
+        "toolchains": [toolchain.model_dump(mode="json") for toolchain in config.toolchains],
+        "libraries": [
+            {
+                "id": library.id,
+                "family": library.family,
+                "version": library.version,
+            }
+            for library in config.libraries
+        ],
+        "seed_groups": seed_groups,
+        "seed_provenance": seed_provenance,
+        "common_symbols_sha256": sha256_file(common_path) if common_path.is_file() else None,
+    }
+    input_sha256 = json_hash(input_identity)
+    summary_path = path.with_suffix(".json")
+    previous = _verified_existing_fid_summary(path, input_sha256)
+    if previous is not None:
+        return previous
     # Ghidra embeds more packed-database identity than the basename.  Build at
     # the authoritative path, retaining the previous complete DB as a rollback
     # until the new database has saved successfully.
@@ -289,7 +406,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     manager.createNewFidDatabase(File(str(path)))
     fid_file = manager.addUserFidFile(File(str(path)))
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
-    common_path = settings.ghidra_install_dir / "Ghidra" / "Features" / "FunctionID" / "data" / "common_symbols_win32.txt"
     common_symbols = ArrayList()
     if common_path.is_file():
         for line in common_path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -355,9 +471,12 @@ def build_fid(settings: Settings) -> dict[str, Any]:
         "toolchains": [toolchain.model_dump(mode="json") for toolchain in config.toolchains],
         "toolchain_evidence": config.toolchain_evidence.model_dump(mode="json"),
         "libraries": summaries,
+        "seed_groups": seed_groups,
+        "seed_provenance": seed_provenance,
+        "input_sha256": input_sha256,
         "common_symbols_source": str(common_path.relative_to(settings.ghidra_install_dir)) if common_path.is_file() else None,
     }
-    atomic_json(path.with_suffix(".json"), summary)
+    atomic_json(summary_path, summary)
     return summary
 
 
@@ -396,6 +515,7 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     matches: list[dict[str, Any]] = []
     excluded_internal_matches = 0
+    provenance_by_program = _seed_provenance(settings, database_kind)
     service = FidService()
     score_threshold = threshold if threshold is not None else float(service.getDefaultScoreThreshold())
     try:
@@ -413,6 +533,12 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
                         if not _is_authoritative_fid_name(fid_name):
                             excluded_internal_matches += 1
                             continue
+                        seed_domain_path = str(function_record.getDomainPath())
+                        provenance = _provenance_for_domain(provenance_by_program, seed_domain_path)
+                        if database_kind == "static" and provenance is None:
+                            raise RuntimeError(
+                                f"FID match lacks seed provenance: {seed_domain_path} {fid_name}"
+                            )
                         matches.append({
                             "target_address": str(result.function.getEntryPoint()),
                             "target_name": str(result.function.getName()),
@@ -425,8 +551,17 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
                             "library_family": str(library.getLibraryFamilyName()),
                             "library_version": str(library.getLibraryVersion()),
                             "library_variant": str(library.getLibraryVariant()),
-                            "seed_domain_path": str(function_record.getDomainPath()),
+                            "seed_domain_path": seed_domain_path,
                             "seed_entry": f"0x{function_record.getEntryPoint():x}",
+                            "seed_toolchain": provenance.get("toolchain") if provenance else None,
+                            "seed_toolchain_commit": provenance.get("toolchain_commit") if provenance else None,
+                            "seed_source_kind": provenance.get("source_kind") if provenance else None,
+                            "seed_object_path": provenance.get("object_path") if provenance else None,
+                            "seed_object_sha256": provenance.get("object_sha256") if provenance else None,
+                            "seed_archive_member": provenance.get("archive_member") if provenance else None,
+                            "seed_archive_member_index": provenance.get("archive_member_index") if provenance else None,
+                            "seed_source_archive_sha256": provenance.get("source", {}).get("archive_sha256") if provenance else None,
+                            "seed_source_tree_hash": provenance.get("source", {}).get("source_tree_hash") if provenance else None,
                         })
             finally:
                 query_service.close()
@@ -437,7 +572,7 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     matches.sort(key=lambda item: (item["target_address"], -item["score"], item["fid_name"]))
     output = settings.build_dir / "evidence" / "fid" / f"{program_name}.csv"
     stream = io.StringIO(newline="")
-    fields = ["target_address", "target_name", "fid_name", "score", "primary_score", "child_score", "parent_score", "match_mode", "library_family", "library_version", "library_variant", "seed_domain_path", "seed_entry"]
+    fields = ["target_address", "target_name", "fid_name", "score", "primary_score", "child_score", "parent_score", "match_mode", "library_family", "library_version", "library_variant", "seed_domain_path", "seed_entry", "seed_toolchain", "seed_toolchain_commit", "seed_source_kind", "seed_object_path", "seed_object_sha256", "seed_archive_member", "seed_archive_member_index", "seed_source_archive_sha256", "seed_source_tree_hash"]
     writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
     writer.writerows(matches)

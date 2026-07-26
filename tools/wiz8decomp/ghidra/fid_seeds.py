@@ -332,62 +332,78 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                 raise RuntimeError(f"download hash mismatch for {library.id}")
             atomic_write(archive, payload)
         destination = unpacked / library.id
-        expected_root = destination / source.archive_root
-        if not expected_root.is_dir():
-            if destination.exists():
-                shutil.rmtree(destination)
-            if zipfile.is_zipfile(archive):
-                _safe_extract_zip(archive, destination)
-            else:
-                _safe_extract_tar(archive, destination)
-        if not expected_root.is_dir():
-            raise RuntimeError(f"{library.id} archive did not contain {source.archive_root}")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary = Path(tempfile.mkdtemp(prefix=f".{library.id}.", dir=destination.parent))
+        candidate = temporary / "tree"
+        backup = destination.with_name(f".{destination.name}.previous")
         overlay_records = []
-        for index, overlay in enumerate(library.source_overlay_archives):
-            if overlay.sha256 is None:
-                raise RuntimeError(f"{library.id} source overlay must have a pinned SHA-256")
-            suffix = (
-                ".tar.gz"
-                if overlay.url.endswith((".tar.gz", ".tgz"))
-                else Path(overlay.url).suffix
-            )
-            overlay_archive = archives / f"{library.id}-overlay-{index}{suffix}"
-            if (
-                not overlay_archive.is_file()
-                or sha256_file(overlay_archive) != overlay.sha256
-            ):
-                payload = _download(overlay.url)
-                if hashlib.sha256(payload).hexdigest() != overlay.sha256:
-                    raise RuntimeError(f"download hash mismatch for {library.id} overlay {index}")
-                atomic_write(overlay_archive, payload)
-            with tempfile.TemporaryDirectory(dir=root) as temporary:
-                overlay_destination = Path(temporary)
-                if zipfile.is_zipfile(overlay_archive):
-                    _safe_extract_zip(overlay_archive, overlay_destination)
-                else:
-                    _safe_extract_tar(overlay_archive, overlay_destination)
-                overlay_root = (overlay_destination / overlay.archive_root).resolve()
-                for member in overlay.members:
-                    source_path = (overlay_root / member).resolve()
-                    if source_path != overlay_root and overlay_root not in source_path.parents:
+        try:
+            if zipfile.is_zipfile(archive):
+                _safe_extract_zip(archive, candidate)
+            else:
+                _safe_extract_tar(archive, candidate)
+            expected_root = candidate / source.archive_root
+            if not expected_root.is_dir():
+                raise RuntimeError(f"{library.id} archive did not contain {source.archive_root}")
+            for index, overlay in enumerate(library.source_overlay_archives):
+                if overlay.sha256 is None:
+                    raise RuntimeError(f"{library.id} source overlay must have a pinned SHA-256")
+                suffix = (
+                    ".tar.gz"
+                    if overlay.url.endswith((".tar.gz", ".tgz"))
+                    else Path(overlay.url).suffix
+                )
+                overlay_archive = archives / f"{library.id}-overlay-{index}{suffix}"
+                if (
+                    not overlay_archive.is_file()
+                    or sha256_file(overlay_archive) != overlay.sha256
+                ):
+                    payload = _download(overlay.url)
+                    if hashlib.sha256(payload).hexdigest() != overlay.sha256:
                         raise RuntimeError(
-                            f"{library.id} overlay member escapes source root: {member}"
+                            f"download hash mismatch for {library.id} overlay {index}"
                         )
-                    if not source_path.is_file():
-                        raise RuntimeError(
-                            f"{library.id} overlay archive did not contain {member}"
-                        )
-                    destination_path = expected_root / member
-                    destination_path.parent.mkdir(parents=True, exist_ok=True)
-                    atomic_write(destination_path, source_path.read_bytes())
-            overlay_records.append(
-                {
-                    "url": overlay.url,
-                    "archive_sha256": overlay.sha256,
-                    "members": overlay.members,
-                }
-            )
-        manifest = tree_manifest(expected_root)
+                    atomic_write(overlay_archive, payload)
+                with tempfile.TemporaryDirectory(dir=root) as overlay_temporary:
+                    overlay_destination = Path(overlay_temporary)
+                    if zipfile.is_zipfile(overlay_archive):
+                        _safe_extract_zip(overlay_archive, overlay_destination)
+                    else:
+                        _safe_extract_tar(overlay_archive, overlay_destination)
+                    overlay_root = (overlay_destination / overlay.archive_root).resolve()
+                    for member in overlay.members:
+                        source_path = (overlay_root / member).resolve()
+                        if source_path != overlay_root and overlay_root not in source_path.parents:
+                            raise RuntimeError(
+                                f"{library.id} overlay member escapes source root: {member}"
+                            )
+                        if not source_path.is_file():
+                            raise RuntimeError(
+                                f"{library.id} overlay archive did not contain {member}"
+                            )
+                        destination_path = expected_root / member
+                        destination_path.parent.mkdir(parents=True, exist_ok=True)
+                        atomic_write(destination_path, source_path.read_bytes())
+                overlay_records.append(
+                    {
+                        "url": overlay.url,
+                        "archive_sha256": overlay.sha256,
+                        "members": overlay.members,
+                    }
+                )
+            manifest = tree_manifest(expected_root)
+            if backup.exists():
+                shutil.rmtree(backup)
+            if destination.exists():
+                destination.replace(backup)
+            candidate.replace(destination)
+            shutil.rmtree(backup, ignore_errors=True)
+        except Exception:
+            if backup.exists() and not destination.exists():
+                backup.replace(destination)
+            raise
+        finally:
+            shutil.rmtree(temporary, ignore_errors=True)
         records.append(
             {
                 "library": library.id,
@@ -587,7 +603,7 @@ def _docker_copy_from_image(
 
 
 def _configured_seed_keys(config: StaticLibrariesConfig) -> set[tuple[str, str, str]]:
-    compiled = {
+    compiled = [
         (toolchain.id, library.id, variant.id)
         for toolchain in config.toolchains
         if "compiler" in toolchain.capabilities
@@ -596,14 +612,127 @@ def _configured_seed_keys(config: StaticLibrariesConfig) -> set[tuple[str, str, 
         if library.source is not None
         and library.source.sha256 is not None
         and library.compilation_units
-    }
-    precompiled = {
+    ]
+    precompiled = [
         (toolchain.id, archive.library, archive.variant)
         for toolchain in config.toolchains
         for archive in toolchain.precompiled_archives
         if archive.seed
+    ]
+    keys = compiled + precompiled
+    if len(keys) != len(set(keys)):
+        duplicates = sorted(key for key in set(keys) if keys.count(key) > 1)
+        raise RuntimeError(f"colliding configured FID seed keys: {duplicates}")
+    return set(keys)
+
+
+def _seed_record_key(record: dict[str, Any]) -> tuple[str, str, str]:
+    return (record["toolchain"], record["library"], record["variant"])
+
+
+def _merge_seed_records(
+    config: StaticLibrariesConfig,
+    previous: list[dict[str, Any]],
+    replacements: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Replace selected stable-key records without losing unrelated configured seeds."""
+    configured = _configured_seed_keys(config)
+    merged: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for record in previous:
+        key = _seed_record_key(record)
+        if key in configured:
+            if key in merged:
+                raise RuntimeError(f"duplicate FID seed record: {'/'.join(key)}")
+            merged[key] = record
+    for record in replacements:
+        key = _seed_record_key(record)
+        if key not in configured:
+            raise RuntimeError(f"unconfigured FID seed record: {'/'.join(key)}")
+        merged[key] = record
+    return [merged[key] for key in sorted(merged)]
+
+
+def _seed_manifest(
+    config: StaticLibrariesConfig,
+    libraries: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "schema": "wiz8.fid-seed-objects",
+        "toolchains": [
+            item.model_dump(mode="json")
+            for item in sorted(config.toolchains, key=lambda item: item.id)
+        ],
+        "libraries": libraries,
     }
-    return compiled | precompiled
+
+
+def validate_seed_manifest(
+    settings: Settings,
+    manifest: dict[str, Any],
+    *,
+    require_complete: bool,
+) -> None:
+    """Verify stable identities plus every recorded object byte before FID import."""
+    config = load_static_libraries(settings)
+    if manifest.get("schema") != "wiz8.fid-seed-objects":
+        raise RuntimeError("invalid FID seed manifest schema")
+    expected_toolchains = {
+        (item.id, item.commit) for item in config.toolchains
+    }
+    actual_toolchains = {
+        (item.get("id"), item.get("commit")) for item in manifest.get("toolchains", [])
+    }
+    if actual_toolchains != expected_toolchains:
+        raise RuntimeError("FID seed manifest toolchains do not match configuration")
+    configured = _configured_seed_keys(config)
+    actual: set[tuple[str, str, str]] = set()
+    for record in manifest.get("libraries", []):
+        key = _seed_record_key(record)
+        if key in actual:
+            raise RuntimeError(f"duplicate FID seed record: {'/'.join(key)}")
+        if key not in configured:
+            raise RuntimeError(f"unconfigured FID seed record: {'/'.join(key)}")
+        actual.add(key)
+        source_kind = record.get("source_kind")
+        if source_kind not in {"cmake-object-library", "precompiled-archive"}:
+            raise RuntimeError(f"missing FID seed provenance: {'/'.join(key)}")
+        toolchain_commit = next(
+            item.commit for item in config.toolchains if item.id == record["toolchain"]
+        )
+        if record.get("toolchain_commit") != toolchain_commit:
+            raise RuntimeError(f"FID seed toolchain provenance mismatch: {'/'.join(key)}")
+        if source_kind == "cmake-object-library":
+            source = record.get("source", {})
+            if not source.get("archive_sha256") or not source.get("source_tree_hash"):
+                raise RuntimeError(f"missing FID source provenance: {'/'.join(key)}")
+        elif not record.get("archive", {}).get("sha256"):
+            raise RuntimeError(f"missing FID archive provenance: {'/'.join(key)}")
+        root = _fid_root(settings) / "objects" / key[0] / key[1] / key[2]
+        objects = record.get("objects", [])
+        if not objects or record.get("object_count") != len(objects):
+            raise RuntimeError(f"empty or inconsistent FID seed record: {'/'.join(key)}")
+        for item in objects:
+            relative = Path(item["path"])
+            if relative.is_absolute() or ".." in relative.parts:
+                raise RuntimeError(f"unsafe FID seed object path: {item['path']}")
+            path = root / relative
+            if not path.is_file() or sha256_file(path) != item["sha256"]:
+                raise RuntimeError(f"FID seed object hash mismatch: {path}")
+            if path.stat().st_size != item["size"]:
+                raise RuntimeError(f"FID seed object size mismatch: {path}")
+        if tree_hash(objects) != record.get("tree_hash"):
+            raise RuntimeError(f"FID seed tree hash mismatch: {'/'.join(key)}")
+    if require_complete and actual != configured:
+        missing = sorted(configured - actual)
+        extra = sorted(actual - configured)
+        raise RuntimeError(f"incomplete FID seed manifest; missing={missing}, extra={extra}")
+
+
+def _previous_seed_records(settings: Settings) -> list[dict[str, Any]]:
+    path = settings.build_dir / "manifests" / "fid-seed-objects.json"
+    if not path.is_file():
+        return []
+    return json.loads(path.read_text(encoding="utf-8")).get("libraries", [])
 
 
 def _write_archive_members(
@@ -660,7 +789,6 @@ def extract_precompiled_objects(
     toolchains = select_toolchains(config, toolchain_ids, capability="precompiled-libraries")
     library_ids = {library.id for library in config.libraries}
     records: list[dict[str, Any]] = []
-    selected_keys: set[tuple[str, str, str]] = set()
     archive_root = _fid_root(settings) / "precompiled-archives"
     object_root = _fid_root(settings) / "objects"
     for toolchain in toolchains:
@@ -671,7 +799,6 @@ def extract_precompiled_objects(
                 raise RuntimeError(
                     f"{toolchain.id}/{archive.id} references unknown library {archive.library}"
                 )
-            selected_keys.add((toolchain.id, archive.library, archive.variant))
             archive_path = archive_root / toolchain.id / f"{archive.id}.lib"
             if not archive_path.is_file() or sha256_file(archive_path) != archive.sha256:
                 _docker_copy_from_image(
@@ -714,26 +841,10 @@ def extract_precompiled_objects(
             )
 
     manifest_path = settings.build_dir / "manifests" / "fid-seed-objects.json"
-    preserved: list[dict[str, Any]] = []
-    configured_keys = _configured_seed_keys(config)
-    if manifest_path.is_file():
-        previous = json.loads(manifest_path.read_text(encoding="utf-8"))
-        for record in previous.get("libraries", []):
-            key = (record["toolchain"], record["library"], record["variant"])
-            if key in configured_keys and key not in selected_keys:
-                preserved.append(record)
-    combined = sorted(
-        preserved + records, key=lambda item: (item["toolchain"], item["library"], item["variant"])
-    )
-    result = {
-        "schema": "wiz8.fid-seed-objects",
-        "toolchains": [
-            item.model_dump(mode="json")
-            for item in sorted(config.toolchains, key=lambda item: item.id)
-        ],
-        "libraries": combined,
-    }
+    combined = _merge_seed_records(config, _previous_seed_records(settings), records)
+    result = _seed_manifest(config, combined)
     atomic_json(manifest_path, result)
+    validate_seed_manifest(settings, result, require_complete=False)
     return result
 
 
@@ -752,15 +863,30 @@ def _prepared_source(settings: Settings, library: StaticLibrary, pristine: Path)
     if settings.repo_dir.resolve() not in overlay.parents or not overlay.is_dir():
         raise RuntimeError(f"invalid source overlay for {library.id}: {library.source_overlay}")
     prepared = _fid_root(settings) / "sources" / "prepared" / library.id
-    if prepared.exists():
-        shutil.rmtree(prepared)
-    shutil.copytree(pristine, prepared)
-    for source in sorted(overlay.rglob("*")):
-        if source.is_file():
-            relative = source.relative_to(overlay)
-            destination = prepared / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(source, destination)
+    prepared.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{library.id}.", dir=prepared.parent))
+    candidate = temporary / "tree"
+    backup = prepared.with_name(f".{prepared.name}.previous")
+    try:
+        shutil.copytree(pristine, candidate)
+        for source in sorted(overlay.rglob("*")):
+            if source.is_file():
+                relative = source.relative_to(overlay)
+                destination = candidate / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, destination)
+        if backup.exists():
+            shutil.rmtree(backup)
+        if prepared.exists():
+            prepared.replace(backup)
+        candidate.replace(prepared)
+        shutil.rmtree(backup, ignore_errors=True)
+    except Exception:
+        if backup.exists() and not prepared.exists():
+            backup.replace(prepared)
+        raise
+    finally:
+        shutil.rmtree(temporary, ignore_errors=True)
     return prepared
 
 
@@ -769,7 +895,7 @@ def build_seed_objects(
     toolchain_ids: list[str] | None = None,
     library_ids: list[str] | None = None,
 ) -> dict[str, Any]:
-    fetch_seed_sources(settings)
+    source_manifest = fetch_seed_sources(settings)
     config = load_static_libraries(settings)
     source_root = _fid_root(settings) / "sources" / "unpacked"
     output_root = _fid_root(settings) / "objects"
@@ -777,6 +903,11 @@ def build_seed_objects(
     selected_toolchains = select_toolchains(config, toolchain_ids, capability="compiler")
     selected_libraries = select_libraries(config, library_ids)
     prepared_sources: dict[str, Path] = {}
+    source_provenance = {
+        item["library"]: item
+        for item in source_manifest["sources"]
+        if item["status"] == "ready"
+    }
     cmake_variables = {
         "zlib-1.0.4": "FID_ZLIB_SOURCE",
         "ijg-jpeg-6": "FID_JPEG_SOURCE",
@@ -830,6 +961,7 @@ def build_seed_objects(
                             "variant": variant.id,
                             "flags": variant.flags,
                             "source_kind": "cmake-object-library",
+                            "source": source_provenance[library.id],
                             "cmake_target": target,
                             "object_count": len(manifest),
                             "tree_hash": tree_hash(manifest),
@@ -839,35 +971,22 @@ def build_seed_objects(
         finally:
             shutil.rmtree(temporary, ignore_errors=True)
     manifest_path = settings.build_dir / "manifests" / "fid-seed-objects.json"
-    selected_pairs = {
-        (toolchain.id, library.id)
-        for toolchain in selected_toolchains
-        for library in selected_libraries
-    }
-    configured_keys = _configured_seed_keys(config)
-    preserved = []
-    if manifest_path.is_file() and (toolchain_ids or library_ids):
-        previous = json.loads(manifest_path.read_text(encoding="utf-8"))
-        for record in previous.get("libraries", []):
-            key = (record["toolchain"], record["library"], record["variant"])
-            if (
-                key in configured_keys
-                and (record["toolchain"], record["library"]) not in selected_pairs
-            ):
-                preserved.append(record)
-    combined = sorted(
-        preserved + records,
-        key=lambda item: (item["toolchain"], item["library"], item["variant"]),
-    )
-    result = {
-        "schema": "wiz8.fid-seed-objects",
-        "toolchains": [
-            item.model_dump(mode="json")
-            for item in sorted(config.toolchains, key=lambda item: item.id)
-        ],
-        "libraries": combined,
-    }
+    combined = _merge_seed_records(config, _previous_seed_records(settings), records)
+    result = _seed_manifest(config, combined)
     atomic_json(manifest_path, result)
+    validate_seed_manifest(settings, result, require_complete=False)
+    return result
+
+
+def build_all_seed_objects(settings: Settings) -> dict[str, Any]:
+    """Repair every configured source and precompiled seed, then prove completeness."""
+    # Seed bytes are only reproducible when the configured image is rebuilt
+    # from its pinned repository commit. Locally cached tags are mutable and
+    # may predate the current entrypoint/build contract.
+    build_toolchain_images(settings)
+    build_seed_objects(settings)
+    result = extract_precompiled_objects(settings)
+    validate_seed_manifest(settings, result, require_complete=True)
     return result
 
 
