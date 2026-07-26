@@ -165,6 +165,7 @@ extern void* g_monster_group_encounter_list;
 
 unsigned int PListGetCount(void* list);
 W8MonsterGroup* PListGetAt(void* list, unsigned int index);
+int PListIndexOf(void* list, void* target);
 W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
@@ -203,6 +204,7 @@ W8WorldItem* SpawnItem(
     unsigned char add_to_world);
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
+W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
 
 #ifdef __cplusplus
 }

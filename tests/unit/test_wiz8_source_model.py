@@ -263,7 +263,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 26
+    assert len(rows) == 27
     exact = [row for row in rows if row["confidence"] == "exact"]
     assert len(exact) == 23
     assert {int(row["size"]) for row in exact} == {
@@ -297,6 +297,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     first_monster = next(row for row in rows if row["symbol"] == "FindFirstMonsterByID")
     assert first_monster["confidence"] == "structurally-strong"
     assert first_monster["relocation_masked_sha256"] == ""
+    next_monster = next(row for row in rows if row["symbol"] == "FindNextExistingMonsterByID")
+    assert next_monster["confidence"] == "structurally-strong"
+    assert next_monster["relocation_masked_sha256"] == ""
     source = "\n".join(
         (repository / path).read_text(encoding="utf-8")
         for path in (

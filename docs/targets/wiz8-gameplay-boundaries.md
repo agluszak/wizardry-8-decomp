@@ -33,6 +33,7 @@ recovery work.
 | `0x004f6c50` | `SpawnItem` | 103 | Materializes a packed item instance unless the item ID is `-1`, passes it with a three-component position to the world-item allocator, and preserves the original `ItemManager.cpp:398` assertion. Its name comes from the verified CFAgent oracle. |
 | `0x0050b830` | `GetNPCItemListByID` | 53 | Searches the global NPC item-list vector for an entry whose NPC record's `record_id` (offset `0x58`, independently corroborated by `config/types/wiz8/npc_database.h`) equals the requested ID, using the same odd `index < count` in-loop guard as `FindMonGenByName`. Its name comes from the verified CFAgent oracle and it has 73 canonical callers. |
 | `0x00510b60` | `FindFirstMonsterByID` | 130 | Walks the global species `PList`, then the encounter `PList`, for a `W8MonsterGroup` whose `monster_id` field (offset `0x18`) matches; the species list is queried through `GetMonsterGroupByID` (`0x005101B0`) rather than the raw `PListGetAt` accessor the encounter list uses. Its name comes from the verified CFAgent oracle. |
+| `0x00510bf0` | `FindNextExistingMonsterByID` | 206 | Continues a `FindFirstMonsterByID` search after a given `previous` result: locates `previous` in the species `PList` via `PListIndexOf` (`0x005E2890`) and resumes there, spills into the encounter `PList` once the species list is exhausted or `previous` was never in it, and starts the encounter `PList` fresh at index `0` unless `previous` was found there directly. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
 `src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`,
@@ -108,3 +109,15 @@ peeling: the current VC6 output duplicates each loop's first iteration into its 
 instead of reusing the original's single body through a backward branch. Unlike `GetNPCItemListByID`,
 swapping which local occupies which register did not change this; it appears to be a loop-shape
 heuristic rather than something reachable through simple reordering.
+
+`FindNextExistingMonsterByID` shares that same limitation and is also `structurally-strong`. Its
+`PListIndexOf` callee (`0x005E2890`) is a useful case study in cross-checking Ghidra evidence:
+decompiled at its own address it appears to take three parameters, but decompiled at this function's
+call sites it only ever passes two; the standalone signature is a Ghidra recovery artifact from the
+callee's `srAssertFail` prologue, and the correct two-argument `(list, target)` signature is confirmed
+by manually walking the raw disassembly's `ESP`-relative operand offsets against the actual push
+count at each read. Every branch in the recovered body — both directions of the `position < count - 1`
+check, the `position == -1` fallback into the encounter `PList`, and the shared `search_species`/
+`search_encounter` labels reached by both fallthrough and `goto` — agrees with the canonical
+control flow; only the loop-peeling and parameter-to-register assignment differ, the same open gap
+as `FindFirstMonsterByID`.
