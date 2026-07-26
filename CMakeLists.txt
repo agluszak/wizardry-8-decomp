@@ -233,6 +233,17 @@ if(WIZ8_BUILD_DECOMP AND ZLIB_SOURCE)
         src/wiz8/zlib_wrappers.c
     )
     target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
+
+    # The canonical executable statically links pristine zlib 1.0.4; 46 of its
+    # bodies are already reviewed in config/analysis/functions/wiz8-zlib.csv.
+    # Build the pinned source as a real library so bring-up resolves inflate*
+    # by linking it, rather than by stubbing library code.
+    wiz8_collect_zlib_units(WIZ8_ZLIB_UNITS "${ZLIB_SOURCE}")
+    list(TRANSFORM WIZ8_ZLIB_UNITS PREPEND "${ZLIB_SOURCE}/")
+    add_library(WIZ8_ZLIB_1_0_4 STATIC EXCLUDE_FROM_ALL ${WIZ8_ZLIB_UNITS})
+    target_compile_options(WIZ8_ZLIB_1_0_4 PRIVATE /nologo /O2 /MD)
+    target_compile_definitions(WIZ8_ZLIB_1_0_4 PRIVATE NDEBUG WIN32)
+    target_include_directories(WIZ8_ZLIB_1_0_4 PRIVATE "${ZLIB_SOURCE}")
 endif()
 
 if(WIZ8_BUILD_DECOMP)
@@ -307,12 +318,23 @@ if(WIZ8_BUILD_DECOMP)
     # compiler defaults and /MD. These are the additional Windows import libs
     # actually present in the canonical executable; do not copy Imperialism's
     # winmm/vfw/DirectSound/DirectPlay list because Wiz8.exe does not import it.
+    # ddraw/gdi32/user32 are the Windows import libs the canonical executable
+    # actually imports beyond the VC6 defaults (KERNEL32 and, via /MD, MSVCRT
+    # and MSVCP60); do not copy Imperialism's winmm/vfw/DirectSound/DirectPlay
+    # list because Wiz8.exe does not import it. MSS32 (Miles) and BINKW32 (Bink)
+    # are imported by the canonical executable too, but no recovered source
+    # references them yet, so they are deliberately not linked until something
+    # needs them. zlib is linked as a real library so inflate* resolves from
+    # pinned upstream source instead of a stub.
     target_link_libraries(WIZ8_BRINGUP PRIVATE
         ddraw.lib
         gdi32.lib
         user32.lib
         "${WIZ8_SR_IMPORT_LIBRARY}"
     )
+    if(TARGET WIZ8_ZLIB_1_0_4)
+        target_link_libraries(WIZ8_BRINGUP PRIVATE WIZ8_ZLIB_1_0_4)
+    endif()
     target_link_options(WIZ8_BRINGUP PRIVATE
         /DEBUG
         /DEBUGTYPE:CV

@@ -1,4 +1,11 @@
 LIBRARY SR
 
+; The real SR.DLL export is variadic with a long line number. Recovered source
+; deliberately declares a fixed-arity int form, because VC6 only emits the
+; canonical bodies that way; both are the same 32-bit cdecl call ABI. The
+; aliases below make that declaration resolve against the real export instead
+; of failing to link, and cover the C form used by the .c translation units.
 EXPORTS
     ?srAssertFail@@YAXPBD0J0ZZ
+    ?srAssertFail@@YAXPBD0H0@Z = ?srAssertFail@@YAXPBD0J0ZZ
+    srAssertFail = ?srAssertFail@@YAXPBD0J0ZZ

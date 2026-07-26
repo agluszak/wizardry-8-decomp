@@ -37,8 +37,24 @@ The startup path alone needs:
 | KERNEL32 | `GetModuleHandleA`, `GetStartupInfoA`, `GlobalMemoryStatus` |
 | USER32 | `FindWindowExA`, `SetForegroundWindow`, `ShowWindow`, `ShowCursor`, `PeekMessageA`, `GetMessageA`, `TranslateMessage`, `DispatchMessageA`, `WaitMessage`, `PostQuitMessage`, `MessageBoxA` |
 
-Wiring those into a runnable target belongs to `wiz8-ls5.4`, which separates byte-matching from
-runtime bring-up; this document only records what that target will have to link.
+`WIZ8_BRINGUP` already links `ddraw`, `gdi32`, `user32` and the generated `SR` import library, with
+KERNEL32 and the `/MD` runtimes coming from the VC6 defaults. Two gaps were closed while mapping the
+spine:
+
+* **zlib.** The canonical executable statically links pristine zlib 1.0.4, so `inflateInit_`,
+  `inflate` and `inflateEnd` were unresolved. `WIZ8_ZLIB_1_0_4` now builds the pinned source and the
+  bring-up links it, instead of stubbing library code.
+* **`srAssertFail`.** Recovered source deliberately declares a fixed-arity `int` form because VC6
+  only emits the canonical bodies that way, but the real export is
+  `?srAssertFail@@YAXPBD0J0ZZ` — variadic, `long` line. The declaration therefore mangled to a symbol
+  the import library did not contain, in both a C++ and a C form. `src/wiz8/imports/sr.def` now
+  aliases both onto the real export, so it links without touching a single recovered body.
+
+`MSS32` (Miles) and `BINKW32` (Bink) are imported by the canonical executable but no recovered source
+references them yet, so they are deliberately not linked until something needs them.
+
+After those two fixes every remaining unresolved symbol in the bring-up link is **first-party** —
+Wizardry globals, `PList` helpers and not-yet-recovered callees. No library symbol is missing.
 
 ## The spine
 
@@ -76,8 +92,14 @@ Two hard gates sit before any engine bring-up, and both matter for runtime work:
 Recorded explicitly rather than guessed:
 
 * `BringUpEngine`'s six callees are on the path but not individually identified.
-* The per-frame tick dispatches through an indexed table at `0x00647BD4`; its contents are not
-  enumerated, so the screen/state machine behind the main loop is still opaque.
+* The per-frame tick's table at `0x00647BD4` is now enumerated in
+  `config/analysis/wiz8/frame-dispatch-table.csv`: a flat 62-entry function-pointer table indexed by
+  state id, of which 17 slots hold one shared default stub at `0x005B1740` (`mov al,1; ret`, i.e.
+  "handled") and 45 are real handlers. Joining it against `translation-unit-intervals.csv` attributes
+  five handlers, and all five land in `Local Screens\*.cpp` — `MainGameScreen.cpp` (three),
+  `MainMenuScreen.cpp` and `ReviewCharacterScreen.cpp` — which is what identifies this as the
+  screen/state table rather than a generic callback array. The other 40 handlers fall outside the
+  current interval coverage and are recorded unattributed.
 * No node on the spine is attributable to an original translation unit yet. The assertion map covers
   606 functions and none of them is on this path, which is consistent with startup code that
   asserts little.

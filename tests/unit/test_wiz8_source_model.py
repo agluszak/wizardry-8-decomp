@@ -79,10 +79,37 @@ def test_startup_spine_separates_library_from_first_party() -> None:
     assert by_address["00401670"]["role"] == "WinMain"
     assert by_address["004e3340"]["role"] == "per-frame tick"
 
-    # Unresolved boundaries are recorded rather than guessed.
+    # Unresolved boundaries are recorded rather than guessed. The frame dispatch
+    # table has since been enumerated, so it is resolved with partial attribution.
     unresolved = [row for row in rows if row["status"] == "unresolved"]
-    assert len(unresolved) == 2
-    assert all(row["source_unit"] == "unresolved" for row in rows if row["ownership"] == "first-party")
+    assert len(unresolved) == 1
+    assert unresolved[0]["role"] == "BringUpEngine callee chain"
+    dispatch = by_address["00647bd4"]
+    assert dispatch["status"] == "resolved"
+    assert dispatch["source_unit"] == "partial"
+
+
+def test_frame_dispatch_table_is_enumerated_and_partly_attributed() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/frame-dispatch-table.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 62
+    stubs = [row for row in rows if row["kind"] == "default-stub"]
+    assert len(stubs) == 17
+    # One shared stub address, not seventeen separate empty handlers.
+    assert {row["handler_address"] for row in stubs} == {"005b1740"}
+
+    # Every attributable handler is a screen, which is what identifies this table.
+    attributed = {row["source_unit"] for row in rows if row["source_unit"]}
+    assert attributed == {
+        "Local Screens\\MainGameScreen.cpp",
+        "Local Screens\\MainMenuScreen.cpp",
+        "Local Screens\\ReviewCharacterScreen.cpp",
+    }
+    assert sum(1 for row in rows if row["source_unit"]) == 5
 
 
 def test_surrender_abi_surface_is_complete_and_joins_the_jpeg_model() -> None:
