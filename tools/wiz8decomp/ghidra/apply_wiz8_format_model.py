@@ -292,32 +292,6 @@ def apply_wiz8_format_model(
                         (0x0B, byte, "unknown_0b", "optional initialization flag"),
                     ],
                 )
-                world_item = _structure(
-                    dtm,
-                    category,
-                    "W8WorldItem",
-                    0xAD,
-                    [
-                        (0x00, integer, "runtime_id", "runtime world-item identifier"),
-                        (0x04, generic_pointer, "unknown_04", "runtime owner pointer"),
-                        (0x08, byte, "unknown_08", "unreviewed flag"),
-                        (0x09, item_instance, "item", "embedded item instance"),
-                        (
-                            0x15,
-                            ArrayDataType(float_type, 3, 4),
-                            "position",
-                            "three-component world position",
-                        ),
-                        (0x21, ArrayDataType(byte, 4, 1), "unknown_21", "unreviewed fields"),
-                        (0x25, integer, "unknown_25", "second flag word"),
-                        (0x29, dword, "flags", "tested as a bit mask"),
-                        (0x2D, integer, "saved_marker", "nonzero when another record follows"),
-                        (0x31, generic_pointer, "next", "next serialized world item"),
-                        (0x35, integer, "unknown_35", "unreviewed field"),
-                        (0x39, integer, "sector_id", "world sector identifier"),
-                        (0x3D, ArrayDataType(byte, 0x70, 1), "unknown_3d", "unreviewed fields"),
-                    ],
-                )
                 item_record = _structure(
                     dtm,
                     category,

@@ -391,6 +391,26 @@ W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
 
 typedef struct W8Monster W8Monster;
 
+#ifdef __cplusplus
+enum { W8_MONSTER_CYCLE_COUNT = 27 };
+
+struct W8MonsterCycle {
+    unsigned char unknown_00[4];
+    unsigned char ubNumSubs;                /* 0x04 */
+    unsigned char unknown_05[11];
+};                                          /* 0x10 */
+
+struct W8Monster {
+    unsigned char unknown_000[0xa4];
+    signed char m_bCurrentCycle;             /* 0x0a4: substituted for the -1 sentinel */
+    unsigned char unknown_0a5[7];
+    W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
+
+    unsigned char GetNumSubsPerCycle(signed char bCycle);
+    unsigned char Function4CA4C0();
+};
+#endif
+
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
     unsigned char unknown_04[4];
@@ -421,6 +441,7 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
+unsigned char Function4E68C0(void);
 
 unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);

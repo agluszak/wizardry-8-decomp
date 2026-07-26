@@ -288,3 +288,18 @@ unsigned int GetMonsterCombatValue(const W8MonsterRecord* record)
     }
     return value;
 }
+
+// FUNCTION: WIZ8 0x004E68C0
+unsigned char Function4E68C0(void)
+{
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info != 0 && monster_info->monster->Function4CA4C0() != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
