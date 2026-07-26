@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from wiz8decomp import config
 from wiz8decomp.config import Settings
-from wiz8decomp.ghidra import cache
+from wiz8decomp.ghidra import cache, rebuild
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -109,6 +109,24 @@ def test_matching_materialization_marker_avoids_ghidra_startup(tmp_path: Path, m
     assert actual.project_dir == effective.project_dir
     assert report["status"] == "cached"
     assert report["under_one_minute"] is True
+
+
+def test_reviewed_replay_does_not_recursively_materialize(
+    tmp_path: Path, monkeypatch
+) -> None:
+    settings = _settings(tmp_path)
+    calls: list[bool] = []
+
+    def record_apply(*_args: object, materialize: bool = True, **_kwargs: object) -> dict[str, int]:
+        calls.append(materialize)
+        return {}
+
+    monkeypatch.setattr(rebuild, "apply_function_map", record_apply)
+    actions = dict(rebuild.reviewed_replay_actions(settings, "canonical"))
+
+    actions["reviewed_function_catalog"]()
+
+    assert calls == [False]
 
 
 def test_a_missing_agent_identity_is_refused_rather_than_defaulted(monkeypatch) -> None:

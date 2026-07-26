@@ -34,6 +34,7 @@ def reviewed_replay_actions(
                 settings,
                 program_name,
                 settings.repo_dir / "evidence" / "reviewed" / evidence_program / "functions.csv",
+                materialize=False,
             ),
         ),
         ("zlib_model", lambda: apply_zlib_model(settings, program_name)),

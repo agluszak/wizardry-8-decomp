@@ -121,6 +121,7 @@ def apply_function_map(
     mapping_path: Path,
     *,
     dry_run: bool = False,
+    materialize: bool = True,
 ) -> dict[str, Any]:
     mapping_path = mapping_path.resolve()
     if not mapping_path.is_file():
@@ -129,12 +130,13 @@ def apply_function_map(
     if not identities:
         raise ValueError(f"function map has no accepted identities: {mapping_path}")
 
-    # Queries materialize a per-agent project before opening it; a mutating
-    # command that skips that step opens the shared project instead and blocks
-    # on - or blocks - whichever agent holds its lock.
-    from .cache import materialize_program
+    if materialize:
+        # Direct mutating commands must select an isolated per-agent project.
+        # Reviewed replay already runs inside materialize_program while its
+        # lock is held, so that caller explicitly skips this recursive step.
+        from .cache import materialize_program
 
-    settings, _ = materialize_program(settings, selector)
+        settings, _ = materialize_program(settings, selector)
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
