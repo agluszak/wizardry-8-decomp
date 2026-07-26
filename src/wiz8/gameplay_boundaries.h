@@ -90,6 +90,26 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* One party slot row. Only the three fields the reset touches are established,
+   plus the leading flag UtilityFunctions reads as slot-occupied. */
+typedef struct W8PartySlotRow {
+    unsigned char flag_00;               /* 0x000: slot occupied */
+    unsigned char unknown_001[0x74];
+    int unknown_075;                     /* 0x075 */
+    unsigned char unknown_079[0x57];
+    unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
+    unsigned char unknown_0d1[0x35];
+} W8PartySlotRow;                        /* 0x106 */
+
+/* The two heap buffers a status block owns. GetSaveGameLevel builds one of
+   these on the stack, reads through it and tears it down again; only the two
+   pointers this pair manages are established, not the block's full extent. */
+typedef struct W8StatusBuffers {
+    unsigned char unknown_00[4];
+    void* buffer_04;                     /* 0x04: 0xc310 bytes */
+    void* buffer_08;                     /* 0x08: 0x830 bytes */
+} W8StatusBuffers;
+
 /* One Data\Databases\NPC.DBS record. Only the stride and the sub-list pointer
    the loader fills and the destructor tears down are established. */
 typedef struct W8NpcDatabaseRecord {
@@ -236,7 +256,7 @@ extern W8FactionRuntimeRecord g_factions[21];
 extern W8Character* g_party_characters;
 /* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
    established, and GetRandomCharacter treats it as a slot-occupied flag. */
-extern unsigned char (*g_party_slot_rows)[0x106];
+extern W8PartySlotRow* g_party_slot_rows;
 /* Flat table indexed by skill_id * 15 + profession. */
 extern int g_profession_skill_availability[0x29][15];
 extern int g_profession_bonus_skills[15];
@@ -391,6 +411,9 @@ void DestroyFactDatabase(void);
 void DestroyItemDatabase(void);
 void DestroyLevelDatabase(void);
 void FreeIfNotNull(void* block);
+unsigned char AllocateStatusBuffers(W8StatusBuffers* status);
+void FreeStatusBuffers(W8StatusBuffers* status);
+void ResetPartySlotRow(int slot);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);

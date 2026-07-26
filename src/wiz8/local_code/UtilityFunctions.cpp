@@ -60,7 +60,7 @@ retry:
     slot = 0;
     do {
         matched = 0;
-        if (g_party_slot_rows[slot][0] != 0 && (int)slot != excluded_slot) {
+        if (g_party_slot_rows[slot].flag_00 != 0 && (int)slot != excluded_slot) {
             character = &g_party_characters[slot];
             if ((character->unknown_0b11 > 0 && character->unknown_0b01 < 0x12)
                 || require_primary == 2) {

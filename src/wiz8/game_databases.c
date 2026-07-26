@@ -14,6 +14,8 @@ extern int FileOpen(const char* path, int mode, int flags);
 extern void* operator_new_import_thunk(unsigned int size);
 extern void* Function5E22C0(void);
 extern void Function5E2530(void* list, unsigned int index, void* element);
+/* 0x004E8290, not yet identified; notified when a party slot is reset. */
+extern void Function4E8290(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
 extern void Function55ADA0(void* sub_list);
 extern void CloseVirtualFile(int handle);
@@ -327,4 +329,47 @@ void FreeIfNotNull(void* block)
     if (block) {
         free(block);
     }
+}
+
+// FUNCTION: WIZ8 0x0054B4C0
+/* Both buffers are cleared only after both allocations succeed, so a failed
+   second allocation leaves the first one live and unzeroed. */
+unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
+{
+    status->buffer_04 = malloc(0xc310);
+    if (!status->buffer_04) {
+        return 0;
+    }
+    status->buffer_08 = malloc(0x830);
+    if (!status->buffer_08) {
+        return 0;
+    }
+    memset(status->buffer_04, 0, 0xc310);
+    memset(status->buffer_08, 0, 0x830);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0054B520
+void FreeStatusBuffers(W8StatusBuffers* status)
+{
+    if (status->buffer_04) {
+        free(status->buffer_04);
+        status->buffer_04 = 0;
+    }
+    if (status->buffer_08) {
+        free(status->buffer_08);
+        status->buffer_08 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x0054B470
+void ResetPartySlotRow(int slot)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[slot];
+
+    memset(row, 0, sizeof(W8PartySlotRow));
+    row->flag_00 = 1;
+    row->unknown_075 = 0;
+    row->flag_0d0 = 0xff;
+    Function4E8290(slot, 0, -1);
 }
