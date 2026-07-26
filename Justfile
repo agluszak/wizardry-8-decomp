@@ -59,6 +59,12 @@ compare target=jpeg_target *args: _check-build-dir
         uv run --project {{repo}} reccmp-reccmp \
         --target {{target}} --no-color {{args}}
 
+# Check reviewed bodies against the original by relocation-masked comparison.
+# This is the matching criterion; `compare` measures the linked image, where our
+# globals sit at other addresses, and scores byte-exact bodies well under 100%.
+verify-boundaries *args: _check-build-dir
+    uv run --project {{repo}} wiz8 verify-boundaries {{args}}
+
 # Build the pinned VC6 SP5 image used by the active matching target.
 build-image:
     docker build --pull --network host \

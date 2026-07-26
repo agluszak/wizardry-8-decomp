@@ -8,9 +8,11 @@ void GetOriginOfCharacterItem(
     unsigned char* origin,
     unsigned short* slot)
 {
-    unsigned int index;
+    unsigned int equipped_index;
+    unsigned int carried_index;
+    unsigned int pool_index;
+    unsigned char* character;
     unsigned char* equipped;
-    unsigned char* carried;
 
     if (item == 0) {
         srAssertFail(
@@ -20,31 +22,34 @@ void GetOriginOfCharacterItem(
             0);
     }
 
-    equipped = (unsigned char*)(g_party_characters + character_index) + 0x1029;
-    for (index = 0; index < 8; ++index) {
-        if (item == equipped + index * 0xc) {
+    /* The original holds the character base in one register and advances it in
+       place for the carried array, rather than deriving each cursor afresh. */
+    equipped_index = 0;
+    character = (unsigned char*)(g_party_characters + character_index);
+    equipped = character + 0x1029;
+    for (; equipped_index < 8; ++equipped_index, equipped += 0xc) {
+        if (item == equipped) {
             *origin = 0;
-            *slot = (unsigned short)index;
+            *slot = (unsigned short)equipped_index;
             return;
         }
     }
 
-    carried = (unsigned char*)(g_party_characters + character_index) + 0xf5d;
-    for (index = 0; index < 12; ++index) {
-        if (item == carried + index * 0xc) {
+    carried_index = 0;
+    character += 0xf5d;
+    for (; carried_index < 12; ++carried_index, character += 0xc) {
+        if (item == character) {
             *origin = 1;
-            *slot = (unsigned short)index;
+            *slot = (unsigned short)carried_index;
             return;
         }
     }
 
-    if (g_shared_item_pool_count > 0) {
-        for (index = 0; index < g_shared_item_pool_count; ++index) {
-            if (item == g_shared_item_pool + index * 0xc) {
-                *origin = 2;
-                *slot = (unsigned short)index;
-                return;
-            }
+    for (pool_index = 0; pool_index < g_shared_item_pool_count; ++pool_index) {
+        if (item == g_shared_item_pool + pool_index * 0xc) {
+            *origin = 2;
+            *slot = (unsigned short)pool_index;
+            return;
         }
     }
 

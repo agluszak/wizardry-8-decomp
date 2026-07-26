@@ -163,6 +163,63 @@ def check_build_dir(
     _run_action(action)
 
 
+def _reccmp_original(target: str) -> Path | None:
+    """Where reccmp was told the original binary lives, if it was told."""
+
+    import yaml
+
+    user_config = _settings().repo_dir / "reccmp-user.yml"
+    if not user_config.is_file():
+        return None
+    configured = yaml.safe_load(user_config.read_text(encoding="utf-8")) or {}
+    path = (configured.get("targets") or {}).get(target, {}).get("path")
+    if not path:
+        return None
+    resolved = Path(str(path).strip())
+    return resolved if resolved.is_file() else None
+
+
+@app.command("verify-boundaries")
+def verify_boundaries_command(
+    mapping: Annotated[
+        Path | None,
+        typer.Option(help="Reviewed boundary map; defaults to the gameplay boundaries."),
+    ] = None,
+    objects: Annotated[
+        Path | None,
+        typer.Option(help="Root of built objects; defaults to the gameplay-boundaries target."),
+    ] = None,
+    image: Annotated[
+        Path | None,
+        typer.Option(help="Original Wiz8.exe; defaults to the reccmp WIZ8 target."),
+    ] = None,
+) -> None:
+    """Check reviewed bodies against built objects by relocation-masked hash.
+
+    This is the repository's matching criterion. `just compare` measures the
+    linked image and scores byte-exact bodies well under 100%, so it cannot
+    detect a regression in an already-exact body.
+    """
+
+    def action() -> dict[str, Any]:
+        from .boundaries import verify_boundaries
+
+        settings = _settings()
+        mapping_path = mapping or (
+            settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv"
+        )
+        object_root = objects or (
+            settings.repo_dir
+            / "build"
+            / "decomp"
+            / "CMakeFiles"
+            / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
+        )
+        return verify_boundaries(mapping_path, object_root, image or _reccmp_original("WIZ8"))
+
+    _run_action(action)
+
+
 @app.command()
 def doctor() -> None:
     """Validate paths, pinned Ghidra/PyGhidra, extractors, and repository safety."""

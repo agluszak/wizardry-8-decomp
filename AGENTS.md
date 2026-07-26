@@ -37,12 +37,17 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   FID sources, oracles, Ghidra projects - and may be shared between checkouts. `just configure` and
   `just compare` still refuse to run when a build directory's cache names a different checkout,
   which catches a moved or copied working copy; `just wiz8 check-build-dir` reports it on demand.
-- **Verify a ported body with `just compare <target>`, not only with a byte comparison of the
-  object.** The two measure different things: a relocation-masked COMDAT comparison proves the
-  instruction encoding, which is what the `relocation_masked_sha256` column records, while reccmp
-  compares the linked image and additionally catches wrong import names, unreachable functions, and
-  stale links. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number, because a
-  successful `just build` does not guarantee the link step reran.
+- **Verify a ported body with `just verify-boundaries`.** It masks relocated operands and compares
+  against the original image, which is the criterion `relocation_masked_sha256` records, and it
+  reports `regressed` when a reviewed-exact body stops matching and `promotable` when a near miss
+  starts matching.
+- **Do not read `just compare <target>` as a matching criterion.** reccmp diffs the linked image,
+  where our globals sit at different addresses than the original, so every relocated operand counts
+  as a difference and byte-exact bodies score well under 100% — `AddLinesToMessageBox` is
+  byte-identical and reports 75%. Run it for link-level faults reccmp alone can see (wrong import
+  names, unreachable functions, stale links) and for whole-image progress, never to choose between
+  two candidate bodies. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number,
+  because a successful `just build` does not guarantee the link step reran.
 - Use `just ghidra query <program> ...` directly. The query command automatically starts and reuses
   the persistent read-only Ghidra daemon, switches it when the requested program changes, and
   recovers it after mutating Ghidra commands stop it. Do not manually manage the daemon in normal

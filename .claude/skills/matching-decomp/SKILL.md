@@ -16,10 +16,9 @@ to reproduce code you already understand.
    in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
 3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.
 4. Compare the emitted COMDAT against every build with relocation masking.
-5. **Also run `just compare WIZ8`.** The two measure different things and you want both: the
-   relocation-masked object comparison proves the instruction encoding, which is what the
-   `relocation_masked_sha256` column records, while reccmp compares the *linked image* and
-   additionally catches wrong import names, unreachable functions, and stale links.
+5. **`just verify-boundaries`** for the verdict, and `just compare WIZ8` for link-level problems it
+   cannot see — wrong import names, unreachable functions, stale links. Only the first decides
+   whether a body matches; see the warning below before reading any reccmp percentage.
 6. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
    relevant test counts in `tests/unit/test_wiz8_source_model.py`.
 
@@ -41,12 +40,21 @@ even when they share `WIZ8_WORK_DIR`. `just configure` and `just compare` also r
 build directory another checkout configured, so a moved or copied working copy fails loudly instead
 of producing a plausible wrong number.
 
-**Measure before and after every transform, with reccmp as well as the object comparison.** A change
-that makes the instruction *shape* match can still be a regression: on `GetOriginOfCharacterItem`,
-removing the loop peeling produced the original's exact instruction sequence but flipped register
-allocation to a consistent EAX/ECX swap, and similarity fell from 77.03% to 65.25%. Shape and
-register allocation can trade against each other. Until a body is byte-exact, keep whichever version
-measures better rather than whichever looks more principled.
+**Never choose between two candidate bodies by reccmp percentage.** reccmp diffs the *linked* image,
+where our globals and call targets sit at different addresses than the original, so every relocated
+operand counts as a difference. A byte-exact body scores far below 100%: `AddLinesToMessageBox` is
+byte-identical under relocation masking and reccmp reports 75%, and most confirmed-exact bodies here
+sit at 88–98%. The percentage is a whole-image progress signal, not a matching criterion.
+
+The criterion is `just verify-boundaries`, which masks relocated operands and compares against the
+original image. It reports `exact`, `near-miss`, `regressed` (reviewed exact, no longer matching --
+the regression reccmp cannot see) and `promotable` (reviewed a near miss, now matching). Run it after
+every transform, and read reccmp for link-level problems only.
+
+This mattered concretely. On `GetOriginOfCharacterItem`, removing the loop peeling produced the
+original's exact instruction sequence, and reccmp fell from 77.03% to 65.25% purely because a
+register swap touches more operands. Reverting on that number was wrong: neither body is exact, and
+the structurally-aligned one is a byte away rather than a shape away.
 
 **Diff whole instructions, not mnemonics.** A diff that compares only the mnemonic silently hides
 operand and register differences, which are exactly what most near-misses consist of. Compare the
