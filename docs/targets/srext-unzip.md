@@ -120,6 +120,16 @@ than omitted: five linker import thunks are consumed by reccmp's import resoluti
 source-generated EH cleanup funclets have no public PDB symbols. Their parent functions, cleanup
 objects, stack offsets, and conditional-state bits are recorded in the function map.
 
+A number of the below-100% functions are not real code defects: many of Info-ZIP's `static` C
+globals (`crc_table`, `hInst`, `bInitialized`, `hInitMutex`, `SetDeferLock`, `VolumeCapsLock`,
+`g_VolumeCaps`, and others) have no symbol name in the original PDB, so `reccmp --verbose` renders
+their original-side references as an unresolved `<OFFSETn>` placeholder instead of the recovered
+name (e.g. `get_crc_table`, `DllMain`, and `Initialize` are confirmed instruction-for-instruction
+identical once that display artifact is accounted for). This depresses the reported similarity for
+every function that touches one of these globals without indicating an actual mismatch; treat a
+sub-100% score as inconclusive until the instruction stream itself is checked, not just the
+percentage.
+
 The six zcrypt bodies, both descriptions,
 `srGetLibraryVersion`, the adapter constructor, callback table, small-string constructors and
 assignment, and many upstream Info-ZIP functions are exact. The source-defined Info-ZIP `DllMain` is now present;
