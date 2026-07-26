@@ -48,11 +48,15 @@ path. A path assigns a function to a translation unit; an expression names ident
 | What it yields | Count | Examples |
 | --- | ---: | --- |
 | Member accesses through `->` or `.` | 195 | `pTrigger->m_pacRecipients`, `pWorld->plsProps`, `pWorld->psrMeshes`, `pSound->pacSoundName`, `pLVL->pProps[i].bNumFrames` |
-| Named constants and enumerators | 65 | `BAD_INDEX`, `MAX_MONSTERS_IN_DATABASE`, `HAND_COUNT`, `SPELL_COUNT`, `PHASES_PER_ROUND`, `TRIGGER_REP_PROP`, `BEHAVIOUR_FIRST`/`BEHAVIOUR_LAST` |
-| Globals | — | `glsTimedEvents`, `gpGDCamera` |
+| Named game constants and enumerators | 60 | `BAD_INDEX`, `MAX_MONSTERS_IN_DATABASE`, `HAND_COUNT`, `SPELL_COUNT`, `PHASES_PER_ROUND`, `TRIGGER_REP_PROP`, `BEHAVIOUR_FIRST`/`BEHAVIOUR_LAST` |
+| Globals (`g`/`gp`/`gui` prefixes) | 63 | `glsTimedEvents`, `gpGDCamera` |
 
-Two conventions are now established from the original's own text rather than inferred. Members carry
-an `m_` prefix, and identifiers are Hungarian-coded:
+Sixty-five distinct ALL-CAPS tokens appear, but five of them — `NULL`, `FALSE`, `INT32`, `UINT16`
+and `UINT32` — are a null pointer constant, a boolean and three typedef names, which the prefix
+table below already treats as type evidence. The game-side count is therefore 60.
+
+Identifiers are Hungarian-coded, and that coding is established from the original's own text rather
+than inferred:
 
 | Prefix | Uses | Meaning implied by use |
 | --- | ---: | --- |
@@ -62,11 +66,18 @@ an `m_` prefix, and identifiers are Hungarian-coded:
 | `b` / `ub` / `us` | 34 / 14 / 19 | byte, unsigned byte, `UINT16` |
 | `g` / `gp` / `gui` | 33 / 16 / 14 | global, global pointer, global `UINT32` |
 | `psr` | 24 | pointer to a SurRender object |
-| `pls` | — | pointer to a `PList`, matching the already-reviewed `gXStatus.plsMonsterList` |
+| `pls` | 13 | pointer to a `PList`, matching the already-reviewed `gXStatus.plsMonsterList` |
 | `pac` / `pst` / `h` | 17 / 17 / 13 | pointer to char array, pointer to struct, handle |
 
 This directly types fields the disassembly leaves opaque: `pWorld->plsProps` and `pWorld->psrMeshes`
 name two `W8World` members and say one is a `PList` and the other a SurRender object.
+
+An `m_` member prefix is **not** a project-wide convention, and an earlier revision of this document
+wrongly said it was. Only 70 distinct `m_` identifiers appear, and 147 of the 195 member-access
+assertions contain no `m_` at all — including four of the five examples in the table above. `m_` is
+used by some classes, notably `Trigger`, the `Oct*` family and `Item`'s representation object, while
+most member accesses are plain Hungarian names. Treat `m_` as a per-class habit to be checked, not
+as a rule to apply when naming a recovered field.
 
 The paths also extend the tree. All 113 absolute `.cpp` assertion paths already appear in
 `source-tree.csv`, which independently confirms that census is complete for `.cpp`. But four

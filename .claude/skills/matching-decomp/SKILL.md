@@ -63,7 +63,8 @@ right-to-left, so the last `68` push before the call is the expression pointer.
 
 They yield far more than file ownership:
 
-* member names, via `->` or `.`, using the original's `m_` convention;
+* member names, via `->` or `.`. An `m_` prefix is a per-class habit here, not a project rule -
+  most member accesses have none - so check the owning class rather than assuming it;
 * named constants and enumerators (`BAD_INDEX`, `CYCLE_NUM_UNIQUE`, `MAX_MONSTERS_IN_DATABASE`);
 * **types**, via Hungarian prefixes established from the original's own text — `p` pointer,
   `ui`/`i` `UINT32`/`INT32`, `f` flag, `b`/`ub`/`us` byte/unsigned byte/`UINT16`, `g`/`gp`/`gui`

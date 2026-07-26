@@ -39,9 +39,12 @@ def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
     assert len({row["source_path"] for row in rows}) == 117
     assert all(row["expression"] and row["line"] for row in rows)
 
-    # Members are named through -> or . and carry the original's m_ prefix.
+    # Members are named through -> or . -- but m_ is a per-class habit, not a
+    # project-wide convention: most member accesses carry no m_ at all.
     members = [row for row in rows if "->" in row["expression"]]
     assert len(members) >= 150
+    without_m = [row for row in members if "m_" not in row["expression"]]
+    assert len(without_m) == 147
     assert any("m_pacRecipients" in row["expression"] for row in rows)
     assert any("pWorld->plsProps" in row["expression"] for row in rows)
 
