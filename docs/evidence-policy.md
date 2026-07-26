@@ -18,6 +18,10 @@ Every tracked data artifact has one of these roles:
   it without proprietary or otherwise unavailable inputs. Snapshots belong under
   `evidence/snapshots/`, declare their producer and input identities, and require a freshness check
   wherever those inputs are available.
+- **Materialization seed** is a derived binary cache used only to avoid expensive deterministic
+  analysis. The canonical Wiz8 GZF under `vendor/ghidra/exports/` is the sole current exception. Its
+  manifest pins the original binary and tool runtime; current reviewed evidence is replayed and
+  validated after every content-addressed restore. No accepted fact may exist only in that archive.
 
 Directory placement is the primary role declaration. Evidence must not be placed under `config/`
 merely because an analysis tool consumes it; generate a compatibility input when one is required.
@@ -37,8 +41,8 @@ merely because an analysis tool consumes it; generate a compatibility input when
 
 ## Generated material and documentation
 
-- Generated outputs go under `build/` by default. They may be tracked only through the snapshot
-  exception above.
+- Generated outputs go under `build/` by default. They may be tracked only through the snapshot or
+  materialization-seed exceptions above.
 - Markdown contains stable reasoning, architecture, procedures, examples, and unresolved questions.
   It does not duplicate exhaustive inventories, hashes, match percentages, or current counts.
 - Counts, percentages, ownership coverage, and status tables are generated. Do not maintain them by

@@ -1,2 +1,1 @@
-vendor/ghidra/exports/*.gzf filter=lfs diff=lfs merge=lfs -text
-
+vendor/ghidra/exports/*.gzf -diff -merge -text

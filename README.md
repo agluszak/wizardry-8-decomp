@@ -21,7 +21,7 @@ just wiz8 extract all
 just wiz8 variants materialize
 just wiz8 inventory
 just wiz8 pipeline verify
-just ghidra import --all
+just ghidra cache materialize
 just ghidra fid build-image
 just ghidra fid build-seeds
 just ghidra fid extract-libraries
@@ -54,6 +54,13 @@ The CMake build directory is `build/decomp` inside the checkout, so several chec
 The distinction between configuration, observations, reviewed conclusions, generated reports, and
 exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).
+
+The normal Ghidra path is GZF-first. `just ghidra query <program> ...` transparently restores the
+validated canonical seed into a `CODEX_THREAD_ID`- or `WIZ8_GHIDRA_AGENT_ID`-isolated project,
+replays current reviewed evidence, validates it, and reuses a persistent daemon. The tracked GZF is
+a disposable binary cache, not canonical analysis knowledge. `just ghidra rebuild <program>` performs
+the slower fresh import and auto-analysis parity check; `just ghidra cache build` validates and packs
+an intentionally refreshed canonical seed.
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
 ownership and interface findings are in

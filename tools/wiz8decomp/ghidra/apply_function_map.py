@@ -27,6 +27,7 @@ REQUIRED_COLUMNS = (
 @dataclass(frozen=True)
 class FunctionIdentity:
     address: int
+    size: int | None
     name: str
     identity_id: str
     owner: str
@@ -82,6 +83,7 @@ def load_function_identities(path: Path) -> list[FunctionIdentity]:
             identities.append(
                 FunctionIdentity(
                     address=address,
+                    size=(int(row["size"], 0) if row.get("size", "").strip() else None),
                     name=name,
                     identity_id=f"functions:{program}:{address:08x}",
                     owner=row["owner"].strip(),
@@ -132,12 +134,20 @@ def apply_function_map(
     import pyghidra
     from ghidra.app.cmd.disassemble import DisassembleCommand
     from ghidra.app.cmd.function import CreateFunctionCmd
+    from ghidra.program.model.address import AddressSet
     from ghidra.program.model.listing import CodeUnit
     from ghidra.program.model.symbol import SourceType
 
     program_name = resolve_program_name(settings, selector)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
-    stats = {"created": 0, "renamed": 0, "already_applied": 0, "aliased": 0, "failed": 0}
+    stats = {
+        "created": 0,
+        "boundaries_adjusted": 0,
+        "renamed": 0,
+        "already_applied": 0,
+        "aliased": 0,
+        "failed": 0,
+    }
     failures: list[dict[str, str]] = []
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
@@ -207,6 +217,27 @@ def apply_function_map(
                             )
                             continue
                         stats["created"] += 1
+
+                    if identity.size is not None:
+                        expected_body = AddressSet(
+                            address, address.add(identity.size - 1)
+                        )
+                        if function.getBody() != expected_body:
+                            if dry_run:
+                                stats["boundaries_adjusted"] += 1
+                            else:
+                                overlapping = list(function_manager.getFunctions(expected_body, True))
+                                for other in overlapping:
+                                    if other.getEntryPoint() != address:
+                                        function_manager.removeFunction(other.getEntryPoint())
+                                disassemble = DisassembleCommand(address, expected_body, True)
+                                if not disassemble.applyTo(program):
+                                    raise RuntimeError(
+                                        f"failed to disassemble reviewed extent at "
+                                        f"0x{identity.address:08x}: {disassemble.getStatusMsg()}"
+                                    )
+                                function.setBody(expected_body)
+                                stats["boundaries_adjusted"] += 1
 
                     namespace, simple_name = _namespace_and_name(
                         symbol_table, program, identity.name

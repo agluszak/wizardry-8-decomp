@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -38,13 +38,18 @@ variants_app = typer.Typer(
     help="Materialize and compare independent build variants.", no_args_is_help=True
 )
 ghidra_app = typer.Typer(
-    help="Own Ghidra projects, queries, daemon, and exports.", no_args_is_help=True
+    help="Own Ghidra projects, queries, daemon, and validated seeds.", no_args_is_help=True
 )
 daemon_app = typer.Typer(help="Manage the persistent read-only query daemon.", no_args_is_help=True)
+cache_app = typer.Typer(
+    help="Build and materialize the validated canonical GZF seed.", no_args_is_help=True
+)
 fid_app = typer.Typer(
     help="Build and query project-owned Function ID databases.", no_args_is_help=True
 )
-sgp_app = typer.Typer(help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True)
+sgp_app = typer.Typer(
+    help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True
+)
 report_app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 pipeline_app = typer.Typer(help="Verify and clean generated pipeline stages.", no_args_is_help=True)
 app.add_typer(inputs_app, name="inputs")
@@ -52,6 +57,7 @@ app.add_typer(extract_app, name="extract")
 app.add_typer(variants_app, name="variants")
 app.add_typer(ghidra_app, name="ghidra")
 ghidra_app.add_typer(daemon_app, name="daemon")
+ghidra_app.add_typer(cache_app, name="cache")
 ghidra_app.add_typer(fid_app, name="fid")
 app.add_typer(report_app, name="report")
 app.add_typer(pipeline_app, name="pipeline")
@@ -210,11 +216,7 @@ def verify_boundaries_command(
             settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv"
         )
         object_root = objects or (
-            settings.repo_dir
-            / "build"
-            / "decomp"
-            / "CMakeFiles"
-            / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
+            settings.repo_dir / "build" / "decomp" / "CMakeFiles" / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
         )
         return verify_boundaries(mapping_path, object_root, image or _reccmp_original("WIZ8"))
 
@@ -455,7 +457,7 @@ def inventory_command(json_output: bool = typer.Option(False, "--json", help="Em
 
 @sgp_app.command("sweep")
 def sgp_sweep(
-    unit: Optional[list[str]] = typer.Option(
+    unit: list[str] | None = typer.Option(
         None, "--unit", help="Configured SGP unit ID; repeat to select several."
     ),
     update_snapshot: bool = typer.Option(
@@ -475,8 +477,8 @@ def ghidra_import(
     all_programs: bool = typer.Option(
         False, "--all", help="Import every configured analysis target."
     ),
-    variant: Optional[str] = typer.Option(None, "--variant"),
-    program: Optional[str] = typer.Option(None, "--program"),
+    variant: str | None = typer.Option(None, "--variant"),
+    program: str | None = typer.Option(None, "--program"),
 ) -> None:
     from .ghidra.import_programs import import_programs
 
@@ -500,6 +502,45 @@ def ghidra_apply_functions(
     from .ghidra.apply_function_map import apply_function_map
 
     _run_action(lambda: apply_function_map(_settings(), program, mapping, dry_run=dry_run))
+
+
+@ghidra_app.command("rebuild")
+def ghidra_rebuild(program: str) -> None:
+    """Fresh-import one program, replay all reviewed knowledge, and validate it."""
+    from .ghidra.rebuild import rebuild_program
+
+    _run_action(lambda: rebuild_program(_settings(), program))
+
+
+@cache_app.command("build")
+def ghidra_cache_build(program: str | None = typer.Argument(None)) -> None:
+    """Validate and pack the canonical project as the shared GZF seed."""
+    from .ghidra.export_programs import export_project
+
+    _run_action(lambda: export_project(_settings(), program))
+
+
+@cache_app.command("materialize")
+def ghidra_cache_materialize(program: str | None = typer.Argument(None)) -> None:
+    """Restore, replay, and validate this agent's isolated Ghidra project."""
+    from .ghidra.cache import materialize_program
+
+    _run_action(lambda: materialize_program(_settings(), program)[1])
+
+
+@cache_app.command("status")
+def ghidra_cache_status(program: str | None = typer.Argument(None)) -> None:
+    from .ghidra.cache import cache_status
+
+    _run_action(lambda: cache_status(_settings(), program))
+
+
+@ghidra_app.command("validate-replay")
+def ghidra_validate_replay(program: str) -> None:
+    """Validate an existing materialized program against canonical reviewed evidence."""
+    from .ghidra.validate_replay import validate_reviewed_replay
+
+    _run_action(lambda: validate_reviewed_replay(_settings(), program, evidence_program="wiz8"))
 
 
 @ghidra_app.command("apply-unzip-model")
@@ -563,7 +604,7 @@ def ghidra_apply_wiz8_signature_fixes(
 
 
 @daemon_app.command("start")
-def daemon_start(program: Optional[str] = typer.Option(None, "--program")) -> None:
+def daemon_start(program: str | None = typer.Option(None, "--program")) -> None:
     from .ghidra.query_daemon import start_daemon
 
     _run_action(lambda: start_daemon(_settings(), program))
@@ -599,8 +640,8 @@ def ghidra_query(ctx: typer.Context, program: str, command: str) -> None:
 
 @ghidra_app.command("export-evidence")
 def ghidra_export_evidence(
-    program: Optional[str] = typer.Option(None, "--program"),
-    address: Optional[str] = typer.Option(None, "--address"),
+    program: str | None = typer.Option(None, "--program"),
+    address: str | None = typer.Option(None, "--address"),
     all_functions: bool = typer.Option(False, "--all"),
 ) -> None:
     from .ghidra.export_evidence import export_evidence
@@ -620,10 +661,11 @@ def ghidra_cross_build() -> None:
 
 
 @ghidra_app.command("export-project")
-def ghidra_export_project() -> None:
+def ghidra_export_project(program: str | None = typer.Option(None, "--program")) -> None:
+    """Compatibility alias for `ghidra cache build`."""
     from .ghidra.export_programs import export_project
 
-    _run_action(lambda: export_project(_settings()))
+    _run_action(lambda: export_project(_settings(), program))
 
 
 @fid_app.command("status")
@@ -651,7 +693,7 @@ def ghidra_fid_fetch_sources() -> None:
 
 @fid_app.command("build-image")
 def ghidra_fid_build_image(
-    toolchain: Optional[list[str]] = typer.Option(
+    toolchain: list[str] | None = typer.Option(
         None, "--toolchain", help="Pinned candidate ID; repeat to select several."
     ),
 ) -> None:
@@ -663,7 +705,7 @@ def ghidra_fid_build_image(
 
 @fid_app.command("probe-toolchain")
 def ghidra_fid_probe_toolchain(
-    toolchain: Optional[list[str]] = typer.Option(
+    toolchain: list[str] | None = typer.Option(
         None, "--toolchain", help="Pinned candidate ID; repeat to select several."
     ),
 ) -> None:
@@ -675,10 +717,10 @@ def ghidra_fid_probe_toolchain(
 
 @fid_app.command("build-seeds")
 def ghidra_fid_build_seeds(
-    toolchain: Optional[list[str]] = typer.Option(
+    toolchain: list[str] | None = typer.Option(
         None, "--toolchain", help="Pinned candidate ID; repeat to select several."
     ),
-    library: Optional[list[str]] = typer.Option(
+    library: list[str] | None = typer.Option(
         None, "--library", help="Static-library ID; repeat to select several."
     ),
 ) -> None:
@@ -690,7 +732,7 @@ def ghidra_fid_build_seeds(
 
 @fid_app.command("extract-libraries")
 def ghidra_fid_extract_libraries(
-    toolchain: Optional[list[str]] = typer.Option(
+    toolchain: list[str] | None = typer.Option(
         None,
         "--toolchain",
         help="Pinned precompiled-library snapshot ID; repeat to select several.",
@@ -721,7 +763,7 @@ def ghidra_fid_build_srs() -> None:
 @fid_app.command("match")
 def ghidra_fid_match(
     program: str = typer.Option(..., "--program"),
-    threshold: Optional[float] = typer.Option(None, "--threshold"),
+    threshold: float | None = typer.Option(None, "--threshold"),
     database: str = typer.Option("static", "--database", help="static or srs"),
 ) -> None:
     from .ghidra.fid import match_fid
@@ -730,10 +772,11 @@ def ghidra_fid_match(
 
 
 @ghidra_app.command("restore-project")
-def ghidra_restore_project() -> None:
+def ghidra_restore_project(program: str | None = typer.Option(None, "--program")) -> None:
+    """Compatibility alias for `ghidra cache materialize`."""
     from .ghidra.export_programs import restore_project
 
-    _run_action(lambda: restore_project(_settings()))
+    _run_action(lambda: restore_project(_settings(), program))
 
 
 @report_app.command("bootstrap")

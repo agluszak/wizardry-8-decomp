@@ -24,8 +24,10 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   verbatim license. Do not remove upstream notices; prominently mark modified licensed files with
   the change and date. Prefer adapting this source over independently reconstructing identical SGP
   code from the binary.
-- Never commit game binaries, extracted trees, Ghidra projects, or build products. They belong in
-  `WIZ8_WORK_DIR` or the gitignored `build/` directory.
+- Never commit game binaries, extracted trees, live Ghidra projects, or build products. They belong
+  in `WIZ8_WORK_DIR` or the gitignored `build/` directory. The single canonical Wiz8 GZF declared by
+  `vendor/ghidra/exports/manifest.json` is the explicit exception: it is a tracked, validated,
+  disposable materialization seed, never the authority for an accepted fact.
 
 ## Commands and validation
 
@@ -48,11 +50,12 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   names, unreachable functions, stale links) and for whole-image progress, never to choose between
   two candidate bodies. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number,
   because a successful `just build` does not guarantee the link step reran.
-- Use `just ghidra query <program> ...` directly. The query command automatically starts and reuses
-  the persistent read-only Ghidra daemon, switches it when the requested program changes, and
-  recovers it after mutating Ghidra commands stop it. Do not manually manage the daemon in normal
-  agent workflows; a one-shot Ghidra launch is only an automatic fallback when the daemon cannot
-  be used.
+- Use `just ghidra query <program> ...` directly. On first use, it automatically restores the
+  validated canonical GZF, replays current reviewed evidence, validates it, and gives the agent an
+  isolated content-addressed project. It then starts and reuses that agent's persistent read-only
+  daemon. Do not manually manage the cache or daemon in normal workflows; one-shot Ghidra is only
+  an automatic fallback when the daemon cannot be used. Use `just ghidra rebuild <program>` only as
+  the slow fresh-import parity gate, and `just ghidra cache build` after accepting a refreshed seed.
 - **Start every port from `just ghidra query <program> decompile 0x<addr>`, not from disassembly.**
   Ghidra already carries the applied types, global names, and callee identities, so its output names
   `g_fact_values`, `FileWrite` and `W8NpcDatabaseRecord` where a raw listing shows only addresses.

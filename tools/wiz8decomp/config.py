@@ -1,15 +1,28 @@
 from __future__ import annotations
 
+import hashlib
 import os
+import re
+import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
 REQUIRED_GHIDRA_VERSION = "12.1.2"
 REQUIRED_GHIDRA_RELEASE = "PUBLIC"
 REQUIRED_PYGHIDRA_VERSION = "3.1.0"
+
+
+def ghidra_agent_id() -> str:
+    raw = os.environ.get("WIZ8_GHIDRA_AGENT_ID") or os.environ.get("CODEX_THREAD_ID") or "default"
+    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "-", raw).strip("-.")
+    return (cleaned or "default")[:96]
+
+
+def ghidra_agent_token(work_dir: Path) -> str:
+    identity = f"{work_dir.resolve()}\0{ghidra_agent_id()}"
+    return hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
 
 
 def repository_root() -> Path:
@@ -22,11 +35,22 @@ class Settings(BaseModel):
     ghidra_install_dir: Path = Field(alias="GHIDRA_INSTALL_DIR")
     input_dir: Path = Field(alias="WIZ8_INPUT_DIR")
     work_dir: Path = Field(alias="WIZ8_WORK_DIR")
+    ghidra_project_dir_override: Path | None = Field(default=None, alias="WIZ8_GHIDRA_PROJECT_DIR")
+    ghidra_runtime_dir_override: Path | None = Field(default=None, alias="WIZ8_GHIDRA_RUNTIME_DIR")
     repo_dir: Path = Field(default_factory=repository_root)
 
-    @field_validator("ghidra_install_dir", "input_dir", "work_dir", mode="before")
+    @field_validator(
+        "ghidra_install_dir",
+        "input_dir",
+        "work_dir",
+        "ghidra_project_dir_override",
+        "ghidra_runtime_dir_override",
+        mode="before",
+    )
     @classmethod
-    def absolute_path(cls, value: object) -> Path:
+    def absolute_path(cls, value: object) -> Path | None:
+        if value is None:
+            return value
         path = Path(str(value)).expanduser()
         if not path.is_absolute():
             raise ValueError(f"must be an absolute path: {path}")
@@ -38,22 +62,31 @@ class Settings(BaseModel):
 
     @property
     def project_dir(self) -> Path:
-        return self.work_dir / "ghidra"
+        return self.ghidra_project_dir_override or self.work_dir / "ghidra"
 
     @property
     def project_name(self) -> str:
         return "wizardry8"
 
+    @property
+    def ghidra_runtime_dir(self) -> Path:
+        return self.ghidra_runtime_dir_override or (
+            Path(tempfile.gettempdir()) / f"wiz8-ghidra-{ghidra_agent_token(self.work_dir)}"
+        )
+
 
 def load_settings(*, require: bool = True) -> Settings | None:
     load_dotenv(repository_root() / ".env", override=False)
-    keys = ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR")
-    missing = [key for key in keys if not os.environ.get(key)]
+    required_keys = ("GHIDRA_INSTALL_DIR", "WIZ8_INPUT_DIR", "WIZ8_WORK_DIR")
+    missing = [key for key in required_keys if not os.environ.get(key)]
     if missing:
         if require:
             raise ValueError("missing environment variables: " + ", ".join(missing))
         return None
-    return Settings.model_validate({key: os.environ[key] for key in keys})
+    optional_keys = ("WIZ8_GHIDRA_PROJECT_DIR", "WIZ8_GHIDRA_RUNTIME_DIR")
+    values = {key: os.environ[key] for key in required_keys}
+    values.update({key: os.environ[key] for key in optional_keys if os.environ.get(key)})
+    return Settings.model_validate(values)
 
 
 def ghidra_version(install_dir: Path) -> tuple[str | None, str | None]:
@@ -66,4 +99,3 @@ def ghidra_version(install_dir: Path) -> tuple[str | None, str | None]:
             key, value = line.split("=", 1)
             values[key.strip()] = value.strip()
     return values.get("application.version"), values.get("application.release.name")
-

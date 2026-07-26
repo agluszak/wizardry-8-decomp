@@ -88,14 +88,29 @@ def apply_reviewed_class_model(
                     )
                     structures.append(str(structure.getPathName()))
 
+                typed_ranges = sorted(
+                    (
+                        vtable.address,
+                        vtable.address + vtable.slot_count * 4,
+                    )
+                    for vtable in model.vtables
+                    if vtable.slot_count is not None
+                )
+                merged_ranges: list[list[int]] = []
+                for start, end in typed_ranges:
+                    if merged_ranges and start < merged_ranges[-1][1]:
+                        merged_ranges[-1][1] = max(merged_ranges[-1][1], end)
+                    else:
+                        merged_ranges.append([start, end])
+                for start, end in merged_ranges:
+                    region_type = dtm.addDataType(
+                        ArrayDataType(generic_pointer, (end - start) // 4, 4),
+                        DataTypeConflictHandler.REPLACE_HANDLER,
+                    )
+                    _apply_data(program, address_space.getAddress(start), region_type)
+
                 for vtable in model.vtables:
                     address = address_space.getAddress(vtable.address)
-                    if vtable.slot_count is not None:
-                        vtable_type = dtm.addDataType(
-                            ArrayDataType(generic_pointer, vtable.slot_count, 4),
-                            DataTypeConflictHandler.REPLACE_HANDLER,
-                        )
-                        _apply_data(program, address, vtable_type)
 
                     symbol_table = program.getSymbolTable()
                     namespace = symbol_table.getNamespace(

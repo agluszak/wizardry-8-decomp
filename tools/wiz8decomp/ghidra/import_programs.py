@@ -31,12 +31,43 @@ def _existing_hash(settings: Settings, name: str) -> str | None:
         project.close()
 
 
+def _delete_existing_program(settings: Settings, name: str, expected_hash: str) -> bool:
+    """Delete one exact hash-validated domain file before a deterministic rebuild."""
+
+    import pyghidra
+
+    try:
+        project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+    except FileNotFoundError:
+        return False
+    try:
+        domain_file = project.getProjectData().getFile("/" + name)
+        if domain_file is None:
+            return False
+        with pyghidra.program_context(project, "/" + name) as program:
+            actual_hash = program.getOptions("Program Information").getString(HASH_OPTION, None)
+        if actual_hash != expected_hash:
+            raise RuntimeError(
+                f"refusing to delete {name}: project hash {actual_hash} != "
+                f"configured input hash {expected_hash}"
+            )
+        # GhidraFile.delete() is a Java void method. Confirm the postcondition
+        # instead of interpreting JPype's None return as failure.
+        domain_file.delete()
+        if project.getProjectData().getFile("/" + name) is not None:
+            raise RuntimeError(f"Ghidra did not delete program {name}")
+        return True
+    finally:
+        project.close()
+
+
 def import_programs(
     settings: Settings,
     *,
     all_modules: bool = False,
     variant: str | None = None,
     requested_program: str | None = None,
+    replace_existing: bool = False,
 ) -> dict[str, Any]:
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
@@ -47,6 +78,9 @@ def import_programs(
     records = []
     for module in modules:
         name = module["program_name"]
+        replaced = False
+        if replace_existing:
+            replaced = _delete_existing_program(settings, name, module["sha256"])
         existing = _existing_hash(settings, name)
         if existing:
             if existing != module["sha256"]:
@@ -85,6 +119,7 @@ def import_programs(
                 "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()),
                 "function_count": program.getFunctionManager().getFunctionCount(),
                 "memory_block_count": len(program.getMemory().getBlocks()),
+                "replaced": replaced,
             }
             records.append(record)
     result = {"schema": "wiz8.ghidra-import", "programs": records}

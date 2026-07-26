@@ -11,6 +11,15 @@ def _settings() -> Any:
     return object()
 
 
+@pytest.fixture(autouse=True)
+def materialized_project(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        query_daemon,
+        "_materialize",
+        lambda settings, _program: (settings, {"status": "cached"}),
+    )
+
+
 def test_query_automatically_uses_the_daemon(monkeypatch: pytest.MonkeyPatch) -> None:
     settings = _settings()
     started: list[tuple[Any, str]] = []

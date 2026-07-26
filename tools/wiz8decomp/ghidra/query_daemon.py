@@ -26,8 +26,15 @@ class DaemonProgramMismatchError(ConnectionError):
     """The daemon changed programs between lifecycle selection and query."""
 
 
+def _materialize(settings: Settings, program: str) -> tuple[Settings, dict[str, Any]]:
+    # Local import avoids the replay -> import_programs -> query_daemon cycle.
+    from .cache import materialize_program
+
+    return materialize_program(settings, program)
+
+
 def state_dir(settings: Settings) -> Path:
-    return settings.work_dir / "daemon"
+    return settings.ghidra_runtime_dir
 
 
 def state_path(settings: Settings) -> Path:
@@ -84,6 +91,9 @@ def _start_daemon(settings: Settings, program: str) -> dict[str, Any]:
     log = settings.build_dir / "logs" / "ghidra-daemon.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     stream = log.open("ab")
+    environment = os.environ.copy()
+    environment["WIZ8_GHIDRA_PROJECT_DIR"] = str(settings.project_dir)
+    environment["WIZ8_GHIDRA_RUNTIME_DIR"] = str(settings.ghidra_runtime_dir)
     process = subprocess.Popen(
         [sys.executable, "-m", "wiz8decomp.ghidra.query_daemon", "--program", program],
         cwd=settings.repo_dir,
@@ -91,6 +101,7 @@ def _start_daemon(settings: Settings, program: str) -> dict[str, Any]:
         stdout=stream,
         stderr=subprocess.STDOUT,
         start_new_session=True,
+        env=environment,
     )
     stream.close()
     for _ in range(200):
@@ -106,8 +117,9 @@ def _start_daemon(settings: Settings, program: str) -> dict[str, Any]:
 
 def start_daemon(settings: Settings, selector: str | None = None) -> dict[str, Any]:
     program = resolve_program_name(settings, selector)
-    with lifecycle_lock(settings):
-        return _start_daemon(settings, program)
+    effective, _ = _materialize(settings, program)
+    with lifecycle_lock(effective):
+        return _start_daemon(effective, program)
 
 
 def _stop_daemon(settings: Settings) -> dict[str, Any]:
@@ -187,6 +199,7 @@ def query(
 ) -> tuple[dict[str, Any], str]:
     validate_query_arguments(command, arguments)
     program = resolve_program_name(settings, selector)
+    effective, _ = _materialize(settings, program)
     request = {
         "action": "query",
         "program": program,
@@ -194,26 +207,26 @@ def query(
         "arguments": arguments,
     }
     try:
-        ensure_daemon(settings, program)
+        ensure_daemon(effective, program)
     except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
-        return one_shot_query(settings, program, command, arguments), "one-shot-fallback"
+        return one_shot_query(effective, program, command, arguments), "one-shot-fallback"
 
     try:
-        return daemon_query(settings, request), "daemon"
+        return daemon_query(effective, request), "daemon"
     except (ConnectionError, json.JSONDecodeError, OSError):
         # The daemon may have exited between the lifecycle check and the
         # query. Replace it once; a persistent lifecycle failure uses the safe
         # one-shot path below. Query errors returned by a healthy daemon are
         # deliberately not caught here.
         try:
-            stop_daemon(settings, quiet=True)
-            ensure_daemon(settings, program)
+            stop_daemon(effective, quiet=True)
+            ensure_daemon(effective, program)
         except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
-            return one_shot_query(settings, program, command, arguments), "one-shot-fallback"
+            return one_shot_query(effective, program, command, arguments), "one-shot-fallback"
         try:
-            return daemon_query(settings, request), "daemon"
+            return daemon_query(effective, request), "daemon"
         except (ConnectionError, json.JSONDecodeError, OSError, TimeoutError):
-            return one_shot_query(settings, program, command, arguments), "one-shot-fallback"
+            return one_shot_query(effective, program, command, arguments), "one-shot-fallback"
 
 
 @internal_app.command()

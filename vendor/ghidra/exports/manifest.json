@@ -1,119 +1,30 @@
 {
-  "exports": [
-    {
-      "binary_sha256": "bb5f67e6a719cde73f5ea35cb2685d0ab12f5efa0bc02e4506b82f582c38b31f",
-      "path": "vendor/ghidra/exports/wiz8--demo--sr--bb5f67e6a719.gzf",
-      "program": "wiz8--demo--sr--bb5f67e6a719",
-      "sha256": "3034c98f55ca88893a076f48f85471c12ccec7946799fb1080a6408f2e7ddb07"
-    },
-    {
-      "binary_sha256": "8acda50afe39f7e6a867272300a09463fd94aed9a510008fcdefc662143346e4",
-      "path": "vendor/ghidra/exports/wiz8--demo--wiz8--8acda50afe39.gzf",
-      "program": "wiz8--demo--wiz8--8acda50afe39",
-      "sha256": "bb55793093a612389a660328bf8715ee6be3d71f1b3ae2dea952dd6c9db68c46"
-    },
-    {
-      "binary_sha256": "57a3072c2f8307de84e2f54ac58d3fcd7cf3cef18088bf0f0fdec2ac9202b2b1",
-      "path": "vendor/ghidra/exports/wiz8--gog-1261--wiz8new--57a3072c2f83.gzf",
-      "program": "wiz8--gog-1261--wiz8new--57a3072c2f83",
-      "sha256": "0433de5fcca2229f3e1de026a005b48ce3220ad8fc89a1f38618ab4476fb206d"
-    },
-    {
-      "binary_sha256": "0f6d35447fc7a2f579e8f8347e8c347fe22a8aba9a05769752933ffb4450010a",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--3dsetup1-28c--0f6d35447fc7.gzf",
-      "program": "wiz8--gog-128--3dsetup1-28c--0f6d35447fc7",
-      "sha256": "4ed17faa7d0893fcad8f69824efbda5c8a466349d41d174b17dd9400236b9ef0"
-    },
-    {
-      "binary_sha256": "5a801041a36b5acda9c7c754d27402d57a0407e86d64eff81397b7794ba5f6ba",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--cfagent1-28--5a801041a36b.gzf",
-      "program": "wiz8--gog-128--cfagent1-28--5a801041a36b",
-      "sha256": "2123d268633067e71f3aa703d80052c02b5d43262fe1dd381d1b88f9eeec191b"
-    },
-    {
-      "binary_sha256": "fe47f633a51fe1675cfbe1c8ac2ef428de8cc31a332f7a6b6a416c83bb9e4b61",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--sr--fe47f633a51f.gzf",
-      "program": "wiz8--gog-128--sr--fe47f633a51f",
-      "sha256": "50452180a29c827211ef10eb8b25677699e65df102a3fce2522ed85b6ce197df"
-    },
-    {
-      "binary_sha256": "bc309994fcc1bd9699064569b06ae6a7459bf607992a0efcc36510cd284f2f7f",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--srdd-directx7-1--bc309994fcc1.gzf",
-      "program": "wiz8--gog-128--srdd-directx7-1--bc309994fcc1",
-      "sha256": "54be4d393b96a2dc35ce3936da3e0b08d6762293491944254b0896969b971732"
-    },
-    {
-      "binary_sha256": "727d84ed2e4ec26e6b9fe2fe13a30e702b5ba2f2b6d199ddbdb78b57b9d58788",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--srdd-opengla--727d84ed2e4e.gzf",
-      "program": "wiz8--gog-128--srdd-opengla--727d84ed2e4e",
-      "sha256": "8bf8ad1b53d7b0c6933ba3aabf5278eada4055635499d54e556b4806e9b352a1"
-    },
-    {
-      "binary_sha256": "28953363c6090f12a7a466397b619c43e6f26da28dbc5f8554d822ee66259378",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--wiz8--28953363c609.gzf",
-      "program": "wiz8--gog-128--wiz8--28953363c609",
-      "sha256": "8e32a739d0f4af6ebb9713424d5bf06d686a534a6b6db6163daf4ad6db4fdf55"
-    },
-    {
-      "binary_sha256": "fdca6d9cd0940034191e82b8e2900de26bb25e381c74128dcb8967360a9fb824",
-      "path": "vendor/ghidra/exports/wiz8--gog-128--wiz8-v128--fdca6d9cd094.gzf",
-      "program": "wiz8--gog-128--wiz8-v128--fdca6d9cd094",
-      "sha256": "e6f842c829238734376bcf8472575adbac07e766a349cf78123386a10d50c6cc"
-    },
-    {
-      "binary_sha256": "b440ee06a3aa03c4fa301dcaba6875a61488f0dee3d06386b721f4cbe0c11473",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--3dsetup--b440ee06a3aa.gzf",
-      "program": "wiz8--gog-base--3dsetup--b440ee06a3aa",
-      "sha256": "9aad55cc65b94b9a03d6ffd189dfbcb3e92735fd2c60a2681487cc2b1af2141e"
-    },
-    {
-      "binary_sha256": "cec1caf85861c34bc4583ef1c69209e96a6930bdfc9af545c429f7470a8b6165",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--sr--cec1caf85861.gzf",
-      "program": "wiz8--gog-base--sr--cec1caf85861",
-      "sha256": "9a73e38f3c220f6eeccec7e1b5f24fee6226afc4be55c39ea6244cf481105013"
-    },
-    {
-      "binary_sha256": "2968987f843f1e1b228b2ff322923e5ac215095a3cb41877b169f01820f8f316",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--srdd-directx6--2968987f843f.gzf",
-      "program": "wiz8--gog-base--srdd-directx6--2968987f843f",
-      "sha256": "4c03048f75ebaad8970bbdac0eabd7857a22c5f05abeb048f8f38751b0a038e9"
-    },
-    {
-      "binary_sha256": "3623f1cb66cd50b7141b49f82100a8ffa1fd3c53ddebc7093bfddeb148cbf8e9",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--srdd-directx7--3623f1cb66cd.gzf",
-      "program": "wiz8--gog-base--srdd-directx7--3623f1cb66cd",
-      "sha256": "02e544171ece1054fcfef5a04b268f04d4f5f4d9e97b61e69711eecc49640438"
-    },
-    {
-      "binary_sha256": "e19987fb5bc9abcceadf4ad64bf108ac2f95d10b520d8de294d9b10466ca1d11",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--srdd-glide2x--e19987fb5bc9.gzf",
-      "program": "wiz8--gog-base--srdd-glide2x--e19987fb5bc9",
-      "sha256": "628d78710e358c69fab99ea75512cb99b428ae23ba83779b571748bab3b73c6d"
-    },
-    {
-      "binary_sha256": "a176aa711039aebbfe33eb5d48e082dcd608835eeebd2a69ead9b455400afc8c",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--srdd-opengl--a176aa711039.gzf",
-      "program": "wiz8--gog-base--srdd-opengl--a176aa711039",
-      "sha256": "fd12c0550ac9dd28c5f35603e653b81819721cc81193f92b00444e805b470bea"
-    },
-    {
-      "binary_sha256": "8866a254569f61022b857628380171dff018939376c02965741635421d0c79f8",
-      "path": "vendor/ghidra/exports/wiz8--gog-base--srdd-software--8866a254569f.gzf",
-      "program": "wiz8--gog-base--srdd-software--8866a254569f",
-      "sha256": "c3e255d6ce18cc3a56a7f6bd9c44cde505f5a90632ce7fc8877d9d11d4e3b085"
-    },
+  "schema": "wiz8.ghidra-seeds",
+  "seeds": [
     {
       "binary_sha256": "18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2",
+      "compiler_spec": "windows",
+      "function_count": 7385,
+      "ghidra_release": "PUBLIC",
+      "ghidra_version": "12.1.2",
+      "language": "x86:LE:32:default",
+      "memory_block_count": 9,
       "path": "vendor/ghidra/exports/wiz8--gog-base--wiz8--18a74ff61c65.gzf",
       "program": "wiz8--gog-base--wiz8--18a74ff61c65",
-      "sha256": "aa5e075e33da593bea2d0b6f24e0787d6255017dab0b8e3bac8bcae02ba2c617"
-    },
-    {
-      "binary_sha256": "c3639d43568a1ed233be85c6b3b8129b1a4661e65717220e0514c815aa972edd",
-      "path": "vendor/ghidra/exports/wiz8--retail-2001-12-23--wiz8--c3639d43568a.gzf",
-      "program": "wiz8--retail-2001-12-23--wiz8--c3639d43568a",
-      "sha256": "9130dd2f924a5f77fa6b325b0179188716cbea126277b75dc3c163a342bd5611"
+      "pyghidra_version": "3.1.0",
+      "sha256": "54b81c32581e2f0004d1ba25a5fcfcec4d78d419d08dd0fd49d207d77187c02d",
+      "validation_checks": {
+        "binary_identity": 1,
+        "candidate_names": 0,
+        "fields": 16,
+        "function_extents": 124,
+        "functions": 238,
+        "globals": 0,
+        "signatures": 2,
+        "structures": 3,
+        "vtable_slots": 74,
+        "vtables": 10
+      }
     }
-  ],
-  "schema": "wiz8.ghidra-exports"
+  ]
 }
