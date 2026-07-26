@@ -87,11 +87,39 @@ Two hard gates sit before any engine bring-up, and both matter for runtime work:
   shipped tree carries `3DSetup.exe` next to the executable.
 * The CD check at `0x0042B830` must pass, or a message box ends the process.
 
+## `BringUpEngine`
+
+`0x00401570` is the whole engine bring-up, and its first act is telling: `atexit(0x004017F0)`
+registers the shutdown handler *before* anything is created, so teardown is armed even if a later
+gate fails. It then registers the window class from `"Wizardry8"` / `"Wizardry8key"`, points the
+module loader at the `"DLL"` subdirectory the shipped tree uses for plug-ins, and runs a chain of
+bool-returning gates, each of which aborts `WinMain` on failure:
+
+```text
+0x004018C0  0x00404B00  0x00404BA0  0x005B1740  0x004023A0
+0x00401EA0  0x00421BB0(hInstance, showCmd, 0x004011E0)  0x00405E60  0x00402970
+```
+
+`0x00421BB0` receives `0x004011E0`, which is the window procedure. The gates themselves are
+enumerated but not individually named.
+
+The shutdown handler at `0x004017F0` is guarded by a once-flag at `0x00650DB5`, clears the run flag
+at `0x006F0628`, and tears down through `0x00408850` and `0x004E34B0`.
+
+## A caveat about the shared stub
+
+`0x005B1740` is `mov al, 1; ret`. It appears 17 times in the frame dispatch table **and** as one of
+`BringUpEngine`'s gates. That is almost certainly identical-COMDAT folding rather than one function
+used eighteen ways: the linker merges byte-identical bodies, so a single address can stand for many
+distinct source functions that all just return true.
+
+The practical consequence is that the 17 stub slots should not be read as "seventeen slots share one
+handler". They are seventeen slots whose handlers were each trivial enough to fold. The bring-up
+target links with `/OPT:NOICF` precisely so recovered code does not inherit this ambiguity.
+
 ## Unresolved boundaries
 
 Recorded explicitly rather than guessed:
-
-* `BringUpEngine`'s six callees are on the path but not individually identified.
 * The per-frame tick's table at `0x00647BD4` is now enumerated in
   `config/analysis/wiz8/frame-dispatch-table.csv`: a flat 62-entry function-pointer table indexed by
   state id, of which 17 slots hold one shared default stub at `0x005B1740` (`mov al,1; ret`, i.e.

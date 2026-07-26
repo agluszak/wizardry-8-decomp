@@ -19,6 +19,12 @@
 // LIBRARY: WIZ8 0x005E1C30
 // __aulldiv
 
+// LIBRARY: WIZ8 0x00401180
+// _onexit
+
+// LIBRARY: WIZ8 0x004011AC
+// atexit
+
 // LIBRARY: WIZ8 0x005E1CA0
 // __allmul
 

@@ -64,12 +64,12 @@ def test_startup_spine_separates_library_from_first_party() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 17
+    assert len(rows) == 21
     assert {row["ownership"] for row in rows} == {"library", "first-party"}
 
     # CRT startup is linked, never modelled: every library node must name its provider.
     library = [row for row in rows if row["ownership"] == "library"]
-    assert len(library) == 3
+    assert len(library) == 4
     assert all(row["provided_by"] for row in library)
     assert all("MSVCRT" in row["provided_by"] for row in library)
 
@@ -82,8 +82,12 @@ def test_startup_spine_separates_library_from_first_party() -> None:
     # Unresolved boundaries are recorded rather than guessed. The frame dispatch
     # table has since been enumerated, so it is resolved with partial attribution.
     unresolved = [row for row in rows if row["status"] == "unresolved"]
-    assert len(unresolved) == 1
-    assert unresolved[0]["role"] == "BringUpEngine callee chain"
+    assert not unresolved
+    # The engine bring-up chain is enumerated but its members are not individually named.
+    assert sum(1 for row in rows if row["status"] == "partial") == 1
+    # atexit registers the shutdown handler before anything is created.
+    assert by_address["004011ac"]["ownership"] == "library"
+    assert by_address["004017f0"]["role"] == "shutdown handler"
     dispatch = by_address["00647bd4"]
     assert dispatch["status"] == "resolved"
     assert dispatch["source_unit"] == "partial"
