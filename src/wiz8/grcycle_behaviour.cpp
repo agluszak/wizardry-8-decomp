@@ -1,4 +1,4 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/grcycle.h"
 #include "wiz8/sr_api.h"
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
@@ -9,26 +9,6 @@
    is what the canonical virtual call uses. */
 #define BEHAVIOUR_FIRST 1
 #define BEHAVIOUR_LAST  3
-
-struct W8GrCycleTarget {
-    unsigned char unknown_00[0x70];
-    signed char m_bBehaviour;               /* 0x70 */
-};
-
-struct W8GrCycle {
-    virtual void vslot0() = 0;
-    virtual void vslot1() = 0;
-    virtual void vslot2() = 0;
-    virtual void vslot3() = 0;
-    virtual void vslot4() = 0;
-    virtual void vslot5() = 0;
-    virtual void vslot6() = 0;
-    virtual void vslot7() = 0;
-    virtual void vslot8() = 0;
-    virtual W8GrCycleTarget* vslot9() = 0;
-
-    void SetBehaviour(signed char bBehaviour);
-};
 
 // FUNCTION: WIZ8 0x004A8460
 void W8GrCycle::SetBehaviour(signed char bBehaviour)

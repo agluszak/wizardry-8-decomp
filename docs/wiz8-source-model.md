@@ -335,6 +335,15 @@ The reviewed minimum object extent is `0x130`: methods access byte `0x129`, whil
 size is not yet claimed. Unknown member and base storage remains explicitly opaque in the Ghidra
 type instead of receiving semantic field names prematurely.
 
+The construction sequence has now been split correctly. `0x005DC7A0` constructs the sole base at
+offset zero; its extent is `0x54`, where the derived constructor stores its argument. The calls at
+`0x005E0C40`, `0x005DB1B0`, and `0x005D14D0` then construct three **members** at `+0x58`, `+0xA4`,
+and `+0xEC`. The destructor tears those members down in reverse before calling the base destructor
+at `0x005DC860`. No checked source supplies their names, so `include/wiz8/monster_info_dialog.h`
+uses constructor-address-qualified positional types. The first member constructor is ported with
+all established field values; its remaining code-generation difference is the register-heavy
+initialization of the nested `0x10`-byte region.
+
 The vtable has 14 slots. Seven slot targets missed by initial auto-analysis were created at
 `0x005D5F90`, `0x005D6FA0`, `0x005DCCE0`, `0x005B1BE0`, `0x005AD270`, `0x005D6E60`, and
 `0x005D6E70`. Only the constructor, destructor, and compiler-generated deleting destructor are
@@ -370,10 +379,18 @@ complete destructor at `0x004A6610` restores both vtables before releasing the o
 and destroying both subobjects; primary slot zero at `0x004A5F00` is its scalar deleting
 destructor.
 
-The primary table ends at the independently installed secondary table, giving 16 and 13 slots
-respectively. This corrects the misleading 29-entry maximal pointer run produced by treating both
-adjacent tables as one. Primary slots 4 (`0x004A7470`) and 11 (`0x004A7E10`) directly reference
-`C:\Projects\Wizardry 8\Engine Code\GrCycle.cpp`. Unknown base and member storage remains opaque.
+The primary table ends at the independently installed secondary table, giving 16 slots. The
+secondary table has **five**, not thirteen: the copy constructor writes `0x005ECECC`, the next
+pointer-sized address, into a separate embedded container at `0x004A63FC` and `0x004A6407`.
+Treating the following eight one-entry/container vtables as secondary slots repeated the same
+maximal-pointer-run error that originally joined the primary and secondary tables.
+
+The constructor also settles the storage boundary. The base constructed by `0x004B6900` occupies
+`0x18` bytes. The base constructed by `0x00451EC0` at `+0x18` occupies `0x190` bytes, because the
+first derived initialization is at `+0x1A8`; `GrCycle` then owns the final `0x30` bytes. No checked
+source supplies either base name, so the public header uses constructor-address-qualified names
+rather than semantic guesses. Primary slots 4 (`0x004A7470`) and 11 (`0x004A7E10`) directly
+reference `C:\Projects\Wizardry 8\Engine Code\GrCycle.cpp`.
 
 Replay the tracked model with:
 

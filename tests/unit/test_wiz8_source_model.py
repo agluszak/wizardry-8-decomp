@@ -353,7 +353,10 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     # imported SurRender base carry a named base instead.
     for name in ("GrCycle", "Monster", "MonsterInfoDialog"):
         assert by_name[name]["source_path"]
-        assert by_name[name]["base_classes"] == ""
+    assert by_name["Monster"]["base_classes"] == ""
+    for name in ("GrCycle", "MonsterInfoDialog"):
+        assert by_name[name]["base_classes"]
+        assert by_name[name]["base_name_origin"] == "address-qualified-positional"
     assert all("layout_proof" in row for row in classes)
     # Octree is the first class whose layout is byte-proven rather than inferred.
     assert by_name["Octree"]["layout_proof"].startswith("0042e440")
@@ -401,7 +404,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     model = load_reviewed_class_model(repository, "wiz8")
 
     assert len(model.vtables) == 10
-    assert len(model.slots) == 74
+    assert len(model.slots) == 66
     classes = {item.name: item for item in model.classes}
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
@@ -426,6 +429,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert vtables["GrCycle.primary"].address == 0x005ECE78
     assert vtables["GrCycle.primary"].slot_count == 16
     assert vtables["GrCycle.secondary_0x18"].subobject_offset == 0x18
+    assert vtables["GrCycle.secondary_0x18"].slot_count == 5
     assert vtables["Monster.primary"].slot_count == 31
     assert vtables["MonsterInfoDialog.primary"].slot_count == 14
 
@@ -438,6 +442,30 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x40C, 0x1B0),
         (0x5BC, 0x6C),
     ]
+
+    grcycle_fields = [field for field in model.fields if field.class_name == "GrCycle"]
+    assert [(field.offset, field.size, field.name) for field in grcycle_fields] == [
+        (0x0, 0x4, "vptr"),
+        (0x4, 0x14, "primary_base_storage"),
+        (0x18, 0x4, "secondary_vptr"),
+        (0x1C, 0x18C, "secondary_base_storage"),
+        (0x1A8, 0x30, "fields"),
+    ]
+    secondary_slots = [slot for slot in model.slots if slot.vtable_id == "GrCycle.secondary_0x18"]
+    assert [slot.target for slot in secondary_slots] == [
+        0x004A9100,
+        0x004538B0,
+        0x004538C0,
+        0x004A7140,
+        0x00456020,
+    ]
+
+    grcycle_header = (repository / "include/wiz8/grcycle.h").read_text(encoding="utf-8")
+    dialog_header = (repository / "include/wiz8/monster_info_dialog.h").read_text(encoding="utf-8")
+    assert "public W8GrCycleBase004B6900" in grcycle_header
+    assert "public W8GrCycleBase00451EC0" in grcycle_header
+    assert "class W8MonsterInfoDialog : public W8DialogBase005DC7A0" in dialog_header
+    assert "W8DialogMember005E0C40 m_member_58" in dialog_header
 
     apply_script = (
         repository / "tools/wiz8decomp/ghidra/apply_wiz8_class_model.py"

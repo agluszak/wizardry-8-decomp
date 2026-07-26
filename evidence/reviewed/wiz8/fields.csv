@@ -1,8 +1,9 @@
 program,class_name,offset,size,field_name,data_type,confidence,evidence_id,description
 wiz8,GrCycle,0x0,0x4,vptr,pointer,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
-wiz8,GrCycle,0x4,0x14,base_and_fields,bytes,strong,classes:wiz8:GrCycle,primary base-class storage not yet reviewed
+wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18
-wiz8,GrCycle,0x1c,0x1bc,fields,bytes,strong,classes:wiz8:GrCycle,owned graphics-cycle state; fields observed through 0x1d4
+wiz8,GrCycle,0x1c,0x18c,secondary_base_storage,bytes,strong,classes:wiz8:GrCycle,unnamed secondary base constructed by 0x00451ec0; total base size 0x190
+wiz8,GrCycle,0x1a8,0x30,fields,bytes,strong,classes:wiz8:GrCycle,GrCycle-owned fields initialized by 0x004a5e50 through offset 0x1d4
 wiz8,Monster,0x0,0x4,vptr,pointer,strong,classes:wiz8:Monster,vtable Monster.primary
 wiz8,Monster,0x4,0xa8,base_and_fields,bytes,strong,classes:wiz8:Monster,base-class and fields not yet reviewed
 wiz8,Monster,0xac,0x1b0,subobject_array_ac,bytes,strong,classes:wiz8:Monster,27 adjacent 0x10-byte subobjects
@@ -10,7 +11,7 @@ wiz8,Monster,0x25c,0x1b0,subobject_array_25c,bytes,strong,classes:wiz8:Monster,2
 wiz8,Monster,0x40c,0x1b0,subobject_array_40c,bytes,strong,classes:wiz8:Monster,27 adjacent 0x10-byte subobjects
 wiz8,Monster,0x5bc,0x6c,tail_fields,bytes,strong,classes:wiz8:Monster,fields observed through offset 0x624
 wiz8,MonsterInfoDialog,0x0,0x4,vptr,pointer,strong,classes:wiz8:MonsterInfoDialog,vtable MonsterInfoDialog.primary
-wiz8,MonsterInfoDialog,0x4,0x50,base_storage,bytes,strong,classes:wiz8:MonsterInfoDialog,base-class storage; fields not yet reviewed
+wiz8,MonsterInfoDialog,0x4,0x50,base_storage,bytes,strong,classes:wiz8:MonsterInfoDialog,unnamed base constructed by 0x005dc7a0; total base size 0x54
 wiz8,MonsterInfoDialog,0x54,0x4,constructor_argument_54,pointer,strong,classes:wiz8:MonsterInfoDialog,second constructor argument retained at offset 0x54
 wiz8,MonsterInfoDialog,0x58,0x4c,member_58,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member constructed and destroyed as one subobject
 wiz8,MonsterInfoDialog,0xa4,0x48,member_a4,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member constructed and destroyed as one subobject

@@ -27,6 +27,21 @@ def test_a_decorated_method_is_offered_under_the_names_a_review_may_use() -> Non
     )[-1] == "method_00446110"
 
 
+def test_msvc_special_members_are_offered_under_their_class_names() -> None:
+    assert symbol_candidates("??0W8GrCycleBase004B6900@@QAE@XZ") == (
+        "W8GrCycleBase004B6900::W8GrCycleBase004B6900",
+        "GrCycleBase004B6900::GrCycleBase004B6900",
+    )
+    assert symbol_candidates("??1W8GrCycle@@UAE@XZ") == (
+        "W8GrCycle::~W8GrCycle",
+        "GrCycle::~GrCycle",
+    )
+    assert symbol_candidates("??_GW8GrCycle@@UAEPAXI@Z") == (
+        "W8GrCycle::scalar_deleting_destructor",
+        "GrCycle::scalar_deleting_destructor",
+    )
+
+
 def test_a_free_function_in_a_cpp_unit_is_offered_under_its_bare_name() -> None:
     # The game is C++, so first-party units are .cpp and their free functions
     # mangle as ?Name@@YA... with no owner between the two @ signs.
