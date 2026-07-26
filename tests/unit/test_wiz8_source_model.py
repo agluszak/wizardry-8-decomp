@@ -404,8 +404,11 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = load_reviewed_class_model(repository, "wiz8")
 
-    assert len(model.vtables) == 14
-    assert len(model.slots) == 70
+    # Monster owns two tables: a 6-slot primary and a 5-slot secondary at 0x18.
+    # The 20 slots that once padded Monster.primary to 31 belong to a distinct
+    # table at 0x005ed22c that no reviewed class claims yet.
+    assert len(model.vtables) == 15
+    assert len(model.slots) == 50
     classes = {item.name: item for item in model.classes}
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
@@ -449,7 +452,9 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert vtables["GrCycle.primary"].slot_count == 16
     assert vtables["GrCycle.secondary_0x18"].subobject_offset == 0x18
     assert vtables["GrCycle.secondary_0x18"].slot_count == 5
-    assert vtables["Monster.primary"].slot_count == 31
+    assert vtables["Monster.primary"].slot_count == 6
+    assert vtables["Monster.secondary_0x18"].subobject_offset == 0x18
+    assert vtables["Monster.secondary_0x18"].slot_count == 5
     assert vtables["MonsterInfoDialog.primary"].slot_count == 14
     assert vtables["W8DialogMember005DB1B0.primary"].slot_count == 1
     assert vtables["W8DialogPtrVector005EF898.primary"].slot_count == 1
