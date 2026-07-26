@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <io.h>
 #include <malloc.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -105,6 +106,90 @@ struct W8StatusHeader {
     unsigned char block_014[0x100];      /* 0x014 */
     unsigned char unknown_114[0x200];
 };                                       /* 0x314 */
+
+/* 0x00404C80 and 0x00404E10, declared as in game_databases.cpp. */
+extern int FileOpen(const char* path, int mode, int flags);
+extern void CloseVirtualFile(int handle);
+
+/* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
+   as elsewhere in src/wiz8. The first loads a character from somewhere other
+   than a loose file, the second builds the failure notice the third posts. */
+extern char Function5156C0(const char* path, W8Character* character);
+extern void* Function517A90(void* target, const char* name, int value,
+                            int a, int b, int c, void* callback);
+extern void Function518510(void* notice);
+
+/* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
+   consulted only when it is set. 0x0068C09C carries the two message templates
+   the failure notice picks from at +0x780 and +0x784, and 0x00683678 is passed
+   alongside. None of the four is established beyond that, so all keep
+   positional names. */
+extern unsigned char g_flag_68517c;
+extern unsigned char g_flags_6874d7[];
+extern unsigned char* g_object_68c09c;
+extern int g_value_683678;
+
+// FUNCTION: WIZ8 0x005152B0
+/* Loads one character record, either from a loose file under Saves\Characters
+   or Saves\NPCs, or through 0x005156C0 when 0x0068517C says characters are not
+   loose. The two spellings of the path share one sprintf: the branch that
+   already has a directory literal jumps into the arm that formats one, which is
+   what writing the call in both arms compiles to.
+
+   The record is cleared before the read, and the read is two calls: a four-byte
+   length and then that many bytes. A short or failed second read leaves the
+   record cleared and reports failure, and the file is closed either way. */
+unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
+                            char report_failure)
+{
+    char path[60];
+    char directory[260];
+    unsigned int size;
+    unsigned int transferred;
+    unsigned char loaded = 0;
+    int handle;
+
+    if (g_flag_68517c) {
+        if (slot != -1 && g_flags_6874d7[slot] == 0) {
+            sprintf(path, "%s\\%s", "Saves\\NPCs", name);
+        } else {
+            strcpy(path, name);
+        }
+    } else {
+        strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
+        sprintf(path, "%s\\%s", directory, name);
+    }
+
+    if (g_flag_68517c && (slot == -1 || g_flags_6874d7[slot] != 0)) {
+        loaded = Function5156C0(path, character);
+    } else {
+        handle = FileOpen(path, 1, 0);
+        if (handle == 0) {
+            goto report;
+        }
+        memset(character, 0, sizeof(W8Character));
+        if (ReadVirtualFile(handle, &size, 4, &transferred)
+            && ReadVirtualFile(handle, character, size, &transferred)) {
+            loaded = 1;
+        }
+        CloseVirtualFile(handle);
+        /* The same read-only repair VerifyDataSubdirs makes, for the one errno
+           that means exactly that. */
+        if (_access(path, 2) != 0 && errno == EACCES) {
+            _chmod(path, _S_IREAD | _S_IWRITE);
+        }
+    }
+    if (loaded) {
+        return loaded;
+    }
+report:
+    if (report_failure) {
+        void* notice = Function517A90(*(void**)(g_object_68c09c + 0x784), name,
+                                      g_value_683678, 1, 1, 0, 0);
+        Function518510(notice);
+    }
+    return loaded;
+}
 
 // FUNCTION: WIZ8 0x00513090
 /* Reads and validates the header, then publishes the four counts and the block
