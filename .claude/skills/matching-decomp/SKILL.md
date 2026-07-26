@@ -64,6 +64,10 @@ The transform is: a guarded `do`/`while` with an early `return` inside becomes a
 body `goto`s a single shared exit label, with the not-found value assigned just before that label.
 One backward branch, one epilogue.
 
+Apply the shared-exit half **only when the canonical has one `ret`**. Count the `ret`s first:
+`MonsterGetIndexByLocationID` has three distinct return values and three epilogues, and matched with
+the loop conversion alone once the returns were left in place.
+
 **One variable, not two.** When a search returns a position that then becomes the loop index, the
 original often keeps both in the same variable and steps it with `++`. Declaring separate `position`
 and `index` locals makes VC6 fold the increment into a `lea`, which costs a byte and shifts every

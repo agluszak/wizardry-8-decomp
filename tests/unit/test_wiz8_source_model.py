@@ -535,7 +535,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
 
     assert len(rows) == 60
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 54
+    assert len(exact) == 55
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -602,8 +602,8 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     assert script_part["confidence"] == "structurally-strong"
     assert script_part["relocation_masked_sha256"] == ""
     index_by_location = next(row for row in rows if row["symbol"] == "MonsterGetIndexByLocationID")
-    assert index_by_location["confidence"] == "structurally-strong"
-    assert index_by_location["relocation_masked_sha256"] == ""
+    assert index_by_location["confidence"] == "exact"
+    assert index_by_location["relocation_masked_sha256"]
     source = "\n".join(
         (repository / path).read_text(encoding="utf-8")
         for path in (

@@ -61,27 +61,21 @@ unsigned int MonsterGetIndexByLocationID(
     int location_id,
     unsigned char assert_on_failure)
 {
-    unsigned int index = 0;
+    unsigned int index;
+    W8MonsterInfo* monster;
 
-    if (PListGetCount(g_monster_list) > 0) {
-        do {
-            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
-            if (monster->location_id == location_id) {
-                return index;
-            }
-            ++index;
-        } while (index < PListGetCount(g_monster_list));
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        monster = MonsterGetScriptPartByLocationIndex(index);
+        if (monster->location_id == location_id) {
+            return index;
+        }
     }
 
-    index = 0;
-    if (PListGetCount(g_unborn_monster_list) > 0) {
-        do {
-            W8MonsterInfo* monster = PListGetAt(g_unborn_monster_list, index);
-            if (monster->location_id == location_id) {
-                return index + 10000;
-            }
-            ++index;
-        } while (index < PListGetCount(g_unborn_monster_list));
+    for (index = 0; index < PListGetCount(g_unborn_monster_list); ++index) {
+        monster = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+        if (monster->location_id == location_id) {
+            return index + 10000;
+        }
     }
 
     if (assert_on_failure != 0) {
