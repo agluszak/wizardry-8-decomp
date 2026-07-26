@@ -51,6 +51,10 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     )
     assert by_address[0x004E58B0].return_type == "W8MonsterDatabaseRecord *"
     assert by_address[0x004E5950].return_type == "Monster *"
+    assert by_address[0x004E5990].return_type == "float"
+    assert by_address[0x004E5990].parameters == (("monster_info", "W8MonsterInfo *"),)
+    assert by_address[0x004E5AA0].return_type == "W8MonsterInfo *"
+    assert by_address[0x004E5AA0].parameters == (("reset_iterator", "unsigned char"),)
 
     apply_script = (
         repository / "tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py"

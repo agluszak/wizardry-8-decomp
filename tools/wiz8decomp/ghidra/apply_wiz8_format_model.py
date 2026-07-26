@@ -520,7 +520,14 @@ def apply_wiz8_format_model(
                         ),
                         (0x0D3, ArrayDataType(byte, 0xB4, 1), "unknown_0d3", "unreviewed fields"),
                         (0x187, short, "record_id", "equals the zero-based database index"),
-                        (0x189, ArrayDataType(byte, 0xD2, 1), "unknown_189", "unreviewed fields"),
+                        (0x189, ArrayDataType(byte, 0x31, 1), "unknown_189", "unreviewed fields"),
+                        (
+                            0x1BA,
+                            float_type,
+                            "float_1ba",
+                            "scaled by the global at 0x005ed4f0 by canonical consumers",
+                        ),
+                        (0x1BE, ArrayDataType(byte, 0x9D, 1), "unknown_1be", "unreviewed fields"),
                         (
                             0x25B,
                             integer,

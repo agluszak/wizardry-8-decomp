@@ -125,6 +125,9 @@ The adjacent `MonsterManager.cpp` lookup cluster establishes a separate 16-byte 
 `+0x08`, and its live `Monster` pointer at `+0x0c`; the word at `+0x04` remains opaque. Keeping
 these consumers in their original translation unit also reproduces the cache lookup being inlined
 into `GetMonsterDataByLocationID`.
+The adjacent consumer at `0x004e5990` establishes a float at monster-record offset `+0x1ba`; it
+multiplies that value by the global float at `0x005ed4f0`. Its designer-facing meaning remains
+unresolved, so both the source and reviewed model retain the positional `float_1ba` name.
 
 `InitializeSpellDatabase` at `0x004acc10` reads a count and version, allocates
 `count * 0x1bf`, then skips `0x101` bytes before each runtime read. The ignored prefix

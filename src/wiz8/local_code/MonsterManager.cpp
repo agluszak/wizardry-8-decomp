@@ -9,7 +9,7 @@
 extern "C" char* String(const char* format, ...);
 
 // FUNCTION: WIZ8 0x004E5550
-extern "C" unsigned int MonsterGetIndexByLocationID(
+unsigned int MonsterGetIndexByLocationID(
     int caller_line,
     const char* caller_file,
     int location_id,
@@ -47,7 +47,7 @@ extern "C" unsigned int MonsterGetIndexByLocationID(
 }
 
 // FUNCTION: WIZ8 0x004E5620
-extern "C" W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index)
+W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index)
 {
     W8MonsterInfo* result;
 
@@ -124,7 +124,7 @@ static __inline W8MonsterRecord* GetMonsterDataByIDInline(unsigned int monster_s
 }
 
 // FUNCTION: WIZ8 0x004E57C0
-extern "C" W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species)
+W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species)
 {
     return GetMonsterDataByIDInline(monster_species);
 }
@@ -157,7 +157,7 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(
 }
 
 // FUNCTION: WIZ8 0x004E5840
-extern "C" W8MonsterInfo* MonsterInfoFromID(
+W8MonsterInfo* MonsterInfoFromID(
     int caller_line,
     const char* caller_file,
     int location_id,
@@ -171,7 +171,7 @@ extern "C" W8MonsterInfo* MonsterInfoFromID(
 }
 
 // FUNCTION: WIZ8 0x004E58B0
-extern "C" W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
+W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
 {
     W8MonsterInfo* monster;
     unsigned int index;
@@ -185,7 +185,7 @@ extern "C" W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
 }
 
 // FUNCTION: WIZ8 0x004E5950
-extern "C" W8Monster* GetMonsterByLocationID(int location_id)
+W8Monster* GetMonsterByLocationID(int location_id)
 {
     W8MonsterInfo* monster_info;
     unsigned int index;
@@ -200,4 +200,45 @@ extern "C" W8Monster* GetMonsterByLocationID(int location_id)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x004E5990
+float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
+{
+    W8MonsterRecord* record;
+    float result;
+
+    if (monster_info == 0) {
+        srAssertFail(
+            "pMonsterInfo != NULL",
+            MONSTER_MANAGER_CPP,
+            0x5e9,
+            0);
+    }
+    record = GetMonsterDataByIDInline(monster_info->monster_species);
+    if (record == 0) {
+        srAssertFail(
+            "pMonsterDB",
+            MONSTER_MANAGER_CPP,
+            0x66a,
+            0);
+    }
+    result = record->float_1ba * g_monster_record_float_scale;
+    return result;
+}
+
+// FUNCTION: WIZ8 0x004E5AA0
+W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
+{
+    W8MonsterInfo* result = 0;
+    int index;
+
+    if (reset_iterator != 0) {
+        g_monster_info_iterator_index = 0;
+    }
+    if (g_monster_info_iterator_index < (int)PListGetCount(g_monster_list)) {
+        index = g_monster_info_iterator_index++;
+        result = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
+    }
+    return result;
 }

@@ -152,7 +152,9 @@ typedef struct W8MonsterDatabaseRecord {
     uint8_t disposition_cache_factor;   /* 0x0d2: squared then scaled for cache duration */
     uint8_t unknown_0d3[0xb4];          /* 0x0d3 */
     int16_t record_id;                  /* 0x187: equals the database index */
-    uint8_t unknown_189[0xd2];          /* 0x189 */
+    uint8_t unknown_189[0x31];          /* 0x189 */
+    float float_1ba;                    /* 0x1ba: scaled by 0x005ed4f0 */
+    uint8_t unknown_1be[0x9d];          /* 0x1be */
     int32_t hostility_range;            /* 0x25b: unaligned default/proximity hostility */
     int32_t faction_id;                 /* 0x25f: W8Faction value */
     uint8_t unknown_263[4];             /* 0x263 */
