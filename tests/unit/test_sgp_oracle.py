@@ -1,37 +1,55 @@
 import csv
 import hashlib
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
 import yaml
-from wiz8decomp.sgp_oracle import BuildText, CoffFunction, _evaluate, classify_body
+from wiz8decomp.sgp_oracle import (
+    BuildText,
+    CoffFunction,
+    _evaluate,
+    classify_body,
+    sweep_sgp_units,
+)
 
 
 def _harness_rows(repository: Path, unit: str) -> list[dict[str, str]]:
-    with (repository / "config/analysis/sgp/harness.csv").open(
+    with (repository / "evidence/snapshots/sgp/harness.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         return [row for row in csv.DictReader(stream) if row["unit"] == unit]
 
 
 def _reviewed_rows(repository: Path, unit: str) -> list[dict[str, str]]:
-    with (repository / "config/analysis/sgp/reviewed-findings.csv").open(
+    with (repository / "evidence/reviewed/sgp/findings.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         return [row for row in csv.DictReader(stream) if row["unit"] == unit]
 
 
-def test_sgp_oracle_tracks_the_complete_reviewed_census() -> None:
+def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
     repository = Path(__file__).resolve().parents[2]
-    oracle = yaml.safe_load(
-        (repository / "config/analysis/sgp/source-oracle.yml").read_text(encoding="utf-8")
-    )
+    source = repository / "third_party/sfi-sgp/sgp"
+    candidates = [
+        path
+        for path in source.iterdir()
+        if path.is_file() and "WIZ8_PRECOMPILED_HEADERS" in path.read_text(
+            encoding="latin-1", errors="replace"
+        )
+    ]
+    active = [
+        path
+        for path in candidates
+        if any(
+            "WIZ8_PRECOMPILED_HEADERS" in line
+            and not line.lstrip().startswith("//")
+            for line in path.read_text(encoding="latin-1", errors="replace").splitlines()
+        )
+    ]
 
-    assert oracle["revision"] == "5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033"
-    assert oracle["license"]["policy"] == "vendored-noncommercial"
-    assert oracle["vendored_source"]["root"] == "third_party/sfi-sgp/sgp"
-    assert len(oracle["active_wiz8_pch_sources"]) == 33
-    assert len(oracle["commented_wiz8_pch_sources"]) == 1
-    assert len(oracle["additional_wizardry_evidence"]) == 11
+    assert len(active) == 33
+    assert {path.name for path in set(candidates) - set(active)} == {"MemMan.c"}
 
 
 def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
@@ -40,7 +58,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
         newline="", encoding="utf-8"
     ) as stream:
         functions = list(csv.DictReader(stream))
-    with (repository / "config/analysis/sgp/wiz8-source-paths.csv").open(
+    with (repository / "evidence/observations/sgp/source-paths.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         paths = list(csv.DictReader(stream))
@@ -108,7 +126,7 @@ def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
 def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
     harness = yaml.safe_load(
-        (repository / "config/analysis/sgp/harness.yml").read_text(encoding="utf-8")
+        (repository / "config/sgp.yml").read_text(encoding="utf-8")
     )
     assert harness["schema"] == "wiz8.sgp-harness"
     assert harness["project_flag_hypothesis"] == ["/O2", "/Ob2", "/G5", "/MD"]
@@ -137,15 +155,20 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
         "gog_1261",
         "gog_128_base",
     }
+    assert harness["report"] == "build/reports/sgp/harness.csv"
+    assert harness["snapshot"] == "evidence/snapshots/sgp/harness.csv"
 
 
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
     repository = Path(__file__).resolve().parents[2]
-    assert {path.name for path in (repository / "config/analysis/sgp").glob("*.csv")} == {
-        "harness.csv",
-        "reviewed-findings.csv",
-        "wiz8-source-paths.csv",
-    }
+    assert (repository / "evidence/snapshots/sgp/harness.csv").is_file()
+    assert (repository / "evidence/reviewed/sgp/findings.csv").is_file()
+    assert (repository / "evidence/observations/sgp/source-paths.csv").is_file()
+
+
+def test_partial_sgp_sweep_cannot_replace_the_reviewed_snapshot() -> None:
+    with pytest.raises(RuntimeError, match="complete sweep"):
+        sweep_sgp_units(SimpleNamespace(), ["random"], update_snapshot=True)
 
 
 def test_relocation_masked_matcher_uses_the_five_way_vocabulary() -> None:

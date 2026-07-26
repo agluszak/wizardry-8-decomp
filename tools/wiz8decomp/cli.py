@@ -313,11 +313,16 @@ def sgp_sweep(
     unit: Optional[list[str]] = typer.Option(
         None, "--unit", help="Configured SGP unit ID; repeat to select several."
     ),
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot; requires a complete sweep.",
+    ),
 ) -> None:
     """Compile the declarative flag matrix and compare every reviewed build."""
     from .sgp_oracle import sweep_sgp_units
 
-    _run_action(lambda: sweep_sgp_units(_settings(), unit))
+    _run_action(lambda: sweep_sgp_units(_settings(), unit, update_snapshot=update_snapshot))
 
 
 @ghidra_app.command("import")

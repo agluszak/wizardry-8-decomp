@@ -48,6 +48,9 @@ path is written only to the gitignored `reccmp-user.yml`.
 
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
+The distinction between configuration, observations, reviewed conclusions, generated reports, and
+exceptional proprietary-input snapshots is defined in
+[docs/evidence-policy.md](docs/evidence-policy.md).
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
 ownership and interface findings are in

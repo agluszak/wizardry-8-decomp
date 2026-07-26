@@ -6,8 +6,10 @@ non-commercial Wizardry 8 decompilation.
 - Upstream repository: `https://github.com/ja2-stracciatella/ja2-stracciatella.git`
 - Upstream revision: `5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033`
 - Upstream tree: `52766c4237e63d7a3d619796784947ed1681f24e`
+- Upstream commit: `Initial Import`, dated 2004-09-06
 - Source location: `sgp/`
 - License: `sgp/SFI Source Code license agreement.txt`
+- License blob: `b66aabc6f7affb4fca0b6cc2d6288f3225ecd0b1`
 
 The license permits modification and redistribution for non-commercial purposes subject to its
 conditions. It is included verbatim. Do not remove copyright or other notices. When modifying a

@@ -17,7 +17,7 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   `build/`. Do not add a tracked projection, live count, or exhaustive Markdown inventory when the
   same fact already has a canonical home. Generated outputs that require unavailable proprietary
   inputs need the policy's explicit snapshot exception.
-- Use the single SGP project flag hypothesis in `config/analysis/sgp/harness.yml`. Do not infer
+- Use the single SGP project flag hypothesis in `config/sgp.yml`. Do not infer
   per-translation-unit flags from sparse matches; reconsider the project profile only against a
   larger recovered corpus.
 - SGP is vendored under `third_party/sfi-sgp` under the non-commercial SFI-SCLA. Preserve its

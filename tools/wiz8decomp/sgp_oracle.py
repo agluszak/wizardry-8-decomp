@@ -226,7 +226,7 @@ def classify_body(
 
 
 def _load_config(settings: Settings) -> dict[str, Any]:
-    path = settings.repo_dir / "config" / "analysis" / "sgp" / "harness.yml"
+    path = settings.repo_dir / "config" / "sgp.yml"
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
     if config.get("schema") != "wiz8.sgp-harness":
         raise RuntimeError("invalid SGP harness schema")
@@ -458,7 +458,14 @@ def _write_report(path: Path, rows: list[dict[str, Any]]) -> None:
     atomic_write(path, stream.getvalue())
 
 
-def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> dict[str, Any]:
+def sweep_sgp_units(
+    settings: Settings,
+    unit_ids: list[str] | None = None,
+    *,
+    update_snapshot: bool = False,
+) -> dict[str, Any]:
+    if update_snapshot and unit_ids:
+        raise RuntimeError("the tracked SGP snapshot can only be refreshed by a complete sweep")
     config = _load_config(settings)
     by_id = {unit["id"]: unit for unit in config["units"]}
     unknown = sorted(set(unit_ids or ()) - set(by_id))
@@ -490,9 +497,11 @@ def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> di
             }
         )
     report = settings.repo_dir / config["report"]
+    snapshot = settings.repo_dir / config["snapshot"]
     selected_ids = {unit["id"] for unit in units}
-    if unit_ids and report.is_file():
-        with report.open(newline="", encoding="utf-8") as stream:
+    merge_source = report if report.is_file() else snapshot
+    if unit_ids and merge_source.is_file():
+        with merge_source.open(newline="", encoding="utf-8") as stream:
             generated_rows.extend(
                 row for row in csv.DictReader(stream) if row["unit"] not in selected_ids
             )
@@ -506,9 +515,13 @@ def sweep_sgp_units(settings: Settings, unit_ids: list[str] | None = None) -> di
         )
     )
     _write_report(report, generated_rows)
+    if update_snapshot:
+        _write_report(snapshot, generated_rows)
     return {
         "schema": "wiz8.sgp-harness-run",
         "flag_combinations": len(_flag_combinations(config)),
         "builds": [build.identifier for build in builds],
         "units": summaries,
+        "report": str(report.relative_to(settings.repo_dir)),
+        "snapshot_updated": update_snapshot,
     }

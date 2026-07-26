@@ -1,287 +1,136 @@
 # Standard Gaming Platform source oracle
 
-Wizardry 8 contains code from Sir-Tech's shared Standard Gaming Platform (SGP), and the released
-Jagged Alliance 2 history preserves explicit Wizardry build branches. The authoritative oracle is
-the `sgp/` tree at ja2-stracciatella commit
-[`5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033`](https://github.com/ja2-stracciatella/ja2-stracciatella/tree/5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033/sgp),
-the SGP-side `Initial Import` dated 2004-09-06. This is separate from the repository's JA2-side
-initial-import root.
+Wizardry 8 contains code from Sir-Tech's shared Standard Gaming Platform (SGP). The released
+Jagged Alliance 2 history preserves explicit Wizardry build branches, so this source is used
+directly rather than independently reconstructed from the executable.
 
-The source is covered by the Strategy First Source Code License Agreement. Its terms are not a
-normal permissive open-source grant: they restrict use to non-commercial purposes and impose
-conditions on redistribution and derivative works. This project is non-commercial and accepts
-those conditions, so the pinned tree is vendored at `third_party/sfi-sgp/sgp` with the verbatim
-license. Modified licensed files must carry the notices and dates required by the agreement. The
-exact license artifact is `sgp/SFI Source Code license agreement.txt`, Git blob
-`b66aabc6f7affb4fca0b6cc2d6288f3225ecd0b1`.
+The pinned source, revision, licence, excluded binaries, and modification rules are recorded in
+`third_party/sfi-sgp/README.md`. The Strategy First licence is non-commercial and imposes notice
+requirements on modifications; contributors must preserve it verbatim.
 
-## Wizardry branches
+## Evidence surfaces
 
-Thirty-three translation units actively select `WIZ8 SGP ALL.H` when
-`WIZ8_PRECOMPILED_HEADERS` is defined. `MemMan.c` retains the same branch only as commented-out
-text. Eleven additional headers/project files contain Wizardry-specific types, feature exclusions,
-or project entries. The complete reviewed census is tracked in
-`config/analysis/sgp/source-oracle.yml`.
+The SGP workflow deliberately separates four roles:
+
+- `config/sgp.yml` configures the compiler matrix, source revision, builds, units, and common
+  project-flag hypothesis.
+- `build/reports/sgp/harness.csv` is the normal generated full matrix.
+- `evidence/snapshots/sgp/harness.csv` preserves a reviewed matrix because reproducing it requires
+  proprietary Wizardry executables. Its README documents the refresh procedure and input identity.
+- `evidence/reviewed/sgp/findings.csv` contains conclusions that require human review, while
+  `evidence/observations/sgp/source-paths.csv` contains binary path observations.
+
+Accepted identities currently remain in the compatibility map
+`config/analysis/functions/wiz8-sgp.csv`. They will move into the canonical WIZ8 function catalog;
+until then, the compatibility map is the input used by Ghidra and matching tools.
+
+## Wizardry branches and overlays
+
+The active Wizardry source census is generated from the vendored tree by looking for live
+`WIZ8_PRECOMPILED_HEADERS` branches. `MemMan.c` contains only a commented-out branch. Tests derive
+this census instead of maintaining a filename list in YAML or Markdown.
 
 The missing product PCH cannot be reconstructed by renaming the JA2 PCH: the JA2 header pulls in
-game-specific screens and utilities which are not SGP ABI. Each probed unit therefore gets its own
-overlay directory under `config/sgp-overlays/`, containing only the includes and declarations its
-own source proves necessary, plus the shared empty `common/builddefines.h`. For
-`DirectDraw Calls.c` in particular:
+game-specific screens and utilities which are not SGP ABI. Each probed unit therefore gets a narrow
+overlay under `config/sgp-overlays/`, containing only the includes and declarations its released
+source proves necessary.
 
-* `WIZ8_PRECOMPILED_HEADERS` is defined;
-* `JA2`, `JA2_PRECOMPILED_HEADERS`, `UTIL`, and `UTILS` are absent;
-* the release build has no `_DEBUG`, making `MemAlloc` and `MemFree` reduce to CRT allocation;
-* the product PCH exposes `gfDontUseDDBlits`;
-* `builddefines.h` contributes no definition consumed by this translation unit.
+The established release model is:
 
-This is deliberately a translation-unit model, not a claim that the full `WIZ8 SGP ALL.H` has
-been recovered. `WizLibs.h` and other product headers remain missing.
+- `WIZ8_PRECOMPILED_HEADERS` is defined.
+- `JA2`, `JA2_PRECOMPILED_HEADERS`, `UTIL`, and `UTILS` are absent.
+- `_DEBUG` is absent, so `MemAlloc` and `MemFree` reduce to CRT allocation.
+- Missing product declarations are supplied per unit rather than through a speculative global PCH.
 
-## Binary path evidence
+This is a translation-unit model, not a claim that the complete `WIZ8 SGP ALL.H`, `WizLibs.h`, or
+other product headers have been recovered.
 
-The GOG executable embeds `C:\Projects\SGP\DirectDraw Calls.c` at VA `0x0060003C`. The same exact
-path occurs in the demo, base executable, 1.261 executable, and both 1.28 executable copies. The
-2001-12-23 retail executable does not retain it. Per-file hashes and offsets are tracked in
-`config/analysis/sgp/wiz8-source-paths.csv`; absence in retail is recorded rather than inferred as
-absence of SGP code.
+## Compiler hypothesis and harness
 
-The path has 25 references in the canonical executable, all clustered in the assertion-bearing
-DirectDraw wrapper region. It is therefore direct translation-unit ownership evidence, not a loose
-library-family string.
-
-## First compiled matches
-
-The pristine `DirectDraw Calls.c` blob
-`2bdc93c4baf998c914eca8fce8322c2f314e24fa` compiles with VC6 SP5 using
-`/O2 /MD /DNDEBUG /DWIZ8_PRECOMPILED_HEADERS` and the narrow overlay. Masking only COFF relocation
-fields produces 13 exact functions in the canonical executable:
-
-```sh
-just build WIZ8_SGP_DIRECTDRAW
-```
-
-The tracked provenance pins the original revision and tree. CMake compiles the vendored source
-directly; generated COFF objects remain outside git under `WIZ8_WORK_DIR`.
-
-| Address | Source identity | Size |
-| --- | --- | ---: |
-| `0x0040F0B0` | `DDCreateSurface` | 74 |
-| `0x0040F100` | `DDLockSurface` | 79 |
-| `0x0040F150` | `DDUnlockSurface` | 35 |
-| `0x0040F180` | `DDGetSurfaceDescription` | 51 |
-| `0x0040F1C0` | `DDReleaseSurface` | 79 |
-| `0x0040F210` | `DDRestoreSurface` | 30 |
-| `0x0040F230` | `DDBltFastSurface` | 84 |
-| `0x0040F290` | `DDBltSurface` | 103 |
-| `0x0040F300` | `DDCreatePalette` | 50 |
-| `0x0040F340` | `DDSetPaletteEntries` | 50 |
-| `0x0040F380` | `DDGetPaletteEntries` | 50 |
-| `0x0040F3C0` | `DDReleasePalette` | 30 |
-| `0x0040F3E0` | `DDSetSurfaceColorKey` | 40 |
-
-The exact hashes are authoritative in `config/analysis/functions/wiz8-sgp.csv`. Other source
-functions are not accepted merely because they share the address neighborhood: some were removed
-as unreferenced COMDATs, and several larger Wizardry bodies differ from the released JA2-era
-implementation.
-
-All 13 bodies are also exact in the playable demo at addresses shifted by `+0x360`. They remain at
-the canonical addresses in the base executable and both files materialized for 1.261; the 1.28
-tree's base executable is likewise exact. The packed/rewritten `Wiz8_v128.exe` and protected retail
-executable do not contain the same relocation-masked byte sequences, so no names are transferred to
-them from this byte matcher. The complete per-build observations are the `directdraw` rows in
-`config/analysis/sgp/harness.csv`.
-
-The oracle also resolves the independently reconstructed zlib boundary. The five exact functions
-at `0x00415820` through `0x004158F0` are the retained decompression half of `sgp/Compression.c`,
-with original names `ZAlloc`, `ZFree`, `DecompressInit`, `Decompress`, and `DecompressFini`.
-
-### `Compression.c`: retained decompression half
-
-The per-unit sweep compiles all nine functions emitted by `Compression.c` under the common
-`/O2 /Ob2 /G5 /MD` project profile. `ZAlloc`, `ZFree`, `DecompressInit`, and `Decompress` each have one unique
-relocation-masked candidate in all five comparable executables. `CompressedBufferSize`,
-`CompressInit`, and `Compress` have no exact, relocation-equivalent, or near candidate in any of
-those builds.
-
-`CompressFini` and `DecompressFini` require one more piece of evidence: after relocation masking
-their 23-byte bodies are identical, so the generic harness correctly reports both as
-`ambiguous-generic`. The sole canonical candidate at `0x004158F0` calls `0x00415960`, the separately
-source-identified `inflateEnd`, not `deflateEnd`. It is therefore `DecompressFini`; with no second
-candidate, `CompressFini` was stripped along with the other three compression-only COMDATs.
-
-The retained functions preserve source order from lines 14, 19, 24, 55, and 80 at addresses
-`0x00415820` through `0x004158F0`. The next function, zlib's `inflateReset`, starts at `0x00415910`.
-This supports the linker-order hypothesis that `Compression.obj` immediately preceded the selected
-zlib objects, with the four later source COMDATs eliminated rather than moved elsewhere. The full
-machine observations are the `compression` rows in `config/analysis/sgp/harness.csv`; the reviewed
-source-line and object-order resolution is in `config/analysis/sgp/reviewed-findings.csv`.
-
-## `Random.c`: a complete unit, and a name correction
-
-`Random.c` is the first translation unit recovered in full. Its own header settles the build
-configuration: `PRERANDOM_GENERATOR` is gated behind `JA2`, which the Wizardry branch does not
-define, so the unit compiles to exactly three functions. The header also states outright that
-Wizardry uses the subsystem — *"Wizardry can use it too, but I'm saving them a K in the meantime"*.
-
-```sh
-just build WIZ8_SGP_RANDOM
-```
-
-All three bodies are relocation-masked exact, and each matches at exactly one address per build:
-
-| Address | Source identity | Size | Source line |
-| --- | --- | ---: | ---: |
-| `0x0040EF80` | `InitializeRandom` | 19 | 23 |
-| `0x0040EFA0` | `Random` | 50 | 39 |
-| `0x0040EFE0` | `Chance` | 51 | 54 |
-
-Two project-profile flags are proven by this unit, not incidental:
-
-* `/G5` is required. Under `/G6` only `InitializeRandom` — which contains no arithmetic — still
-  matches; both `Random` and `Chance` diverge.
-* `/Ob2` is required. Wizardry inlined `Random` into `Chance`, constant-folding the range to 100.
-  Plain `/O2` implies `/Ob1` and will not inline a function that is not marked `inline`, so under
-  `/O2` alone `Chance` emits an out-of-line call and never matches.
-
-`Chance` is a good illustration of why per-unit flag sweeps matter: at `/O2 /G5` the unit looks like
-two exact functions and one absent one, which invites the wrong conclusion that Wizardry modified or
-dropped `Chance`. It did neither.
-
-The complete address matrix is represented by the `random` rows in
-`config/analysis/sgp/harness.csv`. The whole unit sits in
-the demo at the same `+0x360` shift as the DirectDraw block, is identical in the 1.261 and 1.28 base
-executables, and is absent from the packed `Wiz8_v128.exe` and the protected retail executable —
-recorded as unavailable rather than as absent.
-
-## Reusable per-unit harness
-
-The DirectDraw prototype is generalized as a declarative, per-translation-unit sweep in
-`config/analysis/sgp/harness.yml`. Run all configured units, or select one, with:
+Run all configured units, or select one, with:
 
 ```sh
 uv run wiz8 sgp sweep
 uv run wiz8 sgp sweep --unit random
 ```
 
-For each unit the harness compiles all 16 combinations of `/O1` or `/O2`, `/Ob1` or `/Ob2`, `/G5`
-or `/G6`, and `/MD` or `/MT` with VC6 SP5. All tracked reports use the single project hypothesis
-`/O2 /Ob2 /G5 /MD`; a sparse unit is not allowed to invent its own historical flags. The profile
-can be reconsidered later against the aggregate recovered-unit corpus. COFF relocation fields are
-masked before comparison.
+The harness tests the configured optimization, inlining, processor, and CRT axes using VC6 SP5.
+The report always selects the one project-wide hypothesis recorded in `config/sgp.yml`; sparse
+matches are not allowed to invent historical per-file flags. The released VC6 SGP project supports
+this treatment because its release options are project-level and the inspected units have no
+release per-file override. That is evidence for a working hypothesis, not proof that Wizardry used
+the same project file.
 
-Each candidate is classified as `exact`, `relocation-equivalent`,
-`near-source-with-wiz8-modifications`, `absent-or-stripped`, or `ambiguous-generic`. Executables
-that cannot be compared statically remain in the report with an orthogonal `unavailable` state and
-a reason, rather than being mislabeled absent. All units share the generated
-`config/analysis/sgp/harness.csv`; conclusions that require human review live in
-`config/analysis/sgp/reviewed-findings.csv`. Accepted identities remain in
-`config/analysis/functions/wiz8-sgp.csv`, and source-path evidence remains in
-`config/analysis/sgp/wiz8-source-paths.csv`.
+COFF relocation fields are masked before comparison. Candidates are classified as exact,
+relocation-equivalent, near source with Wizardry modifications, absent or stripped, or ambiguous
+generic. A protected or packed executable is recorded as unavailable rather than mislabeled absent.
 
-The common profile reproduces all 13 established `DirectDraw Calls.c` functions in each of the
-five comparable builds and all three `Random.c` functions in the same builds. These results preserve the legacy
-cross-build address matrices while making the compiler search and negative results reproducible.
+Normal sweeps only update the gitignored report. After reviewing a complete run, refresh the tracked
+snapshot explicitly:
 
-The released VC6 `Standard Gaming Platform.dsp` supports project-wide treatment: release compiler
-options live on the project configuration, and the four currently probed units have no release
-per-file overrides. This is evidence for flag scope, not proof that Wizardry used the same project
-file; the profile remains a testable working hypothesis.
+```sh
+uv run wiz8 sgp sweep --update-snapshot
+```
 
-## `FileMan.c`: exact file-system boundary and two reviewed forks
+A partial-unit sweep cannot replace the snapshot.
 
-`FileMan.c` emits 43 external functions under the common project profile. Fifteen have exact
-relocation-masked identities in the canonical executable: `FileExists`, `FileExistsNoDB`,
-`FileOpen`, `FileWrite`, `FileSeek`, `DirectoryExists`, `MakeFileManDirectory`,
-`GetExecutableDirectory`, `GetFileFirst`, `GetFileNext`, `GetFileClose`, `W32toSGPFileFind`,
-`FileCopy`, `FileGetAttributes`, and `FileClearAttributes`. Except for the one patch-specific case
-below, the same identities recur in all five comparable modules. They are source-backed in
-`config/analysis/functions/wiz8-sgp.csv`; the earlier descriptive names `OpenVirtualFile` and
-`SeekVirtualFile` remain aliases of `FileOpen` and `FileSeek`.
+## Recovery lessons
 
-The SGP model installs `HWFILE`, the one-byte `BOOLEAN`, `SGP_FILE_OPEN_FLAGS`,
-`SGP_FILE_SEEK_ORIGIN`, `SGP_FILE_ATTRIBUTES`, the `0x110`-byte `GETFILESTRUCT`, the `0x08`-byte
-`SGP_FILETIME`, the `0x140`-byte `WIN32_FIND_DATAA`, and all fifteen exact prototypes.
+### Random.c and project flags
 
-Two near matches are deliberately not promoted as exact:
+`Random.c` is a complete recovered unit. Its own header proves that `PRERANDOM_GENERATOR` is gated
+behind `JA2`, which the Wizardry branch does not define.
 
-* Every comparable build's `FileCheckEndOfFile` differs at four stable bytes. The released source
-  indexes `LibraryHeaderStruct` with a `0x20` stride; Wizardry multiplies by `0x28`. Its nested
-  `FileOpenStruct` indexing remains `0x10`, isolating the change to the Wizardry library header.
-* `GetFileFirst` is exact in the demo, base executable, 1.261 base, and 1.28 base. Only
-  `Wiz8New.exe` changes the immediate stored to `fFindInfoInUse[iWhich]` after `FindFirstFile` from
-  `TRUE` to `FALSE`. The identity remains exact for the canonical executable, while the patched
-  module is recorded as a Wizardry modification.
+The unit demonstrates why the common profile matters. `/G5` affects the arithmetic bodies, and
+`/Ob2` allows `Random` to inline into `Chance`. A weaker profile can make part of the unit appear
+exact while making the rest look modified or absent. That is not evidence for per-file options; it
+is evidence that the tested project profile is incomplete.
 
-The byte offsets and behavioral deltas are tracked in the `fileman` rows of
-`config/analysis/sgp/reviewed-findings.csv`; the generated similarities remain in the matching
-rows of `config/analysis/sgp/harness.csv`.
+The released identity `Random` supersedes the CFAgent descriptive name `GetRandomNumber`. The
+CFAgent name remains an alias because it is useful external semantic evidence, but source-backed
+identity has higher authority.
 
-## `Container.c`: retained stack and list APIs
+### Compression.c and relocation ambiguity
 
-The unchanged vendored unit emits 32 functions under the common profile. Wizardry retains ten
-physical bodies in one source-ordered block from `0x00405970` through `0x00405E58`. They represent
-twelve source identities: `CreateStack`, `CreateList`, `Push`, `Pop`, `PeekStack`, `DeleteStack`,
-`DeleteList`, `PeekList`, `StoreListNode`, `StackSize`, `ListSize`, and `AddtoList`.
+Wizardry retains the decompression half of `Compression.c`. `CompressFini` and `DecompressFini`
+have identical bodies after relocation masking, so the generic matcher correctly leaves them
+ambiguous. The retained call target resolves the body as `DecompressFini`, and surrounding source
+order supports the conclusion that the compression COMDATs were eliminated rather than moved.
 
-Six bodies are unique relocation-masked matches. Four short bodies collide with other source
-functions and were resolved from the block and its callers. Calls to `0x004059B0` pass list element
-sizes and are followed by `PeekList`/`AddtoList`; no queue operation survives. The sole caller of
-`0x00405B90` uses the operation that the released source explicitly says was added for Wizardry,
-`StoreListNode`, while `SwapListNode` is labelled as a JA2 addition. Both stack and list callers reach
-the folded delete body at `0x00405B00` and the folded size body at `0x00405C00`, so both source names
-are preserved as aliases. The other twenty identities are stripped.
+This is why generated similarity rows and reviewed conclusions are separate datasets.
 
-The source defines a `0x0C`-byte `StackHeader`, `0x14`-byte `QueueHeader` and `ListHeader`, and
-`0x18`-byte `OrdListHeader`. These layouts and the ten physical function prototypes are installed in
-Ghidra under `/wiz8/sgp`. This API is unrelated to the first-party `3D Code/PList.cpp` family used by
-the monster code; no `PList` field was inferred from `Container.c`.
+### FileMan.c and product layout changes
 
-## `LibraryDataBase.c` and `DbMan.c`: vendored SLF subsystem
+Most retained FileMan functions compile directly from the released source, but
+`FileCheckEndOfFile` exposes a stable Wizardry extension: released code indexes
+`LibraryHeaderStruct` with its upstream stride while Wizardry uses the larger runtime structure.
+The nested file-open structure retains its released stride, isolating the difference to the library
+header rather than the surrounding algorithm.
 
-These units are compiled directly from `third_party/sfi-sgp/sgp`; they are no longer treated as
-implementation that needs independent reconstruction. `LibraryDataBase.c` emits 23 functions and
-`DbMan.c` emits 20 under the common project profile.
+Patch-specific behavior is recorded as a per-build observation, not promoted to the canonical base
+executable identity.
 
-Four `LibraryDataBase.c` identities are exact in all five comparable executables:
+### Container.c is not PList
 
-| Address | Source identity | Size |
-| --- | --- | ---: |
-| `0x00412B10` | `ShutDownFileDatabase` | 145 |
-| `0x00413680` | `CreateRealFileHandle` | 175 |
-| `0x00413730` | `GetLibraryAndFileIDFromLibraryFileHandle` | 31 |
-| `0x00413D00` | `CompareDirEntryFileNames` | 83 |
+The released container unit provides stack, list, queue, and ordered-list families. Wizardry retains
+a source-ordered subset, including folded aliases whose identical implementations are reached by
+both stack and list callers. Caller behavior and source order resolve short-body collisions that a
+byte matcher cannot name safely on its own.
 
-`CheckIfFileExistInLibrary` and `CompareFileNames` retain the source behavior but index Wizardry's
-`0x28`-byte `LibraryHeaderStruct`, which extends the released `0x20`-byte structure with the file
-mapping handle and view already observed in the binary. The disk structures are unchanged:
-`LIBHEADER` is `0x214`, `DIRENTRY` is `0x118`, `FileHeaderStruct` is `0x0C`, and `FileOpenStruct` is
-`0x10`. Their source names and fields are installed under `/wiz8/sgp`, together with the extended
-runtime structure and `DatabaseManagerHeaderStruct` global at `0x006EB720`.
+This SGP container API is unrelated to the first-party `3D Code/PList.cpp` family used by monster
+and gameplay code. Similar purpose does not establish shared source ownership.
 
-`DbExists` is not promoted. Its 14-byte source wrapper occurs at `0x00519BEE`, fourteen bytes into
-an existing 31-byte function after a range guard; it is an interior sequence rather than a function
-start. The rejection is retained in `reviewed-findings.csv`.
+### LibraryDataBase.c and DbMan.c
 
-### `Random`, not `GetRandomNumber`
+These units are compiled from the vendored source directly. Their disk structures remain
+source-compatible, while Wizardry extends the runtime library header with mapping state. A source
+wrapper found only inside another function is retained as a rejected interior match rather than
+promoted to a function start.
 
-`0x0040EFA0` is CFAgent's `pW8FUNC_GetRandomNumber` seed. Its relocation-masked body hash
-`438ef441…` is exactly the hash the repository already had from its own hand-written port, and it is
-now also exactly what released `Random.c` emits. The original shared-source name is therefore
-`Random`; `GetRandomNumber` is retained as a fan-patch alias, since no Wizardry-side evidence shows
-Sir-Tech renamed it.
+## Applying the reviewed model
 
-This is the first name promoted out of `external-semantic` under the rules in
-[docs/wiz8-evidence-model.md](../wiz8-evidence-model.md): the row now carries
-`name_origin=sgp-source|fan-patch-signature` and `authority=source-backed`, and both `Random` and
-`GetRandomNumber` are applied to the address. The neighbouring `InitializeRandom` and `Chance` had
-no name from any source before this compile.
-
-## Applied analysis model
-
-The 13 exact DirectDraw identities are applied from `config/analysis/functions/wiz8-sgp.csv` and
-remain classified as `sgp-shared`, not Wizardry gameplay code. The source-derived ABI can be replayed
-with:
+Until the canonical function catalog replaces compatibility maps, apply the accepted SGP names and
+types with:
 
 ```sh
 just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
@@ -289,7 +138,5 @@ just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
 just ghidra apply-sgp-model wiz8--gog-base--wiz8--18a74ff61c65
 ```
 
-The second command installs the 32-bit DirectDraw `RECT`, `DDCOLORKEY`, `DDPIXELFORMAT`, `DDSCAPS`,
-`DDSURFACEDESC`, `PALETTEENTRY`, and `DDBLTFX` layouts, opaque COM interface types, and all 13 exact
-C prototypes. For example, Ghidra now renders `DDLockSurface(IDirectDrawSurface2 *, RECT *,
-DDSURFACEDESC *, dword, HANDLE)` and recognizes the descriptor's exact `0x6C` size.
+The first command applies reviewed identities. The second installs source-derived structures and
+prototypes. Neither command promotes near, ambiguous, stripped, or interior matches.

@@ -35,7 +35,7 @@ original-body mappings do not make `Wiz8.dll`, `cfagent1.28.dll`, detours, or in
 Wizardry source.
 
 The already reviewed SGP mappings remain in `config/analysis/functions/wiz8-sgp.csv`, with
-per-build observations in `config/analysis/sgp/harness.csv`. Those source-built identities are
+per-build observations in `evidence/snapshots/sgp/harness.csv`. Those source-built identities are
 independent evidence and should be joined with this map by canonical address when preparing a
 function for recovery.
 
