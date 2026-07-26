@@ -605,10 +605,11 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 91
+    assert len(rows) == 97
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 86
+    assert len(exact) == 91
     assert {int(row["size"]) for row in exact} == {
+        3,
         6,
         7,
         12,
@@ -620,7 +621,9 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
         24,
         25,
         26,
+        28,
         29,
+        30,
         33,
         40,
         43,
@@ -728,6 +731,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     source = "\n".join(
         (repository / path).read_text(encoding="utf-8")
         for path in (
+            "src/wiz8/bringup_gates.cpp",
             "src/wiz8/character_items.cpp",
             "src/wiz8/character_skills.cpp",
             "src/wiz8/controls_regions.cpp",

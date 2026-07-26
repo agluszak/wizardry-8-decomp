@@ -107,6 +107,8 @@ Ranked by how often it has been the answer here:
 | A global reloaded for each use where canonical loads it once into a callee-saved register | the original read it into a local | assign it to a local and use that throughout |
 | A parameter reloaded from its stack slot mid-body, costing an extra `lea` in an address chain | its address is taken elsewhere, so VC6 forces it to memory | copy it into a local and use that for the arithmetic; the slot still serves as the address |
 | Registers clear in the wrong order | declaration/initialization order | reorder the initializers |
+| `neg r`/`sbb`/`neg` where canonical has `test al,al` then `setne al` | a comparison returned directly, which widens to a 32-bit 0/1 | assign it to a `bool` local first, then return that |
+| A constant stored with an immediate where canonical materialises it into AL first | the function also *returns* that constant | give the gate its real return value; VC6 then uses one register for both |
 | `neg eax` where canonical has `neg al` | callee's **return type** is byte-sized, not `int` | narrow the extern declaration |
 
 Iterating on shape is normal. Sizes of 261 → 162 → 247 → 231 before an exact match happened here.
