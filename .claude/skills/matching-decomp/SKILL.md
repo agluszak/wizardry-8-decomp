@@ -41,6 +41,20 @@ even when they share `WIZ8_WORK_DIR`. `just configure` and `just compare` also r
 build directory another checkout configured, so a moved or copied working copy fails loudly instead
 of producing a plausible wrong number.
 
+**Measure before and after every transform, with reccmp as well as the object comparison.** A change
+that makes the instruction *shape* match can still be a regression: on `GetOriginOfCharacterItem`,
+removing the loop peeling produced the original's exact instruction sequence but flipped register
+allocation to a consistent EAX/ECX swap, and similarity fell from 77.03% to 65.25%. Shape and
+register allocation can trade against each other. Until a body is byte-exact, keep whichever version
+measures better rather than whichever looks more principled.
+
+**Diff whole instructions, not mnemonics.** A diff that compares only the mnemonic silently hides
+operand and register differences, which are exactly what most near-misses consist of. Compare the
+full instruction text and the encoded size, normalising only branch targets. A one-byte delta with
+an identical instruction count usually means a register swap rather than a missing instruction:
+`add eax,imm32` encodes a byte shorter than the same add on any other register, and several
+`eax`-specific forms behave the same way.
+
 ## Reading a near-miss
 
 When the size is right but bytes differ, the cause is almost always source shape, not structure.
@@ -51,6 +65,8 @@ Ranked by how often it has been the answer here:
 | `JL`/`JE` where canonical has `JB`/`JBE` | field or variable is **unsigned** | change the type |
 | Register roles permuted | control-flow shape is wrong | fix the flow; registers follow |
 | `lea r,[x+1]` where canonical has `mov r,x` then `inc r` | two source variables where the original reused one | merge them into a single variable stepped by `++` |
+| A second cursor built with `lea` where canonical has `add r,imm` | the original advances one base pointer in place | reuse and mutate the base rather than deriving each cursor |
+| Index cleared *after* the cursor is computed | initialisation order | assign the index before the pointer, with an empty `for` init |
 | Duplicated `return` epilogue | separate `if`s where the original used one short-circuit `\|\|` | merge into `\|\|` |
 | Loop's first comparison duplicated, two `return` epilogues | hand-rolled cursor in a `do`/`while` | use a counted `for` indexing the array; let VC6 strength-reduce it |
 | Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
