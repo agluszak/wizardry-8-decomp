@@ -1,13 +1,37 @@
 #include "wiz8/save_game.h"
 #include "wiz8/virtual_file.h"
 
+#include <windows.h>
+
+#include <errno.h>
+#include <io.h>
 #include <malloc.h>
+#include <string.h>
+#include <sys/stat.h>
 
 /* Local Code\LoadSaveGame.cpp. The unit is established by its own assertions:
    evidence/observations/wiz8/assertions.csv places line 870 at 0x00512E80 and
    line 3507 at 0x00516580, with the line numbers rising with the address, so
-   the two serializers below sit inside the interval rather than being assigned
-   to it by subsystem guesswork. */
+   the bodies below sit inside the interval rather than being assigned to it by
+   subsystem guesswork. */
+
+/* SGP's FileMan.c, reviewed in evidence/reviewed/wiz8/functions.csv at
+   0x004051D0, 0x004051F0 and 0x004054F0. Declared here rather than included
+   from third_party/sfi-sgp, as the other recovered units declare their SGP
+   callees: this track does not build or modify the vendored tree. */
+extern unsigned char DirectoryExists(const char* directory);
+extern unsigned char MakeFileManDirectory(const char* directory);
+extern unsigned int FileGetAttributes(const char* path);
+
+/* The attribute word is Windows', not SGP's. This build's FileGetAttributes
+   copies each attribute bit it knows to the same bit position and returns the
+   result, so 0x004054F0 is a filter rather than a renumbering: 0x20 to 0x20,
+   0x02 to 0x02, 0x10 to 0x10 and so on. The vendored SFI release does renumber
+   - its FILE_IS_ARCHIVE is 0x10 and its FILE_IS_DIRECTORY is 0x02 - so Ghidra
+   labels the two tests below with names that are wrong for this image. Read as
+   Windows attributes the pair says "is a directory" and "is not read-only",
+   which is what a function that verifies save directories is asking, and the
+   constants come from windows.h rather than being restated here. */
 
 /* 0x004F8130, ItemManager.cpp line 998: asserts the item is non-null, then
    reports whether the flag word at +0x29 has any of the caller's bits set. The
@@ -45,6 +69,45 @@ struct W8WorldItemOwner {
     unsigned char unknown_00[0x14];
     W8WorldEntity* entity;               /* 0x14 */
 };
+
+// FUNCTION: WIZ8 0x00512D00
+/* Makes sure the three save directories exist and are writable before anything
+   is written to them. The names are a table of fixed 60-byte slots terminated
+   by an empty one rather than a count, which is why the walk asks strlen and
+   not an index: the canonical steps a cursor by 0x3C and re-runs the inlined
+   strlen at the bottom of the loop.
+
+   The empty fourth slot is initialized from a string literal, not zeroed in
+   place, so it is spelled as one here. */
+unsigned char VerifyDataSubdirs(void)
+{
+    char directories[4][60] = { "Saves", "Saves\\Characters", "Saves\\NPCs", "" };
+    char* directory;
+    unsigned int attributes;
+
+    for (directory = directories[0]; strlen(directory) != 0; directory += 60) {
+        if (!DirectoryExists(directory) && !MakeFileManDirectory(directory)) {
+            return 0;
+        }
+        /* A read-only directory left behind by an earlier install is repaired
+           rather than reported, but only for the one errno that means exactly
+           that. */
+        if (_access(directory, 2) != 0 && errno == EACCES) {
+            _chmod(directory, _S_IREAD | _S_IWRITE);
+        }
+        attributes = FileGetAttributes(directory);
+        if (attributes == 0xffffffff) {
+            return 0;
+        }
+        if (!(attributes & FILE_ATTRIBUTE_DIRECTORY)) {
+            return 0;
+        }
+        if (attributes & FILE_ATTRIBUTE_READONLY) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 // FUNCTION: WIZ8 0x00514BE0
 /* Walks the item's sibling chain and writes each record whole. Two reads go
