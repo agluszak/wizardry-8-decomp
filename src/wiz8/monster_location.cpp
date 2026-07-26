@@ -16,7 +16,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
                 0x5da,
                 0);
         }
-        result = PListGetAt(g_monster_list, monster_list_index);
+        result = (W8MonsterInfo*)PListGetAt(g_monster_list, monster_list_index);
         if (result != 0) {
             return result;
         }
@@ -38,7 +38,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
                 0x5d1,
                 0);
         }
-        result = PListGetAt(g_unborn_monster_list, index);
+        result = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
         if (result != 0) {
             return result;
         }

@@ -27,6 +27,13 @@ def test_a_decorated_method_is_offered_under_the_names_a_review_may_use() -> Non
     )[-1] == "method_00446110"
 
 
+def test_a_free_function_in_a_cpp_unit_is_offered_under_its_bare_name() -> None:
+    # The game is C++, so first-party units are .cpp and their free functions
+    # mangle as ?Name@@YA... with no owner between the two @ signs.
+    assert symbol_candidates("?SaveFactState@@YAXH@Z") == ("SaveFactState",)
+    assert symbol_candidates("?DestroyFactDatabase@@YAXXZ") == ("DestroyFactDatabase",)
+
+
 def test_undecorated_names_lose_only_the_c_prefix_and_stdcall_suffix() -> None:
     assert symbol_candidates("_GetFact") == ("GetFact",)
     assert symbol_candidates("_SpawnItem@8") == ("SpawnItem",)

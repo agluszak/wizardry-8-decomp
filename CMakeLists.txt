@@ -248,35 +248,35 @@ endif()
 
 if(WIZ8_BUILD_DECOMP)
     add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
-        src/wiz8/character_items.c
-        src/wiz8/character_skills.c
+        src/wiz8/character_items.cpp
+        src/wiz8/character_skills.cpp
         src/wiz8/controls_regions.cpp
-        src/wiz8/gameplay_boundaries.c
-        src/wiz8/location_variables.c
+        src/wiz8/gameplay_boundaries.cpp
+        src/wiz8/location_variables.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
         src/wiz8/chunk_io.cpp
         src/wiz8/grcycle_behaviour.cpp
-        src/wiz8/fact_state.c
-        src/wiz8/game_databases.c
+        src/wiz8/fact_state.cpp
+        src/wiz8/game_databases.cpp
         src/wiz8/gameplay_teardown.cpp
-        src/wiz8/ilist.c
-        src/wiz8/item_tables.c
+        src/wiz8/ilist.cpp
+        src/wiz8/item_tables.cpp
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp
         src/wiz8/monster_cycles.cpp
         src/wiz8/monster_info_dialog.cpp
         src/wiz8/monster_generators.cpp
-        src/wiz8/monster_location.c
-        src/wiz8/monster_lookup.c
-        src/wiz8/npc_item_lists.c
+        src/wiz8/monster_location.cpp
+        src/wiz8/monster_lookup.cpp
+        src/wiz8/npc_item_lists.cpp
         src/wiz8/spell_backfire.cpp
-        src/wiz8/targeting.c
-        src/wiz8/state_getters.c
+        src/wiz8/targeting.cpp
+        src/wiz8/state_getters.cpp
         src/wiz8/vector_conversions.cpp
         src/wiz8/virtual_file_stream.cpp
         src/wiz8/octree_loading.cpp
-        src/wiz8/plist.c
+        src/wiz8/plist.cpp
         src/wiz8/world_props.cpp
         src/wiz8/vc6_runtime.cpp
     )

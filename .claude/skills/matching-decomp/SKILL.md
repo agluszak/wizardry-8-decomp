@@ -20,7 +20,8 @@ to reproduce code you already understand.
    narrower question of why two encodings differ; `just wiz8 diff-boundary <symbol>` is the tool
    for that.
 1. Confirm the canonical function's extent (see *Function extents* below).
-2. Write owned C/C++ under `src/wiz8/`, add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` source list
+2. Write owned **C++** under `src/wiz8/` - the game is C++ and every original unit is a `.cpp`;
+   only genuine C library code stays `.c` - add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` source list
    in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
 3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.
 4. Compare the emitted COMDAT against every build with relocation masking.
@@ -63,6 +64,12 @@ This mattered concretely. On `GetOriginOfCharacterItem`, removing the loop peeli
 original's exact instruction sequence, and reccmp fell from 77.03% to 65.25% purely because a
 register swap touches more operands. Reverting on that number was wrong: neither body is exact, and
 the structurally-aligned one is a byte away rather than a shape away.
+
+**Spelling `__thiscall`.** VC6 cannot put `__thiscall` on a free declaration, but `__fastcall`
+passes its first argument in ECX, which is the instruction a no-argument member call emits. That
+does not extend to a member call *with* arguments: `__fastcall` would place the second argument in
+EDX, and the canonical passes it on the stack. Those need a real virtual or member call, which is
+one more reason owned units are C++.
 
 **A duplicated tail in the decompiler output is often the compiler's, not the source's.** Ghidra
 shows what the binary does, so a compiler-duplicated epilogue appears as a real second copy. Writing

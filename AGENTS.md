@@ -56,6 +56,12 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   daemon. Do not manually manage the cache or daemon in normal workflows; one-shot Ghidra is only
   an automatic fallback when the daemon cannot be used. Use `just ghidra rebuild <program>` only as
   the slow fresh-import parity gate, and `just ghidra cache build` after accepting a refreshed seed.
+- **Wizardry 8 is a C++ program: recovered first-party units are `.cpp`, not `.c`.** Every original
+  translation unit the assertions name is a `.cpp` file - `GameplayDatabase.cpp`, `IList.cpp`,
+  `PC Item.cpp`, `Targeting.cpp` - so owned sources under `src/wiz8/` must be C++ too. C compiles the
+  same bodies for simple code, which makes the mistake easy to miss and wrong anyway: it models the
+  original as something it is not, and it cannot express a `__thiscall` virtual call at all. Only
+  genuine C library code, such as the zlib wrappers, stays `.c`.
 - **Start every port from `just ghidra query <program> decompile 0x<addr>`, not from disassembly.**
   Ghidra already carries the applied types, global names, and callee identities, so its output names
   `g_fact_values`, `FileWrite` and `W8NpcDatabaseRecord` where a raw listing shows only addresses.

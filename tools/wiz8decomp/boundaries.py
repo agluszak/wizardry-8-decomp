@@ -21,9 +21,11 @@ Two details of COMDAT layout matter:
   `MinimumCasterLevelForSpellLevel` carries 24 bytes of table plus 3 of padding.
   Bodies are therefore truncated to the reviewed size, and relocations beyond it
   dropped with them.
-* Methods reach the object file decorated. The reviewed rows name them
-  `Class::Method` against an implementation class called `W8Class`, so the
-  decorated name is reduced to the candidates a row may plausibly use.
+* Symbols reach the object file decorated, because the game is C++ and its
+  translation units are `.cpp`. Methods arrive as `?Method@W8Class@@...` while
+  the reviewed rows name them `Class::Method`, and free functions arrive as
+  `?Name@@...` with no owner at all, so the decorated name is reduced to the
+  candidates a row may plausibly use.
 """
 
 from __future__ import annotations
@@ -43,7 +45,7 @@ from .sgp_oracle import (
     parse_coff_functions,
 )
 
-DECORATED = re.compile(r"^\?(?P<method>[^@]+)@(?P<owner>[^@]+)@@")
+DECORATED = re.compile(r"^\?(?P<method>[^@]+)@(?P<owner>[^@]*)@@")
 CLASS_PREFIX = "W8"
 
 
@@ -58,6 +60,9 @@ def symbol_candidates(decorated: str) -> tuple[str, ...]:
         return (decorated.lstrip("_?").split("@")[0],)
     method = match.group("method")
     owner = match.group("owner")
+    if not owner:
+        # A free function in a C++ unit: ?Name@@YA... carries no owner.
+        return (method,)
     names = [f"{owner}::{method}"]
     if owner.startswith(CLASS_PREFIX):
         names.append(f"{owner[len(CLASS_PREFIX) :]}::{method}")
