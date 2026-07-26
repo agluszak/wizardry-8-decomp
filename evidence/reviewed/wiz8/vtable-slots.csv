@@ -65,3 +65,6 @@ wiz8,MonsterInfoDialog.primary,10,005b1be0,,strong,classes:wiz8:MonsterInfoDialo
 wiz8,MonsterInfoDialog.primary,11,005ad270,,strong,classes:wiz8:MonsterInfoDialog
 wiz8,MonsterInfoDialog.primary,12,005d6e60,,strong,classes:wiz8:MonsterInfoDialog
 wiz8,MonsterInfoDialog.primary,13,005d6e70,,strong,classes:wiz8:MonsterInfoDialog
+wiz8,W8DialogMember005DB1B0.primary,0,005db210,,exact,classes:wiz8:W8DialogMember005DB1B0
+wiz8,W8DialogPtrVector005EF898.primary,0,005d2590,,exact,classes:wiz8:W8DialogPtrVector005EF898
+wiz8,W8DialogPtrVectorBase005EF89C.primary,0,005d2560,,exact,classes:wiz8:W8DialogPtrVectorBase005EF89C

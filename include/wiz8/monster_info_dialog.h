@@ -63,8 +63,60 @@ public:
     virtual ~W8DialogMember005DB1B0();   /* 0x005DB260 */
 
 private:
-    unsigned char unknown_004[0x44];
+    int unknown_004;
+    int unknown_008;
+    int unknown_00c;
+    int unknown_010;
+    int unknown_014;
+    int m_resource_018;
+    int m_resource_01c;
+    int unknown_020;
+    int unknown_024;
+    int unknown_028;
+    int unknown_02c;
+    int unknown_030;
+    unsigned char unknown_034;
+    unsigned char unknown_035;
+    unsigned char unknown_036;
+    unsigned char unknown_037;
+    unsigned char unknown_038;
+    unsigned char unknown_039;
+    unsigned char unknown_03a;
+    unsigned char unknown_03b;
+    unsigned char unknown_03c;
+    unsigned char unknown_03d[3];
+    int unknown_040;
+    int unknown_044;
 };                                      /* 0x48 */
+
+class W8DialogOwned005D14D0 {
+public:
+    virtual ~W8DialogOwned005D14D0();
+};
+
+/* Two instances of this suffix-sharing pointer-vector specialization are
+   embedded in W8DialogMember005D14D0. The base and derived constructor vptrs
+   are 0x005EF89C and 0x005EF898 respectively; no source-backed template or
+   element name is available. */
+class W8DialogPtrVectorBase005EF89C {
+public:
+    W8DialogPtrVectorBase005EF89C();
+    virtual ~W8DialogPtrVectorBase005EF89C();
+
+protected:
+    int m_count;                         /* 0x04 */
+    int m_capacity;                      /* 0x08 */
+    W8DialogOwned005D14D0** m_data;      /* 0x0c */
+};                                      /* 0x10 */
+
+class W8DialogPtrVector005EF898 : public W8DialogPtrVectorBase005EF89C {
+public:
+    W8DialogPtrVector005EF898();
+    virtual ~W8DialogPtrVector005EF898();
+
+    int GetCount() const;
+    W8DialogOwned005D14D0* RemoveAt(int position);
+};                                      /* 0x10 */
 
 class W8DialogMember005D14D0 {
 public:
@@ -72,8 +124,26 @@ public:
     ~W8DialogMember005D14D0();           /* 0x005D1590 */
 
 private:
-    unsigned char unknown_000[0x44];
-};                                      /* modeled minimum 0x44 */
+    unsigned char unknown_000[0x10];
+    int unknown_010;
+    int unknown_014;
+    int unknown_018;
+    W8DialogPtrVector005EF898 m_vector_01c;
+    W8DialogPtrVector005EF898 m_vector_02c;
+    unsigned char unknown_03c;
+    unsigned char unknown_03d;
+    unsigned char unknown_03e;
+    unsigned char unknown_03f;
+    int unknown_040;
+    int unknown_044;
+    int unknown_048;
+    int unknown_04c;
+    int unknown_050;
+    unsigned char unknown_054;
+    signed char unknown_055;
+    unsigned char unknown_056;
+    unsigned char unknown_057;
+};                                      /* modeled minimum 0x58 */
 
 class W8MonsterInfoDialog : public W8DialogBase005DC7A0 {
 public:
@@ -89,4 +159,4 @@ private:
     W8DialogMember005E0C40 m_member_58;  /* 0x58 */
     W8DialogMember005DB1B0 m_member_a4;  /* 0xa4 */
     W8DialogMember005D14D0 m_member_ec;  /* 0xec */
-};                                      /* modeled minimum 0x130 */
+};                                      /* modeled minimum 0x144 */

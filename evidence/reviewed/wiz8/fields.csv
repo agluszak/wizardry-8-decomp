@@ -14,8 +14,22 @@ wiz8,MonsterInfoDialog,0x0,0x4,vptr,pointer,strong,classes:wiz8:MonsterInfoDialo
 wiz8,MonsterInfoDialog,0x4,0x50,base_storage,bytes,strong,classes:wiz8:MonsterInfoDialog,unnamed base constructed by 0x005dc7a0; total base size 0x54
 wiz8,MonsterInfoDialog,0x54,0x4,constructor_argument_54,pointer,strong,classes:wiz8:MonsterInfoDialog,second constructor argument retained at offset 0x54
 wiz8,MonsterInfoDialog,0x58,0x4c,member_58,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member constructed and destroyed as one subobject
-wiz8,MonsterInfoDialog,0xa4,0x48,member_a4,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member constructed and destroyed as one subobject
-wiz8,MonsterInfoDialog,0xec,0x44,member_ec,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded member; minimum extent follows access at 0x129
+wiz8,MonsterInfoDialog,0xa4,0x48,member_a4,bytes,exact,classes:wiz8:MonsterInfoDialog,embedded W8DialogMember005DB1B0 with byte-exact constructor and destructor
+wiz8,MonsterInfoDialog,0xec,0x58,member_ec,bytes,strong,classes:wiz8:MonsterInfoDialog,embedded W8DialogMember005D14D0 with byte-exact constructor and destructor; 0x58 is its proven aligned minimum after a write through dialog offset 0x142
+wiz8,W8DialogMember005DB1B0,0x0,0x4,vptr,pointer,exact,classes:wiz8:W8DialogMember005DB1B0,one-slot vtable at 0x005efa98
+wiz8,W8DialogMember005DB1B0,0x4,0x14,unknown_004,bytes,exact,classes:wiz8:W8DialogMember005DB1B0,five positional dwords initialized to -1
+wiz8,W8DialogMember005DB1B0,0x18,0x4,resource_018,int32,exact,classes:wiz8:W8DialogMember005DB1B0,released by 0x0040c710 and reset to -1
+wiz8,W8DialogMember005DB1B0,0x1c,0x4,resource_01c,int32,exact,classes:wiz8:W8DialogMember005DB1B0,released by 0x0040d150 and reset to -1
+wiz8,W8DialogMember005DB1B0,0x20,0x24,unknown_020,bytes,exact,classes:wiz8:W8DialogMember005DB1B0,positional constructor-initialized storage
+wiz8,W8DialogMember005DB1B0,0x44,0x4,unknown_044,int32,exact,classes:wiz8:W8DialogMember005DB1B0,initialized from the dword at 0x0069ca28
+wiz8,W8DialogMember005D14D0,0x0,0x1c,unknown_000,bytes,exact,classes:wiz8:W8DialogMember005D14D0,positional storage preceding the two vector members
+wiz8,W8DialogMember005D14D0,0x1c,0x10,vector_01c,bytes,exact,classes:wiz8:W8DialogMember005D14D0,embedded W8DialogPtrVector005EF898 whose owned entries are removed and virtually deleted by the exact destructor
+wiz8,W8DialogMember005D14D0,0x2c,0x10,vector_02c,bytes,exact,classes:wiz8:W8DialogMember005D14D0,second embedded W8DialogPtrVector005EF898
+wiz8,W8DialogMember005D14D0,0x3c,0x1c,unknown_03c,bytes,exact,classes:wiz8:W8DialogMember005D14D0,positional fields initialized through offset 0x56
+wiz8,W8DialogPtrVectorBase005EF89C,0x0,0x4,vptr,pointer,exact,classes:wiz8:W8DialogPtrVectorBase005EF89C,one-slot base vtable at 0x005ef89c
+wiz8,W8DialogPtrVectorBase005EF89C,0x4,0x4,count,int32,exact,classes:wiz8:W8DialogPtrVectorBase005EF89C,used pointer slots
+wiz8,W8DialogPtrVectorBase005EF89C,0x8,0x4,capacity,int32,exact,classes:wiz8:W8DialogPtrVectorBase005EF89C,five when the twenty-byte backing allocation succeeds and zero otherwise
+wiz8,W8DialogPtrVectorBase005EF89C,0xc,0x4,data,pointer,exact,classes:wiz8:W8DialogPtrVectorBase005EF89C,pointer backing array released by the exact destructor
 wiz8,W8PList,0x0,0x4,data,pointer,exact,classes:wiz8:W8PList,pointer element array
 wiz8,W8PList,0x4,0x4,capacity,int32,exact,classes:wiz8:W8PList,allocated pointer slots
 wiz8,W8PList,0x8,0x4,count,int32,exact,classes:wiz8:W8PList,used pointer slots

@@ -331,9 +331,11 @@ The first local class model is grounded by four independent observations:
 * `0x005D5F00` restores the same vtable and destroys the subobjects beginning at `0x58`, `0xA4`,
   and `0xEC` in reverse order.
 
-The reviewed minimum object extent is `0x130`: methods access byte `0x129`, while the exact final
-size is not yet claimed. Unknown member and base storage remains explicitly opaque in the Ghidra
-type instead of receiving semantic field names prematurely.
+The reviewed minimum object extent is now `0x144`. The exact constructor at `0x005D14D0` writes
+through its own offset `+0x56`; because that member begins at dialog offset `+0xEC`, the previous
+`0x130` minimum stopped twelve bytes too early. The exact final allocation size is still not
+claimed. Unknown member and base storage remains positional instead of receiving semantic field
+names prematurely.
 
 The construction sequence has now been split correctly. `0x005DC7A0` constructs the sole base at
 offset zero; its extent is `0x54`, where the derived constructor stores its argument. The calls at
@@ -343,6 +345,21 @@ at `0x005DC860`. No checked source supplies their names, so `include/wiz8/monste
 uses constructor-address-qualified positional types. The first member constructor is ported with
 all established field values; its remaining code-generation difference is the register-heavy
 initialization of the nested `0x10`-byte region.
+
+The other two member lifetime pairs are now byte-exact. `0x005DB1B0`/`0x005DB260` prove the
+`0x48`-byte polymorphic member at `+0xA4`, including separately released resource handles at
+member offsets `+0x18` and `+0x1C`. `0x005D14D0`/`0x005D1590` prove an aligned minimum of `0x58`
+bytes for the final member at `+0xEC`, including two embedded `0x10`-byte pointer-vector
+specializations at member offsets
+`+0x1C` and `+0x2C`. The destructor removes and virtually deletes the first vector's entries before
+both backing arrays are released.
+
+That typed composition also emits three adjacent pointer-vector lifetime bodies byte-exactly:
+the complete destructor at `0x005D2540`, the suffix-sharing base scalar deleting destructor at
+`0x005D2560`, and the derived scalar deleting destructor at `0x005D2590`. Vtables `0x005EF898`
+and `0x005EF89C` are independently installed at the same subobject address, so each is a one-slot
+table; treating them as one two-entry run would repeat the adjacent-vtable counting error already
+seen elsewhere.
 
 The vtable has 14 slots. Seven slot targets missed by initial auto-analysis were created at
 `0x005D5F90`, `0x005D6FA0`, `0x005DCCE0`, `0x005B1BE0`, `0x005AD270`, `0x005D6E60`, and

@@ -394,7 +394,7 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     assert dialog["constructor"] == "005d5e30"
     assert dialog["destructor"] == "005d5f00"
     assert dialog["scalar_deleting_destructor"] == "005d5ee0"
-    assert dialog["minimum_size"] == "0x130"
+    assert dialog["minimum_size"] == "0x144"
     assert dialog["source_path"] == "Dialog Code\\MonsterInfoDialog.cpp"
     assert "Slot 3 directly references the exact source path" in dialog["evidence"]
 
@@ -403,8 +403,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = load_reviewed_class_model(repository, "wiz8")
 
-    assert len(model.vtables) == 10
-    assert len(model.slots) == 66
+    assert len(model.vtables) == 13
+    assert len(model.slots) == 69
     classes = {item.name: item for item in model.classes}
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
@@ -434,6 +434,9 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert vtables["GrCycle.secondary_0x18"].slot_count == 5
     assert vtables["Monster.primary"].slot_count == 31
     assert vtables["MonsterInfoDialog.primary"].slot_count == 14
+    assert vtables["W8DialogMember005DB1B0.primary"].slot_count == 1
+    assert vtables["W8DialogPtrVector005EF898.primary"].slot_count == 1
+    assert vtables["W8DialogPtrVectorBase005EF89C.primary"].slot_count == 1
 
     monster_fields = [field for field in model.fields if field.class_name == "Monster"]
     assert [(field.offset, field.size) for field in monster_fields] == [
@@ -462,12 +465,32 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         0x00456020,
     ]
 
+    dialog_fields = [field for field in model.fields if field.class_name == "MonsterInfoDialog"]
+    assert [(field.offset, field.size, field.name) for field in dialog_fields] == [
+        (0x0, 0x4, "vptr"),
+        (0x4, 0x50, "base_storage"),
+        (0x54, 0x4, "constructor_argument_54"),
+        (0x58, 0x4C, "member_58"),
+        (0xA4, 0x48, "member_a4"),
+        (0xEC, 0x58, "member_ec"),
+    ]
+    vector_fields = [
+        field for field in model.fields if field.class_name == "W8DialogPtrVectorBase005EF89C"
+    ]
+    assert [(field.offset, field.size, field.name) for field in vector_fields] == [
+        (0x0, 0x4, "vptr"),
+        (0x4, 0x4, "count"),
+        (0x8, 0x4, "capacity"),
+        (0xC, 0x4, "data"),
+    ]
+
     grcycle_header = (repository / "include/wiz8/grcycle.h").read_text(encoding="utf-8")
     dialog_header = (repository / "include/wiz8/monster_info_dialog.h").read_text(encoding="utf-8")
     assert "public W8GrCycleBase004B6900" in grcycle_header
     assert "public W8GrCycleBase00451EC0" in grcycle_header
     assert "class W8MonsterInfoDialog : public W8DialogBase005DC7A0" in dialog_header
     assert "W8DialogMember005E0C40 m_member_58" in dialog_header
+    assert "W8DialogPtrVector005EF898 m_vector_01c" in dialog_header
 
     apply_script = (
         repository / "tools/wiz8decomp/ghidra/apply_wiz8_class_model.py"
@@ -725,6 +748,10 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     sources = matching_target_sources(repository, "WIZ8_GAMEPLAY_BOUNDARIES")
     source = "\n".join(path.read_text(encoding="utf-8") for path in sources)
     for row in rows:
+        # Scalar deleting destructors are compiler-generated from a virtual
+        # destructor and have no separate source declaration to mark.
+        if row["symbol"].endswith("::scalar_deleting_destructor"):
+            continue
         marker = f"// FUNCTION: WIZ8 0x{row['address'].upper()}"
         assert marker in source, (
             f"{row['symbol']} is mapped at {row['address']} but no source compiled into "

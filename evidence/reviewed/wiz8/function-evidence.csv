@@ -299,3 +299,10 @@ function-evidence:wiz8:005e2b80:reccmp,wiz8,005e2b80,reccmp,exact-compile,match:
 function-evidence:wiz8:005e2c70:reccmp,wiz8,005e2c70,reccmp,exact-compile,match:b032c1545d695fa6,VC6 SP5 O2 G6 MD body exact; 3D Code\PList.cpp
 function-evidence:wiz8:005e2c80:reccmp,wiz8,005e2c80,reccmp,exact-compile,match:167aad620d16007a,VC6 SP5 O2 G6 MD body exact; 3D Code\IList.cpp
 function-evidence:wiz8:005e2cc0:reccmp,wiz8,005e2cc0,reccmp,exact-compile,match:3086c58e71669ce9,VC6 SP5 O2 G6 MD body exact; 3D Code\IList.cpp
+function-evidence:wiz8:005d14d0:reccmp,wiz8,005d14d0,reccmp,exact-compile,match:dd010130f85a05fc,VC6 SP5 O2 G6 MD body exact; address-qualified dialog member constructor
+function-evidence:wiz8:005d1590:reccmp,wiz8,005d1590,reccmp,exact-compile,match:aa1b4b27fda80d5d,VC6 SP5 O2 G6 MD body exact; address-qualified dialog member destructor
+function-evidence:wiz8:005d2540:reccmp,wiz8,005d2540,reccmp,exact-compile,match:bef50ca4ac32aaae,VC6 SP5 O2 G6 MD body exact; suffix-sharing pointer-vector complete destructor
+function-evidence:wiz8:005d2560:reccmp,wiz8,005d2560,reccmp,exact-compile,match:8367146956d1e36b,VC6 SP5 O2 G6 MD body exact; pointer-vector base scalar deleting destructor
+function-evidence:wiz8:005d2590:reccmp,wiz8,005d2590,reccmp,exact-compile,match:b40481af87cc4bcd,VC6 SP5 O2 G6 MD body exact; pointer-vector derived scalar deleting destructor
+function-evidence:wiz8:005db1b0:reccmp,wiz8,005db1b0,reccmp,exact-compile,match:da6df97276b2fdb8,VC6 SP5 O2 G6 MD body exact; address-qualified dialog member constructor
+function-evidence:wiz8:005db260:reccmp,wiz8,005db260,reccmp,exact-compile,match:cfa31081cac4b91f,VC6 SP5 O2 G6 MD body exact; address-qualified dialog member destructor
