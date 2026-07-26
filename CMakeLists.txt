@@ -416,17 +416,26 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         "ExceptionHandling.cpp"
         exceptionhandling
     )
+
+    # Startup-spine evidence probes. The core and input objects contain released
+    # APIs that Wizardry discarded and therefore are not linked wholesale into
+    # the /OPT:NOREF bring-up. timer.c is complete and retained as one unit.
+    wiz8_add_sgp_unit(WIZ8_SGP_CORE "sgp.c" sgp)
+    wiz8_add_sgp_unit(WIZ8_SGP_TIMER "timer.c" timer)
+    wiz8_add_sgp_unit(WIZ8_SGP_INPUT "input.c" input)
     if(WIZ8_BUILD_DECOMP)
         add_dependencies(
             WIZ8_MATCHING
             WIZ8_SGP_DEBUG
             WIZ8_SGP_EXCEPTION_HANDLING
             WIZ8_SGP_CONTAINER
+            WIZ8_SGP_TIMER
         )
         target_sources(WIZ8_BRINGUP PRIVATE
             $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
             $<TARGET_OBJECTS:WIZ8_SGP_EXCEPTION_HANDLING>
             $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>
+            $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
         )
     endif()
 endif()

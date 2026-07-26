@@ -133,6 +133,17 @@ they line up with the subsystems the roadmap expects:
 | `0x00421BB0` | renderer window, extensions | `srGERD::isWindowOpen`, `srExtension::load`, `ShowWindow` |
 | `0x004023A0` | texture defaults | `srTextureMap::setupDefaultValues` |
 
+The released SGP source resolves the retained parts of that chain under the single project profile
+`/O2 /Ob2 /G5 /MD`: `GetRuntimeSettings` is `0x004018C0`, `InitializeInputManager` is
+`0x00401EA0`, and `InitializeClockManager` is `0x00406BA0`. The input initializer installs the
+exact source callbacks `KeyboardHandler` at `0x00401B30` and the Wizardry branch of `MouseHandler`
+at `0x00401C70`. The clock initializer installs `Clock` at `0x00406B70`. Their object ranges
+preserve the linked order from `sgp.c` startup fragments through `input.c` and the intervening SGP
+managers to `timer.c`.
+
+Only the two retained `sgp.c` functions and the eight retained `input.c` functions are configured
+as evidence targets. The unretained remainder of those released units is outside this surface.
+
 `0x00421BB0` receives `0x004011E0`, the window procedure, and its `srExtension::load` call is how
 the `srEXT_*` plug-ins — including the JPEG importer this repository already recovered — enter the
 process. `0x00404BA0`, `0x00405E60`, `0x00402970` and `0x005B1740` remain too small to characterise
@@ -140,6 +151,8 @@ from imports or literals alone.
 
 The shutdown handler at `0x004017F0` is guarded by a once-flag at `0x00650DB5`, clears the run flag
 at `0x006F0628`, and tears down through `0x00408850` and `0x004E34B0`.
+The source matches identify lower-level shutdown edges reached by that product-specific handler:
+`ShutdownInputManager` at `0x00401F70` and `ShutdownClockManager` at `0x00406BD0`.
 
 ## A caveat about the shared stub
 

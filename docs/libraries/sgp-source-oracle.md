@@ -133,6 +133,17 @@ but it neither owns the SGP crash-report implementation nor imports `_CxxThrowEx
 with the reviewed allocator model, this preserves the executable's explicit null-return allocation
 paths instead of introducing modern throwing-allocation semantics.
 
+### Startup core input and timer
+
+The configured `sgp.c` evidence surface contains only the two complete retained functions:
+`GetRuntimeSettings` and `ProcessCommandLine`.
+
+The configured `input.c` surface is likewise restricted to the eight retained hook callbacks and
+queue functions. `timer.c` is complete; source order between exact neighboring functions resolves
+the otherwise-generic six-byte `GetClock` body. The complete timer object is linked. The broader
+core and input objects remain evidence-only because linking them under `/OPT:NOREF` would retain
+unneeded released APIs.
+
 ### LibraryDataBase.c and DbMan.c
 
 These units are compiled from the vendored source directly. Their disk structures remain

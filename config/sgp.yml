@@ -62,3 +62,25 @@ units:
     source: ExceptionHandling.cpp
     overlay: exceptionhandling
     expected_empty: true
+  - id: sgp
+    target: WIZ8_SGP_CORE
+    source: sgp.c
+    overlay: sgp
+    functions: [GetRuntimeSettings, ProcessCommandLine]
+  - id: timer
+    target: WIZ8_SGP_TIMER
+    source: timer.c
+    overlay: timer
+  - id: input
+    target: WIZ8_SGP_INPUT
+    source: input.c
+    overlay: input
+    functions:
+      - KeyboardHandler
+      - MouseHandler
+      - InitializeInputManager
+      - ShutdownInputManager
+      - QueueEvent
+      - DequeueEvent
+      - FreeMouseCursor
+      - GetMouseWheelDeltaValue

@@ -5,6 +5,16 @@ function-evidence:wiz8:00401164:vc6-runtime,wiz8,00401164,vc6-runtime,identity-r
 function-evidence:wiz8:00401180:vc6-runtime,wiz8,00401180,vc6-runtime,identity-review,name_origin=descriptive,"Local CRT wrapper that forwards to the MSVCRT _onexit import at 0x005EB0F0 when the table pointers at 0x0069DA74/0x0069DA78 are uninitialised, otherwise appends through 0x004011CC. Name is the CRT's convention, not stated by the binary"
 function-evidence:wiz8:004011ac:vc6-runtime,wiz8,004011ac,vc6-runtime,identity-review,name_origin=descriptive,"Calls 0x00401180 and normalises its result to a boolean with neg/sbb, which is the standard CRT atexit-over-_onexit shape. BringUpEngine uses it to register the shutdown handler at 0x004017F0"
 function-evidence:wiz8:004011c0:vc6-runtime,wiz8,004011c0,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB0DC); installed as the CRT entry's SEH handler"
+function-evidence:wiz8:004018c0:sgp,wiz8,004018c0,sgp,identity-review,sgp/sgp.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; reads PIXEL_DEPTH from sgp.ini
+function-evidence:wiz8:00401950:sgp,wiz8,00401950,sgp,identity-review,sgp/sgp.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; all eight Wizardry command switches agree
+function-evidence:wiz8:00401b30:sgp,wiz8,00401b30,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; callback address is installed as WH_KEYBOARD
+function-evidence:wiz8:00401c70:sgp,wiz8,00401c70,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; callback address is installed as WH_MOUSE
+function-evidence:wiz8:00401ea0:sgp,wiz8,00401ea0,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; startup bring-up calls it directly
+function-evidence:wiz8:00401f70:sgp,wiz8,00401f70,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00401f90:sgp,wiz8,00401f90,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; event-ring layout corroborates identity
+function-evidence:wiz8:00402140:sgp,wiz8,00402140,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; repeat handling is inlined
+function-evidence:wiz8:00402750:sgp,wiz8,00402750,sgp,identity-review,sgp/input.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00402760:sgp,wiz8,00402760,sgp,identity-review,sgp/input.c,VC6 SP5 body is byte-exact in every comparable build
 function-evidence:wiz8:00404b50:sgp,wiz8,00404b50,sgp,identity-review,sgp/DEBUG.C,VC6 SP5 common project profile relocation-masked body exact in every comparable build; source eight-slot formatter ring and 55 callers corroborate identity
 function-evidence:wiz8:00404bf0:sgp,wiz8,00404bf0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
 function-evidence:wiz8:00404c40:sgp,wiz8,00404c40,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
@@ -35,6 +45,12 @@ function-evidence:wiz8:00405b20:sgp,wiz8,00405b20,sgp,identity-review,sgp/Contai
 function-evidence:wiz8:00405b90:sgp,wiz8,00405b90,sgp,identity-review,sgp/Container.c,The identical generic body is used by a Wizardry list caller and the source marks StoreListNode as the Wizardry addition
 function-evidence:wiz8:00405c00:sgp,wiz8,00405c00,sgp,identity-review,sgp/Container.c,VC6 folded the identical referenced stack and list size bodies at one address in every comparable build
 function-evidence:wiz8:00405c10:sgp,wiz8,00405c10,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00406b70:sgp,wiz8,00406b70,sgp,identity-review,sgp/timer.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; timer callback address is passed to SetTimer
+function-evidence:wiz8:00406ba0:sgp,wiz8,00406ba0,sgp,identity-review,sgp/timer.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; startup bring-up calls it directly
+function-evidence:wiz8:00406bd0:sgp,wiz8,00406bd0,sgp,identity-review,sgp/timer.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00406be0:sgp,wiz8,00406be0,sgp,identity-review,sgp/timer.c,Generic getter body resolved by source order between exact neighboring timer functions
+function-evidence:wiz8:00406bf0:sgp,wiz8,00406bf0,sgp,identity-review,sgp/timer.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00406c00:sgp,wiz8,00406c00,sgp,identity-review,sgp/timer.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
 function-evidence:wiz8:00408860:cfagent-oracle,wiz8,00408860,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PlaySound English seed address verified by embedded expected bytes
 function-evidence:wiz8:0040ef80:sgp,wiz8,0040ef80,sgp,identity-review,sgp/Random.c,VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build
 function-evidence:wiz8:0040efa0:cfagent-oracle,wiz8,0040efa0,cfagent-oracle,identity-review,name_origin=fan-patch-signature|sgp-source,"CFAgent pW8FUNC_GetRandomNumber seed address, promoted by the exact SGP Random.c compile that names the body Random"

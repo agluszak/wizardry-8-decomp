@@ -65,7 +65,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     ) as stream:
         paths = list(csv.DictReader(stream))
 
-    assert len(functions) == 46
+    assert len(functions) == 62
     assert {row["confidence"] for row in functions} == {"exact"}
     assert {row["owner"] for row in functions} == {"sgp-shared"}
     assert {row["source_path"] for row in functions} == {
@@ -75,6 +75,9 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
         "sgp/LibraryDataBase.c",
         "sgp/Random.c",
         "sgp/DEBUG.C",
+        "sgp/sgp.c",
+        "sgp/input.c",
+        "sgp/timer.c",
     }
     assert len(paths) == 7
     assert sum(row["classification"] == "exact-path" for row in paths) == 6
@@ -146,6 +149,9 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
         "random",
         "debug",
         "exceptionhandling",
+        "sgp",
+        "timer",
+        "input",
     }
     assert "flag_axes" not in harness
     assert {build["id"] for build in harness["builds"]} >= {
@@ -160,6 +166,19 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
         unit for unit in harness["units"] if unit["id"] == "exceptionhandling"
     )
     assert exception_unit["expected_empty"] is True
+    selected = {unit["id"]: unit.get("functions") for unit in harness["units"]}
+    assert selected["sgp"] == ["GetRuntimeSettings", "ProcessCommandLine"]
+    assert set(selected["input"]) == {
+        "KeyboardHandler",
+        "MouseHandler",
+        "InitializeInputManager",
+        "ShutdownInputManager",
+        "QueueEvent",
+        "DequeueEvent",
+        "FreeMouseCursor",
+        "GetMouseWheelDeltaValue",
+    }
+    assert selected["timer"] is None
 
 
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
@@ -330,6 +349,38 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
     assert reviewed_debug[-1]["canonical_classification"] == "relocation-equivalent"
     assert reviewed_exception[0]["finding"] == "compiled-empty"
     assert reviewed_exception[0]["canonical_classification"] == "compiled-empty"
+
+
+def test_startup_input_and_timer_surfaces_are_restricted_to_retained_code() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        accepted = list(csv.DictReader(stream))
+
+    startup = _reviewed_rows(repository, "sgp")
+    timer = _reviewed_rows(repository, "timer")
+    input_rows = _reviewed_rows(repository, "input")
+
+    assert len(_harness_rows(repository, "sgp")) == 2 * 7
+    assert len(_harness_rows(repository, "timer")) == 6 * 7
+    assert len(_harness_rows(repository, "input")) == 8 * 7
+    assert len(startup) == 2
+    assert len(timer) == 6
+    assert len(input_rows) == 8
+    assert {row["provisional_name"] for row in accepted if row["source_path"] == "sgp/sgp.c"} == {
+        "GetRuntimeSettings",
+        "ProcessCommandLine",
+    }
+    assert {row["provisional_name"] for row in accepted if row["source_path"] == "sgp/timer.c"} == {
+        "Clock",
+        "InitializeClockManager",
+        "ShutdownClockManager",
+        "GetClock",
+        "SetCountdownClock",
+        "ClockIsTicking",
+    }
+    assert {row["finding"] for row in startup + timer + input_rows} == {"retained"}
 
 
 def test_fileman_exact_and_near_results_stay_separate() -> None:

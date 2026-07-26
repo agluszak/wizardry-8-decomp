@@ -146,7 +146,7 @@ def test_startup_spine_separates_library_from_first_party() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 28
+    assert len(rows) == 33
     assert {row["ownership"] for row in rows} == {"library", "first-party"}
 
     # CRT startup is linked, never modelled: every library node must name its provider.
@@ -165,7 +165,7 @@ def test_startup_spine_separates_library_from_first_party() -> None:
     # table has since been enumerated, so it is resolved with partial attribution.
     unresolved = [row for row in rows if row["status"] == "unresolved"]
     assert not unresolved
-    # The engine bring-up chain is enumerated but its members are not individually named.
+    # One remaining small-gate group is intentionally partial.
     assert sum(1 for row in rows if row["status"] == "partial") == 1
     # One spine node is attributable to an original translation unit: the SGP
     # DirectDraw unit whose functions are already source-matched.

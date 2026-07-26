@@ -487,6 +487,19 @@ def apply_sgp_model(
                     file_attributes, DataTypeConflictHandler.REPLACE_HANDLER
                 )
 
+                input_atom = _structure(
+                    dtm,
+                    category,
+                    "InputAtom",
+                    0x10,
+                    [
+                        (0x00, dword, "uiTimeStamp", "event timestamp"),
+                        (0x04, word, "usKeyState", "shift control and alt mask"),
+                        (0x06, word, "usEvent", "input event mask"),
+                        (0x08, dword, "usParam", "key or event parameter"),
+                        (0x0C, dword, "uiParam", "packed mouse or event parameter"),
+                    ],
+                )
                 dd_pointer = PointerDataType(direct_draw, dtm)
                 surface1_pointer = PointerDataType(surface1, dtm)
                 surface2_pointer = PointerDataType(surface2, dtm)
@@ -508,6 +521,7 @@ def apply_sgp_model(
                 win32_find_data_pointer = PointerDataType(win32_find_data, dtm)
                 short_pointer = PointerDataType(short, dtm)
                 dir_entry_pointer_pointer = PointerDataType(PointerDataType(dir_entry, dtm), dtm)
+                input_atom_pointer = PointerDataType(input_atom, dtm)
 
                 signatures: dict[int, list[tuple[str, Any]]] = {
                     0x0040F0B0: [
@@ -834,6 +848,72 @@ def apply_sgp_model(
                         )
                     applied.append(f"0x{raw_address:08x}")
 
+                startup_signatures: dict[int, tuple[Any, list[tuple[str, Any]], str]] = {
+                    0x004018C0: (void, [], "__cdecl"),
+                    0x00401950: (void, [("pCommandLine", char_pointer)], "__cdecl"),
+                    0x00401B30: (
+                        integer,
+                        [("Code", integer), ("wParam", dword), ("lParam", integer)],
+                        "__stdcall",
+                    ),
+                    0x00401C70: (
+                        integer,
+                        [("Code", integer), ("wParam", dword), ("lParam", integer)],
+                        "__stdcall",
+                    ),
+                    0x00401EA0: (boolean, [], "__cdecl"),
+                    0x00401F70: (void, [], "__cdecl"),
+                    0x00401F90: (
+                        void,
+                        [("ubInputEvent", word), ("usParam", dword), ("uiParam", dword)],
+                        "__cdecl",
+                    ),
+                    0x00402140: (boolean, [("Event", input_atom_pointer)], "__cdecl"),
+                    0x00402750: (void, [], "__cdecl"),
+                    0x00402760: (short, [("wParam", dword)], "__cdecl"),
+                    0x00406B70: (
+                        void,
+                        [
+                            ("hWindow", generic_pointer),
+                            ("uMessage", dword),
+                            ("idEvent", dword),
+                            ("dwTime", dword),
+                        ],
+                        "__stdcall",
+                    ),
+                    0x00406BA0: (boolean, [], "__cdecl"),
+                    0x00406BD0: (void, [], "__cdecl"),
+                    0x00406BE0: (dword, [], "__cdecl"),
+                    0x00406BF0: (dword, [("uiTimeToElapse", dword)], "__cdecl"),
+                    0x00406C00: (dword, [("uiTimer", dword)], "__cdecl"),
+                }
+                for raw_address, (return_type, arguments, convention) in startup_signatures.items():
+                    address = address_space.getAddress(raw_address)
+                    function = program.getFunctionManager().getFunctionAt(address)
+                    if function is None:
+                        raise RuntimeError(f"no function at 0x{raw_address:08x}")
+                    signature = _function_type(
+                        dtm,
+                        category,
+                        f"signature_{function.getName()}",
+                        return_type,
+                        arguments,
+                        convention,
+                    )
+                    command = ApplyFunctionSignatureCmd(
+                        address,
+                        signature,
+                        SourceType.USER_DEFINED,
+                        True,
+                        FunctionRenameOption.NO_CHANGE,
+                    )
+                    if not command.applyTo(program):
+                        raise RuntimeError(
+                            f"failed to apply signature at 0x{raw_address:08x}: "
+                            f"{command.getStatusMsg()}"
+                        )
+                    applied.append(f"0x{raw_address:08x}")
+
                 database_address = address_space.getAddress(0x006EB720)
                 _apply_data(program, database_address, database_manager)
                 symbol_table = program.getSymbolTable()
@@ -853,6 +933,52 @@ def apply_sgp_model(
                     ),
                 }
                 for raw_address, (data_type, name) in debug_globals.items():
+                    address = address_space.getAddress(raw_address)
+                    _apply_data(program, address, data_type)
+                    symbol = symbol_table.getPrimarySymbol(address)
+                    if symbol is None:
+                        symbol_table.createLabel(address, name, SourceType.USER_DEFINED)
+                    elif symbol.getName() != name:
+                        symbol.setName(name, SourceType.USER_DEFINED)
+
+                startup_globals = {
+                    0x005FF450: (byte, "gbPixelDepth"),
+                    0x006505A0: (boolean, "gfLoadAtStartup"),
+                    0x006505A1: (boolean, "gfUsingBoundsChecker"),
+                    0x006505A4: (char_pointer, "gzStringDataOverride"),
+                    0x006505A8: (boolean, "gfCapturingVideo"),
+                    0x00650DB8: (boolean, "fCursorWasClipped"),
+                    0x00650DB9: (boolean, "gfSGPInputReceived"),
+                    0x006596CC: (generic_pointer, "ghWindow"),
+                    0x006EB708: (dword, "guiStartupTime"),
+                    0x006EB70C: (dword, "guiCurrentTime"),
+                    0x006EF4E0: (ArrayDataType(input_atom, 256, 0x10), "gEventQueue"),
+                    0x006F04E0: (word, "gusTailIndex"),
+                    0x006F04E2: (word, "gusHeadIndex"),
+                    0x006F04E4: (dword, "guiDoubleClkDelay"),
+                    0x006F04E8: (boolean, "gfRightButtonState"),
+                    0x006F04E9: (boolean, "gfRecordedLeftButtonUp"),
+                    0x006F04EA: (word, "gfShiftState"),
+                    0x006F04EC: (boolean, "gfTrackMousePos"),
+                    0x006F04ED: (boolean, "gfLeftButtonState"),
+                    0x006F04F0: (dword, "guiRightButtonRepeatTimer"),
+                    0x006F04F4: (boolean, "gfTrackDblClick"),
+                    0x006F04F6: (word, "gusQueueCount"),
+                    0x006F04F8: (word, "gusMouseYPos"),
+                    0x006F04FC: (generic_pointer, "ghKeyboardHook"),
+                    0x006F0500: (boolean, "gfCurrentStringInputState"),
+                    0x006F0504: (dword, "guiSingleClickTimer"),
+                    0x006F0508: (word, "gfCtrlState"),
+                    0x006F050A: (word, "gusMouseXPos"),
+                    0x006F050C: (generic_pointer, "ghMouseHook"),
+                    0x006F0510: (generic_pointer, "gpCurrentStringDescriptor"),
+                    0x006F0514: (word, "gusRecordedKeyState"),
+                    0x006F0518: (dword, "guiLeftButtonRepeatTimer"),
+                    0x006F051C: (word, "gfAltState"),
+                    0x006F0520: (ArrayDataType(boolean, 256, 1), "gfKeyState"),
+                    0x006F0630: (boolean, "gfApplicationActive"),
+                }
+                for raw_address, (data_type, name) in startup_globals.items():
                     address = address_space.getAddress(raw_address)
                     _apply_data(program, address, data_type)
                     symbol = symbol_table.getPrimarySymbol(address)
@@ -889,6 +1015,7 @@ def apply_sgp_model(
                                 queue_header,
                                 list_header,
                                 ord_list_header,
+                                input_atom,
                             )
                         ],
                         "typed_functions": applied,
@@ -896,6 +1023,7 @@ def apply_sgp_model(
                             "0x00650dec",
                             "0x006eb720",
                             "0x006ee440",
+                            *[f"0x{address:08x}" for address in startup_globals],
                         ],
                     }
                 )

@@ -324,6 +324,16 @@ def _compile_units(
                     functions = []
                 else:
                     raise
+            selected = unit.get("functions")
+            if selected is not None:
+                selected_names = set(selected)
+                available_names = {function.name for function in functions}
+                missing = sorted(selected_names - available_names)
+                if missing:
+                    raise RuntimeError(
+                        f"{unit['target']} did not expose selected functions: " + ", ".join(missing)
+                    )
+                functions = [function for function in functions if function.name in selected_names]
             if unit.get("expected_empty") and functions:
                 names = ", ".join(function.name for function in functions)
                 raise RuntimeError(
