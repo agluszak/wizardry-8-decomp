@@ -87,6 +87,31 @@ Two hard gates sit before any engine bring-up, and both matter for runtime work:
   shipped tree carries `3DSetup.exe` next to the executable.
 * The CD check at `0x0042B830` must pass, or a message box ends the process.
 
+## The C++ initializer table is a link-order witness
+
+`_initterm` runs 267 slots at `0x005FF000..0x005FF42C`, 266 of which point into `.text`. They are
+enumerated in `config/analysis/wiz8/cpp-initializers.csv`.
+
+The useful property is that **247 of the 265 consecutive pairs ascend in address**. The CRT builds
+this table by concatenating each object's `.CRT$XC*` contribution in link order, so a table that is
+93% monotonic in address says the linker laid `.text` out in essentially the same object order. That
+makes the initializer table an independent witness of object link order, derived from completely
+different evidence than the assertion-anchored translation-unit intervals.
+
+Two things follow:
+
+* The 18 descending steps are exactly the places where link order and address order disagree. They
+  are recorded with their deltas and are the interesting anomalies for anyone reconciling link order
+  — not noise to smooth over.
+* Grouping the table into ascending runs with gaps under `0x4000` yields 49 runs. That grouping is a
+  **heuristic**, not a claim that one run equals one translation unit: a unit may contribute several
+  initializers and a run may span units.
+
+Only 8 of the 266 fall inside current translation-unit interval coverage, resolving to
+`Engine Code\OctPath.cpp`, `Engine Code\3d.cpp`, `Engine Code\Monster.cpp` and
+`Dialog Code\AssayDialog.cpp` — four units with namespace-scope objects. The rest are recorded
+unattributed.
+
 ## `BringUpEngine`
 
 `0x00401570` is the whole engine bring-up, and its first act is telling: `atexit(0x004017F0)`

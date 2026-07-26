@@ -93,6 +93,33 @@ def test_startup_spine_separates_library_from_first_party() -> None:
     assert dispatch["source_unit"] == "partial"
 
 
+def test_cpp_initializer_table_witnesses_link_order() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/cpp-initializers.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 266
+
+    # The CRT concatenates each object's .CRT$XC* in link order, so a table that is
+    # overwhelmingly ascending in address witnesses the object layout order.
+    deltas = [int(row["delta"]) for row in rows if row["delta"]]
+    assert len(deltas) == 265
+    ascending = sum(1 for delta in deltas if delta > 0)
+    assert ascending == 247
+    # The descending steps are recorded, not smoothed away.
+    assert sum(1 for delta in deltas if delta < 0) == 18
+
+    attributed = {row["source_unit"] for row in rows if row["source_unit"]}
+    assert attributed == {
+        "Engine Code\\OctPath.cpp",
+        "Engine Code\\3d.cpp",
+        "Engine Code\\Monster.cpp",
+        "Dialog Code\\AssayDialog.cpp",
+    }
+
+
 def test_frame_dispatch_table_is_enumerated_and_partly_attributed() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/analysis/wiz8/frame-dispatch-table.csv").open(
