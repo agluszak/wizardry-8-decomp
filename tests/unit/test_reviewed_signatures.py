@@ -67,9 +67,15 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     assert by_address[0x004E68C0].parameters == ()
     assert by_address[0x00514BE0].parameters == (("handle", "int"), ("item", "void *"))
     assert by_address[0x00514C80].return_type == "void *"
+    assert by_address[0x004F88F0].parameters[0] == (
+        "output_items",
+        "W8GrowableVector<W8WorldItem *> *",
+    )
+    assert by_address[0x004ADDF0].this_type == "W8GrowableVector<int> *"
 
     apply_script = (
         repository / "tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py"
     ).read_text(encoding="utf-8")
     assert "0X005E2890" not in apply_script.upper()
     assert "SIGNATURE_FIXES" not in apply_script
+    assert "reviewed.this_type" in apply_script

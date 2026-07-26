@@ -1,6 +1,8 @@
 #ifndef WIZ8_VECTOR_H
 #define WIZ8_VECTOR_H
 
+#include <new>
+
 /* One hand-rolled growable-array template. Each element type emits its own
    vtable and deleting destructor, while four-byte instantiations share the
    same machine-code shape for Grow. The original template name is not known. */
@@ -62,5 +64,50 @@ public:
 /* Evidence-only erased spelling for owners whose element type is not yet
    represented in their header. It is a template use, not another container. */
 typedef W8GrowableVector<void*> W8PtrVector;
+
+template <class T>
+__forceinline W8GrowableVector<T>::W8GrowableVector()
+{
+    data = static_cast<T*>(::operator new(5 * sizeof(T)));
+    count = 0;
+    if (data != 0) {
+        capacity = 5;
+    }
+    else {
+        capacity = 0;
+    }
+}
+
+template <class T>
+__forceinline W8GrowableVector<T>::~W8GrowableVector()
+{
+    ::operator delete(data);
+}
+
+// Emitted instantiation: W8GrowableVector<int>::Grow
+// FUNCTION: WIZ8 0x004ADDF0
+template <class T>
+int W8GrowableVector<T>::Grow(int minimum_capacity)
+{
+    int index;
+    T* previous_data;
+    T* replacement;
+
+    if (minimum_capacity > capacity) {
+        previous_data = data;
+        replacement = static_cast<T*>(::operator new(minimum_capacity * sizeof(T)));
+        data = replacement;
+        if (replacement == 0) {
+            data = previous_data;
+            return 0;
+        }
+        capacity = minimum_capacity;
+        for (index = 0; index < count; ++index) {
+            data[index] = previous_data[index];
+        }
+        ::operator delete(previous_data);
+    }
+    return 1;
+}
 
 #endif

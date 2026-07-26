@@ -81,6 +81,12 @@ def apply_reviewed_signatures(
                     function = program.getFunctionManager().getFunctionAt(address)
                     if function is None:
                         raise RuntimeError(f"no function at 0x{reviewed.address:08x}")
+                    if reviewed.this_type is not None:
+                        from ghidra.program.model.listing import GhidraClass
+
+                        namespace = function.getParentNamespace()
+                        if not isinstance(namespace, GhidraClass):
+                            program.getSymbolTable().convertNamespaceToClass(namespace)
                     before = function.getPrototypeString(False, False)
                     signature = _function_type(
                         dtm,

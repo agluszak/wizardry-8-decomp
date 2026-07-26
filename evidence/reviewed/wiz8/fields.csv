@@ -69,6 +69,10 @@ wiz8,W8GrowableVector<int>,0x0,0x4,vptr,pointer,strong,classes:wiz8:W8GrowableVe
 wiz8,W8GrowableVector<int>,0x4,0x4,count,int32,exact,classes:wiz8:W8GrowableVector<int>,used candidate-index slots read and copied by the exact grower
 wiz8,W8GrowableVector<int>,0x8,0x4,capacity,int32,exact,classes:wiz8:W8GrowableVector<int>,compared against the requested minimum by the exact grower
 wiz8,W8GrowableVector<int>,0xc,0x4,data,pointer,exact,classes:wiz8:W8GrowableVector<int>,four-byte candidate-index backing array replaced by the exact grower
+wiz8,W8GrowableVector<W8WorldItem *>,0x0,0x4,vptr,pointer,strong,classes:wiz8:W8GrowableVector<W8WorldItem *>,leading virtual-table pointer inherited from the shared polymorphic template model
+wiz8,W8GrowableVector<W8WorldItem *>,0x4,0x4,count,int32,strong,classes:wiz8:W8GrowableVector<W8WorldItem *>,read incremented and returned by GenerateItemsFromTable
+wiz8,W8GrowableVector<W8WorldItem *>,0x8,0x4,capacity,int32,strong,classes:wiz8:W8GrowableVector<W8WorldItem *>,compared before the inlined output Add grows its storage
+wiz8,W8GrowableVector<W8WorldItem *>,0xc,0x4,data,pointer,strong,classes:wiz8:W8GrowableVector<W8WorldItem *>,W8WorldItem pointer slots written by the inlined output Add
 wiz8,W8WorldItem,0x0,0x4,runtime_id,int32,exact,classes:wiz8:W8WorldItem,assigned from the world item id counter
 wiz8,W8WorldItem,0x4,0x4,unknown_04,pointer,exact,classes:wiz8:W8WorldItem,not established
 wiz8,W8WorldItem,0x8,0x1,unknown_08,bytes,exact,classes:wiz8:W8WorldItem,not established

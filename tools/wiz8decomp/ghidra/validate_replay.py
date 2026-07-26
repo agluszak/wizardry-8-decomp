@@ -102,7 +102,7 @@ def validate_reviewed_replay(
                     )
                     continue
                 expected_namespace, _, expected_name = identity.name.rpartition("::")
-                actual_namespace = str(function.getParentNamespace())
+                actual_namespace = function.getParentNamespace().getName(True)
                 if function.getName() != expected_name or (
                     expected_namespace and not actual_namespace.endswith(expected_namespace)
                 ):
@@ -161,9 +161,11 @@ def validate_reviewed_replay(
                         {"kind": "signature", "key": reviewed.evidence_id, "expected": "function", "actual": "missing"}
                     )
                     continue
+                parameters = tuple(function.getParameters())
                 actual_parameters = tuple(
                     (parameter.getName(), parameter.getDataType().getDisplayName())
-                    for parameter in function.getParameters()
+                    for parameter in parameters
+                    if not parameter.isAutoParameter()
                 )
                 expected_parameters = tuple(
                     (name, _expected_type_name(data_type))
@@ -185,6 +187,31 @@ def validate_reviewed_replay(
                     failures.append(
                         {"kind": "signature", "key": reviewed.evidence_id, "expected": repr(expected), "actual": repr(actual)}
                     )
+                if reviewed.this_type is not None:
+                    this_parameter = next(
+                        (
+                            parameter
+                            for parameter in parameters
+                            if parameter.isAutoParameter()
+                            and parameter.getName() == "this"
+                        ),
+                        None,
+                    )
+                    actual_this_type = (
+                        None
+                        if this_parameter is None
+                        else this_parameter.getDataType().getDisplayName()
+                    )
+                    expected_this_type = _expected_type_name(reviewed.this_type)
+                    if actual_this_type != expected_this_type:
+                        failures.append(
+                            {
+                                "kind": "this_type",
+                                "key": reviewed.evidence_id,
+                                "expected": expected_this_type,
+                                "actual": str(actual_this_type),
+                            }
+                        )
 
             memory = program.getMemory()
             dtm = program.getDataTypeManager()

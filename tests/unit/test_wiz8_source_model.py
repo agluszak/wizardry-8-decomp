@@ -766,6 +766,9 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     assert index_by_location["confidence"] == "exact"
     assert index_by_location["relocation_masked_sha256"]
     sources = matching_target_sources(repository, "WIZ8_GAMEPLAY_BOUNDARIES")
+    # Template bodies are owned by their header and emitted into the object
+    # target through the translation units that instantiate them.
+    sources.append(repository / "include/wiz8/vector.h")
     source = "\n".join(path.read_text(encoding="utf-8") for path in sources)
     for row in rows:
         # Scalar deleting destructors are compiler-generated from a virtual
