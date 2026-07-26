@@ -2,6 +2,7 @@
 
 #include "wiz8/gameplay_boundaries.h"
 
+#include <direct.h>
 #include <process.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,12 +35,12 @@ extern char Function402E30(void);
 /* Named in the startup spine. The rest are gates it records as
    uncharacterisable, and the callees below it that nothing yet identifies. */
 extern void RegisterWindowClass(const char* window_class, const char* key_class);
-extern void SetModuleSubdirectory(const char* subdirectory);
+
 extern void GetRuntimeSettings(void);
 extern unsigned char InitializeInputManager(void);
 extern void InitializeClockManager(void);
 extern void InitializeRandom(void);
-extern void ShutdownHandler(void);
+
 extern long __stdcall WindowProc4011E0(void* window, unsigned int message,
                                        unsigned int wparam, long lparam);
 
@@ -105,6 +106,26 @@ extern unsigned char g_flags_6ed040[0x400];
 extern bool g_flag_650de4;
 extern bool g_flag_5ff538;
 extern unsigned char g_flag_6ef440;
+
+void ShutdownHandler(void);
+bool SetModuleSubdirectory(const char* subdirectory);
+extern bool g_shutdown_started_650db5;
+extern bool g_teardown_done_650db4;
+extern char g_shutdown_message_6505ac[];
+extern void Function408850(void);
+extern void Function4E34B0(int flag);
+extern void Function4E3290(void);
+extern void Function40CF90(void);
+extern void Function40B450(void);
+extern void Function407E70(void);
+extern void Function407E30(void);
+extern void Function406BD0(void);
+extern void Function402990(void);
+extern void Function405E80(void);
+extern void Function421DC0(void);
+extern void Function401F70(void);
+extern void Function404BC0(void);
+extern void Function428B80(void);
 
 // FUNCTION: WIZ8 0x004023A0
 /* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
@@ -218,6 +239,84 @@ unsigned int QueryAvailableMemory(void)
     return status.dwAvailPhys;
 }
 
+
+// FUNCTION: WIZ8 0x00405740
+/* Appends the subdirectory to the working directory and prepends the result to
+   PATH, so plug-in DLLs load from the shipped subdirectory. Every string call
+   here is inlined by VC6, which is why the body is mostly rep movs. */
+bool SetModuleSubdirectory(const char* subdirectory)
+{
+    char path[520];
+    CHAR environment[520];
+    unsigned int length;
+
+    if (!subdirectory) {
+        return false;
+    }
+    if (strlen(subdirectory) == 0) {
+        return false;
+    }
+    _getcwd(path, 0x208);
+    length = strlen(path);
+    if (path[length != 0 ? length - 1 : 0] != '\\') {
+        strcat(path, "\\");
+    }
+    strcat(path, subdirectory);
+    if (GetEnvironmentVariableA("PATH", environment, 0x208) == 0) {
+        return false;
+    }
+    strcat(environment, ";");
+    strcat(environment, path);
+    SetEnvironmentVariableA("PATH", environment);
+    return true;
+}
+
+// FUNCTION: WIZ8 0x004017F0
+/* Registered with atexit as BringUpEngine's first act. Guarded twice: a once
+   flag so a second exit does nothing, and a separate teardown flag so the long
+   release sequence runs at most once. The engine flag BringUpEngine sets on
+   success decides how much of it applies. Any message left in the buffer is
+   shown before handing off. */
+void ShutdownHandler(void)
+{
+    unsigned char engine_up;
+
+    if (g_shutdown_started_650db5) {
+        return;
+    }
+    g_shutdown_started_650db5 = true;
+    g_run_flag_6f0628 = 0;
+    Function408850();
+    if (g_flag_6505a9) {
+        Function4E34B0(1);
+    }
+    if (!g_teardown_done_650db4) {
+        engine_up = g_flag_6505a9;
+        g_teardown_done_650db4 = true;
+        if (engine_up) {
+            Function4E3290();
+        }
+        Function40CF90();
+        Function40B450();
+        Function408850();
+        Function407E70();
+        Function407E30();
+        Function406BD0();
+        Function402990();
+        Function405E80();
+        Function421DC0();
+        Function401F70();
+        Function4023A0();
+        Function4023A0();
+        Function404BC0();
+        Function4023A0();
+    }
+    ShowCursor(TRUE);
+    if (strlen(g_shutdown_message_6505ac) != 0) {
+        MessageBoxA(NULL, g_shutdown_message_6505ac, "Error", MB_ICONHAND);
+    }
+    Function428B80();
+}
 
 // FUNCTION: WIZ8 0x00401670
 /* A running instance is found by class and title both spelled "Wizardry 8"; it
