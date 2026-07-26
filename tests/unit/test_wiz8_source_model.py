@@ -685,6 +685,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
             "src/wiz8/location_variables.cpp",
             "src/wiz8/local_code/MonsterManager.cpp",
             "src/wiz8/local_code/UtilityFunctions.cpp",
+            "src/wiz8/local_code/LoadSaveGame.cpp",
             "src/wiz8/grcycle_behaviour.cpp",
             "src/wiz8/ilist.cpp",
             "src/wiz8/item_tables.cpp",

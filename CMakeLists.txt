@@ -256,6 +256,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/location_variables.cpp
         src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
+        src/wiz8/local_code/LoadSaveGame.cpp
         src/wiz8/chunk_io.cpp
         src/wiz8/grcycle_behaviour.cpp
         src/wiz8/fact_state.cpp
