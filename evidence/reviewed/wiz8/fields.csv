@@ -5,8 +5,12 @@ wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,strong,classes:wiz8:GrCycle,seconda
 wiz8,GrCycle,0x1c,0x18c,secondary_base_storage,bytes,strong,classes:wiz8:GrCycle,unnamed secondary base constructed by 0x00451ec0; total base size 0x190
 wiz8,GrCycle,0x1a8,0x30,fields,bytes,strong,classes:wiz8:GrCycle,GrCycle-owned fields initialized by 0x004a5e50 through offset 0x1d4
 wiz8,Monster,0x0,0x4,vptr,pointer,strong,classes:wiz8:Monster,vtable Monster.primary
-wiz8,Monster,0x4,0xa8,base_and_fields,bytes,strong,classes:wiz8:Monster,base-class and fields not yet reviewed
-wiz8,Monster,0xac,0x1b0,subobject_array_ac,bytes,strong,classes:wiz8:Monster,27 adjacent 0x10-byte subobjects
+wiz8,Monster,0x4,0x9c,base_and_fields,bytes,strong,classes:wiz8:Monster,base-class and fields before the exact +0xa0 byte are not yet reviewed
+wiz8,Monster,0xa0,0x1,unknown_0a0,bytes,exact,classes:wiz8:Monster,set to one by exact consumer 0x004e6130 when an unborn monster becomes live
+wiz8,Monster,0xa1,0xb,unknown_0a1,bytes,strong,classes:wiz8:Monster,opaque storage before the array at +0xac
+wiz8,Monster,0xac,0x169,subobject_array_ac_prefix,bytes,strong,classes:wiz8:Monster,leading storage of the 27 adjacent 0x10-byte subobjects through cycle 22 byte +0x08
+wiz8,Monster,0x215,0x1,cycle22_unknown_09,bytes,exact,classes:wiz8:Monster,cleared by exact consumer 0x004e6130 after the monster enters the live list
+wiz8,Monster,0x216,0x46,subobject_array_ac_suffix,bytes,strong,classes:wiz8:Monster,remainder of the 27 adjacent 0x10-byte subobjects
 wiz8,Monster,0x25c,0x1b0,subobject_array_25c,bytes,strong,classes:wiz8:Monster,27 adjacent 0x10-byte subobjects
 wiz8,Monster,0x40c,0x1b0,subobject_array_40c,bytes,strong,classes:wiz8:Monster,27 adjacent 0x10-byte subobjects
 wiz8,Monster,0x5bc,0x6c,tail_fields,bytes,strong,classes:wiz8:Monster,fields observed through offset 0x624

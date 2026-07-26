@@ -432,11 +432,15 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
 struct W8MonsterCycle {
     unsigned char unknown_00[4];
     unsigned char ubNumSubs;                /* 0x04 */
-    unsigned char unknown_05[11];
+    unsigned char unknown_05[4];
+    unsigned char unknown_09;               /* 0x09: cleared for cycle 22 by 0x004e6130 */
+    unsigned char unknown_0a[6];
 };                                          /* 0x10 */
 
 struct W8Monster {
-    unsigned char unknown_000[0xa4];
+    unsigned char unknown_000[0xa0];
+    unsigned char unknown_0a0;              /* 0x0a0: set when an unborn monster becomes live */
+    unsigned char unknown_0a1[3];
     signed char m_bCurrentCycle;             /* 0x0a4: substituted for the -1 sentinel */
     unsigned char unknown_0a5[7];
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
@@ -493,6 +497,7 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
 void Function4E5D00(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
+void Function4E6130(W8MonsterInfo* monster_info);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char Function4E68C0(void);
 

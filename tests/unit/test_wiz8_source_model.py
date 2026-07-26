@@ -443,8 +443,12 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     monster_fields = [field for field in model.fields if field.class_name == "Monster"]
     assert [(field.offset, field.size) for field in monster_fields] == [
         (0x0, 0x4),
-        (0x4, 0xA8),
-        (0xAC, 0x1B0),
+        (0x4, 0x9C),
+        (0xA0, 0x1),
+        (0xA1, 0xB),
+        (0xAC, 0x169),
+        (0x215, 0x1),
+        (0x216, 0x46),
         (0x25C, 0x1B0),
         (0x40C, 0x1B0),
         (0x5BC, 0x6C),

@@ -10,6 +10,11 @@
 extern "C" char* String(const char* format, ...);
 int Function4A87A0(const char* name);
 unsigned char Function47B610(int index);
+void Function4C5A00(W8Monster* monster, int value);
+unsigned char Function4C5A80(W8Monster* monster, int value);
+void Function4C6180(W8Monster* monster, int value);
+void Function4C61A0(W8Monster* monster, int value);
+void Function4C61C0(W8Monster* monster, int value);
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
    Each record owns one instantiation of the polymorphic pointer-vector family
@@ -433,6 +438,31 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x004E6130
+void Function4E6130(W8MonsterInfo* monster_info)
+{
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x8b8, 0);
+    }
+    if (PListRemove(g_unborn_monster_list, monster_info) == 0) {
+        return;
+    }
+
+    PListAdd(g_monster_list, monster_info);
+    if (Function4C5A80(monster_info->monster, 0) != 0) {
+        Function4C6180(monster_info->monster, 0);
+        Function4C61A0(monster_info->monster, 1);
+    }
+    else {
+        Function4C6180(monster_info->monster, 1);
+        Function4C61A0(monster_info->monster, 3);
+    }
+    Function4C61C0(monster_info->monster, 0);
+    Function4C5A00(monster_info->monster, 1);
+    monster_info->monster->unknown_0a0 = 1;
+    monster_info->monster->m_cycles[22].unknown_09 = 0;
 }
 
 // FUNCTION: WIZ8 0x004E6780
