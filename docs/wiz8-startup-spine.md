@@ -158,7 +158,8 @@ Recorded explicitly rather than guessed:
 * The per-frame tick's table at `0x00647BD4` is now enumerated in
   `config/analysis/wiz8/frame-dispatch-table.csv`: a flat 62-entry function-pointer table indexed by
   state id, of which 17 slots hold one shared default stub at `0x005B1740` (`mov al,1; ret`, i.e.
-  "handled") and 45 are real handlers. Joining it against `translation-unit-intervals.csv` attributes
+  "handled") and 45 are real handlers. Joining it against the generated
+  `build/reports/translation-units/translation-unit-intervals.csv` attributes
   five handlers, and all five land in `Local Screens\*.cpp` — `MainGameScreen.cpp` (three),
   `MainMenuScreen.cpp` and `ReviewCharacterScreen.cpp` — which is what identifies this as the
   screen/state table rather than a generic callback array. The other 40 handlers fall outside the

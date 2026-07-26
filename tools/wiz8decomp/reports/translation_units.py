@@ -222,8 +222,9 @@ def translation_unit_report(settings: Any) -> dict[str, Any]:
     interval_csv = render_interval_csv(intervals)
     gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
 
-    interval_path = analysis_dir / "wiz8" / "translation-unit-intervals.csv"
-    gameplay_path = analysis_dir / "wiz8" / "gameplay-translation-units.csv"
+    report_dir = settings.build_dir / "reports" / "translation-units"
+    interval_path = report_dir / "translation-unit-intervals.csv"
+    gameplay_path = report_dir / "gameplay-translation-units.csv"
     atomic_write(interval_path, interval_csv)
     atomic_write(gameplay_path, gameplay_csv)
     return {

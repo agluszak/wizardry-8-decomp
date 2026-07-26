@@ -12,6 +12,11 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
 - Keep generated machine observations separate from reviewed conclusions and accepted identities.
   Regenerate owned outputs after changing their producer; unexplained generated churn is a reason
   to stop and inspect.
+- Follow `docs/evidence-policy.md`: `config/` contains execution inputs, canonical observations and
+  reviewed conclusions live under `evidence/`, and reproducible reports live under gitignored
+  `build/`. Do not add a tracked projection, live count, or exhaustive Markdown inventory when the
+  same fact already has a canonical home. Generated outputs that require unavailable proprietary
+  inputs need the policy's explicit snapshot exception.
 - Use the single SGP project flag hypothesis in `config/analysis/sgp/harness.yml`. Do not infer
   per-translation-unit flags from sparse matches; reconsider the project profile only against a
   larger recovered corpus.

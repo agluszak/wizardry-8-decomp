@@ -73,18 +73,17 @@ already exact compression and plug-in targets. The review map is
 ### Original translation-unit ownership
 
 `just wiz8 report translation-units` regenerates two ownership surfaces from the canonical
-assertion harvest. `config/analysis/wiz8/translation-unit-intervals.csv` records the inclusive
+assertion harvest. `build/reports/translation-units/translation-unit-intervals.csv` records the inclusive
 minimum/maximum asserting-function starts for each original `.cpp` path and the exclusive gaps
-between adjacent units. `config/analysis/wiz8/gameplay-translation-units.csv` then classifies each
+between adjacent units. `build/reports/translation-units/gameplay-translation-units.csv` then classifies each
 reviewed gameplay body as `direct` when the function itself names its source path, `inferred` when
 its start lies inside one non-overlapping assertion-bounded interval, or `gap` when the evidence
 does not yet place it.
 
-The current 113 intervals do not overlap. They place 28 of the 49 reviewed bodies: 15 directly and
-13 by interval containment. The remaining 21 stay explicitly unowned rather than receiving a
-plausible-looking source assignment. These bounds describe function-start evidence, not exact
-object byte ranges; the leading and trailing boundary of each original unit remains open until
-additional anchors or linker evidence narrows it.
+The command reports the current interval and attribution counts. Unplaced functions remain
+explicitly unowned rather than receiving a plausible-looking source assignment. These bounds
+describe function-start evidence, not exact object byte ranges; the leading and trailing boundary
+of each original unit remains open until additional anchors or linker evidence narrows it.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
 instruction scheduling to the canonical order. With `/O2 /G6 /MD`, twenty-two bodies match exactly after
