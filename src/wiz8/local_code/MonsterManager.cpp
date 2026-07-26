@@ -1,6 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
-
 #include <new>
 #include <stdlib.h>
 
@@ -32,6 +31,11 @@ unsigned int Function5100B0(
     unsigned char assert_on_failure);
 W8MonsterGroup* Function5101B0(unsigned int monster_group_index);
 void Function510350(W8MonsterGroup* monster_group);
+int Function555F30(srVector3T<float> position);
+int Function4E5150(W8MonsterInfo* monster_info, int value_1, int value_2);
+void Function5248D0(W8MonsterInfo* monster_info);
+void Function58AB60(int value_1, int value_2, int value_3, int value_4);
+extern unsigned char* g_object_68c09c;
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
    Each record owns one instantiation of the polymorphic pointer-vector family
@@ -396,6 +400,15 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
     return result;
 }
 
+// FUNCTION: WIZ8 0x004E5AF0
+int Function4E5AF0(W8MonsterInfo* monster_info)
+{
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x6b9, 0);
+    }
+    return Function555F30(monster_info->monster->member_18.Function4534C0());
+}
+
 // FUNCTION: WIZ8 0x004E5B50
 int Function4E5B50(unsigned int monster_species)
 {
@@ -412,6 +425,45 @@ int Function4E5B50(unsigned int monster_species)
         return record->value_257;
     }
     return record->value_253;
+}
+
+// FUNCTION: WIZ8 0x004E5C00
+void Function4E5C00(unsigned char value)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+
+        if (monster_info->flag_14 != 0 &&
+            static_cast<unsigned int>(monster_info->value_2b) > 0 &&
+            monster_info->value_9f == 0 &&
+            monster_info->value_2da != 0) {
+            if (value == 0) {
+                Function58AB60(
+                    9,
+                    0,
+                    *(int*)(g_object_68c09c + 0x74c),
+                    Function4E5150(monster_info, 0, 0));
+            }
+            Function5248D0(monster_info);
+            if (value == 0) {
+                monster_info->flag_253 = 1;
+                if (monster_info->monster->Function4CA4C0() == 0) {
+                    Function4E4DB0(monster_info, 0x15, 1);
+                    Function4E4280(monster_info);
+                    Function4E46F0(monster_info, 1);
+                    Function4E3AF0(
+                        MonsterGetIndexByLocationID(
+                            0x31f,
+                            MONSTER_MANAGER_CPP,
+                            monster_info->location_id,
+                            1),
+                        0);
+                }
+            }
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004E5D00

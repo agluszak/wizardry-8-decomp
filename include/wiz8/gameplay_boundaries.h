@@ -2,6 +2,9 @@
 #define WIZ8_GAMEPLAY_BOUNDARIES_H
 
 #include "wiz8/item_tables.h"
+#ifdef __cplusplus
+#include "surrender/srMath.h"
+#endif
 
 /* Shared recovered Wizardry interfaces used by matching translation units. */
 
@@ -537,6 +540,8 @@ struct W8MonsterMember18 {
     unsigned char unknown_89[3];
     signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
     unsigned char unknown_8d[7];
+
+    srVector3T<float> Function4534C0();
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
 struct W8Monster {
@@ -562,18 +567,26 @@ typedef struct W8MonsterInfo {
     int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
     unsigned int monster_species;         /* 0x08 */
     W8Monster* monster;                   /* 0x0c: live engine object, if any */
-    unsigned char unknown_10[0x17];
+    unsigned char unknown_10[4];
+    unsigned char flag_14;                /* 0x14: live-entry gate in 0x004e5c00 */
+    unsigned char unknown_15[0x12];
     int value_27;                         /* 0x27: initialized from a database dice roll */
     int value_2b;                         /* 0x2b: initialized to the same rolled value */
-    unsigned char unknown_2f[0x1b8];
+    unsigned char unknown_2f[0x70];
+    int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
+    unsigned char unknown_a3[0x144];
     signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
     unsigned char unknown_1ee[0x59];
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
     unsigned char unknown_24c[2];
     unsigned char flag_24e;                 /* 0x24e: state transition gate in 0x004e60b0 */
-    unsigned char unknown_24f[6];
+    unsigned char unknown_24f[4];
+    unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
+    unsigned char unknown_254;
     unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
-    unsigned char unknown_256[0xa7];
+    unsigned char unknown_256[0x84];
+    int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
+    unsigned char unknown_2de[0x1f];
     int value_2fd;                          /* 0x2fd: transition state in 0x004e6020 */
     unsigned char unknown_301[0x124];
 } W8MonsterInfo;                          /* 0x425 */
@@ -606,7 +619,9 @@ W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 void Function4E5A50(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
+int Function4E5AF0(W8MonsterInfo* monster_info);
 int Function4E5B50(unsigned int monster_species);
+void Function4E5C00(unsigned char value);
 void Function4E5D00(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void Function4E5EA0(void);

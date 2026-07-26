@@ -438,12 +438,16 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x4, 0x4, "monster_group_id", "int32"),
         (0x8, 0x4, "monster_species", "int32"),
         (0xC, 0x4, "monster", "pointer"),
+        (0x14, 0x1, "flag_14", "bytes"),
         (0x27, 0x4, "value_27", "int32"),
         (0x2B, 0x4, "value_2b", "int32"),
+        (0x9F, 0x4, "value_9f", "int32"),
         (0x1E7, 0x7, "attribute_adjustments_1e7", "bytes"),
         (0x247, 0x5, "converted_attributes_247", "bytes"),
         (0x24E, 0x1, "flag_24e", "bytes"),
+        (0x253, 0x1, "flag_253", "bytes"),
         (0x255, 0x1, "flag_255", "bytes"),
+        (0x2DA, 0x4, "value_2da", "int32"),
         (0x2FD, 0x4, "value_2fd", "int32"),
     ]
 
