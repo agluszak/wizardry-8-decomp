@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,10 @@ from .query import execute_query, validate_query_arguments
 internal_app = typer.Typer(add_completion=False, hidden=True)
 
 
+class DaemonProgramMismatchError(ConnectionError):
+    """The daemon changed programs between lifecycle selection and query."""
+
+
 def state_dir(settings: Settings) -> Path:
     return settings.work_dir / "daemon"
 
@@ -31,6 +36,26 @@ def state_path(settings: Settings) -> Path:
 
 def socket_path(settings: Settings) -> Path:
     return state_dir(settings) / "query.sock"
+
+
+def lock_path(settings: Settings) -> Path:
+    return state_dir(settings) / "lifecycle.lock"
+
+
+@contextmanager
+def lifecycle_lock(settings: Settings) -> Any:
+    """Serialize daemon replacement across agents sharing WIZ8_WORK_DIR."""
+
+    import fcntl
+
+    directory = state_dir(settings)
+    directory.mkdir(parents=True, exist_ok=True)
+    with lock_path(settings).open("a+", encoding="utf-8") as stream:
+        fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def daemon_status(settings: Settings) -> dict[str, Any]:
@@ -46,16 +71,17 @@ def daemon_status(settings: Settings) -> dict[str, Any]:
         return {"running": False, "stale_state": True}
 
 
-def start_daemon(settings: Settings, selector: str | None = None) -> dict[str, Any]:
+def _start_daemon(settings: Settings, program: str) -> dict[str, Any]:
     status = daemon_status(settings)
-    program = resolve_program_name(settings, selector)
     if status.get("running"):
         if status.get("program") != program:
-            raise RuntimeError(f"daemon already serves {status.get('program')}; stop it before selecting {program}")
+            raise RuntimeError(
+                f"daemon already serves {status.get('program')}; stop it before selecting {program}"
+            )
         return status
     directory = state_dir(settings)
     directory.mkdir(parents=True, exist_ok=True)
-    log = (settings.build_dir / "logs" / "ghidra-daemon.log")
+    log = settings.build_dir / "logs" / "ghidra-daemon.log"
     log.parent.mkdir(parents=True, exist_ok=True)
     stream = log.open("ab")
     process = subprocess.Popen(
@@ -78,7 +104,13 @@ def start_daemon(settings: Settings, selector: str | None = None) -> dict[str, A
     raise RuntimeError(f"Ghidra daemon did not become ready; see {log}")
 
 
-def stop_daemon(settings: Settings, *, quiet: bool = False) -> dict[str, Any]:
+def start_daemon(settings: Settings, selector: str | None = None) -> dict[str, Any]:
+    program = resolve_program_name(settings, selector)
+    with lifecycle_lock(settings):
+        return _start_daemon(settings, program)
+
+
+def _stop_daemon(settings: Settings) -> dict[str, Any]:
     status = daemon_status(settings)
     if not status.get("running"):
         return {"running": False, "stopped": False}
@@ -96,6 +128,25 @@ def stop_daemon(settings: Settings, *, quiet: bool = False) -> dict[str, Any]:
     return {"running": False, **response}
 
 
+def stop_daemon(settings: Settings, *, quiet: bool = False) -> dict[str, Any]:
+    del quiet
+    with lifecycle_lock(settings):
+        return _stop_daemon(settings)
+
+
+def ensure_daemon(settings: Settings, program: str) -> dict[str, Any]:
+    """Return a daemon for PROGRAM, replacing a daemon for another program."""
+
+    with lifecycle_lock(settings):
+        status = daemon_status(settings)
+        if status.get("running") and status.get("program") != program:
+            _stop_daemon(settings)
+            status = {"running": False}
+        if not status.get("running"):
+            status = _start_daemon(settings, program)
+        return status
+
+
 def daemon_query(settings: Settings, request: dict[str, Any]) -> dict[str, Any]:
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
         client.settimeout(180)
@@ -111,11 +162,15 @@ def daemon_query(settings: Settings, request: dict[str, Any]) -> dict[str, Any]:
                 break
     response = json.loads(bytes(chunks).decode("utf-8"))
     if not response.get("ok"):
+        if response.get("type") == "DaemonProgramMismatchError":
+            raise DaemonProgramMismatchError(response.get("error", "daemon program changed"))
         raise RuntimeError(response.get("error", "daemon query failed"))
     return response.get("result", {})
 
 
-def one_shot_query(settings: Settings, program_name: str, command: str, arguments: list[str]) -> dict[str, Any]:
+def one_shot_query(
+    settings: Settings, program_name: str, command: str, arguments: list[str]
+) -> dict[str, Any]:
     start_pyghidra(settings)
     import pyghidra
 
@@ -127,13 +182,38 @@ def one_shot_query(settings: Settings, program_name: str, command: str, argument
         project.close()
 
 
-def query(settings: Settings, selector: str, command: str, arguments: list[str]) -> tuple[dict[str, Any], str]:
+def query(
+    settings: Settings, selector: str, command: str, arguments: list[str]
+) -> tuple[dict[str, Any], str]:
     validate_query_arguments(command, arguments)
     program = resolve_program_name(settings, selector)
-    status = daemon_status(settings)
-    if status.get("running") and status.get("program") == program:
-        return daemon_query(settings, {"action": "query", "command": command, "arguments": arguments}), "daemon"
-    return one_shot_query(settings, program, command, arguments), "one-shot"
+    request = {
+        "action": "query",
+        "program": program,
+        "command": command,
+        "arguments": arguments,
+    }
+    try:
+        ensure_daemon(settings, program)
+    except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
+        return one_shot_query(settings, program, command, arguments), "one-shot-fallback"
+
+    try:
+        return daemon_query(settings, request), "daemon"
+    except (ConnectionError, json.JSONDecodeError, OSError):
+        # The daemon may have exited between the lifecycle check and the
+        # query. Replace it once; a persistent lifecycle failure uses the safe
+        # one-shot path below. Query errors returned by a healthy daemon are
+        # deliberately not caught here.
+        try:
+            stop_daemon(settings, quiet=True)
+            ensure_daemon(settings, program)
+        except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
+            return one_shot_query(settings, program, command, arguments), "one-shot-fallback"
+        try:
+            return daemon_query(settings, request), "daemon"
+        except (ConnectionError, json.JSONDecodeError, OSError, TimeoutError):
+            return one_shot_query(settings, program, command, arguments), "one-shot-fallback"
 
 
 @internal_app.command()
@@ -155,7 +235,10 @@ def serve(program: str = typer.Option(..., "--program")) -> None:
             server.bind(str(sock_path))
             os.chmod(sock_path, 0o600)
             server.listen(8)
-            atomic_json(state_path(settings), {"pid": os.getpid(), "program": program, "socket": str(sock_path), "running": True})
+            atomic_json(
+                state_path(settings),
+                {"pid": os.getpid(), "program": program, "socket": str(sock_path), "running": True},
+            )
             stopping = False
             while not stopping:
                 connection, _ = server.accept()
@@ -171,6 +254,11 @@ def serve(program: str = typer.Option(..., "--program")) -> None:
                         if request.get("action") == "stop":
                             result, stopping = {"stopped": True}, True
                         else:
+                            requested_program = request.get("program")
+                            if requested_program != program:
+                                raise DaemonProgramMismatchError(
+                                    f"daemon serves {program}, request targets {requested_program}"
+                                )
                             command = request["command"]
                             arguments = request.get("arguments", [])
                             validate_query_arguments(command, arguments)
@@ -178,7 +266,9 @@ def serve(program: str = typer.Option(..., "--program")) -> None:
                         response = {"ok": True, "result": result}
                     except Exception as error:
                         response = {"ok": False, "error": str(error), "type": type(error).__name__}
-                    connection.sendall(json.dumps(response, ensure_ascii=False).encode("utf-8") + b"\n")
+                    connection.sendall(
+                        json.dumps(response, ensure_ascii=False).encode("utf-8") + b"\n"
+                    )
     finally:
         server.close()
         project.close()

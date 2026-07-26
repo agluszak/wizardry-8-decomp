@@ -26,6 +26,11 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
 
 - Prefer repository commands: `just test`, `just build <target>`, `just compare`, `just wiz8 ...`,
   and `just ghidra ...`.
+- Use `just ghidra query <program> ...` directly. The query command automatically starts and reuses
+  the persistent read-only Ghidra daemon, switches it when the requested program changes, and
+  recovers it after mutating Ghidra commands stop it. Do not manually manage the daemon in normal
+  agent workflows; a one-shot Ghidra launch is only an automatic fallback when the daemon cannot
+  be used.
 - Run the narrowest relevant checks while iterating, then the complete relevant gate before
   publishing. A successful build alone does not prove identity or behavior.
 - Preserve unrelated changes in the shared workspace. Inspect `jj status` before and after work,

@@ -437,7 +437,7 @@ def daemon_stop() -> None:
     "query", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
 def ghidra_query(ctx: typer.Context, program: str, command: str) -> None:
-    """Run PROGRAM COMMAND [ARGS...] through daemon or one-shot PyGhidra."""
+    """Query PROGRAM through the automatically managed persistent Ghidra process."""
     from .ghidra.query_daemon import query
 
     def action() -> dict[str, Any]:
