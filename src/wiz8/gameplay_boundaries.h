@@ -90,12 +90,19 @@ typedef struct W8MonsterGroup {
     int monster_id;                       /* 0x18 */
 } W8MonsterGroup;
 
-typedef struct W8MonsterGeneratorVector {
-    int unknown_00;
+/* Hand-rolled growable pointer array, instantiated once per element type. The
+   executable contains 75 distinct instantiations, each with its own one-entry
+   vtable whose single virtual is the destructor; see
+   docs/libraries/wiz8-foundation-types.md. The leading word is a VPTR, not
+   padding: these are polymorphic C++ objects. Every decoded constructor
+   allocates the object with operator new(0x10) and a backing store of
+   operator new(capacity * 4) with capacity 5. */
+typedef struct W8PtrVector {
+    void* vptr;                           /* 0x00: one virtual, the destructor */
     int count;                            /* 0x04 */
-    int capacity;
-    W8MonsterGenerator** data;            /* 0x0c */
-} W8MonsterGeneratorVector;
+    int capacity;                         /* 0x08 */
+    void** data;                          /* 0x0c */
+} W8PtrVector;                            /* 0x10 */
 
 /* Member names and types at 0x08 and 0x48 come from the canonical assertion
    expressions "pWorld && pWorld->plsProps" (Engine Code\3d.cpp:344) and
@@ -108,7 +115,7 @@ typedef struct W8World {
     unsigned char unknown_00c[0x3c];
     void** psrMeshes;                     /* 0x048: allocated array of mesh pointers */
     unsigned char unknown_04c[0x78];
-    W8MonsterGeneratorVector* monster_generators; /* 0xc4 */
+    W8PtrVector* monster_generators;      /* 0xc4: elements are W8MonsterGenerator* */
 } W8World;
 
 typedef struct W8Vector3Double {
@@ -151,13 +158,6 @@ typedef struct W8NPCItemList {
     unsigned char unknown_00[6];
     W8NPCRecordRef* npc_record;           /* 0x06 */
 } W8NPCItemList;
-
-typedef struct W8NPCItemListVector {
-    int unknown_00;
-    int count;                            /* 0x04 */
-    int capacity;
-    W8NPCItemList** data;                 /* 0x0c */
-} W8NPCItemListVector;
 
 typedef struct W8MessageBoxLine {
     int unknown_00;                       /* initialized to -1 */
@@ -221,7 +221,8 @@ extern int g_location_variable_level_count;
 extern int* g_location_variable_levels;
 extern int g_next_world_item_id;
 extern void* g_world_item_list;
-extern W8NPCItemListVector* g_npc_item_lists;
+/* Elements are W8NPCItemList*. */
+extern W8PtrVector* g_npc_item_lists;
 /* 0x006840C7: lazily populated cache of runtime monster records, one slot per
    species ID. MAX_MONSTERS_IN_DATABASE comes from the canonical assertion text. */
 extern W8MonsterRecord* g_monster_record_cache[1000];

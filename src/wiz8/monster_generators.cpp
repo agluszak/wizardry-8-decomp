@@ -5,7 +5,7 @@
 // FUNCTION: WIZ8 0x0048BDC0
 W8MonsterGenerator* FindMonGenByName(const char* name)
 {
-    W8MonsterGeneratorVector* generators = g_world->monster_generators;
+    W8PtrVector* generators = g_world->monster_generators;
     W8MonsterGenerator* generator;
     int index = 0;
 
@@ -14,9 +14,9 @@ W8MonsterGenerator* FindMonGenByName(const char* name)
             W8MonsterGenerator** element;
 
             if (index < generators->count) {
-                element = &generators->data[index];
+                element = (W8MonsterGenerator**)&generators->data[index];
             } else {
-                element = generators->data;
+                element = (W8MonsterGenerator**)generators->data;
             }
             generator = *element;
 

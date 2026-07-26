@@ -1,3 +1,4 @@
+import collections
 import csv
 from collections import Counter
 from pathlib import Path
@@ -58,6 +59,31 @@ def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
         "..\\Engine Code\\Include\\stHeap.hpp",
         "..\\Engine Code\\Include\\stLight.hpp",
     ]
+
+
+def test_ptr_vector_instantiations_are_inventoried() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/ptr-vector-instantiations.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    # One hand-rolled growable pointer array, instantiated once per element type.
+    assert len(rows) == 75
+    assert len({row["vtable"] for row in rows}) == 75
+
+    # The virtual count is not uniform, so the inventory records a determination
+    # per vtable instead of asserting that every instantiation has exactly one.
+    verdicts = collections.Counter(row["single_virtual"] for row in rows)
+    assert verdicts == {"yes": 35, "no": 31, "adjacent-vtable": 9}
+
+    # The one type replaced two separately-named structs.
+    header = (repository / "src/wiz8/gameplay_boundaries.h").read_text(encoding="utf-8")
+    assert "W8PtrVector" in header
+    assert "W8NPCItemListVector" not in header
+    assert "W8MonsterGeneratorVector" not in header
+    # The leading word is a vptr, not padding.
+    assert "void* vptr;" in header
 
 
 def test_startup_spine_separates_library_from_first_party() -> None:

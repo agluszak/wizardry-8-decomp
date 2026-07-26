@@ -4,7 +4,7 @@
 W8NPCItemList* GetNPCItemListByID(int npc_record_id)
 {
     int count = g_npc_item_lists->count;
-    W8NPCItemListVector* item_lists = g_npc_item_lists;
+    W8PtrVector* item_lists = g_npc_item_lists;
     int index = 0;
 
     if (count > 0) {
@@ -13,9 +13,9 @@ W8NPCItemList* GetNPCItemListByID(int npc_record_id)
             W8NPCItemList* entry;
 
             if (index < count) {
-                element = &item_lists->data[index];
+                element = (W8NPCItemList**)&item_lists->data[index];
             } else {
-                element = item_lists->data;
+                element = (W8NPCItemList**)item_lists->data;
             }
             entry = *element;
 
