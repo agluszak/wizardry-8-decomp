@@ -1,10 +1,32 @@
 import collections
 import csv
+import re
 from collections import Counter
 from pathlib import Path
 
 from wiz8decomp.ghidra.reviewed_class_model import load_reviewed_class_model
 from wiz8decomp.provenance import validate_provenance
+
+
+def matching_target_sources(repository: Path, target: str) -> list[Path]:
+    """The sources CMake actually compiles into a matching object target.
+
+    Read out of CMakeLists.txt rather than repeated here. A second copy of the
+    list is a live inventory of something that already has a canonical home: it
+    drifts silently, and every port has to edit it in two places or watch this
+    file fail for a reason that has nothing to do with the port. Reading the
+    real list also strengthens the check, because a recovered body sitting in a
+    file the target does not compile now fails instead of passing.
+    """
+
+    text = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
+    block = re.search(rf"add_library\({target} OBJECT\n(.*?)\n\s*\)\n", text, re.DOTALL)
+    assert block is not None, f"{target} object target not found in CMakeLists.txt"
+    paths = [repository / line.strip() for line in block.group(1).splitlines() if line.strip()]
+    assert paths, f"{target} compiles no sources"
+    missing = [path for path in paths if not path.is_file()]
+    assert not missing, f"{target} names sources that do not exist: {missing}"
+    return paths
 
 
 def test_wiz8_source_tree_preserves_raw_cpp_paths() -> None:
@@ -671,43 +693,15 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     index_by_location = next(row for row in rows if row["symbol"] == "MonsterGetIndexByLocationID")
     assert index_by_location["confidence"] == "exact"
     assert index_by_location["relocation_masked_sha256"]
-    source = "\n".join(
-        (repository / path).read_text(encoding="utf-8")
-        for path in (
-            "src/wiz8/bringup_gates.cpp",
-            "src/wiz8/character_items.cpp",
-            "src/wiz8/character_skills.cpp",
-            "src/wiz8/controls_regions.cpp",
-            "src/wiz8/chunk_io.cpp",
-            "src/wiz8/fact_state.cpp",
-            "src/wiz8/game_databases.cpp",
-            "src/wiz8/gameplay_teardown.cpp",
-            "src/wiz8/gameplay_boundaries.cpp",
-            "src/wiz8/location_variables.cpp",
-            "src/wiz8/local_code/MonsterManager.cpp",
-            "src/wiz8/local_code/UtilityFunctions.cpp",
-            "src/wiz8/local_code/LoadSaveGame.cpp",
-            "src/wiz8/grcycle_behaviour.cpp",
-            "src/wiz8/ilist.cpp",
-            "src/wiz8/item_tables.cpp",
-            "src/wiz8/item_mesh.cpp",
-            "src/wiz8/item_spawning.cpp",
-            "src/wiz8/message_box.cpp",
-            "src/wiz8/monster_cycles.cpp",
-            "src/wiz8/monster_info_dialog.cpp",
-            "src/wiz8/monster_generators.cpp",
-            "src/wiz8/monster_lookup.cpp",
-            "src/wiz8/npc_item_lists.cpp",
-            "src/wiz8/spell_backfire.cpp",
-            "src/wiz8/targeting.cpp",
-            "src/wiz8/state_getters.cpp",
-            "src/wiz8/vector_conversions.cpp",
-            "src/wiz8/virtual_file_stream.cpp",
-            "src/wiz8/octree_loading.cpp",
-            "src/wiz8/plist.cpp",
-            "src/wiz8/world_props.cpp",
-        )
-    )
+    sources = matching_target_sources(repository, "WIZ8_GAMEPLAY_BOUNDARIES")
+    source = "\n".join(path.read_text(encoding="utf-8") for path in sources)
     for row in rows:
-        assert f"// FUNCTION: WIZ8 0x{row['address'].upper()}" in source
-        assert row["symbol"] in source
+        marker = f"// FUNCTION: WIZ8 0x{row['address'].upper()}"
+        assert marker in source, (
+            f"{row['symbol']} is mapped at {row['address']} but no source compiled into "
+            f"WIZ8_GAMEPLAY_BOUNDARIES carries {marker}"
+        )
+        assert row["symbol"] in source, (
+            f"{row['symbol']} is mapped at {row['address']} but is never named in the "
+            "sources compiled into WIZ8_GAMEPLAY_BOUNDARIES"
+        )
