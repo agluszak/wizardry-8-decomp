@@ -1,0 +1,220 @@
+#include "wiz8/wiz8_windows.h"
+
+/*
+ * The window procedure BringUpEngine hands to the renderer. Ghidra defines no
+ * function at this address and the project lock could not be taken to create
+ * one, so this is reconstructed from the canonical encoding and its two jump
+ * tables rather than from decompiler output.
+ *
+ * WM_SIZING holds the window to 4:3. The original divides by 480 and by 640
+ * through the usual reciprocal-multiply sequences, which is what (height * 640)
+ * / 480 and (width * 480) / 640 compile to.
+ */
+
+extern "C" {
+
+extern unsigned char g_flag_650dac;
+extern unsigned char g_flag_6f0630;
+extern unsigned int g_mswheel_roll_message;
+extern int g_dword_650db0;
+extern unsigned char g_flag_6505a9;
+extern bool g_teardown_done_650db4;
+
+extern void Function401F90(int code, unsigned int wparam, long lparam);
+extern void Function422970(int enable);
+extern void Function422550(void);
+extern unsigned char Function4277E0(void);
+extern void Function4220B0(void);
+extern void Function422050(void);
+extern void Function402750(void);
+extern void Function4029F0(void);
+extern float Function420B40(int value);
+extern void Function4E3290(void);
+extern void Function40CF90(void);
+extern void Function40B450(void);
+extern void Function408850(void);
+extern void Function407E70(void);
+extern void Function407E30(void);
+extern void Function406BD0(void);
+extern void Function402990(void);
+extern void Function405E80(void);
+extern void Function421DC0(void);
+extern void Function401F70(void);
+extern void Function4023A0(void);
+extern void Function404BC0(void);
+
+// FUNCTION: WIZ8 0x004011E0
+long __stdcall WindowProc4011E0(void* window, unsigned int message,
+                                unsigned int wparam, long lparam)
+{
+    RECT* rect;
+    int width;
+    int height;
+    unsigned char move_left;
+    unsigned char engine_up;
+
+    if (g_flag_650dac) {
+        return DefWindowProcA((HWND)window, message & 0xffff, wparam, lparam);
+    }
+    message &= 0xffff;
+    if (message == g_mswheel_roll_message) {
+        Function401F90(0x800, wparam, lparam);
+        return 0;
+    }
+    switch (message) {
+    case WM_CREATE:
+    case WM_MOVE:
+        return 0;
+
+    case WM_DESTROY:
+        if (!g_teardown_done_650db4) {
+            engine_up = g_flag_6505a9;
+            g_teardown_done_650db4 = true;
+            if (engine_up) {
+                Function4E3290();
+            }
+            Function40CF90();
+            Function40B450();
+            Function408850();
+            Function407E70();
+            Function407E30();
+            Function406BD0();
+            Function402990();
+            Function405E80();
+            Function421DC0();
+            Function401F70();
+            Function4023A0();
+            Function4023A0();
+            Function404BC0();
+            Function4023A0();
+        }
+        ShowCursor(TRUE);
+        PostQuitMessage(0);
+        return 0;
+
+    case WM_SIZE:
+        if ((short)lparam == 0) {
+            return 0;
+        }
+        if ((lparam >> 16) == 0) {
+            return 0;
+        }
+        if (wparam == SIZE_RESTORED) {
+            Function422550();
+            return 0;
+        }
+        if (wparam == SIZE_MAXIMIZED) {
+            Function422970(1);
+        }
+        return 0;
+
+    case WM_SETFOCUS:
+        if (!Function4277E0()) {
+            Function4220B0();
+        }
+        g_flag_6f0630 = 1;
+        return 0;
+
+    case WM_KILLFOCUS:
+        if (!Function4277E0()) {
+            Function422050();
+        }
+        g_flag_6f0630 = 0;
+        Function402750();
+        g_dword_650db0 = 1;
+        return 0;
+
+    case WM_ACTIVATEAPP:
+        if (wparam == 0) {
+            if (!Function4277E0()) {
+                Function422050();
+            }
+            Function420B40(1);
+            g_dword_650db0 = 1;
+            g_flag_6f0630 = 0;
+            return 0;
+        }
+        if (wparam != 1) {
+            return 0;
+        }
+        if (g_dword_650db0 != 1) {
+            return 0;
+        }
+        if (!Function4277E0()) {
+            Function4220B0();
+            Function4029F0();
+        }
+        Function420B40(8);
+        g_flag_6f0630 = 1;
+        return 0;
+
+    case WM_MOUSEMOVE:
+        return 0;
+
+    /* WM_MOUSEWHEEL; the VC6 headers only define it above this target's
+       _WIN32_WINNT, and the canonical registers MSWHEEL_ROLLMSG for the same
+       purpose on older shells. */
+    case 0x020a:
+        Function401F90(0x800, wparam, lparam);
+        return 0;
+
+    case WM_SIZING:
+        rect = (RECT*)lparam;
+        move_left = 0;
+        width = rect->right - rect->left;
+        height = rect->bottom - rect->top;
+        switch (wparam) {
+        case WMSZ_LEFT:
+            if (width < 640) {
+                rect->left = rect->right - 640;
+                width = 640;
+            }
+            break;
+        case WMSZ_RIGHT:
+            if (width < 640) {
+                rect->right = rect->left + 640;
+                width = 640;
+            }
+            break;
+        case WMSZ_TOPLEFT:
+            move_left = 1;
+            /* fall through */
+        case WMSZ_TOP:
+        case WMSZ_TOPRIGHT:
+            if (height < 480) {
+                rect->top = rect->bottom - 480;
+                height = 480;
+            }
+            width = (height * 640) / 480;
+            if (move_left) {
+                rect->left = rect->right - width;
+            } else {
+                rect->right = rect->left + width;
+            }
+            return 0;
+        case WMSZ_BOTTOMLEFT:
+            move_left = 1;
+            /* fall through */
+        case WMSZ_BOTTOM:
+        case WMSZ_BOTTOMRIGHT:
+            if (height < 480) {
+                rect->bottom = rect->top + 480;
+                height = 480;
+            }
+            width = (height * 640) / 480;
+            if (move_left) {
+                rect->left = rect->right - width;
+            } else {
+                rect->right = rect->left + width;
+            }
+            return 0;
+        }
+        rect->bottom = rect->top + (width * 480) / 640;
+        return 0;
+
+    default:
+        return DefWindowProcA((HWND)window, message, wparam, lparam);
+    }
+}
+
+}

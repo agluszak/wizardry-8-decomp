@@ -129,6 +129,12 @@ def apply_function_map(
     if not identities:
         raise ValueError(f"function map has no accepted identities: {mapping_path}")
 
+    # Queries materialize a per-agent project before opening it; a mutating
+    # command that skips that step opens the shared project instead and blocks
+    # on - or blocks - whichever agent holds its lock.
+    from .cache import materialize_program
+
+    settings, _ = materialize_program(settings, selector)
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra

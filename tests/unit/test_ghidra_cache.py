@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+from wiz8decomp import config
 from wiz8decomp.config import Settings
 from wiz8decomp.ghidra import cache
 
@@ -42,6 +44,9 @@ def test_replay_hash_tracks_replay_code_and_reviewed_evidence(tmp_path: Path) ->
 
 def test_agent_project_is_isolated_and_content_addressed(tmp_path: Path, monkeypatch) -> None:
     settings = _settings(tmp_path)
+    # The primary key wins over CODEX_THREAD_ID, so a real one in the
+    # environment would otherwise mask what this test sets.
+    monkeypatch.delenv("WIZ8_GHIDRA_AGENT_ID", raising=False)
     monkeypatch.setenv("CODEX_THREAD_ID", "thread/a")
     seed = {"sha256": "1" * 64}
     first_identity = {
@@ -104,3 +109,16 @@ def test_matching_materialization_marker_avoids_ghidra_startup(tmp_path: Path, m
     assert actual.project_dir == effective.project_dir
     assert report["status"] == "cached"
     assert report["under_one_minute"] is True
+
+
+def test_a_missing_agent_identity_is_refused_rather_than_defaulted(monkeypatch) -> None:
+    # A default would put two checkouts in one per-agent project root and let
+    # them collide on its lock, which is the failure this identity prevents.
+    monkeypatch.delenv("WIZ8_GHIDRA_AGENT_ID", raising=False)
+    monkeypatch.delenv("CODEX_THREAD_ID", raising=False)
+    with pytest.raises(config.GhidraAgentIdMissing, match="WIZ8_GHIDRA_AGENT_ID"):
+        config.ghidra_agent_id()
+
+    monkeypatch.setenv("WIZ8_GHIDRA_AGENT_ID", "  ")
+    with pytest.raises(config.GhidraAgentIdMissing):
+        config.ghidra_agent_id()

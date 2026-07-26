@@ -59,6 +59,10 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   names, unreachable functions, stale links) and for whole-image progress, never to choose between
   two candidate bodies. Delete `Wiz8.exe`/`Wiz8.pdb` and rebuild before reading any reccmp number,
   because a successful `just build` does not guarantee the link step reran.
+- **Set `WIZ8_GHIDRA_AGENT_ID` in every checkout's `.env`.** It separates this checkout's Ghidra
+  project from every other agent's, and it has no default: two checkouts that leave it unset share
+  one per-agent project root and collide on its lock, which fails as `LockException: Unable to lock
+  project`. Anything unique works; the checkout's directory name is the obvious choice.
 - Use `just ghidra query <program> ...` directly. On first use, it automatically restores the
   validated canonical GZF, replays current reviewed evidence, validates it, and gives the agent an
   isolated content-addressed project. It then starts and reuses that agent's persistent read-only

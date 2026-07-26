@@ -250,6 +250,7 @@ if(WIZ8_BUILD_DECOMP)
     add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
         src/wiz8/bringup_gates.cpp
         src/wiz8/renderer_window.cpp
+        src/wiz8/window_proc.cpp
         src/wiz8/character_items.cpp
         src/wiz8/character_skills.cpp
         src/wiz8/controls_regions.cpp

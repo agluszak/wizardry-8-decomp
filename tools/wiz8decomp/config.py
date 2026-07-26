@@ -14,10 +14,29 @@ REQUIRED_GHIDRA_RELEASE = "PUBLIC"
 REQUIRED_PYGHIDRA_VERSION = "3.1.0"
 
 
+class GhidraAgentIdMissing(RuntimeError):
+    """No agent identity is configured, so a project cannot be isolated."""
+
+
 def ghidra_agent_id() -> str:
-    raw = os.environ.get("WIZ8_GHIDRA_AGENT_ID") or os.environ.get("CODEX_THREAD_ID") or "default"
+    """The identity that separates one agent's Ghidra project from another's.
+
+    There is deliberately no fallback. A default would silently place two
+    checkouts in the same per-agent project root, which is exactly the
+    collision this identity exists to prevent: the second agent then contends
+    for - or blocks on - a lock it has no reason to touch. Failing here is
+    loud, immediate, and fixed by one line in .env.
+    """
+
+    raw = os.environ.get("WIZ8_GHIDRA_AGENT_ID") or os.environ.get("CODEX_THREAD_ID") or ""
     cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "-", raw).strip("-.")
-    return (cleaned or "default")[:96]
+    if not cleaned:
+        raise GhidraAgentIdMissing(
+            "no Ghidra agent identity: set WIZ8_GHIDRA_AGENT_ID in .env to something "
+            "unique to this checkout, for example its directory name. Without it two "
+            "checkouts share one per-agent project and collide on its lock."
+        )
+    return cleaned[:96]
 
 
 def ghidra_agent_token(work_dir: Path) -> str:
