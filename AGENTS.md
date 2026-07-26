@@ -38,7 +38,9 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   `just compare` will read an image linked from the other checkout and report correct functions at
   30-40% similar. Share the large read-only trees (`extracted`, `variants`, `fid`, `oracles`) with
   `cp -al` hardlink copies; plain symlinks fail because generated targets must resolve to real
-  paths under `WIZ8_WORK_DIR`. See `.env.example`.
+  paths under `WIZ8_WORK_DIR`. See `.env.example`. `just configure` and `just compare` refuse to
+  run when the build directory's CMake cache names a different checkout; `just wiz8 check-build-dir`
+  reports the same check on demand.
 - **Verify a ported body with `just compare <target>`, not only with a byte comparison of the
   object.** The two measure different things: a relocation-masked COMDAT comparison proves the
   instruction encoding, which is what the `relocation_masked_sha256` column records, while reccmp

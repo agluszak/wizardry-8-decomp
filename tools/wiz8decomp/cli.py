@@ -144,6 +144,25 @@ def _tracked_copyrighted(settings: Any) -> list[str]:
     return sorted(suspects)
 
 
+@app.command("check-build-dir")
+def check_build_dir(
+    build_dir: Annotated[
+        Path | None,
+        typer.Option(help="CMake build directory; defaults to the configured decomp build."),
+    ] = None,
+) -> None:
+    """Refuse a build directory configured by a different checkout."""
+
+    def action() -> dict[str, Any]:
+        from .build_dir import check_build_directory
+
+        settings = _settings()
+        target = build_dir or (settings.work_dir / "decomp" / "srext-jpegimporter")
+        return check_build_directory(target, settings.repo_dir)
+
+    _run_action(action)
+
+
 @app.command()
 def doctor() -> None:
     """Validate paths, pinned Ghidra/PyGhidra, extractors, and repository safety."""

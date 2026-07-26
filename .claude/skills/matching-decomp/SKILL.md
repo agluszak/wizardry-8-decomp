@@ -38,6 +38,8 @@ than yours, every number from that build dir is about someone else's code.
 
 Each checkout must have its own `WIZ8_WORK_DIR`; see `.env.example` and AGENTS.md. If two share one,
 the caches overwrite each other and both agents intermittently measure the other's build.
+`just configure` and `just compare` now refuse to run on a build directory another checkout
+configured, so this fails loudly instead of producing a plausible wrong number.
 
 ## Reading a near-miss
 

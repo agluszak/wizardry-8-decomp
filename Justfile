@@ -23,8 +23,14 @@ build target=jpeg_target: configure
         {{vc6_image}} \
         cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& C:\cmake\bin\cmake.exe --build Z:/out --target {{target}}"
 
+# Refuse a build directory configured by a different checkout. Two checkouts
+# sharing WIZ8_WORK_DIR overwrite each other's CMake cache and linked
+# Wiz8.exe/Wiz8.pdb, and the symptom is a wrong comparison rather than an error.
+_check-build-dir:
+    @output=$(uv run wiz8 check-build-dir) || { printf '%s\n' "$output" >&2; exit 1; }
+
 # Configure the active VC6 CMake build and reccmp's machine-local original path.
-configure: _jpeg-sources
+configure: _jpeg-sources _check-build-dir
     mkdir -p "$WIZ8_WORK_DIR/decomp/srext-jpegimporter/tmp"
     uv run reccmp-project detect \
         --search-path "$WIZ8_WORK_DIR/variants/gog-base" \
@@ -48,7 +54,7 @@ configure: _jpeg-sources
         -DRECCMP_BUILD_DIR_HOST="$WIZ8_WORK_DIR/decomp/srext-jpegimporter"
 
 # Compare through reccmp itself; extra arguments are passed unchanged.
-compare target=jpeg_target *args:
+compare target=jpeg_target *args: _check-build-dir
     cd "$WIZ8_WORK_DIR/decomp/srext-jpegimporter" && \
         uv run --project {{repo}} reccmp-reccmp \
         --target {{target}} --no-color {{args}}
