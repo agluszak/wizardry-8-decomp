@@ -19,6 +19,12 @@
 extern "C" {
 
 extern int g_dword_650dbc;
+/* Released and cleared together by 0x00402E60, which frees each through
+   0x00403A50; only the third is rebuilt here. */
+extern int g_primary_surface_view_650ddc;
+extern void Function402E60(void);
+extern void* Function421F20(void);
+extern int Function4044C0(void* surface);
 extern int g_dword_650dc0;
 extern int g_dword_6ef4c0;
 extern int g_dword_650df4;
@@ -30,7 +36,6 @@ extern int g_dword_650e24;
 extern int g_dword_650e28;
 extern bool g_flag_650e20;
 
-extern char Function402E30(void);
 
 /* Named in the startup spine. The rest are gates it records as
    uncharacterisable, and the callees below it that nothing yet identifies. */
@@ -54,6 +59,28 @@ extern unsigned char Function421BB0(void* instance, int show_command,
 extern unsigned char Function4E2F40(void);
 extern unsigned int g_mswheel_roll_message;
 extern bool g_flag_6505a9;
+
+
+/* Rebuilds the view of the primary DirectDraw surface. 0x00402E60 releases and
+   clears the four views this module owns, 0x00421F20 hands back the primary
+   surface, and 0x004044C0 wraps it in the 0x30-byte descriptor that carries its
+   width, height and depth. Reports whether the wrapper was built; a missing
+   surface is not an error the caller distinguishes from a failed wrap. */
+// FUNCTION: WIZ8 0x00402E30
+bool Function402E30(void)
+{
+    void* surface;
+    bool built;
+
+    Function402E60();
+    surface = Function421F20();
+    if (surface == NULL) {
+        return false;
+    }
+    g_primary_surface_view_650ddc = Function4044C0(surface);
+    built = g_primary_surface_view_650ddc != 0;
+    return built;
+}
 
 /* Shared success stub. BringUpEngine uses it as a gate and the 62-entry frame
    dispatch table parks it in seventeen slots. */
@@ -345,11 +372,18 @@ void ProcessCommandLine(char* pCommandLine)
 }
 
 /* Builds the default key binding table: a head node carrying the count and a
-   0x1f8-byte array of 252 key codes. The original writes them through a
-   post-incrementing cursor, one mov and one add per entry, which an indexed
-   write does not reproduce - VC6 folds those into half the instructions.
-   Neither allocation is checked. The codes are transcribed from the canonical
-   encoding rather than by hand. */
+   0x1f8-byte array of 252 key codes. Neither allocation is checked, and the
+   codes are transcribed from the canonical encoding rather than by hand.
+
+   The cursor form is what the original uses: it gives the same 517 instructions
+   and the same tail, where an indexed write collapses to 269. What remains is a
+   one-byte-per-entry phase difference. The original pairs each entry as bump
+   then store through [eax]; this pairs it as store through [eax+2] then bump,
+   which is the same semantics and the same instruction count but one byte
+   longer, and it pushes the batched cdecl cleanup from just after the first
+   entry to the middle of the table. Post-increment, pre-increment, indexing,
+   and dropping the second cursor local all compile to one of these two shapes,
+   so the phase is not reachable by rewriting the loop body. */
 // FUNCTION: WIZ8 0x00407EC0
 W8BindingNode* Function407EC0(void)
 {
