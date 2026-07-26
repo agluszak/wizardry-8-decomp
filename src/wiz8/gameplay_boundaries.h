@@ -168,9 +168,23 @@ extern unsigned char g_shared_item_pool[];
 extern unsigned int g_shared_item_pool_count;
 
 unsigned int PListGetCount(void* list);
-W8MonsterGroup* PListGetAt(void* list, unsigned int index);
+void* PListGetAt(void* list, unsigned int index);
 int PListIndexOf(void* list, void* target);
 W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
+
+typedef struct W8MonsterInfo {
+    int location_id;                      /* 0x00 */
+} W8MonsterInfo;
+
+extern void* g_monster_list;              /* gXStatus.plsMonsterList */
+extern void* g_unborn_monster_list;       /* gXStatus.plsUnbornMonsterList */
+
+W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
+unsigned int MonsterGetIndexByLocationID(
+    int caller_line,
+    const char* caller_file,
+    int location_id,
+    unsigned char assert_on_failure);
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);

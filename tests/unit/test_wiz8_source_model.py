@@ -263,7 +263,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 28
+    assert len(rows) == 30
     exact = [row for row in rows if row["confidence"] == "exact"]
     assert len(exact) == 23
     assert {int(row["size"]) for row in exact} == {
@@ -303,6 +303,12 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     item_origin = next(row for row in rows if row["symbol"] == "GetOriginOfCharacterItem")
     assert item_origin["confidence"] == "structurally-strong"
     assert item_origin["relocation_masked_sha256"] == ""
+    script_part = next(row for row in rows if row["symbol"] == "MonsterGetScriptPartByLocationIndex")
+    assert script_part["confidence"] == "structurally-strong"
+    assert script_part["relocation_masked_sha256"] == ""
+    index_by_location = next(row for row in rows if row["symbol"] == "MonsterGetIndexByLocationID")
+    assert index_by_location["confidence"] == "structurally-strong"
+    assert index_by_location["relocation_masked_sha256"] == ""
     source = "\n".join(
         (repository / path).read_text(encoding="utf-8")
         for path in (
@@ -311,6 +317,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/location_variables.c",
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/monster_generators.cpp",
+            "src/wiz8/monster_location.c",
             "src/wiz8/monster_lookup.c",
             "src/wiz8/npc_item_lists.c",
             "src/wiz8/random_number.c",

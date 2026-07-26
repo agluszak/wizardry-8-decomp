@@ -35,11 +35,14 @@ recovery work.
 | `0x00510b60` | `FindFirstMonsterByID` | 130 | Walks the global species `PList`, then the encounter `PList`, for a `W8MonsterGroup` whose `monster_id` field (offset `0x18`) matches; the species list is queried through `GetMonsterGroupByID` (`0x005101B0`) rather than the raw `PListGetAt` accessor the encounter list uses. Its name comes from the verified CFAgent oracle. |
 | `0x00510bf0` | `FindNextExistingMonsterByID` | 206 | Continues a `FindFirstMonsterByID` search after a given `previous` result: locates `previous` in the species `PList` via `PListIndexOf` (`0x005E2890`) and resumes there, spills into the encounter `PList` once the species list is exhausted or `previous` was never in it, and starts the encounter `PList` fresh at index `0` unless `previous` was found there directly. Its name comes from the verified CFAgent oracle. |
 | `0x005222d0` | `GetOriginOfCharacterItem` | 201 | Reports where an item pointer lives for a given party character: the 8-slot equipped array at `+0x1029`, the 12-slot carried array at `+0xf5d`, or a fixed-address, non-per-character shared item pool, each `0xc` bytes per slot. Its name comes from the verified CFAgent oracle. |
+| `0x004e5620` | `MonsterGetScriptPartByLocationIndex` | 245 | Bounds-checked accessor over `gXStatus.plsMonsterList`/`plsUnbornMonsterList`, dispatching on whether `monster_list_index` is `< 10000`, in `[10000, 20000)`, or `>= 20000` (the first and third cases share the same first-list path). Its name comes from the verified CFAgent oracle. |
+| `0x004e5550` | `MonsterGetIndexByLocationID` | 199 | Linearly searches the same two `PList`s for a `W8MonsterInfo` whose `location_id` (offset `0x00`) matches, returning the encounter-list index offset by `10000`, or asserting/`-1` when `assert_on_failure` is set. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/character_items.c`, `src/wiz8/gameplay_boundaries.c`,
 `src/wiz8/random_number.c`,
 `src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`,
-`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, `src/wiz8/monster_lookup.c`,
+`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, `src/wiz8/monster_location.c`,
+`src/wiz8/monster_lookup.c`,
 `src/wiz8/npc_item_lists.c`,
 `src/wiz8/item_spawning.cpp`, and `src/wiz8/vector_conversions.cpp`, and retain explicit `FUNCTION`
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
@@ -138,3 +141,18 @@ and all three linear scans. Only the same character_index/item register-role swa
 already seen on the monster-lookup functions keep it from being byte-exact. The equipped/carried slot
 counts (8 and 12) and the shared item pool's exact scope are read directly from the bytes; their
 descriptive names are provisional.
+
+`MonsterGetScriptPartByLocationIndex` and `MonsterGetIndexByLocationID` are a second `PList`-backed
+pair alongside the monster-lookup functions, this time over `gXStatus.plsMonsterList` and
+`plsUnbornMonsterList` (named from the assertion text embedded at their call sites, e.g.
+`uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)` and `MonsterManager.cpp`) rather
+than the species/encounter group lists. The first version of `MonsterGetScriptPartByLocationIndex`
+used a plain `index < 10000` / `else` split and was a genuine correctness bug, not just a byte
+mismatch: the original's raw disassembly does two range checks (`CMP ESI,0x2710` / `CMP ESI,0x4e20`)
+and routes indices `>= 20000` back through the *first* list's path, identical to how it treats
+indices `< 10000`. `PListGetAt`/`PListGetCount` were also widened from returning `W8MonsterGroup*` to
+a generic `void*`, since the same two accessor addresses (`0x005E2870`/`0x005E2C70`) are called
+against both this pair's lists and the earlier monster-group lists — this is a genuinely
+type-erased `PList`, not a per-element-type template instantiation. Both functions are
+`structurally-strong` for the same register-role and loop-peeling reasons as the rest of this
+section.
