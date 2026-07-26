@@ -49,10 +49,8 @@ path is written only to the gitignored `reccmp-user.yml`.
 
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
-`WIZ8_WORK_DIR` must be unique per checkout: it also holds the CMake cache and the linked
-`Wiz8.exe`/`Wiz8.pdb`, so two checkouts sharing one will silently compare against each other's build
-rather than failing. `.env.example` explains how to share the large read-only trees without sharing
-that state.
+The CMake build directory is `build/decomp` inside the checkout, so several checkouts can share one
+`WIZ8_WORK_DIR` without overwriting each other's build or comparison state.
 The distinction between configuration, observations, reviewed conclusions, generated reports, and
 exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).

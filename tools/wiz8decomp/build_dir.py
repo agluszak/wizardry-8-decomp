@@ -1,13 +1,12 @@
 """Refuse to reuse a build directory that belongs to another checkout.
 
-`WIZ8_WORK_DIR` holds mutable build state: the CMake cache, the linked
-`Wiz8.exe`/`Wiz8.pdb`, live Ghidra projects and the daemon. When two checkouts
-share one, they overwrite each other and the symptom is not an error -- it is a
-*wrong measurement*. `just compare` happily reads an image linked from the other
-checkout's sources and reports correct functions as 30-40% similar.
-
-The cache records which checkout configured it, so the mismatch is detectable
-before any build or comparison runs.
+The CMake build directory lives at `build/decomp` inside the checkout, so each
+working copy gets its own by construction and cannot overwrite another's cache
+or linked `Wiz8.exe`/`Wiz8.pdb`. That is the structural fix; this module is the
+belt to its braces, because a cache can still be stale after a checkout is moved
+or copied, and the symptom of a mismatch is not an error -- it is a *wrong
+measurement*. `just compare` will read an image linked from other sources and
+report correct functions as 30-40% similar.
 """
 
 from __future__ import annotations

@@ -31,16 +31,12 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
 
 - Prefer repository commands: `just test`, `just build <target>`, `just compare`, `just wiz8 ...`,
   and `just ghidra ...`.
-- **Every checkout needs its own `WIZ8_WORK_DIR`.** It holds mutable build state: the CMake cache
-  whose `RECCMP_PROJECT_DIR_HOST` decides which sources reccmp maps addresses through, the linked
-  `Wiz8.exe`/`Wiz8.pdb`, live Ghidra projects, and the daemon. Two checkouts sharing one directory
-  overwrite each other silently, and the symptom is a *wrong measurement rather than an error*:
-  `just compare` will read an image linked from the other checkout and report correct functions at
-  30-40% similar. Share the large read-only trees (`extracted`, `variants`, `fid`, `oracles`) with
-  `cp -al` hardlink copies; plain symlinks fail because generated targets must resolve to real
-  paths under `WIZ8_WORK_DIR`. See `.env.example`. `just configure` and `just compare` refuse to
-  run when the build directory's CMake cache names a different checkout; `just wiz8 check-build-dir`
-  reports the same check on demand.
+- The CMake build directory is `build/decomp` **inside the checkout**, so each working copy builds
+  and compares in isolation and cannot overwrite another's CMake cache or linked `Wiz8.exe`/
+  `Wiz8.pdb`. `WIZ8_WORK_DIR` holds only large generated data - extracted installers, variants,
+  FID sources, oracles, Ghidra projects - and may be shared between checkouts. `just configure` and
+  `just compare` still refuse to run when a build directory's cache names a different checkout,
+  which catches a moved or copied working copy; `just wiz8 check-build-dir` reports it on demand.
 - **Verify a ported body with `just compare <target>`, not only with a byte comparison of the
   object.** The two measure different things: a relocation-masked COMDAT comparison proves the
   instruction encoding, which is what the `relocation_masked_sha256` column records, while reccmp

@@ -157,7 +157,7 @@ def check_build_dir(
         from .build_dir import check_build_directory
 
         settings = _settings()
-        target = build_dir or (settings.work_dir / "decomp" / "srext-jpegimporter")
+        target = build_dir or (settings.repo_dir / "build" / "decomp")
         return check_build_directory(target, settings.repo_dir)
 
     _run_action(action)

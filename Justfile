@@ -19,7 +19,7 @@ build target=jpeg_target: configure
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4:/zlib:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
-        --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
+        --volume "{{repo}}/build/decomp:/out" \
         {{vc6_image}} \
         cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& C:\cmake\bin\cmake.exe --build Z:/out --target {{target}}"
 
@@ -31,7 +31,7 @@ _check-build-dir:
 
 # Configure the active VC6 CMake build and reccmp's machine-local original path.
 configure: _jpeg-sources _check-build-dir
-    mkdir -p "$WIZ8_WORK_DIR/decomp/srext-jpegimporter/tmp"
+    mkdir -p "{{repo}}/build/decomp/tmp"
     uv run reccmp-project detect \
         --search-path "$WIZ8_WORK_DIR/variants/gog-base" \
                       "$WIZ8_WORK_DIR/variants/gog-base/Dll" \
@@ -41,7 +41,7 @@ configure: _jpeg-sources _check-build-dir
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4:/zlib:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
-        --volume "$WIZ8_WORK_DIR/decomp/srext-jpegimporter:/out" \
+        --volume "{{repo}}/build/decomp:/out" \
         {{vc6_image}} \
         'C:\cmake\bin\cmake.exe' \
         -S Z:/repo -B Z:/out -G 'NMake Makefiles' \
@@ -51,11 +51,11 @@ configure: _jpeg-sources _check-build-dir
         -DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DRECCMP_PROJECT_DIR_HOST={{repo}} \
-        -DRECCMP_BUILD_DIR_HOST="$WIZ8_WORK_DIR/decomp/srext-jpegimporter"
+        -DRECCMP_BUILD_DIR_HOST="{{repo}}/build/decomp"
 
 # Compare through reccmp itself; extra arguments are passed unchanged.
 compare target=jpeg_target *args: _check-build-dir
-    cd "$WIZ8_WORK_DIR/decomp/srext-jpegimporter" && \
+    cd "{{repo}}/build/decomp" && \
         uv run --project {{repo}} reccmp-reccmp \
         --target {{target}} --no-color {{args}}
 

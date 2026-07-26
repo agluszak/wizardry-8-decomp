@@ -36,10 +36,10 @@ To check whose sources a build dir belongs to, read `RECCMP_PROJECT_DIR_HOST` in
 paths, and reccmp maps them to a host tree through that cache variable. If it names a checkout other
 than yours, every number from that build dir is about someone else's code.
 
-Each checkout must have its own `WIZ8_WORK_DIR`; see `.env.example` and AGENTS.md. If two share one,
-the caches overwrite each other and both agents intermittently measure the other's build.
-`just configure` and `just compare` now refuse to run on a build directory another checkout
-configured, so this fails loudly instead of producing a plausible wrong number.
+The build directory is `build/decomp` inside the checkout, so checkouts no longer share build state
+even when they share `WIZ8_WORK_DIR`. `just configure` and `just compare` also refuse to run on a
+build directory another checkout configured, so a moved or copied working copy fails loudly instead
+of producing a plausible wrong number.
 
 ## Reading a near-miss
 
