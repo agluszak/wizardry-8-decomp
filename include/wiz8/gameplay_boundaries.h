@@ -434,11 +434,19 @@ struct W8MonsterCycle {
     unsigned char ubNumSubs;                /* 0x04 */
     unsigned char unknown_05[4];
     unsigned char unknown_09;               /* 0x09: cleared for cycle 22 by 0x004e6130 */
-    unsigned char unknown_0a[6];
+    unsigned char unknown_0a[2];
+    signed char* unknown_0c;                /* 0x0c: cycle 18 pointee byte +0xa7 read by 0x004e60b0 */
 };                                          /* 0x10 */
 
+struct W8MonsterMember18 {
+    unsigned char unknown_00[0x0c];
+    unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
+};                                          /* reviewed prefix 0x10 */
+
 struct W8Monster {
-    unsigned char unknown_000[0xa0];
+    unsigned char unknown_000[0x18];
+    W8MonsterMember18 member_18;            /* 0x018: positional member proven by 0x004e4600 */
+    unsigned char unknown_028[0x78];
     unsigned char unknown_0a0;              /* 0x0a0: set when an unborn monster becomes live */
     unsigned char unknown_0a1[3];
     signed char m_bCurrentCycle;             /* 0x0a4: substituted for the -1 sentinel */
@@ -465,7 +473,9 @@ typedef struct W8MonsterInfo {
     signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
     unsigned char unknown_1ee[0x59];
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
-    unsigned char unknown_24c[0x1d9];
+    unsigned char unknown_24c[2];
+    unsigned char flag_24e;                 /* 0x24e: state transition gate in 0x004e60b0 */
+    unsigned char unknown_24f[0x1d6];
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
 
@@ -478,6 +488,8 @@ extern float g_monster_record_float_scale; /* 0x005ed4f0, provisional name */
 extern int g_monster_info_iterator_index;  /* 0x00683698, retained cursor */
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
+void Function4E4600(W8MonsterInfo* monster_info);
+void Function4E4690(W8MonsterInfo* monster_info, int value);
 W8MonsterRecord* Function4E5720(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(
     int caller_line,
@@ -497,6 +509,7 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
 void Function4E5D00(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
+void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value);
 void Function4E6130(W8MonsterInfo* monster_info);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char Function4E68C0(void);

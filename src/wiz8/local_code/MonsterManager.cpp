@@ -12,9 +12,17 @@ int Function4A87A0(const char* name);
 unsigned char Function47B610(int index);
 void Function4C5A00(W8Monster* monster, int value);
 unsigned char Function4C5A80(W8Monster* monster, int value);
+void Function4C5AA0(W8Monster* monster, int value);
+void Function4C5B10(W8Monster* monster, int value);
+int Function4C5B40(W8Monster* monster, int value);
+void Function4C6140(W8Monster* monster);
 void Function4C6180(W8Monster* monster, int value);
 void Function4C61A0(W8Monster* monster, int value);
 void Function4C61C0(W8Monster* monster, int value);
+void Function4E3AF0(unsigned int monster_list_index, int value);
+void Function4E4280(W8MonsterInfo* monster_info);
+void Function4E4DB0(W8MonsterInfo* monster_info, int value, int reason);
+void Function4E46F0(W8MonsterInfo* monster_info, int value);
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
    Each record owns one instantiation of the polymorphic pointer-vector family
@@ -75,6 +83,43 @@ typedef char W8MonsterManagerEntry_size_must_be_0x118[
     sizeof(W8MonsterManagerEntry) == 0x118 ? 1 : -1];
 typedef char W8MonsterManagerState_size_must_be_0x9c7[
     sizeof(W8MonsterManagerState) == 0x9c7 ? 1 : -1];
+
+// FUNCTION: WIZ8 0x004E4600
+void Function4E4600(W8MonsterInfo* monster_info)
+{
+    int result;
+
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
+    }
+    Function4C5B10(monster_info->monster, 0);
+    monster_info->monster->member_18.flags_0c &= 0xdfffffff;
+    Function4C6140(monster_info->monster);
+    if (monster_info->flag_24e == 0) {
+        result = Function4C5B40(monster_info->monster, 6);
+        if (result != 1 && result != 2 &&
+            monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
+            Function4E4DB0(monster_info, 1, 3);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004E4690
+void Function4E4690(W8MonsterInfo* monster_info, int value)
+{
+    if (monster_info->monster->Function4CA4C0() == 0) {
+        Function4E4DB0(monster_info, 0x15, 1);
+        Function4E4280(monster_info);
+        Function4E46F0(monster_info, value);
+        Function4E3AF0(
+            MonsterGetIndexByLocationID(
+                0x31f,
+                MONSTER_MANAGER_CPP,
+                monster_info->location_id,
+                1),
+            0);
+    }
+}
 
 // FUNCTION: WIZ8 0x004E5550
 unsigned int MonsterGetIndexByLocationID(
@@ -438,6 +483,34 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x004E60B0
+void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value)
+{
+    unsigned char previous = monster_info->flag_24e;
+    W8Monster* monster = monster_info->monster;
+
+    monster_info->flag_24e = value;
+    if (value == 0) {
+        if (previous != 0) {
+            Function4C5A00(monster, 1);
+            if (monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
+                Function4E4DB0(monster_info, 1, 3);
+            }
+        }
+    }
+    else if (previous == 0) {
+        signed char cycle_value = monster->m_cycles[18].unknown_0c[0xa7];
+
+        if (cycle_value != -1) {
+            if (cycle_value == 0x14) {
+                return;
+            }
+            Function4C5AA0(monster, -1);
+        }
+        Function4C5A00(monster, 0);
+    }
 }
 
 // FUNCTION: WIZ8 0x004E6130

@@ -427,6 +427,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x2B, 0x4, "value_2b", "int32"),
         (0x1E7, 0x7, "attribute_adjustments_1e7", "bytes"),
         (0x247, 0x5, "converted_attributes_247", "bytes"),
+        (0x24E, 0x1, "flag_24e", "bytes"),
     ]
 
     vtables = {item.vtable_id: item for item in model.vtables}
@@ -443,10 +444,14 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     monster_fields = [field for field in model.fields if field.class_name == "Monster"]
     assert [(field.offset, field.size) for field in monster_fields] == [
         (0x0, 0x4),
-        (0x4, 0x9C),
+        (0x4, 0x20),
+        (0x24, 0x4),
+        (0x28, 0x78),
         (0xA0, 0x1),
         (0xA1, 0xB),
-        (0xAC, 0x169),
+        (0xAC, 0x12C),
+        (0x1D8, 0x4),
+        (0x1DC, 0x39),
         (0x215, 0x1),
         (0x216, 0x46),
         (0x25C, 0x1B0),
