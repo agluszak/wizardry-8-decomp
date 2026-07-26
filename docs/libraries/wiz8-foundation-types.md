@@ -48,7 +48,7 @@ exactly one virtual:
 
 So the destructor *shape* is shared by 75 vtables, but only 35 are confirmed to be one-entry. The
 other 31 carry more virtuals and may be a richer container or a derived class. The inventory in
-`config/analysis/wiz8/ptr-vector-instantiations.csv` records the determination per vtable rather
+`evidence/observations/wiz8/ptr-vector-instantiations.csv` records the determination per vtable rather
 than asserting a uniform answer.
 
 None of the 75 destructors falls inside current translation-unit interval coverage, so the
@@ -64,14 +64,14 @@ fresh, unrelated struct until the shape is recognised.
 
 The bounds-checked element accessor is inlined into its callers, which explains the in-loop
 `cmp index, count` / `jge` guard around the `lea` that
-`config/analysis/reccmp/wiz8-gameplay-boundaries.csv` records as odd in both `GetNPCItemListByID`
+`config/reccmp/wiz8-gameplay-boundaries.csv` records as odd in both `GetNPCItemListByID`
 and `FindMonGenByName`. It is this template's accessor, not a quirk of those two functions.
 
 ## Allocator as an ownership discriminator
 
 This container allocates through the global `operator new`, whereas SurRender's own types allocate
 through `srHeap` — which `Wiz8.exe` imports as one of the nine plain-C symbols in
-`config/analysis/surrender/wiz8-sr-imports.csv`. Which allocator a body calls is therefore a usable
+`evidence/observations/surrender/wiz8-sr-imports.csv`. Which allocator a body calls is therefore a usable
 first-party-versus-vendor signal elsewhere in the image.
 
 
@@ -103,7 +103,7 @@ return zero for a null list rather than faulting.
 ### The loop shape that finally matched
 
 `PListIndexOf` is a search loop, and it took four attempts, which is worth recording because five
-other functions in `config/analysis/reccmp/wiz8-gameplay-boundaries.csv` are still
+other functions in `config/reccmp/wiz8-gameplay-boundaries.csv` are still
 `structurally-strong` with "loop peeling" named as the remaining difference:
 
 | Source shape | Result |

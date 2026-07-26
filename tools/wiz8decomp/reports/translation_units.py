@@ -215,9 +215,10 @@ def render_gameplay_map_csv(
 
 
 def translation_unit_report(settings: Any) -> dict[str, Any]:
-    analysis_dir = settings.repo_dir / "config" / "analysis"
-    assertions = _read_rows(analysis_dir / "wiz8" / "assertions.csv")
-    gameplay = _read_rows(analysis_dir / "reccmp" / "wiz8-gameplay-boundaries.csv")
+    assertions = _read_rows(
+        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
+    )
+    gameplay = _read_rows(settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv")
     intervals = derive_intervals(assertions)
     interval_csv = render_interval_csv(intervals)
     gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals)

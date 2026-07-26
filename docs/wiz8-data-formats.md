@@ -48,7 +48,7 @@ the Win32 constants passed internally. They are declared in
 
 `Levels\LEVELS.SLF` contains 4,956 entries. The structural corpus is 35 `.WPT`, 34
 `.OCT`, 34 `.PVL`, 34 `.STS`, 26 optional `.RLK`, and two sky `.LVL` files; the other
-entries are level-local assets. `config/analysis/wiz8/level-formats.csv` records this
+entries are level-local assets. `evidence/reviewed/wiz8/formats/level-formats.csv` records this
 inventory without copying any payload.
 
 The waypoint format is now fully bounded by `OctPath::ReadWaypointFile` at `0x00459650`
@@ -98,7 +98,7 @@ records and sixteen resistance profiles with six adjustment pairs. The special F
 equipment blob is a replacement six-item row selected when race ID five is active.
 
 `classesexpgroup.cfdat` remains rejected because its English seed destination
-`0x004ef1e0` lies in executable code. `config/analysis/wiz8/cfdat-overrides.csv` keeps both
+`0x004ef1e0` lies in executable code. `evidence/reviewed/wiz8/formats/cfdat-overrides.csv` keeps both
 the patch argument and the independently proven canonical extent so the disagreement is
 not erased.
 
@@ -229,7 +229,7 @@ the description text itself is not exported.
 The main save is a nested tagged container, not a single raw memory image. `SaveGame` at
 `0x005123f0` creates the slot and writes FourCC sections; `LoadGame` at `0x00512920`
 enumerates and dispatches them. The reviewed vocabulary currently contains 28 exact tags in
-`config/analysis/wiz8/save-game-sections.csv`. Top-level sections include version, game
+`evidence/reviewed/wiz8/formats/save-game-sections.csv`. Top-level sections include version, game
 status, screenshot, text, NPC, fact, journal, and optional state. Each `LVLS` record owns
 nested level sections for status, monsters, items, encounter state, locks, triggers, ambient
 state, particles, and lights. Tags are stored as little-endian 32-bit integers, so the C enum
@@ -245,7 +245,7 @@ character records remain separate serializers and are not folded into this heade
 
 The remaining fields are intentionally opaque in
 `config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
-reconciling canonical field accesses. `config/analysis/wiz8/database-records.csv`
+reconciling canonical field accesses. `evidence/reviewed/wiz8/formats/database-records.csv`
 preserves the corpus arithmetic and consumer evidence.
 
 The item model has progressed beyond its record boundary. `FormatItemDisplayName` at

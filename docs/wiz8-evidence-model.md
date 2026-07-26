@@ -17,7 +17,7 @@ difference visible in every tracked artifact.
 
 The demo's asymmetry against the other alternate builds is part of the model: demo differences are
 Sir-Tech development history, while 1.261 and 1.28 differences are third-party modifications.
-`config/analysis/cross-build-oracles.csv` already records that role per build.
+`evidence/reviewed/cross-build/oracles.csv` already records that role per build.
 
 ## Four independent axes
 
@@ -176,7 +176,7 @@ aliases into the Ghidra plate comment so the provenance is visible while reading
 
 Generated candidate artifacts under `build/` are not covered: they are heuristic output, and
 promoting a candidate into the reviewed layer is what triggers the provenance decision.
-`config/analysis/cross-build-map.csv` is also out of scope — it records boundary mappings, not
+`evidence/reviewed/cross-build/mappings.csv` is also out of scope — it records boundary mappings, not
 names, and keeps its own `automated_classification`/`review_decision` vocabulary.
 
 ### FID matches

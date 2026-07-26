@@ -19,8 +19,8 @@ Every tracked data artifact has one of these roles:
   `evidence/snapshots/`, declare their producer and input identities, and require a freshness check
   wherever those inputs are available.
 
-Directory placement is the primary role declaration. During migration, legacy files under
-`config/analysis/` retain their existing consumers but must be classified before they move.
+Directory placement is the primary role declaration. Evidence must not be placed under `config/`
+merely because an analysis tool consumes it; generate a compatibility input when one is required.
 
 ## Canonical data
 

@@ -8,15 +8,15 @@ targets:
     filename: srEXT_JPEGImporter.dll
     source-root: src/srext_jpegimporter
     data-sources:
-      - config/analysis/reccmp/srext-jpegimporter.csv
-      - config/analysis/reccmp/srext-jpegimporter-symbols.csv
+      - config/reccmp/srext-jpegimporter.csv
+      - config/reccmp/srext-jpegimporter-symbols.csv
     hash:
       sha256: 0bf545937bd86ce2195c08b6dbf6b70e1a1071a9fce449ccb9f06dfa384de490
   SREXT_UNZIP:
     filename: srEXT_Unzip.dll
     source-root: src/srext_unzip
     data-sources:
-      - config/analysis/reccmp/srext-unzip.csv
-      - config/analysis/reccmp/srext-unzip-symbols.csv
+      - config/reccmp/srext-unzip.csv
+      - config/reccmp/srext-unzip-symbols.csv
     hash:
       sha256: dba6cdc5741ae57574e019ab8f37935362bc288bee738bc711460f34d7647f62

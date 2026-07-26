@@ -16,7 +16,7 @@ to reproduce code you already understand.
    in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
 3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.
 4. Compare the emitted COMDAT against every build with relocation masking.
-5. Record in `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
+5. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
    relevant test counts in `tests/unit/test_wiz8_source_model.py`.
 
 Comparison masks COFF `DIR32`/`DIR32NB`/`REL32` relocation fields, so global addresses and call
@@ -64,7 +64,7 @@ constructor call. That is the exact object size.
 
 ## Assertion strings are the richest name source
 
-`srAssertFail` (imported from `SR.DLL`) is called from ~1048 sites; `config/analysis/wiz8/assertions.csv`
+`srAssertFail` (imported from `SR.DLL`) is called from ~1048 sites; `evidence/observations/wiz8/assertions.csv`
 holds the 1038 that decode. Arguments are cdecl `(expression, source_path, line, message)`, pushed
 right-to-left, so the last `68` push before the call is the expression pointer.
 

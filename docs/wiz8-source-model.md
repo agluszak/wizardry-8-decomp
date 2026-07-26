@@ -5,7 +5,7 @@
 Raw strings in the main executables preserve 149 distinct absolute Wizardry source paths. The
 canonical GOG program contributes 136 paths rooted at `C:\Projects\Wizardry 8`; the demo uses
 `E:\Wizardry 8` and adds 13 units not present in the canonical release strings. The reviewed tree
-is tracked in `config/analysis/wiz8/source-tree.csv` with exact absolute spellings and per-build
+is tracked in `evidence/observations/wiz8/source-tree.csv` with exact absolute spellings and per-build
 presence.
 
 | Original directory | Units |
@@ -38,7 +38,7 @@ SurRender decorated names remain external ABI evidence, not local Wizardry RTTI.
 ## Assertion expressions
 
 `SR.DLL`'s `srAssertFail` is called from 1048 sites, 1038 of which push their four arguments as
-literals and decode cleanly into `config/analysis/wiz8/assertions.csv`: call site, containing
+literals and decode cleanly into `evidence/observations/wiz8/assertions.csv`: call site, containing
 function, source path, line, and the **expression text**. They span 117 files and 606 distinct
 functions.
 
@@ -107,7 +107,7 @@ inferred one. `psrMeshes` is placed at `0x48` by the same method from
 `Engine Code\3dapi.cpp:446`, but has no ported consumer yet and is therefore recorded as
 unproven.
 
-`config/analysis/wiz8/classes.csv` carries a `layout_proof` column for exactly this distinction.
+`evidence/reviewed/wiz8/classes.csv` carries a `layout_proof` column for exactly this distinction.
 
 ## `Octree`: a class named and laid out entirely by its own assertions
 
@@ -214,7 +214,7 @@ Two separate classes live in this area, which is worth being careful about:
 
 ## The SurRender ABI surface `Wiz8.exe` consumes
 
-`config/analysis/surrender/wiz8-sr-imports.csv` records all **461** `SR.DLL` imports with their exact
+`evidence/observations/surrender/wiz8-sr-imports.csv` records all **461** `SR.DLL` imports with their exact
 demangled signatures, calling conventions, IAT addresses and kinds. Every one demangles; the class is
 derived from the demangled text rather than the mangling, which is what correctly separates nested
 classes from operators and free functions.
@@ -382,5 +382,5 @@ just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
 just ghidra apply-wiz8-class-model wiz8--gog-base--wiz8--18a74ff61c65
 ```
 
-The authoritative class relationships are in `config/analysis/wiz8/classes.csv`; their constructor
+The authoritative class relationships are in `evidence/reviewed/wiz8/classes.csv`; their constructor
 and destructor identities live in `evidence/reviewed/wiz8/functions.csv`.

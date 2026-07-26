@@ -48,7 +48,7 @@ evidence resolve the remaining bodies, including the hidden WinDLL callbacks, `D
 `Wiz_NoPrinting`, the exact Sir-Tech `srWizUnzipToMemory` adaptation, and six encryption functions
 from the public-domain zcrypt 2.8 overlay. The complete address map and per-function evidence live in
 `evidence/reviewed/srext-unzip/functions.csv`; the accepted public-library identities used by
-reccmp live in `config/analysis/reccmp/srext-unzip.csv`.
+reccmp live in `config/reccmp/srext-unzip.csv`.
 
 ## Repaired Ghidra model
 

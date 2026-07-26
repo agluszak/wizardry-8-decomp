@@ -138,7 +138,7 @@ Unknown option fields remain explicit; only the export option-string pointer at 
 semantic. The `0x0C` declarations are the observed prefix needed by this plug-in, not yet a claim
 that no later SDK build extends either record.
 
-`config/analysis/surrender/jpeg-sr-imports.csv` records every one of the 69 `SR.DLL` imports with
+`evidence/observations/surrender/jpeg-sr-imports.csv` records every one of the 69 `SR.DLL` imports with
 its exact decorated name, ordinal, demangled signature, calling convention, importing module, and a
 representative code or vtable reference. `src/srext_jpegimporter/sr-jpeg-imports.def` is the matching
 minimal import-library definition. It was generated from and checked against `sr.dll` SHA-256
@@ -169,7 +169,7 @@ irrelevant there. The image contains pinned
 PDB, linker map, the exact two exports, and a local `reccmp-build.yml`.
 
 `reccmp` is pinned to commit `574601de72a0ddabdcf2d386ddb6f9d727af4ce1`. The accepted IJG
-identities used by comparison are in `config/analysis/reccmp/srext-jpegimporter.csv`. Repeated IJG
+identities used by comparison are in `config/reccmp/srext-jpegimporter.csv`. Repeated IJG
 private names are qualified per translation unit in PDB/COFF only; this removes ambiguous comparison
 pairing without changing machine code. A complete comparison currently proves exact machine-code
 matches for:

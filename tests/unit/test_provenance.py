@@ -135,6 +135,11 @@ def test_wiz8_function_evidence_is_many_to_one_without_duplicate_identities() ->
     } == {"cfagent-oracle", "sgp"}
 
 
+def test_analysis_artifacts_are_not_stored_as_configuration() -> None:
+    legacy = REPOSITORY / "config" / "analysis"
+    assert not [path for path in legacy.rglob("*") if path.is_file()]
+
+
 def test_cfagent_names_remain_external_semantic_until_corroborated() -> None:
     rows = [row for row in _wiz8_rows() if "fan-patch-signature" in row["name_origin"].split("|")]
 

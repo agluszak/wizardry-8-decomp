@@ -6,7 +6,7 @@ from pathlib import Path
 
 def test_wiz8_source_tree_preserves_raw_cpp_paths() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/source-tree.csv").open(
+    with (repository / "evidence/observations/wiz8/source-tree.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -27,11 +27,11 @@ def test_wiz8_source_tree_preserves_raw_cpp_paths() -> None:
 
 def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/assertions.csv").open(
+    with (repository / "evidence/observations/wiz8/assertions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
-    with (repository / "config/analysis/wiz8/source-tree.csv").open(
+    with (repository / "evidence/observations/wiz8/source-tree.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         tree = {row["relative_path"] for row in csv.DictReader(stream)}
@@ -63,7 +63,7 @@ def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
 
 def test_ptr_vector_instantiations_are_inventoried() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/ptr-vector-instantiations.csv").open(
+    with (repository / "evidence/observations/wiz8/ptr-vector-instantiations.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -88,7 +88,7 @@ def test_ptr_vector_instantiations_are_inventoried() -> None:
 
 def test_startup_spine_separates_library_from_first_party() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/startup-spine.csv").open(
+    with (repository / "evidence/reviewed/wiz8/startup-spine.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -127,7 +127,7 @@ def test_startup_spine_separates_library_from_first_party() -> None:
 
 def test_cpp_initializer_table_witnesses_link_order() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/cpp-initializers.csv").open(
+    with (repository / "evidence/observations/wiz8/cpp-initializers.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -154,7 +154,7 @@ def test_cpp_initializer_table_witnesses_link_order() -> None:
 
 def test_frame_dispatch_table_is_enumerated_and_partly_attributed() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/frame-dispatch-table.csv").open(
+    with (repository / "evidence/observations/wiz8/frame-dispatch-table.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -177,11 +177,11 @@ def test_frame_dispatch_table_is_enumerated_and_partly_attributed() -> None:
 
 def test_surrender_abi_surface_is_complete_and_joins_the_jpeg_model() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/surrender/wiz8-sr-imports.csv").open(
+    with (repository / "evidence/observations/surrender/wiz8-sr-imports.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         wiz8 = list(csv.DictReader(stream))
-    with (repository / "config/analysis/surrender/jpeg-sr-imports.csv").open(
+    with (repository / "evidence/observations/surrender/jpeg-sr-imports.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         jpeg = {row["decorated_name"]: row for row in csv.DictReader(stream)}
@@ -222,7 +222,7 @@ def test_surrender_abi_surface_is_complete_and_joins_the_jpeg_model() -> None:
 
 def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/classes.csv").open(
+    with (repository / "evidence/reviewed/wiz8/classes.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         classes = list(csv.DictReader(stream))
@@ -292,15 +292,15 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
 
 def test_reviewed_cross_build_map_is_separate_and_explicit() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/cross-build-map.csv").open(
+    with (repository / "evidence/reviewed/cross-build/mappings.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         mappings = list(csv.DictReader(stream))
-    with (repository / "config/analysis/cross-build-rejections.csv").open(
+    with (repository / "evidence/reviewed/cross-build/rejections.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rejections = list(csv.DictReader(stream))
-    with (repository / "config/analysis/cross-build-oracles.csv").open(
+    with (repository / "evidence/reviewed/cross-build/oracles.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         oracles = list(csv.DictReader(stream))
@@ -330,7 +330,7 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
             for row in csv.DictReader(stream)
             if "fan-patch-signature" in row["name_origin"].split("|")
         ]
-    with (repository / "config/analysis/fan-patch-128-hooks.csv").open(
+    with (repository / "evidence/observations/cfagent-128/hooks.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         hooks = list(csv.DictReader(stream))
@@ -358,7 +358,7 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
 
 def test_cfdat_override_evidence_separates_callsite_and_canonical_sizes() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/cfdat-overrides.csv").open(
+    with (repository / "evidence/reviewed/wiz8/formats/cfdat-overrides.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -376,7 +376,7 @@ def test_cfdat_override_evidence_separates_callsite_and_canonical_sizes() -> Non
 
 def test_gameplay_database_record_boundaries_match_the_corpus() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/database-records.csv").open(
+    with (repository / "evidence/reviewed/wiz8/formats/database-records.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -396,7 +396,7 @@ def test_gameplay_database_record_boundaries_match_the_corpus() -> None:
 
 def test_level_format_inventory_preserves_typed_waypoint_boundary() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/level-formats.csv").open(
+    with (repository / "evidence/reviewed/wiz8/formats/level-formats.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -411,7 +411,7 @@ def test_level_format_inventory_preserves_typed_waypoint_boundary() -> None:
 
 def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/variable-databases.csv").open(
+    with (repository / "evidence/reviewed/wiz8/formats/variable-databases.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -441,7 +441,7 @@ def test_variable_database_inventory_preserves_npc_rule_tail() -> None:
 
 def test_save_game_section_vocabulary_is_unique_and_bidirectional() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/save-game-sections.csv").open(
+    with (repository / "evidence/reviewed/wiz8/formats/save-game-sections.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -459,7 +459,7 @@ def test_save_game_section_vocabulary_is_unique_and_bidirectional() -> None:
 
 def test_string_database_inventory_preserves_footer_index_boundaries() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/wiz8/string-databases.csv").open(
+    with (repository / "evidence/reviewed/wiz8/formats/string-databases.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
@@ -476,7 +476,7 @@ def test_string_database_inventory_preserves_footer_index_boundaries() -> None:
 
 def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "config/analysis/reccmp/wiz8-gameplay-boundaries.csv").open(
+    with (repository / "config/reccmp/wiz8-gameplay-boundaries.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))

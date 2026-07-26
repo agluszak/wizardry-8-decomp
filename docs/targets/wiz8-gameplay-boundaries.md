@@ -68,7 +68,7 @@ The owned definitions live in `src/wiz8/character_items.c`, `src/wiz8/gameplay_b
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
 `just build WIZ8_GAMEPLAY_BOUNDARIES`; it uses the pinned SP5 `/O2 /G6 /MD` environment alongside the
 already exact compression and plug-in targets. The review map is
-`config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
+`config/reccmp/wiz8-gameplay-boundaries.csv`.
 
 ### Original translation-unit ownership
 

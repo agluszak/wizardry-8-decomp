@@ -1,6 +1,6 @@
 # `Wiz8.exe` startup and shutdown spine
 
-`config/analysis/wiz8/startup-spine.csv` is the address-backed map from PE entry to the main loop
+`evidence/reviewed/wiz8/startup-spine.csv` is the address-backed map from PE entry to the main loop
 and back out. Each node records its caller, its evidence, and — importantly — whether it is
 **library** code or **first-party** code.
 
@@ -90,7 +90,7 @@ Two hard gates sit before any engine bring-up, and both matter for runtime work:
 ## The C++ initializer table is a link-order witness
 
 `_initterm` runs 267 slots at `0x005FF000..0x005FF42C`, 266 of which point into `.text`. They are
-enumerated in `config/analysis/wiz8/cpp-initializers.csv`.
+enumerated in `evidence/observations/wiz8/cpp-initializers.csv`.
 
 The useful property is that **247 of the 265 consecutive pairs ascend in address**. The CRT builds
 this table by concatenating each object's `.CRT$XC*` contribution in link order, so a table that is
@@ -156,7 +156,7 @@ target links with `/OPT:NOICF` precisely so recovered code does not inherit this
 
 Recorded explicitly rather than guessed:
 * The per-frame tick's table at `0x00647BD4` is now enumerated in
-  `config/analysis/wiz8/frame-dispatch-table.csv`: a flat 62-entry function-pointer table indexed by
+  `evidence/observations/wiz8/frame-dispatch-table.csv`: a flat 62-entry function-pointer table indexed by
   state id, of which 17 slots hold one shared default stub at `0x005B1740` (`mov al,1; ret`, i.e.
   "handled") and 45 are real handlers. Joining it against the generated
   `build/reports/translation-units/translation-unit-intervals.csv` attributes

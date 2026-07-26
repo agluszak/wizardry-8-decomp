@@ -21,8 +21,8 @@ def _rows(path: Path) -> list[dict[str, str]]:
 
 def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     repository = Path(__file__).resolve().parents[2]
-    assertions = _rows(repository / "config/analysis/wiz8/assertions.csv")
-    gameplay = _rows(repository / "config/analysis/reccmp/wiz8-gameplay-boundaries.csv")
+    assertions = _rows(repository / "evidence/observations/wiz8/assertions.csv")
+    gameplay = _rows(repository / "config/reccmp/wiz8-gameplay-boundaries.csv")
     intervals = derive_intervals(assertions)
 
     assert len(intervals) == 113
@@ -47,16 +47,17 @@ def test_translation_unit_map_is_current_and_non_overlapping() -> None:
 
 def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[2]
-    analysis = tmp_path / "config" / "analysis"
-    (analysis / "wiz8").mkdir(parents=True)
-    (analysis / "reccmp").mkdir(parents=True)
+    observations = tmp_path / "evidence" / "observations" / "wiz8"
+    reccmp = tmp_path / "config" / "reccmp"
+    observations.mkdir(parents=True)
+    reccmp.mkdir(parents=True)
     shutil.copyfile(
-        repository / "config/analysis/wiz8/assertions.csv",
-        analysis / "wiz8/assertions.csv",
+        repository / "evidence/observations/wiz8/assertions.csv",
+        observations / "assertions.csv",
     )
     shutil.copyfile(
-        repository / "config/analysis/reccmp/wiz8-gameplay-boundaries.csv",
-        analysis / "reccmp/wiz8-gameplay-boundaries.csv",
+        repository / "config/reccmp/wiz8-gameplay-boundaries.csv",
+        reccmp / "wiz8-gameplay-boundaries.csv",
     )
 
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")

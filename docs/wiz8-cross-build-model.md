@@ -1,6 +1,6 @@
 # Wizardry executable cross-build model
 
-`config/analysis/cross-build-map.csv` is the reviewed address map. It is intentionally separate
+`evidence/reviewed/cross-build/mappings.csv` is the reviewed address map. It is intentionally separate
 from generated `build/evidence/cross-build-candidates.csv`: regenerating heuristic candidates must
 not replace accepted or rejected identities.
 
@@ -22,13 +22,13 @@ Each row retains both the automated relationship and the review result:
   constructor/destructor adjacency, object layout, and callee identity resolve the ambiguity;
 * `manually-confirmed` and `rejected` are review decisions, not heuristic scores.
 
-Reviewed false positives live in `config/analysis/cross-build-rejections.csv`. They demonstrate two
+Reviewed false positives live in `evidence/reviewed/cross-build/rejections.csv`. They demonstrate two
 important failure modes: same-address coincidence after patch insertion and non-unique
 compiler-generated destructor bodies.
 
 ## Oracle boundaries
 
-`config/analysis/cross-build-oracles.csv` records why each build is used. The protected official
+`evidence/reviewed/cross-build/oracles.csv` records why each build is used. The protected official
 retail executable is retained as an official oracle, but its `stxt`-protected body is not assigned
 speculative static function addresses. The 1.28 executable is a fan-patch target: confirmed
 original-body mappings do not make `Wiz8.dll`, `cfagent1.28.dll`, detours, or injected code original
@@ -52,5 +52,5 @@ This makes names such as `pW8FUNC_StartCombat`, `pW8FUNC_GetFact`, and `pW8FUNC_
 external symbol evidence, not original source. The first 47 unambiguous and semantically useful
 seed identities are tracked in `evidence/reviewed/wiz8/functions.csv`; corroborating,
 derived, or placeholder-style patch labels were deliberately not applied. The 26 named fixes and
-hooks are inventoried separately in `config/analysis/fan-patch-128-hooks.csv` and are explicitly
+hooks are inventoried separately in `evidence/observations/cfagent-128/hooks.csv` and are explicitly
 owned by the fan patch.
