@@ -1,4 +1,5 @@
-#include "wiz8/item_spawning.h"
+#include "wiz8/save_game.h"
+#include "wiz8/virtual_file.h"
 
 #include <malloc.h>
 
@@ -8,13 +9,6 @@
    the two serializers below sit inside the interval rather than being assigned
    to it by subsystem guesswork. */
 
-/* 0x00404FB0 and 0x00404EA0, declared as in fact_state.cpp and chunk_io.cpp. */
-extern unsigned char WriteVirtualFile(int handle, const void* buffer, unsigned int size,
-                                      unsigned int* done);
-extern unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
-                                     unsigned int* done);
-/* 0x005E2480, PListAdd, reviewed in evidence/reviewed/wiz8/functions.csv. */
-extern int PListAdd(W8PList* list, void* entry);
 /* 0x004F8130, ItemManager.cpp line 998: asserts the item is non-null, then
    reports whether the flag word at +0x29 has any of the caller's bits set. The
    original spells the result through NEG/SBB/NEG, which is what VC6 emits for a

@@ -1,12 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
-
-extern "C" unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
-                                         unsigned int* done);
-/* 0x00404FB0: the write counterpart of ReadVirtualFile, sitting between it and
-   SeekVirtualFile in the same virtual-file family. Descriptive name. */
-extern "C" unsigned char WriteVirtualFile(int handle, const void* buffer, unsigned int size,
-                                          unsigned int* done);
+#include "wiz8/virtual_file.h"
 
 #define CHUNK_CPP "C:\\Projects\\Wizardry 8\\Local Code\\chunk.cpp"
 

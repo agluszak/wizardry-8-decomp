@@ -1,16 +1,10 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/virtual_file.h"
 
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
-/* 0x00404FB0, declared as in chunk_io.cpp: the write counterpart of
-   ReadVirtualFile. Ghidra carries it as FileWrite(hFile, pDest, uiBytesToWrite,
-   puiBytesWritten). */
-extern unsigned char WriteVirtualFile(int handle, const void* buffer, unsigned int size,
-                                      unsigned int* done);
-extern unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
-                                     unsigned int* done);
 /* 0x005080F0, reviewed in evidence/reviewed/wiz8/functions.csv. */
 extern unsigned char EvaluateFact(int fact_id);
 /* Not yet identified; named by address as elsewhere in src/wiz8. 0x0058AAD0 is a
