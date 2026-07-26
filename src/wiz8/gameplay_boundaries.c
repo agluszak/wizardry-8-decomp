@@ -4,7 +4,6 @@
 #include <wchar.h>
 #include <stdio.h>
 
-extern char* FormatDiagnostic(const char* format, ...);
 extern unsigned char EvaluateFact(int fact_id);
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
 /* Provisional semantic name for the journal/notification path at 0x005588f0. */
@@ -38,7 +37,7 @@ int RollDice(const W8Dice* dice)
     int result = dice->base;
 
     for (roll = 0; roll < dice->count; ++roll) {
-        result += GetRandomNumber(dice->sides) + 1;
+        result += Random(dice->sides) + 1;
     }
     return result;
 }

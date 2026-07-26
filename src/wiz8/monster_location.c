@@ -1,7 +1,7 @@
 #include "gameplay_boundaries.h"
 #include "sr_api.h"
 
-extern char* FormatDiagnostic(const char* format, ...);
+extern char* String(const char* format, ...);
 
 // FUNCTION: WIZ8 0x004E5620
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index)
@@ -24,7 +24,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
             "pMonsterInfo != NULL",
             "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp",
             0x5de,
-            FormatDiagnostic(
+            String(
                 "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
                 monster_list_index,
                 g_monster_list));
@@ -46,7 +46,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
             "pMonsterInfo != NULL",
             "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp",
             0x5d5,
-            FormatDiagnostic(
+            String(
                 "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
                 monster_list_index,
                 g_monster_list));
@@ -83,7 +83,7 @@ unsigned int MonsterGetIndexByLocationID(
             "FALSE",
             "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp",
             0x5c1,
-            FormatDiagnostic(
+            String(
                 "MonsterIndex: ID %d not found (%s line %d)",
                 location_id,
                 caller_file,

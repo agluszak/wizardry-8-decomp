@@ -3,7 +3,7 @@
 
 #include <wchar.h>
 
-extern char* FormatDiagnostic(const char* format, ...);
+extern "C" char* String(const char* format, ...);
 
 // FUNCTION: WIZ8 0x00517EA0
 void StripMonsterNameSuffix(unsigned short* name)
@@ -40,7 +40,7 @@ unsigned int CharacterPointerToPartySlot(W8Character* character)
         "FALSE",
         "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
         0x1d1,
-        FormatDiagnostic("PCPtrToPCSlot: ERROR - no match on ptr %d", character));
+        String("PCPtrToPCSlot: ERROR - no match on ptr %d", character));
     return 0;
 }
 
@@ -55,7 +55,7 @@ int GetRandomCharacter(int require_primary, int require_secondary, int excluded_
     W8Character* character;
 
 retry:
-    skip = GetRandomNumber(8);
+    skip = Random(8);
     scanned = 0;
     slot = 0;
     do {

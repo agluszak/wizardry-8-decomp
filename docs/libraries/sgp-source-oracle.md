@@ -144,6 +144,22 @@ the otherwise-generic six-byte `GetClock` body. The complete timer object is lin
 core and input objects remain evidence-only because linking them under `/OPT:NOREF` would retain
 unneeded released APIs.
 
+### Retention and linking policy
+
+The canonical whole/partial/empty decision for every configured unit lives in
+`evidence/reviewed/sgp/units.csv`. `WIZ8_PRECOMPILED_HEADERS` proves only that a released source file
+has a Wizardry branch; it does not prove that every emitted COMDAT survived the original link.
+
+Only whole retained units are direct inputs to the current `/OPT:NOREF` bring-up. Partial and empty
+units are `EXCLUDE_FROM_ALL` object probes that build only when requested by name; they remain
+available for names, signatures, layouts, body comparison, and object-order evidence. A future
+link-complete executable may place partial units in a static library under `/OPT:REF`, but the
+present target must not pull a whole partial object merely to resolve one retained function.
+
+`Random.c` now supplies the original `Random` implementation directly. The former hand-written
+`GetRandomNumber` duplicate has been removed; that CFAgent description remains only an identity
+alias in reviewed evidence.
+
 ### LibraryDataBase.c and DbMan.c
 
 These units are compiled from the vendored source directly. Their disk structures remain

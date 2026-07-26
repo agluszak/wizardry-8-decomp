@@ -314,7 +314,7 @@ unsigned int MonsterGetIndexByLocationID(
     int location_id,
     unsigned char assert_on_failure);
 
-unsigned int GetRandomNumber(unsigned int upper_bound);
+unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
 void ClampInteger(int* value, int minimum, int maximum);

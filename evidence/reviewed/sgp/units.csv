@@ -1,0 +1,13 @@
+unit,source_path,retention_class,surface_scope,reviewed_source_identities,retained_source_identities,retained_physical_bodies,modified_or_interior,bringup_linkage,evidence
+directdraw,sgp/DirectDraw Calls.c,partial,all-emitted,30,13,13,0,evidence-only,"Thirteen exact bodies survive; seventeen emitted functions are absent or stripped"
+random,sgp/Random.c,whole,all-emitted,3,3,3,0,direct-object,"InitializeRandom, Random, and Chance are the complete emitted Wizardry surface and all three are exact"
+compression,sgp/Compression.c,partial,all-emitted,9,5,5,0,evidence-only,"The five decompression-side bodies survive; four compression-side bodies were stripped"
+fileman,sgp/FileMan.c,partial,all-emitted,43,15,15,2,evidence-only,"Fifteen bodies are exact and two reviewed functions contain Wizardry modifications"
+librarydatabase,sgp/LibraryDataBase.c,partial,all-emitted,23,4,4,2,evidence-only,"Four bodies are exact and two reviewed functions use Wizardry's extended library state"
+dbman,sgp/DbMan.c,empty,all-emitted,20,0,0,1,evidence-only,"No complete source function is accepted; DbExists occurs only inside a larger Wizardry function"
+container,sgp/Container.c,partial,all-emitted,32,12,10,0,evidence-only,"Twelve retained source identities fold to ten physical bodies; twenty source identities were stripped"
+debug,sgp/DEBUG.C,partial,all-emitted,15,1,1,0,evidence-only,"String is the sole accepted callable; the remainder is stripped, generic, or rejected"
+exceptionhandling,sgp/ExceptionHandling.cpp,empty,all-emitted,0,0,0,0,evidence-only,"The Wizardry branch intentionally compiles to no code"
+sgp,sgp/sgp.c,partial,selected-retained,2,2,2,0,evidence-only,"Only GetRuntimeSettings and ProcessCommandLine are in the configured retained surface; the broader object is not linked"
+timer,sgp/timer.c,whole,all-emitted,6,6,6,0,direct-object,"All six emitted timer functions are retained"
+input,sgp/input.c,partial,selected-retained,8,8,8,0,evidence-only,"Only the eight retained hook and queue functions are configured; the broader object is not linked"

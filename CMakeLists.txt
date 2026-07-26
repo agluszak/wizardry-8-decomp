@@ -268,7 +268,6 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/monster_location.c
         src/wiz8/monster_lookup.c
         src/wiz8/npc_item_lists.c
-        src/wiz8/random_number.c
         src/wiz8/spell_backfire.cpp
         src/wiz8/targeting.c
         src/wiz8/state_getters.c
@@ -279,7 +278,6 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/world_props.cpp
         src/wiz8/vc6_runtime.cpp
     )
-    set_source_files_properties(src/wiz8/random_number.c PROPERTIES COMPILE_OPTIONS /G5)
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
     target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8 include)
@@ -371,7 +369,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     # scope, and none of the probed units has a release per-file override.
     set(WIZ8_SGP_PROJECT_FLAGS /O2 /Ob2 /G5 /MD)
     function(wiz8_add_sgp_unit target source overlay)
-        add_library(${target} OBJECT "${SGP_SOURCE}/${source}")
+        add_library(${target} OBJECT EXCLUDE_FROM_ALL "${SGP_SOURCE}/${source}")
         target_compile_definitions(${target} PRIVATE WIZ8_PRECOMPILED_HEADERS)
         target_include_directories(${target} PRIVATE
             "config/sgp-overlays/${overlay}"
@@ -422,22 +420,19 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
 
     # Startup-spine evidence probes. The core and input objects contain released
     # APIs that Wizardry discarded and therefore are not linked wholesale into
-    # the /OPT:NOREF bring-up. timer.c is complete and retained as one unit.
+    # the /OPT:NOREF bring-up. Random.c and timer.c are complete retained units;
+    # every other configured unit remains an explicit, on-demand source oracle.
     wiz8_add_sgp_unit(WIZ8_SGP_CORE "sgp.c" sgp)
     wiz8_add_sgp_unit(WIZ8_SGP_TIMER "timer.c" timer)
     wiz8_add_sgp_unit(WIZ8_SGP_INPUT "input.c" input)
     if(WIZ8_BUILD_DECOMP)
         add_dependencies(
             WIZ8_MATCHING
-            WIZ8_SGP_DEBUG
-            WIZ8_SGP_EXCEPTION_HANDLING
-            WIZ8_SGP_CONTAINER
+            WIZ8_SGP_RANDOM
             WIZ8_SGP_TIMER
         )
         target_sources(WIZ8_BRINGUP PRIVATE
-            $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
-            $<TARGET_OBJECTS:WIZ8_SGP_EXCEPTION_HANDLING>
-            $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>
+            $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
             $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
         )
     endif()

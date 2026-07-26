@@ -181,6 +181,63 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
     assert selected["timer"] is None
 
 
+def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    harness = yaml.safe_load((repository / "config/sgp.yml").read_text(encoding="utf-8"))
+    with (repository / "evidence/reviewed/sgp/units.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    by_unit = {row["unit"]: row for row in rows}
+    assert len(rows) == len(by_unit) == len(harness["units"])
+    assert set(by_unit) == {unit["id"] for unit in harness["units"]}
+    assert {unit: row["retention_class"] for unit, row in by_unit.items()} == {
+        "directdraw": "partial",
+        "random": "whole",
+        "compression": "partial",
+        "fileman": "partial",
+        "librarydatabase": "partial",
+        "dbman": "empty",
+        "container": "partial",
+        "debug": "partial",
+        "exceptionhandling": "empty",
+        "sgp": "partial",
+        "timer": "whole",
+        "input": "partial",
+    }
+    assert {
+        unit for unit, row in by_unit.items() if row["bringup_linkage"] == "direct-object"
+    } == {"random", "timer"}
+    assert by_unit["container"]["retained_source_identities"] == "12"
+    assert by_unit["container"]["retained_physical_bodies"] == "10"
+
+
+def test_noref_bringup_links_only_whole_retained_sgp_units() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    cmake = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
+
+    assert "add_library(${target} OBJECT EXCLUDE_FROM_ALL" in cmake
+    assert "$<TARGET_OBJECTS:WIZ8_SGP_RANDOM>" in cmake
+    assert "$<TARGET_OBJECTS:WIZ8_SGP_TIMER>" in cmake
+    for partial_or_empty in (
+        "DIRECTDRAW",
+        "COMPRESSION",
+        "FILEMAN",
+        "LIBRARY_DATABASE",
+        "DBMAN",
+        "CONTAINER",
+        "DEBUG",
+        "EXCEPTION_HANDLING",
+        "CORE",
+        "INPUT",
+    ):
+        assert f"$<TARGET_OBJECTS:WIZ8_SGP_{partial_or_empty}>" not in cmake
+
+    assert "src/wiz8/random_number.c" not in cmake
+    assert not (repository / "src/wiz8/random_number.c").exists()
+
+
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
     repository = Path(__file__).resolve().parents[2]
     assert (repository / "evidence/snapshots/sgp/harness.csv").is_file()
