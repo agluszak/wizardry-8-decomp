@@ -90,10 +90,12 @@ name came from and how far that may be trusted, validated against a closed vocab
 [docs/wiz8-evidence-model.md](docs/wiz8-evidence-model.md).
 
 No Wiz8 build carries debug information, and the game was linked without RTTI, so class and type
-evidence comes from what survived anyway: C++ exception metadata, the SurRender export tables, and
-the literals passed to diagnostic calls. What each of those channels can and cannot establish is
-[docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md); `wiz8 eh-metadata`,
-`wiz8 surrender-abi`, `wiz8 call-sites`, `wiz8 polymorphism` and `wiz8 globals` produce them.
+evidence comes from what survived anyway: C++ exception metadata, the SurRender export tables, the
+literals passed to diagnostic calls, and what the relocation table says about vtables and globals.
+`wiz8 eh-metadata`, `wiz8 surrender-abi`, `wiz8 call-sites`, `wiz8 polymorphism` and `wiz8 globals`
+produce those snapshots. How they are refreshed, what each can and cannot establish, and how to join
+them to find a function's translation unit, the type in a frame slot, or the next function worth
+porting are in [docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md).
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 

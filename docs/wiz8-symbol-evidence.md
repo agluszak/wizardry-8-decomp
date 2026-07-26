@@ -8,9 +8,43 @@ plugins, the MSVC runtime), and each carries only a PDB *path*, never a PDB.
 
 The game was also linked without RTTI, so its own classes have no type descriptors.
 
-What survives is indirect, and this document records what each surviving channel can and cannot
-say. Counts are deliberately absent; `just wiz8 report status` and the producers' own JSON summaries
+What survives is indirect. This document records how those surviving channels are produced, what
+each can and cannot say, and how to join them to answer the questions recovery actually asks -
+which unit a function belongs to, what type sits in a frame slot, which function to port next.
+
+Counts are deliberately absent; `just wiz8 report status` and the producers' own JSON summaries
 report those.
+
+## Producing and refreshing
+
+Five producers write the snapshots under `evidence/snapshots/`:
+
+```sh
+uv run wiz8 eh-metadata          # exception tables
+uv run wiz8 surrender-abi        # SurRender export ABI
+uv run wiz8 call-sites           # srAssertFail / srRuntimeClass::setName literals
+uv run wiz8 polymorphism         # vtables, slots, constructor vptr writes
+uv run wiz8 globals              # global variables and their references
+```
+
+Run bare, each one regenerates its report under `build/reports/` and **fails if the result differs
+from the tracked snapshot**. That is the freshness gate: a producer change that silently alters
+recorded evidence cannot pass unnoticed. Pass `--update-snapshot` to accept a reviewed change.
+
+They are snapshots rather than ordinary generated reports because reproducing them needs the
+proprietary binaries, which are never committed - the exception
+[`evidence-policy.md`](evidence-policy.md) defines for exactly this case.
+
+Three practical constraints:
+
+* `surrender-abi`, `polymorphism` and `eh-metadata` require `llvm-undname` on `PATH`. Decorated
+  names are decoded by a maintained demangler rather than approximated here, because a partial MSVC
+  demangler fails silently on the templated and nested names that matter most.
+* Every row is keyed by `program`, a `wiz8--<variant>--<module>--<hash>` identity. Builds with
+  byte-identical payloads are recorded once under the canonical variant, and each producer reports
+  the aliases it collapsed.
+* The protected 2001-12-23 retail build is skipped wherever a conclusion would need its code. Its
+  rows say so rather than carrying invented values, and it is excluded from resolution rates.
 
 ## Channels
 
@@ -131,6 +165,87 @@ the game's, and their reference counts measure calls to a library function.
 
 The per-reference list is a generated report under `build/`, not a tracked artifact: it is an order
 of magnitude larger than the per-global table and is derived from the same run.
+
+## Using it
+
+Each recipe below is a join between snapshots. Addresses are canonical-build examples; the join
+keys, not the values, are the point.
+
+### Which translation unit does this function belong to?
+
+`call-sites/assertions.csv` pairs a `function_start` with the `source_path` its assertions name.
+
+    0041aa40  ->  C:\Projects\Wizardry 8\Engine Code\GameData.cpp
+
+The translation-unit report already consumes this, so `build/reports/translation-units/` answers the
+question for a whole address range, including functions that carry no assertion of their own but
+fall inside a unit's interval. Prefer that for anything range-shaped; use the raw table when you want
+the direct evidence rather than an interval inference. A function whose assertions name two units
+was inlined into and anchors neither.
+
+### Which function should I port next to prove a layout?
+
+This is the `wiz8-8ga.4` loop, and it is now a query rather than a hunt. Rank assertion sites by the
+size of their containing function - the distance to the next `function_start` - and keep the ones
+whose expression dereferences a member:
+
+    ~ 80B  004f30f0  Controls.cpp:399    m_uiRegionSetId != REGSET_NULL
+    ~ 96B  004503c0  3dapi.cpp:976       pWorld->psrCamera
+    ~112B  00520880  PC Item.cpp:4003    pPCItem->iItemNo != -1
+
+The first row is a useful check on the method: `004f30f0` is already recorded in `classes.csv` as the
+byte-proof for `Controls`, so the ranking rediscovers a function that was found by hand and used
+successfully for exactly this purpose. Port the body, then confirm with `just verify-boundaries` -
+not `just compare`, which scores byte-exact bodies well under 100%.
+
+### What type is the object at `[ebp-N]` in this function?
+
+`eh-metadata/unwind.csv` places a destructor on a frame slot, and names the type outright when the
+destructor is a library import:
+
+    FuncInfo 005effa0  [ebp-0x144]  ->  public: __thiscall srStringTable::~srStringTable(void)
+
+Join `functions.csv` on `funcinfo` to get the owning `function_start`, which is read rather than
+inferred and should be preferred over the derived one in the call-site snapshot.
+
+### Is this vtable a primary or a base subobject's?
+
+`polymorphism/vptr-writes.csv` gives the `object_offset` a constructor stores the pointer at: `0x0`
+marks a primary, anything else marks the base subobject at that offset. `vtables.csv` aggregates the
+offsets per table, so a table with several is written by several constructors, which is normal.
+
+Treat a slot count as bounded by `boundary`. A table ending in `code-reference-boundary` was split
+because the next address is referred to from code - that is what separates adjacent tables of one
+class, and skipping it is how three reviewed counts came to be the sum of a table and its successor.
+
+### What is this global?
+
+`globals/globals.csv` describes an address without needing a name:
+
+    0068edcc  storage=bss  widths=4  access_kinds="read write"  extent_bytes=4
+
+One consistent width and at least one write is a scalar of known size; only ever address-taken means
+an array or structure; `extent_bytes` bounds the size from above. `kind` separates strings, code
+pointer tables and import slots from ordinary data. The full per-reference list, including the
+referencing function of every access, is generated under `build/reports/globals/references.csv`.
+
+### What is this function called in the demo?
+
+`eh-metadata/functions.csv` carries `unwind_signature`, which excludes every address, so the same
+source compiled into another build hashes the same. Group by signature and keep the ones that occur
+once on each side:
+
+    demo 0041cc70  <->  gog-base 0041c930
+
+These are *candidates*. They belong in `evidence/reviewed/cross-build/mappings.csv` only after
+review, like any other candidate.
+
+### What does this SurRender call expect?
+
+`surrender-abi/exports.csv` carries a demangled signature and calling convention for every exported
+symbol, so a call into `sr.dll` can be typed exactly rather than guessed. `virtuality` and
+`vftable_base` describe the library's polymorphism, which is what lets a first-party class that
+derives from a SurRender base be modelled with the right vtable shape.
 
 ## What these channels cannot do
 
