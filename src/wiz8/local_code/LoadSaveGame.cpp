@@ -23,15 +23,12 @@ extern unsigned char DirectoryExists(const char* directory);
 extern unsigned char MakeFileManDirectory(const char* directory);
 extern unsigned int FileGetAttributes(const char* path);
 
-/* The attribute word is Windows', not SGP's. This build's FileGetAttributes
-   copies each attribute bit it knows to the same bit position and returns the
-   result, so 0x004054F0 is a filter rather than a renumbering: 0x20 to 0x20,
-   0x02 to 0x02, 0x10 to 0x10 and so on. The vendored SFI release does renumber
-   - its FILE_IS_ARCHIVE is 0x10 and its FILE_IS_DIRECTORY is 0x02 - so Ghidra
-   labels the two tests below with names that are wrong for this image. Read as
-   Windows attributes the pair says "is a directory" and "is not read-only",
-   which is what a function that verifies save directories is asking, and the
-   constants come from windows.h rather than being restated here. */
+/* The attribute word this gate tests is a Windows attribute word, so the two
+   constants come from windows.h and are not restated here. Ghidra labels the
+   pair with the vendored SFI release's SGP names, which number those bits
+   differently; take the labels as belonging to that release rather than to this
+   image. Read as Windows attributes the tests say "is a directory" and "is not
+   read-only", which is what a function that verifies save directories asks. */
 
 /* 0x004F8130, ItemManager.cpp line 998: asserts the item is non-null, then
    reports whether the flag word at +0x29 has any of the caller's bits set. The

@@ -5,6 +5,15 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
 
 ## Evidence and source recovery
 
+- **Do not reverse engineer library code.** Windows and its DLLs, the MSVC runtime, SGP, zlib, IJG
+  JPEG, Info-ZIP, SurRender and anything else the game links rather than authors are off limits as
+  subjects of recovery. Their behavior, constants, structures and calling conventions come from the
+  real headers, the vendored or pinned sources, and the published documentation - not from
+  decompiling their bodies. Include `<windows.h>` and use `FILE_ATTRIBUTE_DIRECTORY`; do not read
+  0x004054F0 to work out what a bit means, and do not restate a constant that a header already
+  defines. Recovering first-party code that *calls* a library is the work; the library end of the
+  call is a declaration. When an oracle and the image appear to disagree about a library, that is a
+  fact to record and route to the owning track, not a licence to reconstruct the library.
 - Ground names, types, ownership, and behavior in the checked-in evidence, original binaries,
   source oracles, cross-build comparison, and Ghidra observations. Do not guess names or ABI.
 - Prefer real typed interfaces and recovered layouts over casts, raw vtable indexing, wrappers, or
