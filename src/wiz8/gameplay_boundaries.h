@@ -27,9 +27,21 @@ typedef struct W8Character {
     unsigned char in_party;              /* 0x0004 */
     unsigned char unknown_0005[0x64];
     int current_profession;               /* 0x0069 */
-    unsigned char unknown_006d[0x20];
+    unsigned char unknown_006d[8];
+    int faction;                          /* 0x0075: compared against the caller's faction */
+    unsigned char unknown_0079[0x14];
     int profession_levels[15];            /* 0x008d */
-    unsigned char unknown_00c9[0x1799];
+    unsigned char unknown_00c9[0xa38];
+    /* 0x0b01 and 0x0b11 gate party-member selection: a slot is eligible when
+       unknown_0b11 is non-zero and unknown_0b01 is below 0x12, and a second
+       tier tests it against 0x0f. The thresholds look like a condition or
+       status scale, but nothing here establishes the meaning, so they keep
+       positional names. Both are unsigned: the canonical compares are JB/JBE,
+       not JL/JE. */
+    unsigned int unknown_0b01;            /* 0x0b01 */
+    unsigned char unknown_0b05[0xc];
+    unsigned int unknown_0b11;            /* 0x0b11 */
+    unsigned char unknown_0b15[0xd4d];
 } W8Character;                           /* 0x1862 */
 
 typedef struct W8FactDatabaseRecord {
@@ -56,6 +68,12 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
+   runtime record size; the fields are typed by their consumers elsewhere. */
+typedef struct W8MonsterRecord {
+    unsigned char unknown_000[0x297];
+} W8MonsterRecord;                       /* 0x297 */
+
 /* Filled by 0x0042A370 from a level-table row; only its size is established
    here, by the 0x458-byte stack frame of its sole recovered caller. */
 typedef struct W8LevelInfo {
@@ -79,8 +97,17 @@ typedef struct W8MonsterGeneratorVector {
     W8MonsterGenerator** data;            /* 0x0c */
 } W8MonsterGeneratorVector;
 
+/* Member names and types at 0x08 and 0x48 come from the canonical assertion
+   expressions "pWorld && pWorld->plsProps" (Engine Code\3d.cpp:344) and
+   "pWorld->psrMeshes" (Engine Code\3dapi.cpp:446); the offsets come from the
+   asserting bodies. The pls/psr prefixes are the original's own Hungarian
+   coding for a PList and a SurRender object. */
 typedef struct W8World {
-    unsigned char unknown_000[0xc4];
+    unsigned char unknown_000[8];
+    void* plsProps;                       /* 0x008: PList of props */
+    unsigned char unknown_00c[0x3c];
+    void** psrMeshes;                     /* 0x048: allocated array of mesh pointers */
+    unsigned char unknown_04c[0x78];
     W8MonsterGeneratorVector* monster_generators; /* 0xc4 */
 } W8World;
 
@@ -144,6 +171,20 @@ typedef struct W8MessageBoxLine {
     int sequence;                         /* 0x20: copied from a running global counter */
 } W8MessageBoxLine;                       /* 0x24 */
 
+/* Local Code\Targeting.cpp. Field names and the BAD_INDEX sentinel come from
+   the canonical assertions at lines 3299, 3307, 3320 and 3328; offsets come
+   from the asserting bodies. iType 1 selects the character, 2 the monster, and
+   3 either, which is why the type-3 path additionally requires a backfire or
+   reflection flag. */
+typedef struct W8TargetSource {
+    int iType;                            /* 0x00 */
+    int iChar;                            /* 0x04 */
+    int iMonsterID;                       /* 0x08 */
+    unsigned char unknown_0c[0x0f];
+    unsigned char fReflection;            /* 0x1b */
+    unsigned char fBackfire;              /* 0x1c */
+} W8TargetSource;
+
 typedef unsigned char W8FactionDisposition;
 
 enum {
@@ -161,6 +202,9 @@ extern "C" {
 extern W8SpellRuntimeRecord* g_spell_records;
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8Character* g_party_characters;
+/* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
+   established, and GetRandomCharacter treats it as a slot-occupied flag. */
+extern unsigned char (*g_party_slot_rows)[0x106];
 extern int g_profession_magic_level_offsets[15];
 extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
@@ -178,6 +222,9 @@ extern int* g_location_variable_levels;
 extern int g_next_world_item_id;
 extern void* g_world_item_list;
 extern W8NPCItemListVector* g_npc_item_lists;
+/* 0x006840C7: lazily populated cache of runtime monster records, one slot per
+   species ID. MAX_MONSTERS_IN_DATABASE comes from the canonical assertion text. */
+extern W8MonsterRecord* g_monster_record_cache[1000];
 extern void* g_monster_group_species_list;
 extern void* g_monster_group_encounter_list;
 /* Provisional name: a fixed-address, non-per-character item pool distinct
@@ -232,6 +279,14 @@ void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effec
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
+W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species);
+void WorldUpdateProps(W8World* world);
+unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
+unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
+int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
+                       signed char excluded_faction);
+/* 0x0054A8A0, reviewed in config/analysis/functions/wiz8-formats.csv. */
+unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 int GetLocationIDFromCode(const char* location_code);
 /* 0x0042A370, not yet recovered. */
 unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);

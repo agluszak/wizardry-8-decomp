@@ -24,6 +24,39 @@ def test_wiz8_source_tree_preserves_raw_cpp_paths() -> None:
     assert not any(row["relative_path"] == "Dialog Code\\MonsterInfoDialog.c" for row in rows)
 
 
+def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/assertions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+    with (repository / "config/analysis/wiz8/source-tree.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        tree = {row["relative_path"] for row in csv.DictReader(stream)}
+
+    assert len(rows) == 1038
+    assert len({row["source_path"] for row in rows}) == 117
+    assert all(row["expression"] and row["line"] for row in rows)
+
+    # Members are named through -> or . and carry the original's m_ prefix.
+    members = [row for row in rows if "->" in row["expression"]]
+    assert len(members) >= 150
+    assert any("m_pacRecipients" in row["expression"] for row in rows)
+    assert any("pWorld->plsProps" in row["expression"] for row in rows)
+
+    # The .cpp paths cross-validate the tracked census; the .hpp paths extend it.
+    absolute = {row["source_path"] for row in rows if not row["source_path"].startswith("..")}
+    assert {path.split("Wizardry 8\\", 1)[-1] for path in absolute} <= tree
+    headers = sorted({row["source_path"] for row in rows if row["source_path"].startswith("..")})
+    assert headers == [
+        "..\\Engine Code\\Include\\AnimRep.hpp",
+        "..\\Engine Code\\Include\\Trigger.hpp",
+        "..\\Engine Code\\Include\\stHeap.hpp",
+        "..\\Engine Code\\Include\\stLight.hpp",
+    ]
+
+
 def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/analysis/wiz8/classes.csv").open(
@@ -32,7 +65,28 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         classes = list(csv.DictReader(stream))
 
     by_name = {row["class_name"]: row for row in classes}
-    assert set(by_name) == {"GrCycle", "Monster", "MonsterInfoDialog"}
+    assert set(by_name) == {
+        "GrCycle",
+        "Monster",
+        "MonsterInfoDialog",
+        "VirtualFileBinIStream",
+        "MonsterLight",
+        "Octree",
+    }
+    # Classes recovered from source paths carry one; classes recovered from an
+    # imported SurRender base carry a named base instead.
+    for name in ("GrCycle", "Monster", "MonsterInfoDialog"):
+        assert by_name[name]["source_path"]
+        assert by_name[name]["base_classes"] == ""
+    assert all("layout_proof" in row for row in classes)
+    # Octree is the first class whose layout is byte-proven rather than inferred.
+    assert by_name["Octree"]["layout_proof"].startswith("0042e440")
+    assert by_name["Monster"]["layout_proof"].startswith("004bfab0")
+    assert not any(by_name[n]["layout_proof"] for n in ("GrCycle", "MonsterInfoDialog"))
+    for name in ("VirtualFileBinIStream", "MonsterLight"):
+        assert by_name[name]["source_path"] == ""
+        assert by_name[name]["base_classes"]
+        assert by_name[name]["base_name_origin"] == "original-export"
     assert by_name["GrCycle"] == {
         "class_name": "GrCycle",
         "confidence": "strong",
@@ -43,28 +97,24 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         "scalar_deleting_destructor": "004a5f00",
         "minimum_size": "0x1d8",
         "secondary_vtables": "005eceb8@0x18:13",
+        "base_classes": "",
+        "base_name_origin": "",
         "source_path": "Engine Code\\GrCycle.cpp",
+        "layout_proof": "",
         "evidence": (
             "Primary slots 4 and 11 directly reference the exact source path; "
             "constructor and destructor install primary and secondary vtables"
         ),
     }
-    assert by_name["Monster"] == {
-        "class_name": "Monster",
-        "confidence": "strong",
-        "vtable": "005ed200",
-        "slots": "31",
-        "constructor": "004bea20",
-        "destructor": "004bee50",
-        "scalar_deleting_destructor": "004beba0",
-        "minimum_size": "0x628",
-        "secondary_vtables": "",
-        "source_path": "Engine Code\\Monster.cpp",
-        "evidence": (
-            "Slots 5 12 and 26 directly reference the exact source path; constructor "
-            "writes this vtable after initializing fields through offset 0x624"
-        ),
-    }
+    monster = by_name["Monster"]
+    assert monster["vtable"] == "005ed200"
+    assert monster["slots"] == "31"
+    assert monster["constructor"] == "004bea20"
+    assert monster["destructor"] == "004bee50"
+    assert monster["scalar_deleting_destructor"] == "004beba0"
+    assert monster["minimum_size"] == "0x628"
+    assert monster["source_path"] == "Engine Code\\Monster.cpp"
+    assert "Slots 5 12 and 26 directly reference the exact source path" in monster["evidence"]
     assert by_name["MonsterInfoDialog"] == {
         "class_name": "MonsterInfoDialog",
         "confidence": "strong",
@@ -75,7 +125,10 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         "scalar_deleting_destructor": "005d5ee0",
         "minimum_size": "0x130",
         "secondary_vtables": "",
+        "base_classes": "",
+        "base_name_origin": "",
         "source_path": "Dialog Code\\MonsterInfoDialog.cpp",
+        "layout_proof": "",
         "evidence": (
             "Slot 3 directly references the exact source path; constructor loads "
             "Data\\Dialogs\\popup_monsterinfo.sti and writes this vtable"
@@ -267,9 +320,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 33
+    assert len(rows) == 41
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 26
+    assert len(exact) == 34
     assert {int(row["size"]) for row in exact} == {
         6,
         19,
@@ -281,6 +334,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         50,
         53,
         61,
+        70,
         76,
         82,
         85,
@@ -288,9 +342,14 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         103,
         105,
         109,
+        110,
+        115,
+        117,
+        118,
         132,
         179,
         199,
+        218,
         219,
         231,
     }
@@ -324,14 +383,18 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/location_variables.c",
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/message_box.cpp",
+            "src/wiz8/monster_cycles.cpp",
             "src/wiz8/monster_generators.cpp",
             "src/wiz8/monster_location.c",
             "src/wiz8/monster_lookup.c",
             "src/wiz8/npc_item_lists.c",
             "src/wiz8/random_number.c",
             "src/wiz8/spell_backfire.cpp",
+            "src/wiz8/targeting.c",
             "src/wiz8/state_getters.c",
             "src/wiz8/vector_conversions.cpp",
+            "src/wiz8/octree_loading.cpp",
+            "src/wiz8/world_props.cpp",
         )
     )
     for row in rows:

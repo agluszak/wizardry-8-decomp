@@ -241,14 +241,18 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/location_variables.c
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp
+        src/wiz8/monster_cycles.cpp
         src/wiz8/monster_generators.cpp
         src/wiz8/monster_location.c
         src/wiz8/monster_lookup.c
         src/wiz8/npc_item_lists.c
         src/wiz8/random_number.c
         src/wiz8/spell_backfire.cpp
+        src/wiz8/targeting.c
         src/wiz8/state_getters.c
         src/wiz8/vector_conversions.cpp
+        src/wiz8/octree_loading.cpp
+        src/wiz8/world_props.cpp
     )
     set_source_files_properties(src/wiz8/random_number.c PROPERTIES COMPILE_OPTIONS /G5)
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
