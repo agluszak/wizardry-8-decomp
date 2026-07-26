@@ -57,6 +57,34 @@ def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
     ]
 
 
+def test_startup_spine_separates_library_from_first_party() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/wiz8/startup-spine.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert len(rows) == 17
+    assert {row["ownership"] for row in rows} == {"library", "first-party"}
+
+    # CRT startup is linked, never modelled: every library node must name its provider.
+    library = [row for row in rows if row["ownership"] == "library"]
+    assert len(library) == 3
+    assert all(row["provided_by"] for row in library)
+    assert all("MSVCRT" in row["provided_by"] for row in library)
+
+    # The spine is anchored at the real PE entry point and reaches the frame tick.
+    by_address = {row["node_address"]: row for row in rows if row["node_address"]}
+    assert by_address["00401000"]["ownership"] == "library"
+    assert by_address["00401670"]["role"] == "WinMain"
+    assert by_address["004e3340"]["role"] == "per-frame tick"
+
+    # Unresolved boundaries are recorded rather than guessed.
+    unresolved = [row for row in rows if row["status"] == "unresolved"]
+    assert len(unresolved) == 2
+    assert all(row["source_unit"] == "unresolved" for row in rows if row["ownership"] == "first-party")
+
+
 def test_surrender_abi_surface_is_complete_and_joins_the_jpeg_model() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/analysis/surrender/wiz8-sr-imports.csv").open(

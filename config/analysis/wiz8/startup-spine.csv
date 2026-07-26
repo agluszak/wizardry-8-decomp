@@ -1,0 +1,18 @@
+order,node_address,caller_address,role,ownership,provided_by,evidence,source_unit,status
+1,00401000,,__WinMainCRTStartup,library,MSVCRT (named in config/analysis/functions/wiz8-vc6-runtime.csv),"PE entry point from the optional header. CRT code: supplied by linking, never modelled. Installs the SEH frame at 0x004011C0 and the standard MSVCRT startup sequence",,resolved
+2,00401164,00401000,_initterm (C initializers),library,MSVCRT _initterm thunk 0x00401164,Called with the 0x005FF430..0x005FF434 table,,resolved
+3,00401164,00401000,_initterm (C++ global constructors),library,MSVCRT,"Called with the 0x005FF000..0x005FF42C table: 267 slots, 266 pointing into .text. The _initterm call is library code, but the 266 initializers it runs are FIRST-PARTY dynamic initializers, one per translation unit with a namespace-scope object",,resolved
+4,00401670,00401000,WinMain,first-party,,"Called with GetModuleHandleA(0), the parsed command line and the startup show command; its result is passed to MSVCRT exit",unresolved,resolved
+5,,00401670,single-instance guard,first-party,,"FindWindowExA on window class and title 0x005FF490 ""Wizardry 8""; an existing window gets SetForegroundWindow plus ShowWindow(9) and WinMain returns 0",unresolved,resolved
+6,00401950,00401670,ParseCommandLine,first-party,,"strtok and _strnicmp over the command line against switches including 0x005FF50C ""/NOSOUND""",unresolved,resolved
+7,00404bd0,00401670,QueryAvailableMemory,first-party,,Thin wrapper over GlobalMemoryStatus; the caller shifts right by 10 and stores kilobytes at 0x006F0624,unresolved,resolved
+8,00427a60,00401670,GetVideoConfigFileName,first-party,,"Returns the literal 0x00603C70 ""3DVideo.CFG""",unresolved,resolved
+9,00404bf0,00401670,FileExists,first-party,,Already-reviewed name; gates the video configuration file,unresolved,resolved
+10,,00401670,3DSetup respawn,first-party,,"When 3DVideo.CFG is absent, _spawnl runs 0x005FF484 ""3DSetup.EXE"" and the check repeats; still absent means WinMain returns 0",unresolved,resolved
+11,0042b830,00401670,CD presence check,first-party,,"Formats 0x00605ABC ""Please Insert the Wizardry 8 CD# 3."" through sprintf and shows it with MessageBoxA titled ""Wizardry 8""; failure ends WinMain",unresolved,resolved
+12,00401570,00401670,BringUpEngine,first-party,,"Registers the window class from 0x005FF468 ""Wizardry8"" and 0x005FF474 ""Wizardry8key"" via 0x0040F020, then calls 0x00405740, 0x004018C0, 0x00404B00, 0x00404BA0, 0x005B1740 and 0x004023A0 in order; a false result ends WinMain",unresolved,resolved
+13,,00401670,main message loop,first-party,,"PeekMessageA, then GetMessageA/TranslateMessage/DispatchMessageA; the loop continues while the byte at 0x006F0628 is set",unresolved,resolved
+14,004e3340,00401670,per-frame tick,first-party,,"Called from the idle branch when the active flag at 0x006F0630 is set, otherwise WaitMessage is used; calls 0x004095B0, 0x0048F9E0 and 0x00429770 and dispatches through the table at 0x00647BD4",unresolved,resolved
+15,,00401670,shutdown,first-party,,"PostQuitMessage(0) once the run flag clears, then WinMain returns msg.wParam and __WinMainCRTStartup passes it to MSVCRT exit",unresolved,resolved
+16,,00401570,BringUpEngine callee chain,first-party,,"0x00405740, 0x004018C0, 0x00404B00, 0x00404BA0, 0x005B1740, 0x004023A0 are on the path but not yet individually identified",unresolved,unresolved
+17,,004e3340,frame dispatch table,first-party,,The indexed call through 0x00647BD4 selects a screen or state handler; the table contents are not yet enumerated,unresolved,unresolved

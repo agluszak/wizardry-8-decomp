@@ -116,6 +116,16 @@ name to present itself to the scene graph.
   `lea ecx, [this+offset]` base call.
 * Derived constructors install base vptrs first, then overwrite with their own.
 
+## Library code is linked, not modelled
+
+CRT startup, MFC, Win32 and DirectX code are **not recovery targets**. Mark them as library and let
+the linker supply them, the way `imperialism-decomp` links `gdi32 user32 winmm vfw32 dsound …` with
+a comment naming which calls need each one. Never write a body for `__WinMainCRTStartup`,
+`_initterm`, CRT helpers or Win32 wrappers.
+
+Classify every node on a traced path as `library` or `first-party` before proposing work on it, and
+record which library provides each library node so the runtime target knows what to link.
+
 ## Provenance
 
 Every accepted name records where it came from; see `docs/wiz8-evidence-model.md`. Names taken from
