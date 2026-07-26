@@ -25,3 +25,16 @@ wiz8,W8MonsterInfo,0x0,0x4,location_id,int32,exact,classes:wiz8:W8MonsterInfo,co
 wiz8,W8MonsterInfo,0x4,0x4,unknown_04,bytes,exact,classes:wiz8:W8MonsterInfo,opaque storage between the two reviewed identifiers
 wiz8,W8MonsterInfo,0x8,0x4,monster_species,int32,exact,classes:wiz8:W8MonsterInfo,index passed to GetMonsterDataByID
 wiz8,W8MonsterInfo,0xc,0x4,monster,pointer,exact,classes:wiz8:W8MonsterInfo,live Monster object returned by GetMonsterByLocationID
+wiz8,W8WorldItem,0x0,0x4,runtime_id,int32,exact,classes:wiz8:W8WorldItem,assigned from the world item id counter
+wiz8,W8WorldItem,0x4,0x4,unknown_04,pointer,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8WorldItem,0x8,0x1,unknown_08,bytes,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8WorldItem,0x9,0xc,item,bytes,exact,classes:wiz8:W8WorldItem,W8ItemInstance payload
+wiz8,W8WorldItem,0x15,0xc,position,bytes,exact,classes:wiz8:W8WorldItem,srVector3T<float>
+wiz8,W8WorldItem,0x21,0x4,unknown_21,bytes,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8WorldItem,0x25,0x4,unknown_25,int32,exact,classes:wiz8:W8WorldItem,level-restore flag word; bit 3 cleared while restoring
+wiz8,W8WorldItem,0x29,0x4,flags,int32,exact,classes:wiz8:W8WorldItem,tested by mask by 0x004F8130
+wiz8,W8WorldItem,0x2d,0x4,saved_marker,int32,exact,classes:wiz8:W8WorldItem,set to 1 before each record is written
+wiz8,W8WorldItem,0x31,0x4,next,pointer,exact,classes:wiz8:W8WorldItem,"chain link, walked and rebuilt by the serializers"
+wiz8,W8WorldItem,0x35,0x4,unknown_35,int32,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8WorldItem,0x39,0x4,sector_id,int32,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8WorldItem,0x3d,0x70,unknown_3d,bytes,exact,classes:wiz8:W8WorldItem,not established
