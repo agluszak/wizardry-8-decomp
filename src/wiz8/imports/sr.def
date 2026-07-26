@@ -9,3 +9,10 @@ EXPORTS
     ?srAssertFail@@YAXPBD0J0ZZ
     ?srAssertFail@@YAXPBD0H0@Z = ?srAssertFail@@YAXPBD0J0ZZ
     srAssertFail = ?srAssertFail@@YAXPBD0J0ZZ
+
+; Renderer entry points the bring-up path calls. Both names are taken verbatim
+; from Wiz8.exe's import table, so the declarations in recovered source must
+; produce exactly these: a public const thiscall method on srGERD, and a static
+; member of srExtension taking two strings.
+    ?isWindowOpen@srGERD@@QBEHXZ
+    ?load@srExtension@@SAPAV1@PBD0@Z
