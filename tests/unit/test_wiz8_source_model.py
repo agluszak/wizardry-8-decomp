@@ -564,9 +564,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 65
+    assert len(rows) == 67
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 61
+    assert len(exact) == 63
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -617,6 +617,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         236,
         239,
         245,
+        452,
     }
     assert all(len(row["relocation_masked_sha256"]) == 64 for row in exact)
     backfire = next(row for row in rows if row["symbol"] == "CanSpellBackfire")
@@ -653,6 +654,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/local_code/UtilityFunctions.cpp",
             "src/wiz8/grcycle_behaviour.cpp",
             "src/wiz8/ilist.c",
+            "src/wiz8/item_tables.c",
             "src/wiz8/item_mesh.cpp",
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/message_box.cpp",

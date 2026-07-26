@@ -258,6 +258,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/fact_state.c
         src/wiz8/game_databases.c
         src/wiz8/ilist.c
+        src/wiz8/item_tables.c
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp

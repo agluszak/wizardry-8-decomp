@@ -1,6 +1,7 @@
 #include "gameplay_boundaries.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 extern unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
@@ -109,6 +110,65 @@ unsigned char InitializeLevelDatabase(void)
         if (!ReadVirtualFile(handle, &g_level_records[index], 0xd8, &transferred)) {
             CloseVirtualFile(handle);
             return 0;
+        }
+    }
+    CloseVirtualFile(handle);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0054A510
+/* ItemTables.DBS carries two arrays: category names, each a fixed 0x100-byte
+   buffer, then the tables themselves. Both are arrays of pointers, cleared
+   before use. The category reads are unchecked in the original while the table
+   reads are not, and the per-table allocation is cleared before its own null
+   check rather than after; both are reproduced. */
+unsigned char InitializeItemTables(void)
+{
+    char path[60];
+    unsigned int index;
+    unsigned int transferred;
+    int handle;
+
+    sprintf(path, "%s\\%s.%s", "Data\\Databases", "ItemTables", "DBS");
+    handle = FileOpen(path, 1, 0);
+    if (!handle) {
+        return 0;
+    }
+    if (!ReadVirtualFile(handle, &g_item_table_category_count, 4, &transferred)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    if (g_item_table_category_count) {
+        g_item_table_category_names = (char**)malloc(g_item_table_category_count * 4);
+        if (!g_item_table_category_names) {
+            return 0;
+        }
+        memset(g_item_table_category_names, 0, g_item_table_category_count * 4);
+        for (index = 0; index < g_item_table_category_count; ++index) {
+            g_item_table_category_names[index] = (char*)malloc(0x100);
+            ReadVirtualFile(handle, g_item_table_category_names[index], 0x100, &transferred);
+        }
+    }
+    if (!ReadVirtualFile(handle, &g_item_table_count, 4, &transferred)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    if (g_item_table_count) {
+        g_item_tables = (W8ItemTableRecord**)malloc(g_item_table_count * 4);
+        if (!g_item_tables) {
+            return 0;
+        }
+        memset(g_item_tables, 0, g_item_table_count * 4);
+        for (index = 0; index < g_item_table_count; ++index) {
+            g_item_tables[index] = (W8ItemTableRecord*)malloc(0x1f1);
+            memset(g_item_tables[index], 0, 0x1f1);
+            if (!g_item_tables[index]) {
+                return 0;
+            }
+            if (!ReadVirtualFile(handle, g_item_tables[index]->name, 0x1f1, &transferred)) {
+                CloseVirtualFile(handle);
+                return 0;
+            }
         }
     }
     CloseVirtualFile(handle);

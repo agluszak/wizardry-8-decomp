@@ -68,6 +68,14 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* One Data\Databases\ItemTables.DBS record. The record opens with a
+   NUL-terminated table name, which FindItemTableByName compares against; the
+   name's field width is not established, so only its start is typed. */
+typedef struct W8ItemTableRecord {
+    char name[1];                        /* 0x000: NUL-terminated, width unknown */
+    unsigned char unknown_001[0x1f0];
+} W8ItemTableRecord;                     /* 0x1f1 */
+
 /* One Data\Databases\Items.DBS record, and its LEVELS.DBS sibling. As with
    W8MonsterRecord only the disk and runtime stride is established; the leading
    field is a display name. */
@@ -231,6 +239,10 @@ extern unsigned char g_fact_values[1001];
 extern int g_fact_record_count;
 extern W8ItemDatabaseRecord* g_item_records;
 extern int g_item_record_count;
+extern W8ItemTableRecord** g_item_tables;
+extern unsigned int g_item_table_count;
+extern char** g_item_table_category_names;
+extern unsigned int g_item_table_category_count;
 extern W8LevelDatabaseRecord* g_level_records;
 extern int g_level_record_count;
 extern int g_loaded_level_id;
@@ -322,6 +334,8 @@ void SaveFactState(int save_handle);
 unsigned char InitializeFactDatabase(void);
 unsigned char InitializeItemDatabase(void);
 unsigned char InitializeLevelDatabase(void);
+unsigned char InitializeItemTables(void);
+int FindItemTableByName(const char* name);
 void DestroyFactDatabase(void);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
