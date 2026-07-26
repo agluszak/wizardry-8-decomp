@@ -597,7 +597,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 70
+    assert len(rows) == 71
     exact = [row for row in rows if row["confidence"] == "exact"]
     assert len(exact) == 66
     assert {int(row["size"]) for row in exact} == {
@@ -681,6 +681,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         (repository / path).read_text(encoding="utf-8")
         for path in (
             "src/wiz8/character_items.c",
+            "src/wiz8/character_skills.c",
             "src/wiz8/controls_regions.cpp",
             "src/wiz8/chunk_io.cpp",
             "src/wiz8/fact_state.c",

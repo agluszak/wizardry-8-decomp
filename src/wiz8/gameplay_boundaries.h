@@ -22,6 +22,22 @@ typedef struct W8FactionRuntimeRecord {
     unsigned char unknown_01[0x0d];
 } W8FactionRuntimeRecord;               /* 0x0e */
 
+/* One attribute record. The array is indexed by skill id biased by 0x22, so the
+   seven attribute ids sit at the top of the skill numbering; only the leading
+   value, which IsCharacterSkillAvailable tests against 100, is established. */
+typedef struct W8CharacterAttribute {
+    unsigned int value;                   /* 0x00 */
+    unsigned char unknown_04[0x10];
+} W8CharacterAttribute;                   /* 0x14 */
+
+/* One skill record, indexed directly by skill id. PracticeCharacterSkill
+   establishes the stride and the leading flag it sets when a skill first
+   becomes available; IsCharacterSkillAvailable reads the same flag. */
+typedef struct W8CharacterSkill {
+    unsigned char flag_00;                /* 0x00 */
+    unsigned char unknown_01[0x25];
+} W8CharacterSkill;                       /* 0x26 */
+
 typedef struct W8Character {
     unsigned char unknown_0000[4];
     unsigned char in_party;              /* 0x0004 */
@@ -31,7 +47,11 @@ typedef struct W8Character {
     int faction;                          /* 0x0075: compared against the caller's faction */
     unsigned char unknown_0079[0x14];
     int profession_levels[15];            /* 0x008d */
-    unsigned char unknown_00c9[0xa38];
+    unsigned char unknown_00c9[0x1c];
+    W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
+    unsigned char unknown_0171[0x2c];
+    W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
+    unsigned char unknown_07b3[0x34e];
     /* 0x0b01 and 0x0b11 gate party-member selection: a slot is eligible when
        unknown_0b11 is non-zero and unknown_0b01 is below 0x12, and a second
        tier tests it against 0x0f. The thresholds look like a condition or
@@ -41,7 +61,9 @@ typedef struct W8Character {
     unsigned int unknown_0b01;            /* 0x0b01 */
     unsigned char unknown_0b05[0xc];
     unsigned int unknown_0b11;            /* 0x0b11 */
-    unsigned char unknown_0b15[0xd4d];
+    unsigned char unknown_0b15[0x2d8];
+    unsigned int skill_unlocks[0x29];     /* 0x0ded, indexed by skill_id */
+    unsigned char unknown_0e91[0x9d1];
 } W8Character;                           /* 0x1862 */
 
 typedef struct W8FactDatabaseRecord {
@@ -215,6 +237,11 @@ extern W8Character* g_party_characters;
 /* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
    established, and GetRandomCharacter treats it as a slot-occupied flag. */
 extern unsigned char (*g_party_slot_rows)[0x106];
+/* Flat table indexed by skill_id * 15 + profession. */
+extern int g_profession_skill_availability[0x29][15];
+extern int g_profession_bonus_skills[15];
+/* Four skill ids per profession. */
+extern int g_profession_skills[15][4];
 extern int g_profession_magic_level_offsets[15];
 extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
@@ -330,6 +357,8 @@ W8FactionDisposition GetFactionDisposition(signed char faction);
 void StripMonsterNameSuffix(unsigned short* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
+unsigned char IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
+                                        const unsigned char* expert_realm_flags);
 unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
 void SaveFactState(int save_handle);

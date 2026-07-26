@@ -249,6 +249,7 @@ endif()
 if(WIZ8_BUILD_DECOMP)
     add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
         src/wiz8/character_items.c
+        src/wiz8/character_skills.c
         src/wiz8/controls_regions.cpp
         src/wiz8/gameplay_boundaries.c
         src/wiz8/location_variables.c
