@@ -33,6 +33,7 @@ Ranked by how often it has been the answer here:
 | `JL`/`JE` where canonical has `JB`/`JBE` | field or variable is **unsigned** | change the type |
 | Register roles permuted | control-flow shape is wrong | fix the flow; registers follow |
 | Duplicated `return` epilogue | separate `if`s where the original used one short-circuit `\|\|` | merge into `\|\|` |
+| Loop's first comparison duplicated, two `return` epilogues | hand-rolled cursor in a `do`/`while` | use a counted `for` indexing the array; let VC6 strength-reduce it |
 | Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
 | Dead guards missing | `goto` let VC6 range-propagate and delete them | same fix — an inlined helper keeps the value opaque |
 | Registers clear in the wrong order | declaration/initialization order | reorder the initializers |
@@ -49,6 +50,12 @@ decompiler shows as plain ints.
 left operand first, so the byte order of the two emitted tests decides which offset is which.
 Swapping them reorders the tests and the body stops matching. This settles orderings that static
 reading cannot.
+
+**Loop shape.** VC6 lowers a counted `for (i = 0; i < n; ++i)` over `base[i]` into a guard plus a
+rotated `do`/`while` with a single backward branch, and sinks the `base` load past the guard because
+it is only needed inside. Writing the same loop with your own cursor pointer instead makes it peel
+the first comparison and emit a second epilogue. If a search function is close but ~8 bytes long
+with a duplicated compare, try the counted-`for`-over-index form before anything else.
 
 **Object size.** Search the caller for `push <size>; call <allocator>` immediately before the
 constructor call. That is the exact object size.

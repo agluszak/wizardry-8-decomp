@@ -48,3 +48,6 @@ address,symbol,source_path,attribution,interval_lower,interval_upper,bounds,evid
 0055ca80,Chunk::Write,Local Code\chunk.cpp,direct,0055c000,0055cb60,inclusive,the function itself contains an assertion naming this source path
 005d6e60,MonsterInfoDialog::ClearField41IfEnabled,,gap,005d3370,005d7310,exclusive,outside every assertion-bounded interval; between Dialog Code\stMessageDialog.cpp and Dialog Code\AssayDialog.cpp
 005dbde0,MonsterInfoDialog::ResetSubobjectAndRefresh,,gap,005db620,005dbee0,exclusive,outside every assertion-bounded interval; between Dialog Code\stButton.cpp and Dialog Code\SpellInfoDialog.cpp
+005e2870,PListGetAt,,gap,005e26b0,005e29a0,exclusive,outside every assertion-bounded interval; between 3D Code\PList.cpp and 3D Code\IList.cpp
+005e2890,PListIndexOf,,gap,005e26b0,005e29a0,exclusive,outside every assertion-bounded interval; between 3D Code\PList.cpp and 3D Code\IList.cpp
+005e2c70,PListGetCount,3D Code\IList.cpp,inferred,005e29a0,005e2cc0,inclusive,function start lies inside this unit's assertion-bounded interval

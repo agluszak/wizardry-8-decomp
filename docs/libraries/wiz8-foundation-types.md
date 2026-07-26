@@ -73,3 +73,47 @@ This container allocates through the global `operator new`, whereas SurRender's 
 through `srHeap` — which `Wiz8.exe` imports as one of the nine plain-C symbols in
 `config/analysis/surrender/wiz8-sr-imports.csv`. Which allocator a body calls is therefore a usable
 first-party-versus-vendor signal elsewhere in the image.
+
+
+## `PList`
+
+A second, unrelated container, from `3D Code\PList.cpp`. Its canonical assertions name the
+parameters `ppl` and `pEntry`, and its three accessors are now byte-exact:
+
+| Address | Function | Size |
+| --- | --- | ---: |
+| `0x005E2C70` | `PListGetCount` | 13 |
+| `0x005E2870` | `PListGetAt` | 26 |
+| `0x005E2890` | `PListIndexOf` | 98 |
+
+| Offset | Field |
+| --- | --- |
+| `0x00` | `void** data` |
+| `0x08` | `int count` |
+
+It is worth stating what `PList` is *not*: it has no vptr, its elements sit at `+0x00` rather than
+`+0x0C`, its count is at `+0x08` rather than `+0x04`, and it is reached through free functions
+rather than methods. Nothing about it is shared with `W8PtrVector` beyond both being arrays of
+pointers, so the two must not be conflated the way `W8NPCItemListVector` and
+`W8MonsterGeneratorVector` were.
+
+`PListGetAt` bounds-checks with a signed `jge`, so the index is `int`; both it and `PListGetCount`
+return zero for a null list rather than faulting.
+
+### The loop shape that finally matched
+
+`PListIndexOf` is a search loop, and it took four attempts, which is worth recording because five
+other functions in `config/analysis/reccmp/wiz8-gameplay-boundaries.csv` are still
+`structurally-strong` with "loop peeling" named as the remaining difference:
+
+| Source shape | Result |
+| --- | ---: |
+| `do`/`while` over a cursor, early `return` | 106 bytes, first compare peeled, two epilogues |
+| same, with `goto` to a shared exit | 106 bytes, still peeled |
+| `for` over a cursor | 98 bytes, only the `data` load misplaced |
+| `for` indexing `ppl->data[index]` | **exact** |
+
+VC6 lowers a counted `for` over `base[i]` into a guard plus a rotated `do`/`while` with one backward
+branch, and sinks the `base` load past the guard because it is only needed inside the loop. Rolling
+the cursor by hand defeats both. Any near-miss that is a few bytes long with a duplicated comparison
+should try the counted-`for`-over-index form first.

@@ -104,6 +104,14 @@ typedef struct W8PtrVector {
     void** data;                          /* 0x0c */
 } W8PtrVector;                            /* 0x10 */
 
+/* 3D Code\PList.cpp. Distinct from W8PtrVector: no vptr, elements at +0x00 and
+   count at +0x08, accessed through free functions. */
+typedef struct W8PList {
+    void** data;                          /* 0x00 */
+    int unknown_04;
+    int count;                            /* 0x08 */
+} W8PList;
+
 /* Member names and types at 0x08 and 0x48 come from the canonical assertion
    expressions "pWorld && pWorld->plsProps" (Engine Code\3d.cpp:344) and
    "pWorld->psrMeshes" (Engine Code\3dapi.cpp:446); the offsets come from the
@@ -111,7 +119,7 @@ typedef struct W8PtrVector {
    coding for a PList and a SurRender object. */
 typedef struct W8World {
     unsigned char unknown_000[8];
-    void* plsProps;                       /* 0x008: PList of props */
+    W8PList* plsProps;                    /* 0x008: PList of props */
     unsigned char unknown_00c[0x3c];
     void** psrMeshes;                     /* 0x048: allocated array of mesh pointers */
     unsigned char unknown_04c[0x78];
@@ -240,8 +248,9 @@ extern int g_message_box_line_capacity;
    field; distinct from g_message_box_line_count. */
 extern int g_message_sequence;
 
-unsigned int PListGetCount(void* list);
-void* PListGetAt(void* list, unsigned int index);
+
+unsigned int PListGetCount(W8PList* ppl);
+void* PListGetAt(W8PList* ppl, int index);
 int PListIndexOf(void* list, void* target);
 W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
 
