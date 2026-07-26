@@ -112,6 +112,14 @@ typedef struct W8StatusBuffers {
     void* buffer_08;                     /* 0x08: 0x830 bytes */
 } W8StatusBuffers;
 
+/* The global status block. It opens with the same two heap buffers
+   AllocateStatusBuffers manages on a caller-supplied one, and 0x0054AF30 clears
+   the whole block - pointers included - before allocating fresh ones. */
+typedef struct W8GlobalStatus {
+    W8StatusBuffers buffers;             /* 0x0000 */
+    unsigned char unknown_000c[0x49b6];
+} W8GlobalStatus;                        /* 0x49c2 */
+
 /* One Data\Databases\NPC.DBS record. Only the stride and the sub-list pointer
    the loader fills and the destructor tears down are established. */
 typedef struct W8NpcDatabaseRecord {
@@ -516,6 +524,7 @@ unsigned char InitializeFactDatabase(void);
 unsigned char InitializeItemDatabase(void);
 unsigned char InitializeLevelDatabase(void);
 unsigned char InitializeItemTables(void);
+void DestroyItemTables(void);
 unsigned char InitializeNpcDatabase(void);
 void DestroyNpcDatabase(void);
 int FindItemTableByName(const char* name);

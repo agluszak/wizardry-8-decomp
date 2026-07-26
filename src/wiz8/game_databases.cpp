@@ -20,6 +20,22 @@ extern void Function5E2530(void* list, unsigned int index, void* element);
    0x0054B300 resets one of eight slots. */
 extern void __fastcall Function52DB80(void* self);
 extern void Function54B300(unsigned int slot);
+extern W8GlobalStatus g_status_685170;
+extern bool g_flag_68517c;
+extern bool g_flag_687599;
+extern bool g_flag_683fa0;
+extern int g_dword_6850d5;
+extern int g_dword_6875b7;
+extern void Function5A9E70(void* target);
+extern void Function482720(int value);
+extern void Function482740(int value);
+extern void Function55EC60(void);
+extern void Function509890(void);
+extern void Function509920(void);
+extern void Function558820(void);
+extern void Function535920(void);
+extern void Function56C520(void);
+extern void Function55EC50(int value);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
 extern void Function4E8290(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
@@ -399,4 +415,86 @@ void ResetTargetingState(void)
     }
     g_target_state_6840b3 = -1;
     g_target_state_6840b7 = -1;
+}
+
+/* The counterpart to InitializeItemTables: the category names first, then the
+   tables, each entry freed before its array. Both arrays are re-read after
+   every free because nothing tells VC6 that free leaves them alone. */
+// FUNCTION: WIZ8 0x0054A6E0
+void DestroyItemTables(void)
+{
+    unsigned int index;
+
+    if (g_item_table_category_names) {
+        for (index = 0; index < g_item_table_category_count; ++index) {
+            if (g_item_table_category_names[index]) {
+                free(g_item_table_category_names[index]);
+            }
+        }
+        free(g_item_table_category_names);
+    }
+    if (g_item_tables) {
+        for (index = 0; index < g_item_table_count; ++index) {
+            if (g_item_tables[index]) {
+                free(g_item_tables[index]);
+            }
+        }
+        free(g_item_tables);
+    }
+}
+
+/* Raises three flags, optionally hands the caller's target to 0x005A9E70, then
+   runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
+   share one stack cleanup, as consecutive cdecl calls do. */
+// FUNCTION: WIZ8 0x0054B250
+void Function54B250(unsigned char notify, void* target)
+{
+    g_flag_68517c = true;
+    if (target) {
+        g_flag_687599 = true;
+        Function5A9E70(target);
+    }
+    g_dword_6875b7 = g_dword_6850d5;
+    g_flag_683fa0 = true;
+    Function482720(0x2932e00);
+    Function482740(1);
+    if (notify) {
+        Function55EC60();
+    }
+    Function509890();
+    Function509920();
+    Function558820();
+    Function535920();
+    Function56C520();
+    Function55EC50(2);
+}
+
+/* Optionally releases the global status block's two buffers, then clears the
+   whole block - which zeroes those pointers as a side effect, since they live
+   inside it - and allocates them again. Either allocation failing leaves the
+   block cleared and the other buffer live, as the original does. */
+// FUNCTION: WIZ8 0x0054AF30
+void Function54AF30(unsigned char release)
+{
+    if (release) {
+        if (g_status_685170.buffers.buffer_04) {
+            free(g_status_685170.buffers.buffer_04);
+            g_status_685170.buffers.buffer_04 = 0;
+        }
+        if (g_status_685170.buffers.buffer_08) {
+            free(g_status_685170.buffers.buffer_08);
+            g_status_685170.buffers.buffer_08 = 0;
+        }
+    }
+    memset(&g_status_685170, 0, sizeof(g_status_685170));
+    g_status_685170.buffers.buffer_04 = malloc(0xc310);
+    if (!g_status_685170.buffers.buffer_04) {
+        return;
+    }
+    g_status_685170.buffers.buffer_08 = malloc(0x830);
+    if (!g_status_685170.buffers.buffer_08) {
+        return;
+    }
+    memset(g_status_685170.buffers.buffer_04, 0, 0xc310);
+    memset(g_status_685170.buffers.buffer_08, 0, 0x830);
 }
