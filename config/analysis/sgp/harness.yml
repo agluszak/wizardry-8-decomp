@@ -57,3 +57,7 @@ units:
     target: WIZ8_SGP_DBMAN
     source: DbMan.c
     overlay: dbman
+  - id: container
+    target: WIZ8_SGP_CONTAINER
+    source: Container.c
+    overlay: container

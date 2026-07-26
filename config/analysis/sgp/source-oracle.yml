@@ -140,6 +140,24 @@ compression_unit:
     retained COMDATs preserve source order at 0x00415820 through 0x004158F0;
     inflateReset begins at 0x00415910 after alignment.
 
+container_unit:
+  source: sgp/Container.c
+  selected_flags: [/O2, /Ob2, /G5, /MD]
+  emitted_functions: 32
+  retained_physical_bodies: 10
+  retained_source_identities: 12
+  stripped_source_identities: 20
+  retained_range: [0x00405970, 0x00405e58]
+  folded_aliases:
+    DeleteStack: [DeleteList]
+    StackSize: [ListSize]
+  layouts:
+    StackHeader: {size: 0x0c, layout_origin: sgp-source}
+    QueueHeader: {size: 0x14, layout_origin: sgp-source}
+    ListHeader: {size: 0x14, layout_origin: sgp-source}
+    OrdListHeader: {size: 0x18, layout_origin: sgp-source}
+  unrelated_first_party_family: 3D Code/PList.cpp
+
 library_database_units:
   sources: [sgp/LibraryDataBase.c, sgp/DbMan.c]
   selected_flags: [/O2, /Ob2, /G5, /MD]

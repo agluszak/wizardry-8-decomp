@@ -33,6 +33,7 @@ def apply_sgp_model(
         PointerDataType,
         QWordDataType,
         ShortDataType,
+        SignedByteDataType,
         TypedefDataType,
         VoidDataType,
         WordDataType,
@@ -54,6 +55,7 @@ def apply_sgp_model(
                 dword = DWordDataType.dataType
                 integer = IntegerDataType.dataType
                 qword = QWordDataType.dataType
+                signed_byte = SignedByteDataType.dataType
                 short = ShortDataType.dataType
                 void = VoidDataType.dataType
                 word = WordDataType.dataType
@@ -166,6 +168,81 @@ def apply_sgp_model(
                 boolean = dtm.addDataType(
                     TypedefDataType(category, "BOOLEAN", byte, dtm),
                     DataTypeConflictHandler.REPLACE_HANDLER,
+                )
+                hcontainer = dtm.addDataType(
+                    TypedefDataType(category, "HCONTAINER", generic_pointer, dtm),
+                    DataTypeConflictHandler.REPLACE_HANDLER,
+                )
+                container_handles = {
+                    name: dtm.addDataType(
+                        TypedefDataType(category, name, hcontainer, dtm),
+                        DataTypeConflictHandler.REPLACE_HANDLER,
+                    )
+                    for name in ("HSTACK", "HQUEUE", "HLIST", "HORDLIST")
+                }
+                compare_function = _function_type(
+                    dtm,
+                    category,
+                    "ContainerCompareFunction",
+                    signed_byte,
+                    [
+                        ("left", generic_pointer),
+                        ("right", generic_pointer),
+                        ("size", dword),
+                    ],
+                    "__cdecl",
+                )
+                compare_pointer = PointerDataType(compare_function, dtm)
+                stack_header = _structure(
+                    dtm,
+                    category,
+                    "StackHeader",
+                    0x0C,
+                    [
+                        (0x00, dword, "uiTotal_items", "source item count"),
+                        (0x04, dword, "uiSiz_of_elem", "source element size"),
+                        (0x08, dword, "uiMax_size", "source allocation size"),
+                    ],
+                )
+                queue_header = _structure(
+                    dtm,
+                    category,
+                    "QueueHeader",
+                    0x14,
+                    [
+                        (0x00, dword, "uiTotal_items", "source item count"),
+                        (0x04, dword, "uiSiz_of_elem", "source element size"),
+                        (0x08, dword, "uiMax_size", "source allocation size"),
+                        (0x0C, dword, "uiHead", "source circular-buffer head"),
+                        (0x10, dword, "uiTail", "source circular-buffer tail"),
+                    ],
+                )
+                list_header = _structure(
+                    dtm,
+                    category,
+                    "ListHeader",
+                    0x14,
+                    [
+                        (0x00, dword, "uiTotal_items", "source item count"),
+                        (0x04, dword, "uiSiz_of_elem", "source element size"),
+                        (0x08, dword, "uiMax_size", "source allocation size"),
+                        (0x0C, dword, "uiHead", "source circular-buffer head"),
+                        (0x10, dword, "uiTail", "source circular-buffer tail"),
+                    ],
+                )
+                ord_list_header = _structure(
+                    dtm,
+                    category,
+                    "OrdListHeader",
+                    0x18,
+                    [
+                        (0x00, dword, "uiTotal_items", "source item count"),
+                        (0x04, dword, "uiSiz_of_elem", "source element size"),
+                        (0x08, dword, "uiMax_size", "source allocation size"),
+                        (0x0C, dword, "uiHead", "source circular-buffer head"),
+                        (0x10, dword, "uiTail", "source circular-buffer tail"),
+                        (0x14, compare_pointer, "pCompare", "source ordering callback"),
+                    ],
                 )
                 hwfile = dtm.addDataType(
                     TypedefDataType(category, "HWFILE", dword, dtm),
@@ -654,6 +731,83 @@ def apply_sgp_model(
                         )
                     applied.append(f"0x{raw_address:08x}")
 
+                hstack = container_handles["HSTACK"]
+                hlist = container_handles["HLIST"]
+                container_signatures: dict[int, tuple[Any, list[tuple[str, Any]]]] = {
+                    0x00405970: (
+                        hstack,
+                        [("uiNum_items", dword), ("uiSiz_each", dword)],
+                    ),
+                    0x004059B0: (
+                        hlist,
+                        [("uiNum_items", dword), ("uiSiz_each", dword)],
+                    ),
+                    0x00405A00: (
+                        hstack,
+                        [("hStack", hstack), ("pdata", generic_pointer)],
+                    ),
+                    0x00405A70: (
+                        boolean,
+                        [("hStack", hstack), ("pdata", generic_pointer)],
+                    ),
+                    0x00405AC0: (
+                        boolean,
+                        [("hStack", hstack), ("pdata", generic_pointer)],
+                    ),
+                    0x00405B00: (boolean, [("hContainer", hcontainer)]),
+                    0x00405B20: (
+                        boolean,
+                        [
+                            ("hList", hlist),
+                            ("pdata", generic_pointer),
+                            ("uiPos", dword),
+                        ],
+                    ),
+                    0x00405B90: (
+                        boolean,
+                        [
+                            ("hList", hlist),
+                            ("pdata", generic_pointer),
+                            ("uiPos", dword),
+                        ],
+                    ),
+                    0x00405C00: (dword, [("hContainer", hcontainer)]),
+                    0x00405C10: (
+                        hlist,
+                        [
+                            ("hList", hlist),
+                            ("pdata", generic_pointer),
+                            ("uiPos", dword),
+                        ],
+                    ),
+                }
+                for raw_address, (return_type, arguments) in container_signatures.items():
+                    address = address_space.getAddress(raw_address)
+                    function = program.getFunctionManager().getFunctionAt(address)
+                    if function is None:
+                        raise RuntimeError(f"no function at 0x{raw_address:08x}")
+                    signature = _function_type(
+                        dtm,
+                        category,
+                        f"signature_{function.getName()}",
+                        return_type,
+                        arguments,
+                        "__cdecl",
+                    )
+                    command = ApplyFunctionSignatureCmd(
+                        address,
+                        signature,
+                        SourceType.USER_DEFINED,
+                        True,
+                        FunctionRenameOption.NO_CHANGE,
+                    )
+                    if not command.applyTo(program):
+                        raise RuntimeError(
+                            f"failed to apply signature at 0x{raw_address:08x}: "
+                            f"{command.getStatusMsg()}"
+                        )
+                    applied.append(f"0x{raw_address:08x}")
+
                 database_address = address_space.getAddress(0x006EB720)
                 _apply_data(program, database_address, database_manager)
                 symbol_table = program.getSymbolTable()
@@ -689,6 +843,10 @@ def apply_sgp_model(
                                 real_file_open,
                                 real_file_header,
                                 database_manager,
+                                stack_header,
+                                queue_header,
+                                list_header,
+                                ord_list_header,
                             )
                         ],
                         "typed_functions": applied,

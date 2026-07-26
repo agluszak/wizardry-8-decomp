@@ -217,6 +217,26 @@ The byte offsets and behavioral deltas are tracked in the `fileman` rows of
 `config/analysis/sgp/reviewed-findings.csv`; the generated similarities remain in the matching
 rows of `config/analysis/sgp/harness.csv`.
 
+## `Container.c`: retained stack and list APIs
+
+The unchanged vendored unit emits 32 functions under the common profile. Wizardry retains ten
+physical bodies in one source-ordered block from `0x00405970` through `0x00405E58`. They represent
+twelve source identities: `CreateStack`, `CreateList`, `Push`, `Pop`, `PeekStack`, `DeleteStack`,
+`DeleteList`, `PeekList`, `StoreListNode`, `StackSize`, `ListSize`, and `AddtoList`.
+
+Six bodies are unique relocation-masked matches. Four short bodies collide with other source
+functions and were resolved from the block and its callers. Calls to `0x004059B0` pass list element
+sizes and are followed by `PeekList`/`AddtoList`; no queue operation survives. The sole caller of
+`0x00405B90` uses the operation that the released source explicitly says was added for Wizardry,
+`StoreListNode`, while `SwapListNode` is labelled as a JA2 addition. Both stack and list callers reach
+the folded delete body at `0x00405B00` and the folded size body at `0x00405C00`, so both source names
+are preserved as aliases. The other twenty identities are stripped.
+
+The source defines a `0x0C`-byte `StackHeader`, `0x14`-byte `QueueHeader` and `ListHeader`, and
+`0x18`-byte `OrdListHeader`. These layouts and the ten physical function prototypes are installed in
+Ghidra under `/wiz8/sgp`. This API is unrelated to the first-party `3D Code/PList.cpp` family used by
+the monster code; no `PList` field was inferred from `Container.c`.
+
 ## `LibraryDataBase.c` and `DbMan.c`: vendored SLF subsystem
 
 These units are compiled directly from `third_party/sfi-sgp/sgp`; they are no longer treated as

@@ -401,6 +401,14 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     # count used by LibraryDataBase.c. DbMan.c has no product-private surface.
     wiz8_add_sgp_unit(WIZ8_SGP_LIBRARY_DATABASE "LibraryDataBase.c" librarydatabase)
     wiz8_add_sgp_unit(WIZ8_SGP_DBMAN "DbMan.c" dbman)
+
+    # Container.c is the released SGP contiguous-container implementation
+    # (HSTACK/HQUEUE/HLIST/HORDLIST), not Wizardry's first-party PList class.
+    wiz8_add_sgp_unit(WIZ8_SGP_CONTAINER "Container.c" container)
+    if(WIZ8_BUILD_DECOMP)
+        add_dependencies(WIZ8_MATCHING WIZ8_SGP_CONTAINER)
+        target_sources(WIZ8_BRINGUP PRIVATE $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>)
+    endif()
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

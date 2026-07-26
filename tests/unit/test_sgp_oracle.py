@@ -45,11 +45,12 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     ) as stream:
         paths = list(csv.DictReader(stream))
 
-    assert len(functions) == 35
+    assert len(functions) == 45
     assert {row["confidence"] for row in functions} == {"exact"}
     assert {row["owner"] for row in functions} == {"sgp-shared"}
     assert {row["source_path"] for row in functions} == {
         "sgp/DirectDraw Calls.c",
+        "sgp/Container.c",
         "sgp/FileMan.c",
         "sgp/LibraryDataBase.c",
         "sgp/Random.c",
@@ -113,6 +114,7 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
     assert harness["project_flag_hypothesis"] == ["/O2", "/Ob2", "/G5", "/MD"]
     assert {unit["id"] for unit in harness["units"]} == {
         "compression",
+        "container",
         "dbman",
         "directdraw",
         "fileman",
@@ -226,11 +228,57 @@ def test_compression_unit_classifies_every_emitted_function() -> None:
         "CompressFini",
     ]
     assert [row["source_line"] for row in reviewed[:5]] == ["14", "19", "24", "55", "80"]
-    assert {row["canonical_classification"] for row in reviewed[:5]} == {"relocation-equivalent"}
-    assert {row["canonical_classification"] for row in reviewed[5:]} == {"absent-or-stripped"}
+    assert {row["canonical_classification"] for row in reviewed[:5]} == {
+        "relocation-equivalent"
+    }
+    assert {row["canonical_classification"] for row in reviewed[5:]} == {
+        "absent-or-stripped"
+    }
     assert reviewed[4]["canonical_address"] == "004158f0"
     assert "inflateEnd" in reviewed[4]["evidence"]
     assert "inflateEnd" in reviewed[-1]["evidence"]
+
+
+def test_container_unit_separates_retained_stack_list_apis_from_stripped_families() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    harness = _harness_rows(repository, "container")
+    reviewed = _reviewed_rows(repository, "container")
+
+    assert len(harness) == 32 * 7
+    assert {row["flags"] for row in harness} == {"/O2 /Ob2 /G5 /MD"}
+    assert len(reviewed) == 32
+    assert sum(row["finding"] == "retained" for row in reviewed) == 12
+    assert sum(row["finding"] == "stripped" for row in reviewed) == 20
+    assert {
+        row["function"]
+        for row in reviewed
+        if row["canonical_address"] == "00405b00"
+    } == {"DeleteStack", "DeleteList"}
+    assert {
+        row["function"]
+        for row in reviewed
+        if row["canonical_address"] == "00405c00"
+    } == {"StackSize", "ListSize"}
+
+    with (repository / "config/analysis/functions/wiz8-sgp.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        accepted = [
+            row for row in csv.DictReader(stream) if row["source_path"] == "sgp/Container.c"
+        ]
+    assert len(accepted) == 10
+    assert {row["address"] for row in accepted} == {
+        "00405970",
+        "004059b0",
+        "00405a00",
+        "00405a70",
+        "00405ac0",
+        "00405b00",
+        "00405b20",
+        "00405b90",
+        "00405c00",
+        "00405c10",
+    }
 
 
 def test_fileman_exact_and_near_results_stay_separate() -> None:
