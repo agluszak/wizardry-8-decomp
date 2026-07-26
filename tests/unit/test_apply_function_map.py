@@ -77,6 +77,32 @@ def test_load_function_identities_rejects_self_alias(tmp_path: Path) -> None:
         load_function_identities(path)
 
 
+def test_load_function_identities_uses_stable_ids_not_evidence_narratives(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "functions.csv"
+    path.write_text(
+        "program,address,provisional_name,owner,confidence,name_origin,authority,"
+        "source_path,evidence\n"
+        "wiz8,005e2890,PListIndexOf,wiz8-foundation,exact,descriptive,descriptive,"
+        "3D Code\\PList.cpp,a long reconstruction narrative\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "function-evidence.csv").write_text(
+        "evidence_id,program,address,origin,kind,reference,details\n"
+        "function-evidence:wiz8:005e2890:reccmp,wiz8,005e2890,reccmp,exact-compile,"
+        "match:e0393a26,a much longer explanation\n",
+        encoding="utf-8",
+    )
+
+    identity = load_function_identities(path)[0]
+
+    assert identity.identity_id == "functions:wiz8:005e2890"
+    assert identity.source_unit == "3D Code\\PList.cpp"
+    assert identity.evidence_ids == ("function-evidence:wiz8:005e2890:reccmp",)
+    assert identity.evidence == "a long reconstruction narrative"
+
+
 def test_wiz8_zlib_map_covers_library_and_owned_boundary() -> None:
     repository = Path(__file__).resolve().parents[2]
     identities = load_function_identities(repository / "evidence/reviewed/wiz8/functions.csv")

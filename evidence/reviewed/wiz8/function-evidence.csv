@@ -1,240 +1,241 @@
-program,address,origin,kind,reference,details
-wiz8,00401000,vc6-runtime,identity-review,name_origin=descriptive,"The PE optional header's entry point in a subsystem-2 image, running the standard MSVC 6 GUI startup sequence: SEH frame, __setusermatherr, __getmainargs, both _initterm tables, _acmdln parsing, GetStartupInfoA, then WinMain and exit. The name is the toolchain's convention rather than anything the binary states, so it stays descriptive until a FID match against a pinned CRT snapshot corroborates it"
-wiz8,0040115e,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB10C)"
-wiz8,00401164,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB0FC); called twice from the CRT entry, for the C and C++ initializer tables"
-wiz8,00401180,vc6-runtime,identity-review,name_origin=descriptive,"Local CRT wrapper that forwards to the MSVCRT _onexit import at 0x005EB0F0 when the table pointers at 0x0069DA74/0x0069DA78 are uninitialised, otherwise appends through 0x004011CC. Name is the CRT's convention, not stated by the binary"
-wiz8,004011ac,vc6-runtime,identity-review,name_origin=descriptive,"Calls 0x00401180 and normalises its result to a boolean with neg/sbb, which is the standard CRT atexit-over-_onexit shape. BringUpEngine uses it to register the shutdown handler at 0x004017F0"
-wiz8,004011c0,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB0DC); installed as the CRT entry's SEH handler"
-wiz8,00404bf0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00404c40,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00404c80,formats,identity-review,name_origin=sgp-source,Source name and complete body recovered from pinned SGP FileMan.c; opens a physical file or resolves a read-only member through the initialized SLF archive table; former descriptive name OpenVirtualFile
-wiz8,00404c80,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; supersedes descriptive name
-wiz8,00404e10,formats,identity-review,name_origin=descriptive,Closes a physical handle or releases an SLF-backed virtual-file slot
-wiz8,00404ea0,formats,identity-review,name_origin=descriptive,Reads bytes from either a physical handle or an SLF archive entry and reports the completed byte count
-wiz8,00404fb0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405030,formats,identity-review,name_origin=sgp-source,Source name and complete body recovered from pinned SGP FileMan.c; seeks a physical handle or SLF-backed entry using origin values 1 2 and 4; former descriptive name SeekVirtualFile
-wiz8,00405030,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; supersedes descriptive name
-wiz8,004051d0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,004051f0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405200,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405270,sgp,identity-review,sgp/FileMan.c,Exact in four comparable modules; Wiz8New.exe differs by the reviewed fFindInfoInUse assignment byte
-wiz8,00405300,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405350,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405390,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,004054d0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,004054f0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405550,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405970,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,004059b0,sgp,identity-review,sgp/Container.c,Source body collides with CreateQueue; list-sized callers and the retained list API establish CreateList in every comparable build
-wiz8,00405a00,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405a70,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405ac0,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405b00,sgp,identity-review,sgp/Container.c,VC6 folded the identical referenced stack and list delete bodies at one address in every comparable build
-wiz8,00405b20,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00405b90,sgp,identity-review,sgp/Container.c,The identical generic body is used by a Wizardry list caller and the source marks StoreListNode as the Wizardry addition
-wiz8,00405c00,sgp,identity-review,sgp/Container.c,VC6 folded the identical referenced stack and list size bodies at one address in every comparable build
-wiz8,00405c10,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00408860,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PlaySound English seed address verified by embedded expected bytes
-wiz8,0040ef80,sgp,identity-review,sgp/Random.c,VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build
-wiz8,0040efa0,cfagent-oracle,identity-review,name_origin=fan-patch-signature|sgp-source,"CFAgent pW8FUNC_GetRandomNumber seed address, promoted by the exact SGP Random.c compile that names the body Random"
-wiz8,0040efa0,sgp,identity-review,sgp/Random.c,VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build; supersedes the CFAgent name for the same verified address
-wiz8,0040efe0,sgp,identity-review,sgp/Random.c,"VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build; Wizardry inlined Random into it, which plain /O2 does not do"
-wiz8,0040f0b0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f100,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f150,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f180,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f1c0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f210,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f230,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f290,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f300,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f340,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f380,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f3c0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,0040f3e0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
-wiz8,004126f0,formats,identity-review,name_origin=descriptive,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
-wiz8,00412a10,formats,identity-review,name_origin=descriptive,Closes or reopens each of six configured SLF archives and recreates optional file mappings
-wiz8,00412b10,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00412bb0,formats,identity-review,name_origin=descriptive,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries
-wiz8,00413680,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00413730,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile raw body exact in every comparable build
-wiz8,00413d00,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
-wiz8,00415820,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-wiz8,00415840,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-wiz8,00415850,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-wiz8,004158b0,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-wiz8,004158f0,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-wiz8,00415910,zlib,identity-review,name_origin=original-source,State writes and inflate_blocks_reset call match inflate.c exactly
-wiz8,00415960,zlib,identity-review,name_origin=original-source,Frees the block state and inflate state through the configured allocator
-wiz8,004159c0,zlib,identity-review,name_origin=original-source,Checks version 1.0.4 and z_stream size then allocates the inflate state and block window
-wiz8,00415ad0,zlib,identity-review,name_origin=original-source,Exact wrapper call to inflateInit2_ with MAX_WBITS 15
-wiz8,00415af0,zlib,identity-review,name_origin=original-source,Unique inflate state machine and exact 1.0.4 error strings
-wiz8,00415f10,zlib,identity-review,name_origin=original-source,Patched-build boundary plus exact pending-buffer copy semantics from deflate.c
-wiz8,00415f60,zlib,identity-review,name_origin=original-source,Patched-build boundary plus exact stored-block loop and _tr_flush_block calls
-wiz8,00416070,zlib,identity-review,name_origin=original-source,Patched-build boundary plus window slide and hash-chain maintenance from deflate.c
-wiz8,00416180,zlib,identity-review,name_origin=original-source,Patched-build boundary plus input copy and optional Adler update
-wiz8,004161f0,zlib,identity-review,name_origin=original-source,Patched-build boundary plus fast match/tally loop and deflate helper call graph
-wiz8,00416450,zlib,identity-review,name_origin=original-source,Patched-build boundary plus exact hash-chain match search
-wiz8,004165c0,zlib,identity-review,name_origin=original-source,Patched-build boundary plus lazy match/tally loop and deflate helper call graph
-wiz8,004168b0,zlib,identity-review,name_origin=original-source,Resets block mode bit buffer window cursors and checksum exactly as infblock.c
-wiz8,00416940,zlib,identity-review,name_origin=original-source,Allocates the 0x3c-byte block state and caller-sized window then resets it
-wiz8,004169b0,zlib,identity-review,name_origin=original-source,Unique block decoder state machine and exact 1.0.4 block error strings
-wiz8,004177d0,zlib,identity-review,name_origin=original-source,Resets then frees the block window and block state
-wiz8,00417810,zlib,identity-review,name_origin=original-source,Passed as the inflate block checksum callback and implements the Adler-32 5552-byte chunk loop
-wiz8,00417940,zlib,identity-review,name_origin=original-source,Exact default allocator wrapper around calloc
-wiz8,00417960,zlib,identity-review,name_origin=original-source,Exact default deallocator wrapper around free
-wiz8,00417970,zlib,identity-review,name_origin=original-source,Zeros literal distance and bit-length frequencies and resets block counters
-wiz8,004179e0,zlib,identity-review,name_origin=original-source,Builds canonical Huffman codes and calls bi_reverse
-wiz8,00417a60,zlib,identity-review,name_origin=original-source,Emits the stored-block header then calls copy_block
-wiz8,00417b20,zlib,identity-review,name_origin=original-source,Selects stored static or dynamic trees and resets the block
-wiz8,00417d40,zlib,identity-review,name_origin=original-source,Constructs a Huffman heap then calls pqdownheap gen_bitlen and gen_codes
-wiz8,00417f50,zlib,identity-review,name_origin=original-source,Exact heap restoration over tree frequencies and depth tie-breaking
-wiz8,00418000,zlib,identity-review,name_origin=original-source,Computes optimal bit lengths and repairs overflow
-wiz8,004181e0,zlib,identity-review,name_origin=original-source,Scans literal and distance trees then builds the bit-length tree
-wiz8,00418250,zlib,identity-review,name_origin=original-source,Counts repeated code lengths into REP_3_6 REPZ_3_10 and REPZ_11_138 frequencies
-wiz8,00418340,zlib,identity-review,name_origin=original-source,Emits HLIT HDIST and HCLEN then calls send_tree for both trees
-wiz8,004185a0,zlib,identity-review,name_origin=original-source,Emits repeated code lengths using the three repeat symbols
-wiz8,00418b20,zlib,identity-review,name_origin=original-source,Records literal or match tokens and updates literal/distance frequencies
-wiz8,00418c30,zlib,identity-review,name_origin=original-source,Encodes the token buffers with literal length and distance trees
-wiz8,004190a0,zlib,identity-review,name_origin=original-source,Compares ASCII and binary literal frequencies to set the stream data type
-wiz8,00419110,zlib,identity-review,name_origin=original-source,Exact bit-reversal loop used by gen_codes
-wiz8,00419140,zlib,identity-review,name_origin=original-source,Flushes the remaining bit buffer and resets bi_buf and bi_valid
-wiz8,004191a0,zlib,identity-review,name_origin=original-source,Winds up bits writes optional LEN/NLEN and copies the stored bytes
-wiz8,00419230,zlib,identity-review,name_origin=original-source,Calls huft_build with the 19-code bit-length alphabet and exact error strings
-wiz8,00419290,zlib,identity-review,name_origin=original-source,Only inftrees.c routine called by all three tree constructors with matching allocator/free behavior
-wiz8,00419760,zlib,identity-review,name_origin=original-source,Builds literal/length and distance trees and emits exact dynamic-tree errors
-wiz8,00419850,zlib,identity-review,name_origin=original-source,Lazily constructs the fixed 288-entry literal and 30-entry distance trees
-wiz8,004199c0,zlib,identity-review,name_origin=original-source,Walks and frees the linked Huffman allocation chain
-wiz8,00419a00,zlib,identity-review,name_origin=original-source,Allocates and initializes the 0x1c-byte inflate code state
-wiz8,00419a40,zlib,identity-review,name_origin=original-source,Unique literal length distance decoder and exact invalid-code strings
-wiz8,0041a340,zlib,identity-review,name_origin=original-source,Exact configured-allocator free wrapper for the code state
-wiz8,0041a360,zlib,identity-review,name_origin=original-source,Shared 39-call-site output-window flush routine from infutil.c
-wiz8,0041a4a0,zlib,identity-review,name_origin=original-source,Fast decoder reached from inflate_codes with the same invalid-code strings
-wiz8,00421680,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_3FloatsToVector English seed address verified by embedded expected bytes
-wiz8,0042a6f0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_LoadLevel English seed address verified by embedded expected bytes
-wiz8,0042b410,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetLocationIDFromCode English seed address verified by embedded expected bytes
-wiz8,0042b550,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_LevelGetFolderNameByID English seed address verified by embedded expected bytes
-wiz8,0042b580,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetLoadedLevelID English seed address verified by embedded expected bytes
-wiz8,0042bc10,formats,identity-review,name_origin=original-runtime-string,Embedded failure diagnostics identify ReadOctFile and enumerate its octree preregion mesh trigger and lookup sections
-wiz8,0043d940,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_RunTrigger English seed address verified by embedded expected bytes
-wiz8,00443780,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindTriggerByName English seed address verified by embedded expected bytes
-wiz8,00443dc0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_CreateLocationVar English seed address verified by embedded expected bytes
-wiz8,00444170,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetLocationVarIDByName English seed address verified by embedded expected bytes
-wiz8,004456e0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PrintNothingHappenOrSpecItemReq English seed address verified by embedded expected bytes
-wiz8,00446110,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_Copy3DVector English seed address verified by embedded expected bytes
-wiz8,00451280,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetWorld English seed address verified by embedded expected bytes
-wiz8,004512c0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindEntityByName English seed address verified by embedded expected bytes
-wiz8,00459540,formats,identity-review,name_origin=descriptive,OctPath.cpp writes a version-two WPT header followed by 0x10-byte waypoints and 0x0e-byte links
-wiz8,00459650,formats,identity-review,name_origin=descriptive,OctPath.cpp reads WPT versions one and two then materializes the runtime adjacency and hash structures
-wiz8,0048a7a0,formats,identity-review,name_origin=descriptive,MonGen.cpp loads EncounterTables.dbs into 72 runtime tables with columnar species rarity time challenge and script-name data
-wiz8,0048ad20,formats,identity-review,name_origin=original-runtime-string,The embedded diagnostic names MonGen GenerateEncounter and its canonical body rolls group size and two optional companion records
-wiz8,0048b9a0,formats,identity-review,name_origin=descriptive,Filters one encounter table by party challenge level weighted rarity and the recovered day night or any-time selector
-wiz8,0048bdc0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindMonGenByName English seed address verified by embedded expected bytes
-wiz8,0048c110,formats,identity-review,name_origin=original-runtime-string,The embedded diagnostic names MonGen LoadAll and the function restores encounter state then applies the current level's bounds
-wiz8,0048c810,formats,identity-review,name_origin=descriptive,Replenishes the current level's encounter budget by elapsed time and clamps both budget and active-encounter limit
-wiz8,0048c8e0,formats,identity-review,name_origin=descriptive,Compares active encounter ages with the configured culling time and removes sufficiently distant expired groups
-wiz8,004a5e50,classes,identity-review,name_origin=original-source-path,Constructs base and secondary subobject then writes vtables 0x005ece78 and 0x005eceb8
-wiz8,004a5f00,classes,identity-review,name_origin=original-source-path,Primary vtable slot zero calls 0x004a6610 then conditionally invokes operator delete
-wiz8,004a5f20,classes,identity-review,name_origin=original-source-path,Copy constructor rebuilds the secondary subobject copies owned graphics state and installs both vtables
-wiz8,004a6610,classes,identity-review,name_origin=original-source-path,Restores both vtables releases owned cycle resources and destroys secondary and base subobjects
-wiz8,004ac9d0,formats,identity-review,name_origin=descriptive,Returns the target-type field at runtime offset 0x137 and optionally normalizes type one to zero
-wiz8,004aca60,formats,identity-review,name_origin=descriptive,The canonical casting failure path uses this target-type and spell-ID predicate to decide whether a failed spell can backfire
-wiz8,004acb40,formats,identity-review,name_origin=descriptive,Maps spell levels one through seven to minimum caster levels 1 3 5 8 11 14 and 18
-wiz8,004acba0,formats,identity-review,name_origin=descriptive,Loads a spell's level and returns the corresponding minimum caster level
-wiz8,004acc10,formats,identity-review,name_origin=descriptive,Reads the count and version from SpellTables.dbs then skips 0x101 and loads 0x1bf bytes for each spell
-wiz8,004bea20,classes,identity-review,name_origin=original-source-path,Constructs three 0x1b0-byte arrays initializes fields through 0x624 and writes vtable 0x005ed200
-wiz8,004beba0,classes,identity-review,name_origin=original-source-path,Vtable slot zero calls 0x004bee50 then conditionally invokes operator delete
-wiz8,004bebd0,classes,identity-review,name_origin=original-source-path,Copy constructor rebuilds the same three arrays copies state from its source argument and writes vtable 0x005ed200
-wiz8,004bee50,classes,identity-review,name_origin=original-source-path,Destroys the three arrays in reverse order and tears down the base object
-wiz8,004d8f00,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SpawnMonsters English seed address verified by embedded expected bytes
-wiz8,004d8f80,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_CreateAndPlaySoundNode English seed address verified by embedded expected bytes
-wiz8,004dcd40,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_TrigFuncArrowTrap English seed address verified by embedded expected bytes
-wiz8,004e5550,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MonsterGetIndexByLocID English seed address verified by embedded expected bytes
-wiz8,004e5620,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MonsterGetScriptPartByLocIndex English seed address verified by embedded expected bytes
-wiz8,004e57c0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetMonsterDataByID English seed address verified by embedded expected bytes
-wiz8,004e7090,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_StartCombat English seed address verified by embedded expected bytes
-wiz8,004f6c50,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SpawnItem English seed address verified by embedded expected bytes
-wiz8,004f88a0,formats,identity-review,name_origin=descriptive,Case-insensitively searches the 114 named ItemTables.dbs records and returns the table index or minus one
-wiz8,004f88f0,formats,identity-review,name_origin=descriptive,Filters forty packed table slots then performs weighted selection and creates up to the requested number of item instances
-wiz8,004fb220,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_CastSpellAtTheParty English seed address verified by embedded expected bytes
-wiz8,004ff3b0,formats,identity-review,name_origin=descriptive,Returns the selected profession level plus its magic-level offset or minus one for the no-magic sentinel
-wiz8,005061a0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SetFact English seed address verified by embedded expected bytes
-wiz8,00506280,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetFact English seed address verified by embedded expected bytes
-wiz8,00506310,formats,identity-review,name_origin=descriptive,Clears exactly 1000 persisted fact bytes then installs the initial mode-dependent facts through SetFact
-wiz8,00506480,formats,identity-review,name_origin=descriptive,Writes exactly 1000 fact-state bytes to the supplied save handle
-wiz8,005064a0,formats,identity-review,name_origin=descriptive,Reads exactly 1000 fact-state bytes and reconciles state-dependent NPC data and initial-mode facts
-wiz8,00506670,formats,identity-review,name_origin=descriptive,The only caller is SetFact and the fact-ID switch performs corresponding world NPC faction trigger and location side effects
-wiz8,005080f0,formats,identity-review,name_origin=descriptive,Computes special and derived facts recursively and otherwise returns the persisted byte for the requested fact ID
-wiz8,005090c0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MonsterKilled English seed address verified by embedded expected bytes
-wiz8,00509aa0,formats,identity-review,name_origin=descriptive,Allocates a 0x13d-byte runtime node and binds the indexed NPC database record then conditionally initializes inventory and full RPC character state
-wiz8,0050b830,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetNPCItemListByID English seed address verified by embedded expected bytes
-wiz8,00510b60,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindMonsterFirstByID English seed address verified by embedded expected bytes
-wiz8,00510bf0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindNextExistingMonsterByID English seed address verified by embedded expected bytes
-wiz8,00511250,formats,identity-review,name_origin=original-runtime-string,The embedded assertion text names MonsterGroupCalcDefaultDisposition and the canonical body selects NPC faction or unaligned hostility disposition
-wiz8,00511990,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GiveBirthToMonster English seed address verified by embedded expected bytes
-wiz8,00512290,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body opens the selected save and searches its GSTA section
-wiz8,005123f0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body writes the tagged game and level state sections
-wiz8,00512920,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body dispatches tagged sections from the selected save
-wiz8,00512d00,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body validates Saves Characters and NPCs directories
-wiz8,00513090,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body reads and validates a fixed 0x314-byte versioned status header
-wiz8,00513260,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body writes the fixed status header and tagged level-state sections
-wiz8,00513650,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body selects one LVLS record then dispatches its nested status sections
-wiz8,00513c20,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and its size assertion names pMonsterGroup
-wiz8,00513d80,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and its size assertion names pMonsterInfo
-wiz8,005145a0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics identify failed SaveMonster and SaveMonsterGroup calls in this canonical section writer
-wiz8,00514be0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body writes one serialized item
-wiz8,00514c80,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body allocates and appends one serialized item
-wiz8,00515090,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and identify separate Characters and NPCs paths
-wiz8,005152b0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and identify separate Characters and NPCs paths
-wiz8,00517970,formats,identity-review,name_origin=descriptive,Returns the signed base plus count independent rolls in the range one through sides
-wiz8,005179b0,formats,identity-review,name_origin=descriptive,Multiplies the integer base by itself exponent times and is used to derive the monster disposition cache duration
-wiz8,005179d0,formats,identity-review,name_origin=descriptive,Clamps an integer through a pointer to the inclusive minimum and maximum arguments
-wiz8,00517ea0,formats,identity-review,name_origin=descriptive,Finds the first wide '#' in a monster name field and terminates the string there
-wiz8,00517ec0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PCPtrToPCSlot English seed address verified by embedded expected bytes
-wiz8,00518150,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetRandomCharacter English seed address verified by embedded expected bytes
-wiz8,0051b5c0,formats,identity-review,name_origin=descriptive,Selects identified or generic item text and optionally appends the stack count
-wiz8,0051b9e0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetItemInHand English seed address verified by embedded expected bytes
-wiz8,0051c020,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_ReplaceOrCreateItem English seed address verified by embedded expected bytes
-wiz8,0051c300,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_AddItemToCharacter English seed address verified by embedded expected bytes
-wiz8,0051e760,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_RemoveCharItem English seed address verified by embedded expected bytes
-wiz8,0051f2f0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MergeItems English seed address verified by embedded expected bytes
-wiz8,00521ef0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_AddItemToParty English seed address verified by embedded expected bytes
-wiz8,005222d0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetOriginOfCharItem English seed address verified by embedded expected bytes
-wiz8,00522640,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_UpdateFactsAfterAcquiringItem English seed address verified by embedded expected bytes
-wiz8,00522fe0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SetCharCondition English seed address verified by embedded expected bytes
-wiz8,00523330,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_RemoveCharCondition English seed address verified by embedded expected bytes
-wiz8,00528a80,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_AddLinesToMessageBox English seed address verified by embedded expected bytes
-wiz8,005299b0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_ShowString1 English seed address verified by embedded expected bytes
-wiz8,0052a2f0,formats,identity-review,name_origin=descriptive,Combines all fifteen profession levels with the corresponding hit-point factors then reconciles current and maximum hit points
-wiz8,0052ff80,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetStringFromStringDB English seed address verified by embedded expected bytes
-wiz8,00535ad0,formats,identity-review,name_origin=descriptive,Asserts a faction ID from zero through twenty and maps its rating below 34 to hostile through 66 to neutral and above 66 to friendly
-wiz8,0054a400,formats,identity-review,name_origin=descriptive,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
-wiz8,0054a510,formats,identity-review,name_origin=descriptive,Loads 15 fixed category labels and 114 contiguous 0x1f1-byte item-generation tables
-wiz8,0054a8a0,formats,identity-review,name_origin=descriptive,Seeks to index times 0x297 plus the count header and reads one monster record
-wiz8,0054aac0,formats,identity-review,name_origin=descriptive,Loads 146 fixed 0x309-byte NPC records and each version-two variable fact-rule tail
-wiz8,0054ac90,formats,identity-review,name_origin=descriptive,Destroys each NPC record's runtime rule container then frees the fixed record array
-wiz8,0054ad00,formats,identity-review,name_origin=descriptive,Reads the Fact.dbs count then allocates and loads contiguous 0x1d8-byte definition records
-wiz8,0054ae00,formats,identity-review,name_origin=descriptive,Frees the fact definition array and clears its global pointer
-wiz8,0054ae20,formats,identity-review,name_origin=descriptive,Reads the Levels.dbs count then allocates and loads contiguous 0xd8-byte records
-wiz8,00551a60,formats,identity-review,name_origin=descriptive,Builds six realm resistances then applies the selected race's six resistance adjustment records and character bonuses
-wiz8,00553d90,formats,identity-review,name_origin=descriptive,Checks the 41 by 15 profession skill matrix then bonus professional caster and expert-skill exceptions
-wiz8,00553f10,formats,identity-review,name_origin=descriptive,Consumes usage points to advance an available skill and dispatches the character skill-increase notification
-wiz8,00557350,formats,identity-review,name_origin=descriptive,Compares seven current attributes and creation-budget adjustments against all fifteen profession minimum records
-wiz8,00557430,formats,identity-review,name_origin=descriptive,Adds six profession item IDs or the dedicated Faerie replacement row and then applies profession-specific extras
-wiz8,005d5e30,classes,identity-review,name_origin=original-source-path,Constructs three embedded members writes vtable 0x005ef910 and loads popup_monsterinfo.sti
-wiz8,005d5ee0,classes,identity-review,name_origin=original-source-path,Vtable slot zero calls 0x005d5f00 then conditionally invokes operator delete
-wiz8,005d5f00,classes,identity-review,name_origin=original-source-path,Restores vtable 0x005ef910 and destroys members at offsets 0x58 0xa4 and 0xec
-wiz8,005df0d0,formats,identity-review,name_origin=descriptive,ProfRaceInfoDialog constructor asserts PROF_COUNT and copies one profession's seven attribute minimums
-wiz8,005df250,formats,identity-review,name_origin=descriptive,Displays three profession abilities plus the bonus and four professional skills from the canonical tables
-wiz8,005df570,formats,identity-review,name_origin=descriptive,ProfRaceInfoDialog constructor asserts RACE_COUNT and copies seven attribute minimums for the eleven playable races
-wiz8,005df6f0,formats,identity-review,name_origin=descriptive,Displays five race ability IDs from the sixteen-record race ability table
-wiz8,005e1c10,vc6-runtime,identity-review,name_origin=descriptive,Local C++ deallocation wrapper calls the six-byte free import thunk at 0x005E1C1D; compiler-generated destructors call this entry
-wiz8,005e1c30,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-wiz8,005e1ca0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-wiz8,005e1ce0,vc6-runtime,identity-review,name_origin=original-export,Six-byte linker thunk through IAT slot 0x005EB1BC to the imported MSVCRT operator new export
-wiz8,005e1cf0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-wiz8,005e1da0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-wiz8,005e1dd0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-wiz8,005e1def,vc6-runtime,identity-review,name_origin=original-export,Full FID match to the VC6 vector-constructor iterator in every pinned CRT snapshot
-wiz8,005e1e71,vc6-runtime,identity-review,name_origin=original-export,Full FID match to the VC6 vector-destructor iterator in every pinned CRT snapshot
-wiz8,005e1ef1,vc6-runtime,identity-review,name_origin=original-export,Full FID match to the VC6 array-unwind helper in every pinned CRT snapshot
+evidence_id,program,address,origin,kind,reference,details
+function-evidence:wiz8:00401000:vc6-runtime,wiz8,00401000,vc6-runtime,identity-review,name_origin=descriptive,"The PE optional header's entry point in a subsystem-2 image, running the standard MSVC 6 GUI startup sequence: SEH frame, __setusermatherr, __getmainargs, both _initterm tables, _acmdln parsing, GetStartupInfoA, then WinMain and exit. The name is the toolchain's convention rather than anything the binary states, so it stays descriptive until a FID match against a pinned CRT snapshot corroborates it"
+function-evidence:wiz8:0040115e:vc6-runtime,wiz8,0040115e,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB10C)"
+function-evidence:wiz8:00401164:vc6-runtime,wiz8,00401164,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB0FC); called twice from the CRT entry, for the C and C++ initializer tables"
+function-evidence:wiz8:00401180:vc6-runtime,wiz8,00401180,vc6-runtime,identity-review,name_origin=descriptive,"Local CRT wrapper that forwards to the MSVCRT _onexit import at 0x005EB0F0 when the table pointers at 0x0069DA74/0x0069DA78 are uninitialised, otherwise appends through 0x004011CC. Name is the CRT's convention, not stated by the binary"
+function-evidence:wiz8:004011ac:vc6-runtime,wiz8,004011ac,vc6-runtime,identity-review,name_origin=descriptive,"Calls 0x00401180 and normalises its result to a boolean with neg/sbb, which is the standard CRT atexit-over-_onexit shape. BringUpEngine uses it to register the shutdown handler at 0x004017F0"
+function-evidence:wiz8:004011c0:vc6-runtime,wiz8,004011c0,vc6-runtime,identity-review,name_origin=original-export,"Six-byte linker import thunk; the MSVCRT import table names the target directly, so the name is read off the IAT rather than inferred (IAT slot 0x005EB0DC); installed as the CRT entry's SEH handler"
+function-evidence:wiz8:00404bf0:sgp,wiz8,00404bf0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00404c40:sgp,wiz8,00404c40,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00404c80:formats,wiz8,00404c80,formats,identity-review,name_origin=sgp-source,Source name and complete body recovered from pinned SGP FileMan.c; opens a physical file or resolves a read-only member through the initialized SLF archive table; former descriptive name OpenVirtualFile
+function-evidence:wiz8:00404c80:sgp,wiz8,00404c80,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; supersedes descriptive name
+function-evidence:wiz8:00404e10:formats,wiz8,00404e10,formats,identity-review,name_origin=descriptive,Closes a physical handle or releases an SLF-backed virtual-file slot
+function-evidence:wiz8:00404ea0:formats,wiz8,00404ea0,formats,identity-review,name_origin=descriptive,Reads bytes from either a physical handle or an SLF archive entry and reports the completed byte count
+function-evidence:wiz8:00404fb0:sgp,wiz8,00404fb0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405030:formats,wiz8,00405030,formats,identity-review,name_origin=sgp-source,Source name and complete body recovered from pinned SGP FileMan.c; seeks a physical handle or SLF-backed entry using origin values 1 2 and 4; former descriptive name SeekVirtualFile
+function-evidence:wiz8:00405030:sgp,wiz8,00405030,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build; supersedes descriptive name
+function-evidence:wiz8:004051d0:sgp,wiz8,004051d0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:004051f0:sgp,wiz8,004051f0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405200:sgp,wiz8,00405200,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405270:sgp,wiz8,00405270,sgp,identity-review,sgp/FileMan.c,Exact in four comparable modules; Wiz8New.exe differs by the reviewed fFindInfoInUse assignment byte
+function-evidence:wiz8:00405300:sgp,wiz8,00405300,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405350:sgp,wiz8,00405350,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405390:sgp,wiz8,00405390,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:004054d0:sgp,wiz8,004054d0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:004054f0:sgp,wiz8,004054f0,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405550:sgp,wiz8,00405550,sgp,identity-review,sgp/FileMan.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405970:sgp,wiz8,00405970,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:004059b0:sgp,wiz8,004059b0,sgp,identity-review,sgp/Container.c,Source body collides with CreateQueue; list-sized callers and the retained list API establish CreateList in every comparable build
+function-evidence:wiz8:00405a00:sgp,wiz8,00405a00,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405a70:sgp,wiz8,00405a70,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405ac0:sgp,wiz8,00405ac0,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405b00:sgp,wiz8,00405b00,sgp,identity-review,sgp/Container.c,VC6 folded the identical referenced stack and list delete bodies at one address in every comparable build
+function-evidence:wiz8:00405b20:sgp,wiz8,00405b20,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00405b90:sgp,wiz8,00405b90,sgp,identity-review,sgp/Container.c,The identical generic body is used by a Wizardry list caller and the source marks StoreListNode as the Wizardry addition
+function-evidence:wiz8:00405c00:sgp,wiz8,00405c00,sgp,identity-review,sgp/Container.c,VC6 folded the identical referenced stack and list size bodies at one address in every comparable build
+function-evidence:wiz8:00405c10:sgp,wiz8,00405c10,sgp,identity-review,sgp/Container.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00408860:cfagent-oracle,wiz8,00408860,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PlaySound English seed address verified by embedded expected bytes
+function-evidence:wiz8:0040ef80:sgp,wiz8,0040ef80,sgp,identity-review,sgp/Random.c,VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build
+function-evidence:wiz8:0040efa0:cfagent-oracle,wiz8,0040efa0,cfagent-oracle,identity-review,name_origin=fan-patch-signature|sgp-source,"CFAgent pW8FUNC_GetRandomNumber seed address, promoted by the exact SGP Random.c compile that names the body Random"
+function-evidence:wiz8:0040efa0:sgp,wiz8,0040efa0,sgp,identity-review,sgp/Random.c,VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build; supersedes the CFAgent name for the same verified address
+function-evidence:wiz8:0040efe0:sgp,wiz8,0040efe0,sgp,identity-review,sgp/Random.c,"VC6 SP5 /O2 /Ob2 /MD /G5 relocation-masked body exact in every unprotected build; Wizardry inlined Random into it, which plain /O2 does not do"
+function-evidence:wiz8:0040f0b0:sgp,wiz8,0040f0b0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f100:sgp,wiz8,0040f100,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f150:sgp,wiz8,0040f150,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f180:sgp,wiz8,0040f180,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f1c0:sgp,wiz8,0040f1c0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f210:sgp,wiz8,0040f210,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f230:sgp,wiz8,0040f230,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f290:sgp,wiz8,0040f290,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f300:sgp,wiz8,0040f300,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f340:sgp,wiz8,0040f340,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f380:sgp,wiz8,0040f380,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f3c0:sgp,wiz8,0040f3c0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:0040f3e0:sgp,wiz8,0040f3e0,sgp,identity-review,sgp/DirectDraw Calls.c,VC6 SP5 relocation-masked body exact
+function-evidence:wiz8:004126f0:formats,wiz8,004126f0,formats,identity-review,name_origin=descriptive,Allocates six 0x28-byte archive states and opens configured SLF files through 0x00412bb0
+function-evidence:wiz8:00412a10:formats,wiz8,00412a10,formats,identity-review,name_origin=descriptive,Closes or reopens each of six configured SLF archives and recreates optional file mappings
+function-evidence:wiz8:00412b10:sgp,wiz8,00412b10,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00412bb0:formats,wiz8,00412bb0,formats,identity-review,name_origin=descriptive,Reads the 0x214-byte header then the EOF directory as file_count 0x118-byte records and builds 0x0c-byte live entries
+function-evidence:wiz8:00413680:sgp,wiz8,00413680,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00413730:sgp,wiz8,00413730,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile raw body exact in every comparable build
+function-evidence:wiz8:00413d00:sgp,wiz8,00413d00,sgp,identity-review,sgp/LibraryDataBase.c,VC6 SP5 common project profile relocation-masked body exact in every comparable build
+function-evidence:wiz8:00415820:zlib,wiz8,00415820,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+function-evidence:wiz8:00415840:zlib,wiz8,00415840,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+function-evidence:wiz8:00415850:zlib,wiz8,00415850,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+function-evidence:wiz8:004158b0:zlib,wiz8,004158b0,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+function-evidence:wiz8:004158f0:zlib,wiz8,004158f0,zlib,identity-review,name_origin=sgp-source,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+function-evidence:wiz8:00415910:zlib,wiz8,00415910,zlib,identity-review,name_origin=original-source,State writes and inflate_blocks_reset call match inflate.c exactly
+function-evidence:wiz8:00415960:zlib,wiz8,00415960,zlib,identity-review,name_origin=original-source,Frees the block state and inflate state through the configured allocator
+function-evidence:wiz8:004159c0:zlib,wiz8,004159c0,zlib,identity-review,name_origin=original-source,Checks version 1.0.4 and z_stream size then allocates the inflate state and block window
+function-evidence:wiz8:00415ad0:zlib,wiz8,00415ad0,zlib,identity-review,name_origin=original-source,Exact wrapper call to inflateInit2_ with MAX_WBITS 15
+function-evidence:wiz8:00415af0:zlib,wiz8,00415af0,zlib,identity-review,name_origin=original-source,Unique inflate state machine and exact 1.0.4 error strings
+function-evidence:wiz8:00415f10:zlib,wiz8,00415f10,zlib,identity-review,name_origin=original-source,Patched-build boundary plus exact pending-buffer copy semantics from deflate.c
+function-evidence:wiz8:00415f60:zlib,wiz8,00415f60,zlib,identity-review,name_origin=original-source,Patched-build boundary plus exact stored-block loop and _tr_flush_block calls
+function-evidence:wiz8:00416070:zlib,wiz8,00416070,zlib,identity-review,name_origin=original-source,Patched-build boundary plus window slide and hash-chain maintenance from deflate.c
+function-evidence:wiz8:00416180:zlib,wiz8,00416180,zlib,identity-review,name_origin=original-source,Patched-build boundary plus input copy and optional Adler update
+function-evidence:wiz8:004161f0:zlib,wiz8,004161f0,zlib,identity-review,name_origin=original-source,Patched-build boundary plus fast match/tally loop and deflate helper call graph
+function-evidence:wiz8:00416450:zlib,wiz8,00416450,zlib,identity-review,name_origin=original-source,Patched-build boundary plus exact hash-chain match search
+function-evidence:wiz8:004165c0:zlib,wiz8,004165c0,zlib,identity-review,name_origin=original-source,Patched-build boundary plus lazy match/tally loop and deflate helper call graph
+function-evidence:wiz8:004168b0:zlib,wiz8,004168b0,zlib,identity-review,name_origin=original-source,Resets block mode bit buffer window cursors and checksum exactly as infblock.c
+function-evidence:wiz8:00416940:zlib,wiz8,00416940,zlib,identity-review,name_origin=original-source,Allocates the 0x3c-byte block state and caller-sized window then resets it
+function-evidence:wiz8:004169b0:zlib,wiz8,004169b0,zlib,identity-review,name_origin=original-source,Unique block decoder state machine and exact 1.0.4 block error strings
+function-evidence:wiz8:004177d0:zlib,wiz8,004177d0,zlib,identity-review,name_origin=original-source,Resets then frees the block window and block state
+function-evidence:wiz8:00417810:zlib,wiz8,00417810,zlib,identity-review,name_origin=original-source,Passed as the inflate block checksum callback and implements the Adler-32 5552-byte chunk loop
+function-evidence:wiz8:00417940:zlib,wiz8,00417940,zlib,identity-review,name_origin=original-source,Exact default allocator wrapper around calloc
+function-evidence:wiz8:00417960:zlib,wiz8,00417960,zlib,identity-review,name_origin=original-source,Exact default deallocator wrapper around free
+function-evidence:wiz8:00417970:zlib,wiz8,00417970,zlib,identity-review,name_origin=original-source,Zeros literal distance and bit-length frequencies and resets block counters
+function-evidence:wiz8:004179e0:zlib,wiz8,004179e0,zlib,identity-review,name_origin=original-source,Builds canonical Huffman codes and calls bi_reverse
+function-evidence:wiz8:00417a60:zlib,wiz8,00417a60,zlib,identity-review,name_origin=original-source,Emits the stored-block header then calls copy_block
+function-evidence:wiz8:00417b20:zlib,wiz8,00417b20,zlib,identity-review,name_origin=original-source,Selects stored static or dynamic trees and resets the block
+function-evidence:wiz8:00417d40:zlib,wiz8,00417d40,zlib,identity-review,name_origin=original-source,Constructs a Huffman heap then calls pqdownheap gen_bitlen and gen_codes
+function-evidence:wiz8:00417f50:zlib,wiz8,00417f50,zlib,identity-review,name_origin=original-source,Exact heap restoration over tree frequencies and depth tie-breaking
+function-evidence:wiz8:00418000:zlib,wiz8,00418000,zlib,identity-review,name_origin=original-source,Computes optimal bit lengths and repairs overflow
+function-evidence:wiz8:004181e0:zlib,wiz8,004181e0,zlib,identity-review,name_origin=original-source,Scans literal and distance trees then builds the bit-length tree
+function-evidence:wiz8:00418250:zlib,wiz8,00418250,zlib,identity-review,name_origin=original-source,Counts repeated code lengths into REP_3_6 REPZ_3_10 and REPZ_11_138 frequencies
+function-evidence:wiz8:00418340:zlib,wiz8,00418340,zlib,identity-review,name_origin=original-source,Emits HLIT HDIST and HCLEN then calls send_tree for both trees
+function-evidence:wiz8:004185a0:zlib,wiz8,004185a0,zlib,identity-review,name_origin=original-source,Emits repeated code lengths using the three repeat symbols
+function-evidence:wiz8:00418b20:zlib,wiz8,00418b20,zlib,identity-review,name_origin=original-source,Records literal or match tokens and updates literal/distance frequencies
+function-evidence:wiz8:00418c30:zlib,wiz8,00418c30,zlib,identity-review,name_origin=original-source,Encodes the token buffers with literal length and distance trees
+function-evidence:wiz8:004190a0:zlib,wiz8,004190a0,zlib,identity-review,name_origin=original-source,Compares ASCII and binary literal frequencies to set the stream data type
+function-evidence:wiz8:00419110:zlib,wiz8,00419110,zlib,identity-review,name_origin=original-source,Exact bit-reversal loop used by gen_codes
+function-evidence:wiz8:00419140:zlib,wiz8,00419140,zlib,identity-review,name_origin=original-source,Flushes the remaining bit buffer and resets bi_buf and bi_valid
+function-evidence:wiz8:004191a0:zlib,wiz8,004191a0,zlib,identity-review,name_origin=original-source,Winds up bits writes optional LEN/NLEN and copies the stored bytes
+function-evidence:wiz8:00419230:zlib,wiz8,00419230,zlib,identity-review,name_origin=original-source,Calls huft_build with the 19-code bit-length alphabet and exact error strings
+function-evidence:wiz8:00419290:zlib,wiz8,00419290,zlib,identity-review,name_origin=original-source,Only inftrees.c routine called by all three tree constructors with matching allocator/free behavior
+function-evidence:wiz8:00419760:zlib,wiz8,00419760,zlib,identity-review,name_origin=original-source,Builds literal/length and distance trees and emits exact dynamic-tree errors
+function-evidence:wiz8:00419850:zlib,wiz8,00419850,zlib,identity-review,name_origin=original-source,Lazily constructs the fixed 288-entry literal and 30-entry distance trees
+function-evidence:wiz8:004199c0:zlib,wiz8,004199c0,zlib,identity-review,name_origin=original-source,Walks and frees the linked Huffman allocation chain
+function-evidence:wiz8:00419a00:zlib,wiz8,00419a00,zlib,identity-review,name_origin=original-source,Allocates and initializes the 0x1c-byte inflate code state
+function-evidence:wiz8:00419a40:zlib,wiz8,00419a40,zlib,identity-review,name_origin=original-source,Unique literal length distance decoder and exact invalid-code strings
+function-evidence:wiz8:0041a340:zlib,wiz8,0041a340,zlib,identity-review,name_origin=original-source,Exact configured-allocator free wrapper for the code state
+function-evidence:wiz8:0041a360:zlib,wiz8,0041a360,zlib,identity-review,name_origin=original-source,Shared 39-call-site output-window flush routine from infutil.c
+function-evidence:wiz8:0041a4a0:zlib,wiz8,0041a4a0,zlib,identity-review,name_origin=original-source,Fast decoder reached from inflate_codes with the same invalid-code strings
+function-evidence:wiz8:00421680:cfagent-oracle,wiz8,00421680,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_3FloatsToVector English seed address verified by embedded expected bytes
+function-evidence:wiz8:0042a6f0:cfagent-oracle,wiz8,0042a6f0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_LoadLevel English seed address verified by embedded expected bytes
+function-evidence:wiz8:0042b410:cfagent-oracle,wiz8,0042b410,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetLocationIDFromCode English seed address verified by embedded expected bytes
+function-evidence:wiz8:0042b550:cfagent-oracle,wiz8,0042b550,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_LevelGetFolderNameByID English seed address verified by embedded expected bytes
+function-evidence:wiz8:0042b580:cfagent-oracle,wiz8,0042b580,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetLoadedLevelID English seed address verified by embedded expected bytes
+function-evidence:wiz8:0042bc10:formats,wiz8,0042bc10,formats,identity-review,name_origin=original-runtime-string,Embedded failure diagnostics identify ReadOctFile and enumerate its octree preregion mesh trigger and lookup sections
+function-evidence:wiz8:0043d940:cfagent-oracle,wiz8,0043d940,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_RunTrigger English seed address verified by embedded expected bytes
+function-evidence:wiz8:00443780:cfagent-oracle,wiz8,00443780,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindTriggerByName English seed address verified by embedded expected bytes
+function-evidence:wiz8:00443dc0:cfagent-oracle,wiz8,00443dc0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_CreateLocationVar English seed address verified by embedded expected bytes
+function-evidence:wiz8:00444170:cfagent-oracle,wiz8,00444170,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetLocationVarIDByName English seed address verified by embedded expected bytes
+function-evidence:wiz8:004456e0:cfagent-oracle,wiz8,004456e0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PrintNothingHappenOrSpecItemReq English seed address verified by embedded expected bytes
+function-evidence:wiz8:00446110:cfagent-oracle,wiz8,00446110,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_Copy3DVector English seed address verified by embedded expected bytes
+function-evidence:wiz8:00451280:cfagent-oracle,wiz8,00451280,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetWorld English seed address verified by embedded expected bytes
+function-evidence:wiz8:004512c0:cfagent-oracle,wiz8,004512c0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindEntityByName English seed address verified by embedded expected bytes
+function-evidence:wiz8:00459540:formats,wiz8,00459540,formats,identity-review,name_origin=descriptive,OctPath.cpp writes a version-two WPT header followed by 0x10-byte waypoints and 0x0e-byte links
+function-evidence:wiz8:00459650:formats,wiz8,00459650,formats,identity-review,name_origin=descriptive,OctPath.cpp reads WPT versions one and two then materializes the runtime adjacency and hash structures
+function-evidence:wiz8:0048a7a0:formats,wiz8,0048a7a0,formats,identity-review,name_origin=descriptive,MonGen.cpp loads EncounterTables.dbs into 72 runtime tables with columnar species rarity time challenge and script-name data
+function-evidence:wiz8:0048ad20:formats,wiz8,0048ad20,formats,identity-review,name_origin=original-runtime-string,The embedded diagnostic names MonGen GenerateEncounter and its canonical body rolls group size and two optional companion records
+function-evidence:wiz8:0048b9a0:formats,wiz8,0048b9a0,formats,identity-review,name_origin=descriptive,Filters one encounter table by party challenge level weighted rarity and the recovered day night or any-time selector
+function-evidence:wiz8:0048bdc0:cfagent-oracle,wiz8,0048bdc0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindMonGenByName English seed address verified by embedded expected bytes
+function-evidence:wiz8:0048c110:formats,wiz8,0048c110,formats,identity-review,name_origin=original-runtime-string,The embedded diagnostic names MonGen LoadAll and the function restores encounter state then applies the current level's bounds
+function-evidence:wiz8:0048c810:formats,wiz8,0048c810,formats,identity-review,name_origin=descriptive,Replenishes the current level's encounter budget by elapsed time and clamps both budget and active-encounter limit
+function-evidence:wiz8:0048c8e0:formats,wiz8,0048c8e0,formats,identity-review,name_origin=descriptive,Compares active encounter ages with the configured culling time and removes sufficiently distant expired groups
+function-evidence:wiz8:004a5e50:classes,wiz8,004a5e50,classes,identity-review,name_origin=original-source-path,Constructs base and secondary subobject then writes vtables 0x005ece78 and 0x005eceb8
+function-evidence:wiz8:004a5f00:classes,wiz8,004a5f00,classes,identity-review,name_origin=original-source-path,Primary vtable slot zero calls 0x004a6610 then conditionally invokes operator delete
+function-evidence:wiz8:004a5f20:classes,wiz8,004a5f20,classes,identity-review,name_origin=original-source-path,Copy constructor rebuilds the secondary subobject copies owned graphics state and installs both vtables
+function-evidence:wiz8:004a6610:classes,wiz8,004a6610,classes,identity-review,name_origin=original-source-path,Restores both vtables releases owned cycle resources and destroys secondary and base subobjects
+function-evidence:wiz8:004ac9d0:formats,wiz8,004ac9d0,formats,identity-review,name_origin=descriptive,Returns the target-type field at runtime offset 0x137 and optionally normalizes type one to zero
+function-evidence:wiz8:004aca60:formats,wiz8,004aca60,formats,identity-review,name_origin=descriptive,The canonical casting failure path uses this target-type and spell-ID predicate to decide whether a failed spell can backfire
+function-evidence:wiz8:004acb40:formats,wiz8,004acb40,formats,identity-review,name_origin=descriptive,Maps spell levels one through seven to minimum caster levels 1 3 5 8 11 14 and 18
+function-evidence:wiz8:004acba0:formats,wiz8,004acba0,formats,identity-review,name_origin=descriptive,Loads a spell's level and returns the corresponding minimum caster level
+function-evidence:wiz8:004acc10:formats,wiz8,004acc10,formats,identity-review,name_origin=descriptive,Reads the count and version from SpellTables.dbs then skips 0x101 and loads 0x1bf bytes for each spell
+function-evidence:wiz8:004bea20:classes,wiz8,004bea20,classes,identity-review,name_origin=original-source-path,Constructs three 0x1b0-byte arrays initializes fields through 0x624 and writes vtable 0x005ed200
+function-evidence:wiz8:004beba0:classes,wiz8,004beba0,classes,identity-review,name_origin=original-source-path,Vtable slot zero calls 0x004bee50 then conditionally invokes operator delete
+function-evidence:wiz8:004bebd0:classes,wiz8,004bebd0,classes,identity-review,name_origin=original-source-path,Copy constructor rebuilds the same three arrays copies state from its source argument and writes vtable 0x005ed200
+function-evidence:wiz8:004bee50:classes,wiz8,004bee50,classes,identity-review,name_origin=original-source-path,Destroys the three arrays in reverse order and tears down the base object
+function-evidence:wiz8:004d8f00:cfagent-oracle,wiz8,004d8f00,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SpawnMonsters English seed address verified by embedded expected bytes
+function-evidence:wiz8:004d8f80:cfagent-oracle,wiz8,004d8f80,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_CreateAndPlaySoundNode English seed address verified by embedded expected bytes
+function-evidence:wiz8:004dcd40:cfagent-oracle,wiz8,004dcd40,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_TrigFuncArrowTrap English seed address verified by embedded expected bytes
+function-evidence:wiz8:004e5550:cfagent-oracle,wiz8,004e5550,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MonsterGetIndexByLocID English seed address verified by embedded expected bytes
+function-evidence:wiz8:004e5620:cfagent-oracle,wiz8,004e5620,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MonsterGetScriptPartByLocIndex English seed address verified by embedded expected bytes
+function-evidence:wiz8:004e57c0:cfagent-oracle,wiz8,004e57c0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetMonsterDataByID English seed address verified by embedded expected bytes
+function-evidence:wiz8:004e7090:cfagent-oracle,wiz8,004e7090,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_StartCombat English seed address verified by embedded expected bytes
+function-evidence:wiz8:004f6c50:cfagent-oracle,wiz8,004f6c50,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SpawnItem English seed address verified by embedded expected bytes
+function-evidence:wiz8:004f88a0:formats,wiz8,004f88a0,formats,identity-review,name_origin=descriptive,Case-insensitively searches the 114 named ItemTables.dbs records and returns the table index or minus one
+function-evidence:wiz8:004f88f0:formats,wiz8,004f88f0,formats,identity-review,name_origin=descriptive,Filters forty packed table slots then performs weighted selection and creates up to the requested number of item instances
+function-evidence:wiz8:004fb220:cfagent-oracle,wiz8,004fb220,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_CastSpellAtTheParty English seed address verified by embedded expected bytes
+function-evidence:wiz8:004ff3b0:formats,wiz8,004ff3b0,formats,identity-review,name_origin=descriptive,Returns the selected profession level plus its magic-level offset or minus one for the no-magic sentinel
+function-evidence:wiz8:005061a0:cfagent-oracle,wiz8,005061a0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SetFact English seed address verified by embedded expected bytes
+function-evidence:wiz8:00506280:cfagent-oracle,wiz8,00506280,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetFact English seed address verified by embedded expected bytes
+function-evidence:wiz8:00506310:formats,wiz8,00506310,formats,identity-review,name_origin=descriptive,Clears exactly 1000 persisted fact bytes then installs the initial mode-dependent facts through SetFact
+function-evidence:wiz8:00506480:formats,wiz8,00506480,formats,identity-review,name_origin=descriptive,Writes exactly 1000 fact-state bytes to the supplied save handle
+function-evidence:wiz8:005064a0:formats,wiz8,005064a0,formats,identity-review,name_origin=descriptive,Reads exactly 1000 fact-state bytes and reconciles state-dependent NPC data and initial-mode facts
+function-evidence:wiz8:00506670:formats,wiz8,00506670,formats,identity-review,name_origin=descriptive,The only caller is SetFact and the fact-ID switch performs corresponding world NPC faction trigger and location side effects
+function-evidence:wiz8:005080f0:formats,wiz8,005080f0,formats,identity-review,name_origin=descriptive,Computes special and derived facts recursively and otherwise returns the persisted byte for the requested fact ID
+function-evidence:wiz8:005090c0:cfagent-oracle,wiz8,005090c0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MonsterKilled English seed address verified by embedded expected bytes
+function-evidence:wiz8:00509aa0:formats,wiz8,00509aa0,formats,identity-review,name_origin=descriptive,Allocates a 0x13d-byte runtime node and binds the indexed NPC database record then conditionally initializes inventory and full RPC character state
+function-evidence:wiz8:0050b830:cfagent-oracle,wiz8,0050b830,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetNPCItemListByID English seed address verified by embedded expected bytes
+function-evidence:wiz8:00510b60:cfagent-oracle,wiz8,00510b60,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindMonsterFirstByID English seed address verified by embedded expected bytes
+function-evidence:wiz8:00510bf0:cfagent-oracle,wiz8,00510bf0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_FindNextExistingMonsterByID English seed address verified by embedded expected bytes
+function-evidence:wiz8:00511250:formats,wiz8,00511250,formats,identity-review,name_origin=original-runtime-string,The embedded assertion text names MonsterGroupCalcDefaultDisposition and the canonical body selects NPC faction or unaligned hostility disposition
+function-evidence:wiz8:00511990:cfagent-oracle,wiz8,00511990,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GiveBirthToMonster English seed address verified by embedded expected bytes
+function-evidence:wiz8:00512290:formats,wiz8,00512290,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body opens the selected save and searches its GSTA section
+function-evidence:wiz8:005123f0:formats,wiz8,005123f0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body writes the tagged game and level state sections
+function-evidence:wiz8:00512920:formats,wiz8,00512920,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body dispatches tagged sections from the selected save
+function-evidence:wiz8:00512d00:formats,wiz8,00512d00,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body validates Saves Characters and NPCs directories
+function-evidence:wiz8:00513090:formats,wiz8,00513090,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body reads and validates a fixed 0x314-byte versioned status header
+function-evidence:wiz8:00513260:formats,wiz8,00513260,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body writes the fixed status header and tagged level-state sections
+function-evidence:wiz8:00513650:formats,wiz8,00513650,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body selects one LVLS record then dispatches its nested status sections
+function-evidence:wiz8:00513c20:formats,wiz8,00513c20,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and its size assertion names pMonsterGroup
+function-evidence:wiz8:00513d80:formats,wiz8,00513d80,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and its size assertion names pMonsterInfo
+function-evidence:wiz8:005145a0:formats,wiz8,005145a0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics identify failed SaveMonster and SaveMonsterGroup calls in this canonical section writer
+function-evidence:wiz8:00514be0:formats,wiz8,00514be0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostic names the function and the canonical body writes one serialized item
+function-evidence:wiz8:00514c80:formats,wiz8,00514c80,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and the canonical body allocates and appends one serialized item
+function-evidence:wiz8:00515090:formats,wiz8,00515090,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and identify separate Characters and NPCs paths
+function-evidence:wiz8:005152b0:formats,wiz8,005152b0,formats,identity-review,name_origin=official-demo|original-runtime-string,The demo diagnostics name the function and identify separate Characters and NPCs paths
+function-evidence:wiz8:00517970:formats,wiz8,00517970,formats,identity-review,name_origin=descriptive,Returns the signed base plus count independent rolls in the range one through sides
+function-evidence:wiz8:005179b0:formats,wiz8,005179b0,formats,identity-review,name_origin=descriptive,Multiplies the integer base by itself exponent times and is used to derive the monster disposition cache duration
+function-evidence:wiz8:005179d0:formats,wiz8,005179d0,formats,identity-review,name_origin=descriptive,Clamps an integer through a pointer to the inclusive minimum and maximum arguments
+function-evidence:wiz8:00517ea0:formats,wiz8,00517ea0,formats,identity-review,name_origin=descriptive,Finds the first wide '#' in a monster name field and terminates the string there
+function-evidence:wiz8:00517ec0:cfagent-oracle,wiz8,00517ec0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_PCPtrToPCSlot English seed address verified by embedded expected bytes
+function-evidence:wiz8:00518150:cfagent-oracle,wiz8,00518150,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetRandomCharacter English seed address verified by embedded expected bytes
+function-evidence:wiz8:0051b5c0:formats,wiz8,0051b5c0,formats,identity-review,name_origin=descriptive,Selects identified or generic item text and optionally appends the stack count
+function-evidence:wiz8:0051b9e0:cfagent-oracle,wiz8,0051b9e0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetItemInHand English seed address verified by embedded expected bytes
+function-evidence:wiz8:0051c020:cfagent-oracle,wiz8,0051c020,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_ReplaceOrCreateItem English seed address verified by embedded expected bytes
+function-evidence:wiz8:0051c300:cfagent-oracle,wiz8,0051c300,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_AddItemToCharacter English seed address verified by embedded expected bytes
+function-evidence:wiz8:0051e760:cfagent-oracle,wiz8,0051e760,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_RemoveCharItem English seed address verified by embedded expected bytes
+function-evidence:wiz8:0051f2f0:cfagent-oracle,wiz8,0051f2f0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_MergeItems English seed address verified by embedded expected bytes
+function-evidence:wiz8:00521ef0:cfagent-oracle,wiz8,00521ef0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_AddItemToParty English seed address verified by embedded expected bytes
+function-evidence:wiz8:005222d0:cfagent-oracle,wiz8,005222d0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetOriginOfCharItem English seed address verified by embedded expected bytes
+function-evidence:wiz8:00522640:cfagent-oracle,wiz8,00522640,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_UpdateFactsAfterAcquiringItem English seed address verified by embedded expected bytes
+function-evidence:wiz8:00522fe0:cfagent-oracle,wiz8,00522fe0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SetCharCondition English seed address verified by embedded expected bytes
+function-evidence:wiz8:00523330:cfagent-oracle,wiz8,00523330,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_RemoveCharCondition English seed address verified by embedded expected bytes
+function-evidence:wiz8:00528a80:cfagent-oracle,wiz8,00528a80,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_AddLinesToMessageBox English seed address verified by embedded expected bytes
+function-evidence:wiz8:005299b0:cfagent-oracle,wiz8,005299b0,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_ShowString1 English seed address verified by embedded expected bytes
+function-evidence:wiz8:0052a2f0:formats,wiz8,0052a2f0,formats,identity-review,name_origin=descriptive,Combines all fifteen profession levels with the corresponding hit-point factors then reconciles current and maximum hit points
+function-evidence:wiz8:0052ff80:cfagent-oracle,wiz8,0052ff80,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_GetStringFromStringDB English seed address verified by embedded expected bytes
+function-evidence:wiz8:00535ad0:formats,wiz8,00535ad0,formats,identity-review,name_origin=descriptive,Asserts a faction ID from zero through twenty and maps its rating below 34 to hostile through 66 to neutral and above 66 to friendly
+function-evidence:wiz8:0054a400:formats,wiz8,0054a400,formats,identity-review,name_origin=descriptive,Reads the Items.dbs count then allocates and loads contiguous 0x10d-byte records
+function-evidence:wiz8:0054a510:formats,wiz8,0054a510,formats,identity-review,name_origin=descriptive,Loads 15 fixed category labels and 114 contiguous 0x1f1-byte item-generation tables
+function-evidence:wiz8:0054a8a0:formats,wiz8,0054a8a0,formats,identity-review,name_origin=descriptive,Seeks to index times 0x297 plus the count header and reads one monster record
+function-evidence:wiz8:0054aac0:formats,wiz8,0054aac0,formats,identity-review,name_origin=descriptive,Loads 146 fixed 0x309-byte NPC records and each version-two variable fact-rule tail
+function-evidence:wiz8:0054ac90:formats,wiz8,0054ac90,formats,identity-review,name_origin=descriptive,Destroys each NPC record's runtime rule container then frees the fixed record array
+function-evidence:wiz8:0054ad00:formats,wiz8,0054ad00,formats,identity-review,name_origin=descriptive,Reads the Fact.dbs count then allocates and loads contiguous 0x1d8-byte definition records
+function-evidence:wiz8:0054ae00:formats,wiz8,0054ae00,formats,identity-review,name_origin=descriptive,Frees the fact definition array and clears its global pointer
+function-evidence:wiz8:0054ae20:formats,wiz8,0054ae20,formats,identity-review,name_origin=descriptive,Reads the Levels.dbs count then allocates and loads contiguous 0xd8-byte records
+function-evidence:wiz8:00551a60:formats,wiz8,00551a60,formats,identity-review,name_origin=descriptive,Builds six realm resistances then applies the selected race's six resistance adjustment records and character bonuses
+function-evidence:wiz8:00553d90:formats,wiz8,00553d90,formats,identity-review,name_origin=descriptive,Checks the 41 by 15 profession skill matrix then bonus professional caster and expert-skill exceptions
+function-evidence:wiz8:00553f10:formats,wiz8,00553f10,formats,identity-review,name_origin=descriptive,Consumes usage points to advance an available skill and dispatches the character skill-increase notification
+function-evidence:wiz8:00557350:formats,wiz8,00557350,formats,identity-review,name_origin=descriptive,Compares seven current attributes and creation-budget adjustments against all fifteen profession minimum records
+function-evidence:wiz8:00557430:formats,wiz8,00557430,formats,identity-review,name_origin=descriptive,Adds six profession item IDs or the dedicated Faerie replacement row and then applies profession-specific extras
+function-evidence:wiz8:005d5e30:classes,wiz8,005d5e30,classes,identity-review,name_origin=original-source-path,Constructs three embedded members writes vtable 0x005ef910 and loads popup_monsterinfo.sti
+function-evidence:wiz8:005d5ee0:classes,wiz8,005d5ee0,classes,identity-review,name_origin=original-source-path,Vtable slot zero calls 0x005d5f00 then conditionally invokes operator delete
+function-evidence:wiz8:005d5f00:classes,wiz8,005d5f00,classes,identity-review,name_origin=original-source-path,Restores vtable 0x005ef910 and destroys members at offsets 0x58 0xa4 and 0xec
+function-evidence:wiz8:005df0d0:formats,wiz8,005df0d0,formats,identity-review,name_origin=descriptive,ProfRaceInfoDialog constructor asserts PROF_COUNT and copies one profession's seven attribute minimums
+function-evidence:wiz8:005df250:formats,wiz8,005df250,formats,identity-review,name_origin=descriptive,Displays three profession abilities plus the bonus and four professional skills from the canonical tables
+function-evidence:wiz8:005df570:formats,wiz8,005df570,formats,identity-review,name_origin=descriptive,ProfRaceInfoDialog constructor asserts RACE_COUNT and copies seven attribute minimums for the eleven playable races
+function-evidence:wiz8:005df6f0:formats,wiz8,005df6f0,formats,identity-review,name_origin=descriptive,Displays five race ability IDs from the sixteen-record race ability table
+function-evidence:wiz8:005e1c10:vc6-runtime,wiz8,005e1c10,vc6-runtime,identity-review,name_origin=descriptive,Local C++ deallocation wrapper calls the six-byte free import thunk at 0x005E1C1D; compiler-generated destructors call this entry
+function-evidence:wiz8:005e1c30:vc6-runtime,wiz8,005e1c30,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+function-evidence:wiz8:005e1ca0:vc6-runtime,wiz8,005e1ca0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+function-evidence:wiz8:005e1ce0:vc6-runtime,wiz8,005e1ce0,vc6-runtime,identity-review,name_origin=original-export,Six-byte linker thunk through IAT slot 0x005EB1BC to the imported MSVCRT operator new export
+function-evidence:wiz8:005e1cf0:vc6-runtime,wiz8,005e1cf0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+function-evidence:wiz8:005e1da0:vc6-runtime,wiz8,005e1da0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+function-evidence:wiz8:005e1dd0:vc6-runtime,wiz8,005e1dd0,vc6-runtime,identity-review,name_origin=original-export,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+function-evidence:wiz8:005e1def:vc6-runtime,wiz8,005e1def,vc6-runtime,identity-review,name_origin=original-export,Full FID match to the VC6 vector-constructor iterator in every pinned CRT snapshot
+function-evidence:wiz8:005e1e71:vc6-runtime,wiz8,005e1e71,vc6-runtime,identity-review,name_origin=original-export,Full FID match to the VC6 vector-destructor iterator in every pinned CRT snapshot
+function-evidence:wiz8:005e1ef1:vc6-runtime,wiz8,005e1ef1,vc6-runtime,identity-review,name_origin=original-export,Full FID match to the VC6 array-unwind helper in every pinned CRT snapshot
+function-evidence:wiz8:005e2890:reccmp,wiz8,005e2890,reccmp,exact-compile,match:e0393a26c8db1c3f,VC6 SP5 /O2 /Ob2 /MD /G6 body exact; 3D Code\PList.cpp assertions name ppl and pEntry

@@ -7,52 +7,7 @@ from .apply_unzip_model import _function_type
 from .environment import start_pyghidra
 from .project import resolve_program_name
 from .query_daemon import stop_daemon
-
-CATEGORY = "/wiz8/signature_fixes"
-
-# Each entry documents the wrong signature Ghidra's own auto-analysis produced
-# at this address, and the evidence for the corrected one. Both were found
-# while porting WIZ8_GAMEPLAY_BOUNDARIES functions that call these addresses:
-# Ghidra's decompile of the callee itself disagreed with its own decompile of
-# the call sites, and the raw disassembly's ESP-relative reads (checked
-# against the actual push count at each read) settled which one was right.
-SIGNATURE_FIXES = {
-    0x005E2890: {
-        "name": "PListIndexOf",
-        "return_type": "int",
-        "arguments": [("list", "void *"), ("target", "void *")],
-        "wrong": "undefined4 FUN_005e2890(undefined4 *param_1, undefined4 param_2, int param_3)",
-        "evidence": (
-            "Every call site (e.g. FindNextExistingMonsterByID at 0x00510BF0) passes exactly "
-            "two arguments. The standalone three-parameter decompile is an artifact of this "
-            "function's own srAssertFail prologue, whose two inline-pushed assertion constants "
-            "Ghidra's parameter recovery mistook for a third caller-supplied argument."
-        ),
-    },
-    0x005222D0: {
-        "name": "GetOriginOfCharacterItem",
-        "return_type": "void",
-        "arguments": [
-            ("character_index", "int"),
-            ("item", "void *"),
-            ("origin", "unsigned char *"),
-            ("slot", "unsigned short *"),
-        ],
-        "wrong": (
-            "void FUN_005222d0(undefined4 param_1, undefined4 *param_2, undefined4 param_3, "
-            "undefined1 *param_4, undefined2 *param_5)"
-        ),
-        "evidence": (
-            "Ghidra reports five parameters and multiplies the *second* one (the item pointer, "
-            "compared by identity a few lines later) by 0x1862 -- impossible for a pointer. "
-            "Walking the raw disassembly's ESP-relative reads against the actual push count at "
-            "each point shows four parameters, with the *first* (character_index) driving the "
-            "0x1862 (W8Character stride) strength-reduction multiply and the second (item) used "
-            "only for comparisons; the embedded 'pPCItem != NULL' assertion text and "
-            "'PC Item.cpp' source path independently confirm this reading."
-        ),
-    },
-}
+from .reviewed_signatures import load_reviewed_signatures
 
 
 def _type_for(dtm: Any, spec: str) -> Any:
@@ -77,15 +32,21 @@ def _type_for(dtm: Any, spec: str) -> Any:
     spec = spec.strip()
     if spec.endswith("*"):
         return PointerDataType(_type_for(dtm, spec[:-1]), dtm)
-    return base_types[spec]
+    try:
+        return base_types[spec]
+    except KeyError as error:
+        raise ValueError(f"unsupported reviewed signature type: {spec}") from error
 
 
-def apply_wiz8_signature_fixes(
+def apply_reviewed_signatures(
     settings: Settings,
-    selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
+    selector: str,
+    *,
+    evidence_program: str,
 ) -> dict[str, Any]:
-    """Correct known-wrong Ghidra auto-analysis signatures found while porting owned functions."""
+    """Materialize canonical reviewed function signatures in Ghidra."""
 
+    signatures = load_reviewed_signatures(settings.repo_dir, evidence_program)
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
@@ -95,32 +56,33 @@ def apply_wiz8_signature_fixes(
 
     program_name = resolve_program_name(settings, selector)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
-    result: dict[str, Any] = {"program": program_name}
+    result: dict[str, Any] = {"program": program_name, "evidence_program": evidence_program}
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
-            transaction = program.startTransaction("apply wiz8 signature fixes")
+            transaction = program.startTransaction("apply canonical reviewed signatures")
             commit = False
             try:
                 dtm = program.getDataTypeManager()
                 address_space = program.getAddressFactory().getDefaultAddressSpace()
                 applied: list[dict[str, str]] = []
-                for raw_address, fix in SIGNATURE_FIXES.items():
-                    address = address_space.getAddress(raw_address)
+                for reviewed in signatures:
+                    address = address_space.getAddress(reviewed.address)
                     function = program.getFunctionManager().getFunctionAt(address)
                     if function is None:
-                        raise RuntimeError(f"no function at 0x{raw_address:08x}")
+                        raise RuntimeError(f"no function at 0x{reviewed.address:08x}")
                     before = function.getPrototypeString(False, False)
                     signature = _function_type(
                         dtm,
-                        CategoryPath(CATEGORY),
-                        f"signature_{fix['name']}",
-                        _type_for(dtm, fix["return_type"]),
+                        CategoryPath(f"/{evidence_program}/signatures"),
+                        f"signature_{reviewed.address:08x}",
+                        _type_for(dtm, reviewed.return_type),
                         [
                             (argument_name, _type_for(dtm, type_spec))
-                            for argument_name, type_spec in fix["arguments"]
+                            for argument_name, type_spec in reviewed.parameters
                         ],
-                        "__cdecl",
+                        reviewed.calling_convention,
                     )
+                    signature.setVarArgs(reviewed.variadic)
                     command = ApplyFunctionSignatureCmd(
                         address,
                         signature,
@@ -130,16 +92,15 @@ def apply_wiz8_signature_fixes(
                     )
                     if not command.applyTo(program):
                         raise RuntimeError(
-                            f"failed to apply signature at 0x{raw_address:08x}: "
+                            f"failed to apply signature at 0x{reviewed.address:08x}: "
                             f"{command.getStatusMsg()}"
                         )
-                    function.setName(fix["name"], SourceType.USER_DEFINED)
                     applied.append(
                         {
-                            "address": f"0x{raw_address:08x}",
+                            "address": f"0x{reviewed.address:08x}",
                             "before": before,
                             "after": function.getPrototypeString(False, False),
-                            "evidence": fix["evidence"],
+                            "evidence_id": reviewed.evidence_id,
                         }
                     )
 
@@ -148,7 +109,14 @@ def apply_wiz8_signature_fixes(
             finally:
                 program.endTransaction(transaction, commit)
             if commit:
-                program.save("apply wiz8 signature fixes", pyghidra.task_monitor())
+                program.save("apply canonical reviewed signatures", pyghidra.task_monitor())
     finally:
         project.close()
     return result
+
+
+def apply_wiz8_signature_fixes(
+    settings: Settings,
+    selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
+) -> dict[str, Any]:
+    return apply_reviewed_signatures(settings, selector, evidence_program="wiz8")

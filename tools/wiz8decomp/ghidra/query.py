@@ -24,6 +24,8 @@ def _function(program: Any, text: str) -> Any:
 
 
 def function_metadata(program: Any, function: Any) -> dict[str, Any]:
+    from ghidra.program.model.listing import CodeUnit
+
     manager = program.getFunctionManager()
     references = program.getReferenceManager()
     body = function.getBody()
@@ -55,6 +57,7 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
         "thunk_target": str(function.getThunkedFunction(False).getEntryPoint()) if function.isThunk() and function.getThunkedFunction(False) else None,
         "calling_convention": function.getCallingConventionName(),
         "prototype": function.getPrototypeString(False, False),
+        "plate_comment": listing.getComment(CodeUnit.PLATE_COMMENT, function.getEntryPoint()),
         "caller_count": len(callers),
         "callee_count": len(callees),
         "callers": callers,
@@ -197,4 +200,3 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         raise ValueError("unknown command; expected one of: " + ", ".join(sorted(arity)))
     if len(arguments) != arity[command]:
         raise ValueError(f"{command} expects {arity[command]} argument(s), got {len(arguments)}")
-

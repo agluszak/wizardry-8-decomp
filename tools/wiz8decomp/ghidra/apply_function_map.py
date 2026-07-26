@@ -28,16 +28,35 @@ REQUIRED_COLUMNS = (
 class FunctionIdentity:
     address: int
     name: str
+    identity_id: str
     owner: str
     confidence: str
     evidence: str
     name_origin: tuple[str, ...]
     authority: str
+    source_unit: str | None
+    evidence_ids: tuple[str, ...]
     aliases: tuple[str, ...] = ()
+
+
+def _load_evidence_ids(path: Path) -> dict[tuple[str, int], tuple[str, ...]]:
+    evidence_path = path.parent / "function-evidence.csv"
+    if not evidence_path.is_file():
+        return {}
+    grouped: dict[tuple[str, int], list[str]] = {}
+    with evidence_path.open(newline="", encoding="utf-8") as stream:
+        for row_number, row in enumerate(csv.DictReader(stream), start=2):
+            evidence_id = row.get("evidence_id", "").strip()
+            if not evidence_id:
+                raise ValueError(f"{evidence_path}:{row_number}: missing evidence_id")
+            key = (row["program"].strip(), int(row["address"], 16))
+            grouped.setdefault(key, []).append(evidence_id)
+    return {key: tuple(sorted(values)) for key, values in grouped.items()}
 
 
 def load_function_identities(path: Path) -> list[FunctionIdentity]:
     identities: list[FunctionIdentity] = []
+    evidence_ids = _load_evidence_ids(path)
     with path.open(newline="", encoding="utf-8") as stream:
         for row_number, row in enumerate(csv.DictReader(stream), start=2):
             missing = {field for field in REQUIRED_COLUMNS if field not in row}
@@ -58,15 +77,20 @@ def load_function_identities(path: Path) -> list[FunctionIdentity]:
             )
             if name in aliases:
                 raise ValueError(f"{path}:{row_number}: {name} is listed as its own alias")
+            program = row.get("program", "").strip() or "unknown"
+            address = int(row["address"], 16)
             identities.append(
                 FunctionIdentity(
-                    address=int(row["address"], 16),
+                    address=address,
                     name=name,
+                    identity_id=f"functions:{program}:{address:08x}",
                     owner=row["owner"].strip(),
                     confidence=confidence,
                     evidence=row["evidence"].strip(),
                     name_origin=origins,
                     authority=authority,
+                    source_unit=row.get("source_path", "").strip() or None,
+                    evidence_ids=evidence_ids.get((program, address), ()),
                     aliases=aliases,
                 )
             )
@@ -228,15 +252,25 @@ def apply_function_map(
                             "\n".join(
                                 [
                                     f"Owner: {identity.owner}",
+                                    f"Identity: {identity.identity_id}",
                                     f"Confidence: {identity.confidence}",
                                     f"Name origin: {format_name_origin(identity.name_origin)}",
                                     f"Authority: {identity.authority}",
+                                    *(
+                                        [f"Source unit: {identity.source_unit}"]
+                                        if identity.source_unit
+                                        else []
+                                    ),
                                     *(
                                         [f"Aliases: {', '.join(identity.aliases)}"]
                                         if identity.aliases
                                         else []
                                     ),
-                                    f"Evidence: {identity.evidence}",
+                                    *(
+                                        [f"Evidence: {'; '.join(identity.evidence_ids)}"]
+                                        if identity.evidence_ids
+                                        else []
+                                    ),
                                 ]
                             ),
                         )
