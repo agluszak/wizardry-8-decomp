@@ -32,6 +32,7 @@ Ranked by how often it has been the answer here:
 | --- | --- | --- |
 | `JL`/`JE` where canonical has `JB`/`JBE` | field or variable is **unsigned** | change the type |
 | Register roles permuted | control-flow shape is wrong | fix the flow; registers follow |
+| `lea r,[x+1]` where canonical has `mov r,x` then `inc r` | two source variables where the original reused one | merge them into a single variable stepped by `++` |
 | Duplicated `return` epilogue | separate `if`s where the original used one short-circuit `\|\|` | merge into `\|\|` |
 | Loop's first comparison duplicated, two `return` epilogues | hand-rolled cursor in a `do`/`while` | use a counted `for` indexing the array; let VC6 strength-reduce it |
 | Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
@@ -62,6 +63,12 @@ with a duplicated compare, try the counted-`for`-over-index form before anything
 The transform is: a guarded `do`/`while` with an early `return` inside becomes a counted `for` whose
 body `goto`s a single shared exit label, with the not-found value assigned just before that label.
 One backward branch, one epilogue.
+
+**One variable, not two.** When a search returns a position that then becomes the loop index, the
+original often keeps both in the same variable and steps it with `++`. Declaring separate `position`
+and `index` locals makes VC6 fold the increment into a `lea`, which costs a byte and shifts every
+later offset. This closed the final difference in `FindNextExistingMonsterByID`, and it is a
+plausible reading of the "register-role swap" noted on the remaining near-misses.
 
 It does **not** apply when the *original* peels deliberately. In `FindMonGenByName` the canonical
 back-edge lands past the bounds check, so the check runs only on the first iteration and the body
