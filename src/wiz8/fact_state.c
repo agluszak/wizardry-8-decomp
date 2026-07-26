@@ -2,12 +2,24 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 /* 0x00404FB0, declared as in chunk_io.cpp: the write counterpart of
    ReadVirtualFile. Ghidra carries it as FileWrite(hFile, pDest, uiBytesToWrite,
    puiBytesWritten). */
 extern unsigned char WriteVirtualFile(int handle, const void* buffer, unsigned int size,
                                       unsigned int* done);
+extern unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
+                                     unsigned int* done);
+/* 0x005080F0, reviewed in evidence/reviewed/wiz8/functions.csv. */
+extern unsigned char EvaluateFact(int fact_id);
+/* Not yet identified; named by address as elsewhere in src/wiz8. 0x0058AAD0 is a
+   wide-string logger taking a channel, 0x0055A0A0 and 0x00524CA0 tear down an
+   NPC item list. */
+extern void Function58AAD0(int channel, const wchar_t* format, const char* name,
+                           const wchar_t* text);
+extern void Function55A0A0(int handle);
+extern void Function524CA0(W8NPCItemList* list);
 
 // FUNCTION: WIZ8 0x00506480
 /* The whole 1001-byte fact array minus its last entry goes to the save file in
@@ -62,4 +74,52 @@ void InitializeFactState(void)
         SetFact(0x27b, 1, 0);
     }
     SetFactNotificationsSuppressed(0);
+}
+
+/* The four fact checks in LoadFactState share one block that VC6 inlined at
+   each site: evaluate the fact, and when logging is enabled copy TRUE or FALSE
+   into a local and print it beside the fact's symbolic name. Written as an
+   inline helper rather than four times, so the shared wide buffer stays a
+   single local. */
+static __inline unsigned char CheckFactLogged(int fact_id)
+{
+    unsigned char value;
+    wchar_t text[10];
+
+    value = EvaluateFact(fact_id);
+    if (g_log_fact_checks) {
+        if (value) {
+            wcscpy(text, L"TRUE");
+        } else {
+            wcscpy(text, L"FALSE");
+        }
+        Function58AAD0(5, L"Checking fact %S which is %s",
+                       g_fact_records[fact_id].symbolic_name, text);
+    }
+    return value;
+}
+
+// FUNCTION: WIZ8 0x005064A0
+/* Reads the fact array back, then re-applies the consequences that do not
+   survive a save. As in SaveFactState the handle's own incoming slot doubles as
+   the bytes-read scratch. */
+void LoadFactState(int save_handle)
+{
+    W8NPCItemList* list;
+
+    ReadVirtualFile(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+    if (CheckFactLogged(0x44)) {
+        list = GetNPCItemListByID(0x20);
+        if (list && list->flag_1a) {
+            Function55A0A0(list->unknown_00);
+            Function524CA0(list);
+        }
+    }
+    if (!CheckFactLogged(0x4b)) {
+        if (!CheckFactLogged(0x4c)) {
+            if (!CheckFactLogged(0x4e)) {
+                SetFact(0x4d, 1, 0);
+            }
+        }
+    }
 }

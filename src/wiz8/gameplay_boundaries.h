@@ -151,8 +151,11 @@ typedef struct W8NPCRecordRef {
 } W8NPCRecordRef;
 
 typedef struct W8NPCItemList {
-    unsigned char unknown_00[6];
+    int unknown_00;                       /* 0x00: handle passed to 0x0055A0A0 */
+    unsigned char unknown_04[2];
     W8NPCRecordRef* npc_record;           /* 0x06 */
+    unsigned char unknown_0a[0x10];
+    unsigned char flag_1a;                /* 0x1a: gates the teardown in LoadFactState */
 } W8NPCItemList;
 
 typedef struct W8MessageBoxLine {
@@ -318,6 +321,7 @@ unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
 void SaveFactState(int save_handle);
 void InitializeFactState(void);
+void LoadFactState(int save_handle);
 void SetFactNotificationsSuppressed(unsigned char suppressed);
 unsigned char InitializeFactDatabase(void);
 unsigned char InitializeItemDatabase(void);
