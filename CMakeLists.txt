@@ -239,6 +239,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/location_variables.c
         src/wiz8/item_spawning.cpp
         src/wiz8/monster_generators.cpp
+        src/wiz8/npc_item_lists.c
         src/wiz8/random_number.c
         src/wiz8/spell_backfire.cpp
         src/wiz8/state_getters.c

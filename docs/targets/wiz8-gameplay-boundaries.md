@@ -31,10 +31,11 @@ recovery work.
 | `0x0048bdc0` | `FindMonGenByName` | 100 | Traverses the world object's monster-generator pointer vector and compares the complete 32-byte generator-name field. Its verified CFAgent name is used by seven canonical callers. |
 | `0x004f6b90` | `CreateWorldItem` | 179 | Allocates and zeroes the `0xad`-byte runtime item, initializes its packed item instance at `+0x09`, copies the position to `+0x15`, and optionally inserts it into the world-item list. The descriptive name is provisional; the complete implementation and layout are exact. |
 | `0x004f6c50` | `SpawnItem` | 103 | Materializes a packed item instance unless the item ID is `-1`, passes it with a three-component position to the world-item allocator, and preserves the original `ItemManager.cpp:398` assertion. Its name comes from the verified CFAgent oracle. |
+| `0x0050b830` | `GetNPCItemListByID` | 53 | Searches the global NPC item-list vector for an entry whose NPC record's `record_id` (offset `0x58`, independently corroborated by `config/types/wiz8/npc_database.h`) equals the requested ID, using the same odd `index < count` in-loop guard as `FindMonGenByName`. Its name comes from the verified CFAgent oracle and it has 73 canonical callers. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
 `src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`,
-`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`,
+`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, `src/wiz8/npc_item_lists.c`,
 `src/wiz8/item_spawning.cpp`, and `src/wiz8/vector_conversions.cpp`, and retain explicit `FUNCTION`
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
 `just build WIZ8_GAMEPLAY_BOUNDARIES`; it uses the pinned SP5 `/O2 /G6 /MD` environment alongside the
@@ -42,7 +43,7 @@ already exact compression and plug-in targets. The review map is
 `config/analysis/reccmp/wiz8-gameplay-boundaries.csv`.
 
 The target adds `/G6`, which is matching-relevant for this translation unit: it changes VC6's
-instruction scheduling to the canonical order. With `/O2 /G6 /MD`, twenty-one bodies match exactly after
+instruction scheduling to the canonical order. With `/O2 /G6 /MD`, twenty-two bodies match exactly after
 masking COFF relocations where needed:
 
 | Function | Result | Relocation-normalized SHA-256 |
@@ -69,6 +70,7 @@ masking COFF relocations where needed:
 | `Copy3DVector` | exact, 25/25 bytes | `d2c6b969f7e840e9b66f67645f81ca73443a3440a6172050a5bb642d96fd1f9c` |
 | `CreateWorldItem` | exact, 179/179 bytes | `9f728370ebab904577b40d6b5b75d5ce4a963ad1eb8f57f05ddb4eef98280c94` |
 | `SpawnItem` | exact, 103/103 bytes | `b2b9177917fde0f54d3033f2cf8deaf6ddc44fa7546707e7ecbd912f5ec9e120` |
+| `GetNPCItemListByID` | exact, 53/53 bytes | `e293f0561b674646f81354fe8f56c2a05f4ec43fa755416032def319cdfff793` |
 
 `GetRandomNumber` is the first proven exception to the unit's `/G6` scheduling. Its isolated
 `random_number.c` object is exact with `/G5`; `/G6` preserves the semantics but moves the multiply
@@ -84,3 +86,13 @@ code-layout difference is recorded instead of being hidden behind a misleading h
 loop bounds, fallback element selection, and fixed-width `strncmp` all agree with the canonical body,
 but VC6 schedules the invariant name/import loads ahead of the initial count comparison and places the
 success epilogue differently. No exact hash is claimed for that layout mismatch.
+
+`GetNPCItemListByID` shares `FindMonGenByName`'s odd `index < count` in-loop element guard, but its
+body is small and simple enough that this recovery is byte-exact once the vector pointer and the
+element count are cached in the same registers the original used (`ESI`/`EDX`); declaring the count
+local before the vector-pointer local was what flipped VC6's register choice to match. The exact hash
+was independently confirmed against the original bytes read straight out of the imported `Wiz8.exe`
+Ghidra program (`wiz8 ghidra query <program> read-data <address> <size>`), not just the disassembly
+text. That query command had a latent bug: it filled a plain Python `bytearray`, which JPype copies
+rather than shares across the Java call boundary, so `Memory.getBytes` always returned all zeros; it
+now uses a `jpype.JArray(jpype.JByte)` so raw-byte reads work for future comparisons too.

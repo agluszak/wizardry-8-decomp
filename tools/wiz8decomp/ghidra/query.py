@@ -145,13 +145,18 @@ def _sections(program: Any) -> dict[str, Any]:
 
 
 def _read_data(program: Any, address_text: str, size_text: str) -> dict[str, Any]:
+    import jpype
+
     address = _address(program, address_text)
     size = int(size_text, 0)
     if size < 0 or size > 16 * 1024 * 1024:
         raise ValueError("read-data size must be between 0 and 16 MiB")
-    buffer = bytearray(size)
+    # A plain Python bytearray is converted to a *copy* of a Java byte[] at
+    # the JPype boundary, so Memory.getBytes's in-place fill is invisible
+    # back in Python; a JPype JArray shares storage across the boundary.
+    buffer = jpype.JArray(jpype.JByte)(size)
     read = program.getMemory().getBytes(address, buffer)
-    return {"address": str(address), "size": read, "hex": bytes(buffer[:read]).hex()}
+    return {"address": str(address), "size": read, "hex": bytes(b & 0xFF for b in buffer[:read]).hex()}
 
 
 def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str, Any]:

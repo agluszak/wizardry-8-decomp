@@ -104,6 +104,23 @@ typedef struct W8WorldItem {
     unsigned char unknown_3d[0x70];
 } W8WorldItem;                           /* 0xad */
 
+typedef struct W8NPCRecordRef {
+    unsigned char unknown_00[0x58];
+    int record_id;                        /* 0x058: matches W8NpcDatabaseRecord::record_id */
+} W8NPCRecordRef;
+
+typedef struct W8NPCItemList {
+    unsigned char unknown_00[6];
+    W8NPCRecordRef* npc_record;           /* 0x06 */
+} W8NPCItemList;
+
+typedef struct W8NPCItemListVector {
+    int unknown_00;
+    int count;                            /* 0x04 */
+    int capacity;
+    W8NPCItemList** data;                 /* 0x0c */
+} W8NPCItemListVector;
+
 typedef unsigned char W8FactionDisposition;
 
 enum {
@@ -137,6 +154,7 @@ extern int g_location_variable_level_count;
 extern int* g_location_variable_levels;
 extern int g_next_world_item_id;
 extern void* g_world_item_list;
+extern W8NPCItemListVector* g_npc_item_lists;
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
@@ -172,6 +190,7 @@ W8WorldItem* SpawnItem(
     const W8Vector3* position,
     int unknown,
     unsigned char add_to_world);
+W8NPCItemList* GetNPCItemListByID(int npc_record_id);
 
 #ifdef __cplusplus
 }
