@@ -11,7 +11,15 @@ to reproduce code you already understand.
 
 ## The loop
 
-1. Disassemble the canonical function and find its extent (see *Function extents* below).
+0. **Decompile it first**: `just ghidra query <program> decompile 0x<addr>`. Ghidra carries the
+   applied types, global names, and callee identities, so it names `g_fact_values` and `FileWrite`
+   where a raw listing shows bare addresses. Reading instructions by hand to work out what a function
+   *does* re-derives, badly, what the project already recorded. Use the full program selector
+   (`wiz8` is ambiguous across 21 programs), set `COLUMNS` wide so rich does not wrap the payload,
+   and parse with `strict=False` — plate comments contain raw newlines. Disassembly answers the
+   narrower question of why two encodings differ; `just wiz8 diff-boundary <symbol>` is the tool
+   for that.
+1. Confirm the canonical function's extent (see *Function extents* below).
 2. Write owned C/C++ under `src/wiz8/`, add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` source list
    in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
 3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.

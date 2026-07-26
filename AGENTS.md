@@ -53,6 +53,17 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   recovers it after mutating Ghidra commands stop it. Do not manually manage the daemon in normal
   agent workflows; a one-shot Ghidra launch is only an automatic fallback when the daemon cannot
   be used.
+- **Start every port from `just ghidra query <program> decompile 0x<addr>`, not from disassembly.**
+  Ghidra already carries the applied types, global names, and callee identities, so its output names
+  `g_fact_values`, `FileWrite` and `W8NpcDatabaseRecord` where a raw listing shows only addresses.
+  Reading instructions by hand to work out what a function *does* re-derives, badly and slowly, what
+  the project has already recorded. Disassembly answers a different and narrower question — why two
+  encodings differ — and `just wiz8 diff-boundary <symbol>` is the tool for that, aligned against the
+  original with relocations and moved branch displacements already discounted.
+  Three practical notes: pass the full program selector (`wiz8` alone is ambiguous across 21
+  programs; use `wiz8--gog-base--wiz8--18a74ff61c65` for canonical retail), set `COLUMNS` wide so
+  rich does not wrap the payload, and parse the JSON with `strict=False` because plate comments carry
+  raw newlines.
 - Run the narrowest relevant checks while iterating, then the complete relevant gate before
   publishing. A successful build alone does not prove identity or behavior.
 - Use `just wiz8 report status` for current identity, match, ownership, and source-unit counts; do

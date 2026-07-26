@@ -68,6 +68,17 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* One Data\Databases\Items.DBS record, and its LEVELS.DBS sibling. As with
+   W8MonsterRecord only the disk and runtime stride is established; the leading
+   field is a display name. */
+typedef struct W8ItemDatabaseRecord {
+    unsigned char unknown_000[0x10d];
+} W8ItemDatabaseRecord;                  /* 0x10d */
+
+typedef struct W8LevelDatabaseRecord {
+    unsigned char unknown_000[0xd8];
+} W8LevelDatabaseRecord;                 /* 0xd8 */
+
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
    runtime record size; the fields are typed by their consumers elsewhere. */
 typedef struct W8MonsterRecord {
@@ -218,6 +229,10 @@ extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
 extern unsigned char g_fact_values[1001];
 extern int g_fact_record_count;
+extern W8ItemDatabaseRecord* g_item_records;
+extern int g_item_record_count;
+extern W8LevelDatabaseRecord* g_level_records;
+extern int g_level_record_count;
 extern int g_loaded_level_id;
 extern W8World* g_world;
 extern unsigned char g_item_in_hand_valid;
@@ -303,6 +318,11 @@ unsigned int CharacterPointerToPartySlot(W8Character* character);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
+void SaveFactState(int save_handle);
+unsigned char InitializeFactDatabase(void);
+unsigned char InitializeItemDatabase(void);
+unsigned char InitializeLevelDatabase(void);
+void DestroyFactDatabase(void);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
