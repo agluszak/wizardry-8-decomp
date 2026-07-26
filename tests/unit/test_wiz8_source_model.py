@@ -57,6 +57,38 @@ def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
     ]
 
 
+def test_surrender_abi_surface_is_complete_and_joins_the_jpeg_model() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "config/analysis/surrender/wiz8-sr-imports.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        wiz8 = list(csv.DictReader(stream))
+    with (repository / "config/analysis/surrender/jpeg-sr-imports.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        jpeg = {row["decorated_name"]: row for row in csv.DictReader(stream)}
+
+    assert len(wiz8) == 461
+    # Every symbol demangles, and every one is original ABI evidence.
+    assert all(row["demangled_signature"] for row in wiz8)
+    assert {row["name_origin"] for row in wiz8} == {"original-export"}
+    assert {row["authority"] for row in wiz8} == {"abi-backed"}
+
+    classes = {row["class_name"] for row in wiz8 if row["class_name"]}
+    assert len(classes) == 51
+    assert "srHuffman::Decompressor" in classes
+    assert sum(row["kind"] == "vftable" for row in wiz8) == 6
+
+    # The two import models must agree wherever they overlap.
+    by_name = {row["decorated_name"]: row for row in wiz8}
+    shared = set(by_name) & set(jpeg)
+    assert len(shared) == 62
+    for name in shared:
+        recorded = jpeg[name]["demangled_signature"].strip()
+        if recorded:
+            assert recorded == by_name[name]["demangled_signature"].strip(), name
+
+
 def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "config/analysis/wiz8/classes.csv").open(

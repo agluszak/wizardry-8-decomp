@@ -1,0 +1,462 @@
+decorated_name,ordinal,demangled_signature,calling_convention,importing_modules,class_name,kind,iat_address,name_origin,authority
+?srAssertFail@@YAXPBD0J0ZZ,0,"void __cdecl srAssertFail(char const *, char const *, long, char const *, ...)",__cdecl,Wiz8.exe,,free-function,005ebaf4,original-export,abi-backed
+?srAssertSetFunc@@YAXP6AXPBD0J0@Z@Z,0,"void __cdecl srAssertSetFunc(void (__cdecl *)(char const *, char const *, long, char const *))",__cdecl,Wiz8.exe,,free-function,005eba90,original-export,abi-backed
+?srBSplineFilter@@3V0@A,0,class srBSplineFilter srBSplineFilter,,Wiz8.exe,,global-object,005eba54,original-export,abi-backed
+?srBoxFilter@@3V0@A,0,class srBoxFilter srBoxFilter,,Wiz8.exe,,global-object,005eb51c,original-export,abi-backed
+?srConfig@@3V0@A,0,class srConfig srConfig,,Wiz8.exe,,global-object,005eba9c,original-export,abi-backed
+?srCore@@3V0@A,0,class srCore srCore,,Wiz8.exe,,global-object,005eb70c,original-export,abi-backed
+?srExit@@YAHXZ,0,int __cdecl srExit(void),__cdecl,Wiz8.exe,,free-function,005ebaa4,original-export,abi-backed
+?srHeap@@3V0@A,0,class srHeap srHeap,,Wiz8.exe,,global-object,005ebabc,original-export,abi-backed
+?srInit@@YAHXZ,0,int __cdecl srInit(void),__cdecl,Wiz8.exe,,free-function,005eba74,original-export,abi-backed
+?pipe@srTriMeshPipeline@@1PAV1@A,0,protected: static class srTriMeshPipeline *srTriMeshPipeline::pipe,,Wiz8.exe,*srTriMeshPipeline,method,005eb7fc,original-export,abi-backed
+?vp@srVectorProcessor@@0PAVsrVP@@A,0,private: static class srVP *srVectorProcessor::vp,,Wiz8.exe,*srVectorProcessor,method,005eb7e8,original-export,abi-backed
+??0srBinIMStream@@QAE@PBXK@Z,0,"public: __thiscall srBinIMStream::srBinIMStream(void const *, unsigned long)",__thiscall,Wiz8.exe,srBinIMStream,constructor,005eb760,original-export,abi-backed
+??_DsrBinIMStream@@QAEXXZ,0,public: void __thiscall srBinIMStream::`vbase dtor'(void),__thiscall,Wiz8.exe,srBinIMStream,vbase-destructor,005eb744,original-export,abi-backed
+??1srBinIStream@@UAE@XZ,0,public: virtual __thiscall srBinIStream::~srBinIStream(void),__thiscall,Wiz8.exe,srBinIStream,destructor,005eb8c4,original-export,abi-backed
+??_7srBinIStream@@6B0@@,0,const srBinIStream::`vftable'{for `srBinIStream'},,Wiz8.exe,srBinIStream,vftable,005eb8d4,original-export,abi-backed
+??_7srBinIStream@@6BsrBinStream@@@,0,const srBinIStream::`vftable'{for `srBinStream'},,Wiz8.exe,srBinIStream,vftable,005eb8d0,original-export,abi-backed
+?vget@srBinIStream@@MAEGXZ,0,protected: virtual unsigned short __thiscall srBinIStream::vget(void),__thiscall,Wiz8.exe,srBinIStream,method,005eb8c0,original-export,abi-backed
+??0srBinOMStream@@QAE@XZ,0,public: __thiscall srBinOMStream::srBinOMStream(void),__thiscall,Wiz8.exe,srBinOMStream,constructor,005eb798,original-export,abi-backed
+??_DsrBinOMStream@@QAEXXZ,0,public: void __thiscall srBinOMStream::`vbase dtor'(void),__thiscall,Wiz8.exe,srBinOMStream,vbase-destructor,005eb76c,original-export,abi-backed
+?getPtr@srBinOMStream@@QAEPAXXZ,0,public: void * __thiscall srBinOMStream::getPtr(void),__thiscall,Wiz8.exe,srBinOMStream,method,005eb770,original-export,abi-backed
+?getSize@srBinOMStream@@UAEKXZ,0,public: virtual unsigned long __thiscall srBinOMStream::getSize(void),__thiscall,Wiz8.exe,srBinOMStream,method,005eb774,original-export,abi-backed
+??1srBinOStream@@UAE@XZ,0,public: virtual __thiscall srBinOStream::~srBinOStream(void),__thiscall,Wiz8.exe,srBinOStream,destructor,005eb764,original-export,abi-backed
+??0srBinStream@@IAE@XZ,0,protected: __thiscall srBinStream::srBinStream(void),__thiscall,Wiz8.exe,srBinStream,constructor,005eb8d8,original-export,abi-backed
+??1srBinStream@@UAE@XZ,0,public: virtual __thiscall srBinStream::~srBinStream(void),__thiscall,Wiz8.exe,srBinStream,destructor,005eb8c8,original-export,abi-backed
+??_7srBinStream@@6B@,0,const srBinStream::`vftable',,Wiz8.exe,srBinStream,vftable,005eb748,original-export,abi-backed
+?getSize@srBinStream@@UAEKXZ,0,public: virtual unsigned long __thiscall srBinStream::getSize(void),__thiscall,Wiz8.exe,srBinStream,method,005eb8bc,original-export,abi-backed
+?setState@srBinStream@@QAEXW4e_state@1@@Z,0,public: void __thiscall srBinStream::setState(enum srBinStream::e_state),__thiscall,Wiz8.exe,srBinStream,method,005eb8cc,original-export,abi-backed
+??0srCamera@@QAE@PAVsrNode@@@Z,0,public: __thiscall srCamera::srCamera(class srNode *),__thiscall,Wiz8.exe,srCamera,constructor,005eb4fc,original-export,abi-backed
+??1srCamera@@UAE@XZ,0,public: virtual __thiscall srCamera::~srCamera(void),__thiscall,Wiz8.exe,srCamera,destructor,005eb50c,original-export,abi-backed
+??4srCamera@@QAEAAV0@ABV0@@Z,0,public: class srCamera & __thiscall srCamera::operator=(class srCamera const &),__thiscall,Wiz8.exe,srCamera,operator,005eb6f0,original-export,abi-backed
+?dump@srCamera@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srCamera::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srCamera,method,005eb418,original-export,abi-backed
+?getClipRange@srCamera@@QBEXAAN0@Z,0,"public: void __thiscall srCamera::getClipRange(double &, double &) const",__thiscall,Wiz8.exe,srCamera,method,005eb7dc,original-export,abi-backed
+?getHorizontalFOV@srCamera@@QBENXZ,0,public: double __thiscall srCamera::getHorizontalFOV(void) const,__thiscall,Wiz8.exe,srCamera,method,005eb700,original-export,abi-backed
+?getVerticalFOV@srCamera@@QBENXZ,0,public: double __thiscall srCamera::getVerticalFOV(void) const,__thiscall,Wiz8.exe,srCamera,method,005eb6fc,original-export,abi-backed
+?getViewPlane@srCamera@@QBEXAAURect@1@AAN@Z,0,"public: void __thiscall srCamera::getViewPlane(struct srCamera::Rect &, double &) const",__thiscall,Wiz8.exe,srCamera,method,005eb608,original-export,abi-backed
+?process@srCamera@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z,0,"public: virtual void __thiscall srCamera::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srCamera,method,005eb40c,original-export,abi-backed
+?project@srCamera@@QAE?AW4e_projectionResult@1@AAV?$srVector3T@M@@ABV?$srVector3T@N@@@Z,0,"public: enum srCamera::e_projectionResult __thiscall srCamera::project(class srVector3T<float> &, class srVector3T<double> const &)",__thiscall,Wiz8.exe,srCamera,method,005eb7ac,original-export,abi-backed
+?setClipRange@srCamera@@QAEXNN@Z,0,"public: void __thiscall srCamera::setClipRange(double, double)",__thiscall,Wiz8.exe,srCamera,method,005eb4f8,original-export,abi-backed
+?setEnvironmentRange@srCamera@@QAEXMM@Z,0,"public: void __thiscall srCamera::setEnvironmentRange(float, float)",__thiscall,Wiz8.exe,srCamera,method,005eb4e8,original-export,abi-backed
+?setProjectionType@srCamera@@QAEXW4e_project@1@@Z,0,public: void __thiscall srCamera::setProjectionType(enum srCamera::e_project),__thiscall,Wiz8.exe,srCamera,method,005eba50,original-export,abi-backed
+?setViewPlane@srCamera@@QAEXABURect@1@N@Z,0,"public: void __thiscall srCamera::setViewPlane(struct srCamera::Rect const &, double)",__thiscall,Wiz8.exe,srCamera,method,005eb4ec,original-export,abi-backed
+?setViewPlane@srCamera@@QAEXNN@Z,0,"public: void __thiscall srCamera::setViewPlane(double, double)",__thiscall,Wiz8.exe,srCamera,method,005eb60c,original-export,abi-backed
+?vInstance@srCamera@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srCamera::vInstance(void),__thiscall,Wiz8.exe,srCamera,method,005eb414,original-export,abi-backed
+??0srClass@@IAE@XZ,0,protected: __thiscall srClass::srClass(void),__thiscall,Wiz8.exe,srClass,constructor,005eb6e0,original-export,abi-backed
+??1srClass@@MAE@XZ,0,protected: virtual __thiscall srClass::~srClass(void),__thiscall,Wiz8.exe,srClass,destructor,005eb6d8,original-export,abi-backed
+??4srClass@@QAEAAV0@ABV0@@Z,0,public: class srClass & __thiscall srClass::operator=(class srClass const &),__thiscall,Wiz8.exe,srClass,operator,005eb7a4,original-export,abi-backed
+?addReference@srClass@@QBEXXZ,0,public: void __thiscall srClass::addReference(void) const,__thiscall,Wiz8.exe,srClass,method,005ebadc,original-export,abi-backed
+?autoRelease@srClass@@QAEXXZ,0,public: void __thiscall srClass::autoRelease(void),__thiscall,Wiz8.exe,srClass,method,005ebac4,original-export,abi-backed
+?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srClass::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srClass,method,005eb6d0,original-export,abi-backed
+?getReferenceCount@srClass@@QBEJXZ,0,public: long __thiscall srClass::getReferenceCount(void) const,__thiscall,Wiz8.exe,srClass,method,005eb9a0,original-export,abi-backed
+?release@srClass@@QBEHXZ,0,public: int __thiscall srClass::release(void) const,__thiscall,Wiz8.exe,srClass,method,005ebae0,original-export,abi-backed
+?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ,0,public: static class srRegistry::ClassNode * __cdecl srClass::sGetClassNode(void),__cdecl,Wiz8.exe,srClass,method,005eb6a8,original-export,abi-backed
+?touch@srClass@@QAEXXZ,0,public: void __thiscall srClass::touch(void),__thiscall,Wiz8.exe,srClass,method,005eb678,original-export,abi-backed
+?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z,0,public: virtual void __thiscall srClass::verify(enum srRuntimeClass::e_verify),__thiscall,Wiz8.exe,srClass,method,005eb4d0,original-export,abi-backed
+??0srClipPlane@@QAE@PAVsrNode@@@Z,0,public: __thiscall srClipPlane::srClipPlane(class srNode *),__thiscall,Wiz8.exe,srClipPlane,constructor,005eba30,original-export,abi-backed
+??1srClipPlane@@UAE@XZ,0,public: virtual __thiscall srClipPlane::~srClipPlane(void),__thiscall,Wiz8.exe,srClipPlane,destructor,005eba3c,original-export,abi-backed
+??4srClipPlane@@QAEAAV0@ABV0@@Z,0,public: class srClipPlane & __thiscall srClipPlane::operator=(class srClipPlane const &),__thiscall,Wiz8.exe,srClipPlane,operator,005eba38,original-export,abi-backed
+?dump@srClipPlane@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srClipPlane::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srClipPlane,method,005eba2c,original-export,abi-backed
+?process@srClipPlane@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z,0,"public: virtual void __thiscall srClipPlane::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srClipPlane,method,005eba20,original-export,abi-backed
+?traverse@srClipPlane@@UAEXAAVTraverseInfo@srNode@@@Z,0,public: virtual void __thiscall srClipPlane::traverse(class srNode::TraverseInfo &),__thiscall,Wiz8.exe,srClipPlane,method,005eba24,original-export,abi-backed
+?vInstance@srClipPlane@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srClipPlane::vInstance(void),__thiscall,Wiz8.exe,srClipPlane,method,005eba28,original-export,abi-backed
+??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z,0,"public: __thiscall srColorSurface::srColorSurface(enum srPixelConvert::e_surfaceType, unsigned long, unsigned long)",__thiscall,Wiz8.exe,srColorSurface,constructor,005eb520,original-export,abi-backed
+??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@PAXKKK@Z,0,"public: __thiscall srColorSurface::srColorSurface(enum srPixelConvert::e_surfaceType, void *, unsigned long, unsigned long, unsigned long)",__thiscall,Wiz8.exe,srColorSurface,constructor,005eb4dc,original-export,abi-backed
+??1srColorSurface@@MAE@XZ,0,protected: virtual __thiscall srColorSurface::~srColorSurface(void),__thiscall,Wiz8.exe,srColorSurface,destructor,005eb518,original-export,abi-backed
+??4srColorSurface@@QAEAAV0@ABV0@@Z,0,public: class srColorSurface & __thiscall srColorSurface::operator=(class srColorSurface const &),__thiscall,Wiz8.exe,srColorSurface,operator,005eb6b4,original-export,abi-backed
+?blit@srColorSurface@@UAEXJJAAVsrColorSurfaceIFace@@JJJJ@Z,0,"public: virtual void __thiscall srColorSurface::blit(long, long, class srColorSurfaceIFace &, long, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb46c,original-export,abi-backed
+?changePixelFormat@srColorSurface@@UAEHABUPixelFormat@srPixelConvert@@H@Z,0,"public: virtual int __thiscall srColorSurface::changePixelFormat(struct srPixelConvert::PixelFormat const &, int)",__thiscall,Wiz8.exe,srColorSurface,method,005eb488,original-export,abi-backed
+?copyNoScaling@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z,0,private: virtual void __thiscall srColorSurface::copyNoScaling(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurface,method,005eb48c,original-export,abi-backed
+?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srColorSurface::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4d4,original-export,abi-backed
+?fill@srColorSurface@@UAEXK@Z,0,public: virtual void __thiscall srColorSurface::fill(unsigned long),__thiscall,Wiz8.exe,srColorSurface,method,005eb484,original-export,abi-backed
+?flipRectangle@srColorSurface@@UAEXABURectangle@srColorSurfaceIFace@@@Z,0,public: virtual void __thiscall srColorSurface::flipRectangle(struct srColorSurfaceIFace::Rectangle const &),__thiscall,Wiz8.exe,srColorSurface,method,005eb460,original-export,abi-backed
+?getDataPtr@srColorSurface@@UAEPAXXZ,0,public: virtual void * __thiscall srColorSurface::getDataPtr(void),__thiscall,Wiz8.exe,srColorSurface,method,005eb498,original-export,abi-backed
+?getDataSize@srColorSurface@@UAEJXZ,0,public: virtual long __thiscall srColorSurface::getDataSize(void),__thiscall,Wiz8.exe,srColorSurface,method,005eb494,original-export,abi-backed
+?getPalette@srColorSurface@@UAEPAVsrPalette@@XZ,0,public: virtual class srPalette * __thiscall srColorSurface::getPalette(void),__thiscall,Wiz8.exe,srColorSurface,method,005eb54c,original-export,abi-backed
+?getPixelColumn@srColorSurface@@UAEXPAKJJJ@Z,0,"public: virtual void __thiscall srColorSurface::getPixelColumn(unsigned long *, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4a8,original-export,abi-backed
+?getPixelRaw@srColorSurface@@UAEKJJ@Z,0,"public: virtual unsigned long __thiscall srColorSurface::getPixelRaw(long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4c0,original-export,abi-backed
+?getPixelRow@srColorSurface@@UAEXPAKJJJ@Z,0,"public: virtual void __thiscall srColorSurface::getPixelRow(unsigned long *, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb444,original-export,abi-backed
+?getPixelRowRaw@srColorSurface@@UAEXPAXJJJ@Z,0,"public: virtual void __thiscall srColorSurface::getPixelRowRaw(void *, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb43c,original-export,abi-backed
+?getPixels@srColorSurface@@UAEXPAKPBVsrVector2i@@J@Z,0,"public: virtual void __thiscall srColorSurface::getPixels(unsigned long *, class srVector2i const *, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4b8,original-export,abi-backed
+?getPixelsRaw@srColorSurface@@UAEXPAXPBVsrVector2i@@J@Z,0,"public: virtual void __thiscall srColorSurface::getPixelsRaw(void *, class srVector2i const *, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4b0,original-export,abi-backed
+?rescale@srColorSurface@@UAEHJJ@Z,0,"public: virtual int __thiscall srColorSurface::rescale(long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb534,original-export,abi-backed
+?resize@srColorSurface@@UAEHJJ@Z,0,"public: virtual int __thiscall srColorSurface::resize(long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb490,original-export,abi-backed
+?sGetClassName@srColorSurface@@SAPBDXZ,0,public: static char const * __cdecl srColorSurface::sGetClassName(void),__cdecl,Wiz8.exe,srColorSurface,method,005eb6a0,original-export,abi-backed
+?scaleFast@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z,0,private: virtual void __thiscall srColorSurface::scaleFast(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurface,method,005eb428,original-export,abi-backed
+?setHLine@srColorSurface@@UAEXJJJK@Z,0,"public: virtual void __thiscall srColorSurface::setHLine(long, long, long, unsigned long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4a0,original-export,abi-backed
+?setPalette@srColorSurface@@UAEXPAVsrPalette@@@Z,0,public: virtual void __thiscall srColorSurface::setPalette(class srPalette *),__thiscall,Wiz8.exe,srColorSurface,method,005eb49c,original-export,abi-backed
+?setPixelColumn@srColorSurface@@UAEXPBKJJJ@Z,0,"public: virtual void __thiscall srColorSurface::setPixelColumn(unsigned long const *, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4a4,original-export,abi-backed
+?setPixelRaw@srColorSurface@@UAEXJJK@Z,0,"public: virtual void __thiscall srColorSurface::setPixelRaw(long, long, unsigned long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4bc,original-export,abi-backed
+?setPixelRow@srColorSurface@@UAEXPBKJJJ@Z,0,"public: virtual void __thiscall srColorSurface::setPixelRow(unsigned long const *, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb440,original-export,abi-backed
+?setPixelRowRaw@srColorSurface@@UAEXPBXJJJ@Z,0,"public: virtual void __thiscall srColorSurface::setPixelRowRaw(void const *, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb438,original-export,abi-backed
+?setPixels@srColorSurface@@UAEXPBKPBVsrVector2i@@J@Z,0,"public: virtual void __thiscall srColorSurface::setPixels(unsigned long const *, class srVector2i const *, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4b4,original-export,abi-backed
+?setPixelsRaw@srColorSurface@@UAEXPBXPBVsrVector2i@@J@Z,0,"public: virtual void __thiscall srColorSurface::setPixelsRaw(void const *, class srVector2i const *, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb4ac,original-export,abi-backed
+?setVLine@srColorSurface@@UAEXJJJK@Z,0,"public: virtual void __thiscall srColorSurface::setVLine(long, long, long, unsigned long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb47c,original-export,abi-backed
+?swapPixelRows@srColorSurface@@UAEXJJJJJ@Z,0,"public: virtual void __thiscall srColorSurface::swapPixelRows(long, long, long, long, long)",__thiscall,Wiz8.exe,srColorSurface,method,005eb464,original-export,abi-backed
+?vInstance@srColorSurface@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srColorSurface::vInstance(void),__thiscall,Wiz8.exe,srColorSurface,method,005eb4cc,original-export,abi-backed
+?adjust@srColorSurfaceIFace@@UAEXABV?$srVector4T@M@@00@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::adjust(class srVector4T<float> const &, class srVector4T<float> const &, class srVector4T<float> const &)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb45c,original-export,abi-backed
+?adjustSaturation@srColorSurfaceIFace@@UAEXN@Z,0,public: virtual void __thiscall srColorSurfaceIFace::adjustSaturation(double),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb458,original-export,abi-backed
+?blit@srColorSurfaceIFace@@UAEXABUBlitInfo@1@AAV1@@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::blit(struct srColorSurfaceIFace::BlitInfo const &, class srColorSurfaceIFace &)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb470,original-export,abi-backed
+?composite@srColorSurfaceIFace@@UAEXJJAAV1@JJJJN@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::composite(long, long, class srColorSurfaceIFace &, long, long, long, long, double)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb474,original-export,abi-backed
+?copy@srColorSurfaceIFace@@UAEXAAV1@@Z,0,public: virtual void __thiscall srColorSurfaceIFace::copy(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb468,original-export,abi-backed
+?copyColorChannel@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::copyColorChannel(enum srARGB::e_index, enum srARGB::e_index)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb44c,original-export,abi-backed
+?flipColorChannels@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::flipColorChannels(enum srARGB::e_index, enum srARGB::e_index)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb448,original-export,abi-backed
+?getChannelStatistics@srColorSurfaceIFace@@UAEXAAVsrStat@@W4e_index@srARGB@@@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::getChannelStatistics(class srStat &, enum srARGB::e_index)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb454,original-export,abi-backed
+?getPixel@srColorSurfaceIFace@@UAEKJJ@Z,0,"public: virtual unsigned long __thiscall srColorSurfaceIFace::getPixel(long, long)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb4c8,original-export,abi-backed
+?magnify@srColorSurfaceIFace@@MAEXAAV1@@Z,0,protected: virtual void __thiscall srColorSurfaceIFace::magnify(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb420,original-export,abi-backed
+?minify@srColorSurfaceIFace@@MAEXAAV1@@Z,0,protected: virtual void __thiscall srColorSurfaceIFace::minify(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb41c,original-export,abi-backed
+?remapPixels@srColorSurfaceIFace@@UAEXABVsrARGB@@0@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::remapPixels(class srARGB const &, class srARGB const &)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb450,original-export,abi-backed
+?sGetClassName@srColorSurfaceIFace@@SAPBDXZ,0,public: static char const * __cdecl srColorSurfaceIFace::sGetClassName(void),__cdecl,Wiz8.exe,srColorSurfaceIFace,method,005eb6a4,original-export,abi-backed
+?scale@srColorSurfaceIFace@@MAEXAAV1@@Z,0,protected: virtual void __thiscall srColorSurfaceIFace::scale(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb434,original-export,abi-backed
+?scaleHorizontal@srColorSurfaceIFace@@MAEXAAV1@@Z,0,protected: virtual void __thiscall srColorSurfaceIFace::scaleHorizontal(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb430,original-export,abi-backed
+?scaleVertical@srColorSurfaceIFace@@MAEXAAV1@@Z,0,protected: virtual void __thiscall srColorSurfaceIFace::scaleVertical(class srColorSurfaceIFace &),__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb480,original-export,abi-backed
+?setLine@srColorSurfaceIFace@@UAEXJJJJK@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::setLine(long, long, long, long, unsigned long)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb478,original-export,abi-backed
+?setPixel@srColorSurfaceIFace@@UAEXJJK@Z,0,"public: virtual void __thiscall srColorSurfaceIFace::setPixel(long, long, unsigned long)",__thiscall,Wiz8.exe,srColorSurfaceIFace,method,005eb4c4,original-export,abi-backed
+?removeAll@srConfig@@QAEXXZ,0,public: void __thiscall srConfig::removeAll(void),__thiscall,Wiz8.exe,srConfig,method,005ebaa0,original-export,abi-backed
+?set@srConfig@@QAEXPBD0@Z,0,"public: void __thiscall srConfig::set(char const *, char const *)",__thiscall,Wiz8.exe,srConfig,method,005eba78,original-export,abi-backed
+?getFilter@srCore@@QBEPAVsrFilter@@XZ,0,public: class srFilter * __thiscall srCore::getFilter(void) const,__thiscall,Wiz8.exe,srCore,method,005eb5dc,original-export,abi-backed
+?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ,0,public: class srIStreamOpener * __thiscall srCore::getIStreamOpener(void) const,__thiscall,Wiz8.exe,srCore,method,005eb8e0,original-export,abi-backed
+?getPalette@srCore@@QBEPAVsrPalette@@XZ,0,public: class srPalette * __thiscall srCore::getPalette(void) const,__thiscall,Wiz8.exe,srCore,method,005eb5e0,original-export,abi-backed
+?getRootNode@srCore@@QBEPAVsrNode@@XZ,0,public: class srNode * __thiscall srCore::getRootNode(void) const,__thiscall,Wiz8.exe,srCore,method,005eba0c,original-export,abi-backed
+?getSurfaceIOManager@srCore@@QBEPAVsrSurfaceIOManager@@XZ,0,public: class srSurfaceIOManager * __thiscall srCore::getSurfaceIOManager(void) const,__thiscall,Wiz8.exe,srCore,method,005eb708,original-export,abi-backed
+?load@srExtension@@SAPAV1@PBD0@Z,0,"public: static class srExtension * __cdecl srExtension::load(char const *, char const *)",__cdecl,Wiz8.exe,srExtension,method,005ebaac,original-export,abi-backed
+??0srFog@@QAE@PAVsrNode@@@Z,0,public: __thiscall srFog::srFog(class srNode *),__thiscall,Wiz8.exe,srFog,constructor,005eb994,original-export,abi-backed
+??1srFog@@UAE@XZ,0,public: virtual __thiscall srFog::~srFog(void),__thiscall,Wiz8.exe,srFog,destructor,005eb99c,original-export,abi-backed
+??4srFog@@QAEAAV0@ABV0@@Z,0,public: class srFog & __thiscall srFog::operator=(class srFog const &),__thiscall,Wiz8.exe,srFog,operator,005eb998,original-export,abi-backed
+?dump@srFog@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srFog::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srFog,method,005eb990,original-export,abi-backed
+?isActive@srFog@@UAEHAAVsrVertexPipe@@@Z,0,public: virtual int __thiscall srFog::isActive(class srVertexPipe &),__thiscall,Wiz8.exe,srFog,method,005eb97c,original-export,abi-backed
+?process@srFog@@UAEXAAVsrVertexPipe@@@Z,0,public: virtual void __thiscall srFog::process(class srVertexPipe &),__thiscall,Wiz8.exe,srFog,method,005eb978,original-export,abi-backed
+?vInstance@srFog@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srFog::vInstance(void),__thiscall,Wiz8.exe,srFog,method,005eb988,original-export,abi-backed
+?verify@srFog@@UAEXW4e_verify@srRuntimeClass@@@Z,0,public: virtual void __thiscall srFog::verify(enum srRuntimeClass::e_verify),__thiscall,Wiz8.exe,srFog,method,005eb98c,original-export,abi-backed
+?beginFrame@srGERD@@QAE?AW4e_error@1@XZ,0,public: enum srGERD::e_error __thiscall srGERD::beginFrame(void),__thiscall,Wiz8.exe,srGERD,method,005eb644,original-export,abi-backed
+?clear@srGERD@@QAEXABV?$srFlags@W4e_buffer@srGERD@@@@@Z,0,public: void __thiscall srGERD::clear(class srFlags<enum srGERD::e_buffer> const &),__thiscall,Wiz8.exe,srGERD,method,005eb63c,original-export,abi-backed
+?closeWindow@srGERD@@QAEXW4e_closeHint@1@@Z,0,public: void __thiscall srGERD::closeWindow(enum srGERD::e_closeHint),__thiscall,Wiz8.exe,srGERD,method,005eba94,original-export,abi-backed
+?createContext@srGERD@@QAE?AW4e_error@1@K@Z,0,public: enum srGERD::e_error __thiscall srGERD::createContext(unsigned long),__thiscall,Wiz8.exe,srGERD,method,005eba8c,original-export,abi-backed
+?deleteContext@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::deleteContext(void),__thiscall,Wiz8.exe,srGERD,method,005eba98,original-export,abi-backed
+?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z,0,"public: void __thiscall srGERD::drawArrays(enum srRendererDefs::e_primitive, long, unsigned long)",__thiscall,Wiz8.exe,srGERD,method,005eb8f0,original-export,abi-backed
+?endFrame@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::endFrame(void),__thiscall,Wiz8.exe,srGERD,method,005eb628,original-export,abi-backed
+?flipFrame@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::flipFrame(void),__thiscall,Wiz8.exe,srGERD,method,005eb698,original-export,abi-backed
+?flush@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::flush(void),__thiscall,Wiz8.exe,srGERD,method,005eb610,original-export,abi-backed
+?flushRenderers@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::flushRenderers(void),__thiscall,Wiz8.exe,srGERD,method,005eb654,original-export,abi-backed
+?getAmbientLight@srGERD@@QAEXAAV?$srVector4T@M@@@Z,0,public: void __thiscall srGERD::getAmbientLight(class srVector4T<float> &),__thiscall,Wiz8.exe,srGERD,method,005eb83c,original-export,abi-backed
+?getClipPlanes@srGERD@@QAEXAAUClipPlanes@1@@Z,0,public: void __thiscall srGERD::getClipPlanes(struct srGERD::ClipPlanes &),__thiscall,Wiz8.exe,srGERD,method,005eb868,original-export,abi-backed
+?getCullMode@srGERD@@QBE?AW4e_cullMode@1@XZ,0,public: enum srGERD::e_cullMode __thiscall srGERD::getCullMode(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb858,original-export,abi-backed
+?getDisplayMode@srGERD@@QBEJKKK@Z,0,"public: long __thiscall srGERD::getDisplayMode(unsigned long, unsigned long, unsigned long) const",__thiscall,Wiz8.exe,srGERD,method,005eba64,original-export,abi-backed
+?getEnvironmentRange@srGERD@@QBEXAAM0@Z,0,"public: void __thiscall srGERD::getEnvironmentRange(float &, float &) const",__thiscall,Wiz8.exe,srGERD,method,005eb838,original-export,abi-backed
+?getEnvironmentScaleFactor@srGERD@@QAEXAAM0@Z,0,"public: void __thiscall srGERD::getEnvironmentScaleFactor(float &, float &)",__thiscall,Wiz8.exe,srGERD,method,005eb834,original-export,abi-backed
+?getExclusionMask@srGERD@@QBEKXZ,0,public: unsigned long __thiscall srGERD::getExclusionMask(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb830,original-export,abi-backed
+?getEyeSpaceBounds@srGERD@@QAEXAAV?$srVector3T@M@@AAMABV2@M@Z,0,"public: void __thiscall srGERD::getEyeSpaceBounds(class srVector3T<float> &, float &, class srVector3T<float> const &, float)",__thiscall,Wiz8.exe,srGERD,method,005eb870,original-export,abi-backed
+?getHeight@srGERD@@QBEJXZ,0,public: long __thiscall srGERD::getHeight(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb5f4,original-export,abi-backed
+?getInverseModelViewMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z,0,public: void __thiscall srGERD::getInverseModelViewMatrix(class srMatrix4T<float> &),__thiscall,Wiz8.exe,srGERD,method,005eb804,original-export,abi-backed
+?getMatrix@srGERD@@QAEXW4e_matrixMode@1@AAV?$srMatrix4T@M@@@Z,0,"public: void __thiscall srGERD::getMatrix(enum srGERD::e_matrixMode, class srMatrix4T<float> &)",__thiscall,Wiz8.exe,srGERD,method,005eb86c,original-export,abi-backed
+?getModelViewScaleType@srGERD@@QAE?AW4e_scaleType@?$srMatrix4T@M@@XZ,0,public: enum srMatrix4T<float>::e_scaleType __thiscall srGERD::getModelViewScaleType(void),__thiscall,Wiz8.exe,srGERD,method,005eb85c,original-export,abi-backed
+?getNormalMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z,0,public: void __thiscall srGERD::getNormalMatrix(class srMatrix4T<float> &),__thiscall,Wiz8.exe,srGERD,method,005eb860,original-export,abi-backed
+?getPolygonOffset@srGERD@@QBEJXZ,0,public: long __thiscall srGERD::getPolygonOffset(void) const,__thiscall,Wiz8.exe,srGERD,method,005eba4c,original-export,abi-backed
+?getProjectClipNearMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z,0,public: void __thiscall srGERD::getProjectClipNearMatrix(class srMatrix4T<float> &),__thiscall,Wiz8.exe,srGERD,method,005eb864,original-export,abi-backed
+?getResidentTextureMemUsed@srGERD@@QBEKXZ,0,public: unsigned long __thiscall srGERD::getResidentTextureMemUsed(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb670,original-export,abi-backed
+?getStatistics@srGERD@@QAEXAAUStatistics@1@@Z,0,public: void __thiscall srGERD::getStatistics(struct srGERD::Statistics &),__thiscall,Wiz8.exe,srGERD,method,005eb668,original-export,abi-backed
+?getTextureCacheSize@srGERD@@QBEKXZ,0,public: unsigned long __thiscall srGERD::getTextureCacheSize(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb624,original-export,abi-backed
+?getTextureCacheUsed@srGERD@@QBEKXZ,0,public: unsigned long __thiscall srGERD::getTextureCacheUsed(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb66c,original-export,abi-backed
+?getVertexProcessorCount@srGERD@@QBEKXZ,0,public: unsigned long __thiscall srGERD::getVertexProcessorCount(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb844,original-export,abi-backed
+?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z,0,public: void __thiscall srGERD::getVertexProcessors(class srVertexProcessor **) const,__thiscall,Wiz8.exe,srGERD,method,005eb840,original-export,abi-backed
+?getWidth@srGERD@@QBEJXZ,0,public: long __thiscall srGERD::getWidth(void) const,__thiscall,Wiz8.exe,srGERD,method,005ebb04,original-export,abi-backed
+?getWinding@srGERD@@QBE?AW4e_winding@1@XZ,0,public: enum srGERD::e_winding __thiscall srGERD::getWinding(void) const,__thiscall,Wiz8.exe,srGERD,method,005eb800,original-export,abi-backed
+?invalidateResidentTextures@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::invalidateResidentTextures(void),__thiscall,Wiz8.exe,srGERD,method,005eb618,original-export,abi-backed
+?invalidateTextureCache@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::invalidateTextureCache(void),__thiscall,Wiz8.exe,srGERD,method,005eb614,original-export,abi-backed
+?isWindowOpen@srGERD@@QBEHXZ,0,public: int __thiscall srGERD::isWindowOpen(void) const,__thiscall,Wiz8.exe,srGERD,method,005ebaa8,original-export,abi-backed
+?loadDevice@srGERD@@SAPAV1@AAVsrStringTable@@K@Z,0,"public: static class srGERD * __cdecl srGERD::loadDevice(class srStringTable &, unsigned long)",__cdecl,Wiz8.exe,srGERD,method,005eba84,original-export,abi-backed
+?loadIdentity@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::loadIdentity(void),__thiscall,Wiz8.exe,srGERD,method,005eb904,original-export,abi-backed
+?lockBuffer@srGERD@@QAEPAVsrColorSurfaceIFace@@XZ,0,public: class srColorSurfaceIFace * __thiscall srGERD::lockBuffer(void),__thiscall,Wiz8.exe,srGERD,method,005eba58,original-export,abi-backed
+?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ,0,public: class srGERD::Renderer * __thiscall srGERD::lockRenderer(void),__thiscall,Wiz8.exe,srGERD,method,005eb84c,original-export,abi-backed
+?matrixMode@srGERD@@QAEXW4e_matrixMode@1@@Z,0,public: void __thiscall srGERD::matrixMode(enum srGERD::e_matrixMode),__thiscall,Wiz8.exe,srGERD,method,005eb90c,original-export,abi-backed
+?openWindow@srGERD@@QAE?AW4e_error@1@J@Z,0,public: enum srGERD::e_error __thiscall srGERD::openWindow(long),__thiscall,Wiz8.exe,srGERD,method,005eba68,original-export,abi-backed
+?openWindow@srGERD@@QAE?AW4e_error@1@XZ,0,public: enum srGERD::e_error __thiscall srGERD::openWindow(void),__thiscall,Wiz8.exe,srGERD,method,005eba6c,original-export,abi-backed
+?ortho@srGERD@@QAEXNNNNNN@Z,0,"public: void __thiscall srGERD::ortho(double, double, double, double, double, double)",__thiscall,Wiz8.exe,srGERD,method,005eb900,original-export,abi-backed
+?popEnable@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::popEnable(void),__thiscall,Wiz8.exe,srGERD,method,005eb7f8,original-export,abi-backed
+?popMatrix@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::popMatrix(void),__thiscall,Wiz8.exe,srGERD,method,005eb8ec,original-export,abi-backed
+?popPick@srGERD@@QAEXAAUPick@1@@Z,0,public: void __thiscall srGERD::popPick(struct srGERD::Pick &),__thiscall,Wiz8.exe,srGERD,method,005eb62c,original-export,abi-backed
+?pushEnable@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::pushEnable(void),__thiscall,Wiz8.exe,srGERD,method,005eb808,original-export,abi-backed
+?pushMatrix@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::pushMatrix(void),__thiscall,Wiz8.exe,srGERD,method,005eb908,original-export,abi-backed
+?pushPick@srGERD@@QAEXABUPick@1@@Z,0,public: void __thiscall srGERD::pushPick(struct srGERD::Pick const &),__thiscall,Wiz8.exe,srGERD,method,005eb630,original-export,abi-backed
+?resetStatistics@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::resetStatistics(void),__thiscall,Wiz8.exe,srGERD,method,005eb64c,original-export,abi-backed
+?rotate@srGERD@@QAEXNABV?$srVector3T@M@@@Z,0,"public: void __thiscall srGERD::rotate(double, class srVector3T<float> const &)",__thiscall,Wiz8.exe,srGERD,method,005eb94c,original-export,abi-backed
+?scale@srGERD@@QAEXNNN@Z,0,"public: void __thiscall srGERD::scale(double, double, double)",__thiscall,Wiz8.exe,srGERD,method,005eb948,original-export,abi-backed
+?setAmbientLight@srGERD@@QAEXABV?$srVector4T@M@@@Z,0,public: void __thiscall srGERD::setAmbientLight(class srVector4T<float> const &),__thiscall,Wiz8.exe,srGERD,method,005eb964,original-export,abi-backed
+?setAmbientLight@srGERD@@QAEXMMMM@Z,0,"public: void __thiscall srGERD::setAmbientLight(float, float, float, float)",__thiscall,Wiz8.exe,srGERD,method,005eb694,original-export,abi-backed
+?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z,0,public: void __thiscall srGERD::setAntiAlias(enum srGERD::e_antiAlias),__thiscall,Wiz8.exe,srGERD,method,005eb8f8,original-export,abi-backed
+?setClearColor@srGERD@@QAEXMMMM@Z,0,"public: void __thiscall srGERD::setClearColor(float, float, float, float)",__thiscall,Wiz8.exe,srGERD,method,005eb650,original-export,abi-backed
+?setClearDepth@srGERD@@QAEXN@Z,0,public: void __thiscall srGERD::setClearDepth(double),__thiscall,Wiz8.exe,srGERD,method,005eb65c,original-export,abi-backed
+?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z,0,public: void __thiscall srGERD::setClipState(class srFlags<enum srRendererDefs::e_clip>),__thiscall,Wiz8.exe,srGERD,method,005eb8fc,original-export,abi-backed
+?setExclusionMask@srGERD@@QAEXK@Z,0,public: void __thiscall srGERD::setExclusionMask(unsigned long),__thiscall,Wiz8.exe,srGERD,method,005eb944,original-export,abi-backed
+?setFogColor@srGERD@@QAEXABV?$srVector3T@M@@@Z,0,public: void __thiscall srGERD::setFogColor(class srVector3T<float> const &),__thiscall,Wiz8.exe,srGERD,method,005eb664,original-export,abi-backed
+?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z,0,public: void __thiscall srGERD::setGamma(class srVector3T<float> const &),__thiscall,Wiz8.exe,srGERD,method,005eb69c,original-export,abi-backed
+?setPickKey@srGERD@@QAEXK@Z,0,public: void __thiscall srGERD::setPickKey(unsigned long),__thiscall,Wiz8.exe,srGERD,method,005eb634,original-export,abi-backed
+?setPolygonOffset@srGERD@@QAEXJ@Z,0,public: void __thiscall srGERD::setPolygonOffset(long),__thiscall,Wiz8.exe,srGERD,method,005eba48,original-export,abi-backed
+?setScissor@srGERD@@QAEXKKKK@Z,0,"public: void __thiscall srGERD::setScissor(unsigned long, unsigned long, unsigned long, unsigned long)",__thiscall,Wiz8.exe,srGERD,method,005eb640,original-export,abi-backed
+?setSwapInterval@srGERD@@QAEXK@Z,0,public: void __thiscall srGERD::setSwapInterval(unsigned long),__thiscall,Wiz8.exe,srGERD,method,005eb61c,original-export,abi-backed
+?setTexture@srGERD@@QAEXPAVsrTextureIFace@@K@Z,0,"public: void __thiscall srGERD::setTexture(class srTextureIFace *, unsigned long)",__thiscall,Wiz8.exe,srGERD,method,005eb8f4,original-export,abi-backed
+?setTextureCacheSize@srGERD@@QAEXK@Z,0,public: void __thiscall srGERD::setTextureCacheSize(unsigned long),__thiscall,Wiz8.exe,srGERD,method,005eb620,original-export,abi-backed
+?setTextureDefaultMagFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z,0,public: void __thiscall srGERD::setTextureDefaultMagFilter(enum srTextureIFace::e_filter),__thiscall,Wiz8.exe,srGERD,method,005eb87c,original-export,abi-backed
+?setTextureDefaultMinFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z,0,public: void __thiscall srGERD::setTextureDefaultMinFilter(enum srTextureIFace::e_filter),__thiscall,Wiz8.exe,srGERD,method,005eb878,original-export,abi-backed
+?setTextureDefaultMipmap@srGERD@@QAEXW4e_mipmap@srTextureIFace@@@Z,0,public: void __thiscall srGERD::setTextureDefaultMipmap(enum srTextureIFace::e_mipmap),__thiscall,Wiz8.exe,srGERD,method,005eb874,original-export,abi-backed
+?setTextureReduction@srGERD@@QAEXJ@Z,0,public: void __thiscall srGERD::setTextureReduction(long),__thiscall,Wiz8.exe,srGERD,method,005eb638,original-export,abi-backed
+?setTextureSubImage@srGERD@@QAEXPAVsrTextureIFace@@JJJJJ@Z,0,"public: void __thiscall srGERD::setTextureSubImage(class srTextureIFace *, long, long, long, long, long)",__thiscall,Wiz8.exe,srGERD,method,005eb914,original-export,abi-backed
+?setViewPort@srGERD@@QAEXKKKK@Z,0,"public: void __thiscall srGERD::setViewPort(unsigned long, unsigned long, unsigned long, unsigned long)",__thiscall,Wiz8.exe,srGERD,method,005eb604,original-export,abi-backed
+?setWinding@srGERD@@QAEXW4e_winding@1@@Z,0,public: void __thiscall srGERD::setWinding(enum srGERD::e_winding),__thiscall,Wiz8.exe,srGERD,method,005eb960,original-export,abi-backed
+?testBoundingBox@srGERD@@QAE?AW4e_visibility@1@ABV?$srVector3T@M@@0@Z,0,"public: enum srGERD::e_visibility __thiscall srGERD::testBoundingBox(class srVector3T<float> const &, class srVector3T<float> const &)",__thiscall,Wiz8.exe,srGERD,method,005eb968,original-export,abi-backed
+?testBoundingSphere@srGERD@@QAE?AW4e_visibility@1@ABV?$srVector3T@M@@M@Z,0,"public: enum srGERD::e_visibility __thiscall srGERD::testBoundingSphere(class srVector3T<float> const &, float)",__thiscall,Wiz8.exe,srGERD,method,005eb96c,original-export,abi-backed
+?toggle@srGERD@@QAEXW4e_enable@1@@Z,0,public: void __thiscall srGERD::toggle(enum srGERD::e_enable),__thiscall,Wiz8.exe,srGERD,method,005eb660,original-export,abi-backed
+?translate@srGERD@@QAEXABV?$srVector3T@M@@@Z,0,public: void __thiscall srGERD::translate(class srVector3T<float> const &),__thiscall,Wiz8.exe,srGERD,method,005eb950,original-export,abi-backed
+?translate@srGERD@@QAEXNNN@Z,0,"public: void __thiscall srGERD::translate(double, double, double)",__thiscall,Wiz8.exe,srGERD,method,005eb970,original-export,abi-backed
+?unlockBuffer@srGERD@@QAEXXZ,0,public: void __thiscall srGERD::unlockBuffer(void),__thiscall,Wiz8.exe,srGERD,method,005eba60,original-export,abi-backed
+?unlockRenderer@srGERD@@QAEXPAVRenderer@1@H@Z,0,"public: void __thiscall srGERD::unlockRenderer(class srGERD::Renderer *, int)",__thiscall,Wiz8.exe,srGERD,method,005eb81c,original-export,abi-backed
+?allocVertexArray@Renderer@srGERD@@QAEXAAUsrVertexArray@@K@Z,0,"public: void __thiscall srGERD::Renderer::allocVertexArray(struct srVertexArray &, unsigned long)",__thiscall,Wiz8.exe,srGERD::Renderer,method,005eb848,original-export,abi-backed
+?render@Renderer@srGERD@@QAEXABUTriInput@12@@Z,0,public: void __thiscall srGERD::Renderer::render(struct srGERD::Renderer::TriInput const &),__thiscall,Wiz8.exe,srGERD::Renderer,method,005eb820,original-export,abi-backed
+?allocate@srHeap@@QAEPAXK@Z,0,public: void * __thiscall srHeap::allocate(unsigned long),__thiscall,Wiz8.exe,srHeap,method,005ebac0,original-export,abi-backed
+?free@srHeap@@QAEXPAX@Z,0,public: void __thiscall srHeap::free(void *),__thiscall,Wiz8.exe,srHeap,method,005ebab8,original-export,abi-backed
+??0BitIStream@srHuffman@@QAE@AAVsrBinIStream@@@Z,0,public: __thiscall srHuffman::BitIStream::BitIStream(class srBinIStream &),__thiscall,Wiz8.exe,srHuffman::BitIStream,constructor,005eb75c,original-export,abi-backed
+??0BitOStream@srHuffman@@QAE@AAVsrBinOStream@@@Z,0,public: __thiscall srHuffman::BitOStream::BitOStream(class srBinOStream &),__thiscall,Wiz8.exe,srHuffman::BitOStream,constructor,005eb794,original-export,abi-backed
+??1BitOStream@srHuffman@@QAE@XZ,0,public: __thiscall srHuffman::BitOStream::~BitOStream(void),__thiscall,Wiz8.exe,srHuffman::BitOStream,destructor,005eb778,original-export,abi-backed
+?put@BitOStream@srHuffman@@QAEXKK@Z,0,"public: void __thiscall srHuffman::BitOStream::put(unsigned long, unsigned long)",__thiscall,Wiz8.exe,srHuffman::BitOStream,method,005eb784,original-export,abi-backed
+??0Compressor@srHuffman@@QAE@ABVSampler@1@@Z,0,public: __thiscall srHuffman::Compressor::Compressor(class srHuffman::Sampler const &),__thiscall,Wiz8.exe,srHuffman::Compressor,constructor,005eb788,original-export,abi-backed
+??1Compressor@srHuffman@@QAE@XZ,0,public: __thiscall srHuffman::Compressor::~Compressor(void),__thiscall,Wiz8.exe,srHuffman::Compressor,destructor,005eb77c,original-export,abi-backed
+?storeSymbolTable@Compressor@srHuffman@@QAEXAAVBitOStream@2@@Z,0,public: void __thiscall srHuffman::Compressor::storeSymbolTable(class srHuffman::BitOStream &),__thiscall,Wiz8.exe,srHuffman::Compressor,method,005eb780,original-export,abi-backed
+??0Decompressor@srHuffman@@QAE@AAVBitIStream@1@@Z,0,public: __thiscall srHuffman::Decompressor::Decompressor(class srHuffman::BitIStream &),__thiscall,Wiz8.exe,srHuffman::Decompressor,constructor,005eb758,original-export,abi-backed
+??1Decompressor@srHuffman@@QAE@XZ,0,public: __thiscall srHuffman::Decompressor::~Decompressor(void),__thiscall,Wiz8.exe,srHuffman::Decompressor,destructor,005eb74c,original-export,abi-backed
+?decompressSymbol@Decompressor@srHuffman@@QAEKXZ,0,public: unsigned long __thiscall srHuffman::Decompressor::decompressSymbol(void),__thiscall,Wiz8.exe,srHuffman::Decompressor,method,005eb750,original-export,abi-backed
+?getDataCount@Decompressor@srHuffman@@QBEKXZ,0,public: unsigned long __thiscall srHuffman::Decompressor::getDataCount(void) const,__thiscall,Wiz8.exe,srHuffman::Decompressor,method,005eb754,original-export,abi-backed
+??0Sampler@srHuffman@@QAE@XZ,0,public: __thiscall srHuffman::Sampler::Sampler(void),__thiscall,Wiz8.exe,srHuffman::Sampler,constructor,005eb790,original-export,abi-backed
+??1Sampler@srHuffman@@QAE@XZ,0,public: __thiscall srHuffman::Sampler::~Sampler(void),__thiscall,Wiz8.exe,srHuffman::Sampler,destructor,005eb768,original-export,abi-backed
+?insert@Sampler@srHuffman@@QAEXK@Z,0,public: void __thiscall srHuffman::Sampler::insert(unsigned long),__thiscall,Wiz8.exe,srHuffman::Sampler,method,005eb78c,original-export,abi-backed
+?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z,0,"public: void __thiscall srIStreamOpener::addStreamType(class srIStreamOpener::Opener *, char const *)",__thiscall,Wiz8.exe,srIStreamOpener,method,005eb8dc,original-export,abi-backed
+??0srIlluminator@@QAE@PAVsrNode@@@Z,0,public: __thiscall srIlluminator::srIlluminator(class srNode *),__thiscall,Wiz8.exe,srIlluminator,constructor,005eba04,original-export,abi-backed
+??1srIlluminator@@UAE@XZ,0,public: virtual __thiscall srIlluminator::~srIlluminator(void),__thiscall,Wiz8.exe,srIlluminator,destructor,005eb9f4,original-export,abi-backed
+??4srIlluminator@@QAEAAV0@ABV0@@Z,0,public: class srIlluminator & __thiscall srIlluminator::operator=(class srIlluminator const &),__thiscall,Wiz8.exe,srIlluminator,operator,005eba08,original-export,abi-backed
+?getGroupMask@srIlluminator@@QBEKXZ,0,public: unsigned long __thiscall srIlluminator::getGroupMask(void) const,__thiscall,Wiz8.exe,srIlluminator,method,005eba1c,original-export,abi-backed
+?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z,0,"public: virtual void __thiscall srIlluminator::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srIlluminator,method,005eb980,original-export,abi-backed
+?sGetClassName@srIlluminator@@SAPBDXZ,0,public: static char const * __cdecl srIlluminator::sGetClassName(void),__cdecl,Wiz8.exe,srIlluminator,method,005eb7a0,original-export,abi-backed
+?setGroupMask@srIlluminator@@QAEXK@Z,0,public: void __thiscall srIlluminator::setGroupMask(unsigned long),__thiscall,Wiz8.exe,srIlluminator,method,005eb7c4,original-export,abi-backed
+?traverse@srIlluminator@@UAEXAAVTraverseInfo@srNode@@@Z,0,public: virtual void __thiscall srIlluminator::traverse(class srNode::TraverseInfo &),__thiscall,Wiz8.exe,srIlluminator,method,005eb984,original-export,abi-backed
+??0srLight@@QAE@PAVsrNode@@W4e_preset@0@@Z,0,"public: __thiscall srLight::srLight(class srNode *, enum srLight::e_preset)",__thiscall,Wiz8.exe,srLight,constructor,005eb9f0,original-export,abi-backed
+??1srLight@@UAE@XZ,0,public: virtual __thiscall srLight::~srLight(void),__thiscall,Wiz8.exe,srLight,destructor,005eb9ec,original-export,abi-backed
+??4srLight@@QAEAAV0@ABV0@@Z,0,public: class srLight & __thiscall srLight::operator=(class srLight const &),__thiscall,Wiz8.exe,srLight,operator,005eb9f8,original-export,abi-backed
+??_7srLight@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@,0,"const srLight::`vftable'{for `srClassSupport<class srIlluminator, class srNode, 0, 4608>'}",,Wiz8.exe,srLight,vftable,005eba00,original-export,abi-backed
+??_7srLight@@6BsrVertexProcessor@@@,0,const srLight::`vftable'{for `srVertexProcessor'},,Wiz8.exe,srLight,vftable,005eb9fc,original-export,abi-backed
+?dump@srLight@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srLight::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srLight,method,005eb9e8,original-export,abi-backed
+?isActive@srLight@@UAEHAAVsrVertexPipe@@@Z,0,public: virtual int __thiscall srLight::isActive(class srVertexPipe &),__thiscall,Wiz8.exe,srLight,method,005eb9e4,original-export,abi-backed
+?process@srLight@@UAEXAAVsrVertexPipe@@@Z,0,public: virtual void __thiscall srLight::process(class srVertexPipe &),__thiscall,Wiz8.exe,srLight,method,005eb9e0,original-export,abi-backed
+?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z,0,"public: virtual void __thiscall srLight::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srLight,method,005eb9d8,original-export,abi-backed
+?setLinearAttenuation@srLight@@QAEXMM@Z,0,"public: void __thiscall srLight::setLinearAttenuation(float, float)",__thiscall,Wiz8.exe,srLight,method,005eb7d8,original-export,abi-backed
+?traverse@srLight@@UAEXAAVTraverseInfo@srNode@@@Z,0,public: virtual void __thiscall srLight::traverse(class srNode::TraverseInfo &),__thiscall,Wiz8.exe,srLight,method,005eb9dc,original-export,abi-backed
+??1srMaterial@@MAE@XZ,0,protected: virtual __thiscall srMaterial::~srMaterial(void),__thiscall,Wiz8.exe,srMaterial,destructor,005eb508,original-export,abi-backed
+??4srMaterial@@QAEAAV0@ABV0@@Z,0,public: class srMaterial & __thiscall srMaterial::operator=(class srMaterial const &),__thiscall,Wiz8.exe,srMaterial,operator,005eb6cc,original-export,abi-backed
+??_7srMaterial@@6B@,0,const srMaterial::`vftable',,Wiz8.exe,srMaterial,vftable,005eb4e4,original-export,abi-backed
+?dump@srMaterial@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srMaterial::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srMaterial,method,005eb3ec,original-export,abi-backed
+?getMaterialInfo@srMaterial@@UAEXAAUMaterialInfo@srVertexProcessor@@@Z,0,public: virtual void __thiscall srMaterial::getMaterialInfo(struct srVertexProcessor::MaterialInfo &),__thiscall,Wiz8.exe,srMaterial,method,005eb3dc,original-export,abi-backed
+?postProcess@srMaterial@@UAEXAAVsrVertexPipe@@@Z,0,public: virtual void __thiscall srMaterial::postProcess(class srVertexPipe &),__thiscall,Wiz8.exe,srMaterial,method,005eb3e0,original-export,abi-backed
+?preProcess@srMaterial@@UAEXAAVsrVertexPipe@@@Z,0,public: virtual void __thiscall srMaterial::preProcess(class srVertexPipe &),__thiscall,Wiz8.exe,srMaterial,method,005eb3d8,original-export,abi-backed
+?reset@srMaterial@@MAEXXZ,0,protected: virtual void __thiscall srMaterial::reset(void),__thiscall,Wiz8.exe,srMaterial,method,005eb3e4,original-export,abi-backed
+?sGetClassName@srMaterial@@SAPBDXZ,0,public: static char const * __cdecl srMaterial::sGetClassName(void),__cdecl,Wiz8.exe,srMaterial,method,005eb6c4,original-export,abi-backed
+?setVector@srMaterial@@IAEXAAV?$srVector4T@M@@ABV2@@Z,0,"protected: void __thiscall srMaterial::setVector(class srVector4T<float> &, class srVector4T<float> const &)",__thiscall,Wiz8.exe,srMaterial,method,005eb4e0,original-export,abi-backed
+?updateParms@srMaterial@@MAEXXZ,0,protected: virtual void __thiscall srMaterial::updateParms(void),__thiscall,Wiz8.exe,srMaterial,method,005eb3e8,original-export,abi-backed
+?vInstance@srMaterial@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srMaterial::vInstance(void),__thiscall,Wiz8.exe,srMaterial,method,005eb3fc,original-export,abi-backed
+?verify@srMaterial@@UAEXW4e_verify@srRuntimeClass@@@Z,0,public: virtual void __thiscall srMaterial::verify(enum srRuntimeClass::e_verify),__thiscall,Wiz8.exe,srMaterial,method,005eb3f8,original-export,abi-backed
+??1srMaterialIFace@@UAE@XZ,0,public: virtual __thiscall srMaterialIFace::~srMaterialIFace(void),__thiscall,Wiz8.exe,srMaterialIFace,destructor,005eb6d4,original-export,abi-backed
+??4srMaterialIFace@@QAEAAV0@ABV0@@Z,0,public: class srMaterialIFace & __thiscall srMaterialIFace::operator=(class srMaterialIFace const &),__thiscall,Wiz8.exe,srMaterialIFace,operator,005eb6e4,original-export,abi-backed
+?sGetClassName@srMaterialIFace@@SAPBDXZ,0,public: static char const * __cdecl srMaterialIFace::sGetClassName(void),__cdecl,Wiz8.exe,srMaterialIFace,method,005eb6c8,original-export,abi-backed
+??0srMeshModel@@QAE@JJ@Z,0,"public: __thiscall srMeshModel::srMeshModel(long, long)",__thiscall,Wiz8.exe,srMeshModel,constructor,005eb580,original-export,abi-backed
+??1srMeshModel@@MAE@XZ,0,protected: virtual __thiscall srMeshModel::~srMeshModel(void),__thiscall,Wiz8.exe,srMeshModel,destructor,005eb584,original-export,abi-backed
+??4srMeshModel@@QAEAAV0@ABV0@@Z,0,public: class srMeshModel & __thiscall srMeshModel::operator=(class srMeshModel const &),__thiscall,Wiz8.exe,srMeshModel,operator,005eb6b8,original-export,abi-backed
+?calculateBounds@srMeshModel@@MAEXXZ,0,protected: virtual void __thiscall srMeshModel::calculateBounds(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb530,original-export,abi-backed
+?calculatePolygonNormals@srMeshModel@@MAEXXZ,0,protected: virtual void __thiscall srMeshModel::calculatePolygonNormals(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb52c,original-export,abi-backed
+?calculateVertexNormals@srMeshModel@@MAEXXZ,0,protected: virtual void __thiscall srMeshModel::calculateVertexNormals(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb528,original-export,abi-backed
+?dump@srMeshModel@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srMeshModel::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srMeshModel,method,005eb564,original-export,abi-backed
+?getActivePolygonCount@srMeshModel@@QAEJXZ,0,public: long __thiscall srMeshModel::getActivePolygonCount(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb680,original-export,abi-backed
+?getActivePolygonTable@srMeshModel@@QAEPAKH@Z,0,public: unsigned long * __thiscall srMeshModel::getActivePolygonTable(int),__thiscall,Wiz8.exe,srMeshModel,method,005ebafc,original-export,abi-backed
+?getBoundingBox@srMeshModel@@UAEHAAV?$srVector3T@M@@0@Z,0,"public: virtual int __thiscall srMeshModel::getBoundingBox(class srVector3T<float> &, class srVector3T<float> &)",__thiscall,Wiz8.exe,srMeshModel,method,005eb554,original-export,abi-backed
+?getBoundingSphere@srMeshModel@@UAEHAAV?$srVector3T@M@@AAM@Z,0,"public: virtual int __thiscall srMeshModel::getBoundingSphere(class srVector3T<float> &, float &)",__thiscall,Wiz8.exe,srMeshModel,method,005eb558,original-export,abi-backed
+?getMaterial@srMeshModel@@QBEPAVsrMaterialIFace@@JW4e_side@1@@Z,0,"public: class srMaterialIFace * __thiscall srMeshModel::getMaterial(long, enum srMeshModel::e_side) const",__thiscall,Wiz8.exe,srMeshModel,method,005eb7ec,original-export,abi-backed
+?getPolyEq@srMeshModel@@QAEPAV?$srVector4T@M@@XZ,0,public: class srVector4T<float> * __thiscall srMeshModel::getPolyEq(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb710,original-export,abi-backed
+?getPolyShader@srMeshModel@@QAEPAVsrShader@@JH@Z,0,"public: class srShader * __thiscall srMeshModel::getPolyShader(long, int)",__thiscall,Wiz8.exe,srMeshModel,method,005eb7e0,original-export,abi-backed
+?getPolyTexture@srMeshModel@@QAEPAV?$srPtr@VsrTextureIFace@@@@JJH@Z,0,"public: class srPtr<class srTextureIFace> * __thiscall srMeshModel::getPolyTexture(long, long, int)",__thiscall,Wiz8.exe,srMeshModel,method,005eb5f8,original-export,abi-backed
+?getPolyUVIndex@srMeshModel@@QAEPAVsrVector3i@@JH@Z,0,"public: class srVector3i * __thiscall srMeshModel::getPolyUVIndex(long, int)",__thiscall,Wiz8.exe,srMeshModel,method,005eb9a4,original-export,abi-backed
+?getPolyVertex@srMeshModel@@QAEPAVsrVector3i@@XZ,0,public: class srVector3i * __thiscall srMeshModel::getPolyVertex(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb71c,original-export,abi-backed
+?getShader@srMeshModel@@QBE?AVsrShader@@J@Z,0,public: class srShader __thiscall srMeshModel::getShader(long) const,__thiscall,Wiz8.exe,srMeshModel,method,005eb7e4,original-export,abi-backed
+?getTexture@srMeshModel@@QBEPAVsrTextureIFace@@JJ@Z,0,"public: class srTextureIFace * __thiscall srMeshModel::getTexture(long, long) const",__thiscall,Wiz8.exe,srMeshModel,method,005eba70,original-export,abi-backed
+?getTriMesh@srMeshModel@@UAEABUTriMesh@1@XZ,0,public: virtual struct srMeshModel::TriMesh const & __thiscall srMeshModel::getTriMesh(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb540,original-export,abi-backed
+?getTriMesh@srMeshModel@@UAEXAAUTriMesh@1@@Z,0,public: virtual void __thiscall srMeshModel::getTriMesh(struct srMeshModel::TriMesh &),__thiscall,Wiz8.exe,srMeshModel,method,005eb53c,original-export,abi-backed
+?getVertexDIG@srMeshModel@@QAEPAV?$srVector3T@M@@JH@Z,0,"public: class srVector3T<float> * __thiscall srMeshModel::getVertexDIG(long, int)",__thiscall,Wiz8.exe,srMeshModel,method,005ebaec,original-export,abi-backed
+?getVertexLoc@srMeshModel@@QAEPAV?$srVector3T@M@@XZ,0,public: class srVector3T<float> * __thiscall srMeshModel::getVertexLoc(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb684,original-export,abi-backed
+?getVertexMaterial@srMeshModel@@QAEPAV?$srPtr@VsrMaterialIFace@@@@JW4e_side@1@H@Z,0,"public: class srPtr<class srMaterialIFace> * __thiscall srMeshModel::getVertexMaterial(long, enum srMeshModel::e_side, int)",__thiscall,Wiz8.exe,srMeshModel,method,005ebad4,original-export,abi-backed
+?getVertexNormal@srMeshModel@@QAEPAV?$srVector3T@M@@XZ,0,public: class srVector3T<float> * __thiscall srMeshModel::getVertexNormal(void),__thiscall,Wiz8.exe,srMeshModel,method,005ebae8,original-export,abi-backed
+?getVertexShadeIndex@srMeshModel@@QAEPAKH@Z,0,public: unsigned long * __thiscall srMeshModel::getVertexShadeIndex(int),__thiscall,Wiz8.exe,srMeshModel,method,005ebad8,original-export,abi-backed
+?getVertexTexCoords@srMeshModel@@QAEPAV?$srVector2T@M@@JJH@Z,0,"public: class srVector2T<float> * __thiscall srMeshModel::getVertexTexCoords(long, long, int)",__thiscall,Wiz8.exe,srMeshModel,method,005eb6c0,original-export,abi-backed
+?reindexPolygons@srMeshModel@@UAEXPBK@Z,0,public: virtual void __thiscall srMeshModel::reindexPolygons(unsigned long const *),__thiscall,Wiz8.exe,srMeshModel,method,005eb548,original-export,abi-backed
+?reindexVertices@srMeshModel@@UAEXPBK@Z,0,public: virtual void __thiscall srMeshModel::reindexVertices(unsigned long const *),__thiscall,Wiz8.exe,srMeshModel,method,005eb544,original-export,abi-backed
+?relocateVertices@srMeshModel@@QAEXABV?$srVector3T@M@@@Z,0,public: void __thiscall srMeshModel::relocateVertices(class srVector3T<float> const &),__thiscall,Wiz8.exe,srMeshModel,method,005eba40,original-export,abi-backed
+?render@srMeshModel@@UAEXAAVsrGERD@@@Z,0,public: virtual void __thiscall srMeshModel::render(class srGERD &),__thiscall,Wiz8.exe,srMeshModel,method,005eb550,original-export,abi-backed
+?renderTriMesh@srMeshModel@@UAEXAAVsrGERD@@ABUTriMesh@1@@Z,0,"public: virtual void __thiscall srMeshModel::renderTriMesh(class srGERD &, struct srMeshModel::TriMesh const &)",__thiscall,Wiz8.exe,srMeshModel,method,005eb538,original-export,abi-backed
+?reset@srMeshModel@@QAEXJJ@Z,0,"public: void __thiscall srMeshModel::reset(long, long)",__thiscall,Wiz8.exe,srMeshModel,method,005eb80c,original-export,abi-backed
+?scale@srMeshModel@@QAEXABV?$srVector3T@M@@@Z,0,public: void __thiscall srMeshModel::scale(class srVector3T<float> const &),__thiscall,Wiz8.exe,srMeshModel,method,005eb9c8,original-export,abi-backed
+?setActivePolygonCount@srMeshModel@@QAEXJ@Z,0,public: void __thiscall srMeshModel::setActivePolygonCount(long),__thiscall,Wiz8.exe,srMeshModel,method,005ebacc,original-export,abi-backed
+?setBounds@srMeshModel@@QAEXABV?$srVector3T@M@@00M@Z,0,"public: void __thiscall srMeshModel::setBounds(class srVector3T<float> const &, class srVector3T<float> const &, class srVector3T<float> const &, float)",__thiscall,Wiz8.exe,srMeshModel,method,005eb810,original-export,abi-backed
+?setMaterial@srMeshModel@@QAEXPAVsrMaterialIFace@@JW4e_side@1@@Z,0,"public: void __thiscall srMeshModel::setMaterial(class srMaterialIFace *, long, enum srMeshModel::e_side)",__thiscall,Wiz8.exe,srMeshModel,method,005eb56c,original-export,abi-backed
+?setShader@srMeshModel@@QAEXVsrShader@@J@Z,0,"public: void __thiscall srMeshModel::setShader(class srShader, long)",__thiscall,Wiz8.exe,srMeshModel,method,005ebae4,original-export,abi-backed
+?setTexture@srMeshModel@@QAEXPAVsrTextureIFace@@JJ@Z,0,"public: void __thiscall srMeshModel::setTexture(class srTextureIFace *, long, long)",__thiscall,Wiz8.exe,srMeshModel,method,005eb5d0,original-export,abi-backed
+?setUVCount@srMeshModel@@QAEXJ@Z,0,public: void __thiscall srMeshModel::setUVCount(long),__thiscall,Wiz8.exe,srMeshModel,method,005eb9a8,original-export,abi-backed
+?updateTriMesh@srMeshModel@@MAEXXZ,0,protected: virtual void __thiscall srMeshModel::updateTriMesh(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb574,original-export,abi-backed
+?vInstance@srMeshModel@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srMeshModel::vInstance(void),__thiscall,Wiz8.exe,srMeshModel,method,005eb55c,original-export,abi-backed
+?verify@srMeshModel@@UAEXW4e_verify@srRuntimeClass@@@Z,0,public: virtual void __thiscall srMeshModel::verify(enum srRuntimeClass::e_verify),__thiscall,Wiz8.exe,srMeshModel,method,005eb560,original-export,abi-backed
+?updateAllClients@srModel@@UAEXW4e_update@Client@1@@Z,0,public: virtual void __thiscall srModel::updateAllClients(enum srModel::Client::e_update),__thiscall,Wiz8.exe,srModel,method,005ebb08,original-export,abi-backed
+?getModel@Client@srModel@@UBEPAV2@XZ,0,public: virtual class srModel * __thiscall srModel::Client::getModel(void) const,__thiscall,Wiz8.exe,srModel::Client,method,005eb928,original-export,abi-backed
+?setModel@Client@srModel@@UAEXPAV2@@Z,0,public: virtual void __thiscall srModel::Client::setModel(class srModel *),__thiscall,Wiz8.exe,srModel::Client,method,005eb918,original-export,abi-backed
+??0srModelInstance@@QAE@PAVsrNode@@@Z,0,public: __thiscall srModelInstance::srModelInstance(class srNode *),__thiscall,Wiz8.exe,srModelInstance,constructor,005eb93c,original-export,abi-backed
+??1srModelInstance@@MAE@XZ,0,protected: virtual __thiscall srModelInstance::~srModelInstance(void),__thiscall,Wiz8.exe,srModelInstance,destructor,005eb938,original-export,abi-backed
+??4srModelInstance@@QAEAAV0@ABV0@@Z,0,public: class srModelInstance & __thiscall srModelInstance::operator=(class srModelInstance const &),__thiscall,Wiz8.exe,srModelInstance,operator,005eb940,original-export,abi-backed
+?dump@srModelInstance@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srModelInstance::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srModelInstance,method,005eb934,original-export,abi-backed
+?getLocalBounds@srModelInstance@@UAEXAAUBoundInfo@srNode@@@Z,0,public: virtual void __thiscall srModelInstance::getLocalBounds(struct srNode::BoundInfo &),__thiscall,Wiz8.exe,srModelInstance,method,005eb930,original-export,abi-backed
+?process@srModelInstance@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z,0,"public: virtual void __thiscall srModelInstance::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srModelInstance,method,005eb91c,original-export,abi-backed
+?traverse@srModelInstance@@UAEXAAVTraverseInfo@srNode@@@Z,0,public: virtual void __thiscall srModelInstance::traverse(class srNode::TraverseInfo &),__thiscall,Wiz8.exe,srModelInstance,method,005eb920,original-export,abi-backed
+?updateClient@srModelInstance@@UAEXW4e_update@Client@srModel@@@Z,0,public: virtual void __thiscall srModelInstance::updateClient(enum srModel::Client::e_update),__thiscall,Wiz8.exe,srModelInstance,method,005eb92c,original-export,abi-backed
+?vInstance@srModelInstance@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srModelInstance::vInstance(void),__thiscall,Wiz8.exe,srModelInstance,method,005eb924,original-export,abi-backed
+??0srModeler@@QAE@XZ,0,public: __thiscall srModeler::srModeler(void),__thiscall,Wiz8.exe,srModeler,constructor,005eb504,original-export,abi-backed
+??1srModeler@@UAE@XZ,0,public: virtual __thiscall srModeler::~srModeler(void),__thiscall,Wiz8.exe,srModeler,destructor,005eb514,original-export,abi-backed
+?addPolygon@srModeler@@QAEXABVPolygon@1@@Z,0,public: void __thiscall srModeler::addPolygon(class srModeler::Polygon const &),__thiscall,Wiz8.exe,srModeler,method,005eb9b8,original-export,abi-backed
+?convert@srModeler@@QAEXAAVsrMeshModel@@H@Z,0,"public: void __thiscall srModeler::convert(class srMeshModel &, int)",__thiscall,Wiz8.exe,srModeler,method,005eb688,original-export,abi-backed
+?createGrid@srModeler@@QAEXJJ@Z,0,"public: void __thiscall srModeler::createGrid(long, long)",__thiscall,Wiz8.exe,srModeler,method,005eb57c,original-export,abi-backed
+?discard@srModeler@@QAEXXZ,0,public: void __thiscall srModeler::discard(void),__thiscall,Wiz8.exe,srModeler,method,005eb570,original-export,abi-backed
+?planarMap@srModeler@@QAEXJJABUMappingInfo@1@@Z,0,"public: void __thiscall srModeler::planarMap(long, long, struct srModeler::MappingInfo const &)",__thiscall,Wiz8.exe,srModeler,method,005eb5d4,original-export,abi-backed
+?scale@srModeler@@QAEXABV?$srVector3T@M@@@Z,0,public: void __thiscall srModeler::scale(class srVector3T<float> const &),__thiscall,Wiz8.exe,srModeler,method,005eb578,original-export,abi-backed
+?setMaterial@srModeler@@QAEXPAVsrMaterialIFace@@JW4e_side@srMeshModel@@@Z,0,"public: void __thiscall srModeler::setMaterial(class srMaterialIFace *, long, enum srMeshModel::e_side)",__thiscall,Wiz8.exe,srModeler,method,005eb9b4,original-export,abi-backed
+?setShader@srModeler@@QAEXVsrShader@@J@Z,0,"public: void __thiscall srModeler::setShader(class srShader, long)",__thiscall,Wiz8.exe,srModeler,method,005eb9b0,original-export,abi-backed
+??0Polygon@srModeler@@QAE@H@Z,0,public: __thiscall srModeler::Polygon::Polygon(int),__thiscall,Wiz8.exe,srModeler::Polygon,constructor,005eb9c0,original-export,abi-backed
+??1Polygon@srModeler@@QAE@XZ,0,public: __thiscall srModeler::Polygon::~Polygon(void),__thiscall,Wiz8.exe,srModeler::Polygon,destructor,005eb9ac,original-export,abi-backed
+??0Vertex@srModeler@@QAE@XZ,0,public: __thiscall srModeler::Vertex::Vertex(void),__thiscall,Wiz8.exe,srModeler::Vertex,constructor,005eb9bc,original-export,abi-backed
+??0srNode@@QAE@PAV0@@Z,0,public: __thiscall srNode::srNode(class srNode *),__thiscall,Wiz8.exe,srNode,constructor,005eb7bc,original-export,abi-backed
+??1srNode@@MAE@XZ,0,protected: virtual __thiscall srNode::~srNode(void),__thiscall,Wiz8.exe,srNode,destructor,005eb7c0,original-export,abi-backed
+??4srNode@@QAEAAV0@ABV0@@Z,0,public: class srNode & __thiscall srNode::operator=(class srNode const &),__thiscall,Wiz8.exe,srNode,operator,005eb7d4,original-export,abi-backed
+?applyWorldSpaceMatrix@srNode@@QAEXAAVsrGERD@@@Z,0,public: void __thiscall srNode::applyWorldSpaceMatrix(class srGERD &),__thiscall,Wiz8.exe,srNode,method,005eb958,original-export,abi-backed
+?clearFlag@srNode@@QAEXW4e_flag@1@@Z,0,public: void __thiscall srNode::clearFlag(enum srNode::e_flag),__thiscall,Wiz8.exe,srNode,method,005eb600,original-export,abi-backed
+?dump@srNode@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srNode::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srNode,method,005eb7b8,original-export,abi-backed
+?getChildCount@srNode@@QBEJXZ,0,public: long __thiscall srNode::getChildCount(void) const,__thiscall,Wiz8.exe,srNode,method,005eb674,original-export,abi-backed
+?getLocalBounds@srNode@@UAEXAAUBoundInfo@1@@Z,0,public: virtual void __thiscall srNode::getLocalBounds(struct srNode::BoundInfo &),__thiscall,Wiz8.exe,srNode,method,005eb408,original-export,abi-backed
+?getLocation@srNode@@QBE?AV?$srVector3T@N@@XZ,0,public: class srVector3T<double> __thiscall srNode::getLocation(void) const,__thiscall,Wiz8.exe,srNode,method,005eb79c,original-export,abi-backed
+?getLocation@srNode@@QBEXAAV?$srVector3T@M@@@Z,0,public: void __thiscall srNode::getLocation(class srVector3T<float> &) const,__thiscall,Wiz8.exe,srNode,method,005eb704,original-export,abi-backed
+?getLocationX@srNode@@QBENXZ,0,public: double __thiscall srNode::getLocationX(void) const,__thiscall,Wiz8.exe,srNode,method,005eb7d0,original-export,abi-backed
+?getLocationY@srNode@@QBENXZ,0,public: double __thiscall srNode::getLocationY(void) const,__thiscall,Wiz8.exe,srNode,method,005eb7cc,original-export,abi-backed
+?getLocationZ@srNode@@QBENXZ,0,public: double __thiscall srNode::getLocationZ(void) const,__thiscall,Wiz8.exe,srNode,method,005eb7c8,original-export,abi-backed
+?getRotation@srNode@@QBEXAAV?$srMatrix3T@M@@@Z,0,public: void __thiscall srNode::getRotation(class srMatrix3T<float> &) const,__thiscall,Wiz8.exe,srNode,method,005ebab0,original-export,abi-backed
+?getScale@srNode@@QBE?AV?$srVector3T@N@@XZ,0,public: class srVector3T<double> __thiscall srNode::getScale(void) const,__thiscall,Wiz8.exe,srNode,method,005eb95c,original-export,abi-backed
+?getWorldSpaceDOF@srNode@@QBE?AV?$srVector3T@N@@XZ,0,public: class srVector3T<double> __thiscall srNode::getWorldSpaceDOF(void) const,__thiscall,Wiz8.exe,srNode,method,005ebab4,original-export,abi-backed
+?getWorldSpaceLocation@srNode@@QBE?AV?$srVector3T@N@@XZ,0,public: class srVector3T<double> __thiscall srNode::getWorldSpaceLocation(void) const,__thiscall,Wiz8.exe,srNode,method,005eb7f4,original-export,abi-backed
+?getWorldSpaceMatrix@srNode@@QBEXAAV?$srMatrix4T@M@@@Z,0,public: void __thiscall srNode::getWorldSpaceMatrix(class srMatrix4T<float> &) const,__thiscall,Wiz8.exe,srNode,method,005eb9d4,original-export,abi-backed
+?getWorldSpaceRotation@srNode@@QBEXAAV?$srMatrix3T@M@@@Z,0,public: void __thiscall srNode::getWorldSpaceRotation(class srMatrix3T<float> &) const,__thiscall,Wiz8.exe,srNode,method,005eb7f0,original-export,abi-backed
+?getWorldSpaceScale@srNode@@QBE?AV?$srVector3T@N@@XZ,0,public: class srVector3T<double> __thiscall srNode::getWorldSpaceScale(void) const,__thiscall,Wiz8.exe,srNode,method,005eb954,original-export,abi-backed
+?lockSceneGraph@srNode@@SAXXZ,0,public: static void __cdecl srNode::lockSceneGraph(void),__cdecl,Wiz8.exe,srNode,method,005eb690,original-export,abi-backed
+?process@srNode@@UAEXABUProcessInfo@1@W4e_processType@1@@Z,0,"public: virtual void __thiscall srNode::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srNode,method,005eb7b0,original-export,abi-backed
+?processSignal@srNode@@MAEHKPAX@Z,0,"protected: virtual int __thiscall srNode::processSignal(unsigned long, void *)",__thiscall,Wiz8.exe,srNode,method,005eb42c,original-export,abi-backed
+?rotate@srNode@@QAEXABV?$srMatrix3T@N@@@Z,0,public: void __thiscall srNode::rotate(class srMatrix3T<double> const &),__thiscall,Wiz8.exe,srNode,method,005eba44,original-export,abi-backed
+?rotate@srNode@@QAEXNABV?$srVector3T@N@@@Z,0,"public: void __thiscall srNode::rotate(double, class srVector3T<double> const &)",__thiscall,Wiz8.exe,srNode,method,005eba34,original-export,abi-backed
+?rotateX@srNode@@QAEXN@Z,0,public: void __thiscall srNode::rotateX(double),__thiscall,Wiz8.exe,srNode,method,005eb9cc,original-export,abi-backed
+?sGetClassName@srNode@@SAPBDXZ,0,public: static char const * __cdecl srNode::sGetClassName(void),__cdecl,Wiz8.exe,srNode,method,005eb6ec,original-export,abi-backed
+?setFlag@srNode@@QAEXW4e_flag@1@@Z,0,public: void __thiscall srNode::setFlag(enum srNode::e_flag),__thiscall,Wiz8.exe,srNode,method,005eb5fc,original-export,abi-backed
+?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z,0,public: void __thiscall srNode::setLocation(class srVector3T<double> const &),__thiscall,Wiz8.exe,srNode,method,005eb524,original-export,abi-backed
+?setLocation@srNode@@QAEXNNN@Z,0,"public: void __thiscall srNode::setLocation(double, double, double)",__thiscall,Wiz8.exe,srNode,method,005eb4f4,original-export,abi-backed
+?setParent@srNode@@QAEHPAV1@H@Z,0,"public: int __thiscall srNode::setParent(class srNode *, int)",__thiscall,Wiz8.exe,srNode,method,005eb568,original-export,abi-backed
+?setRotation@srNode@@QAEXABV?$srMatrix3T@M@@@Z,0,public: void __thiscall srNode::setRotation(class srMatrix3T<float> const &),__thiscall,Wiz8.exe,srNode,method,005ebac8,original-export,abi-backed
+?setRotation@srNode@@QAEXABV?$srVector3T@N@@0N@Z,0,"public: void __thiscall srNode::setRotation(class srVector3T<double> const &, class srVector3T<double> const &, double)",__thiscall,Wiz8.exe,srNode,method,005eba14,original-export,abi-backed
+?setRotation@srNode@@QAEXNNN@Z,0,"public: void __thiscall srNode::setRotation(double, double, double)",__thiscall,Wiz8.exe,srNode,method,005eb4f0,original-export,abi-backed
+?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z,0,public: void __thiscall srNode::setScale(class srVector3T<double> const &),__thiscall,Wiz8.exe,srNode,method,005eb7a8,original-export,abi-backed
+?setWorldSpaceMatrix@srNode@@QAEXABV?$srMatrix4T@N@@@Z,0,public: void __thiscall srNode::setWorldSpaceMatrix(class srMatrix4T<double> const &),__thiscall,Wiz8.exe,srNode,method,005eb9d0,original-export,abi-backed
+?setWorldSpaceRotation@srNode@@QAEXABV?$srMatrix3T@N@@@Z,0,public: void __thiscall srNode::setWorldSpaceRotation(class srMatrix3T<double> const &),__thiscall,Wiz8.exe,srNode,method,005eba10,original-export,abi-backed
+?testFlag@srNode@@QBEHW4e_flag@1@@Z,0,public: int __thiscall srNode::testFlag(enum srNode::e_flag) const,__thiscall,Wiz8.exe,srNode,method,005ebb00,original-export,abi-backed
+?traverse@srNode@@UAEXAAVTraverseInfo@1@@Z,0,public: virtual void __thiscall srNode::traverse(class srNode::TraverseInfo &),__thiscall,Wiz8.exe,srNode,method,005eb410,original-export,abi-backed
+?unlockSceneGraph@srNode@@SAXXZ,0,public: static void __cdecl srNode::unlockSceneGraph(void),__cdecl,Wiz8.exe,srNode,method,005eb68c,original-export,abi-backed
+?updateBounds@srNode@@UAEXXZ,0,public: virtual void __thiscall srNode::updateBounds(void),__thiscall,Wiz8.exe,srNode,method,005eb404,original-export,abi-backed
+?vInstance@srNode@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srNode::vInstance(void),__thiscall,Wiz8.exe,srNode,method,005eb7b4,original-export,abi-backed
+??0srPalette@@QAE@PAVsrARGB@@J@Z,0,"public: __thiscall srPalette::srPalette(class srARGB *, long)",__thiscall,Wiz8.exe,srPalette,constructor,005eb890,original-export,abi-backed
+??1srPalette@@MAE@XZ,0,protected: virtual __thiscall srPalette::~srPalette(void),__thiscall,Wiz8.exe,srPalette,destructor,005eb898,original-export,abi-backed
+??4srPalette@@QAEAAV0@ABV0@@Z,0,public: class srPalette & __thiscall srPalette::operator=(class srPalette const &),__thiscall,Wiz8.exe,srPalette,operator,005eb8e8,original-export,abi-backed
+?dump@srPalette@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srPalette::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srPalette,method,005eb88c,original-export,abi-backed
+?findMatchingPalette@srPalette@@SAPAV1@QBVsrARGB@@J@Z,0,"public: static class srPalette * __cdecl srPalette::findMatchingPalette(class srARGB const *const, long)",__cdecl,Wiz8.exe,srPalette,method,005eb894,original-export,abi-backed
+?sGetClassName@srPalette@@SAPBDXZ,0,public: static char const * __cdecl srPalette::sGetClassName(void),__cdecl,Wiz8.exe,srPalette,method,005eb8e4,original-export,abi-backed
+?vInstance@srPalette@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srPalette::vInstance(void),__thiscall,Wiz8.exe,srPalette,method,005eb888,original-export,abi-backed
+?mapPixelFormat@srPixelConvert@@SAXW4e_surfaceType@1@AAUPixelFormat@1@@Z,0,"public: static void __cdecl srPixelConvert::mapPixelFormat(enum srPixelConvert::e_surfaceType, struct srPixelConvert::PixelFormat &)",__cdecl,Wiz8.exe,srPixelConvert,method,005eb5d8,original-export,abi-backed
+?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z,0,"public: class srRuntimeClass * __thiscall srRegistry::find(class srRegistry::ClassNode *, char const *, class srRuntimeClass const *)",__thiscall,Wiz8.exe,srRegistry,method,005eb67c,original-export,abi-backed
+?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z,0,"public: class srRuntimeClass * __thiscall srRegistry::find(class srRegistry::ClassNode *, class srRuntimeClass const *)",__thiscall,Wiz8.exe,srRegistry,method,005eb6f8,original-export,abi-backed
+?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z,0,public: class srRegistry::ClassNode * __thiscall srRegistry::getClassNode(unsigned long),__thiscall,Wiz8.exe,srRegistry,method,005eb6b0,original-export,abi-backed
+?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z,0,"public: class srRegistry::ClassNode * __thiscall srRegistry::registerClass(char const *, class srRegistry::ClassNode *, unsigned long, int)",__thiscall,Wiz8.exe,srRegistry,method,005eb6ac,original-export,abi-backed
+?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z,0,"public: void __thiscall srRegistry::registerInstance(class srRegistry::ClassNode *, class srRuntimeClass *)",__thiscall,Wiz8.exe,srRegistry,method,005eb6dc,original-export,abi-backed
+?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z,0,"public: void __thiscall srRegistry::unregisterInstance(class srRegistry::ClassNode *, class srRuntimeClass *)",__thiscall,Wiz8.exe,srRegistry,method,005eb6e8,original-export,abi-backed
+?getName@srRuntimeClass@@QBEPBDXZ,0,public: char const * __thiscall srRuntimeClass::getName(void) const,__thiscall,Wiz8.exe,srRuntimeClass,method,005eb4d8,original-export,abi-backed
+?setName@srRuntimeClass@@QAEXPBD@Z,0,public: void __thiscall srRuntimeClass::setName(char const *),__thiscall,Wiz8.exe,srRuntimeClass,method,005ebaf0,original-export,abi-backed
+??0srScene@@QAE@PAVsrNode@@@Z,0,public: __thiscall srScene::srScene(class srNode *),__thiscall,Wiz8.exe,srScene,constructor,005eb500,original-export,abi-backed
+??1srScene@@UAE@XZ,0,public: virtual __thiscall srScene::~srScene(void),__thiscall,Wiz8.exe,srScene,destructor,005eb510,original-export,abi-backed
+??4srScene@@QAEAAV0@ABV0@@Z,0,public: class srScene & __thiscall srScene::operator=(class srScene const &),__thiscall,Wiz8.exe,srScene,operator,005eb6f4,original-export,abi-backed
+?dump@srScene@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srScene::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srScene,method,005eb424,original-export,abi-backed
+?process@srScene@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z,0,"public: virtual void __thiscall srScene::process(struct srNode::ProcessInfo const &, enum srNode::e_processType)",__thiscall,Wiz8.exe,srScene,method,005eb3f0,original-export,abi-backed
+?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z,0,"public: void __thiscall srScene::render(class srGERD &, class srCamera *)",__thiscall,Wiz8.exe,srScene,method,005eb658,original-export,abi-backed
+?traverse@srScene@@UAEXAAVTraverseInfo@srNode@@@Z,0,public: virtual void __thiscall srScene::traverse(class srNode::TraverseInfo &),__thiscall,Wiz8.exe,srScene,method,005eb3f4,original-export,abi-backed
+?vInstance@srScene@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srScene::vInstance(void),__thiscall,Wiz8.exe,srScene,method,005eb400,original-export,abi-backed
+?reset@srStatisticsManager@@QAEXXZ,0,public: void __thiscall srStatisticsManager::reset(void),__thiscall,Wiz8.exe,srStatisticsManager,method,005eb648,original-export,abi-backed
+??0srStringTable@@QAE@XZ,0,public: __thiscall srStringTable::srStringTable(void),__thiscall,Wiz8.exe,srStringTable,constructor,005eba7c,original-export,abi-backed
+??1srStringTable@@QAE@XZ,0,public: __thiscall srStringTable::~srStringTable(void),__thiscall,Wiz8.exe,srStringTable,destructor,005eba88,original-export,abi-backed
+?addString@srStringTable@@QAEXPBD@Z,0,public: void __thiscall srStringTable::addString(char const *),__thiscall,Wiz8.exe,srStringTable,method,005eba80,original-export,abi-backed
+?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z,0,"public: void __thiscall srSurfaceIOManager::exportSurface(char const *, class srColorSurfaceIFace &, struct srSurfaceIOManager::ExportInfo const &)",__thiscall,Wiz8.exe,srSurfaceIOManager,method,005eba5c,original-export,abi-backed
+??0srTexture@@IAE@XZ,0,protected: __thiscall srTexture::srTexture(void),__thiscall,Wiz8.exe,srTexture,constructor,005eb8b4,original-export,abi-backed
+??1srTexture@@MAE@XZ,0,protected: virtual __thiscall srTexture::~srTexture(void),__thiscall,Wiz8.exe,srTexture,destructor,005eb8ac,original-export,abi-backed
+??4srTexture@@QAEAAV0@ABV0@@Z,0,public: class srTexture & __thiscall srTexture::operator=(class srTexture const &),__thiscall,Wiz8.exe,srTexture,operator,005eb880,original-export,abi-backed
+?disableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z,0,public: void __thiscall srTexture::disableHint(enum srTextureIFace::e_hint),__thiscall,Wiz8.exe,srTexture,method,005eb910,original-export,abi-backed
+?dump@srTexture@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srTexture::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srTexture,method,005eb8a8,original-export,abi-backed
+?enableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z,0,public: void __thiscall srTexture::enableHint(enum srTextureIFace::e_hint),__thiscall,Wiz8.exe,srTexture,method,005eb5b4,original-export,abi-backed
+?getDimensions@srTexture@@UAEXAAUDimensions@srTextureIFace@@@Z,0,public: virtual void __thiscall srTexture::getDimensions(struct srTextureIFace::Dimensions &),__thiscall,Wiz8.exe,srTexture,method,005eb5a0,original-export,abi-backed
+?getFilter@srTexture@@QBEPAVsrFilter@@XZ,0,public: class srFilter * __thiscall srTexture::getFilter(void) const,__thiscall,Wiz8.exe,srTexture,method,005eb884,original-export,abi-backed
+?getMipmapData@srTexture@@UAEXAAUMultiRequest@srTextureIFace@@@Z,0,public: virtual void __thiscall srTexture::getMipmapData(struct srTextureIFace::MultiRequest &),__thiscall,Wiz8.exe,srTexture,method,005eb8a0,original-export,abi-backed
+?getMipmapLevelPartial@srTexture@@UAEXAAUPartialRequest@srTextureIFace@@@Z,0,public: virtual void __thiscall srTexture::getMipmapLevelPartial(struct srTextureIFace::PartialRequest &),__thiscall,Wiz8.exe,srTexture,method,005eb598,original-export,abi-backed
+?getNewFrameHandle@srTexture@@KAKXZ,0,protected: static unsigned long __cdecl srTexture::getNewFrameHandle(void),__cdecl,Wiz8.exe,srTexture,method,005eb8b0,original-export,abi-backed
+?getPriority@srTexture@@UAEMXZ,0,public: virtual float __thiscall srTexture::getPriority(void),__thiscall,Wiz8.exe,srTexture,method,005eb5a4,original-export,abi-backed
+?getTextureFrameHandle@srTexture@@UAEKXZ,0,public: virtual unsigned long __thiscall srTexture::getTextureFrameHandle(void),__thiscall,Wiz8.exe,srTexture,method,005eb8a4,original-export,abi-backed
+?getTextureParms@srTexture@@UAEXAAUParameters@srTextureIFace@@@Z,0,public: virtual void __thiscall srTexture::getTextureParms(struct srTextureIFace::Parameters &),__thiscall,Wiz8.exe,srTexture,method,005eb594,original-export,abi-backed
+?invalidateFrameHandle@srTexture@@IAEXK@Z,0,protected: void __thiscall srTexture::invalidateFrameHandle(unsigned long),__thiscall,Wiz8.exe,srTexture,method,005eb8b8,original-export,abi-backed
+?sGetClassName@srTexture@@SAPBDXZ,0,public: static char const * __cdecl srTexture::sGetClassName(void),__cdecl,Wiz8.exe,srTexture,method,005eb6bc,original-export,abi-backed
+?setCorrection@srTexture@@QAEXW4e_correction@srTextureIFace@@@Z,0,public: void __thiscall srTexture::setCorrection(enum srTextureIFace::e_correction),__thiscall,Wiz8.exe,srTexture,method,005eb5f0,original-export,abi-backed
+?setMagFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z,0,public: void __thiscall srTexture::setMagFilter(enum srTextureIFace::e_filter),__thiscall,Wiz8.exe,srTexture,method,005eb5ec,original-export,abi-backed
+?setMinFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z,0,public: void __thiscall srTexture::setMinFilter(enum srTextureIFace::e_filter),__thiscall,Wiz8.exe,srTexture,method,005eb5e8,original-export,abi-backed
+?setMipmap@srTexture@@QAEXW4e_mipmap@srTextureIFace@@@Z,0,public: void __thiscall srTexture::setMipmap(enum srTextureIFace::e_mipmap),__thiscall,Wiz8.exe,srTexture,method,005eb5e4,original-export,abi-backed
+?setMipmapBias@srTexture@@QAEXM@Z,0,public: void __thiscall srTexture::setMipmapBias(float),__thiscall,Wiz8.exe,srTexture,method,005eb5c4,original-export,abi-backed
+?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z,0,public: void __thiscall srTexture::setWrapS(enum srTextureIFace::e_wrap),__thiscall,Wiz8.exe,srTexture,method,005eb5bc,original-export,abi-backed
+?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z,0,public: void __thiscall srTexture::setWrapT(enum srTextureIFace::e_wrap),__thiscall,Wiz8.exe,srTexture,method,005eb5b8,original-export,abi-backed
+?setupDefaultValuesFromSurface@srTexture@@IAEXPAVsrColorSurfaceIFace@@@Z,0,protected: void __thiscall srTexture::setupDefaultValuesFromSurface(class srColorSurfaceIFace *),__thiscall,Wiz8.exe,srTexture,method,005eb89c,original-export,abi-backed
+?getTextureName@srTextureIFace@@UAEPBDXZ,0,public: virtual char const * __thiscall srTextureIFace::getTextureName(void),__thiscall,Wiz8.exe,srTextureIFace,method,005eb590,original-export,abi-backed
+??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z,0,public: __thiscall srTextureMap::srTextureMap(class srColorSurfaceIFace *),__thiscall,Wiz8.exe,srTextureMap,constructor,005eb5c8,original-export,abi-backed
+??1srTextureMap@@MAE@XZ,0,protected: virtual __thiscall srTextureMap::~srTextureMap(void),__thiscall,Wiz8.exe,srTextureMap,destructor,005eb5cc,original-export,abi-backed
+??4srTextureMap@@QAEAAV0@ABV0@@Z,0,public: class srTextureMap & __thiscall srTextureMap::operator=(class srTextureMap const &),__thiscall,Wiz8.exe,srTextureMap,operator,005ebaf8,original-export,abi-backed
+?dump@srTextureMap@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z,0,"public: virtual void __thiscall srTextureMap::dump(class std::basic_ostream<char, struct std::char_traits<char>> &)",__thiscall,Wiz8.exe,srTextureMap,method,005eb5b0,original-export,abi-backed
+?getMipmapData@srTextureMap@@UAEXAAUMultiRequest@srTextureIFace@@@Z,0,public: virtual void __thiscall srTextureMap::getMipmapData(struct srTextureIFace::MultiRequest &),__thiscall,Wiz8.exe,srTextureMap,method,005eb59c,original-export,abi-backed
+?getSurfacePtr@srTextureMap@@QBEPAVsrColorSurfaceIFace@@XZ,0,public: class srColorSurfaceIFace * __thiscall srTextureMap::getSurfacePtr(void) const,__thiscall,Wiz8.exe,srTextureMap,method,005eb9c4,original-export,abi-backed
+?getTextureFrameHandle@srTextureMap@@UAEKXZ,0,public: virtual unsigned long __thiscall srTextureMap::getTextureFrameHandle(void),__thiscall,Wiz8.exe,srTextureMap,method,005eb5a8,original-export,abi-backed
+?invalidate@srTextureMap@@UAEXXZ,0,public: virtual void __thiscall srTextureMap::invalidate(void),__thiscall,Wiz8.exe,srTextureMap,method,005eb58c,original-export,abi-backed
+?setSurfacePtr@srTextureMap@@QAEXPAVsrColorSurfaceIFace@@@Z,0,public: void __thiscall srTextureMap::setSurfacePtr(class srColorSurfaceIFace *),__thiscall,Wiz8.exe,srTextureMap,method,005eb5c0,original-export,abi-backed
+?setupDefaultValues@srTextureMap@@MAEXXZ,0,protected: virtual void __thiscall srTextureMap::setupDefaultValues(void),__thiscall,Wiz8.exe,srTextureMap,method,005eb588,original-export,abi-backed
+?vInstance@srTextureMap@@UAEPAVsrClass@@XZ,0,public: virtual class srClass * __thiscall srTextureMap::vInstance(void),__thiscall,Wiz8.exe,srTextureMap,method,005eb5ac,original-export,abi-backed
+??0srTimer@@QAE@HHH@Z,0,"public: __thiscall srTimer::srTimer(int, int, int)",__thiscall,Wiz8.exe,srTimer,constructor,005eb73c,original-export,abi-backed
+??1srTimer@@UAE@XZ,0,public: virtual __thiscall srTimer::~srTimer(void),__thiscall,Wiz8.exe,srTimer,destructor,005eb740,original-export,abi-backed
+?getAscTime@srTimer@@UAEPADPADW4e_timerReadControl@1@@Z,0,"public: virtual char * __thiscall srTimer::getAscTime(char *, enum srTimer::e_timerReadControl)",__thiscall,Wiz8.exe,srTimer,method,005eb738,original-export,abi-backed
+?getMsTime@srTimer@@UAEKW4e_timerReadControl@1@@Z,0,public: virtual unsigned long __thiscall srTimer::getMsTime(enum srTimer::e_timerReadControl),__thiscall,Wiz8.exe,srTimer,method,005eb728,original-export,abi-backed
+?getRawTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z,0,"public: virtual unsigned long __thiscall srTimer::getRawTime(class srQuadWord &, enum srTimer::e_timerReadControl)",__thiscall,Wiz8.exe,srTimer,method,005eb718,original-export,abi-backed
+?getRawTime@srTimer@@UAEKW4e_timerReadControl@1@@Z,0,public: virtual unsigned long __thiscall srTimer::getRawTime(enum srTimer::e_timerReadControl),__thiscall,Wiz8.exe,srTimer,method,005eb714,original-export,abi-backed
+?getTime@srTimer@@UAENW4e_timerReadControl@1@@Z,0,public: virtual double __thiscall srTimer::getTime(enum srTimer::e_timerReadControl),__thiscall,Wiz8.exe,srTimer,method,005eb724,original-export,abi-backed
+?getUTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z,0,"public: virtual unsigned long __thiscall srTimer::getUTime(class srQuadWord &, enum srTimer::e_timerReadControl)",__thiscall,Wiz8.exe,srTimer,method,005eb720,original-export,abi-backed
+?getUTime@srTimer@@UAEKW4e_timerReadControl@1@@Z,0,public: virtual unsigned long __thiscall srTimer::getUTime(enum srTimer::e_timerReadControl),__thiscall,Wiz8.exe,srTimer,method,005ebad0,original-export,abi-backed
+?pause@srTimer@@UAEHXZ,0,public: virtual int __thiscall srTimer::pause(void),__thiscall,Wiz8.exe,srTimer,method,005eb734,original-export,abi-backed
+?reset@srTimer@@UAEHHHH@Z,0,"public: virtual int __thiscall srTimer::reset(int, int, int)",__thiscall,Wiz8.exe,srTimer,method,005eb72c,original-export,abi-backed
+?resume@srTimer@@UAEKXZ,0,public: virtual unsigned long __thiscall srTimer::resume(void),__thiscall,Wiz8.exe,srTimer,method,005eb730,original-export,abi-backed
+?cull@srTriangleCuller@@SAHAAUOutput@1@ABUInput@1@@Z,0,"public: static int __cdecl srTriangleCuller::cull(struct srTriangleCuller::Output &, struct srTriangleCuller::Input const &)",__cdecl,Wiz8.exe,srTriangleCuller,method,005eb850,original-export,abi-backed
+?getClipMask@srTriangleCuller@@SAKABV?$srVector3T@M@@MPBV?$srVector4T@M@@KAAM@Z,0,"public: static unsigned long __cdecl srTriangleCuller::getClipMask(class srVector3T<float> const &, float, class srVector4T<float> const *, unsigned long, float &)",__cdecl,Wiz8.exe,srTriangleCuller,method,005eb854,original-export,abi-backed
+??0srVertexPipe@@QAE@XZ,0,public: __thiscall srVertexPipe::srVertexPipe(void),__thiscall,Wiz8.exe,srVertexPipe,constructor,005eb814,original-export,abi-backed
+??1srVertexPipe@@QAE@XZ,0,public: __thiscall srVertexPipe::~srVertexPipe(void),__thiscall,Wiz8.exe,srVertexPipe,destructor,005eb818,original-export,abi-backed
+?getShaderDisableMask@srVertexPipe@@SA?AV?$srFlags@W4e_channel@srVertexProcessor@@@@ABVsrShader@@@Z,0,public: static class srFlags<enum srVertexProcessor::e_channel> __cdecl srVertexPipe::getShaderDisableMask(class srShader const &),__cdecl,Wiz8.exe,srVertexPipe,method,005eb828,original-export,abi-backed
+?getShaderDisableMask@srVertexPipe@@SA?AV?$srFlags@W4e_channel@srVertexProcessor@@@@PBVsrShader@@PBKK@Z,0,"public: static class srFlags<enum srVertexProcessor::e_channel> __cdecl srVertexPipe::getShaderDisableMask(class srShader const *, unsigned long const *, unsigned long)",__cdecl,Wiz8.exe,srVertexPipe,method,005eb82c,original-export,abi-backed
+?process@srVertexPipe@@QAEXABUInput@1@@Z,0,public: void __thiscall srVertexPipe::process(struct srVertexPipe::Input const &),__thiscall,Wiz8.exe,srVertexPipe,method,005eb824,original-export,abi-backed
+?setupEyeSpaceNormal@srVertexPipe@@AAEXXZ,0,private: void __thiscall srVertexPipe::setupEyeSpaceNormal(void),__thiscall,Wiz8.exe,srVertexPipe,method,005eba18,original-export,abi-backed
+?setupST@srVertexPipe@@AAEXK@Z,0,private: void __thiscall srVertexPipe::setupST(unsigned long),__thiscall,Wiz8.exe,srVertexPipe,method,005eb974,original-export,abi-backed

@@ -177,6 +177,38 @@ that jumps to MSVCRT's `_purecall`. They are pure virtual, so `GrCycle` is an ab
 also corroborates `SetBehaviour`, which calls its own slot 9: a non-virtual method of an abstract
 base calling a pure virtual its concrete derived class implements.
 
+## The SurRender ABI surface `Wiz8.exe` consumes
+
+`config/analysis/surrender/wiz8-sr-imports.csv` records all **461** decorated `SR.DLL` imports with
+their exact demangled signatures, calling conventions, IAT addresses and kinds. Every one demangles;
+the class is derived from the demangled text rather than the mangling, which is what correctly
+separates nested classes from operators and free functions.
+
+| Kind | Count |
+| --- | ---: |
+| method | 371 |
+| constructor / destructor | 29 / 28 |
+| operator | 16 |
+| vftable | 6 |
+| global object | 5 |
+| free function | 4 |
+| vbase destructor | 2 |
+
+That covers **51 distinct classes**, nine of them nested: `srGERD::Renderer`, `srModel::Client`,
+`srModeler::Polygon`, `srModeler::Vertex`, and a complete Huffman codec in
+`srHuffman::{BitIStream, BitOStream, Compressor, Decompressor, Sampler}`. The largest surfaces are
+`srGERD` (82 members), `srMeshModel` (43), `srNode` (42) and `srColorSurface` (34).
+
+The free functions and globals are worth naming explicitly, because the repository already depends
+on one of them: `srAssertFail` and `srAssertSetFunc`, and the global objects `srCore`, `srHeap`,
+`srConfig`, `srBoxFilter` and `srBSplineFilter`. Every assertion mined above is a call into that
+first export.
+
+This joins the existing JPEG-side model on `decorated_name`. 62 of that file's 69 symbols also
+appear here, and the two disagree on **zero** demangled signatures — the hand-recorded JPEG
+signatures and `llvm-undname` produce identical text on every shared symbol, which independently
+validates both artifacts. The union is 468 symbols of exact original ABI.
+
 ## Named bases from imported SurRender vftables
 
 `Wiz8.exe` imports 461 decorated C++ symbols from `SR.DLL`, covering 49 classes, 28 of which import
