@@ -1,5 +1,5 @@
-#include "gameplay_boundaries.h"
-#include "sr_api.h"
+#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 extern "C" unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
                                          unsigned int* done);

@@ -1,4 +1,4 @@
-#include "wiz8_windows.h"
+#include "wiz8/wiz8_windows.h"
 
 /*
  * WIZ8_BRINGUP only: this is a runtime-link smoke entry, not recovered source

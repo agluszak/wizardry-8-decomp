@@ -1,6 +1,8 @@
 #ifndef WIZ8_GAMEPLAY_BOUNDARIES_H
 #define WIZ8_GAMEPLAY_BOUNDARIES_H
 
+/* Shared recovered Wizardry interfaces used by matching translation units. */
+
 #pragma pack(push, 1)
 
 typedef struct W8Dice {

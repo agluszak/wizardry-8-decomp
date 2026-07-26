@@ -282,7 +282,7 @@ if(WIZ8_BUILD_DECOMP)
     )
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8 include)
+    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE include)
 
     # Matching source stays free of synthetic implementations. This umbrella
     # preserves the old object-target name while giving the executable work a
@@ -318,7 +318,7 @@ if(WIZ8_BUILD_DECOMP)
     add_dependencies(WIZ8_BRINGUP wiz8_sr_import_library)
     target_compile_options(WIZ8_BRINGUP PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_BRINGUP PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-    target_include_directories(WIZ8_BRINGUP PRIVATE src/wiz8)
+    target_include_directories(WIZ8_BRINGUP PRIVATE include)
     # KERNEL32 and the dynamic MSVCRT/MSVCP60 runtimes are selected by the VC6
     # compiler defaults and /MD. These are the additional Windows import libs
     # actually present in the canonical executable; do not copy Imperialism's

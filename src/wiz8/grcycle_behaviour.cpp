@@ -1,5 +1,5 @@
-#include "gameplay_boundaries.h"
-#include "sr_api.h"
+#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
    canonical assertion at line 1598; the body bounds-checks against 1 and 3, so

@@ -16,6 +16,9 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
     assert "ddraw.lib" in cmake
     assert "gdi32.lib" in cmake
     assert "user32.lib" in cmake
+    assert "target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE include)" in cmake
+    assert "target_include_directories(WIZ8_BRINGUP PRIVATE include)" in cmake
+    assert not list((repository / "src/wiz8").glob("*.h"))
 
     target = project["targets"]["WIZ8"]
     assert target == {
@@ -24,7 +27,7 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
         "hash": {"sha256": "18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2"},
     }
 
-    windows_header = (repository / "src/wiz8/wiz8_windows.h").read_text(encoding="utf-8")
+    windows_header = (repository / "include/wiz8/wiz8_windows.h").read_text(encoding="utf-8")
     assert "#include <windows.h>" in windows_header
     assert "#include <ddraw.h>" in windows_header
     assert "#define DIRECTDRAW_VERSION 0x0700" in windows_header
@@ -49,5 +52,5 @@ def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     assert "// FUNCTION:" not in source
 
     bringup = (repository / "src/wiz8/bringup/WinMain.cpp").read_text(encoding="utf-8")
-    assert '#include "wiz8_windows.h"' in bringup
+    assert '#include "wiz8/wiz8_windows.h"' in bringup
     assert "// FUNCTION:" not in bringup

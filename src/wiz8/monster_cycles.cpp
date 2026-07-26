@@ -1,5 +1,5 @@
-#include "gameplay_boundaries.h"
-#include "sr_api.h"
+#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
    the canonical assertion at line 960, whose message reads

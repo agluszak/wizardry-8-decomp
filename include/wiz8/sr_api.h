@@ -1,6 +1,8 @@
 #ifndef WIZ8_SR_API_H
 #define WIZ8_SR_API_H
 
+/* Wizardry's recovered call surface for the SurRender DLL. */
+
 /*
  * Proven source-side call surface. The DLL export is variadic and spells the
  * line as long, but every recovered call uses four arguments and VC6 emits the

@@ -1,4 +1,4 @@
-#include "gameplay_boundaries.h"
+#include "wiz8/gameplay_boundaries.h"
 
 /* Engine Code\Item.cpp. Both member names come from the canonical assertion
    expression "m_pRep->m_psrMesh" at line 614; the offsets come from the bodies

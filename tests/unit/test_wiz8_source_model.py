@@ -81,7 +81,7 @@ def test_ptr_vector_instantiations_are_inventoried() -> None:
     assert verdicts == {"yes": 35, "no": 31, "adjacent-vtable": 9}
 
     # The one type replaced two separately-named structs.
-    header = (repository / "src/wiz8/gameplay_boundaries.h").read_text(encoding="utf-8")
+    header = (repository / "include/wiz8/gameplay_boundaries.h").read_text(encoding="utf-8")
     assert "W8PtrVector" in header
     assert "W8NPCItemListVector" not in header
     assert "W8MonsterGeneratorVector" not in header
@@ -164,10 +164,10 @@ def test_surrender_math_templates_preserve_exported_names_and_layouts() -> None:
     assert by_name["srMatrix4T"]["size_bytes"] == "64|128"
 
     header = (repository / "include/surrender/srMath.h").read_text(encoding="utf-8")
-    gameplay_header = (repository / "src/wiz8/gameplay_boundaries.h").read_text(
+    gameplay_header = (repository / "include/wiz8/gameplay_boundaries.h").read_text(
         encoding="utf-8"
     )
-    item_header = (repository / "src/wiz8/item_spawning.h").read_text(encoding="utf-8")
+    item_header = (repository / "include/wiz8/item_spawning.h").read_text(encoding="utf-8")
     assert "W8Vector3" not in header + gameplay_header + item_header
     assert "srVector3T<float> position" in item_header
 

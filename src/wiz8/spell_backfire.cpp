@@ -1,4 +1,4 @@
-#include "gameplay_boundaries.h"
+#include "wiz8/gameplay_boundaries.h"
 
 // FUNCTION: WIZ8 0x004ACA60
 bool CanSpellBackfire(int spell_id)

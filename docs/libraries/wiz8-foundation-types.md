@@ -4,7 +4,7 @@
 
 Two separately-named structs in this repository — `W8NPCItemListVector` and
 `W8MonsterGeneratorVector` — were the same type: one instantiation each of a hand-rolled growable
-pointer array. They are now a single `W8PtrVector` in `src/wiz8/gameplay_boundaries.h`.
+pointer array. They are now a single `W8PtrVector` in `include/wiz8/gameplay_boundaries.h`.
 
 The layout is read off a constructor such as `0x005098B0`:
 

@@ -1,4 +1,4 @@
-#include "gameplay_boundaries.h"
+#include "wiz8/gameplay_boundaries.h"
 
 /* 0x0054B0B0 tears down two objects, and the second through its vtable. That
    call is a __thiscall virtual with its argument on the stack, which the

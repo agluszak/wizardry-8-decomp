@@ -1,5 +1,5 @@
-#include "gameplay_boundaries.h"
-#include "sr_api.h"
+#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 /* 0x004F21E0 and 0x004F2220; descriptive names taken from their use here. */
 extern "C" void RegionSetEnable(unsigned int region_set_id);

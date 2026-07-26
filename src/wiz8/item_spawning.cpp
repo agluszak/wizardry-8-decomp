@@ -1,5 +1,5 @@
-#include "item_spawning.h"
-#include "sr_api.h"
+#include "wiz8/item_spawning.h"
+#include "wiz8/sr_api.h"
 
 #include <malloc.h>
 #include <string.h>

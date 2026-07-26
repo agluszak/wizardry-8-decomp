@@ -1,5 +1,5 @@
-#include "gameplay_boundaries.h"
-#include "sr_api.h"
+#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 /* Engine Code\Octree.cpp. The member names, and the UINT16/UINT32 split between
    the loaded counters and the totals, come from the canonical assertion

@@ -15,7 +15,7 @@ zero; it carries no address marker and is excluded from `WIZ8_MATCHING`.
 
 ## Platform and import libraries
 
-`src/wiz8/wiz8_windows.h` is the common VC6 Windows boundary. It selects the DirectX 7 declaration
+`include/wiz8/wiz8_windows.h` is the common VC6 Windows boundary. It selects the DirectX 7 declaration
 surface and includes the toolchain's real `<windows.h>` and `<ddraw.h>` rather than local type
 facsimiles. CMake links `ddraw.lib`, `gdi32.lib`, and `user32.lib`; KERNEL32 and the dynamic
 MSVCRT/MSVCP60 runtimes come from the VC6 defaults and `/MD`. This follows Imperialism's rule of
@@ -23,7 +23,7 @@ linking the import libraries actually used by the product, but not its product-s
 winmm/vfw/DirectSound/DirectPlay set: canonical `Wiz8.exe` does not import those DLLs.
 
 The current source calls `srAssertFail`, whose actual Wiz8 import is the variadic C++ ABI
-`?srAssertFail@@YAXPBD0J0ZZ`. `src/wiz8/sr_api.h` owns the fixed-arity call declaration proven by
+`?srAssertFail@@YAXPBD0J0ZZ`. `include/wiz8/sr_api.h` owns the fixed-arity call declaration proven by
 the exact recovered bodies. For these four-argument calls, its 32-bit cdecl ABI is compatible with
 the DLL export; changing the declaration itself to variadic changes otherwise-exact VC6 output.
 The narrow `src/wiz8/imports/sr.def` imports only the canonical decorated name, while linker

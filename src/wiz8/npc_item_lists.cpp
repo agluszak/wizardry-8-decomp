@@ -1,4 +1,4 @@
-#include "gameplay_boundaries.h"
+#include "wiz8/gameplay_boundaries.h"
 
 // FUNCTION: WIZ8 0x0050B830
 W8NPCItemList* GetNPCItemListByID(int npc_record_id)

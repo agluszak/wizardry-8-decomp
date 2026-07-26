@@ -1,4 +1,4 @@
-#include "gameplay_boundaries.h"
+#include "wiz8/gameplay_boundaries.h"
 
 /* Dialog Code\MonsterInfoDialog.cpp defines no assertions, so unlike Octree or
    Monster this class yields no member names. Only offsets are established here,
