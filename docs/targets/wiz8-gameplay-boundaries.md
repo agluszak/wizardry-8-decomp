@@ -45,6 +45,8 @@ recovery work.
 | `0x0053bf10` | `TargetSourceIsMonster` | 110 | The monster sibling of the above. |
 | `0x005d6e60` | `MonsterInfoDialog::ClearField41IfEnabled` | 12 | Primary vtable slot 12. Layout proof for fields at `0x41` and `0x50`; the unit has no assertions, so the names are positional. |
 | `0x005dbde0` | `MonsterInfoDialog::ResetSubobjectAndRefresh` | 20 | Primary vtable slot 2. Proves the `0x58` subobject offset. |
+| `0x004f30f0` | `Controls::EnableRegionSet` | 76 | Enables or disables the control's region set, asserting it is not `REGSET_NULL`. Layout proof for `m_uiRegionSetId` at `0x48`, and pins `REGSET_NULL` to zero. |
+| `0x0049fb20` | `Item::GetMesh` | 7 | Returns `m_pRep->m_psrMesh`. Seven bytes prove two chained offsets: `Item::m_pRep` at `0x14` and `ItemRep::m_psrMesh` at `0x64`. |
 | `0x0047d5c0` | `VirtualFileBinIStream::Read` | 40 | Primary vtable slot 1; reads through the SLF layer, reusing its own `size` parameter slot as the completed-count out-parameter. Layout proof for the handle at `+8`. |
 | `0x0055ca20` | `Chunk::Read` | 82 | Reads through the virtual-file layer, asserting the chunk is not in writing mode, and optionally reports the completed count. Layout proof for `W8Chunk`. |
 | `0x0055ca80` | `Chunk::Write` | 82 | The mirror of the above; its callee identifies `WriteVirtualFile` at `0x00404FB0`. |

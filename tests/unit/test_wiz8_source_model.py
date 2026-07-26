@@ -105,6 +105,8 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         "MonsterLight",
         "Octree",
         "stLight",
+        "Controls",
+        "Item",
     }
     # Classes recovered from source paths carry one; classes recovered from an
     # imported SurRender base carry a named base instead.
@@ -341,11 +343,12 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 47
+    assert len(rows) == 49
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 40
+    assert len(exact) == 42
     assert {int(row["size"]) for row in exact} == {
         6,
+        7,
         12,
         19,
         20,
@@ -404,10 +407,12 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         (repository / path).read_text(encoding="utf-8")
         for path in (
             "src/wiz8/character_items.c",
+            "src/wiz8/controls_regions.cpp",
             "src/wiz8/chunk_io.cpp",
             "src/wiz8/gameplay_boundaries.c",
             "src/wiz8/location_variables.c",
             "src/wiz8/grcycle_behaviour.cpp",
+            "src/wiz8/item_mesh.cpp",
             "src/wiz8/item_spawning.cpp",
             "src/wiz8/message_box.cpp",
             "src/wiz8/monster_cycles.cpp",
