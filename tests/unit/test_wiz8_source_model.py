@@ -166,10 +166,23 @@ def test_surrender_abi_surface_is_complete_and_joins_the_jpeg_model() -> None:
     assert {row["name_origin"] for row in wiz8} == {"original-export"}
     assert {row["authority"] for row in wiz8} == {"abi-backed"}
 
+    # Class counts depend on the nesting rule, so pin both; the documentation
+    # states which is which rather than quoting one number as if unambiguous.
     classes = {row["class_name"] for row in wiz8 if row["class_name"]}
     assert len(classes) == 51
+    assert len({name.split("::")[0] for name in classes}) == 43
     assert "srHuffman::Decompressor" in classes
     assert sum(row["kind"] == "vftable" for row in wiz8) == 6
+
+    # 9 of the 461 are plain C, so "461 decorated C++ symbols" would be wrong.
+    plain_c = [row for row in wiz8 if not row["class_name"]]
+    assert len(plain_c) == 9
+    assert {row["kind"] for row in plain_c} == {"free-function", "global-object"}
+
+    ctors = {row["class_name"] for row in wiz8 if row["kind"] == "constructor"}
+    dtors = {row["class_name"] for row in wiz8 if row["kind"] == "destructor"}
+    assert len(ctors & dtors) == 24
+    assert len({c.split("::")[0] for c in ctors} & {d.split("::")[0] for d in dtors}) == 20
 
     # The two import models must agree wherever they overlap.
     by_name = {row["decorated_name"]: row for row in wiz8}

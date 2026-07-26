@@ -214,10 +214,14 @@ Two separate classes live in this area, which is worth being careful about:
 
 ## The SurRender ABI surface `Wiz8.exe` consumes
 
-`config/analysis/surrender/wiz8-sr-imports.csv` records all **461** decorated `SR.DLL` imports with
-their exact demangled signatures, calling conventions, IAT addresses and kinds. Every one demangles;
-the class is derived from the demangled text rather than the mangling, which is what correctly
-separates nested classes from operators and free functions.
+`config/analysis/surrender/wiz8-sr-imports.csv` records all **461** `SR.DLL` imports with their exact
+demangled signatures, calling conventions, IAT addresses and kinds. Every one demangles; the class is
+derived from the demangled text rather than the mangling, which is what correctly separates nested
+classes from operators and free functions.
+
+Nine of the 461 are **not** C++-decorated: the free functions `srInit`, `srExit`, `srAssertFail` and
+`srAssertSetFunc`, and the global objects `srCore`, `srHeap`, `srConfig`, `srBoxFilter` and
+`srBSplineFilter`. So 452 are decorated C++ symbols and 9 are plain C.
 
 | Kind | Count |
 | --- | ---: |
@@ -229,10 +233,26 @@ separates nested classes from operators and free functions.
 | free function | 4 |
 | vbase destructor | 2 |
 
-That covers **51 distinct classes**, nine of them nested: `srGERD::Renderer`, `srModel::Client`,
-`srModeler::Polygon`, `srModeler::Vertex`, and a complete Huffman codec in
-`srHuffman::{BitIStream, BitOStream, Compressor, Decompressor, Sampler}`. The largest surfaces are
-`srGERD` (82 members), `srMeshModel` (43), `srNode` (42) and `srColorSurface` (34).
+Class counts depend on a rule that has to be stated, because nested classes make two answers both
+correct:
+
+| Counting rule | Distinct classes | Classes importing both a constructor and a destructor |
+| --- | ---: | ---: |
+| Full nested name (`srHuffman::Sampler`) | 51 | 24 |
+| Outer class only (`srHuffman`) | 43 | 20 |
+
+Nine classes are nested: `srGERD::Renderer`, `srModel::Client`, `srModeler::Polygon`,
+`srModeler::Vertex`, and a complete Huffman codec in
+`srHuffman::{BitIStream, BitOStream, Compressor, Decompressor, Sampler}`. `srHuffman` itself imports
+nothing directly, which is why collapsing nine nested names removes only eight classes.
+
+A ctor/dtor count also depends on whether the two `??_D` vbase destructors
+(`srBinIMStream`, `srBinOMStream`) count as destructors; the table above keeps them in their own
+`vbase destructor` kind, so they do not.
+
+The largest surfaces, counting by outer class, are `srGERD` (84 members), `srMeshModel` (43),
+`srNode` (42), `srColorSurface` (34), `srTexture` (24), `srColorSurfaceIFace` (18) and `srCamera`
+(16). `srGERD` is 82 under the full-name rule, the two-member difference being `srGERD::Renderer`.
 
 The free functions and globals are worth naming explicitly, because the repository already depends
 on one of them: `srAssertFail` and `srAssertSetFunc`, and the global objects `srCore`, `srHeap`,
@@ -246,8 +266,9 @@ validates both artifacts. The union is 468 symbols of exact original ABI.
 
 ## Named bases from imported SurRender vftables
 
-`Wiz8.exe` imports 461 decorated C++ symbols from `SR.DLL`, covering 49 classes, 28 of which import
-both a constructor and a destructor. Six of those imports are **vftables**, and every one is
+`Wiz8.exe` imports 461 symbols from `SR.DLL` — 452 decorated C++ and 9 plain C — covering 43 classes
+by outer name or 51 counting nested classes separately, as tabulated above. Six of those imports are
+**vftables**, and every one is
 referenced from `.text`. That is the strongest class evidence in the executable, because a function
 installing an imported base vptr is provably constructing a class derived from a *named* base, and
 the mangled name spells out the inheritance:
