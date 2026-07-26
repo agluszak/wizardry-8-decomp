@@ -44,10 +44,21 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   and `just ghidra ...`.
 - The CMake build directory is `build/decomp` **inside the checkout**, so each working copy builds
   and compares in isolation and cannot overwrite another's CMake cache or linked `Wiz8.exe`/
-  `Wiz8.pdb`. `WIZ8_WORK_DIR` holds only large generated data - extracted installers, variants,
-  FID sources, oracles, Ghidra projects - and may be shared between checkouts. `just configure` and
-  `just compare` still refuse to run when a build directory's cache names a different checkout,
-  which catches a moved or copied working copy; `just wiz8 check-build-dir` reports it on demand.
+  `Wiz8.pdb`. `just configure` and `just compare` still refuse to run when a build directory's cache
+  names a different checkout, which catches a moved or copied working copy; `just wiz8
+  check-build-dir` reports it on demand.
+- **Give every concurrently active checkout its own `WIZ8_WORK_DIR`.** Sharing one is safe for the
+  build, which is isolated by the rule above, but not for Ghidra. Agents materializing at once
+  serialize on that directory's `materialize.lock`, and because the project is content-addressed
+  over the reviewed evidence, every evidence commit another agent lands invalidates the cached
+  project and forces a fresh GZF restore. With several agents landing evidence a few minutes apart
+  the effect is not a slow query but one that never returns. `WIZ8_GHIDRA_AGENT_ID` separates the
+  project directories; it does not separate the lock or the cache key.
+- Build a private work directory the way `.env.example` describes, with `cp -al` of the immutable
+  input trees only - `extracted`, `fid`, `variants`, `oracles`, `sgp`. Those are hardlinks, so the
+  copy costs no disk. **Do not hardlink `ghidra/`**: it is a live Ghidra project that Ghidra writes
+  in place, and sharing its inodes corrupts the original. Let it, `ghidra-agents/` and `daemon/` be
+  rebuilt - restoring the canonical GZF is what the tooling already does on first use.
 - **Keep the `// FUNCTION:` marker immediately above its declaration** - no blank line and no
   comment between them. reccmp binds a marker to whatever declaration follows it, so prose in the
   gap detaches the marker from its function rather than merely reading untidily. Put the prose above
