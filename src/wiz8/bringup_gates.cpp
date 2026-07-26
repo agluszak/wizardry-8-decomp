@@ -166,7 +166,7 @@ void Function404B00(void)
 
 extern unsigned char FileExists(const char* path);
 
-extern unsigned char Function42B830(void);
+
 extern void Function4E3340(void);
 extern void* g_instance_6f062c;
 extern unsigned int g_available_kilobytes;
@@ -794,6 +794,25 @@ bool BringUpEngine(void* instance, int show_command)
    startup: absent, 3DSetup.EXE is spawned to write it and the check repeats,
    and still absent ends the run. The message loop ticks a frame whenever no
    message is waiting and the application is active, and waits otherwise. */
+/* The shipped body allocates a 0xC8 frame and jumps straight to returning true.
+   The CD check it guards - a sprintf of the insert-CD message and a MessageBoxA
+   - sits between that jump and its target and is unreachable, which is the
+   shape of a patch rather than of compiler output: the jump overwrites the
+   first instruction after the prologue. All three GOG builds carry it
+   identically, the retail image is protected so its addresses do not line up,
+   and the demo has no insert-CD string at all, so the corpus holds no unpatched
+   reference to recover the original check from.
+
+   This therefore models the shipped behaviour rather than the shipped bytes,
+   and is recorded structurally-strong: matching 87 bytes of retained-but-
+   unreachable code is not something C can express, since the compiler would
+   delete it. */
+// FUNCTION: WIZ8 0x0042B830
+bool CheckCdPresent(void)
+{
+    return true;
+}
+
 // FUNCTION: WIZ8 0x00401670
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
@@ -815,7 +834,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!FileExists(GetVideoConfigFileName())) {
         return 0;
     }
-    if (!Function42B830()) {
+    if (!CheckCdPresent()) {
         return 0;
     }
     ShowCursor(FALSE);

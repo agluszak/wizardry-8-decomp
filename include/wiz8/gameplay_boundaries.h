@@ -522,6 +522,7 @@ void ResetPartySlotRow(int slot);
 void ResetGameplayStatusBlock(void);
 void ResetTargetingState(void);
 void DestroyGameplayObjects(void);
+bool CheckCdPresent(void);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
