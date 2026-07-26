@@ -32,10 +32,12 @@ recovery work.
 | `0x004f6b90` | `CreateWorldItem` | 179 | Allocates and zeroes the `0xad`-byte runtime item, initializes its packed item instance at `+0x09`, copies the position to `+0x15`, and optionally inserts it into the world-item list. The descriptive name is provisional; the complete implementation and layout are exact. |
 | `0x004f6c50` | `SpawnItem` | 103 | Materializes a packed item instance unless the item ID is `-1`, passes it with a three-component position to the world-item allocator, and preserves the original `ItemManager.cpp:398` assertion. Its name comes from the verified CFAgent oracle. |
 | `0x0050b830` | `GetNPCItemListByID` | 53 | Searches the global NPC item-list vector for an entry whose NPC record's `record_id` (offset `0x58`, independently corroborated by `config/types/wiz8/npc_database.h`) equals the requested ID, using the same odd `index < count` in-loop guard as `FindMonGenByName`. Its name comes from the verified CFAgent oracle and it has 73 canonical callers. |
+| `0x00510b60` | `FindFirstMonsterByID` | 130 | Walks the global species `PList`, then the encounter `PList`, for a `W8MonsterGroup` whose `monster_id` field (offset `0x18`) matches; the species list is queried through `GetMonsterGroupByID` (`0x005101B0`) rather than the raw `PListGetAt` accessor the encounter list uses. Its name comes from the verified CFAgent oracle. |
 
 The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
 `src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`,
-`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, `src/wiz8/npc_item_lists.c`,
+`src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, `src/wiz8/monster_lookup.c`,
+`src/wiz8/npc_item_lists.c`,
 `src/wiz8/item_spawning.cpp`, and `src/wiz8/vector_conversions.cpp`, and retain explicit `FUNCTION`
 markers. `WIZ8_GAMEPLAY_BOUNDARIES` is a real VC6 CMake object target built by
 `just build WIZ8_GAMEPLAY_BOUNDARIES`; it uses the pinned SP5 `/O2 /G6 /MD` environment alongside the
@@ -96,3 +98,13 @@ Ghidra program (`wiz8 ghidra query <program> read-data <address> <size>`), not j
 text. That query command had a latent bug: it filled a plain Python `bytearray`, which JPype copies
 rather than shares across the Java call boundary, so `Memory.getBytes` always returned all zeros; it
 now uses a `jpype.JArray(jpype.JByte)` so raw-byte reads work for future comparisons too.
+
+`FindFirstMonsterByID` is retained as `structurally-strong`. Its two `PList` traversals, the
+species-list dispatch through `GetMonsterGroupByID` versus the encounter list's direct
+`PListGetAt`, and the `monster_id` comparison at `+0x18` all agree with the canonical body
+instruction-for-instruction — including the exact `JBE` fallthrough once `PListGetCount` is typed
+`unsigned int` to match the original's unsigned entry check. The one remaining difference is loop
+peeling: the current VC6 output duplicates each loop's first iteration into its own code block
+instead of reusing the original's single body through a backward branch. Unlike `GetNPCItemListByID`,
+swapping which local occupies which register did not change this; it appears to be a loop-shape
+heuristic rather than something reachable through simple reordering.

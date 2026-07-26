@@ -61,6 +61,11 @@ typedef struct W8MonsterGenerator {
     char name[32];                        /* 0x24 */
 } W8MonsterGenerator;
 
+typedef struct W8MonsterGroup {
+    unsigned char unknown_00[0x18];
+    int monster_id;                       /* 0x18 */
+} W8MonsterGroup;
+
 typedef struct W8MonsterGeneratorVector {
     int unknown_00;
     int count;                            /* 0x04 */
@@ -155,6 +160,12 @@ extern int* g_location_variable_levels;
 extern int g_next_world_item_id;
 extern void* g_world_item_list;
 extern W8NPCItemListVector* g_npc_item_lists;
+extern void* g_monster_group_species_list;
+extern void* g_monster_group_encounter_list;
+
+unsigned int PListGetCount(void* list);
+W8MonsterGroup* PListGetAt(void* list, unsigned int index);
+W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
 
 unsigned int GetRandomNumber(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
@@ -191,6 +202,7 @@ W8WorldItem* SpawnItem(
     int unknown,
     unsigned char add_to_world);
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
+W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 
 #ifdef __cplusplus
 }
