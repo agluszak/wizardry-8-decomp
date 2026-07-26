@@ -300,3 +300,31 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x90));
     return 1;
 }
+
+// FUNCTION: WIZ8 0x0054A4F0
+/* Unlike its fact and level siblings this one guards the free and then leaves
+   the pointer dangling rather than clearing it. Both halves of that asymmetry
+   are the original's. */
+void DestroyItemDatabase(void)
+{
+    if (g_item_records) {
+        free(g_item_records);
+    }
+}
+
+// FUNCTION: WIZ8 0x0054AF10
+void DestroyLevelDatabase(void)
+{
+    free(g_level_records);
+    g_level_records = 0;
+}
+
+// FUNCTION: WIZ8 0x0054A880
+/* A generic guarded free, called from three unrelated subsystems, so it is named
+   for what it does rather than for any one database. */
+void FreeIfNotNull(void* block)
+{
+    if (block) {
+        free(block);
+    }
+}
