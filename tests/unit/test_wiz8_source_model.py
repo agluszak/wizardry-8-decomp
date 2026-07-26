@@ -104,6 +104,7 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         "VirtualFileBinIStream",
         "MonsterLight",
         "Octree",
+        "stLight",
     }
     # Classes recovered from source paths carry one; classes recovered from an
     # imported SurRender base carry a named base instead.
@@ -117,6 +118,9 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     # GrCycle's proof covers a vtable slot offset only, not any data member.
     assert "slot 9 only" in by_name["GrCycle"]["layout_proof"]
     assert by_name["MonsterInfoDialog"]["layout_proof"].startswith("005d6e60")
+    # stLight is named by the runtime class registry and corroborated by a source path.
+    assert by_name["stLight"]["source_path"] == "Engine Code\\Include\\stLight.hpp"
+    assert "0x10006" in by_name["stLight"]["evidence"]
     for name in ("VirtualFileBinIStream", "MonsterLight"):
         assert by_name[name]["source_path"] == ""
         assert by_name[name]["base_classes"]

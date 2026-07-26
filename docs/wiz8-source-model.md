@@ -177,6 +177,30 @@ that jumps to MSVCRT's `_purecall`. They are pure virtual, so `GrCycle` is an ab
 also corroborates `SetBehaviour`, which calls its own slot 9: a non-virtual method of an abstract
 base calling a pure virtual its concrete derived class implements.
 
+## The class registry, and `stLight`
+
+SurRender classes carry a registry pair: a virtual `getClassName` returning a literal string and a
+virtual `getClassID` returning a constant. Reading those two slots identifies a class without any
+RTTI at all.
+
+That settles a question left open earlier. The imported `srLight` vftable mangles as
+`srClassSupport<srIlluminator, srNode, 0, 0x1200>`, and `0x1200` was only *suspected* to be a class
+ID. The sibling getters confirm it: the class at vtable `0x005ECD18` returns `0x1220`, and a
+different class returns `0x10006`. Wizardry-registered classes use IDs from `0x10000` up, while
+SurRender's own sit near `0x1200`–`0x3110`.
+
+Two separate classes live in this area, which is worth being careful about:
+
+* vtable `0x005ECD18` — `getClassName` returns **`"srLight"`** and `getClassID` returns `0x1220`. It
+  presents itself to the scene graph as an `srLight` variant rather than under a Wizardry name, so
+  the repository keeps the descriptive name `MonsterLight` for it. Its scalar deleting destructor is
+  `0x0049E0A0` and its complete destructor `0x0049E0D0`.
+* vtables `0x005ECC64` and `0x005ECCA4` — `getClassName` returns **`"stLight"`** and `getClassID`
+  returns `0x10006`. This is a genuine original class name, and it has *two unrelated origins*: the
+  runtime registry string, and the relative assertion path `..\Engine Code\Include\stLight.hpp`
+  recovered by the assertion harvest. Its vtables are installed by eight distinct functions,
+  including `GrCycle`'s copy constructor at `0x004A5F20`, so `GrCycle` owns or embeds one.
+
 ## The SurRender ABI surface `Wiz8.exe` consumes
 
 `config/analysis/surrender/wiz8-sr-imports.csv` records all **461** decorated `SR.DLL` imports with
