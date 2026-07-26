@@ -325,17 +325,24 @@ def materialize_program(
             lambda: validate_reviewed_replay(effective, program_name, evidence_program="wiz8"),
         )
         if not validation["ok"]:
-            # Naming the differences matters: the count alone gives nothing to act
-            # on, and re-running the validator by hand reports a different set
-            # because it sees a project the replay has not been applied to.
-            detail = "; ".join(
-                f"{item.get('kind')} {item.get('key')}: expected {item.get('expected')}, "
-                f"got {item.get('actual')}"
-                for item in validation.get("failures", [])[:10]
+            # Name the differences. The count alone gives nothing to act on, and
+            # re-running the validator by hand does not recover them: it reports a
+            # different set because it sees a project the replay has not been
+            # applied to, and the shared project is routinely locked by another
+            # worktree anyway. This message is the only place the keys are visible.
+            shown = validation.get("failures", [])[:10]
+            detail = "\n  ".join(
+                f"{item.get('kind')} {item.get('key')}\n"
+                f"    expected {item.get('expected')}\n"
+                f"    actual   {item.get('actual')}"
+                for item in shown
             )
+            more = validation["failure_count"] - len(shown)
+            if more > 0:
+                detail += f"\n  ... and {more} more"
             raise RuntimeError(
-                f"GZF materialization validation failed with {validation['failure_count']} "
-                f"differences: {detail}"
+                f"GZF materialization validation failed with "
+                f"{validation['failure_count']} differences:\n  {detail}"
             )
         total = perf_counter() - started
         marker = {
