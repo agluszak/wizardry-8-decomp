@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <new>
 #include <stdlib.h>
 
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
@@ -9,6 +10,66 @@
 extern "C" char* String(const char* format, ...);
 int Function4A87A0(const char* name);
 unsigned char Function47B610(int index);
+
+/* The global constructed at 0x006836b8 contains eight 0x118-byte records.
+   Each record owns one instantiation of the polymorphic pointer-vector family
+   at +0xd8, and the outer object owns the same vector at +0x9b7.  The element
+   type and the vector's original template name are not yet proven, so those
+   names deliberately remain address-neutral. */
+#pragma pack(push, 1)
+class W8MonsterManagerPtrVector {
+public:
+    __forceinline W8MonsterManagerPtrVector()
+    {
+        data = static_cast<void**>(::operator new(5 * sizeof(void*)));
+        count = 0;
+        if (data != 0) {
+            capacity = 5;
+        }
+        else {
+            capacity = 0;
+        }
+    }
+
+    virtual __forceinline ~W8MonsterManagerPtrVector()
+    {
+        ::operator delete(data);
+    }
+
+    int count;                            /* 0x04 */
+    int capacity;                         /* 0x08 */
+    void** data;                          /* 0x0c */
+};                                       /* 0x10 */
+
+class W8MonsterManagerEntry {
+public:
+    W8MonsterManagerEntry();
+    ~W8MonsterManagerEntry();
+
+private:
+    unsigned char unknown_000[0xd8];
+    W8MonsterManagerPtrVector vector_d8;  /* 0x0d8 */
+    unsigned char unknown_0e8[0x30];
+};                                       /* 0x118 */
+
+class W8MonsterManagerState {
+public:
+    W8MonsterManagerState();
+    ~W8MonsterManagerState();
+
+private:
+    W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
+    unsigned char unknown_8c0[0xf7];
+    W8MonsterManagerPtrVector vector_9b7; /* 0x9b7 */
+};                                       /* 0x9c7 */
+#pragma pack(pop)
+
+typedef char W8MonsterManagerPtrVector_size_must_be_0x10[
+    sizeof(W8MonsterManagerPtrVector) == 0x10 ? 1 : -1];
+typedef char W8MonsterManagerEntry_size_must_be_0x118[
+    sizeof(W8MonsterManagerEntry) == 0x118 ? 1 : -1];
+typedef char W8MonsterManagerState_size_must_be_0x9c7[
+    sizeof(W8MonsterManagerState) == 0x9c7 ? 1 : -1];
 
 // FUNCTION: WIZ8 0x004E5550
 unsigned int MonsterGetIndexByLocationID(
@@ -302,4 +363,26 @@ unsigned char Function4E68C0(void)
         }
     }
     return 0;
+}
+
+static W8MonsterManagerState g_monster_manager_state;
+
+// FUNCTION: WIZ8 0x004E6940
+W8MonsterManagerState::~W8MonsterManagerState()
+{
+}
+
+// FUNCTION: WIZ8 0x004E6970
+W8MonsterManagerState::W8MonsterManagerState()
+{
+}
+
+// FUNCTION: WIZ8 0x004E6A10
+W8MonsterManagerEntry::~W8MonsterManagerEntry()
+{
+}
+
+// FUNCTION: WIZ8 0x004E6A30
+W8MonsterManagerEntry::W8MonsterManagerEntry()
+{
 }
