@@ -310,7 +310,6 @@ if(WIZ8_BUILD_DECOMP)
     # matching objects. The bring-up WinMain only proves the platform/CRT link
     # and exits; it is not an address claim.
     add_executable(WIZ8_BRINGUP WIN32
-        src/wiz8/bringup/WinMain.cpp
         $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
     )
     if(TARGET WIZ8_ZLIB_WRAPPERS)

@@ -2,7 +2,9 @@
 
 #include "wiz8/gameplay_boundaries.h"
 
+#include <process.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * Gates called from BringUpEngine at 0x00401570, in the order the startup spine
@@ -40,8 +42,8 @@ extern void InitializeRandom(void);
 extern void ShutdownHandler(void);
 extern long __stdcall WindowProc4011E0(void* window, unsigned int message,
                                        unsigned int wparam, long lparam);
-extern void Function404B00(void);
-extern void Function4023A0(void);
+
+
 extern unsigned char Function421BB0(void* instance, int show_command,
                                     long(__stdcall* window_proc)(void*, unsigned int,
                                                                  unsigned int, long));
@@ -97,6 +99,59 @@ const char* GetVideoConfigFileName(void)
 {
     return "3DVideo.CFG";
 }
+
+extern unsigned short* g_pointer_table_6ed440[0x400];
+extern unsigned char g_flags_6ed040[0x400];
+extern bool g_flag_650de4;
+extern bool g_flag_5ff538;
+extern unsigned char g_flag_6ef440;
+
+// FUNCTION: WIZ8 0x004023A0
+/* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
+void Function4023A0(void)
+{
+}
+
+// FUNCTION: WIZ8 0x00404B00
+/* Clears the pointer table, then walks it releasing each entry. The walk can
+   never see a live entry because the clear precedes it, but both are in the
+   original and the compiler kept them, so both are reproduced. */
+void Function404B00(void)
+{
+    unsigned short** table;
+    unsigned char* flags;
+    unsigned short* entry;
+    int remaining;
+
+    memset(g_pointer_table_6ed440, 0, sizeof(g_pointer_table_6ed440));
+    table = g_pointer_table_6ed440;
+    flags = g_flags_6ed040;
+    remaining = 0x400;
+    do {
+        entry = *table;
+        *flags = 0;
+        if (entry) {
+            *entry = 0xffff;
+            *table = 0;
+        }
+        ++flags;
+        ++table;
+        --remaining;
+    } while (remaining);
+    g_flag_650de4 = true;
+    g_flag_5ff538 = true;
+    g_flag_6ef440 = 0;
+}
+
+extern unsigned char FileExists(const char* path);
+extern void ProcessCommandLine(char* command_line);
+extern unsigned char Function42B830(void);
+extern void Function4E3340(void);
+extern void* g_instance_6f062c;
+extern unsigned int g_available_kilobytes;
+extern unsigned char g_run_flag_6f0628;
+extern unsigned char gfApplicationActive;
+extern unsigned char gfSGPInputReceived;
 
 // FUNCTION: WIZ8 0x00401570
 /* The window init sequence. Registers the window class, points module loading
@@ -161,6 +216,60 @@ unsigned int QueryAvailableMemory(void)
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
     return status.dwAvailPhys;
+}
+
+
+// FUNCTION: WIZ8 0x00401670
+/* A running instance is found by class and title both spelled "Wizardry 8"; it
+   is raised and this one exits. Otherwise the video configuration file gates
+   startup: absent, 3DSetup.EXE is spawned to write it and the check repeats,
+   and still absent ends the run. The message loop ticks a frame whenever no
+   message is waiting and the application is active, and waits otherwise. */
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+    MSG message;
+    HWND existing;
+
+    existing = FindWindowExA(NULL, NULL, "Wizardry 8", "Wizardry 8");
+    if (existing) {
+        SetForegroundWindow(existing);
+        ShowWindow(existing, 9);
+        return 0;
+    }
+    g_instance_6f062c = hInstance;
+    ProcessCommandLine(lpCmdLine);
+    g_available_kilobytes = QueryAvailableMemory() >> 10;
+    if (!FileExists(GetVideoConfigFileName())) {
+        _spawnl(0, "3DSetup.EXE", "3DSetup.EXE", GetVideoConfigFileName(), NULL);
+    }
+    if (!FileExists(GetVideoConfigFileName())) {
+        return 0;
+    }
+    if (!Function42B830()) {
+        return 0;
+    }
+    ShowCursor(FALSE);
+    if (!BringUpEngine(hInstance, nShowCmd)) {
+        return 0;
+    }
+    gfApplicationActive = 1;
+    g_run_flag_6f0628 = 1;
+    do {
+        if (PeekMessageA(&message, NULL, 0, 0, 0)) {
+            if (GetMessageA(&message, NULL, 0, 0) == 0) {
+                return message.wParam;
+            }
+            TranslateMessage(&message);
+            DispatchMessageA(&message);
+        } else if (gfApplicationActive == 0) {
+            WaitMessage();
+        } else {
+            Function4E3340();
+            gfSGPInputReceived = 0;
+        }
+    } while (g_run_flag_6f0628);
+    PostQuitMessage(0);
+    return message.wParam;
 }
 
 }

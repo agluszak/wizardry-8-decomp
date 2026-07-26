@@ -51,6 +51,10 @@ def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     assert actual == expected
     assert "// FUNCTION:" not in source
 
-    bringup = (repository / "src/wiz8/bringup/WinMain.cpp").read_text(encoding="utf-8")
-    assert '#include "wiz8/wiz8_windows.h"' in bringup
-    assert "// FUNCTION:" not in bringup
+    # The bring-up entry was a marker-less link stub until WinMain itself was
+    # recovered. It now carries its canonical address like any other body, and
+    # the stub is gone rather than sitting alongside a real definition.
+    assert not (repository / "src/wiz8/bringup/WinMain.cpp").exists()
+    gates = (repository / "src/wiz8/bringup_gates.cpp").read_text(encoding="utf-8")
+    assert '#include "wiz8/wiz8_windows.h"' in gates
+    assert "// FUNCTION: WIZ8 0x00401670" in gates
