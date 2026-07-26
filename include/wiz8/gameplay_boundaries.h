@@ -415,6 +415,7 @@ W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
+W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 
 unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);

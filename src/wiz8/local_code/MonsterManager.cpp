@@ -262,3 +262,18 @@ int Function4E5B50(unsigned int monster_species)
     }
     return record->value_253;
 }
+
+// FUNCTION: WIZ8 0x004E5E50
+W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
+{
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info->monster_species == monster_species) {
+            return monster_info;
+        }
+    }
+    return 0;
+}
