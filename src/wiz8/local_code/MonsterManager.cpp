@@ -355,6 +355,71 @@ int Function4E5B50(unsigned int monster_species)
     return record->value_253;
 }
 
+// FUNCTION: WIZ8 0x004E5D00
+void Function4E5D00(W8MonsterInfo* monster_info)
+{
+    unsigned int monster_attribute = 0;
+
+    do {
+        W8MonsterRecord* record;
+        int attribute_index;
+        int value;
+
+        if (monster_info == 0) {
+            srAssertFail(
+                "pMonsterInfo != NULL",
+                MONSTER_MANAGER_CPP,
+                0x5e9,
+                0);
+        }
+        record = GetMonsterDataByIDInline(monster_info->monster_species);
+        value = record->attribute_values_d1[monster_attribute];
+        attribute_index = 0;
+
+        if (monster_attribute >= 5) {
+            srAssertFail(
+                "uiMonsterAttribute < MONSTER_ATTR_COUNT",
+                MONSTER_MANAGER_CPP,
+                0x78d,
+                0);
+        }
+        switch (monster_attribute) {
+        case 0:
+            attribute_index = 0;
+            break;
+        case 1:
+            attribute_index = 1;
+            break;
+        case 2:
+            attribute_index = 4;
+            break;
+        case 3:
+            attribute_index = 5;
+            break;
+        case 4:
+            attribute_index = 6;
+            break;
+        default:
+            srAssertFail(
+                "FALSE",
+                MONSTER_MANAGER_CPP,
+                0x798,
+                "ConvertMonsterAttribute: ERROR - Invalid monster attribute");
+        }
+
+        value += monster_info->attribute_adjustments_1e7[attribute_index];
+        if (value > 125) {
+            value = 125;
+        }
+        else if (value < 1) {
+            value = 1;
+        }
+        monster_info->converted_attributes_247[monster_attribute] =
+            static_cast<unsigned char>(value);
+        ++monster_attribute;
+    } while (monster_attribute < 5);
+}
+
 // FUNCTION: WIZ8 0x004E5E50
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
 {

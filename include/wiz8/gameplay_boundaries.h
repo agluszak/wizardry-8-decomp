@@ -145,7 +145,9 @@ typedef struct W8LevelDatabaseRecord {
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
    runtime record size; the fields are typed by their consumers elsewhere. */
 typedef struct W8MonsterRecord {
-    unsigned char unknown_000[0x181];
+    unsigned char unknown_000[0xd1];
+    unsigned char attribute_values_d1[5]; /* 0x0d1: converted by 0x004e5d00 */
+    unsigned char unknown_0d6[0xab];
     unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
     unsigned char unknown_185[4];
     char cycle_name_189[0x31];             /* 0x189: GrCycle lookup key */
@@ -447,7 +449,11 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_10[0x17];
     int value_27;                         /* 0x27: initialized from a database dice roll */
     int value_2b;                         /* 0x2b: initialized to the same rolled value */
-    unsigned char unknown_2f[0x3f6];
+    unsigned char unknown_2f[0x1b8];
+    signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
+    unsigned char unknown_1ee[0x59];
+    unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
+    unsigned char unknown_24c[0x1d9];
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
 
@@ -477,6 +483,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 void Function4E5A50(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
+void Function4E5D00(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char Function4E68C0(void);
