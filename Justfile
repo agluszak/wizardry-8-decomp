@@ -73,8 +73,9 @@ build-image:
         --tag {{vc6_image}} docker/msvc600
 
 # Forward Ghidra-specific arguments to the domain CLI.
+[positional-arguments]
 ghidra *args:
-    uv run wiz8 ghidra {{args}}
+    uv run wiz8 ghidra "$@"
 
 # Forward arbitrary corpus/analysis arguments to the domain CLI.
 wiz8 *args:

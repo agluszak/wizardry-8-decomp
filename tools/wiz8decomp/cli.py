@@ -4,6 +4,7 @@ import importlib.metadata
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -651,11 +652,39 @@ def daemon_stop() -> None:
 @ghidra_app.command(
     "query", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
-def ghidra_query(ctx: typer.Context, program: str, command: str) -> None:
-    """Query PROGRAM through the automatically managed persistent Ghidra process."""
-    from .ghidra.query_daemon import query
+def ghidra_query(
+    ctx: typer.Context,
+    program: str,
+    command: Annotated[str | None, typer.Argument()] = None,
+    queries: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--query",
+            "-q",
+            help="Complete query to run; repeat to execute an ordered batch in one Ghidra request.",
+        ),
+    ] = None,
+) -> None:
+    """Query PROGRAM through the automatically managed persistent Ghidra process.
+
+    The original COMMAND [ARGUMENTS] form executes one query. Repeat --query
+    with a shell-style quoted command to execute several queries against the
+    same open program in one daemon request.
+    """
+    from .ghidra.query_daemon import query, query_many
 
     def action() -> dict[str, Any]:
+        if queries:
+            if command is not None or ctx.args:
+                raise ValueError("use either COMMAND [ARGUMENTS] or repeated --query clauses")
+            parsed = [shlex.split(specification) for specification in queries]
+            if any(not fields for fields in parsed):
+                raise ValueError("--query clauses must not be empty")
+            requests = [(fields[0], fields[1:]) for fields in parsed]
+            results, transport = query_many(_settings(), program, requests)
+            return {"transport": transport, "program": program, "results": results}
+        if command is None:
+            raise ValueError("provide COMMAND [ARGUMENTS] or at least one --query clause")
         result, transport = query(_settings(), program, command, list(ctx.args))
         return {"transport": transport, "program": program, "command": command, "result": result}
 

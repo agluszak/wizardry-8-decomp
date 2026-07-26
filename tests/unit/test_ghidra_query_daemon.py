@@ -39,6 +39,44 @@ def test_query_automatically_uses_the_daemon(monkeypatch: pytest.MonkeyPatch) ->
     assert started == [(settings, "canonical")]
 
 
+def test_query_many_uses_one_ordered_daemon_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = _settings()
+    started: list[tuple[Any, str]] = []
+    requests: list[dict[str, Any]] = []
+    monkeypatch.setattr(query_daemon, "resolve_program_name", lambda _settings, selector: selector)
+    monkeypatch.setattr(
+        query_daemon,
+        "ensure_daemon",
+        lambda daemon_settings, program: started.append((daemon_settings, program)),
+    )
+
+    def daemon_query(_settings: Any, request: dict[str, Any]) -> list[dict[str, Any]]:
+        requests.append(request)
+        return request["queries"]
+
+    monkeypatch.setattr(query_daemon, "daemon_query", daemon_query)
+
+    result, transport = query_daemon.query_many(
+        settings,
+        "canonical",
+        [("function", ["0x401000"]), ("read-data", ["0x402000", "16"])],
+    )
+
+    assert transport == "daemon"
+    assert result == [
+        {"command": "function", "arguments": ["0x401000"]},
+        {"command": "read-data", "arguments": ["0x402000", "16"]},
+    ]
+    assert requests == [
+        {
+            "action": "query-many",
+            "program": "canonical",
+            "queries": result,
+        }
+    ]
+    assert started == [(settings, "canonical")]
+
+
 def test_ensure_daemon_switches_programs_under_the_lifecycle_lock(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -133,6 +171,33 @@ def test_query_falls_back_only_when_daemon_startup_is_unavailable(
 
     assert transport == "one-shot-fallback"
     assert result["program"] == "canonical"
+
+
+def test_query_many_falls_back_as_one_ordered_batch(monkeypatch: pytest.MonkeyPatch) -> None:
+    settings = _settings()
+    queries = [("function", ["0x401000"]), ("read-data", ["0x402000", "16"])]
+    seen: list[tuple[str, list[tuple[str, list[str]]]]] = []
+    monkeypatch.setattr(query_daemon, "resolve_program_name", lambda _settings, selector: selector)
+    monkeypatch.setattr(
+        query_daemon,
+        "ensure_daemon",
+        lambda _settings, _program: (_ for _ in ()).throw(RuntimeError("unavailable")),
+    )
+
+    def one_shot_queries(_settings, program, requests):
+        seen.append((program, requests))
+        return [{"command": command, "arguments": arguments} for command, arguments in requests]
+
+    monkeypatch.setattr(query_daemon, "one_shot_queries", one_shot_queries)
+
+    result, transport = query_daemon.query_many(settings, "canonical", queries)
+
+    assert transport == "one-shot-fallback"
+    assert result == [
+        {"command": "function", "arguments": ["0x401000"]},
+        {"command": "read-data", "arguments": ["0x402000", "16"]},
+    ]
+    assert seen == [("canonical", queries)]
 
 
 def test_query_does_not_hide_errors_returned_by_a_healthy_daemon(

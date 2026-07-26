@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -159,7 +160,7 @@ def ensure_daemon(settings: Settings, program: str) -> dict[str, Any]:
         return status
 
 
-def daemon_query(settings: Settings, request: dict[str, Any]) -> dict[str, Any]:
+def daemon_query(settings: Settings, request: dict[str, Any]) -> Any:
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
         client.settimeout(180)
         client.connect(str(socket_path(settings)))
@@ -194,6 +195,60 @@ def one_shot_query(
         project.close()
 
 
+def one_shot_queries(
+    settings: Settings, program_name: str, queries: list[tuple[str, list[str]]]
+) -> list[dict[str, Any]]:
+    """Execute an ordered query batch while opening the Ghidra project only once."""
+
+    start_pyghidra(settings)
+    import pyghidra
+
+    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+    try:
+        with pyghidra.program_context(project, "/" + program_name) as program:
+            return [
+                {
+                    "command": command,
+                    "arguments": arguments,
+                    "result": execute_query(program, command, arguments),
+                }
+                for command, arguments in queries
+            ]
+    finally:
+        project.close()
+
+
+def _query_with_transport(
+    settings: Settings,
+    program: str,
+    request: dict[str, Any],
+    fallback: Callable[[], Any],
+) -> tuple[Any, str]:
+    """Use the selected daemon, retry it once, then use the supplied one-shot query."""
+
+    try:
+        ensure_daemon(settings, program)
+    except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
+        return fallback(), "one-shot-fallback"
+
+    try:
+        return daemon_query(settings, request), "daemon"
+    except (ConnectionError, json.JSONDecodeError, OSError):
+        # The daemon may have exited between the lifecycle check and the
+        # query. Replace it once; a persistent lifecycle failure uses the safe
+        # one-shot path below. Query errors returned by a healthy daemon are
+        # deliberately not caught here.
+        try:
+            stop_daemon(settings, quiet=True)
+            ensure_daemon(settings, program)
+        except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
+            return fallback(), "one-shot-fallback"
+        try:
+            return daemon_query(settings, request), "daemon"
+        except (ConnectionError, json.JSONDecodeError, OSError, TimeoutError):
+            return fallback(), "one-shot-fallback"
+
+
 def query(
     settings: Settings, selector: str, command: str, arguments: list[str]
 ) -> tuple[dict[str, Any], str]:
@@ -206,27 +261,36 @@ def query(
         "command": command,
         "arguments": arguments,
     }
-    try:
-        ensure_daemon(effective, program)
-    except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
-        return one_shot_query(effective, program, command, arguments), "one-shot-fallback"
+    return _query_with_transport(
+        effective,
+        program,
+        request,
+        lambda: one_shot_query(effective, program, command, arguments),
+    )
 
-    try:
-        return daemon_query(effective, request), "daemon"
-    except (ConnectionError, json.JSONDecodeError, OSError):
-        # The daemon may have exited between the lifecycle check and the
-        # query. Replace it once; a persistent lifecycle failure uses the safe
-        # one-shot path below. Query errors returned by a healthy daemon are
-        # deliberately not caught here.
-        try:
-            stop_daemon(effective, quiet=True)
-            ensure_daemon(effective, program)
-        except (ConnectionError, json.JSONDecodeError, OSError, RuntimeError, TimeoutError):
-            return one_shot_query(effective, program, command, arguments), "one-shot-fallback"
-        try:
-            return daemon_query(effective, request), "daemon"
-        except (ConnectionError, json.JSONDecodeError, OSError, TimeoutError):
-            return one_shot_query(effective, program, command, arguments), "one-shot-fallback"
+
+def query_many(
+    settings: Settings, selector: str, queries: list[tuple[str, list[str]]]
+) -> tuple[list[dict[str, Any]], str]:
+    """Execute several validated queries against one materialized program in order."""
+
+    if not queries:
+        raise ValueError("at least one query is required")
+    for command, arguments in queries:
+        validate_query_arguments(command, arguments)
+    program = resolve_program_name(settings, selector)
+    effective, _ = _materialize(settings, program)
+    request = {
+        "action": "query-many",
+        "program": program,
+        "queries": [{"command": command, "arguments": arguments} for command, arguments in queries],
+    }
+    return _query_with_transport(
+        effective,
+        program,
+        request,
+        lambda: one_shot_queries(effective, program, queries),
+    )
 
 
 @internal_app.command()
@@ -272,10 +336,43 @@ def serve(program: str = typer.Option(..., "--program")) -> None:
                                 raise DaemonProgramMismatchError(
                                     f"daemon serves {program}, request targets {requested_program}"
                                 )
-                            command = request["command"]
-                            arguments = request.get("arguments", [])
-                            validate_query_arguments(command, arguments)
-                            result = execute_query(ghidra_program, command, arguments)
+                            if request.get("action") == "query-many":
+                                queries = request.get("queries", [])
+                                if not isinstance(queries, list) or not queries:
+                                    raise ValueError("query-many requires at least one query")
+                                normalized = []
+                                for query_request in queries:
+                                    if not isinstance(query_request, dict):
+                                        raise TypeError("each query must be an object")
+                                    command = query_request.get("command")
+                                    arguments = query_request.get("arguments", [])
+                                    if (
+                                        not isinstance(command, str)
+                                        or not isinstance(arguments, list)
+                                        or not all(isinstance(item, str) for item in arguments)
+                                    ):
+                                        raise ValueError(
+                                            "each query needs a string command and string arguments"
+                                        )
+                                    validate_query_arguments(command, arguments)
+                                    normalized.append((command, arguments))
+                                result = [
+                                    {
+                                        "command": command,
+                                        "arguments": arguments,
+                                        "result": execute_query(ghidra_program, command, arguments),
+                                    }
+                                    for command, arguments in normalized
+                                ]
+                            elif request.get("action") == "query":
+                                command = request["command"]
+                                arguments = request.get("arguments", [])
+                                validate_query_arguments(command, arguments)
+                                result = execute_query(ghidra_program, command, arguments)
+                            else:
+                                raise ValueError(
+                                    f"unsupported daemon action: {request.get('action')}"
+                                )
                         response = {"ok": True, "result": result}
                     except Exception as error:
                         response = {"ok": False, "error": str(error), "type": type(error).__name__}

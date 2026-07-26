@@ -61,6 +61,17 @@ replays current reviewed evidence, validates it, and reuses a persistent daemon.
 a disposable binary cache, not canonical analysis knowledge. `just ghidra rebuild <program>` performs
 the slower fresh import and auto-analysis parity check; `just ghidra cache build` validates and packs
 an intentionally refreshed canonical seed.
+
+Several read-only queries can share one daemon request by repeating `--query` (or `-q`). Results are
+returned in request order, and each clause uses shell-style quoting when one argument contains spaces:
+
+```sh
+just ghidra query wiz8--gog-base--wiz8--18a74ff61c65 \
+  -q 'function 0x004B6900' \
+  -q 'read-data 0x005ED090 16' \
+  -q 'search "Monster Info"'
+```
+
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
 ownership and interface findings are in

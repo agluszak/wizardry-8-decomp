@@ -65,6 +65,8 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     )
     assert by_address[0x004E68C0].return_type == "unsigned char"
     assert by_address[0x004E68C0].parameters == ()
+    assert by_address[0x00514BE0].parameters == (("handle", "int"), ("item", "void *"))
+    assert by_address[0x00514C80].return_type == "void *"
 
     apply_script = (
         repository / "tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py"
