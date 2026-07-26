@@ -1,52 +1,52 @@
-address,size,current_name,provisional_name,owner,confidence,evidence
-00415820,20,not-defined,ZAlloc,sgp-compression,exact,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-00415840,13,not-defined,ZFree,sgp-compression,exact,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-00415850,92,FUN_00415850,DecompressInit,sgp-compression,exact,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-004158b0,52,FUN_004158b0,Decompress,sgp-compression,exact,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-004158f0,23,FUN_004158f0,DecompressFini,sgp-compression,exact,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
-00415910,77,FUN_00415910,inflateReset,zlib-1.0.4,high,State writes and inflate_blocks_reset call match inflate.c exactly
-00415960,85,FUN_00415960,inflateEnd,zlib-1.0.4,high,Frees the block state and inflate state through the configured allocator
-004159c0,263,FUN_004159c0,inflateInit2_,zlib-1.0.4,high,Checks version 1.0.4 and z_stream size then allocates the inflate state and block window
-00415ad0,26,FUN_00415ad0,inflateInit_,zlib-1.0.4,high,Exact wrapper call to inflateInit2_ with MAX_WBITS 15
-00415af0,987,FUN_00415af0,inflate,zlib-1.0.4,high,Unique inflate state machine and exact 1.0.4 error strings
-00415f10,76,not-defined,flush_pending,zlib-1.0.4,high,Patched-build boundary plus exact pending-buffer copy semantics from deflate.c
-00415f60,265,not-defined,deflate_stored,zlib-1.0.4,high,Patched-build boundary plus exact stored-block loop and _tr_flush_block calls
-00416070,267,not-defined,fill_window,zlib-1.0.4,high,Patched-build boundary plus window slide and hash-chain maintenance from deflate.c
-00416180,99,not-defined,read_buf,zlib-1.0.4,high,Patched-build boundary plus input copy and optional Adler update
-004161f0,595,not-defined,deflate_fast,zlib-1.0.4,high,Patched-build boundary plus fast match/tally loop and deflate helper call graph
-00416450,363,not-defined,longest_match,zlib-1.0.4,high,Patched-build boundary plus exact hash-chain match search
-004165c0,752,not-defined,deflate_slow,zlib-1.0.4,high,Patched-build boundary plus lazy match/tally loop and deflate helper call graph
-004168b0,144,FUN_004168b0,inflate_blocks_reset,zlib-1.0.4,high,Resets block mode bit buffer window cursors and checksum exactly as infblock.c
-00416940,106,FUN_00416940,inflate_blocks_new,zlib-1.0.4,high,Allocates the 0x3c-byte block state and caller-sized window then resets it
-004169b0,3553,FUN_004169b0,inflate_blocks,zlib-1.0.4,high,Unique block decoder state machine and exact 1.0.4 block error strings
-004177d0,55,FUN_004177d0,inflate_blocks_free,zlib-1.0.4,high,Resets then frees the block window and block state
-00417810,297,not-defined,adler32,zlib-1.0.4,high,Passed as the inflate block checksum callback and implements the Adler-32 5552-byte chunk loop
-00417940,19,FUN_00417940,zcalloc,zlib-1.0.4,high,Exact default allocator wrapper around calloc
-00417960,14,not-defined,zcfree,zlib-1.0.4,high,Exact default deallocator wrapper around free
-00417970,106,not-defined,init_block,zlib-1.0.4,high,Zeros literal distance and bit-length frequencies and resets block counters
-004179e0,116,not-defined,gen_codes,zlib-1.0.4,high,Builds canonical Huffman codes and calls bi_reverse
-00417a60,182,not-defined,_tr_stored_block,zlib-1.0.4,high,Emits the stored-block header then calls copy_block
-00417b20,544,not-defined,_tr_flush_block,zlib-1.0.4,high,Selects stored static or dynamic trees and resets the block
-00417d40,517,not-defined,build_tree,zlib-1.0.4,high,Constructs a Huffman heap then calls pqdownheap gen_bitlen and gen_codes
-00417f50,162,not-defined,pqdownheap,zlib-1.0.4,high,Exact heap restoration over tree frequencies and depth tie-breaking
-00418000,479,not-defined,gen_bitlen,zlib-1.0.4,high,Computes optimal bit lengths and repairs overflow
-004181e0,112,not-defined,build_bl_tree,zlib-1.0.4,high,Scans literal and distance trees then builds the bit-length tree
-00418250,229,not-defined,scan_tree,zlib-1.0.4,high,Counts repeated code lengths into REP_3_6 REPZ_3_10 and REPZ_11_138 frequencies
-00418340,607,not-defined,send_all_trees,zlib-1.0.4,high,Emits HLIT HDIST and HCLEN then calls send_tree for both trees
-004185a0,1401,not-defined,send_tree,zlib-1.0.4,high,Emits repeated code lengths using the three repeat symbols
-00418b20,262,not-defined,_tr_tally,zlib-1.0.4,high,Records literal or match tokens and updates literal/distance frequencies
-00418c30,1122,not-defined,compress_block,zlib-1.0.4,high,Encodes the token buffers with literal length and distance trees
-004190a0,102,not-defined,set_data_type,zlib-1.0.4,high,Compares ASCII and binary literal frequencies to set the stream data type
-00419110,33,not-defined,bi_reverse,zlib-1.0.4,high,Exact bit-reversal loop used by gen_codes
-00419140,96,not-defined,bi_windup,zlib-1.0.4,high,Flushes the remaining bit buffer and resets bi_buf and bi_valid
-004191a0,138,not-defined,copy_block,zlib-1.0.4,high,Winds up bits writes optional LEN/NLEN and copies the stored bytes
-00419230,85,FUN_00419230,inflate_trees_bits,zlib-1.0.4,high,Calls huft_build with the 19-code bit-length alphabet and exact error strings
-00419290,1225,FUN_00419290,huft_build,zlib-1.0.4,high,Only inftrees.c routine called by all three tree constructors with matching allocator/free behavior
-00419760,231,FUN_00419760,inflate_trees_dynamic,zlib-1.0.4,high,Builds literal/length and distance trees and emits exact dynamic-tree errors
-00419850,323,FUN_00419850,inflate_trees_fixed,zlib-1.0.4,high,Lazily constructs the fixed 288-entry literal and 30-entry distance trees
-004199c0,62,FUN_004199c0,inflate_trees_free,zlib-1.0.4,high,Walks and frees the linked Huffman allocation chain
-00419a00,57,FUN_00419a00,inflate_codes_new,zlib-1.0.4,high,Allocates and initializes the 0x1c-byte inflate code state
-00419a40,2255,FUN_00419a40,inflate_codes,zlib-1.0.4,high,Unique literal length distance decoder and exact invalid-code strings
-0041a340,20,FUN_0041a340,inflate_codes_free,zlib-1.0.4,high,Exact configured-allocator free wrapper for the code state
-0041a360,320,FUN_0041a360,inflate_flush,zlib-1.0.4,high,Shared 39-call-site output-window flush routine from infutil.c
-0041a4a0,846,FUN_0041a4a0,inflate_fast,zlib-1.0.4,high,Fast decoder reached from inflate_codes with the same invalid-code strings
+address,size,current_name,provisional_name,owner,confidence,name_origin,authority,evidence
+00415820,20,not-defined,ZAlloc,sgp-compression,exact,sgp-source,source-backed,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+00415840,13,not-defined,ZFree,sgp-compression,exact,sgp-source,source-backed,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+00415850,92,FUN_00415850,DecompressInit,sgp-compression,exact,sgp-source,source-backed,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+004158b0,52,FUN_004158b0,Decompress,sgp-compression,exact,sgp-source,source-backed,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+004158f0,23,FUN_004158f0,DecompressFini,sgp-compression,exact,sgp-source,source-backed,Name and body recovered from pinned SGP Compression.c; relocation-masked VC6 SP5 body is exact
+00415910,77,FUN_00415910,inflateReset,zlib-1.0.4,high,original-source,source-backed,State writes and inflate_blocks_reset call match inflate.c exactly
+00415960,85,FUN_00415960,inflateEnd,zlib-1.0.4,high,original-source,source-backed,Frees the block state and inflate state through the configured allocator
+004159c0,263,FUN_004159c0,inflateInit2_,zlib-1.0.4,high,original-source,source-backed,Checks version 1.0.4 and z_stream size then allocates the inflate state and block window
+00415ad0,26,FUN_00415ad0,inflateInit_,zlib-1.0.4,high,original-source,source-backed,Exact wrapper call to inflateInit2_ with MAX_WBITS 15
+00415af0,987,FUN_00415af0,inflate,zlib-1.0.4,high,original-source,source-backed,Unique inflate state machine and exact 1.0.4 error strings
+00415f10,76,not-defined,flush_pending,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus exact pending-buffer copy semantics from deflate.c
+00415f60,265,not-defined,deflate_stored,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus exact stored-block loop and _tr_flush_block calls
+00416070,267,not-defined,fill_window,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus window slide and hash-chain maintenance from deflate.c
+00416180,99,not-defined,read_buf,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus input copy and optional Adler update
+004161f0,595,not-defined,deflate_fast,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus fast match/tally loop and deflate helper call graph
+00416450,363,not-defined,longest_match,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus exact hash-chain match search
+004165c0,752,not-defined,deflate_slow,zlib-1.0.4,high,original-source,source-backed,Patched-build boundary plus lazy match/tally loop and deflate helper call graph
+004168b0,144,FUN_004168b0,inflate_blocks_reset,zlib-1.0.4,high,original-source,source-backed,Resets block mode bit buffer window cursors and checksum exactly as infblock.c
+00416940,106,FUN_00416940,inflate_blocks_new,zlib-1.0.4,high,original-source,source-backed,Allocates the 0x3c-byte block state and caller-sized window then resets it
+004169b0,3553,FUN_004169b0,inflate_blocks,zlib-1.0.4,high,original-source,source-backed,Unique block decoder state machine and exact 1.0.4 block error strings
+004177d0,55,FUN_004177d0,inflate_blocks_free,zlib-1.0.4,high,original-source,source-backed,Resets then frees the block window and block state
+00417810,297,not-defined,adler32,zlib-1.0.4,high,original-source,source-backed,Passed as the inflate block checksum callback and implements the Adler-32 5552-byte chunk loop
+00417940,19,FUN_00417940,zcalloc,zlib-1.0.4,high,original-source,source-backed,Exact default allocator wrapper around calloc
+00417960,14,not-defined,zcfree,zlib-1.0.4,high,original-source,source-backed,Exact default deallocator wrapper around free
+00417970,106,not-defined,init_block,zlib-1.0.4,high,original-source,source-backed,Zeros literal distance and bit-length frequencies and resets block counters
+004179e0,116,not-defined,gen_codes,zlib-1.0.4,high,original-source,source-backed,Builds canonical Huffman codes and calls bi_reverse
+00417a60,182,not-defined,_tr_stored_block,zlib-1.0.4,high,original-source,source-backed,Emits the stored-block header then calls copy_block
+00417b20,544,not-defined,_tr_flush_block,zlib-1.0.4,high,original-source,source-backed,Selects stored static or dynamic trees and resets the block
+00417d40,517,not-defined,build_tree,zlib-1.0.4,high,original-source,source-backed,Constructs a Huffman heap then calls pqdownheap gen_bitlen and gen_codes
+00417f50,162,not-defined,pqdownheap,zlib-1.0.4,high,original-source,source-backed,Exact heap restoration over tree frequencies and depth tie-breaking
+00418000,479,not-defined,gen_bitlen,zlib-1.0.4,high,original-source,source-backed,Computes optimal bit lengths and repairs overflow
+004181e0,112,not-defined,build_bl_tree,zlib-1.0.4,high,original-source,source-backed,Scans literal and distance trees then builds the bit-length tree
+00418250,229,not-defined,scan_tree,zlib-1.0.4,high,original-source,source-backed,Counts repeated code lengths into REP_3_6 REPZ_3_10 and REPZ_11_138 frequencies
+00418340,607,not-defined,send_all_trees,zlib-1.0.4,high,original-source,source-backed,Emits HLIT HDIST and HCLEN then calls send_tree for both trees
+004185a0,1401,not-defined,send_tree,zlib-1.0.4,high,original-source,source-backed,Emits repeated code lengths using the three repeat symbols
+00418b20,262,not-defined,_tr_tally,zlib-1.0.4,high,original-source,source-backed,Records literal or match tokens and updates literal/distance frequencies
+00418c30,1122,not-defined,compress_block,zlib-1.0.4,high,original-source,source-backed,Encodes the token buffers with literal length and distance trees
+004190a0,102,not-defined,set_data_type,zlib-1.0.4,high,original-source,source-backed,Compares ASCII and binary literal frequencies to set the stream data type
+00419110,33,not-defined,bi_reverse,zlib-1.0.4,high,original-source,source-backed,Exact bit-reversal loop used by gen_codes
+00419140,96,not-defined,bi_windup,zlib-1.0.4,high,original-source,source-backed,Flushes the remaining bit buffer and resets bi_buf and bi_valid
+004191a0,138,not-defined,copy_block,zlib-1.0.4,high,original-source,source-backed,Winds up bits writes optional LEN/NLEN and copies the stored bytes
+00419230,85,FUN_00419230,inflate_trees_bits,zlib-1.0.4,high,original-source,source-backed,Calls huft_build with the 19-code bit-length alphabet and exact error strings
+00419290,1225,FUN_00419290,huft_build,zlib-1.0.4,high,original-source,source-backed,Only inftrees.c routine called by all three tree constructors with matching allocator/free behavior
+00419760,231,FUN_00419760,inflate_trees_dynamic,zlib-1.0.4,high,original-source,source-backed,Builds literal/length and distance trees and emits exact dynamic-tree errors
+00419850,323,FUN_00419850,inflate_trees_fixed,zlib-1.0.4,high,original-source,source-backed,Lazily constructs the fixed 288-entry literal and 30-entry distance trees
+004199c0,62,FUN_004199c0,inflate_trees_free,zlib-1.0.4,high,original-source,source-backed,Walks and frees the linked Huffman allocation chain
+00419a00,57,FUN_00419a00,inflate_codes_new,zlib-1.0.4,high,original-source,source-backed,Allocates and initializes the 0x1c-byte inflate code state
+00419a40,2255,FUN_00419a40,inflate_codes,zlib-1.0.4,high,original-source,source-backed,Unique literal length distance decoder and exact invalid-code strings
+0041a340,20,FUN_0041a340,inflate_codes_free,zlib-1.0.4,high,original-source,source-backed,Exact configured-allocator free wrapper for the code state
+0041a360,320,FUN_0041a360,inflate_flush,zlib-1.0.4,high,original-source,source-backed,Shared 39-call-site output-window flush routine from infutil.c
+0041a4a0,846,FUN_0041a4a0,inflate_fast,zlib-1.0.4,high,original-source,source-backed,Fast decoder reached from inflate_codes with the same invalid-code strings

@@ -12,6 +12,7 @@ import yaml
 
 from ..config import Settings
 from ..paths import atomic_json, atomic_write, json_hash, sha256_file
+from ..provenance import derive_authority, origin_for_fid_source_kind
 from .environment import start_pyghidra
 from .project import resolve_program_name
 from .query_daemon import stop_daemon
@@ -539,6 +540,11 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
                             raise RuntimeError(
                                 f"FID match lacks seed provenance: {seed_domain_path} {fid_name}"
                             )
+                        # A FID name is only as authoritative as the seed that carried
+                        # it; see docs/wiz8-evidence-model.md.
+                        name_origin = origin_for_fid_source_kind(
+                            provenance.get("source_kind") if provenance else None
+                        )
                         matches.append({
                             "target_address": str(result.function.getEntryPoint()),
                             "target_name": str(result.function.getName()),
@@ -562,6 +568,8 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
                             "seed_archive_member_index": provenance.get("archive_member_index") if provenance else None,
                             "seed_source_archive_sha256": provenance.get("source", {}).get("archive_sha256") if provenance else None,
                             "seed_source_tree_hash": provenance.get("source", {}).get("source_tree_hash") if provenance else None,
+                            "name_origin": name_origin,
+                            "authority": derive_authority((name_origin,)),
                         })
             finally:
                 query_service.close()
@@ -572,7 +580,7 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     matches.sort(key=lambda item: (item["target_address"], -item["score"], item["fid_name"]))
     output = settings.build_dir / "evidence" / "fid" / f"{program_name}.csv"
     stream = io.StringIO(newline="")
-    fields = ["target_address", "target_name", "fid_name", "score", "primary_score", "child_score", "parent_score", "match_mode", "library_family", "library_version", "library_variant", "seed_domain_path", "seed_entry", "seed_toolchain", "seed_toolchain_commit", "seed_source_kind", "seed_object_path", "seed_object_sha256", "seed_archive_member", "seed_archive_member_index", "seed_source_archive_sha256", "seed_source_tree_hash"]
+    fields = ["target_address", "target_name", "fid_name", "score", "primary_score", "child_score", "parent_score", "match_mode", "library_family", "library_version", "library_variant", "seed_domain_path", "seed_entry", "seed_toolchain", "seed_toolchain_commit", "seed_source_kind", "seed_object_path", "seed_object_sha256", "seed_archive_member", "seed_archive_member_index", "seed_source_archive_sha256", "seed_source_tree_hash", "name_origin", "authority"]
     writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
     writer.writerows(matches)

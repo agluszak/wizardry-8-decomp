@@ -43,6 +43,7 @@ daemon_app = typer.Typer(help="Manage the persistent read-only query daemon.", n
 fid_app = typer.Typer(
     help="Build and query project-owned Function ID databases.", no_args_is_help=True
 )
+sgp_app = typer.Typer(help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True)
 report_app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 pipeline_app = typer.Typer(help="Verify and clean generated pipeline stages.", no_args_is_help=True)
 app.add_typer(inputs_app, name="inputs")
@@ -53,6 +54,7 @@ ghidra_app.add_typer(daemon_app, name="daemon")
 ghidra_app.add_typer(fid_app, name="fid")
 app.add_typer(report_app, name="report")
 app.add_typer(pipeline_app, name="pipeline")
+app.add_typer(sgp_app, name="sgp")
 console = Console()
 _JSON_OUTPUT = False
 
@@ -304,6 +306,18 @@ def inventory_command(json_output: bool = typer.Option(False, "--json", help="Em
     from .binary.inventory import inventory
 
     _run_action(lambda: inventory(_settings()), force_json=json_output)
+
+
+@sgp_app.command("sweep")
+def sgp_sweep(
+    unit: Optional[list[str]] = typer.Option(
+        None, "--unit", help="Configured SGP unit ID; repeat to select several."
+    ),
+) -> None:
+    """Compile the declarative flag matrix and compare every reviewed build."""
+    from .sgp_oracle import sweep_sgp_units
+
+    _run_action(lambda: sweep_sgp_units(_settings(), unit))
 
 
 @ghidra_app.command("import")

@@ -23,9 +23,10 @@ or project entries. The complete reviewed census is tracked in
 `config/analysis/sgp/source-oracle.yml`.
 
 The missing product PCH cannot be reconstructed by renaming the JA2 PCH: the JA2 header pulls in
-game-specific screens and utilities which are not SGP ABI. For the first comparison probe, the
-tracked overlay contains only the includes and declaration proven necessary by
-`DirectDraw Calls.c`. In particular:
+game-specific screens and utilities which are not SGP ABI. Each probed unit therefore gets its own
+overlay directory under `config/sgp-overlays/`, containing only the includes and declarations its
+own source proves necessary, plus the shared empty `common/builddefines.h`. For
+`DirectDraw Calls.c` in particular:
 
 * `WIZ8_PRECOMPILED_HEADERS` is defined;
 * `JA2`, `JA2_PRECOMPILED_HEADERS`, `UTIL`, and `UTILS` are absent;
@@ -94,6 +95,82 @@ them from this byte matcher. The complete address matrix is
 The oracle also resolves the independently reconstructed zlib boundary. The five exact functions
 at `0x00415820` through `0x004158F0` are the retained decompression half of `sgp/Compression.c`,
 with original names `ZAlloc`, `ZFree`, `DecompressInit`, `Decompress`, and `DecompressFini`.
+
+## `Random.c`: a complete unit, and a name correction
+
+`Random.c` is the first translation unit recovered in full. Its own header settles the build
+configuration: `PRERANDOM_GENERATOR` is gated behind `JA2`, which the Wizardry branch does not
+define, so the unit compiles to exactly three functions. The header also states outright that
+Wizardry uses the subsystem — *"Wizardry can use it too, but I'm saving them a K in the meantime"*.
+
+```sh
+just build WIZ8_SGP_RANDOM
+```
+
+All three bodies are relocation-masked exact, and each matches at exactly one address per build:
+
+| Address | Source identity | Size | Source line |
+| --- | --- | ---: | ---: |
+| `0x0040EF80` | `InitializeRandom` | 19 | 23 |
+| `0x0040EFA0` | `Random` | 50 | 39 |
+| `0x0040EFE0` | `Chance` | 51 | 54 |
+
+Two per-unit compile flags are part of the finding, not incidental:
+
+* `/G5` is required. Under `/G6` only `InitializeRandom` — which contains no arithmetic — still
+  matches; both `Random` and `Chance` diverge.
+* `/Ob2` is required. Wizardry inlined `Random` into `Chance`, constant-folding the range to 100.
+  Plain `/O2` implies `/Ob1` and will not inline a function that is not marked `inline`, so under
+  `/O2` alone `Chance` emits an out-of-line call and never matches.
+
+`Chance` is a good illustration of why per-unit flag sweeps matter: at `/O2 /G5` the unit looks like
+two exact functions and one absent one, which invites the wrong conclusion that Wizardry modified or
+dropped `Chance`. It did neither.
+
+The complete address matrix is `config/analysis/sgp/random-cross-build.csv`. The whole unit sits in
+the demo at the same `+0x360` shift as the DirectDraw block, is identical in the 1.261 and 1.28 base
+executables, and is absent from the packed `Wiz8_v128.exe` and the protected retail executable —
+recorded as unavailable rather than as absent.
+
+## Reusable per-unit harness
+
+The DirectDraw prototype is generalized as a declarative, per-translation-unit sweep in
+`config/analysis/sgp/harness.yml`. Run all configured units, or select one, with:
+
+```sh
+uv run wiz8 sgp sweep
+uv run wiz8 sgp sweep --unit random
+```
+
+For each unit the harness compiles all 16 combinations of `/O1` or `/O2`, `/Ob1` or `/Ob2`, `/G5`
+or `/G6`, and `/MD` or `/MT` with VC6 SP5. It selects one flag combination for the complete
+translation unit by scoring every emitted function against every reviewed executable; flags are
+never selected independently per function. COFF relocation fields are masked before comparison.
+
+Each candidate is classified as `exact`, `relocation-equivalent`,
+`near-source-with-wiz8-modifications`, `absent-or-stripped`, or `ambiguous-generic`. Executables
+that cannot be compared statically remain in the report with an orthogonal `unavailable` state and
+a reason, rather than being mislabeled absent. The tracked reports are
+`config/analysis/sgp/directdraw-harness.csv` and `config/analysis/sgp/random-harness.csv`.
+
+The sweep selects `/O2 /Ob1 /G5 /MD` for `DirectDraw Calls.c` and reproduces all 13 established
+functions in each of the five comparable builds. It selects `/O2 /Ob2 /G5 /MD` for `Random.c` and
+reproduces all three functions in the same five builds. These results preserve the legacy
+cross-build address matrices while making the compiler search and negative results reproducible.
+
+### `Random`, not `GetRandomNumber`
+
+`0x0040EFA0` is CFAgent's `pW8FUNC_GetRandomNumber` seed. Its relocation-masked body hash
+`438ef441…` is exactly the hash the repository already had from its own hand-written port, and it is
+now also exactly what released `Random.c` emits. The original shared-source name is therefore
+`Random`; `GetRandomNumber` is retained as a fan-patch alias, since no Wizardry-side evidence shows
+Sir-Tech renamed it.
+
+This is the first name promoted out of `external-semantic` under the rules in
+[docs/wiz8-evidence-model.md](../wiz8-evidence-model.md): the row now carries
+`name_origin=sgp-source|fan-patch-signature` and `authority=source-backed`, and both `Random` and
+`GetRandomNumber` are applied to the address. The neighbouring `InitializeRandom` and `Chance` had
+no name from any source before this compile.
 
 ## Applied analysis model
 

@@ -1,389 +1,389 @@
-address,size,current_name,provisional_name,owner,confidence,evidence
-10001000,200,FUN_10001000,srJPEG_read_header_adapter,sirtech-codec-adapter,exact,Owned source and VC6 SP5 rebuild produce a 100% reccmp match at the original address
-100010d0,21,FUN_100010d0,jpegErrorExit,sirtech-codec-adapter,exact,Owned file-local IJG error callback produces a 100% reccmp match at the original address
-100010f0,403,FUN_100010f0,srJPEG_encode_adapter,sirtech-codec-adapter,exact,Owned source and VC6 SP5 rebuild produce a 100% reccmp match at the original address
-10001290,334,FUN_10001290,srJPEG_decode_adapter,sirtech-codec-adapter,exact,Owned source and VC6 SP5 rebuild produce a 100% reccmp match at the original address
-100013e0,97,jpeg_create_compress,jpeg_create_compress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10001450,12,FUN_10001450,jpeg_destroy_compress,ijg-jpeg-6,strong,Identical destroy body resolved to jcapimin.c by position between jpeg_create_compress and jpeg_suppress_tables
-10001460,12,FUN_10001460,jpeg_abort_compress,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10001470,78,jpeg_suppress_tables,jpeg_suppress_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100014c0,258,jpeg_finish_compress,jpeg_finish_compress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100015d0,87,FUN_100015d0,jpeg_write_marker,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10001630,83,FUN_10001630,jpeg_write_tables,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10001690,117,jpeg_start_compress,jpeg_start_compress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10001710,196,jpeg_write_scanlines,jpeg_write_scanlines,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100017e0,201,FUN_100017e0,jpeg_write_raw_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcapistd.c.obj; identity and ownership come from its VC6 PDB symbol
-100018b0,187,jinit_c_coef_controller,jinit_c_coef_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10001970,167,FUN_10001970,start_pass_coef,ijg-jpeg-6,strong,Exact linked address and in-object order in jccoefct.c
-10001a20,78,start_iMCU_row,start_iMCU_row,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10001a70,618,FUN_10001a70,compress_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10001ce0,580,FUN_10001ce0,compress_first_pass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10001f30,486,compress_output,compress_output,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10002120,528,jinit_color_converter,jinit_color_converter,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10002360,221,FUN_10002360,rgb_ycc_start,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10002440,295,FUN_10002440,rgb_ycc_convert,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10002570,174,FUN_10002570,rgb_gray_convert,ijg-jpeg-6,strong,Exact linked address and in-object order in jccolor.c
-10002620,359,FUN_10002620,cmyk_ycck_convert,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10002790,103,FUN_10002790,grayscale_convert,ijg-jpeg-6,strong,Exact linked address and in-object order in jccolor.c
-10002800,147,FUN_10002800,jccolor_null_convert,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
-100028a0,1,FUN_100028a0,null_method,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
-100028b0,145,jinit_forward_dct,jinit_forward_dct,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10002950,505,FUN_10002950,start_pass_fdctmgr,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcdctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-10002b50,409,FUN_10002b50,forward_DCT,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcdctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-10002cf0,441,FUN_10002cf0,forward_DCT_float,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcdctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-10002eb0,282,jpeg_make_c_derived_tbl,jpeg_make_c_derived_tbl,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10002fd0,558,jpeg_gen_optimal_table,jpeg_gen_optimal_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003200,59,jinit_huff_encoder,jinit_huff_encoder,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003240,396,FUN_10003240,start_pass_huff,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
-100033d0,306,FUN_100033d0,encode_mcu_huff,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10003510,338,encode_one_block,encode_one_block,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003670,198,emit_bits,emit_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003740,44,dump_buffer,dump_buffer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003770,140,emit_restart,emit_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003800,39,flush_bits,flush_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003830,127,FUN_10003830,finish_pass_huff,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
-100038b0,220,FUN_100038b0,encode_mcu_gather,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10003990,160,htest_one_block,htest_one_block,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003a30,264,FUN_10003a30,finish_pass_gather,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10003b40,183,jinit_compress_master,jinit_compress_master,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003c00,135,jinit_c_main_controller,jinit_c_main_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003c90,78,FUN_10003c90,start_pass_main,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcmainct.c.obj; identity and ownership come from its VC6 PDB symbol
-10003ce0,176,FUN_10003ce0,process_data_simple_main,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmainct.c
-10003d90,97,jinit_marker_writer,jinit_marker_writer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003e00,79,FUN_10003e00,write_any_marker,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
-10003e50,60,emit_byte,emit_byte,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003e90,32,emit_marker,emit_marker,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003eb0,40,emit_2bytes,emit_2bytes,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003ee0,59,FUN_10003ee0,write_file_header,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
-10003f20,151,emit_jfif_app0,emit_jfif_app0,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10003fc0,146,emit_adobe_app14,emit_adobe_app14,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004060,246,FUN_10004060,write_frame_header,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
-10004160,201,emit_dqt,emit_dqt,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004230,184,emit_sof,emit_sof,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100042f0,190,FUN_100042f0,write_scan_header,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcmarker.c.obj; identity and ownership come from its VC6 PDB symbol
-100043b0,191,emit_dht,emit_dht,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004470,1,FUN_10004470,emit_dac,ijg-jpeg-6,strong,Exact one-byte stub and linked position in jcmarker.c
-10004480,42,emit_dri,emit_dri,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100044b0,221,emit_sos,emit_sos,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004590,19,FUN_10004590,write_file_trailer,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcmarker.c.obj; identity and ownership come from its VC6 PDB symbol
-100045b0,128,FUN_100045b0,write_tables_only,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmarker.c
-10004630,191,jinit_c_master_control,jinit_c_master_control,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100046f0,461,initial_setup,initial_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100048c0,927,validate_script,validate_script,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004c60,433,FUN_10004c60,prepare_for_pass,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmaster.c
-10004e20,255,select_scan_parameters,select_scan_parameters,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10004f20,458,per_scan_setup,per_scan_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100050f0,43,FUN_100050f0,pass_startup,ijg-jpeg-6,strong,Exact linked address and in-object order in jcmaster.c
-10005120,120,FUN_10005120,finish_pass_master,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcmaster.c.obj; identity and ownership come from its VC6 PDB symbol
-100051a0,35,jpeg_abort,jpeg_abort,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100051d0,31,jpeg_destroy,jpeg_destroy,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100051f0,31,jpeg_alloc_quant_table,jpeg_alloc_quant_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005210,31,jpeg_alloc_huff_table,jpeg_alloc_huff_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005230,186,jpeg_add_quant_table,jpeg_add_quant_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100052f0,52,jpeg_set_linear_quality,jpeg_set_linear_quality,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005330,56,jpeg_quality_scaling,jpeg_quality_scaling,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005370,30,jpeg_set_quality,jpeg_set_quality,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005390,239,jpeg_set_defaults,jpeg_set_defaults,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005480,90,std_huff_tables,std_huff_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100054e0,93,add_huff_table,add_huff_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005540,95,jpeg_default_colorspace,jpeg_default_colorspace,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100055c0,716,jpeg_set_colorspace,jpeg_set_colorspace,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100058b0,384,FUN_100058b0,jpeg_simple_progression,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
-10005a30,49,FUN_10005a30,fill_a_scan,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
-10005a70,74,FUN_10005a70,fill_scans,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
-10005ac0,97,FUN_10005ac0,fill_dc_scans,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
-10005b30,56,jinit_phuff_encoder,jinit_phuff_encoder,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005b70,454,FUN_10005b70,start_pass_phuff,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10005d40,323,FUN_10005d40,encode_mcu_DC_first,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10005e90,213,emit_bits,emit_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005f70,60,dump_buffer,dump_buffer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10005fb0,70,emit_symbol,emit_symbol,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006000,165,emit_restart,emit_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100060b0,28,flush_bits,flush_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100060d0,95,emit_eobrun,emit_eobrun,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006130,49,emit_buffered_bits,emit_buffered_bits,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006170,443,FUN_10006170,encode_mcu_AC_first,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10006330,190,FUN_10006330,encode_mcu_DC_refine,ijg-jpeg-6,strong,Exact linked address and in-object order in jcphuff.c
-100063f0,549,FUN_100063f0,encode_mcu_AC_refine,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10006620,64,FUN_10006620,finish_pass_phuff,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10006660,235,FUN_10006660,finish_pass_gather_phuff,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-10006750,172,jinit_c_prep_controller,jinit_c_prep_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006800,71,FUN_10006800,start_pass_prep,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcprepct.c.obj; identity and ownership come from its VC6 PDB symbol
-10006850,381,FUN_10006850,pre_process_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcprepct.c.obj; identity and ownership come from its VC6 PDB symbol
-100069d0,52,expand_bottom_edge,expand_bottom_edge,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006a10,576,FUN_10006a10,pre_process_context,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcprepct.c.obj; identity and ownership come from its VC6 PDB symbol
-10006c50,292,create_context_buffer,create_context_buffer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006d80,387,jinit_downsampler,jinit_downsampler,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10006f10,1,FUN_10006f10,start_pass_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-10006f20,134,FUN_10006f20,sep_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-10006fb0,300,FUN_10006fb0,int_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-100070e0,92,expand_right_edge,expand_right_edge,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10007140,70,FUN_10007140,fullsize_downsample,ijg-jpeg-6,strong,Exact linked address and in-object order in jcsample.c
-10007190,167,FUN_10007190,h2v1_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-10007240,218,FUN_10007240,h2v2_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-10007320,745,FUN_10007320,h2v2_smooth_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-10007610,415,FUN_10007610,fullsize_smooth_downsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
-100077b0,90,FUN_100077b0,jpeg_write_coefficients,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007810,495,FUN_10007810,jpeg_copy_critical_parameters,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007a00,114,FUN_10007a00,transencode_master_selection,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007a80,101,FUN_10007a80,transencode_coef_controller,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007af0,57,FUN_10007af0,jctrans_start_pass_coef,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007b30,78,FUN_10007b30,jctrans_start_iMCU_row,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007b80,640,FUN_10007b80,jctrans_compress_output,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
-10007e00,118,jpeg_create_decompress,jpeg_create_decompress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10007e80,12,FUN_10007e80,jpeg_destroy_decompress,ijg-jpeg-6,strong,Identical destroy body resolved to jdapimin.c by position between jpeg_create_decompress and jpeg_read_header
-10007e90,12,FUN_10007e90,jpeg_abort_decompress,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10007ea0,93,FUN_10007ea0,jpeg_set_marker_processor,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10007f00,112,jpeg_read_header,jpeg_read_header,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10007f70,156,jpeg_consume_input,jpeg_consume_input,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008030,410,default_decompress_parms,default_decompress_parms,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100081d0,69,FUN_100081d0,jpeg_input_complete,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10008220,69,FUN_10008220,jpeg_has_multiple_scans,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
-10008270,192,jpeg_finish_decompress,jpeg_finish_decompress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008330,228,jpeg_start_decompress,jpeg_start_decompress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008420,203,output_pass_setup,output_pass_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100084f0,160,jpeg_read_scanlines,jpeg_read_scanlines,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008590,188,FUN_10008590,jpeg_read_raw_data,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008650,102,FUN_10008650,jpeg_start_output,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdapistd.c.obj; identity and ownership come from its VC6 PDB symbol
-100086c0,156,FUN_100086c0,jpeg_finish_output,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdapistd.c.obj; identity and ownership come from its VC6 PDB symbol
-10008760,61,jpeg_stdio_dest,jpeg_stdio_dest,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100087a0,38,FUN_100087a0,init_destination,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdatadst.c.obj; identity and ownership come from its VC6 PDB symbol
-100087d0,76,FUN_100087d0,empty_output_buffer,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdatadst.c.obj; identity and ownership come from its VC6 PDB symbol
-10008820,62,FUN_10008820,term_destination,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdatadst.c.obj; identity and ownership come from its VC6 PDB symbol
-10008860,108,jpeg_stdio_src,jpeg_stdio_src,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100088d0,15,FUN_100088d0,init_source,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdatasrc.c.obj; identity and ownership come from its VC6 PDB symbol
-100088e0,121,FUN_100088e0,fill_input_buffer,ijg-jpeg-6,strong,Body size and in-object order identify jdatasrc.c fill_input_buffer after jpeg_stdio_src
-10008960,61,FUN_10008960,skip_input_data,ijg-jpeg-6,strong,Body size and in-object order identify jdatasrc.c skip_input_data
-100089a0,1,FUN_100089a0,term_source,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdatasrc.c.obj; identity and ownership come from its VC6 PDB symbol
-100089b0,264,jinit_d_coef_controller,jinit_d_coef_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008ac0,22,FUN_10008ac0,jdcoefct_start_input_pass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10008ae0,81,start_iMCU_row,start_iMCU_row,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10008b40,79,FUN_10008b40,start_output_pass,ijg-jpeg-6,strong,Body size and in-object order identify jdcoefct.c start_output_pass
-10008b90,608,FUN_10008b90,decompress_onepass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10008df0,3,FUN_10008df0,dummy_consume_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10008e00,533,FUN_10008e00,consume_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10009020,434,FUN_10009020,decompress_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-100091e0,240,smoothing_ok,smoothing_ok,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100092d0,1641,FUN_100092d0,decompress_smooth_data,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
-10009940,423,jinit_color_deconverter,jinit_color_deconverter,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10009b00,188,build_ycc_rgb_table,build_ycc_rgb_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10009bc0,304,FUN_10009bc0,ycc_rgb_convert,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10009cf0,135,FUN_10009cf0,null_convert,ijg-jpeg-6,strong,Body size and in-object order identify jdcolor.c null_convert
-10009d80,41,FUN_10009d80,jdcolor_grayscale_convert,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10009db0,356,FUN_10009db0,ycck_cmyk_convert,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10009f20,1,FUN_10009f20,start_pass_dcolor,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
-10009f30,121,jinit_inverse_dct,jinit_inverse_dct,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10009fb0,616,FUN_10009fb0,start_pass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jddctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-1000a220,489,jpeg_make_d_derived_tbl,jpeg_make_d_derived_tbl,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000a410,253,jpeg_fill_bit_buffer,jpeg_fill_bit_buffer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000a510,241,jpeg_huff_decode,jpeg_huff_decode,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000a610,60,jinit_huff_decoder,jinit_huff_decoder,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000a650,325,FUN_1000a650,start_pass_huff_decoder,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdhuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000a7a0,1102,FUN_1000a7a0,decode_mcu,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdhuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000abf0,124,process_restart,process_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000ac70,74,jinit_input_controller,jinit_input_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000acc0,57,start_input_pass,start_input_pass,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000ad00,421,per_scan_setup,per_scan_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000aeb0,170,latch_quant_tables,latch_quant_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000af60,17,FUN_1000af60,finish_input_pass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdinput.c.obj; identity and ownership come from its VC6 PDB symbol
-1000af80,199,FUN_1000af80,consume_markers,ijg-jpeg-6,strong,Disassembly implements marker consumption; jdinput.c order places it after the tiny finish_input_pass setter
-1000b050,501,initial_setup,initial_setup,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b250,68,FUN_1000b250,reset_input_controller,ijg-jpeg-6,strong,Body size and terminal position identify jdinput.c reset_input_controller
-1000b2a0,205,jinit_d_main_controller,jinit_d_main_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b370,173,alloc_funny_pointers,alloc_funny_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b420,118,FUN_1000b420,start_pass_main,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmainct.c.obj; identity and ownership come from its VC6 PDB symbol
-1000b4a0,326,make_funny_pointers,make_funny_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b5f0,116,FUN_1000b5f0,process_data_simple_main,ijg-jpeg-6,strong,Body size and in-object order identify jdmainct.c process_data_simple_main
-1000b670,322,FUN_1000b670,process_data_context_main,ijg-jpeg-6,strong,Body size and in-object order identify jdmainct.c process_data_context_main
-1000b7c0,270,set_wraparound_pointers,set_wraparound_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b8d0,153,set_bottom_pointers,set_bottom_pointers,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000b970,39,FUN_1000b970,process_data_crank_post,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmainct.c.obj; identity and ownership come from its VC6 PDB symbol
-1000b9a0,249,jpeg_resync_to_restart,jpeg_resync_to_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000baa0,271,next_marker,next_marker,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000bbb0,133,jinit_marker_reader,jinit_marker_reader,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000bc40,664,FUN_1000bc40,get_app0,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmarker.c.obj; identity and ownership come from its VC6 PDB symbol
-1000bee0,463,FUN_1000bee0,get_app14,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmarker.c.obj; identity and ownership come from its VC6 PDB symbol
-1000c0b0,161,skip_variable,skip_variable,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000c160,543,FUN_1000c160,read_markers,ijg-jpeg-6,strong,Body size and in-object order identify jdmarker.c read_markers
-1000c4d0,169,get_soi,get_soi,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000c580,807,get_sof,get_sof,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000c8b0,792,get_sos,get_sos,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000cbd0,383,get_dac,get_dac,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000cd50,844,get_dht,get_dht,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d0a0,617,get_dqt,get_dqt,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d310,240,get_dri,get_dri,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d400,158,first_marker,first_marker,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d4a0,139,FUN_1000d4a0,read_restart_marker,ijg-jpeg-6,strong,Body size and in-object order identify jdmarker.c read_restart_marker
-1000d530,52,reset_marker_reader,reset_marker_reader,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d570,530,jpeg_calc_output_dimensions,jpeg_calc_output_dimensions,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d7a0,131,use_merged_upsample,use_merged_upsample,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d830,117,FUN_1000d830,jpeg_new_colormap,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmaster.c.obj; identity and ownership come from its VC6 PDB symbol
-1000d8b0,52,jinit_master_decompress,jinit_master_decompress,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000d8f0,472,master_selection,master_selection,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000dad0,121,prepare_range_limit_table,prepare_range_limit_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000db50,348,FUN_1000db50,prepare_for_output_pass,ijg-jpeg-6,strong,Body size and in-object order identify jdmaster.c prepare_for_output_pass
-1000dcb0,40,FUN_1000dcb0,finish_output_pass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmaster.c.obj; identity and ownership come from its VC6 PDB symbol
-1000dce0,133,jinit_merged_upsampler,jinit_merged_upsampler,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000dd70,188,build_ycc_rgb_table,build_ycc_rgb_table,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000de30,24,FUN_1000de30,start_pass_merged_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
-1000de50,207,FUN_1000de50,merged_2v_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
-1000df20,58,FUN_1000df20,merged_1v_upsample,ijg-jpeg-6,strong,Body size and in-object order identify jdmerge.c merged_1v_upsample
-1000df60,341,FUN_1000df60,h2v1_merged_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
-1000e0c0,528,FUN_1000e0c0,h2v2_merged_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
-1000e2d0,110,jinit_phuff_decoder,jinit_phuff_decoder,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000e340,775,FUN_1000e340,start_pass_phuff_decoder,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000e650,569,FUN_1000e650,decode_mcu_DC_first,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000e890,131,process_restart,process_restart,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000e920,609,FUN_1000e920,decode_mcu_AC_first,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000eb90,273,FUN_1000eb90,decode_mcu_DC_refine,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000ecb0,1124,FUN_1000ecb0,decode_mcu_AC_refine,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f120,143,jinit_d_post_controller,jinit_d_post_controller,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000f1b0,249,FUN_1000f1b0,start_pass_dpost,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdpostct.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f2b0,123,FUN_1000f2b0,post_process_1pass,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdpostct.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f330,163,FUN_1000f330,post_process_prepass,ijg-jpeg-6,strong,Body size and in-object order identify jdpostct.c post_process_prepass
-1000f3e0,166,FUN_1000f3e0,post_process_2pass,ijg-jpeg-6,strong,Body size and in-object order identify jdpostct.c post_process_2pass
-1000f490,500,jinit_upsampler,jinit_upsampler,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000f690,26,FUN_1000f690,start_pass_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f6b0,247,FUN_1000f6b0,sep_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f7b0,11,FUN_1000f7b0,fullsize_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f7c0,11,FUN_1000f7c0,noop_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f7d0,276,FUN_1000f7d0,int_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f8f0,92,FUN_1000f8f0,h2v1_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f950,133,FUN_1000f950,h2v2_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000f9e0,193,FUN_1000f9e0,h2v1_fancy_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000fab0,338,FUN_1000fab0,h2v2_fancy_upsample,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
-1000fc10,171,FUN_1000fc10,jpeg_read_coefficients,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdtrans.c.obj; identity and ownership come from its VC6 PDB symbol
-1000fcc0,178,FUN_1000fcc0,transdecode_master_selection,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jdtrans.c.obj; identity and ownership come from its VC6 PDB symbol
-1000fd80,76,jpeg_std_error,jpeg_std_error,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-1000fdd0,86,FUN_1000fdd0,error_exit,ijg-jpeg-6,strong,Body size and first internal position identify jerror.c error_exit after jpeg_std_error
-1000fdf0,54,FUN_1000fdf0,output_message,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
-1000fe30,58,FUN_1000fe30,emit_message,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
-1000fe70,167,FUN_1000fe70,format_message,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
-1000ff20,17,FUN_1000ff20,reset_error_mgr,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
-1000ff40,611,FUN_1000ff40,jpeg_fdct_float,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jfdctflt.c.obj; identity and ownership come from its VC6 PDB symbol
-100101b0,577,FUN_100101b0,jpeg_fdct_ifast,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jfdctfst.c.obj; identity and ownership come from its VC6 PDB symbol
-10010400,1016,FUN_10010400,jpeg_fdct_islow,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jfdctint.c.obj; identity and ownership come from its VC6 PDB symbol
-10010800,1107,FUN_10010800,jpeg_idct_float,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jidctflt.c.obj; identity and ownership come from its VC6 PDB symbol
-10010c60,1191,FUN_10010c60,jpeg_idct_ifast,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jidctfst.c.obj; identity and ownership come from its VC6 PDB symbol
-10011110,1579,FUN_10011110,jpeg_idct_islow,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jidctint.c.obj; identity and ownership come from its VC6 PDB symbol
-10011740,947,FUN_10011740,jpeg_idct_4x4,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jidctred.c.obj; identity and ownership come from its VC6 PDB symbol
-10011b00,527,FUN_10011b00,jpeg_idct_2x2,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jidctred.c.obj; identity and ownership come from its VC6 PDB symbol
-10011d10,62,FUN_10011d10,jpeg_idct_1x1,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jidctred.c.obj; identity and ownership come from its VC6 PDB symbol
-10011d50,310,jinit_memory_mgr,jinit_memory_mgr,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10011e90,303,alloc_small,alloc_small,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10011fc0,29,out_of_memory,out_of_memory,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10011fe0,161,alloc_large,alloc_large,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012090,168,alloc_sarray,alloc_sarray,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012140,176,alloc_barray,alloc_barray,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100121f0,110,FUN_100121f0,request_virt_sarray,ijg-jpeg-6,strong,Memory-manager source order identifies request_virt_sarray after alloc_barray
-10012260,110,FUN_10012260,request_virt_barray,ijg-jpeg-6,strong,Memory-manager source order identifies request_virt_barray after request_virt_sarray
-100122d0,385,FUN_100122d0,realize_virt_arrays,ijg-jpeg-6,strong,Memory-manager source order identifies realize_virt_arrays before virtual-array I/O helpers
-10012460,335,FUN_10012460,access_virt_sarray,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jmemmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-100125b0,154,do_sarray_io,do_sarray_io,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012650,330,FUN_10012650,access_virt_barray,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jmemmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-100127a0,159,do_barray_io,do_barray_io,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012840,241,free_pool,free_pool,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012940,55,FUN_10012940,self_destruct,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jmemmgr.c.obj; identity and ownership come from its VC6 PDB symbol
-10012980,15,jpeg_get_small,jpeg_get_small,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012990,13,FID_conflict:jpeg_free_small,jpeg_free_small,ijg-jpeg-6,strong,Identical free body resolved by jmemnobs.c order after jpeg_get_small
-100129a0,15,jpeg_get_large,jpeg_get_large,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100129b0,13,FID_conflict:jpeg_free_small,jpeg_free_large,ijg-jpeg-6,strong,Identical free body resolved by jmemnobs.c order after jpeg_get_large
-100129c0,5,FUN_100129c0,jpeg_mem_available,ijg-jpeg-6,strong,Exact jmemnobs.c object position after jpeg_free_large
-100129d0,20,FUN_100129d0,jpeg_open_backing_store,ijg-jpeg-6,strong,Exact jmemnobs.c object position after jpeg_mem_available
-100129f0,3,FUN_100129f0,jpeg_mem_init,ijg-jpeg-6,strong,Exact jmemnobs.c object position before jpeg_mem_term
-10012a00,1,FUN_10012a00,jpeg_mem_term,ijg-jpeg-6,strong,Exact one-byte terminal function in jmemnobs.c
-10012a10,154,jinit_1pass_quantizer,jinit_1pass_quantizer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012ab0,350,create_colormap,create_colormap,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012c10,233,select_ncolors,select_ncolors,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012d00,30,output_value,output_value,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012d20,316,create_colorindex,create_colorindex,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012e60,28,largest_input_value,largest_input_value,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012e80,64,alloc_fs_workspace,alloc_fs_workspace,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10012ec0,236,FUN_10012ec0,start_pass_1_quant,ijg-jpeg-6,strong,Body size and in-object order identify jquant1.c start_pass_1_quant
-10012fb0,88,create_odither_tables,create_odither_tables,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013010,102,make_odither_array,make_odither_array,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013080,187,FUN_10013080,color_quantize,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013140,178,FUN_10013140,color_quantize3,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013200,292,FUN_10013200,quantize_ord_dither,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013330,294,FUN_10013330,quantize3_ord_dither,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013460,454,FUN_10013460,quantize_fs_dither,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013630,1,FUN_10013630,finish_pass_1_quant,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013640,20,FUN_10013640,new_color_map_1_quant,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
-10013660,302,jinit_2pass_quantizer,jinit_2pass_quantizer,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013790,152,init_error_limit,init_error_limit,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013830,293,FUN_10013830,start_pass_2_quant,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-10013960,119,FUN_10013960,prescan_quantize,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-100139e0,200,FUN_100139e0,pass2_no_dither,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-10013ab0,282,fill_inverse_cmap,fill_inverse_cmap,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013bd0,501,find_nearby_colors,find_nearby_colors,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013dd0,350,find_best_colors,find_best_colors,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10013f30,735,FUN_10013f30,pass2_fs_dither,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-10014210,42,FUN_10014210,finish_pass1,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-10014240,137,select_colors,select_colors,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100142d0,1091,update_box,update_box,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014720,312,median_cut,median_cut,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014860,52,find_biggest_color_pop,find_biggest_color_pop,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100148a0,43,find_biggest_volume,find_biggest_volume,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-100148d0,406,compute_color,compute_color,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014a70,1,FUN_10014a70,finish_pass2,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-10014a80,18,FUN_10014a80,new_color_map_2_quant,ijg-jpeg-6,strong,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
-10014aa0,16,jdiv_round_up,jdiv_round_up,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014ab0,24,jround_up,jround_up,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014ad0,70,jcopy_sample_rows,jcopy_sample_rows,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014b20,34,jcopy_block_row,jcopy_block_row,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014b50,27,jzero_far,jzero_far,ijg-jpeg-6,high,All source-built FID rows for this target agree on the same source symbol
-10014b70,39,srInitPlugin,srInitPlugin,sirtech-plugin,exact,PE export ordinal 2; allocates 0x48 bytes and constructs the plugin object
-10014ba0,6,srJPEGPlugin_getDescription,srJPEGPlugin_getDescription,sirtech-plugin,strong,Vtable entry returning the literal SurRender JPEG-importer/exporter plug-in description
-10014bb0,30,srJPEGPlugin_scalar_deleting_destructor,srJPEGPlugin_scalar_deleting_destructor,sirtech-plugin,strong,Scalar deleting destructor for the complete plugin object
-10014bd0,14,srJPEGPlugin_destructor,srJPEGPlugin_destructor,sirtech-plugin,strong,Complete plugin destructor; delegates to the importer/exporter teardown
-10014be0,189,jpeg_srBinIStream_read_callback,jpeg_srBinIStream_read_callback,sirtech-plugin,strong,IJG stdio read callback bridged to the active srBinIStream
-10014c8a,21,Catch@10014c8a,fread_catch_corrupt_input,sirtech-plugin,exact,Compiler-generated catch-all handler rethrows the recovered input-stream corruption string from fread
-10014cc0,106,jpeg_srBinOStream_write_callback,jpeg_srBinOStream_write_callback,sirtech-plugin,strong,IJG stdio write callback bridged to the active srBinOStream
-10014d17,21,Catch@10014d17,fwrite_catch_corrupt_output,sirtech-plugin,exact,Compiler-generated catch-all handler rethrows the recovered output-stream corruption string from fwrite
-10014d40,105,srJPEGImporter_constructor,srJPEGImporter_constructor,sirtech-plugin,strong,Constructs Importer and Exporter bases and registers jpeg and jpg
-10014db0,30,srJPEGImporter_scalar_deleting_destructor,srJPEGImporter_scalar_deleting_destructor,sirtech-plugin,strong,Scalar deleting destructor reached from the importer vtable
-10014dd0,60,srJPEGImporter_destructor,srJPEGImporter_destructor,sirtech-plugin,strong,Removes both importer and exporter registrations
-10014e10,20,srJPEGImporter_initialize_codec_options,srJPEGImporter_initialize_codec_options,sirtech-plugin,strong,Initializes quality to 200 and format byte to 0x4b
-10014e30,47,srJPEGImporter_read_header,srJPEGImporter_read_header,sirtech-plugin,strong,Reads JPEG dimensions and component count through the codec adapter
-10014e60,194,srJPEGImporter_getSurfaceDesc,srJPEGImporter_getSurfaceDesc,sirtech-plugin,exact-signature,"SurfaceImporter vtable slot 2; exact SR.DLL base signature is int getSurfaceDesc(SurfaceDesc&, srBinIStream&, const ImportInfo&)"
-10014f30,667,srJPEGImporter_importSurface,srJPEGImporter_importSurface,sirtech-plugin,strong,"SurfaceImporter vtable slot 3; decodes JPEG pixels and returns srColorSurfaceIFace* from (srBinIStream&, const ImportInfo&)"
-100151d0,35,srColorSurface_scalar_deleting_destructor,srColorSurface_scalar_deleting_destructor,sirtech-plugin,strong,Local deleting destructor installed at srColorSurface vtable slot 5
-10015200,499,srJPEGImporter_exportSurface,srJPEGImporter_exportSurface,sirtech-plugin,strong,"SurfaceExporter vtable slot 2; exact manager call shape is void exportSurface(srBinOStream&, srColorSurfaceIFace&, const ExportInfo&)"
-10015400,23,srJPEGImporter_initialize_export_options,srJPEGImporter_initialize_export_options,sirtech-plugin,strong,Initializes export options with default quality 100
-10015420,6,srJPEGImporter_getTypeName,srJPEGImporter_getTypeName,sirtech-plugin,strong,Vtable entry returning the JPEG type name
-10015430,18,srHeap_free_wrapper,srHeap_free_wrapper,sirtech-plugin,strong,Releases storage through srHeap
-10015450,6,srColorSurface_getClassID,srColorSurface_getClassID,sirtech-plugin,exact,Local srColorSurface vtable slot 1 returns class ID 0x3110
-10015460,6,SR.DLL::srColorSurface::sGetClassName,srColorSurface_getClassName,sirtech-plugin,exact,Local srColorSurface vtable slot 0 tail-jumps to the exact decorated SR.DLL sGetClassName export
-10015470,106,srColorSurface_getClassNode,srColorSurface_getClassNode,sirtech-plugin,strong,Local srColorSurface vtable slot 2 resolves or registers class IDs 0x3100 and 0x3110
-100154e0,25,srColorSurface_clone,srColorSurface_clone,sirtech-plugin,strong,Local srColorSurface vtable slot 7 creates an instance through slot 6 and assigns this surface
-10015530,10,FUN_10015530,ios_base_init_dynamic_initializer,msvc6-runtime-glue,exact,Compiler-generated initializer constructs std::ios_base::Init and registers its destructor
-10015540,11,FUN_10015540,ios_base_init_constructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::ios_base::Init constructor
-10015550,12,FUN_10015550,ios_base_init_atexit_registration,msvc6-runtime-glue,exact,Compiler-generated wrapper registers the std::ios_base::Init destructor with atexit
-10015560,11,FUN_10015560,ios_base_init_destructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::ios_base::Init destructor
-10015570,10,FUN_10015570,wios_init_dynamic_initializer,msvc6-runtime-glue,exact,Compiler-generated initializer constructs std::_Winit and registers its destructor
-10015580,11,FUN_10015580,wios_init_constructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::_Winit constructor
-10015590,12,FUN_10015590,wios_init_atexit_registration,msvc6-runtime-glue,exact,Compiler-generated wrapper registers the std::_Winit destructor with atexit
-100155a0,11,FUN_100155a0,wios_init_destructor,msvc6-runtime-glue,exact,Compiler-generated wrapper calls the MSVCP60 std::_Winit destructor
-100155b0,26,FUN_100155b0,DllMain,sirtech-plugin,exact,User DLL callback called by __DllMainCRTStartup invokes DisableThreadLibraryCalls only for DLL_PROCESS_ATTACH
-100155d0,6,srGetLibraryVersion,srGetLibraryVersion,sirtech-plugin,exact,"PE export ordinal 1; body is mov eax,0x012a0209; ret"
-100155e0,8,srJPEGImporter_exporter_getTypeName_thunk,srJPEGImporter_exporter_getTypeName_thunk,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10015420
-100155f0,8,srJPEGImporter_exporter_destructor_thunk,srJPEGImporter_exporter_destructor_thunk,sirtech-plugin,strong,Exporter-base this-adjusting thunk to 0x10014db0
-100156a0,6,copy,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100156e8,6,getDataPtr,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015790,6,setjmp3,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100157a0,6,ftol,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100157d0,6,operator_new,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100157d6,6,operator_delete,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100157e7,28,FUN_100157e7,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-1001580e,6,_CxxThrowException,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-1001582c,44,FUN_1001582c,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015858,18,FUN_10015858,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-1001586a,171,FUN_1001586a,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015915,157,entry,__DllMainCRTStartup@12,msvc6-crt,high,All source-built FID rows for this target agree on the same source symbol
-100159b2,6,~type_info,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100159b8,6,__dllonexit,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-100159be,6,initterm,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015a00,11,Unwind@10015a00,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015a0b,11,Unwind@10015a0b,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015a16,11,Unwind@10015a16,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
-10015a30,11,Unwind@10015a30,,msvc6-runtime-glue,candidate,"Function in the post-plugin import, exception, or DLL-startup region"
+address,size,current_name,provisional_name,owner,confidence,name_origin,authority,evidence
+10001000,200,FUN_10001000,srJPEG_read_header_adapter,sirtech-codec-adapter,exact,descriptive,descriptive,Owned source and VC6 SP5 rebuild produce a 100% reccmp match at the original address
+100010d0,21,FUN_100010d0,jpegErrorExit,sirtech-codec-adapter,exact,descriptive,descriptive,Owned file-local IJG error callback produces a 100% reccmp match at the original address
+100010f0,403,FUN_100010f0,srJPEG_encode_adapter,sirtech-codec-adapter,exact,descriptive,descriptive,Owned source and VC6 SP5 rebuild produce a 100% reccmp match at the original address
+10001290,334,FUN_10001290,srJPEG_decode_adapter,sirtech-codec-adapter,exact,descriptive,descriptive,Owned source and VC6 SP5 rebuild produce a 100% reccmp match at the original address
+100013e0,97,jpeg_create_compress,jpeg_create_compress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10001450,12,FUN_10001450,jpeg_destroy_compress,ijg-jpeg-6,strong,original-source,source-backed,Identical destroy body resolved to jcapimin.c by position between jpeg_create_compress and jpeg_suppress_tables
+10001460,12,FUN_10001460,jpeg_abort_compress,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10001470,78,jpeg_suppress_tables,jpeg_suppress_tables,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100014c0,258,jpeg_finish_compress,jpeg_finish_compress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100015d0,87,FUN_100015d0,jpeg_write_marker,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10001630,83,FUN_10001630,jpeg_write_tables,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10001690,117,jpeg_start_compress,jpeg_start_compress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10001710,196,jpeg_write_scanlines,jpeg_write_scanlines,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100017e0,201,FUN_100017e0,jpeg_write_raw_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcapistd.c.obj; identity and ownership come from its VC6 PDB symbol
+100018b0,187,jinit_c_coef_controller,jinit_c_coef_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10001970,167,FUN_10001970,start_pass_coef,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jccoefct.c
+10001a20,78,start_iMCU_row,start_iMCU_row,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10001a70,618,FUN_10001a70,compress_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10001ce0,580,FUN_10001ce0,compress_first_pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10001f30,486,compress_output,compress_output,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10002120,528,jinit_color_converter,jinit_color_converter,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10002360,221,FUN_10002360,rgb_ycc_start,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10002440,295,FUN_10002440,rgb_ycc_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10002570,174,FUN_10002570,rgb_gray_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jccolor.c
+10002620,359,FUN_10002620,cmyk_ycck_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10002790,103,FUN_10002790,grayscale_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jccolor.c
+10002800,147,FUN_10002800,jccolor_null_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
+100028a0,1,FUN_100028a0,null_method,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jccolor.c.obj; identity and ownership come from its VC6 PDB symbol
+100028b0,145,jinit_forward_dct,jinit_forward_dct,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10002950,505,FUN_10002950,start_pass_fdctmgr,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcdctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+10002b50,409,FUN_10002b50,forward_DCT,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcdctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+10002cf0,441,FUN_10002cf0,forward_DCT_float,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcdctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+10002eb0,282,jpeg_make_c_derived_tbl,jpeg_make_c_derived_tbl,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10002fd0,558,jpeg_gen_optimal_table,jpeg_gen_optimal_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003200,59,jinit_huff_encoder,jinit_huff_encoder,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003240,396,FUN_10003240,start_pass_huff,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
+100033d0,306,FUN_100033d0,encode_mcu_huff,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10003510,338,encode_one_block,encode_one_block,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003670,198,emit_bits,emit_bits,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003740,44,dump_buffer,dump_buffer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003770,140,emit_restart,emit_restart,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003800,39,flush_bits,flush_bits,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003830,127,FUN_10003830,finish_pass_huff,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
+100038b0,220,FUN_100038b0,encode_mcu_gather,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10003990,160,htest_one_block,htest_one_block,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003a30,264,FUN_10003a30,finish_pass_gather,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jchuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10003b40,183,jinit_compress_master,jinit_compress_master,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003c00,135,jinit_c_main_controller,jinit_c_main_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003c90,78,FUN_10003c90,start_pass_main,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcmainct.c.obj; identity and ownership come from its VC6 PDB symbol
+10003ce0,176,FUN_10003ce0,process_data_simple_main,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmainct.c
+10003d90,97,jinit_marker_writer,jinit_marker_writer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003e00,79,FUN_10003e00,write_any_marker,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmarker.c
+10003e50,60,emit_byte,emit_byte,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003e90,32,emit_marker,emit_marker,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003eb0,40,emit_2bytes,emit_2bytes,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003ee0,59,FUN_10003ee0,write_file_header,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmarker.c
+10003f20,151,emit_jfif_app0,emit_jfif_app0,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10003fc0,146,emit_adobe_app14,emit_adobe_app14,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10004060,246,FUN_10004060,write_frame_header,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmarker.c
+10004160,201,emit_dqt,emit_dqt,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10004230,184,emit_sof,emit_sof,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100042f0,190,FUN_100042f0,write_scan_header,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcmarker.c.obj; identity and ownership come from its VC6 PDB symbol
+100043b0,191,emit_dht,emit_dht,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10004470,1,FUN_10004470,emit_dac,ijg-jpeg-6,strong,original-source,source-backed,Exact one-byte stub and linked position in jcmarker.c
+10004480,42,emit_dri,emit_dri,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100044b0,221,emit_sos,emit_sos,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10004590,19,FUN_10004590,write_file_trailer,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcmarker.c.obj; identity and ownership come from its VC6 PDB symbol
+100045b0,128,FUN_100045b0,write_tables_only,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmarker.c
+10004630,191,jinit_c_master_control,jinit_c_master_control,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100046f0,461,initial_setup,initial_setup,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100048c0,927,validate_script,validate_script,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10004c60,433,FUN_10004c60,prepare_for_pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmaster.c
+10004e20,255,select_scan_parameters,select_scan_parameters,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10004f20,458,per_scan_setup,per_scan_setup,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100050f0,43,FUN_100050f0,pass_startup,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcmaster.c
+10005120,120,FUN_10005120,finish_pass_master,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcmaster.c.obj; identity and ownership come from its VC6 PDB symbol
+100051a0,35,jpeg_abort,jpeg_abort,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100051d0,31,jpeg_destroy,jpeg_destroy,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100051f0,31,jpeg_alloc_quant_table,jpeg_alloc_quant_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005210,31,jpeg_alloc_huff_table,jpeg_alloc_huff_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005230,186,jpeg_add_quant_table,jpeg_add_quant_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100052f0,52,jpeg_set_linear_quality,jpeg_set_linear_quality,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005330,56,jpeg_quality_scaling,jpeg_quality_scaling,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005370,30,jpeg_set_quality,jpeg_set_quality,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005390,239,jpeg_set_defaults,jpeg_set_defaults,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005480,90,std_huff_tables,std_huff_tables,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100054e0,93,add_huff_table,add_huff_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005540,95,jpeg_default_colorspace,jpeg_default_colorspace,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100055c0,716,jpeg_set_colorspace,jpeg_set_colorspace,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100058b0,384,FUN_100058b0,jpeg_simple_progression,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
+10005a30,49,FUN_10005a30,fill_a_scan,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
+10005a70,74,FUN_10005a70,fill_scans,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
+10005ac0,97,FUN_10005ac0,fill_dc_scans,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcparam.c.obj; identity and ownership come from its VC6 PDB symbol
+10005b30,56,jinit_phuff_encoder,jinit_phuff_encoder,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005b70,454,FUN_10005b70,start_pass_phuff,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10005d40,323,FUN_10005d40,encode_mcu_DC_first,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10005e90,213,emit_bits,emit_bits,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005f70,60,dump_buffer,dump_buffer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10005fb0,70,emit_symbol,emit_symbol,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006000,165,emit_restart,emit_restart,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100060b0,28,flush_bits,flush_bits,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100060d0,95,emit_eobrun,emit_eobrun,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006130,49,emit_buffered_bits,emit_buffered_bits,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006170,443,FUN_10006170,encode_mcu_AC_first,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10006330,190,FUN_10006330,encode_mcu_DC_refine,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcphuff.c
+100063f0,549,FUN_100063f0,encode_mcu_AC_refine,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10006620,64,FUN_10006620,finish_pass_phuff,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10006660,235,FUN_10006660,finish_pass_gather_phuff,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+10006750,172,jinit_c_prep_controller,jinit_c_prep_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006800,71,FUN_10006800,start_pass_prep,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcprepct.c.obj; identity and ownership come from its VC6 PDB symbol
+10006850,381,FUN_10006850,pre_process_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcprepct.c.obj; identity and ownership come from its VC6 PDB symbol
+100069d0,52,expand_bottom_edge,expand_bottom_edge,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006a10,576,FUN_10006a10,pre_process_context,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcprepct.c.obj; identity and ownership come from its VC6 PDB symbol
+10006c50,292,create_context_buffer,create_context_buffer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006d80,387,jinit_downsampler,jinit_downsampler,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10006f10,1,FUN_10006f10,start_pass_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+10006f20,134,FUN_10006f20,sep_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+10006fb0,300,FUN_10006fb0,int_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+100070e0,92,expand_right_edge,expand_right_edge,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10007140,70,FUN_10007140,fullsize_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and in-object order in jcsample.c
+10007190,167,FUN_10007190,h2v1_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+10007240,218,FUN_10007240,h2v2_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+10007320,745,FUN_10007320,h2v2_smooth_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+10007610,415,FUN_10007610,fullsize_smooth_downsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jcsample.c.obj; identity and ownership come from its VC6 PDB symbol
+100077b0,90,FUN_100077b0,jpeg_write_coefficients,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007810,495,FUN_10007810,jpeg_copy_critical_parameters,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007a00,114,FUN_10007a00,transencode_master_selection,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007a80,101,FUN_10007a80,transencode_coef_controller,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007af0,57,FUN_10007af0,jctrans_start_pass_coef,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007b30,78,FUN_10007b30,jctrans_start_iMCU_row,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007b80,640,FUN_10007b80,jctrans_compress_output,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jctrans.c.obj; identity and ownership come from its VC6 PDB symbol
+10007e00,118,jpeg_create_decompress,jpeg_create_decompress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10007e80,12,FUN_10007e80,jpeg_destroy_decompress,ijg-jpeg-6,strong,original-source,source-backed,Identical destroy body resolved to jdapimin.c by position between jpeg_create_decompress and jpeg_read_header
+10007e90,12,FUN_10007e90,jpeg_abort_decompress,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10007ea0,93,FUN_10007ea0,jpeg_set_marker_processor,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10007f00,112,jpeg_read_header,jpeg_read_header,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10007f70,156,jpeg_consume_input,jpeg_consume_input,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008030,410,default_decompress_parms,default_decompress_parms,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100081d0,69,FUN_100081d0,jpeg_input_complete,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10008220,69,FUN_10008220,jpeg_has_multiple_scans,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdapimin.c.obj; identity and ownership come from its VC6 PDB symbol
+10008270,192,jpeg_finish_decompress,jpeg_finish_decompress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008330,228,jpeg_start_decompress,jpeg_start_decompress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008420,203,output_pass_setup,output_pass_setup,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100084f0,160,jpeg_read_scanlines,jpeg_read_scanlines,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008590,188,FUN_10008590,jpeg_read_raw_data,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008650,102,FUN_10008650,jpeg_start_output,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdapistd.c.obj; identity and ownership come from its VC6 PDB symbol
+100086c0,156,FUN_100086c0,jpeg_finish_output,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdapistd.c.obj; identity and ownership come from its VC6 PDB symbol
+10008760,61,jpeg_stdio_dest,jpeg_stdio_dest,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100087a0,38,FUN_100087a0,init_destination,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdatadst.c.obj; identity and ownership come from its VC6 PDB symbol
+100087d0,76,FUN_100087d0,empty_output_buffer,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdatadst.c.obj; identity and ownership come from its VC6 PDB symbol
+10008820,62,FUN_10008820,term_destination,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdatadst.c.obj; identity and ownership come from its VC6 PDB symbol
+10008860,108,jpeg_stdio_src,jpeg_stdio_src,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100088d0,15,FUN_100088d0,init_source,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdatasrc.c.obj; identity and ownership come from its VC6 PDB symbol
+100088e0,121,FUN_100088e0,fill_input_buffer,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdatasrc.c fill_input_buffer after jpeg_stdio_src
+10008960,61,FUN_10008960,skip_input_data,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdatasrc.c skip_input_data
+100089a0,1,FUN_100089a0,term_source,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdatasrc.c.obj; identity and ownership come from its VC6 PDB symbol
+100089b0,264,jinit_d_coef_controller,jinit_d_coef_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008ac0,22,FUN_10008ac0,jdcoefct_start_input_pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10008ae0,81,start_iMCU_row,start_iMCU_row,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10008b40,79,FUN_10008b40,start_output_pass,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdcoefct.c start_output_pass
+10008b90,608,FUN_10008b90,decompress_onepass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10008df0,3,FUN_10008df0,dummy_consume_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10008e00,533,FUN_10008e00,consume_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10009020,434,FUN_10009020,decompress_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+100091e0,240,smoothing_ok,smoothing_ok,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100092d0,1641,FUN_100092d0,decompress_smooth_data,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcoefct.c.obj; identity and ownership come from its VC6 PDB symbol
+10009940,423,jinit_color_deconverter,jinit_color_deconverter,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10009b00,188,build_ycc_rgb_table,build_ycc_rgb_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10009bc0,304,FUN_10009bc0,ycc_rgb_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10009cf0,135,FUN_10009cf0,null_convert,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdcolor.c null_convert
+10009d80,41,FUN_10009d80,jdcolor_grayscale_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10009db0,356,FUN_10009db0,ycck_cmyk_convert,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10009f20,1,FUN_10009f20,start_pass_dcolor,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdcolor.c.obj; identity and ownership come from its VC6 PDB symbol
+10009f30,121,jinit_inverse_dct,jinit_inverse_dct,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10009fb0,616,FUN_10009fb0,start_pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jddctmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+1000a220,489,jpeg_make_d_derived_tbl,jpeg_make_d_derived_tbl,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000a410,253,jpeg_fill_bit_buffer,jpeg_fill_bit_buffer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000a510,241,jpeg_huff_decode,jpeg_huff_decode,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000a610,60,jinit_huff_decoder,jinit_huff_decoder,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000a650,325,FUN_1000a650,start_pass_huff_decoder,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdhuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000a7a0,1102,FUN_1000a7a0,decode_mcu,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdhuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000abf0,124,process_restart,process_restart,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000ac70,74,jinit_input_controller,jinit_input_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000acc0,57,start_input_pass,start_input_pass,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000ad00,421,per_scan_setup,per_scan_setup,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000aeb0,170,latch_quant_tables,latch_quant_tables,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000af60,17,FUN_1000af60,finish_input_pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdinput.c.obj; identity and ownership come from its VC6 PDB symbol
+1000af80,199,FUN_1000af80,consume_markers,ijg-jpeg-6,strong,original-source,source-backed,Disassembly implements marker consumption; jdinput.c order places it after the tiny finish_input_pass setter
+1000b050,501,initial_setup,initial_setup,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000b250,68,FUN_1000b250,reset_input_controller,ijg-jpeg-6,strong,original-source,source-backed,Body size and terminal position identify jdinput.c reset_input_controller
+1000b2a0,205,jinit_d_main_controller,jinit_d_main_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000b370,173,alloc_funny_pointers,alloc_funny_pointers,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000b420,118,FUN_1000b420,start_pass_main,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmainct.c.obj; identity and ownership come from its VC6 PDB symbol
+1000b4a0,326,make_funny_pointers,make_funny_pointers,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000b5f0,116,FUN_1000b5f0,process_data_simple_main,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdmainct.c process_data_simple_main
+1000b670,322,FUN_1000b670,process_data_context_main,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdmainct.c process_data_context_main
+1000b7c0,270,set_wraparound_pointers,set_wraparound_pointers,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000b8d0,153,set_bottom_pointers,set_bottom_pointers,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000b970,39,FUN_1000b970,process_data_crank_post,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmainct.c.obj; identity and ownership come from its VC6 PDB symbol
+1000b9a0,249,jpeg_resync_to_restart,jpeg_resync_to_restart,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000baa0,271,next_marker,next_marker,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000bbb0,133,jinit_marker_reader,jinit_marker_reader,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000bc40,664,FUN_1000bc40,get_app0,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmarker.c.obj; identity and ownership come from its VC6 PDB symbol
+1000bee0,463,FUN_1000bee0,get_app14,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmarker.c.obj; identity and ownership come from its VC6 PDB symbol
+1000c0b0,161,skip_variable,skip_variable,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000c160,543,FUN_1000c160,read_markers,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdmarker.c read_markers
+1000c4d0,169,get_soi,get_soi,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000c580,807,get_sof,get_sof,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000c8b0,792,get_sos,get_sos,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000cbd0,383,get_dac,get_dac,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000cd50,844,get_dht,get_dht,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d0a0,617,get_dqt,get_dqt,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d310,240,get_dri,get_dri,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d400,158,first_marker,first_marker,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d4a0,139,FUN_1000d4a0,read_restart_marker,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdmarker.c read_restart_marker
+1000d530,52,reset_marker_reader,reset_marker_reader,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d570,530,jpeg_calc_output_dimensions,jpeg_calc_output_dimensions,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d7a0,131,use_merged_upsample,use_merged_upsample,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d830,117,FUN_1000d830,jpeg_new_colormap,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmaster.c.obj; identity and ownership come from its VC6 PDB symbol
+1000d8b0,52,jinit_master_decompress,jinit_master_decompress,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000d8f0,472,master_selection,master_selection,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000dad0,121,prepare_range_limit_table,prepare_range_limit_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000db50,348,FUN_1000db50,prepare_for_output_pass,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdmaster.c prepare_for_output_pass
+1000dcb0,40,FUN_1000dcb0,finish_output_pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmaster.c.obj; identity and ownership come from its VC6 PDB symbol
+1000dce0,133,jinit_merged_upsampler,jinit_merged_upsampler,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000dd70,188,build_ycc_rgb_table,build_ycc_rgb_table,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000de30,24,FUN_1000de30,start_pass_merged_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
+1000de50,207,FUN_1000de50,merged_2v_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
+1000df20,58,FUN_1000df20,merged_1v_upsample,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdmerge.c merged_1v_upsample
+1000df60,341,FUN_1000df60,h2v1_merged_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
+1000e0c0,528,FUN_1000e0c0,h2v2_merged_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdmerge.c.obj; identity and ownership come from its VC6 PDB symbol
+1000e2d0,110,jinit_phuff_decoder,jinit_phuff_decoder,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000e340,775,FUN_1000e340,start_pass_phuff_decoder,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000e650,569,FUN_1000e650,decode_mcu_DC_first,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000e890,131,process_restart,process_restart,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000e920,609,FUN_1000e920,decode_mcu_AC_first,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000eb90,273,FUN_1000eb90,decode_mcu_DC_refine,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000ecb0,1124,FUN_1000ecb0,decode_mcu_AC_refine,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdphuff.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f120,143,jinit_d_post_controller,jinit_d_post_controller,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000f1b0,249,FUN_1000f1b0,start_pass_dpost,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdpostct.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f2b0,123,FUN_1000f2b0,post_process_1pass,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdpostct.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f330,163,FUN_1000f330,post_process_prepass,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdpostct.c post_process_prepass
+1000f3e0,166,FUN_1000f3e0,post_process_2pass,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jdpostct.c post_process_2pass
+1000f490,500,jinit_upsampler,jinit_upsampler,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000f690,26,FUN_1000f690,start_pass_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f6b0,247,FUN_1000f6b0,sep_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f7b0,11,FUN_1000f7b0,fullsize_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f7c0,11,FUN_1000f7c0,noop_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f7d0,276,FUN_1000f7d0,int_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f8f0,92,FUN_1000f8f0,h2v1_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f950,133,FUN_1000f950,h2v2_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000f9e0,193,FUN_1000f9e0,h2v1_fancy_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000fab0,338,FUN_1000fab0,h2v2_fancy_upsample,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdsample.c.obj; identity and ownership come from its VC6 PDB symbol
+1000fc10,171,FUN_1000fc10,jpeg_read_coefficients,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdtrans.c.obj; identity and ownership come from its VC6 PDB symbol
+1000fcc0,178,FUN_1000fcc0,transdecode_master_selection,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jdtrans.c.obj; identity and ownership come from its VC6 PDB symbol
+1000fd80,76,jpeg_std_error,jpeg_std_error,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+1000fdd0,86,FUN_1000fdd0,error_exit,ijg-jpeg-6,strong,original-source,source-backed,Body size and first internal position identify jerror.c error_exit after jpeg_std_error
+1000fdf0,54,FUN_1000fdf0,output_message,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
+1000fe30,58,FUN_1000fe30,emit_message,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
+1000fe70,167,FUN_1000fe70,format_message,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
+1000ff20,17,FUN_1000ff20,reset_error_mgr,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jerror.c.obj; identity and ownership come from its VC6 PDB symbol
+1000ff40,611,FUN_1000ff40,jpeg_fdct_float,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jfdctflt.c.obj; identity and ownership come from its VC6 PDB symbol
+100101b0,577,FUN_100101b0,jpeg_fdct_ifast,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jfdctfst.c.obj; identity and ownership come from its VC6 PDB symbol
+10010400,1016,FUN_10010400,jpeg_fdct_islow,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jfdctint.c.obj; identity and ownership come from its VC6 PDB symbol
+10010800,1107,FUN_10010800,jpeg_idct_float,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jidctflt.c.obj; identity and ownership come from its VC6 PDB symbol
+10010c60,1191,FUN_10010c60,jpeg_idct_ifast,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jidctfst.c.obj; identity and ownership come from its VC6 PDB symbol
+10011110,1579,FUN_10011110,jpeg_idct_islow,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jidctint.c.obj; identity and ownership come from its VC6 PDB symbol
+10011740,947,FUN_10011740,jpeg_idct_4x4,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jidctred.c.obj; identity and ownership come from its VC6 PDB symbol
+10011b00,527,FUN_10011b00,jpeg_idct_2x2,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jidctred.c.obj; identity and ownership come from its VC6 PDB symbol
+10011d10,62,FUN_10011d10,jpeg_idct_1x1,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jidctred.c.obj; identity and ownership come from its VC6 PDB symbol
+10011d50,310,jinit_memory_mgr,jinit_memory_mgr,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10011e90,303,alloc_small,alloc_small,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10011fc0,29,out_of_memory,out_of_memory,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10011fe0,161,alloc_large,alloc_large,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012090,168,alloc_sarray,alloc_sarray,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012140,176,alloc_barray,alloc_barray,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100121f0,110,FUN_100121f0,request_virt_sarray,ijg-jpeg-6,strong,original-source,source-backed,Memory-manager source order identifies request_virt_sarray after alloc_barray
+10012260,110,FUN_10012260,request_virt_barray,ijg-jpeg-6,strong,original-source,source-backed,Memory-manager source order identifies request_virt_barray after request_virt_sarray
+100122d0,385,FUN_100122d0,realize_virt_arrays,ijg-jpeg-6,strong,original-source,source-backed,Memory-manager source order identifies realize_virt_arrays before virtual-array I/O helpers
+10012460,335,FUN_10012460,access_virt_sarray,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jmemmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+100125b0,154,do_sarray_io,do_sarray_io,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012650,330,FUN_10012650,access_virt_barray,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jmemmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+100127a0,159,do_barray_io,do_barray_io,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012840,241,free_pool,free_pool,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012940,55,FUN_10012940,self_destruct,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jmemmgr.c.obj; identity and ownership come from its VC6 PDB symbol
+10012980,15,jpeg_get_small,jpeg_get_small,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012990,13,FID_conflict:jpeg_free_small,jpeg_free_small,ijg-jpeg-6,strong,original-source,source-backed,Identical free body resolved by jmemnobs.c order after jpeg_get_small
+100129a0,15,jpeg_get_large,jpeg_get_large,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100129b0,13,FID_conflict:jpeg_free_small,jpeg_free_large,ijg-jpeg-6,strong,original-source,source-backed,Identical free body resolved by jmemnobs.c order after jpeg_get_large
+100129c0,5,FUN_100129c0,jpeg_mem_available,ijg-jpeg-6,strong,original-source,source-backed,Exact jmemnobs.c object position after jpeg_free_large
+100129d0,20,FUN_100129d0,jpeg_open_backing_store,ijg-jpeg-6,strong,original-source,source-backed,Exact jmemnobs.c object position after jpeg_mem_available
+100129f0,3,FUN_100129f0,jpeg_mem_init,ijg-jpeg-6,strong,original-source,source-backed,Exact jmemnobs.c object position before jpeg_mem_term
+10012a00,1,FUN_10012a00,jpeg_mem_term,ijg-jpeg-6,strong,original-source,source-backed,Exact one-byte terminal function in jmemnobs.c
+10012a10,154,jinit_1pass_quantizer,jinit_1pass_quantizer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012ab0,350,create_colormap,create_colormap,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012c10,233,select_ncolors,select_ncolors,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012d00,30,output_value,output_value,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012d20,316,create_colorindex,create_colorindex,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012e60,28,largest_input_value,largest_input_value,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012e80,64,alloc_fs_workspace,alloc_fs_workspace,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10012ec0,236,FUN_10012ec0,start_pass_1_quant,ijg-jpeg-6,strong,original-source,source-backed,Body size and in-object order identify jquant1.c start_pass_1_quant
+10012fb0,88,create_odither_tables,create_odither_tables,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013010,102,make_odither_array,make_odither_array,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013080,187,FUN_10013080,color_quantize,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013140,178,FUN_10013140,color_quantize3,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013200,292,FUN_10013200,quantize_ord_dither,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013330,294,FUN_10013330,quantize3_ord_dither,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013460,454,FUN_10013460,quantize_fs_dither,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013630,1,FUN_10013630,finish_pass_1_quant,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013640,20,FUN_10013640,new_color_map_1_quant,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant1.c.obj; identity and ownership come from its VC6 PDB symbol
+10013660,302,jinit_2pass_quantizer,jinit_2pass_quantizer,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013790,152,init_error_limit,init_error_limit,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013830,293,FUN_10013830,start_pass_2_quant,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+10013960,119,FUN_10013960,prescan_quantize,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+100139e0,200,FUN_100139e0,pass2_no_dither,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+10013ab0,282,fill_inverse_cmap,fill_inverse_cmap,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013bd0,501,find_nearby_colors,find_nearby_colors,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013dd0,350,find_best_colors,find_best_colors,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10013f30,735,FUN_10013f30,pass2_fs_dither,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+10014210,42,FUN_10014210,finish_pass1,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+10014240,137,select_colors,select_colors,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100142d0,1091,update_box,update_box,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014720,312,median_cut,median_cut,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014860,52,find_biggest_color_pop,find_biggest_color_pop,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100148a0,43,find_biggest_volume,find_biggest_volume,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+100148d0,406,compute_color,compute_color,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014a70,1,FUN_10014a70,finish_pass2,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+10014a80,18,FUN_10014a80,new_color_map_2_quant,ijg-jpeg-6,strong,original-source,source-backed,Exact linked address and function extent in rebuilt jquant2.c.obj; identity and ownership come from its VC6 PDB symbol
+10014aa0,16,jdiv_round_up,jdiv_round_up,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014ab0,24,jround_up,jround_up,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014ad0,70,jcopy_sample_rows,jcopy_sample_rows,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014b20,34,jcopy_block_row,jcopy_block_row,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014b50,27,jzero_far,jzero_far,ijg-jpeg-6,high,original-source,source-backed,All source-built FID rows for this target agree on the same source symbol
+10014b70,39,srInitPlugin,srInitPlugin,sirtech-plugin,exact,original-export,abi-backed,PE export ordinal 2; allocates 0x48 bytes and constructs the plugin object
+10014ba0,6,srJPEGPlugin_getDescription,srJPEGPlugin_getDescription,sirtech-plugin,strong,descriptive,descriptive,Vtable entry returning the literal SurRender JPEG-importer/exporter plug-in description
+10014bb0,30,srJPEGPlugin_scalar_deleting_destructor,srJPEGPlugin_scalar_deleting_destructor,sirtech-plugin,strong,descriptive,descriptive,Scalar deleting destructor for the complete plugin object
+10014bd0,14,srJPEGPlugin_destructor,srJPEGPlugin_destructor,sirtech-plugin,strong,descriptive,descriptive,Complete plugin destructor; delegates to the importer/exporter teardown
+10014be0,189,jpeg_srBinIStream_read_callback,jpeg_srBinIStream_read_callback,sirtech-plugin,strong,descriptive,descriptive,IJG stdio read callback bridged to the active srBinIStream
+10014c8a,21,Catch@10014c8a,fread_catch_corrupt_input,sirtech-plugin,exact,descriptive,descriptive,Compiler-generated catch-all handler rethrows the recovered input-stream corruption string from fread
+10014cc0,106,jpeg_srBinOStream_write_callback,jpeg_srBinOStream_write_callback,sirtech-plugin,strong,descriptive,descriptive,IJG stdio write callback bridged to the active srBinOStream
+10014d17,21,Catch@10014d17,fwrite_catch_corrupt_output,sirtech-plugin,exact,descriptive,descriptive,Compiler-generated catch-all handler rethrows the recovered output-stream corruption string from fwrite
+10014d40,105,srJPEGImporter_constructor,srJPEGImporter_constructor,sirtech-plugin,strong,descriptive,descriptive,Constructs Importer and Exporter bases and registers jpeg and jpg
+10014db0,30,srJPEGImporter_scalar_deleting_destructor,srJPEGImporter_scalar_deleting_destructor,sirtech-plugin,strong,descriptive,descriptive,Scalar deleting destructor reached from the importer vtable
+10014dd0,60,srJPEGImporter_destructor,srJPEGImporter_destructor,sirtech-plugin,strong,descriptive,descriptive,Removes both importer and exporter registrations
+10014e10,20,srJPEGImporter_initialize_codec_options,srJPEGImporter_initialize_codec_options,sirtech-plugin,strong,descriptive,descriptive,Initializes quality to 200 and format byte to 0x4b
+10014e30,47,srJPEGImporter_read_header,srJPEGImporter_read_header,sirtech-plugin,strong,descriptive,descriptive,Reads JPEG dimensions and component count through the codec adapter
+10014e60,194,srJPEGImporter_getSurfaceDesc,srJPEGImporter_getSurfaceDesc,sirtech-plugin,exact-signature,descriptive,descriptive,"SurfaceImporter vtable slot 2; exact SR.DLL base signature is int getSurfaceDesc(SurfaceDesc&, srBinIStream&, const ImportInfo&)"
+10014f30,667,srJPEGImporter_importSurface,srJPEGImporter_importSurface,sirtech-plugin,strong,descriptive,descriptive,"SurfaceImporter vtable slot 3; decodes JPEG pixels and returns srColorSurfaceIFace* from (srBinIStream&, const ImportInfo&)"
+100151d0,35,srColorSurface_scalar_deleting_destructor,srColorSurface_scalar_deleting_destructor,sirtech-plugin,strong,descriptive,descriptive,Local deleting destructor installed at srColorSurface vtable slot 5
+10015200,499,srJPEGImporter_exportSurface,srJPEGImporter_exportSurface,sirtech-plugin,strong,descriptive,descriptive,"SurfaceExporter vtable slot 2; exact manager call shape is void exportSurface(srBinOStream&, srColorSurfaceIFace&, const ExportInfo&)"
+10015400,23,srJPEGImporter_initialize_export_options,srJPEGImporter_initialize_export_options,sirtech-plugin,strong,descriptive,descriptive,Initializes export options with default quality 100
+10015420,6,srJPEGImporter_getTypeName,srJPEGImporter_getTypeName,sirtech-plugin,strong,descriptive,descriptive,Vtable entry returning the JPEG type name
+10015430,18,srHeap_free_wrapper,srHeap_free_wrapper,sirtech-plugin,strong,descriptive,descriptive,Releases storage through srHeap
+10015450,6,srColorSurface_getClassID,srColorSurface_getClassID,sirtech-plugin,exact,descriptive,descriptive,Local srColorSurface vtable slot 1 returns class ID 0x3110
+10015460,6,SR.DLL::srColorSurface::sGetClassName,srColorSurface_getClassName,sirtech-plugin,exact,descriptive,descriptive,Local srColorSurface vtable slot 0 tail-jumps to the exact decorated SR.DLL sGetClassName export
+10015470,106,srColorSurface_getClassNode,srColorSurface_getClassNode,sirtech-plugin,strong,descriptive,descriptive,Local srColorSurface vtable slot 2 resolves or registers class IDs 0x3100 and 0x3110
+100154e0,25,srColorSurface_clone,srColorSurface_clone,sirtech-plugin,strong,descriptive,descriptive,Local srColorSurface vtable slot 7 creates an instance through slot 6 and assigns this surface
+10015530,10,FUN_10015530,ios_base_init_dynamic_initializer,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated initializer constructs std::ios_base::Init and registers its destructor
+10015540,11,FUN_10015540,ios_base_init_constructor,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated wrapper calls the MSVCP60 std::ios_base::Init constructor
+10015550,12,FUN_10015550,ios_base_init_atexit_registration,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated wrapper registers the std::ios_base::Init destructor with atexit
+10015560,11,FUN_10015560,ios_base_init_destructor,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated wrapper calls the MSVCP60 std::ios_base::Init destructor
+10015570,10,FUN_10015570,wios_init_dynamic_initializer,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated initializer constructs std::_Winit and registers its destructor
+10015580,11,FUN_10015580,wios_init_constructor,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated wrapper calls the MSVCP60 std::_Winit constructor
+10015590,12,FUN_10015590,wios_init_atexit_registration,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated wrapper registers the std::_Winit destructor with atexit
+100155a0,11,FUN_100155a0,wios_init_destructor,msvc6-runtime-glue,exact,descriptive,descriptive,Compiler-generated wrapper calls the MSVCP60 std::_Winit destructor
+100155b0,26,FUN_100155b0,DllMain,sirtech-plugin,exact,descriptive,descriptive,User DLL callback called by __DllMainCRTStartup invokes DisableThreadLibraryCalls only for DLL_PROCESS_ATTACH
+100155d0,6,srGetLibraryVersion,srGetLibraryVersion,sirtech-plugin,exact,original-export,abi-backed,"PE export ordinal 1; body is mov eax,0x012a0209; ret"
+100155e0,8,srJPEGImporter_exporter_getTypeName_thunk,srJPEGImporter_exporter_getTypeName_thunk,sirtech-plugin,strong,descriptive,descriptive,Exporter-base this-adjusting thunk to 0x10015420
+100155f0,8,srJPEGImporter_exporter_destructor_thunk,srJPEGImporter_exporter_destructor_thunk,sirtech-plugin,strong,descriptive,descriptive,Exporter-base this-adjusting thunk to 0x10014db0
+100156a0,6,copy,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100156e8,6,getDataPtr,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015790,6,setjmp3,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100157a0,6,ftol,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100157d0,6,operator_new,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100157d6,6,operator_delete,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100157e7,28,FUN_100157e7,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+1001580e,6,_CxxThrowException,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+1001582c,44,FUN_1001582c,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015858,18,FUN_10015858,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+1001586a,171,FUN_1001586a,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015915,157,entry,__DllMainCRTStartup@12,msvc6-crt,high,original-export,abi-backed,All source-built FID rows for this target agree on the same source symbol
+100159b2,6,~type_info,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100159b8,6,__dllonexit,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+100159be,6,initterm,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015a00,11,Unwind@10015a00,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015a0b,11,Unwind@10015a0b,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015a16,11,Unwind@10015a16,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"
+10015a30,11,Unwind@10015a30,,msvc6-runtime-glue,candidate,descriptive,descriptive,"Function in the post-plugin import, exception, or DLL-startup region"

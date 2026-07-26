@@ -126,7 +126,11 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
 
     assert len(symbols) == 47
     assert len({row["address"] for row in symbols}) == 47
-    assert {row["owner"] for row in symbols} == {"fan-patch-oracle"}
+    # The bodies these seeds point at are original Wizardry code. Ownership moves off
+    # fan-patch-oracle only when another source proves which codebase the body is from;
+    # so far that is only 0x0040EFA0, which the SGP Random.c compile placed in sgp-shared.
+    assert {row["owner"] for row in symbols} == {"fan-patch-oracle", "sgp-shared"}
+    assert sum(row["owner"] == "sgp-shared" for row in symbols) == 1
     assert {row["confidence"] for row in symbols} == {"strong"}
     by_name = {row["provisional_name"]: row["address"] for row in symbols}
     assert by_name["StartCombat"] == "004e7090"
@@ -263,9 +267,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 31
+    assert len(rows) == 33
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 24
+    assert len(exact) == 26
     assert {int(row["size"]) for row in exact} == {
         6,
         19,
@@ -277,6 +281,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         50,
         53,
         61,
+        76,
         82,
         85,
         100,
@@ -287,6 +292,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         179,
         199,
         219,
+        231,
     }
     assert all(len(row["relocation_masked_sha256"]) == 64 for row in exact)
     backfire = next(row for row in rows if row["symbol"] == "CanSpellBackfire")

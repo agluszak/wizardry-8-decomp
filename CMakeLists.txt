@@ -5,6 +5,7 @@ project(wizardry8_decomp LANGUAGES C CXX)
 option(WIZ8_BUILD_DECOMP "Configure recovered Wizardry binaries" ON)
 option(WIZ8_BUILD_FID_SEEDS "Configure source-built FID seed objects" OFF)
 option(WIZ8_BUILD_TOOLCHAIN_PROBE "Configure the VC6 Rich-header probe" OFF)
+option(WIZ8_BUILD_SGP_PROBES "Configure released SGP source-oracle units" OFF)
 
 set(FID_ZLIB_SOURCE "" CACHE PATH "Pinned zlib source tree used for FID seeds")
 set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered game code")
@@ -254,13 +255,36 @@ if(WIZ8_BUILD_DECOMP)
     target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8)
 endif()
 
-if(WIZ8_BUILD_DECOMP AND SGP_SOURCE)
-    add_library(WIZ8_SGP_DIRECTDRAW OBJECT "${SGP_SOURCE}/DirectDraw Calls.c")
-    target_compile_definitions(WIZ8_SGP_DIRECTDRAW PRIVATE WIZ8_PRECOMPILED_HEADERS)
-    target_include_directories(WIZ8_SGP_DIRECTDRAW PRIVATE
-        config/sgp-overlays
-        "${SGP_SOURCE}"
-    )
+if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
+    set(WIZ8_SGP_SWEEP_FLAGS "" CACHE STRING
+        "Semicolon-separated flags appended to every configured SGP oracle unit")
+    # One probe target per released SGP translation unit. Each unit gets only the
+    # WIZ8 SGP ALL.H surface its own source proves necessary, plus the shared
+    # empty builddefines.h overlay. Per-unit compile options are part of the
+    # finding: the flags recorded here are the ones that reproduce the Wizardry
+    # bodies, not a house style.
+    function(wiz8_add_sgp_unit target source overlay)
+        add_library(${target} OBJECT "${SGP_SOURCE}/${source}")
+        target_compile_definitions(${target} PRIVATE WIZ8_PRECOMPILED_HEADERS)
+        target_include_directories(${target} PRIVATE
+            "config/sgp-overlays/${overlay}"
+            config/sgp-overlays/common
+            "${SGP_SOURCE}"
+        )
+        if(ARGN)
+            target_compile_options(${target} PRIVATE ${ARGN})
+        endif()
+        if(WIZ8_SGP_SWEEP_FLAGS)
+            target_compile_options(${target} PRIVATE ${WIZ8_SGP_SWEEP_FLAGS})
+        endif()
+    endfunction()
+
+    wiz8_add_sgp_unit(WIZ8_SGP_DIRECTDRAW "DirectDraw Calls.c" directdraw)
+
+    # Random.c needs /Ob2 as well as the Pentium scheduler: Wizardry inlined
+    # Random into Chance, which plain /O2 (/Ob1) will not do. /G6 mismatches
+    # Random and Chance.
+    wiz8_add_sgp_unit(WIZ8_SGP_RANDOM "Random.c" random /G5 /Ob2)
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

@@ -1,9 +1,9 @@
-address,size,current_name,provisional_name,owner,confidence,fid_variants,evidence
-005e1c30,104,__aulldiv,__aulldiv,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-005e1ca0,52,__allmul,__allmul,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-005e1cf0,170,FUN_005e1cf0,__alldiv,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-005e1da0,47,FUN_005e1da0,__alloca_probe,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-005e1dd0,31,__aullshr,__aullshr,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
-005e1def,106,FUN_005e1def,??_L@YGXPAXIHP6EX0@Z1@Z,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,Full FID match to the VC6 vector-constructor iterator in every pinned CRT snapshot
-005e1e71,104,FUN_005e1e71,??_M@YGXPAXIHP6EX0@Z@Z,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,Full FID match to the VC6 vector-destructor iterator in every pinned CRT snapshot
-005e1ef1,81,FUN_005e1ef1,?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z,msvc6-runtime,high,rtm|sp3|sp4|sp5|sp6,Full FID match to the VC6 array-unwind helper in every pinned CRT snapshot
+address,size,current_name,provisional_name,owner,confidence,name_origin,authority,fid_variants,evidence
+005e1c30,104,__aulldiv,__aulldiv,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+005e1ca0,52,__allmul,__allmul,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+005e1cf0,170,FUN_005e1cf0,__alldiv,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+005e1da0,47,FUN_005e1da0,__alloca_probe,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+005e1dd0,31,__aullshr,__aullshr,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,All five pinned VC6 CRT snapshots produce the same symbol and matching body
+005e1def,106,FUN_005e1def,??_L@YGXPAXIHP6EX0@Z1@Z,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,Full FID match to the VC6 vector-constructor iterator in every pinned CRT snapshot
+005e1e71,104,FUN_005e1e71,??_M@YGXPAXIHP6EX0@Z@Z,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,Full FID match to the VC6 vector-destructor iterator in every pinned CRT snapshot
+005e1ef1,81,FUN_005e1ef1,?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z,msvc6-runtime,high,original-export,abi-backed,rtm|sp3|sp4|sp5|sp6,Full FID match to the VC6 array-unwind helper in every pinned CRT snapshot

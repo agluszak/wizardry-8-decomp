@@ -1,0 +1,4 @@
+function,size,gog_base,demo,gog_1261,gog_1261_new,gog_128_base,gog_128_patch,retail_2001_12_23
+InitializeRandom,19,0040ef80,0040f2e0,0040ef80,0040ef80,0040ef80,,
+Random,50,0040efa0,0040f300,0040efa0,0040efa0,0040efa0,,
+Chance,51,0040efe0,0040f340,0040efe0,0040efe0,0040efe0,,

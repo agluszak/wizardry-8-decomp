@@ -92,3 +92,18 @@ directdraw_probe:
   flags: [/O2, /MD, /DNDEBUG, /DWIZ8_PRECOMPILED_HEADERS]
   exact_relocation_masked_functions: 13
 
+reusable_harness:
+  config: config/analysis/sgp/harness.yml
+  command: uv run wiz8 sgp sweep
+  compiler: vc6-sp5
+  flag_combinations_per_unit: 16
+  selection_scope: complete-translation-unit
+  classifications:
+    - exact
+    - relocation-equivalent
+    - near-source-with-wiz8-modifications
+    - absent-or-stripped
+    - ambiguous-generic
+  reports:
+    - config/analysis/sgp/directdraw-harness.csv
+    - config/analysis/sgp/random-harness.csv

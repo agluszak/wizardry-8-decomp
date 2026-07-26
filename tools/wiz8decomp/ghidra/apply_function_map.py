@@ -6,11 +6,22 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from ..provenance import ProvenanceError, format_name_origin, validate_provenance
 from .environment import start_pyghidra
 from .project import resolve_program_name
 from .query_daemon import stop_daemon
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
+
+REQUIRED_COLUMNS = (
+    "address",
+    "provisional_name",
+    "owner",
+    "confidence",
+    "evidence",
+    "name_origin",
+    "authority",
+)
 
 
 @dataclass(frozen=True)
@@ -20,17 +31,16 @@ class FunctionIdentity:
     owner: str
     confidence: str
     evidence: str
+    name_origin: tuple[str, ...]
+    authority: str
+    aliases: tuple[str, ...] = ()
 
 
 def load_function_identities(path: Path) -> list[FunctionIdentity]:
     identities: list[FunctionIdentity] = []
     with path.open(newline="", encoding="utf-8") as stream:
         for row_number, row in enumerate(csv.DictReader(stream), start=2):
-            missing = {
-                field
-                for field in ("address", "provisional_name", "owner", "confidence", "evidence")
-                if field not in row
-            }
+            missing = {field for field in REQUIRED_COLUMNS if field not in row}
             if missing:
                 raise ValueError(
                     f"{path}:{row_number}: missing columns: {', '.join(sorted(missing))}"
@@ -39,6 +49,15 @@ def load_function_identities(path: Path) -> list[FunctionIdentity]:
             confidence = row["confidence"].strip()
             if not name or confidence not in ACCEPTED_CONFIDENCE:
                 continue
+            try:
+                origins, authority = validate_provenance(row["name_origin"], row["authority"])
+            except ProvenanceError as error:
+                raise ValueError(f"{path}:{row_number}: {error}") from error
+            aliases = tuple(
+                alias.strip() for alias in row.get("aliases", "").split("|") if alias.strip()
+            )
+            if name in aliases:
+                raise ValueError(f"{path}:{row_number}: {name} is listed as its own alias")
             identities.append(
                 FunctionIdentity(
                     address=int(row["address"], 16),
@@ -46,6 +65,9 @@ def load_function_identities(path: Path) -> list[FunctionIdentity]:
                     owner=row["owner"].strip(),
                     confidence=confidence,
                     evidence=row["evidence"].strip(),
+                    name_origin=origins,
+                    authority=authority,
+                    aliases=aliases,
                 )
             )
     identities.sort(key=lambda identity: identity.address)
@@ -91,7 +113,7 @@ def apply_function_map(
 
     program_name = resolve_program_name(settings, selector)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
-    stats = {"created": 0, "renamed": 0, "already_applied": 0, "failed": 0}
+    stats = {"created": 0, "renamed": 0, "already_applied": 0, "aliased": 0, "failed": 0}
     failures: list[dict[str, str]] = []
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
@@ -188,10 +210,35 @@ def apply_function_map(
                         stats["renamed"] += 1
 
                     if not dry_run:
+                        for alias in identity.aliases:
+                            alias_namespace, alias_simple = _namespace_and_name(
+                                symbol_table, program, alias
+                            )
+                            if (
+                                symbol_table.getSymbol(alias_simple, address, alias_namespace)
+                                is None
+                            ):
+                                symbol_table.createLabel(
+                                    address, alias_simple, alias_namespace, SourceType.USER_DEFINED
+                                )
+                                stats["aliased"] += 1
                         listing.setComment(
                             address,
                             CodeUnit.PLATE_COMMENT,
-                            f"Owner: {identity.owner}\nConfidence: {identity.confidence}\nEvidence: {identity.evidence}",
+                            "\n".join(
+                                [
+                                    f"Owner: {identity.owner}",
+                                    f"Confidence: {identity.confidence}",
+                                    f"Name origin: {format_name_origin(identity.name_origin)}",
+                                    f"Authority: {identity.authority}",
+                                    *(
+                                        [f"Aliases: {', '.join(identity.aliases)}"]
+                                        if identity.aliases
+                                        else []
+                                    ),
+                                    f"Evidence: {identity.evidence}",
+                                ]
+                            ),
                         )
                 commit = stats["failed"] == 0
             finally:

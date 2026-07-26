@@ -1,0 +1,38 @@
+schema: wiz8.sgp-harness
+source_revision: 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033
+toolchain: vc6-sp5
+
+# Later MSVC options override earlier options. These axes are appended after
+# each unit's known-good defaults so the same target can test alternatives.
+flag_axes:
+  optimization: [/O2, /O1]
+  inlining: [/Ob1, /Ob2]
+  processor: [/G5, /G6]
+  runtime: [/MD, /MT]
+
+near_match_threshold: 0.75
+
+builds:
+  - {id: demo, variant: demo, module: Wiz8.EXE}
+  - {id: gog_base, variant: gog-base, module: Wiz8.exe}
+  - {id: gog_1261, variant: gog-1261, module: Wiz8.exe}
+  - {id: gog_1261_new, variant: gog-1261, module: Wiz8New.exe}
+  - {id: gog_128_base, variant: gog-128, module: Wiz8.exe}
+  - {id: gog_128_patch, variant: gog-128, module: Wiz8_v128.exe}
+  - id: retail_2001_12_23
+    variant: retail-2001-12-23
+    module: Wiz8.exe
+    static_matching: unavailable
+    unavailable_reason: protected-executable
+
+units:
+  - id: directdraw
+    target: WIZ8_SGP_DIRECTDRAW
+    source: DirectDraw Calls.c
+    overlay: directdraw
+    report: config/analysis/sgp/directdraw-harness.csv
+  - id: random
+    target: WIZ8_SGP_RANDOM
+    source: Random.c
+    overlay: random
+    report: config/analysis/sgp/random-harness.csv

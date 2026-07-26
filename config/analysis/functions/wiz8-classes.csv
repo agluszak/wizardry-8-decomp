@@ -1,12 +1,12 @@
-address,size,current_name,provisional_name,owner,confidence,evidence
-004a5e50,167,FUN_004a5e50,GrCycle::GrCycle,wiz8-engine-code,strong,Constructs base and secondary subobject then writes vtables 0x005ece78 and 0x005eceb8
-004a5f00,30,FUN_004a5f00,GrCycle::scalar_deleting_destructor,wiz8-engine-code,strong,Primary vtable slot zero calls 0x004a6610 then conditionally invokes operator delete
-004a5f20,1776,FUN_004a5f20,GrCycle::GrCycle,wiz8-engine-code,strong,Copy constructor rebuilds the secondary subobject copies owned graphics state and installs both vtables
-004a6610,456,FUN_004a6610,GrCycle::~GrCycle,wiz8-engine-code,strong,Restores both vtables releases owned cycle resources and destroys secondary and base subobjects
-004bea20,376,FUN_004bea20,Monster::Monster,wiz8-engine-code,strong,Constructs three 0x1b0-byte arrays initializes fields through 0x624 and writes vtable 0x005ed200
-004beba0,30,FUN_004beba0,Monster::scalar_deleting_destructor,wiz8-engine-code,strong,Vtable slot zero calls 0x004bee50 then conditionally invokes operator delete
-004bebd0,630,FUN_004bebd0,Monster::Monster,wiz8-engine-code,strong,Copy constructor rebuilds the same three arrays copies state from its source argument and writes vtable 0x005ed200
-004bee50,670,FUN_004bee50,Monster::~Monster,wiz8-engine-code,strong,Destroys the three arrays in reverse order and tears down the base object
-005d5e30,167,FUN_005d5e30,MonsterInfoDialog::MonsterInfoDialog,wiz8-dialog-code,strong,Constructs three embedded members writes vtable 0x005ef910 and loads popup_monsterinfo.sti
-005d5ee0,30,FUN_005d5ee0,MonsterInfoDialog::scalar_deleting_destructor,wiz8-dialog-code,strong,Vtable slot zero calls 0x005d5f00 then conditionally invokes operator delete
-005d5f00,137,not-defined,MonsterInfoDialog::~MonsterInfoDialog,wiz8-dialog-code,strong,Restores vtable 0x005ef910 and destroys members at offsets 0x58 0xa4 and 0xec
+address,size,current_name,provisional_name,owner,confidence,name_origin,authority,evidence
+004a5e50,167,FUN_004a5e50,GrCycle::GrCycle,wiz8-engine-code,strong,original-source-path,string-backed,Constructs base and secondary subobject then writes vtables 0x005ece78 and 0x005eceb8
+004a5f00,30,FUN_004a5f00,GrCycle::scalar_deleting_destructor,wiz8-engine-code,strong,original-source-path,string-backed,Primary vtable slot zero calls 0x004a6610 then conditionally invokes operator delete
+004a5f20,1776,FUN_004a5f20,GrCycle::GrCycle,wiz8-engine-code,strong,original-source-path,string-backed,Copy constructor rebuilds the secondary subobject copies owned graphics state and installs both vtables
+004a6610,456,FUN_004a6610,GrCycle::~GrCycle,wiz8-engine-code,strong,original-source-path,string-backed,Restores both vtables releases owned cycle resources and destroys secondary and base subobjects
+004bea20,376,FUN_004bea20,Monster::Monster,wiz8-engine-code,strong,original-source-path,string-backed,Constructs three 0x1b0-byte arrays initializes fields through 0x624 and writes vtable 0x005ed200
+004beba0,30,FUN_004beba0,Monster::scalar_deleting_destructor,wiz8-engine-code,strong,original-source-path,string-backed,Vtable slot zero calls 0x004bee50 then conditionally invokes operator delete
+004bebd0,630,FUN_004bebd0,Monster::Monster,wiz8-engine-code,strong,original-source-path,string-backed,Copy constructor rebuilds the same three arrays copies state from its source argument and writes vtable 0x005ed200
+004bee50,670,FUN_004bee50,Monster::~Monster,wiz8-engine-code,strong,original-source-path,string-backed,Destroys the three arrays in reverse order and tears down the base object
+005d5e30,167,FUN_005d5e30,MonsterInfoDialog::MonsterInfoDialog,wiz8-dialog-code,strong,original-source-path,string-backed,Constructs three embedded members writes vtable 0x005ef910 and loads popup_monsterinfo.sti
+005d5ee0,30,FUN_005d5ee0,MonsterInfoDialog::scalar_deleting_destructor,wiz8-dialog-code,strong,original-source-path,string-backed,Vtable slot zero calls 0x005d5f00 then conditionally invokes operator delete
+005d5f00,137,not-defined,MonsterInfoDialog::~MonsterInfoDialog,wiz8-dialog-code,strong,original-source-path,string-backed,Restores vtable 0x005ef910 and destroys members at offsets 0x58 0xa4 and 0xec
