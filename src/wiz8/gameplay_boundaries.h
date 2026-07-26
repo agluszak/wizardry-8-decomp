@@ -162,6 +162,10 @@ extern void* g_world_item_list;
 extern W8NPCItemListVector* g_npc_item_lists;
 extern void* g_monster_group_species_list;
 extern void* g_monster_group_encounter_list;
+/* Provisional name: a fixed-address, non-per-character item pool distinct
+   from the equipped/carried slots GetOriginOfCharacterItem also searches. */
+extern unsigned char g_shared_item_pool[];
+extern unsigned int g_shared_item_pool_count;
 
 unsigned int PListGetCount(void* list);
 W8MonsterGroup* PListGetAt(void* list, unsigned int index);
@@ -205,6 +209,11 @@ W8WorldItem* SpawnItem(
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
+void GetOriginOfCharacterItem(
+    int character_index,
+    void* item,
+    unsigned char* origin,
+    unsigned short* slot);
 
 #ifdef __cplusplus
 }

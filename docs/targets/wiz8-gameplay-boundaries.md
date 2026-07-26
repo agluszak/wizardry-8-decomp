@@ -34,8 +34,10 @@ recovery work.
 | `0x0050b830` | `GetNPCItemListByID` | 53 | Searches the global NPC item-list vector for an entry whose NPC record's `record_id` (offset `0x58`, independently corroborated by `config/types/wiz8/npc_database.h`) equals the requested ID, using the same odd `index < count` in-loop guard as `FindMonGenByName`. Its name comes from the verified CFAgent oracle and it has 73 canonical callers. |
 | `0x00510b60` | `FindFirstMonsterByID` | 130 | Walks the global species `PList`, then the encounter `PList`, for a `W8MonsterGroup` whose `monster_id` field (offset `0x18`) matches; the species list is queried through `GetMonsterGroupByID` (`0x005101B0`) rather than the raw `PListGetAt` accessor the encounter list uses. Its name comes from the verified CFAgent oracle. |
 | `0x00510bf0` | `FindNextExistingMonsterByID` | 206 | Continues a `FindFirstMonsterByID` search after a given `previous` result: locates `previous` in the species `PList` via `PListIndexOf` (`0x005E2890`) and resumes there, spills into the encounter `PList` once the species list is exhausted or `previous` was never in it, and starts the encounter `PList` fresh at index `0` unless `previous` was found there directly. Its name comes from the verified CFAgent oracle. |
+| `0x005222d0` | `GetOriginOfCharacterItem` | 201 | Reports where an item pointer lives for a given party character: the 8-slot equipped array at `+0x1029`, the 12-slot carried array at `+0xf5d`, or a fixed-address, non-per-character shared item pool, each `0xc` bytes per slot. Its name comes from the verified CFAgent oracle. |
 
-The owned definitions live in `src/wiz8/gameplay_boundaries.c`, `src/wiz8/random_number.c`,
+The owned definitions live in `src/wiz8/character_items.c`, `src/wiz8/gameplay_boundaries.c`,
+`src/wiz8/random_number.c`,
 `src/wiz8/location_variables.c`, `src/wiz8/spell_backfire.cpp`,
 `src/wiz8/state_getters.c`, `src/wiz8/monster_generators.cpp`, `src/wiz8/monster_lookup.c`,
 `src/wiz8/npc_item_lists.c`,
@@ -121,3 +123,18 @@ check, the `position == -1` fallback into the encounter `PList`, and the shared 
 `search_encounter` labels reached by both fallthrough and `goto` — agrees with the canonical
 control flow; only the loop-peeling and parameter-to-register assignment differ, the same open gap
 as `FindFirstMonsterByID`.
+
+`GetOriginOfCharacterItem` is `structurally-strong` for the same reason, but its recovery also
+needed its own Ghidra cross-check: decompiled directly, Ghidra reports five parameters and multiplies
+the *second* one (the item pointer) by `0x1862`, which cannot be right for a pointer being compared
+by identity a few lines later. Walking the raw disassembly's `ESP`-relative reads against the actual
+push count at each point shows the truth is four parameters, with the *first* (`character_index`)
+driving the `0x1862` (`W8Character` stride) strength-reduction sequence and the second (`item`) used
+only for pointer comparisons — the `pPCItem != NULL` assertion text and `PC Item.cpp` source path
+back this reading up directly. With that resolved, and `g_shared_item_pool_count` typed `unsigned int`
+to get the original's `JBE` bounds check instead of a signed `JLE`, the recovered body matches
+instruction-for-instruction: the multiply sequence, the `+0x1029`/`+0xf5d`/shared-pool slot bases,
+and all three linear scans. Only the same character_index/item register-role swap and loop peeling
+already seen on the monster-lookup functions keep it from being byte-exact. The equipped/carried slot
+counts (8 and 12) and the shared item pool's exact scope are read directly from the bytes; their
+descriptive names are provisional.
