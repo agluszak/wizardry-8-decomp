@@ -181,6 +181,8 @@ function-evidence:wiz8:004e5990:reccmp,wiz8,004e5990,reccmp,structural-compile,c
 function-evidence:wiz8:004e5aa0:reccmp,wiz8,004e5aa0,reccmp,exact-compile,match:f48175ec51ea1e68,VC6 SP5 O2 G6 MD body exact; Local Code\MonsterManager.cpp
 function-evidence:wiz8:004e5b50:reccmp,wiz8,004e5b50,reccmp,exact-compile,match:39ce10fb3b0241f2,VC6 SP5 O2 G6 MD body exact; Local Code\MonsterManager.cpp; address-based name retained because no original semantic name is yet proven
 function-evidence:wiz8:004e5e50:reccmp,wiz8,004e5e50,reccmp,exact-compile,match:95a87cafd0822587,VC6 SP5 O2 G6 MD body exact; descriptive identity follows the complete linear species lookup
+function-evidence:wiz8:004e6780:canonical-consumers,wiz8,004e6780,canonical-consumers,semantic-review,consumers:004e6d45;005d63fa,The result contributes to a live-HP-weighted combat-strength total and is formatted in MonsterInfoDialog; combat value is descriptive and no original name is claimed
+function-evidence:wiz8:004e6780:reccmp,wiz8,004e6780,reccmp,exact-compile,match:9531ac3b79223b86,VC6 SP5 O2 G6 MD body exact; unsigned <= 0 reproduces the canonical JA branch
 function-evidence:wiz8:004e7090:cfagent-oracle,wiz8,004e7090,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_StartCombat English seed address verified by embedded expected bytes
 function-evidence:wiz8:004f6c50:cfagent-oracle,wiz8,004f6c50,cfagent-oracle,identity-review,name_origin=fan-patch-signature,CFAgent pW8FUNC_SpawnItem English seed address verified by embedded expected bytes
 function-evidence:wiz8:004f88a0:formats,wiz8,004f88a0,formats,identity-review,name_origin=descriptive,Case-insensitively searches the 114 named ItemTables.dbs records and returns the table index or minus one

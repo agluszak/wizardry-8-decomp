@@ -277,3 +277,14 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
     }
     return 0;
 }
+
+// FUNCTION: WIZ8 0x004E6780
+unsigned int GetMonsterCombatValue(const W8MonsterRecord* record)
+{
+    unsigned int value = record->combat_value_override_26b;
+
+    if (value <= 0) {
+        value = record->combat_value_181;
+    }
+    return value;
+}

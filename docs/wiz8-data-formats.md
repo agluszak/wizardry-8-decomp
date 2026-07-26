@@ -131,6 +131,11 @@ unresolved, so both the source and reviewed model retain the positional `float_1
 The exact body at `0x004e5b50` also establishes the byte string at `+0x189` as a case-insensitive
 `GrCycle` lookup key and selects one of the still-semantic-unknown integers at `+0x253` and `+0x257`.
 Those integers remain positionally named until a canonical consumer establishes their meaning.
+`GetMonsterCombatValue` at `0x004e6780` establishes unsigned values at `+0x181` and `+0x26b`: a
+nonzero `+0x26b` overrides the `+0x181` base. The descriptive combat-value name comes from its two
+canonical consumers. One contributes the result to a live-HP-weighted combat-strength total; the
+other formats it in `MonsterInfoDialog`. This does not claim an original function or designer-field
+name.
 
 `InitializeSpellDatabase` at `0x004acc10` reads a count and version, allocates
 `count * 0x1bf`, then skips `0x101` bytes before each runtime read. The ignored prefix

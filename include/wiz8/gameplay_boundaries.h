@@ -145,13 +145,17 @@ typedef struct W8LevelDatabaseRecord {
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
    runtime record size; the fields are typed by their consumers elsewhere. */
 typedef struct W8MonsterRecord {
-    unsigned char unknown_000[0x189];
+    unsigned char unknown_000[0x181];
+    unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
+    unsigned char unknown_185[4];
     char cycle_name_189[0x31];             /* 0x189: GrCycle lookup key */
     float float_1ba;                      /* 0x1ba: scaled by 0x005ed4f0 */
     unsigned char unknown_1be[0x95];
     int value_253;                        /* 0x253: selected by 0x004e5b50 */
     int value_257;                        /* 0x257: alternate selected value */
-    unsigned char unknown_25b[0x3c];
+    unsigned char unknown_25b[0x10];
+    unsigned int combat_value_override_26b; /* 0x26b: nonzero override */
+    unsigned char unknown_26f[0x28];
 } W8MonsterRecord;                       /* 0x297 */
 
 /* Filled by 0x0042A370 from a level-table row; only its size is established
@@ -416,6 +420,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int Function4E5B50(unsigned int monster_species);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
+unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 
 unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);

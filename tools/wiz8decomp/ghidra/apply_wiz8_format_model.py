@@ -292,6 +292,32 @@ def apply_wiz8_format_model(
                         (0x0B, byte, "unknown_0b", "optional initialization flag"),
                     ],
                 )
+                world_item = _structure(
+                    dtm,
+                    category,
+                    "W8WorldItem",
+                    0xAD,
+                    [
+                        (0x00, integer, "runtime_id", "runtime world-item identifier"),
+                        (0x04, generic_pointer, "unknown_04", "runtime owner pointer"),
+                        (0x08, byte, "unknown_08", "unreviewed flag"),
+                        (0x09, item_instance, "item", "embedded item instance"),
+                        (
+                            0x15,
+                            ArrayDataType(float_type, 3, 4),
+                            "position",
+                            "three-component world position",
+                        ),
+                        (0x21, ArrayDataType(byte, 4, 1), "unknown_21", "unreviewed fields"),
+                        (0x25, integer, "unknown_25", "second flag word"),
+                        (0x29, dword, "flags", "tested as a bit mask"),
+                        (0x2D, integer, "saved_marker", "nonzero when another record follows"),
+                        (0x31, generic_pointer, "next", "next serialized world item"),
+                        (0x35, integer, "unknown_35", "unreviewed field"),
+                        (0x39, integer, "sector_id", "world sector identifier"),
+                        (0x3D, ArrayDataType(byte, 0x70, 1), "unknown_3d", "unreviewed fields"),
+                    ],
+                )
                 item_record = _structure(
                     dtm,
                     category,
@@ -518,7 +544,14 @@ def apply_wiz8_format_model(
                             "disposition_cache_factor",
                             "squared then scaled for disposition cache duration",
                         ),
-                        (0x0D3, ArrayDataType(byte, 0xB4, 1), "unknown_0d3", "unreviewed fields"),
+                        (0x0D3, ArrayDataType(byte, 0xAE, 1), "unknown_0d3", "unreviewed fields"),
+                        (
+                            0x181,
+                            dword,
+                            "combat_value",
+                            "base value used by combat-strength and monster-info consumers",
+                        ),
+                        (0x185, ArrayDataType(byte, 2, 1), "unknown_185", "unreviewed fields"),
                         (0x187, short, "record_id", "equals the zero-based database index"),
                         (
                             0x189,
@@ -556,7 +589,13 @@ def apply_wiz8_format_model(
                             "flag_26a",
                             "selects an alternate monster-group configuration",
                         ),
-                        (0x26B, ArrayDataType(byte, 0x2C, 1), "unknown_26b", "unreviewed fields"),
+                        (
+                            0x26B,
+                            dword,
+                            "combat_value_override",
+                            "nonzero value returned instead of the base field at +0x181",
+                        ),
+                        (0x26F, ArrayDataType(byte, 0x28, 1), "unknown_26f", "unreviewed fields"),
                     ],
                 )
                 level_record = _structure(

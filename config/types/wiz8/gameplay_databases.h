@@ -150,7 +150,9 @@ typedef struct W8MonsterDatabaseRecord {
     uint8_t flags_0d0;                  /* 0x0d0: bit zero uses NPC disposition */
     uint8_t unknown_0d1;                /* 0x0d1 */
     uint8_t disposition_cache_factor;   /* 0x0d2: squared then scaled for cache duration */
-    uint8_t unknown_0d3[0xb4];          /* 0x0d3 */
+    uint8_t unknown_0d3[0xae];          /* 0x0d3 */
+    uint32_t combat_value;              /* 0x181: combat-strength/display value */
+    uint8_t unknown_185[2];             /* 0x185 */
     int16_t record_id;                  /* 0x187: equals the database index */
     char cycle_name_189[0x31];          /* 0x189: case-insensitive GrCycle lookup key */
     float float_1ba;                    /* 0x1ba: scaled by 0x005ed4f0 */
@@ -163,7 +165,8 @@ typedef struct W8MonsterDatabaseRecord {
     uint8_t deleted;                    /* 0x267 */
     uint8_t unknown_268[2];             /* 0x268 */
     uint8_t flag_26a;                   /* 0x26a: selects alternate group configuration */
-    uint8_t unknown_26b[0x2c];          /* 0x26b */
+    uint32_t combat_value_override;     /* 0x26b: nonzero value overrides +0x181 */
+    uint8_t unknown_26f[0x28];          /* 0x26f */
 } W8MonsterDatabaseRecord;              /* 0x297 */
 
 typedef struct W8LevelDatabaseRecord {
