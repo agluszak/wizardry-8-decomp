@@ -541,6 +541,20 @@ def call_sites_command(
     _run_action(lambda: sweep_call_sites(_settings(), update_snapshot=update_snapshot))
 
 
+@app.command("polymorphism")
+def polymorphism_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+) -> None:
+    """Census vtables, slots and constructor vptr writes from the relocation table."""
+    from .polymorphism import sweep_polymorphism
+
+    _run_action(lambda: sweep_polymorphism(_settings(), update_snapshot=update_snapshot))
+
+
 @sgp_app.command("sweep")
 def sgp_sweep(
     unit: list[str] | None = typer.Option(

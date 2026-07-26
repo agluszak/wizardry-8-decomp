@@ -1,0 +1,530 @@
+"""Census the polymorphism ABI from relocations rather than by pattern search.
+
+The loader's relocation table is the image's own complete index of every
+absolute address it contains, so it bounds this scan exactly: a vtable is a run
+of consecutive relocated slots that point into code, and nothing that is not a
+relocated slot can be part of one. That is what makes the census exhaustive
+instead of an open-ended search for pointer-shaped bytes.
+
+The hard part is not finding runs but ending them. Two vtables of the same class
+sit adjacent in `.rdata`, so a naive maximal run merges them and reports one
+table holding the sum of both slot counts. The boundary rule is that a table has
+to be referred to to be used at all: any `.rdata` slot address that appears as a
+relocated operand in code begins a table. Splitting there reproduces every
+reviewed slot count that is independently correct, and shows that three reviewed
+counts were each the sum of a table and the one following it.
+
+Constructor stores are collected separately, because they carry something a bare
+reference does not: `mov [reg+N], offset table` says the pointer lives at offset
+`N` in the object, which distinguishes a primary table from the base subobject
+tables. They are evidence about the table, not the rule that bounds it - a
+secondary table whose store is not decodable still has to be split off.
+
+Slot kinds are read, not guessed. `_purecall` is resolved through the import
+table by name, so pure-virtual slots need no hardcoded address, and a slot
+pointing at a jump thunk is reported with the library method it stands for.
+"""
+
+from __future__ import annotations
+
+import csv
+import io
+import struct
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from .binary.code import (
+    disassembler,
+    function_start,
+    import_thunks,
+    instruction_covering,
+    relocation_sites,
+)
+from .binary.demangle import demangle
+from .binary.image import PeImage
+from .binary.inventory import load_inventory
+from .config import Settings
+from .eh_metadata import import_slots
+from .ghidra.project import program_name
+from .paths import atomic_write
+
+_SNAPSHOT_NAME = "polymorphism"
+_REPORT_FILES = ("vtables.csv", "slots.csv", "vptr-writes.csv")
+_PURECALL = "_purecall"
+# A vbtable holds small signed displacements, not addresses, so its entries are
+# never relocated. The first is the offset back to the vbptr itself.
+_VBTABLE_FIRST = {0, 0xFFFFFFFC}
+_VBTABLE_LIMIT = 0x10000
+
+
+@dataclass
+class VptrWrite:
+    site: int
+    function: int | None
+    object_offset: int
+    table: int
+
+
+@dataclass
+class Slot:
+    index: int
+    target: int
+    kind: str
+    import_name: str = ""
+    adjust: int | None = None
+    thunk_target: int | None = None
+
+
+@dataclass
+class Vtable:
+    address: int
+    section: str
+    kind: str
+    slots: list[Slot] = field(default_factory=list)
+    boundary: str = ""
+    writes: list[VptrWrite] = field(default_factory=list)
+
+
+def _data_sections(image: PeImage) -> list[Any]:
+    """Sections a vptr may point into.
+
+    Only `.rdata` is scanned for tables: MSVC emits vftables as const data, and
+    the consecutive code pointers in `.data` are dispatch tables rather than
+    vtables, which no constructor ever stores into an object.
+    """
+    return [section for section in image.sections if section.name == ".rdata"]
+
+
+def _purecall_thunk(image: PeImage, thunks: dict[int, str]) -> int | None:
+    for address, name in thunks.items():
+        if name.split("!", 1)[-1] == _PURECALL:
+            return address
+    return None
+
+
+def _adjustor(image: PeImage, engine: Any, target: int) -> tuple[int, int] | None:
+    """Decode `sub ecx, N ; jmp real` - the thunk that shifts `this` to a base."""
+    from capstone import CS_OP_IMM, CS_OP_REG
+    from capstone.x86 import X86_REG_ECX
+
+    chain = list(engine.disasm(image.read(target, 16), target))
+    if len(chain) < 2:
+        return None
+    head, tail = chain[0], chain[1]
+    if head.mnemonic not in {"sub", "add"} or len(head.operands) != 2:
+        return None
+    destination, amount = head.operands
+    if destination.type != CS_OP_REG or destination.reg != X86_REG_ECX:
+        return None
+    if amount.type != CS_OP_IMM:
+        return None
+    if tail.mnemonic != "jmp" or tail.operands[0].type != CS_OP_IMM:
+        return None
+    delta = amount.imm if head.mnemonic == "sub" else -amount.imm
+    return delta, tail.operands[0].imm
+
+
+def _collect_vptr_writes(
+    image: PeImage, engine: Any, sites: list[int], data_ranges: list[tuple[int, int]]
+) -> list[VptrWrite]:
+    """Relocated operands that a constructor stores into an object."""
+    from capstone import CS_OP_IMM, CS_OP_MEM
+
+    text = image.text
+    writes: list[VptrWrite] = []
+    for site in sites:
+        if not (text.virtual_address <= site < text.virtual_address + text.raw_size):
+            continue
+        value = image.read_u32(site)
+        if value is None or not any(low <= value < high for low, high in data_ranges):
+            continue
+        instruction = instruction_covering(image, engine, site)
+        if instruction is None or instruction.mnemonic != "mov":
+            continue
+        if len(instruction.operands) != 2:
+            continue
+        destination, source = instruction.operands
+        if destination.type != CS_OP_MEM or source.type != CS_OP_IMM:
+            continue
+        if source.imm & 0xFFFFFFFF != value:
+            continue
+        # `mov [reg+N], imm` only; an absolute `mov [addr], imm` writes a global.
+        if destination.mem.base == 0 or destination.mem.index != 0:
+            continue
+        writes.append(
+            VptrWrite(
+                site=instruction.address,
+                function=function_start(image, instruction.address),
+                object_offset=destination.mem.disp,
+                table=value,
+            )
+        )
+    return writes
+
+
+def _vbtables(image: PeImage, relocated: set[int], targets: set[int]) -> list[Vtable]:
+    """Tables of base displacements rather than pointers.
+
+    Virtual inheritance is expected to be rare, so each one found is worth
+    recording explicitly instead of being silently dropped for not looking like
+    a vftable.
+    """
+    found: list[Vtable] = []
+    for address in sorted(targets):
+        if address in relocated:
+            continue
+        section = image.section_at(address)
+        if section is None or section.name not in {".rdata", ".data"}:
+            continue
+        first = image.read_u32(address)
+        if first is None or first not in _VBTABLE_FIRST:
+            continue
+        slots: list[Slot] = []
+        cursor = address
+        while True:
+            value = image.read_u32(cursor)
+            if value is None or cursor in relocated:
+                break
+            signed = struct.unpack("<i", struct.pack("<I", value))[0]
+            if slots and not 0 < signed < _VBTABLE_LIMIT:
+                break
+            if len(slots) > 64:
+                break
+            slots.append(Slot(index=len(slots), target=value, kind="base-displacement"))
+            cursor += 4
+        if len(slots) >= 2:
+            found.append(
+                Vtable(address=address, section=section.name, kind="vbtable", slots=slots, boundary="displacement-shape")
+            )
+    return found
+
+
+def analyse_image(path: Path) -> dict[str, Any]:
+    image = PeImage(path)
+    engine = disassembler()
+    slots = import_slots(path)
+    thunks = import_thunks(image, slots)
+    purecall = _purecall_thunk(image, thunks)
+    sites = relocation_sites(image)
+    relocated = set(sites)
+    data_ranges = [
+        (section.virtual_address, section.virtual_address + section.raw_size)
+        for section in _data_sections(image)
+    ]
+
+    writes = _collect_vptr_writes(image, engine, sites, data_ranges)
+    writes_by_table: dict[int, list[VptrWrite]] = {}
+    for write in writes:
+        writes_by_table.setdefault(write.table, []).append(write)
+
+    # Every table address the code refers to at all, not only the ones stored by
+    # a decodable `mov [reg+N], imm`. A secondary table whose constructor store
+    # is not decodable is still referenced, and without it the preceding table
+    # absorbs the secondary's slots and reports the sum of both counts - which is
+    # exactly how two reviewed secondary counts came to be overstated.
+    text = image.text
+    referenced: set[int] = set()
+    for site in sites:
+        if text.virtual_address <= site < text.virtual_address + text.raw_size:
+            value = image.read_u32(site)
+            if value is not None:
+                referenced.add(value)
+    starts = referenced | {write.table for write in writes}
+
+    tables: list[Vtable] = []
+    for section in _data_sections(image):
+        low, high = section.virtual_address, section.virtual_address + section.raw_size
+        in_section = [site for site in sites if low <= site < high]
+        current: list[int] = []
+        boundary = ""
+
+        def flush(run: list[int], reason: str, section_name: str = section.name) -> None:
+            # An isolated code pointer is a function pointer in some structure,
+            # not a one-slot vtable, unless a constructor actually stores it.
+            if not run or (len(run) < 2 and run[0] not in starts):
+                return
+            tables.append(
+                Vtable(
+                    address=run[0],
+                    section=section_name,
+                    kind="vftable",
+                    slots=[
+                        Slot(index=index, target=image.read_u32(address) or 0, kind="local")
+                        for index, address in enumerate(run)
+                    ],
+                    boundary=reason,
+                    writes=writes_by_table.get(run[0], []),
+                )
+            )
+
+        for address in in_section:
+            value = image.read_u32(address)
+            is_slot = value is not None and image.is_code(value)
+            if not is_slot:
+                flush(current, boundary or "non-code-slot")
+                current, boundary = [], ""
+                continue
+            if current and (address != current[-1] + 4 or address in starts):
+                flush(current, "code-reference-boundary" if address in starts else "gap")
+                current, boundary = [], ""
+            current.append(address)
+        flush(current, boundary or "section-end")
+
+    for table in tables:
+        for slot in table.slots:
+            if purecall is not None and slot.target == purecall:
+                slot.kind = "pure-virtual"
+                continue
+            name = thunks.get(slot.target)
+            if name:
+                slot.kind = "import-thunk"
+                slot.import_name = name
+                continue
+            adjustor = _adjustor(image, engine, slot.target)
+            if adjustor is not None:
+                slot.kind = "adjustor-thunk"
+                slot.adjust, slot.thunk_target = adjustor
+
+    tables.extend(_vbtables(image, relocated, {write.table for write in writes}))
+    tables.sort(key=lambda table: table.address)
+    return {"tables": tables, "writes": writes, "purecall": purecall}
+
+
+def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
+    stream = io.StringIO(newline="")
+    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+    writer.writeheader()
+    writer.writerows(rows)
+    return stream.getvalue()
+
+
+def _hex(value: Any) -> str:
+    return f"{value:08x}" if isinstance(value, int) else ""
+
+
+def _snapshot_readme() -> str:
+    return """# Polymorphism-ABI snapshot
+
+Every vtable, vtable slot and constructor vptr write in the first-party Wizardry executables whose
+code is readable. Tracked because reproduction needs the proprietary binaries.
+
+The producer is `wiz8decomp.polymorphism`. Normal runs write the same CSVs under
+`build/reports/polymorphism/` and fail when they differ from this snapshot:
+
+```sh
+uv run wiz8 polymorphism                  # verify against the snapshot
+uv run wiz8 polymorphism --update-snapshot
+```
+
+The scan is bounded by the image's own relocation table rather than by a byte pattern: a vtable is a
+run of consecutive relocated slots pointing into code, and a value that is not a relocated slot
+cannot belong to one.
+
+`boundary` records why each table ended, which is the part that is easy to get wrong. Adjacent
+tables of one class merge into a single run unless something splits them, so a run is also cut at
+any address a constructor writes as a vptr (`vptr-write-boundary`). Without that rule a table
+absorbs the next one and reports the sum of both slot counts.
+
+`vptr-writes.csv` is the class-identity channel: `object_offset` is where in the object the pointer
+is stored, so offset `0` marks a primary table and any other offset marks the base subobject at that
+offset. A table written at several offsets by several functions is normal - a constructor, a copy
+constructor and a destructor each write it.
+
+Slot `kind` is `pure-virtual` when the slot holds the `_purecall` thunk, resolved through the import
+table by name rather than by a hardcoded address; `import-thunk` when the slot points at a jump
+thunk, in which case `import_name` and `import_signature` name the library method the class
+inherited; `adjustor-thunk` for the `sub ecx, N; jmp` entries that shift `this` onto a base, with the
+adjustment and real target recorded; and `local` otherwise.
+
+`kind` on a table is `vftable` or `vbtable`. A vbtable holds base displacements rather than
+addresses, so its entries are never relocated and it is detected by shape.
+"""
+
+
+def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> dict[str, Any]:
+    import yaml
+
+    modules = [
+        module
+        for module in load_inventory(settings)["modules"]
+        if module.get("classification") == "first-party-game"
+    ]
+    if not modules:
+        raise RuntimeError("no first-party-game modules in the inventory; run 'wiz8 inventory' first")
+    canonical = yaml.safe_load(
+        (settings.repo_dir / "config" / "variants.yml").read_text(encoding="utf-8")
+    )["canonical_matching_target"]["variant"]
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for module in modules:
+        groups.setdefault(module["sha256"], []).append(module)
+    chosen: list[dict[str, Any]] = []
+    aliases: dict[str, str] = {}
+    for members in groups.values():
+        members.sort(key=lambda item: (item["variant"] != canonical, item["variant"], item["relative_path"]))
+        chosen.append(members[0])
+        for other in members[1:]:
+            aliases[program_name(other)] = program_name(members[0])
+    chosen.sort(key=lambda item: (item["variant"], item["relative_path"]))
+
+    table_rows: list[dict[str, Any]] = []
+    slot_rows: list[dict[str, Any]] = []
+    write_rows: list[dict[str, Any]] = []
+    per_program: dict[str, dict[str, int]] = {}
+    skipped: list[str] = []
+
+    for module in chosen:
+        program = program_name(module)
+        path = settings.work_dir / "variants" / module["variant"] / module["relative_path"]
+        if not path.is_file():
+            raise RuntimeError(f"module payload is missing: {path}")
+        if module.get("packed"):
+            # The protected retail build's code section is not plain text, so no
+            # constructor store can be decoded and the boundary rule has nothing
+            # to work with. The inventory already establishes this; record it
+            # rather than emitting unbounded runs.
+            skipped.append(program)
+            continue
+        result = analyse_image(path)
+        tables, writes = result["tables"], result["writes"]
+        per_program[program] = {
+            "vtables": sum(1 for table in tables if table.kind == "vftable"),
+            "vbtables": sum(1 for table in tables if table.kind == "vbtable"),
+            "slots": sum(len(table.slots) for table in tables),
+            "vptr_writes": len(writes),
+        }
+        for table in tables:
+            offsets = sorted({write.object_offset for write in table.writes})
+            table_rows.append(
+                {
+                    "program": program,
+                    "address": _hex(table.address),
+                    "section": table.section,
+                    "kind": table.kind,
+                    "slot_count": len(table.slots),
+                    "boundary": table.boundary,
+                    "vptr_write_count": len(table.writes),
+                    "subobject_offsets": " ".join(
+                        f"-0x{-offset:x}" if offset < 0 else f"0x{offset:x}" for offset in offsets
+                    ),
+                    "pure_virtual_slots": sum(1 for slot in table.slots if slot.kind == "pure-virtual"),
+                    "adjustor_thunk_slots": sum(1 for slot in table.slots if slot.kind == "adjustor-thunk"),
+                    "import_slots": sum(1 for slot in table.slots if slot.kind == "import-thunk"),
+                }
+            )
+            for slot in table.slots:
+                slot_rows.append(
+                    {
+                        "program": program,
+                        "vtable": _hex(table.address),
+                        "slot_index": slot.index,
+                        "target": _hex(slot.target),
+                        "kind": slot.kind,
+                        "import_name": slot.import_name,
+                        "import_signature": "",
+                        "adjust": "" if slot.adjust is None else slot.adjust,
+                        "thunk_target": _hex(slot.thunk_target),
+                    }
+                )
+        for write in writes:
+            write_rows.append(
+                {
+                    "program": program,
+                    "site": _hex(write.site),
+                    "function_start": _hex(write.function),
+                    "object_offset": (
+                        f"-0x{-write.object_offset:x}"
+                        if write.object_offset < 0
+                        else f"0x{write.object_offset:x}"
+                    ),
+                    "vtable": _hex(write.table),
+                }
+            )
+
+    signatures = demangle([row["import_name"].split("!", 1)[-1] for row in slot_rows])
+    for row in slot_rows:
+        row["import_signature"] = signatures.get(row["import_name"].split("!", 1)[-1], "")
+
+    table_rows.sort(key=lambda row: (row["program"], row["address"]))
+    slot_rows.sort(key=lambda row: (row["program"], row["vtable"], row["slot_index"]))
+    write_rows.sort(key=lambda row: (row["program"], row["site"]))
+
+    outputs = {
+        "vtables.csv": _csv_text(
+            [
+                "program",
+                "address",
+                "section",
+                "kind",
+                "slot_count",
+                "boundary",
+                "vptr_write_count",
+                "subobject_offsets",
+                "pure_virtual_slots",
+                "adjustor_thunk_slots",
+                "import_slots",
+            ],
+            table_rows,
+        ),
+        "slots.csv": _csv_text(
+            [
+                "program",
+                "vtable",
+                "slot_index",
+                "target",
+                "kind",
+                "import_name",
+                "import_signature",
+                "adjust",
+                "thunk_target",
+            ],
+            slot_rows,
+        ),
+        "vptr-writes.csv": _csv_text(
+            ["program", "site", "function_start", "object_offset", "vtable"], write_rows
+        ),
+    }
+
+    report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
+    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
+    for name, value in outputs.items():
+        atomic_write(report_dir / name, value)
+    if update_snapshot:
+        for name, value in outputs.items():
+            atomic_write(snapshot_dir / name, value)
+        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
+    snapshot_fresh = all(
+        (snapshot_dir / name).is_file() and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
+        for name in _REPORT_FILES
+    )
+    if not update_snapshot and not snapshot_fresh:
+        raise RuntimeError(
+            "polymorphism report differs from the tracked snapshot; review "
+            f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
+        )
+
+    primaries = [row for row in table_rows if "0x0" in row["subobject_offsets"].split()]
+    return {
+        "schema": "wiz8.polymorphism",
+        "programs": per_program,
+        "byte_identical_aliases": aliases,
+        "programs_without_readable_code": skipped,
+        "vtables": sum(1 for row in table_rows if row["kind"] == "vftable"),
+        "vbtables": sum(1 for row in table_rows if row["kind"] == "vbtable"),
+        "slots": len(slot_rows),
+        "tables_with_a_constructor_write": sum(1 for row in table_rows if row["vptr_write_count"]),
+        "primary_tables": len(primaries),
+        "secondary_tables": sum(
+            1
+            for row in table_rows
+            if row["subobject_offsets"] and "0x0" not in row["subobject_offsets"].split()
+        ),
+        "pure_virtual_slots": sum(1 for row in slot_rows if row["kind"] == "pure-virtual"),
+        "adjustor_thunk_slots": sum(1 for row in slot_rows if row["kind"] == "adjustor-thunk"),
+        "import_slots": sum(1 for row in slot_rows if row["kind"] == "import-thunk"),
+        "vptr_writes": len(write_rows),
+        "report": str(report_dir.relative_to(settings.repo_dir)),
+        "snapshot": str(snapshot_dir.relative_to(settings.repo_dir)),
+        "snapshot_fresh": snapshot_fresh,
+        "snapshot_updated": update_snapshot,
+    }
