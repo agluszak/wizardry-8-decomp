@@ -257,7 +257,9 @@ typedef struct W8IList {
     int count;                            /* 0x08 */
 } W8IList;
 
+W8IList* IListCreate(void);
 unsigned char IListInit(W8IList* pls);
+int IListAdd(W8IList* pls, int value);
 unsigned char IListDestroy(W8IList* pls);
 int IListIndexOf(W8IList* pls, int value);
 unsigned char IListFreeData(W8IList* pls);

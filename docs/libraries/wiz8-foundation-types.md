@@ -126,7 +126,9 @@ should try the counted-`for`-over-index form first.
 
 | Address | Function | Size |
 | --- | --- | ---: |
+| `0x005E2900` | `IListCreate` | 145 |
 | `0x005E29A0` | `IListInit` | 81 (structurally-strong) |
+| `0x005E2AA0` | `IListAdd` | 174 |
 | `0x005E2A00` | `IListDestroy` | 83 |
 | `0x005E2A60` | `IListFreeData` | 56 |
 | `0x005E2B50` | `IListClear` | 43 |
@@ -150,10 +152,17 @@ So the three containers recovered so far are distinct and must not be merged:
 | `W8IList` | no | `+0x00` (ints) | `+0x08` | free functions |
 
 
+`IListCreate` allocates a `0x0C`-byte object, which fixes `sizeof(W8IList)` at exactly three ints,
+then inlines `IListInit`. `IListAdd` grows the array by five when `count` reaches `capacity`, copies
+the old elements across, and returns the index it stored at; its growth assertion names the
+temporary `pTemp`.
+
 `IListInit` establishes the middle field: it allocates ten ints and stores `10` at `+0x04`, so the
 layout is `data` / `capacity` / `count`. It is the one near-miss in the unit — VC6 materialises the
 success boolean into `cl` early where the original defers a trailing `setne al` past both field
-stores, and three source orderings all produce the early form.
+stores, and three source orderings all produce the early form. Its *inlined* copy inside `IListCreate`
+matches exactly, so the difference is confined to how the standalone function returns its result,
+not to the body.
 
 `IListDestroy` asserts twice under a single null test because `IListFreeData` is inlined into it and
 VC6 merges the two null checks — a useful reminder that two assertion line numbers in one guard

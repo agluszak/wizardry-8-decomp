@@ -95,3 +95,62 @@ int IListIndexOf(W8IList* pls, int value)
 done:
     return index;
 }
+
+// FUNCTION: WIZ8 0x005E2900
+W8IList* IListCreate(void)
+{
+    W8IList* pls;
+    int* data;
+
+    pls = (W8IList*)malloc(sizeof(W8IList));
+    if (!pls) {
+        srAssertFail("pls", ILIST_CPP, 0x45, 0);
+    }
+    pls->count = 0;
+    pls->data = 0;
+
+    /* IListInit inlined; its own null assertion at line 100 survives as a
+       second test because the two stores above separate the two checks. */
+    if (!pls) {
+        srAssertFail("pls", ILIST_CPP, 0x64, 0);
+    }
+    if (pls->data) {
+        free(pls->data);
+    }
+    data = (int*)malloc(10 * sizeof(int));
+    pls->data = data;
+    pls->capacity = 10;
+    pls->count = 0;
+    if (!data) {
+        free(pls);
+        return 0;
+    }
+    return pls;
+}
+
+// FUNCTION: WIZ8 0x005E2AA0
+// Grows by five, and the growth assertion names its temporary pTemp.
+int IListAdd(W8IList* pls, int value)
+{
+    int* pTemp;
+    int index;
+
+    if (pls->count >= pls->capacity) {
+        if (!pls) {
+            srAssertFail("pls", ILIST_CPP, 0x1db, 0);
+        }
+        pTemp = (int*)malloc((pls->capacity + 5) * sizeof(int));
+        if (!pTemp) {
+            srAssertFail("pTemp", ILIST_CPP, 0x1de, 0);
+        }
+        for (index = 0; index < pls->count; ++index) {
+            pTemp[index] = pls->data[index];
+        }
+        free(pls->data);
+        pls->data = pTemp;
+        pls->capacity += 5;
+    }
+    pls->data[pls->count] = value;
+    ++pls->count;
+    return pls->count - 1;
+}
