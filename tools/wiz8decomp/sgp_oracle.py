@@ -3,7 +3,6 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
-import itertools
 import re
 import shutil
 import struct
@@ -230,8 +229,8 @@ def _load_config(settings: Settings) -> dict[str, Any]:
     config = yaml.safe_load(path.read_text(encoding="utf-8"))
     if config.get("schema") != "wiz8.sgp-harness":
         raise RuntimeError("invalid SGP harness schema")
-    if not config.get("units") or not config.get("builds") or not config.get("flag_axes"):
-        raise RuntimeError("SGP harness must configure units, builds, and flag axes")
+    if not config.get("units") or not config.get("builds") or not config.get("project_flags"):
+        raise RuntimeError("SGP harness must configure units, builds, and project flags")
     return config
 
 
@@ -274,11 +273,6 @@ def _load_builds(settings: Settings, config: dict[str, Any]) -> list[BuildText]:
     return builds
 
 
-def _flag_combinations(config: dict[str, Any]) -> list[tuple[str, ...]]:
-    axes = list(config["flag_axes"].values())
-    return [tuple(items) for items in itertools.product(*axes)]
-
-
 def _compile_units(
     settings: Settings,
     config: dict[str, Any],
@@ -298,33 +292,46 @@ def _compile_units(
     results = {unit["id"]: [] for unit in units}
     sweep_root = settings.work_dir / "sgp" / "sweeps"
     sweep_root.mkdir(parents=True, exist_ok=True)
-    for index, flags in enumerate(_flag_combinations(config)):
-        output = Path(tempfile.mkdtemp(prefix=f"flags-{index:02d}-", dir=sweep_root))
-        try:
-            definitions = {
-                "WIZ8_BUILD_DECOMP": "OFF",
-                "WIZ8_BUILD_FID_SEEDS": "OFF",
-                "WIZ8_BUILD_SGP_PROBES": "ON",
-                "SGP_SOURCE": "Z:/repo/third_party/sfi-sgp/sgp",
-                "WIZ8_SGP_SWEEP_FLAGS": ";".join(flags),
-            }
-            for unit in units:
-                _docker_cmake_build(
-                    settings,
-                    toolchain,
-                    output=output,
-                    target=unit["target"],
-                    definitions=definitions,
-                    log_name=f"sgp-{unit['id']}-flags-{index:02d}",
+    flags = tuple(config["project_flags"])
+    output = Path(tempfile.mkdtemp(prefix="project-profile-", dir=sweep_root))
+    try:
+        definitions = {
+            "WIZ8_BUILD_DECOMP": "OFF",
+            "WIZ8_BUILD_FID_SEEDS": "OFF",
+            "WIZ8_BUILD_SGP_PROBES": "ON",
+            "SGP_SOURCE": "Z:/repo/third_party/sfi-sgp/sgp",
+        }
+        for unit in units:
+            _docker_cmake_build(
+                settings,
+                toolchain,
+                output=output,
+                target=unit["target"],
+                definitions=definitions,
+                log_name=f"sgp-{unit['id']}-project-profile",
+            )
+            objects = sorted((output / "CMakeFiles" / f"{unit['target']}.dir").rglob("*.obj"))
+            if len(objects) != 1:
+                raise RuntimeError(
+                    f"{unit['target']} produced {len(objects)} objects; expected exactly one"
                 )
-                objects = sorted((output / "CMakeFiles" / f"{unit['target']}.dir").rglob("*.obj"))
-                if len(objects) != 1:
-                    raise RuntimeError(
-                        f"{unit['target']} produced {len(objects)} objects; expected exactly one"
-                    )
-                results[unit["id"]].append((flags, parse_coff_functions(objects[0])))
-        finally:
-            shutil.rmtree(output, ignore_errors=True)
+            try:
+                functions = parse_coff_functions(objects[0])
+            except RuntimeError as error:
+                if unit.get("expected_empty") and "exposes no external .text functions" in str(
+                    error
+                ):
+                    functions = []
+                else:
+                    raise
+            if unit.get("expected_empty") and functions:
+                names = ", ".join(function.name for function in functions)
+                raise RuntimeError(
+                    f"{unit['target']} was expected to emit no functions but exposed: {names}"
+                )
+            results[unit["id"]].append((flags, functions))
+    finally:
+        shutil.rmtree(output, ignore_errors=True)
     return results
 
 
@@ -334,78 +341,49 @@ def _evaluate(
     threshold: float,
     preferred_flags: tuple[str, ...] | None = None,
 ) -> list[dict[str, Any]]:
-    candidates: list[tuple[tuple[str, ...], list[tuple[CoffFunction, list[dict[str, Any]]]]]] = []
-    for flags, functions in variants:
-        evaluated = []
-        for function in functions:
-            matches = []
-            for build in builds:
-                if build.data is None:
-                    matches.append(
-                        {
-                            "build": build,
-                            "classification": "unavailable",
-                            "positions": [],
-                            "similarity": 0.0,
-                        }
-                    )
-                else:
-                    matches.append(
-                        {
-                            "build": build,
-                            **classify_body(function, build.data, near_threshold=threshold),
-                        }
-                    )
-            evaluated.append((function, matches))
-
-        # Relocation masking can make distinct source functions identical. A
-        # single binary hit is not enough to assign either identity in that
-        # case: for example, Compression.c's CompressFini and DecompressFini
-        # differ only in the relocated deflateEnd/inflateEnd call target.
-        fingerprints: dict[bytes, int] = {}
-        for function, _matches in evaluated:
-            fingerprints[function.masked_body] = fingerprints.get(function.masked_body, 0) + 1
-        for function, matches in evaluated:
-            if fingerprints[function.masked_body] < 2:
-                continue
-            for match in matches:
-                if match["classification"] in {"exact", "relocation-equivalent"}:
-                    match["classification"] = "ambiguous-generic"
-        candidates.append((flags, evaluated))
-
-    def score(
-        indexed: tuple[
-            int,
-            tuple[tuple[str, ...], list[tuple[CoffFunction, list[dict[str, Any]]]]],
-        ],
-    ) -> tuple[int, int, int]:
-        return (
-            sum(
-                CLASSIFICATION_RANK[match["classification"]]
-                for _function, matches in indexed[1][1]
-                for match in matches
-            ),
-            sum(
-                match["classification"] in {"exact", "relocation-equivalent"}
-                for _function, matches in indexed[1][1]
-                for match in matches
-            ),
-            -indexed[0],
+    if len(variants) != 1:
+        raise RuntimeError("SGP evaluation requires exactly one settled project profile")
+    flags, functions = variants[0]
+    if preferred_flags is not None and flags != preferred_flags:
+        raise RuntimeError(
+            f"compiled SGP profile {flags} does not match configured project flags {preferred_flags}"
         )
 
-    if preferred_flags is None:
-        _best_index, (flags, evaluated) = max(enumerate(candidates), key=score)
-    else:
-        selected = next(
-            (indexed for indexed in enumerate(candidates) if indexed[1][0] == preferred_flags),
-            None,
-        )
-        if selected is None:
-            raise RuntimeError(f"project flag hypothesis is outside the sweep: {preferred_flags}")
-        # Do not infer historical per-file overrides from sparse matches. The
-        # project profile remains fixed until a larger unit corpus justifies a
-        # project-wide change.
-        _selected_index, (flags, evaluated) = selected
+    evaluated = []
+    for function in functions:
+        matches = []
+        for build in builds:
+            if build.data is None:
+                matches.append(
+                    {
+                        "build": build,
+                        "classification": "unavailable",
+                        "positions": [],
+                        "similarity": 0.0,
+                    }
+                )
+            else:
+                matches.append(
+                    {
+                        "build": build,
+                        **classify_body(function, build.data, near_threshold=threshold),
+                    }
+                )
+        evaluated.append((function, matches))
+
+    # Relocation masking can make distinct source functions identical. A
+    # single binary hit is not enough to assign either identity in that case:
+    # Compression.c's CompressFini and DecompressFini differ only in the
+    # relocated deflateEnd/inflateEnd call target.
+    fingerprints: dict[bytes, int] = {}
+    for function, _matches in evaluated:
+        fingerprints[function.masked_body] = fingerprints.get(function.masked_body, 0) + 1
+    for function, matches in evaluated:
+        if fingerprints[function.masked_body] < 2:
+            continue
+        for match in matches:
+            if match["classification"] in {"exact", "relocation-equivalent"}:
+                match["classification"] = "ambiguous-generic"
     rows = []
     for function, matches in sorted(evaluated, key=lambda item: item[0].name.casefold()):
         for match in matches:
@@ -481,7 +459,7 @@ def sweep_sgp_units(
             compiled[unit["id"]],
             builds,
             float(config["near_match_threshold"]),
-            tuple(config["project_flag_hypothesis"]),
+            tuple(config["project_flags"]),
         )
         generated_rows.extend({"unit": unit["id"], **row} for row in rows)
         summaries.append(
@@ -489,6 +467,7 @@ def sweep_sgp_units(
                 "unit": unit["id"],
                 "report": config["report"],
                 "functions": len({row["function"] for row in rows}),
+                "compiled_empty": bool(unit.get("expected_empty")) and not rows,
                 "rows": len(rows),
                 "classifications": {
                     value: sum(row["classification"] == value for row in rows)
@@ -519,7 +498,7 @@ def sweep_sgp_units(
         _write_report(snapshot, generated_rows)
     return {
         "schema": "wiz8.sgp-harness-run",
-        "flag_combinations": len(_flag_combinations(config)),
+        "project_flags": config["project_flags"],
         "builds": [build.identifier for build in builds],
         "units": summaries,
         "report": str(report.relative_to(settings.repo_dir)),

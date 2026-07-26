@@ -3,18 +3,9 @@ source_revision: 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033
 source_root: third_party/sfi-sgp/sgp
 toolchain: vc6-sp5
 
-# Primary hypothesis: Wizardry compiled the SGP static-library project with one
-# release profile. A unit may have several equally scoring sweep candidates;
-# prefer this common profile among ties rather than inventing per-file flags.
-project_flag_hypothesis: [/O2, /Ob2, /G5, /MD]
-
-# Later MSVC options override earlier options. These axes are appended after
-# each unit's known-good defaults so the same target can test alternatives.
-flag_axes:
-  optimization: [/O2, /O1]
-  inlining: [/Ob1, /Ob2]
-  processor: [/G5, /G6]
-  runtime: [/MD, /MT]
+# Settled Wizardry SGP static-library release profile. Every configured unit
+# compiles exactly once with these project-wide flags.
+project_flags: [/O2, /Ob2, /G5, /MD]
 
 near_match_threshold: 0.75
 report: build/reports/sgp/harness.csv
@@ -62,3 +53,12 @@ units:
     target: WIZ8_SGP_CONTAINER
     source: Container.c
     overlay: container
+  - id: debug
+    target: WIZ8_SGP_DEBUG
+    source: DEBUG.C
+    overlay: debug
+  - id: exceptionhandling
+    target: WIZ8_SGP_EXCEPTION_HANDLING
+    source: ExceptionHandling.cpp
+    overlay: exceptionhandling
+    expected_empty: true

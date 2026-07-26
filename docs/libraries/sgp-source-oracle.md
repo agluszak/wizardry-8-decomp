@@ -12,10 +12,9 @@ requirements on modifications; contributors must preserve it verbatim.
 
 The SGP workflow deliberately separates four roles:
 
-- `config/sgp.yml` configures the compiler matrix, source revision, builds, units, and common
-  project-flag hypothesis.
-- `build/reports/sgp/harness.csv` is the normal generated full matrix.
-- `evidence/snapshots/sgp/harness.csv` preserves a reviewed matrix because reproducing it requires
+- `config/sgp.yml` configures the settled compiler profile, source revision, builds, and units.
+- `build/reports/sgp/harness.csv` is the normal generated cross-build report.
+- `evidence/snapshots/sgp/harness.csv` preserves a reviewed report because reproducing it requires
   proprietary Wizardry executables. Its README documents the refresh procedure and input identity.
 - `evidence/reviewed/sgp/findings.csv` contains conclusions that require human review, while
   `evidence/observations/sgp/source-paths.csv` contains binary path observations.
@@ -45,7 +44,7 @@ The established release model is:
 This is a translation-unit model, not a claim that the complete `WIZ8 SGP ALL.H`, `WizLibs.h`, or
 other product headers have been recovered.
 
-## Compiler hypothesis and harness
+## Compiler profile and harness
 
 Run all configured units, or select one, with:
 
@@ -54,12 +53,10 @@ uv run wiz8 sgp sweep
 uv run wiz8 sgp sweep --unit random
 ```
 
-The harness tests the configured optimization, inlining, processor, and CRT axes using VC6 SP5.
-The report always selects the one project-wide hypothesis recorded in `config/sgp.yml`; sparse
-matches are not allowed to invent historical per-file flags. The released VC6 SGP project supports
-this treatment because its release options are project-level and the inspected units have no
-release per-file override. That is evidence for a working hypothesis, not proof that Wizardry used
-the same project file.
+The harness compiles every unit exactly once with the settled VC6 SP5 project profile
+`/O2 /Ob2 /G5 /MD` recorded in `config/sgp.yml`. Sparse matches are not allowed to invent historical
+per-file flags. The released VC6 SGP project supports this treatment because its release options are
+project-level and the inspected units have no release per-file override.
 
 COFF relocation fields are masked before comparison. Candidates are classified as exact,
 relocation-equivalent, near source with Wizardry modifications, absent or stripped, or ambiguous
@@ -119,6 +116,22 @@ byte matcher cannot name safely on its own.
 
 This SGP container API is unrelated to the first-party `3D Code/PList.cpp` family used by monster
 and gameplay code. Similar purpose does not establish shared source ownership.
+
+### Debug and exception support boundaries
+
+`DEBUG.C` is a C translation unit: the original Windows project treats its uppercase suffix as
+case-insensitive `.c`, so the host CMake model explicitly preserves that language choice. Wizardry
+retains only `String`, the variadic formatter backed by an eight-slot array of 512-byte buffers.
+Its unique body occurs immediately before the retained `FileMan.c` range and is called from 55
+sites. The full topic logger and assertion-failure path are absent; tiny release helpers remain
+generic and are not promoted from byte similarity alone.
+
+`ExceptionHandling.cpp` is an intentional compiled-empty boundary. Outside `JA2`, its public header
+does not define `ENABLE_EXCEPTION_HANDLING`, so all implementation functions are excluded before
+compilation. Wizardry still uses the ordinary VC6 `_except_handler3` and `_XcptFilter` CRT boundary,
+but it neither owns the SGP crash-report implementation nor imports `_CxxThrowException`. Together
+with the reviewed allocator model, this preserves the executable's explicit null-return allocation
+paths instead of introducing modern throwing-allocation semantics.
 
 ### LibraryDataBase.c and DbMan.c
 

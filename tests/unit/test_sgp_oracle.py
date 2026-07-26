@@ -65,7 +65,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     ) as stream:
         paths = list(csv.DictReader(stream))
 
-    assert len(functions) == 45
+    assert len(functions) == 46
     assert {row["confidence"] for row in functions} == {"exact"}
     assert {row["owner"] for row in functions} == {"sgp-shared"}
     assert {row["source_path"] for row in functions} == {
@@ -74,6 +74,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
         "sgp/FileMan.c",
         "sgp/LibraryDataBase.c",
         "sgp/Random.c",
+        "sgp/DEBUG.C",
     }
     assert len(paths) == 7
     assert sum(row["classification"] == "exact-path" for row in paths) == 6
@@ -128,13 +129,13 @@ def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
     assert {row["origin"] for row in evidence} == {"cfagent-oracle", "sgp"}
 
 
-def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None:
+def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
     harness = yaml.safe_load(
         (repository / "config/sgp.yml").read_text(encoding="utf-8")
     )
     assert harness["schema"] == "wiz8.sgp-harness"
-    assert harness["project_flag_hypothesis"] == ["/O2", "/Ob2", "/G5", "/MD"]
+    assert harness["project_flags"] == ["/O2", "/Ob2", "/G5", "/MD"]
     assert {unit["id"] for unit in harness["units"]} == {
         "compression",
         "container",
@@ -143,17 +144,10 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
         "fileman",
         "librarydatabase",
         "random",
+        "debug",
+        "exceptionhandling",
     }
-    assert set(harness["flag_axes"]) == {
-        "optimization",
-        "inlining",
-        "processor",
-        "runtime",
-    }
-    combinations = 1
-    for values in harness["flag_axes"].values():
-        combinations *= len(values)
-    assert combinations == 16
+    assert "flag_axes" not in harness
     assert {build["id"] for build in harness["builds"]} >= {
         "demo",
         "gog_base",
@@ -162,6 +156,10 @@ def test_sgp_harness_declares_the_full_flag_matrix_and_reviewed_builds() -> None
     }
     assert harness["report"] == "build/reports/sgp/harness.csv"
     assert harness["snapshot"] == "evidence/snapshots/sgp/harness.csv"
+    exception_unit = next(
+        unit for unit in harness["units"] if unit["id"] == "exceptionhandling"
+    )
+    assert exception_unit["expected_empty"] is True
 
 
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
@@ -169,6 +167,10 @@ def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
     assert (repository / "evidence/snapshots/sgp/harness.csv").is_file()
     assert (repository / "evidence/reviewed/sgp/findings.csv").is_file()
     assert (repository / "evidence/observations/sgp/source-paths.csv").is_file()
+    with (repository / "evidence/reviewed/sgp/findings.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        assert all(None not in row for row in csv.DictReader(stream))
 
 
 def test_partial_sgp_sweep_cannot_replace_the_reviewed_snapshot() -> None:
@@ -217,20 +219,18 @@ def test_source_functions_with_the_same_masked_body_remain_ambiguous() -> None:
     assert {row["hit_count"] for row in rows} == {1}
 
 
-def test_configured_project_profile_does_not_fall_back_to_per_unit_flags() -> None:
+def test_sgp_evaluation_rejects_a_flag_search_matrix() -> None:
     matching = CoffFunction("Example", b"\xc3", ())
     different = CoffFunction("Example", b"\x90\xc3", ())
     build = BuildText("test", "0" * 64, 0x400000, b"\xc3", None)
 
-    rows = _evaluate(
-        [(("/O1",), [matching]), (("/O2",), [different])],
-        [build],
-        0.75,
-        ("/O2",),
-    )
-
-    assert {row["flags"] for row in rows} == {"/O2"}
-    assert {row["classification"] for row in rows} == {"absent-or-stripped"}
+    with pytest.raises(RuntimeError, match="exactly one settled project profile"):
+        _evaluate(
+            [(("/O1",), [matching]), (("/O2",), [different])],
+            [build],
+            0.75,
+            ("/O2",),
+        )
 
 
 def test_compression_unit_classifies_every_emitted_function() -> None:
@@ -307,6 +307,29 @@ def test_container_unit_separates_retained_stack_list_apis_from_stripped_familie
         "00405c00",
         "00405c10",
     }
+
+
+def test_debug_and_exception_support_boundaries_are_explicit() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    debug = _harness_rows(repository, "debug")
+    reviewed_debug = _reviewed_rows(repository, "debug")
+    reviewed_exception = _reviewed_rows(repository, "exceptionhandling")
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        accepted = [
+            row for row in csv.DictReader(stream) if row["source_path"] == "sgp/DEBUG.C"
+        ]
+
+    assert len(debug) == 15 * 7
+    assert len(reviewed_debug) == 15
+    assert {row["flags"] for row in debug} == {"/O2 /Ob2 /G5 /MD"}
+    assert [(row["provisional_name"], row["address"]) for row in accepted] == [
+        ("String", "00404b50")
+    ]
+    assert reviewed_debug[-1]["canonical_classification"] == "relocation-equivalent"
+    assert reviewed_exception[0]["finding"] == "compiled-empty"
+    assert reviewed_exception[0]["canonical_classification"] == "compiled-empty"
 
 
 def test_fileman_exact_and_near_results_stay_separate() -> None:

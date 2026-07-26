@@ -361,8 +361,6 @@ if(WIZ8_BUILD_DECOMP)
 endif()
 
 if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
-    set(WIZ8_SGP_SWEEP_FLAGS "" CACHE STRING
-        "Semicolon-separated flags appended to every configured SGP oracle unit")
     # One target per released SGP translation unit. Each unit gets only the
     # WIZ8 SGP ALL.H surface its own source proves necessary, plus the shared
     # empty builddefines.h overlay. The common release profile is the primary
@@ -380,9 +378,6 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         target_compile_options(${target} PRIVATE ${WIZ8_SGP_PROJECT_FLAGS})
         if(ARGN)
             target_compile_options(${target} PRIVATE ${ARGN})
-        endif()
-        if(WIZ8_SGP_SWEEP_FLAGS)
-            target_compile_options(${target} PRIVATE ${WIZ8_SGP_SWEEP_FLAGS})
         endif()
     endfunction()
 
@@ -407,9 +402,32 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     # Container.c is the released SGP contiguous-container implementation
     # (HSTACK/HQUEUE/HLIST/HORDLIST), not Wizardry's first-party PList class.
     wiz8_add_sgp_unit(WIZ8_SGP_CONTAINER "Container.c" container)
+
+    # DEBUG.C owns the shared release-mode formatter and debug-manager
+    # boundaries. ExceptionHandling.cpp deliberately emits no code for the
+    # Wizardry branch because ExceptionHandling.h leaves its implementation
+    # feature disabled outside JA2.
+    # The original Windows project treats the case-insensitive .C suffix as
+    # C. CMake otherwise interprets uppercase .C as C++ on this host.
+    set_source_files_properties("${SGP_SOURCE}/DEBUG.C" PROPERTIES LANGUAGE C)
+    wiz8_add_sgp_unit(WIZ8_SGP_DEBUG "DEBUG.C" debug)
+    wiz8_add_sgp_unit(
+        WIZ8_SGP_EXCEPTION_HANDLING
+        "ExceptionHandling.cpp"
+        exceptionhandling
+    )
     if(WIZ8_BUILD_DECOMP)
-        add_dependencies(WIZ8_MATCHING WIZ8_SGP_CONTAINER)
-        target_sources(WIZ8_BRINGUP PRIVATE $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>)
+        add_dependencies(
+            WIZ8_MATCHING
+            WIZ8_SGP_DEBUG
+            WIZ8_SGP_EXCEPTION_HANDLING
+            WIZ8_SGP_CONTAINER
+        )
+        target_sources(WIZ8_BRINGUP PRIVATE
+            $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
+            $<TARGET_OBJECTS:WIZ8_SGP_EXCEPTION_HANDLING>
+            $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>
+        )
     endif()
 endif()
 

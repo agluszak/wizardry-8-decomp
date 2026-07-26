@@ -45,3 +45,19 @@ container,RemfromOrdList,1586,stripped,absent-or-stripped,,all-five-comparable,2
 container,StoreinOrdList,1744,stripped,absent-or-stripped,,all-five-comparable,30,585,/O2 /Ob2 /G5 /MD,Ordered-list family eliminated,No exact relocation-equivalent or near candidate in any comparable build
 container,AddtoOrdList,1953,stripped,absent-or-stripped,,all-five-comparable,31,280,/O2 /Ob2 /G5 /MD,Ordered-list family eliminated,No exact relocation-equivalent or near candidate in any comparable build
 container,Compare,2093,stripped,absent-or-stripped,,all-five-comparable,32,31,/O2 /Ob2 /G5 /MD,Ordered-list test comparator eliminated,No exact relocation-equivalent or near candidate in any comparable build
+debug,DbgGetLogFileName,152,stripped,absent-or-stripped,,all-five-comparable,1,96,/O2 /Ob2 /G5 /MD,Debug text-file support eliminated,No candidate in any comparable build
+debug,DbgInitialize,189,stripped,absent-or-stripped,,all-five-comparable,2,183,/O2 /Ob2 /G5 /MD,Debug-manager startup eliminated,No candidate in any comparable build
+debug,DbgShutdown,230,unresolved,ambiguous-generic,,all-five-comparable,3,1,/O2 /Ob2 /G5 /MD,Optimization reduces the unreachable topic shutdown to RET,A one-byte RET cannot establish source ownership
+debug,DbgTopicRegistration,249,stripped,absent-or-stripped,,all-five-comparable,4,349,/O2 /Ob2 /G5 /MD,Debug topic registration eliminated,No candidate in any comparable build
+debug,RemoveDebugText,300,rejected-near-match,rejected-near-match,00401077,all-five-comparable,5,12,/O2 /Ob2 /G5 /MD,The reported bytes lie inside the CRT startup function,The 0.75 similarity hit is not a function boundary and has unrelated startup behavior
+debug,DbgClearAllTopics,319,stripped,absent-or-stripped,,all-five-comparable,6,45,/O2 /Ob2 /G5 /MD,Debug topic state eliminated,No candidate in any comparable build
+debug,DbgMessageReal,349,stripped,absent-or-stripped,,all-five-comparable,7,98,/O2 /Ob2 /G5 /MD,Topic logger eliminated,No candidate in any comparable build
+debug,DbgSetDebugLevel,388,unresolved,ambiguous-generic,,all-five-comparable,8,3,/O2 /Ob2 /G5 /MD,Release body is the generic return-TRUE sequence,Hundreds of binary hits cannot establish source ownership
+debug,DbgFailedAssertion,407,stripped,absent-or-stripped,,all-five-comparable,9,68,/O2 /Ob2 /G5 /MD,Assertion logger eliminated,No candidate in any comparable build
+debug,_DebugRecordToFile,426,unresolved,ambiguous-generic,,all-five-comparable,10,10,/O2 /Ob2 /G5 /MD,Body is a generic byte-global setter,Multiple binary hits cannot establish the source global or function
+debug,_DebugRecordToDebugger,433,unresolved,ambiguous-generic,,all-five-comparable,11,10,/O2 /Ob2 /G5 /MD,Body is a generic byte-global setter,Multiple binary hits cannot distinguish the two source setters
+debug,_DebugMessage,442,stripped,absent-or-stripped,,all-five-comparable,12,132,/O2 /Ob2 /G5 /MD,Debug output path eliminated,No candidate in any comparable build
+debug,_Null,484,unresolved,ambiguous-generic,,all-five-comparable,13,1,/O2 /Ob2 /G5 /MD,Release assertion helper is a generic RET,Thousands of binary hits cannot establish source ownership
+debug,_FailMessage,562,stripped,absent-or-stripped,,all-five-comparable,14,190,/O2 /Ob2 /G5 /MD,Release assertions compile away so the failure path is unreferenced,No candidate in any comparable build
+debug,String,609,retained,relocation-equivalent,00404b50,all-five-comparable,15,72,/O2 /Ob2 /G5 /MD,Only retained DEBUG.C callable and immediately precedes FileMan.c,Unique relocation-masked candidate with the source eight-slot 512-byte ring in every comparable build
+exceptionhandling,(translation unit),23,compiled-empty,compiled-empty,,all-builds,,,/O2 /Ob2 /G5 /MD,Wizardry leaves ENABLE_EXCEPTION_HANDLING undefined,The settled project-profile compile emits an object with no external text functions

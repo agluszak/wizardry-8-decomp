@@ -123,8 +123,8 @@ def test_wiz8_function_evidence_is_many_to_one_without_duplicate_identities() ->
     ) as stream:
         evidence = list(csv.DictReader(stream))
 
-    assert len(functions) == 237
-    assert len({row["address"] for row in functions}) == 237
+    assert len(functions) == 238
+    assert len({row["address"] for row in functions}) == 238
     assert len({(row["program"], row["address"], row["origin"]) for row in evidence}) == len(
         evidence
     )

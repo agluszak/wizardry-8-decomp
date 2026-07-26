@@ -15,7 +15,7 @@ def apply_sgp_model(
     settings: Settings,
     selector: str = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> dict[str, Any]:
-    """Install the source-backed DirectDraw and SGP FileMan types and prototypes."""
+    """Install the reviewed source-backed SGP types, globals, and prototypes."""
 
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
@@ -501,6 +501,7 @@ def apply_sgp_model(
                 palette_pointer_pointer = PointerDataType(palette_pointer, dtm)
                 iunknown_pointer = PointerDataType(iunknown, dtm)
                 char_pointer = PointerDataType(char, dtm)
+                byte_pointer = PointerDataType(byte, dtm)
                 char_pointer_pointer = PointerDataType(char_pointer, dtm)
                 dword_pointer = PointerDataType(dword, dtm)
                 get_file_pointer = PointerDataType(get_file, dtm)
@@ -605,6 +606,31 @@ def apply_sgp_model(
                             f"{command.getStatusMsg()}"
                         )
                     applied.append(f"0x{raw_address:08x}")
+
+                string_signature = _function_type(
+                    dtm,
+                    category,
+                    "signature_String",
+                    byte_pointer,
+                    [("format", char_pointer)],
+                    "__cdecl",
+                )
+                string_signature.setVarArgs(True)
+                string_address = address_space.getAddress(0x00404B50)
+                if program.getFunctionManager().getFunctionAt(string_address) is None:
+                    raise RuntimeError("no function at 0x00404b50")
+                string_command = ApplyFunctionSignatureCmd(
+                    string_address,
+                    string_signature,
+                    SourceType.USER_DEFINED,
+                    True,
+                    FunctionRenameOption.NO_CHANGE,
+                )
+                if not string_command.applyTo(program):
+                    raise RuntimeError(
+                        f"failed to apply signature at 0x00404b50: {string_command.getStatusMsg()}"
+                    )
+                applied.append("0x00404b50")
 
                 file_signatures: dict[int, tuple[Any, list[tuple[str, Any]]]] = {
                     0x00404BF0: (boolean, [("strFilename", char_pointer)]),
@@ -819,6 +845,22 @@ def apply_sgp_model(
                 elif database_symbol.getName() != "gFileDataBase":
                     database_symbol.setName("gFileDataBase", SourceType.USER_DEFINED)
 
+                debug_globals = {
+                    0x00650DEC: (byte, "gubStringIndex"),
+                    0x006EE440: (
+                        ArrayDataType(ArrayDataType(byte, 512, 1), 8, 512),
+                        "gbTmpDebugString",
+                    ),
+                }
+                for raw_address, (data_type, name) in debug_globals.items():
+                    address = address_space.getAddress(raw_address)
+                    _apply_data(program, address, data_type)
+                    symbol = symbol_table.getPrimarySymbol(address)
+                    if symbol is None:
+                        symbol_table.createLabel(address, name, SourceType.USER_DEFINED)
+                    elif symbol.getName() != name:
+                        symbol.setName(name, SourceType.USER_DEFINED)
+
                 commit = True
                 result.update(
                     {
@@ -850,7 +892,11 @@ def apply_sgp_model(
                             )
                         ],
                         "typed_functions": applied,
-                        "typed_globals": ["0x006eb720"],
+                        "typed_globals": [
+                            "0x00650dec",
+                            "0x006eb720",
+                            "0x006ee440",
+                        ],
                     }
                 )
             finally:
