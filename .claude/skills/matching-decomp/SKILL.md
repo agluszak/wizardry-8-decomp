@@ -55,7 +55,17 @@ reading cannot.
 rotated `do`/`while` with a single backward branch, and sinks the `base` load past the guard because
 it is only needed inside. Writing the same loop with your own cursor pointer instead makes it peel
 the first comparison and emit a second epilogue. If a search function is close but ~8 bytes long
-with a duplicated compare, try the counted-`for`-over-index form before anything else.
+with a duplicated compare, try the counted-`for`-over-index form before anything else. Confirmed on
+`PListIndexOf`, `IListIndexOf` and `FindFirstMonsterByID`, the last of which had been recorded
+`structurally-strong` for exactly this reason.
+
+The transform is: a guarded `do`/`while` with an early `return` inside becomes a counted `for` whose
+body `goto`s a single shared exit label, with the not-found value assigned just before that label.
+One backward branch, one epilogue.
+
+It does **not** apply when the *original* peels deliberately. In `FindMonGenByName` the canonical
+back-edge lands past the bounds check, so the check runs only on the first iteration and the body
+has two epilogues; that shape has to be reproduced as written rather than normalised.
 
 **Object size.** Search the caller for `push <size>; call <allocator>` immediately before the
 constructor call. That is the exact object size.

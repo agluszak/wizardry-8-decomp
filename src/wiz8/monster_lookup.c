@@ -6,29 +6,25 @@
 // FUNCTION: WIZ8 0x00510B60
 W8MonsterGroup* FindFirstMonsterByID(int monster_id)
 {
-    unsigned int index = 0;
+    unsigned int index;
+    W8MonsterGroup* group;
 
-    if (PListGetCount(g_monster_group_species_list) > 0) {
-        do {
-            W8MonsterGroup* group = GetMonsterGroupByID(index);
-            if (group->monster_id == monster_id) {
-                return group;
-            }
-            ++index;
-        } while (index < PListGetCount(g_monster_group_species_list));
+    for (index = 0; index < PListGetCount(g_monster_group_species_list); ++index) {
+        group = GetMonsterGroupByID(index);
+        if (group->monster_id == monster_id) {
+            goto found;
+        }
     }
+    for (index = 0; index < PListGetCount(g_monster_group_encounter_list); ++index) {
+        group = (W8MonsterGroup*)PListGetAt(g_monster_group_encounter_list, index);
+        if (group->monster_id == monster_id) {
+            goto found;
+        }
+    }
+    group = 0;
 
-    index = 0;
-    if (PListGetCount(g_monster_group_encounter_list) > 0) {
-        do {
-            W8MonsterGroup* group = PListGetAt(g_monster_group_encounter_list, index);
-            if (group->monster_id == monster_id) {
-                return group;
-            }
-            ++index;
-        } while (index < PListGetCount(g_monster_group_encounter_list));
-    }
-    return 0;
+found:
+    return group;
 }
 
 // FUNCTION: WIZ8 0x00510BF0

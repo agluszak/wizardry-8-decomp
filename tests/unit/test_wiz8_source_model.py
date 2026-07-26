@@ -483,7 +483,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
 
     assert len(rows) == 60
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 52
+    assert len(exact) == 53
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -519,6 +519,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         115,
         117,
         118,
+        130,
         132,
         145,
         174,
@@ -536,8 +537,8 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     assert monster_lookup["confidence"] == "structurally-strong"
     assert monster_lookup["relocation_masked_sha256"] == ""
     first_monster = next(row for row in rows if row["symbol"] == "FindFirstMonsterByID")
-    assert first_monster["confidence"] == "structurally-strong"
-    assert first_monster["relocation_masked_sha256"] == ""
+    assert first_monster["confidence"] == "exact"
+    assert first_monster["relocation_masked_sha256"]
     next_monster = next(row for row in rows if row["symbol"] == "FindNextExistingMonsterByID")
     assert next_monster["confidence"] == "structurally-strong"
     assert next_monster["relocation_masked_sha256"] == ""
