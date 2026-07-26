@@ -305,6 +305,21 @@ if(WIZ8_BUILD_DECOMP)
     )
     add_custom_target(wiz8_sr_import_library DEPENDS "${WIZ8_SR_IMPORT_LIBRARY}")
 
+    # Miles Sound System. The canonical executable imports 56 MSS32 entry points;
+    # the audio bring-up gate at 0x004086D0 calls six of them, so the import
+    # library is now built rather than deferred. Only an import library is
+    # produced - Miles itself is library code and is never modelled.
+    set(WIZ8_MSS32_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/wiz8-mss32.lib")
+    add_custom_command(
+        OUTPUT "${WIZ8_MSS32_IMPORT_LIBRARY}"
+        COMMAND lib.exe /nologo /machine:ix86
+            "/def:${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/imports/mss32.def"
+            "/out:${WIZ8_MSS32_IMPORT_LIBRARY}"
+        DEPENDS src/wiz8/imports/mss32.def
+        VERBATIM
+    )
+    add_custom_target(wiz8_mss32_import_library DEPENDS "${WIZ8_MSS32_IMPORT_LIBRARY}")
+
     # Bring-up is intentionally a separate link surface. The recovered source
     # still has unresolved first-party globals and callees, so /FORCE:UNRESOLVED
     # lets LINK produce an inspectable PE/PDB without adding fake bodies to the
@@ -316,7 +331,7 @@ if(WIZ8_BUILD_DECOMP)
     if(TARGET WIZ8_ZLIB_WRAPPERS)
         target_sources(WIZ8_BRINGUP PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
     endif()
-    add_dependencies(WIZ8_BRINGUP wiz8_sr_import_library)
+    add_dependencies(WIZ8_BRINGUP wiz8_sr_import_library wiz8_mss32_import_library)
     target_compile_options(WIZ8_BRINGUP PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_BRINGUP PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
     target_include_directories(WIZ8_BRINGUP PRIVATE include)
@@ -328,15 +343,16 @@ if(WIZ8_BUILD_DECOMP)
     # actually imports beyond the VC6 defaults (KERNEL32 and, via /MD, MSVCRT
     # and MSVCP60); do not copy Imperialism's winmm/vfw/DirectSound/DirectPlay
     # list because Wiz8.exe does not import it. MSS32 (Miles) and BINKW32 (Bink)
-    # are imported by the canonical executable too, but no recovered source
-    # references them yet, so they are deliberately not linked until something
-    # needs them. zlib is linked as a real library so inflate* resolves from
+    # BINKW32 (Bink) is imported by the canonical executable too, but no
+    # recovered source references it yet, so it stays unlinked until something
+    # needs it. MSS32 (Miles) is now linked: the audio bring-up gate calls it. zlib is linked as a real library so inflate* resolves from
     # pinned upstream source instead of a stub.
     target_link_libraries(WIZ8_BRINGUP PRIVATE
         ddraw.lib
         gdi32.lib
         user32.lib
         "${WIZ8_SR_IMPORT_LIBRARY}"
+        "${WIZ8_MSS32_IMPORT_LIBRARY}"
     )
     if(TARGET WIZ8_ZLIB_1_0_4)
         target_link_libraries(WIZ8_BRINGUP PRIVATE WIZ8_ZLIB_1_0_4)

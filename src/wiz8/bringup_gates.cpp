@@ -50,7 +50,7 @@ extern unsigned char Function421BB0(void* instance, int show_command,
                                                                  unsigned int, long));
 extern void* Function407EC0(void);
 
-extern unsigned char Function4086D0(void);
+
 extern unsigned char Function4E2F40(void);
 extern unsigned int g_mswheel_roll_message;
 extern bool g_flag_6505a9;
@@ -217,6 +217,87 @@ extern unsigned char gfLoadAtStartup;
 extern unsigned char gfUsingBoundsChecker;
 extern unsigned char gfCapturingVideo;
 extern char* gzStringDataOverride;
+
+/* Miles Sound System, declared __stdcall so the decorated names match the
+   import library built from Wiz8.exe's own import table. Miles is library code
+   and is linked, never modelled. */
+extern "C" {
+int __stdcall AIL_enumerate_3D_providers(int* next, int* destination, char** name);
+int __stdcall AIL_open_3D_provider(int provider);
+int __stdcall AIL_open_3D_listener(int provider);
+void __stdcall AIL_close_3D_provider(int provider);
+void __stdcall AIL_set_3D_position(int listener, float x, float y, float z);
+int __stdcall AIL_3D_provider_attribute(int provider, const char* name, void* value);
+}
+
+extern unsigned char Function409C50(void);
+extern unsigned char g_flag_650e50;
+extern unsigned char g_flag_5ff651;
+extern unsigned char g_flag_5ff652;
+extern void* g_pointer_5ff648;
+extern unsigned char g_block_6e4120[0x980];
+extern unsigned char g_block_6e4aa0[0x6c00];
+extern int g_dword_650e4c;
+extern int g_dword_5ff64c;
+extern char* g_provider_name_650e54;
+extern int g_provider_650e58;
+extern int g_listener_650e5c;
+extern unsigned char g_buffer_7dc000[];
+
+// FUNCTION: WIZ8 0x004086D0
+/* Walks the Miles 3D providers for the one whose name matches the configured
+   string, opens it and its listener, and records whether the provider exposes
+   EAX environment selection. Any failure leaves the subsystem closed and still
+   reports success, so audio never blocks bring-up. */
+bool Function4086D0(void)
+{
+    int next;
+    int provider;
+    char* name;
+    int attribute;
+
+    if (g_flag_650e50) {
+        g_flag_650e50 = 0;
+    }
+    memset(g_block_6e4120, 0, sizeof(g_block_6e4120));
+    if (g_flag_5ff651 && Function409C50()) {
+        g_flag_650e50 = 1;
+    }
+    g_pointer_5ff648 = g_buffer_7dc000;
+    memset(g_block_6e4aa0, 0, sizeof(g_block_6e4aa0));
+    g_dword_650e4c = 0;
+    g_dword_5ff64c = 0x1f5800;
+    if (g_provider_name_650e54 && g_provider_650e58 == 0) {
+        next = 0;
+        provider = 0;
+        if (g_flag_650e50 && g_provider_name_650e54) {
+            do {
+                do {
+                    if (AIL_enumerate_3D_providers(&next, &provider, &name) == 0) {
+                        return true;
+                    }
+                } while (provider == 0);
+            } while (strcmp(g_provider_name_650e54, name) != 0);
+            if (AIL_open_3D_provider(provider) == 0) {
+                g_provider_650e58 = provider;
+                g_listener_650e5c = AIL_open_3D_listener(provider);
+                if (g_listener_650e5c == 0) {
+                    AIL_close_3D_provider(g_provider_650e58);
+                    return true;
+                }
+                if (g_flag_650e50) {
+                    AIL_set_3D_position(g_listener_650e5c, 0, 0, 0);
+                }
+                AIL_3D_provider_attribute(g_provider_650e58, "EAX environment selection",
+                                          &attribute);
+                if (attribute != -1) {
+                    g_flag_5ff652 = 1;
+                }
+            }
+        }
+    }
+    return true;
+}
 
 // FUNCTION: WIZ8 0x00401950
 /* Switches are matched by prefix with _strnicmp, so each comparison carries its

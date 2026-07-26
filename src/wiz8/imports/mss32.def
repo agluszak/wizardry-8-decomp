@@ -1,0 +1,65 @@
+LIBRARY MSS32
+
+; Miles Sound System. Every name here is taken from Wiz8.exe's own import
+; table, so the surface is exactly what the canonical executable imports and
+; nothing is invented. The exports are __stdcall and carry their argument-byte
+; suffix; recovered source must declare them __stdcall for the decorated name
+; to match. Only an import library is produced - no Miles code is modelled.
+
+EXPORTS
+    _AIL_3D_provider_attribute@12
+    _AIL_3D_sample_playback_rate@4
+    _AIL_3D_sample_status@4
+    _AIL_3D_sample_volume@4
+    _AIL_allocate_3D_sample_handle@4
+    _AIL_allocate_sample_handle@4
+    _AIL_close_3D_provider@4
+    _AIL_close_digital_driver@4
+    _AIL_close_stream@4
+    _AIL_digital_configuration@16
+    _AIL_enumerate_3D_providers@12
+    _AIL_init_sample@
+    _AIL_last_error@0
+    _AIL_mem_alloc_lock@4
+    _AIL_mem_free_lock@4
+    _AIL_open_3D_listener@4
+    _AIL_open_3D_provider@4
+    _AIL_open_digital_driver@16
+    _AIL_open_stream@12
+    _AIL_release_3D_sample_handle@4
+    _AIL_release_sample_handle@4
+    _AIL_sample_ms_position@12
+    _AIL_sample_playback_rate@4
+    _AIL_sample_status@4
+    _AIL_sample_volume@4
+    _AIL_service_stream@8
+    _AIL_set_3D_orientation@28
+    _AIL_set_3D_position@16
+    _AIL_set_3D_provider_preference@12
+    _AIL_set_3D_sample_distances@12
+    _AIL_set_3D_sample_file@8
+    _AIL_set_3D_sample_loop_count@8
+    _AIL_set_3D_sample_playback_rate@8
+    _AIL_set_3D_sample_volume@8
+    _AIL_set_3D_velocity_vector@16
+    _AIL_set_named_sample_file@20
+    _AIL_set_preference@8
+    _AIL_set_sample_loop_count@8
+    _AIL_set_sample_pan@8
+    _AIL_set_sample_playback_rate@8
+    _AIL_set_sample_volume@8
+    _AIL_set_stream_loop_count@8
+    _AIL_set_stream_pan@8
+    _AIL_set_stream_playback_rate@8
+    _AIL_set_stream_volume@8
+    _AIL_shutdown@0
+    _AIL_start_3D_sample@4
+    _AIL_start_sample@4
+    _AIL_start_stream@4
+    _AIL_startup@0
+    _AIL_stop_3D_sample@4
+    _AIL_stop_sample@4
+    _AIL_stream_ms_position@12
+    _AIL_stream_playback_rate@4
+    _AIL_stream_status@4
+    _AIL_stream_volume@4
