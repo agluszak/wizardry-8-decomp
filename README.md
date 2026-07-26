@@ -53,6 +53,12 @@ The canonical executable's recovered zlib block is documented in
 Its exact compiler-support matches are separated in
 [docs/libraries/msvc6-runtime.md](docs/libraries/msvc6-runtime.md).
 
+Names in this repository come from sources of very different authority: an exact-matching released
+SGP source function, an official cross-build boundary, a CFAgent signature seed, and a Cosmic Forge
+editor label are not interchangeable evidence. Every reviewed identity therefore records where its
+name came from and how far that may be trusted, validated against a closed vocabulary. The model is
+[docs/wiz8-evidence-model.md](docs/wiz8-evidence-model.md).
+
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
 - `build/manifests/variant-provenance.json` records how each runnable tree was assembled.

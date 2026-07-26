@@ -255,12 +255,30 @@ if(WIZ8_BUILD_DECOMP)
 endif()
 
 if(WIZ8_BUILD_DECOMP AND SGP_SOURCE)
-    add_library(WIZ8_SGP_DIRECTDRAW OBJECT "${SGP_SOURCE}/DirectDraw Calls.c")
-    target_compile_definitions(WIZ8_SGP_DIRECTDRAW PRIVATE WIZ8_PRECOMPILED_HEADERS)
-    target_include_directories(WIZ8_SGP_DIRECTDRAW PRIVATE
-        config/sgp-overlays
-        "${SGP_SOURCE}"
-    )
+    # One probe target per released SGP translation unit. Each unit gets only the
+    # WIZ8 SGP ALL.H surface its own source proves necessary, plus the shared
+    # empty builddefines.h overlay. Per-unit compile options are part of the
+    # finding: the flags recorded here are the ones that reproduce the Wizardry
+    # bodies, not a house style.
+    function(wiz8_add_sgp_unit target source overlay)
+        add_library(${target} OBJECT "${SGP_SOURCE}/${source}")
+        target_compile_definitions(${target} PRIVATE WIZ8_PRECOMPILED_HEADERS)
+        target_include_directories(${target} PRIVATE
+            "config/sgp-overlays/${overlay}"
+            config/sgp-overlays/common
+            "${SGP_SOURCE}"
+        )
+        if(ARGN)
+            target_compile_options(${target} PRIVATE ${ARGN})
+        endif()
+    endfunction()
+
+    wiz8_add_sgp_unit(WIZ8_SGP_DIRECTDRAW "DirectDraw Calls.c" directdraw)
+
+    # Random.c needs /Ob2 as well as the Pentium scheduler: Wizardry inlined
+    # Random into Chance, which plain /O2 (/Ob1) will not do. /G6 mismatches all
+    # three bodies.
+    wiz8_add_sgp_unit(WIZ8_SGP_RANDOM "Random.c" random /G5 /Ob2)
 endif()
 
 if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)

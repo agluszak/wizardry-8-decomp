@@ -25,6 +25,8 @@ recovery work.
 | `0x0042b580` | `GetLoadedLevelID` | 6 | Returns the current level identifier used by triggers, monster code, save handling, and utility paths. Its name comes from the verified CFAgent oracle. |
 | `0x00451280` | `GetWorld` | 6 | Returns the authoritative world object pointer used by 83 canonical callers. Its name comes from the verified CFAgent oracle. |
 | `0x0051b9e0` | `GetItemInHand` | 19 | Returns `-1` when the item-in-hand validity byte is clear, otherwise the item ID at offset zero of the packed 12-byte instance. Its name comes from the verified CFAgent oracle. |
+| `0x0042b410` | `GetLocationIDFromCode` | 231 | Case-insensitively searches the 47-entry table by its three-letter location code (record offset `0x64`), rejects a row whose folder name or level name is empty, and returns the index only if `0x0042A370` accepts it. Its name comes from the verified CFAgent oracle. |
+| `0x0042b500` | `LevelGetLocationCodeByID` | 76 | Copies a row's three-letter location code out to a caller buffer. Bounds-checks only the upper end, so a negative `level_id` reads before the table. Descriptive name. |
 | `0x0042b550` | `LevelGetFolderNameByID` | 33 | Bounds-checks the 47-entry level metadata table and returns its 50-byte folder-name field. The packed `0x6b` record also carries a 50-byte level name and a three-letter location code. Its name comes from the verified CFAgent oracle. |
 | `0x00444170` | `GetLocationVarIDByName` | 109 | Case-insensitively scans the location-variable name table and accepts only an entry whose parallel level-ID slot equals the currently loaded level. Its verified CFAgent name is used by 97 canonical callers. |
 | `0x00446110` | `Copy3DVector` | 25 | Converts a packed three-double source into a three-float destination and returns `this`; its name comes from the verified CFAgent oracle. |
@@ -78,6 +80,8 @@ masking COFF relocations where needed:
 | `GetLocationVarIDByName` | exact, 109/109 bytes | `d0e75111187a799a90b2c25b05469b9acd6a91b11984a5582c4bca7f35b800d9` |
 | `Copy3DVector` | exact, 25/25 bytes | `d2c6b969f7e840e9b66f67645f81ca73443a3440a6172050a5bb642d96fd1f9c` |
 | `CreateWorldItem` | exact, 179/179 bytes | `9f728370ebab904577b40d6b5b75d5ce4a963ad1eb8f57f05ddb4eef98280c94` |
+| `LevelGetLocationCodeByID` | exact, 76/76 bytes | `0a8de1a7b2ca5e8d67f1522337732bcb5fe4dc3fc33cde6051de5f9ed864240a` |
+| `GetLocationIDFromCode` | exact, 231/231 bytes | `432b1896821b8cbe7a262da430417dc336cc59f13a23bf043f9e493bed8bda2b` |
 | `SpawnItem` | exact, 103/103 bytes | `b2b9177917fde0f54d3033f2cf8deaf6ddc44fa7546707e7ecbd912f5ec9e120` |
 | `GetNPCItemListByID` | exact, 53/53 bytes | `e293f0561b674646f81354fe8f56c2a05f4ec43fa755416032def319cdfff793` |
 
@@ -188,3 +192,27 @@ just ghidra apply-wiz8-signature-fixes wiz8--gog-base--wiz8--18a74ff61c65
 `tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py` applies both corrected signatures via
 `ApplyFunctionSignatureCmd`, so a fresh analysis session (or a re-import) sees the true parameter
 counts and types instead of the standalone-decompile artifacts described above.
+
+## What `GetLocationIDFromCode` cost, and why it is worth recording
+
+The body converged only after two source-shape constraints, both of which are evidence about the
+original rather than compiler trivia:
+
+* The lookup loop has to be a separate `__inline` helper that returns `-1` on exhaustion. Writing it
+  as an inline `for` with a post-loop bound test adds a redundant `index >= 47` block; writing it
+  with a `goto` instead lets VC6 range-propagate the result and *delete* the original's retained
+  `level_id == -1` and `level_id >= 57` guards. Only the inlined-helper shape reproduces both. Those
+  two dead guards are therefore a fossil of a lookup helper Sir-Tech had factored out, and the
+  57-vs-47 mismatch says its caller was written against a larger location-ID space than the table.
+* The two emptiness checks have to be one short-circuit `||`. As separate `if`s the compiler
+  duplicates the `return -1` epilogue; the original shares a single one.
+
+Intermediate attempts measured 261, 162 and 247 bytes against the canonical 231, and the register
+allocation (`ebx` index, `esi` cursor, `edi` callee pointer) fell out on its own once the control
+flow was right. That is worth noting against the seven `structurally-strong` entries whose remaining
+gap is described as a register-role swap: at least in this case the register roles were a *symptom*
+of the control-flow shape, not an independent problem to solve.
+
+Both new functions are absent from the demo at any address, as is the already-mapped
+`LevelGetFolderNameByID`. The demo's level-table accessors are a different shape, which is
+consistent with it shipping a smaller table, and is recorded rather than treated as a failed match.

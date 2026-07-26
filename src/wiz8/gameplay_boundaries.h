@@ -56,6 +56,12 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
 
+/* Filled by 0x0042A370 from a level-table row; only its size is established
+   here, by the 0x458-byte stack frame of its sole recovered caller. */
+typedef struct W8LevelInfo {
+    unsigned char unknown_000[0x458];
+} W8LevelInfo;                           /* 0x458 */
+
 typedef struct W8MonsterGenerator {
     unsigned char unknown_00[0x24];
     char name[32];                        /* 0x24 */
@@ -225,6 +231,10 @@ unsigned char GetFact(int fact_id);
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
+unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
+int GetLocationIDFromCode(const char* location_code);
+/* 0x0042A370, not yet recovered. */
+unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 W8World* GetWorld(void);
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
