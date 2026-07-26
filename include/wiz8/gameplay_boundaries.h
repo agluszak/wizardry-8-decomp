@@ -153,7 +153,12 @@ typedef struct W8MonsterRecord {
     unsigned char unknown_1be[0x95];
     int value_253;                        /* 0x253: selected by 0x004e5b50 */
     int value_257;                        /* 0x257: alternate selected value */
-    unsigned char unknown_25b[0x10];
+    unsigned char unknown_25b[0xc];
+    /* 0x267, already carried by config/types/wiz8/gameplay_databases.h as the
+       canonical applied type; carved out here because LoadMonsterGroup skips
+       every live-group step for a record that has it set. */
+    unsigned char deleted;                /* 0x267 */
+    unsigned char unknown_268[3];
     unsigned int combat_value_override_26b; /* 0x26b: nonzero override */
     unsigned char unknown_26f[0x28];
 } W8MonsterRecord;                       /* 0x297 */
@@ -169,10 +174,30 @@ typedef struct W8MonsterGenerator {
     char name[32];                        /* 0x24 */
 } W8MonsterGenerator;
 
+/* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
+   and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
+   that loader establishes are named; the rest stays opaque. */
 typedef struct W8MonsterGroup {
-    unsigned char unknown_00[0x18];
+    unsigned char unknown_00[4];
+    int unknown_04;                       /* 0x04: cleared after the record loads */
+    struct W8IList* monsters;             /* 0x08: fresh IList per live group */
+    unsigned char unknown_0c[8];
+    int unknown_14;                       /* 0x14: cleared after the record loads */
     int monster_id;                       /* 0x18 */
-} W8MonsterGroup;
+    unsigned char unknown_1c[0xc];
+    unsigned char flag_28;                /* 0x28: cleared after the record loads */
+    unsigned char flag_29;                /* 0x29: cleared after the record loads */
+    unsigned char unknown_2a[0x79];
+    int unknown_a3;                       /* 0xa3: gates the trailing notification */
+    unsigned char unknown_a7[0x1c];
+    unsigned char flag_c3;                /* 0xc3: gates the trailing notification */
+    /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
+       byte, and below 3 it clears flag_ca that older saves never wrote. */
+    unsigned int version;                 /* 0xc4 */
+    unsigned char unknown_c8[2];
+    unsigned char flag_ca;                /* 0xca */
+    unsigned char unknown_cb[0x60];
+} W8MonsterGroup;                         /* 0x12b */
 
 /* Hand-rolled growable pointer array, instantiated once per element type. The
    executable contains 75 distinct instantiations, each with its own one-entry

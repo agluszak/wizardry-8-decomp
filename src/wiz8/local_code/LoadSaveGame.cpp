@@ -1,3 +1,5 @@
+#include "wiz8/chunk.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/save_game.h"
 #include "wiz8/virtual_file.h"
 
@@ -66,6 +68,92 @@ struct W8WorldItemOwner {
     unsigned char unknown_00[0x14];
     W8WorldEntity* entity;               /* 0x14 */
 };
+
+#define LOADSAVEGAME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp"
+
+/* 0x0050F6A0 and 0x0048C750, not yet identified; named by address as elsewhere
+   in src/wiz8. The first is told about every group that survives the load, the
+   second only about those two of its flags select. */
+extern void Function50F6A0(W8MonsterGroup* group, int unknown);
+extern void Function48C750(W8MonsterGroup* group);
+
+// FUNCTION: WIZ8 0x00513C20
+/* Reads one saved monster group and files it under the species or the encounter
+   list. The record's own size leads it, and the assertion that bounds it names
+   the record: uiSize <= sizeof(*pMonsterGroup), at line 1517 of this unit.
+
+   The size is read into the incoming parameter's stack slot. That is the same
+   dead-slot reuse SaveFactState documents: the chunk pointer is already in a
+   register by then, so its home slot is free, and the canonical spends exactly
+   four bytes of locals for the encounter flag and nothing more.
+
+   A record whose database entry is marked deleted is read and then dropped: it
+   is neither listed nor given a monster list, and the function still reports
+   success. */
+unsigned char LoadMonsterGroup(W8Chunk* chunk)
+{
+    /* The record size lands in the incoming parameter's own stack slot. The
+       chunk pointer is copied into a register first, so the slot is dead
+       scratch, and a separate local would cost four bytes of frame the
+       canonical does not spend: it opens with a one-byte push, not a sub. The
+       copy is taken after the record is cleared, not on entry, because the
+       clear itself wants the register the pointer would otherwise be sitting
+       in. */
+    unsigned int* size = (unsigned int*)&chunk;
+    W8MonsterGroup* group;
+    W8MonsterRecord* record;
+    W8Chunk* stream;
+    int index;
+    char is_encounter = 0;
+
+    group = (W8MonsterGroup*)malloc(sizeof(W8MonsterGroup));
+    if (group == 0) {
+        return 0;
+    }
+    memset(group, 0, sizeof(W8MonsterGroup));
+    stream = chunk;
+    stream->Read(size, 4, 0);
+    if (*size > sizeof(W8MonsterGroup)) {
+        srAssertFail("uiSize <= sizeof(*pMonsterGroup)", LOADSAVEGAME_CPP, 0x5ed, 0);
+    }
+    stream->Read(group, *size, 0);
+    if (group->version >= 2) {
+        stream->Read(&is_encounter, 1, 0);
+    }
+    if (group->version < 3) {
+        group->flag_ca = 0;
+    }
+    record = GetMonsterDataByID(group->monster_id);
+    if (record == 0) {
+        free(group);
+        return 0;
+    }
+    if (record->deleted == 0) {
+        group->monsters = IListCreate();
+        if (group->monsters == 0) {
+            free(group);
+            return 0;
+        }
+        group->unknown_04 = 0;
+        group->unknown_14 = 0;
+        group->flag_28 = 0;
+        group->flag_29 = 0;
+        if (is_encounter) {
+            index = PListAdd(g_monster_group_encounter_list, group);
+        } else {
+            index = PListAdd(g_monster_group_species_list, group);
+        }
+        if (index == -1) {
+            free(group);
+            return 0;
+        }
+        Function50F6A0(group, 0);
+        if (group->flag_c3 != 0 && group->unknown_a3 == 0) {
+            Function48C750(group);
+        }
+    }
+    return 1;
+}
 
 // FUNCTION: WIZ8 0x00512D00
 /* Makes sure the three save directories exist and are writable before anything
