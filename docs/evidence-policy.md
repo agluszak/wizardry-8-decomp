@@ -42,7 +42,8 @@ merely because an analysis tool consumes it; generate a compatibility input when
 - Markdown contains stable reasoning, architecture, procedures, examples, and unresolved questions.
   It does not duplicate exhaustive inventories, hashes, match percentages, or current counts.
 - Counts, percentages, ownership coverage, and status tables are generated. Do not maintain them by
-  hand in prose.
+  hand in prose. Use `just wiz8 report status`, which writes `build/reports/status.md` and
+  `status.json`.
 - YAML is for small hierarchical execution configuration, CSV is for flat canonical records, and
   JSON is for generated manifests and reports. Choose the format from the role rather than history.
 - Beads is the durable task and progress store. Do not add planning CSVs, audit JSONL, or progress

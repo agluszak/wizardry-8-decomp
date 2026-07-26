@@ -38,6 +38,8 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   be used.
 - Run the narrowest relevant checks while iterating, then the complete relevant gate before
   publishing. A successful build alone does not prove identity or behavior.
+- Use `just wiz8 report status` for current identity, match, ownership, and source-unit counts; do
+  not copy live totals into Markdown.
 - Preserve unrelated changes in the shared workspace. Inspect `jj status` before and after work,
   and stage nothing implicitly because Jujutsu snapshots the whole working copy. In a shared
   checkout, run `jj status` immediately after a meaningful edit batch so a concurrent workspace

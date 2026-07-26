@@ -604,3 +604,11 @@ def report_translation_units() -> None:
     from .reports.translation_units import translation_unit_report
 
     _run_action(lambda: translation_unit_report(_settings()))
+
+
+@report_app.command("status")
+def report_status() -> None:
+    """Summarize canonical identities, ownership, matching, and source-unit coverage."""
+    from .reports.status import status_report
+
+    _run_action(lambda: status_report(_settings()))

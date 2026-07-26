@@ -64,40 +64,25 @@ consistent with the executable's mixed 8447/8168/9044 Rich records and the unava
 
 ## Recovered Wizardry boundary
 
-The five game-owned functions are now compilable C in `src/wiz8/zlib_wrappers.c`. The pinned SGP
+The game-owned boundary functions are compilable C in `src/wiz8/zlib_wrappers.c`. The pinned SGP
 initial import contains this same boundary in `sgp/Compression.c`, so these are source-backed
-original names rather than descriptive placeholders:
-
-| Address | Recovered function | Behavior |
-| --- | --- | --- |
-| `0x00415820` | `ZAlloc` | multiply `items * size`, call imported `malloc` |
-| `0x00415840` | `ZFree` | ignore the opaque context, call imported `free` |
-| `0x00415850` | `DecompressInit` | allocate a `0x38`-byte `z_stream`, install callbacks, call `inflateInit_`, and retain the caller's input span |
-| `0x004158B0` | `Decompress` | set the output span, call `inflate(..., Z_PARTIAL_FLUSH)`, and return bytes produced |
-| `0x004158F0` | `DecompressFini` | call `inflateEnd` and free the stream |
+original names rather than descriptive placeholders. The boundary installs CRT allocation
+callbacks, constructs the zlib stream, retains the caller's input span, performs partial-flush
+decompression, and tears the stream down.
 
 `just build WIZ8_ZLIB_WRAPPERS` compiles this source with the pinned VC6 SP5 `/O2 /MD` toolchain
-against the pristine zlib 1.0.4 headers. Masking only COFF relocation fields, every resulting body
-is byte-exact against the canonical executable:
-
-| Function | Size | Relocation-normalized SHA-256 |
-| --- | ---: | --- |
-| `ZAlloc` | 20 | `700a399b5e19bf990286dbd979f67666bb7c07081a2d2a680c6ef64208752ea0` |
-| `ZFree` | 13 | `63e4417e0067e692fa73a952f0d05010d0cb3de2aa0a70158e4b77ab2ede7f80` |
-| `DecompressInit` | 92 | `f014577ffe8c54f5ee596331f0d946e2744bf4c06cd9e49f334686879dc7a84e` |
-| `Decompress` | 52 | `08c5436c2c1a757aa99d8640d853437ba2676511d87433c084e9de962812c516` |
-| `DecompressFini` | 23 | `1a71a7db964a267e97b227a93fb0c56369eecb9619d248ffbc31d9ecf4400234` |
+against the pristine zlib 1.0.4 headers. Relocation-normalized classifications and hashes live in
+the canonical matching data rather than this document.
 
 ## Applied Ghidra model
 
-`uv run wiz8 ghidra apply-functions ... --map evidence/reviewed/wiz8/functions.csv` creates the
-28 starts missed by the initial canonical analysis and applies all 51 reviewed identities. The two
-additional starts beyond the earlier census are the Wizardry allocator callbacks.
+`uv run wiz8 ghidra apply-functions ... --map evidence/reviewed/wiz8/functions.csv` creates missing
+starts and applies the reviewed identities.
 
 `uv run wiz8 ghidra apply-zlib-model` installs the exact 32-bit release-1.0.4 layouts for
 `z_stream`, the `0x18`-byte inflate state, the `0x3C`-byte block state, the `0x1C`-byte code state,
 the eight-byte `inflate_huft`, the four-byte `ct_data`, and the 12-byte `tree_desc`. It applies
-source-derived `__cdecl` prototypes to all 46 zlib functions and all five Wizardry boundary
-functions. As a result, the decompiler now renders `stream->next_in`, `avail_in`, `next_out`,
+source-derived `__cdecl` prototypes to the zlib and Wizardry boundary functions. As a result, the
+decompiler now renders `stream->next_in`, `avail_in`, `next_out`,
 `avail_out`, allocator callbacks, and private inflate-state fields directly rather than anonymous
 word offsets.

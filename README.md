@@ -38,6 +38,7 @@ just build-image
 just build
 just compare
 just compare --verbose 0x10001000
+just wiz8 report status
 just test
 ```
 
