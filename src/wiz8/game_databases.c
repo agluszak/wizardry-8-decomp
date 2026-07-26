@@ -14,6 +14,12 @@ extern int FileOpen(const char* path, int mode, int flags);
 extern void* operator_new_import_thunk(unsigned int size);
 extern void* Function5E22C0(void);
 extern void Function5E2530(void* list, unsigned int index, void* element);
+/* 0x0052DB80 is a member function of the object at 0x00683FD7. VC6 has no way
+   to spell __thiscall on a free declaration, but __fastcall passes its first
+   argument in ECX, which is the same instruction the canonical emits.
+   0x0054B300 resets one of eight slots. */
+extern void __fastcall Function52DB80(void* self);
+extern void Function54B300(unsigned int slot);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
 extern void Function4E8290(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
@@ -372,4 +378,25 @@ void ResetPartySlotRow(int slot)
     row->unknown_075 = 0;
     row->flag_0d0 = 0xff;
     Function4E8290(slot, 0, -1);
+}
+
+// FUNCTION: WIZ8 0x0054B080
+void ResetGameplayStatusBlock(void)
+{
+    memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
+    Function52DB80(g_object_683fd7);
+    g_flag_6850b5 = 0;
+    g_flag_683fc5 = 0;
+}
+
+// FUNCTION: WIZ8 0x0054B2D0
+void ResetTargetingState(void)
+{
+    unsigned int slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        Function54B300(slot);
+    }
+    g_target_state_6840b3 = -1;
+    g_target_state_6840b7 = -1;
 }

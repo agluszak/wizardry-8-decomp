@@ -291,6 +291,21 @@ extern int g_item_record_count;
    fields of one gXStatus structure rather than separate globals; they are kept
    separate here until that structure is recovered. */
 extern unsigned int g_monster_record_count;
+/* Two gXStatus members named by the MonsterManager.cpp assertions at lines 92
+   and 93. Recovering the whole structure is tracked separately; until then its
+   members stay separate externs. */
+extern W8PList* g_monster_list;               /* gXStatus.plsMonsterList */
+extern W8PList* g_monster_group_list;         /* gXStatus.plsMonsterGroupList */
+/* Reset together by ResetGameplayStatusBlock; their meaning is not established,
+   so they keep address-positional names. The object at 0x00683FD7 is torn down
+   by 0x0054B0B0 through operator delete after the same method's sibling. */
+extern unsigned char g_status_block_685078[56];
+extern void* g_object_683fd7;
+extern unsigned char g_flag_6850b5;
+extern unsigned char g_flag_683fc5;
+/* Written by Targeting.cpp and reset to -1 here; meaning not established. */
+extern int g_target_state_6840b3;
+extern int g_target_state_6840b7;
 extern W8NpcDatabaseRecord* g_npc_records;
 extern unsigned int g_npc_record_count;
 extern W8ItemTableRecord** g_item_tables;
@@ -414,6 +429,9 @@ void FreeIfNotNull(void* block);
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status);
 void FreeStatusBuffers(W8StatusBuffers* status);
 void ResetPartySlotRow(int slot);
+void ResetGameplayStatusBlock(void);
+void ResetTargetingState(void);
+void DestroyGameplayObjects(void);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);

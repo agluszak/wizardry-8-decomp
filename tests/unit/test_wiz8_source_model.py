@@ -605,9 +605,9 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 88
+    assert len(rows) == 91
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 83
+    assert len(exact) == 86
     assert {int(row["size"]) for row in exact} == {
         6,
         7,
@@ -631,6 +631,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
         57,
         60,
         61,
+        65,
         66,
         70,
         71,
@@ -733,6 +734,7 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
             "src/wiz8/chunk_io.cpp",
             "src/wiz8/fact_state.c",
             "src/wiz8/game_databases.c",
+            "src/wiz8/gameplay_teardown.cpp",
             "src/wiz8/gameplay_boundaries.c",
             "src/wiz8/location_variables.c",
             "src/wiz8/local_code/UtilityFunctions.cpp",

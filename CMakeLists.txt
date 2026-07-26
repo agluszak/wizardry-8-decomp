@@ -258,6 +258,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/grcycle_behaviour.cpp
         src/wiz8/fact_state.c
         src/wiz8/game_databases.c
+        src/wiz8/gameplay_teardown.cpp
         src/wiz8/ilist.c
         src/wiz8/item_tables.c
         src/wiz8/item_mesh.cpp
