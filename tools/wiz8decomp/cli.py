@@ -555,6 +555,20 @@ def polymorphism_command(
     _run_action(lambda: sweep_polymorphism(_settings(), update_snapshot=update_snapshot))
 
 
+@app.command("globals")
+def globals_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+) -> None:
+    """Census global variables and their references from the relocation table."""
+    from .data_globals import sweep_globals
+
+    _run_action(lambda: sweep_globals(_settings(), update_snapshot=update_snapshot))
+
+
 @sgp_app.command("sweep")
 def sgp_sweep(
     unit: list[str] | None = typer.Option(

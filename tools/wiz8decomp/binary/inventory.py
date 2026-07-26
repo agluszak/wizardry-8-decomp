@@ -4,6 +4,7 @@ import csv
 import io
 import json
 from collections import defaultdict
+from collections.abc import Callable
 from typing import Any
 
 from ..config import Settings
@@ -38,6 +39,47 @@ def classify_module(module: dict[str, Any]) -> tuple[str, list[str]]:
         reasons.append("setup/configuration executable naming")
         return "setup", reasons
     return "unclassified", ["no curated classification rule matched"]
+
+
+def representative_modules(
+    settings: Settings, predicate: Callable[[dict[str, Any]], bool]
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
+    """One module per distinct payload, preferring the canonical variant.
+
+    Several variants ship byte-identical modules. Emitting each would multiply
+    every row without adding an observation, and attributing rows to whichever
+    variant happened to sort first would bury the canonical matching target under
+    an incidental name. Returns the chosen modules and the aliases collapsed.
+    """
+    import yaml
+
+    from ..ghidra.project import program_name
+
+    modules = [module for module in load_inventory(settings)["modules"] if predicate(module)]
+    if not modules:
+        raise RuntimeError("no matching modules in the inventory; run 'wiz8 inventory' first")
+    canonical = yaml.safe_load(
+        (settings.repo_dir / "config" / "variants.yml").read_text(encoding="utf-8")
+    )["canonical_matching_target"]["variant"]
+
+    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for module in modules:
+        groups[module["sha256"]].append(module)
+    chosen: list[dict[str, Any]] = []
+    aliases: dict[str, str] = {}
+    for members in groups.values():
+        members.sort(
+            key=lambda item: (item["variant"] != canonical, item["variant"], item["relative_path"])
+        )
+        chosen.append(members[0])
+        for other in members[1:]:
+            aliases[program_name(other)] = program_name(members[0])
+    chosen.sort(key=lambda item: (item["variant"], item["relative_path"]))
+    return chosen, dict(sorted(aliases.items()))
+
+
+def is_first_party(module: dict[str, Any]) -> bool:
+    return module.get("classification") == "first-party-game"
 
 
 def _module_diff(modules: list[dict[str, Any]]) -> dict[str, Any]:

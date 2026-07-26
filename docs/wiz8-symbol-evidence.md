@@ -110,6 +110,28 @@ Slot kinds are read rather than guessed. `_purecall` is resolved through the imp
 pure-virtual slots need no per-build address, and a slot pointing at a jump thunk is reported with the
 demangled library method the class inherited.
 
+### Global variables - `evidence/snapshots/globals/`
+
+The same relocation table enumerates every global reference, because an absolute address appears in
+code only if the loader fixes it up. A reference the table does not list is not a global reference,
+which is what makes this exhaustive rather than pattern-matched.
+
+The reference carries type evidence the address alone does not. The instruction's operand size is the
+variable's width; whether the operand is read, written, or only taken as an address separates a
+scalar from an array or structure; and the distance to the next referenced global bounds the extent
+from above. A global with one consistent width and at least one write is a scalar whose size is
+known.
+
+Most of the game's mutable state lives in the uninitialised tail of `.data`, past the bytes the file
+stores. Those are ordinary globals with no initialiser, reported as `storage = bss` rather than
+dropped as unmapped - which is what a scan restricted to file-backed bytes would do.
+
+Import-table slots are classified separately. They are global pointers, but the loader's rather than
+the game's, and their reference counts measure calls to a library function.
+
+The per-reference list is a generated report under `build/`, not a tracked artifact: it is an order
+of magnitude larger than the per-global table and is derived from the same run.
+
 ## What these channels cannot do
 
 * They do not recover first-party class *names*. No Wiz8 class name survives anywhere in the image:

@@ -75,6 +75,49 @@ def instruction_covering(image: PeImage, engine: Any, operand: int, span: int = 
     return None
 
 
+def sweep_text(image: PeImage, engine: Any) -> list[Any]:
+    """Every instruction in `.text`, decoded by a resynchronising linear sweep.
+
+    A plain sweep stops at the first jump table or alignment blob embedded in the
+    code and then reports a few thousand instructions for a two-megabyte section.
+    Restarting one byte past each failure recovers the stream, which is what
+    makes a single pass cheaper than decoding backwards from tens of thousands of
+    individual operands.
+    """
+    section = image.text
+    data = image.read(section.virtual_address, section.raw_size)
+    instructions: list[Any] = []
+    cursor = 0
+    limit = len(data)
+    while cursor < limit:
+        produced = 0
+        for instruction in engine.disasm(data[cursor:], section.virtual_address + cursor):
+            instructions.append(instruction)
+            produced += instruction.size
+        cursor += produced + 1 if produced else 1
+    return instructions
+
+
+def covering_index(instructions: list[Any]) -> tuple[list[int], list[Any]]:
+    """A bisectable index from any address to the instruction covering it."""
+    ordered = sorted(instructions, key=lambda item: item.address)
+    return [item.address for item in ordered], ordered
+
+
+def lookup_covering(
+    starts: list[int], ordered: list[Any], address: int, span: int = 4
+) -> Any | None:
+    import bisect
+
+    index = bisect.bisect_right(starts, address) - 1
+    if index < 0:
+        return None
+    instruction = ordered[index]
+    if instruction.address <= address and instruction.address + instruction.size >= address + span:
+        return instruction
+    return None
+
+
 def function_start(image: PeImage, address: int) -> int | None:
     """The entry point of the function containing ``address``.
 

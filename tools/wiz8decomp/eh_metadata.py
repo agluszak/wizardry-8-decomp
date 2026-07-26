@@ -26,11 +26,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from .binary.demangle import demangle
 from .binary.image import PeImage
-from .binary.inventory import load_inventory
+from .binary.inventory import is_first_party, representative_modules
 from .config import Settings
 from .ghidra.project import program_name
 from .paths import atomic_write
@@ -371,41 +369,10 @@ name where the build kept one. These are the only surviving MSVC type descriptor
 """
 
 
-def _representative_modules(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, str]]:
-    """One module per distinct payload, preferring the canonical variant.
-
-    Several variants ship byte-identical executables. Emitting each one would
-    multiply every row without adding an observation, and attributing the rows
-    to whichever variant happened to sort first would bury the canonical
-    matching target under an incidental name.
-    """
-    modules = [
-        module
-        for module in load_inventory(settings)["modules"]
-        if module.get("classification") == "first-party-game"
-    ]
-    if not modules:
-        raise RuntimeError("no first-party-game modules in the inventory; run 'wiz8 inventory' first")
-    canonical = yaml.safe_load(
-        (settings.repo_dir / "config" / "variants.yml").read_text(encoding="utf-8")
-    )["canonical_matching_target"]["variant"]
-
-    groups: dict[str, list[dict[str, Any]]] = {}
-    for module in modules:
-        groups.setdefault(module["sha256"], []).append(module)
-    chosen: list[dict[str, Any]] = []
-    aliases: dict[str, str] = {}
-    for members in groups.values():
-        members.sort(key=lambda item: (item["variant"] != canonical, item["variant"], item["relative_path"]))
-        chosen.append(members[0])
-        for other in members[1:]:
-            aliases[program_name(other)] = program_name(members[0])
-    chosen.sort(key=lambda item: (item["variant"], item["relative_path"]))
-    return chosen, dict(sorted(aliases.items()))
 
 
 def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> dict[str, Any]:
-    modules, aliases = _representative_modules(settings)
+    modules, aliases = representative_modules(settings, is_first_party)
 
     function_rows: list[dict[str, Any]] = []
     unwind_rows: list[dict[str, Any]] = []

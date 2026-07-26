@@ -93,7 +93,7 @@ No Wiz8 build carries debug information, and the game was linked without RTTI, s
 evidence comes from what survived anyway: C++ exception metadata, the SurRender export tables, and
 the literals passed to diagnostic calls. What each of those channels can and cannot establish is
 [docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md); `wiz8 eh-metadata`,
-`wiz8 surrender-abi`, `wiz8 call-sites` and `wiz8 polymorphism` produce them.
+`wiz8 surrender-abi`, `wiz8 call-sites`, `wiz8 polymorphism` and `wiz8 globals` produce them.
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 
