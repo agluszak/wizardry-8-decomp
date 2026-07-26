@@ -3,6 +3,7 @@ import csv
 from collections import Counter
 from pathlib import Path
 
+from wiz8decomp.ghidra.reviewed_class_model import load_reviewed_class_model
 from wiz8decomp.provenance import validate_provenance
 
 
@@ -313,18 +314,15 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
         assert by_name[name]["base_classes"]
         assert by_name[name]["base_name_origin"] == "original-export"
     grcycle = by_name["GrCycle"]
-    assert grcycle["vtable"] == "005ece78"
-    assert grcycle["slots"] == "16"
+    assert grcycle["primary_vtable_id"] == "GrCycle.primary"
     assert grcycle["constructor"] == "004a5e50"
     assert grcycle["destructor"] == "004a6610"
     assert grcycle["scalar_deleting_destructor"] == "004a5f00"
     assert grcycle["minimum_size"] == "0x1d8"
-    assert grcycle["secondary_vtables"] == "005eceb8@0x18:13"
     assert grcycle["source_path"] == "Engine Code\\GrCycle.cpp"
     assert "Primary slots 4 and 11 directly reference the exact source path" in grcycle["evidence"]
     monster = by_name["Monster"]
-    assert monster["vtable"] == "005ed200"
-    assert monster["slots"] == "31"
+    assert monster["primary_vtable_id"] == "Monster.primary"
     assert monster["constructor"] == "004bea20"
     assert monster["destructor"] == "004bee50"
     assert monster["scalar_deleting_destructor"] == "004beba0"
@@ -332,14 +330,47 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     assert monster["source_path"] == "Engine Code\\Monster.cpp"
     assert "Slots 5 12 and 26 directly reference the exact source path" in monster["evidence"]
     dialog = by_name["MonsterInfoDialog"]
-    assert dialog["vtable"] == "005ef910"
-    assert dialog["slots"] == "14"
+    assert dialog["primary_vtable_id"] == "MonsterInfoDialog.primary"
     assert dialog["constructor"] == "005d5e30"
     assert dialog["destructor"] == "005d5f00"
     assert dialog["scalar_deleting_destructor"] == "005d5ee0"
     assert dialog["minimum_size"] == "0x130"
     assert dialog["source_path"] == "Dialog Code\\MonsterInfoDialog.cpp"
     assert "Slot 3 directly references the exact source path" in dialog["evidence"]
+
+
+def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    model = load_reviewed_class_model(repository, "wiz8")
+
+    assert len(model.classes) == 9
+    assert len(model.vtables) == 10
+    assert len(model.slots) == 74
+    assert len(model.fields) == 16
+
+    vtables = {item.vtable_id: item for item in model.vtables}
+    assert vtables["GrCycle.primary"].address == 0x005ECE78
+    assert vtables["GrCycle.primary"].slot_count == 16
+    assert vtables["GrCycle.secondary_0x18"].subobject_offset == 0x18
+    assert vtables["Monster.primary"].slot_count == 31
+    assert vtables["MonsterInfoDialog.primary"].slot_count == 14
+
+    monster_fields = [field for field in model.fields if field.class_name == "Monster"]
+    assert [(field.offset, field.size) for field in monster_fields] == [
+        (0x0, 0x4),
+        (0x4, 0xA8),
+        (0xAC, 0x1B0),
+        (0x25C, 0x1B0),
+        (0x40C, 0x1B0),
+        (0x5BC, 0x6C),
+    ]
+
+    apply_script = (
+        repository / "tools/wiz8decomp/ghidra/apply_wiz8_class_model.py"
+    ).read_text(encoding="utf-8")
+    assert "0x005ECE78" not in apply_script.upper()
+    assert "GR_CYCLE_TARGETS" not in apply_script
+    assert "MONSTER_TARGETS" not in apply_script
 
 
 def test_reviewed_cross_build_map_is_separate_and_explicit() -> None:
