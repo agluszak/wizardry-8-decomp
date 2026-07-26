@@ -6,11 +6,12 @@ extern __declspec(dllimport) void srAssertFail(
     int line,
     const char* message);
 
-extern "C" int ReadVirtualFile(int handle, void* buffer, unsigned int size, unsigned int* done);
+extern "C" unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
+                                         unsigned int* done);
 /* 0x00404FB0: the write counterpart of ReadVirtualFile, sitting between it and
    SeekVirtualFile in the same virtual-file family. Descriptive name. */
-extern "C" int WriteVirtualFile(int handle, const void* buffer, unsigned int size,
-                                unsigned int* done);
+extern "C" unsigned char WriteVirtualFile(int handle, const void* buffer, unsigned int size,
+                                          unsigned int* done);
 
 #define CHUNK_CPP "C:\\Projects\\Wizardry 8\\Local Code\\chunk.cpp"
 
@@ -21,15 +22,15 @@ struct W8Chunk {
     int m_hFile;                            /* 0x00 */
     unsigned char m_fWriting;               /* 0x04 */
 
-    int Read(void* buffer, unsigned int size, unsigned int* transferred);
-    int Write(const void* buffer, unsigned int size, unsigned int* transferred);
+    unsigned char Read(void* buffer, unsigned int size, unsigned int* transferred);
+    unsigned char Write(const void* buffer, unsigned int size, unsigned int* transferred);
 };
 
 // FUNCTION: WIZ8 0x0055CA20
-int W8Chunk::Read(void* buffer, unsigned int size, unsigned int* transferred)
+unsigned char W8Chunk::Read(void* buffer, unsigned int size, unsigned int* transferred)
 {
     unsigned int done;
-    int result;
+    unsigned char result;
 
     if (m_fWriting) {
         srAssertFail("!m_fWriting", CHUNK_CPP, 0x280, 0);
@@ -42,10 +43,10 @@ int W8Chunk::Read(void* buffer, unsigned int size, unsigned int* transferred)
 }
 
 // FUNCTION: WIZ8 0x0055CA80
-int W8Chunk::Write(const void* buffer, unsigned int size, unsigned int* transferred)
+unsigned char W8Chunk::Write(const void* buffer, unsigned int size, unsigned int* transferred)
 {
     unsigned int done;
-    int result;
+    unsigned char result;
 
     if (!m_fWriting) {
         srAssertFail("m_fWriting", CHUNK_CPP, 0x29d, 0);

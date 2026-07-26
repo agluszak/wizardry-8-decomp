@@ -121,6 +121,8 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     # stLight is named by the runtime class registry and corroborated by a source path.
     assert by_name["stLight"]["source_path"] == "Engine Code\\Include\\stLight.hpp"
     assert "0x10006" in by_name["stLight"]["evidence"]
+    assert by_name["VirtualFileBinIStream"]["layout_proof"].startswith("0047d5c0")
+    assert not by_name["MonsterLight"]["layout_proof"]
     for name in ("VirtualFileBinIStream", "MonsterLight"):
         assert by_name[name]["source_path"] == ""
         assert by_name[name]["base_classes"]
@@ -339,9 +341,9 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
     ) as stream:
         rows = list(csv.DictReader(stream))
 
-    assert len(rows) == 46
+    assert len(rows) == 47
     exact = [row for row in rows if row["confidence"] == "exact"]
-    assert len(exact) == 39
+    assert len(exact) == 40
     assert {int(row["size"]) for row in exact} == {
         6,
         12,
@@ -351,6 +353,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
         25,
         26,
         33,
+        40,
         47,
         50,
         53,
@@ -418,6 +421,7 @@ def test_initial_owned_wiz8_boundaries_are_exact() -> None:
             "src/wiz8/targeting.c",
             "src/wiz8/state_getters.c",
             "src/wiz8/vector_conversions.cpp",
+            "src/wiz8/virtual_file_stream.cpp",
             "src/wiz8/octree_loading.cpp",
             "src/wiz8/world_props.cpp",
         )

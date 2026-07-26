@@ -36,6 +36,7 @@ Ranked by how often it has been the answer here:
 | Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
 | Dead guards missing | `goto` let VC6 range-propagate and delete them | same fix — an inlined helper keeps the value opaque |
 | Registers clear in the wrong order | declaration/initialization order | reorder the initializers |
+| `neg eax` where canonical has `neg al` | callee's **return type** is byte-sized, not `int` | narrow the extern declaration |
 
 Iterating on shape is normal. Sizes of 261 → 162 → 247 → 231 before an exact match happened here.
 
@@ -88,6 +89,18 @@ Search the encoding instead:
 
 **Function extents.** Inter-function padding is a run of `0x90`. Scan backwards for two consecutive
 `0x90` to find a start, forwards to find an end. Reliable here, unlike linear sweep.
+
+## The SurRender class registry
+
+SurRender classes carry two registry slots: a virtual `getClassName` returning a literal string and a
+virtual `getClassID` returning a constant. Reading them identifies a class with no RTTI at all, and
+the ID ranges separate the codebases — Wizardry-registered classes use `0x10000` and up, SurRender's
+own sit near `0x1200`–`0x3110`. `srClassSupport<Iface, Node, 0, ID>` in a mangled base name carries
+the same ID.
+
+A class-registry name is `original-runtime-string` evidence. Treat it as the class's own name only
+when the getter belongs to that class's vtable: a Wizardry class may register under a SurRender base
+name to present itself to the scene graph.
 
 ## Class structure without RTTI
 

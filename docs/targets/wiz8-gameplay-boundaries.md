@@ -45,6 +45,7 @@ recovery work.
 | `0x0053bf10` | `TargetSourceIsMonster` | 110 | The monster sibling of the above. |
 | `0x005d6e60` | `MonsterInfoDialog::ClearField41IfEnabled` | 12 | Primary vtable slot 12. Layout proof for fields at `0x41` and `0x50`; the unit has no assertions, so the names are positional. |
 | `0x005dbde0` | `MonsterInfoDialog::ResetSubobjectAndRefresh` | 20 | Primary vtable slot 2. Proves the `0x58` subobject offset. |
+| `0x0047d5c0` | `VirtualFileBinIStream::Read` | 40 | Primary vtable slot 1; reads through the SLF layer, reusing its own `size` parameter slot as the completed-count out-parameter. Layout proof for the handle at `+8`. |
 | `0x0055ca20` | `Chunk::Read` | 82 | Reads through the virtual-file layer, asserting the chunk is not in writing mode, and optionally reports the completed count. Layout proof for `W8Chunk`. |
 | `0x0055ca80` | `Chunk::Write` | 82 | The mirror of the above; its callee identifies `WriteVirtualFile` at `0x00404FB0`. |
 | `0x004a8460` | `GrCycle::SetBehaviour` | 57 | Validates a behaviour against `BEHAVIOUR_FIRST`/`BEHAVIOUR_LAST` and stores it on the object returned by primary vtable slot 9. Proves the slot-9 vtable offset; establishes no `GrCycle` data member. |

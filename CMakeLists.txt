@@ -254,6 +254,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/targeting.c
         src/wiz8/state_getters.c
         src/wiz8/vector_conversions.cpp
+        src/wiz8/virtual_file_stream.cpp
         src/wiz8/octree_loading.cpp
         src/wiz8/world_props.cpp
     )
