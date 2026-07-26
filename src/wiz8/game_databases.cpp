@@ -498,3 +498,79 @@ void Function54AF30(unsigned char release)
     memset(g_status_685170.buffers.buffer_04, 0, 0xc310);
     memset(g_status_685170.buffers.buffer_08, 0, 0x830);
 }
+
+/* Reads MONSTERS.DBS whole: the count into gXStatus, then - only when the
+   caller wants them - every record into one allocation handed back through the
+   out-parameter. Function4E2F40 calls it with null just to publish the count. */
+// FUNCTION: WIZ8 0x0054A760
+unsigned char Function54A760(W8MonsterRecord** records)
+{
+    char path[60];
+    unsigned int transferred;
+    unsigned int index;
+    unsigned char* block;
+    unsigned char* cursor;
+    int handle;
+
+    sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
+    handle = FileOpen(path, 1, 0);
+    if (!handle) {
+        return 0;
+    }
+    if (!ReadVirtualFile(handle, &g_monster_record_count, 4, &transferred)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    if (records) {
+        block = (unsigned char*)malloc(g_monster_record_count * 0x297);
+        if (!block) {
+            return 0;
+        }
+        for (index = 0, cursor = block; index < g_monster_record_count; ++index) {
+            if (!ReadVirtualFile(handle, cursor, 0x297, &transferred)) {
+                CloseVirtualFile(handle);
+                free(block);
+                return 0;
+            }
+            cursor += 0x297;
+        }
+        *records = (W8MonsterRecord*)block;
+    }
+    CloseVirtualFile(handle);
+    return 1;
+}
+
+/* The range sibling of LoadMonsterDatabaseRecord, named by its own assertion at
+   GameplayDatabase.cpp line 378. It seeks to the first record and reads the
+   whole inclusive span in one call, computing the length as two separate record
+   offsets subtracted rather than from a record count. The bytes-read
+   out-parameter is uiEndIndex's own slot, dead once copied into a register, and
+   a failed seek leaves the handle open where every other failure closes it. */
+// FUNCTION: WIZ8 0x0054A9A0
+unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
+                             unsigned int unused, W8MonsterRecord* records)
+{
+    char path[56];
+    int handle;
+
+    if (!(uiEndIndex < g_monster_record_count)) {
+        srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase",
+                     GAMEPLAY_DATABASE_CPP, 0x17a, 0);
+    }
+    sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
+    handle = FileOpen(path, 1, 0);
+    if (!handle) {
+        return 0;
+    }
+    if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
+        return 0;
+    }
+    if (!ReadVirtualFile(handle, records,
+                         (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297,
+                         (unsigned int*)&uiEndIndex)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    CloseVirtualFile(handle);
+    return 1;
+}
