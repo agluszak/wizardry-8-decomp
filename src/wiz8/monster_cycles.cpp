@@ -1,10 +1,5 @@
 #include "gameplay_boundaries.h"
-
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
+#include "sr_api.h"
 
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
    the canonical assertion at line 960, whose message reads

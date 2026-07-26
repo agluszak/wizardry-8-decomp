@@ -1,4 +1,9 @@
 targets:
+  WIZ8:
+    filename: Wiz8.exe
+    source-root: src/wiz8
+    hash:
+      sha256: 18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2
   SREXT_JPEGIMPORTER:
     filename: srEXT_JPEGImporter.dll
     source-root: src/srext_jpegimporter

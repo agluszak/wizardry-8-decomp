@@ -27,6 +27,8 @@ just ghidra fid build-seeds
 just ghidra fid extract-libraries
 just ghidra fid build
 just wiz8 report bootstrap
+just build WIZ8
+just compare WIZ8
 ```
 
 The active matching target has a PDB-backed build and comparison loop:

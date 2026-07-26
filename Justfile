@@ -27,7 +27,8 @@ build target=jpeg_target: configure
 configure: _jpeg-sources
     mkdir -p "$WIZ8_WORK_DIR/decomp/srext-jpegimporter/tmp"
     uv run reccmp-project detect \
-        --search-path "$WIZ8_WORK_DIR/variants/gog-base/Dll" \
+        --search-path "$WIZ8_WORK_DIR/variants/gog-base" \
+                      "$WIZ8_WORK_DIR/variants/gog-base/Dll" \
         --what original
     docker run --rm --network none \
         --volume "{{repo}}:/repo:ro" \

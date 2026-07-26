@@ -1,0 +1,4 @@
+LIBRARY SR
+
+EXPORTS
+    ?srAssertFail@@YAXPBD0J0ZZ

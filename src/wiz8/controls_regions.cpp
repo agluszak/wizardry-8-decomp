@@ -1,10 +1,5 @@
 #include "gameplay_boundaries.h"
-
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
+#include "sr_api.h"
 
 /* 0x004F21E0 and 0x004F2220; descriptive names taken from their use here. */
 extern "C" void RegionSetEnable(unsigned int region_set_id);

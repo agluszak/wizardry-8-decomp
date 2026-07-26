@@ -1,13 +1,9 @@
 #include "gameplay_boundaries.h"
+#include "sr_api.h"
 
 #include <wchar.h>
 #include <stdio.h>
 
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
 extern char* FormatDiagnostic(const char* format, ...);
 extern unsigned char EvaluateFact(int fact_id);
 extern void WriteGameLog(int channel, const wchar_t* format, ...);

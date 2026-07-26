@@ -1,10 +1,5 @@
 #include "gameplay_boundaries.h"
-
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
+#include "sr_api.h"
 
 #define TARGETING_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Targeting.cpp"
 

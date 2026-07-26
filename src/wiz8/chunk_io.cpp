@@ -1,10 +1,5 @@
 #include "gameplay_boundaries.h"
-
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
+#include "sr_api.h"
 
 extern "C" unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
                                          unsigned int* done);

@@ -1,10 +1,5 @@
 #include "gameplay_boundaries.h"
-
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
+#include "sr_api.h"
 
 /* Three thiscall methods invoked on each prop. Their names are not established;
    only their signatures are, from the call sites. */

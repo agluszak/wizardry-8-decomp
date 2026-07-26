@@ -1,12 +1,7 @@
 #include "gameplay_boundaries.h"
+#include "sr_api.h"
 
 #include <stdlib.h>
-
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
 
 // FUNCTION: WIZ8 0x00510B60
 W8MonsterGroup* FindFirstMonsterByID(int monster_id)

@@ -221,7 +221,7 @@ if(WIZ8_BUILD_DECOMP)
 
     if(RECCMP_PROJECT_DIR_HOST AND RECCMP_BUILD_DIR_HOST)
         file(GENERATE OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/reccmp-build.yml" CONTENT
-            "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n  SREXT_JPEGIMPORTER:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.pdb'\n  SREXT_UNZIP:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.pdb'\n"
+            "project: '${RECCMP_PROJECT_DIR_HOST}'\ntargets:\n  WIZ8:\n    path: '${RECCMP_BUILD_DIR_HOST}/Wiz8.exe'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/Wiz8.pdb'\n  SREXT_JPEGIMPORTER:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_JPEGImporter.pdb'\n  SREXT_UNZIP:\n    path: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.dll'\n    pdb: '${RECCMP_BUILD_DIR_HOST}/srEXT_Unzip.pdb'\n"
         )
     endif()
 endif()
@@ -261,10 +261,79 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/virtual_file_stream.cpp
         src/wiz8/octree_loading.cpp
         src/wiz8/world_props.cpp
+        src/wiz8/vc6_runtime.cpp
     )
     set_source_files_properties(src/wiz8/random_number.c PROPERTIES COMPILE_OPTIONS /G5)
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
+    target_compile_definitions(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
     target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE src/wiz8)
+
+    # Matching source stays free of synthetic implementations. This umbrella
+    # preserves the old object-target name while giving the executable work a
+    # target whose contract is explicitly source matching.
+    add_custom_target(WIZ8_MATCHING DEPENDS WIZ8_GAMEPLAY_BOUNDARIES)
+    if(TARGET WIZ8_ZLIB_WRAPPERS)
+        add_dependencies(WIZ8_MATCHING WIZ8_ZLIB_WRAPPERS)
+    endif()
+
+    set(WIZ8_SR_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/wiz8-sr.lib")
+    add_custom_command(
+        OUTPUT "${WIZ8_SR_IMPORT_LIBRARY}"
+        COMMAND lib.exe /nologo /machine:ix86
+            "/def:${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/imports/sr.def"
+            "/out:${WIZ8_SR_IMPORT_LIBRARY}"
+        DEPENDS src/wiz8/imports/sr.def
+        VERBATIM
+    )
+    add_custom_target(wiz8_sr_import_library DEPENDS "${WIZ8_SR_IMPORT_LIBRARY}")
+
+    # Bring-up is intentionally a separate link surface. The recovered source
+    # still has unresolved first-party globals and callees, so /FORCE:UNRESOLVED
+    # lets LINK produce an inspectable PE/PDB without adding fake bodies to the
+    # matching objects. The bring-up WinMain only proves the platform/CRT link
+    # and exits; it is not an address claim.
+    add_executable(WIZ8_BRINGUP WIN32
+        src/wiz8/bringup/WinMain.cpp
+        $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+    )
+    if(TARGET WIZ8_ZLIB_WRAPPERS)
+        target_sources(WIZ8_BRINGUP PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
+    endif()
+    add_dependencies(WIZ8_BRINGUP wiz8_sr_import_library)
+    target_compile_options(WIZ8_BRINGUP PRIVATE /nologo /O2 /G6 /MD)
+    target_compile_definitions(WIZ8_BRINGUP PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+    target_include_directories(WIZ8_BRINGUP PRIVATE src/wiz8)
+    # KERNEL32 and the dynamic MSVCRT/MSVCP60 runtimes are selected by the VC6
+    # compiler defaults and /MD. These are the additional Windows import libs
+    # actually present in the canonical executable; do not copy Imperialism's
+    # winmm/vfw/DirectSound/DirectPlay list because Wiz8.exe does not import it.
+    target_link_libraries(WIZ8_BRINGUP PRIVATE
+        ddraw.lib
+        gdi32.lib
+        user32.lib
+        "${WIZ8_SR_IMPORT_LIBRARY}"
+    )
+    target_link_options(WIZ8_BRINGUP PRIVATE
+        /DEBUG
+        /DEBUGTYPE:CV
+        /INCREMENTAL:NO
+        /OPT:NOREF
+        /OPT:NOICF
+        /FORCE:UNRESOLVED
+        /BASE:0x400000
+        /FILEALIGN:0x1000
+        /OSVERSION:4.0
+        /SUBSYSTEM:WINDOWS,4.0
+        /STACK:0x100000,0x1000
+        /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_CURRENT_BINARY_DIR}/Wiz8.map"
+    )
+    set_target_properties(WIZ8_BRINGUP PROPERTIES
+        OUTPUT_NAME Wiz8
+        PREFIX ""
+        PDB_NAME Wiz8
+    )
+    add_custom_target(WIZ8 DEPENDS WIZ8_BRINGUP)
 endif()
 
 if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)

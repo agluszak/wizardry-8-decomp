@@ -1,13 +1,9 @@
 #include "gameplay_boundaries.h"
+#include "sr_api.h"
 
 #include <malloc.h>
 #include <string.h>
 
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
 extern void ReplaceOrCreateItem(
     W8ItemInstance* item,
     int item_id,

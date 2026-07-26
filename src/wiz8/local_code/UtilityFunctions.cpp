@@ -1,12 +1,8 @@
 #include "gameplay_boundaries.h"
+#include "sr_api.h"
 
 #include <wchar.h>
 
-extern __declspec(dllimport) void srAssertFail(
-    const char* expression,
-    const char* source_path,
-    int line,
-    const char* message);
 extern char* FormatDiagnostic(const char* format, ...);
 
 // FUNCTION: WIZ8 0x00517EA0
