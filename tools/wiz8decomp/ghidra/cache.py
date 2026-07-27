@@ -52,6 +52,7 @@ REPLAY_INERT_MODULES = frozenset(
         "fid_seeds.py",
         "import_programs.py",
         "query.py",
+        "semantic.py",
         "query_daemon.py",
     }
 )

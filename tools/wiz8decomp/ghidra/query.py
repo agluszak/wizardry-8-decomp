@@ -207,6 +207,22 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         return _symbols(program, False)
     if command == "sections":
         return _sections(program)
+    if command == "high-function":
+        from .semantic import high_function
+
+        return high_function(program, arguments[0])
+    if command == "pcode":
+        from .semantic import pcode
+
+        return pcode(program, *arguments)
+    if command == "field-accesses":
+        from .semantic import field_accesses
+
+        return field_accesses(program, arguments[0], arguments[1])
+    if command == "callsite":
+        from .semantic import callsite
+
+        return callsite(program, arguments[0])
     if command == "observation-audit":
         from .observation_evidence import audit_observation_evidence
 
@@ -220,7 +236,12 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "function": 1, "function-slice": 1, "function-of": 1, "read-data": 2, "strings": 0,
         "string-refs": 1, "search": 1, "functions": 0, "imports": 0, "exports": 0,
         "sections": 0, "observation-audit": 0,
+        "high-function": 1, "field-accesses": 2, "callsite": 1,
     }
+    if command == "pcode":
+        if len(arguments) not in {1, 2}:
+            raise ValueError("pcode expects an address and an optional style")
+        return
     if command not in arity:
         raise ValueError("unknown command; expected one of: " + ", ".join(sorted(arity)))
     if len(arguments) != arity[command]:

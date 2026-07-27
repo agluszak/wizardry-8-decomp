@@ -192,6 +192,9 @@ def one_shot_query(
         with pyghidra.program_context(project, "/" + program_name) as program:
             return execute_query(program, command, arguments)
     finally:
+        from .semantic import dispose_sessions
+
+        dispose_sessions()
         project.close()
 
 
@@ -215,6 +218,9 @@ def one_shot_queries(
                 for command, arguments in queries
             ]
     finally:
+        from .semantic import dispose_sessions
+
+        dispose_sessions()
         project.close()
 
 
@@ -380,6 +386,9 @@ def serve(program: str = typer.Option(..., "--program")) -> None:
                         json.dumps(response, ensure_ascii=False).encode("utf-8") + b"\n"
                     )
     finally:
+        from .semantic import dispose_sessions
+
+        dispose_sessions()
         server.close()
         project.close()
         if sock_path.exists():
