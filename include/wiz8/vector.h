@@ -39,16 +39,23 @@ public:
         return 0;
     }
 
-    __forceinline void RemoveAt(int position)
+    /* Returns the element it unlinked. GenerateItemsFromTable discards that
+       value, so the ItemManager inlining alone does not show it; the dialog
+       destructor at 0x005D1590 deletes what the same shifting body returns. */
+    __forceinline T RemoveAt(int position)
     {
         int index;
+        T result;
 
-        if (position < count && position >= 0) {
-            for (index = position; index < count - 1; ++index) {
-                data[index] = data[index + 1];
-            }
-            --count;
+        if (position >= count || position < 0) {
+            return 0;
         }
+        result = data[position];
+        for (index = position; index < count - 1; ++index) {
+            data[index] = data[index + 1];
+        }
+        --count;
+        return result;
     }
 
     __forceinline void Clear()
@@ -61,9 +68,16 @@ public:
     T* data;                             /* 0x0c */
 };                                      /* 0x10 in the 32-bit target */
 
-/* Evidence-only erased spelling for owners whose element type is not yet
-   represented in their header. It is a template use, not another container. */
-typedef W8GrowableVector<void*> W8PtrVector;
+/* An instantiation whose element type is still unproven is named for the vtable
+   the image gives it, so two owners share a spelling exactly when they share an
+   instantiation. Erasing every such element to one `void*` spelling would do
+   the opposite: 0x005EBFE0 and 0x005EC0E0 are different specializations and
+   only the second is W8GrowableVector<int>.
+
+   0x005EBFE0 is embedded by W8MonsterManagerEntry at +0xd8, by
+   W8MonsterManagerState at +0x9b7, and by nineteen further owner bodies listed
+   in evidence/snapshots/polymorphism/vptr-writes.csv. */
+class W8VectorElement005EBFE0;
 
 template <class T>
 __forceinline W8GrowableVector<T>::W8GrowableVector()

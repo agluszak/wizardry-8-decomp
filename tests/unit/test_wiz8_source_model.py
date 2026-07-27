@@ -153,10 +153,18 @@ def test_ptr_vector_instantiations_are_inventoried() -> None:
     # accounts for the leading vptr without spelling a fake data member.
     header = (repository / "include/wiz8/gameplay_boundaries.h").read_text(encoding="utf-8")
     vector_header = (repository / "include/wiz8/vector.h").read_text(encoding="utf-8")
-    assert "W8PtrVector" in header
     assert "W8NPCItemListVector" not in header
     assert "W8MonsterGeneratorVector" not in header
     assert "virtual ~W8GrowableVector();" in vector_header
+
+    # Every owner names its element type through the template. The two whose
+    # element type is recovered say so; the one that is not is named for the
+    # vtable its instantiation carries, because a single erased `void*`
+    # spelling would merge instantiations the image keeps apart.
+    assert "W8GrowableVector<W8MonsterGenerator*>* monster_generators" in header
+    assert "extern W8GrowableVector<W8NPCItemList*>* g_npc_item_lists;" in header
+    assert "W8PtrVector" not in vector_header
+    assert "class W8VectorElement005EBFE0;" in vector_header
 
 
 def test_allocator_layers_preserve_identity_provenance_and_ownership_signal() -> None:

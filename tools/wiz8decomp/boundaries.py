@@ -38,6 +38,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+from .binary.demangle import demangle
 from .sgp_oracle import (
     CoffFunction,
     _stable_ranges,
@@ -46,21 +47,114 @@ from .sgp_oracle import (
 )
 
 DECORATED = re.compile(r"^\?(?P<method>[^@]+)@(?P<owner>[^@]*)@@")
-INT_TEMPLATE_MEMBER = re.compile(
-    r"^\?(?P<method>[^@]+)@\?\$(?P<owner>[^@]+)@H@@"
-)
 SPECIAL_MEMBER = re.compile(r"^\?\?(?P<kind>0|1|_G|_E)(?P<owner>[^@]+)@@")
+TEMPLATE_OWNER = "?$"
 CLASS_PREFIX = "W8"
+# Element-type keywords and the backtick-quoted compiler-generated method names
+# `llvm-undname` prints, mapped onto the spellings a reviewed row uses.
+ARGUMENT_KEYWORDS = ("class ", "struct ", "enum ", "union ")
+GENERATED_METHODS = {
+    "`scalar deleting dtor'": "scalar_deleting_destructor",
+    "`vector deleting dtor'": "vector_deleting_destructor",
+}
 
 
-def symbol_candidates(decorated: str) -> tuple[str, ...]:
-    """Names a reviewed row could use for this COFF symbol, most specific first."""
+def template_member_candidates(signature: str) -> tuple[str, ...]:
+    """`Owner<Args>::method` names for a demangled template-member signature.
 
-    int_template = INT_TEMPLATE_MEMBER.match(decorated)
-    if int_template is not None:
-        method = int_template.group("method")
-        owner = int_template.group("owner")
-        return (f"{owner}<int>::{method}", method)
+    The vector template emits one COMDAT set per element type, so its members
+    arrive decorated with a full template-argument list that the class regex
+    above cannot split on `@`. Rather than approximate that grammar here, the
+    owner is read back out of `llvm-undname`'s output: everything after the
+    last top-level space, with `<>` nesting keeping the spaces inside an
+    argument list from ending the name early.
+    """
+
+    qualified = _trailing_qualified_name(_without_parameter_list(signature))
+    if "::" not in qualified:
+        return ()
+    owner, _, method = qualified.rpartition("::")
+    owner = _element_type_spelling(owner)
+    method = GENERATED_METHODS.get(method, _element_type_spelling(method))
+    # A template's own constructor and destructor repeat the whole argument
+    # list; a reviewed row names the class once.
+    base = owner.partition("<")[0]
+    if method == owner:
+        return (f"{owner}::{base}",)
+    if method.lstrip("~") == owner:
+        return (f"{owner}::~{base}",)
+    if method in GENERATED_METHODS.values():
+        return (f"{owner}::{method}",)
+    # An ordinary member: reviewable under the bare name too, the way a
+    # non-template method is, since the two srVector3T rows already are.
+    return (f"{owner}::{method}", method)
+
+
+def _without_parameter_list(signature: str) -> str:
+    """`signature` up to the parameter list every demangled function ends with."""
+
+    if not signature.endswith(")"):
+        return signature
+    depth = 0
+    for index in range(len(signature) - 1, -1, -1):
+        if signature[index] == ")":
+            depth += 1
+        elif signature[index] == "(":
+            depth -= 1
+            if depth == 0:
+                return signature[:index]
+    return signature
+
+
+def _trailing_qualified_name(text: str) -> str:
+    """The qualified name `text` ends with, dropping the return type before it.
+
+    Spaces are only a boundary at the top level: they also separate template
+    arguments and appear inside the backtick-quoted names the demangler prints
+    for compiler-generated methods.
+    """
+
+    depth = 0
+    quoted = False
+    for index in range(len(text) - 1, -1, -1):
+        character = text[index]
+        if character == "'":
+            quoted = True
+        elif character == "`":
+            quoted = False
+        elif quoted:
+            continue
+        elif character == ">":
+            depth += 1
+        elif character == "<":
+            depth -= 1
+        elif character == " " and depth == 0:
+            return text[index + 1 :]
+    return text
+
+
+def _element_type_spelling(name: str) -> str:
+    """The demangler's argument spelling reduced to the header's own."""
+
+    for keyword in ARGUMENT_KEYWORDS:
+        name = name.replace(keyword, "")
+    return name.replace(" *", "*").replace(" &", "&")
+
+
+def symbol_candidates(decorated: str, signature: str = "") -> tuple[str, ...]:
+    """Names a reviewed row could use for this COFF symbol, most specific first.
+
+    `signature` is this symbol's demangled form, which only a template owner
+    needs; `collect_object_candidates` demangles those in one batch.
+    """
+
+    if TEMPLATE_OWNER in decorated and signature:
+        # `?$` also appears in a free function that merely takes a template
+        # instantiation as a parameter, so the demangled owner decides: a
+        # signature with no qualified name falls through to the rules below.
+        template = template_member_candidates(signature)
+        if template:
+            return template
 
     special = SPECIAL_MEMBER.match(decorated)
     if special is not None:
@@ -122,7 +216,7 @@ def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]
     and size it states, which is what `resolve_boundary_function` matches on.
     """
 
-    functions: dict[str, list[CoffFunction]] = {}
+    bodies: list[CoffFunction] = []
     for obj in sorted(root.rglob("*.obj")):
         # CMake compiles its own probes -- compiler identification, the
         # /showIncludes check -- under CMakeFiles but outside any target
@@ -131,16 +225,22 @@ def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]
         if not any(part.endswith(".dir") for part in obj.parts):
             continue
         try:
-            parsed = parse_coff_functions(obj)
+            bodies.extend(parse_coff_functions(obj))
         except RuntimeError:
             # An object with no external .text function -- a runtime shim or a
             # unit that contributed only data. Nothing to verify.
             continue
-        for function in parsed:
-            for name in symbol_candidates(function.name):
-                claimants = functions.setdefault(name, [])
-                if not any(bytes(seen.body) == bytes(function.body) for seen in claimants):
-                    claimants.append(function)
+
+    # Only template members need the demangler, so an object tree without one
+    # never requires the tool to be installed.
+    signatures = demangle([f.name for f in bodies if TEMPLATE_OWNER in f.name])
+
+    functions: dict[str, list[CoffFunction]] = {}
+    for function in bodies:
+        for name in symbol_candidates(function.name, signatures.get(function.name, "")):
+            claimants = functions.setdefault(name, [])
+            if not any(bytes(seen.body) == bytes(function.body) for seen in claimants):
+                claimants.append(function)
     return {name: tuple(claimants) for name, claimants in functions.items()}
 
 

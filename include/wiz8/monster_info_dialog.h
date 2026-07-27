@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/vector.h"
+
 /* The released binary proves this shared dialog base and the three embedded
    member identities, but exposes none of their original source names. Address-
    qualified positional names preserve that distinction. */
@@ -95,27 +97,16 @@ public:
 };
 
 /* Two instances of this suffix-sharing pointer-vector specialization are
-   embedded in W8DialogMember005D14D0. The base and derived constructor vptrs
-   are 0x005EF89C and 0x005EF898 respectively; no source-backed template or
-   element name is available. */
-class W8DialogPtrVectorBase005EF89C {
-public:
-    W8DialogPtrVectorBase005EF89C();
-    virtual ~W8DialogPtrVectorBase005EF89C();
-
-protected:
-    int m_count;                         /* 0x04 */
-    int m_capacity;                      /* 0x08 */
-    W8DialogOwned005D14D0** m_data;      /* 0x0c */
-};                                      /* 0x10 */
-
-class W8DialogPtrVector005EF898 : public W8DialogPtrVectorBase005EF89C {
+   embedded in W8DialogMember005D14D0. The base subobject is one instantiation
+   of the growable-vector template, whose constructor installs 0x005EF89C
+   before this derived layer installs 0x005EF898 at the same address; the
+   derived layer adds no storage, so both classes are 0x10 bytes. The derived
+   name stays address-qualified because no source-backed name is available. */
+class W8DialogPtrVector005EF898
+    : public W8GrowableVector<W8DialogOwned005D14D0*> {
 public:
     W8DialogPtrVector005EF898();
     virtual ~W8DialogPtrVector005EF898();
-
-    int GetCount() const;
-    W8DialogOwned005D14D0* RemoveAt(int position);
 };                                      /* 0x10 */
 
 class W8DialogMember005D14D0 {

@@ -416,7 +416,10 @@ the complete destructor at `0x005D2540`, the suffix-sharing base scalar deleting
 `0x005D2560`, and the derived scalar deleting destructor at `0x005D2590`. Vtables `0x005EF898`
 and `0x005EF89C` are independently installed at the same subobject address, so each is a one-slot
 table; treating them as one two-entry run would repeat the adjacent-vtable counting error already
-seen elsewhere.
+seen elsewhere. The base subobject is not a container of its own: it is
+`W8GrowableVector<W8DialogOwned005D14D0*>`, one instantiation of the template in
+`include/wiz8/vector.h`, and `W8DialogPtrVector005EF898` is the derived layer that adds a second
+vtable and no storage.
 
 The vtable has 14 slots. Seven slot targets missed by initial auto-analysis were created at
 `0x005D5F90`, `0x005D6FA0`, `0x005DCCE0`, `0x005B1BE0`, `0x005AD270`, `0x005D6E60`, and

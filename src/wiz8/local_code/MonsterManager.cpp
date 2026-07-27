@@ -49,35 +49,13 @@ extern unsigned char g_flag_683f97;
 extern volatile int g_dword_6598a4;
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
-   Each record owns one instantiation of the polymorphic pointer-vector family
-   at +0xd8, and the outer object owns the same vector at +0x9b7.  The element
-   type and the vector's original template name are not yet proven, so those
-   names deliberately remain address-neutral. */
+   Each record owns one instantiation of the growable-vector template at +0xd8,
+   and the outer object owns the same instantiation at +0x9b7: both constructors
+   install vtable 0x005EBFE0, which twenty-one owner bodies across the image
+   share and which is not the W8GrowableVector<int> at 0x005EC0E0. The element
+   type itself is still unproven, so it keeps the address-qualified name that
+   holds those owners together without claiming what they hold. */
 #pragma pack(push, 1)
-class W8MonsterManagerPtrVector {
-public:
-    __forceinline W8MonsterManagerPtrVector()
-    {
-        data = static_cast<void**>(::operator new(5 * sizeof(void*)));
-        count = 0;
-        if (data != 0) {
-            capacity = 5;
-        }
-        else {
-            capacity = 0;
-        }
-    }
-
-    virtual __forceinline ~W8MonsterManagerPtrVector()
-    {
-        ::operator delete(data);
-    }
-
-    int count;                            /* 0x04 */
-    int capacity;                         /* 0x08 */
-    void** data;                          /* 0x0c */
-};                                       /* 0x10 */
-
 class W8MonsterManagerEntry {
 public:
     W8MonsterManagerEntry();
@@ -85,7 +63,7 @@ public:
 
 private:
     unsigned char unknown_000[0xd8];
-    W8MonsterManagerPtrVector vector_d8;  /* 0x0d8 */
+    W8GrowableVector<W8VectorElement005EBFE0*> vector_d8; /* 0x0d8 */
     unsigned char unknown_0e8[0x30];
 };                                       /* 0x118 */
 
@@ -97,12 +75,12 @@ public:
 private:
     W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
     unsigned char unknown_8c0[0xf7];
-    W8MonsterManagerPtrVector vector_9b7; /* 0x9b7 */
+    W8GrowableVector<W8VectorElement005EBFE0*> vector_9b7; /* 0x9b7 */
 };                                       /* 0x9c7 */
 #pragma pack(pop)
 
-typedef char W8MonsterManagerPtrVector_size_must_be_0x10[
-    sizeof(W8MonsterManagerPtrVector) == 0x10 ? 1 : -1];
+typedef char W8VectorElement005EBFE0_vector_size_must_be_0x10[
+    sizeof(W8GrowableVector<W8VectorElement005EBFE0*>) == 0x10 ? 1 : -1];
 typedef char W8MonsterManagerEntry_size_must_be_0x118[
     sizeof(W8MonsterManagerEntry) == 0x118 ? 1 : -1];
 typedef char W8MonsterManagerState_size_must_be_0x9c7[

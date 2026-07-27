@@ -28,11 +28,45 @@ def test_a_decorated_method_is_offered_under_the_names_a_review_may_use() -> Non
     )[-1] == "method_00446110"
 
 
-def test_an_int_template_method_retains_its_specialization() -> None:
-    assert symbol_candidates("?Grow@?$W8GrowableVector@H@@QAEHH@Z") == (
-        "W8GrowableVector<int>::Grow",
-        "Grow",
-    )
+def test_a_template_member_is_named_by_its_own_instantiation() -> None:
+    # The growable-vector template emits one COMDAT set per element type, and an
+    # @-delimited regex cannot split an argument list off the owner. The owner
+    # is therefore read back out of the demangler's signature, so every
+    # instantiation stays distinguishable rather than only the int one.
+    assert symbol_candidates(
+        "?Grow@?$W8GrowableVector@H@@QAEHH@Z",
+        "public: int __thiscall W8GrowableVector<int>::Grow(int)",
+    ) == ("W8GrowableVector<int>::Grow", "Grow")
+    assert symbol_candidates(
+        "?Grow@?$W8GrowableVector@PAUW8WorldItem@@@@QAEHH@Z",
+        "public: int __thiscall W8GrowableVector<struct W8WorldItem *>::Grow(int)",
+    ) == ("W8GrowableVector<W8WorldItem*>::Grow", "Grow")
+
+
+def test_a_template_lifetime_body_names_its_class_once() -> None:
+    # The demangler repeats the argument list in a constructor or destructor
+    # name and quotes the compiler-generated ones; a reviewed row spells the
+    # class once and uses the repository's own name for the generated body.
+    assert symbol_candidates(
+        "??_G?$W8GrowableVector@PAVW8DialogOwned005D14D0@@@@UAEPAXI@Z",
+        "public: virtual void * __thiscall "
+        "W8GrowableVector<class W8DialogOwned005D14D0 *>::"
+        "`scalar deleting dtor'(unsigned int)",
+    ) == ("W8GrowableVector<W8DialogOwned005D14D0*>::scalar_deleting_destructor",)
+    assert symbol_candidates(
+        "??1?$W8GrowableVector@H@@UAE@XZ",
+        "public: virtual __thiscall W8GrowableVector<int>::~W8GrowableVector<int>(void)",
+    ) == ("W8GrowableVector<int>::~W8GrowableVector",)
+
+
+def test_a_free_function_taking_a_template_keeps_its_bare_name() -> None:
+    # `?$` also appears in a parameter type, where it says nothing about the
+    # owner: this function belongs to no class at all.
+    assert symbol_candidates(
+        "?GenerateItemsFromTable@@YAHPAV?$W8GrowableVector@PAUW8WorldItem@@@@II@Z",
+        "int __cdecl GenerateItemsFromTable("
+        "class W8GrowableVector<struct W8WorldItem *> *, unsigned int, unsigned int)",
+    ) == ("GenerateItemsFromTable",)
 
 
 def test_msvc_special_members_are_offered_under_their_class_names() -> None:

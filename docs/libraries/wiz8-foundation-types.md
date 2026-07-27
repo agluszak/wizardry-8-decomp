@@ -4,9 +4,27 @@
 
 Two separately-named structs in this repository — `W8NPCItemListVector` and
 `W8MonsterGeneratorVector` — were not separate container designs. They are uses of one hand-rolled
-`W8GrowableVector<T>` template, now defined once in `include/wiz8/vector.h`. `W8PtrVector` is only
-an erased `void*` specialization retained for consumers whose element type has not yet been
-recovered; new source-owned code uses the known specialization directly.
+`W8GrowableVector<T>` template, now defined once in `include/wiz8/vector.h`. Every owner spells its
+element type through that template: `g_npc_item_lists` is a
+`W8GrowableVector<W8NPCItemList*>*`, `W8World::monster_generators` is a
+`W8GrowableVector<W8MonsterGenerator*>*`, and the dialog member at `0x005D14D0` embeds two
+`W8GrowableVector<W8DialogOwned005D14D0*>` subobjects. An owner whose element type is not yet
+recovered names it positionally rather than erasing it to `void*`, because one erased spelling
+shared by unrelated owners would merge template identities the image keeps apart — each element
+type has its own vtable and its own destructor COMDATs.
+
+The vtable a constructor installs is what separates them, and
+`evidence/snapshots/polymorphism/vptr-writes.csv` records it per site. Both `MonsterManager.cpp`
+vectors — `W8MonsterManagerEntry` at `+0xd8` and `W8MonsterManagerState` at `+0x9b7` — install
+`0x005EBFE0`, so they are one instantiation, shared with nineteen further owner bodies and named
+`W8GrowableVector<W8VectorElement005EBFE0*>` until the element type itself is proven. The vector
+`GenerateItemsFromTable` builds for candidate indices installs `0x005EC0E0` instead, which is why
+`W8GrowableVector<int>` is a different specialization rather than the same one spelled two ways.
+
+`GetAt` returns the address of the element, bounds-checked against `count`, and `RemoveAt` returns
+the element it unlinked. Both are inlined at every call site: `GetNPCItemListByID` is byte-exact
+using `*GetAt(index)` in place of a hand-written guard, and the dialog destructor at `0x005D1590`
+deletes what `RemoveAt` returns while `GenerateItemsFromTable` discards the same value.
 
 The layout is read off a constructor such as `0x005098B0`:
 
@@ -95,7 +113,7 @@ parameters `ppl` and `pEntry`; the reviewed function inventory and matching stat
 
 It is worth stating what `PList` is *not*: it has no vptr, its elements sit at `+0x00` rather than
 `+0x0C`, its count is at `+0x08` rather than `+0x04`, and it is reached through free functions
-rather than methods. Nothing about it is shared with `W8PtrVector` beyond both being arrays of
+rather than methods. Nothing about it is shared with `W8GrowableVector` beyond both being arrays of
 pointers, so the two must not be conflated the way `W8NPCItemListVector` and
 `W8MonsterGeneratorVector` were.
 

@@ -344,8 +344,8 @@ typedef struct W8MonsterGroup {
     unsigned char unknown_cb[0x60];
 } W8MonsterGroup;                         /* 0x12b */
 
-/* 3D Code\PList.cpp. Distinct from W8PtrVector: no vptr, elements at +0x00 and
-   count at +0x08, accessed through free functions. */
+/* 3D Code\PList.cpp. Distinct from W8GrowableVector: no vptr, elements at +0x00
+   and count at +0x08, accessed through free functions. */
 typedef struct W8PList {
     void** data;                          /* 0x00 */
     int capacity;                         /* 0x04: PListInit allocates 10 */
@@ -365,7 +365,7 @@ typedef struct W8World {
     unsigned char unknown_00c[0x3c];
     void** psrMeshes;                     /* 0x048: mesh pointer array; UNPROVEN placement */
     unsigned char unknown_04c[0x78];
-    W8PtrVector* monster_generators;      /* 0xc4: elements are W8MonsterGenerator* */
+    W8GrowableVector<W8MonsterGenerator*>* monster_generators; /* 0xc4 */
 } W8World;
 
 typedef struct W8NPCRecordRef {
@@ -557,8 +557,7 @@ extern int g_location_variable_level_count;
 extern int* g_location_variable_levels;
 extern int g_next_world_item_id;
 extern W8PList* g_world_item_list;
-/* Elements are W8NPCItemList*. */
-extern W8PtrVector* g_npc_item_lists;
+extern W8GrowableVector<W8NPCItemList*>* g_npc_item_lists;
 /* 0x006840C7: lazily populated cache of runtime monster records, one slot per
    species ID. MAX_MONSTERS_IN_DATABASE comes from the canonical assertion text. */
 extern W8MonsterRecord* g_monster_record_cache[1000];

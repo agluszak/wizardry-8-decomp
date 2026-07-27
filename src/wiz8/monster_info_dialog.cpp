@@ -78,23 +78,6 @@ W8DialogMember005DB1B0::~W8DialogMember005DB1B0()
     }
 }
 
-__forceinline W8DialogPtrVectorBase005EF89C::W8DialogPtrVectorBase005EF89C()
-{
-    m_data = static_cast<W8DialogOwned005D14D0**>(::operator new(5 * sizeof(void*)));
-    m_count = 0;
-    if (m_data != 0) {
-        m_capacity = 5;
-    }
-    else {
-        m_capacity = 0;
-    }
-}
-
-__forceinline W8DialogPtrVectorBase005EF89C::~W8DialogPtrVectorBase005EF89C()
-{
-    ::operator delete(m_data);
-}
-
 __forceinline W8DialogPtrVector005EF898::W8DialogPtrVector005EF898()
 {
 }
@@ -102,27 +85,6 @@ __forceinline W8DialogPtrVector005EF898::W8DialogPtrVector005EF898()
 // FUNCTION: WIZ8 0x005D2540
 __forceinline W8DialogPtrVector005EF898::~W8DialogPtrVector005EF898()
 {
-}
-
-__forceinline int W8DialogPtrVector005EF898::GetCount() const
-{
-    return m_count;
-}
-
-__forceinline W8DialogOwned005D14D0* W8DialogPtrVector005EF898::RemoveAt(int position)
-{
-    int index;
-    W8DialogOwned005D14D0* result;
-
-    if (position >= m_count || position < 0) {
-        return 0;
-    }
-    result = m_data[position];
-    for (index = position; index < m_count - 1; ++index) {
-        m_data[index] = m_data[index + 1];
-    }
-    --m_count;
-    return result;
 }
 
 // FUNCTION: WIZ8 0x005D14D0

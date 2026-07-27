@@ -7,8 +7,8 @@
 
 /* 3D Code\PList.cpp. The parameter names ppl and pEntry come from the canonical
    assertions at lines 540 and 541. This is a different container from
-   W8PtrVector: the element array is at +0x00 and the count at +0x08, with no
-   vptr, and the accessors are free functions rather than methods. */
+   W8GrowableVector: the element array is at +0x00 and the count at +0x08, with
+   no vptr, and the accessors are free functions rather than methods. */
 
 // FUNCTION: WIZ8 0x005E22C0
 W8PList* PListCreate(void)
