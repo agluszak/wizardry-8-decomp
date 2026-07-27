@@ -102,3 +102,115 @@ def classify_program_vtables(repo: Path, program: str) -> dict[str, dict[str, An
     return {
         table: classify_vtable(rows) for table, rows in sorted(slots_by_table.items())
     }
+
+
+def attribute_writers(
+    writes: list[dict[str, str]], containment: dict[str, str | None]
+) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    """Re-attribute each vptr write to its real containing function.
+
+    The census guesses containment from inter-function padding and the class
+    -triage skill measures that guess wrong in most disagreements; Ghidra's
+    function bodies are the authority. Returns the corrected writes and the
+    corrections themselves, because a correction severs a derivation the
+    candidate layer may have built on the wrong writer.
+    """
+
+    corrected: list[dict[str, str]] = []
+    corrections: list[dict[str, str]] = []
+    for write in writes:
+        real = containment.get("0x" + write["site"]) or containment.get(write["site"])
+        entry = dict(write)
+        if real:
+            real = real.zfill(8)
+            if real != write["function_start"]:
+                corrections.append(
+                    {
+                        "site": write["site"],
+                        "census": write["function_start"],
+                        "containment": real,
+                    }
+                )
+            entry["function_start"] = real
+        corrected.append(entry)
+    return corrected, corrections
+
+
+def lifecycle_unifications(
+    corrected_writes: list[dict[str, str]],
+    reviewed_lifecycles: dict[str, set[str]],
+) -> list[dict[str, Any]]:
+    """Candidate tables whose writers are a reviewed class's own lifecycle.
+
+    This is the anti-duplicate rule the widget owner needed: an agent meeting
+    vtable 0x005ED5BC cold would invent an owner type, but its writers are the
+    reviewed W8WidgetBase005ED5BC's destructor - the table already has an
+    identity, and inventing a second one recreates the duplicate-model problem.
+    """
+
+    writers_by_table: dict[str, set[str]] = defaultdict(set)
+    for write in corrected_writes:
+        if write["object_offset"] == "0x0":
+            writers_by_table[write["vtable"]].add(write["function_start"])
+    proposals = []
+    for table, writers in sorted(writers_by_table.items()):
+        for class_name, lifecycle in sorted(reviewed_lifecycles.items()):
+            shared = sorted(writers & lifecycle)
+            if shared:
+                proposals.append(
+                    {
+                        "vtable": table,
+                        "unifies_with": class_name,
+                        "shared_lifecycle": shared,
+                        "reason": "writers are this reviewed class's own lifecycle functions",
+                    }
+                )
+    return proposals
+
+
+def load_reviewed_lifecycles(repo: Path) -> dict[str, set[str]]:
+    lifecycles: dict[str, set[str]] = {}
+    with (
+        repo / "evidence" / "reviewed" / "wiz8" / "classes.csv"
+    ).open(newline="", encoding="utf-8") as stream:
+        for row in csv.DictReader(stream):
+            addresses = {
+                row[key].strip().lower().zfill(8)
+                for key in ("constructor", "destructor", "scalar_deleting_destructor")
+                if row[key].strip()
+            }
+            if addresses:
+                lifecycles[row["class_name"]] = addresses
+    return lifecycles
+
+
+def destructor_family(
+    seed: str,
+    corrected_writes: list[dict[str, str]],
+    calls: list[dict[str, str]],
+) -> dict[str, Any]:
+    """The class family around one shared base destructor, scored by fan-out.
+
+    Every derived destructor calls the base destructor last, and every derived
+    destructor restores its own vtable first - so the callers of the seed,
+    joined against the corrected writes, are the family's tables. The score is
+    what the family unlocks: recovering the base types every derived table's
+    slots at once.
+    """
+
+    callers = {
+        call["caller"].lstrip("0").zfill(8)
+        for call in calls
+        if call["callee"].lstrip("0") == seed.lstrip("0")
+    }
+    members: dict[str, set[str]] = defaultdict(set)
+    for write in corrected_writes:
+        writer = write["function_start"].lstrip("0").zfill(8)
+        if writer in callers and write["object_offset"] == "0x0":
+            members[write["vtable"]].add(writer)
+    return {
+        "seed_destructor": seed,
+        "caller_count": len(callers),
+        "member_tables": {table: sorted(writers) for table, writers in sorted(members.items())},
+        "fan_out_score": len(members) * 10 + len(callers),
+    }
