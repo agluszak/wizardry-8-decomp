@@ -109,6 +109,40 @@ because they are recorded relative:
 That establishes an `Engine Code\Include` directory and an `st*` family alongside the already-known
 `stCube.cpp`. Inline code in headers is attributed to the header, not the including unit.
 
+## How the original signals failure
+
+Wizardry 8 ships four failure mechanisms and none of them is a C++ exception — `/GX` is on and 479
+functions carry unwind frames, but `_CxxThrowException` is not imported, so nothing throws. A
+recovered function that appears to need a `try`/`catch` has been misread.
+
+1. **Assertions, shipped enabled in retail.** Every one of the 1777 sites calls SR.DLL's
+   `srAssertFail`, and Wizardry installs its own handler: `srAssertSetFunc` has exactly one
+   reference, inside `InitializeVideoDevice` (`0x00422240`), installing `AssertFailureHandler`
+   (`0x00428AB0`). The handler copies the developer-notice preamble at `0x006042F4` into a stack
+   buffer, appends *"Debug assertion in module %s line %d failed: Expression [ %s ] evaluates to
+   false"* plus the optional message, and hands the text to SGP's `ShutdownWithErrorBox`
+   (`0x00401920`) — which stashes it in `gzErrorMsg` and calls `exit(0)`, so the report surfaces
+   through the SGP shutdown path. Two contracts follow, and they are different: at **runtime** a
+   failed assert terminates the process; in the **emitted code** `srAssertFail` is an ordinary
+   returning call and every site falls through into the guarded code, which is load-bearing for
+   byte-exact ports. `GetMonsterDataByID` asserts its index and then indexes anyway; port the
+   fall-through, never an abort.
+2. **Null and sentinel returns, checked defensively at the container boundary.** `PListGetCount`
+   (13 bytes, 609 call sites) maps a null list to 0; `PListGetAt` (26 bytes, 178 sites) maps null
+   or out-of-range to 0; `PListIndexOf` returns `BAD_INDEX`, which the byte-proven Targeting pair
+   pins to `-1`. Callers routinely pass unvalidated indices and test the result — that is the
+   idiom, not a bug, and the ported PList accessors reproduce it.
+3. **Boolean status returns** — `unsigned char` success/failure on loaders and accessors
+   (`LoadMonsterDatabaseRecord`, `LevelGetLocationCodeByID`, `LevelBuildInfoByID`).
+4. **Formatted diagnostics through shared static buffers.** `FormatString` (`0x00517A70`)
+   vsprintf's into the 200-byte narrow buffer at `0x0068BFD0` and returns it; `FormatWideString`
+   (`0x00517A90`) uses the 8-KB wide buffer at `0x00689FD0`. Neither is reentrant, and two calls in
+   one expression alias each other — the recorded original bug where
+   `MonsterGetIndexByLocationID` reuses one diagnostic argument across both paths is exactly that
+   shape. `FormatDebugMessage` (`0x005182E0`) formats into a stack buffer and **discards it** — the
+   release build's log call retains no sink — while `WriteGameLog` (`0x0058AAD0`, 541 call sites)
+   is the live wide-character channel feeding the on-screen text sink at `0x0058AC00`.
+
 ## Turning an assertion into a proven field
 
 Assertions name fields; they do not place them. The matching build closes that gap, because a wrong

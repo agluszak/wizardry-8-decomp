@@ -59,7 +59,7 @@ extern int g_dword_6596f0;
 extern void Function4265C0(void);
 extern unsigned char Function425EC0(void);
 extern unsigned char Function426080(void);
-extern unsigned char Function422240(void);
+extern unsigned char InitializeVideoDevice(void);
 extern void Function423500(void);
 extern void Function56AAB0(void);
 extern unsigned char Function422800(void);
@@ -101,7 +101,7 @@ unsigned char Function421BB0(void* instance, unsigned short show_command, void* 
     if (!Function426080()) {
         return 0;
     }
-    if (!Function422240()) {
+    if (!InitializeVideoDevice()) {
         return 0;
     }
     Function423500();
