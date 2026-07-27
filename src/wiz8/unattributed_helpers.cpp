@@ -33,6 +33,11 @@ extern int g_dword_687599;
 extern void Function4C4EF0(void);
 extern void Function4A7A70(int value);
 
+extern int g_clip_left_600078;
+extern int g_clip_top_60007c;
+extern int g_clip_right_600080;
+extern int g_clip_bottom_600084;
+
 extern int g_dword_6874f7;
 extern unsigned long g_tick_65b9a8;
 
@@ -154,6 +159,18 @@ unsigned char Function4298F0(void)
                                * free_clusters / 0x400 / 0x400);
     enough = megabytes >= 0x100;
     return enough;
+}
+
+
+/* Hands back the current clip rectangle. The four globals are written as one
+   block by the callers that set it, and read as one here. */
+// FUNCTION: WIZ8 0x00411820
+void GetClipRect(int* rect)
+{
+    rect[0] = g_clip_left_600078;
+    rect[1] = g_clip_top_60007c;
+    rect[2] = g_clip_right_600080;
+    rect[3] = g_clip_bottom_600084;
 }
 
 }
