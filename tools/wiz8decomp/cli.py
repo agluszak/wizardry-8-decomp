@@ -152,6 +152,37 @@ def _tracked_copyrighted(settings: Any) -> list[str]:
     return sorted(suspects)
 
 
+@app.command("unresolved-report")
+def unresolved_report_command(
+    objects: Annotated[
+        Path | None,
+        typer.Option(help="Object root; defaults to the configured decomp build."),
+    ] = None,
+    link_map: Annotated[
+        Path | None,
+        typer.Option(help="Linker MAP; defaults to the bring-up image's."),
+    ] = None,
+) -> None:
+    """Report first-party symbols the recovered image still cannot resolve.
+
+    /FORCE:UNRESOLVED is what lets the bring-up image link at all, and the cost
+    is that the gap stops being visible: the linker names each missing symbol
+    once, in output nobody keeps. This recomputes it from the objects.
+    """
+
+    def action() -> dict[str, Any]:
+        from .unresolved import unresolved_report
+
+        settings = _settings()
+        build = settings.repo_dir / "build" / "decomp"
+        return unresolved_report(
+            objects or (build / "CMakeFiles"),
+            link_map or (build / "Wiz8.map"),
+        )
+
+    _run_action(action)
+
+
 @app.command("check-build-dir")
 def check_build_dir(
     build_dir: Annotated[
