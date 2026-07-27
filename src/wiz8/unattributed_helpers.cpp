@@ -2,6 +2,8 @@
 
 #include "wiz8/gameplay_boundaries.h"
 
+#include <string.h>
+
 /*
  * Recovered bodies whose original translation unit is not established yet.
  *
@@ -86,6 +88,28 @@ void Function4C59C0(int enabled, int value)
 void Function46E5A0(int unused, void* item)
 {
     PListRemove(*g_plist_659ab4, item);
+}
+
+
+/* Builds the version banner into the caller's buffer. The version itself is
+   unconditional; the title, the build number and the timestamp are each gated by
+   their own flag, which is how the main menu asks for the bare "v1.2.4" while
+   0x004E2F40 asks for all four parts. The constants are inline here exactly as
+   they are there - nothing reads them from a resource. */
+// FUNCTION: WIZ8 0x004E3620
+void Function4E3620(char* out, char with_title, char with_build, char with_date)
+{
+    out[0] = '\0';
+    if (with_title) {
+        strcat(out, "Wizardry 8 ");
+    }
+    strcat(out, FormatString("v%d.%d.%d", 1, 2, 4));
+    if (with_build) {
+        strcat(out, FormatString(" (build %d)", 0xdb));
+    }
+    if (with_date) {
+        strcat(out, FormatString(" %s", "2001/12/24 15:36"));
+    }
 }
 
 }
