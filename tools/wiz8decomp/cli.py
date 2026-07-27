@@ -1182,7 +1182,12 @@ def report_class_family(
 
 
 @report_app.command("aggregates")
-def report_aggregates() -> None:
+def report_aggregates(
+    resolve: Annotated[
+        str | None,
+        typer.Option(help="Program selector: also read each member's storage out of Ghidra."),
+    ] = None,
+) -> None:
     """Recover the original aggregates' member names from assertion text.
 
     A release build keeps the text of every assertion it did not compile out,
@@ -1194,12 +1199,44 @@ def report_aggregates() -> None:
     """
 
     def action() -> dict[str, Any]:
-        from .aggregates import aggregate_model, member_references, write_report
+        import csv as _csv
+
+        from .aggregates import (
+            aggregate_model,
+            consensus,
+            member_references,
+            resolve_members,
+            write_report,
+        )
 
         settings = _settings()
-        model = aggregate_model(member_references(settings.repo_dir))
+        references = member_references(settings.repo_dir)
+        model = aggregate_model(references)
         destination = settings.repo_dir / "build" / "reports" / "aggregates"
         summary = write_report(model, destination)
+        if resolve:
+            rows = consensus(resolve_members(settings, resolve, references))
+            with (destination / "storage.csv").open("w", newline="", encoding="utf-8") as stream:
+                writer = _csv.DictWriter(
+                    stream,
+                    fieldnames=[
+                        "aggregate",
+                        "member",
+                        "kind",
+                        "storage",
+                        "candidates",
+                        "sites",
+                        "agreed",
+                    ],
+                )
+                writer.writeheader()
+                writer.writerows(rows)
+            summary["resolved"] = {
+                "members": len(rows),
+                "agreed": len([row for row in rows if row["agreed"]]),
+                "globals": len([row for row in rows if row["kind"] == "global"]),
+                "offsets": len([row for row in rows if row["kind"] == "offset"]),
+            }
         summary["report"] = str(destination)
         return summary
 

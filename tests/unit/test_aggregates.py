@@ -80,3 +80,86 @@ def test_the_opaque_global_state_names_its_own_members() -> None:
     assert {"uiMonstersInDatabase", "fCombatMode", "plsItemList"} <= members
     assert model["gXStatus"]["accessed_through_pointer"] is False
     assert len(model) > 50
+
+
+_DECOMPILED = """
+undefined4 MainMenuScreenFunction(void)
+{
+  int index;
+  if (1000 < g_monster_record_count) {
+                    /* [wiz8 observation:assertion:begin]
+                       C:\\Projects\\Wizardry 8\\Status.cpp:1 */
+    _assert();
+  }
+  if (*(int *)(param_1 + 0x7b4) != index) {
+                    /* [wiz8 observation:assertion:begin]
+                       C:\\Projects\\Wizardry 8\\Combat.cpp:3 */
+    _assert();
+  }
+  return 0;
+}
+"""
+
+
+def test_a_value_aggregate_resolves_to_the_global_its_condition_reads() -> None:
+    from wiz8decomp.aggregates import storage_in_condition
+
+    read = storage_in_condition(_DECOMPILED, "C:\\Projects\\Wizardry 8\\Status.cpp", "1")
+
+    assert read["globals"] == ["g_monster_record_count"]
+    # `1000` is decimal here; only hexadecimal displacements are offsets.
+    assert read["offsets"] == []
+
+
+def test_a_pointer_aggregate_resolves_to_the_displacement_it_reads() -> None:
+    from wiz8decomp.aggregates import storage_in_condition
+
+    read = storage_in_condition(_DECOMPILED, "C:\\Projects\\Wizardry 8\\Combat.cpp", "3")
+
+    assert read["offsets"] == ["0x7b4"]
+    # `index` is a local Ghidra named, not storage; admitting it would put a
+    # variable name where an address belongs.
+    assert read["globals"] == []
+
+
+def test_repeated_sites_are_a_measurement_and_disagreement_is_reported() -> None:
+    from wiz8decomp.aggregates import consensus
+
+    rows = consensus(
+        [
+            {
+                "aggregate": "gXStatus",
+                "member": "fCombatMode",
+                "kind": "global",
+                "storage": "DAT_00683f94",
+                "basis": "unique",
+            },
+            {
+                "aggregate": "gXStatus",
+                "member": "fCombatMode",
+                "kind": "global",
+                "storage": "DAT_00683f94",
+                "basis": "unique",
+            },
+            {
+                "aggregate": "gStatus",
+                "member": "Char",
+                "kind": "global",
+                "storage": "DAT_00685100",
+                "basis": "unique",
+            },
+            {
+                "aggregate": "gStatus",
+                "member": "Char",
+                "kind": "global",
+                "storage": "DAT_00685200",
+                "basis": "unique",
+            },
+        ]
+    )
+    by_member = {row["member"]: row for row in rows}
+
+    assert by_member["fCombatMode"]["sites"] == 2
+    assert by_member["fCombatMode"]["storage"] == "DAT_00683f94"
+    assert by_member["Char"]["agreed"] is False
+    assert by_member["Char"]["storage"] == ""
