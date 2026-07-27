@@ -105,11 +105,34 @@ def symbol_candidates(decorated: str) -> tuple[str, ...]:
     return tuple(dict.fromkeys(names))
 
 
+class AmbiguousBoundarySymbol(RuntimeError):
+    """Two objects claim one reviewable name with different bodies."""
+
+
 def collect_object_functions(root: Path) -> dict[str, CoffFunction]:
-    """Index every external `.text` function under `root` by reviewable name."""
+    """Index every external `.text` function under `root` by reviewable name.
+
+    A name claimed by two objects with different bodies is refused rather than
+    resolved. Taking the first by sort order silently measures whichever
+    directory happens to sort earliest, and the build tree is not clean by
+    construction: a stale object left by an earlier CMake configuration stays
+    under `root` forever, because nothing prunes it. That is not hypothetical -
+    a 5-byte link stub named WinMain shadowed the recovered 378-byte body this
+    way, and nothing caught it, because only exact rows are hash-checked and the
+    row was structurally-strong.
+    """
 
     functions: dict[str, CoffFunction] = {}
+    origins: dict[str, Path] = {}
+    qualified: set[str] = set()
+    ambiguous: set[str] = set()
     for obj in sorted(root.rglob("*.obj")):
+        # CMake compiles its own probes -- compiler identification, the
+        # /showIncludes check -- under CMakeFiles but outside any target
+        # directory, and several of them define main. They are not build output
+        # of ours and must not reach the index.
+        if not any(part.endswith(".dir") for part in obj.parts):
+            continue
         try:
             parsed = parse_coff_functions(obj)
         except RuntimeError:
@@ -117,8 +140,35 @@ def collect_object_functions(root: Path) -> dict[str, CoffFunction]:
             # unit that contributed only data. Nothing to verify.
             continue
         for function in parsed:
-            for name in symbol_candidates(function.name):
-                functions.setdefault(name, function)
+            candidates = symbol_candidates(function.name)
+            for index, name in enumerate(candidates):
+                seen = functions.get(name)
+                if seen is None and name not in ambiguous:
+                    functions[name] = function
+                    origins[name] = obj
+                    if index == 0:
+                        qualified.add(name)
+                    continue
+                if seen is None or bytes(seen.body) == bytes(function.body):
+                    continue
+                if index == 0 and name in qualified:
+                    # Both objects claim the most specific name this symbol has,
+                    # so there is no reading under which they are different
+                    # functions. One of them is stale.
+                    raise AmbiguousBoundarySymbol(
+                        f"{name} is claimed by two objects with different bodies:\n"
+                        f"  {origins[name]} ({len(seen.body)} bytes)\n"
+                        f"  {obj} ({len(function.body)} bytes)\n"
+                        "Remove the stale object, or exclude the link surface from "
+                        "the verified build tree."
+                    )
+                # A shortened alias two owners share -- two classes with a Read,
+                # say. Binding it to whichever sorted first would measure an
+                # arbitrary one, so it resolves to neither and a row that uses it
+                # reports as not-built.
+                ambiguous.add(name)
+                functions.pop(name, None)
+                origins.pop(name, None)
     return functions
 
 
