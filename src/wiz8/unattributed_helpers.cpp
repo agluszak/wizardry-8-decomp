@@ -1,3 +1,5 @@
+#include "wiz8/wiz8_windows.h"
+
 #include "wiz8/gameplay_boundaries.h"
 
 /*
@@ -16,6 +18,11 @@ struct W8Releasable {
     virtual ~W8Releasable();
 };
 
+/* Only that one method is established, and nothing here shows a field. */
+struct W8Forwarded {
+    void Method4C5290();
+};
+
 extern "C" {
 
 extern W8PList** g_plist_659ab4;
@@ -23,6 +30,9 @@ extern int g_dword_687599;
 
 extern void Function4C4EF0(void);
 extern void Function4A7A70(int value);
+
+extern int g_dword_6874f7;
+extern unsigned long g_tick_65b9a8;
 
 /* Releases through the virtual destructor, tolerating a null. */
 // FUNCTION: WIZ8 0x004C5860
@@ -42,6 +52,23 @@ void Function4C5ED0(int enabled)
     if (enabled != 0) {
         Function4C4EF0();
     }
+}
+
+/* Records a value and stamps it with the tick it was recorded at. */
+// FUNCTION: WIZ8 0x00482720
+void Function482720(int value)
+{
+    g_dword_6874f7 = value;
+    g_tick_65b9a8 = GetTickCount();
+}
+
+/* Takes an argument the decompiler does not show and hands it on in ecx, so the
+   callee is a method and this is a forwarder, not the nullary call it looks
+   like. Nothing follows the call, so it leaves as a jump. */
+// FUNCTION: WIZ8 0x004C5810
+void Function4C5810(W8Forwarded* target)
+{
+    target->Method4C5290();
 }
 
 /* Acts only when both arguments are set, and passes the second on. */

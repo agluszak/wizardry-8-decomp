@@ -1,6 +1,10 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+/* Cleans its own argument, so it is __stdcall and not the cdecl the
+   decompiler assumes. */
+extern "C" int __stdcall Function4C4660(int query);
+
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
    the canonical assertion at line 960, whose message reads
    "GetNumSubsPerCycle() -> Invalid cycle num.". The element count and stride
@@ -36,4 +40,15 @@ float MonsterGetScale(W8Monster* monster)
 void MonsterSetScale(W8Monster* monster, float scale)
 {
     *(float*)(monster->m_cycles[18].unknown_0c + 0x5f0) = scale;
+}
+
+/* Named by the MonsterManager assertions. A null monster answers -1 rather than
+   forwarding, which is how the callers tell "no monster" from a real result. */
+// FUNCTION: WIZ8 0x004C5B40
+int MonsterQuery(W8Monster* monster, int query)
+{
+    if (monster != NULL) {
+        return Function4C4660(query);
+    }
+    return -1;
 }
