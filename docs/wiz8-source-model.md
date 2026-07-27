@@ -37,53 +37,67 @@ SurRender decorated names remain external ABI evidence, not local Wizardry RTTI.
 
 ## Assertion expressions
 
-`SR.DLL`'s `srAssertFail` is called from 1048 sites, 1038 of which push their four arguments as
-literals and decode cleanly into `evidence/observations/wiz8/assertions.csv`: call site, containing
-function, source path, line, and the **expression text**. They span 117 files and 606 distinct
-functions.
+`SR.DLL`'s `srAssertFail` is reached two ways: 1048 sites call through the import slot directly
+(`FF 15`), and 729 more call through a register that VC6 hoisted the slot into (`mov edi, [slot]`
+… `call edi`), which neither a byte scan for the direct encoding nor Ghidra's xref list can see.
+`evidence/observations/wiz8/assertions.csv` records all 1777 sites for the canonical retail
+program: call site, call kind, containing function, source path, line, the **expression text**,
+and the optional fourth-argument **message**. All but one direct site decode their literal
+arguments. They span 128 files; 789 distinct functions contain at least one site, and 84 sites
+fall outside any function the canonical Ghidra program currently defines and record an empty
+containing function. The containing function is resolved through the materialized canonical
+program, and the cross-build raw harvest behind this table is
+`evidence/snapshots/call-sites/assertions.csv`.
+
+The message argument is usually null, but 349 sites pass one, and messages are a different naming
+channel from expressions: expressions name members, parameters and constants, while messages tend
+to name the enclosing routine or class — `"Too many props loaded for Octree"` named the `Octree`
+class and `"GetNumSubsPerCycle() -> Invalid cycle num."` named the method, and both claims now
+cite the `message` column rather than prose.
 
 The expression half is the valuable part, and it is a different kind of evidence from the source
 path. A path assigns a function to a translation unit; an expression names identifiers:
 
 | What it yields | Count | Examples |
 | --- | ---: | --- |
-| Member accesses through `->` or `.` | 195 | `pTrigger->m_pacRecipients`, `pWorld->plsProps`, `pWorld->psrMeshes`, `pSound->pacSoundName`, `pLVL->pProps[i].bNumFrames` |
-| Named game constants and enumerators | 60 | `BAD_INDEX`, `MAX_MONSTERS_IN_DATABASE`, `HAND_COUNT`, `SPELL_COUNT`, `PHASES_PER_ROUND`, `TRIGGER_REP_PROP`, `BEHAVIOUR_FIRST`/`BEHAVIOUR_LAST` |
-| Globals (`g`/`gp`/`gui` prefixes) | 63 | `glsTimedEvents`, `gpGDCamera` |
+| Member accesses through `->` or `.` | 366 | `pTrigger->m_pacRecipients`, `pWorld->plsProps`, `pWorld->psrMeshes`, `pSound->pacSoundName`, `pLVL->pProps[i].bNumFrames` |
+| Named game constants and enumerators | 88 | `BAD_INDEX`, `MAX_MONSTERS_IN_DATABASE`, `HAND_COUNT`, `SPELL_COUNT`, `PHASES_PER_ROUND`, `TRIGGER_REP_PROP`, `BEHAVIOUR_FIRST`/`BEHAVIOUR_LAST` |
+| Globals (`g`/`gp`/`gui` prefixes) | 138 | `glsTimedEvents`, `gpGDCamera` |
 
-Sixty-five distinct ALL-CAPS tokens appear, but five of them — `NULL`, `FALSE`, `INT32`, `UINT16`
+Ninety-three distinct ALL-CAPS tokens appear, but five of them — `NULL`, `FALSE`, `INT32`, `UINT16`
 and `UINT32` — are a null pointer constant, a boolean and three typedef names, which the prefix
-table below already treats as type evidence. The game-side count is therefore 60.
+table below already treats as type evidence. The game-side count is therefore 88.
 
 Identifiers are Hungarian-coded, and that coding is established from the original's own text rather
 than inferred:
 
 | Prefix | Uses | Meaning implied by use |
 | --- | ---: | --- |
-| `p` | 480 | pointer |
-| `ui` / `i` | 131 / 108 | `UINT32` / `INT32` (both names appear literally in casts) |
-| `f` | 100 | flag |
-| `b` / `ub` / `us` | 34 / 14 / 19 | byte, unsigned byte, `UINT16` |
-| `g` / `gp` / `gui` | 33 / 16 / 14 | global, global pointer, global `UINT32` |
-| `psr` | 24 | pointer to a SurRender object |
-| `pls` | 13 | list-bearing pointer; both `PList.cpp` and `IList.cpp` use it, so the concrete list type needs consumer evidence |
-| `pac` / `pst` / `h` | 17 / 17 / 13 | pointer to char array, pointer to struct, handle |
+| `p` | 885 | pointer |
+| `ui` / `i` | 227 / 195 | `UINT32` / `INT32` (both names appear literally in casts) |
+| `f` | 172 | flag |
+| `b` / `ub` / `us` | 60 / 17 / 20 | byte, unsigned byte, `UINT16` |
+| `g` / `gp` / `gui` | 82 / 35 / 21 | global, global pointer, global `UINT32` |
+| `psr` | 28 | pointer to a SurRender object |
+| `pls` | 49 | list-bearing pointer; both `PList.cpp` and `IList.cpp` use it, so the concrete list type needs consumer evidence |
+| `pac` / `pst` / `h` | 17 / 24 / 23 | pointer to char array, pointer to struct, handle |
 
 This narrows fields the disassembly leaves opaque, but it does not replace consumer evidence.
 `pWorld->plsProps` is a `PList` because its users call the reviewed PList accessors; `psrMeshes`
 identifies a SurRender-facing pointer independently.
 
 An `m_` member prefix is **not** a project-wide convention, and an earlier revision of this document
-wrongly said it was. Only 70 distinct `m_` identifiers appear, and 147 of the 195 member-access
+wrongly said it was. Only 90 distinct `m_` identifiers appear, and 266 of the 277 `->` member-access
 assertions contain no `m_` at all — including four of the five examples in the table above. `m_` is
-used by some classes, notably `Trigger`, the `Oct*` family and `Item`'s representation object, while
-most member accesses are plain Hungarian names. Treat `m_` as a per-class habit to be checked, not
-as a rule to apply when naming a recovered field.
+used by some classes, notably `Trigger`, the `Oct*` family, `GDFileIO`'s trigger arrays and `Item`'s
+representation object, while most member accesses are plain Hungarian names. Treat `m_` as a
+per-class habit to be checked, not as a rule to apply when naming a recovered field.
 
-The paths also extend the tree. All 113 absolute `.cpp` assertion paths already appear in
-`source-tree.csv`, which independently confirms that census is complete for `.cpp`. But four
-assertions come from headers the absolute-path scan could never have found, because they are
-recorded relative:
+The paths also extend the tree. All 124 absolute `.cpp` assertion paths — including eleven files
+such as `Local Code\Gameloop.cpp` and `Engine Code\Cursor3d.cpp` that only register-indirect sites
+reach — already appear in `source-tree.csv`, which independently confirms that census is complete
+for `.cpp`. But four assertions come from headers the absolute-path scan could never have found,
+because they are recorded relative:
 
 ```text
 ..\Engine Code\Include\AnimRep.hpp

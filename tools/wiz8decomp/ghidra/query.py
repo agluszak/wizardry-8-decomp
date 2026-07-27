@@ -132,6 +132,24 @@ def _functions(program: Any, pattern: str | None = None) -> dict[str, Any]:
     return {"functions": values}
 
 
+def _function_of(program: Any, argument: str) -> dict[str, Any]:
+    """Containing-function entry for each comma-separated address; null when none.
+
+    Containment uses the function manager's real (possibly non-contiguous) body,
+    which an entry-plus-size reading of the `functions` listing cannot reproduce.
+    """
+
+    manager = program.getFunctionManager()
+    values: dict[str, str | None] = {}
+    for text in argument.split(","):
+        text = text.strip()
+        if not text:
+            continue
+        function = manager.getFunctionContaining(_address(program, text))
+        values[text] = str(function.getEntryPoint()) if function is not None else None
+    return {"functions": values}
+
+
 def _symbols(program: Any, external: bool) -> dict[str, Any]:
     table = program.getSymbolTable()
     iterator = table.getExternalSymbols() if external else table.getAllSymbols(True)
@@ -171,6 +189,8 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         return _xrefs(program, arguments[0], {"xrefs": "both", "xrefs-to": "to", "xrefs-from": "from"}[command])
     if command in {"function", "function-slice"}:
         return {"function": function_metadata(program, _function(program, arguments[0]))}
+    if command == "function-of":
+        return _function_of(program, arguments[0])
     if command == "read-data":
         return _read_data(program, arguments[0], arguments[1])
     if command == "strings":
@@ -197,7 +217,7 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
 def validate_query_arguments(command: str, arguments: list[str]) -> None:
     arity = {
         "listing": 1, "decompile": 1, "xrefs": 1, "xrefs-to": 1, "xrefs-from": 1,
-        "function": 1, "function-slice": 1, "read-data": 2, "strings": 0,
+        "function": 1, "function-slice": 1, "function-of": 1, "read-data": 2, "strings": 0,
         "string-refs": 1, "search": 1, "functions": 0, "imports": 0, "exports": 0,
         "sections": 0, "observation-audit": 0,
     }

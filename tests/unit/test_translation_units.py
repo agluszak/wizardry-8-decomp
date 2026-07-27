@@ -26,7 +26,7 @@ def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     gameplay = _rows(repository / "config/reccmp/wiz8-gameplay-boundaries.csv")
     intervals = derive_intervals(assertions)
 
-    assert len(intervals) == 113
+    assert len(intervals) == 117
     assert all(left.upper < right.lower for left, right in pairwise(intervals))
 
     rendered_intervals = render_interval_csv(intervals)
@@ -43,7 +43,7 @@ def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     }
     assert all(not row["source_path"] for row in external)
     assert all(not row["interval_lower"] and not row["interval_upper"] for row in external)
-    assert len(list(csv.DictReader(io.StringIO(rendered_intervals)))) == 225
+    assert len(list(csv.DictReader(io.StringIO(rendered_intervals)))) == 233
     assert (
         next(row for row in mapped if row["symbol"] == "MonsterDBFromSpecies")["source_path"]
         == "Local Code\\MonsterManager.cpp"
@@ -70,7 +70,8 @@ def test_call_site_anchors_agree_with_the_reviewed_table_where_both_know_a_funct
     reviewed = {
         int(row["containing_function"], 16): row["source_path"][len("C:\\Projects\\Wizardry 8\\") :]
         for row in assertions
-        if row["source_path"].startswith("C:\\Projects\\Wizardry 8\\")
+        if row["containing_function"]
+        and row["source_path"].startswith("C:\\Projects\\Wizardry 8\\")
         and row["source_path"].casefold().endswith(".cpp")
     }
 

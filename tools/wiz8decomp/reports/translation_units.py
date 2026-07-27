@@ -67,7 +67,9 @@ def derive_intervals(
     owners_by_anchor: dict[int, set[str]] = defaultdict(set)
     for row in assertions:
         source_path = _source_path(row["source_path"])
-        if source_path is None:
+        # Sites outside any defined function record an empty containing
+        # function and anchor nothing.
+        if source_path is None or not row["containing_function"]:
             continue
         anchor = int(row["containing_function"], 16)
         anchors_by_unit[source_path].add(anchor)
@@ -174,7 +176,7 @@ def render_gameplay_map_csv(
     reviewed: set[int] = set()
     for row in assertions:
         source_path = _source_path(row["source_path"])
-        if source_path is not None:
+        if source_path is not None and row["containing_function"]:
             anchor = int(row["containing_function"], 16)
             direct[anchor] = source_path
             reviewed.add(anchor)
@@ -319,7 +321,7 @@ def translation_unit_report(settings: Any) -> dict[str, Any]:
     reviewed_anchors = {
         int(row["containing_function"], 16)
         for row in assertions
-        if _source_path(row["source_path"]) is not None
+        if _source_path(row["source_path"]) is not None and row["containing_function"]
     }
     return {
         "translation_units": len(intervals),

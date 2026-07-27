@@ -61,21 +61,55 @@ def test_assertion_harvest_yields_identifiers_and_extends_the_tree() -> None:
     ) as stream:
         tree = {row["relative_path"] for row in csv.DictReader(stream)}
 
-    assert len(rows) == 1038
-    assert len({row["source_path"] for row in rows}) == 117
-    assert all(row["expression"] and row["line"] for row in rows)
+    assert len(rows) == 1777
+    assert Counter(row["call_kind"] for row in rows) == {
+        "direct": 1048,
+        "register-indirect": 729,
+    }
+    assert len({row["source_path"] for row in rows if row["source_path"]}) == 128
+
+    # Exactly one direct site resolves no literal arguments; every other site
+    # decodes an expression, a path and a line.
+    undecoded = [row for row in rows if not row["expression"]]
+    assert [row["call_site"] for row in undecoded] == ["00450791"]
+    assert all(row["expression"] and row["line"] for row in rows if row["call_site"] != "00450791")
+
+    # Sites outside any function the canonical program defines record an empty
+    # containing function instead of a guessed one.
+    orphans = [row for row in rows if not row["containing_function"]]
+    assert len(orphans) == 84
+    assert len({row["containing_function"] for row in rows if row["containing_function"]}) == 789
+
+    # The register-indirect sites are the ones an FF15 byte scan cannot see;
+    # GDFileIO's trigger assertions are reached only that way.
+    assert any(
+        "m_ppTriggers" in row["expression"] and row["call_kind"] == "register-indirect"
+        for row in rows
+    )
+
+    # The optional fourth argument is recorded; the Octree class name and the
+    # GetNumSubsPerCycle method name are cited from this column.
+    assert sum(1 for row in rows if row["message"]) == 349
+    assert any(row["message"] == "Too many props loaded for Octree" for row in rows)
+    assert any(
+        row["message"] == "GetNumSubsPerCycle() -> Invalid cycle num." for row in rows
+    )
 
     # Members are named through -> or . -- but m_ is a per-class habit, not a
     # project-wide convention: most member accesses carry no m_ at all.
     members = [row for row in rows if "->" in row["expression"]]
-    assert len(members) >= 150
+    assert len(members) >= 250
     without_m = [row for row in members if "m_" not in row["expression"]]
-    assert len(without_m) == 147
+    assert len(without_m) == 266
     assert any("m_pacRecipients" in row["expression"] for row in rows)
     assert any("pWorld->plsProps" in row["expression"] for row in rows)
 
     # The .cpp paths cross-validate the tracked census; the .hpp paths extend it.
-    absolute = {row["source_path"] for row in rows if not row["source_path"].startswith("..")}
+    absolute = {
+        row["source_path"]
+        for row in rows
+        if row["source_path"] and not row["source_path"].startswith("..")
+    }
     assert {path.split("Wizardry 8\\", 1)[-1] for path in absolute} <= tree
     headers = sorted({row["source_path"] for row in rows if row["source_path"].startswith("..")})
     assert headers == [

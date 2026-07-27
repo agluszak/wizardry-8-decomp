@@ -28,3 +28,6 @@ vendor/msvc600/
 *.db
 .beads-credential-key
 .beads/proxieddb/
+
+# Claude Code harness state
+.claude/scheduled_tasks.lock
