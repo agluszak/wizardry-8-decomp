@@ -1018,11 +1018,17 @@ def report_translation_units() -> None:
 
 
 @report_app.command("data-segmentation")
-def report_data_segmentation() -> None:
+def report_data_segmentation(
+    update_snapshot: bool = typer.Option(
+        False, "--update-snapshot", help="Refresh the tracked unit-data-intervals snapshot."
+    ),
+) -> None:
     """Fit the .text unit order to the data sections and attribute globals."""
     from .reports.data_segmentation import data_segmentation_report
 
-    _run_action(lambda: data_segmentation_report(_settings()))
+    _run_action(
+        lambda: data_segmentation_report(_settings(), update_snapshot=update_snapshot)
+    )
 
 
 @report_app.command("class-candidates")

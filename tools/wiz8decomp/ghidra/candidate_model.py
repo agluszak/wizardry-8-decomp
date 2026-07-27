@@ -1,0 +1,199 @@
+"""Candidate class derivation from the polymorphism snapshots.
+
+Pure logic shared by the class-candidates report and the candidate replay.
+It lives under ``ghidra/`` because replay behavior must be reproducible from
+the materialization key, which hashes this directory and the tracked
+evidence; nothing here reads the proprietary image.
+
+Candidates are machine observations, never reviewed conclusions: the replay
+materializes them under candidate-marked names and categories, and promotion
+into ``evidence/reviewed/wiz8/`` always passes through a human review of the
+writers' decompiles.
+"""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from typing import Any
+
+
+def candidate_name(vtable: int) -> str:
+    return f"Candidate_{vtable:08x}"
+
+
+def classify_candidates(
+    vtables: list[dict[str, str]],
+    slots: list[dict[str, str]],
+    writes: list[dict[str, str]],
+    reviewed_vtables: set[int],
+) -> list[dict[str, Any]]:
+    """One candidate per constructor-written vftable, writers classified.
+
+    A writer that is also the vtable's slot 0 target is MSVC's scalar
+    deleting destructor writing the vtable during destruction; every other
+    writer is a constructor or the complete destructor, which this evidence
+    alone cannot separate. Vtables the same writers install at non-zero
+    object offsets are that candidate's subobject tables.
+    """
+
+    slot0: dict[int, int] = {}
+    for row in slots:
+        if row["slot_index"] == "0" and row["target"]:
+            slot0[int(row["vtable"], 16)] = int(row["target"], 16)
+
+    writers_by_vtable: dict[int, list[dict[str, str]]] = defaultdict(list)
+    vtables_by_writer: dict[int, set[tuple[int, int]]] = defaultdict(set)
+    for row in writes:
+        if not row["function_start"]:
+            continue
+        vtable = int(row["vtable"], 16)
+        writer = int(row["function_start"], 16)
+        writers_by_vtable[vtable].append(row)
+        vtables_by_writer[writer].add((vtable, int(row["object_offset"], 0)))
+
+    candidates: list[dict[str, Any]] = []
+    for row in vtables:
+        if row["kind"] != "vftable":
+            continue
+        vtable = int(row["address"], 16)
+        write_rows = writers_by_vtable.get(vtable, [])
+        primary_writers = sorted(
+            {
+                int(item["function_start"], 16)
+                for item in write_rows
+                if int(item["object_offset"], 0) == 0
+            }
+        )
+        if not primary_writers:
+            continue
+        deleting = slot0.get(vtable)
+        constructors = [writer for writer in primary_writers if writer != deleting]
+        co_installed = sorted(
+            {
+                (other, offset)
+                for writer in primary_writers
+                for other, offset in vtables_by_writer[writer]
+                if other != vtable and offset != 0
+            }
+        )
+        candidates.append(
+            {
+                "vtable": vtable,
+                "section": row["section"],
+                "slot_count": int(row["slot_count"] or 0),
+                "pure_virtual_slots": int(row["pure_virtual_slots"] or 0),
+                "import_slots": int(row["import_slots"] or 0),
+                "subobject_offsets": row["subobject_offsets"],
+                "allocation_sizes": sorted(
+                    int(value, 16)
+                    for value in (row.get("allocation_sizes") or "").split("|")
+                    if value
+                ),
+                "scalar_deleting_destructor": (
+                    deleting if deleting in primary_writers else None
+                ),
+                "constructor_or_destructor": constructors,
+                "co_installed_vtables": co_installed,
+                "write_sites": sorted(item["site"] for item in write_rows),
+                "reviewed": vtable in reviewed_vtables,
+            }
+        )
+    return candidates
+
+
+def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Struct specs for the unreviewed candidates.
+
+    A skeleton has the primary vptr at 0, one vptr per co-installed vtable at
+    its non-negative object offset, and a size that covers the largest
+    allocation hint and every vptr. Reviewed candidates are skipped - the
+    reviewed class model owns their structures.
+    """
+
+    skeletons: list[dict[str, Any]] = []
+    for candidate in candidates:
+        if candidate["reviewed"]:
+            continue
+        vptr_offsets: list[tuple[int, int]] = [(0, candidate["vtable"])]
+        vptr_offsets.extend(
+            (offset, vtable)
+            for vtable, offset in candidate["co_installed_vtables"]
+            if offset > 0
+        )
+        vptr_offsets.sort()
+        minimum = vptr_offsets[-1][0] + 4
+        hints = candidate["allocation_sizes"]
+        size = max([minimum] + [hint for hint in hints if hint >= minimum])
+        skeletons.append(
+            {
+                "name": candidate_name(candidate["vtable"]),
+                "vtable": candidate["vtable"],
+                "size": size,
+                "size_is_allocation_hint": bool(hints) and size in hints,
+                "vptr_offsets": vptr_offsets,
+            }
+        )
+    return skeletons
+
+
+def allocation_size_hints(
+    image: Any, writers: list[int], allocators: set[int]
+) -> dict[int, list[int]]:
+    """Push-immediate-before-new hints for each writer's call sites.
+
+    The MSVC shape is ``push size; call operator new; ...; call ctor``. For
+    every direct E8 call to a writer, the preceding 48 bytes are scanned for
+    a push-immediate followed by a call into a known allocator; the pushed
+    immediate is that construction site's allocation size. Absence of a hint
+    means the object is embedded, stack-placed, or reached indirectly.
+    """
+
+    text = image.text
+    data = image.data
+    sizes: dict[int, set[int]] = defaultdict(set)
+    writer_set = set(writers)
+    start = text.raw_offset
+    end = text.raw_offset + text.raw_size
+    offset = start
+    while True:
+        offset = data.find(b"\xe8", offset, end)
+        if offset < 0:
+            break
+        site = text.virtual_address + (offset - text.raw_offset)
+        target = (
+            site + 5 + int.from_bytes(data[offset + 1 : offset + 5], "little", signed=True)
+        ) & 0xFFFFFFFF
+        if target in writer_set:
+            window = data[max(start, offset - 48) : offset]
+            hint = push_before_allocator(window, site - len(window), allocators)
+            if hint is not None:
+                sizes[target].add(hint)
+        offset += 1
+    return {writer: sorted(values) for writer, values in sizes.items()}
+
+
+def push_before_allocator(
+    window: bytes, window_va: int, allocators: set[int]
+) -> int | None:
+    """The last push-immediate whose next call lands in an allocator."""
+
+    best: int | None = None
+    index = 0
+    while index < len(window):
+        byte = window[index]
+        pushed: int | None = None
+        after = index
+        if byte == 0x68 and index + 5 <= len(window):
+            pushed = int.from_bytes(window[index + 1 : index + 5], "little")
+            after = index + 5
+        elif byte == 0x6A and index + 2 <= len(window):
+            pushed = window[index + 1]
+            after = index + 2
+        if pushed is not None and after < len(window) and window[after] == 0xE8:
+            if after + 5 <= len(window):
+                rel = int.from_bytes(window[after + 1 : after + 5], "little", signed=True)
+                target = (window_va + after + 5 + rel) & 0xFFFFFFFF
+                if target in allocators:
+                    best = pushed
+        index += 1
+    return best

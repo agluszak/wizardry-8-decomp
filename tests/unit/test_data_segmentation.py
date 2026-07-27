@@ -92,3 +92,37 @@ def test_attribution_scores_agreement_against_the_baseline() -> None:
     assert rows[1]["unit"] == "B.cpp"
     assert rows[1]["baseline_unit"] == "A.cpp"
     assert rows[2]["unit"] == ""
+
+
+def test_unit_data_interval_snapshot_is_ordered_and_pins_the_octree_anchor() -> None:
+    import csv
+    from pathlib import Path
+
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/snapshots/data-segmentation/unit-data-intervals.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = list(csv.DictReader(stream))
+
+    assert rows
+    assert {row["program"] for row in rows} == {"wiz8--gog-base--wiz8--18a74ff61c65"}
+    # Within one storage class the fitted intervals are disjoint and ordered.
+    by_class: dict[str, list[tuple[int, int]]] = {}
+    for row in rows:
+        assert int(row["baseline_globals"]) > 0
+        by_class.setdefault(row["storage_class"], []).append(
+            (int(row["lower"], 16), int(row["upper"], 16))
+        )
+    assert set(by_class) == {".rdata/initialized", ".data/initialized", ".data/bss"}
+    for spans in by_class.values():
+        for (_, left_upper), (right_lower, _) in zip(spans, spans[1:]):
+            assert left_upper < right_lower
+
+    # The hand-derived Octree.cpp anchor from the wiz8-d4o bead, byte-for-byte.
+    octree = next(
+        row
+        for row in rows
+        if row["unit"] == "Engine Code\\Octree.cpp"
+        and row["storage_class"] == ".data/initialized"
+    )
+    assert (octree["lower"], octree["upper"]) == ("00605afc", "006066f0")

@@ -46,12 +46,16 @@ from .binary.image import PeImage
 from .binary.inventory import is_first_party, representative_modules
 from .config import Settings
 from .eh_metadata import import_slots
+from .ghidra.candidate_model import allocation_size_hints
 from .ghidra.project import program_name
 from .paths import atomic_write
 
 _SNAPSHOT_NAME = "polymorphism"
 _REPORT_FILES = ("vtables.csv", "slots.csv", "vptr-writes.csv")
 _PURECALL = "_purecall"
+# MSVC's global scalar operator new; construction sites push the object size
+# immediately before calling it (directly through its import thunk).
+_OPERATOR_NEW = "??2@YAPAXI@Z"
 # A vbtable holds small signed displacements, not addresses, so its entries are
 # never relocated. The first is the offset back to the vbptr itself.
 _VBTABLE_FIRST = {0, 0xFFFFFFFC}
@@ -288,7 +292,46 @@ def analyse_image(path: Path) -> dict[str, Any]:
 
     tables.extend(_vbtables(image, relocated, {write.table for write in writes}))
     tables.sort(key=lambda table: table.address)
-    return {"tables": tables, "writes": writes, "purecall": purecall}
+
+    # Allocation-size hints: for each vftable, the push-immediates found before
+    # operator-new calls at its offset-0 writers' call sites. The slot 0 target
+    # is the deleting destructor and never a construction entry, so it is
+    # excluded from the scanned writers.
+    allocators = {
+        address
+        for address, name in thunks.items()
+        if name.split("!", 1)[-1] == _OPERATOR_NEW
+    }
+    constructors_by_table: dict[int, set[int]] = {}
+    for table in tables:
+        if table.kind != "vftable":
+            continue
+        deleting = table.slots[0].target if table.slots else None
+        constructors_by_table[table.address] = {
+            write.function
+            for write in table.writes
+            if write.object_offset == 0
+            and write.function is not None
+            and write.function != deleting
+        }
+    all_constructors = sorted(set().union(*constructors_by_table.values(), set()))
+    hints = (
+        allocation_size_hints(image, all_constructors, allocators)
+        if allocators and all_constructors
+        else {}
+    )
+    sizes_by_table = {
+        address: sorted(
+            {size for writer in writers for size in hints.get(writer, [])}
+        )
+        for address, writers in constructors_by_table.items()
+    }
+    return {
+        "tables": tables,
+        "writes": writes,
+        "purecall": purecall,
+        "allocation_sizes": sizes_by_table,
+    }
 
 
 def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
@@ -365,6 +408,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             continue
         result = analyse_image(path)
         tables, writes = result["tables"], result["writes"]
+        allocation_sizes = result["allocation_sizes"]
         per_program[program] = {
             "vtables": sum(1 for table in tables if table.kind == "vftable"),
             "vbtables": sum(1 for table in tables if table.kind == "vbtable"),
@@ -388,6 +432,9 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                     "pure_virtual_slots": sum(1 for slot in table.slots if slot.kind == "pure-virtual"),
                     "adjustor_thunk_slots": sum(1 for slot in table.slots if slot.kind == "adjustor-thunk"),
                     "import_slots": sum(1 for slot in table.slots if slot.kind == "import-thunk"),
+                    "allocation_sizes": "|".join(
+                        f"0x{size:x}" for size in allocation_sizes.get(table.address, [])
+                    ),
                 }
             )
             for slot in table.slots:
@@ -441,6 +488,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                 "pure_virtual_slots",
                 "adjustor_thunk_slots",
                 "import_slots",
+                "allocation_sizes",
             ],
             table_rows,
         ),

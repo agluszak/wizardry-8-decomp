@@ -1,0 +1,239 @@
+program,storage_class,unit,lower,upper,baseline_globals
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\GameData.cpp,00652938,00652dce,24
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Video2.cpp,00659688,00659688,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Levels.cpp,00659738,00659738,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Octree.cpp,00659760,006598ac,13
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\BitArray.cpp,006598d4,006598f1,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Trigger.cpp,006598fc,006599c8,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\GDFileIO.cpp,00659a34,00659a58,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Prop.cpp,00659a60,00659a60,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\3dapi.cpp,00659a68,00659ac0,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Navigator.cpp,00659bf8,00659c04,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\OctPath.cpp,00659c18,00659c6c,21
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\3d.cpp,00659c80,00659c8c,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\stMeshModel.cpp,00659cbc,0065a0ec,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Quality.cpp,0065a118,0065a118,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Environment.cpp,0065a160,0065b9bc,33
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\ReadMesh.cpp,0065b9cc,0065ba04,13
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\MonGen.cpp,0065ba10,0065ba44,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\stCube.cpp,0065ba5c,0065ba64,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Cursor3d.cpp,0065ba8c,0065ba98,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\stParticle.cpp,0065bd58,0065bdc4,27
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\OctSubMesh.cpp,0065bdcc,0065bdcd,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Missile.cpp,0065bde4,0065bde4,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\GrCycle.cpp,0065bdf0,0065be0c,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\PathAI.CPP,0065be10,0065be11,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Spells.cpp,0065be14,0065be20,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\AniMesh.cpp,0065be78,0065be90,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\GrObject.cpp,0065be9c,0065be9d,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\materials.cpp,0065bea8,0065beaf,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\UpdateMesh.cpp,0065beb8,00682fb8,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\ReadLevel.cpp,00682fbc,00682fbd,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\quad.cpp,00682fc0,00682fc1,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\Monster.cpp,00682fd0,00682fe1,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\OctPrePath.cpp,00682fe8,00682fe9,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\LevelFile.cpp,00682ff8,006833fc,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Engine Code\SoundEvent.cpp,00683408,00683420,8
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Level Specific Code\MasterFunctionList.cpp,006834d4,006834e0,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Level Specific Code\MtGigasOuter.cpp,006834fc,00683508,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Level Specific Code\MartensBluff1.cpp,00683558,00683558,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Level Specific Code\Arnika.cpp,00683570,006835f0,32
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\MonsterManager.cpp,00683698,00683698,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\Combat.cpp,006837a1,00685117,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\GameplayCode.cpp,0068517d,00687526,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\RegionManager.cpp,00689b38,00689b50,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\ItemManager.cpp,00689b54,00689b54,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\Sight.cpp,00689b6c,00689b74,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\search.cpp,00689fac,00689fb4,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\UtilityFunctions.cpp,0068c098,0068c0b0,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\NPC Scripting.cpp,0068c358,0068c501,27
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\MonsterAI.cpp,0068d520,0068d525,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\Factions.cpp,0068d528,0068d6e9,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\Combat Sound.cpp,0068d850,0068de28,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Code\ButtonSound.cpp,0068de38,0068de3c,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\Screens.cpp,0068ed10,0068edac,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\mipe.cpp,0068f0fe,0068f134,15
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\AutomapScreen.cpp,0068f154,0068f2ac,41
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MGSTextBox.cpp,0068f2b4,0069b7d0,22
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MGSButtons.cpp,0069b87e,0069b8ec,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MGSPortraits.cpp,0069b920,0069b948,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MGSUseItemSelect.cpp,0069b950,0069bf38,22
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MGSPartyMovement.cpp,0069bf40,0069c0e4,17
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\IntroScreen.cpp,0069c258,0069c258,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MGSSpellIcons.cpp,0069c25c,0069c2c0,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\RCSCommon.cpp,0069c3c0,0069c404,18
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\RCSItemsPage.cpp,0069c424,0069c480,11
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Local Screens\MainMenuScreen.cpp,0069c4ac,0069c4c4,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Dialog Code\DialogInterface.cpp,0069c568,0069c5c8,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Dialog Code\stMessageDialog.cpp,0069c5d4,0069c80f,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Dialog Code\AssayDialog.cpp,0069c814,0069c818,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Dialog Code\stButton.cpp,0069ca24,0069ca25,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/bss,Dialog Code\SpellInfoDialog.cpp,0069ca2c,0069ca2d,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\GameData.cpp,00603ac4,00603bd8,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Video2.cpp,00603c48,00604060,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Levels.cpp,00604470,00605a88,21
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Octree.cpp,00605afc,006066f0,73
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\BitArray.cpp,006068f0,00606960,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Trigger.cpp,00606998,00606e58,37
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\OctBuildTree.cpp,00606e94,00606ee4,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\GDFileIO.cpp,00606f44,00607828,58
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Prop.cpp,00607b98,00607d30,13
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\3dapi.cpp,00607d7c,006081f8,42
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Navigator.cpp,006081fc,00608230,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\OctPath.cpp,0060827a,0060908c,103
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\OctPreTree.cpp,0060909c,00609c50,62
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\3d.cpp,00609ca8,00609d10,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\stMeshModel.cpp,00609d34,00609e90,16
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\AmbientSound.cpp,0060a168,0060a1c0,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Quality.cpp,0060a25c,0060a268,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\stModelInstance.cpp,0060a340,0060a350,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Environment.cpp,0060a390,0060a448,13
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\ReadMesh.cpp,0060a470,0060a6a4,21
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\MonGen.cpp,0060a6b8,0060a984,22
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\stCube.cpp,0060a9b4,0060aa58,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Cursor3d.cpp,0060aba0,0060ac00,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\stParticle.cpp,0060bf60,0060bfc8,8
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\OctSubMesh.cpp,0060bff4,0060c7b4,37
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Item.cpp,0060c7ec,0060c8b0,8
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\AnimObj.cpp,0060c8c8,0060c97c,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Missile.cpp,0060c9c8,0060cc9c,21
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\GrCycle.cpp,0060ccc0,0060ceac,19
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\PathAI.CPP,0060cedc,0060cf60,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Spells.cpp,0060cf80,0060da7c,25
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\OctBuildPreTree.cpp,0060dc98,0060dd14,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\AnimRep.cpp,0060ddd4,0060de10,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\AniMesh.cpp,0060de48,0060df6c,13
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\GrObject.cpp,0060dfac,0060dfc4,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\GDProp.cpp,0060dff4,0060e07c,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\materials.cpp,0060e0a0,0060e108,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\UpdateMesh.cpp,0060e14c,0060e160,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\ReadLevel.cpp,0060e194,0060e5b0,30
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\quad.cpp,0060e5d0,0060e5d8,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\Monster.cpp,0060e614,0060f9dc,131
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\OctPrePath.cpp,0060ff28,006100f4,14
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\stScript.cpp,00610138,00610144,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\LevelFile.cpp,006101a8,0061093c,62
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Engine Code\SoundEvent.cpp,0061095c,006109cc,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\MasterFunctionList.cpp,006109f4,00612f30,248
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\Cosmic Circle.cpp,00612f40,00613044,11
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\Trynnie1.cpp,006131bc,006132f8,11
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\MtGigasOuter.cpp,006135ec,006136c0,12
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\Monastery2.cpp,006136e0,006137a8,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\MartensBluff1.cpp,00613a8c,00613b64,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Level Specific Code\Arnika.cpp,00613dcc,00614410,61
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\MonsterManager.cpp,006147e0,00614cc4,26
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Combat.cpp,00617370,0061766c,20
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\GameplayCode.cpp,006176b8,00617894,12
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Combat Party Movement.cpp,006178b4,00617aec,13
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Controls.cpp,00617c2c,00617cd0,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\ItemManager.cpp,00617ce4,0061915c,28
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Magic.cpp,0061920c,00619828,34
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\GameplayTime.cpp,00619844,006198bc,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Sight.cpp,006198ec,00619a1c,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\NPC Scripting Facts.cpp,00619a54,00619d4c,43
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\NPC Manager.cpp,00619df8,00619f40,12
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\MonsterGroup.cpp,00619fdc,0061a0d8,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\LoadSaveGame.cpp,0061a13c,0061a340,24
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\search.cpp,0061a36c,0061a378,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\UtilityFunctions.cpp,0061a3c8,0061a594,20
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Combat Range.cpp,0061a5b8,0061a6d8,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\PC Item.cpp,0061a728,0061ad08,41
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Conditions & Enchantments.cpp,0061ad28,0061ae64,8
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\NPC Scripting.cpp,0061c2d0,0061c618,21
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Health Stamina Mana.cpp,0061c8ac,0061c974,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\MonsterAI.cpp,0061cc10,0061ce48,15
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Factions.cpp,0061d0ec,0061d118,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Targeting.cpp,0061d14c,0061d268,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Combat Attack.cpp,0061d284,0061dc3c,59
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Combat Hostility.cpp,0061dc60,0061dd24,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Combat Sound.cpp,0061def0,0061e064,10
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\GameplayDatabase.cpp,0061e08c,0061e144,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Configuration.cpp,0061e184,0061e1c4,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Magic Effects.cpp,0061e208,0061e604,12
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Formation & Facing.cpp,0061eca0,0061edfc,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\GroupAttacks.cpp,0061ef04,0061f1b8,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\CharGeneration.cpp,0061f1ec,0061f1fc,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\ButtonSound.cpp,0062a458,0062a5c4,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Party Import.cpp,0062a5f8,0062a7e8,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\chunk.cpp,0062a834,0062a880,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\InputMapper.cpp,00647770,00647b7c,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MainGameScreen.cpp,00647d30,00648ce0,35
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\mipe.cpp,0064a1cc,0064b794,83
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\AutomapScreen.cpp,0064b7a4,0064ba6c,18
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSTextBox.cpp,0064bd10,0064c124,23
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSButtons.cpp,0064c5e0,0064c5f0,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSPortraits.cpp,0064c688,0064c740,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSUseItemSelect.cpp,0064c76c,0064c824,7
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSSpellCasting.cpp,0064c840,0064c94c,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSPartyMovement.cpp,0064c96c,0064cb70,11
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\ReviewCharacterScreen.cpp,0064cbf4,0064cf0c,8
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\OptionsScreen.cpp,0064d7f0,0064d80c,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\IntroScreen.cpp,0064d8ac,0064d9fc,6
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MGSSpellIcons.cpp,0064da34,0064da8c,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\RCSCommon.cpp,0064dad0,0064dcf4,15
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\RCSItemsPage.cpp,0064dd6c,0064de60,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\MainMenuScreen.cpp,0064de94,0064df08,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\mipeEdit.cpp,0064edf8,0064eeb0,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Screens\CGSStatsPage.cpp,0064f278,0064f288,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\stListBox.cpp,0064f3bc,0064f3bc,1
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\DialogInterface.cpp,0064f50c,0064f554,4
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\stMessageDialog.cpp,0064f5b0,0064f5f4,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\AssayDialog.cpp,0064f684,0064fbc0,22
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\stButton.cpp,0064fc94,0064fc9c,2
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\SpellInfoDialog.cpp,0064fcd0,0064fdd4,8
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Dialog Code\ProfRaceInfoDialog.cpp,0064ffb0,006501a4,9
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,3D Code\PList.cpp,00650290,006502f8,5
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,3D Code\IList.cpp,00650300,00650330,3
+wiz8--gog-base--wiz8--18a74ff61c65,.data/initialized,Local Code\Traps.cpp,00650550,00650560,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\GameData.cpp,005ebc48,005ebcc0,16
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\BitArray.cpp,005ec0c8,005ec0c8,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Trigger.cpp,005ec124,005ec158,8
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Prop.cpp,005ec1c8,005ec1e4,4
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\3dapi.cpp,005ec1f8,005ec290,15
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\OctPath.cpp,005ec348,005ec3d0,18
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\3d.cpp,005ec420,005ec430,3
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\stMeshModel.cpp,005ec508,005ec50c,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Environment.cpp,005ec908,005ec990,11
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\ReadMesh.cpp,005eca58,005eca58,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\MonGen.cpp,005eca78,005eca8c,5
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\stCube.cpp,005ecab8,005ecac0,3
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Cursor3d.cpp,005ecb08,005ecb08,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\stParticle.cpp,005ecbd0,005ecc40,5
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Item.cpp,005ecd70,005ecd80,3
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\AnimObj.cpp,005ecda0,005ecdb0,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Missile.cpp,005ecde0,005ece50,4
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\GrCycle.cpp,005ece78,005ecee0,8
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\PathAI.CPP,005ecf00,005ecf04,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Spells.cpp,005ecf18,005ecf40,3
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\AnimRep.cpp,005ed050,005ed050,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\GrObject.cpp,005ed094,005ed098,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\ReadLevel.cpp,005ed180,005ed1c0,5
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\quad.cpp,005ed1e8,005ed1e8,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Engine Code\Monster.cpp,005ed1f0,005ed2b8,12
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Level Specific Code\Cosmic Circle.cpp,005ed43c,005ed43c,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\GameplayCode.cpp,005ed518,005ed520,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Controls.cpp,005ed56c,005ed66c,8
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\ItemManager.cpp,005ed7a8,005ed7c0,3
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Magic.cpp,005ed7d0,005ed7d0,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\NPC Manager.cpp,005ed810,005ed810,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\MonsterGroup.cpp,005ed828,005ed828,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Combat Range.cpp,005ed868,005ed868,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\NPC Scripting.cpp,005ed8e0,005ed8ec,2
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Health Stamina Mana.cpp,005ed900,005ee5f8,6
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\MonsterAI.cpp,005ee770,005ee780,5
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Combat Attack.cpp,005ee7a0,005ee7e8,10
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Magic Effects.cpp,005ee838,005ee838,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\Formation & Facing.cpp,005ee858,005ee858,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\chunk.cpp,005ee8cc,005ee8cc,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Code\InputMapper.cpp,005ee8f8,005ee8f8,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\MainGameScreen.cpp,005ee998,005ee9a4,4
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\AutomapScreen.cpp,005eea34,005eea48,6
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\MGSPortraits.cpp,005eec50,005eec50,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\MGSPartyMovement.cpp,005eecd0,005eecd0,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\ReviewCharacterScreen.cpp,005eecd8,005eed08,5
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\MGSSpellIcons.cpp,005ef1d8,005ef1d8,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Local Screens\CGSStatsPage.cpp,005ef700,005ef700,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Dialog Code\SpellInfoDialog.cpp,005efaf8,005efaf8,1
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Dialog Code\ProfRaceInfoDialog.cpp,005efbc0,005efc38,3
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,Dialog Code\StatInfoDialogs.cpp,005efc88,005efd48,4
+wiz8--gog-base--wiz8--18a74ff61c65,.rdata/initialized,3D Code\PList.cpp,005efe48,005efe68,3

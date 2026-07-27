@@ -122,3 +122,23 @@ def test_census_reproduces_every_independently_correct_reviewed_count() -> None:
         assert census[address] == int(row["slot_count"]), row["vtable_id"]
         checked += 1
     assert checked >= 8
+
+
+def test_allocation_size_hints_agree_with_reviewed_sizes() -> None:
+    """Push-before-new hints at constructor call sites, recorded per vtable.
+
+    The reviewed MonsterLight allocation (its sole caller allocates exactly
+    0x250 bytes) is the independent anchor; a fit that loses it has broken
+    either the writer classification or the allocator resolution.
+    """
+    rows = {
+        int(row["address"], 16): row
+        for row in _snapshot("vtables.csv")
+        if row["program"] == _CANONICAL and row["kind"] == "vftable"
+    }
+    assert "0x250" in rows[0x005ECD18]["allocation_sizes"].split("|")
+    hinted = [row for row in rows.values() if row["allocation_sizes"]]
+    assert len(hinted) >= 50
+    for row in hinted:
+        for value in row["allocation_sizes"].split("|"):
+            assert int(value, 16) > 0

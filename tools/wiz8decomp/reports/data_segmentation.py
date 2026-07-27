@@ -163,11 +163,13 @@ def fit_storage_class(
 
     intervals: dict[str, list[int]] = {}
     outliers: list[tuple[int, str]] = []
+    kept_by_unit: dict[str, int] = defaultdict(int)
     for position, (address, unit) in enumerate(candidates):
         if position in kept_positions:
             bounds = intervals.setdefault(unit, [address, address])
             bounds[0] = min(bounds[0], address)
             bounds[1] = max(bounds[1], address)
+            kept_by_unit[unit] += 1
         else:
             outliers.append((address, unit))
     ordered = sorted(intervals.items(), key=lambda item: item[1][0])
@@ -179,6 +181,7 @@ def fit_storage_class(
         "outliers": outliers,
         "excluded_units": sorted(excluded),
         "kept": len(kept_positions),
+        "kept_by_unit": dict(kept_by_unit),
         "dropped": len(candidates) - len(kept_positions),
     }
 
@@ -228,7 +231,32 @@ def attribute_globals(
     return rows, counts
 
 
-def data_segmentation_report(settings: Any) -> dict[str, Any]:
+_SNAPSHOT_FILE = "unit-data-intervals.csv"
+
+
+def _snapshot_readme() -> str:
+    return """# Data-segmentation snapshot
+
+`unit-data-intervals.csv` holds the fitted per-translation-unit address
+intervals for each data storage class of the canonical retail program, keyed
+`program,storage_class,unit,lower,upper,baseline_globals`.
+
+Producer: `uv run wiz8 report data-segmentation --update-snapshot`. The fit
+joins the per-reference globals report (which needs the proprietary binaries in
+`WIZ8_WORK_DIR`) with the assertion-anchored `.text` interval map; the snapshot
+exists so the candidate replay can attribute globals to units from tracked
+inputs alone. Every run without `--update-snapshot` regenerates the table under
+`build/reports/data-segmentation/` and fails if it differs from this snapshot.
+
+The intervals are an order-constrained fit, not reviewed identity: attribution
+derived from them is bounded evidence, and the per-global table plus outlier
+and exclusion detail stay under `build/reports/data-segmentation/`.
+"""
+
+
+def data_segmentation_report(
+    settings: Any, *, update_snapshot: bool = False
+) -> dict[str, Any]:
     from ..data_globals import sweep_globals
     from .translation_units import call_site_anchors, derive_intervals
 
@@ -286,11 +314,38 @@ def data_segmentation_report(settings: Any) -> dict[str, Any]:
     report_dir = settings.build_dir / "reports" / _REPORT_NAME
     interval_stream = io.StringIO(newline="")
     writer = csv.writer(interval_stream, lineterminator="\n")
-    writer.writerow(["storage_class", "unit", "lower", "upper", "baseline_globals"])
+    writer.writerow(
+        ["program", "storage_class", "unit", "lower", "upper", "baseline_globals"]
+    )
     for name, fit in fits.items():
         for unit, (lower, upper) in fit["intervals"]:
-            writer.writerow([name, unit, f"{lower:08x}", f"{upper:08x}", ""])
-    atomic_write(report_dir / "unit-data-intervals.csv", interval_stream.getvalue())
+            writer.writerow(
+                [
+                    program,
+                    name,
+                    unit,
+                    f"{lower:08x}",
+                    f"{upper:08x}",
+                    fit["kept_by_unit"].get(unit, 0),
+                ]
+            )
+    interval_csv = interval_stream.getvalue()
+    atomic_write(report_dir / _SNAPSHOT_FILE, interval_csv)
+
+    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _REPORT_NAME
+    if update_snapshot:
+        atomic_write(snapshot_dir / _SNAPSHOT_FILE, interval_csv)
+        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
+    interval_snapshot_fresh = (
+        snapshot_dir / _SNAPSHOT_FILE
+    ).is_file() and (snapshot_dir / _SNAPSHOT_FILE).read_text(
+        encoding="utf-8"
+    ) == interval_csv
+    if not update_snapshot and not interval_snapshot_fresh:
+        raise RuntimeError(
+            "unit data intervals differ from the tracked snapshot; review "
+            f"build/reports/{_REPORT_NAME} and rerun with --update-snapshot"
+        )
 
     attribution_stream = io.StringIO(newline="")
     writer = csv.DictWriter(
@@ -312,7 +367,9 @@ def data_segmentation_report(settings: Any) -> dict[str, Any]:
     summary = {
         "schema": "wiz8.data-segmentation",
         "program": program,
-        "snapshot_fresh": bool(sweep.get("snapshot_fresh", True)),
+        "globals_snapshot_fresh": bool(sweep.get("snapshot_fresh", True)),
+        "interval_snapshot_fresh": interval_snapshot_fresh,
+        "interval_snapshot_updated": update_snapshot,
         "baseline_globals": len(baseline),
         "storage_classes": {
             name: {
