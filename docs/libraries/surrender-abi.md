@@ -132,13 +132,30 @@ from. Declaring `void operator delete(void*)` there reproduces the tail exactly 
 `0x00492C40`.
 
 The body itself stays unclaimed, because the complete destructor it calls is not recovered and the
-compiler will not emit a deleting destructor for a class nothing constructs. And the complete
-destructor at `0x00492A30` says the class model is still short: across its 425 bytes it unregisters
-the instance three times and restores a first-party vtable before each - `0x005ECB6C` for id
-`0x10002`, then `0x005EBF68` for `0x2210`, then `0x005EBF94` for `0x2200` - before calling the
-imported `srClass::~srClass`. Wizardry has vtables of its own at the srMaterial and srMaterialIFace
-levels, which `stMaterial : srMaterial` does not account for. Settling that comes before either
-destructor body.
+compiler will not emit a deleting destructor for a class nothing constructs. And the complete destructor at `0x00492A30` opens a question the current model does not answer.
+Across its 425 bytes it unregisters the instance three times, restoring a first-party vtable before
+each - `0x005ECB6C`, then `0x005EBF68`, then `0x005EBF94` - before calling the imported
+`srClass::~srClass`. `just wiz8 report class-family` puts every write in that family at `this+0x00`,
+so this is single-inheritance vtable churn rather than subobjects, and the slot counts ascend 8, 11,
+13, 13 in construction order the way an inheritance ladder does.
+
+What the slots say is that the ladder is not stMaterial's:
+
+| Table | Slots | Slot 0 | Slots 3 and 4 |
+| --- | --- | --- | --- |
+| `0x005EBF94` | 8 | `srMaterialIFace::sGetClassName` | `srClass::dump`, `srClass::verify` |
+| `0x005EBF68` | 11 | `srMaterial::sGetClassName` | `srClass::dump`, `srClass::verify` |
+| `0x005ECB6C` | 13 | local, stMaterial's | `srMaterial::dump`, `srMaterial::verify` |
+| `0x005ECB38` | 13 | local, stMaterial's | `srMaterial::dump`, `srMaterial::verify` |
+
+The first two are first-party classes that borrow SurRender's names for themselves and leave three
+slots on the pure-virtual stub, so they are abstract stand-ins at the `0x2200` and `0x2210` registry
+ids. They cannot be bases of stMaterial: their slots 3 and 4 hold `srClass`'s implementations, and a
+derived class cannot replace an inherited method with a *different* class's. `0x005ECB38` is a
+sibling of stMaterial rather than another level - identical but for slots 5, 6 and 8.
+
+So the four stores are not one four-level chain, and what the constructor and destructor really walk
+is still open.
 
 ## What may be written into a header
 
