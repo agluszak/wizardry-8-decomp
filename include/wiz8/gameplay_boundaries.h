@@ -687,7 +687,13 @@ typedef struct W8MonsterInfo {
     W8Monster* monster;                   /* 0x0c: live engine object, if any */
     unsigned char unknown_10[4];
     unsigned char flag_14;                /* 0x14: live-entry gate in 0x004e5c00 */
-    unsigned char unknown_15[0x12];
+    unsigned char unknown_15;
+    unsigned char flag_16;                /* 0x16: copied from the group's +0x2a */
+    /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
+       floats here and hands the same triple to 0x004be5c0, whose result it
+       stores next, and to 0x0042e620 with the new entry's id. */
+    float position_17[3];
+    float derived_23;                     /* 0x23: 0x004be5c0 over position_17 */
     int hp_max;                           /* 0x27: uiHPMax in the Targeting.cpp assertion */
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
