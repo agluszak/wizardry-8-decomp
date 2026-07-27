@@ -705,12 +705,17 @@ int IntegerPower(int base, unsigned int exponent);
 void ClampInteger(int* value, int minimum, int maximum);
 void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
                           unsigned int maximum);
+int CompareUnsignedDescending(const unsigned int* first, const unsigned int* second);
+int CompareSignedAscending(const int* first, const int* second);
+int CompareSignedDescending(const int* first, const int* second);
 char* FormatString(const char* format, ...);
 wchar_t* FormatWideString(const wchar_t* format, ...);
 wchar_t* ConvertStringToWide(const char* string);
 char* ConvertWideStringToString(const wchar_t* string);
 wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
+float NormalizeAngle(float angle);
+float ShortestAngleDistance(float first, float second);
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot);
 void FormatDebugMessage(int channel, const char* format, ...);
 int GetSpellTargetType(int spell_id, unsigned char normalize_single_target);

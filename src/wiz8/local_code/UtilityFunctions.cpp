@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 #include <ctype.h>
+#include <float.h>
 #include <stdio.h>
 #include <wchar.h>
 #include <stdlib.h>
@@ -79,6 +80,51 @@ void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
     } else if (*value < minimum) {
         *value = minimum;
     }
+}
+
+// FUNCTION: WIZ8 0x00517A10
+int CompareUnsignedDescending(const unsigned int* first, const unsigned int* second)
+{
+    unsigned int left = *first;
+    unsigned int right = *second;
+
+    if (left > right) {
+        return -1;
+    }
+    if (left < right) {
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00517A30
+int CompareSignedAscending(const int* first, const int* second)
+{
+    int left = *first;
+    int right = *second;
+
+    if (left < right) {
+        return -1;
+    }
+    if (left > right) {
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00517A50
+int CompareSignedDescending(const int* first, const int* second)
+{
+    int left = *first;
+    int right = *second;
+
+    if (left > right) {
+        return -1;
+    }
+    if (left < right) {
+        return 1;
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x00517A70
@@ -182,6 +228,41 @@ char* TitleCaseString(char* string)
         ++cursor;
     }
     return string;
+}
+
+static __forceinline float NormalizeAngleInline(float angle)
+{
+    if (!_finite(angle)) {
+        srAssertFail(
+            "_finite(flAngle)",
+            "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
+            0x13b,
+            0);
+    }
+
+    angle += 6.2831852;
+    while (angle < 0.0f) {
+        angle += 6.2831852f;
+    }
+    while (angle >= 6.2831852f) {
+        angle -= 6.2831852f;
+    }
+    return angle;
+}
+
+// FUNCTION: WIZ8 0x00517C60
+float NormalizeAngle(float angle)
+{
+    return NormalizeAngleInline(angle);
+}
+
+// FUNCTION: WIZ8 0x00517CE0
+float ShortestAngleDistance(float first, float second)
+{
+    float forward = NormalizeAngleInline(first - second);
+    float backward = NormalizeAngleInline(second - first);
+
+    return forward < backward ? forward : backward;
 }
 
 // FUNCTION: WIZ8 0x00517E20

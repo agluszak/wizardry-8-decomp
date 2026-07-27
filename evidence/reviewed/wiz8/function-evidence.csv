@@ -33,6 +33,16 @@ function-evidence:wiz8:00517f60:canonical-behavior,wiz8,00517f60,canonical-behav
 function-evidence:wiz8:00517f60:reccmp,wiz8,00517f60,reccmp,exact-compile,match:20a4ec21ed09f298,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
 function-evidence:wiz8:00517f90:canonical-behavior,wiz8,00517f90,canonical-behavior,identity-review,name_origin=descriptive,The complete body adds value times percent divided by 100 back into the unsigned value
 function-evidence:wiz8:00517f90:reccmp,wiz8,00517f90,reccmp,exact-compile,match:c328875ef6bb64da,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00517a10:canonical-behavior,wiz8,00517a10,canonical-behavior,identity-review,name_origin=descriptive,The complete body returns minus one when the first unsigned integer is greater and one when it is smaller
+function-evidence:wiz8:00517a10:reccmp,wiz8,00517a10,reccmp,exact-compile,match:349ee8868869e8c5,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00517a30:canonical-behavior,wiz8,00517a30,canonical-behavior,identity-review,name_origin=descriptive,The complete body returns minus one when the first signed integer is smaller and one when it is greater
+function-evidence:wiz8:00517a30:reccmp,wiz8,00517a30,reccmp,exact-compile,match:5ef84fc478086a0a,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00517a50:canonical-behavior,wiz8,00517a50,canonical-behavior,identity-review,name_origin=descriptive,The complete body returns minus one when the first signed integer is greater and one when it is smaller
+function-evidence:wiz8:00517a50:reccmp,wiz8,00517a50,reccmp,exact-compile,match:52e84e4075a4aafb,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00517c60:canonical-behavior,wiz8,00517c60,canonical-behavior,identity-review,name_origin=descriptive,The retained finite assertion and complete loop pair add or subtract two pi until the input lies in the canonical nonnegative turn
+function-evidence:wiz8:00517c60:reccmp,wiz8,00517c60,reccmp,exact-compile,match:87b56f7e51776e8f,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00517ce0:canonical-behavior,wiz8,00517ce0,canonical-behavior,identity-review,name_origin=descriptive,The complete body normalizes both inputs computes each directed circular difference and returns the smaller result
+function-evidence:wiz8:00517ce0:reccmp,wiz8,00517ce0,reccmp,exact-compile,match:cd8eb7eaf380ec89,VC6 SP5 O2 G6 MD body is byte-exact with both normalization bodies inlined; Local Code\UtilityFunctions.cpp
 function-evidence:wiz8:00518310:runtime-string,wiz8,00518310,runtime-string,identity-review,name_origin=original-runtime-string,The retained RPCPtrToPCSlot diagnostic states the original function name
 function-evidence:wiz8:00518310:reccmp,wiz8,00518310,reccmp,exact-compile,match:17f57565c56f666a,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
 function-evidence:wiz8:005184b0:canonical-behavior,wiz8,005184b0,canonical-behavior,identity-review,name_origin=descriptive,The complete body frees every nonnull string-table entry then the table and clears the global pointer and count
