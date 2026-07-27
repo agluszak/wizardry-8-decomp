@@ -1181,6 +1181,31 @@ def report_class_family(
     _run_action(action)
 
 
+@report_app.command("aggregates")
+def report_aggregates() -> None:
+    """Recover the original aggregates' member names from assertion text.
+
+    A release build keeps the text of every assertion it did not compile out,
+    and those texts name members of the state the decompiler shows as unrelated
+    globals - `gXStatus.uiMonstersInDatabase` among them. The access operator
+    also says whether the base is an object or a pointer, and a subscript says
+    the member is an array. Offsets are not here: those are a fact about
+    instructions rather than about text.
+    """
+
+    def action() -> dict[str, Any]:
+        from .aggregates import aggregate_model, member_references, write_report
+
+        settings = _settings()
+        model = aggregate_model(member_references(settings.repo_dir))
+        destination = settings.repo_dir / "build" / "reports" / "aggregates"
+        summary = write_report(model, destination)
+        summary["report"] = str(destination)
+        return summary
+
+    _run_action(action)
+
+
 @report_app.command("object-map")
 def report_object_map(
     program: Annotated[str, typer.Argument(help="Program selector to assign.")],
