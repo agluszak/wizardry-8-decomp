@@ -1181,6 +1181,48 @@ def report_class_family(
     _run_action(action)
 
 
+@report_app.command("object-map")
+def report_object_map(
+    program: Annotated[str, typer.Argument(help="Program selector to assign.")],
+    check: Annotated[
+        bool,
+        typer.Option(help="Score the map against the reconstructed build's object files."),
+    ] = False,
+) -> None:
+    """Assign functions to original object files jointly over the `.text` order.
+
+    Assertion anchors fix what they name; between two units' anchors there is
+    one boundary, placed where the fewest calls have to cross it. Where the
+    optimum is flat the range is reported and the functions inside it are left
+    unassigned rather than guessed.
+    """
+
+    def action() -> dict[str, Any]:
+        from .object_map import assign, check_against_build, write_report
+
+        settings = _settings()
+        mapping = assign(settings.repo_dir, program)
+        destination = settings.repo_dir / "build" / "reports" / "object-map" / program
+        summary = write_report(mapping, destination)
+        if check:
+            verification = check_against_build(settings.repo_dir, mapping, settings.build_dir)
+            with (destination / "check-disagreements.csv").open(
+                "w", newline="", encoding="utf-8"
+            ) as stream:
+                import csv as _csv
+
+                writer = _csv.DictWriter(
+                    stream, fieldnames=["address", "assigned", "compiled_from", "basis"]
+                )
+                writer.writeheader()
+                writer.writerows(verification.pop("disagreements"))
+            summary["check"] = verification
+        summary["report"] = str(destination)
+        return summary
+
+    _run_action(action)
+
+
 @report_app.command("cross-build")
 def report_cross_build(
     left: Annotated[str, typer.Argument(help="Program selector to align from.")],
