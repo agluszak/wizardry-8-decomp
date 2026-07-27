@@ -16,3 +16,5 @@ wiz8,stLight.primary,stLight,005ecc64,0x0,primary,13,strong,classes:wiz8:stLight
 wiz8,stLight.secondary_0,stLight,005ecca4,,secondary,,strong,classes:wiz8:stLight
 wiz8,W8Dialog005A80A0.primary,W8Dialog005A80A0,005eef6c,0x0,primary,15,strong,classes:wiz8:W8Dialog005A80A0
 wiz8,W8DialogBase005D25B0.primary,W8DialogBase005D25B0,005ef8b0,0x0,primary,15,strong,classes:wiz8:W8DialogBase005D25B0
+wiz8,W8StatInfoDialog005DFC70.primary,W8StatInfoDialog005DFC70,005efcc8,0x0,primary,16,strong,classes:wiz8:W8StatInfoDialog005DFC70
+wiz8,W8StatInfoDialog005E0180.primary,W8StatInfoDialog005E0180,005efd48,0x0,primary,16,strong,classes:wiz8:W8StatInfoDialog005E0180

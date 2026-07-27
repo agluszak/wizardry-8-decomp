@@ -65,3 +65,43 @@ def test_reviewed_function_addresses_are_unique() -> None:
     keys = [(row["program"], row["address"]) for row in rows]
     duplicates = {key for key in keys if keys.count(key) > 1}
     assert not duplicates, f"duplicate function identities: {sorted(duplicates)}"
+
+
+def test_reviewed_vtable_slots_agree_with_the_census() -> None:
+    """A reviewed slot target must be what is actually in memory.
+
+    The polymorphism census reads slot targets straight out of the image, so
+    it is ground truth for what a table contains -- the reviewed model may
+    legitimately correct a slot *count*, but never a target. Recording a
+    target by hand instead of reading it is otherwise caught only when the
+    replay tries to create a function at the invented address and fails, which
+    is late, noisy, and leaves a half-materialized project behind.
+    """
+
+    repository = Path(__file__).resolve().parents[2]
+
+    def rows(path: str) -> list[dict[str, str]]:
+        with (repository / path).open(newline="", encoding="utf-8") as stream:
+            return list(csv.DictReader(stream))
+
+    census = {
+        (row["vtable"], int(row["slot_index"])): row["target"]
+        for row in rows("evidence/snapshots/polymorphism/slots.csv")
+        if "--gog-base--" in row["program"]
+    }
+    addresses = {
+        row["vtable_id"]: row["address"] for row in rows("evidence/reviewed/wiz8/vtables.csv")
+    }
+
+    checked = 0
+    for slot in rows("evidence/reviewed/wiz8/vtable-slots.csv"):
+        key = (addresses.get(slot["vtable_id"]), int(slot["slot_index"]))
+        expected = census.get(key)
+        if expected is None:
+            continue
+        checked += 1
+        assert slot["target"] == expected, (
+            f"{slot['vtable_id']} slot {slot['slot_index']} is recorded as {slot['target']} "
+            f"but the image holds {expected}"
+        )
+    assert checked >= 100, f"only {checked} reviewed slots were covered by the census"

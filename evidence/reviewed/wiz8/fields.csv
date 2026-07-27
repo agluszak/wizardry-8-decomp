@@ -153,3 +153,13 @@ wiz8,W8DialogBase005D25B0,0x7c,0x10,unknown_07c,bytes,,strong,classes:wiz8:W8Dia
 wiz8,W8DialogBase005D25B0,0x8c,0x4,value_8c,int32,,exact,classes:wiz8:W8DialogBase005D25B0,cleared by the constructor
 wiz8,W8DialogBase005D25B0,0x90,0x4,value_90,int32,,exact,classes:wiz8:W8DialogBase005D25B0,cleared by the constructor
 wiz8,W8DialogBase005D25B0,0x94,0x4,unknown_094,bytes,,strong,classes:wiz8:W8DialogBase005D25B0,not established
+wiz8,W8StatInfoDialog005DFC70,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8StatInfoDialog005DFC70,primary vtable W8StatInfoDialog005DFC70.primary
+wiz8,W8StatInfoDialog005DFC70,0x4,0x13c,base_storage,bytes,,strong,classes:wiz8:W8StatInfoDialog005DFC70,W8StatInfoDialogBase005DF880 subobject constructed by 0x005df880
+wiz8,W8StatInfoDialog005DFC70,0x140,0x4,value_140,uint32,,exact,classes:wiz8:W8StatInfoDialog005DFC70,widened from the 16-bit per-attribute table at 0x61e3a4
+wiz8,W8StatInfoDialog005DFC70,0x144,0x4,value_144,uint32,,exact,classes:wiz8:W8StatInfoDialog005DFC70,widened from the 16-bit per-attribute table at 0x61e4fc
+wiz8,W8StatInfoDialog005DFC70,0x148,0x4,uiIndex,uint32,,exact,classes:wiz8:W8StatInfoDialog005DFC70,attribute index named by the class's own assertion and bounded by ATTR_COUNT
+wiz8,W8StatInfoDialog005E0180,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8StatInfoDialog005E0180,primary vtable W8StatInfoDialog005E0180.primary
+wiz8,W8StatInfoDialog005E0180,0x4,0x13c,base_storage,bytes,,strong,classes:wiz8:W8StatInfoDialog005E0180,W8StatInfoDialogBase005DF880 subobject constructed by 0x005df880
+wiz8,W8StatInfoDialog005E0180,0x140,0x4,value_140,uint32,,exact,classes:wiz8:W8StatInfoDialog005E0180,widened from the 16-bit per-attribute table at 0x61e3c4
+wiz8,W8StatInfoDialog005E0180,0x144,0x4,value_144,uint32,,exact,classes:wiz8:W8StatInfoDialog005E0180,widened from the 16-bit per-attribute table at 0x61e50c
+wiz8,W8StatInfoDialog005E0180,0x148,0x4,uiIndex,uint32,,exact,classes:wiz8:W8StatInfoDialog005E0180,attribute index named by the class's own assertion and bounded by ATTR_COUNT
