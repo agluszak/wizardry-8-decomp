@@ -251,6 +251,48 @@ def check_markers_command(
     _run_action(action)
 
 
+@app.command("reconstructed-transfer")
+def reconstructed_transfer_command(
+    objects: Annotated[
+        Path | None,
+        typer.Option(help="Build directory whose objects carry the /Z7 debug information."),
+    ] = None,
+    pdb: Annotated[
+        Path | None,
+        typer.Option(help="Read the linked PDB instead: the link's view, not the build's."),
+    ] = None,
+) -> None:
+    """Report what the reconstructed build can tell the original about itself.
+
+    Every byte-exact body carries our own compiler's account of its signature,
+    frame variables and object file. This joins that account to the reviewed
+    addresses and writes the result under `build/reports/`, including the
+    `signatures.csv` rows an exact transfer is eligible to become - proposed,
+    never written, because the reviewed ledger is where a reviewer accepts them.
+    """
+
+    def action() -> dict[str, Any]:
+        from .reconstructed import (
+            bodies_from_objects,
+            bodies_from_pdb,
+            build_transfer_plan,
+            write_report,
+        )
+
+        settings = _settings()
+        if pdb is not None:
+            bodies = bodies_from_pdb(pdb)
+        else:
+            bodies = bodies_from_objects(objects or settings.build_dir)
+        plan = build_transfer_plan(settings.repo_dir, bodies)
+        destination = settings.repo_dir / "build" / "reports" / "reconstructed-transfer"
+        summary = write_report(plan, destination)
+        summary["report"] = str(destination)
+        return summary
+
+    _run_action(action)
+
+
 @app.command("verify-boundaries")
 def verify_boundaries_command(
     mapping: Annotated[
@@ -660,7 +702,7 @@ def sgp_sweep(
 
 @ghidra_app.command("overlay")
 def ghidra_overlay_command(
-    action: Annotated[str, typer.Argument(help="create, apply-vtable, impact, decompile, or discard.")],
+    action: Annotated[str, typer.Argument(help="create, apply-vtable, apply-reconstructed, impact, decompile, or discard.")],
     selector: Annotated[str, typer.Argument(help="Program selector.")],
     hypothesis: Annotated[str, typer.Argument(help="Hypothesis name; keys the scratch clone.")],
     argument: Annotated[str | None, typer.Argument(help="Class for apply-vtable; address for decompile.")] = None,
@@ -685,6 +727,10 @@ def ghidra_overlay_command(
             if not argument:
                 raise ValueError("impact requires a class name")
             return overlay.measure_impact(settings, selector, hypothesis, argument)
+        if action == "apply-reconstructed":
+            from .ghidra import reconstructed_transfer
+
+            return reconstructed_transfer.transfer_into_overlay(settings, selector, hypothesis)
         if action == "discard":
             return overlay.discard_overlay(settings, selector, hypothesis)
         raise ValueError(f"unknown overlay action: {action}")

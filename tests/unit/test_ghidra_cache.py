@@ -175,6 +175,36 @@ def test_every_mutating_apply_command_opens_its_own_project() -> None:
         )
 
 
+def test_a_mutation_outside_the_replay_still_writes_to_its_own_clone() -> None:
+    """The `apply_*` rule covers replay steps; overlays mutate too.
+
+    An overlay writer opens a scratch clone rather than the reviewed program,
+    so it does not go through `open_for_mutation` - but it must still name the
+    clone. A module that opened a project by any other route would be writing
+    into whichever project the incoming settings happen to point at.
+    """
+
+    ghidra = Path(__file__).resolve().parents[2] / "tools" / "wiz8decomp" / "ghidra"
+    writers = []
+    for module in sorted(ghidra.glob("*.py")):
+        source = module.read_text(encoding="utf-8")
+        # A materialization is the reviewed baseline; writing to one from
+        # outside the replay is what the clone exists to avoid. Modules that
+        # build their own project - the seed import, the FID databases - are a
+        # different thing and are not what this covers.
+        if module.name.startswith("apply_") or "materialize_program" not in source:
+            continue
+        if "startTransaction" in source:
+            writers.append(module)
+
+    assert writers
+    for module in writers:
+        source = module.read_text(encoding="utf-8")
+        assert "_overlay_settings" in source, (
+            f"{module.name} mutates a program without naming the overlay clone it writes to"
+        )
+
+
 def test_the_replay_never_materializes_recursively() -> None:
     # reviewed_replay_actions runs inside materialize_program while it holds the
     # lock, so every command it invokes must skip materializing.
