@@ -21,6 +21,7 @@ def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
         UnsignedIntegerDataType,
         UnsignedShortDataType,
         VoidDataType,
+        WideCharDataType,
     )
 
     base_types = {
@@ -32,6 +33,7 @@ def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
         "unsigned int": UnsignedIntegerDataType.dataType,
         "unsigned char": UnsignedCharDataType.dataType,
         "unsigned short": UnsignedShortDataType.dataType,
+        "wchar_t": WideCharDataType.dataType,
     }
     spec = spec.strip()
     if spec.endswith("*"):

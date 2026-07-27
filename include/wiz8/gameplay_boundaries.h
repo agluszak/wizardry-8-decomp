@@ -1,6 +1,8 @@
 #ifndef WIZ8_GAMEPLAY_BOUNDARIES_H
 #define WIZ8_GAMEPLAY_BOUNDARIES_H
 
+#include <stddef.h>
+
 #include "wiz8/item_tables.h"
 #ifdef __cplusplus
 #include "surrender/srMath.h"
@@ -709,6 +711,13 @@ void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
 void SetRegionOwner(unsigned int region_index, void* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
+int ClockIsTicking(int clock);
+int SetCountdownClock(int delay);
+void UpdateRegionHelp(void);
+void SetRegionHelpText(const wchar_t* text);
+void ResetRegionHelp(unsigned char delayed);
+void EnableRegionHelp(unsigned int region_index);
+void DisableRegionHelp(unsigned int region_index);
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result);
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);

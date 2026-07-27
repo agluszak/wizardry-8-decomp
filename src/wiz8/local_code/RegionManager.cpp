@@ -1,6 +1,21 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <new>
+#include <wchar.h>
+
+extern int g_region_help_clock;
+extern unsigned int g_active_region_index;
+extern wchar_t* g_region_help_text;
+extern unsigned int g_forced_region_index;
+extern int g_region_help_delay;
+extern unsigned char g_region_help_force_enabled;
+extern unsigned char g_flag_6850d4;
+extern unsigned short g_word_6850ed;
+
+extern void ShowRegionHelp(unsigned int region_index);       /* 0x004F2650 */
+extern void HideRegionHelp(void);                           /* 0x00429770 */
+
 // FUNCTION: WIZ8 0x004F21E0
 void RegionSetEnable(unsigned int region_set_index)
 {
@@ -183,6 +198,53 @@ bool RegionHasFlags(unsigned int region_index, unsigned int flags)
     return has_flags;
 }
 
+// FUNCTION: WIZ8 0x004F25A0
+void UpdateRegionHelp(void)
+{
+    if (g_forced_region_index == 0) {
+        if (g_active_region_index != 0 &&
+            g_regions[g_active_region_index].help_enabled != 0 &&
+            (g_flag_6850d4 != 0 || g_region_help_force_enabled != 0) &&
+            ClockIsTicking(g_region_help_clock) == 0) {
+            ShowRegionHelp(g_active_region_index);
+        }
+    } else if (g_regions[g_forced_region_index].help_enabled != 0 &&
+               (g_flag_6850d4 != 0 || g_region_help_force_enabled != 0) &&
+               ClockIsTicking(g_region_help_clock) == 0) {
+        ShowRegionHelp(g_forced_region_index);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F2750
+void SetRegionHelpText(const wchar_t* text)
+{
+    if (g_region_help_text != 0) {
+        ::operator delete(g_region_help_text);
+    }
+    if (text != 0) {
+        g_region_help_text = static_cast<wchar_t*>(
+            ::operator new((wcslen(text) + 1) * sizeof(wchar_t)));
+        wcscpy(g_region_help_text, text);
+    } else {
+        g_region_help_text = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x004F27F0
+void ResetRegionHelp(unsigned char delayed)
+{
+    unsigned int region_index = g_active_region_index;
+
+    HideRegionHelp();
+    g_regions[region_index].flags &= 0xfffffdff;
+    if (delayed == 0) {
+        ShowRegionHelp(g_active_region_index);
+    } else if (g_regions[g_active_region_index].help_enabled != 0 &&
+               (g_flag_6850d4 != 0 || g_region_help_force_enabled != 0)) {
+        g_region_help_clock = SetCountdownClock(g_region_help_delay);
+    }
+}
+
 // FUNCTION: WIZ8 0x004F2880
 unsigned int CreateRegionSet(void)
 {
@@ -279,4 +341,30 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
     }
     g_regions[region_index].help_enabled = enabled;
     g_regions[region_index].help_text_id = help_text_id;
+}
+
+// FUNCTION: WIZ8 0x004F2BB0
+void EnableRegionHelp(unsigned int region_index)
+{
+    if (region_index > g_region_count) {
+        srAssertFail(
+            "uiRegionIndex <= guiRegionCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x558,
+            0);
+    }
+    g_regions[region_index].help_enabled = 1;
+}
+
+// FUNCTION: WIZ8 0x004F2BF0
+void DisableRegionHelp(unsigned int region_index)
+{
+    if (region_index > g_region_count) {
+        srAssertFail(
+            "uiRegionIndex <= guiRegionCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x55f,
+            0);
+    }
+    g_regions[region_index].help_enabled = 0;
 }
