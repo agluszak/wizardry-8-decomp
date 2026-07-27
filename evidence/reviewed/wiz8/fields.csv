@@ -138,3 +138,18 @@ wiz8,W8Dialog005A80A0,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz
 wiz8,W8Dialog005A80A0,0x4,0x94,base_storage,bytes,,strong,classes:wiz8:W8Dialog005A80A0,unnamed base constructed by 0x005d25b0 and destroyed by 0x005d2610; total base size 0x98
 wiz8,W8Dialog005A80A0,0x98,0x4,notify_value_98,int32,,exact,classes:wiz8:W8Dialog005A80A0,fourth constructor argument retained here and passed to the notify target by slot 9
 wiz8,W8Dialog005A80A0,0x9c,0x4,notify_target,pointer,,exact,classes:wiz8:W8Dialog005A80A0,cleared by the constructor; slot 9 calls through this object's own first vtable slot when the dialog closes
+wiz8,W8DialogBase005D25B0,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8DialogBase005D25B0,primary vtable W8DialogBase005D25B0.primary
+wiz8,W8DialogBase005D25B0,0x4,0x50,base_storage,bytes,,strong,classes:wiz8:W8DialogBase005D25B0,W8DialogBase005DC7A0 subobject constructed by 0x005dc7a0 and destroyed by 0x005dc860
+wiz8,W8DialogBase005D25B0,0x54,0x1,flag_54,uint8,,exact,classes:wiz8:W8DialogBase005D25B0,cleared by the constructor; a derived close passes it to its notify target
+wiz8,W8DialogBase005D25B0,0x55,0x1,flag_55,uint8,,exact,classes:wiz8:W8DialogBase005D25B0,set to one by the constructor and gates the derived close path
+wiz8,W8DialogBase005D25B0,0x56,0x2,value_56,int16,,exact,classes:wiz8:W8DialogBase005D25B0,initialized to -1
+wiz8,W8DialogBase005D25B0,0x58,0x4,value_58,int32,,exact,classes:wiz8:W8DialogBase005D25B0,initialized to -1
+wiz8,W8DialogBase005D25B0,0x5c,0x4,value_5c,int32,,exact,classes:wiz8:W8DialogBase005D25B0,initialized to -1
+wiz8,W8DialogBase005D25B0,0x60,0x4,value_60,int32,,exact,classes:wiz8:W8DialogBase005D25B0,initialized to -1
+wiz8,W8DialogBase005D25B0,0x64,0x10,unknown_064,bytes,,strong,classes:wiz8:W8DialogBase005D25B0,not established
+wiz8,W8DialogBase005D25B0,0x74,0x4,value_74,int32,,exact,classes:wiz8:W8DialogBase005D25B0,initialized to -1
+wiz8,W8DialogBase005D25B0,0x78,0x4,value_78,int32,,exact,classes:wiz8:W8DialogBase005D25B0,initialized to -1
+wiz8,W8DialogBase005D25B0,0x7c,0x10,unknown_07c,bytes,,strong,classes:wiz8:W8DialogBase005D25B0,not established
+wiz8,W8DialogBase005D25B0,0x8c,0x4,value_8c,int32,,exact,classes:wiz8:W8DialogBase005D25B0,cleared by the constructor
+wiz8,W8DialogBase005D25B0,0x90,0x4,value_90,int32,,exact,classes:wiz8:W8DialogBase005D25B0,cleared by the constructor
+wiz8,W8DialogBase005D25B0,0x94,0x4,unknown_094,bytes,,strong,classes:wiz8:W8DialogBase005D25B0,not established

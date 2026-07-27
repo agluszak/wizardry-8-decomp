@@ -261,6 +261,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
         src/wiz8/dialog_code/Dialog005A80A0.cpp
+        src/wiz8/dialog_code/DialogBase005D25B0.cpp
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
         src/wiz8/local_code/chunk.cpp
