@@ -36,7 +36,41 @@ protected:
 /* The embedded vector installs two tables at +0x10, the template's and its
    own, which is the second-vtable shape wiz8/vector.h describes. Its element
    type is unproven, so it is named for the vtable the image gives it. */
-class W8VectorElement005ED65C;
+/* The element type. 0x004F5540 calls two of its virtuals, at +0x48 and +0x4c,
+   which puts them at slots 18 and 19 and forces the eighteen before them to be
+   declared for the slots to land. Only the two that are called are described;
+   the rest are placeholders and carry no claim beyond occupying a slot. Both
+   take one argument and every recovered call site passes zero. */
+class W8VectorElement005ED65C {
+public:
+    virtual void vslot00();
+    virtual void vslot01();
+    virtual void vslot02();
+    virtual void vslot03();
+    virtual void vslot04();
+    virtual void vslot05();
+    virtual void vslot06();
+    virtual void vslot07();
+    virtual void vslot08();
+    virtual void vslot09();
+    virtual void vslot10();
+    virtual void vslot11();
+    virtual void vslot12();
+    virtual void vslot13();
+    virtual void vslot14();
+    virtual void vslot15();
+    virtual void vslot16();
+    virtual void vslot17();
+    virtual void OnSelected(int reason);     /* slot 18, +0x48 */
+    virtual void OnDeselected(int reason);   /* slot 19, +0x4c */
+};
+
+/* Whatever the control reports a selection change to. Only slot 0 is
+   established, and only that it takes the control and the new index. */
+class W8ControlListener {
+public:
+    virtual void vslot00(class W8Control005ED654* control, int selected);
+};
 
 class W8ControlEntryVector005ED65C
     : public W8GrowableVector<W8VectorElement005ED65C*> {
@@ -55,7 +89,7 @@ public:
 
 protected:
     W8ControlEntryVector005ED65C m_lsButtons;  /* 0x10: named by Controls.cpp:2679 */
-    int m_value_20;                      /* 0x20 */
+    W8ControlListener* m_value_20;       /* 0x20: notified on a change */
 };                                       /* 0x24 established */
 
 __forceinline W8ControlBase005ED664::W8ControlBase005ED664()
@@ -84,6 +118,46 @@ W8Control005ED654::W8Control005ED654()
  * return, because it means a missing entry reaches SetSelected, whose own
  * assert then fires on the same value.
  */
+/*
+ * Moves the selection. Tells the outgoing entry it lost the selection and the
+ * incoming one that it gained it, then reports the change.
+ *
+ * Both lookups go through the vector's bounds-checked GetAt, which returns the
+ * base pointer rather than an offset one when the index is out of range - so an
+ * index past the end quietly addresses element zero instead of failing. The
+ * assert at the top is the only thing that would have caught it, and it does
+ * not return.
+ */
+// FUNCTION: WIZ8 0x004F5540
+void W8Control005ED654::SetSelected(int iSelected)
+{
+    W8VectorElement005ED65C** entry;
+    int previous;
+
+    if (iSelected >= m_lsButtons.GetCount()) {
+        srAssertFail("iSelected < m_lsButtons.Length()",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp",
+                     0xa77,
+                     0);
+    }
+    previous = m_index_c;
+    if (previous == iSelected) {
+        return;
+    }
+    if (previous != -1) {
+        entry = m_lsButtons.GetAt(previous);
+        (*entry)->OnDeselected(0);
+    }
+    m_index_c = iSelected;
+    if (iSelected != -1) {
+        entry = m_lsButtons.GetAt(iSelected);
+        (*entry)->OnSelected(0);
+    }
+    if (m_value_20 != 0) {
+        m_value_20->vslot00(this, m_index_c);
+    }
+}
+
 // FUNCTION: WIZ8 0x004F55C0
 void W8Control005ED654::SelectEntry(W8VectorElement005ED65C* entry)
 {
