@@ -22,7 +22,13 @@ def matching_target_sources(repository: Path, target: str) -> list[Path]:
     text = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
     block = re.search(rf"add_library\({target} OBJECT\n(.*?)\n\s*\)\n", text, re.DOTALL)
     assert block is not None, f"{target} object target not found in CMakeLists.txt"
-    paths = [repository / line.strip() for line in block.group(1).splitlines() if line.strip()]
+    # Original unit names contain spaces - "PC Item.cpp" among them - so CMake
+    # quotes those entries and the quotes are not part of the path.
+    paths = [
+        repository / line.strip().strip('"')
+        for line in block.group(1).splitlines()
+        if line.strip()
+    ]
     assert paths, f"{target} compiles no sources"
     missing = [path for path in paths if not path.is_file()]
     assert not missing, f"{target} names sources that do not exist: {missing}"

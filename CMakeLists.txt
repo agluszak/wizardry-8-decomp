@@ -251,7 +251,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/bringup_gates.cpp
         src/wiz8/renderer_window.cpp
         src/wiz8/window_proc.cpp
-        src/wiz8/character_items.cpp
+        "src/wiz8/local_code/PC Item.cpp"
         src/wiz8/character_skills.cpp
         src/wiz8/local_code/Controls.cpp
         src/wiz8/gameplay_boundaries.cpp
@@ -262,17 +262,17 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/UtilityFunctions.cpp
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
-        src/wiz8/chunk_io.cpp
+        src/wiz8/local_code/chunk.cpp
         src/wiz8/grcycle.cpp
-        src/wiz8/grcycle_behaviour.cpp
+        src/wiz8/engine_code/GrCycle.cpp
         src/wiz8/fact_state.cpp
-        src/wiz8/game_databases.cpp
+        src/wiz8/local_code/GameplayDatabase.cpp
         src/wiz8/render_options.cpp
         src/wiz8/unattributed_helpers.cpp
         src/wiz8/frame_tick.cpp
         src/wiz8/game_init.cpp
         src/wiz8/gameplay_teardown.cpp
-        src/wiz8/ilist.cpp
+        src/wiz8/3d_code/IList.cpp
         src/wiz8/local_code/ItemManager.cpp
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
@@ -283,13 +283,13 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/monster_lookup.cpp
         src/wiz8/npc_item_lists.cpp
         src/wiz8/spell_backfire.cpp
-        src/wiz8/targeting.cpp
+        src/wiz8/local_code/Targeting.cpp
         src/wiz8/state_getters.cpp
         src/wiz8/vector_conversions.cpp
         src/wiz8/virtual_file_stream.cpp
-        src/wiz8/octree_loading.cpp
-        src/wiz8/plist.cpp
-        src/wiz8/world_props.cpp
+        src/wiz8/engine_code/Octree.cpp
+        src/wiz8/3d_code/PList.cpp
+        src/wiz8/engine_code/3d.cpp
         src/wiz8/vc6_runtime.cpp
     )
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
