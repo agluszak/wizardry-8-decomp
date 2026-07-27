@@ -29,15 +29,20 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from .binary.code import relocation_sites
 from .binary.demangle import demangle, tool_version
+from .binary.image import PeImage
 from .binary.inventory import load_inventory
 from .config import Settings
 from .ghidra.project import program_name
 from .paths import atomic_write
 
 _SNAPSHOT_NAME = "surrender-abi"
-_REPORT_FILES = ("exports.csv",)
+_REPORT_FILES = ("exports.csv", "vftable-slots.csv", "vbtable-entries.csv")
 _MODULE_PREFIX = "sr"
+# A vbtable entry is a displacement inside one object, so a value this large is
+# not one and the run has ended.
+_MAXIMUM_SUBOBJECT_OFFSET = 0x100000
 
 # Leading codes for MSVC special names. Only the ones a C++ library actually
 # exports are listed; anything else is reported as an unhandled special name.
@@ -267,6 +272,89 @@ def parse_decorated_name(name: str) -> ParsedName:
     return parsed
 
 
+@dataclass(frozen=True)
+class VftableSlot:
+    index: int
+    target_rva: int
+    resolution: str
+
+
+def decode_vftable(
+    image: PeImage,
+    relocated: set[int],
+    rva: int,
+    boundaries: set[int],
+    limit: int = 512,
+) -> list[VftableSlot]:
+    """The slots of the exported vftable at `rva`, in order.
+
+    A vftable export names a data address, so its slots are read rather than
+    disassembled. Two independent facts bound the run: every slot holds an
+    absolute address the loader fixes up, so it appears in the relocation
+    directory, and every slot points into an executable section. The first
+    address that fails either test is past the end. Another exported symbol
+    beginning mid-run ends it too, since two symbols cannot share a byte.
+    """
+
+    slots: list[VftableSlot] = []
+    cursor = rva
+    while len(slots) < limit:
+        address = image.image_base + cursor
+        if cursor != rva and cursor in boundaries:
+            break
+        if address not in relocated:
+            break
+        target = image.read_u32(address)
+        if target is None:
+            break
+        section = image.section_at(target)
+        if section is None or not section.executable:
+            break
+        slots.append(
+            VftableSlot(
+                index=len(slots),
+                target_rva=target - image.image_base,
+                resolution="",
+            )
+        )
+        cursor += 4
+    return slots
+
+
+def decode_vbtable(
+    image: PeImage,
+    relocated: set[int],
+    rva: int,
+    boundaries: set[int],
+    limit: int = 32,
+) -> list[int]:
+    """The displacements of the exported vbtable at `rva`.
+
+    A vbtable holds offsets rather than addresses, so - unlike a vftable - none
+    of its entries is relocated, and that is what terminates the run: the first
+    relocated slot belongs to whatever data follows. Entry zero is the offset
+    from the vbptr back to the vbtable itself and the rest locate each virtual
+    base, so all of them are small signed displacements within one object.
+    """
+
+    entries: list[int] = []
+    cursor = rva
+    while len(entries) < limit:
+        address = image.image_base + cursor
+        if cursor != rva and (cursor in boundaries or address in relocated):
+            break
+        value = image.read_i32(address)
+        if value is None or abs(value) > _MAXIMUM_SUBOBJECT_OFFSET:
+            break
+        # After entry zero a displacement of zero would put a virtual base on
+        # top of the vbptr itself, so it is padding rather than an entry.
+        if entries and value == 0:
+            break
+        entries.append(value)
+        cursor += 4
+    return entries
+
+
 def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
     stream = io.StringIO(newline="")
     writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
@@ -305,6 +393,21 @@ makes the inheritance edges of the library explicit.
 `parse_status` is `ok` only when the whole structural prefix decoded. `template-scope` marks names
 whose owning class is itself a template, where the scope chain is reported best-effort.
 
+`vftable-slots.csv` and `vbtable-entries.csv` read the tables `exports.csv` names. A vftable export
+is a data address, so its slots are read out of the module rather than disassembled: each slot holds
+an absolute address the loader fixes up, which puts it in the relocation directory, and each points
+into an executable section. The first address failing either test, or the start of another exported
+symbol, ends the run. `resolution` is `exported` when the slot's target is itself an exported
+symbol, whose name and signature then fill `target_name` and `target_signature`, and `internal`
+when it is a method the library does not export - recorded as unresolved rather than guessed.
+
+A vbtable holds displacements rather than addresses, so none of its entries is relocated and the
+first relocated slot ends that run instead. Entry zero is the offset from the vbptr back to the
+vbtable; the rest locate each virtual base within the object, which is what a derived declaration
+needs in order to inherit virtually and still match.
+
+`subobject` on either table is the base a secondary table belongs to, empty for a primary.
+
 Modules with byte-identical payloads across variants are recorded once, under the canonical
 variant; `wiz8 surrender-abi` reports the aliases it collapsed.
 """
@@ -338,6 +441,64 @@ def _representative_modules(settings: Settings) -> tuple[list[dict[str, Any]], d
     return chosen, dict(sorted(aliases.items()))
 
 
+def _decode_module_tables(
+    settings: Settings,
+    module: dict[str, Any],
+    program: str,
+    tables: list[tuple[dict[str, Any], ParsedName]],
+    signatures: dict[str, str],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Read every exported vftable and vbtable of one module out of its data."""
+
+    path = settings.work_dir / "variants" / module["variant"] / module["relative_path"]
+    image = PeImage(path)
+    relocated = set(relocation_sites(image))
+    boundaries = {int(symbol["rva"], 16) for symbol in module["exports"]}
+    # Only exported targets can be named. Everything else is an internal method,
+    # which is recorded as unresolved rather than guessed at.
+    by_rva: dict[int, dict[str, Any]] = {}
+    for symbol in module["exports"]:
+        if symbol["name"]:
+            by_rva.setdefault(int(symbol["rva"], 16), symbol)
+
+    slots: list[dict[str, Any]] = []
+    entries: list[dict[str, Any]] = []
+    for symbol, parsed in tables:
+        rva = int(symbol["rva"], 16)
+        signature = signatures.get(symbol["name"], "")
+        base = vftable_base_from_signature(signature) if signature else ""
+        common = {
+            "program": program,
+            "module": module["relative_path"],
+            "table": symbol["name"],
+            "class_name": parsed.class_name,
+            "enclosing_scope": parsed.enclosing_scope,
+            "subobject": base,
+            "table_rva": f"0x{rva:x}",
+        }
+        if parsed.kind == "vftable":
+            for slot in decode_vftable(image, relocated, rva, boundaries):
+                target = by_rva.get(slot.target_rva)
+                slots.append(
+                    {
+                        **common,
+                        "slot": slot.index,
+                        "target_rva": f"0x{slot.target_rva:x}",
+                        "target_name": target["name"] if target else "",
+                        "target_signature": (
+                            signatures.get(target["name"], "") if target else ""
+                        ),
+                        "resolution": "exported" if target else "internal",
+                    }
+                )
+        else:
+            for index, displacement in enumerate(
+                decode_vbtable(image, relocated, rva, boundaries)
+            ):
+                entries.append({**common, "entry": index, "displacement": displacement})
+    return slots, entries
+
+
 def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) -> dict[str, Any]:
     modules, aliases = _representative_modules(settings)
     rows: list[dict[str, Any]] = []
@@ -352,9 +513,28 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
         ]
     )
 
+    slot_rows: list[dict[str, Any]] = []
+    entry_rows: list[dict[str, Any]] = []
+
     for module in modules:
         program = program_name(module)
         per_module[program] = len(module["exports"])
+        tables = [
+            (symbol, parse_decorated_name(symbol["name"] or ""))
+            for symbol in module["exports"]
+            if symbol["name"]
+        ]
+        tables = [
+            (symbol, parsed)
+            for symbol, parsed in tables
+            if parsed.kind in {"vftable", "vbtable"}
+        ]
+        if tables:
+            slots, entries = _decode_module_tables(
+                settings, module, program, tables, signatures
+            )
+            slot_rows.extend(slots)
+            entry_rows.extend(entries)
         for symbol in module["exports"]:
             name = symbol["name"] or f"#{symbol['ordinal']}"
             parsed = parse_decorated_name(name)
@@ -406,7 +586,38 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
                 "parse_status",
             ],
             rows,
-        )
+        ),
+        "vftable-slots.csv": _csv_text(
+            [
+                "program",
+                "module",
+                "table",
+                "class_name",
+                "enclosing_scope",
+                "subobject",
+                "table_rva",
+                "slot",
+                "target_rva",
+                "target_name",
+                "target_signature",
+                "resolution",
+            ],
+            sorted(slot_rows, key=lambda row: (row["program"], row["table"], row["slot"])),
+        ),
+        "vbtable-entries.csv": _csv_text(
+            [
+                "program",
+                "module",
+                "table",
+                "class_name",
+                "enclosing_scope",
+                "subobject",
+                "table_rva",
+                "entry",
+                "displacement",
+            ],
+            sorted(entry_rows, key=lambda row: (row["program"], row["table"], row["entry"])),
+        ),
     }
 
     report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
@@ -452,6 +663,17 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
         "classes": len(classes),
         "vftables": len(vftables),
         "vftables_with_named_base": sum(1 for row in vftables if row["vftable_base"]),
+        "vftables_decoded": len({row["table"] for row in slot_rows}),
+        "vftable_slots": len(slot_rows),
+        "vftable_slots_exported": sum(
+            1 for row in slot_rows if row["resolution"] == "exported"
+        ),
+        "vftables_with_no_slots": sorted(
+            {row["decorated_name"] for row in vftables}
+            - {row["table"] for row in slot_rows}
+        )[:10],
+        "vbtables_decoded": len({row["table"] for row in entry_rows}),
+        "vbtable_entries": len(entry_rows),
         "virtual_members": sum(1 for row in rows if row["virtuality"] == "virtual"),
         "adjustor_thunks": sum(1 for row in rows if row["adjustor_thunk"]),
         "constructors": sum(1 for row in rows if row["kind"] == "constructor"),
