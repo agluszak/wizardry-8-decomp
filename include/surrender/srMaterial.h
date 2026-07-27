@@ -1,49 +1,46 @@
 #pragma once
 
-#include "srHeap.h"
+#include "srTypeRegistry.h"
 
-class srClass;
 class srVertexPipe;
 
-/* The thirteen virtual slots are the exported ??_7srMaterial@@6B@ in slot
-   order, from evidence/snapshots/surrender-abi/vftable-slots.csv. Eight of them
-   the library exports by name and a derived class reaches through an import
-   thunk; the other five it implements without exporting, and every first-party
-   subclass overrides all five, so nothing here needs a body the DLL will not
-   supply.
+/* srMaterial's exported vftable has thirteen slots, and the first seven are
+   srClass's: evidence/snapshots/surrender-abi/vftable-slots.csv resolves slots
+   3, 4 and 6 to dump, verify and vInstance, and Wizardry's stMaterial overrides
+   slots 0, 1, 2 and 5 with a class-name getter, a class-id getter, a registry
+   walk and a destructor - which is srClass's declaration order exactly.
 
-   Two simplifications are deliberate and neither moves a slot. `dump` really
-   takes `std::basic_ostream<char, std::char_traits<char> >&` and `verify` an
-   `srRuntimeClass::e_verify`; modelling MSVCP60's stream types is a separate
-   problem, and a parameter type cannot change a vtable's layout. `getMaterialInfo`
-   likewise takes `srVertexProcessor::MaterialInfo&`.
+   srMaterialIFace is the 0x2200 node the registry tree puts between srClass and
+   srMaterial's 0x2210; nothing observed adds a slot there, so it carries none.
 
-   The size is the extent the first-party subclass leaves for it:
-   Engine Code\materials.cpp's stMaterial is 0x7C bytes with its own field at
-   0x78, and the srMaterial construction inlined into its constructor writes
-   0x68 and 0x6C. Nothing here proves what fills those bytes. */
-class SR_DLL_IMPORT srMaterial {
+   Two parameter types are simplified and neither moves a slot:
+   getMaterialInfo really takes srVertexProcessor::MaterialInfo&. */
+class SR_DLL_IMPORT srMaterialIFace : public srClass {
 public:
-    virtual const char* vslot0();                               /* 0 */
-    virtual unsigned long vslot1();                             /* 1 */
-    virtual void* vslot2();                                     /* 2 */
-    virtual void dump(void* stream);                            /* 3 */
-    virtual void verify(int check);                             /* 4 */
-    virtual void vslot5();                                      /* 5 */
-    virtual srClass* vInstance();                               /* 6 */
-    virtual srMaterial* vslot7();                               /* 7 */
-    virtual void getMaterialInfo(void* info);                   /* 8 */
-    virtual void preProcess(srVertexPipe& pipe);                /* 9 */
-    virtual void postProcess(srVertexPipe& pipe);               /* 10 */
+    static const char* sGetClassName();
+};
+
+class SR_DLL_IMPORT srMaterial : public srMaterialIFace {
+public:
+    static const char* sGetClassName();
+
+    /* Slot 7. Unexported, and every subclass overrides it; stMaterial's copies
+       through the instance slot 6 returns, so it is a clone. */
+    virtual srMaterial* vslot7();
+    virtual void getMaterialInfo(void* info);
+    virtual void preProcess(srVertexPipe& pipe);
+    virtual void postProcess(srVertexPipe& pipe);
 
 protected:
-    virtual void updateParms();                                 /* 11 */
-    virtual void reset();                                       /* 12 */
+    virtual void updateParms();
+    virtual void reset();
 
 public:
     srMaterial& operator=(const srMaterial& other);
 
 private:
+    /* The extent Wizardry's subclass leaves for it: stMaterial is 0x7C with its
+       own field at 0x78. What fills these bytes is not established. */
     unsigned char unknown_04_[0x74];
 };
 

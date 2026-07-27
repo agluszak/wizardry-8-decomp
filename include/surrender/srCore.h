@@ -1,6 +1,7 @@
 #pragma once
 
 #include "srImporter.h"
+#include "srTypeRegistry.h"
 
 class srIStreamOpener;
 

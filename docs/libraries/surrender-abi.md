@@ -106,13 +106,24 @@ parent chain as it goes - `srMaterialIFace` at `0x2200`, `srMaterial` at `0x2210
 `Engine Code\materials.cpp` is the unit, whose own assertions call the pointer `ppstMaterial`. So
 `stMaterial` is the original's name, not a descriptive one.
 
-That is enough to declare both classes and port. `include/surrender/srMaterial.h` gives srMaterial
-its thirteen slots in exported order and an extent of `0x78`; `stMaterial` derives from it, adds one
-field at `0x78` for a total of `0x7C`, and overrides the five slots the library implements without
-exporting. Three of those overrides are recovered and relocation-masked exact. The one that carries
-the layout is slot 7 at `0x00492A00`: it calls slot 6 for a fresh instance, assigns through
-`srMaterial::operator=`, and copies the field at `0x78` - so a wrong slot index or a wrong base
-extent would both show up as a mismatch, and neither does.
+That is enough to declare both classes and port. srMaterial derives from `srClass`, which
+`include/surrender/srTypeRegistry.h` already declared: its first seven slots are srClass's, and the
+four stMaterial overrides plus the destructor are exactly the five SurRender does not export, in
+srClass's own declaration order. So slots 0, 1, 2 and 5 are not positional after all - they are
+`getClassName`, `getClassID`, `getClassNode` and the destructor. srMaterial adds slots 7 through 12
+over an extent of `0x78`; `srMaterialIFace` is the `0x2200` node the registry tree puts between the
+two and carries no slot of its own.
+
+`stMaterial` derives from srMaterial, adds one field at `0x78` for `0x7C`, and four of its five
+overrides are recovered relocation-masked exact. Two carry the layout rather than a constant:
+`getClassNode` at `0x00492960` walks `srRegistry` down from `0x10002` to whichever ancestor is
+already registered and builds the tree back up, and slot 7 at `0x00492A00` calls slot 6 for a fresh
+instance, assigns through `srMaterial::operator=`, then copies the field at `0x78`. A wrong slot
+index or a wrong base extent would show up in either.
+
+The destructor is the one override still outstanding: its complete body at `0x00492A30` is 425 bytes
+of registry teardown under exception state, and the deleting destructor above it frees through
+`srHeap`, which needs the class's `operator delete` routing established before either can match.
 
 ## What may be written into a header
 
