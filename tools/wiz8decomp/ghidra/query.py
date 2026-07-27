@@ -207,6 +207,10 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         return _symbols(program, False)
     if command == "sections":
         return _sections(program)
+    if command == "facts-at":
+        from .apply_provenance import facts_at
+
+        return facts_at(program, arguments[0])
     if command == "high-function":
         from .semantic import high_function
 
@@ -236,7 +240,7 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "function": 1, "function-slice": 1, "function-of": 1, "read-data": 2, "strings": 0,
         "string-refs": 1, "search": 1, "functions": 0, "imports": 0, "exports": 0,
         "sections": 0, "observation-audit": 0,
-        "high-function": 1, "field-accesses": 2, "callsite": 1,
+        "high-function": 1, "field-accesses": 2, "callsite": 1, "facts-at": 1,
     }
     if command == "pcode":
         if len(arguments) not in {1, 2}:

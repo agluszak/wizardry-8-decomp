@@ -10,6 +10,7 @@ from .apply_class_candidates import apply_class_candidates
 from .apply_eh_frame_types import apply_eh_frame_types
 from .apply_function_map import apply_function_map
 from .apply_observation_evidence import apply_observation_evidence
+from .apply_provenance import apply_provenance
 from .apply_sgp_model import apply_sgp_model
 from .apply_wiz8_class_model import apply_wiz8_class_model
 from .apply_wiz8_format_model import apply_wiz8_format_model
@@ -53,6 +54,12 @@ def reviewed_replay_actions(
         (
             "reviewed_signatures",
             lambda: apply_wiz8_signature_fixes(settings, program_name, materialize=False),
+        ),
+        # Last: stamp each reviewed fact's ledger row at its address anchor, so
+        # the program itself answers what is accepted here and why.
+        (
+            "reviewed_provenance",
+            lambda: apply_provenance(settings, program_name, materialize=False),
         ),
     ]
 

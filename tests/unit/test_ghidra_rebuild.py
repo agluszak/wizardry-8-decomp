@@ -55,6 +55,11 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
     )
     monkeypatch.setattr(
         rebuild,
+        "apply_provenance",
+        lambda *_args, **_kwargs: calls.append("provenance"),
+    )
+    monkeypatch.setattr(
+        rebuild,
         "validate_reviewed_replay",
         lambda *_args, **_kwargs: calls.append("validate") or {"ok": True, "failure_count": 0},
     )
@@ -69,6 +74,7 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "formats",
         "classes",
         "signatures",
+        "provenance",
         "observations",
         "eh-frame-types",
         "candidates",
@@ -83,6 +89,7 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "wiz8_format_model",
         "reviewed_class_model",
         "reviewed_signatures",
+        "reviewed_provenance",
         "canonical_neutral_observations",
         "eh_frame_types",
         "candidate_class_observations",

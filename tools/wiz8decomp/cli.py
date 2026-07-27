@@ -251,28 +251,6 @@ def check_markers_command(
     _run_action(action)
 
 
-@app.command("facts")
-def facts_command(
-    action: Annotated[str, typer.Argument(help="build, or why <subject>.")],
-    subject: Annotated[str | None, typer.Argument(help="Subject for why, e.g. candidate:<program>:<vtable>.")] = None,
-) -> None:
-    """Build or interrogate the disposable whole-program fact store."""
-
-    def run() -> dict[str, Any]:
-        from .facts import build_store, why
-
-        settings = _settings()
-        if action == "build":
-            return build_store(settings)
-        if action == "why":
-            if not subject:
-                raise ValueError("why requires a subject")
-            return why(settings, subject)
-        raise ValueError(f"unknown facts action: {action}")
-
-    _run_action(run)
-
-
 @app.command("verify-boundaries")
 def verify_boundaries_command(
     mapping: Annotated[
