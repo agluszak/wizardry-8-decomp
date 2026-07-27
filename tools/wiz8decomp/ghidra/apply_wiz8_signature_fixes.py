@@ -11,6 +11,7 @@ from .reviewed_signatures import load_reviewed_signatures
 def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
     from ghidra.program.model.data import (
         CategoryPath,
+        BooleanDataType,
         CharDataType,
         DataTypePath,
         FloatDataType,
@@ -26,6 +27,7 @@ def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
 
     base_types = {
         "void": VoidDataType.dataType,
+        "bool": BooleanDataType.dataType,
         "int": IntegerDataType.dataType,
         "char": CharDataType.dataType,
         "float": FloatDataType.dataType,

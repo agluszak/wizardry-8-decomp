@@ -76,6 +76,10 @@ typedef struct W8Character {
     unsigned char unknown_0e91[0x9d1];
 } W8Character;                           /* 0x1862 */
 
+typedef struct W8RPCSlot {
+    unsigned char opaque[0x118];
+} W8RPCSlot;
+
 typedef struct W8FactDatabaseRecord {
     unsigned int identifier;
     char symbolic_name[256];             /* 0x004 */
@@ -394,7 +398,19 @@ typedef struct W8RegionSet {
     unsigned int last_region;
 } W8RegionSet;                           /* 0x0c */
 
-typedef void (*W8RegionCallback)(void);
+typedef struct W8RegionEvent {
+    unsigned int time;
+    unsigned short modifiers;
+    unsigned short reason;
+} W8RegionEvent;
+
+typedef struct W8RegionMouseEvent {
+    W8RegionEvent event;
+    unsigned int mouse_position;
+} W8RegionMouseEvent;
+
+struct W8Region;
+typedef void (*W8RegionCallback)(const W8RegionEvent* event, struct W8Region* region);
 
 typedef struct W8Region {
     unsigned int flags;
@@ -713,11 +729,21 @@ void SetRegionOwner(unsigned int region_index, void* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
 int ClockIsTicking(int clock);
 int SetCountdownClock(int delay);
+unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
+unsigned int GetForcedRegion(void);
 void UpdateRegionHelp(void);
+void ShowRegionHelp(unsigned int region_index);
 void SetRegionHelpText(const wchar_t* text);
 void ResetRegionHelp(unsigned char delayed);
 void EnableRegionHelp(unsigned int region_index);
 void DisableRegionHelp(unsigned int region_index);
+int RPCPtrToPCSlot(const W8RPCSlot* rpc);
+void FreeStringTable(void);
+#ifdef __cplusplus
+bool IsStringTableLoaded(void);
+#else
+unsigned char IsStringTableLoaded(void);
+#endif
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result);
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);

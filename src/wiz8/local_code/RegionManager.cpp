@@ -12,9 +12,24 @@ extern int g_region_help_delay;
 extern unsigned char g_region_help_force_enabled;
 extern unsigned char g_flag_6850d4;
 extern unsigned short g_word_6850ed;
-
-extern void ShowRegionHelp(unsigned int region_index);       /* 0x004F2650 */
 extern void HideRegionHelp(void);                           /* 0x00429770 */
+
+// FUNCTION: WIZ8 0x004F21B0
+unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
+{
+    if (g_forced_region_index == region_index) {
+        g_forced_region_index = 0;
+        g_active_region_index = 0;
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004F21D0
+unsigned int GetForcedRegion(void)
+{
+    return g_forced_region_index;
+}
 
 // FUNCTION: WIZ8 0x004F21E0
 void RegionSetEnable(unsigned int region_set_index)
@@ -215,6 +230,7 @@ void UpdateRegionHelp(void)
     }
 }
 
+
 // FUNCTION: WIZ8 0x004F2750
 void SetRegionHelpText(const wchar_t* text)
 {
@@ -244,6 +260,7 @@ void ResetRegionHelp(unsigned char delayed)
         g_region_help_clock = SetCountdownClock(g_region_help_delay);
     }
 }
+
 
 // FUNCTION: WIZ8 0x004F2880
 unsigned int CreateRegionSet(void)

@@ -2,8 +2,14 @@
 #include "wiz8/sr_api.h"
 
 #include <wchar.h>
+#include <stdlib.h>
 
 extern "C" char* String(const char* format, ...);
+extern W8RPCSlot g_rpc_slots[8];
+extern W8RPCSlot g_rpc_slots_end[];
+extern int g_string_table_count;
+extern char** g_string_table;
+extern int g_string_table_state;
 
 // FUNCTION: WIZ8 0x00517E20
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
@@ -89,6 +95,56 @@ void AdjustByteByPercent(unsigned char* value, unsigned int percent)
 void AdjustIntegerByPercent(unsigned int* value, unsigned int percent)
 {
     *value += *value * percent / 100;
+}
+
+// FUNCTION: WIZ8 0x00518310
+int RPCPtrToPCSlot(const W8RPCSlot* rpc)
+{
+    int slot = 0;
+
+    for (W8RPCSlot* current = g_rpc_slots; current < g_rpc_slots_end; ++current) {
+        if (rpc == current) {
+            return slot;
+        }
+        ++slot;
+    }
+    char* message = String("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc);
+    srAssertFail(
+        "FALSE",
+        "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
+        0x385,
+        message);
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005184B0
+void FreeStringTable(void)
+{
+    if (g_string_table != 0) {
+        int index = 0;
+        char** table = g_string_table;
+        if (g_string_table_count > 0) {
+            do {
+                if (table[index] != 0) {
+                    free(table[index]);
+                    table = g_string_table;
+                }
+                ++index;
+            } while (index < g_string_table_count);
+        }
+        free(table);
+        g_string_table = 0;
+        g_string_table_count = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00518B20
+bool IsStringTableLoaded(void)
+{
+    bool loaded;
+
+    loaded = g_string_table_state != 0;
+    return loaded;
 }
 
 // FUNCTION: WIZ8 0x00518150

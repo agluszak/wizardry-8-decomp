@@ -10,6 +10,16 @@ function-evidence:wiz8:00517f60:canonical-behavior,wiz8,00517f60,canonical-behav
 function-evidence:wiz8:00517f60:reccmp,wiz8,00517f60,reccmp,exact-compile,match:20a4ec21ed09f298,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
 function-evidence:wiz8:00517f90:canonical-behavior,wiz8,00517f90,canonical-behavior,identity-review,name_origin=descriptive,The complete body adds value times percent divided by 100 back into the unsigned value
 function-evidence:wiz8:00517f90:reccmp,wiz8,00517f90,reccmp,exact-compile,match:c328875ef6bb64da,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00518310:runtime-string,wiz8,00518310,runtime-string,identity-review,name_origin=original-runtime-string,The retained RPCPtrToPCSlot diagnostic states the original function name
+function-evidence:wiz8:00518310:reccmp,wiz8,00518310,reccmp,exact-compile,match:17f57565c56f666a,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:005184b0:canonical-behavior,wiz8,005184b0,canonical-behavior,identity-review,name_origin=descriptive,The complete body frees every nonnull string-table entry then the table and clears the global pointer and count
+function-evidence:wiz8:005184b0:reccmp,wiz8,005184b0,reccmp,exact-compile,match:68b9f811ce9418f4,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:00518b20:canonical-behavior,wiz8,00518b20,canonical-behavior,identity-review,name_origin=descriptive,The complete body returns whether the string-table state global is nonzero
+function-evidence:wiz8:00518b20:reccmp,wiz8,00518b20,reccmp,exact-compile,match:6f900695826e94fc,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\UtilityFunctions.cpp
+function-evidence:wiz8:004f21b0:canonical-behavior,wiz8,004f21b0,canonical-behavior,identity-review,name_origin=descriptive,The complete body conditionally clears both region selection globals and returns whether it did so
+function-evidence:wiz8:004f21b0:reccmp,wiz8,004f21b0,reccmp,exact-compile,match:104b4a195b773197,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\RegionManager.cpp
+function-evidence:wiz8:004f21d0:canonical-behavior,wiz8,004f21d0,canonical-behavior,identity-review,name_origin=descriptive,The complete body returns the forced-region index global
+function-evidence:wiz8:004f21d0:reccmp,wiz8,004f21d0,reccmp,exact-compile,match:76811197299fd721,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\RegionManager.cpp
 function-evidence:wiz8:004f21e0:controls-caller,wiz8,004f21e0,controls-caller,identity-review,name_origin=descriptive,Controls::EnableRegionSet calls this branch only when its enable argument is true
 function-evidence:wiz8:004f21e0:reccmp,wiz8,004f21e0,reccmp,exact-compile,match:efdaf4ccb57e734f,VC6 SP5 O2 G6 MD body is byte-exact; Local Code\RegionManager.cpp
 function-evidence:wiz8:004f2220:controls-caller,wiz8,004f2220,controls-caller,identity-review,name_origin=descriptive,Controls::EnableRegionSet calls this branch only when its enable argument is false
