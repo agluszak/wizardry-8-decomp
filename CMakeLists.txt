@@ -288,6 +288,8 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/vector_005ef08c.cpp
         src/wiz8/vector_005ec018.cpp
         src/wiz8/vector_005ed1b8.cpp
+        src/wiz8/vector_005ec164.cpp
+        src/wiz8/vector_005eca5c.cpp
         src/wiz8/local_code/Control004F5450.cpp
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/LoadSaveGame.cpp

@@ -192,6 +192,11 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   have - port the class whose teardown has nothing to unwind first.
 - **A null check before `operator delete` means the source said `delete p`**, not
   `::operator delete(p)`; the operator form does not null-check.
+- **`families.csv` is built on census attribution, which is wrong for about a fifth of the write
+  sites.** Before deciding a vein is exhausted, re-attribute: pull containment with
+  `just ghidra query <program> function-of <comma-separated sites>`, run it through
+  `object_model.attribute_writers`, and pass the corrected writes to `derived_families`. That
+  removed six invented pairs and surfaced two real ones the census had split across two functions.
 - **Scattered addresses do not break a family.** VC6 emits every body as a per-unit COMDAT and its
   linker does not fold duplicates, so a destructor copy can survive far from its constructor. Tie
   the family together with the census - the derived table installed by that constructor and no

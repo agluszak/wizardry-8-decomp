@@ -170,3 +170,7 @@ wiz8,W8GrowableVector<W8VectorElement005EC018 *>.primary,0,00438f40,,exact,class
 wiz8,W8Vector005EC018.primary,0,00438f70,,exact,classes:wiz8:W8Vector005EC018
 wiz8,W8GrowableVector<W8VectorElement005ED1B8 *>.primary,0,004be000,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED1B8 *>
 wiz8,W8Vector005ED1B8.primary,0,004be030,,exact,classes:wiz8:W8Vector005ED1B8
+wiz8,W8GrowableVector<W8VectorElement005EC164 *>.primary,0,00446160,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC164 *>
+wiz8,W8Vector005EC164.primary,0,00446190,,exact,classes:wiz8:W8Vector005EC164
+wiz8,W8GrowableVector<W8VectorElement005ECA5C *>.primary,0,0048a110,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECA5C *>
+wiz8,W8Vector005ECA5C.primary,0,0048a140,,exact,classes:wiz8:W8Vector005ECA5C

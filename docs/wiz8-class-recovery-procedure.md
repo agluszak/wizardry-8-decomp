@@ -287,6 +287,14 @@ match a family already recovered. Seventeen matched the vector shape that way; t
 all four bodies in one address neighbourhood, which is what a single unit emitting a family looks
 like, and all forty-eight bodies came out byte-exact in one build.
 
+**Correct the writer attribution before trusting `families.csv`.** The census guesses which
+function contains a vptr write from inter-function padding, and it is wrong for 241 of the 1176
+canonical sites. `object_model.attribute_writers` re-attributes them against Ghidra's own
+containment, which `just ghidra query <program> function-of a,b,c` supplies in bulk. Feeding the
+corrected writes to `derived_families` drops six pairs the census invented and adds two it hid -
+both of the latter turned out to be the vector shape and ported byte-exact. The report still reads
+the census directly, so this is a manual step until it is wired in.
+
 **A family whose four bodies are scattered across the image is still one family.** VC6 emits each
 of them as its own COMDAT in every unit that needs it, and its linker does not fold duplicates, so
 the surviving copy of a destructor can sit far from the constructor. Address adjacency is a nice

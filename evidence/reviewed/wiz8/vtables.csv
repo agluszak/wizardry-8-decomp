@@ -59,3 +59,7 @@ wiz8,W8GrowableVector<W8VectorElement005EC018 *>.primary,W8GrowableVector<W8Vect
 wiz8,W8Vector005EC018.primary,W8Vector005EC018,005ec018,0x0,primary,1,exact,classes:wiz8:W8Vector005EC018
 wiz8,W8GrowableVector<W8VectorElement005ED1B8 *>.primary,W8GrowableVector<W8VectorElement005ED1B8 *>,005ed1b4,0x0,primary,1,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED1B8 *>
 wiz8,W8Vector005ED1B8.primary,W8Vector005ED1B8,005ed1b8,0x0,primary,1,exact,classes:wiz8:W8Vector005ED1B8
+wiz8,W8GrowableVector<W8VectorElement005EC164 *>.primary,W8GrowableVector<W8VectorElement005EC164 *>,005ec168,0x0,primary,1,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC164 *>
+wiz8,W8Vector005EC164.primary,W8Vector005EC164,005ec164,0x0,primary,1,exact,classes:wiz8:W8Vector005EC164
+wiz8,W8GrowableVector<W8VectorElement005ECA5C *>.primary,W8GrowableVector<W8VectorElement005ECA5C *>,005eca60,0x0,primary,1,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECA5C *>
+wiz8,W8Vector005ECA5C.primary,W8Vector005ECA5C,005eca5c,0x0,primary,1,exact,classes:wiz8:W8Vector005ECA5C
