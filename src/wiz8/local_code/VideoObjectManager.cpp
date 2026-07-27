@@ -49,7 +49,11 @@ extern W8VideoFrame g_video_frames_62c430[];
 
 
 /* Two loaders, chosen by the frame's mode. Each takes a request whose first
-   field is 0x40 and whose path follows it inline, and hands back a surface. */
+   field is 0x40 and whose path follows it inline, and hands back a surface.
+   The two path buffers are not the same size - 104 and 108 - which the frame
+   proves: the original reserves 0xe0, and only 4+104 plus 4+108 plus the
+   surface pointer adds up to it. The decompiler shows the second as 96 because
+   that is as much of it as this body touches. */
 typedef struct W8VideoLoadRequestA {
     int kind;
     char path[104];
@@ -57,7 +61,7 @@ typedef struct W8VideoLoadRequestA {
 
 typedef struct W8VideoLoadRequestB {
     int kind;
-    char path[96];
+    char path[108];
 } W8VideoLoadRequestB;
 
 extern char Function405EF0(W8VideoLoadRequestA* request, void** surface);
