@@ -392,13 +392,20 @@ typedef struct W8RegionSet {
     unsigned int last_region;
 } W8RegionSet;                           /* 0x0c */
 
+typedef void (*W8RegionCallback)(void);
+
 typedef struct W8Region {
     unsigned int flags;
     short x1;
     short y1;
     short x2;
     short y2;
-    unsigned char unknown_0c[0x10];
+    W8RegionCallback callback;
+    unsigned short callback_id;
+    unsigned char help_enabled;
+    unsigned char unknown_13;
+    int help_text_id;
+    void* owner;
 } W8Region;                              /* 0x1c */
 
 enum {
@@ -696,6 +703,12 @@ unsigned char RegionContainsPoint(unsigned int region_index, unsigned short x,
 unsigned char RegionHasFlags(unsigned int region_index, unsigned int flags);
 #endif
 unsigned int CreateRegionSet(void);
+void ResetRegionSet(unsigned int region_set_index);
+unsigned int AddRegionToSet(unsigned int region_set_index);
+void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
+                       unsigned short callback_id);
+void SetRegionOwner(unsigned int region_index, void* owner);
+void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result);
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);

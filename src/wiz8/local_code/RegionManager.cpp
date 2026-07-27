@@ -200,3 +200,83 @@ unsigned int CreateRegionSet(void)
     g_region_sets[region_set_index].last_region = 0;
     return region_set_index;
 }
+
+// FUNCTION: WIZ8 0x004F28E0
+void ResetRegionSet(unsigned int region_set_index)
+{
+    if (region_set_index >= g_region_set_count) {
+        srAssertFail(
+            "uiRegionSet < guiRegsetCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x4a0,
+            0);
+    }
+    g_region_sets[region_set_index].last_region = 0;
+}
+
+// FUNCTION: WIZ8 0x004F2920
+unsigned int AddRegionToSet(unsigned int region_set_index)
+{
+    unsigned int region_index;
+
+    if (region_set_index >= g_region_set_count) {
+        srAssertFail(
+            "uiRegionSet < guiRegsetCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x4b7,
+            0);
+    }
+    if (g_region_sets[region_set_index].last_region == 0) {
+        region_index = g_region_sets[region_set_index].first_region;
+    } else {
+        region_index = g_region_sets[region_set_index].last_region + 1;
+    }
+    g_region_sets[region_set_index].last_region = region_index;
+    if (region_index == g_region_count) {
+        ++g_region_count;
+        if (g_region_count > 1500) {
+            srAssertFail(
+                "guiRegionCount <= REGION_LIMIT",
+                "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+                0x4c7,
+                0);
+        }
+        g_regions[region_index] = g_regions[0];
+    }
+    return region_index;
+}
+
+// FUNCTION: WIZ8 0x004F29C0
+void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
+                       unsigned short callback_id)
+{
+    if (region_index > g_region_count) {
+        srAssertFail(
+            "uiRegionIndex <= guiRegionCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x4df,
+            0);
+    }
+    g_regions[region_index].callback = callback;
+    g_regions[region_index].callback_id = callback_id;
+}
+
+// FUNCTION: WIZ8 0x004F2A10
+void SetRegionOwner(unsigned int region_index, void* owner)
+{
+    g_regions[region_index].owner = owner;
+}
+
+// FUNCTION: WIZ8 0x004F2A30
+void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id)
+{
+    if (region_index > g_region_count) {
+        srAssertFail(
+            "uiRegionIndex <= guiRegionCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x506,
+            0);
+    }
+    g_regions[region_index].help_enabled = enabled;
+    g_regions[region_index].help_text_id = help_text_id;
+}

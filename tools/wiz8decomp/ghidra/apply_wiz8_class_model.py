@@ -32,6 +32,7 @@ def apply_reviewed_class_model(
         PointerDataType,
         ShortDataType,
         UnsignedIntegerDataType,
+        UnsignedShortDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -74,6 +75,8 @@ def apply_reviewed_class_model(
                         data_type = IntegerDataType.dataType
                     elif field.data_type == "uint32":
                         data_type = UnsignedIntegerDataType.dataType
+                    elif field.data_type == "uint16":
+                        data_type = UnsignedShortDataType.dataType
                     else:
                         data_type = ArrayDataType(byte, field.size, 1)
                     fields_by_class.setdefault(field.class_name, []).append(

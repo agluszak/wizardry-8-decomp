@@ -8,6 +8,7 @@ ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
 SCALAR_FIELD_SIZES = {
     "int16": 2,
     "int32": 4,
+    "uint16": 2,
     "uint32": 4,
 }
 
@@ -128,6 +129,7 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             "int16",
             "int32",
             "pointer",
+            "uint16",
             "uint32",
         }:
             raise ValueError(f"{fields_path}: invalid field {field.class_name}+0x{field.offset:x}")

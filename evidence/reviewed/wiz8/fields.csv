@@ -75,6 +75,11 @@ wiz8,W8Region,0x4,0x2,x1,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it 
 wiz8,W8Region,0x6,0x2,y1,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as top edge or circle center Y
 wiz8,W8Region,0x8,0x2,x2,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as right edge or circle radius
 wiz8,W8Region,0xa,0x2,y2,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as bottom edge in rectangular mode
+wiz8,W8Region,0xc,0x4,callback,pointer,exact,classes:wiz8:W8Region,0x004f29c0 stores code addresses and reviewed callers pass local callback entry points
+wiz8,W8Region,0x10,0x2,callback_id,uint16,exact,classes:wiz8:W8Region,0x004f29c0 stores the caller-supplied 16-bit callback identifier
+wiz8,W8Region,0x12,0x1,help_enabled,bytes,exact,classes:wiz8:W8Region,0x004f2a30 stores it and 0x004f25a0 gates timed help processing on it
+wiz8,W8Region,0x14,0x4,help_text_id,int32,exact,classes:wiz8:W8Region,0x004f2a30 stores it and 0x004f2650 resolves it through the help-text table
+wiz8,W8Region,0x18,0x4,owner,pointer,exact,classes:wiz8:W8Region,0x004f2a10 stores the owning object supplied by the reviewed control constructors
 wiz8,W8MonsterInfo,0x9f,0x4,value_9f,int32,exact,classes:wiz8:W8MonsterInfo,required to be zero by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x1e7,0x7,attribute_adjustments_1e7,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 reads the selected byte as signed before adding it to the unsigned database attribute
 wiz8,W8MonsterInfo,0x247,0x5,converted_attributes_247,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 stores the five converted attributes after clamping each result to 1 through 125
