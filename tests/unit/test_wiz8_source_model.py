@@ -447,6 +447,44 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     assert "Slot 3 directly references the exact source path" in dialog["evidence"]
 
 
+def test_imported_vftable_sites_are_resolved_and_classified() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/wiz8/imported-vftable-sites.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        sites = list(csv.DictReader(stream))
+    with (repository / "evidence/observations/surrender/wiz8-sr-imports.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        imports = {row["iat_address"]: row for row in csv.DictReader(stream)}
+
+    # Every reference site to one of the six imported vftables is resolved to
+    # a containing function and classified; none is an orphan.
+    assert len(sites) == 15
+    assert len({row["site"] for row in sites}) == 15
+    assert all(row["containing_function"] for row in sites)
+    assert {row["classification"] for row in sites} == {
+        "inlined-construction",
+        "dedicated-constructor",
+        "stack-temporary",
+        "deleting-destructor",
+    }
+    assert len({row["iat_address"] for row in sites}) == 6
+    for row in sites:
+        assert imports[row["iat_address"]]["kind"] == "vftable"
+        assert imports[row["iat_address"]]["decorated_name"] == row["imported_vftable"]
+    # The nine srMaterial sites split seven inlined constructions and the two
+    # dedicated constructors of the srRegistry-registered derived class.
+    material = [row for row in sites if row["iat_address"] == "005eb4e4"]
+    assert len(material) == 9
+    assert (
+        sum(1 for row in material if row["classification"] == "inlined-construction") == 7
+    )
+    orphan = next(row for row in sites if row["site"] == "0047da2f")
+    assert orphan["containing_function"] == "0047da10"
+    assert orphan["classification"] == "deleting-destructor"
+
+
 def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = load_reviewed_class_model(repository, "wiz8")

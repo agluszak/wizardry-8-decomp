@@ -297,9 +297,17 @@ the mangled name spells out the inheritance:
 ??_7srMaterial@@6B@
 ```
 
-Thirteen distinct functions install one of these. Most of the `srMaterial` sites are large functions
-that construct a stack temporary rather than dedicated constructors; two sites are unambiguous
-derived-class constructors and are the first two classes below.
+Fifteen reference sites in fourteen distinct functions install one of these; every site and its
+classification is tracked in `evidence/reviewed/wiz8/imported-vftable-sites.csv`. An earlier
+revision guessed that most `srMaterial` sites were stack temporaries: they are not. Seven are
+**inlined heap constructions** — operator new with a null check, the imported vftable,
+`srMaterial::reset`, then a local derived vtable (`0x005EBDE0`) — and two are dedicated
+constructors of a second derived class that registers itself with `srRegistry` and installs
+`0x005ECB6C`/`0x005ECB38`. The one genuine stack temporary is an `srBinStream` in the archive
+reader at `0x0043AEC0`, and the once-orphaned site at `0x0047DA2F` turned out to be a 53-byte
+vbase-adjusting scalar deleting destructor that restores the imported `srBinStream` vftable. The
+remaining four sites are the already-reviewed `VirtualFileBinIStream` and `MonsterLight`
+constructors.
 
 `srClassSupport<srIlluminator, srNode, 0, 0x1200>` looks like SurRender's class-ID registry — the
 JPEG extension's `getClassID` returns `0x3110` — which would make `0x1200` `srLight`'s class ID.
