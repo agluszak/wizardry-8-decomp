@@ -326,11 +326,19 @@ and only the out-of-line copy is claimable. Two writers of the *same* size are t
 genuinely needs two source files, one per emission - check which you have rather than assuming.
 
 **Those two size sources do not agree, and the difference is not an error.** The function census
-sizes a body to the next boundary, so it includes the padding to the following function; Ghidra and
-the reviewed rows state the body itself. The vector family is `84/17/44/30` in reviewed terms and
-`96/32/48/32` in census terms. Calibrate a fingerprint against a family you have already recovered
-rather than against the sizes you wrote in the boundary rows - filtering census sizes by reviewed
-numbers silently matches nothing, which reads like "no more of these exist".
+sizes a body by the distance to the *next body it identified*; Ghidra and the reviewed rows state the
+body itself. The vector family is `84/17/44/30` in reviewed terms and usually `96/32/48/32` in census
+terms. Calibrate a fingerprint against a family you have already recovered rather than against the
+sizes you wrote in the boundary rows - filtering census sizes by reviewed numbers silently matches
+nothing, which reads like "no more of these exist".
+
+Calibrating is not enough on its own, because the census inflation is not constant. The filler
+between bodies is nops, not the `0xCC` the phrase "padding" suggests, and the span can swallow a body
+the census never identified: after `0x005178C0` an eighteen-byte body sits in the gap, so a
+thirty-byte deleting destructor is recorded as sixty-four. That one family passed every other test
+and was dropped by its one inflated number. Confirm a spent vein by measuring real bodies -
+`read_canonical_body(image, address, census_size).rstrip(b"\x90\xcc")` - rather than by trusting the
+census twice.
 
 **A destructor alone may compile to nothing at all.** VC6 emits a class's vtable, its
 compiler-generated deleting destructor and its out-of-line complete destructor in the translation

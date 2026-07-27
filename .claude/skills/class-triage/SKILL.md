@@ -49,9 +49,13 @@ Once you have recovered one family, take the rest by fingerprint: join `families
 `evidence/snapshots/functions/candidates.csv` (sizes) and `calls.csv` (the complete destructor the
 derived deleting destructor calls), and keep families whose four sizes match. **Calibrate against a
 family you have already recovered, not against the sizes in your boundary rows** - the census sizes
-to the next boundary and so includes trailing padding, which makes the vector family `96/32/48/32`
-there and `84/17/44/30` in reviewed terms. Filtering by the reviewed numbers matches nothing and
-reads like "there are no more".
+a body by distance to the next body it identified, which makes the vector family `96/32/48/32` there
+and `84/17/44/30` in reviewed terms. Filtering by the reviewed numbers matches nothing and reads
+like "there are no more". The inflation is not constant either: the filler is nops, and the span can
+swallow a body the census never identified, so a real match can be dropped by one wrong number.
+Before calling a vein spent, re-measure with
+`read_canonical_body(image, address, census_size).rstrip(b"\x90\xcc")` - that is what found the last
+vector family.
 
 Or work backwards from code: any decompile that shows a `[wiz8 observation:candidate-class:...]`
 comment is telling you what the function you are reading constructs.

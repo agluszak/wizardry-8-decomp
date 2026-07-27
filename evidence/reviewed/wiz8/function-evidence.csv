@@ -569,3 +569,7 @@ function-evidence:wiz8:00501e50:reccmp,wiz8,00501e50,reccmp,identity-review,name
 function-evidence:wiz8:00451b20:reccmp,wiz8,00451b20,reccmp,identity-review,name_origin=descriptive,17 of 17 bytes relocation-masked exact
 function-evidence:wiz8:0042bbd0:reccmp,wiz8,0042bbd0,reccmp,identity-review,name_origin=descriptive,44 of 44 bytes relocation-masked exact
 function-evidence:wiz8:00451b00:reccmp,wiz8,00451b00,reccmp,identity-review,name_origin=descriptive,30 of 30 bytes relocation-masked exact
+function-evidence:wiz8:00517810:reccmp,wiz8,00517810,reccmp,identity-review,name_origin=descriptive,84 of 84 bytes relocation-masked exact
+function-evidence:wiz8:00517870:reccmp,wiz8,00517870,reccmp,identity-review,name_origin=descriptive,17 of 17 bytes relocation-masked exact
+function-evidence:wiz8:00517890:reccmp,wiz8,00517890,reccmp,identity-review,name_origin=descriptive,44 of 44 bytes relocation-masked exact
+function-evidence:wiz8:005178c0:reccmp,wiz8,005178c0,reccmp,identity-review,name_origin=descriptive,30 of 30 bytes relocation-masked exact
