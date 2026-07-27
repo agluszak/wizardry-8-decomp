@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from wiz8decomp.boundaries import (
     masked_digest,
+    resolve_boundary_function,
     symbol_candidates,
     verify_boundaries,
 )
@@ -121,3 +122,47 @@ def test_reccmp_similarity_is_not_the_matching_criterion() -> None:
     assert rows["method_00446110"]["owner"] == "surrender-template"
 
     assert rows["AddLinesToMessageBox"]["confidence"] == "exact"
+
+
+def _claimant(body: bytes) -> CoffFunction:
+    return CoffFunction(name="_WinMain@16", body=body, relocation_offsets=())
+
+
+def test_one_claimant_resolves_without_needing_the_original() -> None:
+    only = _claimant(b"\x90\xc3")
+
+    assert resolve_boundary_function((only,), size=2, canonical=None) is only
+
+
+def test_the_body_matching_the_original_wins_over_a_same_sized_one() -> None:
+    # The vendored SGP tree and the recovered tree both define WinMain at the
+    # same length; only one of them is what the image contains.
+    shipped = _claimant(b"\x33\xc0\xc2\x10\x00")
+    upstream = _claimant(b"\x33\xc9\xc2\x10\x00")
+
+    resolved = resolve_boundary_function((upstream, shipped), size=5, canonical=shipped.body)
+
+    assert resolved is shipped
+
+
+def test_the_reviewed_size_decides_when_neither_body_matches_yet() -> None:
+    # The ordinary case for a row that is still a near miss: nothing matches the
+    # original, so the extent the row states is what picks the body.
+    reviewed_length = _claimant(b"\x90\x90\x90\xc3")
+    other_length = _claimant(b"\x90\xc3")
+
+    resolved = resolve_boundary_function(
+        (other_length, reviewed_length), size=4, canonical=b"\xcc\xcc\xcc\xcc"
+    )
+
+    assert resolved is reviewed_length
+
+
+def test_claimants_that_cannot_be_told_apart_resolve_to_nothing() -> None:
+    # Reporting not-built is the safe answer. Picking either would measure a row
+    # against a body that may not be its own, which is how a stale link stub
+    # named WinMain once shadowed the recovered body without anything noticing.
+    left = _claimant(b"\x90\x90\xc3")
+    right = _claimant(b"\x91\x91\xc3")
+
+    assert resolve_boundary_function((left, right), size=3, canonical=None) is None

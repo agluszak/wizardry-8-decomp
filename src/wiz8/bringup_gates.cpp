@@ -53,6 +53,7 @@ extern bool g_flag_650e20;
    uncharacterisable, and the callees below it that nothing yet identifies. */
 extern void RegisterWindowClass(const char* window_class, const char* key_class);
 
+extern void ProcessCommandLine(char* pCommandLine);
 extern void GetRuntimeSettings(void);
 extern unsigned char InitializeInputManager(void);
 extern void InitializeClockManager(void);
@@ -401,51 +402,6 @@ bool Function4086D0(void)
         }
     }
     return true;
-}
-
-/* Switches are matched by prefix with _strnicmp, so each comparison carries its
-   own length. The line is copied first because strtok writes through it, and
-   the delimiter set is copied to a stack word rather than used in place. */
-// FUNCTION: WIZ8 0x00401950
-void ProcessCommandLine(char* pCommandLine)
-{
-    char delimiters[4];
-    char* copy;
-    char* token;
-
-    *(unsigned int*)delimiters = *(unsigned int*)"\t =";
-    copy = (char*)malloc(strlen(pCommandLine) + 1);
-    if (!copy) {
-        return;
-    }
-    memcpy(copy, pCommandLine, strlen(pCommandLine) + 1);
-    token = strtok(copy, delimiters);
-    while (token) {
-        if (_strnicmp(token, "/NOSOUND", 8) == 0) {
-            Function4086C0(0);
-        } else if (_strnicmp(token, "/INSPECTOR", 10) == 0) {
-            Function4277D0();
-        } else if (_strnicmp(token, "/VIDEOCFG", 9) == 0) {
-            token = strtok(NULL, delimiters);
-            Function427A30(token);
-        } else if (_strnicmp(token, "/LOAD", 5) == 0) {
-            gfLoadAtStartup = 1;
-        } else if (_strnicmp(token, "/WINDOW", 7) == 0) {
-            Function422970(0);
-        } else if (_strnicmp(token, "/BC", 7) == 0) {
-            gfUsingBoundsChecker = 1;
-        } else if (_strnicmp(token, "/CAPTURE", 7) == 0) {
-            gfCapturingVideo = 1;
-        } else if (_strnicmp(token, "/NOOCT", 6) == 0) {
-            Function42BC00();
-        } else if (_strnicmp(token, "/STRINGDATA", 0xb) == 0) {
-            token = strtok(NULL, delimiters);
-            gzStringDataOverride = (char*)malloc(strlen(token) + 1);
-            memcpy(gzStringDataOverride, token, strlen(token) + 1);
-        }
-        token = strtok(NULL, delimiters);
-    }
-    free(copy);
 }
 
 /* Builds the default key binding table: a head node carrying the count and a

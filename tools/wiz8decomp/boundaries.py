@@ -106,26 +106,23 @@ def symbol_candidates(decorated: str) -> tuple[str, ...]:
 
 
 class AmbiguousBoundarySymbol(RuntimeError):
-    """Two objects claim one reviewable name with different bodies."""
+    """A reviewed row cannot be tied to one of the bodies claiming its name."""
 
 
-def collect_object_functions(root: Path) -> dict[str, CoffFunction]:
-    """Index every external `.text` function under `root` by reviewable name.
+def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]:
+    """Index every external `.text` function under `root`, keeping every claimant.
 
-    A name claimed by two objects with different bodies is refused rather than
-    resolved. Taking the first by sort order silently measures whichever
-    directory happens to sort earliest, and the build tree is not clean by
-    construction: a stale object left by an earlier CMake configuration stays
-    under `root` forever, because nothing prunes it. That is not hypothetical -
-    a 5-byte link stub named WinMain shadowed the recovered 378-byte body this
-    way, and nothing caught it, because only exact rows are hash-checked and the
-    row was structurally-strong.
+    One name can legitimately have more than one body here. The vendored SGP
+    tree and the recovered first-party tree both define WinMain: SGP's is the
+    upstream body, Wizardry shipped a modified one, and only the second is what
+    the image contains. A stale object left by an earlier CMake configuration
+    adds claimants the same way, because nothing prunes the build tree.
+
+    So the name alone cannot choose. The reviewed row does, through the address
+    and size it states, which is what `resolve_boundary_function` matches on.
     """
 
-    functions: dict[str, CoffFunction] = {}
-    origins: dict[str, Path] = {}
-    qualified: set[str] = set()
-    ambiguous: set[str] = set()
+    functions: dict[str, list[CoffFunction]] = {}
     for obj in sorted(root.rglob("*.obj")):
         # CMake compiles its own probes -- compiler identification, the
         # /showIncludes check -- under CMakeFiles but outside any target
@@ -140,36 +137,48 @@ def collect_object_functions(root: Path) -> dict[str, CoffFunction]:
             # unit that contributed only data. Nothing to verify.
             continue
         for function in parsed:
-            candidates = symbol_candidates(function.name)
-            for index, name in enumerate(candidates):
-                seen = functions.get(name)
-                if seen is None and name not in ambiguous:
-                    functions[name] = function
-                    origins[name] = obj
-                    if index == 0:
-                        qualified.add(name)
-                    continue
-                if seen is None or bytes(seen.body) == bytes(function.body):
-                    continue
-                if index == 0 and name in qualified:
-                    # Both objects claim the most specific name this symbol has,
-                    # so there is no reading under which they are different
-                    # functions. One of them is stale.
-                    raise AmbiguousBoundarySymbol(
-                        f"{name} is claimed by two objects with different bodies:\n"
-                        f"  {origins[name]} ({len(seen.body)} bytes)\n"
-                        f"  {obj} ({len(function.body)} bytes)\n"
-                        "Remove the stale object, or exclude the link surface from "
-                        "the verified build tree."
-                    )
-                # A shortened alias two owners share -- two classes with a Read,
-                # say. Binding it to whichever sorted first would measure an
-                # arbitrary one, so it resolves to neither and a row that uses it
-                # reports as not-built.
-                ambiguous.add(name)
-                functions.pop(name, None)
-                origins.pop(name, None)
-    return functions
+            for name in symbol_candidates(function.name):
+                claimants = functions.setdefault(name, [])
+                if not any(bytes(seen.body) == bytes(function.body) for seen in claimants):
+                    claimants.append(function)
+    return {name: tuple(claimants) for name, claimants in functions.items()}
+
+
+def resolve_boundary_function(
+    claimants: tuple[CoffFunction, ...], size: int, canonical: bytes | None
+) -> CoffFunction | None:
+    """Pick the body a reviewed row of this size is claiming.
+
+    Matching the original outright settles it. Failing that -- which is the
+    normal case for a row that is not yet exact -- the reviewed size does, since
+    a row states the extent of the body it describes. A name whose claimants
+    cannot be told apart that way resolves to nothing rather than to an
+    arbitrary one, so the row reports as not-built instead of being measured
+    against a body that is not its own.
+    """
+
+    if not claimants:
+        return None
+    if len(claimants) == 1:
+        return claimants[0]
+    if canonical is not None:
+        matching = [f for f in claimants if matches_canonical(f, canonical)]
+        if len(matching) == 1:
+            return matching[0]
+    sized = [f for f in claimants if len(f.body) == size]
+    if len(sized) == 1:
+        return sized[0]
+    return None
+
+
+def collect_object_functions(root: Path) -> dict[str, CoffFunction]:
+    """Index by name, keeping only the names exactly one body claims."""
+
+    return {
+        name: claimants[0]
+        for name, claimants in collect_object_candidates(root).items()
+        if len(claimants) == 1
+    }
 
 
 def masked_digest(function: CoffFunction, size: int) -> str:
@@ -244,13 +253,16 @@ def diff_boundary(
     row = rows.get(symbol)
     if row is None:
         raise RuntimeError(f"{symbol} is not a reviewed boundary in {mapping_path}")
-    function = collect_object_functions(object_root).get(symbol)
+    address = int(row["address"], 16)
+    size = int(row["size"])
+    canonical_body = read_canonical_body(image, address, size)
+    function = resolve_boundary_function(
+        collect_object_candidates(object_root).get(symbol, ()), size, canonical_body
+    )
     if function is None:
         raise RuntimeError(f"{symbol} was not found in the objects under {object_root}")
 
-    address = int(row["address"], 16)
-    size = int(row["size"])
-    canonical = disassemble(read_canonical_body(image, address, size), address)
+    canonical = disassemble(canonical_body, address)
     ours = disassemble(
         function.body[:size] if len(function.body) > size else function.body, address
     )
@@ -409,18 +421,24 @@ def verify_boundaries(
     if not rows:
         raise RuntimeError(f"boundary map is empty: {mapping_path}")
 
-    functions = collect_object_functions(object_root)
+    claimants_by_name = collect_object_candidates(object_root)
     results: list[BoundaryResult] = []
     for row in rows:
         symbol = row["symbol"].strip()
         size = int(row["size"])
-        function = functions.get(symbol)
+        canonical = (
+            read_canonical_body(image, int(row["address"], 16), size)
+            if image is not None
+            else None
+        )
+        function = resolve_boundary_function(
+            claimants_by_name.get(symbol, ()), size, canonical
+        )
         if function is None:
             state = "not-built"
         else:
             recorded = row["relocation_masked_sha256"].strip()
-            if image is not None:
-                canonical = read_canonical_body(image, int(row["address"], 16), size)
+            if canonical is not None:
                 matched = matches_canonical(function, canonical)
             elif recorded:
                 matched = masked_digest(function, size) == recorded
