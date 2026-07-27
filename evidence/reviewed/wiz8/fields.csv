@@ -83,7 +83,7 @@ wiz8,W8Region,0x18,0x4,owner,pointer,exact,classes:wiz8:W8Region,0x004f2a10 stor
 wiz8,W8MonsterInfo,0x9f,0x4,value_9f,int32,exact,classes:wiz8:W8MonsterInfo,required to be zero by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x1e7,0x7,attribute_adjustments_1e7,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 reads the selected byte as signed before adding it to the unsigned database attribute
 wiz8,W8MonsterInfo,0x247,0x5,converted_attributes_247,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 stores the five converted attributes after clamping each result to 1 through 125
-wiz8,W8MonsterInfo,0x24e,0x1,flag_24e,bytes,exact,classes:wiz8:W8MonsterInfo,read and replaced by exact transition body 0x004e60b0
+wiz8,W8MonsterInfo,0x24e,0x1,incapacitated,uint8,exact,classes:wiz8:W8MonsterInfo,Conditions & Enchantments callers set this when the highest active condition is web or worse and clear it below that threshold through exact SetMonsterIncapacitated
 wiz8,W8MonsterInfo,0x253,0x1,flag_253,bytes,exact,classes:wiz8:W8MonsterInfo,set after the notification step by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x255,0x1,flag_255,bytes,exact,classes:wiz8:W8MonsterInfo,reset by exact consumers 0x004e5ea0 and 0x004e6020
 wiz8,W8MonsterInfo,0x2da,0x4,value_2da,int32,exact,classes:wiz8:W8MonsterInfo,required to be nonzero by exact 0x004e5c00; semantics remain unresolved

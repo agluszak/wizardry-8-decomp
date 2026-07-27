@@ -6,6 +6,7 @@ from pathlib import Path
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
 SCALAR_FIELD_SIZES = {
+    "uint8": 1,
     "int16": 2,
     "int32": 4,
     "uint16": 2,
@@ -129,6 +130,7 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             "int16",
             "int32",
             "pointer",
+            "uint8",
             "uint16",
             "uint32",
         }:

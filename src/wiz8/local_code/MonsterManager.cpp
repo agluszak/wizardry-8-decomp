@@ -108,7 +108,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     Function4C5B10(monster_info->monster, 0);
     monster_info->monster->member_18.flags_0c &= 0xdfffffff;
     Function4C6140(monster_info->monster);
-    if (monster_info->flag_24e == 0) {
+    if (monster_info->incapacitated == 0) {
         result = Function4C5B40(monster_info->monster, 6);
         if (result != 1 && result != 2 &&
             monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
@@ -118,12 +118,12 @@ void Function4E4600(W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x004E4690
-void Function4E4690(W8MonsterInfo* monster_info, int value)
+void KillMonster(W8MonsterInfo* monster_info, int display_message)
 {
-    if (monster_info->monster->Function4CA4C0() == 0) {
+    if (monster_info->monster->IsDying() == 0) {
         Function4E4DB0(monster_info, 0x15, 1);
         Function4E4280(monster_info);
-        Function4E46F0(monster_info, value);
+        Function4E46F0(monster_info, display_message);
         Function4E3AF0(
             MonsterGetIndexByLocationID(
                 0x31f,
@@ -449,7 +449,7 @@ void Function4E5C00(unsigned char value)
             Function5248D0(monster_info);
             if (value == 0) {
                 monster_info->flag_253 = 1;
-                if (monster_info->monster->Function4CA4C0() == 0) {
+                if (monster_info->monster->IsDying() == 0) {
                     Function4E4DB0(monster_info, 0x15, 1);
                     Function4E4280(monster_info);
                     Function4E46F0(monster_info, 1);
@@ -590,13 +590,13 @@ void Function4E6020(W8MonsterInfo* monster_info, int value)
 }
 
 // FUNCTION: WIZ8 0x004E60B0
-void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value)
+void SetMonsterIncapacitated(W8MonsterInfo* monster_info, unsigned char incapacitated)
 {
-    unsigned char previous = monster_info->flag_24e;
+    unsigned char previous = monster_info->incapacitated;
     W8Monster* monster = monster_info->monster;
 
-    monster_info->flag_24e = value;
-    if (value == 0) {
+    monster_info->incapacitated = incapacitated;
+    if (incapacitated == 0) {
         if (previous != 0) {
             Function4C5A00(monster, 1);
             if (monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
@@ -654,14 +654,14 @@ unsigned int GetMonsterCombatValue(const W8MonsterRecord* record)
 }
 
 // FUNCTION: WIZ8 0x004E68C0
-unsigned char Function4E68C0(void)
+unsigned char AnyMonsterDying(void)
 {
     unsigned int index;
     W8MonsterInfo* monster_info;
 
     for (index = 0; index < PListGetCount(g_monster_list); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        if (monster_info != 0 && monster_info->monster->Function4CA4C0() != 0) {
+        if (monster_info != 0 && monster_info->monster->IsDying() != 0) {
             return 1;
         }
     }

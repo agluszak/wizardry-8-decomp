@@ -610,7 +610,7 @@ struct W8Monster {
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
-    unsigned char Function4CA4C0();
+    unsigned char IsDying();
     int Function4C6A50();
     void Function4C6990(int value);
 };
@@ -639,7 +639,7 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_1ee[0x59];
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
     unsigned char unknown_24c[2];
-    unsigned char flag_24e;                 /* 0x24e: state transition gate in 0x004e60b0 */
+    unsigned char incapacitated;            /* 0x24e: web-or-worse condition gate */
     unsigned char unknown_24f[4];
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
@@ -662,7 +662,7 @@ extern int g_monster_info_iterator_index;  /* 0x00683698, retained cursor */
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 void Function4E4600(W8MonsterInfo* monster_info);
-void Function4E4690(W8MonsterInfo* monster_info, int value);
+void KillMonster(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(
     int caller_line,
@@ -686,10 +686,10 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void Function4E5EA0(void);
 void Function4E6020(W8MonsterInfo* monster_info, int value);
-void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value);
+void SetMonsterIncapacitated(W8MonsterInfo* monster_info, unsigned char incapacitated);
 void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
-unsigned char Function4E68C0(void);
+unsigned char AnyMonsterDying(void);
 
 unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);

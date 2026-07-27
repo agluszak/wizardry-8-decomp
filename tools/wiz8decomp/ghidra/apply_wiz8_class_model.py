@@ -31,6 +31,7 @@ def apply_reviewed_class_model(
         IntegerDataType,
         PointerDataType,
         ShortDataType,
+        UnsignedCharDataType,
         UnsignedIntegerDataType,
         UnsignedShortDataType,
     )
@@ -77,6 +78,8 @@ def apply_reviewed_class_model(
                         data_type = UnsignedIntegerDataType.dataType
                     elif field.data_type == "uint16":
                         data_type = UnsignedShortDataType.dataType
+                    elif field.data_type == "uint8":
+                        data_type = UnsignedCharDataType.dataType
                     else:
                         data_type = ArrayDataType(byte, field.size, 1)
                     fields_by_class.setdefault(field.class_name, []).append(
