@@ -193,6 +193,15 @@ The general lesson: when a body is the right size and instruction count but one 
 the wrong place, stop looking for a different algorithm and start looking for a different *source
 shape* expressing the same algorithm.
 
+**But know when to stop.** The shared dialog base's constructor is the counter-example: the same
+six-before/four-after split does move its vtable store to the canonical position, and it costs more
+than it buys, because VC6 then materializes the zero constant into EAX at first use where the
+original holds it in ECX from the top of the function. Which register a constant lives in, and how
+early, is not something source shape directs — this repository already records that residual for
+`Function4E3340` and `Function54B560`. The arrangement that keeps all nineteen instructions and
+both constants correct is the one to keep, recorded as `structurally-strong` with the residual
+written out, rather than a worse arrangement that happens to fix one instruction.
+
 ## 6. Worked result
 
 `W8Dialog005A80A0`, vtable `0x005EEF6C`, `0xa0` bytes over a `0x98` unnamed base, 15 slots:
