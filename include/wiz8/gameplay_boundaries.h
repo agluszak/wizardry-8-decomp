@@ -263,21 +263,30 @@ typedef struct W8MonsterRecord {
     W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
     unsigned char unknown_0de[0xa3];
     unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
-    unsigned char unknown_185[4];
+    unsigned char unknown_185[2];
+    short record_id_187;                  /* 0x187: equals the zero-based database index */
     char cycle_name_189[0x31];             /* 0x189: GrCycle lookup key */
     float float_1ba;                      /* 0x1ba: scaled by 0x005ed4f0 */
     unsigned char unknown_1be[0x95];
     int value_253;                        /* 0x253: selected by 0x004e5b50 */
     int value_257;                        /* 0x257: alternate selected value */
-    unsigned char unknown_25b[0xc];
-    /* 0x267, already carried by config/types/wiz8/gameplay_databases.h as the
-       canonical applied type; carved out here because LoadMonsterGroup skips
-       every live-group step for a record that has it set. */
+    int hostility_range_25b;              /* 0x25b: unaligned; positive is a proximity threshold */
+    int faction_id_25f;                   /* 0x25f: W8Faction value, domain 0..20 */
+    unsigned char unknown_263[4];
+    /* Carved out because LoadMonsterGroup skips every live-group step for a
+       record that has it set. */
     unsigned char deleted;                /* 0x267 */
-    unsigned char unknown_268[3];
+    unsigned char unknown_268[2];
+    unsigned char flag_26a;               /* 0x26a: selects an alternate group configuration */
     unsigned int combat_value_override_26b; /* 0x26b: nonzero override */
     unsigned char unknown_26f[0x28];
 } W8MonsterRecord;                       /* 0x297 */
+
+/* The record is reached by seeking to 4 + index * 0x297, so its size is part of
+   the on-disk format rather than an incidental layout. Asserting it here is what
+   makes a field edit that silently repacks the struct fail to compile. */
+typedef char W8MonsterRecord_size_must_be_0x297[
+    sizeof(W8MonsterRecord) == 0x297 ? 1 : -1];
 
 /* Filled by 0x0042A370 from a level-table row; only its size is established
    here, by the 0x458-byte stack frame of its sole recovered caller. */
