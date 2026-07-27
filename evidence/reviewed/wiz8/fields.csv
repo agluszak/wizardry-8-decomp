@@ -126,3 +126,11 @@ wiz8,W8MonsterGroup,0x4,0x4,member_count,int32,,strong,classes:wiz8:W8MonsterGro
 wiz8,W8MonsterGroup,0x8,0x4,monsters,pointer,,exact,classes:wiz8:W8MonsterGroup,group member location IDs are enumerated through the reviewed IList API
 wiz8,W8MonsterGroup,0x14,0x4,active_member_count,int32,,strong,classes:wiz8:W8MonsterGroup,RecountActiveMonsterGroupMembers replaces this value when the condition and control-state filtered count changes
 wiz8,W8MonsterGroup,0x18,0x4,monster_id,int32,,strong,classes:wiz8:W8MonsterGroup,FindFirstMonsterByID and FindNextExistingMonsterByID compare this field with the requested monster ID
+wiz8,W8World,0x8,0x4,plsProps,pointer,W8PList,exact,classes:wiz8:W8World,named and typed by the 3d.cpp:344 assertion and byte-proven at 0x08 by WorldUpdateProps
+wiz8,W8World,0x48,0x4,psrMeshes,pointer,,strong,classes:wiz8:W8World,named by the 3dapi.cpp:446 assertion; placed by the asserting body but unproven while no ported consumer exists
+wiz8,W8World,0xc4,0x4,monster_generators,pointer,,strong,classes:wiz8:W8World,growable vector of W8MonsterGenerator pointers read by the structurally-strong FindMonGenByName
+wiz8,W8TargetSource,0x0,0x4,iType,int32,,exact,classes:wiz8:W8TargetSource,1 character 2 monster 3 either; proven by TargetSourceIsCharacter and TargetSourceIsMonster
+wiz8,W8TargetSource,0x4,0x4,iChar,int32,,exact,classes:wiz8:W8TargetSource,compared against BAD_INDEX -1 by the byte-proven pair
+wiz8,W8TargetSource,0x8,0x4,iMonsterID,int32,,exact,classes:wiz8:W8TargetSource,compared against BAD_INDEX -1 by the byte-proven pair
+wiz8,W8TargetSource,0x1b,0x1,fReflection,uint8,,exact,classes:wiz8:W8TargetSource,short-circuit || test order proves this flag sits below fBackfire
+wiz8,W8TargetSource,0x1c,0x1,fBackfire,uint8,,exact,classes:wiz8:W8TargetSource,"tested first in the emitted bodies, which is what assigns the 0x1c offset"

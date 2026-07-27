@@ -404,6 +404,12 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     assert "0x10006" in by_name["stLight"]["evidence"]
     assert by_name["VirtualFileBinIStream"]["layout_proof"].startswith("0047d5c0")
     assert not by_name["MonsterLight"]["layout_proof"]
+    # The identified copy constructor is in its column, not only in prose.
+    assert by_name["MonsterLight"]["constructor"] == "0049d660"
+    # The two classes that motivated the layout_proof column carry their rows.
+    assert by_name["W8World"]["layout_proof"].startswith("0046ded0")
+    assert "plsProps at 0x08 only" in by_name["W8World"]["layout_proof"]
+    assert by_name["W8TargetSource"]["layout_proof"].startswith("0053bea0")
     for name in ("VirtualFileBinIStream", "MonsterLight"):
         assert by_name[name]["source_path"] == ""
         assert by_name[name]["base_classes"]

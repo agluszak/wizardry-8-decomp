@@ -325,14 +325,16 @@ typedef struct W8PList {
 
 /* Member names and types at 0x08 and 0x48 come from the canonical assertion
    expressions "pWorld && pWorld->plsProps" (Engine Code\3d.cpp:344) and
-   "pWorld->psrMeshes" (Engine Code\3dapi.cpp:446); the offsets come from the
-   asserting bodies. The pls/psr prefixes are the original's own Hungarian
-   coding for a PList and a SurRender object. */
+   "pWorld->psrMeshes" (Engine Code\3dapi.cpp:446). The pls/psr prefixes are
+   the original's own Hungarian coding for a PList and a SurRender object.
+   The two offsets do not carry the same weight: plsProps is byte-proven by
+   WorldUpdateProps (0x0046DED0), while psrMeshes is only placed by a reading
+   of its asserting body and has no ported consumer yet. */
 typedef struct W8World {
     unsigned char unknown_000[8];
-    W8PList* plsProps;                    /* 0x008: PList of props */
+    W8PList* plsProps;                    /* 0x008: PList of props; byte-proven */
     unsigned char unknown_00c[0x3c];
-    void** psrMeshes;                     /* 0x048: allocated array of mesh pointers */
+    void** psrMeshes;                     /* 0x048: mesh pointer array; UNPROVEN placement */
     unsigned char unknown_04c[0x78];
     W8PtrVector* monster_generators;      /* 0xc4: elements are W8MonsterGenerator* */
 } W8World;

@@ -324,7 +324,8 @@ SurRender reads assets through it without knowing archives exist.
 
 `0x0049D660` is a copy constructor for a `0x250`-byte class derived from `srLight`. It calls the
 `srLight` base constructor, installs local vtables `0x005ECD18` (13 slots) at `+0` and `0x005ECD0C`
-(16 slots) at `+0x138`, deep-copies state through offset `0x249`, and reinstalls the imported
+(3 slots, per the corrected boundary discipline in `vtables.csv`) at `+0x138`, deep-copies state
+through offset `0x249`, and reinstalls the imported
 `srLight` base vftables. The `0x249` high-water mark and the `0x250` allocation agree.
 
 Its only caller is inside `Monster`'s copy constructor at `0x004BEBD0`, copying `Monster+0x624` —
