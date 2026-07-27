@@ -569,6 +569,20 @@ def globals_command(
     _run_action(lambda: sweep_globals(_settings(), update_snapshot=update_snapshot))
 
 
+@app.command("function-census")
+def function_census_command(
+    update_snapshot: bool = typer.Option(
+        False,
+        "--update-snapshot",
+        help="Replace the tracked proprietary-input snapshot after a complete sweep.",
+    ),
+) -> None:
+    """Enumerate candidate function starts and the static call graph."""
+    from .function_census import sweep_function_census
+
+    _run_action(lambda: sweep_function_census(_settings(), update_snapshot=update_snapshot))
+
+
 @sgp_app.command("sweep")
 def sgp_sweep(
     unit: list[str] | None = typer.Option(

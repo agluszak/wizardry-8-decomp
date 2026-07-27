@@ -17,7 +17,7 @@ report those.
 
 ## Producing and refreshing
 
-Five producers write the snapshots under `evidence/snapshots/`:
+Six producers write the snapshots under `evidence/snapshots/`:
 
 ```sh
 uv run wiz8 eh-metadata          # exception tables
@@ -25,6 +25,7 @@ uv run wiz8 surrender-abi        # SurRender export ABI
 uv run wiz8 call-sites           # srAssertFail / srRuntimeClass::setName literals
 uv run wiz8 polymorphism         # vtables, slots, constructor vptr writes
 uv run wiz8 globals              # global variables and their references
+uv run wiz8 function-census      # candidate function starts and the call graph
 ```
 
 Run bare, each one regenerates its report under `build/reports/` and **fails if the result differs
@@ -167,6 +168,34 @@ the game's, and their reference counts measure calls to a library function.
 The per-reference list is a generated report under `build/`, not a tracked artifact: it is an order
 of magnitude larger than the per-global table and is derived from the same run.
 
+### Function candidates and the call graph - `evidence/snapshots/functions/`
+
+Every other channel keys on a function start, and until this one nothing enumerated them. Four
+independent things attest a start and they fail differently, so the census records which agree
+rather than merging them: an exception record (read through the handler thunk, the only exact
+source), a direct `call`, a code address stored in data, and the byte after inter-function padding -
+much the noisiest, because alignment padding also appears inside functions and after data.
+
+Byte scanning proposes; the disassembler disposes. A candidate must be an instruction boundary in
+the resynchronising linear decode, which is what rejects an address that is really data. The call
+graph is built from *decoded* `call` instructions rather than a byte search for `0xE8`: a byte
+search is fine for proposing a target, since each is validated afterwards, but it invents edges from
+an `0xE8` inside an immediate, and nothing downstream would catch that.
+
+A recognised prologue is recorded and deliberately **not** required. Measured against the vtable
+slots the polymorphism census already proves are entry points, the prologue shapes cover about two
+thirds - a leaf opening with `mov eax, [esp+4]`, or a body opening with `mov eax, fs:[0]`, has no
+frame to set up - so gating on one would reject a third of the real functions.
+
+`verdict` is `exact` for an exception record; `strong` when a call or data reference lands on an
+instruction boundary; `padding-only` when nothing but padding attests it, which is kept visible but
+never accepted; `decode-disagrees` when something genuinely refers to the address but the sweep did
+not land on it, which flags a sweep that stayed out of phase rather than filing real evidence under
+"rejected"; and `rejected` otherwise.
+
+These are candidates, not identities. Promoting one is a reviewed decision belonging in
+`evidence/reviewed/wiz8/functions.csv`, and regenerating the snapshot cannot touch it.
+
 ## Using it
 
 Each recipe below is a join between snapshots. Addresses are canonical-build examples; the join
@@ -241,6 +270,15 @@ once on each side, and resolve the function containing each row's `frame_setup`:
 
 These are *candidates*. They belong in `evidence/reviewed/cross-build/mappings.csv` only after
 review, like any other candidate.
+
+### Which functions does this one call, and who calls it?
+
+`functions/calls.csv` is the deduplicated call graph, one row per `(caller, callee)` with the number
+of sites. `caller` is the accepted function containing the call site, so an edge is only as sound as
+the boundary beneath it - which is why the census emits candidates and edges together rather than
+either alone. Joining callees against the unit attribution above suggests an owning unit for
+functions that carry no assertion of their own, but a callee reached from one unit is weaker
+evidence than a function whose own assertion names it, and belongs at a lower confidence.
 
 ### What does this SurRender call expect?
 
