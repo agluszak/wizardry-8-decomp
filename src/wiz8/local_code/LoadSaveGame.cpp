@@ -3,6 +3,11 @@
 #include "wiz8/save_game.h"
 #include "wiz8/virtual_file.h"
 
+/* GETFILESTRUCT is library layout and comes from the vendored SGP header rather
+   than being restated: the 0x44-dword clear the body below opens with is exactly
+   its 272 bytes. */
+#include "FileMan.h"
+
 #include <windows.h>
 
 #include <errno.h>
@@ -436,4 +441,33 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         item = (W8WorldItem*)malloc(sizeof(W8WorldItem));
     }
     return 0;
+}
+
+/* Reports whether any save exists other than the autosave. The main menu stores
+   this and greys its second item out when it is clear, which is what makes the
+   continue entry unavailable on a fresh install. */
+// FUNCTION: WIZ8 0x00512FB0
+unsigned char SaveGameExists(void)
+{
+    GETFILESTRUCT find;
+    char path[260];
+    unsigned char found;
+
+    found = 1;
+    memset(&find, 0, sizeof(find));
+    sprintf(path, "%s\\%s", "Saves", "*.*");
+    if (GetFileFirst(path, &find)) {
+        sprintf(path, "%s%s", "Saves", find.zFileName);
+        if (strcmp(path, "Saves\\CurrentGame.SAV") != 0) {
+            goto done;
+        }
+        if (GetFileNext(&find)) {
+            goto done;
+        }
+    }
+    found = 0;
+
+done:
+    GetFileClose(&find);
+    return found;
 }

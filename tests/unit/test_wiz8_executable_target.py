@@ -16,7 +16,20 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
     assert "ddraw.lib" in cmake
     assert "gdi32.lib" in cmake
     assert "user32.lib" in cmake
-    assert "target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE include)" in cmake
+    # The matching target sees the recovered headers and the vendored SGP tree,
+    # and nothing else. SGP is on the path because its structures are library
+    # layout that the evidence policy says to take from the real header rather
+    # than restate - GETFILESTRUCT, which LoadSaveGame.cpp walks the save
+    # directory through, is the first that mattered. The overlay supplies the
+    # empty builddefines.h that tree expects.
+    include_block = re.search(
+        r"target_include_directories\(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE(.*?)\)",
+        cmake,
+        re.DOTALL,
+    )
+    assert include_block is not None
+    includes = include_block.group(1).split()
+    assert includes == ["include", "config/sgp-overlays/common", '"${SGP_SOURCE}"']
     assert "target_include_directories(WIZ8_BRINGUP PRIVATE include)" in cmake
     assert not list((repository / "src/wiz8").glob("*.h"))
 

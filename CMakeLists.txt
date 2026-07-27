@@ -256,6 +256,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/Controls.cpp
         src/wiz8/gameplay_boundaries.cpp
         src/wiz8/local_code/Factions.cpp
+        src/wiz8/local_code/LoadSaveGame.cpp
         src/wiz8/local_code/Magic.cpp
         src/wiz8/local_code/VideoObjectManager.cpp
         "src/wiz8/local_screens/MainMenuScreen.cpp"
@@ -304,7 +305,14 @@ if(WIZ8_BUILD_DECOMP)
     )
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
-    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE include)
+    # The vendored SGP headers are on the path so recovered bodies that call
+    # into SGP declare its types from the real header rather than restating
+    # them. GETFILESTRUCT is the first: LoadSaveGame.cpp walks the save
+    # directory through GetFileFirst.
+    target_include_directories(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE
+        include
+        config/sgp-overlays/common
+        "${SGP_SOURCE}")
 
     # Matching source stays free of synthetic implementations. This umbrella
     # preserves the old object-target name while giving the executable work a
