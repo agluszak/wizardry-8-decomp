@@ -170,6 +170,12 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   have - port the class whose teardown has nothing to unwind first.
 - **A null check before `operator delete` means the source said `delete p`**, not
   `::operator delete(p)`; the operator form does not null-check.
+- **Each `delete` in a destructor names its member's type shape**: through vtable slot 0 with
+  `push 1` is a virtual destructor; a direct destructor call then `operator delete` is a
+  non-virtual one; a null check then a bare `operator delete` is a *declared but empty* destructor;
+  and a bare `operator delete` with no check is something trivially destructible. The last two
+  differ by one instruction, so a destructor that is a few bytes short is often just a member typed
+  as `unsigned char*` that should be a class with an empty destructor.
 - Identical slot counts and identical allocation hints do **not** make two classes twins. Twins
   have identical *bodies* - check the write sites before planning to get two recoveries for one
   review.

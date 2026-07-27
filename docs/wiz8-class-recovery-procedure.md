@@ -273,6 +273,22 @@ Related: a **null check before `operator delete`** means the source wrote `delet
 `::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
 to tell them apart.
 
+**Each `delete` names the shape of what it destroys**, which makes a destructor that releases
+several members the densest layout evidence available. Three forms to read apart, all present in
+`W8Prop005EC1E0::~W8Prop005EC1E0`:
+
+| Emitted | What the member points at |
+| --- | --- |
+| null check, load vtable, `push 1`, call slot 0 | a class with a **virtual** destructor |
+| destructor called directly, then `operator delete` | a class with a **non-virtual** destructor |
+| null check, then a bare `operator delete` | a class with a **declared but empty** destructor |
+| bare `operator delete`, no check | something **trivially destructible** — `unsigned char*` and friends |
+
+The last two are one instruction apart and easy to conflate. That port sat at 137 bytes against 141
+until the `+0x20` member changed from `unsigned char*` to a class with an empty declared
+destructor: a trivially destructible pointer lets VC6 drop the null check, while a declared
+destructor keeps it and then inlines to nothing.
+
 The constraint cuts the other way too, and that is how it earns its keep. `W8Control005ED654`'s
 constructor first came out 122 bytes against 85, entirely because its base had a declared
 destructor and the embedded vector's `operator new` can throw after the base is built. Making the
