@@ -631,6 +631,12 @@ struct W8Monster {
     unsigned char unknown_000[0x18];
     W8MonsterMember18 member_18;            /* 0x018: positional member proven by 0x004e4600 */
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
+    /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
+       the array above. Nothing proves they are the same type, so they stay
+       opaque rather than borrowing its name. */
+    unsigned char subobject_array_25c[0x1b0];   /* 0x25c */
+    unsigned char subobject_array_40c[0x1b0];   /* 0x40c */
+    unsigned char tail_fields_5bc[0x6c];        /* 0x5bc: fields seen through 0x624 */
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
     unsigned char IsDying();
@@ -639,6 +645,13 @@ struct W8Monster {
     int Function4C6A50();
     void Function4C6990(int value);
 };
+
+/* The constructor at 0x004BEA20 initialises through 0x624 and its sole caller
+   allocates this much, so the extent is proven even though most of it is not.
+   Asserting it here is what stops a field edit from silently shortening the
+   object. */
+typedef char W8Monster_size_must_be_0x628[
+    sizeof(W8Monster) == 0x628 ? 1 : -1];
 
 typedef char W8MonsterCycle_size_must_be_0x10[
     sizeof(W8MonsterCycle) == 0x10 ? 1 : -1];
