@@ -3,6 +3,7 @@ from wiz8decomp.ghidra.candidate_model import (
     derive_skeletons,
     derived_families,
     push_before_allocator,
+    teardown_writers,
 )
 
 
@@ -155,3 +156,53 @@ def test_derived_families_ignores_a_table_with_more_than_one_slot() -> None:
         {"site": "0042a298", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb4"},
     ]
     assert derived_families(writes, {0x005EBFB8: 1, 0x005EBFB4: 6}) == []
+
+
+def test_derived_families_inverts_the_pair_for_a_destructor_writer() -> None:
+    """A destructor stores its own table first and the base's last.
+
+    Reading one as a constructor inverts the hierarchy, so a body known to be a
+    teardown body has to be ordered the other way round. 0x00443750 is the real
+    case: it stores 0x005EC158, releases a member, then stores 0x005EC138, so
+    0x005EC158 is the derived class and not the base.
+    """
+
+    writes = [
+        {"site": "00443756", "function_start": "00443750", "object_offset": "0x0", "vtable": "005ec158"},
+        {"site": "0044376a", "function_start": "00443750", "object_offset": "0x0", "vtable": "005ec138"},
+    ]
+    slot_counts = {0x005EC158: 1, 0x005EC138: 1}
+
+    as_constructor = derived_families(writes, slot_counts)[0]
+    assert as_constructor["writer_role"] == "constructor"
+    assert as_constructor["base_vtable"] == 0x005EC158
+
+    as_destructor = derived_families(writes, slot_counts, destructor_writers={0x00443750})[0]
+    assert as_destructor["writer_role"] == "destructor"
+    assert as_destructor["base_vtable"] == 0x005EC138
+    assert as_destructor["derived_vtable"] == 0x005EC158
+
+
+def test_teardown_writers_is_relative_to_the_table_being_written() -> None:
+    """A constructor called from some unrelated teardown path is not a destructor.
+
+    0x004A5C30 constructs its class and is byte-exact as a constructor, but a
+    deleting destructor elsewhere calls it. A global "called by any deleting
+    destructor" test labels it a teardown body and inverts its hierarchy.
+    """
+
+    writes = [
+        # The real teardown body: reached from its own table's slot 0.
+        {"site": "00443756", "function_start": "00443750", "object_offset": "0x0", "vtable": "005ec158"},
+        # A constructor, called by a deleting destructor of some other class.
+        {"site": "004a5c36", "function_start": "004a5c30", "object_offset": "0x0", "vtable": "005ece64"},
+    ]
+    slots = [
+        {"vtable": "005ec158", "slot_index": "0", "target": "00443730"},
+        {"vtable": "005ece64", "slot_index": "0", "target": "004a5cf0"},
+    ]
+    calls = [
+        {"caller": "00443730", "callee": "00443750"},
+        {"caller": "004a2d80", "callee": "004a5c30"},
+    ]
+    assert teardown_writers(writes, slots, calls) == {0x00443750}

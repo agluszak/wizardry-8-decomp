@@ -273,6 +273,22 @@ Related: a **null check before `operator delete`** means the source wrote `delet
 `::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
 to tell them apart.
 
+**Which of a pair is the base depends on what the writer is.** A constructor runs base-first, so
+the table it stores *last* is the derived class. A destructor runs the other way - it stores its own
+table, runs its own body, and only then does the base destructor store the base table - so there the
+*first* store is the derived class. Reading a teardown body as a constructor inverts the hierarchy,
+and the inversion is silent. `families.csv` carries a `writer_role` column for this.
+
+The test for a teardown body has to be relative to the table being written: the writer either *is*
+that table's slot-0 target, or is called by it. "Called by some deleting destructor anywhere" is far
+too loose - it catches ordinary constructors reached from an unrelated teardown path, and three
+already-recovered families were briefly mislabelled that way.
+
+Note also when a pair survives destruction at all. Usually it does not: with nothing between the two
+stores the first is dead and VC6 drops it, which is the whole reason an empty derived destructor
+stores only the base table. A destructor-written pair means the derived body does something between
+them - releasing a member, typically - so seeing one at all tells you the derived class has state.
+
 **Let the family ranking pick the target where it can.** `just wiz8 report class-candidates`
 emits `families.csv` beside `candidates.csv`: every pair of one-slot tables one writer installs at
 offset zero, ordered by that writer's size. The order is the point - it separates a dedicated

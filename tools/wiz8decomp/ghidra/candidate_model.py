@@ -281,22 +281,67 @@ def push_before_allocator(
     return best
 
 
+def teardown_writers(
+    writes: list[dict[str, str]],
+    slots: list[dict[str, str]],
+    calls: list[dict[str, str]],
+) -> set[int]:
+    """Writers that install a table during destruction rather than construction.
+
+    The test has to be relative to the table being written, not global. A body
+    is a teardown body for a table when it *is* that table's slot-0 target, or
+    when that slot-0 target calls it - the deleting destructor and the complete
+    destructor it delegates to. Asking only "is this called by some deleting
+    destructor anywhere" is far too loose: it catches ordinary constructors that
+    happen to be called from an unrelated teardown path, and mislabelling a
+    constructor inverts the hierarchy that ``derived_families`` reports.
+    """
+
+    slot0: dict[int, int] = {}
+    for row in slots:
+        if row["slot_index"] == "0" and row["target"]:
+            slot0[int(row["vtable"], 16)] = int(row["target"], 16)
+
+    callees: dict[int, set[int]] = defaultdict(set)
+    for row in calls:
+        callees[int(row["caller"], 16)].add(int(row["callee"], 16))
+
+    teardown: set[int] = set()
+    for row in writes:
+        if not row.get("function_start"):
+            continue
+        writer = int(row["function_start"], 16)
+        deleting = slot0.get(int(row["vtable"], 16))
+        if deleting is not None and (writer == deleting or writer in callees.get(deleting, ())):
+            teardown.add(writer)
+    return teardown
+
+
 def derived_families(
     writes: list[dict[str, str]],
     slot_counts: dict[int, int],
     function_sizes: dict[int, int] | None = None,
+    destructor_writers: set[int] | None = None,
 ) -> list[dict[str, Any]]:
-    """Pairs of one-slot tables one writer installs at offset zero, in order.
+    """Pairs of one-slot tables one writer installs at offset zero.
 
-    Two such tables in a single body are a base and a class derived from it,
-    stored in construction order - so the table written at the *higher* site
-    address is the derived class. This is the only place the derivation shows:
-    an empty derived destructor stores the base table rather than its own,
-    because its store is dead against the inlined base destructor and VC6 drops
-    it, so a hierarchy counted from destructors undercounts it.
+    Two such tables in a single body are a base and a class derived from it, and
+    which is which depends on what the body is. A constructor runs base-first,
+    so the table stored *last* is the derived class. A destructor runs the other
+    way: it stores its own table, runs its own body, and only then does the base
+    destructor store the base table - so there the *first* store is the derived
+    class. Reading a destructor as a constructor inverts the hierarchy, which is
+    why ``destructor_writers`` is worth supplying: the slot-0 targets and the
+    complete destructors they call.
+
+    Most derived destructors never show the pair at all. With nothing between
+    the two stores the first is dead and VC6 drops it, which is why an empty
+    derived destructor stores only the base table. A pair survives teardown
+    exactly when the derived body does something between them - releasing a
+    member, typically - and that is the shape this ordering rule exists for.
 
     The ranking matters more than the pairing. A writer that installs two tables
-    and little else is a dedicated constructor and ports in one sitting; a
+    and little else is a dedicated lifecycle body and ports in one sitting; a
     thousand-byte body that happens to build two vectors on its way through is a
     heap builder, and the pair is then a fact about its locals rather than a
     class waiting to be recovered. ``writer_size`` carries that distinction and
@@ -304,6 +349,7 @@ def derived_families(
     """
 
     sizes = function_sizes or {}
+    destructors = destructor_writers or set()
     by_writer: dict[int, list[tuple[int, int]]] = defaultdict(list)
     for row in writes:
         if row.get("object_offset") not in ("0x0", "0"):
@@ -320,11 +366,14 @@ def derived_families(
         tables = list(dict.fromkeys(vtable for _, vtable in sorted(entries)))
         if len(tables) != 2:
             continue
+        teardown = writer in destructors
+        base, derived = (tables[1], tables[0]) if teardown else (tables[0], tables[1])
         families.append(
             {
                 "writer": writer,
-                "base_vtable": tables[0],
-                "derived_vtable": tables[1],
+                "writer_role": "destructor" if teardown else "constructor",
+                "base_vtable": base,
+                "derived_vtable": derived,
                 "writer_size": sizes.get(writer),
             }
         )

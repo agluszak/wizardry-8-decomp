@@ -40,6 +40,7 @@ from ..ghidra.candidate_model import (
     classify_candidates,
     derive_skeletons,
     derived_families,
+    teardown_writers,
 )
 from ..paths import atomic_json, atomic_write
 
@@ -284,6 +285,18 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
     atomic_write(report_dir / "candidates.csv", stream.getvalue())
 
     reviewed_addresses = {item["vtable"] for item in candidates if item["reviewed"]}
+    # A teardown body stores its own table before the base's, the reverse of a
+    # constructor, so its pair has to be ordered the other way round.
+    program_writes = [row for row in _read(snapshots / "vptr-writes.csv") if row["program"] == program]
+    destructor_writers = teardown_writers(
+        program_writes,
+        [row for row in _read(snapshots / "slots.csv") if row["program"] == program],
+        [
+            row
+            for row in _read(settings.repo_dir / "evidence" / "snapshots" / "functions" / "calls.csv")
+            if row["program"] == program
+        ],
+    )
     sizes = {
         int(row["address"], 16): int(row["size"])
         for row in _read(settings.repo_dir / "evidence" / "snapshots" / "functions" / "candidates.csv")
@@ -294,6 +307,7 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
             "program": program,
             "writer": f"{family['writer']:08x}",
             "writer_size": str(family["writer_size"]) if family["writer_size"] else "",
+            "writer_role": family["writer_role"],
             "base_vtable": f"{family['base_vtable']:08x}",
             "derived_vtable": f"{family['derived_vtable']:08x}",
             "reviewed_class": (
@@ -304,7 +318,7 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
             ),
         }
         for family in derived_families(
-            _read(snapshots / "vptr-writes.csv"), slot_counts, sizes
+            program_writes, slot_counts, sizes, destructor_writers
         )
     ]
     if family_rows:
