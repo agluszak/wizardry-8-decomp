@@ -22,8 +22,12 @@
 extern "C" {
 
 typedef struct W8DisplayNode {
-    short id;                       /* 0x00: matched against the word at 0x006E4100 */
-    unsigned char byte_02;          /* 0x02: 0xff in the template */
+    /* 0x00: the insert widens this with a zero extension before comparing it
+       against the identifier counter, so it is unsigned. */
+    unsigned short id;
+    /* 0x02: the insert orders the list on this, descending, with a signed
+       comparison. The template's -1 therefore sorts last. */
+    signed char sort_key;
     unsigned char pad_03;
     /* 0x04: the reset writes all four bytes at once while every test reads
        only the low one, so the member is wider than the flags it carries.
@@ -57,8 +61,9 @@ typedef struct W8DisplayNode {
     struct W8DisplayNode* prev;     /* 0x48: 0x0040B830 unlinks through both directions */
 } W8DisplayNode;                    /* 0x4c */
 
-extern void Function40B720(W8DisplayNode* node);
 
+
+void Function40B830(W8DisplayNode* node);
 extern void HideRegionHelp(void);
 
 /* The buffer is not released with a direct call to free: the body loads a
@@ -72,7 +77,7 @@ extern W8DisplayNode* g_display_ptr_650e98;
 extern W8DisplayNode* g_display_ptr_650e9c;
 extern unsigned char g_display_flag_650ea0;
 extern unsigned char g_display_flag_650e90;
-extern short g_display_id_6e4100;
+extern unsigned short g_display_id_6e4100;
 
 extern int g_dword_650e78;
 extern int g_dword_650e7c;
@@ -84,6 +89,108 @@ extern unsigned char g_byte_650e88;
 extern unsigned char g_byte_650e89;
 extern unsigned char g_byte_650e8a;
 extern W8DisplayNode* g_display_ptr_650e8c;
+
+/*
+ * Inserts a node into the display list, ordered on the key at +0x02 with
+ * higher keys first, after giving it an identifier from the counter at
+ * 0x00650E7C.
+ *
+ * The identifier search is only entered once that counter would pass
+ * 0x0FFFFFFF, or once the flag at 0x00650E78 records that it already has. In
+ * that branch the original does not advance its scan pointer: it reads the
+ * list head into a register before the loop and compares that one node's id on
+ * every iteration, so the search only terminates if the head happens to carry
+ * the identifier being tried. This is reproduced rather than repaired. It is
+ * what the shipped code does, it is unreachable until the counter wraps, and
+ * silently inserting the advance would make the body describe a program that
+ * was never built.
+ *
+ * The identifier written into the node is the counter's value from before the
+ * increment, so the search updates the global and never the node.
+ */
+// FUNCTION: WIZ8 0x0040B720
+void Function40B720(W8DisplayNode* node)
+{
+    W8DisplayNode* scan;
+    W8DisplayNode* cursor;
+    int assigned;
+    int candidate;
+    int found;
+
+    if (node->next != 0 || node->prev != 0) {
+        Function40B830(node);
+    }
+    assigned = g_dword_650e7c;
+    candidate = 1;
+    g_dword_650e7c = assigned + 1;
+    if (g_dword_650e7c >= 0xfffffff || g_dword_650e78 != 0) {
+        scan = g_display_head_650e94;
+        g_dword_650e78 = 1;
+        for (;;) {
+            found = 0;
+            if (scan == 0) {
+                break;
+            }
+            while (!found) {
+                if (scan->id == candidate) {
+                    found = 1;
+                }
+            }
+            if (candidate >= 0xfffffff) {
+                if (found) {
+                    candidate = 0xfffffff;
+                }
+                break;
+            }
+            candidate = candidate + 1;
+        }
+        g_dword_650e7c = candidate;
+    }
+    node->id = (short)assigned;
+    node->next = 0;
+    node->prev = 0;
+
+    cursor = g_display_head_650e94;
+    if (cursor != 0) {
+        W8DisplayNode* ahead;
+        W8DisplayNode* pick;
+
+        found = 0;
+        ahead = cursor->next;
+        for (;;) {
+            pick = ahead;
+            if (pick == 0 || found) {
+                break;
+            }
+            if (cursor->sort_key <= node->sort_key) {
+                found = 1;
+                pick = cursor;
+            }
+            ahead = pick->next;
+            cursor = pick;
+        }
+        if (node->sort_key < cursor->sort_key) {
+            node->next = cursor->next;
+            cursor->next = node;
+            node->prev = cursor;
+            if (node->next == 0) {
+                return;
+            }
+            node->next->prev = node;
+            return;
+        }
+        node->next = cursor;
+        node->prev = cursor->prev;
+        cursor->prev = node;
+        if (node->prev != 0) {
+            node->prev->next = node;
+        }
+        if (g_display_head_650e94 != cursor) {
+            return;
+        }
+    }
+    g_display_head_650e94 = node;
+}
 
 /*
  * Unlinks a node from the display list. The search that guards it compares
@@ -197,7 +304,7 @@ int Function40B290(void)
     g_byte_650e8a = 0;
     g_display_ptr_650e8c = 0;
     g_display_template_5ff7d0.id = 0;
-    g_display_template_5ff7d0.byte_02 = 0xff;
+    g_display_template_5ff7d0.sort_key = -1;
     g_display_template_5ff7d0.flags.all = 0x40;
     g_display_template_5ff7d0.clip_right = 0x7fff;
     g_display_template_5ff7d0.clip_bottom = 0x7fff;
