@@ -5,7 +5,11 @@ from typing import Any
 from ..config import Settings
 from .apply_unzip_model import _apply_data, _structure
 from .project import resolve_program_name
-from .reviewed_class_model import load_reviewed_class_model
+from .reviewed_class_model import (
+    VIRTUAL_SLOT_TYPE_NAME,
+    load_reviewed_class_model,
+    parse_pointee,
+)
 
 
 def apply_reviewed_class_model(
@@ -29,12 +33,15 @@ def apply_reviewed_class_model(
         CategoryPath,
         DataTypeConflictHandler,
         FloatDataType,
+        FunctionDefinitionDataType,
         IntegerDataType,
         PointerDataType,
         ShortDataType,
+        StructureDataType,
         UnsignedCharDataType,
         UnsignedIntegerDataType,
         UnsignedShortDataType,
+        VoidDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -67,9 +74,47 @@ def apply_reviewed_class_model(
                 category = CategoryPath(f"/{evidence_program}/classes")
                 byte = ByteDataType.dataType
                 generic_pointer = PointerDataType(dtm)
+
+                # Pre-create every sized class structure so pointer fields can
+                # reference their pointees before the full definitions land;
+                # the final _structure REPLACE below re-points references.
+                structure_handles: dict[str, Any] = {}
+                for reviewed_class in model.classes:
+                    if reviewed_class.size is None:
+                        continue
+                    handle = dtm.getDataType(category, reviewed_class.name)
+                    if handle is None:
+                        handle = dtm.addDataType(
+                            StructureDataType(
+                                category, reviewed_class.name, reviewed_class.size, dtm
+                            ),
+                            DataTypeConflictHandler.KEEP_HANDLER,
+                        )
+                    structure_handles[reviewed_class.name] = handle
+
+                virtual_function = FunctionDefinitionDataType(
+                    category, VIRTUAL_SLOT_TYPE_NAME, dtm
+                )
+                virtual_function.setReturnType(VoidDataType.dataType)
+                virtual_function = dtm.addDataType(
+                    virtual_function, DataTypeConflictHandler.REPLACE_HANDLER
+                )
+                slot_pointer = PointerDataType(virtual_function, dtm)
+
+                typed_pointer_fields = 0
                 fields_by_class: dict[str, list[Any]] = {}
                 for field in model.fields:
-                    if field.data_type == "pointer":
+                    if field.data_type == "pointer" and field.pointee:
+                        base, depth = parse_pointee(field.pointee)
+                        data_type = (
+                            virtual_function
+                            if base == VIRTUAL_SLOT_TYPE_NAME
+                            else structure_handles[base]
+                        )
+                        for _ in range(depth + 1):
+                            data_type = PointerDataType(data_type, dtm)
+                        typed_pointer_fields += 1
+                    elif field.data_type == "pointer":
                         data_type = generic_pointer
                     elif field.data_type == "float":
                         data_type = FloatDataType.dataType
@@ -123,7 +168,7 @@ def apply_reviewed_class_model(
                         merged_ranges.append([start, end])
                 for start, end in merged_ranges:
                     region_type = dtm.addDataType(
-                        ArrayDataType(generic_pointer, (end - start) // 4, 4),
+                        ArrayDataType(slot_pointer, (end - start) // 4, 4),
                         DataTypeConflictHandler.REPLACE_HANDLER,
                     )
                     _apply_data(program, address_space.getAddress(start), region_type)
@@ -166,6 +211,8 @@ def apply_reviewed_class_model(
                 result.update(
                     {
                         "classes": structures,
+                        "typed_pointer_fields": typed_pointer_fields,
+                        "vtable_slot_element": str(slot_pointer.getDisplayName()),
                         "vtables": {
                             f"0x{item.address:08x}": item.slot_count for item in model.vtables
                         },

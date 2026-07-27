@@ -5,6 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
+
+# Shared modelling type for virtual-call slots: an argumentless function
+# definition every reviewed vtable region is an array of pointers to. A vptr
+# field's pointee of "virtual_function *" types it as virtual_function **.
+VIRTUAL_SLOT_TYPE_NAME = "virtual_function"
 SCALAR_FIELD_SIZES = {
     "float": 4,
     "uint8": 1,
@@ -29,8 +34,25 @@ class ReviewedField:
     size: int
     name: str
     data_type: str
+    pointee: str
     description: str
     evidence_id: str
+
+
+def parse_pointee(spec: str) -> tuple[str, int]:
+    """Split a pointee spec into its base class name and extra pointer depth.
+
+    The field itself is already a pointer, so a bare class name means the field
+    points at one object and each trailing ``*`` adds a level of indirection:
+    ``W8WorldItem *`` describes a pointer to a ``W8WorldItem`` pointer array.
+    """
+
+    base = spec.strip()
+    depth = 0
+    while base.endswith("*"):
+        depth += 1
+        base = base[:-1].rstrip()
+    return base, depth
 
 
 @dataclass(frozen=True)
@@ -114,6 +136,7 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             size=_hex(row["size"], field="size", path=fields_path) or 0,
             name=row["field_name"].strip(),
             data_type=row["data_type"].strip(),
+            pointee=row.get("pointee", "").strip(),
             description=row["description"].strip(),
             evidence_id=row["evidence_id"].strip(),
         )
@@ -144,6 +167,21 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             raise ValueError(f"{fields_path}: field exceeds {field.class_name} size")
         if field.data_type == "pointer" and field.size != 4:
             raise ValueError(f"{fields_path}: reviewed x86 pointer field must be four bytes")
+        if field.pointee:
+            if field.data_type != "pointer":
+                raise ValueError(
+                    f"{fields_path}: pointee on non-pointer field "
+                    f"{field.class_name}+0x{field.offset:x}"
+                )
+            base, _ = parse_pointee(field.pointee)
+            if base != VIRTUAL_SLOT_TYPE_NAME:
+                target = classes_by_name.get(base)
+                if target is None or target.size is None:
+                    raise ValueError(
+                        f"{fields_path}: pointee {field.pointee!r} of "
+                        f"{field.class_name}+0x{field.offset:x} does not name a sized "
+                        "accepted class"
+                    )
         scalar_size = SCALAR_FIELD_SIZES.get(field.data_type)
         if scalar_size is not None and field.size != scalar_size:
             raise ValueError(

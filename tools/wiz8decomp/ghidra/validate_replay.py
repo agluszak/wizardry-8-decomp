@@ -11,8 +11,15 @@ from .import_programs import HASH_OPTION
 from .observation_evidence import audit_observation_evidence
 from .project import module_for_program, resolve_program_name
 from .query_daemon import stop_daemon
-from .reviewed_class_model import load_reviewed_class_model
+from .reviewed_class_model import load_reviewed_class_model, parse_pointee
 from .reviewed_signatures import load_reviewed_signatures
+
+
+def expected_pointee_display(pointee: str) -> str:
+    """Ghidra display name of a pointer field with a reviewed pointee."""
+
+    base, depth = parse_pointee(pointee)
+    return base + " *" * (depth + 1)
 
 
 def _expected_type_name(spec: str) -> str:
@@ -70,6 +77,7 @@ def validate_reviewed_replay(
         "vtable_slots": 0,
         "structures": 0,
         "fields": 0,
+        "pointee_fields": 0,
         "globals": 0,
         "candidate_names": 0,
         "observation_evidence": 0,
@@ -309,6 +317,19 @@ def validate_reviewed_replay(
                                 "actual": repr(actual),
                             }
                         )
+                    if field.pointee and component is not None:
+                        checks["pointee_fields"] += 1
+                        actual_display = component.getDataType().getDisplayName()
+                        expected_display = expected_pointee_display(field.pointee)
+                        if actual_display != expected_display:
+                            failures.append(
+                                {
+                                    "kind": "pointee",
+                                    "key": f"{class_name}+0x{field.offset:x}",
+                                    "expected": expected_display,
+                                    "actual": str(actual_display),
+                                }
+                            )
 
             observation_audit = audit_observation_evidence(program)
             checks["observation_evidence"] = (
