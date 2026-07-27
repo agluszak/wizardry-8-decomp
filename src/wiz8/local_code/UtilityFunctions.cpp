@@ -1,6 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <wchar.h>
 #include <stdlib.h>
 
@@ -10,6 +12,53 @@ extern W8RPCSlot g_rpc_slots_end[];
 extern int g_string_table_count;
 extern char** g_string_table;
 extern int g_string_table_state;
+extern char g_format_string_buffer[];
+extern wchar_t g_wide_string_buffer[];
+
+// FUNCTION: WIZ8 0x005179F0
+void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
+                          unsigned int maximum)
+{
+    if (*value > maximum) {
+        *value = maximum;
+    } else if (*value < minimum) {
+        *value = minimum;
+    }
+}
+
+// FUNCTION: WIZ8 0x00517A70
+char* FormatString(const char* format, ...)
+{
+    va_list arguments;
+
+    va_start(arguments, format);
+    vsprintf(g_format_string_buffer, format, arguments);
+    return g_format_string_buffer;
+}
+
+// FUNCTION: WIZ8 0x00517A90
+wchar_t* FormatWideString(const wchar_t* format, ...)
+{
+    va_list arguments;
+
+    va_start(arguments, format);
+    vswprintf(g_wide_string_buffer, format, arguments);
+    return g_wide_string_buffer;
+}
+
+// FUNCTION: WIZ8 0x00517AB0
+wchar_t* ConvertStringToWide(const char* string)
+{
+    swprintf(g_wide_string_buffer, L"%hs", string);
+    return g_wide_string_buffer;
+}
+
+// FUNCTION: WIZ8 0x00517AD0
+char* ConvertWideStringToString(const wchar_t* string)
+{
+    sprintf(reinterpret_cast<char*>(g_wide_string_buffer), "%ls", string);
+    return reinterpret_cast<char*>(g_wide_string_buffer);
+}
 
 // FUNCTION: WIZ8 0x00517E20
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,

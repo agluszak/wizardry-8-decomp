@@ -12,8 +12,6 @@
 
 extern "C" {
 
-/* A formatter returning its result; used here with three different arities. */
-extern char* Function517A70(const char* format, ...);
 extern void* CreateStack(int count, int size);
 
 extern void InitializeSlfArchives(void);
@@ -76,9 +74,9 @@ unsigned char Function4E2F40(void)
 
     version[0] = '\0';
     strcat(version, "Wizardry 8 ");
-    strcat(version, Function517A70("v%d.%d.%d", 1, 2, 4));
-    strcat(version, Function517A70(" (build %d)", 0xdb));
-    strcat(version, Function517A70(" %s", "2001/12/24 15:36"));
+    strcat(version, FormatString("v%d.%d.%d", 1, 2, 4));
+    strcat(version, FormatString(" (build %d)", 0xdb));
+    strcat(version, FormatString(" %s", "2001/12/24 15:36"));
     InitializeSlfArchives();
     Function412870("Patches");
     Function518360(gzStringDataOverride ? gzStringDataOverride : "Data\\Strings\\StringData.DAT");

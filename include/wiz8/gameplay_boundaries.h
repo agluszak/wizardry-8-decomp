@@ -695,6 +695,12 @@ unsigned int Random(unsigned int upper_bound);
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
 void ClampInteger(int* value, int minimum, int maximum);
+void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
+                          unsigned int maximum);
+char* FormatString(const char* format, ...);
+wchar_t* FormatWideString(const wchar_t* format, ...);
+wchar_t* ConvertStringToWide(const char* string);
+char* ConvertWideStringToString(const wchar_t* string);
 int GetSpellTargetType(int spell_id, unsigned char normalize_single_target);
 #ifdef __cplusplus
 bool CanSpellBackfire(int spell_id);
