@@ -32,6 +32,9 @@ extern int g_dword_650df8;
 extern int g_dword_650dfc;
 extern int g_dword_650e00;
 extern bool g_flag_650e04;
+extern unsigned char g_flag_650e50;
+extern unsigned short g_word_5ff7c8;
+extern unsigned char g_flag_5ff7ca;
 extern int g_dword_650e24;
 extern int g_dword_650e28;
 extern bool g_flag_650e20;
@@ -139,7 +142,6 @@ bool SetModuleSubdirectory(const char* subdirectory);
 extern bool g_shutdown_started_650db5;
 extern bool g_teardown_done_650db4;
 extern char g_shutdown_message_6505ac[];
-extern void Function408850(void);
 extern void Function4E34B0(int flag);
 extern void Function4E3290(void);
 extern void Function40CF90(void);
@@ -151,8 +153,43 @@ extern void Function402990(void);
 extern void Function405E80(void);
 extern void Function421DC0(void);
 extern void Function401F70(void);
-extern void Function404BC0(void);
 extern void Function428B80(void);
+
+
+/* Clears the flag 0x005B1740's gate sets. Both the window procedure's teardown
+   and the shutdown handler reach it. */
+// FUNCTION: WIZ8 0x00404BC0
+void Function404BC0(void)
+{
+    g_flag_650e04 = false;
+}
+
+/* Clears the flag the 0x004086D0 environment selection leaves set. */
+// FUNCTION: WIZ8 0x00408850
+void Function408850(void)
+{
+    g_flag_650e50 = 0;
+}
+
+/* Three setters over one pair of adjacent globals: a 16-bit value and a flag
+   the two gates below turn on and off. */
+// FUNCTION: WIZ8 0x0040C1F0
+void Function40C1F0(unsigned short value)
+{
+    g_word_5ff7c8 = value;
+}
+
+// FUNCTION: WIZ8 0x0040C200
+void Function40C200(void)
+{
+    g_flag_5ff7ca = 1;
+}
+
+// FUNCTION: WIZ8 0x0040C210
+void Function40C210(void)
+{
+    g_flag_5ff7ca = 0;
+}
 
 /* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
 // FUNCTION: WIZ8 0x004023A0
@@ -258,7 +295,7 @@ int __stdcall AIL_3D_provider_attribute(int provider, const char* name, void* va
 }
 
 extern unsigned char Function409C50(void);
-extern unsigned char g_flag_650e50;
+
 extern unsigned char g_flag_5ff651;
 extern unsigned char g_flag_5ff652;
 extern void* g_pointer_5ff648;
