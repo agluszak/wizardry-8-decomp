@@ -41,13 +41,14 @@ struct W8WidgetOwner {
     unsigned int region_set;             /* 0x48 */
 };
 
-extern void Function4F4020(unsigned int region_index);
 extern void Function4F3140(const W8RegionEvent* event, struct W8Region* region);
 
 class W8WidgetBase005ED5BC {
 public:
     W8WidgetBase005ED5BC(W8WidgetOwner* owner, unsigned int region,
                          int left, int top, int right, int bottom);
+
+    void SetRegion(unsigned int region);
 
     // FUNCTION: WIZ8 0x004F3D90
     virtual ~W8WidgetBase005ED5BC()
@@ -161,8 +162,51 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(W8WidgetOwner* owner, unsigned int re
 registered:
     if (holder->region_set != 0 && m_region_18 == -1) {
         taken = AddRegionToSet(holder->region_set);
-        Function4F4020(taken);
+        SetRegion(taken);
         SetRegionCallback(taken, Function4F3140, (unsigned short)index);
         SetRegionOwner(taken, holder);
+    }
+}
+
+/*
+ * Rebinds the widget to a region: stores it, gives it the widget's rectangle
+ * translated by the owner's origin, and then puts it in one of two modes
+ * depending on the flag at +0x05 that the teardown clears.
+ *
+ * The bounds are only pushed when the widget has an owner, but the mode is set
+ * regardless, and the second test re-reads the field rather than reusing the
+ * argument - so passing -1 leaves the widget with no region and skips both.
+ * The rectangle is read a word at a time here while the constructor stores it
+ * a dword at a time, which is what fixes the fields as ints whose low halves
+ * are all the region is given.
+ */
+// FUNCTION: WIZ8 0x004F4020
+void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
+{
+    W8WidgetOwner* holder;
+    unsigned int bound;
+    int origin_x;
+    int origin_y;
+
+    m_region_18 = region;
+    if (region != 0xffffffff) {
+        holder = m_owner;
+        if (holder != 0) {
+            origin_y = holder->origin_y;
+            origin_x = holder->origin_x;
+            SetRegionBounds(region,
+                            (unsigned short)((short)m_left + (short)origin_x),
+                            (unsigned short)((short)m_top + (short)origin_y),
+                            (unsigned short)((short)m_right + (short)origin_x),
+                            (unsigned short)((short)m_bottom + (short)origin_y));
+        }
+    }
+    bound = m_region_18;
+    if (bound != 0xffffffff) {
+        if (m_flag_5 != 0) {
+            ClearRegionModeBits(bound);
+            return;
+        }
+        SetRegionMode4(bound);
     }
 }
