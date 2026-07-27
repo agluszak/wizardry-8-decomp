@@ -53,58 +53,7 @@ int GetMinimumCasterLevelForSpell(int spell_id)
     return MinimumCasterLevel(g_spell_records[spell_id].spell_level);
 }
 
-// FUNCTION: WIZ8 0x00535AD0
-W8FactionDisposition GetFactionDisposition(signed char faction)
-{
-    signed char disposition_score;
 
-    if (faction < 0) {
-        srAssertFail(
-            "bFaction >= 0",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp",
-            0xaf,
-            0);
-    }
-    if (faction >= 21) {
-        srAssertFail(
-            "bFaction < FACTION_COUNT",
-            "C:\\Projects\\Wizardry 8\\Local Code\\Factions.cpp",
-            0xb0,
-            0);
-    }
-
-    disposition_score = g_factions[faction].disposition_score;
-    if (disposition_score < 34) {
-        return W8_FACTION_HOSTILE;
-    }
-    if (disposition_score < 67) {
-        return W8_FACTION_NEUTRAL;
-    }
-    return W8_FACTION_FRIENDLY;
-}
-
-// FUNCTION: WIZ8 0x004FF3B0
-int GetProfessionCasterLevel(W8Character* character, int profession_id)
-{
-    int magic_level_offset;
-
-    if (profession_id == -1) {
-        profession_id = character->current_profession;
-        if (profession_id == -1) {
-            srAssertFail(
-                "iProfession != -1",
-                "C:\\Projects\\Wizardry 8\\Local Code\\Magic.cpp",
-                0xe13,
-                0);
-        }
-    }
-
-    magic_level_offset = g_profession_magic_level_offsets[profession_id];
-    if (magic_level_offset == -255) {
-        return -1;
-    }
-    return character->profession_levels[profession_id] + magic_level_offset;
-}
 
 // FUNCTION: WIZ8 0x00506280
 unsigned char GetFact(int fact_id)

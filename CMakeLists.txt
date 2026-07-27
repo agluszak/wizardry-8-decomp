@@ -255,6 +255,8 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/character_skills.cpp
         src/wiz8/local_code/Controls.cpp
         src/wiz8/gameplay_boundaries.cpp
+        src/wiz8/local_code/Factions.cpp
+        src/wiz8/local_code/Magic.cpp
         src/wiz8/location_variables.cpp
         src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
