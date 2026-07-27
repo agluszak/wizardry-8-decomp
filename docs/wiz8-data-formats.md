@@ -119,7 +119,7 @@ the archive bytes and their canonical loaders:
 `0x0054ae20` load their complete fixed-size arrays. `LoadMonsterDatabaseRecord` at
 `0x0054a8a0` seeks directly to `4 + index * 0x297`, reads one record, and removes
 suffixes beginning with `#` from four adjacent `0x30`-byte UTF-16 name fields.
-`GetMonsterDataByID` at `0x004e57c0` lazily allocates and caches those records.
+`MonsterDBFromSpecies` at `0x004e57c0` lazily allocates and caches those records.
 The adjacent `MonsterManager.cpp` lookup cluster establishes a separate 16-byte runtime
 `W8MonsterInfo`: its location identifier is at `+0x00`, its database species identifier at
 `+0x08`, and its live `Monster` pointer at `+0x0c`; the word at `+0x04` remains opaque. Keeping
@@ -209,7 +209,7 @@ same table structure with two additional entries. Both layouts parse exactly to 
 are the four exact values `3`, `7`, `20`, and `70`; challenge levels range from 1 through 50
 and are compared with the party's effective level. Time condition zero accepts daytime
 (05:00 through 22:00), one accepts nighttime, and two accepts either. The chosen entry's
-16-bit ID is passed directly to `GetMonsterDataByID`, proving species ownership. The table
+16-bit ID is passed directly to `MonsterDBFromSpecies`, proving species ownership. The table
 name, script-name payloads, and remaining header dword stay structurally typed but unnamed.
 
 `ItemTables.dbs` contains a separate item-generation model shared unchanged by all five

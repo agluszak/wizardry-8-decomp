@@ -64,7 +64,7 @@ coexist in the same image:
 | Allocation family | Typical ownership signal | Proven example |
 | --- | --- | --- |
 | global `operator new` / `operator delete` | first-party C++ object or template | this polymorphic vector template |
-| CRT `malloc` / `free` / `realloc` | C-style record, cache, or resizable buffer | `GetMonsterDataByID`'s `0x297`-byte record cache |
+| CRT `malloc` / `free` / `realloc` | C-style record, cache, or resizable buffer | `MonsterDBFromSpecies`'s `0x297`-byte record cache |
 | `srHeap::allocate` / `srHeap::free` | SurRender-facing or header-inline SR type | the inline string recovered in `srEXT_Unzip.dll` |
 
 The reviewed address-to-family relationship lives in

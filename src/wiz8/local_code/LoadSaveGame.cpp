@@ -275,7 +275,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
     if (group->version < 3) {
         group->flag_ca = 0;
     }
-    record = GetMonsterDataByID(group->monster_id);
+    record = MonsterDBFromSpecies(group->monster_id);
     if (record == 0) {
         free(group);
         return 0;

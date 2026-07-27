@@ -175,13 +175,16 @@ def test_cfagent_names_remain_external_semantic_until_corroborated() -> None:
     unpromoted = [row for row in rows if row["name_origin"] == "fan-patch-signature"]
     promoted = [row for row in rows if row["name_origin"] != "fan-patch-signature"]
 
-    assert len(unpromoted) == 44
+    assert len(unpromoted) == 43
     assert {row["authority"] for row in unpromoted} == {"external-semantic"}
 
-    # The only promotion so far: the SGP Random.c compile named 0x0040EFA0.
-    assert [row["address"] for row in promoted] == ["0040efa0"]
+    # Random.c supplies the original SGP name, while the official demo retains
+    # MonsterDBFromSpecies diagnostics for the canonical retail counterpart.
+    assert [row["address"] for row in promoted] == ["0040efa0", "004e57c0"]
     assert promoted[0]["authority"] == "source-backed"
     assert "sgp-source" in promoted[0]["name_origin"].split("|")
+    assert promoted[1]["authority"] == "string-backed"
+    assert promoted[1]["aliases"] == "GetMonsterDataByID"
 
     # CFAgent's descriptive seeds are retained only as aliases once SR.DLL's
     # own exports establish the vendor template owner and base type name.
@@ -233,7 +236,7 @@ def test_the_demo_supplies_names_only_through_retained_diagnostics() -> None:
         row for row in _wiz8_rows() if "official-demo" in row["name_origin"].split("|")
     ]
 
-    assert len(demo_named) == 14
+    assert len(demo_named) == 15
     for row in demo_named:
         origins = set(row["name_origin"].split("|"))
         assert "original-runtime-string" in origins

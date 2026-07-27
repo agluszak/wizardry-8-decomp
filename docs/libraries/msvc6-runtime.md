@@ -48,6 +48,6 @@ pinned VC6 CRT source implements that `operator new(unsigned int)` as `_nh_mallo
 returns its result. `Wiz8.exe` imports neither a new-handler setter nor `_CxxThrowException`, and its
 generated code treats allocation failure as an ordinary null result. For example, the pointer-array
 constructor at `0x00509890` leaves the global null if object allocation fails and stores capacity
-zero if backing allocation fails; `GetMonsterDataByID` likewise frees a failed record load and
+zero if backing allocation fails; `MonsterDBFromSpecies` likewise frees a failed record load and
 returns null. Ported code must preserve these explicit null paths, for example with a nothrow
 allocation boundary, rather than assuming modern throwing `new` semantics.

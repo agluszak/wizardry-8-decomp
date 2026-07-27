@@ -45,7 +45,7 @@ def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     assert all(not row["interval_lower"] and not row["interval_upper"] for row in external)
     assert len(list(csv.DictReader(io.StringIO(rendered_intervals)))) == 225
     assert (
-        next(row for row in mapped if row["symbol"] == "GetMonsterDataByID")["source_path"]
+        next(row for row in mapped if row["symbol"] == "MonsterDBFromSpecies")["source_path"]
         == "Local Code\\MonsterManager.cpp"
     )
     assert (

@@ -1,7 +1,7 @@
 address,address_kind,name,allocator_family,operation,ownership_signal,confidence,name_origin,authority,evidence
 005e1c10,function,operator_delete,global-cpp,free,first-party-cpp-object,strong,descriptive,descriptive,Local 11-byte C++ deallocation wrapper forwards to the free import thunk at 0x005E1C1D; compiler-generated destructors call this entry
 005e1ce0,import-thunk,operator_new_import_thunk,global-cpp,allocate,first-party-cpp-object,exact,original-export,abi-backed,Six-byte linker thunk through IAT slot 0x005EB1BC to the imported MSVCRT operator new export
-005eb1a0,iat-slot,malloc,crt-heap,allocate,c-record-or-cache,exact,original-export,abi-backed,MSVCRT import table names malloc; GetMonsterDataByID uses it for the 0x297-byte monster-record cache entry and checks the result for null
+005eb1a0,iat-slot,malloc,crt-heap,allocate,c-record-or-cache,exact,original-export,abi-backed,MSVCRT import table names malloc; MonsterDBFromSpecies uses it for the 0x297-byte monster-record cache entry and checks the result for null
 005eb1c4,iat-slot,calloc,crt-heap,allocate-zeroed,c-record-or-cache,exact,original-export,abi-backed,MSVCRT import table names calloc; the canonical executable has no direct code references to this slot
 005eb1f8,iat-slot,realloc,crt-heap,resize,c-record-or-cache,exact,original-export,abi-backed,MSVCRT import table names realloc; the canonical executable uses this sparse resizing surface directly
 005eb224,iat-slot,free,crt-heap,free,c-record-or-cache,exact,original-export,abi-backed,MSVCRT import table names free; operator_delete at 0x005E1C10 reaches it through the six-byte thunk at 0x005E1C1D

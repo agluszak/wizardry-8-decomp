@@ -223,7 +223,7 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
     return 0;
 }
 
-static __inline W8MonsterRecord* GetMonsterDataByIDInline(unsigned int monster_species)
+static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster_species)
 {
     W8MonsterRecord* record;
 
@@ -250,7 +250,7 @@ static __inline W8MonsterRecord* GetMonsterDataByIDInline(unsigned int monster_s
 }
 
 // FUNCTION: WIZ8 0x004E5720
-W8MonsterRecord* Function4E5720(W8MonsterInfo* monster_info)
+W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
         srAssertFail(
@@ -259,13 +259,13 @@ W8MonsterRecord* Function4E5720(W8MonsterInfo* monster_info)
             0x5e9,
             0);
     }
-    return GetMonsterDataByIDInline(monster_info->monster_species);
+    return MonsterDBFromSpeciesInline(monster_info->monster_species);
 }
 
 // FUNCTION: WIZ8 0x004E57C0
-W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species)
+W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species)
 {
-    return GetMonsterDataByIDInline(monster_species);
+    return MonsterDBFromSpeciesInline(monster_species);
 }
 
 static __inline W8MonsterInfo* MonsterInfoFromIDInline(
@@ -320,7 +320,7 @@ W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
     if (monster == 0) {
         return 0;
     }
-    return GetMonsterDataByIDInline(monster->monster_species);
+    return MonsterDBFromSpeciesInline(monster->monster_species);
 }
 
 // FUNCTION: WIZ8 0x004E5950
@@ -354,7 +354,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
             0x5e9,
             0);
     }
-    record = GetMonsterDataByIDInline(monster_info->monster_species);
+    record = MonsterDBFromSpeciesInline(monster_info->monster_species);
     if (record == 0) {
         srAssertFail(
             "pMonsterDB",
@@ -367,15 +367,15 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
 }
 
 // FUNCTION: WIZ8 0x004E5A50
-void Function4E5A50(W8MonsterInfo* monster_info)
+void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
 {
     W8Monster* monster = monster_info->monster;
 
     if (monster != 0) {
         int count = monster->Function4C6A50();
         if (count > 1) {
-            int value = ((monster_info->value_27 - monster_info->value_2b) * count) /
-                        monster_info->value_27;
+            int value = ((monster_info->hp_max - monster_info->hp_current) * count) /
+                        monster_info->hp_max;
             if (value >= count - 1) {
                 value = count - 1;
             }
@@ -414,7 +414,7 @@ int Function4E5B50(unsigned int monster_species)
 {
     W8MonsterRecord* record;
 
-    record = GetMonsterDataByIDInline(monster_species);
+    record = MonsterDBFromSpeciesInline(monster_species);
     if (record == 0) {
         return -1;
     }
@@ -436,7 +436,7 @@ void Function4E5C00(unsigned char value)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->flag_14 != 0 &&
-            static_cast<unsigned int>(monster_info->value_2b) > 0 &&
+            static_cast<unsigned int>(monster_info->hp_current) > 0 &&
             monster_info->value_9f == 0 &&
             monster_info->value_2da != 0) {
             if (value == 0) {
@@ -483,7 +483,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
                 0x5e9,
                 0);
         }
-        record = GetMonsterDataByIDInline(monster_info->monster_species);
+        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
         value = record->attribute_values_d1[monster_attribute];
         attribute_index = 0;
 
@@ -554,7 +554,7 @@ void Function4E5EA0(void)
     for (index = 0; index < PListGetCount(g_monster_list); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
-        if (static_cast<unsigned int>(monster_info->value_2b) > 0) {
+        if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
             Function452C90(&monster_info->monster->member_18);
             if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
                 monster_info->flag_255 = 0;

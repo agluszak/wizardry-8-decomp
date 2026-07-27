@@ -570,8 +570,8 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_10[4];
     unsigned char flag_14;                /* 0x14: live-entry gate in 0x004e5c00 */
     unsigned char unknown_15[0x12];
-    int value_27;                         /* 0x27: initialized from a database dice roll */
-    int value_2b;                         /* 0x2b: initialized to the same rolled value */
+    int hp_max;                           /* 0x27: uiHPMax in the Targeting.cpp assertion */
+    int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     unsigned char unknown_2f[0x70];
     int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
     unsigned char unknown_a3[0x144];
@@ -603,7 +603,7 @@ extern int g_monster_info_iterator_index;  /* 0x00683698, retained cursor */
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 void Function4E4600(W8MonsterInfo* monster_info);
 void Function4E4690(W8MonsterInfo* monster_info, int value);
-W8MonsterRecord* Function4E5720(W8MonsterInfo* monster_info);
+W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(
     int caller_line,
     const char* caller_file,
@@ -617,7 +617,7 @@ W8MonsterInfo* MonsterInfoFromID(
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
 W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
-void Function4E5A50(W8MonsterInfo* monster_info);
+void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
 int Function4E5B50(unsigned int monster_species);
@@ -679,7 +679,7 @@ bool CheckCdPresent(void);
 int GetLoadedLevelID(void);
 const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
-W8MonsterRecord* GetMonsterDataByID(unsigned int monster_species);
+W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 void WorldUpdateProps(W8World* world);
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);

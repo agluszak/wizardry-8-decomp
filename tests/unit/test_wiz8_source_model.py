@@ -439,8 +439,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x8, 0x4, "monster_species", "int32"),
         (0xC, 0x4, "monster", "pointer"),
         (0x14, 0x1, "flag_14", "bytes"),
-        (0x27, 0x4, "value_27", "int32"),
-        (0x2B, 0x4, "value_2b", "int32"),
+        (0x27, 0x4, "hp_max", "int32"),
+        (0x2B, 0x4, "hp_current", "int32"),
         (0x9F, 0x4, "value_9f", "int32"),
         (0x1E7, 0x7, "attribute_adjustments_1e7", "bytes"),
         (0x247, 0x5, "converted_attributes_247", "bytes"),
@@ -627,7 +627,9 @@ def test_monster_manager_descriptive_names_have_independent_evidence() -> None:
         evidence = list(csv.DictReader(stream))
 
     expected = {
+        "004e5720": ("GetMonsterDataForInfo", "canonical-behavior"),
         "004e5af0": ("GetMonsterQuadrant", "canonical-callers"),
+        "004e5a50": ("UpdateMonsterDamageAppearance", "canonical-callers"),
         "004e5d00": ("ConvertMonsterAttributes", "original-runtime-string"),
         "004e6130": ("MoveMonsterToLiveList", "canonical-behavior"),
     }
@@ -638,6 +640,25 @@ def test_monster_manager_descriptive_names_have_independent_evidence() -> None:
             row["address"] == address and row["origin"] == origin
             for row in evidence
         )
+
+
+def test_demo_upgrades_monster_database_name_and_preserves_cfagent_alias() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        function = next(
+            row for row in csv.DictReader(stream) if row["address"] == "004e57c0"
+        )
+
+    assert function["provisional_name"] == "MonsterDBFromSpecies"
+    assert function["aliases"] == "GetMonsterDataByID"
+    assert function["authority"] == "string-backed"
+    assert set(function["name_origin"].split("|")) == {
+        "fan-patch-signature",
+        "official-demo",
+        "original-runtime-string",
+    }
 
 
 def test_cfdat_override_evidence_separates_callsite_and_canonical_sizes() -> None:
