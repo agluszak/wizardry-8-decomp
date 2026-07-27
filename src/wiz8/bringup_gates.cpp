@@ -46,12 +46,12 @@ extern unsigned char InitializeInputManager(void);
 extern void InitializeClockManager(void);
 extern void InitializeRandom(void);
 
-extern long __stdcall WindowProc4011E0(void* window, unsigned int message,
+extern long __stdcall WindowProc4011E0(void* window, int message,
                                        unsigned int wparam, long lparam);
 
 
 extern unsigned char Function421BB0(void* instance, int show_command,
-                                    long(__stdcall* window_proc)(void*, unsigned int,
+                                    long(__stdcall* window_proc)(void*, int,
                                                                  unsigned int, long));
 
 

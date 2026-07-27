@@ -44,14 +44,13 @@ extern void Function4023A0(void);
 extern void Function404BC0(void);
 
 // FUNCTION: WIZ8 0x004011E0
-long __stdcall WindowProc4011E0(void* window, unsigned int message,
+long __stdcall WindowProc4011E0(void* window, int message,
                                 unsigned int wparam, long lparam)
 {
     RECT* rect;
     int width;
     int height;
     unsigned char move_left;
-    unsigned char engine_up;
 
     if (g_flag_650dac) {
         return DefWindowProcA((HWND)window, message & 0xffff, wparam, lparam);
@@ -68,9 +67,8 @@ long __stdcall WindowProc4011E0(void* window, unsigned int message,
 
     case WM_DESTROY:
         if (!g_teardown_done_650db4) {
-            engine_up = g_flag_6505a9;
             g_teardown_done_650db4 = true;
-            if (engine_up) {
+            if (g_flag_6505a9) {
                 Function4E3290();
             }
             Function40CF90();
@@ -96,16 +94,17 @@ long __stdcall WindowProc4011E0(void* window, unsigned int message,
         if ((short)lparam == 0) {
             return 0;
         }
-        if ((lparam >> 16) == 0) {
+        if (((unsigned long)lparam >> 16) == 0) {
             return 0;
         }
         if (wparam == SIZE_RESTORED) {
             Function422550();
             return 0;
         }
-        if (wparam == SIZE_MAXIMIZED) {
-            Function422970(1);
+        if (wparam != SIZE_MAXIMIZED) {
+            return 0;
         }
+        Function422970(1);
         return 0;
 
     case WM_SETFOCUS:
