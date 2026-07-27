@@ -16,6 +16,16 @@ points at. The generator reads snapshots and reviewed evidence; it writes
 neither, and it needs no proprietary inputs - the classification core is
 shared with the candidate replay in
 ``tools/wiz8decomp/ghidra/candidate_model.py``.
+
+One limitation is structural and stated in every template: outside Ghidra
+there is no reliable way to say which function a vptr write belongs to. The
+census attributes writes by inter-function padding, which merges adjacent
+small bodies, and the tracked function census proposes starts inside real
+functions; adjudicating the 295 canonical disagreements against Ghidra found
+the padding attribution right 55 times, the function census right 119, and
+neither right 118. So writer *roles* in this report are leads to confirm, and
+the authoritative attribution is the one the replay materializes into the
+program from Ghidra's own containment.
 """
 
 from __future__ import annotations
@@ -127,23 +137,46 @@ def promotion_template(
     name = skeleton["name"]
     vtable = candidate["vtable"]
     deleting = candidate["scalar_deleting_destructor"]
+    slot0 = candidate["slot0_target"]
     writers = ", ".join(f"0x{w:08x}" for w in candidate["constructor_or_destructor"])
     hints = ", ".join(f"0x{s:x}" for s in candidate["allocation_sizes"]) or "none"
+    if slot0:
+        deleting_note = (
+            f"- vtable slot 0: 0x{slot0:08x} - MSVC's scalar deleting destructor "
+            "position when the class has a virtual destructor"
+            + (
+                "; the census also attributes a vtable write to it"
+                if deleting
+                else ", and it may delegate the vtable restore to a complete "
+                "destructor that writes instead"
+            )
+        )
+    else:
+        deleting_note = "- vtable slot 0: not resolved"
     lines = [
         f"# {name} promotion template",
         "",
         *(f"> {line}" for line in _BANNER.splitlines()),
         "",
-        f"- writers to review: {writers or 'none'}"
-        + (f"; scalar deleting destructor 0x{deleting:08x}" if deleting else ""),
+        f"- writers to review: {writers or 'none'}",
+        "  (census padding attribution, which merges adjacent small bodies -"
+        " resolve the write sites below with"
+        " `just ghidra query <program> function-of <sites>`, or read the"
+        " candidate-class comments in the materialized program, which use"
+        " Ghidra's own containment)",
+        deleting_note,
         f"- allocation hints: {hints}",
         f"- vptr-write sites: {', '.join(candidate['write_sites'])}",
+        "- base class: the constructor's *first* call is usually the base"
+        " constructor; if it is another candidate's writer, that candidate is"
+        " the base and its allocation hint is the base extent",
         "",
         "## evidence/reviewed/wiz8/classes.csv",
         "```csv",
         f"wiz8,<class-name>,<confidence>,<class-name>.primary,<constructor>,"
         f"<destructor>,{f'{deleting:08x}' if deleting else '<scalar-deleting>'},"
-        f"0x{skeleton['size']:x},,,<source-path>,\"<evidence>\",",
+        f"0x{skeleton['size']:x},<base-classes>,<base-name-origin>,<source-path>,"
+        '"<evidence>",<layout-proof>',
         "```",
         "",
         "## evidence/reviewed/wiz8/vtables.csv",
@@ -165,6 +198,25 @@ def promotion_template(
         lines.append(
             f"wiz8,<class-name>.primary,{index},{target},,<confidence>,"
             "classes:wiz8:<class-name>"
+        )
+    lines.append("```")
+    lines.append("")
+    lines.append("## evidence/reviewed/wiz8/fields.csv")
+    lines.append("")
+    lines.append(
+        "One row per established field; opaque runs stay `bytes`. Offsets must "
+        "not overlap and must fit the class size."
+    )
+    lines.append("```csv")
+    lines.append(
+        "wiz8,<class-name>,0x0,0x4,vptr,pointer,virtual_function *,<confidence>,"
+        "classes:wiz8:<class-name>,primary vtable <class-name>.primary"
+    )
+    for _, offset in [(0, offset) for offset, _ in skeleton["vptr_offsets"][1:]]:
+        lines.append(
+            f"wiz8,<class-name>,0x{offset:x},0x4,secondary_vptr_{offset:x},pointer,"
+            f"virtual_function *,<confidence>,classes:wiz8:<class-name>,"
+            f"subobject vtable at +0x{offset:x}"
         )
     lines.append("```")
     lines.append("")
@@ -201,6 +253,11 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
                 "scalar_deleting_destructor": (
                     f"{item['scalar_deleting_destructor']:08x}"
                     if item["scalar_deleting_destructor"] is not None
+                    else ""
+                ),
+                "slot0_target": (
+                    f"{item['slot0_target']:08x}"
+                    if item["slot0_target"] is not None
                     else ""
                 ),
                 "constructor_or_destructor": "|".join(

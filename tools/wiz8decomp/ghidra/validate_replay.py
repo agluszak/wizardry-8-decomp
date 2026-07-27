@@ -12,6 +12,7 @@ from .observation_evidence import audit_observation_evidence
 from .project import module_for_program, resolve_program_name
 from .query_daemon import stop_daemon
 from .apply_class_candidates import (
+    function_resolver,
     interval_lookup,
     load_candidate_inputs,
     writer_comment_bodies,
@@ -338,7 +339,9 @@ def validate_reviewed_replay(
                                 }
                             )
 
-            candidate_inputs = load_candidate_inputs(settings.repo_dir, program_name)
+            candidate_inputs = load_candidate_inputs(
+                settings.repo_dir, program_name, function_resolver(program)
+            )
             for skeleton in candidate_inputs["skeletons"]:
                 checks["candidate_structures"] += 1
                 data_type = dtm.getDataType(f"/wiz8/candidates/{skeleton['name']}")

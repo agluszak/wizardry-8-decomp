@@ -47,9 +47,14 @@ def _rows(path: Path) -> list[dict[str, str]]:
 
 
 def load_candidate_inputs(
-    repo_dir: Path, program_name: str
+    repo_dir: Path, program_name: str, resolve_function: Any = None
 ) -> dict[str, Any]:
-    """Everything the candidate phase derives, from tracked inputs only."""
+    """Everything the candidate phase derives, from tracked inputs only.
+
+    ``resolve_function`` maps a write site to its containing function; the
+    replay and the validator pass Ghidra's function manager so writer roles
+    land on the real bodies rather than the census's padding heuristic.
+    """
 
     bundle = load_observation_bundle(program_name, repo_dir)
     reviewed_vtables = {
@@ -57,7 +62,11 @@ def load_candidate_inputs(
         for row in _rows(repo_dir / "evidence" / "reviewed" / "wiz8" / "vtables.csv")
     }
     candidates = classify_candidates(
-        bundle["vtables"], bundle["vtable_slots"], bundle["vptr_writes"], reviewed_vtables
+        bundle["vtables"],
+        bundle["vtable_slots"],
+        bundle["vptr_writes"],
+        reviewed_vtables,
+        resolve_function,
     )
     skeletons = derive_skeletons(candidates)
 
@@ -91,6 +100,19 @@ def load_candidate_inputs(
     }
 
 
+def function_resolver(program: Any) -> Any:
+    """Authoritative site-to-function mapping backed by one open program."""
+
+    address_space = program.getAddressFactory().getDefaultAddressSpace()
+    functions = program.getFunctionManager()
+
+    def resolve(site: int) -> int | None:
+        function = functions.getFunctionContaining(address_space.getAddress(site))
+        return None if function is None else int(str(function.getEntryPoint()), 16)
+
+    return resolve
+
+
 def writer_comment_bodies(candidates: list[dict[str, Any]]) -> dict[int, str]:
     """One aggregated candidate-class comment body per writer function."""
 
@@ -105,6 +127,15 @@ def writer_comment_bodies(candidates: list[dict[str, Any]]) -> dict[int, str]:
         if deleting is not None:
             roles[deleting].append(
                 f"candidate scalar deleting destructor of {name}{suffix}"
+            )
+        elif candidate["slot0_target"] is not None:
+            # Writes no vtable itself, so it is only positional evidence:
+            # MSVC puts the scalar deleting destructor in slot 0 when the
+            # class has a virtual destructor, and such a destructor usually
+            # delegates the vtable restore to the complete destructor.
+            roles[candidate["slot0_target"]].append(
+                f"candidate vtable slot 0 of {name} "
+                "(scalar deleting destructor position; writes no vtable itself)"
             )
         for writer in candidate["constructor_or_destructor"]:
             roles[writer].append(
@@ -164,7 +195,6 @@ def apply_class_candidates(
     from ghidra.program.model.listing import CodeUnit
 
     program_name = resolve_program_name(settings, selector)
-    inputs = load_candidate_inputs(settings.repo_dir, program_name)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     result: dict[str, Any] = {"program": program_name, "mode": "candidate-observations"}
     try:
@@ -176,6 +206,12 @@ def apply_class_candidates(
                 listing = program.getListing()
                 functions = program.getFunctionManager()
                 dtm = program.getDataTypeManager()
+
+                inputs = load_candidate_inputs(
+                    settings.repo_dir,
+                    program_name,
+                    function_resolver(program),
+                )
 
                 virtual_function = dtm.getDataType(
                     CategoryPath("/wiz8/classes"), VIRTUAL_SLOT_TYPE_NAME

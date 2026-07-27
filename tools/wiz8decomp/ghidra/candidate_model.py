@@ -26,6 +26,7 @@ def classify_candidates(
     slots: list[dict[str, str]],
     writes: list[dict[str, str]],
     reviewed_vtables: set[int],
+    resolve_function: Any = None,
 ) -> list[dict[str, Any]]:
     """One candidate per constructor-written vftable, writers classified.
 
@@ -34,6 +35,14 @@ def classify_candidates(
     writer is a constructor or the complete destructor, which this evidence
     alone cannot separate. Vtables the same writers install at non-zero
     object offsets are that candidate's subobject tables.
+
+    The census derives each write's owning function from inter-function
+    padding, which merges two adjacent bodies when no padding run separates
+    them - the complete destructor immediately after its scalar deleting
+    destructor is the common case. ``resolve_function`` lets a caller that
+    has authoritative containment (the replay, inside Ghidra) map a write
+    site to its real function instead; sites it cannot place keep the
+    census attribution.
     """
 
     slot0: dict[int, int] = {}
@@ -44,11 +53,15 @@ def classify_candidates(
     writers_by_vtable: dict[int, list[dict[str, str]]] = defaultdict(list)
     vtables_by_writer: dict[int, set[tuple[int, int]]] = defaultdict(set)
     for row in writes:
-        if not row["function_start"]:
-            continue
         vtable = int(row["vtable"], 16)
-        writer = int(row["function_start"], 16)
-        writers_by_vtable[vtable].append(row)
+        writer: int | None = None
+        if resolve_function is not None:
+            writer = resolve_function(int(row["site"], 16))
+        if writer is None and row["function_start"]:
+            writer = int(row["function_start"], 16)
+        if writer is None:
+            continue
+        writers_by_vtable[vtable].append({**row, "function_start": f"{writer:08x}"})
         vtables_by_writer[writer].add((vtable, int(row["object_offset"], 0)))
 
     candidates: list[dict[str, Any]] = []
@@ -106,6 +119,12 @@ def classify_candidates(
                     for value in (row.get("allocation_sizes") or "").split("|")
                     if value
                 ),
+                # MSVC places the scalar deleting destructor in slot 0 of a
+                # class with a virtual destructor, but slot 0 is an ordinary
+                # virtual otherwise - so the strict claim needs the slot 0
+                # target to write the vtable itself, and the bare target is
+                # recorded separately as the hedged pointer for review.
+                "slot0_target": deleting,
                 "scalar_deleting_destructor": (
                     deleting if deleting in primary_writers else None
                 ),

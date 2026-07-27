@@ -40,6 +40,14 @@ comment is telling you what the function you are reading constructs.
   each candidate the writer touches and its role. A writer listed on several candidates in one
   comment is usually a **heap builder** constructing unrelated objects in sequence, not a
   constructor of one big class.
+- **Trust the in-program comments over the report's writer columns.** Outside Ghidra there is no
+  reliable way to attribute a vptr write to a function: the census uses inter-function padding,
+  which merges adjacent small bodies, and the tracked function census proposes starts *inside*
+  real functions. Adjudicating the 295 canonical disagreements against Ghidra: padding right 55,
+  function census right 119, neither right 118. The replay uses Ghidra's own containment, so the
+  `candidate-class` comments are authoritative; the report's `constructor_or_destructor` column is
+  a lead. Resolve any write site with
+  `just ghidra query <program> function-of <site>,<site>`.
 - In interactive Ghidra, retype `this` to `Candidate_<vtable>` (category `/wiz8/candidates`);
   virtual calls then render as `(*vptr[n])()` because every censused slot is typed
   `virtual_function *`. The struct's vptr fields and size are the census hypothesis you are
@@ -50,8 +58,12 @@ comment is telling you what the function you are reading constructs.
 Facts to settle from the decompiles, in order of value:
 
 1. **Which writers are constructors vs the complete destructor.** The census cannot separate
-   them; destruction order (restores *base* vtables, then calls a base destructor last) vs
-   construction order (bases first, own vtable last) settles it immediately.
+   them; destruction order (restores *own* vtable, then destroys members, then calls the base
+   destructor last) vs construction order (base first, own fields, own vtable last) settles it
+   immediately. The **base class comes free**: the constructor's first call is the base
+   constructor, and if that function is another candidate's writer, that candidate is the base and
+   its own allocation hint is the base extent — cross-check it against the offset where the
+   derived class's first own field starts.
 2. **Allocation size.** Confirm the hint at a `push N; call operator_new; ... call ctor` site.
    A hint can exceed the class's own extent — the `push` belongs to the *most-derived* class
    being constructed, so a hint on an abstract base's candidate is really a derived class's size.
@@ -86,10 +98,24 @@ Facts to settle from the decompiles, in order of value:
 ## Header skeletons and the byte proof
 
 `build/reports/class-candidates/headers/candidate_<vtable>.h` is a compilable starting struct
-(vptr layout + size assert) for porting work. Copy it into owned source only as a draft: rename
-per convention, replace `void* vptr` with real virtuals when porting a body that makes virtual
-calls, and let `just verify-boundaries` falsify the layout. Never track or `#include` the
-generated file itself.
+(vptr layout + size assert) for porting work. Copy it into owned source only as a draft, and
+**name the ported struct after the reviewed class** — inventing a second name for a class the
+reviewed model already names recreates the duplicate-model problem the repo spent a bead
+eliminating. Replace `void* vptr` with real virtuals when the body makes virtual calls, keep
+unreviewed regions opaque, and let `just verify-boundaries` falsify the layout.
+
+Worked example, end to end: `W8Dialog005A80A0` (vtable `0x005EEF6C`). Its vtable slot 9 at
+`0x005A81A0` was 61/61 bytes relocation-masked exact on the first build, proving the two own
+fields at `0x98`/`0x9c` and two base byte fields at `0x54`/`0x55`. The port needed no more than
+the struct offsets, an extern for the base method, and a one-virtual class for the notify target;
+the reviewed `layout_proof` cites it. Never track or `#include` the generated header itself.
+
+Registering the port: add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` list in `CMakeLists.txt`,
+mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
+`config/reccmp/wiz8-gameplay-boundaries.csv` (start at `structurally-strong`;
+`just verify-boundaries` reports `promotable` when it is really exact), then set `exact` and fill
+`relocation_masked_sha256` — the pinned test requires a 64-character hash on every exact row.
+`just wiz8 diff-boundary <symbol>` shows the instruction-level alignment while iterating.
 
 ## Refreshing the layer
 
@@ -110,5 +136,8 @@ generated file itself.
 - A candidate whose writers are all large multi-object builders (the `srMaterial` pattern in
   `imported-vftable-sites.csv`) has no dedicated constructor to port; recover it from the builder
   or from its destructor instead.
+- Promotion bumps pinned counts: `tests/unit/test_wiz8_source_model.py` asserts the reviewed
+  vtable and slot totals, so `just test` will fail with an off-by-your-new-rows count until you
+  update it. That failure is the model loader confirming your rows loaded, not a problem.
 - Do not hand-edit anything under `build/reports/` — regenerate; and do not promote a candidate
   wholesale "because the census says so": the census is the map, the decompiles are the territory.

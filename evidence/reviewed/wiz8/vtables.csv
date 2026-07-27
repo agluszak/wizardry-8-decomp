@@ -14,3 +14,4 @@ wiz8,MonsterLight.primary,MonsterLight,005ecd18,0x0,primary,13,strong,classes:wi
 wiz8,MonsterLight.secondary_0x138,MonsterLight,005ecd0c,0x138,secondary,3,strong,classes:wiz8:MonsterLight
 wiz8,stLight.primary,stLight,005ecc64,0x0,primary,13,strong,classes:wiz8:stLight
 wiz8,stLight.secondary_0,stLight,005ecca4,,secondary,,strong,classes:wiz8:stLight
+wiz8,W8Dialog005A80A0.primary,W8Dialog005A80A0,005eef6c,0x0,primary,15,strong,classes:wiz8:W8Dialog005A80A0
