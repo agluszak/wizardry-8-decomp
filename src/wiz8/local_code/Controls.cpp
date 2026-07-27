@@ -13,8 +13,12 @@
    W8Controls of its own, so this merges the two rather than leaving one
    address described by two structures.
 
-   The image names neither the widget class nor its fields, so both carry
-   address-qualified positional names. The three remaining W8Controls members
+   The image names neither the widget class nor most of its fields, so they
+   carry address-qualified positional names. The member at +0x1c is the
+   exception: the assertion at Controls.cpp:1849 reads m_pPanel != NULL, and
+   the pointer it guards is the one the constructor stores there and registers
+   into, so that member is named by the original source. It had been called
+   m_owner here, which was a guess at the same thing. The three remaining W8Controls members
    below are positional for the same reason - only m_uiRegionSetId is spoken
    for by the assertion - so they are spelled in the file's style without
    claiming that style is evidence. */
@@ -86,7 +90,7 @@ protected:
     int m_right;                         /* 0x10 */
     int m_bottom;                        /* 0x14 */
     int m_region_18;                     /* 0x18: handed to SetRegionMode4 unless -1 */
-    W8Controls* m_owner;              /* 0x1c */
+    W8Controls* m_pPanel;                /* 0x1c: named by Controls.cpp:1849 */
     int m_field_20;                      /* 0x20: the five below are zeroed and not */
     int m_field_24;                      /* 0x24: otherwise touched by the recovered */
     int m_field_28;                      /* 0x28: bodies */
@@ -125,7 +129,7 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(W8Controls* owner, unsigned int regio
     int origin_y;
 
     m_right = right;
-    m_owner = owner;
+    m_pPanel = owner;
     m_flag_4 = 1;
     m_flag_5 = 0;
     m_flag_6 = 0;
@@ -149,7 +153,7 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(W8Controls* owner, unsigned int regio
         SetRegionMode4(m_region_18);
     }
 
-    holder = m_owner;
+    holder = m_pPanel;
     wanted = holder->m_nControls + 1;
     if (holder->m_nControlsAllocated < wanted) {
         previous = holder->m_ppControls;
@@ -204,7 +208,7 @@ void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
 
     m_region_18 = region;
     if (region != 0xffffffff) {
-        holder = m_owner;
+        holder = m_pPanel;
         if (holder != 0) {
             origin_y = holder->origin_y;
             origin_x = holder->origin_x;
@@ -223,4 +227,109 @@ void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
         }
         SetRegionMode4(bound);
     }
+}
+
+/* Measures a string, returning its extent through the last two arguments. Not
+   recovered, and not first-party as far as this file can tell - declared only
+   so the caller below can be. */
+extern void Function549660(int a, int b, int c, short* width, short* height);
+
+/*
+ * A widget carrying text. Derived from the widget base rather than merely
+ * shaped like it: it reads the rectangle at +0x08 and the panel at +0x1c
+ * exactly as the base lays them out, and everything it owns starts past the
+ * base's 0x34. The class is named for the function that establishes it,
+ * because no vtable of its own is in evidence here.
+ */
+class W8TextWidget004F4850 : public W8WidgetBase005ED5BC {
+public:
+    void GetTextOrigin(int unused, int* px, int* py);
+
+protected:
+    int m_field_34;
+    unsigned int m_flags_38;             /* 0x38: 0x80 skips alignment, 0x04 pins left */
+    int m_field_3c;
+    int m_text_40;                       /* 0x40: the four below are -1 when unset and */
+    int m_text_44;                       /* 0x44: are what the measure call consumes */
+    int m_text_48;                       /* 0x48 */
+    int m_text_4c;                       /* 0x4c */
+    unsigned char unknown_50[0xc];
+    short m_measured_w;                  /* 0x5c: -1 until measured */
+    short m_measured_h;                  /* 0x5e */
+};
+
+/*
+ * Where the text should be drawn: the panel's origin, plus either the widget's
+ * own corner or an alignment computed from the measured extent.
+ *
+ * The measure is cached in the two shorts at +0x5c and only recomputed when
+ * either is -1. If the handles it would measure from are themselves unset the
+ * cache is stamped -1 again and the plain corner is used, so an unmeasurable
+ * widget re-tests those handles on every call rather than settling.
+ *
+ * The first argument is not read. It is kept because the calling convention
+ * needs it, not because anything here wants it.
+ */
+// FUNCTION: WIZ8 0x004F4850
+void W8TextWidget004F4850::GetTextOrigin(int unused, int* px, int* py)
+{
+    short* measured;
+    short width;
+    int handle;
+    int x;
+
+    if (m_pPanel == 0) {
+        srAssertFail("m_pPanel != NULL",
+                     "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp",
+                     0x739,
+                     0);
+    }
+    *px = m_pPanel->origin_x;
+    measured = &m_measured_w;
+    *py = m_pPanel->origin_y;
+    width = *measured;
+    if (width == -1 || m_measured_h == -1) {
+        if (m_text_40 == -1 || m_text_44 == -1) {
+            *measured = -1;
+            m_measured_h = -1;
+            goto plain;
+        }
+        handle = m_text_48;
+        if (handle == -1 && (handle = m_text_4c, handle == -1)) {
+            *measured = -1;
+            m_measured_h = -1;
+            goto plain;
+        }
+        Function549660(m_text_40, m_text_44, handle, measured, &m_measured_h);
+        if ((m_flags_38 & 0x80) != 0) {
+            *px = *px + m_left;
+            *py = *py + m_top;
+            return;
+        }
+        if ((m_flags_38 & 4) != 0) {
+            x = m_left;
+            goto aligned;
+        }
+        width = *measured;
+    } else {
+        if ((m_flags_38 & 0x80) != 0) {
+            *px = *px + m_left;
+            *py = *py + m_top;
+            return;
+        }
+        if ((m_flags_38 & 4) != 0) {
+            x = m_left;
+            goto aligned;
+        }
+    }
+    x = m_right - (int)width;
+
+aligned:
+    *px = *px + x;
+    *py = *py + ((m_bottom - (int)m_measured_h) - m_top) / 2 + m_top;
+    return;
+
+plain:
+    *px = *px + m_left;
+    *py = *py + m_top;
 }
