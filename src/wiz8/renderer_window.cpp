@@ -43,6 +43,10 @@ extern unsigned char g_flag_6840bc;
 extern unsigned char g_flag_65970f;
 extern srGERD* g_gerd_659634;
 extern void* g_surface_65964c;
+extern void* g_primary_surface_6596a8;
+
+/* From the vendored SGP DirectDraw Calls.c. */
+extern void DDUnlockSurface(void* surface, void* locked);
 extern void* g_surface_659650;
 extern void* g_surface_659654;
 extern void* g_surface_659658;
@@ -141,6 +145,26 @@ done:
     }
     Function47B5F0();
     return Function4285C0();
+}
+
+/* Releases the lock the frame tick takes on the primary surface. The second
+   argument is the locked pointer SGP's wrapper wants; the original passes null
+   because it unlocks the whole surface. */
+// FUNCTION: WIZ8 0x00421FB0
+void UnlockPrimarySurface(void)
+{
+    DDUnlockSurface(g_primary_surface_6596a8, NULL);
+}
+
+/* The mode the engine falls back to: 640x480 at 16bpp, reported height first.
+   Nothing here reads a configuration - the three constants are inline. */
+// FUNCTION: WIZ8 0x00422AF0
+void GetDefaultScreenMode(unsigned short* height, unsigned short* width,
+                          unsigned char* depth)
+{
+    *height = 0x1e0;
+    *width = 0x280;
+    *depth = 0x10;
 }
 
 }

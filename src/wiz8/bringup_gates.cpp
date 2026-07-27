@@ -38,6 +38,11 @@ extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_byte_603c39;
+extern int g_dword_65a104;
+extern int g_dword_5ff64c;
+extern int g_dword_6874c6;
+extern int g_dword_687595;
+extern unsigned char g_byte_68de44;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
@@ -198,6 +203,51 @@ void Function4277D0(void)
 void Function42BC00(void)
 {
     g_flag_6598a8 = 1;
+}
+
+
+/* Takes the default unless the caller names a size. Nothing yet establishes
+   what consumes the value, so both it and its holder keep address-derived
+   names. */
+// FUNCTION: WIZ8 0x004098D0
+unsigned char Function4098D0(int size)
+{
+    g_dword_5ff64c = 0x1f5800;
+    if (size != 0) {
+        g_dword_5ff64c = size;
+    }
+    return 1;
+}
+
+/* Sets the size above to 0x000C8000 and clears its companion. */
+// FUNCTION: WIZ8 0x00479010
+void Function479010(void)
+{
+    Function4098D0(0xc8000);
+    g_dword_65a104 = 0;
+}
+
+/* Three more single-global writes, each in a different unit. The first stores a
+   full dword and hands the same value back - it materializes the 1 in eax and
+   stores through it - so its global is not the byte flag its one-bit use
+   suggests, and it is not the void setter the other two are. */
+// FUNCTION: WIZ8 0x00443A50
+int Function443A50(void)
+{
+    g_dword_6874c6 = 1;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00482740
+void Function482740(int value)
+{
+    g_dword_687595 = value;
+}
+
+// FUNCTION: WIZ8 0x005588E0
+void Function5588E0(unsigned char value)
+{
+    g_byte_68de44 = value;
 }
 
 /* Clears the flag 0x005B1740's gate sets. Both the window procedure's teardown
