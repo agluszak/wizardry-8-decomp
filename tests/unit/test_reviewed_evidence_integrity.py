@@ -1,4 +1,11 @@
-"""Every tracked CSV must parse back to exactly the columns it declares.
+"""Structural guards on the tracked evidence, one per way it has been broken.
+
+Every check here exists because the failure it catches actually happened and
+nothing else noticed. They fall into two groups: the tracked CSVs must parse
+back to the columns they declare, and a reviewed row that points at an address
+must point at one the evidence itself supports.
+
+Every tracked CSV must parse back to exactly the columns it declares.
 
 This exists because the failure it catches is silent. A field whose text
 contains a comma but is written unquoted does not raise: `csv.DictReader`
@@ -105,3 +112,89 @@ def test_reviewed_vtable_slots_agree_with_the_census() -> None:
             f"but the image holds {expected}"
         )
     assert checked >= 100, f"only {checked} reviewed slots were covered by the census"
+
+
+def _reviewed(name: str) -> list[dict[str, str]]:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/wiz8" / name).open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        return list(csv.DictReader(stream))
+
+
+def _census(name: str) -> list[dict[str, str]]:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/snapshots/polymorphism" / name).open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        return [row for row in csv.DictReader(stream) if "--gog-base--" in row["program"]]
+
+
+def test_reviewed_vtable_addresses_are_census_vftables() -> None:
+    """A reviewed vtable must be a table the image actually has.
+
+    Nothing else checks the address itself: the loader validates ids, offsets
+    and slot counts against each other, so a wrong address stays internally
+    consistent and only surfaces when a replay reads garbage from it.
+    """
+
+    tables = {row["address"]: row for row in _census("vtables.csv")}
+    for vtable in _reviewed("vtables.csv"):
+        found = tables.get(vtable["address"])
+        assert found is not None, (
+            f"{vtable['vtable_id']} records address {vtable['address']}, which the "
+            "polymorphism census does not report as a table at all"
+        )
+        assert found["kind"] == "vftable", (
+            f"{vtable['vtable_id']} points at a {found['kind']}, not a vftable"
+        )
+
+
+def test_reviewed_scalar_deleting_destructors_sit_in_their_own_vtable() -> None:
+    """The recorded deleting destructor must be one of the class's own slots.
+
+    It need not be slot 0 -- MonsterLight's is slot 5, because it derives from
+    an srLight whose destructor is not first -- but a destructor that appears
+    nowhere in the class's table is an address that came from somewhere other
+    than the evidence.
+    """
+
+    targets: dict[str, set[str]] = {}
+    for slot in _reviewed("vtable-slots.csv"):
+        targets.setdefault(slot["vtable_id"], set()).add(slot["target"])
+
+    checked = 0
+    for reviewed_class in _reviewed("classes.csv"):
+        vtable_id = reviewed_class["primary_vtable_id"]
+        deleting = reviewed_class["scalar_deleting_destructor"]
+        if not (vtable_id and deleting and vtable_id in targets):
+            continue
+        checked += 1
+        assert deleting in targets[vtable_id], (
+            f"{reviewed_class['class_name']} records {deleting} as its scalar deleting "
+            f"destructor, but no slot of {vtable_id} points there"
+        )
+    assert checked >= 10, f"only {checked} classes were covered"
+
+
+def test_reviewed_class_and_vtable_references_resolve() -> None:
+    """Referential integrity across the reviewed class tables."""
+
+    vtables = {row["vtable_id"]: row for row in _reviewed("vtables.csv")}
+
+    for slot in _reviewed("vtable-slots.csv"):
+        assert slot["vtable_id"] in vtables, (
+            f"vtable-slots.csv references unknown vtable {slot['vtable_id']}"
+        )
+
+    for reviewed_class in _reviewed("classes.csv"):
+        primary = reviewed_class["primary_vtable_id"]
+        if not primary:
+            continue
+        assert primary in vtables, (
+            f"{reviewed_class['class_name']} names unknown primary vtable {primary}"
+        )
+        assert vtables[primary]["class_name"] == reviewed_class["class_name"], (
+            f"{primary} is claimed by {reviewed_class['class_name']} but belongs to "
+            f"{vtables[primary]['class_name']}"
+        )
