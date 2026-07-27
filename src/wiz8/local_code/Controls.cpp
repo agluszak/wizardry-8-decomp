@@ -333,3 +333,72 @@ plain:
     *px = *px + m_left;
     *py = *py + m_top;
 }
+
+/*
+ * The class at vtable 0x005ED5B8. It owns a wide-string buffer at +0x34, which
+ * is the one field the encodings name for themselves: the destructor frees it
+ * and 0x004F33A0 fills it with wcscpy. Everything else the constructor touches
+ * is positional.
+ *
+ * The destructor is written inside the class body because that is what folds it
+ * into the deleting destructor, the same shape the widget base above needed,
+ * and the constructor is what emits the vtable so the fold has something to
+ * hang on.
+ */
+class W8TextBuffer005ED5B8 {
+public:
+    W8TextBuffer005ED5B8();
+
+    // FUNCTION: WIZ8 0x004F3370
+    virtual ~W8TextBuffer005ED5B8()
+    {
+        delete[] m_buffer;
+    }
+
+protected:
+    int m_field_04;
+    int m_field_08;
+    int m_field_0c;
+    int m_field_10;
+    int m_field_14;
+    int m_field_18;
+    int m_field_1c;
+    int m_field_20;
+    int m_field_24;                      /* 0x24: the constructor steps over this one */
+    int m_field_28;
+    int m_field_2c;
+    int m_field_30;
+    wchar_t* m_buffer;                   /* 0x34: freed on teardown */
+    int m_field_38;                      /* 0x38: 10 */
+    int m_field_3c;
+    unsigned char m_flag_40;
+    unsigned char m_flag_41;
+    unsigned char pad_42[2];
+    int m_field_44;                      /* 0x44: 4 */
+    int m_field_48;                      /* 0x48: the -1 sentinel */
+    unsigned char m_flag_4c;
+};
+
+// FUNCTION: WIZ8 0x004F3310
+W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
+{
+    m_buffer = 0;
+    m_field_28 = 0;
+    m_field_2c = 0;
+    m_flag_40 = 0;
+    m_field_38 = 10;
+    m_field_3c = 0;
+    m_field_30 = 0;
+    m_field_44 = 4;
+    m_flag_41 = 0;
+    m_field_48 = -1;
+    m_flag_4c = 0;
+    m_field_04 = 0;
+    m_field_08 = 0;
+    m_field_0c = 0;
+    m_field_10 = 0;
+    m_field_14 = 0;
+    m_field_18 = 0;
+    m_field_1c = 0;
+    m_field_20 = 0;
+}
