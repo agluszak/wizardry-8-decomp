@@ -658,6 +658,36 @@ def sgp_sweep(
     _run_action(lambda: sweep_sgp_units(_settings(), unit, update_snapshot=update_snapshot))
 
 
+@ghidra_app.command("overlay")
+def ghidra_overlay_command(
+    action: Annotated[str, typer.Argument(help="create, apply-vtable, decompile, or discard.")],
+    selector: Annotated[str, typer.Argument(help="Program selector.")],
+    hypothesis: Annotated[str, typer.Argument(help="Hypothesis name; keys the scratch clone.")],
+    argument: Annotated[str | None, typer.Argument(help="Class for apply-vtable; address for decompile.")] = None,
+) -> None:
+    """Candidate overlays: clone, mutate, measure, discard - never the baseline."""
+
+    def run() -> Any:
+        from .ghidra import overlay
+
+        settings = _settings()
+        if action == "create":
+            return overlay.create_overlay(settings, selector, hypothesis)
+        if action == "apply-vtable":
+            if not argument:
+                raise ValueError("apply-vtable requires a class name")
+            return overlay.apply_typed_vtable(settings, selector, hypothesis, argument)
+        if action == "decompile":
+            if not argument:
+                raise ValueError("decompile requires an address")
+            return overlay.decompile_in_overlay(settings, selector, hypothesis, argument)
+        if action == "discard":
+            return overlay.discard_overlay(settings, selector, hypothesis)
+        raise ValueError(f"unknown overlay action: {action}")
+
+    _run_action(run)
+
+
 @ghidra_app.command("import")
 def ghidra_import(
     all_programs: bool = typer.Option(
