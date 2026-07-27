@@ -464,16 +464,14 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
             WIZ8_SGP_RANDOM
             WIZ8_SGP_TIMER
         )
-        # Built through the bring-up target so an ordinary build produces them,
-        # but deliberately not among its sources.
-        #
-        # sgp.c carries SGP's own WinMain alongside the two bodies wanted from
-        # it. That WinMain is the upstream one and compiles to 357 bytes, where
-        # the game ships a modified 378-byte body at 0x00401670, so two objects
-        # claim the name and only one is in the image. The reviewed row picks
-        # between them by size, which is why this unit can be built at all.
+        # Compiling these is an evidence operation, not executable bring-up:
+        # they are verified against the original but deliberately never linked,
+        # because only a unit the vendored source reproduces whole may join the
+        # image. They therefore hang off their own aggregate rather than off the
+        # bring-up target, whose dependencies should be its real link inputs.
+        add_custom_target(WIZ8_SGP_PROBES)
         add_dependencies(
-            WIZ8_BRINGUP
+            WIZ8_SGP_PROBES
             WIZ8_SGP_CONTAINER
             WIZ8_SGP_CORE
             WIZ8_SGP_DEBUG
@@ -482,6 +480,10 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
             WIZ8_SGP_INPUT
             WIZ8_SGP_LIBRARY_DATABASE
         )
+        add_dependencies(WIZ8_MATCHING WIZ8_SGP_PROBES)
+        # The image target pulls them too, so an ordinary build still produces
+        # the objects verification reads. Verification does not build.
+        add_dependencies(WIZ8 WIZ8_SGP_PROBES)
         target_sources(WIZ8_BRINGUP PRIVATE
             $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
             $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
