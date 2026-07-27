@@ -266,6 +266,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/fact_state.cpp
         src/wiz8/game_databases.cpp
         src/wiz8/render_options.cpp
+        src/wiz8/unattributed_helpers.cpp
         src/wiz8/frame_tick.cpp
         src/wiz8/game_init.cpp
         src/wiz8/gameplay_teardown.cpp

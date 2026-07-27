@@ -296,3 +296,6 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 00443a50,11,Function443A50,wiz8-engine-code,exact,8299c291c6df996148ab19d1c038b7deee2d7f33c63edad875f49607ad3bac0c,"Latches the flag at 0x006874C6"
 00482740,10,Function482740,wiz8-engine-code,exact,b7033912c984fec75877baf344a7fdb1ba6c054bad49cbedea7d291d8815078c,"Stores a value at 0x00687595"
 005588e0,10,Function5588E0,wiz8-engine-code,exact,1ad516029640c1fe9b0955eb9147d728ed17f167a636d9f9c5640f2a38c6bb10,"Stores a byte at 0x0068DE44"
+004c5860,15,Function4C5860,wiz8-engine-code,exact,4aa43461b3521602b09881770508d31d4b6e178425db6d1711055b0d367d1675,"Releases a polymorphic object through slot 0 with the deleting flag, tolerating a null"
+004c5ed0,14,Function4C5ED0,wiz8-engine-code,structurally-strong,,"Calls 0x004C4EF0 when its argument is set. Same 14 bytes and all five instructions; the original holds the argument in ecx where this holds it in eax, and declaring it a pointer does not move it"
+0046e5a0,23,Function46E5A0,wiz8-engine-code,exact,29cb8b194bbe8aa3babc119ec0ea6b7bd5397a3bf102a64b0972e383eb975ae9,"Removes an item from the list at 0x00659AB4; the first argument is taken and ignored"
