@@ -450,10 +450,24 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     wiz8_add_sgp_unit(WIZ8_SGP_TIMER "timer.c" timer)
     wiz8_add_sgp_unit(WIZ8_SGP_INPUT "input.c" input)
     if(WIZ8_BUILD_DECOMP)
+        # Container, FileMan and input are built but deliberately not linked.
+        # Only a unit the vendored source reproduces whole may join the bring-up
+        # image, and these three are partial against their shipped counterparts.
+        # Building them is what puts their individual bodies under
+        # relocation-masked verification against the original; linking them
+        # would be a claim about the image that the evidence does not support.
         add_dependencies(
             WIZ8_MATCHING
             WIZ8_SGP_RANDOM
             WIZ8_SGP_TIMER
+        )
+        # Built through the bring-up target so an ordinary build produces them,
+        # but deliberately not among its sources.
+        add_dependencies(
+            WIZ8_BRINGUP
+            WIZ8_SGP_CONTAINER
+            WIZ8_SGP_FILEMAN
+            WIZ8_SGP_INPUT
         )
         target_sources(WIZ8_BRINGUP PRIVATE
             $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>

@@ -22,6 +22,10 @@ extern void __fastcall Function52DB80(void* self);
 extern void Function54B300(unsigned int slot);
 extern W8GlobalStatus g_status_685170;
 extern W8GameSettings g_settings_6850c8;
+extern int g_dword_68ed10;
+extern unsigned char g_flag_68edac;
+void Function55EC50(int value);
+void Function55EC60(void);
 extern unsigned char g_monster_slot_block[0x1a0a];
 extern W8MonsterSlot g_monster_slots_6836b8[];
 extern int SetCountdownClock(int delay);
@@ -49,13 +53,11 @@ extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);
 extern void Function482740(int value);
-extern void Function55EC60(void);
 extern void Function509890(void);
 extern void Function509920(void);
 extern void Function558820(void);
 extern void Function535920(void);
 extern void Function56C520(void);
-extern void Function55EC50(int value);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
 extern void Function4E8290(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
@@ -796,4 +798,18 @@ void Function54AFD0(void)
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
     g_object_683fd7 = new W8GameplayObjectA();
     g_object_685067 = new W8GameplayObjectB(300.0f, 0);
+}
+
+/* Stores the value the frame tick and the new-game reset both read back. */
+// FUNCTION: WIZ8 0x0055EC50
+void Function55EC50(int value)
+{
+    g_dword_68ed10 = value;
+}
+
+/* Latches the flag the frame tick clears once it has acted on it. */
+// FUNCTION: WIZ8 0x0055EC60
+void Function55EC60(void)
+{
+    g_flag_68edac = 1;
 }

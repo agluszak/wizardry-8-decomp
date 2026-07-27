@@ -33,6 +33,15 @@ extern int g_dword_650dfc;
 extern int g_dword_650e00;
 extern bool g_flag_650e04;
 extern unsigned char g_flag_650e50;
+extern unsigned char g_flag_5ff651;
+extern unsigned char g_flag_65970f;
+extern unsigned char g_flag_6598a8;
+extern unsigned char g_flag_659711;
+extern unsigned char g_byte_603c39;
+extern unsigned char g_flag_65970f;
+extern unsigned char g_flag_6598a8;
+extern unsigned char g_flag_659711;
+extern unsigned char g_byte_603c39;
 extern unsigned short g_word_5ff7c8;
 extern unsigned char g_flag_5ff7ca;
 extern int g_dword_650e24;
@@ -156,6 +165,40 @@ extern void Function401F70(void);
 extern void Function428B80(void);
 
 
+
+/* Stores the byte 0x004086D0's environment selection consults. */
+// FUNCTION: WIZ8 0x004086C0
+void Function4086C0(int enable)
+{
+    g_flag_5ff651 = (unsigned char)enable;
+}
+
+/* Reports the byte at 0x00603C39; the only reader is 0x00421BB0. */
+// FUNCTION: WIZ8 0x004229B0
+unsigned char Function4229B0(void)
+{
+    return g_byte_603c39;
+}
+
+/* Three latches, each set once and never cleared here. */
+// FUNCTION: WIZ8 0x004229D0
+void Function4229D0(void)
+{
+    g_flag_659711 = 1;
+}
+
+// FUNCTION: WIZ8 0x004277D0
+void Function4277D0(void)
+{
+    g_flag_65970f = 1;
+}
+
+// FUNCTION: WIZ8 0x0042BC00
+void Function42BC00(void)
+{
+    g_flag_6598a8 = 1;
+}
+
 /* Clears the flag 0x005B1740's gate sets. Both the window procedure's teardown
    and the shutdown handler reach it. */
 // FUNCTION: WIZ8 0x00404BC0
@@ -272,11 +315,8 @@ extern unsigned char g_flag_650e38;
 extern W8BindingNode* g_binding_head_6eb704;
 extern unsigned char g_block_6eb6a0[0x64];
 
-extern void Function4086C0(int enable);
-extern void Function4277D0(void);
 extern void Function427A30(const char* path);
 extern void Function422970(int enable);
-extern void Function42BC00(void);
 extern unsigned char gfLoadAtStartup;
 extern unsigned char gfUsingBoundsChecker;
 extern unsigned char gfCapturingVideo;
