@@ -385,3 +385,65 @@ void DisableRegionHelp(unsigned int region_index)
     }
     g_regions[region_index].help_enabled = 0;
 }
+
+extern void Function429770(void);
+
+extern unsigned int g_hot_region_689b3c;
+extern unsigned int g_hot_region_689b44;
+extern unsigned int g_hot_region_689b4c;
+extern unsigned int g_dword_689b50;
+extern unsigned short g_dword_689b48;
+extern unsigned short g_word_6850ed;
+
+/* Drops every region back to its resting state. The three tracked regions are
+   released first - each only if it still carries bit 0x200 - then every region
+   set is disabled and every region keeps only its low two flag bits. The three
+   trackers are cleared last, and the fourth field is reseeded from the
+   settings word rather than zeroed. */
+// FUNCTION: WIZ8 0x004F1240
+void ResetRegions(void)
+{
+    unsigned int index;
+    W8RegionSet* set;
+    W8Region* region;
+    unsigned int remaining;
+
+    index = g_hot_region_689b3c;
+    if (g_hot_region_689b3c != 0 && (g_regions[g_hot_region_689b3c].flags & 0x200) != 0) {
+        Function429770();
+        g_regions[index].flags &= ~0x200u;
+    }
+    index = g_hot_region_689b4c;
+    if (g_hot_region_689b4c != 0 && (g_regions[g_hot_region_689b4c].flags & 0x200) != 0) {
+        Function429770();
+        g_regions[index].flags &= ~0x200u;
+    }
+    index = g_hot_region_689b44;
+    if (g_hot_region_689b44 != 0 && (g_regions[g_hot_region_689b44].flags & 0x200) != 0) {
+        Function429770();
+        g_regions[index].flags &= ~0x200u;
+    }
+    if (g_region_set_count != 0) {
+        set = g_region_sets;
+        remaining = g_region_set_count;
+        do {
+            set->enabled = 0;
+            set = set + 1;
+            remaining = remaining - 1;
+        } while (remaining != 0);
+    }
+    if (g_region_count != 0) {
+        region = g_regions;
+        remaining = g_region_count;
+        do {
+            region->flags &= 3;
+            region = region + 1;
+            remaining = remaining - 1;
+        } while (remaining != 0);
+    }
+    g_hot_region_689b3c = 0;
+    g_hot_region_689b4c = 0;
+    g_hot_region_689b44 = 0;
+    g_dword_689b50 = 0;
+    g_dword_689b48 = g_word_6850ed;
+}
