@@ -25,8 +25,9 @@ stub while slot 1 holds a real `getSize`, correcting a header that had marked `g
 
 The three `sr.dll` builds in the corpus - the demo and two GOG releases - have different bytes and
 nothing forces them to agree on a table's length. They agree on all sixty-five vftables and all
-fifteen vbtables, which is what makes a decoded run a whole table rather than one that ran into its
-neighbour.
+fifteen vbtables, which catches a decode that drifts. It does not catch one that is wrong the same
+way in every build, and the srMaterial case below is exactly that, so the agreement is a guard
+against instability rather than proof of a boundary.
 
 ## The Wizardry side derives from these classes
 
@@ -80,13 +81,28 @@ dedicated constructors at `0x004925B0` and `0x00492720` build, and `0x78` for on
 builders. The other inlined sites still allocate through a register, where no size exists at the
 site at all.
 
-What that does not settle is where `srMaterial` ends and the first-party class begins, and a harder
-problem is in the way. `??_7srMaterial@@6B@` has **24** slots, while all three first-party vtables
-these builders install - `0x005EBDE0`, `0x005EBE14` and `0x005EBE48`, adjacent and `0x34` apart -
-have **13**. A class cannot have fewer virtual slots than the base it derives from, so either those
-tables are not `srMaterial` subclasses or one of the two counts is wrong. Each of the three carries
-its own constructor writes, so they are three separate tables and not one the census split early.
-That contradiction comes before any port of the family.
+What that does not settle is where `srMaterial` ends and the first-party class begins - but chasing
+it caught a defect in the vftable decoder, which is worth recording because the check that was
+supposed to catch it did not.
+
+`??_7srMaterial@@6B@` first decoded to 24 slots while all three first-party vtables the builders
+install had 13, and a class cannot have fewer virtual slots than its base. The first-party tables
+were right. Slots 13 to 23 were a second table sitting immediately behind srMaterial's: the same
+three leading targets repeated, then `srClass::dump` and `srClass::verify` where srMaterial has its
+own, then pure stubs. Relocations and executable targets do not end a table that another table
+follows, so the run walked straight through the boundary - and the three-build agreement did not
+notice, because every build lays the two tables out the same way. A systematic over-read is
+systematic.
+
+The fix is the rule the first-party census already uses: a table has to be referred to to be used at
+all, so any data address appearing as a relocated operand in code begins one. With that boundary
+`srMaterial` decodes to 13 slots and lines up with its subclasses exactly - slots 3, 4, 6 and 8
+through 12 reached by import thunk, slots 0, 1, 2, 5 and 7 overridden locally. `srBinStream` and
+`srBinIStream` are unchanged at 5 and 2, so the stream pilot's evidence stands.
+
+The reviewed classification was right all along: `0x004925B0` builds a 0x7C-byte `srMaterial`
+subclass that registers itself with `srRegistry`, and its exception states unwind through the
+imported `srMaterial::~srMaterial` and `srMaterialIFace::~srMaterialIFace`.
 
 ## What may be written into a header
 

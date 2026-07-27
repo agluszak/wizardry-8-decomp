@@ -140,9 +140,10 @@ def test_a_vftable_run_ends_at_a_slot_that_leaves_executable_code() -> None:
     assert [slot.target_rva for slot in slots] == [0x2000]
 
 
-def test_a_vftable_run_ends_where_another_exported_symbol_begins() -> None:
-    # Two adjacent tables are indistinguishable by relocation alone; an export
-    # starting mid-run is what separates them.
+def test_a_vftable_run_ends_where_another_table_begins() -> None:
+    # Two adjacent tables are indistinguishable by relocation alone. A boundary
+    # is either an exported symbol or an address code refers to; both arrive in
+    # the same set, because a table has to be referred to to be used at all.
     image = _FakeImage(
         words={0x1000: 0x10002000, 0x1004: 0x10002100, 0x1008: 0x10002200},
         code=range(0x2000, 0x3000),
@@ -191,7 +192,9 @@ def test_every_exported_vftable_decodes_to_at_least_one_slot() -> None:
 def test_three_independent_sr_builds_agree_on_every_vtable_shape() -> None:
     # sr.dll ships in the demo and in two GOG releases with different bytes.
     # Nothing forces them to agree, so a slot count that is the same in all
-    # three is evidence that the decoded run really is the whole table.
+    # three catches a decode that drifts between builds. It does not catch one
+    # that is wrong the same way in all of them - see the srMaterial case - so
+    # this guards stability, not the boundary itself.
     for name in ("vftable-slots.csv", "vbtable-entries.csv"):
         rows = [row for row in _snapshot(name) if row["module"] == "sr.dll"]
         assert len({row["program"] for row in rows}) == 3, name
@@ -202,6 +205,25 @@ def test_three_independent_sr_builds_agree_on_every_vtable_shape() -> None:
             shapes.setdefault(table, set()).add(length)
         disagreeing = {table for table, sizes in shapes.items() if len(sizes) != 1}
         assert not disagreeing, (name, sorted(disagreeing)[:5])
+
+
+def test_a_table_stops_at_the_one_behind_it_rather_than_running_on() -> None:
+    # srMaterial's thirteen slots are followed immediately by another table with
+    # the same shape - the same three leading targets, then srClass's dump and
+    # verify where srMaterial has its own. Bounding the run by relocations alone
+    # merged the two into one 24-slot table, and all three builds agreed on the
+    # wrong answer, because a systematic over-read is systematic. Wizardry's own
+    # subclasses of srMaterial have thirteen slots, which is what caught it.
+    rows = [
+        row
+        for row in _snapshot("vftable-slots.csv")
+        if row["table"] == "??_7srMaterial@@6B@"
+        and row["program"] == "wiz8--gog-base--sr--cec1caf85861"
+    ]
+
+    assert len(rows) == 13
+    assert "srMaterial::reset" in rows[12]["target_signature"]
+    assert not any("srClass::" in row["target_signature"] for row in rows)
 
 
 def test_pure_virtual_slots_share_one_target_the_class_does_not_define() -> None:

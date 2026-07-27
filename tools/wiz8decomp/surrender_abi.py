@@ -291,9 +291,16 @@ def decode_vftable(
     A vftable export names a data address, so its slots are read rather than
     disassembled. Two independent facts bound the run: every slot holds an
     absolute address the loader fixes up, so it appears in the relocation
-    directory, and every slot points into an executable section. The first
-    address that fails either test is past the end. Another exported symbol
-    beginning mid-run ends it too, since two symbols cannot share a byte.
+    directory, and every slot points into an executable section.
+
+    Neither ends a table that another table follows immediately, which is the
+    normal layout - so `boundaries` carries the addresses that do. An exported
+    symbol is one, since two symbols cannot share a byte. The rest come from the
+    same rule the first-party census uses: a table has to be referred to to be
+    used at all, so any data address appearing as a relocated operand in code
+    begins one. Without that second source srMaterial's thirteen slots ran on
+    into the eleven of the table behind it, and agreed across all three builds
+    while doing so, because a systematic over-read is systematic.
     """
 
     slots: list[VftableSlot] = []
@@ -319,6 +326,29 @@ def decode_vftable(
         )
         cursor += 4
     return slots
+
+
+def _referenced_data_rvas(image: PeImage, sites: list[int]) -> set[int]:
+    """Data addresses that code names, each of which begins something.
+
+    Reading the relocation directory and the operand it points at is the same
+    declaration-side evidence the rest of this module uses; nothing here decodes
+    an instruction or reasons about a SurRender body.
+    """
+
+    text = image.text
+    low, high = text.virtual_address, text.virtual_address + text.raw_size
+    referenced: set[int] = set()
+    for site in sites:
+        if not (low <= site < high):
+            continue
+        value = image.read_u32(site)
+        if value is None:
+            continue
+        section = image.section_at(value)
+        if section is not None and not section.executable:
+            referenced.add(value - image.image_base)
+    return referenced
 
 
 def decode_vbtable(
@@ -452,8 +482,10 @@ def _decode_module_tables(
 
     path = settings.work_dir / "variants" / module["variant"] / module["relative_path"]
     image = PeImage(path)
-    relocated = set(relocation_sites(image))
+    sites = relocation_sites(image)
+    relocated = set(sites)
     boundaries = {int(symbol["rva"], 16) for symbol in module["exports"]}
+    boundaries |= _referenced_data_rvas(image, sites)
     # Only exported targets can be named. Everything else is an internal method,
     # which is recorded as unresolved rather than guessed at.
     by_rva: dict[int, dict[str, Any]] = {}
