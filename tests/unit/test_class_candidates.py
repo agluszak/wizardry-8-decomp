@@ -206,3 +206,28 @@ def test_teardown_writers_is_relative_to_the_table_being_written() -> None:
         {"caller": "004a2d80", "callee": "004a5c30"},
     ]
     assert teardown_writers(writes, slots, calls) == {0x00443750}
+
+
+def test_derived_families_rejects_an_object_and_its_embedded_member() -> None:
+    """Two tables at different offsets are an owner and a member, not a hierarchy.
+
+    The census sometimes records the member's store at offset zero, and the pair
+    then looks exactly like a derivation. Another body getting the offset right
+    is enough to rule it out, which is the real 0x005EE8F0 / 0x005EE8F8 case.
+    """
+
+    writes = [
+        # The constructor records the member's real offset.
+        {"site": "0055cff4", "function_start": "0055cfd0", "object_offset": "0x4", "vtable": "005ee8f8"},
+        {"site": "0055d149", "function_start": "0055cfd0", "object_offset": "0x0", "vtable": "005ee8f0"},
+        # The destructor's second store is recorded at zero, which it is not.
+        {"site": "0055d19f", "function_start": "0055d180", "object_offset": "0x0", "vtable": "005ee8f0"},
+        {"site": "0055d235", "function_start": "0055d180", "object_offset": "0x0", "vtable": "005ee8f8"},
+    ]
+    slot_counts = {0x005EE8F0: 1, 0x005EE8F8: 1}
+    assert derived_families(writes, slot_counts) == []
+
+    # Without the constructor's evidence there is nothing to rule it out, and the
+    # pair is reported - the guard needs a body that recorded the offset.
+    only_destructor = [row for row in writes if row["function_start"] == "0055d180"]
+    assert len(derived_families(only_destructor, slot_counts)) == 1

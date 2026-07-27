@@ -350,6 +350,28 @@ def derived_families(
 
     sizes = function_sizes or {}
     destructors = destructor_writers or set()
+
+    # A pair of tables one body installs at *different* offsets is an object and
+    # an embedded member, never a base and a derived class. Collect those pairs
+    # first, because the census sometimes records the member's store at offset
+    # zero and the pair then looks exactly like a derivation: 0x0055D180 stores
+    # 0x005EE8F0 over its own vptr and 0x005EE8F8 four bytes in, and only the
+    # constructor at 0x0055CFD0 records the second offset correctly.
+    offsets_by_writer: dict[int, dict[int, set[str]]] = defaultdict(lambda: defaultdict(set))
+    for row in writes:
+        if row.get("function_start"):
+            offsets_by_writer[int(row["function_start"], 16)][int(row["vtable"], 16)].add(
+                row.get("object_offset", "")
+            )
+    embedded: set[frozenset[int]] = set()
+    for seen in offsets_by_writer.values():
+        at_zero = {v for v, offs in seen.items() if offs & {"0x0", "0"}}
+        elsewhere = {v for v, offs in seen.items() if offs - {"0x0", "0"}}
+        for owner in at_zero:
+            for member in elsewhere:
+                if owner != member:
+                    embedded.add(frozenset((owner, member)))
+
     by_writer: dict[int, list[tuple[int, int]]] = defaultdict(list)
     for row in writes:
         if row.get("object_offset") not in ("0x0", "0"):
@@ -365,6 +387,8 @@ def derived_families(
     for writer, entries in by_writer.items():
         tables = list(dict.fromkeys(vtable for _, vtable in sorted(entries)))
         if len(tables) != 2:
+            continue
+        if frozenset(tables) in embedded:
             continue
         teardown = writer in destructors
         base, derived = (tables[1], tables[0]) if teardown else (tables[0], tables[1])

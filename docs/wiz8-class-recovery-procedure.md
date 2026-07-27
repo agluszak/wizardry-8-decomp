@@ -273,6 +273,18 @@ Related: a **null check before `operator delete`** means the source wrote `delet
 `::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
 to tell them apart.
 
+**Two tables in one body are not always a hierarchy at all.** They are a hierarchy when both go
+over the same vptr, and an object with an embedded member when they go to different offsets - and the
+census does not always record the offsets correctly. `0x0055D180` stores `0x005EE8F0` over its own
+vptr and `0x005EE8F8` four bytes in, but both writes are recorded at offset zero, so the pair reads
+as a perfect base-and-derived. The constructor at `0x0055CFD0` records the member's `0x4` correctly,
+and that is enough to rule the pair out; `derived_families` now drops any pair some body places at
+different offsets.
+
+The guard needs a body that got the offsets right, so it is not a proof of derivation - only a way
+to catch the case that is provably not one. Before porting a family whose writer is a teardown body,
+read the decompile and check both stores really go to `this` and not to `this + n`.
+
 **Which of a pair is the base depends on what the writer is.** A constructor runs base-first, so
 the table it stores *last* is the derived class. A destructor runs the other way - it stores its own
 table, runs its own body, and only then does the base destructor store the base table - so there the

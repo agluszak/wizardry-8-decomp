@@ -201,6 +201,11 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   `just ghidra query <program> function-of <comma-separated sites>`, run it through
   `object_model.attribute_writers`, and pass the corrected writes to `derived_families`. That
   removed six invented pairs and surfaced two real ones the census had split across two functions.
+- **Two tables in one body may be an object and its embedded member, not a hierarchy.** They only
+  differ by the offset written, and the census sometimes records a member's store at zero -
+  `0x0055D180` looks like a textbook pair and is an object with a vector four bytes in.
+  `derived_families` drops pairs another body places at different offsets, but that guard needs
+  such a body to exist, so read the decompile before porting: both stores must go to `this`.
 - **Check `writer_role` before believing which table is the base.** A constructor stores the
   derived table last; a destructor stores it *first*, because the base destructor runs after the
   derived body. Getting that backwards inverts the hierarchy silently. A destructor-written pair
