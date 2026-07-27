@@ -22,9 +22,11 @@ vectors — `W8MonsterManagerEntry` at `+0xd8` and `W8MonsterManagerState` at `+
 `W8GrowableVector<int>` is a different specialization rather than the same one spelled two ways.
 
 `GetAt` returns the address of the element, bounds-checked against `count`, and `RemoveAt` returns
-the element it unlinked. Both are inlined at every call site: `GetNPCItemListByID` is byte-exact
-using `*GetAt(index)` in place of a hand-written guard, and the dialog destructor at `0x005D1590`
-deletes what `RemoveAt` returns while `GenerateItemsFromTable` discards the same value.
+the element it unlinked. Both are inlined at every call site, and `RemoveAt`'s return is why one
+method serves two inlinings: the dialog destructor at `0x005D1590` deletes what it returns while
+`GenerateItemsFromTable` discards the same value. Calling `GetAt` is not always the right port
+even so — `GetNPCItemListByID` reads the count once and keeps the storage pointer it already
+loaded, and spelling that as the accessor re-reads both.
 
 The layout is read off a constructor such as `0x005098B0`:
 
@@ -41,11 +43,18 @@ mov  [esi+0x08], 5                capacity
 | --- | --- | --- |
 | `0x00` | `vptr` | **not padding** — these are polymorphic C++ objects |
 | `0x04` | `int count` | |
-| `0x08` | `int capacity` | 5 in every decoded instantiation |
+| `0x08` | `int capacity` | 5 at every inlined construction |
 | `0x0C` | `T* data` | `operator new(capacity * sizeof(T))` |
 
 Size `0x10`. If the backing allocation fails the constructor stores capacity `0` rather than `5`,
 which is why the field is read rather than assumed.
+
+The 5 is an argument, not a constant. Every construction that uses it is inlined, so the clamp and
+the multiply fold away and only `operator new(20)` survives — but the constructor also exists
+out-of-line, in two shapes that keep the parameter: `0x004390F0` installs one vtable, and
+`0x0042A260` installs a second one over it after the allocation, which is the derived-layer shape
+`W8DialogPtrVector005EF898` also has. Both clamp the requested capacity up to one. Whether the
+original spelled a default argument or a separate default constructor cannot be read off the image.
 
 The destructor for that instantiation, `0x0050E510`, is a textbook MSVC scalar deleting destructor:
 restore the vptr, `operator delete` the backing store at `+0x0c`, then conditionally `operator
@@ -59,6 +68,51 @@ by itself prove another virtual slot: tightly packed specialization vtables can 
 canonical per-vtable observations live in
 `evidence/observations/wiz8/ptr-vector-instantiations.csv`; this document deliberately does not
 promote that mechanical inventory into named source types.
+
+## Grow is shared, and the hierarchy that allows that is unresolved
+
+`Grow` is not instantiated per element type. The image contains exactly one body, at `0x004ADDF0`.
+Its callers span roughly thirty translation units, and joining them against
+`evidence/snapshots/polymorphism/vptr-writes.csv` shows sixteen *different* vector vtables being
+constructed inside those same caller bodies — including the `W8GrowableVector<int>` at `0x005EC0E0`
+and the `0x005EBFE0` instantiation `MonsterManager.cpp` embeds. One body cannot be a template
+member of sixteen specializations.
+
+It is reached through `ecx`, so it is a member function rather than a free helper, and it reads
+count, capacity and data at `+0x04`, `+0x08` and `+0x0c` off its own `this` — so the object it
+receives already carries a vptr at offset zero.
+
+The obvious model, a polymorphic `W8GrowableVectorBase` holding the storage and `Grow` with
+`W8GrowableVector<T>` derived from it, reproduces `Grow` byte-exactly and pulls
+`GenerateItemsFromTable` from 139 bytes over the original to 24. It also costs four reviewed-exact
+lifetime bodies — `0x005D14D0`, `0x005D1590`, `0x005D2540` and `0x005D2560` — an extra vptr store,
+because the extra polymorphic level is one more than the original constructs. So that hierarchy is
+wrong too, and the header keeps `Grow` as a template member: a spelling that is knowingly not the
+original's, chosen because it costs no reviewed body. Resolving it is tracked in Beads.
+
+## Everything else the image repeats is not a first-party template
+
+VC6's linker does not fold identical COMDATs, so two byte-identical bodies at different addresses
+were emitted twice from one source. Clustering the accepted function starts that way — masking
+relocated operands, `call`/`jmp` displacements and trailing padding, all of which a second emission
+changes without the source differing — puts the growable vector at the top of the first-party
+results and finds no second class template under it. What the other large clusters are:
+
+| Shape | Example | What it is |
+| --- | --- | --- |
+| initialiser and `atexit` thunk pair | `0x004217A0` | MSVC's dynamic initialiser for a file-scope object |
+| scalar deleting destructor that calls a separate destructor | `0x004218B0` | compiler-generated, one per polymorphic class |
+| the same, freeing through `srHeap::free` | `0x0042A170` | compiler-generated for the SurRender-allocated classes |
+| `srRegistry::registerClass` chains | `0x0042A030`, `0x0047EAC0` | SurRender's class-registration macro expanded in first-party units |
+| `operator new` under an EH state, then a constructor call | `0x0044EDF0` | a typed heap factory, one per type |
+
+Only one first-party duplicate in that survey is a shared *function*: the quicksort at `0x00467640`
+and `0x0048A3D0`, which sorts an unsigned key array while permuting a parallel array through the
+same index. Two emissions of one header-defined helper, in units the assertion anchors bracket to
+`..\Engine Code\Include\stHeap.hpp` and `Engine Code\ReadMesh.cpp`.
+
+The other templates in the image are SurRender's, `srVector3T<float>` and `srVector3T<double>` among
+them, and they are declarations here rather than recovery subjects.
 
 ## Why this kept being rediscovered
 

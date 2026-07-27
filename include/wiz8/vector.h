@@ -4,14 +4,21 @@
 #include <new>
 
 /* One hand-rolled growable-array template. Each element type emits its own
-   vtable and deleting destructor, while four-byte instantiations share the
-   same machine-code shape for Grow. The original template name is not known. */
+   vtable and its own destructors, but they all call one shared Grow rather than
+   an instantiation of it. The original template name is not known. */
 template <class T>
 class W8GrowableVector {
 public:
-    W8GrowableVector();
+    W8GrowableVector(int initial_capacity = 5);
     virtual ~W8GrowableVector();
 
+    /* Not per-element-type in the original, whatever this declaration says:
+       the image holds one Grow body, and the fifty-nine callers of 0x004ADDF0
+       span about thirty translation units and construct sixteen different
+       vector vtables between them. Modelling that as a shared base reproduces
+       Grow exactly but costs four reviewed-exact lifetime bodies an extra vptr
+       store, so the hierarchy that produces both is still open - see the
+       growable-vector section of docs/libraries/wiz8-foundation-types.md. */
     int Grow(int minimum_capacity);
 
     __forceinline int GetCount() const
@@ -79,13 +86,24 @@ public:
    in evidence/snapshots/polymorphism/vptr-writes.csv. */
 class W8VectorElement005EBFE0;
 
+/* The initial capacity is a parameter, clamped to at least one. Every site that
+   constructs with the default folds both the clamp and the multiply away, which
+   is why the inlined copies show only `operator new(20)`; the thirty-six
+   out-of-line copies - fourteen at 0x004390F0 and its siblings, twenty-two more
+   that install a second vtable the way 0x0042A260 does - keep the parameter and
+   are what proves it. Whether the original spelled a default argument or a
+   separate default constructor the image cannot say, because every capacity-5
+   site is inlined. */
 template <class T>
-__forceinline W8GrowableVector<T>::W8GrowableVector()
+__forceinline W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
 {
-    data = static_cast<T*>(::operator new(5 * sizeof(T)));
+    if (initial_capacity < 1) {
+        initial_capacity = 1;
+    }
+    data = static_cast<T*>(::operator new(initial_capacity * sizeof(T)));
     count = 0;
     if (data != 0) {
-        capacity = 5;
+        capacity = initial_capacity;
     }
     else {
         capacity = 0;
