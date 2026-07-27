@@ -48,6 +48,8 @@ long __stdcall WindowProc4011E0(void* window, int message,
                                 unsigned int wparam, long lparam)
 {
     RECT* rect;
+    int right;
+    int top;
     int width;
     int height;
     unsigned char move_left;
@@ -63,6 +65,23 @@ long __stdcall WindowProc4011E0(void* window, int message,
     switch (message) {
     case WM_CREATE:
     case WM_MOVE:
+        return 0;
+
+    case WM_SIZE:
+        if ((short)lparam == 0) {
+            return 0;
+        }
+        if (((unsigned long)lparam >> 16) == 0) {
+            return 0;
+        }
+        if (wparam == SIZE_RESTORED) {
+            Function422550();
+            return 0;
+        }
+        if (wparam != SIZE_MAXIMIZED) {
+            return 0;
+        }
+        Function422970(1);
         return 0;
 
     case WM_DESTROY:
@@ -88,23 +107,6 @@ long __stdcall WindowProc4011E0(void* window, int message,
         }
         ShowCursor(TRUE);
         PostQuitMessage(0);
-        return 0;
-
-    case WM_SIZE:
-        if ((short)lparam == 0) {
-            return 0;
-        }
-        if (((unsigned long)lparam >> 16) == 0) {
-            return 0;
-        }
-        if (wparam == SIZE_RESTORED) {
-            Function422550();
-            return 0;
-        }
-        if (wparam != SIZE_MAXIMIZED) {
-            return 0;
-        }
-        Function422970(1);
         return 0;
 
     case WM_SETFOCUS:
@@ -158,22 +160,27 @@ long __stdcall WindowProc4011E0(void* window, int message,
         return 0;
 
     case WM_SIZING:
+        /* Holds the window to 4:3 against 640x480. The original reads the two
+           edges it needs once, and both the top and the bottom group converge
+           on one scaling tail rather than each carrying its own copy. */
         rect = (RECT*)lparam;
         move_left = 0;
-        width = rect->right - rect->left;
-        height = rect->bottom - rect->top;
+        right = rect->right;
+        top = rect->top;
+        width = right - rect->left;
+        height = rect->bottom - top;
         switch (wparam) {
         case WMSZ_LEFT:
-            if (width < 640) {
-                rect->left = rect->right - 640;
-                width = 640;
+            if (width >= 640) {
+                goto scale_height;
             }
+            rect->left = right - 640;
             break;
         case WMSZ_RIGHT:
-            if (width < 640) {
-                rect->right = rect->left + 640;
-                width = 640;
+            if (width >= 640) {
+                goto scale_height;
             }
+            rect->right = rect->left + 640;
             break;
         case WMSZ_TOPLEFT:
             move_left = 1;
@@ -184,31 +191,33 @@ long __stdcall WindowProc4011E0(void* window, int message,
                 rect->top = rect->bottom - 480;
                 height = 480;
             }
-            width = (height * 640) / 480;
-            if (move_left) {
-                rect->left = rect->right - width;
-            } else {
-                rect->right = rect->left + width;
-            }
-            return 0;
+            goto scale_width;
         case WMSZ_BOTTOMLEFT:
             move_left = 1;
             /* fall through */
         case WMSZ_BOTTOM:
         case WMSZ_BOTTOMRIGHT:
-            if (height < 480) {
-                rect->bottom = rect->top + 480;
-                height = 480;
+            if (height >= 480) {
+                goto scale_width;
             }
-            width = (height * 640) / 480;
-            if (move_left) {
-                rect->left = rect->right - width;
-            } else {
-                rect->right = rect->left + width;
-            }
-            return 0;
+            rect->bottom = top + 480;
+            height = 480;
+            goto scale_width;
+        default:
+            goto scale_height;
         }
-        rect->bottom = rect->top + (width * 480) / 640;
+        width = 640;
+    scale_height:
+        rect->bottom = top + (width * 480) / 640;
+        return 0;
+
+    scale_width:
+        width = (height * 640) / 480;
+        if (move_left) {
+            rect->left = right - width;
+        } else {
+            rect->right = rect->left + width;
+        }
         return 0;
 
     default:
