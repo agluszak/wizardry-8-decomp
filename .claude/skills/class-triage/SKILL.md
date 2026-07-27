@@ -97,9 +97,14 @@ Facts to settle from the decompiles, in order of value:
 2. Writers get `functions.csv` rows (plus `function-evidence.csv`) with honest `name_origin` —
    `descriptive` unless a string names them — and pointer fields with known pointees can use the
    `fields.csv` `pointee` column to type the graph.
-3. `just test` — the reviewed-model loader cross-validates sizes, slot counts and field overlap,
+3. If the rebase conflicts — it often will, several agents append to these tables —
+   `just wiz8 resolve-evidence-conflict <file>` rather than merging by hand. It keeps the stronger
+   row per identity, so a promotion the other side lacks is not silently demoted, and names the
+   collisions in its summary. Re-run `just verify-boundaries` afterwards: a lost promotion is
+   invisible to the tests and visible to that gate.
+4. `just test` — the reviewed-model loader cross-validates sizes, slot counts and field overlap,
    and `tests/unit/test_wiz8_source_model.py` pins counts you may need to bump.
-4. Rematerialize (any `just ghidra query ...` after the evidence edit) and confirm
+5. Rematerialize (any `just ghidra query ...` after the evidence edit) and confirm
    `materialization.json` validates with zero failures. The promoted class leaves the candidate
    layer automatically.
 

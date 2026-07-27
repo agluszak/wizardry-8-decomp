@@ -218,6 +218,20 @@ def _reccmp_original(target: str) -> Path | None:
     return resolved if resolved.is_file() else None
 
 
+@app.command("resolve-evidence-conflict")
+def resolve_evidence_conflict_command(
+    paths: Annotated[list[Path], typer.Argument(help="Conflicted evidence CSVs to resolve.")],
+) -> None:
+    """Merge a conflicted evidence CSV, keeping the stronger row per identity."""
+
+    def action() -> list[dict[str, Any]]:
+        from .evidence_merge import resolve_evidence_conflict
+
+        return [resolve_evidence_conflict(path) for path in paths]
+
+    _run_action(action)
+
+
 @app.command("check-markers")
 def check_markers_command(
     paths: Annotated[

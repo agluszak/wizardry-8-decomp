@@ -190,6 +190,26 @@ Every `exact` row must carry a 64-character hash; a pinned test enforces it. Fin
 the class's `layout_proof` and upgrade the writers' `functions.csv` confidence to `exact` with
 their hashes.
 
+## 4a. When the evidence tables conflict
+
+They will. Several agents append to `classes.csv`, `functions.csv` and the boundary map at once,
+so a rebase lands on the same tables routinely. Do not merge them by hand:
+
+```sh
+just wiz8 resolve-evidence-conflict config/reccmp/wiz8-gameplay-boundaries.csv
+```
+
+Keeping both halves is right for rows only one side has, and wrong the moment both sides carry the
+same identity — appending both duplicates it, and taking whichever came last can silently demote a
+row somebody already promoted. That happened here: a boundary row went back to
+`structurally-strong` and lost its recorded hash, and only `just verify-boundaries` noticed, after
+the push. The resolver keys each table by the columns that name its rows, keeps the stronger
+confidence on a collision, prefers a recorded hash at equal confidence, and lists in its summary
+exactly which identities appeared on both sides so a demotion cannot pass unremarked.
+
+Then re-run `just test` **and** `just verify-boundaries` before pushing, in that order. A merge
+that loses a promotion is invisible to the test suite and visible to the boundary gate.
+
 ## 5. What the compiler will teach you
 
 The build is a falsifier, and its complaints are recovered facts about the original source. Three
