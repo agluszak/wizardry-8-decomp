@@ -6,6 +6,7 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import atomic_json
+from .apply_class_candidates import apply_class_candidates
 from .apply_eh_frame_types import apply_eh_frame_types
 from .apply_function_map import apply_function_map
 from .apply_observation_evidence import apply_observation_evidence
@@ -72,6 +73,12 @@ def observation_replay_actions(
         (
             "eh_frame_types",
             lambda: apply_eh_frame_types(settings, program_name, materialize=False),
+        ),
+        # Candidate skeletons and bounded unit attribution, all candidate-marked
+        # and derived from tracked inputs; last so nothing stronger runs after.
+        (
+            "candidate_class_observations",
+            lambda: apply_class_candidates(settings, program_name, materialize=False),
         ),
     ]
 

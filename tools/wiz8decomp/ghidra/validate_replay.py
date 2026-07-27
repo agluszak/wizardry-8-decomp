@@ -11,6 +11,11 @@ from .import_programs import HASH_OPTION
 from .observation_evidence import audit_observation_evidence
 from .project import module_for_program, resolve_program_name
 from .query_daemon import stop_daemon
+from .apply_class_candidates import (
+    interval_lookup,
+    load_candidate_inputs,
+    writer_comment_bodies,
+)
 from .reviewed_class_model import load_reviewed_class_model, parse_pointee
 from .reviewed_signatures import load_reviewed_signatures
 
@@ -78,6 +83,8 @@ def validate_reviewed_replay(
         "structures": 0,
         "fields": 0,
         "pointee_fields": 0,
+        "candidate_structures": 0,
+        "candidate_writer_comments": 0,
         "globals": 0,
         "candidate_names": 0,
         "observation_evidence": 0,
@@ -331,6 +338,48 @@ def validate_reviewed_replay(
                                 }
                             )
 
+            candidate_inputs = load_candidate_inputs(settings.repo_dir, program_name)
+            for skeleton in candidate_inputs["skeletons"]:
+                checks["candidate_structures"] += 1
+                data_type = dtm.getDataType(f"/wiz8/candidates/{skeleton['name']}")
+                if data_type is None or data_type.getLength() != skeleton["size"]:
+                    failures.append(
+                        {
+                            "kind": "candidate_structure",
+                            "key": skeleton["name"],
+                            "expected": str(skeleton["size"]),
+                            "actual": "missing"
+                            if data_type is None
+                            else str(data_type.getLength()),
+                        }
+                    )
+            from .observation_evidence import _has_owned_comment
+
+            for writer in sorted(writer_comment_bodies(candidate_inputs["candidates"])):
+                address = address_space.getAddress(writer)
+                if listing.getCodeUnitAt(address) is None:
+                    continue
+                checks["candidate_writer_comments"] += 1
+                if not _has_owned_comment(listing, address, "candidate-class"):
+                    failures.append(
+                        {
+                            "kind": "candidate_writer_comment",
+                            "key": f"0x{writer:08x}",
+                            "expected": "candidate-class pre-comment",
+                            "actual": "missing",
+                        }
+                    )
+
+            unit_of = interval_lookup(candidate_inputs["intervals"])
+            uncommented_unit_functions = 0
+            function_iterator = program.getFunctionManager().getFunctions(True)
+            while function_iterator.hasNext():
+                function = function_iterator.next()
+                entry = int(str(function.getEntryPoint()), 16)
+                if unit_of(entry) is not None and not _has_owned_comment(
+                    listing, function.getEntryPoint(), "translation-unit"
+                ):
+                    uncommented_unit_functions += 1
             observation_audit = audit_observation_evidence(program)
             checks["observation_evidence"] = (
                 observation_audit["assertions"]["call_sites"]
@@ -350,6 +399,7 @@ def validate_reviewed_replay(
                 ],
                 "undefined_vtable_slots": observation_audit["polymorphism"]["missing_table_slots"],
                 "undefined_strict_scalars": observation_audit["globals"]["undefined"],
+                "unit_functions_without_comment": uncommented_unit_functions,
             }
             for kind, count in residuals.items():
                 if count:

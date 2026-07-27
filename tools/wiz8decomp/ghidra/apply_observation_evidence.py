@@ -11,6 +11,7 @@ from .observation_evidence import (
     load_observation_bundle,
     strict_scalar_observation,
 )
+from .reviewed_class_model import VIRTUAL_SLOT_TYPE_NAME
 from .project import resolve_program_name
 
 
@@ -46,6 +47,7 @@ def apply_observation_evidence(
     from ghidra.app.cmd.function import CreateFunctionCmd
     from ghidra.program.model.data import (
         ByteDataType,
+        CategoryPath,
         DataUtilities,
         DWordDataType,
         PointerDataType,
@@ -90,7 +92,17 @@ def apply_observation_evidence(
                         )
                     created_functions.append(f"0x{target:08x}")
 
-                pointer = PointerDataType(dtm)
+                # Prefer the shared virtual_function definition the reviewed
+                # class model publishes, so observed vtable slots decompile as
+                # function-pointer calls rather than casts through void*.
+                virtual_function = dtm.getDataType(
+                    CategoryPath("/wiz8/classes"), VIRTUAL_SLOT_TYPE_NAME
+                )
+                pointer = (
+                    PointerDataType(virtual_function, dtm)
+                    if virtual_function is not None
+                    else PointerDataType(dtm)
+                )
                 defined_slots = 0
                 skipped_slot_conflicts: list[str] = []
                 for table in bundle["vtables"]:
