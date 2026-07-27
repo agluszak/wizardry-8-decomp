@@ -45,6 +45,11 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
     )
     monkeypatch.setattr(
         rebuild,
+        "apply_eh_frame_types",
+        lambda *_args, **_kwargs: calls.append("eh-frame-types"),
+    )
+    monkeypatch.setattr(
+        rebuild,
         "validate_reviewed_replay",
         lambda *_args, **_kwargs: calls.append("validate") or {"ok": True, "failure_count": 0},
     )
@@ -60,6 +65,7 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "classes",
         "signatures",
         "observations",
+        "eh-frame-types",
         "validate",
     ]
     assert report["ok"] is True
@@ -72,6 +78,7 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "reviewed_class_model",
         "reviewed_signatures",
         "canonical_neutral_observations",
+        "eh_frame_types",
         "validation",
     ]
     assert (settings.build_dir / "reports/ghidra-replay/canonical.json").is_file()

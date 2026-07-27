@@ -265,6 +265,19 @@ Join `functions.csv` on `funcinfo`, then resolve the function containing its exa
 address in Ghidra. Do not create a function at `eh_setup_start`; that sequence may occur after work
 already performed by the owning function.
 
+The materialization replays this join as typed stack variables (the `eh_frame_types` phase) for
+exactly the slots whose class is proven: a demangled library destructor import, or a destructor the
+reviewed identity layer already assigns to a class. The example above decompiles as a
+`srStringTable` local named `eh_srStringTable_144`, constructed and destroyed in place. A slot VC6
+reuses for differently-typed temporaries - or shares with a destructor no evidence names - is
+skipped, and `just ghidra apply-eh-frame-types` reports each skip with its reason. The funclet's
+`[ebp-N]` is relative to the frame pointer the EH runtime passes, which is the stack pointer just
+before the owning function pushes its registration node; the replay reads that depth from Ghidra's
+stack analysis, so both VC6 prologue shapes (classic `push ebp` and the frameless ESP-relative
+form) land on the right Ghidra offset. The apply report's `unresolved_destructors` ranking is
+review fuel: one unreviewed destructor, `0x005e1c10`, guards 594 frame slots by itself, so
+identifying its class types more locals than every library import combined.
+
 ### Is this vtable a primary or a base subobject's?
 
 `polymorphism/vptr-writes.csv` gives the `object_offset` a constructor stores the pointer at: `0x0`

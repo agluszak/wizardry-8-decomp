@@ -785,6 +785,16 @@ def ghidra_apply_observation_evidence(
     _run_action(lambda: apply_observation_evidence(_settings(), program))
 
 
+@ghidra_app.command("apply-eh-frame-types")
+def ghidra_apply_eh_frame_types(
+    program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
+) -> None:
+    """Type EH-destroyed stack slots from unwind evidence and reviewed identities."""
+    from .ghidra.apply_eh_frame_types import apply_eh_frame_types
+
+    _run_action(lambda: apply_eh_frame_types(_settings(), program))
+
+
 @daemon_app.command("start")
 def daemon_start(program: str | None = typer.Option(None, "--program")) -> None:
     from .ghidra.query_daemon import start_daemon

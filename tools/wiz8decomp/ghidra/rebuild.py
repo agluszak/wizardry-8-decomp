@@ -6,6 +6,7 @@ from typing import Any
 
 from ..config import Settings
 from ..paths import atomic_json
+from .apply_eh_frame_types import apply_eh_frame_types
 from .apply_function_map import apply_function_map
 from .apply_observation_evidence import apply_observation_evidence
 from .apply_sgp_model import apply_sgp_model
@@ -64,7 +65,14 @@ def observation_replay_actions(
         (
             "canonical_neutral_observations",
             lambda: apply_observation_evidence(settings, program_name, materialize=False),
-        )
+        ),
+        # Typed EH frame slots join snapshot unwind facts with abi-backed import
+        # demanglings and reviewed destructor identities; the plan layer skips
+        # anything whose class is unproven, so this stays evidence-bound.
+        (
+            "eh_frame_types",
+            lambda: apply_eh_frame_types(settings, program_name, materialize=False),
+        ),
     ]
 
 
