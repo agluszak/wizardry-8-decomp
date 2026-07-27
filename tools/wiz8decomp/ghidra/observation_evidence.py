@@ -8,13 +8,14 @@ neutral replay could add; it never mutates the program.
 from __future__ import annotations
 
 import csv
+from pathlib import Path
 from typing import Any
 
 from ..config import repository_root
 
 
-def _rows(relative: str, program_name: str) -> list[dict[str, str]]:
-    path = repository_root() / relative
+def _rows(relative: str, program_name: str, repo_dir: Path) -> list[dict[str, str]]:
+    path = repo_dir / relative
     with path.open(newline="", encoding="utf-8") as stream:
         return [row for row in csv.DictReader(stream) if row.get("program") == program_name]
 
@@ -33,15 +34,23 @@ def strict_scalar_observation(row: dict[str, str]) -> bool:
     )
 
 
-def load_observation_bundle(program_name: str) -> dict[str, list[dict[str, str]]]:
+def load_observation_bundle(
+    program_name: str, repo_dir: Path | None = None
+) -> dict[str, list[dict[str, str]]]:
     """Load only the observations whose addresses belong to PROGRAM_NAME."""
 
+    root = repo_dir or repository_root()
     return {
-        "eh_functions": _rows("evidence/snapshots/eh-metadata/functions.csv", program_name),
-        "assertions": _rows("evidence/snapshots/call-sites/assertions.csv", program_name),
-        "vtables": _rows("evidence/snapshots/polymorphism/vtables.csv", program_name),
-        "vtable_slots": _rows("evidence/snapshots/polymorphism/slots.csv", program_name),
-        "globals": _rows("evidence/snapshots/globals/globals.csv", program_name),
+        "eh_functions": _rows("evidence/snapshots/eh-metadata/functions.csv", program_name, root),
+        "eh_unwind": _rows("evidence/snapshots/eh-metadata/unwind.csv", program_name, root),
+        "assertions": _rows("evidence/snapshots/call-sites/assertions.csv", program_name, root),
+        "runtime_class_names": _rows(
+            "evidence/snapshots/call-sites/runtime-class-names.csv", program_name, root
+        ),
+        "vtables": _rows("evidence/snapshots/polymorphism/vtables.csv", program_name, root),
+        "vtable_slots": _rows("evidence/snapshots/polymorphism/slots.csv", program_name, root),
+        "vptr_writes": _rows("evidence/snapshots/polymorphism/vptr-writes.csv", program_name, root),
+        "globals": _rows("evidence/snapshots/globals/globals.csv", program_name, root),
     }
 
 
@@ -52,6 +61,23 @@ def _examples(values: list[int], limit: int = 12) -> list[str]:
 def _defined_data_covering(listing: Any, address: Any) -> Any | None:
     data = listing.getDataContaining(address)
     return data if data is not None and data.isDefined() else None
+
+
+def defined_overlap(listing: Any, address: Any, length: int) -> bool:
+    """Whether defined data or an instruction overlaps an observed byte range."""
+
+    return any(
+        _defined_data_covering(listing, address.add(offset)) is not None
+        or listing.getInstructionContaining(address.add(offset)) is not None
+        for offset in range(length)
+    )
+
+
+def _has_owned_comment(listing: Any, address: Any, key: str) -> bool:
+    from ghidra.program.model.listing import CodeUnit
+
+    comment = listing.getComment(CodeUnit.PRE_COMMENT, address) or ""
+    return f"[wiz8 observation:{key}:begin]" in comment
 
 
 def audit_observation_evidence(program: Any) -> dict[str, Any]:
@@ -82,31 +108,44 @@ def audit_observation_evidence(program: Any) -> dict[str, Any]:
     tables_fully_defined = 0
     tables_partly_defined = 0
     table_missing_slots = 0
+    table_conflict_slots = 0
     for row in bundle["vtables"]:
         if row["kind"] != "vftable":
             continue
         start = int(row["address"], 16)
         count = int(row["slot_count"])
         defined = 0
+        missing = 0
+        conflicts = 0
         for index in range(count):
             address = address_space.getAddress(start + index * 4)
             if _defined_data_covering(listing, address) is not None:
                 defined += 1
+            elif defined_overlap(listing, address, 4):
+                conflicts += 1
+            else:
+                missing += 1
+        table_missing_slots += missing
+        table_conflict_slots += conflicts
         if defined == count:
             tables_fully_defined += 1
         elif defined:
             tables_partly_defined += 1
-            table_missing_slots += count - defined
-        else:
-            table_missing_slots += count
 
     missing_slot_functions: list[int] = []
+    slot_targets_inside_functions: list[int] = []
+    uncovered_slot_targets: list[int] = []
     for row in bundle["vtable_slots"]:
         if row["kind"] == "base-displacement" or not row["target"]:
             continue
         target = int(row["target"], 16)
-        if functions.getFunctionAt(address_space.getAddress(target)) is None:
+        address = address_space.getAddress(target)
+        if functions.getFunctionAt(address) is None:
             missing_slot_functions.append(target)
+            if functions.getFunctionContaining(address) is None:
+                uncovered_slot_targets.append(target)
+            else:
+                slot_targets_inside_functions.append(target)
 
     scalar_rows = [row for row in bundle["globals"] if strict_scalar_observation(row)]
     scalar_exact = 0
@@ -119,7 +158,10 @@ def audit_observation_evidence(program: Any) -> dict[str, Any]:
         address = address_space.getAddress(raw)
         data = _defined_data_covering(listing, address)
         if data is None:
-            scalar_missing.append(raw)
+            if defined_overlap(listing, address, width):
+                scalar_conflicts.append(raw)
+            else:
+                scalar_missing.append(raw)
             continue
         offset = address.subtract(data.getAddress())
         if offset == 0 and data.getLength() == width:
@@ -129,21 +171,28 @@ def audit_observation_evidence(program: Any) -> dict[str, Any]:
         else:
             scalar_conflicts.append(raw)
 
-    from ghidra.program.model.listing import CodeUnit
-
     commented_calls = 0
     for row in bundle["assertions"]:
         address = address_space.getAddress(int(row["call_site"], 16))
-        if any(
-            listing.getComment(comment_type, address)
-            for comment_type in (
-                CodeUnit.PRE_COMMENT,
-                CodeUnit.EOL_COMMENT,
-                CodeUnit.POST_COMMENT,
-                CodeUnit.PLATE_COMMENT,
-            )
-        ):
+        if _has_owned_comment(listing, address, "assertion"):
             commented_calls += 1
+
+    commented_eh = sum(
+        _has_owned_comment(
+            listing,
+            address_space.getAddress(int(row["frame_setup"], 16)),
+            "eh",
+        )
+        for row in eh_rows
+    )
+    commented_runtime_names = sum(
+        _has_owned_comment(
+            listing,
+            address_space.getAddress(int(row["call_site"], 16)),
+            "runtime-class-name",
+        )
+        for row in bundle["runtime_class_names"]
+    )
 
     return {
         "program": program_name,
@@ -155,15 +204,22 @@ def audit_observation_evidence(program: Any) -> dict[str, Any]:
             "owning_functions": len(eh_entries),
             "unresolved_setups": len(eh_unresolved),
             "unresolved_examples": _examples(eh_unresolved),
+            "commented_setups": commented_eh,
+            "without_comments": len(eh_rows) - commented_eh,
         },
         "polymorphism": {
             "vtables": sum(row["kind"] == "vftable" for row in bundle["vtables"]),
             "fully_defined_tables": tables_fully_defined,
             "partly_defined_tables": tables_partly_defined,
             "missing_table_slots": table_missing_slots,
+            "conflicting_table_slots": table_conflict_slots,
             "slot_targets": len(bundle["vtable_slots"]),
             "missing_slot_functions": len(set(missing_slot_functions)),
             "missing_function_examples": _examples(missing_slot_functions),
+            "targets_inside_existing_functions": len(set(slot_targets_inside_functions)),
+            "inside_function_examples": _examples(slot_targets_inside_functions),
+            "uncovered_slot_targets": len(set(uncovered_slot_targets)),
+            "uncovered_target_examples": _examples(uncovered_slot_targets),
         },
         "globals": {
             "strict_scalar_candidates": len(scalar_rows),
@@ -178,5 +234,11 @@ def audit_observation_evidence(program: Any) -> dict[str, Any]:
             "call_sites": len(bundle["assertions"]),
             "already_commented": commented_calls,
             "without_comments": len(bundle["assertions"]) - commented_calls,
+        },
+        "runtime_class_names": {
+            "call_sites": len(bundle["runtime_class_names"]),
+            "literal_names": sum(bool(row["name"]) for row in bundle["runtime_class_names"]),
+            "already_commented": commented_runtime_names,
+            "without_comments": len(bundle["runtime_class_names"]) - commented_runtime_names,
         },
     }

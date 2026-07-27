@@ -4,7 +4,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 from wiz8decomp import cli
 from wiz8decomp.cli import app
-from wiz8decomp.ghidra import query_daemon
+from wiz8decomp.ghidra import cache, query_daemon, validate_replay
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 
@@ -84,3 +84,28 @@ def test_just_ghidra_preserves_each_quoted_batch_clause() -> None:
     justfile = (REPOSITORY / "Justfile").read_text(encoding="utf-8")
 
     assert '[positional-arguments]\nghidra *args:\n    uv run wiz8 ghidra "$@"' in justfile
+
+
+def test_validate_replay_uses_the_agent_materialization(monkeypatch) -> None:
+    incoming = object()
+    effective = object()
+    seen: list[tuple[object, str, str]] = []
+    monkeypatch.setattr(cli, "_settings", lambda: incoming)
+    monkeypatch.setattr(
+        cache,
+        "materialize_program",
+        lambda settings, program: (effective, {"program": program}),
+    )
+    monkeypatch.setattr(
+        validate_replay,
+        "validate_reviewed_replay",
+        lambda settings, program, *, evidence_program: (
+            seen.append((settings, program, evidence_program)) or {"ok": True}
+        ),
+    )
+
+    result = CliRunner().invoke(app, ["ghidra", "validate-replay", "wiz8"])
+
+    assert result.exit_code == 0
+    assert seen == [(effective, "wiz8", "wiz8")]
+    assert json.loads(result.stdout) == {"ok": True}

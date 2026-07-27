@@ -20,7 +20,7 @@ from ..paths import atomic_json, sha256_file
 from .environment import start_pyghidra
 from .import_programs import HASH_OPTION
 from .project import module_for_program, resolve_program_name
-from .rebuild import reviewed_replay_actions
+from .rebuild import observation_replay_actions, reviewed_replay_actions
 from .validate_replay import validate_reviewed_replay
 
 SEED_SCHEMA = "wiz8.ghidra-seeds"
@@ -62,6 +62,10 @@ def _replay_input_paths(settings: Settings) -> list[Path]:
         settings.repo_dir / "tools" / "wiz8decomp" / "ghidra",
         settings.repo_dir / "evidence" / "reviewed" / "wiz8",
         settings.repo_dir / "evidence" / "reviewed" / "sgp",
+        settings.repo_dir / "evidence" / "snapshots" / "call-sites",
+        settings.repo_dir / "evidence" / "snapshots" / "eh-metadata",
+        settings.repo_dir / "evidence" / "snapshots" / "globals",
+        settings.repo_dir / "evidence" / "snapshots" / "polymorphism",
     ]
     paths = [
         settings.repo_dir / "config" / "ghidra.yml",
@@ -320,6 +324,8 @@ def materialize_program(
 
         for name, action in reviewed_replay_actions(effective, program_name):
             phase(name, action)
+        for name, action in observation_replay_actions(effective, program_name):
+            phase(name, action)
         validation = phase(
             "validation",
             lambda: validate_reviewed_replay(effective, program_name, evidence_program="wiz8"),
@@ -354,9 +360,7 @@ def materialize_program(
             "phases": phases,
         }
         atomic_json(marker_path, marker)
-        evicted = prune_materializations(
-            root, materialization_keep_count(), effective.project_dir
-        )
+        evicted = prune_materializations(root, materialization_keep_count(), effective.project_dir)
         report = {
             "evicted": evicted,
             **marker,

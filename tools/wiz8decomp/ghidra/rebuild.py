@@ -7,6 +7,7 @@ from typing import Any
 from ..config import Settings
 from ..paths import atomic_json
 from .apply_function_map import apply_function_map
+from .apply_observation_evidence import apply_observation_evidence
 from .apply_sgp_model import apply_sgp_model
 from .apply_wiz8_class_model import apply_wiz8_class_model
 from .apply_wiz8_format_model import apply_wiz8_format_model
@@ -51,6 +52,19 @@ def reviewed_replay_actions(
             "reviewed_signatures",
             lambda: apply_wiz8_signature_fixes(settings, program_name, materialize=False),
         ),
+    ]
+
+
+def observation_replay_actions(
+    settings: Settings, program_name: str
+) -> list[tuple[str, Callable[[], Any]]]:
+    """Return neutral machine observations, kept separate from reviewed semantics."""
+
+    return [
+        (
+            "canonical_neutral_observations",
+            lambda: apply_observation_evidence(settings, program_name, materialize=False),
+        )
     ]
 
 
@@ -107,6 +121,11 @@ def rebuild_program(
     for name, action in reviewed_replay_actions(
         settings, program_name, evidence_program=evidence_program
     ):
+        phase(name, action)
+    # Reviewed types and tables own semantic conclusions. Neutral observations
+    # run last and fill only gaps, so they cannot be erased by or overwrite the
+    # stronger replay layer.
+    for name, action in observation_replay_actions(settings, program_name):
         phase(name, action)
     validation = phase(
         "validation",

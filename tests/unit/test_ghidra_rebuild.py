@@ -22,6 +22,11 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
     )
     monkeypatch.setattr(
         rebuild,
+        "apply_observation_evidence",
+        lambda *_args, **_kwargs: calls.append("observations"),
+    )
+    monkeypatch.setattr(
+        rebuild,
         "apply_function_map",
         lambda *_args, **_kwargs: calls.append("functions"),
     )
@@ -54,6 +59,7 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "formats",
         "classes",
         "signatures",
+        "observations",
         "validate",
     ]
     assert report["ok"] is True
@@ -65,6 +71,7 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "wiz8_format_model",
         "reviewed_class_model",
         "reviewed_signatures",
+        "canonical_neutral_observations",
         "validation",
     ]
     assert (settings.build_dir / "reports/ghidra-replay/canonical.json").is_file()
@@ -79,8 +86,6 @@ def test_wiz8_signature_wrapper_preserves_replay_materialization_flag(monkeypatc
 
     monkeypatch.setattr(signature_fixes, "apply_reviewed_signatures", record_apply)
 
-    signature_fixes.apply_wiz8_signature_fixes(
-        SimpleNamespace(), "canonical", materialize=False
-    )
+    signature_fixes.apply_wiz8_signature_fixes(SimpleNamespace(), "canonical", materialize=False)
 
     assert calls == [False]

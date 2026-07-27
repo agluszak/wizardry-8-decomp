@@ -8,6 +8,7 @@ from ..config import Settings
 from .apply_function_map import ACCEPTED_CONFIDENCE, load_function_identities
 from .environment import start_pyghidra
 from .import_programs import HASH_OPTION
+from .observation_evidence import audit_observation_evidence
 from .project import module_for_program, resolve_program_name
 from .query_daemon import stop_daemon
 from .reviewed_class_model import load_reviewed_class_model
@@ -71,7 +72,9 @@ def validate_reviewed_replay(
         "fields": 0,
         "globals": 0,
         "candidate_names": 0,
+        "observation_evidence": 0,
     }
+    observation_audit: dict[str, Any] = {}
 
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     try:
@@ -98,7 +101,12 @@ def validate_reviewed_replay(
                 checks["functions"] += 1
                 if function is None:
                     failures.append(
-                        {"kind": "function", "key": identity.identity_id, "expected": identity.name, "actual": "missing"}
+                        {
+                            "kind": "function",
+                            "key": identity.identity_id,
+                            "expected": identity.name,
+                            "actual": "missing",
+                        }
                     )
                     continue
                 expected_namespace, _, expected_name = identity.name.rpartition("::")
@@ -155,10 +163,17 @@ def validate_reviewed_replay(
 
             for reviewed in signatures:
                 checks["signatures"] += 1
-                function = function_manager.getFunctionAt(address_space.getAddress(reviewed.address))
+                function = function_manager.getFunctionAt(
+                    address_space.getAddress(reviewed.address)
+                )
                 if function is None:
                     failures.append(
-                        {"kind": "signature", "key": reviewed.evidence_id, "expected": "function", "actual": "missing"}
+                        {
+                            "kind": "signature",
+                            "key": reviewed.evidence_id,
+                            "expected": "function",
+                            "actual": "missing",
+                        }
                     )
                     continue
                 parameters = tuple(function.getParameters())
@@ -190,15 +205,16 @@ def validate_reviewed_replay(
                 )
                 if actual != expected:
                     failures.append(
-                        {"kind": "signature", "key": reviewed.evidence_id, "expected": repr(expected), "actual": repr(actual)}
+                        {
+                            "kind": "signature",
+                            "key": reviewed.evidence_id,
+                            "expected": repr(expected),
+                            "actual": repr(actual),
+                        }
                     )
                 if reviewed.this_type is not None:
                     this_parameter = next(
-                        (
-                            parameter
-                            for parameter in parameters
-                            if parameter.getName() == "this"
-                        ),
+                        (parameter for parameter in parameters if parameter.getName() == "this"),
                         None,
                     )
                     actual_this_type = (
@@ -229,9 +245,7 @@ def validate_reviewed_replay(
                     data = listing.getDataContaining(address)
                     expected_length = vtable.slot_count * 4
                     typed_through = (
-                        None
-                        if data is None
-                        else data.getMaxAddress().subtract(address) + 1
+                        None if data is None else data.getMaxAddress().subtract(address) + 1
                     )
                     if typed_through is None or typed_through < expected_length:
                         failures.append(
@@ -239,7 +253,9 @@ def validate_reviewed_replay(
                                 "kind": "vtable",
                                 "key": vtable.vtable_id,
                                 "expected": f"typed {expected_length}-byte table",
-                                "actual": "missing" if data is None else f"typed through {typed_through} bytes",
+                                "actual": "missing"
+                                if data is None
+                                else f"typed through {typed_through} bytes",
                             }
                         )
                 for slot in slots_by_vtable.get(vtable.vtable_id, []):
@@ -269,7 +285,9 @@ def validate_reviewed_replay(
                             "kind": "structure",
                             "key": class_name,
                             "expected": str(expected_size),
-                            "actual": "missing" if data_type is None else str(data_type.getLength()),
+                            "actual": "missing"
+                            if data_type is None
+                            else str(data_type.getLength()),
                         }
                     )
                     continue
@@ -284,8 +302,44 @@ def validate_reviewed_replay(
                     expected = (field.name, field.size)
                     if actual != expected:
                         failures.append(
-                            {"kind": "field", "key": f"{class_name}+0x{field.offset:x}", "expected": repr(expected), "actual": repr(actual)}
+                            {
+                                "kind": "field",
+                                "key": f"{class_name}+0x{field.offset:x}",
+                                "expected": repr(expected),
+                                "actual": repr(actual),
+                            }
                         )
+
+            observation_audit = audit_observation_evidence(program)
+            checks["observation_evidence"] = (
+                observation_audit["assertions"]["call_sites"]
+                + observation_audit["eh"]["setups"]
+                + observation_audit["polymorphism"]["slot_targets"]
+                + observation_audit["globals"]["strict_scalar_candidates"]
+                + observation_audit["runtime_class_names"]["call_sites"]
+            )
+            residuals = {
+                "assertion_comments": observation_audit["assertions"]["without_comments"],
+                "eh_comments": observation_audit["eh"]["without_comments"],
+                "runtime_class_comments": observation_audit["runtime_class_names"][
+                    "without_comments"
+                ],
+                "uncovered_vtable_targets": observation_audit["polymorphism"][
+                    "uncovered_slot_targets"
+                ],
+                "undefined_vtable_slots": observation_audit["polymorphism"]["missing_table_slots"],
+                "undefined_strict_scalars": observation_audit["globals"]["undefined"],
+            }
+            for kind, count in residuals.items():
+                if count:
+                    failures.append(
+                        {
+                            "kind": "observation_replay",
+                            "key": kind,
+                            "expected": "0",
+                            "actual": str(count),
+                        }
+                    )
     finally:
         project.close()
 
@@ -295,6 +349,7 @@ def validate_reviewed_replay(
         "binary_sha256": module["sha256"],
         "ok": not failures,
         "checks": checks,
+        "observations": observation_audit,
         "failure_count": len(failures),
         "failures": failures,
     }

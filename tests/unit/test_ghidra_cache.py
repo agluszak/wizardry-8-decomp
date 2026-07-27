@@ -22,14 +22,17 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
-def test_replay_hash_tracks_replay_code_and_reviewed_evidence(tmp_path: Path) -> None:
+def test_replay_hash_tracks_code_reviewed_and_observation_evidence(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     script = settings.repo_dir / "tools/wiz8decomp/ghidra/apply.py"
     evidence = settings.repo_dir / "evidence/reviewed/wiz8/functions.csv"
+    observations = settings.repo_dir / "evidence/snapshots/globals/globals.csv"
     script.parent.mkdir(parents=True)
     evidence.parent.mkdir(parents=True)
+    observations.parent.mkdir(parents=True)
     script.write_text("first", encoding="utf-8")
     evidence.write_text("identity", encoding="utf-8")
+    observations.write_text("address,widths\n00600000,4\n", encoding="utf-8")
 
     first = cache.replay_input_sha256(settings)
     bytecode = script.parent / "__pycache__/apply.pyc"
@@ -40,6 +43,9 @@ def test_replay_hash_tracks_replay_code_and_reviewed_evidence(tmp_path: Path) ->
     second = cache.replay_input_sha256(settings)
 
     assert first != second
+    observations.write_text("address,widths\n00600000,1\n", encoding="utf-8")
+
+    assert cache.replay_input_sha256(settings) != second
 
 
 def test_agent_project_is_isolated_and_content_addressed(tmp_path: Path, monkeypatch) -> None:
@@ -111,9 +117,7 @@ def test_matching_materialization_marker_avoids_ghidra_startup(tmp_path: Path, m
     assert report["under_one_minute"] is True
 
 
-def test_reviewed_replay_does_not_recursively_materialize(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_reviewed_replay_does_not_recursively_materialize(tmp_path: Path, monkeypatch) -> None:
     settings = _settings(tmp_path)
     calls: list[bool] = []
 
@@ -175,11 +179,7 @@ def test_the_replay_never_materializes_recursively() -> None:
     # reviewed_replay_actions runs inside materialize_program while it holds the
     # lock, so every command it invokes must skip materializing.
     rebuild = (
-        Path(__file__).resolve().parents[2]
-        / "tools"
-        / "wiz8decomp"
-        / "ghidra"
-        / "rebuild.py"
+        Path(__file__).resolve().parents[2] / "tools" / "wiz8decomp" / "ghidra" / "rebuild.py"
     ).read_text(encoding="utf-8")
     calls = [line for line in rebuild.splitlines() if "apply_" in line and "(" in line]
     applied = [line for line in calls if "lambda" in line or "settings," in line]

@@ -278,8 +278,7 @@ def diff_boundary_command(
         if original is None:
             raise RuntimeError("no original Wiz8.exe configured; pass --image")
         result = diff_boundary(
-            mapping
-            or (settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv"),
+            mapping or (settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv"),
             objects
             or (
                 settings.repo_dir
@@ -706,9 +705,14 @@ def ghidra_cache_prune(
 @ghidra_app.command("validate-replay")
 def ghidra_validate_replay(program: str) -> None:
     """Validate an existing materialized program against canonical reviewed evidence."""
+    from .ghidra.cache import materialize_program
     from .ghidra.validate_replay import validate_reviewed_replay
 
-    _run_action(lambda: validate_reviewed_replay(_settings(), program, evidence_program="wiz8"))
+    def action() -> Any:
+        settings, _ = materialize_program(_settings(), program)
+        return validate_reviewed_replay(settings, program, evidence_program="wiz8")
+
+    _run_action(action)
 
 
 @ghidra_app.command("apply-unzip-model")
@@ -769,6 +773,16 @@ def ghidra_apply_wiz8_signature_fixes(
     from .ghidra.apply_wiz8_signature_fixes import apply_wiz8_signature_fixes
 
     _run_action(lambda: apply_wiz8_signature_fixes(_settings(), program))
+
+
+@ghidra_app.command("apply-observation-evidence")
+def ghidra_apply_observation_evidence(
+    program: Annotated[str, typer.Argument()] = "wiz8",
+) -> None:
+    """Apply neutral snapshot facts without creating semantic names."""
+    from .ghidra.apply_observation_evidence import apply_observation_evidence
+
+    _run_action(lambda: apply_observation_evidence(_settings(), program))
 
 
 @daemon_app.command("start")
@@ -999,3 +1013,14 @@ def report_status() -> None:
     from .reports.status import status_report
 
     _run_action(lambda: status_report(_settings()))
+
+
+@report_app.command("context")
+def report_context(
+    address: Annotated[str, typer.Argument(help="Address inside the function to inspect")],
+    program: str = typer.Option("wiz8", "--program"),
+) -> None:
+    """Join Ghidra and every relevant evidence channel for one function."""
+    from .reports.recovery_context import recovery_context_report
+
+    _run_action(lambda: recovery_context_report(_settings(), address, program))

@@ -201,6 +201,32 @@ These are candidates, not identities. Promoting one is a reviewed decision belon
 Each recipe below is a join between snapshots. Addresses are canonical-build examples; the join
 keys, not the values, are the point.
 
+For a joined packet around one function, including its current Ghidra decompile and listing, run:
+
+```sh
+just wiz8 report context 0x004f88f0
+```
+
+The command writes JSON and readable Markdown under `build/reports/recovery-context/`. It joins the
+function's direct or interval-inferred translation unit, assertions, EH cleanup slots, global
+references, vptr writes, observed vtables and reviewed identities without creating tracked source
+scaffolding or promoting observations into semantic names.
+
+The canonical Ghidra materialization also replays the subset that is safe without semantic review:
+uncovered vtable targets become anonymous functions, undefined vtable slots become pointer data,
+strict scalar globals receive only their observed width, and assertion/EH facts become owned
+comments. Literal or non-literal `srRuntimeClass::setName` calls are annotated as instance-name
+calls, never promoted to class types. The replay never assigns class, function, field or global
+names, never splits a target that lies inside an existing function, and never clears conflicting
+code or data. Inspect the result with:
+
+```sh
+just ghidra query wiz8 observation-audit
+```
+
+`missing_*` and `undefined` counts are replayable gaps. Targets inside existing functions and
+conflicts remain explicit review work rather than being forced into Ghidra.
+
 ### Which translation unit does this function belong to?
 
 `call-sites/assertions.csv` pairs a `function_start` with the `source_path` its assertions name.
