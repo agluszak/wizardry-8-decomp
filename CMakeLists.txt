@@ -464,11 +464,21 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         )
         # Built through the bring-up target so an ordinary build produces them,
         # but deliberately not among its sources.
+        #
+        # sgp.c is excluded on purpose. It carries SGP's own WinMain, which
+        # compiles to 357 bytes and is not the 378-byte body the game ships at
+        # 0x00401670 - Wizardry supplies its own. Building it would put a
+        # function the image does not contain into the verified object set, and
+        # the duplicate-symbol guard refuses it. ProcessCommandLine and
+        # GetRuntimeSettings live in that unit and stay unrecovered from it.
         add_dependencies(
             WIZ8_BRINGUP
             WIZ8_SGP_CONTAINER
+            WIZ8_SGP_DEBUG
+            WIZ8_SGP_DIRECTDRAW
             WIZ8_SGP_FILEMAN
             WIZ8_SGP_INPUT
+            WIZ8_SGP_LIBRARY_DATABASE
         )
         target_sources(WIZ8_BRINGUP PRIVATE
             $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
