@@ -296,6 +296,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/monster_lookup.cpp
         src/wiz8/npc_item_lists.cpp
         src/wiz8/spell_backfire.cpp
+        src/wiz8/local_code/DisplayList.cpp
         src/wiz8/local_code/SurfaceFill.cpp
         src/wiz8/local_code/Targeting.cpp
         src/wiz8/local_code/Viewport.cpp
