@@ -207,3 +207,8 @@ wiz8,W8GrowableVector<W8VectorElement005EBFB4 *>,0x4,0x4,count,int32,,exact,clas
 wiz8,W8GrowableVector<W8VectorElement005EBFB4 *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EBFB4 *>,"allocated element capacity; the constructor stores the clamped parameter, or zero if the allocation failed"
 wiz8,W8GrowableVector<W8VectorElement005EBFB4 *>,0xc,0x4,data,pointer,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EBFB4 *>,"element storage, four bytes per element; the element type is unproven and so is not modelled as a class"
 wiz8,W8Vector005EBFB4,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector005EBFB4,W8GrowableVector<W8VectorElement005EBFB4 *> subobject; the derived class adds nothing
+wiz8,W8GrowableVector<W8VectorElement005EC16C *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC16C *>,primary vtable W8GrowableVector<W8VectorElement005EC16C *>.primary
+wiz8,W8GrowableVector<W8VectorElement005EC16C *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC16C *>,"element count, zeroed by the constructor"
+wiz8,W8GrowableVector<W8VectorElement005EC16C *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC16C *>,"allocated element capacity; the clamped parameter, or zero if the allocation failed"
+wiz8,W8GrowableVector<W8VectorElement005EC16C *>,0xc,0x4,data,pointer,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC16C *>,"element storage, four bytes per element; the element type is unproven and so is not modelled as a class"
+wiz8,W8Vector005EC16C,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector005EC16C,W8GrowableVector<W8VectorElement005EC16C *> subobject; the derived class adds nothing

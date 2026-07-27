@@ -29,3 +29,5 @@ wiz8,W8SoundEventVector005ED094.primary,W8SoundEventVector005ED094,005ed094,0x0,
 wiz8,W8GrObject005ED090.primary,W8GrObject005ED090,005ed090,0x0,primary,1,strong,classes:wiz8:W8GrObject005ED090
 wiz8,W8GrowableVector<W8VectorElement005EBFB4 *>.primary,W8GrowableVector<W8VectorElement005EBFB4 *>,005ebfb8,0x0,primary,1,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EBFB4 *>
 wiz8,W8Vector005EBFB4.primary,W8Vector005EBFB4,005ebfb4,0x0,primary,1,exact,classes:wiz8:W8Vector005EBFB4
+wiz8,W8GrowableVector<W8VectorElement005EC16C *>.primary,W8GrowableVector<W8VectorElement005EC16C *>,005ec170,0x0,primary,1,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC16C *>
+wiz8,W8Vector005EC16C.primary,W8Vector005EC16C,005ec16c,0x0,primary,1,exact,classes:wiz8:W8Vector005EC16C

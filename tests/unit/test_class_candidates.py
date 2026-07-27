@@ -1,6 +1,7 @@
 from wiz8decomp.ghidra.candidate_model import (
     classify_candidates,
     derive_skeletons,
+    derived_families,
     push_before_allocator,
 )
 
@@ -116,3 +117,41 @@ def test_push_before_allocator_reads_the_allocation_size() -> None:
     allocator = window_va + 10 + 0x100
     assert push_before_allocator(window, window_va, {allocator}) == 0x250
     assert push_before_allocator(window, window_va, {allocator + 4}) is None
+
+
+def test_derived_families_orders_the_pair_by_construction_and_ranks_by_writer_size() -> None:
+    """The later store is the derived class, and a small writer is portable.
+
+    A big writer installing the same two tables is a heap builder that happens
+    to construct two objects, which is a different finding from a class.
+    """
+
+    writes = [
+        # One dedicated constructor: base first, derived second.
+        {"site": "0042a26b", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb8"},
+        {"site": "0042a298", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb4"},
+        # A far larger body installing another pair.
+        {"site": "00473300", "function_start": "00473260", "object_offset": "0x0", "vtable": "005ec50c"},
+        {"site": "00473400", "function_start": "00473260", "object_offset": "0x0", "vtable": "005ec508"},
+        # A subobject store is not a derivation.
+        {"site": "0042a2a8", "function_start": "0042a260", "object_offset": "0x10", "vtable": "005ec000"},
+    ]
+    slot_counts = {0x005EBFB8: 1, 0x005EBFB4: 1, 0x005EC50C: 1, 0x005EC508: 1, 0x005EC000: 1}
+    families = derived_families(writes, slot_counts, {0x0042A260: 84, 0x00473260: 1130})
+
+    assert [family["writer"] for family in families] == [0x0042A260, 0x00473260]
+    assert families[0]["base_vtable"] == 0x005EBFB8
+    assert families[0]["derived_vtable"] == 0x005EBFB4
+    assert families[0]["writer_size"] == 84
+
+    # A writer whose size the census cannot state sorts last rather than first.
+    unsized = derived_families(writes, slot_counts, {0x00473260: 1130})
+    assert [family["writer"] for family in unsized] == [0x00473260, 0x0042A260]
+
+
+def test_derived_families_ignores_a_table_with_more_than_one_slot() -> None:
+    writes = [
+        {"site": "0042a26b", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb8"},
+        {"site": "0042a298", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb4"},
+    ]
+    assert derived_families(writes, {0x005EBFB8: 1, 0x005EBFB4: 6}) == []

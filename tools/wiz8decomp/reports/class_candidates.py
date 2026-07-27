@@ -39,6 +39,7 @@ from ..ghidra.candidate_model import (
     candidate_name,
     classify_candidates,
     derive_skeletons,
+    derived_families,
 )
 from ..paths import atomic_json, atomic_write
 
@@ -282,6 +283,39 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
     writer.writerows(rows)
     atomic_write(report_dir / "candidates.csv", stream.getvalue())
 
+    reviewed_addresses = {item["vtable"] for item in candidates if item["reviewed"]}
+    sizes = {
+        int(row["address"], 16): int(row["size"])
+        for row in _read(settings.repo_dir / "evidence" / "snapshots" / "functions" / "candidates.csv")
+        if row["program"] == program and row["size"]
+    }
+    family_rows = [
+        {
+            "program": program,
+            "writer": f"{family['writer']:08x}",
+            "writer_size": str(family["writer_size"]) if family["writer_size"] else "",
+            "base_vtable": f"{family['base_vtable']:08x}",
+            "derived_vtable": f"{family['derived_vtable']:08x}",
+            "reviewed_class": (
+                "yes"
+                if family["base_vtable"] in reviewed_addresses
+                or family["derived_vtable"] in reviewed_addresses
+                else ""
+            ),
+        }
+        for family in derived_families(
+            _read(snapshots / "vptr-writes.csv"), slot_counts, sizes
+        )
+    ]
+    if family_rows:
+        stream = io.StringIO(newline="")
+        writer = csv.DictWriter(
+            stream, fieldnames=list(family_rows[0].keys()), lineterminator="\n"
+        )
+        writer.writeheader()
+        writer.writerows(family_rows)
+        atomic_write(report_dir / "families.csv", stream.getvalue())
+
     templates = 0
     headers = 0
     for item in candidates:
@@ -307,10 +341,13 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
             1 for row in rows if row["scalar_deleting_destructor"]
         ),
         "with_allocation_hint": sum(1 for row in rows if row["allocation_size_hints"]),
+        "derived_families": len(family_rows),
+        "unreviewed_derived_families": sum(1 for row in family_rows if not row["reviewed_class"]),
         "promotion_templates": templates,
         "header_skeletons": headers,
         "outputs": [
             f"build/reports/{_REPORT_NAME}/candidates.csv",
+            f"build/reports/{_REPORT_NAME}/families.csv",
             f"build/reports/{_REPORT_NAME}/promotion/",
             f"build/reports/{_REPORT_NAME}/headers/",
         ],

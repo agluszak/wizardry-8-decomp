@@ -31,6 +31,20 @@ just wiz8 report class-candidates        # regenerates build/reports/class-candi
   direct allocation hint of its own.
 - `reviewed_class = yes` rows are done; the replay already drops them from the skeleton layer.
 
+`families.csv` is the other entry point, and usually the cheaper one. It pairs the two one-slot
+tables a single writer installs at offset zero - a base and a class derived from it, in construction
+order, so the second is the derived one - and sorts by how big that writer is. A small writer is a
+dedicated constructor and ports in one sitting; a thousand-byte writer installing the same two
+tables is a heap builder that happens to construct two objects on its way through, and the pair is
+then a fact about its locals rather than a class waiting to be recovered. `writer_size` is the whole
+distinction, and it is why the list is sorted by it.
+
+Three of these families are recovered (`W8SoundEventVector005ED094`, `W8Vector005EBFB4`,
+`W8Vector005EC16C`) and they came out byte-exact on identical declarations - a derived class adding
+no member and no override, over a `W8GrowableVector<T*>` instantiation. If a family's constructor is
+around eighty-four bytes and its deleting destructors are 44 and 30, copy one of those source files
+and change the names; expect four exact bodies without iteration.
+
 Or work backwards from code: any decompile that shows a `[wiz8 observation:candidate-class:...]`
 comment is telling you what the function you are reading constructs.
 

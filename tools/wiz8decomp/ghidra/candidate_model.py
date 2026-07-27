@@ -279,3 +279,54 @@ def push_before_allocator(
                 best = pushed
         index += 1
     return best
+
+
+def derived_families(
+    writes: list[dict[str, str]],
+    slot_counts: dict[int, int],
+    function_sizes: dict[int, int] | None = None,
+) -> list[dict[str, Any]]:
+    """Pairs of one-slot tables one writer installs at offset zero, in order.
+
+    Two such tables in a single body are a base and a class derived from it,
+    stored in construction order - so the table written at the *higher* site
+    address is the derived class. This is the only place the derivation shows:
+    an empty derived destructor stores the base table rather than its own,
+    because its store is dead against the inlined base destructor and VC6 drops
+    it, so a hierarchy counted from destructors undercounts it.
+
+    The ranking matters more than the pairing. A writer that installs two tables
+    and little else is a dedicated constructor and ports in one sitting; a
+    thousand-byte body that happens to build two vectors on its way through is a
+    heap builder, and the pair is then a fact about its locals rather than a
+    class waiting to be recovered. ``writer_size`` carries that distinction and
+    orders the result, and is None when the census cannot size the body.
+    """
+
+    sizes = function_sizes or {}
+    by_writer: dict[int, list[tuple[int, int]]] = defaultdict(list)
+    for row in writes:
+        if row.get("object_offset") not in ("0x0", "0"):
+            continue
+        if not row.get("function_start"):
+            continue
+        vtable = int(row["vtable"], 16)
+        if slot_counts.get(vtable) != 1:
+            continue
+        by_writer[int(row["function_start"], 16)].append((int(row["site"], 16), vtable))
+
+    families: list[dict[str, Any]] = []
+    for writer, entries in by_writer.items():
+        tables = list(dict.fromkeys(vtable for _, vtable in sorted(entries)))
+        if len(tables) != 2:
+            continue
+        families.append(
+            {
+                "writer": writer,
+                "base_vtable": tables[0],
+                "derived_vtable": tables[1],
+                "writer_size": sizes.get(writer),
+            }
+        )
+    families.sort(key=lambda item: (item["writer_size"] is None, item["writer_size"] or 0))
+    return families

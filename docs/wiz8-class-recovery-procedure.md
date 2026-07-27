@@ -273,6 +273,13 @@ Related: a **null check before `operator delete`** means the source wrote `delet
 `::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
 to tell them apart.
 
+**Let the family ranking pick the target where it can.** `just wiz8 report class-candidates`
+emits `families.csv` beside `candidates.csv`: every pair of one-slot tables one writer installs at
+offset zero, ordered by that writer's size. The order is the point - it separates a dedicated
+constructor from a large body that merely builds two objects while doing something else, which is
+the distinction that decides whether a family is an afternoon or a dead end. Three families off the
+top of that list ported byte-exact on identical declarations without iteration.
+
 **A destructor alone may compile to nothing at all.** VC6 emits a class's vtable, its
 compiler-generated deleting destructor and its out-of-line complete destructor in the translation
 units that *construct* the class - not in the ones that merely destroy it. Port only a destructor
