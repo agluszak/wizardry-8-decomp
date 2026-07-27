@@ -235,9 +235,11 @@ def verify_boundaries_command(
         mapping_path = mapping or (
             settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv"
         )
-        object_root = objects or (
-            settings.repo_dir / "build" / "decomp" / "CMakeFiles" / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
-        )
+        # Every matching target, not just the one object library. The map's
+        # owner column already spans units the other targets build - the SGP
+        # clock and random bodies among them - and under the narrower root those
+        # rows could never be checked against the original at all.
+        object_root = objects or (settings.repo_dir / "build" / "decomp" / "CMakeFiles")
         return verify_boundaries(mapping_path, object_root, image or _reccmp_original("WIZ8"))
 
     _run_action(action)

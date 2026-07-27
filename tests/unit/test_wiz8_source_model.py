@@ -826,6 +826,12 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
         # destructor and have no separate source declaration to mark.
         if row["symbol"].endswith("::scalar_deleting_destructor"):
             continue
+        # SGP bodies are built from the vendored upstream tree, not from a
+        # first-party unit. That source is licensed and kept verbatim, so it
+        # carries no reccmp markers and must not grow any; the row is still
+        # verified against the original through its own target's objects.
+        if row["owner"] == "sgp-shared":
+            continue
         marker_kind = "TEMPLATE" if "<" in row["symbol"] else "FUNCTION"
         marker = f"// {marker_kind}: WIZ8 0x{row['address'].upper()}"
         assert marker in source, (
