@@ -187,9 +187,11 @@ unsigned int MonsterGetIndexByLocationID(
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index)
 {
     W8MonsterInfo* result;
+    const char* detail;
+    int line;
 
     if (monster_list_index < 10000 || monster_list_index >= 20000) {
-        if (PListGetCount(g_monster_list) <= monster_list_index) {
+        if (monster_list_index >= PListGetCount(g_monster_list)) {
             srAssertFail(
                 "uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
                 MONSTER_MANAGER_CPP,
@@ -200,37 +202,35 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        srAssertFail(
-            "pMonsterInfo != NULL",
-            MONSTER_MANAGER_CPP,
-            0x5de,
-            String(
-                "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
-                monster_list_index,
-                g_monster_list));
+        detail = String(
+            "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
+            monster_list_index,
+            g_monster_list);
+        line = 0x5de;
     }
     else {
-        unsigned int index = monster_list_index - 10000;
-        if (PListGetCount(g_unborn_monster_list) <= index) {
+        if (monster_list_index - 10000 >= PListGetCount(g_unborn_monster_list)) {
             srAssertFail(
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
                 MONSTER_MANAGER_CPP,
                 0x5d1,
                 0);
         }
-        result = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+        result = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, monster_list_index - 10000);
         if (result != 0) {
             return result;
         }
-        srAssertFail(
-            "pMonsterInfo != NULL",
-            MONSTER_MANAGER_CPP,
-            0x5d5,
-            String(
-                "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
-                monster_list_index,
-                g_monster_list));
+        detail = String(
+            "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
+            monster_list_index,
+            g_monster_list);
+        line = 0x5d5;
     }
+    /* One tail, reached from both branches with only the line number differing.
+       The original carries it as a variable and calls srAssertFail through a
+       register it loads before the branch; writing the call out in each branch
+       instead duplicates it. */
+    srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, line, detail);
     return 0;
 }
 
