@@ -243,3 +243,125 @@ def decompile_in_overlay(
 
         dispose_sessions()
         project.close()
+
+
+def dependency_cone(repo: Path, program: str, class_name: str) -> dict[str, list[str]]:
+    """The functions a change to one class can reach, by the reason each is in.
+
+    Retyping a class touches more than the class: its vtable slot targets get
+    a receiver, everything that calls one of those sees a changed signature,
+    and every function that installs one of its vtables handles the object
+    directly. Those three sets are the cone a fixpoint has to redecompile, and
+    keeping the reason with each address is what makes the result reviewable.
+    """
+
+    import csv as _csv
+    from collections import defaultdict as _defaultdict
+
+    reviewed = repo / "evidence" / "reviewed" / "wiz8"
+    with (reviewed / "vtables.csv").open(newline="", encoding="utf-8") as stream:
+        tables = {
+            row["vtable_id"]: row["address"]
+            for row in _csv.DictReader(stream)
+            if row["class_name"] == class_name
+        }
+    with (reviewed / "vtable-slots.csv").open(newline="", encoding="utf-8") as stream:
+        targets = {
+            row["target"]
+            for row in _csv.DictReader(stream)
+            if row["vtable_id"] in tables and row["target"]
+        }
+    with (
+        repo / "evidence" / "snapshots" / "polymorphism" / "vptr-writes.csv"
+    ).open(newline="", encoding="utf-8") as stream:
+        writers = {
+            row["function_start"]
+            for row in _csv.DictReader(stream)
+            if row["program"] == program and row["vtable"] in set(tables.values())
+        }
+    with (
+        repo / "evidence" / "snapshots" / "functions" / "calls.csv"
+    ).open(newline="", encoding="utf-8") as stream:
+        callers = {
+            row["caller"]
+            for row in _csv.DictReader(stream)
+            if row["program"] == program and row["callee"] in targets
+        }
+
+    cone: dict[str, list[str]] = _defaultdict(list)
+    for address in sorted(targets):
+        cone["slot-target"].append(address)
+    for address in sorted(writers):
+        cone["vptr-writer"].append(address)
+    for address in sorted(callers - targets - writers):
+        cone["calls-slot-target"].append(address)
+    return dict(cone)
+
+
+def measure_impact(
+    settings: Settings, selector: str, hypothesis: str, class_name: str
+) -> dict[str, Any]:
+    """Redecompile the cone in baseline and overlay; report what changed.
+
+    This is the propagation measurement the whole overlay exists for: one
+    applied hypothesis, and the count of functions whose decompilation the
+    program now renders differently. A hypothesis that changes nothing is a
+    hypothesis worth discarding.
+    """
+
+    import contextlib
+    import hashlib
+
+    from .cache import materialize_program
+    from .environment import start_pyghidra
+    from .query import execute_query
+
+    effective, _ = materialize_program(settings, selector)
+    if not _scratch_dir(effective, hypothesis).exists():
+        raise ValueError(f"overlay {_slug(hypothesis)} does not exist; create it first")
+    overlay = _overlay_settings(effective, hypothesis)
+    program_name = resolve_program_name(effective, selector)
+    cone = dependency_cone(settings.repo_dir, program_name, class_name)
+    addresses = sorted({address for group in cone.values() for address in group})
+
+    start_pyghidra(settings)
+    import pyghidra
+
+    def digests(project_dir: Path, project_name: str) -> dict[str, str]:
+        project = pyghidra.open_project(project_dir, project_name, create=False)
+        try:
+            with pyghidra.program_context(project, "/" + program_name) as program:
+                out = {}
+                for address in addresses:
+                    # A cone address that is not a function in this program -
+                    # a thunk the census names, say - is simply not measured;
+                    # both sides skip it identically, so the diff stays honest.
+                    with contextlib.suppress(Exception):
+                        result = execute_query(program, "decompile", ["0x" + address])
+                        body = result.get("decompiled") or ""
+                        out[address] = hashlib.sha256(body.encode()).hexdigest()
+                return out
+        finally:
+            from .semantic import dispose_sessions
+
+            dispose_sessions()
+            project.close()
+
+    before = digests(effective.project_dir, effective.project_name)
+    after = digests(overlay.project_dir, overlay.project_name)
+    changed = sorted(
+        address for address in before if address in after and before[address] != after[address]
+    )
+    reasons = {
+        address: [reason for reason, group in cone.items() if address in group]
+        for address in changed
+    }
+    return {
+        "class": class_name,
+        "hypothesis": _slug(hypothesis),
+        "cone": {reason: len(group) for reason, group in cone.items()},
+        "cone_size": len(addresses),
+        "decompiled": len(before),
+        "changed": len(changed),
+        "changed_functions": {address: reasons[address] for address in changed[:40]},
+    }

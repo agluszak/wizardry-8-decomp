@@ -660,7 +660,7 @@ def sgp_sweep(
 
 @ghidra_app.command("overlay")
 def ghidra_overlay_command(
-    action: Annotated[str, typer.Argument(help="create, apply-vtable, decompile, or discard.")],
+    action: Annotated[str, typer.Argument(help="create, apply-vtable, impact, decompile, or discard.")],
     selector: Annotated[str, typer.Argument(help="Program selector.")],
     hypothesis: Annotated[str, typer.Argument(help="Hypothesis name; keys the scratch clone.")],
     argument: Annotated[str | None, typer.Argument(help="Class for apply-vtable; address for decompile.")] = None,
@@ -681,6 +681,10 @@ def ghidra_overlay_command(
             if not argument:
                 raise ValueError("decompile requires an address")
             return overlay.decompile_in_overlay(settings, selector, hypothesis, argument)
+        if action == "impact":
+            if not argument:
+                raise ValueError("impact requires a class name")
+            return overlay.measure_impact(settings, selector, hypothesis, argument)
         if action == "discard":
             return overlay.discard_overlay(settings, selector, hypothesis)
         raise ValueError(f"unknown overlay action: {action}")

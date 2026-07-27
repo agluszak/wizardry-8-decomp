@@ -41,3 +41,26 @@ def test_the_slot_list_comes_from_the_reviewed_ledger_in_order() -> None:
 def test_a_class_with_no_reviewed_primary_vtable_is_refused() -> None:
     with pytest.raises(ValueError, match="no reviewed primary vtable"):
         _reviewed_vtable(REPOSITORY, "Controls")
+
+
+def test_the_dependency_cone_names_why_each_function_is_in_it() -> None:
+    # Retyping a class reaches three sets, and a fixpoint must redecompile all
+    # three: the slot targets that gain a receiver, the writers that handle the
+    # object, and the callers whose callee signature moved under them.
+    from wiz8decomp.ghidra.overlay import dependency_cone
+
+    cone = dependency_cone(REPOSITORY, "wiz8--gog-base--wiz8--18a74ff61c65", "GrCycle")
+
+    assert set(cone) == {"slot-target", "vptr-writer", "calls-slot-target"}
+    assert "004a5e50" in cone["vptr-writer"] or "004a6610" in cone["vptr-writer"]
+    # The three groups are disjoint, so a changed function has one reason.
+    groups = [set(addresses) for addresses in cone.values()]
+    assert not (groups[0] & groups[1] & groups[2])
+
+
+def test_a_class_outside_the_reviewed_model_has_an_empty_cone() -> None:
+    from wiz8decomp.ghidra.overlay import dependency_cone
+
+    cone = dependency_cone(REPOSITORY, "wiz8--gog-base--wiz8--18a74ff61c65", "Nonexistent")
+
+    assert all(not addresses for addresses in cone.values()) or cone == {}
