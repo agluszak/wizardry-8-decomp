@@ -654,8 +654,15 @@ void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
 void SetRegionOwner(unsigned int region_index, void* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
-int ClockIsTicking(int clock);
-int SetCountdownClock(int delay);
+/* SGP clock, declared in sgp/timer.h as TIMER GetClock(void), TIMER
+   SetCountdownClock(UINT32) and UINT32 ClockIsTicking(TIMER), where TIMER is
+   UINT32. Spelled in plain types because this header has to compile for
+   targets that do not carry SGP on their include path, which is also why it is
+   a restatement rather than an include. The two that were here previously took
+   and returned int, which the real header does not say. */
+unsigned int GetClock(void);
+unsigned int ClockIsTicking(unsigned int clock);
+unsigned int SetCountdownClock(unsigned int delay);
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 unsigned int GetForcedRegion(void);
 void UpdateRegionHelp(void);
