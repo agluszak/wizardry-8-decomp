@@ -1,6 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <string.h>
+
 /*
  * Local Code\VideoObjectManager.cpp, named by the three assertions this body
  * embeds at lines 45, 62 and 221.
@@ -45,7 +47,23 @@ extern unsigned char g_video_objects_ready_650e20;
 extern W8VideoObjectSlot g_video_slots_6448c8[];
 extern W8VideoFrame g_video_frames_62c430[];
 
-extern void Function549090(int object, int frame);
+
+/* Two loaders, chosen by the frame's mode. Each takes a request whose first
+   field is 0x40 and whose path follows it inline, and hands back a surface. */
+typedef struct W8VideoLoadRequestA {
+    int kind;
+    char path[104];
+} W8VideoLoadRequestA;
+
+typedef struct W8VideoLoadRequestB {
+    int kind;
+    char path[96];
+} W8VideoLoadRequestB;
+
+extern char Function405EF0(W8VideoLoadRequestA* request, void** surface);
+extern char Function402A70(W8VideoLoadRequestB* request, void** surface);
+
+void Function549090(int object, int frame);
 extern char Function405FF0(int object, void* surface, short y, int a, int b, int c, int d);
 extern char Function402ED0(int object, void* surface, short y, int a, int b, int c, int d);
 
@@ -81,6 +99,55 @@ void Function548F90(int target, int object, int frame, short y,
     }
     if (!ok) {
         srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x3e, 0);
+    }
+}
+
+
+/* Loads one frame's surface the first time it is drawn. The path comes out of
+   the frame record itself, and the mode picks which loader receives it. A
+   failure does not return - it formats the path and the mode into the
+   assertion's message. */
+// FUNCTION: WIZ8 0x00549090
+void Function549090(int object, int frame)
+{
+    W8VideoLoadRequestA request_a;
+    W8VideoLoadRequestB request_b;
+    W8VideoFrame* record;
+    void* surface;
+    char loaded_ok;
+
+    /* Two nested checks, both in the original: the assertion does not return,
+       so the inner one is reachable only when it is compiled out. */
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x4c, 0);
+        if (!g_video_objects_ready_650e20) {
+            srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xd4, 0);
+        }
+    }
+    record = &g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame];
+    if (record->loaded == 0) {
+        if (!g_video_objects_ready_650e20) {
+            srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
+        }
+        if (record->mode == 0) {
+            request_a.kind = 0x40;
+            strcpy(request_a.path, record->path);
+            loaded_ok = Function405EF0(&request_a, &surface);
+        } else {
+            request_b.kind = 0x40;
+            strcpy(request_b.path, record->path);
+            loaded_ok = Function402A70(&request_b, &surface);
+        }
+        if (loaded_ok == 0) {
+            if (!g_video_objects_ready_650e20) {
+                srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
+            }
+            srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x68,
+                         FormatString("LoadVideoObject: ERROR - Add %s failed, type %d",
+                                      record->path, record->mode));
+        }
+        record->surface = surface;
+        record->loaded = 1;
     }
 }
 
