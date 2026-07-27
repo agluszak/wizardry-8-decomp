@@ -293,6 +293,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/vector_005ec294.cpp
         src/wiz8/vector_005ed840.cpp
         src/wiz8/vector_005eea28.cpp
+        src/wiz8/vector_005ecf00.cpp
         src/wiz8/vector_005ec27c.cpp
         src/wiz8/local_code/Control004F5450.cpp
         src/wiz8/local_code/RegionManager.cpp
