@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/vector.h"
 
 /* Local Code\Controls.cpp. m_uiRegionSetId is named by the canonical assertion
    at line 399, and REGSET_NULL is zero because the body's guard is a plain
@@ -468,4 +469,91 @@ W8Control005ED66C::W8Control005ED66C(W8Controls* panel, unsigned int region, int
     Function549660(m_a0, m_a1, m_b0, &width, &height);
     m_measured_50 = (unsigned short)width;
     m_slack_4c = (m_right - m_left) - (unsigned short)width;
+}
+
+/*
+ * The class at vtable 0x005ED5A4, which embeds a growable vector at +0x38.
+ * That vector is the shared template, not a private copy: it allocates 0x14
+ * bytes and records a capacity of five, which is the template's own default of
+ * five four-byte elements, and it installs the template table then its own -
+ * the second-vtable shape wiz8/vector.h describes.
+ *
+ * Its element type is unproven, so it is named for the vtable the image gives
+ * the vector.
+ */
+class W8VectorElement005ED5B0;
+
+class W8ElementVector005ED5B0 : public W8GrowableVector<W8VectorElement005ED5B0*> {
+public:
+    W8ElementVector005ED5B0();
+    virtual ~W8ElementVector005ED5B0();
+};
+
+class W8Control005ED5A4 {
+public:
+    W8Control005ED5A4();
+    W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int a7, int a8);
+
+    virtual void vslot00();
+
+protected:
+    unsigned char m_flag_04;
+    unsigned char m_flag_05;
+    unsigned char m_flag_06;
+    unsigned char pad_07;
+    int m_field_08;
+    int m_field_0c;
+    int m_field_10;
+    int m_field_14;
+    int m_field_18;                      /* 0x18: the three below default to -1 */
+    int m_field_1c;
+    int m_field_20;
+    int m_field_24;                      /* 0x24: always -1 */
+    unsigned char unknown_28[0xc];
+    unsigned char m_flag_34;             /* 0x34: set to 1 */
+    unsigned char pad_35[3];
+    W8ElementVector005ED5B0 m_items;     /* 0x38 */
+    int m_field_48;
+};                                       /* 0x4c, which is the allocation size */
+
+__forceinline W8ElementVector005ED5B0::W8ElementVector005ED5B0()
+{
+}
+
+/* The default constructor. Everything the seven-argument one takes from its
+   caller, this one zeroes or sets to -1. */
+// FUNCTION: WIZ8 0x004F2C30
+W8Control005ED5A4::W8Control005ED5A4()
+{
+    m_field_18 = -1;
+    m_field_1c = -1;
+    m_field_20 = -1;
+    m_flag_04 = 0;
+    m_flag_05 = 0;
+    m_flag_06 = 0;
+    m_field_08 = 0;
+    m_field_0c = 0;
+    m_field_10 = 0;
+    m_field_14 = 0;
+    m_field_24 = -1;
+    m_flag_34 = 1;
+    m_field_48 = 0;
+}
+
+// FUNCTION: WIZ8 0x004F2CA0
+W8Control005ED5A4::W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int a7, int a8)
+{
+    m_field_18 = a6;
+    m_field_20 = a8;
+    m_field_1c = a7;
+    m_field_0c = a3;
+    m_field_08 = a2;
+    m_field_14 = a5;
+    m_flag_04 = 0;
+    m_flag_05 = 0;
+    m_flag_06 = 0;
+    m_field_10 = a4;
+    m_field_24 = -1;
+    m_flag_34 = 1;
+    m_field_48 = 0;
 }
