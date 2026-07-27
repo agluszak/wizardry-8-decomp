@@ -260,6 +260,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/Magic.cpp
         src/wiz8/local_code/VideoObjectManager.cpp
         "src/wiz8/local_screens/MainMenuScreen.cpp"
+        src/wiz8/local_screens/Screens.cpp
         src/wiz8/location_variables.cpp
         src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
