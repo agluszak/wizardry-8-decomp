@@ -25,7 +25,11 @@ import io
 from pathlib import Path
 from typing import Any
 
-from ..ghidra.candidate_model import classify_candidates
+from ..ghidra.candidate_model import (
+    candidate_name,
+    classify_candidates,
+    derive_skeletons,
+)
 from ..paths import atomic_json, atomic_write
 
 _REPORT_NAME = "class-candidates"
@@ -62,9 +66,127 @@ def load_candidates(settings: Any) -> tuple[str, list[dict[str, Any]]]:
     return program, classify_candidates(vtables, slots, writes, reviewed)
 
 
+_BANNER = (
+    "GENERATED CANDIDATE - machine-derived from the polymorphism census.\n"
+    "Nothing here is reviewed evidence: verify every value against the\n"
+    "writers' decompiles before promoting anything into evidence/ or src/."
+)
+
+
+def header_skeleton(skeleton: dict[str, Any]) -> str:
+    """A compilable W8-convention struct skeleton for one candidate."""
+
+    name = skeleton["name"]
+    lines = [
+        "/*",
+        *(f"   {line}" for line in _BANNER.splitlines()),
+        "*/",
+        "",
+        "#pragma pack(push, 1)",
+        f"struct {name} {{",
+    ]
+    cursor = 0
+    for offset, vtable in skeleton["vptr_offsets"]:
+        if offset > cursor:
+            lines.append(
+                f"    unsigned char unknown_{cursor:03x}[0x{offset - cursor:x}];"
+            )
+        field = "vptr" if offset == 0 else f"vptr_{offset:x}"
+        lines.append(
+            f"    void* {field};{' ' * max(1, 24 - len(field))}"
+            f"/* 0x{offset:03x}: candidate vtable 0x{vtable:08x} */"
+        )
+        cursor = offset + 4
+    if skeleton["size"] > cursor:
+        lines.append(
+            f"    unsigned char unknown_{cursor:03x}[0x{skeleton['size'] - cursor:x}];"
+        )
+    lines.append("};")
+    lines.append("#pragma pack(pop)")
+    lines.append("")
+    origin = (
+        "allocation hint" if skeleton["size_is_allocation_hint"] else "vptr extent only"
+    )
+    lines.append(f"/* size origin: {origin} */")
+    lines.append(
+        f"typedef char {name}_size_must_be_0x{skeleton['size']:x}["
+    )
+    lines.append(f"    sizeof(struct {name}) == 0x{skeleton['size']:x} ? 1 : -1];")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def promotion_template(
+    candidate: dict[str, Any],
+    skeleton: dict[str, Any],
+    slot_targets: dict[int, list[str]],
+    slot_counts: dict[int, int],
+) -> str:
+    """Prefilled reviewed-CSV row snippets for one candidate's promotion."""
+
+    name = skeleton["name"]
+    vtable = candidate["vtable"]
+    deleting = candidate["scalar_deleting_destructor"]
+    writers = ", ".join(f"0x{w:08x}" for w in candidate["constructor_or_destructor"])
+    hints = ", ".join(f"0x{s:x}" for s in candidate["allocation_sizes"]) or "none"
+    lines = [
+        f"# {name} promotion template",
+        "",
+        *(f"> {line}" for line in _BANNER.splitlines()),
+        "",
+        f"- writers to review: {writers or 'none'}"
+        + (f"; scalar deleting destructor 0x{deleting:08x}" if deleting else ""),
+        f"- allocation hints: {hints}",
+        f"- vptr-write sites: {', '.join(candidate['write_sites'])}",
+        "",
+        "## evidence/reviewed/wiz8/classes.csv",
+        "```csv",
+        f"wiz8,<class-name>,<confidence>,<class-name>.primary,<constructor>,"
+        f"<destructor>,{f'{deleting:08x}' if deleting else '<scalar-deleting>'},"
+        f"0x{skeleton['size']:x},,,<source-path>,\"<evidence>\",",
+        "```",
+        "",
+        "## evidence/reviewed/wiz8/vtables.csv",
+        "```csv",
+        f"wiz8,<class-name>.primary,<class-name>,{vtable:08x},0x0,primary,"
+        f"{candidate['slot_count']},<confidence>,classes:wiz8:<class-name>",
+    ]
+    for other, offset in candidate["subobject_vtables"]:
+        lines.append(
+            f"wiz8,<class-name>.secondary_0x{offset:x},<class-name>,{other:08x},"
+            f"0x{offset:x},secondary,{slot_counts.get(other, 0)},<confidence>,"
+            "classes:wiz8:<class-name>"
+        )
+    lines.append("```")
+    lines.append("")
+    lines.append("## evidence/reviewed/wiz8/vtable-slots.csv")
+    lines.append("```csv")
+    for index, target in enumerate(slot_targets.get(vtable, [])):
+        lines.append(
+            f"wiz8,<class-name>.primary,{index},{target},,<confidence>,"
+            "classes:wiz8:<class-name>"
+        )
+    lines.append("```")
+    lines.append("")
+    return "\n".join(lines)
+
+
 def class_candidates_report(settings: Any) -> dict[str, Any]:
     program, candidates = load_candidates(settings)
+    skeletons = {item["vtable"]: item for item in derive_skeletons(candidates)}
 
+    snapshots = settings.repo_dir / "evidence" / "snapshots" / "polymorphism"
+    slot_targets: dict[int, list[str]] = {}
+    for row in _read(snapshots / "slots.csv"):
+        if row["program"] == program and row["kind"] != "base-displacement":
+            slot_targets.setdefault(int(row["vtable"], 16), []).append(row["target"])
+    slot_counts = {
+        int(row["address"], 16): int(row["slot_count"] or 0)
+        for row in _read(snapshots / "vtables.csv")
+        if row["program"] == program
+    }
+
+    report_dir = settings.build_dir / "reports" / _REPORT_NAME
     rows: list[dict[str, str]] = []
     for item in sorted(candidates, key=lambda entry: entry["vtable"]):
         rows.append(
@@ -97,12 +219,26 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
         )
 
     stream_fields = list(rows[0].keys()) if rows else []
-    report_dir = settings.build_dir / "reports" / _REPORT_NAME
     stream = io.StringIO(newline="")
     writer = csv.DictWriter(stream, fieldnames=stream_fields, lineterminator="\n")
     writer.writeheader()
     writer.writerows(rows)
     atomic_write(report_dir / "candidates.csv", stream.getvalue())
+
+    templates = 0
+    headers = 0
+    for item in candidates:
+        skeleton = skeletons.get(item["vtable"])
+        if skeleton is None:
+            continue
+        stem = candidate_name(item["vtable"]).lower()
+        atomic_write(
+            report_dir / "promotion" / f"{stem}.md",
+            promotion_template(item, skeleton, slot_targets, slot_counts),
+        )
+        templates += 1
+        atomic_write(report_dir / "headers" / f"{stem}.h", header_skeleton(skeleton))
+        headers += 1
 
     summary = {
         "schema": "wiz8.class-candidates",
@@ -114,7 +250,13 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
             1 for row in rows if row["scalar_deleting_destructor"]
         ),
         "with_allocation_hint": sum(1 for row in rows if row["allocation_size_hints"]),
-        "outputs": [f"build/reports/{_REPORT_NAME}/candidates.csv"],
+        "promotion_templates": templates,
+        "header_skeletons": headers,
+        "outputs": [
+            f"build/reports/{_REPORT_NAME}/candidates.csv",
+            f"build/reports/{_REPORT_NAME}/promotion/",
+            f"build/reports/{_REPORT_NAME}/headers/",
+        ],
     }
     atomic_json(report_dir / "summary.json", summary)
     return summary

@@ -76,6 +76,23 @@ def classify_candidates(
                 if other != vtable and offset != 0
             }
         )
+        # A subobject table is installed by every constructor of its owner
+        # (and restored by the destructor), while a heap-builder function
+        # writes unrelated objects' vtables that only it touches. Requiring
+        # unanimity across the constructor writers separates the two; with
+        # only the deleting destructor available its writes stand alone.
+        deciders = constructors or primary_writers
+        subobjects = sorted(
+            {
+                (other, offset)
+                for other, offset in co_installed
+                if offset > 0
+                and all(
+                    (other, offset) in vtables_by_writer[writer]
+                    for writer in deciders
+                )
+            }
+        )
         candidates.append(
             {
                 "vtable": vtable,
@@ -94,6 +111,7 @@ def classify_candidates(
                 ),
                 "constructor_or_destructor": constructors,
                 "co_installed_vtables": co_installed,
+                "subobject_vtables": subobjects,
                 "write_sites": sorted(item["site"] for item in write_rows),
                 "reviewed": vtable in reviewed_vtables,
             }
@@ -116,9 +134,7 @@ def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         vptr_offsets: list[tuple[int, int]] = [(0, candidate["vtable"])]
         vptr_offsets.extend(
-            (offset, vtable)
-            for vtable, offset in candidate["co_installed_vtables"]
-            if offset > 0
+            (offset, vtable) for vtable, offset in candidate["subobject_vtables"]
         )
         vptr_offsets.sort()
         minimum = vptr_offsets[-1][0] + 4

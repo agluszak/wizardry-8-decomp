@@ -49,6 +49,7 @@ def test_classify_separates_deleting_destructor_from_constructors() -> None:
     assert candidate["scalar_deleting_destructor"] == 0x00400100
     assert candidate["constructor_or_destructor"] == [0x00400200]
     assert candidate["co_installed_vtables"] == [(0x00500200, 0x18)]
+    assert candidate["subobject_vtables"] == [(0x00500200, 0x18)]
     assert candidate["allocation_sizes"] == [0x250]
     assert candidate["reviewed"] is False
 
@@ -66,14 +67,14 @@ def test_skeletons_cover_vptrs_and_allocation_hints() -> None:
         {
             "vtable": 0x00500000,
             "allocation_sizes": [0x250],
-            "co_installed_vtables": [(0x00500200, 0x138), (0x00500300, -4)],
+            "subobject_vtables": [(0x00500200, 0x138)],
             "reviewed": False,
         },
         # No allocation hint: the size falls back to covering the last vptr.
         {
             "vtable": 0x00500400,
             "allocation_sizes": [],
-            "co_installed_vtables": [(0x00500500, 0x18)],
+            "subobject_vtables": [(0x00500500, 0x18)],
             "reviewed": False,
         },
         # An allocation hint smaller than the vptr extent cannot be the
@@ -81,14 +82,14 @@ def test_skeletons_cover_vptrs_and_allocation_hints() -> None:
         {
             "vtable": 0x00500600,
             "allocation_sizes": [0x8],
-            "co_installed_vtables": [(0x00500700, 0x20)],
+            "subobject_vtables": [(0x00500700, 0x20)],
             "reviewed": False,
         },
         # Reviewed candidates belong to the reviewed class model.
         {
             "vtable": 0x00500800,
             "allocation_sizes": [0x10],
-            "co_installed_vtables": [],
+            "subobject_vtables": [],
             "reviewed": True,
         },
     ]
@@ -102,7 +103,6 @@ def test_skeletons_cover_vptrs_and_allocation_hints() -> None:
     first = skeletons[0]
     assert first["size"] == 0x250
     assert first["size_is_allocation_hint"] is True
-    # Negative co-installed offsets are base adjustments, not members.
     assert first["vptr_offsets"] == [(0, 0x00500000), (0x138, 0x00500200)]
     assert skeletons[1]["size"] == 0x1C
     assert skeletons[1]["size_is_allocation_hint"] is False
