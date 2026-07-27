@@ -63,26 +63,30 @@ allocation. `evidence/snapshots/polymorphism/vptr-writes.csv` now carries `alloc
 offset-`0` store, read back from the store rather than from a call to a constructor - which is what
 makes an inlined construction, the common shape here, yield one at all.
 
-That does not reach the `srMaterial` builders. The one at `0x00423500` allocates through a register
-holding the allocator:
+Two call forms reach an allocator, and only one was recognised at first. The global `operator new`
+is called through a jump thunk; `srHeap::allocate` is called straight through its import slot, which
+is how every SurRender-heap construction in the image allocates:
 
 ```text
-call esi                      the allocation; no size is pushed at this site
-mov  ecx, [0x005EB4E4]        the imported srMaterial vftable
-mov  [ebp], ecx
-call [0x005EB3E4]             srMaterial::reset
-mov  [ebp], 0x005EBDE0        the first-party derived vtable
+mov  ecx, [0x005EBABC]        the srHeap global
+push 0x7c                     the size
+call [0x005EBAC0]             srHeap::allocate, through the slot rather than a thunk
+mov  ecx, eax
+call 0x004925B0               the constructor
 ```
 
-so the size lives in whatever set up `esi`, not at the construction. All seven sites in that family
-share the shape. What they do give is a floor: the same builder writes `[ebp+0x68]` and `[ebp+0x6c]`
-before installing the vftable, so the derived object runs to at least `0x70`, and `srMaterial`
-itself is smaller than that by however much the derived class adds.
+Recognising the indirect form is what put sizes on the `srMaterial` family: `0x7C` for the pair the
+dedicated constructors at `0x004925B0` and `0x00492720` build, and `0x78` for one of the inlined
+builders. The other inlined sites still allocate through a register, where no size exists at the
+site at all.
 
-Reading the size out of `sr.dll`'s own constructor would settle it and is not available: that is
-disassembling a SurRender body. The levers that remain are the dedicated constructors at
-`0x004925B0` and `0x00492720`, which are called rather than inlined and whose callers may push a
-size, and `srEXT_Inspector` as a live oracle.
+What that does not settle is where `srMaterial` ends and the first-party class begins, and a harder
+problem is in the way. `??_7srMaterial@@6B@` has **24** slots, while all three first-party vtables
+these builders install - `0x005EBDE0`, `0x005EBE14` and `0x005EBE48`, adjacent and `0x34` apart -
+have **13**. A class cannot have fewer virtual slots than the base it derives from, so either those
+tables are not `srMaterial` subclasses or one of the two counts is wrong. Each of the three carries
+its own constructor writes, so they are three separate tables and not one the census split early.
+That contradiction comes before any port of the family.
 
 ## What may be written into a header
 

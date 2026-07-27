@@ -1,15 +1,15 @@
 program,address,section,kind,slot_count,boundary,vptr_write_count,subobject_offsets,pure_virtual_slots,adjustor_thunk_slots,import_slots,allocation_sizes
 wiz8--demo--wiz8--8acda50afe39,005f7b34,.rdata,vftable,2,code-reference-boundary,0,,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f7d1c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x28
-wiz8--demo--wiz8--8acda50afe39,005f7d30,.rdata,vftable,52,code-reference-boundary,19,0x0,0,0,48,
-wiz8--demo--wiz8--8acda50afe39,005f7e00,.rdata,vftable,13,code-reference-boundary,7,0x0,0,0,9,
-wiz8--demo--wiz8--8acda50afe39,005f7e34,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
-wiz8--demo--wiz8--8acda50afe39,005f7e68,.rdata,vftable,13,code-reference-boundary,10,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f7d30,.rdata,vftable,52,code-reference-boundary,19,0x0,0,0,48,0x5c
+wiz8--demo--wiz8--8acda50afe39,005f7e00,.rdata,vftable,13,code-reference-boundary,7,0x0,0,0,9,0x78|0x148
+wiz8--demo--wiz8--8acda50afe39,005f7e34,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,0x188
+wiz8--demo--wiz8--8acda50afe39,005f7e68,.rdata,vftable,13,code-reference-boundary,10,0x0,0,0,8,0x190
 wiz8--demo--wiz8--8acda50afe39,005f7e9c,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x14
 wiz8--demo--wiz8--8acda50afe39,005f7eb8,.rdata,vftable,21,code-reference-boundary,3,0x0,0,0,16,
-wiz8--demo--wiz8--8acda50afe39,005f7f0c,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,12,
-wiz8--demo--wiz8--8acda50afe39,005f7f88,.rdata,vftable,11,code-reference-boundary,6,0x0,4,0,3,
-wiz8--demo--wiz8--8acda50afe39,005f7fb4,.rdata,vftable,8,code-reference-boundary,6,0x0,1,0,3,
+wiz8--demo--wiz8--8acda50afe39,005f7f0c,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,12,0x5c
+wiz8--demo--wiz8--8acda50afe39,005f7f88,.rdata,vftable,11,code-reference-boundary,6,0x0,4,0,3,0x78|0x7c
+wiz8--demo--wiz8--8acda50afe39,005f7fb4,.rdata,vftable,8,code-reference-boundary,6,0x0,1,0,3,0x78|0x7c
 wiz8--demo--wiz8--8acda50afe39,005f7fd4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f7fd8,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f7ff0,.rdata,vftable,3,code-reference-boundary,6,0x0 0x138,0,0,0,
@@ -23,8 +23,8 @@ wiz8--demo--wiz8--8acda50afe39,005f8098,.rdata,vftable,11,code-reference-boundar
 wiz8--demo--wiz8--8acda50afe39,005f80c4,.rdata,vftable,1,code-reference-boundary,5,0x0,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f80cc,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x34
 wiz8--demo--wiz8--8acda50afe39,005f8100,.rdata,vftable,1,code-reference-boundary,26,0x0 0x8 0x18 0x28 0x38 0x3c 0x48 0x4c 0x3f0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f8104,.rdata,vftable,8,code-reference-boundary,2,0x0,0,0,2,
-wiz8--demo--wiz8--8acda50afe39,005f8124,.rdata,vftable,8,code-reference-boundary,3,0x0,1,0,2,
+wiz8--demo--wiz8--8acda50afe39,005f8104,.rdata,vftable,8,code-reference-boundary,2,0x0,0,0,2,0x38c
+wiz8--demo--wiz8--8acda50afe39,005f8124,.rdata,vftable,8,code-reference-boundary,3,0x0,1,0,2,0x38c
 wiz8--demo--wiz8--8acda50afe39,005f814c,.rdata,vftable,2,code-reference-boundary,9,0x0,0,0,0,0x38
 wiz8--demo--wiz8--8acda50afe39,005f8154,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x98
 wiz8--demo--wiz8--8acda50afe39,005f815c,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
@@ -33,7 +33,7 @@ wiz8--demo--wiz8--8acda50afe39,005f8170,.rdata,vftable,1,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f8174,.rdata,vftable,1,code-reference-boundary,4,0x10 0x18 0x3c 0x54,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8178,.rdata,vftable,1,code-reference-boundary,11,0x0 0x10 0x18 0x1c 0x40 0x54,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f817c,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f8180,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
+wiz8--demo--wiz8--8acda50afe39,005f8180,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x464
 wiz8--demo--wiz8--8acda50afe39,005f8184,.rdata,vftable,1,code-reference-boundary,5,0x0 0x1c 0x40,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8188,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f818c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
@@ -42,7 +42,7 @@ wiz8--demo--wiz8--8acda50afe39,005f81e8,.rdata,vftable,1,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f81ec,.rdata,vftable,1,code-reference-boundary,5,0x0 0xb0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f81f0,.rdata,vftable,2,code-reference-boundary,7,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f81f8,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x90
-wiz8--demo--wiz8--8acda50afe39,005f8220,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,9,0x190
+wiz8--demo--wiz8--8acda50afe39,005f8220,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,9,0x138|0x190
 wiz8--demo--wiz8--8acda50afe39,005f827c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8280,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8284,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
@@ -64,10 +64,10 @@ wiz8--demo--wiz8--8acda50afe39,005f833c,.rdata,vftable,1,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f8340,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8408,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f840c,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f846c,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,10,
+wiz8--demo--wiz8--8acda50afe39,005f846c,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,10,0x464
 wiz8--demo--wiz8--8acda50afe39,005f84c0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f84c4,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f84c8,.rdata,vftable,21,code-reference-boundary,3,0x0,0,0,16,
+wiz8--demo--wiz8--8acda50afe39,005f84c4,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x464
+wiz8--demo--wiz8--8acda50afe39,005f84c8,.rdata,vftable,21,code-reference-boundary,3,0x0,0,0,16,0x464
 wiz8--demo--wiz8--8acda50afe39,005f851c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8520,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f8524,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x10
@@ -75,31 +75,31 @@ wiz8--demo--wiz8--8acda50afe39,005f852c,.rdata,vftable,1,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f8530,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8534,.rdata,vftable,1,code-reference-boundary,5,0x0 0x24 0x64,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f8538,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f85f0,.rdata,vftable,17,code-reference-boundary,2,0x0,0,0,5,
-wiz8--demo--wiz8--8acda50afe39,005f8634,.rdata,vftable,17,code-reference-boundary,3,0x0,3,0,9,
+wiz8--demo--wiz8--8acda50afe39,005f85f0,.rdata,vftable,17,code-reference-boundary,2,0x0,0,0,5,0x68
+wiz8--demo--wiz8--8acda50afe39,005f8634,.rdata,vftable,17,code-reference-boundary,3,0x0,3,0,9,0x68
 wiz8--demo--wiz8--8acda50afe39,005f8678,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8684,.rdata,vftable,5,code-reference-boundary,0,,0,0,1,
 wiz8--demo--wiz8--8acda50afe39,005f8698,.rdata,vftable,2,code-reference-boundary,2,-0x10 0x0,0,0,1,0x20
 wiz8--demo--wiz8--8acda50afe39,005f86a0,.rdata,vbtable,2,displacement-shape,0,,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f86b8,.rdata,vftable,17,code-reference-boundary,3,0x0,0,0,6,
-wiz8--demo--wiz8--8acda50afe39,005f86fc,.rdata,vftable,17,code-reference-boundary,4,0x0,3,0,9,
+wiz8--demo--wiz8--8acda50afe39,005f86fc,.rdata,vftable,17,code-reference-boundary,4,0x0,3,0,9,0x6c
 wiz8--demo--wiz8--8acda50afe39,005f8740,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,6,
 wiz8--demo--wiz8--8acda50afe39,005f8774,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
 wiz8--demo--wiz8--8acda50afe39,005f87b8,.rdata,vftable,4,code-reference-boundary,0,,0,1,2,
-wiz8--demo--wiz8--8acda50afe39,005f87c8,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
+wiz8--demo--wiz8--8acda50afe39,005f87c8,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,0x1b0
 wiz8--demo--wiz8--8acda50afe39,005f87fc,.rdata,vftable,4,code-reference-boundary,3,0x138,0,1,3,
-wiz8--demo--wiz8--8acda50afe39,005f880c,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f880c,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,0x1b0
 wiz8--demo--wiz8--8acda50afe39,005f8840,.rdata,vftable,4,code-reference-boundary,3,0x138,0,1,3,
-wiz8--demo--wiz8--8acda50afe39,005f8850,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,
+wiz8--demo--wiz8--8acda50afe39,005f8850,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,0x180
 wiz8--demo--wiz8--8acda50afe39,005f8884,.rdata,vftable,4,code-reference-boundary,0,,0,1,3,
-wiz8--demo--wiz8--8acda50afe39,005f8894,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f8894,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x180
 wiz8--demo--wiz8--8acda50afe39,005f88f0,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8938,.rdata,vftable,3,code-reference-boundary,2,0x138,0,1,2,
 wiz8--demo--wiz8--8acda50afe39,005f8944,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,
-wiz8--demo--wiz8--8acda50afe39,005f89b0,.rdata,vftable,1,code-reference-boundary,6,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f89b4,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f89b8,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,2,
-wiz8--demo--wiz8--8acda50afe39,005f89fc,.rdata,vftable,17,code-reference-boundary,5,0x0,3,0,9,
+wiz8--demo--wiz8--8acda50afe39,005f89b0,.rdata,vftable,1,code-reference-boundary,6,0x0,0,0,0,0x7c
+wiz8--demo--wiz8--8acda50afe39,005f89b4,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x7c
+wiz8--demo--wiz8--8acda50afe39,005f89b8,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,2,0x7c
+wiz8--demo--wiz8--8acda50afe39,005f89fc,.rdata,vftable,17,code-reference-boundary,5,0x0,3,0,9,0x7c
 wiz8--demo--wiz8--8acda50afe39,005f8a50,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8a54,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8a58,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -111,14 +111,14 @@ wiz8--demo--wiz8--8acda50afe39,005f8a9c,.rdata,vftable,1,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f8ab0,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8ac8,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8acc,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f8b30,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,
-wiz8--demo--wiz8--8acda50afe39,005f8b64,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
-wiz8--demo--wiz8--8acda50afe39,005f8bc8,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,5,
-wiz8--demo--wiz8--8acda50afe39,005f8bfc,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f8b30,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,0x7c
+wiz8--demo--wiz8--8acda50afe39,005f8b64,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x7c
+wiz8--demo--wiz8--8acda50afe39,005f8bc8,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,5,0x280
+wiz8--demo--wiz8--8acda50afe39,005f8bfc,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x280
 wiz8--demo--wiz8--8acda50afe39,005f8c50,.rdata,vftable,3,code-reference-boundary,6,0x138,0,1,2,
-wiz8--demo--wiz8--8acda50afe39,005f8c5c,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,5,0x1f8
+wiz8--demo--wiz8--8acda50afe39,005f8c5c,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,5,0x1f8|0x258
 wiz8--demo--wiz8--8acda50afe39,005f8c90,.rdata,vftable,3,code-reference-boundary,0,,0,1,2,
-wiz8--demo--wiz8--8acda50afe39,005f8c9c,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,8,0x1f8
+wiz8--demo--wiz8--8acda50afe39,005f8c9c,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,8,0x1f8|0x258
 wiz8--demo--wiz8--8acda50afe39,005f8cd0,.rdata,vftable,13,code-reference-boundary,5,0x0,0,0,9,
 wiz8--demo--wiz8--8acda50afe39,005f8d04,.rdata,vftable,3,code-reference-boundary,0,,0,1,0,
 wiz8--demo--wiz8--8acda50afe39,005f8d10,.rdata,vftable,13,code-reference-boundary,5,0x0,0,0,8,0x250
@@ -126,7 +126,7 @@ wiz8--demo--wiz8--8acda50afe39,005f8d68,.rdata,vftable,2,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f8d70,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x20
 wiz8--demo--wiz8--8acda50afe39,005f8d98,.rdata,vftable,3,code-reference-boundary,3,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8da4,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f8da8,.rdata,vftable,3,code-reference-boundary,4,0x0,2,0,0,0x58
+wiz8--demo--wiz8--8acda50afe39,005f8da8,.rdata,vftable,3,code-reference-boundary,4,0x0,2,0,0,0x3c|0x58
 wiz8--demo--wiz8--8acda50afe39,005f8db4,.rdata,vftable,3,code-reference-boundary,0,,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8dc0,.rdata,vftable,1,code-reference-boundary,7,0x0 0x38 0x29c,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8dd8,.rdata,vftable,5,code-reference-boundary,3,0x0,0,0,0,0x328
@@ -151,7 +151,7 @@ wiz8--demo--wiz8--8acda50afe39,005f8f10,.rdata,vftable,5,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f8f24,.rdata,vftable,5,code-reference-boundary,3,0x18,0,1,0,
 wiz8--demo--wiz8--8acda50afe39,005f8f38,.rdata,vftable,18,code-reference-boundary,3,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f8fa8,.rdata,vftable,13,code-reference-boundary,1,0x0,0,0,7,
-wiz8--demo--wiz8--8acda50afe39,005f8fdc,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f8fdc,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x150
 wiz8--demo--wiz8--8acda50afe39,005f9010,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f9014,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f9048,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
@@ -161,8 +161,8 @@ wiz8--demo--wiz8--8acda50afe39,005f908c,.rdata,vftable,1,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f9090,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f90c8,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f90e8,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
-wiz8--demo--wiz8--8acda50afe39,005f911c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
-wiz8--demo--wiz8--8acda50afe39,005f9178,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f911c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x140
+wiz8--demo--wiz8--8acda50afe39,005f9178,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,0x150
 wiz8--demo--wiz8--8acda50afe39,005f91ac,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f91b0,.rdata,vftable,1,code-reference-boundary,3,0x0 0x24,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f91f8,.rdata,vftable,6,code-reference-boundary,3,0x0,0,0,0,
@@ -172,15 +172,15 @@ wiz8--demo--wiz8--8acda50afe39,005f9280,.rdata,vftable,2,code-reference-boundary
 wiz8--demo--wiz8--8acda50afe39,005f9288,.rdata,vftable,2,code-reference-boundary,1,0x0,1,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f92c0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f92c4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f9320,.rdata,vftable,8,code-reference-boundary,3,0x0,0,0,2,
+wiz8--demo--wiz8--8acda50afe39,005f9320,.rdata,vftable,8,code-reference-boundary,3,0x0,0,0,2,0x38
 wiz8--demo--wiz8--8acda50afe39,005f9340,.rdata,vftable,1,code-reference-boundary,2,0x28,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f9344,.rdata,vftable,1,code-reference-boundary,5,0x0 0x28,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f9348,.rdata,vftable,1,code-reference-boundary,2,0x18,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f934c,.rdata,vftable,1,code-reference-boundary,5,0x0 0x18,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f9350,.rdata,vftable,8,code-reference-boundary,4,0x0,1,0,2,
+wiz8--demo--wiz8--8acda50afe39,005f9350,.rdata,vftable,8,code-reference-boundary,4,0x0,1,0,2,0x38
 wiz8--demo--wiz8--8acda50afe39,005f93b0,.rdata,vftable,3,code-reference-boundary,0,,0,0,0,
-wiz8--demo--wiz8--8acda50afe39,005f93bc,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
-wiz8--demo--wiz8--8acda50afe39,005f93f0,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--demo--wiz8--8acda50afe39,005f93bc,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,0x148
+wiz8--demo--wiz8--8acda50afe39,005f93f0,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x148
 wiz8--demo--wiz8--8acda50afe39,005f9430,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f9434,.rdata,vftable,1,code-reference-boundary,5,0x0 0x64,0,0,0,0x10
 wiz8--demo--wiz8--8acda50afe39,005f959c,.rdata,vftable,3,code-reference-boundary,3,0x0,0,0,0,0x0|0x4c
@@ -390,15 +390,15 @@ wiz8--demo--wiz8--8acda50afe39,005fbda0,.rdata,vftable,14,gap,1,0x0,0,0,0,0x1b00
 wiz8--demo--wiz8--8acda50afe39,005fbe4c,.rdata,vftable,2,non-code-slot,0,,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebb14,.rdata,vftable,2,code-reference-boundary,0,,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebcfc,.rdata,vftable,1,code-reference-boundary,5,0x0,0,0,0,0x28
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebd10,.rdata,vftable,52,code-reference-boundary,26,0x0,0,0,48,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebde0,.rdata,vftable,13,code-reference-boundary,7,0x0,0,0,9,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebe14,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebe48,.rdata,vftable,13,code-reference-boundary,10,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebd10,.rdata,vftable,52,code-reference-boundary,26,0x0,0,0,48,0x5c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebde0,.rdata,vftable,13,code-reference-boundary,7,0x0,0,0,9,0x78|0x148
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebe14,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,0x188
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebe48,.rdata,vftable,13,code-reference-boundary,10,0x0,0,0,8,0x190
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebe7c,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x14
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebe98,.rdata,vftable,21,code-reference-boundary,3,0x0,0,0,16,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebeec,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,12,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebf68,.rdata,vftable,11,code-reference-boundary,6,0x0,4,0,3,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ebf94,.rdata,vftable,8,code-reference-boundary,6,0x0,1,0,3,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebeec,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,12,0x5c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebf68,.rdata,vftable,11,code-reference-boundary,6,0x0,4,0,3,0x78|0x7c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ebf94,.rdata,vftable,8,code-reference-boundary,6,0x0,1,0,3,0x78|0x7c
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebfb4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebfb8,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ebfd0,.rdata,vftable,3,code-reference-boundary,6,0x0 0x138,0,0,0,
@@ -412,8 +412,8 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ec078,.rdata,vftable,11,code-reference-
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec0a4,.rdata,vftable,1,code-reference-boundary,5,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec0ac,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x34
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec0e0,.rdata,vftable,1,code-reference-boundary,26,0x0 0x8 0x18 0x24 0x28 0x38 0x3c 0x48 0x4c 0x3f0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec0e4,.rdata,vftable,8,code-reference-boundary,2,0x0,0,0,2,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec104,.rdata,vftable,8,code-reference-boundary,3,0x0,1,0,2,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec0e4,.rdata,vftable,8,code-reference-boundary,2,0x0,0,0,2,0x38c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec104,.rdata,vftable,8,code-reference-boundary,3,0x0,1,0,2,0x38c
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec12c,.rdata,vftable,2,code-reference-boundary,9,0x0,0,0,0,0x38
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec134,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x98
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec138,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -422,7 +422,7 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ec148,.rdata,vftable,1,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec158,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0xc
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec15c,.rdata,vftable,1,code-reference-boundary,4,0x10 0x18 0x3c 0x54,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec160,.rdata,vftable,1,code-reference-boundary,11,0x0 0x10 0x18 0x1c 0x40 0x54,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec164,.rdata,vftable,1,code-reference-boundary,4,0x0 0x14,0,0,0,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec164,.rdata,vftable,1,code-reference-boundary,4,0x0 0x14,0,0,0,0x464
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec168,.rdata,vftable,1,code-reference-boundary,9,0x0 0x10 0x18 0x40 0x410,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec16c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec170,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -431,7 +431,7 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ec1d0,.rdata,vftable,1,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec1d4,.rdata,vftable,1,code-reference-boundary,5,0x0 0xb0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec1d8,.rdata,vftable,2,code-reference-boundary,7,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec1e0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x90
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec208,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,9,0x190
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec208,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,9,0x138|0x190
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec264,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec268,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec26c,.rdata,vftable,1,code-reference-boundary,3,0x0 0x20,0,0,0,
@@ -453,10 +453,10 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ec324,.rdata,vftable,1,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec328,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec3f0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec3f4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec454,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,10,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec454,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,10,0x464
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec4a8,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec4ac,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec4b0,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,16,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec4ac,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x464
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec4b0,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,16,0x464
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec504,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec508,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec50c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x10
@@ -464,32 +464,32 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ec514,.rdata,vftable,1,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec518,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec51c,.rdata,vftable,1,code-reference-boundary,7,0x0 0x24 0x64,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec520,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec5d8,.rdata,vftable,8,code-reference-boundary,1,0x0,0,0,4,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec5f8,.rdata,vftable,17,code-reference-boundary,2,0x0,0,0,5,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec63c,.rdata,vftable,17,code-reference-boundary,3,0x0,3,0,9,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec5d8,.rdata,vftable,8,code-reference-boundary,1,0x0,0,0,4,0x28
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec5f8,.rdata,vftable,17,code-reference-boundary,2,0x0,0,0,5,0x68
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec63c,.rdata,vftable,17,code-reference-boundary,3,0x0,3,0,9,0x68
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec680,.rdata,vftable,3,code-reference-boundary,0,,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec68c,.rdata,vftable,5,code-reference-boundary,0,,0,0,1,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec6a0,.rdata,vftable,2,code-reference-boundary,2,-0x10 0x0,0,0,1,0x20
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec6a8,.rdata,vbtable,2,displacement-shape,0,,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec6c0,.rdata,vftable,17,code-reference-boundary,3,0x0,0,0,6,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec704,.rdata,vftable,17,code-reference-boundary,4,0x0,3,0,9,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec704,.rdata,vftable,17,code-reference-boundary,4,0x0,3,0,9,0x6c
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec748,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,6,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec77c,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec7c0,.rdata,vftable,4,code-reference-boundary,2,0x138,0,1,2,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec7d0,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec7d0,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,0x1b0
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec804,.rdata,vftable,4,code-reference-boundary,3,0x138,0,1,3,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec814,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec814,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,0x1b0
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec848,.rdata,vftable,4,code-reference-boundary,3,0x138,0,1,3,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec858,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec858,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,0x180
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec88c,.rdata,vftable,4,code-reference-boundary,0,,0,1,3,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec89c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec89c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x180
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec8f8,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec940,.rdata,vftable,3,code-reference-boundary,2,0x138,0,1,2,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ec94c,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec9b8,.rdata,vftable,1,code-reference-boundary,6,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec9bc,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ec9c0,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,2,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005eca04,.rdata,vftable,17,code-reference-boundary,5,0x0,3,0,9,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec9b8,.rdata,vftable,1,code-reference-boundary,6,0x0,0,0,0,0x7c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec9bc,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x7c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ec9c0,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,2,0x7c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005eca04,.rdata,vftable,17,code-reference-boundary,5,0x0,3,0,9,0x7c
 wiz8--gog-1261--wiz8new--57a3072c2f83,005eca58,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005eca5c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005eca60,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -501,14 +501,14 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ecaa4,.rdata,vftable,1,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecab8,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecad0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecad4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecb38,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecb6c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecbd0,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,5,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecc04,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecb38,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,0x7c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecb6c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x7c
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecbd0,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,5,0x280
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecc04,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x280
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecc58,.rdata,vftable,3,code-reference-boundary,6,0x138,0,1,2,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecc64,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,5,0x1f8
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecc64,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,5,0x1f8|0x258
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecc98,.rdata,vftable,3,code-reference-boundary,0,,0,1,2,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecca4,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,8,0x1f8
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecca4,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,8,0x1f8|0x258
 wiz8--gog-1261--wiz8new--57a3072c2f83,005eccd8,.rdata,vftable,13,code-reference-boundary,5,0x0,0,0,9,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecd0c,.rdata,vftable,3,code-reference-boundary,0,,0,1,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecd18,.rdata,vftable,13,code-reference-boundary,5,0x0,0,0,8,0x250
@@ -541,7 +541,7 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ecf18,.rdata,vftable,5,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecf2c,.rdata,vftable,5,code-reference-boundary,3,0x18,0,1,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecf40,.rdata,vftable,18,code-reference-boundary,3,0x0,0,0,0,0x1f8
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ecfb0,.rdata,vftable,13,code-reference-boundary,1,0x0,0,0,7,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ecfe4,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ecfe4,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x150
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed018,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed01c,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed050,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
@@ -551,8 +551,8 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ed094,.rdata,vftable,1,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed098,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed0d0,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed0f0,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ed124,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ed180,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ed124,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x140
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ed180,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,0x150
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed1b4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed1b8,.rdata,vftable,1,code-reference-boundary,3,0x0 0x24,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed200,.rdata,vftable,6,code-reference-boundary,3,0x0,0,0,0,
@@ -562,15 +562,15 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005ed288,.rdata,vftable,2,code-reference-b
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed290,.rdata,vftable,2,code-reference-boundary,1,0x0,1,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed2c8,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed2cc,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ed328,.rdata,vftable,8,code-reference-boundary,3,0x0,0,0,2,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ed328,.rdata,vftable,8,code-reference-boundary,3,0x0,0,0,2,0x38
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed348,.rdata,vftable,1,code-reference-boundary,2,0x28,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed34c,.rdata,vftable,1,code-reference-boundary,5,0x0 0x28,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed350,.rdata,vftable,1,code-reference-boundary,2,0x18,0,0,0,
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed354,.rdata,vftable,1,code-reference-boundary,5,0x0 0x18,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ed358,.rdata,vftable,8,code-reference-boundary,4,0x0,1,0,2,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ed358,.rdata,vftable,8,code-reference-boundary,4,0x0,1,0,2,0x38
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed3b8,.rdata,vftable,3,code-reference-boundary,0,,0,0,0,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ed3c4,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
-wiz8--gog-1261--wiz8new--57a3072c2f83,005ed3f8,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ed3c4,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,0x148
+wiz8--gog-1261--wiz8new--57a3072c2f83,005ed3f8,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x148
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed438,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed43c,.rdata,vftable,1,code-reference-boundary,5,0x0 0x64,0,0,0,0x10
 wiz8--gog-1261--wiz8new--57a3072c2f83,005ed5a4,.rdata,vftable,3,code-reference-boundary,3,0x0,0,0,0,0x4c
@@ -780,15 +780,15 @@ wiz8--gog-1261--wiz8new--57a3072c2f83,005efdc0,.rdata,vftable,14,gap,2,0x0,0,0,0
 wiz8--gog-1261--wiz8new--57a3072c2f83,005efe6c,.rdata,vftable,2,non-code-slot,0,,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ebb14,.rdata,vftable,2,code-reference-boundary,0,,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ebcfc,.rdata,vftable,1,code-reference-boundary,5,0x0,0,0,0,0x28
-wiz8--gog-base--wiz8--18a74ff61c65,005ebd10,.rdata,vftable,52,code-reference-boundary,26,0x0,0,0,48,
-wiz8--gog-base--wiz8--18a74ff61c65,005ebde0,.rdata,vftable,13,code-reference-boundary,7,0x0,0,0,9,
-wiz8--gog-base--wiz8--18a74ff61c65,005ebe14,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
-wiz8--gog-base--wiz8--18a74ff61c65,005ebe48,.rdata,vftable,13,code-reference-boundary,10,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ebd10,.rdata,vftable,52,code-reference-boundary,26,0x0,0,0,48,0x5c
+wiz8--gog-base--wiz8--18a74ff61c65,005ebde0,.rdata,vftable,13,code-reference-boundary,7,0x0,0,0,9,0x78|0x148
+wiz8--gog-base--wiz8--18a74ff61c65,005ebe14,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,0x188
+wiz8--gog-base--wiz8--18a74ff61c65,005ebe48,.rdata,vftable,13,code-reference-boundary,10,0x0,0,0,8,0x190
 wiz8--gog-base--wiz8--18a74ff61c65,005ebe7c,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x14
 wiz8--gog-base--wiz8--18a74ff61c65,005ebe98,.rdata,vftable,21,code-reference-boundary,3,0x0,0,0,16,
-wiz8--gog-base--wiz8--18a74ff61c65,005ebeec,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,12,
-wiz8--gog-base--wiz8--18a74ff61c65,005ebf68,.rdata,vftable,11,code-reference-boundary,6,0x0,4,0,3,
-wiz8--gog-base--wiz8--18a74ff61c65,005ebf94,.rdata,vftable,8,code-reference-boundary,6,0x0,1,0,3,
+wiz8--gog-base--wiz8--18a74ff61c65,005ebeec,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,12,0x5c
+wiz8--gog-base--wiz8--18a74ff61c65,005ebf68,.rdata,vftable,11,code-reference-boundary,6,0x0,4,0,3,0x78|0x7c
+wiz8--gog-base--wiz8--18a74ff61c65,005ebf94,.rdata,vftable,8,code-reference-boundary,6,0x0,1,0,3,0x78|0x7c
 wiz8--gog-base--wiz8--18a74ff61c65,005ebfb4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ebfb8,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ebfd0,.rdata,vftable,3,code-reference-boundary,6,0x0 0x138,0,0,0,
@@ -802,8 +802,8 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ec078,.rdata,vftable,11,code-reference-bou
 wiz8--gog-base--wiz8--18a74ff61c65,005ec0a4,.rdata,vftable,1,code-reference-boundary,5,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec0ac,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x34
 wiz8--gog-base--wiz8--18a74ff61c65,005ec0e0,.rdata,vftable,1,code-reference-boundary,26,0x0 0x8 0x18 0x24 0x28 0x38 0x3c 0x48 0x4c 0x3f0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec0e4,.rdata,vftable,8,code-reference-boundary,2,0x0,0,0,2,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec104,.rdata,vftable,8,code-reference-boundary,3,0x0,1,0,2,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec0e4,.rdata,vftable,8,code-reference-boundary,2,0x0,0,0,2,0x38c
+wiz8--gog-base--wiz8--18a74ff61c65,005ec104,.rdata,vftable,8,code-reference-boundary,3,0x0,1,0,2,0x38c
 wiz8--gog-base--wiz8--18a74ff61c65,005ec12c,.rdata,vftable,2,code-reference-boundary,9,0x0,0,0,0,0x38
 wiz8--gog-base--wiz8--18a74ff61c65,005ec134,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x98
 wiz8--gog-base--wiz8--18a74ff61c65,005ec138,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -812,7 +812,7 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ec148,.rdata,vftable,1,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ec158,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0xc
 wiz8--gog-base--wiz8--18a74ff61c65,005ec15c,.rdata,vftable,1,code-reference-boundary,4,0x10 0x18 0x3c 0x54,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec160,.rdata,vftable,1,code-reference-boundary,11,0x0 0x10 0x18 0x1c 0x40 0x54,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec164,.rdata,vftable,1,code-reference-boundary,4,0x0 0x14,0,0,0,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec164,.rdata,vftable,1,code-reference-boundary,4,0x0 0x14,0,0,0,0x464
 wiz8--gog-base--wiz8--18a74ff61c65,005ec168,.rdata,vftable,1,code-reference-boundary,9,0x0 0x10 0x18 0x40 0x410,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec16c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec170,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -821,7 +821,7 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ec1d0,.rdata,vftable,1,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ec1d4,.rdata,vftable,1,code-reference-boundary,5,0x0 0xb0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec1d8,.rdata,vftable,2,code-reference-boundary,7,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec1e0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x90
-wiz8--gog-base--wiz8--18a74ff61c65,005ec208,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,9,0x190
+wiz8--gog-base--wiz8--18a74ff61c65,005ec208,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,9,0x138|0x190
 wiz8--gog-base--wiz8--18a74ff61c65,005ec264,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec268,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec26c,.rdata,vftable,1,code-reference-boundary,3,0x0 0x20,0,0,0,
@@ -843,10 +843,10 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ec324,.rdata,vftable,1,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ec328,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec3f0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec3f4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec454,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,10,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec454,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,10,0x464
 wiz8--gog-base--wiz8--18a74ff61c65,005ec4a8,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec4ac,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec4b0,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,16,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec4ac,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x464
+wiz8--gog-base--wiz8--18a74ff61c65,005ec4b0,.rdata,vftable,21,code-reference-boundary,2,0x0,0,0,16,0x464
 wiz8--gog-base--wiz8--18a74ff61c65,005ec504,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec508,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ec50c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x10
@@ -854,32 +854,32 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ec514,.rdata,vftable,1,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ec518,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec51c,.rdata,vftable,1,code-reference-boundary,7,0x0 0x24 0x64,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ec520,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec5d8,.rdata,vftable,8,code-reference-boundary,1,0x0,0,0,4,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec5f8,.rdata,vftable,17,code-reference-boundary,2,0x0,0,0,5,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec63c,.rdata,vftable,17,code-reference-boundary,3,0x0,3,0,9,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec5d8,.rdata,vftable,8,code-reference-boundary,1,0x0,0,0,4,0x28
+wiz8--gog-base--wiz8--18a74ff61c65,005ec5f8,.rdata,vftable,17,code-reference-boundary,2,0x0,0,0,5,0x68
+wiz8--gog-base--wiz8--18a74ff61c65,005ec63c,.rdata,vftable,17,code-reference-boundary,3,0x0,3,0,9,0x68
 wiz8--gog-base--wiz8--18a74ff61c65,005ec680,.rdata,vftable,3,code-reference-boundary,0,,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec68c,.rdata,vftable,5,code-reference-boundary,0,,0,0,1,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec6a0,.rdata,vftable,2,code-reference-boundary,2,-0x10 0x0,0,0,1,0x20
 wiz8--gog-base--wiz8--18a74ff61c65,005ec6a8,.rdata,vbtable,2,displacement-shape,0,,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec6c0,.rdata,vftable,17,code-reference-boundary,3,0x0,0,0,6,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec704,.rdata,vftable,17,code-reference-boundary,4,0x0,3,0,9,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec704,.rdata,vftable,17,code-reference-boundary,4,0x0,3,0,9,0x6c
 wiz8--gog-base--wiz8--18a74ff61c65,005ec748,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,6,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec77c,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec7c0,.rdata,vftable,4,code-reference-boundary,2,0x138,0,1,2,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec7d0,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec7d0,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,0x1b0
 wiz8--gog-base--wiz8--18a74ff61c65,005ec804,.rdata,vftable,4,code-reference-boundary,3,0x138,0,1,3,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec814,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec814,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,8,0x1b0
 wiz8--gog-base--wiz8--18a74ff61c65,005ec848,.rdata,vftable,4,code-reference-boundary,3,0x138,0,1,3,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec858,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec858,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,0x180
 wiz8--gog-base--wiz8--18a74ff61c65,005ec88c,.rdata,vftable,4,code-reference-boundary,0,,0,1,3,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec89c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec89c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x180
 wiz8--gog-base--wiz8--18a74ff61c65,005ec8f8,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec940,.rdata,vftable,3,code-reference-boundary,2,0x138,0,1,2,
 wiz8--gog-base--wiz8--18a74ff61c65,005ec94c,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec9b8,.rdata,vftable,1,code-reference-boundary,6,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec9bc,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ec9c0,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,2,
-wiz8--gog-base--wiz8--18a74ff61c65,005eca04,.rdata,vftable,17,code-reference-boundary,5,0x0,3,0,9,
+wiz8--gog-base--wiz8--18a74ff61c65,005ec9b8,.rdata,vftable,1,code-reference-boundary,6,0x0,0,0,0,0x7c
+wiz8--gog-base--wiz8--18a74ff61c65,005ec9bc,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x7c
+wiz8--gog-base--wiz8--18a74ff61c65,005ec9c0,.rdata,vftable,17,code-reference-boundary,4,0x0,0,0,2,0x7c
+wiz8--gog-base--wiz8--18a74ff61c65,005eca04,.rdata,vftable,17,code-reference-boundary,5,0x0,3,0,9,0x7c
 wiz8--gog-base--wiz8--18a74ff61c65,005eca58,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005eca5c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005eca60,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
@@ -891,14 +891,14 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ecaa4,.rdata,vftable,1,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ecab8,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ecad0,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ecad4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecb38,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecb6c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecbd0,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,5,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecc04,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ecb38,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,6,0x7c
+wiz8--gog-base--wiz8--18a74ff61c65,005ecb6c,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x7c
+wiz8--gog-base--wiz8--18a74ff61c65,005ecbd0,.rdata,vftable,13,code-reference-boundary,3,0x0,0,0,5,0x280
+wiz8--gog-base--wiz8--18a74ff61c65,005ecc04,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x280
 wiz8--gog-base--wiz8--18a74ff61c65,005ecc58,.rdata,vftable,3,code-reference-boundary,6,0x138,0,1,2,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecc64,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,5,0x1f8
+wiz8--gog-base--wiz8--18a74ff61c65,005ecc64,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,5,0x1f8|0x258
 wiz8--gog-base--wiz8--18a74ff61c65,005ecc98,.rdata,vftable,3,code-reference-boundary,0,,0,1,2,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecca4,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,8,0x1f8
+wiz8--gog-base--wiz8--18a74ff61c65,005ecca4,.rdata,vftable,13,code-reference-boundary,6,0x0,0,0,8,0x1f8|0x258
 wiz8--gog-base--wiz8--18a74ff61c65,005eccd8,.rdata,vftable,13,code-reference-boundary,5,0x0,0,0,9,
 wiz8--gog-base--wiz8--18a74ff61c65,005ecd0c,.rdata,vftable,3,code-reference-boundary,0,,0,1,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ecd18,.rdata,vftable,13,code-reference-boundary,5,0x0,0,0,8,0x250
@@ -931,7 +931,7 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ecf18,.rdata,vftable,5,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ecf2c,.rdata,vftable,5,code-reference-boundary,3,0x18,0,1,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ecf40,.rdata,vftable,18,code-reference-boundary,3,0x0,0,0,0,0x1f8
 wiz8--gog-base--wiz8--18a74ff61c65,005ecfb0,.rdata,vftable,13,code-reference-boundary,1,0x0,0,0,7,
-wiz8--gog-base--wiz8--18a74ff61c65,005ecfe4,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ecfe4,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x150
 wiz8--gog-base--wiz8--18a74ff61c65,005ed018,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed01c,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed050,.rdata,vftable,2,code-reference-boundary,2,0x0,0,0,0,
@@ -941,8 +941,8 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ed094,.rdata,vftable,1,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ed098,.rdata,vftable,1,code-reference-boundary,4,0x0,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ed0d0,.rdata,vftable,3,code-reference-boundary,1,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed0f0,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
-wiz8--gog-base--wiz8--18a74ff61c65,005ed124,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
-wiz8--gog-base--wiz8--18a74ff61c65,005ed180,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ed124,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x140
+wiz8--gog-base--wiz8--18a74ff61c65,005ed180,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,8,0x150
 wiz8--gog-base--wiz8--18a74ff61c65,005ed1b4,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed1b8,.rdata,vftable,1,code-reference-boundary,3,0x0 0x24,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed200,.rdata,vftable,6,code-reference-boundary,3,0x0,0,0,0,
@@ -952,15 +952,15 @@ wiz8--gog-base--wiz8--18a74ff61c65,005ed288,.rdata,vftable,2,code-reference-boun
 wiz8--gog-base--wiz8--18a74ff61c65,005ed290,.rdata,vftable,2,code-reference-boundary,1,0x0,1,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed2c8,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed2cc,.rdata,vftable,1,code-reference-boundary,3,0x0,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ed328,.rdata,vftable,8,code-reference-boundary,3,0x0,0,0,2,
+wiz8--gog-base--wiz8--18a74ff61c65,005ed328,.rdata,vftable,8,code-reference-boundary,3,0x0,0,0,2,0x38
 wiz8--gog-base--wiz8--18a74ff61c65,005ed348,.rdata,vftable,1,code-reference-boundary,2,0x28,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed34c,.rdata,vftable,1,code-reference-boundary,5,0x0 0x28,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed350,.rdata,vftable,1,code-reference-boundary,2,0x18,0,0,0,
 wiz8--gog-base--wiz8--18a74ff61c65,005ed354,.rdata,vftable,1,code-reference-boundary,5,0x0 0x18,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ed358,.rdata,vftable,8,code-reference-boundary,4,0x0,1,0,2,
+wiz8--gog-base--wiz8--18a74ff61c65,005ed358,.rdata,vftable,8,code-reference-boundary,4,0x0,1,0,2,0x38
 wiz8--gog-base--wiz8--18a74ff61c65,005ed3b8,.rdata,vftable,3,code-reference-boundary,0,,0,0,0,
-wiz8--gog-base--wiz8--18a74ff61c65,005ed3c4,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,
-wiz8--gog-base--wiz8--18a74ff61c65,005ed3f8,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,
+wiz8--gog-base--wiz8--18a74ff61c65,005ed3c4,.rdata,vftable,13,code-reference-boundary,2,0x0,0,0,5,0x148
+wiz8--gog-base--wiz8--18a74ff61c65,005ed3f8,.rdata,vftable,13,code-reference-boundary,4,0x0,0,0,8,0x148
 wiz8--gog-base--wiz8--18a74ff61c65,005ed438,.rdata,vftable,1,code-reference-boundary,1,0x0,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ed43c,.rdata,vftable,1,code-reference-boundary,5,0x0 0x64,0,0,0,0x10
 wiz8--gog-base--wiz8--18a74ff61c65,005ed5a4,.rdata,vftable,3,code-reference-boundary,3,0x0,0,0,0,0x4c

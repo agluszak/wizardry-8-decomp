@@ -25,6 +25,12 @@ is stored, so offset `0` marks a primary table and any other offset marks the ba
 offset. A table written at several offsets by several functions is normal - a constructor, a copy
 constructor and a destructor each write it.
 
+`allocation_size` on an offset-`0` write is the size pushed to `operator new` just before it, which
+is what fixes a class's extent when nothing else does. It is read back from the store rather than
+from a call to a constructor, so an inlined construction has one too. It is empty when the object is
+embedded, stack-placed, or - as the srMaterial builders do - allocated through a register holding the
+allocator, where no size is visible at the site at all.
+
 Slot `kind` is `pure-virtual` when the slot holds the `_purecall` thunk, resolved through the import
 table by name rather than by a hardcoded address; `import-thunk` when the slot points at a jump
 thunk, in which case `import_name` and `import_signature` name the library method the class

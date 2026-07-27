@@ -56,6 +56,8 @@ _PURECALL = "_purecall"
 # MSVC's global scalar operator new; construction sites push the object size
 # immediately before calling it (directly through its import thunk).
 _OPERATOR_NEW = "??2@YAPAXI@Z"
+# SurRender's heap, the other family a construction site allocates through.
+_SRHEAP_ALLOCATE = "?allocate@srHeap@@QAEPAXK@Z"
 # A vbtable holds small signed displacements, not addresses, so its entries are
 # never relocated. The first is the offset back to the vbptr itself.
 _VBTABLE_FIRST = {0, 0xFFFFFFFC}
@@ -303,6 +305,14 @@ def analyse_image(path: Path) -> dict[str, Any]:
         for address, name in thunks.items()
         if name.split("!", 1)[-1] == _OPERATOR_NEW
     }
+    # The second allocation family the image actually constructs objects with.
+    # It is called straight through its import slot rather than a jump thunk,
+    # so it needs the slot address, not a target.
+    allocator_slots = {
+        address
+        for address, name in slots.items()
+        if name.split("!", 1)[-1] == _SRHEAP_ALLOCATE
+    }
     constructors_by_table: dict[int, set[int]] = {}
     for table in tables:
         if table.kind != "vftable":
@@ -317,8 +327,8 @@ def analyse_image(path: Path) -> dict[str, Any]:
         }
     all_constructors = sorted(set().union(*constructors_by_table.values(), set()))
     hints = (
-        allocation_size_hints(image, all_constructors, allocators)
-        if allocators and all_constructors
+        allocation_size_hints(image, all_constructors, allocators, allocator_slots)
+        if (allocators or allocator_slots) and all_constructors
         else {}
     )
     # The hints above are read at calls to a constructor, so they see nothing
@@ -326,11 +336,11 @@ def analyse_image(path: Path) -> dict[str, Any]:
     # heap object. Reading back from the vptr store itself covers that shape,
     # and it is the only one available for a class whose construction never
     # becomes a call.
-    if allocators:
+    if allocators or allocator_slots:
         for write in writes:
             if write.object_offset == 0:
                 write.allocation_size = allocation_size_before(
-                    image, write.site, write.function, allocators
+                    image, write.site, write.function, allocators, allocator_slots
                 )
     sizes_by_table = {
         address: sorted(

@@ -172,7 +172,12 @@ def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def allocation_size_before(
-    image: Any, site: int, function: int | None, allocators: set[int], window: int = 64
+    image: Any,
+    site: int,
+    function: int | None,
+    allocators: set[int],
+    slots: set[int] | None = None,
+    window: int = 64,
 ) -> int | None:
     """The object size allocated just before a vptr store, if there was one.
 
@@ -194,12 +199,12 @@ def allocation_size_before(
     if lowest >= offset:
         return None
     return push_before_allocator(
-        image.data[lowest:offset], site - (offset - lowest), allocators
+        image.data[lowest:offset], site - (offset - lowest), allocators, slots
     )
 
 
 def allocation_size_hints(
-    image: Any, writers: list[int], allocators: set[int]
+    image: Any, writers: list[int], allocators: set[int], slots: set[int] | None = None
 ) -> dict[int, list[int]]:
     """Push-immediate-before-new hints for each writer's call sites.
 
@@ -227,7 +232,7 @@ def allocation_size_hints(
         ) & 0xFFFFFFFF
         if target in writer_set:
             window = data[max(start, offset - 48) : offset]
-            hint = push_before_allocator(window, site - len(window), allocators)
+            hint = push_before_allocator(window, site - len(window), allocators, slots)
             if hint is not None:
                 sizes[target].add(hint)
         offset += 1
@@ -235,10 +240,19 @@ def allocation_size_hints(
 
 
 def push_before_allocator(
-    window: bytes, window_va: int, allocators: set[int]
+    window: bytes, window_va: int, allocators: set[int], slots: set[int] | None = None
 ) -> int | None:
-    """The last push-immediate whose next call lands in an allocator."""
+    """The last push-immediate whose next call lands in an allocator.
 
+    Two call forms reach one: `call rel32` into an allocator's jump thunk, which
+    is how the global `operator new` is reached, and `call dword ptr [slot]`
+    straight through an import slot, which is how `srHeap::allocate` is. Only
+    the first was recognised, so every class allocated through the SurRender
+    heap looked like one with no size at all. `slots` holds the import-slot
+    addresses of the indirect form.
+    """
+
+    slots = slots or set()
     best: int | None = None
     index = 0
     while index < len(window):
@@ -251,11 +265,17 @@ def push_before_allocator(
         elif byte == 0x6A and index + 2 <= len(window):
             pushed = window[index + 1]
             after = index + 2
-        if pushed is not None and after < len(window) and window[after] == 0xE8:
-            if after + 5 <= len(window):
+        if pushed is not None and after < len(window):
+            if window[after] == 0xE8 and after + 5 <= len(window):
                 rel = int.from_bytes(window[after + 1 : after + 5], "little", signed=True)
                 target = (window_va + after + 5 + rel) & 0xFFFFFFFF
                 if target in allocators:
                     best = pushed
+            elif (
+                window[after : after + 2] == b"\xff\x15"
+                and after + 6 <= len(window)
+                and int.from_bytes(window[after + 2 : after + 6], "little") in slots
+            ):
+                best = pushed
         index += 1
     return best

@@ -163,6 +163,9 @@ def test_an_inlined_construction_still_records_its_allocation_size() -> None:
     # 0x0042354F stores its vtable inside the builder that allocated the object
     # eleven instructions earlier, with no call to a constructor between them.
     assert sized["0042354f"]["allocation_size"] == "0x14"
+    # 0x00490552 allocates through srHeap rather than the global operator new,
+    # and reaches it by an indirect call through the import slot.
+    assert sized["00490552"]["allocation_size"] == "0x78"
     # A size has to be big enough to hold the vptr it is about.
     for row in sized.values():
         assert int(row["allocation_size"], 16) >= 4, row["site"]
