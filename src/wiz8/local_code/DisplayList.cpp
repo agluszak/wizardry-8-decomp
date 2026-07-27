@@ -330,4 +330,51 @@ int Function40B290(void)
     return 1;
 }
 
+/*
+ * The other teardown. It differs from 0x0040B290 in leaving the template and
+ * the counters alone and in not advancing the head past the nodes it skips,
+ * and the image carries the destruction block inline in both, so it is written
+ * out twice here rather than shared behind a helper VC6 would not have inlined.
+ */
+// FUNCTION: WIZ8 0x0040B450
+void Function40B450(void)
+{
+    W8DisplayNode* node;
+    void (*deallocate)(void*);
+
+    node = g_display_head_650e94;
+    g_byte_650e88 = 0;
+    g_byte_650e89 = 0;
+    deallocate = g_deallocator_5eb224;
+    while (node != 0) {
+        if ((node->flags.low & 0x10) != 0) {
+            g_display_head_650e94 = node;
+            if (node->buffer != 0) {
+                if ((node->flags.low & 0x80) != 0) {
+                    HideRegionHelp();
+                }
+                (*deallocate)(node->buffer);
+            }
+            node->buffer = 0;
+            Function40B830(node);
+            if (g_display_ptr_650e98 == node) {
+                g_display_ptr_650e98 = 0;
+            }
+            if (g_display_ptr_650e9c == node) {
+                g_display_ptr_650e9c = 0;
+            }
+            g_display_flag_650ea0 = 1;
+            if (g_display_flag_650e90 != 0 && g_display_id_6e4100 == node->id) {
+                g_display_flag_650e90 = 0;
+            }
+            memset(node, 0, sizeof(*node));
+            node = g_display_head_650e94;
+        } else {
+            node = node->next;
+        }
+    }
+    g_display_head_650e94 = node;
+
+}
+
 }
