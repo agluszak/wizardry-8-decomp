@@ -138,3 +138,5 @@ wiz8,W8Prop005EC1E0.primary,0,0044bea0,,strong,classes:wiz8:W8Prop005EC1E0
 wiz8,W8GrowableVector<W8VectorElement005ED094 *>.primary,0,004b6d90,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>
 wiz8,W8SoundEventVector005ED094.primary,0,004b6dc0,,exact,classes:wiz8:W8SoundEventVector005ED094
 wiz8,W8GrObject005ED090.primary,0,004b6920,,strong,classes:wiz8:W8GrObject005ED090
+wiz8,W8GrowableVector<W8VectorElement005EBFB4 *>.primary,0,0042a2e0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EBFB4 *>
+wiz8,W8Vector005EBFB4.primary,0,0042a310,,exact,classes:wiz8:W8Vector005EBFB4

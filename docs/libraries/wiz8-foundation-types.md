@@ -116,6 +116,19 @@ So a vtable count taken from constructors and one taken from destructors will di
 constructor is the one telling the truth about the hierarchy. This does not by itself settle the
 shared `Grow`, which is still open: it settles what a second vptr store means.
 
+`src/wiz8/vector_005ebfb4.cpp` then confirms it on the site this question actually named. Its four
+bodies are byte-exact on the same declarations, and its constructor `0x0042A260` keeps the capacity
+parameter and the clamp instead of folding in a default, so it can be laid directly beside the
+single-store constructor `0x004390F0`: **84 bytes against 72, and the twelve are exactly the two
+extra six-byte vtable stores.** Nothing else in the two bodies differs. Whatever remains unresolved
+about `Grow`, the store count is not evidence of a level inside the template.
+
+What the single-store form still needs is an out-of-line copy of the template constructor, and the
+header currently spells that constructor `__forceinline`. The fourteen out-of-line copies in the
+image say the original did not force it, so reproducing `0x004390F0` means relaxing that keyword and
+re-verifying every site that currently depends on the inlining - a whole-corpus experiment rather
+than a port, and one to run on its own.
+
 ## Everything else the image repeats is not a first-party template
 
 VC6's linker does not fold identical COMDATs, so two byte-identical bodies at different addresses
