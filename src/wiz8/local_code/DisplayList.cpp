@@ -603,4 +603,40 @@ void Function40B900(void)
     g_display_ptr_650e98 = g_display_ptr_650e9c;
 }
 
+/*
+ * Takes the cursor capture for a node, which is what makes 0x0040B900 skip its
+ * search and send everything to 0x00650E8C.
+ *
+ * The result is three-valued rather than a success flag: 2 if no node carrying
+ * this identifier is on the list, 1 if the capture was already held, and 0 if
+ * this call took it. Only the last case writes anything, so a second capture
+ * does not displace the first.
+ */
+// FUNCTION: WIZ8 0x0040BFC0
+int Function40BFC0(W8DisplayNode* node)
+{
+    W8DisplayNode* scan;
+    int found;
+
+    found = 0;
+    scan = g_display_head_650e94;
+    if (scan != 0) {
+        while (scan != 0 && !found) {
+            if (scan->id == node->id) {
+                found = 1;
+            }
+            scan = scan->next;
+        }
+        if (found) {
+            if (g_byte_650e8a == 1) {
+                return 1;
+            }
+            g_byte_650e8a = 1;
+            g_display_ptr_650e8c = node;
+            return 0;
+        }
+    }
+    return 2;
+}
+
 }
