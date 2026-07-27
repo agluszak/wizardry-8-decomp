@@ -402,3 +402,70 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
     m_field_1c = 0;
     m_field_20 = 0;
 }
+
+/*
+ * A widget at vtable 0x005ED66C that sizes itself to its text. It hands the
+ * base a degenerate rectangle - left and top from its arguments, right and
+ * bottom zero - then measures and writes the real right and bottom back over
+ * them before rebinding the region to the corrected bounds.
+ *
+ * It carries two handle triples, at +0x34 and +0x40. The first is what the
+ * initial measure sizes the widget from; the second measure mixes them, taking
+ * the first two of one and the first of the other, and what that produces is
+ * kept at +0x50 with the leftover width at +0x4c. Nothing here says what the
+ * triples are, only that the measure consumes three at a time.
+ */
+class W8Control005ED66C : public W8WidgetBase005ED5BC {
+public:
+    W8Control005ED66C(W8Controls* panel, unsigned int region, int left, int top,
+                      int a0, int a1, int a2, int b0, int b1, int b2);
+
+protected:
+    int m_a0;                            /* 0x34 */
+    int m_a1;                            /* 0x38 */
+    int m_a2;                            /* 0x3c */
+    int m_b0;                            /* 0x40 */
+    int m_b1;                            /* 0x44 */
+    int m_b2;                            /* 0x48 */
+    int m_slack_4c;                      /* 0x4c: width left over after the second measure */
+    int m_measured_50;                   /* 0x50 */
+    int m_field_54;
+    unsigned char unknown_58[4];
+    unsigned char m_flag_5c;
+    unsigned char m_flag_5d;
+    unsigned char pad_5e[2];
+    int m_field_60;
+    float m_scale_64;                    /* 0x64: 1.0f */
+    int m_field_68;
+    int m_field_6c;
+};
+
+// FUNCTION: WIZ8 0x004F5620
+W8Control005ED66C::W8Control005ED66C(W8Controls* panel, unsigned int region, int left, int top,
+                                     int a0, int a1, int a2, int b0, int b1, int b2)
+    : W8WidgetBase005ED5BC(panel, region, left, top, 0, 0)
+{
+    short width;
+    short height;
+
+    m_b0 = b0;
+    m_b1 = b1;
+    m_b2 = b2;
+    m_a0 = a0;
+    m_a1 = a1;
+    m_a2 = a2;
+    m_field_54 = 0;
+    m_flag_5c = 0;
+    m_flag_5d = 0;
+    m_field_60 = 0;
+    m_scale_64 = 1.0f;
+    m_field_68 = 0;
+    m_field_6c = 0;
+    Function549660(a0, a1, a2, &width, &height);
+    m_right = (unsigned short)width + m_left;
+    m_bottom = m_top + (unsigned short)height;
+    SetRegion(m_region_18);
+    Function549660(m_a0, m_a1, m_b0, &width, &height);
+    m_measured_50 = (unsigned short)width;
+    m_slack_4c = (m_right - m_left) - (unsigned short)width;
+}
