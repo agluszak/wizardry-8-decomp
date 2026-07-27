@@ -21,3 +21,19 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
     }
     return m_cycles[bCycle].ubNumSubs;
 }
+
+/* Cycle 18's pointee carries the scale at +0x5f0. Both accessors reach it the
+   same way - through the pointer at the cycle's +0x0c, which 0x004E60B0 also
+   reads a byte from - so the pointee is a shared engine object rather than
+   anything the cycle owns. It is not modelled: only this one field is known. */
+// FUNCTION: WIZ8 0x004C5780
+float MonsterGetScale(W8Monster* monster)
+{
+    return *(float*)(monster->m_cycles[18].unknown_0c + 0x5f0);
+}
+
+// FUNCTION: WIZ8 0x004C57A0
+void MonsterSetScale(W8Monster* monster, float scale)
+{
+    *(float*)(monster->m_cycles[18].unknown_0c + 0x5f0) = scale;
+}

@@ -2,10 +2,11 @@
 
 /*
  * The render-option table. 0x0047B630 is a switch over 0x11 options that pushes
- * each one into the SurRender device - texture filtering among them - selecting
- * a low setting when its second argument is zero and a high one otherwise. The
- * three helpers here sit on top of it: apply one option at its low setting,
- * push every option at its high setting, and read an option's stored byte back.
+ * each one into the SurRender device - texture filtering among them - and then
+ * records its new state. Its second argument is a boolean: two of the cases
+ * store it as `argument != 0` outright, and the rest read as off against on.
+ * The three helpers here sit on top of it: turn one option off, turn every
+ * option on, and read an option's recorded state back.
  *
  * The stored bytes live two bytes into the block at 0x0065A118, which is what
  * the +2 in the accessor is. Nothing here establishes what that leading pair
@@ -16,11 +17,12 @@ extern "C" {
 
 extern unsigned char* g_render_options_65a118;
 
-/* 0x0047B630: applies one option to the device. Ported separately. */
-extern void SetRenderOption(int option, int high);
+/* 0x0047B630: pushes one option to the device and records it. Not ported yet -
+   it calls four srGERD methods that the import library does not declare. */
+extern void SetRenderOption(int option, int enabled);
 
 // FUNCTION: WIZ8 0x0047B5B0
-void ApplyRenderOptionLow(int option)
+void DisableRenderOption(int option)
 {
     if (option < 0x11) {
         SetRenderOption(option, 0);
@@ -34,7 +36,7 @@ void ApplyRenderOptionLow(int option)
    give the same 22 bytes. The five-byte difference is that fold, not a
    difference in what the loop does. */
 // FUNCTION: WIZ8 0x0047B5F0
-void ApplyAllRenderOptionsHigh(void)
+void EnableAllRenderOptions(void)
 {
     int option;
 

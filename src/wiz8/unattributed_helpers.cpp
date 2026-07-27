@@ -22,6 +22,7 @@ extern W8PList** g_plist_659ab4;
 extern int g_dword_687599;
 
 extern void Function4C4EF0(void);
+extern void Function4A7A70(int value);
 
 /* Releases through the virtual destructor, tolerating a null. */
 // FUNCTION: WIZ8 0x004C5860
@@ -40,6 +41,15 @@ void Function4C5ED0(int enabled)
 {
     if (enabled != 0) {
         Function4C4EF0();
+    }
+}
+
+/* Acts only when both arguments are set, and passes the second on. */
+// FUNCTION: WIZ8 0x004C59C0
+void Function4C59C0(int enabled, int value)
+{
+    if (enabled != 0 && value != 0) {
+        Function4A7A70(value);
     }
 }
 
