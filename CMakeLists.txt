@@ -274,6 +274,18 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/GrObject.cpp
         src/wiz8/vector_005ebfb4.cpp
         src/wiz8/vector_005ec16c.cpp
+        src/wiz8/vector_005ec2b8.cpp
+        src/wiz8/vector_005ec324.cpp
+        src/wiz8/vector_005ec514.cpp
+        src/wiz8/vector_005eca98.cpp
+        src/wiz8/vector_005ecaa0.cpp
+        src/wiz8/vector_005ecad0.cpp
+        src/wiz8/vector_005ece60.cpp
+        src/wiz8/vector_005ecee4.cpp
+        src/wiz8/vector_005ed018.cpp
+        src/wiz8/vector_005ed2c8.cpp
+        src/wiz8/vector_005ed7d4.cpp
+        src/wiz8/vector_005ef08c.cpp
         src/wiz8/local_code/Control004F5450.cpp
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/LoadSaveGame.cpp

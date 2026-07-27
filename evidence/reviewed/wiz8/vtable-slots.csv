@@ -142,3 +142,27 @@ wiz8,W8GrowableVector<W8VectorElement005EBFB4 *>.primary,0,0042a2e0,,exact,class
 wiz8,W8Vector005EBFB4.primary,0,0042a310,,exact,classes:wiz8:W8Vector005EBFB4
 wiz8,W8GrowableVector<W8VectorElement005EC16C *>.primary,0,00446200,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC16C *>
 wiz8,W8Vector005EC16C.primary,0,00446230,,exact,classes:wiz8:W8Vector005EC16C
+wiz8,W8GrowableVector<W8VectorElement005EC2B8 *>.primary,0,00451b40,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC2B8 *>
+wiz8,W8Vector005EC2B8.primary,0,00451b70,,exact,classes:wiz8:W8Vector005EC2B8
+wiz8,W8GrowableVector<W8VectorElement005EC324 *>.primary,0,004561c0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC324 *>
+wiz8,W8Vector005EC324.primary,0,004561f0,,exact,classes:wiz8:W8Vector005EC324
+wiz8,W8GrowableVector<W8VectorElement005EC514 *>.primary,0,00474de0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC514 *>
+wiz8,W8Vector005EC514.primary,0,00474e10,,exact,classes:wiz8:W8Vector005EC514
+wiz8,W8GrowableVector<W8VectorElement005ECA98 *>.primary,0,0048ced0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECA98 *>
+wiz8,W8Vector005ECA98.primary,0,0048cf00,,exact,classes:wiz8:W8Vector005ECA98
+wiz8,W8GrowableVector<W8VectorElement005ECAA0 *>.primary,0,0048cf20,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECAA0 *>
+wiz8,W8Vector005ECAA0.primary,0,0048cf50,,exact,classes:wiz8:W8Vector005ECAA0
+wiz8,W8GrowableVector<W8VectorElement005ECAD0 *>.primary,0,0048f210,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECAD0 *>
+wiz8,W8Vector005ECAD0.primary,0,0048f240,,exact,classes:wiz8:W8Vector005ECAD0
+wiz8,W8GrowableVector<W8VectorElement005ECE60 *>.primary,0,004a5cf0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECE60 *>
+wiz8,W8Vector005ECE60.primary,0,004a5d20,,exact,classes:wiz8:W8Vector005ECE60
+wiz8,W8GrowableVector<W8VectorElement005ECEE4 *>.primary,0,004a8ef0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECEE4 *>
+wiz8,W8Vector005ECEE4.primary,0,004a8f20,,exact,classes:wiz8:W8Vector005ECEE4
+wiz8,W8GrowableVector<W8VectorElement005ED018 *>.primary,0,004af710,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED018 *>
+wiz8,W8Vector005ED018.primary,0,004af740,,exact,classes:wiz8:W8Vector005ED018
+wiz8,W8GrowableVector<W8VectorElement005ED2C8 *>.primary,0,004cade0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED2C8 *>
+wiz8,W8Vector005ED2C8.primary,0,004cae10,,exact,classes:wiz8:W8Vector005ED2C8
+wiz8,W8GrowableVector<W8VectorElement005ED7D4 *>.primary,0,00501f30,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED7D4 *>
+wiz8,W8Vector005ED7D4.primary,0,00501f60,,exact,classes:wiz8:W8Vector005ED7D4
+wiz8,W8GrowableVector<W8VectorElement005EF08C *>.primary,0,005ad180,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EF08C *>
+wiz8,W8Vector005EF08C.primary,0,005ad1b0,,exact,classes:wiz8:W8Vector005EF08C

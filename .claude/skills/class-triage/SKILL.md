@@ -45,6 +45,14 @@ no member and no override, over a `W8GrowableVector<T*>` instantiation. If a fam
 around eighty-four bytes and its deleting destructors are 44 and 30, copy one of those source files
 and change the names; expect four exact bodies without iteration.
 
+Once you have recovered one family, take the rest by fingerprint: join `families.csv` against
+`evidence/snapshots/functions/candidates.csv` (sizes) and `calls.csv` (the complete destructor the
+derived deleting destructor calls), and keep families whose four sizes match. **Calibrate against a
+family you have already recovered, not against the sizes in your boundary rows** - the census sizes
+to the next boundary and so includes trailing padding, which makes the vector family `96/32/48/32`
+there and `84/17/44/30` in reviewed terms. Filtering by the reviewed numbers matches nothing and
+reads like "there are no more".
+
 Or work backwards from code: any decompile that shows a `[wiz8 observation:candidate-class:...]`
 comment is telling you what the function you are reading constructs.
 

@@ -280,6 +280,20 @@ constructor from a large body that merely builds two objects while doing somethi
 the distinction that decides whether a family is an afternoon or a dead end. Three families off the
 top of that list ported byte-exact on identical declarations without iteration.
 
+Once a shape is proven, select the rest of it by fingerprint rather than by eye. Join `families.csv`
+against `evidence/snapshots/functions/candidates.csv` for body sizes and `calls.csv` to find the
+complete destructor the derived deleting destructor calls, then keep the families whose four sizes
+match a family already recovered. Seventeen matched the vector shape that way; twelve of those had
+all four bodies in one address neighbourhood, which is what a single unit emitting a family looks
+like, and all forty-eight bodies came out byte-exact in one build.
+
+**Those two size sources do not agree, and the difference is not an error.** The function census
+sizes a body to the next boundary, so it includes the padding to the following function; Ghidra and
+the reviewed rows state the body itself. The vector family is `84/17/44/30` in reviewed terms and
+`96/32/48/32` in census terms. Calibrate a fingerprint against a family you have already recovered
+rather than against the sizes you wrote in the boundary rows - filtering census sizes by reviewed
+numbers silently matches nothing, which reads like "no more of these exist".
+
 **A destructor alone may compile to nothing at all.** VC6 emits a class's vtable, its
 compiler-generated deleting destructor and its out-of-line complete destructor in the translation
 units that *construct* the class - not in the ones that merely destroy it. Port only a destructor
