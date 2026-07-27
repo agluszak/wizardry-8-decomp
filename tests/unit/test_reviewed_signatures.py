@@ -67,7 +67,7 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     assert by_address[0x004E5EA0].parameters == ()
     assert by_address[0x004E6020].parameters == (
         ("monster_info", "W8MonsterInfo *"),
-        ("value", "int"),
+        ("control_state", "int"),
     )
     assert by_address[0x004E6780].return_type == "unsigned int"
     assert by_address[0x004E6780].parameters == (

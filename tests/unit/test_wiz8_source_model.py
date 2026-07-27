@@ -444,11 +444,11 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x9F, 0x4, "value_9f", "int32"),
         (0x1E7, 0x7, "attribute_adjustments_1e7", "bytes"),
         (0x247, 0x5, "converted_attributes_247", "bytes"),
-        (0x24E, 0x1, "incapacitated", "uint8"),
+        (0x24E, 0x1, "motionless", "uint8"),
         (0x253, 0x1, "flag_253", "bytes"),
         (0x255, 0x1, "flag_255", "bytes"),
         (0x2DA, 0x4, "value_2da", "int32"),
-        (0x2FD, 0x4, "value_2fd", "int32"),
+        (0x2FD, 0x4, "control_state", "int32"),
     ]
 
     vtables = {item.vtable_id: item for item in model.vtables}

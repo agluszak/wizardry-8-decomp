@@ -18,10 +18,12 @@ void Function4C6140(W8Monster* monster);
 void Function4C6180(W8Monster* monster, int value);
 void Function4C61A0(W8Monster* monster, int value);
 void Function4C61C0(W8Monster* monster, int value);
-void Function4E3AF0(unsigned int monster_list_index, int value);
-void Function4E4280(W8MonsterInfo* monster_info);
-void Function4E4DB0(W8MonsterInfo* monster_info, int value, int reason);
-void Function4E46F0(W8MonsterInfo* monster_info, int value);
+unsigned char RemoveMonster(
+    unsigned int monster_list_index,
+    unsigned char destroy_monster);
+void DeactivateMonster(W8MonsterInfo* monster_info);
+void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
+void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8MonsterMember18* member);
 void __fastcall Function4537E0(W8MonsterMember18* member);
 unsigned int Function5100B0(
@@ -32,7 +34,7 @@ unsigned int Function5100B0(
 W8MonsterGroup* Function5101B0(unsigned int monster_group_index);
 void Function510350(W8MonsterGroup* monster_group);
 int Function555F30(srVector3T<float> position);
-int Function4E5150(W8MonsterInfo* monster_info, int value_1, int value_2);
+int GetMonsterName(W8MonsterInfo* monster_info, int monster_record, int name_form);
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, int value_3, int value_4);
 extern unsigned char* g_object_68c09c;
@@ -108,23 +110,23 @@ void Function4E4600(W8MonsterInfo* monster_info)
     Function4C5B10(monster_info->monster, 0);
     monster_info->monster->member_18.flags_0c &= 0xdfffffff;
     Function4C6140(monster_info->monster);
-    if (monster_info->incapacitated == 0) {
+    if (monster_info->motionless == 0) {
         result = Function4C5B40(monster_info->monster, 6);
         if (result != 1 && result != 2 &&
             monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
-            Function4E4DB0(monster_info, 1, 3);
+            StartMonsterCycle(monster_info, 1, 3);
         }
     }
 }
 
 // FUNCTION: WIZ8 0x004E4690
-void KillMonster(W8MonsterInfo* monster_info, int display_message)
+void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message)
 {
     if (monster_info->monster->IsDying() == 0) {
-        Function4E4DB0(monster_info, 0x15, 1);
-        Function4E4280(monster_info);
-        Function4E46F0(monster_info, display_message);
-        Function4E3AF0(
+        StartMonsterCycle(monster_info, 0x15, 1);
+        DeactivateMonster(monster_info);
+        MonsterDies(monster_info, display_message);
+        RemoveMonster(
             MonsterGetIndexByLocationID(
                 0x31f,
                 MONSTER_MANAGER_CPP,
@@ -444,16 +446,16 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
                     9,
                     0,
                     *(int*)(g_object_68c09c + 0x74c),
-                    Function4E5150(monster_info, 0, 0));
+                    GetMonsterName(monster_info, 0, 0));
             }
             Function5248D0(monster_info);
             if (forced_cleanup == 0) {
                 monster_info->flag_253 = 1;
                 if (monster_info->monster->IsDying() == 0) {
-                    Function4E4DB0(monster_info, 0x15, 1);
-                    Function4E4280(monster_info);
-                    Function4E46F0(monster_info, 1);
-                    Function4E3AF0(
+                    StartMonsterCycle(monster_info, 0x15, 1);
+                    DeactivateMonster(monster_info);
+                    MonsterDies(monster_info, 1);
+                    RemoveMonster(
                         MonsterGetIndexByLocationID(
                             0x31f,
                             MONSTER_MANAGER_CPP,
@@ -564,22 +566,22 @@ void ResetLivingMonstersAfterCombat(void)
 }
 
 // FUNCTION: WIZ8 0x004E6020
-void Function4E6020(W8MonsterInfo* monster_info, int value)
+void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
 {
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x85b, 0);
     }
-    switch (value) {
+    switch (control_state) {
     case 0:
     case 2:
-        if (monster_info->value_2fd == 1 &&
+        if (monster_info->control_state == 1 &&
             monster_info->monster->member_18.value_5c == 0) {
             Function4537E0(&monster_info->monster->member_18);
             monster_info->flag_255 = 0;
         }
         break;
     }
-    monster_info->value_2fd = value;
+    monster_info->control_state = control_state;
     Function510350(
         Function5101B0(
             Function5100B0(
@@ -590,17 +592,17 @@ void Function4E6020(W8MonsterInfo* monster_info, int value)
 }
 
 // FUNCTION: WIZ8 0x004E60B0
-void SetMonsterIncapacitated(W8MonsterInfo* monster_info, unsigned char incapacitated)
+void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless)
 {
-    unsigned char previous = monster_info->incapacitated;
+    unsigned char previous = monster_info->motionless;
     W8Monster* monster = monster_info->monster;
 
-    monster_info->incapacitated = incapacitated;
-    if (incapacitated == 0) {
+    monster_info->motionless = motionless;
+    if (motionless == 0) {
         if (previous != 0) {
             Function4C5A00(monster, 1);
             if (monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
-                Function4E4DB0(monster_info, 1, 3);
+                StartMonsterCycle(monster_info, 1, 3);
             }
         }
     }

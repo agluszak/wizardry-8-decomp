@@ -639,7 +639,7 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_1ee[0x59];
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
     unsigned char unknown_24c[2];
-    unsigned char incapacitated;            /* 0x24e: web-or-worse condition gate */
+    unsigned char motionless;               /* 0x24e: fMotionless in the demo diagnostic */
     unsigned char unknown_24f[4];
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
@@ -647,7 +647,7 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_256[0x84];
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
     unsigned char unknown_2de[0x1f];
-    int value_2fd;                          /* 0x2fd: transition state in 0x004e6020 */
+    int control_state;                      /* 0x2fd: group-recomputed control state */
     unsigned char unknown_301[0x124];
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
@@ -662,7 +662,7 @@ extern int g_monster_info_iterator_index;  /* 0x00683698, retained cursor */
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 void Function4E4600(W8MonsterInfo* monster_info);
-void KillMonster(W8MonsterInfo* monster_info, int display_message);
+void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 unsigned int MonsterGetIndexByLocationID(
     int caller_line,
@@ -685,8 +685,8 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void ResetLivingMonstersAfterCombat(void);
-void Function4E6020(W8MonsterInfo* monster_info, int value);
-void SetMonsterIncapacitated(W8MonsterInfo* monster_info, unsigned char incapacitated);
+void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state);
+void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless);
 void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
