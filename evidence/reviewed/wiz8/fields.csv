@@ -176,3 +176,9 @@ wiz8,W8Object0043A910,0x30,0x4,value_30,int32,,exact,classes:wiz8:W8Object0043A9
 wiz8,W8WidgetBase005ED5BC,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8WidgetBase005ED5BC,primary vtable W8WidgetBase005ED5BC.primary
 wiz8,W8WidgetBase005ED5BC,0x5,0x1,flag_5,uint8,,exact,classes:wiz8:W8WidgetBase005ED5BC,cleared by the folded destructor
 wiz8,W8WidgetBase005ED5BC,0x18,0x4,region_18,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,region registration released through 0x004f23d0 on teardown unless it holds the -1 sentinel
+wiz8,W8Control005ED654,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8Control005ED654,primary vtable W8Control005ED654.primary
+wiz8,W8Control005ED654,0x4,0x4,base_value_4,int32,,exact,classes:wiz8:W8Control005ED654,cleared by the inlined base construction
+wiz8,W8Control005ED654,0x8,0x4,base_value_8,int32,,exact,classes:wiz8:W8Control005ED654,cleared by the inlined base construction
+wiz8,W8Control005ED654,0xc,0x4,base_index_c,int32,,exact,classes:wiz8:W8Control005ED654,set to the -1 sentinel by the inlined base construction
+wiz8,W8Control005ED654,0x10,0x10,entries_10,bytes,,exact,classes:wiz8:W8Control005ED654,"embedded growable-vector instantiation under a second vtable: template table 0x005ed660 then its own 0x005ed65c, twenty-byte backing allocation and capacity five or zero"
+wiz8,W8Control005ED654,0x20,0x4,value_20,int32,,exact,classes:wiz8:W8Control005ED654,cleared by the constructor

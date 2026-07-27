@@ -228,6 +228,20 @@ Related: a **null check before `operator delete`** means the source wrote `delet
 `::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
 to tell them apart.
 
+The constraint cuts the other way too, and that is how it earns its keep. `W8Control005ED654`'s
+constructor first came out 122 bytes against 85, entirely because its base had a declared
+destructor and the embedded vector's `operator new` can throw after the base is built. Making the
+base destructor implicit dropped the frame and the body went to 90 bytes and the right instruction
+count in one step. **So a frameless canonical constructor is positive evidence that a base
+destructor is implicit** - not merely a modelling convenience.
+
+**Count the vtable stores at one offset.** Two stores to the same object offset in a constructor
+are a base table followed by a derived one, so a member showing two stores is a two-level object,
+not a single class. The last five bytes of that same control came from modelling its embedded
+vector as one `W8GrowableVector<T>` when the family map plainly showed `0x005ED660` then
+`0x005ED65C` both landing at `+0x10`; deriving a small class from the template so both tables get
+installed took it to exact.
+
 **But know when to stop.** The shared dialog base's constructor is the counter-example: the same
 six-before/four-after split does move its vtable store to the canonical position, and it costs more
 than it buys, because VC6 then materializes the zero constant into EAX at first use where the
