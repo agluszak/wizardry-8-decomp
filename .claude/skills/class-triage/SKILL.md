@@ -201,8 +201,10 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   linker does not fold duplicates, so a destructor copy can survive far from its constructor. Tie
   the family together with the census - the derived table installed by that constructor and no
   other - not with adjacency.
-- **A pair installed by several writers is one constructor emitted several times.** Claim one
-  address per source definition; recovering a second emission means a second file.
+- **Many writers is usually not ambiguity - sort them by size.** Nine functions install
+  `0x005EC294`; eight are six-byte thunks or large bodies that inlined the constructor and one is
+  the out-of-line copy, which is the only claimable body. Two writers of the *same* size are the
+  case that really needs a file per emission.
 - **If `diff-boundary` says the symbol is not in the objects, the body was never emitted.** VC6
   emits a class's vtable and destructors only in units that *construct* it, so a destructor-only
   port compiles to nothing. Port a constructing site from the same unit; list the object's symbols

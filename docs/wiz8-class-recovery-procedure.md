@@ -302,11 +302,12 @@ confirmation when you have it and not evidence of anything when you do not. What
 together is the census: check the derived table is installed by that constructor and by nothing
 else.
 
-**When it is installed by several, they are emissions of one source constructor, not several
-classes.** `0x004A84C0` and `0x004ADE70` both build the `0x005ECED4` pair because two units
-instantiated the same class. Only one address per source definition can be claimed, so recovering
-both means two source files - and before writing either, be sure the repetition is duplicate
-emission rather than a class genuinely constructed in more than one place.
+**When it is installed by several, sort them by size before concluding anything.** Nine functions
+install `0x005EC294`, which looks like ambiguity and is not: eight are six-byte thunks or large
+bodies that inlined the constructor, and exactly one is an out-of-line copy of it. That is what an
+inline constructor looks like when VC6 emits a copy for some call sites and folds it into others,
+and only the out-of-line copy is claimable. Two writers of the *same* size are the case that
+genuinely needs two source files, one per emission - check which you have rather than assuming.
 
 **Those two size sources do not agree, and the difference is not an error.** The function census
 sizes a body to the next boundary, so it includes the padding to the following function; Ghidra and
