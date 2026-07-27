@@ -30,6 +30,8 @@ def apply_reviewed_class_model(
         DataTypeConflictHandler,
         IntegerDataType,
         PointerDataType,
+        ShortDataType,
+        UnsignedIntegerDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -66,8 +68,12 @@ def apply_reviewed_class_model(
                 for field in model.fields:
                     if field.data_type == "pointer":
                         data_type = generic_pointer
+                    elif field.data_type == "int16":
+                        data_type = ShortDataType.dataType
                     elif field.data_type == "int32":
                         data_type = IntegerDataType.dataType
+                    elif field.data_type == "uint32":
+                        data_type = UnsignedIntegerDataType.dataType
                     else:
                         data_type = ArrayDataType(byte, field.size, 1)
                     fields_by_class.setdefault(field.class_name, []).append(

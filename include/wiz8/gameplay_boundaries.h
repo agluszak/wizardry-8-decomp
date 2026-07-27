@@ -388,12 +388,17 @@ typedef struct W8ScreenPoint {
    strides; this first cluster only establishes the leading state fields. */
 typedef struct W8RegionSet {
     unsigned int enabled;
-    unsigned char unknown_04[0x08];
+    unsigned int first_region;
+    unsigned int last_region;
 } W8RegionSet;                           /* 0x0c */
 
 typedef struct W8Region {
     unsigned int flags;
-    unsigned char unknown_04[0x18];
+    short x1;
+    short y1;
+    short x2;
+    short y2;
+    unsigned char unknown_0c[0x10];
 } W8Region;                              /* 0x1c */
 
 enum {
@@ -676,13 +681,21 @@ int GetMinimumCasterLevelForSpell(int spell_id);
 W8FactionDisposition GetFactionDisposition(signed char faction);
 void RegionSetEnable(unsigned int region_set_index);
 void RegionSetDisable(unsigned int region_set_index);
+void ClearRegionSetModeBits(unsigned int region_set_index);
+void SetRegionSetMode4(unsigned int region_set_index);
 void ClearRegionModeBits(unsigned int region_index);
 void SetRegionMode4(unsigned int region_index);
+void SetRegionBounds(unsigned int region_index, unsigned short x1, unsigned short y1,
+                     unsigned short x2, unsigned short y2);
 #ifdef __cplusplus
+bool RegionContainsPoint(unsigned int region_index, unsigned short x, unsigned short y);
 bool RegionHasFlags(unsigned int region_index, unsigned int flags);
 #else
+unsigned char RegionContainsPoint(unsigned int region_index, unsigned short x,
+                                  unsigned short y);
 unsigned char RegionHasFlags(unsigned int region_index, unsigned int flags);
 #endif
+unsigned int CreateRegionSet(void);
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result);
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);

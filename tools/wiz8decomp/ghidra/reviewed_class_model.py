@@ -5,6 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
+SCALAR_FIELD_SIZES = {
+    "int16": 2,
+    "int32": 4,
+    "uint32": 4,
+}
 
 
 @dataclass(frozen=True)
@@ -120,8 +125,10 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             raise ValueError(f"{fields_path}: unknown class {field.class_name}")
         if not field.name or field.size <= 0 or field.data_type not in {
             "bytes",
+            "int16",
             "int32",
             "pointer",
+            "uint32",
         }:
             raise ValueError(f"{fields_path}: invalid field {field.class_name}+0x{field.offset:x}")
         key = (field.class_name, field.offset)
@@ -131,8 +138,11 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             raise ValueError(f"{fields_path}: field exceeds {field.class_name} size")
         if field.data_type == "pointer" and field.size != 4:
             raise ValueError(f"{fields_path}: reviewed x86 pointer field must be four bytes")
-        if field.data_type == "int32" and field.size != 4:
-            raise ValueError(f"{fields_path}: reviewed int32 field must be four bytes")
+        scalar_size = SCALAR_FIELD_SIZES.get(field.data_type)
+        if scalar_size is not None and field.size != scalar_size:
+            raise ValueError(
+                f"{fields_path}: reviewed {field.data_type} field must be {scalar_size} bytes"
+            )
         field_keys.add(key)
         last_end[field.class_name] = field.offset + field.size
 

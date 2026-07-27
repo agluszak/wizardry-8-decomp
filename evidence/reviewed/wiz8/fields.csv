@@ -69,6 +69,12 @@ wiz8,W8ScreenPoint,0x0,0x4,x,int32,exact,classes:wiz8:W8ScreenPoint,signed horiz
 wiz8,W8ScreenPoint,0x4,0x4,y,int32,exact,classes:wiz8:W8ScreenPoint,signed vertical coordinate consumed by 0x00517e70
 wiz8,W8RegionSet,0x0,0x4,enabled,int32,exact,classes:wiz8:W8RegionSet,0x004f21e0 stores one and 0x004f2220 stores zero
 wiz8,W8Region,0x0,0x4,flags,int32,exact,classes:wiz8:W8Region,0x004f2380 0x004f23d0 and 0x004f2550 update or test this bitfield
+wiz8,W8RegionSet,0x4,0x4,first_region,uint32,exact,classes:wiz8:W8RegionSet,0x004f2260 and 0x004f22f0 use this as the inclusive range start
+wiz8,W8RegionSet,0x8,0x4,last_region,uint32,exact,classes:wiz8:W8RegionSet,0x004f2260 and 0x004f22f0 use this as the inclusive range end
+wiz8,W8Region,0x4,0x2,x1,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as left edge or circle center X
+wiz8,W8Region,0x6,0x2,y1,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as top edge or circle center Y
+wiz8,W8Region,0x8,0x2,x2,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as right edge or circle radius
+wiz8,W8Region,0xa,0x2,y2,int16,exact,classes:wiz8:W8Region,0x004f2420 stores it and 0x004f2490 uses it as bottom edge in rectangular mode
 wiz8,W8MonsterInfo,0x9f,0x4,value_9f,int32,exact,classes:wiz8:W8MonsterInfo,required to be zero by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x1e7,0x7,attribute_adjustments_1e7,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 reads the selected byte as signed before adding it to the unsigned database attribute
 wiz8,W8MonsterInfo,0x247,0x5,converted_attributes_247,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 stores the five converted attributes after clamping each result to 1 through 125
