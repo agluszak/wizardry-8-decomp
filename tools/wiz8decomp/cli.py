@@ -1181,6 +1181,34 @@ def report_class_family(
     _run_action(action)
 
 
+@report_app.command("cross-build")
+def report_cross_build(
+    left: Annotated[str, typer.Argument(help="Program selector to align from.")],
+    right: Annotated[str, typer.Argument(help="Program selector to align to.")],
+) -> None:
+    """Map one build's functions onto another's, and measure what moved.
+
+    Assertions anchor the mapping - the expression text and source path survive
+    relinking, the line number does not - and the call graph carries it outward
+    from every anchor while exactly one candidate fits. The result is a
+    generated index under `build/`, not a reviewed identity.
+    """
+
+    def action() -> dict[str, Any]:
+        from .cross_build import align, write_report
+
+        settings = _settings()
+        alignment = align(settings.repo_dir, left, right)
+        destination = (
+            settings.repo_dir / "build" / "reports" / "cross-build" / f"{left}--{right}"
+        )
+        summary = write_report(settings.repo_dir, alignment, destination)
+        summary["report"] = str(destination)
+        return summary
+
+    _run_action(action)
+
+
 @report_app.command("class-candidates")
 def report_class_candidates() -> None:
     """Generate reviewable class candidates from the polymorphism snapshots."""
