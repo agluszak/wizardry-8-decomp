@@ -448,7 +448,11 @@ struct W8MonsterCycle {
 };                                          /* 0x10 */
 
 struct W8MonsterMember18 {
-    unsigned char unknown_00[0x0c];
+    /* 0x00, which is Monster +0x18: the secondary vtable at 0x005ED218, five
+       slots. That this subobject begins exactly where the secondary vtable is
+       installed is why it is a subobject at all rather than a run of fields. */
+    void* vptr;
+    unsigned char unknown_04[8];
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
     unsigned char unknown_10[0x4c];
     int value_5c;                           /* 0x5c: Monster +0x74 */
@@ -466,7 +470,14 @@ struct W8MonsterMember18 {
    Only the members the byte-exact consumers touch are modelled; the reviewed
    layer, not this struct, owns the class facts. */
 struct W8Monster {
-    unsigned char unknown_000[0x18];
+    /* 0x000: the primary vtable at 0x005ED200, six slots. Held as a field
+       rather than declared through a virtual member, because giving this class
+       virtuals would have VC6 synthesize its own vptr and the secondary one at
+       +0x18 cannot be expressed that way until the base it belongs to is
+       recovered from the constructor. Naming it is what the layout supports
+       today; the polymorphic form waits on 0x004BEA20. */
+    void* vptr;
+    unsigned char unknown_004[0x14];
     W8MonsterMember18 member_18;            /* 0x018: positional member proven by 0x004e4600 */
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
     /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
