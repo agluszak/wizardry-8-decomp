@@ -9,32 +9,8 @@
    The globals live at 0x006598B8..0x006598D2 and are declared, not defined:
    their addresses in the original data segment are the authority. */
 
-/* The shared timer the wrapper's constructor builds lazily. An empty subclass:
-   its vtable 0x005EC078 matches srTimer's slot for slot with every method
-   inherited through an import thunk, and only slot 0 - the compiler-generated
-   deleting destructor at 0x004397D0, which calls the imported ~srTimer and
-   frees through the global operator delete - is its own. The 0x868 allocation
-   leaves 0x58 bytes past the asserted base extent; only two fields in them are
-   established, both written by the wrapper's constructor. */
-class W8SharedTimer005EC078 : public srTimer {
-public:
-    __forceinline W8SharedTimer005EC078()
-        : srTimer(0, 0, 1)
-    {
-    }
-
-    unsigned char unknown_810[0x18];
-    int m_units_per_interval;            /* 0x828: 10000 */
-    unsigned char unknown_82c[0xc];
-    double m_units_per_tick;             /* 0x838: 10000 / frequency */
-    unsigned char unknown_840[0x28];
-};
-
-typedef char W8SharedTimer005EC078_must_be_0x868[
-    sizeof(W8SharedTimer005EC078) == 0x868 ? 1 : -1];
-
-extern W8SharedTimer005EC078* g_shared_timer_base;   /* 0x006598B8 */
-extern W8SharedTimer005EC078* g_shared_timer;        /* 0x006598C0 */
+extern srTimer* g_shared_timer_base;   /* 0x006598B8 */
+extern srTimer* g_shared_timer;        /* 0x006598C0 */
 extern int g_shared_timer_pause_base;                /* 0x006598C4 */
 extern int g_shared_timer_pause_time;                /* 0x006598C8 */
 extern int g_shared_timer_refs;                      /* 0x006598CC */
@@ -58,10 +34,10 @@ public:
     // FUNCTION: WIZ8 0x00439A00
     virtual ~W8Timer005EC0A4()
     {
-        W8SharedTimer005EC078* shared = m_shared;
+        srTimer* shared = m_shared;
 
         if (shared == g_shared_timer) {
-            if (--g_shared_timer_refs < 1) {
+            if (--g_shared_timer_refs <= 0) {
                 if (g_shared_timer != 0) {
                     delete g_shared_timer;
                 }
@@ -80,7 +56,7 @@ public:
 
     int m_mode;                          /* 0x04: 1 reads the game clock */
     unsigned short m_flags;              /* 0x08: bit 0 reads the timer raw */
-    W8SharedTimer005EC078* m_shared;     /* 0x0c */
+    srTimer* m_shared;                   /* 0x0c */
     int m_start;                         /* 0x10 */
     int m_end;                           /* 0x14: start + duration */
     int m_duration;                      /* 0x18: 10000 */
@@ -126,7 +102,7 @@ W8Timer005EC0A4::W8Timer005EC0A4()
         g_shared_timer_flag_d1 = 0;
         g_shared_timer_flag_d2 = 0;
 
-        W8SharedTimer005EC078* timer = new W8SharedTimer005EC078;
+        srTimer* timer = new srTimer(0, 0, 1);
 
         g_shared_timer = timer;
         g_shared_timer_base = timer;

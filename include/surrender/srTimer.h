@@ -11,39 +11,51 @@
 
    The enum's values are not established; the one observed call site passes 0.
 
-   The extent is asserted at 0x810, and that number is bounded rather than
-   proven: the shared derived timer is allocated at 0x868, the 64-bit value at
-   +0x808 is read before any first-party write, so it must be initialized by
-   this constructor and lie inside the base, while the fields at +0x828 and
-   +0x838 are first written by first-party code and are modelled as the derived
-   class's. Any boundary in 0x810..0x828 produces the same bytes; this is the
-   smallest one covering the frequency. */
-class srTimer {
+   The extent 0x868 is what `new srTimer` allocates at 0x00439590. There is no
+   first-party subclass: vtable 0x005EC078 is the local copy VC6 materializes
+   for a dllimport class it instantiates - every slot an import thunk and the
+   deleting destructor generated locally - and the constructor re-stores it
+   over the vptr the imported constructor installed. The three named fields are
+   srTimer's own, placed by the game-timer unit's byte-exact constructor. */
+/* Packed at 4 the way the era's SDK headers ship: with the class's natural
+   alignment of 8 (the double member) MSVC pads the vfptr slot to the class
+   alignment and every field lands four bytes late; pack(4) is what puts the
+   frequency at +0x808 and the tick quotient at +0x838, where the byte-exact
+   constructor addresses them. */
+#pragma pack(push, 4)
+class SR_DLL_IMPORT srTimer {
 public:
     enum e_timerReadControl {
         TIMER_READ_DEFAULT = 0
     };
 
-    SR_DLL_IMPORT srTimer(int argument_0, int argument_1, int argument_2);
+    srTimer(int argument_0, int argument_1, int argument_2);
 
-    virtual SR_DLL_IMPORT ~srTimer();                                /* 0 */
-    virtual SR_DLL_IMPORT char* getAscTime(char* buffer, e_timerReadControl control);
-    virtual SR_DLL_IMPORT int pause();                                            /* 2 */
-    virtual SR_DLL_IMPORT unsigned long resume();                                 /* 3 */
-    virtual SR_DLL_IMPORT int reset(int argument_0, int argument_1, int argument_2);
-    virtual SR_DLL_IMPORT unsigned long getMsTime(e_timerReadControl control);    /* 5 */
-    virtual SR_DLL_IMPORT double getTime(e_timerReadControl control);             /* 6 */
+    virtual ~srTimer();                                /* 0 */
+    virtual char* getAscTime(char* buffer, e_timerReadControl control);
+    virtual int pause();                                            /* 2 */
+    virtual unsigned long resume();                                 /* 3 */
+    virtual int reset(int argument_0, int argument_1, int argument_2);
+    virtual unsigned long getMsTime(e_timerReadControl control);    /* 5 */
+    virtual double getTime(e_timerReadControl control);             /* 6 */
     /* Slots 7/9 take srQuadWord&, slots 8/10 take only the control. MSVC lays
        an adjacent virtual overload group out in reverse declaration order, so
        the source declares each pair reversed to land them as exported. */
-    virtual SR_DLL_IMPORT unsigned long getUTime(e_timerReadControl control);     /* 8 */
-    virtual SR_DLL_IMPORT unsigned long getUTime(srQuadWord& out, e_timerReadControl control);
-    virtual SR_DLL_IMPORT unsigned long getRawTime(e_timerReadControl control);   /* 10 */
-    virtual SR_DLL_IMPORT unsigned long getRawTime(srQuadWord& out, e_timerReadControl control);
+    virtual unsigned long getUTime(e_timerReadControl control);     /* 8 */
+    virtual unsigned long getUTime(srQuadWord& out, e_timerReadControl control);
+    virtual unsigned long getRawTime(e_timerReadControl control);   /* 10 */
+    virtual unsigned long getRawTime(srQuadWord& out, e_timerReadControl control);
 
     unsigned char unknown_004_[0x804];
     /* Ticks per second, measured by the constructor. */
     srQuadWord m_frequency;              /* 0x808 */
+    unsigned char unknown_810_[0x18];
+    int m_units_per_interval;            /* 0x828: the game-timer unit writes 10000 */
+    unsigned char unknown_82c_[0xc];
+    double m_units_per_tick;             /* 0x838: 10000 / frequency, written by the same unit */
+    unsigned char unknown_840_[0x28];
 };
+#pragma pack(pop)
 
-typedef char srTimer_must_be_0x810[(sizeof(srTimer) == 0x810) ? 1 : -1];
+
+typedef char srTimer_must_be_0x868[(sizeof(srTimer) == 0x868) ? 1 : -1];
