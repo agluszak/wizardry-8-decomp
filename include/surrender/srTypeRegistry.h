@@ -36,4 +36,13 @@ public:
     virtual srClass* vInstance() = 0;
 
     SR_DLL_IMPORT int release() const;
+
+    /* Every class in this hierarchy is freed through the SurRender heap rather
+       than the global operator delete, and the routing is declared here rather
+       than per class: the identical 34-byte scalar deleting destructor sits at
+       slot 5 of first-party classes derived from srClass itself, from
+       srModel/srMeshModel, from srTexture/srTextureIFace and from srNode, so
+       the only place it can come from is their common root. 0x0042A170 is one
+       of them and 0x00492C40 is stMaterial's. */
+    void operator delete(void* instance) { srHeap.free(instance); }
 };

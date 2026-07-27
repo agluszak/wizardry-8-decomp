@@ -121,9 +121,24 @@ already registered and builds the tree back up, and slot 7 at `0x00492A00` calls
 instance, assigns through `srMaterial::operator=`, then copies the field at `0x78`. A wrong slot
 index or a wrong base extent would show up in either.
 
-The destructor is the one override still outstanding: its complete body at `0x00492A30` is 425 bytes
-of registry teardown under exception state, and the deleting destructor above it frees through
-`srHeap`, which needs the class's `operator delete` routing established before either can match.
+The destructor is the one override still outstanding, and taking it apart moved two things forward.
+
+Its slot-5 body is freed through the SurRender heap, not the global `operator delete`, and that
+routing belongs to `srClass`: the identical 34-byte scalar deleting destructor sits at slot 5 of
+first-party classes derived from `srClass` itself, from `srModel`/`srMeshModel`, from
+`srTexture`/`srTextureIFace` and from `srNode`, so their common root is the only place it can come
+from. Declaring `void operator delete(void*)` there reproduces the tail exactly - `mov ecx, [srHeap]`,
+`push`, `call [srHeap::free]`, `mov eax, esi`, `pop`, `ret 4`, instruction for instruction against
+`0x00492C40`.
+
+The body itself stays unclaimed, because the complete destructor it calls is not recovered and the
+compiler will not emit a deleting destructor for a class nothing constructs. And the complete
+destructor at `0x00492A30` says the class model is still short: across its 425 bytes it unregisters
+the instance three times and restores a first-party vtable before each - `0x005ECB6C` for id
+`0x10002`, then `0x005EBF68` for `0x2210`, then `0x005EBF94` for `0x2200` - before calling the
+imported `srClass::~srClass`. Wizardry has vtables of its own at the srMaterial and srMaterialIFace
+levels, which `stMaterial : srMaterial` does not account for. Settling that comes before either
+destructor body.
 
 ## What may be written into a header
 

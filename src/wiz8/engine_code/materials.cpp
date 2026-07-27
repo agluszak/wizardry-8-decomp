@@ -18,6 +18,7 @@ public:
     virtual const char* getClassName() const;
     virtual unsigned long getClassID() const;
     virtual srRegistry::ClassNode* getClassNode() const;
+    virtual ~stMaterial();
     virtual srMaterial* vslot7();
 
     int m_field_78;                          /* 0x78 */
@@ -72,6 +73,15 @@ srRegistry::ClassNode* stMaterial::getClassNode() const
         node = registry->registerClass(g_stMaterialClassName, node, 0x10002, 0);
     }
     return node;
+}
+
+/* Slot 5. The complete destructor at 0x00492A30 is not recovered: it is 425
+   bytes that tear the instance out of the registry at three levels, and the two
+   it unwinds through are levels this class model does not yet have. Only the
+   compiler-generated deleting destructor above it is claimed, which is what
+   proves the srHeap routing on srClass::operator delete. */
+stMaterial::~stMaterial()
+{
 }
 
 // Slot 7. Copies through the instance slot 6 returns, then carries the one
