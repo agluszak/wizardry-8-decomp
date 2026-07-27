@@ -299,7 +299,9 @@ range at `+0x25b` and faction ID at `+0x25f`; the adjacent group-update path use
 range as its party-proximity threshold. The faction constants are recovered from the
 contiguous 21-name table beginning with `UNALIGNED`, and `GetFactionDisposition` at
 `0x00535ad0` independently asserts that same `0..20` domain. It maps ratings below 34 to
-hostile, ratings through 66 to neutral, and higher ratings to friendly. The byte at `+0x0d2`
-is deliberately named only as a disposition-cache factor: the canonical group update squares
-it and scales the result before comparing timestamps, but its original designer-facing unit is
-not yet known.
+hostile, ratings through 66 to neutral, and higher ratings to friendly. The group update at
+`0x005113a0` squares the byte at `+0x0d2` and scales the result by fifteen before comparing
+timestamps, so a cache duration is derived from it. That byte is not a field of its own: it is
+index one of the five-byte attribute array at `+0x0d1`, which `ConvertMonsterAttribute` at
+`0x004e5d00` reads through an index it bounds-checks against five. Which attribute it is, and
+why that attribute sets a cache duration, are both unresolved.

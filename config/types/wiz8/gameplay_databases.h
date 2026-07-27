@@ -148,9 +148,8 @@ typedef struct W8MonsterDatabaseRecord {
     W8MonsterCompanion companions[2];   /* 0x0c5 */
     uint8_t unknown_0cb[5];             /* 0x0cb */
     uint8_t flags_0d0;                  /* 0x0d0: bit zero uses NPC disposition */
-    uint8_t unknown_0d1;                /* 0x0d1 */
-    uint8_t disposition_cache_factor;   /* 0x0d2: squared then scaled for cache duration */
-    uint8_t unknown_0d3[0xae];          /* 0x0d3 */
+    uint8_t attribute_values[5];        /* 0x0d1: indexed 0..4 by 0x004e5d00 */
+    uint8_t unknown_0d6[0xab];          /* 0x0d6 */
     uint32_t combat_value;              /* 0x181: combat-strength/display value */
     uint8_t unknown_185[2];             /* 0x185 */
     int16_t record_id;                  /* 0x187: equals the database index */
