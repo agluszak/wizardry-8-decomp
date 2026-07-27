@@ -214,6 +214,12 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   `0x005EC294`; eight are six-byte thunks or large bodies that inlined the constructor and one is
   the out-of-line copy, which is the only claimable body. Two writers of the *same* size are the
   case that really needs a file per emission.
+- **Key a family on its deleting-destructor pair, not on constructor size.** A family whose only
+  construction site inlined the constructor has no out-of-line copy to match, so a large writer can
+  still be an ordinary family - `0x0057E5D0` is a 140-byte factory over a perfectly standard one.
+- **`return p != 0;` and `if (!p) return 0; return 1;` are different bodies.** The first computes a
+  flag, the second branches and returns literals. Two bytes and one instruction apart, and easy to
+  misread as a frame problem.
 - **If `diff-boundary` says the symbol is not in the objects, the body was never emitted.** VC6
   emits a class's vtable and destructors only in units that *construct* it, so a destructor-only
   port compiles to nothing. Port a constructing site from the same unit; list the object's symbols

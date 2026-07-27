@@ -340,6 +340,20 @@ and was dropped by its one inflated number. Confirm a spent vein by measuring re
 `read_canonical_body(image, address, census_size).rstrip(b"\x90\xcc")` - rather than by trusting the
 census twice.
 
+**Identify a family by its destructors, not by its constructor.** A fingerprint keyed on an
+eighty-four byte out-of-line constructor misses every family that has no out-of-line constructor at
+all, because the only construction site inlined it. `0x0057E5D0` is one: a 140-byte factory that
+heap-allocates the list, constructs it in place with the default capacity and stores it in a
+file-scope pointer. So a writer much larger than a constructor is not automatically a heap builder
+to be skipped - the pair of deleting destructors at 44 and 30 bytes identifies the shape either way,
+and that is the more reliable key.
+
+**A byte-valued return that is one instruction shorter than the canonical is a collapsed branch.**
+`return pointer != 0;` computes the flag; `if (!pointer) return 0; return 1;` tests it and returns a
+literal from each arm. The second is what the original wrote in that factory, and the difference is
+two bytes and one instruction - the sort of residual that looks like a frame or calling-convention
+problem and is neither.
+
 **A destructor alone may compile to nothing at all.** VC6 emits a class's vtable, its
 compiler-generated deleting destructor and its out-of-line complete destructor in the translation
 units that *construct* the class - not in the ones that merely destroy it. Port only a destructor
