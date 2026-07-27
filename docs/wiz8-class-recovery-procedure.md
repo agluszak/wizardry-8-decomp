@@ -207,8 +207,33 @@ the push. The resolver keys each table by the columns that name its rows, keeps 
 confidence on a collision, prefers a recorded hash at equal confidence, and lists in its summary
 exactly which identities appeared on both sides so a demotion cannot pass unremarked.
 
-Then re-run `just test` **and** `just verify-boundaries` before pushing, in that order. A merge
-that loses a promotion is invisible to the test suite and visible to the boundary gate.
+Then **rebuild before verifying**, and re-run `just test` and `just verify-boundaries` before
+pushing. A merge that loses a promotion is invisible to the test suite and visible only to the
+boundary gate — and that gate compares against whatever objects are currently on disk, so a rebase
+that brings in another agent's sources leaves it reading stale ones. The symptom is a `regressed`
+verdict on a row you never touched; the cause is usually that you have not built since the rebase,
+not that anything is wrong with their work.
+
+## 4b. Mining a shape, and knowing when it is spent
+
+Some teardowns are nearly free: an empty derived destructor over a base that has one compiles to
+exactly two instructions - restore the class vtable, tail-jump to the base destructor - and the
+compiler generates the scalar deleting destructor beside it. Two byte-exact bodies for a
+declaration with no statements in it.
+
+That makes it worth asking how many such classes remain, rather than meeting them one at a time.
+The body is a fixed encoding, so scan for it:
+
+```python
+# mov dword ptr [ecx], imm32 ; jmp rel32
+data.find(b"\xc7\x01", text.raw_offset, text.raw_offset + text.raw_size)  # then check data[off+6] == 0xE9
+```
+
+The whole image holds **six**, of which one is an adjustor thunk for another. So the shape is close
+to exhausted and is not a seam worth returning to - which is exactly the useful answer, and cheaper
+to establish once than to rediscover per class. Prefer this over sampling whenever the thing you
+are looking for has a fixed encoding: the census bounds vtables and writers, but a body shape is
+just bytes.
 
 ## 5. What the compiler will teach you
 
