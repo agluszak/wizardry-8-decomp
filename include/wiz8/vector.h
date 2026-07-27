@@ -65,6 +65,23 @@ public:
         return result;
     }
 
+    /* The image walks the array from a pointer loaded once rather than
+       indexing through GetAt, which bounds-checks. Controls.cpp:2718 asserts on
+       the -1 this returns, so the not-found value is the source's own. */
+    __forceinline int IndexOf(T value)
+    {
+        T* scan = data;
+        int index;
+
+        for (index = 0; index < count; ++index) {
+            if (*scan == value) {
+                return index;
+            }
+            ++scan;
+        }
+        return -1;
+    }
+
     __forceinline void Clear()
     {
         count = 0;
