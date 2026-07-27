@@ -384,6 +384,18 @@ typedef struct W8ScreenPoint {
     int y;
 } W8ScreenPoint;
 
+/* Local Code\RegionManager.cpp. The unit's indexing expressions prove the
+   strides; this first cluster only establishes the leading state fields. */
+typedef struct W8RegionSet {
+    unsigned int enabled;
+    unsigned char unknown_04[0x08];
+} W8RegionSet;                           /* 0x0c */
+
+typedef struct W8Region {
+    unsigned int flags;
+    unsigned char unknown_04[0x18];
+} W8Region;                              /* 0x1c */
+
 enum {
     W8_FACTION_HOSTILE = 0,
     W8_FACTION_NEUTRAL = 1,
@@ -399,6 +411,10 @@ extern "C" {
 extern W8SpellRuntimeRecord* g_spell_records;
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8Character* g_party_characters;
+extern unsigned int g_region_set_count;  /* guiRegsetCount */
+extern W8RegionSet g_region_sets[];
+extern unsigned int g_region_count;      /* guiRegionCount */
+extern W8Region g_regions[];
 /* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
    established, and GetRandomCharacter treats it as a slot-occupied flag. */
 extern W8PartySlotRow* g_party_slot_rows;
@@ -658,6 +674,15 @@ unsigned char CanSpellBackfire(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 W8FactionDisposition GetFactionDisposition(signed char faction);
+void RegionSetEnable(unsigned int region_set_index);
+void RegionSetDisable(unsigned int region_set_index);
+void ClearRegionModeBits(unsigned int region_index);
+void SetRegionMode4(unsigned int region_index);
+#ifdef __cplusplus
+bool RegionHasFlags(unsigned int region_index, unsigned int flags);
+#else
+unsigned char RegionHasFlags(unsigned int region_index, unsigned int flags);
+#endif
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result);
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);

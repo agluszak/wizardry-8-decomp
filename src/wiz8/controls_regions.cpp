@@ -1,10 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
-/* 0x004F21E0 and 0x004F2220; descriptive names taken from their use here. */
-extern "C" void RegionSetEnable(unsigned int region_set_id);
-extern "C" void RegionSetDisable(unsigned int region_set_id);
-
 /* Local Code\Controls.cpp. m_uiRegionSetId is named by the canonical assertion
    at line 399, and REGSET_NULL is zero because the body's guard is a plain
    test against zero. */
