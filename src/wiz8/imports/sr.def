@@ -19,3 +19,7 @@ EXPORTS
 ; member of srExtension taking two strings.
     ?isWindowOpen@srGERD@@QBEHXZ
     ?load@srExtension@@SAPAV1@PBD0@Z
+    ?flush@srGERD@@QAEXXZ
+    ?setViewPlane@srCamera@@QAEXNN@Z
+    ?getViewPlane@srCamera@@QBEXAAURect@1@AAN@Z
+    ?setViewPlane@srCamera@@QAEXABURect@1@N@Z
