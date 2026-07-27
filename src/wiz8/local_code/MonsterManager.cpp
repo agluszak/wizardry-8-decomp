@@ -9,11 +9,11 @@
 extern "C" char* String(const char* format, ...);
 int Function4A87A0(const char* name);
 unsigned char Function47B610(int index);
-void Function4C5A00(W8Monster* monster, int value);
-unsigned char Function4C5A80(W8Monster* monster, int value);
+unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
+unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
 void Function4C5AA0(W8Monster* monster, int value);
 void Function4C5B10(W8Monster* monster, int value);
-int Function4C5B40(W8Monster* monster, int value);
+int MonsterQuery(W8Monster* monster, int query);
 void Function4C6140(W8Monster* monster);
 void Function4C6180(W8Monster* monster, int value);
 void Function4C61A0(W8Monster* monster, int value);
@@ -111,7 +111,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     monster_info->monster->member_18.flags_0c &= 0xdfffffff;
     Function4C6140(monster_info->monster);
     if (monster_info->motionless == 0) {
-        result = Function4C5B40(monster_info->monster, 6);
+        result = MonsterQuery(monster_info->monster, 6);
         if (result != 1 && result != 2 &&
             monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
             StartMonsterCycle(monster_info, 1, 3);
@@ -600,7 +600,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
     monster_info->motionless = motionless;
     if (motionless == 0) {
         if (previous != 0) {
-            Function4C5A00(monster, 1);
+            MonsterSetAnimating(monster, 1);
             if (monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
                 StartMonsterCycle(monster_info, 1, 3);
             }
@@ -615,7 +615,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
             }
             Function4C5AA0(monster, -1);
         }
-        Function4C5A00(monster, 0);
+        MonsterSetAnimating(monster, 0);
     }
 }
 
@@ -630,7 +630,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
 
     PListAdd(g_monster_list, monster_info);
-    if (Function4C5A80(monster_info->monster, 0) != 0) {
+    if (MonsterIsCycleSupported(monster_info->monster, 0) != 0) {
         Function4C6180(monster_info->monster, 0);
         Function4C61A0(monster_info->monster, 1);
     }
@@ -639,7 +639,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
         Function4C61A0(monster_info->monster, 3);
     }
     Function4C61C0(monster_info->monster, 0);
-    Function4C5A00(monster_info->monster, 1);
+    MonsterSetAnimating(monster_info->monster, 1);
     monster_info->monster->member_18.unknown_88 = 1;
     monster_info->monster->m_cycles[22].unknown_09 = 0;
 }
