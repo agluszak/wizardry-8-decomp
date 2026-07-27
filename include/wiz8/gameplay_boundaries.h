@@ -10,27 +10,16 @@
 
 /* Shared recovered Wizardry interfaces used by matching translation units. */
 
+#include "wiz8/gameplay_databases.h"
+
 #pragma pack(push, 1)
 
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
    records and manipulated through the CRT wide-string functions. The same
    typedef models these fields in config/types/wiz8/gameplay_databases.h;
    under VC6 wchar_t is unsigned short, so the two spellings are one type. */
-typedef unsigned short W8WideChar;
 
-typedef struct W8Dice {
-    short base;
-    unsigned char count;
-    unsigned char sides;
-} W8Dice;
 
-typedef struct W8SpellRuntimeRecord {
-    unsigned char unknown_000[0x56];
-    int spell_level;                    /* 0x056 */
-    unsigned char unknown_05a[0xdd];
-    int target_type;                    /* 0x137 */
-    unsigned char unknown_13b[0x84];
-} W8SpellRuntimeRecord;                 /* 0x1bf */
 
 typedef struct W8FactionRuntimeRecord {
     signed char disposition_score;      /* 0x00 */
@@ -86,11 +75,6 @@ typedef struct W8RPCSlot {
     unsigned char opaque[0x118];
 } W8RPCSlot;
 
-typedef struct W8FactDatabaseRecord {
-    unsigned int identifier;
-    char symbolic_name[256];             /* 0x004 */
-    W8WideChar description[106];         /* 0x104 */
-} W8FactDatabaseRecord;                  /* 0x1d8 */
 
 typedef struct W8ItemInstance {
     int item_id;
@@ -243,64 +227,8 @@ typedef struct W8GlobalStatus {
     unsigned char unknown_000c[0x49b6];
 } W8GlobalStatus;                        /* 0x49c2 */
 
-/* One Data\Databases\NPC.DBS record. Only the loader-touched fields are
-   modelled here; config/types/wiz8/npc_database.h carries the full field
-   model under the same name, and the spellings are kept convergent. */
-typedef struct W8NpcDatabaseRecord {
-    unsigned short version;              /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
-    unsigned char unknown_002[0x9b];
-    unsigned char flag_9d;               /* 0x09d: and only when this is clear */
-    unsigned char unknown_09e[0x22c];
-    void* fact_rules_runtime;            /* 0x2ca: runtime-owned rule PList */
-    unsigned char unknown_2ce[0x3b];
-} W8NpcDatabaseRecord;                   /* 0x309 */
 
-/* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
-   established; the leading field is a display name. */
-typedef struct W8LevelDatabaseRecord {
-    unsigned char unknown_000[0xd8];
-} W8LevelDatabaseRecord;                 /* 0xd8 */
 
-/* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
-   runtime record size; the fields are typed by their consumers elsewhere.
-   This is the same record config/types/wiz8/gameplay_databases.h models as
-   W8MonsterDatabaseRecord and the Ghidra applied types use under that name;
-   the porting name deliberately keeps the established W8MonsterRecord
-   spelling of its byte-exact consumers, and the two field models are kept
-   convergent rather than merged. */
-typedef struct W8MonsterRecord {
-    W8WideChar name_00[24];               /* 0x000: suffix after '#' removed at load */
-    W8WideChar name_30[24];               /* 0x030: suffix after '#' removed at load */
-    W8WideChar name_60[24];               /* 0x060: suffix after '#' removed at load */
-    W8WideChar name_90[24];               /* 0x090: suffix after '#' removed at load */
-    unsigned char unknown_0c0[0x11];
-    /* 0x0d1: indexed 0..4 by ConvertMonsterAttribute at 0x004e5d00, which
-       bounds-checks the index against five. The group update at 0x005113a0
-       squares index one and scales it by fifteen for a cache duration, which is
-       a use of an attribute rather than a separate field at 0x0d2. */
-    unsigned char attribute_values_d1[5];
-    W8Dice hit_points_d6;                 /* 0x0d6: rolled into hp_max/hp_current */
-    W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
-    unsigned char unknown_0de[0xa3];
-    unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
-    unsigned char unknown_185[2];
-    short record_id_187;                  /* 0x187: equals the zero-based database index */
-    char cycle_name_189[0x31];             /* 0x189: GrCycle lookup key */
-    float float_1ba;                      /* 0x1ba: scaled by 0x005ed4f0 */
-    unsigned char unknown_1be[0x95];
-    int value_253;                        /* 0x253: selected by 0x004e5b50 */
-    int value_257;                        /* 0x257: alternate selected value */
-    int hostility_range_25b;              /* 0x25b: unaligned; positive is a proximity threshold */
-    int faction_id_25f;                   /* 0x25f: W8Faction value, domain 0..20 */
-    unsigned char unknown_263[4];
-    /* Carved out because LoadMonsterGroup skips every live-group step for a
-       record that has it set. */
-    unsigned char deleted;                /* 0x267 */
-    unsigned char unknown_268[2];
-    unsigned char flag_26a;               /* 0x26a: selects an alternate group configuration */
-    unsigned int combat_value_override_26b; /* 0x26b: nonzero override */
-    unsigned char unknown_26f[0x28];
-} W8MonsterRecord;                       /* 0x297 */
 
 /* The record is reached by seeking to 4 + index * 0x297, so its size is part of
    the on-disk format rather than an incidental layout. Asserting it here is what

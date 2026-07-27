@@ -39,6 +39,20 @@ def sized_types(path: Path) -> dict[str, str]:
     }
 
 
+def source_types() -> dict[str, str]:
+    """Every sized type the matching headers declare, wherever they declare it.
+
+    Reading one header would tie this check to today's split. gameplay_boundaries.h
+    is being broken up into per-unit headers, and a record moving between them is
+    a refactor, not a reason for the surfaces to stop being compared.
+    """
+
+    found: dict[str, str] = {}
+    for header in sorted((REPOSITORY / "include/wiz8").rglob("*.h")):
+        found.update(sized_types(header))
+    return found
+
+
 def config_types() -> dict[str, tuple[str, str]]:
     found: dict[str, tuple[str, str]] = {}
     for header in sorted((REPOSITORY / "config/types/wiz8").glob("*.h")):
@@ -51,17 +65,17 @@ def test_both_surfaces_declare_sizes_this_can_read() -> None:
     # If either surface stops annotating sizes the way this reads them, the
     # comparison below silently compares nothing.
     assert len(config_types()) > 20
-    assert len(sized_types(REPOSITORY / "include/wiz8/gameplay_boundaries.h")) > 15
+    assert len(source_types()) > 15
 
 
 def test_a_type_declared_in_both_surfaces_has_one_size() -> None:
     config = config_types()
-    source = sized_types(REPOSITORY / "include/wiz8/gameplay_boundaries.h")
+    source = source_types()
     shared = sorted(set(config) & set(source))
     assert shared, "the two surfaces no longer overlap; this check has gone blind"
     disagree = [
         f"{name}: {config[name][1]} says {config[name][0]}, "
-        f"gameplay_boundaries.h says {source[name]}"
+        f"the matching headers say {source[name]}"
         for name in shared
         if config[name][0] != source[name]
     ]
@@ -73,7 +87,7 @@ def test_the_monster_record_agrees_across_its_two_names() -> None:
     # reached by seeking to 4 + index * 0x297, so a size split is a real defect
     # rather than a naming preference.
     config = config_types()
-    source = sized_types(REPOSITORY / "include/wiz8/gameplay_boundaries.h")
+    source = source_types()
     for config_name, source_name in ALIASES.items():
         assert config_name in config, f"{config_name} is no longer declared"
         assert source_name in source, f"{source_name} is no longer declared"
