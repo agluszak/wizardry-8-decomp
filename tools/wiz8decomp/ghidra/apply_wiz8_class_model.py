@@ -76,11 +76,13 @@ def apply_reviewed_class_model(
 
                 structures: list[str] = []
                 for reviewed_class in model.classes:
-                    fields = fields_by_class.get(reviewed_class.name)
-                    if not fields:
-                        continue
+                    fields = fields_by_class.get(reviewed_class.name, [])
                     if reviewed_class.size is None:
-                        raise RuntimeError(f"{reviewed_class.name} has fields but no reviewed size")
+                        if fields:
+                            raise RuntimeError(
+                                f"{reviewed_class.name} has fields but no reviewed size"
+                            )
+                        continue
                     structure = _structure(
                         dtm,
                         category,

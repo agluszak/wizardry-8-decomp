@@ -5,6 +5,26 @@
 
 extern "C" char* String(const char* format, ...);
 
+// FUNCTION: WIZ8 0x00517E20
+void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
+                      W8ScreenRect* result)
+{
+    result->left = first->left < second->left ? first->left : second->left;
+    result->top = first->top < second->top ? first->top : second->top;
+    result->right = first->right > second->right ? first->right : second->right;
+    result->bottom = first->bottom > second->bottom ? first->bottom : second->bottom;
+}
+
+// FUNCTION: WIZ8 0x00517E70
+unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point)
+{
+    if (rect != 0 && point != 0 && point->x >= rect->left && point->x < rect->right
+        && point->y >= rect->top && point->y < rect->bottom) {
+        return 1;
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00517EA0
 void StripMonsterNameSuffix(unsigned short* name)
 {
@@ -42,6 +62,33 @@ unsigned int CharacterPointerToPartySlot(W8Character* character)
         0x1d1,
         String("PCPtrToPCSlot: ERROR - no match on ptr %d", character));
     return 0;
+}
+
+// FUNCTION: WIZ8 0x00517F30
+unsigned char IsPartyCharacterPointer(const W8Character* character)
+{
+    W8Character* party_character = g_party_characters;
+    unsigned int slot;
+
+    for (slot = 0; slot < 8; ++slot, ++party_character) {
+        if (character == party_character) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00517F60
+void AdjustByteByPercent(unsigned char* value, unsigned int percent)
+{
+    *value = (unsigned char)(((percent + 100) * *value + 50) / 100);
+}
+
+// FUNCTION: WIZ8 0x00517F90
+void AdjustIntegerByPercent(unsigned int* value, unsigned int percent)
+{
+    *value += *value * percent / 100;
 }
 
 // FUNCTION: WIZ8 0x00518150

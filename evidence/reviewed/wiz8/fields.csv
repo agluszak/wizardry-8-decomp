@@ -61,6 +61,12 @@ wiz8,W8MonsterInfo,0xc,0x4,monster,pointer,exact,classes:wiz8:W8MonsterInfo,live
 wiz8,W8MonsterInfo,0x14,0x1,flag_14,bytes,exact,classes:wiz8:W8MonsterInfo,first live-entry gate in exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x27,0x4,hp_max,int32,exact,classes:wiz8:W8MonsterInfo,Targeting.cpp assertion pMonsterInfo->uiHPMax > 0 reads this exact offset; initialized from a database dice roll by 0x004e3930
 wiz8,W8MonsterInfo,0x2b,0x4,hp_current,int32,exact,classes:wiz8:W8MonsterInfo,initialized with hp_max by 0x004e3930 then reduced by canonical damage consumers before 0x004e5a50 updates the Monster appearance
+wiz8,W8ScreenRect,0x0,0x4,left,int32,exact,classes:wiz8:W8ScreenRect,minimum horizontal bound consumed by 0x00517e20 and 0x00517e70
+wiz8,W8ScreenRect,0x4,0x4,top,int32,exact,classes:wiz8:W8ScreenRect,minimum vertical bound consumed by 0x00517e20 and 0x00517e70
+wiz8,W8ScreenRect,0x8,0x4,right,int32,exact,classes:wiz8:W8ScreenRect,exclusive maximum horizontal bound consumed by 0x00517e20 and 0x00517e70
+wiz8,W8ScreenRect,0xc,0x4,bottom,int32,exact,classes:wiz8:W8ScreenRect,exclusive maximum vertical bound consumed by 0x00517e20 and 0x00517e70
+wiz8,W8ScreenPoint,0x0,0x4,x,int32,exact,classes:wiz8:W8ScreenPoint,signed horizontal coordinate consumed by 0x00517e70
+wiz8,W8ScreenPoint,0x4,0x4,y,int32,exact,classes:wiz8:W8ScreenPoint,signed vertical coordinate consumed by 0x00517e70
 wiz8,W8MonsterInfo,0x9f,0x4,value_9f,int32,exact,classes:wiz8:W8MonsterInfo,required to be zero by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x1e7,0x7,attribute_adjustments_1e7,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 reads the selected byte as signed before adding it to the unsigned database attribute
 wiz8,W8MonsterInfo,0x247,0x5,converted_attributes_247,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 stores the five converted attributes after clamping each result to 1 through 125

@@ -370,6 +370,20 @@ typedef struct W8TargetSource {
 
 typedef unsigned char W8FactionDisposition;
 
+/* Local Code\UtilityFunctions.cpp. These are the signed screen-space rectangle
+   and point shapes consumed by 0x00517E20 and 0x00517E70. */
+typedef struct W8ScreenRect {
+    int left;
+    int top;
+    int right;
+    int bottom;
+} W8ScreenRect;
+
+typedef struct W8ScreenPoint {
+    int x;
+    int y;
+} W8ScreenPoint;
+
 enum {
     W8_FACTION_HOSTILE = 0,
     W8_FACTION_NEUTRAL = 1,
@@ -644,8 +658,14 @@ unsigned char CanSpellBackfire(int spell_id);
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 W8FactionDisposition GetFactionDisposition(signed char faction);
+void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
+                      W8ScreenRect* result);
+unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);
 void StripMonsterNameSuffix(unsigned short* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
+unsigned char IsPartyCharacterPointer(const W8Character* character);
+void AdjustByteByPercent(unsigned char* value, unsigned int percent);
+void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
                                         const unsigned char* expert_realm_flags);
