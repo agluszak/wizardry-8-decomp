@@ -615,6 +615,31 @@ def test_fan_patch_oracle_separates_original_targets_from_injected_hooks() -> No
     assert {row["kind"] for row in hooks} == {"hook", "inline-fix"}
 
 
+def test_monster_manager_descriptive_names_have_independent_evidence() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        functions = {row["address"]: row for row in csv.DictReader(stream)}
+    with (repository / "evidence/reviewed/wiz8/function-evidence.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        evidence = list(csv.DictReader(stream))
+
+    expected = {
+        "004e5af0": ("GetMonsterQuadrant", "canonical-callers"),
+        "004e5d00": ("ConvertMonsterAttributes", "original-runtime-string"),
+        "004e6130": ("MoveMonsterToLiveList", "canonical-behavior"),
+    }
+    for address, (name, origin) in expected.items():
+        assert functions[address]["provisional_name"] == name
+        assert functions[address]["name_origin"] == "descriptive"
+        assert any(
+            row["address"] == address and row["origin"] == origin
+            for row in evidence
+        )
+
+
 def test_cfdat_override_evidence_separates_callsite_and_canonical_sizes() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/reviewed/wiz8/formats/cfdat-overrides.csv").open(

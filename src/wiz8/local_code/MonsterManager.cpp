@@ -401,7 +401,7 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
 }
 
 // FUNCTION: WIZ8 0x004E5AF0
-int Function4E5AF0(W8MonsterInfo* monster_info)
+int GetMonsterQuadrant(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x6b9, 0);
@@ -467,7 +467,7 @@ void Function4E5C00(unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x004E5D00
-void Function4E5D00(W8MonsterInfo* monster_info)
+void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
 {
     unsigned int monster_attribute = 0;
 
@@ -618,7 +618,7 @@ void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x004E6130
-void Function4E6130(W8MonsterInfo* monster_info)
+void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x8b8, 0);

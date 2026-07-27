@@ -619,15 +619,15 @@ W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 void Function4E5A50(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
-int Function4E5AF0(W8MonsterInfo* monster_info);
+int GetMonsterQuadrant(W8MonsterInfo* monster_info);
 int Function4E5B50(unsigned int monster_species);
 void Function4E5C00(unsigned char value);
-void Function4E5D00(W8MonsterInfo* monster_info);
+void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void Function4E5EA0(void);
 void Function4E6020(W8MonsterInfo* monster_info, int value);
 void Function4E60B0(W8MonsterInfo* monster_info, unsigned char value);
-void Function4E6130(W8MonsterInfo* monster_info);
+void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char Function4E68C0(void);
 
