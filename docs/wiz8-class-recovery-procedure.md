@@ -287,6 +287,19 @@ match a family already recovered. Seventeen matched the vector shape that way; t
 all four bodies in one address neighbourhood, which is what a single unit emitting a family looks
 like, and all forty-eight bodies came out byte-exact in one build.
 
+**A family whose four bodies are scattered across the image is still one family.** VC6 emits each
+of them as its own COMDAT in every unit that needs it, and its linker does not fold duplicates, so
+the surviving copy of a destructor can sit far from the constructor. Address adjacency is a nice
+confirmation when you have it and not evidence of anything when you do not. What ties a family
+together is the census: check the derived table is installed by that constructor and by nothing
+else.
+
+**When it is installed by several, they are emissions of one source constructor, not several
+classes.** `0x004A84C0` and `0x004ADE70` both build the `0x005ECED4` pair because two units
+instantiated the same class. Only one address per source definition can be claimed, so recovering
+both means two source files - and before writing either, be sure the repetition is duplicate
+emission rather than a class genuinely constructed in more than one place.
+
 **Those two size sources do not agree, and the difference is not an error.** The function census
 sizes a body to the next boundary, so it includes the padding to the following function; Ghidra and
 the reviewed rows state the body itself. The vector family is `84/17/44/30` in reviewed terms and

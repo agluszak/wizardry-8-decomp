@@ -192,6 +192,12 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   have - port the class whose teardown has nothing to unwind first.
 - **A null check before `operator delete` means the source said `delete p`**, not
   `::operator delete(p)`; the operator form does not null-check.
+- **Scattered addresses do not break a family.** VC6 emits every body as a per-unit COMDAT and its
+  linker does not fold duplicates, so a destructor copy can survive far from its constructor. Tie
+  the family together with the census - the derived table installed by that constructor and no
+  other - not with adjacency.
+- **A pair installed by several writers is one constructor emitted several times.** Claim one
+  address per source definition; recovering a second emission means a second file.
 - **If `diff-boundary` says the symbol is not in the objects, the body was never emitted.** VC6
   emits a class's vtable and destructors only in units that *construct* it, so a destructor-only
   port compiles to nothing. Port a constructing site from the same unit; list the object's symbols
