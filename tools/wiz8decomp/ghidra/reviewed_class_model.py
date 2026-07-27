@@ -39,6 +39,22 @@ class ReviewedField:
     evidence_id: str
 
 
+def ghidra_namespace_name(class_name: str) -> str:
+    """Spell a reviewed class name the way Ghidra will accept as a namespace.
+
+    Ghidra rejects whitespace in a symbol name, and a template instantiation
+    over a pointer carries one: `W8GrowableVector<W8WorldItem *>` is how the
+    demangler writes it and how the reviewed model records it, so that spelling
+    is what joins a row to a COFF symbol and must not be changed to suit the
+    replay. Closing the space is enough, and it is reversible by eye.
+
+    Only the namespace is affected. The class name itself, the structure the
+    replay builds and every evidence row keep the model's spelling.
+    """
+
+    return class_name.replace(" ", "")
+
+
 def parse_pointee(spec: str) -> tuple[str, int]:
     """Split a pointee spec into its base class name and extra pointer depth.
 

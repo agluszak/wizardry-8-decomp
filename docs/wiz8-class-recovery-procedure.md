@@ -273,6 +273,32 @@ Related: a **null check before `operator delete`** means the source wrote `delet
 `::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
 to tell them apart.
 
+**A destructor alone may compile to nothing at all.** VC6 emits a class's vtable, its
+compiler-generated deleting destructor and its out-of-line complete destructor in the translation
+units that *construct* the class - not in the ones that merely destroy it. Port only a destructor
+and the object file can come out empty, and `diff-boundary` will report the symbol as missing
+rather than as wrong, which reads like a naming mistake and is not one. Check what actually landed:
+
+```sh
+uv run python -c "
+from pathlib import Path
+from wiz8decomp.boundaries import parse_coff_functions
+for f in parse_coff_functions(Path('build/decomp/CMakeFiles/<TARGET>.dir/<path>.obj')):
+    print(len(f.body), f.name)"
+```
+
+The fix is to port a constructing site from the same unit in the same commit. That is usually the
+right scope anyway, because a constructor fixes offsets a destructor only hints at - and the sizes
+in that listing are themselves evidence, since a body that comes out at the canonical byte count
+before you have diffed it is a strong sign the declaration is right.
+
+**A derived class that adds nothing still leaves a trace, but only on the constructor side.**
+Its constructor installs the base table and then its own; its destructor installs only the base's,
+because the derived store is immediately overwritten by the inlined base destructor and VC6 drops
+it as dead. A complete destructor that stores a *different* class's vtable is therefore not a
+contradiction and not a misattribution - it is the ordinary encoding of an empty derived
+destructor. Count vtables from constructors; destructors undercount.
+
 **Each `delete` names the shape of what it destroys**, which makes a destructor that releases
 several members the densest layout evidence available. Three forms to read apart, all present in
 `W8Prop005EC1E0::~W8Prop005EC1E0`:

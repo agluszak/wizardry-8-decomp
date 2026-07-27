@@ -7,6 +7,7 @@ from .apply_unzip_model import _apply_data, _structure
 from .project import resolve_program_name
 from .reviewed_class_model import (
     VIRTUAL_SLOT_TYPE_NAME,
+    ghidra_namespace_name,
     load_reviewed_class_model,
     parse_pointee,
 )
@@ -177,13 +178,14 @@ def apply_reviewed_class_model(
                     address = address_space.getAddress(vtable.address)
 
                     symbol_table = program.getSymbolTable()
+                    namespace_name = ghidra_namespace_name(vtable.class_name)
                     namespace = symbol_table.getNamespace(
-                        vtable.class_name, program.getGlobalNamespace()
+                        namespace_name, program.getGlobalNamespace()
                     )
                     if namespace is None:
                         namespace = symbol_table.createNameSpace(
                             program.getGlobalNamespace(),
-                            vtable.class_name,
+                            namespace_name,
                             SourceType.USER_DEFINED,
                         )
                     if vtable.kind == "primary":

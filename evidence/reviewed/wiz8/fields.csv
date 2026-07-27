@@ -193,3 +193,12 @@ wiz8,W8Prop005EC1E0,0x24,0x4,unknown_024,bytes,,strong,classes:wiz8:W8Prop005EC1
 wiz8,W8Prop005EC1E0,0x28,0x4,owned_28,pointer,,exact,classes:wiz8:W8Prop005EC1E0,"owned object with a virtual destructor, released through vtable slot 0"
 wiz8,W8Prop005EC1E0,0x2c,0xc,unknown_02c,bytes,,strong,classes:wiz8:W8Prop005EC1E0,not established
 wiz8,W8Prop005EC1E0,0x38,0x4,owned_38,pointer,,exact,classes:wiz8:W8Prop005EC1E0,"owned object with a non-virtual destructor at 0x004b6ed0, called directly before operator delete"
+wiz8,W8GrowableVector<W8VectorElement005ED094 *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>,primary vtable W8GrowableVector<W8VectorElement005ED094 *>.primary
+wiz8,W8GrowableVector<W8VectorElement005ED094 *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>,"element count, incremented by the inlined Add"
+wiz8,W8GrowableVector<W8VectorElement005ED094 *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>,"allocated element capacity, compared before growing"
+wiz8,W8GrowableVector<W8VectorElement005ED094 *>,0xc,0x4,data,pointer,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>,"element storage, released with a bare operator delete; the element type is unproven and so is not modelled as a class"
+wiz8,W8SoundEventVector005ED094,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8SoundEventVector005ED094,W8GrowableVector<W8VectorElement005ED094 *> subobject; the derived class adds nothing
+wiz8,W8GrObject005ED090,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8GrObject005ED090,primary vtable W8GrObject005ED090.primary
+wiz8,W8GrObject005ED090,0x4,0x8,unknown_004,bytes,,strong,classes:wiz8:W8GrObject005ED090,not established
+wiz8,W8GrObject005ED090,0xc,0x4,m_buffer_c,pointer,,strong,classes:wiz8:W8GrObject005ED090,"malloc storage, released with free rather than operator delete by the unported 0x004B6920"
+wiz8,W8GrObject005ED090,0x10,0x4,m_plsSoundEvents,pointer,W8SoundEventVector005ED094 *,exact,classes:wiz8:W8GrObject005ED090,"the sound-event list, named by the canonical assertion at GrObject.cpp:139"

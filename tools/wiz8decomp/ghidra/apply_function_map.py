@@ -8,6 +8,7 @@ from typing import Any
 from ..config import Settings
 from ..provenance import ProvenanceError, format_name_origin, validate_provenance
 from .project import resolve_program_name
+from .reviewed_class_model import ghidra_namespace_name
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
 
@@ -101,7 +102,11 @@ def load_function_identities(path: Path) -> list[FunctionIdentity]:
 
 
 def _namespace_and_name(symbol_table: Any, program: Any, qualified_name: str) -> tuple[Any, str]:
-    parts = qualified_name.split("::")
+    # A template instantiation over a pointer carries a space -- the demangled
+    # `W8GrowableVector<W8WorldItem *>` is the spelling that joins a reviewed row
+    # to its COFF symbol -- and Ghidra refuses whitespace in a symbol name. The
+    # replay adapts; the reviewed name does not change.
+    parts = [ghidra_namespace_name(part) for part in qualified_name.split("::")]
     parent = program.getGlobalNamespace()
     for part in parts[:-1]:
         namespace = symbol_table.getNamespace(part, parent)

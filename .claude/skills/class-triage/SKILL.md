@@ -170,6 +170,13 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   have - port the class whose teardown has nothing to unwind first.
 - **A null check before `operator delete` means the source said `delete p`**, not
   `::operator delete(p)`; the operator form does not null-check.
+- **If `diff-boundary` says the symbol is not in the objects, the body was never emitted.** VC6
+  emits a class's vtable and destructors only in units that *construct* it, so a destructor-only
+  port compiles to nothing. Port a constructing site from the same unit; list the object's symbols
+  with `parse_coff_functions` to see what actually landed.
+- **A complete destructor that stores another class's vtable is an empty derived class**, not a
+  misattribution: the derived store is dead against the inlined base destructor and VC6 drops it.
+  The constructor still writes both tables, so count a hierarchy from constructors.
 - **Each `delete` in a destructor names its member's type shape**: through vtable slot 0 with
   `push 1` is a virtual destructor; a direct destructor call then `operator delete` is a
   non-virtual one; a null check then a bare `operator delete` is a *declared but empty* destructor;

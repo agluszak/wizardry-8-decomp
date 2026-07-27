@@ -17,7 +17,7 @@ from .apply_class_candidates import (
     load_candidate_inputs,
     writer_comment_bodies,
 )
-from .reviewed_class_model import load_reviewed_class_model, parse_pointee
+from .reviewed_class_model import ghidra_namespace_name, load_reviewed_class_model, parse_pointee
 from .reviewed_signatures import load_reviewed_signatures
 
 
@@ -126,6 +126,12 @@ def validate_reviewed_replay(
                     )
                     continue
                 expected_namespace, _, expected_name = identity.name.rpartition("::")
+                # The replay spells namespaces the way Ghidra accepts them, so
+                # compare against that spelling rather than the reviewed one --
+                # a template instantiation over a pointer differs only by the
+                # space the demangler puts before the star.
+                expected_namespace = ghidra_namespace_name(expected_namespace)
+                expected_name = ghidra_namespace_name(expected_name)
                 actual_namespace = function.getParentNamespace().getName(True)
                 if function.getName() != expected_name or (
                     expected_namespace and not actual_namespace.endswith(expected_namespace)

@@ -5,6 +5,7 @@ import pytest
 
 from wiz8decomp.ghidra.apply_wiz8_signature_fixes import type_category_paths
 from wiz8decomp.ghidra.reviewed_class_model import (
+    ghidra_namespace_name,
     load_reviewed_class_model,
     parse_pointee,
 )
@@ -159,3 +160,19 @@ def test_signature_type_categories_reach_the_vendored_models() -> None:
         "/wiz8/zlib_1_0_4",
         "/wiz8/srext_unzip",
     )
+
+
+def test_ghidra_namespace_name_closes_the_space_a_pointer_instantiation_carries() -> None:
+    """Ghidra refuses whitespace in a symbol, and the model's spelling has some.
+
+    The reviewed name is what joins a row to its COFF symbol, so the replay
+    adapts to Ghidra rather than the other way round.
+    """
+
+    assert (
+        ghidra_namespace_name("W8GrowableVector<W8VectorElement005ED094 *>")
+        == "W8GrowableVector<W8VectorElement005ED094*>"
+    )
+    # Names that are already acceptable pass through untouched.
+    assert ghidra_namespace_name("W8GrowableVector<int>") == "W8GrowableVector<int>"
+    assert ghidra_namespace_name("W8Prop005EC1E0") == "W8Prop005EC1E0"

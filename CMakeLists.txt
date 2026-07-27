@@ -271,6 +271,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/Object0043A910.cpp
         src/wiz8/engine_code/Object005EBCFC.cpp
         src/wiz8/engine_code/Prop005EC1E0.cpp
+        src/wiz8/engine_code/GrObject.cpp
         src/wiz8/local_code/Control004F5450.cpp
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/LoadSaveGame.cpp

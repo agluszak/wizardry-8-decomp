@@ -90,6 +90,32 @@ because the extra polymorphic level is one more than the original constructs. So
 wrong too, and the header keeps `Grow` as a template member: a spelling that is knowingly not the
 original's, chosen because it costs no reviewed body. Resolving it is tracked in Beads.
 
+### The second vtable is user-defined derivation, not a hidden level
+
+The two-store sites and the one-store sites are not one shape emitted two ways. A site that installs
+two tables is constructing a class the original *declared* as deriving from the instantiation; a site
+that installs one is constructing the instantiation directly. `Engine Code\GrObject.cpp` proves it,
+because it is the first unit where the whole family is byte-exact at once:
+
+| Address | Bytes | What it is |
+| --- | --- | --- |
+| `0x004B6BD0` | 319 | `AddSoundEvent`, which creates the list and installs **both** tables |
+| `0x004B6D90` | 44 | the instantiation's deleting destructor, complete destructor folded in |
+| `0x004B6DC0` | 30 | the derived class's deleting destructor |
+| `0x004B6DE0` | 17 | the derived class's complete destructor |
+
+The teardown is where it gets counter-intuitive, and it is worth knowing before reading any other
+vector's destructor: **`0x004B6DE0` stores the base table `0x005ED098`, not the derived class's own
+`0x005ED094`** — even though it *is* the derived destructor and the constructor plainly writes both.
+The derived store is dead. It is overwritten by the inlined base destructor's store to the same
+address with nothing in between that could observe the difference, so VC6 drops it and the derived
+body becomes the base body. Construction cannot collapse the same way, because the base constructor
+calls the allocator between the two stores.
+
+So a vtable count taken from constructors and one taken from destructors will disagree, and the
+constructor is the one telling the truth about the hierarchy. This does not by itself settle the
+shared `Grow`, which is still open: it settles what a second vptr store means.
+
 ## Everything else the image repeats is not a first-party template
 
 VC6's linker does not fold identical COMDATs, so two byte-identical bodies at different addresses
