@@ -142,3 +142,27 @@ def test_allocation_size_hints_agree_with_reviewed_sizes() -> None:
     for row in hinted:
         for value in row["allocation_sizes"].split("|"):
             assert int(value, 16) > 0
+
+
+def test_an_inlined_construction_still_records_its_allocation_size() -> None:
+    """The size is read back from the vptr store, not from a call.
+
+    Most heap construction in this image inlines the constructor, so a scan that
+    only looks at calls sees nothing there. Reading back from the store covers
+    it - and the sizes it finds have to be sizes, so each one is checked against
+    the object offsets its own class is known to write.
+    """
+    writes = [
+        row
+        for row in _snapshot("vptr-writes.csv")
+        if row["program"] == _CANONICAL and row["object_offset"] == "0x0"
+    ]
+    sized = {row["site"]: row for row in writes if row["allocation_size"]}
+    assert len(sized) >= 40
+
+    # 0x0042354F stores its vtable inside the builder that allocated the object
+    # eleven instructions earlier, with no call to a constructor between them.
+    assert sized["0042354f"]["allocation_size"] == "0x14"
+    # A size has to be big enough to hold the vptr it is about.
+    for row in sized.values():
+        assert int(row["allocation_size"], 16) >= 4, row["site"]

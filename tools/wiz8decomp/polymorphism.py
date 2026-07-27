@@ -46,7 +46,7 @@ from .binary.image import PeImage
 from .binary.inventory import is_first_party, representative_modules
 from .config import Settings
 from .eh_metadata import import_slots
-from .ghidra.candidate_model import allocation_size_hints
+from .ghidra.candidate_model import allocation_size_before, allocation_size_hints
 from .ghidra.project import program_name
 from .paths import atomic_write
 
@@ -68,6 +68,7 @@ class VptrWrite:
     function: int | None
     object_offset: int
     table: int
+    allocation_size: int | None = None
 
 
 @dataclass
@@ -320,9 +321,25 @@ def analyse_image(path: Path) -> dict[str, Any]:
         if allocators and all_constructors
         else {}
     )
+    # The hints above are read at calls to a constructor, so they see nothing
+    # when the constructor is inlined - which is how most of this image builds a
+    # heap object. Reading back from the vptr store itself covers that shape,
+    # and it is the only one available for a class whose construction never
+    # becomes a call.
+    if allocators:
+        for write in writes:
+            if write.object_offset == 0:
+                write.allocation_size = allocation_size_before(
+                    image, write.site, write.function, allocators
+                )
     sizes_by_table = {
         address: sorted(
             {size for writer in writers for size in hints.get(writer, [])}
+            | {
+                write.allocation_size
+                for write in writes_by_table.get(address, [])
+                if write.allocation_size is not None
+            }
         )
         for address, writers in constructors_by_table.items()
     }
@@ -373,6 +390,12 @@ absorbs the next one and reports the sum of both slot counts.
 is stored, so offset `0` marks a primary table and any other offset marks the base subobject at that
 offset. A table written at several offsets by several functions is normal - a constructor, a copy
 constructor and a destructor each write it.
+
+`allocation_size` on an offset-`0` write is the size pushed to `operator new` just before it, which
+is what fixes a class's extent when nothing else does. It is read back from the store rather than
+from a call to a constructor, so an inlined construction has one too. It is empty when the object is
+embedded, stack-placed, or - as the srMaterial builders do - allocated through a register holding the
+allocator, where no size is visible at the site at all.
 
 Slot `kind` is `pure-virtual` when the slot holds the `_purecall` thunk, resolved through the import
 table by name rather than by a hardcoded address; `import-thunk` when the slot points at a jump
@@ -463,6 +486,11 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                         else f"0x{write.object_offset:x}"
                     ),
                     "vtable": _hex(write.table),
+                    "allocation_size": (
+                        f"0x{write.allocation_size:x}"
+                        if write.allocation_size is not None
+                        else ""
+                    ),
                 }
             )
 
@@ -507,7 +535,15 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             slot_rows,
         ),
         "vptr-writes.csv": _csv_text(
-            ["program", "site", "function_start", "object_offset", "vtable"], write_rows
+            [
+                "program",
+                "site",
+                "function_start",
+                "object_offset",
+                "vtable",
+                "allocation_size",
+            ],
+            write_rows,
         ),
     }
 

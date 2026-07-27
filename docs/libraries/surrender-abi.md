@@ -56,6 +56,34 @@ that thunk, so emitting it is the more faithful shape; it currently matches at 6
 new imperfect row it lowers that target's reported accuracy average while making the class model
 closer to the original rather than further from it.
 
+## Sizes are the scarce evidence, and not every site has one
+
+Neither the export table nor the vftable data states a class size, so a size has to come from an
+allocation. `evidence/snapshots/polymorphism/vptr-writes.csv` now carries `allocation_size` on every
+offset-`0` store, read back from the store rather than from a call to a constructor - which is what
+makes an inlined construction, the common shape here, yield one at all.
+
+That does not reach the `srMaterial` builders. The one at `0x00423500` allocates through a register
+holding the allocator:
+
+```text
+call esi                      the allocation; no size is pushed at this site
+mov  ecx, [0x005EB4E4]        the imported srMaterial vftable
+mov  [ebp], ecx
+call [0x005EB3E4]             srMaterial::reset
+mov  [ebp], 0x005EBDE0        the first-party derived vtable
+```
+
+so the size lives in whatever set up `esi`, not at the construction. All seven sites in that family
+share the shape. What they do give is a floor: the same builder writes `[ebp+0x68]` and `[ebp+0x6c]`
+before installing the vftable, so the derived object runs to at least `0x70`, and `srMaterial`
+itself is smaller than that by however much the derived class adds.
+
+Reading the size out of `sr.dll`'s own constructor would settle it and is not available: that is
+disassembling a SurRender body. The levers that remain are the dedicated constructors at
+`0x004925B0` and `0x00492720`, which are called rather than inlined and whose callers may push a
+size, and `srEXT_Inspector` as a live oracle.
+
 ## What may be written into a header
 
 The export table gives names and signatures. It never gives a class size or a field offset, and the

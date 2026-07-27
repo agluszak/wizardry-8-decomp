@@ -171,6 +171,33 @@ def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return skeletons
 
 
+def allocation_size_before(
+    image: Any, site: int, function: int | None, allocators: set[int], window: int = 64
+) -> int | None:
+    """The object size allocated just before a vptr store, if there was one.
+
+    `allocation_size_hints` reads the same `push size; call operator new` shape
+    at a *call* to a constructor, so it sees nothing once the constructor is
+    inlined - which is what most heap construction in this image looks like.
+    Reading back from the store covers that, and the scan stops at the enclosing
+    function so it cannot borrow an allocation from the body above.
+    """
+
+    text = image.text
+    start = text.raw_offset
+    offset = start + (site - text.virtual_address)
+    if not (start <= offset < start + text.raw_size):
+        return None
+    lowest = offset - window
+    if function is not None:
+        lowest = max(lowest, start + (function - text.virtual_address))
+    if lowest >= offset:
+        return None
+    return push_before_allocator(
+        image.data[lowest:offset], site - (offset - lowest), allocators
+    )
+
+
 def allocation_size_hints(
     image: Any, writers: list[int], allocators: set[int]
 ) -> dict[int, list[int]]:
