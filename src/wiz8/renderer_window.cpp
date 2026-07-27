@@ -47,6 +47,8 @@ extern void* g_primary_surface_6596a8;
 
 /* From the vendored SGP DirectDraw Calls.c. */
 extern void DDUnlockSurface(void* surface, void* locked);
+extern int DDLockSurface(void* surface, RECT* area, DDSURFACEDESC* description,
+                         int flags, void* event);
 extern void* g_surface_659650;
 extern void* g_surface_659654;
 extern void* g_surface_659658;
@@ -165,6 +167,22 @@ void GetDefaultScreenMode(unsigned short* height, unsigned short* width,
     *height = 0x1e0;
     *width = 0x280;
     *depth = 0x10;
+}
+
+
+/* Clears the primary surface. The dword count the original computes - the pitch
+   times fifteen, masked, shifted left three - is VC6's inline memset over
+   pitch times 480 bytes, which is why the byte-remainder loop that follows it
+   runs zero times: the length is always a multiple of four. */
+// FUNCTION: WIZ8 0x00421FF0
+unsigned char ClearPrimarySurface(void)
+{
+    DDSURFACEDESC description;
+
+    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    memset(description.lpSurface, 0, description.lPitch * 480);
+    DDUnlockSurface(g_primary_surface_6596a8, NULL);
+    return 1;
 }
 
 }
