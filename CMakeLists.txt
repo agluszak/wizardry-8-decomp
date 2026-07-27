@@ -253,7 +253,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/window_proc.cpp
         src/wiz8/character_items.cpp
         src/wiz8/character_skills.cpp
-        src/wiz8/controls_regions.cpp
+        src/wiz8/local_code/Controls.cpp
         src/wiz8/gameplay_boundaries.cpp
         src/wiz8/location_variables.cpp
         src/wiz8/local_code/MonsterManager.cpp
@@ -275,7 +275,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp
-        src/wiz8/monster_cycles.cpp
+        src/wiz8/engine_code/Monster.cpp
         src/wiz8/monster_info_dialog.cpp
         src/wiz8/monster_generators.cpp
         src/wiz8/monster_lookup.cpp
