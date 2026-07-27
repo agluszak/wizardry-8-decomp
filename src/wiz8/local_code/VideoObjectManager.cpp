@@ -9,8 +9,10 @@
  * slot table is eight bytes per entry: a first-frame index at +0x00 and a
  * signed vertical offset at +0x04, which is read with movsx. The frame table is
  * 0x3c bytes per entry - the decompiler shows the index scaled by 0xf dwords -
- * with a mode selector at +0x00 and the surface it draws at +0x08. Nothing here
- * establishes any other field of either, so the remainder stays opaque.
+ * whose first 0x30 bytes are the path it loads from, then a mode selector, a
+ * loaded flag and the surface it draws. The path is what fixes the base at
+ * 0x0062C430: reading the blit alone suggests 0x0062C460, because the first
+ * fields it touches are the mode and the surface.
  */
 
 #pragma pack(push, 1)
@@ -22,10 +24,14 @@ typedef struct W8VideoObjectSlot {
 } W8VideoObjectSlot;                      /* 0x08 */
 
 typedef struct W8VideoFrame {
-    int mode;                             /* 0x00: zero selects the second blitter */
-    unsigned char unknown_04[4];
-    void* surface;                        /* 0x08 */
-    unsigned char unknown_0c[0x30];
+    /* 0x00: the record opens with its own path, which is why the table base is
+       0x0062C430 and not the 0x0062C460 the blit's first two reads suggest.
+       0x00549090 builds the load path from here. */
+    char path[0x30];
+    int mode;                             /* 0x30: zero selects the second blitter */
+    unsigned char loaded;                 /* 0x34: cleared until the frame is loaded */
+    unsigned char unknown_35[3];
+    void* surface;                        /* 0x38 */
 } W8VideoFrame;                           /* 0x3c */
 
 #pragma pack(pop)
@@ -37,7 +43,7 @@ extern "C" {
 
 extern unsigned char g_video_objects_ready_650e20;
 extern W8VideoObjectSlot g_video_slots_6448c8[];
-extern W8VideoFrame g_video_frames_62c460[];
+extern W8VideoFrame g_video_frames_62c430[];
 
 extern void Function549090(int object, int frame);
 extern char Function405FF0(int object, void* surface, short y, int a, int b, int c, int d);
@@ -64,11 +70,11 @@ void Function548F90(int target, int object, int frame, short y,
        both are shorts and the original adds them as such. */
     slot = &g_video_slots_6448c8[object];
     row = slot->y_offset + y;
-    surface = g_video_frames_62c460[slot->first_frame + frame].surface;
+    surface = g_video_frames_62c430[slot->first_frame + frame].surface;
     if (!g_video_objects_ready_650e20) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
-    if (g_video_frames_62c460[slot->first_frame + frame].mode == 0) {
+    if (g_video_frames_62c430[slot->first_frame + frame].mode == 0) {
         ok = Function405FF0(object, surface, row, a5, a6, a7, a8);
     } else {
         ok = Function402ED0(object, surface, row, a5, a6, a7, 0);
