@@ -203,6 +203,20 @@ class AmbiguousBoundarySymbol(RuntimeError):
     """A reviewed row cannot be tied to one of the bodies claiming its name."""
 
 
+class BoundariesDisagree(RuntimeError):
+    """The verdict is a failure, but the full report is still the answer.
+
+    Raising a bare error here used to swallow the report: one regressed row
+    printed a sentence and discarded the states of the other three hundred,
+    which every investigation then had to regenerate by hand. The report rides
+    along so the CLI can emit it before failing.
+    """
+
+    def __init__(self, message: str, report: dict[str, Any]) -> None:
+        super().__init__(message)
+        self.report = report
+
+
 def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]:
     """Index every external `.text` function under `root`, keeping every claimant.
 
@@ -495,6 +509,11 @@ class BoundaryResult:
     state: str
     reviewed_size: int
     comdat_size: int | None
+    # The object whose body was measured. A stale object left under the build
+    # tree claims a symbol exactly like a fresh one and turns the report into a
+    # false regression or a false exact; naming the claimant makes the next
+    # such failure a one-look diagnosis instead of a build-directory wipe.
+    object: str | None = None
 
 
 def verify_boundaries(
@@ -557,6 +576,11 @@ def verify_boundaries(
                 state=state,
                 reviewed_size=size,
                 comdat_size=len(function.body) if function is not None else None,
+                object=(
+                    str(Path(function.source_object).relative_to(object_root))
+                    if function is not None and function.source_object
+                    else None
+                ),
             )
         )
 
@@ -577,5 +601,7 @@ def verify_boundaries(
             f"{result.state}"
             for result in failures
         )
-        raise RuntimeError(f"reviewed boundaries disagree with the built objects: {detail}")
+        raise BoundariesDisagree(
+            f"reviewed boundaries disagree with the built objects: {detail}", summary
+        )
     return summary

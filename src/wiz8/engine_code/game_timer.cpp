@@ -96,15 +96,16 @@ typedef char W8Timer005EC0A4_must_be_0x24[
    rebased while unpaused and frozen while paused, except under the raw flag. */
 __forceinline int W8Timer005EC0A4::Sample() const
 {
-    if (m_mode == 1) {
+    switch (m_mode) {
+    case 1:
         return (g_game_time_days * 86400000 + g_game_time_ms) * 10;
     }
     if ((m_flags & 1) == 0) {
-        if (g_shared_timer_paused == 0) {
-            return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
-                   g_shared_timer_pause_base;
+        if (g_shared_timer_paused != 0) {
+            return g_shared_timer_pause_time;
         }
-        return g_shared_timer_pause_time;
+        return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
+               g_shared_timer_pause_base;
     }
     return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
 }
@@ -137,20 +138,13 @@ W8Timer005EC0A4::W8Timer005EC0A4()
            which is what emits the second __aullshr. */
         timer->m_units_per_interval = 10000;
         {
-            double measured =
-                (double)(unsigned int)(*(unsigned __int64*)&timer->m_frequency_low >> 32) *
-                    4294967296.0 +
-                (double)(unsigned int)*(unsigned __int64*)&timer->m_frequency_low;
             double frequency;
 
-            if (measured == 0.0) {
-                frequency = 1.0;
+            if ((double)timer->m_frequency != 0.0) {
+                frequency = (double)timer->m_frequency;
             }
             else {
-                frequency =
-                    (double)(unsigned int)(*(unsigned __int64*)&timer->m_frequency_low >> 32) *
-                        4294967296.0 +
-                    (double)(unsigned int)*(unsigned __int64*)&timer->m_frequency_low;
+                frequency = 1.0;
             }
             timer->m_units_per_tick = 10000.0 / frequency;
         }

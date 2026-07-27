@@ -1,8 +1,7 @@
 #pragma once
 
 #include "srHeap.h"
-
-class srQuadWord;
+#include "srQuadWord.h"
 
 /* The eleven virtual slots are the exported ??_7srTimer@@6B@ in slot order,
    from evidence/snapshots/surrender-abi/vftable-slots.csv: the destructor in
@@ -34,17 +33,17 @@ public:
     virtual SR_DLL_IMPORT int reset(int argument_0, int argument_1, int argument_2);
     virtual SR_DLL_IMPORT unsigned long getMsTime(e_timerReadControl control);    /* 5 */
     virtual SR_DLL_IMPORT double getTime(e_timerReadControl control);             /* 6 */
-    virtual SR_DLL_IMPORT unsigned long getUTime(srQuadWord& out, e_timerReadControl control);
+    /* Slots 7/9 take srQuadWord&, slots 8/10 take only the control. MSVC lays
+       an adjacent virtual overload group out in reverse declaration order, so
+       the source declares each pair reversed to land them as exported. */
     virtual SR_DLL_IMPORT unsigned long getUTime(e_timerReadControl control);     /* 8 */
-    virtual SR_DLL_IMPORT unsigned long getRawTime(srQuadWord& out, e_timerReadControl control);
+    virtual SR_DLL_IMPORT unsigned long getUTime(srQuadWord& out, e_timerReadControl control);
     virtual SR_DLL_IMPORT unsigned long getRawTime(e_timerReadControl control);   /* 10 */
+    virtual SR_DLL_IMPORT unsigned long getRawTime(srQuadWord& out, e_timerReadControl control);
 
     unsigned char unknown_004_[0x804];
-    /* Ticks per second, measured by the constructor; one unsigned 64-bit
-       value, spelled as two words so the class keeps 4-byte alignment - an
-       __int64 member makes VC6 pad the extent past what the image allocates. */
-    unsigned int m_frequency_low;        /* 0x808 */
-    unsigned int m_frequency_high;       /* 0x80c */
+    /* Ticks per second, measured by the constructor. */
+    srQuadWord m_frequency;              /* 0x808 */
 };
 
 typedef char srTimer_must_be_0x810[(sizeof(srTimer) == 0x810) ? 1 : -1];

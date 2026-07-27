@@ -34,6 +34,10 @@ class CoffFunction:
     name: str
     body: bytes
     relocation_offsets: tuple[int, ...]
+    # The object that defined this body. Diagnostic, not identity: a stale
+    # object under the build tree claims symbols exactly like a fresh one, and
+    # naming the claimant is what makes that findable.
+    source_object: str = ""
 
     @property
     def masked_body(self) -> bytes:
@@ -128,6 +132,7 @@ def parse_coff_functions(path: Path) -> list[CoffFunction]:
                     name=_source_name(name),
                     body=body,
                     relocation_offsets=offsets,
+                    source_object=str(path),
                 )
             )
     if not functions:
