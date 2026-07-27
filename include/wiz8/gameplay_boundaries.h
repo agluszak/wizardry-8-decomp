@@ -10,6 +10,9 @@
 
 /* Shared recovered Wizardry interfaces used by matching translation units. */
 
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/game_state.h"
 #include "wiz8/gameplay_databases.h"
 
 #pragma pack(push, 1)
@@ -142,90 +145,9 @@ typedef struct W8MonsterSlot {
     unsigned char unknown_0e9[0x2f];
 } W8MonsterSlot;                         /* 0x118 */
 
-/* The game settings block that 0x0054B560 clears and fills with defaults. Every
-   address that function writes falls inside the 0xa4 bytes it clears first, so
-   this is one structure rather than a run of separate globals. Only offsets are
-   established - nothing here names a setting - so the fields keep positional
-   names. */
-typedef struct W8GameSettings {
-    unsigned char field_000;             /* 0x000 */
-    unsigned char field_001;             /* 0x001 */
-    unsigned char unknown_002[0x4];
-    int field_006;                       /* 0x006 */
-    unsigned char field_00a;             /* 0x00a */
-    unsigned char field_00b;             /* 0x00b */
-    unsigned char field_00c;             /* 0x00c */
-    int field_00d;                       /* 0x00d */
-    int field_011;                       /* 0x011 */
-    int field_015;                       /* 0x015 */
-    int field_019;                       /* 0x019 */
-    int field_01d;                       /* 0x01d */
-    int field_021;                       /* 0x021 */
-    int field_025;                       /* 0x025 */
-    unsigned char field_029;             /* 0x029 */
-    unsigned char field_02a;             /* 0x02a */
-    unsigned char field_02b;             /* 0x02b */
-    unsigned char field_02c;             /* 0x02c */
-    unsigned char unknown_02d[0x1];
-    unsigned char field_02e;             /* 0x02e */
-    unsigned char field_02f;             /* 0x02f */
-    unsigned char field_030;             /* 0x030 */
-    unsigned char field_031;             /* 0x031 */
-    unsigned char field_032;             /* 0x032 */
-    unsigned char field_033;             /* 0x033 */
-    unsigned char field_034;             /* 0x034 */
-    unsigned char field_035;             /* 0x035 */
-    unsigned char field_036;             /* 0x036 */
-    int field_037;                       /* 0x037 */
-    unsigned char field_03b;             /* 0x03b */
-    int field_03c;                       /* 0x03c */
-    unsigned char field_040;             /* 0x040 */
-    unsigned char field_041;             /* 0x041 */
-    unsigned char field_042;             /* 0x042 */
-    unsigned char field_043;             /* 0x043 */
-    unsigned char unknown_044[0x1];
-    unsigned char field_045;             /* 0x045 */
-    unsigned char unknown_046[0x1];
-    unsigned char field_047;             /* 0x047 */
-    unsigned char field_048;             /* 0x048 */
-    unsigned char field_049;             /* 0x049 */
-    unsigned char field_04a;             /* 0x04a */
-    unsigned char field_04b;             /* 0x04b */
-    unsigned char field_04c;             /* 0x04c */
-    unsigned char field_04d;             /* 0x04d */
-    unsigned char field_04e;             /* 0x04e */
-    unsigned char field_04f;             /* 0x04f */
-    unsigned char field_050;             /* 0x050 */
-    unsigned char unknown_051[0x53];
-} W8GameSettings;                        /* 0x0a4 */
 
-/* One party slot row. Only the three fields the reset touches are established,
-   plus the leading flag UtilityFunctions reads as slot-occupied. */
-typedef struct W8PartySlotRow {
-    unsigned char flag_00;               /* 0x000: slot occupied */
-    unsigned char unknown_001[0x74];
-    int unknown_075;                     /* 0x075 */
-    unsigned char unknown_079[0x57];
-    unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
-    unsigned char unknown_0d1[0x35];
-} W8PartySlotRow;                        /* 0x106 */
 
-/* The two heap buffers a status block owns. GetSaveGameLevel builds one of
-   these on the stack, reads through it and tears it down again; only the two
-   pointers this pair manages are established, not the block's full extent. */
-typedef struct W8StatusBuffers {
-    unsigned char unknown_00[4];
-    void* buffer_04;                     /* 0x04: 0xc310 bytes */
-    void* buffer_08;                     /* 0x08: 0x830 bytes */
-} W8StatusBuffers;
 
-/* The global status block. It opens with the same two heap buffers
-   AllocateStatusBuffers manages on a caller-supplied one, and 0x0054AF30 clears
-   the whole block - pointers included - before allocating fresh ones. */
-typedef struct W8GlobalStatus {
-    W8StatusBuffers buffers;             /* 0x0000 */
-    unsigned char unknown_000c[0x49b6];
-} W8GlobalStatus;                        /* 0x49c2 */
 
 
 
@@ -274,11 +196,6 @@ typedef struct W8MonsterGroup {
 
 /* 3D Code\PList.cpp. Distinct from W8GrowableVector: no vptr, elements at +0x00
    and count at +0x08, accessed through free functions. */
-typedef struct W8PList {
-    void** data;                          /* 0x00 */
-    int capacity;                         /* 0x04: PListInit allocates 10 */
-    int count;                            /* 0x08 */
-} W8PList;
 
 /* Member names and types at 0x08 and 0x48 come from the canonical assertion
    expressions "pWorld && pWorld->plsProps" (Engine Code\3d.cpp:344) and
@@ -506,34 +423,8 @@ extern int g_message_sequence;
 
 /* 3D Code\IList.cpp: the integer sibling of W8PList, same shape with int
    elements, which is why a failed lookup returns -1 rather than null. */
-typedef struct W8IList {
-    int* data;                            /* 0x00 */
-    int capacity;                         /* 0x04: IListInit allocates 10 */
-    int count;                            /* 0x08 */
-} W8IList;
 
-W8IList* IListCreate(void);
-unsigned char IListInit(W8IList* pls);
-int IListAdd(W8IList* pls, int value);
-unsigned char IListDestroy(W8IList* pls);
-int IListIndexOf(W8IList* pls, int value);
-unsigned char IListFreeData(W8IList* pls);
-void IListClear(W8IList* pls);
-int IListRemove(W8IList* pls, int value);
-int IListGetAt(W8IList* pls, int index);
 
-W8PList* PListCreate(void);
-unsigned char PListInit(W8PList* ppl);
-unsigned char PListDestroy(W8PList* ppl);
-unsigned char PListFreeData(W8PList* ppl);
-int PListAdd(W8PList* ppl, void* pEntry);
-int PListInsert(W8PList* ppl, int position, void* pEntry);
-void PListClear(W8PList* ppl);
-void* PListRemove(W8PList* ppl, void* pEntry);
-void* PListRemoveAt(W8PList* ppl, int position);
-unsigned int PListGetCount(W8PList* ppl);
-void* PListGetAt(W8PList* ppl, int index);
-int PListIndexOf(W8PList* ppl, void* pEntry);
 unsigned int GetMonsterGroupIndexByID(
     int caller_line,
     const char* caller_file,
