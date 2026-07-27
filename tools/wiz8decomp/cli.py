@@ -1017,6 +1017,14 @@ def report_translation_units() -> None:
     _run_action(lambda: translation_unit_report(_settings()))
 
 
+@report_app.command("class-candidates")
+def report_class_candidates() -> None:
+    """Generate reviewable class candidates from the polymorphism snapshots."""
+    from .reports.class_candidates import class_candidates_report
+
+    _run_action(lambda: class_candidates_report(_settings()))
+
+
 @report_app.command("status")
 def report_status() -> None:
     """Summarize canonical identities, ownership, matching, and source-unit coverage."""
