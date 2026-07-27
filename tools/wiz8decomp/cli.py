@@ -1062,6 +1062,19 @@ def report_data_segmentation(
     )
 
 
+@report_app.command("class-family")
+def report_class_family(
+    vtable: Annotated[str, typer.Argument(help="A vtable address in the family, e.g. 005ed5bc.")],
+) -> None:
+    """Show every vptr write around one class, so a family reads at a glance."""
+    from .reports.class_family import class_family_report
+
+    def action() -> str:
+        return class_family_report(_settings(), vtable)["rendered"]
+
+    _run_action(action)
+
+
 @report_app.command("class-candidates")
 def report_class_candidates() -> None:
     """Generate reviewable class candidates from the polymorphism snapshots."""

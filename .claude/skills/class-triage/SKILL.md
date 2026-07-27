@@ -48,6 +48,14 @@ comment is telling you what the function you are reading constructs.
   `candidate-class` comments are authoritative; the report's `constructor_or_destructor` column is
   a lead. Resolve any write site with
   `just ghidra query <program> function-of <site>,<site>`.
+- **`just wiz8 report class-family <vtable>`** when a destructor restores a table that is not the
+  one you expected. It prints every table in the family and, per writer function, which table goes
+  in at which object offset. A writer installing two tables at the *same* offset is a constructor
+  doing base-then-derived; a writer installing one at a non-zero offset and one at zero is a
+  destructor tearing down a subobject before its owner; and a destructor restoring a table that is
+  not its own class's means the derived vptr store was dropped as dead and what you are reading is
+  an **inlined base destructor**. Two bodies restoring the same table while touching different
+  members is that case, not a contradiction.
 - In interactive Ghidra, retype `this` to `Candidate_<vtable>` (category `/wiz8/candidates`);
   virtual calls then render as `(*vptr[n])()` because every censused slot is typed
   `virtual_function *`. The struct's vptr fields and size are the census hypothesis you are
@@ -148,6 +156,16 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
 - A candidate whose writers are all large multi-object builders (the `srMaterial` pattern in
   `imported-vftable-sites.csv`) has no dedicated constructor to port; recover it from the builder
   or from its destructor instead.
+- **No EH frame in the canonical is a hard constraint.** Under `/GX` VC6 adds an unwind frame to a
+  destructor the moment something that can throw runs before a subobject still needs destroying,
+  so a frameless canonical destructor means the original had no such window. If your port keeps
+  growing a frame the target lacks, you are modelling subobject destructors the original does not
+  have - port the class whose teardown has nothing to unwind first.
+- **A null check before `operator delete` means the source said `delete p`**, not
+  `::operator delete(p)`; the operator form does not null-check.
+- Identical slot counts and identical allocation hints do **not** make two classes twins. Twins
+  have identical *bodies* - check the write sites before planning to get two recoveries for one
+  review.
 - Promotion bumps pinned counts: `tests/unit/test_wiz8_source_model.py` asserts the reviewed
   vtable and slot totals, so `just test` will fail with an off-by-your-new-rows count until you
   update it. That failure is the model loader confirming your rows loaded, not a problem.

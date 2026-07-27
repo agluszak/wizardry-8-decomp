@@ -66,6 +66,29 @@ ctor`. Not every site allocates — one of the three here reused an existing obj
 fine. Beware that the pushed size belongs to the *most-derived* class under construction, so a
 hint attached to an abstract base is really some derived class's size.
 
+**When a destructor restores the wrong vtable, read the whole family.** This is the single most
+confusing thing the census can show you, and one command answers it:
+
+```sh
+just wiz8 report class-family <any-vtable-in-the-family>
+```
+
+It prints every table the family contains and, grouped by function, which table each writer
+installs at which object offset. Construction and destruction order read straight off it:
+
+- a function writing two tables **at the same offset** is a constructor installing a base and then
+  the derived table, so the second one is the class's own;
+- a function writing one table at a **non-zero** offset and another at zero is a destructor tearing
+  down a subobject before its owner;
+- a destructor that restores a table which is *not* its class's own is the giveaway that the
+  derived vptr store was dropped as dead and what survives is an **inlined base destructor**.
+
+That last case is what makes two bodies look contradictory. In the widget family, `0x004F3D90` and
+`0x004F6640` both restore `0x005ED5BC` while touching different members, which reads as impossible
+until the map shows `0x004F6640` also restoring a subobject at `+0x60` and the constructors
+installing `0x005ED604` at zero: one is the base's own destructor, the other is a derived
+destructor with the base's inlined into it.
+
 **The slot boundary.** The census ends a vtable where a code reference points into it. Verify by
 reading the raw table and checking xrefs to the address one slot past the end:
 
@@ -192,6 +215,18 @@ build tweak — it recovers that the original constructor used an initializer li
 The general lesson: when a body is the right size and instruction count but one instruction sits in
 the wrong place, stop looking for a different algorithm and start looking for a different *source
 shape* expressing the same algorithm.
+
+**A missing EH frame is a constraint, not a detail.** Under `/GX` VC6 emits an unwind frame in a
+destructor as soon as something that can throw runs *before* a subobject still needs destroying.
+So a canonical destructor with no frame at all says the original had no such window: either the
+body is empty, or there are no subobject destructors to unwind. Three attempts at the widget
+derived destructor kept growing an EH frame my target does not have, because every arrangement put
+a `delete` ahead of an inlined base destructor. The class that did port - the base itself - has a
+body with nothing to unwind, and matched at 52 of 52 bytes first try.
+
+Related: a **null check before `operator delete`** means the source wrote `delete p`, not
+`::operator delete(p)`. The operator form does not null-check, and that one instruction is enough
+to tell them apart.
 
 **But know when to stop.** The shared dialog base's constructor is the counter-example: the same
 six-before/four-after split does move its vtable store to the canonical position, and it costs more

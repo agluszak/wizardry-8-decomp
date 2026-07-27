@@ -266,6 +266,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/dialog_code/DialogBase005D25B0.cpp
         src/wiz8/dialog_code/StatInfoDialogs.cpp
         src/wiz8/engine_code/Object0043A910.cpp
+        src/wiz8/local_code/WidgetBase005ED5BC.cpp
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
         src/wiz8/local_code/chunk.cpp

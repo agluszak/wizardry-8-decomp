@@ -173,3 +173,6 @@ wiz8,W8Object0043A910,0x24,0x4,scale_24,float,,exact,classes:wiz8:W8Object0043A9
 wiz8,W8Object0043A910,0x28,0x4,value_28,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
 wiz8,W8Object0043A910,0x2c,0x4,value_2c,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
 wiz8,W8Object0043A910,0x30,0x4,value_30,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
+wiz8,W8WidgetBase005ED5BC,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8WidgetBase005ED5BC,primary vtable W8WidgetBase005ED5BC.primary
+wiz8,W8WidgetBase005ED5BC,0x5,0x1,flag_5,uint8,,exact,classes:wiz8:W8WidgetBase005ED5BC,cleared by the folded destructor
+wiz8,W8WidgetBase005ED5BC,0x18,0x4,region_18,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,region registration released through 0x004f23d0 on teardown unless it holds the -1 sentinel
