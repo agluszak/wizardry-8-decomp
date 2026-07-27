@@ -14,9 +14,9 @@
  * the two together give the field widths without any appeal to a caller.
  *
  * The pair of shorts at +0x08 and the pair at +0x0c are set to 0x8001 and
- * 0x7fff, which is -32767 and 32767: a rectangle opened as wide as it goes,
- * not an empty bounding box, so they are read as a clip rectangle rather than
- * as accumulating extents.
+ * 0x7fff, which is -32767 and 32767. 0x0040B900 hit-tests the cursor against
+ * them as left, top, right, bottom, so they are the node's rectangle and the
+ * template is a catch-all that every position falls inside.
  */
 
 extern "C" {
@@ -36,18 +36,20 @@ typedef struct W8DisplayNode {
         unsigned int all;
         unsigned char low;
     } flags;
-    short clip_left;                /* 0x08 */
-    short clip_top;                 /* 0x0a */
-    short clip_right;               /* 0x0c */
-    short clip_bottom;              /* 0x0e */
-    short word_10;
-    short word_12;
-    short word_14;
-    short word_16;
-    short word_18;
-    short word_1a;
-    int dword_1c;
-    int dword_20;
+    short left;                     /* 0x08: 0x0040B900 hit-tests the cursor */
+    short top;                      /* 0x0a */
+    short right;                    /* 0x0c */
+    short bottom;                   /* 0x0e */
+    short cursor_x;                 /* 0x10: cursor position captured on a hit */
+    short cursor_y;                 /* 0x12 */
+    short offset_x;                 /* 0x14: cursor_x - left */
+    short offset_y;                 /* 0x16: cursor_y - top */
+    short word_18;                  /* 0x18: taken from the global at 0x00650E84 */
+    short cursor_shape;             /* 0x1a: passed to 0x005A1140; -2 means none */
+    /* 0x1c and 0x20: two callbacks, both invoked as (node, code). 0x0040B900
+       sends state changes to the first and input events to the second. */
+    void (*on_state)(struct W8DisplayNode*, int);
+    void (*on_input)(struct W8DisplayNode*, unsigned int);
     int dword_24;
     int dword_28;
     int dword_2c;
@@ -290,8 +292,8 @@ int Function40B290(void)
         }
     }
 
-    g_display_template_5ff7d0.clip_left = (short)0x8001;
-    g_display_template_5ff7d0.clip_top = (short)0x8001;
+    g_display_template_5ff7d0.left = (short)0x8001;
+    g_display_template_5ff7d0.top = (short)0x8001;
     g_dword_650e7c = 0;
     g_dword_650e78 = 0;
     g_word_650e80 = 0;
@@ -306,20 +308,20 @@ int Function40B290(void)
     g_display_template_5ff7d0.id = 0;
     g_display_template_5ff7d0.sort_key = -1;
     g_display_template_5ff7d0.flags.all = 0x40;
-    g_display_template_5ff7d0.clip_right = 0x7fff;
-    g_display_template_5ff7d0.clip_bottom = 0x7fff;
-    g_display_template_5ff7d0.word_10 = 0;
-    g_display_template_5ff7d0.word_12 = 0;
-    g_display_template_5ff7d0.word_14 = 0;
-    g_display_template_5ff7d0.word_16 = 0;
+    g_display_template_5ff7d0.right = 0x7fff;
+    g_display_template_5ff7d0.bottom = 0x7fff;
+    g_display_template_5ff7d0.cursor_x = 0;
+    g_display_template_5ff7d0.cursor_y = 0;
+    g_display_template_5ff7d0.offset_x = 0;
+    g_display_template_5ff7d0.offset_y = 0;
     g_display_template_5ff7d0.word_18 = 0;
-    g_display_template_5ff7d0.word_1a = 0;
+    g_display_template_5ff7d0.cursor_shape = 0;
     g_display_template_5ff7d0.dword_24 = 0;
     g_display_template_5ff7d0.dword_28 = 0;
     g_display_template_5ff7d0.dword_2c = 0;
     g_display_template_5ff7d0.dword_30 = 0;
-    g_display_template_5ff7d0.dword_1c = 0;
-    g_display_template_5ff7d0.dword_20 = 0;
+    g_display_template_5ff7d0.on_state = 0;
+    g_display_template_5ff7d0.on_input = 0;
     g_display_template_5ff7d0.word_34 = 0;
     g_display_template_5ff7d0.buffer = 0;
     g_display_template_5ff7d0.dword_3c = -1;
