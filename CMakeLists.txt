@@ -273,6 +273,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/GrCycle.cpp
         src/wiz8/fact_state.cpp
         src/wiz8/local_code/GameplayDatabase.cpp
+        src/wiz8/dirty_tiles.cpp
         src/wiz8/render_options.cpp
         src/wiz8/unattributed_helpers.cpp
         src/wiz8/frame_tick.cpp
