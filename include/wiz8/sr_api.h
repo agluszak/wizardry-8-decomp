@@ -4,15 +4,21 @@
 /* Wizardry's recovered call surface for the SurRender DLL. */
 
 /*
- * Proven source-side call surface. The DLL export is variadic and spells the
- * line as long, but every recovered call uses four arguments and VC6 emits the
- * canonical bodies only with this fixed-arity int declaration. Both are the
- * same 32-bit cdecl call ABI; CMake aliases the import symbol, not the body.
+ * Fixed-arity on purpose, and the arity is load-bearing evidence. The DLL
+ * export is variadic (?srAssertFail@@YAXPBD0J0ZZ), but VC6 SP5 refuses to
+ * defer a pending inner-call stack cleanup across a call it believes is
+ * variadic, and the canonical bodies that pass a String(...) result as the
+ * message (CharacterPointerToPartySlot, RPCPtrToPCSlot, MonsterInfoFromID)
+ * fold that cleanup across the assert call. The original translation units
+ * therefore saw a fixed-arity declaration, and their import library mapped
+ * its mangling onto the variadic export - which is what sr.def models. The
+ * line is long because the true ABI spells it long; int folds identically,
+ * so only the arity is proven, not the width.
  */
 __declspec(dllimport) void __cdecl srAssertFail(
     const char* expression,
     const char* source_path,
-    int line,
+    long line,
     const char* message);
 
 #endif

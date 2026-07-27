@@ -1,14 +1,17 @@
 LIBRARY SR
 
 ; The real SR.DLL export is variadic with a long line number. Recovered source
-; deliberately declares a fixed-arity int form, because VC6 only emits the
-; canonical bodies that way; both are the same 32-bit cdecl call ABI. The
-; aliases below make that declaration resolve against the real export instead
-; of failing to link, and cover the C form used by the .c translation units.
+; deliberately declares a fixed-arity long form, because VC6 SP5 will not
+; defer a pending stack cleanup across a call to a variadic function and the
+; canonical bodies nesting a String(...) argument do exactly that fold - so
+; the original units saw a fixed-arity declaration too, and their import
+; library carried this same mapping onto the variadic export. The one-name
+; residual is that our image imports the fixed-arity mangling while the
+; original imports the variadic one; only a hand-built long-form import
+; object could close that, not a .def.
 EXPORTS
     ?srAssertFail@@YAXPBD0J0ZZ
-    ?srAssertFail@@YAXPBD0H0@Z = ?srAssertFail@@YAXPBD0J0ZZ
-    srAssertFail = ?srAssertFail@@YAXPBD0J0ZZ
+    ?srAssertFail@@YAXPBD0J0@Z = ?srAssertFail@@YAXPBD0J0ZZ
 
 ; Renderer entry points the bring-up path calls. Both names are taken verbatim
 ; from Wiz8.exe's import table, so the declarations in recovered source must

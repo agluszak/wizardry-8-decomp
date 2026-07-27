@@ -44,11 +44,20 @@ spine:
 * **zlib.** The canonical executable statically links pristine zlib 1.0.4, so `inflateInit_`,
   `inflate` and `inflateEnd` were unresolved. `WIZ8_ZLIB_1_0_4` now builds the pinned source and the
   bring-up links it, instead of stubbing library code.
-* **`srAssertFail`.** Recovered source deliberately declares a fixed-arity `int` form because VC6
-  only emits the canonical bodies that way, but the real export is
-  `?srAssertFail@@YAXPBD0J0ZZ` — variadic, `long` line. The declaration therefore mangled to a symbol
-  the import library did not contain, in both a C++ and a C form. `src/wiz8/imports/sr.def` now
-  aliases both onto the real export, so it links without touching a single recovered body.
+* **`srAssertFail`.** The real export is `?srAssertFail@@YAXPBD0J0ZZ` — variadic, `long` line —
+  but the recovered declaration is deliberately **fixed-arity**, and that arity is itself recovered
+  evidence. VC6 SP5 will not defer a pending inner-call stack cleanup across a call it believes is
+  variadic, and the canonical bodies that pass a `String(...)` result as the assert message
+  (`CharacterPointerToPartySlot`, `RPCPtrToPCSlot`, `MonsterInfoFromID`) fold exactly that cleanup
+  across the assert call — under a variadic declaration those three bodies stop matching. So the
+  original translation units saw a fixed-arity declaration while the original image imports the
+  variadic name, which only an aliasing import library can produce; `src/wiz8/imports/sr.def`
+  models that with one alias, `?srAssertFail@@YAXPBD0J0@Z = ?srAssertFail@@YAXPBD0J0ZZ`. The line
+  is `long` to match the true ABI (only the arity is codegen-proven, not the width), and the dead
+  undecorated C alias is gone now that every calling unit is C++. Known residual: our image
+  imports the fixed-arity mangling where the original imports the variadic one; a `.def` cannot
+  separate an import's symbol name from its name-table string, so closing that would need a
+  hand-built long-form import object.
 
 `MSS32` (Miles) and `BINKW32` (Bink) are imported by the canonical executable but no recovered source
 references them yet, so they are deliberately not linked until something needs them.
