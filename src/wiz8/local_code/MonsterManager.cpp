@@ -11,13 +11,13 @@ int Function4A87A0(const char* name);
 unsigned char Function47B610(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
-void Function4C5AA0(W8Monster* monster, int value);
+void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 void Function4C5B10(W8Monster* monster, int value);
 int MonsterQuery(W8Monster* monster, int query);
 void Function4C6140(W8Monster* monster);
-void Function4C6180(W8Monster* monster, int value);
-void Function4C61A0(W8Monster* monster, int value);
-void Function4C61C0(W8Monster* monster, int value);
+void MonsterSetCycle(W8Monster* monster, int cycle);
+void MonsterSetBehaviour(W8Monster* monster, int behavior);
+void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 unsigned char RemoveMonster(
     unsigned int monster_list_index,
     unsigned char destroy_monster);
@@ -613,7 +613,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
             if (cycle_value == 0x14) {
                 return;
             }
-            Function4C5AA0(monster, -1);
+            MonsterSetPendingCycle(monster, -1);
         }
         MonsterSetAnimating(monster, 0);
     }
@@ -631,14 +631,14 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
 
     PListAdd(g_monster_list, monster_info);
     if (MonsterIsCycleSupported(monster_info->monster, 0) != 0) {
-        Function4C6180(monster_info->monster, 0);
-        Function4C61A0(monster_info->monster, 1);
+        MonsterSetCycle(monster_info->monster, 0);
+        MonsterSetBehaviour(monster_info->monster, 1);
     }
     else {
-        Function4C6180(monster_info->monster, 1);
-        Function4C61A0(monster_info->monster, 3);
+        MonsterSetCycle(monster_info->monster, 1);
+        MonsterSetBehaviour(monster_info->monster, 3);
     }
-    Function4C61C0(monster_info->monster, 0);
+    MonsterSetSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
     monster_info->monster->member_18.unknown_88 = 1;
     monster_info->monster->m_cycles[22].unknown_09 = 0;
