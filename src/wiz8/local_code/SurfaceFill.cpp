@@ -22,7 +22,11 @@ typedef struct W8ManagedSurface {
 } W8ManagedSurface;
 
 typedef struct W8SurfaceSlot {
-    unsigned char unknown_00[8];
+    unsigned char unknown_00[2];
+    /* 0x02: zero-extended into the effects block alongside the caller's value.
+       Which of the two the blit treats as the fill is not settled here. */
+    unsigned short word_02;
+    unsigned char unknown_04[4];
     IDirectDrawSurface2* surface;         /* 0x08: the blit target */
 } W8SurfaceSlot;
 
@@ -85,7 +89,7 @@ found:
                     effects.dwDDFX = 0;
                     effects.dwROP = 0;
                     effects.dwDDROP = 0;
-                    effects.dwFillColor = colour & 0xffff;
+                                    effects.dwFillColor = colour & 0xffff;
                     area.left = top;
                     area.top = left;
                     area.right = bottom;
