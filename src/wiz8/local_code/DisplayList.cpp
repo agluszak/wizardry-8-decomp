@@ -54,11 +54,11 @@ typedef struct W8DisplayNode {
     int dword_3c;                   /* 0x3c: -1 in the template */
     int dword_40;                   /* 0x40: never written by the reset */
     struct W8DisplayNode* next;     /* 0x44 */
-    int dword_48;
+    struct W8DisplayNode* prev;     /* 0x48: 0x0040B830 unlinks through both directions */
 } W8DisplayNode;                    /* 0x4c */
 
 extern void Function40B720(W8DisplayNode* node);
-extern void Function40B830(W8DisplayNode* node);
+
 extern void HideRegionHelp(void);
 
 /* The buffer is not released with a direct call to free: the body loads a
@@ -83,7 +83,66 @@ extern short g_word_650e86;
 extern unsigned char g_byte_650e88;
 extern unsigned char g_byte_650e89;
 extern unsigned char g_byte_650e8a;
-extern int g_dword_650e8c;
+extern W8DisplayNode* g_display_ptr_650e8c;
+
+/*
+ * Unlinks a node from the display list. The search that guards it compares
+ * identifiers rather than pointers, so a node is unlinked when one carrying
+ * its id is on the list, not only when that exact node is.
+ */
+// FUNCTION: WIZ8 0x0040B830
+void Function40B830(W8DisplayNode* node)
+{
+    W8DisplayNode* scan;
+    int found;
+
+    if (g_display_head_650e94 == 0) {
+        return;
+    }
+    found = 0;
+    scan = g_display_head_650e94;
+    while (scan != 0 && !found) {
+        if (scan->id == node->id) {
+            found = 1;
+        }
+        scan = scan->next;
+    }
+    if (!found) {
+        return;
+    }
+
+    if (g_display_head_650e94 == node) {
+        g_display_head_650e94 = node->next;
+        if (g_display_head_650e94 != 0) {
+            g_display_head_650e94->prev = 0;
+        }
+        node->prev = 0;
+        node->next = 0;
+    } else {
+        if (node->prev != 0) {
+            node->prev->next = node->next;
+        }
+        if (node->next != 0) {
+            node->next->prev = node->prev;
+        }
+        node->next = 0;
+        node->prev = 0;
+    }
+
+    if (g_byte_650e8a != 0 && g_display_ptr_650e8c == node) {
+        g_byte_650e8a = 0;
+        g_display_ptr_650e8c = 0;
+    }
+    if (g_display_head_650e94 == &g_display_template_5ff7d0) {
+        g_dword_650e78 = 0;
+        g_dword_650e7c = 1;
+        return;
+    }
+    if (g_display_head_650e94 == 0) {
+        g_dword_650e7c = 0;
+        g_dword_650e78 = 0;
+    }
+}
 
 // FUNCTION: WIZ8 0x0040B290
 int Function40B290(void)
@@ -136,7 +195,7 @@ int Function40B290(void)
     g_byte_650e88 = 1;
     g_byte_650e89 = 0;
     g_byte_650e8a = 0;
-    g_dword_650e8c = 0;
+    g_display_ptr_650e8c = 0;
     g_display_template_5ff7d0.id = 0;
     g_display_template_5ff7d0.byte_02 = 0xff;
     g_display_template_5ff7d0.flags.all = 0x40;
@@ -158,7 +217,7 @@ int Function40B290(void)
     g_display_template_5ff7d0.buffer = 0;
     g_display_template_5ff7d0.dword_3c = -1;
     g_display_template_5ff7d0.next = 0;
-    g_display_template_5ff7d0.dword_48 = 0;
+    g_display_template_5ff7d0.prev = 0;
     Function40B720(&g_display_template_5ff7d0);
     g_byte_650e89 = 1;
     return 1;
