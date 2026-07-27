@@ -5,61 +5,75 @@ LIBRARY MSS32
 ; nothing is invented. The exports are __stdcall and carry their argument-byte
 ; suffix; recovered source must declare them __stdcall for the decorated name
 ; to match. Only an import library is produced - no Miles code is modelled.
+;
+; The entries are written WITHOUT the leading underscore the import table shows,
+; because LIB decorates an entry name before it becomes the public symbol. An
+; entry of _AIL_close_3D_provider@4 produces __AIL_close_3D_provider@4, which no
+; object references, and /FORCE:UNRESOLVED then absorbs all 56 silently - the
+; state this file was in until the unresolved-symbol report exposed it. The
+; C++ names in sr.def escape this only because they begin with '?'.
+;
+; The cost is one character in the import name: this image imports
+; AIL_close_3D_provider@4 where the original imports _AIL_close_3D_provider@4.
+; LIB derives the import name from the same entry it decorates, so no .def form
+; separates the two - an alias entry decorates both halves alike. Closing that
+; would take a hand-built import object, as sr.def already records for its own
+; one-name residual.
 
 EXPORTS
-    _AIL_3D_provider_attribute@12
-    _AIL_3D_sample_playback_rate@4
-    _AIL_3D_sample_status@4
-    _AIL_3D_sample_volume@4
-    _AIL_allocate_3D_sample_handle@4
-    _AIL_allocate_sample_handle@4
-    _AIL_close_3D_provider@4
-    _AIL_close_digital_driver@4
-    _AIL_close_stream@4
-    _AIL_digital_configuration@16
-    _AIL_enumerate_3D_providers@12
-    _AIL_init_sample@
-    _AIL_last_error@0
-    _AIL_mem_alloc_lock@4
-    _AIL_mem_free_lock@4
-    _AIL_open_3D_listener@4
-    _AIL_open_3D_provider@4
-    _AIL_open_digital_driver@16
-    _AIL_open_stream@12
-    _AIL_release_3D_sample_handle@4
-    _AIL_release_sample_handle@4
-    _AIL_sample_ms_position@12
-    _AIL_sample_playback_rate@4
-    _AIL_sample_status@4
-    _AIL_sample_volume@4
-    _AIL_service_stream@8
-    _AIL_set_3D_orientation@28
-    _AIL_set_3D_position@16
-    _AIL_set_3D_provider_preference@12
-    _AIL_set_3D_sample_distances@12
-    _AIL_set_3D_sample_file@8
-    _AIL_set_3D_sample_loop_count@8
-    _AIL_set_3D_sample_playback_rate@8
-    _AIL_set_3D_sample_volume@8
-    _AIL_set_3D_velocity_vector@16
-    _AIL_set_named_sample_file@20
-    _AIL_set_preference@8
-    _AIL_set_sample_loop_count@8
-    _AIL_set_sample_pan@8
-    _AIL_set_sample_playback_rate@8
-    _AIL_set_sample_volume@8
-    _AIL_set_stream_loop_count@8
-    _AIL_set_stream_pan@8
-    _AIL_set_stream_playback_rate@8
-    _AIL_set_stream_volume@8
-    _AIL_shutdown@0
-    _AIL_start_3D_sample@4
-    _AIL_start_sample@4
-    _AIL_start_stream@4
-    _AIL_startup@0
-    _AIL_stop_3D_sample@4
-    _AIL_stop_sample@4
-    _AIL_stream_ms_position@12
-    _AIL_stream_playback_rate@4
-    _AIL_stream_status@4
-    _AIL_stream_volume@4
+    AIL_3D_provider_attribute@12
+    AIL_3D_sample_playback_rate@4
+    AIL_3D_sample_status@4
+    AIL_3D_sample_volume@4
+    AIL_allocate_3D_sample_handle@4
+    AIL_allocate_sample_handle@4
+    AIL_close_3D_provider@4
+    AIL_close_digital_driver@4
+    AIL_close_stream@4
+    AIL_digital_configuration@16
+    AIL_enumerate_3D_providers@12
+    AIL_init_sample@
+    AIL_last_error@0
+    AIL_mem_alloc_lock@4
+    AIL_mem_free_lock@4
+    AIL_open_3D_listener@4
+    AIL_open_3D_provider@4
+    AIL_open_digital_driver@16
+    AIL_open_stream@12
+    AIL_release_3D_sample_handle@4
+    AIL_release_sample_handle@4
+    AIL_sample_ms_position@12
+    AIL_sample_playback_rate@4
+    AIL_sample_status@4
+    AIL_sample_volume@4
+    AIL_service_stream@8
+    AIL_set_3D_orientation@28
+    AIL_set_3D_position@16
+    AIL_set_3D_provider_preference@12
+    AIL_set_3D_sample_distances@12
+    AIL_set_3D_sample_file@8
+    AIL_set_3D_sample_loop_count@8
+    AIL_set_3D_sample_playback_rate@8
+    AIL_set_3D_sample_volume@8
+    AIL_set_3D_velocity_vector@16
+    AIL_set_named_sample_file@20
+    AIL_set_preference@8
+    AIL_set_sample_loop_count@8
+    AIL_set_sample_pan@8
+    AIL_set_sample_playback_rate@8
+    AIL_set_sample_volume@8
+    AIL_set_stream_loop_count@8
+    AIL_set_stream_pan@8
+    AIL_set_stream_playback_rate@8
+    AIL_set_stream_volume@8
+    AIL_shutdown@0
+    AIL_start_3D_sample@4
+    AIL_start_sample@4
+    AIL_start_stream@4
+    AIL_startup@0
+    AIL_stop_3D_sample@4
+    AIL_stop_sample@4
+    AIL_stream_ms_position@12
+    AIL_stream_playback_rate@4
+    AIL_stream_status@4
+    AIL_stream_volume@4
