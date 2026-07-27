@@ -94,8 +94,8 @@ typedef struct W8FactDatabaseRecord {
 
 typedef struct W8ItemInstance {
     int item_id;
-    unsigned char quantity;
-    unsigned char charges;
+    unsigned char stack_count;           /* 0x04: quantity-kind 1 */
+    unsigned char uses_or_charges;       /* 0x05: quantity-kinds 2 through 4 */
     unsigned char identified;
     unsigned char unknown_07[4];
     unsigned char flag_0b;
@@ -243,14 +243,15 @@ typedef struct W8GlobalStatus {
     unsigned char unknown_000c[0x49b6];
 } W8GlobalStatus;                        /* 0x49c2 */
 
-/* One Data\Databases\NPC.DBS record. Only the stride and the sub-list pointer
-   the loader fills and the destructor tears down are established. */
+/* One Data\Databases\NPC.DBS record. Only the loader-touched fields are
+   modelled here; config/types/wiz8/npc_database.h carries the full field
+   model under the same name, and the spellings are kept convergent. */
 typedef struct W8NpcDatabaseRecord {
-    unsigned short count_00;             /* 0x000: sub-list loads only when this exceeds 1 */
+    unsigned short version;              /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
     unsigned char unknown_002[0x9b];
     unsigned char flag_9d;               /* 0x09d: and only when this is clear */
     unsigned char unknown_09e[0x22c];
-    void* sub_list;                      /* 0x2ca */
+    void* fact_rules_runtime;            /* 0x2ca: runtime-owned rule PList */
     unsigned char unknown_2ce[0x3b];
 } W8NpcDatabaseRecord;                   /* 0x309 */
 

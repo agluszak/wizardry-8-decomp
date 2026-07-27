@@ -21,7 +21,7 @@ typedef struct W8NpcDatabaseRecord {
     uint32_t record_id;                 /* 0x058: equals the zero-based index */
     uint8_t unknown_05c[0x18];          /* 0x05c */
     char entity_aliases[0x29];          /* 0x074: packed narrow aliases */
-    uint8_t unknown_09d;                /* 0x09d: zero enables the v2 rule tail */
+    uint8_t flag_9d;                    /* 0x09d: zero enables the v2 rule tail */
     char script_aliases[0x26];          /* 0x09e: packed narrow aliases */
     uint8_t unknown_0c4[0x206];         /* 0x0c4 */
     uint32_t fact_rules_runtime;        /* 0x2ca: runtime-owned rule container */

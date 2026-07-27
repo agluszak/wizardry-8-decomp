@@ -60,7 +60,7 @@ extern void Function56C520(void);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
 extern void Function4E8290(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
-extern void Function55ADA0(void* sub_list);
+extern void Function55ADA0(void* fact_rules_runtime);
 extern void CloseVirtualFile(int handle);
 extern unsigned char FileSeek(int handle, int offset, int origin);
 
@@ -264,15 +264,15 @@ unsigned char InitializeNpcDatabase(void)
             CloseVirtualFile(handle);
             return 0;
         }
-        g_npc_records[index].sub_list = 0;
-        if (g_npc_records[index].flag_9d == 0 && g_npc_records[index].count_00 > 1) {
+        g_npc_records[index].fact_rules_runtime = 0;
+        if (g_npc_records[index].flag_9d == 0 && g_npc_records[index].version > 1) {
             entry_count = 0;
             if (!ReadVirtualFile(handle, &entry_count, 4, &transferred)) {
                 CloseVirtualFile(handle);
                 return 0;
             }
             if (entry_count > 0) {
-                g_npc_records[index].sub_list = Function5E22C0();
+                g_npc_records[index].fact_rules_runtime = Function5E22C0();
                 for (entry = 0; entry < entry_count; ++entry) {
                     element = operator_new_import_thunk(6);
                     if (!element) {
@@ -284,7 +284,7 @@ unsigned char InitializeNpcDatabase(void)
                         CloseVirtualFile(handle);
                         return 0;
                     }
-                    Function5E2530(g_npc_records[index].sub_list, entry, element);
+                    Function5E2530(g_npc_records[index].fact_rules_runtime, entry, element);
                 }
             }
         }
@@ -300,9 +300,9 @@ void DestroyNpcDatabase(void)
 
     if (g_npc_records) {
         for (index = 0; index < g_npc_record_count; ++index) {
-            if (g_npc_records[index].sub_list) {
-                Function55ADA0(g_npc_records[index].sub_list);
-                g_npc_records[index].sub_list = 0;
+            if (g_npc_records[index].fact_rules_runtime) {
+                Function55ADA0(g_npc_records[index].fact_rules_runtime);
+                g_npc_records[index].fact_rules_runtime = 0;
             }
         }
         free(g_npc_records);
@@ -636,7 +636,7 @@ void Function54B100(void)
     do {
         if (*id != 0xffffffff) {
             ReplaceOrCreateItem(&item, *id, 1, 1, 1);
-            item.quantity = 1;
+            item.stack_count = 1;
             AddItemToParty(&item, 0, 0);
         }
         ++id;
