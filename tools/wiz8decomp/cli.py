@@ -1017,6 +1017,14 @@ def report_translation_units() -> None:
     _run_action(lambda: translation_unit_report(_settings()))
 
 
+@report_app.command("data-segmentation")
+def report_data_segmentation() -> None:
+    """Fit the .text unit order to the data sections and attribute globals."""
+    from .reports.data_segmentation import data_segmentation_report
+
+    _run_action(lambda: data_segmentation_report(_settings()))
+
+
 @report_app.command("class-candidates")
 def report_class_candidates() -> None:
     """Generate reviewable class candidates from the polymorphism snapshots."""
