@@ -41,6 +41,26 @@ public:
     T w;
 };
 
+/* Specialised for the same reason srVector3T<float> is: the image carries an
+   inline body that converts scalar doubles into this type's floats, and an
+   inline is emitted into whatever calls it rather than exported from SR.DLL,
+   so it has to exist here for the game's own units to link and match. The
+   layout is unchanged - four adjacent floats - and only the body is added. */
+template <>
+class srVector4T<float> {
+public:
+    float x;
+    float y;
+    float z;
+    float w;
+
+    /* Exact inline body; the original member name is not exported. */
+    srVector4T<float>* method_004817E0(double source_0, double source_1,
+                                       double source_2, double source_3);
+    srVector4T<float>* method_004D6B30(float source_0, float source_1,
+                                       float source_2, float source_3);
+};
+
 template <class T>
 class srMatrix3T {
 public:
