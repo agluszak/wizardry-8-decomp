@@ -136,6 +136,13 @@ def test_ptr_vector_instantiations_are_inventoried() -> None:
     verdicts = collections.Counter(row["single_virtual"] for row in rows)
     assert verdicts == {"yes": 35, "no": 30, "adjacent-vtable": 10}
 
+    # Template COMDATs land between translation-unit anchor spans, so the
+    # owning unit is bounded rather than proven: every destructor carries its
+    # neighbouring units, and source_unit stays empty until an instantiation's
+    # body falls inside a unit's own anchor interval.
+    assert all(row["after_unit"] and row["before_unit"] for row in rows)
+    assert not any(row["source_unit"] for row in rows)
+
     # One template replaced two separately-named structs. Its virtual destructor
     # accounts for the leading vptr without spelling a fake data member.
     header = (repository / "include/wiz8/gameplay_boundaries.h").read_text(encoding="utf-8")
