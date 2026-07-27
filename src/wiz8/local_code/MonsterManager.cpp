@@ -428,7 +428,7 @@ int Function4E5B50(unsigned int monster_species)
 }
 
 // FUNCTION: WIZ8 0x004E5C00
-void Function4E5C00(unsigned char value)
+void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
 {
     unsigned int index;
 
@@ -439,7 +439,7 @@ void Function4E5C00(unsigned char value)
             static_cast<unsigned int>(monster_info->hp_current) > 0 &&
             monster_info->value_9f == 0 &&
             monster_info->value_2da != 0) {
-            if (value == 0) {
+            if (forced_cleanup == 0) {
                 Function58AB60(
                     9,
                     0,
@@ -447,7 +447,7 @@ void Function4E5C00(unsigned char value)
                     Function4E5150(monster_info, 0, 0));
             }
             Function5248D0(monster_info);
-            if (value == 0) {
+            if (forced_cleanup == 0) {
                 monster_info->flag_253 = 1;
                 if (monster_info->monster->IsDying() == 0) {
                     Function4E4DB0(monster_info, 0x15, 1);
@@ -547,7 +547,7 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
 }
 
 // FUNCTION: WIZ8 0x004E5EA0
-void Function4E5EA0(void)
+void ResetLivingMonstersAfterCombat(void)
 {
     unsigned int index;
 
