@@ -1,4 +1,4 @@
-program,funcinfo,magic,handler_thunk,frame_setup,function_start,max_state,try_block_count,unwind_signature
+program,funcinfo,magic,handler_thunk,frame_setup,eh_setup_start,max_state,try_block_count,unwind_signature
 wiz8--demo--wiz8--8acda50afe39,005fbee8,19930520,005f05c3,0041cc72,0041cc70,2,0,2|0|-1:object:-44|0:pointer:-48
 wiz8--demo--wiz8--8acda50afe39,005fbf18,19930520,005f05db,0041f542,0041f540,1,0,1|0|-1:pointer:-16
 wiz8--demo--wiz8--8acda50afe39,005fbf40,19930520,005f05fb,0041f5b2,0041f5b0,1,0,1|0|-1:pointer:-16

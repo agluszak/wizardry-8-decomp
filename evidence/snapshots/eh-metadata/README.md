@@ -13,11 +13,13 @@ uv run wiz8 eh-metadata                  # verify against the snapshot
 uv run wiz8 eh-metadata --update-snapshot
 ```
 
-`functions.csv` has one row per `FuncInfo` record. `function_start` is exact rather than
-inferred: the record reaches exactly one handler thunk, the thunk is pushed by exactly one frame
-setup, and that setup's `push -1` is the function's first instruction. `unwind_signature` excludes
-every address, so the same source compiled into another build hashes the same and the column can be
-joined across programs.
+`functions.csv` has one row per `FuncInfo` record. `frame_setup` is the exact instruction that
+pushes the record's handler thunk, and `eh_setup_start` is the preceding `push -1`. Both lie inside
+the owning function, but neither is claimed to be its entry point: VC6 may install the EH frame
+after an FS load, argument work, or an early-return region. A Ghidra consumer can resolve the
+containing function from either address without turning the setup into a false boundary.
+`unwind_signature` excludes every address, so the same source compiled into another build hashes
+the same and the column can be joined across programs.
 
 `unwind.csv` has one row per unwind state. `frame_offset` is the `ebp`-relative slot the cleanup
 funclet addresses and `target` is the destructor it branches to, so a row places a typed local

@@ -53,11 +53,12 @@ Three practical constraints:
 C++ exception tables survive `/GR-` because the runtime needs them to destroy locals while
 unwinding. Three facts fall out.
 
-**Function extents.** MSVC emits one `__ehhandler` thunk per `FuncInfo` record (`mov eax, <record>`
-then a jump into the runtime), and the function's frame setup pushes that thunk. Both hops are
-one-to-one, and VC6 emits `push -1; push <thunk>` as the function's first instruction, so the entry
-point is *read*, not guessed. This is the only boundary evidence in the project that needs no
-heuristic at all.
+**EH setup anchors.** MSVC emits one `__ehhandler` thunk per `FuncInfo` record (`mov eax, <record>`
+then a jump into the runtime), and the owning function's frame setup pushes that thunk. Both hops
+are one-to-one, so `frame_setup` and its preceding `eh_setup_start` are exact addresses inside the
+owning function. They are not unconditional function entries: VC6 sometimes installs the EH frame
+after an FS load, argument work, or an early-return region. A Ghidra consumer should resolve the
+containing function from the setup address instead of creating a function there.
 
 **Placed local objects.** Each unwind state points at a cleanup funclet, and a funclet names both an
 `ebp`-relative slot and the destructor that runs on it. A row therefore states "in this function, at
@@ -112,8 +113,8 @@ Three things this channel adds beyond the reviewed retail assertion table:
 
 `function_start` in this snapshot is *derived* - the first byte after the nearest preceding padding
 run, accepted only when it begins a recognised prologue - and is not a substitute for a reviewed
-function identity. The exception-metadata snapshot's `function_start` is read rather than derived and
-should be preferred wherever both cover the same function.
+function identity. Exception metadata supplies a stronger interior anchor through `frame_setup`, but
+the containing function still has to be resolved rather than assumed from the setup sequence.
 
 The derived anchors are nonetheless trustworthy enough to attribute a function to a translation unit,
 and the translation-unit report consumes them for that. The check that licenses it is agreement: on
@@ -205,8 +206,9 @@ destructor is a library import:
 
     FuncInfo 005effa0  [ebp-0x144]  ->  public: __thiscall srStringTable::~srStringTable(void)
 
-Join `functions.csv` on `funcinfo` to get the owning `function_start`, which is read rather than
-inferred and should be preferred over the derived one in the call-site snapshot.
+Join `functions.csv` on `funcinfo`, then resolve the function containing its exact `frame_setup`
+address in Ghidra. Do not create a function at `eh_setup_start`; that sequence may occur after work
+already performed by the owning function.
 
 ### Is this vtable a primary or a base subobject's?
 
@@ -232,8 +234,8 @@ referencing function of every access, is generated under `build/reports/globals/
 ### What is this function called in the demo?
 
 `eh-metadata/functions.csv` carries `unwind_signature`, which excludes every address, so the same
-source compiled into another build hashes the same. Group by signature and keep the ones that occur
-once on each side:
+source compiled into another build hashes the same. Group by signature, keep the ones that occur
+once on each side, and resolve the function containing each row's `frame_setup`:
 
     demo 0041cc70  <->  gog-base 0041c930
 

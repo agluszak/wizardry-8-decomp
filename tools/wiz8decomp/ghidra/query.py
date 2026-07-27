@@ -187,6 +187,10 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         return _symbols(program, False)
     if command == "sections":
         return _sections(program)
+    if command == "observation-audit":
+        from .observation_evidence import audit_observation_evidence
+
+        return audit_observation_evidence(program)
     raise ValueError(f"unsupported query command: {command}")
 
 
@@ -194,7 +198,8 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
     arity = {
         "listing": 1, "decompile": 1, "xrefs": 1, "xrefs-to": 1, "xrefs-from": 1,
         "function": 1, "function-slice": 1, "read-data": 2, "strings": 0,
-        "string-refs": 1, "search": 1, "functions": 0, "imports": 0, "exports": 0, "sections": 0,
+        "string-refs": 1, "search": 1, "functions": 0, "imports": 0, "exports": 0,
+        "sections": 0, "observation-audit": 0,
     }
     if command not in arity:
         raise ValueError("unknown command; expected one of: " + ", ".join(sorted(arity)))

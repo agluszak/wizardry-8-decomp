@@ -5,7 +5,12 @@ import struct
 from pathlib import Path
 
 from wiz8decomp.binary.image import PeImage
-from wiz8decomp.eh_metadata import FUNC_INFO_MAGICS, decode_funclet
+from wiz8decomp.eh_metadata import (
+    FUNC_INFO_MAGICS,
+    Record,
+    _link_owning_functions,
+    decode_funclet,
+)
 
 _IMAGE_BASE = 0x400000
 _TEXT_VA = _IMAGE_BASE + 0x1000
@@ -113,6 +118,27 @@ def test_a_funclet_branching_outside_code_is_rejected(tmp_path: Path) -> None:
     assert funclet.target is None
 
 
+def test_eh_setup_is_not_promoted_to_a_function_start(tmp_path: Path) -> None:
+    """VC6 may load FS before the exact `push -1; push <thunk>` setup."""
+    record_address = _TEXT_VA + 0x300
+    handler = _TEXT_VA + 0x200
+    function_start = _TEXT_VA + 0x20
+    code = bytearray(b"\xcc" * _TEXT_SIZE)
+    # mov eax,fs:[0] ; push -1 ; push <handler>
+    code[0x20:0x28] = b"\x64\xa1\x00\x00\x00\x00\x6a\xff"
+    code[0x28:0x2D] = b"\x68" + struct.pack("<I", handler)
+    # mov eax,<FuncInfo> is the one-to-one handler thunk anchor.
+    code[0x200:0x205] = b"\xb8" + struct.pack("<I", record_address)
+    image = _build_image(tmp_path / "eh-setup.bin", bytes(code))
+    record = Record(0x19930520, record_address, 0, 0, 0, 0, 0, 0)
+
+    _link_owning_functions(image, [record])
+
+    assert record.handler_thunk == handler
+    assert record.frame_setup == function_start + 8
+    assert record.eh_setup_start == function_start + 6
+
+
 def _snapshot(name: str) -> list[dict[str, str]]:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/snapshots/eh-metadata" / name).open(
@@ -129,11 +155,11 @@ def test_function_snapshot_is_keyed_by_program_and_record_address() -> None:
     assert all(row["magic"] in {f"{magic:08x}" for magic in FUNC_INFO_MAGICS} for row in rows)
 
 
-def test_every_resolved_record_reaches_exactly_one_function() -> None:
-    """The record -> thunk -> frame-setup chain is one-to-one, so starts do not collide."""
-    rows = [row for row in _snapshot("functions.csv") if row["function_start"]]
+def test_every_resolved_record_reaches_exactly_one_eh_setup() -> None:
+    """The record -> thunk -> frame-setup chain is one-to-one, so setups do not collide."""
+    rows = [row for row in _snapshot("functions.csv") if row["eh_setup_start"]]
 
-    keys = [(row["program"], row["function_start"]) for row in rows]
+    keys = [(row["program"], row["eh_setup_start"]) for row in rows]
     assert len(keys) == len(set(keys))
 
 

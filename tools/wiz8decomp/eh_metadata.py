@@ -5,8 +5,9 @@ classes. The exception tables survive anyway, because the runtime needs them to
 destroy locals while unwinding, and they carry three things nothing else in the
 image states directly:
 
-* every ``FuncInfo`` record reaches exactly one function through its handler
-  thunk, which pins that function's first byte without any heuristic;
+* every ``FuncInfo`` record reaches an exact EH frame-setup site through its
+  handler thunk; the setup lies inside the owning function but is not assumed
+  to be its first instruction;
 * every unwind state names a cleanup funclet, and each funclet names both a
   frame slot and the destructor that runs on it, which places a typed local
   object at a known offset;
@@ -61,7 +62,7 @@ class Record:
     ip_map: int
     handler_thunk: int | None = None
     frame_setup: int | None = None
-    function_start: int | None = None
+    eh_setup_start: int | None = None
     states: list[tuple[int, int, Funclet]] = field(default_factory=list)
     catches: list[dict[str, Any]] = field(default_factory=list)
 
@@ -258,11 +259,11 @@ def _link_owning_functions(image: PeImage, records: list[Record]) -> None:
             continue
         record = by_address[thunks[thunk]]
         record.frame_setup = sites[0]
-        # The frame setup is `push -1; push <thunk>`, and VC6 emits it as the
-        # first instruction of the function, so the two `push -1` bytes are the
-        # entry point. Only claim a start when those bytes are actually there.
+        # The exact EH setup begins with `push -1; push <thunk>`. It is not
+        # necessarily the function entry: VC6 may emit an FS load, argument
+        # work, or an early-return region before installing the EH frame.
         if image.read(sites[0] - 2, 2) == b"\x6a\xff":
-            record.function_start = sites[0] - 2
+            record.eh_setup_start = sites[0] - 2
 
 
 def _read_tables(
@@ -353,11 +354,13 @@ uv run wiz8 eh-metadata                  # verify against the snapshot
 uv run wiz8 eh-metadata --update-snapshot
 ```
 
-`functions.csv` has one row per `FuncInfo` record. `function_start` is exact rather than
-inferred: the record reaches exactly one handler thunk, the thunk is pushed by exactly one frame
-setup, and that setup's `push -1` is the function's first instruction. `unwind_signature` excludes
-every address, so the same source compiled into another build hashes the same and the column can be
-joined across programs.
+`functions.csv` has one row per `FuncInfo` record. `frame_setup` is the exact instruction that
+pushes the record's handler thunk, and `eh_setup_start` is the preceding `push -1`. Both lie inside
+the owning function, but neither is claimed to be its entry point: VC6 may install the EH frame
+after an FS load, argument work, or an early-return region. A Ghidra consumer can resolve the
+containing function from either address without turning the setup into a false boundary.
+`unwind_signature` excludes every address, so the same source compiled into another build hashes
+the same and the column can be joined across programs.
 
 `unwind.csv` has one row per unwind state. `frame_offset` is the `ebp`-relative slot the cleanup
 funclet addresses and `target` is the destructor it branches to, so a row places a typed local
@@ -394,7 +397,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
                     "magic": f"{record.magic:08x}",
                     "handler_thunk": _hex(record.handler_thunk),
                     "frame_setup": _hex(record.frame_setup),
-                    "function_start": _hex(record.function_start),
+                    "eh_setup_start": _hex(record.eh_setup_start),
                     "max_state": record.max_state,
                     "try_block_count": record.try_block_count,
                     "unwind_signature": record.signature,
@@ -452,7 +455,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
                 "magic",
                 "handler_thunk",
                 "frame_setup",
-                "function_start",
+                "eh_setup_start",
                 "max_state",
                 "try_block_count",
                 "unwind_signature",
@@ -512,7 +515,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
         )
 
-    resolved = sum(1 for row in function_rows if row["function_start"])
+    resolved = sum(1 for row in function_rows if row["eh_setup_start"])
     typed_catches = sum(1 for row in catch_rows if row["type_name"])
     # A build whose code section is protected still yields readable tables but no
     # reachable thunks. Saying so beats a silent column of blanks, and its rows
@@ -534,7 +537,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
         "byte_identical_aliases": aliases,
         "programs_without_readable_code": opaque,
         "funcinfo_records": len(function_rows),
-        "resolved_function_starts": resolved,
+        "resolved_eh_setups": resolved,
         "unwind_states": len(unwind_rows),
         "resolved_cleanups": len(cleaned_up),
         "placed_local_objects": placed,
