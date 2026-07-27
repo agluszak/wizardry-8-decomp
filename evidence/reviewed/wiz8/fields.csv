@@ -163,3 +163,13 @@ wiz8,W8StatInfoDialog005E0180,0x4,0x13c,base_storage,bytes,,strong,classes:wiz8:
 wiz8,W8StatInfoDialog005E0180,0x140,0x4,value_140,uint32,,exact,classes:wiz8:W8StatInfoDialog005E0180,widened from the 16-bit per-attribute table at 0x61e3c4
 wiz8,W8StatInfoDialog005E0180,0x144,0x4,value_144,uint32,,exact,classes:wiz8:W8StatInfoDialog005E0180,widened from the 16-bit per-attribute table at 0x61e50c
 wiz8,W8StatInfoDialog005E0180,0x148,0x4,uiIndex,uint32,,exact,classes:wiz8:W8StatInfoDialog005E0180,attribute index named by the class's own assertion and bounded by ATTR_COUNT
+wiz8,W8Object0043A910,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8Object0043A910,primary vtable W8Object0043A910.primary
+wiz8,W8Object0043A910,0x4,0x10,base_storage,bytes,,strong,classes:wiz8:W8Object0043A910,W8ObjectBase00439550 subobject constructed by 0x00439550
+wiz8,W8Object0043A910,0x14,0x4,ticks_14,int32,,exact,classes:wiz8:W8Object0043A910,"the scaled rate, stored identically to ticks_18"
+wiz8,W8Object0043A910,0x18,0x4,ticks_18,int32,,exact,classes:wiz8:W8Object0043A910,rate_1c multiplied by ten thousand and truncated through ftol
+wiz8,W8Object0043A910,0x1c,0x4,rate_1c,float,,exact,classes:wiz8:W8Object0043A910,"copied from the global at 0x006068ec, 0.1 in the shipped image"
+wiz8,W8Object0043A910,0x20,0x4,scale_20,float,,exact,classes:wiz8:W8Object0043A910,initialized to one
+wiz8,W8Object0043A910,0x24,0x4,scale_24,float,,exact,classes:wiz8:W8Object0043A910,initialized to two
+wiz8,W8Object0043A910,0x28,0x4,value_28,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
+wiz8,W8Object0043A910,0x2c,0x4,value_2c,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
+wiz8,W8Object0043A910,0x30,0x4,value_30,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
