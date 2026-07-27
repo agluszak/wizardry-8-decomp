@@ -12,6 +12,12 @@
 
 #pragma pack(push, 1)
 
+/* The game's wide text format: fixed-size UINT16 arrays stored inline in
+   records and manipulated through the CRT wide-string functions. The same
+   typedef models these fields in config/types/wiz8/gameplay_databases.h;
+   under VC6 wchar_t is unsigned short, so the two spellings are one type. */
+typedef unsigned short W8WideChar;
+
 typedef struct W8Dice {
     short base;
     unsigned char count;
@@ -83,7 +89,7 @@ typedef struct W8RPCSlot {
 typedef struct W8FactDatabaseRecord {
     unsigned int identifier;
     char symbolic_name[256];             /* 0x004 */
-    unsigned short description[106];     /* 0x104 */
+    W8WideChar description[106];         /* 0x104 */
 } W8FactDatabaseRecord;                  /* 0x1d8 */
 
 typedef struct W8ItemInstance {
@@ -255,9 +261,18 @@ typedef struct W8LevelDatabaseRecord {
 } W8LevelDatabaseRecord;                 /* 0xd8 */
 
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
-   runtime record size; the fields are typed by their consumers elsewhere. */
+   runtime record size; the fields are typed by their consumers elsewhere.
+   This is the same record config/types/wiz8/gameplay_databases.h models as
+   W8MonsterDatabaseRecord and the Ghidra applied types use under that name;
+   the porting name deliberately keeps the established W8MonsterRecord
+   spelling of its byte-exact consumers, and the two field models are kept
+   convergent rather than merged. */
 typedef struct W8MonsterRecord {
-    unsigned char unknown_000[0xd1];
+    W8WideChar name_00[24];               /* 0x000: suffix after '#' removed at load */
+    W8WideChar name_30[24];               /* 0x030: suffix after '#' removed at load */
+    W8WideChar name_60[24];               /* 0x060: suffix after '#' removed at load */
+    W8WideChar name_90[24];               /* 0x090: suffix after '#' removed at load */
+    unsigned char unknown_0c0[0x11];
     /* 0x0d1: indexed 0..4 by ConvertMonsterAttribute at 0x004e5d00, which
        bounds-checks the index against five. The group update at 0x005113a0
        squares index one and scales it by fifteen for a cache duration, which is
@@ -370,7 +385,7 @@ typedef struct W8MessageBoxLine {
     int unknown_04;
     int unknown_08;
     int type;                             /* 0x0c: message category, e.g. combat log channel */
-    unsigned short* text;                 /* 0x10 */
+    W8WideChar* text;                     /* 0x10 */
     int unknown_14;
     int unknown_18;
     void* extra;                          /* 0x1c: caller-owned payload, e.g. format-arg storage */
@@ -627,6 +642,10 @@ struct W8MonsterMember18 {
     srVector3T<float> GetPosition();
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
+/* Partial porting model of the reviewed Monster class (0x628 bytes, vtable
+   0x005ed200, constructor 0x004bea20) in evidence/reviewed/wiz8/classes.csv.
+   Only the members the byte-exact consumers touch are modelled; the reviewed
+   layer, not this struct, owns the class facts. */
 struct W8Monster {
     unsigned char unknown_000[0x18];
     W8MonsterMember18 member_18;            /* 0x018: positional member proven by 0x004e4600 */
@@ -819,7 +838,7 @@ unsigned char IsStringTableLoaded(void);
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result);
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point);
-void StripMonsterNameSuffix(unsigned short* name);
+void StripMonsterNameSuffix(W8WideChar* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
 unsigned char IsPartyCharacterPointer(const W8Character* character);
 void AdjustByteByPercent(unsigned char* value, unsigned int percent);
@@ -880,7 +899,7 @@ void GetOriginOfCharacterItem(
     void* item,
     unsigned char* origin,
     unsigned short* slot);
-void AddLinesToMessageBox(int type, unsigned short* text, void* extra);
+void AddLinesToMessageBox(int type, W8WideChar* text, void* extra);
 
 #ifdef __cplusplus
 }

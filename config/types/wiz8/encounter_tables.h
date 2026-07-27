@@ -23,14 +23,19 @@ typedef struct W8EncounterScriptName {
     char value[64];
 } W8EncounterScriptName;                /* 0x40 */
 
+/* One instantiation of the shared growable-vector template over a byte
+   element - the same vptr/count/capacity/data shape include/wiz8/vector.h
+   models as W8GrowableVector<T> and docs/libraries/wiz8-foundation-types.md
+   derives. The leading word is a vtable pointer, not data. */
 typedef struct W8EncounterByteVector {
-    uint32_t unknown_00;
-    int32_t count;
-    int32_t capacity;
-    uint8_t *values;
+    void *vtable;                       /* 0x00 */
+    int32_t count;                      /* 0x04 */
+    int32_t capacity;                   /* 0x08 */
+    uint8_t *values;                    /* 0x0c */
 } W8EncounterByteVector;                /* 0x10 */
 
 typedef struct W8EncounterTableRuntime {
+    /* 0x000-0x00f: an inline W8GrowableVector<uint16_t> instantiation. */
     void *vtable;                       /* 0x000 */
     int32_t species_count;              /* 0x004 */
     int32_t species_capacity;           /* 0x008 */

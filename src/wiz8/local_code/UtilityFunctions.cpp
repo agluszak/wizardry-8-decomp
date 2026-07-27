@@ -286,7 +286,7 @@ unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* p
 }
 
 // FUNCTION: WIZ8 0x00517EA0
-void StripMonsterNameSuffix(unsigned short* name)
+void StripMonsterNameSuffix(W8WideChar* name)
 {
     wchar_t* suffix = wcschr((wchar_t*)name, L'#');
 

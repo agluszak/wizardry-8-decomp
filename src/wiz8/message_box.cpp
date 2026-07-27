@@ -3,7 +3,7 @@
 #include <string.h>
 
 // FUNCTION: WIZ8 0x00528A80
-void AddLinesToMessageBox(int type, unsigned short* text, void* extra)
+void AddLinesToMessageBox(int type, W8WideChar* text, void* extra)
 {
     W8MessageBoxLine* line = new W8MessageBoxLine;
     int new_capacity;

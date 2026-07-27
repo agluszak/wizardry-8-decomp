@@ -339,10 +339,10 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
         return 0;
     }
     CloseVirtualFile(handle);
-    StripMonsterNameSuffix((unsigned short*)record);
-    StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x30));
-    StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x60));
-    StripMonsterNameSuffix((unsigned short*)((unsigned char*)record + 0x90));
+    StripMonsterNameSuffix(record->name_00);
+    StripMonsterNameSuffix(record->name_30);
+    StripMonsterNameSuffix(record->name_60);
+    StripMonsterNameSuffix(record->name_90);
     return 1;
 }
 

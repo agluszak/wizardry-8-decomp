@@ -211,3 +211,34 @@ inline member names, so the source uses the explicit positional placeholders `me
 `method_00446110`. The old CFAgent descriptions `VectorFromThreeFloats` and `Copy3DVector` remain
 aliases only. Translation-unit reporting classifies both bodies as external SurRender templates,
 not recovered first-party Wizardry functions.
+
+## The SurRender inline string, and where it is allowed to appear
+
+There is no first-party string class and no `std::string` anywhere in `Wiz8.exe`. VC6's
+`std::basic_string` emits "string too long" and "invalid string position" through `_Xlen`/`_Xran`,
+`std::vector` emits "vector too long", and none of those strings exists in the image; MSVCP60.DLL
+is imported with exactly four symbols, all `<iostream>` initialization pulled in because fourteen
+SurRender virtuals take a `std::basic_ostream&`. Wide text is fixed-size `W8WideChar` arrays inline
+in records, manipulated CRT-direct (`wcschr`, `wcscpy`, `swprintf`, ...), and narrow text is raw
+`char*` — the original's own `pac` Hungarian prefix, visible on plain pointers throughout the
+assertion harvest, says exactly that.
+
+The one string object in the image is SurRender's header-inline string class, and its reach is a
+single translation unit. Layout, read off the assignment operator at `0x0047CE00`:
+
+| Offset | Field | Meaning |
+| --- | --- | --- |
+| `+0x00` | `char inline_nul[4]` | `data == this` exactly when the string is empty |
+| `+0x04` | `int length` | includes the terminator, so 1 when empty |
+| `+0x08` | `char* data` | heap storage |
+
+It is SurRender's rather than Wizardry's because it allocates through `srHeap::allocate` /
+`srHeap::free` (`0x005EBAC0` / `0x005EBAB8`) rather than global `operator new` — the same allocator
+split that separates the vendor from the first-party growable vector above. `0x0047CE90` is its
+`Find`, delegating to CRT `strstr`. The empty-string initialization sequence occurs exactly three
+times in the whole image, all between `0x0047CDEA` and `0x0047D293` — the `VirtualFileBinIStream`
+SLF-to-SurRender stream adapter, which builds string temporaries to hand filenames to SurRender.
+`srHeap::allocate` has 108 call sites, so the vendor heap is used widely, but its string class is
+not. When those adapter bodies are ported, the type belongs in that unit as a vendor-marked model;
+nothing else should acquire a string class, and `srStringTable` is unrelated — it is a
+device-description table consumed by `srGERD::loadDevice`.
