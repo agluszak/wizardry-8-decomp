@@ -489,12 +489,18 @@ public:
     virtual ~W8ElementVector005ED5B0();
 };
 
+/* The teardown is the implicit one: it restores the class's own table, then
+   runs the vector's destructor, which restores the template table and releases
+   the array with no null test - the template's own destructor, not a private
+   copy of it. Nothing else is destroyed, which is what fixes the class as
+   owning exactly the one vector. */
+
 class W8Control005ED5A4 {
 public:
     W8Control005ED5A4();
     W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int a7, int a8);
 
-    virtual void vslot00();
+    virtual ~W8Control005ED5A4();
 
 protected:
     unsigned char m_flag_04;
@@ -517,6 +523,10 @@ protected:
 };                                       /* 0x4c, which is the allocation size */
 
 __forceinline W8ElementVector005ED5B0::W8ElementVector005ED5B0()
+{
+}
+
+__forceinline W8ElementVector005ED5B0::~W8ElementVector005ED5B0()
 {
 }
 
@@ -556,4 +566,9 @@ W8Control005ED5A4::W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int
     m_field_24 = -1;
     m_flag_34 = 1;
     m_field_48 = 0;
+}
+
+// FUNCTION: WIZ8 0x004F2D30
+W8Control005ED5A4::~W8Control005ED5A4()
+{
 }
