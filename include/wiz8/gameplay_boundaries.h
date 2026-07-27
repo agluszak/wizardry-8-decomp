@@ -692,6 +692,7 @@ unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 
 unsigned int Random(unsigned int upper_bound);
+void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base);
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
 void ClampInteger(int* value, int minimum, int maximum);
@@ -701,6 +702,10 @@ char* FormatString(const char* format, ...);
 wchar_t* FormatWideString(const wchar_t* format, ...);
 wchar_t* ConvertStringToWide(const char* string);
 char* ConvertWideStringToString(const wchar_t* string);
+wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value);
+char* TitleCaseString(char* string);
+int GetNextCharacter(int require_primary, int require_secondary, int previous_slot);
+void FormatDebugMessage(int channel, const char* format, ...);
 int GetSpellTargetType(int spell_id, unsigned char normalize_single_target);
 #ifdef __cplusplus
 bool CanSpellBackfire(int spell_id);

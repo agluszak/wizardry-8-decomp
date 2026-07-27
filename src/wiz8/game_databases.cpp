@@ -41,7 +41,6 @@ extern unsigned int g_dwords_686a50[8];
 extern unsigned char g_flag_687511;
 extern void Function58FD30(void);
 extern void Function520070(W8ItemInstance* item, int a, int b);
-extern int Function518230(int a, int b, int c);
 extern void Function554580(unsigned char* target);
 extern void ReplaceOrCreateItem(W8ItemInstance* item, unsigned int id, int a, int b, int c);
 extern void AddItemToParty(W8ItemInstance* item, int a, int b);
@@ -643,7 +642,7 @@ void Function54B100(void)
         ++id;
     } while (id < g_starting_item_ids_end);
     g_dword_685189 = 500;
-    g_dword_68518d = Function518230(1, 1, -1);
+    g_dword_68518d = GetNextCharacter(1, 1, -1);
     g_dword_686a70 = -1;
     Function554580(&g_flag_687511);
     for (index = 0; index < 8; ++index) {
