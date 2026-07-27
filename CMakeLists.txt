@@ -284,6 +284,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp
+        src/wiz8/engine_code/materials.cpp
         src/wiz8/engine_code/Monster.cpp
         src/wiz8/monster_info_dialog.cpp
         src/wiz8/monster_generators.cpp

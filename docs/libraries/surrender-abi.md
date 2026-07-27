@@ -100,9 +100,19 @@ all, so any data address appearing as a relocated operand in code begins one. Wi
 through 12 reached by import thunk, slots 0, 1, 2, 5 and 7 overridden locally. `srBinStream` and
 `srBinIStream` are unchanged at 5 and 2, so the stream pilot's evidence stands.
 
-The reviewed classification was right all along: `0x004925B0` builds a 0x7C-byte `srMaterial`
-subclass that registers itself with `srRegistry`, and its exception states unwind through the
-imported `srMaterial::~srMaterial` and `srMaterialIFace::~srMaterialIFace`.
+The reviewed classification was right all along, and the constructor names the class outright. It
+registers with `srRegistry` under the literal `stMaterial` and the class id `0x10002`, spelling the
+parent chain as it goes - `srMaterialIFace` at `0x2200`, `srMaterial` at `0x2210`, then this - and
+`Engine Code\materials.cpp` is the unit, whose own assertions call the pointer `ppstMaterial`. So
+`stMaterial` is the original's name, not a descriptive one.
+
+That is enough to declare both classes and port. `include/surrender/srMaterial.h` gives srMaterial
+its thirteen slots in exported order and an extent of `0x78`; `stMaterial` derives from it, adds one
+field at `0x78` for a total of `0x7C`, and overrides the five slots the library implements without
+exporting. Three of those overrides are recovered and relocation-masked exact. The one that carries
+the layout is slot 7 at `0x00492A00`: it calls slot 6 for a fresh instance, assigns through
+`srMaterial::operator=`, and copies the field at `0x78` - so a wrong slot index or a wrong base
+extent would both show up as a mismatch, and neither does.
 
 ## What may be written into a header
 
