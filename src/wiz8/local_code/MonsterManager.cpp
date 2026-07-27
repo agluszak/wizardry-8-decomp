@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include <math.h>
 #include <new>
 #include <stdlib.h>
 
@@ -29,7 +30,23 @@ void __fastcall Function4537E0(W8MonsterMember18* member);
 int GetMonsterName(W8MonsterInfo* monster_info, int monster_record, int name_form);
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, int value_3, int value_4);
+void Function4C59C0(W8Monster* monster, W8World* world);
+W8World* Function451280(W8Monster* monster);
+void Function46E5A0(W8World* world);
+void Function4C5860(W8Monster* monster);
+void Function42E650(unsigned short location_id);
+void Function509EA0(int value);
+void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
+float MonsterGetScale(W8Monster* monster);
+void MonsterSetScale(W8Monster* monster, float scale);
+void Function4C5810(W8Monster* monster);
+void Function4C5ED0(W8Monster* monster);
+int Function52A780(int first, int second);
 extern unsigned char* g_object_68c09c;
+extern unsigned char* g_object_6836a8;
+extern unsigned char g_flag_683f94;
+extern unsigned char g_flag_683f97;
+extern volatile int g_dword_6598a4;
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
    Each record owns one instantiation of the polymorphic pointer-vector family
@@ -557,6 +574,48 @@ void ResetLivingMonstersAfterCombat(void)
     }
 }
 
+// FUNCTION: WIZ8 0x004E5F00
+void DestroyUngroupedMonsters(void)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+
+        if (monster_info->monster_group_id == 0) {
+            W8Monster* monster = monster_info->monster;
+
+            if (monster != 0) {
+                unsigned int flags = monster->m_cycles[19].flags_00;
+                flags >>= 8;
+                if ((flags & 1) != 0 &&
+                    *((unsigned char*)&monster->m_cycles[24].flags_00 + 2) != 0) {
+                    monster->Function4C50F0();
+                }
+            }
+            monster_info = MonsterGetScriptPartByLocationIndex(index);
+            DeactivateMonster(monster_info);
+            if (monster_info == 0) {
+                srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
+            }
+            if (monster_info->monster != 0) {
+                Function4C59C0(monster_info->monster, GetWorld());
+                Function46E5A0(Function451280(monster_info->monster));
+                Function4C5860(monster_info->monster);
+                monster_info->monster = 0;
+            }
+            (void)g_dword_6598a4;
+            Function42E650(static_cast<unsigned short>(monster_info->location_id));
+            Function509EA0(monster_info->runtime_value_2f1);
+            void* removed = PListRemoveAt(g_monster_list, index);
+            if (removed != 0) {
+                free(removed);
+            }
+            --index;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x004E6020
 void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
 {
@@ -634,6 +693,188 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     MonsterSetAnimating(monster_info->monster, 1);
     monster_info->monster->member_18.unknown_88 = 1;
     monster_info->monster->m_cycles[22].unknown_09 = 0;
+}
+
+static __forceinline double DistanceBetweenPositions(
+    const srVector3T<float>* first,
+    const srVector3T<float>& second)
+{
+    float x = first->x - second.x;
+    float y = first->y - second.y;
+    float z = first->z - second.z;
+    return sqrt(x * x + y * y + z * z);
+}
+
+// FUNCTION: WIZ8 0x004E61E0
+W8MonsterInfo* FindNearestMonsterInfo(
+    const srVector3T<float>* position,
+    double maximum_distance)
+{
+    W8MonsterInfo* nearest = 0;
+    double nearest_distance = 1.0e11;
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
+        double distance = DistanceBetweenPositions(
+            position,
+            monster_info->monster->member_18.GetPosition());
+
+        if (distance < nearest_distance &&
+            (maximum_distance == 0.0 || distance < maximum_distance)) {
+            nearest = monster_info;
+            nearest_distance = distance;
+        }
+    }
+
+    for (index = 0; index < PListGetCount(g_unborn_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+        double distance = DistanceBetweenPositions(
+            position,
+            monster_info->monster->member_18.GetPosition());
+
+        if (distance < nearest_distance &&
+            (maximum_distance == 0.0 || distance < maximum_distance)) {
+            nearest = monster_info;
+            nearest_distance = distance;
+        }
+    }
+    return nearest;
+}
+
+// FUNCTION: WIZ8 0x004E6370
+void InitializeMonsterRuntimeStats(void)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
+        W8MonsterRecord* record;
+        int value;
+
+        if (monster_info == 0) {
+            srAssertFail(
+                "pMonsterInfo != NULL",
+                MONSTER_MANAGER_CPP,
+                0x5e9,
+                0);
+        }
+        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        value = RollDice(&record->hit_points_d6);
+        monster_info->hp_max = value;
+        monster_info->hp_current = value;
+        value = RollDice(&record->runtime_stat_da);
+        monster_info->runtime_stat_max_2f = value;
+        monster_info->runtime_stat_current_33 = value;
+        monster_info->runtime_value_242 = Function52A780(value, value);
+        monster_info->scale_24f = CalculateMonsterScale(monster_info);
+        MonsterSetScale(monster_info->monster, monster_info->scale_24f);
+        Function4C5810(monster_info->monster);
+        Function4C5ED0(monster_info->monster);
+    }
+
+    for (index = 0; index < PListGetCount(g_unborn_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+        W8MonsterRecord* record;
+        int value;
+
+        if (monster_info == 0) {
+            srAssertFail(
+                "pMonsterInfo != NULL",
+                MONSTER_MANAGER_CPP,
+                0x5e9,
+                0);
+        }
+        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        value = RollDice(&record->hit_points_d6);
+        monster_info->hp_max = value;
+        monster_info->hp_current = value;
+        value = RollDice(&record->runtime_stat_da);
+        monster_info->runtime_stat_max_2f = value;
+        monster_info->runtime_stat_current_33 = value;
+        monster_info->runtime_value_242 = Function52A780(value, value);
+        monster_info->scale_24f = CalculateMonsterScale(monster_info);
+        MonsterSetScale(monster_info->monster, monster_info->scale_24f);
+        Function4C5810(monster_info->monster);
+        Function4C5ED0(monster_info->monster);
+    }
+}
+
+// FUNCTION: WIZ8 0x004E65D0
+float CalculateMonsterScale(W8MonsterInfo* monster_info)
+{
+    float minimum;
+    float maximum;
+
+    MonsterGetScaleRange(monster_info->monster, &minimum, &maximum);
+    if (minimum == 0.0f || maximum == 0.0f) {
+        return MonsterGetScale(monster_info->monster);
+    }
+
+    if (monster_info == 0) {
+        srAssertFail(
+            "pMonsterInfo != NULL",
+            MONSTER_MANAGER_CPP,
+            0x5e9,
+            0);
+    }
+    W8MonsterRecord* record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    int minimum_hp = record->hit_points_d6.base + record->hit_points_d6.count;
+    int maximum_hp = record->hit_points_d6.base +
+                     record->hit_points_d6.count * record->hit_points_d6.sides;
+    float scale = ((maximum - minimum) *
+                   ((float)(unsigned int)monster_info->hp_max - (float)minimum_hp)) /
+                  ((float)maximum_hp - (float)minimum_hp) + minimum;
+    float result = (maximum - minimum) * (Random(1000) * 0.0004f - 0.2f) + scale;
+
+    if (result < minimum) {
+        return minimum;
+    }
+    if (result > maximum) {
+        return maximum;
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x004E67A0
+void TryStartMonsterCycle2(
+    W8MonsterInfo* monster_info,
+    W8Monster* monster,
+    int query_state)
+{
+    if (monster_info->flag_14 != 0 &&
+        static_cast<unsigned int>(monster_info->hp_current) > 0 &&
+        monster_info->value_9f == 0 &&
+        monster_info->flag_24d != 0 &&
+        query_state == 1) {
+        int result = MonsterQuery(monster, 2);
+
+        if (result != 0 && monster_info->motionless == 0) {
+            monster->m_cycles[19].flags_00 |= 0x80;
+            if (MonsterIsCycleSupported(monster, 2) != 0) {
+                signed char cycle = monster->m_cycles[18].unknown_0c[0xa7];
+
+                if (cycle == 2 ||
+                    monster->Function4C2CF0(cycle) == 0 ||
+                    (g_flag_683f94 != 0 &&
+                     *(int*)(g_object_6836a8 + 0x7b0) != 0 &&
+                     *(W8MonsterInfo**)(g_object_6836a8 + 0x7b8) == monster_info)) {
+                    return;
+                }
+                W8MonsterGroup* group = GetMonsterGroupByListIndex(
+                    GetMonsterGroupIndexByID(
+                        0x987,
+                        MONSTER_MANAGER_CPP,
+                        monster_info->monster_group_id,
+                        1));
+                unsigned int chance = group->member_count * 20;
+
+                if (g_flag_683f97 == 0 && Random(chance) == 0) {
+                    StartMonsterCycle(monster_info, 2, 1);
+                }
+            }
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004E6780

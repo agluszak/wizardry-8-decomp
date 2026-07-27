@@ -6,6 +6,7 @@ from pathlib import Path
 
 ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
 SCALAR_FIELD_SIZES = {
+    "float": 4,
     "uint8": 1,
     "int16": 2,
     "int32": 4,
@@ -127,6 +128,7 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
             raise ValueError(f"{fields_path}: unknown class {field.class_name}")
         if not field.name or field.size <= 0 or field.data_type not in {
             "bytes",
+            "float",
             "int16",
             "int32",
             "pointer",

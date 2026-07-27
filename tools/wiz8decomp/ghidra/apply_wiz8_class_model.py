@@ -28,6 +28,7 @@ def apply_reviewed_class_model(
         ByteDataType,
         CategoryPath,
         DataTypeConflictHandler,
+        FloatDataType,
         IntegerDataType,
         PointerDataType,
         ShortDataType,
@@ -70,6 +71,8 @@ def apply_reviewed_class_model(
                 for field in model.fields:
                     if field.data_type == "pointer":
                         data_type = generic_pointer
+                    elif field.data_type == "float":
+                        data_type = FloatDataType.dataType
                     elif field.data_type == "int16":
                         data_type = ShortDataType.dataType
                     elif field.data_type == "int32":

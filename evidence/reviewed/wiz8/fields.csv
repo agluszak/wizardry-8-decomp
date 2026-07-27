@@ -61,6 +61,8 @@ wiz8,W8MonsterInfo,0xc,0x4,monster,pointer,exact,classes:wiz8:W8MonsterInfo,live
 wiz8,W8MonsterInfo,0x14,0x1,flag_14,bytes,exact,classes:wiz8:W8MonsterInfo,first live-entry gate in exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x27,0x4,hp_max,int32,exact,classes:wiz8:W8MonsterInfo,Targeting.cpp assertion pMonsterInfo->uiHPMax > 0 reads this exact offset; initialized from a database dice roll by 0x004e3930
 wiz8,W8MonsterInfo,0x2b,0x4,hp_current,int32,exact,classes:wiz8:W8MonsterInfo,initialized with hp_max by 0x004e3930 then reduced by canonical damage consumers before 0x004e5a50 updates the Monster appearance
+wiz8,W8MonsterInfo,0x2f,0x4,runtime_stat_max_2f,int32,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats rolls database dice +0xda into this maximum value
+wiz8,W8MonsterInfo,0x33,0x4,runtime_stat_current_33,int32,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats copies runtime_stat_max_2f here as the current value
 wiz8,W8ScreenRect,0x0,0x4,left,int32,exact,classes:wiz8:W8ScreenRect,minimum horizontal bound consumed by 0x00517e20 and 0x00517e70
 wiz8,W8ScreenRect,0x4,0x4,top,int32,exact,classes:wiz8:W8ScreenRect,minimum vertical bound consumed by 0x00517e20 and 0x00517e70
 wiz8,W8ScreenRect,0x8,0x4,right,int32,exact,classes:wiz8:W8ScreenRect,exclusive maximum horizontal bound consumed by 0x00517e20 and 0x00517e70
@@ -82,11 +84,15 @@ wiz8,W8Region,0x14,0x4,help_text_id,int32,exact,classes:wiz8:W8Region,0x004f2a30
 wiz8,W8Region,0x18,0x4,owner,pointer,exact,classes:wiz8:W8Region,0x004f2a10 stores the owning object supplied by the reviewed control constructors
 wiz8,W8MonsterInfo,0x9f,0x4,value_9f,int32,exact,classes:wiz8:W8MonsterInfo,required to be zero by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x1e7,0x7,attribute_adjustments_1e7,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 reads the selected byte as signed before adding it to the unsigned database attribute
+wiz8,W8MonsterInfo,0x242,0x4,runtime_value_242,int32,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats clears this value for entries in both monster lists
 wiz8,W8MonsterInfo,0x247,0x5,converted_attributes_247,bytes,exact,classes:wiz8:W8MonsterInfo,0x004e5d00 stores the five converted attributes after clamping each result to 1 through 125
+wiz8,W8MonsterInfo,0x24d,0x1,flag_24d,uint8,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats clears this byte for entries in both monster lists
 wiz8,W8MonsterInfo,0x24e,0x1,motionless,uint8,exact,classes:wiz8:W8MonsterInfo,The official demo's mapped setter retains MonsterInfoSetMotionless diagnostics; condition callers set it for web-or-worse states and clear it below that threshold
+wiz8,W8MonsterInfo,0x24f,0x4,scale_24f,float,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats stores CalculateMonsterScale here before applying it to the live Monster
 wiz8,W8MonsterInfo,0x253,0x1,flag_253,bytes,exact,classes:wiz8:W8MonsterInfo,set after the notification step by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x255,0x1,flag_255,bytes,exact,classes:wiz8:W8MonsterInfo,reset by exact consumers 0x004e5ea0 and 0x004e6020
 wiz8,W8MonsterInfo,0x2da,0x4,value_2da,int32,exact,classes:wiz8:W8MonsterInfo,required to be nonzero by exact 0x004e5c00; semantics remain unresolved
+wiz8,W8MonsterInfo,0x2f1,0x4,runtime_value_2f1,int32,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats clears this value for entries in both monster lists
 wiz8,W8MonsterInfo,0x2fd,0x4,control_state,int32,exact,classes:wiz8:W8MonsterInfo,tested and replaced by exact SetMonsterControlState then consumed by the selected MonsterGroup recomputation
 wiz8,W8MonsterManagerState,0x0,0x8c0,entries,bytes,exact,classes:wiz8:W8MonsterManagerState,eight W8MonsterManagerEntry values with the constructor iterator's 0x118 stride
 wiz8,W8MonsterManagerState,0x8c0,0xf7,unknown_8c0,bytes,exact,classes:wiz8:W8MonsterManagerState,opaque storage before the unaligned pointer-vector member

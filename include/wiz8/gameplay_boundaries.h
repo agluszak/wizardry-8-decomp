@@ -259,7 +259,9 @@ typedef struct W8LevelDatabaseRecord {
 typedef struct W8MonsterRecord {
     unsigned char unknown_000[0xd1];
     unsigned char attribute_values_d1[5]; /* 0x0d1: converted by 0x004e5d00 */
-    unsigned char unknown_0d6[0xab];
+    W8Dice hit_points_d6;                 /* 0x0d6: rolled into hp_max/hp_current */
+    W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
+    unsigned char unknown_0de[0xa3];
     unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
     unsigned char unknown_185[4];
     char cycle_name_189[0x31];             /* 0x189: GrCycle lookup key */
@@ -588,7 +590,7 @@ typedef struct W8Monster W8Monster;
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
 struct W8MonsterCycle {
-    unsigned char unknown_00[4];
+    unsigned int flags_00;                  /* 0x00: cycle 19 bit 7 set by 0x004e67a0 */
     unsigned char ubNumSubs;                /* 0x04 */
     unsigned char unknown_05[4];
     unsigned char unknown_09;               /* 0x09: cleared for cycle 22 by 0x004e6130 */
@@ -617,6 +619,8 @@ struct W8Monster {
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
     unsigned char IsDying();
+    unsigned char Function4C2CF0(signed char cycle);
+    void Function4C50F0();
     int Function4C6A50();
     void Function4C6990(int value);
 };
@@ -638,21 +642,28 @@ typedef struct W8MonsterInfo {
     unsigned char unknown_15[0x12];
     int hp_max;                           /* 0x27: uiHPMax in the Targeting.cpp assertion */
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
-    unsigned char unknown_2f[0x70];
+    int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
+    int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
+    unsigned char unknown_37[0x68];
     int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
     unsigned char unknown_a3[0x144];
     signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
-    unsigned char unknown_1ee[0x59];
+    unsigned char unknown_1ee[0x54];
+    int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
+    unsigned char unknown_246;
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
-    unsigned char unknown_24c[2];
+    unsigned char unknown_24c;
+    unsigned char flag_24d;                 /* 0x24d: cycle-2 eligibility gate */
     unsigned char motionless;               /* 0x24e: fMotionless in the demo diagnostic */
-    unsigned char unknown_24f[4];
+    float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
     unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
     unsigned char unknown_256[0x84];
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
-    unsigned char unknown_2de[0x1f];
+    unsigned char unknown_2de[0x13];
+    int runtime_value_2f1;                /* 0x2f1: released when an entry is destroyed */
+    unsigned char unknown_2f5[8];
     int control_state;                      /* 0x2fd: group-recomputed control state */
     unsigned char unknown_301[0x124];
 } W8MonsterInfo;                          /* 0x425 */
@@ -692,9 +703,19 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
 void ResetLivingMonstersAfterCombat(void);
+void DestroyUngroupedMonsters(void);
 void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state);
 void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless);
 void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
+W8MonsterInfo* FindNearestMonsterInfo(
+    const srVector3T<float>* position,
+    double maximum_distance);
+void InitializeMonsterRuntimeStats(void);
+float CalculateMonsterScale(W8MonsterInfo* monster_info);
+void TryStartMonsterCycle2(
+    W8MonsterInfo* monster_info,
+    W8Monster* monster,
+    int query_state);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 
