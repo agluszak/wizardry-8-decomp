@@ -292,11 +292,11 @@ typedef struct W8MonsterGenerator {
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
 typedef struct W8MonsterGroup {
-    unsigned char unknown_00[4];
-    int unknown_04;                       /* 0x04: cleared after the record loads */
+    int group_id;                         /* 0x00: GroupIndex ID lookup key */
+    int member_count;                     /* 0x04: decremented when members leave */
     struct W8IList* monsters;             /* 0x08: fresh IList per live group */
     unsigned char unknown_0c[8];
-    int unknown_14;                       /* 0x14: cleared after the record loads */
+    int active_member_count;              /* 0x14: recomputed from member conditions */
     int monster_id;                       /* 0x18 */
     unsigned char unknown_1c[0xc];
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
@@ -574,7 +574,13 @@ void* PListRemoveAt(W8PList* ppl, int position);
 unsigned int PListGetCount(W8PList* ppl);
 void* PListGetAt(W8PList* ppl, int index);
 int PListIndexOf(W8PList* ppl, void* pEntry);
-W8MonsterGroup* GetMonsterGroupByID(unsigned int monster_id);
+unsigned int GetMonsterGroupIndexByID(
+    int caller_line,
+    const char* caller_file,
+    int group_id,
+    unsigned char assert_on_failure);
+W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
+void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 
 typedef struct W8Monster W8Monster;
 
@@ -601,7 +607,7 @@ struct W8MonsterMember18 {
     signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
     unsigned char unknown_8d[7];
 
-    srVector3T<float> Function4534C0();
+    srVector3T<float> GetPosition();
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
 struct W8Monster {
@@ -680,6 +686,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
 int GetMonsterQuadrant(W8MonsterInfo* monster_info);
+int GetQuadrantForPosition(srVector3T<float> position);
 int Function4E5B50(unsigned int monster_species);
 void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info);

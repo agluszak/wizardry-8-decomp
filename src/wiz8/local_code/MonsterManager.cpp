@@ -26,14 +26,6 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8MonsterMember18* member);
 void __fastcall Function4537E0(W8MonsterMember18* member);
-unsigned int Function5100B0(
-    int caller_line,
-    const char* caller_file,
-    int monster_group_id,
-    unsigned char assert_on_failure);
-W8MonsterGroup* Function5101B0(unsigned int monster_group_index);
-void Function510350(W8MonsterGroup* monster_group);
-int Function555F30(srVector3T<float> position);
 int GetMonsterName(W8MonsterInfo* monster_info, int monster_record, int name_form);
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, int value_3, int value_4);
@@ -408,7 +400,7 @@ int GetMonsterQuadrant(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x6b9, 0);
     }
-    return Function555F30(monster_info->monster->member_18.Function4534C0());
+    return GetQuadrantForPosition(monster_info->monster->member_18.GetPosition());
 }
 
 // FUNCTION: WIZ8 0x004E5B50
@@ -582,9 +574,9 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
         break;
     }
     monster_info->control_state = control_state;
-    Function510350(
-        Function5101B0(
-            Function5100B0(
+    RecountActiveMonsterGroupMembers(
+        GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(
                 0x872,
                 MONSTER_MANAGER_CPP,
                 monster_info->monster_group_id,

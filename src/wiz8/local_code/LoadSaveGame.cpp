@@ -286,8 +286,8 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             free(group);
             return 0;
         }
-        group->unknown_04 = 0;
-        group->unknown_14 = 0;
+        group->member_count = 0;
+        group->active_member_count = 0;
         group->flag_28 = 0;
         group->flag_29 = 0;
         if (is_encounter) {

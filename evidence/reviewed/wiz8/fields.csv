@@ -115,3 +115,8 @@ wiz8,W8WorldItem,0x31,0x4,next,pointer,exact,classes:wiz8:W8WorldItem,"chain lin
 wiz8,W8WorldItem,0x35,0x4,unknown_35,int32,exact,classes:wiz8:W8WorldItem,not established
 wiz8,W8WorldItem,0x39,0x4,sector_id,int32,exact,classes:wiz8:W8WorldItem,not established
 wiz8,W8WorldItem,0x3d,0x70,unknown_3d,bytes,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8MonsterGroup,0x0,0x4,group_id,int32,exact,classes:wiz8:W8MonsterGroup,GetMonsterGroupIndexByID compares this field with the requested ID in both group lists
+wiz8,W8MonsterGroup,0x4,0x4,member_count,int32,strong,classes:wiz8:W8MonsterGroup,RemoveMonster decrements this count after removing the location ID from the group member list
+wiz8,W8MonsterGroup,0x8,0x4,monsters,pointer,exact,classes:wiz8:W8MonsterGroup,group member location IDs are enumerated through the reviewed IList API
+wiz8,W8MonsterGroup,0x14,0x4,active_member_count,int32,strong,classes:wiz8:W8MonsterGroup,RecountActiveMonsterGroupMembers replaces this value when the condition and control-state filtered count changes
+wiz8,W8MonsterGroup,0x18,0x4,monster_id,int32,strong,classes:wiz8:W8MonsterGroup,FindFirstMonsterByID and FindNextExistingMonsterByID compare this field with the requested monster ID

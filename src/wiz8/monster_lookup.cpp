@@ -8,7 +8,7 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id)
     W8MonsterGroup* group;
 
     for (index = 0; index < PListGetCount(g_monster_group_species_list); ++index) {
-        group = GetMonsterGroupByID(index);
+        group = GetMonsterGroupByListIndex(index);
         if (group->monster_id == monster_id) {
             goto found;
         }
@@ -51,7 +51,7 @@ W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* prev
         ++index;
     }
     for (; (unsigned int)index < PListGetCount(g_monster_group_species_list); ++index) {
-        group = GetMonsterGroupByID((unsigned int)index);
+        group = GetMonsterGroupByListIndex((unsigned int)index);
         if (group->monster_id == monster_id) {
             goto done;
         }
