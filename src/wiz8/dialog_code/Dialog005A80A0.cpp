@@ -15,8 +15,16 @@ struct W8DialogNotifyTarget {
     virtual void Notify(unsigned char reason, int value) = 0;
 };
 
+/* Table of message payloads the dialog is constructed against; the caller
+   passes an index into it. */
+extern void** g_dialog_message_table;    /* 0x0068C09C */
+
+/* Registers the dialog's region set. */
+extern void ActivateDialogRegion(int region_set);  /* 0x004F2040 */
+
 class W8DialogBase005D25B0 {
 public:
+    W8DialogBase005D25B0();              /* 0x005D25B0 */
     virtual ~W8DialogBase005D25B0();     /* 0x005D2610 */
 
 protected:
@@ -26,10 +34,17 @@ protected:
     unsigned char unknown_056[0x42];
 
     void BaseClose();                    /* 0x005D3080 */
+    void SetExtent(int width, int height);        /* 0x005DC9C0 */
+    void SetOrigin(int x, int y);                 /* 0x005DC9F0 */
+    void SetBackground(const char* path, int flags); /* 0x005DCA70 */
+    void SetClientExtent(int width, int height);  /* 0x005D2CB0 */
+    void SetMessage(void* payload, int a, int b, int c, int d,
+                    int e, int f, int g, int h);  /* 0x005D2800 */
 };                                       /* 0x98 */
 
 class W8Dialog005A80A0 : public W8DialogBase005D25B0 {
 public:
+    W8Dialog005A80A0(int message_index, int caption_id, int notify_value);
     virtual ~W8Dialog005A80A0();         /* 0x005A8190 */
     virtual void vslot1() = 0;
     virtual void vslot2() = 0;
@@ -45,6 +60,22 @@ private:
     int notify_value_98;                 /* 0x98 */
     W8DialogNotifyTarget* notify_target; /* 0x9c */
 };                                       /* 0xa0 */
+
+/* The base constructor runs first and the vtable install follows it, so the
+   body is just the two own fields and the dialog setup sequence. The /GX EH
+   frame comes from the base having a destructor: an exception in any setup
+   call has to unwind it. */
+// FUNCTION: WIZ8 0x005A80A0
+W8Dialog005A80A0::W8Dialog005A80A0(int message_index, int caption_id, int notify_value)
+    : notify_value_98(notify_value), notify_target(0)
+{
+    SetExtent(0xf0, 0xbe);
+    SetOrigin(0xa0, 100);
+    SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
+    SetClientExtent(0xfa, 200);
+    SetMessage(g_dialog_message_table[message_index], 1, 0x32, 1, caption_id, 1, 1, 0, 0x15e);
+    ActivateDialogRegion(0x138);
+}
 
 /* Restoring the vtable and tail-jumping to the base destructor is the whole
    body; the compiler generates the scalar deleting destructor at 0x005A8170

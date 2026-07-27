@@ -104,11 +104,22 @@ reviewed model already names recreates the duplicate-model problem the repo spen
 eliminating. Replace `void* vptr` with real virtuals when the body makes virtual calls, keep
 unreviewed regions opaque, and let `just verify-boundaries` falsify the layout.
 
-Worked example, end to end: `W8Dialog005A80A0` (vtable `0x005EEF6C`). Its vtable slot 9 at
-`0x005A81A0` was 61/61 bytes relocation-masked exact on the first build, proving the two own
-fields at `0x98`/`0x9c` and two base byte fields at `0x54`/`0x55`. The port needed no more than
-the struct offsets, an extern for the base method, and a one-virtual class for the notify target;
-the reviewed `layout_proof` cites it. Never track or `#include` the generated header itself.
+Worked example, end to end: `W8Dialog005A80A0` (vtable `0x005EEF6C`) has its whole lifecycle
+byte-proven — constructor 205/205, complete destructor 11/11, scalar deleting destructor 30/30,
+slot 9 `Close` 61/61. Three compiler lessons from it, all reusable:
+
+- An **empty derived destructor** over a correctly sized base emits exactly the canonical vtable
+  restore and tail jump, so a body with no user code still proves the vptr offset and base extent.
+- The **scalar deleting destructor is generated**, not written — matching it confirms the class is
+  polymorphic with its destructor in slot 0.
+- **Member initializers versus body assignments is visible in the output.** The constructor was
+  205/205 bytes with exactly one instruction misplaced, the implicit vptr store sitting before the
+  field stores instead of after. Moving the fields into the initializer list put them in the same
+  scheduling group as the vptr store and the body went to `0 differing`. When size and instruction
+  count match but one instruction is in the wrong place, look for a different *source shape*, not
+  a different algorithm.
+
+Never track or `#include` the generated header itself.
 
 Registering the port: add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` list in `CMakeLists.txt`,
 mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
@@ -124,7 +135,8 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
 - `just wiz8 polymorphism --update-snapshot` refreshes the census (and its
   `allocation_sizes`); `just wiz8 report data-segmentation --update-snapshot` refreshes the unit
   data intervals. Both need `WIZ8_WORK_DIR` binaries and gate byte-for-byte otherwise.
-- Full background: `docs/wiz8-class-candidates.md`.
+- Full background: `docs/wiz8-class-candidates.md`; the long-form procedure with the
+  reasoning and failure modes is `docs/wiz8-class-recovery-procedure.md`.
 
 ## Pitfalls
 
