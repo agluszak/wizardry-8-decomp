@@ -25,6 +25,7 @@ extern void Function4E3C70(W8MonsterInfo* monster_info);     /* 0x004E3C70 */
 extern void Function4C5730(W8Monster* monster, W8Position* position); /* 0x004C5730 */
 extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
 extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
+extern void Function4C7F10(const char* sound_file, int value);        /* 0x004C7F10 */
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
                            int value);                       /* 0x00547570 */
 extern unsigned char g_flag_683f94;
@@ -815,4 +816,27 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
         }
     }
     return 0;
+}
+
+/* Gives every live group whose lead member has no cycle-24 runtime the default
+   sound set. The list length is read once up front, and the lead member is
+   fetched for every group even though only the flagged ones use it. */
+// FUNCTION: WIZ8 0x005108C0
+void ApplyDefaultMonsterGroupSounds(void)
+{
+    unsigned int count;
+    unsigned int group_list_index;
+    W8MonsterGroup* monster_group;
+    W8MonsterInfo* lead;
+
+    count = PListGetCount(g_monster_group_list);
+    for (group_list_index = 0; group_list_index < count; ++group_list_index) {
+        monster_group = GetMonsterGroupByListIndex(group_list_index);
+        lead = MonsterInfoFromID(
+            0x501, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+        if (monster_group->flag_c3 != 0 &&
+            lead->monster->m_cycles[24].runtime == 0) {
+            Function4C7F10("Default.MSF", 1);
+        }
+    }
 }
