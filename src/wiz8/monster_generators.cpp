@@ -2,6 +2,12 @@
 #include <math.h>
 #include "wiz8/vector.h"
 
+/* Declared rather than pulled in from the vendored SGP FileMan.h: that header
+   is C and including it here re-declares the CRT wide-string overloads with C
+   linkage. The signature is the header's, spelled out. */
+extern "C" unsigned char FileWrite(int handle, void* source, unsigned int size,
+                                  unsigned int* written);
+
 #include <string.h>
 
 // FUNCTION: WIZ8 0x0048BDC0
@@ -46,7 +52,10 @@ extern void Function49FA30(W8World* world);                  /* 0x0049FA30 */
 extern int Function43A5D0(void);                             /* 0x0043A5D0 */
 extern unsigned char Function48B200(int value);              /* 0x0048B200 */
 extern void Function48B420(void);                            /* 0x0048B420 */
-extern void GenerateEncounter(unsigned char* encounter_state); /* 0x0048AD20 */
+extern void GenerateEncounter(void* encounter_state);         /* 0x0048AD20 */
+extern void DestroyEncounterTable(W8EncounterTableRuntime* table); /* 0x0048AC60 */
+extern void Function43A770(int handle);                      /* 0x0043A770 */
+extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
 
 /* Ten hours of game time. Past that the elapsed span is not distributed over
    the live groups at all - a fresh roll replaces them instead. */
@@ -224,6 +233,26 @@ void AddMonsterGenerator(W8MonsterGenerator* generator)
     ++generators->count;
 }
 
+/* Releases one generator and everything it hangs off itself. Both the list
+   teardown and the single remove compile this, so it is written once.
+   The world is notified only when the generator was holding the flag it clears,
+   which is why the notify sits inside the first pointer's guard rather than
+   beside it. */
+static __inline void DestroyMonsterGeneratorInline(W8MonsterGenerator* generator)
+{
+    if (generator != 0) {
+        if (generator->node_18 != 0) {
+            if ((generator->flags >> 2 & 1) != 0) {
+                generator->flags &= ~4u;
+                Function49FA30(g_world);
+            }
+            delete generator->node_18;
+        }
+        delete generator->node_20;
+        ::operator delete(generator);
+    }
+}
+
 /* Destroys every generator and empties the list. The count is taken once up
    front and the list is emptied by resetting it rather than by removing
    elements, so the walk indexes an array it is deleting out of - which is safe
@@ -240,18 +269,7 @@ void DestroyMonsterGenerators(void)
         return;
     }
     for (index = 0; index < count; ++index) {
-        generator = *g_world->monster_generators->GetAt(index);
-        if (generator != 0) {
-            if (generator->node_18 != 0) {
-                if ((generator->flags >> 2 & 1) != 0) {
-                    generator->flags &= ~4u;
-                    Function49FA30(g_world);
-                }
-                delete generator->node_18;
-            }
-            delete generator->node_20;
-            ::operator delete(generator);
-        }
+        DestroyMonsterGeneratorInline(*g_world->monster_generators->GetAt(index));
     }
     g_world->monster_generators->Clear();
 }
@@ -270,9 +288,125 @@ void RunMonsterGenerators(void)
         generator = *g_world->monster_generators->GetAt(index);
         if (generator->node_20 != 0 && Function43A5D0() != 0) {
             if (Function48B200(0) != 0) {
-                GenerateEncounter(generator->encounter_state);
+                GenerateEncounter(&generator->state_0c);
             }
             Function48B420();
         }
     }
+}
+
+/* Releases every loaded encounter table and every table name, and marks no
+   level loaded. Both walks re-read their base pointer and count from memory
+   each iteration, because destroying a table can reallocate neither but the
+   original reloads them anyway. */
+// FUNCTION: WIZ8 0x0048A710
+void UnloadEncounterTables(void)
+{
+    W8EncounterTableRuntime* table;
+    int index;
+
+    for (index = 0; index < static_cast<int>(g_encounter_table_count); ++index) {
+        table = index < static_cast<int>(g_encounter_table_count)
+                    ? g_encounter_tables[index]
+                    : g_encounter_tables[0];
+        if (table != 0) {
+            DestroyEncounterTable(table);
+            ::operator delete(table);
+        }
+    }
+    g_encounter_table_count = 0;
+    for (index = 0; index < static_cast<int>(g_encounter_name_count); ++index) {
+        ::operator delete(index < static_cast<int>(g_encounter_name_count)
+                              ? g_encounter_names[index]
+                              : g_encounter_names[0]);
+    }
+    g_encounter_name_count = 0;
+    g_encounter_tables_level = -1;
+}
+
+/* Writes the world's generators to a save. The record version goes out first,
+   then a shared flag byte, then the count, and then each generator as its name,
+   its trailing flag, its own flag word and whatever 0x0043A770 appends. */
+// FUNCTION: WIZ8 0x0048C3B0
+void SaveMonsterGenerators(int handle)
+{
+    W8MonsterGenerator* generator;
+    int count;
+    int version;
+    int index;
+
+    version = 3;
+    count = g_world->monster_generators->GetCount();
+    FileWrite(handle, &version, 4, 0);
+    FileWrite(handle, &g_generator_save_flag, 1, 0);
+    FileWrite(handle, &count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        generator = *g_world->monster_generators->GetAt(index);
+        FileWrite(handle, generator->name, 0x20, 0);
+        FileWrite(handle, &generator->flag_44, 1, 0);
+        FileWrite(handle, &generator->flags, 4, 0);
+        Function43A770(handle);
+    }
+}
+
+/* Writes one generator to a save, field by field rather than as a block: the
+   record on disk is narrower than the structure and skips +0x05, +0x0A and
+   +0x18. The leading byte is written uninitialised - a one-byte local the
+   original never assigns. Preserved as found. */
+// FUNCTION: WIZ8 0x0048B520
+void SaveMonsterGenerator(W8MonsterGenerator* generator, int handle)
+{
+    unsigned char leading;
+
+    FileWrite(handle, &leading, 1, 0);
+    FileWrite(handle, generator->name, 0x20, 0);
+    FileWrite(handle, &generator->flag_44, 1, 0);
+    FileWrite(handle, &generator->flags, 4, 0);
+    FileWrite(handle, &generator->flag_04, 1, 0);
+    FileWrite(handle, &generator->value_06, 2, 0);
+    FileWrite(handle, &generator->value_08, 2, 0);
+    FileWrite(handle, &generator->state_0c, 4, 0);
+    FileWrite(handle, &generator->state_10, 4, 0);
+    FileWrite(handle, &generator->state_14, 4, 0);
+    FileWrite(handle, &generator->value_1c, 4, 0);
+    Function43A770(handle);
+}
+
+/* Removes one generator from the world's list by identity and destroys it. The
+   search stops at the first match and the tail is shifted down over it; a
+   generator that is not in the list is left alone entirely, so this is safe to
+   call on one that has already been removed. */
+// FUNCTION: WIZ8 0x0048BEB0
+void RemoveMonsterGenerator(W8MonsterGenerator* generator)
+{
+    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
+    W8MonsterGenerator** scan;
+    W8MonsterGenerator* removed;
+    int index = 0;
+
+    if (generators->count <= 0) {
+        return;
+    }
+    scan = generators->data;
+    while (*scan != generator) {
+        ++index;
+        ++scan;
+        if (index >= generators->count) {
+            return;
+        }
+    }
+    if (index == -1 || index >= generators->count) {
+        return;
+    }
+    removed = *generators->GetAt(index);
+    if (index < generators->count && index >= 0) {
+        if (index < generators->count - 1) {
+            do {
+                generators->data[index] = generators->data[index + 1];
+                ++index;
+            } while (index < generators->count - 1);
+        }
+        --generators->count;
+    }
+    DestroyMonsterGeneratorInline(removed);
 }

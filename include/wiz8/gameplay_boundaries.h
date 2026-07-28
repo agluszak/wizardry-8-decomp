@@ -232,13 +232,21 @@ public:
 
 typedef struct W8MonsterGenerator {
     unsigned int flags;                   /* 0x00: bit 2 is cleared on teardown */
-    unsigned char unknown_04[8];
-    /* 0x0c: the block GenerateEncounter is handed. */
-    unsigned char encounter_state[0xc];
+    unsigned char flag_04;                /* 0x04 */
+    unsigned char unknown_05;
+    unsigned short value_06;              /* 0x06 */
+    unsigned short value_08;              /* 0x08 */
+    unsigned char unknown_0a[2];
+    /* 0x0c..0x14: three dwords, saved individually and handed to
+       GenerateEncounter as a block. */
+    int state_0c;
+    int state_10;
+    int state_14;
     W8MonsterGeneratorNode* node_18;      /* 0x18 */
-    unsigned char unknown_1c[4];
+    int value_1c;                         /* 0x1c */
     W8MonsterGeneratorNode* node_20;      /* 0x20 */
     char name[32];                        /* 0x24 */
+    unsigned char flag_44;                /* 0x44: written to the save after the name */
 } W8MonsterGenerator;
 
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
@@ -582,6 +590,10 @@ extern unsigned int g_item_table_count;
 extern char** g_item_table_category_names;
 extern unsigned int g_item_table_category_count;
 extern W8EncounterTableRuntime** g_encounter_tables;
+extern char** g_encounter_names;
+extern unsigned int g_encounter_name_count;
+/* 0x0060A6BC: the level whose encounter tables are loaded, -1 when none are. */
+extern int g_encounter_tables_level;
 extern unsigned int g_encounter_table_count;
 extern W8LevelDatabaseRecord* g_level_records;
 extern int g_level_record_count;
