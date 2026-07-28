@@ -137,6 +137,42 @@ enum { W8_WEAPON_SKILL_NONE = 0xff };
    off-hand pair, and the rest are worn rather than held. */
 enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+/* 0x0068C108: one lazily built generic name per unidentified-name index, and
+   0x0061E810: the notice each index formats from. The table's extent is the
+   pointer bound the release walk stops at. */
+enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
+extern W8WideChar* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
+extern const unsigned short g_generic_item_name_notice[];
+extern unsigned char g_item_taken_from_pool_006874ca;
+extern int g_held_item_source_006840c0;
+extern unsigned char g_held_item_origin_006840c4;
+extern unsigned short g_held_item_slot_006840c5;
+
+extern void ReleaseItemNameFormatter(void);                  /* 0x0055CE40 */
+extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
+extern void ShowNotice(void* notice, int a, int b, int c);   /* 0x0055F260 */
+extern void ClearHeldItemDisplay(void);                      /* 0x0055F1E0 */
+extern void ReplaceOrCreateItem(
+    W8ItemInstance* item, int item_id, int count, unsigned char quality, int arg_5);
+extern void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
+/* 0x0051FE30 */
+extern unsigned char CanCharacterActivateItem(
+    W8Character* character, const W8ItemInstance* item);     /* 0x0051D800 */
+extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
+extern int Function40A910(const char* path);
+extern void PlaySound(const char* path, int flags);
+extern void WriteGameLog(int channel, const wchar_t* format, ...);
+extern wchar_t* FormatWideString(const wchar_t* format, ...);
+extern void Function58AC00(int channel, void* message);
+/* 0x00686A70 and 0x00686B7D: the running tallies gold is credited into,
+   one 0x21-byte row each. */
+extern int g_gold_tally_index_00686a70;
+extern int g_gold_tally_rows_00686b7d[];
+
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
 extern unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id);
@@ -676,4 +712,179 @@ void GetOriginOfCharacterItem(
 
     *origin = 0xff;
     *slot = 0xffff;
+}
+
+
+/* Throw away every lazily built generic name. The walk is bounded by the
+   address just past the table rather than by a count. */
+// FUNCTION: WIZ8 0x0051B580
+void ReleaseGenericItemNames(void)
+{
+    W8WideChar** name;
+
+    ReleaseItemNameFormatter();
+    for (name = g_generic_item_names;
+         name < g_generic_item_names + W8_GENERIC_ITEM_NAME_COUNT;
+         ++name) {
+        if (*name != 0) {
+            free(*name);
+            *name = 0;
+        }
+    }
+}
+
+/* What to call an item. An identified one is called by its own name, which
+   leads its record - so the record address is the name address. An
+   unidentified one is called by the generic name its index shares, built once
+   on first use and kept. */
+// FUNCTION: WIZ8 0x0051B7B0
+W8WideChar* GetItemDisplayName(const W8ItemInstance* item)
+{
+    unsigned int name_index;
+    W8WideChar* built;
+
+    if (item->identified != 0) {
+        return g_item_records[item->item_id].display_name;
+    }
+
+    name_index = g_item_records[item->item_id].unidentified_name_index;
+    if (g_generic_item_names[name_index] == 0) {
+        built = (W8WideChar*)malloc(0x78);
+        g_generic_item_names[name_index] = built;
+        swprintf((wchar_t*)built, (const wchar_t*)g_notices[0x79c / 4],
+                 g_notices[g_generic_item_name_notice[name_index]]);
+    }
+    return g_generic_item_names[name_index];
+}
+
+/* Drop whatever is in hand, unless it is one of the items that may not be
+   discarded - in which case say so instead. */
+// FUNCTION: WIZ8 0x0051BE50
+bool DropItemInHand(int arg_1)
+{
+    if ((g_item_records[g_item_in_hand.item_id].flags_041 & W8_ITEM_FLAG_NO_DISCARD) != 0) {
+        ShowNotice(g_notices[0x13bc / 4], 0, 1, 0);
+        return false;
+    }
+    DropHeldItem(arg_1);
+    return true;
+}
+
+/* Conjure one item and put it either straight into the party pool or into the
+   hand, depending on where the last one was taken from. */
+// FUNCTION: WIZ8 0x0051BF60
+void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
+{
+    W8ItemInstance created;
+
+    g_held_item_source_006840c0 = -1;
+    g_held_item_origin_006840c4 = 0xff;
+    g_held_item_slot_006840c5 = 0xffff;
+    ClearHeldItemDisplay();
+    ReplaceOrCreateItem(&created, item_id, 1, quality, 0);
+    if (g_item_taken_from_pool_006874ca != 0) {
+        AddItemToParty(&created, 0, 0);
+        return;
+    }
+    MoveItem(&g_item_in_hand, &created, 0, 1);
+}
+
+/* How many of a character's twenty item slots hold something they could use
+   right now - the twelve worn and the eight carried, walked as two runs
+   rather than one. */
+// FUNCTION: WIZ8 0x0051F870
+int CountUsableCharacterItems(W8Character* character)
+{
+    int count = 0;
+    int index;
+
+    for (index = 0; index < 12; ++index) {
+        if (CanCharacterActivateItem(character, &character->equipment[index])) {
+            ++count;
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        if (CanCharacterActivateItem(character, &character->backpack[index])) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+/* Whether an item's class is one of the three the target rules normalize for.
+   The classes here are above the thirteen the equip-slot switch enumerates,
+   so the class domain is wider than that switch covers. */
+// FUNCTION: WIZ8 0x005207C0
+bool ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record)
+{
+    unsigned char equip_class = record->equip_class;
+
+    if (equip_class != 0x10 && (equip_class < 0x15 || equip_class > 0x16)) {
+        return false;
+    }
+    return true;
+}
+
+/* Whether one item sits in a character's equipment, excluding the two
+   alternate-set hand slots - a slot in that set answers no even though the
+   item is found there. */
+// FUNCTION: WIZ8 0x00520F20
+bool IsItemWornByCharacter(W8Character* character, const W8ItemInstance* item)
+{
+    unsigned int slot;
+
+    if (character == 0) {
+        return false;
+    }
+    for (slot = 0; slot < 12; ++slot) {
+        if (&character->equipment[slot] == item) {
+            return slot != W8_EQUIP_SLOT_ALTERNATE_RIGHT &&
+                   slot != W8_EQUIP_SLOT_ALTERNATE_LEFT;
+        }
+    }
+    return false;
+}
+
+/* Whether one item sits in a character's own carried slots. */
+// FUNCTION: WIZ8 0x00520F60
+bool IsItemCarriedByCharacter(W8Character* character, const W8ItemInstance* item)
+{
+    unsigned int slot;
+
+    if (character == 0) {
+        return false;
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        if (&character->backpack[slot] == item) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Give gold to the party. It goes into the purse and into whichever running
+   tally is open, and announcing it plays the coin sound - copied to the stack
+   first because the sound call takes a writable path. */
+// FUNCTION: WIZ8 0x0051BEA0
+void AddPartyGold(int amount, char announce)
+{
+    char sound_path[32];
+    wchar_t* line;
+
+    strcpy(sound_path, "Data\Sound\Misc\ChaChing.wav");
+
+    g_party_gold += amount;
+    if (g_gold_tally_index_00686a70 < 0x2f) {
+        g_gold_tally_rows_00686b7d[g_gold_tally_index_00686a70 * 0x21 / 4] += amount;
+    }
+
+    if (announce) {
+        line = FormatWideString((const wchar_t*)g_notices[0x788 / 4],
+                                g_notices[0x57c / 4], amount, g_notices[0x580 / 4],
+                                -1, -1, 0);
+        Function58AC00(8, line);
+        if (!Function40A910(sound_path)) {
+            PlaySound(sound_path, 0);
+        }
+    }
 }
