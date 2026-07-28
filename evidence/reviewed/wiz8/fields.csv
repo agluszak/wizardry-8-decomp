@@ -479,3 +479,21 @@ wiz8,W8GrowableVector<W8VectorElement005ECF00 *>,0x4,0x4,count,int32,,exact,clas
 wiz8,W8GrowableVector<W8VectorElement005ECF00 *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECF00 *>,"allocated element capacity, five at the factory's default"
 wiz8,W8GrowableVector<W8VectorElement005ECF00 *>,0xc,0x4,data,pointer,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECF00 *>,"element storage, four bytes per element; the element type is unproven and so is not modelled as a class"
 wiz8,W8Vector005ECF00,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector005ECF00,W8GrowableVector<W8VectorElement005ECF00 *> subobject; the derived class adds nothing
+wiz8,W8HorizontalRangeThumb005ED66C,0x34,0x4,render_arg_0,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor and sprite measurement forward this first normal-render argument
+wiz8,W8HorizontalRangeThumb005ED66C,0x38,0x4,render_arg_1,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor and sprite measurement forward this second normal-render argument
+wiz8,W8HorizontalRangeThumb005ED66C,0x3c,0x4,normal_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor measures this normal sprite for widget bounds
+wiz8,W8HorizontalRangeThumb005ED66C,0x40,0x4,thumb_render_arg_0,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor uses this handle while measuring the movable thumb
+wiz8,W8HorizontalRangeThumb005ED66C,0x44,0x4,thumb_render_arg_1,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor retains this second thumb-render argument
+wiz8,W8HorizontalRangeThumb005ED66C,0x48,0x4,thumb_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor retains the third thumb-render argument
+wiz8,W8HorizontalRangeThumb005ED66C,0x4c,0x4,track_length,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,all position methods scale normalized motion by this horizontal travel
+wiz8,W8HorizontalRangeThumb005ED66C,0x50,0x4,thumb_width,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor measures this width and drag hit testing uses half or all of it
+wiz8,W8HorizontalRangeThumb005ED66C,0x54,0x4,pixel_position,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,normalized position is converted into this horizontal pixel coordinate
+wiz8,W8HorizontalRangeThumb005ED66C,0x58,0x4,drag_coordinate,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,BeginDrag stores cursor X and UpdateDrag converts later differences into motion
+wiz8,W8HorizontalRangeThumb005ED66C,0x5c,0x1,hovered,uint8,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,hit testing and non-drag clearing maintain this hover state
+wiz8,W8HorizontalRangeThumb005ED66C,0x5d,0x1,dragging,uint8,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,BeginDrag raises and EndDrag clears this capture state
+wiz8,W8HorizontalRangeThumb005ED66C,0x5e,0x2,pad_5e,bytes,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,padding before aligned float endpoints
+wiz8,W8HorizontalRangeThumb005ED66C,0x60,0x4,minimum_position,float,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,lower normalized clamp initialized to zero
+wiz8,W8HorizontalRangeThumb005ED66C,0x64,0x4,maximum_position,float,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,upper normalized clamp initialized to one
+wiz8,W8HorizontalRangeThumb005ED66C,0x68,0x4,position,float,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,current normalized position updated by cursor motion
+wiz8,W8HorizontalRangeThumb005ED66C,0x6c,0x4,listener,pointer,W8HorizontalRangeThumbListener,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,drag updates call listener slot zero and drag completion calls slot one
+wiz8,W8HorizontalRangeThumbListener,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8HorizontalRangeThumbListener,two indirect calls through slots zero and one prove a polymorphic listener interface

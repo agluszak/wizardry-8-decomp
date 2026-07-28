@@ -129,6 +129,8 @@ extern unsigned int g_W8TextControlMask005ED56C;
 extern unsigned int g_W8TextControlMask005ED570;
 extern void Function558720(int sound_id);
 extern void Function5587C0(int a, int b);
+extern void Function4284F0(int* coordinates);
+extern void Function4F2040(unsigned int region);
 
 typedef void (*W8ControlCallback)();
 
@@ -1426,71 +1428,200 @@ void W8HelpTextControl005ED758::InvokeBlurCallback()
     W8TextControl005ED604::InvokeBlurCallback();
 }
 
-/*
- * A widget at vtable 0x005ED66C that sizes itself to its text. It hands the
- * base a degenerate rectangle - left and top from its arguments, right and
- * bottom zero - then measures and writes the real right and bottom back over
- * them before rebinding the region to the corrected bounds.
- *
- * It carries two handle triples, at +0x34 and +0x40. The first is what the
- * initial measure sizes the widget from; the second measure mixes them, taking
- * the first two of one and the first of the other, and what that produces is
- * kept at +0x50 with the leftover width at +0x4c. Nothing here says what the
- * triples are, only that the measure consumes three at a time.
- */
-class W8Control005ED66C : public W8WidgetBase005ED5BC {
+/* The vtable at 0x005ED66C is the horizontal draggable range thumb. Its
+   constructor measures the normal sprite for the widget bounds, then measures
+   the movable thumb sprite and retains the remaining horizontal travel at
+   +0x4c. The interaction methods independently prove that geometry: cursor X
+   is converted through +0x4c into the normalized float range +0x60..+0x68. */
+class W8HorizontalRangeThumb005ED66C;
+
+class W8HorizontalRangeThumbListener {
 public:
-    W8Control005ED66C(Controls* panel, unsigned int region, int left, int top,
-                      int a0, int a1, int a2, int b0, int b1, int b2);
+    virtual void OnDrag(W8HorizontalRangeThumb005ED66C* thumb) = 0;
+    virtual void OnDragEnd(W8HorizontalRangeThumb005ED66C* thumb) = 0;
+};
+
+class W8HorizontalRangeThumb005ED66C : public W8WidgetBase005ED5BC {
+public:
+    W8HorizontalRangeThumb005ED66C(Controls* panel, unsigned int region, int left, int top,
+                                   int render_arg_0, int render_arg_1, int normal_sprite,
+                                   int thumb_render_arg_0, int thumb_render_arg_1,
+                                   int thumb_sprite);
+    void UpdatePixelPosition();
+    void BeginDrag(int event);
+    void EndDrag(int event);
+    void ClearHover(unsigned char immediate);
+    void UpdateDrag(int event);
 
 protected:
-    int m_a0;                            /* 0x34 */
-    int m_a1;                            /* 0x38 */
-    int m_a2;                            /* 0x3c */
-    int m_b0;                            /* 0x40 */
-    int m_b1;                            /* 0x44 */
-    int m_b2;                            /* 0x48 */
-    int m_slack_4c;                      /* 0x4c: width left over after the second measure */
-    int m_measured_50;                   /* 0x50 */
-    int m_field_54;
-    unsigned char unknown_58[4];
-    unsigned char m_flag_5c;
-    unsigned char m_flag_5d;
+    int m_renderArg0;                    /* 0x34 */
+    int m_renderArg1;                    /* 0x38 */
+    int m_normalSprite;                  /* 0x3c */
+    int m_thumbRenderArg0;               /* 0x40 */
+    int m_thumbRenderArg1;               /* 0x44 */
+    int m_thumbSprite;                   /* 0x48 */
+    int m_trackLength;                   /* 0x4c: horizontal travel */
+    int m_thumbWidth;                    /* 0x50 */
+    int m_pixelPosition;                 /* 0x54 */
+    int m_dragCoordinate;                /* 0x58 */
+    unsigned char m_hovered;             /* 0x5c */
+    unsigned char m_dragging;            /* 0x5d */
     unsigned char pad_5e[2];
-    int m_field_60;
-    float m_scale_64;                    /* 0x64: 1.0f */
-    int m_field_68;
-    int m_field_6c;
+    float m_minimumPosition;             /* 0x60 */
+    float m_maximumPosition;             /* 0x64 */
+    float m_position;                    /* 0x68 */
+    W8HorizontalRangeThumbListener* m_listener; /* 0x6c */
+
+    __forceinline void InvalidateThumb()
+    {
+        if (m_pPanel != 0) {
+            m_flag_6 = 1;
+            m_pPanel->m_fLayoutDirty = 1;
+            Function562A50(0x80000000);
+            Function562A50(0x80000000);
+        }
+    }
+
+    __forceinline void ClampPositionAndInvalidate()
+    {
+        if (m_position < m_minimumPosition) {
+            m_position = m_minimumPosition;
+        }
+        if (m_maximumPosition < m_position) {
+            m_position = m_maximumPosition;
+        }
+        m_pixelPosition = (int)(((m_position - m_minimumPosition) /
+                                 (m_maximumPosition - m_minimumPosition)) *
+                                m_trackLength);
+        InvalidateThumb();
+    }
 };
 
 // FUNCTION: WIZ8 0x004F5620
-W8Control005ED66C::W8Control005ED66C(Controls* panel, unsigned int region, int left, int top,
-                                     int a0, int a1, int a2, int b0, int b1, int b2)
+W8HorizontalRangeThumb005ED66C::W8HorizontalRangeThumb005ED66C(
+    Controls* panel, unsigned int region, int left, int top,
+    int render_arg_0, int render_arg_1, int normal_sprite,
+    int thumb_render_arg_0, int thumb_render_arg_1, int thumb_sprite)
     : W8WidgetBase005ED5BC(panel, region, left, top, 0, 0)
 {
     short width;
     short height;
 
-    m_b0 = b0;
-    m_b1 = b1;
-    m_b2 = b2;
-    m_a0 = a0;
-    m_a1 = a1;
-    m_a2 = a2;
-    m_field_54 = 0;
-    m_flag_5c = 0;
-    m_flag_5d = 0;
-    m_field_60 = 0;
-    m_scale_64 = 1.0f;
-    m_field_68 = 0;
-    m_field_6c = 0;
-    Function549660(a0, a1, a2, &width, &height);
+    m_thumbRenderArg0 = thumb_render_arg_0;
+    m_thumbRenderArg1 = thumb_render_arg_1;
+    m_thumbSprite = thumb_sprite;
+    m_renderArg0 = render_arg_0;
+    m_renderArg1 = render_arg_1;
+    m_normalSprite = normal_sprite;
+    m_pixelPosition = 0;
+    m_hovered = 0;
+    m_dragging = 0;
+    m_minimumPosition = 0.0f;
+    m_maximumPosition = 1.0f;
+    m_position = 0.0f;
+    m_listener = 0;
+    Function549660(render_arg_0, render_arg_1, normal_sprite, &width, &height);
     m_right = (unsigned short)width + m_left;
     m_bottom = m_top + (unsigned short)height;
     SetRegion(m_region_18);
-    Function549660(m_a0, m_a1, m_b0, &width, &height);
-    m_measured_50 = (unsigned short)width;
-    m_slack_4c = (m_right - m_left) - (unsigned short)width;
+    Function549660(m_renderArg0, m_renderArg1, m_thumbRenderArg0, &width, &height);
+    m_thumbWidth = (unsigned short)width;
+    m_trackLength = (m_right - m_left) - (unsigned short)width;
+}
+
+// FUNCTION: WIZ8 0x004F5710
+void W8HorizontalRangeThumb005ED66C::UpdatePixelPosition()
+{
+    ClampPositionAndInvalidate();
+}
+
+// FUNCTION: WIZ8 0x004F5780
+void W8HorizontalRangeThumb005ED66C::BeginDrag(int event)
+{
+    Function5587C0(0, 1);
+    if (m_flag_4 != 0) {
+        int cursor[2];
+        Function4284F0(cursor);
+        int x = cursor[0] - m_pPanel->origin_x - m_left;
+        if (m_hovered == 0) {
+            m_hovered = 1;
+            m_position = ((float)(x - m_thumbWidth / 2) / (float)m_trackLength) *
+                         (m_maximumPosition - m_minimumPosition) + m_minimumPosition;
+            ClampPositionAndInvalidate();
+            if (m_listener != 0) {
+                m_listener->OnDrag(this);
+            }
+        }
+        m_dragCoordinate = x;
+        m_dragging = 1;
+        Function4F2040(m_region_18);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5880
+void W8HorizontalRangeThumb005ED66C::EndDrag(int event)
+{
+    Function5587C0(0, 1);
+    if (m_flag_4 != 0 && m_dragging != 0) {
+        m_dragging = 0;
+        ClearActiveRegionIfMatches(m_region_18);
+        if (m_listener != 0) {
+            m_listener->OnDragEnd(this);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F58D0
+void W8HorizontalRangeThumb005ED66C::ClearHover(unsigned char immediate)
+{
+    Function5587C0(0, 1);
+    if (m_hovered != 0 && m_dragging == 0) {
+        m_hovered = 0;
+        if (m_pPanel != 0) {
+            m_flag_6 = 1;
+            if (immediate != 0) {
+                m_pPanel->Invalidate((unsigned char)0);
+                Function562A50(0x80000000);
+                return;
+            }
+            m_pPanel->m_fLayoutDirty = 1;
+            Function562A50(0x80000000);
+            Function562A50(0x80000000);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5940
+void W8HorizontalRangeThumb005ED66C::UpdateDrag(int event)
+{
+    if (m_flag_4 == 0) {
+        return;
+    }
+
+    int cursor[2];
+    Function4284F0(cursor);
+    int x = cursor[0] - m_pPanel->origin_x - m_left;
+    if (m_dragging != 0) {
+        if (x < 0 || m_trackLength + m_thumbWidth / 2 < x) {
+            return;
+        }
+        int delta = x - m_dragCoordinate;
+        m_dragCoordinate = x;
+        m_position += ((float)delta / (float)m_trackLength) *
+                      (m_maximumPosition - m_minimumPosition);
+        ClampPositionAndInvalidate();
+        if (m_listener != 0) {
+            m_listener->OnDrag(this);
+        }
+        return;
+    }
+
+    unsigned char hovered =
+        (m_pixelPosition <= x && x <= m_pixelPosition + m_thumbWidth);
+    if (m_hovered != hovered && m_pPanel != 0) {
+        InvalidateThumb();
+    }
+    m_hovered = hovered;
 }
 
 /*
