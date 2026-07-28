@@ -1,60 +1,98 @@
-#include "wiz8/gameplay_boundaries.h"
-#include "wiz8/sr_api.h"
+#include "wiz8/engine_code/BitArray.h"
 
-/* Engine Code\Octree.cpp. The member names, and the UINT16/UINT32 split between
-   the loaded counters and the totals, come from the canonical assertion
-   expressions at lines 1157 and 1181; their messages name the class "Octree".
-   Offsets come from the asserting bodies. Everything else stays opaque.
-   This is the porting model of the reviewed Octree class in
-   evidence/reviewed/wiz8/classes.csv, which owns the class facts; the W8
-   prefix is the porting convention for classes.csv names. */
-struct W8Octree {
-    unsigned char unknown_000[0xc4];
-    unsigned char m_fAccumulating;          /* 0x0c4: gates both accumulators */
-    unsigned char unknown_0c5[0x33];
-    unsigned int m_ulNumParticles;          /* 0x0f8 */
-    unsigned char unknown_0fc[0x18];
-    void** m_papProps;                      /* 0x114 */
-    void** m_papParticles;                  /* 0x118 */
-    unsigned short m_usNumPropsLoaded;      /* 0x11c */
-    unsigned short m_usNumParticlesLoaded;  /* 0x11e */
-    unsigned char unknown_120[0x68];
-    unsigned int m_ulNumProps;              /* 0x188 */
+/*
+ * Engine Code\Octree.cpp.
+ *
+ * The visit marking a traversal uses to avoid walking the same node twice, and
+ * three thin wrappers over the shared traversal entry points.
+ */
 
-    void AddLoadedProp(void* prop);
-    void AddLoadedParticle(void* particle);
+/* The octree walker. Only the two fields the visit marking reaches are
+   established: the running mark and the bit array it is checked against. */
+class W8OctreeWalker {
+public:
+    unsigned char unknown_000[0x184];
+    /* 0x184: the base this walk's marks are counted from. A negative offset
+       resets it from the shared counter instead of advancing it. */
+    int mark_base;
+    unsigned char unknown_188[4];
+    /* 0x18c: the visited set. With no set attached nothing is ever reported
+       as already seen. */
+    BitArray* visited;
 };
 
-// FUNCTION: WIZ8 0x0042E440
-void W8Octree::AddLoadedProp(void* prop)
+/* The node whose 0x1c is non-null is the only kind worth attaching. */
+extern int g_shared_mark_006598ac;
+
+extern void OctreeTraverse(
+    void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
+extern void OctreeVisitPoint(void* walker, const float* point);              /* 0x0042E540 */
+extern void OctreeQueue(int kind, int id, const int* point);                 /* 0x00437000 */
+extern float OctreeNextCoordinate(void);
+
+/* Attach a visited set to the walker, but only one that has been built. */
+// FUNCTION: WIZ8 0x0042E3E0
+void W8OctreeWalker_SetVisitedSet(W8OctreeWalker* walker, BitArray* visited)
 {
-    if (m_fAccumulating) {
-        if (m_usNumPropsLoaded >= (unsigned short)m_ulNumProps) {
-            srAssertFail(
-                "m_usNumPropsLoaded<(UINT16)m_ulNumProps",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp",
-                0x485,
-                "Too many props loaded for Octree");
-        }
-        m_papProps[m_usNumPropsLoaded] = prop;
-        m_usNumPropsLoaded++;
-        m_papProps[m_usNumPropsLoaded] = 0;
+    if (visited->puiIndex != 0) {
+        walker->visited = visited;
     }
 }
 
-// FUNCTION: WIZ8 0x0042E4C0
-void W8Octree::AddLoadedParticle(void* particle)
+/* Advance or reset the walk's mark. A negative offset takes the shared
+   counter's value as this walk's base; anything else advances the shared
+   counter and reports whether that mark has already been visited - which with
+   no set attached is always no. */
+// FUNCTION: WIZ8 0x0042E400
+int W8OctreeWalker_MarkVisited(W8OctreeWalker* walker, int offset)
 {
-    if (m_fAccumulating) {
-        if (m_usNumParticlesLoaded >= (unsigned short)m_ulNumParticles) {
-            srAssertFail(
-                "m_usNumParticlesLoaded<(UINT16)m_ulNumParticles",
-                "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp",
-                0x49d,
-                "Too many particles loaded for Octree");
-        }
-        m_papParticles[m_usNumParticlesLoaded] = particle;
-        m_usNumParticlesLoaded++;
-        m_papParticles[m_usNumParticlesLoaded] = 0;
+    if (offset < 0) {
+        walker->mark_base = g_shared_mark_006598ac;
+        return 0;
     }
+    g_shared_mark_006598ac = walker->mark_base + offset;
+    if (walker->visited != 0 && walker->visited->Test(g_shared_mark_006598ac)) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Visit a point handed over by address, copied to the stack first so the
+   caller's copy is not the one the traversal holds. */
+// FUNCTION: WIZ8 0x0042E620
+void W8OctreeWalker_VisitPointCopy(void* walker, const float* point)
+{
+    float copy[3];
+
+    copy[0] = point[0];
+    copy[1] = point[1];
+    copy[2] = point[2];
+    OctreeVisitPoint(walker, copy);
+}
+
+/* Start a traversal of the twelfth kind. A limit of zero means no limit, which
+   is what the -1 stands for. */
+// FUNCTION: WIZ8 0x0042EF00
+void OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3, unsigned short limit)
+{
+    unsigned int bound = (unsigned int)-1;
+
+    if (limit != 0) {
+        bound = limit;
+    }
+    OctreeTraverse(walker, arg_2, arg_3, 0xc, bound);
+}
+
+/* Queue one node of the thirteenth kind, with its three coordinates converted
+   from floating point - which is what puts three ftol calls in a row here. */
+// FUNCTION: WIZ8 0x0042E810
+void OctreeQueueKind13(int id)
+{
+    int point[3];
+    int index;
+
+    for (index = 0; index < 3; ++index) {
+        point[index] = (int)OctreeNextCoordinate();
+    }
+    OctreeQueue(0xd, id + 1, point);
 }

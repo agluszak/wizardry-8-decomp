@@ -269,6 +269,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/VideoObjectManager.cpp
         "src/wiz8/local_screens/MainMenuScreen.cpp"
         src/wiz8/local_screens/Screens.cpp
+        src/wiz8/local_screens/RCSCommon.cpp
         src/wiz8/location_variables.cpp
         src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/MonsterGroup.cpp
@@ -282,6 +283,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/Object005EBCFC.cpp
         src/wiz8/engine_code/BitArray.cpp
         src/wiz8/engine_code/GameData.cpp
+        src/wiz8/engine_code/Octree.cpp
         src/wiz8/engine_code/Environment.cpp
         src/wiz8/engine_code/Missile.cpp
         src/wiz8/engine_code/Spells.cpp
