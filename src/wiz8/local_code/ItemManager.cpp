@@ -458,3 +458,213 @@ unsigned int ItemIndex(int runtime_id)
                  FormatString("ItemIndex: ERROR - ItemID %d not found", runtime_id));
     return 0;
 }
+
+/* One growable vector of world items, reached field by field because
+   ItemInfoMakeGroupList inlines the append rather than calling Add. */
+struct W8WorldItemVector {
+    void* vptr;                          /* 0x00 */
+    int count;                           /* 0x04 */
+    int capacity;                        /* 0x08 */
+    W8WorldItem** data;                  /* 0x0c */
+};
+
+extern void GetWorldItemPosition(float* position);                       /* 0x004B8890 */
+extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
+extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
+extern unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
+/* 0x0046F820 */
+extern void Function49FA30(W8World* world);
+extern void Function46E5E0(W8World* world);
+extern void Function49F720(const float* position);
+extern unsigned char SettleItemOnGround(
+    float* position, void** out_hit, int arg_3, double limit);           /* 0x00433820 */
+extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
+extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
+extern void ReplaceOrCreateItem(
+    W8ItemInstance* item, int item_id, int count, unsigned char quality, int arg_5);
+extern int g_item_manager_pending_00683FA9;
+extern W8ItemSelectionOwner0068EDCC* g_item_selection_owner_0068EDCC;
+extern int g_item_manager_state_0068EC78;
+extern void* g_world_state_006598a4;
+extern float g_world_scale_005ebc40;
+
+/* Flatten one item's whole group into a vector, the item itself first and then
+   everything chained onto it. The append is written out rather than called, so
+   a failed growth silently drops that entry and keeps walking. */
+// FUNCTION: WIZ8 0x004F8440
+int ItemInfoMakeGroupList(W8WorldItem* item, int unused, W8WorldItemVector* out)
+{
+    W8WorldItem* next;
+    W8WorldItem** previous;
+    int wanted;
+    int index;
+
+    if (item == 0) {
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1185,
+                     "Bad ITEM_STRUCT in ItemInfoMakeGroupList");
+    }
+
+    wanted = out->count + 1;
+    if (out->capacity < wanted) {
+        previous = out->data;
+        out->data = (W8WorldItem**)operator new(wanted * 4);
+        if (out->data == 0) {
+            out->data = previous;
+            goto walk;
+        }
+        out->capacity = wanted;
+        for (index = 0; index < out->count; ++index) {
+            out->data[index] = previous[index];
+        }
+        operator delete(previous);
+    }
+    out->data[out->count] = item;
+    ++out->count;
+
+walk:
+    for (next = item->next; next != 0; next = next->next) {
+        wanted = out->count + 1;
+        if (out->capacity < wanted) {
+            previous = out->data;
+            out->data = (W8WorldItem**)operator new(wanted * 4);
+            if (out->data == 0) {
+                out->data = previous;
+                continue;
+            }
+            out->capacity = wanted;
+            for (index = 0; index < out->count; ++index) {
+                out->data[index] = previous[index];
+            }
+            operator delete(previous);
+        }
+        out->data[out->count] = next;
+        ++out->count;
+    }
+    return out->count;
+}
+
+/* Take one item out of the world. Its three assertions name the two fields
+   they guard - fActive and p3D - and the item keeps its last position and
+   entity flags so it can be put back. */
+// FUNCTION: WIZ8 0x004F70D0
+void DeactivateWorldItem(W8WorldItem* item)
+{
+    float position[3];
+
+    if (item == 0) {
+        srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 554, 0);
+    }
+    if (item->unknown_08 == 0) {
+        srAssertFail("pItemInfo->fActive", ITEM_MANAGER_CPP, 555, 0);
+    }
+    if (item->owner == 0) {
+        srAssertFail("pItemInfo->p3D != NULL", ITEM_MANAGER_CPP, 556, 0);
+    }
+
+    if (g_item_manager_state_0068EC78 == 7 && g_item_selection_owner_0068EDCC != 0 &&
+        g_item_selection_owner_0068EDCC->selected_item == item->runtime_id) {
+        g_item_selection_owner_0068EDCC->selected_item = -1;
+    }
+
+    GetWorldItemPosition(position);
+    item->position.x = position[0];
+    item->position.y = position[1];
+    item->position.z = position[2];
+    item->entity_flags = item->owner->entity->flags;
+
+    Function49FA30(GetWorld());
+    Function46E5E0(GetWorld());
+    delete item->owner;
+    item->owner = 0;
+    item->unknown_08 = 0;
+    --g_item_manager_pending_00683FA9;
+}
+
+/* Whether one world item is close enough to a point to be reached, and in
+   sight of the party's eye. The distance is compared before the trace, so a
+   far item is never traced to. */
+// FUNCTION: WIZ8 0x004F8560
+unsigned char IsWorldItemWithinReach(void* item, const float* from, float radius)
+{
+    float position[3];
+    float lower[3];
+    float upper[3];
+    unsigned char eye[12];
+    float dx;
+    float dy;
+    float dz;
+
+    GetWorldItemPosition(position);
+    GetPartyEyePosition(eye);
+
+    dx = position[0] - from[0];
+    dy = position[1] - from[1];
+    dz = position[2] - from[2];
+    if (dx * dx + dy * dy + dz * dz < radius * radius) {
+        GetWorldItemBounds(lower, upper);
+        lower[0] += position[0];
+        lower[1] += position[1];
+        lower[2] += position[2];
+        upper[0] += position[0];
+        upper[1] += position[1];
+        upper[2] += position[2];
+        if (TraceToBounds(eye, lower, upper)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Drop one item onto the ground below where it is. The search starts one world
+   unit up so an item already resting does not settle into the floor; landing
+   moves it between sectors and clears its saved-marker flag. */
+// FUNCTION: WIZ8 0x004F93D0
+int SettleWorldItem(W8WorldItem* item)
+{
+    float start[3];
+    void* hit;
+    int sector;
+
+    start[0] = item->position.x;
+    start[2] = item->position.z;
+    start[1] = item->position.y + g_world_scale_005ebc40;
+
+    item->flags &= ~2u;
+    item->unknown_35 = 0;
+
+    if (!SettleItemOnGround(start, &hit, 1, 250.0)) {
+        return 0;
+    }
+
+    sector = *(int*)((char*)g_world_state_006598a4 + 0x120);
+    if (sector != item->sector_id) {
+        if (item->sector_id >= 0) {
+            RemoveItemFromSector(item->sector_id, item);
+        }
+        if (sector >= 0) {
+            AddItemToSector(sector, item);
+        }
+        item->sector_id = sector;
+    }
+    if (item->owner != 0) {
+        Function49F720(start);
+    }
+    item->position.x = start[0];
+    item->position.y = start[1];
+    item->position.z = start[2];
+    return 1;
+}
+
+/* Rebuild every world item's carried instance from its own item id, which
+   re-rolls whatever the record decides rather than keeping what was there. */
+// FUNCTION: WIZ8 0x004F94C0
+void RebuildAllWorldItemInstances(void)
+{
+    unsigned int index;
+    W8WorldItem* item;
+
+    for (index = 0; index < PListGetCount(g_world_item_list_00683fb5); ++index) {
+        item = ItemInfo(index);
+        ReplaceOrCreateItem(&item->item, item->item.item_id, 0, 0, 0);
+    }
+}

@@ -171,3 +171,63 @@ unsigned char W8Monster::IsDying()
     return Function4C4660(6) == 0x15 ||
            m_cycles[18].runtime->pending_cycle == 0x15;
 }
+
+/* Six thin bodies over the live engine object. Each is a null check and a
+   forward, or a single member read; nothing here says what the members and
+   slots are for, so each is named for what it reaches. */
+
+extern void MonsterMember18Update(W8MonsterMember18* member);            /* 0x00453970 */
+extern void Function4A84A0(W8Monster* monster);
+extern void Function4537E0(W8Monster* monster);
+extern void* g_monster_vtable_005ed290;
+
+/* The engine object a monster holds at 0x0c, or nothing when there is no
+   monster to ask. */
+// FUNCTION: WIZ8 0x004C5B30
+void* MonsterGetObject0C(W8Monster* monster)
+{
+    if (monster != 0) {
+        return *(void**)((char*)monster + 0xc);
+    }
+    return 0;
+}
+
+/* Run the member update with no monster of its own to name. */
+// FUNCTION: WIZ8 0x004C5770
+void MonsterUpdateMember18(void)
+{
+    MonsterMember18Update(0);
+}
+
+/* Two null-checked forwards that share one shape: a monster that is not there
+   is simply not acted on. */
+// FUNCTION: WIZ8 0x004C5EA0
+void MonsterForward4A84A0(W8Monster* monster)
+{
+    if (monster != 0) {
+        Function4A84A0(monster);
+    }
+}
+
+// FUNCTION: WIZ8 0x004C6140
+void MonsterForward4537E0(W8Monster* monster)
+{
+    if (monster != 0) {
+        Function4537E0(monster);
+    }
+}
+
+/* Install the vtable at 0x005ED290 and nothing else - the whole of a base
+   constructor whose own members are all left as they were. */
+// FUNCTION: WIZ8 0x004C3730
+void MonsterInstallVtable5ED290(void** object)
+{
+    *object = &g_monster_vtable_005ed290;
+}
+
+/* Forward to the object's own vtable slot four. */
+// FUNCTION: WIZ8 0x004C59B0
+void MonsterCallSlot10(void* object, int argument)
+{
+    (*(void(**)(void*, int))(*(void***)object + 4))(object, argument);
+}
