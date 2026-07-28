@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from ..evidence.classes import ghidra_namespace_name, load_reviewed_class_model, parse_pointee
+from ..evidence.functions import ACCEPTED_CONFIDENCE, load_function_identities
+from ..evidence.signatures import load_reviewed_signatures
 from ..indirect import resolve_handler_table
 from .apply_class_candidates import (
     function_resolver,
@@ -12,14 +15,11 @@ from .apply_class_candidates import (
     load_candidate_inputs,
     writer_comment_bodies,
 )
-from .apply_function_map import ACCEPTED_CONFIDENCE, load_function_identities
 from .environment import start_pyghidra
 from .import_programs import HASH_OPTION
 from .observation_evidence import audit_observation_evidence
 from .project import module_for_program, resolve_program_name
 from .query_daemon import stop_daemon
-from .reviewed_class_model import ghidra_namespace_name, load_reviewed_class_model, parse_pointee
-from .reviewed_signatures import load_reviewed_signatures
 
 
 def expected_pointee_display(pointee: str) -> str:

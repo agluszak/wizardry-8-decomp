@@ -1,19 +1,33 @@
+import csv
+import io
 from pathlib import Path
 
 import pytest
+from wiz8decomp.evidence.schema import schema_for
 from wiz8decomp.ghidra.apply_function_map import load_function_identities
 
 HEADER = "address,provisional_name,owner,confidence,name_origin,authority,evidence\n"
 
 
+def _write_functions(path: Path, text: str) -> None:
+    rows = list(csv.DictReader(io.StringIO(text)))
+    columns = schema_for("functions.csv").columns
+    with path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(stream, fieldnames=columns)
+        writer.writeheader()
+        for row in rows:
+            row.setdefault("program", "unknown")
+            writer.writerow(row)
+
+
 def test_load_function_identities_keeps_only_reviewed_names(tmp_path: Path) -> None:
     path = tmp_path / "functions.csv"
-    path.write_text(
+    _write_functions(
+        path,
         HEADER + "10001020,accepted,library,high,original-source,source-backed,source match\n"
         "10001010,Class::method,adapter,strong,descriptive,descriptive,vtable slot\n"
         "10001030,guess,unknown,candidate,descriptive,descriptive,proximity only\n"
         "10001040,,unknown,exact,descriptive,descriptive,no name yet\n",
-        encoding="utf-8",
     )
 
     identities = load_function_identities(path)
@@ -28,21 +42,21 @@ def test_load_function_identities_keeps_only_reviewed_names(tmp_path: Path) -> N
 
 def test_load_function_identities_rejects_duplicate_addresses(tmp_path: Path) -> None:
     path = tmp_path / "functions.csv"
-    path.write_text(
+    _write_functions(
+        path,
         HEADER + "10001010,first,library,high,descriptive,descriptive,one\n"
         "10001010,second,library,exact,descriptive,descriptive,two\n",
-        encoding="utf-8",
     )
 
-    with pytest.raises(ValueError, match="duplicate accepted function addresses"):
+    with pytest.raises(ValueError, match="duplicate identity"):
         load_function_identities(path)
 
 
 def test_load_function_identities_rejects_unsupported_authority(tmp_path: Path) -> None:
     path = tmp_path / "functions.csv"
-    path.write_text(
+    _write_functions(
+        path,
         HEADER + "10001010,Random,shared,exact,fan-patch-signature,source-backed,cfagent seed\n",
-        encoding="utf-8",
     )
 
     with pytest.raises(ValueError, match="not derivable"):
@@ -51,11 +65,11 @@ def test_load_function_identities_rejects_unsupported_authority(tmp_path: Path) 
 
 def test_load_function_identities_reads_lower_authority_aliases(tmp_path: Path) -> None:
     path = tmp_path / "functions.csv"
-    path.write_text(
+    _write_functions(
+        path,
         "address,provisional_name,owner,confidence,name_origin,authority,aliases,evidence\n"
         "0040efa0,Random,sgp-shared,exact,sgp-source|fan-patch-signature,source-backed,"
         "GetRandomNumber,compiled body\n",
-        encoding="utf-8",
     )
 
     identity = load_function_identities(path)[0]
@@ -67,10 +81,10 @@ def test_load_function_identities_reads_lower_authority_aliases(tmp_path: Path) 
 
 def test_load_function_identities_rejects_self_alias(tmp_path: Path) -> None:
     path = tmp_path / "functions.csv"
-    path.write_text(
+    _write_functions(
+        path,
         "address,provisional_name,owner,confidence,name_origin,authority,aliases,evidence\n"
         "0040efa0,Random,sgp-shared,exact,sgp-source,source-backed,Random,compiled body\n",
-        encoding="utf-8",
     )
 
     with pytest.raises(ValueError, match="listed as its own alias"):
@@ -81,12 +95,12 @@ def test_load_function_identities_uses_stable_ids_not_evidence_narratives(
     tmp_path: Path,
 ) -> None:
     path = tmp_path / "functions.csv"
-    path.write_text(
+    _write_functions(
+        path,
         "program,address,provisional_name,owner,confidence,name_origin,authority,"
         "source_path,evidence\n"
         "wiz8,005e2890,PListIndexOf,wiz8-foundation,exact,descriptive,descriptive,"
         "3D Code\\PList.cpp,a long reconstruction narrative\n",
-        encoding="utf-8",
     )
     (tmp_path / "function-evidence.csv").write_text(
         "evidence_id,program,address,origin,kind,reference,details\n"

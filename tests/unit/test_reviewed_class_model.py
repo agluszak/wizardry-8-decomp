@@ -2,19 +2,20 @@ import csv
 from pathlib import Path
 
 import pytest
-from wiz8decomp.ghidra.apply_wiz8_signature_fixes import type_category_paths
-from wiz8decomp.ghidra.reviewed_class_model import (
+from wiz8decomp.evidence.classes import (
     ghidra_namespace_name,
     load_reviewed_class_model,
     parse_pointee,
 )
+from wiz8decomp.evidence.schema import schema_for
+from wiz8decomp.ghidra.apply_wiz8_signature_fixes import type_category_paths
 from wiz8decomp.ghidra.validate_replay import expected_pointee_display
 
 
 def _write(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fieldnames)
+        writer = csv.DictWriter(stream, fieldnames=schema_for(path.name).columns)
         writer.writeheader()
         writer.writerows(rows)
 

@@ -54,6 +54,7 @@ sgp_app = typer.Typer(
     help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True
 )
 report_app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
+evidence_app = typer.Typer(help="Validate and update canonical evidence.", no_args_is_help=True)
 app.add_typer(corpus_app, name="corpus")
 app.add_typer(ghidra_app, name="ghidra")
 ghidra_app.add_typer(seed_app, name="seed")
@@ -62,6 +63,7 @@ ghidra_app.add_typer(overlay_app, name="overlay")
 overlay_app.add_typer(overlay_debug_app, name="debug")
 app.add_typer(report_app, name="report")
 app.add_typer(toolchain_app, name="toolchain")
+app.add_typer(evidence_app, name="evidence")
 app.add_typer(sgp_app, name="sgp", hidden=True)
 console = Console()
 logger = logging.getLogger(__name__)
@@ -229,6 +231,27 @@ def resolve_evidence_conflict_command(
         from .evidence_merge import resolve_evidence_conflict
 
         return [resolve_evidence_conflict(path) for path in paths]
+
+    _run_action(action)
+
+
+@evidence_app.command("upsert")
+def evidence_upsert_command(
+    path: Annotated[Path, typer.Argument(help="Canonical evidence CSV to update.")],
+    row_json: Annotated[
+        str,
+        typer.Option("--row-json", help="One complete evidence row encoded as JSON."),
+    ],
+) -> None:
+    """Atomically insert or monotonically enrich one canonical evidence row."""
+
+    def action() -> dict[str, object]:
+        from .evidence.io import upsert_row
+
+        decoded = json.loads(row_json)
+        if not isinstance(decoded, dict) or not all(isinstance(key, str) for key in decoded):
+            raise ValueError("--row-json must encode one JSON object with string keys")
+        return upsert_row(path, {key: str(value) for key, value in decoded.items()})
 
     _run_action(action)
 

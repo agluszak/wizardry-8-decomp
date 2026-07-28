@@ -3,15 +3,15 @@ from __future__ import annotations
 from typing import Any
 
 from ..config import Settings
-from .apply_unzip_model import _apply_data, _structure
-from .evidence_index import load_evidence_index
-from .project import resolve_program_name
-from .reviewed_class_model import (
+from ..evidence.classes import (
     VIRTUAL_SLOT_TYPE_NAME,
     ghidra_namespace_name,
     load_reviewed_class_model,
     parse_pointee,
 )
+from .apply_unzip_model import _apply_data, _structure
+from .evidence_index import load_evidence_index
+from .project import resolve_program_name
 from .type_specs import resolve_type_spec
 
 

@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from ..config import Settings
+from ..evidence.signatures import load_reviewed_signatures
 from . import type_specs
 from .apply_unzip_model import _function_type
 from .project import resolve_program_name
-from .reviewed_signatures import load_reviewed_signatures
 
 
 def type_category_paths(type_name: str) -> tuple[str, ...]:

@@ -30,7 +30,6 @@ Two details of COMDAT layout matter:
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import re
 from dataclasses import dataclass
@@ -39,6 +38,7 @@ from pathlib import Path
 from typing import Any
 
 from .binary.demangle import demangle
+from .evidence.boundaries import load_boundary_rows
 from .sgp_oracle import (
     CoffFunction,
     _stable_ranges,
@@ -211,44 +211,6 @@ class BoundariesDisagree(RuntimeError):
     def __init__(self, message: str, report: dict[str, Any]) -> None:
         super().__init__(message)
         self.report = report
-
-
-def load_boundary_rows(mapping_path: Path) -> list[dict[str, str]]:
-    """Read a boundary map only after validating its canonical address key."""
-
-    with mapping_path.open(newline="", encoding="utf-8") as stream:
-        reader = csv.DictReader(stream)
-        required = {
-            "address",
-            "size",
-            "symbol",
-            "confidence",
-            "relocation_masked_sha256",
-        }
-        missing = required - set(reader.fieldnames or ())
-        if missing:
-            raise RuntimeError(f"boundary map {mapping_path} lacks columns: {sorted(missing)}")
-        rows = list(reader)
-    if not rows:
-        raise RuntimeError(f"boundary map is empty: {mapping_path}")
-    seen: dict[str, int] = {}
-    for line, row in enumerate(rows, start=2):
-        address = row["address"].strip().lower().removeprefix("0x")
-        if not address:
-            raise RuntimeError(f"boundary map {mapping_path}:{line} has an empty address")
-        try:
-            int(address, 16)
-        except ValueError as error:
-            raise RuntimeError(
-                f"boundary map {mapping_path}:{line} has invalid address {row['address']!r}"
-            ) from error
-        if address in seen:
-            raise RuntimeError(
-                f"boundary map {mapping_path} repeats address {address} "
-                f"at lines {seen[address]} and {line}"
-            )
-        seen[address] = line
-    return rows
 
 
 def select_boundary_row(

@@ -6,13 +6,13 @@ import re
 from typing import Any
 
 from ..config import Settings
+from ..evidence.classes import VIRTUAL_SLOT_TYPE_NAME
 from .observation_evidence import (
     defined_overlap,
     load_observation_bundle,
     strict_scalar_observation,
 )
 from .project import resolve_program_name
-from .reviewed_class_model import VIRTUAL_SLOT_TYPE_NAME
 
 
 def merge_observation_comment(existing: str | None, key: str, body: str) -> str:

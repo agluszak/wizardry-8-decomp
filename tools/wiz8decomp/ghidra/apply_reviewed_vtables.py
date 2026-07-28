@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from ..config import Settings
+from ..evidence.classes import load_reviewed_class_model
 from .apply_unzip_model import _apply_data
 from .project import resolve_program_name
-from .reviewed_class_model import load_reviewed_class_model
 
 
 def apply_reviewed_vtables(

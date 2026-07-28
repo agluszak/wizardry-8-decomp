@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from wiz8decomp.ghidra.reviewed_signatures import load_reviewed_signatures
+from wiz8decomp.evidence.signatures import load_reviewed_signatures
 
 
 def test_reviewed_wiz8_signatures_are_canonical_records() -> None:

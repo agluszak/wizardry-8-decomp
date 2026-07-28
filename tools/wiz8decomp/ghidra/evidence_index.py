@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from .reviewed_class_model import (
+from ..evidence.classes import (
     ReviewedClass,
     ReviewedClassModel,
     ReviewedField,
@@ -16,7 +16,7 @@ from .reviewed_class_model import (
     ReviewedVtableSlot,
     load_reviewed_class_model,
 )
-from .reviewed_signatures import ReviewedSignature, load_reviewed_signatures
+from ..evidence.signatures import ReviewedSignature, load_reviewed_signatures
 
 
 @dataclass(frozen=True)

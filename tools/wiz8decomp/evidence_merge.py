@@ -23,6 +23,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from .evidence.schema import TABLE_SCHEMAS
+
 # Ordered weakest to strongest. Reviewed evidence and the boundary map use
 # overlapping vocabularies, so one table covers both.
 _CONFIDENCE_RANK = {
@@ -59,6 +61,8 @@ _KEYS: dict[str, tuple[str, ...]] = {
 
 
 def key_columns(path: Path) -> tuple[str, ...]:
+    if path.name in TABLE_SCHEMAS:
+        return TABLE_SCHEMAS[path.name].identity
     try:
         return _KEYS[path.name]
     except KeyError as error:

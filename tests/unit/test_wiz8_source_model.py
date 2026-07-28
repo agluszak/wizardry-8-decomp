@@ -4,7 +4,7 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from wiz8decomp.ghidra.reviewed_class_model import load_reviewed_class_model
+from wiz8decomp.evidence.classes import load_reviewed_class_model
 from wiz8decomp.provenance import validate_provenance
 
 

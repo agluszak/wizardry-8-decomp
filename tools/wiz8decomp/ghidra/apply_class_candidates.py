@@ -30,12 +30,12 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from ..evidence.classes import VIRTUAL_SLOT_TYPE_NAME
 from .apply_observation_evidence import merge_observation_comment
 from .apply_unzip_model import _structure
 from .candidate_model import candidate_name, classify_candidates, derive_skeletons
 from .observation_evidence import load_observation_bundle
 from .project import resolve_program_name
-from .reviewed_class_model import VIRTUAL_SLOT_TYPE_NAME
 from .unit_intervals import TranslationUnitInterval, call_site_anchors, derive_intervals
 
 CANDIDATE_CATEGORY = "/wiz8/candidates"

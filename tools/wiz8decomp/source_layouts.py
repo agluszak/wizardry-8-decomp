@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from .ghidra.reviewed_class_model import load_reviewed_class_model, parse_pointee
+from .evidence.classes import load_reviewed_class_model, parse_pointee
 from .paths import atomic_json
 from .reconstructed_pdb import CompiledLayout, load
 
