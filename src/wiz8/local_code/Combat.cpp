@@ -55,10 +55,10 @@ unsigned char AnyCharacterEngaged(void)
 // FUNCTION: WIZ8 0x004ED2B0
 int GetEngagementCount(void)
 {
-    if (g_combat_state->force_engaged_918 != 0) {
-        return g_combat_state->value_90c;
+    if (g_combat_state->turn_phase != 0) {
+        return g_combat_state->pending_move_kind;
     }
-    return g_combat_state->value_910;
+    return g_combat_state->movement_mode;
 }
 
 /* Whether the party is engaged at all. Being told so outright settles it;
@@ -69,10 +69,10 @@ int IsPartyEngaged(void)
 {
     unsigned int party_slot;
 
-    if (g_combat_state->force_engaged_918 != 0) {
+    if (g_combat_state->turn_phase != 0) {
         return 1;
     }
-    if (g_combat_state->value_910 == 0) {
+    if (g_combat_state->movement_mode == 0) {
         for (party_slot = 0; party_slot < 8; ++party_slot) {
             if (g_party_slot_rows[party_slot].flag_00 != 0 &&
                 g_party_characters[party_slot].hp_current != 0 &&

@@ -256,3 +256,66 @@ bool IsVisibleUnderConditions(
         return row->visible_28 != 0;
     }
 }
+
+extern void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3);
+/* 0x00503990 */
+extern int g_world_clock_00686a48;
+/* 0x00686B81: one 0x21-byte row per level, holding the clock reading its
+   sight state was last brought up to. */
+extern const int g_level_sight_clock[];
+extern int g_current_level_00686a70;
+
+/* Bring every monster's sight up to date with the clock, in whole two-minute
+   steps - anything short of one step is left for next time. */
+// FUNCTION: WIZ8 0x00504930
+unsigned int AgeAllMonsterSight(void)
+{
+    unsigned int elapsed;
+    unsigned int steps;
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+
+    elapsed = g_world_clock_00686a48 * 1000 -
+              g_level_sight_clock[g_current_level_00686a70 * 0x21 / 4] * 1000;
+    steps = elapsed / 120000;
+    if (steps == 0) {
+        return 0;
+    }
+    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if ((unsigned int)monster_info->value_107 < 0x12) {
+            AgeMonsterSight(monster_info, steps, 1);
+        }
+    }
+    return PListGetCount(g_active_monster_list_00683fad);
+}
+
+/* What one monster has recorded about another, if anything. Both monsters have
+   to be in the world - the two assertions name that field fActive - and a null
+   entry in the list is itself an error rather than an end marker. */
+// FUNCTION: WIZ8 0x00505D20
+W8MonToMonVisibility* FindMonToMonVisibility(
+    W8MonsterInfo* source, int unused, W8MonsterInfo* target)
+{
+    int index;
+    W8MonToMonVisibility* visibility;
+
+    if (source->flag_14 == 0) {
+        srAssertFail("pSourceMonsterInfo->fActive", SIGHT_CPP, 1020, 0);
+    }
+    if (target->flag_14 == 0) {
+        srAssertFail("pTargetMonsterInfo->fActive", SIGHT_CPP, 1021, 0);
+    }
+
+    for (index = 0; index < (int)PListGetCount(source->mon_to_mon_visibility); ++index) {
+        visibility =
+            (W8MonToMonVisibility*)PListGetAt(source->mon_to_mon_visibility, index);
+        if (visibility == 0) {
+            srAssertFail("FALSE", SIGHT_CPP, 1030, 0);
+        }
+        else if (visibility->about_location_id == target->location_id) {
+            return visibility;
+        }
+    }
+    return 0;
+}

@@ -716,11 +716,14 @@ typedef struct W8CombatState {
     /* 0x8e8: the slots whose characters died this round, and how many. */
     int pending_deaths[8];
     int pending_death_count;              /* 0x908 */
-    int value_90c;                        /* 0x90c */
-    int value_910;                        /* 0x910 */
+    /* 0x90c: what kind of move is pending, one or two; zero is none. */
+    int pending_move_kind;
+    /* 0x910: how the party is moving - zero out of combat, one and two the two
+       combat modes, which is what the speed and phase rules branch on. */
+    int movement_mode;
     unsigned char unknown_914[4];
-    /* 0x918: non-zero forces the whole-party answer rather than deriving it. */
-    int force_engaged_918;
+    /* 0x918: which phase of the turn is running, zero through three. */
+    int turn_phase;
     unsigned char unknown_91c[4];
     /* 0x920: the formation combat started with, thirty-three dwords copied
        whole out of 0x00687511. */
@@ -737,6 +740,11 @@ typedef struct W8CombatState {
 typedef struct W8LevelRuntimeBlock {
     unsigned char unknown_000[0x2ca];
     short combat_end_notification;         /* 0x2ca: -1 suppresses the callback */
+    unsigned char unknown_2cc[0x10];
+    /* 0x2dc and 0x2e0: the two movement budgets, both filled to a hundred when
+       the party is put back under its own control. */
+    int move_budget_2dc;
+    int move_budget_2e0;
 } W8LevelRuntimeBlock;
 
 #pragma pack(pop)

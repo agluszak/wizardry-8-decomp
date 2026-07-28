@@ -258,6 +258,7 @@ if(WIZ8_BUILD_DECOMP)
         "src/wiz8/local_code/Health Stamina Mana.cpp"
         "src/wiz8/local_code/Conditions & Enchantments.cpp"
         src/wiz8/local_code/Sight.cpp
+        "src/wiz8/local_code/Combat Party Movement.cpp"
         "src/wiz8/local_code/Combat Range.cpp"
         src/wiz8/local_code/GameplayCode.cpp
         src/wiz8/local_code/Combat.cpp
