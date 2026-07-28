@@ -13,7 +13,7 @@ union W8ScreenStateStorage {
     W8ScreenStateRuntime state;
 };
 
-extern "C" W8ScreenStateStorage g_dword_68ec78;
+extern "C" W8ScreenStateStorage g_screen_state_0068ec78;
 extern "C" W8ScreenStateStorage g_dword_68ed10;
 
 typedef char W8ScreenStateRuntime_must_be_0x98[

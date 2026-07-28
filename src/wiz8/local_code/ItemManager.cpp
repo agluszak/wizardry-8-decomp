@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-extern int g_item_manager_initialized_006874C2;
+extern int g_status_count_006874c2;
 extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
@@ -18,9 +18,9 @@ extern W8PList* g_world_item_list_00683fb5;
 // FUNCTION: WIZ8 0x004F69F0
 bool InitializeItemManagerState()
 {
-    g_item_manager_initialized_006874C2 = 1;
+    g_status_count_006874c2 = 1;
     g_item_manager_pending_00683FA9 = 0;
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
     }
     if (g_world_item_list_00683fb5 != 0) {
@@ -558,7 +558,7 @@ void DeactivateWorldItem(W8WorldItem* item)
         srAssertFail("pItemInfo->p3D != NULL", ITEM_MANAGER_CPP, 556, 0);
     }
 
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->selected_item == item->runtime_id) {
         g_level_block->selected_item = -1;
     }

@@ -60,7 +60,7 @@ void ReportSaveFailed(char quiet)
 {
     if (quiet == 0 || g_save_flag_00687599 != 0) {
         g_save_notice_shown_0068506b = 1;
-        if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME) {
+        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
         }
     }

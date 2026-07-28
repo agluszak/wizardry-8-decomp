@@ -1279,7 +1279,7 @@ void TogglePartyCombatStance(void)
             g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
             g_combat_state->flag_a62 = 1;
         }
-        if (g_dword_68ec78.id != 7) {
+        if (g_screen_state_0068ec78.id != W8_SCREEN_MAIN_GAME) {
             return;
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_RELAXED];
@@ -1289,13 +1289,13 @@ void TogglePartyCombatStance(void)
             g_combat_state->flag_001 = 1;
             g_combat_state->flag_a62 = 0;
         }
-        if (g_dword_68ec78.id != 7) {
+        if (g_screen_state_0068ec78.id != W8_SCREEN_MAIN_GAME) {
             return;
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_READY];
     }
     Function58AC00(0xc, message, -1, -1, 0);
-    if (g_dword_68ec78.id == 7) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(0x80000);
     }
 }

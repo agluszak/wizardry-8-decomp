@@ -13,6 +13,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/vector.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/game_state.h"
 #include "wiz8/gameplay_databases.h"
 
@@ -524,7 +525,11 @@ typedef struct W8World {
     W8PList* plsList00;
     W8PList* plsList04;
     W8PList* plsProps;                    /* 0x008: PList of props; byte-proven */
-    unsigned char unknown_00c[0x3c];
+    unsigned char unknown_00c[0x38];
+    /* 0x044: the camera the viewport rebuilds its view plane against. It was
+       modelled separately as a camera-owner class before the two globals were
+       shown to be one, and it is the same object. */
+    struct srCamera* camera;
     void** psrMeshes;                     /* 0x048: mesh pointer array; UNPROVEN placement */
     unsigned char unknown_04c[8];
     /* 0x054: the node the sky hangs from, which the environment accessors
@@ -1004,8 +1009,9 @@ extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
 /* 0x00683FAD: every monster currently in the level. */
 extern W8PList* g_active_monster_list_00683fad;
-/* 0x0068EC78: which screen is up. */
-extern int g_screen_state_0068ec78;
+/* 0x0068EC78: which screen is up. The whole 0x98-byte block lives there; the
+   leading id is what everything outside the screen code reads, which is why
+   this is a union rather than two globals. */
 /* 0x005ED8C8 and 0x005ED914: the last two arguments every effect and sound
    call passes, holding zero and 127. They read as integers - as floats the
    second is a denormal - so the 127 is a level on a 0..127 scale rather than a
@@ -1017,7 +1023,7 @@ extern int g_effect_argument_005ed914;
 extern float g_float_005ebb34;
 extern W8CombatCharacterRow* g_combat_character_rows;
 
-/* Which screen is up, as g_screen_state_0068ec78 holds it. Only the two the
+/* Which screen is up, as g_screen_state_0068ec78.id holds it. Only the two the
    recovered bodies test are named. */
 enum {
     W8_SCREEN_CAMP = 6,
@@ -1104,7 +1110,7 @@ extern unsigned char g_party_moving_006850b5;
 extern unsigned char g_surprise_possible_00683fc5;
 /* Written by Targeting.cpp and reset to -1 here; meaning not established. */
 extern int g_target_state_6840b3;
-extern int g_target_state_6840b7;
+extern int g_picked_group_006840b7;
 extern W8NpcDatabaseRecord* g_npc_records;
 extern unsigned int g_npc_record_count;
 extern W8ItemTableRecord** g_item_tables;

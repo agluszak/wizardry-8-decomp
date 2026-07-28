@@ -835,7 +835,7 @@ extern void SetTargetCursor(int cursor);                                 /* 0x00
 extern void ClearTargetCursor(void);                                     /* 0x0055EF90 */
 extern int IsScreenIdle(void);
 extern void* g_modal_owner_0068edd0;
-extern int g_target_cursor_00683fdb;
+extern int g_cursor_state_00683fdb;
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -878,7 +878,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 
     if (valid == 0) {
         SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
-        if (g_modal_owner_0068edd0 == 0 && g_target_cursor_00683fdb == W8_CURSOR_VALID_TARGET) {
+        if (g_modal_owner_0068edd0 == 0 && g_cursor_state_00683fdb == W8_CURSOR_VALID_TARGET) {
             ClearTargetCursor();
         }
         return 0;
@@ -886,7 +886,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 
     SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
     if (g_modal_owner_0068edd0 == 0 && g_highlight_suppressed_00683fe7 == 0 && IsScreenIdle() &&
-        g_target_cursor_00683fdb != W8_CURSOR_INVALID_TARGET) {
+        g_cursor_state_00683fdb != W8_CURSOR_INVALID_TARGET) {
         SetTargetCursor(W8_CURSOR_VALID_TARGET);
     }
     return valid;
@@ -1022,7 +1022,7 @@ enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
 // FUNCTION: WIZ8 0x0053BC10
 unsigned char GetCurrentTargetingContext(int party_slot)
 {
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->selection_kind != -1) {
         if (g_level_block->selection_kind == W8_SELECTION_SPELL &&
             g_level_block->selection_settled != 0) {

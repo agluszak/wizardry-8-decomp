@@ -40,7 +40,7 @@ extern void Function55EE70(int arg_1);
 // FUNCTION: WIZ8 0x00562A50
 void RequestRedraw(unsigned int mask)
 {
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags |= mask;
     }
 }
@@ -51,7 +51,7 @@ void RequestRedraw(unsigned int mask)
 // FUNCTION: WIZ8 0x00565420
 void RequestRedrawParty(void)
 {
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags |= 0x20000;
     }
 }
@@ -59,7 +59,7 @@ void RequestRedrawParty(void)
 // FUNCTION: WIZ8 0x005699B0
 void RequestRedrawCombatBar(void)
 {
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags |= 0x100;
     }
 }
@@ -132,7 +132,7 @@ void ClearCombatSelection(void)
 // FUNCTION: WIZ8 0x0056A2A0
 void ClearHighlightIfItIs(const int* item)
 {
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->highlighted_item != -1 &&
         *item == g_level_block->highlighted_item) {
         Function429770();

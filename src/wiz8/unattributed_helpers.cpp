@@ -27,7 +27,7 @@ struct W8Forwarded {
 
 extern "C" {
 
-extern W8PList** g_plist_659ab4;
+extern W8World* g_world_00659ab4;
 extern int g_save_flag_00687599;
 
 extern void Function4C4EF0(void);
@@ -92,7 +92,7 @@ void Function4C59C0(int enabled, int value)
 // FUNCTION: WIZ8 0x0046E5A0
 void Function46E5A0(int unused, void* item)
 {
-    PListRemove(*g_plist_659ab4, item);
+    PListRemove(g_world_00659ab4->plsList00, item);
 }
 
 

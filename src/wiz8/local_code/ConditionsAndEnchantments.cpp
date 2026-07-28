@@ -107,7 +107,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     }
 
     NotifySpellPointsChanged(party_slot);
-    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME) {
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(0x200000);
         RequestRedraw(0x8000);
     }

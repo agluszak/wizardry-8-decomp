@@ -147,7 +147,7 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
 extern W8WideChar* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 extern const unsigned short g_generic_item_name_notice[];
-extern unsigned char g_item_taken_from_pool_006874ca;
+extern unsigned char g_item_in_hand_shown_006874ca;
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
@@ -776,7 +776,7 @@ void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
     g_held_item_slot_006840c5 = 0xffff;
     ClearHeldItemDisplay();
     ReplaceOrCreateItem(&created, item_id, 1, quality, 0);
-    if (g_item_taken_from_pool_006874ca != 0) {
+    if (g_item_in_hand_shown_006874ca != 0) {
         AddItemToParty(&created, 0, 0);
         return;
     }

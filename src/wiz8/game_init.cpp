@@ -84,7 +84,7 @@ unsigned char Function4E2F40(void)
     memset(buffer, 0, count * 0x1e0);
     UnlockPrimarySurface();
     LoadGameConfiguration();
-    g_dword_68ec78.id = -1;
+    g_screen_state_0068ec78.id = -1;
     g_dword_68ed10.id = -1;
     g_stack_68eda8 = CreateStack(5, 0x98);
     if (!g_stack_68eda8) {

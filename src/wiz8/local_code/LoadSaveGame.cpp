@@ -80,7 +80,7 @@ extern void Function443A50(void);
    not established, so all five keep positional names. */
 extern int g_status_count_6874ba;
 extern int g_status_count_6874be;
-extern int g_status_count_6874c2;
+extern int g_status_count_006874c2;
 extern int g_status_count_6874c6;
 extern unsigned char g_status_block_686a74[0x100];
 
@@ -202,7 +202,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     }
     g_status_count_6874ba = header.value_004;
     g_status_count_6874be = header.value_008;
-    g_status_count_6874c2 = header.value_00c;
+    g_status_count_006874c2 = header.value_00c;
     g_status_count_6874c6 = header.value_010;
     if (header.value_004 == 0) {
         g_status_count_6874ba = 1;
@@ -211,7 +211,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
         g_status_count_6874be = 1;
     }
     if (header.value_00c == 0) {
-        g_status_count_6874c2 = 1;
+        g_status_count_006874c2 = 1;
     }
     if (header.value_010 == 0) {
         g_status_count_6874c6 = 1;

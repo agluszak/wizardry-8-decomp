@@ -36,7 +36,7 @@ extern int g_environment_value_0065a16c;
 extern int g_environment_value_0065a170;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
-extern W8World* g_render_world_00659ab4;
+extern W8World* g_world_00659ab4;
 
 extern void SetSkyEnabled(int enabled);                                  /* 0x00483750 */
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
@@ -140,7 +140,7 @@ float GetWorldValue24(const void* world)
 // FUNCTION: WIZ8 0x00483E30
 void SetSkyNodeValue1D0(int value)
 {
-    unsigned char* sky = (unsigned char*)g_render_world_00659ab4->sky_node;
+    unsigned char* sky = (unsigned char*)g_world_00659ab4->sky_node;
 
     if (sky != 0) {
         *(int*)(sky + 0x1d0) = value;
@@ -152,7 +152,7 @@ void SetSkyNodeValue1D0(int value)
 // FUNCTION: WIZ8 0x00483E50
 void SetSkyNodeVisible(char visible)
 {
-    srNode* sky = (srNode*)g_render_world_00659ab4->sky_node;
+    srNode* sky = (srNode*)g_world_00659ab4->sky_node;
 
     if (sky != 0) {
         if (visible) {

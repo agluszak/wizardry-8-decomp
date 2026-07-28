@@ -461,7 +461,7 @@ void ResetTargetingState(void)
         Function54B300(slot);
     }
     g_target_state_6840b3 = -1;
-    g_target_state_6840b7 = -1;
+    g_picked_group_006840b7 = -1;
 }
 
 /* The counterpart to InitializeItemTables: the category names first, then the

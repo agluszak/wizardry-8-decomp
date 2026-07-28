@@ -95,7 +95,7 @@ int g_viewport_left_6595e8;
 int g_viewport_top_6595ec;
 int g_viewport_right_6595f0;
 int g_viewport_bottom_6595f4;
-void* g_world_659ab4;
+void* g_world_00659ab4;
 void* g_world_659ab8;
 unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;

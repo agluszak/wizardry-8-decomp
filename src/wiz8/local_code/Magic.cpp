@@ -230,7 +230,7 @@ unsigned char SpellUsableNow(
         srAssertFail("uiSpellUsableWhen < SPELL_USAGE_COUNT", MAGIC_CPP, 4182, 0);
     }
 
-    if (g_screen_state_0068ec78 == W8_SCREEN_CAMP && g_in_combat_00683f94 == 0 &&
+    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP && g_in_combat_00683f94 == 0 &&
         g_camp_open_00683f9b != 0 && (spell_id == 0x17 || spell_id == 0x3a)) {
         return 1;
     }

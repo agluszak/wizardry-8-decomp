@@ -39,14 +39,14 @@ struct EnvironmentColour {
 
 EnvironmentColour g_environment_colours_65a178[512];
 EnvironmentColour g_environment_colours_65ad98[512];
-int g_environment_state_65a168;
-int g_environment_state_65a16c;
-int g_environment_state_60a394;
-int g_environment_state_65a160;
-int g_environment_state_65ad84;
+int g_environment_value_0065a168;
+int g_environment_value_0065a16c;
+unsigned char g_environment_flag_0060a394;
+int g_environment_value_0065a160;
+int g_environment_value_0065ad84;
 int g_environment_state_65b99c;
-float g_environment_scale_60a390;
-int g_environment_state_65a170;
+float g_view_distance_0060a390;
+int g_environment_value_0065a170;
 
 static float normalized_colour(unsigned int component)
 {
@@ -80,14 +80,14 @@ unsigned char InitializeEnvironmentColours(void)
         g_environment_colours_65ad98[index].green = value;
         g_environment_colours_65ad98[index].blue = value;
     }
-    g_environment_state_65a168 = 0;
-    g_environment_state_65a16c = 0;
-    g_environment_state_60a394 = 0;
-    g_environment_state_65a160 = 0;
-    g_environment_state_65ad84 = 0;
+    g_environment_value_0065a168 = 0;
+    g_environment_value_0065a16c = 0;
+    g_environment_flag_0060a394 = 0;
+    g_environment_value_0065a160 = 0;
+    g_environment_value_0065ad84 = 0;
     g_environment_state_65b99c = 0;
-    g_environment_scale_60a390 = 12.0f;
-    g_environment_state_65a170 = 0;
+    g_view_distance_0060a390 = 12.0f;
+    g_environment_value_0065a170 = 0;
     return 1;
 }
 

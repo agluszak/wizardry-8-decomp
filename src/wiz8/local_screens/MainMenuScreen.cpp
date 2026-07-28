@@ -34,7 +34,7 @@ extern unsigned char g_flag_68ed14;
 unsigned char g_flag_68517c;
 unsigned char g_flag_69c4ba;
 unsigned char g_flag_69c4b6;
-unsigned short g_selected_item_69c4b4;
+unsigned short g_selected_item_0069c4b4;
 unsigned char g_flag_69c4c4;
 int g_dword_69c4bc;
 int g_dword_69c4c0;
@@ -79,15 +79,15 @@ static void MainMenuRegionEvent(
     if (event->reason == MOUSE_POS) {
         if (region->flags & 0x20) {
             Function5BCAB0(item, 0);
-            if (g_selected_item_69c4b4 == item) {
-                g_selected_item_69c4b4 = (unsigned short)-1;
+            if (g_selected_item_0069c4b4 == item) {
+                g_selected_item_0069c4b4 = (unsigned short)-1;
             }
         }
         if (region->flags & 0x10) {
-            if (g_selected_item_69c4b4 < 6) {
-                Function5BCAB0(g_selected_item_69c4b4, 0);
+            if (g_selected_item_0069c4b4 < 6) {
+                Function5BCAB0(g_selected_item_0069c4b4, 0);
             }
-            g_selected_item_69c4b4 = item;
+            g_selected_item_0069c4b4 = item;
             Function5BCAB0(item, 1);
         }
         return;
@@ -204,10 +204,10 @@ static void UpdateMainMenuHover(unsigned short x, unsigned short y)
 
 static void SelectMainMenuItem(unsigned short item)
 {
-    if (g_selected_item_69c4b4 < 6) {
-        Function5BCAB0(g_selected_item_69c4b4, 0);
+    if (g_selected_item_0069c4b4 < 6) {
+        Function5BCAB0(g_selected_item_0069c4b4, 0);
     }
-    g_selected_item_69c4b4 = item;
+    g_selected_item_0069c4b4 = item;
     Function5BCAB0(item, 1);
 }
 
@@ -252,16 +252,16 @@ static void ProcessMainMenuInput(void)
         } else if (input.usEvent == KEY_DOWN || input.usEvent == KEY_REPEAT) {
             if (input.usParam == UPARROW) {
                 SelectMainMenuItem(
-                    g_selected_item_69c4b4 == 0 ? 5 : g_selected_item_69c4b4 - 1);
+                    g_selected_item_0069c4b4 == 0 ? 5 : g_selected_item_0069c4b4 - 1);
             } else if (input.usParam == DNARROW) {
                 SelectMainMenuItem(
-                    g_selected_item_69c4b4 >= 5 ? 0 : g_selected_item_69c4b4 + 1);
+                    g_selected_item_0069c4b4 >= 5 ? 0 : g_selected_item_0069c4b4 + 1);
             } else if (input.usParam == HOME) {
                 SelectMainMenuItem(0);
             } else if (input.usParam == KEY_END) {
                 SelectMainMenuItem(5);
-            } else if (input.usParam == ENTER && g_selected_item_69c4b4 < 6) {
-                ActivateMainMenuItem(g_selected_item_69c4b4);
+            } else if (input.usParam == ENTER && g_selected_item_0069c4b4 < 6) {
+                ActivateMainMenuItem(g_selected_item_0069c4b4);
             }
         }
     }
@@ -333,7 +333,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     colour = Get16BPPColor(0x10101);
     FillSurfaceRect(-14, 0, 0, 0x280, 0x1e0, colour);
     SetViewport(0, 0, 0x280, 0x1e0);
-    g_selected_item_69c4b4 = 0;
+    g_selected_item_0069c4b4 = 0;
     Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);
 
     /* Six items cleared then the selected one set, written out rather than
@@ -344,7 +344,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     Function5BCAB0(3, 0);
     Function5BCAB0(4, 0);
     Function5BCAB0(5, 0);
-    Function5BCAB0(g_selected_item_69c4b4, 1);
+    Function5BCAB0(g_selected_item_0069c4b4, 1);
 
     Function4E3620(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));

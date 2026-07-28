@@ -6,7 +6,7 @@
 
 extern "C" {
 
-W8ScreenStateStorage g_dword_68ec78 = { -1 };
+W8ScreenStateStorage g_screen_state_0068ec78 = { -1 };
 W8ScreenStateStorage g_dword_68ed10 = { -1 };
 unsigned char g_flag_68edac;
 void* g_stack_68eda8;
@@ -19,7 +19,7 @@ unsigned short g_word_6850ed;
 unsigned char g_block_68f2d8[0xc4e0];
 unsigned char g_flag_65beaf;
 
-unsigned int g_subsystem_flag_69c4b4;
+extern unsigned short g_selected_item_0069c4b4;
 unsigned char g_cd_marker_present_69b7d0;
 void* g_small_subsystem_69c130;
 
@@ -58,17 +58,16 @@ unsigned short* g_colour_68ee08;
 /* Until wiz8-9qy restores the retail cursor-image transfer, starting at -1
    prevents the synchronization call from pretending an unloaded cursor frame
    exists.  The cursor scene itself remains the real SurRender object. */
-int g_cursor_state_683fdb = -1;
+int g_cursor_state_00683fdb = -1;
 int g_dword_683fdf;
 int g_dword_683fe3;
-int g_screen_68ec78 = -1;
-unsigned char g_item_in_hand_shown_6874ca;
+unsigned char g_item_in_hand_shown_006874ca;
 W8ItemInstance g_item_in_hand = { -1 };
 
 // FUNCTION: WIZ8 0x005BC800
 unsigned char InitializeSubsystemFlag(void)
 {
-    g_subsystem_flag_69c4b4 = 0;
+    g_selected_item_0069c4b4 = 0;
     return 1;
 }
 

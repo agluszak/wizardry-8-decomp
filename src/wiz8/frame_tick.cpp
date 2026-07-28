@@ -42,7 +42,7 @@ static unsigned char ScreenLeave(int) { return 1; }
 static unsigned char EnterMainMenu(void)
 { return MainMenuScreenFunction005BC810(); }
 
-#define g_screen_state (g_dword_68ec78.state)
+#define g_screen_state (g_screen_state_0068ec78.state)
 #define g_pending_state (g_dword_68ed10.state)
 W8ScreenStateHandlers g_screen_handlers[13] = {
     { ScreenReady, EnterMainMenu, MainMenuScreenFrame, ScreenLeave, 0 },
