@@ -238,3 +238,228 @@ int PartyAvoidsSurprise(void)
     }
     return 0;
 }
+
+extern int GetHandAttackValue(int party_slot, unsigned int hand);        /* 0x0053D7F0 */
+extern void ChooseCombatAction(
+    int party_slot, int is_monster_turn, int* out_kind, int a, int b, int c); /* 0x004E77B0 */
+extern void ApplyCharacterEffect(
+    W8Character* character, void* effect, int arg_3, int arg_4, int arg_5);
+extern unsigned char CharacterCanSwitchTo(int party_slot, int a, int b, int c);
+/* 0x004E79A0 */
+extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
+extern void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3);
+/* 0x0051AC30 */
+extern void NotifyMonsterIdle(W8Monster* monster, int arg_2);            /* 0x004C6240 */
+extern void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
+/* 0x004C62C0 */
+extern void Function4C6200(W8Monster* monster, int arg_2);
+extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
+extern void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
+extern int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
+extern void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to);
+extern void RoundPhaseToStep(unsigned int* phase, unsigned int base);
+extern void RequestRedraw(unsigned int mask);
+extern float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
+extern W8Monster* GetMonsterByLocationID(int location_id);
+extern void* g_effect_005ee610;
+extern int g_effect_argument_005ed8c8;
+extern int g_effect_argument_005ed914;
+extern unsigned int g_flee_hp_fraction_005ed8f8;
+extern unsigned int g_flee_chance_005ed908;
+extern float g_movement_speed_step_005ed490;
+/* 0x00683FE7-adjacent: the per-character per-hand attack values combat saved
+   when the round began, 0x35 dwords per character. */
+extern int g_saved_attack_values[];
+
+/* What one character's whole turn is worth. A character whose turn combat has
+   already set up uses the values it saved; anyone else is asked afresh. A
+   phase of exactly a hundred is worth one whatever the hands say. */
+// FUNCTION: WIZ8 0x004EC860
+int GetCharacterTurnValue(int party_slot)
+{
+    W8CombatCharacterRow* row = &g_combat_character_rows[party_slot];
+    int chosen;
+    int total = 0;
+    unsigned int hand;
+    int value;
+
+    ChooseCombatAction(party_slot, row->flag_4c == 0, &chosen, 0, 0, 0);
+    if (chosen != 0 && chosen != 1) {
+        return 1;
+    }
+
+    for (hand = 0; hand < 2; ++hand) {
+        if (row->flag_4c == 0) {
+            value = GetHandAttackValue(party_slot, hand);
+        }
+        else {
+            value = g_saved_attack_values[party_slot * 0x35 + hand];
+        }
+        if (row->value_18 == 100) {
+            value = 1;
+        }
+        total += value;
+    }
+    return total;
+}
+
+/* Whether a wounded character panics. Only a character target counts, they
+   have to be below the fraction of their hit points that triggers it, and then
+   it is a roll - so the same wound does not always panic. */
+// FUNCTION: WIZ8 0x004ECE00
+unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
+{
+    W8Character* character;
+
+    if (target->kind != W8_TARGET_KIND_CHARACTER) {
+        return 0;
+    }
+    character = &g_party_characters[target->character_slot];
+    if ((character->hp_current * 100) / (unsigned int)character->hp_max >=
+        g_flee_hp_fraction_005ed8f8) {
+        return 0;
+    }
+    if (Random(100) >= g_flee_chance_005ed908) {
+        return 0;
+    }
+    ApplyCharacterEffect(character, g_effect_005ee610, 0, g_effect_argument_005ed8c8,
+                         g_effect_argument_005ed914);
+    return 1;
+}
+
+/* End one monster's turn: forget what it was doing, mark its combat state
+   inactive, and - if it is still in the fight - either stand it down or turn
+   it to face whoever it settled on. */
+// FUNCTION: WIZ8 0x004E76F0
+void EndMonsterTurn(W8MonsterInfo* monster_info)
+{
+    int chosen[2];
+    int target_location;
+
+    monster_info->action_kind = -1;
+    monster_info->action_detail = 0;
+    monster_info->pCombat->phase = 0;
+    monster_info->pCombat->active = 1;
+    monster_info->pCombat->value_14c = 0;
+    RequestRedraw(0x100000);
+
+    if (monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xe &&
+        monster_info->condition_turns[12] == 0) {
+        MonsterChooseTarget(monster_info, chosen, 3);
+        if (chosen[0] == 2) {
+            NotifyMonsterIdle(monster_info->monster, 0);
+            monster_info->flag_253 = 0;
+            return;
+        }
+        if (chosen[0] == 3) {
+            target_location = chosen[1];
+            NotifyMonsterFacing(monster_info->monster,
+                                GetMonsterByLocationID(target_location), 0);
+        }
+    }
+    monster_info->flag_253 = 0;
+}
+
+/* Set one monster's turn up, once. How fast it moves through the turn depends
+   on what it chose - fleeing is half speed and one action is half again - and
+   an enchanted monster is quickened by ten per point instead of slowed by the
+   condition it is under. */
+// FUNCTION: WIZ8 0x004EB8C0
+void SetUpMonsterTurn(W8MonsterInfo* monster_info)
+{
+    unsigned int speed = 100;
+    float scale;
+
+    if (monster_info->pCombat->turn_started != 0) {
+        monster_info->monster->member_18.unknown_10[0x16] = 0;
+        return;
+    }
+
+    scale = GetMonsterRecordScaledFloat1BA(monster_info);
+    if (monster_info->action_kind == 9) {
+        speed = 0x32;
+    }
+    else {
+        if (monster_info->action_kind == 7) {
+            speed = 0x96;
+        }
+        if (monster_info->enchantments[5].value_08 == 0) {
+            if (monster_info->condition_turns[5] != 0) {
+                speed -= 0x32;
+            }
+        }
+        else {
+            speed += monster_info->enchantments[5].value_00 * 10;
+        }
+    }
+
+    SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
+    /* Four bytes inside cycle eight's block, cleared together. */
+    monster_info->monster->m_cycles[8].unknown_05[3] = 0;
+    monster_info->monster->m_cycles[8].unknown_09 = 0;
+    monster_info->monster->m_cycles[8].unknown_0a[0] = 0;
+    monster_info->monster->m_cycles[8].unknown_0a[1] = 0;
+    monster_info->pCombat->turn_started = 1;
+    monster_info->monster->member_18.unknown_10[0x16] = 0;
+}
+
+/* Finish one monster's attack: charge it the fatigue, drop the party's
+   selection, and give it its next phase if it still has attacks left - which
+   divides whatever is left of the round between them. */
+// FUNCTION: WIZ8 0x004EB7F0
+void EndMonsterAttack(W8MonsterInfo* monster_info)
+{
+    W8MonsterCombatState* combat = monster_info->pCombat;
+    unsigned int next;
+
+    GetMonsterDataForInfo(monster_info);
+    FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
+    Function4C6200(monster_info->monster, 1);
+    g_combat_state->selected_slot = 0;
+    g_combat_state->selected_monster = 0;
+
+    if (combat->active == 0) {
+        return;
+    }
+    if (monster_info->action_kind == 0 && combat->attacks_per_round != 0) {
+        if (Function5323F0(monster_info, 1, 0, 0)) {
+            next = combat->phase +
+                   (100 - g_combat_state->round_counter) / (combat->attacks_per_round + 1);
+            combat->phase = next;
+            if (next < 0x65) {
+                RoundPhaseToStep(&combat->phase, g_combat_state->round_counter);
+                return;
+            }
+        }
+    }
+    combat->phase = 0;
+}
+
+/* Whether one character may take an action, and take it if asked. A character
+   whose turn combat has set up already only agrees to the action they are
+   already on; anyone else may switch, except into the fourth action while
+   something else forbids it. */
+// FUNCTION: WIZ8 0x004ED2D0
+unsigned char TryCharacterAction(int party_slot, int action, char commit)
+{
+    W8Character* character = &g_party_characters[party_slot];
+
+    if (character->hp_current == 0 || character->unknown_0b01 >= 0xf) {
+        return 0;
+    }
+    if (g_combat_character_rows[party_slot].flag_4c != 0) {
+        return g_party_slot_rows[party_slot].pending_action == action;
+    }
+    if (*(int*)((char*)&g_party_slot_rows[party_slot] + 0x3d) != action) {
+        if (action != 4) {
+            return 0;
+        }
+        if (CharacterCanSwitchTo(party_slot, 1, 0, 0)) {
+            return 0;
+        }
+    }
+    if (commit) {
+        SwitchCharacterTo(party_slot, action);
+    }
+    return 1;
+}

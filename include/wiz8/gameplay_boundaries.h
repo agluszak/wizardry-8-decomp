@@ -1084,14 +1084,27 @@ typedef struct W8MonsterCombatEntry {
 
 #pragma pack(push, 1)
 typedef struct W8MonsterCombatState {
-    unsigned char unknown_000[0x16];
+    /* 0x000: the phase of the round this monster next acts on, zero when it
+       has finished acting. */
+    unsigned int phase;
+    unsigned char active;                   /* 0x004 */
+    unsigned char unknown_005[4];
+    /* 0x009: how many attacks it gets this round, which is what divides the
+       remaining phases between them. */
+    int attacks_per_round;
+    unsigned char unknown_00d[9];
     /* 0x016: the queue of actions the monster's AI has decided on, one 0x30
        byte record each. The AI owns the list and destroys it outright. */
     W8PList* pending_actions;
     unsigned char unknown_01a[0x24];
     W8MonsterCombatEntry entries_3e[9];     /* 0x03e .. 0x0d7 */
     W8MonsterCombatEntry entries_d7[6];     /* 0x0d7 .. 0x13d */
-    unsigned char unknown_13d[0x16];
+    unsigned char unknown_13d[0xf];
+    int value_14c;                          /* 0x14c */
+    /* 0x150: the monster's turn has been set up already, so the setup runs
+       once per turn however often it is asked for. */
+    unsigned char turn_started;
+    unsigned char unknown_151[2];
 } W8MonsterCombatState;                    /* 0x153 */
 #pragma pack(pop)
 
