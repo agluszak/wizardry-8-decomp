@@ -1380,3 +1380,68 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
     }
     return 1;
 }
+
+/* 0x00683FB1: every monster group in the level. */
+extern W8PList* g_monster_group_list_00683fb1;
+extern unsigned char g_flag_00685116;
+
+/* The spell target kinds this has an opinion about. Everything else is
+   answered yes outright, so the question only ever narrows. */
+enum {
+    W8_SPELL_TARGET_ONE_MONSTER = 2,
+    W8_SPELL_TARGET_MONSTER_GROUP = 5,
+    W8_SPELL_TARGET_DEAD_CHARACTER = 7
+};
+
+/* Whether a spell has anything to be cast at. What it needs decides the sweep:
+   one monster looks for a targetable one, a group looks for a targetable
+   group, and the raise-the-dead kind looks for a party member who is down but
+   still reachable - occupied, out of hit points, carrying the eighteenth
+   condition and not the nineteenth, which is the same pair IsTargetStillPresent
+   reads for its indirect character kind.
+
+   Out of combat the one-monster kind answers yes without looking, since
+   anything in the level can be walked up to. */
+// FUNCTION: WIZ8 0x0053D010
+unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize)
+{
+    unsigned int index;
+
+    switch (GetTargetNeededForSpellFriendly(spell_id, normalize, 6)) {
+    case W8_SPELL_TARGET_ONE_MONSTER:
+        if (g_flag_00685116 != 0) {
+            return 1;
+        }
+        for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+            if (CanTargetMonster(
+                    party_slot, MonsterGetScriptPartByLocationIndex(index)->location_id, 0, 0)) {
+                return 1;
+            }
+        }
+        return 0;
+
+    case W8_SPELL_TARGET_MONSTER_GROUP:
+        for (index = 0; index < PListGetCount(g_monster_group_list_00683fb1); ++index) {
+            W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
+
+            if (group->flag_28 != 0 && CanTargetMonsterGroup(party_slot, group)) {
+                return 1;
+            }
+        }
+        return 0;
+
+    case W8_SPELL_TARGET_DEAD_CHARACTER:
+        for (index = 0; index < 8; ++index) {
+            if (g_party_slot_rows[index].flag_00 != 0 &&
+                g_party_characters[index].hp_current == 0 &&
+                g_party_characters[index].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 &&
+                g_party_characters[index].condition_turns[W8_CONDITION_BEYOND_REACH] == 0) {
+                return 1;
+            }
+        }
+        return 0;
+
+    default:
+        return 1;
+    }
+}
