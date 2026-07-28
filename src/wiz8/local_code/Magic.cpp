@@ -669,3 +669,118 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
     }
     return chance;
 }
+
+extern void ReportActionFailed(int party_slot);                          /* 0x0056A770 */
+extern unsigned char GetItemSpell(const W8ItemInstance* item);           /* 0x00520880 */
+extern void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
+/* 0x00522180 */
+extern unsigned char g_profession_spellbooks[];
+
+/* Begin one character's spell. The recorded target is copied to the stack
+   first because choosing the action overwrites it, and out of combat the
+   original target is re-aimed at before that happens. Naming a spell outright
+   replaces the slot's own one. */
+// FUNCTION: WIZ8 0x00501590
+void StartCharacterSpellCast(int party_slot, int spell_id)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    int saved_target[8];
+    int named[2];
+    const int* target;
+    int index;
+
+    for (index = 0; index < 8; ++index) {
+        saved_target[index] = row->spell_target_block[index];
+    }
+    if (g_in_combat_00683f94 == 0) {
+        AimAtTarget(party_slot, (W8CombatSlot*)row->spell_target_block, 6);
+    }
+
+    if (spell_id == 0) {
+        target = &row->spell_target_value;
+    }
+    else {
+        named[0] = spell_id;
+        named[1] = 0;
+        target = named;
+    }
+    ChooseAction(party_slot, 7, row->spell_target_kind, (int)target, 0, 1);
+    AimAtTarget(party_slot, (W8CombatSlot*)saved_target, 6);
+
+    if (IsSpellTargetStillValidIn(party_slot, row->spell_target_kind, 3)) {
+        StartBreathCycle(party_slot, 0);
+        return;
+    }
+    ReportActionFailed(party_slot);
+}
+
+/* The same for using an item. The item's own spell decides whether the target
+   still holds, and where the item came from is recorded before the check so a
+   failed use can put it back. */
+// FUNCTION: WIZ8 0x00501790
+void StartCharacterItemUse(int party_slot)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    int saved_target[8];
+    int index;
+
+    for (index = 0; index < 8; ++index) {
+        saved_target[index] = row->item_target_block[index];
+    }
+    if (g_in_combat_00683f94 == 0) {
+        AimAtTarget(party_slot, (W8CombatSlot*)row->item_target_block, 6);
+    }
+    ChooseAction(party_slot, 8, -1, (int)&row->item_use_kind, 0, 1);
+    AimAtTarget(party_slot, (W8CombatSlot*)saved_target, 6);
+    RecordItemOrigin(party_slot, row->item_origin, row->item_slot);
+
+    if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_in_use), 4)) {
+        StartBreathCycle(party_slot, 0);
+        return;
+    }
+    ReportActionFailed(party_slot);
+}
+
+/* A character's whole casting strength in one spellbook: their current
+   profession's caster level, plus every other profession they have ever held
+   that shares the book. Only positive contributions count, and a caster level
+   of nothing at all short-circuits unless the caller asks for the sum
+   anyway. */
+// FUNCTION: WIZ8 0x004FFBD0
+int GetTotalCasterLevel(
+    const W8Character* character, int unused, int spellbook, char include_all)
+{
+    int profession = character->current_profession;
+    int total;
+    int other;
+    int level;
+
+    if (profession == -1) {
+        srAssertFail("iProfession != -1", MAGIC_CPP, 3603, 0);
+    }
+    if (g_profession_magic_level_offsets[profession] == -255) {
+        total = -1;
+    }
+    else {
+        total = character->profession_levels[profession] +
+                g_profession_magic_level_offsets[profession];
+    }
+    if (total < 1 && include_all == 0) {
+        return total;
+    }
+
+    for (other = 0; other < 15; ++other) {
+        if (character->profession_levels[other] != 0 &&
+            other != character->current_profession &&
+            (g_profession_spellbooks[other] & spellbook) != 0) {
+            if (g_profession_magic_level_offsets[other] != -255) {
+                level = character->profession_levels[other] +
+                        g_profession_magic_level_offsets[other];
+                if (level > 0) {
+                    total += level;
+                }
+            }
+        }
+    }
+    return total;
+}

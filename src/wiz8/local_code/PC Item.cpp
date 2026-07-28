@@ -1330,3 +1330,81 @@ void BindEveryPartyItem(void)
     }
     ShowNotice(8, g_notices[0x7b4 / 4], -1, -1, 0);
 }
+
+#include <stdlib.h>
+
+/* Order two pool entries. Both have to hold something - the two assertions say
+   so by name - and they are compared by equipment class, then by generic name,
+   then unidentified before identified, then by value, then by stack count and
+   finally by uses. Every comparison is the reverse of the usual sense, so the
+   pool ends up in descending order. */
+// FUNCTION: WIZ8 0x00520600
+int __cdecl CompareItemsForPool(const void* first, const void* second)
+{
+    const W8ItemInstance* a = (const W8ItemInstance*)first;
+    const W8ItemInstance* b = (const W8ItemInstance*)second;
+    const W8ItemDatabaseRecord* ra;
+    const W8ItemDatabaseRecord* rb;
+
+    if (a->item_id == -1) {
+        srAssertFail("pPCItem1->iItemNo != BAD_INDEX", PC_ITEM_CPP, 3812, 0);
+    }
+    if (b->item_id == -1) {
+        srAssertFail("pPCItem2->iItemNo != BAD_INDEX", PC_ITEM_CPP, 3813, 0);
+    }
+    ra = &g_item_records[a->item_id];
+    rb = &g_item_records[b->item_id];
+
+    if (rb->equip_class < ra->equip_class) {
+        return 1;
+    }
+    if (ra->equip_class < rb->equip_class) {
+        return -1;
+    }
+    if (rb->unidentified_name_index < ra->unidentified_name_index) {
+        return 1;
+    }
+    if (ra->unidentified_name_index < rb->unidentified_name_index) {
+        return -1;
+    }
+    if (a->identified == 0) {
+        if (b->identified == 0) {
+            return 0;
+        }
+        return 1;
+    }
+    if (b->identified == 0) {
+        return -1;
+    }
+    if (ra->value < rb->value) {
+        return 1;
+    }
+    if (rb->value < ra->value) {
+        return -1;
+    }
+    if (a->stack_count < b->stack_count) {
+        return 1;
+    }
+    if (b->stack_count < a->stack_count) {
+        return -1;
+    }
+    if (a->uses_or_charges < b->uses_or_charges) {
+        return 1;
+    }
+    return -(b->uses_or_charges < a->uses_or_charges);
+}
+
+/* Put the party pool back in order. Its assertion names gStatus.fGameStarted,
+   which is what identified that global in the first place, and a pool of one
+   is left alone rather than sorted. */
+// FUNCTION: WIZ8 0x005205B0
+void SortPartyItemPool(void)
+{
+    if (g_game_started == 0) {
+        srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 3795, 0);
+    }
+    if (g_party_item_count > 1) {
+        qsort(g_party_item_pool, g_party_item_count, sizeof(W8ItemInstance),
+              CompareItemsForPool);
+    }
+}

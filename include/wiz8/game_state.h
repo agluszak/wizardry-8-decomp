@@ -98,7 +98,15 @@ typedef struct W8PartySlotRow {
     int spell_target_value;              /* 0x079 */
     int spell_target_reset;              /* 0x07d */
     int spell_target_block[8];           /* 0x081 */
-    unsigned char unknown_0a1[0x2f];
+    /* 0x0a1..0x0cf: the item-use block, the same shape as the spell one above -
+       what is being used, which item, where it is aimed and where it came
+       from. */
+    int item_use_kind;                   /* 0x0a1 */
+    struct W8ItemInstance* item_in_use;  /* 0x0a5 */
+    int item_target_block[8];            /* 0x0a9 */
+    unsigned char unknown_0c9[4];
+    unsigned char item_origin;           /* 0x0cd */
+    unsigned short item_slot;            /* 0x0ce */
     unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
     unsigned char unknown_0d1[0x24];
     /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a
