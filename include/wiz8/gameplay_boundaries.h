@@ -541,8 +541,22 @@ typedef struct W8CombatSlot {
     /* 0x10: the world point aimed at, for the kinds that aim at a place
        rather than at somebody. */
     W8Position point;
-    unsigned char unknown_1c[4];
+    /* 0x1c: the item aimed at, for the one kind that aims at one. */
+    W8ItemInstance* item;
 } W8CombatSlot;                           /* 0x20 */
+
+/* The target kinds a combat slot's leading field takes. The four that name
+   something put it in their own field, which is what pairs each kind with the
+   field the aiming wrappers fill in. */
+enum {
+    W8_TARGET_KIND_CHARACTER = 1,
+    W8_TARGET_KIND_PARTY = 2,
+    W8_TARGET_KIND_MONSTER = 3,
+    W8_TARGET_KIND_GROUP = 4,
+    W8_TARGET_KIND_PLACE = 6,
+    W8_TARGET_KIND_ITEM = 7,
+    W8_TARGET_KIND_CHARACTER_INDIRECT = 9
+};
 
 typedef struct W8TargetSource {
     int iType;                            /* 0x00 */

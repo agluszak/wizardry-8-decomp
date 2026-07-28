@@ -168,3 +168,177 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
     return GetTargetNeededForSpellFriendly(
         record->spell_id, Function5207C0(record, 6), 0);
 }
+
+extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
+extern void ApplyTarget(W8CombatSlot* target, int context);              /* 0x00538E00 */
+extern unsigned char TargetIsReachable(W8CombatSlot* target);            /* 0x00536190 */
+extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
+extern void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
+/* 0x004CA4F0 */
+extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
+extern void Function492500(void* scratch);
+extern void Function5653F0(void);
+extern unsigned char g_target_marker_00684073;
+
+/* Aim at whatever the caller names, by kind. The other three fields are left
+   at BAD_INDEX, so only the kind's own field is meaningful. */
+// FUNCTION: WIZ8 0x00538620
+void AimByKind(int actor, int kind, int context)
+{
+    W8CombatSlot target;
+
+    memset(&target, 0, sizeof(target));
+    target.monster_id = BAD_INDEX;
+    target.character_slot = BAD_INDEX;
+    target.group_id = BAD_INDEX;
+    target.kind = kind;
+    AimAtTarget(actor, &target, context);
+}
+
+/* Aim at one character. */
+// FUNCTION: WIZ8 0x00538670
+void AimAtCharacter(int actor, int character_slot, int context)
+{
+    W8CombatSlot target;
+
+    memset(&target, 0, sizeof(target));
+    target.monster_id = BAD_INDEX;
+    target.group_id = BAD_INDEX;
+    target.character_slot = character_slot;
+    target.kind = W8_TARGET_KIND_CHARACTER;
+    AimAtTarget(actor, &target, context);
+}
+
+/* Aim at the place the party is looking, drop the marker and let the display
+   know. */
+// FUNCTION: WIZ8 0x00538710
+void AimAtPlace(int actor)
+{
+    W8CombatSlot target;
+    unsigned char scratch[16];
+
+    memset(&target, 0, sizeof(target));
+    target.monster_id = BAD_INDEX;
+    target.character_slot = BAD_INDEX;
+    target.group_id = BAD_INDEX;
+    target.kind = W8_TARGET_KIND_PLACE;
+    Function492500(scratch);
+    AimAtTarget(actor, &target, W8_TARGET_KIND_PLACE);
+    g_target_marker_00684073 = 0;
+    Function5653F0();
+}
+
+/* The three wrappers that set the party's own target rather than a
+   combatant's, one per kind that names something. */
+// FUNCTION: WIZ8 0x00538D10
+void SetTargetToCharacter(int character_slot, int context)
+{
+    W8CombatSlot target;
+
+    memset(&target, 0, sizeof(target));
+    target.monster_id = BAD_INDEX;
+    target.group_id = BAD_INDEX;
+    target.kind = W8_TARGET_KIND_CHARACTER;
+    target.character_slot = character_slot;
+    ApplyTarget(&target, context);
+}
+
+// FUNCTION: WIZ8 0x00538D60
+void SetTargetToMonster(int monster_id, int context)
+{
+    W8CombatSlot target;
+
+    memset(&target, 0, sizeof(target));
+    target.character_slot = BAD_INDEX;
+    target.group_id = BAD_INDEX;
+    target.kind = W8_TARGET_KIND_MONSTER;
+    target.monster_id = monster_id;
+    ApplyTarget(&target, context);
+}
+
+// FUNCTION: WIZ8 0x00538DB0
+void SetTargetToGroup(int group_id, int context)
+{
+    W8CombatSlot target;
+
+    memset(&target, 0, sizeof(target));
+    target.monster_id = BAD_INDEX;
+    target.character_slot = BAD_INDEX;
+    target.kind = W8_TARGET_KIND_GROUP;
+    target.group_id = group_id;
+    ApplyTarget(&target, context);
+}
+
+/* Put the on-screen marker over one monster, from the party's eye to the
+   monster's own bounds. */
+// FUNCTION: WIZ8 0x00539870
+void ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
+{
+    unsigned char eye[8];
+    unsigned char lower[12];
+    unsigned char upper[12];
+
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
+    }
+    GetPartyEyePosition(eye);
+    GetMonsterBounds(monster_info->monster, lower, upper);
+    ShowTargetMarker(eye, lower, upper);
+}
+
+/* Whether a recorded target is of the kind a caller needs. Each needed kind
+   admits one or two target kinds, and every admitted target additionally has
+   to be reachable - so the answer is never just the kind test. */
+// FUNCTION: WIZ8 0x00537160
+char TargetMatchesNeeded(W8CombatSlot* target, int needed)
+{
+    char matched = 0;
+
+    if (target == 0) {
+        return 0;
+    }
+    switch (needed) {
+    case 1:
+    case 2:
+    case 8:
+        if (target->kind == W8_TARGET_KIND_CHARACTER && target->character_slot != BAD_INDEX) {
+            matched = 1;
+        }
+        if (target->kind == W8_TARGET_KIND_MONSTER && target->monster_id != BAD_INDEX) {
+            return TargetIsReachable(target);
+        }
+        if (matched) {
+            return TargetIsReachable(target);
+        }
+        break;
+    case 3:
+    case 4:
+        if (target->kind == W8_TARGET_KIND_PLACE) {
+            return TargetIsReachable(target);
+        }
+        break;
+    case 5:
+        if (target->kind == W8_TARGET_KIND_GROUP && target->group_id != BAD_INDEX) {
+            matched = 1;
+        }
+        if (target->kind == W8_TARGET_KIND_PARTY) {
+            return TargetIsReachable(target);
+        }
+        if (matched) {
+            return TargetIsReachable(target);
+        }
+        break;
+    case 6:
+        if (target->kind == W8_TARGET_KIND_ITEM && target->item != 0) {
+            return TargetIsReachable(target);
+        }
+        break;
+    case 7:
+        if (target->kind == W8_TARGET_KIND_CHARACTER_INDIRECT &&
+            target->character_slot != BAD_INDEX) {
+            return TargetIsReachable(target);
+        }
+        break;
+    }
+    return 0;
+}
