@@ -567,7 +567,9 @@ extern bool CanCharReBreathe(int party_slot);                            /* 0x00
 extern bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
 extern int g_combat_difficulty_006850d5;
 extern W8CombatCharacterRow* g_combat_character_rows;
-/* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. */
+/* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
+   monster power-level chooser reads the same table as a spell-point budget
+   cost, so the one table serves both. */
 extern const int g_spell_failure_table[];
 
 /* Start one character's breath attack. The assertion names the predicate it
@@ -1173,9 +1175,6 @@ extern wchar_t* GetMonsterName(
     W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
 extern void FormatDebugMessage(int channel, const char* format, ...);
 extern int Random(int bound);
-/* 0x00616DF0: seventeen spell-point costs, indexed by the band a spell's own
-   level and point cost fall into. */
-extern const int g_spell_budget_costs[17];
 
 /* The spell id that stands for no monster spell. */
 enum { W8_MONSTER_SPELL_NONE = 0x77 };
@@ -1221,7 +1220,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
         if (band > 16) {
             band = 16;
         }
-        cost = (g_spell_budget_costs[band] * power_level) / 7;
+        cost = (g_spell_failure_table[band] * power_level) / 7;
 
         if (cost > budget) {
             unsigned int shortfall = (cost * 70 - budget * 70) / cost;
@@ -1412,7 +1411,7 @@ unsigned int GetBestSpellbookSkillForSpell(
             if (band > 16) {
                 band = 16;
             }
-            needed = (g_spell_budget_costs[band] * power_level) / 7;
+            needed = (g_spell_failure_table[band] * power_level) / 7;
             if (skill_figure < needed) {
                 failure = (needed * 70 - skill_figure * 70) / needed;
                 if ((int)failure < 0) {
@@ -1450,54 +1449,49 @@ done:
     return best_level;
 }
 
-/* How likely a cast is to come apart, as a percentage. Two things spoil it: a
-   spellbook skill short of what the spell's cost band asks for at that power
-   level, and a caster level short of what the spell asks for. The first is
-   scaled against the shortfall, the second charged flat at the spell's level
-   per level missing, and the whole thing is then scaled by how far ahead of
-   the combat pace the caster is.
+/* How likely one whole cast is to come apart, as a percentage. Two things
+   spoil it, and this is where the two meet: a spellbook skill short of what
+   the spell's cost band asks for at that power level, which the plain
+   failure-chance body above answers, and a caster level short of what the
+   spell asks for, charged flat at the spell's own level per level missing. The
+   sum is then scaled by how far ahead of the combat pace the caster is.
 
-   The bodies below carry this inline rather than calling it, which is how the
-   same twenty-odd instructions turn up in each of them. */
-static __forceinline unsigned int GetSpellFailureChance(
-    W8Character* character, int spell_id, unsigned int power_level)
+   The skill this is measured against is the spell's own best spellbook skill
+   weighted four to one against the realm skill, which is what makes the realm
+   the larger part of it.
+
+   Power level eight is the request to cast as high as affordable rather than a
+   level, so it has no failure chance of its own. The power-level choosers
+   carry this whole body inline rather than calling it. */
+// FUNCTION: WIZ8 0x004FF4B0
+unsigned int GetSpellFailureChanceForCast(
+    W8Character* character, int spell_id, unsigned int power_level, int level_bonus)
 {
-    int party_slot = CharacterPointerToPartySlot(character);
-    int skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level, 0);
-    int band = g_spell_records[spell_id].spell_point_cost / 2 +
-               g_spell_records[spell_id].spell_level;
-    unsigned int skill_figure =
+    int skill;
+    int party_slot;
+    unsigned int skill_figure;
+    unsigned int chance;
+    int shortfall;
+
+    if (power_level == W8_SPELL_POWER_AS_AFFORDABLE) {
+        return 0;
+    }
+
+    skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level, 0);
+    party_slot = CharacterPointerToPartySlot(character);
+    skill_figure =
         (unsigned int)(character->skills[skill].level +
                        character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm]
                                .level *
                            4) /
         5;
-    unsigned int needed;
-    unsigned int chance;
-    int shortfall;
-
-    if (band > 16) {
-        band = 16;
-    }
-    needed = (g_spell_budget_costs[band] * power_level) / 7;
-    if (skill_figure < needed) {
-        chance = (needed * 70 - skill_figure * 70) / needed;
-        if ((int)chance < 0) {
-            chance = 0;
-        }
-        else if ((int)chance > 100) {
-            chance = 100;
-        }
-    }
-    else {
-        chance = 0;
-    }
+    chance = GetSpellFailureChance(skill_figure, spell_id, (int)power_level);
 
     shortfall = GetMinimumCasterLevelForSpell(spell_id) -
                 GetTotalCasterLevel(character, 0, SpellbookMaskForSpell(spell_id), 1) - 1 +
-                (int)power_level;
+                level_bonus;
     if (shortfall > 0) {
-        chance += g_spell_records[spell_id].spell_level * shortfall;
+        chance = g_spell_records[spell_id].spell_level * shortfall + power_level;
     }
     ScaleByCombatPace(party_slot, &chance);
     return chance;
@@ -1558,7 +1552,7 @@ unsigned int ChoosePowerLevelForDuration(
             return best_power;
         }
 
-        failure = GetSpellFailureChance(character, spell_id, power_level);
+        failure = GetSpellFailureChanceForCast(character, spell_id, power_level, (int)power_level);
 
         /* What one cast at this level really delivers: the square of the power
            level, less the share of it the failure chance takes away. */
@@ -1618,7 +1612,7 @@ unsigned int ChoosePowerLevelToRestore(
     }
 
     for (power_level = 1; power_level < 8; ++power_level) {
-        failure = GetSpellFailureChance(character, spell_id, power_level);
+        failure = GetSpellFailureChanceForCast(character, spell_id, power_level, (int)power_level);
         if (failure > W8_SPELL_FAILURE_ACCEPTABLE) {
             if (power_level > 1) {
                 --power_level;
@@ -1760,3 +1754,4 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     }
     return 1;
 }
+
