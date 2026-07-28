@@ -749,7 +749,15 @@ typedef struct W8LevelRuntimeBlock {
     /* 0x0f4: what still needs redrawing. Everything that changes anything the
        screen shows ORs its own bit in here rather than drawing. */
     unsigned int redraw_flags;
-    unsigned char unknown_0f8[0xb0];
+    unsigned char unknown_0f8[0xc];
+    /* 0x104: which region the pointer is over. The portrait hit test walks the
+       party slots against two runs of region numbers. */
+    unsigned int hover_region;
+    unsigned char unknown_108[0x4d];
+    /* 0x155: the last of the combat regions is only taken down when this is
+       clear. */
+    unsigned char flag_155;
+    unsigned char unknown_156[0x52];
     /* 0x1a8: one entry per message line the main game screen is showing. */
     int text_lines[12];
     /* 0x1d8 and 0x1e8: two four-entry tables the text box clears a slot of at
@@ -792,6 +800,15 @@ typedef struct W8LevelRuntimeBlock {
     int selection_kind;
     unsigned char unknown_2f4[4];
     unsigned char selection_settled;
+    unsigned char unknown_2f9[3];
+    /* 0x2fc..0x30b: the hover tooltip - when the pointer settled, that it is
+       showing, and what it is over. Moving to anything else restarts the
+       clock, which is what groups the four. */
+    unsigned int tooltip_since;
+    unsigned char tooltip_pending;
+    unsigned char unknown_301[3];
+    int tooltip_subject;
+    int tooltip_kind;
 } W8LevelRuntimeBlock;
 
 #pragma pack(pop)

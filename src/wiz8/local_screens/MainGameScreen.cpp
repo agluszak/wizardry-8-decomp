@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/wiz8_windows.h"
 
 /*
  * Local Screens\MainGameScreen.cpp.
@@ -158,4 +159,150 @@ int IsScreenInputBlocked(void)
         return 0;
     }
     return 1;
+}
+
+/* The screen object at 0x0068F2D4. Only the members these bodies reach are
+   established: two panels, the object the region events go to, and the
+   pending target the Knock Knock cast records. */
+class W8MainGameScreenPanel {
+public:
+    virtual ~W8MainGameScreenPanel();
+    virtual void Redraw(int full_redraw);
+
+    unsigned char unknown_004[0x70];
+    /* 0x074 and 0x078: the key handler and the selection it moves. */
+    W8MainGameScreenPanel* key_target;
+    int selection;
+    unsigned char unknown_07c[0xc4];
+    unsigned char flag_140;              /* 0x140 */
+};
+
+extern unsigned char* g_main_game_screen_0068f2d4;
+extern unsigned char g_flag_00683f9a;
+extern unsigned char g_map_loading_00659757;
+extern int g_current_level_00686a70;
+extern void Function55EE70(int reason);
+extern void Function55EF90(void);
+extern void Function42B3E0(void);
+extern unsigned char Function42ACE0(const char* path);
+extern void SetRegionMode4(unsigned int region);
+extern void Function5879A0(int arg_1);
+extern void Function58A790(int arg_1);
+extern void Function59F2B0(void);
+extern void Function59CAC0(void);
+extern void Function5B2200(void);
+extern unsigned int Function4F1910(const void* event);
+extern void Function558810(void);
+extern void Function558720(int arg_1);
+extern void ShowNotice(int channel, const void* text, int a, int b, int c);
+
+/* Whether the screen is idle - none of the six overlays is up. The same six
+   flags the input block reads, but all of them and unconditionally. */
+// FUNCTION: WIZ8 0x00561440
+int IsScreenIdle(void)
+{
+    if (g_flag_00683f94 == 0 && g_flag_00683f95 == 0 && g_flag_00683f96 == 0 &&
+        g_flag_00683f97 == 0 && g_flag_00683f98 == 0 && g_flag_00683f99 == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Load the level the party is on. With no level yet there is nothing to load
+   and the answer is yes; otherwise the loading flag is up for the duration so
+   whatever watches it knows. */
+// FUNCTION: WIZ8 0x00560A20
+bool LoadCurrentLevelData(void)
+{
+    bool loaded = true;
+
+    if (g_current_level_00686a70 != -1) {
+        Function55EE70(9);
+        g_map_loading_00659757 = 1;
+        Function42B3E0();
+        loaded = Function42ACE0("MAP") != 0;
+        g_map_loading_00659757 = 0;
+        Function55EF90();
+    }
+    return loaded;
+}
+
+/* Note what the pointer is hovering over. Moving to anything else restarts the
+   tooltip clock; staying put leaves it running, which is what makes the four
+   fields one tooltip rather than four settings. */
+// FUNCTION: WIZ8 0x00569C60
+void SetTooltipSubject(int kind, int subject)
+{
+    if (g_level_block->tooltip_kind != kind || g_level_block->tooltip_subject != subject) {
+        g_level_block->tooltip_pending = 1;
+        g_level_block->tooltip_since = GetTickCount();
+        g_level_block->tooltip_subject = subject;
+        g_level_block->tooltip_kind = kind;
+    }
+}
+
+/* Put the seven combat regions into their inactive mode, and the eighth with
+   its whole set only when the screen says it is not needed. */
+// FUNCTION: WIZ8 0x005690C0
+void DisableCombatRegions(void)
+{
+    SetRegionMode4(0x52);
+    SetRegionMode4(0x53);
+    SetRegionMode4(0x54);
+    SetRegionMode4(0x55);
+    SetRegionMode4(0x56);
+    SetRegionMode4(0x57);
+    SetRegionMode4(0x58);
+    if (g_level_block->flag_155 == 0) {
+        SetRegionMode4(0x59);
+        RegionSetDisable(0x14);
+    }
+}
+
+/* Hand one frame to whichever overlays are up. Each is independent, so more
+   than one can take the same frame. */
+// FUNCTION: WIZ8 0x0056AF20
+void UpdateScreenOverlays(int frame)
+{
+    if (g_flag_00683f98 != 0) {
+        Function5879A0(frame);
+    }
+    if (g_flag_00683f99 != 0) {
+        Function58A790(frame);
+    }
+    if (g_flag_00683f95 != 0) {
+        Function59F2B0();
+    }
+    if (g_flag_00683f96 != 0) {
+        Function59CAC0();
+    }
+    if (g_flag_00683f9a != 0) {
+        Function5B2200();
+    }
+}
+
+/* Which party portrait the pointer is over, if any. The slots are walked
+   against two runs of region numbers at once - one starting at 0x24 six apart
+   and one at 0x5a one apart - and only two event kinds are answered. */
+// FUNCTION: WIZ8 0x00569C00
+unsigned int HitTestPartyPortrait(const void* event)
+{
+    unsigned int region = 0x24;
+    int slot = 0;
+    unsigned int kind;
+
+    while (g_party_slot_rows[slot].flag_00 == 0 ||
+           (g_level_block->hover_region != region &&
+            g_level_block->hover_region != (unsigned int)(slot + 0x5a))) {
+        region += 6;
+        ++slot;
+        if (region > 0x53) {
+            return 0;
+        }
+    }
+    kind = *(const unsigned short*)((const char*)event + 6);
+    if (kind == 8 || kind == 0x10) {
+        return Function4F1910(event);
+    }
+    return 0;
 }

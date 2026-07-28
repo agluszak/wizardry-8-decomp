@@ -17,8 +17,8 @@ extern void RequestRedraw(int mask);                                    /* 0x005
 extern unsigned char g_text_box_mode_0069b7b8;
 extern int g_text_box_value_0064bd54;
 extern int g_text_line_cursor_00686905;
-/* 0x00689B17: one byte per line, how many entries that line holds. */
-extern const unsigned char g_text_line_counts[];
+/* 0x00689B17: one entry per line, how many messages that line holds. */
+extern const int g_text_line_counts[];
 extern void ScrollTextBoxTo(int line);                                  /* 0x0058BBC0 */
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
@@ -133,4 +133,70 @@ void RedrawTextBoxComplete(void)
     (*(W8ScreenPanel**)(screen + 0xc))->Redraw(0);
     RedrawTextBoxBody();
     (*(W8ScreenPanel**)(screen + 0x14))->Redraw(0);
+}
+
+extern unsigned int ClockIsTicking(int clock);
+/* 0x0068F2E0: one clock per message, nine dwords apart, in per-line runs of
+   0x15e. */
+extern int g_message_clocks[];
+extern unsigned char g_flag_00683f99;
+extern void Function558810(void);
+extern void Function558720(int arg_1);
+extern void ShowNotice(int channel, const void* text, int a, int b, int c);
+
+/* The last message on the current line whose clock has stopped, searched from
+   the newest backwards - so the first one found is the most recent finished
+   message rather than the oldest. */
+// FUNCTION: WIZ8 0x0058D760
+int FindStoppedTextLine(void)
+{
+    int index = g_text_line_counts[g_text_line_cursor_00686905];
+
+    if (index == 0) {
+        return -1;
+    }
+    while (--index >= 0) {
+        if (ClockIsTicking(
+                g_message_clocks[(index + g_text_line_cursor_00686905 * 0x15e) * 9]) == 0) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+/* Hand one key to the text box's own handler. A key that moved the selection
+   is followed by the two calls that settle it; a key that did not is not. */
+// FUNCTION: WIZ8 0x0058A8F0
+char TextBoxHandleKey(const void* event)
+{
+    char* panel = *(char**)(g_main_game_screen_0068f2d4 + 0xc);
+    int before = *(int*)(panel + 0x78);
+    char* handler = *(char**)(panel + 0x74);
+    char handled;
+
+    handled = (*(char(**)(char*, unsigned short))(*(char***)handler + 0x48 / 4))(
+        handler, *(const unsigned short*)((const char*)event + 8));
+
+    if (handled != 0 && *(int*)(panel + 0x78) != before) {
+        Function558810();
+        Function558720(3);
+    }
+    return handled;
+}
+
+/* Record what the Knock Knock spell is aimed at. Casting it anywhere the
+   overlay is not up says so and records nothing - the message is the
+   function's own name in the player's words. */
+// FUNCTION: WIZ8 0x0058A9C0
+void SetKnockKnockTarget(int target)
+{
+    unsigned char* screen = g_main_game_screen_0068f2d4;
+
+    if (g_flag_00683f99 == 0) {
+        ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
+        return;
+    }
+    *(int*)(screen + 0x14c) = target;
+    *(int*)(*(char**)(screen + 0x10) + 0x68) = target;
+    *(unsigned char*)(*(char**)(screen + 0xc) + 0x140) = 1;
 }
