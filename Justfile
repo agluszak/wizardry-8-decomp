@@ -13,6 +13,13 @@ default:
 test *args:
     uv run pytest {{args}}
 
+# Fast public lane: no proprietary inputs, Wine, VC6, or Ghidra required.
+check:
+    uv run ruff check .
+    uv run pyright
+    uv run pytest tests/unit
+    just check-markers
+
 # Build the active recovered binary through its real CMake graph.
 build target=default_build_target jobs=num_cpus(): _check-build-dir
     if test ! -f "{{repo}}/build/decomp/CMakeCache.txt"; then just configure; fi
@@ -119,8 +126,16 @@ check-markers *args:
 # Check reviewed bodies against the original by relocation-masked comparison.
 # This is the matching criterion; `compare` measures the linked image, where our
 # globals sit at other addresses, and scores byte-exact bodies well under 100%.
-verify-boundaries *args: _check-build-dir
+verify-boundaries *args: (build "WIZ8_GAMEPLAY_BOUNDARIES") (build "WIZ8_SGP_PROBES")
     uv run --project {{repo}} wiz8 verify-boundaries {{args}}
+
+# Full local source-port lane. Boundary verification rebuilds its object
+# surfaces, while compare remains diagnostic rather than the exactness judge.
+verify-port:
+    just build WIZ8
+    just verify-boundaries
+    just compare WIZ8
+    just test
 
 # Build the pinned VC6 SP5 image used by the active matching target.
 build-image:

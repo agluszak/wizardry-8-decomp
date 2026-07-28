@@ -95,7 +95,7 @@ def split_conflict(text: str) -> tuple[str, list[str], list[str]] | None:
             continue
         if line.startswith("+++++++"):
             section = "theirs"
-        elif line.startswith("%%%%%%%") or line.startswith("\\\\\\\\"):
+        elif line.startswith(("%%%%%%%", "\\\\\\\\")):
             section = "mine"
         elif section == "theirs":
             theirs.append(line)

@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shlex
 import shutil
 import subprocess
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Mapping, Sequence
 
 from .paths import atomic_json
 
@@ -64,7 +63,7 @@ def run(
         exit_status=completed.returncode,
         stdout=completed.stdout,
         stderr=completed.stderr,
-        timestamp_utc=datetime.now(timezone.utc).isoformat(),
+        timestamp_utc=datetime.now(UTC).isoformat(),
     )
     if log_path:
         atomic_json(log_path, asdict(result))
@@ -83,4 +82,3 @@ def tool_version(name: str, args: Sequence[str] = ("--version",)) -> dict[str, s
     )
     text = (completed.stdout + "\n" + completed.stderr).strip().splitlines()
     return {"executable": executable, "version": text[0].strip() if text else "unknown"}
-

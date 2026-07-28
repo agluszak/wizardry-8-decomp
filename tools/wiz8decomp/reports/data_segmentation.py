@@ -43,6 +43,7 @@ import csv
 import io
 from bisect import bisect_right
 from collections import defaultdict
+from itertools import pairwise
 from typing import Any
 
 from ..paths import atomic_json, atomic_write
@@ -173,7 +174,7 @@ def fit_storage_class(
         else:
             outliers.append((address, unit))
     ordered = sorted(intervals.items(), key=lambda item: item[1][0])
-    for (_, left), (unit, right) in zip(ordered, ordered[1:]):
+    for (_, left), (unit, right) in pairwise(ordered):
         if right[0] <= left[1]:
             raise ValueError(f"fitted unit intervals overlap at {unit}")
     return {

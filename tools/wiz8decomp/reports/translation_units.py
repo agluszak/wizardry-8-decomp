@@ -9,19 +9,20 @@ from typing import Any
 # pure core lives under ghidra/ where it feeds the materialization key.
 from ..ghidra.unit_intervals import (
     TranslationUnitInterval,
+    _address,
     call_site_anchors,
     derive_intervals,
 )
-from ..ghidra.unit_intervals import _address, source_path as _source_path
+from ..ghidra.unit_intervals import source_path as _source_path
 from ..paths import atomic_write
 
 __all__ = [
     "TranslationUnitInterval",
     "call_site_anchors",
     "derive_intervals",
-    "render_interval_csv",
-    "render_gameplay_map_csv",
     "load_call_site_anchors",
+    "render_gameplay_map_csv",
+    "render_interval_csv",
     "translation_unit_report",
 ]
 

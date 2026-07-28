@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
-
 import pytest
-
 from wiz8decomp.config import load_settings
 from wiz8decomp.inputs.scan import load_local_inputs
 
@@ -17,4 +13,3 @@ def test_configured_real_inputs_exist_or_skip() -> None:
     if not mapping:
         pytest.skip("no real inputs configured")
     assert {"gog-media", "demo", "patch-1261", "patch-128"}.issubset(set(mapping.values()))
-

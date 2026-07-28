@@ -12,6 +12,7 @@ from ..manifest_models import (
     CommandReceipt,
     ExtractionReceipt,
     ToolIdentity,
+    TreeFile,
     VariantProvenance,
     VariantProvenanceManifest,
     load_generated_document,
@@ -168,6 +169,7 @@ def _provenance(
 ) -> ExtractionReceipt:
     files = _content_manifest(destination, ".wiz8-extraction.json")
     value = ExtractionReceipt(
+        schema="wiz8.extraction-receipt",
         role=role,
         input_relative_path=record.relative_path,
         input_hashes=[record.sha256],
@@ -178,7 +180,7 @@ def _provenance(
         commands=_command_receipts(commands),
         wine_used=wine_used,
         output_tree_hash=tree_hash(files),
-        files=files,
+        files=[TreeFile.model_validate(entry) for entry in files],
         created_at_utc_non_authoritative=datetime.now(UTC).isoformat(),
     )
     write_generated_document(destination / ".wiz8-extraction.json", value)
@@ -521,6 +523,7 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
                 )
             files = _content_manifest(candidate, ".wiz8-variant.json")
             receipt = VariantProvenance(
+                schema="wiz8.variant-receipt",
                 variant=variant,
                 base_extraction=base_name,
                 patch_extraction=patch_name,
@@ -532,7 +535,7 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
                 ),
                 implementation_revision=_implementation_revision(VARIANT_IMPLEMENTATION_FILES),
                 tool_versions=_variant_tool_versions(inputs),
-                files=files,
+                files=[TreeFile.model_validate(entry) for entry in files],
                 output_tree_hash=tree_hash(files),
                 created_at_utc_non_authoritative=datetime.now(UTC).isoformat(),
             )
@@ -542,7 +545,7 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
         record = build_directory_atomically(destination, settings.work_dir, build)
         write_generated_document(_variant_receipt_path(settings, variant), record)
         records.append(record)
-    output = VariantProvenanceManifest(variants=records)
+    output = VariantProvenanceManifest(schema="wiz8.variant-provenance", variants=records)
     write_generated_document(variant_provenance_path(settings), output)
     return output.model_dump(mode="json", by_alias=True)
 

@@ -62,6 +62,7 @@ overlay_app.add_typer(overlay_debug_app, name="debug")
 app.add_typer(report_app, name="report")
 app.add_typer(sgp_app, name="sgp", hidden=True)
 console = Console()
+logger = logging.getLogger(__name__)
 _JSON_OUTPUT = False
 
 
@@ -110,8 +111,8 @@ def _run_action(action: Any, *, force_json: bool = False) -> None:
     try:
         _emit(action(), force_json=force_json)
     except Exception as error:
-        if logging.getLogger().isEnabledFor(logging.DEBUG):
-            logging.exception("command failed")
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.exception("command failed")
         console.print(f"[red]error:[/red] {error}", highlight=False)
         raise typer.Exit(1) from error
 
@@ -669,9 +670,10 @@ def function_census_command(
 
 @sgp_app.command("sweep")
 def sgp_sweep(
-    unit: list[str] | None = typer.Option(
-        None, "--unit", help="Configured SGP unit ID; repeat to select several."
-    ),
+    unit: Annotated[
+        list[str] | None,
+        typer.Option("--unit", help="Configured SGP unit ID; repeat to select several."),
+    ] = None,
     update_snapshot: bool = typer.Option(
         False,
         "--update-snapshot",
@@ -1057,9 +1059,10 @@ def ghidra_fid_fetch_sources() -> None:
 
 @fid_app.command("build-image")
 def ghidra_fid_build_image(
-    toolchain: list[str] | None = typer.Option(
-        None, "--toolchain", help="Pinned candidate ID; repeat to select several."
-    ),
+    toolchain: Annotated[
+        list[str] | None,
+        typer.Option("--toolchain", help="Pinned candidate ID; repeat to select several."),
+    ] = None,
 ) -> None:
     """Build pinned MSVC600/Wine seed compiler images."""
     from .ghidra.fid_seeds import build_toolchain_images
@@ -1069,9 +1072,10 @@ def ghidra_fid_build_image(
 
 @fid_app.command("probe-toolchain")
 def ghidra_fid_probe_toolchain(
-    toolchain: list[str] | None = typer.Option(
-        None, "--toolchain", help="Pinned candidate ID; repeat to select several."
-    ),
+    toolchain: Annotated[
+        list[str] | None,
+        typer.Option("--toolchain", help="Pinned candidate ID; repeat to select several."),
+    ] = None,
 ) -> None:
     """Compile a probe and export its Rich records for toolchain comparison."""
     from .ghidra.fid_seeds import probe_toolchains
@@ -1081,12 +1085,14 @@ def ghidra_fid_probe_toolchain(
 
 @fid_app.command("build-seeds")
 def ghidra_fid_build_seeds(
-    toolchain: list[str] | None = typer.Option(
-        None, "--toolchain", help="Pinned candidate ID; repeat to select several."
-    ),
-    library: list[str] | None = typer.Option(
-        None, "--library", help="Static-library ID; repeat to select several."
-    ),
+    toolchain: Annotated[
+        list[str] | None,
+        typer.Option("--toolchain", help="Pinned candidate ID; repeat to select several."),
+    ] = None,
+    library: Annotated[
+        list[str] | None,
+        typer.Option("--library", help="Static-library ID; repeat to select several."),
+    ] = None,
 ) -> None:
     """Build CMake-defined static-library object seeds with pinned toolchains."""
     from .ghidra.fid_seeds import build_seed_objects
@@ -1096,11 +1102,13 @@ def ghidra_fid_build_seeds(
 
 @fid_app.command("extract-libraries")
 def ghidra_fid_extract_libraries(
-    toolchain: list[str] | None = typer.Option(
-        None,
-        "--toolchain",
-        help="Pinned precompiled-library snapshot ID; repeat to select several.",
-    ),
+    toolchain: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--toolchain",
+            help="Pinned precompiled-library snapshot ID; repeat to select several.",
+        ),
+    ] = None,
 ) -> None:
     """Extract exact COFF objects from pinned VC6 library snapshots."""
     from .ghidra.fid_seeds import extract_precompiled_objects

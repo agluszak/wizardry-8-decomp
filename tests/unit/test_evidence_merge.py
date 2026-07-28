@@ -2,7 +2,6 @@ import csv
 from pathlib import Path
 
 import pytest
-
 from wiz8decomp.evidence_merge import (
     EvidenceMergeConflict,
     key_columns,

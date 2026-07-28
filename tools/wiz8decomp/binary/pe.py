@@ -13,7 +13,6 @@ from ..paths import sha256_file
 from .fingerprints import bytes_entropy, metadata_normalized_pe_hash
 from .rich_header import parse_rich_header
 
-
 MACHINES = {0x14C: "x86", 0x8664: "x86-64", 0x1C0: "ARM", 0xAA64: "ARM64"}
 SUBSYSTEMS = {
     1: "native",
@@ -23,9 +22,9 @@ SUBSYSTEMS = {
     10: "efi-application",
 }
 DEBUG_TYPES = {1: "COFF", 2: "CodeView", 3: "FPO", 4: "MISC", 12: "VC_FEATURE", 16: "REPRO"}
-SOURCE_RE = re.compile(rb"[A-Za-z]:\\[^\x00\r\n]{3,240}\.(?:c|cc|cpp|cxx|h|hpp|pdb|obj|lib)", re.I)
-REL_SOURCE_RE = re.compile(rb"(?:[A-Za-z0-9_.-]+[\\/]){1,8}[A-Za-z0-9_.-]+\.(?:c|cc|cpp|cxx|h|hpp)", re.I)
-ASSERT_RE = re.compile(rb"[^\x00\r\n]{0,120}(?:assert(?:ion)?|failed)[^\x00\r\n]{0,160}", re.I)
+SOURCE_RE = re.compile(rb"[A-Za-z]:\\[^\x00\r\n]{3,240}\.(?:c|cc|cpp|cxx|h|hpp|pdb|obj|lib)", re.IGNORECASE)
+REL_SOURCE_RE = re.compile(rb"(?:[A-Za-z0-9_.-]+[\\/]){1,8}[A-Za-z0-9_.-]+\.(?:c|cc|cpp|cxx|h|hpp)", re.IGNORECASE)
+ASSERT_RE = re.compile(rb"[^\x00\r\n]{0,120}(?:assert(?:ion)?|failed)[^\x00\r\n]{0,160}", re.IGNORECASE)
 
 
 def is_pe(path: Path) -> bool:
@@ -144,7 +143,7 @@ def _compiler_hypothesis(rich: dict[str, Any] | None, imports: list[dict[str, An
         family, confidence = "Microsoft Visual C++", "strong"
     if linker_version.startswith("6."):
         evidence.append(f"PE optional header reports LINK {linker_version}")
-        if any(name in imported for name in {"msvcp60.dll", "msvcirt.dll"}):
+        if any(name in imported for name in ("msvcp60.dll", "msvcirt.dll")):
             family, confidence = "Microsoft Visual C++ 6.x-era toolchain", "strong"
     if any(section["name"] == ".rdata" for section in sections):
         evidence.append("MSVC-compatible .rdata layout (weak evidence alone)")
@@ -186,7 +185,7 @@ def inspect_pe(path: Path, variant: str, relative_path: str) -> dict[str, Any]:
         packed_indicators.append("very small import table with high-entropy section")
     timestamp = pe.FILE_HEADER.TimeDateStamp
     try:
-        timestamp_utc = dt.datetime.fromtimestamp(timestamp, dt.timezone.utc).isoformat()
+        timestamp_utc = dt.datetime.fromtimestamp(timestamp, dt.UTC).isoformat()
     except (OSError, OverflowError, ValueError):
         timestamp_utc = None
     result = {

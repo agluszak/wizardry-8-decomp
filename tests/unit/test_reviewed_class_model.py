@@ -2,7 +2,6 @@ import csv
 from pathlib import Path
 
 import pytest
-
 from wiz8decomp.ghidra.apply_wiz8_signature_fixes import type_category_paths
 from wiz8decomp.ghidra.reviewed_class_model import (
     ghidra_namespace_name,

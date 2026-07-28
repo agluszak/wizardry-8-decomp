@@ -23,6 +23,7 @@ dependencies = [
 dev = [
   "pytest>=8.4,<10",
   "pytest-cov>=6.2,<8",
+  "pyright>=1.1.403,<2",
   "reccmp",
   "ruff>=0.12,<1",
 ]
@@ -39,6 +40,19 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.pyright]
+include = ["tools/wiz8decomp"]
+exclude = [
+  "tools/wiz8decomp/ghidra",
+  # These adapters intentionally expose dynamically shaped third-party PE
+  # objects. They need Protocol surfaces before useful static checking.
+  "tools/wiz8decomp/binary/pe.py",
+  "tools/wiz8decomp/binary/inventory.py",
+  "tools/wiz8decomp/boundaries.py",
+  "tools/wiz8decomp/sgp_oracle.py",
+]
+typeCheckingMode = "basic"
 
 [tool.uv.sources]
 reccmp = { git = "https://github.com/agluszak/reccmp", rev = "574601de72a0ddabdcf2d386ddb6f9d727af4ce1" }

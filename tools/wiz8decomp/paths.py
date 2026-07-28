@@ -19,13 +19,14 @@ def sha256_file(path: Path, chunk_size: int = 4 * 1024 * 1024) -> str:
 
 def atomic_write(path: Path, data: str | bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    binary = isinstance(data, bytes)
-    mode = "wb" if binary else "w"
-    kwargs = {} if binary else {"encoding": "utf-8", "newline": "\n"}
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
-        with os.fdopen(fd, mode, **kwargs) as stream:
-            stream.write(data)
+        if isinstance(data, bytes):
+            stream = os.fdopen(fd, "wb")
+        else:
+            stream = os.fdopen(fd, "w", encoding="utf-8", newline="\n")
+        with stream:
+            stream.write(data)  # type: ignore[arg-type]
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, path)

@@ -1,3 +1,5 @@
+from itertools import pairwise
+
 from wiz8decomp.reports.data_segmentation import (
     attribute_globals,
     fit_storage_class,
@@ -115,7 +117,7 @@ def test_unit_data_interval_snapshot_is_ordered_and_pins_the_octree_anchor() -> 
         )
     assert set(by_class) == {".rdata/initialized", ".data/initialized", ".data/bss"}
     for spans in by_class.values():
-        for (_, left_upper), (right_lower, _) in zip(spans, spans[1:]):
+        for (_, left_upper), (right_lower, _) in pairwise(spans):
             assert left_upper < right_lower
 
     # The hand-derived Octree.cpp anchor from the wiz8-d4o bead, byte-for-byte.

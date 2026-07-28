@@ -38,7 +38,7 @@ def object_symbols(path: Path) -> tuple[set[str], set[str]]:
     data = path.read_bytes()
     if len(data) < 20:
         return set(), set()
-    machine, section_count, _stamp, symbol_table, symbol_count, optional_size, _flags = (
+    machine, _section_count, _stamp, symbol_table, symbol_count, optional_size, _flags = (
         struct.unpack_from("<HHIIIHH", data, 0)
     )
     if machine != 0x14C or optional_size != 0:

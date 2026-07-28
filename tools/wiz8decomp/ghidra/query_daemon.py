@@ -380,7 +380,7 @@ def serve(program: str = typer.Option(..., "--program")) -> None:
                                     f"unsupported daemon action: {request.get('action')}"
                                 )
                         response = {"ok": True, "result": result}
-                    except Exception as error:
+                    except Exception as error:  # noqa: BLE001 - command boundary serializes failures
                         response = {"ok": False, "error": str(error), "type": type(error).__name__}
                     connection.sendall(
                         json.dumps(response, ensure_ascii=False).encode("utf-8") + b"\n"

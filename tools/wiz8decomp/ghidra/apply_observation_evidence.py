@@ -11,8 +11,8 @@ from .observation_evidence import (
     load_observation_bundle,
     strict_scalar_observation,
 )
-from .reviewed_class_model import VIRTUAL_SLOT_TYPE_NAME
 from .project import resolve_program_name
+from .reviewed_class_model import VIRTUAL_SLOT_TYPE_NAME
 
 
 def merge_observation_comment(existing: str | None, key: str, body: str) -> str:

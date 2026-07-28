@@ -161,30 +161,38 @@ def promotion_template(
         *(f"> {line}" for line in _BANNER.splitlines()),
         "",
         f"- writers to review: {writers or 'none'}",
-        "  (census padding attribution, which merges adjacent small bodies -"
-        " resolve the write sites below with"
-        " `just ghidra query <program> function-of <sites>`, or read the"
-        " candidate-class comments in the materialized program, which use"
-        " Ghidra's own containment)",
+        (
+            "  (census padding attribution, which merges adjacent small bodies -"
+            " resolve the write sites below with"
+            " `just ghidra query <program> function-of <sites>`, or read the"
+            " candidate-class comments in the materialized program, which use"
+            " Ghidra's own containment)"
+        ),
         deleting_note,
         f"- allocation hints: {hints}",
         f"- vptr-write sites: {', '.join(candidate['write_sites'])}",
-        "- base class: the constructor's *first* call is usually the base"
-        " constructor; if it is another candidate's writer, that candidate is"
-        " the base and its allocation hint is the base extent",
+        (
+            "- base class: the constructor's *first* call is usually the base"
+            " constructor; if it is another candidate's writer, that candidate is"
+            " the base and its allocation hint is the base extent"
+        ),
         "",
         "## evidence/reviewed/wiz8/classes.csv",
         "```csv",
-        f"wiz8,<class-name>,<confidence>,<class-name>.primary,<constructor>,"
-        f"<destructor>,{f'{deleting:08x}' if deleting else '<scalar-deleting>'},"
-        f"0x{skeleton['size']:x},<base-classes>,<base-name-origin>,<source-path>,"
-        '"<evidence>",<layout-proof>',
+        (
+            f"wiz8,<class-name>,<confidence>,<class-name>.primary,<constructor>,"
+            f"<destructor>,{f'{deleting:08x}' if deleting else '<scalar-deleting>'},"
+            f"0x{skeleton['size']:x},<base-classes>,<base-name-origin>,<source-path>,"
+            '"<evidence>",<layout-proof>'
+        ),
         "```",
         "",
         "## evidence/reviewed/wiz8/vtables.csv",
         "```csv",
-        f"wiz8,<class-name>.primary,<class-name>,{vtable:08x},0x0,primary,"
-        f"{candidate['slot_count']},<confidence>,classes:wiz8:<class-name>",
+        (
+            f"wiz8,<class-name>.primary,<class-name>,{vtable:08x},0x0,primary,"
+            f"{candidate['slot_count']},<confidence>,classes:wiz8:<class-name>"
+        ),
     ]
     for other, offset in candidate["subobject_vtables"]:
         lines.append(

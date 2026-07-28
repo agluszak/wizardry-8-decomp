@@ -99,8 +99,10 @@ def test_plan_joins_imports_and_reviewed_destructors(tmp_path: Path) -> None:
     root = _fixture(
         tmp_path,
         [
-            f"{PROGRAM},005f0000,0,-1,object-import,-44,,,x,"
-            '"public: __thiscall srStringTable::~srStringTable(void)",',
+            (
+                f"{PROGRAM},005f0000,0,-1,object-import,-44,,,x,"
+                '"public: __thiscall srStringTable::~srStringTable(void)",'
+            ),
             f"{PROGRAM},005f0000,1,-1,pointer,-52,004f3000,,,,",
             f"{PROGRAM},005f0000,2,-1,object,-96,004f8000,,,,",
         ],
