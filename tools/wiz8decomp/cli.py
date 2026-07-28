@@ -46,6 +46,7 @@ overlay_debug_app = typer.Typer(
     help="Internal overlay mutation primitives.", no_args_is_help=True, hidden=True
 )
 seed_app = typer.Typer(help="Refresh the validated canonical GZF seed.", no_args_is_help=True)
+toolchain_app = typer.Typer(help="Build the pinned analysis toolchain.", no_args_is_help=True)
 fid_app = typer.Typer(
     help="Build and query project-owned Function ID databases.", no_args_is_help=True
 )
@@ -60,6 +61,7 @@ ghidra_app.add_typer(fid_app, name="fid", hidden=True)
 ghidra_app.add_typer(overlay_app, name="overlay")
 overlay_app.add_typer(overlay_debug_app, name="debug")
 app.add_typer(report_app, name="report")
+app.add_typer(toolchain_app, name="toolchain")
 app.add_typer(sgp_app, name="sgp", hidden=True)
 console = Console()
 logger = logging.getLogger(__name__)
@@ -478,6 +480,72 @@ def doctor() -> None:
         return result
 
     _run_action(action)
+
+
+@app.command("prepare")
+def prepare_command() -> None:
+    """Idempotently prepare extracted variants and pinned source dependencies."""
+    from .build import prepare
+
+    _run_action(lambda: prepare(_settings()))
+
+
+@app.command("check")
+def check_command() -> None:
+    """Run the fast public validation lane."""
+    from .build import check
+    from .config import repository_root
+
+    _run_action(lambda: check(repository_root()))
+
+
+@app.command("build")
+def build_command(
+    target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "match",
+    jobs: Annotated[int | None, typer.Option("--jobs", "-j")] = None,
+) -> None:
+    """Configure when needed and build one product target."""
+    from .build import build_target
+
+    _run_action(lambda: build_target(_settings(), target, jobs))
+
+
+@app.command("compare", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def compare_command(ctx: typer.Context, target: str = "WIZ8") -> None:
+    """Run the diagnostic linked-image comparison."""
+    from .build import compare
+
+    _run_action(lambda: compare(_settings(), target, list(ctx.args)))
+
+
+@app.command("run")
+def run_command() -> None:
+    """Build, stage, and run the recovered executable under Wine."""
+    from .build import build_target
+    from .runtime import run_game
+
+    def action() -> dict[str, Any]:
+        build_target(_settings(), "runtime")
+        return run_game(_settings())
+
+    _run_action(action)
+
+
+@app.command("verify")
+def verify_command(
+    compare_image: Annotated[bool, typer.Option("--compare/--no-compare")] = True,
+) -> None:
+    """Run build, boundary, linked-image, and test validation."""
+    from .build import verify
+
+    _run_action(lambda: verify(_settings(), compare_image=compare_image))
+
+
+@toolchain_app.command("build")
+def toolchain_build_command() -> None:
+    from .build import build_toolchain
+
+    _run_action(lambda: build_toolchain(_settings()))
 
 
 @corpus_app.command("scan")
