@@ -888,3 +888,194 @@ void AddPartyGold(int amount, char announce)
         }
     }
 }
+
+extern void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
+extern W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, int form);
+extern unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
+/* 0x005208F0 */
+
+/* Bind one worn item to its wearer. A binding that has not been announced yet
+   is announced as it takes hold; one already announced just takes hold. A slot
+   with no interface position binds nothing. */
+// FUNCTION: WIZ8 0x0051D0D0
+void BindEquippedItem(W8Character* character, int equip_slot)
+{
+    W8ItemInstance* item = &character->equipment[equip_slot];
+
+    if (item->item_id == -1) {
+        return;
+    }
+    if (g_item_records[item->item_id].binds_on_equip == 0 || item->bind_announced != 0) {
+        if (g_equip_slot_icons[equip_slot] != -1 && item->bound == 0) {
+            item->bound = 1;
+        }
+        return;
+    }
+    if (g_equip_slot_icons[equip_slot] != -1 && item->bound == 0) {
+        item->bound = 1;
+        WriteGameLog(8, (const wchar_t*)g_notices[0x7a8 / 4],
+                     FormatItemDisplayName(item, 1));
+    }
+}
+
+/* The spell an item carries, with both bounds on the item id asserted - the
+   second names the database count as gXStatus.uiItemsInDatabase. */
+// FUNCTION: WIZ8 0x00520880
+unsigned char GetItemSpell(const W8ItemInstance* item)
+{
+    if (item == 0) {
+        return 0;
+    }
+    if (item->item_id == -1) {
+        srAssertFail("pPCItem->iItemNo != -1", PC_ITEM_CPP, 4003, 0);
+    }
+    if (item->item_id >= g_item_record_count) {
+        srAssertFail("pPCItem->iItemNo < (INT32) gXStatus.uiItemsInDatabase",
+                     PC_ITEM_CPP, 4004, 0);
+    }
+    return g_item_records[item->item_id].spell_id;
+}
+
+/* Let the whole party have a go at identifying one item. Everybody able to
+   tries, but only the first attempt's answer is reported - the rest still
+   happen for whatever they do to the item. */
+// FUNCTION: WIZ8 0x005209F0
+char PartyAttemptsToIdentifyItem(W8ItemInstance* item)
+{
+    char result = 0;
+    int party_slot;
+
+    if (item->identified != 0) {
+        return 0;
+    }
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+            g_party_characters[party_slot].hp_current != 0 &&
+            g_party_characters[party_slot].unknown_0b01 < 0xb) {
+            if (result == 0) {
+                result = TryIdentifyItemFor(&g_party_characters[party_slot], item);
+            }
+            else {
+                TryIdentifyItemFor(&g_party_characters[party_slot], item);
+            }
+        }
+    }
+    return result;
+}
+
+/* Score one identify attempt. Three times the attempt's strength, scaled by
+   the attempter's percentage, has to reach the item's difficulty; clearing it
+   reveals everything about the item at once. */
+// FUNCTION: WIZ8 0x00520B40
+void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength, unsigned int percent)
+{
+    unsigned int score = strength * 3;
+
+    AdjustIntegerByPercent(&score, percent);
+    if (g_item_records[item->item_id].identify_difficulty <= score) {
+        if (item == 0) {
+            srAssertFail("pPCItem", PC_ITEM_CPP, 2875, 0);
+        }
+        item->identified = 1;
+        item->unknown_07[0] = 1;
+        item->unknown_07[1] = 1;
+        item->bound = 1;
+    }
+}
+
+/* How many attempts of a given strength it takes to clear an item's
+   difficulty. Counted downwards from the ceiling division, so the answer is
+   the smallest count that still clears it. */
+// FUNCTION: WIZ8 0x00520A70
+unsigned int CountIdentifyAttemptsNeeded(
+    W8ItemInstance* item, unsigned int strength, unsigned int percent)
+{
+    unsigned int attempts;
+    unsigned int candidate;
+    unsigned int score;
+
+    if (item == 0) {
+        srAssertFail("pPCItem", PC_ITEM_CPP, 4113, 0);
+    }
+    if (item->item_id == -1) {
+        return 1;
+    }
+
+    attempts = g_item_records[item->item_id].identify_difficulty / 3;
+    if (g_item_records[item->item_id].identify_difficulty % 3 != 0) {
+        ++attempts;
+    }
+    candidate = attempts * 3;
+    while (attempts > 1) {
+        candidate -= 3;
+        score = candidate;
+        AdjustIntegerByPercent(&score, percent);
+        if (score < g_item_records[item->item_id].identify_difficulty) {
+            return attempts;
+        }
+        --attempts;
+    }
+    return 1;
+}
+
+/* Reveal what one character's worn bindings are, as far as the attempt
+   reaches. Nothing bound at all answers zero; some still hidden answers one
+   and all revealed answers two. */
+// FUNCTION: WIZ8 0x00520BC0
+char RevealCharacterItemBindings(
+    unsigned int party_slot, int strength, unsigned int percent)
+{
+    W8Character* character = &g_party_characters[party_slot];
+    unsigned int score = strength * 3;
+    int revealed = 0;
+    int still_hidden = 0;
+    int slot;
+
+    AdjustIntegerByPercent(&score, percent);
+    for (slot = 0; slot < 12; ++slot) {
+        W8ItemInstance* item = &character->equipment[slot];
+
+        if (item->item_id != -1 && g_item_records[item->item_id].binds_on_equip != 0) {
+            if (score < g_item_records[item->item_id].identify_difficulty) {
+                ++still_hidden;
+            }
+            else {
+                ++revealed;
+                item->bind_announced = 1;
+            }
+        }
+    }
+    if (revealed != 0) {
+        return (still_hidden == 0) + 1;
+    }
+    return 0;
+}
+
+/* Whether an item still has anything worth identifying: any of the nine bits
+   of the mask at 0x04e, or - with the flag at 0x062 clear - any of the six
+   bytes at 0x06f, the spell-bearing byte at 0x08c or the three at 0x06c. */
+// FUNCTION: WIZ8 0x00520750
+bool ItemHasHiddenProperties(int item_id)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item_id];
+    unsigned int index;
+
+    for (index = 0; index < 9; ++index) {
+        if ((*(const unsigned short*)&record->unknown_048[6] & (1 << index)) != 0) {
+            return true;
+        }
+    }
+    if (record->unknown_048[0x1a] != 0) {
+        return true;
+    }
+    for (index = 0; index < 6; ++index) {
+        if (record->unknown_067[4 + index] != 0) {
+            return true;
+        }
+    }
+    if (record->binds_on_equip != 0 || record->unknown_067[1] != 0 ||
+        record->unknown_067[2] != 0 || record->unknown_067[3] != 0) {
+        return true;
+    }
+    return false;
+}

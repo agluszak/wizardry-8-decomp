@@ -80,7 +80,10 @@ struct W8ItemDatabaseRecord {
     /* 0x081: up to two skill floors, the same shape, compared against the
        character's skill level. */
     W8ItemRequirement skill_requirements[2];
-    unsigned char unknown_085;
+    /* 0x085: how hard the item is to identify. An attempt clears it when three
+       times the attempt's strength, scaled by the attempter's percentage,
+       reaches this. */
+    unsigned char identify_difficulty;
     /* 0x086: the gold value of one item, except for equip class four, which is
        priced by the bundle of twenty-five. GenerateItemsFromTable filters a
        level-scaled table on the same field. */
