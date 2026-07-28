@@ -1,6 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <wchar.h>
+
 static const char MONSTER_GROUP_CPP[] =
     "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
 
@@ -16,6 +18,17 @@ extern void Function454C80(void);                            /* 0x00454C80 */
 extern void Function538DB0(int group_id, int value);         /* 0x00538DB0 */
 extern unsigned char Function547510(void);                   /* 0x00547510 */
 extern void Function452630(int value);                       /* 0x00452630 */
+extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
+extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
+extern unsigned char g_flag_683f94;
+extern W8Character* g_all_characters;
+extern unsigned char g_alternate_name_slot;
+extern W8WideChar g_monster_name_buffer[];
+enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 0x18d };
+
+/* A group of one is named in the singular; any other count uses the plural
+   form, which is the second entry of each name set. */
+enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
 
 extern void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 extern unsigned char RemoveMonster(unsigned int monster_list_index,
@@ -247,12 +260,15 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
 /* Destroys every member of a group, back to front so that the shrinking list
    does not move an entry past the cursor. It stops at the first removal that
    fails and reports that, which is why the loop is a do/while on the result
-   rather than a counted walk. */
-// FUNCTION: WIZ8 0x0050F5D0
-unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
+   rather than a counted walk.
+ 
+   The despawn below compiles this same walk five more times over, at the same
+   source line, so it is written once as an inline and called from both. */
+static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monster_group)
 {
     unsigned int index;
     unsigned char removed;
+    int location_id;
 
     index = PListGetCount((W8PList*)monster_group->monsters);
     do {
@@ -260,19 +276,23 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
         if (static_cast<int>(index) < 0) {
             return 1;
         }
-        /* The destroy flag is a variable the original sets before the index
-           lookup, not a constant pushed at the call: that is what puts both
-           `push 1` after the lookup rather than before it. */
+        /* The list read lands in a local before either constant is pushed:
+           written as a nested call, VC6 pushes both `1`s ahead of it and eight
+           bytes come out in the wrong order at every site this inlines into. */
+        location_id = IListGetAt(monster_group->monsters, index);
         removed = 1;
         removed = RemoveMonster(
             MonsterGetIndexByLocationID(
-                0x119,
-                MONSTER_GROUP_CPP,
-                IListGetAt(monster_group->monsters, index),
-                1),
+                0x119, MONSTER_GROUP_CPP, location_id, 1),
             removed);
     } while (removed != 0);
     return 0;
+}
+
+// FUNCTION: WIZ8 0x0050F5D0
+unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
+{
+    return RemoveAllGroupMembersInline(monster_group);
 }
 
 /* Brings every member of a group into the world. Front to back, and the list
@@ -385,4 +405,155 @@ void ReapplyMonsterGroupFormations(void)
             0x4ef, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
         monster_info->monster->formation = monster_group->formation;
     }
+}
+
+/* Sets a group's formation and pushes it straight onto every member's live
+   Monster, so the group record and the members never disagree. */
+// FUNCTION: WIZ8 0x0050FF40
+void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
+                              const W8MonsterFormation* formation)
+{
+    unsigned int count;
+    int index;
+    W8Monster* monster;
+
+    if (monster_group == 0) {
+        return;
+    }
+    monster_group->formation.value_00 = formation->value_00;
+    monster_group->formation.value_04 = formation->value_04;
+    monster_group->formation.value_08 = formation->value_08;
+    count = PListGetCount((W8PList*)monster_group->monsters);
+    for (index = 0; index < static_cast<int>(count); ++index) {
+        monster = MonsterGetScriptPartByLocationIndex(
+                      MonsterGetIndexByLocationID(
+                          0x34f,
+                          MONSTER_GROUP_CPP,
+                          IListGetAt(monster_group->monsters, index),
+                          1))
+                      ->monster;
+        monster->formation.value_00 = formation->value_00;
+        monster->formation.value_04 = formation->value_04;
+        monster->formation.value_08 = formation->value_08;
+    }
+}
+
+/* Retires a group and its allies from the encounter budget. The leader chain is
+   followed first, so calling this on any member of a formation retires the
+   whole formation; the retire itself is idempotent, gated on the flag it
+   clears. All four ally slots are walked and the empty ones skipped. */
+// FUNCTION: WIZ8 0x00510A10
+void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
+{
+    int index;
+    W8MonsterGroup* ally;
+
+    while (monster_group->leader_group_id != 0) {
+        monster_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(
+                0x553, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
+    }
+    if (monster_group->flag_c3 != 0) {
+        Function48C670(monster_group);
+        monster_group->flag_c3 = 0;
+        monster_group->flag_d3 = 1;
+        for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
+            if (monster_group->allied_group_ids[index] != 0) {
+                ally = GetMonsterGroupByListIndex(
+                    GetMonsterGroupIndexByID(
+                        0x564,
+                        MONSTER_GROUP_CPP,
+                        monster_group->allied_group_ids[index],
+                        1));
+                Function48C670(ally);
+                ally->flag_c3 = 0;
+                ally->flag_d3 = 1;
+            }
+        }
+    }
+}
+
+/* The display name for a whole group, which is GetMonsterName's shape one level
+   up: the same special-cased record id, the same choice between the record's
+   two name sets, but the variant comes from the member count rather than a
+   caller - a group of exactly one is named in the singular.
+ 
+   Its opening assertion is followed immediately by MonsterGroupGetRecord's own,
+   which is that body inlined here. */
+// FUNCTION: WIZ8 0x00510280
+W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
+{
+    W8MonsterRecord* record;
+    unsigned int name_form;
+
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3eb, 0);
+        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
+    }
+    record = MonsterDBFromSpecies(monster_group->monster_id);
+    name_form = monster_group->member_count != W8_MONSTER_GROUP_SINGULAR;
+    if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
+        swprintf(
+            g_monster_name_buffer,
+            L"Al-%s",
+            g_all_characters[g_alternate_name_slot].name);
+        return g_monster_name_buffer;
+    }
+    if (monster_group->flag_2c != 0) {
+        return record->name_00 + name_form * W8_MONSTER_NAME_STRIDE;
+    }
+    return record->name_60 + name_form * W8_MONSTER_NAME_STRIDE;
+}
+
+/* Takes a whole group out of combat: every member leaves individually, the
+   group's own fInCombat is lowered, and the lead member is marked. The member
+   list length is re-read each iteration because leaving combat can change it.
+   Both assertions name what they guard - the global combat mode and the group's
+   own fInCombat, which is what gives +0x29 its name. */
+// FUNCTION: WIZ8 0x0050FAD0
+void MonsterGroupLeaveCombat(int unused, W8MonsterGroup* monster_group)
+{
+    unsigned int index;
+    W8MonsterInfo* lead;
+
+    if (g_flag_683f94 == 0) {
+        srAssertFail("gXStatus.fCombatMode", MONSTER_GROUP_CPP, 0x1eb, 0);
+    }
+    if (monster_group->flag_29 == 0) {
+        srAssertFail("pMonsterGroup->fInCombat", MONSTER_GROUP_CPP, 0x1ec, 0);
+    }
+    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+        MonsterInfoLeaveCombat(MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(
+                0x1f1,
+                MONSTER_GROUP_CPP,
+                IListGetAt(monster_group->monsters, index),
+                1)));
+    }
+    monster_group->flag_29 = 0;
+    Function565420();
+    lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+    lead->flag_255 |= 0x80;
+}
+
+/* Removes a group and everything allied to it from the world. Each ally is
+   emptied and its slot cleared before the group itself is emptied, so the
+   group's own members are the last to go and an ally cannot be reached twice. */
+// FUNCTION: WIZ8 0x00510930
+void DespawnMonsterGroup(W8MonsterGroup* monster_group)
+{
+    int index;
+
+    for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
+        if (monster_group->allied_group_ids[index] != 0) {
+            RemoveAllGroupMembersInline(GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(
+                    0x536,
+                    MONSTER_GROUP_CPP,
+                    monster_group->allied_group_ids[index],
+                    1)));
+            monster_group->allied_group_ids[index] = 0;
+        }
+    }
+    RemoveAllGroupMembersInline(monster_group);
 }

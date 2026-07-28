@@ -213,11 +213,13 @@ typedef struct W8MonsterGenerator {
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
-/* The twelve formation bytes a group hands its members. Nothing inside is
-   established; the type exists so the copy is one typed assignment rather than
-   twelve, and so both ends of it are named. */
+/* The twelve formation bytes a group hands its members. Three dwords rather
+   than a byte block because 0x0050FF40 sets them one dword at a time from a
+   caller-supplied triple; what they mean is not established. */
 typedef struct W8MonsterFormation {
-    unsigned char bytes[12];
+    unsigned int value_00;
+    unsigned int value_04;
+    unsigned int value_08;
 } W8MonsterFormation;
 
 typedef struct W8MonsterGroup {
@@ -229,7 +231,9 @@ typedef struct W8MonsterGroup {
     int monster_id;                       /* 0x18 */
     unsigned char unknown_1c[0xc];
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
-    unsigned char flag_29;                /* 0x29: cleared after the record loads */
+    /* 0x29: fInCombat, named by the MonsterGroup.cpp:492 assertion. Cleared
+       after the record loads and again when the group leaves combat. */
+    unsigned char flag_29;
     /* 0x2a: at one the group is live regardless of the global gate at
        0x00547510; anything else has to pass that gate as well. */
     unsigned char flag_2a;
@@ -263,7 +267,8 @@ typedef struct W8MonsterGroup {
     /* 0xcf: when this group was last budgeted. UpdateRandomEncounterBudget
        advances it by the elapsed time and the culling pass measures against it. */
     int spawn_time;
-    unsigned char unknown_d3[0x58];
+    unsigned char flag_d3;                /* 0xd3: raised as flag_c3 is cleared */
+    unsigned char unknown_d4[0x57];
 } W8MonsterGroup;                         /* 0x12b */
 
 /* 3D Code\PList.cpp. Distinct from W8GrowableVector: no vptr, elements at +0x00
