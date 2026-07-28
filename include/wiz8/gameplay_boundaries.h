@@ -560,7 +560,8 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
    wrappers at 0x004C5780..0x004C5AA0 establish the timestamp, animation state,
    pending cycle, and scale fields below. */
 struct W8MonsterCycleRuntime {
-    unsigned char unknown_000[0x68];
+    unsigned char unknown_000[0x66];
+    unsigned short value_066;               /* 0x066: cleared when a cycle starts */
     unsigned int animation_timestamp;       /* 0x068 */
     unsigned char unknown_06c;
     unsigned char animating;                /* 0x06d */

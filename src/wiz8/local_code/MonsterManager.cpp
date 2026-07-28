@@ -47,6 +47,21 @@ void Function538D60(int location_id, int value);
 void Function593330(void);
 extern int g_active_monster_count_683fa1;
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
+void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
+void Function4C5EA0(W8Monster* monster);
+
+/* One 8-byte row per animation cycle at 0x0060EA08, whose leading pointer is
+   the cycle's name - BIRTH is row zero. Only that field is reached. */
+struct W8CycleNameRow {
+    const char* name;
+    void* unknown_04;
+};
+extern W8CycleNameRow g_cycle_names[];
+
+/* The two cycles that always start regardless of the pending one: 0x14 is the
+   cycle a motionless monster is still allowed to enter, and 0x15 is death. */
+enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
+enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8MonsterMember18* member);
 void __fastcall Function4537E0(W8MonsterMember18* member);
@@ -1260,6 +1275,67 @@ void ToggleCombatMode(void)
     if (g_level_block->combat_end_notification != -1) {
         Function595570();
     }
+}
+
+/* Starts one animation cycle on a monster, and refuses in three ways.
+ 
+   A NEVER_STOP behaviour on a cycle that can be interrupted is rejected
+   outright. So is any new cycle while an uninterruptable one is pending, except
+   the stop cycle, which is allowed through silently - the diagnostic there names
+   both cycles and the monster, which is what the cycle-name table at 0x0060EA08
+   is for. And a motionless monster accepts only the stop cycle, death, and cycle
+   zero; anything else fails the third assertion with no message at all.
+ 
+   The combat-mode query on the way in is made for its effect: its result is
+   discarded here. */
+// FUNCTION: WIZ8 0x004E4DB0
+void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
+{
+    W8Monster* monster = monster_info->monster;
+    unsigned char pending;
+    const char* detail;
+    int line;
+
+    if (static_cast<signed char>(behavior) == W8_BEHAVIOUR_NEVER_STOP &&
+        monster->Function4C2CF0(static_cast<signed char>(cycle)) == 0) {
+        detail = "Trying to set a NEVER_STOP behaviour with an uninterruptable cycle!";
+        line = 0x46f;
+    } else {
+        pending = monster->m_cycles[18].runtime->pending_cycle;
+        if (g_flag_683f94 != 0) {
+            MonsterQuery(monster, 6);
+        }
+        if (pending != W8_CYCLE_STOP && pending != W8_CYCLE_NONE &&
+            monster->Function4C2CF0(static_cast<signed char>(pending)) == 0) {
+            if (static_cast<signed char>(cycle) == W8_CYCLE_STOP) {
+                return;
+            }
+            srAssertFail(
+                "FALSE",
+                MONSTER_MANAGER_CPP,
+                0x497,
+                String(
+                    "%ls starting new cycle (%s) with an uninterruptable cycle pending (%s)!",
+                    GetMonsterName(monster_info, 0, 0),
+                    g_cycle_names[static_cast<signed char>(cycle)].name,
+                    g_cycle_names[static_cast<signed char>(pending)].name));
+            return;
+        }
+        if (static_cast<signed char>(cycle) == W8_CYCLE_STOP ||
+            static_cast<signed char>(cycle) == W8_CYCLE_DEATH ||
+            static_cast<signed char>(cycle) == 0 ||
+            monster_info->motionless == 0) {
+            MonsterSetAnimating(monster, 1);
+            MonsterSetRuntimeBehaviour(monster, static_cast<signed char>(behavior));
+            MonsterSetPendingCycle(monster, cycle);
+            monster->m_cycles[18].runtime->value_066 = 0;
+            Function4C5EA0(monster);
+            return;
+        }
+        detail = 0;
+        line = 0x4a4;
+    }
+    srAssertFail("FALSE", MONSTER_MANAGER_CPP, line, detail);
 }
 
 static W8MonsterManagerState g_monster_manager_state;
