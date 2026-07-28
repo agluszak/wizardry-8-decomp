@@ -99,6 +99,8 @@ extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
                            int left, int top, int mode, int flags);
 extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
+extern void Function549600(int operation, int target, int arg_1c, int arg_20,
+                           int left, int top, int mode, int flags);
 extern unsigned short Function4071F0(int font);             /* font line height */
 extern short Function407010(const wchar_t* text, int font);
 extern void Function407210(int font);
@@ -1127,10 +1129,17 @@ protected:
 
 class W8RangeControl005ED74C;
 
-class W8RangeThumb : public W8WidgetBase005ED5BC {
+class W8VerticalRangeThumb005ED6B4 : public W8WidgetBase005ED5BC {
 public:
+    W8VerticalRangeThumb005ED6B4(W8RangeControl005ED74C* range,
+                                 int left, int top, int right, int bottom,
+                                 int render_arg, int normal_sprite,
+                                 int hovered_sprite, int disabled_sprite);
     virtual void Redraw(int full_redraw);
     void AdjustValue(int steps);
+    void BeginDrag(int event);
+    void EndDrag(int event);
+    void UpdateDrag(int event);
     __forceinline void SetRangePosition(float position)
     {
         m_position = position;
@@ -1152,22 +1161,26 @@ public:
     }
 
 protected:
-    int m_renderArg34;
+    int m_renderArg;
     int m_renderArg38;
     int m_normalSprite;
-    int m_enabledSprite;
+    int m_hoveredSprite;
     int m_disabledSprite;
     int m_drawOffsetX;
     int m_pixelPosition;                 /* 0x4c */
-    int m_field_50;
+    int m_thumbHeight;                   /* 0x50 */
     int m_trackLength;                   /* 0x54 */
-    int m_field_58;
-    unsigned char m_useEnabledSprite;    /* 0x5c */
-    unsigned char pad_5d[3];
+    int m_dragCoordinate;                /* 0x58 */
+    unsigned char m_hovered;             /* 0x5c */
+    unsigned char m_dragging;            /* 0x5d */
+    unsigned char pad_5e[2];
     float m_minimumPosition;             /* 0x60 */
     float m_maximumPosition;             /* 0x64 */
     float m_position;                    /* 0x68 */
     W8RangeControl005ED74C* m_range;     /* 0x6c */
+
+    void ClampPositionAndInvalidate();
+    void SynchronizeRangeValue();
 };
 
 class W8RangeListener {
@@ -1175,8 +1188,10 @@ public:
     virtual void OnRangeChanged(W8RangeControl005ED74C* control) = 0;
 };
 
-class W8RangeControl005ED74C {
+class W8RangeControl005ED74C : public Controls {
 public:
+    friend class W8VerticalRangeThumb005ED6B4;
+
     void SetRange(int first, int second);
     void SetValue(int value);
     void Decrement();
@@ -1184,13 +1199,12 @@ public:
     void SetEnabled(unsigned char enabled);
 
 protected:
-    unsigned char unknown_00[0x4c];
     int m_minimum;                       /* 0x4c */
     int m_maximum;                       /* 0x50 */
     int m_value;                         /* 0x54 */
     W8WidgetBase005ED5BC* m_decrement;   /* 0x58 */
     W8WidgetBase005ED5BC* m_increment;   /* 0x5c */
-    W8RangeThumb* m_thumb;               /* 0x60 */
+    W8VerticalRangeThumb005ED6B4* m_thumb; /* 0x60 */
     W8RangeListener* m_listener;         /* 0x64 */
     unsigned char m_enabled;             /* 0x68 */
 };
@@ -1273,8 +1287,146 @@ void W8RangeControl005ED74C::SetEnabled(unsigned char enabled)
     m_thumb->SetVisible(enabled);
 }
 
+__forceinline void W8VerticalRangeThumb005ED6B4::ClampPositionAndInvalidate()
+{
+    if (m_position < m_minimumPosition) {
+        m_position = m_minimumPosition;
+    }
+    if (m_maximumPosition < m_position) {
+        m_position = m_maximumPosition;
+    }
+    m_pixelPosition = (int)(((m_position - m_minimumPosition) /
+                             (m_maximumPosition - m_minimumPosition)) *
+                            m_trackLength);
+    if (m_pPanel != 0) {
+        m_flag_6 = 1;
+        m_pPanel->m_fLayoutDirty = 1;
+        Function562A50(0x80000000);
+        Function562A50(0x80000000);
+    }
+}
+
+__forceinline void W8VerticalRangeThumb005ED6B4::SynchronizeRangeValue()
+{
+    int value = (int)(m_range->m_thumb->m_position *
+                      (float)(m_range->m_maximum - m_range->m_minimum + 1)) +
+                m_range->m_minimum;
+    if (m_range->m_maximum < value) {
+        value = m_range->m_maximum;
+    }
+    if (value != m_range->m_value) {
+        W8RangeListener* listener = m_range->m_listener;
+        m_range->m_value = value;
+        if (listener != 0) {
+            listener->OnRangeChanged(m_range);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5B20
+W8VerticalRangeThumb005ED6B4::W8VerticalRangeThumb005ED6B4(
+    W8RangeControl005ED74C* range, int left, int top, int right, int bottom,
+    int render_arg, int normal_sprite, int hovered_sprite, int disabled_sprite)
+    : W8WidgetBase005ED5BC(range, 0xffffffff, left, top, 0, bottom)
+{
+    short width;
+    short height;
+
+    m_hoveredSprite = hovered_sprite;
+    m_disabledSprite = disabled_sprite;
+    m_renderArg = render_arg;
+    m_renderArg38 = 0;
+    m_normalSprite = normal_sprite;
+    m_hovered = 0;
+    m_dragging = 0;
+    m_minimumPosition = 0.0f;
+    m_maximumPosition = 1.0f;
+    m_position = 0.0f;
+    Function549660(render_arg, 0, normal_sprite, &width, &height);
+    if (right - left < (unsigned short)width) {
+        m_right = m_left + (unsigned short)width;
+        m_drawOffsetX = 0;
+    } else {
+        m_right = right;
+        m_drawOffsetX = right - (unsigned short)width - left;
+    }
+    SetRegion(m_region_18);
+    m_thumbHeight = (unsigned short)height;
+    m_trackLength = bottom - (unsigned short)height - top;
+    m_range = range;
+}
+
+// FUNCTION: WIZ8 0x004F5C00
+void W8VerticalRangeThumb005ED6B4::BeginDrag(int event)
+{
+    Function5587C0(0, 1);
+    if (m_flag_4 != 0) {
+        int cursor[2];
+        Function4284F0(cursor);
+        int y = cursor[1] - m_pPanel->origin_y - m_top;
+        if (m_hovered == 0) {
+            m_hovered = 1;
+            m_position = ((float)(y - m_thumbHeight / 2) / (float)m_trackLength) *
+                         (m_maximumPosition - m_minimumPosition) + m_minimumPosition;
+            ClampPositionAndInvalidate();
+            SynchronizeRangeValue();
+        }
+        m_dragCoordinate = y;
+        m_dragging = 1;
+        Function4F2040(m_region_18);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5D30
+void W8VerticalRangeThumb005ED6B4::EndDrag(int event)
+{
+    Function5587C0(0, 1);
+    if (m_flag_4 != 0 && m_dragging != 0) {
+        m_dragging = 0;
+        ClearActiveRegionIfMatches(m_region_18);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5D70
+void W8VerticalRangeThumb005ED6B4::UpdateDrag(int event)
+{
+    if (m_flag_4 == 0) {
+        return;
+    }
+
+    int cursor[2];
+    Function4284F0(cursor);
+    int y = cursor[1] - m_pPanel->origin_y - m_top;
+    if (m_dragging != 0) {
+        int half_height = m_thumbHeight / 2;
+        if (y <= half_height) {
+            m_position = 0.0f;
+        } else if (m_trackLength + half_height <= y) {
+            m_position = 1.0f;
+        } else {
+            int delta = y - m_dragCoordinate;
+            m_dragCoordinate = y;
+            m_position += ((float)delta / (float)m_trackLength) *
+                          (m_maximumPosition - m_minimumPosition);
+        }
+        ClampPositionAndInvalidate();
+        SynchronizeRangeValue();
+        return;
+    }
+
+    unsigned char hovered =
+        (m_pixelPosition <= y && y <= m_pixelPosition + m_thumbHeight);
+    if (hovered != m_hovered && m_pPanel != 0) {
+        m_flag_6 = 1;
+        m_pPanel->m_fLayoutDirty = 1;
+        Function562A50(0x80000000);
+        Function562A50(0x80000000);
+    }
+    m_hovered = hovered;
+}
+
 // FUNCTION: WIZ8 0x004F5EF0
-void W8RangeThumb::AdjustValue(int steps)
+void W8VerticalRangeThumb005ED6B4::AdjustValue(int steps)
 {
     if (steps > 0) {
         do {
@@ -1291,7 +1443,7 @@ void W8RangeThumb::AdjustValue(int steps)
 }
 
 // FUNCTION: WIZ8 0x004F5F60
-void W8RangeThumb::Redraw(int full_redraw)
+void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
 {
     if (m_flag_5 == 0 || (full_redraw == 0 && m_flag_6 == 0)) {
         return;
@@ -1309,10 +1461,10 @@ void W8RangeThumb::Redraw(int full_redraw)
         if (sprite == -1) {
             return;
         }
-    } else if (m_useEnabledSprite == 0 || (sprite = m_enabledSprite) == -1) {
+    } else if (m_hovered == 0 || (sprite = m_hoveredSprite) == -1) {
         sprite = m_normalSprite;
     }
-    Function548F90(-14, m_renderArg34, m_renderArg38, sprite,
+    Function548F90(-14, m_renderArg, m_renderArg38, sprite,
                    m_pPanel->origin_x + m_drawOffsetX + m_left,
                    m_pPanel->origin_y + m_pixelPosition + m_top, 2, 0);
 }
@@ -1444,9 +1596,10 @@ public:
 class W8HorizontalRangeThumb005ED66C : public W8WidgetBase005ED5BC {
 public:
     W8HorizontalRangeThumb005ED66C(Controls* panel, unsigned int region, int left, int top,
-                                   int render_arg_0, int render_arg_1, int normal_sprite,
-                                   int thumb_render_arg_0, int thumb_render_arg_1,
-                                   int thumb_sprite);
+                                   int render_arg_0, int render_arg_1, int background_sprite,
+                                   int normal_thumb_sprite, int hovered_thumb_sprite,
+                                   int disabled_thumb_sprite);
+    virtual void Redraw(int full_redraw);
     void UpdatePixelPosition();
     void BeginDrag(int event);
     void EndDrag(int event);
@@ -1456,10 +1609,10 @@ public:
 protected:
     int m_renderArg0;                    /* 0x34 */
     int m_renderArg1;                    /* 0x38 */
-    int m_normalSprite;                  /* 0x3c */
-    int m_thumbRenderArg0;               /* 0x40 */
-    int m_thumbRenderArg1;               /* 0x44 */
-    int m_thumbSprite;                   /* 0x48 */
+    int m_backgroundSprite;              /* 0x3c */
+    int m_normalThumbSprite;             /* 0x40 */
+    int m_hoveredThumbSprite;            /* 0x44 */
+    int m_disabledThumbSprite;           /* 0x48 */
     int m_trackLength;                   /* 0x4c: horizontal travel */
     int m_thumbWidth;                    /* 0x50 */
     int m_pixelPosition;                 /* 0x54 */
@@ -1500,19 +1653,19 @@ protected:
 // FUNCTION: WIZ8 0x004F5620
 W8HorizontalRangeThumb005ED66C::W8HorizontalRangeThumb005ED66C(
     Controls* panel, unsigned int region, int left, int top,
-    int render_arg_0, int render_arg_1, int normal_sprite,
-    int thumb_render_arg_0, int thumb_render_arg_1, int thumb_sprite)
+    int render_arg_0, int render_arg_1, int background_sprite,
+    int normal_thumb_sprite, int hovered_thumb_sprite, int disabled_thumb_sprite)
     : W8WidgetBase005ED5BC(panel, region, left, top, 0, 0)
 {
     short width;
     short height;
 
-    m_thumbRenderArg0 = thumb_render_arg_0;
-    m_thumbRenderArg1 = thumb_render_arg_1;
-    m_thumbSprite = thumb_sprite;
+    m_normalThumbSprite = normal_thumb_sprite;
+    m_hoveredThumbSprite = hovered_thumb_sprite;
+    m_disabledThumbSprite = disabled_thumb_sprite;
     m_renderArg0 = render_arg_0;
     m_renderArg1 = render_arg_1;
-    m_normalSprite = normal_sprite;
+    m_backgroundSprite = background_sprite;
     m_pixelPosition = 0;
     m_hovered = 0;
     m_dragging = 0;
@@ -1520,11 +1673,11 @@ W8HorizontalRangeThumb005ED66C::W8HorizontalRangeThumb005ED66C(
     m_maximumPosition = 1.0f;
     m_position = 0.0f;
     m_listener = 0;
-    Function549660(render_arg_0, render_arg_1, normal_sprite, &width, &height);
+    Function549660(render_arg_0, render_arg_1, background_sprite, &width, &height);
     m_right = (unsigned short)width + m_left;
     m_bottom = m_top + (unsigned short)height;
     SetRegion(m_region_18);
-    Function549660(m_renderArg0, m_renderArg1, m_thumbRenderArg0, &width, &height);
+    Function549660(m_renderArg0, m_renderArg1, m_normalThumbSprite, &width, &height);
     m_thumbWidth = (unsigned short)width;
     m_trackLength = (m_right - m_left) - (unsigned short)width;
 }
@@ -1622,6 +1775,30 @@ void W8HorizontalRangeThumb005ED66C::UpdateDrag(int event)
         InvalidateThumb();
     }
     m_hovered = hovered;
+}
+
+// FUNCTION: WIZ8 0x004F5A80
+void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
+{
+    if (m_flag_5 == 0 || ((unsigned char)full_redraw == 0 && m_flag_6 == 0)) {
+        return;
+    }
+
+    int x = m_pPanel->origin_x + m_left;
+    int y = m_pPanel->origin_y + m_top;
+    Function549600(-14, m_renderArg0, m_renderArg1, m_backgroundSprite,
+                   x, y, 2, 0);
+
+    int sprite;
+    if (m_flag_4 == 0 && m_disabledThumbSprite != -1) {
+        sprite = m_disabledThumbSprite;
+    } else if (m_hovered != 0 && m_hoveredThumbSprite != -1) {
+        sprite = m_hoveredThumbSprite;
+    } else {
+        sprite = m_normalThumbSprite;
+    }
+    Function548F90(-14, m_renderArg0, m_renderArg1, sprite,
+                   x + m_pixelPosition, y, 2, 0);
 }
 
 /*

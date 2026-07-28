@@ -102,29 +102,29 @@ wiz8,W8TextControl005ED604,0xad,0x3,text_buffer_pad_ad,bytes,,strong,classes:wiz
 wiz8,W8TextControl005ED604,0xb0,0x4,field_b0,int32,,strong,classes:wiz8:W8TextControl005ED604,trailing constructor-initialized control state
 wiz8,W8TextControl005ED604,0xb4,0x4,listener,pointer,,strong,classes:wiz8:W8TextControl005ED604,primary and secondary activation call listener virtual slots zero and one
 wiz8,W8HelpTextControl005ED758,0xb8,0x190,region_help_text,bytes,,exact,classes:wiz8:W8HelpTextControl005ED758,byte-exact SetRegionHelp copies fewer than 200 wchar_t elements into this fixed buffer
-wiz8,W8RangeThumb,0x34,0x4,render_arg_34,int32,,strong,classes:wiz8:W8RangeThumb,Redraw forwards this first typed sprite-render argument
-wiz8,W8RangeThumb,0x38,0x4,render_arg_38,int32,,strong,classes:wiz8:W8RangeThumb,Redraw forwards this second typed sprite-render argument
-wiz8,W8RangeThumb,0x3c,0x4,normal_sprite,int32,,strong,classes:wiz8:W8RangeThumb,Redraw uses this default sprite
-wiz8,W8RangeThumb,0x40,0x4,enabled_sprite,int32,,strong,classes:wiz8:W8RangeThumb,Redraw selects this sprite when its selection byte is set and the handle is live
-wiz8,W8RangeThumb,0x44,0x4,disabled_sprite,int32,,strong,classes:wiz8:W8RangeThumb,Redraw selects this sprite when the inherited visibility state is clear
-wiz8,W8RangeThumb,0x48,0x4,draw_offset_x,int32,,strong,classes:wiz8:W8RangeThumb,Redraw adds this horizontal sprite offset to panel and widget origins
-wiz8,W8RangeThumb,0x4c,0x4,pixel_position,int32,,strong,classes:wiz8:W8RangeThumb,SetValue converts normalized position into this pixel coordinate
-wiz8,W8RangeThumb,0x50,0x4,unknown_50,int32,,strong,classes:wiz8:W8RangeThumb,unidentified dword between pixel position and track length
-wiz8,W8RangeThumb,0x54,0x4,track_length,int32,,strong,classes:wiz8:W8RangeThumb,SetValue multiplies normalized track position by this length
-wiz8,W8RangeThumb,0x58,0x4,unknown_58,int32,,strong,classes:wiz8:W8RangeThumb,unidentified dword before sprite selection
-wiz8,W8RangeThumb,0x5c,0x1,use_enabled_sprite,uint8,,strong,classes:wiz8:W8RangeThumb,Redraw selects the enabled sprite only when this byte is nonzero
-wiz8,W8RangeThumb,0x5d,0x3,pad_5d,bytes,,strong,classes:wiz8:W8RangeThumb,padding before normalized float endpoints
-wiz8,W8RangeThumb,0x60,0x4,minimum_position,float,,strong,classes:wiz8:W8RangeThumb,lower clamp for normalized position
-wiz8,W8RangeThumb,0x64,0x4,maximum_position,float,,strong,classes:wiz8:W8RangeThumb,upper clamp for normalized position
-wiz8,W8RangeThumb,0x68,0x4,position,float,,strong,classes:wiz8:W8RangeThumb,current normalized position written and clamped by SetValue
-wiz8,W8RangeThumb,0x6c,0x4,range,pointer,W8RangeControl005ED74C,strong,classes:wiz8:W8RangeThumb,AdjustValue applies signed steps through this controller back-pointer
-wiz8,W8RangeControl005ED74C,0x0,0x4c,unknown_00,bytes,,strong,classes:wiz8:W8RangeControl005ED74C,unresolved base storage before the range state
+wiz8,W8VerticalRangeThumb005ED6B4,0x34,0x4,render_arg,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor and Redraw forward this sprite-render argument
+wiz8,W8VerticalRangeThumb005ED6B4,0x38,0x4,render_arg_38,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor fixes this second render argument to zero and Redraw forwards it
+wiz8,W8VerticalRangeThumb005ED6B4,0x3c,0x4,normal_sprite,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor measures and Redraw uses this default thumb sprite
+wiz8,W8VerticalRangeThumb005ED6B4,0x40,0x4,hovered_sprite,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,Redraw selects this sprite while pointer hover is active and the handle is live
+wiz8,W8VerticalRangeThumb005ED6B4,0x44,0x4,disabled_sprite,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,Redraw selects this sprite when inherited visibility state is clear
+wiz8,W8VerticalRangeThumb005ED6B4,0x48,0x4,draw_offset_x,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor derives the horizontal slack and Redraw adds it to panel and widget origins
+wiz8,W8VerticalRangeThumb005ED6B4,0x4c,0x4,pixel_position,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,normalized position is converted into this vertical pixel coordinate
+wiz8,W8VerticalRangeThumb005ED6B4,0x50,0x4,thumb_height,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor measures this height and vertical hit testing uses half or all of it
+wiz8,W8VerticalRangeThumb005ED6B4,0x54,0x4,track_length,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor subtracts thumb height from bounds and all drag methods scale by this vertical travel
+wiz8,W8VerticalRangeThumb005ED6B4,0x58,0x4,drag_coordinate,int32,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,BeginDrag stores cursor Y and UpdateDrag converts later differences into motion
+wiz8,W8VerticalRangeThumb005ED6B4,0x5c,0x1,hovered,uint8,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,hit testing maintains this hover state and Redraw selects the hovered sprite from it
+wiz8,W8VerticalRangeThumb005ED6B4,0x5d,0x1,dragging,uint8,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,BeginDrag raises and EndDrag clears this capture state
+wiz8,W8VerticalRangeThumb005ED6B4,0x5e,0x2,pad_5e,bytes,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,padding before aligned float endpoints
+wiz8,W8VerticalRangeThumb005ED6B4,0x60,0x4,minimum_position,float,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,lower normalized clamp initialized to zero
+wiz8,W8VerticalRangeThumb005ED6B4,0x64,0x4,maximum_position,float,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,upper normalized clamp initialized to one
+wiz8,W8VerticalRangeThumb005ED6B4,0x68,0x4,position,float,,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,current normalized position written by range updates and vertical dragging
+wiz8,W8VerticalRangeThumb005ED6B4,0x6c,0x4,range,pointer,W8RangeControl005ED74C,strong,classes:wiz8:W8VerticalRangeThumb005ED6B4,constructor stores the typed controller which drag and step methods update
 wiz8,W8RangeControl005ED74C,0x4c,0x4,minimum,int32,,strong,classes:wiz8:W8RangeControl005ED74C,lower endpoint ordered by byte-exact SetRange and enforced by SetValue
 wiz8,W8RangeControl005ED74C,0x50,0x4,maximum,int32,,strong,classes:wiz8:W8RangeControl005ED74C,upper endpoint ordered by byte-exact SetRange and enforced by SetValue
 wiz8,W8RangeControl005ED74C,0x54,0x4,value,int32,,strong,classes:wiz8:W8RangeControl005ED74C,current clamped value modified by exact increment and decrement methods
 wiz8,W8RangeControl005ED74C,0x58,0x4,decrement_control,pointer,W8WidgetBase005ED5BC,strong,classes:wiz8:W8RangeControl005ED74C,byte-exact SetEnabled propagates visibility to this child
 wiz8,W8RangeControl005ED74C,0x5c,0x4,increment_control,pointer,W8WidgetBase005ED5BC,strong,classes:wiz8:W8RangeControl005ED74C,byte-exact SetEnabled propagates visibility to this child
-wiz8,W8RangeControl005ED74C,0x60,0x4,thumb,pointer,W8RangeThumb,strong,classes:wiz8:W8RangeControl005ED74C,SetValue updates this typed normalized thumb and SetEnabled propagates visibility
+wiz8,W8RangeControl005ED74C,0x60,0x4,thumb,pointer,W8VerticalRangeThumb005ED6B4,strong,classes:wiz8:W8RangeControl005ED74C,SetValue updates this typed vertical thumb and SetEnabled propagates visibility
 wiz8,W8RangeControl005ED74C,0x64,0x4,listener,pointer,,strong,classes:wiz8:W8RangeControl005ED74C,increment and decrement call listener virtual slot zero when non-null
 wiz8,W8RangeControl005ED74C,0x68,0x1,enabled,uint8,,strong,classes:wiz8:W8RangeControl005ED74C,gates increment and decrement and is written by byte-exact SetEnabled
 wiz8,W8RangeControl005ED74C,0x69,0x3,pad_69,bytes,,strong,classes:wiz8:W8RangeControl005ED74C,tail padding to aligned class size
@@ -481,10 +481,10 @@ wiz8,W8GrowableVector<W8VectorElement005ECF00 *>,0xc,0x4,data,pointer,,exact,cla
 wiz8,W8Vector005ECF00,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector005ECF00,W8GrowableVector<W8VectorElement005ECF00 *> subobject; the derived class adds nothing
 wiz8,W8HorizontalRangeThumb005ED66C,0x34,0x4,render_arg_0,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor and sprite measurement forward this first normal-render argument
 wiz8,W8HorizontalRangeThumb005ED66C,0x38,0x4,render_arg_1,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor and sprite measurement forward this second normal-render argument
-wiz8,W8HorizontalRangeThumb005ED66C,0x3c,0x4,normal_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor measures this normal sprite for widget bounds
-wiz8,W8HorizontalRangeThumb005ED66C,0x40,0x4,thumb_render_arg_0,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor uses this handle while measuring the movable thumb
-wiz8,W8HorizontalRangeThumb005ED66C,0x44,0x4,thumb_render_arg_1,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor retains this second thumb-render argument
-wiz8,W8HorizontalRangeThumb005ED66C,0x48,0x4,thumb_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor retains the third thumb-render argument
+wiz8,W8HorizontalRangeThumb005ED66C,0x3c,0x4,background_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor measures and Redraw draws this background sprite at widget origin
+wiz8,W8HorizontalRangeThumb005ED66C,0x40,0x4,normal_thumb_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor measures and Redraw uses this default thumb sprite
+wiz8,W8HorizontalRangeThumb005ED66C,0x44,0x4,hovered_thumb_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,Redraw selects this live sprite while typed hover state is active
+wiz8,W8HorizontalRangeThumb005ED66C,0x48,0x4,disabled_thumb_sprite,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,Redraw selects this live sprite when inherited visibility state is clear
 wiz8,W8HorizontalRangeThumb005ED66C,0x4c,0x4,track_length,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,all position methods scale normalized motion by this horizontal travel
 wiz8,W8HorizontalRangeThumb005ED66C,0x50,0x4,thumb_width,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,constructor measures this width and drag hit testing uses half or all of it
 wiz8,W8HorizontalRangeThumb005ED66C,0x54,0x4,pixel_position,int32,,strong,classes:wiz8:W8HorizontalRangeThumb005ED66C,normalized position is converted into this horizontal pixel coordinate
