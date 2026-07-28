@@ -9,6 +9,15 @@ import typer
 app = typer.Typer(help="Validate and update canonical evidence.", no_args_is_help=True)
 
 
+@app.command("validate")
+def validate_command() -> None:
+    """Validate the checked-in canonical evidence and its relationships."""
+    from .. import cli
+    from ..evidence.validate import validate_repository
+
+    cli._run_action(lambda: validate_repository(cli._settings().repo_dir))
+
+
 def register_root(root: typer.Typer) -> None:
     root.command("resolve-evidence-conflict", hidden=True)(resolve_conflict_command)
 

@@ -4,6 +4,8 @@ import pytest
 from wiz8decomp.config import load_settings
 from wiz8decomp.inputs.scan import load_local_inputs
 
+pytestmark = pytest.mark.integration
+
 
 def test_configured_real_inputs_exist_or_skip() -> None:
     settings = load_settings(require=False)

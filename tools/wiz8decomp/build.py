@@ -270,6 +270,7 @@ def check(repository: Path) -> dict[str, Any]:
         ["ruff", "check", "."],
         ["pyright"],
         ["pytest", "tests/unit"],
+        ["wiz8", "evidence", "validate"],
         ["wiz8", "check-markers"],
     )
     return {"commands": [_result(run(command, cwd=repository)) for command in commands]}

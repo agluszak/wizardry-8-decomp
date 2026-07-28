@@ -8,7 +8,7 @@ prepare:
     uv run wiz8 prepare
 
 test *args:
-    uv run pytest {{args}}
+    uv run pytest tests/unit tests/repository {{args}}
 
 check:
     uv run wiz8 check
