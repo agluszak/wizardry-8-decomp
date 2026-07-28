@@ -124,6 +124,10 @@ extern int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];
 extern unsigned int g_W8TextControlMask005ED56C;
 extern unsigned int g_W8TextControlMask005ED570;
+extern void Function558720(int sound_id);
+extern void Function5587C0(int a, int b);
+
+typedef void (*W8ControlCallback)();
 
 // FUNCTION: WIZ8 0x004F30F0
 void Controls::EnableRegionSet(unsigned char enable)
@@ -176,11 +180,11 @@ protected:
     int m_bottom;                        /* 0x14 */
     int m_region_18;                     /* 0x18: handed to SetRegionMode4 unless -1 */
     Controls* m_pPanel;                  /* 0x1c: named by Controls.cpp:1849 */
-    int m_field_20;                      /* 0x20: the five below are zeroed and not */
+    W8ControlCallback m_primaryCallback; /* 0x20: invoked by text-control activation */
     int m_field_24;                      /* 0x24: otherwise touched by the recovered */
-    int m_field_28;                      /* 0x28: bodies */
-    int m_field_2c;                      /* 0x2c */
-    int m_field_30;                      /* 0x30 */
+    W8ControlCallback m_secondaryCallback;/* 0x28 */
+    W8ControlCallback m_focusCallback;   /* 0x2c */
+    W8ControlCallback m_blurCallback;    /* 0x30 */
 };                                       /* 0x34 established */
 
 // FUNCTION: WIZ8 0x004F3F10
@@ -228,11 +232,11 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
     m_flag_5 = 0;
     m_flag_6 = 0;
     m_region_18 = region;
-    m_field_20 = 0;
+    m_primaryCallback = 0;
     m_field_24 = 0;
-    m_field_28 = 0;
-    m_field_2c = 0;
-    m_field_30 = 0;
+    m_secondaryCallback = 0;
+    m_focusCallback = 0;
+    m_blurCallback = 0;
     m_left = left;
     m_top = top;
     m_bottom = bottom;
@@ -739,6 +743,11 @@ public:
     void RemoveLayoutFlags(unsigned int flags);
     void EnableSecondaryState(unsigned char immediate);
     void DisableSecondaryState(unsigned char immediate);
+    virtual void InvokeFocusCallback();
+    virtual void ActivatePrimary();
+    virtual void InvokeBlurCallback();
+    virtual void ActivateSecondary();
+    void UpdateTextBounds(int left, int top, int right, int bottom);
 
     virtual void SetBounds(int left, int top, int right, int bottom);
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
@@ -758,6 +767,11 @@ protected:
     short m_measured_h;                  /* 0x5e */
     W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
     int m_field_b0;
+    class Listener {
+    public:
+        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
+        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
+    } *m_listener;                       /* 0xb4 */
 
     __forceinline void InvalidateCore(unsigned char immediate)
     {
@@ -979,6 +993,96 @@ void W8TextControl005ED604::DisableSecondaryState(unsigned char immediate)
         m_stateFlags &= ~g_W8TextControlMask005ED570;
         InvalidateCore(immediate);
     }
+}
+
+// FUNCTION: WIZ8 0x004F5070
+void W8TextControl005ED604::InvokeFocusCallback()
+{
+    if ((m_flag_5 != 0 && m_flag_4 != 0)) {
+        if ((m_flags_38 & 0x20) != 0) {
+            Function5587C0(0, 1);
+        }
+        if (m_focusCallback != 0) {
+            m_focusCallback();
+        }
+        return;
+    }
+    if (m_flag_5 == 0 && m_flag_4 != 0) {
+        return;
+    }
+    Function5587C0(0, 1);
+}
+
+// FUNCTION: WIZ8 0x004F5230
+void W8TextControl005ED604::ActivatePrimary()
+{
+    if ((m_flags_38 & 0x100) != 0 && m_flag_5 != 0 && m_flag_4 != 0 &&
+        (m_stateFlags & 1) != 0) {
+        m_stateFlags |= 4;
+        if ((m_flags_38 & 0x20) == 0) {
+            Function558720(3);
+        }
+        if (m_listener != 0) {
+            m_listener->OnPrimary(this);
+        }
+        if (m_primaryCallback != 0) {
+            m_primaryCallback();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5310
+void W8TextControl005ED604::InvokeBlurCallback()
+{
+    if (m_flag_5 != 0 && m_flag_4 != 0) {
+        if ((m_flags_38 & 0x20) != 0) {
+            Function5587C0(0, 1);
+        }
+        if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
+            return;
+        }
+        if (m_blurCallback != 0) {
+            m_blurCallback();
+        }
+        return;
+    }
+    if (m_flag_5 == 0 && m_flag_4 != 0) {
+        return;
+    }
+    Function5587C0(0, 1);
+}
+
+// FUNCTION: WIZ8 0x004F5360
+void W8TextControl005ED604::ActivateSecondary()
+{
+    if ((m_flags_38 & 0x100) != 0 && m_flag_5 != 0 && m_flag_4 != 0) {
+        m_stateFlags |= 4;
+        if ((m_flags_38 & 0x20) == 0) {
+            Function558720(3);
+        }
+        if (m_listener != 0) {
+            m_listener->OnSecondary(this);
+        }
+        if (m_secondaryCallback != 0) {
+            m_secondaryCallback();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F53B0
+void W8TextControl005ED604::UpdateTextBounds(int left, int top, int right, int bottom)
+{
+    W8ControlsRect absolute = {
+        m_pPanel->origin_x + left,
+        m_pPanel->origin_y + top,
+        m_pPanel->origin_x + right,
+        m_pPanel->origin_y + bottom
+    };
+    m_textBuffer.SetLayoutBounds(&absolute, 1, 0);
+    if (m_textBuffer.HasBuffer()) {
+        m_textBuffer.UpdateLayout();
+    }
+    m_textBuffer.SetGeometryDirty();
 }
 
 // FUNCTION: WIZ8 0x004F5410

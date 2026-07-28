@@ -526,7 +526,7 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     assert classes["W8PList"].size == 0xC
     assert classes["W8IList"].size == 0xC
     assert classes["W8MonsterInfo"].size == 0x425
-    assert classes["W8TextControl005ED604"].size == 0xB4
+    assert classes["W8TextControl005ED604"].size == 0xB8
     assert classes["W8GrowableVector<W8WorldItem *>"].size == 0x10
     assert [
         (field.offset, field.size, field.data_type)

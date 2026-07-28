@@ -358,6 +358,11 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 004f4780,124,W8TextControl005ED604::RemoveLayoutFlags,wiz8-local-code,structurally-strong,,Restores uninset text-buffer bounds before removing the requested layout flags
 004f4c40,105,W8TextControl005ED604::EnableSecondaryState,wiz8-local-code,exact,78a6c3a1a80a88cb6109f4254bf5b287f4b3f8d1c0320a2bf02974590e07f2ee,Adds the paired secondary-state masks and invalidates the control when that state was inactive
 004f4cb0,113,W8TextControl005ED604::DisableSecondaryState,wiz8-local-code,exact,c3158fbfab185621cf7d32b41c9c42253cdc80cf5c3a0bda09ba3ab364b78a46,Clears the paired secondary-state masks and invalidates the control when that state was active
+004f5070,68,W8TextControl005ED604::InvokeFocusCallback,wiz8-local-code,structurally-strong,,Routes focus-state feedback through the typed callback at +0x2c
+004f5230,81,W8TextControl005ED604::ActivatePrimary,wiz8-local-code,structurally-strong,,Activates eligible controls through the typed listener primary slot and callback at +0x20
+004f5310,80,W8TextControl005ED604::InvokeBlurCallback,wiz8-local-code,structurally-strong,,Routes blur-state feedback through the typed callback at +0x30
+004f5360,77,W8TextControl005ED604::ActivateSecondary,wiz8-local-code,structurally-strong,,Activates eligible controls through the typed listener secondary slot and callback at +0x28
+004f53b0,93,W8TextControl005ED604::UpdateTextBounds,wiz8-local-code,structurally-strong,,Converts panel-relative bounds to a typed text-buffer rectangle and recomputes layout
 004f6950,10,W8WidgetBase005ED5BC::SetVisible,wiz8-local-code,exact,bd85059e1d7267ad70adf88bb4cea9f4c8413c98ecc8813abe2560acb18983c9,Stores the widget visibility byte
 004f6980,31,W8WidgetBase005ED5BC::SetBounds,wiz8-local-code,exact,bce26684646aef4186366a6496770f96e7bf2019a23e908e757f121ffdcef3d1,Stores four signed widget bounds in canonical order
 004f6960,32,W8WidgetBase005ED5BC::SetBoundsFromRect,wiz8-local-code,structurally-strong,,Copies a typed four-dword rectangle into the widget bounds
