@@ -11,7 +11,7 @@
    interval, and the class the constructor registers into is this one: the
    region set it reads sits at +0x48, which is where the assertion puts
    m_uiRegionSetId. It had been recovered separately against an invented
-   W8Controls of its own, so this merges the two rather than leaving one
+   Controls of its own, so this merges the two rather than leaving one
    address described by two structures.
 
    The image names neither the widget class nor most of its fields, so they
@@ -19,7 +19,7 @@
    exception: the assertion at Controls.cpp:1849 reads m_pPanel != NULL, and
    the pointer it guards is the one the constructor stores there and registers
    into, so that member is named by the original source. It had been called
-   m_owner here, which was a guess at the same thing. The three remaining W8Controls members
+   m_owner here, which was a guess at the same thing. The three remaining Controls members
    below are positional for the same reason - only m_uiRegionSetId is spoken
    for by the assertion - so they are spelled in the file's style without
    claiming that style is evidence. */
@@ -32,21 +32,61 @@ class W8WidgetBase005ED5BC;
    claim on the address. */
 extern void Function4F3140(const W8RegionEvent* event, struct W8Region* region);
 
-struct W8Controls {
-    unsigned char unknown_00[8];
+/* The accumulated redraw rectangle a panel hands the compositor. An empty
+   rectangle is spelled with left at -1, which is what 0x004F2E50 tests before
+   it starts unioning rather than intersecting. */
+struct W8ControlsRect {
+    int left;                               /* 0x00 */
+    int top;                                /* 0x04 */
+    int right;                              /* 0x08 */
+    int bottom;                             /* 0x0c */
+};
+
+struct Controls {
+    unsigned char unknown_00[4];
+    /* 0x04 and 0x05 travel together: SetEnabled writes the panel's own state to
+       the first and mirrors it into every child's m_flag_5, and the redraw
+       requests raise the second. 0x06 is raised on its own by 0x004F2F00. */
+    unsigned char m_fEnabled;               /* 0x04 */
+    unsigned char m_fDirty;                 /* 0x05 */
+    unsigned char m_fLayoutDirty;           /* 0x06 */
+    unsigned char pad_07;
     int origin_x;                           /* 0x08: widget rectangles are relative to this */
     int origin_y;                           /* 0x0c */
-    unsigned char unknown_10[0x2c];
+    unsigned char unknown_10[0x14];
+    W8ControlsRect m_dirtyRect;             /* 0x24 */
+    unsigned char m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
+    unsigned char unknown_35[7];
     int m_nControls;                        /* 0x3c */
     int m_nControlsAllocated;               /* 0x40 */
     W8WidgetBase005ED5BC** m_ppControls;    /* 0x44 */
     unsigned int m_uiRegionSetId;           /* 0x48 */
 
     void EnableRegionSet(unsigned char enable);
+    void SetEnabled(unsigned char enable);
+    void RemoveControl(W8WidgetBase005ED5BC* control);
+    void DestroyAllControls();
+    void Invalidate(const W8ControlsRect* rect);
+    void InvalidateLayout();
+
+    /* The bounds-checked element read every walker above shares. Out of range
+       it answers element zero rather than failing, which is what the canonical
+       `p = m_ppControls; if (i < m_nControls) p += i;` compiles from and why
+       the guard shows up once per use rather than once per loop. */
+    __inline W8WidgetBase005ED5BC* ControlAt(int index)
+    {
+        if (index < m_nControls) {
+            return m_ppControls[index];
+        }
+        return m_ppControls[0];
+    }
 };
 
+/* 0x00562A50 takes the redraw-request mask the panel raises. */
+extern void Function562A50(unsigned int mask);
+
 // FUNCTION: WIZ8 0x004F30F0
-void W8Controls::EnableRegionSet(unsigned char enable)
+void Controls::EnableRegionSet(unsigned char enable)
 {
     if (m_uiRegionSetId == REGSET_NULL) {
         srAssertFail(
@@ -64,7 +104,9 @@ void W8Controls::EnableRegionSet(unsigned char enable)
 
 class W8WidgetBase005ED5BC {
 public:
-    W8WidgetBase005ED5BC(W8Controls* owner, unsigned int region,
+    friend struct Controls;
+
+    W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
                          int left, int top, int right, int bottom);
 
     void SetRegion(unsigned int region);
@@ -91,7 +133,7 @@ protected:
     int m_right;                         /* 0x10 */
     int m_bottom;                        /* 0x14 */
     int m_region_18;                     /* 0x18: handed to SetRegionMode4 unless -1 */
-    W8Controls* m_pPanel;                /* 0x1c: named by Controls.cpp:1849 */
+    Controls* m_pPanel;                  /* 0x1c: named by Controls.cpp:1849 */
     int m_field_20;                      /* 0x20: the five below are zeroed and not */
     int m_field_24;                      /* 0x24: otherwise touched by the recovered */
     int m_field_28;                      /* 0x28: bodies */
@@ -117,10 +159,10 @@ protected:
  * index that does not exist. Preserved as found.
  */
 // FUNCTION: WIZ8 0x004F3DD0
-W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(W8Controls* owner, unsigned int region,
+W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
                                            int left, int top, int right, int bottom)
 {
-    W8Controls* holder;
+    Controls* holder;
     W8WidgetBase005ED5BC** previous;
     unsigned int taken;
     int wanted;
@@ -202,7 +244,7 @@ registered:
 // FUNCTION: WIZ8 0x004F4020
 void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
 {
-    W8Controls* holder;
+    Controls* holder;
     unsigned int bound;
     int origin_x;
     int origin_y;
@@ -418,7 +460,7 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
  */
 class W8Control005ED66C : public W8WidgetBase005ED5BC {
 public:
-    W8Control005ED66C(W8Controls* panel, unsigned int region, int left, int top,
+    W8Control005ED66C(Controls* panel, unsigned int region, int left, int top,
                       int a0, int a1, int a2, int b0, int b1, int b2);
 
 protected:
@@ -442,7 +484,7 @@ protected:
 };
 
 // FUNCTION: WIZ8 0x004F5620
-W8Control005ED66C::W8Control005ED66C(W8Controls* panel, unsigned int region, int left, int top,
+W8Control005ED66C::W8Control005ED66C(Controls* panel, unsigned int region, int left, int top,
                                      int a0, int a1, int a2, int b0, int b1, int b2)
     : W8WidgetBase005ED5BC(panel, region, left, top, 0, 0)
 {
@@ -571,4 +613,143 @@ W8Control005ED5A4::W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int
 // FUNCTION: WIZ8 0x004F2D30
 W8Control005ED5A4::~W8Control005ED5A4()
 {
+}
+
+
+/* Enables or disables the whole panel: the panel's own flag, then every child's,
+   and each child's region follows - mode 4 restores the disabled region and
+   clearing the mode bits re-arms it. */
+// FUNCTION: WIZ8 0x004F2D50
+void Controls::SetEnabled(unsigned char enable)
+{
+    int index;
+
+    m_fEnabled = enable;
+    for (index = 0; index < m_nControls; ++index) {
+        W8WidgetBase005ED5BC* control = ControlAt(index);
+
+        control->m_flag_5 = enable;
+        if (control->m_region_18 != -1) {
+            if (enable == 0) {
+                SetRegionMode4(control->m_region_18);
+            } else {
+                ClearRegionModeBits(control->m_region_18);
+            }
+        }
+    }
+}
+
+/* Detaches one control by identity. The search stops at the first match and the
+   tail is shifted down over it; a control that is not present leaves the array
+   untouched. The array itself never shrinks. */
+// FUNCTION: WIZ8 0x004F2DA0
+void Controls::RemoveControl(W8WidgetBase005ED5BC* control)
+{
+    int count = m_nControls;
+    int index = 0;
+
+    if (count > 0) {
+        W8WidgetBase005ED5BC** cursor = m_ppControls;
+
+        while (*cursor != control) {
+            ++index;
+            ++cursor;
+            if (index >= count) {
+                return;
+            }
+        }
+        if (index >= 0 && index < count) {
+            if (index < count - 1) {
+                do {
+                    m_ppControls[index] = m_ppControls[index + 1];
+                    ++index;
+                } while (index < m_nControls - 1);
+            }
+            --m_nControls;
+        }
+    }
+}
+
+/* Tears the panel down back to front. Each control is detached first and
+   deleted afterwards - `delete` on the polymorphic base, which is the vtable
+   slot 0 call with the deleting flag the image makes - so a control's destructor
+   can safely walk the array it has already left.
+   The shift-down is the same one RemoveControl performs, inlined here because
+   the index is already known. */
+// FUNCTION: WIZ8 0x004F2DF0
+void Controls::DestroyAllControls()
+{
+    int index = m_nControls;
+
+    if (index > 0) {
+        while (--index, index >= 0) {
+            if (index < m_nControls && index >= 0) {
+                W8WidgetBase005ED5BC* control = m_ppControls[index];
+                int shift = index;
+
+                if (index < m_nControls - 1) {
+                    do {
+                        m_ppControls[shift] = m_ppControls[shift + 1];
+                        ++shift;
+                    } while (shift < m_nControls - 1);
+                }
+                --m_nControls;
+                delete control;
+            }
+        }
+    }
+}
+
+/* Adds a rectangle to the panel's pending redraw. A null rectangle means the
+   whole panel, and the first rectangle after a flush - recognised by a left
+   edge of -1 - is copied rather than unioned. */
+// FUNCTION: WIZ8 0x004F2E50
+void Controls::Invalidate(const W8ControlsRect* rect)
+{
+    int edge;
+
+    m_fDirty = 1;
+    if (rect == 0) {
+        m_fWholeAreaDirty = 1;
+        Function562A50(0x80000000);
+        return;
+    }
+    edge = m_dirtyRect.left;
+    m_fWholeAreaDirty = 0;
+    if (edge == -1) {
+        m_dirtyRect.left = rect->left;
+        m_dirtyRect.top = rect->top;
+        m_dirtyRect.right = rect->right;
+        m_dirtyRect.bottom = rect->bottom;
+        Function562A50(0x80000000);
+        return;
+    }
+    if (rect->left <= edge) {
+        edge = rect->left;
+    }
+    m_dirtyRect.left = edge;
+    edge = m_dirtyRect.top;
+    if (rect->top <= m_dirtyRect.top) {
+        edge = rect->top;
+    }
+    m_dirtyRect.top = edge;
+    edge = m_dirtyRect.right;
+    if (m_dirtyRect.right <= rect->right) {
+        edge = rect->right;
+    }
+    m_dirtyRect.right = edge;
+    edge = rect->bottom;
+    if (rect->bottom < m_dirtyRect.bottom) {
+        edge = m_dirtyRect.bottom;
+    }
+    m_dirtyRect.bottom = edge;
+    Function562A50(0x80000000);
+}
+
+/* Marks the panel's layout stale without touching the redraw rectangle. */
+// FUNCTION: WIZ8 0x004F2F00
+void Controls::InvalidateLayout()
+{
+    m_fLayoutDirty = 1;
+    Function562A50(0x80000000);
 }

@@ -30,6 +30,7 @@ def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
         IntegerDataType,
         PointerDataType,
         ShortDataType,
+        SignedCharDataType,
         UnsignedCharDataType,
         UnsignedIntegerDataType,
         UnsignedShortDataType,
@@ -45,6 +46,10 @@ def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
         "double": DoubleDataType.dataType,
         "float": FloatDataType.dataType,
         "short": ShortDataType.dataType,
+        # Spelled out rather than folded into `char`: signedness is what
+        # separates a JL from a JB in a ported body, so a reviewed row that has
+        # established a byte is signed should not lose that on the way in.
+        "signed char": SignedCharDataType.dataType,
         "unsigned int": UnsignedIntegerDataType.dataType,
         "unsigned char": UnsignedCharDataType.dataType,
         "unsigned short": UnsignedShortDataType.dataType,

@@ -1,4 +1,26 @@
 program,class_name,offset,size,field_name,data_type,pointee,confidence,evidence_id,description
+wiz8,Controls,0x0,0x4,unknown_00,bytes,,strong,classes:wiz8:Controls,storage before the three panel state bytes is not yet established
+wiz8,Controls,0x4,0x1,m_fEnabled,uint8,,strong,classes:wiz8:Controls,SetEnabled writes the panel state and mirrors it to every child
+wiz8,Controls,0x5,0x1,m_fDirty,uint8,,strong,classes:wiz8:Controls,Invalidate raises this byte for both whole-panel and rectangular requests
+wiz8,Controls,0x6,0x1,m_fLayoutDirty,uint8,,exact,classes:wiz8:Controls,the exact InvalidateLayout body raises this byte
+wiz8,Controls,0x7,0x1,pad_07,bytes,,strong,classes:wiz8:Controls,alignment before the signed origins
+wiz8,Controls,0x8,0x4,origin_x,int32,,strong,classes:wiz8:Controls,widget constructors and SetRegion add this signed coordinate to their horizontal bounds
+wiz8,Controls,0xc,0x4,origin_y,int32,,strong,classes:wiz8:Controls,widget constructors and SetRegion add this signed coordinate to their vertical bounds
+wiz8,Controls,0x10,0x14,unknown_10,bytes,,strong,classes:wiz8:Controls,unreviewed panel storage before the dirty rectangle
+wiz8,Controls,0x24,0x4,m_dirtyLeft,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated left bound and -1 as the empty sentinel
+wiz8,Controls,0x28,0x4,m_dirtyTop,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated top bound
+wiz8,Controls,0x2c,0x4,m_dirtyRight,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated right bound
+wiz8,Controls,0x30,0x4,m_dirtyBottom,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated bottom bound
+wiz8,Controls,0x34,0x1,m_fWholeAreaDirty,uint8,,strong,classes:wiz8:Controls,Invalidate sets this for a null rectangle and clears it for a bounded request
+wiz8,Controls,0x35,0x7,unknown_35,bytes,,strong,classes:wiz8:Controls,unreviewed storage before the control array counts
+wiz8,Controls,0x3c,0x4,m_nControls,int32,,strong,classes:wiz8:Controls,all three panel walkers use this as the signed live element count
+wiz8,Controls,0x40,0x4,m_nControlsAllocated,int32,,strong,classes:wiz8:Controls,the widget constructor grows the pointer allocation when this capacity is below count plus one
+wiz8,Controls,0x44,0x4,m_ppControls,pointer,W8WidgetBase005ED5BC *,strong,classes:wiz8:Controls,the panel walkers index this typed widget pointer array
+wiz8,Controls,0x48,0x4,m_uiRegionSetId,uint32,,strong,classes:wiz8:Controls,named by the canonical Controls.cpp line 399 assertion and byte-proven by EnableRegionSet
+wiz8,W8ControlsRect,0x0,0x4,left,int32,,strong,classes:wiz8:W8ControlsRect,first signed bound read by Invalidate
+wiz8,W8ControlsRect,0x4,0x4,top,int32,,strong,classes:wiz8:W8ControlsRect,second signed bound read by Invalidate
+wiz8,W8ControlsRect,0x8,0x4,right,int32,,strong,classes:wiz8:W8ControlsRect,third signed bound read by Invalidate
+wiz8,W8ControlsRect,0xc,0x4,bottom,int32,,strong,classes:wiz8:W8ControlsRect,fourth signed bound read by Invalidate
 wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
 wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18

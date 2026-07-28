@@ -30,6 +30,7 @@ def expected_pointee_display(pointee: str) -> str:
 
 def _expected_type_name(spec: str) -> str:
     aliases = {
+        "signed char": "schar",
         "unsigned char": "uchar",
         "unsigned int": "uint",
         "unsigned short": "ushort",
