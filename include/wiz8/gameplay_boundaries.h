@@ -474,7 +474,11 @@ typedef struct W8MonsterGroup {
        under. GetMonsterName reads it and nothing recovered yet writes it. */
     unsigned char flag_2c;
     unsigned char unknown_2d[0x6e];
-    int value_9b;                         /* 0x9b: reset to -1 when the group loads */
+    /* 0x9b: which member of the group the party currently has picked out,
+       by location id, and -1 when none - which is how the group loads. Cycling
+       through the group's targetable members reads it to know where it is and
+       writes back where it got to. */
+    int highlighted_member;
     int value_9f;                         /* 0x9f: a member location id; RemoveMonster
                                              compares it against the departing
                                              member's before renotifying */
@@ -887,7 +891,10 @@ typedef struct W8LevelRuntimeBlock {
     /* 0x104: which region the pointer is over. The portrait hit test walks the
        party slots against two runs of region numbers. */
     unsigned int hover_region;
-    unsigned char unknown_108[0x4d];
+    unsigned char unknown_108[0x4c];
+    /* 0x154: raised whenever the party moves its pick from one monster to
+       another, so whatever draws the pick knows to look again. */
+    unsigned char pick_changed_154;
     /* 0x155: the last of the combat regions is only taken down when this is
        clear. */
     unsigned char flag_155;

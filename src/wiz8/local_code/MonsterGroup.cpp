@@ -583,7 +583,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    monster_group->value_9b = -1;
+    monster_group->highlighted_member = -1;
     for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(

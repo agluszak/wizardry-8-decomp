@@ -1445,3 +1445,166 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
         return 1;
     }
 }
+
+extern void GetPartyPosition(W8Position* position);                      /* 0x00421070 */
+extern float AngleFromPartyTo(const W8Position* from, const srVector3T<float>* to);
+/* 0x004BE420 */
+extern float NormalizeAngle(float radians);
+extern int CompareSignedAscending(const void* left, const void* right);  /* 0x004534C0 */
+extern W8Monster* GetMonsterByLocationID(int location_id);
+extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
+/* 0x005387F0 */
+extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
+extern void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
+/* 0x004ECC80 */
+
+/* One candidate in the angle sort: the screen angle to the monster and the
+   monster itself. The angle leads so that the ordinary signed comparison sorts
+   on it. */
+typedef struct W8GroupMemberByAngle {
+    int angle;                           /* 0x00 */
+    int location_id;                     /* 0x04 */
+} W8GroupMemberByAngle;                  /* 0x08 */
+
+/* Step to the next member of a group, going round the party rather than
+   through the list: the candidates are sorted by the angle from the party to
+   each of them, and the one after whichever is currently picked is taken,
+   wrapping at the end. With nothing picked yet the leftmost is taken.
+
+   The angle is what makes this feel like cycling across the screen rather than
+   jumping about, and it is why the sort buffer holds a pair per candidate
+   rather than just the ids. */
+// FUNCTION: WIZ8 0x005383E0
+int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int current)
+{
+    unsigned int count = (unsigned int)candidates->GetCount();
+    W8GroupMemberByAngle* sorted;
+    W8Position party;
+    unsigned int index;
+    int result;
+
+    if (count == 0) {
+        return BAD_INDEX;
+    }
+    GetPartyPosition(&party);
+
+    sorted = (W8GroupMemberByAngle*)malloc(count * sizeof(W8GroupMemberByAngle));
+    if (sorted == 0) {
+        srAssertFail("pSortBuffer != NULL", TARGETING_CPP, 0x499, 0);
+    }
+
+    for (index = 0; index < count; ++index) {
+        int location_id = *((W8GrowableVector<int>*)candidates)->GetAt((int)index);
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x4a1, TARGETING_CPP, location_id, 1));
+        srVector3T<float> position = monster_info->monster->member_18.GetPosition();
+
+        sorted[index].location_id = location_id;
+        sorted[index].angle = (int)NormalizeAngle(AngleFromPartyTo(&party, &position));
+    }
+    qsort(sorted, count, sizeof(W8GroupMemberByAngle), CompareSignedAscending);
+
+    result = sorted[0].location_id;
+    if (current != BAD_INDEX) {
+        for (index = 0; index < count; ++index) {
+            if (sorted[index].location_id == current) {
+                result = sorted[index + 1 < count ? index + 1 : 0].location_id;
+                break;
+            }
+        }
+    }
+    free(sorted);
+    return result;
+}
+
+/* Which member of a group the party should pick out next. Every member the
+   slot could aim at becomes a candidate - including the single-target case,
+   which is what the third argument allows - and the group's own record of
+   where it got to decides which of them comes next. */
+// FUNCTION: WIZ8 0x00538280
+int PickNextTargetableGroupMember(int party_slot, W8MonsterGroup* group)
+{
+    W8GrowableVector<int> targetable;
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+        int location_id = IListGetAt(group->monsters, index);
+
+        MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x46e, TARGETING_CPP, location_id, 1));
+        if (CanTargetMonster(party_slot, location_id, 1, 0)) {
+            targetable.Add(location_id);
+        }
+    }
+    return SelectNextGroupMemberByAngle(&targetable, group->highlighted_member);
+}
+
+/* Point one party slot at a monster group, or at one monster inside it. An
+   action that wants the whole group is aimed at the group and nothing else
+   happens; anything else steps to the next targetable member and moves the
+   highlight to it.
+
+   The step is taken three times over: once to find where to go, once - before
+   the group's record is updated - to find where the highlight currently is so
+   it can be put out, and once after to find it again so it can be lit. That
+   the same call answers differently each time is exactly what the group's own
+   record of where it got to is for. */
+// FUNCTION: WIZ8 0x00537B00
+void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
+{
+    W8CombatSlot target;
+    W8TargetSource source;
+    int action;
+    int detail;
+    const W8ActionDetailBlock* detail_block;
+    int picked;
+    int previous;
+
+    if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) != 0) {
+        GetSlotChosenAction(
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
+        if (GetTargetNeededForAction(action, detail, detail_block) == 5) {
+            memset(&target, 0, sizeof(target));
+            target.iChar = BAD_INDEX;
+            target.iMonsterID = BAD_INDEX;
+            target.iType = W8_TARGET_KIND_GROUP;
+            target.iGroupID = group->group_id;
+            AimAtTarget(party_slot, &target, 6);
+            StartBreathCycle(party_slot, 0);
+            SetTargetSourceToCharacter(party_slot, &source);
+            NoteTargetChosen(
+                &source, GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
+            return;
+        }
+    }
+
+    picked = PickNextTargetableGroupMember(party_slot, group);
+    if (picked == BAD_INDEX) {
+        return;
+    }
+
+    memset(&target, 0, sizeof(target));
+    target.iChar = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_MONSTER;
+    target.iMonsterID = picked;
+    AimAtTarget(party_slot, &target, 6);
+
+    previous = PickNextTargetableGroupMember(party_slot, group);
+    if (previous != BAD_INDEX) {
+        SetMonsterHighlightColour(GetMonsterByLocationID(previous), 0.0f, 0.0f, 0.0f, 0.0f);
+    }
+
+    group->highlighted_member = picked;
+
+    picked = PickNextTargetableGroupMember(party_slot, group);
+    if (picked != BAD_INDEX) {
+        SetMonsterHighlightColour(GetMonsterByLocationID(picked), 1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    g_level_block_0068edcc->pick_changed_154 = 1;
+
+    StartBreathCycle(party_slot, 0);
+    SetTargetSourceToCharacter(party_slot, &source);
+    NoteTargetChosen(
+        &source, GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
+}
