@@ -33,7 +33,7 @@ void Function5524E0(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
 void Function532330(W8MonsterInfo* monster_info);
 void Function546E70(void);
 void Function536170(void* combat_slot);
-void Function4C5840(W8Monster* monster, int value);
+void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void Function4E76F0(W8MonsterInfo* monster_info);
 extern int g_dword_686a48;
 void DeactivateMonster(W8MonsterInfo* monster_info);
@@ -603,7 +603,7 @@ void DestroyUngroupedMonsters(void)
                 unsigned int flags = monster->m_cycles[19].flags_00;
                 flags >>= 8;
                 if ((flags & 1) != 0 &&
-                    *((unsigned char*)&monster->m_cycles[24].flags_00 + 2) != 0) {
+                    monster->m_cycles[24].bytes.state_02 != 0) {
                     monster->Function4C50F0();
                 }
             }
@@ -1105,7 +1105,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         monster_info->value_354 = g_dword_686a48;
     }
     Function536170(monster_info->combat_slot_2ba);
-    Function4C5840(monster_info->monster, 0);
+    MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
     monster_info->monster->member_18.flags_0c = 0;
     if (monster_info->flag_16 == 1) {
         Function546E70();

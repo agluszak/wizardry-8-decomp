@@ -523,14 +523,24 @@ struct W8MonsterCycleRuntime {
     unsigned char animating;                /* 0x06d */
     unsigned char unknown_06e[0x39];
     signed char pending_cycle;               /* 0x0a7 */
-    unsigned char unknown_0a8[0x548];
+    unsigned char unknown_0a8[0x514];
+    unsigned char flag_5bc;                 /* 0x5bc */
+    unsigned char unknown_5bd[0x33];
     float scale;                             /* 0x5f0 */
     float minimum_scale;                     /* 0x5f4 */
     float maximum_scale;                     /* 0x5f8 */
 };
 
 struct W8MonsterCycle {
-    unsigned int flags_00;                  /* 0x00: cycle 19 bit 7 set by 0x004e67a0 */
+    union {
+        unsigned int flags_00;              /* 0x00: cycle 19 bit 7 set by 0x004e67a0 */
+        struct {
+            unsigned char flag_00;
+            unsigned char flag_01;
+            unsigned char state_02;         /* 0x02: cycle 17 state saved across activation */
+            unsigned char flag_03;
+        } bytes;
+    };
     unsigned char ubNumSubs;                /* 0x04 */
     unsigned char unknown_05[4];
     unsigned char unknown_09;               /* 0x09: cleared for cycle 22 by 0x004e6130 */

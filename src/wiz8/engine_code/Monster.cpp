@@ -29,6 +29,38 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
     return m_cycles[bCycle].ubNumSubs;
 }
 
+// FUNCTION: WIZ8 0x004C5710
+bool MonsterHasPendingCycle(W8Monster* monster)
+{
+    return monster->m_cycles[18].runtime->pending_cycle != -1;
+}
+
+/* Cycle 17's third state byte is preserved by ActivateMonster while the live
+   engine object is rebuilt, then restored into the replacement. */
+// FUNCTION: WIZ8 0x004C57F0
+unsigned char MonsterGetCycle17State(W8Monster* monster)
+{
+    return monster->m_cycles[17].bytes.state_02;
+}
+
+// FUNCTION: WIZ8 0x004C5800
+void MonsterSetCycle17State(W8Monster* monster, unsigned char state)
+{
+    monster->m_cycles[17].bytes.state_02 = state;
+}
+
+// FUNCTION: WIZ8 0x004C5820
+unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster)
+{
+    return monster->m_cycles[18].runtime->flag_5bc;
+}
+
+// FUNCTION: WIZ8 0x004C5840
+void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag)
+{
+    monster->m_cycles[18].runtime->flag_5bc = flag;
+}
+
 /* Cycle 18's pointee carries the scale at +0x5f0. Both accessors reach it the
    same way - through the pointer at the cycle's +0x0c, which 0x004E60B0 also
    reads a byte from - so the pointee is a shared engine object rather than
