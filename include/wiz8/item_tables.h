@@ -91,7 +91,11 @@ struct W8ItemDatabaseRecord {
        the alternate weapon set are checked for it before a weapon swap is
        allowed, and nothing else reads it. */
     unsigned char binds_on_equip;
-    unsigned char unknown_08d[0x80];
+    /* 0x08d: the record's internal name, which the by-name lookup matches
+       against; an empty one falls back to the display name converted down
+       from wide. */
+    char internal_name[0x40];
+    unsigned char unknown_0cd[0x40];
 };                                       /* 0x10d */
 
 #pragma pack(pop)

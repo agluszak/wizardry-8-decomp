@@ -260,3 +260,201 @@ int GenerateItemsFromTable(
 
     return output_items->GetCount();
 }
+
+#include <stdlib.h>
+
+/* gXStatus.plsItemList, named by the ItemInfo assertion that bounds an index
+   against PLLength(gXStatus.plsItemList). */
+extern W8PList* g_world_item_list_00683fb5;
+/* 0x00689B54: the cursor the iterator below resumes from. */
+extern int g_world_item_cursor;
+
+extern char* ConvertWideStringToString(const W8WideChar* wide);
+
+/* Bit 0x20 of the item record's flag word, which is the only bit
+   ItemInfoIsWorldPersistent reads. */
+enum { W8_ITEM_FLAG_PERSISTENT = 0x20 };
+/* Bit 1 of the world item's own flag word. */
+enum { W8_WORLD_ITEM_FLAG_02 = 2 };
+
+/* Free a whole group of world items, following the link that chains them. */
+// FUNCTION: WIZ8 0x004F6CC0
+void FreeWorldItemGroup(W8WorldItem* item)
+{
+    W8WorldItem* next;
+
+    while (item != 0) {
+        next = item->next;
+        free(item);
+        item = next;
+    }
+}
+
+/* Look an item record up by its internal name. The name sits at 0x8d in the
+   record; a record whose name is empty is matched against the display name
+   converted down from wide instead. */
+// FUNCTION: WIZ8 0x004F8220
+int FindItemRecordByName(const char* name)
+{
+    int index;
+    const char* internal_name;
+
+    for (index = 0; index < g_item_record_count; ++index) {
+        internal_name = g_item_records[index].internal_name;
+        if (internal_name[0] == 0) {
+            if (_stricmp(ConvertWideStringToString(g_item_records[index].display_name), name) ==
+                0) {
+                return index;
+            }
+        }
+        else if (_stricmp(internal_name, name) == 0) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+/* Walk the world item list, resuming where the last call left off. Restarting
+   rewinds; running off the end answers nothing without rewinding. */
+// FUNCTION: WIZ8 0x004F82B0
+W8WorldItem* GetNextWorldItem(char restart)
+{
+    int index;
+
+    if (restart) {
+        g_world_item_cursor = 0;
+    }
+    index = g_world_item_cursor;
+    if ((unsigned int)index < PListGetCount(g_world_item_list_00683fb5)) {
+        ++g_world_item_cursor;
+        return (W8WorldItem*)PListGetAt(g_world_item_list_00683fb5, index);
+    }
+    return 0;
+}
+
+/* Take one item out of the group chained onto another. Unlinking the head
+   promotes whatever followed it; unlinking anything else just closes the gap.
+   Answers the group's head afterwards. */
+// FUNCTION: WIZ8 0x004F83A0
+W8WorldItem* ItemInfoRemoveFromGroup(W8WorldItem* head, int unused, W8WorldItem* item)
+{
+    W8WorldItem* previous;
+    W8WorldItem* scan;
+
+    if (head == 0) {
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1142,
+                     "Bad ITEM_STRUCT in ItemInfoRemoveFromGroup");
+    }
+
+    if (head == item) {
+        return item;
+    }
+
+    scan = head;
+    do {
+        previous = scan;
+        if (previous == 0) {
+            break;
+        }
+        scan = previous->next;
+        if (scan == 0) {
+            break;
+        }
+    } while (scan != item);
+
+    if (scan == item) {
+        if (item->next != 0) {
+            previous->next = item->next;
+            item->next = 0;
+            return head;
+        }
+        previous->next = 0;
+    }
+    item->next = 0;
+    return head;
+}
+
+/* The next item in a group. */
+// FUNCTION: WIZ8 0x004F8410
+W8WorldItem* ItemInfoGroupGetNext(W8WorldItem* item)
+{
+    if (item == 0) {
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1178,
+                     "Bad ITEM_STRUCT in ItemInfoGroupGetNext");
+    }
+    return item->next;
+}
+
+/* Whether the item's record marks it as one the world keeps. */
+// FUNCTION: WIZ8 0x004F91E0
+bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
+{
+    if (item == 0) {
+        return false;
+    }
+    return (g_item_records[item->item.item_id].flags_041 & W8_ITEM_FLAG_PERSISTENT) != 0;
+}
+
+/* Copy a world item's carried item out onto the heap. */
+// FUNCTION: WIZ8 0x004F9210
+W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
+{
+    W8ItemInstance* copy = (W8ItemInstance*)malloc(0xc);
+
+    if (copy == 0) {
+        return 0;
+    }
+    *(int*)copy = *(const int*)&item->item;
+    *((int*)copy + 1) = *((const int*)&item->item + 1);
+    *((int*)copy + 2) = *((const int*)&item->item + 2);
+    return copy;
+}
+
+/* Raise or lower bit one of the world item's own flag word. */
+// FUNCTION: WIZ8 0x004F94A0
+void SetWorldItemFlag02(W8WorldItem* item, char enabled)
+{
+    if (enabled) {
+        item->flags |= W8_WORLD_ITEM_FLAG_02;
+    }
+    else {
+        item->flags &= ~W8_WORLD_ITEM_FLAG_02;
+    }
+}
+
+/* The world item at one list position. Both the bound and the fetch are
+   asserted, and the second reports the list it failed on. */
+// FUNCTION: WIZ8 0x004F7FE0
+W8WorldItem* ItemInfo(unsigned int item_list_index)
+{
+    W8WorldItem* item;
+
+    if (item_list_index >= PListGetCount(g_world_item_list_00683fb5)) {
+        srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
+                     ITEM_MANAGER_CPP, 961, 0);
+    }
+    item = (W8WorldItem*)PListGetAt(g_world_item_list_00683fb5, item_list_index);
+    if (item == 0) {
+        srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 965,
+                     FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
+                                  item_list_index, g_world_item_list_00683fb5));
+    }
+    return item;
+}
+
+/* Where in the world item list one runtime id sits. Not finding it is a data
+   error rather than a -1. */
+// FUNCTION: WIZ8 0x004F8060
+unsigned int ItemIndex(int runtime_id)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_world_item_list_00683fb5); ++index) {
+        if (ItemInfo(index)->runtime_id == runtime_id) {
+            return index;
+        }
+    }
+    srAssertFail("FALSE", ITEM_MANAGER_CPP, 992,
+                 FormatString("ItemIndex: ERROR - ItemID %d not found", runtime_id));
+    return 0;
+}
