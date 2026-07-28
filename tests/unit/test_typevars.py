@@ -92,14 +92,18 @@ def test_the_four_prop_pointee_shapes_are_derived_not_written() -> None:
         assert variable["name"].startswith("AnonymousType_0044bec0_field")
 
 
-def test_an_unrecovered_destructor_unifies_with_nothing() -> None:
-    # 0x004B6ED0 writes no vtable and belongs to no reviewed class; the right
-    # answer is empty, and the variable keeps its identity until someone
-    # recovers that type - never a forced guess.
+def test_prop_owned_destructor_unifies_with_recovered_gdprop() -> None:
+    # The inference variable originally kept its anonymous identity. Once the
+    # 0x004B6ED0 class is reviewed, the same address-backed constraint closes
+    # over the ledger without adding a special-case rule.
     variables = _prop_variables()
     knowledge = load_knowledge(REPOSITORY)
 
-    assert unify(variables["0x38"], knowledge) == []
+    matches = unify(variables["0x38"], knowledge)
+
+    assert [match["type"] for match in matches] == ["GDProp"]
+    assert matches[0]["tier"] == "reviewed"
+    assert matches[0]["reasons"] == ["complete destructor 004b6ed0 is this type's"]
 
 
 def test_a_known_destructor_unifies_decisively_with_its_class() -> None:
@@ -115,6 +119,25 @@ def test_a_known_destructor_unifies_decisively_with_its_class() -> None:
 
     assert [match["type"] for match in matches] == ["GrCycle"]
     assert matches[0]["tier"] == "reviewed"
+
+
+def test_reviewed_destructor_identity_dominates_its_candidate_shadow() -> None:
+    knowledge = load_knowledge(REPOSITORY)
+    knowledge.append(
+        {
+            "type": "CandidateType_004b6ed0",
+            "tier": "candidate",
+            "polymorphic": False,
+            "slot0": None,
+            "destructors": {"004b6ed0"},
+        }
+    )
+    variable = {
+        "name": "AnonymousType_test_field38",
+        "constraints": {"pointer": True, "complete_destructor": "004b6ed0"},
+    }
+
+    assert [match["type"] for match in unify(variable, knowledge)] == ["GDProp"]
 
 
 def test_shape_only_constraints_filter_rather_than_identify() -> None:

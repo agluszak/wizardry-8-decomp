@@ -243,8 +243,10 @@ def materialize_type_variables(
             except Exception:  # noqa: BLE001,S110 - an unknown prototype may have no root yet
                 pass
 
+        matches = unify({**variable, "constraints": constraints}, knowledge)
+        reviewed_match = any(match["tier"] == "reviewed" for match in matches)
         candidate_type = None
-        if destructor and constraints.get("pointee_accesses"):
+        if destructor and constraints.get("pointee_accesses") and not reviewed_match:
             candidate_name = f"CandidateType_{destructor}"
             candidate_type = _structure(program, candidate_name)
             if candidate_type is None:
@@ -276,7 +278,6 @@ def materialize_type_variables(
                 )
             )
 
-        matches = unify({**variable, "constraints": constraints}, knowledge)
         selected = matches[0]["type"] if len(matches) == 1 else None
         if selected:
             pointee_type = _structure(program, selected)

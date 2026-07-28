@@ -238,4 +238,13 @@ def unify(variable: dict[str, Any], knowledge: list[dict[str, Any]]) -> list[dic
     decisive = [
         match for match in matches if any("complete destructor" in r for r in match["reasons"])
     ]
-    return decisive if decisive else matches
+    if decisive:
+        # An overlay may already contain an address-qualified candidate for a
+        # destructor that has since acquired a reviewed class identity. That
+        # shadow is the same evidence at a weaker tier, not a second plausible
+        # type. Keep genuine ambiguity between peers while letting the
+        # strongest available tier dominate weaker duplicates.
+        ranks = {"reviewed": 3, "candidate": 2, "observation": 1}
+        strongest = max(ranks.get(match["tier"], 0) for match in decisive)
+        return [match for match in decisive if ranks.get(match["tier"], 0) == strongest]
+    return matches

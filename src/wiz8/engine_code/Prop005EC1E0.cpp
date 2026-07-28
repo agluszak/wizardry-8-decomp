@@ -1,3 +1,5 @@
+#include "wiz8/engine_code/GDProp.h"
+
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:
 
@@ -27,13 +29,6 @@ public:
     ~W8PropOwned0020();
 };
 
-/* Destroyed by a direct call to 0x004B6ED0 followed by operator delete, which
-   is what a non-virtual destructor compiles to. */
-class W8PropOwned004B6ED0 {
-public:
-    ~W8PropOwned004B6ED0();              /* 0x004B6ED0 */
-};
-
 class W8PropBase004B6B60 {
 public:
     virtual ~W8PropBase004B6B60();       /* 0x004B6B60 */
@@ -53,7 +48,7 @@ private:
     unsigned char unknown_024[0x4];
     W8PropOwnedPolymorphic* m_owned_28;  /* 0x28 */
     unsigned char unknown_02c[0xc];
-    W8PropOwned004B6ED0* m_owned_38;     /* 0x38 */
+    GDProp* m_owned_38;                  /* 0x38 */
 };                                       /* 0x3c established */
 
 __forceinline W8PropOwned0020::~W8PropOwned0020()
