@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/sr_api.h"
 
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:
@@ -20,7 +21,13 @@ class W8PropOwnedPolymorphic {
 public:
     virtual ~W8PropOwnedPolymorphic();
 
-    unsigned char unknown_004[0x62];
+    void ToggleAnimation(int argument);   /* 0x0044BA00 */
+    int FindSlotByCurrentTag();           /* 0x0044BAE0 */
+
+    unsigned char unknown_004[0x60];
+    /* 0x64: the argument the prop's own animation calls pass along. */
+    unsigned char setting_64;
+    unsigned char unknown_065;
     /* 0x66..0x6f: four settings the prop reads and writes through this member.
        0x6e cycles between one and three; 0x6f having the value two is a state
        one predicate singles out. */
@@ -30,6 +37,19 @@ public:
     unsigned char unknown_06d;
     unsigned char setting_6e;             /* 0x6e */
     unsigned char setting_6f;             /* 0x6f */
+    unsigned char unknown_070[0x24];
+    /* 0x94: which of the slots below is current, matched against each slot's
+       own leading byte rather than used as an index. */
+    unsigned char current_tag;
+    unsigned char unknown_095[3];
+    /* 0x98: the animation the prop drives. */
+    void* animation;
+    unsigned char unknown_09c[0x18];
+    /* 0xb4 and 0xbc: the slot table, count first and data three dwords along -
+       the shared growable vector's shape. */
+    int slot_count;
+    unsigned char unknown_0b8[4];
+    unsigned char** slots;
 };
 
 /* Released with a null check and then a bare operator delete. A pointer to
@@ -53,6 +73,11 @@ public:
     virtual ~W8Prop005EC1E0();           /* 0x0044BEC0 */
 
     unsigned char GetSetting6C();        /* 0x0044D4F0 */
+    void ToggleRepAnimation(int argument);   /* 0x0044D500 */
+    void ToggleRepAnimationDefault();        /* 0x0044D550 */
+    int PlayRepAnimation(int arg_2, int arg_3);  /* 0x0044D5C0 */
+    void SetSetting6E(unsigned char value, unsigned char fallback);  /* 0x0044E1F0 */
+    bool CanBeUsedFrom(int arg_2, int arg_3, char notify);  /* 0x0044E0C0 */
     void SetSetting6C(unsigned char value);  /* 0x0044D4B0 */
     void SetSetting66(char value);       /* 0x0044D5B0 */
     bool IsSetting6FTwo();               /* 0x0044E1C0 */
@@ -158,4 +183,121 @@ void W8Prop005EC1E0::SetSetting6C(unsigned char value)
         Function439D80();
     }
     m_owned_14->setting_6c = value;
+}
+
+extern unsigned char AnimationIsRunning(void* animation);               /* 0x004A1DC0 */
+extern void AnimationStart(void* animation, int channel, int argument); /* 0x004A14D0 */
+extern void AnimationStop(void* animation, int channel, int argument);   /* 0x004A1560 */
+extern void AnimationPlayFromTo(
+    void* animation, int channel, unsigned char argument, int from, int to); /* 0x004A1710 */
+extern unsigned char Function4B75F0(int arg_1, int arg_2);
+extern void Function444750(void);
+
+/* Start or stop the prop's own animation, whichever it is not doing. */
+// FUNCTION: WIZ8 0x0044BA00
+void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
+{
+    if (AnimationIsRunning(animation)) {
+        AnimationStop(animation, 2, 0);
+        return;
+    }
+    AnimationStart(animation, 2, argument);
+}
+
+/* Which slot carries the current tag. The tag is matched against each slot's
+   own leading byte rather than used as an index, so the slots need not be in
+   tag order. */
+// FUNCTION: WIZ8 0x0044BAE0
+int W8PropOwnedPolymorphic::FindSlotByCurrentTag()
+{
+    int index;
+
+    for (index = 0; index < slot_count; ++index) {
+        if ((int)(char)*slots[index] == (unsigned int)current_tag) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+/* The same toggle reached through the prop rather than through the member. */
+// FUNCTION: WIZ8 0x0044D500
+void W8Prop005EC1E0::ToggleRepAnimation(int argument)
+{
+    if (AnimationIsRunning(m_owned_14->animation)) {
+        AnimationStop(m_owned_14->animation, 2, 0);
+        return;
+    }
+    AnimationStart(m_owned_14->animation, 2, argument);
+}
+
+/* And again with the member's own stored argument instead of a caller's -
+   which is what makes 0x64 the animation's default argument. */
+// FUNCTION: WIZ8 0x0044D550
+void W8Prop005EC1E0::ToggleRepAnimationDefault()
+{
+    unsigned char argument = m_owned_14->setting_64;
+
+    if (AnimationIsRunning(m_owned_14->animation)) {
+        AnimationStop(m_owned_14->animation, 2, 0);
+        return;
+    }
+    AnimationStart(m_owned_14->animation, 2, argument);
+}
+
+/* Play the prop's animation between two points, with the same default
+   argument. */
+// FUNCTION: WIZ8 0x0044D5C0
+int W8Prop005EC1E0::PlayRepAnimation(int from, int to)
+{
+    AnimationPlayFromTo(m_owned_14->animation, 2, m_owned_14->setting_64, from, to);
+    return 1;
+}
+
+/* Write the member's setting at 0x6e. The assertion names the member m_pRep,
+   and the guarded store is written after the assertion rather than instead of
+   it, so a null member writes through null on a build with assertions off. */
+// FUNCTION: WIZ8 0x0044E1F0
+void W8Prop005EC1E0::SetSetting6E(unsigned char value, unsigned char fallback)
+{
+    if (m_owned_14 == 0) {
+        srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 2698, 0);
+        m_owned_14->setting_6e = fallback;
+        return;
+    }
+    m_owned_14->setting_6e = value;
+}
+
+/* Whether the prop can be used from where the caller is. The owned GDProp has
+   to be there, its own owner has to be, that owner must not be in the tenth
+   state or hold either of two bits, and the reach test has to pass. */
+// FUNCTION: WIZ8 0x0044E0C0
+bool W8Prop005EC1E0::CanBeUsedFrom(int arg_2, int arg_3, char notify)
+{
+    char* owner;
+    char* state;
+
+    if ((flags_1c & 0x80) == 0 || m_owned_38 == 0) {
+        return false;
+    }
+    owner = *(char**)((char*)m_owned_38 + 0x24);
+    if (owner == 0) {
+        return false;
+    }
+
+    state = *(char**)(owner + 0x234);
+    if (state == 0 || state[4] != 10) {
+        state = 0;
+    }
+    if ((*(int*)(owner + 0x368) != 0 && owner[0x370] == 0) ||
+        (state != 0 && (state[8] & 5) != 0)) {
+        return false;
+    }
+    if (!Function4B75F0(arg_2, arg_3)) {
+        return false;
+    }
+    if (notify) {
+        Function444750();
+    }
+    return true;
 }

@@ -153,3 +153,27 @@ void OctreeQueueKind13(int id)
     }
     OctreeQueue(0xd, id + 1, point);
 }
+
+/* Engine Code\Trigger.cpp lives in the same interval. Its list of live
+   triggers is torn down wholesale rather than one at a time. */
+
+/* 0x006598FC and 0x00659904: the live triggers, count and data. */
+extern int g_trigger_count;
+extern void** g_trigger_data;
+extern int g_trigger_flag_00659994;
+extern int g_trigger_flag_006598e4;
+
+/* Release every live trigger and forget the three pieces of state that go with
+   the list, which is what groups them. */
+// FUNCTION: WIZ8 0x004445B0
+void ReleaseAllTriggers(void)
+{
+    int index;
+
+    for (index = 0; index < g_trigger_count; ++index) {
+        operator delete(g_trigger_data[index]);
+    }
+    g_trigger_flag_00659994 = 0;
+    g_trigger_count = 0;
+    g_trigger_flag_006598e4 = 0;
+}
