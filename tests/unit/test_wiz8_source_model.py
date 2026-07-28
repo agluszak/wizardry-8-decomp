@@ -970,8 +970,11 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
         # SGP bodies are built from the vendored upstream tree, not from a
         # first-party unit. That source is licensed and kept verbatim, so it
         # carries no reccmp markers and must not grow any; the row is still
-        # verified against the original through its own target's objects.
-        if row["owner"] == "sgp-shared":
+        # verified against the original through its own target's objects. The
+        # test is on the owner prefix rather than `sgp-shared` alone because the
+        # reviewed model splits the vendored tree by unit - `sgp-compression`
+        # for Compression.c - and every one of those units is equally verbatim.
+        if row["owner"].startswith("sgp-"):
             continue
         marker_kind = "TEMPLATE" if "<" in row["symbol"] else "FUNCTION"
         marker = f"// {marker_kind}: WIZ8 0x{row['address'].upper()}"
