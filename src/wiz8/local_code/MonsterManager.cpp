@@ -23,13 +23,13 @@ void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 unsigned char RemoveMonster(
     unsigned int monster_list_index,
     unsigned char destroy_monster);
-void Function4E4390(W8MonsterInfo* monster_info);
-void Function4E4500(W8MonsterInfo* monster_info);
+void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
+void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 void Function565420(void);
 void Function50F4A0(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void Function5103E0(W8MonsterGroup* monster_group);
 void Function5106D0(W8MonsterGroup* monster_group);
-void Function5524E0(W8MonsterInfo* monster_info, signed char* entry);
+void Function5524E0(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
 void Function532330(W8MonsterInfo* monster_info);
 void Function546E70(void);
 void Function536170(void* combat_slot);
@@ -52,7 +52,7 @@ void __fastcall Function452C90(W8MonsterMember18* member);
 void __fastcall Function4537E0(W8MonsterMember18* member);
 int GetMonsterName(W8MonsterInfo* monster_info, int monster_record, int name_form);
 void Function5248D0(W8MonsterInfo* monster_info);
-void Function58AB60(int value_1, int value_2, int value_3, int value_4);
+void Function58AB60(int value_1, int value_2, void* notice, int name);
 void Function4C59C0(W8Monster* monster, W8World* world);
 W8World* Function451280(W8Monster* monster);
 void Function46E5A0(W8World* world);
@@ -67,8 +67,19 @@ void MonsterSetScale(W8Monster* monster, float scale);
 void Function4C5810(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
 int Function52A780(int first, int second);
-extern unsigned char* g_object_68c09c;
-extern unsigned char* g_object_6836a8;
+void __cdecl Function58AC00(int channel, void* message, int first, int second,
+                            int flag);
+void Function562A50(int mask);
+unsigned char Function531920(W8MonsterGroup* monster_group);
+W8CombatActor* NextEngagedCharacter(int restart);
+unsigned char Function4A5790(void);
+void StartCombat(int surprise);
+void EndCombat(unsigned char reason);
+void Function595570(void);
+extern unsigned char g_flag_68517c;
+extern unsigned char g_flag_6850d2;
+extern int g_dword_68ec78;
+extern int g_dword_683fa5;
 extern unsigned char g_flag_683f94;
 extern unsigned char g_flag_683f97;
 extern volatile int g_dword_6598a4;
@@ -125,7 +136,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     if (monster_info->motionless == 0) {
         result = MonsterQuery(monster_info->monster, 6);
         if (result != 1 && result != 2 &&
-            monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
+            monster_info->monster->m_cycles[18].runtime->pending_cycle == -1) {
             StartMonsterCycle(monster_info, 1, 3);
         }
     }
@@ -457,7 +468,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
                 Function58AB60(
                     9,
                     0,
-                    *(int*)(g_object_68c09c + 0x74c),
+                    g_notices->monster_slain,
                     GetMonsterName(monster_info, 0, 0));
             }
             Function5248D0(monster_info);
@@ -655,13 +666,13 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
     if (motionless == 0) {
         if (previous != 0) {
             MonsterSetAnimating(monster, 1);
-            if (monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
+            if (monster_info->monster->m_cycles[18].runtime->pending_cycle == -1) {
                 StartMonsterCycle(monster_info, 1, 3);
             }
         }
     }
     else if (previous == 0) {
-        signed char cycle_value = monster->m_cycles[18].unknown_0c[0xa7];
+        signed char cycle_value = monster->m_cycles[18].runtime->pending_cycle;
 
         if (cycle_value != -1) {
             if (cycle_value == 0x14) {
@@ -855,13 +866,13 @@ void TryStartMonsterCycle2(
         if (result != 0 && monster_info->motionless == 0) {
             monster->m_cycles[19].flags_00 |= 0x80;
             if (MonsterIsCycleSupported(monster, 2) != 0) {
-                signed char cycle = monster->m_cycles[18].unknown_0c[0xa7];
+                signed char cycle = monster->m_cycles[18].runtime->pending_cycle;
 
                 if (cycle == 2 ||
                     monster->Function4C2CF0(cycle) == 0 ||
                     (g_flag_683f94 != 0 &&
-                     *(int*)(g_object_6836a8 + 0x7b0) != 0 &&
-                     *(W8MonsterInfo**)(g_object_6836a8 + 0x7b8) == monster_info)) {
+                     g_combat_state->selected_slot != 0 &&
+                     g_combat_state->selected_monster == monster_info)) {
                     return;
                 }
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(
@@ -911,7 +922,7 @@ unsigned char AnyMonsterDying(void)
    the species-indexed record cache. The cache walk is a pointer sweep against
    the address one past the last slot, which is how the original spells it. */
 // FUNCTION: WIZ8 0x004E3820
-unsigned char Function4E3820(void)
+unsigned char ShutdownMonsterManager(void)
 {
     W8MonsterRecord** slot;
 
@@ -962,7 +973,7 @@ unsigned char RemoveMonster(
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
 
     if (g_flag_683f94 != 0 && monster_info->fInCombat != 0 && monster_info->pCombat != 0) {
-        Function4E4500(monster_info);
+        MonsterInfoLeaveCombat(monster_info);
     }
     if (monster_info->monster_group_id != 0) {
         W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(
@@ -1046,9 +1057,9 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
             Function538D60(monster_info->location_id, 0);
             Function593330();
             Function546E70();
-            if (*reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) == monster_info) {
-                *reinterpret_cast<int*>(g_object_6836a8 + 0x7b0) = 0;
-                *reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) = 0;
+            if (g_combat_state->selected_monster == monster_info) {
+                g_combat_state->selected_slot = 0;
+                g_combat_state->selected_monster = 0;
             }
         }
     }
@@ -1060,7 +1071,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
    inline `memset` shape VC6 emits for a zero-initialised structure of that
    size, which is also what fixes the block's extent. */
 // FUNCTION: WIZ8 0x004E4390
-void Function4E4390(W8MonsterInfo* monster_info)
+void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
 {
     int query_state;
 
@@ -1079,11 +1090,11 @@ void Function4E4390(W8MonsterInfo* monster_info)
     if (monster_info->motionless == 0) {
         query_state = MonsterQuery(monster_info->monster, 6);
         if (query_state != 1 && query_state != 2 &&
-            monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
+            monster_info->monster->m_cycles[18].runtime->pending_cycle == -1) {
             StartMonsterCycle(monster_info, 1, 3);
         }
     }
-    monster_info->pCombat = malloc(0x153);
+    monster_info->pCombat = static_cast<W8MonsterCombatState*>(malloc(0x153));
     if (monster_info->pCombat == 0) {
         srAssertFail("pMonsterInfo->pCombat != NULL", MONSTER_MANAGER_CPP, 0x2a0, 0);
     }
@@ -1110,10 +1121,10 @@ void Function4E4390(W8MonsterInfo* monster_info)
    Both runs step by 0x11 bytes; the first starts at +0x3e and the second at
    +0xd7, which is what places them inside the 0x153-byte allocation. */
 // FUNCTION: WIZ8 0x004E4500
-void Function4E4500(W8MonsterInfo* monster_info)
+void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
 {
     unsigned int index;
-    signed char* entry;
+    W8MonsterCombatEntry* entry;
 
     if (g_flag_683f94 == 0) {
         srAssertFail("gXStatus.fCombatMode", MONSTER_MANAGER_CPP, 0x2c6, 0);
@@ -1124,9 +1135,9 @@ void Function4E4500(W8MonsterInfo* monster_info)
     if (monster_info->fInCombat == 0) {
         srAssertFail("pMonsterInfo->fInCombat", MONSTER_MANAGER_CPP, 0x2c8, 0);
     }
-    if (*reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) == monster_info) {
-        *reinterpret_cast<int*>(g_object_6836a8 + 0x7b0) = 0;
-        *reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) = 0;
+    if (g_combat_state->selected_monster == monster_info) {
+        g_combat_state->selected_slot = 0;
+        g_combat_state->selected_monster = 0;
     }
     /* The record cursor is spelled (base + offset) + constant, not
        (base + constant) + offset: the first form leaves the block pointer as
@@ -1134,16 +1145,15 @@ void Function4E4500(W8MonsterInfo* monster_info)
        the second folds the constant into the displacement and promotes the
        running offset to base instead. */
     for (index = 0; index < 9; ++index) {
-        entry = static_cast<signed char*>(monster_info->pCombat) + index * 0x11 + 0x3e;
-        if (*entry != 0) {
+        entry = &monster_info->pCombat->entries_3e[index];
+        if (entry->active != 0) {
             Function5524E0(monster_info, entry);
         }
     }
     for (index = 0; index < 6; ++index) {
-        if (*(static_cast<signed char*>(monster_info->pCombat) + index * 0x11 + 0xd7) != 0) {
-            Function5524E0(
-                monster_info,
-                static_cast<signed char*>(monster_info->pCombat) + index * 0x11 + 0xd7);
+        entry = &monster_info->pCombat->entries_d7[index];
+        if (entry->active != 0) {
+            Function5524E0(monster_info, entry);
         }
     }
     Function532330(monster_info);
@@ -1152,6 +1162,103 @@ void Function4E4500(W8MonsterInfo* monster_info)
     monster_info->fInCombat = 0;
     if (monster_info->flag_16 == 1) {
         Function546E70();
+    }
+}
+
+/* Toggles the party's combat-ready posture. Outside combat it only flips the
+   flag; inside it also swaps the two engine bits at +0x001 and +0xa62 of the
+   state block, and in engine mode 7 it announces the new posture with the
+   message the block at 0x0068C09C holds for that direction. */
+// FUNCTION: WIZ8 0x004E6C10
+void TogglePartyCombatStance(void)
+{
+    void* message;
+
+    if (g_flag_68517c == 0) {
+        g_flag_6850d2 = (g_flag_6850d2 == 0);
+        return;
+    }
+    if (g_flag_6850d2 != 0) {
+        g_flag_6850d2 = 0;
+        if (g_flag_683f94 != 0) {
+            g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
+            g_combat_state->flag_a62 = 1;
+        }
+        if (g_dword_68ec78 != 7) {
+            return;
+        }
+        message = g_notices->combat_stance_relaxed;
+    } else {
+        g_flag_6850d2 = 1;
+        if (g_flag_683f94 != 0 && g_combat_state->flag_a62 != 0) {
+            g_combat_state->flag_001 = 1;
+            g_combat_state->flag_a62 = 0;
+        }
+        if (g_dword_68ec78 != 7) {
+            return;
+        }
+        message = g_notices->combat_stance_ready;
+    }
+    Function58AC00(0xc, message, -1, -1, 0);
+    if (g_dword_68ec78 == 7) {
+        Function562A50(0x80000);
+    }
+}
+
+/* The combat toggle the interface drives: out of combat it starts one, and in
+   combat it refuses to end it while any loaded group still qualifies, while any
+   character is still engaged, or while the state block's leading flag is
+   raised, announcing the reason in each case. Only when all three clear does it
+   end combat and, if the level record's field at +0x2ca is not -1, run the
+   trailing notification. */
+// FUNCTION: WIZ8 0x004E6A80
+void ToggleCombatMode(void)
+{
+    unsigned int group_list_index;
+    W8MonsterGroup* monster_group;
+    W8CombatActor* character;
+
+    if (g_flag_683f94 == 0) {
+        StartCombat(1);
+        return;
+    }
+    if (g_dword_683fa5 != 0 || g_combat_state->flag_a54 != 0) {
+        if (g_combat_state->value_004 != 0) {
+            Function58AC00(
+                0xc, g_notices->combat_cannot_end, -1, -1, 0);
+            return;
+        }
+        for (group_list_index = 0;
+             group_list_index < PListGetCount(g_monster_group_list);
+             ++group_list_index) {
+            monster_group = GetMonsterGroupByListIndex(group_list_index);
+            if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
+                Function531920(monster_group) != 0) {
+                Function58AC00(
+                    0xc, g_notices->combat_cannot_end, -1, -1, 0);
+                return;
+            }
+        }
+    }
+    for (character = NextEngagedCharacter(1); character != 0;
+         character = NextEngagedCharacter(0)) {
+        if ((character == g_combat_state->engaged_actor ||
+             g_character_class_records[character->class_record_index].flag_154 != 0) &&
+            Function4A5790() != 0) {
+            Function58AC00(
+                0xc, g_notices->combat_cannot_end_engaged, -1, -1, 0);
+            return;
+        }
+    }
+    if (g_combat_state->flag_000 != 0) {
+        Function58AC00(
+            0xc, g_notices->combat_cannot_end_pending, -1, -1, 1);
+        return;
+    }
+    EndCombat(0);
+    Function58AC00(0xc, g_notices->combat_ended, -1, -1, 0);
+    if (g_level_block->combat_end_notification != -1) {
+        Function595570();
     }
 }
 

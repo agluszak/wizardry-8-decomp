@@ -1,5 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srTimer.h"
+
+extern srTimer* g_shared_timer_base;
 
 /* Cleans its own argument, so it is __stdcall and not the cdecl the
    decompiler assumes. */
@@ -33,13 +36,49 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
 // FUNCTION: WIZ8 0x004C5780
 float MonsterGetScale(W8Monster* monster)
 {
-    return *(float*)(monster->m_cycles[18].unknown_0c + 0x5f0);
+    return monster->m_cycles[18].runtime->scale;
 }
 
 // FUNCTION: WIZ8 0x004C57A0
 void MonsterSetScale(W8Monster* monster, float scale)
 {
-    *(float*)(monster->m_cycles[18].unknown_0c + 0x5f0) = scale;
+    monster->m_cycles[18].runtime->scale = scale;
+}
+
+// FUNCTION: WIZ8 0x004C57C0
+void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum)
+{
+    W8MonsterCycleRuntime* runtime = monster->m_cycles[18].runtime;
+
+    *minimum = runtime->minimum_scale;
+    *maximum = runtime->maximum_scale;
+}
+
+/* Returns the previous animation state and timestamps every update through the
+   recovered shared SurRender timer. */
+// FUNCTION: WIZ8 0x004C5A00
+unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating)
+{
+    if (monster != 0) {
+        W8MonsterCycleRuntime* runtime = monster->m_cycles[18].runtime;
+        unsigned char previous = runtime->animating;
+
+        runtime->animating = animating;
+        runtime->animation_timestamp =
+            g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+        return previous;
+    }
+    return 0;
+}
+
+/* Cycle 19 bit 5 blocks pending-cycle changes. Otherwise the request is stored
+   as the signed low byte in cycle 18's runtime record. */
+// FUNCTION: WIZ8 0x004C5AA0
+void MonsterSetPendingCycle(W8Monster* monster, int cycle)
+{
+    if (monster != 0 && ((monster->m_cycles[19].flags_00 >> 5) & 1) == 0) {
+        monster->m_cycles[18].runtime->pending_cycle = (signed char)cycle;
+    }
 }
 
 /* Named by the MonsterManager assertions. A null monster answers -1 rather than

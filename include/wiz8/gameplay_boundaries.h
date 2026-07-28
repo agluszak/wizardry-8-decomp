@@ -313,12 +313,84 @@ enum {
     W8_FACTION_FRIENDLY = 2
 };
 
+struct W8MonsterInfo;
+
+/* The block the pointer at 0x0068C09C addresses. Every consumer so far reads
+   one fixed offset out of it and hands the result to a notice or message
+   routine, so the offsets are named for the notice each one carries; the
+   element type itself is not established, which is why they stay void*.
+   Offsets with no ported consumer are left unnamed rather than guessed. */
+typedef struct W8NoticeTable {
+    unsigned char unknown_000[0x74c];
+    void* monster_slain;                  /* 0x74c */
+    unsigned char unknown_750[0x34];
+    void* character_load_failed;          /* 0x784 */
+    unsigned char unknown_788[0xf0];
+    /* 0x878..0x88c: the six notices the combat toggle and the stance toggle
+       choose between, named for the branch that selects each. */
+    void* combat_cannot_end;              /* 0x878 */
+    void* combat_cannot_end_engaged;      /* 0x87c */
+    void* combat_cannot_end_pending;      /* 0x880 */
+    void* combat_ended;                   /* 0x884 */
+    void* combat_stance_relaxed;          /* 0x888 */
+    void* combat_stance_ready;            /* 0x88c */
+} W8NoticeTable;
+
+/* One record per character class, 0x1e5 bytes, indexed by the class index a
+   combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
+   established. */
+typedef struct W8CharacterClassRecord {
+    unsigned char unknown_000[0x154];
+    unsigned char flag_154;               /* 0x154 */
+    unsigned char unknown_155[0x90];
+} W8CharacterClassRecord;                 /* 0x1e5 */
+
+/* What the engaged-actor iterator at 0x004A2760 hands back. Only the class
+   index is placed; the object is much larger and otherwise unrecovered. */
+typedef struct W8CombatActor {
+    unsigned char unknown_000[0x1d8];
+    int class_record_index;               /* 0x1d8 */
+} W8CombatActor;
+
+/* The block the pointer at 0x006836A8 addresses: the engine's combat state.
+   Only what a ported body reaches is named, and only where the use establishes
+   a meaning - the monster slot at +0x7b8 is named because every consumer either
+   compares it against a W8MonsterInfo it already holds or clears it when that
+   entry leaves the world. The rest keep positional names. */
+typedef struct W8CombatState {
+    unsigned char flag_000;               /* 0x000: blocks ending combat while set */
+    unsigned char flag_001;               /* 0x001 */
+    unsigned char unknown_002[2];
+    int value_004;                        /* 0x004: blocks ending combat while non-zero */
+    unsigned char unknown_008[0x7a8];
+    int selected_slot;                    /* 0x7b0: cleared with selected_monster */
+    unsigned char unknown_7b4[4];
+    struct W8MonsterInfo* selected_monster; /* 0x7b8 */
+    unsigned char unknown_7bc[0x104];
+    W8CombatActor* engaged_actor;         /* 0x8c0 */
+    unsigned char unknown_8c4[0x190];
+    unsigned char flag_a54;               /* 0xa54 */
+    unsigned char unknown_a55[0xd];
+    unsigned char flag_a62;               /* 0xa62: the party's combat-ready bit */
+} W8CombatState;
+
+typedef struct W8LevelRuntimeBlock {
+    unsigned char unknown_000[0x2ca];
+    short combat_end_notification;         /* 0x2ca: -1 suppresses the callback */
+} W8LevelRuntimeBlock;
+
 #pragma pack(pop)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+extern W8NoticeTable* g_notices;         /* 0x0068C09C */
+extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
+/* 0x0068EDCC: the loaded level's runtime block. Only the halfword the combat
+   toggle tests is reached, so it keeps a positional name. */
+extern W8LevelRuntimeBlock* g_level_block;
+extern W8CombatState* g_combat_state;    /* 0x006836A8 */
 extern W8SpellRuntimeRecord* g_spell_records;
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8Character* g_party_characters;
@@ -441,13 +513,29 @@ typedef struct W8Monster W8Monster;
 #ifdef __cplusplus
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
+/* Partial layout of the engine object referenced by cycle 18. The Monster
+   wrappers at 0x004C5780..0x004C5AA0 establish the timestamp, animation state,
+   pending cycle, and scale fields below. */
+struct W8MonsterCycleRuntime {
+    unsigned char unknown_000[0x68];
+    unsigned int animation_timestamp;       /* 0x068 */
+    unsigned char unknown_06c;
+    unsigned char animating;                /* 0x06d */
+    unsigned char unknown_06e[0x39];
+    signed char pending_cycle;               /* 0x0a7 */
+    unsigned char unknown_0a8[0x548];
+    float scale;                             /* 0x5f0 */
+    float minimum_scale;                     /* 0x5f4 */
+    float maximum_scale;                     /* 0x5f8 */
+};
+
 struct W8MonsterCycle {
     unsigned int flags_00;                  /* 0x00: cycle 19 bit 7 set by 0x004e67a0 */
     unsigned char ubNumSubs;                /* 0x04 */
     unsigned char unknown_05[4];
     unsigned char unknown_09;               /* 0x09: cleared for cycle 22 by 0x004e6130 */
     unsigned char unknown_0a[2];
-    signed char* unknown_0c;                /* 0x0c: cycle 18 pointee byte +0xa7 read by 0x004e60b0 */
+    W8MonsterCycleRuntime* runtime;          /* 0x0c: shared cycle engine state */
 };                                          /* 0x10 */
 
 struct W8MonsterMember18 {
@@ -511,6 +599,20 @@ typedef char W8MonsterMember18_size_must_be_0x94[
     sizeof(W8MonsterMember18) == 0x94 ? 1 : -1];
 #endif
 
+/* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
+   Function5524E0 consumes a record whenever its leading active byte is set. */
+typedef struct W8MonsterCombatEntry {
+    signed char active;
+    unsigned char unknown_01[0x10];
+} W8MonsterCombatEntry;                    /* 0x11 */
+
+typedef struct W8MonsterCombatState {
+    unsigned char unknown_000[0x3e];
+    W8MonsterCombatEntry entries_3e[9];     /* 0x03e .. 0x0d7 */
+    W8MonsterCombatEntry entries_d7[6];     /* 0x0d7 .. 0x13d */
+    unsigned char unknown_13d[0x16];
+} W8MonsterCombatState;                    /* 0x153 */
+
 #pragma pack(push, 1)
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
@@ -521,7 +623,7 @@ typedef struct W8MonsterInfo {
        "pMonsterInfo->pCombat != NULL" over the malloc 0x004e4390 stores here.
        The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
        byte, and 0x004e4500 frees it and nulls the field again. */
-    void* pCombat;
+    W8MonsterCombatState* pCombat;
     unsigned char flag_14;                /* 0x14: live-entry gate in 0x004e5c00 */
     /* 0x15: fInCombat, named by the MonsterManager.cpp:666 and :712 assertions
        "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
