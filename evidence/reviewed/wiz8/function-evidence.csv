@@ -489,6 +489,8 @@ function-evidence:wiz8:004b6bd0:reccmp,wiz8,004b6bd0,reccmp,identity-review,name
 function-evidence:wiz8:004b6d90:reccmp,wiz8,004b6d90,reccmp,identity-review,name_origin=descriptive,44 of 44 bytes relocation-masked exact
 function-evidence:wiz8:004b6dc0:reccmp,wiz8,004b6dc0,reccmp,identity-review,name_origin=descriptive,30 of 30 bytes relocation-masked exact
 function-evidence:wiz8:004b6de0:reccmp,wiz8,004b6de0,reccmp,identity-review,name_origin=descriptive,17 of 17 bytes relocation-masked exact
+function-evidence:wiz8:004b6e00:class-layout,wiz8,004b6e00,class-layout,identity-review,name_origin=original-source-path,"Prop.cpp allocates 0x58 bytes and supplies srNode pointer path name word prop number and two byte flags; the GDProp.cpp constructor initializes every reviewed scalar field and passes the same object into its 0x004b7060 initializer"
+function-evidence:wiz8:004b6e00:reccmp,wiz8,004b6e00,reccmp,exact-compile,match:d6033cd08c60bea6,"VC6 SP5 O2 G6 MD body is 198 of 198 bytes relocation-masked exact"
 function-evidence:wiz8:004b6ed0:class-layout,wiz8,004b6ed0,class-layout,identity-review,name_origin=original-source-path,"Prop.cpp allocates a 0x58-byte object, constructs it at 0x004b6e00 and owns it at +0x38; the GDProp.cpp method at 0x004b6f30 retains original field names for the same layout"
 function-evidence:wiz8:004b6ed0:reccmp,wiz8,004b6ed0,reccmp,exact-compile,match:07ed52b6f2538276,"VC6 SP5 O2 G6 MD body is 88 of 88 bytes relocation-masked exact"
 function-evidence:wiz8:0042a260:reccmp,wiz8,0042a260,reccmp,identity-review,name_origin=descriptive,84 of 84 bytes relocation-masked exact
