@@ -256,6 +256,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/Magic.cpp
         "src/wiz8/local_code/Health Stamina Mana.cpp"
         "src/wiz8/local_code/Conditions & Enchantments.cpp"
+        src/wiz8/local_code/Sight.cpp
         src/wiz8/local_code/VideoObjectManager.cpp
         "src/wiz8/local_screens/MainMenuScreen.cpp"
         src/wiz8/local_screens/Screens.cpp

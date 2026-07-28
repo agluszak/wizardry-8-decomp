@@ -949,9 +949,18 @@ typedef struct W8MonsterInfo {
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
     unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
-    unsigned char unknown_256[0x38];
+    unsigned char unknown_256[0x34];
+    /* 0x28a: at one the monster counts as a live threat for the group-level
+       sight query, on top of being alive and not too far gone. */
+    unsigned char threat_28a;
+    unsigned char unknown_28b[3];
     int value_28e;                          /* 0x28e: cleared by the per-turn reset */
-    unsigned char unknown_292[0x28];
+    unsigned char unknown_292[0x24];
+    /* 0x2b6: what this monster can see of other monsters, one heap record per
+       other monster. The two release paths own it: one drops every record
+       about a departing monster, the other empties and destroys the whole
+       list. */
+    W8PList* mon_to_mon_visibility;
     /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
        the next established field, so the array bound is a partition of the
        unknown run rather than a proven size. */
