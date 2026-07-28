@@ -65,21 +65,13 @@ REPLAY_INERT_MODULES = frozenset(
 
 
 def _replay_input_paths(settings: Settings) -> list[Path]:
-    roots = [
-        settings.repo_dir / "tools" / "wiz8decomp" / "ghidra",
-        settings.repo_dir / "evidence" / "reviewed" / "wiz8",
-        settings.repo_dir / "evidence" / "reviewed" / "sgp",
-        settings.repo_dir / "evidence" / "snapshots" / "call-sites",
-        settings.repo_dir / "evidence" / "snapshots" / "eh-metadata",
-        settings.repo_dir / "evidence" / "snapshots" / "globals",
-        settings.repo_dir / "evidence" / "snapshots" / "polymorphism",
+    actions = [
+        *reviewed_replay_actions(settings, "__cache_key__"),
+        *observation_replay_actions(settings, "__cache_key__"),
     ]
-    paths = [
-        settings.repo_dir / "config" / "ghidra.yml",
-        settings.repo_dir / "config" / "modules.yml",
-        settings.repo_dir / "config" / "sgp.yml",
-    ]
-    for root in roots:
+    declared = {path for action in actions for path in action.inputs}
+    paths: list[Path] = []
+    for root in declared:
         if root.is_dir():
             paths.extend(
                 path
@@ -88,6 +80,8 @@ def _replay_input_paths(settings: Settings) -> list[Path]:
                 and path.suffix.casefold() in {".csv", ".json", ".py", ".yaml", ".yml"}
                 and path.name not in REPLAY_INERT_MODULES
             )
+        elif root.is_file():
+            paths.append(root)
     return sorted(
         {path for path in paths if path.is_file()},
         key=lambda path: path.relative_to(settings.repo_dir).as_posix(),

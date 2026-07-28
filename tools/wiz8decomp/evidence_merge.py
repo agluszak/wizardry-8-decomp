@@ -9,9 +9,9 @@ That happened - a boundary row went back to ``structurally-strong`` and lost
 its recorded hash, and only ``just verify-boundaries`` noticed.
 
 So the merge is mechanical here instead. Rows only one side has are kept.
-Rows both sides have are reconciled by strength: a higher confidence wins, and
-at equal confidence a recorded hash beats a blank one. Anything still
-genuinely divergent is reported rather than guessed at.
+Rows both sides have are reconciled field by field. Confidence may only move
+upward, and an empty field may be filled, but two different non-empty semantic
+values are a conflict. The destination is not written when that happens.
 """
 
 from __future__ import annotations
@@ -37,9 +37,12 @@ _CONFIDENCE_RANK = {
 # The identity of a row, per table. A merge cannot be safe without knowing
 # which columns name the thing the row is about.
 _KEYS: dict[str, tuple[str, ...]] = {
-    "wiz8-gameplay-boundaries.csv": ("address", "symbol"),
-    "srext-jpegimporter.csv": ("address", "symbol"),
-    "srext-unzip.csv": ("address", "symbol"),
+    # Original address is the identity. A symbol is reviewed metadata and may
+    # be renamed; including it here allowed two names for one function to
+    # survive a merge as distinct rows.
+    "wiz8-gameplay-boundaries.csv": ("address",),
+    "srext-jpegimporter.csv": ("address",),
+    "srext-unzip.csv": ("address",),
     "functions.csv": ("program", "address"),
     "function-evidence.csv": ("evidence_id",),
     "classes.csv": ("program", "class_name"),
@@ -122,17 +125,36 @@ def _hunk_rows(fields: list[str], lines: list[str]) -> list[dict[str, str]]:
     return rows
 
 
-def stronger(left: dict[str, str], right: dict[str, str]) -> dict[str, str]:
-    """The row to keep when both sides describe the same identity."""
+class EvidenceMergeConflict(ValueError):
+    """Two non-empty values claim the same field of one evidence identity."""
 
-    left_rank = _CONFIDENCE_RANK.get(left.get("confidence", ""), 0)
-    right_rank = _CONFIDENCE_RANK.get(right.get("confidence", ""), 0)
-    if left_rank != right_rank:
-        return left if left_rank > right_rank else right
-    field = "relocation_masked_sha256"
-    if bool(left.get(field)) != bool(right.get(field)):
-        return left if left.get(field) else right
-    return left
+
+def stronger(left: dict[str, str], right: dict[str, str]) -> dict[str, str]:
+    """Merge one identity monotonically, refusing semantic disagreement.
+
+    Kept as the small public operation used by callers and tests; unlike the
+    old implementation it does not select a whole winner row.
+    """
+
+    fields = tuple(dict.fromkeys((*left, *right)))
+    merged: dict[str, str] = {}
+    conflicts: list[str] = []
+    for field in fields:
+        left_value = left.get(field, "")
+        right_value = right.get(field, "")
+        if field == "confidence":
+            left_rank = _CONFIDENCE_RANK.get(left_value, 0)
+            right_rank = _CONFIDENCE_RANK.get(right_value, 0)
+            merged[field] = left_value if left_rank >= right_rank else right_value
+        elif not left_value:
+            merged[field] = right_value
+        elif not right_value or left_value == right_value:
+            merged[field] = left_value
+        else:
+            conflicts.append(f"{field}: {left_value!r} != {right_value!r}")
+    if conflicts:
+        raise EvidenceMergeConflict("semantic evidence conflict: " + "; ".join(conflicts))
+    return merged
 
 
 def merge_rows(
@@ -155,7 +177,11 @@ def merge_rows(
                 continue
             # Both sides describe this identity, so one copy is dropped:
             # say so rather than let a demotion pass unremarked.
-            merged[token] = stronger(merged[token], row)
+            try:
+                merged[token] = stronger(merged[token], row)
+            except EvidenceMergeConflict as error:
+                label = ":".join(token)
+                raise EvidenceMergeConflict(f"identity {label}: {error}") from error
             reconciled.append(":".join(token))
     rows = [merged[token] for token in order]
     return rows, {

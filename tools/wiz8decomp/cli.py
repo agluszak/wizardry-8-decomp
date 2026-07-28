@@ -355,7 +355,10 @@ def verify_boundaries_command(
 
 @app.command("diff-boundary")
 def diff_boundary_command(
-    symbol: Annotated[str, typer.Argument(help="Reviewed symbol, e.g. IListInit.")],
+    selector: Annotated[
+        str,
+        typer.Argument(help="Reviewed address (preferred) or an unambiguous symbol."),
+    ],
     mapping: Annotated[
         Path | None,
         typer.Option(help="Reviewed boundary map; defaults to the gameplay boundaries."),
@@ -396,7 +399,7 @@ def diff_boundary_command(
                 / "WIZ8_GAMEPLAY_BOUNDARIES.dir"
             ),
             original,
-            symbol,
+            selector,
         )
         console.print(
             f"[bold]{result['symbol']}[/bold] {result['address']} "

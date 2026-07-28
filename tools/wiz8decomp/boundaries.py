@@ -170,11 +170,7 @@ def symbol_candidates(decorated: str, signature: str = "") -> tuple[str, ...]:
         if owner.startswith(CLASS_PREFIX):
             short_owner = owner[len(CLASS_PREFIX) :]
             short_method = (
-                short_owner
-                if kind == "0"
-                else f"~{short_owner}"
-                if kind == "1"
-                else method
+                short_owner if kind == "0" else f"~{short_owner}" if kind == "1" else method
             )
             names.append(f"{short_owner}::{short_method}")
         return tuple(names)
@@ -215,6 +211,69 @@ class BoundariesDisagree(RuntimeError):
     def __init__(self, message: str, report: dict[str, Any]) -> None:
         super().__init__(message)
         self.report = report
+
+
+def load_boundary_rows(mapping_path: Path) -> list[dict[str, str]]:
+    """Read a boundary map only after validating its canonical address key."""
+
+    with mapping_path.open(newline="", encoding="utf-8") as stream:
+        reader = csv.DictReader(stream)
+        required = {
+            "address",
+            "size",
+            "symbol",
+            "confidence",
+            "relocation_masked_sha256",
+        }
+        missing = required - set(reader.fieldnames or ())
+        if missing:
+            raise RuntimeError(f"boundary map {mapping_path} lacks columns: {sorted(missing)}")
+        rows = list(reader)
+    if not rows:
+        raise RuntimeError(f"boundary map is empty: {mapping_path}")
+    seen: dict[str, int] = {}
+    for line, row in enumerate(rows, start=2):
+        address = row["address"].strip().lower().removeprefix("0x")
+        if not address:
+            raise RuntimeError(f"boundary map {mapping_path}:{line} has an empty address")
+        try:
+            int(address, 16)
+        except ValueError as error:
+            raise RuntimeError(
+                f"boundary map {mapping_path}:{line} has invalid address {row['address']!r}"
+            ) from error
+        if address in seen:
+            raise RuntimeError(
+                f"boundary map {mapping_path} repeats address {address} "
+                f"at lines {seen[address]} and {line}"
+            )
+        seen[address] = line
+    return rows
+
+
+def select_boundary_row(
+    rows: list[dict[str, str]], selector: str, mapping_path: Path
+) -> dict[str, str]:
+    """Resolve an address or one unambiguous display symbol."""
+
+    address_selector = selector.lower().removeprefix("0x")
+    if re.fullmatch(r"[0-9a-f]{6,8}", address_selector):
+        matches = [
+            row
+            for row in rows
+            if row["address"].strip().lower().removeprefix("0x") == address_selector
+        ]
+    else:
+        matches = [row for row in rows if row["symbol"].strip() == selector]
+    if not matches:
+        raise RuntimeError(f"{selector} is not a reviewed boundary in {mapping_path}")
+    if len(matches) != 1:
+        addresses = ", ".join(row["address"].strip() for row in matches)
+        raise AmbiguousBoundarySymbol(
+            f"reviewed symbol {selector!r} names {len(matches)} addresses ({addresses}); "
+            "select one by address"
+        )
+    return matches[0]
 
 
 def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]:
@@ -364,7 +423,7 @@ def diff_boundary(
     mapping_path: Path,
     object_root: Path,
     image: Path,
-    symbol: str,
+    selector: str,
 ) -> dict[str, Any]:
     """Align our body against the original instruction by instruction.
 
@@ -375,11 +434,9 @@ def diff_boundary(
     both sides is not a difference either.
     """
 
-    with mapping_path.open(newline="", encoding="utf-8") as stream:
-        rows = {row["symbol"].strip(): row for row in csv.DictReader(stream)}
-    row = rows.get(symbol)
-    if row is None:
-        raise RuntimeError(f"{symbol} is not a reviewed boundary in {mapping_path}")
+    rows = load_boundary_rows(mapping_path)
+    row = select_boundary_row(rows, selector, mapping_path)
+    symbol = row["symbol"].strip()
     address = int(row["address"], 16)
     size = int(row["size"])
     canonical_body = read_canonical_body(image, address, size)
@@ -548,10 +605,7 @@ def verify_boundaries(
 
     if not object_root.is_dir():
         raise RuntimeError(f"no built objects to verify against: {object_root}")
-    with mapping_path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
-    if not rows:
-        raise RuntimeError(f"boundary map is empty: {mapping_path}")
+    rows = load_boundary_rows(mapping_path)
 
     claimants_by_name = collect_object_candidates(object_root)
     results: list[BoundaryResult] = []
@@ -559,13 +613,9 @@ def verify_boundaries(
         symbol = row["symbol"].strip()
         size = int(row["size"])
         canonical = (
-            read_canonical_body(image, int(row["address"], 16), size)
-            if image is not None
-            else None
+            read_canonical_body(image, int(row["address"], 16), size) if image is not None else None
         )
-        function = resolve_boundary_function(
-            claimants_by_name.get(symbol, ()), size, canonical
-        )
+        function = resolve_boundary_function(claimants_by_name.get(symbol, ()), size, canonical)
         if function is None:
             state = "not-built"
         else:

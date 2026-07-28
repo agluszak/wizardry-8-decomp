@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from wiz8decomp.evidence_merge import (
+    EvidenceMergeConflict,
     key_columns,
     merge_rows,
     resolve_evidence_conflict,
@@ -58,6 +59,38 @@ def test_merge_does_not_demote_a_row_the_other_side_promoted() -> None:
     assert summary["reconciled"] == ["004f3d90:C::m"]
 
 
+@pytest.mark.parametrize(
+    ("field", "left", "right"),
+    [
+        ("size", "10", "11"),
+        ("symbol", "C::m", "C::renamed"),
+        ("source_path", "A.cpp", "B.cpp"),
+        ("evidence", "first proof", "second proof"),
+        ("relocation_masked_sha256", "abc", "def"),
+    ],
+)
+def test_equal_strength_semantic_disagreement_is_a_field_conflict(
+    field: str, left: str, right: str
+) -> None:
+    first = _row("004f3d90", "exact", "abc")
+    second = dict(first)
+    first[field] = left
+    second[field] = right
+
+    with pytest.raises(EvidenceMergeConflict, match=field):
+        merge_rows([first], [second], ("address",))
+
+
+def test_empty_fields_are_filled_without_replacing_other_values() -> None:
+    first = _row("004f3d90", "structurally-strong", "", evidence="")
+    second = _row("004f3d90", "exact", "abc", evidence="byte proof")
+    rows, _ = merge_rows([first], [second], ("address",))
+
+    assert rows[0]["confidence"] == "exact"
+    assert rows[0]["relocation_masked_sha256"] == "abc"
+    assert rows[0]["evidence"] == "byte proof"
+
+
 def test_split_conflict_reads_both_jj_sides() -> None:
     text = (
         f"{_HEADER}\n"
@@ -87,7 +120,7 @@ def test_resolving_a_file_writes_a_well_formed_table(tmp_path: Path) -> None:
         "<<<<<<< conflict 1 of 1\n"
         "+++++++ destination\n"
         "0002,10,B::b,o,structurally-strong,,theirs only\n"
-        "0003,10,C::c,o,structurally-strong,,weaker copy\n"
+        "0003,10,C::c,o,structurally-strong,,\n"
         "%%%%%%% diff from: parent\n"
         "\\\\\\\\        to: rebased\n"
         "+0003,10,C::c,o,exact,h3,promoted\n"
@@ -109,6 +142,10 @@ def test_resolving_a_file_writes_a_well_formed_table(tmp_path: Path) -> None:
 
     # Re-running on the resolved file is a no-op rather than an error.
     assert resolve_evidence_conflict(path)["conflicted"] is False
+
+
+def test_boundary_map_identity_is_address_not_mutable_symbol() -> None:
+    assert key_columns(Path("wiz8-gameplay-boundaries.csv")) == ("address",)
 
 
 def test_unknown_table_refuses_to_merge(tmp_path: Path) -> None:

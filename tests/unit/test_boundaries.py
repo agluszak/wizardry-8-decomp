@@ -4,10 +4,13 @@ from pathlib import Path
 
 import pytest
 from wiz8decomp.boundaries import (
+    AmbiguousBoundarySymbol,
     BoundariesDisagree,
     collect_object_candidates,
+    load_boundary_rows,
     masked_digest,
     resolve_boundary_function,
+    select_boundary_row,
     symbol_candidates,
     verify_boundaries,
 )
@@ -25,9 +28,10 @@ def test_a_decorated_method_is_offered_under_the_names_a_review_may_use() -> Non
         "GrCycle::SetBehaviour",
         "SetBehaviour",
     )
-    assert symbol_candidates(
-        "?method_00446110@?$srVector3T@M@@QAEPAV1@PBV?$srVector3T@N@@@Z"
-    )[-1] == "method_00446110"
+    assert (
+        symbol_candidates("?method_00446110@?$srVector3T@M@@QAEPAV1@PBV?$srVector3T@N@@@Z")[-1]
+        == "method_00446110"
+    )
 
 
 def test_a_template_member_is_named_by_its_own_instantiation() -> None:
@@ -123,13 +127,44 @@ def test_an_absent_object_tree_is_an_error_not_a_silent_pass(tmp_path: Path) -> 
         verify_boundaries(MAPPING, tmp_path / "never-built")
 
 
+def test_boundary_loader_refuses_duplicate_original_addresses(tmp_path: Path) -> None:
+    mapping = tmp_path / "map.csv"
+    mapping.write_text(
+        "address,size,symbol,owner,confidence,relocation_masked_sha256,evidence\n"
+        "00400000,1,OldName,o,exact,h,e\n"
+        "00400000,1,NewName,o,exact,h,e\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(RuntimeError, match="repeats address 00400000"):
+        load_boundary_rows(mapping)
+
+
+def test_boundary_selector_refuses_an_overloaded_display_name() -> None:
+    rows = [
+        {"address": "00400000", "symbol": "C::C"},
+        {"address": "00400020", "symbol": "C::C"},
+    ]
+    with pytest.raises(AmbiguousBoundarySymbol, match="00400000, 00400020"):
+        select_boundary_row(rows, "C::C", Path("map.csv"))
+    assert select_boundary_row(rows, "0x00400020", Path("map.csv"))["address"] == "00400020"
+
+
 def _write_object(path: Path, name: bytes, body: bytes) -> None:
     """A minimal i386 COFF object with one external .text function."""
     import struct
 
     section = struct.pack(
         "<8sIIIIIIHHI",
-        b".text$mn", 0, 0, len(body), 60, 0, 0, 0, 0, 0x60500020,
+        b".text$mn",
+        0,
+        0,
+        len(body),
+        60,
+        0,
+        0,
+        0,
+        0,
+        0x60500020,
     )
     header = struct.pack("<HHIIIHH", 0x14C, 1, 0, 60 + len(body), 2, 0, 0)
     symbols = struct.pack("<8sIhHBB", name[:8], 0, 1, 0x20, 2, 0)

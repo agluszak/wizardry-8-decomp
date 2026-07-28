@@ -27,12 +27,15 @@ def test_replay_hash_tracks_code_reviewed_and_observation_evidence(tmp_path: Pat
     script = settings.repo_dir / "tools/wiz8decomp/ghidra/apply.py"
     evidence = settings.repo_dir / "evidence/reviewed/wiz8/functions.csv"
     observations = settings.repo_dir / "evidence/snapshots/globals/globals.csv"
+    dispatch = settings.repo_dir / "evidence/observations/wiz8/frame-dispatch-table.csv"
     script.parent.mkdir(parents=True)
     evidence.parent.mkdir(parents=True)
     observations.parent.mkdir(parents=True)
+    dispatch.parent.mkdir(parents=True)
     script.write_text("first", encoding="utf-8")
     evidence.write_text("identity", encoding="utf-8")
     observations.write_text("address,widths\n00600000,4\n", encoding="utf-8")
+    dispatch.write_text("slot,handler\n0,00400000\n", encoding="utf-8")
 
     first = cache.replay_input_sha256(settings)
     bytecode = script.parent / "__pycache__/apply.pyc"
@@ -46,6 +49,32 @@ def test_replay_hash_tracks_code_reviewed_and_observation_evidence(tmp_path: Pat
     observations.write_text("address,widths\n00600000,1\n", encoding="utf-8")
 
     assert cache.replay_input_sha256(settings) != second
+
+    third = cache.replay_input_sha256(settings)
+    dispatch.write_text("slot,handler\n0,00400010\n", encoding="utf-8")
+    assert cache.replay_input_sha256(settings) != third
+
+
+def test_every_replay_action_declares_inputs_that_feed_the_hash(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    actions = [
+        *rebuild.reviewed_replay_actions(settings, "canonical"),
+        *rebuild.observation_replay_actions(settings, "canonical"),
+    ]
+    declared = sorted({path for action in actions for path in action.inputs})
+    assert actions and declared
+
+    for index, path in enumerate(declared):
+        if path.suffix:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            target = path
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+            target = path / f"declared-{index}.csv"
+        target.write_text("before", encoding="utf-8")
+        before = cache.replay_input_sha256(settings)
+        target.write_text("after", encoding="utf-8")
+        assert cache.replay_input_sha256(settings) != before, path
 
 
 def test_agent_project_is_isolated_and_content_addressed(tmp_path: Path, monkeypatch) -> None:
