@@ -55,7 +55,9 @@ typedef struct W8SpellRuntimeRecord {
        switches on it and its assertion calls it uiSpellUsableWhen with a
        SPELL_USAGE_COUNT of five. */
     int usable_when;
-    unsigned char unknown_13f[0x80];
+    /* 0x13f: the spell has to be aimed before it can be cast. */
+    unsigned char needs_aim_13f;
+    unsigned char unknown_140[0x7f];
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 
 typedef struct W8FactDatabaseRecord {
@@ -122,7 +124,11 @@ typedef struct W8MonsterRecord {
     unsigned char attribute_values_d1[5];
     W8Dice hit_points_d6;                 /* 0x0d6: rolled into hp_max/hp_current */
     W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
-    unsigned char unknown_0de[9];
+    unsigned char unknown_0de[5];
+    /* 0x0e3: selects this monster's row in the two-byte AI table at
+       0x0061EEFC; the row value six is the one the AI singles out. */
+    unsigned char ai_kind;
+    unsigned char unknown_0e4[3];
     /* 0x0e7: the monster's three attacks, named by the Combat Range.cpp
        assertions pMonsterDB->Attack[uiAttack].fHasAttack and uiAttack <
        MAX_MONSTER_ATTACKS, which is what bounds the array at three. */

@@ -538,7 +538,10 @@ typedef struct W8CombatSlot {
     int character_slot;                   /* 0x04, -1 when empty */
     int monster_id;                       /* 0x08, -1 when empty */
     int group_id;                         /* 0x0c, -1 when empty */
-    unsigned char unknown_10[0x10];
+    /* 0x10: the world point aimed at, for the kinds that aim at a place
+       rather than at somebody. */
+    W8Position point;
+    unsigned char unknown_1c[4];
 } W8CombatSlot;                           /* 0x20 */
 
 typedef struct W8TargetSource {
@@ -989,12 +992,18 @@ typedef struct W8MonsterCombatEntry {
     unsigned char unknown_01[0x10];
 } W8MonsterCombatEntry;                    /* 0x11 */
 
+#pragma pack(push, 1)
 typedef struct W8MonsterCombatState {
-    unsigned char unknown_000[0x3e];
+    unsigned char unknown_000[0x16];
+    /* 0x016: the queue of actions the monster's AI has decided on, one 0x30
+       byte record each. The AI owns the list and destroys it outright. */
+    W8PList* pending_actions;
+    unsigned char unknown_01a[0x24];
     W8MonsterCombatEntry entries_3e[9];     /* 0x03e .. 0x0d7 */
     W8MonsterCombatEntry entries_d7[6];     /* 0x0d7 .. 0x13d */
     unsigned char unknown_13d[0x16];
 } W8MonsterCombatState;                    /* 0x153 */
+#pragma pack(pop)
 
 #pragma pack(push, 1)
 typedef struct W8MonsterInfo {
