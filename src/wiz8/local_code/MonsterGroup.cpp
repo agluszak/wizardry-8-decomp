@@ -2,6 +2,7 @@
 #include "wiz8/sr_api.h"
 
 #include <wchar.h>
+#include <stdlib.h>
 
 static const char MONSTER_GROUP_CPP[] =
     "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp";
@@ -22,6 +23,10 @@ extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
 extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 extern void Function4E3C70(W8MonsterInfo* monster_info);     /* 0x004E3C70 */
 extern void Function4C5730(W8Monster* monster, W8Position* position); /* 0x004C5730 */
+extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
+extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
+extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
+                           int value);                       /* 0x00547570 */
 extern unsigned char g_flag_683f94;
 extern W8Character* g_all_characters;
 extern unsigned char g_alternate_name_slot;
@@ -691,4 +696,123 @@ void RepairMonsterGroupLeaderLinks(void)
             RefreshMonsterGroupAndAlliesInline(monster_group);
         }
     }
+}
+
+/* Detaches a group from whatever leader it currently has: the leader's ally slot
+   pointing back at it is cleared and its own leader link cut. Answers the group
+   the id resolved to, which the callers then re-lay-out.
+ 
+   Written as an inline because 0x0050F4A0 and 0x0050FC20 both compile it, at the
+   same two source lines. */
+static __inline W8MonsterGroup* UnlinkMonsterGroupFromLeaderInline(
+    W8MonsterGroup* monster_group)
+{
+    W8MonsterGroup* current;
+    W8MonsterGroup* previous_leader;
+    int group_id = monster_group->group_id;
+    int ally;
+
+    current = GetMonsterGroupByListIndex(
+        GetMonsterGroupIndexByID(0x303, MONSTER_GROUP_CPP, group_id, 1));
+    if (current != 0 && current->leader_group_id != 0) {
+        previous_leader = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(
+                0x309, MONSTER_GROUP_CPP, current->leader_group_id, 1));
+        if (previous_leader != 0) {
+            for (ally = 0; ally < W8_MONSTER_GROUP_ALLY_COUNT; ++ally) {
+                if (previous_leader->allied_group_ids[ally] == group_id) {
+                    previous_leader->allied_group_ids[ally] = 0;
+                }
+            }
+        }
+        current->leader_group_id = 0;
+    }
+    return current;
+}
+
+/* Moves a group under a new leader, or detaches it when none is given.
+ 
+   Linking a group to itself is refused outright. Otherwise the group is first
+   unlinked from wherever it currently sits: its old leader's ally slot is
+   cleared and its own leader link cut, and if it was leading a live formation
+   it is retired from the encounter budget on the way out. The formation is then
+   re-laid-out through whichever group the id still resolves to.
+ 
+   With a leader given, the group takes the first free ally slot; a full leader
+   refuses the link and answers zero, leaving the group detached rather than
+   half-attached. Detaching instead - a null leader - hands a live group back to
+   the budget through the other of the two 0x0048C6xx entry points. */
+// FUNCTION: WIZ8 0x0050FC20
+unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
+                                       W8MonsterGroup* monster_group)
+{
+    unsigned int slot;
+
+    if (leader != 0 && leader->group_id == monster_group->group_id) {
+        return 0;
+    }
+    if (monster_group->flag_c3 != 0 && monster_group->leader_group_id == 0) {
+        Function48C670(monster_group);
+    }
+    Function510590(UnlinkMonsterGroupFromLeaderInline(monster_group));
+    if (leader != 0) {
+        for (slot = 0; slot < W8_MONSTER_GROUP_ALLY_COUNT; ++slot) {
+            if (leader->allied_group_ids[slot] == 0) {
+                leader->allied_group_ids[slot] = monster_group->group_id;
+                monster_group->leader_group_id = leader->group_id;
+                Function510590(monster_group);
+                Function547570(monster_group, leader->flag_2a, 0);
+                return 1;
+            }
+        }
+        return 0;
+    }
+    if (monster_group->flag_c3 != 0) {
+        Function48C750(monster_group);
+    }
+    return 1;
+}
+
+/* Destroys one monster group. It is taken out of whatever is tracking it, then
+   either retired from the encounter budget and torn down - if it leads - or
+   simply unlinked from its leader and the formation re-laid-out. Its member
+   IList is released and the record itself removed from whichever of the two
+   group lists holds it, chosen by the same 10000 bias the lookups use.
+ 
+   Failing to destroy the member list leaves the record in place and reports
+   failure, so the group survives rather than being half-freed. */
+// FUNCTION: WIZ8 0x0050F4A0
+unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
+{
+    unsigned int group_list_index;
+    W8PList* list;
+    void* removed;
+
+    if (monster_group->flag_28 != 0) {
+        Function538DB0(monster_group->group_id, 0);
+        monster_group->flag_28 = 0;
+    }
+    if (monster_group->leader_group_id == 0) {
+        if (monster_group->flag_c3 != 0) {
+            Function48C670(monster_group);
+        }
+        Function50FD40(monster_group, value);
+    } else {
+        Function510590(UnlinkMonsterGroupFromLeaderInline(monster_group));
+    }
+    if (IListDestroy(monster_group->monsters) != 0) {
+        group_list_index = GetMonsterGroupIndexByID(
+            0xf3, MONSTER_GROUP_CPP, monster_group->group_id, 1);
+        list = g_monster_group_list;
+        if (group_list_index >= W8_ENCOUNTER_GROUP_INDEX_BIAS) {
+            group_list_index -= W8_ENCOUNTER_GROUP_INDEX_BIAS;
+            list = g_monster_group_encounter_list;
+        }
+        removed = PListRemoveAt(list, group_list_index);
+        if (removed != 0) {
+            free(removed);
+            return 1;
+        }
+    }
+    return 0;
 }
