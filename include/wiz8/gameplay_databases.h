@@ -22,7 +22,9 @@ typedef struct W8Dice {
 } W8Dice;
 
 typedef struct W8SpellRuntimeRecord {
-    unsigned char unknown_000[0x56];
+    unsigned char unknown_000[0x49];
+    int spell_point_cost;               /* 0x049 */
+    unsigned char unknown_04d[9];
     int spell_level;                    /* 0x056 */
     unsigned char unknown_05a[0xdd];
     int target_type;                    /* 0x137 */

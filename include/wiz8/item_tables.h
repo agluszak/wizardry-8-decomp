@@ -22,7 +22,11 @@ struct W8ItemTableRecord {
 };                                       /* 0x1f1 */
 
 struct W8ItemDatabaseRecord {
-    unsigned char unknown_000[0x86];
+    unsigned char unknown_000[0x42];
+    /* 0x042: the item's kind. Three selects the spell-source items the magic
+       code accepts; no other value is established. */
+    unsigned char category;
+    unsigned char unknown_043[0x43];
     unsigned int unknown_086;             /* 0x086: level-scaled table filter */
     unsigned char unknown_08a[0x83];
 };                                       /* 0x10d */
