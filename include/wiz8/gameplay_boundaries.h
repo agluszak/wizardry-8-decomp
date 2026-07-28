@@ -1028,6 +1028,17 @@ typedef struct W8MonsterCombatState {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+/* One initialization unit inside W8MonsterInfo. The creator clears all 0x67
+   bytes in one constant-sized operation; later consumers independently name
+   the damage reduction and per-attribute adjustments inside it. */
+typedef struct W8MonsterRuntimeBlock1DB {
+    unsigned char unknown_00[6];
+    signed char damage_reduction;              /* +0x06, W8MonsterInfo +0x1e1 */
+    unsigned char unknown_07[5];
+    signed char attribute_adjustments[7];      /* +0x0c, W8MonsterInfo +0x1e7 */
+    unsigned char unknown_13[0x54];
+} W8MonsterRuntimeBlock1DB;                    /* 0x67 */
+
 typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
     int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
@@ -1047,7 +1058,7 @@ typedef struct W8MonsterInfo {
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
        floats here and hands the same triple to 0x004be5c0, whose result it
        stores next, and to 0x0042e620 with the new entry's id. */
-    float position_17[3];
+    srVector3T<float> position_17;
     float derived_23;                     /* 0x23: 0x004be5c0 over position_17 */
     int hp_max;                           /* 0x27: uiHPMax in the Targeting.cpp assertion */
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
@@ -1064,13 +1075,8 @@ typedef struct W8MonsterInfo {
     /* 0x10b: the argument a condition carries when a monster's conditions are
        copied onto a character. */
     int condition_argument;
-    unsigned char unknown_10f[0xd2];
-    /* 0x1e1: a percentage taken off incoming damage, signed and added to the
-       record's own reduction before the subtraction. */
-    signed char damage_reduction;
-    unsigned char unknown_1e2[5];
-    signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
-    unsigned char unknown_1ee[0x54];
+    unsigned char unknown_10f[0xcc];
+    W8MonsterRuntimeBlock1DB runtime_block_1db; /* 0x1db */
     int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
     unsigned char unknown_246;
     unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
@@ -1111,7 +1117,10 @@ typedef struct W8MonsterInfo {
     int runtime_value_2f1;                /* 0x2f1: released when an entry is destroyed */
     unsigned char unknown_2f5[8];
     int control_state;                      /* 0x2fd: group-recomputed control state */
-    unsigned char unknown_301[0x4b];
+    unsigned char unknown_301[0x37];
+    int runtime_values_338[3];              /* 0x338: creator clears as one unit */
+    int value_344;                          /* 0x344: creator initializes to -1 */
+    unsigned char unknown_348[4];
     /* 0x34c: a combat-entry state byte 0x004e4390 raises to 2 when it is still
        zero, stamping the global at 0x00686a48 into value_354 at the same time. */
     unsigned char state_34c;
@@ -1123,6 +1132,8 @@ typedef struct W8MonsterInfo {
 
 typedef char W8MonsterInfo_size_must_be_0x425[
     sizeof(W8MonsterInfo) == 0x425 ? 1 : -1];
+typedef char W8MonsterRuntimeBlock1DB_size_must_be_0x67[
+    sizeof(W8MonsterRuntimeBlock1DB) == 0x67 ? 1 : -1];
 
 extern W8PList* g_monster_list;            /* gXStatus.plsMonsterList */
 extern W8PList* g_unborn_monster_list;     /* gXStatus.plsUnbornMonsterList */

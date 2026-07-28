@@ -243,6 +243,11 @@ wiz8,W8MonsterInfo,0x255,0x1,flag_255,bytes,,exact,classes:wiz8:W8MonsterInfo,re
 wiz8,W8MonsterInfo,0x2da,0x4,value_2da,int32,,exact,classes:wiz8:W8MonsterInfo,required to be nonzero by exact 0x004e5c00; semantics remain unresolved
 wiz8,W8MonsterInfo,0x2f1,0x4,runtime_value_2f1,int32,,exact,classes:wiz8:W8MonsterInfo,byte-exact InitializeMonsterRuntimeStats clears this value for entries in both monster lists
 wiz8,W8MonsterInfo,0x2fd,0x4,control_state,int32,,exact,classes:wiz8:W8MonsterInfo,tested and replaced by exact SetMonsterControlState then consumed by the selected MonsterGroup recomputation
+wiz8,W8MonsterRuntimeBlock1DB,0x0,0x6,unknown_00,bytes,,exact,classes:wiz8:W8MonsterRuntimeBlock1DB,opaque prefix within the creator's exact 0x67-byte zero-fill boundary
+wiz8,W8MonsterRuntimeBlock1DB,0x6,0x1,damage_reduction,bytes,,exact,classes:wiz8:W8MonsterRuntimeBlock1DB,Combat Attack.cpp consumes this byte as signed before subtracting it from incoming damage
+wiz8,W8MonsterRuntimeBlock1DB,0x7,0x5,unknown_07,bytes,,exact,classes:wiz8:W8MonsterRuntimeBlock1DB,opaque span between the two independently typed consumers
+wiz8,W8MonsterRuntimeBlock1DB,0xc,0x7,attribute_adjustments,bytes,,exact,classes:wiz8:W8MonsterRuntimeBlock1DB,exact 0x004e5d00 reads each selected byte as signed before adding it to the unsigned database attribute
+wiz8,W8MonsterRuntimeBlock1DB,0x13,0x54,unknown_13,bytes,,exact,classes:wiz8:W8MonsterRuntimeBlock1DB,opaque tail completing the creator's exact 0x67-byte zero-fill boundary
 wiz8,W8MonsterManagerState,0x0,0x8c0,entries,bytes,,exact,classes:wiz8:W8MonsterManagerState,eight W8MonsterManagerEntry values with the constructor iterator's 0x118 stride
 wiz8,W8MonsterManagerState,0x8c0,0xf7,unknown_8c0,bytes,,exact,classes:wiz8:W8MonsterManagerState,opaque storage before the unaligned pointer-vector member
 wiz8,W8MonsterManagerState,0x9b7,0x4,vector_vptr,pointer,virtual_function *,exact,classes:wiz8:W8MonsterManagerState,polymorphic pointer-vector vptr restored by the exact destructor

@@ -1,27 +1,11 @@
 /* Engine Code\GDProp.cpp */
 
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_state_006598a4.h"
 
 #include "surrender/srHeap.h"
 
 #include <stdlib.h>
-
-class W8Pathing00457CF0 {
-public:
-    unsigned int FindPathHandle(
-        const unsigned char* path_name,
-        unsigned short* path_bounds,
-        float* path_range);              /* 0x00457CF0 */
-    void LinkPropSurfaces(GDProp* prop);  /* 0x00460020 */
-    void LinkPropVertices(GDProp* prop);  /* 0x004600B0 */
-};
-
-struct W8EngineState006598A4 {
-    unsigned char unknown_000[0x180];
-    W8Pathing00457CF0* pathing_180;
-};
-
-extern W8EngineState006598A4* g_engine_state_6598a4;
 
 // FUNCTION: WIZ8 0x004B6E00
 GDProp::GDProp(

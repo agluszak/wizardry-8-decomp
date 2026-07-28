@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_state_006598a4.h"
 #include "wiz8/sr_api.h"
 #include <math.h>
 #include <new>
@@ -37,6 +38,7 @@ void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void Function4E76F0(W8MonsterInfo* monster_info);
 extern int g_dword_686a48;
+extern int g_status_count_6874be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
 void Function505C80(W8MonsterInfo* monster_info);
@@ -50,6 +52,8 @@ extern int g_active_monster_count_683fa1;
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void Function4C5EA0(W8Monster* monster);
+float Function4BE5C0(srVector3T<float>* position);
+int Function52A780(int first, int second);
 
 /* One 8-byte row per animation cycle at 0x0060EA08, whose leading pointer is
    the cycle's name - BIRTH is row zero. Only that field is reached. */
@@ -73,6 +77,75 @@ extern W8Character* g_all_characters;      /* 0x00685174 */
 extern unsigned char g_alternate_name_slot; /* 0x006875EF */
 extern W8WideChar g_monster_name_buffer[];  /* 0x006875C3 */
 
+// FUNCTION: WIZ8 0x004E3930
+W8MonsterInfo* CreateMonsterInfo(
+    W8MonsterGroup* group,
+    W8MonsterRecord* record,
+    srVector3T<float>* position)
+{
+    W8MonsterInfo* monster_info =
+        static_cast<W8MonsterInfo*>(malloc(sizeof(W8MonsterInfo)));
+    int value;
+
+    if (monster_info == 0) {
+        return 0;
+    }
+
+    memset(monster_info, 0, sizeof(W8MonsterInfo));
+    monster_info->location_id = g_status_count_6874be;
+    while (g_status_count_6874be++, monster_info->location_id == 0) {
+        monster_info->location_id = g_status_count_6874be;
+    }
+
+    monster_info->monster_group_id = group->group_id;
+    monster_info->monster_species = group->monster_id;
+    monster_info->flag_16 = group->flag_2a;
+    monster_info->scale_24f = -1.0f;
+    monster_info->flag_14 = 0;
+    monster_info->monster = 0;
+    monster_info->fInCombat = 0;
+    monster_info->pCombat = 0;
+    monster_info->position_17 = *position;
+    monster_info->derived_23 = Function4BE5C0(position);
+
+    value = RollDice(&record->hit_points_d6);
+    monster_info->hp_max = value;
+    monster_info->hp_current = value;
+    value = RollDice(&record->runtime_stat_da);
+    monster_info->runtime_stat_max_2f = value;
+    monster_info->runtime_stat_current_33 = value;
+    monster_info->runtime_value_242 = Function52A780(value, value);
+
+    memset(monster_info->condition_turns, 0, sizeof(monster_info->condition_turns));
+    memset(monster_info->enchantments, 0, sizeof(monster_info->enchantments));
+    monster_info->value_107 = 0;
+    monster_info->condition_argument = 0;
+    monster_info->effect_2de = 0;
+    memset(&monster_info->runtime_block_1db, 0,
+           sizeof(monster_info->runtime_block_1db));
+    monster_info->motionless = 0;
+    monster_info->flag_255 = 0;
+    monster_info->value_2da = 0;
+    monster_info->value_344 = -1;
+    memset(monster_info->runtime_values_338, 0,
+           sizeof(monster_info->runtime_values_338));
+
+    if (PListAdd(
+            record->flag_26a != 0 ? g_unborn_monster_list : g_monster_list,
+            monster_info) == -1) {
+        free(monster_info);
+        return 0;
+    }
+
+    IListAdd(group->monsters, monster_info->location_id);
+    ++group->member_count;
+    ++group->active_member_count;
+    Function565420();
+    g_engine_state_6598a4->Function42E620(
+        static_cast<unsigned short>(monster_info->location_id), position);
+    return monster_info;
+}
+
 /* The one record id that is displayed as a character's name with a prefix
    rather than out of the monster database. */
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 0x18d };
@@ -91,7 +164,6 @@ float MonsterGetScale(W8Monster* monster);
 void MonsterSetScale(W8Monster* monster, float scale);
 void Function4C5810(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
-int Function52A780(int first, int second);
 void __cdecl Function58AC00(int channel, void* message, int first, int second,
                             int flag);
 void Function562A50(int mask);
@@ -568,7 +640,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
                 "ConvertMonsterAttribute: ERROR - Invalid monster attribute");
         }
 
-        value += monster_info->attribute_adjustments_1e7[attribute_index];
+        value += monster_info->runtime_block_1db.attribute_adjustments[attribute_index];
         if (value > 125) {
             value = 125;
         }
@@ -1072,9 +1144,9 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         Function4ACF90(monster_info->monster);
         Function505C80(monster_info);
         Function4C5750(monster_info->monster, &position);
-        monster_info->position_17[0] = position.x;
-        monster_info->position_17[1] = position.y;
-        monster_info->position_17[2] = position.z;
+        monster_info->position_17.x = position.x;
+        monster_info->position_17.y = position.y;
+        monster_info->position_17.z = position.z;
         monster_info->flag_14 = 0;
         --g_active_monster_count_683fa1;
         if (g_flag_683f94 != 0) {

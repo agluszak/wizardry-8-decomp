@@ -116,7 +116,8 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
 int ApplyDamageReduction(
     const W8MonsterInfo* monster_info, const W8MonsterRecord* record, int damage)
 {
-    int reduction = monster_info->damage_reduction + record->damage_reduction;
+    int reduction = monster_info->runtime_block_1db.damage_reduction +
+                    record->damage_reduction;
 
     if (reduction != 0) {
         damage = ((100 - reduction) * damage + 50) / 100;
