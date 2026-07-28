@@ -71,9 +71,21 @@ typedef struct W8FactDatabaseRecord {
    model under the same name, and the spellings are kept convergent. */
 typedef struct W8NpcDatabaseRecord {
     unsigned short version;              /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
-    unsigned char unknown_002[0x9b];
+    /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
+       first predicate asks about. */
+    short value_002;
+    unsigned char unknown_004[0x53];
+    /* 0x057: the NPC belongs to a monster group, which is what makes the group
+       index on its runtime state meaningful. */
+    unsigned char has_group;
+    /* 0x058: the NPC's kind. Twenty is the one value a recovered body singles
+       out, refusing to trade with it. */
+    int kind;
+    unsigned char unknown_05c[0x41];
     unsigned char flag_9d;               /* 0x09d: and only when this is clear */
-    unsigned char unknown_09e[0x22c];
+    unsigned char unknown_09e[0x29];
+    unsigned char deleted;               /* 0x0c7 */
+    unsigned char unknown_0c8[0x202];
     void* fact_rules_runtime;            /* 0x2ca: runtime-owned rule PList */
     unsigned char unknown_2ce[0x3b];
 } W8NpcDatabaseRecord;                   /* 0x309 */

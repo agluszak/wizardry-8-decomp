@@ -261,6 +261,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/GameplayCode.cpp
         src/wiz8/local_code/Combat.cpp
         src/wiz8/local_code/MonsterAI.cpp
+        "src/wiz8/local_code/NPC Manager.cpp"
         src/wiz8/local_code/VideoObjectManager.cpp
         "src/wiz8/local_screens/MainMenuScreen.cpp"
         src/wiz8/local_screens/Screens.cpp
