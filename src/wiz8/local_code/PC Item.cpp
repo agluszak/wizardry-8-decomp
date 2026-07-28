@@ -560,7 +560,7 @@ bool CanUnequipSlotItem(const W8Character* character, int equip_slot)
 
     if (item->item_id != -1 && g_item_records[item->item_id].binds_on_equip != 0 &&
         item->bind_announced == 0 && g_equip_slot_icons[equip_slot] != -1 &&
-        character->unknown_0a49 == 0) {
+        character->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0) {
         return false;
     }
     return true;

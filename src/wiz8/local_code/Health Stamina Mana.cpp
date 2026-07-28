@@ -223,7 +223,7 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
                                   monster_info->action_kind));
     }
 
-    if (monster_info->fatigue_doubled_05f == 0) {
+    if (monster_info->condition_turns[W8_CONDITION_FATIGUE_DOUBLED] == 0) {
         return cost;
     }
     return cost * 2;
@@ -546,7 +546,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report
                     (unsigned int)monster_info->runtime_stat_max_2f));
 
     if (monster_info->runtime_stat_current_33 == 0 &&
-        (unsigned int)monster_info->value_9f < W8_CONDITION_INDEFINITE) {
+        (unsigned int)monster_info->condition_turns[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
         Function536150(target_block);
         SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
                             W8_CONDITION_INDEFINITE, 0, target_block, report_to == 0);
@@ -591,7 +591,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
         100 - (int)((monster_info->runtime_stat_current_33 * 100) /
                     (unsigned int)monster_info->runtime_stat_max_2f));
 
-    if (monster_info->value_9f == W8_CONDITION_INDEFINITE &&
+    if (monster_info->condition_turns[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
         (unsigned int)monster_info->runtime_stat_current_33 >
             W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED);
@@ -608,7 +608,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, int attacker, char 
 {
     StartMonsterCycle(monster_info, 0x14, 1);
 
-    if (monster_info->value_093 != 0 && quiet == 0 &&
+    if (monster_info->condition_turns[15] != 0 && quiet == 0 &&
         Random(100) < (unsigned int)((monster_info->converted_attributes_247[4] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, 0xf);
     }
@@ -620,7 +620,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, int attacker, char 
         return;
     }
     if (*(char*)(attacker + 0x1c) == 0 && *(char*)(attacker + 0x1b) == 0 &&
-        *(char*)(attacker + 0x1e) == 0 && quiet == 0 && monster_info->value_08b != 0) {
+        *(char*)(attacker + 0x1e) == 0 && quiet == 0 && monster_info->condition_turns[W8_CONDITION_HOSTILE] != 0) {
         if (Function53BEA0(attacker, 0)) {
             if (MonsterVsCharDisposition(*(int*)(attacker + 4), monster_info) == 2) {
                 ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
@@ -700,7 +700,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load, int load_p
         }
         load_percent = kLoadFatiguePercent[character->load_category];
         if (character->condition_turns[W8_CONDITION_LOAD_EASED] == 0) {
-            if (character->load_penalty_0aa9 != 0) {
+            if (character->enchantments[5].value_08 != 0) {
                 load_percent += 0x19;
             }
         }

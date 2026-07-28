@@ -487,7 +487,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
 
         if (monster_info->flag_14 != 0 &&
             static_cast<unsigned int>(monster_info->hp_current) > 0 &&
-            monster_info->value_9f == 0 &&
+            monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0 &&
             monster_info->value_2da != 0) {
             if (forced_cleanup == 0) {
                 Function58AB60(
@@ -883,7 +883,7 @@ void TryStartMonsterCycle2(
 {
     if (monster_info->flag_14 != 0 &&
         static_cast<unsigned int>(monster_info->hp_current) > 0 &&
-        monster_info->value_9f == 0 &&
+        monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] == 0 &&
         monster_info->flag_24d != 0 &&
         query_state == 1) {
         int result = MonsterQuery(monster, 2);
@@ -1063,7 +1063,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         if (monster_info->monster == 0) {
             srAssertFail("pMonsterInfo->p3D != NULL", MONSTER_MANAGER_CPP, 0x249, 0);
         }
-        monster_info->value_9f = 9999;
+        monster_info->condition_turns[W8_CONDITION_EQUIPMENT_UNLOCKED] = 9999;
         monster_info->value_107 = 0x12;
         monster_info->hp_current = 0;
         monster_info->runtime_stat_current_33 = 0;

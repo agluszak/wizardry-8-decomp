@@ -78,14 +78,33 @@ enum { W8_SPELL_REALM_COUNT = 6 };
    W8Character::condition_turns. Only the ones a recovered body names are
    spelled out; the rest keep their numbers. */
 enum {
-    W8_CONDITION_COUNT = 18,
+    /* Twenty entries: the per-character copier walks all twenty, while the
+       sweep that lifts everything stops at eighteen because the last two are
+       not the kind a rest clears. */
+    W8_CONDITION_COUNT = 20,
+    W8_CONDITION_CLEARABLE_COUNT = 18,
     W8_CONDITION_FATIGUE_DOUBLED = 2,
     W8_CONDITION_LOAD_EASED = 5,
+    /* Seven is the one condition that carries a second value alongside its
+       duration, which both copiers special-case. */
+    W8_CONDITION_WITH_ARGUMENT = 7,
     W8_CONDITION_SPELLCASTING_BLOCKED = 8,
+    W8_CONDITION_HOSTILE = 0xd,
     W8_CONDITION_EXHAUSTED = 0x11,
+    W8_CONDITION_EQUIPMENT_UNLOCKED = 18,
     /* The duration that means "until lifted". */
     W8_CONDITION_INDEFINITE = 9999
 };
+
+/* One enchantment slot. Both a character and a monster carry eight of them,
+   and both clear a slot by zeroing all three dwords at once. */
+typedef struct W8Enchantment {
+    int value_00;
+    int value_04;
+    /* 0x08: the field the topmost-slot scan reads and the one the fatigue path
+       consults on slot five. */
+    int value_08;
+} W8Enchantment;                          /* 0x0c */
 
 enum {
     W8_RESISTANCE_COUNT = 6,
@@ -138,29 +157,27 @@ typedef struct W8Character {
     /* 0x09fd: how many times this character has died. */
     int death_count_09fd;
     /* 0x0a01: one entry per condition, holding how long it has left to run;
-       W8_CONDITION_INDEFINITE means until something lifts it. CharacterDies
-       walks all eighteen, and the exhausted condition the fatigue path names
-       0x11 lands exactly on element seventeen, which is what fixes the base
-       and the stride. Several entries were read individually before this
-       array explained them: two doubles the fatigue an action costs, five
-       eases the load penalty, eight blocks spellcasting. */
-    int condition_turns[W8_CONDITION_COUNT];  /* 0x0a01 */
-    /* 0x0a49: non-null overrides the binding that would otherwise keep an
-       equipped item on the character. Its type is not established. */
-    void* unknown_0a49;
-    unsigned char unknown_0a4d[0x5c];
-    /* 0x0aa9: with load_relief_0a15 clear, this adds a quarter to the load
-       penalty instead of the relief subtracting one. */
-    int load_penalty_0aa9;
-    unsigned char unknown_0aad[0x54];
-    /* 0x0b01 gates party-member selection alongside hp_current below: a slot is
+       W8_CONDITION_INDEFINITE means until something lifts it. The exhausted
+       condition the fatigue path calls 0x11 lands exactly on element
+       seventeen, which is what fixes base and stride, and the monster carries
+       the identical array at its own 0x57 with the same indices meaning the
+       same things. Several entries were read individually before this array
+       explained them: two doubles the fatigue an action costs, eight blocks
+       spellcasting, eighteen unlocks bound equipment. */
+    int condition_turns[W8_CONDITION_COUNT];   /* 0x0a01 */
+    unsigned char unknown_0a51[0x14];
+    W8Enchantment enchantments[8];             /* 0x0a65 */
+    unsigned char unknown_0ac5[0x3c];
+    /* 0x0b01 gates party-member selection alongside hp_current: a slot is
        eligible when it still has hit points and this is under 0x12, and a
-       second tier tests it against 0x0f. The threshold looks like a condition
-       or status scale, but nothing here establishes the meaning, so it keeps
-       its positional name. It is unsigned: the canonical compares are JB/JBE,
-       not JL/JE. */
-    unsigned int unknown_0b01;            /* 0x0b01 */
-    unsigned char unknown_0b05[8];
+       second tier tests it against 0x0f. It is unsigned - the canonical
+       compares are JB/JBE, not JL/JE - but its meaning is not established. */
+    unsigned int unknown_0b01;
+    /* 0x0b05: the highest enchantment slot still in use, recomputed by
+       scanning down from the last one whenever a slot is cleared. */
+    int enchantment_top;
+    /* 0x0b09: the argument the seventh condition carries. */
+    int condition_argument;
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
        damage is booked against before hit points are recalculated. A character
        whose hp_current is zero is treated as out of the fight everywhere. */
@@ -908,29 +925,18 @@ typedef struct W8MonsterInfo {
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
     int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x14];
-    /* 0x04b: unread here. 0x08b and 0x093 are the two gates the struck
-       reaction gets past before it may turn the monster hostile or knock it
-       into another condition. */
-    unsigned char unknown_04b[0x14];
-    /* 0x05f: nonzero doubles the fatigue an action costs. */
-    int fatigue_doubled_05f;
-    unsigned char unknown_063[0x14];
-    /* 0x077: spellcasting is blocked for this monster. Alchemy survives it for
-       monster kinds four, five and thirteen, which is the only exemption -
-       the same shape as the character block and its alchemy-skill exemption. */
-    int spellcasting_blocked;
-    unsigned char unknown_07b[0x10];
-    /* 0x08b and 0x093: two gates MonsterReactsToBeingStruck gets past before it
-       may turn the monster hostile or knock it into another condition. */
-    int value_08b;
-    unsigned char unknown_08f[4];
-    int value_093;
-    unsigned char unknown_097[8];
-    int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
-    unsigned char unknown_a3[0x64];
+    unsigned char unknown_37[0x20];
+    /* 0x057: the monster's copy of the character condition array, entry for
+       entry - condition two doubles its action fatigue at 0x05f, eight blocks
+       its spellcasting at 0x077, thirteen makes it hostile at 0x08b, fifteen
+       at 0x093 and seventeen is exhaustion at 0x09b. */
+    int condition_turns[W8_CONDITION_COUNT];   /* 0x057 */
+    W8Enchantment enchantments[8];             /* 0x0a7 */
     int value_107;                        /* 0x107: set to 0x12 when an entry deactivates */
-    unsigned char unknown_10b[0xdc];
+    /* 0x10b: the argument a condition carries when a monster's conditions are
+       copied onto a character. */
+    int condition_argument;
+    unsigned char unknown_10f[0xd8];
     signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
     unsigned char unknown_1ee[0x54];
     int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */

@@ -142,7 +142,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
 {
     unsigned char kind;
 
-    if (monster_info->spellcasting_blocked != 0) {
+    if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return true;
         }
@@ -174,7 +174,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
         return false;
     }
 
-    if (monster_info->spellcasting_blocked != 0) {
+    if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return false;
         }
