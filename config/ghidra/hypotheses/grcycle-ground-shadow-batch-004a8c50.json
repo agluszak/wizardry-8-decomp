@@ -1,0 +1,30 @@
+{
+  "hypothesis": "grcycle-ground-shadow-batch-004a8c50",
+  "seeds": [
+    {
+      "kind": "reconstructed-transfer",
+      "function": "004a8c50"
+    },
+    {
+      "kind": "reconstructed-transfer",
+      "function": "004a8d10"
+    },
+    {
+      "kind": "reconstructed-transfer",
+      "function": "004d6430"
+    },
+    {
+      "kind": "reconstructed-transfer",
+      "function": "004d6540"
+    },
+    {
+      "kind": "reconstructed-transfer",
+      "function": "004d6640"
+    }
+  ],
+  "limits": {
+    "iterations": 6,
+    "functions": 96,
+    "indirect_functions": 192
+  }
+}

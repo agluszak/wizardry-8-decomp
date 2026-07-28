@@ -299,6 +299,7 @@ wiz8,W8MonsterGroup,0x14,0x4,active_member_count,int32,,strong,classes:wiz8:W8Mo
 wiz8,W8MonsterGroup,0x18,0x4,monster_id,int32,,strong,classes:wiz8:W8MonsterGroup,FindFirstMonsterByID and FindNextExistingMonsterByID compare this field with the requested monster ID
 wiz8,W8World,0x8,0x4,plsProps,pointer,W8PList,exact,classes:wiz8:W8World,named and typed by the 3d.cpp:344 assertion and byte-proven at 0x08 by WorldUpdateProps
 wiz8,W8World,0x48,0x4,psrMeshes,pointer,,strong,classes:wiz8:W8World,named by the 3dapi.cpp:446 assertion; placed by the asserting body but unproven while no ported consumer exists
+wiz8,W8World,0xbc,0x4,lights,pointer,W8GrowableVector<W8VectorElement005EC294 *>,strong,classes:wiz8:W8World,DestroyVector005EC294 removes each flagged GrCycle light from this typed growable vector before the common render-world removal path
 wiz8,W8World,0xc4,0x4,monster_generators,pointer,,strong,classes:wiz8:W8World,growable vector of W8MonsterGenerator pointers read by the structurally-strong FindMonGenByName
 wiz8,W8TargetSource,0x0,0x4,iType,int32,,exact,classes:wiz8:W8TargetSource,1 character 2 monster 3 either; proven by TargetSourceIsCharacter and TargetSourceIsMonster
 wiz8,W8TargetSource,0x4,0x4,iChar,int32,,exact,classes:wiz8:W8TargetSource,compared against BAD_INDEX -1 by the byte-proven pair
@@ -496,8 +497,11 @@ wiz8,W8Vector005ECA5C,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector00
 wiz8,W8GrowableVector<W8VectorElement005EC294 *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC294 *>,primary vtable W8GrowableVector<W8VectorElement005EC294 *>.primary
 wiz8,W8GrowableVector<W8VectorElement005EC294 *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC294 *>,"element count, zeroed by the constructor"
 wiz8,W8GrowableVector<W8VectorElement005EC294 *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC294 *>,"allocated element capacity; the clamped parameter, or zero if the allocation failed"
-wiz8,W8GrowableVector<W8VectorElement005EC294 *>,0xc,0x4,data,pointer,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC294 *>,"element storage, four bytes per element; the element type is unproven and so is not modelled as a class"
+wiz8,W8GrowableVector<W8VectorElement005EC294 *>,0xc,0x4,data,pointer,W8VectorElement005EC294,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC294 *>,element storage four bytes per entry; DestroyVector005EC294 proves each entry has an srNode base while its concrete light identity remains unresolved
 wiz8,W8Vector005EC294,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector005EC294,W8GrowableVector<W8VectorElement005EC294 *> subobject; the derived class adds nothing
+wiz8,W8VectorElement005EC294,0x0,0x138,base_storage,bytes,,strong,classes:wiz8:W8VectorElement005EC294,DestroyVector005EC294 calls the imported srNode setParent method with each element as its receiver
+wiz8,W8VectorElement005EC294,0x138,0xfc,unknown_138,bytes,,strong,classes:wiz8:W8VectorElement005EC294,unresolved storage between the proven srNode base and the observed dword
+wiz8,W8VectorElement005EC294,0x234,0x4,field_234,int32,,strong,classes:wiz8:W8VectorElement005EC294,nonzero selects the preliminary removal from W8World lights before the common render-world removal helper
 wiz8,W8GrowableVector<W8VectorElement005EC27C *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC27C *>,primary vtable W8GrowableVector<W8VectorElement005EC27C *>.primary
 wiz8,W8GrowableVector<W8VectorElement005EC27C *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC27C *>,"element count, zeroed by the constructor"
 wiz8,W8GrowableVector<W8VectorElement005EC27C *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005EC27C *>,"allocated element capacity; the clamped parameter, or zero if the allocation failed"

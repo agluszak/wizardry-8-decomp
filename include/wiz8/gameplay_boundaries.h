@@ -526,7 +526,9 @@ typedef struct W8World {
     /* 0x054: the node the sky hangs from, which the environment accessors
        reach through this same world pointer. */
     void* sky_node;
-    unsigned char unknown_058[0x6c];
+    unsigned char unknown_058[0x64];
+    W8GrowableVector<class W8VectorElement005EC294*>* lights; /* 0xbc */
+    unsigned char unknown_0c0[4];
     W8GrowableVector<W8MonsterGenerator*>* monster_generators; /* 0xc4 */
 } W8World;
 

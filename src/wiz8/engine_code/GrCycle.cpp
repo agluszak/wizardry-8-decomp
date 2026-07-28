@@ -1,5 +1,7 @@
 #include "wiz8/grcycle.h"
+#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/ground_shadow.h"
+#include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
@@ -224,6 +226,56 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
     cycles->Add(cycle);
     g_grcycle_names.Add(owned_name);
     g_grcycles_by_name.Add(cycles);
+}
+
+extern W8World* g_render_world_00659ab4;
+extern void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
+
+// FUNCTION: WIZ8 0x004A8C50
+void DestroyVector005EC294(W8Vector005EC294* vector)
+{
+    int count;
+    int index;
+
+    if (vector != 0) {
+        count = vector->GetCount();
+        for (index = 0; index < count; ++index) {
+            W8VectorElement005EC294* light = *vector->GetAt(index);
+
+            if (light->world_link_234() != 0) {
+                int world_index = g_render_world_00659ab4->lights->IndexOf(light);
+                if (world_index != -1) {
+                    g_render_world_00659ab4->lights->RemoveAt(world_index);
+                }
+            }
+            light->setParent(0, 1);
+            WorldRemoveLight(g_render_world_00659ab4, light);
+        }
+        delete vector;
+    }
+}
+
+// FUNCTION: WIZ8 0x004A8D10
+int FindMappedIndexInMeshChain(W8MeshModel** mesh, int key)
+{
+    int result;
+    W8MeshModel* current;
+
+    if (key < 0 || mesh == 0 || *mesh == 0) {
+        return -1;
+    }
+
+    current = *mesh;
+    while (current != 0) {
+        result = current->FindMappedIndex((short)key);
+        if (result != -1) {
+            break;
+        }
+        current = current->next;
+    }
+
+    *mesh = current;
+    return result;
 }
 
 // FUNCTION: WIZ8 0x004A8D50

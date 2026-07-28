@@ -22,3 +22,6 @@ public:
     W8GrowableVector<short> mapped_values; /* 0x420 */
     W8GrowableVector<short> mapped_keys;   /* 0x430 */
 };
+
+int FindMappedIndexInMeshChain(
+    W8MeshModel** mesh, int key);          /* 0x004A8D10 */

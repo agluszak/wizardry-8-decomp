@@ -8,7 +8,18 @@
    the remaining bytes stay opaque. */
 class srNode : public srClass {
 public:
-    class TraverseInfo;
+    class TraverseInfo {
+    public:
+        struct Entry {
+            srNode* node;
+            unsigned long value;
+        };
+
+        unsigned char unknown_00_[8];
+        Entry* entries;                    /* 0x08 */
+        unsigned int capacity;             /* 0x0c */
+        unsigned int count;                /* 0x10 */
+    };
     struct ProcessInfo {
         class srGERD* renderer;
     };
@@ -19,7 +30,8 @@ public:
     };
 
     enum e_flag {
-        FLAG_POSITIONAL_0 = 0
+        FLAG_POSITIONAL_0 = 0,
+        FLAG_POSITIONAL_1 = 1
     };
 
     SR_DLL_IMPORT srNode(srNode* parent);
@@ -55,14 +67,19 @@ public:
     SR_DLL_IMPORT void setFlag(e_flag flag);
     SR_DLL_IMPORT void clearFlag(e_flag flag);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
+    SR_DLL_IMPORT srNode* getParent() const;
     srNode* nextSibling() const { return next_sibling_; }
+    srNode* parentNode() const { return parent_; }
     srNode* firstChild() const { return first_child_; }
 
 private:
     unsigned char unknown_04_[0x124];
     srNode* next_sibling_;                  /* 0x128 */
-    unsigned char unknown_12c_[0x08];
+    unsigned char unknown_12c_[0x04];
+    srNode* parent_;                        /* 0x130 */
     srNode* first_child_;                   /* 0x134 */
 };
 
 typedef char srNode_must_be_0x138[(sizeof(srNode) == 0x138) ? 1 : -1];
+typedef char srNode_TraverseInfo_must_be_0x14[
+    (sizeof(srNode::TraverseInfo) == 0x14) ? 1 : -1];

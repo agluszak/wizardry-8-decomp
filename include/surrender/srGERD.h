@@ -21,6 +21,10 @@ public:
 
 class SR_DLL_IMPORT srGERD : public srRuntimeClass {
 public:
+    struct Pick {
+        unsigned char unknown_00_[0x14];
+    };
+
     enum e_error {};
     enum e_matrixMode {};
     enum e_antiAlias {};
@@ -47,6 +51,10 @@ public:
     void setTexture(srTextureIFace* texture, unsigned long layer);
     void drawArrays(srRendererDefs::e_primitive primitive, long first,
                     unsigned long count);
+    void popPick(Pick& pick);
+    void pushPick(const Pick& pick);
+
+    int hasPickState() const { return pick_state_19ec_ != 0; }
 
     void configure2DSurface(unsigned long state, unsigned long flags,
                             const float* texture_coordinates) {
@@ -81,7 +89,9 @@ private:
     unsigned long dirty_24_;
     unsigned char unknown_28_[0x1620];
     long render_mode_1648_;
-    unsigned char unknown_164c_[0x9ac];
+    unsigned char unknown_164c_[0x3a0];
+    int pick_state_19ec_;                  /* 0x19ec */
+    unsigned char unknown_19f0_[0x608];
     unsigned long surface_flags_1ff8_;
     unsigned char unknown_1ffc_[0x1c4];
     unsigned long dirty_21c0_;

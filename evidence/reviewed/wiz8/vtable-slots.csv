@@ -221,7 +221,7 @@ wiz8,stGroundShadow.primary,5,004d6340,scalar_deleting_destructor,strong,classes
 wiz8,stGroundShadow.primary,6,004d6bf0,vInstance,strong,classes:wiz8:stGroundShadow
 wiz8,stGroundShadow.primary,7,004d6a30,vslot7,strong,classes:wiz8:stGroundShadow
 wiz8,stGroundShadow.primary,8,004d6540,traverse,strong,classes:wiz8:stGroundShadow
-wiz8,stGroundShadow.primary,9,004d6640,process,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,9,004d6640,process,exact,classes:wiz8:stGroundShadow
 wiz8,stGroundShadow.primary,10,005e1fcc,getLocalBounds,strong,classes:wiz8:stGroundShadow
 wiz8,stGroundShadow.primary,11,005e1fc6,updateBounds,strong,classes:wiz8:stGroundShadow
 wiz8,stGroundShadow.primary,12,005e1fc0,processSignal,strong,classes:wiz8:stGroundShadow

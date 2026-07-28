@@ -1,5 +1,6 @@
 #pragma once
 
+#include "surrender/srGERD.h"
 #include "surrender/srHeap.h"
 #include "surrender/srNode.h"
 
@@ -8,6 +9,7 @@
 class stGroundShadow : public srNode {
 public:
     stGroundShadow(srNode* parent);                 /* 0x004D61B0 */
+    stGroundShadow(const stGroundShadow& other);    /* 0x004D6430 */
 
     virtual const char* getClassName() const;       /* 0x004D69B0 */
     virtual unsigned long getClassID() const;       /* 0x004D69A0 */
@@ -19,6 +21,9 @@ protected:
 public:
     virtual srClass* vInstance();                   /* 0x004D6BF0 */
     virtual srNode* vslot7();                       /* 0x004D6A30 */
+    virtual void traverse(TraverseInfo& info);      /* 0x004D6540 */
+    virtual void process(
+        const ProcessInfo& info, e_processType type); /* 0x004D6640 */
 
     void* operator new(unsigned int size)
     {
@@ -29,6 +34,9 @@ public:
     int value_13c;
     int value_140;
     unsigned char unknown_144[4];
+
+private:
+    void renderGroundShadow(srGERD* renderer);      /* 0x004D66A0 */
 };
 
 typedef char stGroundShadow_must_be_0x148[
