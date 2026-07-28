@@ -22,7 +22,9 @@ from pathlib import Path
 from typing import Any
 
 
-def _first_level_paths(root: str, accesses: list[dict[str, Any]]) -> dict[int, list[dict[str, Any]]]:
+def _first_level_paths(
+    root: str, accesses: list[dict[str, Any]]
+) -> dict[int, list[dict[str, Any]]]:
     """Member offset -> the access records describing that member's pointee."""
 
     members: dict[int, list[dict[str, Any]]] = {}
@@ -67,7 +69,7 @@ def derive_type_variables(
             continue
         member_path = f"{root}[{offset:#x}]"
         constraints: dict[str, Any] = {"pointer": True}
-        sources = sorted({event["site"] for event in events})
+        sources = {event["site"] for event in events}
         if any(event["kind"] == "null-test" for event in events):
             constraints["null_checked"] = True
 
@@ -76,8 +78,14 @@ def derive_type_variables(
                 member_path + "[0x0]["
             ):
                 slot_offset = int(event["path"].rsplit("[", 1)[-1].rstrip("]"), 16)
-                constraints["has_virtual_destructor"] = True
-                constraints["deleting_destructor_slot"] = slot_offset // 4
+                arguments = event.get("arguments") or []
+                deleting_flag = any(
+                    argument and argument.get("constant") == 1 for argument in arguments
+                )
+                if slot_offset == 0 and deleting_flag:
+                    constraints["has_virtual_destructor"] = True
+                    constraints["scalar_deleting_destructor_slot"] = 0
+                    constraints["deleting_flag"] = 1
 
         for event in events:
             if event["kind"] != "call-arg" or event.get("target") not in deleters:
@@ -93,10 +101,13 @@ def derive_type_variables(
                 and call["order"] < delete_call["order"]
                 and isinstance(call["target"], str)
                 and call["target"] not in deleters
+                and call.get("receiver_path") == member_path
             ]
             if preceding:
                 constraints["complete_destructor"] = preceding[-1]["target"]
                 constraints["destructor_is_virtual"] = False
+                constraints["receiver_flow_verified"] = True
+                sources.add(preceding[-1]["site"])
             elif "has_virtual_destructor" not in constraints:
                 constraints["declared_empty_destructor"] = True
 
@@ -109,13 +120,13 @@ def derive_type_variables(
                 "function": entry,
                 "root_offset": f"0x{offset:x}",
                 "constraints": constraints,
-                "sources": sources,
+                "sources": sorted(sources),
             }
         )
     return variables
 
 
-def load_knowledge(repo: Path) -> list[dict[str, Any]]:
+def load_knowledge(repo: Path, program: str | None = None) -> list[dict[str, Any]]:
     """Known types as unification targets, from the reviewed model and census.
 
     Reviewed classes contribute their vtable slot-0 targets and lifecycle
@@ -149,23 +160,45 @@ def load_knowledge(repo: Path) -> list[dict[str, Any]]:
             }
             knowledge.append(entry)
 
-    with (
-        repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv"
-    ).open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            if row["slot_index"] != "0" or row["kind"] != "local":
-                continue
-            knowledge.append(
-                {
-                    "type": f"Candidate_{row['vtable']}",
-                    "tier": "observation",
-                    "polymorphic": True,
-                    "slot0": row["target"].strip().lower(),
-                    "destructors": set(),
-                    "program": row["program"],
-                }
-            )
+    snapshot = repo / "evidence" / "snapshots" / "polymorphism"
+    with (snapshot / "slots.csv").open(newline="", encoding="utf-8") as stream:
+        slots = [
+            row for row in csv.DictReader(stream) if program is None or row["program"] == program
+        ]
+    with (snapshot / "vtables.csv").open(newline="", encoding="utf-8") as stream:
+        vtables = [
+            row for row in csv.DictReader(stream) if program is None or row["program"] == program
+        ]
+    with (snapshot / "vptr-writes.csv").open(newline="", encoding="utf-8") as stream:
+        writes = [
+            row for row in csv.DictReader(stream) if program is None or row["program"] == program
+        ]
+    from .ghidra.candidate_model import classify_candidates
+
+    reviewed_tables = {
+        int(row["address"], 16) for row in _dict_rows(reviewed / "vtables.csv") if row["address"]
+    }
+    for candidate in classify_candidates(vtables, slots, writes, reviewed_tables):
+        deleting = candidate.get("scalar_deleting_destructor")
+        if deleting is None:
+            continue
+        knowledge.append(
+            {
+                "type": f"Candidate_{candidate['vtable']:08x}",
+                "tier": "observation",
+                "polymorphic": True,
+                "slot0": f"{deleting:08x}",
+                "slot0_is_scalar_deleting_destructor": True,
+                "destructors": {f"{deleting:08x}"},
+                "program": program,
+            }
+        )
     return knowledge
+
+
+def _dict_rows(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="", encoding="utf-8") as stream:
+        return list(csv.DictReader(stream))
 
 
 def unify(variable: dict[str, Any], knowledge: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -194,9 +227,15 @@ def unify(variable: dict[str, Any], knowledge: list[dict[str, Any]]) -> list[dic
         if constraints.get("has_virtual_destructor"):
             if not entry["polymorphic"] or not entry.get("slot0"):
                 continue
+            if entry.get("tier") == "observation" and not entry.get(
+                "slot0_is_scalar_deleting_destructor"
+            ):
+                continue
             reasons.append("polymorphic with a slot-0 destructor")
         if not reasons:
             continue
         matches.append({"type": entry["type"], "tier": entry["tier"], "reasons": reasons})
-    decisive = [match for match in matches if any("complete destructor" in r for r in match["reasons"])]
+    decisive = [
+        match for match in matches if any("complete destructor" in r for r in match["reasons"])
+    ]
     return decisive if decisive else matches

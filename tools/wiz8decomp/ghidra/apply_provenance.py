@@ -23,6 +23,7 @@ provenance stamps are stale is exactly the staleness the key exists to catch.
 from __future__ import annotations
 
 import csv
+import json
 from pathlib import Path
 from typing import Any
 
@@ -150,6 +151,7 @@ def facts_at(program: Any, argument: str) -> dict[str, Any]:
     address = _address(program, argument)
     manager = program.getUsrPropertyManager()
     properties: dict[str, Any] = {}
+    decoded: dict[str, Any] = {}
     names = manager.propertyManagers()
     while names.hasNext():
         name = names.next()
@@ -160,11 +162,17 @@ def facts_at(program: Any, argument: str) -> dict[str, Any]:
             continue
         value = property_map.get(address)
         properties[str(name)] = str(value) if value is not None else None
+        if value is not None:
+            try:
+                decoded[str(name)] = json.loads(str(value))
+            except json.JSONDecodeError:
+                pass
     function = program.getFunctionManager().getFunctionContaining(address)
     symbol = program.getSymbolTable().getPrimarySymbol(address)
     return {
         "address": str(address),
         "properties": properties,
+        "candidate_facts": decoded,
         "citations": (
             properties.get(_EVIDENCE, "").split("|") if properties.get(_EVIDENCE) else []
         ),

@@ -104,6 +104,7 @@ class TransferPlan:
 
     transfers: list[Transfer] = field(default_factory=list)
     unmatched: list[dict[str, str]] = field(default_factory=list)
+    verified_exact: set[str] = field(default_factory=set)
 
     def summary(self) -> dict[str, Any]:
         blocked = [item for item in self.transfers if item.blocked]
@@ -117,6 +118,7 @@ class TransferPlan:
             "blocked": len(blocked),
             "unmatched": len(self.unmatched),
             "object_files": len({item.object_file for item in self.transfers}),
+            "freshly_verified_exact": len(self.verified_exact),
         }
 
 
@@ -194,11 +196,14 @@ def index_bodies(bodies: list[Body]) -> tuple[dict[str, Body], dict[str, list[st
     return unique, ambiguous
 
 
-def build_transfer_plan(repo: Path, bodies: list[Body]) -> TransferPlan:
+def build_transfer_plan(
+    repo: Path, bodies: list[Body], verified_exact: set[str] | None = None
+) -> TransferPlan:
     """Join every reviewed boundary row against the build's debug information."""
 
     compiled, ambiguous = index_bodies(bodies)
-    plan = TransferPlan()
+    verified_exact = {address.lower().zfill(8) for address in (verified_exact or set())}
+    plan = TransferPlan(verified_exact=verified_exact)
     for row in _boundary_rows(repo):
         symbol = row["symbol"].strip()
         body = compiled.get(symbol)
@@ -228,6 +233,8 @@ def build_transfer_plan(repo: Path, bodies: list[Body]) -> TransferPlan:
                 f"build body is {body.length} bytes against the reviewed "
                 f"{reviewed_size}; too short to be this body"
             )
+        elif confidence == "exact" and row["address"].lower().zfill(8) not in verified_exact:
+            blocked = "fresh relocation-masked boundary verification required"
         tier = REVIEWED_TIER if confidence == "exact" and not blocked else OVERLAY_TIER
         plan.transfers.append(
             Transfer(
@@ -242,6 +249,26 @@ def build_transfer_plan(repo: Path, bodies: list[Body]) -> TransferPlan:
             )
         )
     return plan
+
+
+def verified_boundary_addresses(repo: Path, object_root: Path) -> set[str]:
+    """Recompute every exact row's recorded masked digest from current objects."""
+
+    from .boundaries import collect_object_candidates, masked_digest, resolve_boundary_function
+
+    rows = _boundary_rows(repo)
+    candidates = collect_object_candidates(object_root)
+    verified: set[str] = set()
+    for row in rows:
+        if row["confidence"].strip() != "exact" or not row["relocation_masked_sha256"].strip():
+            continue
+        size = int(row["size"])
+        function = resolve_boundary_function(candidates.get(row["symbol"].strip(), ()), size, None)
+        if function is None:
+            continue
+        if masked_digest(function, size) == row["relocation_masked_sha256"].strip():
+            verified.add(row["address"].lower().zfill(8))
+    return verified
 
 
 def incoming_variables(
@@ -317,7 +344,14 @@ def proposed_signature_rows(plan: TransferPlan, program: str = "wiz8") -> list[d
                 "parameters_json": json.dumps(parameters),
                 "variadic": "false",
                 "this_type": f"{signature.owner} *" if signature.owner else "",
-                "confidence": "exact",
+                # Exact bytes prove convention and stack shape, not every
+                # semantic spelling reconstructed source chose.
+                "confidence": "strong",
+                "calling_convention_authority": "exact-body",
+                "stack_argument_shape_authority": "exact-body",
+                "return_type_authority": "candidate-reconstructed-source",
+                "parameter_type_authority": "candidate-reconstructed-source",
+                "parameter_name_authority": "reconstructed-source-not-original-name-evidence",
                 "evidence_id": f"signatures:{program}:{transfer.address}",
                 "previous_auto_signature": "",
                 "evidence": (

@@ -108,8 +108,14 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   same bodies for simple code, which makes the mistake easy to miss and wrong anyway: it models the
   original as something it is not, and it cannot express a `__thiscall` virtual call at all. Only
   genuine C library code, such as the zlib wrappers, stays `.c`.
-- **Start every port from `just ghidra query <program> decompile 0x<addr>`, not from disassembly.**
-  Ghidra already carries the applied types, global names, and callee identities, so its output names
+- **Start every port from `just wiz8 report context 0x<addr> --program <program>`.** The context
+  packet joins reviewed provenance, HighFunction variables, rooted field accesses, anonymous type
+  variables, normalized P-code, indirect call sites, reconstructed signatures, cross-build
+  candidates and object-map candidates with the older assertion/EH/global channels. Follow it with
+  one batched semantic query when a relation needs closer inspection:
+  `facts-at`, `decompile`, `high-function`, `field-accesses`, `type-variables`, `pcode ... normalize`
+  and `callsite` answer different questions and should not be substituted for one another. Ghidra
+  already carries the applied types, global names, and callee identities, so its output names
   `g_fact_values`, `FileWrite` and `W8NpcDatabaseRecord` where a raw listing shows only addresses.
   Reading instructions by hand to work out what a function *does* re-derives, badly and slowly, what
   the project has already recorded. Disassembly answers a different and narrower question — why two
@@ -118,6 +124,22 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   Pass the full program selector (`wiz8` alone is ambiguous across 21 programs; use
   `wiz8--gog-base--wiz8--18a74ff61c65` for canonical retail). Query results are emitted as ordinary
   JSON rather than through Rich, so they remain parseable and unwrapped regardless of terminal width.
+- Candidate conclusions belong in disposable Ghidra overlays, not tracked projections. Put the
+  hypothesis scope in a JSON file under `config/ghidra/hypotheses/`, then run
+  `just ghidra overlay analyze <program> <plan>`. The driver clones the reviewed materialization,
+  applies requested typed vtables, reconstructed information and aggregates, materializes anonymous
+  structures and owner fields, adds computed indirect references, expands one ProgramDB-derived
+  dependency graph, and repeats until no type or edge changes. Its semantic verdict distinguishes
+  presentation, prototype, field, target-set, unification, contradiction and no-change results.
+  Inspect candidate provenance with `just ghidra overlay facts-at <program> <hypothesis> <anchor>`;
+  discard the overlay after review. Promotion still goes through reviewed evidence and a baseline
+  rebuild.
+- Reconstructed transfers have a hard body gate. Run `just build WIZ8_GAMEPLAY_BOUNDARIES` and
+  `just verify-boundaries` first; `reconstructed-transfer` also recomputes current relocation-masked
+  object digests and keeps an unverified exact row overlay-only. Exact bytes establish calling
+  convention and stack argument shape. Reconstructed parameter/return spellings remain candidate
+  semantic types, and reconstructed parameter names are source labels rather than original-name
+  evidence.
 - Run the narrowest relevant checks while iterating, then the complete relevant gate before
   publishing. A successful build alone does not prove identity or behavior.
 - Use `just wiz8 report status` for current identity, match, ownership, and source-unit counts; do

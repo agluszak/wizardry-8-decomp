@@ -240,9 +240,17 @@ def check_against_build(repo: Path, mapping: ObjectMap, build_dir: Path) -> dict
     input: feeding it back in would make the map agree with itself.
     """
 
-    from .reconstructed import bodies_from_objects, build_transfer_plan
+    from .reconstructed import (
+        bodies_from_objects,
+        build_transfer_plan,
+        verified_boundary_addresses,
+    )
 
-    plan = build_transfer_plan(repo, bodies_from_objects(build_dir))
+    plan = build_transfer_plan(
+        repo,
+        bodies_from_objects(build_dir),
+        verified_exact=verified_boundary_addresses(repo, build_dir),
+    )
     unit_names = {unit.rsplit("/", 1)[-1] for unit in mapping.owners.values()}
     agreed: list[dict[str, str]] = []
     disagreed: list[dict[str, str]] = []

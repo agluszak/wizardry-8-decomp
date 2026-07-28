@@ -261,6 +261,10 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         from .semantic import callsite
 
         return callsite(program, arguments[0])
+    if command == "condition-accesses":
+        from .semantic import condition_accesses
+
+        return condition_accesses(program, arguments[0])
     if command == "observation-audit":
         from .observation_evidence import audit_observation_evidence
 
@@ -276,6 +280,7 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "sections": 0, "observation-audit": 0,
         "high-function": 1, "field-accesses": 2, "callsite": 1, "facts-at": 1,
         "type-variables": 2,
+        "condition-accesses": 1,
     }
     if command == "pcode":
         if len(arguments) not in {1, 2}:

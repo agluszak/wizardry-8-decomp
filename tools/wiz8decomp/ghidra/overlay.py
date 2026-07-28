@@ -98,14 +98,34 @@ def _reviewed_vtable(repo: Path, class_name: str) -> tuple[dict[str, Any], list[
         newline="", encoding="utf-8"
     ) as stream:
         slots = sorted(
-            (
-                row
-                for row in csv.DictReader(stream)
-                if row["vtable_id"] == vtable["vtable_id"]
-            ),
+            (row for row in csv.DictReader(stream) if row["vtable_id"] == vtable["vtable_id"]),
             key=lambda row: int(row["slot_index"]),
         )
     return vtable, slots
+
+
+def _reviewed_vtables(
+    repo: Path, class_name: str
+) -> list[tuple[dict[str, Any], list[dict[str, str]]]]:
+    """Every reviewed table of a class, primary and secondary."""
+
+    reviewed = repo / "evidence" / "reviewed" / "wiz8"
+    with (reviewed / "vtables.csv").open(newline="", encoding="utf-8") as stream:
+        tables = [row for row in csv.DictReader(stream) if row["class_name"] == class_name]
+    if not tables:
+        raise ValueError(f"no reviewed vtable for {class_name}")
+    with (reviewed / "vtable-slots.csv").open(newline="", encoding="utf-8") as stream:
+        all_slots = list(csv.DictReader(stream))
+    return [
+        (
+            table,
+            sorted(
+                (row for row in all_slots if row["vtable_id"] == table["vtable_id"]),
+                key=lambda row: int(row["slot_index"]),
+            ),
+        )
+        for table in sorted(tables, key=lambda row: int(row["subobject_offset"], 0))
+    ]
 
 
 def apply_typed_vtable(
@@ -120,7 +140,7 @@ def apply_typed_vtable(
     overlay = _overlay_settings(effective, hypothesis)
     if not _scratch_dir(effective, hypothesis).exists():
         raise ValueError(f"overlay {_slug(hypothesis)} does not exist; create it first")
-    vtable, slots = _reviewed_vtable(settings.repo_dir, class_name)
+    tables = _reviewed_vtables(settings.repo_dir, class_name)
 
     start_pyghidra(settings)
     import pyghidra
@@ -131,13 +151,18 @@ def apply_typed_vtable(
         ParameterDefinitionImpl,
         PointerDataType,
         StructureDataType,
-        VoidDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
     program_name = resolve_program_name(overlay, selector)
     project = pyghidra.open_project(overlay.project_dir, overlay.project_name, create=False)
-    stats = {"class": class_name, "slots": len(slots), "typed_targets": 0}
+    stats = {
+        "class": class_name,
+        "tables": len(tables),
+        "slots": sum(len(slots) for _table, slots in tables),
+        "typed_targets": 0,
+        "prototype_sources": {},
+    }
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
             transaction = program.startTransaction("typed vtable overlay")
@@ -154,39 +179,103 @@ def apply_typed_vtable(
                         StructureDataType(category, class_name, 4),
                         DataTypeConflictHandler.KEEP_HANDLER,
                     )
-                receiver = PointerDataType(class_type, dtm)
-
-                table = StructureDataType(category, f"{class_name}_vtable", 0)
                 functions = program.getFunctionManager()
                 space = program.getAddressFactory().getDefaultAddressSpace()
-                targets = []
-                for row in slots:
-                    index = int(row["slot_index"])
-                    name = row["slot_name"] or f"slot{index}"
-                    definition = FunctionDefinitionDataType(category, f"{class_name}_{name}")
-                    definition.setReturnType(VoidDataType.dataType)
-                    definition.setArguments(
-                        [ParameterDefinitionImpl("this", receiver, None)]
-                    )
-                    added = dtm.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
-                    table.add(PointerDataType(added, dtm), 4, name, None)
-                    target = functions.getFunctionAt(space.getAddress(row["target"]))
-                    if target is not None:
-                        targets.append((target, name))
-                table_type = dtm.addDataType(table, DataTypeConflictHandler.REPLACE_HANDLER)
+                targets: dict[str, dict[str, Any]] = {}
+                primary_id = tables[0][0]["vtable_id"]
+                for table_row, slots in tables:
+                    subobject = int(table_row["subobject_offset"], 0)
+                    suffix = "" if table_row["vtable_id"] == primary_id else f"_{subobject:x}"
+                    receiver_type = class_type
+                    if subobject:
+                        receiver_type = dtm.addDataType(
+                            StructureDataType(category, f"{class_name}_subobject_{subobject:x}", 4),
+                            DataTypeConflictHandler.KEEP_HANDLER,
+                        )
+                    receiver = PointerDataType(receiver_type, dtm)
+                    table = StructureDataType(category, f"{class_name}_vtable{suffix}", 0)
+                    for row in slots:
+                        index = int(row["slot_index"])
+                        name = row["slot_name"] or f"slot{index}"
+                        target = functions.getFunctionAt(space.getAddress(row["target"]))
+                        definition, source = _slot_prototype(
+                            program,
+                            target,
+                            receiver,
+                            category,
+                            f"{class_name}{suffix}_{name}",
+                            ParameterDefinitionImpl,
+                            FunctionDefinitionDataType,
+                        )
+                        stats["prototype_sources"][source] = (
+                            stats["prototype_sources"].get(source, 0) + 1
+                        )
+                        added = dtm.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
+                        table.add(PointerDataType(added, dtm), 4, name, None)
+                        if target is not None:
+                            target_key = str(target.getEntryPoint())
+                            entry = targets.setdefault(
+                                target_key, {"target": target, "receivers": {}}
+                            )
+                            entry["receivers"][receiver.getDisplayName()] = receiver
+                    table_type = dtm.addDataType(table, DataTypeConflictHandler.REPLACE_HANDLER)
+                    from .candidate_facts import stamp
 
-                # The class's vptr now points at the typed table.
-                if class_type.getNumComponents() > 0:
-                    class_type.replaceAtOffset(
-                        0, PointerDataType(table_type, dtm), 4, "vptr", "typed vtable overlay"
+                    stamp(
+                        program,
+                        space.getAddress(table_row["address"]),
+                        hypothesis=hypothesis,
+                        fact_id=f"typed-vtable:{table_row['vtable_id']}",
+                        depends_on=[
+                            f"vtable-slot:{row['slot_index']}:{row['target']}" for row in slots
+                        ],
+                        constraints={
+                            "class": class_name,
+                            "subobject_offset": table_row["subobject_offset"],
+                            "slots": len(slots),
+                            "prototype_policy": (
+                                "reviewed, reconstructed, imported, compatible current, "
+                                "receiver-only fallback"
+                            ),
+                        },
                     )
+                    if subobject:
+                        receiver_type.replaceAtOffset(
+                            0,
+                            PointerDataType(table_type, dtm),
+                            4,
+                            "vptr",
+                            "typed secondary vtable overlay",
+                        )
+                    if subobject + 4 <= class_type.getLength():
+                        component = class_type.getComponentAt(subobject)
+                        field_name = (
+                            component.getFieldName() if component is not None else None
+                        ) or ("vptr" if subobject == 0 else f"base_{subobject:x}")
+                        field_type = (
+                            PointerDataType(table_type, dtm) if subobject == 0 else receiver_type
+                        )
+                        class_type.replaceAtOffset(
+                            subobject,
+                            field_type,
+                            4,
+                            field_name,
+                            "typed vtable overlay; base-subobject receiver at this offset",
+                        )
 
                 # Each slot target's receiver is retyped in place. Replacing
                 # the parameter list would discard the decompiler's recovered
                 # arguments - measured: slot 0x004BF0F0 lost three of four - so
                 # only the first parameter's type is set, and a function with
                 # none gets one added rather than having its list rewritten.
-                for target, _name in targets:
+                for entry in targets.values():
+                    target = entry["target"]
+                    receivers = list(entry["receivers"].values())
+                    if len(receivers) != 1:
+                        stats.setdefault("shared_slot_bodies", 0)
+                        stats["shared_slot_bodies"] += 1
+                        continue
+                    receiver = receivers[0]
                     if target.getCallingConventionName() != "__thiscall":
                         target.setCallingConvention("__thiscall")
                     # __thiscall gives the function an auto-parameter for the
@@ -211,9 +300,94 @@ def apply_typed_vtable(
                 raise
             program.save("typed vtable overlay", None)
     finally:
+        from .semantic import dispose_sessions
+
+        dispose_sessions()
         project.close()
-    stats["vtable_id"] = vtable["vtable_id"]
+    stats["vtable_ids"] = [table["vtable_id"] for table, _slots in tables]
     return stats
+
+
+def _slot_prototype(
+    program: Any,
+    target: Any | None,
+    receiver: Any,
+    category: Any,
+    name: str,
+    parameter_definition: Any,
+    function_definition: Any,
+) -> tuple[Any, str]:
+    """Copy the strongest current target prototype, replacing only ``this``.
+
+    Reviewed signatures and reconstructed/imported signatures already live on
+    the function and therefore win naturally.  Where the ProgramDB signature
+    is still default, HighFunction contributes its recovered return and
+    arguments.  The receiver is the only evidence-backed replacement; every
+    other argument survives.
+    """
+
+    from ghidra.program.model.data import VoidDataType
+
+    definition = function_definition(category, name)
+    if target is None:
+        definition.setReturnType(VoidDataType.dataType)
+        definition.setArguments([parameter_definition("this", receiver, None)])
+        return definition, "receiver-only-fallback"
+
+    property_manager = program.getUsrPropertyManager()
+    reconstructed = property_manager.getStringPropertyMap("wiz8.reconstructed")
+    layer = property_manager.getStringPropertyMap("wiz8.layer")
+    address = target.getEntryPoint()
+    if target.isExternal():
+        source = "imported"
+    elif reconstructed is not None and reconstructed.hasProperty(address):
+        source = "reconstructed"
+    elif layer is not None and layer.hasProperty(address):
+        source = "reviewed-or-current"
+    else:
+        source = "current-inferred"
+
+    return_type = target.getReturnType()
+    explicit = [
+        parameter for parameter in target.getParameters() if not parameter.isAutoParameter()
+    ]
+    arguments = [parameter_definition("this", receiver, None)]
+    if explicit and str(target.getSignatureSource()) != "DEFAULT":
+        arguments.extend(
+            parameter_definition(
+                parameter.getName() or f"argument{index}", parameter.getDataType(), None
+            )
+            for index, parameter in enumerate(explicit, start=1)
+        )
+    else:
+        try:
+            from .semantic import _high_function
+
+            prototype = _high_function(program, target).getFunctionPrototype()
+            return_type = prototype.getReturnType() or return_type
+            for index in range(prototype.getNumParams()):
+                parameter = prototype.getParam(index)
+                storage = str(parameter.getStorage())
+                if "ECX" in storage.upper():
+                    continue
+                arguments.append(
+                    parameter_definition(
+                        parameter.getName() or f"argument{index + 1}",
+                        parameter.getDataType(),
+                        None,
+                    )
+                )
+        except Exception:  # noqa: BLE001,S110 - the fallback remains receiver-only
+            pass
+    if return_type is None:
+        return_type = VoidDataType.dataType
+    definition.setReturnType(return_type)
+    definition.setArguments(arguments)
+    try:
+        definition.setCallingConvention("__thiscall")
+    except Exception:  # noqa: BLE001,S110 - older Ghidra accepts the prototype without it
+        pass
+    return definition, source
 
 
 def decompile_in_overlay(
@@ -245,57 +419,44 @@ def decompile_in_overlay(
         project.close()
 
 
-def dependency_cone(repo: Path, program: str, class_name: str) -> dict[str, list[str]]:
-    """The functions a change to one class can reach, by the reason each is in.
+def facts_in_overlay(
+    settings: Settings, selector: str, hypothesis: str, address: str
+) -> dict[str, Any]:
+    """Candidate and reviewed provenance at an anchor in the clone."""
 
-    Retyping a class touches more than the class: its vtable slot targets get
-    a receiver, everything that calls one of those sees a changed signature,
-    and every function that installs one of its vtables handles the object
-    directly. Those three sets are the cone a fixpoint has to redecompile, and
-    keeping the reason with each address is what makes the result reviewable.
-    """
+    from .cache import materialize_program
+    from .environment import start_pyghidra
+    from .query import execute_query
 
-    import csv as _csv
-    from collections import defaultdict as _defaultdict
+    effective, _ = materialize_program(settings, selector)
+    overlay = _overlay_settings(effective, hypothesis)
+    if not _scratch_dir(effective, hypothesis).exists():
+        raise ValueError(f"overlay {_slug(hypothesis)} does not exist; create it first")
+    start_pyghidra(settings)
+    import pyghidra
 
-    reviewed = repo / "evidence" / "reviewed" / "wiz8"
-    with (reviewed / "vtables.csv").open(newline="", encoding="utf-8") as stream:
-        tables = {
-            row["vtable_id"]: row["address"]
-            for row in _csv.DictReader(stream)
-            if row["class_name"] == class_name
-        }
-    with (reviewed / "vtable-slots.csv").open(newline="", encoding="utf-8") as stream:
-        targets = {
-            row["target"]
-            for row in _csv.DictReader(stream)
-            if row["vtable_id"] in tables and row["target"]
-        }
-    with (
-        repo / "evidence" / "snapshots" / "polymorphism" / "vptr-writes.csv"
-    ).open(newline="", encoding="utf-8") as stream:
-        writers = {
-            row["function_start"]
-            for row in _csv.DictReader(stream)
-            if row["program"] == program and row["vtable"] in set(tables.values())
-        }
-    with (
-        repo / "evidence" / "snapshots" / "functions" / "calls.csv"
-    ).open(newline="", encoding="utf-8") as stream:
-        callers = {
-            row["caller"]
-            for row in _csv.DictReader(stream)
-            if row["program"] == program and row["callee"] in targets
-        }
+    program_name = resolve_program_name(overlay, selector)
+    project = pyghidra.open_project(overlay.project_dir, overlay.project_name, create=False)
+    try:
+        with pyghidra.program_context(project, "/" + program_name) as program:
+            return execute_query(program, "facts-at", [address])
+    finally:
+        project.close()
 
-    cone: dict[str, list[str]] = _defaultdict(list)
-    for address in sorted(targets):
-        cone["slot-target"].append(address)
-    for address in sorted(writers):
-        cone["vptr-writer"].append(address)
-    for address in sorted(callers - targets - writers):
-        cone["calls-slot-target"].append(address)
-    return dict(cone)
+
+def dependency_cone(program: Any, repo: Path, class_name: str) -> dict[str, list[str]]:
+    """ProgramDB-derived propagation cone for every table of one class."""
+
+    from .dependency_graph import build_program_graph
+
+    tables = _reviewed_vtables(repo, class_name)
+    table_addresses = {int(table["address"], 16) for table, _slots in tables}
+    graph = build_program_graph(program, table_addresses)
+    for table, slots in tables:
+        for slot in slots:
+            if slot["target"]:
+                graph.add(table["address"], slot["target"], "vtable-slot")
+    return graph.cone([table["address"] for table, _slots in tables])
 
 
 def measure_impact(
@@ -321,11 +482,19 @@ def measure_impact(
         raise ValueError(f"overlay {_slug(hypothesis)} does not exist; create it first")
     overlay = _overlay_settings(effective, hypothesis)
     program_name = resolve_program_name(effective, selector)
-    cone = dependency_cone(settings.repo_dir, program_name, class_name)
-    addresses = sorted({address for group in cone.values() for address in group})
-
     start_pyghidra(settings)
     import pyghidra
+
+    # The overlay owns candidate computed references, so its ProgramDB is the
+    # authoritative graph for the cone.  The baseline is only a semantic
+    # comparison endpoint and never supplies stale snapshot ownership.
+    graph_project = pyghidra.open_project(overlay.project_dir, overlay.project_name, create=False)
+    try:
+        with pyghidra.program_context(graph_project, "/" + program_name) as graph_program:
+            cone = dependency_cone(graph_program, settings.repo_dir, class_name)
+    finally:
+        graph_project.close()
+    addresses = sorted({address for group in cone.values() for address in group})
 
     def digests(project_dir: Path, project_name: str) -> dict[str, str]:
         project = pyghidra.open_project(project_dir, project_name, create=False)

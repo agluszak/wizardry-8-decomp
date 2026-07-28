@@ -43,6 +43,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from .candidate_facts import stamp
 from .overlay import _overlay_settings, _scratch_dir
 from .project import resolve_program_name
 
@@ -168,6 +169,7 @@ def apply_aggregates(
                 category = CategoryPath(CATEGORY)
 
                 symbols = program.getSymbolTable()
+                row_by_member = {(row["aggregate"], row["member"]): row for row in rows}
                 for aggregate, members in sorted(placements.items()):
                     resolved: list[tuple[int, str]] = []
                     for named, member in members:
@@ -183,7 +185,15 @@ def apply_aggregates(
                         resolved.append((address, member))
                     resolved.sort()
                     observed = {}
-                    for address, _name in resolved:
+                    for address, member_name in resolved:
+                        measured = (
+                            row_by_member.get((aggregate, member_name), {})
+                            .get("access_widths", "")
+                            .split()
+                        )
+                        if len(measured) == 1:
+                            observed[address] = int(measured[0])
+                            continue
                         datum = listing.getDataAt(space.getAddress(f"{address:08x}"))
                         if datum is not None:
                             observed[address] = int(datum.getLength())
@@ -257,6 +267,24 @@ def apply_aggregates(
                             "displaced_definitions": displaced,
                             "bounds": "the placed members only; the block's own start is unknown",
                         }
+                    )
+                    stamp(
+                        program,
+                        start,
+                        hypothesis=hypothesis,
+                        fact_id=f"aggregate:{aggregate}",
+                        depends_on=[
+                            "pcode:assertion-control-slices",
+                            "aggregate-member-vocabulary",
+                        ],
+                        constraints={
+                            "structure": name,
+                            "members": [
+                                {"name": member, "offset": f"0x{address - base:x}", "width": width}
+                                for address, member, width in sized
+                            ],
+                            "bounds": "placed members only",
+                        },
                     )
 
                 for aggregate, members in sorted(types.items()):

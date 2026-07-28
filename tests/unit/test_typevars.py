@@ -24,6 +24,7 @@ _PROP_ACCESSES = [
         "site": "0044bef7",
         "path": "this[0x14][0x0][0x0]",
         "offset": "0x0",
+        "arguments": [{"constant": 1}],
     },
     {"kind": "null-test", "site": "0044befc", "path": "this[0x20]", "offset": "0x0"},
     {
@@ -42,6 +43,7 @@ _PROP_ACCESSES = [
         "site": "0044bf14",
         "path": "this[0x28][0x0][0x0]",
         "offset": "0x0",
+        "arguments": [{"constant": 1}],
     },
     {"kind": "null-test", "site": "0044bf19", "path": "this[0x38]", "offset": "0x0"},
     {
@@ -57,16 +59,21 @@ _PROP_CALLS = [
     {"op": "CALLIND", "site": "0044bef7", "order": 55, "block": 1, "target": {"space": "unique"}},
     {"op": "CALL", "site": "0044bf01", "order": 74, "block": 3, "target": "005e1c10"},
     {"op": "CALLIND", "site": "0044bf14", "order": 106, "block": 5, "target": {"space": "unique"}},
-    {"op": "CALL", "site": "0044bf1f", "order": 123, "block": 7, "target": "004b6ed0"},
+    {
+        "op": "CALL",
+        "site": "0044bf1f",
+        "order": 123,
+        "block": 7,
+        "target": "004b6ed0",
+        "receiver_path": "this[0x38]",
+    },
     {"op": "CALL", "site": "0044bf25", "order": 129, "block": 7, "target": "005e1c10"},
     {"op": "CALL", "site": "0044bf37", "order": 145, "block": 8, "target": "004b6b60"},
 ]
 
 
 def _prop_variables() -> dict[str, dict]:
-    variables = derive_type_variables(
-        "0044bec0", "this", _PROP_ACCESSES, _PROP_CALLS, {"005e1c10"}
-    )
+    variables = derive_type_variables("0044bec0", "this", _PROP_ACCESSES, _PROP_CALLS, {"005e1c10"})
     return {v["root_offset"]: v for v in variables}
 
 
@@ -74,11 +81,12 @@ def test_the_four_prop_pointee_shapes_are_derived_not_written() -> None:
     variables = _prop_variables()
 
     assert variables["0x14"]["constraints"]["has_virtual_destructor"] is True
-    assert variables["0x14"]["constraints"]["deleting_destructor_slot"] == 0
+    assert variables["0x14"]["constraints"]["scalar_deleting_destructor_slot"] == 0
     assert variables["0x20"]["constraints"]["declared_empty_destructor"] is True
     assert variables["0x28"]["constraints"]["has_virtual_destructor"] is True
     assert variables["0x38"]["constraints"]["complete_destructor"] == "004b6ed0"
     assert variables["0x38"]["constraints"]["destructor_is_virtual"] is False
+    assert variables["0x38"]["constraints"]["receiver_flow_verified"] is True
     for variable in variables.values():
         assert variable["constraints"]["null_checked"] is True
         assert variable["name"].startswith("AnonymousType_0044bec0_field")
@@ -119,3 +127,47 @@ def test_shape_only_constraints_filter_rather_than_identify() -> None:
     # 0"; the answer is a candidate pool, and every reason says so.
     assert len(matches) > 20
     assert all("polymorphic" in match["reasons"][0] for match in matches)
+
+
+def test_a_same_block_call_for_another_receiver_is_not_a_destructor() -> None:
+    accesses = [
+        {"kind": "load", "site": "00001000", "path": "this", "offset": "0x8"},
+        {"kind": "null-test", "site": "00001004", "path": "this[0x8]", "offset": "0x0"},
+        {
+            "kind": "call-arg",
+            "site": "0000100c",
+            "path": "this[0x8]",
+            "offset": "0x0",
+            "target": "00002000",
+        },
+    ]
+    calls = [
+        {
+            "site": "00001008",
+            "order": 1,
+            "block": 1,
+            "target": "00003000",
+            "receiver_path": "this[0xc]",
+        },
+        {"site": "0000100c", "order": 2, "block": 1, "target": "00002000"},
+    ]
+
+    variable = derive_type_variables("00001000", "this", accesses, calls, {"00002000"})[0]
+
+    assert "complete_destructor" not in variable["constraints"]
+    assert variable["constraints"]["declared_empty_destructor"] is True
+
+
+def test_slot_zero_without_the_vc6_deleting_flag_is_an_ordinary_virtual() -> None:
+    accesses = [
+        {"kind": "load", "site": "00001000", "path": "this", "offset": "0x8"},
+        {
+            "kind": "indirect-call-target",
+            "site": "00001008",
+            "path": "this[0x8][0x0][0x0]",
+            "offset": "0x0",
+            "arguments": [],
+        },
+    ]
+
+    assert derive_type_variables("00001000", "this", accesses, [], set()) == []

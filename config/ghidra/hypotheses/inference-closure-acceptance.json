@@ -1,0 +1,18 @@
+{
+  "hypothesis": "inference-closure-acceptance",
+  "type_variables": [
+    {
+      "function": "0044bec0",
+      "root": "this"
+    }
+  ],
+  "vtables": [
+    "GrCycle"
+  ],
+  "screen_dispatch": true,
+  "aggregates": true,
+  "reconstructed": false,
+  "max_iterations": 8,
+  "semantic_limit": 120,
+  "max_indirect_functions": 512
+}

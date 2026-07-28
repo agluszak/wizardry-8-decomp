@@ -276,6 +276,7 @@ def reconstructed_transfer_command(
             bodies_from_objects,
             bodies_from_pdb,
             build_transfer_plan,
+            verified_boundary_addresses,
             write_report,
         )
 
@@ -284,7 +285,9 @@ def reconstructed_transfer_command(
             bodies = bodies_from_pdb(pdb)
         else:
             bodies = bodies_from_objects(objects or settings.build_dir)
-        plan = build_transfer_plan(settings.repo_dir, bodies)
+        verification_root = objects or (settings.repo_dir / "build" / "decomp" / "CMakeFiles")
+        verified = verified_boundary_addresses(settings.repo_dir, verification_root)
+        plan = build_transfer_plan(settings.repo_dir, bodies, verified_exact=verified)
         destination = settings.repo_dir / "build" / "reports" / "reconstructed-transfer"
         summary = write_report(plan, destination)
         summary["report"] = str(destination)
@@ -702,10 +705,19 @@ def sgp_sweep(
 
 @ghidra_app.command("overlay")
 def ghidra_overlay_command(
-    action: Annotated[str, typer.Argument(help="create, apply-vtable, apply-reconstructed, apply-aggregates, impact, decompile, or discard.")],
+    action: Annotated[
+        str,
+        typer.Argument(
+            help="create, analyze, apply-vtable, apply-reconstructed, apply-aggregates, impact, decompile, facts-at, or discard."
+        ),
+    ],
     selector: Annotated[str, typer.Argument(help="Program selector.")],
-    hypothesis: Annotated[str, typer.Argument(help="Hypothesis name; keys the scratch clone.")],
-    argument: Annotated[str | None, typer.Argument(help="Class for apply-vtable; address for decompile.")] = None,
+    hypothesis: Annotated[
+        str, typer.Argument(help="Hypothesis name; for analyze, the JSON plan path.")
+    ],
+    argument: Annotated[
+        str | None, typer.Argument(help="Class for apply-vtable; address for decompile.")
+    ] = None,
 ) -> None:
     """Candidate overlays: clone, mutate, measure, discard - never the baseline."""
 
@@ -715,6 +727,10 @@ def ghidra_overlay_command(
         settings = _settings()
         if action == "create":
             return overlay.create_overlay(settings, selector, hypothesis)
+        if action == "analyze":
+            from .ghidra.inference import analyze_overlay
+
+            return analyze_overlay(settings, selector, hypothesis)
         if action == "apply-vtable":
             if not argument:
                 raise ValueError("apply-vtable requires a class name")
@@ -723,6 +739,10 @@ def ghidra_overlay_command(
             if not argument:
                 raise ValueError("decompile requires an address")
             return overlay.decompile_in_overlay(settings, selector, hypothesis, argument)
+        if action == "facts-at":
+            if not argument:
+                raise ValueError("facts-at requires an address")
+            return overlay.facts_in_overlay(settings, selector, hypothesis, argument)
         if action == "impact":
             if not argument:
                 raise ValueError("impact requires a class name")
@@ -1272,6 +1292,9 @@ def report_aggregates(
                         "candidates",
                         "sites",
                         "agreed",
+                        "access_widths",
+                        "extensions",
+                        "index_strides",
                     ],
                 )
                 writer.writeheader()

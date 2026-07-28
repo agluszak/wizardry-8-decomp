@@ -95,6 +95,10 @@ def _markdown(context: dict[str, Any]) -> str:
         f"- EH cleanups: {len(context['eh']['unwind'])}",
         f"- Global references: {len(context['globals'])}",
         f"- Vptr writes: {len(context['polymorphism']['vptr_writes'])}",
+        f"- Program facts: {len(context['semantic']['facts'].get('properties', {}))}",
+        f"- Field accesses: {len(context['semantic'].get('field_accesses', {}).get('accesses', []))}",
+        f"- Type variables: {len(context['semantic'].get('type_variables', {}).get('variables', []))}",
+        f"- Indirect call sites: {len(context['semantic'].get('indirect_calls', []))}",
         "",
     ]
 
@@ -197,6 +201,9 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         ("function", [f"0x{requested:08x}"]),
         ("decompile", [f"0x{requested:08x}"]),
         ("listing", [f"0x{requested:08x}"]),
+        ("high-function", [f"0x{requested:08x}"]),
+        ("pcode", [f"0x{requested:08x}", "normalize"]),
+        ("facts-at", [f"0x{requested:08x}"]),
     ]
     results, transport = query_many(settings, selector, queries)
     by_command = {item["command"]: item["result"] for item in results}
@@ -207,6 +214,39 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         for line in by_command["listing"]["listing"].splitlines()
         if line.strip()
     }
+    semantic_facts = by_command["facts-at"]
+    if requested != entry:
+        entry_results, _ = query_many(settings, selector, [("facts-at", [f"0x{entry:08x}"])])
+        entry_facts = entry_results[0]["result"]
+        if entry_facts.get("properties"):
+            semantic_facts = entry_facts
+    high = by_command["high-function"]
+    semantic_fields: dict[str, Any] = {}
+    semantic_variables: dict[str, Any] = {}
+    if high.get("parameters"):
+        semantic_results, _ = query_many(
+            settings,
+            selector,
+            [
+                ("field-accesses", [f"0x{entry:08x}", "0"]),
+                ("type-variables", [f"0x{entry:08x}", "0"]),
+            ],
+        )
+        semantic_fields = semantic_results[0]["result"]
+        semantic_variables = semantic_results[1]["result"]
+    indirect_sites = sorted(
+        {
+            operation["address"]
+            for operation in by_command["pcode"].get("operations", [])
+            if operation["op"] == "CALLIND"
+        }
+    )
+    indirect_calls = []
+    if indirect_sites:
+        call_results, _ = query_many(
+            settings, selector, [("callsite", [f"0x{site}"]) for site in indirect_sites]
+        )
+        indirect_calls = [item["result"] for item in call_results]
 
     # These producers own the two generated projections consumed below and
     # verify their tracked snapshots before the context packet reads them.
@@ -318,6 +358,15 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         "eh": {"functions": eh_functions, "unwind": unwind},
         "globals": globals_joined,
         "polymorphism": {"vptr_writes": vptr_writes, "tables": tables},
+        "semantic": {
+            "facts": semantic_facts,
+            "high_function": high,
+            "normalized_pcode": by_command["pcode"],
+            "field_accesses": semantic_fields,
+            "type_variables": semantic_variables,
+            "indirect_calls": indirect_calls,
+        },
+        "candidate_relations": _candidate_relations(settings.repo_dir, program_name, entry),
         "ghidra": {
             "function": function,
             "decompiled": by_command["decompile"]["decompiled"] or "",
@@ -341,9 +390,45 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
             "eh_cleanups": len(unwind),
             "global_references": len(globals_joined),
             "vptr_writes": len(vptr_writes),
+            "program_facts": len(semantic_facts.get("properties", {})),
+            "field_accesses": len(semantic_fields.get("accesses", [])),
+            "type_variables": len(semantic_variables.get("variables", [])),
+            "indirect_calls": len(indirect_calls),
         },
         "outputs": [
             str(json_path.relative_to(settings.repo_dir)),
             str(markdown_path.relative_to(settings.repo_dir)),
         ],
     }
+
+
+def _candidate_relations(repo: Path, program: str, entry: int) -> dict[str, Any]:
+    """Relevant disposable cross-build, object-map and reconstructed rows."""
+
+    build = repo / "build" / "reports"
+    relations: dict[str, Any] = {"cross_build": [], "object_map": [], "reconstructed": []}
+    for path in sorted((build / "cross-build").glob("*/mappings.csv")):
+        for row in _read(path):
+            if any(
+                value and value.lower().removeprefix("0x").zfill(8) == f"{entry:08x}"
+                for key, value in row.items()
+                if "address" in key or key in {"left", "right"}
+            ):
+                relations["cross_build"].append({"report": str(path.relative_to(repo)), **row})
+    for name in ("assignments.csv", "object-map.csv", "functions.csv"):
+        path = build / "object-map" / name
+        if not path.is_file():
+            continue
+        for row in _read(path):
+            if any(
+                value.lower().removeprefix("0x").zfill(8) == f"{entry:08x}"
+                for value in row.values()
+                if value
+            ):
+                relations["object_map"].append(row)
+    path = build / "reconstructed-transfer" / "transfers.csv"
+    if path.is_file():
+        relations["reconstructed"] = [
+            row for row in _read(path) if row.get("address", "").lower().zfill(8) == f"{entry:08x}"
+        ]
+    return relations

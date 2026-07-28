@@ -280,7 +280,7 @@ def test_only_an_exact_row_reaches_the_reviewed_tier(tmp_path: Path) -> None:
         _body("TooShort", 12, "engine.obj"),
     ]
 
-    plan = build_transfer_plan(repo, bodies)
+    plan = build_transfer_plan(repo, bodies, verified_exact={"00401570"})
     by_symbol = {transfer.symbol: transfer for transfer in plan.transfers}
 
     assert by_symbol["BringUpEngine"].tier == REVIEWED_TIER
@@ -291,6 +291,23 @@ def test_only_an_exact_row_reaches_the_reviewed_tier(tmp_path: Path) -> None:
     assert "too short" in by_symbol["TooShort"].blocked
     assert by_symbol["TooShort"].tier == OVERLAY_TIER
     assert [item["symbol"] for item in plan.unmatched] == ["Missing"]
+
+
+def test_an_exact_ledger_row_stays_overlay_only_without_fresh_body_verification(
+    tmp_path: Path,
+) -> None:
+    repo = tmp_path
+    (repo / "config" / "reccmp").mkdir(parents=True)
+    (repo / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv").write_text(
+        "address,size,symbol,owner,confidence,relocation_masked_sha256,evidence\n"
+        "00401570,242,BringUpEngine,wiz8,exact,abc,proved\n",
+        encoding="utf-8",
+    )
+
+    plan = build_transfer_plan(repo, [_body("BringUpEngine", 242, "engine.obj")])
+
+    assert plan.transfers[0].tier == OVERLAY_TIER
+    assert plan.transfers[0].blocked == "fresh relocation-masked boundary verification required"
 
 
 def test_the_frame_says_where_its_own_offsets_are_measured_from() -> None:
@@ -351,5 +368,8 @@ def test_proposals_are_ledger_shaped_and_only_ever_proposals() -> None:
     assert rows[0]["address"] == "00401570"
     assert rows[0]["evidence_id"] == "signatures:wiz8:00401570"
     assert rows[0]["parameters_json"] == '[["instance", "void *"]]'
+    assert rows[0]["confidence"] == "strong"
+    assert rows[0]["calling_convention_authority"] == "exact-body"
+    assert rows[0]["parameter_name_authority"].startswith("reconstructed-source")
     # Only Ghidra can state what it had before, so the column stays empty here.
     assert rows[0]["previous_auto_signature"] == ""

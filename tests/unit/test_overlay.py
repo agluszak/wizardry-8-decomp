@@ -44,23 +44,23 @@ def test_a_class_with_no_reviewed_primary_vtable_is_refused() -> None:
 
 
 def test_the_dependency_cone_names_why_each_function_is_in_it() -> None:
-    # Retyping a class reaches three sets, and a fixpoint must redecompile all
-    # three: the slot targets that gain a receiver, the writers that handle the
-    # object, and the callers whose callee signature moved under them.
-    from wiz8decomp.ghidra.overlay import dependency_cone
+    from wiz8decomp.ghidra.dependency_graph import DependencyGraph
 
-    cone = dependency_cone(REPOSITORY, "wiz8--gog-base--wiz8--18a74ff61c65", "GrCycle")
+    graph = DependencyGraph()
+    graph.add("005ece78", "004a5f00", "vtable-slot")
+    graph.add("004a5e50", "005ece78", "vptr-write")
+    graph.add("00401234", "004a5f00", "computed-call")
 
-    assert set(cone) == {"slot-target", "vptr-writer", "calls-slot-target"}
-    assert "004a5e50" in cone["vptr-writer"] or "004a6610" in cone["vptr-writer"]
-    # The three groups are disjoint, so a changed function has one reason.
-    groups = [set(addresses) for addresses in cone.values()]
-    assert not (groups[0] & groups[1] & groups[2])
+    cone = graph.cone(["005ece78"])
+
+    assert cone["vtable-slot"] == ["004a5f00"]
+    assert cone["vptr-write"] == ["004a5e50"]
+    assert "00401234" in cone["computed-call"]
 
 
 def test_a_class_outside_the_reviewed_model_has_an_empty_cone() -> None:
-    from wiz8decomp.ghidra.overlay import dependency_cone
+    from wiz8decomp.ghidra.dependency_graph import DependencyGraph
 
-    cone = dependency_cone(REPOSITORY, "wiz8--gog-base--wiz8--18a74ff61c65", "Nonexistent")
+    cone = DependencyGraph().cone(["00500000"])
 
-    assert all(not addresses for addresses in cone.values()) or cone == {}
+    assert cone == {}

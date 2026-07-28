@@ -152,10 +152,17 @@ def transfer_into_overlay(
 ) -> dict[str, Any]:
     """Read the build's debug information and apply it, in one step."""
 
-    from ..reconstructed import bodies_from_objects, build_transfer_plan
+    from ..reconstructed import (
+        bodies_from_objects,
+        build_transfer_plan,
+        verified_boundary_addresses,
+    )
 
     root = build_dir or settings.build_dir
-    plan = build_transfer_plan(settings.repo_dir, bodies_from_objects(root))
+    verified = verified_boundary_addresses(settings.repo_dir, root)
+    plan = build_transfer_plan(
+        settings.repo_dir, bodies_from_objects(root), verified_exact=verified
+    )
     stats = apply_transfers(settings, selector, hypothesis, plan)
     stats["plan"] = plan.summary()
     return stats
