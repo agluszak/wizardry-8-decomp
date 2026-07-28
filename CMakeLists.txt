@@ -298,6 +298,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/RegionManager.cpp
         src/wiz8/local_code/chunk.cpp
         src/wiz8/engine_code/GrCycle.cpp
+        src/wiz8/engine_code/stGroundShadow.cpp
         src/wiz8/local_code/GameplayDatabase.cpp
         src/wiz8/dialog_code/DialogInterface.cpp
         src/wiz8/3d_code/IList.cpp

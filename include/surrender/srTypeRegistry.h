@@ -23,9 +23,11 @@ public:
         ClassNode* parent,
         unsigned long class_id,
         int concrete);
+    SR_DLL_IMPORT void registerInstance(ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT void unregisterInstance(ClassNode* node, srRuntimeClass* instance);
 };
 
-class srClass {
+class srClass : public srRuntimeClass {
 public:
     static SR_DLL_IMPORT srRegistry::ClassNode* sGetClassNode();
 

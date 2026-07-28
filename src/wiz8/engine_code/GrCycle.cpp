@@ -1,9 +1,8 @@
 #include "wiz8/grcycle.h"
+#include "wiz8/ground_shadow.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
-#include "surrender/srHeap.h"
-#include "surrender/srTypeRegistry.h"
 #include <new>
 #include <string.h>
 
@@ -39,29 +38,6 @@ __forceinline W8GrCycleRegistryVector005ECEDC::W8GrCycleRegistryVector005ECEDC()
 
 extern W8GrowableVector<W8GrCycleRegistryVector005ECEDC*> g_grcycles_by_name;
                                                                     /* 0x0065BE00 */
-
-class srNode : public srRuntimeClass {
-public:
-    __declspec(dllimport) void setFlag(int flag);
-    __declspec(dllimport) void clearFlag(int flag);
-};
-
-/* The allocation size, constructor address, runtime name, and two trailing
-   values are proven. No surviving witness gives the original class name. */
-class W8GroundShadowNode004D61B0 : public srNode {
-public:
-    W8GroundShadowNode004D61B0(int value); /* 0x004D61B0 */
-
-    void* operator new(unsigned int size)
-    {
-        return srHeap.allocate(size);
-    }
-
-    unsigned char unknown_001[0x13b];
-    int value_13c;                       /* 0x13c */
-    int value_140;                       /* 0x140 */
-    unsigned char unknown_144[4];
-};                                      /* 0x148 */
 
 class W8Vector005ECED4
     : public W8GrowableVector<W8VectorElement005ECED4*> {
@@ -253,7 +229,7 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 // FUNCTION: WIZ8 0x004A8D50
 void W8GrCycle::CreateGroundShadow(int value_140, int value_13c)
 {
-    m_ground_shadow = new W8GroundShadowNode004D61B0(0);
+    m_ground_shadow = new stGroundShadow(0);
     m_ground_shadow->setName("Ground Shadow");
     m_ground_shadow->value_140 = value_140;
     m_ground_shadow->value_13c = value_13c;
@@ -264,10 +240,10 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
 {
     if (m_ground_shadow != 0) {
         if (visible) {
-            m_ground_shadow->clearFlag(0);
+            m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_0);
         }
         else {
-            m_ground_shadow->setFlag(0);
+            m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_0);
         }
     }
 }

@@ -212,3 +212,16 @@ wiz8,W8GrowableVector<W8VectorElement005EEA28 *>.primary,0,005853f0,,exact,class
 wiz8,W8Vector005EEA28.primary,0,00585420,,exact,classes:wiz8:W8Vector005EEA28
 wiz8,W8GrowableVector<W8VectorElement005ECF00 *>.primary,0,004aaac0,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECF00 *>
 wiz8,W8Vector005ECF00.primary,0,004aaaf0,,exact,classes:wiz8:W8Vector005ECF00
+wiz8,stGroundShadow.primary,0,004d69b0,getClassName,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,1,004d69a0,getClassID,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,2,004d69c0,getClassNode,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,3,005e21f4,dump,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,4,005e20f8,verify,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,5,004d6340,scalar_deleting_destructor,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,6,004d6bf0,vInstance,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,7,004d6a30,vslot7,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,8,004d6540,traverse,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,9,004d6640,process,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,10,005e1fcc,getLocalBounds,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,11,005e1fc6,updateBounds,strong,classes:wiz8:stGroundShadow
+wiz8,stGroundShadow.primary,12,005e1fc0,processSignal,strong,classes:wiz8:stGroundShadow

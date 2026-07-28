@@ -520,8 +520,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     # Monster owns two tables: a 6-slot primary and a 5-slot secondary at 0x18.
     # The 20 slots that once padded Monster.primary to 31 belong to a distinct
     # table at 0x005ed22c that no reviewed class claims yet.
-    assert len(model.vtables) == 79
-    assert len(model.slots) == 213
+    assert len(model.vtables) == 80
+    assert len(model.slots) == 226
     classes = {item.name: item for item in model.classes}
     assert classes["GDProp"].size == 0x58
     assert classes["W8PList"].size == 0xC

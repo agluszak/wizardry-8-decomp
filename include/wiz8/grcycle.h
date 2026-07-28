@@ -40,7 +40,7 @@ struct W8GrCycleTarget {
 class W8VectorElement005ECED4;
 class W8Vector005ECED4;
 class W8Vector005EC294;
-class W8GroundShadowNode004D61B0;
+class stGroundShadow;
 
 class W8GrCycle :
     public W8GrCycleBase004B6900,
@@ -76,6 +76,6 @@ private:
     W8Vector005ECED4* m_vector_1b0;       /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5[0x1b];
-    W8GroundShadowNode004D61B0* m_ground_shadow; /* 0x1d0: runtime name "Ground Shadow" */
+    stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
     unsigned char unknown_1d4[4];
 };                                      /* modeled minimum 0x1d8 */
