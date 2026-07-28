@@ -1116,3 +1116,96 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context)
     }
     return 0;
 }
+
+extern W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);    /* 0x00510180 */
+extern void GetSlotChosenAction(
+    int party_slot, unsigned int context, int* action, int* detail, void* unused,
+    const W8ItemInstance** item);                                        /* 0x004E77B0 */
+extern unsigned char IsTargetSourceInRangeOfGroup(
+    const W8TargetSource* source, W8MonsterGroup* group, int context);   /* 0x00537780 */
+extern unsigned char CanReachTarget(
+    int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
+
+/* Validate a targeting context a second time, after resolving "current". The
+   inner resolution has an assertion of its own, so a context that gets this far
+   has already been checked once; this one guards the caller's own use of the
+   answer, and the two report different lines. */
+// FUNCTION: WIZ8 0x0053BA20
+int GetValidatedTargetingContext(int party_slot, unsigned int context)
+{
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
+        context = ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
+    }
+    switch (context) {
+    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
+        return W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
+    case W8_TARGETING_CONTEXT_IN_COMBAT:
+        return W8_TARGETING_CONTEXT_IN_COMBAT;
+    case W8_TARGETING_CONTEXT_SHARED:
+        return W8_TARGETING_CONTEXT_SHARED;
+    case W8_TARGETING_CONTEXT_SPELL:
+        return W8_TARGETING_CONTEXT_SPELL;
+    case W8_TARGETING_CONTEXT_ITEM:
+        return W8_TARGETING_CONTEXT_ITEM;
+    case W8_TARGETING_CONTEXT_FIVE:
+        return W8_TARGETING_CONTEXT_FIVE;
+    case W8_TARGETING_CONTEXT_DIALOGUE:
+        return W8_TARGETING_CONTEXT_DIALOGUE;
+    default:
+        srAssertFail("FALSE", TARGETING_CPP, 0xc87, 0);
+    }
+    return W8_TARGETING_CONTEXT_IN_COMBAT;
+}
+
+/* Whether a party slot could aim its chosen action at one whole monster group.
+   An untargetable group is refused before anything else is worked out. What
+   the action needs then decides how the question is asked: a group-wide need
+   is a range test against the group, and a single-monster need is satisfied by
+   any one member the slot can reach.
+
+   The source block is built here rather than passed in, so this always asks on
+   the character's own behalf. */
+// FUNCTION: WIZ8 0x00536D60
+unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
+{
+    W8TargetSource source;
+    int action;
+    int detail;
+    const W8ItemInstance* item;
+    char needed;
+    unsigned int index;
+    int reachable;
+
+    if (GetMonsterGroupRecord(group)->untargetable_24a != 0) {
+        return 0;
+    }
+
+    if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) == 0) {
+        needed = 0;
+    }
+    else {
+        GetSlotChosenAction(
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &item);
+        needed = GetTargetNeededForAction(action, detail, &item);
+    }
+
+    SetTargetSourceToCharacter(party_slot, &source);
+
+    if (needed == 5) {
+        return IsTargetSourceInRangeOfGroup(&source, group, 6) != 0;
+    }
+    if (needed != 2 && needed != 1) {
+        return 0;
+    }
+
+    reachable = 0;
+    for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x37a, TARGETING_CPP, IListGetAt(group->monsters, index), 1));
+
+        if (CanReachTarget(party_slot, 2, monster_info, 6, 0)) {
+            ++reachable;
+        }
+    }
+    return reachable != 0;
+}
