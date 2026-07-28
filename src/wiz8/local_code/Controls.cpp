@@ -100,6 +100,9 @@ extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
 extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
 extern unsigned short Function4071F0(int font);             /* font line height */
+extern short Function407010(const wchar_t* text, int font);
+extern const wchar_t g_W8EmptyText0060CC74[];
+extern const wchar_t g_W8TextBreakCharacters00617C88[];
 extern unsigned int g_W8TextControlMask005ED56C;
 extern unsigned int g_W8TextControlMask005ED570;
 
@@ -320,9 +323,16 @@ extern void Function549660(int a, int b, int c, short* width, short* height);
 class W8TextBuffer005ED5B8 {
 public:
     W8TextBuffer005ED5B8();
+    W8TextBuffer005ED5B8(const W8ControlsRect* bounds, const wchar_t* text,
+                         int font, unsigned int layout_mode, int render_mode);
     void CopyTextTo(wchar_t* destination);
     unsigned int GetLineHeight();
     void UpdateLayout();                  /* 0x004F35B0 */
+    void SetLayoutMode(unsigned int layout_mode);
+    void SetText(const wchar_t* text, int font);
+    void SetLayoutBounds(const W8ControlsRect* bounds,
+                         unsigned char copy_pending,
+                         unsigned char update_layout);
 
     __forceinline void SetLayoutBounds(int left, int top, int right, int bottom)
     {
@@ -349,11 +359,11 @@ protected:
     W8ControlsRect m_pendingBounds;       /* 0x14: mirrored pending bounds */
     int m_field_24;                      /* 0x24: the constructor steps over this one */
     int m_font;                          /* 0x28: font used for uncached line height */
-    int m_field_2c;
+    int m_lineCount;
     unsigned int m_lineHeight;           /* 0x30: cached height, zero means query font */
     wchar_t* m_buffer;                   /* 0x34: freed on teardown */
     int m_layoutMode;                    /* 0x38: 10 initially */
-    int m_field_3c;
+    unsigned int m_maxLineWidth;
     unsigned char m_geometryDirty;
     unsigned char m_flag_41;
     unsigned char pad_42[2];
@@ -373,10 +383,10 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
 {
     m_buffer = 0;
     m_font = 0;
-    m_field_2c = 0;
+    m_lineCount = 0;
     m_geometryDirty = 0;
     m_layoutMode = 10;
-    m_field_3c = 0;
+    m_maxLineWidth = 0;
     m_lineHeight = 0;
     m_renderMode = 4;
     m_flag_41 = 0;
@@ -390,6 +400,146 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
     m_pendingBounds.top = 0;
     m_pendingBounds.right = 0;
     m_pendingBounds.bottom = 0;
+}
+
+// FUNCTION: WIZ8 0x004F33A0
+W8TextBuffer005ED5B8::W8TextBuffer005ED5B8(const W8ControlsRect* bounds,
+                                           const wchar_t* text,
+                                           int font,
+                                           unsigned int layout_mode,
+                                           int render_mode)
+{
+    m_buffer = 0;
+    m_font = 0;
+    m_lineCount = 0;
+    m_maxLineWidth = 0;
+    m_geometryDirty = 0;
+    m_lineHeight = 0;
+    m_flag_41 = 0;
+    m_layoutMode = layout_mode;
+    if ((m_layoutMode & 7) == 0) {
+        m_layoutMode |= 2;
+    }
+    if ((m_layoutMode & 0x38) == 0) {
+        m_layoutMode |= 8;
+    }
+    m_renderMode = render_mode;
+    m_field_48 = -1;
+    m_flag_4c = 0;
+    m_layoutBounds = *bounds;
+    m_pendingBounds = *bounds;
+    m_lineCount = 0;
+    m_font = font;
+    if (text != 0) {
+        m_buffer = new wchar_t[wcslen(text) + 1];
+        wcscpy(m_buffer, text);
+        UpdateLayout();
+        m_geometryDirty = 1;
+        return;
+    }
+    m_buffer = 0;
+    m_geometryDirty = 1;
+}
+
+// FUNCTION: WIZ8 0x004F34A0
+void W8TextBuffer005ED5B8::SetLayoutMode(unsigned int layout_mode)
+{
+    m_layoutMode = layout_mode;
+    if ((m_layoutMode & 7) == 0) {
+        m_layoutMode |= 2;
+    }
+    if ((m_layoutMode & 0x38) == 0) {
+        m_layoutMode |= 8;
+    }
+}
+
+// FUNCTION: WIZ8 0x004F34D0
+void W8TextBuffer005ED5B8::SetText(const wchar_t* text, int font)
+{
+    m_font = font;
+    m_lineCount = 0;
+    delete[] m_buffer;
+    if (text != 0) {
+        m_buffer = new wchar_t[wcslen(text) + 1];
+        wcscpy(m_buffer, text);
+        UpdateLayout();
+        m_geometryDirty = 1;
+        return;
+    }
+    m_buffer = 0;
+    m_geometryDirty = 1;
+}
+
+// FUNCTION: WIZ8 0x004F3540
+void W8TextBuffer005ED5B8::SetLayoutBounds(const W8ControlsRect* bounds,
+                                           unsigned char copy_pending,
+                                           unsigned char update_layout)
+{
+    m_layoutBounds = *bounds;
+    if (copy_pending) {
+        m_pendingBounds = *bounds;
+    }
+    if (update_layout && m_buffer != 0) {
+        UpdateLayout();
+    }
+    m_geometryDirty = 1;
+}
+
+// FUNCTION: WIZ8 0x004F35B0
+void W8TextBuffer005ED5B8::UpdateLayout()
+{
+    unsigned int available_width = m_layoutBounds.right - m_layoutBounds.left;
+    wchar_t* line = m_buffer;
+    unsigned int accumulated_width = 0;
+    wchar_t* previous_break = 0;
+    short separator_width = Function407010(g_W8EmptyText0060CC74, m_font);
+
+    m_lineCount = 1;
+    if ((m_layoutMode & 0x40) == 0) {
+        m_maxLineWidth = 0;
+        size_t span = wcscspn(line, g_W8TextBreakCharacters00617C88);
+        wchar_t* break_at = line + span;
+        while (*break_at != L'\0') {
+            *break_at = L'\0';
+            short word_width = Function407010(line, m_font);
+            if ((unsigned int)((int)word_width + accumulated_width) < available_width) {
+                accumulated_width += (int)separator_width + (int)word_width;
+                previous_break = break_at;
+            } else {
+                if (previous_break != 0) {
+                    *previous_break = L'\n';
+                }
+                unsigned int completed_width = accumulated_width - (int)separator_width;
+                if (m_maxLineWidth < completed_width) {
+                    m_maxLineWidth = completed_width;
+                }
+                accumulated_width = (int)separator_width + (int)word_width;
+                previous_break = 0;
+                ++m_lineCount;
+            }
+            line += span + 1;
+            *break_at = L' ';
+            span = wcscspn(line, g_W8TextBreakCharacters00617C88);
+            break_at = line + span;
+        }
+        short final_width = Function407010(line, m_font);
+        unsigned int total_width = (int)final_width + accumulated_width;
+        if (available_width <= total_width) {
+            if (previous_break != 0) {
+                *previous_break = L'\n';
+            }
+            if (m_maxLineWidth < accumulated_width) {
+                m_maxLineWidth = accumulated_width;
+            }
+            total_width = (int)separator_width + (int)final_width;
+            ++m_lineCount;
+        }
+        if (m_maxLineWidth < total_width) {
+            m_maxLineWidth = total_width;
+        }
+        return;
+    }
+    m_maxLineWidth = wcslen(m_buffer);
 }
 
 /* Copies the owned text into caller storage. The caller supplies the capacity;
