@@ -7,34 +7,14 @@
  * emitter, count how many the record has, and reach the emitter's own value.
  */
 
-/* One emitter a launcher can fire from. Only the field the reach-through
-   accessor reads is established. */
-class W8MissileEmitter {
-public:
-    unsigned char unknown_00[8];
-    float value_08;                      /* 0x08 */
-};
-
-/* The launcher record a missile is fired from. */
-class W8MissileLauncher {
-public:
-    unsigned char unknown_00[0xa4];
-    /* 0xa4: which of the emitters below is in use. Signed, and read as a byte
-       into a full-width index. */
-    signed char emitter_index;
-    unsigned char unknown_a5[0x33];
-    /* 0xd8: the emitters. The count is derived rather than stored - the
-       counter below tests the first two for null, which is what bounds the
-       table at two. */
-    W8MissileEmitter* emitters[2];       /* 0xd8 */
-};
+#include "wiz8/engine_code/Emitter.h"
 
 class W8Missile {
 public:
     virtual ~W8Missile();
 
-    W8MissileLauncher* GetLauncher();    /* 0x004A45E0 */
-    W8MissileEmitter* GetActiveEmitter();/* 0x004A4570 */
+    W8EmitterHost* GetLauncher();    /* 0x004A45E0 */
+    W8Emitter* GetActiveEmitter();/* 0x004A4570 */
     float GetActiveEmitterValue();       /* 0x004A45C0 */
     char GetEmitterCount();              /* 0x004A4590 */
     void Release();                      /* 0x004A4100 */
@@ -44,7 +24,7 @@ public:
     void ResetLauncherCounters(int arg_1, int arg_2);   /* 0x004A4140 */
 
     unsigned char unknown_004[0x1d8];
-    W8MissileLauncher* launcher;         /* 0x1dc */
+    W8EmitterHost* launcher;             /* 0x1dc */
 };
 
 extern void ReleaseMissile(W8Missile* missile);                          /* 0x004A7470 */
@@ -53,14 +33,14 @@ extern void Function4A72F0(int arg_1, int arg_2);
 
 /* The launcher a missile was fired from. */
 // FUNCTION: WIZ8 0x004A45E0
-W8MissileLauncher* W8Missile::GetLauncher()
+W8EmitterHost* W8Missile::GetLauncher()
 {
     return this->launcher;
 }
 
 /* The emitter the launcher is currently firing from. */
 // FUNCTION: WIZ8 0x004A4570
-W8MissileEmitter* W8Missile::GetActiveEmitter()
+W8Emitter* W8Missile::GetActiveEmitter()
 {
     return this->launcher->emitters[this->launcher->emitter_index];
 }
@@ -97,7 +77,7 @@ void W8Missile::Release()
 // FUNCTION: WIZ8 0x004A4110
 void W8Missile::ApplyLauncherSetting98()
 {
-    Function4A15D0(Method34(), *(unsigned char*)((char*)this->launcher + 0x98));
+    Function4A15D0(Method34(), this->launcher->setting_98);
 }
 
 /* Reset the launcher's two counters at 0x94 and 0x95. The second is one less
@@ -106,7 +86,7 @@ void W8Missile::ApplyLauncherSetting98()
 // FUNCTION: WIZ8 0x004A4140
 void W8Missile::ResetLauncherCounters(int arg_1, int arg_2)
 {
-    W8MissileLauncher* launcher_before;
+    W8EmitterHost* launcher_before;
 
     *(unsigned char*)((char*)this->launcher + 0x94) = 0;
     launcher_before = this->launcher;

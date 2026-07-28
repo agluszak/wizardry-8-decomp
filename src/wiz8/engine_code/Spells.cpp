@@ -1,0 +1,179 @@
+/*
+ * Engine Code\Spells.cpp.
+ *
+ * A spell's visual side. It hangs off the same emitter record a missile does,
+ * one offset along, and the four accessors below are the missile's four
+ * bodies with 0x1e0 in place of 0x1dc.
+ */
+
+#include "wiz8/engine_code/Emitter.h"
+#include "wiz8/gameplay_boundaries.h"
+
+class W8SpellVisual {
+public:
+    virtual ~W8SpellVisual();
+    virtual void* Method34();
+
+    W8EmitterHost* GetHost();            /* 0x004AC890 */
+    W8Emitter* GetActiveEmitter();       /* 0x004AC820 */
+    float GetActiveEmitterValue();       /* 0x004AC870 */
+    char GetEmitterCount();              /* 0x004AC840 */
+    void ApplyHostSetting98();           /* 0x004AC360 */
+    void StartIfHostActive();            /* 0x004ABDC0 */
+
+    unsigned char unknown_004[0x1dc];
+    W8EmitterHost* host;                 /* 0x1e0 */
+    unsigned char started;               /* 0x1e4 */
+};
+
+/* The emitter host's own two forwarders, which take the emitter by index
+   rather than reading the one in use. */
+class W8SpellEmitterHost : public W8EmitterHost {
+public:
+    void SendToEmitter(char emitter, int arg_2, int arg_3);  /* 0x004AB290 */
+    void StopEmitter(char emitter);                          /* 0x004AB310 */
+};
+
+extern void Function4A14D0(W8Emitter* emitter, int arg_2, int arg_3);
+extern void Function4A1660(W8Emitter* emitter, unsigned char setting, int arg_3);
+extern void Function4A15D0(void* node, unsigned char value);
+extern void Function4A6E20(float value);
+extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
+
+/* The emitter record a spell's visual hangs off. */
+// FUNCTION: WIZ8 0x004AC890
+W8EmitterHost* W8SpellVisual::GetHost()
+{
+    return this->host;
+}
+
+/* The emitter it is currently coming out of. */
+// FUNCTION: WIZ8 0x004AC820
+W8Emitter* W8SpellVisual::GetActiveEmitter()
+{
+    return this->host->emitters[this->host->emitter_index];
+}
+
+/* That emitter's own value. */
+// FUNCTION: WIZ8 0x004AC870
+float W8SpellVisual::GetActiveEmitterValue()
+{
+    return this->host->emitters[this->host->emitter_index]->value_08;
+}
+
+/* How many emitters the host has, counted by testing each for null. */
+// FUNCTION: WIZ8 0x004AC840
+char W8SpellVisual::GetEmitterCount()
+{
+    char count = this->host->emitters[0] != 0;
+
+    if (this->host->emitters[1] != 0) {
+        ++count;
+    }
+    return count;
+}
+
+/* Hand the host's setting to whatever the visual's own virtual accessor
+   answers with - the missile's body one offset along. */
+// FUNCTION: WIZ8 0x004AC360
+void W8SpellVisual::ApplyHostSetting98()
+{
+    Function4A15D0(Method34(), this->host->setting_98);
+}
+
+/* Start the visual, but only while the host is live. A spell of the seventh
+   kind already running takes the slot instead of a fresh start. */
+// FUNCTION: WIZ8 0x004ABDC0
+void W8SpellVisual::StartIfHostActive()
+{
+    if (this->host->active == 0) {
+        return;
+    }
+    if (CountSpellsOfKind(7) != 0) {
+        this->started = 1;
+        return;
+    }
+    Function4A6E20(1.0f);
+}
+
+/* Send something to one named emitter. The arguments are handed on in the
+   reverse of the order they arrive. */
+// FUNCTION: WIZ8 0x004AB290
+void W8SpellEmitterHost::SendToEmitter(char emitter, int arg_2, int arg_3)
+{
+    Function4A14D0(this->emitters[emitter], arg_3, arg_2);
+}
+
+/* Stop one named emitter, passing the host's own setting; an empty slot is
+   left alone. */
+// FUNCTION: WIZ8 0x004AB310
+void W8SpellEmitterHost::StopEmitter(char emitter)
+{
+    W8Emitter* target = this->emitters[emitter];
+
+    if (target == 0) {
+        return;
+    }
+    Function4A1660(target, this->setting_98, 0);
+}
+
+/* Whether one spell id is among the six the caller singles out. */
+// FUNCTION: WIZ8 0x004ACA00
+bool IsSpellInSingledOutSet(int spell_id)
+{
+    switch (spell_id) {
+    case 0x30:
+    case 0x31:
+    case 0x4c:
+    case 0x50:
+    case 0x51:
+    case 0x5d:
+        return true;
+    default:
+        return false;
+    }
+}
+
+/* Release the spell database and forget the version with it, so the two are
+   never out of step. */
+// FUNCTION: WIZ8 0x004ACD50
+void ReleaseSpellDatabase(void)
+{
+    if (g_spell_records != 0) {
+        operator delete(g_spell_records);
+        g_spell_records = 0;
+        g_spell_database_version = 0;
+    }
+}
+
+/* Two vtable slot-zero thunks: the complete destructor followed by the
+   conditional release the deleting flag selects. */
+// FUNCTION: WIZ8 0x004AAD00
+void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
+    void* self, int /* unused edx */, unsigned char flags);
+// FUNCTION: WIZ8 0x004ABCE0
+void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
+    void* self, int /* unused edx */, unsigned char flags);
+
+extern void __fastcall SpellObject5ECF18_Destroy(void* self);            /* 0x004AB1C0 */
+extern void __fastcall SpellObject5ECF40_Destroy(void* self);            /* 0x004ABD00 */
+
+void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
+    void* self, int, unsigned char flags)
+{
+    SpellObject5ECF18_Destroy(self);
+    if ((flags & 1) != 0) {
+        operator delete(self);
+    }
+    return self;
+}
+
+void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
+    void* self, int, unsigned char flags)
+{
+    SpellObject5ECF40_Destroy(self);
+    if ((flags & 1) != 0) {
+        operator delete(self);
+    }
+    return self;
+}
