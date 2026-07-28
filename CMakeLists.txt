@@ -286,6 +286,8 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/BitArray.cpp
         src/wiz8/engine_code/GameData.cpp
         src/wiz8/engine_code/Octree.cpp
+        src/wiz8/engine_code/3dapi.cpp
+        src/wiz8/engine_code/stMeshModel.cpp
         src/wiz8/engine_code/Environment.cpp
         src/wiz8/engine_code/Missile.cpp
         src/wiz8/engine_code/Spells.cpp

@@ -490,11 +490,18 @@ typedef struct W8MonsterGroup {
    WorldUpdateProps (0x0046DED0), while psrMeshes is only placed by a reading
    of its asserting body and has no ported consumer yet. */
 typedef struct W8World {
-    unsigned char unknown_000[8];
+    /* 0x000 and 0x004: two more lists beside the props, each with its own
+       add/remove pair; nothing establishes what they hold. */
+    W8PList* plsList00;
+    W8PList* plsList04;
     W8PList* plsProps;                    /* 0x008: PList of props; byte-proven */
     unsigned char unknown_00c[0x3c];
     void** psrMeshes;                     /* 0x048: mesh pointer array; UNPROVEN placement */
-    unsigned char unknown_04c[0x78];
+    unsigned char unknown_04c[8];
+    /* 0x054: the node the sky hangs from, which the environment accessors
+       reach through this same world pointer. */
+    void* sky_node;
+    unsigned char unknown_058[0x6c];
     W8GrowableVector<W8MonsterGenerator*>* monster_generators; /* 0xc4 */
 } W8World;
 
