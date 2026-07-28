@@ -20,6 +20,8 @@ extern unsigned char Function547510(void);                   /* 0x00547510 */
 extern void Function452630(int value);                       /* 0x00452630 */
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
 extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
+extern void Function4E3C70(W8MonsterInfo* monster_info);     /* 0x004E3C70 */
+extern void Function4C5730(W8Monster* monster, W8Position* position); /* 0x004C5730 */
 extern unsigned char g_flag_683f94;
 extern W8Character* g_all_characters;
 extern unsigned char g_alternate_name_slot;
@@ -316,9 +318,11 @@ void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode)
 
 /* Refreshes a group and every group allied to it, then the lead member's live
    monster. All four ally slots are walked and the empty ones skipped, so the
-   array is fixed-size rather than terminated. */
-// FUNCTION: WIZ8 0x005106D0
-void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
+   array is fixed-size rather than terminated.
+ 
+   The link repair below compiles the same walk again at the same source line,
+   so it is written once as an inline and called from both. */
+static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_group)
 {
     int index;
 
@@ -335,6 +339,12 @@ void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
     }
     GetMonsterByLocationID(monster_group->value_9f);
     Function454C80();
+}
+
+// FUNCTION: WIZ8 0x005106D0
+void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
+{
+    RefreshMonsterGroupAndAlliesInline(monster_group);
 }
 
 /* Detaches a group from whatever is tracking it and marks it no longer loaded. */
@@ -556,4 +566,129 @@ void DespawnMonsterGroup(W8MonsterGroup* monster_group)
         }
     }
     RemoveAllGroupMembersInline(monster_group);
+}
+
+/* Brings a freshly loaded group's members into the world and marks the group
+   loaded. Members that are already active are left alone. The sentinel at +0x9B
+   is reset first, so a reload does not inherit the previous run's value. */
+// FUNCTION: WIZ8 0x0050F630
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
+{
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+
+    monster_group->value_9b = -1;
+    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(
+                0x12d,
+                MONSTER_GROUP_CPP,
+                IListGetAt(monster_group->monsters, index),
+                1));
+        if (monster_info->flag_14 == 0) {
+            Function4E3C70(monster_info);
+        }
+    }
+    monster_group->flag_28 = 1;
+}
+
+/* Clears the per-turn scratch on every loaded group and every monster entry.
+   Both walks re-read their list length each iteration. */
+// FUNCTION: WIZ8 0x00511530
+void ResetMonsterGroupTurnState(void)
+{
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+
+    for (index = 0; index < PListGetCount(g_monster_group_list); ++index) {
+        GetMonsterGroupByListIndex(index)->value_cb = 0;
+    }
+    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        monster_info->value_354 = 0;
+        monster_info->value_28e = 0;
+    }
+}
+
+/* The mean position of a group's members, recomputed only while the group is
+   loaded and cached on the group itself; an unloaded group answers with
+   whatever it last held. The out-parameter is optional, so the same call both
+   refreshes the cache and reads it.
+ 
+   The divisor is the member count captured before the walk, not re-read after
+   it, which is what makes a member added during the walk skew the average
+   rather than divide by the wrong count. Preserved as found. */
+// FUNCTION: WIZ8 0x0050FFD0
+void GetMonsterGroupCentre(W8MonsterGroup* monster_group, W8Position* centre)
+{
+    unsigned int count;
+    unsigned int index;
+    W8Position position;
+    float divisor;
+
+    if (monster_group == 0) {
+        return;
+    }
+    if (monster_group->flag_28 != 0) {
+        monster_group->centre.x = 0;
+        monster_group->centre.y = 0;
+        monster_group->centre.z = 0;
+        count = PListGetCount((W8PList*)monster_group->monsters);
+        for (index = 0; index < count; ++index) {
+            Function4C5730(
+                MonsterGetScriptPartByLocationIndex(
+                    MonsterGetIndexByLocationID(
+                        0x379,
+                        MONSTER_GROUP_CPP,
+                        IListGetAt(monster_group->monsters, index),
+                        1))
+                    ->monster,
+                &position);
+            monster_group->centre.x += position.x;
+            monster_group->centre.y += position.y;
+            monster_group->centre.z += position.z;
+        }
+        divisor = static_cast<float>(count);
+        monster_group->centre.x /= divisor;
+        monster_group->centre.y /= divisor;
+        monster_group->centre.z /= divisor;
+    }
+    if (centre != 0) {
+        centre->x = monster_group->centre.x;
+        centre->y = monster_group->centre.y;
+        centre->z = monster_group->centre.z;
+    }
+}
+
+/* Repairs every loaded group's formation links and refreshes the ones that now
+   lead. A group that names itself as its own leader is broken: the self-link is
+   cut and any ally slot pointing back at it is cleared too. Every group that
+   ends up leading - because it never had a leader, or because the repair just
+   removed one - is then refreshed along with its allies.
+ 
+   The list length is read once, before the walk, unlike the other passes over
+   this list. Preserved as found. */
+// FUNCTION: WIZ8 0x00510740
+void RepairMonsterGroupLeaderLinks(void)
+{
+    unsigned int count;
+    unsigned int group_list_index;
+    W8MonsterGroup* monster_group;
+    int ally;
+
+    count = PListGetCount(g_monster_group_list);
+    for (group_list_index = 0; group_list_index < count; ++group_list_index) {
+        monster_group = GetMonsterGroupByListIndex(group_list_index);
+        if (monster_group->leader_group_id == monster_group->group_id) {
+            monster_group->leader_group_id = 0;
+            for (ally = 0; ally < W8_MONSTER_GROUP_ALLY_COUNT; ++ally) {
+                if (monster_group->allied_group_ids[ally] == monster_group->group_id) {
+                    monster_group->allied_group_ids[ally] = 0;
+                }
+            }
+        }
+        if (monster_group->leader_group_id == 0) {
+            RefreshMonsterGroupAndAlliesInline(monster_group);
+        }
+    }
 }

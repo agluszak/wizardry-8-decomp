@@ -17,6 +17,15 @@
 
 #pragma pack(push, 1)
 
+/* A world position as the packed records carry it: three floats, C-compatible,
+   distinct from srVector3T<float> which only exists for C++ consumers. */
+typedef struct W8Position {
+    float x;
+    float y;
+    float z;
+} W8Position;
+
+
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
    records and manipulated through the CRT wide-string functions. The same
    typedef models these fields in config/types/wiz8/gameplay_databases.h;
@@ -229,7 +238,8 @@ typedef struct W8MonsterGroup {
     unsigned char unknown_0c[8];
     int active_member_count;              /* 0x14: recomputed from member conditions */
     int monster_id;                       /* 0x18 */
-    unsigned char unknown_1c[0xc];
+    /* 0x1c: the mean of the live members' positions, recomputed on demand. */
+    W8Position centre;
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
     /* 0x29: fInCombat, named by the MonsterGroup.cpp:492 assertion. Cleared
        after the record loads and again when the group leaves combat. */
@@ -241,7 +251,8 @@ typedef struct W8MonsterGroup {
     /* 0x2c: selects which of the record's two name sets a member is displayed
        under. GetMonsterName reads it and nothing recovered yet writes it. */
     unsigned char flag_2c;
-    unsigned char unknown_2d[0x72];
+    unsigned char unknown_2d[0x6e];
+    int value_9b;                         /* 0x9b: reset to -1 when the group loads */
     int value_9f;                         /* 0x9f: a member location id; RemoveMonster
                                              compares it against the departing
                                              member's before renotifying */
@@ -263,7 +274,7 @@ typedef struct W8MonsterGroup {
     unsigned int version;                 /* 0xc4 */
     unsigned char unknown_c8[2];
     unsigned char flag_ca;                /* 0xca */
-    unsigned char unknown_cb[4];
+    int value_cb;                         /* 0xcb: cleared by the per-turn reset */
     /* 0xcf: when this group was last budgeted. UpdateRandomEncounterBudget
        advances it by the elapsed time and the culling pass measures against it. */
     int spawn_time;
@@ -763,7 +774,9 @@ typedef struct W8MonsterInfo {
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
     unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
-    unsigned char unknown_256[0x64];
+    unsigned char unknown_256[0x38];
+    int value_28e;                          /* 0x28e: cleared by the per-turn reset */
+    unsigned char unknown_292[0x28];
     /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
        the next established field, so the array bound is a partition of the
        unknown run rather than a proven size. */
