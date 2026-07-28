@@ -1755,3 +1755,179 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     return 1;
 }
 
+
+extern unsigned char TargetBlockIsCharacter(const W8CombatSlot* target, int arg_2);
+/* 0x0053BEA0 */
+extern unsigned char TargetBlockIsMonster(const W8CombatSlot* target, int arg_2);
+/* 0x0053BF10 */
+extern wchar_t* GetMonsterGroupName(W8MonsterGroup* group);              /* 0x00510280 */
+extern W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, int arg_2);
+/* 0x0068C09C is indexed here by byte offset; 0x610 is the "at %s" wrapper every
+   named target goes through and the rest are the fixed words. */
+enum {
+    W8_MESSAGE_TARGET_AT = 0x610,
+    W8_MESSAGE_TARGET_PARTY = 0x614,
+    W8_MESSAGE_TARGET_PLACE = 0x618,
+    W8_MESSAGE_TARGET_DIRECTION = 0x61c,
+    W8_MESSAGE_TARGET_ITEM = 0x620,
+    W8_MESSAGE_TARGET_UNKNOWN = 0x624
+};
+/* 0x0061E436: the name-prefix table, eight-byte rows, holding a message-table
+   offset rather than a string. A character indexes it by faction and a monster
+   by its own name group at record+0x0cc, which is what makes the two one
+   table. */
+extern const unsigned short g_name_prefix_messages[];
+/* 0x00689B34: the empty string every no-target kind is described by. */
+extern wchar_t g_no_target_text[];
+
+/* Say in words what a spell is aimed at. Each target kind reads its own field,
+   which is what makes the two assertions here - on iChar and on iMonsterID -
+   name two different fields of one block rather than one field twice.
+
+   A character or a monster whose name the party does not have is described by
+   its name-prefix instead, looked up in the table at 0x0061E436 - by faction
+   for a character and by name group for a monster, which is what makes the two
+   one table. The entry is a message-table offset rather than a string, so it
+   is resolved twice. Everything else is a fixed word. Its error
+   text names the function. */
+// FUNCTION: WIZ8 0x004F97A0
+wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
+{
+    unsigned short name_prefix;
+
+    if (target == 0) {
+        srAssertFail("pTarget != NULL", MAGIC_CPP, 0xa4, 0);
+    }
+
+    switch (target->kind) {
+    case 0:
+    case 6:
+        return g_no_target_text;
+
+    case 1:
+    case 9:
+        if (target->character_slot == -1) {
+            srAssertFail("pTarget->iChar != BAD_INDEX", MAGIC_CPP, 0xad, 0);
+        }
+        if (!TargetBlockIsCharacter(target, 0) || target->described.name_known != 0) {
+            return FormatWideString(
+                g_message_strings[W8_MESSAGE_TARGET_AT / 4],
+                g_party_characters[target->character_slot].name);
+        }
+        name_prefix =
+            g_name_prefix_messages[g_party_characters[target->character_slot].faction * 4];
+        break;
+
+    case 2:
+        return g_message_strings[W8_MESSAGE_TARGET_PARTY / 4];
+
+    case 3: {
+        W8MonsterInfo* monster_info;
+        W8MonsterRecord* record;
+
+        if (target->monster_id == -1) {
+            srAssertFail("pTarget->iMonsterID != BAD_INDEX", MAGIC_CPP, 0xbd, 0);
+        }
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0xc0, MAGIC_CPP, target->monster_id, 1));
+        record = GetMonsterDataForInfo(monster_info);
+        if (!TargetBlockIsMonster(target, 0)) {
+            return FormatWideString(
+                g_message_strings[W8_MESSAGE_TARGET_AT / 4],
+                GetMonsterName(monster_info, record, 0));
+        }
+        name_prefix = g_name_prefix_messages[record->name_group_0cc * 4];
+        break;
+    }
+
+    case 4:
+        return FormatWideString(
+            g_message_strings[W8_MESSAGE_TARGET_AT / 4],
+            GetMonsterGroupName(GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(0xcf, MAGIC_CPP, target->group_id, 1))));
+
+    case 5:
+        return g_message_strings[W8_MESSAGE_TARGET_PLACE / 4];
+
+    case 7:
+        return FormatWideString(
+            g_message_strings[W8_MESSAGE_TARGET_ITEM / 4],
+            FormatItemDisplayName(target->item, 0));
+
+    case 8:
+        return g_message_strings[W8_MESSAGE_TARGET_DIRECTION / 4];
+
+    default:
+        srAssertFail(
+            "FALSE", MAGIC_CPP, 0xde,
+            FormatString("SpellTargetString: ERROR - Invalid spell target for %d", target->kind));
+        return g_message_strings[W8_MESSAGE_TARGET_UNKNOWN / 4];
+    }
+
+    return FormatWideString(
+        g_message_strings[W8_MESSAGE_TARGET_AT / 4], g_message_strings[name_prefix]);
+}
+
+extern void BuildMonsterSourceBlock(W8MonsterInfo* monster_info, W8TargetBlock* source);
+/* 0x0053BE50 */
+extern void WriteGameLog(int channel, const wchar_t* format, ...);
+extern void NoteSpellCast(int spell_id, int result);                     /* 0x0052C320 */
+extern unsigned char g_log_verbose_0068510c;
+extern void SetTextBoxMode(unsigned char mode, int value);   /* 0x005905C0 */
+
+/* The two log lines a monster's cast is announced with: one that names the
+   power level and one that does not. */
+enum { W8_MESSAGE_MONSTER_CAST_VERBOSE = 0x638, W8_MESSAGE_MONSTER_CAST = 0x63c };
+
+/* A monster casts. The line it is announced with names the caster, the spell
+   and what it is aimed at; the quiet form leaves the power level out and puts
+   the text box into its message mode, and the verbose form keeps the power
+   level and does not.
+
+   Its failure chance is the same rule the party's is, with the monster's
+   spell-point budget standing in for a caster's spellbook skill, which is what
+   makes the two one rule rather than a monster-specific one. */
+// FUNCTION: WIZ8 0x004FAEC0
+void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level)
+{
+    W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+    W8TargetBlock source;
+    unsigned int budget;
+    unsigned int failure;
+    int result;
+
+    BuildMonsterSourceBlock(monster_info, &source);
+
+    if (g_log_verbose_0068510c == 0) {
+        WriteGameLog(
+            9, g_message_strings[W8_MESSAGE_MONSTER_CAST / 4],
+            GetMonsterName(monster_info, record, 0),
+            g_spell_records[spell_id].display_name,
+            SpellTargetString((int)&source, &monster_info->combat_slot_2ba));
+        SetTextBoxMode(1, 9);
+    }
+    else {
+        WriteGameLog(
+            9, g_message_strings[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
+            GetMonsterName(monster_info, record, 0),
+            g_spell_records[spell_id].display_name, power_level,
+            SpellTargetString((int)&source, &monster_info->combat_slot_2ba));
+    }
+
+    record = GetMonsterDataForInfo(monster_info);
+    budget = monster_info->sp_budget_bonus + record->sp_budget;
+    if (record->sp_budget == 0) {
+        FormatDebugMessage(
+            0, "DATA ERROR: Monster %ls casting spells with SP Budget of 0",
+            GetMonsterName(monster_info, 0, 0));
+    }
+    if ((int)budget < 0) {
+        budget = 0;
+    }
+    failure = GetSpellFailureChance(budget, spell_id, (int)power_level);
+
+    CastSpellFromSource(
+        spell_id, &source, &monster_info->combat_slot_2ba, power_level, 0, failure, 0,
+        (int)&result, 0, 0, 0);
+    NoteSpellCast(spell_id, result);
+}

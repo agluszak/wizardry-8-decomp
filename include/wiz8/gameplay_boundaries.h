@@ -566,9 +566,19 @@ typedef struct W8CombatSlot {
     int character_slot;                   /* 0x04, -1 when empty */
     int monster_id;                       /* 0x08, -1 when empty */
     int group_id;                         /* 0x0c, -1 when empty */
-    /* 0x10: the world point aimed at, for the kinds that aim at a place
-       rather than at somebody. */
-    W8Position point;
+    /* 0x10 through 0x1b means different things by kind, which is what the two
+       readings of it are: a place-kind target keeps the world point there,
+       while a character- or monster-kind target keeps a flag at 0x19 that
+       decides whether it is described by name or by its faction's word for it.
+       They are alternatives, not neighbours. */
+    union {
+        W8Position point;                 /* 0x10 */
+        struct {
+            unsigned char unknown_10[9];
+            unsigned char name_known;     /* 0x19 */
+            unsigned char unknown_1a[2];
+        } described;
+    };
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* item;
 } W8CombatSlot;                           /* 0x20 */
