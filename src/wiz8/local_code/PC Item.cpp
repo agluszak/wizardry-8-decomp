@@ -347,6 +347,272 @@ bool CanHoldItemsTogether(int first_item_id, int second_item_id)
     return true;
 }
 
+/* Item categories the usability rules distinguish. Three is the spell source
+   the magic code already names; six and eight both cast the record's spell but
+   read a different profession level to decide whether the caster is strong
+   enough for it. */
+enum {
+    W8_ITEM_CATEGORY_SPELL_SOURCE = 3,
+    W8_ITEM_CATEGORY_CASTER_ITEM_6 = 6,
+    W8_ITEM_CATEGORY_CASTER_ITEM_8 = 8
+};
+
+/* The faction mask value that admits every faction rather than the two its
+   bits would otherwise name. */
+enum { W8_ITEM_FACTION_MASK_ANY = 3 };
+
+/* An unused requirement slot. */
+enum { W8_ITEM_REQUIREMENT_NONE = 0xff };
+
+/* The two profession levels the casting categories read, by index into
+   W8Character::profession_levels. */
+enum {
+    W8_CASTER_PROFESSION_CATEGORY_8 = 8,
+    W8_CASTER_PROFESSION_CATEGORY_6 = 9
+};
+
+#define PC_ITEM_CPP "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp"
+
+extern unsigned int GetMinimumCasterLevelForSpell(unsigned int spell_id);
+extern bool AddItemToCharacter(
+    int character_index,
+    W8ItemInstance* item,
+    int arg_3,
+    int arg_4,
+    int arg_5);                       /* 0x0051C300 */
+extern bool AddItemToParty(W8ItemInstance* item, int arg_2, int arg_3);
+/* 0x00521EF0 */
+
+/* Whether one character is allowed to use one item at all: profession, race
+   and faction have to admit them, every attribute and skill floor has to be
+   met, and a spell-bearing item additionally has to be one they have not
+   already learned or are strong enough to trigger. */
+// FUNCTION: WIZ8 0x0051D610
+bool CanCharacterUseItem(const W8Character* character, int item_id)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item_id];
+    unsigned int index;
+    unsigned int spell_id;
+    unsigned int minimum_caster_level;
+
+    if ((record->profession_mask & (1 << character->current_profession)) == 0) {
+        return false;
+    }
+    if ((record->race_mask & (1 << character->race)) == 0) {
+        return false;
+    }
+    if (record->faction_mask != W8_ITEM_FACTION_MASK_ANY &&
+        (record->faction_mask & (1 << character->faction)) == 0) {
+        return false;
+    }
+
+    for (index = 0; index < 2; ++index) {
+        if (record->attribute_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
+            character->attributes[(signed char)record->attribute_requirements[index].stat_id]
+                    .effective < record->attribute_requirements[index].minimum) {
+            return false;
+        }
+    }
+    for (index = 0; index < 2; ++index) {
+        if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
+            character->skills[(signed char)record->skill_requirements[index].stat_id].level <
+                record->skill_requirements[index].minimum) {
+            return false;
+        }
+    }
+
+    if (record->category == W8_ITEM_CATEGORY_SPELL_SOURCE) {
+        spell_id = record->spell_id;
+        if (spell_id == 0) {
+            srAssertFail("uiSpell != SPELL_NONE", PC_ITEM_CPP, 1832, 0);
+        }
+        if (character->spell_learned[spell_id] == 1) {
+            return false;
+        }
+    }
+    else if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6 ||
+             record->category == W8_ITEM_CATEGORY_CASTER_ITEM_8) {
+        spell_id = record->spell_id;
+        if (spell_id == 0) {
+            srAssertFail("uiSpell != SPELL_NONE", PC_ITEM_CPP, 1844, 0);
+        }
+        if (record->category == W8_ITEM_CATEGORY_CASTER_ITEM_6) {
+            minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
+            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_6] <
+                minimum_caster_level) {
+                return false;
+            }
+        }
+        else {
+            minimum_caster_level = GetMinimumCasterLevelForSpell(spell_id);
+            if ((unsigned int)character->profession_levels[W8_CASTER_PROFESSION_CATEGORY_8] <
+                minimum_caster_level) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/* Whether anybody in the party could use this item. Only occupied slots with a
+   character who is conscious enough to act are asked. */
+// FUNCTION: WIZ8 0x0051D7A0
+bool AnyPartyMemberCanUseItem(int item_id)
+{
+    unsigned int slot;
+
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_party_slot_rows[slot].flag_00 != 0 &&
+            g_party_characters[slot].unknown_0b11 != 0 &&
+            g_party_characters[slot].unknown_0b01 < 0x12) {
+            if (CanCharacterUseItem(&g_party_characters[slot], item_id)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/* Whether both weapon sets are entirely empty. */
+// FUNCTION: WIZ8 0x0051F8D0
+bool AreAllHandSlotsEmpty(const W8Character* character)
+{
+    return character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id == -1 &&
+           character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT].item_id == -1 &&
+           character->equipment[W8_EQUIP_SLOT_ALTERNATE_RIGHT].item_id == -1 &&
+           character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id == -1;
+}
+
+/* Which of four groups an item's home slot belongs to. The four hand slots
+   share one group and the rest split two ways; what the groups are used for is
+   not established here, only which slots fall together. */
+// FUNCTION: WIZ8 0x0051C850
+int GetItemEquipSlotGroup(int item_id)
+{
+    switch (GetItemDefaultEquipSlot(item_id)) {
+    case 0:
+    case 4:
+    case 5:
+    case 10:
+    case 11:
+        return 3;
+    case 1:
+    case 2:
+    case 3:
+        return 4;
+    case W8_EQUIP_SLOT_PRIMARY_RIGHT:
+    case W8_EQUIP_SLOT_PRIMARY_LEFT:
+    case W8_EQUIP_SLOT_ALTERNATE_RIGHT:
+    case W8_EQUIP_SLOT_ALTERNATE_LEFT:
+        return 2;
+    default:
+        return 5;
+    }
+}
+
+/* Whether an item's generic name is one of five the callers single out. The
+   set is a jump table based at eleven, so it is a property of the shared
+   unidentified name rather than of the item itself. */
+// FUNCTION: WIZ8 0x0051CCE0
+bool ItemHasSingledOutGenericName(int item_id)
+{
+    if (item_id != -1) {
+        switch (g_item_records[item_id].unidentified_name_index) {
+        case 0x0b:
+        case 0x0c:
+        case 0x0d:
+        case 0x25:
+        case 0x83:
+            return true;
+        }
+    }
+    return false;
+}
+
+/* Whether the item counts its quantity the fourth way. Which of the three
+   uses-or-charges kinds that is has not been established, so the predicate is
+   named for the value it tests. */
+// FUNCTION: WIZ8 0x0051CDB0
+bool ItemHasQuantityKindFour(int item_id)
+{
+    if (item_id == -1) {
+        return false;
+    }
+    return g_item_records[item_id].quantity_kind == 4;
+}
+
+/* How the interface presents the spell an item carries, drawn from a per
+   category table. Two particular spells are excluded and answer with nothing
+   at all. */
+// FUNCTION: WIZ8 0x0051DCB0
+int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
+{
+    if (record->spell_id != 'X' && record->spell_id != 't') {
+        return g_item_spell_presentation[record->category];
+    }
+    return -1;
+}
+
+/* Whether the item worn in one slot may be taken off. A binding that has not
+   yet been announced holds it in place, unless the slot is not a real
+   equipment slot or the character is under the influence that overrides it. */
+// FUNCTION: WIZ8 0x0051D1C0
+bool CanUnequipSlotItem(const W8Character* character, int equip_slot)
+{
+    const W8ItemInstance* item = &character->equipment[equip_slot];
+
+    if (item->item_id != -1 && g_item_records[item->item_id].binds_on_equip != 0 &&
+        item->bind_announced == 0 && g_equip_slot_icons[equip_slot] != -1 &&
+        character->unknown_0a49 == 0) {
+        return false;
+    }
+    return true;
+}
+
+/* Whether an item may be picked up out of wherever it is sitting. An
+   unidentified item always may; an identified one only when it belongs in an
+   equipment slot at all and has not bound itself to its wearer. */
+// FUNCTION: WIZ8 0x0051F2B0
+bool CanItemLeaveItsSlot(const W8ItemInstance* item)
+{
+    if (item->item_id != -1) {
+        if (item->identified == 0) {
+            return true;
+        }
+        if (GetItemDefaultEquipSlot(item->item_id) != W8_EQUIP_SLOT_NONE) {
+            return item->bound == 0;
+        }
+    }
+    return false;
+}
+
+/* Put an item somewhere it will fit. The flag decides which of the character
+   and the party pool is tried first; the other is tried after, and then the
+   first again, so a full destination never loses the item. */
+// FUNCTION: WIZ8 0x0051C280
+bool StoreItemWithCharacterOrParty(
+    int character_index,
+    W8ItemInstance* item,
+    char party_first,
+    int arg_4,
+    int arg_5)
+{
+    if (!party_first) {
+        if (AddItemToCharacter(character_index, item, arg_5, arg_4, 0)) {
+            return true;
+        }
+    }
+    if (AddItemToParty(item, arg_4, 0)) {
+        return true;
+    }
+    if (party_first) {
+        if (AddItemToCharacter(character_index, item, arg_5, arg_4, 0)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* Take gold from the party. Asking for more than it has empties the purse
    rather than wrapping it around. */
 // FUNCTION: WIZ8 0x0051BF40

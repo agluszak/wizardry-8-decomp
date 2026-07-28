@@ -1,6 +1,7 @@
 #ifndef WIZ8_ITEM_TABLES_H
 #define WIZ8_ITEM_TABLES_H
 
+#include "wiz8/gameplay_databases.h"
 #include "wiz8/vector.h"
 
 struct W8WorldItem;
@@ -21,8 +22,19 @@ struct W8ItemTableRecord {
     unsigned char unknown_1cd[0x24];      /* 0x1cd */
 };                                       /* 0x1f1 */
 
+/* One "you need this much of that" entry. CanCharacterUseItem walks two of
+   these for attributes and two for skills, stopping at an id of 0xff. */
+struct W8ItemRequirement {
+    unsigned char stat_id;                /* 0xff when the entry is unused */
+    unsigned char minimum;
+};                                       /* 0x02 */
+
 struct W8ItemDatabaseRecord {
-    unsigned char unknown_000[0x3e];
+    /* 0x000: the item's own name, which is what the display path returns
+       directly for an identified item - the record address doubles as the name
+       address because the name leads the record. */
+    W8WideChar display_name[30];
+    unsigned char unknown_03c[2];
     /* 0x03e: the equipment class, zero through twelve. GetItemDefaultEquipSlot
        is a thirteen-way switch on it and is the only body that enumerates the
        whole domain; class four additionally prices and stacks by the bundle. */
@@ -46,10 +58,29 @@ struct W8ItemDatabaseRecord {
     /* 0x047: two weapons may only be wielded together when this agrees. Its
        domain is not established, so it is named for that one use. */
     unsigned char wield_group;
-    unsigned char unknown_048[0x1e];
+    unsigned char unknown_048[0x1b];
+    /* 0x063: the spell the item casts, for the categories that cast one. The
+       assertions in CanCharacterUseItem call it uiSpell and refuse zero, which
+       is SPELL_NONE. */
+    unsigned char spell_id;
+    unsigned char unknown_064[2];
     /* 0x066: zero none, one stack, two through four uses or charges. */
     unsigned char quantity_kind;
-    unsigned char unknown_067[0x1f];
+    unsigned char unknown_067[0xf];
+    /* 0x076: one bit per profession id; the character's current profession has
+       to be among them. */
+    unsigned short profession_mask;
+    unsigned int race_mask;               /* 0x078: one bit per race id */
+    /* 0x07c: one bit per faction id, except that the value three admits every
+       faction rather than only the two it would name. */
+    unsigned char faction_mask;
+    /* 0x07d: up to two attribute floors. An id of 0xff ends the pair; the
+       minimum is compared against the character's effective attribute. */
+    W8ItemRequirement attribute_requirements[2];
+    /* 0x081: up to two skill floors, the same shape, compared against the
+       character's skill level. */
+    W8ItemRequirement skill_requirements[2];
+    unsigned char unknown_085;
     /* 0x086: the gold value of one item, except for equip class four, which is
        priced by the bundle of twenty-five. GenerateItemsFromTable filters a
        level-scaled table on the same field. */

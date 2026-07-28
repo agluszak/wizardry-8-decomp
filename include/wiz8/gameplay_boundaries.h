@@ -117,7 +117,11 @@ typedef struct W8Character {
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
     unsigned char unknown_0171[0x2c];
     W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
-    unsigned char unknown_07b3[0x34e];
+    unsigned char unknown_07b3[0x296];
+    /* 0x0a49: non-null overrides the binding that would otherwise keep an
+       equipped item on the character. Its type is not established. */
+    void* unknown_0a49;
+    unsigned char unknown_0a4d[0xb4];
     /* 0x0b01 and 0x0b11 gate party-member selection: a slot is eligible when
        unknown_0b11 is non-zero and unknown_0b01 is below 0x12, and a second
        tier tests it against 0x0f. The thresholds look like a condition or
@@ -127,7 +131,10 @@ typedef struct W8Character {
     unsigned int unknown_0b01;            /* 0x0b01 */
     unsigned char unknown_0b05[0xc];
     unsigned int unknown_0b11;            /* 0x0b11 */
-    unsigned char unknown_0b15[0x2d8];
+    unsigned char unknown_0b15[0xb8];
+    /* 0x0bcd: one entry per spell. CanCharacterUseItem refuses a spell-source
+       item whose spell already reads one here, so one is the learned state. */
+    int spell_learned[136];               /* 0x0bcd */
     unsigned int skill_unlocks[0x29];     /* 0x0ded, indexed by skill_id */
     unsigned char unknown_0e91[0x4c];
     W8CharacterResistance resistances[W8_RESISTANCE_COUNT]; /* 0x0edd */
@@ -599,6 +606,12 @@ extern unsigned char g_import_flags[0x60];
 extern int g_fact_record_count;
 extern W8ItemDatabaseRecord* g_item_records;
 extern int g_item_record_count;
+/* 0x00616E84: one entry per item category, giving the interface presentation
+   of whatever spell the item carries. */
+extern const int g_item_spell_presentation[];
+/* 0x00648C5C: one entry per equipment slot; -1 marks a slot that has no
+   interface position, which is what the unequip rule tests for. */
+extern const int g_equip_slot_icons[];
 /* 0x0068517C: gStatus.fGameStarted, named by the PC Item.cpp assertion at line
    3795 that guards the party-pool sort. Item placement consults it because the
    character-creation screens fill different slots than play does. */

@@ -76,11 +76,17 @@ typedef struct W8GameSettings {
    plus the leading flag UtilityFunctions reads as slot-occupied. */
 typedef struct W8PartySlotRow {
     unsigned char flag_00;               /* 0x000: slot occupied */
-    unsigned char unknown_001[0x74];
+    int value_001;                       /* 0x001 */
+    unsigned char unknown_005[0x70];
     int unknown_075;                     /* 0x075 */
     unsigned char unknown_079[0x57];
     unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
-    unsigned char unknown_0d1[0x35];
+    unsigned char unknown_0d1[0x24];
+    /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a
+       slot that has it raised, and the targeting guard reads the same byte. */
+    unsigned char flag_0f5;
+    unsigned char unknown_0f6[0x0f];
+    unsigned char flag_105;              /* 0x105 */
 } W8PartySlotRow;                        /* 0x106 */
 
 /* The two heap buffers a status block owns. GetSaveGameLevel builds one of
