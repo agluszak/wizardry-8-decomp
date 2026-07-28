@@ -6,7 +6,7 @@ wiz8,W8TextControl005ED604.primary,1,004f5410,,strong,classes:wiz8:W8TextControl
 wiz8,W8TextControl005ED604.primary,2,004f4990,,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,3,004f44d0,SetBounds,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,4,004f4460,SetBoundsFromRect,strong,classes:wiz8:W8TextControl005ED604
-wiz8,W8TextControl005ED604.primary,5,004f46a0,,strong,classes:wiz8:W8TextControl005ED604
+wiz8,W8TextControl005ED604.primary,5,004f46a0,AddLayoutFlags,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,6,004f69a0,,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,7,004f4d30,,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,8,004f4e00,,strong,classes:wiz8:W8TextControl005ED604
@@ -19,8 +19,8 @@ wiz8,W8TextControl005ED604.primary,14,004f5290,,strong,classes:wiz8:W8TextContro
 wiz8,W8TextControl005ED604.primary,15,004f5310,,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,16,004f5230,,strong,classes:wiz8:W8TextControl005ED604
 wiz8,W8TextControl005ED604.primary,17,004f5360,,strong,classes:wiz8:W8TextControl005ED604
-wiz8,W8TextControl005ED604.primary,18,004f4c40,,strong,classes:wiz8:W8TextControl005ED604
-wiz8,W8TextControl005ED604.primary,19,004f4cb0,,strong,classes:wiz8:W8TextControl005ED604
+wiz8,W8TextControl005ED604.primary,18,004f4c40,EnableSecondaryState,exact,classes:wiz8:W8TextControl005ED604
+wiz8,W8TextControl005ED604.primary,19,004f4cb0,DisableSecondaryState,exact,classes:wiz8:W8TextControl005ED604
 wiz8,GrCycle.primary,2,004a6e20,,strong,classes:wiz8:GrCycle
 wiz8,GrCycle.primary,3,004a6fc0,,strong,classes:wiz8:GrCycle
 wiz8,GrCycle.primary,4,004a7470,,strong,classes:wiz8:GrCycle

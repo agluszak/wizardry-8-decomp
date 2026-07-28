@@ -43,7 +43,7 @@ wiz8,W8TextControl005ED604,0x14,0x4,bottom,int32,,strong,classes:wiz8:W8TextCont
 wiz8,W8TextControl005ED604,0x18,0x4,region,int32,,strong,classes:wiz8:W8TextControl005ED604,inherited live region or -1 sentinel
 wiz8,W8TextControl005ED604,0x1c,0x4,panel,pointer,Controls,strong,classes:wiz8:W8TextControl005ED604,inherited typed Controls panel
 wiz8,W8TextControl005ED604,0x20,0x14,widget_tail,bytes,,strong,classes:wiz8:W8TextControl005ED604,remaining inherited widget-base storage
-wiz8,W8TextControl005ED604,0x34,0x4,field_34,int32,,strong,classes:wiz8:W8TextControl005ED604,control-specific state read by drawing methods
+wiz8,W8TextControl005ED604,0x34,0x4,state_flags,uint32,,strong,classes:wiz8:W8TextControl005ED604,paired state masks manipulated by EnableSecondaryState and DisableSecondaryState
 wiz8,W8TextControl005ED604,0x38,0x4,layout_flags,uint32,,strong,classes:wiz8:W8TextControl005ED604,bits select text-aware bounds layout and horizontal placement
 wiz8,W8TextControl005ED604,0x3c,0x24,text_state,bytes,,strong,classes:wiz8:W8TextControl005ED604,text handles and cached measured extent used by GetTextOrigin and SetBounds
 wiz8,W8TextControl005ED604,0x60,0x4,text_buffer_vptr,pointer,virtual_function *,strong,classes:wiz8:W8TextControl005ED604,embedded W8TextBuffer005ED5B8 primary vtable at parent +0x60

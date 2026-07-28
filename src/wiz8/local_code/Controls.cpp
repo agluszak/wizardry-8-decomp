@@ -100,6 +100,8 @@ extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
 extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
 extern unsigned short Function4071F0(int font);             /* font line height */
+extern unsigned int g_W8TextControlMask005ED56C;
+extern unsigned int g_W8TextControlMask005ED570;
 
 // FUNCTION: WIZ8 0x004F30F0
 void Controls::EnableRegionSet(unsigned char enable)
@@ -419,12 +421,17 @@ class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
+    void SetFlaggedRegionBounds(short left, short top, unsigned short right);
+    void AddLayoutFlags(unsigned int flags);
+    void RemoveLayoutFlags(unsigned int flags);
+    void EnableSecondaryState(unsigned char immediate);
+    void DisableSecondaryState(unsigned char immediate);
 
     virtual void SetBounds(int left, int top, int right, int bottom);
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
 
 protected:
-    int m_field_34;
+    unsigned int m_stateFlags;           /* 0x34: paired state masks */
     unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
     int m_field_3c;
     int m_text_40;
@@ -436,6 +443,21 @@ protected:
     short m_measured_h;                  /* 0x5e */
     W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
     int m_field_b0;
+
+    __forceinline void InvalidateCore(unsigned char immediate)
+    {
+        if (m_pPanel != 0) {
+            m_flag_6 = 1;
+            if (immediate) {
+                m_pPanel->Invalidate((unsigned char)0);
+            } else {
+                m_pPanel->m_fLayoutDirty = 1;
+                Function562A50(0x80000000);
+            }
+            Function562A50(0x80000000);
+        }
+        m_textBuffer.SetGeometryDirty();
+    }
 };
 
 /* Where the text should be drawn: the panel origin plus either the widget's
@@ -562,17 +584,86 @@ void W8TextControl005ED604::SetBounds(int left, int top, int right, int bottom)
 // FUNCTION: WIZ8 0x004F4650
 void W8TextControl005ED604::Invalidate(unsigned char immediate)
 {
-    if (m_pPanel != 0) {
-        m_flag_6 = 1;
-        if (immediate) {
-            m_pPanel->Invalidate((unsigned char)0);
-        } else {
-            m_pPanel->m_fLayoutDirty = 1;
-            Function562A50(0x80000000);
-        }
-        Function562A50(0x80000000);
+    InvalidateCore(immediate);
+}
+
+// FUNCTION: WIZ8 0x004F4600
+void W8TextControl005ED604::SetFlaggedRegionBounds(short left, short top,
+                                                   unsigned short right)
+{
+    if (m_region_18 != -1 && m_pPanel != 0 && RegionHasFlags(m_region_18, 2)) {
+        SetRegionBounds(m_region_18,
+                        (unsigned short)((short)m_pPanel->origin_x + left),
+                        (unsigned short)((short)m_pPanel->origin_y + top),
+                        right,
+                        0);
     }
-    m_textBuffer.SetGeometryDirty();
+}
+
+// FUNCTION: WIZ8 0x004F46A0
+void W8TextControl005ED604::AddLayoutFlags(unsigned int flags)
+{
+    short measured_width;
+    short measured_height;
+
+    m_flags_38 |= flags;
+    if (m_pPanel != 0 && (m_flags_38 & 2) != 0) {
+        int absolute_left = m_pPanel->origin_x + m_left;
+        int absolute_top = m_pPanel->origin_y + m_top;
+        int absolute_right = m_pPanel->origin_x + m_right;
+        int absolute_bottom = m_pPanel->origin_y + m_bottom;
+        if (m_text_40 != -1 && m_text_44 != -1) {
+            Function549660(m_text_40, m_text_44, m_text_48,
+                           &measured_width, &measured_height);
+            if ((m_flags_38 & 4) != 0) {
+                absolute_left += 2 + (unsigned short)measured_width;
+            } else {
+                absolute_right -= 2 + (unsigned short)measured_width;
+            }
+        }
+        m_textBuffer.SetLayoutBounds(absolute_left, absolute_top,
+                                     absolute_right, absolute_bottom);
+        if (m_textBuffer.HasBuffer()) {
+            m_textBuffer.UpdateLayout();
+        }
+        m_textBuffer.MarkGeometryDirty(9);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F4780
+void W8TextControl005ED604::RemoveLayoutFlags(unsigned int flags)
+{
+    if ((flags & 2) != 0 && m_pPanel != 0) {
+        m_textBuffer.SetLayoutBounds(m_pPanel->origin_x + m_left,
+                                     m_pPanel->origin_y + m_top,
+                                     m_pPanel->origin_x + m_right,
+                                     m_pPanel->origin_y + m_bottom);
+        if (m_textBuffer.HasBuffer()) {
+            m_textBuffer.UpdateLayout();
+        }
+        m_textBuffer.MarkGeometryDirty(10);
+    }
+    m_flags_38 &= ~flags;
+}
+
+// FUNCTION: WIZ8 0x004F4C40
+void W8TextControl005ED604::EnableSecondaryState(unsigned char immediate)
+{
+    if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) == 0) {
+        m_stateFlags |= g_W8TextControlMask005ED56C;
+        m_stateFlags |= g_W8TextControlMask005ED570;
+        InvalidateCore(immediate);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F4CB0
+void W8TextControl005ED604::DisableSecondaryState(unsigned char immediate)
+{
+    if ((m_flags_38 & 1) != 0 && (m_stateFlags & 2) != 0) {
+        m_stateFlags &= ~g_W8TextControlMask005ED56C;
+        m_stateFlags &= ~g_W8TextControlMask005ED570;
+        InvalidateCore(immediate);
+    }
 }
 
 /*
