@@ -156,18 +156,40 @@ typedef struct W8Character {
        string starts here is. */
     wchar_t name[0x10];
     unsigned char unknown_0025[0x44];
+    /* 0x0069 and 0x006d: iProfession, named by the GameplayCode.cpp:399
+       assertion that bounds it against PROF_COUNT, and the profession the
+       character started in. The level band subtracts a base only while the two
+       agree. */
     int current_profession;               /* 0x0069 */
-    unsigned char unknown_006d[4];
+    int original_profession;              /* 0x006d */
     int race;                             /* 0x0071: indexes the race resistance table */
     int faction;                          /* 0x0075: compared against the caller's faction */
-    unsigned char unknown_0079[0x10];
+    /* 0x0079: looked up from the table at 0x00616604 by faction, race and
+       profession together. Note that the index multiplies 0x0075 by sixteen
+       against an eleven-race domain, so either that field is not the faction
+       the disposition code reads or the table is sparse; the disagreement is
+       recorded rather than resolved. */
+    int table_value_0079;
+    unsigned char unknown_007d[0xc];
     unsigned int level;                   /* 0x0089: averaged across occupied slots */
     int profession_levels[15];            /* 0x008d */
-    unsigned char unknown_00c9[0x1c];
+    unsigned char unknown_00c9[0x14];
+    /* 0x00dd: the eight-band ladder over the character's level in their
+       current profession, and the base subtracted from it while they are still
+       in the profession they started in. */
+    int level_band;
+    int level_band_base;
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
     unsigned char unknown_0171[0x2c];
     W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
-    unsigned char unknown_07b3[0x24a];
+    unsigned char unknown_07b3[0x23a];
+    /* 0x09ed..0x09f8: experience, the goal for the next level, and the goal
+       the previous level had. A character is ready to advance once the first
+       reaches the second. */
+    unsigned int experience;
+    unsigned int experience_goal;
+    unsigned int experience_previous_goal;
+    unsigned char unknown_09f9[4];
     /* 0x09fd: how many times this character has died. */
     int death_count_09fd;
     /* 0x0a01: one entry per condition, holding how long it has left to run;
