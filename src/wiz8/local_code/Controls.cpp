@@ -741,6 +741,10 @@ unsigned int W8TextBuffer005ED5B8::GetLineHeight()
  */
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
+    W8TextControl005ED604(Controls* panel, unsigned int region,
+                          int left, int top, int right, int bottom,
+                          int text_40, int text_44, int text_48, int text_4c,
+                          int text_54, int text_50, int text_58);
     virtual ~W8TextControl005ED604();
     W8TextControl005ED604* scalar_deleting_destructor(unsigned char flags);
     void GetTextOrigin(int unused, int* px, int* py);
@@ -772,7 +776,8 @@ protected:
     int m_text_44;
     int m_text_48;
     int m_text_4c;
-    unsigned char unknown_50[8];
+    int m_text_50;
+    int m_text_54;
     int m_text_58;
     short m_measured_w;                  /* 0x5c: -1 until measured */
     short m_measured_h;                  /* 0x5e */
@@ -799,6 +804,60 @@ protected:
         m_textBuffer.SetGeometryDirty();
     }
 };
+
+/* The 182-caller text-control constructor. The first six arguments construct
+   the reviewed widget base, while the implicit W8TextBuffer constructor owns
+   the second EH state. The remaining positional values and the two measured
+   shorts are fixed by the constructor's direct stores and Function549660 call;
+   their descriptive identities remain unknown. */
+// FUNCTION: WIZ8 0x004F4250
+W8TextControl005ED604::W8TextControl005ED604(
+    Controls* panel, unsigned int region,
+    int left, int top, int right, int bottom,
+    int text_40, int text_44, int text_48, int text_4c,
+    int text_54, int text_50, int text_58)
+    : W8WidgetBase005ED5BC(panel, region, left, top, right, bottom)
+{
+    m_text_4c = text_4c;
+    m_text_50 = text_50;
+    m_text_54 = text_54;
+    m_stateFlags = 0;
+    m_alternateTextEnabled = 0;
+    m_text_40 = text_40;
+    m_text_44 = text_44;
+    m_text_48 = text_48;
+    m_text_58 = text_58;
+    m_flags_38 = 0;
+    m_listener = 0;
+    m_field_b0 = 1;
+
+    int measured_text = text_48;
+    if (text_40 == -1 || text_44 == -1 ||
+        (measured_text == -1 && (measured_text = text_4c) == -1)) {
+        m_measured_w = -1;
+        m_measured_h = -1;
+    } else {
+        Function549660(text_40, text_44, measured_text,
+                       &m_measured_w, &m_measured_h);
+    }
+
+    if (right == 0) {
+        right = left + m_measured_w;
+    }
+    if (bottom == 0) {
+        bottom = top + m_measured_h;
+    }
+    SetBounds(left, top, right, bottom);
+
+    m_textBuffer.SetLayoutBounds(panel->origin_x + left,
+                                 panel->origin_y + top,
+                                 panel->origin_x + right,
+                                 panel->origin_y + bottom);
+    if (m_textBuffer.HasBuffer()) {
+        m_textBuffer.UpdateLayout();
+    }
+    m_textBuffer.MarkGeometryDirty(10);
+}
 
 /* Where the text should be drawn: the panel origin plus either the widget's
    corner or an alignment computed from its cached measured extent. */

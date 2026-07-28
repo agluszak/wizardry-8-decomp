@@ -121,27 +121,37 @@ typedef struct W8Character {
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
     unsigned char unknown_0171[0x2c];
     W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
-    unsigned char unknown_07b3[0x26e];
+    unsigned char unknown_07b3[0x252];
+    /* 0x0a05 and 0x0a45: two condition markers. A character whose 0x0a05 is
+       zero is put under condition one when damaged; a monster's counterpart of
+       0x0a45 reading 9999 is what stamina recovery clears. */
+    int condition_marker_0a05;
+    unsigned char unknown_0a09[0x18];
     /* 0x0a21: spellcasting is blocked for this character. Alchemy survives it
        when the character has skill 26, which is the only exemption. */
     int spellcasting_blocked;
-    unsigned char unknown_0a25[0x24];
+    unsigned char unknown_0a25[0x20];
+    int condition_marker_0a45;
     /* 0x0a49: non-null overrides the binding that would otherwise keep an
        equipped item on the character. Its type is not established. */
     void* unknown_0a49;
     unsigned char unknown_0a4d[0xb4];
-    /* 0x0b01 and 0x0b11 gate party-member selection: a slot is eligible when
-       unknown_0b11 is non-zero and unknown_0b01 is below 0x12, and a second
-       tier tests it against 0x0f. The thresholds look like a condition or
-       status scale, but nothing here establishes the meaning, so they keep
-       positional names. Both are unsigned: the canonical compares are JB/JBE,
+    /* 0x0b01 gates party-member selection alongside hp_current below: a slot is
+       eligible when it still has hit points and this is under 0x12, and a
+       second tier tests it against 0x0f. The threshold looks like a condition
+       or status scale, but nothing here establishes the meaning, so it keeps
+       its positional name. It is unsigned: the canonical compares are JB/JBE,
        not JL/JE. */
     unsigned int unknown_0b01;            /* 0x0b01 */
-    unsigned char unknown_0b05[0xc];
-    unsigned int unknown_0b11;            /* 0x0b11 */
-    unsigned char unknown_0b15[8];
-    /* 0x0b1d: the stamina pool FatigueCharacter draws down and clamps to. */
-    int stamina;
+    unsigned char unknown_0b05[8];
+    /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
+       damage is booked against before hit points are recalculated. A character
+       whose hp_current is zero is treated as out of the fight everywhere. */
+    int hp_max;                           /* 0x0b0d */
+    unsigned int hp_current;              /* 0x0b11 */
+    int hp_adjustment;                    /* 0x0b15 */
+    int stamina_max;                      /* 0x0b19 */
+    int stamina;                          /* 0x0b1d */
     unsigned char unknown_0b21[4];
     /* 0x0b25 and 0x0b45: iSPMax and iSPLeft, one per spell realm, named by the
        Health Stamina Mana.cpp:1067 assertion pPC->iSPLeft[uiRealm] and bounded
@@ -166,7 +176,11 @@ typedef struct W8Character {
     /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
        reports this array as origin zero and the equipment array as origin one. */
     W8ItemInstance backpack[8];           /* 0x1029 */
-    unsigned char unknown_1089[0x6ee];
+    unsigned char unknown_1089[0x615];
+    /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
+       fraction whenever it moves; a change re-runs the armour class pass. */
+    int fatigue_band;
+    unsigned char unknown_16a2[0xd5];
     signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
     unsigned char unknown_1778[0x34];
     signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
@@ -868,7 +882,11 @@ typedef struct W8MonsterInfo {
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
     int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x28];
+    unsigned char unknown_37[0x14];
+    /* 0x04b: unread here. 0x08b and 0x093 are the two gates the struck
+       reaction gets past before it may turn the monster hostile or knock it
+       into another condition. */
+    unsigned char unknown_04b[0x14];
     /* 0x05f: nonzero doubles the fatigue an action costs. */
     int fatigue_doubled_05f;
     unsigned char unknown_063[0x14];
@@ -876,7 +894,13 @@ typedef struct W8MonsterInfo {
        monster kinds four, five and thirteen, which is the only exemption -
        the same shape as the character block and its alchemy-skill exemption. */
     int spellcasting_blocked;
-    unsigned char unknown_07b[0x24];
+    unsigned char unknown_07b[0x10];
+    /* 0x08b and 0x093: two gates MonsterReactsToBeingStruck gets past before it
+       may turn the monster hostile or knock it into another condition. */
+    int value_08b;
+    unsigned char unknown_08f[4];
+    int value_093;
+    unsigned char unknown_097[8];
     int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
     unsigned char unknown_a3[0x64];
     int value_107;                        /* 0x107: set to 0x12 when an entry deactivates */

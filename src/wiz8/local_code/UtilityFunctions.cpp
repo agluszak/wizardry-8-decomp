@@ -369,7 +369,7 @@ retry:
         matched = 0;
         if (g_party_slot_rows[slot].flag_00 != 0 && (int)slot != excluded_slot) {
             character = &g_party_characters[slot];
-            if ((character->unknown_0b11 > 0 && character->unknown_0b01 < 0x12)
+            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
                 || require_primary == 2) {
                 if (excluded_faction == -1 || excluded_faction != character->faction) {
                     if (character->unknown_0b01 < 0xf || require_secondary == 2) {
@@ -421,7 +421,7 @@ retry:
         if (rows[slot].flag_00 != 0) {
             W8Character* character = &characters[slot];
 
-            if ((character->unknown_0b11 > 0 && character->unknown_0b01 < 0x12)
+            if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
                 || require_primary == 2) {
                 if (character->unknown_0b01 < 0xf || require_secondary == 2) {
                     return slot;

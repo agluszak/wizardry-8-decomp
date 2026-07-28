@@ -460,7 +460,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
 
     for (slot = 0; slot < 8; ++slot) {
         if (g_party_slot_rows[slot].flag_00 != 0 &&
-            g_party_characters[slot].unknown_0b11 != 0 &&
+            g_party_characters[slot].hp_current != 0 &&
             g_party_characters[slot].unknown_0b01 < 0x12) {
             if (CanCharacterUseItem(&g_party_characters[slot], item_id)) {
                 return true;
