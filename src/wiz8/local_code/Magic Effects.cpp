@@ -45,7 +45,7 @@ extern void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);  /* 0x
 extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
 extern void Function50E700(void);
 extern void Function5AF2D0(void);
-extern void Function562A50(int mask);
+extern void RequestRedraw(int mask);
 extern void Function50E8C0(int location_id);
 
 /* How big the effect lands. A permanent magnitude is taken as it is; anything
@@ -138,7 +138,7 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     *(int*)(bytes + 0xd) = 0;
     Function50E700();
     Function5AF2D0();
-    Function562A50(0x800100);
+    RequestRedraw(0x800100);
 }
 
 extern void PostCharacterNotice(int party_slot, void* notice);           /* 0x00590950 */
@@ -147,7 +147,7 @@ extern unsigned int MonsterGetIndexByLocationID(
 extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
 extern void ApplyEffectToTarget(
     int* result, W8CombatSlot* target, int arg_3, int arg_4);            /* 0x00552250 */
-extern unsigned char g_announce_resists_0068510c;
+extern unsigned char g_detailed_combat_messages_0068510c;
 
 #define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"
 
@@ -157,7 +157,7 @@ extern unsigned char g_announce_resists_0068510c;
 // FUNCTION: WIZ8 0x00552070
 void AnnounceEffectResisted(W8CombatSlot* target)
 {
-    if (g_announce_resists_0068510c == 0) {
+    if (g_detailed_combat_messages_0068510c == 0) {
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -177,7 +177,7 @@ void AnnounceEffectResisted(W8CombatSlot* target)
 void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int arg_4)
 {
     ApplyEffectToTarget(result, target, arg_3, arg_4);
-    if (*result != 0 || g_announce_resists_0068510c == 0) {
+    if (*result != 0 || g_detailed_combat_messages_0068510c == 0) {
         return;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {

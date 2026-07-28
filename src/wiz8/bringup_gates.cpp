@@ -225,11 +225,11 @@ extern void Function40CF90(void);
 extern void Function40B450(void);
 extern void Function407E70(void);
 extern void Function407E30(void);
-extern void Function406BD0(void);
+extern void ShutdownClockManager(void);
 extern void Function402990(void);
 extern void Function405E80(void);
 extern void Function421DC0(void);
-extern void Function401F70(void);
+extern void ShutdownInputManager(void);
 extern void Function428B80(void);
 
 
@@ -878,11 +878,11 @@ void ShutdownHandler(void)
         Function408850();
         Function407E70();
         Function407E30();
-        Function406BD0();
+        ShutdownClockManager();
         Function402990();
         Function405E80();
         Function421DC0();
-        Function401F70();
+        ShutdownInputManager();
         Function4023A0();
         Function4023A0();
         Function404BC0();

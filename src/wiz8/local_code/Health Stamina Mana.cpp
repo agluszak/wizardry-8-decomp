@@ -26,7 +26,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce);
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce);
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
 extern void NotifySpellPointsChanged(int party_slot);      /* 0x0055EE30 */
-extern void Function56A2A0(W8MonsterInfo* monster_info);
+extern void ClearHighlightIfItIs(W8MonsterInfo* monster_info);
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
@@ -168,7 +168,7 @@ void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
     if (monster_info->hp_current > monster_info->hp_max) {
         monster_info->hp_current = monster_info->hp_max;
     }
-    Function56A2A0(monster_info);
+    ClearHighlightIfItIs(monster_info);
     UpdateMonsterDamageAppearance(monster_info);
 
     if (announce) {
@@ -262,8 +262,8 @@ extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00
 extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x00524110 */
 extern void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
-extern unsigned char Function53BEA0(int target, int arg_2);
-extern unsigned char Function53BF10(int target, int arg_2);
+extern unsigned char TargetSourceIsCharacter(int target, int arg_2);
+extern unsigned char TargetSourceIsMonster(int target, int arg_2);
 extern char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info);
 /* 0x00546F10 */
 extern char Function546F80(W8MonsterInfo* aggressor, W8MonsterInfo* monster_info);
@@ -616,12 +616,12 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, int attacker, char 
         SetMonsterControlState(monster_info, 0);
     }
 
-    if (!Function53BEA0(attacker, 0) && !Function53BF10(attacker, 0)) {
+    if (!TargetSourceIsCharacter(attacker, 0) && !TargetSourceIsMonster(attacker, 0)) {
         return;
     }
     if (*(char*)(attacker + 0x1c) == 0 && *(char*)(attacker + 0x1b) == 0 &&
         *(char*)(attacker + 0x1e) == 0 && quiet == 0 && monster_info->condition_turns[W8_CONDITION_HOSTILE] != 0) {
-        if (Function53BEA0(attacker, 0)) {
+        if (TargetSourceIsCharacter(attacker, 0)) {
             if (MonsterVsCharDisposition(*(int*)(attacker + 4), monster_info) == 2) {
                 ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
             }
@@ -650,18 +650,12 @@ extern void ApplyCharacterEffect(
     W8Character* character, void* effect, int arg_3, int arg_4, int arg_5);
 /* 0x0052E690 */
 extern void* g_effect_005ee598;
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
 extern W8CombatState* g_combat_state;
-
-
-extern W8CombatCharacterRow* g_combat_character_rows;
 extern void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
-extern unsigned char g_in_combat_00683f94;
-extern void Function4ECDD0(int party_slot);
+extern void RecordCharacterDeath(int party_slot);
 extern void Function52F110(int party_slot);
-extern int Function50B800(int animation_id);
-extern void Function4E82E0(int party_slot);
+extern int GetNpcState(int animation_id);
+extern void DropCharacterFromRound(int party_slot);
 extern void PlaySound(const char* path, int flags);
 
 /* Tire one character. The load they are carrying scales the cost - eased or
@@ -870,7 +864,7 @@ void CharacterDies(int party_slot)
     ResetCombatSlot(&row->target_out_of_combat);
     ResetCombatSlot(&row->target_in_combat);
     if (g_in_combat_00683f94 != 0) {
-        Function4ECDD0(party_slot);
+        RecordCharacterDeath(party_slot);
     }
     Function52F110(party_slot);
     PlaySound("Data\\Sound\\Misc\\CharacterDead.wav", 0);
@@ -883,12 +877,12 @@ void CharacterDies(int party_slot)
         row->pending_action = -1;
         g_combat_character_rows[party_slot].value_18 = 0;
         g_combat_character_rows[party_slot].flag_4c = 1;
-        Function4E82E0(party_slot);
+        DropCharacterFromRound(party_slot);
     }
 
     animation = row->animation_0fa;
     if (animation != -1) {
-        animation = Function50B800(animation);
+        animation = GetNpcState(animation);
         if (animation != 0) {
             *(unsigned short*)(animation + 4) = 1;
         }

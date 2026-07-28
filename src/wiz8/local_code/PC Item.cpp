@@ -1085,7 +1085,6 @@ extern void PracticeCharacterSkill(W8Character* character, int skill, int amount
 extern void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
 extern void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);
-extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_flag_00683fce;
 extern W8CombatState* g_combat_state;
 

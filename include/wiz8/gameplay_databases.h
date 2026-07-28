@@ -155,6 +155,11 @@ typedef struct W8LevelDatabaseRecord {
    the porting name deliberately keeps the established W8MonsterRecord
    spelling of its byte-exact consumers, and the two field models are kept
    convergent rather than merged. */
+/* The one monster record whose alternate name is used in place of its own;
+   both bodies that name a monster test for it, which is why it lives here
+   rather than in either of them. */
+enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 397 };
+
 typedef struct W8MonsterRecord {
     W8WideChar name_00[24];               /* 0x000: suffix after '#' removed at load */
     W8WideChar name_30[24];               /* 0x030: suffix after '#' removed at load */

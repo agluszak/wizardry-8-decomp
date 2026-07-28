@@ -325,7 +325,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
     }
 }
 
-extern unsigned char Function504910(void);          /* 0x00504910 */
+extern unsigned char IsSightRangeOverridden(void);          /* 0x00504910 */
 extern void DespawnMonsterGroup(W8MonsterGroup* group); /* 0x00510930 */
 extern unsigned char g_force_encounter_culling;     /* 0x00687500 */
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
@@ -358,7 +358,7 @@ void CullExpiredEncounters(void)
     int index;
 
     GetPartyPosition(&party);
-    if (Function504910() == 0) {
+    if (IsSightRangeOverridden() == 0) {
         span = g_level_records[g_current_level].encounter_culling_seconds *
                g_encounter_culling_scale;
     } else {

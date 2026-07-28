@@ -25,7 +25,7 @@ struct W8EngineState006598A4 {
     unsigned char unknown_124[0x5c];
     W8Pathing00457CF0* pathing_180;
 
-    void Function42E620(
+    void W8OctreeWalker_VisitPointCopy(
         unsigned short location_id,
         srVector3T<float>* position);     /* 0x0042E620 */
 };

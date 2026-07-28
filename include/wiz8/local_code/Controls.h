@@ -15,6 +15,10 @@
  * so the two agree on the extent and the richer model subsumes the other.
  */
 
+/* Note that this is the same four ints in the same order as W8ScreenRect, and
+   the two are almost certainly one type in the original - but nothing recovered
+   so far passes a control's rectangle to a screen-rect body or the other way
+   round, so the match is recorded rather than acted on. */
 struct W8ControlsRect {
     int left;                               /* 0x00 */
     int top;                                /* 0x04 */

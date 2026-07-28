@@ -3,6 +3,8 @@
 
 #include <wchar.h>
 
+extern bool CanCharReBreathe(int party_slot);                             /* 0x004EBC80 */
+
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
 // FUNCTION: WIZ8 0x004FF3B0
@@ -28,7 +30,7 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id)
     return character->profession_levels[profession_id] + magic_level_offset;
 }
 
-extern unsigned char Function51D610(int caster, int item_id);   /* 0x0051D610 */
+extern unsigned char CanCharacterUseItem(int caster, int item_id);   /* 0x0051D610 */
 
 /* The target type that costs three off the difficulty: whatever
    GetSpellTargetType answers seven for. */
@@ -66,7 +68,7 @@ bool CanCastFromItem(int caster, const W8ItemInstance* item)
     if (item->identified == 0) {
         return false;
     }
-    return Function51D610(caster, item->item_id) != 0;
+    return CanCharacterUseItem(caster, item->item_id) != 0;
 }
 
 #define MAGIC_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic.cpp"
@@ -107,14 +109,8 @@ enum {
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
     W8_SPELL_USABLE_WHILE_SHOPPING = 4
 };
-
-extern unsigned char g_in_combat_00683f94;
-extern unsigned char g_camp_open_00683f9b;
 extern unsigned char g_flag_00683f9c;
 extern int g_flag_00683f9d;
-extern int g_screen_state_0068ec78;
-extern void* g_item_selection_owner_0068edcc;
-
 extern int Function53A2C0(W8MonsterInfo* monster_info, int location_id);
 extern unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 extern unsigned char Function519F80(
@@ -122,13 +118,12 @@ extern unsigned char Function519F80(
     W8MonsterRecord* record,
     int arg_3,
     W8CombatSlot* combat_slot);
-extern unsigned char Function5369F0(W8MonsterInfo* monster_info);
+extern unsigned char ClearMonsterCombatSlot(W8MonsterInfo* monster_info);
 extern unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
 extern unsigned char Function5327E0(
     W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
 extern unsigned char Function5330E0(
     W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
-extern unsigned char Function4EBC80(int spell_id);
 
 /* Whether a spellcasting block stops this character casting this spell. The
    block stops everything except alchemy in the hands of someone who has the
@@ -204,7 +199,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
 
     combat_slot = &monster_info->combat_slot_2ba;
     if (!Function519F80(monster_info, record, 0, combat_slot) &&
-        !Function5369F0(monster_info)) {
+        !ClearMonsterCombatSlot(monster_info)) {
         return false;
     }
     if (Function4D9080(monster_info, 4, 0)) {
@@ -235,7 +230,7 @@ unsigned char SpellUsableNow(
         srAssertFail("uiSpellUsableWhen < SPELL_USAGE_COUNT", MAGIC_CPP, 4182, 0);
     }
 
-    if (g_screen_state_0068ec78 == 6 && g_in_combat_00683f94 == 0 &&
+    if (g_screen_state_0068ec78 == W8_SCREEN_CAMP && g_in_combat_00683f94 == 0 &&
         g_camp_open_00683f9b != 0 && (spell_id == 0x17 || spell_id == 0x3a)) {
         return 1;
     }
@@ -307,7 +302,7 @@ char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int 
         case 8:
             return 3;
         case 9:
-            if (g_item_selection_owner_0068edcc == 0 || context == 3 || context == 4) {
+            if (g_level_block == 0 || context == 3 || context == 4) {
                 return 6;
             }
             break;
@@ -351,11 +346,13 @@ char GetTargetNeededForSpellHostile(int spell_id)
     return 0;
 }
 
-/* One-line forwarder that narrows the underlying answer to a flag. */
+/* One-line forwarder that narrows CanCharReBreathe's answer to a flag. Its
+   argument is a party slot, not a spell - which is only visible once the
+   underlying predicate is named. */
 // FUNCTION: WIZ8 0x00501860
-bool IsSpellFlagged4EBC80(int spell_id)
+bool CanPartySlotReBreathe(int party_slot)
 {
-    return Function4EBC80(spell_id) != 0;
+    return CanCharReBreathe(party_slot) != 0;
 }
 
 /* One queued spell effect. Each entry counts down a turn at a time and is
@@ -390,8 +387,6 @@ extern int g_spell_effects_capacity;
 extern W8SpellEffectEntry** g_spell_effects_data;
 /* 0x0068691F */
 extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
-extern W8PList* g_active_monster_list_00683fad;
-
 /* Whether every queued effect still has time left on it. */
 // FUNCTION: WIZ8 0x00500E50
 bool AllSpellEffectsStillRunning(void)
@@ -499,8 +494,7 @@ extern void Function4E7CC0(
     int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
 extern W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 /* 0x0053B7F0 */
-enum { W8_TARGETING_CONTEXT_SPELL = 3, W8_TARGETING_CONTEXT_CURRENT = 6 };
-extern unsigned char Function537160(const W8CombatSlot* target, char needed_target);
+extern unsigned char TargetMatchesNeeded(const W8CombatSlot* target, char needed_target);
 extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
 
 /* Record the spell one party slot is about to cast, at what strength, and at
@@ -546,7 +540,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
     char needed = GetTargetNeededForSpellFriendly(
         g_party_slot_rows[party_slot].spell_id, 0, 6);
 
-    if (!Function537160(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL), needed)) {
+    if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL), needed)) {
         return false;
     }
     return Function519180(party_slot, 0, 3) != 0;
@@ -557,10 +551,8 @@ extern void ChooseAction(int party_slot, int action, int detail, int a, int b, i
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 extern void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
-extern bool CanCharReBreathe(int party_slot);                            /* 0x004EBC80 */
 extern bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
 extern int g_combat_difficulty_006850d5;
-extern W8CombatCharacterRow* g_combat_character_rows;
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
    monster power-level chooser reads the same table as a spell-point budget
    cost, so the one table serves both. */
@@ -949,9 +941,6 @@ extern void Function520070(void* arg_1, W8Character* character, int arg_3);  /* 
 extern void Function52E690(
     W8Character* character, int sound, int arg_3, float arg_4, float arg_5); /* 0x0052E690 */
 extern int g_learn_sound_0068c510;
-extern float g_learn_volume_005ed8c8;
-extern float g_learn_pan_005ed914;
-
 /* Learn the spell a scroll or book teaches, and consume it. The item has to
    carry a spell - the assertion names the field ubSpellNumber - and the
    character has to be able to take it on; failing that the item is left alone
@@ -991,7 +980,7 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
     }
     Function520070(origin, character, 1);
     Function52E690(
-        character, g_learn_sound_0068c510, 0, g_learn_volume_005ed8c8, g_learn_pan_005ed914);
+        character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 }
 
 extern unsigned char Function5248A0(int party_slot, int arg_2);          /* 0x005248A0 */
@@ -1858,7 +1847,7 @@ extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8Target
 /* 0x0053BE50 */
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void NoteSpellCast(int spell_id, int result);                     /* 0x0052C320 */
-extern unsigned char g_log_verbose_0068510c;
+extern unsigned char g_detailed_combat_messages_0068510c;
 extern void SetTextBoxMode(unsigned char mode, int value);   /* 0x005905C0 */
 
 /* The two log lines a monster's cast is announced with: one that names the
@@ -1884,7 +1873,7 @@ void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int p
 
     SetTargetSourceToMonster(monster_info, &source);
 
-    if (g_log_verbose_0068510c == 0) {
+    if (g_detailed_combat_messages_0068510c == 0) {
         WriteGameLog(
             9, g_message_strings[W8_MESSAGE_MONSTER_CAST / 4],
             GetMonsterName(monster_info, record, 0),

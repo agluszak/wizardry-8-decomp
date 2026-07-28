@@ -47,12 +47,10 @@ typedef struct W8VisibilityRow {
 
 extern void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int arg_3);
 /* 0x005049C0 */
-extern unsigned char g_in_combat_00683f94;
-extern W8PList* g_active_monster_list_00683fad;
 extern void Function593330(void);
 extern void Function53BF80(void);
-extern void Function482750(float value);
-extern float Function482760(void);
+extern void SetViewDistance(float value);
+extern float GetViewDistance(void);
 extern void Function452F50(int value);
 extern void Function43AA20(void);
 extern void Function48CBE0(void);
@@ -62,7 +60,7 @@ extern float g_sight_default_005ec254;
 // FUNCTION: WIZ8 0x005048E0
 void ResetSight(void)
 {
-    Function482750(12.0f);
+    SetViewDistance(12.0f);
     Function452F50(0);
     Function43AA20();
     Function48CBE0();
@@ -72,7 +70,7 @@ void ResetSight(void)
 // FUNCTION: WIZ8 0x00504910
 bool IsSightRangeOverridden(void)
 {
-    return Function482760() != g_sight_default_005ec254;
+    return GetViewDistance() != g_sight_default_005ec254;
 }
 
 /* Re-run both directions of the sight update for one monster. */

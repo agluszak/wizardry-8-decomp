@@ -64,7 +64,7 @@ extern unsigned char g_flag_659756;
 /* 0x0050F6A0 and 0x0048C750, not yet identified; named by address as elsewhere
    in src/wiz8. The first is told about every group that survives the load, the
    second only about those two of its flags select. */
-extern void Function50F6A0(W8MonsterGroup* group, int unknown);
+extern void ActivateGroupMembers(W8MonsterGroup* group, int unknown);
 extern void Function48C750(W8MonsterGroup* group);
 
 /* 0x004E3720, 0x004F69F0 and 0x00443A50, not yet identified; named by address
@@ -72,7 +72,7 @@ extern void Function48C750(W8MonsterGroup* group);
    run before the header is read, so they read as teardown of whatever the
    previous level left behind. */
 extern void Function4E3720(void);
-extern void Function4F69F0(void);
+extern void InitializeItemManagerState(void);
 extern void Function443A50(void);
 
 /* Four counts the header carries, each falling back to one when the save
@@ -108,7 +108,7 @@ extern char Function5155B0(const char* path, int slot, W8Character* character);
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
-extern void* Function517A90(void* target, const char* name, int value,
+extern void* FormatWideString(void* target, const char* name, int value,
                             int a, int b, int c, void* callback);
 extern void Function518510(void* notice);
 
@@ -174,7 +174,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     }
 report:
     if (report_failure) {
-        void* notice = Function517A90(g_notices[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
+        void* notice = FormatWideString(g_notices[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
                                       g_value_683678, 1, 1, 0, 0);
         Function518510(notice);
     }
@@ -194,7 +194,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     W8StatusHeader header;
 
     Function4E3720();
-    Function4F69F0();
+    InitializeItemManagerState();
     Function443A50();
     if (!chunk->Read(&header, sizeof(header), &transferred)) {
         return 0;
@@ -290,7 +290,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             free(group);
             return 0;
         }
-        Function50F6A0(group, 0);
+        ActivateGroupMembers(group, 0);
         if (group->flag_c3 != 0 && group->leader_group_id == 0) {
             Function48C750(group);
         }

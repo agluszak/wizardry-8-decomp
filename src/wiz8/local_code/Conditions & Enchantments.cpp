@@ -27,12 +27,9 @@ extern void NotifySpellPointsChanged(int party_slot);                    /* 0x00
 extern void Function4ACD80(W8Monster* monster, int slot, int arg_3);
 extern void Function50E8C0(int location_id);
 extern void Function50E650(int party_slot);
-extern void Function505760(W8MonsterInfo* monster_info);
-extern void Function562A50(int mask);
-extern int g_screen_state_0068ec78;
+extern void RefreshMonsterSight(W8MonsterInfo* monster_info);
+extern void RequestRedraw(int mask);
 extern unsigned char g_enchantment_six_cleared_006840bb;
-extern W8PList* g_active_monster_list_00683fad;
-
 /* The enchantment slot whose clearing has a consequence beyond the slot
    itself. */
 enum { W8_ENCHANTMENT_SLOT_SPECIAL = 6 };
@@ -109,9 +106,9 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     }
 
     NotifySpellPointsChanged(party_slot);
-    if (g_screen_state_0068ec78 == 7) {
-        Function562A50(0x200000);
-        Function562A50(0x8000);
+    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME) {
+        RequestRedraw(0x200000);
+        RequestRedraw(0x8000);
     }
     Function50E650(party_slot);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
@@ -133,7 +130,7 @@ void ClearMonsterEnchantmentSlot(int location_id, int slot)
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
     Function50E8C0(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-        Function505760(monster_info);
+        RefreshMonsterSight(monster_info);
     }
 }
 
@@ -160,7 +157,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
     Function4ACD80(monster_info->monster, slot + 0x10, 0);
     Function50E8C0(location_id);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-        Function505760(monster_info);
+        RefreshMonsterSight(monster_info);
     }
 }
 

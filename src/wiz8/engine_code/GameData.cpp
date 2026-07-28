@@ -39,8 +39,6 @@ extern unsigned char g_level_override_00652dba;
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is
    proven, so it keeps its address. */
-extern float g_float_005ebb34;
-
 /* Copy one four-byte handle over another. */
 // FUNCTION: WIZ8 0x0041CF80
 void CopyLevelDataHandle(int* destination, const int* source)

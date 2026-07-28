@@ -8,21 +8,20 @@
 
 extern int g_item_manager_initialized_006874C2;
 extern int g_item_manager_pending_00683FA9;
-extern int g_screen_state_0068ec78;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern W8LevelRuntimeBlock* g_item_selection_owner_0068EDCC;
+extern W8LevelRuntimeBlock* g_level_block;
 extern W8PList* g_world_item_list_00683fb5;
 
-#define ITEM_MANAGER_CPP "C:\\\\Projects\\\\Wizardry 8\\\\Local Code\\\\ItemManager.cpp"
+#define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
 // FUNCTION: WIZ8 0x004F69F0
 bool InitializeItemManagerState()
 {
     g_item_manager_initialized_006874C2 = 1;
     g_item_manager_pending_00683FA9 = 0;
-    if (g_screen_state_0068ec78 == 7 && g_item_selection_owner_0068EDCC != 0) {
-        g_item_selection_owner_0068EDCC->selected_item = -1;
+    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->selected_item = -1;
     }
     if (g_world_item_list_00683fb5 != 0) {
         PListClear(g_world_item_list_00683fb5);
@@ -472,7 +471,7 @@ extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x00
 extern unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
 /* 0x0046F820 */
 extern void Function49FA30(W8World* world);
-extern void Function46E5E0(W8World* world);
+extern void WorldRemoveFromList04(W8World* world);
 extern void Function49F720(const float* position);
 extern unsigned char SettleItemOnGround(
     float* position, void** out_hit, int arg_3, double limit);           /* 0x00433820 */
@@ -483,9 +482,7 @@ extern void ReplaceOrCreateItem(
 extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern W8LevelRuntimeBlock* g_item_selection_owner_0068EDCC;
-extern int g_screen_state_0068ec78;
-
+extern W8LevelRuntimeBlock* g_level_block;
 extern float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then
@@ -561,9 +558,9 @@ void DeactivateWorldItem(W8WorldItem* item)
         srAssertFail("pItemInfo->p3D != NULL", ITEM_MANAGER_CPP, 556, 0);
     }
 
-    if (g_screen_state_0068ec78 == 7 && g_item_selection_owner_0068EDCC != 0 &&
-        g_item_selection_owner_0068EDCC->selected_item == item->runtime_id) {
-        g_item_selection_owner_0068EDCC->selected_item = -1;
+    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+        g_level_block->selected_item == item->runtime_id) {
+        g_level_block->selected_item = -1;
     }
 
     GetWorldItemPosition(position);
@@ -573,7 +570,7 @@ void DeactivateWorldItem(W8WorldItem* item)
     item->entity_flags = item->owner->entity->flags;
 
     Function49FA30(GetWorld());
-    Function46E5E0(GetWorld());
+    WorldRemoveFromList04(GetWorld());
     delete item->owner;
     item->owner = 0;
     item->unknown_08 = 0;

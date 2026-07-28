@@ -23,7 +23,6 @@ enum {
 };
 
 extern void CalcXPGoal(W8Character* character);                 /* 0x004EF090 */
-extern W8PList* g_active_monster_list_00683fad;
 /* 0x00616604: one entry per faction, race and profession together. */
 extern const int g_character_table_00616604[];
 

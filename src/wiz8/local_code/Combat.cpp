@@ -18,23 +18,21 @@ enum { W8_ACTION_LIFTED_AT_ROUND_END = 9, W8_ACTION_KIND_ONE = 1 };
 extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00524A10 */
 extern unsigned char CharacterHasCondition(const W8Character* character, int condition);
 /* 0x00547940 */
-extern unsigned char g_in_combat_00683f94;
 extern W8CombatState* g_combat_state;
 /* The per-character combat rows begin at the combat state's own address and
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
-extern W8CombatCharacterRow* g_combat_character_rows;
 extern unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664;
-extern int g_active_character_0068518d;
+extern int g_active_party_slot_0068518d;
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
-extern void Function4F0480(unsigned int* actor, int round);
-extern int Function53BC10(int party_slot);
+extern void RoundPhaseToStep(unsigned int* actor, int round);
+extern int GetCurrentTargetingContext(int party_slot);
 extern void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
 /* 0x0053AC30 */
 extern void ResetCombatSlot(W8CombatSlot* slot);
 extern void NotifySpellPointsChanged(int party_slot);
-extern void Function565420(void);
+extern void RequestRedrawParty(void);
 extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
 
 /* Whether anybody in the party is engaged with something. */
@@ -150,7 +148,7 @@ void CatchUpCombatActor(unsigned int* actor)
 {
     actor[0] += g_combat_state->round_counter - actor[0x27];
     ClampUnsignedInteger(actor, g_combat_state->round_counter, 100);
-    Function4F0480(actor, g_combat_state->round_counter);
+    RoundPhaseToStep(actor, g_combat_state->round_counter);
     actor[0x27] = g_combat_state->round_counter;
 }
 
@@ -176,13 +174,13 @@ void DropCharacterFromRound(int party_slot)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
 
-    if (Function53BC10(party_slot) != 2) {
+    if (GetCurrentTargetingContext(party_slot) != 2) {
         ClearTargetHighlights(party_slot, &row->target_in_combat);
     }
     ResetCombatSlot(&row->target_in_combat);
     NotifySpellPointsChanged(party_slot);
-    if (party_slot == g_active_character_0068518d) {
-        Function565420();
+    if (party_slot == g_active_party_slot_0068518d) {
+        RequestRedrawParty();
     }
     Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);
 }
@@ -190,7 +188,6 @@ void DropCharacterFromRound(int party_slot)
 extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
 extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
 extern void NotifyMonsterOfSound(W8Monster* monster, int arg_2);         /* 0x004C6240 */
-extern W8PList* g_active_monster_list_00683fad;
 extern unsigned char g_surprise_possible_00683fc5;
 
 /* Tell every monster within short range about something. A monster has to be
@@ -263,8 +260,6 @@ extern void RequestRedraw(unsigned int mask);
 extern float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 extern W8Monster* GetMonsterByLocationID(int location_id);
 extern void* g_effect_005ee610;
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;
 extern float g_movement_speed_step_005ed490;

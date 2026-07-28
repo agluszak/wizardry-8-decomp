@@ -38,7 +38,6 @@ struct W8SpellEffectEntry;
 extern struct W8SpellEffectEntry* FindMonsterControlSpellEffect(void);   /* 0x00500F30 */
 extern void ResetCombatSlot(W8CombatSlot* slot);                        /* 0x00536170 */
 extern void GetPartyPosition(W8Position* position);                     /* 0x00421070 */
-extern W8PList* g_active_monster_list_00683fad;
 /* 0x0061EEFC: two bytes per AI kind; only the leading byte is read. */
 extern const unsigned char g_ai_kind_table[][2];
 

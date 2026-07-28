@@ -10,18 +10,14 @@
  * of the game calls into this file.
  */
 
-/* The screen state the main game screen owns. Every redraw request checks it
-   first, so a request made from another screen is simply dropped. */
-enum { W8_SCREEN_MAIN_GAME = 7 };
+/* Every redraw request checks the screen state first, so a request made from
+   another screen is simply dropped. */
 
 /* The region set the two enable/disable wrappers below own. */
 enum { W8_REGION_SET_MAIN = 4 };
-
-extern int g_screen_state_0068ec78;
 extern W8LevelRuntimeBlock* g_level_block;
 extern void* g_modal_owner_0068edd0;
 extern int g_flag_0068ed14;
-extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_flag_00683f95;
 extern unsigned char g_flag_00683f96;
 extern unsigned char g_flag_00683f97;

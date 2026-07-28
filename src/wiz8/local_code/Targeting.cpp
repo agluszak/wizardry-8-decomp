@@ -11,6 +11,12 @@
    bodies compare against -1. */
 #define BAD_INDEX (-1)
 
+
+W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
+int ResolveTargetingContext(int party_slot, unsigned int context);
+unsigned char GetCurrentTargetingContext(int party_slot);
+
+
 /* Point a source at one party character. Everything is cleared first and the
    monster id invalidated, so a source built this way never reads as a monster;
    the character id is the only thing left set. */
@@ -86,10 +92,9 @@ extern const char g_faction_names[][0x1e];               /* 0x0061CE74 */
 extern W8FactionRuntimeRecord g_faction_runtime[];       /* 0x0068D6EA */
 
 extern char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context);
-extern W8TargetSource* Function53B7F0(int party_slot, int context);
-extern unsigned char Function537160(W8TargetSource* target, char needed);
+extern unsigned char TargetMatchesNeeded(const W8CombatSlot* target, char needed);
 extern unsigned char Function519180(int party_slot, int arg_2, int context);
-extern unsigned char Function5207C0(const W8ItemDatabaseRecord* record, int context);
+extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record, int context);
 extern unsigned char g_targeting_flag_00685116;
 
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
@@ -166,7 +171,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context)
 {
     char needed = GetTargetNeededForSpellFriendly(spell_id, 0, context);
 
-    if (!Function537160(Function53B7F0(party_slot, context), needed)) {
+    if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, context), needed)) {
         return false;
     }
     return Function519180(party_slot, 0, context) != 0;
@@ -177,13 +182,13 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context)
 // FUNCTION: WIZ8 0x00537270
 unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id)
 {
-    W8TargetSource* target = Function53B7F0(party_slot, 6);
+    W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, 6);
 
     if (needed == 2 && g_targeting_flag_00685116 != 0) {
         return 1;
     }
-    return Function537160(target, (char)needed);
+    return TargetMatchesNeeded(target, (char)needed);
 }
 
 /* What an item's spell needs picked before it can be cast. An item with no
@@ -201,7 +206,7 @@ char GetTargetNeededForItem(const W8ItemInstance* item)
         return 0;
     }
     return GetTargetNeededForSpellFriendly(
-        record->spell_id, Function5207C0(record, 6), 0);
+        record->spell_id, ItemClassNormalizesTarget(record, 6), 0);
 }
 
 extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
@@ -212,7 +217,7 @@ extern void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
 /* 0x004CA4F0 */
 extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
 extern void Function492500(void* scratch);
-extern void Function5653F0(void);
+extern void RequestRefreshPartyState(void);
 extern unsigned char g_target_marker_00684073;
 
 /* Aim at whatever the caller names, by kind. The other three fields are left
@@ -260,7 +265,7 @@ void AimAtPlace(int actor)
     Function492500(scratch);
     AimAtTarget(actor, &target, W8_TARGET_KIND_PLACE);
     g_target_marker_00684073 = 0;
-    Function5653F0();
+    RequestRefreshPartyState();
 }
 
 /* The three wrappers that set the party's own target rather than a
@@ -388,8 +393,6 @@ extern unsigned int GetMonsterGroupIndexByID(
     int caller_line, const char* caller_file, int group_id, unsigned char assert_on_failure);
 extern W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int index);
 extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
-extern W8LevelRuntimeBlock* g_level_block;
-extern W8PList* g_active_monster_list_00683fad;
 extern int g_highlight_suppressed_00683fe7;
 
 /* What the interface has to ask the player to pick for one action. Most
@@ -430,7 +433,7 @@ char GetTargetNeededForAction(
 // FUNCTION: WIZ8 0x005372B0
 unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
 {
-    W8TargetSource* target = Function53B7F0(party_slot, 6);
+    W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     const W8ItemDatabaseRecord* record;
     int needed = 0;
 
@@ -444,7 +447,7 @@ unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* ite
             }
         }
     }
-    return Function537160(target, (char)needed);
+    return TargetMatchesNeeded(target, (char)needed);
 }
 
 /* Tint one monster for whoever is highlighting it. Three tints are named -
@@ -935,8 +938,6 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 extern unsigned char LineOfSightClear(float x, float y, float z);        /* 0x004C4C40 */
 /* 0x005EBB34: the float that stands for "no distance given". GameData.cpp
    reads the same constant as the level vector's absent value. */
-extern float g_float_005ebb34;
-
 /* The side selector that means any side at all. */
 enum { W8_SIDE_ANY = 3 };
 
@@ -998,10 +999,6 @@ void CollectMonstersWithinRadius(
         }
     }
 }
-
-extern int g_screen_state_0068ec78;
-extern unsigned char g_in_combat_00683f94;
-extern W8LevelRuntimeBlock* g_level_block_0068edcc;
 extern int g_active_party_slot_0068518d;
 extern unsigned char g_flag_00683f95;
 extern unsigned char g_flag_00683f96;
@@ -1010,19 +1007,6 @@ extern unsigned char g_flag_00683f96;
    among the six. */
 extern W8CombatSlot g_shared_target_0068408b;
 
-/* The targeting contexts. Six of them name a block the slot carries; the
-   seventh, "current", is not a context at all but the request to work out
-   which of the others applies right now. */
-enum {
-    W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
-    W8_TARGETING_CONTEXT_IN_COMBAT = 1,
-    W8_TARGETING_CONTEXT_SHARED = 2,
-    W8_TARGETING_CONTEXT_SPELL = 3,
-    W8_TARGETING_CONTEXT_ITEM = 4,
-    W8_TARGETING_CONTEXT_FIVE = 5,
-    W8_TARGETING_CONTEXT_CURRENT = 6,
-    W8_TARGETING_CONTEXT_DIALOGUE = 7
-};
 
 /* The two dialogue selections that have a targeting context of their own, and
    they are the same two action kinds - casting and using an item. */
@@ -1038,14 +1022,14 @@ enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
 // FUNCTION: WIZ8 0x0053BC10
 unsigned char GetCurrentTargetingContext(int party_slot)
 {
-    if (g_screen_state_0068ec78 == 7 && g_level_block_0068edcc != 0 &&
-        g_level_block_0068edcc->selection_kind != -1) {
-        if (g_level_block_0068edcc->selection_kind == W8_SELECTION_SPELL &&
-            g_level_block_0068edcc->selection_settled != 0) {
+    if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
+        g_level_block->selection_kind != -1) {
+        if (g_level_block->selection_kind == W8_SELECTION_SPELL &&
+            g_level_block->selection_settled != 0) {
             return W8_TARGETING_CONTEXT_SPELL;
         }
-        if (g_level_block_0068edcc->selection_kind == W8_SELECTION_ITEM &&
-            g_level_block_0068edcc->selection_settled != 0) {
+        if (g_level_block->selection_kind == W8_SELECTION_ITEM &&
+            g_level_block->selection_settled != 0) {
             return W8_TARGETING_CONTEXT_ITEM;
         }
         return W8_TARGETING_CONTEXT_DIALOGUE;
@@ -1213,8 +1197,6 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
     return reachable != 0;
 }
-
-extern unsigned char g_camp_open_00683f9b;
 /* 0x00649F1C: the camp screen, which pins targeting to the one monster it is
    showing. */
 extern unsigned char* g_camp_screen_00649f1c;
@@ -1360,13 +1342,13 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
         return 0;
 
     case 7:
-        if (g_level_block_0068edcc->selection_settled != 0) {
+        if (g_level_block->selection_settled != 0) {
             return SpellHasAnyValidTarget(party_slot, detail, 0);
         }
         break;
 
     case 8:
-        if (g_level_block_0068edcc->selection_settled != 0) {
+        if (g_level_block->selection_settled != 0) {
             const W8ItemInstance* item = detail_block->item_use.item;
 
             if (item == 0) {
@@ -1383,7 +1365,6 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
 
 /* 0x00683FB1: every monster group in the level. */
 extern W8PList* g_monster_group_list_00683fb1;
-extern unsigned char g_flag_00685116;
 
 /* The spell target kinds this has an opinion about. Everything else is
    answered yes outright, so the question only ever narrows. */
@@ -1409,7 +1390,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
 
     switch (GetTargetNeededForSpellFriendly(spell_id, normalize, 6)) {
     case W8_SPELL_TARGET_ONE_MONSTER:
-        if (g_flag_00685116 != 0) {
+        if (g_targeting_flag_00685116 != 0) {
             return 1;
         }
         for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
@@ -1601,7 +1582,7 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
     if (picked != BAD_INDEX) {
         SetMonsterHighlightColour(GetMonsterByLocationID(picked), 1.0f, 1.0f, 1.0f, 1.0f);
     }
-    g_level_block_0068edcc->pick_changed_154 = 1;
+    g_level_block->pick_changed_154 = 1;
 
     StartBreathCycle(party_slot, 0);
     SetTargetSourceToCharacter(party_slot, &source);

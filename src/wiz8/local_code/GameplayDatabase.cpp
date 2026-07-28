@@ -47,8 +47,8 @@ unsigned char g_monster_slot_block[0x1a0a];
 extern W8MonsterSlot g_monster_slots_6836b8[];
 extern int SetCountdownClock(int delay);
 extern int Random(int limit);
-extern void Function47B5F0(void);
-extern void Function47B5B0(int id);
+extern void EnableAllRenderOptions(void);
+extern void DisableRenderOption(int id);
 extern unsigned int GetTotalPhysicalMemory(void);
 extern int GetRendererFamily(void);
 extern int g_dword_685189;
@@ -75,7 +75,7 @@ extern void Function558820(void);
 extern void Function535920(void);
 extern void Function56C520(void);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
-extern void Function4E8290(int slot, int a, int b);
+extern void SetSlotAction(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
 extern void Function55ADA0(void* fact_rules_runtime);
 extern "C" void CloseVirtualFile(int handle);
@@ -442,7 +442,7 @@ void ResetPartySlotRow(int slot)
     row->flag_00 = 1;
     row->spell_id = 0;
     row->flag_0d0 = 0xff;
-    Function4E8290(slot, 0, -1);
+    SetSlotAction(slot, 0, -1);
 }
 
 // FUNCTION: WIZ8 0x0054B080
@@ -729,13 +729,13 @@ void Function54B560(void)
     g_settings_6850c8.field_04e = 1;
     g_settings_6850c8.field_04f = 0;
     g_settings_6850c8.field_050 = 1;
-    Function47B5F0();
+    EnableAllRenderOptions();
     if (GetTotalPhysicalMemory() <= 0x4000000) {
-        Function47B5B0(0xb);
-        Function47B5B0(0xc);
+        DisableRenderOption(0xb);
+        DisableRenderOption(0xc);
     }
     if (GetRendererFamily() != 1) {
-        Function47B5B0(0x10);
+        DisableRenderOption(0x10);
     }
 }
 

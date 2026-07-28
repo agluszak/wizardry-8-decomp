@@ -11,14 +11,14 @@
 #define MAX_MONSTERS_IN_DATABASE 1000
 
 extern "C" char* String(const char* format, ...);
-int Function4A87A0(const char* name);
-unsigned char Function47B610(int index);
+int FindFirstGrCycleByName(const char* name);
+unsigned char GetRenderOptionState(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 void Function4C5B10(W8Monster* monster, int value);
 int MonsterQuery(W8Monster* monster, int query);
-void Function4C6140(W8Monster* monster);
+void MonsterForward4537E0(W8Monster* monster);
 void MonsterSetCycle(W8Monster* monster, int cycle);
 void MonsterSetBehaviour(W8Monster* monster, int behavior);
 void MonsterSetSubCycle(W8Monster* monster, int subcycle);
@@ -27,31 +27,31 @@ unsigned char RemoveMonster(
     unsigned char destroy_monster);
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info);
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
-void Function565420(void);
-void Function50F4A0(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
+void RequestRedrawParty(void);
+void DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
 void Function5103E0(W8MonsterGroup* monster_group);
-void Function5106D0(W8MonsterGroup* monster_group);
-void Function5524E0(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
-void Function532330(W8MonsterInfo* monster_info);
+void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group);
+void ClearEffectSlot(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
+void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
 void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
-void Function4E76F0(W8MonsterInfo* monster_info);
+void EndMonsterTurn(W8MonsterInfo* monster_info);
 extern int g_dword_686a48;
 extern int g_status_count_6874be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
-void Function505C80(W8MonsterInfo* monster_info);
+void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
 /* Writes the monster's world position through an out-parameter; __cdecl, since
    0x004C5750 ends in a bare `ret`. */
 void Function4C5750(W8Monster* monster, srVector3T<float>* position);
-void Function505810(void);
-void Function538D60(int location_id, int value);
+void RefreshAllSight(void);
+void SetTargetToMonster(int location_id, int value);
 void Function593330(void);
 extern int g_active_monster_count_683fa1;
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
-void Function4C5EA0(W8Monster* monster);
+void MonsterForward4A84A0(W8Monster* monster);
 float Function4BE5C0(srVector3T<float>* position);
 int Function52A780(int first, int second);
 
@@ -140,19 +140,18 @@ W8MonsterInfo* CreateMonsterInfo(
     IListAdd(group->monsters, monster_info->location_id);
     ++group->member_count;
     ++group->active_member_count;
-    Function565420();
-    g_engine_state_6598a4->Function42E620(
+    RequestRedrawParty();
+    g_engine_state_6598a4->W8OctreeWalker_VisitPointCopy(
         static_cast<unsigned short>(monster_info->location_id), position);
     return monster_info;
 }
 
 /* The one record id that is displayed as a character's name with a prefix
    rather than out of the monster database. */
-enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 0x18d };
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 void Function4C59C0(W8Monster* monster, W8World* world);
-W8World* Function451280(W8Monster* monster);
+W8World* GetWorld(W8Monster* monster);
 void Function46E5A0(W8World* world);
 void Function4C5860(W8Monster* monster);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
@@ -166,7 +165,7 @@ void Function4C5810(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
 void __cdecl Function58AC00(int channel, void* message, int first, int second,
                             int flag);
-void Function562A50(int mask);
+void RequestRedraw(int mask);
 unsigned char Function531920(W8MonsterGroup* monster_group);
 W8CombatActor* NextEngagedCharacter(int restart);
 unsigned char Function4A5790(void);
@@ -229,7 +228,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     }
     Function4C5B10(monster_info->monster, 0);
     monster_info->monster->member_18.flags_0c &= 0xdfffffff;
-    Function4C6140(monster_info->monster);
+    MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         result = MonsterQuery(monster_info->monster, 6);
         if (result != 1 && result != 2 &&
@@ -540,10 +539,10 @@ int Function4E5B50(unsigned int monster_species)
     if (record == 0) {
         return -1;
     }
-    if (Function4A87A0(record->cycle_name_189) != 0) {
+    if (FindFirstGrCycleByName(record->cycle_name_189) != 0) {
         return 0;
     }
-    if (Function47B610(0xe) != 0) {
+    if (GetRenderOptionState(0xe) != 0) {
         return record->value_257;
     }
     return record->value_253;
@@ -711,7 +710,7 @@ void DestroyUngroupedMonsters(void)
             }
             if (monster_info->monster != 0) {
                 Function4C59C0(monster_info->monster, GetWorld());
-                Function46E5A0(Function451280(monster_info->monster));
+                Function46E5A0(GetWorld(monster_info->monster));
                 Function4C5860(monster_info->monster);
                 monster_info->monster = 0;
             }
@@ -1079,15 +1078,15 @@ unsigned char RemoveMonster(
 
         IListRemove(monster_group->monsters, monster_info->location_id);
         --monster_group->member_count;
-        Function565420();
+        RequestRedrawParty();
         if (monster_group->member_count == 0) {
-            Function50F4A0(monster_group, monster_info);
+            DestroyMonsterGroup(monster_group, monster_info);
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
             if (monster_group->value_9f == monster_info->location_id) {
                 Function5103E0(monster_group);
                 if (monster_group->leader_group_id == 0) {
-                    Function5106D0(monster_group);
+                    RefreshMonsterGroupAndAllies(monster_group);
                 }
             }
         }
@@ -1102,7 +1101,7 @@ unsigned char RemoveMonster(
         }
         if (monster_info->monster != 0) {
             Function4C59C0(monster_info->monster, GetWorld());
-            Function46E5A0(Function451280(monster_info->monster));
+            Function46E5A0(GetWorld(monster_info->monster));
             Function4C5860(monster_info->monster);
             monster_info->monster = 0;
         }
@@ -1142,7 +1141,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->monster->member_18.state_a0 = 0;
         monster_info->monster->member_18.flags_0c = 0x200000;
         Function4ACF90(monster_info->monster);
-        Function505C80(monster_info);
+        ReleaseMonToMonVisibilityList(monster_info);
         Function4C5750(monster_info->monster, &position);
         monster_info->position_17.x = position.x;
         monster_info->position_17.y = position.y;
@@ -1150,8 +1149,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->flag_14 = 0;
         --g_active_monster_count_683fa1;
         if (g_flag_683f94 != 0) {
-            Function505810();
-            Function538D60(monster_info->location_id, 0);
+            RefreshAllSight();
+            SetTargetToMonster(monster_info->location_id, 0);
             Function593330();
             Function546E70();
             if (g_combat_state->selected_monster == monster_info) {
@@ -1183,7 +1182,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     }
     Function4C5B10(monster_info->monster, 0);
     monster_info->monster->member_18.flags_0c &= 0xdfffffff;
-    Function4C6140(monster_info->monster);
+    MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         query_state = MonsterQuery(monster_info->monster, 6);
         if (query_state != 1 && query_state != 2 &&
@@ -1208,7 +1207,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         Function546E70();
     }
     if (g_flag_683f94 != 0) {
-        Function4E76F0(monster_info);
+        EndMonsterTurn(monster_info);
     }
 }
 
@@ -1244,16 +1243,16 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     for (index = 0; index < 9; ++index) {
         entry = &monster_info->pCombat->entries_3e[index];
         if (entry->active != 0) {
-            Function5524E0(monster_info, entry);
+            ClearEffectSlot(monster_info, entry);
         }
     }
     for (index = 0; index < 6; ++index) {
         entry = &monster_info->pCombat->entries_d7[index];
         if (entry->active != 0) {
-            Function5524E0(monster_info, entry);
+            ClearEffectSlot(monster_info, entry);
         }
     }
-    Function532330(monster_info);
+    DestroyMonsterActionQueue(monster_info);
     free(monster_info->pCombat);
     monster_info->pCombat = 0;
     monster_info->fInCombat = 0;
@@ -1298,7 +1297,7 @@ void TogglePartyCombatStance(void)
     }
     Function58AC00(0xc, message, -1, -1, 0);
     if (g_dword_68ec78 == 7) {
-        Function562A50(0x80000);
+        RequestRedraw(0x80000);
     }
 }
 
@@ -1411,7 +1410,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
             MonsterSetRuntimeBehaviour(monster, static_cast<signed char>(behavior));
             MonsterSetPendingCycle(monster, cycle);
             monster->m_cycles[18].runtime->value_066 = 0;
-            Function4C5EA0(monster);
+            MonsterForward4A84A0(monster);
             return;
         }
         detail = 0;

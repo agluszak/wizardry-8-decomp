@@ -20,13 +20,13 @@ int g_dword_650db0;
 extern unsigned char g_flag_6505a9;
 extern bool g_teardown_done_650db4;
 
-extern void Function401F90(int code, unsigned int wparam, long lparam);
+extern void QueueEvent(int code, unsigned int wparam, long lparam);
 extern void Function422970(int enable);
 extern void Function422550(void);
 extern unsigned char Function4277E0(void);
 extern void Function4220B0(void);
 extern void Function422050(void);
-extern void Function402750(void);
+extern void FreeMouseCursor(void);
 extern void Function4029F0(void);
 extern float Function420B40(int value);
 extern void Function4E3290(void);
@@ -35,11 +35,11 @@ extern void Function40B450(void);
 extern void Function408850(void);
 extern void Function407E70(void);
 extern void Function407E30(void);
-extern void Function406BD0(void);
+extern void ShutdownClockManager(void);
 extern void Function402990(void);
 extern void Function405E80(void);
 extern void Function421DC0(void);
-extern void Function401F70(void);
+extern void ShutdownInputManager(void);
 extern void Function4023A0(void);
 extern void Function404BC0(void);
 
@@ -59,7 +59,7 @@ long __stdcall WindowProc4011E0(void* window, int message,
     }
     message &= 0xffff;
     if (message == g_mswheel_roll_message) {
-        Function401F90(0x800, wparam, lparam);
+        QueueEvent(0x800, wparam, lparam);
         return 0;
     }
     switch (message) {
@@ -95,11 +95,11 @@ long __stdcall WindowProc4011E0(void* window, int message,
             Function408850();
             Function407E70();
             Function407E30();
-            Function406BD0();
+            ShutdownClockManager();
             Function402990();
             Function405E80();
             Function421DC0();
-            Function401F70();
+            ShutdownInputManager();
             Function4023A0();
             Function4023A0();
             Function404BC0();
@@ -121,7 +121,7 @@ long __stdcall WindowProc4011E0(void* window, int message,
             Function422050();
         }
         g_flag_6f0630 = 0;
-        Function402750();
+        FreeMouseCursor();
         g_dword_650db0 = 1;
         return 0;
 
@@ -156,7 +156,7 @@ long __stdcall WindowProc4011E0(void* window, int message,
        _WIN32_WINNT, and the canonical registers MSWHEEL_ROLLMSG for the same
        purpose on older shells. */
     case 0x020a:
-        Function401F90(0x800, wparam, lparam);
+        QueueEvent(0x800, wparam, lparam);
         return 0;
 
     case WM_SIZING:

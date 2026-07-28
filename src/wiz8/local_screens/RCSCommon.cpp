@@ -14,9 +14,6 @@ extern Controls* g_rcs_panel_b_0069c3c8;
 extern W8WidgetBase005ED5BC* g_rcs_widget_a_0069c3c0;
 extern W8WidgetBase005ED5BC* g_rcs_widget_b_0069c400;
 extern int g_rcs_mode_0064cbe8;
-extern unsigned char g_in_combat_00683f94;
-extern unsigned char g_camp_open_00683f9b;
-
 /* Ask the first panel to redraw all of itself. A null rectangle is how
    Controls::Invalidate spells "the whole area", so these are not a separate
    one-argument redraw slot - they are the panel class Local Code\Controls.cpp

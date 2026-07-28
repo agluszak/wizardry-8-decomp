@@ -77,9 +77,9 @@ extern void Function4095B0(void);
 extern void Function48F9E0(void);
 extern void Function429770(void);
 extern void Function52E3B0(void);
-extern unsigned char Function405C00(void* stack);
-extern unsigned char Function405A70(void* stack, W8ScreenState* into);
-extern void* Function405A00(void* stack, W8ScreenState* from);
+extern unsigned char StackSize(void* stack);
+extern unsigned char Pop(void* stack, W8ScreenState* into);
+extern void* Push(void* stack, W8ScreenState* from);
 
 void SetPendingScreenRuntime(int state)
 {
@@ -107,10 +107,10 @@ void Function4E3340(void)
         }
         g_screen_state.id = -1;
         if (g_pending_state.id == -1) {
-            if (!Function405C00(g_stack_68eda8)) {
+            if (!StackSize(g_stack_68eda8)) {
                 goto stop;
             }
-            if (!Function405A70(g_stack_68eda8, &g_pending_state)) {
+            if (!Pop(g_stack_68eda8, &g_pending_state)) {
                 goto stop;
             }
         }
@@ -132,7 +132,7 @@ void Function4E3340(void)
             goto clear;
         }
         g_dword_647bc4 = g_screen_state.id;
-        g_stack_68eda8 = Function405A00(g_stack_68eda8, &g_screen_state);
+        g_stack_68eda8 = Push(g_stack_68eda8, &g_screen_state);
     }
     state = g_pending_state.id;
     memcpy(&g_screen_state, &g_pending_state, sizeof(W8ScreenState));

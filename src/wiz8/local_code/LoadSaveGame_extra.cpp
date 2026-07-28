@@ -16,7 +16,6 @@ enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_flag_00687599;
 extern unsigned char g_save_notice_shown_0068506b;
-extern int g_screen_state_0068ec78;
 extern int g_current_level;
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);  /* 0x0058AC00 */
 extern unsigned char FileExists(const char* path);
@@ -61,7 +60,7 @@ void ReportSaveFailed(char quiet)
 {
     if (quiet == 0 || g_save_flag_00687599 != 0) {
         g_save_notice_shown_0068506b = 1;
-        if (g_screen_state_0068ec78 == 7) {
+        if (g_screen_state_0068ec78 == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, g_notices[0x1e0c / 4], -1, -1, 0);
         }
     }

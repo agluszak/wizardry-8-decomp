@@ -16,8 +16,6 @@ enum { W8_PHASES_PER_ROUND = 100 };
 
 /* The turn phase in which the party has its own movement back. */
 enum { W8_TURN_PHASE_FREE = 3 };
-
-extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_party_moving_006850b5;
 extern unsigned char g_flag_00683fce;
 extern W8CombatState* g_combat_state;

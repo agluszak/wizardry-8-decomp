@@ -698,6 +698,20 @@ typedef union W8ActionDetailBlock {
     } item_use;
 } W8ActionDetailBlock;                    /* 0x08 */
 
+/* The targeting contexts. Six of them name a block the slot carries; the
+   seventh, "current", is not a context at all but the request to work out
+   which of the others applies right now. */
+enum {
+    W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
+    W8_TARGETING_CONTEXT_IN_COMBAT = 1,
+    W8_TARGETING_CONTEXT_SHARED = 2,
+    W8_TARGETING_CONTEXT_SPELL = 3,
+    W8_TARGETING_CONTEXT_ITEM = 4,
+    W8_TARGETING_CONTEXT_FIVE = 5,
+    W8_TARGETING_CONTEXT_CURRENT = 6,
+    W8_TARGETING_CONTEXT_DIALOGUE = 7
+};
+
 /* The target kinds a combat slot's leading field takes. The four that name
    something put it in their own field, which is what pairs each kind with the
    field the aiming wrappers fill in. */
@@ -716,6 +730,8 @@ typedef unsigned char W8FactionDisposition;
 
 /* Local Code\UtilityFunctions.cpp. These are the signed screen-space rectangle
    and point shapes consumed by 0x00517E20 and 0x00517E70. */
+/* The same shape as W8ControlsRect; see the note there for why the two are
+   kept apart. */
 typedef struct W8ScreenRect {
     int left;
     int top;
@@ -967,6 +983,36 @@ extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 /* 0x0068EDCC: the loaded level's runtime block. Only the halfword the combat
    toggle tests is reached, so it keeps a positional name. */
 extern W8LevelRuntimeBlock* g_level_block;
+
+/* The gameplay globals reached from more than a couple of units. Each was
+   declared separately in every file that used it, which is how two of them
+   ended up with two names and two more with two types; one declaration each is
+   what keeps that from happening again. */
+extern unsigned char g_in_combat_00683f94;
+extern unsigned char g_camp_open_00683f9b;
+/* 0x00683FAD: every monster currently in the level. */
+extern W8PList* g_active_monster_list_00683fad;
+/* 0x0068EC78: which screen is up. */
+extern int g_screen_state_0068ec78;
+/* 0x005ED8C8 and 0x005ED914: the last two arguments every effect and sound
+   call passes, holding zero and 127. They read as integers - as floats the
+   second is a denormal - so the 127 is a level on a 0..127 scale rather than a
+   gain. */
+extern int g_effect_argument_005ed8c8;
+extern int g_effect_argument_005ed914;
+/* 0x005EBB34: the float that stands for "no distance given", which the level
+   vector reads as its absent value too. */
+extern float g_float_005ebb34;
+extern W8CombatCharacterRow* g_combat_character_rows;
+
+/* Which screen is up, as g_screen_state_0068ec78 holds it. Only the two the
+   recovered bodies test are named. */
+enum {
+    W8_SCREEN_CAMP = 6,
+    W8_SCREEN_MAIN_GAME = 7
+};
+
+
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
 extern W8SpellRuntimeRecord* g_spell_records;
 /* 0x005EC0F4: the spell-table row count published once the load succeeds. It is
@@ -1236,7 +1282,7 @@ typedef char W8MonsterMember18_size_must_be_0x94[
 #endif
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
-   Function5524E0 consumes a record whenever its leading active byte is set. */
+   ClearEffectSlot consumes a record whenever its leading active byte is set. */
 typedef struct W8MonsterCombatEntry {
     signed char active;
     unsigned char unknown_01[0x10];

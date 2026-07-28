@@ -56,8 +56,6 @@ enum { W8_FACING_ANY = 4 };
 /* The state a character has to be under to hold a place in the formation.
    Tighter than the eligibility window the party sweeps use. */
 enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
-
-extern unsigned char g_in_combat_00683f94;
 extern W8CombatState* g_combat_state;
 extern unsigned int g_party_heading;                        /* 0x00686A44 */
 extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555E70 */

@@ -12,11 +12,11 @@ extern int Function50A440(unsigned int monster_list_index);  /* 0x0050A440 */
 /* Group list indices above this select the encounter list instead, biased by
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
-extern signed char Function50A500(int npc_record);           /* 0x0050A500 */
-extern void Function565420(void);                            /* 0x00565420 */
+extern signed char GetNpcDispositionBand(int npc_record);           /* 0x0050A500 */
+extern void RequestRedrawParty(void);                            /* 0x00565420 */
 extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
 extern void Function454C80(void);                            /* 0x00454C80 */
-extern void Function538DB0(int group_id, int value);         /* 0x00538DB0 */
+extern void SetTargetToGroup(int group_id, int value);         /* 0x00538DB0 */
 extern unsigned char Function547510(void);                   /* 0x00547510 */
 extern void Function452630(int value);                       /* 0x00452630 */
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
@@ -32,7 +32,6 @@ extern unsigned char g_flag_683f94;
 extern W8Character* g_party_characters;
 extern unsigned char g_alternate_name_slot;
 extern W8WideChar g_monster_name_buffer[];
-enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 0x18d };
 
 /* A group of one is named in the singular; any other count uses the plural
    form, which is the second entry of each name set. */
@@ -86,7 +85,7 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
                     monster_group->monster_id,
                     record));
         } else {
-            switch (Function50A500(npc_record)) {
+            switch (GetNpcDispositionBand(npc_record)) {
             case 0:
                 disposition = W8_DISPOSITION_FRIENDLY;
                 break;
@@ -261,7 +260,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
     }
     if (active != monster_group->active_member_count) {
         monster_group->active_member_count = active;
-        Function565420();
+        RequestRedrawParty();
     }
 }
 
@@ -357,7 +356,7 @@ void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 // FUNCTION: WIZ8 0x0050F700
 void DetachMonsterGroup(W8MonsterGroup* monster_group)
 {
-    Function538DB0(monster_group->group_id, 0);
+    SetTargetToGroup(monster_group->group_id, 0);
     monster_group->flag_28 = 0;
 }
 
@@ -547,7 +546,7 @@ void MonsterGroupLeaveCombat(int unused, W8MonsterGroup* monster_group)
                 1)));
     }
     monster_group->flag_29 = 0;
-    Function565420();
+    RequestRedrawParty();
     lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
     lead->flag_255 |= 0x80;
 }
@@ -790,7 +789,7 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
     void* removed;
 
     if (monster_group->flag_28 != 0) {
-        Function538DB0(monster_group->group_id, 0);
+        SetTargetToGroup(monster_group->group_id, 0);
         monster_group->flag_28 = 0;
     }
     if (monster_group->leader_group_id == 0) {
