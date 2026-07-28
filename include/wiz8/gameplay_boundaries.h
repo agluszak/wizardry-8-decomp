@@ -745,7 +745,11 @@ typedef struct W8CombatState {
 } W8CombatState;
 
 typedef struct W8LevelRuntimeBlock {
-    unsigned char unknown_000[0x1a8];
+    unsigned char unknown_000[0xf4];
+    /* 0x0f4: what still needs redrawing. Everything that changes anything the
+       screen shows ORs its own bit in here rather than drawing. */
+    unsigned int redraw_flags;
+    unsigned char unknown_0f8[0xb0];
     /* 0x1a8: one entry per message line the main game screen is showing. */
     int text_lines[12];
     /* 0x1d8 and 0x1e8: two four-entry tables the text box clears a slot of at
@@ -757,10 +761,18 @@ typedef struct W8LevelRuntimeBlock {
     unsigned char dialogue_open;
     unsigned char unknown_1f9[3];
     unsigned char* dialogue_owner;         /* 0x1fc */
-    unsigned char unknown_200[0x68];
+    unsigned char unknown_200[0x64];
+    /* 0x264: the item the pointer is over, -1 for none. */
+    int highlighted_item;
     /* 0x268: the item the interface has selected, -1 for none. */
     int selected_item;
-    unsigned char unknown_26c[0x5e];
+    unsigned char unknown_26c[0x54];
+    /* 0x2c0 and 0x2c8: two redraw requests the party-state change raises. Only
+       the first is conditional on a fight being on. */
+    unsigned char refresh_combat_panel;
+    unsigned char unknown_2c1[7];
+    unsigned char refresh_party_panel;
+    unsigned char unknown_2c9;
     short combat_end_notification;         /* 0x2ca: -1 suppresses the callback */
     /* 0x2cc and 0x2d4: the text box's scroll extent, whose difference is how
        far it can still be scrolled. */
