@@ -504,6 +504,25 @@ void W8MonsterGenerator::Reset()
     Function43A530();
 }
 
+/* Loads the generator's marker from Data\\Items3D\\Bitmaps and hands it over.
+   Written once because the arm path and the reload below both compile it. */
+static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* generator)
+{
+    void* context[2];
+    W8MonsterGeneratorNode* marker = 0;
+
+    context[1] = const_cast<char*>("Data\\Items3D\\Bitmaps");
+    context[0] = g_world;
+    if (Function49F4A0(context, "mongen", &marker, 0) == 0) {
+        srAssertFail("fSuccess", MON_GEN_CPP, 0x309, "Couldn't load mongen.itm");
+    }
+    generator->node_18 = marker;
+    if (marker != 0) {
+        Function49F720(&generator->state_0c);
+        Function49FAA0();
+    }
+}
+
 /* Arms or disarms the generator. Arming loads its marker from
    Data\\Items3D\\Bitmaps the first time and hands the caller's node over;
    disarming drops the flag and notifies the world. Both directions are no-ops
@@ -511,9 +530,7 @@ void W8MonsterGenerator::Reset()
 // FUNCTION: WIZ8 0x0048B770
 void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode* node)
 {
-    void* context[2];
-    unsigned char loaded;
-
+    (void)node;
     if (((flags >> 2) & 1) == active) {
         return;
     }
@@ -526,18 +543,7 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode*
     }
     flags |= W8_MONGEN_ARMED;
     if (node_18 == 0) {
-        loaded = 0;
-        context[0] = g_world;
-        context[1] = const_cast<char*>("Data\\Items3D\\Bitmaps");
-        if (Function49F4A0(context, "mongen", &loaded, 0) == 0) {
-            srAssertFail(
-                "fSuccess", MON_GEN_CPP, 0x309, "Couldn't load mongen.itm");
-        }
-        node_18 = node;
-        if (node != 0) {
-            Function49F720(&state_0c);
-            Function49FAA0();
-        }
+        LoadMonsterGeneratorMarkerInline(this);
     }
     Function49F900(g_world);
 }
@@ -567,4 +573,62 @@ void SaveEncounterState(int handle)
     for (index = 0; index < count; ++index) {
         (*g_world->monster_generators->GetAt(index))->Save(handle);
     }
+}
+
+/* Releases what a generator hangs off itself. The world is notified only when
+   the generator was still holding the armed bit, which is why that clear sits
+   inside the first node's guard rather than beside it. The generator's own
+   storage is not freed here - the callers do that. */
+// FUNCTION: WIZ8 0x0048A6C0
+W8MonsterGenerator::~W8MonsterGenerator()
+{
+    if (node_18 != 0) {
+        if ((flags >> 2 & 1) != 0) {
+            flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
+            Function49FA30(g_world);
+        }
+        delete node_18;
+    }
+    delete m_pTimer;
+}
+
+/* Moves the generator. The scene is only told when the generator is armed and
+   therefore actually has something placed. */
+// FUNCTION: WIZ8 0x0048B730
+void W8MonsterGenerator::SetState(const W8Position* state)
+{
+    state_0c = *reinterpret_cast<const int*>(&state->x);
+    state_10 = *reinterpret_cast<const int*>(&state->y);
+    state_14 = *reinterpret_cast<const int*>(&state->z);
+    if (node_18 != 0) {
+        Function49F720(const_cast<W8Position*>(state));
+        Function49FAA0();
+    }
+}
+
+/* Reloads the generator's marker and then applies an armed state to it. The
+   marker load is unconditional here - unlike the arm path, which only loads one
+   when the generator has none - so this is what replaces a marker rather than
+   what installs the first. The state application afterwards is the same body
+   SetActive is, inlined, including its own conditional second load. */
+// FUNCTION: WIZ8 0x0048B850
+void W8MonsterGenerator::Reload(int unused, unsigned char active)
+{
+    (void)unused;
+    LoadMonsterGeneratorMarkerInline(this);
+    if (((flags >> 2) & 1) == active) {
+        return;
+    }
+    if (active == 0) {
+        flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
+        if (node_18 != 0) {
+            Function49FA30(g_world);
+        }
+        return;
+    }
+    flags |= W8_MONGEN_ARMED;
+    if (node_18 == 0) {
+        LoadMonsterGeneratorMarkerInline(this);
+    }
+    Function49F900(g_world);
 }
