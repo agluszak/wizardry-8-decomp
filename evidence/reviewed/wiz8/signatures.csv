@@ -182,3 +182,8 @@ wiz8,004f66b0,__thiscall,void,"[[""event"",""int""]]",false,W8HelpTextControl005
 wiz8,004f6720,__thiscall,void,[],false,W8HelpTextControl005ED758 *,strong,signatures:wiz8:004f6720,undefined FUN_004f6720(),ECX supplies the typed derived receiver and no stack arguments are consumed.
 wiz8,004f6780,__thiscall,void,[],false,W8HelpTextControl005ED758 *,strong,signatures:wiz8:004f6780,undefined FUN_004f6780(),ECX supplies the typed derived receiver and no stack arguments are consumed.
 wiz8,004f6810,__thiscall,void,[],false,W8HelpTextControl005ED758 *,strong,signatures:wiz8:004f6810,undefined FUN_004f6810(),ECX supplies the typed derived receiver and no stack arguments are consumed.
+wiz8,004f6440,__thiscall,void,"[[""first"",""int""],[""second"",""int""]]",false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f6440,undefined FUN_004f6440(),The byte-exact body consumes the typed receiver and two signed range endpoints.
+wiz8,004f6470,__thiscall,void,"[[""value"",""int""]]",false,W8RangeControl005ED74C *,strong,signatures:wiz8:004f6470,undefined FUN_004f6470(),ECX supplies the typed receiver and one signed value to clamp.
+wiz8,004f6540,__thiscall,void,[],false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f6540,undefined FUN_004f6540(),The byte-exact body consumes only the typed receiver.
+wiz8,004f6570,__thiscall,void,[],false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f6570,undefined FUN_004f6570(),The byte-exact body consumes only the typed receiver.
+wiz8,004f65a0,__thiscall,void,"[[""enabled"",""unsigned char""]]",false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f65a0,undefined FUN_004f65a0(),The byte-exact body consumes the typed receiver and one enabled byte.

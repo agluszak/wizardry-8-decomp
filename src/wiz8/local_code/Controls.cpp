@@ -122,6 +122,9 @@ extern const wchar_t g_W8TextFormat006068E4[];
 extern int g_W8TextClipTarget005FF5F4;
 extern int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];
+extern float g_W8RangeStart005EBB34;
+extern float g_W8RangeEnd005EBB38;
+extern float g_W8RangeHalfStep005EBC7C;
 extern unsigned int g_W8TextControlMask005ED56C;
 extern unsigned int g_W8TextControlMask005ED570;
 extern void Function558720(int sound_id);
@@ -1118,6 +1121,132 @@ public:
 protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
 };
+
+class W8RangeThumb : public W8WidgetBase005ED5BC {
+public:
+    __forceinline void SetRangePosition(float position)
+    {
+        m_position = position;
+        if (m_position < m_minimumPosition) {
+            m_position = m_minimumPosition;
+        }
+        if (m_maximumPosition < m_position) {
+            m_position = m_maximumPosition;
+        }
+        m_pixelPosition = (int)(((m_position - m_minimumPosition) /
+                                 (m_maximumPosition - m_minimumPosition)) *
+                                m_trackLength);
+        if (m_pPanel != 0) {
+            m_flag_6 = 1;
+            m_pPanel->m_fLayoutDirty = 1;
+            Function562A50(0x80000000);
+            Function562A50(0x80000000);
+        }
+    }
+
+protected:
+    unsigned char unknown_34[0x18];
+    int m_pixelPosition;                 /* 0x4c */
+    int m_field_50;
+    int m_trackLength;                   /* 0x54 */
+    int m_field_58;
+    int m_field_5c;
+    float m_minimumPosition;             /* 0x60 */
+    float m_maximumPosition;             /* 0x64 */
+    float m_position;                    /* 0x68 */
+};
+
+class W8RangeControl005ED74C;
+class W8RangeListener {
+public:
+    virtual void OnRangeChanged(W8RangeControl005ED74C* control) = 0;
+};
+
+class W8RangeControl005ED74C {
+public:
+    void SetRange(int first, int second);
+    void SetValue(int value);
+    void Decrement();
+    void Increment();
+    void SetEnabled(unsigned char enabled);
+
+protected:
+    unsigned char unknown_00[0x4c];
+    int m_minimum;                       /* 0x4c */
+    int m_maximum;                       /* 0x50 */
+    int m_value;                         /* 0x54 */
+    W8WidgetBase005ED5BC* m_decrement;   /* 0x58 */
+    W8WidgetBase005ED5BC* m_increment;   /* 0x5c */
+    W8RangeThumb* m_thumb;               /* 0x60 */
+    W8RangeListener* m_listener;         /* 0x64 */
+    unsigned char m_enabled;             /* 0x68 */
+};
+
+// FUNCTION: WIZ8 0x004F6440
+void W8RangeControl005ED74C::SetRange(int first, int second)
+{
+    if (first < second) {
+        m_minimum = first;
+        m_maximum = second;
+    } else {
+        m_maximum = first;
+        m_minimum = second;
+    }
+    SetValue(m_value);
+}
+
+// FUNCTION: WIZ8 0x004F6470
+void W8RangeControl005ED74C::SetValue(int value)
+{
+    m_value = value;
+    if (value < m_minimum) {
+        m_value = m_minimum;
+    } else if (m_maximum < value) {
+        m_value = m_maximum;
+    }
+
+    float position;
+    if (m_value == m_minimum) {
+        position = g_W8RangeStart005EBB34;
+    } else if (m_value == m_maximum) {
+        position = g_W8RangeEnd005EBB38;
+    } else {
+        position = ((float)(m_value - m_minimum) + g_W8RangeHalfStep005EBC7C) /
+                   (float)((m_maximum - m_minimum) + 1);
+    }
+    m_thumb->SetRangePosition(position);
+}
+
+// FUNCTION: WIZ8 0x004F6540
+void W8RangeControl005ED74C::Decrement()
+{
+    if (m_enabled != 0) {
+        SetValue(m_value - 1);
+        if (m_listener != 0) {
+            m_listener->OnRangeChanged(this);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F6570
+void W8RangeControl005ED74C::Increment()
+{
+    if (m_enabled != 0) {
+        SetValue(m_value + 1);
+        if (m_listener != 0) {
+            m_listener->OnRangeChanged(this);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F65A0
+void W8RangeControl005ED74C::SetEnabled(unsigned char enabled)
+{
+    m_enabled = enabled;
+    m_decrement->SetVisible(enabled);
+    m_increment->SetVisible(enabled & m_enabled);
+    m_thumb->SetVisible(enabled);
+}
 
 // FUNCTION: WIZ8 0x004F6680
 void W8HelpTextControl005ED758::SetRegionHelp(const wchar_t* text)

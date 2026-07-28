@@ -102,6 +102,24 @@ wiz8,W8TextControl005ED604,0xad,0x3,text_buffer_pad_ad,bytes,,strong,classes:wiz
 wiz8,W8TextControl005ED604,0xb0,0x4,field_b0,int32,,strong,classes:wiz8:W8TextControl005ED604,trailing constructor-initialized control state
 wiz8,W8TextControl005ED604,0xb4,0x4,listener,pointer,,strong,classes:wiz8:W8TextControl005ED604,primary and secondary activation call listener virtual slots zero and one
 wiz8,W8HelpTextControl005ED758,0xb8,0x190,region_help_text,bytes,,exact,classes:wiz8:W8HelpTextControl005ED758,byte-exact SetRegionHelp copies fewer than 200 wchar_t elements into this fixed buffer
+wiz8,W8RangeThumb,0x34,0x18,unknown_34,bytes,,strong,classes:wiz8:W8RangeThumb,unidentified storage between the inherited widget base and pixel position
+wiz8,W8RangeThumb,0x4c,0x4,pixel_position,int32,,strong,classes:wiz8:W8RangeThumb,SetValue converts normalized position into this pixel coordinate
+wiz8,W8RangeThumb,0x50,0x4,unknown_50,int32,,strong,classes:wiz8:W8RangeThumb,unidentified dword between pixel position and track length
+wiz8,W8RangeThumb,0x54,0x4,track_length,int32,,strong,classes:wiz8:W8RangeThumb,SetValue multiplies normalized track position by this length
+wiz8,W8RangeThumb,0x58,0x8,unknown_58,bytes,,strong,classes:wiz8:W8RangeThumb,unidentified storage before normalized endpoints
+wiz8,W8RangeThumb,0x60,0x4,minimum_position,float,,strong,classes:wiz8:W8RangeThumb,lower clamp for normalized position
+wiz8,W8RangeThumb,0x64,0x4,maximum_position,float,,strong,classes:wiz8:W8RangeThumb,upper clamp for normalized position
+wiz8,W8RangeThumb,0x68,0x4,position,float,,strong,classes:wiz8:W8RangeThumb,current normalized position written and clamped by SetValue
+wiz8,W8RangeControl005ED74C,0x0,0x4c,unknown_00,bytes,,strong,classes:wiz8:W8RangeControl005ED74C,unresolved base storage before the range state
+wiz8,W8RangeControl005ED74C,0x4c,0x4,minimum,int32,,strong,classes:wiz8:W8RangeControl005ED74C,lower endpoint ordered by byte-exact SetRange and enforced by SetValue
+wiz8,W8RangeControl005ED74C,0x50,0x4,maximum,int32,,strong,classes:wiz8:W8RangeControl005ED74C,upper endpoint ordered by byte-exact SetRange and enforced by SetValue
+wiz8,W8RangeControl005ED74C,0x54,0x4,value,int32,,strong,classes:wiz8:W8RangeControl005ED74C,current clamped value modified by exact increment and decrement methods
+wiz8,W8RangeControl005ED74C,0x58,0x4,decrement_control,pointer,W8WidgetBase005ED5BC,strong,classes:wiz8:W8RangeControl005ED74C,byte-exact SetEnabled propagates visibility to this child
+wiz8,W8RangeControl005ED74C,0x5c,0x4,increment_control,pointer,W8WidgetBase005ED5BC,strong,classes:wiz8:W8RangeControl005ED74C,byte-exact SetEnabled propagates visibility to this child
+wiz8,W8RangeControl005ED74C,0x60,0x4,thumb,pointer,W8RangeThumb,strong,classes:wiz8:W8RangeControl005ED74C,SetValue updates this typed normalized thumb and SetEnabled propagates visibility
+wiz8,W8RangeControl005ED74C,0x64,0x4,listener,pointer,,strong,classes:wiz8:W8RangeControl005ED74C,increment and decrement call listener virtual slot zero when non-null
+wiz8,W8RangeControl005ED74C,0x68,0x1,enabled,uint8,,strong,classes:wiz8:W8RangeControl005ED74C,gates increment and decrement and is written by byte-exact SetEnabled
+wiz8,W8RangeControl005ED74C,0x69,0x3,pad_69,bytes,,strong,classes:wiz8:W8RangeControl005ED74C,tail padding to aligned class size
 wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
 wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18
