@@ -134,6 +134,64 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   Inspect candidate provenance with `just ghidra overlay facts-at <program> <hypothesis> <anchor>`;
   discard the overlay after review. Promotion still goes through reviewed evidence and a baseline
   rebuild.
+
+### Recommended class-port workflow
+
+Use the inference tooling as a loop, not as a collection of terminal reports. For canonical retail,
+keep the full selector visible in the shell and start from the owner or lifecycle address:
+
+```sh
+CANON=wiz8--gog-base--wiz8--18a74ff61c65
+just wiz8 report context 0x004b6e00 --program "$CANON"
+just ghidra query "$CANON" \
+  -q 'facts-at 0x004b6e00' \
+  -q 'decompile 0x004b6e00' \
+  -q 'high-function 0x004b6e00' \
+  -q 'field-accesses 0x004b6e00 this' \
+  -q 'type-variables 0x004b6e00 this' \
+  -q 'pcode 0x004b6e00 normalize'
+```
+
+- Prefer a coherent lifecycle slice: allocation site, constructor, one behavior method and
+  destructor. Constructors usually establish size, argument widths and most field offsets at once;
+  destructors establish ownership and destructor kind. Follow actual Ghidra containment and P-code
+  data flow when a snapshot attributes a writer or caller differently.
+- Read `decompile` for behavior, `high-function` for the current ABI and storage, `field-accesses`
+  for layout, `type-variables` for owned anonymous pointers, and normalized P-code for receiver
+  identity, aliasing, branches and indirect calls. Use `listing` only after the semantic model has
+  answered what the code does and an encoding or compiler-order question remains.
+- Preserve partial knowledge. Give unresolved classes and members address-qualified positional
+  names; do not convert a shape match or a large candidate pool into an original identity. Promote
+  semantic names only from assertions, exports, source/debug evidence or another independent
+  witness.
+- Model the ABI directly in C++ before chasing bytes: real `__thiscall` methods, receiver types,
+  parameter widths, base/subobject layout and ownership. Do not replace them with casts, raw vtable
+  indexing or nullary placeholders. A relocation-masked exact compile then proves that typed model;
+  it does not retroactively prove descriptive parameter or member names.
+- Exercise the hypothesis in a disposable overlay before reviewing it. `analyze` consumes the plan
+  path and iterates type constraints and indirect edges to a fixpoint; its result supplies the
+  generated hypothesis name used by the other actions:
+
+  ```sh
+  just ghidra overlay analyze "$CANON" config/ghidra/hypotheses/<plan>.json
+  just ghidra overlay facts-at "$CANON" <hypothesis> 0x004b6e00
+  just ghidra overlay decompile "$CANON" <hypothesis> 0x0044dea0
+  just ghidra overlay discard "$CANON" <hypothesis>
+  ```
+
+  Inspect semantic changes, not merely changed C text: a useful result resolves a field, improves a
+  prototype, unifies a type variable or narrows/adds an indirect edge without contradiction. Record
+  the baseline fingerprint before creation and confirm it after discard when changing overlay code.
+- Once the source is typed, iterate with `just build WIZ8_GAMEPLAY_BOUNDARIES` and
+  `just wiz8 diff-boundary <symbol>`. Promote only after `just verify-boundaries` reports the body
+  exact and the recorded digest is fresh. Update the canonical class, field, function, signature and
+  function-evidence rows that the new proof actually supports, rebuild the materialization, and end
+  with `facts-at` plus representative caller decompilations. Run `just test` before publication.
+- Recommended priorities are, in order: close a decisive anonymous owner into a reviewed class;
+  recover its lifecycle; type call receivers and vtable slots from the strongest available
+  prototype; then expand to consumers through the ProgramDB dependency graph. Avoid adding another
+  census when the next class method can exercise and improve the closure loop instead.
+
 - Reconstructed transfers have a hard body gate. Run `just build WIZ8_GAMEPLAY_BOUNDARIES` and
   `just verify-boundaries` first; `reconstructed-transfer` also recomputes current relocation-masked
   object digests and keeps an unverified exact row overlay-only. Exact bytes establish calling

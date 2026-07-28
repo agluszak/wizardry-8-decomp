@@ -193,14 +193,26 @@ wiz8,W8Prop005EC1E0,0x24,0x4,unknown_024,bytes,,strong,classes:wiz8:W8Prop005EC1
 wiz8,W8Prop005EC1E0,0x28,0x4,owned_28,pointer,,exact,classes:wiz8:W8Prop005EC1E0,"owned object with a virtual destructor, released through vtable slot 0"
 wiz8,W8Prop005EC1E0,0x2c,0xc,unknown_02c,bytes,,strong,classes:wiz8:W8Prop005EC1E0,not established
 wiz8,W8Prop005EC1E0,0x38,0x4,owned_38,pointer,GDProp,exact,classes:wiz8:W8Prop005EC1E0,"owned GDProp allocated as 0x58 bytes and constructed at 0x004b6e00; its non-virtual destructor 0x004b6ed0 is called directly before operator delete"
-wiz8,GDProp,0x0,0xc,unknown_000,bytes,,strong,classes:wiz8:GDProp,constructor initializes fields within this storage but their semantics are not yet reviewed
+wiz8,GDProp,0x0,0x2,flags_00,uint16,,exact,classes:wiz8:GDProp,"the exact constructor clears it and 0x004b7060 sets and clears bit 2"
+wiz8,GDProp,0x2,0x2,prop_number_02,uint16,,exact,classes:wiz8:GDProp,"the exact constructor clears it and 0x004b7060 copies the caller word when attaching the prop"
+wiz8,GDProp,0x4,0x4,path_handle_04,uint32,,exact,classes:wiz8:GDProp,"the exact constructor stores the dword returned by the path-name lookup and later methods use it as the pathing handle"
+wiz8,GDProp,0x8,0x2,surface_index_08,uint16,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and consumed as a 16-bit pathing index by 0x004b7060"
+wiz8,GDProp,0xa,0x2,vertex_index_0a,uint16,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and consumed as a 16-bit pathing index by 0x004b7060"
 wiz8,GDProp,0xc,0x4,allocation_0c,pointer,,exact,classes:wiz8:GDProp,null-tested and released by CRT free in the exact destructor
 wiz8,GDProp,0x10,0x4,allocation_10,pointer,,exact,classes:wiz8:GDProp,null-tested and released by CRT free in the exact destructor
 wiz8,GDProp,0x14,0x4,surface_count_14,int32,,exact,classes:wiz8:GDProp,controls the m_pGDSurfaces allocation count with a 0x4c-byte stride in 0x004b6f30
 wiz8,GDProp,0x18,0x4,vertex_count_18,int32,,exact,classes:wiz8:GDProp,controls the m_pVertices allocation count with a 0x0c-byte stride in 0x004b6f30
 wiz8,GDProp,0x1c,0x4,m_pGDSurfaces,pointer,,exact,classes:wiz8:GDProp,original member name retained by the GDProp.cpp line 160 assertion; released by CRT free
 wiz8,GDProp,0x20,0x4,m_pVertices,pointer,,exact,classes:wiz8:GDProp,original member name retained by the GDProp.cpp line 174 assertion; released through srHeap
-wiz8,GDProp,0x24,0x30,unknown_024,bytes,,strong,classes:wiz8:GDProp,opaque storage retained until its fields are independently reviewed
+wiz8,GDProp,0x24,0x4,instance_24,pointer,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and consumed as an srNode pointer by the same-object initializer at 0x004b7060; the reviewed class model does not yet materialize imported srNode"
+wiz8,GDProp,0x28,0x4,path_range_28,float,,exact,classes:wiz8:GDProp,"first float output passed to the path-name lookup by the exact constructor"
+wiz8,GDProp,0x2c,0x4,path_sentinel_2c,float,,exact,classes:wiz8:GDProp,"initialized to -10000000.0 by the exact constructor between the two path-range outputs"
+wiz8,GDProp,0x30,0x4,path_range_30,float,,exact,classes:wiz8:GDProp,"second float output written at index two by the path-name lookup"
+wiz8,GDProp,0x34,0x18,unknown_034,bytes,,strong,classes:wiz8:GDProp,not yet established
+wiz8,GDProp,0x4c,0x2,path_bound_4c,uint16,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and supplied as the first of four word path bounds"
+wiz8,GDProp,0x4e,0x2,path_bound_4e,uint16,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and written by the path-name lookup"
+wiz8,GDProp,0x50,0x2,path_bound_50,uint16,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and written by the path-name lookup"
+wiz8,GDProp,0x52,0x2,path_bound_52,uint16,,exact,classes:wiz8:GDProp,"cleared by the exact constructor and written by the path-name lookup"
 wiz8,GDProp,0x54,0x4,list_54,pointer,W8PList,exact,classes:wiz8:GDProp,null-tested and passed to the exact PListDestroy at the end of the destructor
 wiz8,W8GrowableVector<W8VectorElement005ED094 *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>,primary vtable W8GrowableVector<W8VectorElement005ED094 *>.primary
 wiz8,W8GrowableVector<W8VectorElement005ED094 *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ED094 *>,"element count, incremented by the inlined Add"
