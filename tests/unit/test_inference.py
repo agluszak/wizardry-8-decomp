@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 from wiz8decomp.ghidra.dependency_graph import _type_node
-from wiz8decomp.ghidra.inference import load_plan
+from wiz8decomp.ghidra.inference import _candidate_type_knowledge, load_plan
 
 
 def test_a_hypothesis_plan_has_explicit_scope_and_bounded_defaults(tmp_path) -> None:
@@ -41,3 +41,50 @@ def test_dependency_types_exclude_primitives_but_keep_owned_shapes() -> None:
 
     assert _type_node(primitive) is None
     assert _type_node(receiver) == "type:GrCycle *"
+
+
+def test_a_persisted_candidate_destructor_becomes_next_iteration_knowledge() -> None:
+    class Iterator:
+        def __init__(self, items):
+            self.items = iter(items)
+            self.next_item = None
+
+        def hasNext(self):
+            try:
+                self.next_item = next(self.items)
+            except StopIteration:
+                return False
+            return True
+
+        def next(self):
+            return self.next_item
+
+    class PropertyMap:
+        def __init__(self, data):
+            self.data = data
+
+        def getPropertyIterator(self):
+            return Iterator(self.data)
+
+        def hasProperty(self, address):
+            return address in self.data
+
+        def get(self, address):
+            return self.data[address]
+
+    maps = {
+        "wiz8.fact-id": PropertyMap({"004b6ed0": '["CandidateType_004b6ed0"]'}),
+        "wiz8.constraints": PropertyMap({"004b6ed0": '[{"complete_destructor":"004b6ed0"}]'}),
+    }
+    manager = SimpleNamespace(getStringPropertyMap=maps.get)
+    program = SimpleNamespace(getUsrPropertyManager=lambda: manager)
+
+    assert _candidate_type_knowledge(program) == [
+        {
+            "type": "CandidateType_004b6ed0",
+            "tier": "candidate",
+            "polymorphic": False,
+            "slot0": None,
+            "destructors": {"004b6ed0"},
+        }
+    ]

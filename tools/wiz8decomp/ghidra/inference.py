@@ -11,7 +11,7 @@ from typing import Any
 from ..config import Settings
 from ..indirect import resolve_handler_table
 from ..typevars import derive_type_variables, load_knowledge, unify
-from .candidate_facts import stamp
+from .candidate_facts import CONSTRAINTS, FACT_ID, UNIFIED_WITH, stamp, values
 from .dependency_graph import add_pcode_dependencies, build_program_graph, canonical_address
 from .project import resolve_program_name
 
@@ -77,6 +77,37 @@ def _reviewed_owner(repo: Path, entry: str) -> str | None:
     return None
 
 
+def _candidate_type_knowledge(program: Any) -> list[dict[str, Any]]:
+    """Destructor-backed candidate structures already stored in this overlay."""
+
+    property_map = program.getUsrPropertyManager().getStringPropertyMap(CONSTRAINTS)
+    if property_map is None:
+        return []
+    knowledge = []
+    iterator = property_map.getPropertyIterator()
+    while iterator.hasNext():
+        address = iterator.next()
+        names = [
+            str(item)
+            for item in values(program, address, FACT_ID)
+            if str(item).startswith("CandidateType_")
+        ]
+        for constraints in values(program, address, CONSTRAINTS):
+            if not isinstance(constraints, dict) or not constraints.get("complete_destructor"):
+                continue
+            for name in names:
+                knowledge.append(
+                    {
+                        "type": name,
+                        "tier": "candidate",
+                        "polymorphic": bool(constraints.get("has_virtual_destructor")),
+                        "slot0": None,
+                        "destructors": {str(constraints["complete_destructor"]).lower()},
+                    }
+                )
+    return knowledge
+
+
 def materialize_type_variables(
     program: Any,
     repo: Path,
@@ -111,7 +142,7 @@ def materialize_type_variables(
         traced["calls"],
         _operator_delete_entries(program),
     )
-    knowledge = load_knowledge(repo, program_name)
+    knowledge = load_knowledge(repo, program_name) + _candidate_type_knowledge(program)
     dtm = program.getDataTypeManager()
     category = CategoryPath(CATEGORY)
     owner_name = _reviewed_owner(repo, traced["entry"])
@@ -212,6 +243,39 @@ def materialize_type_variables(
             except Exception:  # noqa: BLE001,S110 - an unknown prototype may have no root yet
                 pass
 
+        candidate_type = None
+        if destructor and constraints.get("pointee_accesses"):
+            candidate_name = f"CandidateType_{destructor}"
+            candidate_type = _structure(program, candidate_name)
+            if candidate_type is None:
+                extent = max(
+                    int(access["offset"], 16) + int(access["width"])
+                    for access in constraints["pointee_accesses"]
+                )
+                candidate = StructureDataType(category, candidate_name, extent)
+                for access in constraints["pointee_accesses"]:
+                    member_offset = int(access["offset"], 16)
+                    width = min(int(access["width"]), extent - member_offset)
+                    candidate.replaceAtOffset(
+                        member_offset,
+                        Undefined.getUndefinedDataType(width),
+                        width,
+                        f"field_{member_offset:x}",
+                        f"accessed at {access['site']}",
+                    )
+                candidate_type = dtm.addDataType(candidate, DataTypeConflictHandler.REPLACE_HANDLER)
+            report["new_facts"] += int(
+                stamp(
+                    program,
+                    _address(program, destructor),
+                    hypothesis=hypothesis,
+                    fact_id=candidate_name,
+                    depends_on=sorted(set(dependencies)),
+                    constraints=constraints,
+                    type_variable=variable["name"],
+                )
+            )
+
         matches = unify({**variable, "constraints": constraints}, knowledge)
         selected = matches[0]["type"] if len(matches) == 1 else None
         if selected:
@@ -279,6 +343,14 @@ def materialize_type_variables(
 
         fact_id = variable["name"]
         anchors = [traced["entry"], *variable["sources"]]
+        was_unified = bool(
+            selected
+            and selected
+            in {
+                str(item)
+                for item in values(program, _address(program, traced["entry"]), UNIFIED_WITH)
+            }
+        )
         for anchor in anchors:
             report["new_facts"] += int(
                 stamp(
@@ -292,7 +364,7 @@ def materialize_type_variables(
                     unified_with=selected,
                 )
             )
-        if selected and applied:
+        if selected and not was_unified:
             report["unifications"] += 1
         report["variables"].append(
             {
