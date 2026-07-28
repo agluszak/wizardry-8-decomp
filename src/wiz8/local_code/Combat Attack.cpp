@@ -267,7 +267,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
         return false;
     }
     return CharacterHasAttackOn(
-               party_slot, (W8CombatSlot*)&g_party_slot_rows[party_slot].target_block_01d) != 0;
+               party_slot, &g_party_slot_rows[party_slot].target_out_of_combat) != 0;
 }
 
 /* What an attack mode is worth to hit with, which depends on whether the

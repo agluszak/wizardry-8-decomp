@@ -27,6 +27,7 @@ typedef struct W8Position {
 } W8Position;
 
 
+
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
    records and manipulated through the CRT wide-string functions. The same
    typedef models these fields in config/types/wiz8/gameplay_databases.h;
@@ -347,11 +348,21 @@ typedef struct W8MonsterSlot {
     unsigned char field_0d1;
     int field_0d2;
     unsigned short field_0d6;
-    /* 0x0d8: the monsters this party slot currently has highlighted, held as a
-       growable vector of location ids. Clearing the highlight walks it and
-       zeroes the count without releasing the storage, which is what makes it a
-       vector rather than a fixed array. */
-    W8GrowableVector<int> highlighted_monsters;
+    /* 0x0d8: the monsters this party slot currently has highlighted, held in a
+       growable vector's storage. Clearing the highlight walks it and zeroes the
+       count without releasing the buffer, which is what makes it a vector
+       rather than a fixed array.
+
+       Spelled as the layout rather than as W8GrowableVector<int> on purpose:
+       that class has a virtual destructor, and naming it here would have VC6
+       dynamically initialise the whole slot array and change two neighbouring
+       bodies that only memset it. */
+    struct {
+        void* vptr;                       /* 0x0d8 */
+        int count;                        /* 0x0dc */
+        int capacity;                     /* 0x0e0 */
+        int* data;                        /* 0x0e4 */
+    } highlighted_monsters;
     unsigned char field_0e8;
     unsigned char unknown_0e9[0x2f];
 } W8MonsterSlot;                         /* 0x118 */
@@ -602,6 +613,69 @@ typedef struct W8CombatSlot {
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* pPCItem;
 } W8CombatSlot;                           /* 0x20 */
+
+/* One party slot row. Only the three fields the reset touches are established,
+   plus the leading flag UtilityFunctions reads as slot-occupied. */
+typedef struct W8PartySlotRow {
+    unsigned char flag_00;               /* 0x000: slot occupied */
+    /* 0x001: the action this slot has chosen this round; -1 is none, and the
+       round reset lifts the ninth action specifically. */
+    int pending_action;
+    /* 0x005: the attack mode chosen per hand, indexed by the combat state's
+       current hand. The bound is a partition of the unknown run, not proven. */
+    int attack_mode[4];                  /* 0x005 */
+    unsigned char unknown_015[8];
+    /* 0x01d, 0x04d, 0x081, 0x0a9 and 0x0d1: five target blocks of the same
+       shape, one per targeting context. GetTargetBlockForContext picks between
+       them by context number, which is what shows them as one array of
+       alternatives rather than five unrelated fields; context two is answered
+       from a shared global instead of from the row. The first two are cleared
+       together when the character dies. */
+    struct W8CombatSlot target_out_of_combat;   /* 0x01d, context 0 */
+    unsigned char unknown_03d[0x10];
+    struct W8CombatSlot target_in_combat;       /* 0x04d, context 1 */
+    /* 0x06d and 0x071: what the slot is doing and the detail that qualifies
+       it, the character counterpart of the monster's 0x2e1 and 0x2e5. */
+    int action_kind;
+    int action_detail;
+    /* 0x075..0x0a0: the slot's pending spell target - what kind of target it
+       is, at what strength, a cleared word, and the eight-dword target block
+       the targeting code hands over. The strength is uiPowerLevel, which the
+       Magic.cpp:4287 assertion bounds at one through seven; eight is the
+       further "as high as the caster can afford" request that the affordable-
+       power walk resolves before the cost is taken. */
+    int spell_id;                        /* 0x075 */
+    int spell_power_level;               /* 0x079 */
+    int spell_power_extra;               /* 0x07d */
+    struct W8CombatSlot spell_target;    /* 0x081, context 3 */
+    /* 0x0a1..0x0cf: the item-use block, the same shape as the spell one above -
+       what is being used, which item, where it is aimed and where it came
+       from. */
+    int item_use_kind;                   /* 0x0a1 */
+    struct W8ItemInstance* item_in_use;  /* 0x0a5 */
+    struct W8CombatSlot item_target;     /* 0x0a9, context 4 */
+    /* 0x0c9: the item id recorded when the use was chosen. The use is checked
+       again by looking the item up from its origin and slot and comparing this
+       against what comes back, so it is what catches an item that moved. */
+    int item_id_0c9;
+    unsigned char item_origin;           /* 0x0cd */
+    unsigned short item_slot;            /* 0x0ce */
+    unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
+    struct W8CombatSlot target_context_5;   /* 0x0d1 */
+    unsigned char unknown_0f1[4];
+    /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a
+       slot that has it raised, and the targeting guard reads the same byte. */
+    unsigned char flag_0f5;
+    unsigned char unknown_0f6[4];
+    /* 0x0fa: the animation this slot is driving, -1 when none. Death tells it
+       to stop. */
+    int animation_0fa;
+    unsigned char unknown_0fe[6];
+    /* 0x104: the slot's action is the first kind, cached beside it. */
+    unsigned char action_is_kind_one;
+    unsigned char flag_105;              /* 0x105 */
+} W8PartySlotRow;                        /* 0x106 */
+
 
 /* The target kinds a combat slot's leading field takes. The four that name
    something put it in their own field, which is what pairs each kind with the

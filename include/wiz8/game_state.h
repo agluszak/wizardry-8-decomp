@@ -72,61 +72,6 @@ typedef struct W8GameSettings {
     unsigned char unknown_051[0x53];
 } W8GameSettings;                        /* 0x0a4 */
 
-/* One party slot row. Only the three fields the reset touches are established,
-   plus the leading flag UtilityFunctions reads as slot-occupied. */
-typedef struct W8PartySlotRow {
-    unsigned char flag_00;               /* 0x000: slot occupied */
-    /* 0x001: the action this slot has chosen this round; -1 is none, and the
-       round reset lifts the ninth action specifically. */
-    int pending_action;
-    /* 0x005: the attack mode chosen per hand, indexed by the combat state's
-       current hand. The bound is a partition of the unknown run, not proven. */
-    int attack_mode[4];                  /* 0x005 */
-    unsigned char unknown_015[8];
-    /* 0x01d and 0x04d: the two targeting blocks the slot carries, cleared
-       together when the character dies. */
-    unsigned char target_block_01d[0x30];
-    unsigned char combat_slot_04d[0x20];  /* 0x04d, a W8CombatSlot */
-    /* 0x06d and 0x071: what the slot is doing and the detail that qualifies
-       it, the character counterpart of the monster's 0x2e1 and 0x2e5. */
-    int action_kind;
-    int action_detail;
-    /* 0x075..0x0a0: the slot's pending spell target - what kind of target it
-       is, at what strength, a cleared word, and the eight-dword target block
-       the targeting code hands over. The strength is uiPowerLevel, which the
-       Magic.cpp:4287 assertion bounds at one through seven; eight is the
-       further "as high as the caster can afford" request that the affordable-
-       power walk resolves before the cost is taken. */
-    int spell_id;                        /* 0x075 */
-    int spell_power_level;               /* 0x079 */
-    int spell_power_extra;               /* 0x07d */
-    int spell_target_block[8];           /* 0x081 */
-    /* 0x0a1..0x0cf: the item-use block, the same shape as the spell one above -
-       what is being used, which item, where it is aimed and where it came
-       from. */
-    int item_use_kind;                   /* 0x0a1 */
-    struct W8ItemInstance* item_in_use;  /* 0x0a5 */
-    int item_target_block[8];            /* 0x0a9 */
-    /* 0x0c9: the item id recorded when the use was chosen. The use is checked
-       again by looking the item up from its origin and slot and comparing this
-       against what comes back, so it is what catches an item that moved. */
-    int item_id_0c9;
-    unsigned char item_origin;           /* 0x0cd */
-    unsigned short item_slot;            /* 0x0ce */
-    unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
-    unsigned char unknown_0d1[0x24];
-    /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a
-       slot that has it raised, and the targeting guard reads the same byte. */
-    unsigned char flag_0f5;
-    unsigned char unknown_0f6[4];
-    /* 0x0fa: the animation this slot is driving, -1 when none. Death tells it
-       to stop. */
-    int animation_0fa;
-    unsigned char unknown_0fe[6];
-    /* 0x104: the slot's action is the first kind, cached beside it. */
-    unsigned char action_is_kind_one;
-    unsigned char flag_105;              /* 0x105 */
-} W8PartySlotRow;                        /* 0x106 */
 
 /* The two heap buffers a status block owns. GetSaveGameLevel builds one of
    these on the stack, reads through it and tears it down again; only the two

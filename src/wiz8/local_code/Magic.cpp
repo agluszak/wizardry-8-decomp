@@ -497,25 +497,24 @@ bool CombatHasCondition(int condition_id)
 extern int CharacterPointerToPartySlot(const W8Character* character);
 extern void Function4E7CC0(
     int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
-extern int* Function53B7F0(int party_slot, int selector);
-extern unsigned char Function537160(int* target, char needed_target);
+extern W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
+/* 0x0053B7F0 */
+enum { W8_TARGETING_CONTEXT_SPELL = 3, W8_TARGETING_CONTEXT_CURRENT = 6 };
+extern unsigned char Function537160(const W8CombatSlot* target, char needed_target);
 extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
 
 /* Record the spell one party slot is about to cast, at what strength, and at
    what, from a target block the caller already holds. */
 // FUNCTION: WIZ8 0x004F9AA0
 void SetPartySlotSpell(
-    int party_slot, int spell_id, int power_level, const int* target_block)
+    int party_slot, int spell_id, int power_level, const W8CombatSlot* target)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
-    int index;
 
     row->spell_id = spell_id;
     row->spell_power_level = power_level;
     row->spell_power_extra = 0;
-    for (index = 0; index < 8; ++index) {
-        row->spell_target_block[index] = target_block[index];
-    }
+    row->spell_target = *target;
 }
 
 /* The same, addressed by character rather than by slot, and taking the target
@@ -525,22 +524,17 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 {
     int party_slot = CharacterPointerToPartySlot(character);
     int notify[2];
-    const int* target_block;
     W8PartySlotRow* row;
-    int index;
 
     notify[0] = power_level;
     notify[1] = 0;
     Function4E7CC0(party_slot, 7, spell_id, notify, 0, 1);
-    target_block = Function53B7F0(party_slot, 6);
 
     row = &g_party_slot_rows[party_slot];
     row->spell_power_level = power_level;
     row->spell_id = spell_id;
     row->spell_power_extra = 0;
-    for (index = 0; index < 8; ++index) {
-        row->spell_target_block[index] = target_block[index];
-    }
+    row->spell_target = *GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
 }
 
 /* Whether one party slot's recorded spell target is still a target it could
@@ -552,7 +546,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
     char needed = GetTargetNeededForSpellFriendly(
         g_party_slot_rows[party_slot].spell_id, 0, 6);
 
-    if (!Function537160(Function53B7F0(party_slot, 3), needed)) {
+    if (!Function537160(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL), needed)) {
         return false;
     }
     return Function519180(party_slot, 0, 3) != 0;
@@ -584,7 +578,7 @@ void StartCharacterBreathAttack(int party_slot)
         srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
     }
     ChooseAction(party_slot, 2, -1, 0, 0, 1);
-    AimAtTarget(party_slot, (W8CombatSlot*)&row->unknown_0d1, 6);
+    AimAtTarget(party_slot, &row->target_context_5, 6);
     if (IsSpellTargetStillValidIn(party_slot, 0x77, 5)) {
         StartBreathCycle(party_slot, 0);
         return;
@@ -697,16 +691,12 @@ extern unsigned char g_profession_spellbooks[];
 void StartCharacterSpellCast(int party_slot, int power_level)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
-    int saved_target[8];
+    W8CombatSlot saved_target = row->spell_target;
     int named[2];
     const int* target;
-    int index;
 
-    for (index = 0; index < 8; ++index) {
-        saved_target[index] = row->spell_target_block[index];
-    }
     if (g_in_combat_00683f94 == 0) {
-        AimAtTarget(party_slot, (W8CombatSlot*)row->spell_target_block, 6);
+        AimAtTarget(party_slot, &row->spell_target, 6);
     }
 
     if (power_level == 0) {
@@ -718,7 +708,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
         target = named;
     }
     ChooseAction(party_slot, 7, row->spell_id, (int)target, 0, 1);
-    AimAtTarget(party_slot, (W8CombatSlot*)saved_target, 6);
+    AimAtTarget(party_slot, &saved_target, 6);
 
     if (IsSpellTargetStillValidIn(party_slot, row->spell_id, 3)) {
         StartBreathCycle(party_slot, 0);
@@ -734,17 +724,13 @@ void StartCharacterSpellCast(int party_slot, int power_level)
 void StartCharacterItemUse(int party_slot)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
-    int saved_target[8];
-    int index;
+    W8CombatSlot saved_target = row->item_target;
 
-    for (index = 0; index < 8; ++index) {
-        saved_target[index] = row->item_target_block[index];
-    }
     if (g_in_combat_00683f94 == 0) {
-        AimAtTarget(party_slot, (W8CombatSlot*)row->item_target_block, 6);
+        AimAtTarget(party_slot, &row->item_target, 6);
     }
     ChooseAction(party_slot, 8, -1, (int)&row->item_use_kind, 0, 1);
-    AimAtTarget(party_slot, (W8CombatSlot*)saved_target, 6);
+    AimAtTarget(party_slot, &saved_target, 6);
     RecordItemOrigin(party_slot, row->item_origin, row->item_slot);
 
     if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_in_use), 4)) {
@@ -1158,7 +1144,7 @@ bool CanPartySlotUseRecordedItem(int party_slot)
 
     spell_id = GetItemSpell(item);
     normalize = ItemClassNormalizesTarget(&g_item_records[item->item_id]);
-    if (GetSpellTargetType(spell_id, normalize) == 0 && row->item_target_block[1] != party_slot) {
+    if (GetSpellTargetType(spell_id, normalize) == 0 && row->item_target.iChar != party_slot) {
         return false;
     }
     if (!SpellUsableNow(spell_id, 0, 0, 0)) {
@@ -1626,7 +1612,7 @@ unsigned int ChoosePowerLevelToRestore(
     return power_level;
 }
 
-extern unsigned int CountIdentifyAttemptsNeeded(int item, int arg_2);
+extern unsigned int CountIdentifyAttemptsNeeded(const W8ItemInstance* item, int arg_2);
 extern unsigned int Function520C70(int item);                            /* 0x00520C70 */
 
 /* The spells whose power level is decided by how bad the target's condition
@@ -1666,13 +1652,13 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
     unsigned int power_level;
     unsigned int worst;
 
-    if (row->spell_target_block[0] == W8_TARGET_KIND_ONE_CHARACTER) {
-        target_character = &g_party_characters[row->spell_target_block[1]];
+    if (row->spell_target.iType == W8_TARGET_KIND_ONE_CHARACTER) {
+        target_character = &g_party_characters[row->spell_target.iChar];
         conditions = target_character->condition_turns;
     }
-    else if (row->spell_target_block[0] == W8_SOURCE_TYPE_POINT) {
+    else if (row->spell_target.iType == W8_SOURCE_TYPE_POINT) {
         W8MonsterInfo* monster_info =
-            MonsterInfoFromID(0xb83, MAGIC_CPP, row->spell_target_block[2], 1);
+            MonsterInfoFromID(0xb83, MAGIC_CPP, row->spell_target.iMonsterID, 1);
         conditions = monster_info->condition_turns;
     }
 
@@ -1711,9 +1697,9 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
             /* The one case where the target being a character says something
                the condition does not: the item they are carrying asks for more
                than the condition does. */
-            if (row->spell_target_block[0] == W8_TARGET_KIND_ONE_CHARACTER &&
-                power_level <= Function520C70(row->spell_target_block[1])) {
-                power_level = Function520C70(row->spell_target_block[1]);
+            if (row->spell_target.iType == W8_TARGET_KIND_ONE_CHARACTER &&
+                power_level <= Function520C70(row->spell_target.iChar)) {
+                power_level = Function520C70(row->spell_target.iChar);
             }
             break;
         case W8_SPELL_CURE_GROUP_B:
@@ -1742,7 +1728,7 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
         if (spell_id != W8_SPELL_IDENTIFY) {
             return 1;
         }
-        power_level = CountIdentifyAttemptsNeeded(row->spell_target_block[7], identify_context);
+        power_level = CountIdentifyAttemptsNeeded(row->spell_target.pPCItem, identify_context);
         break;
 
     default:

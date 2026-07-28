@@ -867,8 +867,8 @@ void CharacterDies(int party_slot)
     character->hp_current = 0;
     character->stamina = 0;
 
-    ResetCombatSlot((W8CombatSlot*)&row->target_block_01d);
-    ResetCombatSlot((W8CombatSlot*)&row->combat_slot_04d);
+    ResetCombatSlot(&row->target_out_of_combat);
+    ResetCombatSlot(&row->target_in_combat);
     if (g_in_combat_00683f94 != 0) {
         Function4ECDD0(party_slot);
     }

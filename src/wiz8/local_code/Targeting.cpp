@@ -905,11 +905,11 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
     W8MonsterSlot* slot = &g_monster_slots_6836b8[party_slot];
     unsigned int index;
 
-    if (slot->highlighted_monsters.GetCount() > 0) {
-        for (index = 0; index < (unsigned int)slot->highlighted_monsters.GetCount(); ++index) {
-            SetMonsterHighlight(party_slot, *slot->highlighted_monsters.GetAt(index), 0, 0);
+    if (slot->highlighted_monsters.count > 0) {
+        for (index = 0; index < (unsigned int)slot->highlighted_monsters.count; ++index) {
+            SetMonsterHighlight(party_slot, slot->highlighted_monsters.data[index], 0, 0);
         }
-        slot->highlighted_monsters.Clear();
+        slot->highlighted_monsters.count = 0;
         return;
     }
 
@@ -996,4 +996,123 @@ void CollectMonstersWithinRadius(
             found->Add(monster_info->location_id);
         }
     }
+}
+
+extern int g_screen_state_0068ec78;
+extern unsigned char g_in_combat_00683f94;
+extern W8LevelRuntimeBlock* g_level_block_0068edcc;
+extern int g_active_party_slot_0068518d;
+extern unsigned char g_flag_00683f95;
+extern unsigned char g_flag_00683f96;
+/* 0x0068408B: the target block context two answers with, shared by the whole
+   party rather than kept per slot - which is what makes it the odd one out
+   among the six. */
+extern W8CombatSlot g_shared_target_0068408b;
+
+/* The targeting contexts. Six of them name a block the slot carries; the
+   seventh, "current", is not a context at all but the request to work out
+   which of the others applies right now. */
+enum {
+    W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
+    W8_TARGETING_CONTEXT_IN_COMBAT = 1,
+    W8_TARGETING_CONTEXT_SHARED = 2,
+    W8_TARGETING_CONTEXT_SPELL = 3,
+    W8_TARGETING_CONTEXT_ITEM = 4,
+    W8_TARGETING_CONTEXT_FIVE = 5,
+    W8_TARGETING_CONTEXT_CURRENT = 6,
+    W8_TARGETING_CONTEXT_DIALOGUE = 7
+};
+
+/* The two dialogue selections that have a targeting context of their own, and
+   they are the same two action kinds - casting and using an item. */
+enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
+
+/* Which targeting context is in force. A dialogue that is up and has settled on
+   casting or on using an item owns the choice; failing that, the active slot
+   with either overlay up gets the shared context, and otherwise it is simply
+   whether a fight is on.
+
+   Everything below carries this body inline rather than calling it, which is
+   why the same fifteen-odd instructions open three of them. */
+// FUNCTION: WIZ8 0x0053BC10
+unsigned char GetCurrentTargetingContext(int party_slot)
+{
+    if (g_screen_state_0068ec78 == 7 && g_level_block_0068edcc != 0 &&
+        g_level_block_0068edcc->selection_kind != -1) {
+        if (g_level_block_0068edcc->selection_kind == W8_SELECTION_SPELL &&
+            g_level_block_0068edcc->selection_settled != 0) {
+            return W8_TARGETING_CONTEXT_SPELL;
+        }
+        if (g_level_block_0068edcc->selection_kind == W8_SELECTION_ITEM &&
+            g_level_block_0068edcc->selection_settled != 0) {
+            return W8_TARGETING_CONTEXT_ITEM;
+        }
+        return W8_TARGETING_CONTEXT_DIALOGUE;
+    }
+    if (party_slot == g_active_party_slot_0068518d &&
+        (g_flag_00683f95 != 0 || g_flag_00683f96 != 0)) {
+        return W8_TARGETING_CONTEXT_SHARED;
+    }
+    return (unsigned char)(g_in_combat_00683f94 != 0);
+}
+
+/* Resolve "current" to a real context and check that what comes back is one.
+   The switch answers each context with itself, so it exists only to catch a
+   sixth value the caller invented rather than to map anything. */
+// FUNCTION: WIZ8 0x0053B920
+int ResolveTargetingContext(int party_slot, unsigned int context)
+{
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
+        context = GetCurrentTargetingContext(party_slot);
+    }
+    switch (context) {
+    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
+        return W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
+    case W8_TARGETING_CONTEXT_IN_COMBAT:
+        return W8_TARGETING_CONTEXT_IN_COMBAT;
+    case W8_TARGETING_CONTEXT_SHARED:
+        return W8_TARGETING_CONTEXT_SHARED;
+    case W8_TARGETING_CONTEXT_SPELL:
+        return W8_TARGETING_CONTEXT_SPELL;
+    case W8_TARGETING_CONTEXT_ITEM:
+        return W8_TARGETING_CONTEXT_ITEM;
+    case W8_TARGETING_CONTEXT_FIVE:
+        return W8_TARGETING_CONTEXT_FIVE;
+    case W8_TARGETING_CONTEXT_DIALOGUE:
+        return W8_TARGETING_CONTEXT_DIALOGUE;
+    default:
+        srAssertFail("FALSE", TARGETING_CPP, 0xc5b, 0);
+    }
+    return W8_TARGETING_CONTEXT_IN_COMBAT;
+}
+
+/* The target block one context uses. Five of the six live on the slot's own
+   row and the sixth is shared by the party, which is what makes this the one
+   place that knows the row holds five blocks of the same shape rather than one
+   block and four runs of numbers. */
+// FUNCTION: WIZ8 0x0053B7F0
+W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+
+    if (context == W8_TARGETING_CONTEXT_CURRENT) {
+        context = GetCurrentTargetingContext(party_slot);
+    }
+    switch (context) {
+    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
+        return &row->target_out_of_combat;
+    case W8_TARGETING_CONTEXT_IN_COMBAT:
+        return &row->target_in_combat;
+    case W8_TARGETING_CONTEXT_SHARED:
+        return &g_shared_target_0068408b;
+    case W8_TARGETING_CONTEXT_SPELL:
+        return &row->spell_target;
+    case W8_TARGETING_CONTEXT_ITEM:
+        return &row->item_target;
+    case W8_TARGETING_CONTEXT_FIVE:
+        return &row->target_context_5;
+    default:
+        srAssertFail("FALSE", TARGETING_CPP, 0xc37, 0);
+    }
+    return 0;
 }

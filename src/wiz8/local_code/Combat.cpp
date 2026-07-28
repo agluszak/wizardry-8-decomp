@@ -30,7 +30,8 @@ extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void Function4F0480(unsigned int* actor, int round);
 extern int Function53BC10(int party_slot);
-extern void Function53AC30(int party_slot, void* combat_slot);
+extern void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
+/* 0x0053AC30 */
 extern void ResetCombatSlot(W8CombatSlot* slot);
 extern void NotifySpellPointsChanged(int party_slot);
 extern void Function565420(void);
@@ -176,9 +177,9 @@ void DropCharacterFromRound(int party_slot)
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
 
     if (Function53BC10(party_slot) != 2) {
-        Function53AC30(party_slot, &row->combat_slot_04d);
+        ClearTargetHighlights(party_slot, &row->target_in_combat);
     }
-    ResetCombatSlot((W8CombatSlot*)&row->combat_slot_04d);
+    ResetCombatSlot(&row->target_in_combat);
     NotifySpellPointsChanged(party_slot);
     if (party_slot == g_active_character_0068518d) {
         Function565420();
