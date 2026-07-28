@@ -521,7 +521,9 @@ struct W8MonsterCycleRuntime {
     unsigned int animation_timestamp;       /* 0x068 */
     unsigned char unknown_06c;
     unsigned char animating;                /* 0x06d */
-    unsigned char unknown_06e[0x39];
+    unsigned char unknown_06e[3];
+    signed char behaviour;                   /* 0x071: asserted BEHAVIOUR_FIRST..LAST */
+    unsigned char unknown_072[0x35];
     signed char pending_cycle;               /* 0x0a7 */
     unsigned char unknown_0a8[0x514];
     unsigned char flag_5bc;                 /* 0x5bc */
@@ -558,7 +560,7 @@ struct W8MonsterMember18 {
     unsigned char unknown_10[0x4c];
     int value_5c;                           /* 0x5c: Monster +0x74 */
     unsigned char unknown_60[0x28];
-    unsigned char unknown_88;               /* 0x88: Monster +0xa0 */
+    unsigned char state_a0;                 /* 0x88: Monster +0xa0 */
     unsigned char unknown_89[3];
     signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
     unsigned char unknown_8d[7];

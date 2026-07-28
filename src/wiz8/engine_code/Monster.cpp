@@ -103,6 +103,15 @@ unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating)
     return 0;
 }
 
+// FUNCTION: WIZ8 0x004C59E0
+unsigned char MonsterIsAnimating(W8Monster* monster)
+{
+    if (monster != 0) {
+        return monster->m_cycles[18].runtime->animating;
+    }
+    return 0;
+}
+
 /* Cycle 19 bit 5 blocks pending-cycle changes. Otherwise the request is stored
    as the signed low byte in cycle 18's runtime record. */
 // FUNCTION: WIZ8 0x004C5AA0
@@ -110,6 +119,38 @@ void MonsterSetPendingCycle(W8Monster* monster, int cycle)
 {
     if (monster != 0 && ((monster->m_cycles[19].flags_00 >> 5) & 1) == 0) {
         monster->m_cycles[18].runtime->pending_cycle = (signed char)cycle;
+    }
+}
+
+// FUNCTION: WIZ8 0x004C5E40
+void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour)
+{
+    if (monster != 0) {
+        if (behaviour < 1 || behaviour > 3) {
+            srAssertFail(
+                "bBehaviour >= BEHAVIOUR_FIRST && bBehaviour <= BEHAVIOUR_LAST",
+                "..\\Engine Code\\Include\\AnimRep.hpp",
+                0x87,
+                0);
+        }
+        monster->m_cycles[18].runtime->behaviour = behaviour;
+    }
+}
+
+// FUNCTION: WIZ8 0x004C5EE0
+unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
+{
+    if (monster != 0) {
+        return (monster->m_cycles[19].flags_00 >> 3) & 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004C6160
+void MonsterSetStateA0(W8Monster* monster, unsigned char state)
+{
+    if (monster != 0) {
+        monster->member_18.state_a0 = state;
     }
 }
 
@@ -122,4 +163,11 @@ int MonsterQuery(W8Monster* monster, int query)
         return Function4C4660(query);
     }
     return -1;
+}
+
+// FUNCTION: WIZ8 0x004CA4C0
+unsigned char W8Monster::IsDying()
+{
+    return Function4C4660(6) == 0x15 ||
+           m_cycles[18].runtime->pending_cycle == 0x15;
 }

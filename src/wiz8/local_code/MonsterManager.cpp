@@ -705,7 +705,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
     MonsterSetSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
-    monster_info->monster->member_18.unknown_88 = 1;
+    monster_info->monster->member_18.state_a0 = 1;
     monster_info->monster->m_cycles[22].unknown_09 = 0;
 }
 
@@ -1042,7 +1042,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->value_107 = 0x12;
         monster_info->hp_current = 0;
         monster_info->runtime_stat_current_33 = 0;
-        monster_info->monster->member_18.unknown_88 = 0;
+        monster_info->monster->member_18.state_a0 = 0;
         monster_info->monster->member_18.flags_0c = 0x200000;
         Function4ACF90(monster_info->monster);
         Function505C80(monster_info);
