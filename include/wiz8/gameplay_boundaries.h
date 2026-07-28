@@ -16,6 +16,7 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/game_state.h"
 #include "wiz8/gameplay_databases.h"
+#include "wiz8/layouts/encounter_tables.h"
 
 #pragma pack(push, 1)
 
@@ -375,25 +376,11 @@ typedef struct W8MonsterSlot {
 
 
 
-/* The record is reached by seeking to 4 + index * 0x297, so its size is part of
-   the on-disk format rather than an incidental layout. Asserting it here is what
-   makes a field edit that silently repacks the struct fail to compile. */
-typedef char W8MonsterRecord_size_must_be_0x297[
-    sizeof(W8MonsterRecord) == 0x297 ? 1 : -1];
-
 /* Filled by 0x0042A370 from a level-table row; only its size is established
    here, by the 0x458-byte stack frame of its sole recovered caller. */
 typedef struct W8LevelInfo {
     unsigned char unknown_000[0x458];
 } W8LevelInfo;                           /* 0x458 */
-
-/* One runtime encounter table. Its full field model lives in
-   config/types/wiz8/encounter_tables.h; the porting header only needs the size,
-   because the bodies recovered so far hand the pointer around without reading
-   through it. */
-typedef struct W8EncounterTableRuntime {
-    unsigned char unknown_000[0x158];
-} W8EncounterTableRuntime;               /* 0x158 */
 
 /* What a generator hangs off itself. Both are released through slot zero of
    their own vtable with the deleting flag set, so both are polymorphic; nothing

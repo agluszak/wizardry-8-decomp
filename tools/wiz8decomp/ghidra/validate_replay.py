@@ -54,6 +54,62 @@ def _candidate_names(path: Path) -> list[tuple[int, str]]:
     return candidates
 
 
+def _validate_format_layouts(program: Any, failures: list[dict[str, str]]) -> int:
+    """Check header-imported record fields whose prior Python copies drifted."""
+
+    expected = {
+        "W8EncounterByteVector": {
+            0x00: ("vtable", 4),
+            0x04: ("count", 4),
+            0x08: ("capacity", 4),
+            0x0C: ("values", 4),
+        },
+        "W8ItemDatabaseRecord": {
+            0x03E: ("equip_class", 1),
+            0x086: ("value", 4),
+            0x08A: ("weight", 2),
+        },
+        "W8MonsterDatabaseRecord": {0x0D1: ("attribute_values_d1", 5)},
+    }
+    manager = program.getDataTypeManager()
+    checks = 0
+    for type_name, fields in expected.items():
+        data_type = manager.getDataType(f"/wiz8/formats/slf/{type_name}")
+        while data_type is not None and hasattr(data_type, "getBaseDataType"):
+            base = data_type.getBaseDataType()
+            if base is data_type:
+                break
+            data_type = base
+        if data_type is None or not hasattr(data_type, "getComponentAt"):
+            failures.append(
+                {
+                    "kind": "format_layout",
+                    "key": type_name,
+                    "expected": "header-imported structure",
+                    "actual": "missing",
+                }
+            )
+            continue
+        for offset, (field_name, width) in fields.items():
+            checks += 1
+            component = data_type.getComponentAt(offset)
+            actual = (
+                "missing"
+                if component is None
+                else f"{component.getFieldName()}:{component.getLength()}"
+            )
+            if component is None or component.getFieldName() != field_name or component.getLength() != width:
+                failures.append(
+                    {
+                        "kind": "format_layout",
+                        "key": f"{type_name}+0x{offset:x}",
+                        "expected": f"{field_name}:{width}",
+                        "actual": actual,
+                    }
+                )
+    return checks
+
+
 def validate_reviewed_replay(
     settings: Settings,
     selector: str,
@@ -92,6 +148,7 @@ def validate_reviewed_replay(
         "globals": 0,
         "candidate_names": 0,
         "observation_evidence": 0,
+        "format_layout_fields": 0,
     }
     observation_audit: dict[str, Any] = {}
 
@@ -114,6 +171,7 @@ def validate_reviewed_replay(
             function_manager = program.getFunctionManager()
             address_space = program.getAddressFactory().getDefaultAddressSpace()
             listing = program.getListing()
+            checks["format_layout_fields"] += _validate_format_layouts(program, failures)
             for identity in identities:
                 address = address_space.getAddress(identity.address)
                 function = function_manager.getFunctionAt(address)

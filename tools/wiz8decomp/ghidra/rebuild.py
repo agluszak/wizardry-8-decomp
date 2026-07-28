@@ -106,7 +106,7 @@ def reviewed_replay_actions(
         ReplayAction(
             "wiz8_format_model",
             lambda: apply_wiz8_format_model(settings, program_name, materialize=False),
-            inputs,
+            inputs + (settings.repo_dir / "include" / "wiz8" / "layouts",),
         ),
         ReplayAction(
             "reviewed_class_model",

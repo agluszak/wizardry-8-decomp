@@ -7,6 +7,61 @@ from .apply_unzip_model import _apply_data, _function_type, _structure
 from .project import resolve_program_name
 
 CATEGORY = "/wiz8/formats/slf"
+CANONICAL_LAYOUT_HEADERS = (
+    "include/wiz8/layouts/item_tables.h",
+    "include/wiz8/layouts/encounter_tables.h",
+)
+
+
+def _import_canonical_layouts(settings: Settings, dtm: Any, category: Any) -> dict[str, Any]:
+    """Parse the compiled record headers into the program data-type manager."""
+
+    from ghidra.app.util.cparser.C import CParserUtils
+    from ghidra.program.model.data import DataTypeManager
+    from ghidra.util.task import TaskMonitor
+    from jpype import JArray, JString
+
+    filenames = JArray(JString)(
+        [str(settings.repo_dir / relative) for relative in CANONICAL_LAYOUT_HEADERS]
+    )
+    include_paths = JArray(JString)([str(settings.repo_dir / "include")])
+    arguments = JArray(JString)(["-D__WIZ8_GHIDRA_LAYOUTS__=1"])
+    open_managers = JArray(DataTypeManager)([])
+    parsed = CParserUtils.parseHeaderFiles(
+        open_managers,
+        filenames,
+        include_paths,
+        arguments,
+        dtm,
+        TaskMonitor.DUMMY,
+    )
+    if not parsed.successful():
+        raise RuntimeError(f"canonical layout header parse failed: {parsed}")
+
+    required = {
+        "W8Dice",
+        "W8EncounterByteVector",
+        "W8EncounterScriptName",
+        "W8EncounterTableDiskHeader",
+        "W8EncounterTableRuntime",
+        "W8ItemDatabaseRecord",
+        "W8ItemTableEntry",
+        "W8ItemTableRecord",
+        "W8MonsterDatabaseRecord",
+    }
+    found: dict[str, Any] = {}
+    iterator = dtm.getAllDataTypes()
+    while iterator.hasNext():
+        data_type = iterator.next()
+        name = str(data_type.getName())
+        if name in required:
+            found[name] = data_type
+    missing = sorted(required - found.keys())
+    if missing:
+        raise RuntimeError(f"canonical layout parser omitted: {', '.join(missing)}")
+    for data_type in found.values():
+        data_type.setCategoryPath(category)
+    return found
 
 
 def apply_wiz8_format_model(
@@ -34,7 +89,6 @@ def apply_wiz8_format_model(
         IntegerDataType,
         PointerDataType,
         QWordDataType,
-        ShortDataType,
         VoidDataType,
         WordDataType,
     )
@@ -57,10 +111,10 @@ def apply_wiz8_format_model(
                 float_type = FloatDataType.dataType
                 integer = IntegerDataType.dataType
                 qword = QWordDataType.dataType
-                short = ShortDataType.dataType
                 void = VoidDataType.dataType
                 generic_pointer = PointerDataType(dtm)
                 char_pointer = PointerDataType(char, dtm)
+                canonical = _import_canonical_layouts(settings, dtm, category)
 
                 header = _structure(
                     dtm,
@@ -146,83 +200,10 @@ def apply_wiz8_format_model(
                 encounter_time = dtm.addDataType(
                     encounter_time, DataTypeConflictHandler.REPLACE_HANDLER
                 )
-                encounter_header = _structure(
-                    dtm,
-                    category,
-                    "W8EncounterTableDiskHeader",
-                    0x108,
-                    [
-                        (0x000, byte, "record_kind", "four in the reviewed corpus"),
-                        (0x001, ArrayDataType(char, 256, 1), "name", "table name"),
-                        (0x101, dword, "unknown_101", "unreviewed table field"),
-                        (0x105, word, "version", "two in the reviewed corpus"),
-                        (0x107, byte, "entry_count", "column count after the header"),
-                    ],
-                )
-                encounter_script_name = _structure(
-                    dtm,
-                    category,
-                    "W8EncounterScriptName",
-                    0x40,
-                    [(0x00, ArrayDataType(char, 64, 1), "value", "script name")],
-                )
-                encounter_byte_vector = _structure(
-                    dtm,
-                    category,
-                    "W8EncounterByteVector",
-                    0x10,
-                    [
-                        (0x00, dword, "unknown_00", "runtime container field"),
-                        (0x04, integer, "count", "active values"),
-                        (0x08, integer, "capacity", "allocated values"),
-                        (0x0C, PointerDataType(byte, dtm), "values", "byte values"),
-                    ],
-                )
-                encounter_table = _structure(
-                    dtm,
-                    category,
-                    "W8EncounterTableRuntime",
-                    0x158,
-                    [
-                        (0x000, generic_pointer, "vtable", "runtime table vtable"),
-                        (0x004, integer, "species_count", "active species IDs"),
-                        (0x008, integer, "species_capacity", "allocated species IDs"),
-                        (
-                            0x00C,
-                            PointerDataType(word, dtm),
-                            "species_ids",
-                            "monster database IDs",
-                        ),
-                        (
-                            0x010,
-                            encounter_byte_vector,
-                            "rarity_class",
-                            "values 3 7 20 or 70",
-                        ),
-                        (
-                            0x020,
-                            encounter_byte_vector,
-                            "time_condition",
-                            "W8EncounterTimeCondition values",
-                        ),
-                        (
-                            0x030,
-                            encounter_byte_vector,
-                            "challenge_level",
-                            "values one through fifty",
-                        ),
-                        (
-                            0x040,
-                            ArrayDataType(byte, 0x10, 1),
-                            "script_names_runtime",
-                            "runtime string container",
-                        ),
-                        (0x050, ArrayDataType(char, 256, 1), "name", "table name"),
-                        (0x150, dword, "unknown_150", "copied from disk offset 0x101"),
-                        (0x154, byte, "version_two_flags", "version-two trailing byte"),
-                        (0x155, ArrayDataType(byte, 3, 1), "padding_155", "alignment"),
-                    ],
-                )
+                encounter_header = canonical["W8EncounterTableDiskHeader"]
+                encounter_script_name = canonical["W8EncounterScriptName"]
+                encounter_byte_vector = canonical["W8EncounterByteVector"]
+                encounter_table = canonical["W8EncounterTableRuntime"]
                 live_entry = _structure(
                     dtm,
                     category,
@@ -268,17 +249,7 @@ def apply_wiz8_format_model(
                         (0x102, byte, "map_file", "create a read-only file mapping"),
                     ],
                 )
-                dice = _structure(
-                    dtm,
-                    category,
-                    "W8Dice",
-                    0x04,
-                    [
-                        (0x00, short, "base", "signed additive base"),
-                        (0x02, byte, "count", "number of independent rolls"),
-                        (0x03, byte, "sides", "one through this value per roll"),
-                    ],
-                )
+                dice = canonical["W8Dice"]
                 item_instance = _structure(
                     dtm,
                     category,
@@ -293,72 +264,9 @@ def apply_wiz8_format_model(
                         (0x0B, byte, "unknown_0b", "optional initialization flag"),
                     ],
                 )
-                item_record = _structure(
-                    dtm,
-                    category,
-                    "W8ItemDatabaseRecord",
-                    0x10D,
-                    [
-                        (
-                            0x000,
-                            ArrayDataType(word, 30, 2),
-                            "display_name",
-                            "30 UTF-16 code units",
-                        ),
-                        (0x03C, ArrayDataType(byte, 3, 1), "unknown_03c", "unreviewed fields"),
-                        (
-                            0x03F,
-                            word,
-                            "unidentified_name_index",
-                            "generic-name string-table index",
-                        ),
-                        (0x041, byte, "flags_041", "bit zero starts identified"),
-                        (0x042, ArrayDataType(byte, 0x24, 1), "unknown_042", "unreviewed fields"),
-                        (0x066, byte, "quantity_kind", "zero none; one stack; two-four uses"),
-                        (0x067, dice, "initial_quantity", "initial stack/use dice"),
-                        (0x06B, ArrayDataType(byte, 0x4E, 1), "unknown_06b", "unreviewed fields"),
-                        (0x0B9, integer, "combine_ingredient_a", "first recipe item ID"),
-                        (0x0BD, integer, "combine_ingredient_b", "second recipe item ID"),
-                        (0x0C1, ArrayDataType(byte, 8, 1), "unknown_0c1", "unreviewed fields"),
-                        (0x0C9, byte, "combine_skill", "0xff means no skill check"),
-                        (0x0CA, byte, "combine_minimum_skill", "required skill value"),
-                        (0x0CB, ArrayDataType(byte, 0x42, 1), "unknown_0cb", "unreviewed fields"),
-                    ],
-                )
-                item_table_entry = _structure(
-                    dtm,
-                    category,
-                    "W8ItemTableEntry",
-                    0x05,
-                    [
-                        (0x00, short, "selector_00", "zero disables the slot"),
-                        (0x02, short, "item_id", "index into Items.dbs"),
-                        (0x04, byte, "weight", "weighted random selection"),
-                    ],
-                )
-                item_table = _structure(
-                    dtm,
-                    category,
-                    "W8ItemTableRecord",
-                    0x1F1,
-                    [
-                        (0x000, ArrayDataType(char, 256, 1), "name", "lookup name"),
-                        (0x100, dword, "category_id", "category-name index"),
-                        (
-                            0x104,
-                            ArrayDataType(item_table_entry, 40, 5),
-                            "entries",
-                            "forty weighted item slots",
-                        ),
-                        (
-                            0x1CC,
-                            byte,
-                            "level_scaled",
-                            "filter candidates against current party level",
-                        ),
-                        (0x1CD, ArrayDataType(byte, 0x24, 1), "unknown_1cd", "unreviewed"),
-                    ],
-                )
+                item_record = canonical["W8ItemDatabaseRecord"]
+                item_table_entry = canonical["W8ItemTableEntry"]
+                item_table = canonical["W8ItemTableRecord"]
                 spellbook_mask = EnumDataType(category, "W8SpellbookMask", 1, dtm)
                 spellbook_mask.add("W8_SPELLBOOK_NONE", 0)
                 spellbook_mask.add("W8_SPELLBOOK_WIZARDRY", 1)
@@ -477,102 +385,7 @@ def apply_wiz8_format_model(
                 faction_disposition = dtm.addDataType(
                     faction_disposition, DataTypeConflictHandler.REPLACE_HANDLER
                 )
-                monster_companion = _structure(
-                    dtm,
-                    category,
-                    "W8MonsterCompanion",
-                    0x03,
-                    [
-                        (0x00, short, "species_id", "less than one means absent"),
-                        (0x02, byte, "spawn_chance_percent", "tested before spawning"),
-                    ],
-                )
-                monster_record = _structure(
-                    dtm,
-                    category,
-                    "W8MonsterDatabaseRecord",
-                    0x297,
-                    [
-                        (
-                            offset,
-                            ArrayDataType(word, 24, 2),
-                            f"name_{offset:02x}",
-                            "UTF-16 name; suffix after '#' removed at load",
-                        )
-                        for offset in (0x00, 0x30, 0x60, 0x90)
-                    ]
-                    + [
-                        (0x0C0, byte, "unknown_0c0", "unreviewed field"),
-                        (0x0C1, dice, "group_size", "rolled when a group is spawned"),
-                        (
-                            0x0C5,
-                            ArrayDataType(monster_companion, 2, 3),
-                            "companions",
-                            "two optional species and spawn-chance records",
-                        ),
-                        (0x0CB, ArrayDataType(byte, 5, 1), "unknown_0cb", "unreviewed fields"),
-                        (0x0D0, byte, "flags_0d0", "bit zero uses NPC disposition"),
-                        (0x0D1, byte, "unknown_0d1", "unreviewed field"),
-                        (
-                            0x0D2,
-                            byte,
-                            "disposition_cache_factor",
-                            "squared then scaled for disposition cache duration",
-                        ),
-                        (0x0D3, ArrayDataType(byte, 0xAE, 1), "unknown_0d3", "unreviewed fields"),
-                        (
-                            0x181,
-                            dword,
-                            "combat_value",
-                            "base value used by combat-strength and monster-info consumers",
-                        ),
-                        (0x185, ArrayDataType(byte, 2, 1), "unknown_185", "unreviewed fields"),
-                        (0x187, short, "record_id", "equals the zero-based database index"),
-                        (
-                            0x189,
-                            ArrayDataType(char, 0x31, 1),
-                            "cycle_name_189",
-                            "case-insensitive GrCycle lookup key",
-                        ),
-                        (
-                            0x1BA,
-                            float_type,
-                            "float_1ba",
-                            "scaled by the global at 0x005ed4f0 by canonical consumers",
-                        ),
-                        (0x1BE, ArrayDataType(byte, 0x95, 1), "unknown_1be", "unreviewed fields"),
-                        (0x253, integer, "value_253", "selected by consumer 0x004e5b50"),
-                        (
-                            0x257,
-                            integer,
-                            "value_257",
-                            "alternate selected value in consumer 0x004e5b50",
-                        ),
-                        (
-                            0x25B,
-                            integer,
-                            "hostility_range",
-                            "controls unaligned default and proximity-triggered hostility",
-                        ),
-                        (0x25F, faction, "faction_id", "W8Faction value"),
-                        (0x263, ArrayDataType(byte, 4, 1), "unknown_263", "unreviewed fields"),
-                        (0x267, byte, "deleted", "nonzero records are rejected by loaders"),
-                        (0x268, ArrayDataType(byte, 2, 1), "unknown_268", "unreviewed fields"),
-                        (
-                            0x26A,
-                            byte,
-                            "flag_26a",
-                            "selects an alternate monster-group configuration",
-                        ),
-                        (
-                            0x26B,
-                            dword,
-                            "combat_value_override",
-                            "nonzero value returned instead of the base field at +0x181",
-                        ),
-                        (0x26F, ArrayDataType(byte, 0x28, 1), "unknown_26f", "unreviewed fields"),
-                    ],
-                )
+                monster_record = canonical["W8MonsterDatabaseRecord"]
                 level_record = _structure(
                     dtm,
                     category,
@@ -1256,7 +1069,6 @@ def apply_wiz8_format_model(
                                 starting_equipment,
                                 faction,
                                 faction_disposition,
-                                monster_companion,
                                 monster_record,
                                 level_record,
                                 fact_record,
