@@ -125,7 +125,9 @@ typedef struct W8MonsterRecord {
     /* 0x0cc: selects this monster's row in the name-prefix table at 0x0061E436,
        the same table a character indexes by faction. */
     unsigned char name_group_0cc;
-    unsigned char unknown_0cd[3];
+    unsigned char unknown_0cd[2];
+    /* 0x0cf: the monster's own percentage reduction on incoming damage. */
+    unsigned char damage_reduction;
     /* 0x0d0: bit 0 routes disposition through the NPC record instead of the
        faction table, which is the only bit any recovered body reads. */
     unsigned char flags_0d0;

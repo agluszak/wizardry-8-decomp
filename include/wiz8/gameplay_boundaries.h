@@ -1042,7 +1042,11 @@ typedef struct W8MonsterInfo {
     /* 0x10b: the argument a condition carries when a monster's conditions are
        copied onto a character. */
     int condition_argument;
-    unsigned char unknown_10f[0xd8];
+    unsigned char unknown_10f[0xd2];
+    /* 0x1e1: a percentage taken off incoming damage, signed and added to the
+       record's own reduction before the subtraction. */
+    signed char damage_reduction;
+    unsigned char unknown_1e2[5];
     signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
     unsigned char unknown_1ee[0x54];
     int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
@@ -1072,7 +1076,10 @@ typedef struct W8MonsterInfo {
        unknown run rather than a proven size. */
     W8CombatSlot combat_slot_2ba;
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
-    unsigned char unknown_2de[3];
+    /* 0x2de: the monster is under the effect the magic code clears by name;
+       clearing it posts a notice and drops the visual. */
+    unsigned char effect_2de;
+    unsigned char unknown_2df[2];
     /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
        is enumerated by MonsterActionFatigueCost, whose error text names it. */
     int action_kind;
