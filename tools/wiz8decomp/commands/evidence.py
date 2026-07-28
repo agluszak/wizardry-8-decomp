@@ -9,15 +9,6 @@ import typer
 app = typer.Typer(help="Validate and update canonical evidence.", no_args_is_help=True)
 
 
-@app.command("validate")
-def validate_command() -> None:
-    """Validate the checked-in canonical evidence and its relationships."""
-    from .. import cli
-    from ..evidence.validate import validate_repository
-
-    cli._run_action(lambda: validate_repository(cli._settings().repo_dir))
-
-
 def register_root(root: typer.Typer) -> None:
     root.command("resolve-evidence-conflict", hidden=True)(resolve_conflict_command)
 
@@ -29,6 +20,15 @@ def resolve_conflict_command(
     from ..evidence_merge import resolve_evidence_conflict
 
     cli._run_action(lambda: [resolve_evidence_conflict(path) for path in paths])
+
+
+@app.command("validate")
+def validate_command(program: str = typer.Option("wiz8", "--program")) -> None:
+    """Validate canonical schemas, identities, references, and image observations."""
+    from .. import cli
+    from ..evidence.validate import require_valid_repository
+
+    cli._run_action(lambda: require_valid_repository(cli._settings().repo_dir, program))
 
 
 @app.command("upsert")

@@ -1,173 +1,203 @@
 from __future__ import annotations
 
 import csv
-import string
-from collections.abc import Iterable
+import re
+from collections.abc import Iterable, Mapping
 from pathlib import Path
-from typing import Any
 
 from ..provenance import ProvenanceError, validate_provenance
 from .boundaries import load_boundary_rows
 from .classes import load_reviewed_class_model
 from .functions import load_function_identities
+from .io import parse_hex, read_table
 from .signatures import load_reviewed_signatures
 
-BOUNDARY_CONFIDENCE = frozenset({"exact", "structurally-strong", "provisional"})
+_DIGEST = re.compile(r"[0-9a-f]{64}")
 
 
-def validate_unique(
-    rows: Iterable[dict[str, str]], columns: tuple[str, ...], *, label: str
-) -> None:
-    seen: set[tuple[str, ...]] = set()
-    for row in rows:
-        key = tuple(row[column].strip() for column in columns)
-        if key in seen:
-            raise ValueError(f"{label}: duplicate identity {key!r}")
-        seen.add(key)
+def validate_source_entries(categories: Mapping[str, Iterable[str]], root: Path) -> None:
+    """Validate an explicit source inventory without deriving or ordering it."""
+    seen: dict[str, str] = {}
+    for category, entries in categories.items():
+        for entry in entries:
+            normalized = entry.replace("\\", "/")
+            if normalized in seen:
+                raise ValueError(
+                    f"source {normalized} appears in both {seen[normalized]} and {category}"
+                )
+            if not (root / normalized).is_file():
+                raise ValueError(f"{category} names missing source: {normalized}")
+            seen[normalized] = category
 
 
-def validate_exact_digests(rows: Iterable[dict[str, str]], *, label: str) -> None:
-    for row in rows:
-        confidence = row["confidence"].strip()
-        if confidence not in BOUNDARY_CONFIDENCE:
-            raise ValueError(f"{label}: invalid confidence {confidence!r}")
-        digest = row["relocation_masked_sha256"].strip()
-        if confidence == "exact" and (
-            len(digest) != 64 or any(character not in string.hexdigits for character in digest)
-        ):
-            raise ValueError(f"{label}: exact row {row['address']} has no valid digest")
-        if confidence != "exact" and digest:
-            raise ValueError(f"{label}: non-exact row {row['address']} carries an exact digest")
+def _validate_csv_shapes(repo_dir: Path) -> int:
+    checked = 0
+    for root_name in ("evidence", "config"):
+        for path in sorted((repo_dir / root_name).rglob("*.csv")):
+            with path.open(newline="", encoding="utf-8") as stream:
+                reader = csv.DictReader(stream)
+                header = reader.fieldnames
+                if not header:
+                    raise ValueError(f"{path}: missing CSV header")
+                for line, row in enumerate(reader, start=2):
+                    if None in row or len(row) != len(header):
+                        raise ValueError(
+                            f"{path}:{line}: row does not match its declared header; "
+                            "write CSV through DictWriter"
+                        )
+            checked += 1
+    if not checked:
+        raise ValueError(f"{repo_dir}: no canonical evidence CSVs found")
+    return checked
 
 
-def validate_field_rows(
-    class_sizes: dict[str, int], rows: Iterable[dict[str, str]], *, label: str
-) -> None:
-    end_by_class: dict[str, int] = {}
-    for row in sorted(rows, key=lambda item: (item["class_name"], int(item["offset"], 0))):
-        class_name = row["class_name"]
-        if class_name not in class_sizes:
-            raise ValueError(f"{label}: dangling class {class_name}")
-        offset = int(row["offset"], 0)
-        size = int(row["size"], 0)
-        if size <= 0 or offset < end_by_class.get(class_name, 0):
-            raise ValueError(f"{label}: overlapping field {class_name}+0x{offset:x}")
-        if offset + size > class_sizes[class_name]:
-            raise ValueError(f"{label}: field exceeds {class_name} size")
-        end_by_class[class_name] = offset + size
-
-
-def validate_vtable_rows(
-    vtables: Iterable[dict[str, str]], slots: Iterable[dict[str, str]], *, label: str
-) -> None:
-    counts = {row["vtable_id"]: int(row["slot_count"]) for row in vtables}
-    by_vtable: dict[str, list[int]] = {}
-    for slot in slots:
-        vtable_id = slot["vtable_id"]
-        if vtable_id not in counts:
-            raise ValueError(f"{label}: dangling vtable ID {vtable_id}")
-        by_vtable.setdefault(vtable_id, []).append(int(slot["slot_index"]))
-    for vtable_id, indices in by_vtable.items():
-        if sorted(indices) != list(range(counts[vtable_id])):
-            raise ValueError(f"{label}: non-contiguous slots for {vtable_id}")
-
-
-def validate_provenance_rows(rows: Iterable[dict[str, str]], *, label: str) -> None:
-    for row in rows:
+def _validate_functions(repo_dir: Path, program: str) -> set[int]:
+    path = repo_dir / "evidence/reviewed" / program / "functions.csv"
+    table = read_table(path, program=program)
+    addresses: set[int] = set()
+    for line, row in enumerate(table.rows, start=2):
+        address = parse_hex(row["address"], field="address", path=path) or 0
+        size = parse_hex(row["size"], field="size", path=path, allow_empty=True)
+        if address <= 0 or (size is not None and size <= 0):
+            raise ValueError(f"{path}:{line}: address and size must be positive")
         try:
             validate_provenance(row["name_origin"], row["authority"])
         except ProvenanceError as error:
-            raise ValueError(f"{label}: {error}") from error
+            raise ValueError(f"{path}:{line}: {error}") from error
+        addresses.add(address)
+    load_function_identities(path, program=program)
+    return addresses
 
 
-def validate_source_entries(entries: Iterable[str], *, label: str) -> None:
-    seen: set[str] = set()
-    for entry in entries:
-        normalized = entry.strip().replace("\\", "/")
-        if not normalized:
-            raise ValueError(f"{label}: empty source entry")
-        if normalized in seen:
-            raise ValueError(f"{label}: duplicate source entry {normalized}")
-        seen.add(normalized)
+def _validate_boundaries(repo_dir: Path) -> set[int]:
+    path = repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv"
+    addresses: set[int] = set()
+    for line, row in enumerate(load_boundary_rows(path), start=2):
+        address = parse_hex(row["address"], field="address", path=path) or 0
+        size = parse_hex(row["size"], field="size", path=path)
+        if not size or size <= 0:
+            raise ValueError(f"{path}:{line}: boundary size must be positive")
+        digest = row["relocation_masked_sha256"].strip()
+        if row["confidence"].strip() == "exact" and not _DIGEST.fullmatch(digest):
+            raise ValueError(f"{path}:{line}: exact boundary requires a SHA-256 digest")
+        addresses.add(address)
+    return addresses
 
 
-def _raw_rows(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as stream:
-        reader = csv.DictReader(stream)
-        if not reader.fieldnames:
-            raise ValueError(f"{path}: missing header")
-        rows = list(reader)
-    for line, row in enumerate(rows, start=2):
-        if row.get(None) is not None or len(row) != len(reader.fieldnames):
-            raise ValueError(f"{path}:{line}: row does not match its header")
-    return rows
-
-
-def _validate_census_agreement(repo: Path) -> dict[str, int]:
-    reviewed_dir = repo / "evidence/reviewed/wiz8"
-    reviewed_vtables = _raw_rows(reviewed_dir / "vtables.csv")
-    reviewed_slots = _raw_rows(reviewed_dir / "vtable-slots.csv")
-    census_vtables = [
-        row
-        for row in _raw_rows(repo / "evidence/snapshots/polymorphism/vtables.csv")
-        if "--gog-base--" in row["program"]
-    ]
-    census_slots = [
-        row
-        for row in _raw_rows(repo / "evidence/snapshots/polymorphism/slots.csv")
-        if "--gog-base--" in row["program"]
-    ]
-    census_by_address = {row["address"]: row for row in census_vtables}
-    address_by_id = {row["vtable_id"]: row["address"] for row in reviewed_vtables}
-    for vtable in reviewed_vtables:
-        observed = census_by_address.get(vtable["address"])
-        if observed is None or observed["kind"] != "vftable":
+def _validate_class_references(repo_dir: Path, program: str, functions: set[int]) -> None:
+    model = load_reviewed_class_model(repo_dir, program)
+    classes = {item.name for item in model.classes}
+    for reviewed_class in model.classes:
+        for address in (
+            reviewed_class.constructor,
+            reviewed_class.destructor,
+            reviewed_class.scalar_deleting_destructor,
+        ):
+            if address is not None and address not in functions:
+                raise ValueError(
+                    f"class {reviewed_class.name} lifecycle address {address:08x} "
+                    "does not resolve to canonical function evidence"
+                )
+    for slot in model.slots:
+        if slot.target not in functions:
             raise ValueError(
-                f"{reviewed_dir / 'vtables.csv'}: {vtable['vtable_id']} is not an observed vftable"
+                f"{slot.vtable_id} slot {slot.index} target {slot.target:08x} "
+                "does not resolve to canonical function evidence"
             )
-    observed_slots = {
-        (row["vtable"], int(row["slot_index"])): row["target"] for row in census_slots
-    }
+        prefix = f"classes:{program}:"
+        if slot.evidence_id.startswith(prefix) and slot.evidence_id[len(prefix) :] not in classes:
+            raise ValueError(f"{slot.vtable_id} slot {slot.index} has dangling {slot.evidence_id}")
+
+
+def _validate_signatures(repo_dir: Path, program: str, functions: set[int]) -> None:
+    for signature in load_reviewed_signatures(repo_dir, program):
+        if signature.address not in functions:
+            raise ValueError(
+                f"signature {signature.evidence_id} address {signature.address:08x} "
+                "does not resolve to functions.csv"
+            )
+
+
+def _observed_function_addresses(repo_dir: Path) -> set[int]:
+    path = repo_dir / "evidence/snapshots/functions/candidates.csv"
+    with path.open(newline="", encoding="utf-8") as stream:
+        return {
+            int(row["address"], 16)
+            for row in csv.DictReader(stream)
+            if "--gog-base--" in row["program"]
+        }
+
+
+def _validate_polymorphism_observation(repo_dir: Path, program: str) -> int:
+    model = load_reviewed_class_model(repo_dir, program)
+    census_path = repo_dir / "evidence/snapshots/polymorphism/slots.csv"
+    with census_path.open(newline="", encoding="utf-8") as stream:
+        census = {
+            (row["vtable"], int(row["slot_index"])): row["target"]
+            for row in csv.DictReader(stream)
+            if "--gog-base--" in row["program"]
+        }
+    addresses = {item.vtable_id: f"{item.address:08x}" for item in model.vtables}
     checked = 0
-    for slot in reviewed_slots:
-        expected = observed_slots.get((address_by_id[slot["vtable_id"]], int(slot["slot_index"])))
+    for slot in model.slots:
+        expected = census.get((addresses[slot.vtable_id], slot.index))
         if expected is None:
             continue
         checked += 1
-        if slot["target"] != expected:
+        actual = f"{slot.target:08x}"
+        if actual != expected:
             raise ValueError(
-                f"{reviewed_dir / 'vtable-slots.csv'}: {slot['vtable_id']} "
-                f"slot {slot['slot_index']} disagrees with observation"
+                f"{slot.vtable_id} slot {slot.index} records {actual}; image holds {expected}"
             )
-    return {"reviewed_vtables": len(reviewed_vtables), "observed_slots_checked": checked}
+    if not checked:
+        raise ValueError("reviewed vtable slots have no overlap with the polymorphism census")
+    return checked
 
 
-def validate_repository(repo: Path) -> dict[str, Any]:
-    repo = repo.resolve()
-    tracked_csvs = sorted([*(repo / "evidence").rglob("*.csv"), *(repo / "config").rglob("*.csv")])
-    for path in tracked_csvs:
-        _raw_rows(path)
+def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, object]:
+    """Validate canonical evidence relationships without pinning corpus progress totals."""
+    checks: list[dict[str, object]] = []
 
-    reviewed = repo / "evidence/reviewed/wiz8"
-    functions_path = reviewed / "functions.csv"
-    functions = load_function_identities(functions_path, program="wiz8")
-    validate_provenance_rows(_raw_rows(functions_path), label=str(functions_path))
-    model = load_reviewed_class_model(repo, "wiz8")
-    signatures = load_reviewed_signatures(repo, "wiz8")
-    boundary_path = repo / "config/reccmp/wiz8-gameplay-boundaries.csv"
-    boundaries = load_boundary_rows(boundary_path)
-    validate_exact_digests(boundaries, label=str(boundary_path))
-    census = _validate_census_agreement(repo)
+    def run(name: str, operation) -> object:
+        try:
+            detail = operation()
+        except (OSError, ValueError, RuntimeError) as error:
+            checks.append({"name": name, "ok": False, "error": str(error)})
+            return None
+        display = {"count": len(detail)} if isinstance(detail, set) else detail
+        checks.append({"name": name, "ok": True, "detail": display})
+        return detail
 
-    return {
-        "ok": True,
-        "tracked_csvs": len(tracked_csvs),
-        "functions": len(functions),
-        "classes": len(model.classes),
-        "fields": len(model.fields),
-        "vtables": len(model.vtables),
-        "vtable_slots": len(model.slots),
-        "signatures": len(signatures),
-        "boundaries": len(boundaries),
-        **census,
-    }
+    run("csv-shapes", lambda: {"files": _validate_csv_shapes(repo_dir)})
+    functions = run("reviewed-functions", lambda: _validate_functions(repo_dir, program))
+    boundaries = run("reviewed-boundaries", lambda: _validate_boundaries(repo_dir))
+    if isinstance(functions, set):
+        canonical_addresses = (
+            functions
+            | (boundaries if isinstance(boundaries, set) else set())
+            | _observed_function_addresses(repo_dir)
+        )
+        run(
+            "reviewed-classes",
+            lambda: _validate_class_references(repo_dir, program, canonical_addresses),
+        )
+        run(
+            "reviewed-signatures",
+            lambda: _validate_signatures(repo_dir, program, functions),
+        )
+    run(
+        "reviewed-polymorphism-observation",
+        lambda: {"slots": _validate_polymorphism_observation(repo_dir, program)},
+    )
+    failures = [check for check in checks if not check["ok"]]
+    return {"ok": not failures, "checks": checks, "failure_count": len(failures)}
+
+
+def require_valid_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, object]:
+    report = validate_repository(repo_dir, program)
+    if not report["ok"]:
+        checks = report["checks"]
+        assert isinstance(checks, list)
+        messages = [str(check["error"]) for check in checks if not check["ok"]]
+        raise ValueError("repository validation failed: " + "; ".join(messages))
+    return report
