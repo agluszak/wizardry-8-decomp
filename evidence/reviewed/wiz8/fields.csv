@@ -144,10 +144,14 @@ wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,un
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18
 wiz8,GrCycle,0x1c,0x18c,secondary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed secondary base constructed by 0x00451ec0; total base size 0x190
 wiz8,GrCycle,0x1a8,0x4,unknown_1a8,bytes,,strong,classes:wiz8:GrCycle,Unresolved GrCycle-owned storage before the assertion-named lights pointer
-wiz8,GrCycle,0x1ac,0x4,m_plsLights,pointer,,strong,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this null-tested pointer
+wiz8,GrCycle,0x1ac,0x4,m_plsLights,pointer,W8Vector005EC294,exact,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this null-tested pointer and byte-exact SetLights plus nine callers prove the address-qualified vector type
 wiz8,GrCycle,0x1b0,0x4,vector_1b0,pointer,W8Vector005ECED4,exact,classes:wiz8:GrCycle,The byte-exact 0x004A8530 owner method lazily constructs this vector and appends one pointer
 wiz8,GrCycle,0x1b4,0x1,m_fDeleteLights,uint8,,strong,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this flag
 wiz8,GrCycle,0x1b5,0x23,unknown_1b5,bytes,,strong,classes:wiz8:GrCycle,Remaining GrCycle-owned storage through the established minimum size
+wiz8,W8GrCycleTarget,0x0,0x64,unknown_00,bytes,,strong,classes:wiz8:W8GrCycleTarget,opaque prefix before the byte written by exact SetSubCycle
+wiz8,W8GrCycleTarget,0x64,0x1,subcycle,uint8,,exact,classes:wiz8:W8GrCycleTarget,exact SetSubCycle writes the requested bounded low byte here
+wiz8,W8GrCycleTarget,0x65,0xb,unknown_65,bytes,,strong,classes:wiz8:W8GrCycleTarget,opaque span between the two exact setter targets
+wiz8,W8GrCycleTarget,0x70,0x1,behavior,bytes,,exact,classes:wiz8:W8GrCycleTarget,exact SetBehaviour writes the retained signed behavior domain 1 through 3 here
 wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,primary vtable W8GrowableVector<W8VectorElement005ECED4 *>.primary
 wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,element count initialized to zero and incremented by the byte-exact owner method
 wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,allocated pointer capacity initialized to five and grown to the required count

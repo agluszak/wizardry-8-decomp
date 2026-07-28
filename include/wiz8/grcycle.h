@@ -31,12 +31,15 @@ private:
 };                                      /* 0x190 */
 
 struct W8GrCycleTarget {
-    unsigned char unknown_00[0x70];
+    unsigned char unknown_00[0x64];
+    unsigned char m_subcycle;             /* 0x64 */
+    unsigned char unknown_65[0xb];
     signed char m_bBehaviour;            /* 0x70 */
 };
 
 class W8VectorElement005ECED4;
 class W8Vector005ECED4;
+class W8Vector005EC294;
 
 class W8GrCycle :
     public W8GrCycleBase004B6900,
@@ -47,7 +50,7 @@ public:
     virtual void vslot2();
     virtual void vslot3();
     virtual void vslot4();
-    virtual void vslot5() = 0;
+    virtual signed char vslot5() = 0;
     virtual void vslot6() = 0;
     virtual void vslot7() = 0;
     virtual void vslot8() = 0;
@@ -59,12 +62,14 @@ public:
     virtual void vslot14();
     virtual void vslot15() = 0;
 
+    void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
+    void SetLights(W8Vector005EC294* lights);
     void AddVectorElement005ECED4(W8VectorElement005ECED4* element);
 
 private:
     unsigned char unknown_1a8[0x4];
-    void* m_plsLights;                    /* 0x1ac: named by GrCycle.cpp:1656 */
+    W8Vector005EC294* m_plsLights;        /* 0x1ac: named by GrCycle.cpp:1656 */
     W8Vector005ECED4* m_vector_1b0;       /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5[0x23];

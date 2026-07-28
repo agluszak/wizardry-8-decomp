@@ -1,6 +1,8 @@
 #include "wiz8/grcycle.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "wiz8/vector_005ec294.h"
+#include <string.h>
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
    canonical assertion at line 1598; the body bounds-checks against 1 and 3, so
@@ -19,6 +21,11 @@
    by the derived vtable address. */
 class W8VectorElement005ECED4;
 
+/* Parallel registries: each name has one growable vector of cycle objects. */
+extern W8GrowableVector<const char*> g_grcycle_names;                 /* 0x0065BDF0 */
+extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
+                                                                    /* 0x0065BE00 */
+
 class W8Vector005ECED4
     : public W8GrowableVector<W8VectorElement005ECED4*> {
 public:
@@ -28,6 +35,17 @@ public:
 
 __forceinline W8Vector005ECED4::W8Vector005ECED4()
 {
+}
+
+// FUNCTION: WIZ8 0x004A8430
+void W8GrCycle::SetSubCycle(unsigned char subcycle)
+{
+    signed char count = vslot5();
+    W8GrCycleTarget* target = vslot9();
+
+    if (subcycle < count) {
+        target->m_subcycle = subcycle;
+    }
 }
 
 // FUNCTION: WIZ8 0x004A8460
@@ -45,6 +63,20 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
     target->m_bBehaviour = bBehaviour;
 }
 
+// FUNCTION: WIZ8 0x004A84C0
+void W8GrCycle::SetLights(W8Vector005EC294* lights)
+{
+    if (m_fDeleteLights && m_plsLights != 0) {
+        srAssertFail(
+            "!m_fDeleteLights || (m_fDeleteLights && !m_plsLights)",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x678,
+            0);
+    }
+    m_fDeleteLights = 0;
+    m_plsLights = lights;
+}
+
 // FUNCTION: WIZ8 0x004A8530
 void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
 {
@@ -52,6 +84,72 @@ void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
         m_vector_1b0 = new W8Vector005ECED4();
     }
     m_vector_1b0->Add(element);
+}
+
+// FUNCTION: WIZ8 0x004A8650
+const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
+{
+    int name_index;
+
+    for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
+        W8GrowableVector<W8GrCycle*>* cycles =
+            *g_grcycles_by_name.GetAt(name_index);
+        if (cycles->GetCount() == 0) {
+            srAssertFail(
+                "plsCyclesOfAName->Length()",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                0x6c4,
+                0);
+        }
+        if (cycles->IndexOf(cycle) != -1) {
+            return *g_grcycle_names.GetAt(name_index);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004A8700
+unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
+{
+    int name_index;
+
+    for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
+        W8GrowableVector<W8GrCycle*>* cycles =
+            *g_grcycles_by_name.GetAt(name_index);
+        if (cycles->GetCount() == 0) {
+            srAssertFail(
+                "plsCyclesOfAName->Length()",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                0x6e6,
+                0);
+        }
+        if (cycles->IndexOf(cycle) != -1) {
+            return cycles->GetCount() == 1;
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004A87A0
+W8GrCycle* FindFirstGrCycleByName(const char* name)
+{
+    int name_index;
+
+    for (name_index = 0; name_index < g_grcycle_names.GetCount(); ++name_index) {
+        if (_stricmp(name, *g_grcycle_names.GetAt(name_index)) == 0) {
+            W8GrowableVector<W8GrCycle*>* cycles =
+                *g_grcycles_by_name.GetAt(name_index);
+            if (cycles->GetCount() == 0) {
+                srAssertFail(
+                    "plsCyclesOfThisName->Length()",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                    0x709,
+                    0);
+            }
+            return *cycles->GetAt(0);
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x004A8F90

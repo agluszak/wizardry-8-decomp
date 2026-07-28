@@ -1,4 +1,4 @@
-#include "wiz8/vector.h"
+#include "wiz8/vector_005ec294.h"
 
 /* A growable-vector family of the shape docs/libraries/wiz8-foundation-types.md
    describes: a class deriving from a W8GrowableVector instantiation and adding
@@ -18,14 +18,6 @@
 
    Nothing anchors these bodies to a translation unit, so the file is named for
    the class and the class for its vtable. */
-
-class W8VectorElement005EC294;
-
-class W8Vector005EC294 : public W8GrowableVector<W8VectorElement005EC294*> {
-public:
-    W8Vector005EC294(int initial_capacity);
-    virtual ~W8Vector005EC294();
-};                                       /* 0x10 */
 
 // FUNCTION: WIZ8 0x00484870
 W8Vector005EC294::W8Vector005EC294(int initial_capacity)
