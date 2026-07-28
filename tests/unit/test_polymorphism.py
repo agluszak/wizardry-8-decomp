@@ -34,9 +34,7 @@ def test_tables_are_keyed_by_program_and_address() -> None:
 def test_tables_never_overlap() -> None:
     """Overlapping tables mean the boundary rule failed to split a run."""
     rows = [row for row in _snapshot("vtables.csv") if row["program"] == _CANONICAL]
-    tables = sorted(
-        (int(row["address"], 16), int(row["slot_count"]), row["kind"]) for row in rows
-    )
+    tables = sorted((int(row["address"], 16), int(row["slot_count"]), row["kind"]) for row in rows)
 
     for (start, count, kind), (next_start, _, next_kind) in pairwise(tables):
         if kind == "vbtable" or next_kind == "vbtable":
@@ -111,7 +109,11 @@ def test_census_reproduces_every_independently_correct_reviewed_count() -> None:
         for row in _snapshot("vtables.csv")
         if row["program"] == _CANONICAL
     }
-    overstated = {"Monster.primary", "VirtualFileBinIStream.secondary_0x10", "MonsterLight.secondary_0x138"}
+    overstated = {
+        "Monster.primary",
+        "VirtualFileBinIStream.secondary_0x10",
+        "MonsterLight.secondary_0x138",
+    }
 
     checked = 0
     for row in _reviewed():

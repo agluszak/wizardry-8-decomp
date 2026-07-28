@@ -131,9 +131,7 @@ def test_pointee_accepts_self_reference(tmp_path: Path) -> None:
 
 
 def test_pointee_rejects_non_pointer_field(tmp_path: Path) -> None:
-    repo = _model_dir(
-        tmp_path, [_field_row(data_type="int32", pointee="Node")]
-    )
+    repo = _model_dir(tmp_path, [_field_row(data_type="int32", pointee="Node")])
     with pytest.raises(ValueError, match="pointee on non-pointer field"):
         load_reviewed_class_model(repo, "demo")
 

@@ -179,7 +179,12 @@ When it reports `0 differing`, compute the masked digest and promote the row to 
 
 ```python
 from wiz8decomp.boundaries import (
-    collect_object_candidates, masked_digest, read_canonical_body, resolve_boundary_function)
+    collect_object_candidates,
+    masked_digest,
+    read_canonical_body,
+    resolve_boundary_function,
+)
+
 canonical = read_canonical_body(image, address, size)
 fn = resolve_boundary_function(collect_object_candidates(objects).get(symbol, ()), size, canonical)
 masked_digest(fn, size)
@@ -226,7 +231,9 @@ The body is a fixed encoding, so scan for it:
 
 ```python
 # mov dword ptr [ecx], imm32 ; jmp rel32
-data.find(b"\xc7\x01", text.raw_offset, text.raw_offset + text.raw_size)  # then check data[off+6] == 0xE9
+data.find(
+    b"\xc7\x01", text.raw_offset, text.raw_offset + text.raw_size
+)  # then check data[off+6] == 0xE9
 ```
 
 The whole image holds **six**, of which one is an adjustor thunk for another. So the shape is close

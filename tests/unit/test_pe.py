@@ -17,7 +17,9 @@ def test_minimal_pe_metadata(synthetic_pe: Path) -> None:
     assert result["sections"][0]["name"] == ".text"
 
 
-def test_metadata_normalization_ignores_timestamp_and_checksum(synthetic_pe: Path, tmp_path: Path) -> None:
+def test_metadata_normalization_ignores_timestamp_and_checksum(
+    synthetic_pe: Path, tmp_path: Path
+) -> None:
     modified = bytearray(synthetic_pe.read_bytes())
     struct.pack_into("<I", modified, 0x88, 0xCAFEBABE)
     struct.pack_into("<I", modified, 0x98 + 64, 0x12345678)
@@ -25,4 +27,3 @@ def test_metadata_normalization_ignores_timestamp_and_checksum(synthetic_pe: Pat
     other.write_bytes(modified)
     assert synthetic_pe.read_bytes() != other.read_bytes()
     assert metadata_normalized_pe_hash(synthetic_pe) == metadata_normalized_pe_hash(other)
-

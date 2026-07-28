@@ -37,11 +37,26 @@ def test_classify_separates_deleting_destructor_from_constructors() -> None:
     ]
     writes = [
         # The slot 0 target writes the vtable during destruction.
-        {"site": "00400110", "function_start": "00400100", "object_offset": "0x0", "vtable": "00500000"},
+        {
+            "site": "00400110",
+            "function_start": "00400100",
+            "object_offset": "0x0",
+            "vtable": "00500000",
+        },
         # A second writer is the constructor; it also installs a subobject
         # table at +0x18.
-        {"site": "00400210", "function_start": "00400200", "object_offset": "0x0", "vtable": "00500000"},
-        {"site": "00400220", "function_start": "00400200", "object_offset": "0x18", "vtable": "00500200"},
+        {
+            "site": "00400210",
+            "function_start": "00400200",
+            "object_offset": "0x0",
+            "vtable": "00500000",
+        },
+        {
+            "site": "00400220",
+            "function_start": "00400200",
+            "object_offset": "0x18",
+            "vtable": "00500200",
+        },
     ]
     candidates = classify_candidates(vtables, slots, writes, {0x00500100})
 
@@ -59,7 +74,12 @@ def test_classify_separates_deleting_destructor_from_constructors() -> None:
 def test_classify_skips_vtables_without_primary_writers() -> None:
     vtables = [_vtable("00500000")]
     writes = [
-        {"site": "00400110", "function_start": "00400100", "object_offset": "0x18", "vtable": "00500000"},
+        {
+            "site": "00400110",
+            "function_start": "00400100",
+            "object_offset": "0x18",
+            "vtable": "00500000",
+        },
     ]
     assert classify_candidates(vtables, [], writes, set()) == []
 
@@ -129,13 +149,38 @@ def test_derived_families_orders_the_pair_by_construction_and_ranks_by_writer_si
 
     writes = [
         # One dedicated constructor: base first, derived second.
-        {"site": "0042a26b", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb8"},
-        {"site": "0042a298", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb4"},
+        {
+            "site": "0042a26b",
+            "function_start": "0042a260",
+            "object_offset": "0x0",
+            "vtable": "005ebfb8",
+        },
+        {
+            "site": "0042a298",
+            "function_start": "0042a260",
+            "object_offset": "0x0",
+            "vtable": "005ebfb4",
+        },
         # A far larger body installing another pair.
-        {"site": "00473300", "function_start": "00473260", "object_offset": "0x0", "vtable": "005ec50c"},
-        {"site": "00473400", "function_start": "00473260", "object_offset": "0x0", "vtable": "005ec508"},
+        {
+            "site": "00473300",
+            "function_start": "00473260",
+            "object_offset": "0x0",
+            "vtable": "005ec50c",
+        },
+        {
+            "site": "00473400",
+            "function_start": "00473260",
+            "object_offset": "0x0",
+            "vtable": "005ec508",
+        },
         # A subobject store is not a derivation.
-        {"site": "0042a2a8", "function_start": "0042a260", "object_offset": "0x10", "vtable": "005ec000"},
+        {
+            "site": "0042a2a8",
+            "function_start": "0042a260",
+            "object_offset": "0x10",
+            "vtable": "005ec000",
+        },
     ]
     slot_counts = {0x005EBFB8: 1, 0x005EBFB4: 1, 0x005EC50C: 1, 0x005EC508: 1, 0x005EC000: 1}
     families = derived_families(writes, slot_counts, {0x0042A260: 84, 0x00473260: 1130})
@@ -152,8 +197,18 @@ def test_derived_families_orders_the_pair_by_construction_and_ranks_by_writer_si
 
 def test_derived_families_ignores_a_table_with_more_than_one_slot() -> None:
     writes = [
-        {"site": "0042a26b", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb8"},
-        {"site": "0042a298", "function_start": "0042a260", "object_offset": "0x0", "vtable": "005ebfb4"},
+        {
+            "site": "0042a26b",
+            "function_start": "0042a260",
+            "object_offset": "0x0",
+            "vtable": "005ebfb8",
+        },
+        {
+            "site": "0042a298",
+            "function_start": "0042a260",
+            "object_offset": "0x0",
+            "vtable": "005ebfb4",
+        },
     ]
     assert derived_families(writes, {0x005EBFB8: 1, 0x005EBFB4: 6}) == []
 
@@ -168,8 +223,18 @@ def test_derived_families_inverts_the_pair_for_a_destructor_writer() -> None:
     """
 
     writes = [
-        {"site": "00443756", "function_start": "00443750", "object_offset": "0x0", "vtable": "005ec158"},
-        {"site": "0044376a", "function_start": "00443750", "object_offset": "0x0", "vtable": "005ec138"},
+        {
+            "site": "00443756",
+            "function_start": "00443750",
+            "object_offset": "0x0",
+            "vtable": "005ec158",
+        },
+        {
+            "site": "0044376a",
+            "function_start": "00443750",
+            "object_offset": "0x0",
+            "vtable": "005ec138",
+        },
     ]
     slot_counts = {0x005EC158: 1, 0x005EC138: 1}
 
@@ -193,9 +258,19 @@ def test_teardown_writers_is_relative_to_the_table_being_written() -> None:
 
     writes = [
         # The real teardown body: reached from its own table's slot 0.
-        {"site": "00443756", "function_start": "00443750", "object_offset": "0x0", "vtable": "005ec158"},
+        {
+            "site": "00443756",
+            "function_start": "00443750",
+            "object_offset": "0x0",
+            "vtable": "005ec158",
+        },
         # A constructor, called by a deleting destructor of some other class.
-        {"site": "004a5c36", "function_start": "004a5c30", "object_offset": "0x0", "vtable": "005ece64"},
+        {
+            "site": "004a5c36",
+            "function_start": "004a5c30",
+            "object_offset": "0x0",
+            "vtable": "005ece64",
+        },
     ]
     slots = [
         {"vtable": "005ec158", "slot_index": "0", "target": "00443730"},
@@ -218,11 +293,31 @@ def test_derived_families_rejects_an_object_and_its_embedded_member() -> None:
 
     writes = [
         # The constructor records the member's real offset.
-        {"site": "0055cff4", "function_start": "0055cfd0", "object_offset": "0x4", "vtable": "005ee8f8"},
-        {"site": "0055d149", "function_start": "0055cfd0", "object_offset": "0x0", "vtable": "005ee8f0"},
+        {
+            "site": "0055cff4",
+            "function_start": "0055cfd0",
+            "object_offset": "0x4",
+            "vtable": "005ee8f8",
+        },
+        {
+            "site": "0055d149",
+            "function_start": "0055cfd0",
+            "object_offset": "0x0",
+            "vtable": "005ee8f0",
+        },
         # The destructor's second store is recorded at zero, which it is not.
-        {"site": "0055d19f", "function_start": "0055d180", "object_offset": "0x0", "vtable": "005ee8f0"},
-        {"site": "0055d235", "function_start": "0055d180", "object_offset": "0x0", "vtable": "005ee8f8"},
+        {
+            "site": "0055d19f",
+            "function_start": "0055d180",
+            "object_offset": "0x0",
+            "vtable": "005ee8f0",
+        },
+        {
+            "site": "0055d235",
+            "function_start": "0055d180",
+            "object_offset": "0x0",
+            "vtable": "005ee8f8",
+        },
     ]
     slot_counts = {0x005EE8F0: 1, 0x005EE8F8: 1}
     assert derived_families(writes, slot_counts) == []

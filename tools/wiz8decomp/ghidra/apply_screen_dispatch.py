@@ -71,9 +71,7 @@ def apply_screen_dispatch(
             iterator = high.getPcodeOps()
             while iterator.hasNext():
                 op = iterator.next()
-                if op.getMnemonic() == "CALLIND" and _reaches(
-                    op.getInput(0), SCREEN_HANDLER_FIELD
-                ):
+                if op.getMnemonic() == "CALLIND" and _reaches(op.getInput(0), SCREEN_HANDLER_FIELD):
                     sites.append(op.getSeqnum().getTarget())
             targets = sorted(resolve_handler_table(settings.repo_dir)["handler_targets"])
             references = program.getReferenceManager()

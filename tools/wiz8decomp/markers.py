@@ -177,9 +177,7 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
         for (module, offset), places in sorted(duplicated_library.items())
     ]
     if problems:
-        raise MarkerHygieneError(
-            "marker hygiene failed:\n  " + "\n  ".join(sorted(problems))
-        )
+        raise MarkerHygieneError("marker hygiene failed:\n  " + "\n  ".join(sorted(problems)))
 
     return {
         "function_markers": sum(len(places) for places in owners.values()),

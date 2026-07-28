@@ -372,6 +372,7 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
     """
 
     accesses: list[dict[str, Any]] = []
+
     def record(
         kind: str,
         op: Any,
@@ -421,9 +422,7 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
         elif mnemonic in {"CALL", "CALLIND"}:
             target = op.getInput(0)
             positions = [
-                index - 1
-                for index in range(1, op.getNumInputs())
-                if same(node, op.getInput(index))
+                index - 1 for index in range(1, op.getNumInputs()) if same(node, op.getInput(index))
             ]
             if mnemonic == "CALLIND" and same(node, target):
                 record(
@@ -485,6 +484,7 @@ def trace_value_paths(instances: list[Any], root: str) -> dict[tuple[Any, ...], 
     """
 
     paths: dict[tuple[Any, ...], tuple[str, int]] = {}
+
     def remember(
         _node: Any,
         marker: tuple[Any, ...],
@@ -494,6 +494,7 @@ def trace_value_paths(instances: list[Any], root: str) -> dict[tuple[Any, ...], 
         _provenance: tuple[str, ...],
     ) -> None:
         paths[marker] = (path, offset)
+
     _walk_value_flow(
         instances,
         root,
@@ -680,7 +681,9 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
     confidence = "exact-control-slice"
     if controllers:
         nearest = min(distance_value for distance_value, _branch in controllers)
-        selected = [branch_op for distance_value, branch_op in controllers if distance_value == nearest]
+        selected = [
+            branch_op for distance_value, branch_op in controllers if distance_value == nearest
+        ]
         if len(selected) != 1:
             return {
                 "entry": str(function.getEntryPoint()),
@@ -693,9 +696,7 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
         branch = selected[0]
     else:
         candidates = [
-            op
-            for op in branches
-            if op.getSeqnum().getTarget().compareTo(call_address) <= 0
+            op for op in branches if op.getSeqnum().getTarget().compareTo(call_address) <= 0
         ]
         if not candidates:
             return {

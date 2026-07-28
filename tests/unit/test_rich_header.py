@@ -18,4 +18,3 @@ def test_decodes_rich_records(tmp_path: Path) -> None:
     result = parse_rich_header(path)
     assert result is not None and result["valid"]
     assert result["records"] == [{"product_id": 4, "build": 8168, "count": 3}]
-

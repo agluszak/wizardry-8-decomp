@@ -70,17 +70,30 @@ def load_evidence_index(
     }
     vtables = {item.vtable_id: item for item in model.vtables}
     vtables_by_class = {
-        name: tuple(sorted((item for item in model.vtables if item.class_name == name), key=lambda item: item.address))
+        name: tuple(
+            sorted(
+                (item for item in model.vtables if item.class_name == name),
+                key=lambda item: item.address,
+            )
+        )
         for name in classes
     }
     slots_by_vtable = {
         identifier: tuple(
-            sorted((item for item in model.slots if item.vtable_id == identifier), key=lambda item: item.index)
+            sorted(
+                (item for item in model.slots if item.vtable_id == identifier),
+                key=lambda item: item.index,
+            )
         )
         for identifier in vtables
     }
     fields_by_class = {
-        name: tuple(sorted((item for item in model.fields if item.class_name == name), key=lambda item: item.offset))
+        name: tuple(
+            sorted(
+                (item for item in model.fields if item.class_name == name),
+                key=lambda item: item.offset,
+            )
+        )
         for name in classes
     }
     globals_rows = _rows(repo_dir / "evidence" / "snapshots" / "globals" / "globals.csv")
@@ -91,7 +104,9 @@ def load_evidence_index(
     }
     imported = {
         row["class_name"]
-        for row in _rows(repo_dir / "evidence" / "observations" / "surrender" / "wiz8-sr-imports.csv")
+        for row in _rows(
+            repo_dir / "evidence" / "observations" / "surrender" / "wiz8-sr-imports.csv"
+        )
         if row.get("class_name")
     }
     return EvidenceIndex(

@@ -22,9 +22,7 @@ def analyze_command(
     from .. import cli
     from ..ghidra.inference import analyze_overlay
 
-    cli._run_action(
-        lambda: analyze_overlay(cli._settings(), selector, str(plan), resume=resume)
-    )
+    cli._run_action(lambda: analyze_overlay(cli._settings(), selector, str(plan), resume=resume))
 
 
 @app.command("inspect")
@@ -65,9 +63,7 @@ def debug_vtable(selector: str, overlay_id: str, class_name: str) -> None:
     from .. import cli
     from ..ghidra.overlay import apply_typed_vtable
 
-    cli._run_action(
-        lambda: apply_typed_vtable(cli._settings(), selector, overlay_id, class_name)
-    )
+    cli._run_action(lambda: apply_typed_vtable(cli._settings(), selector, overlay_id, class_name))
 
 
 @debug_app.command("apply-reconstructed")
@@ -87,14 +83,9 @@ def debug_aggregates(
     from .. import cli
     from ..ghidra.aggregate_overlay import apply_aggregates
 
-    seeds = [
-        {"kind": "aggregate", "name": name, "minimum_agreeing_sites": 2}
-        for name in aggregate
-    ]
+    seeds = [{"kind": "aggregate", "name": name, "minimum_agreeing_sites": 2} for name in aggregate]
     cli._run_action(
-        lambda: apply_aggregates(
-            cli._settings(), selector, overlay_id, aggregate_seeds=seeds
-        )
+        lambda: apply_aggregates(cli._settings(), selector, overlay_id, aggregate_seeds=seeds)
     )
 
 

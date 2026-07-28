@@ -97,10 +97,7 @@ def apply_reviewed_signatures(
                         # reviewed this type.
                         function.setCustomVariableStorage(True)
                         function_parameters = function.getParameters()
-                        if (
-                            not function_parameters
-                            or function_parameters[0].getName() != "this"
-                        ):
+                        if not function_parameters or function_parameters[0].getName() != "this":
                             raise RuntimeError(
                                 f"__thiscall signature at 0x{reviewed.address:08x} "
                                 "did not materialize a this parameter"

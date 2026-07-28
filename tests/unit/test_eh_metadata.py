@@ -176,7 +176,9 @@ def test_readable_builds_resolve_every_cleanup_to_a_destructor() -> None:
     rows = [row for row in _snapshot("unwind.csv") if row["kind"] != "protected-code"]
 
     unresolved = [
-        row for row in rows if row["kind"] != "none" and not row["target"] and not row["import_name"]
+        row
+        for row in rows
+        if row["kind"] != "none" and not row["target"] and not row["import_name"]
     ]
     assert not unresolved, unresolved[:5]
 

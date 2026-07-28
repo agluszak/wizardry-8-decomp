@@ -19,7 +19,9 @@ from .query_daemon import stop_daemon
 
 
 def _config(settings: Settings) -> dict[str, Any]:
-    config = yaml.safe_load((settings.repo_dir / "config" / "ghidra.yml").read_text(encoding="utf-8"))
+    config = yaml.safe_load(
+        (settings.repo_dir / "config" / "ghidra.yml").read_text(encoding="utf-8")
+    )
     return config["fid"]
 
 
@@ -112,11 +114,14 @@ def _normalize_seed_provenance(
 
 def _is_authoritative_fid_name(name: str) -> bool:
     """Reject Ghidra defaults and compiler-local labels as symbol authority."""
-    return re.fullmatch(
-        r"(?:\$L\d+|(?:FUN|LAB|SUB|DAT|PTR|OFF|UNK|EXT)_[0-9A-Fa-f]+|thunk_.+|"
-        r"switchD_[0-9A-Fa-f]+(?:::[0-9A-Fa-f]+)?)",
-        name,
-    ) is None
+    return (
+        re.fullmatch(
+            r"(?:\$L\d+|(?:FUN|LAB|SUB|DAT|PTR|OFF|UNK|EXT)_[0-9A-Fa-f]+|thunk_.+|"
+            r"switchD_[0-9A-Fa-f]+(?:::[0-9A-Fa-f]+)?)",
+            name,
+        )
+        is None
+    )
 
 
 def fid_status(settings: Settings) -> dict[str, Any]:
@@ -124,15 +129,17 @@ def fid_status(settings: Settings) -> dict[str, Any]:
     for kind in ("static", "srs"):
         path = _database_path(settings, kind)
         manifest = path.with_suffix(".json")
-        databases.append({
-            "kind": kind,
-            "database": path.relative_to(settings.repo_dir).as_posix(),
-            "exists": path.is_file(),
-            "size": path.stat().st_size if path.is_file() else None,
-            "sha256": sha256_file(path) if path.is_file() else None,
-            "manifest": manifest.relative_to(settings.repo_dir).as_posix(),
-            "manifest_exists": manifest.is_file(),
-        })
+        databases.append(
+            {
+                "kind": kind,
+                "database": path.relative_to(settings.repo_dir).as_posix(),
+                "exists": path.is_file(),
+                "size": path.stat().st_size if path.is_file() else None,
+                "sha256": sha256_file(path) if path.is_file() else None,
+                "manifest": manifest.relative_to(settings.repo_dir).as_posix(),
+                "manifest_exists": manifest.is_file(),
+            }
+        )
     return {"schema": "wiz8.fid-status", "databases": databases}
 
 
@@ -163,7 +170,14 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
             if domain_file is None:
                 raise RuntimeError(f"FID seed program is not imported: {name}")
             programs.add(domain_file)
-        common_path = settings.ghidra_install_dir / "Ghidra" / "Features" / "FunctionID" / "data" / "common_symbols_win32.txt"
+        common_path = (
+            settings.ghidra_install_dir
+            / "Ghidra"
+            / "Features"
+            / "FunctionID"
+            / "data"
+            / "common_symbols_win32.txt"
+        )
         common_symbols = ArrayList()
         if common_path.is_file():
             for line in common_path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -201,7 +215,9 @@ def build_srs_fid(settings: Settings) -> dict[str, Any]:
                 "total_attempted": result.getTotalAttempted(),
                 "total_added": result.getTotalAdded(),
                 "total_excluded": result.getTotalExcluded(),
-                "common_symbols_source": str(common_path.relative_to(settings.ghidra_install_dir)) if common_path.is_file() else None,
+                "common_symbols_source": str(common_path.relative_to(settings.ghidra_install_dir))
+                if common_path.is_file()
+                else None,
                 "unresolved_symbol_count": len(result.getUnresolvedSymbols()),
             }
         finally:
@@ -238,7 +254,9 @@ def _cached_seed_manifest(settings: Settings) -> dict[str, Any] | None:
         if "compiler" in toolchain.capabilities
         for library in config.libraries
         for variant in library.seed_variants
-        if library.source is not None and library.source.sha256 is not None and library.compilation_units
+        if library.source is not None
+        and library.source.sha256 is not None
+        and library.compilation_units
     }
     expected.update(
         (toolchain.id, archive.library, archive.variant, ())
@@ -259,7 +277,9 @@ def _cached_seed_manifest(settings: Settings) -> dict[str, Any] | None:
     return manifest
 
 
-def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool = False) -> dict[str, Any]:
+def import_static_seed_objects(
+    settings: Settings, *, use_cached_objects: bool = False
+) -> dict[str, Any]:
     from .fid_seeds import build_all_seed_objects
     from .import_programs import HASH_OPTION, PATH_OPTION
 
@@ -294,15 +314,31 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                 provenance["archive"] = library_record["archive"]
             if "source" in library_record:
                 provenance["source"] = library_record["source"]
-            project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+            project = pyghidra.open_project(
+                settings.project_dir, settings.project_name, create=False
+            )
             try:
                 domain_file = project.getProjectData().getFile("/" + name)
                 if domain_file is not None:
                     with pyghidra.program_context(project, "/" + name) as program:
-                        existing = program.getOptions("Program Information").getString(HASH_OPTION, None)
+                        existing = program.getOptions("Program Information").getString(
+                            HASH_OPTION, None
+                        )
                     if existing != object_record["sha256"]:
-                        raise RuntimeError(f"refusing to replace FID seed {name}: byte hash changed")
-                    records.append({"program": name, "status": "already-imported", "toolchain": toolchain, "library": library, "variant": variant, "sha256": existing, **provenance})
+                        raise RuntimeError(
+                            f"refusing to replace FID seed {name}: byte hash changed"
+                        )
+                    records.append(
+                        {
+                            "program": name,
+                            "status": "already-imported",
+                            "toolchain": toolchain,
+                            "library": library,
+                            "variant": variant,
+                            "sha256": existing,
+                            **provenance,
+                        }
+                    )
                     if len(records) % 100 == 0:
                         System.gc()
                     continue
@@ -323,27 +359,36 @@ def import_static_seed_objects(settings: Settings, *, use_cached_objects: bool =
                 try:
                     options = program.getOptions("Program Information")
                     options.setString(HASH_OPTION, object_record["sha256"])
-                    options.setString(PATH_OPTION, f"fid/objects/{toolchain}/{library}/{variant}/{object_record['path']}")
+                    options.setString(
+                        PATH_OPTION,
+                        f"fid/objects/{toolchain}/{library}/{variant}/{object_record['path']}",
+                    )
                     options.setString("WIZ8_FID_LIBRARY", library)
                     options.setString("WIZ8_FID_VARIANT", variant)
                     options.setString("WIZ8_FID_TOOLCHAIN", toolchain)
                     options.setString("WIZ8_FID_TOOLCHAIN_COMMIT", toolchain_commit)
-                    options.setString("WIZ8_FID_SOURCE_KIND", library_record.get("source_kind", "compiled-source"))
+                    options.setString(
+                        "WIZ8_FID_SOURCE_KIND", library_record.get("source_kind", "compiled-source")
+                    )
                     options.setString("WIZ8_FID_OBJECT_SHA256", object_record["sha256"])
                     if "archive_member" in object_record:
-                        options.setString("WIZ8_FID_ARCHIVE_MEMBER", object_record["archive_member"])
+                        options.setString(
+                            "WIZ8_FID_ARCHIVE_MEMBER", object_record["archive_member"]
+                        )
                 finally:
                     program.endTransaction(transaction, True)
-                records.append({
-                    "program": name,
-                    "status": "imported",
-                    "toolchain": toolchain,
-                    "library": library,
-                    "variant": variant,
-                    "sha256": object_record["sha256"],
-                    "function_count": program.getFunctionManager().getFunctionCount(),
-                    **provenance,
-                })
+                records.append(
+                    {
+                        "program": name,
+                        "status": "imported",
+                        "toolchain": toolchain,
+                        "library": library,
+                        "variant": variant,
+                        "sha256": object_record["sha256"],
+                        "function_count": program.getFunctionManager().getFunctionCount(),
+                        **provenance,
+                    }
+                )
                 if len(records) % 100 == 0:
                     System.gc()
     result = {"schema": "wiz8.fid-seed-import", "programs": records}
@@ -371,7 +416,14 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     path = _database_path(settings, "static")
     path.parent.mkdir(parents=True, exist_ok=True)
     seed_groups, seed_provenance = _normalize_seed_provenance(imported["programs"])
-    common_path = settings.ghidra_install_dir / "Ghidra" / "Features" / "FunctionID" / "data" / "common_symbols_win32.txt"
+    common_path = (
+        settings.ghidra_install_dir
+        / "Ghidra"
+        / "Features"
+        / "FunctionID"
+        / "data"
+        / "common_symbols_win32.txt"
+    )
     input_identity = {
         "schema": "wiz8.fid-build-input",
         "builder_version": 2,
@@ -417,7 +469,9 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     try:
         groups: dict[tuple[str, str, str], list[str]] = {}
         for record in imported["programs"]:
-            groups.setdefault((record["toolchain"], record["library"], record["variant"]), []).append(record["program"])
+            groups.setdefault(
+                (record["toolchain"], record["library"], record["variant"]), []
+            ).append(record["program"])
         libraries_by_id = {library.id: library for library in config.libraries}
         for (toolchain_id, library_id, variant), names in sorted(groups.items()):
             programs = ArrayList()
@@ -439,16 +493,18 @@ def build_fid(settings: Settings) -> dict[str, Any]:
                 common_symbols,
                 TaskMonitor.DUMMY,
             )
-            summaries.append({
-                "family": library.family,
-                "version": library.version,
-                "variant": f"{toolchain_id}-{variant}",
-                "seed_programs": len(names),
-                "total_attempted": result.getTotalAttempted(),
-                "total_added": result.getTotalAdded(),
-                "total_excluded": result.getTotalExcluded(),
-                "unresolved_symbol_count": len(result.getUnresolvedSymbols()),
-            })
+            summaries.append(
+                {
+                    "family": library.family,
+                    "version": library.version,
+                    "variant": f"{toolchain_id}-{variant}",
+                    "seed_programs": len(names),
+                    "total_attempted": result.getTotalAttempted(),
+                    "total_added": result.getTotalAdded(),
+                    "total_excluded": result.getTotalExcluded(),
+                    "unresolved_symbol_count": len(result.getUnresolvedSymbols()),
+                }
+            )
         database.saveDatabase("wizardry8 reproducible static-library FID build", TaskMonitor.DUMMY)
     except Exception:
         database.close()
@@ -475,13 +531,17 @@ def build_fid(settings: Settings) -> dict[str, Any]:
         "seed_groups": seed_groups,
         "seed_provenance": seed_provenance,
         "input_sha256": input_sha256,
-        "common_symbols_source": str(common_path.relative_to(settings.ghidra_install_dir)) if common_path.is_file() else None,
+        "common_symbols_source": str(common_path.relative_to(settings.ghidra_install_dir))
+        if common_path.is_file()
+        else None,
     }
     atomic_json(summary_path, summary)
     return summary
 
 
-def match_fid(settings: Settings, selector: str, threshold: float | None = None, database_kind: str = "static") -> dict[str, Any]:
+def match_fid(
+    settings: Settings, selector: str, threshold: float | None = None, database_kind: str = "static"
+) -> dict[str, Any]:
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
@@ -518,12 +578,16 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     excluded_internal_matches = 0
     provenance_by_program = _seed_provenance(settings, database_kind)
     service = FidService()
-    score_threshold = threshold if threshold is not None else float(service.getDefaultScoreThreshold())
+    score_threshold = (
+        threshold if threshold is not None else float(service.getDefaultScoreThreshold())
+    )
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
             query_service = manager.openFidQueryService(program.getLanguage(), False)
             try:
-                results = service.processProgram(program, query_service, score_threshold, TaskMonitor.DUMMY)
+                results = service.processProgram(
+                    program, query_service, score_threshold, TaskMonitor.DUMMY
+                )
                 # FID match records resolve names through their owning database.
                 # Materialize every value before closing the query service.
                 for result in results:
@@ -545,32 +609,56 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
                         name_origin = origin_for_fid_source_kind(
                             provenance.get("source_kind") if provenance else None
                         )
-                        matches.append({
-                            "target_address": str(result.function.getEntryPoint()),
-                            "target_name": str(result.function.getName()),
-                            "fid_name": fid_name,
-                            "score": float(match.getOverallScore()),
-                            "primary_score": float(match.getPrimaryFunctionCodeUnitScore()),
-                            "child_score": float(match.getChildFunctionCodeUnitScore()),
-                            "parent_score": float(match.getParentFunctionCodeUnitScore()),
-                            "match_mode": str(match.getPrimaryFunctionMatchMode()),
-                            "library_family": str(library.getLibraryFamilyName()),
-                            "library_version": str(library.getLibraryVersion()),
-                            "library_variant": str(library.getLibraryVariant()),
-                            "seed_domain_path": seed_domain_path,
-                            "seed_entry": f"0x{function_record.getEntryPoint():x}",
-                            "seed_toolchain": provenance.get("toolchain") if provenance else None,
-                            "seed_toolchain_commit": provenance.get("toolchain_commit") if provenance else None,
-                            "seed_source_kind": provenance.get("source_kind") if provenance else None,
-                            "seed_object_path": provenance.get("object_path") if provenance else None,
-                            "seed_object_sha256": provenance.get("object_sha256") if provenance else None,
-                            "seed_archive_member": provenance.get("archive_member") if provenance else None,
-                            "seed_archive_member_index": provenance.get("archive_member_index") if provenance else None,
-                            "seed_source_archive_sha256": provenance.get("source", {}).get("archive_sha256") if provenance else None,
-                            "seed_source_tree_hash": provenance.get("source", {}).get("source_tree_hash") if provenance else None,
-                            "name_origin": name_origin,
-                            "authority": derive_authority((name_origin,)),
-                        })
+                        matches.append(
+                            {
+                                "target_address": str(result.function.getEntryPoint()),
+                                "target_name": str(result.function.getName()),
+                                "fid_name": fid_name,
+                                "score": float(match.getOverallScore()),
+                                "primary_score": float(match.getPrimaryFunctionCodeUnitScore()),
+                                "child_score": float(match.getChildFunctionCodeUnitScore()),
+                                "parent_score": float(match.getParentFunctionCodeUnitScore()),
+                                "match_mode": str(match.getPrimaryFunctionMatchMode()),
+                                "library_family": str(library.getLibraryFamilyName()),
+                                "library_version": str(library.getLibraryVersion()),
+                                "library_variant": str(library.getLibraryVariant()),
+                                "seed_domain_path": seed_domain_path,
+                                "seed_entry": f"0x{function_record.getEntryPoint():x}",
+                                "seed_toolchain": provenance.get("toolchain")
+                                if provenance
+                                else None,
+                                "seed_toolchain_commit": provenance.get("toolchain_commit")
+                                if provenance
+                                else None,
+                                "seed_source_kind": provenance.get("source_kind")
+                                if provenance
+                                else None,
+                                "seed_object_path": provenance.get("object_path")
+                                if provenance
+                                else None,
+                                "seed_object_sha256": provenance.get("object_sha256")
+                                if provenance
+                                else None,
+                                "seed_archive_member": provenance.get("archive_member")
+                                if provenance
+                                else None,
+                                "seed_archive_member_index": provenance.get("archive_member_index")
+                                if provenance
+                                else None,
+                                "seed_source_archive_sha256": provenance.get("source", {}).get(
+                                    "archive_sha256"
+                                )
+                                if provenance
+                                else None,
+                                "seed_source_tree_hash": provenance.get("source", {}).get(
+                                    "source_tree_hash"
+                                )
+                                if provenance
+                                else None,
+                                "name_origin": name_origin,
+                                "authority": derive_authority((name_origin,)),
+                            }
+                        )
             finally:
                 query_service.close()
     finally:
@@ -580,7 +668,32 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
     matches.sort(key=lambda item: (item["target_address"], -item["score"], item["fid_name"]))
     output = settings.build_dir / "evidence" / "fid" / f"{program_name}.csv"
     stream = io.StringIO(newline="")
-    fields = ["target_address", "target_name", "fid_name", "score", "primary_score", "child_score", "parent_score", "match_mode", "library_family", "library_version", "library_variant", "seed_domain_path", "seed_entry", "seed_toolchain", "seed_toolchain_commit", "seed_source_kind", "seed_object_path", "seed_object_sha256", "seed_archive_member", "seed_archive_member_index", "seed_source_archive_sha256", "seed_source_tree_hash", "name_origin", "authority"]
+    fields = [
+        "target_address",
+        "target_name",
+        "fid_name",
+        "score",
+        "primary_score",
+        "child_score",
+        "parent_score",
+        "match_mode",
+        "library_family",
+        "library_version",
+        "library_variant",
+        "seed_domain_path",
+        "seed_entry",
+        "seed_toolchain",
+        "seed_toolchain_commit",
+        "seed_source_kind",
+        "seed_object_path",
+        "seed_object_sha256",
+        "seed_archive_member",
+        "seed_archive_member_index",
+        "seed_source_archive_sha256",
+        "seed_source_tree_hash",
+        "name_origin",
+        "authority",
+    ]
     writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
     writer.writeheader()
     writer.writerows(matches)
@@ -595,7 +708,11 @@ def match_fid(settings: Settings, selector: str, threshold: float | None = None,
         "threshold": score_threshold,
         "match_count": len(matches),
         "unique_target_count": unique_targets,
-        "ambiguous_target_count": sum(1 for address in {item["target_address"] for item in matches} if sum(item["target_address"] == address for item in matches) > 1),
+        "ambiguous_target_count": sum(
+            1
+            for address in {item["target_address"] for item in matches}
+            if sum(item["target_address"] == address for item in matches) > 1
+        ),
         "excluded_internal_match_count": excluded_internal_matches,
         "evidence_csv": output.relative_to(settings.repo_dir).as_posix(),
         "mutated_program": False,

@@ -8,7 +8,9 @@ from typing import Any
 def _address(program: Any, text: str) -> Any:
     value = program.getAddressFactory().getAddress(text)
     if value is None:
-        value = program.getAddressFactory().getDefaultAddressSpace().getAddress(text.removeprefix("0x"))
+        value = (
+            program.getAddressFactory().getDefaultAddressSpace().getAddress(text.removeprefix("0x"))
+        )
     if value is None:
         raise ValueError(f"invalid address: {text}")
     return value
@@ -38,10 +40,21 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
             raw.extend(instruction.getBytes())
         except Exception:  # noqa: BLE001,S110 - unreadable instruction bytes stay absent
             pass
-        operand_types = [str(instruction.getOperandType(index)) for index in range(instruction.getNumOperands())]
+        operand_types = [
+            str(instruction.getOperandType(index)) for index in range(instruction.getNumOperands())
+        ]
         mnemonic_parts.append(instruction.getMnemonicString() + ":" + ",".join(operand_types))
-    callers = sorted({str(ref.getFromAddress()) for ref in references.getReferencesTo(function.getEntryPoint())})
-    callees = sorted({str(ref.getToAddress()) for instruction in instructions for ref in references.getReferencesFrom(instruction.getAddress()) if manager.getFunctionAt(ref.getToAddress()) is not None})
+    callers = sorted(
+        {str(ref.getFromAddress()) for ref in references.getReferencesTo(function.getEntryPoint())}
+    )
+    callees = sorted(
+        {
+            str(ref.getToAddress())
+            for instruction in instructions
+            for ref in references.getReferencesFrom(instruction.getAddress())
+            if manager.getFunctionAt(ref.getToAddress()) is not None
+        }
+    )
     data_references = sorted(
         (
             {
@@ -68,7 +81,9 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
         "name": function.getName(),
         "namespace": str(function.getParentNamespace()),
         "thunk": bool(function.isThunk()),
-        "thunk_target": str(function.getThunkedFunction(False).getEntryPoint()) if function.isThunk() and function.getThunkedFunction(False) else None,
+        "thunk_target": str(function.getThunkedFunction(False).getEntryPoint())
+        if function.isThunk() and function.getThunkedFunction(False)
+        else None,
         "calling_convention": function.getCallingConventionName(),
         "prototype": function.getPrototypeString(False, False),
         "plate_comment": listing.getComment(CodeUnit.PLATE_COMMENT, function.getEntryPoint()),
@@ -80,13 +95,18 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
         "instruction_addresses": [str(instruction.getAddress()) for instruction in instructions],
         "referenced_strings": sorted(set(strings), key=str.casefold),
         "raw_body_sha256": hashlib.sha256(raw).hexdigest(),
-        "instruction_fingerprint_sha256": hashlib.sha256("\n".join(mnemonic_parts).encode()).hexdigest(),
+        "instruction_fingerprint_sha256": hashlib.sha256(
+            "\n".join(mnemonic_parts).encode()
+        ).hexdigest(),
     }
 
 
 def _listing(program: Any, argument: str) -> dict[str, Any]:
     function = _function(program, argument)
-    lines = [f"{instruction.getAddress()}  {instruction}" for instruction in program.getListing().getInstructions(function.getBody(), True)]
+    lines = [
+        f"{instruction.getAddress()}  {instruction}"
+        for instruction in program.getListing().getInstructions(function.getBody(), True)
+    ]
     return {"function": function_metadata(program, function), "listing": "\n".join(lines)}
 
 
@@ -106,8 +126,16 @@ def _xrefs(program: Any, argument: str, direction: str) -> dict[str, Any]:
         refs = manager.getReferencesFrom(address)
     else:
         refs = list(manager.getReferencesTo(address)) + list(manager.getReferencesFrom(address))
-    values = sorted({(str(ref.getFromAddress()), str(ref.getToAddress()), str(ref.getReferenceType())) for ref in refs})
-    return {"address": str(address), "references": [{"from": a, "to": b, "type": c} for a, b, c in values]}
+    values = sorted(
+        {
+            (str(ref.getFromAddress()), str(ref.getToAddress()), str(ref.getReferenceType()))
+            for ref in refs
+        }
+    )
+    return {
+        "address": str(address),
+        "references": [{"from": a, "to": b, "type": c} for a, b, c in values],
+    }
 
 
 def _strings(program: Any, pattern: str | None = None) -> dict[str, Any]:
@@ -121,7 +149,13 @@ def _strings(program: Any, pattern: str | None = None) -> dict[str, Any]:
             value = str(data.getValue())
             if regex is None or regex.search(value):
                 refs = program.getReferenceManager().getReferencesTo(data.getAddress())
-                values.append({"address": str(data.getAddress()), "value": value, "references": sorted(str(ref.getFromAddress()) for ref in refs)})
+                values.append(
+                    {
+                        "address": str(data.getAddress()),
+                        "value": value,
+                        "references": sorted(str(ref.getFromAddress()) for ref in refs),
+                    }
+                )
     return {"strings": values}
 
 
@@ -132,7 +166,13 @@ def _functions(program: Any, pattern: str | None = None) -> dict[str, Any]:
     while iterator.hasNext():
         function = iterator.next()
         if regex is None or regex.search(function.getName()):
-            values.append({"entry": str(function.getEntryPoint()), "name": function.getName(), "size": function.getBody().getNumAddresses()})
+            values.append(
+                {
+                    "entry": str(function.getEntryPoint()),
+                    "name": function.getName(),
+                    "size": function.getBody().getNumAddresses(),
+                }
+            )
     return {"functions": values}
 
 
@@ -161,12 +201,31 @@ def _symbols(program: Any, external: bool) -> dict[str, Any]:
     while iterator.hasNext():
         symbol = iterator.next()
         if external or symbol.isExternalEntryPoint():
-            values.append({"name": symbol.getName(True), "address": str(symbol.getAddress()), "type": str(symbol.getSymbolType())})
+            values.append(
+                {
+                    "name": symbol.getName(True),
+                    "address": str(symbol.getAddress()),
+                    "type": str(symbol.getSymbolType()),
+                }
+            )
     return {"imports" if external else "exports": values}
 
 
 def _sections(program: Any) -> dict[str, Any]:
-    return {"sections": [{"name": block.getName(), "start": str(block.getStart()), "end": str(block.getEnd()), "size": block.getSize(), "read": block.isRead(), "write": block.isWrite(), "execute": block.isExecute()} for block in program.getMemory().getBlocks()]}
+    return {
+        "sections": [
+            {
+                "name": block.getName(),
+                "start": str(block.getStart()),
+                "end": str(block.getEnd()),
+                "size": block.getSize(),
+                "read": block.isRead(),
+                "write": block.isWrite(),
+                "execute": block.isExecute(),
+            }
+            for block in program.getMemory().getBlocks()
+        ]
+    }
 
 
 def _read_data(program: Any, address_text: str, size_text: str) -> dict[str, Any]:
@@ -181,7 +240,11 @@ def _read_data(program: Any, address_text: str, size_text: str) -> dict[str, Any
     # back in Python; a JPype JArray shares storage across the boundary.
     buffer = jpype.JArray(jpype.JByte)(size)
     read = program.getMemory().getBytes(address, buffer)
-    return {"address": str(address), "size": read, "hex": bytes(b & 0xFF for b in buffer[:read]).hex()}
+    return {
+        "address": str(address),
+        "size": read,
+        "hex": bytes(b & 0xFF for b in buffer[:read]).hex(),
+    }
 
 
 def _operator_delete_entries(program: Any) -> set[str]:
@@ -209,7 +272,11 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
     if command == "decompile":
         return _decompile(program, arguments[0])
     if command in {"xrefs", "xrefs-to", "xrefs-from"}:
-        return _xrefs(program, arguments[0], {"xrefs": "both", "xrefs-to": "to", "xrefs-from": "from"}[command])
+        return _xrefs(
+            program,
+            arguments[0],
+            {"xrefs": "both", "xrefs-to": "to", "xrefs-from": "from"}[command],
+        )
     if command in {"function", "function-slice"}:
         return {"function": function_metadata(program, _function(program, arguments[0]))}
     if command == "function-of":
@@ -278,11 +345,27 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
 
 def validate_query_arguments(command: str, arguments: list[str]) -> None:
     arity = {
-        "listing": 1, "decompile": 1, "xrefs": 1, "xrefs-to": 1, "xrefs-from": 1,
-        "function": 1, "function-slice": 1, "function-of": 1, "read-data": 2, "strings": 0,
-        "string-refs": 1, "search": 1, "functions": 0, "imports": 0, "exports": 0,
-        "sections": 0, "observation-audit": 0,
-        "high-function": 1, "field-accesses": 2, "callsite": 1, "facts-at": 1,
+        "listing": 1,
+        "decompile": 1,
+        "xrefs": 1,
+        "xrefs-to": 1,
+        "xrefs-from": 1,
+        "function": 1,
+        "function-slice": 1,
+        "function-of": 1,
+        "read-data": 2,
+        "strings": 0,
+        "string-refs": 1,
+        "search": 1,
+        "functions": 0,
+        "imports": 0,
+        "exports": 0,
+        "sections": 0,
+        "observation-audit": 0,
+        "high-function": 1,
+        "field-accesses": 2,
+        "callsite": 1,
+        "facts-at": 1,
         "type-variables": 2,
         "condition-accesses": 1,
     }

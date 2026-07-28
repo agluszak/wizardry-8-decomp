@@ -132,9 +132,7 @@ def class_family_report(settings: Any, vtable: str) -> dict[str, Any]:
     program = next(row["program"] for row in tables if "--gog-base--" in row["program"])
     tables = [row for row in tables if row["program"] == program]
     slots = [row for row in _rows(snapshots / "slots.csv") if row["program"] == program]
-    writes = [
-        row for row in _rows(snapshots / "vptr-writes.csv") if row["program"] == program
-    ]
+    writes = [row for row in _rows(snapshots / "vptr-writes.csv") if row["program"] == program]
 
     seed = vtable.lower().removeprefix("0x").rjust(8, "0")
     known = {row["address"] for row in tables} | {row["vtable"] for row in writes}

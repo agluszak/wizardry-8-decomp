@@ -20,9 +20,7 @@ def test_a_hypothesis_plan_has_explicit_scope_and_bounded_defaults(tmp_path) -> 
         json.dumps(
             {
                 "hypothesis": "prop-closure",
-                "seeds": [
-                    {"kind": "type-variable", "function": "0044bec0", "root": "this"}
-                ],
+                "seeds": [{"kind": "type-variable", "function": "0044bec0", "root": "this"}],
             }
         ),
         encoding="utf-8",
@@ -73,9 +71,7 @@ def test_virtual_receiver_resolution_requires_exact_vtable_identity() -> None:
         "MonsterLight.primary": "MonsterLight.primary",
     }
 
-    assert _exact_vtable_ids({"MonsterLight.primary *"}, identities) == {
-        "MonsterLight.primary"
-    }
+    assert _exact_vtable_ids({"MonsterLight.primary *"}, identities) == {"MonsterLight.primary"}
     assert _exact_vtable_ids({"SomeMonster.primary *"}, identities) == set()
 
 

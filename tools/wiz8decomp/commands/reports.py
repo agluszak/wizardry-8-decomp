@@ -48,7 +48,5 @@ def context_command(
     from ..reports.recovery_context import recovery_context_report
 
     cli._run_action(
-        lambda: recovery_context_report(
-            cli._settings(), address, program, deep=deep, root=root
-        )
+        lambda: recovery_context_report(cli._settings(), address, program, deep=deep, root=root)
     )

@@ -17,15 +17,19 @@ def _load(path: Path, default: Any) -> Any:
 def bootstrap_report(settings: Settings) -> dict[str, Any]:
     inputs = load_manifest(settings).model_dump(mode="json", by_alias=True)
     variants = load_variant_provenance(settings).model_dump(mode="json", by_alias=True)
-    variant_modules = load_variant_module_inventory(settings).model_dump(
-        mode="json", by_alias=True
-    )
+    variant_modules = load_variant_module_inventory(settings).model_dump(mode="json", by_alias=True)
     modules = _load(settings.build_dir / "manifests" / "modules.json", {"modules": []})
     module_diff = _load(settings.build_dir / "reports" / "module-diff.json", {"comparisons": []})
     compilers = _load(settings.build_dir / "reports" / "compiler-evidence.json", {"modules": []})
     imports = _load(settings.build_dir / "manifests" / "ghidra-import.json", {"programs": []})
-    cross = _load(settings.build_dir / "reports" / "cross-build-summary.json", {"status": "not generated"})
-    first_party = [item for item in modules["modules"] if item.get("classification") in {"first-party-game", "renderer"}]
+    cross = _load(
+        settings.build_dir / "reports" / "cross-build-summary.json", {"status": "not generated"}
+    )
+    first_party = [
+        item
+        for item in modules["modules"]
+        if item.get("classification") in {"first-party-game", "renderer"}
+    ]
     report = {
         "schema": "wiz8.bootstrap-report",
         "inputs": inputs["files"],
@@ -44,11 +48,23 @@ def bootstrap_report(settings: Settings) -> dict[str, Any]:
         "recommended_next_targets": [item["identity"] for item in first_party[:10]],
     }
     atomic_json(settings.build_dir / "reports" / "bootstrap.json", report)
-    lines = ["# Wizardry 8 bootstrap report", "", f"Discovered **{len(inputs['files'])}** configured/local input files, **{len(variants.get('variants', []))}** variants, and **{len(modules['modules'])}** PE modules.", "", "## Inputs", ""]
+    lines = [
+        "# Wizardry 8 bootstrap report",
+        "",
+        f"Discovered **{len(inputs['files'])}** configured/local input files, **{len(variants.get('variants', []))}** variants, and **{len(modules['modules'])}** PE modules.",
+        "",
+        "## Inputs",
+        "",
+    ]
     for item in inputs["files"]:
-        lines.append(f"- `{item['relative_path']}` — {item['detected_type']}, role `{item.get('configured_role') or 'unassigned'}`, SHA-256 `{item['sha256']}`")
+        lines.append(
+            f"- `{item['relative_path']}` — {item['detected_type']}, role `{item.get('configured_role') or 'unassigned'}`, SHA-256 `{item['sha256']}`"
+        )
     lines.extend(["", "## Ghidra programs", ""])
-    lines.extend(f"- `{item['program']}` — {item['status']}, {item.get('function_count', 'unknown')} functions" for item in imports["programs"])
+    lines.extend(
+        f"- `{item['program']}` — {item['status']}, {item.get('function_count', 'unknown')} functions"
+        for item in imports["programs"]
+    )
     lines.extend(["", "## Remaining uncertainties", ""])
     lines.extend(f"- {item}" for item in report["remaining_uncertainties"])
     lines.extend(["", "## Recommended next targets", ""])

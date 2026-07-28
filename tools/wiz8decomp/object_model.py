@@ -56,7 +56,8 @@ def classify_vtable(slots: list[dict[str, str]]) -> dict[str, Any]:
     import_owners = {
         owner
         for row in ordered
-        if row["kind"] == "import-thunk" and row["import_name"]
+        if row["kind"] == "import-thunk"
+        and row["import_name"]
         and (owner := _import_class(row["import_name"])) is not None
     }
     local = [row for row in ordered if row["kind"] == "local"]
@@ -93,15 +94,13 @@ def classify_program_vtables(repo: Path, program: str) -> dict[str, dict[str, An
     """Every censused vftable of one program, classified."""
 
     slots_by_table: dict[str, list[dict[str, str]]] = defaultdict(list)
-    with (
-        repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv"
-    ).open(newline="", encoding="utf-8") as stream:
+    with (repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
         for row in csv.DictReader(stream):
             if row["program"] == program:
                 slots_by_table[row["vtable"]].append(row)
-    return {
-        table: classify_vtable(rows) for table, rows in sorted(slots_by_table.items())
-    }
+    return {table: classify_vtable(rows) for table, rows in sorted(slots_by_table.items())}
 
 
 def attribute_writers(
@@ -170,9 +169,9 @@ def lifecycle_unifications(
 
 def load_reviewed_lifecycles(repo: Path) -> dict[str, set[str]]:
     lifecycles: dict[str, set[str]] = {}
-    with (
-        repo / "evidence" / "reviewed" / "wiz8" / "classes.csv"
-    ).open(newline="", encoding="utf-8") as stream:
+    with (repo / "evidence" / "reviewed" / "wiz8" / "classes.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
         for row in csv.DictReader(stream):
             addresses = {
                 row[key].strip().lower().zfill(8)

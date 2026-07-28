@@ -73,7 +73,11 @@ def detect(path: Path) -> Detection:
             evidence.append(Evidence(kind="embedded-string", value=installer))
         if archive_type and archive_type.casefold() not in {"pe", "coff"}:
             container = archive_type
-            detected = "installer" if installer or archive_type.casefold() == "cab" else "self-extracting-archive"
+            detected = (
+                "installer"
+                if installer or archive_type.casefold() == "cab"
+                else "self-extracting-archive"
+            )
             evidence.append(Evidence(kind="7z-probe", value=f"embedded {archive_type} container"))
         if "This installation was built with Inno Setup" in listing:
             installer = "Inno Setup"

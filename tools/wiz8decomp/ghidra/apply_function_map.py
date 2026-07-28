@@ -133,14 +133,14 @@ def apply_function_map(
                         stats["created"] += 1
 
                     if identity.size is not None:
-                        expected_body = AddressSet(
-                            address, address.add(identity.size - 1)
-                        )
+                        expected_body = AddressSet(address, address.add(identity.size - 1))
                         if function.getBody() != expected_body:
                             if dry_run:
                                 stats["boundaries_adjusted"] += 1
                             else:
-                                overlapping = list(function_manager.getFunctions(expected_body, True))
+                                overlapping = list(
+                                    function_manager.getFunctions(expected_body, True)
+                                )
                                 for other in overlapping:
                                     if other.getEntryPoint() != address:
                                         function_manager.removeFunction(other.getEntryPoint())

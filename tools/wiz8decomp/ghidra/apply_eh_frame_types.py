@@ -175,9 +175,7 @@ def apply_eh_frame_types(
                         skip(plan, f"create-failed:{error.__class__.__name__}")
                         continue
                     held = "pointer to" if plan.is_pointer else "object of"
-                    destructor = (
-                        f" destructor 0x{plan.destructor:08x}" if plan.destructor else ""
-                    )
+                    destructor = f" destructor 0x{plan.destructor:08x}" if plan.destructor else ""
                     variable.setComment(
                         f"EH unwind evidence: {held} {plan.class_name};"
                         f" FuncInfo 0x{plan.funcinfo:08x} states {list(plan.states)};"

@@ -346,10 +346,7 @@ def run_trace(
     points = trace_plan(repo, scenario)
     selected_port = port if port is not None else _allocate_port()
     plan_hash = json_hash(
-        [
-            {"address": point.address, "name": point.name, "kind": point.kind}
-            for point in points
-        ]
+        [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
     )
     script = sandbox.game_dir.parent / f"trace-{scenario}-{selected_port}.gdb"
     script.write_text(gdb_script(points, selected_port), encoding="utf-8")

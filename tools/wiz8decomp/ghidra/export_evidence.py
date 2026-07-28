@@ -16,9 +16,23 @@ from .query import execute_query, function_metadata
 from .query_daemon import stop_daemon
 
 FUNCTION_FIELDS = [
-    "program", "variant", "entry", "size", "name", "namespace", "thunk", "thunk_target",
-    "calling_convention", "prototype", "caller_count", "callee_count", "referenced_strings",
-    "raw_body_sha256", "instruction_fingerprint_sha256", "decompiler_status", "library_or_middleware",
+    "program",
+    "variant",
+    "entry",
+    "size",
+    "name",
+    "namespace",
+    "thunk",
+    "thunk_target",
+    "calling_convention",
+    "prototype",
+    "caller_count",
+    "callee_count",
+    "referenced_strings",
+    "raw_body_sha256",
+    "instruction_fingerprint_sha256",
+    "decompiler_status",
+    "library_or_middleware",
 ]
 
 
@@ -27,7 +41,12 @@ def _csv(path: Path, fields: list[str], rows: list[dict[str, Any]]) -> None:
     writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n", extrasaction="ignore")
     writer.writeheader()
     for row in rows:
-        cooked = {key: json.dumps(value, ensure_ascii=False, sort_keys=True) if isinstance(value, (list, dict)) else value for key, value in row.items()}
+        cooked = {
+            key: json.dumps(value, ensure_ascii=False, sort_keys=True)
+            if isinstance(value, (list, dict))
+            else value
+            for key, value in row.items()
+        }
         writer.writerow(cooked)
     atomic_write(path, stream.getvalue())
 
@@ -64,7 +83,11 @@ def export_evidence(
             if address:
                 target = program.getAddressFactory().getAddress(address)
                 if target is None:
-                    target = program.getAddressFactory().getDefaultAddressSpace().getAddress(address.removeprefix("0x"))
+                    target = (
+                        program.getAddressFactory()
+                        .getDefaultAddressSpace()
+                        .getAddress(address.removeprefix("0x"))
+                    )
                 function = program.getFunctionManager().getFunctionContaining(target)
                 if function is None:
                     raise ValueError(f"no function contains {address}")
@@ -75,7 +98,15 @@ def export_evidence(
                     functions.append(iterator.next())
             for function in functions:
                 row = function_metadata(program, function)
-                row.update({"program": program_name, "variant": variant, "library_or_middleware": function.getName().startswith(("FUN_", "thunk_")) is False and function.isExternal()})
+                row.update(
+                    {
+                        "program": program_name,
+                        "variant": variant,
+                        "library_or_middleware": function.getName().startswith(("FUN_", "thunk_"))
+                        is False
+                        and function.isExternal(),
+                    }
+                )
                 if address:
                     status, decompiled = _decompile(program, row["entry"])
                 else:
@@ -92,14 +123,33 @@ def export_evidence(
             classes, vtables = rtti_inventory(program)
             _csv(output / "functions.csv", FUNCTION_FIELDS, rows)
             _csv(output / "strings.csv", ["address", "value", "references"], strings)
-            _csv(output / "classes.csv", ["mangled_name", "type_descriptor_string", "evidence"], classes)
+            _csv(
+                output / "classes.csv",
+                ["mangled_name", "type_descriptor_string", "evidence"],
+                classes,
+            )
             _csv(output / "vtables.csv", ["address", "name", "evidence"], vtables)
-            source_rows = [{"address": item["address"], "value": item["value"]} for item in strings if any(extension in item["value"].casefold() for extension in (".c", ".cpp", ".h", ".pdb"))]
+            source_rows = [
+                {"address": item["address"], "value": item["value"]}
+                for item in strings
+                if any(
+                    extension in item["value"].casefold()
+                    for extension in (".c", ".cpp", ".h", ".pdb")
+                )
+            ]
             _csv(output / "source-paths.csv", ["address", "value"], source_rows)
     finally:
         project.close()
-    _csv(settings.build_dir / "evidence" / "functions" / f"{program_name}.csv", FUNCTION_FIELDS, rows)
-    summary = {"schema": "wiz8.ghidra-evidence", "program": program_name, "function_count": len(rows), "mode": "targeted" if address else "all", "output": str(output.relative_to(settings.repo_dir))}
+    _csv(
+        settings.build_dir / "evidence" / "functions" / f"{program_name}.csv", FUNCTION_FIELDS, rows
+    )
+    summary = {
+        "schema": "wiz8.ghidra-evidence",
+        "program": program_name,
+        "function_count": len(rows),
+        "mode": "targeted" if address else "all",
+        "output": str(output.relative_to(settings.repo_dir)),
+    }
     atomic_json(output / "manifest.json", summary)
     return summary
 
@@ -116,12 +166,24 @@ def cross_build_candidates(settings: Settings) -> dict[str, Any]:
     for row in rows:
         strings = tuple(sorted(json.loads(row["referenced_strings"] or "[]"), key=str.casefold))
         groups_exact[(row["raw_body_sha256"],)].append(row)
-        groups_instruction[(row["instruction_fingerprint_sha256"], row["size"], row["caller_count"], row["callee_count"], *strings)].append(row)
+        groups_instruction[
+            (
+                row["instruction_fingerprint_sha256"],
+                row["size"],
+                row["caller_count"],
+                row["callee_count"],
+                *strings,
+            )
+        ].append(row)
         if strings:
             groups_strings[(row["size"], *strings)].append(row)
     candidates = []
     seen: set[tuple[str, str, str, str]] = set()
-    for category, groups in (("exact", groups_exact), ("strong-candidate", groups_instruction), ("weak-candidate", groups_strings)):
+    for category, groups in (
+        ("exact", groups_exact),
+        ("strong-candidate", groups_instruction),
+        ("weak-candidate", groups_strings),
+    ):
         for members in groups.values():
             by_program: dict[str, list[dict[str, str]]] = defaultdict(list)
             for member in members:
@@ -139,13 +201,71 @@ def cross_build_candidates(settings: Settings) -> dict[str, Any]:
                     if key in seen:
                         continue
                     seen.add(key)
-                    candidates.append({"category": category, "left_program": left["program"], "left_entry": left["entry"], "right_program": right["program"], "right_entry": right["entry"], "size": left["size"], "evidence": "unique byte-identical function body" if category == "exact" else ("unique instruction fingerprint, size, call degree, and referenced-string signature" if category == "strong-candidate" else "unique equal size and identical nonempty referenced-string set")})
-    candidates.sort(key=lambda item: (item["category"], item["left_program"], item["left_entry"], item["right_program"], item["right_entry"]))
+                    candidates.append(
+                        {
+                            "category": category,
+                            "left_program": left["program"],
+                            "left_entry": left["entry"],
+                            "right_program": right["program"],
+                            "right_entry": right["entry"],
+                            "size": left["size"],
+                            "evidence": "unique byte-identical function body"
+                            if category == "exact"
+                            else (
+                                "unique instruction fingerprint, size, call degree, and referenced-string signature"
+                                if category == "strong-candidate"
+                                else "unique equal size and identical nonempty referenced-string set"
+                            ),
+                        }
+                    )
+    candidates.sort(
+        key=lambda item: (
+            item["category"],
+            item["left_program"],
+            item["left_entry"],
+            item["right_program"],
+            item["right_entry"],
+        )
+    )
     path = settings.build_dir / "evidence" / "cross-build-candidates.csv"
-    _csv(path, ["category", "left_program", "left_entry", "right_program", "right_entry", "size", "evidence"], candidates)
-    counts = {category: sum(item["category"] == category for item in candidates) for category in ("exact", "strong-candidate", "weak-candidate")}
-    summary = {"schema": "wiz8.cross-build", "counts": counts, "unmatched_functions": max(0, len(rows) - len({(item['left_program'], item['left_entry']) for item in candidates} | {(item['right_program'], item['right_entry']) for item in candidates}))}
+    _csv(
+        path,
+        [
+            "category",
+            "left_program",
+            "left_entry",
+            "right_program",
+            "right_entry",
+            "size",
+            "evidence",
+        ],
+        candidates,
+    )
+    counts = {
+        category: sum(item["category"] == category for item in candidates)
+        for category in ("exact", "strong-candidate", "weak-candidate")
+    }
+    summary = {
+        "schema": "wiz8.cross-build",
+        "counts": counts,
+        "unmatched_functions": max(
+            0,
+            len(rows)
+            - len(
+                {(item["left_program"], item["left_entry"]) for item in candidates}
+                | {(item["right_program"], item["right_entry"]) for item in candidates}
+            ),
+        ),
+    }
     atomic_json(settings.build_dir / "reports" / "cross-build-summary.json", summary)
-    lines = ["# Cross-build function candidates", "", "These are syntactic candidates, not claims of semantic equivalence.", "", *[f"- {key}: {value}" for key, value in counts.items()], f"- unmatched function records: {summary['unmatched_functions']}", ""]
+    lines = [
+        "# Cross-build function candidates",
+        "",
+        "These are syntactic candidates, not claims of semantic equivalence.",
+        "",
+        *[f"- {key}: {value}" for key, value in counts.items()],
+        f"- unmatched function records: {summary['unmatched_functions']}",
+        "",
+    ]
     atomic_write(settings.build_dir / "reports" / "cross-build-summary.md", "\n".join(lines))
     return summary

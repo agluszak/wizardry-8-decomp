@@ -71,7 +71,9 @@ def import_programs(
 ) -> dict[str, Any]:
     stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
-    modules = configured_modules(settings, all_modules=all_modules, variant=variant, requested_program=requested_program)
+    modules = configured_modules(
+        settings, all_modules=all_modules, variant=variant, requested_program=requested_program
+    )
     if not modules:
         raise RuntimeError("no modules selected for Ghidra import")
     settings.project_dir.mkdir(parents=True, exist_ok=True)
@@ -84,7 +86,9 @@ def import_programs(
         existing = _existing_hash(settings, name)
         if existing:
             if existing != module["sha256"]:
-                raise RuntimeError(f"refusing to replace {name}: project hash {existing} != input hash {module['sha256']}")
+                raise RuntimeError(
+                    f"refusing to replace {name}: project hash {existing} != input hash {module['sha256']}"
+                )
             records.append({"program": name, "sha256": existing, "status": "already-imported"})
             continue
         binary = settings.work_dir / "variants" / module["variant"] / module["relative_path"]

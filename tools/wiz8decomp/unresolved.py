@@ -95,9 +95,7 @@ def unresolved_report(object_root: Path, map_path: Path | None = None) -> dict[s
     by_symbol: dict[str, list[str]] = defaultdict(list)
     for unit, refers in wanted.items():
         missing = sorted(
-            name
-            for name in refers
-            if name not in defined and not name.startswith(IMPORT_PREFIXES)
+            name for name in refers if name not in defined and not name.startswith(IMPORT_PREFIXES)
         )
         if missing:
             by_unit[unit] = missing

@@ -34,16 +34,14 @@ def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
     candidates = [
         path
         for path in source.iterdir()
-        if path.is_file() and "WIZ8_PRECOMPILED_HEADERS" in path.read_text(
-            encoding="latin-1", errors="replace"
-        )
+        if path.is_file()
+        and "WIZ8_PRECOMPILED_HEADERS" in path.read_text(encoding="latin-1", errors="replace")
     ]
     active = [
         path
         for path in candidates
         if any(
-            "WIZ8_PRECOMPILED_HEADERS" in line
-            and not line.lstrip().startswith("//")
+            "WIZ8_PRECOMPILED_HEADERS" in line and not line.lstrip().startswith("//")
             for line in path.read_text(encoding="latin-1", errors="replace").splitlines()
         )
     ]
@@ -57,9 +55,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        functions = [
-            row for row in csv.DictReader(stream) if row["source_path"].startswith("sgp/")
-        ]
+        functions = [row for row in csv.DictReader(stream) if row["source_path"].startswith("sgp/")]
     with (repository / "evidence/observations/sgp/source-paths.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
@@ -134,9 +130,7 @@ def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
 
 def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
-    harness = yaml.safe_load(
-        (repository / "config/sgp.yml").read_text(encoding="utf-8")
-    )
+    harness = yaml.safe_load((repository / "config/sgp.yml").read_text(encoding="utf-8"))
     units = [unit for unit in harness["units"] if unit.get("harness", True)]
     assert harness["schema"] == "wiz8.sgp-harness"
     assert harness["project_flags"] == ["/O2", "/Ob2", "/G5", "/MD"]
@@ -163,9 +157,7 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
     }
     assert harness["report"] == "build/reports/sgp/harness.csv"
     assert harness["snapshot"] == "evidence/snapshots/sgp/harness.csv"
-    exception_unit = next(
-        unit for unit in units if unit["id"] == "exceptionhandling"
-    )
+    exception_unit = next(unit for unit in units if unit["id"] == "exceptionhandling")
     assert exception_unit["expected_empty"] is True
     selected = {unit["id"]: unit.get("functions") for unit in units}
     assert selected["sgp"] == ["GetRuntimeSettings", "ProcessCommandLine"]
@@ -208,11 +200,13 @@ def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
         "timer": "whole",
         "input": "partial",
     }
-    assert {
-        unit for unit, row in by_unit.items() if row["bringup_linkage"] == "direct-object"
-    } == {"random", "timer"}
+    assert {unit for unit, row in by_unit.items() if row["bringup_linkage"] == "direct-object"} == {
+        "random",
+        "timer",
+    }
     assert by_unit["container"]["retained_source_identities"] == "12"
     assert by_unit["container"]["retained_physical_bodies"] == "10"
+
 
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
     repository = Path(__file__).resolve().parents[2]
@@ -308,12 +302,8 @@ def test_compression_unit_classifies_every_emitted_function() -> None:
         "CompressFini",
     ]
     assert [row["source_line"] for row in reviewed[:5]] == ["14", "19", "24", "55", "80"]
-    assert {row["canonical_classification"] for row in reviewed[:5]} == {
-        "relocation-equivalent"
-    }
-    assert {row["canonical_classification"] for row in reviewed[5:]} == {
-        "absent-or-stripped"
-    }
+    assert {row["canonical_classification"] for row in reviewed[:5]} == {"relocation-equivalent"}
+    assert {row["canonical_classification"] for row in reviewed[5:]} == {"absent-or-stripped"}
     assert reviewed[4]["canonical_address"] == "004158f0"
     assert "inflateEnd" in reviewed[4]["evidence"]
     assert "inflateEnd" in reviewed[-1]["evidence"]
@@ -329,16 +319,14 @@ def test_container_unit_separates_retained_stack_list_apis_from_stripped_familie
     assert len(reviewed) == 32
     assert sum(row["finding"] == "retained" for row in reviewed) == 12
     assert sum(row["finding"] == "stripped" for row in reviewed) == 20
-    assert {
-        row["function"]
-        for row in reviewed
-        if row["canonical_address"] == "00405b00"
-    } == {"DeleteStack", "DeleteList"}
-    assert {
-        row["function"]
-        for row in reviewed
-        if row["canonical_address"] == "00405c00"
-    } == {"StackSize", "ListSize"}
+    assert {row["function"] for row in reviewed if row["canonical_address"] == "00405b00"} == {
+        "DeleteStack",
+        "DeleteList",
+    }
+    assert {row["function"] for row in reviewed if row["canonical_address"] == "00405c00"} == {
+        "StackSize",
+        "ListSize",
+    }
 
     with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
@@ -369,9 +357,7 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
     with (repository / "evidence/reviewed/wiz8/functions.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        accepted = [
-            row for row in csv.DictReader(stream) if row["source_path"] == "sgp/DEBUG.C"
-        ]
+        accepted = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/DEBUG.C"]
 
     assert len(debug) == 15 * 7
     assert len(reviewed_debug) == 15

@@ -61,8 +61,18 @@ def test_containment_corrections_are_reported_not_silently_applied() -> None:
     from wiz8decomp.object_model import attribute_writers
 
     writes = [
-        {"site": "004395d4", "function_start": "004393e0", "vtable": "005ec078", "object_offset": "0x0"},
-        {"site": "00439863", "function_start": "004397d0", "vtable": "005ec078", "object_offset": "0x0"},
+        {
+            "site": "004395d4",
+            "function_start": "004393e0",
+            "vtable": "005ec078",
+            "object_offset": "0x0",
+        },
+        {
+            "site": "00439863",
+            "function_start": "004397d0",
+            "vtable": "005ec078",
+            "object_offset": "0x0",
+        },
     ]
     # Ghidra containment: the first site really sits in 0x00439550 - the
     # timer-wrapper constructor the census misattributed to the hash-grow.
@@ -71,9 +81,7 @@ def test_containment_corrections_are_reported_not_silently_applied() -> None:
     corrected, corrections = attribute_writers(writes, containment)
 
     assert corrected[0]["function_start"] == "00439550"
-    assert corrections == [
-        {"site": "004395d4", "census": "004393e0", "containment": "00439550"}
-    ]
+    assert corrections == [{"site": "004395d4", "census": "004393e0", "containment": "00439550"}]
     assert corrected[1]["function_start"] == "004397d0"
 
 
@@ -84,7 +92,12 @@ def test_the_widget_table_unifies_with_its_reviewed_identity() -> None:
     from wiz8decomp.object_model import lifecycle_unifications, load_reviewed_lifecycles
 
     writes = [
-        {"site": "004f3d99", "function_start": "004f3d90", "vtable": "005ed5bc", "object_offset": "0x0"},
+        {
+            "site": "004f3d99",
+            "function_start": "004f3d90",
+            "vtable": "005ed5bc",
+            "object_offset": "0x0",
+        },
     ]
     proposals = lifecycle_unifications(writes, load_reviewed_lifecycles(REPOSITORY))
 

@@ -28,12 +28,10 @@ def test_wiz8_is_the_canonical_executable_alias(monkeypatch) -> None:
     monkeypatch.setattr(project, "configured_modules", lambda *_args, **_kwargs: modules)
 
     assert (
-        project.resolve_program_name(SimpleNamespace(), "wiz8")
-        == "wiz8--gog-base--wiz8--canonical"
+        project.resolve_program_name(SimpleNamespace(), "wiz8") == "wiz8--gog-base--wiz8--canonical"
     )
     assert (
-        project.resolve_program_name(SimpleNamespace(), None)
-        == "wiz8--gog-base--wiz8--canonical"
+        project.resolve_program_name(SimpleNamespace(), None) == "wiz8--gog-base--wiz8--canonical"
     )
 
 
@@ -42,6 +40,5 @@ def test_variant_qualified_alias_still_selects_a_noncanonical_build(monkeypatch)
     monkeypatch.setattr(project, "configured_modules", lambda *_args, **_kwargs: modules)
 
     assert (
-        project.resolve_program_name(SimpleNamespace(), "demo/Wiz8.exe")
-        == "wiz8--demo--wiz8--demo"
+        project.resolve_program_name(SimpleNamespace(), "demo/Wiz8.exe") == "wiz8--demo--wiz8--demo"
     )

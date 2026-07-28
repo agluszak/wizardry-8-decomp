@@ -19,7 +19,13 @@ def extract_installshield(source: Path, destination: Path, *, log_dir: Path) -> 
     if unshield:
         installed = destination / "installed"
         installed.mkdir(parents=True, exist_ok=False)
-        results.append(run([unshield, "-d", installed, "x", candidates[0]], cwd=candidates[0].parent, log_path=log_dir / "demo-unshield.json"))
+        results.append(
+            run(
+                [unshield, "-d", installed, "x", candidates[0]],
+                cwd=candidates[0].parent,
+                log_path=log_dir / "demo-unshield.json",
+            )
+        )
         return results
     raise RuntimeError(
         "the demo uses an InstallShield CAB unsupported by 7z/cabextract; install the open-source "
@@ -47,4 +53,3 @@ def run_under_wine(
     environment = dict(os.environ)
     environment.update({"WINEPREFIX": str(prefix), "WINEDLLOVERRIDES": "winemenubuilder.exe=d"})
     return run(["wine", executable, *args], cwd=cwd, env=environment, log_path=log_path)
-

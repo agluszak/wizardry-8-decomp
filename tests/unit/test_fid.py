@@ -24,12 +24,7 @@ def test_fid_name_filter_rejects_unstable_coff_local_labels() -> None:
 def test_fid_provenance_resolves_program_from_domain_path() -> None:
     record = {"toolchain": "vc6-sp5", "source_kind": "cmake-object-library"}
     provenance = {"fid--vc6-sp5--jpeg--unit--0123456789ab": record}
-    assert (
-        _provenance_for_domain(
-            provenance, "/fid--vc6-sp5--jpeg--unit--0123456789ab"
-        )
-        == record
-    )
+    assert _provenance_for_domain(provenance, "/fid--vc6-sp5--jpeg--unit--0123456789ab") == record
 
 
 def test_fid_database_is_reused_only_for_matching_verified_inputs(tmp_path: Path) -> None:

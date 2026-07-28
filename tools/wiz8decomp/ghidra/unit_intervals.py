@@ -54,9 +54,7 @@ def call_site_anchors(rows: list[dict[str, str]], program: str) -> dict[int, str
             continue
         units_by_anchor[int(row["function_start"], 16)].add(unit)
     return {
-        anchor: next(iter(units))
-        for anchor, units in units_by_anchor.items()
-        if len(units) == 1
+        anchor: next(iter(units)) for anchor, units in units_by_anchor.items() if len(units) == 1
     }
 
 

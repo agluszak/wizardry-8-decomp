@@ -29,12 +29,8 @@ def _field(text: str, name: str, *, offset: int | None = None) -> tuple[str, int
 
 
 def test_catalogue_headers_do_not_redeclare_compiled_records() -> None:
-    gameplay = (REPOSITORY / "config/types/wiz8/gameplay_databases.h").read_text(
-        encoding="utf-8"
-    )
-    encounter = (REPOSITORY / "config/types/wiz8/encounter_tables.h").read_text(
-        encoding="utf-8"
-    )
+    gameplay = (REPOSITORY / "config/types/wiz8/gameplay_databases.h").read_text(encoding="utf-8")
+    encounter = (REPOSITORY / "config/types/wiz8/encounter_tables.h").read_text(encoding="utf-8")
     assert "include/wiz8/layouts/gameplay_databases.h" in gameplay
     assert "include/wiz8/layouts/item_tables.h" in gameplay
     assert "typedef struct W8ItemDatabaseRecord" not in gameplay
@@ -70,9 +66,9 @@ def test_encounter_vector_starts_with_exact_vtable_identity() -> None:
 
 
 def test_replay_imports_the_canonical_layout_headers() -> None:
-    replay = (
-        REPOSITORY / "tools/wiz8decomp/ghidra/apply_wiz8_format_model.py"
-    ).read_text(encoding="utf-8")
+    replay = (REPOSITORY / "tools/wiz8decomp/ghidra/apply_wiz8_format_model.py").read_text(
+        encoding="utf-8"
+    )
     for name in ("item_tables.h", "encounter_tables.h"):
         assert f'"include/wiz8/layouts/{name}"' in replay
     assert '"disposition_cache_factor"' not in replay

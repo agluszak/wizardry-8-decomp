@@ -267,6 +267,7 @@ def build_toolchain(settings: Settings) -> dict[str, Any]:
 
 def check(repository: Path) -> dict[str, Any]:
     commands = (
+        ["ruff", "format", "--check", "."],
         ["ruff", "check", "."],
         ["pyright"],
         ["pytest", "tests/unit"],

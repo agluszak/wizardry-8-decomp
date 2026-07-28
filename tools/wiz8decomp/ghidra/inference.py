@@ -389,9 +389,7 @@ def materialize_type_variables(
         fact_id = variable["name"]
         anchors = [traced["entry"], *variable["sources"]]
         previous = facts(program, _address(program, traced["entry"])).get(fact_id, {})
-        was_unified = bool(
-            selected and previous.get("payload", {}).get("unified_with") == selected
-        )
+        was_unified = bool(selected and previous.get("payload", {}).get("unified_with") == selected)
         for anchor in anchors:
             report["new_facts"] += int(
                 stamp(
@@ -438,8 +436,7 @@ def _replace_owned_target_set(
     previous = get_fact(program, site, fact_id) or {}
     old_targets = {str(value).lower() for value in previous.get("payload", {}).get("targets", [])}
     old_owned = {
-        str(value).lower()
-        for value in previous.get("payload", {}).get("owned_targets", [])
+        str(value).lower() for value in previous.get("payload", {}).get("owned_targets", [])
     }
     new_targets = {str(value).lower() for value in payload.get("targets", [])}
     removed_targets = old_targets - new_targets
@@ -455,8 +452,7 @@ def _replace_owned_target_set(
             references.delete(reference)
             removed += 1
     existing = {
-        str(reference.getToAddress()).lower()
-        for reference in references.getReferencesFrom(site)
+        str(reference.getToAddress()).lower() for reference in references.getReferencesFrom(site)
     }
     added = 0
     newly_owned: set[str] = set()
@@ -534,16 +530,10 @@ def _virtual_shape(op: Any) -> tuple[int, set[str]] | None:
     return (slot_bytes // 4, names)
 
 
-def _exact_vtable_ids(
-    type_names: set[str], identities: dict[str, str]
-) -> set[str]:
+def _exact_vtable_ids(type_names: set[str], identities: dict[str, str]) -> set[str]:
     """Resolve only exact generated DataType identities, never name substrings."""
 
-    return {
-        identities[name.rstrip(" *")]
-        for name in type_names
-        if name.rstrip(" *") in identities
-    }
+    return {identities[name.rstrip(" *")] for name in type_names if name.rstrip(" *") in identities}
 
 
 def add_virtual_references(
@@ -706,9 +696,7 @@ def _reviewed_snapshot(
         start_pyghidra(settings)
         import pyghidra
 
-        project = pyghidra.open_project(
-            effective.project_dir, effective.project_name, create=False
-        )
+        project = pyghidra.open_project(effective.project_dir, effective.project_name, create=False)
         try:
             with pyghidra.program_context(project, "/" + program_name) as program:
                 return _semantic_snapshot(program, addresses)
@@ -740,9 +728,7 @@ def analyze_overlay(
     type_variables = [seed for seed in plan["seeds"] if seed["kind"] == "type-variable"]
     vtables = [seed["name"] for seed in plan["seeds"] if seed["kind"] == "vtable"]
     aggregates = [seed for seed in plan["seeds"] if seed["kind"] == "aggregate"]
-    reconstructed = [
-        seed for seed in plan["seeds"] if seed["kind"] == "reconstructed-transfer"
-    ]
+    reconstructed = [seed for seed in plan["seeds"] if seed["kind"] == "reconstructed-transfer"]
     limits = plan["limits"]
     effective, _ = materialize_program(settings, selector)
     creation = create_overlay(
@@ -763,9 +749,7 @@ def analyze_overlay(
             addresses={str(seed["function"]) for seed in reconstructed},
         )
     for class_name in vtables:
-        apply_typed_vtable(
-            settings, selector, overlay_id, class_name, hypothesis=hypothesis
-        )
+        apply_typed_vtable(settings, selector, overlay_id, class_name, hypothesis=hypothesis)
     aggregate_report: dict[str, Any] = {"placed": [], "types": [], "skipped": []}
     if aggregates:
         from .aggregate_overlay import apply_aggregates
@@ -794,9 +778,7 @@ def analyze_overlay(
         with pyghidra.program_context(project, "/" + program_name) as program:
             # Capture the seeded state before closure so its effects remain
             # distinct from consequences discovered by the worklist.
-            seed_functions = [
-                canonical_address(item["function"]) for item in type_variables
-            ]
+            seed_functions = [canonical_address(item["function"]) for item in type_variables]
             seed_functions.extend(canonical_address(item["function"]) for item in reconstructed)
             seed_functions.extend(item["base"] for item in aggregate_report.get("placed", []))
             planned_tables: set[int] = set()
@@ -810,17 +792,13 @@ def analyze_overlay(
                 if vtables
                 else ([], 0)
             )
-            initial_closure = graph.closure(
-                seed_functions, limit=int(limits["functions"])
-            )
+            initial_closure = graph.closure(seed_functions, limit=int(limits["functions"]))
             initial_frontier = {
                 address
                 for group in initial_closure["groups"].values()
                 for address in group
                 if _is_memory_address(address)
-                if program.getFunctionManager().getFunctionAt(
-                    _address(program, address)
-                )
+                if program.getFunctionManager().getFunctionAt(_address(program, address))
                 is not None
             }
             measured = sorted(set(seed_functions) | initial_frontier)
@@ -897,8 +875,7 @@ def analyze_overlay(
                                 pass
                     measured = sorted(set(measured) | set(frontier))
                     iteration["dependency_cone"] = {
-                        reason: len(addresses)
-                        for reason, addresses in closure["groups"].items()
+                        reason: len(addresses) for reason, addresses in closure["groups"].items()
                     }
                     iteration["scope_complete"] = closure["scope_complete"]
                     iteration["truncated_frontier"] = len(closure["truncated_frontier"])
@@ -916,9 +893,7 @@ def analyze_overlay(
             program.save("candidate inference stabilization", None)
             after = _semantic_snapshot(program, measured)
             serialised = graph.serialise()
-            relevant_nodes = set(measured) | {
-                canonical_address(seed) for seed in seed_functions
-            }
+            relevant_nodes = set(measured) | {canonical_address(seed) for seed in seed_functions}
             relevant_edges = [
                 edge
                 for edge in serialised["edges"]
@@ -938,14 +913,10 @@ def analyze_overlay(
         dispose_sessions()
         project.close()
 
-    reviewed = _reviewed_snapshot(
-        settings, effective, selector, program_name, measured
-    )
+    reviewed = _reviewed_snapshot(settings, effective, selector, program_name, measured)
 
     stabilized = bool(iterations) and iterations[-1]["new_candidate_changes"] == 0
-    semantic_frontier = (
-        iterations[-1].get("truncated_frontier", 0) if iterations else 0
-    )
+    semantic_frontier = iterations[-1].get("truncated_frontier", 0) if iterations else 0
     indirect_limit = int(limits["indirect_functions"])
     scope_complete = semantic_frontier == 0 and indirect_total <= indirect_limit
     report = {
@@ -964,9 +935,7 @@ def analyze_overlay(
         },
         "iteration_count": len(iterations),
         "semantic_deltas": {
-            "reviewed_to_seeded": _classify_changes(
-                reviewed, seeded, 0, 0, 0, []
-            ),
+            "reviewed_to_seeded": _classify_changes(reviewed, seeded, 0, 0, 0, []),
             "seeded_to_closure": _classify_changes(
                 seeded,
                 after,
@@ -1002,9 +971,7 @@ def analyze_overlay(
     (Path(analysis_path) / "analysis.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
-    return {
-        key: value for key, value in report.items() if key != "dependency_graph_detail"
-    }
+    return {key: value for key, value in report.items() if key != "dependency_graph_detail"}
 
 
 def _reviewed_tables(

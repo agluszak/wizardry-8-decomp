@@ -21,11 +21,10 @@ def test_wiz8_reccmp_target_and_platform_header_are_canonical() -> None:
     assert "#include <ddraw.h>" in windows_header
     assert "#define DIRECTDRAW_VERSION 0x0700" in windows_header
 
+
 def test_main_menu_runtime_uses_dirty_uploads_and_real_input_dispatch() -> None:
     repository = Path(__file__).resolve().parents[2]
-    menu = (repository / "src/wiz8/local_screens/MainMenuScreen.cpp").read_text(
-        encoding="utf-8"
-    )
+    menu = (repository / "src/wiz8/local_screens/MainMenuScreen.cpp").read_text(encoding="utf-8")
     video = (repository / "src/wiz8/video2.cpp").read_text(encoding="utf-8")
     dirty = (repository / "src/wiz8/dirty_tiles.cpp").read_text(encoding="utf-8")
     surface = (repository / "src/wiz8/surface2d.cpp").read_text(encoding="utf-8")

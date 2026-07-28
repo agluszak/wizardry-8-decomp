@@ -64,13 +64,9 @@ def test_seed_record_merge_replaces_stable_key_and_preserves_other_kinds(
         "marker": "preserved",
     }
     merged = _merge_seed_records(config, [source_old, precompiled], [source_new])
-    by_key = {
-        (item["toolchain"], item["library"], item["variant"]): item for item in merged
-    }
+    by_key = {(item["toolchain"], item["library"], item["variant"]): item for item in merged}
     assert by_key[("vc6-sp5", "ijg-jpeg-6", "release-md-o2")]["marker"] == "new"
     assert (
-        by_key[("vc6-sp5", "msvc-crt-static", "vc6-sp5-multithreaded-static")][
-            "marker"
-        ]
+        by_key[("vc6-sp5", "msvc-crt-static", "vc6-sp5-multithreaded-static")]["marker"]
         == "preserved"
     )

@@ -17,7 +17,9 @@ def program_name(module: dict[str, Any]) -> str:
 
 
 def _rules(settings: Settings) -> list[dict[str, Any]]:
-    data = yaml.safe_load((settings.repo_dir / "config" / "modules.yml").read_text(encoding="utf-8"))
+    data = yaml.safe_load(
+        (settings.repo_dir / "config" / "modules.yml").read_text(encoding="utf-8")
+    )
     return data["selection_rules"]
 
 
@@ -43,11 +45,19 @@ def configured_modules(
             continue
         if variant and module["variant"] != variant:
             continue
-        if requested_program and requested_program not in {module["program_name"], module["module_name"], f"{module['variant']}/{module['module_name']}"}:
+        if requested_program and requested_program not in {
+            module["program_name"],
+            module["module_name"],
+            f"{module['variant']}/{module['module_name']}",
+        }:
             continue
         selected.append(module)
     if not all_modules and variant is None and requested_program is None:
-        selected = [item for item in selected if item["variant"] == "gog-base" and item["module_name"].casefold() == "wiz8.exe"]
+        selected = [
+            item
+            for item in selected
+            if item["variant"] == "gog-base" and item["module_name"].casefold() == "wiz8.exe"
+        ]
     selected.sort(key=lambda item: item["program_name"])
     if requested_program and not selected:
         raise ValueError(f"no configured module matches program selector: {requested_program}")
@@ -72,10 +82,16 @@ def resolve_program_name(settings: Settings, selector: str | None) -> str:
     if selector:
         exact = [name for name in names if name == selector]
         prefixes = [name for name in names if name.startswith(selector)]
-        aliases = [item["program_name"] for item in modules if selector in {item["module_name"], f"{item['variant']}/{item['module_name']}"}]
+        aliases = [
+            item["program_name"]
+            for item in modules
+            if selector in {item["module_name"], f"{item['variant']}/{item['module_name']}"}
+        ]
         matches = sorted(set(exact or aliases or prefixes))
         if len(matches) != 1:
-            raise ValueError(f"program selector {selector!r} matched {len(matches)} programs: {', '.join(matches)}")
+            raise ValueError(
+                f"program selector {selector!r} matched {len(matches)} programs: {', '.join(matches)}"
+            )
         return matches[0]
     if len(canonical) == 1:
         return canonical[0]
@@ -85,7 +101,11 @@ def resolve_program_name(settings: Settings, selector: str | None) -> str:
 
 
 def module_for_program(settings: Settings, name: str) -> dict[str, Any]:
-    matches = [item for item in configured_modules(settings, all_modules=True) if item["program_name"] == name]
+    matches = [
+        item
+        for item in configured_modules(settings, all_modules=True)
+        if item["program_name"] == name
+    ]
     if len(matches) != 1:
         raise ValueError(f"program has no unique module record: {name}")
     return matches[0]

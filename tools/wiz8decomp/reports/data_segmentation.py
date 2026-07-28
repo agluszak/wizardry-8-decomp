@@ -69,9 +69,7 @@ def unit_lookup(intervals: list[Any]) -> Any:
     return lookup
 
 
-def single_unit_baseline(
-    references: list[dict[str, str]], lookup: Any
-) -> dict[int, str]:
+def single_unit_baseline(references: list[dict[str, str]], lookup: Any) -> dict[int, str]:
     """Globals whose referencing functions all sit in exactly one unit."""
 
     units_by_global: dict[int, set[str]] = defaultdict(set)
@@ -82,15 +80,11 @@ def single_unit_baseline(
         if unit is not None:
             units_by_global[int(row["target"], 16)].add(unit)
     return {
-        target: next(iter(units))
-        for target, units in units_by_global.items()
-        if len(units) == 1
+        target: next(iter(units)) for target, units in units_by_global.items() if len(units) == 1
     }
 
 
-def longest_non_decreasing(
-    indices: list[int], weights: list[int] | None = None
-) -> list[int]:
+def longest_non_decreasing(indices: list[int], weights: list[int] | None = None) -> list[int]:
     """Positions of one longest non-decreasing subsequence.
 
     When two chains keep the same number of elements, the one whose kept
@@ -133,19 +127,13 @@ def fit_storage_class(
 
     excluded: set[str] = set()
     while True:
-        candidates = [
-            (address, unit)
-            for address, unit in baseline
-            if unit not in excluded
-        ]
+        candidates = [(address, unit) for address, unit in baseline if unit not in excluded]
         population: dict[str, int] = defaultdict(int)
         for _, unit in candidates:
             population[unit] += 1
         indices = [unit_order[unit] for _, unit in candidates]
         kept_positions = set(
-            longest_non_decreasing(
-                indices, [population[unit] for _, unit in candidates]
-            )
+            longest_non_decreasing(indices, [population[unit] for _, unit in candidates])
         )
         dropped_by_unit: dict[str, int] = defaultdict(int)
         total_by_unit: dict[str, int] = defaultdict(int)
@@ -255,47 +243,31 @@ and exclusion detail stay under `build/reports/data-segmentation/`.
 """
 
 
-def data_segmentation_report(
-    settings: Any, *, update_snapshot: bool = False
-) -> dict[str, Any]:
+def data_segmentation_report(settings: Any, *, update_snapshot: bool = False) -> dict[str, Any]:
     from ..data_globals import sweep_globals
     from .translation_units import call_site_anchors, derive_intervals
 
     # Regenerate the per-reference report and verify snapshot freshness.
     sweep = sweep_globals(settings)
-    references_path = (
-        settings.build_dir / "reports" / "globals" / "references.csv"
-    )
+    references_path = settings.build_dir / "reports" / "globals" / "references.csv"
     with references_path.open(newline="", encoding="utf-8") as stream:
         all_references = list(csv.DictReader(stream))
 
-    assertions_path = (
-        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
-    )
-    snapshot_path = (
-        settings.repo_dir / "evidence" / "snapshots" / "call-sites" / "assertions.csv"
-    )
+    assertions_path = settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
+    snapshot_path = settings.repo_dir / "evidence" / "snapshots" / "call-sites" / "assertions.csv"
     with assertions_path.open(newline="", encoding="utf-8") as stream:
         assertions = list(csv.DictReader(stream))
     with snapshot_path.open(newline="", encoding="utf-8") as stream:
         call_sites = list(csv.DictReader(stream))
-    program = next(
-        row["program"] for row in call_sites if "--gog-base--" in row["program"]
-    )
+    program = next(row["program"] for row in call_sites if "--gog-base--" in row["program"])
     intervals = derive_intervals(assertions, call_site_anchors(call_sites, program))
-    order = {
-        interval.source_path: index for index, interval in enumerate(intervals)
-    }
+    order = {interval.source_path: index for index, interval in enumerate(intervals)}
     lookup = unit_lookup(intervals)
 
     references = [row for row in all_references if row["program"] == program]
-    globals_path = (
-        settings.repo_dir / "evidence" / "snapshots" / "globals" / "globals.csv"
-    )
+    globals_path = settings.repo_dir / "evidence" / "snapshots" / "globals" / "globals.csv"
     with globals_path.open(newline="", encoding="utf-8") as stream:
-        globals_rows = [
-            row for row in csv.DictReader(stream) if row["program"] == program
-        ]
+        globals_rows = [row for row in csv.DictReader(stream) if row["program"] == program]
     by_address = {int(row["address"], 16): row for row in globals_rows}
 
     baseline = single_unit_baseline(references, lookup)
@@ -315,9 +287,7 @@ def data_segmentation_report(
     report_dir = settings.build_dir / "reports" / _REPORT_NAME
     interval_stream = io.StringIO(newline="")
     writer = csv.writer(interval_stream, lineterminator="\n")
-    writer.writerow(
-        ["program", "storage_class", "unit", "lower", "upper", "baseline_globals"]
-    )
+    writer.writerow(["program", "storage_class", "unit", "lower", "upper", "baseline_globals"])
     for name, fit in fits.items():
         for unit, (lower, upper) in fit["intervals"]:
             writer.writerow(
@@ -337,11 +307,9 @@ def data_segmentation_report(
     if update_snapshot:
         atomic_write(snapshot_dir / _SNAPSHOT_FILE, interval_csv)
         atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    interval_snapshot_fresh = (
+    interval_snapshot_fresh = (snapshot_dir / _SNAPSHOT_FILE).is_file() and (
         snapshot_dir / _SNAPSHOT_FILE
-    ).is_file() and (snapshot_dir / _SNAPSHOT_FILE).read_text(
-        encoding="utf-8"
-    ) == interval_csv
+    ).read_text(encoding="utf-8") == interval_csv
     if not update_snapshot and not interval_snapshot_fresh:
         raise RuntimeError(
             "unit data intervals differ from the tracked snapshot; review "

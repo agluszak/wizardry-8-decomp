@@ -23,7 +23,9 @@ def scan_command() -> None:
 
 @app.command("extract")
 def extract_command(
-    roles: Annotated[list[str] | None, typer.Argument(help="Configured input roles to extract.")] = None,
+    roles: Annotated[
+        list[str] | None, typer.Argument(help="Configured input roles to extract.")
+    ] = None,
     all_roles: Annotated[
         bool, typer.Option("--all", help="Extract every configured input role.")
     ] = False,

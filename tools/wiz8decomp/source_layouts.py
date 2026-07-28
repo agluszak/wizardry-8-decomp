@@ -21,9 +21,7 @@ def _reviewed_base_offsets(spec: str) -> set[int]:
     return {int(value, 16) for value in re.findall(r"\+0x([0-9a-fA-F]+)", spec)}
 
 
-def compare_source_layouts(
-    reviewed: Any, compiled: dict[str, CompiledLayout]
-) -> dict[str, Any]:
+def compare_source_layouts(reviewed: Any, compiled: dict[str, CompiledLayout]) -> dict[str, Any]:
     failures: list[dict[str, Any]] = []
     checks = {"classes": 0, "fields": 0, "bases": 0}
     skipped_fields = 0
@@ -74,9 +72,7 @@ def compare_source_layouts(
                 _base, extra = parse_pointee(field.pointee)
                 expected_depth = 1 + extra
             actual_width = (
-                actual.width
-                if actual.width not in (None, 0)
-                else inferred_widths[actual.name]
+                actual.width if actual.width not in (None, 0) else inferred_widths[actual.name]
             )
             expected = (field.offset, field.size, expected_depth)
             observed = (actual.offset, actual_width, actual.pointer_depth)

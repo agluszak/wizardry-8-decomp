@@ -96,9 +96,7 @@ def apply_reviewed_class_model(
                         )
                     structure_handles[reviewed_class.name] = handle
 
-                virtual_function = FunctionDefinitionDataType(
-                    category, VIRTUAL_SLOT_TYPE_NAME, dtm
-                )
+                virtual_function = FunctionDefinitionDataType(category, VIRTUAL_SLOT_TYPE_NAME, dtm)
                 virtual_function.setReturnType(VoidDataType.dataType)
                 virtual_function = dtm.addDataType(
                     virtual_function, DataTypeConflictHandler.REPLACE_HANDLER

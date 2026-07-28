@@ -446,11 +446,7 @@ def sweep_function_census(settings: Settings, *, update_snapshot: bool = False) 
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
         )
 
-    accepted_rows = [
-        row
-        for row in candidate_rows
-        if row["verdict"] in {"exact", "strong"}
-    ]
+    accepted_rows = [row for row in candidate_rows if row["verdict"] in {"exact", "strong"}]
     return {
         "schema": "wiz8.function-census",
         "programs": per_program,

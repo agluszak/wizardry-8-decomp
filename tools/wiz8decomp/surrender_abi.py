@@ -251,7 +251,9 @@ def parse_decorated_name(name: str) -> ParsedName:
                 parsed.template = parsed.template or parsed.vftable_base
             else:
                 # A base path is innermost-first, same as any qualified name.
-                parsed.vftable_base = "::".join(reversed([part for part in base.split("@") if part]))
+                parsed.vftable_base = "::".join(
+                    reversed([part for part in base.split("@") if part])
+                )
         return parsed
 
     if encoding:
@@ -463,7 +465,9 @@ def _representative_modules(settings: Settings) -> tuple[list[dict[str, Any]], d
     chosen: list[dict[str, Any]] = []
     aliases: dict[str, str] = {}
     for members in groups.values():
-        members.sort(key=lambda item: (item["variant"] != canonical, item["variant"], item["relative_path"]))
+        members.sort(
+            key=lambda item: (item["variant"] != canonical, item["variant"], item["relative_path"])
+        )
         chosen.append(members[0])
         for other in members[1:]:
             aliases[program_name(other)] = program_name(members[0])
@@ -517,16 +521,12 @@ def _decode_module_tables(
                         "slot": slot.index,
                         "target_rva": f"0x{slot.target_rva:x}",
                         "target_name": target["name"] if target else "",
-                        "target_signature": (
-                            signatures.get(target["name"], "") if target else ""
-                        ),
+                        "target_signature": (signatures.get(target["name"], "") if target else ""),
                         "resolution": "exported" if target else "internal",
                     }
                 )
         else:
-            for index, displacement in enumerate(
-                decode_vbtable(image, relocated, rva, boundaries)
-            ):
+            for index, displacement in enumerate(decode_vbtable(image, relocated, rva, boundaries)):
                 entries.append({**common, "entry": index, "displacement": displacement})
     return slots, entries
 
@@ -537,12 +537,7 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
     per_module: dict[str, int] = {}
 
     signatures = demangle(
-        [
-            symbol["name"]
-            for module in modules
-            for symbol in module["exports"]
-            if symbol["name"]
-        ]
+        [symbol["name"] for module in modules for symbol in module["exports"] if symbol["name"]]
     )
 
     slot_rows: list[dict[str, Any]] = []
@@ -557,14 +552,10 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
             if symbol["name"]
         ]
         tables = [
-            (symbol, parsed)
-            for symbol, parsed in tables
-            if parsed.kind in {"vftable", "vbtable"}
+            (symbol, parsed) for symbol, parsed in tables if parsed.kind in {"vftable", "vbtable"}
         ]
         if tables:
-            slots, entries = _decode_module_tables(
-                settings, module, program, tables, signatures
-            )
+            slots, entries = _decode_module_tables(settings, module, program, tables, signatures)
             slot_rows.extend(slots)
             entry_rows.extend(entries)
         for symbol in module["exports"]:
@@ -661,7 +652,8 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
             atomic_write(snapshot_dir / name, value)
         atomic_write(snapshot_dir / "README.md", _snapshot_readme())
     snapshot_fresh = all(
-        (snapshot_dir / name).is_file() and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
+        (snapshot_dir / name).is_file()
+        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
         for name in _REPORT_FILES
     )
     if not update_snapshot and not snapshot_fresh:
@@ -678,7 +670,9 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
     disagreements = [
         row["decorated_name"]
         for row in rows
-        if row["class_name"] and row["demangled_signature"] and row["class_name"] not in row["demangled_signature"]
+        if row["class_name"]
+        and row["demangled_signature"]
+        and row["class_name"] not in row["demangled_signature"]
     ]
     return {
         "schema": "wiz8.surrender-abi",
@@ -697,12 +691,9 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
         "vftables_with_named_base": sum(1 for row in vftables if row["vftable_base"]),
         "vftables_decoded": len({row["table"] for row in slot_rows}),
         "vftable_slots": len(slot_rows),
-        "vftable_slots_exported": sum(
-            1 for row in slot_rows if row["resolution"] == "exported"
-        ),
+        "vftable_slots_exported": sum(1 for row in slot_rows if row["resolution"] == "exported"),
         "vftables_with_no_slots": sorted(
-            {row["decorated_name"] for row in vftables}
-            - {row["table"] for row in slot_rows}
+            {row["decorated_name"] for row in vftables} - {row["table"] for row in slot_rows}
         )[:10],
         "vbtables_decoded": len({row["table"] for row in entry_rows}),
         "vbtable_entries": len(entry_rows),

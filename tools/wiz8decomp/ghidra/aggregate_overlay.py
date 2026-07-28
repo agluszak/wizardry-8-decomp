@@ -163,9 +163,7 @@ def _derive_rows(
         reference = group[0]
         if reference.pointer_access:
             candidates = [
-                item
-                for item in sliced["accesses"]
-                if item.get("kind") == "root-relative"
+                item for item in sliced["accesses"] if item.get("kind") == "root-relative"
             ]
             keys = {(item.get("root"), item.get("offset")) for item in candidates}
             if len(keys) != 1:
@@ -173,9 +171,7 @@ def _derive_rows(
             root, storage = next(iter(keys))
             kind = "offset"
         else:
-            candidates = [
-                item for item in sliced["accesses"] if item.get("kind") == "absolute"
-            ]
+            candidates = [item for item in sliced["accesses"] if item.get("kind") == "absolute"]
             keys = {item.get("storage") for item in candidates if item.get("storage")}
             if len(keys) != 1:
                 continue

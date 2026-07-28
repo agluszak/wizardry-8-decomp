@@ -36,9 +36,7 @@ _OBJECT_KINDS = frozenset({"object", "object-import"})
 # nested classes keep their full path ("srHuffman::BitIStream"). Only chained
 # identifier segments (with optional template arguments) directly before the
 # "::~" belong to the class; access and convention prefixes do not.
-_IMPORT_DESTRUCTOR = re.compile(
-    r"([A-Za-z_]\w*(?:<[^>]*>)?(?:::[A-Za-z_]\w*(?:<[^>]*>)?)*)::~"
-)
+_IMPORT_DESTRUCTOR = re.compile(r"([A-Za-z_]\w*(?:<[^>]*>)?(?:::[A-Za-z_]\w*(?:<[^>]*>)?)*)::~")
 
 
 @dataclass(frozen=True)
@@ -118,9 +116,7 @@ def reviewed_destructor_classes(repo_dir: Path, evidence_program: str) -> dict[i
     return mapping
 
 
-def _identify(
-    row: dict[str, str], reviewed: dict[int, str]
-) -> tuple[str, str, int | None] | str:
+def _identify(row: dict[str, str], reviewed: dict[int, str]) -> tuple[str, str, int | None] | str:
     """Resolve one unwind row to (kind, class, destructor) or a skip reason."""
 
     kind = row["kind"]

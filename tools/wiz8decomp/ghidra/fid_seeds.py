@@ -354,10 +354,7 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                     else Path(overlay.url).suffix
                 )
                 overlay_archive = archives / f"{library.id}-overlay-{index}{suffix}"
-                if (
-                    not overlay_archive.is_file()
-                    or sha256_file(overlay_archive) != overlay.sha256
-                ):
+                if not overlay_archive.is_file() or sha256_file(overlay_archive) != overlay.sha256:
                     payload = _download(overlay.url)
                     if hashlib.sha256(payload).hexdigest() != overlay.sha256:
                         raise RuntimeError(
@@ -677,9 +674,7 @@ def validate_seed_manifest(
     config = load_static_libraries(settings)
     if manifest.get("schema") != "wiz8.fid-seed-objects":
         raise RuntimeError("invalid FID seed manifest schema")
-    expected_toolchains = {
-        (item.id, item.commit) for item in config.toolchains
-    }
+    expected_toolchains = {(item.id, item.commit) for item in config.toolchains}
     actual_toolchains = {
         (item.get("id"), item.get("commit")) for item in manifest.get("toolchains", [])
     }
@@ -905,9 +900,7 @@ def build_seed_objects(
     selected_libraries = select_libraries(config, library_ids)
     prepared_sources: dict[str, Path] = {}
     source_provenance = {
-        item["library"]: item
-        for item in source_manifest["sources"]
-        if item["status"] == "ready"
+        item["library"]: item for item in source_manifest["sources"] if item["status"] == "ready"
     }
     cmake_variables = {
         "zlib-1.0.4": "FID_ZLIB_SOURCE",

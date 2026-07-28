@@ -225,9 +225,7 @@ def recovery_context_report(
     by_command = {item["command"]: item["result"] for item in results}
     function = by_command["function"]["function"]
     entry = int(function["entry"], 16)
-    instruction_addresses = {
-        int(value, 16) for value in function.get("instruction_addresses", [])
-    }
+    instruction_addresses = {int(value, 16) for value in function.get("instruction_addresses", [])}
     semantic_facts = by_command["facts-at"]
     if requested != entry:
         entry_results, _ = query_many(settings, selector, [("facts-at", [f"0x{entry:08x}"])])

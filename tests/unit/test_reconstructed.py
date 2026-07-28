@@ -69,9 +69,7 @@ def test_vc6_type_stream_exposes_compiled_class_layout() -> None:
         "m_instance_24", 0x1001, 0x24
     )
     pointer = struct.pack("<I", 0x0003)
-    class_record = (
-        struct.pack("<HHIIIH", 2, 0, 0x1000, 0, 0, 0x58) + _name("GDProp")
-    )
+    class_record = struct.pack("<HHIIIH", 2, 0, 0x1000, 0, 0, 0x58) + _name("GDProp")
     types = TypeStream(
         {
             0x1000: (LF_FIELDLIST, field_list),
@@ -83,7 +81,9 @@ def test_vc6_type_stream_exposes_compiled_class_layout() -> None:
     layout = types.layouts()["GDProp"]
 
     assert layout.size == 0x58
-    assert [(field.name, field.offset, field.width, field.pointer_depth) for field in layout.fields] == [
+    assert [
+        (field.name, field.offset, field.width, field.pointer_depth) for field in layout.fields
+    ] == [
         ("m_flags_00", 0, 2, 0),
         ("m_instance_24", 0x24, 4, 1),
     ]

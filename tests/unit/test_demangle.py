@@ -28,7 +28,9 @@ def test_failed_names_use_a_two_line_group_and_do_not_desynchronise(monkeypatch:
     monkeypatch.setattr(
         demangle_module.subprocess,
         "run",
-        _fake_run("?a@C@@QAEXXZ\npublic: void __thiscall C::a(void)\n\n?bad@@\n\n?z@D@@QAEXXZ\npublic: void __thiscall D::z(void)\n\n"),
+        _fake_run(
+            "?a@C@@QAEXXZ\npublic: void __thiscall C::a(void)\n\n?bad@@\n\n?z@D@@QAEXXZ\npublic: void __thiscall D::z(void)\n\n"
+        ),
     )
 
     result = demangle(["?a@C@@QAEXXZ", "?bad@@", "?z@D@@QAEXXZ"])
@@ -51,7 +53,9 @@ def test_undecorated_names_are_never_sent(monkeypatch: Any) -> None:
 
     def run(*_args: Any, **kwargs: Any) -> Any:
         captured["input"] = kwargs["input"]
-        return subprocess.CompletedProcess(args=[], returncode=0, stdout="?a@C@@QAEXXZ\nx\n\n", stderr="")
+        return subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="?a@C@@QAEXXZ\nx\n\n", stderr=""
+        )
 
     monkeypatch.setattr(demangle_module, "tool_path", lambda: "llvm-undname")
     monkeypatch.setattr(demangle_module.subprocess, "run", run)

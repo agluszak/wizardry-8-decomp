@@ -8,9 +8,7 @@ from .io import read_table
 
 def load_boundary_rows(mapping_path: Path) -> list[dict[str, str]]:
     try:
-        rows = list(
-            read_table(mapping_path, schema_name="wiz8-gameplay-boundaries.csv").rows
-        )
+        rows = list(read_table(mapping_path, schema_name="wiz8-gameplay-boundaries.csv").rows)
     except ValueError as error:
         duplicate = re.search(r"duplicate identity \('([^']+)',\)", str(error))
         if duplicate:

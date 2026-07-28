@@ -103,9 +103,7 @@ def test_single_provisional_source_extern_remains_allowed(tmp_path: Path) -> Non
 
 
 def test_the_tree_itself_is_clean() -> None:
-    result = check_marker_hygiene(
-        [REPOSITORY / "src", REPOSITORY / "include"], REPOSITORY
-    )
+    result = check_marker_hygiene([REPOSITORY / "src", REPOSITORY / "include"], REPOSITORY)
 
     assert result["function_markers"] == result["function_addresses"]
     assert result["shadowed_externs"] == 0

@@ -127,15 +127,9 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
     fields_path = directory / "fields.csv"
     vtables_path = directory / "vtables.csv"
     slots_path = directory / "vtable-slots.csv"
-    imported_path = (
-        repo_dir / "evidence" / "observations" / "surrender" / "wiz8-sr-imports.csv"
-    )
+    imported_path = repo_dir / "evidence" / "observations" / "surrender" / "wiz8-sr-imports.csv"
     imported_types = (
-        {
-            row["class_name"]
-            for row in _untyped_rows(imported_path)
-            if row.get("class_name")
-        }
+        {row["class_name"] for row in _untyped_rows(imported_path) if row.get("class_name")}
         if imported_path.is_file()
         else set()
     )
@@ -197,20 +191,27 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
         owner = classes_by_name.get(field.class_name)
         if owner is None:
             raise ValueError(f"{fields_path}: unknown class {field.class_name}")
-        if not field.name or field.size <= 0 or field.data_type not in {
-            "bytes",
-            "float",
-            "int16",
-            "int32",
-            "pointer",
-            "uint8",
-            "uint16",
-            "uint32",
-        }:
+        if (
+            not field.name
+            or field.size <= 0
+            or field.data_type
+            not in {
+                "bytes",
+                "float",
+                "int16",
+                "int32",
+                "pointer",
+                "uint8",
+                "uint16",
+                "uint32",
+            }
+        ):
             raise ValueError(f"{fields_path}: invalid field {field.class_name}+0x{field.offset:x}")
         key = (field.class_name, field.offset)
         if key in field_keys or field.offset < last_end.get(field.class_name, 0):
-            raise ValueError(f"{fields_path}: overlapping field {field.class_name}+0x{field.offset:x}")
+            raise ValueError(
+                f"{fields_path}: overlapping field {field.class_name}+0x{field.offset:x}"
+            )
         if owner.size is None or field.offset + field.size > owner.size:
             raise ValueError(f"{fields_path}: field exceeds {field.class_name} size")
         if field.data_type == "pointer" and field.size != 4:

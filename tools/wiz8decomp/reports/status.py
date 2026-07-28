@@ -51,9 +51,7 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
         assertions, gameplay, intervals, extra_anchors
     )
     attributed_rows = list(csv.DictReader(gameplay_map.splitlines()))
-    attributed_units = {
-        row["source_path"] for row in attributed_rows if row["source_path"]
-    }
+    attributed_units = {row["source_path"] for row in attributed_rows if row["source_path"]}
 
     return {
         "schema": "wiz8.recovery-status",
@@ -72,9 +70,7 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
                 "owners": _counts(gameplay, "owner"),
                 "translation_unit_attribution": attribution,
                 "attributed_source_units": len(attributed_units),
-                "unresolved_matches": sum(
-                    row["confidence"] != "exact" for row in gameplay
-                ),
+                "unresolved_matches": sum(row["confidence"] != "exact" for row in gameplay),
                 "unowned_functions": attribution["gap"],
             },
         },
@@ -99,8 +95,7 @@ def render_status_markdown(report: dict[str, Any]) -> str:
         "| --- | ---: |",
     ]
     lines.extend(
-        f"| `{program['program']}` | {program['identities']} |"
-        for program in report["programs"]
+        f"| `{program['program']}` | {program['identities']} |" for program in report["programs"]
     )
     lines.extend(
         [

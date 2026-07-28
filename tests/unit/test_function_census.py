@@ -73,9 +73,7 @@ def test_an_attested_candidate_off_a_boundary_is_flagged_not_discarded() -> None
 def test_padding_alone_never_accepts_a_candidate() -> None:
     """Alignment padding also appears inside functions and after data."""
     rows = [
-        row
-        for row in _snapshot("candidates.csv")
-        if row["sources"] == "padding" and row["aligned"]
+        row for row in _snapshot("candidates.csv") if row["sources"] == "padding" and row["aligned"]
     ]
 
     assert rows

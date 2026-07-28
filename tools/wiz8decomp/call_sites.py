@@ -43,7 +43,16 @@ _WINDOW = 96
 # How far back to look for the padding that precedes a function's first byte.
 _FUNCTION_SCAN = 0x3000
 _PADDING = {0xCC, 0x90}
-_PROLOGUES = (b"\x55\x8b\xec", b"\x6a\xff", b"\x83\xec", b"\x81\xec", b"\x53", b"\x56", b"\x57", b"\x8b\xff")
+_PROLOGUES = (
+    b"\x55\x8b\xec",
+    b"\x6a\xff",
+    b"\x83\xec",
+    b"\x81\xec",
+    b"\x53",
+    b"\x56",
+    b"\x57",
+    b"\x8b\xff",
+)
 
 
 @dataclass
@@ -330,8 +339,6 @@ These rows are observations across all builds and do not replace
 """
 
 
-
-
 def sweep_call_sites(settings: Settings, *, update_snapshot: bool = False) -> dict[str, Any]:
     modules, aliases = representative_modules(settings, is_first_party)
     assertion_rows: list[dict[str, Any]] = []
@@ -402,7 +409,8 @@ def sweep_call_sites(settings: Settings, *, update_snapshot: bool = False) -> di
             atomic_write(snapshot_dir / name, value)
         atomic_write(snapshot_dir / "README.md", _snapshot_readme())
     snapshot_fresh = all(
-        (snapshot_dir / name).is_file() and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
+        (snapshot_dir / name).is_file()
+        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
         for name in _REPORT_FILES
     )
     if not update_snapshot and not snapshot_fresh:

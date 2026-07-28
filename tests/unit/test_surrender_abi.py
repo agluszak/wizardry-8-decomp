@@ -168,7 +168,9 @@ def test_a_vbtable_run_ends_at_the_first_relocated_word() -> None:
 
 def test_a_vbtable_run_ends_at_padding_rather_than_reading_it_as_a_base() -> None:
     # Zero after entry zero would place a virtual base on top of the vbptr.
-    image = _FakeImage(words={0x1000: 0xFFFFFFFC, 0x1004: 0x14, 0x1008: 0}, code=range(0x2000, 0x3000))
+    image = _FakeImage(
+        words={0x1000: 0xFFFFFFFC, 0x1004: 0x14, 0x1008: 0}, code=range(0x2000, 0x3000)
+    )
 
     assert decode_vbtable(image, set(), 0x1000, boundaries=set()) == [-4, 0x14]
 
@@ -254,7 +256,11 @@ def test_snapshot_decodes_every_decorated_name() -> None:
     rows = _snapshot()
 
     assert all(row["parse_status"] == "ok" for row in rows)
-    undecoded = [row for row in rows if row["decorated_name"].startswith("?") and not row["demangled_signature"]]
+    undecoded = [
+        row
+        for row in rows
+        if row["decorated_name"].startswith("?") and not row["demangled_signature"]
+    ]
     assert not undecoded, undecoded[:5]
 
 

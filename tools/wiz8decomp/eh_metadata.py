@@ -193,7 +193,9 @@ def _find_records(image: PeImage) -> list[Record]:
             raw = image.read(address, 28)
             if len(raw) != 28:
                 continue
-            _, max_state, unwind_map, try_count, try_map, ip_count, ip_map = struct.unpack("<IiIiIiI", raw)
+            _, max_state, unwind_map, try_count, try_map, ip_count, ip_map = struct.unpack(
+                "<IiIiIiI", raw
+            )
             # A bare magic constant elsewhere in .rdata is possible; require the
             # counts to be sane and every non-null table pointer to be mapped.
             if not 0 <= max_state < 4096 or not 0 <= try_count < 512:
@@ -298,7 +300,9 @@ def _read_tables(
                 handler = image.read(handler_array + catch_index * 16, 16)
                 if len(handler) != 16:
                     break
-                adjectives, descriptor, catch_object, handler_address = struct.unpack("<IIiI", handler)
+                adjectives, descriptor, catch_object, handler_address = struct.unpack(
+                    "<IIiI", handler
+                )
                 record.catches.append(
                     {
                         "try_index": index,
@@ -372,8 +376,6 @@ name where the build kept one. These are the only surviving MSVC type descriptor
 """
 
 
-
-
 def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> dict[str, Any]:
     modules, aliases = representative_modules(settings, is_first_party)
 
@@ -411,7 +413,9 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
                         "state": state,
                         "to_state": to_state,
                         "kind": funclet.kind,
-                        "frame_offset": "" if funclet.frame_offset is None else funclet.frame_offset,
+                        "frame_offset": ""
+                        if funclet.frame_offset is None
+                        else funclet.frame_offset,
                         "target": _hex(funclet.target),
                         "import_slot": _hex(funclet.import_slot),
                         "import_name": funclet.import_name,
@@ -445,7 +449,9 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
 
     function_rows.sort(key=lambda row: (row["program"], row["funcinfo"]))
     unwind_rows.sort(key=lambda row: (row["program"], row["funcinfo"], row["state"]))
-    catch_rows.sort(key=lambda row: (row["program"], row["funcinfo"], row["try_index"], row["catch_index"]))
+    catch_rows.sort(
+        key=lambda row: (row["program"], row["funcinfo"], row["try_index"], row["catch_index"])
+    )
 
     outputs = {
         "functions.csv": _csv_text(
@@ -506,7 +512,8 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
             atomic_write(snapshot_dir / name, value)
         atomic_write(snapshot_dir / "README.md", _snapshot_readme())
     snapshot_fresh = all(
-        (snapshot_dir / name).is_file() and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
+        (snapshot_dir / name).is_file()
+        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
         for name in _REPORT_FILES
     )
     if not update_snapshot and not snapshot_fresh:
@@ -523,7 +530,8 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
     opaque = sorted(
         program
         for program, count in per_program.items()
-        if count and not any(row["program"] == program and row["handler_thunk"] for row in function_rows)
+        if count
+        and not any(row["program"] == program and row["handler_thunk"] for row in function_rows)
     )
     readable = [row for row in unwind_rows if row["program"] not in opaque]
     cleaned_up = [row for row in readable if row["target"] or row["import_name"]]
@@ -543,7 +551,9 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
         "placed_local_objects": placed,
         "unresolved_cleanup_kinds": unresolved,
         "distinct_destructors": len({row["target"] for row in unwind_rows if row["target"]}),
-        "imported_destructors": len({row["import_name"] for row in unwind_rows if row["import_name"]}),
+        "imported_destructors": len(
+            {row["import_name"] for row in unwind_rows if row["import_name"]}
+        ),
         "catch_handlers": len(catch_rows),
         "typed_catch_handlers": typed_catches,
         "type_names": sorted({row["type_name"] for row in catch_rows if row["type_name"]}),

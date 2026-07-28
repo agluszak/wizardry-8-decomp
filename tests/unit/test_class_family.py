@@ -66,8 +66,6 @@ def test_rendering_keeps_the_object_offset_out_of_rich_markup() -> None:
     """
 
     writes = [_write("00400200", "00400210", "0x60", "00500000")]
-    rendered = render_family(
-        collect_family(writes, [_table("00500000", "1")], [], "00500000")
-    )
+    rendered = render_family(collect_family(writes, [_table("00500000", "1")], [], "00500000"))
     assert "this+0x60" in rendered
     assert "[" not in rendered and "]" not in rendered

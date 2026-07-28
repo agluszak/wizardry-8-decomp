@@ -64,16 +64,10 @@ def load_candidates(settings: Any) -> tuple[str, list[dict[str, Any]]]:
     program = _canonical_program(vtables)
     vtables = [row for row in vtables if row["program"] == program]
     slots = [row for row in _read(snapshots / "slots.csv") if row["program"] == program]
-    writes = [
-        row
-        for row in _read(snapshots / "vptr-writes.csv")
-        if row["program"] == program
-    ]
+    writes = [row for row in _read(snapshots / "vptr-writes.csv") if row["program"] == program]
     reviewed = {
         int(row["address"], 16)
-        for row in _read(
-            settings.repo_dir / "evidence" / "reviewed" / "wiz8" / "vtables.csv"
-        )
+        for row in _read(settings.repo_dir / "evidence" / "reviewed" / "wiz8" / "vtables.csv")
     }
     return program, classify_candidates(vtables, slots, writes, reviewed)
 
@@ -100,9 +94,7 @@ def header_skeleton(skeleton: dict[str, Any]) -> str:
     cursor = 0
     for offset, vtable in skeleton["vptr_offsets"]:
         if offset > cursor:
-            lines.append(
-                f"    unsigned char unknown_{cursor:03x}[0x{offset - cursor:x}];"
-            )
+            lines.append(f"    unsigned char unknown_{cursor:03x}[0x{offset - cursor:x}];")
         field = "vptr" if offset == 0 else f"vptr_{offset:x}"
         lines.append(
             f"    void* {field};{' ' * max(1, 24 - len(field))}"
@@ -110,19 +102,13 @@ def header_skeleton(skeleton: dict[str, Any]) -> str:
         )
         cursor = offset + 4
     if skeleton["size"] > cursor:
-        lines.append(
-            f"    unsigned char unknown_{cursor:03x}[0x{skeleton['size'] - cursor:x}];"
-        )
+        lines.append(f"    unsigned char unknown_{cursor:03x}[0x{skeleton['size'] - cursor:x}];")
     lines.append("};")
     lines.append("#pragma pack(pop)")
     lines.append("")
-    origin = (
-        "allocation hint" if skeleton["size_is_allocation_hint"] else "vptr extent only"
-    )
+    origin = "allocation hint" if skeleton["size_is_allocation_hint"] else "vptr extent only"
     lines.append(f"/* size origin: {origin} */")
-    lines.append(
-        f"typedef char {name}_size_must_be_0x{skeleton['size']:x}["
-    )
+    lines.append(f"typedef char {name}_size_must_be_0x{skeleton['size']:x}[")
     lines.append(f"    sizeof(struct {name}) == 0x{skeleton['size']:x} ? 1 : -1];")
     lines.append("")
     return "\n".join(lines)
@@ -206,8 +192,7 @@ def promotion_template(
     lines.append("```csv")
     for index, target in enumerate(slot_targets.get(vtable, [])):
         lines.append(
-            f"wiz8,<class-name>.primary,{index},{target},,<confidence>,"
-            "classes:wiz8:<class-name>"
+            f"wiz8,<class-name>.primary,{index},{target},,<confidence>,classes:wiz8:<class-name>"
         )
     lines.append("```")
     lines.append("")
@@ -266,9 +251,7 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
                     else ""
                 ),
                 "slot0_target": (
-                    f"{item['slot0_target']:08x}"
-                    if item["slot0_target"] is not None
-                    else ""
+                    f"{item['slot0_target']:08x}" if item["slot0_target"] is not None else ""
                 ),
                 "constructor_or_destructor": "|".join(
                     f"{writer:08x}" for writer in item["constructor_or_destructor"]
@@ -277,8 +260,7 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
                     f"0x{size:x}" for size in item["allocation_sizes"]
                 ),
                 "co_installed_vtables": "|".join(
-                    f"{vtable:08x}@0x{offset:x}"
-                    for vtable, offset in item["co_installed_vtables"]
+                    f"{vtable:08x}@0x{offset:x}" for vtable, offset in item["co_installed_vtables"]
                 ),
                 "reviewed_class": "yes" if item["reviewed"] else "",
                 "evidence": "vptr-writes sites " + ",".join(item["write_sites"]),
@@ -295,19 +277,25 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
     reviewed_addresses = {item["vtable"] for item in candidates if item["reviewed"]}
     # A teardown body stores its own table before the base's, the reverse of a
     # constructor, so its pair has to be ordered the other way round.
-    program_writes = [row for row in _read(snapshots / "vptr-writes.csv") if row["program"] == program]
+    program_writes = [
+        row for row in _read(snapshots / "vptr-writes.csv") if row["program"] == program
+    ]
     destructor_writers = teardown_writers(
         program_writes,
         [row for row in _read(snapshots / "slots.csv") if row["program"] == program],
         [
             row
-            for row in _read(settings.repo_dir / "evidence" / "snapshots" / "functions" / "calls.csv")
+            for row in _read(
+                settings.repo_dir / "evidence" / "snapshots" / "functions" / "calls.csv"
+            )
             if row["program"] == program
         ],
     )
     sizes = {
         int(row["address"], 16): int(row["size"])
-        for row in _read(settings.repo_dir / "evidence" / "snapshots" / "functions" / "candidates.csv")
+        for row in _read(
+            settings.repo_dir / "evidence" / "snapshots" / "functions" / "candidates.csv"
+        )
         if row["program"] == program and row["size"]
     }
     family_rows = [
@@ -325,15 +313,11 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
                 else ""
             ),
         }
-        for family in derived_families(
-            program_writes, slot_counts, sizes, destructor_writers
-        )
+        for family in derived_families(program_writes, slot_counts, sizes, destructor_writers)
     ]
     if family_rows:
         stream = io.StringIO(newline="")
-        writer = csv.DictWriter(
-            stream, fieldnames=list(family_rows[0].keys()), lineterminator="\n"
-        )
+        writer = csv.DictWriter(stream, fieldnames=list(family_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(family_rows)
         atomic_write(report_dir / "families.csv", stream.getvalue())
@@ -359,9 +343,7 @@ def class_candidates_report(settings: Any) -> dict[str, Any]:
         "candidates": len(rows),
         "reviewed": sum(1 for row in rows if row["reviewed_class"]),
         "unreviewed": sum(1 for row in rows if not row["reviewed_class"]),
-        "with_deleting_destructor": sum(
-            1 for row in rows if row["scalar_deleting_destructor"]
-        ),
+        "with_deleting_destructor": sum(1 for row in rows if row["scalar_deleting_destructor"]),
         "with_allocation_hint": sum(1 for row in rows if row["allocation_size_hints"]),
         "derived_families": len(family_rows),
         "unreviewed_derived_families": sum(1 for row in family_rows if not row["reviewed_class"]),

@@ -81,9 +81,7 @@ def merge_monotonic(left: dict[str, str], right: dict[str, str]) -> dict[str, st
         new = right[field]
         if field == "confidence":
             merged[field] = (
-                new
-                if _CONFIDENCE_RANK.get(new, -1) > _CONFIDENCE_RANK.get(old, -1)
-                else old
+                new if _CONFIDENCE_RANK.get(new, -1) > _CONFIDENCE_RANK.get(old, -1) else old
             )
         elif not old:
             merged[field] = new
@@ -131,7 +129,9 @@ def upsert_row(path: Path, row: dict[str, str]) -> dict[str, object]:
     missing = set(table.schema.columns) - set(row)
     extra = set(row) - set(table.schema.columns)
     if missing or extra:
-        raise ValueError(f"{path}: row columns differ; missing={sorted(missing)}, extra={sorted(extra)}")
+        raise ValueError(
+            f"{path}: row columns differ; missing={sorted(missing)}, extra={sorted(extra)}"
+        )
     normalized = {column: str(row[column]) for column in table.schema.columns}
     identity = identity_of(normalized, table.schema, path=path)
     by_identity = {

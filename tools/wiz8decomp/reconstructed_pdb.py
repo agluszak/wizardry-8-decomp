@@ -297,9 +297,7 @@ class TypeStream:
             return self._width_and_depth(struct.unpack_from("<I", payload, 0)[0])
         if leaf == LF_ARRAY:
             size, _cursor = _numeric_value(payload, 8)
-            _element_width, depth = self._width_and_depth(
-                struct.unpack_from("<I", payload, 0)[0]
-            )
+            _element_width, depth = self._width_and_depth(struct.unpack_from("<I", payload, 0)[0])
             return (size, depth)
         if leaf in {LF_CLASS, LF_STRUCTURE}:
             size, _cursor = _numeric_value(payload, 16)

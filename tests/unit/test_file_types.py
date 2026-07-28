@@ -26,4 +26,3 @@ def test_iso_signature(tmp_path: Path) -> None:
     data[0x8001:0x8006] = b"CD001"
     path.write_bytes(data)
     assert detect(path).detected_type == "iso-image"
-

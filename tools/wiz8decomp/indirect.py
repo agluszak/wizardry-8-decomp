@@ -43,9 +43,7 @@ def resolve_handler_table(repo: Path) -> dict[str, Any]:
         else:
             stubs[row["handler_address"]].append(slot)
 
-    folded = {
-        address: slots for address, slots in stubs.items() if len(slots) > 1
-    }
+    folded = {address: slots for address, slots in stubs.items() if len(slots) > 1}
     return {
         "table_slots": len(rows),
         "distinct_handlers": len(handlers),
@@ -68,9 +66,9 @@ def slot_override_sets(repo: Path, program: str) -> dict[int, dict[str, Any]]:
 
     by_slot: dict[int, set[str]] = defaultdict(set)
     tables_by_slot: dict[int, set[str]] = defaultdict(set)
-    with (
-        repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv"
-    ).open(newline="", encoding="utf-8") as stream:
+    with (repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
         for row in csv.DictReader(stream):
             if row["program"] != program or not row["target"]:
                 continue
@@ -100,9 +98,9 @@ def resolve_virtual_call(
     """
 
     rows: dict[str, dict[int, str]] = defaultdict(dict)
-    with (
-        repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv"
-    ).open(newline="", encoding="utf-8") as stream:
+    with (repo / "evidence" / "snapshots" / "polymorphism" / "slots.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
         for row in csv.DictReader(stream):
             if row["program"] == program and row["target"]:
                 rows[row["vtable"]][int(row["slot_index"])] = row["target"]
@@ -117,7 +115,9 @@ def resolve_virtual_call(
         )
         narrowed = True
     else:
-        targets = sorted({table_slots[slot] for table_slots in rows.values() if slot in table_slots})
+        targets = sorted(
+            {table_slots[slot] for table_slots in rows.values() if slot in table_slots}
+        )
         narrowed = False
     return {
         "slot": slot,

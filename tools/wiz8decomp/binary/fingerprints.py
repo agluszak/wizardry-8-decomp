@@ -35,4 +35,3 @@ def bytes_entropy(data: bytes) -> float:
     for byte in data:
         counts[byte] += 1
     return -sum((count / len(data)) * math.log2(count / len(data)) for count in counts if count)
-

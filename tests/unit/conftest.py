@@ -26,9 +26,10 @@ def synthetic_pe(tmp_path: Path) -> Path:
     struct.pack_into("<IIIIII", data, optional + 72, 0x100000, 0x1000, 0x100000, 0x1000, 0, 16)
     section = optional + 0xE0
     data[section : section + 8] = b".text\0\0\0"
-    struct.pack_into("<IIIIIIHHI", data, section + 8, 1, 0x1000, 0x200, 0x200, 0, 0, 0, 0, 0x60000020)
+    struct.pack_into(
+        "<IIIIIIHHI", data, section + 8, 1, 0x1000, 0x200, 0x200, 0, 0, 0, 0, 0x60000020
+    )
     data[0x200] = 0xC3
     path = tmp_path / "fixture.bin"
     path.write_bytes(data)
     return path
-

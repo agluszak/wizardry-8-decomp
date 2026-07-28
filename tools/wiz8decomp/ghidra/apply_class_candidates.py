@@ -75,20 +75,14 @@ def load_candidate_inputs(
     # program still gets the call-site snapshot anchors filtered to itself.
     assertions: list[dict[str, str]] = []
     if "--gog-base--" in program_name:
-        assertions = _rows(
-            repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
-        )
+        assertions = _rows(repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv")
     anchors = call_site_anchors(bundle["assertions"], program_name)
     intervals = derive_intervals(assertions, anchors)
 
     data_intervals = [
         row
         for row in _rows(
-            repo_dir
-            / "evidence"
-            / "snapshots"
-            / "data-segmentation"
-            / "unit-data-intervals.csv"
+            repo_dir / "evidence" / "snapshots" / "data-segmentation" / "unit-data-intervals.csv"
         )
         if row["program"] == program_name
     ]
@@ -125,9 +119,7 @@ def writer_comment_bodies(candidates: list[dict[str, Any]]) -> dict[int, str]:
         suffix = f"; allocation hints {hints}" if hints else ""
         deleting = candidate["scalar_deleting_destructor"]
         if deleting is not None:
-            roles[deleting].append(
-                f"candidate scalar deleting destructor of {name}{suffix}"
-            )
+            roles[deleting].append(f"candidate scalar deleting destructor of {name}{suffix}")
         elif candidate["slot0_target"] is not None:
             # Writes no vtable itself, so it is only positional evidence:
             # MSVC puts the scalar deleting destructor in slot 0 when the
@@ -138,12 +130,8 @@ def writer_comment_bodies(candidates: list[dict[str, Any]]) -> dict[int, str]:
                 "(scalar deleting destructor position; writes no vtable itself)"
             )
         for writer in candidate["constructor_or_destructor"]:
-            roles[writer].append(
-                f"candidate constructor-or-destructor of {name}{suffix}"
-            )
-    return {
-        writer: "\n".join(sorted(lines)) for writer, lines in roles.items()
-    }
+            roles[writer].append(f"candidate constructor-or-destructor of {name}{suffix}")
+    return {writer: "\n".join(sorted(lines)) for writer, lines in roles.items()}
 
 
 def interval_lookup(intervals: list[TranslationUnitInterval]):
@@ -166,7 +154,10 @@ def data_interval_lookup(rows: list[dict[str, str]]):
             for row in rows
             if row["storage_class"] == name
         )
-        by_class[name] = ([lower for lower, _, _ in spans], [(upper, unit) for _, upper, unit in spans])
+        by_class[name] = (
+            [lower for lower, _, _ in spans],
+            [(upper, unit) for _, upper, unit in spans],
+        )
 
     def lookup(storage: str, address: int) -> str | None:
         entry = by_class.get(storage)
@@ -238,9 +229,7 @@ def apply_class_candidates(
                     structures += 1
 
                 writer_comments = 0
-                for writer, body in sorted(
-                    writer_comment_bodies(inputs["candidates"]).items()
-                ):
+                for writer, body in sorted(writer_comment_bodies(inputs["candidates"]).items()):
                     address = address_space.getAddress(writer)
                     if listing.getCodeUnitAt(address) is None:
                         continue

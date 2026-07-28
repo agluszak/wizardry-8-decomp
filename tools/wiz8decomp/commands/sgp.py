@@ -4,9 +4,7 @@ from typing import Annotated
 
 import typer
 
-app = typer.Typer(
-    help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True
-)
+app = typer.Typer(help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True)
 
 
 @app.command("sweep")
@@ -25,6 +23,4 @@ def sweep_command(
     from .. import cli
     from ..sgp_oracle import sweep_sgp_units
 
-    cli._run_action(
-        lambda: sweep_sgp_units(cli._settings(), unit, update_snapshot=update_snapshot)
-    )
+    cli._run_action(lambda: sweep_sgp_units(cli._settings(), unit, update_snapshot=update_snapshot))

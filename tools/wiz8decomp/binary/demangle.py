@@ -32,9 +32,7 @@ def tool_path() -> str:
 
 @lru_cache(maxsize=1)
 def tool_version() -> str:
-    result = subprocess.run(
-        [tool_path(), "--version"], capture_output=True, text=True, check=False
-    )
+    result = subprocess.run([tool_path(), "--version"], capture_output=True, text=True, check=False)
     for line in result.stdout.splitlines():
         if "version" in line.casefold():
             return line.strip()

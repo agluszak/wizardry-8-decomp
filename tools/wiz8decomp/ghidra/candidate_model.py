@@ -100,10 +100,7 @@ def classify_candidates(
                 (other, offset)
                 for other, offset in co_installed
                 if offset > 0
-                and all(
-                    (other, offset) in vtables_by_writer[writer]
-                    for writer in deciders
-                )
+                and all((other, offset) in vtables_by_writer[writer] for writer in deciders)
             }
         )
         candidates.append(
@@ -125,9 +122,7 @@ def classify_candidates(
                 # target to write the vtable itself, and the bare target is
                 # recorded separately as the hedged pointer for review.
                 "slot0_target": deleting,
-                "scalar_deleting_destructor": (
-                    deleting if deleting in primary_writers else None
-                ),
+                "scalar_deleting_destructor": (deleting if deleting in primary_writers else None),
                 "constructor_or_destructor": constructors,
                 "co_installed_vtables": co_installed,
                 "subobject_vtables": subobjects,
@@ -152,9 +147,7 @@ def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if candidate["reviewed"]:
             continue
         vptr_offsets: list[tuple[int, int]] = [(0, candidate["vtable"])]
-        vptr_offsets.extend(
-            (offset, vtable) for vtable, offset in candidate["subobject_vtables"]
-        )
+        vptr_offsets.extend((offset, vtable) for vtable, offset in candidate["subobject_vtables"])
         vptr_offsets.sort()
         minimum = vptr_offsets[-1][0] + 4
         hints = candidate["allocation_sizes"]

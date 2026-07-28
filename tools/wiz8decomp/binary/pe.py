@@ -22,9 +22,15 @@ SUBSYSTEMS = {
     10: "efi-application",
 }
 DEBUG_TYPES = {1: "COFF", 2: "CodeView", 3: "FPO", 4: "MISC", 12: "VC_FEATURE", 16: "REPRO"}
-SOURCE_RE = re.compile(rb"[A-Za-z]:\\[^\x00\r\n]{3,240}\.(?:c|cc|cpp|cxx|h|hpp|pdb|obj|lib)", re.IGNORECASE)
-REL_SOURCE_RE = re.compile(rb"(?:[A-Za-z0-9_.-]+[\\/]){1,8}[A-Za-z0-9_.-]+\.(?:c|cc|cpp|cxx|h|hpp)", re.IGNORECASE)
-ASSERT_RE = re.compile(rb"[^\x00\r\n]{0,120}(?:assert(?:ion)?|failed)[^\x00\r\n]{0,160}", re.IGNORECASE)
+SOURCE_RE = re.compile(
+    rb"[A-Za-z]:\\[^\x00\r\n]{3,240}\.(?:c|cc|cpp|cxx|h|hpp|pdb|obj|lib)", re.IGNORECASE
+)
+REL_SOURCE_RE = re.compile(
+    rb"(?:[A-Za-z0-9_.-]+[\\/]){1,8}[A-Za-z0-9_.-]+\.(?:c|cc|cpp|cxx|h|hpp)", re.IGNORECASE
+)
+ASSERT_RE = re.compile(
+    rb"[^\x00\r\n]{0,120}(?:assert(?:ion)?|failed)[^\x00\r\n]{0,160}", re.IGNORECASE
+)
 
 
 def is_pe(path: Path) -> bool:
@@ -60,8 +66,14 @@ def _version_info(pe: pefile.PE) -> dict[str, str]:
     fixed = getattr(pe, "VS_FIXEDFILEINFO", []) or []
     if fixed:
         info = fixed[0]
-        result.setdefault("FixedFileVersion", f"{info.FileVersionMS >> 16}.{info.FileVersionMS & 0xFFFF}.{info.FileVersionLS >> 16}.{info.FileVersionLS & 0xFFFF}")
-        result.setdefault("FixedProductVersion", f"{info.ProductVersionMS >> 16}.{info.ProductVersionMS & 0xFFFF}.{info.ProductVersionLS >> 16}.{info.ProductVersionLS & 0xFFFF}")
+        result.setdefault(
+            "FixedFileVersion",
+            f"{info.FileVersionMS >> 16}.{info.FileVersionMS & 0xFFFF}.{info.FileVersionLS >> 16}.{info.FileVersionLS & 0xFFFF}",
+        )
+        result.setdefault(
+            "FixedProductVersion",
+            f"{info.ProductVersionMS >> 16}.{info.ProductVersionMS & 0xFFFF}.{info.ProductVersionLS >> 16}.{info.ProductVersionLS & 0xFFFF}",
+        )
     return dict(sorted(result.items()))
 
 
@@ -70,7 +82,13 @@ def _imports(directory: Any) -> list[dict[str, Any]]:
     for module in directory or []:
         symbols = []
         for item in module.imports:
-            symbols.append({"name": _decode(item.name) or None, "ordinal": item.ordinal, "address": f"0x{item.address:x}"})
+            symbols.append(
+                {
+                    "name": _decode(item.name) or None,
+                    "ordinal": item.ordinal,
+                    "address": f"0x{item.address:x}",
+                }
+            )
         result.append({"module": _decode(module.dll), "symbols": symbols})
     return sorted(result, key=lambda item: item["module"].casefold())
 
@@ -80,8 +98,14 @@ def _exports(pe: pefile.PE) -> list[dict[str, Any]]:
     if not directory:
         return []
     return [
-        {"name": _decode(symbol.name) or None, "ordinal": symbol.ordinal, "rva": f"0x{symbol.address:x}"}
-        for symbol in sorted(directory.symbols, key=lambda value: (value.ordinal, _decode(value.name)))
+        {
+            "name": _decode(symbol.name) or None,
+            "ordinal": symbol.ordinal,
+            "rva": f"0x{symbol.address:x}",
+        }
+        for symbol in sorted(
+            directory.symbols, key=lambda value: (value.ordinal, _decode(value.name))
+        )
     ]
 
 
@@ -128,7 +152,12 @@ def _tls_callbacks(pe: pefile.PE) -> list[str]:
     return callbacks
 
 
-def _compiler_hypothesis(rich: dict[str, Any] | None, imports: list[dict[str, Any]], sections: list[dict[str, Any]], linker_version: str) -> dict[str, Any]:
+def _compiler_hypothesis(
+    rich: dict[str, Any] | None,
+    imports: list[dict[str, Any]],
+    sections: list[dict[str, Any]],
+    linker_version: str,
+) -> dict[str, Any]:
     evidence: list[str] = []
     family = "unknown"
     confidence = "low"
@@ -159,28 +188,52 @@ def inspect_pe(path: Path, variant: str, relative_path: str) -> dict[str, Any]:
         name = section.Name.rstrip(b"\0").decode("ascii", errors="replace")
         blob = section.get_data()
         characteristics = section.Characteristics
-        sections.append({
-            "name": name,
-            "rva": f"0x{section.VirtualAddress:x}",
-            "virtual_address": pe.OPTIONAL_HEADER.ImageBase + section.VirtualAddress,
-            "virtual_size": section.Misc_VirtualSize,
-            "raw_offset": section.PointerToRawData,
-            "raw_size": section.SizeOfRawData,
-            "permissions": "".join(("r" if characteristics & 0x40000000 else "-", "w" if characteristics & 0x80000000 else "-", "x" if characteristics & 0x20000000 else "-")),
-            "entropy": round(bytes_entropy(blob), 4),
-            "sha256": hashlib.sha256(blob).hexdigest(),
-        })
+        sections.append(
+            {
+                "name": name,
+                "rva": f"0x{section.VirtualAddress:x}",
+                "virtual_address": pe.OPTIONAL_HEADER.ImageBase + section.VirtualAddress,
+                "virtual_size": section.Misc_VirtualSize,
+                "raw_offset": section.PointerToRawData,
+                "raw_size": section.SizeOfRawData,
+                "permissions": "".join(
+                    (
+                        "r" if characteristics & 0x40000000 else "-",
+                        "w" if characteristics & 0x80000000 else "-",
+                        "x" if characteristics & 0x20000000 else "-",
+                    )
+                ),
+                "entropy": round(bytes_entropy(blob), 4),
+                "sha256": hashlib.sha256(blob).hexdigest(),
+            }
+        )
     imports = _imports(getattr(pe, "DIRECTORY_ENTRY_IMPORT", []))
     delay_imports = _imports(getattr(pe, "DIRECTORY_ENTRY_DELAY_IMPORT", []))
     debug, pdb_paths = _debug(pe, data)
     rich = parse_rich_header(path)
     overlay_offset = pe.get_overlay_data_start_offset()
-    source_paths = sorted({match.decode("latin-1", errors="replace") for regex in (SOURCE_RE, REL_SOURCE_RE) for match in regex.findall(data)}, key=str.casefold)
-    assertions = sorted({match.decode("latin-1", errors="replace") for match in ASSERT_RE.findall(data)}, key=str.casefold)
-    high_entropy_exec = [section["name"] for section in sections if "x" in section["permissions"] and section["entropy"] > 7.2]
+    source_paths = sorted(
+        {
+            match.decode("latin-1", errors="replace")
+            for regex in (SOURCE_RE, REL_SOURCE_RE)
+            for match in regex.findall(data)
+        },
+        key=str.casefold,
+    )
+    assertions = sorted(
+        {match.decode("latin-1", errors="replace") for match in ASSERT_RE.findall(data)},
+        key=str.casefold,
+    )
+    high_entropy_exec = [
+        section["name"]
+        for section in sections
+        if "x" in section["permissions"] and section["entropy"] > 7.2
+    ]
     packed_indicators = []
     if high_entropy_exec:
-        packed_indicators.append("high-entropy executable sections: " + ", ".join(high_entropy_exec))
+        packed_indicators.append(
+            "high-entropy executable sections: " + ", ".join(high_entropy_exec)
+        )
     if len(imports) <= 2 and any(section["entropy"] > 7.4 for section in sections):
         packed_indicators.append("very small import table with high-entropy section")
     timestamp = pe.FILE_HEADER.TimeDateStamp
@@ -202,7 +255,9 @@ def inspect_pe(path: Path, variant: str, relative_path: str) -> dict[str, Any]:
         "entry_point": pe.OPTIONAL_HEADER.ImageBase + pe.OPTIONAL_HEADER.AddressOfEntryPoint,
         "pe_timestamp": timestamp,
         "pe_timestamp_utc": timestamp_utc,
-        "subsystem": SUBSYSTEMS.get(pe.OPTIONAL_HEADER.Subsystem, str(pe.OPTIONAL_HEADER.Subsystem)),
+        "subsystem": SUBSYSTEMS.get(
+            pe.OPTIONAL_HEADER.Subsystem, str(pe.OPTIONAL_HEADER.Subsystem)
+        ),
         "linker_version": f"{pe.OPTIONAL_HEADER.MajorLinkerVersion}.{pe.OPTIONAL_HEADER.MinorLinkerVersion}",
         "image_version": f"{pe.OPTIONAL_HEADER.MajorImageVersion}.{pe.OPTIONAL_HEADER.MinorImageVersion}",
         "os_version": f"{pe.OPTIONAL_HEADER.MajorOperatingSystemVersion}.{pe.OPTIONAL_HEADER.MinorOperatingSystemVersion}",
@@ -218,10 +273,14 @@ def inspect_pe(path: Path, variant: str, relative_path: str) -> dict[str, Any]:
         "overlay_size": len(data) - overlay_offset if overlay_offset is not None else 0,
         "packed": bool(packed_indicators),
         "packed_indicators": packed_indicators,
-        "exception_sections": [section["name"] for section in sections if section["name"] in {".pdata", ".xdata"}],
+        "exception_sections": [
+            section["name"] for section in sections if section["name"] in {".pdata", ".xdata"}
+        ],
         "msvc_rtti_signature_count": data.count(b".?AV") + data.count(b".?AU"),
         "source_paths": source_paths,
         "assertion_strings": assertions,
     }
-    result["compiler_hypothesis"] = _compiler_hypothesis(rich, imports, sections, result["linker_version"])
+    result["compiler_hypothesis"] = _compiler_hypothesis(
+        rich, imports, sections, result["linker_version"]
+    )
     return result

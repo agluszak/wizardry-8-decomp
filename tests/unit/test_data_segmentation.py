@@ -24,9 +24,7 @@ def test_longest_non_decreasing_keeps_order_consistent_majority() -> None:
 
 
 def test_single_unit_baseline_requires_agreement() -> None:
-    lookup = unit_lookup(
-        [_Interval(0x1000, 0x1FFF, "A.cpp"), _Interval(0x3000, 0x3FFF, "B.cpp")]
-    )
+    lookup = unit_lookup([_Interval(0x1000, 0x1FFF, "A.cpp"), _Interval(0x3000, 0x3FFF, "B.cpp")])
     references = [
         {"function_start": "00001100", "target": "00600000"},
         {"function_start": "00001200", "target": "00600000"},
@@ -71,9 +69,7 @@ def test_fit_excludes_scattered_utility_units_and_bounds_the_rest() -> None:
 
 def test_attribution_scores_agreement_against_the_baseline() -> None:
     fits = {
-        ".data/initialized": {
-            "intervals": [("A.cpp", [0x100, 0x140]), ("B.cpp", [0x200, 0x240])]
-        }
+        ".data/initialized": {"intervals": [("A.cpp", [0x100, 0x140]), ("B.cpp", [0x200, 0x240])]}
     }
     baseline = {0x110: "A.cpp", 0x210: "A.cpp"}
     globals_rows = [
@@ -82,7 +78,12 @@ def test_attribution_scores_agreement_against_the_baseline() -> None:
         # disagreement, not a silent correction.
         {"address": "00000210", "section": ".data", "storage": "initialized", "kind": "data"},
         {"address": "00000300", "section": ".data", "storage": "initialized", "kind": "data"},
-        {"address": "00000400", "section": ".data", "storage": "initialized", "kind": "import-slot"},
+        {
+            "address": "00000400",
+            "section": ".data",
+            "storage": "initialized",
+            "kind": "import-slot",
+        },
     ]
     rows, counts = attribute_globals(globals_rows, fits, baseline)
     assert counts["attributed"] == 2
@@ -124,7 +125,6 @@ def test_unit_data_interval_snapshot_is_ordered_and_pins_the_octree_anchor() -> 
     octree = next(
         row
         for row in rows
-        if row["unit"] == "Engine Code\\Octree.cpp"
-        and row["storage_class"] == ".data/initialized"
+        if row["unit"] == "Engine Code\\Octree.cpp" and row["storage_class"] == ".data/initialized"
     )
     assert (octree["lower"], octree["upper"]) == ("00605afc", "006066f0")

@@ -100,8 +100,19 @@ def _tracked_copyrighted(settings: Any) -> list[str]:
         ["git", "ls-files", "-z"], cwd=settings.repo_dir, capture_output=True, check=False
     )
     suspect_suffixes = {
-        ".exe", ".dll", ".iso", ".zip", ".7z", ".rar", ".cab", ".bik", ".wav",
-        ".mp3", ".slf", ".asi", ".m3d",
+        ".exe",
+        ".dll",
+        ".iso",
+        ".zip",
+        ".7z",
+        ".rar",
+        ".cab",
+        ".bik",
+        ".wav",
+        ".mp3",
+        ".slf",
+        ".asi",
+        ".m3d",
     }
     suspects = []
     for raw in completed.stdout.split(b"\0"):
@@ -148,35 +159,43 @@ def doctor() -> None:
         settings = _settings()
         checks = []
         version, release = ghidra_version(settings.ghidra_install_dir)
-        checks.append({
-            "name": "ghidra",
-            "ok": version == REQUIRED_GHIDRA_VERSION and release == REQUIRED_GHIDRA_RELEASE,
-            "expected": f"{REQUIRED_GHIDRA_VERSION} {REQUIRED_GHIDRA_RELEASE}",
-            "actual": f"{version} {release}",
-            "path": str(settings.ghidra_install_dir),
-        })
+        checks.append(
+            {
+                "name": "ghidra",
+                "ok": version == REQUIRED_GHIDRA_VERSION and release == REQUIRED_GHIDRA_RELEASE,
+                "expected": f"{REQUIRED_GHIDRA_VERSION} {REQUIRED_GHIDRA_RELEASE}",
+                "actual": f"{version} {release}",
+                "path": str(settings.ghidra_install_dir),
+            }
+        )
         try:
             pyghidra_version = importlib.metadata.version("pyghidra")
         except importlib.metadata.PackageNotFoundError:
             pyghidra_version = None
-        checks.append({
-            "name": "pyghidra",
-            "ok": pyghidra_version == REQUIRED_PYGHIDRA_VERSION,
-            "expected": REQUIRED_PYGHIDRA_VERSION,
-            "actual": pyghidra_version,
-        })
-        checks.append({
-            "name": "input-directory",
-            "ok": settings.input_dir.is_dir() and os.access(settings.input_dir, os.R_OK),
-            "path": str(settings.input_dir),
-        })
+        checks.append(
+            {
+                "name": "pyghidra",
+                "ok": pyghidra_version == REQUIRED_PYGHIDRA_VERSION,
+                "expected": REQUIRED_PYGHIDRA_VERSION,
+                "actual": pyghidra_version,
+            }
+        )
+        checks.append(
+            {
+                "name": "input-directory",
+                "ok": settings.input_dir.is_dir() and os.access(settings.input_dir, os.R_OK),
+                "path": str(settings.input_dir),
+            }
+        )
         settings.work_dir.mkdir(parents=True, exist_ok=True)
         try:
             with tempfile.NamedTemporaryFile(prefix="wiz8-doctor-", dir=settings.work_dir):
                 work_writable = True
         except OSError:
             work_writable = False
-        checks.append({"name": "work-directory", "ok": work_writable, "path": str(settings.work_dir)})
+        checks.append(
+            {"name": "work-directory", "ok": work_writable, "path": str(settings.work_dir)}
+        )
         required = {"7z": ["--help"], "innoextract": ["--version"], "cabextract": ["--version"]}
         optional = {"unshield": ["-V"], "wine": ["--version"], "git-lfs": ["version"]}
         for name, args in required.items():

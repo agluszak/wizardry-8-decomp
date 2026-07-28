@@ -317,8 +317,7 @@ def _compile_units(
             target_root = output / "CMakeFiles" / f"{target}.dir"
             source_object = f"{Path(unit['source']).name.replace(' ', '_')}.obj".casefold()
             objects = sorted(
-                obj for obj in target_root.rglob("*.obj")
-                if obj.name.casefold() == source_object
+                obj for obj in target_root.rglob("*.obj") if obj.name.casefold() == source_object
             )
             if len(objects) != 1:
                 raise RuntimeError(

@@ -16,4 +16,3 @@ def test_overlay_uses_windows_case_insensitive_paths(tmp_path: Path) -> None:
     assert changed == ["Wiz8.exe"]
     assert (base / "Wiz8.exe").read_bytes() == b"new"
     assert not (base / "Wiz8.EXE").exists()
-

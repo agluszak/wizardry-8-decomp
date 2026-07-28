@@ -274,9 +274,7 @@ def sweep_globals(settings: Settings, *, update_snapshot: bool = False) -> dict[
         entries = analyse_image(path)
         per_program[program] = len(entries)
         for entry in entries:
-            functions = {
-                reference.function for reference in entry.references if reference.function
-            }
+            functions = {reference.function for reference in entry.references if reference.function}
             widths = sorted({reference.width for reference in entry.references if reference.width})
             kinds = sorted({reference.access for reference in entry.references})
             rows.append(

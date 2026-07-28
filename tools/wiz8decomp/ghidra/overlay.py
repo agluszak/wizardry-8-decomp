@@ -83,8 +83,7 @@ def overlay_identity(
     analyzer_version: str,
 ) -> str:
     payload = (
-        f"{program}\0{baseline_materialization}\0{plan_sha256}\0"
-        f"{hypothesis}\0{analyzer_version}"
+        f"{program}\0{baseline_materialization}\0{plan_sha256}\0{hypothesis}\0{analyzer_version}"
     )
     return f"{_slug(hypothesis)}-{hashlib.sha256(payload.encode()).hexdigest()[:12]}"
 
@@ -194,9 +193,7 @@ def inspect_overlay(
     manifest = _read_overlay_manifest(scratch)
     analysis_path = scratch / "analysis.json"
     analysis = (
-        json.loads(analysis_path.read_text(encoding="utf-8"))
-        if analysis_path.is_file()
-        else {}
+        json.loads(analysis_path.read_text(encoding="utf-8")) if analysis_path.is_file() else {}
     )
     fact_view = facts_in_overlay(settings, selector, overlay_id, address)
     decompile = decompile_in_overlay(settings, selector, overlay_id, address)
@@ -235,9 +232,7 @@ def inspect_overlay(
 def _reviewed_vtable(repo: Path, class_name: str) -> tuple[dict[str, Any], list[dict[str, str]]]:
     index = load_evidence_index(repo)
     vtables = [
-        item
-        for item in index.vtables_by_class.get(class_name, ())
-        if item.kind == "primary"
+        item for item in index.vtables_by_class.get(class_name, ()) if item.kind == "primary"
     ]
     if not vtables:
         raise ValueError(f"no reviewed primary vtable for {class_name}")
@@ -292,9 +287,7 @@ def _reviewed_target_receivers(repo: Path) -> dict[str, set[str]]:
         for slot in index.slots_by_vtable[table.vtable_id]:
             offset = int(table.subobject_offset or 0)
             receiver = (
-                table.class_name
-                if offset == 0
-                else f"{table.class_name}.subobject_0x{offset:x}"
+                table.class_name if offset == 0 else f"{table.class_name}.subobject_0x{offset:x}"
             )
             receivers.setdefault(f"{slot.target:08x}", set()).add(receiver)
     return receivers
@@ -367,9 +360,7 @@ def apply_typed_vtable(
                     subobject = int(table_row["subobject_offset"], 0)
                     suffix = "" if table_row["vtable_id"] == primary_id else f"_{subobject:x}"
                     receiver_id = (
-                        class_name
-                        if subobject == 0
-                        else f"{class_name}.subobject_0x{subobject:x}"
+                        class_name if subobject == 0 else f"{class_name}.subobject_0x{subobject:x}"
                     )
                     receiver_type = class_type
                     if subobject:
@@ -437,9 +428,7 @@ def apply_typed_vtable(
                         component = class_type.getComponentAt(subobject)
                         field_name = (
                             component.getFieldName() if component is not None else None
-                        ) or (
-                            "vptr" if subobject == 0 else f"secondary_vptr_{subobject:x}"
-                        )
+                        ) or ("vptr" if subobject == 0 else f"secondary_vptr_{subobject:x}")
                         field_type = PointerDataType(table_type, dtm)
                         class_type.replaceAtOffset(
                             subobject,

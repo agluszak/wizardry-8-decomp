@@ -121,9 +121,7 @@ def test_wiz8_zlib_map_covers_library_and_owned_boundary() -> None:
     repository = Path(__file__).resolve().parents[2]
     identities = load_function_identities(repository / "evidence/reviewed/wiz8/functions.csv")
     identities = [
-        identity
-        for identity in identities
-        if identity.owner in {"sgp-compression", "zlib-1.0.4"}
+        identity for identity in identities if identity.owner in {"sgp-compression", "zlib-1.0.4"}
     ]
 
     assert len(identities) == 51

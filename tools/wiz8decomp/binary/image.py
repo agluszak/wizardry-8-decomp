@@ -43,7 +43,10 @@ class PeImage:
         if data[pe_offset : pe_offset + 4] != b"PE\0\0":
             raise ValueError(f"not a PE image: {path}")
         coff = pe_offset + 4
-        section_count, optional_size = struct.unpack_from("<H", data, coff + 2)[0], struct.unpack_from("<H", data, coff + 16)[0]
+        section_count, optional_size = (
+            struct.unpack_from("<H", data, coff + 2)[0],
+            struct.unpack_from("<H", data, coff + 16)[0],
+        )
         optional = coff + 20
         self.image_base = struct.unpack_from("<I", data, optional + 28)[0]
         self.machine = struct.unpack_from("<H", data, coff)[0]
@@ -55,7 +58,9 @@ class PeImage:
         for index in range(section_count):
             entry = table + index * 40
             name = data[entry : entry + 8].rstrip(b"\0").decode("latin-1")
-            virtual_size, virtual_address, raw_size, raw_offset = struct.unpack_from("<IIII", data, entry + 8)
+            virtual_size, virtual_address, raw_size, raw_offset = struct.unpack_from(
+                "<IIII", data, entry + 8
+            )
             flags = struct.unpack_from("<I", data, entry + 36)[0]
             sections.append(
                 Section(

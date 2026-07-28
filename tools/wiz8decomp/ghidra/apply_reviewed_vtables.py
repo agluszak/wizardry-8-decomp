@@ -92,17 +92,13 @@ def apply_reviewed_vtables(
                             FunctionDefinitionDataType,
                             allow_inferred=False,
                         )
-                        added = dtm.addDataType(
-                            definition, DataTypeConflictHandler.REPLACE_HANDLER
-                        )
+                        added = dtm.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
                         table.add(PointerDataType(added, dtm), 4, name, None)
                         report["prototype_sources"][source] = (
                             report["prototype_sources"].get(source, 0) + 1
                         )
                         report["slots"] += 1
-                    table_type = dtm.addDataType(
-                        table, DataTypeConflictHandler.REPLACE_HANDLER
-                    )
+                    table_type = dtm.addDataType(table, DataTypeConflictHandler.REPLACE_HANDLER)
                     _apply_data(program, space.getAddress(reviewed.address), table_type)
                     component = owner.getComponentAt(reviewed.subobject_offset)
                     explicit_vptr = (
@@ -118,9 +114,7 @@ def apply_reviewed_vtables(
                         report["unbound_owner_fields"].append(reviewed.vtable_id)
                         report["tables"] += 1
                         continue
-                    field_name = (
-                        component.getFieldName() if component is not None else None
-                    ) or (
+                    field_name = (component.getFieldName() if component is not None else None) or (
                         "vptr"
                         if reviewed.subobject_offset == 0
                         else f"secondary_vptr_{reviewed.subobject_offset:x}"

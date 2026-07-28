@@ -16,4 +16,3 @@ def test_query_argument_validation() -> None:
         validate_query_arguments("read-data", ["0x401000"])
     with pytest.raises(ValueError, match="unknown command"):
         validate_query_arguments("rename", [])
-

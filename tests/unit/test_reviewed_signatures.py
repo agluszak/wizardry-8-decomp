@@ -70,9 +70,7 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
         ("control_state", "int"),
     )
     assert by_address[0x004E6780].return_type == "unsigned int"
-    assert by_address[0x004E6780].parameters == (
-        ("record", "W8MonsterDatabaseRecord *"),
-    )
+    assert by_address[0x004E6780].parameters == (("record", "W8MonsterDatabaseRecord *"),)
     assert by_address[0x004E68C0].return_type == "unsigned char"
     assert by_address[0x004E68C0].parameters == ()
     assert by_address[0x00514BE0].parameters == (("handle", "int"), ("item", "void *"))
@@ -83,9 +81,9 @@ def test_reviewed_wiz8_signatures_are_canonical_records() -> None:
     )
     assert by_address[0x004ADDF0].this_type == "W8GrowableVector<int> *"
 
-    apply_script = (
-        repository / "tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py"
-    ).read_text(encoding="utf-8")
+    apply_script = (repository / "tools/wiz8decomp/ghidra/apply_wiz8_signature_fixes.py").read_text(
+        encoding="utf-8"
+    )
     assert "0X005E2890" not in apply_script.upper()
     assert "SIGNATURE_FIXES" not in apply_script
     assert "reviewed.this_type" in apply_script

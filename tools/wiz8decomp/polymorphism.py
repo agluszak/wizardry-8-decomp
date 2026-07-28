@@ -202,7 +202,13 @@ def _vbtables(image: PeImage, relocated: set[int], targets: set[int]) -> list[Vt
             cursor += 4
         if len(slots) >= 2:
             found.append(
-                Vtable(address=address, section=section.name, kind="vbtable", slots=slots, boundary="displacement-shape")
+                Vtable(
+                    address=address,
+                    section=section.name,
+                    kind="vbtable",
+                    slots=slots,
+                    boundary="displacement-shape",
+                )
             )
     return found
 
@@ -301,17 +307,13 @@ def analyse_image(path: Path) -> dict[str, Any]:
     # is the deleting destructor and never a construction entry, so it is
     # excluded from the scanned writers.
     allocators = {
-        address
-        for address, name in thunks.items()
-        if name.split("!", 1)[-1] == _OPERATOR_NEW
+        address for address, name in thunks.items() if name.split("!", 1)[-1] == _OPERATOR_NEW
     }
     # The second allocation family the image actually constructs objects with.
     # It is called straight through its import slot rather than a jump thunk,
     # so it needs the slot address, not a target.
     allocator_slots = {
-        address
-        for address, name in slots.items()
-        if name.split("!", 1)[-1] == _SRHEAP_ALLOCATE
+        address for address, name in slots.items() if name.split("!", 1)[-1] == _SRHEAP_ALLOCATE
     }
     constructors_by_table: dict[int, set[int]] = {}
     for table in tables:
@@ -462,8 +464,12 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                     "subobject_offsets": " ".join(
                         f"-0x{-offset:x}" if offset < 0 else f"0x{offset:x}" for offset in offsets
                     ),
-                    "pure_virtual_slots": sum(1 for slot in table.slots if slot.kind == "pure-virtual"),
-                    "adjustor_thunk_slots": sum(1 for slot in table.slots if slot.kind == "adjustor-thunk"),
+                    "pure_virtual_slots": sum(
+                        1 for slot in table.slots if slot.kind == "pure-virtual"
+                    ),
+                    "adjustor_thunk_slots": sum(
+                        1 for slot in table.slots if slot.kind == "adjustor-thunk"
+                    ),
                     "import_slots": sum(1 for slot in table.slots if slot.kind == "import-thunk"),
                     "allocation_sizes": "|".join(
                         f"0x{size:x}" for size in allocation_sizes.get(table.address, [])
@@ -497,9 +503,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                     ),
                     "vtable": _hex(write.table),
                     "allocation_size": (
-                        f"0x{write.allocation_size:x}"
-                        if write.allocation_size is not None
-                        else ""
+                        f"0x{write.allocation_size:x}" if write.allocation_size is not None else ""
                     ),
                 }
             )
@@ -566,7 +570,8 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             atomic_write(snapshot_dir / name, value)
         atomic_write(snapshot_dir / "README.md", _snapshot_readme())
     snapshot_fresh = all(
-        (snapshot_dir / name).is_file() and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
+        (snapshot_dir / name).is_file()
+        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
         for name in _REPORT_FILES
     )
     if not update_snapshot and not snapshot_fresh:

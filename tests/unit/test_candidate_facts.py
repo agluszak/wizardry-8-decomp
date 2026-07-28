@@ -88,9 +88,7 @@ def test_target_set_payload_is_replaced_not_appended() -> None:
     upsert_fact(**common, payload={"vtable_id": "GrCycle.primary", "targets": ["a", "b"]})
     upsert_fact(**common, payload={"vtable_id": "GrCycle.primary", "targets": ["b"]})
 
-    assert facts(target, "00401000")["virtual-target-set:00401000"]["payload"][
-        "targets"
-    ] == ["b"]
+    assert facts(target, "00401000")["virtual-target-set:00401000"]["payload"]["targets"] == ["b"]
 
 
 def test_incompatible_constraint_becomes_a_contradiction() -> None:

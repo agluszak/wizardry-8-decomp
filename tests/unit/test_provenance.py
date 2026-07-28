@@ -152,15 +152,15 @@ def test_wiz8_function_evidence_is_many_to_one_without_duplicate_identities() ->
     )
     assert len({row["evidence_id"] for row in evidence}) == len(evidence)
     assert all(
-        row["evidence_id"]
-        == f"function-evidence:{row['program']}:{row['address']}:{row['origin']}"
+        row["evidence_id"] == f"function-evidence:{row['program']}:{row['address']}:{row['origin']}"
         for row in evidence
     )
     by_address = {row["address"] for row in functions}
     assert {row["address"] for row in evidence} <= by_address
-    assert {
-        row["origin"] for row in evidence if row["address"] == "0040efa0"
-    } == {"cfagent-oracle", "sgp"}
+    assert {row["origin"] for row in evidence if row["address"] == "0040efa0"} == {
+        "cfagent-oracle",
+        "sgp",
+    }
 
 
 def test_analysis_artifacts_are_not_stored_as_configuration() -> None:
@@ -235,9 +235,7 @@ def test_only_sgp_and_upstream_source_matches_are_source_backed() -> None:
 
 
 def test_the_demo_supplies_names_only_through_retained_diagnostics() -> None:
-    demo_named = [
-        row for row in _wiz8_rows() if "official-demo" in row["name_origin"].split("|")
-    ]
+    demo_named = [row for row in _wiz8_rows() if "official-demo" in row["name_origin"].split("|")]
 
     assert len(demo_named) == 15
     for row in demo_named:

@@ -25,9 +25,7 @@ def test_import_destructor_class_strips_access_and_convention() -> None:
 
 def test_import_destructor_class_keeps_nested_and_template_names() -> None:
     assert (
-        import_destructor_class(
-            "public: __thiscall srHuffman::Decompressor::~Decompressor(void)"
-        )
+        import_destructor_class("public: __thiscall srHuffman::Decompressor::~Decompressor(void)")
         == "srHuffman::Decompressor"
     )
     assert (
@@ -69,12 +67,24 @@ def _fixture(tmp_path: Path, unwind_rows: list[str]) -> Path:
         unwind_rows,
     )
     for relative, header in [
-        ("call-sites/assertions.csv", "program,call_site,call_kind,function_start,source_path,line,expression,message"),
+        (
+            "call-sites/assertions.csv",
+            "program,call_site,call_kind,function_start,source_path,line,expression,message",
+        ),
         ("call-sites/runtime-class-names.csv", "program,call_site,call_kind,function_start,name"),
-        ("polymorphism/vtables.csv", "program,address,section,kind,slot_count,boundary,vptr_write_count,subobject_offsets,pure_virtual_slots,adjustor_thunk_slots,import_slots"),
-        ("polymorphism/slots.csv", "program,vtable,slot_index,target,kind,import_name,import_signature,adjust,thunk_target"),
+        (
+            "polymorphism/vtables.csv",
+            "program,address,section,kind,slot_count,boundary,vptr_write_count,subobject_offsets,pure_virtual_slots,adjustor_thunk_slots,import_slots",
+        ),
+        (
+            "polymorphism/slots.csv",
+            "program,vtable,slot_index,target,kind,import_name,import_signature,adjust,thunk_target",
+        ),
         ("polymorphism/vptr-writes.csv", "program,site,function_start,object_offset,vtable"),
-        ("globals/globals.csv", "program,address,section,storage,kind,reference_count,function_count,access_kinds,widths,extent_upper,extent_bytes,preview"),
+        (
+            "globals/globals.csv",
+            "program,address,section,storage,kind,reference_count,function_count,access_kinds,widths,extent_upper,extent_bytes,preview",
+        ),
     ]:
         _write(snapshots / relative, header, [])
     reviewed = tmp_path / "evidence" / "reviewed" / "wiz8"
@@ -90,7 +100,9 @@ def _fixture(tmp_path: Path, unwind_rows: list[str]) -> Path:
         "program,address,size,current_name,provisional_name,owner,confidence,"
         "name_origin,authority,aliases,fid_variants,evidence,source_path,"
         "source_line,relocation_masked_sha256",
-        ["wiz8,004f8000,32,FUN_004f8000,W8Thing::~W8Thing,wiz8-ui,exact,descriptive,descriptive,,,ev,,,"],
+        [
+            "wiz8,004f8000,32,FUN_004f8000,W8Thing::~W8Thing,wiz8-ui,exact,descriptive,descriptive,,,ev,,,"
+        ],
     )
     return tmp_path
 

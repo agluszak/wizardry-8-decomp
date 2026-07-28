@@ -22,8 +22,14 @@ def validate_environment(settings: Settings) -> dict[str, str]:
     import pyghidra
 
     if pyghidra.__version__ != REQUIRED_PYGHIDRA_VERSION:
-        raise RuntimeError(f"PyGhidra {REQUIRED_PYGHIDRA_VERSION} is required; found {pyghidra.__version__}")
-    return {"ghidra_version": version, "ghidra_release": release, "pyghidra_version": pyghidra.__version__}
+        raise RuntimeError(
+            f"PyGhidra {REQUIRED_PYGHIDRA_VERSION} is required; found {pyghidra.__version__}"
+        )
+    return {
+        "ghidra_version": version,
+        "ghidra_release": release,
+        "pyghidra_version": pyghidra.__version__,
+    }
 
 
 def start_pyghidra(settings: Settings, *, max_heap: str | None = None) -> None:

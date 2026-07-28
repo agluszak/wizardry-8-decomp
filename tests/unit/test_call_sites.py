@@ -25,7 +25,9 @@ def test_recovered_assertions_carry_a_source_path_and_a_line() -> None:
 
     resolved = [row for row in rows if row["source_path"]]
     assert len(resolved) >= 0.99 * len(rows)
-    assert all(row["source_path"].casefold().endswith((".cpp", ".c", ".hpp", ".h")) for row in resolved)
+    assert all(
+        row["source_path"].casefold().endswith((".cpp", ".c", ".hpp", ".h")) for row in resolved
+    )
     assert all(row["line"].isdigit() for row in resolved if row["line"])
 
 

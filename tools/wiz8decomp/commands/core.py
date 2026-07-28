@@ -169,10 +169,16 @@ def reconstructed_transfer_command(
 
     def action() -> dict[str, Any]:
         settings = cli._settings()
-        bodies = bodies_from_pdb(pdb) if pdb is not None else bodies_from_objects(objects or settings.build_dir)
+        bodies = (
+            bodies_from_pdb(pdb)
+            if pdb is not None
+            else bodies_from_objects(objects or settings.build_dir)
+        )
         root = objects or settings.repo_dir / "build" / "decomp" / "CMakeFiles"
         plan = build_transfer_plan(
-            settings.repo_dir, bodies, verified_exact=verified_boundary_addresses(settings.repo_dir, root)
+            settings.repo_dir,
+            bodies,
+            verified_exact=verified_boundary_addresses(settings.repo_dir, root),
         )
         destination = settings.repo_dir / "build" / "reports" / "reconstructed-transfer"
         summary = write_report(plan, destination)
@@ -194,7 +200,9 @@ def verify_boundaries_command(
     mapping_path = mapping or settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv"
     object_root = objects or settings.repo_dir / "build/decomp/CMakeFiles"
     try:
-        cli._emit(verify_boundaries(mapping_path, object_root, image or cli._reccmp_original("WIZ8")))
+        cli._emit(
+            verify_boundaries(mapping_path, object_root, image or cli._reccmp_original("WIZ8"))
+        )
     except BoundariesDisagree as error:
         cli._emit(error.report)
         cli.console.print(f"[red]error:[/red] {error}", highlight=False)
@@ -254,7 +262,9 @@ def inventory_command(json_output: bool = typer.Option(False, "--json", help="Em
 
 def debug_artifacts_command(
     update_snapshot: bool = typer.Option(False, "--update-snapshot"),
-    archive_password: str | None = typer.Option(None, "--archive-password", envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD"),
+    archive_password: str | None = typer.Option(
+        None, "--archive-password", envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD"
+    ),
 ) -> None:
     from .. import cli
     from ..debug_artifacts import sweep_debug_artifacts

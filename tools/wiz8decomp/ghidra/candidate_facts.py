@@ -34,11 +34,7 @@ def facts(program: Any, address: Any) -> dict[str, dict[str, Any]]:
         return {}
     if not isinstance(decoded, dict):
         return {}
-    return {
-        str(fact_id): record
-        for fact_id, record in decoded.items()
-        if isinstance(record, dict)
-    }
+    return {str(fact_id): record for fact_id, record in decoded.items() if isinstance(record, dict)}
 
 
 def iter_facts(program: Any) -> Iterator[tuple[Any, str, dict[str, Any]]]:
@@ -61,9 +57,7 @@ def get_fact(program: Any, address: Any, fact_id: str) -> dict[str, Any] | None:
 def _write(program: Any, address: Any, records: dict[str, dict[str, Any]]) -> None:
     property_map = _map(program)
     if records:
-        property_map.add(
-            address, json.dumps(records, sort_keys=True, separators=(",", ":"))
-        )
+        property_map.add(address, json.dumps(records, sort_keys=True, separators=(",", ":")))
     else:
         property_map.remove(address)
 
@@ -194,9 +188,7 @@ def upsert_fact(
     return True
 
 
-def supersede_fact(
-    program: Any, address: Any, fact_id: str, *, superseded_by: str
-) -> bool:
+def supersede_fact(program: Any, address: Any, fact_id: str, *, superseded_by: str) -> bool:
     records = facts(program, address)
     previous = records.get(fact_id)
     if previous is None:

@@ -98,7 +98,11 @@ def _validate_format_layouts(program: Any, failures: list[dict[str, str]]) -> in
                 if component is None
                 else f"{component.getFieldName()}:{component.getLength()}"
             )
-            if component is None or component.getFieldName() != field_name or component.getLength() != width:
+            if (
+                component is None
+                or component.getFieldName() != field_name
+                or component.getLength() != width
+            ):
                 failures.append(
                     {
                         "kind": "format_layout",
