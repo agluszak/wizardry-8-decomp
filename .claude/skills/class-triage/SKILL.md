@@ -130,8 +130,8 @@ Facts to settle from the decompiles, in order of value:
    `just verify-boundaries`: that gate reads the objects on disk, so a rebase that pulled in
    another agent's sources will report `regressed` on a row you never touched until you rebuild.
    A lost promotion is invisible to the tests and visible only to that gate.
-4. `just test` — the reviewed-model loader cross-validates sizes, slot counts and field overlap,
-   and `tests/unit/test_wiz8_source_model.py` pins counts you may need to bump.
+4. `just check` — the production repository validator cross-validates identities, provenance,
+   sizes, slot contiguity, field overlap, references, exact digests, and reviewed observations.
 5. Rematerialize (any `just ghidra query ...` after the evidence edit) and confirm
    `materialization.json` validates with zero failures. The promoted class leaves the candidate
    layer automatically.
@@ -241,8 +241,8 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
 - Identical slot counts and identical allocation hints do **not** make two classes twins. Twins
   have identical *bodies* - check the write sites before planning to get two recoveries for one
   review.
-- Promotion bumps pinned counts: `tests/unit/test_wiz8_source_model.py` asserts the reviewed
-  vtable and slot totals, so `just test` will fail with an off-by-your-new-rows count until you
-  update it. That failure is the model loader confirming your rows loaded, not a problem.
+- Promotion does not require copying new totals into a test or document. Run `just check`; the
+  invariant validators consume the canonical tables directly and ordinary recovery progress does
+  not require test maintenance.
 - Do not hand-edit anything under `build/reports/` — regenerate; and do not promote a candidate
   wholesale "because the census says so": the census is the map, the decompiles are the territory.

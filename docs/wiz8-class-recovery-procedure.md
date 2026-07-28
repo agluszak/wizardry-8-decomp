@@ -160,8 +160,8 @@ Model the hierarchy honestly:
   storage sized to the proven base extent.
 - The derived class with pure-virtual placeholders so the method you are porting lands at its
   canonical slot. Eight placeholders put `Close` at slot 9.
-- Callees as externs with any convenient name — call targets are relocation-masked, so only the
-  instruction shape matters.
+- Callees through their canonical subsystem-owned declarations. Call targets are relocation-masked
+  for the byte comparison, but that does not license a second semantic name or declaration.
 
 Write the body, add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` list in `CMakeLists.txt`, mark it
 `// FUNCTION: WIZ8 0x<ADDR>` immediately above the definition, and add a

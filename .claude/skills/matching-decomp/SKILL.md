@@ -30,12 +30,14 @@ to reproduce code you already understand.
    whether a body matches; see the warning below before reading any reccmp percentage.
 6. `just check-markers`: the `// FUNCTION:` marker must sit immediately above its declaration, with
    any explanation above the marker rather than between the two.
-7. Record in `config/reccmp/wiz8-gameplay-boundaries.csv`, `docs/targets/`, and the
-   relevant test counts in `tests/unit/test_wiz8_source_model.py`.
+7. Record the proved boundary in `config/reccmp/wiz8-gameplay-boundaries.csv` and update only the
+   canonical evidence or target documentation that the result changes. `just check` validates
+   identities and relationships without copied progress totals.
 
 Comparison masks COFF `DIR32`/`DIR32NB`/`REL32` relocation fields, so global addresses and call
-targets are irrelevant to the match — only instruction shape matters. Externs may therefore be
-declared with any convenient name.
+targets are irrelevant to the match — only instruction shape matters. Relocation masking does not
+license a second name or declaration: search by address and aliases, then reuse the canonical
+subsystem-owned declaration.
 
 **Relink before trusting reccmp.** A successful `just build` does not guarantee the link step
 reran, and a stale `Wiz8.exe`/`Wiz8.pdb` reports correct functions at 34–43% when they are actually
