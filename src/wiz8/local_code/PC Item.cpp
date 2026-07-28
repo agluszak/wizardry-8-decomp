@@ -168,10 +168,7 @@ extern void PlaySound(const char* path, int flags);
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern wchar_t* FormatWideString(const wchar_t* format, ...);
 extern void Function58AC00(int channel, void* message);
-/* 0x00686A70 and 0x00686B7D: the running tallies gold is credited into,
-   one 0x21-byte row each. */
-extern int g_gold_tally_index_00686a70;
-extern int g_gold_tally_rows_00686b7d[];
+
 
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
@@ -874,8 +871,8 @@ void AddPartyGold(int amount, char announce)
     strcpy(sound_path, "Data\Sound\Misc\ChaChing.wav");
 
     g_party_gold += amount;
-    if (g_gold_tally_index_00686a70 < 0x2f) {
-        g_gold_tally_rows_00686b7d[g_gold_tally_index_00686a70 * 0x21 / 4] += amount;
+    if (g_current_level < 0x2f) {
+        g_level_progress[g_current_level].gold_collected += amount;
     }
 
     if (announce) {

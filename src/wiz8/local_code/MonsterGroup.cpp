@@ -29,7 +29,7 @@ extern void Function4C7F10(const char* sound_file, int value);        /* 0x004C7
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
                            int value);                       /* 0x00547570 */
 extern unsigned char g_flag_683f94;
-extern W8Character* g_all_characters;
+extern W8Character* g_party_characters;
 extern unsigned char g_alternate_name_slot;
 extern W8WideChar g_monster_name_buffer[];
 enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 0x18d };
@@ -512,7 +512,7 @@ W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
         swprintf(
             g_monster_name_buffer,
             L"Al-%s",
-            g_all_characters[g_alternate_name_slot].name);
+            g_party_characters[g_alternate_name_slot].name);
         return g_monster_name_buffer;
     }
     if (monster_group->flag_2c != 0) {

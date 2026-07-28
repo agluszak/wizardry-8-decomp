@@ -18,7 +18,11 @@ public:
 /* Address-qualified shared engine state reached through 0x006598A4. Only the
    pathing member and the monster-location notification method are recovered. */
 struct W8EngineState006598A4 {
-    unsigned char unknown_000[0x180];
+    unsigned char unknown_000[0x120];
+    /* 0x120: the sector the world is currently resolving against, which the
+       item settle path reads to decide whether a dropped item changed sector. */
+    int current_sector;
+    unsigned char unknown_124[0x5c];
     W8Pathing00457CF0* pathing_180;
 
     void Function42E620(

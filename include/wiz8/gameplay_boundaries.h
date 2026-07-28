@@ -939,6 +939,20 @@ extern int g_party_item_count;
 extern unsigned int g_starting_item_ids[];
 extern unsigned int g_starting_item_ids_end[];
 extern W8LevelFolderRecord g_level_folders[47];
+/* 0x00686A70: the level the party is on. The save loader compares it against
+   the level id in an LVLS chunk, and it indexes the per-level rows below -
+   bounded at 0x2f, the same forty-seven the folder table has. */
+extern int g_current_level;
+/* 0x00686B7D: one row per level. Gold picked up there and the clock its sight
+   state was last brought up to are the two fields established; the gold credit
+   and the sight ageing reach the row four bytes apart, which is what makes it
+   one row rather than two arrays. */
+typedef struct W8LevelProgressRow {
+    int gold_collected;                   /* 0x00 */
+    int sight_clock;                      /* 0x04 */
+    unsigned char unknown_08[0x19];
+} W8LevelProgressRow;                     /* 0x21 */
+extern W8LevelProgressRow g_level_progress[47];
 extern int g_location_variable_count;
 extern char** g_location_variable_names;
 extern int g_location_variable_level_count;

@@ -73,7 +73,7 @@ void __fastcall Function4537E0(W8MonsterMember18* member);
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 /* The character array the alternate-name form indexes, and the slot it uses. */
-extern W8Character* g_all_characters;      /* 0x00685174 */
+extern W8Character* g_party_characters;      /* 0x00685174 */
 extern unsigned char g_alternate_name_slot; /* 0x006875EF */
 extern W8WideChar g_monster_name_buffer[];  /* 0x006875C3 */
 
@@ -1449,7 +1449,7 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         swprintf(
             g_monster_name_buffer,
             L"Al-%s",
-            g_all_characters[g_alternate_name_slot].name);
+            g_party_characters[g_alternate_name_slot].name);
         return g_monster_name_buffer;
     }
     if (monster_info->monster_group_id == 0) {

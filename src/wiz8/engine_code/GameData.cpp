@@ -36,7 +36,10 @@ enum {
 
 extern W8LevelDataRecord* g_level_data_00652dac;
 extern unsigned char g_level_override_00652dba;
-extern float g_level_vector_default_005ebb34;
+/* 0x005EBB34: one float constant with two independent readings - the level
+   vector's "no value" here, and Controls.cpp's own range start. Neither is
+   proven, so it keeps its address. */
+extern float g_float_005ebb34;
 
 /* Copy one four-byte handle over another. */
 // FUNCTION: WIZ8 0x0041CF80
@@ -153,9 +156,9 @@ unsigned char HasLevelDataVector(void)
         return 0;
     }
     if ((g_level_data_00652dac->flags & W8_LEVEL_FLAG_0) != 0 &&
-        (g_level_data_00652dac->vector_88[0] != g_level_vector_default_005ebb34 ||
-         g_level_data_00652dac->vector_88[1] != g_level_vector_default_005ebb34 ||
-         g_level_data_00652dac->vector_88[2] != g_level_vector_default_005ebb34)) {
+        (g_level_data_00652dac->vector_88[0] != g_float_005ebb34 ||
+         g_level_data_00652dac->vector_88[1] != g_float_005ebb34 ||
+         g_level_data_00652dac->vector_88[2] != g_float_005ebb34)) {
         return 1;
     }
     return 0;

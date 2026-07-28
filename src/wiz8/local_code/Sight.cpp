@@ -260,10 +260,6 @@ bool IsVisibleUnderConditions(
 extern void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3);
 /* 0x00503990 */
 extern int g_world_clock_00686a48;
-/* 0x00686B81: one 0x21-byte row per level, holding the clock reading its
-   sight state was last brought up to. */
-extern const int g_level_sight_clock[];
-extern int g_current_level_00686a70;
 
 /* Bring every monster's sight up to date with the clock, in whole two-minute
    steps - anything short of one step is left for next time. */
@@ -276,7 +272,7 @@ unsigned int AgeAllMonsterSight(void)
     W8MonsterInfo* monster_info;
 
     elapsed = g_world_clock_00686a48 * 1000 -
-              g_level_sight_clock[g_current_level_00686a70 * 0x21 / 4] * 1000;
+              g_level_progress[g_current_level].sight_clock * 1000;
     steps = elapsed / 120000;
     if (steps == 0) {
         return 0;

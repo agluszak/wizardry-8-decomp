@@ -21,7 +21,7 @@ extern int g_screen_state_0068ec78;
 extern W8LevelRuntimeBlock* g_level_block;
 extern void* g_modal_owner_0068edd0;
 extern int g_flag_0068ed14;
-extern unsigned char g_flag_00683f94;
+extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_flag_00683f95;
 extern unsigned char g_flag_00683f96;
 extern unsigned char g_flag_00683f97;
@@ -76,7 +76,7 @@ void RequestRefreshPartyState(void)
     if (g_level_block == 0) {
         return;
     }
-    if (g_flag_00683f94 != 0) {
+    if (g_in_combat_00683f94 != 0) {
         g_level_block->refresh_combat_panel = 1;
     }
     g_level_block->refresh_party_panel = 1;
@@ -180,7 +180,7 @@ public:
 extern unsigned char* g_main_game_screen_0068f2d4;
 extern unsigned char g_flag_00683f9a;
 extern unsigned char g_map_loading_00659757;
-extern int g_current_level_00686a70;
+extern int g_current_level;
 extern void Function55EE70(int reason);
 extern void Function55EF90(void);
 extern void Function42B3E0(void);
@@ -201,7 +201,7 @@ extern void ShowNotice(int channel, const void* text, int a, int b, int c);
 // FUNCTION: WIZ8 0x00561440
 int IsScreenIdle(void)
 {
-    if (g_flag_00683f94 == 0 && g_flag_00683f95 == 0 && g_flag_00683f96 == 0 &&
+    if (g_in_combat_00683f94 == 0 && g_flag_00683f95 == 0 && g_flag_00683f96 == 0 &&
         g_flag_00683f97 == 0 && g_flag_00683f98 == 0 && g_flag_00683f99 == 0) {
         return 1;
     }
@@ -216,7 +216,7 @@ bool LoadCurrentLevelData(void)
 {
     bool loaded = true;
 
-    if (g_current_level_00686a70 != -1) {
+    if (g_current_level != -1) {
         Function55EE70(9);
         g_map_loading_00659757 = 1;
         Function42B3E0();

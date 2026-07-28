@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_state_006598a4.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
@@ -7,11 +8,11 @@
 
 extern int g_item_manager_initialized_006874C2;
 extern int g_item_manager_pending_00683FA9;
-extern int g_item_manager_state_0068EC78;
+extern int g_screen_state_0068ec78;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 extern W8LevelRuntimeBlock* g_item_selection_owner_0068EDCC;
-extern W8PList* g_item_manager_entries_00683FB5;
+extern W8PList* g_world_item_list_00683fb5;
 
 #define ITEM_MANAGER_CPP "C:\\\\Projects\\\\Wizardry 8\\\\Local Code\\\\ItemManager.cpp"
 
@@ -20,15 +21,15 @@ bool InitializeItemManagerState()
 {
     g_item_manager_initialized_006874C2 = 1;
     g_item_manager_pending_00683FA9 = 0;
-    if (g_item_manager_state_0068EC78 == 7 && g_item_selection_owner_0068EDCC != 0) {
+    if (g_screen_state_0068ec78 == 7 && g_item_selection_owner_0068EDCC != 0) {
         g_item_selection_owner_0068EDCC->selected_item = -1;
     }
-    if (g_item_manager_entries_00683FB5 != 0) {
-        PListClear(g_item_manager_entries_00683FB5);
-        return g_item_manager_entries_00683FB5 != 0;
+    if (g_world_item_list_00683fb5 != 0) {
+        PListClear(g_world_item_list_00683fb5);
+        return g_world_item_list_00683fb5 != 0;
     }
-    g_item_manager_entries_00683FB5 = PListCreate();
-    return g_item_manager_entries_00683FB5 != 0;
+    g_world_item_list_00683fb5 = PListCreate();
+    return g_world_item_list_00683fb5 != 0;
 }
 
 // FUNCTION: WIZ8 0x004F8130
@@ -483,8 +484,8 @@ extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 extern W8LevelRuntimeBlock* g_item_selection_owner_0068EDCC;
-extern int g_item_manager_state_0068EC78;
-extern void* g_world_state_006598a4;
+extern int g_screen_state_0068ec78;
+
 extern float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then
@@ -560,7 +561,7 @@ void DeactivateWorldItem(W8WorldItem* item)
         srAssertFail("pItemInfo->p3D != NULL", ITEM_MANAGER_CPP, 556, 0);
     }
 
-    if (g_item_manager_state_0068EC78 == 7 && g_item_selection_owner_0068EDCC != 0 &&
+    if (g_screen_state_0068ec78 == 7 && g_item_selection_owner_0068EDCC != 0 &&
         g_item_selection_owner_0068EDCC->selected_item == item->runtime_id) {
         g_item_selection_owner_0068EDCC->selected_item = -1;
     }
@@ -635,7 +636,7 @@ int SettleWorldItem(W8WorldItem* item)
         return 0;
     }
 
-    sector = *(int*)((char*)g_world_state_006598a4 + 0x120);
+    sector = g_engine_state_6598a4->current_sector;
     if (sector != item->sector_id) {
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);

@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/Controls.h"
 
 /*
  * Local Screens\MGSTextBox.cpp.
@@ -116,23 +117,18 @@ void SetTextBoxMode(unsigned char mode, int value)
     }
 }
 
-/* One panel of the main game screen, reached only for its redraw slot. */
-class W8ScreenPanel {
-public:
-    virtual ~W8ScreenPanel();
-    virtual void Redraw(int full_redraw);
-};
-
 /* Redraw the whole text box: its frame, its body, and its frame again on top -
-   the second panel is drawn after the body rather than with the first. */
+   the second panel is drawn after the body rather than with the first. The two
+   panels are Local Code\\Controls.cpp's Controls, and the null rectangle is how
+   that class spells "all of it"; the screen holds them at 0x0c and 0x14. */
 // FUNCTION: WIZ8 0x0058A8C0
 void RedrawTextBoxComplete(void)
 {
     unsigned char* screen = g_main_game_screen_0068f2d4;
 
-    (*(W8ScreenPanel**)(screen + 0xc))->Redraw(0);
+    (*(Controls**)(screen + 0xc))->Invalidate(0);
     RedrawTextBoxBody();
-    (*(W8ScreenPanel**)(screen + 0x14))->Redraw(0);
+    (*(Controls**)(screen + 0x14))->Invalidate(0);
 }
 
 extern unsigned int ClockIsTicking(int clock);
