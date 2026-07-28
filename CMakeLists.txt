@@ -253,7 +253,6 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/Controls.cpp
         src/wiz8/local_code/Factions.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
-        src/wiz8/local_code/LoadSaveGame_extra.cpp
         src/wiz8/local_code/Magic.cpp
         "src/wiz8/local_code/Health Stamina Mana.cpp"
         src/wiz8/local_code/ConditionsAndEnchantments.cpp
@@ -312,7 +311,6 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/SurfaceFill.cpp
         src/wiz8/local_code/Targeting.cpp
         src/wiz8/local_code/Viewport.cpp
-        src/wiz8/engine_code/Octree.cpp
         src/wiz8/3d_code/PList.cpp
         src/wiz8/engine_code/3d.cpp
     )
@@ -383,6 +381,39 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/virtual_file_stream.cpp
         src/wiz8/vc6_runtime.cpp
     )
+
+    # These explicit categories preserve matching-sensitive object order. The
+    # glob is validation-only: it prevents a new recovered C++ source from
+    # silently escaping ownership without using the filesystem to order or
+    # populate the build.
+    set(WIZ8_MATCHING_SOURCE_CATEGORIES
+        WIZ8_ORIGINAL_UNITS
+        WIZ8_TEMPLATE_EMISSIONS
+        WIZ8_UNATTRIBUTED_UNITS
+    )
+    set(WIZ8_CLASSIFIED_SOURCES)
+    foreach(category IN LISTS WIZ8_MATCHING_SOURCE_CATEGORIES)
+        foreach(source IN LISTS ${category})
+            if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
+                message(FATAL_ERROR "${category} names missing source: ${source}")
+            endif()
+            if(source IN_LIST WIZ8_CLASSIFIED_SOURCES)
+                message(FATAL_ERROR "Wiz8 source is classified more than once: ${source}")
+            endif()
+            list(APPEND WIZ8_CLASSIFIED_SOURCES "${source}")
+        endforeach()
+    endforeach()
+    file(GLOB_RECURSE WIZ8_CPP_SOURCES CONFIGURE_DEPENDS
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/*.cpp"
+    )
+    set(WIZ8_UNCLASSIFIED_SOURCES ${WIZ8_CPP_SOURCES})
+    list(REMOVE_ITEM WIZ8_UNCLASSIFIED_SOURCES ${WIZ8_CLASSIFIED_SOURCES})
+    if(WIZ8_UNCLASSIFIED_SOURCES)
+        list(JOIN WIZ8_UNCLASSIFIED_SOURCES ", " missing_sources)
+        message(FATAL_ERROR "Unclassified Wiz8 C++ sources: ${missing_sources}")
+    endif()
+
     add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
         ${WIZ8_ORIGINAL_UNITS}
         ${WIZ8_TEMPLATE_EMISSIONS}
@@ -435,11 +466,9 @@ if(WIZ8_BUILD_DECOMP)
     )
     add_custom_target(wiz8_mss32_import_library DEPENDS "${WIZ8_MSS32_IMPORT_LIBRARY}")
 
-    # Bring-up is intentionally a separate link surface. The recovered source
-    # still has unresolved first-party globals and callees, so /FORCE:UNRESOLVED
-    # lets LINK produce an inspectable PE/PDB without adding fake bodies to the
-    # matching objects. The bring-up WinMain only proves the platform/CRT link
-    # and exits; it is not an address claim.
+    # The comparison image retains every recovered section with /OPT:NOREF.
+    # /FORCE:UNRESOLVED produces an inspectable PE/PDB without adding fake
+    # first-party bodies to the matching objects.
     add_executable(WIZ8_BRINGUP WIN32
         $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
     )
@@ -450,18 +479,9 @@ if(WIZ8_BUILD_DECOMP)
     target_compile_options(WIZ8_BRINGUP PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_BRINGUP PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
     target_include_directories(WIZ8_BRINGUP PRIVATE include)
-    # KERNEL32 and the dynamic MSVCRT/MSVCP60 runtimes are selected by the VC6
-    # compiler defaults and /MD. These are the additional Windows import libs
-    # actually present in the canonical executable; do not copy Imperialism's
-    # winmm/vfw/DirectSound/DirectPlay list because Wiz8.exe does not import it.
-    # ddraw/gdi32/user32 are the Windows import libs the canonical executable
-    # actually imports beyond the VC6 defaults (KERNEL32 and, via /MD, MSVCRT
-    # and MSVCP60); do not copy Imperialism's winmm/vfw/DirectSound/DirectPlay
-    # list because Wiz8.exe does not import it. MSS32 (Miles) and BINKW32 (Bink)
-    # BINKW32 (Bink) is imported by the canonical executable too, but no
-    # recovered source references it yet, so it stays unlinked until something
-    # needs it. MSS32 (Miles) is now linked: the audio bring-up gate calls it. zlib is linked as a real library so inflate* resolves from
-    # pinned upstream source instead of a stub.
+    # VC6 and /MD select KERNEL32, MSVCRT, and MSVCP60. These additional import
+    # libraries are source-backed link inputs. BINKW32 remains unlinked until a
+    # recovered source reference requires it; zlib comes from pinned source.
     target_link_libraries(WIZ8_BRINGUP PRIVATE
         ddraw.lib
         gdi32.lib
@@ -686,23 +706,26 @@ if(WIZ8_BUILD_DECOMP AND INFOZIP_SOURCE)
         "${INFOZIP_SOURCE}/win32"
     )
 
-    add_library(SREXT_UNZIP_INFOZIP_ADAPTER OBJECT EXCLUDE_FROM_ALL
+    # Verification-only compilation of the adapter pair. SREXT_UNZIP consumes
+    # these sources directly in original link order; it does not consume these
+    # probe objects.
+    add_library(SREXT_UNZIP_ADAPTER_PROBE OBJECT EXCLUDE_FROM_ALL
         src/srext_unzip/infozip_adapter.c
         src/srext_unzip/plugin.cpp
     )
-    target_compile_options(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+    target_compile_options(SREXT_UNZIP_ADAPTER_PROBE PRIVATE
         /nologo /W3 /GX /O2 /Zp4
     )
-    target_compile_definitions(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+    target_compile_definitions(SREXT_UNZIP_ADAPTER_PROBE PRIVATE
         NDEBUG WIN32 _WINDOWS WINDLL USE_EF_UT_TIME DLL UNZIPLIB
     )
-    target_include_directories(SREXT_UNZIP_INFOZIP_ADAPTER PRIVATE
+    target_include_directories(SREXT_UNZIP_ADAPTER_PROBE PRIVATE
         include
         "${INFOZIP_SOURCE}"
         "${INFOZIP_SOURCE}/windll"
         "${INFOZIP_SOURCE}/win32"
     )
-    add_dependencies(INFOZIP_UNZIP_5_4 SREXT_UNZIP_INFOZIP_ADAPTER)
+    add_dependencies(INFOZIP_UNZIP_5_4 SREXT_UNZIP_ADAPTER_PROBE)
 
     set(SR_UNZIP_IMPORT_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/sr-unzip.lib")
     add_custom_command(
