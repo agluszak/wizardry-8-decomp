@@ -23,20 +23,32 @@ typedef struct W8NpcState {
     unsigned char unknown_0a[0xc];
     int location_id;                      /* 0x16 */
     unsigned char has_monster;            /* 0x1a */
-    unsigned char unknown_1b[0xa];
+    /* 0x1b: the NPC's disposition. Setting a band writes one of three
+       representative values rather than a range. */
+    unsigned char disposition;
+    unsigned char unknown_1c[9];
     unsigned char is_present;             /* 0x25 */
     unsigned char is_grouped;             /* 0x26 */
     unsigned char unknown_27[4];
     signed char group_index;              /* 0x2b */
-    unsigned char unknown_2c[0x5d];
+    unsigned char unknown_2c[2];
+    /* 0x2e: which naming style the NPC uses; the space character selects the
+       one a fact can substitute a name for. */
+    char name_style;
+    unsigned char unknown_2f[0x5a];
     /* 0x089: five slots holding the topics the NPC will talk about, stored
        one more than the topic they name so that zero can mean empty. */
     int topics[5];
-    unsigned char unknown_9d[0x55];
+    unsigned char unknown_9d[0x4c];
+    /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
+    unsigned char marked_e9;
+    unsigned char unknown_ea[8];
     /* 0x0f2: the fourteen facts the NPC has been told, appended in order and
        terminated by the first zero. */
     short known_facts[14];
-    unsigned char unknown_10e[0x1c];
+    unsigned char unknown_10e[6];
+    unsigned char marked_114;
+    unsigned char unknown_115[0x15];
 } W8NpcState;                             /* 0x12a partitioned */
 
 #pragma pack(pop)
@@ -216,4 +228,162 @@ unsigned char CountLeadingPartySlots(void)
         return 1;
     }
     return 0;
+}
+
+#include <string.h>
+
+/* 0x00619DFC: one three-dword row per service - the service id, the bit that
+   stands for it, and one more field nothing here reads. -1 ends the table. */
+typedef struct W8NpcServiceRow {
+    unsigned int service_id;
+    unsigned int bit;
+    unsigned int unknown_08;
+} W8NpcServiceRow;
+extern const W8NpcServiceRow g_npc_services[];
+
+/* 0x00619F18: the name a fact substitutes, and 0x00689F60 the buffer it is
+   copied into so the caller always gets a writable one. */
+extern const char g_substituted_npc_name[];
+extern char g_npc_name_buffer[];
+
+/* The name style that admits a substituted name. */
+enum { W8_NPC_NAME_STYLE_SUBSTITUTABLE = ' ' };
+/* The fact that makes the substitution happen. */
+enum { W8_FACT_NPC_NAME_KNOWN = 0x44 };
+
+extern unsigned char GetFact(int fact);
+
+/* The engine object standing in the world for this NPC. */
+// FUNCTION: WIZ8 0x0050A400
+W8Monster* GetNpcMonster(W8NpcState* npc)
+{
+    W8MonsterInfo* monster_info;
+
+    if (npc->has_monster == 0 || npc->is_present == 0) {
+        return 0;
+    }
+    monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(673, NPC_MANAGER_CPP, npc->location_id, 1));
+    if (monster_info == 0) {
+        return 0;
+    }
+    return monster_info->monster;
+}
+
+/* Move the NPC into one disposition band. Each band is written as one
+   representative value rather than a range, and a band it is already in is
+   left alone - which is why the current band is computed twice. */
+// FUNCTION: WIZ8 0x0050A520
+void SetNpcDispositionBand(W8NpcState* npc, char band)
+{
+    char current;
+
+    GetNpcDisposition(npc);
+    current = GetNpcDisposition(npc);
+    if (current < W8_NPC_DISPOSITION_HOSTILE) {
+        current = 2;
+    }
+    else {
+        current = current < W8_NPC_DISPOSITION_FRIENDLY;
+    }
+    if (current == band) {
+        return;
+    }
+    if (band == 2) {
+        npc->disposition = 0x19;
+        return;
+    }
+    npc->disposition = band == 1 ? 0x32 : 0x4b;
+}
+
+/* Whether any NPC of one kind is in the world, and what its own byte at 0x04
+   says - the two answers are the same value, so a kind that is not there is
+   indistinguishable from one whose byte is zero. */
+// FUNCTION: WIZ8 0x0050DD80
+unsigned char FindNpcOfKind(int kind)
+{
+    int index;
+    W8NpcState* npc;
+
+    for (index = 0; index < g_npc_states->GetCount(); ++index) {
+        npc = *g_npc_states->GetAt(index);
+        if (npc->record->kind == kind) {
+            if (npc == 0) {
+                break;
+            }
+            return *((unsigned char*)npc + 4);
+        }
+    }
+    return 0;
+}
+
+/* Mark the NPC of one kind, raising both of the two flags that go together. */
+// FUNCTION: WIZ8 0x0050CA30
+void MarkNpcOfKind(int kind)
+{
+    int index;
+    W8NpcState* npc;
+
+    for (index = 0; index < g_npc_states->GetCount(); ++index) {
+        npc = *g_npc_states->GetAt(index);
+        if (npc->record->kind == kind) {
+            if (npc != 0) {
+                npc->marked_e9 = 1;
+                npc->marked_114 = 1;
+            }
+            return;
+        }
+    }
+}
+
+/* Whether the NPC offers one service. The service id is looked up in a table
+   that pairs it with its bit, so the ids need not be contiguous. */
+// FUNCTION: WIZ8 0x0050C9E0
+bool NpcOffersService(W8NpcState* npc, unsigned int service_id)
+{
+    int row = 0;
+
+    if (g_npc_services[0].service_id == 0xffffffff) {
+        return false;
+    }
+    while (g_npc_services[row].service_id != 0xffffffff) {
+        if (g_npc_services[row].service_id == service_id) {
+            return (npc->record->service_flags & g_npc_services[row].bit) != 0;
+        }
+        ++row;
+    }
+    return false;
+}
+
+/* Add a topic to the front of the NPC's five, pushing the oldest off the end
+   when they are full. An empty slot is filled in place instead. */
+// FUNCTION: WIZ8 0x0050C140
+void AddNpcTopic(W8NpcState* npc, int topic)
+{
+    int slot;
+
+    for (slot = 0; slot < W8_NPC_TOPIC_SLOTS; ++slot) {
+        if (npc->topics[slot] == 0) {
+            npc->topics[slot] = topic + 1;
+            return;
+        }
+    }
+    for (slot = W8_NPC_TOPIC_SLOTS - 1; slot > 0; --slot) {
+        npc->topics[slot] = npc->topics[slot - 1];
+    }
+    npc->topics[0] = topic + 1;
+}
+
+/* What to call the NPC. One naming style takes a substituted name once the
+   party has learned it, copied into a shared buffer so the caller always gets
+   a writable string; everything else is named by its record. */
+// FUNCTION: WIZ8 0x0050C770
+const char* GetNpcDisplayName(W8NpcState* npc)
+{
+    if (npc->name_style == W8_NPC_NAME_STYLE_SUBSTITUTABLE &&
+        GetFact(W8_FACT_NPC_NAME_KNOWN) != 0) {
+        strcpy(g_npc_name_buffer, g_substituted_npc_name);
+        return g_npc_name_buffer;
+    }
+    return npc->record->display_name;
 }

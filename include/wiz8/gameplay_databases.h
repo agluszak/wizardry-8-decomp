@@ -81,9 +81,14 @@ typedef struct W8NpcDatabaseRecord {
     /* 0x058: the NPC's kind. Twenty is the one value a recovered body singles
        out, refusing to trade with it. */
     int kind;
-    unsigned char unknown_05c[0x41];
+    unsigned char unknown_05c[0xc];
+    /* 0x068: one bit per service the NPC offers, matched against the table at
+       0x00619DFC that pairs each service id with its bit. */
+    unsigned int service_flags;
+    unsigned char unknown_06c[0x31];
     unsigned char flag_9d;               /* 0x09d: and only when this is clear */
-    unsigned char unknown_09e[0x29];
+    /* 0x09e: what the NPC is called, unless a fact substitutes another name. */
+    char display_name[0x29];
     unsigned char deleted;               /* 0x0c7 */
     unsigned char unknown_0c8[0x202];
     void* fact_rules_runtime;            /* 0x2ca: runtime-owned rule PList */
