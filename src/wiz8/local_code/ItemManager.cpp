@@ -1,8 +1,36 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
 
 #include <string.h>
+
+struct W8ItemSelectionOwner0068EDCC {
+    unsigned char unknown_000[0x268];
+    int selected_item;                   /* 0x268: reset when state seven is active */
+};
+
+extern int g_item_manager_initialized_006874C2;
+extern int g_item_manager_pending_00683FA9;
+extern int g_item_manager_state_0068EC78;
+extern W8ItemSelectionOwner0068EDCC* g_item_selection_owner_0068EDCC;
+extern W8PList* g_item_manager_entries_00683FB5;
+
+// FUNCTION: WIZ8 0x004F69F0
+bool InitializeItemManagerState()
+{
+    g_item_manager_initialized_006874C2 = 1;
+    g_item_manager_pending_00683FA9 = 0;
+    if (g_item_manager_state_0068EC78 == 7 && g_item_selection_owner_0068EDCC != 0) {
+        g_item_selection_owner_0068EDCC->selected_item = -1;
+    }
+    if (g_item_manager_entries_00683FB5 != 0) {
+        PListClear(g_item_manager_entries_00683FB5);
+        return g_item_manager_entries_00683FB5 != 0;
+    }
+    g_item_manager_entries_00683FB5 = PListCreate();
+    return g_item_manager_entries_00683FB5 != 0;
+}
 
 struct W8ItemLevelScaleRange {
     unsigned int minimum_party_level;

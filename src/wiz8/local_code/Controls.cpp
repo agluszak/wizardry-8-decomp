@@ -741,6 +741,8 @@ unsigned int W8TextBuffer005ED5B8::GetLineHeight()
  */
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
+    virtual ~W8TextControl005ED604();
+    W8TextControl005ED604* scalar_deleting_destructor(unsigned char flags);
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
     virtual void SetVisible(unsigned char visible);
@@ -1580,6 +1582,17 @@ void W8HelpTextControl005ED758::InvokeBlurCallback()
     W8TextControl005ED604::InvokeBlurCallback();
 }
 
+// FUNCTION: WIZ8 0x004F6030
+W8TextControl005ED604*
+W8TextControl005ED604::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~W8TextControl005ED604();
+    if ((flags & 1) != 0) {
+        ::operator delete(this);
+    }
+    return this;
+}
+
 /* The vtable at 0x005ED66C is the horizontal draggable range thumb. Its
    constructor measures the normal sprite for the widget bounds, then measures
    the movable thumb sprite and retains the remaining horizontal travel at
@@ -1595,6 +1608,8 @@ public:
 
 class W8HorizontalRangeThumb005ED66C : public W8WidgetBase005ED5BC {
 public:
+    virtual ~W8HorizontalRangeThumb005ED66C();
+    W8HorizontalRangeThumb005ED66C* scalar_deleting_destructor(unsigned char flags);
     W8HorizontalRangeThumb005ED66C(Controls* panel, unsigned int region, int left, int top,
                                    int render_arg_0, int render_arg_1, int background_sprite,
                                    int normal_thumb_sprite, int hovered_thumb_sprite,
@@ -1799,6 +1814,27 @@ void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
     }
     Function548F90(-14, m_renderArg0, m_renderArg1, sprite,
                    x + m_pixelPosition, y, 2, 0);
+}
+
+// FUNCTION: WIZ8 0x004F69B0
+W8HorizontalRangeThumb005ED66C*
+W8HorizontalRangeThumb005ED66C::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~W8HorizontalRangeThumb005ED66C();
+    if ((flags & 1) != 0) {
+        ::operator delete(this);
+    }
+    return this;
+}
+
+// FUNCTION: WIZ8 0x004F69D0
+W8HorizontalRangeThumb005ED66C::~W8HorizontalRangeThumb005ED66C()
+{
+}
+
+// FUNCTION: WIZ8 0x004F6640
+W8TextControl005ED604::~W8TextControl005ED604()
+{
 }
 
 /*
