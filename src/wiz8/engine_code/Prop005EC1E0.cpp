@@ -19,6 +19,17 @@
 class W8PropOwnedPolymorphic {
 public:
     virtual ~W8PropOwnedPolymorphic();
+
+    unsigned char unknown_004[0x62];
+    /* 0x66..0x6f: four settings the prop reads and writes through this member.
+       0x6e cycles between one and three; 0x6f having the value two is a state
+       one predicate singles out. */
+    short setting_66;                     /* 0x66 */
+    unsigned char unknown_068[4];
+    unsigned char setting_6c;             /* 0x6c */
+    unsigned char unknown_06d;
+    unsigned char setting_6e;             /* 0x6e */
+    unsigned char setting_6f;             /* 0x6f */
 };
 
 /* Released with a null check and then a bare operator delete. A pointer to
@@ -41,13 +52,26 @@ class W8Prop005EC1E0 : public W8PropBase004B6B60 {
 public:
     virtual ~W8Prop005EC1E0();           /* 0x0044BEC0 */
 
+    unsigned char GetSetting6C();        /* 0x0044D4F0 */
+    void SetSetting6C(unsigned char value);  /* 0x0044D4B0 */
+    void SetSetting66(char value);       /* 0x0044D5B0 */
+    bool IsSetting6FTwo();               /* 0x0044E1C0 */
+    void ToggleSetting6E();              /* 0x0044E1D0 */
+    int GetValue18();                    /* 0x0044D5A0 */
+    int GetGDPropValue24();              /* 0x0044E0A0 */
+
 private:
+public:
     W8PropOwnedPolymorphic* m_owned_14;  /* 0x14 */
-    unsigned char unknown_018[0x8];
+    int value_18;                        /* 0x18 */
+    /* 0x1c: bit seven has to be up before the owned GDProp is consulted. */
+    unsigned int flags_1c;
+private:
     W8PropOwned0020* m_owned_20;         /* 0x20 */
     unsigned char unknown_024[0x4];
     W8PropOwnedPolymorphic* m_owned_28;  /* 0x28 */
     unsigned char unknown_02c[0xc];
+public:
     GDProp* m_owned_38;                  /* 0x38 */
 };                                       /* 0x3c established */
 
@@ -62,4 +86,76 @@ W8Prop005EC1E0::~W8Prop005EC1E0()
     delete m_owned_20;
     delete m_owned_28;
     delete m_owned_38;
+}
+
+extern void Function439D80(void);
+
+/* Vtable slot zero: the complete destructor followed by the conditional
+   release the deleting flag selects. */
+// FUNCTION: WIZ8 0x0044BEA0
+void* __fastcall W8Prop005EC1E0_ScalarDeletingDestructor(
+    W8Prop005EC1E0* self, int /* unused edx */, unsigned char flags)
+{
+    self->~W8Prop005EC1E0();
+    if ((flags & 1) != 0) {
+        operator delete(self);
+    }
+    return self;
+}
+
+/* Four accessors reaching through the owned member at 0x14. */
+// FUNCTION: WIZ8 0x0044D4F0
+unsigned char W8Prop005EC1E0::GetSetting6C()
+{
+    return this->m_owned_14->setting_6c;
+}
+
+// FUNCTION: WIZ8 0x0044D5B0
+void W8Prop005EC1E0::SetSetting66(char value)
+{
+    this->m_owned_14->setting_66 = value;
+}
+
+/* Whether the owned member is in the state the value two stands for. */
+// FUNCTION: WIZ8 0x0044E1C0
+bool W8Prop005EC1E0::IsSetting6FTwo()
+{
+    return this->m_owned_14->setting_6f == 2;
+}
+
+/* Flip the owned member between the only two values it takes: one and three. */
+// FUNCTION: WIZ8 0x0044E1D0
+void W8Prop005EC1E0::ToggleSetting6E()
+{
+    this->m_owned_14->setting_6e = this->m_owned_14->setting_6e == 1 ? 3 : 1;
+}
+
+/* The prop's own value at 0x18. */
+// FUNCTION: WIZ8 0x0044D5A0
+int W8Prop005EC1E0::GetValue18()
+{
+    return this->value_18;
+}
+
+/* One value out of the owned GDProp, but only once the flag that says it is
+   there is up. */
+// FUNCTION: WIZ8 0x0044E0A0
+int W8Prop005EC1E0::GetGDPropValue24()
+{
+    if ((this->flags_1c & 0x80) != 0 && this->m_owned_38 != 0) {
+        return *(int*)((char*)this->m_owned_38 + 0x24);
+    }
+    return 0;
+}
+
+/* Write the settings block's byte at 0x6c. Going from zero to anything else
+   costs an extra call first, so zero is the state that has to be left rather
+   than a value like the others. */
+// FUNCTION: WIZ8 0x0044D4B0
+void W8Prop005EC1E0::SetSetting6C(unsigned char value)
+{
+    if (m_owned_14->setting_6c == 0) {
+        Function439D80();
+    }
+    m_owned_14->setting_6c = value;
 }

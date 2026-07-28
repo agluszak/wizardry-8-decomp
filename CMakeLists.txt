@@ -278,6 +278,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/BitArray.cpp
         src/wiz8/engine_code/GameData.cpp
         src/wiz8/engine_code/Environment.cpp
+        src/wiz8/engine_code/Missile.cpp
         src/wiz8/engine_code/GDProp.cpp
         src/wiz8/engine_code/Prop005EC1E0.cpp
         src/wiz8/engine_code/GrObject.cpp
