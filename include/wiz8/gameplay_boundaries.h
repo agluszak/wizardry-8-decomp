@@ -182,7 +182,10 @@ typedef struct W8MonsterGroup {
     unsigned char unknown_1c[0xc];
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
     unsigned char flag_29;                /* 0x29: cleared after the record loads */
-    unsigned char unknown_2a[0x79];
+    unsigned char unknown_2a[0x75];
+    int value_9f;                         /* 0x9f: a member location id; RemoveMonster
+                                             compares it against the departing
+                                             member's before renotifying */
     int unknown_a3;                       /* 0xa3: gates the trailing notification */
     unsigned char unknown_a7[0x1c];
     unsigned char flag_c3;                /* 0xc3: gates the trailing notification */
@@ -514,9 +517,16 @@ typedef struct W8MonsterInfo {
     int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
     unsigned int monster_species;         /* 0x08 */
     W8Monster* monster;                   /* 0x0c: live engine object, if any */
-    unsigned char unknown_10[4];
+    /* 0x10: pCombat, named by the MonsterManager.cpp:672 assertion
+       "pMonsterInfo->pCombat != NULL" over the malloc 0x004e4390 stores here.
+       The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
+       byte, and 0x004e4500 frees it and nulls the field again. */
+    void* pCombat;
     unsigned char flag_14;                /* 0x14: live-entry gate in 0x004e5c00 */
-    unsigned char unknown_15;
+    /* 0x15: fInCombat, named by the MonsterManager.cpp:666 and :712 assertions
+       "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
+       the pair that allocates and releases pCombat. */
+    unsigned char fInCombat;
     unsigned char flag_16;                /* 0x16: copied from the group's +0x2a */
     /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
        floats here and hands the same triple to 0x004be5c0, whose result it
@@ -529,7 +539,9 @@ typedef struct W8MonsterInfo {
     int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
     unsigned char unknown_37[0x68];
     int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
-    unsigned char unknown_a3[0x144];
+    unsigned char unknown_a3[0x64];
+    int value_107;                        /* 0x107: set to 0x12 when an entry deactivates */
+    unsigned char unknown_10b[0xdc];
     signed char attribute_adjustments_1e7[7]; /* 0x1e7: indexed through a five-way map */
     unsigned char unknown_1ee[0x54];
     int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
@@ -542,13 +554,23 @@ typedef struct W8MonsterInfo {
     unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
     unsigned char unknown_254;
     unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
-    unsigned char unknown_256[0x84];
+    unsigned char unknown_256[0x64];
+    /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
+       the next established field, so the array bound is a partition of the
+       unknown run rather than a proven size. */
+    unsigned char combat_slot_2ba[0x20];
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
     unsigned char unknown_2de[0x13];
     int runtime_value_2f1;                /* 0x2f1: released when an entry is destroyed */
     unsigned char unknown_2f5[8];
     int control_state;                      /* 0x2fd: group-recomputed control state */
-    unsigned char unknown_301[0x124];
+    unsigned char unknown_301[0x4b];
+    /* 0x34c: a combat-entry state byte 0x004e4390 raises to 2 when it is still
+       zero, stamping the global at 0x00686a48 into value_354 at the same time. */
+    unsigned char state_34c;
+    unsigned char unknown_34d[7];
+    int value_354;                          /* 0x354 */
+    unsigned char unknown_358[0xcd];
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
 

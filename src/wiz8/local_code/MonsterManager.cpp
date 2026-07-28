@@ -3,6 +3,7 @@
 #include <math.h>
 #include <new>
 #include <stdlib.h>
+#include <string.h>
 
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000
@@ -22,7 +23,29 @@ void MonsterSetSubCycle(W8Monster* monster, int subcycle);
 unsigned char RemoveMonster(
     unsigned int monster_list_index,
     unsigned char destroy_monster);
+void Function4E4390(W8MonsterInfo* monster_info);
+void Function4E4500(W8MonsterInfo* monster_info);
+void Function565420(void);
+void Function50F4A0(W8MonsterGroup* monster_group, W8MonsterInfo* monster_info);
+void Function5103E0(W8MonsterGroup* monster_group);
+void Function5106D0(W8MonsterGroup* monster_group);
+void Function5524E0(W8MonsterInfo* monster_info, signed char* entry);
+void Function532330(W8MonsterInfo* monster_info);
+void Function546E70(void);
+void Function536170(void* combat_slot);
+void Function4C5840(W8Monster* monster, int value);
+void Function4E76F0(W8MonsterInfo* monster_info);
+extern int g_dword_686a48;
 void DeactivateMonster(W8MonsterInfo* monster_info);
+void Function4ACF90(W8Monster* monster);
+void Function505C80(W8MonsterInfo* monster_info);
+/* Writes the monster's world position through an out-parameter; __cdecl, since
+   0x004C5750 ends in a bare `ret`. */
+void Function4C5750(W8Monster* monster, srVector3T<float>* position);
+void Function505810(void);
+void Function538D60(int location_id, int value);
+void Function593330(void);
+extern int g_active_monster_count_683fa1;
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8MonsterMember18* member);
@@ -34,7 +57,9 @@ void Function4C59C0(W8Monster* monster, W8World* world);
 W8World* Function451280(W8Monster* monster);
 void Function46E5A0(W8World* world);
 void Function4C5860(W8Monster* monster);
-void Function42E650(unsigned short location_id);
+/* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
+   clean only three of the four dwords they push across the tail. */
+void __stdcall Function42E650(unsigned short location_id);
 void Function509EA0(int value);
 void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
 float MonsterGetScale(W8Monster* monster);
@@ -879,6 +904,255 @@ unsigned char AnyMonsterDying(void)
         }
     }
     return 0;
+}
+
+/* The manager teardown: it drains the monster list by repeatedly destroying
+   entry zero rather than walking it, then releases the four gXStatus lists and
+   the species-indexed record cache. The cache walk is a pointer sweep against
+   the address one past the last slot, which is how the original spells it. */
+// FUNCTION: WIZ8 0x004E3820
+unsigned char Function4E3820(void)
+{
+    W8MonsterRecord** slot;
+
+    if (g_monster_group_list == 0) {
+        srAssertFail(
+            "gXStatus.plsMonsterGroupList != NULL", MONSTER_MANAGER_CPP, 0x5c, 0);
+    }
+    if (g_monster_list == 0) {
+        srAssertFail("gXStatus.plsMonsterList != NULL", MONSTER_MANAGER_CPP, 0x5d, 0);
+    }
+    while (static_cast<int>(PListGetCount(g_monster_list)) > 0) {
+        if (RemoveMonster(0, 1) == 0) {
+            return 0;
+        }
+    }
+    if (PListDestroy(g_monster_list) == 0) {
+        return 0;
+    }
+    g_monster_list = 0;
+    if (PListDestroy(g_monster_group_list) == 0) {
+        return 0;
+    }
+    g_monster_group_list = 0;
+    if (PListDestroy(g_monster_group_species_list) == 0) {
+        return 0;
+    }
+    g_monster_group_species_list = 0;
+    if (PListDestroy(g_monster_group_encounter_list) == 0) {
+        return 0;
+    }
+    g_monster_group_encounter_list = 0;
+    for (slot = g_monster_record_cache;
+         slot < g_monster_record_cache + MAX_MONSTERS_IN_DATABASE;
+         ++slot) {
+        if (*slot != 0) {
+            free(*slot);
+            *slot = 0;
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004E3AF0
+unsigned char RemoveMonster(
+    unsigned int monster_list_index,
+    unsigned char destroy_monster)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+
+    if (g_flag_683f94 != 0 && monster_info->fInCombat != 0 && monster_info->pCombat != 0) {
+        Function4E4500(monster_info);
+    }
+    if (monster_info->monster_group_id != 0) {
+        W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(
+                0x125, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
+
+        IListRemove(monster_group->monsters, monster_info->location_id);
+        --monster_group->member_count;
+        Function565420();
+        if (monster_group->member_count == 0) {
+            Function50F4A0(monster_group, monster_info);
+        } else {
+            RecountActiveMonsterGroupMembers(monster_group);
+            if (monster_group->value_9f == monster_info->location_id) {
+                Function5103E0(monster_group);
+                if (monster_group->unknown_a3 == 0) {
+                    Function5106D0(monster_group);
+                }
+            }
+        }
+        monster_info->monster_group_id = 0;
+    }
+    DeactivateMonster(monster_info);
+    if (destroy_monster != 0) {
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        DeactivateMonster(monster_info);
+        if (monster_info == 0) {
+            srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
+        }
+        if (monster_info->monster != 0) {
+            Function4C59C0(monster_info->monster, GetWorld());
+            Function46E5A0(Function451280(monster_info->monster));
+            Function4C5860(monster_info->monster);
+            monster_info->monster = 0;
+        }
+        (void)g_dword_6598a4;
+        Function42E650(static_cast<unsigned short>(monster_info->location_id));
+        Function509EA0(monster_info->runtime_value_2f1);
+        void* removed = PListRemoveAt(g_monster_list, monster_list_index);
+        if (removed != 0) {
+            free(removed);
+        }
+    }
+    return 1;
+}
+
+/* Retires one entry from the live world: it parks the entry at the sentinel
+   location 9999, zeroes its two current stats, resets the live Monster's flag
+   word to the deactivated value, captures the position the Monster ends at, and
+   lowers the live count. In combat it also clears the two selection slots the
+   global at 0x006836A8 holds if this entry occupied them. The p3D name for the
+   Monster pointer at +0x0c comes from the MonsterManager.cpp:585 assertion. */
+// FUNCTION: WIZ8 0x004E4280
+void DeactivateMonster(W8MonsterInfo* monster_info)
+{
+    srVector3T<float> position;
+
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x240, 0);
+    }
+    if (monster_info->flag_14 != 0) {
+        if (monster_info->monster == 0) {
+            srAssertFail("pMonsterInfo->p3D != NULL", MONSTER_MANAGER_CPP, 0x249, 0);
+        }
+        monster_info->value_9f = 9999;
+        monster_info->value_107 = 0x12;
+        monster_info->hp_current = 0;
+        monster_info->runtime_stat_current_33 = 0;
+        monster_info->monster->member_18.unknown_88 = 0;
+        monster_info->monster->member_18.flags_0c = 0x200000;
+        Function4ACF90(monster_info->monster);
+        Function505C80(monster_info);
+        Function4C5750(monster_info->monster, &position);
+        monster_info->position_17[0] = position.x;
+        monster_info->position_17[1] = position.y;
+        monster_info->position_17[2] = position.z;
+        monster_info->flag_14 = 0;
+        --g_active_monster_count_683fa1;
+        if (g_flag_683f94 != 0) {
+            Function505810();
+            Function538D60(monster_info->location_id, 0);
+            Function593330();
+            Function546E70();
+            if (*reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) == monster_info) {
+                *reinterpret_cast<int*>(g_object_6836a8 + 0x7b0) = 0;
+                *reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) = 0;
+            }
+        }
+    }
+}
+
+/* Combat entry for one monster entry: it stops and re-poses the live Monster,
+   allocates the 0x153-byte pCombat block the MonsterManager.cpp:672 assertion
+   names, and clears it as 0x54 dwords plus a trailing word and byte - the
+   inline `memset` shape VC6 emits for a zero-initialised structure of that
+   size, which is also what fixes the block's extent. */
+// FUNCTION: WIZ8 0x004E4390
+void Function4E4390(W8MonsterInfo* monster_info)
+{
+    int query_state;
+
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x299, 0);
+    }
+    if (monster_info->fInCombat != 0) {
+        srAssertFail("!pMonsterInfo->fInCombat", MONSTER_MANAGER_CPP, 0x29a, 0);
+    }
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
+    }
+    Function4C5B10(monster_info->monster, 0);
+    monster_info->monster->member_18.flags_0c &= 0xdfffffff;
+    Function4C6140(monster_info->monster);
+    if (monster_info->motionless == 0) {
+        query_state = MonsterQuery(monster_info->monster, 6);
+        if (query_state != 1 && query_state != 2 &&
+            monster_info->monster->m_cycles[18].unknown_0c[0xa7] == -1) {
+            StartMonsterCycle(monster_info, 1, 3);
+        }
+    }
+    monster_info->pCombat = malloc(0x153);
+    if (monster_info->pCombat == 0) {
+        srAssertFail("pMonsterInfo->pCombat != NULL", MONSTER_MANAGER_CPP, 0x2a0, 0);
+    }
+    memset(monster_info->pCombat, 0, 0x153);
+    monster_info->fInCombat = 1;
+    if (monster_info->state_34c == 0) {
+        monster_info->state_34c = 2;
+        monster_info->value_354 = g_dword_686a48;
+    }
+    Function536170(monster_info->combat_slot_2ba);
+    Function4C5840(monster_info->monster, 0);
+    monster_info->monster->member_18.flags_0c = 0;
+    if (monster_info->flag_16 == 1) {
+        Function546E70();
+    }
+    if (g_flag_683f94 != 0) {
+        Function4E76F0(monster_info);
+    }
+}
+
+/* Combat exit, the mirror of 0x004E4390: it detaches the entry from the two
+   selection slots the global at 0x006836A8 holds, walks pCombat's two record
+   runs releasing every occupied one, then frees the block and lowers fInCombat.
+   Both runs step by 0x11 bytes; the first starts at +0x3e and the second at
+   +0xd7, which is what places them inside the 0x153-byte allocation. */
+// FUNCTION: WIZ8 0x004E4500
+void Function4E4500(W8MonsterInfo* monster_info)
+{
+    unsigned int index;
+    signed char* entry;
+
+    if (g_flag_683f94 == 0) {
+        srAssertFail("gXStatus.fCombatMode", MONSTER_MANAGER_CPP, 0x2c6, 0);
+    }
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2c7, 0);
+    }
+    if (monster_info->fInCombat == 0) {
+        srAssertFail("pMonsterInfo->fInCombat", MONSTER_MANAGER_CPP, 0x2c8, 0);
+    }
+    if (*reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) == monster_info) {
+        *reinterpret_cast<int*>(g_object_6836a8 + 0x7b0) = 0;
+        *reinterpret_cast<W8MonsterInfo**>(g_object_6836a8 + 0x7b8) = 0;
+    }
+    /* The record cursor is spelled (base + offset) + constant, not
+       (base + constant) + offset: the first form leaves the block pointer as
+       the LEA's base register, which is the encoding the original uses, while
+       the second folds the constant into the displacement and promotes the
+       running offset to base instead. */
+    for (index = 0; index < 9; ++index) {
+        entry = static_cast<signed char*>(monster_info->pCombat) + index * 0x11 + 0x3e;
+        if (*entry != 0) {
+            Function5524E0(monster_info, entry);
+        }
+    }
+    for (index = 0; index < 6; ++index) {
+        if (*(static_cast<signed char*>(monster_info->pCombat) + index * 0x11 + 0xd7) != 0) {
+            Function5524E0(
+                monster_info,
+                static_cast<signed char*>(monster_info->pCombat) + index * 0x11 + 0xd7);
+        }
+    }
+    Function532330(monster_info);
+    free(monster_info->pCombat);
+    monster_info->pCombat = 0;
+    monster_info->fInCombat = 0;
+    if (monster_info->flag_16 == 1) {
+        Function546E70();
+    }
 }
 
 static W8MonsterManagerState g_monster_manager_state;
