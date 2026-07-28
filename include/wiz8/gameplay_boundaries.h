@@ -12,6 +12,7 @@
 
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/vector.h"
 #include "wiz8/game_state.h"
 #include "wiz8/gameplay_databases.h"
 
@@ -346,7 +347,11 @@ typedef struct W8MonsterSlot {
     unsigned char field_0d1;
     int field_0d2;
     unsigned short field_0d6;
-    unsigned char unknown_0d8[0x10];
+    /* 0x0d8: the monsters this party slot currently has highlighted, held as a
+       growable vector of location ids. Clearing the highlight walks it and
+       zeroes the count without releasing the storage, which is what makes it a
+       vector rather than a fixed array. */
+    W8GrowableVector<int> highlighted_monsters;
     unsigned char field_0e8;
     unsigned char unknown_0e9[0x2f];
 } W8MonsterSlot;                         /* 0x118 */
@@ -1074,7 +1079,11 @@ struct W8MonsterMember18 {
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
     unsigned char unknown_10[0x4c];
     int value_5c;                           /* 0x5c: Monster +0x74 */
-    unsigned char unknown_60[0x28];
+    unsigned char unknown_60[0x24];
+    /* 0x84, which is Monster +0x9c: the monster's own extent. Every range test
+       subtracts it from the centre-to-centre distance, so it is a radius
+       rather than a diameter or a bounding box. */
+    float radius_84;
     unsigned char state_a0;                 /* 0x88: Monster +0xa0 */
     unsigned char unknown_89[3];
     signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */

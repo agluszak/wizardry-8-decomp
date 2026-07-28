@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -885,4 +886,114 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
         SetTargetCursor(W8_CURSOR_VALID_TARGET);
     }
     return valid;
+}
+
+extern W8MonsterSlot g_monster_slots_6836b8[];
+
+/* Take down whatever one party slot was highlighting. A slot with a highlight
+   list of its own empties that and nothing else; only a slot with none falls
+   through to the target it was given, and then a monster and a group are
+   handled separately because each has its own way of naming its monsters.
+
+   Clearing a monster drops this slot's bit out of the monster's own highlight
+   mask, so a monster several slots are highlighting stays lit for the rest;
+   the original carries that body inline at both places rather than calling
+   it. */
+// FUNCTION: WIZ8 0x0053AC30
+void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
+{
+    W8MonsterSlot* slot = &g_monster_slots_6836b8[party_slot];
+    unsigned int index;
+
+    if (slot->highlighted_monsters.GetCount() > 0) {
+        for (index = 0; index < (unsigned int)slot->highlighted_monsters.GetCount(); ++index) {
+            SetMonsterHighlight(party_slot, *slot->highlighted_monsters.GetAt(index), 0, 0);
+        }
+        slot->highlighted_monsters.Clear();
+        return;
+    }
+
+    if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
+        SetMonsterHighlight(party_slot, target->iMonsterID, 0, 0);
+    }
+
+    if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
+        unsigned int group_list_index =
+            GetMonsterGroupIndexByID(0x5da, TARGETING_CPP, target->iGroupID, 0);
+
+        if (group_list_index != 0xffffffff) {
+            W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
+
+            for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+                SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0, 0);
+            }
+        }
+    }
+}
+
+extern unsigned char LineOfSightClear(float x, float y, float z);        /* 0x004C4C40 */
+/* 0x005EBB34: the float that stands for "no distance given". GameData.cpp
+   reads the same constant as the level vector's absent value. */
+extern float g_float_005ebb34;
+
+/* The side selector that means any side at all. */
+enum { W8_SIDE_ANY = 3 };
+
+/* Gather every monster within one distance of a point, appending their
+   location ids to the caller's vector. The distance is measured to the
+   monster's surface rather than its centre, which is what the radius
+   subtraction is; a distance of the "no distance given" constant gathers
+   nothing at all rather than everything.
+
+   The highlighting caller and the line-of-sight caller share the body: with
+   highlighting on, a monster out of range has its tint cleared and one in
+   range is taken without looking, and with it off nothing is tinted and a
+   monster in range still has to be visible from the given eye point. */
+// FUNCTION: WIZ8 0x00539E70
+void CollectMonstersWithinRadius(
+    const W8Position* centre, const W8Position* eye, W8GrowableVector<int>* found, float radius,
+    char side, char highlighting)
+{
+    unsigned int index;
+
+    if (radius == g_float_005ebb34) {
+        return;
+    }
+
+    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        W8Monster* monster = monster_info->monster;
+        W8MonsterRecord* record;
+        srVector3T<float> position;
+        float dx;
+        float dy;
+        float dz;
+
+        if (monster_info->flag_14 == 0 || monster_info->hp_current == 0 ||
+            monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
+            continue;
+        }
+        record = GetMonsterDataForInfo(monster_info);
+        if (record->untargetable_24a != 0) {
+            continue;
+        }
+        if (monster_info->flag_16 != side && side != W8_SIDE_ANY) {
+            continue;
+        }
+
+        position = monster->member_18.GetPosition();
+        dx = centre->x - position.x;
+        dy = centre->y - position.y;
+        dz = centre->z - position.z;
+
+        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->member_18.radius_84) {
+            if (highlighting != 0) {
+                SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
+            }
+            continue;
+        }
+        if (highlighting != 0 || LineOfSightClear(eye->x, eye->y, eye->z)) {
+            found->Add(monster_info->location_id);
+        }
+    }
 }
