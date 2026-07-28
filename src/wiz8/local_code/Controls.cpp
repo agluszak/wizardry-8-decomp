@@ -747,6 +747,7 @@ public:
     void EnableSecondaryState(unsigned char immediate);
     void DisableSecondaryState(unsigned char immediate);
     void Function4D30(int event);
+    void Function4F70(int event);
     virtual void InvokeFocusCallback();
     virtual void ActivatePrimary();
     virtual void InvokeBlurCallback();
@@ -1122,8 +1123,12 @@ protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
 };
 
+class W8RangeControl005ED74C;
+
 class W8RangeThumb : public W8WidgetBase005ED5BC {
 public:
+    virtual void Redraw(int full_redraw);
+    void AdjustValue(int steps);
     __forceinline void SetRangePosition(float position)
     {
         m_position = position;
@@ -1145,18 +1150,24 @@ public:
     }
 
 protected:
-    unsigned char unknown_34[0x18];
+    int m_renderArg34;
+    int m_renderArg38;
+    int m_normalSprite;
+    int m_enabledSprite;
+    int m_disabledSprite;
+    int m_drawOffsetX;
     int m_pixelPosition;                 /* 0x4c */
     int m_field_50;
     int m_trackLength;                   /* 0x54 */
     int m_field_58;
-    int m_field_5c;
+    unsigned char m_useEnabledSprite;    /* 0x5c */
+    unsigned char pad_5d[3];
     float m_minimumPosition;             /* 0x60 */
     float m_maximumPosition;             /* 0x64 */
     float m_position;                    /* 0x68 */
+    W8RangeControl005ED74C* m_range;     /* 0x6c */
 };
 
-class W8RangeControl005ED74C;
 class W8RangeListener {
 public:
     virtual void OnRangeChanged(W8RangeControl005ED74C* control) = 0;
@@ -1180,6 +1191,18 @@ protected:
     W8RangeThumb* m_thumb;               /* 0x60 */
     W8RangeListener* m_listener;         /* 0x64 */
     unsigned char m_enabled;             /* 0x68 */
+};
+
+class W8RangeButton005ED6FC : public W8TextControl005ED604 {
+public:
+    void HandlePress(int event);
+    virtual void ActivatePrimary();
+    void AdjustValue(int steps);
+
+protected:
+    short m_direction;                   /* 0xb8: zero decrements */
+    unsigned short pad_ba;
+    W8RangeControl005ED74C* m_range;     /* 0xbc */
 };
 
 // FUNCTION: WIZ8 0x004F6440
@@ -1246,6 +1269,93 @@ void W8RangeControl005ED74C::SetEnabled(unsigned char enabled)
     m_decrement->SetVisible(enabled);
     m_increment->SetVisible(enabled & m_enabled);
     m_thumb->SetVisible(enabled);
+}
+
+// FUNCTION: WIZ8 0x004F5EF0
+void W8RangeThumb::AdjustValue(int steps)
+{
+    if (steps > 0) {
+        do {
+            m_range->Decrement();
+            --steps;
+        } while (steps != 0);
+    } else if (steps < 0) {
+        steps = -steps;
+        do {
+            m_range->Increment();
+            --steps;
+        } while (steps != 0);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5F60
+void W8RangeThumb::Redraw(int full_redraw)
+{
+    if (m_flag_5 == 0 || (full_redraw == 0 && m_flag_6 == 0)) {
+        return;
+    }
+    int left = m_pPanel->origin_x + m_left;
+    int top = m_pPanel->origin_y + m_top;
+    int right = m_pPanel->origin_x + m_right;
+    int bottom = m_pPanel->origin_y + m_bottom;
+    Function422D50(left, top, right, bottom, 0);
+    FillSurfaceRect(-14, left, top, right, bottom, 0x8000);
+
+    int sprite;
+    if (m_flag_4 == 0) {
+        sprite = m_disabledSprite;
+        if (sprite == -1) {
+            return;
+        }
+    } else if (m_useEnabledSprite == 0 || (sprite = m_enabledSprite) == -1) {
+        sprite = m_normalSprite;
+    }
+    Function548F90(-14, m_renderArg34, m_renderArg38, sprite,
+                   m_pPanel->origin_x + m_drawOffsetX + m_left,
+                   m_pPanel->origin_y + m_pixelPosition + m_top, 2, 0);
+}
+
+// FUNCTION: WIZ8 0x004F6050
+void W8RangeButton005ED6FC::HandlePress(int event)
+{
+    Function4F70(event);
+    if (m_flag_5 != 0 && m_flag_4 != 0) {
+        if (m_direction == 0) {
+            m_range->Decrement();
+        } else {
+            m_range->Increment();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F60C0
+void W8RangeButton005ED6FC::ActivatePrimary()
+{
+    W8TextControl005ED604::ActivatePrimary();
+    if (m_flag_5 != 0 && m_flag_4 != 0) {
+        if (m_direction == 0) {
+            m_range->Decrement();
+        } else {
+            m_range->Increment();
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F6180
+void W8RangeButton005ED6FC::AdjustValue(int steps)
+{
+    if (steps > 0) {
+        do {
+            m_range->Decrement();
+            --steps;
+        } while (steps != 0);
+    } else if (steps < 0) {
+        steps = -steps;
+        do {
+            m_range->Increment();
+            --steps;
+        } while (steps != 0);
+    }
 }
 
 // FUNCTION: WIZ8 0x004F6680

@@ -187,3 +187,8 @@ wiz8,004f6470,__thiscall,void,"[[""value"",""int""]]",false,W8RangeControl005ED7
 wiz8,004f6540,__thiscall,void,[],false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f6540,undefined FUN_004f6540(),The byte-exact body consumes only the typed receiver.
 wiz8,004f6570,__thiscall,void,[],false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f6570,undefined FUN_004f6570(),The byte-exact body consumes only the typed receiver.
 wiz8,004f65a0,__thiscall,void,"[[""enabled"",""unsigned char""]]",false,W8RangeControl005ED74C *,exact,signatures:wiz8:004f65a0,undefined FUN_004f65a0(),The byte-exact body consumes the typed receiver and one enabled byte.
+wiz8,004f5ef0,__thiscall,void,"[[""steps"",""int""]]",false,W8RangeThumb *,strong,signatures:wiz8:004f5ef0,undefined FUN_004f5ef0(),ECX supplies the typed thumb receiver and one signed step count.
+wiz8,004f5f60,__thiscall,void,"[[""full_redraw"",""int""]]",false,W8RangeThumb *,strong,signatures:wiz8:004f5f60,undefined FUN_004f5f60(),ECX supplies the typed thumb receiver and the low byte of the sole redraw argument controls forced drawing.
+wiz8,004f6050,__thiscall,void,"[[""event"",""int""]]",false,W8RangeButton005ED6FC *,strong,signatures:wiz8:004f6050,undefined FUN_004f6050(),ECX supplies the typed button receiver and one event dword.
+wiz8,004f60c0,__thiscall,void,[],false,W8RangeButton005ED6FC *,strong,signatures:wiz8:004f60c0,undefined FUN_004f60c0(),ECX supplies the typed button receiver and no stack arguments are consumed.
+wiz8,004f6180,__thiscall,void,"[[""steps"",""int""]]",false,W8RangeButton005ED6FC *,strong,signatures:wiz8:004f6180,undefined FUN_004f6180(),ECX supplies the typed button receiver and one signed step count.
