@@ -132,10 +132,10 @@ Then:
 just test
 ```
 
-The reviewed-model loader cross-validates sizes, slot counts, contiguity and field overlap, so a
-pass here means the rows are internally coherent. `tests/unit/test_wiz8_source_model.py` pins the
-reviewed vtable and slot totals — it will fail with an off-by-your-new-rows count, and updating it
-is part of the promotion, not a workaround.
+The production repository validator cross-validates schema, identities, provenance, sizes, slot
+contiguity, field overlap, exact digests, and reviewed-versus-observed vtable facts. Ordinary
+progress adds rows without changing a test inventory; add a focused validator fixture only when a
+new invariant is discovered.
 
 Rematerialize by running any Ghidra query, then confirm the manifest:
 

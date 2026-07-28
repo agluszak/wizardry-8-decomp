@@ -40,10 +40,10 @@ this dedicated Wine prefix. The launcher runs the game as its foreground child, 
 attached to the menu and returns the game's status instead of guessing its lifetime from Wine's
 desktop helper.
 
-`just build <target> [jobs]` invokes the pinned 32-bit JOM 1.1.3 directly. Configuration, source
-fetching, and original-image detection happen only when `build/decomp/CMakeCache.txt` is absent (or
-when `just configure` is requested); CMake's generated dependency check handles later CMake changes.
-Thus a no-op build enters the existing graph without regenerating all execution inputs first.
+`just build <target> --jobs <count>` invokes the pinned 32-bit JOM 1.1.3 through the Python build
+driver. It validates the checkout-local build directory and configures automatically when required;
+CMake's generated dependency check handles later build-graph changes. `just prepare` separately
+owns idempotent source/input preparation.
 
 The recovered corpus is not link-complete. `WIZ8_BRINGUP` therefore uses `/FORCE:UNRESOLVED` rather
 than contaminating matching source with invented globals or function bodies. LINK reports every

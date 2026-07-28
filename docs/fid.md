@@ -9,15 +9,15 @@ the resulting FID database are tracked.
 ## Rebuild
 
 ```sh
-uv run wiz8 ghidra fid inventory
-just ghidra fid build-image
+just wiz8 toolchain build
+# Advanced/internal corpus regeneration:
 just ghidra fid build-seeds
 just ghidra fid extract-libraries
 just ghidra fid build
-uv run wiz8 ghidra fid match --program wiz8--gog-base--wiz8--18a74ff61c65
+just ghidra fid match --program wiz8--gog-base--wiz8--18a74ff61c65
 ```
 
-`build-image` clones only the exact archaic-msvc commits declared in
+`toolchain build` clones only the exact archaic-msvc commits declared in
 `config/static-libraries.yml`. The compiler-capable RTM, SP5, Processor Pack, and SP6 images build
 the pinned zlib 1.0.4 and IJG JPEG 6 source seeds. SP3 and SP4 are deliberately marked
 `precompiled-libraries` because their repositories contain headers and libraries but no runnable
