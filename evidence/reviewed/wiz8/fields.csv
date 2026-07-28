@@ -32,7 +32,7 @@ wiz8,W8TextBuffer005ED5B8,0x30,0x4,m_lineHeight,uint32,,strong,classes:wiz8:W8Te
 wiz8,W8TextBuffer005ED5B8,0x34,0x4,m_buffer,pointer,wchar_t,strong,classes:wiz8:W8TextBuffer005ED5B8,freed by the destructor and copied by CopyTextTo
 wiz8,W8TextBuffer005ED5B8,0x38,0x18,unknown_38,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,trailing constructor-initialized storage not yet semantically identified
 wiz8,W8TextControl005ED604,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8TextControl005ED604,primary vtable W8TextControl005ED604.primary
-wiz8,W8TextControl005ED604,0x4,0x1,widget_flag_4,uint8,,strong,classes:wiz8:W8TextControl005ED604,inherited W8WidgetBase005ED5BC flag
+wiz8,W8TextControl005ED604,0x4,0x1,visible,uint8,,exact,classes:wiz8:W8TextControl005ED604,byte-exact SetVisible override writes the inherited visibility byte
 wiz8,W8TextControl005ED604,0x5,0x1,enabled,uint8,,strong,classes:wiz8:W8TextControl005ED604,inherited enabled state read by drawing and written by SetEnabled
 wiz8,W8TextControl005ED604,0x6,0x1,dirty,uint8,,strong,classes:wiz8:W8TextControl005ED604,inherited dirty state written by Invalidate
 wiz8,W8TextControl005ED604,0x7,0x1,pad_07,uint8,,strong,classes:wiz8:W8TextControl005ED604,padding before inherited rectangle
@@ -45,7 +45,16 @@ wiz8,W8TextControl005ED604,0x1c,0x4,panel,pointer,Controls,strong,classes:wiz8:W
 wiz8,W8TextControl005ED604,0x20,0x14,widget_tail,bytes,,strong,classes:wiz8:W8TextControl005ED604,remaining inherited widget-base storage
 wiz8,W8TextControl005ED604,0x34,0x4,state_flags,uint32,,strong,classes:wiz8:W8TextControl005ED604,paired state masks manipulated by EnableSecondaryState and DisableSecondaryState
 wiz8,W8TextControl005ED604,0x38,0x4,layout_flags,uint32,,strong,classes:wiz8:W8TextControl005ED604,bits select text-aware bounds layout and horizontal placement
-wiz8,W8TextControl005ED604,0x3c,0x24,text_state,bytes,,strong,classes:wiz8:W8TextControl005ED604,text handles and cached measured extent used by GetTextOrigin and SetBounds
+wiz8,W8TextControl005ED604,0x3c,0x1,alternate_text_enabled,uint8,,exact,classes:wiz8:W8TextControl005ED604,byte-exact SetAlternateTextEnabled writes this selection byte
+wiz8,W8TextControl005ED604,0x3d,0x3,pad_3d,bytes,,strong,classes:wiz8:W8TextControl005ED604,padding before text handles
+wiz8,W8TextControl005ED604,0x40,0x4,text_40,int32,,strong,classes:wiz8:W8TextControl005ED604,first text measurement handle
+wiz8,W8TextControl005ED604,0x44,0x4,text_44,int32,,strong,classes:wiz8:W8TextControl005ED604,second text measurement handle
+wiz8,W8TextControl005ED604,0x48,0x4,text_48,int32,,strong,classes:wiz8:W8TextControl005ED604,primary third text measurement handle
+wiz8,W8TextControl005ED604,0x4c,0x4,text_4c,int32,,strong,classes:wiz8:W8TextControl005ED604,fallback third text measurement handle
+wiz8,W8TextControl005ED604,0x50,0x8,unknown_50,bytes,,strong,classes:wiz8:W8TextControl005ED604,text-control storage not yet semantically named
+wiz8,W8TextControl005ED604,0x58,0x4,text_58,int32,,strong,classes:wiz8:W8TextControl005ED604,live-resource sentinel controlling embedded text-buffer render mode
+wiz8,W8TextControl005ED604,0x5c,0x2,measured_width,int16,,strong,classes:wiz8:W8TextControl005ED604,cached measured text width
+wiz8,W8TextControl005ED604,0x5e,0x2,measured_height,int16,,strong,classes:wiz8:W8TextControl005ED604,cached measured text height
 wiz8,W8TextControl005ED604,0x60,0x4,text_buffer_vptr,pointer,virtual_function *,strong,classes:wiz8:W8TextControl005ED604,embedded W8TextBuffer005ED5B8 primary vtable at parent +0x60
 wiz8,W8TextControl005ED604,0x64,0x4,layout_left,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer current layout left
 wiz8,W8TextControl005ED604,0x68,0x4,layout_top,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer current layout top
@@ -64,7 +73,7 @@ wiz8,W8TextControl005ED604,0x98,0x4,layout_mode,int32,,strong,classes:wiz8:W8Tex
 wiz8,W8TextControl005ED604,0x9c,0x4,text_buffer_field_3c,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer positional storage
 wiz8,W8TextControl005ED604,0xa0,0x1,geometry_dirty,uint8,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer geometry dirty byte set by SetBounds and Invalidate
 wiz8,W8TextControl005ED604,0xa1,0x3,text_buffer_flags_a1,bytes,,strong,classes:wiz8:W8TextControl005ED604,remaining embedded text-buffer flags and padding
-wiz8,W8TextControl005ED604,0xa4,0x4,text_buffer_field_44,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer constructor value four
+wiz8,W8TextControl005ED604,0xa4,0x4,text_buffer_render_mode,int32,,exact,classes:wiz8:W8TextControl005ED604,embedded text-buffer render mode selected by byte-exact SetVisible
 wiz8,W8TextControl005ED604,0xa8,0x4,text_buffer_field_48,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer minus-one sentinel
 wiz8,W8TextControl005ED604,0xac,0x4,text_buffer_tail,bytes,,strong,classes:wiz8:W8TextControl005ED604,tail of the complete embedded W8TextBuffer005ED5B8
 wiz8,W8TextControl005ED604,0xb0,0x4,field_b0,int32,,strong,classes:wiz8:W8TextControl005ED604,trailing constructor-initialized control state
@@ -243,8 +252,17 @@ wiz8,W8Object0043A910,0x28,0x4,value_28,int32,,exact,classes:wiz8:W8Object0043A9
 wiz8,W8Object0043A910,0x2c,0x4,value_2c,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
 wiz8,W8Object0043A910,0x30,0x4,value_30,int32,,exact,classes:wiz8:W8Object0043A910,cleared by the constructor
 wiz8,W8WidgetBase005ED5BC,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8WidgetBase005ED5BC,primary vtable W8WidgetBase005ED5BC.primary
+wiz8,W8WidgetBase005ED5BC,0x4,0x1,visible,uint8,,exact,classes:wiz8:W8WidgetBase005ED5BC,byte-exact SetVisible writes the visibility byte
 wiz8,W8WidgetBase005ED5BC,0x5,0x1,flag_5,uint8,,exact,classes:wiz8:W8WidgetBase005ED5BC,cleared by the folded destructor
+wiz8,W8WidgetBase005ED5BC,0x6,0x1,dirty,uint8,,strong,classes:wiz8:W8WidgetBase005ED5BC,Invalidate raises this widget dirty byte
+wiz8,W8WidgetBase005ED5BC,0x7,0x1,pad_07,uint8,,strong,classes:wiz8:W8WidgetBase005ED5BC,padding before the bounds
+wiz8,W8WidgetBase005ED5BC,0x8,0x4,left,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,byte-exact SetBounds stores the left bound
+wiz8,W8WidgetBase005ED5BC,0xc,0x4,top,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,byte-exact SetBounds stores the top bound
+wiz8,W8WidgetBase005ED5BC,0x10,0x4,right,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,byte-exact SetBounds stores the right bound
+wiz8,W8WidgetBase005ED5BC,0x14,0x4,bottom,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,byte-exact SetBounds stores the bottom bound
 wiz8,W8WidgetBase005ED5BC,0x18,0x4,region_18,int32,,exact,classes:wiz8:W8WidgetBase005ED5BC,region registration released through 0x004f23d0 on teardown unless it holds the -1 sentinel
+wiz8,W8WidgetBase005ED5BC,0x1c,0x4,panel,pointer,Controls,strong,classes:wiz8:W8WidgetBase005ED5BC,assertion-backed m_pPanel pointer used by bounds and invalidation
+wiz8,W8WidgetBase005ED5BC,0x20,0x14,unknown_20,bytes,,strong,classes:wiz8:W8WidgetBase005ED5BC,remaining constructor-initialized widget-base storage
 wiz8,W8Control005ED654,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8Control005ED654,primary vtable W8Control005ED654.primary
 wiz8,W8Control005ED654,0x4,0x4,base_value_4,int32,,exact,classes:wiz8:W8Control005ED654,cleared by the inlined base construction
 wiz8,W8Control005ED654,0x8,0x4,base_value_8,int32,,exact,classes:wiz8:W8Control005ED654,cleared by the inlined base construction

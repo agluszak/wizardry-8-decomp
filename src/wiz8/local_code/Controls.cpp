@@ -135,10 +135,10 @@ public:
 
     virtual ~W8WidgetBase005ED5BC();
 
-    virtual void UnknownSlot1() = 0;
+    virtual void SetVisible(unsigned char visible);
     virtual void Redraw(int full_redraw) = 0;
-    virtual void SetBounds(int left, int top, int right, int bottom) = 0;
-    virtual void SetBoundsFromRect(const W8ControlsRect* bounds) = 0;
+    virtual void SetBounds(int left, int top, int right, int bottom);
+    virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
 
 protected:
     unsigned char m_flag_4;              /* 0x04: set to 1 on construction */
@@ -335,6 +335,7 @@ public:
 
     __forceinline int HasBuffer() const { return m_buffer != 0; }
     __forceinline void SetGeometryDirty() { m_geometryDirty = 1; }
+    __forceinline void SetRenderMode(int mode) { m_renderMode = mode; }
     __forceinline void MarkGeometryDirty(int mode)
     {
         m_geometryDirty = 1;
@@ -356,7 +357,7 @@ protected:
     unsigned char m_geometryDirty;
     unsigned char m_flag_41;
     unsigned char pad_42[2];
-    int m_field_44;                      /* 0x44: 4 */
+    int m_renderMode;                    /* 0x44: 4 initially */
     int m_field_48;                      /* 0x48: the -1 sentinel */
     unsigned char m_flag_4c;
 };
@@ -377,7 +378,7 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
     m_layoutMode = 10;
     m_field_3c = 0;
     m_lineHeight = 0;
-    m_field_44 = 4;
+    m_renderMode = 4;
     m_flag_41 = 0;
     m_field_48 = -1;
     m_flag_4c = 0;
@@ -421,8 +422,10 @@ class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
+    virtual void SetVisible(unsigned char visible);
     void SetFlaggedRegionBounds(short left, short top, unsigned short right);
-    void AddLayoutFlags(unsigned int flags);
+    virtual void AddLayoutFlags(unsigned int flags);
+    virtual void SetAlternateTextEnabled(unsigned char enabled);
     void RemoveLayoutFlags(unsigned int flags);
     void EnableSecondaryState(unsigned char immediate);
     void DisableSecondaryState(unsigned char immediate);
@@ -433,12 +436,14 @@ public:
 protected:
     unsigned int m_stateFlags;           /* 0x34: paired state masks */
     unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
-    int m_field_3c;
+    unsigned char m_alternateTextEnabled;/* 0x3c: alternate text-selection flag */
+    unsigned char pad_3d[3];
     int m_text_40;
     int m_text_44;
     int m_text_48;
     int m_text_4c;
-    unsigned char unknown_50[0xc];
+    unsigned char unknown_50[8];
+    int m_text_58;
     short m_measured_w;                  /* 0x5c: -1 until measured */
     short m_measured_h;                  /* 0x5e */
     W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
@@ -664,6 +669,25 @@ void W8TextControl005ED604::DisableSecondaryState(unsigned char immediate)
         m_stateFlags &= ~g_W8TextControlMask005ED570;
         InvalidateCore(immediate);
     }
+}
+
+// FUNCTION: WIZ8 0x004F5410
+void W8TextControl005ED604::SetVisible(unsigned char visible)
+{
+    m_flag_4 = visible;
+    if (visible == 0) {
+        if (m_text_58 != -1) {
+            m_textBuffer.SetRenderMode(7);
+        }
+    } else if (m_text_58 != -1) {
+        m_textBuffer.SetRenderMode(4);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F69A0
+void W8TextControl005ED604::SetAlternateTextEnabled(unsigned char enabled)
+{
+    m_alternateTextEnabled = enabled;
 }
 
 /*
@@ -1092,4 +1116,28 @@ void W8WidgetBase005ED5BC::SetEnabled(unsigned char enabled)
         }
         SetRegionMode4(m_region_18);
     }
+}
+
+// FUNCTION: WIZ8 0x004F6950
+void W8WidgetBase005ED5BC::SetVisible(unsigned char visible)
+{
+    m_flag_4 = visible;
+}
+
+// FUNCTION: WIZ8 0x004F6980
+void W8WidgetBase005ED5BC::SetBounds(int left, int top, int right, int bottom)
+{
+    m_left = left;
+    m_top = top;
+    m_right = right;
+    m_bottom = bottom;
+}
+
+// FUNCTION: WIZ8 0x004F6960
+void W8WidgetBase005ED5BC::SetBoundsFromRect(const W8ControlsRect* bounds)
+{
+    m_left = bounds->left;
+    m_top = bounds->top;
+    m_right = bounds->right;
+    m_bottom = bounds->bottom;
 }
