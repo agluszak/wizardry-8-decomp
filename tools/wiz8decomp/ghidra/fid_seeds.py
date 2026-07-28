@@ -471,6 +471,7 @@ def _docker_cmake_build(
     toolchain: Toolchain,
     *,
     output: Path,
+    source_dir: str,
     target: str,
     definitions: dict[str, str],
     source_mounts: dict[str, Path] | None = None,
@@ -500,7 +501,7 @@ def _docker_cmake_build(
             toolchain.image,
             r"C:\cmake\bin\cmake.exe",
             "-S",
-            "Z:/repo",
+            f"Z:/repo/{source_dir}",
             "-B",
             "Z:/out",
             "-G",
@@ -922,10 +923,7 @@ def build_seed_objects(
     for toolchain in selected_toolchains:
         temporary = Path(tempfile.mkdtemp(prefix=f"cmake-{toolchain.id}-", dir=_fid_root(settings)))
         try:
-            definitions = {
-                "WIZ8_BUILD_DECOMP": "OFF",
-                "WIZ8_BUILD_FID_SEEDS": "ON",
-            }
+            definitions: dict[str, str] = {}
             mounts: dict[str, Path] = {}
             for index, (library_id, source) in enumerate(sorted(prepared_sources.items())):
                 variable = cmake_variables.get(library_id)
@@ -938,6 +936,7 @@ def build_seed_objects(
                 settings,
                 toolchain,
                 output=temporary,
+                source_dir="tools/fid",
                 target="fid-seeds",
                 definitions=definitions,
                 source_mounts=mounts,
@@ -1001,11 +1000,9 @@ def probe_toolchains(settings: Settings, toolchain_ids: list[str] | None = None)
             settings,
             toolchain,
             output=output,
+            source_dir="tools/toolchain-probe",
             target="fid-probe",
-            definitions={
-                "WIZ8_BUILD_DECOMP": "OFF",
-                "WIZ8_BUILD_TOOLCHAIN_PROBE": "ON",
-            },
+            definitions={},
             log_name=f"cmake-toolchain-probe-{toolchain.id}",
         )
         executable = output / "rich_probe.exe"

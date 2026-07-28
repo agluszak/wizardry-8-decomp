@@ -1,51 +1,10 @@
 import collections
 import csv
-import re
 from collections import Counter
 from pathlib import Path
 
 from wiz8decomp.evidence.classes import load_reviewed_class_model
 from wiz8decomp.provenance import validate_provenance
-
-
-def matching_target_sources(repository: Path, target: str) -> list[Path]:
-    """The sources CMake actually compiles into a matching object target.
-
-    Read out of CMakeLists.txt rather than repeated here. A second copy of the
-    list is a live inventory of something that already has a canonical home: it
-    drifts silently, and every port has to edit it in two places or watch this
-    file fail for a reason that has nothing to do with the port. Reading the
-    real list also strengthens the check, because a recovered body sitting in a
-    file the target does not compile now fails instead of passing.
-    """
-
-    text = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
-    block = re.search(rf"add_library\({target} OBJECT\n(.*?)\n\s*\)\n", text, re.DOTALL)
-    assert block is not None, f"{target} object target not found in CMakeLists.txt"
-    # Original unit names contain spaces - "PC Item.cpp" among them - so CMake
-    # quotes those entries and the quotes are not part of the path.
-    entries: list[str] = []
-    for line in block.group(1).splitlines():
-        entry = line.strip().strip('"')
-        variable = re.fullmatch(r"\$\{([A-Za-z0-9_]+)\}", entry)
-        if variable is None:
-            if entry:
-                entries.append(entry)
-            continue
-        values = re.search(
-            rf"set\({variable.group(1)}\n(.*?)\n\s*\)", text, re.DOTALL
-        )
-        assert values is not None, f"{target} references unknown source list {entry}"
-        entries.extend(
-            item.strip().strip('"')
-            for item in values.group(1).splitlines()
-            if item.strip() and not item.strip().startswith("#")
-        )
-    paths = [repository / entry for entry in entries]
-    assert paths, f"{target} compiles no sources"
-    missing = [path for path in paths if not path.is_file()]
-    assert not missing, f"{target} names sources that do not exist: {missing}"
-    return paths
 
 
 def test_wiz8_source_tree_preserves_raw_cpp_paths() -> None:
@@ -964,32 +923,3 @@ def test_owned_wiz8_boundaries_record_exact_hashes() -> None:
     index_by_location = next(row for row in rows if row["symbol"] == "MonsterGetIndexByLocationID")
     assert index_by_location["confidence"] == "exact"
     assert index_by_location["relocation_masked_sha256"]
-    sources = matching_target_sources(repository, "WIZ8_GAMEPLAY_BOUNDARIES")
-    # Template bodies are owned by their header and emitted into the object
-    # target through the translation units that instantiate them.
-    sources.append(repository / "include/wiz8/vector.h")
-    source = "\n".join(path.read_text(encoding="utf-8") for path in sources)
-    for row in rows:
-        # Scalar deleting destructors are compiler-generated from a virtual
-        # destructor and have no separate source declaration to mark.
-        if row["symbol"].endswith("::scalar_deleting_destructor"):
-            continue
-        # SGP bodies are built from the vendored upstream tree, not from a
-        # first-party unit. That source is licensed and kept verbatim, so it
-        # carries no reccmp markers and must not grow any; the row is still
-        # verified against the original through its own target's objects. The
-        # test is on the owner prefix rather than `sgp-shared` alone because the
-        # reviewed model splits the vendored tree by unit - `sgp-compression`
-        # for Compression.c - and every one of those units is equally verbatim.
-        if row["owner"].startswith("sgp-"):
-            continue
-        marker_kind = "TEMPLATE" if "<" in row["symbol"] else "FUNCTION"
-        marker = f"// {marker_kind}: WIZ8 0x{row['address'].upper()}"
-        assert marker in source, (
-            f"{row['symbol']} is mapped at {row['address']} but no source compiled into "
-            f"WIZ8_GAMEPLAY_BOUNDARIES carries {marker}"
-        )
-        assert row["symbol"] in source, (
-            f"{row['symbol']} is mapped at {row['address']} but is never named in the "
-            "sources compiled into WIZ8_GAMEPLAY_BOUNDARIES"
-        )

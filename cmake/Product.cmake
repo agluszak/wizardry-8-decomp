@@ -1,0 +1,80 @@
+set(ZLIB_SOURCE "" CACHE PATH "Pinned zlib 1.0.4 source tree used by recovered game code")
+set(INFOZIP_SOURCE "" CACHE PATH "Pinned Info-ZIP UnZip 5.4 source tree")
+set(SGP_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/sfi-sgp/sgp" CACHE PATH
+    "Vendored SFI-licensed Standard Gaming Platform source tree")
+if(NOT IJG_JPEG_SOURCE)
+    message(FATAL_ERROR "IJG_JPEG_SOURCE must point at the pinned IJG release 6 tree")
+endif()
+
+add_library(wiz8_compile_settings INTERFACE)
+target_compile_options(wiz8_compile_settings INTERFACE /nologo /O2 /G6 /MD)
+target_compile_definitions(wiz8_compile_settings INTERFACE NOMINMAX WIN32_LEAN_AND_MEAN)
+target_include_directories(wiz8_compile_settings INTERFACE
+    include
+    config/sgp-overlays/common
+    "${SGP_SOURCE}"
+)
+
+function(wiz8_add_import_library NAME DEF_FILE)
+    string(TOLOWER "${NAME}" target_stem)
+    set(import_library "${CMAKE_CURRENT_BINARY_DIR}/${target_stem}.lib")
+    add_custom_command(
+        OUTPUT "${import_library}"
+        COMMAND lib.exe /nologo /machine:ix86
+            "/def:${CMAKE_CURRENT_SOURCE_DIR}/${DEF_FILE}"
+            "/out:${import_library}"
+        DEPENDS "${DEF_FILE}"
+        VERBATIM
+    )
+    add_custom_target(${target_stem}_import_library DEPENDS "${import_library}")
+    set(${NAME}_IMPORT_LIBRARY "${import_library}" PARENT_SCOPE)
+    set(${NAME}_IMPORT_TARGET "${target_stem}_import_library" PARENT_SCOPE)
+endfunction()
+
+function(wiz8_add_executable)
+    cmake_parse_arguments(ARG "OPT_REF" "TARGET;OUTPUT;MAP" "LIBRARIES" ${ARGN})
+    add_executable(${ARG_TARGET} WIN32
+        $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+    )
+    if(TARGET WIZ8_ZLIB_WRAPPERS)
+        target_sources(${ARG_TARGET} PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
+    endif()
+    add_dependencies(${ARG_TARGET} ${WIZ8_SR_IMPORT_TARGET} ${WIZ8_MSS32_IMPORT_TARGET})
+    target_link_libraries(${ARG_TARGET} PRIVATE
+        wiz8_compile_settings
+        ${ARG_LIBRARIES}
+        "${WIZ8_SR_IMPORT_LIBRARY}"
+        "${WIZ8_MSS32_IMPORT_LIBRARY}"
+    )
+    if(TARGET WIZ8_ZLIB_1_0_4)
+        target_link_libraries(${ARG_TARGET} PRIVATE WIZ8_ZLIB_1_0_4)
+    endif()
+    if(ARG_OPT_REF)
+        set(opt_ref /OPT:REF)
+    else()
+        set(opt_ref /OPT:NOREF)
+    endif()
+    target_link_options(${ARG_TARGET} PRIVATE
+        /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF
+        /FORCE:UNRESOLVED /BASE:0x400000 /FILEALIGN:0x1000
+        /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
+        /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_CURRENT_BINARY_DIR}/${ARG_MAP}"
+    )
+    set_target_properties(${ARG_TARGET} PROPERTIES
+        OUTPUT_NAME "${ARG_OUTPUT}"
+        PREFIX ""
+        PDB_NAME "${ARG_OUTPUT}"
+    )
+endfunction()
+
+function(wiz8_collect_zlib_units RESULT SOURCE_ROOT)
+    file(GLOB units CONFIGURE_DEPENDS RELATIVE "${SOURCE_ROOT}" "${SOURCE_ROOT}/*.c")
+    list(REMOVE_ITEM units example.c minigzip.c)
+    list(SORT units)
+    set(${RESULT} ${units} PARENT_SCOPE)
+endfunction()
+
+include(src/srext_jpegimporter/CMakeLists.txt)
+include(src/wiz8/CMakeLists.txt)
+include(src/srext_unzip/CMakeLists.txt)

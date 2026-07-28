@@ -32,6 +32,7 @@ class ContainerBuild:
     mounts: tuple[Mount, ...]
     source_dir: Path
     build_dir: Path
+    container_source_dir: str = "Z:/repo"
 
     @classmethod
     def from_settings(cls, settings: Settings) -> ContainerBuild:
@@ -64,7 +65,7 @@ class ContainerBuild:
                 r"C:\cmake\bin\cmake.exe",
                 *(("--fresh",) if fresh else ()),
                 "-S",
-                "Z:/repo",
+                self.container_source_dir,
                 "-B",
                 "Z:/out",
                 "-G",
@@ -74,8 +75,6 @@ class ContainerBuild:
                 "-DINFOZIP_SOURCE=Z:/infozip",
                 "-DSGP_SOURCE=Z:/repo/third_party/sfi-sgp/sgp",
                 "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-                f"-DRECCMP_PROJECT_DIR_HOST={self.source_dir}",
-                f"-DRECCMP_BUILD_DIR_HOST={self.build_dir}",
             )
         )
         return command
@@ -213,6 +212,36 @@ def build_target(
     return {"target": resolved_target, "command": _result(result)}
 
 
+def build_analysis_target(
+    settings: Settings, source_dir: str, build_name: str, target: str, jobs: int | None = None
+) -> dict[str, Any]:
+    output = settings.repo_dir / "build" / "decomp" / "CMakeFiles" / build_name
+    output.mkdir(parents=True, exist_ok=True)
+    (output / "tmp").mkdir(exist_ok=True)
+    build = ContainerBuild(
+        image=VC6_IMAGE,
+        mounts=(
+            Mount(settings.repo_dir, "/repo"),
+            Mount(output, "/out", read_only=False),
+        ),
+        source_dir=settings.repo_dir / source_dir,
+        build_dir=output,
+        container_source_dir=f"Z:/repo/{source_dir}",
+    )
+    configure_result = run(build.configure_command(), cwd=settings.repo_dir)
+    build_result = run(
+        # VC6 writes shared PDB state while compiling the released SGP units.
+        # Keep this independent oracle build serial just as the old probe graph was.
+        build.build_command(target, jobs or 1),
+        cwd=settings.repo_dir,
+    )
+    return {
+        "target": target,
+        "configure": _result(configure_result),
+        "build": _result(build_result),
+    }
+
+
 def compare(
     settings: Settings, target: str = "WIZ8", arguments: list[str] | None = None
 ) -> dict[str, Any]:
@@ -249,7 +278,7 @@ def check(repository: Path) -> dict[str, Any]:
 def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     build_target(settings, "WIZ8")
     build_target(settings, "WIZ8_GAMEPLAY_BOUNDARIES")
-    build_target(settings, "WIZ8_SGP_PROBES")
+    build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     boundaries = run(["wiz8", "verify-boundaries"], cwd=settings.repo_dir)
     comparison = compare(settings, "WIZ8") if compare_image else None
     tests = run(["pytest"], cwd=settings.repo_dir)

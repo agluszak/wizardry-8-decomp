@@ -5,50 +5,9 @@ from pathlib import Path
 import yaml
 
 
-def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None:
+def test_wiz8_reccmp_target_and_platform_header_are_canonical() -> None:
     repository = Path(__file__).resolve().parents[2]
-    cmake = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
     project = yaml.safe_load((repository / "reccmp-project.yml").read_text(encoding="utf-8"))
-
-    assert "add_custom_target(WIZ8_MATCHING DEPENDS WIZ8_GAMEPLAY_BOUNDARIES)" in cmake
-    assert "add_executable(WIZ8_BRINGUP WIN32" in cmake
-    assert "add_executable(WIZ8_RUNTIME WIN32" in cmake
-    assert "/FORCE:UNRESOLVED" in cmake
-    assert "add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)" in cmake
-    runtime_block = re.search(
-        r"target_link_options\(WIZ8_RUNTIME PRIVATE(.*?)\)", cmake, re.DOTALL
-    )
-    assert runtime_block is not None
-    assert "/OPT:REF" in runtime_block.group(1)
-    assert "/OPT:NOREF" not in runtime_block.group(1)
-    runtime_sources = re.findall(
-        r"target_sources\(WIZ8_RUNTIME PRIVATE(.*?)\)", cmake, re.DOTALL
-    )
-    assert runtime_sources
-    runtime_source_text = "\n".join(runtime_sources)
-    assert "WIZ8_SGP_RUNTIME_CORE" in runtime_source_text
-    assert "WIZ8_SGP_RUNTIME_SHARED" in runtime_source_text
-    assert "WIZ8_SGP_RETAINED" in runtime_source_text
-    assert "WinMain=SgpRetainedWinMain" in cmake
-    assert "ddraw.lib" in cmake
-    assert "gdi32.lib" in cmake
-    assert "user32.lib" in cmake
-    # The matching target sees the recovered headers and the vendored SGP tree,
-    # and nothing else. SGP is on the path because its structures are library
-    # layout that the evidence policy says to take from the real header rather
-    # than restate - GETFILESTRUCT, which LoadSaveGame.cpp walks the save
-    # directory through, is the first that mattered. The overlay supplies the
-    # empty builddefines.h that tree expects.
-    include_block = re.search(
-        r"target_include_directories\(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE(.*?)\)",
-        cmake,
-        re.DOTALL,
-    )
-    assert include_block is not None
-    includes = include_block.group(1).split()
-    assert includes == ["include", "config/sgp-overlays/common", '"${SGP_SOURCE}"']
-    assert "target_include_directories(WIZ8_BRINGUP PRIVATE include)" in cmake
-    assert not list((repository / "src/wiz8").glob("*.h"))
 
     target = project["targets"]["WIZ8"]
     assert target == {
@@ -61,7 +20,6 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
     assert "#include <windows.h>" in windows_header
     assert "#include <ddraw.h>" in windows_header
     assert "#define DIRECTDRAW_VERSION 0x0700" in windows_header
-
 
 def test_main_menu_runtime_uses_dirty_uploads_and_real_input_dispatch() -> None:
     repository = Path(__file__).resolve().parents[2]

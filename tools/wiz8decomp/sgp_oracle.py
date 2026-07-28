@@ -301,9 +301,6 @@ def _compile_units(
     output = Path(tempfile.mkdtemp(prefix="project-profile-", dir=sweep_root))
     try:
         definitions = {
-            "WIZ8_BUILD_DECOMP": "OFF",
-            "WIZ8_BUILD_FID_SEEDS": "OFF",
-            "WIZ8_BUILD_SGP_PROBES": "ON",
             "SGP_SOURCE": "Z:/repo/third_party/sfi-sgp/sgp",
         }
         for unit in units:
@@ -312,6 +309,7 @@ def _compile_units(
                 settings,
                 toolchain,
                 output=output,
+                source_dir="tools/sgp-oracle",
                 target=target,
                 definitions=definitions,
                 log_name=f"sgp-{unit['id']}-project-profile",

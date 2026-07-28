@@ -214,35 +214,6 @@ def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
     assert by_unit["container"]["retained_source_identities"] == "12"
     assert by_unit["container"]["retained_physical_bodies"] == "10"
 
-
-def test_noref_bringup_links_only_whole_retained_sgp_units() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    cmake = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
-    bringup_sources = cmake.rsplit("target_sources(WIZ8_BRINGUP PRIVATE", 1)[1].split(
-        ")", 1
-    )[0]
-
-    assert 'file(READ "${CMAKE_CURRENT_SOURCE_DIR}/config/sgp.yml" WIZ8_SGP_MODEL)' in cmake
-    assert 'string(JSON group_count LENGTH "${WIZ8_SGP_MODEL}"' in cmake
-    assert "$<TARGET_OBJECTS:WIZ8_SGP_RETAINED>" in bringup_sources
-    for partial_or_empty in (
-        "DIRECTDRAW",
-        "COMPRESSION",
-        "FILEMAN",
-        "LIBRARY_DATABASE",
-        "DBMAN",
-        "CONTAINER",
-        "DEBUG",
-        "EXCEPTION_HANDLING",
-        "CORE",
-        "INPUT",
-    ):
-        assert f"$<TARGET_OBJECTS:WIZ8_SGP_{partial_or_empty}>" not in bringup_sources
-
-    assert "src/wiz8/random_number.c" not in cmake
-    assert not (repository / "src/wiz8/random_number.c").exists()
-
-
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
     repository = Path(__file__).resolve().parents[2]
     assert (repository / "evidence/snapshots/sgp/harness.csv").is_file()

@@ -1,0 +1,83 @@
+if(ZLIB_SOURCE)
+    # These five functions are Wizardry-owned adapters around pristine zlib
+    # 1.0.4, not a second copy of the library implementation.
+    add_library(WIZ8_ZLIB_WRAPPERS OBJECT
+        src/wiz8/zlib_wrappers.c
+    )
+    target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
+
+    # The canonical executable statically links pristine zlib 1.0.4; 46 of its
+    # bodies are already reviewed in evidence/reviewed/wiz8/functions.csv.
+    # Build the pinned source as a real library so bring-up resolves inflate*
+    # by linking it, rather than by stubbing library code.
+    wiz8_collect_zlib_units(WIZ8_ZLIB_UNITS "${ZLIB_SOURCE}")
+    list(TRANSFORM WIZ8_ZLIB_UNITS PREPEND "${ZLIB_SOURCE}/")
+    add_library(WIZ8_ZLIB_1_0_4 STATIC EXCLUDE_FROM_ALL ${WIZ8_ZLIB_UNITS})
+    target_compile_options(WIZ8_ZLIB_1_0_4 PRIVATE /nologo /O2 /MD)
+    target_compile_definitions(WIZ8_ZLIB_1_0_4 PRIVATE NDEBUG WIN32)
+    target_include_directories(WIZ8_ZLIB_1_0_4 PRIVATE "${ZLIB_SOURCE}")
+endif()
+
+    include(src/wiz8/sources.cmake)
+    add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
+        ${WIZ8_ORIGINAL_UNITS}
+        ${WIZ8_TEMPLATE_EMISSIONS}
+        ${WIZ8_UNATTRIBUTED_UNITS}
+    )
+    # The vendored SGP headers are on the path so recovered bodies that call
+    # into SGP declare its types from the real header rather than restating
+    # them. GETFILESTRUCT is the first: LoadSaveGame.cpp walks the save
+    # directory through GetFileFirst.
+    target_link_libraries(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE wiz8_compile_settings)
+    set_source_files_properties(src/wiz8/slf_archives.cpp PROPERTIES
+        COMPILE_OPTIONS "/I${CMAKE_CURRENT_SOURCE_DIR}/config/sgp-overlays/librarydatabase")
+
+    # Matching source stays free of synthetic implementations. This umbrella
+    # preserves the old object-target name while giving the executable work a
+    # target whose contract is explicitly source matching.
+    add_custom_target(WIZ8_MATCHING DEPENDS WIZ8_GAMEPLAY_BOUNDARIES)
+    if(TARGET WIZ8_ZLIB_WRAPPERS)
+        add_dependencies(WIZ8_MATCHING WIZ8_ZLIB_WRAPPERS)
+    endif()
+
+    wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def)
+    wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def)
+
+    # The comparison image retains every recovered section with /OPT:NOREF;
+    # the runtime image selects only referenced COMDATs with /OPT:REF.
+    wiz8_add_executable(
+        TARGET WIZ8_BRINGUP
+        OUTPUT Wiz8
+        MAP Wiz8.map
+        LIBRARIES ddraw.lib gdi32.lib user32.lib
+    )
+    add_custom_target(WIZ8 DEPENDS WIZ8_BRINGUP)
+
+    wiz8_add_executable(
+        TARGET WIZ8_RUNTIME
+        OUTPUT Wiz8Runtime
+        MAP Wiz8Runtime.map
+        OPT_REF
+        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+    )
+    add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)
+if(SGP_SOURCE)
+    set(WIZ8_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+    include(cmake/SgpModel.cmake)
+    wiz8_load_sgp_model()
+
+    wiz8_add_sgp_group(WIZ8_SGP_RETAINED ${WIZ8_SGP_RETAINED_SOURCES})
+    wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_SHARED ${WIZ8_SGP_RUNTIME_SHARED_SOURCES})
+    wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_CORE ${WIZ8_SGP_RUNTIME_CORE_SOURCES})
+    target_compile_definitions(WIZ8_SGP_RUNTIME_CORE PRIVATE WinMain=SgpRetainedWinMain)
+
+    add_dependencies(WIZ8_MATCHING WIZ8_SGP_RETAINED)
+    target_sources(WIZ8_BRINGUP PRIVATE
+        $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
+    )
+    target_sources(WIZ8_RUNTIME PRIVATE
+        $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
+        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_SHARED>
+        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
+    )
+endif()
