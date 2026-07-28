@@ -654,18 +654,6 @@ extern int g_effect_argument_005ed8c8;
 extern int g_effect_argument_005ed914;
 extern W8CombatState* g_combat_state;
 
-/* One combat participant's row, 0xd4 bytes per character. Only the fields the
-   fatigue and death paths touch are established. */
-typedef struct W8CombatCharacterRow {
-    unsigned char unknown_00[0x18];
-    int value_18;                        /* 0x18: cleared when the character dies */
-    unsigned char unknown_1c[0x30];
-    unsigned char flag_4c;               /* 0x4c: raised when the character dies */
-    unsigned char unknown_4d[0x37];
-    int current_hand;                    /* 0x84: indexes the slot row's attack modes */
-    int current_equip_slot;              /* 0x88: indexes the character's equipment */
-    unsigned char unknown_8c[0x48];
-} W8CombatCharacterRow;                  /* 0xd4 */
 
 extern W8CombatCharacterRow* g_combat_character_rows;
 extern void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
@@ -880,7 +868,7 @@ void CharacterDies(int party_slot)
     character->stamina = 0;
 
     ResetCombatSlot((W8CombatSlot*)&row->target_block_01d);
-    ResetCombatSlot((W8CombatSlot*)&row->target_block_04d);
+    ResetCombatSlot((W8CombatSlot*)&row->combat_slot_04d);
     if (g_in_combat_00683f94 != 0) {
         Function4ECDD0(party_slot);
     }
@@ -892,7 +880,7 @@ void CharacterDies(int party_slot)
             g_combat_state->selected_slot = 0;
             g_combat_state->selected_character = -1;
         }
-        row->value_001 = -1;
+        row->pending_action = -1;
         g_combat_character_rows[party_slot].value_18 = 0;
         g_combat_character_rows[party_slot].flag_4c = 1;
         Function4E82E0(party_slot);

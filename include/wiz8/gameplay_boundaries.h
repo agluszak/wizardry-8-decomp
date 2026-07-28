@@ -665,12 +665,29 @@ typedef struct W8CombatActor {
    a meaning - the monster slot at +0x7b8 is named because every consumer either
    compares it against a W8MonsterInfo it already holds or clears it when that
    entry leaves the world. The rest keep positional names. */
+/* One combat participant's row, 0xd4 bytes per character. The eight of them
+   begin at the combat state's own address, so W8CombatState's leading fields
+   are the first row's; only the fields the fatigue, death and engagement paths
+   touch are established. */
+typedef struct W8CombatCharacterRow {
+    unsigned char unknown_00[0x18];
+    int value_18;                        /* 0x18: cleared when the character dies */
+    unsigned char unknown_1c[0x30];
+    unsigned char flag_4c;               /* 0x4c: raised when the character dies */
+    unsigned char unknown_4d[0x37];
+    int current_hand;                    /* 0x84: indexes the slot row's attack modes */
+    int current_equip_slot;              /* 0x88: indexes the character's equipment */
+    unsigned char unknown_8c[0x48];
+} W8CombatCharacterRow;                  /* 0xd4 */
+
 typedef struct W8CombatState {
     unsigned char flag_000;               /* 0x000: blocks ending combat while set */
     unsigned char flag_001;               /* 0x001 */
     unsigned char unknown_002[2];
     int value_004;                        /* 0x004: blocks ending combat while non-zero */
-    unsigned char unknown_008[0x7a8];
+    /* 0x008: the round counter every combatant stamps itself against. */
+    int round_counter;
+    unsigned char unknown_00c[0x7a4];
     int selected_slot;                    /* 0x7b0: cleared with selected_monster */
     /* 0x7b4: the party slot whose turn it is; -1 when nobody's. It is cleared
        alongside selected_slot when that character dies. */
@@ -678,7 +695,23 @@ typedef struct W8CombatState {
     struct W8MonsterInfo* selected_monster; /* 0x7b8 */
     unsigned char unknown_7bc[0x104];
     W8CombatActor* engaged_actor;         /* 0x8c0 */
-    unsigned char unknown_8c4[0x190];
+    unsigned char unknown_8c4[0x24];
+    /* 0x8e8: the slots whose characters died this round, and how many. */
+    int pending_deaths[8];
+    int pending_death_count;              /* 0x908 */
+    int value_90c;                        /* 0x90c */
+    int value_910;                        /* 0x910 */
+    unsigned char unknown_914[4];
+    /* 0x918: non-zero forces the whole-party answer rather than deriving it. */
+    int force_engaged_918;
+    unsigned char unknown_91c[4];
+    /* 0x920: the formation combat started with, thirty-three dwords copied
+       whole out of 0x00687511. */
+    int saved_formation[0x21];
+    unsigned char unknown_9a4[0xac];
+    unsigned char flag_a50;               /* 0xa50 */
+    unsigned char flag_a51;               /* 0xa51 */
+    unsigned char unknown_a52[2];
     unsigned char flag_a54;               /* 0xa54 */
     unsigned char unknown_a55[0xd];
     unsigned char flag_a62;               /* 0xa62: the party's combat-ready bit */
