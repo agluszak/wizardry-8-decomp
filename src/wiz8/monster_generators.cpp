@@ -52,7 +52,6 @@ extern void RollRandomEncounters(void);     /* 0x0048CA20 */
 extern void Function49FA30(W8World* world);                  /* 0x0049FA30 */
 extern int Function43A5D0(void);                             /* 0x0043A5D0 */
 extern unsigned char Function48B200(int value);              /* 0x0048B200 */
-extern void Function48B420(void);                            /* 0x0048B420 */
 extern void GenerateEncounter(void* encounter_state);         /* 0x0048AD20 */
 extern void DestroyEncounterTable(W8EncounterTableRuntime* table); /* 0x0048AC60 */
 extern void Function43A770(int handle);                      /* 0x0043A770 */
@@ -509,7 +508,7 @@ void RunMonsterGenerators(void)
             if (Function48B200(0) != 0) {
                 GenerateEncounter(&generator->state_0c);
             }
-            Function48B420();
+            generator->Reset();
         }
     }
 }

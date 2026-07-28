@@ -98,7 +98,7 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
 {
     if (monster_info->effect_2de != 0) {
-        PostMonsterNotice(monster_info, g_notices[0x6b4 / 4]);
+        PostMonsterNotice(monster_info, gppStringList[0x6b4 / 4]);
         monster_info->effect_2de = 0;
         DropMonsterVisual(monster_info->monster, 0x26, 0);
     }
@@ -164,10 +164,10 @@ void AnnounceEffectResisted(W8CombatSlot* target)
         PostMonsterNotice(
             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-            g_notices[0x6cc / 4]);
+            gppStringList[0x6cc / 4]);
         return;
     }
-    PostCharacterNotice(target->iChar, g_notices[0x6cc / 4]);
+    PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
 }
 
 /* Apply an effect and say so if it did not take. Only a zero result counts as
@@ -184,10 +184,10 @@ void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int ar
         PostMonsterNotice(
             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
-            g_notices[0x6cc / 4]);
+            gppStringList[0x6cc / 4]);
         return;
     }
-    PostCharacterNotice(target->iChar, g_notices[0x6cc / 4]);
+    PostCharacterNotice(target->iChar, gppStringList[0x6cc / 4]);
 }
 
 /* Which of the seven display slots one condition owns. Anything not among the

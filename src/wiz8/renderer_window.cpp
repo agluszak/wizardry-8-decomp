@@ -40,7 +40,7 @@ HWND ghWindow;
 
 unsigned char g_flag_603c38 = 1;
 unsigned char g_fullscreen_603c39 = 1;
-unsigned char g_flag_603c3a = 1;
+unsigned char g_flush_pending_603c3a = 1;
 int g_screen_width_603c3c = 640;
 int g_screen_height_603c40 = 480;
 int g_screen_depth_603c44 = 16;
@@ -520,7 +520,7 @@ unsigned char Function422800(void)
         ShutdownWithErrorBox("Could not open video output device.");
         return 0;
     }
-    g_flag_603c3a = 1;
+    g_flush_pending_603c3a = 1;
     return 1;
 }
 
@@ -530,7 +530,7 @@ unsigned char Function422800(void)
 unsigned char Function422550(void)
 {
     if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 ||
-        !g_flag_603c3a) {
+        !g_flush_pending_603c3a) {
         return 0;
     }
     return 0;

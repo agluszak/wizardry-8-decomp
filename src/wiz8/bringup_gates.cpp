@@ -21,7 +21,7 @@ extern "C" {
 
 HVSURFACE CreateVideoSurfaceFromDDSurface(IDirectDrawSurface2* surface);
 
-int g_dword_650dbc;
+int g_surface_list_650dbc;
 /* Released and cleared together by 0x00402E60, which frees each through
    0x00403A50; only the third is rebuilt here. */
 HVSURFACE g_surface_650dd4;
@@ -43,16 +43,16 @@ unsigned char g_flag_5ff651;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
-extern unsigned char g_byte_603c39;
+extern unsigned char g_fullscreen_603c39;
 int g_dword_65a104;
 int g_dword_5ff64c;
-extern int g_dword_6874c6;
+extern int g_status_count_6874c6;
 extern int g_dword_687595;
 extern unsigned char g_byte_68de44;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
-extern unsigned char g_byte_603c39;
+extern unsigned char g_fullscreen_603c39;
 int g_dword_650e24;
 int g_dword_650e28;
 unsigned char g_video_objects_ready_650e20;
@@ -176,7 +176,7 @@ bool Function402970(void)
     bool ready;
 
     g_dword_650dc0 = 0;
-    g_dword_650dbc = 0;
+    g_surface_list_650dbc = 0;
     g_dword_6ef4c0 = 0;
     ready = Function402E30() != 0;
     return ready;
@@ -245,7 +245,7 @@ void Function4086C0(int enable)
 // FUNCTION: WIZ8 0x004229B0
 unsigned char Function4229B0(void)
 {
-    return g_byte_603c39;
+    return g_fullscreen_603c39;
 }
 
 /* Three latches, each set once and never cleared here. */
@@ -296,7 +296,7 @@ void Function479010(void)
 // FUNCTION: WIZ8 0x00443A50
 int Function443A50(void)
 {
-    g_dword_6874c6 = 1;
+    g_status_count_6874c6 = 1;
     return 1;
 }
 

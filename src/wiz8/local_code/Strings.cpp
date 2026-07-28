@@ -9,8 +9,8 @@ extern "C" {
 extern int FileOpen(const char* path, int options, int delete_on_close);
 extern void CloseVirtualFile(int handle);
 
-int g_localized_string_count_68c098;
-unsigned short** g_localized_strings_68c09c;
+int giStringListLen;
+wchar_t** gppStringList;   /* 0x0068C09C */
 
 // FUNCTION: WIZ8 0x005300E0
 void DecodeLocalizedText(unsigned short* text, int character_count)
@@ -34,37 +34,37 @@ void LoadLocalizedStrings(const char* path)
                      "Failed to open localization string table.");
         return;
     }
-    if (!ReadVirtualFile(handle, &g_localized_string_count_68c098, 4, 0)
-        || !g_localized_string_count_68c098) {
+    if (!ReadVirtualFile(handle, &giStringListLen, 4, 0)
+        || !giStringListLen) {
         srAssertFail("giStringListLen", source, 79, 0);
         CloseVirtualFile(handle);
         return;
     }
-    g_localized_strings_68c09c = static_cast<unsigned short**>(
-        malloc(g_localized_string_count_68c098 * sizeof(unsigned short*)));
-    if (!g_localized_strings_68c09c) {
+    gppStringList = static_cast<wchar_t**>(
+        malloc(giStringListLen * sizeof(wchar_t*)));
+    if (!gppStringList) {
         srAssertFail("gppStringList", source, 82, 0);
         CloseVirtualFile(handle);
         return;
     }
-    memset(g_localized_strings_68c09c, 0,
-           g_localized_string_count_68c098 * sizeof(unsigned short*));
-    for (index = 0; index != g_localized_string_count_68c098; ++index) {
+    memset(gppStringList, 0,
+           giStringListLen * sizeof(wchar_t*));
+    for (index = 0; index != giStringListLen; ++index) {
         unsigned int byte_count;
         if (!ReadVirtualFile(handle, &byte_count, 4, 0)) {
             break;
         }
-        g_localized_strings_68c09c[index] =
-            static_cast<unsigned short*>(malloc(byte_count));
-        if (!g_localized_strings_68c09c[index]) {
+        gppStringList[index] =
+            static_cast<wchar_t*>(malloc(byte_count));
+        if (!gppStringList[index]) {
             srAssertFail("gppStringList[iCount]", source, 89, 0);
             break;
         }
-        if (!ReadVirtualFile(handle, g_localized_strings_68c09c[index],
+        if (!ReadVirtualFile(handle, gppStringList[index],
                              byte_count, 0)) {
             break;
         }
-        DecodeLocalizedText(g_localized_strings_68c09c[index], byte_count / 2);
+        DecodeLocalizedText(reinterpret_cast<unsigned short*>(gppStringList[index]), byte_count / 2);
     }
     CloseVirtualFile(handle);
 }

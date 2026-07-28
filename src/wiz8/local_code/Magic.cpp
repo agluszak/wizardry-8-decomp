@@ -883,11 +883,9 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 
 extern int Function52A540(W8Character* character);                       /* 0x0052A540 */
 extern void ShowNoticeLine(const wchar_t* line, int a, int b, int c);    /* 0x0055F260 */
-extern wchar_t* FormatWideString(const wchar_t* format, ...);
 /* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
    name entries by their byte offset into it, which is why the index is
    spelled as one. */
-extern wchar_t* g_message_strings[];
 /* 0x0061E518: one message-table byte offset per realm, for the realm's name. */
 extern const unsigned short g_realm_message_offsets[];
 
@@ -918,22 +916,22 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
         return;
     }
 
-    piece = FormatWideString(g_message_strings[0x6e4 / 4], character->name);
+    piece = FormatWideString(gppStringList[0x6e4 / 4], character->name);
     name_length = wcslen(piece);
     spell_length = wcslen(g_spell_records[spell_id].display_name);
-    wcscpy(realm_name, g_message_strings[g_realm_message_offsets[realm]]);
-    piece = FormatWideString(g_message_strings[0x6e8 / 4], realm_name, character->sp_max[realm]);
+    wcscpy(realm_name, gppStringList[g_realm_message_offsets[realm]]);
+    piece = FormatWideString(gppStringList[0x6e8 / 4], realm_name, character->sp_max[realm]);
     points_length = wcslen(piece);
 
     line = (wchar_t*)operator new((name_length + spell_length + 8 + points_length) * 2);
     if (line == 0) {
         srAssertFail("wTempMsg", MAGIC_CPP, 0xfdc, 0);
     }
-    wcscpy(line, FormatWideString(g_message_strings[0x6e4 / 4], realm_name));
+    wcscpy(line, FormatWideString(gppStringList[0x6e4 / 4], realm_name));
     wcscat(line, L" -- ");
     wcscat(line, g_spell_records[spell_id].display_name);
     wcscat(line, L", ");
-    wcscat(line, FormatWideString(g_message_strings[0x6e8 / 4], realm_name, character->sp_max[realm]));
+    wcscat(line, FormatWideString(gppStringList[0x6e8 / 4], realm_name, character->sp_max[realm]));
     ShowNoticeLine(line, 0, 1, 0);
 }
 
@@ -964,7 +962,7 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
 
     if (!CanCharacterLearnSpell(character, spell_id)) {
         ShowNoticeLine(
-            FormatWideString(g_message_strings[0x6ec / 4], character->name), 0, 1, 0);
+            FormatWideString(gppStringList[0x6ec / 4], character->name), 0, 1, 0);
         return;
     }
 
@@ -1786,7 +1784,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         }
         if (!TargetSourceIsCharacter((const W8TargetSource*)target, 0) || target->described.name_known != 0) {
             return FormatWideString(
-                g_message_strings[W8_MESSAGE_TARGET_AT / 4],
+                gppStringList[W8_MESSAGE_TARGET_AT / 4],
                 g_party_characters[target->iChar].name);
         }
         name_prefix =
@@ -1794,7 +1792,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         break;
 
     case 2:
-        return g_message_strings[W8_MESSAGE_TARGET_PARTY / 4];
+        return gppStringList[W8_MESSAGE_TARGET_PARTY / 4];
 
     case 3: {
         W8MonsterInfo* monster_info;
@@ -1808,7 +1806,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         record = GetMonsterDataForInfo(monster_info);
         if (!TargetSourceIsMonster((const W8TargetSource*)target, 0)) {
             return FormatWideString(
-                g_message_strings[W8_MESSAGE_TARGET_AT / 4],
+                gppStringList[W8_MESSAGE_TARGET_AT / 4],
                 GetMonsterName(monster_info, record, 0));
         }
         name_prefix = g_name_prefix_messages[record->name_group_0cc * 4];
@@ -1817,30 +1815,30 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
 
     case 4:
         return FormatWideString(
-            g_message_strings[W8_MESSAGE_TARGET_AT / 4],
+            gppStringList[W8_MESSAGE_TARGET_AT / 4],
             GetMonsterGroupName(GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0xcf, MAGIC_CPP, target->iGroupID, 1))));
 
     case 5:
-        return g_message_strings[W8_MESSAGE_TARGET_PLACE / 4];
+        return gppStringList[W8_MESSAGE_TARGET_PLACE / 4];
 
     case 7:
         return FormatWideString(
-            g_message_strings[W8_MESSAGE_TARGET_ITEM / 4],
+            gppStringList[W8_MESSAGE_TARGET_ITEM / 4],
             FormatItemDisplayName(target->pPCItem, 0));
 
     case 8:
-        return g_message_strings[W8_MESSAGE_TARGET_DIRECTION / 4];
+        return gppStringList[W8_MESSAGE_TARGET_DIRECTION / 4];
 
     default:
         srAssertFail(
             "FALSE", MAGIC_CPP, 0xde,
             FormatString("SpellTargetString: ERROR - Invalid spell target for %d", target->iType));
-        return g_message_strings[W8_MESSAGE_TARGET_UNKNOWN / 4];
+        return gppStringList[W8_MESSAGE_TARGET_UNKNOWN / 4];
     }
 
     return FormatWideString(
-        g_message_strings[W8_MESSAGE_TARGET_AT / 4], g_message_strings[name_prefix]);
+        gppStringList[W8_MESSAGE_TARGET_AT / 4], gppStringList[name_prefix]);
 }
 
 extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
@@ -1875,7 +1873,7 @@ void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int p
 
     if (g_detailed_combat_messages_0068510c == 0) {
         WriteGameLog(
-            9, g_message_strings[W8_MESSAGE_MONSTER_CAST / 4],
+            9, gppStringList[W8_MESSAGE_MONSTER_CAST / 4],
             GetMonsterName(monster_info, record, 0),
             g_spell_records[spell_id].display_name,
             SpellTargetString((int)&source, &monster_info->combat_slot_2ba));
@@ -1883,7 +1881,7 @@ void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int p
     }
     else {
         WriteGameLog(
-            9, g_message_strings[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
+            9, gppStringList[W8_MESSAGE_MONSTER_CAST_VERBOSE / 4],
             GetMonsterName(monster_info, record, 0),
             g_spell_records[spell_id].display_name, power_level,
             SpellTargetString((int)&source, &monster_info->combat_slot_2ba));

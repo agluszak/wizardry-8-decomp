@@ -132,7 +132,7 @@ void EndPartyMovementPhase(void)
         return;
     }
     if (!GetLevelDataFlag6()) {
-        ShowNotice(8, g_notices[0x870 / 4], -1, -1, 0);
+        ShowNotice(8, gppStringList[0x870 / 4], -1, -1, 0);
     }
     Function41F0D0();
     Function5A1E90();

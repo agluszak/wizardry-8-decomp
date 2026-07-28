@@ -52,7 +52,7 @@ extern void DisableRenderOption(int id);
 extern unsigned int GetTotalPhysicalMemory(void);
 extern int GetRendererFamily(void);
 extern int g_dword_685189;
-extern int g_dword_68518d;
+extern int g_active_party_slot_0068518d;
 extern int g_dword_686a70;
 extern unsigned int g_dwords_686a50[8];
 extern unsigned char g_flag_687511;
@@ -60,11 +60,10 @@ extern void Function58FD30(void);
 extern void Function520070(W8ItemInstance* item, int a, int b);
 extern void Function554580(unsigned char* target);
 extern void ReplaceOrCreateItem(W8ItemInstance* item, unsigned int id, int a, int b, int c);
-extern void AddItemToParty(W8ItemInstance* item, int a, int b);
 extern bool g_flag_68517c;
-extern bool g_flag_687599;
+extern bool g_save_flag_00687599;
 extern bool g_flag_683fa0;
-extern int g_dword_6850d5;
+extern int g_combat_difficulty_006850d5;
 extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);
@@ -450,8 +449,8 @@ void ResetGameplayStatusBlock(void)
 {
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
     Function52DB80(g_object_683fd7);
-    g_flag_6850b5 = 0;
-    g_flag_683fc5 = 0;
+    g_party_moving_006850b5 = 0;
+    g_surprise_possible_00683fc5 = 0;
 }
 
 // FUNCTION: WIZ8 0x0054B2D0
@@ -500,10 +499,10 @@ void Function54B250(unsigned char notify, void* target)
 {
     g_flag_68517c = true;
     if (target) {
-        g_flag_687599 = true;
+        g_save_flag_00687599 = true;
         Function5A9E70(target);
     }
-    g_dword_6875b7 = g_dword_6850d5;
+    g_dword_6875b7 = g_combat_difficulty_006850d5;
     g_flag_683fa0 = true;
     Function482720(0x2932e00);
     Function482740(1);
@@ -670,7 +669,7 @@ void Function54B100(void)
         ++id;
     } while (id < g_starting_item_ids_end);
     g_dword_685189 = 500;
-    g_dword_68518d = GetNextCharacter(1, 1, -1);
+    g_active_party_slot_0068518d = GetNextCharacter(1, 1, -1);
     g_dword_686a70 = -1;
     Function554580(&g_flag_687511);
     for (index = 0; index < 8; ++index) {

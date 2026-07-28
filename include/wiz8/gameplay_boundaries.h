@@ -978,7 +978,19 @@ typedef struct W8LevelRuntimeBlock {
 extern "C" {
 #endif
 
-extern void** g_notices;                 /* 0x0068C09C */
+/* 0x0068C09C holds a pointer to the loaded string table, one wide string per
+   entry, which Strings.cpp fills from the localisation file. Bodies name
+   entries by their byte offset into it, so the index is spelled as one. It was
+   reached under five names before this - notices, a dialog message table, a
+   plain dword and a message-string array - and one of those had it a level of
+   indirection out, treating the pointer itself as the table.
+
+   The two are named by the Strings.cpp assertions gppStringList and
+   giStringListLen rather than described. */
+extern wchar_t** gppStringList;
+extern int giStringListLen;
+/* 0x00517A90. One shared buffer, so the answer is only good until the next
+   call - which is why every caller consumes it immediately. */
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 /* 0x0068EDCC: the loaded level's runtime block. Only the halfword the combat
    toggle tests is reached, so it keeps a positional name. */
@@ -1088,8 +1100,8 @@ extern W8PList* g_monster_group_list;         /* gXStatus.plsMonsterGroupList */
 extern unsigned char g_status_block_685078[56];
 extern void* g_object_683fd7;
 extern void* g_object_685067;
-extern unsigned char g_flag_6850b5;
-extern unsigned char g_flag_683fc5;
+extern unsigned char g_party_moving_006850b5;
+extern unsigned char g_surprise_possible_00683fc5;
 /* Written by Targeting.cpp and reset to -1 here; meaning not established. */
 extern int g_target_state_6840b3;
 extern int g_target_state_6840b7;
@@ -1501,6 +1513,9 @@ unsigned char CanSpellBackfire(int spell_id);
 #endif
 int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
+/* 0x00521EF0, the address CFAgent seeds. Answers whether the item found a
+   home, which one of its two callers tests and the other ignores. */
+bool AddItemToParty(W8ItemInstance* item, int arg_2, int arg_3);
 W8FactionDisposition GetFactionDisposition(signed char faction);
 void RegionSetEnable(unsigned int region_set_index);
 void RegionSetDisable(unsigned int region_set_index);

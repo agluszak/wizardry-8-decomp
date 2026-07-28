@@ -18,7 +18,6 @@ struct W8DialogNotifyTarget {
 
 /* Table of message payloads the dialog is constructed against; the caller
    passes an index into it. */
-extern void** g_dialog_message_table;    /* 0x0068C09C */
 
 /* Registers the dialog's region set. */
 extern void ActivateDialogRegion(int region_set);  /* 0x004F2040 */
@@ -51,7 +50,7 @@ W8Dialog005A80A0::W8Dialog005A80A0(int message_index, int caption_id, int notify
     SetOrigin(0xa0, 100);
     SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
     SetClientExtent(0xfa, 200);
-    SetMessage(g_dialog_message_table[message_index], 1, 0x32, 1, caption_id, 1, 1, 0, 0x15e);
+    SetMessage(gppStringList[message_index], 1, 0x32, 1, caption_id, 1, 1, 0, 0x15e);
     ActivateDialogRegion(0x138);
 }
 

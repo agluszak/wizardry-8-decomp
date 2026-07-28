@@ -173,11 +173,11 @@ void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
 
     if (announce) {
         if (monster_info->hp_current == monster_info->hp_max) {
-            WriteGameLog(9, (const wchar_t*)g_notices[0x964 / 4],
+            WriteGameLog(9, (const wchar_t*)gppStringList[0x964 / 4],
                          GetMonsterName(monster_info, 0, 0));
         }
         else {
-            WriteGameLog(9, (const wchar_t*)g_notices[0x96c / 4],
+            WriteGameLog(9, (const wchar_t*)gppStringList[0x96c / 4],
                          GetMonsterName(monster_info, 0, 0), amount);
         }
     }
@@ -328,10 +328,10 @@ void HealCharacter(int party_slot, int amount, char announce)
     }
     if (announce) {
         if (character->hp_current == hp_max) {
-            PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x960 / 4]);
+            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x960 / 4]);
         }
         else {
-            PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x968 / 4], amount);
+            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x968 / 4], amount);
         }
     }
 
@@ -376,10 +376,10 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     }
     if (announce) {
         if (character->stamina == stamina_max) {
-            PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x970 / 4]);
+            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x970 / 4]);
         }
         else {
-            PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x978 / 4], amount);
+            PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x978 / 4], amount);
         }
     }
 
@@ -413,7 +413,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
         return;
     }
     if (g_spell_points_free_00687500 != 0) {
-        PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x980 / 4], amount);
+        PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x980 / 4], amount);
         return;
     }
 
@@ -426,8 +426,8 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             }
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
-                WriteGameLog(8, (const wchar_t*)g_notices[0x98c / 4], amount,
-                             g_notices[g_spell_realm_notice[realm]]);
+                WriteGameLog(8, (const wchar_t*)gppStringList[0x98c / 4], amount,
+                             gppStringList[g_spell_realm_notice[realm]]);
             }
             remaining = amount - taken;
             amount = remaining;
@@ -467,7 +467,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
                  order[index].deficit < order[index + 1].deficit)) {
                 if (index == W8_SPELL_REALM_COUNT - 1) {
                     PostCharacterNotice(
-                        party_slot, (const wchar_t*)g_notices[0x68c / 4], granted);
+                        party_slot, (const wchar_t*)gppStringList[0x68c / 4], granted);
                     return;
                 }
                 continue;
@@ -483,12 +483,12 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
             }
             if (amount == 0) {
                 PostCharacterNotice(
-                    party_slot, (const wchar_t*)g_notices[0x68c / 4], granted);
+                    party_slot, (const wchar_t*)gppStringList[0x68c / 4], granted);
                 return;
             }
         }
     }
-    PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x68c / 4], granted);
+    PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x68c / 4], granted);
 }
 
 /* Wound one character. Two thirds of the damage also tires them, the damage
@@ -507,7 +507,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
     if (character->hp_max != 0 && character->hp_current != 0) {
         FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0, 0);
         if (announce) {
-            WriteGameLog(8, (const wchar_t*)g_notices[0x710 / 4], damage);
+            WriteGameLog(8, (const wchar_t*)gppStringList[0x710 / 4], damage);
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
@@ -578,11 +578,11 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
     }
     if (announce) {
         if ((unsigned int)monster_info->runtime_stat_current_33 == stamina_max) {
-            WriteGameLog(9, (const wchar_t*)g_notices[0x974 / 4],
+            WriteGameLog(9, (const wchar_t*)gppStringList[0x974 / 4],
                          GetMonsterName(monster_info, 0, 0));
         }
         else {
-            WriteGameLog(9, (const wchar_t*)g_notices[0x97c / 4],
+            WriteGameLog(9, (const wchar_t*)gppStringList[0x97c / 4],
                          GetMonsterName(monster_info, 0, 0), amount);
         }
     }
@@ -815,8 +815,8 @@ void DrainCharacterRealmSpellPoints(
     }
 
     if (g_spell_points_free_00687500 != 0) {
-        PostCharacterNotice(party_slot, (const wchar_t*)g_notices[0x988 / 4], amount,
-                            g_notices[g_spell_realm_notice[realm]]);
+        PostCharacterNotice(party_slot, (const wchar_t*)gppStringList[0x988 / 4], amount,
+                            gppStringList[g_spell_realm_notice[realm]]);
         return;
     }
 
@@ -831,8 +831,8 @@ void DrainCharacterRealmSpellPoints(
     }
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
-        WriteGameLog(8, (const wchar_t*)g_notices[0x98c / 4], amount,
-                     g_notices[g_spell_realm_notice[realm]]);
+        WriteGameLog(8, (const wchar_t*)gppStringList[0x98c / 4], amount,
+                     gppStringList[g_spell_realm_notice[realm]]);
     }
 }
 

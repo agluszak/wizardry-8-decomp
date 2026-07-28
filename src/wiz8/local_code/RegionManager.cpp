@@ -70,7 +70,7 @@ void ShowRegionHelp(unsigned int region_index)
             return;
         }
     } else {
-        text = g_notices[region->help_text_id];
+        text = gppStringList[region->help_text_id];
     }
     SetHelpBoxText(text);
     width = g_help_box_width + W8_HELP_MARGIN;

@@ -29,7 +29,6 @@ unsigned char g_flag_69c4c4;
 int g_dword_69c4bc;
 int g_dword_69c4c0;
 extern int g_dword_647bc0;
-int g_dword_68c09c;
 extern int g_font_683660;
 extern unsigned short* g_colour_68ee3c;
 extern unsigned short* g_colour_68ee08;
@@ -170,7 +169,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
         return 1;
     }
     if (!Function4298F0() && !g_flag_69c4c4) {
-        int message = *(int*)(g_dword_68c09c + 0x1fb8);
+        int message = *(int*)&gppStringList[0x1fb8 / 4];
 
         dialog = Function5CF300(1);
         Function5D2CB0(0xfa, 200);

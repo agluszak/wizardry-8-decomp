@@ -123,7 +123,7 @@ void RestoreCombatFormation(void)
         }
         Function5B1C80();
         Function5A24A0();
-        Function58AC00(8, g_notices[0x92c / 4], 0, -1, 0);
+        Function58AC00(8, gppStringList[0x92c / 4], 0, -1, 0);
     }
 }
 

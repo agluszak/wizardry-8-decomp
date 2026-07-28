@@ -166,7 +166,6 @@ extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
-extern wchar_t* FormatWideString(const wchar_t* format, ...);
 extern void Function58AC00(int channel, void* message);
 
 
@@ -403,14 +402,12 @@ enum {
 
 #define PC_ITEM_CPP "C:\\Projects\\Wizardry 8\\Local Code\\PC Item.cpp"
 
-extern unsigned int GetMinimumCasterLevelForSpell(unsigned int spell_id);
 extern bool AddItemToCharacter(
     int character_index,
     W8ItemInstance* item,
     int arg_3,
     int arg_4,
     int arg_5);                       /* 0x0051C300 */
-extern bool AddItemToParty(W8ItemInstance* item, int arg_2, int arg_3);
 /* 0x00521EF0 */
 
 /* Whether one character is allowed to use one item at all: profession, race
@@ -748,8 +745,8 @@ W8WideChar* GetItemDisplayName(const W8ItemInstance* item)
     if (g_generic_item_names[name_index] == 0) {
         built = (W8WideChar*)malloc(0x78);
         g_generic_item_names[name_index] = built;
-        swprintf((wchar_t*)built, (const wchar_t*)g_notices[0x79c / 4],
-                 g_notices[g_generic_item_name_notice[name_index]]);
+        swprintf((wchar_t*)built, (const wchar_t*)gppStringList[0x79c / 4],
+                 gppStringList[g_generic_item_name_notice[name_index]]);
     }
     return g_generic_item_names[name_index];
 }
@@ -760,7 +757,7 @@ W8WideChar* GetItemDisplayName(const W8ItemInstance* item)
 bool DropItemInHand(int arg_1)
 {
     if ((g_item_records[g_item_in_hand.item_id].flags_041 & W8_ITEM_FLAG_NO_DISCARD) != 0) {
-        ShowNotice(g_notices[0x13bc / 4], 0, 1, 0);
+        ShowNotice(gppStringList[0x13bc / 4], 0, 1, 0);
         return false;
     }
     DropHeldItem(arg_1);
@@ -876,8 +873,8 @@ void AddPartyGold(int amount, char announce)
     }
 
     if (announce) {
-        line = FormatWideString((const wchar_t*)g_notices[0x788 / 4],
-                                g_notices[0x57c / 4], amount, g_notices[0x580 / 4],
+        line = FormatWideString((const wchar_t*)gppStringList[0x788 / 4],
+                                gppStringList[0x57c / 4], amount, gppStringList[0x580 / 4],
                                 -1, -1, 0);
         Function58AC00(8, line);
         if (!Function40A910(sound_path)) {
@@ -910,7 +907,7 @@ void BindEquippedItem(W8Character* character, int equip_slot)
     }
     if (g_equip_slot_icons[equip_slot] != -1 && item->bound == 0) {
         item->bound = 1;
-        WriteGameLog(8, (const wchar_t*)g_notices[0x7a8 / 4],
+        WriteGameLog(8, (const wchar_t*)gppStringList[0x7a8 / 4],
                      FormatItemDisplayName(item, 1));
     }
 }
@@ -1316,7 +1313,7 @@ void BindEveryPartyItem(void)
 
     if (g_in_combat_00683f94 != 0 && g_combat_state->flag_001 == 0 &&
         g_flag_00683fce == 0) {
-        ShowNotice(0xc, g_notices[0x7d8 / 4], -1, -1, 0);
+        ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, -1, 0);
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -1324,7 +1321,7 @@ void BindEveryPartyItem(void)
             BindCharacterItems(party_slot, 0);
         }
     }
-    ShowNotice(8, g_notices[0x7b4 / 4], -1, -1, 0);
+    ShowNotice(8, gppStringList[0x7b4 / 4], -1, -1, 0);
 }
 
 #include <stdlib.h>

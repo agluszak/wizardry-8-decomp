@@ -108,8 +108,6 @@ extern char Function5155B0(const char* path, int slot, W8Character* character);
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
-extern void* FormatWideString(void* target, const char* name, int value,
-                            int a, int b, int c, void* callback);
 extern void Function518510(void* notice);
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
@@ -174,8 +172,8 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     }
 report:
     if (report_failure) {
-        void* notice = FormatWideString(g_notices[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
-                                      g_value_683678, 1, 1, 0, 0);
+        wchar_t* notice = FormatWideString(
+            gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name, g_value_683678, 1, 1, 0, 0);
         Function518510(notice);
     }
     return loaded;
@@ -519,8 +517,8 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     }
 report:
     if (report_failure) {
-        void* notice = FormatWideString(
-            static_cast<const wchar_t*>(g_notices[W8_NOTICE_CHARACTER_SAVE_FAILED]),
+        wchar_t* notice = FormatWideString(
+            gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED],
             character->name, g_value_683678, 1, 1, 0, continuation);
         Function518510(notice);
         return 0;
