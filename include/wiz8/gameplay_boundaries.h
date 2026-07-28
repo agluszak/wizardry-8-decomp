@@ -745,13 +745,41 @@ typedef struct W8CombatState {
 } W8CombatState;
 
 typedef struct W8LevelRuntimeBlock {
-    unsigned char unknown_000[0x2ca];
+    unsigned char unknown_000[0x1a8];
+    /* 0x1a8: one entry per message line the main game screen is showing. */
+    int text_lines[12];
+    /* 0x1d8 and 0x1e8: two four-entry tables the text box clears a slot of at
+       a time, each to -1. */
+    int text_slots_1d8[4];
+    int text_slots_1e8[4];
+    /* 0x1f8: a dialogue is open, and 0x1fc is whose - the flag has to be up
+       before the pointer is worth reading. */
+    unsigned char dialogue_open;
+    unsigned char unknown_1f9[3];
+    unsigned char* dialogue_owner;         /* 0x1fc */
+    unsigned char unknown_200[0x68];
+    /* 0x268: the item the interface has selected, -1 for none. */
+    int selected_item;
+    unsigned char unknown_26c[0x5e];
     short combat_end_notification;         /* 0x2ca: -1 suppresses the callback */
-    unsigned char unknown_2cc[0x10];
+    /* 0x2cc and 0x2d4: the text box's scroll extent, whose difference is how
+       far it can still be scrolled. */
+    int scroll_top;
+    unsigned char unknown_2d0[4];
+    int scroll_bottom;
+    unsigned char unknown_2d8[4];
     /* 0x2dc and 0x2e0: the two movement budgets, both filled to a hundred when
        the party is put back under its own control. */
     int move_budget_2dc;
     int move_budget_2e0;
+    unsigned char unknown_2e4[4];
+    int value_2e8;                         /* 0x2e8 */
+    unsigned char unknown_2ec[4];
+    /* 0x2f0 and 0x2f8: what the interface currently has picked, and whether
+       the pick is settled. */
+    int selection_kind;
+    unsigned char unknown_2f4[4];
+    unsigned char selection_settled;
 } W8LevelRuntimeBlock;
 
 #pragma pack(pop)

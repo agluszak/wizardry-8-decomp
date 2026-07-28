@@ -5,15 +5,12 @@
 
 #include <string.h>
 
-struct W8ItemSelectionOwner0068EDCC {
-    unsigned char unknown_000[0x268];
-    int selected_item;                   /* 0x268: reset when state seven is active */
-};
-
 extern int g_item_manager_initialized_006874C2;
 extern int g_item_manager_pending_00683FA9;
 extern int g_item_manager_state_0068EC78;
-extern W8ItemSelectionOwner0068EDCC* g_item_selection_owner_0068EDCC;
+/* 0x0068EDCC: the level runtime block, which also carries the interface
+   selection the item manager resets. */
+extern W8LevelRuntimeBlock* g_item_selection_owner_0068EDCC;
 extern W8PList* g_item_manager_entries_00683FB5;
 
 #define ITEM_MANAGER_CPP "C:\\\\Projects\\\\Wizardry 8\\\\Local Code\\\\ItemManager.cpp"
@@ -483,7 +480,9 @@ extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x00
 extern void ReplaceOrCreateItem(
     W8ItemInstance* item, int item_id, int count, unsigned char quality, int arg_5);
 extern int g_item_manager_pending_00683FA9;
-extern W8ItemSelectionOwner0068EDCC* g_item_selection_owner_0068EDCC;
+/* 0x0068EDCC: the level runtime block, which also carries the interface
+   selection the item manager resets. */
+extern W8LevelRuntimeBlock* g_item_selection_owner_0068EDCC;
 extern int g_item_manager_state_0068EC78;
 extern void* g_world_state_006598a4;
 extern float g_world_scale_005ebc40;
