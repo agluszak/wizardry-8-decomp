@@ -1185,6 +1185,47 @@ def report_class_family(
     _run_action(action)
 
 
+@app.command("trace")
+def trace_command(
+    scenario: Annotated[str, typer.Argument(help="bring-up or screens.")] = "bring-up",
+    seconds: Annotated[int, typer.Option(help="How long to let the scenario run.")] = 120,
+    port: Annotated[int, typer.Option(help="Port for the winedbg gdb proxy.")] = 54340,
+    plan_only: Annotated[bool, typer.Option(help="Print the breakpoint plan and run nothing.")] = False,
+) -> None:
+    """Watch the original run one bounded scenario, from evidence addresses.
+
+    The breakpoints are generated from the reviewed boundary map and the frame
+    dispatch table, so what is watched is what the ledger already establishes.
+    Running needs `WIZ8_DYNAMIC_DIR` pointing at a sandbox that holds a `game/`
+    copy of a variant and a `prefix/` Wine prefix - never an input tree, which
+    is hardlinked and would be written through.
+    """
+
+    def action() -> dict[str, Any]:
+        from .dynamic import Sandbox, run_trace, trace_plan, write_report
+
+        settings = _settings()
+        if plan_only:
+            points = trace_plan(settings.repo_dir, scenario)
+            return {
+                "scenario": scenario,
+                "points": [
+                    {"address": point.address, "name": point.name, "kind": point.kind}
+                    for point in points
+                ],
+            }
+        result = run_trace(
+            settings.repo_dir,
+            Sandbox.from_environment(),
+            scenario,
+            seconds=seconds,
+            port=port,
+        )
+        return write_report(result, settings.repo_dir / "build" / "reports" / "trace")
+
+    _run_action(action)
+
+
 @report_app.command("aggregates")
 def report_aggregates(
     resolve: Annotated[
