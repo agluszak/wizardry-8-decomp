@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 /*
  * Local Code\Magic Effects.cpp.
@@ -138,4 +139,79 @@ void ResetPartyEffectBlock(W8EffectSlot* slot)
     Function50E700();
     Function5AF2D0();
     Function562A50(0x800100);
+}
+
+extern void PostCharacterNotice(int party_slot, void* notice);           /* 0x00590950 */
+extern unsigned int MonsterGetIndexByLocationID(
+    int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
+extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
+extern void ApplyEffectToTarget(
+    int* result, W8CombatSlot* target, int arg_3, int arg_4);            /* 0x00552250 */
+extern unsigned char g_announce_resists_0068510c;
+
+#define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"
+
+/* Say that whoever was aimed at shrugged the effect off. A monster target is
+   told through the monster notice path and anything else through the
+   character one, which is what splits the two here. */
+// FUNCTION: WIZ8 0x00552070
+void AnnounceEffectResisted(W8CombatSlot* target)
+{
+    if (g_announce_resists_0068510c == 0) {
+        return;
+    }
+    if (target->kind == W8_TARGET_KIND_MONSTER) {
+        PostMonsterNotice(
+            MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                3758, MAGIC_EFFECTS_CPP, target->monster_id, 1)),
+            g_notices[0x6cc / 4]);
+        return;
+    }
+    PostCharacterNotice(target->character_slot, g_notices[0x6cc / 4]);
+}
+
+/* Apply an effect and say so if it did not take. Only a zero result counts as
+   shrugged off; the announcement is the same body as its neighbour written out
+   again rather than called. */
+// FUNCTION: WIZ8 0x00552340
+void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int arg_4)
+{
+    ApplyEffectToTarget(result, target, arg_3, arg_4);
+    if (*result != 0 || g_announce_resists_0068510c == 0) {
+        return;
+    }
+    if (target->kind == W8_TARGET_KIND_MONSTER) {
+        PostMonsterNotice(
+            MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                3758, MAGIC_EFFECTS_CPP, target->monster_id, 1)),
+            g_notices[0x6cc / 4]);
+        return;
+    }
+    PostCharacterNotice(target->character_slot, g_notices[0x6cc / 4]);
+}
+
+/* Which of the seven display slots one condition owns. Anything not among the
+   seven is a caller error rather than a missing slot. */
+// FUNCTION: WIZ8 0x00551900
+int GetConditionDisplaySlot(int condition)
+{
+    switch (condition) {
+    case 0x13:
+        return 1;
+    case 0x15:
+        return 2;
+    case 0x1b:
+        return 3;
+    case 0x36:
+        return 4;
+    case 0x38:
+        return 5;
+    case 0x3d:
+        return 6;
+    case 0x41:
+        return 7;
+    default:
+        srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 3339, 0);
+        return 0;
+    }
 }

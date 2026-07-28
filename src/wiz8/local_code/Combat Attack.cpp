@@ -152,3 +152,172 @@ unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, int target, int
     }
     return best;
 }
+
+/* HAND_COUNT, named by the assertion that bounds every hand argument here. */
+enum { W8_HAND_COUNT = 2 };
+
+/* The skill practised whenever the character's own damage reduction is used. */
+enum { W8_SKILL_DAMAGE_REDUCTION = 0x25 };
+
+extern int CalcRangeCategoryToTarget(const W8Character* character, int hand);
+/* 0x00519AC0 */
+extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
+extern unsigned char MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target);
+/* 0x00545CF0 */
+extern unsigned char CharacterHasAttackOn(int party_slot, W8CombatSlot* target);
+/* 0x00545C20 */
+extern unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 0x00536F60 */
+
+/* Whether one of a character's hands can reach the target it is aimed at: the
+   hand has to be in play and to have a range category at all. */
+// FUNCTION: WIZ8 0x0053D2A0
+bool CanHandReachTarget(int party_slot, unsigned int hand)
+{
+    if (hand >= W8_HAND_COUNT) {
+        srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
+    }
+    if (g_party_characters[party_slot].hand_attacks[hand].in_play == 0) {
+        return false;
+    }
+    return CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1;
+}
+
+/* Whether either hand can. */
+// FUNCTION: WIZ8 0x0053D310
+bool CanAnyHandReachTarget(int party_slot)
+{
+    unsigned int hand;
+
+    for (hand = 0; hand < W8_HAND_COUNT; ++hand) {
+        if (hand >= W8_HAND_COUNT) {
+            srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
+        }
+        if (g_party_characters[party_slot].hand_attacks[hand].in_play != 0 &&
+            CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* What one hand's attack is worth, or nothing when it cannot reach. */
+// FUNCTION: WIZ8 0x0053D7F0
+int GetHandAttackValue(int party_slot, unsigned int hand)
+{
+    if (hand >= W8_HAND_COUNT) {
+        srAssertFail("uiHand < HAND_COUNT", COMBAT_ATTACK_CPP, 102, 0);
+    }
+    if (g_party_characters[party_slot].hand_attacks[hand].in_play != 0 &&
+        CalcRangeCategoryToTarget(&g_party_characters[party_slot], hand) != -1) {
+        return g_party_characters[party_slot].hand_attacks[hand].attack_value;
+    }
+    return 0;
+}
+
+/* How much of a hit a character keeps. Their own reduction is taken as a
+   percentage rounding to nearest, and using it practises the skill it comes
+   from - but only for a character who has that skill at all. */
+// FUNCTION: WIZ8 0x00545950
+int ApplyCharacterDamageReduction(W8Character* character, int damage)
+{
+    if (character->damage_reduction != 0) {
+        damage = ((100 - character->damage_reduction) * damage + 50) / 100;
+    }
+    if (damage < 0) {
+        damage = 0;
+    }
+    if (character->skills[W8_SKILL_DAMAGE_REDUCTION].flag_00 != 0) {
+        PracticeCharacterSkill(character, W8_SKILL_DAMAGE_REDUCTION, 1, 0);
+    }
+    return damage;
+}
+
+/* Whether one monster has an attack it could make on what it is aimed at. The
+   same six checks CanMonsterAttack makes, and then the attack itself. */
+// FUNCTION: WIZ8 0x00545B20
+bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
+{
+    const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+
+    if (monster_info->flag_14 != 0 && monster_info->fInCombat != 0 &&
+        monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
+        (record->flags_0d0 & W8_MONSTER_FLAG_ATTACKS) != 0 &&
+        record->attacks[0].fHasAttack != 0) {
+        return MonsterHasAttackOn(monster_info, &monster_info->combat_slot_2ba) != 0;
+    }
+    return false;
+}
+
+/* The character counterpart: the target has to still be in play, the character
+   engaged and in shape, the first hand in play, and the attack itself has to
+   come off. */
+// FUNCTION: WIZ8 0x00545AA0
+bool CanCharacterAttackItsTarget(int party_slot)
+{
+    W8Character* character;
+
+    if (!TargetIsInPlay(party_slot, 0, 0)) {
+        return false;
+    }
+    if (!CharacterIsEngaged(party_slot)) {
+        return false;
+    }
+    character = &g_party_characters[party_slot];
+    if (character->unknown_0b01 >= 0xc || character->hand_attacks[0].in_play == 0) {
+        return false;
+    }
+    return CharacterHasAttackOn(
+               party_slot, (W8CombatSlot*)&g_party_slot_rows[party_slot].target_block_01d) != 0;
+}
+
+/* What an attack mode is worth to hit with, which depends on whether the
+   attacker is a monster or a character - the same nine modes score differently
+   for each. Its error text carries the function's own name. */
+// FUNCTION: WIZ8 0x00542E10
+int AttackModeMod(int is_character, int attack_mode)
+{
+    if (is_character == 0) {
+        switch (attack_mode) {
+        case 0:
+        case 2:
+        case 8:
+            return 0;
+        case 1:
+        case 6:
+            return -10;
+        case 3:
+            return -30;
+        case 4:
+            return -5;
+        case 5:
+            return 5;
+        case 7:
+            return 10;
+        default:
+            srAssertFail("FALSE", COMBAT_ATTACK_CPP, 3626,
+                         "AttackModeMod: ERROR - Invalid attack mode");
+            return 0;
+        }
+    }
+    switch (attack_mode) {
+    case 0:
+    case 6:
+        return 0;
+    case 1:
+    case 8:
+        return 10;
+    case 2:
+    case 5:
+        return -5;
+    case 3:
+        return -30;
+    case 4:
+        return 5;
+    case 7:
+        return -10;
+    default:
+        srAssertFail("FALSE", COMBAT_ATTACK_CPP, 3663,
+                     "AttackModeMod: ERROR - Invalid attack mode");
+        return 0;
+    }
+}

@@ -128,7 +128,11 @@ enum {
 typedef struct W8HandAttack {
     unsigned char in_play;                /* 0x00 */
     int weapon_skill;                     /* 0x01, unaligned */
-    unsigned char unknown_05[0x56];
+    unsigned char unknown_05[0xc];
+    /* 0x11: what the hand's attack is worth, read only once the hand has a
+       range to the target at all. */
+    int attack_value;
+    unsigned char unknown_15[0x46];
 } W8HandAttack;                           /* 0x5b */
 
 typedef struct W8ItemInstance {
@@ -237,7 +241,10 @@ typedef struct W8Character {
        item whose spell already reads one here, so one is the learned state. */
     int spell_learned[136];               /* 0x0bcd */
     unsigned int skill_unlocks[0x29];     /* 0x0ded, indexed by skill_id */
-    unsigned char unknown_0e91[0x4c];
+    unsigned char unknown_0e91[0x48];
+    /* 0x0ed9: a percentage taken off incoming damage, the character's
+       counterpart of the monster's own at 0x1e1. */
+    int damage_reduction;
     W8CharacterResistance resistances[W8_RESISTANCE_COUNT]; /* 0x0edd */
     unsigned char unknown_0f3d[0x20];
     /* 0x0f5d: the twelve worn/held slots, indexed by the same slot numbering
