@@ -213,6 +213,13 @@ typedef struct W8MonsterGenerator {
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
+/* The twelve formation bytes a group hands its members. Nothing inside is
+   established; the type exists so the copy is one typed assignment rather than
+   twelve, and so both ends of it are named. */
+typedef struct W8MonsterFormation {
+    unsigned char bytes[12];
+} W8MonsterFormation;
+
 typedef struct W8MonsterGroup {
     int group_id;                         /* 0x00: GroupIndex ID lookup key */
     int member_count;                     /* 0x04: decremented when members leave */
@@ -223,7 +230,10 @@ typedef struct W8MonsterGroup {
     unsigned char unknown_1c[0xc];
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
     unsigned char flag_29;                /* 0x29: cleared after the record loads */
-    unsigned char unknown_2a[2];
+    /* 0x2a: at one the group is live regardless of the global gate at
+       0x00547510; anything else has to pass that gate as well. */
+    unsigned char flag_2a;
+    unsigned char unknown_2b;
     /* 0x2c: selects which of the record's two name sets a member is displayed
        under. GetMonsterName reads it and nothing recovered yet writes it. */
     unsigned char flag_2c;
@@ -231,12 +241,18 @@ typedef struct W8MonsterGroup {
     int value_9f;                         /* 0x9f: a member location id; RemoveMonster
                                              compares it against the departing
                                              member's before renotifying */
-    int unknown_a3;                       /* 0xa3: gates the trailing notification */
+    /* 0xa3: the group this one follows. Walking it is how a member request is
+       redirected to the group that actually leads the formation, and a zero
+       ends the walk. */
+    int leader_group_id;
     /* 0xa7: up to four allied group ids. The notification pass walks all four
        unconditionally and skips the zero entries, so the array is fixed-size
        rather than terminated. */
     int allied_group_ids[4];
-    unsigned char unknown_b7[0xc];
+    /* 0xb7: copied verbatim onto every member's live Monster when the formation
+       is re-applied. Unaligned inside this packed record, which is why the copy
+       comes out as twelve byte moves rather than three dword ones. */
+    W8MonsterFormation formation;
     unsigned char flag_c3;                /* 0xc3: gates the trailing notification */
     /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
        byte, and below 3 it clears flag_ca that older saves never wrote. */
@@ -658,7 +674,9 @@ struct W8Monster {
     /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
        the array above. Nothing proves they are the same type, so they stay
        opaque rather than borrowing its name. */
-    unsigned char subobject_array_25c[0x1b0];   /* 0x25c */
+    unsigned char subobject_array_25c[0x24];    /* 0x25c */
+    W8MonsterFormation formation;               /* 0x280: from the owning group */
+    unsigned char subobject_array_28c[0x180];   /* 0x28c */
     unsigned char subobject_array_40c[0x1b0];   /* 0x40c */
     unsigned char tail_fields_5bc[0x6c];        /* 0x5bc: fields seen through 0x624 */
 

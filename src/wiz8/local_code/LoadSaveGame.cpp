@@ -292,7 +292,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             return 0;
         }
         Function50F6A0(group, 0);
-        if (group->flag_c3 != 0 && group->unknown_a3 == 0) {
+        if (group->flag_c3 != 0 && group->leader_group_id == 0) {
             Function48C750(group);
         }
     }

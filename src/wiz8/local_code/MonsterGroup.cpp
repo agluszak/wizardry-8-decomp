@@ -13,6 +13,10 @@ extern signed char Function50A500(int npc_record);           /* 0x0050A500 */
 extern void Function565420(void);                            /* 0x00565420 */
 extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
 extern void Function454C80(void);                            /* 0x00454C80 */
+extern void Function538DB0(int group_id, int value);         /* 0x00538DB0 */
+extern unsigned char Function547510(void);                   /* 0x00547510 */
+extern void Function452630(int value);                       /* 0x00452630 */
+
 extern void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 extern unsigned char RemoveMonster(unsigned int monster_list_index,
                                   unsigned char destroy_monster);
@@ -311,4 +315,74 @@ void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
     }
     GetMonsterByLocationID(monster_group->value_9f);
     Function454C80();
+}
+
+/* Detaches a group from whatever is tracking it and marks it no longer loaded. */
+// FUNCTION: WIZ8 0x0050F700
+void DetachMonsterGroup(W8MonsterGroup* monster_group)
+{
+    Function538DB0(monster_group->group_id, 0);
+    monster_group->flag_28 = 0;
+}
+
+/* Whether a group is live: loaded, still flagged, and with members left. A
+   group flagged at +0x2A is live on that alone; any other group also has to
+   pass the global gate at 0x00547510. */
+// FUNCTION: WIZ8 0x00510B30
+unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
+{
+    if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
+        monster_group->member_count != 0) {
+        if (monster_group->flag_2a != 1 && Function547510() == 0) {
+            return 0;
+        }
+        return 1;
+    }
+    return 0;
+}
+
+/* Follows a group's leader chain to the group that actually leads the formation
+   and acts on its lead member. A broken link - a leader id that resolves to no
+   group - stops the walk and reports success anyway, as does a null group,
+   which is why every path returns one. */
+// FUNCTION: WIZ8 0x0050FBA0
+unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group, int value,
+                                        char follow_leader)
+{
+    if (monster_group != 0) {
+        while (follow_leader != 0 && monster_group->leader_group_id != 0) {
+            monster_group = GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(
+                    0x21b, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
+            if (monster_group == 0) {
+                return 1;
+            }
+        }
+        MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(
+                0x21e, MONSTER_GROUP_CPP, monster_group->value_9f, 1));
+        Function452630(value);
+    }
+    return 1;
+}
+
+/* Re-applies every loaded group's formation onto its lead member's live
+   Monster. One typed assignment: the source is unaligned inside a packed
+   record, which is what makes VC6 emit it as twelve byte moves with every load
+   hoisted ahead of the stores. */
+// FUNCTION: WIZ8 0x00510830
+void ReapplyMonsterGroupFormations(void)
+{
+    unsigned int group_list_index;
+    W8MonsterGroup* monster_group;
+    W8MonsterInfo* monster_info;
+
+    for (group_list_index = 0;
+         group_list_index < PListGetCount(g_monster_group_list);
+         ++group_list_index) {
+        monster_group = GetMonsterGroupByListIndex(group_list_index);
+        monster_info = MonsterInfoFromID(
+            0x4ef, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+        monster_info->monster->formation = monster_group->formation;
+    }
 }

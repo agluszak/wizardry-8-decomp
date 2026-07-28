@@ -1014,7 +1014,7 @@ unsigned char RemoveMonster(
             RecountActiveMonsterGroupMembers(monster_group);
             if (monster_group->value_9f == monster_info->location_id) {
                 Function5103E0(monster_group);
-                if (monster_group->unknown_a3 == 0) {
+                if (monster_group->leader_group_id == 0) {
                     Function5106D0(monster_group);
                 }
             }
