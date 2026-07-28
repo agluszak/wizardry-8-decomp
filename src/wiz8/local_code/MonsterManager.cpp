@@ -4,6 +4,7 @@
 #include <new>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000
@@ -65,9 +66,18 @@ enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
 void __fastcall Function452C90(W8MonsterMember18* member);
 void __fastcall Function4537E0(W8MonsterMember18* member);
-int GetMonsterName(W8MonsterInfo* monster_info, int monster_record, int name_form);
+W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                           unsigned char name_form);
+/* The character array the alternate-name form indexes, and the slot it uses. */
+extern W8Character* g_all_characters;      /* 0x00685174 */
+extern unsigned char g_alternate_name_slot; /* 0x006875EF */
+extern W8WideChar g_monster_name_buffer[];  /* 0x006875C3 */
+
+/* The one record id that is displayed as a character's name with a prefix
+   rather than out of the monster database. */
+enum { W8_MONSTER_RECORD_ALTERNATE_NAME = 0x18d };
 void Function5248D0(W8MonsterInfo* monster_info);
-void Function58AB60(int value_1, int value_2, void* notice, int name);
+void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 void Function4C59C0(W8Monster* monster, W8World* world);
 W8World* Function451280(W8Monster* monster);
 void Function46E5A0(W8World* world);
@@ -1336,6 +1346,57 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
         line = 0x4a4;
     }
     srAssertFail("FALSE", MONSTER_MANAGER_CPP, line, detail);
+}
+
+/* The display name for one monster. Three things decide it.
+ 
+   Without a record the species' cached database row is fetched, which is the
+   same body GetMonsterDataForInfo is, inlined here - both of its assertions
+   appear in this function at their own source lines.
+ 
+   One record id is special-cased entirely: it is shown as a party character's
+   name with a prefix, formatted into a shared buffer.
+ 
+   Otherwise the monster's group decides which of the record's two name sets is
+   used, and name_form picks the variant within it - the sets are twenty-four
+   wide characters apart. A monster with no group at all is a bug unless it is
+   already dying, and says so on the debug channel rather than asserting. */
+// FUNCTION: WIZ8 0x004E5150
+W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                           unsigned char name_form)
+{
+    W8MonsterGroup* monster_group;
+
+    if (record == 0) {
+        if (monster_info == 0) {
+            srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
+        }
+        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    }
+    if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
+        swprintf(
+            g_monster_name_buffer,
+            L"Al-%s",
+            g_all_characters[g_alternate_name_slot].name);
+        return g_monster_name_buffer;
+    }
+    if (monster_info->monster_group_id == 0) {
+        if (monster_info->monster->IsDying() == 0) {
+            FormatDebugMessage(
+                1, "ERROR: Monster ID %d has no group", monster_info->location_id);
+        }
+    } else {
+        monster_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(
+                0x54c, MONSTER_MANAGER_CPP, monster_info->monster_group_id, 1));
+        if (monster_group == 0) {
+            srAssertFail("pMonsterGroup", MONSTER_MANAGER_CPP, 0x54d, 0);
+        }
+        if (monster_group->flag_2c != 0) {
+            return record->name_00 + name_form * 24;
+        }
+    }
+    return record->name_60 + name_form * 24;
 }
 
 static W8MonsterManagerState g_monster_manager_state;

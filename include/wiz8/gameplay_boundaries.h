@@ -223,7 +223,11 @@ typedef struct W8MonsterGroup {
     unsigned char unknown_1c[0xc];
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
     unsigned char flag_29;                /* 0x29: cleared after the record loads */
-    unsigned char unknown_2a[0x75];
+    unsigned char unknown_2a[2];
+    /* 0x2c: selects which of the record's two name sets a member is displayed
+       under. GetMonsterName reads it and nothing recovered yet writes it. */
+    unsigned char flag_2c;
+    unsigned char unknown_2d[0x72];
     int value_9f;                         /* 0x9f: a member location id; RemoveMonster
                                              compares it against the departing
                                              member's before renotifying */
@@ -235,7 +239,11 @@ typedef struct W8MonsterGroup {
     unsigned int version;                 /* 0xc4 */
     unsigned char unknown_c8[2];
     unsigned char flag_ca;                /* 0xca */
-    unsigned char unknown_cb[0x60];
+    unsigned char unknown_cb[4];
+    /* 0xcf: when this group was last budgeted. UpdateRandomEncounterBudget
+       advances it by the elapsed time and the culling pass measures against it. */
+    int spawn_time;
+    unsigned char unknown_d3[0x58];
 } W8MonsterGroup;                         /* 0x12b */
 
 /* 3D Code\PList.cpp. Distinct from W8GrowableVector: no vptr, elements at +0x00

@@ -50,7 +50,17 @@ typedef struct W8NpcDatabaseRecord {
 /* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
    established; the leading field is a display name. */
 typedef struct W8LevelDatabaseRecord {
-    unsigned char unknown_000[0xd8];
+    unsigned char unknown_000[0x3c];
+    /* 0x3c..0x50: the per-level random-encounter budget parameters, all five
+       read by UpdateRandomEncounterBudget and the sixth by the culling pass.
+       Mirrors config/types/wiz8/gameplay_databases.h. */
+    int maximum_random_encounters;       /* 0x3c */
+    int minimum_random_encounters;       /* 0x40 */
+    int maximum_encounter_budget;        /* 0x44 */
+    int minimum_encounter_budget;        /* 0x48 */
+    int encounter_budget_period;         /* 0x4c: elapsed-time divisor */
+    int encounter_culling_seconds;       /* 0x50 */
+    unsigned char unknown_054[0x84];
 } W8LevelDatabaseRecord;                 /* 0xd8 */
 
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
