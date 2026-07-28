@@ -42,7 +42,6 @@ extern unsigned int FileGetAttributes(const char* path);
    reports whether the flag word at +0x29 has any of the caller's bits set. The
    original spells the result through NEG/SBB/NEG, which is what VC6 emits for a
    bool conversion, so the return type is bool rather than the mask. */
-extern bool ItemHasFlags(W8WorldItem* item, unsigned int mask);
 /* 0x00516E20, search.cpp line 293: appends the item to the global searchable
    array. Not yet identified beyond that, so it keeps an address name. */
 extern void Function516E20(W8WorldItem* item);
@@ -53,28 +52,13 @@ extern void Function516E20(W8WorldItem* item);
    beyond "a level restore is in progress", so the name stays positional. */
 extern unsigned char g_flag_659756;
 
-/* The object W8WorldItem::unknown_04 points at, and the entity it owns at
-   +0x14. Only the two slots these serializers walk are established, so both
-   carry address names, as W8Prop's members do. Method4B8890 is a 24-byte
+/* The object W8WorldItem::owner points at, and the entity it owns at +0x14.
+   Method4B8890 is a 24-byte
    __thiscall getter with 18 call sites that hands back the entity's position;
    its body is not ported here, so the declaration stays unresolved at link like
    the other recovered callees. The canonical RET 4 fits an out-parameter and a
    12-byte by-value return equally, and both spellings compile to the same call
    site here, so the weaker of the two is the one declared. */
-struct W8WorldEntity {
-    unsigned char unknown_00[4];
-    srVector3T<float> position;          /* 0x04 */
-    unsigned char unknown_10[0x80];
-    int unknown_90;                      /* 0x90 */
-
-    void Method4B8890(srVector3T<float>* position);
-};
-
-struct W8WorldItemOwner {
-    unsigned char unknown_00[0x14];
-    W8WorldEntity* entity;               /* 0x14 */
-};
-
 #define LOADSAVEGAME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp"
 
 /* 0x0050F6A0 and 0x0048C750, not yet identified; named by address as elsewhere
@@ -381,14 +365,14 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
         item->saved_marker = 1;
         if (item->unknown_08 != 0) {
             srVector3T<float> position;
-            ((W8WorldItemOwner*)item->unknown_04)->entity->Method4B8890(&position);
+            item->owner->entity->Method4B8890(&position);
             item->position.x = position.x;
             item->position.y = position.y;
             item->position.z = position.z;
-            item->unknown_25 = ((W8WorldItemOwner*)first->unknown_04)->entity->unknown_90;
+            item->entity_flags = first->owner->entity->flags;
         }
         if (g_flag_659756 != 0) {
-            first->unknown_25 &= ~8;
+            first->entity_flags &= ~8;
         }
         if (!WriteVirtualFile(handle, item, sizeof(W8WorldItem), (unsigned int*)&item_info)) {
             return 0;
@@ -420,7 +404,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         }
         item->sector_id = -2;
         item->unknown_08 = 0;
-        item->unknown_04 = 0;
+        item->owner = 0;
         if (ItemHasFlags(item, 1)) {
             Function516E20(item);
         }
@@ -430,7 +414,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
             return 0;
         }
         if (g_flag_659756 != 0) {
-            item->unknown_25 &= ~8;
+            item->entity_flags &= ~8;
         }
         previous = item;
         if (item->next == 0) {

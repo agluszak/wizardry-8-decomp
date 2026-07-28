@@ -16,6 +16,8 @@ extern int g_item_manager_state_0068EC78;
 extern W8ItemSelectionOwner0068EDCC* g_item_selection_owner_0068EDCC;
 extern W8PList* g_item_manager_entries_00683FB5;
 
+#define ITEM_MANAGER_CPP "C:\\\\Projects\\\\Wizardry 8\\\\Local Code\\\\ItemManager.cpp"
+
 // FUNCTION: WIZ8 0x004F69F0
 bool InitializeItemManagerState()
 {
@@ -30,6 +32,77 @@ bool InitializeItemManagerState()
     }
     g_item_manager_entries_00683FB5 = PListCreate();
     return g_item_manager_entries_00683FB5 != 0;
+}
+
+// FUNCTION: WIZ8 0x004F8130
+bool ItemHasFlags(W8WorldItem* item, unsigned int mask)
+{
+    if (item == 0) {
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 998, 0);
+    }
+    return (item->flags & mask) != 0;
+}
+
+// FUNCTION: WIZ8 0x004F8170
+void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
+{
+    if (item == 0) {
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1004, 0);
+    }
+    if (enabled) {
+        item->flags |= mask;
+    } else {
+        item->flags &= ~mask;
+    }
+}
+
+// FUNCTION: WIZ8 0x004F81C0
+void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
+{
+    if (item == 0) {
+        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1019, 0);
+    }
+    if (enabled) {
+        item->entity_flags |= mask;
+    } else {
+        item->entity_flags &= ~mask;
+    }
+    if (item->owner != 0) {
+        item->owner->entity->SetFlags(mask, enabled);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F8300
+int ItemInfoGetNumInGroup(W8WorldItem* item)
+{
+    if (item == 0) {
+        srAssertFail(
+            "pItemInfo", ITEM_MANAGER_CPP, 1115, "Bad ITEM_STRUCT in ItemInfoGetNumInGroup");
+    }
+    item = item->next;
+    int count = 1;
+    while (item != 0) {
+        item = item->next;
+        ++count;
+    }
+    return count;
+}
+
+// FUNCTION: WIZ8 0x004F8340
+void ItemInfoAddToGroup(W8WorldItem* group, W8WorldItem* item)
+{
+    W8WorldItem* tail;
+
+    if (group == 0) {
+        srAssertFail(
+            "pItemInfo", ITEM_MANAGER_CPP, 1130, "Bad ITEM_STRUCT in ItemInfoAddToGroup");
+    }
+    tail = group;
+    while (tail->next != 0) {
+        tail = tail->next;
+    }
+    tail->next = item;
+    item->next = 0;
 }
 
 struct W8ItemLevelScaleRange {

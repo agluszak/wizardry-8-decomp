@@ -1,4 +1,10 @@
 program,class_name,offset,size,field_name,data_type,pointee,confidence,evidence_id,description
+wiz8,W8WorldItemOwner,0x0,0x14,unknown_00,bytes,,strong,classes:wiz8:W8WorldItemOwner,The first demonstrated member begins at +0x14
+wiz8,W8WorldItemOwner,0x14,0x4,entity,pointer,W8WorldEntity,exact,classes:wiz8:W8WorldItemOwner,The byte-exact SetItemAndEntityFlags body follows this pointer before calling the entity flag updater
+wiz8,W8WorldEntity,0x0,0x4,unknown_00,bytes,,strong,classes:wiz8:W8WorldEntity,The demonstrated position begins at +0x04
+wiz8,W8WorldEntity,0x4,0xc,position,bytes,,strong,classes:wiz8:W8WorldEntity,SaveItemFile retrieves the entity position through the method at 0x004b8890
+wiz8,W8WorldEntity,0x10,0x80,unknown_10,bytes,,strong,classes:wiz8:W8WorldEntity,The demonstrated flag word begins at +0x90
+wiz8,W8WorldEntity,0x90,0x4,flags,int32,,exact,classes:wiz8:W8WorldEntity,The updater at 0x0049f310 sets or clears caller-selected bits and SaveItemFile copies the same word
 wiz8,Controls,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:Controls,W8WidgetBase005ED5BC::Invalidate and W8TextControl005ED604::Invalidate dispatch panel invalidation through virtual slot one
 wiz8,Controls,0x4,0x1,m_fEnabled,uint8,,strong,classes:wiz8:Controls,SetEnabled writes the panel state and mirrors it to every child
 wiz8,Controls,0x5,0x1,m_fDirty,uint8,,strong,classes:wiz8:Controls,Invalidate raises this byte for both whole-panel and rectangular requests
@@ -241,12 +247,12 @@ wiz8,W8GrowableVector<W8WorldItem *>,0x4,0x4,count,int32,,strong,classes:wiz8:W8
 wiz8,W8GrowableVector<W8WorldItem *>,0x8,0x4,capacity,int32,,strong,classes:wiz8:W8GrowableVector<W8WorldItem *>,compared before the inlined output Add grows its storage
 wiz8,W8GrowableVector<W8WorldItem *>,0xc,0x4,data,pointer,W8WorldItem *,strong,classes:wiz8:W8GrowableVector<W8WorldItem *>,W8WorldItem pointer slots written by the inlined output Add
 wiz8,W8WorldItem,0x0,0x4,runtime_id,int32,,exact,classes:wiz8:W8WorldItem,assigned from the world item id counter
-wiz8,W8WorldItem,0x4,0x4,unknown_04,pointer,,exact,classes:wiz8:W8WorldItem,not established
+wiz8,W8WorldItem,0x4,0x4,owner,pointer,W8WorldItemOwner,exact,classes:wiz8:W8WorldItem,The byte-exact SetItemAndEntityFlags body follows this pointer to the live entity owner and the save path uses the same chain
 wiz8,W8WorldItem,0x8,0x1,unknown_08,bytes,,exact,classes:wiz8:W8WorldItem,not established
 wiz8,W8WorldItem,0x9,0xc,item,bytes,,exact,classes:wiz8:W8WorldItem,W8ItemInstance payload
 wiz8,W8WorldItem,0x15,0xc,position,bytes,,exact,classes:wiz8:W8WorldItem,srVector3T<float>
 wiz8,W8WorldItem,0x21,0x4,unknown_21,bytes,,exact,classes:wiz8:W8WorldItem,not established
-wiz8,W8WorldItem,0x25,0x4,unknown_25,int32,,exact,classes:wiz8:W8WorldItem,level-restore flag word; bit 3 cleared while restoring
+wiz8,W8WorldItem,0x25,0x4,entity_flags,int32,,exact,classes:wiz8:W8WorldItem,The byte-exact SetItemAndEntityFlags body updates this word then mirrors the same mask to the live entity; bit 3 is cleared while restoring
 wiz8,W8WorldItem,0x29,0x4,flags,int32,,exact,classes:wiz8:W8WorldItem,tested by mask by 0x004F8130
 wiz8,W8WorldItem,0x2d,0x4,saved_marker,int32,,exact,classes:wiz8:W8WorldItem,set to 1 before each record is written
 wiz8,W8WorldItem,0x31,0x4,next,pointer,W8WorldItem,exact,classes:wiz8:W8WorldItem,"chain link, walked and rebuilt by the serializers"

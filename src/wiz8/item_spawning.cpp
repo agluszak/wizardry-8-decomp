@@ -34,11 +34,11 @@ W8WorldItem* CreateWorldItem(
     InitializeItemInstance(&result->item, 0, 1);
     result->runtime_id = g_next_world_item_id++;
     result->unknown_08 = 0;
-    result->unknown_04 = 0;
+    result->owner = 0;
     result->position = *position;
     result->sector_id = -1;
     InitializeWorldItemPlacement(result);
-    result->unknown_25 = unknown;
+    result->entity_flags = unknown;
 
     if (item != 0) {
         CopyItemInstance(&result->item, item, 0, 1);

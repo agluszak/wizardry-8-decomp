@@ -557,3 +557,8 @@ address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
 005e2c70,13,PListGetCount,wiz8-foundation,exact,b032c1545d695fa6c235735375dbb6d8383eed619499ece0a921206657ab6e0a,VC6 SP5 O2 G6 MD body is byte-exact; canonical callers name this operation PLLength
 005e2c80,55,IListGetAt,wiz8-foundation,exact,167aad620d16007a619133c2877715261fb06adef6a10daa981376163e60530f,VC6 SP5 O2 G6 MD body is byte-exact; returns -1 rather than null on a failed lookup
 005e2cc0,66,IListIndexOf,wiz8-foundation,exact,3086c58e71669ce9cf8edc1954f342bc9384d4de2896ed7bb15c4f1cb0c24bae,VC6 SP5 O2 G6 MD body is byte-exact using a counted for-loop over pls->data[index]
+004f8130,49,ItemHasFlags,wiz8-item-system,exact,0e7246bf3a80c3e8c86f9c072e54085689022a634a22b53b60cbe73bd4e7144d,Tests the typed world-item flag word against the caller mask after the canonical null assertion
+004f8170,72,SetItemFlags,wiz8-item-system,exact,3ee467747f75c72e3beae20eea21fec99fb729f82803479c91274b74530f9a28,Sets or clears caller-selected bits in the typed world-item flag word
+004f81c0,93,SetItemAndEntityFlags,wiz8-item-system,exact,dbc73ed804a860f971406372ec20375acfb40ef12feb08b7b93b40b44bf1f947,Sets or clears the secondary item flags and mirrors the change to an existing typed world entity
+004f8300,60,ItemInfoGetNumInGroup,wiz8-item-system,exact,2e093a35e90738d9dd8b33187999c58fb2d2138b6a0d4d07adbe556498a790d0,Counts the typed next-linked item group including its head
+004f8340,86,ItemInfoAddToGroup,wiz8-item-system,exact,b7af7b7b833f7e3fd6ca541b7627dd7377a668692fa7afda93d5a9dc03c143aa,Appends an item to the typed next-linked group and terminates the appended chain
