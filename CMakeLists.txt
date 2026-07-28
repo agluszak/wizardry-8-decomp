@@ -264,6 +264,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/dialog_code/DialogBase005D25B0.cpp
         src/wiz8/dialog_code/Object005EF894.cpp
         src/wiz8/dialog_code/StatInfoDialogs.cpp
+        src/wiz8/dialog_code/ProfRaceInfoDialog.cpp
         src/wiz8/engine_code/Object0043A910.cpp
         src/wiz8/engine_code/Object005EBCFC.cpp
         src/wiz8/engine_code/GDProp.cpp
