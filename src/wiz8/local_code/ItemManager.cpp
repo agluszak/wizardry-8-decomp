@@ -210,7 +210,7 @@ int GenerateItemsFromTable(
                 candidates.Add(entry_index);
             }
             else {
-                item_value = item_record->unknown_086;
+                item_value = item_record->value;
                 for (range = g_item_level_scale_ranges;
                      range < g_item_level_scale_ranges + 7;
                      ++range) {

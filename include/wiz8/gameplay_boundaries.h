@@ -583,6 +583,14 @@ extern unsigned char g_import_flags[0x60];
 extern int g_fact_record_count;
 extern W8ItemDatabaseRecord* g_item_records;
 extern int g_item_record_count;
+/* 0x0068517C: gStatus.fGameStarted, named by the PC Item.cpp assertion at line
+   3795 that guards the party-pool sort. Item placement consults it because the
+   character-creation screens fill different slots than play does. */
+extern unsigned char g_game_started;
+/* 0x00685189: the party's purse. AddPartyGold plays Data\Sound\Misc\ChaChing.wav
+   and posts the pickup message when it is told to announce; SpendPartyGold is
+   the matching debit and floors at zero rather than wrapping. */
+extern unsigned int g_party_gold;
 /* gXStatus.uiMonstersInDatabase, named by the assertion at GameplayDatabase.cpp
    line 320. It sits immediately below the NPC count, so the database counts are
    fields of one gXStatus structure rather than separate globals; they are kept

@@ -22,13 +22,31 @@ struct W8ItemTableRecord {
 };                                       /* 0x1f1 */
 
 struct W8ItemDatabaseRecord {
-    unsigned char unknown_000[0x42];
+    unsigned char unknown_000[0x3e];
+    /* 0x03e: the equipment class, zero through twelve. GetItemDefaultEquipSlot
+       is a thirteen-way switch on it and is the only body that enumerates the
+       whole domain; class four additionally prices and stacks by the bundle. */
+    unsigned char equip_class;
+    /* 0x03f: groups items that share one generic name while unidentified.
+       GetItemDisplayRecord builds the shared name lazily, one cached string per
+       index, and two items with equal indices read as the same thing. */
+    unsigned short unidentified_name_index;
+    /* 0x041: bit one blocks discarding the item, which is the only bit a
+       recovered body reads. */
+    unsigned char flags_041;
     /* 0x042: the item's kind. Three selects the spell-source items the magic
        code accepts; no other value is established. */
     unsigned char category;
-    unsigned char unknown_043[0x43];
-    unsigned int unknown_086;             /* 0x086: level-scaled table filter */
-    unsigned char unknown_08a[0x83];
+    unsigned char unknown_043[0x23];
+    /* 0x066: zero none, one stack, two through four uses or charges. */
+    unsigned char quantity_kind;
+    unsigned char unknown_067[0x1f];
+    /* 0x086: the gold value of one item, except for equip class four, which is
+       priced by the bundle of twenty-five. GenerateItemsFromTable filters a
+       level-scaled table on the same field. */
+    unsigned int value;
+    unsigned short weight;                /* 0x08a: the weight of one item */
+    unsigned char unknown_08c[0x81];
 };                                       /* 0x10d */
 
 #pragma pack(pop)

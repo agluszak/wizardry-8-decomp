@@ -33,13 +33,18 @@ typedef struct W8ItemInstance {
 
 typedef struct W8ItemDatabaseRecord {
     W8WideChar display_name[30];         /* 0x000 */
-    uint8_t unknown_03c[3];             /* 0x03c */
+    uint8_t unknown_03c[2];             /* 0x03c */
+    uint8_t equip_class;                /* 0x03e: zero through twelve */
     uint16_t unidentified_name_index;   /* 0x03f */
     uint8_t flags_041;                  /* 0x041: bit zero starts identified */
-    uint8_t unknown_042[0x24];          /* 0x042 */
+    uint8_t category;                   /* 0x042: three is a spell source */
+    uint8_t unknown_043[0x23];          /* 0x043 */
     uint8_t quantity_kind;              /* 0x066: zero none, one stack, two-four uses */
     W8Dice initial_quantity;             /* 0x067 */
-    uint8_t unknown_06b[0x4e];          /* 0x06b */
+    uint8_t unknown_06b[0x1f];          /* 0x06b */
+    uint32_t value;                     /* 0x086: gold value, per bundle for class four */
+    uint16_t weight;                    /* 0x08a: weight of one item */
+    uint8_t unknown_08c[0x2d];          /* 0x08c */
     int32_t combine_ingredient_a;       /* 0x0b9 */
     int32_t combine_ingredient_b;       /* 0x0bd */
     uint8_t unknown_0c1[8];             /* 0x0c1 */
