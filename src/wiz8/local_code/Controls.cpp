@@ -98,6 +98,7 @@ extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
                            int left, int top, int mode, int flags);
 extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
+extern unsigned short Function4071F0(int font);             /* font line height */
 
 // FUNCTION: WIZ8 0x004F30F0
 void Controls::EnableRegionSet(unsigned char enable)
@@ -124,15 +125,10 @@ public:
                          int left, int top, int right, int bottom);
 
     void SetRegion(unsigned int region);
+    void EnableRegionHelp(int help_text_id);
+    void DisableRegionHelp();
 
-    // FUNCTION: WIZ8 0x004F3D90
-    virtual ~W8WidgetBase005ED5BC()
-    {
-        m_flag_5 = 0;
-        if (m_region_18 != -1) {
-            SetRegionMode4(m_region_18);
-        }
-    }
+    virtual ~W8WidgetBase005ED5BC();
 
     virtual void UnknownSlot1() = 0;
     virtual void Redraw(int full_redraw) = 0;
@@ -158,6 +154,15 @@ protected:
     int m_field_2c;                      /* 0x2c */
     int m_field_30;                      /* 0x30 */
 };                                       /* 0x34 established */
+
+// FUNCTION: WIZ8 0x004F3F10
+W8WidgetBase005ED5BC::~W8WidgetBase005ED5BC()
+{
+    m_flag_5 = 0;
+    if (m_region_18 != -1) {
+        SetRegionMode4(m_region_18);
+    }
+}
 
 
 /*
@@ -410,12 +415,9 @@ class W8TextBuffer005ED5B8 {
 public:
     W8TextBuffer005ED5B8();
     void CopyTextTo(wchar_t* destination);
+    unsigned int GetLineHeight();
 
-    // FUNCTION: WIZ8 0x004F3370
-    virtual ~W8TextBuffer005ED5B8()
-    {
-        delete[] m_buffer;
-    }
+    virtual ~W8TextBuffer005ED5B8();
 
 protected:
     int m_field_04;
@@ -427,9 +429,9 @@ protected:
     int m_field_1c;
     int m_field_20;
     int m_field_24;                      /* 0x24: the constructor steps over this one */
-    int m_field_28;
+    int m_font;                          /* 0x28: font used for uncached line height */
     int m_field_2c;
-    int m_field_30;
+    unsigned int m_lineHeight;           /* 0x30: cached height, zero means query font */
     wchar_t* m_buffer;                   /* 0x34: freed on teardown */
     int m_field_38;                      /* 0x38: 10 */
     int m_field_3c;
@@ -441,16 +443,22 @@ protected:
     unsigned char m_flag_4c;
 };
 
+// FUNCTION: WIZ8 0x004F3480
+W8TextBuffer005ED5B8::~W8TextBuffer005ED5B8()
+{
+    delete[] m_buffer;
+}
+
 // FUNCTION: WIZ8 0x004F3310
 W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
 {
     m_buffer = 0;
-    m_field_28 = 0;
+    m_font = 0;
     m_field_2c = 0;
     m_flag_40 = 0;
     m_field_38 = 10;
     m_field_3c = 0;
-    m_field_30 = 0;
+    m_lineHeight = 0;
     m_field_44 = 4;
     m_flag_41 = 0;
     m_field_48 = -1;
@@ -471,6 +479,18 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
 void W8TextBuffer005ED5B8::CopyTextTo(wchar_t* destination)
 {
     wcscpy(destination, m_buffer);
+}
+
+/* Returns the cached line height, falling back to the active font's 16-bit
+   height when the cache is zero. */
+// FUNCTION: WIZ8 0x004F3D30
+unsigned int W8TextBuffer005ED5B8::GetLineHeight()
+{
+    unsigned int height = m_lineHeight;
+    if (height == 0) {
+        height = Function4071F0(m_font);
+    }
+    return height;
 }
 
 /*
@@ -850,4 +870,22 @@ void Controls::AcquireRegionSet(unsigned int* shared_region_set)
     }
     m_uiRegionSetId = *shared_region_set;
     ResetRegionSet(m_uiRegionSetId);
+}
+
+/* Enables timed help for this widget's region when it owns one. */
+// FUNCTION: WIZ8 0x004F4120
+void W8WidgetBase005ED5BC::EnableRegionHelp(int help_text_id)
+{
+    if (m_region_18 != -1) {
+        SetRegionHelp(m_region_18, 1, help_text_id);
+    }
+}
+
+/* Disables timed help and clears the text id for this widget's region. */
+// FUNCTION: WIZ8 0x004F4140
+void W8WidgetBase005ED5BC::DisableRegionHelp()
+{
+    if (m_region_18 != -1) {
+        SetRegionHelp(m_region_18, 0, -1);
+    }
 }

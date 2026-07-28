@@ -25,7 +25,10 @@ wiz8,W8ControlsRect,0x0,0x4,left,int32,,strong,classes:wiz8:W8ControlsRect,first
 wiz8,W8ControlsRect,0x4,0x4,top,int32,,strong,classes:wiz8:W8ControlsRect,second signed bound read by Invalidate
 wiz8,W8ControlsRect,0x8,0x4,right,int32,,strong,classes:wiz8:W8ControlsRect,third signed bound read by Invalidate
 wiz8,W8ControlsRect,0xc,0x4,bottom,int32,,strong,classes:wiz8:W8ControlsRect,fourth signed bound read by Invalidate
-wiz8,W8TextBuffer005ED5B8,0x0,0x34,unknown_00,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,storage initialized by the constructor before the owned text pointer
+wiz8,W8TextBuffer005ED5B8,0x0,0x28,unknown_00,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,storage initialized by the constructor before the font and cached line height
+wiz8,W8TextBuffer005ED5B8,0x28,0x4,m_font,int32,,strong,classes:wiz8:W8TextBuffer005ED5B8,GetLineHeight passes this value to the font line-height query when no cached height exists
+wiz8,W8TextBuffer005ED5B8,0x2c,0x4,unknown_2c,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,constructor-initialized storage between the font and cached height
+wiz8,W8TextBuffer005ED5B8,0x30,0x4,m_lineHeight,uint32,,strong,classes:wiz8:W8TextBuffer005ED5B8,GetLineHeight returns this cached height directly when nonzero
 wiz8,W8TextBuffer005ED5B8,0x34,0x4,m_buffer,pointer,wchar_t,strong,classes:wiz8:W8TextBuffer005ED5B8,freed by the destructor and copied by CopyTextTo
 wiz8,W8TextBuffer005ED5B8,0x38,0x18,unknown_38,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,trailing constructor-initialized storage not yet semantically identified
 wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
