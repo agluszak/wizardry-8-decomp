@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 #define TARGETING_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Targeting.cpp"
@@ -571,4 +572,147 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
         }
         SetMonsterHighlight(monster_info->location_id, owner, 0, (char)tint);
     }
+}
+
+/* One monster considered as an auto-attack target, and the four things the
+   ordering below reads out of it. The rest of the record is filled in as the
+   candidate is built and is what makes the sort stable across the fields it
+   does not compare. */
+typedef struct W8MonsterTargetCandidate {
+    int location_id;                     /* 0x00 */
+    int state_04;                        /* 0x04: the monster's own 0x107 */
+    unsigned char in_reach;              /* 0x08: reachable with a real attack */
+    unsigned char pad_09[3];
+    unsigned int range_band;             /* 0x0c: the first band that covers it */
+    unsigned int hp_current;             /* 0x10 */
+    unsigned char same_group;            /* 0x14: shares the caller's group */
+    unsigned char pad_15[3];
+    float distance;                      /* 0x18 */
+} W8MonsterTargetCandidate;              /* 0x1c */
+
+extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
+extern unsigned char MonsterIsHostileTo(int party_slot, W8MonsterInfo* monster_info);
+/* 0x00546F10 */
+extern unsigned char CanReachTarget(
+    int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
+/* 0x005194E0 */
+extern bool AnyoneStandsAhead(unsigned char position);
+extern int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only);
+extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
+extern W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
+
+/* The order the candidates are taken in: the monster in the lowest state
+   first, then the one that can actually be reached, then the nearest. Only
+   three of the record's seven fields are compared, so the rest are carried for
+   the caller rather than for the sort. */
+// FUNCTION: WIZ8 0x0053C920
+int CompareMonsterTargetCandidates(const void* left, const void* right)
+{
+    const W8MonsterTargetCandidate* a = (const W8MonsterTargetCandidate*)left;
+    const W8MonsterTargetCandidate* b = (const W8MonsterTargetCandidate*)right;
+
+    if ((unsigned int)a->state_04 < (unsigned int)b->state_04) {
+        return -1;
+    }
+    if ((unsigned int)a->state_04 > (unsigned int)b->state_04) {
+        return 1;
+    }
+    if (a->in_reach != 0 && b->in_reach == 0) {
+        return -1;
+    }
+    if (a->in_reach == 0 && b->in_reach != 0) {
+        return 1;
+    }
+    if (a->distance < b->distance) {
+        return -1;
+    }
+    if (a->distance > b->distance) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Which monster a party slot should turn on when it has to pick one for
+   itself. Every live, in-combat, still-standing monster the slot is hostile to
+   and can reach becomes a candidate; the candidates are then ordered and the
+   first one taken.
+
+   The whole array is built before any of it is compared, which is why the
+   record carries fields the ordering never reads - they are what the caller
+   would need if it took more than the first. A monster with no hit points at
+   all is a data error rather than a candidate to skip. */
+// FUNCTION: WIZ8 0x0053C720
+int ChooseMonsterTarget(int party_slot, int group_id, int context)
+{
+    unsigned int monster_count = PListGetCount(g_active_monster_list_00683fad);
+    W8MonsterTargetCandidate* candidates;
+    W8MonsterTargetCandidate* next;
+    size_t found = 0;
+    unsigned int index;
+    int chosen;
+
+    if (monster_count == 0) {
+        return BAD_INDEX;
+    }
+    candidates =
+        (W8MonsterTargetCandidate*)malloc(monster_count * sizeof(W8MonsterTargetCandidate));
+    if (candidates == 0) {
+        return BAD_INDEX;
+    }
+
+    next = candidates;
+    for (index = 0; index < monster_count; ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        W8MonsterRecord* record;
+        unsigned int band;
+
+        if (monster_info->flag_14 == 0 || monster_info->fInCombat == 0 ||
+            monster_info->hp_current == 0 ||
+            MonsterIsHostileTo(party_slot, monster_info) != 1 ||
+            !CanReachTarget(party_slot, 2, monster_info, context, 0)) {
+            continue;
+        }
+
+        next->location_id = monster_info->location_id;
+        next->state_04 = monster_info->value_107;
+        next->in_reach = 0;
+
+        record = GetMonsterDataForInfo(monster_info);
+        if (GetBestMonsterAttackRange(record, 1) != -1) {
+            unsigned int quadrant = GetMonsterQuadrant(monster_info) & 0xff;
+
+            if ((unsigned char)quadrant == 2 ||
+                (!AnyoneStandsAhead((unsigned char)quadrant) && AnyoneStandsAhead(4))) {
+                next->in_reach = 1;
+            }
+        }
+
+        /* The first range band whose reach covers where the monster is. */
+        for (band = 0; band < 4; ++band) {
+            if (MonsterDistanceToParty(monster_info) <= CalcRangeDistance((int)band)) {
+                next->range_band = band;
+                break;
+            }
+        }
+
+        if (monster_info->hp_max == 0) {
+            srAssertFail("pMonsterInfo->uiHPMax > 0", TARGETING_CPP, 0xeac, 0);
+        }
+        next->hp_current = monster_info->hp_current;
+        next->same_group = (unsigned char)(monster_info->monster_group_id == group_id);
+        next->distance = MonsterDistanceToParty(monster_info);
+
+        ++found;
+        ++next;
+    }
+
+    if (found == 0) {
+        free(candidates);
+        return BAD_INDEX;
+    }
+    qsort(
+        candidates, found, sizeof(W8MonsterTargetCandidate), CompareMonsterTargetCandidates);
+    chosen = candidates[0].location_id;
+    free(candidates);
+    return chosen;
 }
