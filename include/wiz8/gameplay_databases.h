@@ -15,6 +15,18 @@ typedef unsigned short W8WideChar;
 
 #pragma pack(push, 1)
 
+enum { W8_MAX_MONSTER_ATTACKS = 3 };
+
+/* One of a monster's three attacks. Only the two fields the range rules read
+   are established: whether the attack exists at all and what range category it
+   works at. */
+typedef struct W8MonsterAttack {
+    unsigned char fHasAttack;           /* 0x00 */
+    unsigned char unknown_01[2];
+    unsigned char range_category;       /* 0x03 */
+    unsigned char unknown_04[0x1f];
+} W8MonsterAttack;                      /* 0x23 */
+
 typedef struct W8Dice {
     short base;
     unsigned char count;
@@ -34,7 +46,10 @@ typedef struct W8SpellRuntimeRecord {
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
     unsigned char monster_castable;
-    unsigned char unknown_127[0x10];
+    unsigned char unknown_127[8];
+    /* 0x12f: the range category a monster casting this spell needs. */
+    int range_category;
+    unsigned char unknown_133[4];
     int target_type;                    /* 0x137 */
     /* 0x13b: when the spell may be cast, zero through four. SpellUsableNow
        switches on it and its assertion calls it uiSpellUsableWhen with a
@@ -107,7 +122,12 @@ typedef struct W8MonsterRecord {
     unsigned char attribute_values_d1[5];
     W8Dice hit_points_d6;                 /* 0x0d6: rolled into hp_max/hp_current */
     W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
-    unsigned char unknown_0de[0xa3];
+    unsigned char unknown_0de[9];
+    /* 0x0e7: the monster's three attacks, named by the Combat Range.cpp
+       assertions pMonsterDB->Attack[uiAttack].fHasAttack and uiAttack <
+       MAX_MONSTER_ATTACKS, which is what bounds the array at three. */
+    W8MonsterAttack attacks[W8_MAX_MONSTER_ATTACKS];   /* 0x0e7 */
+    unsigned char unknown_150[0x31];
     unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
     unsigned char unknown_185[2];
     short record_id_187;                  /* 0x187: equals the zero-based database index */

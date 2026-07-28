@@ -117,6 +117,14 @@ enum {
     W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS = 1000
 };
 
+/* One hand's attack block. The extent is the stride between the two, and only
+   the two leading fields are established. */
+typedef struct W8HandAttack {
+    unsigned char in_play;                /* 0x00 */
+    int weapon_skill;                     /* 0x01, unaligned */
+    unsigned char unknown_05[0x56];
+} W8HandAttack;                           /* 0x5b */
+
 typedef struct W8ItemInstance {
     int item_id;
     unsigned char stack_count;           /* 0x04: quantity-kind 1 */
@@ -213,7 +221,11 @@ typedef struct W8Character {
     /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
        reports this array as origin zero and the equipment array as origin one. */
     W8ItemInstance backpack[8];           /* 0x1029 */
-    unsigned char unknown_1089[0x615];
+    unsigned char unknown_1089[0xc4];
+    /* 0x114d: one block per hand. Only the leading flag - the hand is in play -
+       and the weapon skill the attack setup stamps into it are established. */
+    W8HandAttack hand_attacks[2];         /* 0x114d */
+    unsigned char unknown_1203[0x49b];
     /* 0x169e: the fatigue band, zero through four, recomputed from the stamina
        fraction whenever it moves; a change re-runs the armour class pass. */
     int fatigue_band;
@@ -221,7 +233,11 @@ typedef struct W8Character {
     signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
     unsigned char unknown_1778[0x34];
     signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
-    unsigned char unknown_17b2[0xa9];
+    unsigned char unknown_17b2[3];
+    /* 0x17b5: the character is out of the formation, which is what the
+       front-rank counts skip. */
+    unsigned char out_of_formation;
+    unsigned char unknown_17b6[0xa5];
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
     unsigned char deep_fatigue_applied;
