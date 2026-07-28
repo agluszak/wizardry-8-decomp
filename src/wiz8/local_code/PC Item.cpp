@@ -137,12 +137,9 @@ enum { W8_WEAPON_SKILL_NONE = 0xff };
    off-hand pair, and the rest are worn rather than held. */
 enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 
-/* Whether two items may be held at once. Anything two-handed rules it out
-   immediately, and one weapon paired with an off-hand item is decided by the
-   weapon's own rule; two weapons have to agree on their wield group. Empty
-   hands always agree. */
-extern unsigned char CanPairWeaponWithOffHand(int weapon_item_id, int off_hand_item_id);
-/* 0x0051C8F0 */
+/* Whether a weapon and an off-hand item go together, named by its own error
+   text at 0x0051C8F0. */
+extern unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id);
 
 /* The equipment class an item belongs to, or zero when the caller has no
    item - which is indistinguishable from the first real class, so callers
@@ -331,11 +328,11 @@ bool CanHoldItemsTogether(int first_item_id, int second_item_id)
     }
     if (g_item_records[first_item_id].equip_class == 3 ||
         g_item_records[second_item_id].equip_class == 4) {
-        return CanPairWeaponWithOffHand(first_item_id, second_item_id) != 0;
+        return CompatiblePartnerItems(first_item_id, second_item_id) != 0;
     }
     if (g_item_records[second_item_id].equip_class == 3 ||
         g_item_records[first_item_id].equip_class == 4) {
-        return CanPairWeaponWithOffHand(second_item_id, first_item_id) != 0;
+        return CompatiblePartnerItems(second_item_id, first_item_id) != 0;
     }
     if (g_item_records[first_item_id].equip_class >= W8_EQUIP_CLASS_FIRST_NON_WEAPON) {
         return true;

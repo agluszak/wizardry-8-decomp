@@ -117,7 +117,11 @@ typedef struct W8Character {
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
     unsigned char unknown_0171[0x2c];
     W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
-    unsigned char unknown_07b3[0x296];
+    unsigned char unknown_07b3[0x26e];
+    /* 0x0a21: spellcasting is blocked for this character. Alchemy survives it
+       when the character has skill 26, which is the only exemption. */
+    int spellcasting_blocked;
+    unsigned char unknown_0a25[0x24];
     /* 0x0a49: non-null overrides the binding that would otherwise keep an
        equipped item on the character. Its type is not established. */
     void* unknown_0a49;
@@ -850,7 +854,12 @@ typedef struct W8MonsterInfo {
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
     int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x68];
+    unsigned char unknown_37[0x40];
+    /* 0x077: spellcasting is blocked for this monster. Alchemy survives it for
+       monster kinds four, five and thirteen, which is the only exemption -
+       the same shape as the character block and its alchemy-skill exemption. */
+    int spellcasting_blocked;
+    unsigned char unknown_07b[0x24];
     int value_9f;                         /* 0x09f: zero gate in 0x004e5c00 */
     unsigned char unknown_a3[0x64];
     int value_107;                        /* 0x107: set to 0x12 when an entry deactivates */

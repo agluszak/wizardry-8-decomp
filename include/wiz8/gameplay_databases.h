@@ -22,13 +22,25 @@ typedef struct W8Dice {
 } W8Dice;
 
 typedef struct W8SpellRuntimeRecord {
-    unsigned char unknown_000[0x49];
+    unsigned char unknown_000[0x48];
+    unsigned char alchemy_spell;        /* 0x048 */
     int spell_point_cost;               /* 0x049 */
     unsigned char unknown_04d[9];
     int spell_level;                    /* 0x056 */
-    unsigned char unknown_05a[0xdd];
+    unsigned char unknown_05a[0x41];
+    W8WideChar display_name[64];        /* 0x09b */
+    unsigned char unknown_11b[0xa];
+    unsigned char unknown_125;
+    /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
+       a spell without it by name and asserts. */
+    unsigned char monster_castable;
+    unsigned char unknown_127[0x10];
     int target_type;                    /* 0x137 */
-    unsigned char unknown_13b[0x84];
+    /* 0x13b: when the spell may be cast, zero through four. SpellUsableNow
+       switches on it and its assertion calls it uiSpellUsableWhen with a
+       SPELL_USAGE_COUNT of five. */
+    int usable_when;
+    unsigned char unknown_13f[0x80];
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 
 typedef struct W8FactDatabaseRecord {
@@ -77,7 +89,14 @@ typedef struct W8MonsterRecord {
     W8WideChar name_30[24];               /* 0x030: suffix after '#' removed at load */
     W8WideChar name_60[24];               /* 0x060: suffix after '#' removed at load */
     W8WideChar name_90[24];               /* 0x090: suffix after '#' removed at load */
-    unsigned char unknown_0c0[0x10];
+    unsigned char unknown_0c0[0xb];
+    /* 0x0cb: the monster's kind. The alchemy-casting rule admits kinds four,
+       five and thirteen and no others, which is the only body that reads it. */
+    unsigned char kind_0cb;
+    /* 0x0cc: selects this monster's row in the name-prefix table at 0x0061E436,
+       the same table a character indexes by faction. */
+    unsigned char name_group_0cc;
+    unsigned char unknown_0cd[3];
     /* 0x0d0: bit 0 routes disposition through the NPC record instead of the
        faction table, which is the only bit any recovered body reads. */
     unsigned char flags_0d0;
