@@ -1608,3 +1608,56 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
     NoteTargetChosen(
         &source, GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
 }
+
+/* 0x006840B7: the group the party currently has picked out, by id, and -1 when
+   none. It is where the sweep below starts from and wraps back to. */
+extern int g_picked_group_006840b7;
+
+/* Which monster group the party should pick out next. The sweep starts at the
+   one after whichever is currently picked and goes round until it comes back
+   to where it began, so the same group is only offered again when nothing else
+   will do. A picked group that has since gone away resets the starting point
+   rather than ending the sweep. */
+// FUNCTION: WIZ8 0x00537ED0
+int PickNextTargetableGroup(int party_slot)
+{
+    unsigned int count = PListGetCount(g_monster_group_list_00683fb1);
+    unsigned int start;
+    unsigned int index;
+
+    if (count == 0) {
+        return BAD_INDEX;
+    }
+
+    if (g_picked_group_006840b7 == BAD_INDEX) {
+        start = 0;
+    }
+    else {
+        start = GetMonsterGroupIndexByID(0x414, TARGETING_CPP, g_picked_group_006840b7, 0);
+        if (start == 0xffffffff) {
+            start = 0;
+            g_picked_group_006840b7 = BAD_INDEX;
+        }
+        else {
+            ++start;
+            if (start == PListGetCount(g_monster_group_list_00683fb1)) {
+                start = 0;
+            }
+        }
+    }
+
+    index = start;
+    do {
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
+
+        if (CanTargetMonsterGroup(party_slot, group)) {
+            return group->group_id;
+        }
+        ++index;
+        if (index == PListGetCount(g_monster_group_list_00683fb1)) {
+            index = 0;
+        }
+    } while (index != start);
+
+    return BAD_INDEX;
+}
