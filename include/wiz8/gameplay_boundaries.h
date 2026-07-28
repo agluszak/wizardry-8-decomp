@@ -757,7 +757,11 @@ typedef struct W8LevelRuntimeBlock {
     /* 0x155: the last of the combat regions is only taken down when this is
        clear. */
     unsigned char flag_155;
-    unsigned char unknown_156[0x52];
+    unsigned char unknown_156[0x16];
+    /* 0x16c: the character whose highlight overrides everyone else's, -1 when
+       none does. */
+    int highlight_override;
+    unsigned char unknown_170[0x38];
     /* 0x1a8: one entry per message line the main game screen is showing. */
     int text_lines[12];
     /* 0x1d8 and 0x1e8: two four-entry tables the text box clears a slot of at

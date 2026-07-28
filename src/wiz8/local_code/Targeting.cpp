@@ -342,3 +342,200 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
     }
     return 0;
 }
+
+extern unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster);
+extern void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flags);
+extern void NotifyMonsterHighlight(int party_slot, int location_id, int on);
+/* 0x004C5EB0 */
+extern void SetMonsterHighlightColour(
+    W8Monster* monster, float r, float g, float b, float a);            /* 0x004C5AD0 */
+extern unsigned int GetMonsterGroupIndexByID(
+    int caller_line, const char* caller_file, int group_id, unsigned char assert_on_failure);
+extern W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int index);
+extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
+extern W8LevelRuntimeBlock* g_level_block;
+extern W8PList* g_active_monster_list_00683fad;
+extern int g_highlight_suppressed_00683fe7;
+
+/* What the interface has to ask the player to pick for one action. Most
+   actions answer a fixed kind; casting asks the spell and using an item asks
+   the item's own spell, which is the same two-step the item path takes. */
+// FUNCTION: WIZ8 0x00536A20
+char GetTargetNeededForAction(int action, int spell_id, const W8ItemInstance** item)
+{
+    const W8ItemDatabaseRecord* record;
+
+    switch (action) {
+    case 0:
+    case 1:
+        return 2;
+    case 2:
+        return 4;
+    case 5:
+        return 1;
+    case 7:
+        return GetTargetNeededForSpellFriendly(spell_id, 0, 6);
+    case 8:
+        if (item[1] != 0 && (*(const int**)&item[1])[0] != -1) {
+            record = &g_item_records[(*(const int**)&item[1])[0]];
+            if (record->spell_id != 0) {
+                return GetTargetNeededForSpellFriendly(
+                    record->spell_id, ItemClassNormalizesTarget(record), 0);
+            }
+        }
+        break;
+    }
+    return 0;
+}
+
+/* Whether a slot's recorded target suits the item it would be used with. An
+   item with no spell needs nothing picked, and one target kind a global
+   override always accepts. */
+// FUNCTION: WIZ8 0x005372B0
+unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
+{
+    W8TargetBlock* target = Function53B7F0(party_slot, 6);
+    const W8ItemDatabaseRecord* record;
+    int needed = 0;
+
+    if (item != 0 && item->item_id != -1) {
+        record = &g_item_records[item->item_id];
+        if (record->spell_id != 0) {
+            needed = GetTargetNeededForSpellFriendly(
+                record->spell_id, ItemClassNormalizesTarget(record), 0);
+            if (needed == 2 && g_targeting_flag_00685116 != 0) {
+                return 1;
+            }
+        }
+    }
+    return Function537160(target, (char)needed);
+}
+
+/* Tint one monster for whoever is highlighting it. Three tints are named -
+   nothing, and two that differ only in which channel is lit - and everything
+   else leaves the colour as it was. */
+// FUNCTION: WIZ8 0x00539480
+void TintHighlightedMonster(W8Monster* monster, int tint)
+{
+    float r = 0.0f;
+    float g = 0.0f;
+    float b = 0.0f;
+    float a = 0.0f;
+
+    if (tint == 1) {
+        g = 1.0f;
+        a = 1.0f;
+    }
+    else if (tint == 2) {
+        r = 1.0f;
+        a = 1.0f;
+    }
+    SetMonsterHighlightColour(monster, r, g, b, a);
+}
+
+/* Raise or lower one character's bit in a monster's highlight mask, and tell
+   whatever draws it. */
+// FUNCTION: WIZ8 0x00539630
+void SetMonsterHighlight(int party_slot, int location_id, int unused, char on)
+{
+    int index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
+    W8MonsterInfo* monster_info;
+    W8Monster* monster;
+    unsigned char bit;
+
+    if (index == -1) {
+        return;
+    }
+    monster_info = MonsterGetScriptPartByLocationIndex(index);
+    monster = monster_info->monster;
+    if (monster == 0) {
+        srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
+    }
+
+    bit = (unsigned char)(1 << (location_id & 0x1f));
+    if (on) {
+        MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) | bit);
+        NotifyMonsterHighlight(location_id, location_id, 1);
+        return;
+    }
+    MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
+    NotifyMonsterHighlight(location_id, location_id, 0);
+}
+
+/* The same over a whole group, one member at a time. The count is re-read each
+   step because highlighting can remove a member. */
+// FUNCTION: WIZ8 0x00538C00
+void SetGroupHighlight(int party_slot, int group_id, char on)
+{
+    unsigned int group_index =
+        GetMonsterGroupIndexByID(1498, TARGETING_CPP, group_id, 0);
+    W8MonsterGroup* group;
+    unsigned int member;
+    int location_id;
+    int index;
+    W8MonsterInfo* monster_info;
+    W8Monster* monster;
+    unsigned char bit;
+
+    if (group_index == 0xffffffff) {
+        return;
+    }
+    group = GetMonsterGroupByListIndex(group_index);
+    for (member = 0; member < PListGetCount((W8PList*)group->monsters); ++member) {
+        location_id = IListGetAt(group->monsters, member);
+        index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
+        if (index == -1) {
+            continue;
+        }
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        monster = monster_info->monster;
+        if (monster == 0) {
+            srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
+        }
+        bit = (unsigned char)(1 << (party_slot & 0x1f));
+        if (on == 0) {
+            MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
+        }
+        else {
+            MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) | bit);
+        }
+        NotifyMonsterHighlight(party_slot, location_id, on != 0);
+    }
+}
+
+/* Re-tint every monster for one character. A character whose highlight is
+   overridden tints for whoever overrode it instead, and then only the monsters
+   that character was already highlighting. */
+// FUNCTION: WIZ8 0x00539570
+void UpdateAllMonsterHighlights(int party_slot, int location_id)
+{
+    bool overridden = false;
+    int owner = party_slot;
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+    int tint;
+
+    if (g_level_block->highlight_override != -1 && g_highlight_suppressed_00683fe7 == 0) {
+        overridden = true;
+        owner = g_level_block->highlight_override;
+    }
+
+    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info->flag_14 == 0) {
+            continue;
+        }
+        if (location_id == monster_info->location_id) {
+            tint = 1;
+        }
+        else if (overridden &&
+                 ((1 << (owner & 0x1f)) &
+                  MonsterGetRuntimeFlag5BC(monster_info->monster)) != 0) {
+            tint = 1;
+        }
+        else {
+            tint = 0;
+        }
+        SetMonsterHighlight(monster_info->location_id, owner, 0, (char)tint);
+    }
+}
