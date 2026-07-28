@@ -232,7 +232,11 @@ typedef struct W8MonsterGroup {
                                              compares it against the departing
                                              member's before renotifying */
     int unknown_a3;                       /* 0xa3: gates the trailing notification */
-    unsigned char unknown_a7[0x1c];
+    /* 0xa7: up to four allied group ids. The notification pass walks all four
+       unconditionally and skips the zero entries, so the array is fixed-size
+       rather than terminated. */
+    int allied_group_ids[4];
+    unsigned char unknown_b7[0xc];
     unsigned char flag_c3;                /* 0xc3: gates the trailing notification */
     /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
        byte, and below 3 it clears flag_ca that older saves never wrote. */

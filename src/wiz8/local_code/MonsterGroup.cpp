@@ -10,6 +10,17 @@ extern int Function50A440(unsigned int monster_list_index);  /* 0x0050A440 */
    exactly this much - the same split the monster list uses. */
 enum { W8_ENCOUNTER_GROUP_INDEX_BIAS = 10000 };
 extern signed char Function50A500(int npc_record);           /* 0x0050A500 */
+extern void Function565420(void);                            /* 0x00565420 */
+extern void Function510590(W8MonsterGroup* monster_group);   /* 0x00510590 */
+extern void Function454C80(void);                            /* 0x00454C80 */
+extern void ActivateMonster(W8MonsterInfo* monster_info, int mode);
+extern unsigned char RemoveMonster(unsigned int monster_list_index,
+                                  unsigned char destroy_monster);
+
+/* A member counts as active while its state byte is below this and it is not
+   under the control state the group excludes. */
+enum { W8_MONSTER_STATE_ACTIVE_LIMIT = 0xd, W8_MONSTER_CONTROL_EXCLUDED = 1 };
+enum { W8_MONSTER_GROUP_ALLY_COUNT = 4 };
 
 /* How a monster group starts out disposed towards the party.
  
@@ -184,4 +195,120 @@ unsigned int GetMonsterGroupIndexByID(
                 caller_line));
     }
     return 0xffffffff;
+}
+
+/* The database record behind a group's species. The assertion is the same one
+   the disposition calculation opens with, at the same source line. */
+// FUNCTION: WIZ8 0x00510180
+W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* monster_group)
+{
+    if (monster_group == 0) {
+        srAssertFail("pMonsterGroup != NULL", MONSTER_GROUP_CPP, 0x3bd, 0);
+    }
+    return MonsterDBFromSpecies(monster_group->monster_id);
+}
+
+/* Recounts how many of a group's members are still active and, only if that
+   changed, publishes the new count. The list length is re-read every iteration
+   because removing a member during the walk is possible.
+ 
+   The member list is an IList, but its length is taken through PListGetCount -
+   the two share a layout and the original really does call the P-list one here.
+   Preserved as found. */
+// FUNCTION: WIZ8 0x00510350
+void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
+{
+    unsigned int index;
+    int active = 0;
+    W8MonsterInfo* monster_info;
+
+    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(
+                0x412,
+                MONSTER_GROUP_CPP,
+                IListGetAt(monster_group->monsters, index),
+                1));
+        if (monster_info->value_107 < W8_MONSTER_STATE_ACTIVE_LIMIT &&
+            monster_info->control_state != W8_MONSTER_CONTROL_EXCLUDED) {
+            ++active;
+        }
+    }
+    if (active != monster_group->active_member_count) {
+        monster_group->active_member_count = active;
+        Function565420();
+    }
+}
+
+/* Destroys every member of a group, back to front so that the shrinking list
+   does not move an entry past the cursor. It stops at the first removal that
+   fails and reports that, which is why the loop is a do/while on the result
+   rather than a counted walk. */
+// FUNCTION: WIZ8 0x0050F5D0
+unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
+{
+    unsigned int index;
+    unsigned char removed;
+
+    index = PListGetCount((W8PList*)monster_group->monsters);
+    do {
+        --index;
+        if (static_cast<int>(index) < 0) {
+            return 1;
+        }
+        /* The destroy flag is a variable the original sets before the index
+           lookup, not a constant pushed at the call: that is what puts both
+           `push 1` after the lookup rather than before it. */
+        removed = 1;
+        removed = RemoveMonster(
+            MonsterGetIndexByLocationID(
+                0x119,
+                MONSTER_GROUP_CPP,
+                IListGetAt(monster_group->monsters, index),
+                1),
+            removed);
+    } while (removed != 0);
+    return 0;
+}
+
+/* Brings every member of a group into the world. Front to back, and the list
+   length is re-read each time because activation can add to it. */
+// FUNCTION: WIZ8 0x0050F6A0
+void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+        ActivateMonster(
+            MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(
+                    0x146,
+                    MONSTER_GROUP_CPP,
+                    IListGetAt(monster_group->monsters, index),
+                    1)),
+            mode);
+    }
+}
+
+/* Refreshes a group and every group allied to it, then the lead member's live
+   monster. All four ally slots are walked and the empty ones skipped, so the
+   array is fixed-size rather than terminated. */
+// FUNCTION: WIZ8 0x005106D0
+void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
+{
+    int index;
+
+    Function510590(monster_group);
+    for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
+        if (monster_group->allied_group_ids[index] != 0) {
+            Function510590(GetMonsterGroupByListIndex(
+                GetMonsterGroupIndexByID(
+                    0x4a8,
+                    MONSTER_GROUP_CPP,
+                    monster_group->allied_group_ids[index],
+                    1)));
+        }
+    }
+    GetMonsterByLocationID(monster_group->value_9f);
+    Function454C80();
 }
