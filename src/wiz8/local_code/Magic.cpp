@@ -1,6 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <wchar.h>
+
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
 // FUNCTION: WIZ8 0x004FF3B0
@@ -491,18 +493,18 @@ extern int* Function53B7F0(int party_slot, int selector);
 extern unsigned char Function537160(int* target, char needed_target);
 extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
 
-/* Record what one party slot is about to cast at, from a target block the
-   caller already holds. */
+/* Record the spell one party slot is about to cast, at what strength, and at
+   what, from a target block the caller already holds. */
 // FUNCTION: WIZ8 0x004F9AA0
-void SetPartySlotSpellTarget(
-    int party_slot, int target_kind, int target_value, const int* target_block)
+void SetPartySlotSpell(
+    int party_slot, int spell_id, int power_level, const int* target_block)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     int index;
 
-    row->spell_target_kind = target_kind;
-    row->spell_target_value = target_value;
-    row->spell_target_reset = 0;
+    row->spell_id = spell_id;
+    row->spell_power_level = power_level;
+    row->spell_power_extra = 0;
     for (index = 0; index < 8; ++index) {
         row->spell_target_block[index] = target_block[index];
     }
@@ -511,7 +513,7 @@ void SetPartySlotSpellTarget(
 /* The same, addressed by character rather than by slot, and taking the target
    block from the targeting code instead of the caller. */
 // FUNCTION: WIZ8 0x004F9A20
-void SetCharacterSpellTarget(const W8Character* character, int target_kind, int target_value)
+void SetCharacterSpell(const W8Character* character, int spell_id, int power_level)
 {
     int party_slot = CharacterPointerToPartySlot(character);
     int notify[2];
@@ -519,15 +521,15 @@ void SetCharacterSpellTarget(const W8Character* character, int target_kind, int 
     W8PartySlotRow* row;
     int index;
 
-    notify[0] = target_value;
+    notify[0] = power_level;
     notify[1] = 0;
-    Function4E7CC0(party_slot, 7, target_kind, notify, 0, 1);
+    Function4E7CC0(party_slot, 7, spell_id, notify, 0, 1);
     target_block = Function53B7F0(party_slot, 6);
 
     row = &g_party_slot_rows[party_slot];
-    row->spell_target_value = target_value;
-    row->spell_target_kind = target_kind;
-    row->spell_target_reset = 0;
+    row->spell_power_level = power_level;
+    row->spell_id = spell_id;
+    row->spell_power_extra = 0;
     for (index = 0; index < 8; ++index) {
         row->spell_target_block[index] = target_block[index];
     }
@@ -540,7 +542,7 @@ void SetCharacterSpellTarget(const W8Character* character, int target_kind, int 
 bool PartySlotSpellTargetStillValid(int party_slot)
 {
     char needed = GetTargetNeededForSpellFriendly(
-        g_party_slot_rows[party_slot].spell_target_kind, 0, 6);
+        g_party_slot_rows[party_slot].spell_id, 0, 6);
 
     if (!Function537160(Function53B7F0(party_slot, 3), needed)) {
         return false;
@@ -678,10 +680,11 @@ extern unsigned char g_profession_spellbooks[];
 
 /* Begin one character's spell. The recorded target is copied to the stack
    first because choosing the action overwrites it, and out of combat the
-   original target is re-aimed at before that happens. Naming a spell outright
-   replaces the slot's own one. */
+   original target is re-aimed at before that happens. The spell is always the
+   slot's own; the argument overrides only the strength it goes off at, and
+   zero means keep the recorded one. */
 // FUNCTION: WIZ8 0x00501590
-void StartCharacterSpellCast(int party_slot, int spell_id)
+void StartCharacterSpellCast(int party_slot, int power_level)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
     int saved_target[8];
@@ -696,18 +699,18 @@ void StartCharacterSpellCast(int party_slot, int spell_id)
         AimAtTarget(party_slot, (W8CombatSlot*)row->spell_target_block, 6);
     }
 
-    if (spell_id == 0) {
-        target = &row->spell_target_value;
+    if (power_level == 0) {
+        target = &row->spell_power_level;
     }
     else {
-        named[0] = spell_id;
+        named[0] = power_level;
         named[1] = 0;
         target = named;
     }
-    ChooseAction(party_slot, 7, row->spell_target_kind, (int)target, 0, 1);
+    ChooseAction(party_slot, 7, row->spell_id, (int)target, 0, 1);
     AimAtTarget(party_slot, (W8CombatSlot*)saved_target, 6);
 
-    if (IsSpellTargetStillValidIn(party_slot, row->spell_target_kind, 3)) {
+    if (IsSpellTargetStillValidIn(party_slot, row->spell_id, 3)) {
         StartBreathCycle(party_slot, 0);
         return;
     }
@@ -783,4 +786,546 @@ int GetTotalCasterLevel(
         }
     }
     return total;
+}
+
+extern unsigned char Function547940(const W8Character* character, int trait);
+/* 0x00547940 */
+extern void PracticeCharacterSkill(
+    W8Character* character, unsigned int skill_id, int usage_points, int arg_4);
+extern int GetSpellbookForSpell(
+    const W8Character* character, int spell_id, int a, int b, int c);   /* 0x004FF7F0 */
+
+/* The trait that stops a character learning anything at all. */
+enum { W8_TRAIT_CANNOT_LEARN = 0x1f };
+
+/* The first of the six realm skills. A spell's realm names its skill by
+   sitting this far along, which is what LearnSpellFromItem's practice call
+   establishes. */
+enum { W8_SKILL_FIRST_REALM = 0x1c };
+
+/* The four spellbook skills, one per book, practised together for a spell that
+   belongs to more than one. */
+enum { W8_SKILL_FIRST_SPELLBOOK = 0x18, W8_SKILL_AFTER_SPELLBOOK = 0x1c };
+
+/* The skill every learned spell practises regardless of its book. */
+enum { W8_SKILL_SPELL_LEARNING = 0x14 };
+
+/* Which spellbooks a spell belongs to, as the mask the profession table is
+   tested against. A spell in no book at all answers nothing, which is what
+   makes the test below a membership test rather than a comparison. */
+static unsigned char SpellbookMaskForSpell(int spell_id)
+{
+    return (unsigned char)((g_spell_records[spell_id].wizardry_spell != 0) |
+                           (g_spell_records[spell_id].psionics_spell != 0
+                                ? W8_SPELLBOOK_PSIONICS
+                                : W8_SPELLBOOK_NONE) |
+                           (g_spell_records[spell_id].divinity_spell != 0
+                                ? W8_SPELLBOOK_DIVINITY
+                                : W8_SPELLBOOK_NONE) |
+                           (g_spell_records[spell_id].alchemy_spell != 0
+                                ? W8_SPELLBOOK_ALCHEMY
+                                : W8_SPELLBOOK_NONE));
+}
+
+/* Whether a character is far enough along to take one spell on. Their whole
+   caster level - the current profession's plus every other one that shares the
+   spell's book - fixes the highest spell level they could ever hold, and their
+   realm skill and spellbook skill together fix a second, lower ceiling. The
+   spell has to be at or under both, the character's profession has to be in
+   one of the spell's books, and the blocking trait has to be down.
+
+   The two ceilings are computed even when the first alone would settle it,
+   which is what shows them as one rule rather than two guards. */
+// FUNCTION: WIZ8 0x004FFCB0
+char CanCharacterLearnSpell(W8Character* character, int spell_id)
+{
+    unsigned char book = SpellbookMaskForSpell(spell_id);
+    int caster_level;
+    int other;
+    int other_level;
+    unsigned int level_ceiling = 0;
+    unsigned int skill_ceiling;
+    unsigned int ceiling;
+    unsigned int spell_level;
+    int spellbook_skill;
+
+    if ((g_profession_spellbooks[character->current_profession] & book) == W8_SPELLBOOK_NONE) {
+        return 0;
+    }
+    if (Function547940(character, W8_TRAIT_CANNOT_LEARN)) {
+        return 0;
+    }
+
+    caster_level = GetProfessionCasterLevel(character, -1);
+    if (caster_level > 0) {
+        for (other = 0; other < 15; ++other) {
+            if (character->profession_levels[other] != 0 &&
+                other != character->current_profession &&
+                (g_profession_spellbooks[other] & book) != W8_SPELLBOOK_NONE) {
+                other_level = GetProfessionCasterLevel(character, other);
+                if (other_level > 0) {
+                    caster_level += other_level;
+                }
+            }
+        }
+    }
+
+    /* The highest spell level that caster level reaches, searched down from
+       the top rather than up, so a caster who reaches nothing keeps zero. */
+    for (spell_level = 7;; --spell_level) {
+        if (MinimumCasterLevelForSpellLevel(spell_level) <= caster_level) {
+            level_ceiling = spell_level;
+            break;
+        }
+        if ((int)(spell_level - 1) < 0) {
+            break;
+        }
+    }
+
+    spellbook_skill = GetSpellbookForSpell(character, spell_id, 0, 0, 0);
+    skill_ceiling =
+        (character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].value_02 / 10 +
+         character->skills[spellbook_skill].level) /
+            15 +
+        1;
+    ceiling = skill_ceiling < level_ceiling ? skill_ceiling : level_ceiling;
+
+    return (char)(1 - (ceiling < (unsigned int)g_spell_records[spell_id].spell_level));
+}
+
+extern int Function52A540(W8Character* character);                       /* 0x0052A540 */
+extern void ShowNoticeLine(const wchar_t* line, int a, int b, int c);    /* 0x0055F260 */
+extern wchar_t* FormatWideString(const wchar_t* format, ...);
+/* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
+   name entries by their byte offset into it, which is why the index is
+   spelled as one. */
+extern wchar_t* g_message_strings[];
+/* 0x0061E518: one message-table byte offset per realm, for the realm's name. */
+extern const unsigned short g_realm_message_offsets[];
+
+/* Take one spell on. The spell is marked known, its realm's known count goes
+   up, the spell-point pools are recomputed, and - when the caller asks for it -
+   the character says so in a line built from the character's name, the spell's
+   name and the realm's remaining points.
+
+   The line is assembled twice over: once only to measure the three pieces so
+   the buffer can be allocated, and once into it. */
+// FUNCTION: WIZ8 0x004FFE70
+void LearnSpell(W8Character* character, int spell_id, char announce)
+{
+    W8SpellRealm realm;
+    wchar_t realm_name[0x62];
+    wchar_t* piece;
+    size_t name_length;
+    size_t spell_length;
+    size_t points_length;
+    wchar_t* line;
+
+    character->spell_learned[spell_id] = 1;
+    realm = g_spell_records[spell_id].realm;
+    ++character->skill_unlocks[W8_SKILL_FIRST_REALM + realm];
+    character->skill_unlocks[W8_RESISTANCE_BONUS_SKILL] = Function52A540(character);
+
+    if (announce == 0) {
+        return;
+    }
+
+    piece = FormatWideString(g_message_strings[0x6e4 / 4], character->name);
+    name_length = wcslen(piece);
+    spell_length = wcslen(g_spell_records[spell_id].display_name);
+    wcscpy(realm_name, g_message_strings[g_realm_message_offsets[realm]]);
+    piece = FormatWideString(g_message_strings[0x6e8 / 4], realm_name, character->sp_max[realm]);
+    points_length = wcslen(piece);
+
+    line = (wchar_t*)operator new((name_length + spell_length + 8 + points_length) * 2);
+    if (line == 0) {
+        srAssertFail("wTempMsg", MAGIC_CPP, 0xfdc, 0);
+    }
+    wcscpy(line, FormatWideString(g_message_strings[0x6e4 / 4], realm_name));
+    wcscat(line, L" -- ");
+    wcscat(line, g_spell_records[spell_id].display_name);
+    wcscat(line, L", ");
+    wcscat(line, FormatWideString(g_message_strings[0x6e8 / 4], realm_name, character->sp_max[realm]));
+    ShowNoticeLine(line, 0, 1, 0);
+}
+
+extern void Function520070(void* arg_1, W8Character* character, int arg_3);  /* 0x00520070 */
+extern void Function52E690(
+    W8Character* character, int sound, int arg_3, float arg_4, float arg_5); /* 0x0052E690 */
+extern int g_learn_sound_0068c510;
+extern float g_learn_volume_005ed8c8;
+extern float g_learn_pan_005ed914;
+
+/* Learn the spell a scroll or book teaches, and consume it. The item has to
+   carry a spell - the assertion names the field ubSpellNumber - and the
+   character has to be able to take it on; failing that the item is left alone
+   and the refusal is shown.
+
+   Learning practises three things at once: the learning skill at twice the
+   spell's level, the spell's own realm skill at its level, and every spellbook
+   skill the spell belongs to at the same. */
+// FUNCTION: WIZ8 0x00500060
+void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstance* item)
+{
+    unsigned int spell_id;
+    int usage_points;
+    unsigned int skill_id;
+
+    if (g_item_records[item->item_id].spell_id == W8_SPELL_NONE) {
+        srAssertFail(
+            "gpItemDB[pPCItem->iItemNo].ubSpellNumber != SPELL_NONE", MAGIC_CPP, 0x101f, 0);
+    }
+    spell_id = g_item_records[item->item_id].spell_id;
+
+    if (!CanCharacterLearnSpell(character, spell_id)) {
+        ShowNoticeLine(
+            FormatWideString(g_message_strings[0x6ec / 4], character->name), 0, 1, 0);
+        return;
+    }
+
+    LearnSpell(character, spell_id, 1);
+    usage_points = g_spell_records[spell_id].spell_level;
+    PracticeCharacterSkill(character, W8_SKILL_SPELL_LEARNING, usage_points * 2, 0);
+    PracticeCharacterSkill(
+        character, W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm, usage_points, 0);
+    for (skill_id = W8_SKILL_FIRST_SPELLBOOK; skill_id < W8_SKILL_AFTER_SPELLBOOK; ++skill_id) {
+        if (g_spell_records[spell_id].wizardry_spell != 0) {
+            PracticeCharacterSkill(character, skill_id, usage_points, 0);
+        }
+    }
+    Function520070(origin, character, 1);
+    Function52E690(
+        character, g_learn_sound_0068c510, 0, g_learn_volume_005ed8c8, g_learn_pan_005ed914);
+}
+
+extern unsigned char Function5248A0(int party_slot, int arg_2);          /* 0x005248A0 */
+
+/* Eight is not a power level but the request to cast at the highest one the
+   caster can pay for; the walk below resolves it. */
+enum { W8_SPELL_POWER_AS_AFFORDABLE = 8, W8_SPELL_POWER_MAX = 7 };
+
+/* The one spell whose availability is decided by a further check rather than
+   by the character's spellbook. */
+enum { W8_SPELL_CONDITIONAL = 0x3c };
+
+/* Whether the slot could go off with the spell it has recorded. The spell has
+   to exist, to be one the character knows, to be usable now, and - out of
+   combat - still to have a valid target; and the slot has to be able to pay
+   for it at the power level it asked for.
+
+   A spell asking for the affordable power level is priced at one here, so this
+   answers whether the cast is possible at all rather than at the level the
+   player picked. */
+// FUNCTION: WIZ8 0x005012E0
+bool CanPartySlotCastRecordedSpell(int party_slot)
+{
+    const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    int spell_id = row->spell_id;
+    int power_level = row->spell_power_level;
+
+    if (spell_id == 0) {
+        return false;
+    }
+    if (spell_id == W8_SPELL_CONDITIONAL && Function5248A0(party_slot, 0)) {
+        return false;
+    }
+    if (g_party_characters[party_slot].spell_learned[spell_id] != 1) {
+        return false;
+    }
+    if (row->spell_power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
+        g_spell_records[spell_id].unknown_125 == 1 && g_in_combat_00683f94 != 0) {
+        return false;
+    }
+
+    if (power_level == W8_SPELL_POWER_AS_AFFORDABLE) {
+        power_level = 1;
+    }
+    if (g_spell_records[spell_id].spell_point_cost * power_level >
+        g_party_characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
+        return false;
+    }
+    if (!SpellUsableNow(spell_id, 0, 0, 0)) {
+        return false;
+    }
+    if (g_in_combat_00683f94 == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
+        return false;
+    }
+    return true;
+}
+
+/* The highest power level the slot can actually pay for, counting down from
+   the one it asked for. Zero means the cast cannot happen at all - either
+   because the spell fails the same checks as above, or because even one level
+   is more than the pool holds. */
+// FUNCTION: WIZ8 0x00501400
+int GetAffordableSpellPowerLevel(int party_slot)
+{
+    const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    int spell_id = row->spell_id;
+    int power_level = row->spell_power_level;
+    int cost;
+
+    if (spell_id == 0) {
+        return 0;
+    }
+    if (spell_id == W8_SPELL_CONDITIONAL && Function5248A0(party_slot, 0)) {
+        return 0;
+    }
+    if (g_party_characters[party_slot].spell_learned[spell_id] != 1) {
+        return 0;
+    }
+    if (row->spell_power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
+        g_spell_records[spell_id].unknown_125 == 1 && g_in_combat_00683f94 != 0) {
+        return 0;
+    }
+    if (!SpellUsableNow(spell_id, 0, 0, 0)) {
+        return 0;
+    }
+    if (g_in_combat_00683f94 == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 3)) {
+        return 0;
+    }
+
+    if (power_level == W8_SPELL_POWER_AS_AFFORDABLE) {
+        power_level = 1;
+    }
+    cost = g_spell_records[spell_id].spell_point_cost * power_level;
+    while (power_level != 0) {
+        if (cost <= g_party_characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
+            return power_level;
+        }
+        --power_level;
+        cost -= g_spell_records[spell_id].spell_point_cost;
+    }
+    return 0;
+}
+
+extern W8ItemInstance* FindCharacterItemAt(
+    int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
+extern unsigned char Function522A30(int party_slot, const W8ItemInstance* item);
+/* 0x00522A30 */
+extern unsigned char CanCharacterUseItem(
+    W8Character* character, const W8ItemInstance* item);                 /* 0x0051D800 */
+extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
+
+/* The origin that means the item is worn or held rather than carried; in
+   combat an equipped item is not re-fetched. */
+enum { W8_ITEM_ORIGIN_EQUIPPED = 2 };
+
+/* Whether the slot could go through with the item use it has recorded. The
+   item is looked up again from where it was taken rather than trusted, and the
+   re-read pointer is stored back, so a stale record is caught here and not at
+   the point of use.
+
+   A spell whose target type is not the self-only one may be aimed anywhere; the
+   self-only one has to be aimed at the user. */
+// FUNCTION: WIZ8 0x00501660
+bool CanPartySlotUseRecordedItem(int party_slot)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    W8ItemInstance* item;
+    int spell_id;
+    unsigned char normalize;
+
+    if ((signed char)row->item_origin < 0 || (short)row->item_slot < 0) {
+        return false;
+    }
+
+    item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
+    row->item_in_use = item;
+
+    if (row->item_origin == W8_ITEM_ORIGIN_EQUIPPED && g_in_combat_00683f94 != 0) {
+        return false;
+    }
+    if (item == 0 || item->item_id == -1 || item->item_id != row->item_id_0c9) {
+        return false;
+    }
+    if (!Function522A30(party_slot, item)) {
+        return false;
+    }
+    if (!CanCharacterUseItem(&g_party_characters[party_slot], item)) {
+        return false;
+    }
+
+    spell_id = GetItemSpell(item);
+    normalize = ItemClassNormalizesTarget(&g_item_records[item->item_id]);
+    if (GetSpellTargetType(spell_id, normalize) == 0 && row->item_target_block[1] != party_slot) {
+        return false;
+    }
+    if (!SpellUsableNow(spell_id, 0, 0, 0)) {
+        return false;
+    }
+    if (g_in_combat_00683f94 == 0 && !IsSpellTargetStillValidIn(party_slot, spell_id, 4)) {
+        return false;
+    }
+    return true;
+}
+
+extern W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
+extern wchar_t* GetMonsterName(
+    W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
+extern void FormatDebugMessage(int channel, const char* format, ...);
+extern int Random(int bound);
+/* 0x00616DF0: seventeen spell-point costs, indexed by the band a spell's own
+   level and point cost fall into. */
+extern const int g_spell_budget_costs[17];
+
+/* The spell id that stands for no monster spell. */
+enum { W8_MONSTER_SPELL_NONE = 0x77 };
+
+/* How hard a monster casts. It walks the power levels up from one until the
+   cost of the next would leave it far enough short of its spell-point budget
+   to matter - nine per cent of the cost - and then steps back to the last one
+   it could comfortably pay for. A quarter of the time that answer is nudged
+   one level down and a quarter one level up, so identical monsters do not all
+   cast identically.
+
+   The budget is the monster's database base plus its own runtime bonus; a base
+   of zero is a data error the monster is named in. */
+// FUNCTION: WIZ8 0x00500330
+unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unused, int spell_id)
+{
+    unsigned int power_level;
+    unsigned int budget;
+    unsigned int cost;
+    int band;
+    int roll;
+
+    if (spell_id == W8_MONSTER_SPELL_NONE) {
+        return 0;
+    }
+
+    power_level = 1;
+    for (;;) {
+        W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+
+        budget = monster_info->sp_budget_bonus + record->sp_budget;
+        if (record->sp_budget == 0) {
+            FormatDebugMessage(
+                0, "DATA ERROR: Monster %ls casting spells with SP Budget of 0",
+                GetMonsterName(monster_info, 0, 0));
+        }
+        if ((int)budget < 0) {
+            budget = 0;
+        }
+
+        band = g_spell_records[spell_id].spell_point_cost / 2 +
+               g_spell_records[spell_id].spell_level;
+        if (band > 16) {
+            band = 16;
+        }
+        cost = (g_spell_budget_costs[band] * power_level) / 7;
+
+        if (cost > budget) {
+            unsigned int shortfall = (cost * 70 - budget * 70) / cost;
+            if ((int)shortfall >= 0 && ((int)shortfall >= 0x65 || shortfall >= 9)) {
+                break;
+            }
+        }
+        ++power_level;
+        if (power_level >= 8) {
+            break;
+        }
+    }
+    if (power_level > 1) {
+        --power_level;
+    }
+
+    roll = Random(4);
+    if (roll == 0) {
+        if (power_level > 2) {
+            --power_level;
+        }
+    }
+    else if (roll == 1 && power_level < W8_SPELL_POWER_MAX) {
+        ++power_level;
+    }
+
+    if (power_level == 0 || power_level > W8_SPELL_POWER_MAX) {
+        srAssertFail("( uiPowerLevel >= 1 ) && ( uiPowerLevel <= 7 )", MAGIC_CPP, 0x10bf, 0);
+    }
+    return power_level;
+}
+
+extern void ResetTargetBlock(W8TargetBlock* target_block);               /* 0x00536150 */
+extern void ResetCombatSlot(W8CombatSlot* combat_slot);                  /* 0x00536170 */
+extern int GetRandomCharacter(
+    int require_primary, int require_secondary, int excluded_slot, int excluded_slot_2);
+extern void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
+/* 0x0053C630 */
+extern int CastSpellFromSource(
+    int spell_id, W8TargetBlock* source, W8CombatSlot* target, unsigned int power_level,
+    int a, int b, int c, int d, int e, int f, int g);                    /* 0x004FB4C0 */
+
+/* The target-block kind that means the cast comes from a point in the world
+   rather than from a character or a monster. */
+enum { W8_SOURCE_TYPE_POINT = 3 };
+
+/* Where the cast lands, by the spell's own target type. */
+enum {
+    W8_TARGET_KIND_ONE_CHARACTER = 1,
+    W8_TARGET_KIND_WHOLE_PARTY = 2,
+    W8_TARGET_KIND_PARTY_SIDE = 6
+};
+
+/* Cast one spell at the party from a point in the world - a trap, a rune, a
+   scripted effect. The caller gives the point and the power level; who it hits
+   comes from the spell's own target type, so this decides the target rather
+   than taking one.
+
+   A power level outside one through seven is silently taken as one, which is
+   what makes a caller passing zero cast nothing at all rather than cast weakly.
+   Its error text names the function. */
+// FUNCTION: WIZ8 0x004FB220
+int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_level)
+{
+    W8TargetBlock source;
+    W8CombatSlot target;
+    int hostile;
+
+    if (power_level == 0) {
+        return 0;
+    }
+    if (power_level > W8_SPELL_POWER_MAX) {
+        power_level = 1;
+    }
+
+    ResetTargetBlock(&source);
+    source.kind = W8_SOURCE_TYPE_POINT;
+    source.point.x = x;
+    source.point.y = y;
+    source.point.z = z;
+
+    ResetCombatSlot(&target);
+    switch (GetSpellTargetType(spell_id, 0)) {
+    case 0:
+    case 1:
+    case 3:
+        target.kind = W8_TARGET_KIND_ONE_CHARACTER;
+        target.character_slot = GetRandomCharacter(0, 1, -1, -1);
+        break;
+    case 2:
+    case 4:
+        target.kind = W8_TARGET_KIND_WHOLE_PARTY;
+        break;
+    case 5:
+        hostile = 0;
+        target.kind = W8_TARGET_KIND_WHOLE_PARTY;
+        AimCombatSlotAtParty(&target, hostile);
+        target.kind = W8_TARGET_KIND_PARTY_SIDE;
+        break;
+    case 6:
+    case 8:
+        hostile = 1;
+        target.kind = W8_TARGET_KIND_WHOLE_PARTY;
+        AimCombatSlotAtParty(&target, hostile);
+        target.kind = W8_TARGET_KIND_PARTY_SIDE;
+        break;
+    default:
+        srAssertFail(
+            "FALSE", MAGIC_CPP, 0x56d,
+            FormatString("PointCastSpell: ERROR - Invalid spell target for %d", spell_id));
+    }
+
+    CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, 0, 0);
+    return 1;
 }

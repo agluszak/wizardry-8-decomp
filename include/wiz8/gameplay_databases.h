@@ -33,15 +33,51 @@ typedef struct W8Dice {
     unsigned char sides;
 } W8Dice;
 
+typedef enum W8SpellRealm {
+    W8_SPELL_REALM_FIRE = 0,
+    W8_SPELL_REALM_WATER = 1,
+    W8_SPELL_REALM_AIR = 2,
+    W8_SPELL_REALM_EARTH = 3,
+    W8_SPELL_REALM_MENTAL = 4,
+    W8_SPELL_REALM_DIVINE = 5,
+    W8_SPELL_REALM_COUNT = 6
+} W8SpellRealm;
+
+/* Which spellbooks a profession may draw on, and which a spell belongs to. The
+   four flags live apart in the record rather than as one mask, so the mask is
+   built from them wherever the profession table is tested. */
+enum {
+    W8_SPELLBOOK_NONE = 0,
+    W8_SPELLBOOK_WIZARDRY = 1,
+    W8_SPELLBOOK_DIVINITY = 2,
+    W8_SPELLBOOK_ALCHEMY = 4,
+    W8_SPELLBOOK_PSIONICS = 8
+};
+
+/* No spell. The item database spells it with this in ubSpellNumber, which the
+   learn-from-item assertion names. */
+enum { W8_SPELL_NONE = 0 };
+
+/* One spell, as the database holds it at run time. Kept in step with
+   config/types/wiz8/gameplay_databases.h, which is the same record as Ghidra
+   applies it - the two were recovered from different ends and each knew fields
+   the other did not. */
 typedef struct W8SpellRuntimeRecord {
-    unsigned char unknown_000[0x48];
+    char database_name[64];             /* 0x000 */
+    unsigned char unknown_040[8];
     unsigned char alchemy_spell;        /* 0x048 */
-    int spell_point_cost;               /* 0x049 */
-    unsigned char unknown_04d[9];
-    int spell_level;                    /* 0x056 */
-    unsigned char unknown_05a[0x41];
+    int spell_point_cost;               /* 0x049: per power level */
+    unsigned char unknown_04d[4];
+    W8Dice effect_dice;                 /* 0x051 */
+    unsigned char unknown_055;
+    int spell_level;                    /* 0x056: zero through seven */
+    unsigned char wizardry_spell;       /* 0x05a */
+    char resource_name[64];             /* 0x05b: visual/MLS resource basename */
     W8WideChar display_name[64];        /* 0x09b */
-    unsigned char unknown_11b[0xa];
+    unsigned char unknown_11b[4];
+    unsigned char divinity_spell;       /* 0x11f */
+    unsigned char psionics_spell;       /* 0x120 */
+    float effect_radius;                /* 0x121 */
     unsigned char unknown_125;
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
@@ -49,7 +85,7 @@ typedef struct W8SpellRuntimeRecord {
     unsigned char unknown_127[8];
     /* 0x12f: the range category a monster casting this spell needs. */
     int range_category;
-    unsigned char unknown_133[4];
+    W8SpellRealm realm;                 /* 0x133 */
     int target_type;                    /* 0x137 */
     /* 0x13b: when the spell may be cast, zero through four. SpellUsableNow
        switches on it and its assertion calls it uiSpellUsableWhen with a
@@ -57,7 +93,8 @@ typedef struct W8SpellRuntimeRecord {
     int usable_when;
     /* 0x13f: the spell has to be aimed before it can be cast. */
     unsigned char needs_aim_13f;
-    unsigned char unknown_140[0x7f];
+    unsigned char unknown_140[0xb];
+    char sound_name[0x74];              /* 0x14b: relative to Data\Spells\Sounds */
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 
 typedef struct W8FactDatabaseRecord {
@@ -170,7 +207,11 @@ typedef struct W8MonsterRecord {
     unsigned char unknown_268[2];
     unsigned char flag_26a;               /* 0x26a: selects an alternate group configuration */
     unsigned int combat_value_override_26b; /* 0x26b: nonzero override */
-    unsigned char unknown_26f[0x28];
+    /* 0x26f: the spell-point budget the monster casts out of, before its own
+       runtime bonus. Zero is a data error the power-level chooser reports by
+       name. */
+    int sp_budget;
+    unsigned char unknown_273[0x24];
 } W8MonsterRecord;                       /* 0x297 */
 
 #pragma pack(pop)

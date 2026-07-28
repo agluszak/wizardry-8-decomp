@@ -175,16 +175,19 @@ def test_cfagent_names_remain_external_semantic_until_corroborated() -> None:
     unpromoted = [row for row in rows if row["name_origin"] == "fan-patch-signature"]
     promoted = [row for row in rows if row["name_origin"] != "fan-patch-signature"]
 
-    assert len(unpromoted) == 43
+    assert len(unpromoted) == 42
     assert {row["authority"] for row in unpromoted} == {"external-semantic"}
 
-    # Random.c supplies the original SGP name, while the official demo retains
-    # MonsterDBFromSpecies diagnostics for the canonical retail counterpart.
-    assert [row["address"] for row in promoted] == ["0040efa0", "004e57c0"]
+    # Random.c supplies the original SGP name, the official demo retains
+    # MonsterDBFromSpecies diagnostics for the canonical retail counterpart, and
+    # PointCastSpell names itself in the error text its own body embeds.
+    assert [row["address"] for row in promoted] == ["0040efa0", "004e57c0", "004fb220"]
     assert promoted[0]["authority"] == "source-backed"
     assert "sgp-source" in promoted[0]["name_origin"].split("|")
     assert promoted[1]["authority"] == "string-backed"
     assert promoted[1]["aliases"] == "GetMonsterDataByID"
+    assert promoted[2]["authority"] == "string-backed"
+    assert promoted[2]["aliases"] == "CastSpellAtParty"
 
     # CFAgent's descriptive seeds are retained only as aliases once SR.DLL's
     # own exports establish the vendor template owner and base type name.

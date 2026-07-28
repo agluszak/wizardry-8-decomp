@@ -60,7 +60,11 @@ typedef struct W8CharacterAttribute {
    becomes available; IsCharacterSkillAvailable reads the same flag. */
 typedef struct W8CharacterSkill {
     unsigned char flag_00;                /* 0x00 */
-    unsigned char unknown_01[5];
+    unsigned char unknown_01;
+    /* 0x02: a second figure the spell-learning ceiling divides by ten, the
+       same way the resistances divide `level`. The two are distinct fields of
+       one skill, not one field read two ways. */
+    unsigned int value_02;
     /* 0x06: the skill's current level. Resistance recalculation divides it by
        ten for skills 28..33 and by five for skill 36, which is what places it. */
     unsigned int level;
@@ -76,9 +80,8 @@ typedef struct W8CharacterResistance {
     unsigned char unknown_08[8];
 } W8CharacterResistance;                  /* 0x10 */
 
-/* The six realms a spell point pool is kept per; the same six
-   config/types/wiz8/gameplay_databases.h enumerates as W8SpellRealm. */
-enum { W8_SPELL_REALM_COUNT = 6 };
+/* The six realms a spell point pool is kept per are W8SpellRealm's, declared
+   with the spell record in wiz8/gameplay_databases.h. */
 
 /* The eighteen conditions a character can be under, indexed directly into
    W8Character::condition_turns. Only the ones a recovered body names are
@@ -240,7 +243,13 @@ typedef struct W8Character {
     /* 0x0bcd: one entry per spell. CanCharacterUseItem refuses a spell-source
        item whose spell already reads one here, so one is the learned state. */
     int spell_learned[136];               /* 0x0bcd */
-    unsigned int skill_unlocks[0x29];     /* 0x0ded, indexed by skill_id */
+    /* 0x0ded: indexed by skill_id. For the six realm skills it counts the
+       spells known in that realm, which is what makes the skill available at
+       all - LearnSpell bumps the entry and IsCharacterSkillAvailable reads it.
+       LearnSpell also writes a recomputed figure into entry 36, which is a
+       real skill id but not a count; that disagreement is recorded rather than
+       resolved. */
+    unsigned int skill_unlocks[0x29];
     unsigned char unknown_0e91[0x48];
     /* 0x0ed9: a percentage taken off incoming damage, the character's
        counterpart of the monster's own at 0x1e1. */
@@ -542,7 +551,12 @@ typedef struct W8TargetBlock {
     int kind;                             /* 0x00 */
     int character_slot;                   /* 0x04, -1 when empty */
     int monster_id;                       /* 0x08, -1 when empty */
-    unsigned char unknown_0c[0x28];
+    /* 0x0c: the world point, for a source that is a place rather than
+       somebody. Note that this is not where the combat slot below keeps its
+       point - that one has a group id at 0x0c and the point at 0x10 - so the
+       two blocks are related but not the same shape. */
+    W8Position point;
+    unsigned char unknown_18[0x1c];
 } W8TargetBlock;                          /* 0x34 */
 
 /* The shorter form a combatant carries inline, with one more field reset to
@@ -1217,7 +1231,11 @@ typedef struct W8MonsterInfo {
     int action_detail;
     unsigned char unknown_2e9[8];
     int runtime_value_2f1;                /* 0x2f1: released when an entry is destroyed */
-    unsigned char unknown_2f5[8];
+    /* 0x2f5: the monster's own contribution to the spell-point budget its
+       database record sets a base for; the power-level chooser adds the two
+       and reports a DATA ERROR when the base is zero. */
+    int sp_budget_bonus;
+    unsigned char unknown_2f9[4];
     int control_state;                      /* 0x2fd: group-recomputed control state */
     unsigned char unknown_301[0x37];
     int runtime_values_338[3];              /* 0x338: creator clears as one unit */

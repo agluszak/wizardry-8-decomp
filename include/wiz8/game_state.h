@@ -92,11 +92,14 @@ typedef struct W8PartySlotRow {
     int action_kind;
     int action_detail;
     /* 0x075..0x0a0: the slot's pending spell target - what kind of target it
-       is, which one, a cleared word, and the eight-dword target block the
-       targeting code hands over. */
-    int spell_target_kind;               /* 0x075 */
-    int spell_target_value;              /* 0x079 */
-    int spell_target_reset;              /* 0x07d */
+       is, at what strength, a cleared word, and the eight-dword target block
+       the targeting code hands over. The strength is uiPowerLevel, which the
+       Magic.cpp:4287 assertion bounds at one through seven; eight is the
+       further "as high as the caster can afford" request that the affordable-
+       power walk resolves before the cost is taken. */
+    int spell_id;                        /* 0x075 */
+    int spell_power_level;               /* 0x079 */
+    int spell_power_extra;               /* 0x07d */
     int spell_target_block[8];           /* 0x081 */
     /* 0x0a1..0x0cf: the item-use block, the same shape as the spell one above -
        what is being used, which item, where it is aimed and where it came
@@ -104,7 +107,10 @@ typedef struct W8PartySlotRow {
     int item_use_kind;                   /* 0x0a1 */
     struct W8ItemInstance* item_in_use;  /* 0x0a5 */
     int item_target_block[8];            /* 0x0a9 */
-    unsigned char unknown_0c9[4];
+    /* 0x0c9: the item id recorded when the use was chosen. The use is checked
+       again by looking the item up from its origin and slot and comparing this
+       against what comes back, so it is what catches an item that moved. */
+    int item_id_0c9;
     unsigned char item_origin;           /* 0x0cd */
     unsigned short item_slot;            /* 0x0ce */
     unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */

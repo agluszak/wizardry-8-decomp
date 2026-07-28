@@ -218,10 +218,15 @@ typedef struct W8SpellRuntimeRecord {
     uint8_t divinity_spell;             /* 0x11f */
     uint8_t psionics_spell;             /* 0x120 */
     float effect_radius;                /* 0x121 */
-    uint8_t unknown_125[0x0e];          /* 0x125 */
+    uint8_t unknown_125;                /* 0x125 */
+    uint8_t monster_castable;           /* 0x126: MonsterOKToCastSpell asserts on it */
+    uint8_t unknown_127[8];             /* 0x127 */
+    int32_t range_category;             /* 0x12f: range a monster casting it needs */
     W8SpellRealm realm;                 /* 0x133 */
     int32_t target_type;                /* 0x137: domain not yet enumerated */
-    uint8_t unknown_13b[0x10];          /* 0x13b */
+    int32_t usable_when;                /* 0x13b: uiSpellUsableWhen, zero through four */
+    uint8_t needs_aim_13f;              /* 0x13f: has to be aimed before it is cast */
+    uint8_t unknown_140[0x0b];          /* 0x140 */
     char sound_name[0x74];              /* 0x14b: relative to Data\Spells\Sounds */
 } W8SpellRuntimeRecord;                 /* 0x1bf */
 
