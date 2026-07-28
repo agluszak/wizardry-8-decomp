@@ -28,6 +28,14 @@
 #define REGSET_NULL 0
 
 class W8WidgetBase005ED5BC;
+struct W8RangeControlConstruction005ED74C {};
+
+class W8ControlsVector005ED5B0
+    : public W8GrowableVector<W8WidgetBase005ED5BC*> {
+public:
+    W8ControlsVector005ED5B0();
+    virtual ~W8ControlsVector005ED5B0();
+};
 
 /* The region callback a widget without its own region is given. Ghidra has no
    function at 0x004F3140, only a label, so this is a declaration and not a
@@ -45,8 +53,18 @@ struct W8ControlsRect {
 };
 
 struct Controls {
-    virtual void UnknownSlot0() = 0;
-    virtual void Invalidate(unsigned char immediate);
+    Controls();
+    Controls(int left, int top, int right, int bottom,
+             int render_target, int render_arg_1c, int render_arg_20);
+    __forceinline Controls(W8RangeControlConstruction005ED74C,
+                           int left, int top, int right, int bottom,
+                           int render_target, int render_arg_1c,
+                           int render_arg_20);
+    __forceinline ~Controls();
+
+    virtual void SetEnabled(unsigned char enable);
+    virtual void Invalidate(const W8ControlsRect* rect);
+    virtual void Redraw();
     /* 0x04 and 0x05 travel together: SetEnabled writes the panel's own state to
        the first and mirrors it into every child's m_flag_5, and the redraw
        requests raise the second. 0x06 is raised on its own by 0x004F2F00. */
@@ -63,19 +81,14 @@ struct Controls {
     int m_renderArg_20;                     /* 0x20: forwarded with the target */
     W8ControlsRect m_dirtyRect;             /* 0x24 */
     unsigned char m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
-    unsigned char unknown_35[7];
-    int m_nControls;                        /* 0x3c */
-    int m_nControlsAllocated;               /* 0x40 */
-    W8WidgetBase005ED5BC** m_ppControls;    /* 0x44 */
+    unsigned char unknown_35[3];
+    W8ControlsVector005ED5B0 m_controls;    /* 0x38 */
     unsigned int m_uiRegionSetId;           /* 0x48 */
 
     void EnableRegionSet(unsigned char enable);
-    void SetEnabled(unsigned char enable);
     void RemoveControl(W8WidgetBase005ED5BC* control);
     void DestroyAllControls();
-    void Invalidate(const W8ControlsRect* rect);
     void InvalidateLayout();
-    void Redraw();
     void SetBounds(int left, int top, int right, int bottom);
     void AcquireRegionSet(unsigned int* shared_region_set);
 
@@ -85,12 +98,89 @@ struct Controls {
        the guard shows up once per use rather than once per loop. */
     __inline W8WidgetBase005ED5BC* ControlAt(int index)
     {
-        if (index < m_nControls) {
-            return m_ppControls[index];
+        if (index < m_controls.count) {
+            return m_controls.data[index];
         }
-        return m_ppControls[0];
+        return m_controls.data[0];
     }
 };
+
+__forceinline W8ControlsVector005ED5B0::W8ControlsVector005ED5B0()
+{
+}
+
+__forceinline W8ControlsVector005ED5B0::~W8ControlsVector005ED5B0()
+{
+}
+
+/* The class at vtable 0x005ED5A4 is Controls itself. Its embedded vector at
+   +0x38 stores the widget pointers walked by every panel method; the former
+   W8Control005ED5A4 declaration duplicated this same layout under a candidate
+   name and hid that proven element type. */
+
+/* The default constructor. Everything the seven-argument one takes from its
+   caller, this one zeroes or sets to -1. */
+// FUNCTION: WIZ8 0x004F2C30
+Controls::Controls()
+{
+    m_renderTarget = -1;
+    m_renderArg_1c = -1;
+    m_renderArg_20 = -1;
+    m_fEnabled = 0;
+    m_fDirty = 0;
+    m_fLayoutDirty = 0;
+    origin_x = 0;
+    origin_y = 0;
+    right = 0;
+    bottom = 0;
+    m_dirtyRect.left = -1;
+    m_fWholeAreaDirty = 1;
+    m_uiRegionSetId = 0;
+}
+
+// FUNCTION: WIZ8 0x004F2CA0
+Controls::Controls(int left, int top, int right_bound, int bottom_bound,
+                   int render_target, int render_arg_1c, int render_arg_20)
+{
+    origin_x = left;
+    right = right_bound;
+    m_fEnabled = 0;
+    m_fDirty = 0;
+    m_fLayoutDirty = 0;
+    m_renderTarget = render_target;
+    m_renderArg_1c = render_arg_1c;
+    m_renderArg_20 = render_arg_20;
+    origin_y = top;
+    bottom = bottom_bound;
+    m_dirtyRect.left = -1;
+    m_fWholeAreaDirty = 1;
+    m_uiRegionSetId = 0;
+}
+
+__forceinline Controls::Controls(
+    W8RangeControlConstruction005ED74C,
+    int left, int top, int right_bound, int bottom_bound,
+    int render_target, int render_arg_1c, int render_arg_20)
+{
+    origin_x = left;
+    right = right_bound;
+    m_fEnabled = 0;
+    m_fDirty = 0;
+    m_fLayoutDirty = 0;
+    m_renderTarget = render_target;
+    m_renderArg_1c = render_arg_1c;
+    m_renderArg_20 = render_arg_20;
+    origin_y = top;
+    bottom = bottom_bound;
+    m_dirtyRect.left = -1;
+    m_fWholeAreaDirty = 1;
+    m_uiRegionSetId = 0;
+}
+
+// FUNCTION: WIZ8 0x004F2D30
+__forceinline Controls::~Controls()
+{
+}
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 extern void Function562A50(unsigned int mask);
@@ -260,28 +350,28 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
     }
 
     holder = m_pPanel;
-    wanted = holder->m_nControls + 1;
-    if (holder->m_nControlsAllocated < wanted) {
-        previous = holder->m_ppControls;
-        holder->m_ppControls = (W8WidgetBase005ED5BC**)new void*[wanted];
-        if (holder->m_ppControls == 0) {
-            holder->m_ppControls = previous;
+    wanted = holder->m_controls.count + 1;
+    if (holder->m_controls.capacity < wanted) {
+        previous = holder->m_controls.data;
+        holder->m_controls.data = (W8WidgetBase005ED5BC**)new void*[wanted];
+        if (holder->m_controls.data == 0) {
+            holder->m_controls.data = previous;
             index = -1;
             goto registered;
         }
         i = 0;
-        holder->m_nControlsAllocated = wanted;
-        if (0 < holder->m_nControls) {
+        holder->m_controls.capacity = wanted;
+        if (0 < holder->m_controls.count) {
             do {
-                holder->m_ppControls[i] = previous[i];
+                holder->m_controls.data[i] = previous[i];
                 i = i + 1;
-            } while (i < holder->m_nControls);
+            } while (i < holder->m_controls.count);
         }
         delete[] previous;
     }
-    holder->m_ppControls[holder->m_nControls] = this;
-    index = holder->m_nControls;
-    holder->m_nControls = index + 1;
+    holder->m_controls.data[holder->m_controls.count] = this;
+    index = holder->m_controls.count;
+    holder->m_controls.count = index + 1;
 
 registered:
     if (holder->m_uiRegionSetId != 0 && m_region_18 == -1) {
@@ -751,6 +841,7 @@ public:
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
     virtual void SetVisible(unsigned char visible);
+    virtual void Redraw(int full_redraw);
     void SetFlaggedRegionBounds(short left, short top, unsigned short right);
     virtual void AddLayoutFlags(unsigned int flags);
     virtual void SetAlternateTextEnabled(unsigned char enabled);
@@ -795,7 +886,7 @@ protected:
         if (m_pPanel != 0) {
             m_flag_6 = 1;
             if (immediate) {
-                m_pPanel->Invalidate((unsigned char)0);
+                m_pPanel->Invalidate(0);
             } else {
                 m_pPanel->m_fLayoutDirty = 1;
                 Function562A50(0x80000000);
@@ -1266,6 +1357,10 @@ class W8RangeControl005ED74C : public Controls {
 public:
     friend class W8VerticalRangeThumb005ED6B4;
 
+    W8RangeControl005ED74C(int left, int top, int right, int bottom,
+                           unsigned int* shared_region_set);
+    ~W8RangeControl005ED74C();
+
     void SetRange(int first, int second);
     void SetValue(int value);
     void Decrement();
@@ -1285,6 +1380,11 @@ protected:
 
 class W8RangeButton005ED6FC : public W8TextControl005ED604 {
 public:
+    W8RangeButton005ED6FC(Controls* panel, unsigned int region,
+                          int left, int top, int right, int bottom,
+                          int text_40, int text_44, int text_48, int text_4c,
+                          int text_54, int text_50, int text_58,
+                          short direction, W8RangeControl005ED74C* range);
     void HandlePress(int event);
     virtual void ActivatePrimary();
     void AdjustValue(int steps);
@@ -1294,6 +1394,62 @@ protected:
     unsigned short pad_ba;
     W8RangeControl005ED74C* m_range;     /* 0xbc */
 };
+
+__forceinline W8RangeButton005ED6FC::W8RangeButton005ED6FC(
+    Controls* panel, unsigned int region,
+    int left, int top, int right, int bottom,
+    int text_40, int text_44, int text_48, int text_4c,
+    int text_54, int text_50, int text_58,
+    short direction, W8RangeControl005ED74C* range)
+    : W8TextControl005ED604(panel, region, left, top, right, bottom,
+                           text_40, text_44, text_48, text_4c,
+                           text_54, text_50, text_58),
+      m_direction(direction), m_range(range)
+{
+}
+
+/* The range panel owns two text-derived step buttons and one vertical thumb.
+   Ghidra's constructor packet proves the six stack arguments, all three
+   allocation sizes, the ordered child construction, and the four EH cleanup
+   states. */
+// FUNCTION: WIZ8 0x004F61F0
+W8RangeControl005ED74C::W8RangeControl005ED74C(
+    int left, int top, int right, int bottom,
+    unsigned int* shared_region_set)
+    : Controls(W8RangeControlConstruction005ED74C(),
+               left, top, right, bottom, -1, -1, -1),
+      m_minimum(0), m_maximum(1), m_value(0),
+      m_listener(0)
+{
+    int height = bottom - top;
+
+    if (*shared_region_set == 0) {
+        *shared_region_set = CreateRegionSet();
+    }
+    m_uiRegionSetId = *shared_region_set;
+    ResetRegionSet(m_uiRegionSetId);
+
+    m_decrement = new W8RangeButton005ED6FC(
+        this, 0xffffffff, 0, 0, 0x10, 0x10,
+        0x86, 0, 0, 2, 1, 2, 3, 0, this);
+    m_increment = new W8RangeButton005ED6FC(
+        this, 0xffffffff, 0, height - 0x10, 0x10, height,
+        0x86, 0, 8, 10, 9, 10, 0xb, 1, this);
+    m_thumb = new W8VerticalRangeThumb005ED6B4(
+        this, 0, 0x10, 0x10, height - 0x10, 0x86, 4, 5, -1);
+    m_enabled = 0;
+}
+
+/* Child deletion order follows the three null-tested scalar-deleting virtual
+   calls in the retail body; the Controls destructor then releases the typed
+   embedded vector. */
+// FUNCTION: WIZ8 0x004F63C0
+W8RangeControl005ED74C::~W8RangeControl005ED74C()
+{
+    delete m_decrement;
+    delete m_increment;
+    delete m_thumb;
+}
 
 // FUNCTION: WIZ8 0x004F6440
 void W8RangeControl005ED74C::SetRange(int first, int second)
@@ -1820,7 +1976,7 @@ void W8HorizontalRangeThumb005ED66C::ClearHover(unsigned char immediate)
         if (m_pPanel != 0) {
             m_flag_6 = 1;
             if (immediate != 0) {
-                m_pPanel->Invalidate((unsigned char)0);
+                m_pPanel->Invalidate(0);
                 Function562A50(0x80000000);
                 return;
             }
@@ -1909,109 +2065,6 @@ W8TextControl005ED604::~W8TextControl005ED604()
 {
 }
 
-/*
- * The class at vtable 0x005ED5A4, which embeds a growable vector at +0x38.
- * That vector is the shared template, not a private copy: it allocates 0x14
- * bytes and records a capacity of five, which is the template's own default of
- * five four-byte elements, and it installs the template table then its own -
- * the second-vtable shape wiz8/vector.h describes.
- *
- * Its element type is unproven, so it is named for the vtable the image gives
- * the vector.
- */
-class W8VectorElement005ED5B0;
-
-class W8ElementVector005ED5B0 : public W8GrowableVector<W8VectorElement005ED5B0*> {
-public:
-    W8ElementVector005ED5B0();
-    virtual ~W8ElementVector005ED5B0();
-};
-
-/* The teardown is the implicit one: it restores the class's own table, then
-   runs the vector's destructor, which restores the template table and releases
-   the array with no null test - the template's own destructor, not a private
-   copy of it. Nothing else is destroyed, which is what fixes the class as
-   owning exactly the one vector. */
-
-class W8Control005ED5A4 {
-public:
-    W8Control005ED5A4();
-    W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int a7, int a8);
-
-    virtual ~W8Control005ED5A4();
-
-protected:
-    unsigned char m_flag_04;
-    unsigned char m_flag_05;
-    unsigned char m_flag_06;
-    unsigned char pad_07;
-    int m_field_08;
-    int m_field_0c;
-    int m_field_10;
-    int m_field_14;
-    int m_field_18;                      /* 0x18: the three below default to -1 */
-    int m_field_1c;
-    int m_field_20;
-    int m_field_24;                      /* 0x24: always -1 */
-    unsigned char unknown_28[0xc];
-    unsigned char m_flag_34;             /* 0x34: set to 1 */
-    unsigned char pad_35[3];
-    W8ElementVector005ED5B0 m_items;     /* 0x38 */
-    int m_field_48;
-};                                       /* 0x4c, which is the allocation size */
-
-__forceinline W8ElementVector005ED5B0::W8ElementVector005ED5B0()
-{
-}
-
-__forceinline W8ElementVector005ED5B0::~W8ElementVector005ED5B0()
-{
-}
-
-/* The default constructor. Everything the seven-argument one takes from its
-   caller, this one zeroes or sets to -1. */
-// FUNCTION: WIZ8 0x004F2C30
-W8Control005ED5A4::W8Control005ED5A4()
-{
-    m_field_18 = -1;
-    m_field_1c = -1;
-    m_field_20 = -1;
-    m_flag_04 = 0;
-    m_flag_05 = 0;
-    m_flag_06 = 0;
-    m_field_08 = 0;
-    m_field_0c = 0;
-    m_field_10 = 0;
-    m_field_14 = 0;
-    m_field_24 = -1;
-    m_flag_34 = 1;
-    m_field_48 = 0;
-}
-
-// FUNCTION: WIZ8 0x004F2CA0
-W8Control005ED5A4::W8Control005ED5A4(int a2, int a3, int a4, int a5, int a6, int a7, int a8)
-{
-    m_field_18 = a6;
-    m_field_20 = a8;
-    m_field_1c = a7;
-    m_field_0c = a3;
-    m_field_08 = a2;
-    m_field_14 = a5;
-    m_flag_04 = 0;
-    m_flag_05 = 0;
-    m_flag_06 = 0;
-    m_field_10 = a4;
-    m_field_24 = -1;
-    m_flag_34 = 1;
-    m_field_48 = 0;
-}
-
-// FUNCTION: WIZ8 0x004F2D30
-W8Control005ED5A4::~W8Control005ED5A4()
-{
-}
-
-
 /* Enables or disables the whole panel: the panel's own flag, then every child's,
    and each child's region follows - mode 4 restores the disabled region and
    clearing the mode bits re-arms it. */
@@ -2021,7 +2074,7 @@ void Controls::SetEnabled(unsigned char enable)
     int index;
 
     m_fEnabled = enable;
-    for (index = 0; index < m_nControls; ++index) {
+    for (index = 0; index < m_controls.count; ++index) {
         W8WidgetBase005ED5BC* control = ControlAt(index);
 
         control->m_flag_5 = enable;
@@ -2041,11 +2094,11 @@ void Controls::SetEnabled(unsigned char enable)
 // FUNCTION: WIZ8 0x004F2DA0
 void Controls::RemoveControl(W8WidgetBase005ED5BC* control)
 {
-    int count = m_nControls;
+    int count = m_controls.count;
     int index = 0;
 
     if (count > 0) {
-        W8WidgetBase005ED5BC** cursor = m_ppControls;
+        W8WidgetBase005ED5BC** cursor = m_controls.data;
 
         while (*cursor != control) {
             ++index;
@@ -2057,11 +2110,11 @@ void Controls::RemoveControl(W8WidgetBase005ED5BC* control)
         if (index >= 0 && index < count) {
             if (index < count - 1) {
                 do {
-                    m_ppControls[index] = m_ppControls[index + 1];
+                    m_controls.data[index] = m_controls.data[index + 1];
                     ++index;
-                } while (index < m_nControls - 1);
+                } while (index < m_controls.count - 1);
             }
-            --m_nControls;
+            --m_controls.count;
         }
     }
 }
@@ -2075,21 +2128,21 @@ void Controls::RemoveControl(W8WidgetBase005ED5BC* control)
 // FUNCTION: WIZ8 0x004F2DF0
 void Controls::DestroyAllControls()
 {
-    int index = m_nControls;
+    int index = m_controls.count;
 
     if (index > 0) {
         while (--index, index >= 0) {
-            if (index < m_nControls && index >= 0) {
-                W8WidgetBase005ED5BC* control = m_ppControls[index];
+            if (index < m_controls.count && index >= 0) {
+                W8WidgetBase005ED5BC* control = m_controls.data[index];
                 int shift = index;
 
-                if (index < m_nControls - 1) {
+                if (index < m_controls.count - 1) {
                     do {
-                        m_ppControls[shift] = m_ppControls[shift + 1];
+                        m_controls.data[shift] = m_controls.data[shift + 1];
                         ++shift;
-                    } while (shift < m_nControls - 1);
+                    } while (shift < m_controls.count - 1);
                 }
-                --m_nControls;
+                --m_controls.count;
                 delete control;
             }
         }
@@ -2182,7 +2235,7 @@ void Controls::Redraw()
     } else if (m_fLayoutDirty == 0) {
         return;
     }
-    for (index = 0; index < m_nControls; ++index) {
+    for (index = 0; index < m_controls.count; ++index) {
         if (ControlAt(index)->m_flag_5 != 0) {
             ControlAt(index)->Redraw(redrawn);
         }
@@ -2201,7 +2254,7 @@ void Controls::SetBounds(int left, int top, int new_right, int new_bottom)
     origin_y = top;
     right = new_right;
     bottom = new_bottom;
-    for (index = 0; index < m_nControls; ++index) {
+    for (index = 0; index < m_controls.count; ++index) {
         ControlAt(index)->SetBounds(ControlAt(index)->m_left,
                                     ControlAt(index)->m_top,
                                     ControlAt(index)->m_right,
@@ -2247,7 +2300,7 @@ void W8WidgetBase005ED5BC::Invalidate(unsigned char immediate)
     if (m_pPanel != 0) {
         m_flag_6 = 1;
         if (immediate) {
-            m_pPanel->Invalidate((unsigned char)0);
+            m_pPanel->Invalidate(0);
             Function562A50(0x80000000);
             return;
         }

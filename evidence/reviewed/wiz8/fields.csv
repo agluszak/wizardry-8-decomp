@@ -22,10 +22,11 @@ wiz8,Controls,0x28,0x4,m_dirtyTop,int32,,strong,classes:wiz8:Controls,Invalidate
 wiz8,Controls,0x2c,0x4,m_dirtyRight,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated right bound
 wiz8,Controls,0x30,0x4,m_dirtyBottom,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated bottom bound
 wiz8,Controls,0x34,0x1,m_fWholeAreaDirty,uint8,,strong,classes:wiz8:Controls,Invalidate sets this for a null rectangle and clears it for a bounded request
-wiz8,Controls,0x35,0x7,unknown_35,bytes,,strong,classes:wiz8:Controls,unreviewed storage before the control array counts
-wiz8,Controls,0x3c,0x4,m_nControls,int32,,strong,classes:wiz8:Controls,all three panel walkers use this as the signed live element count
-wiz8,Controls,0x40,0x4,m_nControlsAllocated,int32,,strong,classes:wiz8:Controls,the widget constructor grows the pointer allocation when this capacity is below count plus one
-wiz8,Controls,0x44,0x4,m_ppControls,pointer,W8WidgetBase005ED5BC *,strong,classes:wiz8:Controls,the panel walkers index this typed widget pointer array
+wiz8,Controls,0x35,0x3,pad_35,bytes,,strong,classes:wiz8:Controls,padding before the aligned embedded widget vector
+wiz8,Controls,0x38,0x4,controls_vptr,pointer,virtual_function *,strong,classes:wiz8:Controls,the constructors install W8ControlsVector005ED5B0 at this subobject offset and the exact destructor restores its base table
+wiz8,Controls,0x3c,0x4,m_nControls,int32,,strong,classes:wiz8:Controls,typed W8ControlsVector005ED5B0 live element count walked by all panel methods
+wiz8,Controls,0x40,0x4,m_nControlsAllocated,int32,,strong,classes:wiz8:Controls,typed W8ControlsVector005ED5B0 capacity initialized to five and grown by the widget constructor
+wiz8,Controls,0x44,0x4,m_ppControls,pointer,W8WidgetBase005ED5BC *,strong,classes:wiz8:Controls,typed W8ControlsVector005ED5B0 widget pointer array released by the exact destructor
 wiz8,Controls,0x48,0x4,m_uiRegionSetId,uint32,,strong,classes:wiz8:Controls,named by the canonical Controls.cpp line 399 assertion and byte-proven by EnableRegionSet
 wiz8,W8ControlsRect,0x0,0x4,left,int32,,strong,classes:wiz8:W8ControlsRect,first signed bound read by Invalidate
 wiz8,W8ControlsRect,0x4,0x4,top,int32,,strong,classes:wiz8:W8ControlsRect,second signed bound read by Invalidate

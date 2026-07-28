@@ -62,7 +62,7 @@ def test_the_slot_list_comes_from_the_reviewed_ledger_in_order() -> None:
 
 def test_a_class_with_no_reviewed_primary_vtable_is_refused() -> None:
     with pytest.raises(ValueError, match="no reviewed primary vtable"):
-        _reviewed_vtable(REPOSITORY, "Controls")
+        _reviewed_vtable(REPOSITORY, "W8ControlsRect")
 
 
 def test_shared_slot_bodies_keep_all_reviewed_receiver_identities() -> None:

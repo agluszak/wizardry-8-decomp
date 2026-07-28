@@ -1,0 +1,15 @@
+{
+  "hypothesis": "range-control-lifecycle",
+  "seeds": [
+    {
+      "kind": "type-variable",
+      "function": "004f61f0",
+      "root": "this"
+    }
+  ],
+  "limits": {
+    "iterations": 8,
+    "functions": 160,
+    "indirect_functions": 512
+  }
+}

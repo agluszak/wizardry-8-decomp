@@ -1,4 +1,6 @@
 program,vtable_id,class_name,address,subobject_offset,kind,slot_count,confidence,evidence_id
+wiz8,Controls.primary,Controls,005ed5a4,0x0,primary,3,strong,classes:wiz8:Controls
+wiz8,Controls.range,W8RangeControl005ED74C,005ed74c,0x0,primary,3,strong,classes:wiz8:W8RangeControl005ED74C
 wiz8,GrCycle.primary,GrCycle,005ece78,0x0,primary,16,strong,classes:wiz8:GrCycle
 wiz8,GrCycle.secondary_0x18,GrCycle,005eceb8,0x18,secondary,5,strong,classes:wiz8:GrCycle
 wiz8,W8TextControl005ED604.primary,W8TextControl005ED604,005ed604,0x0,primary,20,strong,classes:wiz8:W8TextControl005ED604
