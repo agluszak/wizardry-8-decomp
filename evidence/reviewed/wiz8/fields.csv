@@ -143,7 +143,16 @@ wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle
 wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18
 wiz8,GrCycle,0x1c,0x18c,secondary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed secondary base constructed by 0x00451ec0; total base size 0x190
-wiz8,GrCycle,0x1a8,0x30,fields,bytes,,strong,classes:wiz8:GrCycle,GrCycle-owned fields initialized by 0x004a5e50 through offset 0x1d4
+wiz8,GrCycle,0x1a8,0x4,unknown_1a8,bytes,,strong,classes:wiz8:GrCycle,Unresolved GrCycle-owned storage before the assertion-named lights pointer
+wiz8,GrCycle,0x1ac,0x4,m_plsLights,pointer,,strong,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this null-tested pointer
+wiz8,GrCycle,0x1b0,0x4,vector_1b0,pointer,W8Vector005ECED4,exact,classes:wiz8:GrCycle,The byte-exact 0x004A8530 owner method lazily constructs this vector and appends one pointer
+wiz8,GrCycle,0x1b4,0x1,m_fDeleteLights,uint8,,strong,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this flag
+wiz8,GrCycle,0x1b5,0x23,unknown_1b5,bytes,,strong,classes:wiz8:GrCycle,Remaining GrCycle-owned storage through the established minimum size
+wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0x0,0x4,vptr,pointer,virtual_function *,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,primary vtable W8GrowableVector<W8VectorElement005ECED4 *>.primary
+wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0x4,0x4,count,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,element count initialized to zero and incremented by the byte-exact owner method
+wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0x8,0x4,capacity,int32,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,allocated pointer capacity initialized to five and grown to the required count
+wiz8,W8GrowableVector<W8VectorElement005ECED4 *>,0xc,0x4,data,pointer,,exact,classes:wiz8:W8GrowableVector<W8VectorElement005ECED4 *>,four-byte pointer element storage allocated and copied by the byte-exact owner method
+wiz8,W8Vector005ECED4,0x0,0x10,base_storage,bytes,,exact,classes:wiz8:W8Vector005ECED4,W8GrowableVector<W8VectorElement005ECED4 *> subobject; the derived class adds nothing
 wiz8,Monster,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:Monster,vtable Monster.primary
 wiz8,Monster,0x4,0x20,base_and_fields,bytes,,strong,classes:wiz8:Monster,base-class and fields before positional member +0x18 field +0x0c are not yet reviewed
 wiz8,Monster,0x24,0x4,member18_flags_0c,int32,,exact,classes:wiz8:Monster,exact-width bitfield at positional member +0x18 field +0x0c; 0x004e4600 clears bit 0x20000000

@@ -430,8 +430,9 @@ def test_reviewed_wiz8_classes_have_source_and_vtable_evidence() -> None:
     # Octree is the first class whose layout is byte-proven rather than inferred.
     assert by_name["Octree"]["layout_proof"].startswith("0042e440")
     assert by_name["Monster"]["layout_proof"].startswith("004bfab0")
-    # GrCycle's proof covers a vtable slot offset only, not any data member.
-    assert "slot 9 only" in by_name["GrCycle"]["layout_proof"]
+    # GrCycle's proof now covers both the primary vtable slot and its owned vector.
+    assert "primary vtable slot 9" in by_name["GrCycle"]["layout_proof"]
+    assert "typed vector owner at +0x1b0" in by_name["GrCycle"]["layout_proof"]
     assert by_name["MonsterInfoDialog"]["layout_proof"].startswith("005d6e60")
     # stLight is named by the runtime class registry and corroborated by a source path.
     assert by_name["stLight"]["source_path"] == "Engine Code\\Include\\stLight.hpp"
@@ -519,8 +520,8 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
     # Monster owns two tables: a 6-slot primary and a 5-slot secondary at 0x18.
     # The 20 slots that once padded Monster.primary to 31 belong to a distinct
     # table at 0x005ed22c that no reviewed class claims yet.
-    assert len(model.vtables) == 77
-    assert len(model.slots) == 211
+    assert len(model.vtables) == 79
+    assert len(model.slots) == 213
     classes = {item.name: item for item in model.classes}
     assert classes["GDProp"].size == 0x58
     assert classes["W8PList"].size == 0xC
@@ -613,7 +614,11 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x4, 0x14, "primary_base_storage"),
         (0x18, 0x4, "secondary_vptr"),
         (0x1C, 0x18C, "secondary_base_storage"),
-        (0x1A8, 0x30, "fields"),
+        (0x1A8, 0x4, "unknown_1a8"),
+        (0x1AC, 0x4, "m_plsLights"),
+        (0x1B0, 0x4, "vector_1b0"),
+        (0x1B4, 0x1, "m_fDeleteLights"),
+        (0x1B5, 0x23, "unknown_1b5"),
     ]
     secondary_slots = [slot for slot in model.slots if slot.vtable_id == "GrCycle.secondary_0x18"]
     assert [slot.target for slot in secondary_slots] == [
