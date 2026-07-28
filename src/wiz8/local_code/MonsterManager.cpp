@@ -33,7 +33,7 @@ void Function5106D0(W8MonsterGroup* monster_group);
 void Function5524E0(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
 void Function532330(W8MonsterInfo* monster_info);
 void Function546E70(void);
-void Function536170(void* combat_slot);
+void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void Function4E76F0(W8MonsterInfo* monster_info);
 extern int g_dword_686a48;
@@ -1129,7 +1129,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         monster_info->state_34c = 2;
         monster_info->value_354 = g_dword_686a48;
     }
-    Function536170(monster_info->combat_slot_2ba);
+    ResetCombatSlot(&monster_info->combat_slot_2ba);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
     monster_info->monster->member_18.flags_0c = 0;
     if (monster_info->flag_16 == 1) {

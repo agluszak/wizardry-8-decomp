@@ -33,9 +33,15 @@ typedef struct W8Position {
 
 
 
+/* The twenty-one factions, the domain the name lookup enumerates. */
+enum { W8_FACTION_COUNT = 21 };
+
 typedef struct W8FactionRuntimeRecord {
     signed char disposition_score;      /* 0x00 */
-    unsigned char unknown_01[0x0d];
+    unsigned char unknown_01[3];
+    int value_04;                       /* 0x04 */
+    unsigned char flag_08;              /* 0x08 */
+    unsigned char unknown_09[5];
 } W8FactionRuntimeRecord;               /* 0x0e */
 
 /* One attribute record. The array is indexed by skill id biased by 0x22, so the
@@ -493,6 +499,26 @@ typedef struct W8MessageBoxLine {
    from the asserting bodies. iType 1 selects the character, 2 the monster, and
    3 either, which is why the type-3 path additionally requires a backfire or
    reflection flag. */
+/* The block a spell or attack records its target in. Only the leading three
+   fields are established; the two resets that build an empty one agree on the
+   extent and on which of them start at -1 rather than zero. */
+typedef struct W8TargetBlock {
+    int kind;                             /* 0x00 */
+    int character_slot;                   /* 0x04, -1 when empty */
+    int monster_id;                       /* 0x08, -1 when empty */
+    unsigned char unknown_0c[0x28];
+} W8TargetBlock;                          /* 0x34 */
+
+/* The shorter form a combatant carries inline, with one more field reset to
+   -1 and no room for the tail. */
+typedef struct W8CombatSlot {
+    int kind;                             /* 0x00 */
+    int character_slot;                   /* 0x04, -1 when empty */
+    int monster_id;                       /* 0x08, -1 when empty */
+    int group_id;                         /* 0x0c, -1 when empty */
+    unsigned char unknown_10[0x10];
+} W8CombatSlot;                           /* 0x20 */
+
 typedef struct W8TargetSource {
     int iType;                            /* 0x00 */
     int iChar;                            /* 0x04 */
@@ -980,7 +1006,7 @@ typedef struct W8MonsterInfo {
     /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
        the next established field, so the array bound is a partition of the
        unknown run rather than a proven size. */
-    unsigned char combat_slot_2ba[0x20];
+    W8CombatSlot combat_slot_2ba;
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
     unsigned char unknown_2de[3];
     /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain

@@ -111,13 +111,13 @@ extern unsigned char Function519F80(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
     int arg_3,
-    unsigned char* combat_slot);
+    W8CombatSlot* combat_slot);
 extern unsigned char Function5369F0(W8MonsterInfo* monster_info);
 extern unsigned char Function4D9080(W8MonsterInfo* monster_info, int arg_2, int arg_3);
 extern unsigned char Function5327E0(
-    W8MonsterInfo* monster_info, int spell_id, unsigned char* combat_slot);
+    W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
 extern unsigned char Function5330E0(
-    W8MonsterInfo* monster_info, int spell_id, unsigned char* combat_slot);
+    W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot);
 extern unsigned char Function4EBC80(int spell_id);
 
 /* Whether a spellcasting block stops this character casting this spell. The
@@ -163,7 +163,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
 bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    unsigned char* combat_slot;
+    W8CombatSlot* combat_slot;
     unsigned char kind;
 
     if (g_spell_records[spell_id].monster_castable == 0) {
@@ -192,7 +192,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
         return false;
     }
 
-    combat_slot = monster_info->combat_slot_2ba;
+    combat_slot = &monster_info->combat_slot_2ba;
     if (!Function519F80(monster_info, record, 0, combat_slot) &&
         !Function5369F0(monster_info)) {
         return false;
