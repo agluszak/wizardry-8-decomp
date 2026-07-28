@@ -4,6 +4,10 @@
 
 class SR_DLL_IMPORT srBinStream {
 public:
+    enum e_state {
+        SR_STREAM_OK = 0,
+        SR_STREAM_ERROR = 1
+    };
     enum e_seekDir {
         SR_SEEK_BEGIN = 0,
         SR_SEEK_CURRENT = 1,
@@ -20,7 +24,7 @@ public:
     virtual srBinStream& seek(unsigned long position) = 0;
     virtual unsigned long tell() = 0;
 
-    void setState(unsigned long state);
+    void setState(e_state state);
 
     bool good() const;
 

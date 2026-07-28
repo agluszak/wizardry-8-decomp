@@ -336,6 +336,7 @@ if(WIZ8_BUILD_DECOMP)
     set(WIZ8_UNATTRIBUTED_UNITS
         src/wiz8/bringup_gates.cpp
         src/wiz8/renderer_window.cpp
+        src/wiz8/startup_render_state.cpp
         src/wiz8/window_proc.cpp
         src/wiz8/character_skills.cpp
         src/wiz8/gameplay_boundaries.cpp
@@ -468,6 +469,55 @@ if(WIZ8_BUILD_DECOMP)
         PDB_NAME Wiz8
     )
     add_custom_target(WIZ8 DEPENDS WIZ8_BRINGUP)
+
+    # The comparison image above deliberately retains every recovered section.
+    # Runtime bring-up has a different requirement: it may draw source-backed
+    # retained SGP functions from the probe objects, but must not pull the
+    # discarded remainder of those released units into the image. VC6 emits
+    # the functions as individual COMDAT sections, so /OPT:REF makes that
+    # distinction at link time while leaving WIZ8_BRINGUP unchanged.
+    add_executable(WIZ8_RUNTIME WIN32
+        $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+    )
+    if(TARGET WIZ8_ZLIB_WRAPPERS)
+        target_sources(WIZ8_RUNTIME PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
+    endif()
+    add_dependencies(WIZ8_RUNTIME wiz8_sr_import_library wiz8_mss32_import_library)
+    target_compile_options(WIZ8_RUNTIME PRIVATE /nologo /O2 /G6 /MD)
+    target_compile_definitions(WIZ8_RUNTIME PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+    target_include_directories(WIZ8_RUNTIME PRIVATE include)
+    target_link_libraries(WIZ8_RUNTIME PRIVATE
+        ddraw.lib
+        dxguid.lib
+        gdi32.lib
+        user32.lib
+        "${WIZ8_SR_IMPORT_LIBRARY}"
+        "${WIZ8_MSS32_IMPORT_LIBRARY}"
+    )
+    if(TARGET WIZ8_ZLIB_1_0_4)
+        target_link_libraries(WIZ8_RUNTIME PRIVATE WIZ8_ZLIB_1_0_4)
+    endif()
+    target_link_options(WIZ8_RUNTIME PRIVATE
+        /DEBUG
+        /DEBUGTYPE:CV
+        /INCREMENTAL:NO
+        /OPT:REF
+        /OPT:NOICF
+        /FORCE:UNRESOLVED
+        /BASE:0x400000
+        /FILEALIGN:0x1000
+        /OSVERSION:4.0
+        /SUBSYSTEM:WINDOWS,4.0
+        /STACK:0x100000,0x1000
+        /HEAP:0x100000,0x1000
+        "/MAP:${CMAKE_CURRENT_BINARY_DIR}/Wiz8Runtime.map"
+    )
+    set_target_properties(WIZ8_RUNTIME PROPERTIES
+        OUTPUT_NAME Wiz8Runtime
+        PREFIX ""
+        PDB_NAME Wiz8Runtime
+    )
+    add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)
 endif()
 
 if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
@@ -492,6 +542,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     endfunction()
 
     wiz8_add_sgp_unit(WIZ8_SGP_DIRECTDRAW "DirectDraw Calls.c" directdraw)
+    wiz8_add_sgp_unit(WIZ8_SGP_DIRECTX_COMMON "DirectX Common.c" directdraw)
 
     # Random.c proves two axes of the common profile: /Ob2 inlines Random into
     # Chance, while /G6 mismatches both arithmetic functions.
@@ -532,6 +583,13 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     # the /OPT:NOREF bring-up. Random.c and timer.c are complete retained units;
     # every other configured unit remains an explicit, on-demand source oracle.
     wiz8_add_sgp_unit(WIZ8_SGP_CORE "sgp.c" sgp)
+    # sgp.c also owns the generic platform WinMain. The runtime image uses the
+    # recovered Wizardry body, while still needing retained source-identical
+    # helpers from this unit. Rename only that discarded entrypoint in a
+    # runtime-specific compile; ProcessCommandLine and GetRuntimeSettings keep
+    # their original symbols and bytes.
+    wiz8_add_sgp_unit(WIZ8_SGP_RUNTIME_CORE "sgp.c" sgp)
+    target_compile_definitions(WIZ8_SGP_RUNTIME_CORE PRIVATE WinMain=SgpRetainedWinMain)
     wiz8_add_sgp_unit(WIZ8_SGP_TIMER "timer.c" timer)
     wiz8_add_sgp_unit(WIZ8_SGP_INPUT "input.c" input)
     if(WIZ8_BUILD_DECOMP)
@@ -558,6 +616,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
             WIZ8_SGP_CORE
             WIZ8_SGP_DEBUG
             WIZ8_SGP_DIRECTDRAW
+            WIZ8_SGP_DIRECTX_COMMON
             WIZ8_SGP_FILEMAN
             WIZ8_SGP_INPUT
             WIZ8_SGP_LIBRARY_DATABASE
@@ -567,6 +626,18 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         # the objects verification reads. Verification does not build.
         add_dependencies(WIZ8 WIZ8_SGP_PROBES)
         target_sources(WIZ8_BRINGUP PRIVATE
+            $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
+            $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
+        )
+        target_sources(WIZ8_RUNTIME PRIVATE
+            $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>
+            $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
+            $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
+            $<TARGET_OBJECTS:WIZ8_SGP_DIRECTDRAW>
+            $<TARGET_OBJECTS:WIZ8_SGP_DIRECTX_COMMON>
+            $<TARGET_OBJECTS:WIZ8_SGP_FILEMAN>
+            $<TARGET_OBJECTS:WIZ8_SGP_INPUT>
+            $<TARGET_OBJECTS:WIZ8_SGP_LIBRARY_DATABASE>
             $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
             $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
         )

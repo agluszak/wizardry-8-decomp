@@ -36,7 +36,7 @@ extern W8ScreenState g_screen_state;              /* 0x0068EC78 */
 extern W8ScreenState g_pending_state;             /* 0x0068ED10 */
 extern W8ScreenStateHandlers g_screen_handlers[]; /* 0x00647BC8 */
 extern unsigned char g_flag_68edac;
-extern unsigned char g_run_flag_6f0628;
+extern unsigned char gfProgramIsRunning;
 extern int g_dword_647bc0;
 extern int g_dword_647bc4;
 extern void* g_stack_68eda8;
@@ -62,7 +62,7 @@ void Function4E3340(void)
         g_dword_647bc0 = state;
         Function429770();
         if (!g_screen_handlers[g_screen_state.id].tick(1)) {
-            g_run_flag_6f0628 = 0;
+            gfProgramIsRunning = 0;
             g_screen_state.id = -1;
             return;
         }
@@ -113,7 +113,7 @@ finish:
 clear:
     g_screen_state.id = -1;
 stop:
-    g_run_flag_6f0628 = 0;
+    gfProgramIsRunning = 0;
 }
 
 }

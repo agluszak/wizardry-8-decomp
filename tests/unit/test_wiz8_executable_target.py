@@ -12,7 +12,23 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
 
     assert "add_custom_target(WIZ8_MATCHING DEPENDS WIZ8_GAMEPLAY_BOUNDARIES)" in cmake
     assert "add_executable(WIZ8_BRINGUP WIN32" in cmake
+    assert "add_executable(WIZ8_RUNTIME WIN32" in cmake
     assert "/FORCE:UNRESOLVED" in cmake
+    assert "add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)" in cmake
+    runtime_block = re.search(
+        r"target_link_options\(WIZ8_RUNTIME PRIVATE(.*?)\)", cmake, re.DOTALL
+    )
+    assert runtime_block is not None
+    assert "/OPT:REF" in runtime_block.group(1)
+    assert "/OPT:NOREF" not in runtime_block.group(1)
+    runtime_sources = re.findall(
+        r"target_sources\(WIZ8_RUNTIME PRIVATE(.*?)\)", cmake, re.DOTALL
+    )
+    assert runtime_sources
+    runtime_source_text = "\n".join(runtime_sources)
+    assert "WIZ8_SGP_RUNTIME_CORE" in runtime_source_text
+    assert "WIZ8_SGP_FILEMAN" in runtime_source_text
+    assert "WinMain=SgpRetainedWinMain" in cmake
     assert "ddraw.lib" in cmake
     assert "gdi32.lib" in cmake
     assert "user32.lib" in cmake

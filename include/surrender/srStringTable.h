@@ -7,6 +7,7 @@ public:
     SR_DLL_IMPORT srStringTable();
     SR_DLL_IMPORT ~srStringTable();
 
+    SR_DLL_IMPORT void addString(const char* string);
     SR_DLL_IMPORT void addSeparatedStrings(
         const char* strings, const char* separators, int preserve_empty);
     SR_DLL_IMPORT char* getString(long index) const;

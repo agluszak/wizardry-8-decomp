@@ -18,20 +18,20 @@
 
 extern "C" {
 
-extern int g_dword_650dbc;
+int g_dword_650dbc;
 /* Released and cleared together by 0x00402E60, which frees each through
    0x00403A50; only the third is rebuilt here. */
-extern int g_primary_surface_view_650ddc;
+int g_primary_surface_view_650ddc;
 extern void Function402E60(void);
 extern void* Function421F20(void);
 extern int Function4044C0(void* surface);
-extern int g_dword_650dc0;
-extern int g_dword_6ef4c0;
-extern int g_dword_650df4;
-extern int g_dword_650df8;
-extern int g_dword_650dfc;
-extern int g_dword_650e00;
-extern bool g_flag_650e04;
+int g_dword_650dc0;
+int g_dword_6ef4c0;
+int g_dword_650df4;
+int g_dword_650df8;
+int g_dword_650dfc;
+int g_dword_650e00;
+bool g_flag_650e04;
 extern unsigned char g_flag_650e50;
 extern unsigned char g_flag_5ff651;
 extern unsigned char g_flag_65970f;
@@ -49,14 +49,31 @@ extern unsigned char g_flag_659711;
 extern unsigned char g_byte_603c39;
 extern unsigned short g_word_5ff7c8;
 extern unsigned char g_flag_5ff7ca;
-extern int g_dword_650e24;
-extern int g_dword_650e28;
-extern bool g_flag_650e20;
+int g_dword_650e24;
+int g_dword_650e28;
+bool g_flag_650e20;
 
 
 /* Named in the startup spine. The rest are gates it records as
    uncharacterisable, and the callees below it that nothing yet identifies. */
-extern void RegisterWindowClass(const char* window_class, const char* key_class);
+/* Three adjacent 0x34-byte SGP buffers. The helper copies the application name
+   into the first and third and the key-class spelling into the middle one; it
+   does not call RegisterClassA despite its old provisional name. */
+char g_application_key_650eac[0x34];
+char g_application_name_copy_650ee0[0x34];
+char g_application_name_650f14[0x34];
+
+// FUNCTION: WIZ8 0x0040F020
+unsigned char RegisterWindowClass(const char* application_name, const char* key_class)
+{
+    if (!application_name || !key_class) {
+        return 0;
+    }
+    strcpy(g_application_name_650f14, application_name);
+    strcpy(g_application_key_650eac, key_class);
+    strcpy(g_application_name_copy_650ee0, g_application_name_650f14);
+    return 1;
+}
 
 extern void ProcessCommandLine(char* pCommandLine);
 extern void GetRuntimeSettings(void);
@@ -146,11 +163,11 @@ const char* GetVideoConfigFileName(void)
     return "3DVideo.CFG";
 }
 
-extern unsigned short* g_pointer_table_6ed440[0x400];
-extern unsigned char g_flags_6ed040[0x400];
-extern bool g_flag_650de4;
-extern bool g_flag_5ff538;
-extern unsigned char g_flag_6ef440;
+unsigned short* g_pointer_table_6ed440[0x400];
+unsigned char g_flags_6ed040[0x400];
+bool g_flag_650de4;
+bool g_flag_5ff538;
+unsigned char g_flag_6ef440;
 
 void ShutdownHandler(void);
 bool SetModuleSubdirectory(const char* subdirectory);
@@ -326,9 +343,10 @@ extern unsigned char FileExists(const char* path);
 
 
 extern void Function4E3340(void);
-extern void* g_instance_6f062c;
-extern unsigned int g_available_kilobytes;
-extern unsigned char g_run_flag_6f0628;
+/* These are retained SGP globals, named by the vendored declaration surface. */
+extern HINSTANCE ghInstance;
+extern unsigned int giStartMem;
+extern unsigned char gfProgramIsRunning;
 extern unsigned char gfApplicationActive;
 extern unsigned char gfSGPInputReceived;
 
@@ -819,7 +837,7 @@ void ShutdownHandler(void)
         return;
     }
     g_shutdown_started_650db5 = true;
-    g_run_flag_6f0628 = 0;
+    gfProgramIsRunning = 0;
     Function408850();
     if (g_flag_6505a9) {
         Function4E34B0(1);
@@ -942,9 +960,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         ShowWindow(existing, 9);
         return 0;
     }
-    g_instance_6f062c = hInstance;
+    ghInstance = hInstance;
     ProcessCommandLine(lpCmdLine);
-    g_available_kilobytes = QueryAvailableMemory() >> 10;
+    giStartMem = QueryAvailableMemory() >> 10;
     if (!FileExists(GetVideoConfigFileName())) {
         _spawnl(0, "3DSetup.EXE", "3DSetup.EXE", GetVideoConfigFileName(), NULL);
     }
@@ -959,7 +977,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         return 0;
     }
     gfApplicationActive = 1;
-    g_run_flag_6f0628 = 1;
+    gfProgramIsRunning = 1;
     do {
         if (PeekMessageA(&message, NULL, 0, 0, 0)) {
             if (GetMessageA(&message, NULL, 0, 0) == 0) {
@@ -973,7 +991,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Function4E3340();
             gfSGPInputReceived = 0;
         }
-    } while (g_run_flag_6f0628);
+    } while (gfProgramIsRunning);
     PostQuitMessage(0);
     return message.wParam;
 }

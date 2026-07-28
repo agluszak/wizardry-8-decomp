@@ -216,10 +216,13 @@ def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
 def test_noref_bringup_links_only_whole_retained_sgp_units() -> None:
     repository = Path(__file__).resolve().parents[2]
     cmake = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
+    bringup_sources = cmake.rsplit("target_sources(WIZ8_BRINGUP PRIVATE", 1)[1].split(
+        ")", 1
+    )[0]
 
     assert "add_library(${target} OBJECT EXCLUDE_FROM_ALL" in cmake
-    assert "$<TARGET_OBJECTS:WIZ8_SGP_RANDOM>" in cmake
-    assert "$<TARGET_OBJECTS:WIZ8_SGP_TIMER>" in cmake
+    assert "$<TARGET_OBJECTS:WIZ8_SGP_RANDOM>" in bringup_sources
+    assert "$<TARGET_OBJECTS:WIZ8_SGP_TIMER>" in bringup_sources
     for partial_or_empty in (
         "DIRECTDRAW",
         "COMPRESSION",
@@ -232,7 +235,7 @@ def test_noref_bringup_links_only_whole_retained_sgp_units() -> None:
         "CORE",
         "INPUT",
     ):
-        assert f"$<TARGET_OBJECTS:WIZ8_SGP_{partial_or_empty}>" not in cmake
+        assert f"$<TARGET_OBJECTS:WIZ8_SGP_{partial_or_empty}>" not in bringup_sources
 
     assert "src/wiz8/random_number.c" not in cmake
     assert not (repository / "src/wiz8/random_number.c").exists()

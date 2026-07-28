@@ -37,7 +37,7 @@ extern unsigned char Function512FB0(void);
 extern void Function421FF0(void);
 extern void* Function4104B0(int packed_colour);
 extern void Function402FA0(int id, int x, int y, int width, int height, void* colour);
-extern void Function426250(int x, int y, int width, int height);
+extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int g);
 extern void Function422D50(int left, int top, int right, int bottom, int a);
 extern void Function4E3620(char* text, int a, int b, int c);
@@ -120,7 +120,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     Function421FF0();
     colour = Function4104B0(0x10101);
     Function402FA0(-14, 0, 0, 0x280, 0x1e0, colour);
-    Function426250(0, 0, 0x280, 0x1e0);
+    SetViewport(0, 0, 0x280, 0x1e0);
     g_selected_item_69c4b4 = 0;
     Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);
 

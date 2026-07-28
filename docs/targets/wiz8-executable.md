@@ -7,6 +7,9 @@ The CMake graph now has separate matching and bring-up surfaces:
 * `WIZ8_BRINGUP` links those same objects with a bring-up-only `WinMain`, producing `Wiz8.exe` and
   `Wiz8.pdb` for PE, PDB, and reccmp integration.
 * `WIZ8` is the convenient build alias for `WIZ8_BRINGUP`; `just build WIZ8` builds the executable.
+* `WIZ8_RUNTIME` is the runnable vertical-slice image. It adds the vendored SGP probe objects and
+  links with `/OPT:REF`, so only source-backed COMDAT functions reached by recovered Wizardry code
+  survive. `WIZ8_BRINGUP` retains `/OPT:NOREF` and remains the whole-image comparison surface.
 
 The recovered corpus is not link-complete. `WIZ8_BRINGUP` therefore uses `/FORCE:UNRESOLVED` rather
 than contaminating matching source with invented globals or function bodies. LINK reports every

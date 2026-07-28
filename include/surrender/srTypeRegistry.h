@@ -9,6 +9,8 @@ public:
     enum e_verify {
         VERIFY_DEFAULT = 0
     };
+
+    SR_DLL_IMPORT void setName(const char* name);
 };
 
 class srRegistry {
