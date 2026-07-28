@@ -66,6 +66,13 @@ extern void Function49F720(void* state);                     /* 0x0049F720 */
 extern void Function49F900(W8World* world);                  /* 0x0049F900 */
 extern void Function49FAA0(void);                            /* 0x0049FAA0 */
 extern short g_generator_default_interval;                   /* 0x0060A6B6 */
+extern short g_generator_interval_min;                       /* 0x0060A6B4 */
+extern short g_generator_interval_max;                       /* 0x0060A6B8 */
+extern int g_saved_encounter_budget;                         /* 0x006850B6 */
+extern int g_encounter_culling_time_seconds;
+extern void Function43A690(int handle);                      /* 0x0043A690 */
+extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
+                                         unsigned int size, unsigned int* done);
 extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
 
 static const char MON_GEN_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp";
@@ -371,22 +378,57 @@ void SaveMonsterGenerators(int handle)
    +0x18. The leading byte is written uninitialised - a one-byte local the
    original never assigns. Preserved as found. */
 // FUNCTION: WIZ8 0x0048B520
-void SaveMonsterGenerator(W8MonsterGenerator* generator, int handle)
+void W8MonsterGenerator::Save(int handle)
 {
     unsigned char leading;
 
     FileWrite(handle, &leading, 1, 0);
-    FileWrite(handle, generator->name, 0x20, 0);
-    FileWrite(handle, &generator->flag_44, 1, 0);
-    FileWrite(handle, &generator->flags, 4, 0);
-    FileWrite(handle, &generator->flag_04, 1, 0);
-    FileWrite(handle, &generator->value_06, 2, 0);
-    FileWrite(handle, &generator->value_08, 2, 0);
-    FileWrite(handle, &generator->state_0c, 4, 0);
-    FileWrite(handle, &generator->state_10, 4, 0);
-    FileWrite(handle, &generator->state_14, 4, 0);
-    FileWrite(handle, &generator->value_1c, 4, 0);
+    FileWrite(handle, name, 0x20, 0);
+    FileWrite(handle, &flag_44, 1, 0);
+    FileWrite(handle, &flags, 4, 0);
+    FileWrite(handle, &flag_04, 1, 0);
+    FileWrite(handle, &value_06, 2, 0);
+    FileWrite(handle, &value_08, 2, 0);
+    FileWrite(handle, &state_0c, 4, 0);
+    FileWrite(handle, &state_10, 4, 0);
+    FileWrite(handle, &state_14, 4, 0);
+    FileWrite(handle, &value_1c, 4, 0);
     Function43A770(handle);
+}
+
+/* Reads one generator back. The leading byte is a record version: from 3 the
+   name and its trailing flag are stored too, below that they are not, and the
+   two paths converge on the same eight common fields. Every read is chained
+   through the same conjunction, so the first failure abandons the rest and the
+   record is reported bad; the timer is rearmed either way, and the armed bit is
+   always cleared on the way out so a loaded generator starts disarmed. */
+// FUNCTION: WIZ8 0x0048B5E0
+unsigned char W8MonsterGenerator::Load(int handle)
+{
+    unsigned char version;
+    unsigned char ok;
+    unsigned char loaded;
+
+    ok = ReadVirtualFile(handle, &version, 1, 0);
+    if (static_cast<signed char>(version) >= 3) {
+        ok = ok && ReadVirtualFile(handle, name, 0x20, 0);
+        ok = ok && ReadVirtualFile(handle, &flag_44, 1, 0);
+    }
+    loaded = ok && ReadVirtualFile(handle, &flags, 4, 0) &&
+             ReadVirtualFile(handle, &flag_04, 1, 0) &&
+             ReadVirtualFile(handle, &value_06, 2, 0) &&
+             ReadVirtualFile(handle, &value_08, 2, 0) &&
+             ReadVirtualFile(handle, &state_0c, 4, 0) &&
+             ReadVirtualFile(handle, &state_10, 4, 0) &&
+             ReadVirtualFile(handle, &state_14, 4, 0) &&
+             ReadVirtualFile(handle, &value_1c, 4, 0);
+    Reset();
+    if (static_cast<signed char>(version) > 1) {
+        Function43A690(handle);
+        Function43A530();
+    }
+    flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
+    return loaded;
 }
 
 /* Removes one generator from the world's list by identity and destroys it. The
@@ -498,4 +540,31 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode*
         }
     }
     Function49F900(g_world);
+}
+
+/* Writes the encounter subsystem's own state to a save, ahead of the generator
+   records themselves: the record version, the level's saved budget, the running
+   budget and culling span, the shared flag byte, three shared interval words,
+   and then the count followed by that many generator records. */
+// FUNCTION: WIZ8 0x0048C020
+void SaveEncounterState(int handle)
+{
+    int count;
+    int version;
+    int index;
+
+    count = g_world->monster_generators->GetCount();
+    version = 5;
+    FileWrite(handle, &version, 4, 0);
+    FileWrite(handle, &g_saved_encounter_budget, 4, 0);
+    FileWrite(handle, &g_random_encounter_budget, 4, 0);
+    FileWrite(handle, &g_encounter_culling_time_seconds, 4, 0);
+    FileWrite(handle, &g_generator_save_flag, 1, 0);
+    FileWrite(handle, &g_generator_interval_min, 2, 0);
+    FileWrite(handle, &g_generator_default_interval, 2, 0);
+    FileWrite(handle, &g_generator_interval_max, 2, 0);
+    FileWrite(handle, &count, 4, 0);
+    for (index = 0; index < count; ++index) {
+        (*g_world->monster_generators->GetAt(index))->Save(handle);
+    }
 }

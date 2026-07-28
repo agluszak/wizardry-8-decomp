@@ -258,6 +258,9 @@ typedef struct W8MonsterGenerator {
     void Reset();
     /* Arms or disarms the generator, loading its marker on the way in. */
     void SetActive(unsigned char active, W8MonsterGeneratorNode* node);
+    /* The save pair. Both are __thiscall in the image. */
+    void Save(int handle);
+    unsigned char Load(int handle);
 #endif
 } W8MonsterGenerator;
 
