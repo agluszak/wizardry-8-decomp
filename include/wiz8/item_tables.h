@@ -31,13 +31,22 @@ struct W8ItemDatabaseRecord {
        GetItemDisplayRecord builds the shared name lazily, one cached string per
        index, and two items with equal indices read as the same thing. */
     unsigned short unidentified_name_index;
-    /* 0x041: bit one blocks discarding the item, which is the only bit a
-       recovered body reads. */
+    /* 0x041: bit one blocks discarding the item, bit two makes it two-handed,
+       and bit three lets it be held in the off hand. Those are the three bits
+       any recovered body reads. */
     unsigned char flags_041;
     /* 0x042: the item's kind. Three selects the spell-source items the magic
        code accepts; no other value is established. */
     unsigned char category;
-    unsigned char unknown_043[0x23];
+    unsigned char unknown_043[3];
+    /* 0x046: the skill a weapon is used with. GetItemEquipSlotMask refuses to
+       place a weapon whose value is 0xff and says so - "ERROR - Item %ls is a
+       weapon without a skill specified -> Charles". */
+    unsigned char weapon_skill;
+    /* 0x047: two weapons may only be wielded together when this agrees. Its
+       domain is not established, so it is named for that one use. */
+    unsigned char wield_group;
+    unsigned char unknown_048[0x1e];
     /* 0x066: zero none, one stack, two through four uses or charges. */
     unsigned char quantity_kind;
     unsigned char unknown_067[0x1f];
@@ -46,7 +55,12 @@ struct W8ItemDatabaseRecord {
        level-scaled table on the same field. */
     unsigned int value;
     unsigned short weight;                /* 0x08a: the weight of one item */
-    unsigned char unknown_08c[0x81];
+    /* 0x08c: the item binds itself to whoever equips it. Equipping one raises
+       the instance's `bound` flag and posts a log line, the two hand slots of
+       the alternate weapon set are checked for it before a weapon swap is
+       allowed, and nothing else reads it. */
+    unsigned char binds_on_equip;
+    unsigned char unknown_08d[0x80];
 };                                       /* 0x10d */
 
 #pragma pack(pop)

@@ -81,6 +81,20 @@ enum {
     W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS = 1000
 };
 
+typedef struct W8ItemInstance {
+    int item_id;
+    unsigned char stack_count;           /* 0x04: quantity-kind 1 */
+    unsigned char uses_or_charges;       /* 0x05: quantity-kinds 2 through 4 */
+    unsigned char identified;
+    unsigned char unknown_07[3];
+    /* 0x0a: the binding has already been announced for this instance, which is
+       what stops the log line repeating. */
+    unsigned char bind_announced;
+    /* 0x0b: the instance is bound to its wearer. Raised when a binds-on-equip
+       item is worn and read by the predicates that refuse to take it off. */
+    unsigned char bound;
+} W8ItemInstance;                        /* 0x0c */
+
 typedef struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
        leading dword is a saved-record version rather than runtime state. */
@@ -117,7 +131,17 @@ typedef struct W8Character {
     unsigned int skill_unlocks[0x29];     /* 0x0ded, indexed by skill_id */
     unsigned char unknown_0e91[0x4c];
     W8CharacterResistance resistances[W8_RESISTANCE_COUNT]; /* 0x0edd */
-    unsigned char unknown_0f3d[0x83a];
+    unsigned char unknown_0f3d[0x20];
+    /* 0x0f5d: the twelve worn/held slots, indexed by the same slot numbering
+       GetItemDefaultEquipSlot answers and GetItemEquipSlotMask sets bits for.
+       Slots six and seven are the primary hands and eight and nine the
+       alternate pair, which is what the two-handed and off-hand tests read. */
+    W8ItemInstance equipment[12];         /* 0x0f5d */
+    unsigned char unknown_0fed[0x3c];
+    /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
+       reports this array as origin zero and the equipment array as origin one. */
+    W8ItemInstance backpack[8];           /* 0x1029 */
+    unsigned char unknown_1089[0x6ee];
     signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
     unsigned char unknown_1778[0x34];
     signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
@@ -129,14 +153,6 @@ typedef struct W8RPCSlot {
 } W8RPCSlot;
 
 
-typedef struct W8ItemInstance {
-    int item_id;
-    unsigned char stack_count;           /* 0x04: quantity-kind 1 */
-    unsigned char uses_or_charges;       /* 0x05: quantity-kinds 2 through 4 */
-    unsigned char identified;
-    unsigned char unknown_07[4];
-    unsigned char flag_0b;
-} W8ItemInstance;                        /* 0x0c */
 
 typedef struct W8LevelFolderRecord {
     char folder_name[50];

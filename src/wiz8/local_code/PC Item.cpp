@@ -120,6 +120,233 @@ int GetPairedEquipSlot(int equip_slot)
     }
 }
 
+/* Which slot each bit of an equip-slot mask stands for: bit N is slot N. */
+#define W8_EQUIP_SLOT_BIT(slot) ((unsigned short)(1 << (slot)))
+
+/* Bits of W8ItemDatabaseRecord::flags_041 that recovered bodies read. */
+enum {
+    W8_ITEM_FLAG_NO_DISCARD = 0x02,
+    W8_ITEM_FLAG_TWO_HANDED = 0x04,
+    W8_ITEM_FLAG_OFF_HAND_ALLOWED = 0x08
+};
+
+/* No weapon skill at all, which GetItemEquipSlotMask treats as a data error. */
+enum { W8_WEAPON_SKILL_NONE = 0xff };
+
+/* Everything below equipment class four is a weapon; four and five are the
+   off-hand pair, and the rest are worn rather than held. */
+enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
+
+/* Whether two items may be held at once. Anything two-handed rules it out
+   immediately, and one weapon paired with an off-hand item is decided by the
+   weapon's own rule; two weapons have to agree on their wield group. Empty
+   hands always agree. */
+extern unsigned char CanPairWeaponWithOffHand(int weapon_item_id, int off_hand_item_id);
+/* 0x0051C8F0 */
+
+/* The equipment class an item belongs to, or zero when the caller has no
+   item - which is indistinguishable from the first real class, so callers
+   test the item themselves. */
+// FUNCTION: WIZ8 0x0051B8E0
+unsigned char GetItemEquipClass(const W8ItemInstance* item)
+{
+    if (item != 0) {
+        return g_item_records[item->item_id].equip_class;
+    }
+    return 0;
+}
+
+/* Which generic name this item wears while unidentified. */
+// FUNCTION: WIZ8 0x0051B910
+unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item)
+{
+    if (item != 0) {
+        return g_item_records[item->item_id].unidentified_name_index;
+    }
+    return 0;
+}
+
+/* Whether two items are of the same equipment class. */
+// FUNCTION: WIZ8 0x0051B940
+bool ItemsShareEquipClass(const W8ItemInstance* first, const W8ItemInstance* second)
+{
+    if (first != 0 && second != 0) {
+        return g_item_records[first->item_id].equip_class ==
+               g_item_records[second->item_id].equip_class;
+    }
+    return false;
+}
+
+/* Whether two items look alike while unidentified. */
+// FUNCTION: WIZ8 0x0051B990
+bool ItemsShareUnidentifiedName(const W8ItemInstance* first, const W8ItemInstance* second)
+{
+    if (first != 0 && second != 0) {
+        return g_item_records[first->item_id].unidentified_name_index ==
+               g_item_records[second->item_id].unidentified_name_index;
+    }
+    return false;
+}
+
+/* Whether an item is bound to whoever is wearing it, which is what stops it
+   being taken off or swapped away. */
+// FUNCTION: WIZ8 0x0051D180
+bool IsItemBoundToWearer(const W8ItemInstance* item)
+{
+    if (item->item_id != -1 && g_item_records[item->item_id].binds_on_equip != 0 &&
+        item->bound != 0) {
+        return true;
+    }
+    return false;
+}
+
+/* Every slot this item could be placed in, as a bit per slot.
+
+   Weapons are the interesting case. A two-handed weapon needs the hand
+   opposite it free, so each of the two weapon sets contributes its main hand
+   only when its off hand is empty. A one-handed weapon can always take either
+   main hand, and additionally takes an off hand when the item allows it and
+   the main hand of that set is not already holding something two-handed.
+   Everything else has exactly one home. */
+// FUNCTION: WIZ8 0x0051CF80
+unsigned short GetItemEquipSlotMask(
+    int item_id,
+    char primary_off_hand_free,
+    char alternate_off_hand_free,
+    char primary_main_hand_free,
+    char alternate_main_hand_free)
+{
+    unsigned short slots = 0;
+
+    switch (g_item_records[item_id].equip_class) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        if (g_item_records[item_id].weapon_skill == W8_WEAPON_SKILL_NONE) {
+            FormatDebugMessage(
+                0,
+                "ERROR - Item %ls is a weapon without a skill specified -> Charles",
+                &g_item_records[item_id]);
+            return 0;
+        }
+        if ((g_item_records[item_id].flags_041 & W8_ITEM_FLAG_TWO_HANDED) != 0) {
+            if (primary_off_hand_free) {
+                slots = W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_PRIMARY_RIGHT);
+            }
+            if (alternate_off_hand_free) {
+                return slots | W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_ALTERNATE_RIGHT);
+            }
+            return slots;
+        }
+        slots = W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_PRIMARY_RIGHT) |
+                W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_ALTERNATE_RIGHT);
+        if ((g_item_records[item_id].flags_041 & W8_ITEM_FLAG_OFF_HAND_ALLOWED) == 0) {
+            return slots;
+        }
+        if (primary_main_hand_free) {
+            slots |= W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_PRIMARY_LEFT);
+        }
+        break;
+    case 4:
+    case 5:
+        if (primary_main_hand_free) {
+            slots = W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_PRIMARY_LEFT);
+        }
+        break;
+    case 6:
+        return W8_EQUIP_SLOT_BIT(4);
+    case 7:
+        return W8_EQUIP_SLOT_BIT(10);
+    case 8:
+        return W8_EQUIP_SLOT_BIT(0);
+    case 9:
+        return W8_EQUIP_SLOT_BIT(5);
+    case 10:
+        return W8_EQUIP_SLOT_BIT(11);
+    case 11:
+        return W8_EQUIP_SLOT_BIT(1) | W8_EQUIP_SLOT_BIT(2);
+    case 12:
+        return W8_EQUIP_SLOT_BIT(3);
+    default:
+        return 0;
+    }
+
+    if (alternate_main_hand_free) {
+        return slots | W8_EQUIP_SLOT_BIT(W8_EQUIP_SLOT_ALTERNATE_LEFT);
+    }
+    return slots;
+}
+
+/* Whether one character could put this item in one particular slot. The four
+   hand slots are read first: a hand counts as available when it is empty, and
+   a main hand also counts when whatever it holds is not two-handed. Asking to
+   ignore what is worn answers for an empty character instead. */
+// FUNCTION: WIZ8 0x0051CEA0
+bool CanEquipItemInSlot(
+    W8Character* character,
+    int item_id,
+    unsigned char equip_slot,
+    char ignore_worn_items)
+{
+    char primary_off_hand_free;
+    char alternate_off_hand_free;
+    char primary_main_hand_free;
+    char alternate_main_hand_free;
+
+    primary_off_hand_free =
+        character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT].item_id == -1 || ignore_worn_items;
+    alternate_off_hand_free =
+        character->equipment[W8_EQUIP_SLOT_ALTERNATE_LEFT].item_id == -1 || ignore_worn_items;
+    primary_main_hand_free =
+        character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id == -1 ||
+        (g_item_records[character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT].item_id].flags_041 &
+         W8_ITEM_FLAG_TWO_HANDED) == 0 ||
+        ignore_worn_items;
+    alternate_main_hand_free =
+        character->equipment[W8_EQUIP_SLOT_ALTERNATE_RIGHT].item_id == -1 ||
+        (g_item_records[character->equipment[W8_EQUIP_SLOT_ALTERNATE_RIGHT].item_id].flags_041 &
+         W8_ITEM_FLAG_TWO_HANDED) == 0 ||
+        ignore_worn_items;
+
+    return (W8_EQUIP_SLOT_BIT(equip_slot) &
+            GetItemEquipSlotMask(item_id, primary_off_hand_free, alternate_off_hand_free,
+                                 primary_main_hand_free, alternate_main_hand_free)) != 0;
+}
+
+/* Whether two items may be held at the same time. Nothing pairs with a
+   two-handed item. A weapon beside an off-hand item is decided by the weapon
+   rule, which takes them in weapon-first order whichever way round they were
+   passed. Two things that are not both weapons always agree, and two weapons
+   have to belong to the same wield group. */
+// FUNCTION: WIZ8 0x0051CC40
+bool CanHoldItemsTogether(int first_item_id, int second_item_id)
+{
+    if (first_item_id == -1 || second_item_id == -1) {
+        return true;
+    }
+    if ((g_item_records[first_item_id].flags_041 & W8_ITEM_FLAG_TWO_HANDED) != 0 ||
+        (g_item_records[second_item_id].flags_041 & W8_ITEM_FLAG_TWO_HANDED) != 0) {
+        return false;
+    }
+    if (g_item_records[first_item_id].equip_class == 3 ||
+        g_item_records[second_item_id].equip_class == 4) {
+        return CanPairWeaponWithOffHand(first_item_id, second_item_id) != 0;
+    }
+    if (g_item_records[second_item_id].equip_class == 3 ||
+        g_item_records[first_item_id].equip_class == 4) {
+        return CanPairWeaponWithOffHand(second_item_id, first_item_id) != 0;
+    }
+    if (g_item_records[first_item_id].equip_class >= W8_EQUIP_CLASS_FIRST_NON_WEAPON) {
+        return true;
+    }
+    if (g_item_records[second_item_id].equip_class < W8_EQUIP_CLASS_FIRST_NON_WEAPON) {
+        return g_item_records[first_item_id].wield_group ==
+               g_item_records[second_item_id].wield_group;
+    }
+    return true;
+}
+
 /* Take gold from the party. Asking for more than it has empties the purse
    rather than wrapping it around. */
 // FUNCTION: WIZ8 0x0051BF40
