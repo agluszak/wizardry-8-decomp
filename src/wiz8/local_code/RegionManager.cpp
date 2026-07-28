@@ -24,6 +24,20 @@ extern void PlaceHelpBox(int x, int y);                     /* 0x00429210 */
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
 enum { W8_REGION_MODE_MASK = 0xf, W8_REGION_HELP_SHOWN = 0x200 };
 
+/* The complete screen-lifecycle initializer owns the catalog.  Its reviewed
+   main-menu path addresses set one, so retain that bounded prefix while
+   wiz8-a69 restores all records and their exact region ranges. */
+unsigned int g_region_set_count = 2;
+W8RegionSet g_region_sets[300];
+unsigned int g_region_count = 1500;
+W8Region g_regions[1500];
+unsigned int g_hot_region_689b3c;
+unsigned int g_hot_region_689b44;
+unsigned int g_hot_region_689b4c;
+unsigned short g_dword_689b48;
+unsigned int g_dword_689b50;
+unsigned short g_word_6850ed;
+
 /* Raises the help box for one region, taking a stale one down first. The
    selected text comes either from the region's indexed notice entry or the
    shared fallback, and the final position is clamped inside the 640x480
@@ -452,12 +466,6 @@ void DisableRegionHelp(unsigned int region_index)
 }
 
 extern void Function429770(void);
-
-extern unsigned int g_hot_region_689b3c;
-extern unsigned int g_hot_region_689b44;
-extern unsigned int g_hot_region_689b4c;
-extern unsigned short g_dword_689b48;
-extern unsigned short g_word_6850ed;
 
 /* Drops every region back to its resting state. The three tracked regions are
    released first - each only if it still carries bit 0x200 - then every region

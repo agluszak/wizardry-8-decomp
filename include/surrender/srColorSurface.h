@@ -5,6 +5,9 @@
 
 class srPalette;
 class srStat;
+class srFilter {};
+class srBoxFilter : public srFilter {};
+extern SR_DLL_IMPORT srBoxFilter srBoxFilter;
 
 class srARGB {
 public:
@@ -20,6 +23,9 @@ class srPixelConvert {
 public:
     enum e_surfaceType {
         SURFACE_L8 = 0x02,
+        SURFACE_RGB565 = 0x07,
+        SURFACE_RGB555 = 0x08,
+        SURFACE_ARGB1555 = 0x09,
         SURFACE_BGR24 = 0x0c,
         SURFACE_BGRA32 = 0x0e,
         SURFACE_COPY = 0x18
@@ -187,6 +193,8 @@ public:
 
     unsigned long width() const { return width_; }
     unsigned long height() const { return height_; }
+    const unsigned long* textureSurfaceFormat() const { return texture_surface_format_; }
+    void setFilter(srFilter* filter) { filter_ = filter; }
 
 protected:
     virtual SR_DLL_IMPORT ~srColorSurface();
@@ -199,7 +207,10 @@ private:
     unsigned long width_; // +0x1c
     unsigned long height_; // +0x20
     long row_pitch_; // +0x24
-    unsigned char unknown_28_[0x34];
+    unsigned char unknown_28_[0x04];
+    srFilter* filter_; // +0x2c
+    unsigned long texture_surface_format_[5]; // +0x30
+    unsigned char unknown_44_[0x18];
 };
 
 typedef char srSurfaceDesc_must_be_0x28[

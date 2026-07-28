@@ -4,14 +4,7 @@
 
 #include "srHeap.h"
 
-class srRuntimeClass {
-public:
-    enum e_verify {
-        VERIFY_DEFAULT = 0
-    };
-
-    SR_DLL_IMPORT void setName(const char* name);
-};
+class srRuntimeClass;
 
 class srRegistry {
 public:
@@ -23,8 +16,24 @@ public:
         ClassNode* parent,
         unsigned long class_id,
         int concrete);
-    SR_DLL_IMPORT void registerInstance(ClassNode* node, srRuntimeClass* instance);
-    SR_DLL_IMPORT void unregisterInstance(ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT void registerInstance(
+        ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT void unregisterInstance(
+        ClassNode* node, srRuntimeClass* instance);
+};
+
+class srRuntimeClass {
+public:
+    enum e_verify {
+        VERIFY_DEFAULT = 0
+    };
+
+    virtual const char* getClassName() const = 0;
+    virtual unsigned long getClassID() const = 0;
+    virtual srRegistry::ClassNode* getClassNode() const = 0;
+
+    SR_DLL_IMPORT void setName(const char* name);
+    SR_DLL_IMPORT const char* getName() const;
 };
 
 class srClass : public srRuntimeClass {
@@ -36,10 +45,17 @@ public:
     virtual srRegistry::ClassNode* getClassNode() const = 0;
     virtual void dump(std::ostream& stream) = 0;
     virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode);
-    virtual ~srClass() {}
+
+protected:
+    virtual SR_DLL_IMPORT ~srClass();
+
+public:
     virtual srClass* vInstance() = 0;
 
     SR_DLL_IMPORT int release() const;
+    SR_DLL_IMPORT void addReference() const;
+    SR_DLL_IMPORT void autoRelease();
+    void* operator new(unsigned int size) { return srHeap.allocate(size); }
 
     /* Every class in this hierarchy is freed through the SurRender heap rather
        than the global operator delete, and the routing is declared here rather
@@ -49,4 +65,7 @@ public:
        the only place it can come from is their common root. 0x0042A170 is one
        of them and 0x00492C40 is stMaterial's. */
     void operator delete(void* instance) { srHeap.free(instance); }
+
+protected:
+    SR_DLL_IMPORT srClass();
 };

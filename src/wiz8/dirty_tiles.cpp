@@ -1,5 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 
+class srNode;
+
 /*
  * Marks a rectangle dirty on the current page.
  *
@@ -14,10 +16,47 @@
 
 extern "C" {
 
-extern int g_page_index_6596e4;
-extern unsigned char g_page_whole_6596e8[];
+extern unsigned int g_index_6596e4;
+extern unsigned char g_flags_6596e8[2];
+extern srNode* g_surface_nodes_654adc[0x12c0];
+extern unsigned char g_block_652ddc[0x12c0];
+extern int g_dword_6596d8;
+extern int g_viewport_left_6595e8;
+extern int g_viewport_top_6595ec;
+extern int g_viewport_right_6595f0;
+extern int g_viewport_bottom_6595f4;
+unsigned char g_flag_65970d;
+unsigned char g_flag_6596ea;
 
-extern void Function4259B0(int cell, unsigned int flags);
+/* The initial full-screen invalidation runs before any 2D node occupies the
+   tile table.  Preserve that complete empty-slot path here; the non-empty path
+   remains owned by the 2D-node recovery rather than pretending a partial
+   release/recursive invalidation is complete. */
+void Function4259B0(int cell, unsigned int flags)
+{
+    int left;
+    int top;
+    int right;
+    int bottom;
+
+    if (g_surface_nodes_654adc[cell]) {
+        return;
+    }
+    g_block_652ddc[cell] |= static_cast<unsigned char>(flags | 0x40);
+    ++g_dword_6596d8;
+    top = (cell / 0x50) * 8;
+    bottom = top + 8;
+    left = (cell % 0x50) * 8;
+    right = left + 8;
+    if (g_flag_65970d
+        && ((g_viewport_left_6595e8 <= left && left <= g_viewport_right_6595f0)
+            || (g_viewport_left_6595e8 <= right && right <= g_viewport_right_6595f0))
+        && ((g_viewport_top_6595ec <= top && top <= g_viewport_bottom_6595f4)
+            || (g_viewport_top_6595ec <= bottom && bottom <= g_viewport_bottom_6595f4))) {
+        g_block_652ddc[cell] |= 3;
+        g_flag_6596ea = 1;
+    }
+}
 
 // FUNCTION: WIZ8 0x00422D50
 void Function422D50(int left, int top, int right, int bottom, int flags)
@@ -28,7 +67,7 @@ void Function422D50(int left, int top, int right, int bottom, int flags)
     unsigned int x;
 
     cell_flags = 0;
-    if (g_page_whole_6596e8[g_page_index_6596e4] == 0) {
+    if (g_flags_6596e8[g_index_6596e4] == 0) {
         clipped_right = 0x280;
         /* The low clamp is a conditional expression because the original is
            branchless there and branches on the high one, and it is written
@@ -56,7 +95,7 @@ void Function422D50(int left, int top, int right, int bottom, int flags)
         }
         if ((int)(clipped_right - clipped_left) > 0 && bottom - top > 0) {
             if (clipped_right - clipped_left == 0x280 && bottom - top == 0x1e0) {
-                g_page_whole_6596e8[g_page_index_6596e4] = 1;
+                g_flags_6596e8[g_index_6596e4] = 1;
             }
             if (flags & 4) {
                 cell_flags = 0x80;

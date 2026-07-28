@@ -32,7 +32,7 @@ typedef struct W8SurfaceSlot {
 
 extern W8SurfaceSlot* g_surface_650dd4;
 extern W8SurfaceSlot* g_surface_650dd8;
-extern W8SurfaceSlot* g_surface_650ddc;
+extern W8SurfaceSlot* g_primary_surface_view_650ddc;
 extern W8SurfaceSlot* g_surface_650de0;
 extern W8ManagedSurface* g_surface_list_650dbc;
 
@@ -53,7 +53,7 @@ unsigned char FillSurfaceRect(int surface_id, int left, int top, int right, int 
 
     slot = g_surface_650dd4;
     if (surface_id != -0x10 && (slot = g_surface_650dd8, surface_id != -0xf)
-        && (slot = g_surface_650ddc, surface_id != -0xe)
+        && (slot = g_primary_surface_view_650ddc, surface_id != -0xe)
         && (slot = g_surface_650de0, entry = g_surface_list_650dbc, surface_id != -0xd)) {
         for (; entry != 0; entry = entry->next) {
             if (entry->id == surface_id) {

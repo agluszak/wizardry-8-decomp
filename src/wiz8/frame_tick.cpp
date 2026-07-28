@@ -32,13 +32,44 @@ struct W8ScreenStateHandlers {
     void* unknown_10;
 };
 
-extern W8ScreenState g_screen_state;              /* 0x0068EC78 */
-extern W8ScreenState g_pending_state;             /* 0x0068ED10 */
-extern W8ScreenStateHandlers g_screen_handlers[]; /* 0x00647BC8 */
+extern unsigned char MainMenuScreenFunction005BC810(void);
+extern void PresentMenuOverlayFrame(void);
+
+static unsigned char ScreenReady(void) { return 1; }
+static void ScreenIdle(void) {}
+static unsigned char ScreenLeave(int) { return 1; }
+
+/* WIZ8_RUNTIME currently retains the reviewed main-menu callback but not the
+   complete thirteen-record lifecycle table.  Keep this bridge local and
+   unclaimed: it selects the exact menu body through the same typed dispatch
+   shape while wiz8-a69 completes the remaining records. */
+static void RunMainMenuFrame(void)
+{
+    MainMenuScreenFunction005BC810();
+    PresentMenuOverlayFrame();
+}
+
+W8ScreenState g_screen_state = { -1 };
+W8ScreenState g_pending_state = { -1 };
+W8ScreenStateHandlers g_screen_handlers[13] = {
+    { ScreenReady, ScreenReady, RunMainMenuFrame, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 }
+};
 extern unsigned char g_flag_68edac;
 extern unsigned char gfProgramIsRunning;
-extern int g_dword_647bc0;
-extern int g_dword_647bc4;
+int g_dword_647bc0;
+int g_dword_647bc4;
 extern void* g_stack_68eda8;
 extern void* g_object_683fd7;
 
@@ -49,6 +80,14 @@ extern void Function52E3B0(void);
 extern unsigned char Function405C00(void* stack);
 extern unsigned char Function405A70(void* stack, W8ScreenState* into);
 extern void* Function405A00(void* stack, W8ScreenState* from);
+
+void SetPendingScreenRuntime(int state)
+{
+    g_pending_state.id = state;
+}
+
+void Function4095B0(void) {}
+void Function48F9E0(void) {}
 
 // FUNCTION: WIZ8 0x004E3340
 void Function4E3340(void)

@@ -13,10 +13,10 @@
 
 extern "C" {
 
-extern unsigned char g_flag_650dac;
-extern unsigned char g_flag_6f0630;
+unsigned char g_flag_650dac;
+unsigned char g_flag_6f0630;
 extern unsigned int g_mswheel_roll_message;
-extern int g_dword_650db0;
+int g_dword_650db0;
 extern unsigned char g_flag_6505a9;
 extern bool g_teardown_done_650db4;
 

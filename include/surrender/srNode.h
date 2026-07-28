@@ -1,14 +1,17 @@
 #pragma once
 
+#include "srMath.h"
 #include "srTypeRegistry.h"
 
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
-   vtable. The internal bytes are intentionally opaque; first-party derived
-   classes establish that srNode occupies 0x138 bytes. */
+   vtable. First-party scene traversal establishes the two child-list links;
+   the remaining bytes stay opaque. */
 class srNode : public srClass {
 public:
-    struct TraverseInfo;
-    struct ProcessInfo;
+    class TraverseInfo;
+    struct ProcessInfo {
+        class srGERD* renderer;
+    };
     struct BoundInfo;
 
     enum e_processType {
@@ -45,12 +48,21 @@ protected:
     virtual SR_DLL_IMPORT int processSignal(unsigned long signal, void* value);
 
 public:
-    SR_DLL_IMPORT int setParent(srNode* parent, int preserve_transform);
+    SR_DLL_IMPORT int setParent(srNode* parent, int preserve_world_transform);
+    SR_DLL_IMPORT void setLocation(double x, double y, double z);
+    SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
+    SR_DLL_IMPORT void setRotation(double x, double y, double z);
     SR_DLL_IMPORT void setFlag(e_flag flag);
     SR_DLL_IMPORT void clearFlag(e_flag flag);
+    SR_DLL_IMPORT int testFlag(e_flag flag) const;
+    srNode* nextSibling() const { return next_sibling_; }
+    srNode* firstChild() const { return first_child_; }
 
 private:
-    unsigned char unknown_04_[0x134];
+    unsigned char unknown_04_[0x124];
+    srNode* next_sibling_;                  /* 0x128 */
+    unsigned char unknown_12c_[0x08];
+    srNode* first_child_;                   /* 0x134 */
 };
 
 typedef char srNode_must_be_0x138[(sizeof(srNode) == 0x138) ? 1 : -1];

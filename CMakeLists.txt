@@ -262,6 +262,7 @@ if(WIZ8_BUILD_DECOMP)
         "src/wiz8/local_code/Combat Range.cpp"
         src/wiz8/local_code/GameplayCode.cpp
         src/wiz8/local_code/Combat.cpp
+        "src/wiz8/local_code/Combat Sound.cpp"
         src/wiz8/local_code/MonsterAI.cpp
         "src/wiz8/local_code/NPC Manager.cpp"
         "src/wiz8/local_code/Combat Attack.cpp"
@@ -276,6 +277,8 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/MonsterManager.cpp
         src/wiz8/local_code/MonsterGroup.cpp
         src/wiz8/local_code/UtilityFunctions.cpp
+        src/wiz8/local_code/Strings.cpp
+        src/wiz8/local_code/Configuration.cpp
         src/wiz8/dialog_code/Dialog005A80A0.cpp
         src/wiz8/dialog_code/DialogBase005D25B0.cpp
         src/wiz8/dialog_code/Object005EF894.cpp
@@ -346,6 +349,15 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/bringup_gates.cpp
         src/wiz8/renderer_window.cpp
         src/wiz8/startup_render_state.cpp
+        src/wiz8/startup_world.cpp
+        src/wiz8/startup_subsystems.cpp
+        src/wiz8/startup_color.cpp
+        src/wiz8/startup_ui_state.cpp
+        src/wiz8/startup_cursor.cpp
+        src/wiz8/slf_archives.cpp
+        src/wiz8/sgp_runtime_adapters.cpp
+        src/wiz8/surface2d.cpp
+        src/wiz8/video2.cpp
         src/wiz8/window_proc.cpp
         src/wiz8/character_skills.cpp
         src/wiz8/gameplay_boundaries.cpp
@@ -358,11 +370,13 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/game_init.cpp
         src/wiz8/gameplay_teardown.cpp
         src/wiz8/item_mesh.cpp
+        src/wiz8/item_runtime_catalog.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp
         src/wiz8/monster_info_dialog.cpp
         src/wiz8/monster_generators.cpp
         src/wiz8/monster_lookup.cpp
+        src/wiz8/music_playlist.cpp
         src/wiz8/npc_item_lists.cpp
         src/wiz8/spell_backfire.cpp
         src/wiz8/state_getters.cpp
@@ -385,6 +399,8 @@ if(WIZ8_BUILD_DECOMP)
         include
         config/sgp-overlays/common
         "${SGP_SOURCE}")
+    set_source_files_properties(src/wiz8/slf_archives.cpp PROPERTIES
+        COMPILE_OPTIONS "/I${CMAKE_CURRENT_SOURCE_DIR}/config/sgp-overlays/librarydatabase")
 
     # Matching source stays free of synthetic implementations. This umbrella
     # preserves the old object-target name while giving the executable work a
@@ -550,6 +566,16 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         endif()
     endfunction()
 
+    function(wiz8_add_sgp_unit_without_pch target source overlay)
+        add_library(${target} OBJECT EXCLUDE_FROM_ALL "${SGP_SOURCE}/${source}")
+        target_include_directories(${target} PRIVATE
+            "config/sgp-overlays/${overlay}"
+            config/sgp-overlays/common
+            "${SGP_SOURCE}"
+        )
+        target_compile_options(${target} PRIVATE ${WIZ8_SGP_PROJECT_FLAGS})
+    endfunction()
+
     wiz8_add_sgp_unit(WIZ8_SGP_DIRECTDRAW "DirectDraw Calls.c" directdraw)
     wiz8_add_sgp_unit(WIZ8_SGP_DIRECTX_COMMON "DirectX Common.c" directdraw)
 
@@ -563,7 +589,6 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     wiz8_add_sgp_unit(WIZ8_SGP_COMPRESSION "Compression.c" compression)
 
     wiz8_add_sgp_unit(WIZ8_SGP_FILEMAN "FileMan.c" fileman)
-
     # Wizardry's six embedded SLF paths recover the missing WizLibs.h library
     # count used by LibraryDataBase.c. DbMan.c has no product-private surface.
     wiz8_add_sgp_unit(WIZ8_SGP_LIBRARY_DATABASE "LibraryDataBase.c" librarydatabase)
@@ -572,6 +597,26 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
     # Container.c is the released SGP contiguous-container implementation
     # (HSTACK/HQUEUE/HLIST/HORDLIST), not Wizardry's first-party PList class.
     wiz8_add_sgp_unit(WIZ8_SGP_CONTAINER "Container.c" container)
+    wiz8_add_sgp_unit(WIZ8_SGP_VSURFACE "vsurface.c" vsurface)
+    # Wizardry retained a first-party FillSurfaceRect at the same C symbol.
+    # Keep the released SGP unit intact while preventing that discarded SGP
+    # body from colliding in the runnable partial link.
+    target_compile_definitions(WIZ8_SGP_VSURFACE PRIVATE
+        FillSurfaceRect=SgpReleasedFillSurfaceRect)
+
+    # Font and video-object loading use the released Wizardry branch directly.
+    # Its public header was named video2.h; the overlay maps that include to the
+    # released video-manager interface rather than duplicating declarations.
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_FONT "Font.c" font-video)
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_VOBJECT "vobject.c" font-video)
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_HIMAGE "himage.c" font-video)
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_STCI "STCI.c" font-video)
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_PCX "PCX.C" font-video)
+    set_source_files_properties("${SGP_SOURCE}/PCX.C" PROPERTIES LANGUAGE C)
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_IMPTGA "impTGA.c" font-video)
+    wiz8_add_sgp_unit_without_pch(
+        WIZ8_SGP_VOBJECT_BLITTERS "vobject_blitters.c" font-video)
+    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_SHADING "shading.c" font-video)
 
     # DEBUG.C owns the shared release-mode formatter and debug-manager
     # boundaries. ExceptionHandling.cpp deliberately emits no code for the
@@ -622,6 +667,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         add_dependencies(
             WIZ8_SGP_PROBES
             WIZ8_SGP_CONTAINER
+            WIZ8_SGP_VSURFACE
             WIZ8_SGP_CORE
             WIZ8_SGP_DEBUG
             WIZ8_SGP_DIRECTDRAW
@@ -629,6 +675,14 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
             WIZ8_SGP_FILEMAN
             WIZ8_SGP_INPUT
             WIZ8_SGP_LIBRARY_DATABASE
+            WIZ8_SGP_FONT
+            WIZ8_SGP_VOBJECT
+            WIZ8_SGP_HIMAGE
+            WIZ8_SGP_STCI
+            WIZ8_SGP_PCX
+            WIZ8_SGP_IMPTGA
+            WIZ8_SGP_VOBJECT_BLITTERS
+            WIZ8_SGP_SHADING
         )
         add_dependencies(WIZ8_MATCHING WIZ8_SGP_PROBES)
         # The image target pulls them too, so an ordinary build still produces
@@ -640,6 +694,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         )
         target_sources(WIZ8_RUNTIME PRIVATE
             $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>
+            $<TARGET_OBJECTS:WIZ8_SGP_VSURFACE>
             $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
             $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
             $<TARGET_OBJECTS:WIZ8_SGP_DIRECTDRAW>
@@ -649,6 +704,14 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
             $<TARGET_OBJECTS:WIZ8_SGP_LIBRARY_DATABASE>
             $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
             $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
+            $<TARGET_OBJECTS:WIZ8_SGP_FONT>
+            $<TARGET_OBJECTS:WIZ8_SGP_VOBJECT>
+            $<TARGET_OBJECTS:WIZ8_SGP_HIMAGE>
+            $<TARGET_OBJECTS:WIZ8_SGP_STCI>
+            $<TARGET_OBJECTS:WIZ8_SGP_PCX>
+            $<TARGET_OBJECTS:WIZ8_SGP_IMPTGA>
+            $<TARGET_OBJECTS:WIZ8_SGP_VOBJECT_BLITTERS>
+            $<TARGET_OBJECTS:WIZ8_SGP_SHADING>
         )
     endif()
 endif()

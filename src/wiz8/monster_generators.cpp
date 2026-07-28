@@ -73,7 +73,202 @@ extern int g_encounter_culling_time_seconds;
 extern void Function43A690(int handle);                      /* 0x0043A690 */
 extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
                                          unsigned int size, unsigned int* done);
+extern "C" int FileOpen(char* path, unsigned int options,
+                         unsigned char delete_on_close);
+extern "C" void CloseVirtualFile(int handle);
 extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
+
+W8EncounterTableRuntime** g_encounter_tables;
+char** g_encounter_names;
+unsigned int g_encounter_name_count;
+unsigned int g_encounter_table_count;
+int g_encounter_tables_level = -1;
+
+static unsigned int g_encounter_name_capacity;
+static unsigned int g_encounter_table_capacity;
+
+void UnloadEncounterTables(void);
+
+#pragma pack(push, 1)
+struct W8EncounterRuntimeVector {
+    void* vtable;
+    int count;
+    int capacity;
+    void* data;
+};
+
+struct W8EncounterTableLayout {
+    W8EncounterRuntimeVector species_ids;
+    W8EncounterRuntimeVector rarity_class;
+    W8EncounterRuntimeVector time_condition;
+    W8EncounterRuntimeVector challenge_level;
+    W8EncounterRuntimeVector script_names;
+    char name[256];
+    unsigned int unknown_150;
+    unsigned char version_two_flags;
+    unsigned char padding_155[3];
+};
+#pragma pack(pop)
+
+typedef char W8EncounterTableLayout_must_be_0x158[
+    sizeof(W8EncounterTableLayout) == 0x158 ? 1 : -1];
+
+static unsigned char GrowPointerArray(void*** values, unsigned int* capacity,
+                                      unsigned int wanted)
+{
+    void** replacement;
+    unsigned int next = *capacity ? *capacity + 5 : 5;
+
+    if (next < wanted) {
+        next = wanted;
+    }
+    replacement = static_cast<void**>(::operator new(next * sizeof(void*)));
+    if (!replacement) {
+        return 0;
+    }
+    if (*values) {
+        memcpy(replacement, *values, *capacity * sizeof(void*));
+        ::operator delete(*values);
+    }
+    *values = replacement;
+    *capacity = next;
+    return 1;
+}
+
+static unsigned char InitializeEncounterVector(W8EncounterRuntimeVector* vector,
+                                                unsigned int width, int capacity)
+{
+    vector->vtable = 0;
+    vector->count = 0;
+    vector->capacity = capacity;
+    vector->data = ::operator new(width * capacity);
+    return vector->data != 0;
+}
+
+/* Engine Code\\MonGen.cpp's startup loader.  EncounterTables.dbs stores the
+   names first, followed by a columnar record: ids, rarity, time, challenge and
+   fixed 64-byte script names.  Keeping those columns in their reviewed inline
+   vector layout makes this useful to the later encounter path as well as to
+   startup. */
+// FUNCTION: WIZ8 0x0048A7A0
+extern "C" unsigned int InitializeEncounterTables(void)
+{
+    char archive_path[] = "Data\\Databases\\EncounterTables.dbs";
+    int handle = FileOpen(archive_path, 0x41, 0);
+    int name_count;
+    int table_count;
+    int index;
+
+    if (!handle) {
+        return 0;
+    }
+    UnloadEncounterTables();
+    if (!ReadVirtualFile(handle, &name_count, 4, 0)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    for (index = 0; index < name_count; ++index) {
+        char* name = static_cast<char*>(::operator new(0x100));
+        if (!name || !ReadVirtualFile(handle, name, 0x100, 0)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        if (g_encounter_name_count == g_encounter_name_capacity &&
+            !GrowPointerArray(reinterpret_cast<void***>(&g_encounter_names),
+                              &g_encounter_name_capacity,
+                              g_encounter_name_count + 1)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        g_encounter_names[g_encounter_name_count++] = name;
+    }
+    if (!ReadVirtualFile(handle, &table_count, 4, 0)) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    for (index = 0; index < table_count; ++index) {
+        unsigned char record_kind;
+        char name[256];
+        unsigned int unknown_150;
+        unsigned short version;
+        unsigned char entry_count;
+        unsigned char flags = 0;
+        int initial_capacity;
+        unsigned short species[256];
+        unsigned char rarity[256];
+        unsigned char time[256];
+        unsigned char challenge[256];
+        W8EncounterTableLayout* table;
+        int entry;
+
+        if (!ReadVirtualFile(handle, &record_kind, 1, 0) ||
+            !ReadVirtualFile(handle, name, sizeof(name), 0) ||
+            !ReadVirtualFile(handle, &unknown_150, 4, 0) ||
+            !ReadVirtualFile(handle, &version, 2, 0) ||
+            !ReadVirtualFile(handle, &entry_count, 1, 0)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        table = static_cast<W8EncounterTableLayout*>(
+            ::operator new(sizeof(W8EncounterTableLayout)));
+        if (!table) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        memset(table, 0, sizeof(*table));
+        initial_capacity = entry_count > 5 ? entry_count : 5;
+        if (!InitializeEncounterVector(&table->species_ids, 2, initial_capacity) ||
+            !InitializeEncounterVector(&table->rarity_class, 1, initial_capacity) ||
+            !InitializeEncounterVector(&table->time_condition, 1, initial_capacity) ||
+            !InitializeEncounterVector(&table->challenge_level, 1, initial_capacity) ||
+            !InitializeEncounterVector(&table->script_names, 4, initial_capacity) ||
+            !ReadVirtualFile(handle, species, entry_count * 2, 0) ||
+            !ReadVirtualFile(handle, rarity, entry_count, 0) ||
+            !ReadVirtualFile(handle, time, entry_count, 0) ||
+            !ReadVirtualFile(handle, challenge, entry_count, 0)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        for (entry = 0; entry < entry_count; ++entry) {
+            char* script = static_cast<char*>(::operator new(0x40));
+            if (!script || !ReadVirtualFile(handle, script, 0x40, 0)) {
+                CloseVirtualFile(handle);
+                return 0;
+            }
+            static_cast<unsigned short*>(table->species_ids.data)[entry] =
+                species[entry];
+            static_cast<unsigned char*>(table->rarity_class.data)[entry] = rarity[entry];
+            static_cast<unsigned char*>(table->time_condition.data)[entry] = time[entry];
+            static_cast<unsigned char*>(table->challenge_level.data)[entry] = challenge[entry];
+            static_cast<char**>(table->script_names.data)[entry] = script;
+            table->species_ids.count = entry + 1;
+            table->rarity_class.count = entry + 1;
+            table->time_condition.count = entry + 1;
+            table->challenge_level.count = entry + 1;
+            table->script_names.count = entry + 1;
+        }
+        memcpy(table->name, name, sizeof(name));
+        table->unknown_150 = unknown_150;
+        if (version != 1 && !ReadVirtualFile(handle, &flags, 1, 0)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        table->version_two_flags = flags;
+        if (g_encounter_table_count == g_encounter_table_capacity &&
+            !GrowPointerArray(reinterpret_cast<void***>(&g_encounter_tables),
+                              &g_encounter_table_capacity,
+                              g_encounter_table_count + 1)) {
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        g_encounter_tables[g_encounter_table_count++] =
+            reinterpret_cast<W8EncounterTableRuntime*>(table);
+        (void)record_kind;
+    }
+    g_encounter_tables_level = g_current_level;
+    CloseVirtualFile(handle);
+    return 1;
+}
 
 static const char MON_GEN_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp";
 

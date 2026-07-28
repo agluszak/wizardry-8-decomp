@@ -3,6 +3,9 @@
 
 #include <wchar.h>
 
+unsigned char SaveGameExists(void);
+void ResetRegions(void);
+
 /*
  * Local Screens\MainMenuScreen.cpp.
  *
@@ -18,35 +21,34 @@ extern unsigned int g_monster_record_count;
 
 
 /* The screen's own state. */
-extern unsigned char g_flag_68517c;
-extern unsigned char g_flag_69c4ba;
-extern unsigned char g_flag_69c4b6;
-extern unsigned char g_selected_item_69c4b4;
-extern unsigned char g_flag_69c4c4;
-extern int g_dword_69c4bc;
-extern int g_dword_69c4c0;
+unsigned char g_flag_68517c;
+unsigned char g_flag_69c4ba;
+unsigned char g_flag_69c4b6;
+unsigned short g_selected_item_69c4b4;
+unsigned char g_flag_69c4c4;
+int g_dword_69c4bc;
+int g_dword_69c4c0;
 extern int g_dword_647bc0;
-extern int g_dword_68c09c;
-extern void* g_font_683660;
-extern void* g_colour_68ee3c;
-extern void* g_colour_68ee08;
+int g_dword_68c09c;
+extern int g_font_683660;
+extern unsigned short* g_colour_68ee3c;
+extern unsigned short* g_colour_68ee08;
 
 extern void Function422B10(void);
 extern void Function40B290(void);
-extern unsigned char Function512FB0(void);
-extern void Function421FF0(void);
-extern void* Function4104B0(int packed_colour);
-extern void Function402FA0(int id, int x, int y, int width, int height, void* colour);
+extern unsigned char ClearPrimarySurface(void);
+extern unsigned short Get16BPPColor(unsigned int packed_colour);
+extern unsigned char FillSurfaceRect(int id, int x, int y, int width, int height,
+                                     int colour);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int g);
 extern void Function422D50(int left, int top, int right, int bottom, int a);
 extern void Function4E3620(char* text, int a, int b, int c);
-extern void Function407210(void* font);
-extern void Function406DC0(void* font, void* colour);
-extern short Function407010(const wchar_t* text, void* font, int a, const wchar_t* measured);
-extern void Function407650(int x);
-extern void Function4F1240(void);
-extern void Function48FC10(const char* playlist, int a);
+extern unsigned char SetFont(int font);
+extern unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* colour);
+extern short StringPixLength(unsigned short* text, int font);
+extern unsigned int mprintf(int x, int y, unsigned short* text, ...);
+extern unsigned char Function48FC10(const char* playlist, int immediate, int replace);
 extern void Function55EF90(void);
 extern void* Function5CF300(int a);
 extern void Function5D2CB0(int a, int b);
@@ -107,7 +109,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
 {
     char text[64];
     wchar_t wide[64];
-    void* colour;
+    unsigned short colour;
     void* dialog;
     int pending;
     short measured;
@@ -115,11 +117,11 @@ unsigned char MainMenuScreenFunction005BC810(void)
     Function422B10();
     Function40B290();
     g_flag_68517c = 0;
-    g_flag_69c4ba = Function512FB0();
+    g_flag_69c4ba = SaveGameExists();
     g_flag_69c4b6 = 1;
-    Function421FF0();
-    colour = Function4104B0(0x10101);
-    Function402FA0(-14, 0, 0, 0x280, 0x1e0, colour);
+    ClearPrimarySurface();
+    colour = Get16BPPColor(0x10101);
+    FillSurfaceRect(-14, 0, 0, 0x280, 0x1e0, colour);
     SetViewport(0, 0, 0x280, 0x1e0);
     g_selected_item_69c4b4 = 0;
     Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);
@@ -136,12 +138,12 @@ unsigned char MainMenuScreenFunction005BC810(void)
 
     Function4E3620(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));
-    Function407210(g_font_683660);
-    Function406DC0(g_font_683660, g_colour_68ee3c);
-    measured = Function407010(wide, g_font_683660, 5, wide);
-    Function407650(0x27b - measured);
-    Function406DC0(g_font_683660, g_colour_68ee08);
-    Function4F1240();
+    SetFont(g_font_683660);
+    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee3c);
+    measured = StringPixLength((unsigned short*)wide, g_font_683660);
+    mprintf(0x27b - measured, 5, (unsigned short*)wide);
+    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
+    ResetRegions();
     RegionSetEnable(1);
 
     if (g_monster_record_count > 1000) {
@@ -152,7 +154,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
             0);
     }
     if (g_dword_647bc0 != 10) {
-        Function48FC10("MainMenu.MPL", 0);
+        Function48FC10("MainMenu.MPL", 0, 1);
     }
     Function55EF90();
 

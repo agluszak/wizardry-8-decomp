@@ -9,16 +9,16 @@
    The globals live at 0x006598B8..0x006598D2 and are declared, not defined:
    their addresses in the original data segment are the authority. */
 
-extern srTimer* g_shared_timer_base;   /* 0x006598B8 */
-extern srTimer* g_shared_timer;        /* 0x006598C0 */
-extern int g_shared_timer_pause_base;                /* 0x006598C4 */
-extern int g_shared_timer_pause_time;                /* 0x006598C8 */
-extern int g_shared_timer_refs;                      /* 0x006598CC */
-extern unsigned char g_shared_timer_paused;          /* 0x006598D0 */
-extern unsigned char g_shared_timer_flag_d1;         /* 0x006598D1 */
-extern unsigned char g_shared_timer_flag_d2;         /* 0x006598D2 */
-extern int g_game_time_ms;                           /* 0x006874F7 */
-extern int g_game_time_days;                         /* 0x00687595 */
+srTimer* g_shared_timer_base;          /* 0x006598B8 */
+srTimer* g_shared_timer;               /* 0x006598C0 */
+int g_shared_timer_pause_base;                       /* 0x006598C4 */
+int g_shared_timer_pause_time;                       /* 0x006598C8 */
+int g_shared_timer_refs;                             /* 0x006598CC */
+unsigned char g_shared_timer_paused;                 /* 0x006598D0 */
+unsigned char g_shared_timer_flag_d1;                /* 0x006598D1 */
+unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
+int g_game_time_ms;                                  /* 0x006874F7 */
+int g_game_time_days;                                /* 0x00687595 */
 
 /* The 0x24-byte wrapper. Mode 1 reads the game-world clock; mode 0 reads the
    shared timer, frozen while the pause flag is set; the low flag bit bypasses
@@ -26,6 +26,7 @@ extern int g_game_time_days;                         /* 0x00687595 */
 class W8Timer005EC0A4 {
 public:
     W8Timer005EC0A4();
+    W8Timer005EC0A4(float duration, unsigned char raw_time);
 
     // W8Timer005EC0A4::~W8Timer005EC0A4 is the 94-byte body at 0x00439A00.
     // Defined in the class so VC6 also folds it into the deleting destructor
@@ -135,4 +136,44 @@ W8Timer005EC0A4::W8Timer005EC0A4()
     m_end = m_start + 10000;
     m_speed = 1.0f;
     m_duration = 10000;
+}
+
+/* The startup status object uses the duration-bearing constructor at
+   0x004397F0.  It differs from the default constructor only in the raw-time
+   flag and in converting seconds to the timer's 1/10000-second units. */
+W8Timer005EC0A4::W8Timer005EC0A4(float duration, unsigned char raw_time)
+{
+    m_mode = 0;
+    m_flags = raw_time ? 1 : 0;
+    m_shared = 0;
+    m_start = 0;
+    m_end = 0;
+    m_speed = 0;
+    m_speed_2 = 1.0f;
+
+    if (g_shared_timer == 0) {
+        g_shared_timer_paused = 0;
+        g_shared_timer_flag_d1 = 0;
+        g_shared_timer_flag_d2 = 0;
+        srTimer* timer = new srTimer(0, 0, 1);
+        g_shared_timer = timer;
+        g_shared_timer_base = timer;
+        timer->m_units_per_interval = 10000;
+        timer->m_units_per_tick = timer->m_frequency != 0
+            ? 10000.0 / (double)timer->m_frequency : 10000.0;
+        g_shared_timer_refs = 0;
+        g_shared_timer_pause_base = 0;
+        g_shared_timer_pause_time = 0;
+    }
+    m_shared = g_shared_timer;
+    ++g_shared_timer_refs;
+    m_start = Sample();
+    m_speed = duration;
+    m_duration = (int)(duration * 10000.0f);
+    m_end = m_start + m_duration;
+}
+
+void* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)
+{
+    return new W8Timer005EC0A4(duration, raw_time);
 }

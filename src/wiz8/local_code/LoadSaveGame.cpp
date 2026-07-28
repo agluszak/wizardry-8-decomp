@@ -96,9 +96,8 @@ struct W8StatusHeader {
     unsigned char unknown_114[0x200];
 };                                       /* 0x314 */
 
-/* 0x00404C80 and 0x00404E10, declared as in game_databases.cpp. */
-extern int FileOpen(const char* path, int mode, int flags);
-extern void CloseVirtualFile(int handle);
+/* The game-side virtual-file close wrapper is distinct from SGP FileClose. */
+extern "C" void CloseVirtualFile(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
    as elsewhere in src/wiz8. The first loads a character from somewhere other

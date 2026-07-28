@@ -10,6 +10,19 @@ LIBRARY SR
 ; original imports the variadic one; only a hand-built long-form import
 ; object could close that, not a .def.
 EXPORTS
+    ??0srTimer@@QAE@HHH@Z
+    ??1srTimer@@UAE@XZ
+    ?getAscTime@srTimer@@UAEPADPADW4e_timerReadControl@1@@Z
+    ?pause@srTimer@@UAEHXZ
+    ?resume@srTimer@@UAEKXZ
+    ?reset@srTimer@@UAEHHHH@Z
+    ?getMsTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
+    ?getTime@srTimer@@UAENW4e_timerReadControl@1@@Z
+    ?getUTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z
+    ?getUTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
+    ?getRawTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z
+    ?getRawTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
+    ?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?srAssertFail@@YAXPBD0J0ZZ
     ?srAssertFail@@YAXPBD0J0@Z = ?srAssertFail@@YAXPBD0J0ZZ
 
@@ -31,9 +44,23 @@ EXPORTS
     ?getDisplayMode@srGERD@@QBEJKKK@Z
     ?openWindow@srGERD@@QAE?AW4e_error@1@XZ
     ?openWindow@srGERD@@QAE?AW4e_error@1@J@Z
+    ?beginFrame@srGERD@@QAE?AW4e_error@1@XZ
+    ?endFrame@srGERD@@QAEXXZ
+    ?flushRenderers@srGERD@@QAEXXZ
+    ?matrixMode@srGERD@@QAEXW4e_matrixMode@1@@Z
+    ?pushMatrix@srGERD@@QAEXXZ
+    ?popMatrix@srGERD@@QAEXXZ
+    ?loadIdentity@srGERD@@QAEXXZ
+    ?ortho@srGERD@@QAEXNNNNNN@Z
+    ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
+    ?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z
+    ?setTexture@srGERD@@QAEXPAVsrTextureIFace@@K@Z
+    ?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z
+    ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?srCore@@3V0@A
+    ?srBoxFilter@@3V0@A
     ??0srBinStream@@IAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@
@@ -49,6 +76,7 @@ EXPORTS
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@PAXKKK@Z
     ?setName@srRuntimeClass@@QAEXPBD@Z
+    ?getName@srRuntimeClass@@QBEPBDXZ
     ?setClipRange@srCamera@@QAEXNN@Z
     ?setEnvironmentRange@srCamera@@QAEXMM@Z
     ?setViewPlane@srCamera@@QAEXABURect@1@N@Z
@@ -113,6 +141,126 @@ EXPORTS
     ?minify@srColorSurfaceIFace@@MAEXAAV1@@Z
     ?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?vInstance@srColorSurface@@UAEPAVsrClass@@XZ
+    ?sGetClassName@srColorSurface@@SAPBDXZ
+    ?sGetClassName@srColorSurfaceIFace@@SAPBDXZ
+    ??4srColorSurface@@QAEAAV0@ABV0@@Z
+    ?allocate@srHeap@@QAEPAXK@Z
+    ?release@srClass@@QBEHXZ
+    ?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ
+    ??0srClass@@IAE@XZ
+    ??1srClass@@MAE@XZ
+    ??0srNode@@QAE@PAV0@@Z
+    ??1srNode@@MAE@XZ
+    ??4srNode@@QAEAAV0@ABV0@@Z
+    ?dump@srNode@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getLocalBounds@srNode@@UAEXAAUBoundInfo@1@@Z
+    ?process@srNode@@UAEXABUProcessInfo@1@W4e_processType@1@@Z
+    ?processSignal@srNode@@MAEHKPAX@Z
+    ?sGetClassName@srNode@@SAPBDXZ
+    ?setParent@srNode@@QAEHPAV1@H@Z
+    ?traverse@srNode@@UAEXAAVTraverseInfo@1@@Z
+    ?updateBounds@srNode@@UAEXXZ
+    ?vInstance@srNode@@UAEPAVsrClass@@XZ
+    ??0srTexture@@IAE@XZ
+    ??1srTexture@@MAE@XZ
+    ??4srTexture@@QAEAAV0@ABV0@@Z
+    ?dump@srTexture@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?enableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
+    ?getDimensions@srTexture@@UAEXAAUDimensions@srTextureIFace@@@Z
+    ?getMipmapData@srTexture@@UAEXAAUMultiRequest@srTextureIFace@@@Z
+    ?getMipmapLevelPartial@srTexture@@UAEXAAUPartialRequest@srTextureIFace@@@Z
+    ?getNewFrameHandle@srTexture@@KAKXZ
+    ?getPriority@srTexture@@UAEMXZ
+    ?getTextureFrameHandle@srTexture@@UAEKXZ
+    ?getTextureParms@srTexture@@UAEXAAUParameters@srTextureIFace@@@Z
+    ?getTextureName@srTextureIFace@@UAEPBDXZ
+    ?invalidateFrameHandle@srTexture@@IAEXK@Z
+    ?sGetClassName@srTexture@@SAPBDXZ
+    ?setMipmap@srTexture@@QAEXW4e_mipmap@srTextureIFace@@@Z
+    ?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
+    ?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
+    ?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z
+    ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
+    ?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ??1srMaterialIFace@@UAE@XZ
+    ?sGetClassName@srMaterialIFace@@SAPBDXZ
+    ??1srMaterial@@MAE@XZ
+    ??4srMaterial@@QAEAAV0@ABV0@@Z
+    ??_7srMaterial@@6B@
+    ?dump@srMaterial@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getMaterialInfo@srMaterial@@UAEXAAUMaterialInfo@srVertexProcessor@@@Z
+    ?postProcess@srMaterial@@UAEXAAVsrVertexPipe@@@Z
+    ?preProcess@srMaterial@@UAEXAAVsrVertexPipe@@@Z
+    ?reset@srMaterial@@MAEXXZ
+    ?sGetClassName@srMaterial@@SAPBDXZ
+    ?setVector@srMaterial@@IAEXAAV?$srVector4T@M@@ABV2@@Z
+    ?updateParms@srMaterial@@MAEXXZ
+    ?vInstance@srMaterial@@UAEPAVsrClass@@XZ
+    ?getTexture@srMeshModel@@QBEPAVsrTextureIFace@@JJ@Z
+    ??0srMeshModel@@QAE@JJ@Z
+    ??1srMeshModel@@MAE@XZ
+    ?dump@srMeshModel@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?verify@srMeshModel@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ?vInstance@srMeshModel@@UAEPAVsrClass@@XZ
+    ?getBoundingSphere@srMeshModel@@UAEHAAV?$srVector3T@M@@AAM@Z
+    ?getBoundingBox@srMeshModel@@UAEHAAV?$srVector3T@M@@0@Z
+    ?render@srMeshModel@@UAEXAAVsrGERD@@@Z
+    ?updateAllClients@srModel@@UAEXW4e_update@Client@1@@Z
+    ?reindexPolygons@srMeshModel@@UAEXPBK@Z
+    ?reindexVertices@srMeshModel@@UAEXPBK@Z
+    ?updateTriMesh@srMeshModel@@MAEXXZ
+    ?calculateBounds@srMeshModel@@MAEXXZ
+    ?calculatePolygonNormals@srMeshModel@@MAEXXZ
+    ?calculateVertexNormals@srMeshModel@@MAEXXZ
+    ?setMaterial@srMeshModel@@QAEXPAVsrMaterialIFace@@JW4e_side@1@@Z
+    ?setTexture@srMeshModel@@QAEXPAVsrTextureIFace@@JJ@Z
+    ?setShader@srMeshModel@@QAEXVsrShader@@J@Z
+    ?createGrid@srModeler@@QAEXJJ@Z
+    ?planarMap@srModeler@@QAEXJJABUMappingInfo@1@@Z
+    ?scale@srModeler@@QAEXABV?$srVector3T@M@@@Z
+    ?convert@srModeler@@QAEXAAVsrMeshModel@@H@Z
+    ?discard@srModeler@@QAEXXZ
+    ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
+    ??4srTextureMap@@QAEAAV0@ABV0@@Z
+    ?setSurfacePtr@srTextureMap@@QAEXPAVsrColorSurfaceIFace@@@Z
+    ?invalidate@srTextureMap@@UAEXXZ
+    ?vInstance@srTextureMap@@UAEPAVsrClass@@XZ
+    ?setCorrection@srTexture@@QAEXW4e_correction@srTextureIFace@@@Z
+    ?setMagFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z
+    ?setMinFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z
+    ??0Client@srModel@@QAE@XZ
+    ??1Client@srModel@@UAE@XZ
+    ?getModel@Client@srModel@@UBEPAV2@XZ
+    ?setModel@Client@srModel@@UAEXPAV2@@Z
+    ?updateClient@Client@srModel@@UAEXW4e_update@12@@Z
+    ??0srModelInstance@@QAE@PAVsrNode@@@Z
+    ?addReference@srClass@@QBEXXZ
+    ?autoRelease@srClass@@QAEXXZ
+    ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ?clone@srNode@@UAEPAV1@XZ
+    ??1srModelInstance@@MAE@XZ
+    ?dump@srModelInstance@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?vInstance@srModelInstance@@UAEPAVsrClass@@XZ
+    ?traverse@srModelInstance@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?process@srModelInstance@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?getLocalBounds@srModelInstance@@UAEXAAUBoundInfo@srNode@@@Z
+    ?updateClient@srModelInstance@@UAEXW4e_update@Client@srModel@@@Z
+    ?verify@srMaterial@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ??0srScene@@QAE@PAVsrNode@@@Z
+    ??1srScene@@UAE@XZ
+    ??4srScene@@QAEAAV0@ABV0@@Z
+    ?dump@srScene@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?process@srScene@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?traverse@srScene@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?vInstance@srScene@@UAEPAVsrClass@@XZ
+    ??0srCamera@@QAE@PAVsrNode@@@Z
+    ??1srCamera@@UAE@XZ
+    ??4srCamera@@QAEAAV0@ABV0@@Z
+    ?dump@srCamera@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?process@srCamera@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?vInstance@srCamera@@UAEPAVsrClass@@XZ
+    ??1srModeler@@UAE@XZ
     ?flush@srGERD@@QAEXXZ
     ?setViewPlane@srCamera@@QAEXNN@Z
     ?getViewPlane@srCamera@@QBEXAAURect@1@AAN@Z

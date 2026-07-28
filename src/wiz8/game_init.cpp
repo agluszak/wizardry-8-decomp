@@ -2,6 +2,17 @@
 
 #include <string.h>
 
+/* GameplayDatabase.cpp is an original C++ translation unit.  Keep these
+   declarations outside the C-linkage block: spelling them as C functions
+   leaves the recovered bodies present but unreachable from this unit. */
+extern void Function54AF30(unsigned char release);
+extern void Function54AFD0(void);
+extern unsigned char Function54A760(W8MonsterRecord** records);
+extern unsigned char VerifyDataSubdirs(void);
+extern void Function51B560(void);
+extern void Function55EC50(int value);
+extern unsigned char InitializeSpellDatabase(void);
+
 /*
  * The data bring-up gate BringUpEngine calls last. It stamps the version
  * string, opens the archives and string data, then walks every database
@@ -13,38 +24,32 @@
 extern "C" {
 
 extern void* CreateStack(int count, int size);
+extern unsigned char InitializeMenuStartupSubsystems(void);
 
-extern void InitializeSlfArchives(void);
-extern void Function412870(const char* directory);
-extern void Function518360(const char* path);
-extern void* Function421F70(int* count);
-extern void Function421FB0(void);
-extern void Function54B810(void);
-extern void Function413E80(int value);
-extern void Function413D60(void);
-extern unsigned char Function4E27A0(void);
-extern void Function40CF60(void);
-extern void Function4F11D0(void);
-extern void Function40C210(void);
-extern void Function40C200(void);
-extern void Function40C1F0(unsigned short value);
-extern void Function54AF30(int value);
-extern void Function54AFD0(void);
+extern unsigned char InitializeSlfArchives(void);
+extern int LoadPatchSlfArchives(const char* directory);
+extern void LoadLocalizedStrings(const char* path);
+extern void* LockPrimarySurface(int* count);
+extern void UnlockPrimarySurface(void);
+extern void LoadGameConfiguration(void);
+extern void SetStartupColorTransform(unsigned int value);
+extern void RebuildStartupColorTable(void);
+extern unsigned char InitializeMenuFonts(void);
+extern void InitializeMessageBoxState(void);
+extern void InitializeRegionHelpState(void);
+extern void SetMessageBoxModeDisabled(void);
+extern void SetMessageBoxModeEnabled(void);
+extern void SetMessageBoxWord(unsigned short value);
 extern void Function55EF90(void);
-extern unsigned char VerifyDataSubdirs(void);
-extern unsigned char Function54A760(int value);
-extern void Function51B560(void);
 extern void Function479010(void);
-extern void Function55EC50(int value);
 extern unsigned char Function516740(void* slot);
 extern int GetSaveGameLevel(void* slot);
 extern void InitializeEncounterTables(void);
 extern unsigned char Function4A5600(void);
-extern unsigned char InitializeSpellDatabase(void);
 extern unsigned char Function549B00(void);
-extern void Function401920(const char* message);
+extern void ShutdownWithErrorBox(char* message);
 extern unsigned char Function48F940(void);
-extern unsigned int Function428E60(void);
+extern unsigned int GetTotalPhysicalMemory(void);
 
 extern char* gzStringDataOverride;
 extern unsigned char gfLoadAtStartup;
@@ -59,15 +64,11 @@ extern unsigned char g_flag_6850d4;
 extern unsigned short g_word_6850ed;
 extern unsigned char g_block_68f2d8[0xc4e0];
 extern unsigned char g_flag_65beaf;
-/* Five-dword records; slot zero of each is an initialiser returning success. */
-extern unsigned char (*g_init_table_647bc8[])(void);
-extern unsigned char g_init_table_end_647ccc[];
 
 // FUNCTION: WIZ8 0x004E2F40
 unsigned char Function4E2F40(void)
 {
     char version[64];
-    unsigned char (**initialiser)(void);
     void* buffer;
     int count;
     unsigned char ok;
@@ -78,38 +79,34 @@ unsigned char Function4E2F40(void)
     strcat(version, FormatString(" (build %d)", 0xdb));
     strcat(version, FormatString(" %s", "2001/12/24 15:36"));
     InitializeSlfArchives();
-    Function412870("Patches");
-    Function518360(gzStringDataOverride ? gzStringDataOverride : "Data\\Strings\\StringData.DAT");
-    buffer = Function421F70(&count);
+    LoadPatchSlfArchives("Patches");
+    LoadLocalizedStrings(gzStringDataOverride ? gzStringDataOverride : "Data\\Strings\\StringData.DAT");
+    buffer = LockPrimarySurface(&count);
     memset(buffer, 0, count * 0x1e0);
-    Function421FB0();
-    Function54B810();
+    UnlockPrimarySurface();
+    LoadGameConfiguration();
     g_dword_68ec78 = -1;
     g_dword_68ed10 = -1;
     g_stack_68eda8 = CreateStack(5, 0x98);
     if (!g_stack_68eda8) {
         return 0;
     }
-    initialiser = g_init_table_647bc8;
-    do {
-        if (!(*initialiser)()) {
-            return 0;
-        }
-        initialiser += 5;
-    } while (initialiser < (unsigned char (**)(void))g_init_table_end_647ccc);
-    Function413E80(0x3f28f5c3);
-    Function413D60();
-    if (!Function4E27A0()) {
+    if (!InitializeMenuStartupSubsystems()) {
         return 0;
     }
-    Function40CF60();
-    Function4F11D0();
-    if (g_flag_6850d4) {
-        Function40C200();
-    } else {
-        Function40C210();
+    SetStartupColorTransform(0x3f28f5c3);
+    RebuildStartupColorTable();
+    if (!InitializeMenuFonts()) {
+        return 0;
     }
-    Function40C1F0(g_word_6850ed);
+    InitializeMessageBoxState();
+    InitializeRegionHelpState();
+    if (g_flag_6850d4) {
+        SetMessageBoxModeEnabled();
+    } else {
+        SetMessageBoxModeDisabled();
+    }
+    SetMessageBoxWord(g_word_6850ed);
     Function54AF30(0);
     Function54AFD0();
     Function55EF90();
@@ -145,19 +142,19 @@ unsigned char Function4E2F40(void)
     }
     InitializeEncounterTables();
     if (!Function4A5600()) {
-        Function401920("Could not load missile database!");
+        ShutdownWithErrorBox("Could not load missile database!");
     }
     if (!InitializeSpellDatabase()) {
-        Function401920("Could not load spell database!");
+        ShutdownWithErrorBox("Could not load spell database!");
     }
     if (!Function549B00()) {
-        Function401920("Could not load hit sound database!");
+        ShutdownWithErrorBox("Could not load hit sound database!");
     }
     memset(g_block_68f2d8, 0, sizeof(g_block_68f2d8));
     if (!Function48F940()) {
         return 0;
     }
-    ok = (unsigned char)(0x4000000 < Function428E60());
+    ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
     g_flag_65beaf = ok;
     return 1;
 }

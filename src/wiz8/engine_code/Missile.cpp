@@ -9,6 +9,74 @@
 
 #include "wiz8/engine_code/Emitter.h"
 
+extern "C" int FileOpen(char* path, unsigned int options,
+                         unsigned char delete_on_close);
+extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
+                                          unsigned int size,
+                                          unsigned int* done);
+extern "C" unsigned char FileSeek(int handle, unsigned int distance,
+                                   unsigned char origin);
+extern "C" void CloseVirtualFile(int handle);
+
+#pragma pack(push, 1)
+struct W8MissileTableRecord {
+    unsigned char bytes[0x1e5];
+};
+#pragma pack(pop)
+
+W8MissileTableRecord* g_missile_table_65bde0;
+unsigned int g_missile_table_count_65bddc;
+
+typedef char W8MissileTableRecord_must_be_0x1e5[
+    sizeof(W8MissileTableRecord) == 0x1e5 ? 1 : -1];
+
+/* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
+   0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
+// FUNCTION: WIZ8 0x004A5600
+extern "C" unsigned char Function4A5600(void)
+{
+    char path[] = "Data\\Databases\\MissileTables.dbs";
+    int allocated_count;
+    unsigned int record_count;
+    unsigned int index;
+    int handle;
+
+    if (g_missile_table_65bde0) {
+        ::operator delete(g_missile_table_65bde0);
+        g_missile_table_65bde0 = 0;
+        g_missile_table_count_65bddc = 0;
+    }
+    handle = FileOpen(path, 0x41, 0);
+    if (!handle ||
+        !ReadVirtualFile(handle, &allocated_count, 4, 0) ||
+        !ReadVirtualFile(handle, &record_count, 4, 0)) {
+        if (handle) {
+            CloseVirtualFile(handle);
+        }
+        return 0;
+    }
+    g_missile_table_65bde0 = static_cast<W8MissileTableRecord*>(
+        ::operator new(allocated_count * sizeof(W8MissileTableRecord)));
+    if (!g_missile_table_65bde0) {
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    for (index = 0; index < record_count; ++index) {
+        if (!FileSeek(handle, 0x101, 4) ||
+            !ReadVirtualFile(handle, &g_missile_table_65bde0[index],
+                             sizeof(W8MissileTableRecord), 0)) {
+            ::operator delete(g_missile_table_65bde0);
+            g_missile_table_65bde0 = 0;
+            g_missile_table_count_65bddc = 0;
+            CloseVirtualFile(handle);
+            return 0;
+        }
+    }
+    g_missile_table_count_65bddc = record_count;
+    CloseVirtualFile(handle);
+    return 1;
+}
+
 class W8Missile {
 public:
     virtual ~W8Missile();

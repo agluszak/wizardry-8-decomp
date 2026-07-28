@@ -1,6 +1,9 @@
 #include "wiz8/wiz8_windows.h"
 #include "surrender/srConfig.h"
 #include "surrender/srColorSurface.h"
+#include "surrender/srGERD.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srScene.h"
 #include "surrender/srStringTable.h"
 
 #include <direct.h>
@@ -20,75 +23,9 @@
    dllimport is not decoration: without it VC6 emits a five-byte direct call to
    the import thunk where the canonical has a six-byte indirect call through the
    import address table. */
-class __declspec(dllimport) srGERD {
-public:
-    enum e_error {};
-
-    static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
-    e_error createContext(unsigned long window);
-    long getDisplayMode(unsigned long width, unsigned long height,
-                        unsigned long depth) const;
-    e_error openWindow();
-    e_error openWindow(long mode);
-    int isWindowOpen() const;
-};
-
 class __declspec(dllimport) srExtension {
 public:
     static srExtension* load(const char* name, const char* path);
-};
-
-class __declspec(dllimport) srNode : public srRuntimeClass {
-public:
-    void setLocation(double x, double y, double z);
-    void setRotation(double x, double y, double z);
-};
-
-class __declspec(dllimport) srScene : public srNode {
-public:
-    srScene(srNode* parent);
-private:
-    unsigned char storage_[0x190];
-};
-
-class __declspec(dllimport) srCamera : public srNode {
-public:
-    struct Rect {
-        double left;
-        double top;
-        double right;
-        double bottom;
-    };
-
-    srCamera(srNode* parent);
-    void setClipRange(double near_plane, double far_plane);
-    void setViewPlane(const Rect& rectangle, double distance);
-    void setEnvironmentRange(float near_range, float far_range);
-private:
-    unsigned char storage_[0x188];
-};
-
-class __declspec(dllimport) srModeler {
-public:
-    srModeler();
-private:
-    unsigned char storage_[0x14];
-};
-
-class W8ColorSurface : public srColorSurface {
-public:
-    W8ColorSurface(srPixelConvert::e_surfaceType type,
-                   unsigned long width, unsigned long height)
-        : srColorSurface(type, width, height) {}
-    W8ColorSurface(srPixelConvert::e_surfaceType type, void* data,
-                   unsigned long width, unsigned long height,
-                   unsigned long pitch)
-        : srColorSurface(type, data, width, height, pitch) {}
-
-    virtual const char* getClassName() const { return "stColorSurface"; }
-    virtual unsigned long getClassID() const { return 0; }
-    virtual srRegistry::ClassNode* getClassNode() const { return NULL; }
-    virtual srColorSurfaceIFace* clone() { return NULL; }
 };
 
 __declspec(dllimport) int __cdecl srInit(void);
@@ -108,6 +45,7 @@ int g_screen_width_603c3c = 640;
 int g_screen_height_603c40 = 480;
 int g_screen_depth_603c44 = 16;
 int g_pixel_format_603c48 = 9;
+int g_renderer_mode_603d74;
 int g_dword_65962c;
 int g_dword_6596fc;
 unsigned int g_tick_659700;
@@ -145,11 +83,12 @@ srScene* g_scene_overlay0_659654;
 srScene* g_scene_overlay1_659658;
 srScene* g_scene_square_65965c;
 srColorSurface* g_primary_color_surface_659660;
-void* g_surface_node_659664;
+class stSurface2D* g_surface_node_659664;
 srCamera* g_overlay_camera_659670;
 srCamera* g_square_camera_659674;
 srColorSurface* g_mouse_surface_659688;
-unsigned char g_surface_pixels_654adc[0x4b00];
+srMaterial* g_blit_material_65967c;
+srNode* g_surface_nodes_654adc[0x12c0];
 int g_surface_state_6595dc;
 int g_surface_state_654ad8;
 int g_viewport_left_6595e8;
@@ -165,8 +104,8 @@ extern const float g_one_5ebc30 = 1.0f;
 
 /* From the vendored SGP DirectDraw Calls.c. */
 extern void DDUnlockSurface(void* surface, void* locked);
-extern int DDLockSurface(void* surface, RECT* area, DDSURFACEDESC* description,
-                         int flags, void* event);
+extern void DDLockSurface(void* surface, RECT* area,
+                          DDSURFACEDESC* description, int flags, void* event);
 unsigned char g_block_652ddc[0x12c0];
 unsigned int g_index_6596e4;
 int g_dword_6596d8;
@@ -177,7 +116,7 @@ extern void Function4265C0(void);
 extern unsigned char Function425EC0(void);
 extern unsigned char Function426080(void);
 extern unsigned char InitializeVideoDevice(void);
-extern void Function423500(void);
+extern unsigned char Function423500(void);
 extern void Function56AAB0(void);
 extern unsigned char Function422800(void);
 extern void Function422D50(int a, int b, int c, int d, int e);
@@ -193,6 +132,43 @@ extern void AssertFailureHandler(const char* expression, const char* file,
 
 char* g_sound_provider_650e54;
 unsigned char* g_render_options_65a118;
+
+// FUNCTION: WIZ8 0x00421F70
+void* LockPrimarySurface(int* pitch)
+{
+    DDSURFACEDESC description;
+
+    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    *pitch = description.lPitch;
+    return description.lpSurface;
+}
+
+/* Clear the software-facing frame and retire every transient 2D overlay.
+   The four scene walks are the same typed operation used during renderer
+   bring-up; keeping the reset here avoids reproducing SurRender's node ABI at
+   the menu call site. */
+void Function422B10(void)
+{
+    DDSURFACEDESC description;
+    unsigned int active;
+
+    memset(&description, 0, sizeof(description));
+    description.dwSize = sizeof(description);
+    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    memset(description.lpSurface, 0, description.lPitch * 480);
+    DDUnlockSurface(g_primary_surface_6596a8, NULL);
+    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
+    memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
+    active = g_index_6596e4;
+    g_flags_6596e8[active ^ 1] = 0;
+    g_flags_6596e8[active] = 0;
+    g_dword_6596d8 = 0;
+    Function426500(g_scene_prerender0_65964c);
+    Function426500(g_scene_overlay0_659654);
+    Function426500(g_scene_prerender1_659650);
+    Function426500(g_scene_overlay1_659658);
+    Function422D50(0, 0, 640, 480, 0);
+}
 
 
 /* Brings the renderer up, shows the window and, when the INSPECTOR switch was
@@ -546,6 +522,34 @@ unsigned char Function422800(void)
     }
     g_flag_603c3a = 1;
     return 1;
+}
+
+/* WM_SIZE only rebuilds the SurRender output in windowed mode.  Full-screen
+   startup receives the same Windows notification while the device already
+   owns its configured 640x480 mode, so there is no resize operation to do. */
+unsigned char Function422550(void)
+{
+    if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 ||
+        !g_flag_603c3a) {
+        return 0;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004277E0
+unsigned char Function4277E0(void)
+{
+    return g_flag_65970f;
+}
+
+/* The first WM_SETFOCUS arrives from ShowWindow while the renderer bring-up
+   latch is raised.  Retail treats that notification as already resumed. */
+unsigned char Function4220B0(void)
+{
+    if (g_flag_659710) {
+        return 1;
+    }
+    return 0;
 }
 
 /* Releases the lock the frame tick takes on the primary surface. The second

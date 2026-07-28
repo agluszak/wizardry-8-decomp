@@ -1,0 +1,72 @@
+#include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+extern "C" {
+
+extern int FileOpen(const char* path, int options, int delete_on_close);
+extern void CloseVirtualFile(int handle);
+
+int g_localized_string_count_68c098;
+unsigned short** g_localized_strings_68c09c;
+
+// FUNCTION: WIZ8 0x005300E0
+void DecodeLocalizedText(unsigned short* text, int character_count)
+{
+    while (character_count-- > 0) {
+        *text = static_cast<unsigned short>(~*text + 0x9697);
+        ++text;
+    }
+}
+
+// FUNCTION: WIZ8 0x00518360
+void LoadLocalizedStrings(const char* path)
+{
+    static const char source[] =
+        "C:\\Projects\\Wizardry 8\\Local Code\\Strings.cpp";
+    int handle = FileOpen(path, 0x41, 0);
+    int index;
+
+    if (!handle) {
+        srAssertFail("hFile", source, 74,
+                     "Failed to open localization string table.");
+        return;
+    }
+    if (!ReadVirtualFile(handle, &g_localized_string_count_68c098, 4, 0)
+        || !g_localized_string_count_68c098) {
+        srAssertFail("giStringListLen", source, 79, 0);
+        CloseVirtualFile(handle);
+        return;
+    }
+    g_localized_strings_68c09c = static_cast<unsigned short**>(
+        malloc(g_localized_string_count_68c098 * sizeof(unsigned short*)));
+    if (!g_localized_strings_68c09c) {
+        srAssertFail("gppStringList", source, 82, 0);
+        CloseVirtualFile(handle);
+        return;
+    }
+    memset(g_localized_strings_68c09c, 0,
+           g_localized_string_count_68c098 * sizeof(unsigned short*));
+    for (index = 0; index != g_localized_string_count_68c098; ++index) {
+        unsigned int byte_count;
+        if (!ReadVirtualFile(handle, &byte_count, 4, 0)) {
+            break;
+        }
+        g_localized_strings_68c09c[index] =
+            static_cast<unsigned short*>(malloc(byte_count));
+        if (!g_localized_strings_68c09c[index]) {
+            srAssertFail("gppStringList[iCount]", source, 89, 0);
+            break;
+        }
+        if (!ReadVirtualFile(handle, g_localized_strings_68c09c[index],
+                             byte_count, 0)) {
+            break;
+        }
+        DecodeLocalizedText(g_localized_strings_68c09c[index], byte_count / 2);
+    }
+    CloseVirtualFile(handle);
+}
+
+}

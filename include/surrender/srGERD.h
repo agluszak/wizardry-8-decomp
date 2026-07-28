@@ -1,0 +1,106 @@
+#pragma once
+
+#include "srStringTable.h"
+#include "srTypeRegistry.h"
+#include "srMath.h"
+
+class srTextureIFace;
+
+class srRendererDefs {
+public:
+    enum e_primitive {};
+    enum e_clip {};
+};
+
+template <class Enum>
+class srFlags {
+public:
+    explicit srFlags(unsigned long bits) : value(bits) {}
+    unsigned long value;
+};
+
+class SR_DLL_IMPORT srGERD : public srRuntimeClass {
+public:
+    enum e_error {};
+    enum e_matrixMode {};
+    enum e_antiAlias {};
+
+    static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
+    e_error createContext(unsigned long window);
+    long getDisplayMode(unsigned long width, unsigned long height,
+                        unsigned long depth) const;
+    e_error openWindow();
+    e_error openWindow(long mode);
+    int isWindowOpen() const;
+    void setGamma(const srVector3T<float>& gamma);
+    e_error beginFrame();
+    void endFrame();
+    void flushRenderers();
+    void matrixMode(e_matrixMode mode);
+    void pushMatrix();
+    void popMatrix();
+    void loadIdentity();
+    void ortho(double left, double right, double bottom, double top,
+               double near_plane, double far_plane);
+    void setClipState(srFlags<srRendererDefs::e_clip> state);
+    void setAntiAlias(e_antiAlias mode);
+    void setTexture(srTextureIFace* texture, unsigned long layer);
+    void drawArrays(srRendererDefs::e_primitive primitive, long first,
+                    unsigned long count);
+
+    void configure2DSurface(unsigned long state, unsigned long flags,
+                            const float* texture_coordinates) {
+        render_state_21c4_ = state;
+        dirty_21c0_ |= 1;
+        if (render_mode_1648_ != 2) {
+            render_mode_1648_ = 2;
+            dirty_24_ |= 0x2000;
+        }
+        if (surface_flags_1ff8_ != flags) {
+            surface_flags_1ff8_ = flags;
+            dirty_24_ |= 0x1000;
+        }
+        stream_21e0_ = 2;
+        stream_21f8_ = 1;
+        stream_2210_ = 8;
+        texture_coordinates_2228_ = texture_coordinates;
+        dirty_21c0_ |= 1;
+    }
+
+    void configure2DQuad(const float* vertices) {
+        vertex_count_21c8_ = 4;
+        primitive_21d0_ = 3;
+        stream_21e8_ = 1;
+        stream_2200_ = 0xc;
+        vertices_2218_ = vertices;
+        dirty_21c0_ |= 1;
+    }
+
+private:
+    unsigned char unknown_04_[0x20];
+    unsigned long dirty_24_;
+    unsigned char unknown_28_[0x1620];
+    long render_mode_1648_;
+    unsigned char unknown_164c_[0x9ac];
+    unsigned long surface_flags_1ff8_;
+    unsigned char unknown_1ffc_[0x1c4];
+    unsigned long dirty_21c0_;
+    unsigned long render_state_21c4_;
+    unsigned long vertex_count_21c8_;
+    unsigned char unknown_21cc_[4];
+    unsigned long primitive_21d0_;
+    unsigned char unknown_21d4_[0xc];
+    unsigned long stream_21e0_;
+    unsigned char unknown_21e4_[4];
+    unsigned long stream_21e8_;
+    unsigned char unknown_21ec_[0xc];
+    unsigned long stream_21f8_;
+    unsigned char unknown_21fc_[4];
+    unsigned long stream_2200_;
+    unsigned char unknown_2204_[0xc];
+    unsigned long stream_2210_;
+    unsigned char unknown_2214_[4];
+    const float* vertices_2218_;
+    unsigned char unknown_221c_[0xc];
+    const float* texture_coordinates_2228_;
+};

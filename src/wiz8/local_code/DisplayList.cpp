@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 /*
@@ -69,34 +70,34 @@ void Function40B830(W8DisplayNode* node);
 extern void HideRegionHelp(void);
 extern void Function5A1140(short shape);
 
-extern short g_word_5ff7c8;
-extern W8DisplayNode* g_display_ptr_650e6c;
-extern W8DisplayNode* g_display_ptr_650e70;
-extern unsigned int g_time_650e74;
+short g_word_5ff7c8;
+W8DisplayNode* g_display_ptr_650e6c;
+W8DisplayNode* g_display_ptr_650e70;
+unsigned int g_time_650e74;
 
 /* The buffer is not released with a direct call to free: the body loads a
    function pointer from 0x005EB224 once, before the loop, and calls through it
    for every node. */
-extern void (*g_deallocator_5eb224)(void*);
+void (*g_deallocator_5eb224)(void*) = free;
 
-extern W8DisplayNode g_display_template_5ff7d0;
-extern W8DisplayNode* g_display_head_650e94;
-extern W8DisplayNode* g_display_ptr_650e98;
-extern W8DisplayNode* g_display_ptr_650e9c;
-extern unsigned char g_display_flag_650ea0;
-extern unsigned char g_display_flag_650e90;
-extern unsigned short g_display_id_6e4100;
+W8DisplayNode g_display_template_5ff7d0;
+W8DisplayNode* g_display_head_650e94;
+W8DisplayNode* g_display_ptr_650e98;
+W8DisplayNode* g_display_ptr_650e9c;
+unsigned char g_display_flag_650ea0;
+unsigned char g_display_flag_650e90;
+unsigned short g_display_id_6e4100;
 
-extern int g_dword_650e78;
-extern int g_dword_650e7c;
-extern short g_word_650e80;
-extern short g_word_650e82;
-extern short g_word_650e84;
-extern unsigned short g_word_650e86;
-extern unsigned char g_byte_650e88;
-extern unsigned char g_byte_650e89;
-extern unsigned char g_byte_650e8a;
-extern W8DisplayNode* g_display_ptr_650e8c;
+int g_dword_650e78;
+int g_dword_650e7c;
+short g_word_650e80;
+short g_word_650e82;
+short g_word_650e84;
+unsigned short g_word_650e86;
+unsigned char g_byte_650e88;
+unsigned char g_byte_650e89;
+unsigned char g_byte_650e8a;
+W8DisplayNode* g_display_ptr_650e8c;
 
 /*
  * Inserts a node into the display list, ordered on the key at +0x02 with

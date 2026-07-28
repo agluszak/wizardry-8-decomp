@@ -44,8 +44,8 @@ typedef char W8VideoFrame_size_must_be_0x3c[sizeof(W8VideoFrame) == 0x3c ? 1 : -
 extern "C" {
 
 extern unsigned char g_video_objects_ready_650e20;
-extern W8VideoObjectSlot g_video_slots_6448c8[];
-extern W8VideoFrame g_video_frames_62c430[];
+W8VideoObjectSlot g_video_slots_6448c8[494];
+W8VideoFrame g_video_frames_62c430[459];
 
 
 /* Two loaders, chosen by the frame's mode. Each takes a request whose first
@@ -70,6 +70,35 @@ extern char Function402A70(W8VideoLoadRequestB* request, void** surface);
 void Function549090(int object, int frame);
 extern char Function405FF0(int object, void* surface, short y, int a, int b, int c, int d);
 extern char Function402ED0(int object, void* surface, short y, int a, int b, int c, int d);
+
+/* The complete checked-in catalog remains part of wiz8-a69.  These are the
+   exact records consumed by startup, the default cursor and the main menu. */
+void InitializeMenuVideoObjectCatalog(void)
+{
+    strcpy(g_video_frames_62c430[0].path, "Data\\Cursors\\2D-Cursors.sti");
+
+    g_video_slots_6448c8[0xe8].first_frame = 0x1c5;
+    g_video_slots_6448c8[0xe9].first_frame = 0x1c6;
+    g_video_slots_6448c8[0xea].first_frame = 0x1c7;
+    g_video_slots_6448c8[0xeb].first_frame = 0x1c8;
+    g_video_slots_6448c8[0xec].first_frame = 0x1c9;
+    g_video_slots_6448c8[0xed].first_frame = 0x1ca;
+
+    strcpy(g_video_frames_62c430[0x1c5].path,
+           "Data\\Options\\intro_bg_text.sti");
+    g_video_frames_62c430[0x1c5].mode = 1;
+    strcpy(g_video_frames_62c430[0x1c6].path,
+           "Data\\Options\\intro_bg_credits.sti");
+    g_video_frames_62c430[0x1c6].mode = 1;
+    strcpy(g_video_frames_62c430[0x1c7].path,
+           "Data\\Options\\introtext_normal.sti");
+    strcpy(g_video_frames_62c430[0x1c8].path,
+           "Data\\Options\\introtext_depressed.sti");
+    strcpy(g_video_frames_62c430[0x1c9].path,
+           "Data\\Options\\introtext_highlight.sti");
+    strcpy(g_video_frames_62c430[0x1ca].path,
+           "Data\\Options\\introtext_unavailable.sti");
+}
 
 #define VIDEO_OBJECT_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\VideoObjectManager.cpp"
 
@@ -97,9 +126,9 @@ void Function548F90(int target, int object, int frame, short y,
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
     if (g_video_frames_62c430[slot->first_frame + frame].mode == 0) {
-        ok = Function405FF0(object, surface, row, a5, a6, a7, a8);
+        ok = Function405FF0(target, surface, row, a5, a6, a7, a8);
     } else {
-        ok = Function402ED0(object, surface, row, a5, a6, a7, 0);
+        ok = Function402ED0(target, surface, row, a5, a6, a7, 0);
     }
     if (!ok) {
         srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x3e, 0);
@@ -153,6 +182,25 @@ void Function549090(int object, int frame)
         record->surface = surface;
         record->loaded = 1;
     }
+}
+
+// FUNCTION: WIZ8 0x00549390
+void* Function549390(int object, int frame)
+{
+    Function549090(object, frame);
+    return g_video_frames_62c430[
+        g_video_slots_6448c8[object].first_frame + frame].surface;
+}
+
+// FUNCTION: WIZ8 0x005493E0
+short Function5493E0(int object, int fallback)
+{
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xf2, 0);
+        return g_video_slots_6448c8[fallback].y_offset;
+    }
+    return g_video_slots_6448c8[object].y_offset;
 }
 
 }

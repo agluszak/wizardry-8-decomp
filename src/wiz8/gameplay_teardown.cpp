@@ -16,7 +16,6 @@ struct W8Deletable {
 extern "C" {
 
 extern void __fastcall Function52D5B0(void* self);
-extern W8Deletable* g_object_685067;
 
 // FUNCTION: WIZ8 0x0054B0B0
 void DestroyGameplayObjects(void)
@@ -29,7 +28,7 @@ void DestroyGameplayObjects(void)
         operator delete(owned);
         g_object_683fd7 = 0;
     }
-    deletable = g_object_685067;
+    deletable = static_cast<W8Deletable*>(g_object_685067);
     if (deletable) {
         deletable->ScalarDeletingDestructor(1);
         g_object_685067 = 0;

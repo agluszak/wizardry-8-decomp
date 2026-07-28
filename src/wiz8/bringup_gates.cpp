@@ -1,6 +1,7 @@
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/gameplay_boundaries.h"
+#include "vsurface.h"
 
 #include <direct.h>
 #include <process.h>
@@ -18,13 +19,18 @@
 
 extern "C" {
 
+HVSURFACE CreateVideoSurfaceFromDDSurface(IDirectDrawSurface2* surface);
+
 int g_dword_650dbc;
 /* Released and cleared together by 0x00402E60, which frees each through
    0x00403A50; only the third is rebuilt here. */
-int g_primary_surface_view_650ddc;
-extern void Function402E60(void);
-extern void* Function421F20(void);
-extern int Function4044C0(void* surface);
+HVSURFACE g_surface_650dd4;
+HVSURFACE g_surface_650dd8;
+HVSURFACE g_primary_surface_view_650ddc;
+HVSURFACE g_surface_650de0;
+extern HVSURFACE ghFrameBuffer;
+extern HVSURFACE ghMouseBuffer;
+extern IDirectDrawSurface2* g_primary_surface_6596a8;
 int g_dword_650dc0;
 int g_dword_6ef4c0;
 int g_dword_650df4;
@@ -32,14 +38,14 @@ int g_dword_650df8;
 int g_dword_650dfc;
 int g_dword_650e00;
 bool g_flag_650e04;
-extern unsigned char g_flag_650e50;
-extern unsigned char g_flag_5ff651;
+unsigned char g_flag_650e50;
+unsigned char g_flag_5ff651;
 extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_byte_603c39;
-extern int g_dword_65a104;
-extern int g_dword_5ff64c;
+int g_dword_65a104;
+int g_dword_5ff64c;
 extern int g_dword_6874c6;
 extern int g_dword_687595;
 extern unsigned char g_byte_68de44;
@@ -47,11 +53,42 @@ extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_byte_603c39;
-extern unsigned short g_word_5ff7c8;
-extern unsigned char g_flag_5ff7ca;
 int g_dword_650e24;
 int g_dword_650e28;
-bool g_flag_650e20;
+unsigned char g_video_objects_ready_650e20;
+
+// FUNCTION: WIZ8 0x00402E60
+void Function402E60(void)
+{
+    if (g_surface_650dd4) {
+        DeleteVideoSurface(g_surface_650dd4);
+        g_surface_650dd4 = 0;
+    }
+    if (g_surface_650dd8) {
+        DeleteVideoSurface(g_surface_650dd8);
+        g_surface_650dd8 = 0;
+    }
+    if (g_primary_surface_view_650ddc) {
+        DeleteVideoSurface(g_primary_surface_view_650ddc);
+        g_primary_surface_view_650ddc = 0;
+    }
+    if (g_surface_650de0) {
+        DeleteVideoSurface(g_surface_650de0);
+        g_surface_650de0 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x00421F20
+IDirectDrawSurface2* Function421F20(void)
+{
+    return g_primary_surface_6596a8;
+}
+
+// FUNCTION: WIZ8 0x004044C0
+HVSURFACE Function4044C0(IDirectDrawSurface2* surface)
+{
+    return CreateVideoSurfaceFromDDSurface(surface);
+}
 
 
 /* Named in the startup spine. The rest are gates it records as
@@ -88,12 +125,13 @@ extern long __stdcall WindowProc4011E0(void* window, int message,
 extern unsigned char Function421BB0(void* instance, int show_command,
                                     long(__stdcall* window_proc)(void*, int,
                                                                  unsigned int, long));
+extern void InitializeSGPPixelFormat(void);
 
 
 
 extern unsigned char Function4E2F40(void);
-extern unsigned int g_mswheel_roll_message;
-extern bool g_flag_6505a9;
+unsigned int g_mswheel_roll_message;
+bool g_flag_6505a9;
 
 
 /* Rebuilds the view of the primary DirectDraw surface. 0x00402E60 releases and
@@ -104,7 +142,7 @@ extern bool g_flag_6505a9;
 // FUNCTION: WIZ8 0x00402E30
 bool Function402E30(void)
 {
-    void* surface;
+    IDirectDrawSurface2* surface;
     bool built;
 
     Function402E60();
@@ -114,6 +152,13 @@ bool Function402E30(void)
     }
     g_primary_surface_view_650ddc = Function4044C0(surface);
     built = g_primary_surface_view_650ddc != 0;
+    if (built) {
+        /* The released VSurface manager names these two reserved handles.
+           Wizardry owns the actual DirectDraw wrapper, so publish that one
+           instead of constructing a parallel surface database. */
+        ghFrameBuffer = g_primary_surface_view_650ddc;
+        ghMouseBuffer = g_primary_surface_view_650ddc;
+    }
     return built;
 }
 
@@ -153,7 +198,7 @@ bool Function405E60(void)
 {
     g_dword_650e28 = 0;
     g_dword_650e24 = 0;
-    g_flag_650e20 = true;
+    g_video_objects_ready_650e20 = 1;
     return true;
 }
 
@@ -171,9 +216,9 @@ unsigned char g_flag_6ef440;
 
 void ShutdownHandler(void);
 bool SetModuleSubdirectory(const char* subdirectory);
-extern bool g_shutdown_started_650db5;
-extern bool g_teardown_done_650db4;
-extern char g_shutdown_message_6505ac[];
+bool g_shutdown_started_650db5;
+bool g_teardown_done_650db4;
+char g_shutdown_message_6505ac[0x100];
 extern void Function4E34B0(int flag);
 extern void Function4E3290(void);
 extern void Function40CF90(void);
@@ -282,26 +327,6 @@ void Function408850(void)
     g_flag_650e50 = 0;
 }
 
-/* Three setters over one pair of adjacent globals: a 16-bit value and a flag
-   the two gates below turn on and off. */
-// FUNCTION: WIZ8 0x0040C1F0
-void Function40C1F0(unsigned short value)
-{
-    g_word_5ff7c8 = value;
-}
-
-// FUNCTION: WIZ8 0x0040C200
-void Function40C200(void)
-{
-    g_flag_5ff7ca = 1;
-}
-
-// FUNCTION: WIZ8 0x0040C210
-void Function40C210(void)
-{
-    g_flag_5ff7ca = 0;
-}
-
 /* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
 // FUNCTION: WIZ8 0x004023A0
 void Function4023A0(void)
@@ -371,19 +396,21 @@ struct W8BindingNode {
     void* payload;                        /* 0x04 */
 };
 
-extern void Function422AF0(unsigned int* first, unsigned int* second, unsigned int* third);
-extern int g_dword_5ff5f0;
-extern int g_dword_5ff5f4;
-extern int g_dword_5ff5f8;
-extern int g_dword_5ff5fc;
-extern int g_dword_5ff600;
-extern int g_dword_5ff604;
-extern int g_dword_5ff608;
-extern int g_dword_5ff60c;
-extern unsigned char g_flag_650e38;
-extern W8BindingNode* g_binding_head_6eb704;
-extern unsigned char g_block_6eb6a0[0x64];
+int g_dword_5ff5f0;
+int g_dword_5ff5f4;
+int g_dword_5ff5f8;
+int g_dword_5ff5fc;
+int g_dword_5ff600;
+int g_dword_5ff604;
+int g_dword_5ff608;
+int g_dword_5ff60c;
+unsigned char g_flag_650e38;
+W8BindingNode* g_binding_head_6eb704;
+unsigned char g_block_6eb6a0[0x64];
 
+extern void GetDefaultScreenMode(unsigned short* height,
+                                 unsigned short* width,
+                                 unsigned char* depth);
 extern void Function427A30(const char* path);
 extern void Function422970(int enable);
 extern unsigned char gfLoadAtStartup;
@@ -405,17 +432,15 @@ int __stdcall AIL_3D_provider_attribute(int provider, const char* name, void* va
 
 extern unsigned char Function409C50(void);
 
-extern unsigned char g_flag_5ff651;
-extern unsigned char g_flag_5ff652;
-extern void* g_pointer_5ff648;
-extern unsigned char g_block_6e4120[0x980];
-extern unsigned char g_block_6e4aa0[0x6c00];
-extern int g_dword_650e4c;
-extern int g_dword_5ff64c;
-extern char* g_provider_name_650e54;
-extern int g_provider_650e58;
-extern int g_listener_650e5c;
-extern unsigned char g_buffer_7dc000[];
+unsigned char g_flag_5ff652;
+void* g_pointer_5ff648;
+unsigned char g_block_6e4120[0x980];
+unsigned char g_block_6e4aa0[0x6c00];
+int g_dword_650e4c;
+extern char* g_sound_provider_650e54;
+int g_provider_650e58;
+int g_listener_650e5c;
+unsigned char g_buffer_7dc000[1];
 
 /* Walks the Miles 3D providers for the one whose name matches the configured
    string, opens it and its listener, and records whether the provider exposes
@@ -440,17 +465,17 @@ bool Function4086D0(void)
     memset(g_block_6e4aa0, 0, sizeof(g_block_6e4aa0));
     g_dword_650e4c = 0;
     g_dword_5ff64c = 0x1f5800;
-    if (g_provider_name_650e54 && g_provider_650e58 == 0) {
+    if (g_sound_provider_650e54 && g_provider_650e58 == 0) {
         next = 0;
         provider = 0;
-        if (g_flag_650e50 && g_provider_name_650e54) {
+        if (g_flag_650e50 && g_sound_provider_650e54) {
             do {
                 do {
                     if (AIL_enumerate_3D_providers(&next, &provider, &name) == 0) {
                         return true;
                     }
                 } while (provider == 0);
-            } while (strcmp(g_provider_name_650e54, name) != 0);
+            } while (strcmp(g_sound_provider_650e54, name) != 0);
             if (AIL_open_3D_provider(provider) == 0) {
                 g_provider_650e58 = provider;
                 g_listener_650e5c = AIL_open_3D_listener(provider);
@@ -758,20 +783,20 @@ W8BindingNode* Function407EC0(void)
 // FUNCTION: WIZ8 0x00407D30
 bool Function407D30(unsigned short code, W8BindingNode* source)
 {
-    unsigned int first;
-    unsigned int second;
-    unsigned int third;
+    unsigned short first;
+    unsigned short second;
+    unsigned char third;
     W8BindingNode* copy;
 
     g_dword_5ff5f0 = -1;
     g_dword_5ff5f4 = -15;
     g_dword_5ff5f8 = 0;
-    Function422AF0(&first, &second, &third);
+    GetDefaultScreenMode(&first, &second, &third);
     g_dword_5ff600 = 0;
     g_dword_5ff604 = 0;
-    g_dword_5ff608 = first & 0xffff;
-    g_dword_5ff60c = second & 0xffff;
-    g_dword_5ff5fc = third & 0xff;
+    g_dword_5ff608 = first;
+    g_dword_5ff60c = second;
+    g_dword_5ff5fc = third;
     g_flag_650e38 = 0;
     if (!source) {
         return false;
@@ -976,6 +1001,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!BringUpEngine(hInstance, nShowCmd)) {
         return 0;
     }
+    InitializeSGPPixelFormat();
     gfApplicationActive = 1;
     gfProgramIsRunning = 1;
     do {

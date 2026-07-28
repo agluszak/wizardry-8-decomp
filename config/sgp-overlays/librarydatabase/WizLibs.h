@@ -8,6 +8,12 @@
  * source, so preserve only the count and declaration required by this unit.
  */
 #define NUMBER_OF_LIBRARIES 6
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern LibraryInitHeader gGameLibaries[NUMBER_OF_LIBRARIES];
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -938,6 +938,7 @@ extern W8PList* g_monster_group_list;         /* gXStatus.plsMonsterGroupList */
    by 0x0054B0B0 through operator delete after the same method's sibling. */
 extern unsigned char g_status_block_685078[56];
 extern void* g_object_683fd7;
+extern void* g_object_685067;
 extern unsigned char g_flag_6850b5;
 extern unsigned char g_flag_683fc5;
 /* Written by Targeting.cpp and reset to -1 here; meaning not established. */

@@ -14,9 +14,9 @@ extern W8RPCSlot g_rpc_slots_end[];
 extern int g_string_table_count;
 extern char** g_string_table;
 extern int g_string_table_state;
-extern char g_format_string_buffer[];
-extern wchar_t g_wide_string_buffer[];
-extern wchar_t g_empty_wide_string[];
+char g_format_string_buffer[200];
+wchar_t g_wide_string_buffer[4096];
+wchar_t g_empty_wide_string[1];
 
 static __inline int UtilityIntegerPower(int base, unsigned int exponent)
 {

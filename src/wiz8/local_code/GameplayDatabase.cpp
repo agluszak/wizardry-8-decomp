@@ -1,39 +1,56 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/vector.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-extern unsigned char ReadVirtualFile(int handle, void* buffer, unsigned int size,
-                                     unsigned int* done);
-extern int FileOpen(const char* path, int mode, int flags);
-/* 0x005E1CE0, the operator new import thunk, and two unidentified members of
-   the PList family at 0x005E22C0 and 0x005E2530 that create a list and store an
-   element at an index. */
-extern void* operator_new_import_thunk(unsigned int size);
-extern void* Function5E22C0(void);
-extern void Function5E2530(void* list, unsigned int index, void* element);
+extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
+                                          unsigned int size,
+                                          unsigned int* done);
+extern "C" int FileOpen(const char* path, int mode, int flags);
 /* 0x0052DB80 is a member function of the object at 0x00683FD7. VC6 has no way
    to spell __thiscall on a free declaration, but __fastcall passes its first
    argument in ECX, which is the same instruction the canonical emits.
    0x0054B300 resets one of eight slots. */
 extern void __fastcall Function52DB80(void* self);
 extern void Function54B300(unsigned int slot);
-extern W8GlobalStatus g_status_685170;
+W8GlobalStatus g_status_685170;
+/* Persistent database roots owned by this translation unit.  Leaving these as
+   unresolved externals made the runnable image relocate every load/store to
+   the PE image base; the first four-byte count read consequently targeted a
+   read-only header instead of game state. */
+W8FactDatabaseRecord* g_fact_records;
+int g_fact_record_count;
+W8ItemDatabaseRecord* g_item_records;
+int g_item_record_count;
+W8LevelDatabaseRecord* g_level_records;
+int g_level_record_count;
+W8NpcDatabaseRecord* g_npc_records;
+unsigned int g_npc_record_count;
+unsigned int g_monster_record_count;
+W8ItemTableRecord** g_item_tables;
+unsigned int g_item_table_count;
+char** g_item_table_category_names;
+unsigned int g_item_table_category_count;
+W8SpellRuntimeRecord* g_spell_records;
+unsigned int g_spell_database_version;
 extern W8GameSettings g_settings_6850c8;
-extern int g_dword_68ed10;
-extern unsigned char g_flag_68edac;
+extern "C" int g_dword_68ed10;
+extern "C" void SetPendingScreenRuntime(int state);
+extern "C" unsigned char g_flag_68edac;
 void Function55EC50(int value);
 void Function55EC60(void);
-extern unsigned char g_monster_slot_block[0x1a0a];
+unsigned char g_monster_slot_block[0x1a0a];
 extern W8MonsterSlot g_monster_slots_6836b8[];
 extern int SetCountdownClock(int delay);
 extern int Random(int limit);
 extern void Function47B5F0(void);
 extern void Function47B5B0(int id);
-extern unsigned int Function428E60(void);
-extern int Function429800(void);
+extern unsigned int GetTotalPhysicalMemory(void);
+extern int GetRendererFamily(void);
 extern int g_dword_685189;
 extern int g_dword_68518d;
 extern int g_dword_686a70;
@@ -61,8 +78,8 @@ extern void Function56C520(void);
 extern void Function4E8290(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
 extern void Function55ADA0(void* fact_rules_runtime);
-extern void CloseVirtualFile(int handle);
-extern unsigned char FileSeek(int handle, int offset, int origin);
+extern "C" void CloseVirtualFile(int handle);
+extern "C" unsigned char FileSeek(int handle, int offset, int origin);
 
 /* The SGP file-manager seek origins, spelled the way FileMan.h does. This unit
    does not include that header, so the three it uses are restated here rather
@@ -281,9 +298,9 @@ unsigned char InitializeNpcDatabase(void)
                 return 0;
             }
             if (entry_count > 0) {
-                g_npc_records[index].fact_rules_runtime = Function5E22C0();
+                g_npc_records[index].fact_rules_runtime = PListCreate();
                 for (entry = 0; entry < entry_count; ++entry) {
-                    element = operator_new_import_thunk(6);
+                    element = ::operator new(6);
                     if (!element) {
                         CloseVirtualFile(handle);
                         return 0;
@@ -293,7 +310,9 @@ unsigned char InitializeNpcDatabase(void)
                         CloseVirtualFile(handle);
                         return 0;
                     }
-                    Function5E2530(g_npc_records[index].fact_rules_runtime, entry, element);
+                    PListInsert(
+                        (W8PList*)g_npc_records[index].fact_rules_runtime,
+                        entry, element);
                 }
             }
         }
@@ -711,11 +730,11 @@ void Function54B560(void)
     g_settings_6850c8.field_04f = 0;
     g_settings_6850c8.field_050 = 1;
     Function47B5F0();
-    if (Function428E60() <= 0x4000000) {
+    if (GetTotalPhysicalMemory() <= 0x4000000) {
         Function47B5B0(0xb);
         Function47B5B0(0xc);
     }
-    if (Function429800() != 1) {
+    if (GetRendererFamily() != 1) {
         Function47B5B0(0x10);
     }
 }
@@ -780,32 +799,52 @@ void Function54B300(unsigned int slot)
 
 /* Neither class is identified. Only what this constructor call establishes is
    declared: an allocation size and a constructor signature. */
+class W8StartupStateElement005EE748;
+
+/* 0x0052D460 proves four equal growable-vector bases followed by a fifth
+   derived instantiation and the tail state below.  Element identity and the
+   complete lifetime remain tracked by wiz8-bxj; this gives startup the real
+   allocation and field shape without inventing semantic names. */
+class W8StartupStateVector005EE744
+    : public W8GrowableVector<W8StartupStateElement005EE748*> {
+};
+
 struct W8GameplayObjectA {
-    /* Only the allocation size is recovered; no field is identified. */
-    unsigned char storage[0x6c];
+    W8GrowableVector<W8StartupStateElement005EE748*> vectors_00[4];
+    W8StartupStateVector005EE744 vector_40;
+    int value_50;
+    int value_54;
+    int unknown_58;
+    int value_5c;
+    int unknown_60;
+    int value_64;
+    unsigned char* bytes_68;
 
-    W8GameplayObjectA();
+    W8GameplayObjectA()
+        : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
+    {
+        bytes_68 = static_cast<unsigned char*>(::operator new(0xb1));
+        memset(bytes_68, 0, 0xb1);
+    }
 };
 
-struct W8GameplayObjectB {
-    unsigned char storage[0x24];
+typedef char W8GameplayObjectA_must_be_0x6c[
+    sizeof(W8GameplayObjectA) == 0x6c ? 1 : -1];
 
-    W8GameplayObjectB(float limit, int flag);
-};
+extern void* CreateGameTimer005EC0A4(float duration, unsigned char raw_time);
 
 
 /* The block 0x0054AF30 and 0x0054B300 also work through; cleared here as bytes,
    which is why it is reached by a second, byte-wide declaration. */
-extern unsigned char g_monster_slot_block[0x1a0a];
-extern void* g_object_683fd7;
-extern void* g_object_685067;
+void* g_object_683fd7;
+void* g_object_685067;
 
 // FUNCTION: WIZ8 0x0054AFD0
 void Function54AFD0(void)
 {
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
     g_object_683fd7 = new W8GameplayObjectA();
-    g_object_685067 = new W8GameplayObjectB(300.0f, 0);
+    g_object_685067 = CreateGameTimer005EC0A4(300.0f, 0);
 }
 
 /* Stores the value the frame tick and the new-game reset both read back. */
@@ -813,6 +852,7 @@ void Function54AFD0(void)
 void Function55EC50(int value)
 {
     g_dword_68ed10 = value;
+    SetPendingScreenRuntime(value);
 }
 
 /* Latches the flag the frame tick clears once it has acted on it. */

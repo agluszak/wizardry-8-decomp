@@ -1,5 +1,7 @@
 #pragma once
 
+class srNode;
+
 /* The original names of GrCycle's two bases are not present in the available
    source-path, binary, or Cosmic Forge evidence. Their constructor addresses
    keep these types unambiguous without inventing semantic names. */
@@ -26,8 +28,15 @@ public:
     virtual void secondary_vslot3();
     virtual void secondary_vslot4();
 
+    void configureStartupRange(float range);
+    void configureStartupDepth(float near_depth, float far_depth);
+
 private:
-    unsigned char unknown_004[0x18c];
+    /* The secondary-base constructor treats this payload as 99 contiguous
+       four-byte fields.  Keeping that observed granularity lets startup set
+       the six proven range fields without claiming names for the rest. */
+    unsigned int unknown_004[98];
+    srNode* node_18c;                    /* 0x18c: constructed srNode */
 };                                      /* 0x190 */
 
 struct W8GrCycleTarget {
