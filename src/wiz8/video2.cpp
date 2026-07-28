@@ -10,6 +10,8 @@
 
 #include <string.h>
 
+extern "C" void Function425B40(void);
+
 static srRegistry::ClassNode* node_class_node()
 {
     srRegistry* registry = srCore.getRegistry();
@@ -212,7 +214,7 @@ extern "C" void PresentMenuOverlayFrame(void)
 {
     srNode::ProcessInfo process;
 
-    g_surface_node_659664->invalidateTiles();
+    Function425B40();
     g_gerd_659634->beginFrame();
     process.renderer = g_gerd_659634;
     g_surface_node_659664->process(

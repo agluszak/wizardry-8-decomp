@@ -49,6 +49,8 @@ public:
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
+    void setTextureSubImage(srTextureIFace* texture, long mipmap,
+                            long x, long y, long width, long height);
     void drawArrays(srRendererDefs::e_primitive primitive, long first,
                     unsigned long count);
     void popPick(Pick& pick);

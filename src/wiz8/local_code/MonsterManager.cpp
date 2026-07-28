@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/engine_state_006598a4.h"
 #include "wiz8/sr_api.h"
 #include <math.h>
@@ -174,7 +175,6 @@ void EndCombat(unsigned char reason);
 void Function595570(void);
 extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
-extern int g_dword_68ec78;
 extern int g_dword_683fa5;
 extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_flag_683f97;
@@ -1279,7 +1279,7 @@ void TogglePartyCombatStance(void)
             g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
             g_combat_state->flag_a62 = 1;
         }
-        if (g_dword_68ec78 != 7) {
+        if (g_dword_68ec78.id != 7) {
             return;
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_RELAXED];
@@ -1289,13 +1289,13 @@ void TogglePartyCombatStance(void)
             g_combat_state->flag_001 = 1;
             g_combat_state->flag_a62 = 0;
         }
-        if (g_dword_68ec78 != 7) {
+        if (g_dword_68ec78.id != 7) {
             return;
         }
         message = gppStringList[W8_NOTICE_COMBAT_STANCE_READY];
     }
     Function58AC00(0xc, message, -1, -1, 0);
-    if (g_dword_68ec78 == 7) {
+    if (g_dword_68ec78.id == 7) {
         RequestRedraw(0x80000);
     }
 }

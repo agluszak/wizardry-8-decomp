@@ -223,12 +223,21 @@ def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]
     One name can legitimately have more than one body here. The vendored SGP
     tree and the recovered first-party tree both define WinMain: SGP's is the
     upstream body, Wizardry shipped a modified one, and only the second is what
-    the image contains. A stale object left by an earlier CMake configuration
-    adds claimants the same way, because nothing prunes the build tree.
+    the image contains. CMake does not prune stale target folders, so its
+    current target manifest filters those before candidate resolution.
 
     So the name alone cannot choose. The reviewed row does, through the address
     and size it states, which is what `resolve_boundary_function` matches on.
     """
+
+    target_manifest = root / "TargetDirectories.txt"
+    active_targets: set[str] | None = None
+    if target_manifest.is_file():
+        active_targets = {
+            Path(line.strip().replace("\\", "/")).name
+            for line in target_manifest.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        }
 
     bodies: list[CoffFunction] = []
     for obj in sorted(root.rglob("*.obj")):
@@ -238,6 +247,10 @@ def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]
         # of ours and must not reach the index.
         if not any(part.endswith(".dir") for part in obj.parts):
             continue
+        if active_targets is not None:
+            target = next(part for part in obj.relative_to(root).parts if part.endswith(".dir"))
+            if target not in active_targets:
+                continue
         try:
             bodies.extend(parse_coff_functions(obj))
         except RuntimeError:

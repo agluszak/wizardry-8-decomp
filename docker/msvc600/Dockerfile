@@ -45,4 +45,14 @@ RUN wget -O /tmp/cmake.zip \
  && mv /root/.wine/drive_c/cmake-3.26.6-windows-i386 /root/.wine/drive_c/cmake \
  && rm /tmp/cmake.zip
 
+# VC6 has no /MP, so compile parallelism belongs at the make layer. JOM 1.1.3
+# is the last 32-bit release and runs inside this image's win32 Wine prefix.
+RUN wget -O /tmp/jom.zip \
+      https://download.qt.io/official_releases/jom/jom_1_1_3.zip \
+ && echo "128fdd846fe24f8594eed37d1d8929a0ea78df563537c0c1b1861a635013fff8  /tmp/jom.zip" \
+      | sha256sum -c - \
+ && mkdir -p /root/.wine/drive_c/jom \
+ && unzip /tmp/jom.zip -d /root/.wine/drive_c/jom \
+ && rm /tmp/jom.zip
+
 ENTRYPOINT ["/usr/bin/wine"]

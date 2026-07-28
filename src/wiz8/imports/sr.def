@@ -55,6 +55,7 @@ EXPORTS
     ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
     ?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z
     ?setTexture@srGERD@@QAEXPAVsrTextureIFace@@K@Z
+    ?setTextureSubImage@srGERD@@QAEXPAVsrTextureIFace@@JJJJJ@Z
     ?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z
     ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ

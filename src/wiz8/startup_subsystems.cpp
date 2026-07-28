@@ -1,12 +1,13 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/screen_state.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 extern "C" {
 
-int g_dword_68ec78 = -1;
-int g_dword_68ed10 = -1;
+W8ScreenStateStorage g_dword_68ec78 = { -1 };
+W8ScreenStateStorage g_dword_68ed10 = { -1 };
 unsigned char g_flag_68edac;
 void* g_stack_68eda8;
 int g_dword_686a70 = -1;

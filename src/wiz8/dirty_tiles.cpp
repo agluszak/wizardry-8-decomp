@@ -1,4 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/surface2d.h"
+#include "wiz8/wiz8_windows.h"
+#include "surrender/srGERD.h"
 
 class srNode;
 
@@ -25,8 +28,14 @@ extern int g_viewport_left_6595e8;
 extern int g_viewport_top_6595ec;
 extern int g_viewport_right_6595f0;
 extern int g_viewport_bottom_6595f4;
+extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
+extern srGERD* g_gerd_659634;
+extern stSurface2D* g_surface_node_659664;
 unsigned char g_flag_65970d;
 unsigned char g_flag_6596ea;
+extern void DDLockSurface(void* surface, RECT* area,
+                          DDSURFACEDESC* description, int flags, void* event);
+extern void DDUnlockSurface(void* surface, void* locked);
 
 /* The initial full-screen invalidation runs before any 2D node occupies the
    tile table.  Preserve that complete empty-slot path here; the non-empty path
@@ -114,6 +123,54 @@ void Function422D50(int left, int top, int right, int bottom, int flags)
             }
         }
     }
+}
+
+/* Coalesces dirty 8x8 cells into rectangular texture updates. Retail keeps the
+   software surface locked for the complete batch and clears only the uploaded
+   bit, preserving the lower per-cell state for the page lifecycle. */
+// FUNCTION: WIZ8 0x00425B40
+void Function425B40(void)
+{
+    DDSURFACEDESC description;
+
+    if (g_dword_6596d8 == 0) {
+        return;
+    }
+    DDLockSurface(g_primary_surface_6596a8, 0, &description, 0, 0);
+    for (int row = 0; row != 60; ++row) {
+        int column = 0;
+        while (column < 80) {
+            int cell = row * 80 + column;
+            if ((g_block_652ddc[cell] & 0x40) == 0) {
+                ++column;
+                continue;
+            }
+
+            int width = 0;
+            while (column + width < 80
+                   && (g_block_652ddc[cell + width] & 0x40) != 0) {
+                ++width;
+            }
+            int height = 0;
+            while (row + height < 60
+                   && (g_block_652ddc[cell + height * 80] & 0x40) != 0) {
+                ++height;
+            }
+
+            g_surface_node_659664->updateRectangle(
+                g_gerd_659634, description.lpSurface, description.lPitch,
+                column * 8, row * 8,
+                (column + width) * 8, (row + height) * 8);
+            for (int y = 0; y != height; ++y) {
+                for (int x = 0; x != width; ++x) {
+                    g_block_652ddc[cell + y * 80 + x] &= 0x3f;
+                }
+            }
+            column += width;
+        }
+    }
+    DDUnlockSurface(g_primary_surface_6596a8, 0);
+    g_dword_6596d8 = 0;
 }
 
 }

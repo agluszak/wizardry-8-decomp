@@ -1,6 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 
-/* Local Code\Formation & Facing.cpp. */
+/* Original translation unit: Local Code\Formation & Facing.cpp. */
 
 /* Fills in the party's own world position. */
 extern void GetPartyPosition(srVector3T<float>* position);          /* 0x00421070 */
@@ -56,6 +56,7 @@ enum { W8_FACING_ANY = 4 };
 /* The state a character has to be under to hold a place in the formation.
    Tighter than the eligibility window the party sweeps use. */
 enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
+
 extern W8CombatState* g_combat_state;
 extern unsigned int g_party_heading;                        /* 0x00686A44 */
 extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555E70 */

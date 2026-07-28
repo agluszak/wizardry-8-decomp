@@ -40,6 +40,8 @@ public:
 
     void enableRendererFlag(unsigned int flag);
     void invalidateTiles();
+    void updateRectangle(srGERD* renderer, void* pixels, long pitch,
+                         int left, int top, int right, int bottom);
 
     srColorSurfaceIFace* source_surface;   /* 0x138 */
     int state;                             /* 0x13c */

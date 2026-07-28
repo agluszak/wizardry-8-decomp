@@ -254,6 +254,58 @@ void stSurface2D::invalidateTiles()
     }
 }
 
+/* Retail 0x0047E450. The locked surface and pitch are deliberately retained in
+   the ABI even though SurRender obtains the pixels through each stTexture2D's
+   source surface. Keeping the source locked brackets the immediate partial
+   texture uploads exactly as the caller does. */
+void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
+                                  int left, int top, int right, int bottom)
+{
+    int x = left;
+    int y = top;
+
+    while (y < bottom) {
+        stTexture2D* texture = 0;
+        for (int index = 0; index != tile_count; ++index) {
+            stTexture2D* candidate = tiles[index];
+            if (candidate->left <= x && x < candidate->right
+                && candidate->top <= y && y < candidate->bottom) {
+                texture = candidate;
+                break;
+            }
+        }
+        if (!texture) {
+            return;
+        }
+
+        int destination_x = x - texture->left;
+        int destination_y = y - texture->top;
+        int update_width = right - x;
+        int update_height = bottom - y;
+        if (texture->right - x < update_width) {
+            update_width = texture->right - x;
+        }
+        if (texture->bottom - y < update_height) {
+            update_height = texture->bottom - y;
+        }
+        if (field_194 & 1) {
+            destination_x = 0;
+            destination_y = 0;
+            update_width = tile_size;
+            update_height = tile_size;
+        }
+        renderer->setTextureSubImage(
+            texture, 0, destination_x, destination_y,
+            update_width, update_height);
+
+        x += tile_size - x % tile_size;
+        if (right <= x) {
+            y += tile_size - y % tile_size;
+            x = left;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x0047E5B0
 void stSurface2D::enableRendererFlag(unsigned int flag)
 {

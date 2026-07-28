@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from wiz8decomp.boundaries import (
     BoundariesDisagree,
+    collect_object_candidates,
     masked_digest,
     resolve_boundary_function,
     symbol_candidates,
@@ -158,6 +159,23 @@ def test_a_failed_verdict_still_carries_the_whole_report(tmp_path: Path) -> None
     # The claimant object is named, which is what turns a stale-object false
     # regression into a one-look diagnosis.
     assert report["results"][0]["object"] == "T.dir/unit.obj"
+
+
+def test_cmake_target_manifest_excludes_stale_object_directories(tmp_path: Path) -> None:
+    active = tmp_path / "Active.dir"
+    stale = tmp_path / "OldTarget.dir"
+    active.mkdir()
+    stale.mkdir()
+    _write_object(active / "active.obj", b"_Active", b"\xc3")
+    _write_object(stale / "stale.obj", b"_Stale", b"\xc3")
+    (tmp_path / "TargetDirectories.txt").write_text(
+        "Z:/out/CMakeFiles/Active.dir\n", encoding="utf-8"
+    )
+
+    candidates = collect_object_candidates(tmp_path)
+
+    assert "Active" in candidates
+    assert "Stale" not in candidates
 
 
 def test_a_masked_hash_is_recorded_exactly_on_the_rows_that_reproduce_it() -> None:

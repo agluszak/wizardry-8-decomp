@@ -249,14 +249,14 @@ endif()
 if(WIZ8_BUILD_DECOMP)
     set(WIZ8_ORIGINAL_UNITS
         "src/wiz8/local_code/PC Item.cpp"
-        "src/wiz8/local_code/Formation & Facing.cpp"
+        src/wiz8/local_code/FormationAndFacing.cpp
         src/wiz8/local_code/Controls.cpp
         src/wiz8/local_code/Factions.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
         src/wiz8/local_code/LoadSaveGame_extra.cpp
         src/wiz8/local_code/Magic.cpp
         "src/wiz8/local_code/Health Stamina Mana.cpp"
-        "src/wiz8/local_code/Conditions & Enchantments.cpp"
+        src/wiz8/local_code/ConditionsAndEnchantments.cpp
         src/wiz8/local_code/Sight.cpp
         "src/wiz8/local_code/Combat Party Movement.cpp"
         "src/wiz8/local_code/Combat Range.cpp"
@@ -545,106 +545,73 @@ if(WIZ8_BUILD_DECOMP)
 endif()
 
 if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
-    # One target per released SGP translation unit. Each unit gets only the
-    # WIZ8 SGP ALL.H surface its own source proves necessary, plus the shared
-    # empty builddefines.h overlay. The common release profile is the primary
-    # hypothesis: the released VC6 SGP project stores release flags at project
-    # scope, and none of the probed units has a release per-file override.
-    set(WIZ8_SGP_PROJECT_FLAGS /O2 /Ob2 /G5 /MD)
-    function(wiz8_add_sgp_unit target source overlay)
-        add_library(${target} OBJECT EXCLUDE_FROM_ALL "${SGP_SOURCE}/${source}")
-        target_compile_definitions(${target} PRIVATE WIZ8_PRECOMPILED_HEADERS)
-        target_include_directories(${target} PRIVATE
-            "config/sgp-overlays/${overlay}"
-            config/sgp-overlays/common
-            "${SGP_SOURCE}"
-        )
-        target_compile_options(${target} PRIVATE ${WIZ8_SGP_PROJECT_FLAGS})
-        if(ARGN)
-            target_compile_options(${target} PRIVATE ${ARGN})
+    # Keep the SGP source selection declarative.  The target groups describe
+    # how an object is consumed; source properties below describe how its
+    # released Wizardry branch is compiled.  This avoids one recursive make
+    # target per translation unit while retaining independently buildable
+    # probe and runtime surfaces.
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/config/sgp.yml" WIZ8_SGP_MODEL)
+    string(JSON WIZ8_SGP_FLAG_COUNT LENGTH "${WIZ8_SGP_MODEL}" project_flags)
+    math(EXPR WIZ8_SGP_FLAG_LAST "${WIZ8_SGP_FLAG_COUNT} - 1")
+    foreach(index RANGE 0 ${WIZ8_SGP_FLAG_LAST})
+        string(JSON flag GET "${WIZ8_SGP_MODEL}" project_flags ${index})
+        list(APPEND WIZ8_SGP_PROJECT_FLAGS "${flag}")
+    endforeach()
+
+    string(JSON WIZ8_SGP_UNIT_COUNT LENGTH "${WIZ8_SGP_MODEL}" units)
+    math(EXPR WIZ8_SGP_UNIT_LAST "${WIZ8_SGP_UNIT_COUNT} - 1")
+    foreach(index RANGE 0 ${WIZ8_SGP_UNIT_LAST})
+        string(JSON source GET "${WIZ8_SGP_MODEL}" units ${index} source)
+        string(JSON overlay GET "${WIZ8_SGP_MODEL}" units ${index} overlay)
+        string(JSON use_pch GET "${WIZ8_SGP_MODEL}" units ${index} pch)
+        set(source_path "${SGP_SOURCE}/${source}")
+        set(definitions "")
+        if(use_pch)
+            list(APPEND definitions WIZ8_PRECOMPILED_HEADERS)
         endif()
-    endfunction()
+        string(JSON definition_count ERROR_VARIABLE definitions_error
+            LENGTH "${WIZ8_SGP_MODEL}" units ${index} definitions)
+        if(definitions_error STREQUAL "NOTFOUND")
+            math(EXPR definition_last "${definition_count} - 1")
+            foreach(definition_index RANGE 0 ${definition_last})
+                string(JSON definition GET "${WIZ8_SGP_MODEL}"
+                    units ${index} definitions ${definition_index})
+                list(APPEND definitions "${definition}")
+            endforeach()
+        endif()
+        set_source_files_properties("${source_path}" PROPERTIES
+            COMPILE_OPTIONS "/I${CMAKE_CURRENT_SOURCE_DIR}/config/sgp-overlays/${overlay}"
+            COMPILE_DEFINITIONS "${definitions}"
+        )
+        string(JSON language ERROR_VARIABLE language_error
+            GET "${WIZ8_SGP_MODEL}" units ${index} language)
+        if(language_error STREQUAL "NOTFOUND")
+            set_source_files_properties("${source_path}" PROPERTIES LANGUAGE "${language}")
+        endif()
+        string(JSON group_count LENGTH "${WIZ8_SGP_MODEL}" units ${index} groups)
+        math(EXPR group_last "${group_count} - 1")
+        foreach(group_index RANGE 0 ${group_last})
+            string(JSON group GET "${WIZ8_SGP_MODEL}" units ${index} groups ${group_index})
+            list(APPEND ${group}_SOURCES "${source_path}")
+        endforeach()
+    endforeach()
 
-    function(wiz8_add_sgp_unit_without_pch target source overlay)
-        add_library(${target} OBJECT EXCLUDE_FROM_ALL "${SGP_SOURCE}/${source}")
+    function(wiz8_add_sgp_group target)
+        add_library(${target} OBJECT EXCLUDE_FROM_ALL ${ARGN})
         target_include_directories(${target} PRIVATE
-            "config/sgp-overlays/${overlay}"
             config/sgp-overlays/common
             "${SGP_SOURCE}"
         )
         target_compile_options(${target} PRIVATE ${WIZ8_SGP_PROJECT_FLAGS})
     endfunction()
 
-    wiz8_add_sgp_unit(WIZ8_SGP_DIRECTDRAW "DirectDraw Calls.c" directdraw)
-    wiz8_add_sgp_unit(WIZ8_SGP_DIRECTX_COMMON "DirectX Common.c" directdraw)
-
-    # Random.c proves two axes of the common profile: /Ob2 inlines Random into
-    # Chance, while /G6 mismatches both arithmetic functions.
-    wiz8_add_sgp_unit(WIZ8_SGP_RANDOM "Random.c" random)
-
-    # Compression.c brackets the linked zlib objects. The whole released unit
-    # is retained in the probe even though Wizardry only kept its decompression
-    # half after COMDAT elimination.
-    wiz8_add_sgp_unit(WIZ8_SGP_COMPRESSION "Compression.c" compression)
-
-    wiz8_add_sgp_unit(WIZ8_SGP_FILEMAN "FileMan.c" fileman)
-    # Wizardry's six embedded SLF paths recover the missing WizLibs.h library
-    # count used by LibraryDataBase.c. DbMan.c has no product-private surface.
-    wiz8_add_sgp_unit(WIZ8_SGP_LIBRARY_DATABASE "LibraryDataBase.c" librarydatabase)
-    wiz8_add_sgp_unit(WIZ8_SGP_DBMAN "DbMan.c" dbman)
-
-    # Container.c is the released SGP contiguous-container implementation
-    # (HSTACK/HQUEUE/HLIST/HORDLIST), not Wizardry's first-party PList class.
-    wiz8_add_sgp_unit(WIZ8_SGP_CONTAINER "Container.c" container)
-    wiz8_add_sgp_unit(WIZ8_SGP_VSURFACE "vsurface.c" vsurface)
-    # Wizardry retained a first-party FillSurfaceRect at the same C symbol.
-    # Keep the released SGP unit intact while preventing that discarded SGP
-    # body from colliding in the runnable partial link.
-    target_compile_definitions(WIZ8_SGP_VSURFACE PRIVATE
-        FillSurfaceRect=SgpReleasedFillSurfaceRect)
-
-    # Font and video-object loading use the released Wizardry branch directly.
-    # Its public header was named video2.h; the overlay maps that include to the
-    # released video-manager interface rather than duplicating declarations.
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_FONT "Font.c" font-video)
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_VOBJECT "vobject.c" font-video)
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_HIMAGE "himage.c" font-video)
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_STCI "STCI.c" font-video)
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_PCX "PCX.C" font-video)
-    set_source_files_properties("${SGP_SOURCE}/PCX.C" PROPERTIES LANGUAGE C)
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_IMPTGA "impTGA.c" font-video)
-    wiz8_add_sgp_unit_without_pch(
-        WIZ8_SGP_VOBJECT_BLITTERS "vobject_blitters.c" font-video)
-    wiz8_add_sgp_unit_without_pch(WIZ8_SGP_SHADING "shading.c" font-video)
-
-    # DEBUG.C owns the shared release-mode formatter and debug-manager
-    # boundaries. ExceptionHandling.cpp deliberately emits no code for the
-    # Wizardry branch because ExceptionHandling.h leaves its implementation
-    # feature disabled outside JA2.
-    # The original Windows project treats the case-insensitive .C suffix as
-    # C. CMake otherwise interprets uppercase .C as C++ on this host.
-    set_source_files_properties("${SGP_SOURCE}/DEBUG.C" PROPERTIES LANGUAGE C)
-    wiz8_add_sgp_unit(WIZ8_SGP_DEBUG "DEBUG.C" debug)
-    wiz8_add_sgp_unit(
-        WIZ8_SGP_EXCEPTION_HANDLING
-        "ExceptionHandling.cpp"
-        exceptionhandling
-    )
-
-    # Startup-spine evidence probes. The core and input objects contain released
-    # APIs that Wizardry discarded and therefore are not linked wholesale into
-    # the /OPT:NOREF bring-up. Random.c and timer.c are complete retained units;
-    # every other configured unit remains an explicit, on-demand source oracle.
-    wiz8_add_sgp_unit(WIZ8_SGP_CORE "sgp.c" sgp)
-    # sgp.c also owns the generic platform WinMain. The runtime image uses the
-    # recovered Wizardry body, while still needing retained source-identical
-    # helpers from this unit. Rename only that discarded entrypoint in a
-    # runtime-specific compile; ProcessCommandLine and GetRuntimeSettings keep
-    # their original symbols and bytes.
-    wiz8_add_sgp_unit(WIZ8_SGP_RUNTIME_CORE "sgp.c" sgp)
+    wiz8_add_sgp_group(WIZ8_SGP_RETAINED ${WIZ8_SGP_RETAINED_SOURCES})
+    wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_SHARED ${WIZ8_SGP_RUNTIME_SHARED_SOURCES})
+    wiz8_add_sgp_group(WIZ8_SGP_PROBE_ONLY ${WIZ8_SGP_PROBE_ONLY_SOURCES})
+    # sgp.c is compiled a second time only because the runnable image needs its
+    # retained helpers under their original symbols but owns WinMain itself.
+    wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_CORE ${WIZ8_SGP_RUNTIME_CORE_SOURCES})
     target_compile_definitions(WIZ8_SGP_RUNTIME_CORE PRIVATE WinMain=SgpRetainedWinMain)
-    wiz8_add_sgp_unit(WIZ8_SGP_TIMER "timer.c" timer)
-    wiz8_add_sgp_unit(WIZ8_SGP_INPUT "input.c" input)
     if(WIZ8_BUILD_DECOMP)
         # Container, FileMan and input are built but deliberately not linked.
         # Only a unit the vendored source reproduces whole may join the bring-up
@@ -654,8 +621,7 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         # would be a claim about the image that the evidence does not support.
         add_dependencies(
             WIZ8_MATCHING
-            WIZ8_SGP_RANDOM
-            WIZ8_SGP_TIMER
+            WIZ8_SGP_RETAINED
         )
         # Compiling these is an evidence operation, not executable bring-up:
         # they are verified against the original but deliberately never linked,
@@ -663,54 +629,22 @@ if((WIZ8_BUILD_DECOMP OR WIZ8_BUILD_SGP_PROBES) AND SGP_SOURCE)
         # image. They therefore hang off their own aggregate rather than off the
         # bring-up target, whose dependencies should be its real link inputs.
         add_custom_target(WIZ8_SGP_PROBES)
-        add_dependencies(
-            WIZ8_SGP_PROBES
-            WIZ8_SGP_CONTAINER
-            WIZ8_SGP_VSURFACE
-            WIZ8_SGP_CORE
-            WIZ8_SGP_DEBUG
-            WIZ8_SGP_DIRECTDRAW
-            WIZ8_SGP_DIRECTX_COMMON
-            WIZ8_SGP_FILEMAN
-            WIZ8_SGP_INPUT
-            WIZ8_SGP_LIBRARY_DATABASE
-            WIZ8_SGP_FONT
-            WIZ8_SGP_VOBJECT
-            WIZ8_SGP_HIMAGE
-            WIZ8_SGP_STCI
-            WIZ8_SGP_PCX
-            WIZ8_SGP_IMPTGA
-            WIZ8_SGP_VOBJECT_BLITTERS
-            WIZ8_SGP_SHADING
+        add_dependencies(WIZ8_SGP_PROBES
+            WIZ8_SGP_RETAINED
+            WIZ8_SGP_RUNTIME_SHARED
+            WIZ8_SGP_PROBE_ONLY
         )
         add_dependencies(WIZ8_MATCHING WIZ8_SGP_PROBES)
         # The image target pulls them too, so an ordinary build still produces
         # the objects verification reads. Verification does not build.
         add_dependencies(WIZ8 WIZ8_SGP_PROBES)
         target_sources(WIZ8_BRINGUP PRIVATE
-            $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
-            $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
+            $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
         )
         target_sources(WIZ8_RUNTIME PRIVATE
-            $<TARGET_OBJECTS:WIZ8_SGP_CONTAINER>
-            $<TARGET_OBJECTS:WIZ8_SGP_VSURFACE>
+            $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
+            $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_SHARED>
             $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
-            $<TARGET_OBJECTS:WIZ8_SGP_DEBUG>
-            $<TARGET_OBJECTS:WIZ8_SGP_DIRECTDRAW>
-            $<TARGET_OBJECTS:WIZ8_SGP_DIRECTX_COMMON>
-            $<TARGET_OBJECTS:WIZ8_SGP_FILEMAN>
-            $<TARGET_OBJECTS:WIZ8_SGP_INPUT>
-            $<TARGET_OBJECTS:WIZ8_SGP_LIBRARY_DATABASE>
-            $<TARGET_OBJECTS:WIZ8_SGP_RANDOM>
-            $<TARGET_OBJECTS:WIZ8_SGP_TIMER>
-            $<TARGET_OBJECTS:WIZ8_SGP_FONT>
-            $<TARGET_OBJECTS:WIZ8_SGP_VOBJECT>
-            $<TARGET_OBJECTS:WIZ8_SGP_HIMAGE>
-            $<TARGET_OBJECTS:WIZ8_SGP_STCI>
-            $<TARGET_OBJECTS:WIZ8_SGP_PCX>
-            $<TARGET_OBJECTS:WIZ8_SGP_IMPTGA>
-            $<TARGET_OBJECTS:WIZ8_SGP_VOBJECT_BLITTERS>
-            $<TARGET_OBJECTS:WIZ8_SGP_SHADING>
         )
     endif()
 endif()

@@ -4,6 +4,7 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 repo := justfile_directory()
 vc6_image := "wizardry8-msvc600:sp5"
 jpeg_target := "SREXT_JPEGIMPORTER"
+default_build_target := "WIZ8_RUNTIME"
 
 default:
     @just --list
@@ -13,7 +14,8 @@ test *args:
     uv run pytest {{args}}
 
 # Build the active recovered binary through its real CMake graph.
-build target=jpeg_target: configure
+build target=default_build_target jobs=num_cpus(): _check-build-dir
+    if test ! -f "{{repo}}/build/decomp/CMakeCache.txt"; then just configure; fi
     docker run --rm --network none \
         --volume "{{repo}}:/repo:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
@@ -21,10 +23,10 @@ build target=jpeg_target: configure
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4:/infozip:ro" \
         --volume "{{repo}}/build/decomp:/out" \
         {{vc6_image}} \
-        cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& C:\cmake\bin\cmake.exe --build Z:/out --target {{target}}"
+        cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& cd /d Z:\out&& C:\jom\jom.exe -j {{jobs}} {{target}}"
 
 # Build and run the recovered Wizardry 8 main-menu slice.
-run: (build "WIZ8_RUNTIME")
+run: build
     #!/usr/bin/env bash
     set -euo pipefail
     source="$WIZ8_WORK_DIR/variants/gog-base"
@@ -58,7 +60,20 @@ run: (build "WIZ8_RUNTIME")
     fi
     cp "{{repo}}/build/decomp/Wiz8Runtime.exe" "$stage/Wiz8Runtime.exe"
     cd "$stage"
-    WINEPREFIX="$prefix" WINEDLLOVERRIDES="winemenubuilder.exe=d" wine ./Wiz8Runtime.exe
+    cleanup() { WINEPREFIX="$prefix" wineserver -k >/dev/null 2>&1 || true; }
+    trap cleanup EXIT INT TERM
+    # Keep one named 640x480 Wine desktop in the reusable prefix. Retail changes
+    # the physical display mode before opening its full-screen popup; modern
+    # compositors commonly leave the host desktop at its native resolution.
+    WINEPREFIX="$prefix" WINEDLLOVERRIDES="winemenubuilder.exe=d" \
+        wine explorer /desktop=Wizardry8,640x480 &
+    desktop_pid=$!
+    # Keep the game as this recipe's foreground child. Letting explorer launch
+    # it makes the helper's lifetime, not the game's exit status, observable.
+    sleep 1
+    WINEPREFIX="$prefix" WINEDLLOVERRIDES="winemenubuilder.exe=d" \
+        wine ./Wiz8Runtime.exe
+    wait "$desktop_pid" || true
 
 # Refuse a build directory configured by a different checkout. Two checkouts
 # sharing WIZ8_WORK_DIR overwrite each other's CMake cache and linked
@@ -73,6 +88,7 @@ configure: _jpeg-sources _check-build-dir
         --search-path "$WIZ8_WORK_DIR/variants/gog-base" \
                       "$WIZ8_WORK_DIR/variants/gog-base/Dll" \
         --what original
+    fresh=""; if test -f "{{repo}}/build/decomp/CMakeCache.txt" && ! tr -d '\r' < "{{repo}}/build/decomp/CMakeCache.txt" | grep -qx 'CMAKE_GENERATOR:INTERNAL=NMake Makefiles'; then fresh="--fresh"; fi; \
     docker run --rm --network none \
         --volume "{{repo}}:/repo:ro" \
         --volume "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6:/jpeg:ro" \
@@ -81,7 +97,7 @@ configure: _jpeg-sources _check-build-dir
         --volume "{{repo}}/build/decomp:/out" \
         {{vc6_image}} \
         'C:\cmake\bin\cmake.exe' \
-        -S Z:/repo -B Z:/out -G 'NMake Makefiles' \
+        $fresh -S Z:/repo -B Z:/out -G 'NMake Makefiles' \
         -DIJG_JPEG_SOURCE=Z:/jpeg \
         -DZLIB_SOURCE=Z:/zlib \
         -DINFOZIP_SOURCE=Z:/infozip \

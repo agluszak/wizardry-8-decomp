@@ -137,9 +137,10 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
     harness = yaml.safe_load(
         (repository / "config/sgp.yml").read_text(encoding="utf-8")
     )
+    units = [unit for unit in harness["units"] if unit.get("harness", True)]
     assert harness["schema"] == "wiz8.sgp-harness"
     assert harness["project_flags"] == ["/O2", "/Ob2", "/G5", "/MD"]
-    assert {unit["id"] for unit in harness["units"]} == {
+    assert {unit["id"] for unit in units} == {
         "compression",
         "container",
         "dbman",
@@ -163,10 +164,10 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
     assert harness["report"] == "build/reports/sgp/harness.csv"
     assert harness["snapshot"] == "evidence/snapshots/sgp/harness.csv"
     exception_unit = next(
-        unit for unit in harness["units"] if unit["id"] == "exceptionhandling"
+        unit for unit in units if unit["id"] == "exceptionhandling"
     )
     assert exception_unit["expected_empty"] is True
-    selected = {unit["id"]: unit.get("functions") for unit in harness["units"]}
+    selected = {unit["id"]: unit.get("functions") for unit in units}
     assert selected["sgp"] == ["GetRuntimeSettings", "ProcessCommandLine"]
     assert set(selected["input"]) == {
         "KeyboardHandler",
@@ -184,14 +185,15 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
 def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
     repository = Path(__file__).resolve().parents[2]
     harness = yaml.safe_load((repository / "config/sgp.yml").read_text(encoding="utf-8"))
+    harness_units = [unit for unit in harness["units"] if unit.get("harness", True)]
     with (repository / "evidence/reviewed/sgp/units.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
 
     by_unit = {row["unit"]: row for row in rows}
-    assert len(rows) == len(by_unit) == len(harness["units"])
-    assert set(by_unit) == {unit["id"] for unit in harness["units"]}
+    assert len(rows) == len(by_unit) == len(harness_units)
+    assert set(by_unit) == {unit["id"] for unit in harness_units}
     assert {unit: row["retention_class"] for unit, row in by_unit.items()} == {
         "directdraw": "partial",
         "random": "whole",
@@ -220,9 +222,9 @@ def test_noref_bringup_links_only_whole_retained_sgp_units() -> None:
         ")", 1
     )[0]
 
-    assert "add_library(${target} OBJECT EXCLUDE_FROM_ALL" in cmake
-    assert "$<TARGET_OBJECTS:WIZ8_SGP_RANDOM>" in bringup_sources
-    assert "$<TARGET_OBJECTS:WIZ8_SGP_TIMER>" in bringup_sources
+    assert 'file(READ "${CMAKE_CURRENT_SOURCE_DIR}/config/sgp.yml" WIZ8_SGP_MODEL)' in cmake
+    assert 'string(JSON group_count LENGTH "${WIZ8_SGP_MODEL}"' in cmake
+    assert "$<TARGET_OBJECTS:WIZ8_SGP_RETAINED>" in bringup_sources
     for partial_or_empty in (
         "DIRECTDRAW",
         "COMPRESSION",

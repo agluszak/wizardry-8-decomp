@@ -27,20 +27,32 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
     assert runtime_sources
     runtime_source_text = "\n".join(runtime_sources)
     assert "WIZ8_SGP_RUNTIME_CORE" in runtime_source_text
-    assert "WIZ8_SGP_FILEMAN" in runtime_source_text
+    assert "WIZ8_SGP_RUNTIME_SHARED" in runtime_source_text
+    assert "WIZ8_SGP_RETAINED" in runtime_source_text
     assert "WinMain=SgpRetainedWinMain" in cmake
     assert "ddraw.lib" in cmake
     assert "gdi32.lib" in cmake
     assert "user32.lib" in cmake
     justfile = (repository / "Justfile").read_text(encoding="utf-8")
-    assert 'run: (build "WIZ8_RUNTIME")' in justfile
+    assert "C:\\jom\\jom.exe -j {{jobs}}" in justfile
+    build_recipe = justfile.split("# Build and run the recovered", 1)[0]
+    assert 'default_build_target := "WIZ8_RUNTIME"' in justfile
+    assert "build target=default_build_target jobs=num_cpus(): _check-build-dir" in build_recipe
+    assert "if test ! -f" in build_recipe
+    assert "fid fetch-sources" not in build_recipe
+    assert "reccmp-project detect" not in build_recipe
+    assert "run: build" in justfile
     assert '$WIZ8_WORK_DIR/variants/gog-base' in justfile
     assert '$WIZ8_WORK_DIR/wine/wiz8-runtime' in justfile
     assert "config/runtime/Wiz8.CFG.hex" in justfile
-    run_recipe = justfile.split('run: (build "WIZ8_RUNTIME")', 1)[1].split(
+    assert "wine explorer /desktop=Wizardry8,640x480 &" in justfile
+    assert "wine ./Wiz8Runtime.exe" in justfile
+    run_recipe = justfile.split("run: build", 1)[1].split(
         "# Refuse a build directory", 1
     )[0]
     assert "pkill" not in run_recipe
+    assert "/proc/[0-9]*" not in run_recipe
+    assert 'wineserver -k' in run_recipe
     # The matching target sees the recovered headers and the vendored SGP tree,
     # and nothing else. SGP is on the path because its structures are library
     # layout that the evidence policy says to take from the real header rather
@@ -69,6 +81,28 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
     assert "#include <windows.h>" in windows_header
     assert "#include <ddraw.h>" in windows_header
     assert "#define DIRECTDRAW_VERSION 0x0700" in windows_header
+
+
+def test_main_menu_runtime_uses_dirty_uploads_and_real_input_dispatch() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    menu = (repository / "src/wiz8/local_screens/MainMenuScreen.cpp").read_text(
+        encoding="utf-8"
+    )
+    video = (repository / "src/wiz8/video2.cpp").read_text(encoding="utf-8")
+    dirty = (repository / "src/wiz8/dirty_tiles.cpp").read_text(encoding="utf-8")
+    surface = (repository / "src/wiz8/surface2d.cpp").read_text(encoding="utf-8")
+
+    assert "DequeueEvent(&input)" in menu
+    assert "ScreenToClient(ghWindow, &mouse)" in menu
+    assert "RegionContainsPoint(region, x, y)" in menu
+    assert "region->callback((const W8RegionEvent*)&input, region)" in menu
+    assert "input.usParam == UPARROW" in menu
+    assert "input.usParam == ENTER" in menu
+    assert "Function55EC50(10)" in menu
+    assert "Function425B40();" in video
+    assert "invalidateTiles" not in video
+    assert "setTextureSubImage" in surface
+    assert "// FUNCTION: WIZ8 0x00425B40" in dirty
 
 
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:

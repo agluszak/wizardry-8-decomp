@@ -2,7 +2,7 @@
 #include "wiz8/sr_api.h"
 
 /*
- * Local Code\Conditions & Enchantments.cpp.
+ * Original translation unit: Local Code\Conditions & Enchantments.cpp.
  *
  * Characters and monsters carry the same two arrays: twenty condition
  * durations and eight enchantment slots. The bodies here move conditions
@@ -30,6 +30,7 @@ extern void Function50E650(int party_slot);
 extern void RefreshMonsterSight(W8MonsterInfo* monster_info);
 extern void RequestRedraw(int mask);
 extern unsigned char g_enchantment_six_cleared_006840bb;
+
 /* The enchantment slot whose clearing has a consequence beyond the slot
    itself. */
 enum { W8_ENCHANTMENT_SLOT_SPECIAL = 6 };

@@ -307,18 +307,25 @@ def _compile_units(
             "SGP_SOURCE": "Z:/repo/third_party/sfi-sgp/sgp",
         }
         for unit in units:
+            target = unit["groups"][0]
             _docker_cmake_build(
                 settings,
                 toolchain,
                 output=output,
-                target=unit["target"],
+                target=target,
                 definitions=definitions,
                 log_name=f"sgp-{unit['id']}-project-profile",
             )
-            objects = sorted((output / "CMakeFiles" / f"{unit['target']}.dir").rglob("*.obj"))
+            target_root = output / "CMakeFiles" / f"{target}.dir"
+            source_object = f"{Path(unit['source']).name.replace(' ', '_')}.obj".casefold()
+            objects = sorted(
+                obj for obj in target_root.rglob("*.obj")
+                if obj.name.casefold() == source_object
+            )
             if len(objects) != 1:
                 raise RuntimeError(
-                    f"{unit['target']} produced {len(objects)} objects; expected exactly one"
+                    f"{target} produced {len(objects)} objects for "
+                    f"{unit['source']}; expected exactly one"
                 )
             try:
                 functions = parse_coff_functions(objects[0])
@@ -336,13 +343,13 @@ def _compile_units(
                 missing = sorted(selected_names - available_names)
                 if missing:
                     raise RuntimeError(
-                        f"{unit['target']} did not expose selected functions: " + ", ".join(missing)
+                        f"{target} did not expose selected functions: " + ", ".join(missing)
                     )
                 functions = [function for function in functions if function.name in selected_names]
             if unit.get("expected_empty") and functions:
                 names = ", ".join(function.name for function in functions)
                 raise RuntimeError(
-                    f"{unit['target']} was expected to emit no functions but exposed: {names}"
+                    f"{target} was expected to emit no functions but exposed: {names}"
                 )
             results[unit["id"]].append((flags, functions))
     finally:
@@ -460,11 +467,12 @@ def sweep_sgp_units(
     if update_snapshot and unit_ids:
         raise RuntimeError("the tracked SGP snapshot can only be refreshed by a complete sweep")
     config = _load_config(settings)
-    by_id = {unit["id"]: unit for unit in config["units"]}
+    harness_units = [unit for unit in config["units"] if unit.get("harness", True)]
+    by_id = {unit["id"]: unit for unit in harness_units}
     unknown = sorted(set(unit_ids or ()) - set(by_id))
     if unknown:
         raise RuntimeError(f"unknown SGP unit(s): {', '.join(unknown)}")
-    units = [by_id[item] for item in unit_ids] if unit_ids else list(config["units"])
+    units = [by_id[item] for item in unit_ids] if unit_ids else harness_units
     builds = _load_builds(settings, config)
     compiled = _compile_units(settings, config, units)
     summaries = []

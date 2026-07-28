@@ -1,86 +1,70 @@
-schema: wiz8.sgp-harness
-source_revision: 5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033
-source_root: third_party/sfi-sgp/sgp
-toolchain: vc6-sp5
-
-# Settled Wizardry SGP static-library release profile. Every configured unit
-# compiles exactly once with these project-wide flags.
-project_flags: [/O2, /Ob2, /G5, /MD]
-
-near_match_threshold: 0.75
-report: build/reports/sgp/harness.csv
-snapshot: evidence/snapshots/sgp/harness.csv
-
-builds:
-  - {id: demo, variant: demo, module: Wiz8.EXE}
-  - {id: gog_base, variant: gog-base, module: Wiz8.exe}
-  - {id: gog_1261, variant: gog-1261, module: Wiz8.exe}
-  - {id: gog_1261_new, variant: gog-1261, module: Wiz8New.exe}
-  - {id: gog_128_base, variant: gog-128, module: Wiz8.exe}
-  - {id: gog_128_patch, variant: gog-128, module: Wiz8_v128.exe}
-  - id: retail_2001_12_23
-    variant: retail-2001-12-23
-    module: Wiz8.exe
-    static_matching: unavailable
-    unavailable_reason: protected-executable
-
-units:
-  - id: directdraw
-    target: WIZ8_SGP_DIRECTDRAW
-    source: DirectDraw Calls.c
-    overlay: directdraw
-  - id: random
-    target: WIZ8_SGP_RANDOM
-    source: Random.c
-    overlay: random
-  - id: compression
-    target: WIZ8_SGP_COMPRESSION
-    source: Compression.c
-    overlay: compression
-  - id: fileman
-    target: WIZ8_SGP_FILEMAN
-    source: FileMan.c
-    overlay: fileman
-  - id: librarydatabase
-    target: WIZ8_SGP_LIBRARY_DATABASE
-    source: LibraryDataBase.c
-    overlay: librarydatabase
-  - id: dbman
-    target: WIZ8_SGP_DBMAN
-    source: DbMan.c
-    overlay: dbman
-  - id: container
-    target: WIZ8_SGP_CONTAINER
-    source: Container.c
-    overlay: container
-  - id: debug
-    target: WIZ8_SGP_DEBUG
-    source: DEBUG.C
-    overlay: debug
-  - id: exceptionhandling
-    target: WIZ8_SGP_EXCEPTION_HANDLING
-    source: ExceptionHandling.cpp
-    overlay: exceptionhandling
-    expected_empty: true
-  - id: sgp
-    target: WIZ8_SGP_CORE
-    source: sgp.c
-    overlay: sgp
-    functions: [GetRuntimeSettings, ProcessCommandLine]
-  - id: timer
-    target: WIZ8_SGP_TIMER
-    source: timer.c
-    overlay: timer
-  - id: input
-    target: WIZ8_SGP_INPUT
-    source: input.c
-    overlay: input
-    functions:
-      - KeyboardHandler
-      - MouseHandler
-      - InitializeInputManager
-      - ShutdownInputManager
-      - QueueEvent
-      - DequeueEvent
-      - FreeMouseCursor
-      - GetMouseWheelDeltaValue
+{
+  "schema": "wiz8.sgp-harness",
+  "source_revision": "5ac0a9d56d27e8a7e2c4a7b48ed8932ae7f64033",
+  "source_root": "third_party/sfi-sgp/sgp",
+  "toolchain": "vc6-sp5",
+  "project_flags": ["/O2", "/Ob2", "/G5", "/MD"],
+  "near_match_threshold": 0.75,
+  "report": "build/reports/sgp/harness.csv",
+  "snapshot": "evidence/snapshots/sgp/harness.csv",
+  "builds": [
+    {"id": "demo", "variant": "demo", "module": "Wiz8.EXE"},
+    {"id": "gog_base", "variant": "gog-base", "module": "Wiz8.exe"},
+    {"id": "gog_1261", "variant": "gog-1261", "module": "Wiz8.exe"},
+    {"id": "gog_1261_new", "variant": "gog-1261", "module": "Wiz8New.exe"},
+    {"id": "gog_128_base", "variant": "gog-128", "module": "Wiz8.exe"},
+    {"id": "gog_128_patch", "variant": "gog-128", "module": "Wiz8_v128.exe"},
+    {"id": "retail_2001_12_23", "variant": "retail-2001-12-23", "module": "Wiz8.exe",
+     "static_matching": "unavailable", "unavailable_reason": "protected-executable"}
+  ],
+  "units": [
+    {"id": "directdraw", "source": "DirectDraw Calls.c", "overlay": "directdraw", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
+    {"id": "directx_common", "source": "DirectX Common.c", "overlay": "directdraw", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "random", "source": "Random.c", "overlay": "random", "pch": true,
+     "groups": ["WIZ8_SGP_RETAINED"]},
+    {"id": "compression", "source": "Compression.c", "overlay": "compression", "pch": true,
+     "groups": ["WIZ8_SGP_PROBE_ONLY"]},
+    {"id": "fileman", "source": "FileMan.c", "overlay": "fileman", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
+    {"id": "librarydatabase", "source": "LibraryDataBase.c", "overlay": "librarydatabase", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
+    {"id": "dbman", "source": "DbMan.c", "overlay": "dbman", "pch": true,
+     "groups": ["WIZ8_SGP_PROBE_ONLY"]},
+    {"id": "container", "source": "Container.c", "overlay": "container", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
+    {"id": "vsurface", "source": "vsurface.c", "overlay": "vsurface", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false,
+     "definitions": ["FillSurfaceRect=SgpReleasedFillSurfaceRect"]},
+    {"id": "font", "source": "Font.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "vobject", "source": "vobject.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "himage", "source": "himage.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "stci", "source": "STCI.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "pcx", "source": "PCX.C", "overlay": "font-video", "pch": false, "language": "C",
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "imptga", "source": "impTGA.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "vobject_blitters", "source": "vobject_blitters.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "shading", "source": "shading.c", "overlay": "font-video", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+    {"id": "debug", "source": "DEBUG.C", "overlay": "debug", "pch": true, "language": "C",
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
+    {"id": "exceptionhandling", "source": "ExceptionHandling.cpp", "overlay": "exceptionhandling", "pch": true,
+     "groups": ["WIZ8_SGP_PROBE_ONLY"], "expected_empty": true},
+    {"id": "sgp", "source": "sgp.c", "overlay": "sgp", "pch": true,
+     "groups": ["WIZ8_SGP_PROBE_ONLY", "WIZ8_SGP_RUNTIME_CORE"],
+     "functions": ["GetRuntimeSettings", "ProcessCommandLine"]},
+    {"id": "timer", "source": "timer.c", "overlay": "timer", "pch": true,
+     "groups": ["WIZ8_SGP_RETAINED"]},
+    {"id": "input", "source": "input.c", "overlay": "input", "pch": true,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"],
+     "functions": ["KeyboardHandler", "MouseHandler", "InitializeInputManager", "ShutdownInputManager",
+                   "QueueEvent", "DequeueEvent", "FreeMouseCursor", "GetMouseWheelDeltaValue"]}
+  ]
+}

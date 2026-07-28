@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/screen_state.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
@@ -38,8 +39,6 @@ unsigned int g_item_table_category_count;
 W8SpellRuntimeRecord* g_spell_records;
 unsigned int g_spell_database_version;
 extern W8GameSettings g_settings_6850c8;
-extern "C" int g_dword_68ed10;
-extern "C" void SetPendingScreenRuntime(int state);
 extern "C" unsigned char g_flag_68edac;
 void Function55EC50(int value);
 void Function55EC60(void);
@@ -819,18 +818,26 @@ struct W8GameplayObjectA {
     int value_64;
     unsigned char* bytes_68;
 
-    W8GameplayObjectA()
-        : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
-    {
-        bytes_68 = static_cast<unsigned char*>(::operator new(0xb1));
-        memset(bytes_68, 0, 0xb1);
-    }
+    W8GameplayObjectA();
 };
+
+W8GameplayObjectA::W8GameplayObjectA()
+    : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
+{
+    bytes_68 = static_cast<unsigned char*>(::operator new(0xb1));
+    memset(bytes_68, 0, 0xb1);
+}
 
 typedef char W8GameplayObjectA_must_be_0x6c[
     sizeof(W8GameplayObjectA) == 0x6c ? 1 : -1];
 
-extern void* CreateGameTimer005EC0A4(float duration, unsigned char raw_time);
+class W8Timer005EC0A4 {
+public:
+    W8Timer005EC0A4(float duration, unsigned char raw_time);
+
+private:
+    unsigned char storage_00[0x24];
+};
 
 
 /* The block 0x0054AF30 and 0x0054B300 also work through; cleared here as bytes,
@@ -843,15 +850,14 @@ void Function54AFD0(void)
 {
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
     g_object_683fd7 = new W8GameplayObjectA();
-    g_object_685067 = CreateGameTimer005EC0A4(300.0f, 0);
+    g_object_685067 = new W8Timer005EC0A4(300.0f, 0);
 }
 
 /* Stores the value the frame tick and the new-game reset both read back. */
 // FUNCTION: WIZ8 0x0055EC50
 void Function55EC50(int value)
 {
-    g_dword_68ed10 = value;
-    SetPendingScreenRuntime(value);
+    g_dword_68ed10.id = value;
 }
 
 /* Latches the flag the frame tick clears once it has acted on it. */

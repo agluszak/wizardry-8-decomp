@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/screen_state.h"
 
 #include <string.h>
 
@@ -53,8 +54,6 @@ extern unsigned int GetTotalPhysicalMemory(void);
 
 extern char* gzStringDataOverride;
 extern unsigned char gfLoadAtStartup;
-extern int g_dword_68ec78;
-extern int g_dword_68ed10;
 extern void* g_stack_68eda8;
 extern int g_dword_686a70;
 extern unsigned char g_flag_68ed14;
@@ -85,8 +84,8 @@ unsigned char Function4E2F40(void)
     memset(buffer, 0, count * 0x1e0);
     UnlockPrimarySurface();
     LoadGameConfiguration();
-    g_dword_68ec78 = -1;
-    g_dword_68ed10 = -1;
+    g_dword_68ec78.id = -1;
+    g_dword_68ed10.id = -1;
     g_stack_68eda8 = CreateStack(5, 0x98);
     if (!g_stack_68eda8) {
         return 0;

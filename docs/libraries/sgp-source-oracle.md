@@ -150,11 +150,15 @@ The canonical whole/partial/empty decision for every configured unit lives in
 `evidence/reviewed/sgp/units.csv`. `WIZ8_PRECOMPILED_HEADERS` proves only that a released source file
 has a Wizardry branch; it does not prove that every emitted COMDAT survived the original link.
 
-Only whole retained units are direct inputs to the current `/OPT:NOREF` bring-up. Partial and empty
-units are `EXCLUDE_FROM_ALL` object probes that build only when requested by name; they remain
-available for names, signatures, layouts, body comparison, and object-order evidence. A future
-link-complete executable may place partial units in a static library under `/OPT:REF`, but the
-present target must not pull a whole partial object merely to resolve one retained function.
+Only whole retained units are direct inputs to the current `/OPT:NOREF` bring-up. The JSON-compatible
+`config/sgp.yml` is read by both CMake and the evidence sweep: each unit owns its source, overlay,
+PCH/language settings, compile definitions, build groups and optional reviewed-function selection.
+CMake then groups their objects by use: `WIZ8_SGP_RETAINED` for complete units,
+`WIZ8_SGP_RUNTIME_SHARED` for partial units used by the `/OPT:REF` runtime,
+`WIZ8_SGP_PROBE_ONLY` for evidence-only units, and the separately compiled runtime `sgp.c` whose
+discarded WinMain is renamed. `WIZ8_SGP_PROBES` builds the first three groups independently of the
+runnable image. Per-source overlays and PCH choices remain properties of the source record rather
+than being encoded as a separate recursive build target for every file.
 
 `Random.c` now supplies the original `Random` implementation directly. The former hand-written
 `GetRandomNumber` duplicate has been removed; that CFAgent description remains only an identity

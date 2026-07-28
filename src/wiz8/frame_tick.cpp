@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/screen_state.h"
 
 #include <string.h>
 
@@ -19,11 +20,6 @@
 
 extern "C" {
 
-struct W8ScreenState {
-    int id;                               /* 0x00 */
-    unsigned char rest[0x94];
-};
-
 struct W8ScreenStateHandlers {
     unsigned char (*initialise)(void);    /* 0x00, walked by Function4E2F40 */
     unsigned char (*enter)(void);         /* 0x04 */
@@ -33,7 +29,7 @@ struct W8ScreenStateHandlers {
 };
 
 extern unsigned char MainMenuScreenFunction005BC810(void);
-extern void PresentMenuOverlayFrame(void);
+extern void MainMenuScreenFrame(void);
 
 static unsigned char ScreenReady(void) { return 1; }
 static void ScreenIdle(void) {}
@@ -43,16 +39,13 @@ static unsigned char ScreenLeave(int) { return 1; }
    complete thirteen-record lifecycle table.  Keep this bridge local and
    unclaimed: it selects the exact menu body through the same typed dispatch
    shape while wiz8-a69 completes the remaining records. */
-static void RunMainMenuFrame(void)
-{
-    MainMenuScreenFunction005BC810();
-    PresentMenuOverlayFrame();
-}
+static unsigned char EnterMainMenu(void)
+{ return MainMenuScreenFunction005BC810(); }
 
-W8ScreenState g_screen_state = { -1 };
-W8ScreenState g_pending_state = { -1 };
+#define g_screen_state (g_dword_68ec78.state)
+#define g_pending_state (g_dword_68ed10.state)
 W8ScreenStateHandlers g_screen_handlers[13] = {
-    { ScreenReady, ScreenReady, RunMainMenuFrame, ScreenLeave, 0 },
+    { ScreenReady, EnterMainMenu, MainMenuScreenFrame, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
@@ -78,13 +71,8 @@ extern void Function48F9E0(void);
 extern void Function429770(void);
 extern void Function52E3B0(void);
 extern unsigned char StackSize(void* stack);
-extern unsigned char Pop(void* stack, W8ScreenState* into);
-extern void* Push(void* stack, W8ScreenState* from);
-
-void SetPendingScreenRuntime(int state)
-{
-    g_pending_state.id = state;
-}
+extern unsigned char Pop(void* stack, W8ScreenStateRuntime* into);
+extern void* Push(void* stack, W8ScreenStateRuntime* from);
 
 void Function4095B0(void) {}
 void Function48F9E0(void) {}
@@ -135,7 +123,7 @@ void Function4E3340(void)
         g_stack_68eda8 = Push(g_stack_68eda8, &g_screen_state);
     }
     state = g_pending_state.id;
-    memcpy(&g_screen_state, &g_pending_state, sizeof(W8ScreenState));
+    memcpy(&g_screen_state, &g_pending_state, sizeof(W8ScreenStateRuntime));
     if (!g_screen_handlers[state].enter()) {
         goto clear;
     }

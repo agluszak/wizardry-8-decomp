@@ -17,6 +17,9 @@ Build and open the recovered main menu with:
 just run
 ```
 
+Bare `just build` builds that same `WIZ8_RUNTIME` graph; pass an explicit target only when building
+a comparison or library surface such as `just build WIZ8` or `just build SREXT_JPEGIMPORTER`.
+
 The launcher creates `build/runtime/wiz8` for the writable executable, video configuration, and
 save directory. It links the large shipped assets from `$WIZ8_WORK_DIR/variants/gog-base` without
 changing that canonical materialization. Wine state is reused at
@@ -24,6 +27,23 @@ changing that canonical materialization. Wine state is reused at
 materializes the reviewed default `Wiz8.CFG` settings record, avoiding the still-incomplete
 first-party settings-discovery path; subsequent in-game configuration changes remain local to the
 staging directory.
+
+The launcher uses one named 640x480 Wine virtual desktop in that same prefix. Retail opens a
+desktop-sized popup and then asks SurRender to switch the physical display to 640x480. Modern
+compositors often preserve the host mode instead, leaving the fifth texture tile stretched across
+the native desktop and making mouse coordinates disagree with the 640x480 region catalog. The
+named desktop preserves retail's logical display without allocating a new X server or Wine prefix
+on every run. Mouse motion and button events still enter through released SGP input, are converted
+to client coordinates, and traverse the recovered region catalog and callbacks; arrow, Home, End,
+and Enter keys use the same menu selection and activation path. Exiting the launcher terminates only
+this dedicated Wine prefix. The launcher runs the game as its foreground child, so `just run` stays
+attached to the menu and returns the game's status instead of guessing its lifetime from Wine's
+desktop helper.
+
+`just build <target> [jobs]` invokes the pinned 32-bit JOM 1.1.3 directly. Configuration, source
+fetching, and original-image detection happen only when `build/decomp/CMakeCache.txt` is absent (or
+when `just configure` is requested); CMake's generated dependency check handles later CMake changes.
+Thus a no-op build enters the existing graph without regenerating all execution inputs first.
 
 The recovered corpus is not link-complete. `WIZ8_BRINGUP` therefore uses `/FORCE:UNRESOLVED` rather
 than contaminating matching source with invented globals or function bodies. LINK reports every
