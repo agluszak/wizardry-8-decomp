@@ -276,6 +276,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/Object0043A910.cpp
         src/wiz8/engine_code/Object005EBCFC.cpp
         src/wiz8/engine_code/BitArray.cpp
+        src/wiz8/engine_code/GameData.cpp
         src/wiz8/engine_code/GDProp.cpp
         src/wiz8/engine_code/Prop005EC1E0.cpp
         src/wiz8/engine_code/GrObject.cpp
