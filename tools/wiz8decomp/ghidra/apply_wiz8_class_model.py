@@ -6,6 +6,7 @@ from ..config import Settings
 from .apply_unzip_model import _apply_data, _structure
 from .project import resolve_program_name
 from .reviewed_class_model import (
+    BUILTIN_POINTEE_TYPES,
     VIRTUAL_SLOT_TYPE_NAME,
     ghidra_namespace_name,
     load_reviewed_class_model,
@@ -43,6 +44,7 @@ def apply_reviewed_class_model(
         UnsignedIntegerDataType,
         UnsignedShortDataType,
         VoidDataType,
+        WideCharDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -107,11 +109,12 @@ def apply_reviewed_class_model(
                 for field in model.fields:
                     if field.data_type == "pointer" and field.pointee:
                         base, depth = parse_pointee(field.pointee)
-                        data_type = (
-                            virtual_function
-                            if base == VIRTUAL_SLOT_TYPE_NAME
-                            else structure_handles[base]
-                        )
+                        if base == VIRTUAL_SLOT_TYPE_NAME:
+                            data_type = virtual_function
+                        elif base in BUILTIN_POINTEE_TYPES:
+                            data_type = WideCharDataType.dataType
+                        else:
+                            data_type = structure_handles[base]
                         for _ in range(depth + 1):
                             data_type = PointerDataType(data_type, dtm)
                         typed_pointer_fields += 1

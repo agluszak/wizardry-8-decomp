@@ -468,7 +468,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
                 Function58AB60(
                     9,
                     0,
-                    g_notices->monster_slain,
+                    g_notices[W8_NOTICE_MONSTER_SLAIN],
                     GetMonsterName(monster_info, 0, 0));
             }
             Function5248D0(monster_info);
@@ -1187,7 +1187,7 @@ void TogglePartyCombatStance(void)
         if (g_dword_68ec78 != 7) {
             return;
         }
-        message = g_notices->combat_stance_relaxed;
+        message = g_notices[W8_NOTICE_COMBAT_STANCE_RELAXED];
     } else {
         g_flag_6850d2 = 1;
         if (g_flag_683f94 != 0 && g_combat_state->flag_a62 != 0) {
@@ -1197,7 +1197,7 @@ void TogglePartyCombatStance(void)
         if (g_dword_68ec78 != 7) {
             return;
         }
-        message = g_notices->combat_stance_ready;
+        message = g_notices[W8_NOTICE_COMBAT_STANCE_READY];
     }
     Function58AC00(0xc, message, -1, -1, 0);
     if (g_dword_68ec78 == 7) {
@@ -1225,7 +1225,7 @@ void ToggleCombatMode(void)
     if (g_dword_683fa5 != 0 || g_combat_state->flag_a54 != 0) {
         if (g_combat_state->value_004 != 0) {
             Function58AC00(
-                0xc, g_notices->combat_cannot_end, -1, -1, 0);
+                0xc, g_notices[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
             return;
         }
         for (group_list_index = 0;
@@ -1235,7 +1235,7 @@ void ToggleCombatMode(void)
             if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
                 Function531920(monster_group) != 0) {
                 Function58AC00(
-                    0xc, g_notices->combat_cannot_end, -1, -1, 0);
+                    0xc, g_notices[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
             }
         }
@@ -1246,17 +1246,17 @@ void ToggleCombatMode(void)
              g_character_class_records[character->class_record_index].flag_154 != 0) &&
             Function4A5790() != 0) {
             Function58AC00(
-                0xc, g_notices->combat_cannot_end_engaged, -1, -1, 0);
+                0xc, g_notices[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
         }
     }
     if (g_combat_state->flag_000 != 0) {
         Function58AC00(
-            0xc, g_notices->combat_cannot_end_pending, -1, -1, 1);
+            0xc, g_notices[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
         return;
     }
     EndCombat(0);
-    Function58AC00(0xc, g_notices->combat_ended, -1, -1, 0);
+    Function58AC00(0xc, g_notices[W8_NOTICE_COMBAT_ENDED], -1, -1, 0);
     if (g_level_block->combat_end_notification != -1) {
         Function595570();
     }

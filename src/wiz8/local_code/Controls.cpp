@@ -2,6 +2,8 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 
+#include <wchar.h>
+
 /* Local Code\Controls.cpp. m_uiRegionSetId is named by the canonical assertion
    at line 399, and REGSET_NULL is zero because the body's guard is a plain
    test against zero.
@@ -53,7 +55,11 @@ struct Controls {
     unsigned char pad_07;
     int origin_x;                           /* 0x08: widget rectangles are relative to this */
     int origin_y;                           /* 0x0c */
-    unsigned char unknown_10[0x14];
+    int right;                              /* 0x10: panel bounds propagated to children */
+    int bottom;                             /* 0x14 */
+    int m_renderTarget;                     /* 0x18: -1 skips target-backed drawing */
+    int m_renderArg_1c;                     /* 0x1c: forwarded with the target */
+    int m_renderArg_20;                     /* 0x20: forwarded with the target */
     W8ControlsRect m_dirtyRect;             /* 0x24 */
     unsigned char m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
     unsigned char unknown_35[7];
@@ -68,6 +74,9 @@ struct Controls {
     void DestroyAllControls();
     void Invalidate(const W8ControlsRect* rect);
     void InvalidateLayout();
+    void Redraw();
+    void SetBounds(int left, int top, int right, int bottom);
+    void AcquireRegionSet(unsigned int* shared_region_set);
 
     /* The bounds-checked element read every walker above shares. Out of range
        it answers element zero rather than failing, which is what the canonical
@@ -84,6 +93,11 @@ struct Controls {
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 extern void Function562A50(unsigned int mask);
+extern void Function422D50(int left, int top, int right, int bottom, int mode);
+extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
+                           int left, int top, int mode, int flags);
+extern void Function5494F0(int target, int arg_1c, int arg_20,
+                           int left, int top, int mode);
 
 // FUNCTION: WIZ8 0x004F30F0
 void Controls::EnableRegionSet(unsigned char enable)
@@ -119,6 +133,10 @@ public:
             SetRegionMode4(m_region_18);
         }
     }
+
+    virtual void UnknownSlot1() = 0;
+    virtual void Redraw(int full_redraw) = 0;
+    virtual void SetBounds(int left, int top, int right, int bottom) = 0;
 
 protected:
     unsigned char m_flag_4;              /* 0x04: set to 1 on construction */
@@ -391,6 +409,7 @@ plain:
 class W8TextBuffer005ED5B8 {
 public:
     W8TextBuffer005ED5B8();
+    void CopyTextTo(wchar_t* destination);
 
     // FUNCTION: WIZ8 0x004F3370
     virtual ~W8TextBuffer005ED5B8()
@@ -444,6 +463,14 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
     m_field_18 = 0;
     m_field_1c = 0;
     m_field_20 = 0;
+}
+
+/* Copies the owned text into caller storage. The caller supplies the capacity;
+   the canonical method performs the same unbounded wide-string copy. */
+// FUNCTION: WIZ8 0x004F3990
+void W8TextBuffer005ED5B8::CopyTextTo(wchar_t* destination)
+{
+    wcscpy(destination, m_buffer);
 }
 
 /*
@@ -752,4 +779,75 @@ void Controls::InvalidateLayout()
 {
     m_fLayoutDirty = 1;
     Function562A50(0x80000000);
+}
+
+/* Flushes pending panel drawing, then asks each enabled child to redraw. A
+   full panel request uses the target-backed path when one exists; a bounded
+   request uses the accumulated rectangle. */
+// FUNCTION: WIZ8 0x004F2F10
+void Controls::Redraw()
+{
+    int redrawn = 0;
+    int index;
+
+    if (m_fEnabled == 0) {
+        return;
+    }
+    if (m_fDirty != 0) {
+        if (m_renderTarget != -1) {
+            Function548F90(-14, m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                           origin_x, origin_y, 2, 0);
+        }
+        if (m_fWholeAreaDirty != 0) {
+            if (m_renderTarget != -1) {
+                Function5494F0(m_renderTarget, m_renderArg_1c, m_renderArg_20,
+                               origin_x, origin_y, 2);
+            }
+        } else {
+            Function422D50(m_dirtyRect.left, m_dirtyRect.top,
+                           m_dirtyRect.right, m_dirtyRect.bottom, 2);
+        }
+        m_fDirty = 0;
+        m_dirtyRect.left = -1;
+        redrawn = 1;
+    } else if (m_fLayoutDirty == 0) {
+        return;
+    }
+    for (index = 0; index < m_nControls; ++index) {
+        if (ControlAt(index)->m_flag_5 != 0) {
+            ControlAt(index)->Redraw(redrawn);
+        }
+    }
+    m_fLayoutDirty = 0;
+}
+
+/* Replaces the panel bounds and forwards each child's existing relative
+   rectangle through virtual slot three so derived widgets can respond. */
+// FUNCTION: WIZ8 0x004F3010
+void Controls::SetBounds(int left, int top, int new_right, int new_bottom)
+{
+    int index;
+
+    origin_x = left;
+    origin_y = top;
+    right = new_right;
+    bottom = new_bottom;
+    for (index = 0; index < m_nControls; ++index) {
+        ControlAt(index)->SetBounds(ControlAt(index)->m_left,
+                                    ControlAt(index)->m_top,
+                                    ControlAt(index)->m_right,
+                                    ControlAt(index)->m_bottom);
+    }
+}
+
+/* Takes the panel's region set from a shared slot, creating it on first use,
+   and empties it so this panel can repopulate it. */
+// FUNCTION: WIZ8 0x004F30C0
+void Controls::AcquireRegionSet(unsigned int* shared_region_set)
+{
+    if (*shared_region_set == 0) {
+        *shared_region_set = CreateRegionSet();
+    }
+    m_uiRegionSetId = *shared_region_set;
+    ResetRegionSet(m_uiRegionSetId);
 }

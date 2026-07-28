@@ -6,7 +6,11 @@ wiz8,Controls,0x6,0x1,m_fLayoutDirty,uint8,,exact,classes:wiz8:Controls,the exac
 wiz8,Controls,0x7,0x1,pad_07,bytes,,strong,classes:wiz8:Controls,alignment before the signed origins
 wiz8,Controls,0x8,0x4,origin_x,int32,,strong,classes:wiz8:Controls,widget constructors and SetRegion add this signed coordinate to their horizontal bounds
 wiz8,Controls,0xc,0x4,origin_y,int32,,strong,classes:wiz8:Controls,widget constructors and SetRegion add this signed coordinate to their vertical bounds
-wiz8,Controls,0x10,0x14,unknown_10,bytes,,strong,classes:wiz8:Controls,unreviewed panel storage before the dirty rectangle
+wiz8,Controls,0x10,0x4,right,int32,,strong,classes:wiz8:Controls,SetBounds stores the panel right edge before updating every child
+wiz8,Controls,0x14,0x4,bottom,int32,,strong,classes:wiz8:Controls,SetBounds stores the panel bottom edge before updating every child
+wiz8,Controls,0x18,0x4,m_renderTarget,int32,,strong,classes:wiz8:Controls,Redraw skips both target-backed calls when this field is the -1 sentinel
+wiz8,Controls,0x1c,0x4,m_renderArg_1c,int32,,strong,classes:wiz8:Controls,Redraw forwards this value with the render target on both target-backed paths
+wiz8,Controls,0x20,0x4,m_renderArg_20,int32,,strong,classes:wiz8:Controls,Redraw forwards this value with the render target on both target-backed paths
 wiz8,Controls,0x24,0x4,m_dirtyLeft,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated left bound and -1 as the empty sentinel
 wiz8,Controls,0x28,0x4,m_dirtyTop,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated top bound
 wiz8,Controls,0x2c,0x4,m_dirtyRight,int32,,strong,classes:wiz8:Controls,Invalidate treats this signed dword as the accumulated right bound
@@ -21,6 +25,9 @@ wiz8,W8ControlsRect,0x0,0x4,left,int32,,strong,classes:wiz8:W8ControlsRect,first
 wiz8,W8ControlsRect,0x4,0x4,top,int32,,strong,classes:wiz8:W8ControlsRect,second signed bound read by Invalidate
 wiz8,W8ControlsRect,0x8,0x4,right,int32,,strong,classes:wiz8:W8ControlsRect,third signed bound read by Invalidate
 wiz8,W8ControlsRect,0xc,0x4,bottom,int32,,strong,classes:wiz8:W8ControlsRect,fourth signed bound read by Invalidate
+wiz8,W8TextBuffer005ED5B8,0x0,0x34,unknown_00,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,storage initialized by the constructor before the owned text pointer
+wiz8,W8TextBuffer005ED5B8,0x34,0x4,m_buffer,pointer,wchar_t,strong,classes:wiz8:W8TextBuffer005ED5B8,freed by the destructor and copied by CopyTextTo
+wiz8,W8TextBuffer005ED5B8,0x38,0x18,unknown_38,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,trailing constructor-initialized storage not yet semantically identified
 wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
 wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18

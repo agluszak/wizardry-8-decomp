@@ -125,13 +125,11 @@ extern void* Function517A90(void* target, const char* name, int value,
 extern void Function518510(void* notice);
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
-   consulted only when it is set. 0x0068C09C carries the two message templates
-   the failure notice picks from at +0x780 and +0x784, and 0x00683678 is passed
-   alongside. None of the four is established beyond that, so all keep
-   positional names. */
+   consulted only when it is set. The failure notice comes out of the shared
+   notice array, and 0x00683678 is passed alongside; neither is established
+   beyond that, so both keep positional names. */
 extern unsigned char g_flag_68517c;
 extern unsigned char g_flags_6874d7[];
-extern unsigned char* g_object_68c09c;
 extern int g_value_683678;
 
 /* Loads one character record, either from a loose file under Saves\Characters
@@ -188,7 +186,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
     }
 report:
     if (report_failure) {
-        void* notice = Function517A90(*(void**)(g_object_68c09c + 0x784), name,
+        void* notice = Function517A90(g_notices[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
                                       g_value_683678, 1, 1, 0, 0);
         Function518510(notice);
     }

@@ -10,6 +10,7 @@ ACCEPTED_CONFIDENCE = frozenset({"exact", "high", "strong"})
 # definition every reviewed vtable region is an array of pointers to. A vptr
 # field's pointee of "virtual_function *" types it as virtual_function **.
 VIRTUAL_SLOT_TYPE_NAME = "virtual_function"
+BUILTIN_POINTEE_TYPES = frozenset({"wchar_t"})
 SCALAR_FIELD_SIZES = {
     "float": 4,
     "uint8": 1,
@@ -190,7 +191,7 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
                     f"{field.class_name}+0x{field.offset:x}"
                 )
             base, _ = parse_pointee(field.pointee)
-            if base != VIRTUAL_SLOT_TYPE_NAME:
+            if base != VIRTUAL_SLOT_TYPE_NAME and base not in BUILTIN_POINTEE_TYPES:
                 target = classes_by_name.get(base)
                 if target is None or target.size is None:
                     raise ValueError(

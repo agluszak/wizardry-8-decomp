@@ -315,26 +315,22 @@ enum {
 
 struct W8MonsterInfo;
 
-/* The block the pointer at 0x0068C09C addresses. Every consumer so far reads
-   one fixed offset out of it and hands the result to a notice or message
-   routine, so the offsets are named for the notice each one carries; the
-   element type itself is not established, which is why they stay void*.
-   Offsets with no ported consumer are left unnamed rather than guessed. */
-typedef struct W8NoticeTable {
-    unsigned char unknown_000[0x74c];
-    void* monster_slain;                  /* 0x74c */
-    unsigned char unknown_750[0x34];
-    void* character_load_failed;          /* 0x784 */
-    unsigned char unknown_788[0xf0];
-    /* 0x878..0x88c: the six notices the combat toggle and the stance toggle
-       choose between, named for the branch that selects each. */
-    void* combat_cannot_end;              /* 0x878 */
-    void* combat_cannot_end_engaged;      /* 0x87c */
-    void* combat_cannot_end_pending;      /* 0x880 */
-    void* combat_ended;                   /* 0x884 */
-    void* combat_stance_relaxed;          /* 0x888 */
-    void* combat_stance_ready;            /* 0x88c */
-} W8NoticeTable;
+/* 0x0068C09C addresses a flat array of localized notice pointers. ShowRegionHelp
+   indexes it by a region's help id, which is what fixes the shape as an array
+   rather than a record; the constants below are the entries a ported body picks
+   by name instead of out of data, and are the byte offsets those bodies use
+   divided by the pointer stride. The element type is not established, so the
+   array stays void*. */
+enum W8NoticeId {
+    W8_NOTICE_MONSTER_SLAIN = 0x74c / 4,
+    W8_NOTICE_CHARACTER_LOAD_FAILED = 0x784 / 4,
+    W8_NOTICE_COMBAT_CANNOT_END = 0x878 / 4,
+    W8_NOTICE_COMBAT_CANNOT_END_ENGAGED = 0x87c / 4,
+    W8_NOTICE_COMBAT_CANNOT_END_PENDING = 0x880 / 4,
+    W8_NOTICE_COMBAT_ENDED = 0x884 / 4,
+    W8_NOTICE_COMBAT_STANCE_RELAXED = 0x888 / 4,
+    W8_NOTICE_COMBAT_STANCE_READY = 0x88c / 4
+};
 
 /* One record per character class, 0x1e5 bytes, indexed by the class index a
    combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
@@ -385,7 +381,7 @@ typedef struct W8LevelRuntimeBlock {
 extern "C" {
 #endif
 
-extern W8NoticeTable* g_notices;         /* 0x0068C09C */
+extern void** g_notices;                 /* 0x0068C09C */
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 /* 0x0068EDCC: the loaded level's runtime block. Only the halfword the combat
    toggle tests is reached, so it keeps a positional name. */
