@@ -1917,3 +1917,66 @@ void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int p
         (int)&result, 0, 0, 0);
     NoteSpellCast(spell_id, result);
 }
+
+/* The object a running cast hangs its spawned effects off. Only the vector at
+   0x100 is established, and it is the one every effect this file spawns is
+   appended to. */
+typedef struct W8CastEffectOwner {
+    unsigned char unknown_000[0x100];
+    /* 0x100: the spawned effects, in a growable vector's storage. Spelled as
+       the layout rather than as the class so the owner stays a plain record. */
+    struct {
+        void* vptr;                      /* 0x100 */
+        int count;                       /* 0x104 */
+        int capacity;                    /* 0x108 */
+        void** data;                     /* 0x10c */
+    } effects;
+} W8CastEffectOwner;
+
+extern void* SpawnSpellEffect(
+    const W8Position* position, const char* resource_name, int arg_3, int arg_4, int arg_5);
+/* 0x004AD430, Engine Code\Spells.cpp */
+extern int GrowEffectVector(void* vector, int minimum_capacity);         /* 0x004ADDF0 */
+
+/* The lure spell, and how far under the target the first of its two effects is
+   placed. */
+enum { W8_SPELL_LURE = 0x26 };
+
+/* Put the lure's two effects into the world. The first is the spell's own
+   resource a thousand units below where the spell landed; the second is the
+   named companion effect at the landing point itself, and only that one has
+   its mode set. Both are appended to whatever the cast hangs its effects off,
+   and an effect that failed to spawn is simply not appended. */
+// FUNCTION: WIZ8 0x004FB360
+void SpawnLureEffects(W8CastEffectOwner* owner, int arg_2, const W8CombatSlot* target)
+{
+    W8Position position;
+    void* effect;
+
+    position.x = target->point.x;
+    position.y = target->point.y - 1000.0f;
+    position.z = target->point.z;
+
+    effect = SpawnSpellEffect(
+        &position, g_spell_records[W8_SPELL_LURE].resource_name, arg_2, 0, 0);
+    if (effect != 0) {
+        *((unsigned char*)effect + 0x1e6) = 0;
+        if (owner->effects.count + 1 <= owner->effects.capacity ||
+            GrowEffectVector(&owner->effects, owner->effects.count + 1) != 0) {
+            owner->effects.data[owner->effects.count] = effect;
+            ++owner->effects.count;
+        }
+    }
+
+    position = target->point;
+    effect = SpawnSpellEffect(&position, "hyp_lure2", arg_2, 0, 0);
+    if (effect != 0) {
+        *((unsigned char*)effect + 0x1e6) = 0;
+        *(*(unsigned char**)((char*)effect + 0x1e0) + 0x71) = 3;
+        if (owner->effects.count + 1 <= owner->effects.capacity ||
+            GrowEffectVector(&owner->effects, owner->effects.count + 1) != 0) {
+            owner->effects.data[owner->effects.count] = effect;
+            ++owner->effects.count;
+        }
+    }
+}
