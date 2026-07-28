@@ -64,6 +64,15 @@ extern void Function55ADA0(void* fact_rules_runtime);
 extern void CloseVirtualFile(int handle);
 extern unsigned char FileSeek(int handle, int offset, int origin);
 
+/* The SGP file-manager seek origins, spelled the way FileMan.h does. This unit
+   does not include that header, so the three it uses are restated here rather
+   than left as the bare 1 and 4 the calls would otherwise carry. */
+enum {
+    W8_SEEK_FROM_START = 0x01,
+    W8_SEEK_FROM_END = 0x02,
+    W8_SEEK_FROM_CURRENT = 0x04
+};
+
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
@@ -811,4 +820,74 @@ void Function55EC50(int value)
 void Function55EC60(void)
 {
     g_flag_68edac = 1;
+}
+
+/* Loads Data\\Databases\\SpellTables.dbs, replacing whatever is already there.
+   The header is two dwords: an allocation count and the number of rows to read.
+   They are not the same number, and the allocation is sized from the first while
+   the loop runs over the second, which is what the original does.
+ 
+   Each row is preceded by 0x101 bytes the loader skips rather than reads. A
+   failure anywhere stops the loop and drops the whole table, but the file is
+   closed and the row count published either way - including on failure, where
+   the count then describes a table that is no longer there. Preserved as found.
+ 
+   The assertion at Spells.cpp:1908 names the table s_pSpellTable, which is why
+   this body treats the global as the table itself rather than as a cursor. */
+// FUNCTION: WIZ8 0x004ACC10
+unsigned char InitializeSpellDatabase(void)
+{
+    int handle;
+    unsigned int index;
+    int offset = 0;
+    unsigned char ok;
+    int allocation_count;
+    unsigned int row_count;
+
+    if (g_spell_records != 0) {
+        ::operator delete(g_spell_records);
+        g_spell_records = 0;
+        g_spell_database_version = 0;
+    }
+    handle = FileOpen("Data\\Databases\\SpellTables.dbs", 0x41, 0);
+    if (handle == 0) {
+        return 0;
+    }
+    ok = 0;
+    if (ReadVirtualFile(handle, &allocation_count, 4, 0) &&
+        ReadVirtualFile(handle, &row_count, 4, 0)) {
+        ok = 1;
+    }
+    g_spell_records = static_cast<W8SpellRuntimeRecord*>(
+        ::operator new(allocation_count * sizeof(W8SpellRuntimeRecord)));
+    if (g_spell_records == 0) {
+        srAssertFail(
+            "s_pSpellTable",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x774,
+            0);
+    }
+    for (index = 0; index < row_count; ++index) {
+        if (ok == 0) {
+            goto discard;
+        }
+        ok = 0;
+        if (FileSeek(handle, 0x101, W8_SEEK_FROM_CURRENT) &&
+            ReadVirtualFile(
+                handle,
+                reinterpret_cast<unsigned char*>(g_spell_records) + offset,
+                sizeof(W8SpellRuntimeRecord),
+                0)) {
+            ok = 1;
+        }
+        offset += sizeof(W8SpellRuntimeRecord);
+    }
+    if (ok == 0) {
+discard:
+        ::operator delete(g_spell_records);
+        g_spell_records = 0;
+    }
+    CloseVirtualFile(handle);
+    g_spell_database_version = row_count;
+    return ok;
 }

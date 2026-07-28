@@ -96,4 +96,19 @@ typedef struct W8MonsterRecord {
 
 #pragma pack(pop)
 
+
+
+/* Data\Databases race table rows the resistance recalculation reads. A
+   resistance_index of -1 terminates a race's list; an adjustment above
+   W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS names a character attribute instead of a
+   flat amount. Mirrors config/types/wiz8/gameplay_databases.h. */
+typedef struct W8RaceResistanceAdjustment {
+    int resistance_index;
+    int adjustment_or_attribute;
+} W8RaceResistanceAdjustment;           /* 0x08 */
+
+typedef struct W8RaceResistanceProfile {
+    W8RaceResistanceAdjustment adjustments[6];
+} W8RaceResistanceProfile;              /* 0x30 */
+
 #endif

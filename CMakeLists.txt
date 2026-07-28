@@ -249,6 +249,7 @@ endif()
 if(WIZ8_BUILD_DECOMP)
     set(WIZ8_ORIGINAL_UNITS
         "src/wiz8/local_code/PC Item.cpp"
+        "src/wiz8/local_code/Formation & Facing.cpp"
         src/wiz8/local_code/Controls.cpp
         src/wiz8/local_code/Factions.cpp
         src/wiz8/local_code/LoadSaveGame.cpp

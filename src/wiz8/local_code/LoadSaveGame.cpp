@@ -104,6 +104,11 @@ extern void CloseVirtualFile(int handle);
    as elsewhere in src/wiz8. The first loads a character from somewhere other
    than a loose file, the second builds the failure notice the third posts. */
 extern char Function5156C0(const char* path, W8Character* character);
+extern char Function5155B0(const char* path, int slot, W8Character* character);
+
+/* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
+   vendored SGP FileMan.h already on this target's include path, so they are not
+   restated here. */
 extern void* Function517A90(void* target, const char* name, int value,
                             int a, int b, int c, void* callback);
 extern void Function518510(void* notice);
@@ -452,4 +457,77 @@ unsigned char SaveGameExists(void)
 done:
     GetFileClose(&find);
     return found;
+}
+
+/* Writes one character record back to Saves\\Characters or Saves\\NPCs. The
+   file name is the character's own wide name with a CHR extension, and the
+   record is written as a four-byte length followed by that many bytes, which is
+   the pair LoadCharacter reads back.
+ 
+   The two directory spellings do not share a sprintf the way LoadCharacter's do:
+   with characters loose, the NPC path is copied whole because the name already
+   carries no directory, while the other two arms format one. An existing
+   read-only file has its attribute cleared first, and a failure to clear it is
+   treated exactly like a failure to open.
+ 
+   Failure reporting has two shapes. With report_failure set the caller gets the
+   save-failed notice and the continuation is dropped; without it the
+   continuation runs instead. Either way the answer is failure. */
+// FUNCTION: WIZ8 0x00515090
+unsigned char SaveCharacter(W8Character* character, int slot, char report_failure,
+                            void (*continuation)(void))
+{
+    char file_name[16];
+    char path[260];
+    char directory[260];
+    unsigned char saved = 1;
+    unsigned int size;
+    unsigned int transferred;
+    int handle;
+
+    character->record_version = 1;
+    sprintf(file_name, "%ls.%s", character->name, "CHR");
+    if (g_flag_68517c == 0) {
+        strcpy(directory, slot != -1 ? "Saves\\NPCs" : "Saves\\Characters");
+        sprintf(path, "%s\\%s", directory, file_name);
+    } else if (slot == -1 || g_flags_6874d7[slot] != 0) {
+        strcpy(path, file_name);
+    } else {
+        sprintf(path, "%s\\%s", "Saves\\NPCs", file_name);
+    }
+
+    if (g_flag_68517c == 0) {
+        if (FileExists(path) &&
+            (FileGetAttributes(path) & FILE_IS_READONLY) != 0 &&
+            FileClearAttributes(path) == 0) {
+            goto report;
+        }
+        handle = FileOpen(path, 0x22, 0);
+        if (handle == 0) {
+            goto report;
+        }
+        size = sizeof(W8Character);
+        if (FileWrite(handle, &size, 4, &transferred) == 0 ||
+            FileWrite(handle, character, sizeof(W8Character), &transferred) == 0) {
+            saved = 0;
+        }
+        CloseVirtualFile(handle);
+    } else {
+        saved = Function5155B0(path, slot, character);
+    }
+    if (saved) {
+        return saved;
+    }
+report:
+    if (report_failure) {
+        void* notice = FormatWideString(
+            static_cast<const wchar_t*>(g_notices[W8_NOTICE_CHARACTER_SAVE_FAILED]),
+            character->name, g_value_683678, 1, 1, 0, continuation);
+        Function518510(notice);
+        return 0;
+    }
+    if (continuation != 0) {
+        continuation();
+    }
+    return 0;
 }

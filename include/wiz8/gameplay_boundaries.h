@@ -34,7 +34,10 @@ typedef struct W8FactionRuntimeRecord {
    value, which IsCharacterSkillAvailable tests against 100, is established. */
 typedef struct W8CharacterAttribute {
     unsigned int value;                   /* 0x00 */
-    unsigned char unknown_04[0x10];
+    /* 0x04: the value after equipment and effects. Resistance recalculation
+       reads this one, not the base, and only above a threshold of 0x50. */
+    unsigned int effective;
+    unsigned char unknown_08[0xc];
 } W8CharacterAttribute;                   /* 0x14 */
 
 /* One skill record, indexed directly by skill id. PracticeCharacterSkill
@@ -42,15 +45,47 @@ typedef struct W8CharacterAttribute {
    becomes available; IsCharacterSkillAvailable reads the same flag. */
 typedef struct W8CharacterSkill {
     unsigned char flag_00;                /* 0x00 */
-    unsigned char unknown_01[0x25];
+    unsigned char unknown_01[5];
+    /* 0x06: the skill's current level. Resistance recalculation divides it by
+       ten for skills 28..33 and by five for skill 36, which is what places it. */
+    unsigned int level;
+    unsigned char unknown_0a[0x1c];
 } W8CharacterSkill;                       /* 0x26 */
 
+/* One resistance channel. Recalculation rebuilds `base` from scratch each time
+   and then derives `total` from it, so the two are a computed pair rather than
+   a stored value and a cache. */
+typedef struct W8CharacterResistance {
+    unsigned int base;                    /* 0x00 */
+    unsigned int total;                   /* 0x04: clamped to 100 */
+    unsigned char unknown_08[8];
+} W8CharacterResistance;                  /* 0x10 */
+
+enum {
+    W8_RESISTANCE_COUNT = 6,
+    /* The six skills whose level feeds the matching resistance, and the one
+       whose presence adds a flat bonus to every one of them. */
+    W8_FIRST_RESISTANCE_SKILL = 28,
+    W8_RESISTANCE_BONUS_SKILL = 36,
+    /* A race adjustment at or below this is a flat amount; above it, it selects
+       a character attribute by index biased this far. */
+    W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS = 1000
+};
+
 typedef struct W8Character {
-    unsigned char unknown_0000[4];
+    /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
+       leading dword is a saved-record version rather than runtime state. */
+    unsigned int record_version;
     unsigned char in_party;              /* 0x0004 */
-    unsigned char unknown_0005[0x64];
+    /* 0x0005: the character's name, wide, and the stem SaveCharacter formats
+       "%ls.CHR" from. The extent below partitions the unknown run up to the
+       profession at 0x0069; it is not proven, and only the fact that a wide
+       string starts here is. */
+    wchar_t name[0x10];
+    unsigned char unknown_0025[0x44];
     int current_profession;               /* 0x0069 */
-    unsigned char unknown_006d[8];
+    unsigned char unknown_006d[4];
+    int race;                             /* 0x0071: indexes the race resistance table */
     int faction;                          /* 0x0075: compared against the caller's faction */
     unsigned char unknown_0079[0x10];
     unsigned int level;                   /* 0x0089: averaged across occupied slots */
@@ -71,7 +106,13 @@ typedef struct W8Character {
     unsigned int unknown_0b11;            /* 0x0b11 */
     unsigned char unknown_0b15[0x2d8];
     unsigned int skill_unlocks[0x29];     /* 0x0ded, indexed by skill_id */
-    unsigned char unknown_0e91[0x9d1];
+    unsigned char unknown_0e91[0x4c];
+    W8CharacterResistance resistances[W8_RESISTANCE_COUNT]; /* 0x0edd */
+    unsigned char unknown_0f3d[0x83a];
+    signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
+    unsigned char unknown_1778[0x34];
+    signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
+    unsigned char unknown_17b2[0xb0];
 } W8Character;                           /* 0x1862 */
 
 typedef struct W8RPCSlot {
@@ -323,6 +364,7 @@ struct W8MonsterInfo;
    array stays void*. */
 enum W8NoticeId {
     W8_NOTICE_MONSTER_SLAIN = 0x74c / 4,
+    W8_NOTICE_CHARACTER_SAVE_FAILED = 0x780 / 4,
     W8_NOTICE_CHARACTER_LOAD_FAILED = 0x784 / 4,
     W8_NOTICE_COMBAT_CANNOT_END = 0x878 / 4,
     W8_NOTICE_COMBAT_CANNOT_END_ENGAGED = 0x87c / 4,
@@ -388,7 +430,12 @@ extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 extern W8LevelRuntimeBlock* g_level_block;
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
 extern W8SpellRuntimeRecord* g_spell_records;
+/* 0x005EC0F4: the spell-table row count published once the load succeeds. It is
+   also cleared alongside the table when a reload starts, so the two are one
+   piece of state. */
+extern unsigned int g_spell_database_version;
 extern W8FactionRuntimeRecord g_factions[21];
+extern W8RaceResistanceProfile g_race_resistance_profiles[];
 extern W8Character* g_party_characters;
 extern unsigned int g_region_set_count;  /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];
