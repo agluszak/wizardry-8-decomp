@@ -9,6 +9,39 @@
    bodies compare against -1. */
 #define BAD_INDEX (-1)
 
+/* Point a source at one party character. Everything is cleared first and the
+   monster id invalidated, so a source built this way never reads as a monster;
+   the character id is the only thing left set. */
+// FUNCTION: WIZ8 0x0053BE00
+void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source)
+{
+    if (source == 0) {
+        srAssertFail("pSource != NULL", TARGETING_CPP, 0xcc9, 0);
+    }
+    memset(source, 0, sizeof(W8TargetSource));
+    source->iMonsterID = BAD_INDEX;
+    source->iType = 1;
+    source->iChar = party_slot;
+}
+
+/* The same for a monster, and the mirror image of it: the character id is the
+   one invalidated and the monster id the one left set. The monster is passed
+   as its info record rather than as an id, so the id is read out of it here -
+   which is what makes the two builders take different kinds of argument for
+   the same job. */
+// FUNCTION: WIZ8 0x0053BE50
+void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source)
+{
+    if (source == 0) {
+        srAssertFail("pSource != NULL", TARGETING_CPP, 0xcd5, 0);
+    }
+    memset(source, 0, sizeof(W8TargetSource));
+    source->iMonsterID = BAD_INDEX;
+    source->iChar = BAD_INDEX;
+    source->iType = 2;
+    source->iMonsterID = monster_info->location_id;
+}
+
 // FUNCTION: WIZ8 0x0053BEA0
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect)
 {
@@ -51,8 +84,8 @@ extern const char g_faction_names[][0x1e];               /* 0x0061CE74 */
 extern W8FactionRuntimeRecord g_faction_runtime[];       /* 0x0068D6EA */
 
 extern char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context);
-extern W8TargetBlock* Function53B7F0(int party_slot, int context);
-extern unsigned char Function537160(W8TargetBlock* target, char needed);
+extern W8TargetSource* Function53B7F0(int party_slot, int context);
+extern unsigned char Function537160(W8TargetSource* target, char needed);
 extern unsigned char Function519180(int party_slot, int arg_2, int context);
 extern unsigned char Function5207C0(const W8ItemDatabaseRecord* record, int context);
 extern unsigned char g_targeting_flag_00685116;
@@ -96,12 +129,12 @@ unsigned char GetFactionFlag(char faction)
    BAD_INDEX. The kind is written twice, once by the clear and once on its
    own. */
 // FUNCTION: WIZ8 0x00536150
-void ResetTargetBlock(W8TargetBlock* target)
+void ResetTargetSource(W8TargetSource* source)
 {
-    memset(target, 0, sizeof(W8TargetBlock));
-    target->kind = 0;
-    target->character_slot = BAD_INDEX;
-    target->monster_id = BAD_INDEX;
+    memset(source, 0, sizeof(W8TargetSource));
+    source->iType = 0;
+    source->iChar = BAD_INDEX;
+    source->iMonsterID = BAD_INDEX;
 }
 
 /* The same for the shorter inline form, which has a third id to invalidate. */
@@ -142,7 +175,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context)
 // FUNCTION: WIZ8 0x00537270
 unsigned char IsSpellTargetOfNeededKind(int party_slot, int spell_id)
 {
-    W8TargetBlock* target = Function53B7F0(party_slot, 6);
+    W8TargetSource* target = Function53B7F0(party_slot, 6);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, 6);
 
     if (needed == 2 && g_targeting_flag_00685116 != 0) {
@@ -394,7 +427,7 @@ char GetTargetNeededForAction(int action, int spell_id, const W8ItemInstance** i
 // FUNCTION: WIZ8 0x005372B0
 unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
 {
-    W8TargetBlock* target = Function53B7F0(party_slot, 6);
+    W8TargetSource* target = Function53B7F0(party_slot, 6);
     const W8ItemDatabaseRecord* record;
     int needed = 0;
 

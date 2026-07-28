@@ -13,13 +13,13 @@
 #define CONDITIONS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp"
 
 extern void SetMonsterCondition(
-    int location_id, int condition, int duration, int argument, W8TargetBlock* target_block, int quiet);
+    int location_id, int condition, int duration, int argument, W8TargetSource* target_block, int quiet);
 /* 0x00523C00 */
 extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00523F40 */
 extern void SetCharacterCondition(
     int party_slot, int condition, int duration, int argument, int arg_5, int arg_6);
 extern void RemoveCharacterCondition(int party_slot, int condition, int arg_3);
-extern void ResetTargetBlock(W8TargetBlock* target_block);               /* 0x00536150 */
+extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
 extern int CharacterPointerToPartySlot(const W8Character* character);
 extern unsigned int MonsterGetIndexByLocationID(
     int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
@@ -46,12 +46,12 @@ enum { W8_CONDITION_SURVIVES_DEATH = 10 };
 // FUNCTION: WIZ8 0x005241E0
 void CopyCharacterConditionsToTarget(const W8Character* character, const int* target)
 {
-    W8TargetBlock target_block;
+    W8TargetSource target_block;
     unsigned int condition;
     int duration;
     int argument;
 
-    ResetTargetBlock(&target_block);
+    ResetTargetSource(&target_block);
     for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
         duration = character->condition_turns[condition];
         if (duration != 0) {

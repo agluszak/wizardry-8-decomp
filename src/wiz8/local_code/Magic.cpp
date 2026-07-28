@@ -1253,14 +1253,14 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
     return power_level;
 }
 
-extern void ResetTargetBlock(W8TargetBlock* target_block);               /* 0x00536150 */
+extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
 extern void ResetCombatSlot(W8CombatSlot* combat_slot);                  /* 0x00536170 */
 extern int GetRandomCharacter(
     int require_primary, int require_secondary, int excluded_slot, int excluded_slot_2);
 extern void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 /* 0x0053C630 */
 extern int CastSpellFromSource(
-    int spell_id, W8TargetBlock* source, W8CombatSlot* target, unsigned int power_level,
+    int spell_id, W8TargetSource* source, W8CombatSlot* target, unsigned int power_level,
     int a, int b, int c, int d, int e, int f, int g);                    /* 0x004FB4C0 */
 
 /* The target-block kind that means the cast comes from a point in the world
@@ -1285,7 +1285,7 @@ enum {
 // FUNCTION: WIZ8 0x004FB220
 int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_level)
 {
-    W8TargetBlock source;
+    W8TargetSource source;
     W8CombatSlot target;
     int hostile;
 
@@ -1296,8 +1296,8 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
         power_level = 1;
     }
 
-    ResetTargetBlock(&source);
-    source.kind = W8_SOURCE_TYPE_POINT;
+    ResetTargetSource(&source);
+    source.iType = W8_SOURCE_TYPE_POINT;
     source.point.x = x;
     source.point.y = y;
     source.point.z = z;
@@ -1756,10 +1756,10 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
 }
 
 
-extern unsigned char TargetBlockIsCharacter(const W8CombatSlot* target, int arg_2);
-/* 0x0053BEA0 */
-extern unsigned char TargetBlockIsMonster(const W8CombatSlot* target, int arg_2);
-/* 0x0053BF10 */
+/* The target block and the source block are the same struct, so the two
+   predicates Targeting.cpp declares over a source answer for a target too. */
+extern unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
+extern unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 extern wchar_t* GetMonsterGroupName(W8MonsterGroup* group);              /* 0x00510280 */
 extern W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, int arg_2);
 /* 0x0068C09C is indexed here by byte offset; 0x610 is the "at %s" wrapper every
@@ -1809,7 +1809,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         if (target->character_slot == -1) {
             srAssertFail("pTarget->iChar != BAD_INDEX", MAGIC_CPP, 0xad, 0);
         }
-        if (!TargetBlockIsCharacter(target, 0) || target->described.name_known != 0) {
+        if (!TargetSourceIsCharacter((const W8TargetSource*)target, 0) || target->described.name_known != 0) {
             return FormatWideString(
                 g_message_strings[W8_MESSAGE_TARGET_AT / 4],
                 g_party_characters[target->character_slot].name);
@@ -1831,7 +1831,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0xc0, MAGIC_CPP, target->monster_id, 1));
         record = GetMonsterDataForInfo(monster_info);
-        if (!TargetBlockIsMonster(target, 0)) {
+        if (!TargetSourceIsMonster((const W8TargetSource*)target, 0)) {
             return FormatWideString(
                 g_message_strings[W8_MESSAGE_TARGET_AT / 4],
                 GetMonsterName(monster_info, record, 0));
@@ -1868,7 +1868,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         g_message_strings[W8_MESSAGE_TARGET_AT / 4], g_message_strings[name_prefix]);
 }
 
-extern void BuildMonsterSourceBlock(W8MonsterInfo* monster_info, W8TargetBlock* source);
+extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 /* 0x0053BE50 */
 extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void NoteSpellCast(int spell_id, int result);                     /* 0x0052C320 */
@@ -1891,12 +1891,12 @@ enum { W8_MESSAGE_MONSTER_CAST_VERBOSE = 0x638, W8_MESSAGE_MONSTER_CAST = 0x63c 
 void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-    W8TargetBlock source;
+    W8TargetSource source;
     unsigned int budget;
     unsigned int failure;
     int result;
 
-    BuildMonsterSourceBlock(monster_info, &source);
+    SetTargetSourceToMonster(monster_info, &source);
 
     if (g_log_verbose_0068510c == 0) {
         WriteGameLog(

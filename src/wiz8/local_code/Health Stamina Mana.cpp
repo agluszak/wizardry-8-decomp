@@ -254,9 +254,9 @@ extern void RecalculateCharacterHitPoints(W8Character* character);
 extern void FatigueCharacter(int party_slot, int amount, char scale_by_load, int arg_4, int arg_5);
 /* 0x0052AF50 */
 extern void Function52F2C0(W8Character* character);
-extern void ResetTargetBlock(W8TargetBlock* target_block);               /* 0x00536150 */
+extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
 extern void SetMonsterCondition(
-    int location_id, int condition, int duration, int arg_4, W8TargetBlock* target_block, int quiet);
+    int location_id, int condition, int duration, int arg_4, W8TargetSource* target_block, int quiet);
 /* 0x00523C00 */
 extern void ClearMonsterCondition(int location_id, int condition);       /* 0x00523F40 */
 extern void ApplyMonsterCondition(int location_id, int condition, int arg_3);
@@ -526,7 +526,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
 // FUNCTION: WIZ8 0x0052C070
 void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to)
 {
-    W8TargetBlock target_block;
+    W8TargetSource target_block;
 
     if (monster_info->hp_current == 0) {
         return;
@@ -547,7 +547,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report
 
     if (monster_info->runtime_stat_current_33 == 0 &&
         (unsigned int)monster_info->condition_turns[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
-        ResetTargetBlock(&target_block);
+        ResetTargetSource(&target_block);
         SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
                             W8_CONDITION_INDEFINITE, 0, &target_block, report_to == 0);
         if (report_to != 0) {

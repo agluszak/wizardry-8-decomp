@@ -547,17 +547,28 @@ typedef struct W8MessageBoxLine {
 /* The block a spell or attack records its target in. Only the leading three
    fields are established; the two resets that build an empty one agree on the
    extent and on which of them start at -1 rather than zero. */
-typedef struct W8TargetBlock {
-    int kind;                             /* 0x00 */
-    int character_slot;                   /* 0x04, -1 when empty */
-    int monster_id;                       /* 0x08, -1 when empty */
+/* Where a spell or an attack comes from. Targeting.cpp's assertions name every
+   field here - iType, iChar, iMonsterID, fBackfire and fReflection - and the
+   three source kinds are a character, a monster and a point in the world; a
+   backfired or reflected spell keeps the original's iChar or iMonsterID while
+   reading as a point, which is what the two flags distinguish.
+
+   This was modelled twice before, once from the assertions and once from
+   SpellBackfires' stack frame, and they are one struct. */
+typedef struct W8TargetSource {
+    int iType;                            /* 0x00 */
+    int iChar;                            /* 0x04, -1 when empty */
+    int iMonsterID;                       /* 0x08, -1 when empty */
     /* 0x0c: the world point, for a source that is a place rather than
-       somebody. Note that this is not where the combat slot below keeps its
+       somebody. Note that this is not where the combat slot keeps its own
        point - that one has a group id at 0x0c and the point at 0x10 - so the
        two blocks are related but not the same shape. */
     W8Position point;
-    unsigned char unknown_18[0x1c];
-} W8TargetBlock;                          /* 0x34 */
+    unsigned char unknown_18[3];
+    unsigned char fReflection;            /* 0x1b */
+    unsigned char fBackfire;              /* 0x1c */
+    unsigned char unknown_1d[0x17];
+} W8TargetSource;                         /* 0x34 */
 
 /* The shorter form a combatant carries inline, with one more field reset to
    -1 and no room for the tail. */
@@ -596,14 +607,6 @@ enum {
     W8_TARGET_KIND_CHARACTER_INDIRECT = 9
 };
 
-typedef struct W8TargetSource {
-    int iType;                            /* 0x00 */
-    int iChar;                            /* 0x04 */
-    int iMonsterID;                       /* 0x08 */
-    unsigned char unknown_0c[0x0f];
-    unsigned char fReflection;            /* 0x1b */
-    unsigned char fBackfire;              /* 0x1c */
-} W8TargetSource;
 
 typedef unsigned char W8FactionDisposition;
 
