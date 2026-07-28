@@ -244,14 +244,14 @@ def extract_role(settings: Settings, role: str) -> dict[str, Any]:
             detail = "; ".join(verification["errors"])
             raise RuntimeError(
                 f"existing extraction failed verification for {role}: {detail}. "
-                "Run 'wiz8 pipeline clean --stage extractions' to rebuild generated state."
+                "Run 'wiz8 corpus clean --stage extractions' to rebuild generated state."
             )
         existing = _load_extraction_receipt(destination)
         write_generated_document(_extraction_receipt_path(settings, role), existing)
         return existing.model_dump(mode="json", by_alias=True)
     if sha256_file(source) != record.sha256:
         raise RuntimeError(
-            f"configured input changed since 'wiz8 inputs scan': {record.relative_path}"
+            f"configured input changed since 'wiz8 corpus scan': {record.relative_path}"
         )
     destination.parent.mkdir(parents=True, exist_ok=True)
     log_dir = settings.build_dir / "logs" / "extract" / role
@@ -491,7 +491,7 @@ def materialize_variants(settings: Settings) -> dict[str, Any]:
                 raise RuntimeError(
                     f"existing variant failed verification for {variant}: "
                     + "; ".join(verification["errors"])
-                    + ". Run 'wiz8 pipeline clean --stage variants' to rebuild generated state."
+                    + ". Run 'wiz8 corpus clean --stage variants' to rebuild generated state."
                 )
             receipt = load_generated_document(marker, VariantProvenance)
             write_generated_document(_variant_receipt_path(settings, variant), receipt)

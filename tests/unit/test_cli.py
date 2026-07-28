@@ -4,7 +4,8 @@ from pathlib import Path
 from typer.testing import CliRunner
 from wiz8decomp import cli
 from wiz8decomp.cli import app
-from wiz8decomp.ghidra import cache, query_daemon, validate_replay
+from wiz8decomp.extract import variants
+from wiz8decomp.ghidra import query_daemon
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 
@@ -13,8 +14,54 @@ def test_cli_uses_typed_command_tree() -> None:
     result = CliRunner().invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "ghidra" in result.stdout
-    assert "inputs" in result.stdout
-    assert "extract" in result.stdout
+    assert "corpus" in result.stdout
+    assert "inputs" not in result.stdout
+    assert "pipeline" not in result.stdout
+    assert "function-census" not in result.stdout
+    assert "sgp" not in result.stdout
+
+
+def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
+    settings = object()
+    seen: list[tuple[object, str]] = []
+    monkeypatch.setattr(cli, "_settings", lambda: settings)
+    monkeypatch.setattr(
+        variants,
+        "extract_role",
+        lambda actual, role: seen.append((actual, role)) or {"role": role},
+    )
+
+    result = CliRunner().invoke(app, ["corpus", "extract", "demo", "patch-128"])
+
+    assert result.exit_code == 0
+    assert seen == [(settings, "demo"), (settings, "patch-128")]
+    assert json.loads(result.stdout) == [{"role": "demo"}, {"role": "patch-128"}]
+
+
+def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
+    settings = object()
+    monkeypatch.setattr(cli, "_settings", lambda: settings)
+    monkeypatch.setattr(
+        variants,
+        "extract_all",
+        lambda actual: {"all": actual is settings},
+    )
+
+    result = CliRunner().invoke(app, ["corpus", "extract", "--all"])
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == {"all": True}
+
+
+def test_public_ghidra_surface_hides_replay_and_process_lifecycle() -> None:
+    result = CliRunner().invoke(app, ["ghidra", "--help"])
+
+    assert result.exit_code == 0
+    for command in ("apply-functions", "validate-replay", "daemon", "cache", "import"):
+        rejected = CliRunner().invoke(app, ["ghidra", command, "--help"])
+        assert rejected.exit_code != 0
+    for command in ("query", "rebuild", "seed", "overlay"):
+        assert command in result.stdout
 
 
 def test_ghidra_query_emits_unwrapped_json_at_narrow_terminal_width(monkeypatch) -> None:
@@ -84,28 +131,3 @@ def test_just_ghidra_preserves_each_quoted_batch_clause() -> None:
     justfile = (REPOSITORY / "Justfile").read_text(encoding="utf-8")
 
     assert '[positional-arguments]\nghidra *args:\n    uv run wiz8 ghidra "$@"' in justfile
-
-
-def test_validate_replay_uses_the_agent_materialization(monkeypatch) -> None:
-    incoming = object()
-    effective = object()
-    seen: list[tuple[object, str, str]] = []
-    monkeypatch.setattr(cli, "_settings", lambda: incoming)
-    monkeypatch.setattr(
-        cache,
-        "materialize_program",
-        lambda settings, program: (effective, {"program": program}),
-    )
-    monkeypatch.setattr(
-        validate_replay,
-        "validate_reviewed_replay",
-        lambda settings, program, *, evidence_program: (
-            seen.append((settings, program, evidence_program)) or {"ok": True}
-        ),
-    )
-
-    result = CliRunner().invoke(app, ["ghidra", "validate-replay", "wiz8"])
-
-    assert result.exit_code == 0
-    assert seen == [(effective, "wiz8", "wiz8")]
-    assert json.loads(result.stdout) == {"ok": True}

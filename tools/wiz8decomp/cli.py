@@ -31,24 +31,21 @@ app = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
 )
-inputs_app = typer.Typer(help="Discover and inspect immutable local inputs.", no_args_is_help=True)
-extract_app = typer.Typer(
-    help="Extract configured inputs without modifying them.", no_args_is_help=True
-)
-variants_app = typer.Typer(
-    help="Materialize and compare independent build variants.", no_args_is_help=True
+corpus_app = typer.Typer(
+    help="Scan, extract, materialize, verify, and clean the local corpus.",
+    no_args_is_help=True,
 )
 ghidra_app = typer.Typer(
-    help="Own Ghidra projects, queries, daemon, and validated seeds.", no_args_is_help=True
+    help="Query Ghidra, rebuild the reviewed baseline, and analyze overlays.",
+    no_args_is_help=True,
 )
-overlay_app = typer.Typer(help="Analyze and review disposable candidate overlays.", no_args_is_help=True)
+overlay_app = typer.Typer(
+    help="Analyze and review disposable candidate overlays.", no_args_is_help=True
+)
 overlay_debug_app = typer.Typer(
     help="Internal overlay mutation primitives.", no_args_is_help=True, hidden=True
 )
-daemon_app = typer.Typer(help="Manage the persistent read-only query daemon.", no_args_is_help=True)
-cache_app = typer.Typer(
-    help="Build and materialize the validated canonical GZF seed.", no_args_is_help=True
-)
+seed_app = typer.Typer(help="Refresh the validated canonical GZF seed.", no_args_is_help=True)
 fid_app = typer.Typer(
     help="Build and query project-owned Function ID databases.", no_args_is_help=True
 )
@@ -56,19 +53,14 @@ sgp_app = typer.Typer(
     help="Compile and compare pinned SGP source-oracle units.", no_args_is_help=True
 )
 report_app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
-pipeline_app = typer.Typer(help="Verify and clean generated pipeline stages.", no_args_is_help=True)
-app.add_typer(inputs_app, name="inputs")
-app.add_typer(extract_app, name="extract")
-app.add_typer(variants_app, name="variants")
+app.add_typer(corpus_app, name="corpus")
 app.add_typer(ghidra_app, name="ghidra")
-ghidra_app.add_typer(daemon_app, name="daemon")
-ghidra_app.add_typer(cache_app, name="cache")
-ghidra_app.add_typer(fid_app, name="fid")
+ghidra_app.add_typer(seed_app, name="seed")
+ghidra_app.add_typer(fid_app, name="fid", hidden=True)
 ghidra_app.add_typer(overlay_app, name="overlay")
 overlay_app.add_typer(overlay_debug_app, name="debug")
 app.add_typer(report_app, name="report")
-app.add_typer(pipeline_app, name="pipeline")
-app.add_typer(sgp_app, name="sgp")
+app.add_typer(sgp_app, name="sgp", hidden=True)
 console = Console()
 _JSON_OUTPUT = False
 
@@ -158,7 +150,7 @@ def _tracked_copyrighted(settings: Any) -> list[str]:
     return sorted(suspects)
 
 
-@app.command("unresolved-report")
+@app.command("unresolved-report", hidden=True)
 def unresolved_report_command(
     objects: Annotated[
         Path | None,
@@ -189,7 +181,7 @@ def unresolved_report_command(
     _run_action(action)
 
 
-@app.command("check-build-dir")
+@app.command("check-build-dir", hidden=True)
 def check_build_dir(
     build_dir: Annotated[
         Path | None,
@@ -224,7 +216,7 @@ def _reccmp_original(target: str) -> Path | None:
     return resolved if resolved.is_file() else None
 
 
-@app.command("resolve-evidence-conflict")
+@app.command("resolve-evidence-conflict", hidden=True)
 def resolve_evidence_conflict_command(
     paths: Annotated[list[Path], typer.Argument(help="Conflicted evidence CSVs to resolve.")],
 ) -> None:
@@ -238,7 +230,7 @@ def resolve_evidence_conflict_command(
     _run_action(action)
 
 
-@app.command("check-markers")
+@app.command("check-markers", hidden=True)
 def check_markers_command(
     paths: Annotated[
         list[Path] | None,
@@ -257,7 +249,7 @@ def check_markers_command(
     _run_action(action)
 
 
-@app.command("reconstructed-transfer")
+@app.command("reconstructed-transfer", hidden=True)
 def reconstructed_transfer_command(
     objects: Annotated[
         Path | None,
@@ -302,7 +294,7 @@ def reconstructed_transfer_command(
     _run_action(action)
 
 
-@app.command("verify-boundaries")
+@app.command("verify-boundaries", hidden=True)
 def verify_boundaries_command(
     mapping: Annotated[
         Path | None,
@@ -353,7 +345,7 @@ def verify_boundaries_command(
         raise typer.Exit(1) from error
 
 
-@app.command("diff-boundary")
+@app.command("diff-boundary", hidden=True)
 def diff_boundary_command(
     selector: Annotated[
         str,
@@ -487,7 +479,7 @@ def doctor() -> None:
     _run_action(action)
 
 
-@inputs_app.command("scan")
+@corpus_app.command("scan")
 def inputs_scan() -> None:
     """Scan recursively by signatures and bind only explicitly configured roles."""
     from .inputs.scan import scan_inputs
@@ -495,71 +487,51 @@ def inputs_scan() -> None:
     _run_action(lambda: scan_inputs(_settings()).model_dump(mode="json", by_alias=True))
 
 
-@inputs_app.command("show")
 def inputs_show() -> None:
     from .inputs.scan import load_manifest
 
     _run_action(lambda: load_manifest(_settings()).model_dump(mode="json", by_alias=True))
 
 
-def _extract(role: str) -> None:
-    from .extract.variants import extract_role
+@corpus_app.command("extract")
+def corpus_extract(
+    roles: Annotated[
+        list[str] | None,
+        typer.Argument(help="Configured input roles to extract."),
+    ] = None,
+    all_roles: Annotated[
+        bool,
+        typer.Option("--all", help="Extract every configured input role."),
+    ] = False,
+) -> None:
+    """Extract one or more configured roles without modifying the inputs."""
+    from .extract.variants import extract_all, extract_role
 
-    _run_action(lambda: extract_role(_settings(), role))
-
-
-@extract_app.command("all")
-def extract_all_command() -> None:
-    from .extract.variants import extract_all
-
-    _run_action(lambda: extract_all(_settings()))
-
-
-@extract_app.command("gog")
-def extract_gog() -> None:
-    _extract("gog-media")
-
-
-@extract_app.command("demo")
-def extract_demo() -> None:
-    _extract("demo")
-
-
-@extract_app.command("patch-1261")
-def extract_patch_1261() -> None:
-    _extract("patch-1261")
+    requested = roles or []
+    if all_roles and requested:
+        raise typer.BadParameter("use ROLE... or --all, not both")
+    if not all_roles and not requested:
+        raise typer.BadParameter("provide at least one ROLE or --all")
+    if all_roles:
+        _run_action(lambda: extract_all(_settings()))
+    else:
+        _run_action(lambda: [extract_role(_settings(), role) for role in requested])
 
 
-@extract_app.command("patch-128")
-def extract_patch_128() -> None:
-    _extract("patch-128")
-
-
-@extract_app.command("official-patch")
-def extract_official_patch() -> None:
-    _extract("official-2001-12-23-patch")
-
-
-@extract_app.command("compatibility-fix")
-def extract_compatibility_fix() -> None:
-    _extract("compatibility-fix")
-
-
-@variants_app.command("materialize")
+@corpus_app.command("materialize")
 def variants_materialize() -> None:
     from .extract.variants import materialize_variants
 
     _run_action(lambda: materialize_variants(_settings()))
 
 
-@variants_app.command("diff")
 def variants_diff() -> None:
     from .extract.variants import variant_diff
 
     _run_action(lambda: variant_diff(_settings()))
 
 
-@pipeline_app.command("verify")
+@corpus_app.command("verify")
 def pipeline_verify() -> None:
     """Rehash generated trees and verify every complete stage recipe."""
     from .pipeline import verify_pipeline
@@ -570,7 +542,7 @@ def pipeline_verify() -> None:
         raise typer.Exit(1)
 
 
-@pipeline_app.command("clean")
+@corpus_app.command("clean")
 def pipeline_clean(
     stage: Annotated[PipelineStage, typer.Option("--stage", help="Generated stage to remove.")],
 ) -> None:
@@ -580,14 +552,14 @@ def pipeline_clean(
     _run_action(lambda: clean_pipeline(_settings(), stage))
 
 
-@app.command("inventory")
+@app.command("inventory", hidden=True)
 def inventory_command(json_output: bool = typer.Option(False, "--json", help="Emit JSON.")) -> None:
     from .binary.inventory import inventory
 
     _run_action(lambda: inventory(_settings()), force_json=json_output)
 
 
-@app.command("debug-artifacts")
+@app.command("debug-artifacts", hidden=True)
 def debug_artifacts_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -611,7 +583,7 @@ def debug_artifacts_command(
     )
 
 
-@app.command("eh-metadata")
+@app.command("eh-metadata", hidden=True)
 def eh_metadata_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -625,7 +597,7 @@ def eh_metadata_command(
     _run_action(lambda: sweep_eh_metadata(_settings(), update_snapshot=update_snapshot))
 
 
-@app.command("surrender-abi")
+@app.command("surrender-abi", hidden=True)
 def surrender_abi_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -639,7 +611,7 @@ def surrender_abi_command(
     _run_action(lambda: sweep_surrender_abi(_settings(), update_snapshot=update_snapshot))
 
 
-@app.command("call-sites")
+@app.command("call-sites", hidden=True)
 def call_sites_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -653,7 +625,7 @@ def call_sites_command(
     _run_action(lambda: sweep_call_sites(_settings(), update_snapshot=update_snapshot))
 
 
-@app.command("polymorphism")
+@app.command("polymorphism", hidden=True)
 def polymorphism_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -667,7 +639,7 @@ def polymorphism_command(
     _run_action(lambda: sweep_polymorphism(_settings(), update_snapshot=update_snapshot))
 
 
-@app.command("globals")
+@app.command("globals", hidden=True)
 def globals_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -681,7 +653,7 @@ def globals_command(
     _run_action(lambda: sweep_globals(_settings(), update_snapshot=update_snapshot))
 
 
-@app.command("function-census")
+@app.command("function-census", hidden=True)
 def function_census_command(
     update_snapshot: bool = typer.Option(
         False,
@@ -779,27 +751,17 @@ def ghidra_overlay_debug_aggregates(
 ) -> None:
     from .ghidra.aggregate_overlay import apply_aggregates
 
-    seeds = [
-        {"kind": "aggregate", "name": name, "minimum_agreeing_sites": 2}
-        for name in aggregate
-    ]
-    _run_action(
-        lambda: apply_aggregates(
-            _settings(), selector, overlay_id, aggregate_seeds=seeds
-        )
-    )
+    seeds = [{"kind": "aggregate", "name": name, "minimum_agreeing_sites": 2} for name in aggregate]
+    _run_action(lambda: apply_aggregates(_settings(), selector, overlay_id, aggregate_seeds=seeds))
 
 
 @overlay_debug_app.command("impact")
-def ghidra_overlay_debug_impact(
-    selector: str, overlay_id: str, class_name: str
-) -> None:
+def ghidra_overlay_debug_impact(selector: str, overlay_id: str, class_name: str) -> None:
     from .ghidra.overlay import measure_impact
 
     _run_action(lambda: measure_impact(_settings(), selector, overlay_id, class_name))
 
 
-@ghidra_app.command("import")
 def ghidra_import(
     all_programs: bool = typer.Option(
         False, "--all", help="Import every configured analysis target."
@@ -816,7 +778,6 @@ def ghidra_import(
     )
 
 
-@ghidra_app.command("apply-functions")
 def ghidra_apply_functions(
     program: str,
     mapping: Annotated[Path, typer.Option("--map", exists=True, dir_okay=False, readable=True)],
@@ -839,7 +800,7 @@ def ghidra_rebuild(program: str) -> None:
     _run_action(lambda: rebuild_program(_settings(), program))
 
 
-@cache_app.command("build")
+@seed_app.command("refresh")
 def ghidra_cache_build(program: str | None = typer.Argument(None)) -> None:
     """Validate and pack the canonical project as the shared GZF seed."""
     from .ghidra.export_programs import export_project
@@ -847,7 +808,6 @@ def ghidra_cache_build(program: str | None = typer.Argument(None)) -> None:
     _run_action(lambda: export_project(_settings(), program))
 
 
-@cache_app.command("materialize")
 def ghidra_cache_materialize(program: str | None = typer.Argument(None)) -> None:
     """Restore, replay, and validate this agent's isolated Ghidra project."""
     from .ghidra.cache import materialize_program
@@ -855,14 +815,12 @@ def ghidra_cache_materialize(program: str | None = typer.Argument(None)) -> None
     _run_action(lambda: materialize_program(_settings(), program)[1])
 
 
-@cache_app.command("status")
 def ghidra_cache_status(program: str | None = typer.Argument(None)) -> None:
     from .ghidra.cache import cache_status
 
     _run_action(lambda: cache_status(_settings(), program))
 
 
-@cache_app.command("prune")
 def ghidra_cache_prune(
     keep: Annotated[
         int, typer.Option(help="How many of this agent's materializations to retain.")
@@ -900,7 +858,6 @@ def ghidra_cache_prune(
     _run_action(action)
 
 
-@ghidra_app.command("validate-replay")
 def ghidra_validate_replay(program: str) -> None:
     """Validate an existing materialized program against canonical reviewed evidence."""
     from .ghidra.cache import materialize_program
@@ -913,7 +870,6 @@ def ghidra_validate_replay(program: str) -> None:
     _run_action(action)
 
 
-@ghidra_app.command("apply-unzip-model")
 def ghidra_apply_unzip_model(
     program: Annotated[str, typer.Argument()] = "srEXT_Unzip.dll",
 ) -> None:
@@ -923,7 +879,6 @@ def ghidra_apply_unzip_model(
     _run_action(lambda: apply_unzip_model(_settings(), program))
 
 
-@ghidra_app.command("apply-zlib-model")
 def ghidra_apply_zlib_model(
     program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> None:
@@ -933,7 +888,6 @@ def ghidra_apply_zlib_model(
     _run_action(lambda: apply_zlib_model(_settings(), program))
 
 
-@ghidra_app.command("apply-sgp-model")
 def ghidra_apply_sgp_model(
     program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> None:
@@ -943,7 +897,6 @@ def ghidra_apply_sgp_model(
     _run_action(lambda: apply_sgp_model(_settings(), program))
 
 
-@ghidra_app.command("apply-wiz8-class-model")
 def ghidra_apply_wiz8_class_model(
     program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> None:
@@ -953,7 +906,6 @@ def ghidra_apply_wiz8_class_model(
     _run_action(lambda: apply_wiz8_class_model(_settings(), program))
 
 
-@ghidra_app.command("apply-wiz8-format-model")
 def ghidra_apply_wiz8_format_model(
     program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> None:
@@ -963,7 +915,6 @@ def ghidra_apply_wiz8_format_model(
     _run_action(lambda: apply_wiz8_format_model(_settings(), program))
 
 
-@ghidra_app.command("apply-wiz8-signature-fixes")
 def ghidra_apply_wiz8_signature_fixes(
     program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> None:
@@ -973,7 +924,6 @@ def ghidra_apply_wiz8_signature_fixes(
     _run_action(lambda: apply_wiz8_signature_fixes(_settings(), program))
 
 
-@ghidra_app.command("apply-observation-evidence")
 def ghidra_apply_observation_evidence(
     program: Annotated[str, typer.Argument()] = "wiz8",
 ) -> None:
@@ -983,7 +933,6 @@ def ghidra_apply_observation_evidence(
     _run_action(lambda: apply_observation_evidence(_settings(), program))
 
 
-@ghidra_app.command("apply-eh-frame-types")
 def ghidra_apply_eh_frame_types(
     program: Annotated[str, typer.Argument()] = "wiz8--gog-base--wiz8--18a74ff61c65",
 ) -> None:
@@ -993,21 +942,18 @@ def ghidra_apply_eh_frame_types(
     _run_action(lambda: apply_eh_frame_types(_settings(), program))
 
 
-@daemon_app.command("start")
 def daemon_start(program: str | None = typer.Option(None, "--program")) -> None:
     from .ghidra.query_daemon import start_daemon
 
     _run_action(lambda: start_daemon(_settings(), program))
 
 
-@daemon_app.command("status")
 def daemon_status_command() -> None:
     from .ghidra.query_daemon import daemon_status
 
     _run_action(lambda: daemon_status(_settings()))
 
 
-@daemon_app.command("stop")
 def daemon_stop() -> None:
     from .ghidra.query_daemon import stop_daemon
 
@@ -1059,7 +1005,6 @@ def ghidra_query(
     _run_action(action, force_json=True)
 
 
-@ghidra_app.command("export-evidence")
 def ghidra_export_evidence(
     program: str | None = typer.Option(None, "--program"),
     address: str | None = typer.Option(None, "--address"),
@@ -1074,14 +1019,12 @@ def ghidra_export_evidence(
     )
 
 
-@ghidra_app.command("cross-build")
 def ghidra_cross_build() -> None:
     from .ghidra.export_evidence import cross_build_candidates
 
     _run_action(lambda: cross_build_candidates(_settings()))
 
 
-@ghidra_app.command("export-project")
 def ghidra_export_project(program: str | None = typer.Option(None, "--program")) -> None:
     """Compatibility alias for `ghidra cache build`."""
     from .ghidra.export_programs import export_project
@@ -1192,7 +1135,6 @@ def ghidra_fid_match(
     _run_action(lambda: match_fid(_settings(), program, threshold, database))
 
 
-@ghidra_app.command("restore-project")
 def ghidra_restore_project(program: str | None = typer.Option(None, "--program")) -> None:
     """Compatibility alias for `ghidra cache materialize`."""
     from .ghidra.export_programs import restore_project
@@ -1200,14 +1142,12 @@ def ghidra_restore_project(program: str | None = typer.Option(None, "--program")
     _run_action(lambda: restore_project(_settings(), program))
 
 
-@report_app.command("bootstrap")
 def report_bootstrap() -> None:
     from .reports.bootstrap import bootstrap_report
 
     _run_action(lambda: bootstrap_report(_settings()))
 
 
-@report_app.command("translation-units")
 def report_translation_units() -> None:
     """Regenerate assertion-bounded source intervals and gameplay ownership."""
     from .reports.translation_units import translation_unit_report
@@ -1215,7 +1155,6 @@ def report_translation_units() -> None:
     _run_action(lambda: translation_unit_report(_settings()))
 
 
-@report_app.command("data-segmentation")
 def report_data_segmentation(
     update_snapshot: bool = typer.Option(
         False, "--update-snapshot", help="Refresh the tracked unit-data-intervals snapshot."
@@ -1224,9 +1163,7 @@ def report_data_segmentation(
     """Fit the .text unit order to the data sections and attribute globals."""
     from .reports.data_segmentation import data_segmentation_report
 
-    _run_action(
-        lambda: data_segmentation_report(_settings(), update_snapshot=update_snapshot)
-    )
+    _run_action(lambda: data_segmentation_report(_settings(), update_snapshot=update_snapshot))
 
 
 @report_app.command("class-family")
@@ -1242,7 +1179,7 @@ def report_class_family(
     _run_action(action)
 
 
-@app.command("trace")
+@app.command("trace", hidden=True)
 def trace_command(
     scenario: Annotated[str, typer.Argument(help="bring-up or screens.")] = "bring-up",
     seconds: Annotated[int, typer.Option(help="How long to let the scenario run.")] = 120,
@@ -1250,7 +1187,9 @@ def trace_command(
         int | None,
         typer.Option(help="Port for the winedbg gdb proxy; default allocates one per run."),
     ] = None,
-    plan_only: Annotated[bool, typer.Option(help="Print the breakpoint plan and run nothing.")] = False,
+    plan_only: Annotated[
+        bool, typer.Option(help="Print the breakpoint plan and run nothing.")
+    ] = False,
 ) -> None:
     """Watch the original run one bounded scenario, from evidence addresses.
 
@@ -1286,7 +1225,7 @@ def trace_command(
     _run_action(action)
 
 
-@app.command("verify-source-layouts")
+@app.command("verify-source-layouts", hidden=True)
 def verify_source_layouts_command(
     pdb: Annotated[
         Path | None,
@@ -1309,7 +1248,6 @@ def verify_source_layouts_command(
     _run_action(action)
 
 
-@report_app.command("aggregates")
 def report_aggregates(
     resolve: Annotated[
         str | None,
@@ -1374,7 +1312,6 @@ def report_aggregates(
     _run_action(action)
 
 
-@report_app.command("object-map")
 def report_object_map(
     program: Annotated[str, typer.Argument(help="Program selector to assign.")],
     check: Annotated[
@@ -1416,7 +1353,6 @@ def report_object_map(
     _run_action(action)
 
 
-@report_app.command("cross-build")
 def report_cross_build(
     left: Annotated[str, typer.Argument(help="Program selector to align from.")],
     right: Annotated[str, typer.Argument(help="Program selector to align to.")],
@@ -1434,9 +1370,7 @@ def report_cross_build(
 
         settings = _settings()
         alignment = align(settings.repo_dir, left, right)
-        destination = (
-            settings.repo_dir / "build" / "reports" / "cross-build" / f"{left}--{right}"
-        )
+        destination = settings.repo_dir / "build" / "reports" / "cross-build" / f"{left}--{right}"
         summary = write_report(settings.repo_dir, alignment, destination)
         summary["report"] = str(destination)
         return summary
