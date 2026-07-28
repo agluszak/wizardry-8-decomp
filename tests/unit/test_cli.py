@@ -19,6 +19,9 @@ def test_cli_uses_typed_command_tree() -> None:
     assert "pipeline" not in result.stdout
     assert "function-census" not in result.stdout
     assert "sgp" not in result.stdout
+    assert "doctor-command" not in result.stdout
+    assert "doctor" in result.stdout
+    assert "evidence" in result.stdout
 
 
 def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:

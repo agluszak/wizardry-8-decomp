@@ -1,0 +1,363 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Annotated, Any
+
+import typer
+from rich.markup import escape
+
+toolchain_app = typer.Typer(help="Build the pinned analysis toolchain.", no_args_is_help=True)
+
+
+def doctor_command() -> None:
+    """Validate paths, pinned tools, extractors, and repository safety."""
+    from .. import cli
+
+    cli.doctor()
+
+
+def prepare_command() -> None:
+    """Idempotently prepare extracted variants and pinned source dependencies."""
+    from .. import cli
+    from ..build import prepare
+
+    cli._run_action(lambda: prepare(cli._settings()))
+
+
+def check_command() -> None:
+    """Run the fast public validation lane."""
+    from .. import cli
+    from ..build import check
+    from ..config import repository_root
+
+    cli._run_action(lambda: check(repository_root()))
+
+
+def build_command(
+    target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "match",
+    jobs: Annotated[int | None, typer.Option("--jobs", "-j")] = None,
+) -> None:
+    """Configure when needed and build one product target."""
+    from .. import cli
+    from ..build import build_target
+
+    cli._run_action(lambda: build_target(cli._settings(), target, jobs))
+
+
+def compare_command(ctx: typer.Context, target: str = "WIZ8") -> None:
+    """Run the diagnostic linked-image comparison."""
+    from .. import cli
+    from ..build import compare
+
+    cli._run_action(lambda: compare(cli._settings(), target, list(ctx.args)))
+
+
+def run_command() -> None:
+    """Build, stage, and run the recovered executable under Wine."""
+    from .. import cli
+    from ..build import build_target
+    from ..runtime import run_game
+
+    def action() -> dict[str, Any]:
+        build_target(cli._settings(), "runtime")
+        return run_game(cli._settings())
+
+    cli._run_action(action)
+
+
+def verify_command(
+    compare_image: Annotated[bool, typer.Option("--compare/--no-compare")] = True,
+) -> None:
+    """Run build, boundary, linked-image, and test validation."""
+    from .. import cli
+    from ..build import verify
+
+    cli._run_action(lambda: verify(cli._settings(), compare_image=compare_image))
+
+
+@toolchain_app.command("build")
+def toolchain_build_command() -> None:
+    from .. import cli
+    from ..build import build_toolchain
+
+    cli._run_action(lambda: build_toolchain(cli._settings()))
+
+
+def register(app: typer.Typer) -> None:
+    app.command("doctor")(doctor_command)
+    app.command("prepare")(prepare_command)
+    app.command("check")(check_command)
+    app.command("build")(build_command)
+    app.command(
+        "compare", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
+    )(compare_command)
+    app.command("run")(run_command)
+    app.command("verify")(verify_command)
+    app.command("unresolved-report", hidden=True)(unresolved_report_command)
+    app.command("check-build-dir", hidden=True)(check_build_dir_command)
+    app.command("check-markers", hidden=True)(check_markers_command)
+    app.command("reconstructed-transfer", hidden=True)(reconstructed_transfer_command)
+    app.command("verify-boundaries", hidden=True)(verify_boundaries_command)
+    app.command("diff-boundary", hidden=True)(diff_boundary_command)
+    app.command("inventory", hidden=True)(inventory_command)
+    app.command("debug-artifacts", hidden=True)(debug_artifacts_command)
+    app.command("eh-metadata", hidden=True)(eh_metadata_command)
+    app.command("surrender-abi", hidden=True)(surrender_abi_command)
+    app.command("call-sites", hidden=True)(call_sites_command)
+    app.command("polymorphism", hidden=True)(polymorphism_command)
+    app.command("globals", hidden=True)(globals_command)
+    app.command("function-census", hidden=True)(function_census_command)
+    app.command("trace", hidden=True)(trace_command)
+    app.command("verify-source-layouts", hidden=True)(verify_source_layouts_command)
+
+
+def unresolved_report_command(
+    objects: Annotated[Path | None, typer.Option(help="Object root.")] = None,
+    link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
+) -> None:
+    from .. import cli
+    from ..unresolved import unresolved_report
+
+    def action() -> dict[str, Any]:
+        settings = cli._settings()
+        build = settings.repo_dir / "build" / "decomp"
+        return unresolved_report(objects or build / "CMakeFiles", link_map or build / "Wiz8.map")
+
+    cli._run_action(action)
+
+
+def check_build_dir_command(
+    build_dir: Annotated[Path | None, typer.Option(help="CMake build directory.")] = None,
+) -> None:
+    from .. import cli
+    from ..build_dir import check_build_directory
+
+    cli._run_action(
+        lambda: check_build_directory(
+            build_dir or cli._settings().repo_dir / "build" / "decomp",
+            cli._settings().repo_dir,
+        )
+    )
+
+
+def check_markers_command(
+    paths: Annotated[list[Path] | None, typer.Option(help="Files or directories to scan.")] = None,
+) -> None:
+    from .. import cli
+    from ..markers import check_marker_hygiene
+
+    def action() -> dict[str, Any]:
+        settings = cli._settings()
+        roots = paths or [settings.repo_dir / "src", settings.repo_dir / "include"]
+        return check_marker_hygiene(list(roots), settings.repo_dir)
+
+    cli._run_action(action)
+
+
+def reconstructed_transfer_command(
+    objects: Annotated[Path | None, typer.Option(help="Build directory with /Z7 objects.")] = None,
+    pdb: Annotated[Path | None, typer.Option(help="Linked PDB to read.")] = None,
+) -> None:
+    from .. import cli
+    from ..reconstructed import (
+        bodies_from_objects,
+        bodies_from_pdb,
+        build_transfer_plan,
+        verified_boundary_addresses,
+        write_report,
+    )
+
+    def action() -> dict[str, Any]:
+        settings = cli._settings()
+        bodies = bodies_from_pdb(pdb) if pdb is not None else bodies_from_objects(objects or settings.build_dir)
+        root = objects or settings.repo_dir / "build" / "decomp" / "CMakeFiles"
+        plan = build_transfer_plan(
+            settings.repo_dir, bodies, verified_exact=verified_boundary_addresses(settings.repo_dir, root)
+        )
+        destination = settings.repo_dir / "build" / "reports" / "reconstructed-transfer"
+        summary = write_report(plan, destination)
+        summary["report"] = str(destination)
+        return summary
+
+    cli._run_action(action)
+
+
+def verify_boundaries_command(
+    mapping: Annotated[Path | None, typer.Option(help="Reviewed boundary map.")] = None,
+    objects: Annotated[Path | None, typer.Option(help="Root of built objects.")] = None,
+    image: Annotated[Path | None, typer.Option(help="Original Wiz8.exe.")] = None,
+) -> None:
+    from .. import cli
+    from ..boundaries import BoundariesDisagree, verify_boundaries
+
+    settings = cli._settings()
+    mapping_path = mapping or settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv"
+    object_root = objects or settings.repo_dir / "build/decomp/CMakeFiles"
+    try:
+        cli._emit(verify_boundaries(mapping_path, object_root, image or cli._reccmp_original("WIZ8")))
+    except BoundariesDisagree as error:
+        cli._emit(error.report)
+        cli.console.print(f"[red]error:[/red] {error}", highlight=False)
+        raise typer.Exit(1) from error
+    except Exception as error:
+        cli.console.print(f"[red]error:[/red] {error}", highlight=False)
+        raise typer.Exit(1) from error
+
+
+def diff_boundary_command(
+    selector: Annotated[str, typer.Argument(help="Reviewed address or unambiguous symbol.")],
+    mapping: Annotated[Path | None, typer.Option(help="Reviewed boundary map.")] = None,
+    objects: Annotated[Path | None, typer.Option(help="Root of built objects.")] = None,
+    image: Annotated[Path | None, typer.Option(help="Original Wiz8.exe.")] = None,
+    all_lines: Annotated[bool, typer.Option("--all", help="Show matching instructions.")] = False,
+) -> None:
+    from .. import cli
+    from ..boundaries import diff_boundary
+
+    def action() -> dict[str, Any]:
+        settings = cli._settings()
+        original = image or cli._reccmp_original("WIZ8")
+        if original is None:
+            raise RuntimeError("no original Wiz8.exe configured; pass --image")
+        result = diff_boundary(
+            mapping or settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv",
+            objects or settings.repo_dir / "build/decomp/CMakeFiles/WIZ8_GAMEPLAY_BOUNDARIES.dir",
+            original,
+            selector,
+        )
+        cli.console.print(
+            f"[bold]{result['symbol']}[/bold] {result['address']} ({result['confidence']}): "
+            f"canonical {result['canonical_size']}B/{result['canonical_instructions']} insns, "
+            f"ours {result['our_size']}B/{result['our_instructions']} insns, "
+            f"{result['differing']} differing"
+        )
+        marker = {"differ": "[red]>>[/red]", "reloc": "[yellow]~~[/yellow]", "same": "  "}
+        for line in result["lines"]:
+            if line["state"] == "same" and not all_lines:
+                continue
+            cli.console.print(
+                f"{marker[line['state']]} \\[{line['index']:3}] "
+                f"{escape(line['canonical']):<38} | {escape(line['ours'])}",
+                highlight=False,
+            )
+        return {key: value for key, value in result.items() if key != "lines"}
+
+    cli._run_action(action)
+
+
+def inventory_command(json_output: bool = typer.Option(False, "--json", help="Emit JSON.")) -> None:
+    from .. import cli
+    from ..binary.inventory import inventory
+
+    cli._run_action(lambda: inventory(cli._settings()), force_json=json_output)
+
+
+def debug_artifacts_command(
+    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
+    archive_password: str | None = typer.Option(None, "--archive-password", envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD"),
+) -> None:
+    from .. import cli
+    from ..debug_artifacts import sweep_debug_artifacts
+
+    cli._run_action(
+        lambda: sweep_debug_artifacts(
+            cli._settings(), update_snapshot=update_snapshot, archive_password=archive_password
+        )
+    )
+
+
+def eh_metadata_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import cli
+    from ..eh_metadata import sweep_eh_metadata
+
+    cli._run_action(lambda: sweep_eh_metadata(cli._settings(), update_snapshot=update_snapshot))
+
+
+def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import cli
+    from ..surrender_abi import sweep_surrender_abi
+
+    cli._run_action(lambda: sweep_surrender_abi(cli._settings(), update_snapshot=update_snapshot))
+
+
+def call_sites_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import cli
+    from ..call_sites import sweep_call_sites
+
+    cli._run_action(lambda: sweep_call_sites(cli._settings(), update_snapshot=update_snapshot))
+
+
+def polymorphism_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import cli
+    from ..polymorphism import sweep_polymorphism
+
+    cli._run_action(lambda: sweep_polymorphism(cli._settings(), update_snapshot=update_snapshot))
+
+
+def globals_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import cli
+    from ..data_globals import sweep_globals
+
+    cli._run_action(lambda: sweep_globals(cli._settings(), update_snapshot=update_snapshot))
+
+
+def function_census_command(
+    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
+) -> None:
+    from .. import cli
+    from ..function_census import sweep_function_census
+
+    cli._run_action(lambda: sweep_function_census(cli._settings(), update_snapshot=update_snapshot))
+
+
+def trace_command(
+    scenario: Annotated[str, typer.Argument(help="bring-up or screens.")] = "bring-up",
+    seconds: Annotated[int, typer.Option(help="How long to let the scenario run.")] = 120,
+    port: Annotated[int | None, typer.Option(help="winedbg gdb proxy port.")] = None,
+    plan_only: Annotated[bool, typer.Option(help="Print the breakpoint plan only.")] = False,
+) -> None:
+    from .. import cli
+    from ..dynamic import Sandbox, run_trace, trace_plan, write_report
+
+    def action() -> dict[str, Any]:
+        settings = cli._settings()
+        if plan_only:
+            points = trace_plan(settings.repo_dir, scenario)
+            return {
+                "scenario": scenario,
+                "points": [
+                    {"address": point.address, "name": point.name, "kind": point.kind}
+                    for point in points
+                ],
+            }
+        result = run_trace(
+            settings.repo_dir,
+            Sandbox.from_environment(),
+            scenario,
+            seconds=seconds,
+            port=port,
+        )
+        return write_report(result, settings.repo_dir / "build/reports/trace")
+
+    cli._run_action(action)
+
+
+def verify_source_layouts_command(
+    pdb: Annotated[
+        Path | None,
+        typer.Option("--pdb", exists=True, dir_okay=False, readable=True),
+    ] = None,
+) -> None:
+    from .. import cli
+    from ..source_layouts import verify_source_layouts
+
+    def action() -> dict[str, Any]:
+        report = verify_source_layouts(cli._settings(), pdb)
+        if not report["ok"]:
+            raise ValueError(
+                f"compiled source layout differs at {report['failure_count']} checks; "
+                f"see {report['report']}"
+            )
+        return report
+
+    cli._run_action(action)
