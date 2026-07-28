@@ -244,9 +244,21 @@ typedef struct W8MonsterGenerator {
     int state_14;
     W8MonsterGeneratorNode* node_18;      /* 0x18 */
     int value_1c;                         /* 0x1c */
-    W8MonsterGeneratorNode* node_20;      /* 0x20 */
+    /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
+       gives the owning class and method - "MonGen::Reset() out of memory
+       allocating m_pTimer". */
+    W8MonsterGeneratorNode* m_pTimer;
     char name[32];                        /* 0x24 */
     unsigned char flag_44;                /* 0x44: written to the save after the name */
+
+#ifdef __cplusplus
+    /* Named by the assertion message above. Rearms the generator's timer,
+       creating it on first use, with a delay jittered around the configured
+       interval. */
+    void Reset();
+    /* Arms or disarms the generator, loading its marker on the way in. */
+    void SetActive(unsigned char active, W8MonsterGeneratorNode* node);
+#endif
 } W8MonsterGenerator;
 
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,

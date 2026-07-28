@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include <math.h>
 #include "wiz8/vector.h"
+#include "wiz8/sr_api.h"
 
 /* Declared rather than pulled in from the vendored SGP FileMan.h: that header
    is C and including it here re-declares the CRT wide-string overloads with C
@@ -56,6 +57,22 @@ extern void GenerateEncounter(void* encounter_state);         /* 0x0048AD20 */
 extern void DestroyEncounterTable(W8EncounterTableRuntime* table); /* 0x0048AC60 */
 extern void Function43A770(int handle);                      /* 0x0043A770 */
 extern unsigned char g_generator_save_flag;                  /* 0x0065BA48 */
+extern W8MonsterGeneratorNode* Function43A4E0(void);         /* 0x0043A4E0 */
+extern void Function439B80(float delay);                     /* 0x00439B80 */
+extern void Function43A530(void);                            /* 0x0043A530 */
+extern unsigned char Function49F4A0(void* context, const char* name,
+                                    void* out, int value);   /* 0x0049F4A0 */
+extern void Function49F720(void* state);                     /* 0x0049F720 */
+extern void Function49F900(W8World* world);                  /* 0x0049F900 */
+extern void Function49FAA0(void);                            /* 0x0049FAA0 */
+extern short g_generator_default_interval;                   /* 0x0060A6B6 */
+extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
+
+static const char MON_GEN_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp";
+
+/* Flag bits on a generator: bit 2 is armed, bit 3 selects the shared default
+   interval over the generator's own. */
+enum { W8_MONGEN_ARMED = 4, W8_MONGEN_USE_DEFAULT_INTERVAL = 8 };
 
 /* Ten hours of game time. Past that the elapsed span is not distributed over
    the live groups at all - a fresh roll replaces them instead. */
@@ -248,7 +265,7 @@ static __inline void DestroyMonsterGeneratorInline(W8MonsterGenerator* generator
             }
             delete generator->node_18;
         }
-        delete generator->node_20;
+        delete generator->m_pTimer;
         ::operator delete(generator);
     }
 }
@@ -286,7 +303,7 @@ void RunMonsterGenerators(void)
 
     for (index = 0; index < count; ++index) {
         generator = *g_world->monster_generators->GetAt(index);
-        if (generator->node_20 != 0 && Function43A5D0() != 0) {
+        if (generator->m_pTimer != 0 && Function43A5D0() != 0) {
             if (Function48B200(0) != 0) {
                 GenerateEncounter(&generator->state_0c);
             }
@@ -409,4 +426,76 @@ void RemoveMonsterGenerator(W8MonsterGenerator* generator)
         --generators->count;
     }
     DestroyMonsterGeneratorInline(removed);
+}
+
+/* Rearms the generator's timer, creating it on first use. The delay is the
+   configured interval jittered by a uniform draw over twice its jitter
+   fraction, so the mean is the interval itself; a generator flagged at bit 3
+   uses the shared default interval instead of its own.
+ 
+   Allocating the timer is what gives this body its unwind frame, and the
+   assertion that guards it is where m_pTimer, MonGen and Reset all come from. */
+// FUNCTION: WIZ8 0x0048B420
+void W8MonsterGenerator::Reset()
+{
+    short interval;
+    float jitter;
+
+    if (m_pTimer == 0) {
+        m_pTimer = Function43A4E0();
+        if (m_pTimer == 0) {
+            srAssertFail(
+                "m_pTimer",
+                MON_GEN_CPP,
+                0x217,
+                "MonGen::Reset() out of memory allocating m_pTimer");
+        }
+        *reinterpret_cast<unsigned short*>(
+            reinterpret_cast<unsigned char*>(m_pTimer) + 8) &= 0xfffd;
+    }
+    interval = (flags & W8_MONGEN_USE_DEFAULT_INTERVAL) != 0
+                   ? value_06
+                   : g_generator_default_interval;
+    jitter = interval * g_generator_jitter_fraction;
+    Function439B80(
+        static_cast<float>(Random(static_cast<int>(jitter) * 2 + 1)) + interval - jitter);
+    Function43A530();
+}
+
+/* Arms or disarms the generator. Arming loads its marker from
+   Data\\Items3D\\Bitmaps the first time and hands the caller's node over;
+   disarming drops the flag and notifies the world. Both directions are no-ops
+   when the flag already reads as asked. */
+// FUNCTION: WIZ8 0x0048B770
+void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode* node)
+{
+    void* context[2];
+    unsigned char loaded;
+
+    if (((flags >> 2) & 1) == active) {
+        return;
+    }
+    if (active == 0) {
+        flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
+        if (node_18 != 0) {
+            Function49FA30(g_world);
+        }
+        return;
+    }
+    flags |= W8_MONGEN_ARMED;
+    if (node_18 == 0) {
+        loaded = 0;
+        context[0] = g_world;
+        context[1] = const_cast<char*>("Data\\Items3D\\Bitmaps");
+        if (Function49F4A0(context, "mongen", &loaded, 0) == 0) {
+            srAssertFail(
+                "fSuccess", MON_GEN_CPP, 0x309, "Couldn't load mongen.itm");
+        }
+        node_18 = node;
+        if (node != 0) {
+            Function49F720(&state_0c);
+            Function49FAA0();
+        }
+    }
+    Function49F900(g_world);
 }
