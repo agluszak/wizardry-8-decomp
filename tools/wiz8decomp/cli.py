@@ -41,6 +41,10 @@ variants_app = typer.Typer(
 ghidra_app = typer.Typer(
     help="Own Ghidra projects, queries, daemon, and validated seeds.", no_args_is_help=True
 )
+overlay_app = typer.Typer(help="Analyze and review disposable candidate overlays.", no_args_is_help=True)
+overlay_debug_app = typer.Typer(
+    help="Internal overlay mutation primitives.", no_args_is_help=True, hidden=True
+)
 daemon_app = typer.Typer(help="Manage the persistent read-only query daemon.", no_args_is_help=True)
 cache_app = typer.Typer(
     help="Build and materialize the validated canonical GZF seed.", no_args_is_help=True
@@ -60,6 +64,8 @@ app.add_typer(ghidra_app, name="ghidra")
 ghidra_app.add_typer(daemon_app, name="daemon")
 ghidra_app.add_typer(cache_app, name="cache")
 ghidra_app.add_typer(fid_app, name="fid")
+ghidra_app.add_typer(overlay_app, name="overlay")
+overlay_app.add_typer(overlay_debug_app, name="debug")
 app.add_typer(report_app, name="report")
 app.add_typer(pipeline_app, name="pipeline")
 app.add_typer(sgp_app, name="sgp")
@@ -703,63 +709,91 @@ def sgp_sweep(
     _run_action(lambda: sweep_sgp_units(_settings(), unit, update_snapshot=update_snapshot))
 
 
-@ghidra_app.command("overlay")
-def ghidra_overlay_command(
-    action: Annotated[
-        str,
-        typer.Argument(
-            help="create, analyze, apply-vtable, apply-reconstructed, apply-aggregates, impact, decompile, facts-at, or discard."
-        ),
-    ],
+@overlay_app.command("analyze")
+def ghidra_overlay_analyze(
     selector: Annotated[str, typer.Argument(help="Program selector.")],
-    hypothesis: Annotated[
-        str, typer.Argument(help="Hypothesis name; for analyze, the JSON plan path.")
-    ],
-    argument: Annotated[
-        str | None, typer.Argument(help="Class for apply-vtable; address for decompile.")
-    ] = None,
+    plan: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    resume: bool = typer.Option(False, "--resume", help="Resume the exact identified overlay."),
 ) -> None:
-    """Candidate overlays: clone, mutate, measure, discard - never the baseline."""
+    """Analyze a strict speculative plan in a fresh identified overlay."""
 
-    def run() -> Any:
-        from .ghidra import overlay
+    from .ghidra.inference import analyze_overlay
 
-        settings = _settings()
-        if action == "create":
-            return overlay.create_overlay(settings, selector, hypothesis)
-        if action == "analyze":
-            from .ghidra.inference import analyze_overlay
+    _run_action(lambda: analyze_overlay(_settings(), selector, str(plan), resume=resume))
 
-            return analyze_overlay(settings, selector, hypothesis)
-        if action == "apply-vtable":
-            if not argument:
-                raise ValueError("apply-vtable requires a class name")
-            return overlay.apply_typed_vtable(settings, selector, hypothesis, argument)
-        if action == "decompile":
-            if not argument:
-                raise ValueError("decompile requires an address")
-            return overlay.decompile_in_overlay(settings, selector, hypothesis, argument)
-        if action == "facts-at":
-            if not argument:
-                raise ValueError("facts-at requires an address")
-            return overlay.facts_in_overlay(settings, selector, hypothesis, argument)
-        if action == "impact":
-            if not argument:
-                raise ValueError("impact requires a class name")
-            return overlay.measure_impact(settings, selector, hypothesis, argument)
-        if action == "apply-reconstructed":
-            from .ghidra import reconstructed_transfer
 
-            return reconstructed_transfer.transfer_into_overlay(settings, selector, hypothesis)
-        if action == "apply-aggregates":
-            from .ghidra import aggregate_overlay
+@overlay_app.command("inspect")
+def ghidra_overlay_inspect(
+    selector: Annotated[str, typer.Argument(help="Program selector.")],
+    overlay_id: Annotated[str, typer.Argument(help="Overlay ID returned by analyze.")],
+    address: Annotated[str, typer.Argument(help="Address to review.")],
+) -> None:
+    """Inspect facts, semantic delta, dependencies and promotion candidates."""
 
-            return aggregate_overlay.apply_aggregates(settings, selector, hypothesis)
-        if action == "discard":
-            return overlay.discard_overlay(settings, selector, hypothesis)
-        raise ValueError(f"unknown overlay action: {action}")
+    from .ghidra.overlay import inspect_overlay
 
-    _run_action(run)
+    _run_action(lambda: inspect_overlay(_settings(), selector, overlay_id, address))
+
+
+@overlay_app.command("discard")
+def ghidra_overlay_discard(
+    selector: Annotated[str, typer.Argument(help="Program selector.")],
+    overlay_id: Annotated[str, typer.Argument(help="Overlay ID returned by analyze.")],
+) -> None:
+    """Discard one disposable overlay."""
+
+    from .ghidra.overlay import discard_overlay
+
+    _run_action(lambda: discard_overlay(_settings(), selector, overlay_id))
+
+
+@overlay_debug_app.command("create")
+def ghidra_overlay_debug_create(selector: str, hypothesis: str) -> None:
+    from .ghidra.overlay import create_overlay
+
+    _run_action(lambda: create_overlay(_settings(), selector, hypothesis))
+
+
+@overlay_debug_app.command("apply-vtable")
+def ghidra_overlay_debug_vtable(selector: str, overlay_id: str, class_name: str) -> None:
+    from .ghidra.overlay import apply_typed_vtable
+
+    _run_action(lambda: apply_typed_vtable(_settings(), selector, overlay_id, class_name))
+
+
+@overlay_debug_app.command("apply-reconstructed")
+def ghidra_overlay_debug_reconstructed(selector: str, overlay_id: str) -> None:
+    from .ghidra.reconstructed_transfer import transfer_into_overlay
+
+    _run_action(lambda: transfer_into_overlay(_settings(), selector, overlay_id))
+
+
+@overlay_debug_app.command("apply-aggregates")
+def ghidra_overlay_debug_aggregates(
+    selector: str,
+    overlay_id: str,
+    aggregate: Annotated[list[str], typer.Option("--aggregate")],
+) -> None:
+    from .ghidra.aggregate_overlay import apply_aggregates
+
+    seeds = [
+        {"kind": "aggregate", "name": name, "minimum_agreeing_sites": 2}
+        for name in aggregate
+    ]
+    _run_action(
+        lambda: apply_aggregates(
+            _settings(), selector, overlay_id, aggregate_seeds=seeds
+        )
+    )
+
+
+@overlay_debug_app.command("impact")
+def ghidra_overlay_debug_impact(
+    selector: str, overlay_id: str, class_name: str
+) -> None:
+    from .ghidra.overlay import measure_impact
+
+    _run_action(lambda: measure_impact(_settings(), selector, overlay_id, class_name))
 
 
 @ghidra_app.command("import")
@@ -1209,12 +1243,15 @@ def report_class_family(
 def trace_command(
     scenario: Annotated[str, typer.Argument(help="bring-up or screens.")] = "bring-up",
     seconds: Annotated[int, typer.Option(help="How long to let the scenario run.")] = 120,
-    port: Annotated[int, typer.Option(help="Port for the winedbg gdb proxy.")] = 54340,
+    port: Annotated[
+        int | None,
+        typer.Option(help="Port for the winedbg gdb proxy; default allocates one per run."),
+    ] = None,
     plan_only: Annotated[bool, typer.Option(help="Print the breakpoint plan and run nothing.")] = False,
 ) -> None:
     """Watch the original run one bounded scenario, from evidence addresses.
 
-    The breakpoints are generated from the reviewed boundary map and the frame
+    The breakpoints are generated from the reviewed startup spine and the frame
     dispatch table, so what is watched is what the ledger already establishes.
     Running needs `WIZ8_DYNAMIC_DIR` pointing at a sandbox that holds a `game/`
     copy of a variant and a `prefix/` Wine prefix - never an input tree, which
@@ -1242,6 +1279,29 @@ def trace_command(
             port=port,
         )
         return write_report(result, settings.repo_dir / "build" / "reports" / "trace")
+
+    _run_action(action)
+
+
+@app.command("verify-source-layouts")
+def verify_source_layouts_command(
+    pdb: Annotated[
+        Path | None,
+        typer.Option("--pdb", exists=True, dir_okay=False, readable=True),
+    ] = None,
+) -> None:
+    """Compare compiled VC6 class layouts with reviewed size and field evidence."""
+
+    from .source_layouts import verify_source_layouts
+
+    def action() -> dict[str, Any]:
+        report = verify_source_layouts(_settings(), pdb)
+        if not report["ok"]:
+            raise ValueError(
+                f"compiled source layout differs at {report['failure_count']} checks; "
+                f"see {report['report']}"
+            )
+        return report
 
     _run_action(action)
 
@@ -1401,8 +1461,12 @@ def report_status() -> None:
 def report_context(
     address: Annotated[str, typer.Argument(help="Address inside the function to inspect")],
     program: str = typer.Option("wiz8", "--program"),
+    deep: bool = typer.Option(False, "--deep", help="Include listing, P-code and rooted flow."),
+    root: str = typer.Option("this", "--root", help="Deep-analysis parameter root."),
 ) -> None:
     """Join Ghidra and every relevant evidence channel for one function."""
     from .reports.recovery_context import recovery_context_report
 
-    _run_action(lambda: recovery_context_report(_settings(), address, program))
+    _run_action(
+        lambda: recovery_context_report(_settings(), address, program, deep=deep, root=root)
+    )

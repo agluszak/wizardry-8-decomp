@@ -216,14 +216,24 @@ def resolve_members(
     rows: list[dict[str, str]] = []
     for (function, source_path, line), group in sorted(members_per_site.items()):
         site = group[0].call_site
-        accesses = sliced.get(site, {}).get("accesses", [])
+        slice_result = sliced.get(site, {})
+        accesses = (
+            slice_result.get("accesses", [])
+            if slice_result.get("confidence") == "exact-control-slice"
+            else []
+        )
         leaves = sorted(set(group), key=lambda item: item.member)
         for reference in leaves:
             if reference.pointer_access:
-                relevant = [item for item in accesses if item.get("kind") == "root-offset"]
-                candidates = list(
-                    dict.fromkeys(item["offset"] for item in relevant if item.get("offset"))
+                relevant = [item for item in accesses if item.get("kind") == "root-relative"]
+                rooted = list(
+                    dict.fromkeys(
+                        (item.get("root"), item.get("offset"))
+                        for item in relevant
+                        if item.get("root") and item.get("offset")
+                    )
                 )
+                candidates = [f"{root}@{offset}" for root, offset in rooted]
             else:
                 relevant = [item for item in accesses if item.get("kind") == "absolute"]
                 candidates = list(
@@ -239,7 +249,11 @@ def resolve_members(
                 {
                     "aggregate": reference.owner,
                     "member": reference.member,
-                    "storage": candidates[0] if basis == UNIQUE else "",
+                    "storage": (
+                        rooted[0][1]
+                        if reference.pointer_access and basis == UNIQUE
+                        else (candidates[0] if basis == UNIQUE else "")
+                    ),
                     "kind": "offset" if reference.pointer_access else "global",
                     "candidates": " ".join(candidates),
                     "basis": basis if candidates else "no guarding condition found",

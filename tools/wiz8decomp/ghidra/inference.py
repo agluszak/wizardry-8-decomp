@@ -1,23 +1,81 @@
-"""Plan-driven Ghidra-native candidate inference to a fixpoint."""
+"""Plan-driven Ghidra-native candidate inference to bounded stabilization."""
 
 from __future__ import annotations
 
-import csv
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..config import Settings
-from ..indirect import resolve_handler_table
 from ..typevars import derive_type_variables, load_knowledge, unify
-from .candidate_facts import CONSTRAINTS, FACT_ID, UNIFIED_WITH, stamp, values
+from .candidate_facts import facts, get_fact, iter_facts, stamp
 from .dependency_graph import add_pcode_dependencies, build_program_graph, canonical_address
+from .evidence_index import load_evidence_index, reviewed_owner
 from .project import resolve_program_name
 
 CATEGORY = "/wiz8/overlay/candidates"
-SCREEN_DISPATCH_FUNCTION = 0x004E3340
-SCREEN_HANDLER_FIELD = 0x00647BD4
+
+
+class TypeVariableSeed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["type-variable"]
+    function: str
+    root: str = "this"
+
+    @field_validator("function")
+    @classmethod
+    def address_is_explicit(cls, value: str) -> str:
+        text = value.lower().removeprefix("0x")
+        if len(text) != 8 or any(character not in "0123456789abcdef" for character in text):
+            raise ValueError("function must be an eight-digit hexadecimal address")
+        return text
+
+
+class AggregateSeed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["aggregate"]
+    name: str = Field(min_length=1)
+    minimum_agreeing_sites: int = Field(default=2, ge=2, le=64)
+
+
+class VtableSeed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["vtable"]
+    name: str = Field(min_length=1)
+
+
+class ReconstructedSeed(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    kind: Literal["reconstructed-transfer"]
+    function: str
+
+    @field_validator("function")
+    @classmethod
+    def address_is_explicit(cls, value: str) -> str:
+        return TypeVariableSeed.address_is_explicit(value)
+
+
+Seed = Annotated[
+    TypeVariableSeed | AggregateSeed | VtableSeed | ReconstructedSeed,
+    Field(discriminator="kind"),
+]
+
+
+class InferenceLimits(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    iterations: int = Field(default=8, ge=1, le=64)
+    functions: int = Field(default=120, ge=1, le=100_000)
+    indirect_functions: int = Field(default=512, ge=1, le=100_000)
+
+
+class InferencePlan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    hypothesis: str = Field(min_length=1)
+    seeds: list[Seed] = Field(min_length=1)
+    limits: InferenceLimits = Field(default_factory=InferenceLimits)
 
 
 def load_plan(repo: Path, value: str) -> dict[str, Any]:
@@ -30,17 +88,13 @@ def load_plan(repo: Path, value: str) -> dict[str, Any]:
         raise ValueError(
             f"hypothesis plan does not exist: {value}; pass a JSON plan with a hypothesis key"
         )
-    plan = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(plan, dict) or not plan.get("hypothesis"):
-        raise ValueError("hypothesis plan must be an object with a non-empty hypothesis")
-    plan.setdefault("type_variables", [])
-    plan.setdefault("vtables", [])
-    plan.setdefault("screen_dispatch", False)
-    plan.setdefault("aggregates", False)
-    plan.setdefault("reconstructed", False)
-    plan.setdefault("max_iterations", 8)
-    plan.setdefault("semantic_limit", 120)
-    return plan
+    decoded = json.loads(path.read_text(encoding="utf-8"))
+    return InferencePlan.model_validate(decoded).model_dump()
+
+
+def plan_sha256(plan: dict[str, Any]) -> str:
+    canonical = json.dumps(plan, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def _address(program: Any, value: str | int) -> Any:
@@ -57,54 +111,44 @@ def _is_memory_address(value: str) -> bool:
 
 
 def _structure(program: Any, name: str) -> Any | None:
-    iterator = program.getDataTypeManager().getAllStructures()
-    while iterator.hasNext():
-        candidate = iterator.next()
-        if candidate.getName() == name:
+    dtm = program.getDataTypeManager()
+    paths = (
+        f"{CATEGORY}/{name}",
+        f"/wiz8/classes/{name}",
+        f"/surrender/classes/{name}",
+    )
+    for path in paths:
+        candidate = dtm.getDataType(path)
+        if candidate is not None:
             return candidate
     return None
 
 
 def _reviewed_owner(repo: Path, entry: str) -> str | None:
-    path = repo / "evidence" / "reviewed" / "wiz8" / "functions.csv"
-    with path.open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            if row["address"].lower().zfill(8) != entry.lower().zfill(8):
-                continue
-            current = row["current_name"]
-            name = current if "::" in current else row["provisional_name"] or current
-            return name.split("::", 1)[0] if "::" in name else None
-    return None
+    return reviewed_owner(load_evidence_index(repo), int(entry, 16))
 
 
 def _candidate_type_knowledge(program: Any) -> list[dict[str, Any]]:
     """Destructor-backed candidate structures already stored in this overlay."""
 
-    property_map = program.getUsrPropertyManager().getStringPropertyMap(CONSTRAINTS)
-    if property_map is None:
-        return []
     knowledge = []
-    iterator = property_map.getPropertyIterator()
-    while iterator.hasNext():
-        address = iterator.next()
-        names = [
-            str(item)
-            for item in values(program, address, FACT_ID)
-            if str(item).startswith("CandidateType_")
-        ]
-        for constraints in values(program, address, CONSTRAINTS):
-            if not isinstance(constraints, dict) or not constraints.get("complete_destructor"):
-                continue
-            for name in names:
-                knowledge.append(
-                    {
-                        "type": name,
-                        "tier": "candidate",
-                        "polymorphic": bool(constraints.get("has_virtual_destructor")),
-                        "slot0": None,
-                        "destructors": {str(constraints["complete_destructor"]).lower()},
-                    }
-                )
+    for _address_value, fact_id, record in iter_facts(program):
+        payload = record.get("payload", {})
+        if (
+            record.get("status") != "candidate"
+            or not fact_id.startswith("CandidateType_")
+            or not payload.get("complete_destructor")
+        ):
+            continue
+        knowledge.append(
+            {
+                "type": fact_id,
+                "tier": "candidate",
+                "polymorphic": bool(payload.get("has_virtual_destructor")),
+                "slot0": None,
+                "destructors": {str(payload["complete_destructor"]).lower()},
+            }
+        )
     return knowledge
 
 
@@ -344,13 +388,9 @@ def materialize_type_variables(
 
         fact_id = variable["name"]
         anchors = [traced["entry"], *variable["sources"]]
+        previous = facts(program, _address(program, traced["entry"])).get(fact_id, {})
         was_unified = bool(
-            selected
-            and selected
-            in {
-                str(item)
-                for item in values(program, _address(program, traced["entry"]), UNIFIED_WITH)
-            }
+            selected and previous.get("payload", {}).get("unified_with") == selected
         )
         for anchor in anchors:
             report["new_facts"] += int(
@@ -381,77 +421,71 @@ def materialize_type_variables(
     return report
 
 
-def _reaches(node: Any, address: int, visited: set[Any] | None = None) -> bool:
-    if node is None:
-        return False
-    visited = visited or set()
-    marker = (str(node.getAddress()), str(node.getDef().getSeqnum()) if node.getDef() else None)
-    if marker in visited:
-        return False
-    visited.add(marker)
-    space = node.getAddress().getAddressSpace().getName()
-    if (node.isConstant() or space == "ram") and int(node.getOffset()) == address:
-        return True
-    definition = node.getDef()
-    return bool(
-        definition is not None
-        and any(
-            _reaches(definition.getInput(index), address, visited)
-            for index in range(definition.getNumInputs())
-        )
-    )
-
-
-def add_screen_references(program: Any, repo: Path, hypothesis: str) -> dict[str, Any]:
-    """Materialize the 44 real handler targets at the actual CALLIND site."""
+def _replace_owned_target_set(
+    program: Any,
+    site: Any,
+    *,
+    hypothesis: str,
+    fact_id: str,
+    depends_on: list[str],
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Replace one fact's computed-call references and atomic payload."""
 
     from ghidra.program.model.symbol import RefType, SourceType
 
-    from .semantic import _high_function
-
-    function = program.getFunctionManager().getFunctionAt(
-        _address(program, SCREEN_DISPATCH_FUNCTION)
-    )
-    if function is None:
-        return {"sites": [], "new_references": 0, "handlers": 0}
-    high = _high_function(program, function, "normalize")
-    sites = []
-    iterator = high.getPcodeOps()
-    while iterator.hasNext():
-        op = iterator.next()
-        if op.getMnemonic() == "CALLIND" and _reaches(op.getInput(0), SCREEN_HANDLER_FIELD):
-            sites.append(op.getSeqnum().getTarget())
-    table = resolve_handler_table(repo)
-    targets = sorted(table["handler_targets"])
     references = program.getReferenceManager()
+    previous = get_fact(program, site, fact_id) or {}
+    old_targets = {str(value).lower() for value in previous.get("payload", {}).get("targets", [])}
+    old_owned = {
+        str(value).lower()
+        for value in previous.get("payload", {}).get("owned_targets", [])
+    }
+    new_targets = {str(value).lower() for value in payload.get("targets", [])}
+    removed_targets = old_targets - new_targets
+    added_targets = new_targets - old_targets
+    removable_targets = removed_targets & old_owned
+    removed = 0
+    for reference in list(references.getReferencesFrom(site)):
+        if (
+            str(reference.getToAddress()).lower() in removable_targets
+            and reference.getReferenceType().isComputed()
+            and str(reference.getSource()).upper() == "ANALYSIS"
+        ):
+            references.delete(reference)
+            removed += 1
+    existing = {
+        str(reference.getToAddress()).lower()
+        for reference in references.getReferencesFrom(site)
+    }
     added = 0
-    for site in sites:
-        existing = {
-            str(reference.getToAddress()) for reference in references.getReferencesFrom(site)
-        }
-        for target in targets:
-            destination = _address(program, target)
-            if str(destination) not in existing:
-                references.addMemoryReference(
-                    site, destination, RefType.COMPUTED_CALL, SourceType.ANALYSIS, -1
-                )
-                added += 1
-        stamp(
-            program,
-            site,
-            hypothesis=hypothesis,
-            fact_id="screen-handler-target-set",
-            depends_on=[f"pcode:{site}", f"table:{SCREEN_HANDLER_FIELD:08x}"],
-            target_set={
-                "real_handlers": table["handler_targets"],
-                "folded_logical_handlers": table["folded_stubs"],
-            },
+    newly_owned: set[str] = set()
+    for target in sorted(added_targets):
+        destination = _address(program, target)
+        if str(destination).lower() in existing:
+            continue
+        references.addMemoryReference(
+            site, destination, RefType.COMPUTED_CALL, SourceType.ANALYSIS, -1
         )
+        added += 1
+        newly_owned.add(target)
+    fact_payload = {
+        **payload,
+        "owned_targets": sorted((old_owned & new_targets) | newly_owned),
+    }
+    fact_changed = stamp(
+        program,
+        site,
+        hypothesis=hypothesis,
+        fact_id=fact_id,
+        depends_on=depends_on,
+        target_set=fact_payload,
+    )
     return {
-        "sites": [str(site) for site in sites],
-        "new_references": added,
-        "handlers": len(targets),
-        "folded_logical_handlers": sum(len(slots) for slots in table["folded_stubs"].values()),
+        "added": added,
+        "removed": removed,
+        "fact_changed": fact_changed,
+        "narrowed": bool(old_targets and new_targets < old_targets),
     }
 
 
@@ -485,7 +519,12 @@ def _virtual_shape(op: Any) -> tuple[int, set[str]] | None:
             return
         high = node.getHigh()
         if high is not None and high.getDataType() is not None:
-            names.add(high.getDataType().getDisplayName())
+            data_type = high.getDataType()
+            names.add(str(data_type.getDisplayName()))
+            try:
+                names.add(str(data_type.getPathName()))
+            except Exception:  # noqa: BLE001,S110 - not every datatype exposes a path
+                pass
         child = node.getDef()
         if child is not None:
             for index in range(child.getNumInputs()):
@@ -495,29 +534,41 @@ def _virtual_shape(op: Any) -> tuple[int, set[str]] | None:
     return (slot_bytes // 4, names)
 
 
+def _exact_vtable_ids(
+    type_names: set[str], identities: dict[str, str]
+) -> set[str]:
+    """Resolve only exact generated DataType identities, never name substrings."""
+
+    return {
+        identities[name.rstrip(" *")]
+        for name in type_names
+        if name.rstrip(" *") in identities
+    }
+
+
 def add_virtual_references(
     program: Any, repo: Path, hypothesis: str, classes: list[str], candidates: list[Any]
 ) -> dict[str, Any]:
     """Resolve typed receiver -> vptr -> slot -> CALLIND expressions."""
 
-    from ghidra.program.model.symbol import RefType, SourceType
-
     from .semantic import _high_function
 
-    reviewed = repo / "evidence" / "reviewed" / "wiz8"
-    table_ids: dict[str, set[str]] = {name: set() for name in classes}
-    with (reviewed / "vtables.csv").open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            if row["class_name"] in table_ids:
-                table_ids[row["class_name"]].add(row["vtable_id"])
+    index = load_evidence_index(repo)
+    table_ids = {
+        table.vtable_id
+        for class_name in classes
+        for table in index.vtables_by_class.get(class_name, ())
+    }
     slots: dict[tuple[str, int], set[str]] = {}
-    with (reviewed / "vtable-slots.csv").open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            for class_name, ids in table_ids.items():
-                if row["vtable_id"] in ids and row["target"]:
-                    slots.setdefault((class_name, int(row["slot_index"])), set()).add(row["target"])
-    references = program.getReferenceManager()
-    added = 0
+    for vtable_id in table_ids:
+        for slot in index.slots_by_vtable[vtable_id]:
+            slots.setdefault((vtable_id, slot.index), set()).add(f"{slot.target:08x}")
+    identities = {
+        identity: vtable_id
+        for vtable_id in table_ids
+        for identity in {vtable_id, f"/wiz8/overlay/vtables/{vtable_id}"}
+    }
+    added = removed = narrowed = 0
     resolved_sites = []
     for function in candidates:
         try:
@@ -533,44 +584,39 @@ def add_virtual_references(
             if shape is None:
                 continue
             slot, type_names = shape
-            owners = [
-                name
-                for name in classes
-                if any(name.casefold() in type_name.casefold() for type_name in type_names)
-            ]
-            if len(owners) != 1:
+            resolved_ids = _exact_vtable_ids(type_names, identities)
+            if len(resolved_ids) != 1:
                 continue
-            targets = sorted(slots.get((owners[0], slot), set()))
+            vtable_id = next(iter(resolved_ids))
+            targets = sorted(slots.get((vtable_id, slot), set()))
             if not targets:
                 continue
             site = op.getSeqnum().getTarget()
-            existing = {
-                str(reference.getToAddress()) for reference in references.getReferencesFrom(site)
-            }
-            for target in targets:
-                destination = _address(program, target)
-                if str(destination) not in existing:
-                    references.addMemoryReference(
-                        site, destination, RefType.COMPUTED_CALL, SourceType.ANALYSIS, -1
-                    )
-                    added += 1
-            stamp(
+            update = _replace_owned_target_set(
                 program,
                 site,
                 hypothesis=hypothesis,
-                fact_id=f"virtual-target-set:{owners[0]}:slot{slot}",
-                depends_on=[f"pcode:{site}", f"receiver-type:{owners[0]}", f"vtable-slot:{slot}"],
-                target_set={"receiver": owners[0], "slot": slot, "targets": targets},
+                fact_id=f"virtual-target-set:{site}",
+                depends_on=[f"pcode:{site}", f"vtable:{vtable_id}", f"vtable-slot:{slot}"],
+                payload={"vtable_id": vtable_id, "slot": slot, "targets": targets},
             )
+            added += update["added"]
+            removed += update["removed"]
+            narrowed += int(update["narrowed"])
             resolved_sites.append(str(site))
-    return {"new_references": added, "resolved_sites": sorted(set(resolved_sites))}
+    return {
+        "new_references": added,
+        "removed_references": removed,
+        "narrowed_target_sets": narrowed,
+        "resolved_sites": sorted(set(resolved_sites)),
+    }
 
 
-def _indirect_functions(program: Any, limit: int) -> list[Any]:
+def _indirect_functions(program: Any, limit: int) -> tuple[list[Any], int]:
     functions = []
     iterator = program.getFunctionManager().getFunctions(True)
     listing = program.getListing()
-    while iterator.hasNext() and len(functions) < limit:
+    while iterator.hasNext():
         function = iterator.next()
         instructions = listing.getInstructions(function.getBody(), True)
         while instructions.hasNext():
@@ -583,7 +629,7 @@ def _indirect_functions(program: Any, limit: int) -> list[Any]:
             ):
                 functions.append(function)
                 break
-    return functions
+    return functions[:limit], len(functions)
 
 
 def _semantic_snapshot(program: Any, addresses: list[str]) -> dict[str, dict[str, Any]]:
@@ -642,35 +688,97 @@ def _classify_changes(
     }
 
 
-def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[str, Any]:
+def _reviewed_snapshot(
+    settings: Settings,
+    effective: Settings,
+    selector: str,
+    program_name: str,
+    addresses: list[str],
+) -> dict[str, dict[str, Any]]:
+    """Read the reviewed ProgramDB only after its daemon has released it."""
+
+    from .environment import start_pyghidra
+    from .query_daemon import daemon_status, start_daemon, stop_daemon
+
+    was_running = bool(daemon_status(effective).get("running"))
+    stop_daemon(effective, quiet=True)
+    try:
+        start_pyghidra(settings)
+        import pyghidra
+
+        project = pyghidra.open_project(
+            effective.project_dir, effective.project_name, create=False
+        )
+        try:
+            with pyghidra.program_context(project, "/" + program_name) as program:
+                return _semantic_snapshot(program, addresses)
+        finally:
+            from .semantic import dispose_sessions
+
+            dispose_sessions()
+            project.close()
+    finally:
+        if was_running:
+            start_daemon(settings, selector)
+
+
+def analyze_overlay(
+    settings: Settings, selector: str, plan_value: str, *, resume: bool = False
+) -> dict[str, Any]:
     """Apply a plan and iterate until no candidate type or edge changes."""
 
     from .cache import materialize_program
     from .environment import start_pyghidra
     from .overlay import (
         _overlay_settings,
-        _scratch_dir,
         apply_typed_vtable,
         create_overlay,
     )
 
     plan = load_plan(settings.repo_dir, plan_value)
     hypothesis = str(plan["hypothesis"])
+    type_variables = [seed for seed in plan["seeds"] if seed["kind"] == "type-variable"]
+    vtables = [seed["name"] for seed in plan["seeds"] if seed["kind"] == "vtable"]
+    aggregates = [seed for seed in plan["seeds"] if seed["kind"] == "aggregate"]
+    reconstructed = [
+        seed for seed in plan["seeds"] if seed["kind"] == "reconstructed-transfer"
+    ]
+    limits = plan["limits"]
     effective, _ = materialize_program(settings, selector)
-    if not _scratch_dir(effective, hypothesis).exists():
-        create_overlay(settings, selector, hypothesis)
-    if plan["reconstructed"]:
+    creation = create_overlay(
+        settings,
+        selector,
+        hypothesis,
+        plan_sha256=plan_sha256(plan),
+        resume=resume,
+    )
+    overlay_id = creation["overlay_id"]
+    if reconstructed:
         from .reconstructed_transfer import transfer_into_overlay
 
-        transfer_into_overlay(settings, selector, hypothesis)
-    for class_name in plan["vtables"]:
-        apply_typed_vtable(settings, selector, hypothesis, class_name)
-    if plan["aggregates"]:
+        transfer_into_overlay(
+            settings,
+            selector,
+            overlay_id,
+            addresses={str(seed["function"]) for seed in reconstructed},
+        )
+    for class_name in vtables:
+        apply_typed_vtable(
+            settings, selector, overlay_id, class_name, hypothesis=hypothesis
+        )
+    aggregate_report: dict[str, Any] = {"placed": [], "types": [], "skipped": []}
+    if aggregates:
         from .aggregate_overlay import apply_aggregates
 
-        apply_aggregates(settings, selector, hypothesis)
+        aggregate_report = apply_aggregates(
+            settings,
+            selector,
+            overlay_id,
+            aggregate_seeds=aggregates,
+            hypothesis=hypothesis,
+        )
 
-    overlay = _overlay_settings(effective, hypothesis)
+    overlay = _overlay_settings(effective, overlay_id)
     start_pyghidra(settings)
     import pyghidra
 
@@ -679,35 +787,51 @@ def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[
     iterations = []
     total_fields = total_targets = total_unifications = 0
     contradictions: list[Any] = []
-    before: dict[str, dict[str, Any]] = {}
+    seeded: dict[str, dict[str, Any]] = {}
     after: dict[str, dict[str, Any]] = {}
     final_graph: dict[str, Any] = {}
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
-            # Baseline semantic snapshot is taken from the untouched clone
-            # state after explicit seed mutations; iteration-to-iteration
-            # classification then reports consequences rather than seed setup.
+            # Capture the seeded state before closure so its effects remain
+            # distinct from consequences discovered by the worklist.
             seed_functions = [
-                canonical_address(item["function"]) for item in plan["type_variables"]
+                canonical_address(item["function"]) for item in type_variables
             ]
-            seed_functions.append(f"{SCREEN_DISPATCH_FUNCTION:08x}") if plan[
-                "screen_dispatch"
-            ] else None
+            seed_functions.extend(canonical_address(item["function"]) for item in reconstructed)
+            seed_functions.extend(item["base"] for item in aggregate_report.get("placed", []))
             planned_tables: set[int] = set()
-            for class_name in plan["vtables"]:
+            for class_name in vtables:
                 tables, _slots = _reviewed_tables(settings.repo_dir, class_name)
                 planned_tables.update(int(table["address"], 16) for table in tables)
+            seed_functions.extend(f"{table:08x}" for table in sorted(planned_tables))
             graph = build_program_graph(program, planned_tables)
-            candidates = _indirect_functions(program, int(plan.get("max_indirect_functions", 512)))
-            measured = sorted(set(seed_functions))[: int(plan["semantic_limit"])]
-            before = _semantic_snapshot(program, measured)
+            candidates, indirect_total = (
+                _indirect_functions(program, int(limits["indirect_functions"]))
+                if vtables
+                else ([], 0)
+            )
+            initial_closure = graph.closure(
+                seed_functions, limit=int(limits["functions"])
+            )
+            initial_frontier = {
+                address
+                for group in initial_closure["groups"].values()
+                for address in group
+                if _is_memory_address(address)
+                if program.getFunctionManager().getFunctionAt(
+                    _address(program, address)
+                )
+                is not None
+            }
+            measured = sorted(set(seed_functions) | initial_frontier)
+            seeded = _semantic_snapshot(program, measured)
 
-            for number in range(1, int(plan["max_iterations"]) + 1):
+            for number in range(1, int(limits["iterations"]) + 1):
                 transaction = program.startTransaction(f"candidate inference iteration {number}")
                 iteration: dict[str, Any] = {"iteration": number, "type_variables": []}
                 changed = 0
                 try:
-                    for request in plan["type_variables"]:
+                    for request in type_variables:
                         result = materialize_type_variables(
                             program,
                             settings.repo_dir,
@@ -725,40 +849,35 @@ def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[
                         total_fields += result["fields_applied"]
                         total_unifications += result["unifications"]
                         contradictions.extend(result["contradictions"])
-                    screen = (
-                        add_screen_references(program, settings.repo_dir, hypothesis)
-                        if plan["screen_dispatch"]
-                        else {"new_references": 0}
-                    )
                     virtual = (
                         add_virtual_references(
                             program,
                             settings.repo_dir,
                             hypothesis,
-                            list(plan["vtables"]),
+                            vtables,
                             candidates,
                         )
-                        if plan["vtables"]
+                        if vtables
                         else {"new_references": 0, "resolved_sites": []}
                     )
-                    iteration["screen_dispatch"] = screen
                     iteration["virtual_calls"] = virtual
-                    new_targets = int(screen.get("new_references", 0)) + int(
-                        virtual.get("new_references", 0)
-                    )
-                    total_targets += new_targets
-                    changed += new_targets
+                    new_targets = int(virtual.get("new_references", 0))
+                    removed_targets = int(virtual.get("removed_references", 0))
+                    narrowed_targets = int(virtual.get("narrowed_target_sets", 0))
+                    total_targets += narrowed_targets
+                    changed += new_targets + removed_targets
 
                     graph = build_program_graph(program, planned_tables)
-                    for class_name in plan["vtables"]:
+                    for class_name in vtables:
                         vtable, slots = _reviewed_tables(settings.repo_dir, class_name)
                         for table in vtable:
                             for slot in slots.get(table["vtable_id"], []):
                                 graph.add(table["address"], slot["target"], "vtable-slot")
+                    closure = graph.closure(seed_functions, limit=int(limits["functions"]))
                     frontier = sorted(
                         {
                             address
-                            for group in graph.cone(seed_functions, limit=4096).values()
+                            for group in closure["groups"].values()
                             for address in group
                             if _is_memory_address(address)
                             if program.getFunctionManager().getFunctionAt(
@@ -767,7 +886,7 @@ def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[
                             is not None
                         }
                     )
-                    for address in frontier[: int(plan["semantic_limit"])]:
+                    for address in frontier:
                         function = program.getFunctionManager().getFunctionAt(
                             _address(program, address)
                         )
@@ -776,11 +895,13 @@ def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[
                                 add_pcode_dependencies(program, graph, function, planned_tables)
                             except Exception:  # noqa: BLE001,S110 - graph remains useful without one body
                                 pass
-                    measured = sorted(set(measured) | set(frontier[: int(plan["semantic_limit"])]))
+                    measured = sorted(set(measured) | set(frontier))
                     iteration["dependency_cone"] = {
                         reason: len(addresses)
-                        for reason, addresses in graph.cone(seed_functions).items()
+                        for reason, addresses in closure["groups"].items()
                     }
+                    iteration["scope_complete"] = closure["scope_complete"]
+                    iteration["truncated_frontier"] = len(closure["truncated_frontier"])
                     iteration["new_candidate_changes"] = changed
                     program.endTransaction(transaction, True)
                 except Exception:
@@ -792,25 +913,77 @@ def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[
                 iterations.append(iteration)
                 if changed == 0:
                     break
-            program.save("candidate inference fixpoint", None)
+            program.save("candidate inference stabilization", None)
             after = _semantic_snapshot(program, measured)
-            final_graph = graph.serialise()
+            serialised = graph.serialise()
+            relevant_nodes = set(measured) | {
+                canonical_address(seed) for seed in seed_functions
+            }
+            relevant_edges = [
+                edge
+                for edge in serialised["edges"]
+                if edge["source"] in relevant_nodes and edge["target"] in relevant_nodes
+            ]
+            final_graph = {
+                "nodes": len(
+                    {edge["source"] for edge in relevant_edges}
+                    | {edge["target"] for edge in relevant_edges}
+                    | relevant_nodes
+                ),
+                "edges": relevant_edges,
+            }
     finally:
         from .semantic import dispose_sessions
 
         dispose_sessions()
         project.close()
 
-    reached = bool(iterations) and iterations[-1]["new_candidate_changes"] == 0
-    return {
+    reviewed = _reviewed_snapshot(
+        settings, effective, selector, program_name, measured
+    )
+
+    stabilized = bool(iterations) and iterations[-1]["new_candidate_changes"] == 0
+    semantic_frontier = (
+        iterations[-1].get("truncated_frontier", 0) if iterations else 0
+    )
+    indirect_limit = int(limits["indirect_functions"])
+    scope_complete = semantic_frontier == 0 and indirect_total <= indirect_limit
+    report = {
         "hypothesis": hypothesis,
+        "overlay_id": overlay_id,
+        "overlay": creation,
         "plan": plan_value,
         "iterations": iterations,
-        "fixpoint": reached,
+        "stabilized": stabilized,
+        "scope_complete": scope_complete,
+        "truncated": {
+            "semantic_frontier": semantic_frontier,
+            "semantic_limit": int(limits["functions"]),
+            "indirect_functions": indirect_total,
+            "indirect_limit": indirect_limit,
+        },
         "iteration_count": len(iterations),
-        "semantic_changes": _classify_changes(
-            before, after, total_fields, total_targets, total_unifications, contradictions
-        ),
+        "semantic_deltas": {
+            "reviewed_to_seeded": _classify_changes(
+                reviewed, seeded, 0, 0, 0, []
+            ),
+            "seeded_to_closure": _classify_changes(
+                seeded,
+                after,
+                total_fields,
+                total_targets,
+                total_unifications,
+                contradictions,
+            ),
+            "reviewed_to_final": _classify_changes(
+                reviewed,
+                after,
+                total_fields,
+                total_targets,
+                total_unifications,
+                contradictions,
+            ),
+        },
         "dependency_graph": {
             "nodes": final_graph.get("nodes", 0),
             "edges": len(final_graph.get("edges", [])),
@@ -822,19 +995,41 @@ def analyze_overlay(settings: Settings, selector: str, plan_value: str) -> dict[
                 }
             ),
         },
+        "dependency_graph_detail": final_graph,
+    }
+    report["semantic_changes"] = report["semantic_deltas"]["reviewed_to_final"]
+    analysis_path = creation["overlay_dir"]
+    (Path(analysis_path) / "analysis.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    return {
+        key: value for key, value in report.items() if key != "dependency_graph_detail"
     }
 
 
 def _reviewed_tables(
     repo: Path, class_name: str
 ) -> tuple[list[dict[str, str]], dict[str, list[dict[str, str]]]]:
-    reviewed = repo / "evidence" / "reviewed" / "wiz8"
-    with (reviewed / "vtables.csv").open(newline="", encoding="utf-8") as stream:
-        tables = [row for row in csv.DictReader(stream) if row["class_name"] == class_name]
-    ids = {row["vtable_id"] for row in tables}
-    slots: dict[str, list[dict[str, str]]] = {identifier: [] for identifier in ids}
-    with (reviewed / "vtable-slots.csv").open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            if row["vtable_id"] in ids and row["target"]:
-                slots[row["vtable_id"]].append(row)
+    index = load_evidence_index(repo)
+    reviewed_tables = index.vtables_by_class.get(class_name, ())
+    tables = [
+        {
+            "vtable_id": item.vtable_id,
+            "class_name": item.class_name,
+            "address": f"{item.address:08x}",
+            "subobject_offset": f"0x{int(item.subobject_offset or 0):x}",
+        }
+        for item in reviewed_tables
+    ]
+    slots: dict[str, list[dict[str, str]]] = {}
+    for table in reviewed_tables:
+        slots[table.vtable_id] = [
+            {
+                "vtable_id": item.vtable_id,
+                "slot_index": str(item.index),
+                "target": f"{item.target:08x}",
+                "slot_name": item.name,
+            }
+            for item in index.slots_by_vtable[table.vtable_id]
+        ]
     return tables, slots

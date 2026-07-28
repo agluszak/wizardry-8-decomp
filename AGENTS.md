@@ -108,11 +108,11 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   same bodies for simple code, which makes the mistake easy to miss and wrong anyway: it models the
   original as something it is not, and it cannot express a `__thiscall` virtual call at all. Only
   genuine C library code, such as the zlib wrappers, stays `.c`.
-- **Start every port from `just wiz8 report context 0x<addr> --program <program>`.** The context
-  packet joins reviewed provenance, HighFunction variables, rooted field accesses, anonymous type
-  variables, normalized P-code, indirect call sites, reconstructed signatures, cross-build
-  candidates and object-map candidates with the older assertion/EH/global channels. Follow it with
-  one batched semantic query when a relation needs closer inspection:
+- **Start every port from `just wiz8 report context 0x<addr> --program <program>`.** The fast packet
+  joins function identity, decompile, reviewed signature/class, assertions, EH objects, direct
+  globals/calls, candidate facts and current cross-build/object ownership snapshots. Use `--deep
+  --root this` only for the full listing, normalized P-code, rooted field accesses, type variables
+  and indirect call sites. Follow it with one batched semantic query when a relation needs closer inspection:
   `facts-at`, `decompile`, `high-function`, `field-accesses`, `type-variables`, `pcode ... normalize`
   and `callsite` answer different questions and should not be substituted for one another. Ghidra
   already carries the applied types, global names, and callee identities, so its output names
@@ -126,14 +126,12 @@ Beads (`bd`) for durable task state and `just` as the normal build, analysis, an
   JSON rather than through Rich, so they remain parseable and unwrapped regardless of terminal width.
 - Candidate conclusions belong in disposable Ghidra overlays, not tracked projections. Put the
   hypothesis scope in a JSON file under `config/ghidra/hypotheses/`, then run
-  `just ghidra overlay analyze <program> <plan>`. The driver clones the reviewed materialization,
-  applies requested typed vtables, reconstructed information and aggregates, materializes anonymous
-  structures and owner fields, adds computed indirect references, expands one ProgramDB-derived
-  dependency graph, and repeats until no type or edge changes. Its semantic verdict distinguishes
-  presentation, prototype, field, target-set, unification, contradiction and no-change results.
-  Inspect candidate provenance with `just ghidra overlay facts-at <program> <hypothesis> <anchor>`;
-  discard the overlay after review. Promotion still goes through reviewed evidence and a baseline
-  rebuild.
+  `just ghidra overlay analyze <program> <plan>`. Each default run is a fresh clone identified by
+  the reviewed materialization and strict plan hash; only `--resume` reopens that exact clone.
+  Plans contain typed speculative seeds, not global subsystem booleans. Atomic facts own their
+  payloads and computed references, and directed causal propagation reports stabilization and
+  truncation separately. Use `just ghidra overlay inspect <program> <overlay-id> <anchor>` and then
+  `discard` that ID. Promotion still goes through reviewed evidence and a baseline rebuild.
 
 ### Recommended class-port workflow
 
@@ -169,19 +167,18 @@ just ghidra query "$CANON" \
   indexing or nullary placeholders. A relocation-masked exact compile then proves that typed model;
   it does not retroactively prove descriptive parameter or member names.
 - Exercise the hypothesis in a disposable overlay before reviewing it. `analyze` consumes the plan
-  path and iterates type constraints and indirect edges to a fixpoint; its result supplies the
-  generated hypothesis name used by the other actions:
+  path and runs type constraints and indirect edges to bounded stabilization; its result supplies
+  the content-identified overlay ID used by the other actions:
 
   ```sh
   just ghidra overlay analyze "$CANON" config/ghidra/hypotheses/<plan>.json
-  just ghidra overlay facts-at "$CANON" <hypothesis> 0x004b6e00
-  just ghidra overlay decompile "$CANON" <hypothesis> 0x0044dea0
-  just ghidra overlay discard "$CANON" <hypothesis>
+  just ghidra overlay inspect "$CANON" <overlay-id> 0x004b6e00
+  just ghidra overlay discard "$CANON" <overlay-id>
   ```
 
   Inspect semantic changes, not merely changed C text: a useful result resolves a field, improves a
   prototype, unifies a type variable or narrows/adds an indirect edge without contradiction. Record
-  the baseline fingerprint before creation and confirm it after discard when changing overlay code.
+  review the three reported semantic deltas and the explicit scope/truncation result.
 - Once the source is typed, iterate with `just build WIZ8_GAMEPLAY_BOUNDARIES` and
   `just wiz8 diff-boundary <symbol>`. Promote only after `just verify-boundaries` reports the body
   exact and the recorded digest is fresh. Update the canonical class, field, function, signature and

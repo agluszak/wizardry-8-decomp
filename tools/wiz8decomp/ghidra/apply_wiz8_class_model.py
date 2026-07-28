@@ -4,14 +4,15 @@ from typing import Any
 
 from ..config import Settings
 from .apply_unzip_model import _apply_data, _structure
+from .evidence_index import load_evidence_index
 from .project import resolve_program_name
 from .reviewed_class_model import (
-    BUILTIN_POINTEE_TYPES,
     VIRTUAL_SLOT_TYPE_NAME,
     ghidra_namespace_name,
     load_reviewed_class_model,
     parse_pointee,
 )
+from .type_specs import resolve_type_spec
 
 
 def apply_reviewed_class_model(
@@ -24,6 +25,7 @@ def apply_reviewed_class_model(
     """Materialize canonical class, field, and vtable records in Ghidra."""
 
     model = load_reviewed_class_model(settings.repo_dir, evidence_program)
+    index = load_evidence_index(settings.repo_dir, evidence_program)
     from .cache import open_for_mutation
 
     settings = open_for_mutation(settings, selector, materialize=materialize)
@@ -44,7 +46,6 @@ def apply_reviewed_class_model(
         UnsignedIntegerDataType,
         UnsignedShortDataType,
         VoidDataType,
-        WideCharDataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -109,12 +110,17 @@ def apply_reviewed_class_model(
                 for field in model.fields:
                     if field.data_type == "pointer" and field.pointee:
                         base, depth = parse_pointee(field.pointee)
-                        if base == VIRTUAL_SLOT_TYPE_NAME:
-                            data_type = virtual_function
-                        elif base in BUILTIN_POINTEE_TYPES:
-                            data_type = WideCharDataType.dataType
-                        else:
-                            data_type = structure_handles[base]
+                        data_type = (
+                            virtual_function
+                            if base == VIRTUAL_SLOT_TYPE_NAME
+                            else resolve_type_spec(
+                                dtm,
+                                base,
+                                evidence_program,
+                                imported_types=index.imported_types,
+                                allow_opaque_imported=True,
+                            )
+                        )
                         for _ in range(depth + 1):
                             data_type = PointerDataType(data_type, dtm)
                         typed_pointer_fields += 1

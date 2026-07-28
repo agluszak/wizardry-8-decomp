@@ -31,7 +31,18 @@ _STYLES = ("decompile", "normalize", "paramid")
 
 # (program unique id, style) -> DecompInterface. The daemon serves one program,
 # so this holds at most a handful of interfaces; one-shot paths dispose on exit.
-_sessions: dict[tuple[int, str], Any] = {}
+_sessions: dict[tuple[int, str, str], Any] = {}
+
+
+def _domain_identity(program: Any) -> str:
+    """Project and domain path for one open ProgramDB clone."""
+
+    try:
+        domain = program.getDomainFile()
+        locator = domain.getProjectLocator()
+        return f"{locator.getLocation()}::{locator.getName()}::{domain.getPathname()}"
+    except Exception:  # noqa: BLE001 - transient programs may have no domain file
+        return f"transient:{program.getName()}:{id(program)}"
 
 
 def _node_key(node: Any) -> tuple[Any, ...] | None:
@@ -60,7 +71,11 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
 
     if style not in _STYLES:
         raise ValueError(f"unknown decompiler style: {style}")
-    key = (int(program.getUniqueProgramID()), f"{style}:{'c' if c_output else 'tree'}")
+    key = (
+        int(program.getUniqueProgramID()),
+        _domain_identity(program),
+        f"{style}:{'c' if c_output else 'tree'}",
+    )
     interface = _sessions.get(key)
     if interface is not None:
         return interface
@@ -98,6 +113,22 @@ def _high_function(program: Any, function: Any, style: str = "decompile") -> Any
             f"no high function for {function.getEntryPoint()}: {error or 'decompilation failed'}"
         )
     return high
+
+
+def decompile_c(program: Any, function: Any) -> dict[str, Any]:
+    """Render C through the same persistent service used for HighFunction."""
+
+    from ghidra.util.task import TaskMonitor
+
+    interface = _session(program, "decompile", c_output=True)
+    result = interface.decompileFunction(function, _TIMEOUT_SECONDS, TaskMonitor.DUMMY)
+    completed = bool(result is not None and result.decompileCompleted())
+    rendered = result.getDecompiledFunction() if completed else None
+    return {
+        "completed": completed,
+        "error": result.getErrorMessage() if result is not None else "no result",
+        "decompiled": rendered.getC() if rendered is not None else None,
+    }
 
 
 def _varnode(node: Any) -> dict[str, Any] | None:
@@ -236,6 +267,95 @@ def _instances(symbol: Any) -> list[Any]:
     return list(high.getInstances())
 
 
+def _walk_value_flow(
+    instances: list[Any],
+    root: str,
+    *,
+    on_node: Any,
+    on_operation: Any,
+    follow_loads: bool,
+) -> None:
+    """One rooted SSA walker shared by fields, receivers and value paths."""
+
+    steps = 0
+
+    def same(left: Any, right: Any) -> bool:
+        return right is not None and bool(left.equals(right))
+
+    def trace(
+        node: Any,
+        offset: int,
+        path: str,
+        depth: int,
+        provenance: tuple[str, ...],
+        visited: set[Any],
+    ) -> None:
+        nonlocal steps
+        marker = _node_key(node)
+        if marker is None or marker in visited:
+            return
+        visited.add(marker)
+        on_node(node, marker, path, offset, depth, provenance)
+        descendants = node.getDescendants()
+        while descendants.hasNext():
+            steps += 1
+            if steps > _TRACE_LIMIT:
+                raise RuntimeError(f"value-flow trace exceeded {_TRACE_LIMIT} steps")
+            op = descendants.next()
+            mnemonic = op.getMnemonic()
+            output = op.getOutput()
+            site = str(op.getSeqnum().getTarget())
+            next_provenance = (*provenance, f"{mnemonic}@{site}")
+            on_operation(node, op, path, offset, depth, provenance, same)
+            if mnemonic in {"COPY", "CAST", "MULTIEQUAL", "INDIRECT"}:
+                if output is not None:
+                    trace(output, offset, path, depth, next_provenance, visited)
+            elif mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB"}:
+                other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
+                if other is not None and other.isConstant() and output is not None:
+                    delta = other.getOffset()
+                    if mnemonic == "INT_SUB" and same(node, op.getInput(0)):
+                        delta = -delta
+                    trace(output, offset + delta, path, depth, next_provenance, visited)
+            elif mnemonic == "PTRADD":
+                index_node, scale = op.getInput(1), op.getInput(2)
+                if (
+                    same(node, op.getInput(0))
+                    and index_node is not None
+                    and index_node.isConstant()
+                    and scale is not None
+                    and scale.isConstant()
+                    and output is not None
+                ):
+                    trace(
+                        output,
+                        offset + index_node.getOffset() * scale.getOffset(),
+                        path,
+                        depth,
+                        next_provenance,
+                        visited,
+                    )
+            elif (
+                follow_loads
+                and mnemonic == "LOAD"
+                and same(node, op.getInput(1))
+                and output is not None
+                and depth < 3
+                and output.getSize() == 4
+            ):
+                trace(
+                    output,
+                    0,
+                    f"{path}[{offset:#x}]",
+                    depth + 1,
+                    next_provenance,
+                    visited,
+                )
+
+    for instance in instances:
+        trace(instance, 0, root, 0, (), set())
+
+
 def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
     """Every access reachable from the given root varnodes, with derived offsets.
 
@@ -252,123 +372,104 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
     """
 
     accesses: list[dict[str, Any]] = []
-    steps = 0
-
-    def same(left: Any, right: Any) -> bool:
-        # JPype hands out fresh wrapper objects, so Python identity is useless
-        # here; Java equality is the identity that matters.
-        return right is not None and bool(left.equals(right))
-
-    def record(kind: str, op: Any, path: str, offset: int, **extra: Any) -> None:
+    def record(
+        kind: str,
+        op: Any,
+        path: str,
+        offset: int,
+        provenance: tuple[str, ...],
+        **extra: Any,
+    ) -> None:
         accesses.append(
             {
                 "kind": kind,
                 "site": str(op.getSeqnum().getTarget()),
                 "path": path,
                 "offset": f"0x{offset:x}",
+                "provenance": list(provenance),
                 **extra,
             }
         )
 
-    def trace(node: Any, offset: int, path: str, depth: int, visited: set[Any]) -> None:
-        nonlocal steps
-        marker = _node_key(node)
-        if marker in visited:
-            return
-        visited.add(marker)
-        descendants = node.getDescendants()
-        while descendants.hasNext():
-            steps += 1
-            if steps > _TRACE_LIMIT:
-                raise RuntimeError(f"field trace exceeded {_TRACE_LIMIT} steps")
-            op = descendants.next()
-            mnemonic = op.getMnemonic()
-            output = op.getOutput()
-            if mnemonic in {"COPY", "CAST", "MULTIEQUAL", "INDIRECT"}:
-                if output is not None:
-                    trace(output, offset, path, depth, visited)
-            elif mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB"}:
-                other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
-                if other is not None and other.isConstant() and output is not None:
-                    delta = other.getOffset()
-                    if mnemonic == "INT_SUB" and same(node, op.getInput(0)):
-                        delta = -delta
-                    trace(output, offset + delta, path, depth, visited)
-            elif mnemonic == "PTRADD":
-                index_node, scale = op.getInput(1), op.getInput(2)
-                if (
-                    same(node, op.getInput(0))
-                    and index_node is not None
-                    and index_node.isConstant()
-                    and scale is not None
-                    and scale.isConstant()
-                    and output is not None
-                ):
-                    trace(
-                        output,
-                        offset + index_node.getOffset() * scale.getOffset(),
-                        path,
-                        depth,
-                        visited,
-                    )
-            elif mnemonic == "LOAD":
-                if same(node, op.getInput(1)) and output is not None:
-                    record("load", op, path, offset, width=output.getSize())
-                    if depth < 3 and output.getSize() == 4:
-                        # The loaded value is a candidate pointer; its own
-                        # accesses describe the pointee's shape.
-                        trace(output, 0, f"{path}[{offset:#x}]", depth + 1, visited)
-            elif mnemonic == "STORE":
-                if same(node, op.getInput(1)):
-                    value = op.getInput(2)
-                    record(
-                        "store",
-                        op,
-                        path,
-                        offset,
-                        width=value.getSize() if value is not None else None,
-                        value=_varnode(value),
-                    )
-                elif same(node, op.getInput(2)):
-                    record("stored-elsewhere", op, path, offset)
-            elif mnemonic in {"CALL", "CALLIND"}:
-                target = op.getInput(0)
-                positions = [
-                    index - 1
-                    for index in range(1, op.getNumInputs())
-                    if same(node, op.getInput(index))
-                ]
-                if mnemonic == "CALLIND" and same(node, target):
-                    record(
-                        "indirect-call-target",
-                        op,
-                        path,
-                        offset,
-                        arguments=[_varnode(op.getInput(i)) for i in range(1, op.getNumInputs())],
-                    )
-                for position in positions:
-                    record(
-                        "call-arg" if mnemonic == "CALL" else "indirect-call-arg",
-                        op,
-                        path,
-                        offset,
-                        argument=position,
-                        target=(
-                            str(target.getAddress())
-                            if mnemonic == "CALL" and target is not None and target.isAddress()
-                            else _varnode(target)
-                        ),
-                        arguments=[_varnode(op.getInput(i)) for i in range(1, op.getNumInputs())],
-                    )
-            elif mnemonic in {"INT_EQUAL", "INT_NOTEQUAL"}:
-                other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
-                if other is not None and other.isConstant() and other.getOffset() == 0:
-                    record("null-test", op, path, offset, negated=mnemonic == "INT_NOTEQUAL")
-            elif mnemonic == "RETURN":
-                record("returned", op, path, offset)
+    def consume(
+        node: Any,
+        op: Any,
+        path: str,
+        offset: int,
+        _depth: int,
+        provenance: tuple[str, ...],
+        same: Any,
+    ) -> None:
+        mnemonic = op.getMnemonic()
+        output = op.getOutput()
+        if mnemonic == "LOAD" and same(node, op.getInput(1)) and output is not None:
+            record("load", op, path, offset, provenance, width=output.getSize())
+        elif mnemonic == "STORE":
+            if same(node, op.getInput(1)):
+                value = op.getInput(2)
+                record(
+                    "store",
+                    op,
+                    path,
+                    offset,
+                    provenance,
+                    width=value.getSize() if value is not None else None,
+                    value=_varnode(value),
+                )
+            elif same(node, op.getInput(2)):
+                record("stored-elsewhere", op, path, offset, provenance)
+        elif mnemonic in {"CALL", "CALLIND"}:
+            target = op.getInput(0)
+            positions = [
+                index - 1
+                for index in range(1, op.getNumInputs())
+                if same(node, op.getInput(index))
+            ]
+            if mnemonic == "CALLIND" and same(node, target):
+                record(
+                    "indirect-call-target",
+                    op,
+                    path,
+                    offset,
+                    provenance,
+                    arguments=[_varnode(op.getInput(i)) for i in range(1, op.getNumInputs())],
+                )
+            for position in positions:
+                record(
+                    "call-arg" if mnemonic == "CALL" else "indirect-call-arg",
+                    op,
+                    path,
+                    offset,
+                    provenance,
+                    argument=position,
+                    target=(
+                        str(target.getAddress())
+                        if mnemonic == "CALL" and target is not None and target.isAddress()
+                        else _varnode(target)
+                    ),
+                    arguments=[_varnode(op.getInput(i)) for i in range(1, op.getNumInputs())],
+                )
+        elif mnemonic in {"INT_EQUAL", "INT_NOTEQUAL"}:
+            other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
+            if other is not None and other.isConstant() and other.getOffset() == 0:
+                record(
+                    "null-test",
+                    op,
+                    path,
+                    offset,
+                    provenance,
+                    negated=mnemonic == "INT_NOTEQUAL",
+                )
+        elif mnemonic == "RETURN":
+            record("returned", op, path, offset, provenance)
 
-    for instance in instances:
-        trace(instance, 0, root, 0, set())
+    _walk_value_flow(
+        instances,
+        root,
+        on_node=lambda *_args: None,
+        on_operation=consume,
+        follow_loads=True,
+    )
     accesses.sort(key=lambda item: (item["path"], int(item["offset"], 16), item["site"]))
     return accesses
 
@@ -384,64 +485,22 @@ def trace_value_paths(instances: list[Any], root: str) -> dict[tuple[Any, ...], 
     """
 
     paths: dict[tuple[Any, ...], tuple[str, int]] = {}
-    steps = 0
-
-    def same(left: Any, right: Any) -> bool:
-        return right is not None and bool(left.equals(right))
-
-    def trace(node: Any, offset: int, path: str, depth: int, visited: set[Any]) -> None:
-        nonlocal steps
-        marker = _node_key(node)
-        if marker is None or marker in visited:
-            return
-        visited.add(marker)
+    def remember(
+        _node: Any,
+        marker: tuple[Any, ...],
+        path: str,
+        offset: int,
+        _depth: int,
+        _provenance: tuple[str, ...],
+    ) -> None:
         paths[marker] = (path, offset)
-        descendants = node.getDescendants()
-        while descendants.hasNext():
-            steps += 1
-            if steps > _TRACE_LIMIT:
-                raise RuntimeError(f"value-path trace exceeded {_TRACE_LIMIT} steps")
-            op = descendants.next()
-            mnemonic = op.getMnemonic()
-            output = op.getOutput()
-            if mnemonic in {"COPY", "CAST", "MULTIEQUAL", "INDIRECT"}:
-                if output is not None:
-                    trace(output, offset, path, depth, visited)
-            elif mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB"}:
-                other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
-                if other is not None and other.isConstant() and output is not None:
-                    delta = other.getOffset()
-                    if mnemonic == "INT_SUB" and same(node, op.getInput(0)):
-                        delta = -delta
-                    trace(output, offset + delta, path, depth, visited)
-            elif mnemonic == "PTRADD":
-                index_node, scale = op.getInput(1), op.getInput(2)
-                if (
-                    same(node, op.getInput(0))
-                    and index_node is not None
-                    and index_node.isConstant()
-                    and scale is not None
-                    and scale.isConstant()
-                    and output is not None
-                ):
-                    trace(
-                        output,
-                        offset + index_node.getOffset() * scale.getOffset(),
-                        path,
-                        depth,
-                        visited,
-                    )
-            elif (
-                mnemonic == "LOAD"
-                and same(node, op.getInput(1))
-                and output is not None
-                and depth < 3
-                and output.getSize() == 4
-            ):
-                trace(output, 0, f"{path}[{offset:#x}]", depth + 1, visited)
-
-    for instance in instances:
-        trace(instance, 0, root, 0, set())
+    _walk_value_flow(
+        instances,
+        root,
+        on_node=remember,
+        on_operation=lambda *_args: None,
+        follow_loads=True,
+    )
     return paths
 
 
@@ -579,32 +638,77 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
         raise ValueError(f"no call operation at {call_address}")
     call = calls[0]
     call_block = call.getParent()
-    candidates = []
-    if call_block is not None:
-        for index in range(call_block.getInSize()):
-            predecessor = call_block.getIn(index)
-            candidates.extend(
-                op
-                for op in operations
-                if op.getParent() is not None
-                and op.getParent().getIndex() == predecessor.getIndex()
-                and op.getMnemonic() == "CBRANCH"
-            )
-    if not candidates:
-        candidates = [
-            op
-            for op in operations
-            if op.getMnemonic() == "CBRANCH"
-            and op.getSeqnum().getTarget().compareTo(call_address) <= 0
-        ]
-    if not candidates:
+    branches = [op for op in operations if op.getMnemonic() == "CBRANCH"]
+    if call_block is None or not branches:
         return {
             "entry": str(function.getEntryPoint()),
             "callsite": str(call_address),
             "branch": None,
+            "confidence": "unresolved",
             "accesses": [],
         }
-    branch = max(candidates, key=lambda op: (op.getSeqnum().getTarget(), op.getSeqnum().getTime()))
+    blocks = {block.getIndex(): block for block in high.getBasicBlocks()}
+    successors = {
+        index: [block.getOut(position).getIndex() for position in range(block.getOutSize())]
+        for index, block in blocks.items()
+    }
+    call_index = call_block.getIndex()
+
+    def distance(start: int, target: int) -> int | None:
+        frontier = [(start, 0)]
+        seen: set[int] = set()
+        while frontier:
+            current, count = frontier.pop(0)
+            if current == target:
+                return count
+            if current in seen:
+                continue
+            seen.add(current)
+            frontier.extend((child, count + 1) for child in successors.get(current, []))
+        return None
+
+    controllers: list[tuple[int, Any]] = []
+    for branch_op in branches:
+        parent = branch_op.getParent()
+        outgoing = successors.get(parent.getIndex(), []) if parent is not None else []
+        if len(outgoing) != 2:
+            continue
+        distances = [distance(child, call_index) for child in outgoing]
+        reaching = [value for value in distances if value is not None]
+        if len(reaching) == 1:
+            controllers.append((reaching[0], branch_op))
+    confidence = "exact-control-slice"
+    if controllers:
+        nearest = min(distance_value for distance_value, _branch in controllers)
+        selected = [branch_op for distance_value, branch_op in controllers if distance_value == nearest]
+        if len(selected) != 1:
+            return {
+                "entry": str(function.getEntryPoint()),
+                "callsite": str(call_address),
+                "branch": None,
+                "confidence": "ambiguous",
+                "controllers": [str(item.getSeqnum().getTarget()) for item in selected],
+                "accesses": [],
+            }
+        branch = selected[0]
+    else:
+        candidates = [
+            op
+            for op in branches
+            if op.getSeqnum().getTarget().compareTo(call_address) <= 0
+        ]
+        if not candidates:
+            return {
+                "entry": str(function.getEntryPoint()),
+                "callsite": str(call_address),
+                "branch": None,
+                "confidence": "unresolved",
+                "accesses": [],
+            }
+        branch = max(
+            candidates, key=lambda op: (op.getSeqnum().getTarget(), op.getSeqnum().getTime())
+        )
+        confidence = "candidate-control-slice"
     condition = branch.getInput(branch.getNumInputs() - 1)
     accesses: list[dict[str, Any]] = []
     visited: set[tuple[Any, ...]] = set()
@@ -657,11 +761,11 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
                 "extension": extension,
                 "stride": stride,
             }
-            if resolved[0] == "absolute":
+            if resolved["kind"] == "absolute":
                 address = (
                     program.getAddressFactory()
                     .getDefaultAddressSpace()
-                    .getAddress(f"{resolved[1]:x}")
+                    .getAddress(f"{resolved['address']:x}")
                 )
                 symbol = program.getSymbolTable().getPrimarySymbol(address)
                 entry.update(
@@ -671,8 +775,14 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
                         "storage": symbol.getName() if symbol is not None else f"DAT_{address}",
                     }
                 )
-            elif resolved[0] == "offset":
-                entry.update({"kind": "root-offset", "offset": f"0x{resolved[1]:x}"})
+            elif resolved["kind"] == "root-relative":
+                entry.update(
+                    {
+                        "kind": "root-relative",
+                        "root": resolved["root"],
+                        "offset": f"0x{resolved['offset']:x}",
+                    }
+                )
             accesses.append(entry)
             walk(pointer, extension, stride)
             return
@@ -696,6 +806,7 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
         "entry": str(function.getEntryPoint()),
         "callsite": str(call_address),
         "branch": str(branch.getSeqnum().getTarget()),
+        "confidence": confidence,
         "accesses": sorted(
             unique.values(),
             key=lambda item: (
@@ -706,41 +817,53 @@ def condition_accesses(program: Any, argument: str) -> dict[str, Any]:
     }
 
 
-def _address_expression(node: Any) -> tuple[str, int] | tuple[None, None]:
-    """Classify a P-code pointer as absolute storage or root-relative offset."""
+def _address_expression(node: Any) -> dict[str, Any]:
+    """Resolve a P-code pointer without losing the base of a relative offset."""
 
     if node is None:
-        return (None, None)
+        return {"kind": "unresolved"}
     space = node.getAddress().getAddressSpace().getName()
     if space == "ram" and node.getDef() is None:
-        return ("absolute", int(node.getOffset()))
+        return {"kind": "absolute", "address": int(node.getOffset())}
     definition = node.getDef()
     if definition is None:
-        return (None, None)
+        high = node.getHigh()
+        symbol = high.getSymbol() if high is not None else None
+        root = symbol.getName() if symbol is not None else str(node.getAddress())
+        return {"kind": "root-relative", "root": root, "offset": 0}
     mnemonic = definition.getMnemonic()
     if mnemonic in {"COPY", "CAST", "INDIRECT"}:
         return _address_expression(definition.getInput(0))
-    if mnemonic in {"INT_ADD", "PTRSUB"} and definition.getNumInputs() >= 2:
+    if mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB"} and definition.getNumInputs() >= 2:
         left, right = definition.getInput(0), definition.getInput(1)
         if right is not None and right.isConstant():
             base = _address_expression(left)
-            if base[0] == "absolute":
-                return ("absolute", int(base[1]) + int(right.getOffset()))
-            return ("offset", int(right.getOffset()))
+            delta = int(right.getOffset())
+            if mnemonic == "INT_SUB":
+                delta = -delta
+            if base["kind"] == "absolute":
+                return {"kind": "absolute", "address": int(base["address"]) + delta}
+            if base["kind"] == "root-relative":
+                return {**base, "offset": int(base["offset"]) + delta}
         if left is not None and left.isConstant():
             base = _address_expression(right)
-            if base[0] == "absolute":
-                return ("absolute", int(base[1]) + int(left.getOffset()))
-            return ("offset", int(left.getOffset()))
+            if base["kind"] == "absolute":
+                return {
+                    "kind": "absolute",
+                    "address": int(base["address"]) + int(left.getOffset()),
+                }
+            if base["kind"] == "root-relative":
+                return {**base, "offset": int(base["offset"]) + int(left.getOffset())}
     if mnemonic == "PTRADD" and definition.getNumInputs() > 2:
         index, scale = definition.getInput(1), definition.getInput(2)
         if index is not None and index.isConstant() and scale is not None and scale.isConstant():
             delta = int(index.getOffset()) * int(scale.getOffset())
             base = _address_expression(definition.getInput(0))
-            if base[0] == "absolute":
-                return ("absolute", int(base[1]) + delta)
-            return ("offset", delta)
-    return (None, None)
+            if base["kind"] == "absolute":
+                return {"kind": "absolute", "address": int(base["address"]) + delta}
+            if base["kind"] == "root-relative":
+                return {**base, "offset": int(base["offset"]) + delta}
+    return {"kind": "unresolved"}
 
 
 def callsite(program: Any, argument: str) -> dict[str, Any]:

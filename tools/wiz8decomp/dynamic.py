@@ -33,15 +33,21 @@ from a copy so the immutable input trees are never written to.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import os
 import re
 import shutil
+import signal
+import socket
 import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+from .paths import json_hash, sha256_file
+from .subprocesses import tool_version
 
 EVENT = re.compile(r"^EVENT\s+(?P<kind>\S+)\s+(?P<name>\S+)\s+(?P<address>[0-9a-f]{8})\s*$")
 READY = "TRACE_READY"
@@ -72,33 +78,29 @@ class Event:
 
 
 def bring_up_points(repo: Path) -> list[TracePoint]:
-    """The reviewed bodies WinMain runs before the first frame.
+    """Reviewed first-party function nodes in the canonical startup spine."""
 
-    The gates are named in the reviewed boundary map and the recovered WinMain
-    calls them in a fixed order, which is exactly what a trace can check.
-    """
-
-    wanted = {
-        "GetRuntimeSettings",
-        "ProcessCommandLine",
-        "CheckCdPresent",
-        "BringUpEngine",
-        "SetModuleSubdirectory",
-        "QueryAvailableMemory",
-        "VerifyDataSubdirs",
-        "InitializeInputManager",
-        "ShutdownHandler",
-        "WinMain",
-    }
-    points = []
+    names: dict[str, str] = {}
     with (repo / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         for row in csv.DictReader(stream):
-            symbol = row["symbol"].strip()
-            if symbol in wanted:
-                points.append(TracePoint(address=row["address"], name=symbol, kind="gate"))
-    return sorted(points, key=lambda point: point.address)
+            names[row["address"].strip().lower()] = row["symbol"].strip()
+
+    points: dict[str, TracePoint] = {}
+    spine = repo / "evidence" / "reviewed" / "wiz8" / "startup-spine.csv"
+    with spine.open(newline="", encoding="utf-8") as stream:
+        for row in csv.DictReader(stream):
+            address = row["node_address"].strip().lower()
+            name = names.get(address)
+            if (
+                row["ownership"].strip() != "first-party"
+                or row["status"].strip() != "resolved"
+                or not name
+            ):
+                continue
+            points.setdefault(address, TracePoint(address=address, name=name, kind="gate"))
+    return sorted(points.values(), key=lambda point: point.address)
 
 
 def screen_points(repo: Path) -> list[TracePoint]:
@@ -273,24 +275,84 @@ def _listening(port: int, deadline: float) -> bool:
     return False
 
 
+def _allocate_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def _terminate_process_group(process: subprocess.Popen[Any]) -> None:
+    """Terminate only the group created for this trace."""
+
+    if process.poll() is not None:
+        return
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+        process.wait(timeout=10)
+    except (ProcessLookupError, subprocess.TimeoutExpired):
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait(timeout=10)
+
+
+def _repository_revision(repo: Path) -> str:
+    completed = subprocess.run(
+        ["jj", "log", "-r", "@", "--no-graph", "-T", "commit_id"],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return completed.stdout.strip() if completed.returncode == 0 else "unavailable"
+
+
+def _reviewed_evidence_hash(repo: Path) -> str:
+    digest = hashlib.sha256()
+    roots = [repo / "evidence" / "reviewed", repo / "evidence" / "observations" / "wiz8"]
+    for path in sorted(
+        (path for root in roots for path in root.rglob("*") if path.is_file()),
+        key=lambda item: item.relative_to(repo).as_posix(),
+    ):
+        digest.update(path.relative_to(repo).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(sha256_file(path).encode("ascii"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def _text(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    return value.decode("utf-8", "replace") if isinstance(value, bytes) else value
+
+
 def run_trace(
     repo: Path,
     sandbox: Sandbox,
     scenario: str,
     seconds: int = 120,
-    port: int = 54340,
+    port: int | None = None,
 ) -> dict[str, Any]:
     """Run one scenario under the debugger and return its event stream."""
 
-    for tool in ("winedbg", "gdb", "ss"):
+    for tool in ("winedbg", "wineserver", "gdb", "ss"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the dynamic oracle needs it")
     if not (sandbox.game_dir / "Wiz8.exe").is_file():
         raise ValueError(f"no Wiz8.exe in {sandbox.game_dir}")
 
     points = trace_plan(repo, scenario)
-    script = sandbox.game_dir.parent / f"trace-{scenario}.gdb"
-    script.write_text(gdb_script(points, port), encoding="utf-8")
+    selected_port = port if port is not None else _allocate_port()
+    plan_hash = json_hash(
+        [
+            {"address": point.address, "name": point.name, "kind": point.kind}
+            for point in points
+        ]
+    )
+    script = sandbox.game_dir.parent / f"trace-{scenario}-{selected_port}.gdb"
+    script.write_text(gdb_script(points, selected_port), encoding="utf-8")
 
     proxy = subprocess.Popen(
         [
@@ -298,16 +360,17 @@ def run_trace(
             "--gdb",
             "--no-start",
             "--port",
-            str(port),
+            str(selected_port),
             sandbox.windows_path("Wiz8.exe"),
         ],
         cwd=sandbox.game_dir,
         env=sandbox.environment(),
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
+        start_new_session=True,
     )
     try:
-        if not _listening(port, time.monotonic() + 60):
+        if not _listening(selected_port, time.monotonic() + 60):
             raise ValueError("winedbg --gdb never opened its port")
         completed = subprocess.run(
             ["gdb", "-q", "-batch", "-x", str(script)],
@@ -320,15 +383,19 @@ def run_trace(
         )
         output = completed.stdout + completed.stderr
     except subprocess.TimeoutExpired as expired:
-        output = (expired.stdout or b"").decode("utf-8", "replace")
-        if expired.stderr:
-            output += expired.stderr.decode("utf-8", "replace")
+        output = _text(expired.stdout) + _text(expired.stderr)
     finally:
-        proxy.kill()
-        proxy.wait(timeout=10)
-        subprocess.run(["pkill", "-x", "Wiz8.exe"], check=False)
+        _terminate_process_group(proxy)
+        subprocess.run(
+            ["wineserver", "-k"],
+            cwd=sandbox.game_dir,
+            env=sandbox.environment(),
+            check=False,
+        )
+        script.unlink(missing_ok=True)
 
     events = parse_events(output)
+    executable = sandbox.game_dir / "Wiz8.exe"
     return {
         "scenario": scenario,
         "watched": len(points),
@@ -338,6 +405,19 @@ def run_trace(
             for event in events
         ],
         "started": READY in output,
+        "provenance": {
+            "executable_sha256": sha256_file(executable),
+            "variant_identity": os.environ.get(
+                "WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(executable)}"
+            ),
+            "trace_plan_sha256": plan_hash,
+            "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
+            "repository_revision": _repository_revision(repo),
+            "wine": tool_version("wine", ("--version",)),
+            "gdb": tool_version("gdb", ("--version",)),
+            "timeout_seconds": seconds,
+            "proxy_port": selected_port,
+        },
     }
 
 

@@ -28,10 +28,15 @@ from wiz8decomp.reconstructed import (
     reviewed_spelling,
 )
 from wiz8decomp.reconstructed_pdb import (
+    LF_CLASS,
+    LF_FIELDLIST,
+    LF_MEMBER_ST,
+    LF_POINTER,
     MAGIC_20,
     S_BPREL32,
     S_GPROC32,
     Signature,
+    TypeStream,
     UnsupportedPdb,
     load,
     load_object,
@@ -49,6 +54,39 @@ def _record(kind: int, payload: bytes) -> bytes:
 
 def _name(text: str) -> bytes:
     return bytes([len(text)]) + text.encode("latin-1")
+
+
+def _field_member(name: str, type_index: int, offset: int) -> bytes:
+    value = struct.pack("<HHIH", LF_MEMBER_ST, 0, type_index, offset) + _name(name)
+    padding = (-len(value)) % 4
+    if padding:
+        value += bytes([0xF0 + padding]) + b"\0" * (padding - 1)
+    return value
+
+
+def test_vc6_type_stream_exposes_compiled_class_layout() -> None:
+    field_list = _field_member("m_flags_00", 0x0073, 0) + _field_member(
+        "m_instance_24", 0x1001, 0x24
+    )
+    pointer = struct.pack("<I", 0x0003)
+    class_record = (
+        struct.pack("<HHIIIH", 2, 0, 0x1000, 0, 0, 0x58) + _name("GDProp")
+    )
+    types = TypeStream(
+        {
+            0x1000: (LF_FIELDLIST, field_list),
+            0x1001: (LF_POINTER, pointer),
+            0x1002: (LF_CLASS, class_record),
+        }
+    )
+
+    layout = types.layouts()["GDProp"]
+
+    assert layout.size == 0x58
+    assert [(field.name, field.offset, field.width, field.pointer_depth) for field in layout.fields] == [
+        ("m_flags_00", 0, 2, 0),
+        ("m_instance_24", 0x24, 4, 1),
+    ]
 
 
 def _procedure(name: str, length: int, type_index: int, offset: int = 0x1000) -> bytes:

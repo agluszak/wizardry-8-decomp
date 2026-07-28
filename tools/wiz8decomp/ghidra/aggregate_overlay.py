@@ -43,7 +43,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
-from .candidate_facts import stamp
+from .candidate_facts import record_contradiction, stamp, upsert_fact
 from .overlay import _overlay_settings, _scratch_dir
 from .project import resolve_program_name
 
@@ -54,11 +54,11 @@ SPAN_SUFFIX = "_members"
 
 
 def _rows(repo: Path, storage: Path | None) -> list[dict[str, str]]:
-    path = storage or (repo / "build" / "reports" / "aggregates" / "storage.csv")
+    if storage is None:
+        raise ValueError("an explicit exported review CSV path is required")
+    path = storage
     if not path.is_file():
-        raise ValueError(
-            f"no resolved aggregate storage at {path}; run `wiz8 report aggregates --resolve` first"
-        )
+        raise ValueError(f"aggregate review CSV does not exist: {path}")
     with path.open(newline="", encoding="utf-8") as stream:
         return [row for row in csv.DictReader(stream) if row["storage"]]
 
@@ -127,11 +127,131 @@ def component_widths(
     return sized
 
 
+def _derive_rows(
+    program: Any,
+    repo: Path,
+    program_name: str,
+    scopes: dict[str, int],
+) -> list[dict[str, str]]:
+    """Resolve explicitly scoped assertion members directly from ProgramDB."""
+
+    from collections import defaultdict
+
+    from ..aggregates import member_references
+    from .semantic import condition_accesses
+
+    references = [
+        reference
+        for reference in member_references(repo, {program_name})
+        if reference.owner in scopes and reference.call_site
+    ]
+    by_site: dict[str, list[Any]] = defaultdict(list)
+    for reference in references:
+        by_site[reference.call_site].append(reference)
+    observations: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    for site, group in sorted(by_site.items()):
+        try:
+            sliced = condition_accesses(program, site)
+        except (RuntimeError, ValueError):
+            continue
+        if sliced.get("confidence") != "exact-control-slice":
+            continue
+        # Several vocabulary leaves at one assertion cannot be paired to loads
+        # without guessing. Keep the slice reviewable, but place none of them.
+        if len(group) != 1:
+            continue
+        reference = group[0]
+        if reference.pointer_access:
+            candidates = [
+                item
+                for item in sliced["accesses"]
+                if item.get("kind") == "root-relative"
+            ]
+            keys = {(item.get("root"), item.get("offset")) for item in candidates}
+            if len(keys) != 1:
+                continue
+            root, storage = next(iter(keys))
+            kind = "offset"
+        else:
+            candidates = [
+                item for item in sliced["accesses"] if item.get("kind") == "absolute"
+            ]
+            keys = {item.get("storage") for item in candidates if item.get("storage")}
+            if len(keys) != 1:
+                continue
+            root, storage = None, next(iter(keys))
+            kind = "global"
+        observations[(reference.owner, reference.member, kind)].append(
+            {
+                "storage": storage,
+                "root": root,
+                "widths": {str(item["width"]) for item in candidates if item.get("width")},
+            }
+        )
+
+    rows: list[dict[str, str]] = []
+    for (aggregate, member, kind), items in sorted(observations.items()):
+        identities = {(item["root"], item["storage"]) for item in items}
+        minimum = scopes[aggregate]
+        agreed = len(identities) == 1 and len(items) >= minimum
+        root, storage = next(iter(identities)) if len(identities) == 1 else (None, "")
+        rows.append(
+            {
+                "aggregate": aggregate,
+                "member": member,
+                "kind": kind,
+                "storage": str(storage) if agreed else "",
+                "root": str(root or ""),
+                "sites": str(len(items)),
+                "agreed": str(agreed),
+                "access_widths": " ".join(
+                    sorted({width for item in items for width in item["widths"]})
+                ),
+            }
+        )
+    return rows
+
+
+def _placement_conflicts(
+    listing: Any,
+    start: Any,
+    end: Any,
+    members: list[tuple[int, str, int]],
+) -> list[dict[str, Any]]:
+    """Defined data in a candidate span that the member proof does not own."""
+
+    ranges = [(address, address + width) for address, _name, width in members]
+    conflicts = []
+    walker = listing.getData(start, True)
+    while walker.hasNext():
+        datum = walker.next()
+        if datum.getAddress().compareTo(end) > 0:
+            break
+        address = int(datum.getAddress().getOffset())
+        data_end = address + int(datum.getLength())
+        display = str(datum.getDataType().getDisplayName()).lower()
+        member_owned = any(address >= first and data_end <= last for first, last in ranges)
+        if member_owned or display.startswith("undefined"):
+            continue
+        conflicts.append(
+            {
+                "address": str(datum.getAddress()),
+                "type": datum.getDataType().getDisplayName(),
+                "length": datum.getLength(),
+            }
+        )
+    return conflicts
+
+
 def apply_aggregates(
     settings: Settings,
     selector: str,
-    hypothesis: str,
+    overlay_id: str,
     storage: Path | None = None,
+    *,
+    aggregates: list[str] | None = None,
+    aggregate_seeds: list[dict[str, Any]] | None = None,
+    hypothesis: str | None = None,
 ) -> dict[str, Any]:
     """Place the resolved aggregates over the clone's memory."""
 
@@ -139,12 +259,10 @@ def apply_aggregates(
     from .environment import start_pyghidra
 
     effective, _ = materialize_program(settings, selector)
-    overlay = _overlay_settings(effective, hypothesis)
-    if not _scratch_dir(effective, hypothesis).exists():
-        raise ValueError(f"overlay does not exist; create it first: {hypothesis}")
-    rows = _rows(settings.repo_dir, storage)
-    placements = plan_placements(rows)
-    types = plan_types(rows)
+    overlay = _overlay_settings(effective, overlay_id)
+    if not _scratch_dir(effective, overlay_id).exists():
+        raise ValueError(f"overlay does not exist; create it first: {overlay_id}")
+    fact_hypothesis = hypothesis or overlay_id
 
     start_pyghidra(settings)
     import pyghidra
@@ -152,7 +270,6 @@ def apply_aggregates(
         CategoryPath,
         DataTypeConflictHandler,
         StructureDataType,
-        Undefined1DataType,
     )
     from ghidra.program.model.symbol import SourceType
 
@@ -161,6 +278,21 @@ def apply_aggregates(
     report: dict[str, Any] = {"placed": [], "types": [], "skipped": []}
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
+            if storage is not None:
+                rows = _rows(settings.repo_dir, storage)
+                wanted = set(aggregates or [])
+                if wanted:
+                    rows = [row for row in rows if row["aggregate"] in wanted]
+            else:
+                scopes = {
+                    seed["name"]: int(seed.get("minimum_agreeing_sites", 2))
+                    for seed in (aggregate_seeds or [])
+                }
+                if not scopes:
+                    raise ValueError("aggregate inference requires explicit aggregate seeds")
+                rows = _derive_rows(program, settings.repo_dir, program_name, scopes)
+            placements = plan_placements(rows)
+            types = plan_types(rows)
             transaction = program.startTransaction("aggregate overlay")
             try:
                 dtm = program.getDataTypeManager()
@@ -235,18 +367,41 @@ def apply_aggregates(
                     applied = dtm.addDataType(structure, DataTypeConflictHandler.REPLACE_HANDLER)
                     start = space.getAddress(f"{base:08x}")
                     end = start.add(extent - 1)
-                    # A placement is a blunt instrument while the block's real
-                    # bounds are unknown: everything already defined inside the
-                    # span is cleared to make room, including definitions that
-                    # belong to other globals. The count is reported so the
-                    # cost of a sparse aggregate is visible rather than silent.
-                    displaced = 0
-                    walker = listing.getData(start, True)
-                    while walker.hasNext():
-                        datum = walker.next()
-                        if datum.getAddress().compareTo(end) > 0:
-                            break
-                        displaced += 1
+                    conflicts = _placement_conflicts(listing, start, end, sized)
+                    fact_id = f"aggregate:{aggregate}"
+                    payload = {
+                        "structure": name,
+                        "members": [
+                            {"name": member, "offset": f"0x{address - base:x}", "width": width}
+                            for address, member, width in sized
+                        ],
+                        "bounds": "placed members only",
+                    }
+                    if conflicts:
+                        upsert_fact(
+                            program,
+                            start,
+                            fact_id=fact_id,
+                            hypothesis=fact_hypothesis,
+                            kind="aggregate",
+                            depends_on=["pcode:exact-control-slices"],
+                            payload=payload,
+                        )
+                        record_contradiction(
+                            program,
+                            start,
+                            fact_id,
+                            reason="candidate span contains unrelated defined data",
+                            incoming={"conflicts": conflicts},
+                        )
+                        report["skipped"].append(
+                            {
+                                "aggregate": aggregate,
+                                "reason": "defined data conflicts with sparse candidate span",
+                                "conflicts": conflicts,
+                            }
+                        )
+                        continue
                     listing.clearCodeUnits(start, end, False)
                     listing.createData(start, applied)
                     # The block's label has to be the primary one at its base.
@@ -264,48 +419,28 @@ def apply_aggregates(
                             "base": f"{base:08x}",
                             "bytes": extent,
                             "members": len(sized),
-                            "displaced_definitions": displaced,
+                            "displaced_definitions": 0,
                             "bounds": "the placed members only; the block's own start is unknown",
                         }
                     )
                     stamp(
                         program,
                         start,
-                        hypothesis=hypothesis,
-                        fact_id=f"aggregate:{aggregate}",
+                        hypothesis=fact_hypothesis,
+                        fact_id=fact_id,
                         depends_on=[
                             "pcode:assertion-control-slices",
                             "aggregate-member-vocabulary",
                         ],
-                        constraints={
-                            "structure": name,
-                            "members": [
-                                {"name": member, "offset": f"0x{address - base:x}", "width": width}
-                                for address, member, width in sized
-                            ],
-                            "bounds": "placed members only",
-                        },
+                        constraints=payload,
                     )
 
                 for aggregate, members in sorted(types.items()):
-                    extent = members[-1][0] + 4
-                    structure = StructureDataType(
-                        category, aggregate.replace("->", "_").replace(".", "_"), extent
-                    )
-                    for offset, member in members:
-                        structure.replaceAtOffset(
-                            offset,
-                            Undefined1DataType.dataType,
-                            1,
-                            member,
-                            "recovered from assertion text",
-                        )
-                    dtm.addDataType(structure, DataTypeConflictHandler.REPLACE_HANDLER)
-                    report["types"].append(
+                    report["skipped"].append(
                         {
                             "aggregate": aggregate,
-                            "members": len(members),
-                            "highest_offset": f"0x{members[-1][0]:x}",
+                            "reason": "pointer base is not identified; no unbound type created",
+                            "candidate_members": len(members),
                         }
                     )
                 program.endTransaction(transaction, True)

@@ -24,11 +24,24 @@ def matching_target_sources(repository: Path, target: str) -> list[Path]:
     assert block is not None, f"{target} object target not found in CMakeLists.txt"
     # Original unit names contain spaces - "PC Item.cpp" among them - so CMake
     # quotes those entries and the quotes are not part of the path.
-    paths = [
-        repository / line.strip().strip('"')
-        for line in block.group(1).splitlines()
-        if line.strip()
-    ]
+    entries: list[str] = []
+    for line in block.group(1).splitlines():
+        entry = line.strip().strip('"')
+        variable = re.fullmatch(r"\$\{([A-Za-z0-9_]+)\}", entry)
+        if variable is None:
+            if entry:
+                entries.append(entry)
+            continue
+        values = re.search(
+            rf"set\({variable.group(1)}\n(.*?)\n\s*\)", text, re.DOTALL
+        )
+        assert values is not None, f"{target} references unknown source list {entry}"
+        entries.extend(
+            item.strip().strip('"')
+            for item in values.group(1).splitlines()
+            if item.strip() and not item.strip().startswith("#")
+        )
+    paths = [repository / entry for entry in entries]
     assert paths, f"{target} compiles no sources"
     missing = [path for path in paths if not path.is_file()]
     assert not missing, f"{target} names sources that do not exist: {missing}"

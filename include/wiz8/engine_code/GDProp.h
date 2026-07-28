@@ -38,7 +38,7 @@ private:
     int m_vertex_count_18;                /* 0x18; m_pVertices count */
     void* m_pGDSurfaces;                 /* 0x1c; 0x4c-byte elements */
     void* m_pVertices;                   /* 0x20; 0x0c-byte elements */
-    void* m_instance_24;                 /* 0x24 */
+    srNode* m_instance_24;               /* 0x24 */
     float m_path_range_28;               /* 0x28 */
     float m_path_sentinel_2c;            /* 0x2c */
     float m_path_range_30;               /* 0x30 */

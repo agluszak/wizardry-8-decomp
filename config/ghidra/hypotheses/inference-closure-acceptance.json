@@ -1,18 +1,15 @@
 {
-  "hypothesis": "inference-closure-acceptance",
-  "type_variables": [
+  "hypothesis": "prop-owned-types",
+  "seeds": [
     {
+      "kind": "type-variable",
       "function": "0044bec0",
       "root": "this"
     }
   ],
-  "vtables": [
-    "GrCycle"
-  ],
-  "screen_dispatch": true,
-  "aggregates": true,
-  "reconstructed": false,
-  "max_iterations": 8,
-  "semantic_limit": 120,
-  "max_indirect_functions": 512
+  "limits": {
+    "iterations": 8,
+    "functions": 120,
+    "indirect_functions": 512
+  }
 }

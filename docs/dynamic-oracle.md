@@ -70,13 +70,15 @@ just wiz8 trace screens --seconds 180       # plus every dispatcher handler
 just wiz8 trace bring-up --plan-only        # the breakpoints, no run
 ```
 
-The plan is generated from `config/reccmp/wiz8-gameplay-boundaries.csv` and
-`evidence/observations/wiz8/frame-dispatch-table.csv`, so it follows the ledger
-rather than a hand-kept list. Results land in `build/reports/trace/`.
+The bring-up selection is generated from `evidence/reviewed/wiz8/startup-spine.csv`; names join the
+boundary ledger, and screen targets come from `frame-dispatch-table.csv`. Each run allocates its own
+proxy port and records the executable, variant, plan, reviewed-evidence and repository identities,
+tool versions and timeout. Results land in `build/reports/trace/`.
 
-## What a run has already shown
+## Earlier bring-up observation
 
-The `bring-up` scenario reaches nine of its ten watched bodies in this order:
+Before the plan moved to the complete reviewed startup spine, the smaller ten-point scenario
+reached nine watched bodies in this order:
 
 ```
 WinMain, ProcessCommandLine, QueryAvailableMemory, CheckCdPresent,
@@ -84,11 +86,8 @@ BringUpEngine, SetModuleSubdirectory, GetRuntimeSettings,
 InitializeInputManager, VerifyDataSubdirs
 ```
 
-which is exactly the order the recovered `WinMain` and `BringUpEngine` call
-them in - an independent check of recovered control flow against the original
-executing. `ShutdownHandler` is the one watched body not reached, which is the
-run *not* failing. Two runs produce byte-identical streams, so a divergence
-between builds would mean something.
+That remains an independent observation of the recovered control flow, but its count is not a
+current-plan expectation. Rerun the generated plan before comparing current event counts.
 
 ## Pitfalls
 
@@ -100,5 +99,5 @@ between builds would mean something.
   with `Couldn't start process`.
 - The game is a 32-bit PE with a fixed image base and no ASLR, so reviewed
   addresses are process addresses; no rebasing is needed anywhere.
-- A `pkill -f` whose pattern appears in the invoking command line kills the
-  invoker. Match on the process name instead.
+- Every trace runs in a new Unix process group. Cleanup signals only that group and shuts down the
+  dedicated `WINEPREFIX` with `wineserver -k`; it never uses a global `pkill`.

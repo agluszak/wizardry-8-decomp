@@ -247,14 +247,9 @@ if(WIZ8_BUILD_DECOMP AND ZLIB_SOURCE)
 endif()
 
 if(WIZ8_BUILD_DECOMP)
-    add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
-        src/wiz8/bringup_gates.cpp
-        src/wiz8/renderer_window.cpp
-        src/wiz8/window_proc.cpp
+    set(WIZ8_ORIGINAL_UNITS
         "src/wiz8/local_code/PC Item.cpp"
-        src/wiz8/character_skills.cpp
         src/wiz8/local_code/Controls.cpp
-        src/wiz8/gameplay_boundaries.cpp
         src/wiz8/local_code/Factions.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
         src/wiz8/local_code/Magic.cpp
@@ -273,6 +268,29 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/engine_code/GDProp.cpp
         src/wiz8/engine_code/Prop005EC1E0.cpp
         src/wiz8/engine_code/GrObject.cpp
+        src/wiz8/local_code/Control004F5450.cpp
+        src/wiz8/local_code/RegionManager.cpp
+        src/wiz8/local_code/chunk.cpp
+        src/wiz8/engine_code/GrCycle.cpp
+        src/wiz8/local_code/GameplayDatabase.cpp
+        src/wiz8/dialog_code/DialogInterface.cpp
+        src/wiz8/3d_code/IList.cpp
+        src/wiz8/local_code/ItemManager.cpp
+        src/wiz8/engine_code/game_timer.cpp
+        src/wiz8/engine_code/materials.cpp
+        src/wiz8/engine_code/Monster.cpp
+        src/wiz8/local_code/DisplayList.cpp
+        src/wiz8/local_code/SurfaceFill.cpp
+        src/wiz8/local_code/Targeting.cpp
+        src/wiz8/local_code/Viewport.cpp
+        src/wiz8/engine_code/Octree.cpp
+        src/wiz8/3d_code/PList.cpp
+        src/wiz8/engine_code/3d.cpp
+    )
+    # Address-qualified sources are distinct VC6 template emissions. Their
+    # original translation-unit ownership is not established, so grouping
+    # them here does not merge or rename any emission.
+    set(WIZ8_TEMPLATE_EMISSIONS
         src/wiz8/vector_005ebfb4.cpp
         src/wiz8/vector_005ec16c.cpp
         src/wiz8/vector_005ec2b8.cpp
@@ -296,45 +314,38 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/vector_005eea28.cpp
         src/wiz8/vector_005ecf00.cpp
         src/wiz8/vector_005ec27c.cpp
-        src/wiz8/local_code/Control004F5450.cpp
-        src/wiz8/local_code/RegionManager.cpp
-        src/wiz8/local_code/LoadSaveGame.cpp
-        src/wiz8/local_code/chunk.cpp
+    )
+    set(WIZ8_UNATTRIBUTED_UNITS
+        src/wiz8/bringup_gates.cpp
+        src/wiz8/renderer_window.cpp
+        src/wiz8/window_proc.cpp
+        src/wiz8/character_skills.cpp
+        src/wiz8/gameplay_boundaries.cpp
         src/wiz8/grcycle.cpp
-        src/wiz8/engine_code/GrCycle.cpp
         src/wiz8/fact_state.cpp
-        src/wiz8/local_code/GameplayDatabase.cpp
-        src/wiz8/dialog_code/DialogInterface.cpp
         src/wiz8/dirty_tiles.cpp
         src/wiz8/render_options.cpp
         src/wiz8/unattributed_helpers.cpp
         src/wiz8/frame_tick.cpp
         src/wiz8/game_init.cpp
         src/wiz8/gameplay_teardown.cpp
-        src/wiz8/3d_code/IList.cpp
-        src/wiz8/local_code/ItemManager.cpp
         src/wiz8/item_mesh.cpp
         src/wiz8/item_spawning.cpp
         src/wiz8/message_box.cpp
-        src/wiz8/engine_code/game_timer.cpp
-        src/wiz8/engine_code/materials.cpp
-        src/wiz8/engine_code/Monster.cpp
         src/wiz8/monster_info_dialog.cpp
         src/wiz8/monster_generators.cpp
         src/wiz8/monster_lookup.cpp
         src/wiz8/npc_item_lists.cpp
         src/wiz8/spell_backfire.cpp
-        src/wiz8/local_code/DisplayList.cpp
-        src/wiz8/local_code/SurfaceFill.cpp
-        src/wiz8/local_code/Targeting.cpp
-        src/wiz8/local_code/Viewport.cpp
         src/wiz8/state_getters.cpp
         src/wiz8/vector_conversions.cpp
         src/wiz8/virtual_file_stream.cpp
-        src/wiz8/engine_code/Octree.cpp
-        src/wiz8/3d_code/PList.cpp
-        src/wiz8/engine_code/3d.cpp
         src/wiz8/vc6_runtime.cpp
+    )
+    add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
+        ${WIZ8_ORIGINAL_UNITS}
+        ${WIZ8_TEMPLATE_EMISSIONS}
+        ${WIZ8_UNATTRIBUTED_UNITS}
     )
     target_compile_options(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE /nologo /O2 /G6 /MD)
     target_compile_definitions(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)

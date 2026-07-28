@@ -43,17 +43,23 @@ def seed_manifest_path(settings: Settings) -> Path:
 REPLAY_INERT_MODULES = frozenset(
     {
         "__init__.py",
+        "aggregate_overlay.py",
         "analyze.py",
         "cache.py",
+        "candidate_facts.py",
+        "dependency_graph.py",
         "environment.py",
         "export_evidence.py",
         "export_programs.py",
         "fid.py",
         "fid_seeds.py",
         "import_programs.py",
+        "inference.py",
+        "overlay.py",
         "query.py",
-        "semantic.py",
         "query_daemon.py",
+        "reconstructed_transfer.py",
+        "semantic.py",
     }
 )
 

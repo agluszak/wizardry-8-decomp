@@ -26,6 +26,11 @@ class ReviewedClass:
     name: str
     size: int | None
     primary_vtable_id: str | None
+    constructor: int | None = None
+    destructor: int | None = None
+    scalar_deleting_destructor: int | None = None
+    base_classes: str = ""
+    source_path: str = ""
 
 
 @dataclass(frozen=True)
@@ -130,12 +135,33 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
     fields_path = directory / "fields.csv"
     vtables_path = directory / "vtables.csv"
     slots_path = directory / "vtable-slots.csv"
+    imported_path = (
+        repo_dir / "evidence" / "observations" / "surrender" / "wiz8-sr-imports.csv"
+    )
+    imported_types = (
+        {
+            row["class_name"]
+            for row in _rows(imported_path)
+            if row.get("class_name")
+        }
+        if imported_path.is_file()
+        else set()
+    )
 
     classes = tuple(
         ReviewedClass(
             name=row["class_name"].strip(),
             size=_hex(row["minimum_size"], field="minimum_size", path=classes_path),
             primary_vtable_id=row["primary_vtable_id"].strip() or None,
+            constructor=_hex(row.get("constructor", ""), field="constructor", path=classes_path),
+            destructor=_hex(row.get("destructor", ""), field="destructor", path=classes_path),
+            scalar_deleting_destructor=_hex(
+                row.get("scalar_deleting_destructor", ""),
+                field="scalar_deleting_destructor",
+                path=classes_path,
+            ),
+            base_classes=row.get("base_classes", "").strip(),
+            source_path=row.get("source_path", "").strip(),
         )
         for row in _rows(classes_path)
         if _accepted(row, program)
@@ -191,7 +217,11 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
                     f"{field.class_name}+0x{field.offset:x}"
                 )
             base, _ = parse_pointee(field.pointee)
-            if base != VIRTUAL_SLOT_TYPE_NAME and base not in BUILTIN_POINTEE_TYPES:
+            if (
+                base != VIRTUAL_SLOT_TYPE_NAME
+                and base not in BUILTIN_POINTEE_TYPES
+                and base not in imported_types
+            ):
                 target = classes_by_name.get(base)
                 if target is None or target.size is None:
                     raise ValueError(

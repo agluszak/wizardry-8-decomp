@@ -36,12 +36,26 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
     for instruction in instructions:
         try:
             raw.extend(instruction.getBytes())
-        except Exception:
+        except Exception:  # noqa: BLE001,S110 - unreadable instruction bytes stay absent
             pass
         operand_types = [str(instruction.getOperandType(index)) for index in range(instruction.getNumOperands())]
         mnemonic_parts.append(instruction.getMnemonicString() + ":" + ",".join(operand_types))
     callers = sorted({str(ref.getFromAddress()) for ref in references.getReferencesTo(function.getEntryPoint())})
     callees = sorted({str(ref.getToAddress()) for instruction in instructions for ref in references.getReferencesFrom(instruction.getAddress()) if manager.getFunctionAt(ref.getToAddress()) is not None})
+    data_references = sorted(
+        (
+            {
+                "site": str(reference.getFromAddress()),
+                "target": str(reference.getToAddress()),
+                "access": str(reference.getReferenceType()),
+            }
+            for instruction in instructions
+            for reference in references.getReferencesFrom(instruction.getAddress())
+            if manager.getFunctionAt(reference.getToAddress()) is None
+            and program.getMemory().contains(reference.getToAddress())
+        ),
+        key=lambda item: (item["site"], item["target"], item["access"]),
+    )
     strings = []
     for instruction in instructions:
         for reference in references.getReferencesFrom(instruction.getAddress()):
@@ -62,6 +76,8 @@ def function_metadata(program: Any, function: Any) -> dict[str, Any]:
         "callee_count": len(callees),
         "callers": callers,
         "callees": callees,
+        "data_references": data_references,
+        "instruction_addresses": [str(instruction.getAddress()) for instruction in instructions],
         "referenced_strings": sorted(set(strings), key=str.casefold),
         "raw_body_sha256": hashlib.sha256(raw).hexdigest(),
         "instruction_fingerprint_sha256": hashlib.sha256("\n".join(mnemonic_parts).encode()).hexdigest(),
@@ -75,22 +91,10 @@ def _listing(program: Any, argument: str) -> dict[str, Any]:
 
 
 def _decompile(program: Any, argument: str) -> dict[str, Any]:
-    from ghidra.app.decompiler import DecompInterface
-    from ghidra.util.task import TaskMonitor
+    from .semantic import decompile_c
 
     function = _function(program, argument)
-    interface = DecompInterface()
-    interface.openProgram(program)
-    try:
-        result = interface.decompileFunction(function, 120, TaskMonitor.DUMMY)
-        return {
-            "function": function_metadata(program, function),
-            "completed": bool(result.decompileCompleted()),
-            "error": result.getErrorMessage(),
-            "decompiled": result.getDecompiledFunction().getC() if result.decompileCompleted() and result.getDecompiledFunction() else None,
-        }
-    finally:
-        interface.dispose()
+    return {"function": function_metadata(program, function), **decompile_c(program, function)}
 
 
 def _xrefs(program: Any, argument: str, direction: str) -> dict[str, Any]:

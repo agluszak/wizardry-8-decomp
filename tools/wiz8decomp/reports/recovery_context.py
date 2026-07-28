@@ -7,12 +7,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from ..data_globals import sweep_globals
 from ..ghidra.observation_evidence import load_observation_bundle
 from ..ghidra.project import resolve_program_name
 from ..ghidra.query_daemon import query_many
 from ..paths import atomic_json, atomic_write
-from .translation_units import translation_unit_report
 
 
 def _read(path: Path) -> list[dict[str, str]]:
@@ -150,7 +148,8 @@ def _markdown(context: dict[str, Any]) -> str:
         )
         for row in context["globals"]:
             lines.append(
-                f"| {row['site']} | {row['target']} | {row['access']} | {row['width']} | "
+                f"| {row['site']} | {row['target']} | {row['access']} | "
+                f"{row.get('width', row.get('widths', ''))} | "
                 f"{row.get('kind', '')} | {row.get('storage', '')} |"
             )
         lines.append("")
@@ -181,18 +180,30 @@ def _markdown(context: dict[str, Any]) -> str:
             context["ghidra"]["decompiled"].rstrip(),
             "```",
             "",
-            "## Listing",
-            "",
-            "```asm",
-            context["ghidra"]["listing"].rstrip(),
-            "```",
-            "",
         ]
     )
+    if context["ghidra"].get("listing"):
+        lines.extend(
+            [
+                "## Listing",
+                "",
+                "```asm",
+                context["ghidra"]["listing"].rstrip(),
+                "```",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 
-def recovery_context_report(settings: Any, address: str, selector: str = "wiz8") -> dict[str, Any]:
+def recovery_context_report(
+    settings: Any,
+    address: str,
+    selector: str = "wiz8",
+    *,
+    deep: bool = False,
+    root: str = "this",
+) -> dict[str, Any]:
     requested = int(address, 0)
     program_name = resolve_program_name(settings, selector)
     canonical_program = resolve_program_name(settings, "wiz8")
@@ -200,19 +211,22 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
     queries = [
         ("function", [f"0x{requested:08x}"]),
         ("decompile", [f"0x{requested:08x}"]),
-        ("listing", [f"0x{requested:08x}"]),
-        ("high-function", [f"0x{requested:08x}"]),
-        ("pcode", [f"0x{requested:08x}", "normalize"]),
         ("facts-at", [f"0x{requested:08x}"]),
     ]
+    if deep:
+        queries.extend(
+            [
+                ("listing", [f"0x{requested:08x}"]),
+                ("high-function", [f"0x{requested:08x}"]),
+                ("pcode", [f"0x{requested:08x}", "normalize"]),
+            ]
+        )
     results, transport = query_many(settings, selector, queries)
     by_command = {item["command"]: item["result"] for item in results}
     function = by_command["function"]["function"]
     entry = int(function["entry"], 16)
     instruction_addresses = {
-        int(line.split(maxsplit=1)[0], 16)
-        for line in by_command["listing"]["listing"].splitlines()
-        if line.strip()
+        int(value, 16) for value in function.get("instruction_addresses", [])
     }
     semantic_facts = by_command["facts-at"]
     if requested != entry:
@@ -220,16 +234,16 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         entry_facts = entry_results[0]["result"]
         if entry_facts.get("properties"):
             semantic_facts = entry_facts
-    high = by_command["high-function"]
+    high = by_command.get("high-function", {})
     semantic_fields: dict[str, Any] = {}
     semantic_variables: dict[str, Any] = {}
-    if high.get("parameters"):
+    if deep and high.get("parameters"):
         semantic_results, _ = query_many(
             settings,
             selector,
             [
-                ("field-accesses", [f"0x{entry:08x}", "0"]),
-                ("type-variables", [f"0x{entry:08x}", "0"]),
+                ("field-accesses", [f"0x{entry:08x}", root]),
+                ("type-variables", [f"0x{entry:08x}", root]),
             ],
         )
         semantic_fields = semantic_results[0]["result"]
@@ -237,7 +251,7 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
     indirect_sites = sorted(
         {
             operation["address"]
-            for operation in by_command["pcode"].get("operations", [])
+            for operation in by_command.get("pcode", {}).get("operations", [])
             if operation["op"] == "CALLIND"
         }
     )
@@ -247,11 +261,6 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
             settings, selector, [("callsite", [f"0x{site}"]) for site in indirect_sites]
         )
         indirect_calls = [item["result"] for item in call_results]
-
-    # These producers own the two generated projections consumed below and
-    # verify their tracked snapshots before the context packet reads them.
-    sweep_globals(settings)
-    translation_unit_report(settings)
 
     bundle = load_observation_bundle(program_name, settings.repo_dir)
     assertions = [
@@ -269,11 +278,7 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
     unwind = [row for row in bundle["eh_unwind"] if row["funcinfo"] in funcinfos]
 
     global_observations = {row["address"]: row for row in bundle["globals"]}
-    global_references = [
-        row
-        for row in _read(settings.build_dir / "reports" / "globals" / "references.csv")
-        if row["program"] == program_name and _in_body(row, "site", instruction_addresses)
-    ]
+    global_references = function.get("data_references", [])
     globals_joined = []
     for row in global_references:
         globals_joined.append({**row, **global_observations.get(row["target"], {})})
@@ -332,9 +337,10 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         for row in _reviewed(settings.repo_dir, "fields.csv")
         if row["class_name"] in class_names
     ]
-    intervals = _read(
+    interval_path = (
         settings.build_dir / "reports" / "translation-units" / "translation-unit-intervals.csv"
     )
+    intervals = _read(interval_path) if interval_path.is_file() else []
 
     context = {
         "schema": "wiz8.recovery-context",
@@ -342,6 +348,8 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         "requested_address": f"0x{requested:08x}",
         "entry": entry,
         "transport": transport,
+        "deep": deep,
+        "root": root if deep else None,
         "translation_unit": _translation_unit(
             assertions, intervals if has_canonical_addresses else [], entry
         ),
@@ -361,7 +369,7 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         "semantic": {
             "facts": semantic_facts,
             "high_function": high,
-            "normalized_pcode": by_command["pcode"],
+            "normalized_pcode": by_command.get("pcode", {}),
             "field_accesses": semantic_fields,
             "type_variables": semantic_variables,
             "indirect_calls": indirect_calls,
@@ -370,7 +378,7 @@ def recovery_context_report(settings: Any, address: str, selector: str = "wiz8")
         "ghidra": {
             "function": function,
             "decompiled": by_command["decompile"]["decompiled"] or "",
-            "listing": by_command["listing"]["listing"],
+            "listing": by_command.get("listing", {}).get("listing", ""),
         },
     }
 
@@ -407,7 +415,7 @@ def _candidate_relations(repo: Path, program: str, entry: int) -> dict[str, Any]
 
     build = repo / "build" / "reports"
     relations: dict[str, Any] = {"cross_build": [], "object_map": [], "reconstructed": []}
-    for path in sorted((build / "cross-build").glob("*/mappings.csv")):
+    for path in sorted((build / "cross-build").glob("*/alignment.csv")):
         for row in _read(path):
             if any(
                 value and value.lower().removeprefix("0x").zfill(8) == f"{entry:08x}"
@@ -415,10 +423,7 @@ def _candidate_relations(repo: Path, program: str, entry: int) -> dict[str, Any]
                 if "address" in key or key in {"left", "right"}
             ):
                 relations["cross_build"].append({"report": str(path.relative_to(repo)), **row})
-    for name in ("assignments.csv", "object-map.csv", "functions.csv"):
-        path = build / "object-map" / name
-        if not path.is_file():
-            continue
+    for path in sorted((build / "object-map" / program).glob("*.csv")):
         for row in _read(path):
             if any(
                 value.lower().removeprefix("0x").zfill(8) == f"{entry:08x}"

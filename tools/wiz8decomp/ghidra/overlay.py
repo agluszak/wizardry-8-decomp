@@ -22,16 +22,21 @@ tracked evidence files and a reviewed-baseline rebuild.
 
 from __future__ import annotations
 
-import csv
+import hashlib
+import json
 import re
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from ..config import Settings
+from .evidence_index import load_evidence_index
 from .project import resolve_program_name
 
 _SLUG = re.compile(r"[^a-z0-9-]+")
+OVERLAY_SCHEMA = "wiz8.candidate-overlay"
+OVERLAY_MANIFEST = "overlay.json"
 
 
 def _slug(hypothesis: str) -> str:
@@ -51,57 +56,194 @@ def _overlay_settings(effective: Settings, hypothesis: str) -> Settings:
     )
 
 
-def create_overlay(settings: Settings, selector: str, hypothesis: str) -> dict[str, Any]:
-    """Clone the current reviewed materialization for one hypothesis."""
+def _analyzer_version(repo: Path) -> str:
+    digest = hashlib.sha256()
+    root = repo / "tools" / "wiz8decomp" / "ghidra"
+    for name in (
+        "aggregate_overlay.py",
+        "candidate_facts.py",
+        "dependency_graph.py",
+        "inference.py",
+        "overlay.py",
+        "semantic.py",
+    ):
+        path = root / name
+        digest.update(name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+
+def overlay_identity(
+    *,
+    program: str,
+    baseline_materialization: str,
+    plan_sha256: str,
+    hypothesis: str,
+    analyzer_version: str,
+) -> str:
+    payload = (
+        f"{program}\0{baseline_materialization}\0{plan_sha256}\0"
+        f"{hypothesis}\0{analyzer_version}"
+    )
+    return f"{_slug(hypothesis)}-{hashlib.sha256(payload.encode()).hexdigest()[:12]}"
+
+
+def _read_overlay_manifest(scratch: Path) -> dict[str, Any]:
+    path = scratch / OVERLAY_MANIFEST
+    if not path.is_file():
+        raise ValueError(f"overlay manifest is missing: {path}")
+    decoded = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(decoded, dict) or decoded.get("schema") != OVERLAY_SCHEMA:
+        raise ValueError(f"invalid overlay manifest: {path}")
+    return decoded
+
+
+def create_overlay(
+    settings: Settings,
+    selector: str,
+    hypothesis: str,
+    *,
+    plan_sha256: str | None = None,
+    resume: bool = False,
+) -> dict[str, Any]:
+    """Clone the current reviewed materialization into an identified overlay."""
 
     from .cache import materialize_program
+    from .query_daemon import daemon_status, start_daemon, stop_daemon
 
     effective, report = materialize_program(settings, selector)
-    scratch = _scratch_dir(effective, hypothesis)
+    program = str(report["program"])
+    plan_hash = plan_sha256 or hashlib.sha256(b"{}").hexdigest()
+    analyzer = _analyzer_version(settings.repo_dir)
+    overlay_id = overlay_identity(
+        program=program,
+        baseline_materialization=str(report["materialization_key"]),
+        plan_sha256=plan_hash,
+        hypothesis=hypothesis,
+        analyzer_version=analyzer,
+    )
+    scratch = _scratch_dir(effective, overlay_id)
+    manifest = {
+        "schema": OVERLAY_SCHEMA,
+        "overlay_id": overlay_id,
+        "program": program,
+        "baseline_materialization": report["materialization_key"],
+        "plan_sha256": plan_hash,
+        "hypothesis": hypothesis,
+        "created_from": str(effective.project_dir),
+        "created_at": datetime.now(UTC).isoformat(),
+        "analyzer_version": analyzer,
+    }
+    if resume:
+        if not scratch.exists():
+            raise ValueError(f"overlay does not exist to resume: {overlay_id}")
+        existing = _read_overlay_manifest(scratch)
+        comparable = {key: value for key, value in manifest.items() if key != "created_at"}
+        actual = {key: existing.get(key) for key in comparable}
+        if actual != comparable:
+            raise ValueError(f"overlay identity does not match its manifest: {overlay_id}")
+        return {**existing, "overlay_dir": str(scratch), "resumed": True}
     if scratch.exists():
         shutil.rmtree(scratch)
-    shutil.copytree(effective.project_dir, scratch)
+    was_running = bool(daemon_status(effective).get("running"))
+    stop_daemon(effective, quiet=True)
+    try:
+        shutil.copytree(
+            effective.project_dir,
+            scratch,
+            ignore=shutil.ignore_patterns("*.lock", "*.lock~"),
+        )
+        (scratch / OVERLAY_MANIFEST).write_text(
+            json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+    finally:
+        if was_running:
+            start_daemon(settings, selector)
     return {
-        "hypothesis": _slug(hypothesis),
+        **manifest,
         "overlay_dir": str(scratch),
         "reviewed_dir": str(effective.project_dir),
         "reviewed_status": report.get("status"),
+        "resumed": False,
     }
 
 
-def discard_overlay(settings: Settings, selector: str, hypothesis: str) -> dict[str, Any]:
+def discard_overlay(settings: Settings, selector: str, overlay_id: str) -> dict[str, Any]:
     """Delete the clone; the reviewed baseline was never opened for writing."""
 
     from .cache import materialize_program
 
     effective, _ = materialize_program(settings, selector)
-    scratch = _scratch_dir(effective, hypothesis)
+    scratch = _scratch_dir(effective, overlay_id)
     existed = scratch.exists()
     if existed:
         shutil.rmtree(scratch)
-    return {"hypothesis": _slug(hypothesis), "discarded": existed}
+    return {"overlay_id": _slug(overlay_id), "discarded": existed}
+
+
+def inspect_overlay(
+    settings: Settings, selector: str, overlay_id: str, address: str
+) -> dict[str, Any]:
+    """One review view over facts, C, deltas, dependencies and promotions."""
+
+    from .cache import materialize_program
+
+    effective, _ = materialize_program(settings, selector)
+    scratch = _scratch_dir(effective, overlay_id)
+    manifest = _read_overlay_manifest(scratch)
+    analysis_path = scratch / "analysis.json"
+    analysis = (
+        json.loads(analysis_path.read_text(encoding="utf-8"))
+        if analysis_path.is_file()
+        else {}
+    )
+    fact_view = facts_in_overlay(settings, selector, overlay_id, address)
+    decompile = decompile_in_overlay(settings, selector, overlay_id, address)
+    canonical = address.lower().removeprefix("0x").zfill(8)
+    fact_records = fact_view.get("candidate_facts", {}).get("wiz8.candidate-facts", {})
+    dependencies = [
+        edge
+        for edge in analysis.get("dependency_graph_detail", {}).get("edges", [])
+        if edge.get("source") == canonical or edge.get("target") == canonical
+    ]
+    contradictions = [
+        {"fact_id": fact_id, **record}
+        for fact_id, record in fact_records.items()
+        if record.get("status") == "contradicted" or record.get("contradictions")
+    ]
+    promotions = [
+        {"fact_id": fact_id, "kind": record.get("kind"), "payload": record.get("payload")}
+        for fact_id, record in fact_records.items()
+        if record.get("status") == "candidate"
+    ]
+    return {
+        "overlay": manifest,
+        "address": canonical,
+        "facts": fact_view,
+        "decompile": decompile,
+        "semantic_delta": analysis.get("semantic_changes", {}),
+        "dependencies": dependencies,
+        "contradictions": contradictions,
+        "proposed_promotions": promotions,
+        "stabilized": analysis.get("stabilized"),
+        "scope_complete": analysis.get("scope_complete"),
+        "truncated": analysis.get("truncated", {}),
+    }
 
 
 def _reviewed_vtable(repo: Path, class_name: str) -> tuple[dict[str, Any], list[dict[str, str]]]:
-    with (repo / "evidence" / "reviewed" / "wiz8" / "vtables.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        vtables = [
-            row
-            for row in csv.DictReader(stream)
-            if row["class_name"] == class_name and row["kind"] == "primary"
-        ]
+    index = load_evidence_index(repo)
+    vtables = [
+        item
+        for item in index.vtables_by_class.get(class_name, ())
+        if item.kind == "primary"
+    ]
     if not vtables:
         raise ValueError(f"no reviewed primary vtable for {class_name}")
     vtable = vtables[0]
-    with (repo / "evidence" / "reviewed" / "wiz8" / "vtable-slots.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        slots = sorted(
-            (row for row in csv.DictReader(stream) if row["vtable_id"] == vtable["vtable_id"]),
-            key=lambda row: int(row["slot_index"]),
-        )
-    return vtable, slots
+    row = _vtable_row(vtable)
+    return row, [_slot_row(item) for item in index.slots_by_vtable[vtable.vtable_id]]
 
 
 def _reviewed_vtables(
@@ -109,27 +251,62 @@ def _reviewed_vtables(
 ) -> list[tuple[dict[str, Any], list[dict[str, str]]]]:
     """Every reviewed table of a class, primary and secondary."""
 
-    reviewed = repo / "evidence" / "reviewed" / "wiz8"
-    with (reviewed / "vtables.csv").open(newline="", encoding="utf-8") as stream:
-        tables = [row for row in csv.DictReader(stream) if row["class_name"] == class_name]
+    index = load_evidence_index(repo)
+    tables = index.vtables_by_class.get(class_name, ())
     if not tables:
         raise ValueError(f"no reviewed vtable for {class_name}")
-    with (reviewed / "vtable-slots.csv").open(newline="", encoding="utf-8") as stream:
-        all_slots = list(csv.DictReader(stream))
     return [
         (
-            table,
-            sorted(
-                (row for row in all_slots if row["vtable_id"] == table["vtable_id"]),
-                key=lambda row: int(row["slot_index"]),
-            ),
+            _vtable_row(table),
+            [_slot_row(item) for item in index.slots_by_vtable[table.vtable_id]],
         )
-        for table in sorted(tables, key=lambda row: int(row["subobject_offset"], 0))
+        for table in sorted(tables, key=lambda item: int(item.subobject_offset or 0))
     ]
 
 
+def _vtable_row(item: Any) -> dict[str, str]:
+    return {
+        "vtable_id": item.vtable_id,
+        "class_name": item.class_name,
+        "address": f"{item.address:08x}",
+        "subobject_offset": f"0x{int(item.subobject_offset or 0):x}",
+        "kind": item.kind,
+    }
+
+
+def _slot_row(item: Any) -> dict[str, str]:
+    return {
+        "vtable_id": item.vtable_id,
+        "slot_index": str(item.index),
+        "target": f"{item.target:08x}",
+        "slot_name": item.name,
+    }
+
+
+def _reviewed_target_receivers(repo: Path) -> dict[str, set[str]]:
+    """Every reviewed receiver identity that can reach each slot body."""
+
+    index = load_evidence_index(repo)
+    receivers: dict[str, set[str]] = {}
+    for table in index.vtables_by_id.values():
+        for slot in index.slots_by_vtable[table.vtable_id]:
+            offset = int(table.subobject_offset or 0)
+            receiver = (
+                table.class_name
+                if offset == 0
+                else f"{table.class_name}.subobject_0x{offset:x}"
+            )
+            receivers.setdefault(f"{slot.target:08x}", set()).add(receiver)
+    return receivers
+
+
 def apply_typed_vtable(
-    settings: Settings, selector: str, hypothesis: str, class_name: str
+    settings: Settings,
+    selector: str,
+    overlay_id: str,
+    class_name: str,
+    *,
+    hypothesis: str | None = None,
 ) -> dict[str, Any]:
     """Build the per-slot typed vtable for one reviewed class, in the clone."""
 
@@ -137,10 +314,12 @@ def apply_typed_vtable(
     from .environment import start_pyghidra
 
     effective, _ = materialize_program(settings, selector)
-    overlay = _overlay_settings(effective, hypothesis)
-    if not _scratch_dir(effective, hypothesis).exists():
-        raise ValueError(f"overlay {_slug(hypothesis)} does not exist; create it first")
+    overlay = _overlay_settings(effective, overlay_id)
+    if not _scratch_dir(effective, overlay_id).exists():
+        raise ValueError(f"overlay {_slug(overlay_id)} does not exist; create it first")
+    fact_hypothesis = hypothesis or overlay_id
     tables = _reviewed_vtables(settings.repo_dir, class_name)
+    reviewed_receivers = _reviewed_target_receivers(settings.repo_dir)
 
     start_pyghidra(settings)
     import pyghidra
@@ -169,6 +348,7 @@ def apply_typed_vtable(
             try:
                 dtm = program.getDataTypeManager()
                 category = CategoryPath("/wiz8/overlay")
+                vtable_category = CategoryPath("/wiz8/overlay/vtables")
                 class_type = None
                 for existing in dtm.getAllStructures():
                     if existing.getName() == class_name:
@@ -186,6 +366,11 @@ def apply_typed_vtable(
                 for table_row, slots in tables:
                     subobject = int(table_row["subobject_offset"], 0)
                     suffix = "" if table_row["vtable_id"] == primary_id else f"_{subobject:x}"
+                    receiver_id = (
+                        class_name
+                        if subobject == 0
+                        else f"{class_name}.subobject_0x{subobject:x}"
+                    )
                     receiver_type = class_type
                     if subobject:
                         receiver_type = dtm.addDataType(
@@ -193,7 +378,7 @@ def apply_typed_vtable(
                             DataTypeConflictHandler.KEEP_HANDLER,
                         )
                     receiver = PointerDataType(receiver_type, dtm)
-                    table = StructureDataType(category, f"{class_name}_vtable{suffix}", 0)
+                    table = StructureDataType(vtable_category, table_row["vtable_id"], 0)
                     for row in slots:
                         index = int(row["slot_index"])
                         name = row["slot_name"] or f"slot{index}"
@@ -215,16 +400,17 @@ def apply_typed_vtable(
                         if target is not None:
                             target_key = str(target.getEntryPoint())
                             entry = targets.setdefault(
-                                target_key, {"target": target, "receivers": {}}
+                                target_key, {"target": target, "receivers": {}, "ids": set()}
                             )
                             entry["receivers"][receiver.getDisplayName()] = receiver
+                            entry["ids"].add(receiver_id)
                     table_type = dtm.addDataType(table, DataTypeConflictHandler.REPLACE_HANDLER)
                     from .candidate_facts import stamp
 
                     stamp(
                         program,
                         space.getAddress(table_row["address"]),
-                        hypothesis=hypothesis,
+                        hypothesis=fact_hypothesis,
                         fact_id=f"typed-vtable:{table_row['vtable_id']}",
                         depends_on=[
                             f"vtable-slot:{row['slot_index']}:{row['target']}" for row in slots
@@ -251,16 +437,16 @@ def apply_typed_vtable(
                         component = class_type.getComponentAt(subobject)
                         field_name = (
                             component.getFieldName() if component is not None else None
-                        ) or ("vptr" if subobject == 0 else f"base_{subobject:x}")
-                        field_type = (
-                            PointerDataType(table_type, dtm) if subobject == 0 else receiver_type
+                        ) or (
+                            "vptr" if subobject == 0 else f"secondary_vptr_{subobject:x}"
                         )
+                        field_type = PointerDataType(table_type, dtm)
                         class_type.replaceAtOffset(
                             subobject,
                             field_type,
                             4,
                             field_name,
-                            "typed vtable overlay; base-subobject receiver at this offset",
+                            "typed vtable overlay; base extent and identity remain unreviewed",
                         )
 
                 # Each slot target's receiver is retyped in place. Replacing
@@ -271,7 +457,8 @@ def apply_typed_vtable(
                 for entry in targets.values():
                     target = entry["target"]
                     receivers = list(entry["receivers"].values())
-                    if len(receivers) != 1:
+                    agreed = reviewed_receivers.get(str(target.getEntryPoint()).lower(), set())
+                    if len(receivers) != 1 or entry["ids"] != agreed or len(agreed) != 1:
                         stats.setdefault("shared_slot_bodies", 0)
                         stats["shared_slot_bodies"] += 1
                         continue
@@ -316,14 +503,15 @@ def _slot_prototype(
     name: str,
     parameter_definition: Any,
     function_definition: Any,
+    *,
+    allow_inferred: bool = True,
 ) -> tuple[Any, str]:
     """Copy the strongest current target prototype, replacing only ``this``.
 
     Reviewed signatures and reconstructed/imported signatures already live on
-    the function and therefore win naturally.  Where the ProgramDB signature
-    is still default, HighFunction contributes its recovered return and
-    arguments.  The receiver is the only evidence-backed replacement; every
-    other argument survives.
+    the function and therefore win naturally. Candidate overlays may also use
+    HighFunction arguments; reviewed replay passes ``allow_inferred=False`` so
+    unreviewed parameters never leak into baseline state.
     """
 
     from ghidra.program.model.data import VoidDataType
@@ -336,30 +524,36 @@ def _slot_prototype(
 
     property_manager = program.getUsrPropertyManager()
     reconstructed = property_manager.getStringPropertyMap("wiz8.reconstructed")
-    layer = property_manager.getStringPropertyMap("wiz8.layer")
     address = target.getEntryPoint()
-    if target.isExternal():
+    signature_source = str(target.getSignatureSource()).upper()
+    trusted_signature = signature_source in {"USER_DEFINED", "IMPORTED"}
+    if target.isExternal() and trusted_signature:
         source = "imported"
     elif reconstructed is not None and reconstructed.hasProperty(address):
         source = "reconstructed"
-    elif layer is not None and layer.hasProperty(address):
-        source = "reviewed-or-current"
+        trusted_signature = True
+    elif trusted_signature:
+        source = "reviewed"
+    elif "PURE" in target.getName().upper():
+        source = "pure-virtual"
     else:
-        source = "current-inferred"
+        source = "current-inferred" if allow_inferred else "generic"
 
     return_type = target.getReturnType()
+    if not trusted_signature and not allow_inferred:
+        return_type = VoidDataType.dataType
     explicit = [
         parameter for parameter in target.getParameters() if not parameter.isAutoParameter()
     ]
     arguments = [parameter_definition("this", receiver, None)]
-    if explicit and str(target.getSignatureSource()) != "DEFAULT":
+    if explicit and trusted_signature:
         arguments.extend(
             parameter_definition(
                 parameter.getName() or f"argument{index}", parameter.getDataType(), None
             )
             for index, parameter in enumerate(explicit, start=1)
         )
-    else:
+    elif allow_inferred:
         try:
             from .semantic import _high_function
 

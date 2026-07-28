@@ -11,6 +11,8 @@ from .apply_eh_frame_types import apply_eh_frame_types
 from .apply_function_map import apply_function_map
 from .apply_observation_evidence import apply_observation_evidence
 from .apply_provenance import apply_provenance
+from .apply_reviewed_vtables import apply_reviewed_vtables
+from .apply_screen_dispatch import apply_screen_dispatch
 from .apply_sgp_model import apply_sgp_model
 from .apply_wiz8_class_model import apply_wiz8_class_model
 from .apply_wiz8_format_model import apply_wiz8_format_model
@@ -55,6 +57,10 @@ def reviewed_replay_actions(
             "reviewed_signatures",
             lambda: apply_wiz8_signature_fixes(settings, program_name, materialize=False),
         ),
+        (
+            "reviewed_typed_vtables",
+            lambda: apply_reviewed_vtables(settings, program_name, materialize=False),
+        ),
         # Last: stamp each reviewed fact's ledger row at its address anchor, so
         # the program itself answers what is accepted here and why.
         (
@@ -73,6 +79,10 @@ def observation_replay_actions(
         (
             "canonical_neutral_observations",
             lambda: apply_observation_evidence(settings, program_name, materialize=False),
+        ),
+        (
+            "observed_screen_dispatch",
+            lambda: apply_screen_dispatch(settings, program_name, materialize=False),
         ),
         # Typed EH frame slots join snapshot unwind facts with abi-backed import
         # demanglings and reviewed destructor identities; the plan layer skips

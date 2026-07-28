@@ -5,18 +5,19 @@ from pathlib import Path
 from typing import Any
 
 from ..config import Settings
-from .apply_function_map import ACCEPTED_CONFIDENCE, load_function_identities
-from .environment import start_pyghidra
-from .import_programs import HASH_OPTION
-from .observation_evidence import audit_observation_evidence
-from .project import module_for_program, resolve_program_name
-from .query_daemon import stop_daemon
+from ..indirect import resolve_handler_table
 from .apply_class_candidates import (
     function_resolver,
     interval_lookup,
     load_candidate_inputs,
     writer_comment_bodies,
 )
+from .apply_function_map import ACCEPTED_CONFIDENCE, load_function_identities
+from .environment import start_pyghidra
+from .import_programs import HASH_OPTION
+from .observation_evidence import audit_observation_evidence
+from .project import module_for_program, resolve_program_name
+from .query_daemon import stop_daemon
 from .reviewed_class_model import ghidra_namespace_name, load_reviewed_class_model, parse_pointee
 from .reviewed_signatures import load_reviewed_signatures
 
@@ -82,6 +83,7 @@ def validate_reviewed_replay(
         "signatures": 0,
         "vtables": 0,
         "vtable_slots": 0,
+        "screen_dispatch_targets": 0,
         "structures": 0,
         "fields": 0,
         "pointee_fields": 0,
@@ -294,10 +296,41 @@ def validate_reviewed_replay(
                             }
                         )
 
+            dispatcher = function_manager.getFunctionAt(address_space.getAddress(0x004E3340))
+            expected_handlers = {
+                int(value, 16)
+                for value in resolve_handler_table(settings.repo_dir)["handler_targets"]
+            }
+            actual_handlers: set[int] = set()
+            if dispatcher is not None:
+                references = program.getReferenceManager()
+                instructions = listing.getInstructions(dispatcher.getBody(), True)
+                while instructions.hasNext():
+                    instruction = instructions.next()
+                    for reference in references.getReferencesFrom(instruction.getAddress()):
+                        reference_type = reference.getReferenceType()
+                        if reference_type.isCall() and reference_type.isComputed():
+                            actual_handlers.add(int(str(reference.getToAddress()), 16))
+            checks["screen_dispatch_targets"] = len(expected_handlers)
+            if actual_handlers != expected_handlers:
+                failures.append(
+                    {
+                        "kind": "screen_dispatch_targets",
+                        "key": "0x004e3340",
+                        "expected": repr(sorted(expected_handlers)),
+                        "actual": repr(sorted(actual_handlers)),
+                    }
+                )
+
             fields_by_class: dict[str, list[Any]] = {}
             for field in class_model.fields:
                 fields_by_class.setdefault(field.class_name, []).append(field)
             classes_by_name = {item.name: item for item in class_model.classes}
+            vtable_fields = {
+                (item.class_name, item.subobject_offset): item.vtable_id
+                for item in class_model.vtables
+                if item.subobject_offset is not None
+            }
             for class_name, fields in fields_by_class.items():
                 checks["structures"] += 1
                 data_type = dtm.getDataType(f"/{evidence_program}/classes/{class_name}")
@@ -335,7 +368,12 @@ def validate_reviewed_replay(
                     if field.pointee and component is not None:
                         checks["pointee_fields"] += 1
                         actual_display = component.getDataType().getDisplayName()
-                        expected_display = expected_pointee_display(field.pointee)
+                        vtable_id = vtable_fields.get((class_name, field.offset))
+                        expected_display = (
+                            f"{vtable_id} *"
+                            if vtable_id is not None
+                            else expected_pointee_display(field.pointee)
+                        )
                         if actual_display != expected_display:
                             failures.append(
                                 {

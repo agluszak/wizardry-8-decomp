@@ -287,6 +287,7 @@ def test_replay_plumbing_does_not_invalidate_the_materialization(tmp_path: Path)
     (ghidra / "apply_zlib_model.py").write_text("writes types", encoding="utf-8")
     (ghidra / "query_daemon.py").write_text("transport", encoding="utf-8")
     (ghidra / "cache.py").write_text("this module", encoding="utf-8")
+    (ghidra / "inference.py").write_text("overlay-only", encoding="utf-8")
 
     names = {path.name for path in cache._replay_input_paths(settings)}
 
@@ -294,6 +295,7 @@ def test_replay_plumbing_does_not_invalidate_the_materialization(tmp_path: Path)
     assert "apply_zlib_model.py" in names
     assert "query_daemon.py" not in names
     assert "cache.py" not in names
+    assert "inference.py" not in names
 
 
 def test_an_unclassified_module_still_feeds_the_key(tmp_path: Path) -> None:

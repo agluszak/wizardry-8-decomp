@@ -3,13 +3,12 @@
 The graph is intentionally built from the materialized program, not the
 function/vptr snapshots.  Function containment, references (including
 overlay-computed calls), P-code data accesses and vptr stores, signature
-callers, and candidate ``wiz8.depends-on`` properties all become edges in the
+callers, and atomic candidate-fact dependencies all become edges in the
 same relation.  Reports may render this graph, but none owns a second copy.
 """
 
 from __future__ import annotations
 
-import json
 import re
 from collections import defaultdict, deque
 from collections.abc import Iterable
@@ -60,7 +59,7 @@ def _type_node(data_type: Any) -> str | None:
 
 @dataclass
 class DependencyGraph:
-    """Address nodes and reasoned edges, traversable in both directions."""
+    """Reasoned dependency-to-dependent edges."""
 
     edges: dict[str, dict[str, set[str]]] = field(
         default_factory=lambda: defaultdict(lambda: defaultdict(set))
@@ -77,22 +76,21 @@ class DependencyGraph:
         self.reverse[target_key][source_key].add(label)
         return len(self.edges[source_key][target_key]) != before
 
-    def cone(self, seeds: Iterable[Any], limit: int = 4096) -> dict[str, list[str]]:
-        """Undirected propagation closure grouped by the first reason observed."""
+    def closure(self, seeds: Iterable[Any], limit: int = 4096) -> dict[str, Any]:
+        """Directed propagation closure with explicit bounded-scope accounting."""
 
         queue = deque(canonical_address(seed) for seed in seeds)
         seen = set(queue)
         reasons: dict[str, set[str]] = defaultdict(set)
-        while queue and len(seen) < limit:
+        truncated: set[str] = set()
+        while queue:
             node = queue.popleft()
             for neighbour, labels in self.edges.get(node, {}).items():
                 reasons[neighbour].update(label.split("@", 1)[0] for label in labels)
                 if neighbour not in seen:
-                    seen.add(neighbour)
-                    queue.append(neighbour)
-            for neighbour, labels in self.reverse.get(node, {}).items():
-                reasons[neighbour].update(label.split("@", 1)[0] for label in labels)
-                if neighbour not in seen:
+                    if len(seen) >= limit:
+                        truncated.add(neighbour)
+                        continue
                     seen.add(neighbour)
                     queue.append(neighbour)
         grouped: dict[str, list[str]] = defaultdict(list)
@@ -101,7 +99,18 @@ class DependencyGraph:
             labels = reasons.get(node) or {"dependency"}
             for label in sorted(labels):
                 grouped[label].append(node)
-        return dict(grouped)
+        return {
+            "groups": dict(grouped),
+            "nodes": sorted(seen),
+            "scope_complete": not truncated,
+            "truncated_frontier": sorted(truncated),
+            "limit": limit,
+        }
+
+    def cone(self, seeds: Iterable[Any], limit: int = 4096) -> dict[str, list[str]]:
+        """Compatibility review view of the directed closure."""
+
+        return self.closure(seeds, limit)["groups"]
 
     def serialise(self) -> dict[str, Any]:
         rows = []
@@ -139,25 +148,25 @@ def build_program_graph(program: Any, vtables: set[int] | None = None) -> Depend
                         else ("direct-call" if reference_type.isCall() else "function-reference")
                     )
                     graph.add(
-                        source, target_function.getEntryPoint(), reason, instruction.getAddress()
+                        target_function.getEntryPoint(), source, reason, instruction.getAddress()
                     )
                 elif program.getMemory().contains(reference.getToAddress()):
                     graph.add(
-                        source, reference.getToAddress(), "data-reference", instruction.getAddress()
+                        reference.getToAddress(), source, "data-reference", instruction.getAddress()
                     )
         # Stack objects with named types are signature/EH dependencies even
         # when the cleanup call itself is hidden behind compiler metadata.
         for variable in function.getStackFrame().getStackVariables():
             node = _type_node(variable.getDataType())
             if node is not None:
-                graph.add(source, node, "stack-or-eh-object-type")
+                graph.add(node, source, "stack-or-eh-object-type")
         return_node = _type_node(function.getReturnType())
         if return_node is not None:
-            graph.add(source, return_node, "function-signature-type")
+            graph.add(return_node, source, "function-signature-type")
         for parameter in function.getParameters():
             node = _type_node(parameter.getDataType())
             if node is not None:
-                graph.add(source, node, "function-signature-type")
+                graph.add(node, source, "function-signature-type")
 
     structures = program.getDataTypeManager().getAllStructures()
     while structures.hasNext():
@@ -166,7 +175,7 @@ def build_program_graph(program: Any, vtables: set[int] | None = None) -> Depend
         for component in structure.getDefinedComponents():
             node = _type_node(component.getDataType())
             if node is not None and node != owner:
-                graph.add(owner, node, "field-or-subobject-type", component.getOffset())
+                graph.add(node, owner, "field-or-subobject-type", component.getOffset())
 
     _add_candidate_dependencies(program, graph)
     if vtables:
@@ -184,8 +193,8 @@ def build_program_graph(program: Any, vtables: set[int] | None = None) -> Depend
                         else "vtable-reference"
                     )
                     graph.add(
-                        owner.getEntryPoint(),
                         address,
+                        owner.getEntryPoint(),
                         reason,
                         reference.getFromAddress(),
                     )
@@ -239,36 +248,29 @@ def add_pcode_dependencies(
             if target is not None and target.isAddress():
                 target_function = program.getFunctionManager().getFunctionAt(target.getAddress())
                 if target_function is not None:
-                    added += graph.add(source, target_function.getEntryPoint(), "pcode-call", site)
+                    added += graph.add(target_function.getEntryPoint(), source, "pcode-call", site)
         elif mnemonic in {"LOAD", "STORE"}:
             pointer_index = 1
             pointer = op.getInput(pointer_index) if op.getNumInputs() > pointer_index else None
             resolved = _address_expression(pointer)
-            if resolved[0] == "absolute":
-                added += graph.add(source, f"{int(resolved[1]):08x}", "pcode-data-access", site)
+            if resolved["kind"] == "absolute":
+                added += graph.add(
+                    f"{int(resolved['address']):08x}", source, "pcode-data-access", site
+                )
             if mnemonic == "STORE" and vtables and op.getNumInputs() > 2:
                 value = op.getInput(2)
                 if value is not None and value.isConstant() and int(value.getOffset()) in vtables:
-                    added += graph.add(source, f"{int(value.getOffset()):08x}", "vptr-write", site)
+                    added += graph.add(f"{int(value.getOffset()):08x}", source, "vptr-write", site)
     return added
 
 
 def _add_candidate_dependencies(program: Any, graph: DependencyGraph) -> None:
-    manager = program.getUsrPropertyManager()
-    property_map = manager.getStringPropertyMap("wiz8.depends-on")
-    if property_map is None:
-        return
-    iterator = property_map.getPropertyIterator()
+    from .candidate_facts import iter_facts
+
     functions = program.getFunctionManager()
-    while iterator.hasNext():
-        address = iterator.next()
+    for address, _fact_id, record in iter_facts(program):
         owner = functions.getFunctionContaining(address)
         source = owner.getEntryPoint() if owner is not None else address
-        value = str(property_map.get(address) or "")
-        try:
-            decoded = json.loads(value)
-            text = json.dumps(decoded)
-        except Exception:  # noqa: BLE001 - older overlays used pipe text
-            text = value
-        for match in _ADDRESS.finditer(text):
-            graph.add(source, match.group(1), "candidate-dependency", address)
+        for dependency in record.get("depends_on", []):
+            for match in _ADDRESS.finditer(str(dependency)):
+                graph.add(match.group(1), source, "candidate-dependency", address)

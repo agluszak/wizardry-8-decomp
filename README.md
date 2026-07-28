@@ -72,41 +72,32 @@ just ghidra query wiz8--gog-base--wiz8--18a74ff61c65 \
   -q 'search "Monster Info"'
 ```
 
-Source recovery normally starts from the joined semantic context, then drills down in one daemon
-batch. `decompile` explains behaviour; `high-function` exposes the current prototype and storage;
-`field-accesses` and `type-variables` recover object ownership; normalized P-code settles data flow;
-and `facts-at` explains the reviewed or candidate evidence at an anchor.
+Source recovery starts from the fast joined semantic context. Add `--deep --root this` only when the
+full listing, normalized P-code, rooted field accesses and anonymous type variables are needed.
+The deep path shares the persistent decompiler service used by ordinary queries.
 
 ```sh
 CANON=wiz8--gog-base--wiz8--18a74ff61c65
 just wiz8 report context 0x0044bec0 --program "$CANON"
-just ghidra query "$CANON" \
-  -q 'facts-at 0x0044bec0' \
-  -q 'decompile 0x0044bec0' \
-  -q 'high-function 0x0044bec0' \
-  -q 'field-accesses 0x0044bec0 this' \
-  -q 'type-variables 0x0044bec0 this' \
-  -q 'pcode 0x0044bec0 normalize'
+just wiz8 report context 0x0044bec0 --program "$CANON" --deep --root this
 ```
 
-Candidate inference is plan-driven and stays inside a disposable clone. A plan names its
-hypothesis, type-variable roots and typed vtables, and opts into the screen-dispatch, aggregate or
-reconstructed channels. The analyzer stores every candidate constraint and dependency in ProgramDB,
-adds computed call references, expands the ProgramDB dependency graph and iterates to a fixpoint.
+Candidate inference is plan-driven and stays inside a fresh disposable clone identified by the
+reviewed materialization and strict plan hash. Plans contain only typed speculative seeds. Atomic
+candidate facts own their references and payloads; a directed dependency worklist runs to bounded
+stabilization and reports truncation explicitly. Screen dispatch and reviewed vtable typing are
+already deterministic reviewed replay state.
 
 ```sh
-just wiz8 report aggregates --resolve "$CANON"
 just ghidra overlay analyze "$CANON" \
   config/ghidra/hypotheses/inference-closure-acceptance.json
-just ghidra overlay facts-at "$CANON" inference-closure-acceptance 0x0044bec0
-just ghidra overlay decompile "$CANON" inference-closure-acceptance 0x0044bec0
-just ghidra overlay discard "$CANON" inference-closure-acceptance
+just ghidra overlay inspect "$CANON" <overlay-id> 0x0044bec0
+just ghidra overlay discard "$CANON" <overlay-id>
 ```
 
-An impact or changed-C count only proves propagation. The analyzer separately reports changed
-presentation, inferred prototypes, resolved fields, narrowed target sets, type unifications and
-contradictions. Promotion remains the reviewed evidence workflow; deleting the clone removes every
-candidate type, reference and analyzer side effect.
+The analyzer reports reviewed-to-seeded, seeded-to-closure and reviewed-to-final semantic deltas,
+including prototypes, resolved fields, genuinely narrowed target sets, unifications,
+contradictions and incomplete scope. Promotion remains the reviewed evidence workflow.
 
 Reconstructed debug transfer additionally requires current body proof:
 

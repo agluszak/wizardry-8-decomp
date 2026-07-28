@@ -3,68 +3,20 @@ from __future__ import annotations
 from typing import Any
 
 from ..config import Settings
+from . import type_specs
 from .apply_unzip_model import _function_type
 from .project import resolve_program_name
 from .reviewed_signatures import load_reviewed_signatures
 
-# Ordered category search for named types in reviewed signatures. Earlier
-# categories win, so the first-party class and format models shadow the
-# vendored library models if a name ever appears in both.
-TYPE_CATEGORIES = ("classes", "formats/slf", "sgp", "zlib_1_0_4", "srext_unzip")
 
+def type_category_paths(type_name: str) -> tuple[str, ...]:
+    """Compatibility surface for callers that validate reviewed type paths."""
 
-def type_category_paths(evidence_program: str) -> tuple[str, ...]:
-    """The ordered data-type category paths a reviewed signature may reference."""
-
-    return tuple(f"/{evidence_program}/{category}" for category in TYPE_CATEGORIES)
+    return type_specs.type_category_paths(type_name)[:5]
 
 
 def _type_for(dtm: Any, spec: str, evidence_program: str) -> Any:
-    from ghidra.program.model.data import (
-        CategoryPath,
-        BooleanDataType,
-        CharDataType,
-        DataTypePath,
-        DoubleDataType,
-        FloatDataType,
-        IntegerDataType,
-        PointerDataType,
-        ShortDataType,
-        SignedCharDataType,
-        UnsignedCharDataType,
-        UnsignedIntegerDataType,
-        UnsignedShortDataType,
-        VoidDataType,
-        WideCharDataType,
-    )
-
-    base_types = {
-        "void": VoidDataType.dataType,
-        "bool": BooleanDataType.dataType,
-        "int": IntegerDataType.dataType,
-        "char": CharDataType.dataType,
-        "double": DoubleDataType.dataType,
-        "float": FloatDataType.dataType,
-        "short": ShortDataType.dataType,
-        # Spelled out rather than folded into `char`: signedness is what
-        # separates a JL from a JB in a ported body, so a reviewed row that has
-        # established a byte is signed should not lose that on the way in.
-        "signed char": SignedCharDataType.dataType,
-        "unsigned int": UnsignedIntegerDataType.dataType,
-        "unsigned char": UnsignedCharDataType.dataType,
-        "unsigned short": UnsignedShortDataType.dataType,
-        "wchar_t": WideCharDataType.dataType,
-    }
-    spec = spec.strip()
-    if spec.endswith("*"):
-        return PointerDataType(_type_for(dtm, spec[:-1], evidence_program), dtm)
-    if spec in base_types:
-        return base_types[spec]
-    for category_path in type_category_paths(evidence_program):
-        reviewed = dtm.getDataType(DataTypePath(CategoryPath(category_path), spec))
-        if reviewed is not None:
-            return reviewed
-    raise ValueError(f"unsupported reviewed signature type: {spec}")
+    return type_specs.resolve_type_spec(dtm, spec, evidence_program)
 
 
 def apply_reviewed_signatures(

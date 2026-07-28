@@ -19,33 +19,28 @@ from typing import Any
 
 from ..config import Settings
 from .eh_frame_types import FrameSlotPlan, ghidra_stack_offset, plan_frame_slots
+from .evidence_index import load_evidence_index
 from .project import resolve_program_name
+from .type_specs import resolve_type_spec
 
-_LIBRARY_CATEGORY = "/surrender/classes"
 
-
-def _library_type(dtm: Any, class_name: str) -> Any:
+def _library_type(dtm: Any, class_name: str, imported_types: frozenset[str]) -> Any:
     """An existing or newly created opaque structure for a library class."""
 
-    from ghidra.program.model.data import CategoryPath, StructureDataType
-    from java.util import ArrayList
-
-    segments = class_name.split("::")
-    category = CategoryPath("/".join([_LIBRARY_CATEGORY, *segments[:-1]]))
-    existing = dtm.getDataType(category, segments[-1])
-    if existing is not None:
-        return existing
-    matches = ArrayList()
-    dtm.findDataTypes(segments[-1], matches)
-    structures = [item for item in matches if item.__class__.__name__.startswith("Structure")]
-    if len(structures) == 1:
-        return structures[0]
-    structure = StructureDataType(category, segments[-1], 0)
-    return dtm.addDataType(structure, None)
+    return resolve_type_spec(
+        dtm,
+        class_name,
+        "wiz8",
+        imported_types=imported_types,
+        allow_opaque_imported=True,
+    )
 
 
 def _reviewed_type(dtm: Any, evidence_program: str, class_name: str) -> Any | None:
-    return dtm.getDataType(f"/{evidence_program}/classes/{class_name}")
+    try:
+        return resolve_type_spec(dtm, class_name, evidence_program)
+    except ValueError:
+        return None
 
 
 def _clear_replaceable(frame: Any, offset: int, length: int) -> bool:
@@ -84,6 +79,7 @@ def apply_eh_frame_types(
 
     program_name = resolve_program_name(settings, selector)
     report = plan_frame_slots(program_name, settings.repo_dir, evidence_program=evidence_program)
+    index = load_evidence_index(settings.repo_dir, evidence_program, program_name)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     result: dict[str, Any] = {
         "program": program_name,
@@ -146,7 +142,7 @@ def apply_eh_frame_types(
                             skip(plan, "no-reviewed-structure")
                             continue
                     else:
-                        data_type = _library_type(dtm, plan.class_name)
+                        data_type = _library_type(dtm, plan.class_name, index.imported_types)
                     if plan.is_pointer:
                         data_type = PointerDataType(data_type, dtm)
 
@@ -175,7 +171,7 @@ def apply_eh_frame_types(
                         variable = frame.createVariable(
                             plan.variable_name, offset, data_type, SourceType.USER_DEFINED
                         )
-                    except Exception as error:  # DuplicateName/InvalidInput/overlap
+                    except Exception as error:  # noqa: BLE001 - Ghidra Java exceptions
                         skip(plan, f"create-failed:{error.__class__.__name__}")
                         continue
                     held = "pointer to" if plan.is_pointer else "object of"

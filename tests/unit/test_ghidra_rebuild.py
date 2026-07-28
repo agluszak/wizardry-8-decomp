@@ -27,6 +27,11 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
     )
     monkeypatch.setattr(
         rebuild,
+        "apply_screen_dispatch",
+        lambda *_args, **_kwargs: calls.append("screen-dispatch"),
+    )
+    monkeypatch.setattr(
+        rebuild,
         "apply_function_map",
         lambda *_args, **_kwargs: calls.append("functions"),
     )
@@ -42,6 +47,11 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         rebuild,
         "apply_wiz8_signature_fixes",
         lambda *_args, **_kwargs: calls.append("signatures"),
+    )
+    monkeypatch.setattr(
+        rebuild,
+        "apply_reviewed_vtables",
+        lambda *_args, **_kwargs: calls.append("typed-vtables"),
     )
     monkeypatch.setattr(
         rebuild,
@@ -74,8 +84,10 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "formats",
         "classes",
         "signatures",
+        "typed-vtables",
         "provenance",
         "observations",
+        "screen-dispatch",
         "eh-frame-types",
         "candidates",
         "validate",
@@ -89,8 +101,10 @@ def test_rebuild_runs_one_ordered_replay_and_writes_timing_report(
         "wiz8_format_model",
         "reviewed_class_model",
         "reviewed_signatures",
+        "reviewed_typed_vtables",
         "reviewed_provenance",
         "canonical_neutral_observations",
+        "observed_screen_dispatch",
         "eh_frame_types",
         "candidate_class_observations",
         "validation",
