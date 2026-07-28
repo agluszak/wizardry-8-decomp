@@ -45,7 +45,8 @@ struct W8ControlsRect {
 };
 
 struct Controls {
-    unsigned char unknown_00[4];
+    virtual void UnknownSlot0() = 0;
+    virtual void Invalidate(unsigned char immediate);
     /* 0x04 and 0x05 travel together: SetEnabled writes the panel's own state to
        the first and mirrors it into every child's m_flag_5, and the redraw
        requests raise the second. 0x06 is raised on its own by 0x004F2F00. */
@@ -125,6 +126,8 @@ public:
                          int left, int top, int right, int bottom);
 
     void SetRegion(unsigned int region);
+    void Invalidate(unsigned char immediate);
+    void SetEnabled(unsigned char enabled);
     void EnableRegionHelp(int help_text_id);
     void DisableRegionHelp();
 
@@ -133,6 +136,7 @@ public:
     virtual void UnknownSlot1() = 0;
     virtual void Redraw(int full_redraw) = 0;
     virtual void SetBounds(int left, int top, int right, int bottom) = 0;
+    virtual void SetBoundsFromRect(const W8ControlsRect* bounds) = 0;
 
 protected:
     unsigned char m_flag_4;              /* 0x04: set to 1 on construction */
@@ -301,43 +305,143 @@ void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
 extern void Function549660(int a, int b, int c, short* width, short* height);
 
 /*
- * A widget carrying text. Derived from the widget base rather than merely
- * shaped like it: it reads the rectangle at +0x08 and the panel at +0x1c
- * exactly as the base lays them out, and everything it owns starts past the
- * base's 0x34. The class is named for the function that establishes it,
- * because no vtable of its own is in evidence here.
+ * The class at vtable 0x005ED5B8. It owns a wide-string buffer at +0x34, which
+ * is the one field the encodings name for themselves: the destructor frees it
+ * and 0x004F33A0 fills it with wcscpy. Everything else the constructor touches
+ * is positional.
+ *
+ * The destructor is written inside the class body because that is what folds it
+ * into the deleting destructor, the same shape the widget base above needed,
+ * and the constructor is what emits the vtable so the fold has something to
+ * hang on.
  */
-class W8TextWidget004F4850 : public W8WidgetBase005ED5BC {
+class W8TextBuffer005ED5B8 {
+public:
+    W8TextBuffer005ED5B8();
+    void CopyTextTo(wchar_t* destination);
+    unsigned int GetLineHeight();
+    void UpdateLayout();                  /* 0x004F35B0 */
+
+    __forceinline void SetLayoutBounds(int left, int top, int right, int bottom)
+    {
+        m_layoutBounds.left = left;
+        m_layoutBounds.top = top;
+        m_layoutBounds.right = right;
+        m_layoutBounds.bottom = bottom;
+        m_pendingBounds = m_layoutBounds;
+    }
+
+    __forceinline int HasBuffer() const { return m_buffer != 0; }
+    __forceinline void SetGeometryDirty() { m_geometryDirty = 1; }
+    __forceinline void MarkGeometryDirty(int mode)
+    {
+        m_geometryDirty = 1;
+        m_layoutMode = mode;
+    }
+
+    virtual ~W8TextBuffer005ED5B8();
+
+protected:
+    W8ControlsRect m_layoutBounds;        /* 0x04: current absolute layout bounds */
+    W8ControlsRect m_pendingBounds;       /* 0x14: mirrored pending bounds */
+    int m_field_24;                      /* 0x24: the constructor steps over this one */
+    int m_font;                          /* 0x28: font used for uncached line height */
+    int m_field_2c;
+    unsigned int m_lineHeight;           /* 0x30: cached height, zero means query font */
+    wchar_t* m_buffer;                   /* 0x34: freed on teardown */
+    int m_layoutMode;                    /* 0x38: 10 initially */
+    int m_field_3c;
+    unsigned char m_geometryDirty;
+    unsigned char m_flag_41;
+    unsigned char pad_42[2];
+    int m_field_44;                      /* 0x44: 4 */
+    int m_field_48;                      /* 0x48: the -1 sentinel */
+    unsigned char m_flag_4c;
+};
+
+// FUNCTION: WIZ8 0x004F3480
+W8TextBuffer005ED5B8::~W8TextBuffer005ED5B8()
+{
+    delete[] m_buffer;
+}
+
+// FUNCTION: WIZ8 0x004F3310
+W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
+{
+    m_buffer = 0;
+    m_font = 0;
+    m_field_2c = 0;
+    m_geometryDirty = 0;
+    m_layoutMode = 10;
+    m_field_3c = 0;
+    m_lineHeight = 0;
+    m_field_44 = 4;
+    m_flag_41 = 0;
+    m_field_48 = -1;
+    m_flag_4c = 0;
+    m_layoutBounds.left = 0;
+    m_layoutBounds.top = 0;
+    m_layoutBounds.right = 0;
+    m_layoutBounds.bottom = 0;
+    m_pendingBounds.left = 0;
+    m_pendingBounds.top = 0;
+    m_pendingBounds.right = 0;
+    m_pendingBounds.bottom = 0;
+}
+
+/* Copies the owned text into caller storage. The caller supplies the capacity;
+   the canonical method performs the same unbounded wide-string copy. */
+// FUNCTION: WIZ8 0x004F3990
+void W8TextBuffer005ED5B8::CopyTextTo(wchar_t* destination)
+{
+    wcscpy(destination, m_buffer);
+}
+
+/* Returns the cached line height, falling back to the active font's 16-bit
+   height when the cache is zero. */
+// FUNCTION: WIZ8 0x004F3D30
+unsigned int W8TextBuffer005ED5B8::GetLineHeight()
+{
+    unsigned int height = m_lineHeight;
+    if (height == 0) {
+        height = Function4071F0(m_font);
+    }
+    return height;
+}
+
+/*
+ * The text control at vtable 0x005ED604. The bounds and draw methods prove it
+ * derives from the widget base and embeds a complete W8TextBuffer005ED5B8 at
+ * +0x60: 0x004F44D0 writes both rectangle pairs inside that subobject and
+ * passes its +0x60 address as this to W8TextBuffer005ED5B8::UpdateLayout.
+ */
+class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
     void GetTextOrigin(int unused, int* px, int* py);
+    void Invalidate(unsigned char immediate);
+
+    virtual void SetBounds(int left, int top, int right, int bottom);
+    virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
 
 protected:
     int m_field_34;
-    unsigned int m_flags_38;             /* 0x38: 0x80 skips alignment, 0x04 pins left */
+    unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
     int m_field_3c;
-    int m_text_40;                       /* 0x40: the four below are -1 when unset and */
-    int m_text_44;                       /* 0x44: are what the measure call consumes */
-    int m_text_48;                       /* 0x48 */
-    int m_text_4c;                       /* 0x4c */
+    int m_text_40;
+    int m_text_44;
+    int m_text_48;
+    int m_text_4c;
     unsigned char unknown_50[0xc];
     short m_measured_w;                  /* 0x5c: -1 until measured */
     short m_measured_h;                  /* 0x5e */
+    W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
+    int m_field_b0;
 };
 
-/*
- * Where the text should be drawn: the panel's origin, plus either the widget's
- * own corner or an alignment computed from the measured extent.
- *
- * The measure is cached in the two shorts at +0x5c and only recomputed when
- * either is -1. If the handles it would measure from are themselves unset the
- * cache is stamped -1 again and the plain corner is used, so an unmeasurable
- * widget re-tests those handles on every call rather than settling.
- *
- * The first argument is not read. It is kept because the calling convention
- * needs it, not because anything here wants it.
- */
+/* Where the text should be drawn: the panel origin plus either the widget's
+   corner or an alignment computed from its cached measured extent. */
 // FUNCTION: WIZ8 0x004F4850
-void W8TextWidget004F4850::GetTextOrigin(int unused, int* px, int* py)
+void W8TextControl005ED604::GetTextOrigin(int unused, int* px, int* py)
 {
     short* measured;
     short width;
@@ -400,97 +504,75 @@ plain:
     *py = *py + m_top;
 }
 
-/*
- * The class at vtable 0x005ED5B8. It owns a wide-string buffer at +0x34, which
- * is the one field the encodings name for themselves: the destructor frees it
- * and 0x004F33A0 fills it with wcscpy. Everything else the constructor touches
- * is positional.
- *
- * The destructor is written inside the class body because that is what folds it
- * into the deleting destructor, the same shape the widget base above needed,
- * and the constructor is what emits the vtable so the fold has something to
- * hang on.
- */
-class W8TextBuffer005ED5B8 {
-public:
-    W8TextBuffer005ED5B8();
-    void CopyTextTo(wchar_t* destination);
-    unsigned int GetLineHeight();
-
-    virtual ~W8TextBuffer005ED5B8();
-
-protected:
-    int m_field_04;
-    int m_field_08;
-    int m_field_0c;
-    int m_field_10;
-    int m_field_14;
-    int m_field_18;
-    int m_field_1c;
-    int m_field_20;
-    int m_field_24;                      /* 0x24: the constructor steps over this one */
-    int m_font;                          /* 0x28: font used for uncached line height */
-    int m_field_2c;
-    unsigned int m_lineHeight;           /* 0x30: cached height, zero means query font */
-    wchar_t* m_buffer;                   /* 0x34: freed on teardown */
-    int m_field_38;                      /* 0x38: 10 */
-    int m_field_3c;
-    unsigned char m_flag_40;
-    unsigned char m_flag_41;
-    unsigned char pad_42[2];
-    int m_field_44;                      /* 0x44: 4 */
-    int m_field_48;                      /* 0x48: the -1 sentinel */
-    unsigned char m_flag_4c;
-};
-
-// FUNCTION: WIZ8 0x004F3480
-W8TextBuffer005ED5B8::~W8TextBuffer005ED5B8()
+// FUNCTION: WIZ8 0x004F4460
+void W8TextControl005ED604::SetBoundsFromRect(const W8ControlsRect* bounds)
 {
-    delete[] m_buffer;
-}
-
-// FUNCTION: WIZ8 0x004F3310
-W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
-{
-    m_buffer = 0;
-    m_font = 0;
-    m_field_2c = 0;
-    m_flag_40 = 0;
-    m_field_38 = 10;
-    m_field_3c = 0;
-    m_lineHeight = 0;
-    m_field_44 = 4;
-    m_flag_41 = 0;
-    m_field_48 = -1;
-    m_flag_4c = 0;
-    m_field_04 = 0;
-    m_field_08 = 0;
-    m_field_0c = 0;
-    m_field_10 = 0;
-    m_field_14 = 0;
-    m_field_18 = 0;
-    m_field_1c = 0;
-    m_field_20 = 0;
-}
-
-/* Copies the owned text into caller storage. The caller supplies the capacity;
-   the canonical method performs the same unbounded wide-string copy. */
-// FUNCTION: WIZ8 0x004F3990
-void W8TextBuffer005ED5B8::CopyTextTo(wchar_t* destination)
-{
-    wcscpy(destination, m_buffer);
-}
-
-/* Returns the cached line height, falling back to the active font's 16-bit
-   height when the cache is zero. */
-// FUNCTION: WIZ8 0x004F3D30
-unsigned int W8TextBuffer005ED5B8::GetLineHeight()
-{
-    unsigned int height = m_lineHeight;
-    if (height == 0) {
-        height = Function4071F0(m_font);
+    SetBounds(bounds->left, bounds->top, bounds->right, bounds->bottom);
+    if (m_region_18 != -1 && m_pPanel != 0) {
+        SetRegionBounds(m_region_18,
+                        (unsigned short)((short)bounds->left + (short)m_pPanel->origin_x),
+                        (unsigned short)((short)bounds->top + (short)m_pPanel->origin_y),
+                        (unsigned short)((short)bounds->right + (short)m_pPanel->origin_x),
+                        (unsigned short)((short)bounds->bottom + (short)m_pPanel->origin_y));
     }
-    return height;
+}
+
+// FUNCTION: WIZ8 0x004F44D0
+void W8TextControl005ED604::SetBounds(int left, int top, int right, int bottom)
+{
+    short measured_width;
+    short measured_height;
+
+    m_left = left;
+    m_top = top;
+    m_right = right;
+    m_bottom = bottom;
+    if (m_pPanel != 0) {
+        if (m_region_18 != -1) {
+            SetRegionBounds(m_region_18,
+                            (unsigned short)((short)left + (short)m_pPanel->origin_x),
+                            (unsigned short)((short)top + (short)m_pPanel->origin_y),
+                            (unsigned short)((short)right + (short)m_pPanel->origin_x),
+                            (unsigned short)((short)bottom + (short)m_pPanel->origin_y));
+        }
+        if ((m_flags_38 & 2) != 0) {
+            int absolute_left = m_pPanel->origin_x + left;
+            int absolute_top = m_pPanel->origin_y + top;
+            int absolute_right = m_pPanel->origin_x + right;
+            int absolute_bottom = m_pPanel->origin_y + bottom;
+            if (m_text_40 != -1 && m_text_44 != -1) {
+                Function549660(m_text_40, m_text_44, m_text_48,
+                               &measured_width, &measured_height);
+                if ((m_flags_38 & 4) != 0) {
+                    absolute_left += 2 + (unsigned short)measured_width;
+                } else {
+                    absolute_right -= 2 + (unsigned short)measured_width;
+                }
+            }
+            m_textBuffer.SetLayoutBounds(absolute_left, absolute_top,
+                                         absolute_right, absolute_bottom);
+            if (m_textBuffer.HasBuffer()) {
+                m_textBuffer.UpdateLayout();
+            }
+            m_textBuffer.MarkGeometryDirty(9);
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004F4650
+void W8TextControl005ED604::Invalidate(unsigned char immediate)
+{
+    if (m_pPanel != 0) {
+        m_flag_6 = 1;
+        if (immediate) {
+            m_pPanel->Invalidate((unsigned char)0);
+        } else {
+            m_pPanel->m_fLayoutDirty = 1;
+            Function562A50(0x80000000);
+        }
+        Function562A50(0x80000000);
+    }
+    m_textBuffer.SetGeometryDirty();
 }
 
 /*
@@ -887,5 +969,36 @@ void W8WidgetBase005ED5BC::DisableRegionHelp()
 {
     if (m_region_18 != -1) {
         SetRegionHelp(m_region_18, 0, -1);
+    }
+}
+
+/* Marks the widget dirty and either asks its panel to invalidate immediately
+   or raises the panel's deferred-layout flag. */
+// FUNCTION: WIZ8 0x004F40A0
+void W8WidgetBase005ED5BC::Invalidate(unsigned char immediate)
+{
+    if (m_pPanel != 0) {
+        m_flag_6 = 1;
+        if (immediate) {
+            m_pPanel->Invalidate((unsigned char)0);
+            Function562A50(0x80000000);
+            return;
+        }
+        m_pPanel->m_fLayoutDirty = 1;
+        Function562A50(0x80000000);
+        Function562A50(0x80000000);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F40F0
+void W8WidgetBase005ED5BC::SetEnabled(unsigned char enabled)
+{
+    m_flag_5 = enabled;
+    if (m_region_18 != -1) {
+        if (enabled) {
+            ClearRegionModeBits(m_region_18);
+            return;
+        }
+        SetRegionMode4(m_region_18);
     }
 }
