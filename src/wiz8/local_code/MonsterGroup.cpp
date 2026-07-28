@@ -28,10 +28,6 @@ extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050F
 extern void Function4C7F10(const char* sound_file, int value);        /* 0x004C7F10 */
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
                            int value);                       /* 0x00547570 */
-extern unsigned char g_in_combat_00683f94;
-extern W8Character* g_party_characters;
-extern unsigned char g_alternate_name_slot;
-extern W8WideChar g_monster_name_buffer[];
 
 /* A group of one is named in the singular; any other count uses the plural
    form, which is the second entry of each name set. */

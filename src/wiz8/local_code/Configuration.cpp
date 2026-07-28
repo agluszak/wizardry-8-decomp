@@ -1,5 +1,6 @@
 #include "surrender/srGERD.h"
 #include "wiz8/game_state.h"
+#include "wiz8/render_state.h"
 #include "wiz8/wiz8_windows.h"
 
 #include <stdio.h>
@@ -7,7 +8,6 @@
 
 extern "C" {
 
-extern srGERD* g_gerd_659634;
 extern void Function54B560(void);
 
 W8GameSettings g_settings_6850c8;

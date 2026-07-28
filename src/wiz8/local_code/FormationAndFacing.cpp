@@ -57,7 +57,6 @@ enum { W8_FACING_ANY = 4 };
    Tighter than the eligibility window the party sweeps use. */
 enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
 
-extern W8CombatState* g_combat_state;
 extern unsigned int g_party_heading;                        /* 0x00686A44 */
 extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555E70 */
 extern void Function5B1C80(void);

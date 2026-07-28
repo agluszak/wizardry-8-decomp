@@ -42,7 +42,6 @@ struct W8LevelRuntimeRow {
 };                                          /* 0x21 */
 
 extern W8LevelRuntimeRow g_level_runtime[]; /* 0x00686B74 */
-extern int g_current_level;                 /* 0x00686A70 */
 extern int g_game_time;                     /* 0x00686A48 */
 extern int g_random_encounter_budget;
 extern int g_random_encounter_limit;

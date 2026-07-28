@@ -13,10 +13,16 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/vector.h"
+#include "wiz8/combat_state.h"
+#include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/game_state.h"
 #include "wiz8/gameplay_databases.h"
+#include "wiz8/monster_runtime.h"
 #include "wiz8/layouts/encounter_tables.h"
+#include "wiz8/regions.h"
+#include "wiz8/ui_state.h"
+#include "wiz8/utility.h"
 
 #pragma pack(push, 1)
 
@@ -541,18 +547,6 @@ typedef struct W8NPCItemList {
     unsigned char flag_1a;                /* 0x1a: gates the teardown in LoadFactState */
 } W8NPCItemList;
 
-typedef struct W8MessageBoxLine {
-    int unknown_00;                       /* initialized to -1 */
-    int unknown_04;
-    int unknown_08;
-    int type;                             /* 0x0c: message category, e.g. combat log channel */
-    W8WideChar* text;                     /* 0x10 */
-    int unknown_14;
-    int unknown_18;
-    void* extra;                          /* 0x1c: caller-owned payload, e.g. format-arg storage */
-    int sequence;                         /* 0x20: copied from a running global counter */
-} W8MessageBoxLine;                       /* 0x24 */
-
 /* Local Code\Targeting.cpp. Field names and the BAD_INDEX sentinel come from
    the canonical assertions at lines 3299, 3307, 3320 and 3328; offsets come
    from the asserting bodies. iType 1 selects the character, 2 the monster, and
@@ -735,42 +729,6 @@ typedef struct W8ScreenPoint {
     int x;
     int y;
 } W8ScreenPoint;
-
-/* Local Code\RegionManager.cpp. The unit's indexing expressions prove the
-   strides; this first cluster only establishes the leading state fields. */
-typedef struct W8RegionSet {
-    unsigned int enabled;
-    unsigned int first_region;
-    unsigned int last_region;
-} W8RegionSet;                           /* 0x0c */
-
-typedef struct W8RegionEvent {
-    unsigned int time;
-    unsigned short modifiers;
-    unsigned short reason;
-} W8RegionEvent;
-
-typedef struct W8RegionMouseEvent {
-    W8RegionEvent event;
-    unsigned int mouse_position;
-} W8RegionMouseEvent;
-
-struct W8Region;
-typedef void (*W8RegionCallback)(const W8RegionEvent* event, struct W8Region* region);
-
-typedef struct W8Region {
-    unsigned int flags;
-    short x1;
-    short y1;
-    short x2;
-    short y2;
-    W8RegionCallback callback;
-    unsigned short callback_id;
-    unsigned char help_enabled;
-    unsigned char unknown_13;
-    int help_text_id;
-    void* owner;
-} W8Region;                              /* 0x1c */
 
 enum {
     W8_FACTION_HOSTILE = 0,
@@ -984,27 +942,16 @@ extern int giStringListLen;
 /* 0x00517A90. One shared buffer, so the answer is only good until the next
    call - which is why every caller consumes it immediately. */
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
-/* 0x0068EDCC: the loaded level's runtime block. Only the halfword the combat
-   toggle tests is reached, so it keeps a positional name. */
-extern W8LevelRuntimeBlock* g_level_block;
-
 /* The gameplay globals reached from more than a couple of units. Each was
    declared separately in every file that used it, which is how two of them
    ended up with two names and two more with two types; one declaration each is
    what keeps that from happening again. */
-extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_camp_open_00683f9b;
 /* 0x00683FAD: every monster currently in the level. */
 extern W8PList* g_active_monster_list_00683fad;
 /* 0x0068EC78: which screen is up. The whole 0x98-byte block lives there; the
    leading id is what everything outside the screen code reads, which is why
    this is a union rather than two globals. */
-/* 0x005ED8C8 and 0x005ED914: the last two arguments every effect and sound
-   call passes, holding zero and 127. They read as integers - as floats the
-   second is a denormal - so the 127 is a level on a 0..127 scale rather than a
-   gain. */
-extern int g_effect_argument_005ed8c8;
-extern int g_effect_argument_005ed914;
 /* 0x005EBB34: the float that stands for "no distance given", which the level
    vector reads as its absent value too. */
 extern float g_float_005ebb34;
@@ -1018,19 +965,8 @@ enum {
 };
 
 
-extern W8CombatState* g_combat_state;    /* 0x006836A8 */
-extern W8SpellRuntimeRecord* g_spell_records;
-/* 0x005EC0F4: the spell-table row count published once the load succeeds. It is
-   also cleared alongside the table when a reload starts, so the two are one
-   piece of state. */
-extern unsigned int g_spell_database_version;
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
-extern W8Character* g_party_characters;
-extern unsigned int g_region_set_count;  /* guiRegsetCount */
-extern W8RegionSet g_region_sets[];
-extern unsigned int g_region_count;      /* guiRegionCount */
-extern W8Region g_regions[];
 /* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
    established, and GetRandomCharacter treats it as a slot-occupied flag. */
 extern W8PartySlotRow* g_party_slot_rows;
@@ -1081,12 +1017,9 @@ extern unsigned int g_party_gold;
    line 320. It sits immediately below the NPC count, so the database counts are
    fields of one gXStatus structure rather than separate globals; they are kept
    separate here until that structure is recovered. */
-extern unsigned int g_monster_record_count;
 /* Two gXStatus members named by the MonsterManager.cpp assertions at lines 92
    and 93. Recovering the whole structure is tracked separately; until then its
    members stay separate externs. */
-extern W8PList* g_monster_list;               /* gXStatus.plsMonsterList */
-extern W8PList* g_monster_group_list;         /* gXStatus.plsMonsterGroupList */
 /* Reset together by ResetGameplayStatusBlock; their meaning is not established,
    so they keep address-positional names. The object at 0x00683FD7 is torn down
    by 0x0054B0B0 through operator delete after the same method's sibling. */
@@ -1128,7 +1061,6 @@ extern W8LevelFolderRecord g_level_folders[47];
 /* 0x00686A70: the level the party is on. The save loader compares it against
    the level id in an LVLS chunk, and it indexes the per-level rows below -
    bounded at 0x2f, the same forty-seven the folder table has. */
-extern int g_current_level;
 /* 0x00686B7D: one row per level. Gold picked up there and the clock its sight
    state was last brought up to are the two fields established; the gold credit
    and the sight ageing reach the row four bytes apart, which is what makes it
@@ -1148,20 +1080,10 @@ extern W8PList* g_world_item_list;
 extern W8GrowableVector<W8NPCItemList*>* g_npc_item_lists;
 /* 0x006840C7: lazily populated cache of runtime monster records, one slot per
    species ID. MAX_MONSTERS_IN_DATABASE comes from the canonical assertion text. */
-extern W8MonsterRecord* g_monster_record_cache[1000];
-extern W8PList* g_monster_group_species_list;
-extern W8PList* g_monster_group_encounter_list;
 /* Provisional name: a fixed-address, non-per-character item pool distinct
    from the equipped/carried slots GetOriginOfCharacterItem also searches. */
 extern unsigned char g_shared_item_pool[];
 extern unsigned int g_shared_item_pool_count;
-
-extern W8MessageBoxLine** g_message_box_lines;
-extern int g_message_box_line_count;
-extern int g_message_box_line_capacity;
-/* Provisional name: a running counter stamped onto each new line's `sequence`
-   field; distinct from g_message_box_line_count. */
-extern int g_message_sequence;
 
 
 /* 3D Code\IList.cpp: the integer sibling of W8PList, same shape with int
@@ -1431,10 +1353,6 @@ typedef char W8MonsterInfo_size_must_be_0x425[
 typedef char W8MonsterRuntimeBlock1DB_size_must_be_0x67[
     sizeof(W8MonsterRuntimeBlock1DB) == 0x67 ? 1 : -1];
 
-extern W8PList* g_monster_list;            /* gXStatus.plsMonsterList */
-extern W8PList* g_unborn_monster_list;     /* gXStatus.plsUnbornMonsterList */
-extern float g_monster_record_float_scale; /* 0x005ed4f0, provisional name */
-extern int g_monster_info_iterator_index;  /* 0x00683698, retained cursor */
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
 void Function4E4600(W8MonsterInfo* monster_info);
@@ -1543,13 +1461,6 @@ unsigned int GetClock(void);
 unsigned int ClockIsTicking(unsigned int clock);
 unsigned int SetCountdownClock(unsigned int delay);
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
-unsigned int GetForcedRegion(void);
-void UpdateRegionHelp(void);
-void ShowRegionHelp(unsigned int region_index);
-void SetRegionHelpText(const wchar_t* text);
-void ResetRegionHelp(unsigned char delayed);
-void EnableRegionHelp(unsigned int region_index);
-void DisableRegionHelp(unsigned int region_index);
 int RPCPtrToPCSlot(const W8RPCSlot* rpc);
 void FreeStringTable(void);
 #ifdef __cplusplus
@@ -1563,8 +1474,6 @@ unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* p
 void StripMonsterNameSuffix(W8WideChar* name);
 unsigned int CharacterPointerToPartySlot(W8Character* character);
 unsigned char IsPartyCharacterPointer(const W8Character* character);
-void AdjustByteByPercent(unsigned char* value, unsigned int percent);
-void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
 unsigned char IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
                                         const unsigned char* expert_realm_flags);

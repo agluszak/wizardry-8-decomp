@@ -6,6 +6,7 @@
 #include "surrender/srScene.h"
 #include "surrender/srTexture.h"
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/render_state.h"
 
 namespace {
 
@@ -113,10 +114,6 @@ public:
 extern "C" {
 
 extern srModeler* g_modeler_65963c;
-extern srMaterial* g_blit_material_65967c;
-extern srColorSurface* g_mouse_surface_659688;
-extern int g_surface_state_6595dc;
-extern int g_surface_state_654ad8;
 extern float g_surface_scale_659680;
 
 srScene* g_cursor_scene_659684;

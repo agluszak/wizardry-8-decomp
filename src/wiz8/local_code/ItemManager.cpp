@@ -10,7 +10,6 @@ extern int g_status_count_006874c2;
 extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern W8LevelRuntimeBlock* g_level_block;
 extern W8PList* g_world_item_list_00683fb5;
 
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
@@ -482,7 +481,6 @@ extern void ReplaceOrCreateItem(
 extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern W8LevelRuntimeBlock* g_level_block;
 extern float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then

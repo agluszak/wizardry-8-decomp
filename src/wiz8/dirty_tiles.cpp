@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/render_state.h"
 #include "wiz8/surface2d.h"
 #include "wiz8/wiz8_windows.h"
 #include "surrender/srGERD.h"
@@ -21,16 +22,6 @@ extern "C" {
 
 extern unsigned int g_index_6596e4;
 extern unsigned char g_flags_6596e8[2];
-extern srNode* g_surface_nodes_654adc[0x12c0];
-extern unsigned char g_block_652ddc[0x12c0];
-extern int g_dword_6596d8;
-extern int g_viewport_left_6595e8;
-extern int g_viewport_top_6595ec;
-extern int g_viewport_right_6595f0;
-extern int g_viewport_bottom_6595f4;
-extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
-extern srGERD* g_gerd_659634;
-extern stSurface2D* g_surface_node_659664;
 unsigned char g_flag_65970d;
 unsigned char g_flag_6596ea;
 extern void DDLockSurface(void* surface, RECT* area,

@@ -5,6 +5,7 @@
 #include "surrender/srMeshModel.h"
 #include "surrender/srScene.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/render_state.h"
 #include "wiz8/surface2d.h"
 #include "wiz8/wiz8_windows.h"
 
@@ -177,8 +178,6 @@ public:
 
 extern "C" {
 extern int g_pixel_format_603c48;
-extern srGERD* g_gerd_659634;
-extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
 extern srModeler* g_modeler_65963c;
 extern srScene* g_scene_user_659640;
 extern srScene* g_scene_fullscreen_659644;
@@ -189,20 +188,8 @@ extern srScene* g_scene_overlay0_659654;
 extern srScene* g_scene_overlay1_659658;
 extern srScene* g_scene_square_65965c;
 extern srColorSurface* g_primary_color_surface_659660;
-extern stSurface2D* g_surface_node_659664;
 extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
-extern srMaterial* g_blit_material_65967c;
-extern srColorSurface* g_mouse_surface_659688;
-extern srNode* g_surface_nodes_654adc[0x12c0];
-extern unsigned char g_block_652ddc[0x12c0];
-extern int g_surface_state_6595dc;
-extern int g_surface_state_654ad8;
-extern int g_viewport_left_6595e8;
-extern int g_viewport_top_6595ec;
-extern int g_viewport_right_6595f0;
-extern int g_viewport_bottom_6595f4;
-extern int g_dword_6596d8;
 extern int g_renderer_mode_603d74;
 
 extern void DDUnlockSurface(void* surface, void* locked);

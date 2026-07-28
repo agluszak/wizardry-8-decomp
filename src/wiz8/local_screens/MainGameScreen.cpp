@@ -15,7 +15,6 @@
 
 /* The region set the two enable/disable wrappers below own. */
 enum { W8_REGION_SET_MAIN = 4 };
-extern W8LevelRuntimeBlock* g_level_block;
 extern void* g_modal_owner_0068edd0;
 extern int g_flag_0068ed14;
 extern unsigned char g_flag_00683f95;
@@ -173,10 +172,8 @@ public:
     unsigned char flag_140;              /* 0x140 */
 };
 
-extern unsigned char* g_main_game_screen_0068f2d4;
 extern unsigned char g_flag_00683f9a;
 extern unsigned char g_map_loading_00659757;
-extern int g_current_level;
 extern void Function55EE70(int reason);
 extern void Function55EF90(void);
 extern void Function42B3E0(void);

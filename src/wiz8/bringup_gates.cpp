@@ -1,6 +1,7 @@
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/render_state.h"
 #include "vsurface.h"
 
 #include <direct.h>
@@ -30,7 +31,6 @@ HVSURFACE g_primary_surface_view_650ddc;
 HVSURFACE g_surface_650de0;
 extern HVSURFACE ghFrameBuffer;
 extern HVSURFACE ghMouseBuffer;
-extern IDirectDrawSurface2* g_primary_surface_6596a8;
 int g_dword_650dc0;
 int g_dword_6ef4c0;
 int g_dword_650df4;

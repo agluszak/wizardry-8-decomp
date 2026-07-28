@@ -37,6 +37,8 @@ LIBRARY_MARKER = re.compile(
     r"^\s*//\s*LIBRARY\s*:\s*(?P<module>[A-Za-z0-9_]+)\s+(?P<offset>(?:0x)?[0-9a-fA-F]+)"
 )
 SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
+EXTERN_DECLARATION = re.compile(r'^\s*extern\s+(?:"C"\s+)?(?P<body>[^;]+);', re.MULTILINE)
+DATA_SYMBOL = re.compile(r"(?P<symbol>[A-Za-z_]\w*)\s*(?:\[[^]]*\])?$")
 
 
 class MarkerHygieneError(RuntimeError):
@@ -110,13 +112,28 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
     detached: list[str] = []
     owners: dict[tuple[str, str], list[str]] = defaultdict(list)
     library_owners: dict[tuple[str, str], list[str]] = defaultdict(list)
+    header_externs: set[str] = set()
+    source_externs: dict[str, set[str]] = defaultdict(set)
 
     for path in iter_source_files(roots):
         try:
             relative = path.relative_to(repo_dir).as_posix()
         except ValueError:
             relative = path.as_posix()
-        lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        lines = text.splitlines()
+        for declaration in EXTERN_DECLARATION.finditer(text):
+            body = " ".join(declaration.group("body").split())
+            if "(" in body:
+                continue
+            symbol = DATA_SYMBOL.search(body)
+            if symbol is None:
+                continue
+            name = symbol.group("symbol")
+            if path.suffix in {".h", ".hpp"}:
+                header_externs.add(name)
+            else:
+                source_externs[name].add(relative)
         for index, line in enumerate(lines):
             library = LIBRARY_MARKER.match(line)
             if library is not None:
@@ -145,6 +162,16 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
         f"{module} {offset} is claimed by {len(places)} FUNCTION markers: {', '.join(places)}"
         for (module, offset), places in sorted(duplicated.items())
     ]
+    shadowed_externs = {
+        symbol: sorted(paths)
+        for symbol, paths in source_externs.items()
+        if symbol in header_externs and len(paths) > 1
+    }
+    problems += [
+        f"{symbol} has a canonical header declaration but is redeclared in "
+        f"{len(paths)} source files: {', '.join(paths)}"
+        for symbol, paths in sorted(shadowed_externs.items())
+    ]
     problems += [
         f"{module} {offset} is claimed by {len(places)} LIBRARY markers: {', '.join(places)}"
         for (module, offset), places in sorted(duplicated_library.items())
@@ -159,5 +186,6 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
         "function_addresses": len(owners),
         "library_markers": sum(len(places) for places in library_owners.values()),
         "library_addresses": len(library_owners),
+        "shadowed_externs": len(shadowed_externs),
         "files": len(iter_source_files(roots)),
     }

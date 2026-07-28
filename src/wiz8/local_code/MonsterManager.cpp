@@ -38,7 +38,6 @@ void Function546E70(void);
 void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
-extern int g_world_clock_00686a48;
 extern int g_status_count_6874be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
@@ -74,9 +73,6 @@ void __fastcall Function4537E0(W8MonsterMember18* member);
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 /* The character array the alternate-name form indexes, and the slot it uses. */
-extern W8Character* g_party_characters;      /* 0x00685174 */
-extern unsigned char g_alternate_name_slot; /* 0x006875EF */
-extern W8WideChar g_monster_name_buffer[];  /* 0x006875C3 */
 
 // FUNCTION: WIZ8 0x004E3930
 W8MonsterInfo* CreateMonsterInfo(
@@ -176,7 +172,6 @@ void Function595570(void);
 extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
 extern int g_dword_683fa5;
-extern unsigned char g_in_combat_00683f94;
 extern unsigned char g_flag_683f97;
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.

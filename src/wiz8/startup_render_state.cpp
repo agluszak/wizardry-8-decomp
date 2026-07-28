@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 
 #include <stdlib.h>
@@ -6,7 +7,6 @@
 
 extern "C" {
 
-extern unsigned char* g_render_options_65a118;
 
 /* Engine Code\Quality.cpp allocates one 0x34-byte process-wide record.  Its
    leading fields are still unnamed, but the allocation, clear and reviewed
@@ -92,3 +92,4 @@ unsigned char InitializeEnvironmentColours(void)
 }
 
 }
+#include "wiz8/render_state.h"

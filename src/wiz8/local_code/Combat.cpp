@@ -18,13 +18,11 @@ enum { W8_ACTION_LIFTED_AT_ROUND_END = 9, W8_ACTION_KIND_ONE = 1 };
 extern unsigned char CharacterIsEngaged(unsigned int party_slot);        /* 0x00524A10 */
 extern unsigned char CharacterHasCondition(const W8Character* character, int condition);
 /* 0x00547940 */
-extern W8CombatState* g_combat_state;
 /* The per-character combat rows begin at the combat state's own address and
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
 extern unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664;
 extern int g_active_party_slot_0068518d;
-extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void RoundPhaseToStep(unsigned int* actor, int round);
 extern int GetCurrentTargetingContext(int party_slot);

@@ -13,7 +13,6 @@
 /* The redraw the text box asks for whenever anything it shows changes. */
 enum { W8_REDRAW_TEXT_BOX = 0x800 };
 
-extern W8LevelRuntimeBlock* g_level_block;
 extern void RequestRedraw(int mask);                                    /* 0x00562A50 */
 extern unsigned char g_text_box_mode_0069b7b8;
 extern int g_text_box_value_0064bd54;
@@ -23,7 +22,6 @@ extern const int g_text_line_counts[];
 extern void ScrollTextBoxTo(int line);                                  /* 0x0058BBC0 */
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
-extern unsigned char* g_main_game_screen_0068f2d4;
 extern void RedrawTextBoxBody(void);                                    /* 0x00588E60 */
 
 /* How many lines the text box can still be scrolled through. */

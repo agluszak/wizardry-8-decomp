@@ -18,8 +18,6 @@ enum { W8_PHASES_PER_ROUND = 100 };
 enum { W8_TURN_PHASE_FREE = 3 };
 extern unsigned char g_party_moving_006850b5;
 extern unsigned char g_flag_00683fce;
-extern W8CombatState* g_combat_state;
-extern W8LevelRuntimeBlock* g_level_block;
 extern float g_movement_speed_005ec0a8;
 extern float g_movement_speed_step_005ed490;
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);

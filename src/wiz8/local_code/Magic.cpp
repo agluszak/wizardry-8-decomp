@@ -1843,9 +1843,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
 
 extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 /* 0x0053BE50 */
-extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void NoteSpellCast(int spell_id, int result);                     /* 0x0052C320 */
-extern unsigned char g_detailed_combat_messages_0068510c;
 extern void SetTextBoxMode(unsigned char mode, int value);   /* 0x005905C0 */
 
 /* The two log lines a monster's cast is announced with: one that names the

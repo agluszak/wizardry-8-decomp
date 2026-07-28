@@ -21,7 +21,6 @@ void ResetRegions(void);
 
 extern "C" {
 
-extern unsigned int g_monster_record_count;
 extern W8RegionSet g_region_sets[];
 extern W8Region g_regions[];
 extern unsigned int g_hot_region_689b3c;

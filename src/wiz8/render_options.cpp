@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/render_state.h"
 
 class srTextureIFace {
 public:
@@ -34,10 +35,6 @@ public:
  */
 
 extern "C" {
-
-extern unsigned char* g_render_options_65a118;
-extern srGERD* g_gerd_659634;
-extern void* g_surface_node_659664;
 
 float g_render_brightness_60a210;
 float g_render_fog_distance_60e610;

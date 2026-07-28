@@ -5,7 +5,6 @@
 #include <stdio.h>
 
 extern unsigned char EvaluateFact(int fact_id);
-extern void WriteGameLog(int channel, const wchar_t* format, ...);
 /* Provisional semantic name for the journal/notification path at 0x005588f0. */
 extern void RecordFactChangeForJournal(int fact_id);
 extern void HandleFactChange(int fact_id, unsigned char value);

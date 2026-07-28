@@ -540,7 +540,6 @@ enum { W8_SAVE_TAG_CHAR = 0x52414843, W8_SAVE_TAG_LVLS = 0x534c564c };
 extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_flag_00687599;
 extern unsigned char g_save_notice_shown_0068506b;
-extern int g_current_level;
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);  /* 0x0058AC00 */
 extern int SaveChunkCount(void);                                        /* 0x0055C6C0 */
 extern void SaveChunkSeek(int arg_1, int arg_2);                        /* 0x0055C6D0 */

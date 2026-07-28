@@ -3,6 +3,7 @@
    source; these names preserve the first-party callers' recovered ABI. */
 
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/render_state.h"
 
 extern "C" {
 
@@ -29,7 +30,6 @@ extern unsigned char BltVideoSurface(
 extern HWND ghWindow;
 extern unsigned char g_fullscreen_603c39;
 extern IDirectDraw2* g_direct_draw2_6596a0;
-extern IDirectDrawSurface2* g_primary_surface_6596a8;
 extern unsigned short g_red_mask_650f4a;
 extern unsigned short g_green_mask_650f4c;
 extern unsigned short g_blue_mask_650f4e;

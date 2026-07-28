@@ -27,7 +27,6 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount);
 extern void NotifySpellPointsChanged(int party_slot);      /* 0x0055EE30 */
 extern void ClearHighlightIfItIs(W8MonsterInfo* monster_info);
-extern void WriteGameLog(int channel, const wchar_t* format, ...);
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 
@@ -650,7 +649,6 @@ extern void ApplyCharacterEffect(
     W8Character* character, void* effect, int arg_3, int arg_4, int arg_5);
 /* 0x0052E690 */
 extern void* g_effect_005ee598;
-extern W8CombatState* g_combat_state;
 extern void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 extern void RecordCharacterDeath(int party_slot);
 extern void Function52F110(int party_slot);

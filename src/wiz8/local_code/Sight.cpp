@@ -257,7 +257,6 @@ bool IsVisibleUnderConditions(
 
 extern void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_3);
 /* 0x00503990 */
-extern int g_world_clock_00686a48;
 
 /* Bring every monster's sight up to date with the clock, in whole two-minute
    steps - anything short of one step is left for next time. */

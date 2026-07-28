@@ -40,7 +40,6 @@ enum { W8_EFFECT_PERMANENT = 9999 };
 /* 0x0060CFFC: eight bytes per visual, whose leading dword names it. */
 extern const int g_effect_visual_table[][2];
 
-extern void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
 extern void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);  /* 0x004ACD80 */
 extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
 extern void Function50E700(void);
@@ -147,8 +146,6 @@ extern unsigned int MonsterGetIndexByLocationID(
 extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
 extern void ApplyEffectToTarget(
     int* result, W8CombatSlot* target, int arg_3, int arg_4);            /* 0x00552250 */
-extern unsigned char g_detailed_combat_messages_0068510c;
-
 #define MAGIC_EFFECTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic Effects.cpp"
 
 /* Say that whoever was aimed at shrugged the effect off. A monster target is

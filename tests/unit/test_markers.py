@@ -86,10 +86,27 @@ def test_library_markers_may_be_followed_by_the_symbol_name(tmp_path: Path) -> N
     assert check_marker_hygiene([tmp_path], tmp_path)["library_markers"] == 1
 
 
+def test_repeated_source_extern_shadowing_an_owner_header_is_refused(tmp_path: Path) -> None:
+    (tmp_path / "owner.h").write_text("extern int g_owned;\n", encoding="utf-8")
+    (tmp_path / "a.cpp").write_text("extern int g_owned;\n", encoding="utf-8")
+    (tmp_path / "b.cpp").write_text("extern int g_owned;\n", encoding="utf-8")
+
+    with pytest.raises(MarkerHygieneError, match="canonical header declaration"):
+        check_marker_hygiene([tmp_path], tmp_path)
+
+
+def test_single_provisional_source_extern_remains_allowed(tmp_path: Path) -> None:
+    (tmp_path / "owner.h").write_text("extern int g_owned;\n", encoding="utf-8")
+    (tmp_path / "unit.cpp").write_text("extern int g_owned;\n", encoding="utf-8")
+
+    assert check_marker_hygiene([tmp_path], tmp_path)["shadowed_externs"] == 0
+
+
 def test_the_tree_itself_is_clean() -> None:
     result = check_marker_hygiene(
         [REPOSITORY / "src", REPOSITORY / "include"], REPOSITORY
     )
 
     assert result["function_markers"] == result["function_addresses"]
+    assert result["shadowed_externs"] == 0
     assert result["function_markers"] > 100

@@ -92,4 +92,17 @@ typedef struct W8GlobalStatus {
 
 #pragma pack(pop)
 
+struct W8LevelRuntimeBlock;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern W8LevelRuntimeBlock* g_level_block; /* 0x0068EDCC */
+extern int g_current_level;                /* 0x00686A70 */
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

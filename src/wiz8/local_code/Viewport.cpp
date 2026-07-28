@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/render_state.h"
 
 /*
  * Sets the viewport and rebuilds the camera view plane to match it.
@@ -34,15 +35,10 @@ public:
 
 extern "C" {
 
-extern srGERD* g_gerd_659634;
 extern unsigned char g_flush_pending_603c3a;
 extern W8World* g_world_00659ab4;
 extern W8World* g_world_659ab8;
 extern unsigned char g_flag_652da4;
-extern int g_viewport_left_6595e8;
-extern int g_viewport_top_6595ec;
-extern int g_viewport_right_6595f0;
-extern int g_viewport_bottom_6595f4;
 extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
 extern const float g_one_5ebc30;

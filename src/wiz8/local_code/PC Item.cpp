@@ -165,7 +165,6 @@ extern unsigned char CanCharacterActivateItem(
 extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
-extern void WriteGameLog(int channel, const wchar_t* format, ...);
 extern void Function58AC00(int channel, void* message);
 
 
@@ -883,7 +882,6 @@ void AddPartyGold(int amount, char announce)
     }
 }
 
-extern void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
 extern W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, int form);
 extern unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 /* 0x005208F0 */
@@ -1083,7 +1081,6 @@ extern void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3)
 extern void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);
 extern unsigned char g_flag_00683fce;
-extern W8CombatState* g_combat_state;
 
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
