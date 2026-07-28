@@ -70,6 +70,10 @@ typedef struct W8CharacterResistance {
     unsigned char unknown_08[8];
 } W8CharacterResistance;                  /* 0x10 */
 
+/* The six realms a spell point pool is kept per; the same six
+   config/types/wiz8/gameplay_databases.h enumerates as W8SpellRealm. */
+enum { W8_SPELL_REALM_COUNT = 6 };
+
 enum {
     W8_RESISTANCE_COUNT = 6,
     /* The six skills whose level feeds the matching resistance, and the one
@@ -135,7 +139,17 @@ typedef struct W8Character {
     unsigned int unknown_0b01;            /* 0x0b01 */
     unsigned char unknown_0b05[0xc];
     unsigned int unknown_0b11;            /* 0x0b11 */
-    unsigned char unknown_0b15[0xb8];
+    unsigned char unknown_0b15[8];
+    /* 0x0b1d: the stamina pool FatigueCharacter draws down and clamps to. */
+    int stamina;
+    unsigned char unknown_0b21[4];
+    /* 0x0b25 and 0x0b45: iSPMax and iSPLeft, one per spell realm, named by the
+       Health Stamina Mana.cpp:1067 assertion pPC->iSPLeft[uiRealm] and bounded
+       at six realms by the total the party-wide restore accumulates. */
+    int sp_max[W8_SPELL_REALM_COUNT];     /* 0x0b25 */
+    unsigned char unknown_0b3d[8];
+    int sp_left[W8_SPELL_REALM_COUNT];    /* 0x0b45 */
+    unsigned char unknown_0b5d[0x70];
     /* 0x0bcd: one entry per spell. CanCharacterUseItem refuses a spell-source
        item whose spell already reads one here, so one is the learned state. */
     int spell_learned[136];               /* 0x0bcd */
@@ -854,7 +868,10 @@ typedef struct W8MonsterInfo {
     int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
     int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
     int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x40];
+    unsigned char unknown_37[0x28];
+    /* 0x05f: nonzero doubles the fatigue an action costs. */
+    int fatigue_doubled_05f;
+    unsigned char unknown_063[0x14];
     /* 0x077: spellcasting is blocked for this monster. Alchemy survives it for
        monster kinds four, five and thirteen, which is the only exemption -
        the same shape as the character block and its alchemy-skill exemption. */
@@ -884,7 +901,13 @@ typedef struct W8MonsterInfo {
        unknown run rather than a proven size. */
     unsigned char combat_slot_2ba[0x20];
     int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
-    unsigned char unknown_2de[0x13];
+    unsigned char unknown_2de[3];
+    /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
+       is enumerated by MonsterActionFatigueCost, whose error text names it. */
+    int action_kind;
+    /* 0x2e5: qualifies action kind zero; three costs markedly more. */
+    int action_detail;
+    unsigned char unknown_2e9[8];
     int runtime_value_2f1;                /* 0x2f1: released when an entry is destroyed */
     unsigned char unknown_2f5[8];
     int control_state;                      /* 0x2fd: group-recomputed control state */

@@ -1,0 +1,15 @@
+{
+  "hypothesis": "text-control-lifecycle",
+  "seeds": [
+    {
+      "kind": "type-variable",
+      "function": "004f4250",
+      "root": "this"
+    }
+  ],
+  "limits": {
+    "iterations": 8,
+    "functions": 240,
+    "indirect_functions": 512
+  }
+}
