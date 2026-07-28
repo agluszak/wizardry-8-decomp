@@ -820,3 +820,69 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
     }
     return 1;
 }
+
+extern unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
+/* 0x004E79A0 */
+extern unsigned char CanTargetMonsterWithAction(
+    int party_slot, int location_id, int arg_3, int arg_4);              /* 0x00536AD0 */
+extern void ClearMonsterTargetNotice(void);                              /* 0x00547510 */
+extern void SetTargetCursor(int cursor);                                 /* 0x0055EE70 */
+extern void ClearTargetCursor(void);                                     /* 0x0055EF90 */
+extern int IsScreenIdle(void);
+extern void* g_modal_owner_0068edd0;
+extern int g_target_cursor_00683fdb;
+
+/* The two cursors this body cares about: the one it puts up for a monster it
+   can act on, and the one it takes down for a monster it cannot. */
+enum { W8_CURSOR_VALID_TARGET = 6, W8_CURSOR_INVALID_TARGET = 7 };
+
+/* Tint one monster to say whether the character could act on it, and move the
+   cursor to match. Green means yes and red means no; asking for no highlight at
+   all tints it to nothing and answers no without touching the cursor.
+
+   With no character named the answer is yes outright, so a bare hover over a
+   monster reads as valid - it is the action, not the monster, that makes a
+   target invalid. The cursor is only moved while nothing modal is up, and the
+   valid case additionally waits for the screen to be idle, which is what keeps
+   a cursor from flickering under a menu. */
+// FUNCTION: WIZ8 0x00539110
+char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
+{
+    int index = MonsterGetIndexByLocationID(0x68d, TARGETING_CPP, location_id, 0);
+    W8MonsterInfo* monster_info;
+    W8Monster* monster;
+    char valid = 0;
+
+    if (index == BAD_INDEX) {
+        return 0;
+    }
+    monster_info = MonsterGetScriptPartByLocationIndex(index);
+    monster = monster_info->monster;
+
+    if (highlight == 0) {
+        SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
+        return 0;
+    }
+
+    if (party_slot == BAD_INDEX ||
+        (IsSlotActionChosen(party_slot, 6, 1, 0) &&
+         CanTargetMonsterWithAction(party_slot, location_id, 1, 0))) {
+        valid = 1;
+    }
+    ClearMonsterTargetNotice();
+
+    if (valid == 0) {
+        SetMonsterHighlightColour(monster, 1.0f, 0.0f, 0.0f, 1.0f);
+        if (g_modal_owner_0068edd0 == 0 && g_target_cursor_00683fdb == W8_CURSOR_VALID_TARGET) {
+            ClearTargetCursor();
+        }
+        return 0;
+    }
+
+    SetMonsterHighlightColour(monster, 0.0f, 1.0f, 0.0f, 1.0f);
+    if (g_modal_owner_0068edd0 == 0 && g_highlight_suppressed_00683fe7 == 0 && IsScreenIdle() &&
+        g_target_cursor_00683fdb != W8_CURSOR_INVALID_TARGET) {
+        SetTargetCursor(W8_CURSOR_VALID_TARGET);
+    }
+    return valid;
+}
