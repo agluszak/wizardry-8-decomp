@@ -126,7 +126,7 @@ extern unsigned char Function4EBC80(int spell_id);
 // FUNCTION: WIZ8 0x004FAE70
 bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id)
 {
-    if (character->spellcasting_blocked != 0) {
+    if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return true;
         }

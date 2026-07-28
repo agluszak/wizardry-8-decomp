@@ -77,7 +77,14 @@ typedef struct W8GameSettings {
 typedef struct W8PartySlotRow {
     unsigned char flag_00;               /* 0x000: slot occupied */
     int value_001;                       /* 0x001 */
-    unsigned char unknown_005[0x70];
+    /* 0x005: the attack mode chosen per hand, indexed by the combat state's
+       current hand. The bound is a partition of the unknown run, not proven. */
+    int attack_mode[4];                  /* 0x005 */
+    unsigned char unknown_015[8];
+    /* 0x01d and 0x04d: the two targeting blocks the slot carries, cleared
+       together when the character dies. */
+    unsigned char target_block_01d[0x30];
+    unsigned char target_block_04d[0x28];
     /* 0x075..0x0a0: the slot's pending spell target - what kind of target it
        is, which one, a cleared word, and the eight-dword target block the
        targeting code hands over. */
@@ -91,7 +98,11 @@ typedef struct W8PartySlotRow {
     /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a
        slot that has it raised, and the targeting guard reads the same byte. */
     unsigned char flag_0f5;
-    unsigned char unknown_0f6[0x0f];
+    unsigned char unknown_0f6[4];
+    /* 0x0fa: the animation this slot is driving, -1 when none. Death tells it
+       to stop. */
+    int animation_0fa;
+    unsigned char unknown_0fe[7];
     unsigned char flag_105;              /* 0x105 */
 } W8PartySlotRow;                        /* 0x106 */
 

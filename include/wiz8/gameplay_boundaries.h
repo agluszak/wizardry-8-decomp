@@ -74,6 +74,19 @@ typedef struct W8CharacterResistance {
    config/types/wiz8/gameplay_databases.h enumerates as W8SpellRealm. */
 enum { W8_SPELL_REALM_COUNT = 6 };
 
+/* The eighteen conditions a character can be under, indexed directly into
+   W8Character::condition_turns. Only the ones a recovered body names are
+   spelled out; the rest keep their numbers. */
+enum {
+    W8_CONDITION_COUNT = 18,
+    W8_CONDITION_FATIGUE_DOUBLED = 2,
+    W8_CONDITION_LOAD_EASED = 5,
+    W8_CONDITION_SPELLCASTING_BLOCKED = 8,
+    W8_CONDITION_EXHAUSTED = 0x11,
+    /* The duration that means "until lifted". */
+    W8_CONDITION_INDEFINITE = 9999
+};
+
 enum {
     W8_RESISTANCE_COUNT = 6,
     /* The six skills whose level feeds the matching resistance, and the one
@@ -121,21 +134,25 @@ typedef struct W8Character {
     W8CharacterAttribute attributes[7];   /* 0x00e5, indexed by skill_id - 0x22 */
     unsigned char unknown_0171[0x2c];
     W8CharacterSkill skills[0x29];        /* 0x019d, indexed by skill_id */
-    unsigned char unknown_07b3[0x252];
-    /* 0x0a05 and 0x0a45: two condition markers. A character whose 0x0a05 is
-       zero is put under condition one when damaged; a monster's counterpart of
-       0x0a45 reading 9999 is what stamina recovery clears. */
-    int condition_marker_0a05;
-    unsigned char unknown_0a09[0x18];
-    /* 0x0a21: spellcasting is blocked for this character. Alchemy survives it
-       when the character has skill 26, which is the only exemption. */
-    int spellcasting_blocked;
-    unsigned char unknown_0a25[0x20];
-    int condition_marker_0a45;
+    unsigned char unknown_07b3[0x24a];
+    /* 0x09fd: how many times this character has died. */
+    int death_count_09fd;
+    /* 0x0a01: one entry per condition, holding how long it has left to run;
+       W8_CONDITION_INDEFINITE means until something lifts it. CharacterDies
+       walks all eighteen, and the exhausted condition the fatigue path names
+       0x11 lands exactly on element seventeen, which is what fixes the base
+       and the stride. Several entries were read individually before this
+       array explained them: two doubles the fatigue an action costs, five
+       eases the load penalty, eight blocks spellcasting. */
+    int condition_turns[W8_CONDITION_COUNT];  /* 0x0a01 */
     /* 0x0a49: non-null overrides the binding that would otherwise keep an
        equipped item on the character. Its type is not established. */
     void* unknown_0a49;
-    unsigned char unknown_0a4d[0xb4];
+    unsigned char unknown_0a4d[0x5c];
+    /* 0x0aa9: with load_relief_0a15 clear, this adds a quarter to the load
+       penalty instead of the relief subtracting one. */
+    int load_penalty_0aa9;
+    unsigned char unknown_0aad[0x54];
     /* 0x0b01 gates party-member selection alongside hp_current below: a slot is
        eligible when it still has hit points and this is under 0x12, and a
        second tier tests it against 0x0f. The threshold looks like a condition
@@ -159,7 +176,10 @@ typedef struct W8Character {
     int sp_max[W8_SPELL_REALM_COUNT];     /* 0x0b25 */
     unsigned char unknown_0b3d[8];
     int sp_left[W8_SPELL_REALM_COUNT];    /* 0x0b45 */
-    unsigned char unknown_0b5d[0x70];
+    unsigned char unknown_0b5d[0x6c];
+    /* 0x0bc9: the load category, zero through four, which scales what an
+       action costs in fatigue. FatigueCharacter's error text calls it that. */
+    int load_category;
     /* 0x0bcd: one entry per spell. CanCharacterUseItem refuses a spell-source
        item whose spell already reads one here, so one is the learned state. */
     int spell_learned[136];               /* 0x0bcd */
@@ -184,7 +204,11 @@ typedef struct W8Character {
     signed char resistance_bonus_all;     /* 0x1777: added to every resistance */
     unsigned char unknown_1778[0x34];
     signed char resistance_bonus[W8_RESISTANCE_COUNT];      /* 0x17ac */
-    unsigned char unknown_17b2[0xb0];
+    unsigned char unknown_17b2[0xa9];
+    /* 0x185b: the deep-fatigue effect is already on this character, which is
+       what stops FatigueCharacter re-applying it every turn. */
+    unsigned char deep_fatigue_applied;
+    unsigned char unknown_185c[6];
 } W8Character;                           /* 0x1862 */
 
 typedef struct W8RPCSlot {
@@ -567,7 +591,9 @@ typedef struct W8CombatState {
     int value_004;                        /* 0x004: blocks ending combat while non-zero */
     unsigned char unknown_008[0x7a8];
     int selected_slot;                    /* 0x7b0: cleared with selected_monster */
-    unsigned char unknown_7b4[4];
+    /* 0x7b4: the party slot whose turn it is; -1 when nobody's. It is cleared
+       alongside selected_slot when that character dies. */
+    int selected_character;
     struct W8MonsterInfo* selected_monster; /* 0x7b8 */
     unsigned char unknown_7bc[0x104];
     W8CombatActor* engaged_actor;         /* 0x8c0 */

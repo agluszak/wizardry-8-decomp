@@ -118,6 +118,7 @@ extern void Function407B80(int a, int b, int font, int x, int y);
 extern unsigned char FillSurfaceRect(int surface_id, int left, int top, int right,
                                      int bottom, int colour);
 extern const wchar_t g_W8EmptyText0060CC74[];
+extern const wchar_t g_W8EmptyHelpText00689B34[];
 extern const wchar_t g_W8TextBreakCharacters00617C88[];
 extern const wchar_t g_W8LineBreakCharacters00617C90[];
 extern const wchar_t g_W8TextFormat006068E4[];
@@ -1178,6 +1179,8 @@ void W8TextControl005ED604::SetAlternateTextEnabled(unsigned char enabled)
    buffer immediately after the reviewed W8TextControl base. */
 class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
 public:
+    W8HelpTextControl005ED758(Controls* panel, unsigned int region,
+                              int left, int top, int right, int bottom);
     void SetRegionHelp(const wchar_t* text);
     void UpdateRegionHelp(int event);
     virtual void InvokeFocusCallback();
@@ -1187,6 +1190,16 @@ public:
 protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
 };
+
+// FUNCTION: WIZ8 0x004F65E0
+W8HelpTextControl005ED758::W8HelpTextControl005ED758(
+    Controls* panel, unsigned int region,
+    int left, int top, int right, int bottom)
+    : W8TextControl005ED604(panel, region, left, top, right, bottom,
+                           -1, -1, -1, -1, -1, -1, -1)
+{
+    wcscpy(m_regionHelp, g_W8EmptyHelpText00689B34);
+}
 
 class W8RangeControl005ED74C;
 

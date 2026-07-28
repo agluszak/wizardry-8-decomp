@@ -78,7 +78,8 @@ wiz8,W8TextControl005ED604,0x40,0x4,text_40,int32,,strong,classes:wiz8:W8TextCon
 wiz8,W8TextControl005ED604,0x44,0x4,text_44,int32,,strong,classes:wiz8:W8TextControl005ED604,second text measurement handle
 wiz8,W8TextControl005ED604,0x48,0x4,text_48,int32,,strong,classes:wiz8:W8TextControl005ED604,primary third text measurement handle
 wiz8,W8TextControl005ED604,0x4c,0x4,text_4c,int32,,strong,classes:wiz8:W8TextControl005ED604,fallback third text measurement handle
-wiz8,W8TextControl005ED604,0x50,0x8,unknown_50,bytes,,strong,classes:wiz8:W8TextControl005ED604,text-control storage not yet semantically named
+wiz8,W8TextControl005ED604,0x50,0x4,text_50,int32,,strong,classes:wiz8:W8TextControl005ED604,the constructor copies its twelfth stack dword here independently of the adjacent positional field
+wiz8,W8TextControl005ED604,0x54,0x4,text_54,int32,,strong,classes:wiz8:W8TextControl005ED604,the constructor copies its eleventh stack dword here independently of the adjacent positional field
 wiz8,W8TextControl005ED604,0x58,0x4,text_58,int32,,strong,classes:wiz8:W8TextControl005ED604,live-resource sentinel controlling embedded text-buffer render mode
 wiz8,W8TextControl005ED604,0x5c,0x2,measured_width,int16,,strong,classes:wiz8:W8TextControl005ED604,cached measured text width
 wiz8,W8TextControl005ED604,0x5e,0x2,measured_height,int16,,strong,classes:wiz8:W8TextControl005ED604,cached measured text height
