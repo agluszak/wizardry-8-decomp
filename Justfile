@@ -13,7 +13,7 @@ test *args:
 check:
     uv run wiz8 check
 
-build target="match" *args:
+build target="runtime" *args:
     uv run wiz8 build {{target}} {{args}}
 
 run:

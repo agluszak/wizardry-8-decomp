@@ -230,7 +230,7 @@ def configure(settings: Settings) -> dict[str, Any]:
 
 
 def build_target(
-    settings: Settings, target: str = "match", jobs: int | None = None
+    settings: Settings, target: str = "runtime", jobs: int | None = None
 ) -> dict[str, Any]:
     build = ContainerBuild.from_settings(settings)
     validate_build_directory(settings)

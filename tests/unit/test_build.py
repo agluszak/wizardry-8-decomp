@@ -56,6 +56,7 @@ def test_justfile_contains_aliases_not_host_implementation() -> None:
     assert "docker" not in justfile
     assert "wine" not in justfile.casefold()
     assert "uv run wiz8 build" in justfile
+    assert 'build target="runtime"' in justfile
     assert 'compare target="WIZ8"' in justfile
 
 

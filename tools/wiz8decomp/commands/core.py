@@ -34,7 +34,7 @@ def check_command() -> None:
 
 
 def build_command(
-    target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "match",
+    target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "runtime",
     jobs: Annotated[int | None, typer.Option("--jobs", "-j")] = None,
 ) -> None:
     """Configure when needed and build one product target."""
