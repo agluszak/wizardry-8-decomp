@@ -362,6 +362,22 @@ enum {
     W8_FACTION_FRIENDLY = 2
 };
 
+/* Two faction ids the disposition calculation singles out before consulting the
+   faction table at all. Their values come from that body's switch: zero falls
+   through to the record's own hostility range, and one is always friendly. */
+enum {
+    W8_FACTION_UNALIGNED = 0,
+    W8_FACTION_PARTY = 1
+};
+
+/* What a default disposition answers with. Distinct from W8FactionDisposition:
+   the two scales disagree, and the calculation maps between them. */
+enum {
+    W8_DISPOSITION_NEUTRAL = 0,
+    W8_DISPOSITION_HOSTILE = 1,
+    W8_DISPOSITION_FRIENDLY = 2
+};
+
 struct W8MonsterInfo;
 
 /* 0x0068C09C addresses a flat array of localized notice pointers. ShowRegionHelp

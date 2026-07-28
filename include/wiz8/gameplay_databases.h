@@ -75,7 +75,10 @@ typedef struct W8MonsterRecord {
     W8WideChar name_30[24];               /* 0x030: suffix after '#' removed at load */
     W8WideChar name_60[24];               /* 0x060: suffix after '#' removed at load */
     W8WideChar name_90[24];               /* 0x090: suffix after '#' removed at load */
-    unsigned char unknown_0c0[0x11];
+    unsigned char unknown_0c0[0x10];
+    /* 0x0d0: bit 0 routes disposition through the NPC record instead of the
+       faction table, which is the only bit any recovered body reads. */
+    unsigned char flags_0d0;
     /* 0x0d1: indexed 0..4 by ConvertMonsterAttribute at 0x004e5d00, which
        bounds-checks the index against five. The group update at 0x005113a0
        squares index one and scales it by fifteen for a cache duration, which is
