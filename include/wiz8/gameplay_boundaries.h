@@ -214,8 +214,30 @@ typedef struct W8LevelInfo {
     unsigned char unknown_000[0x458];
 } W8LevelInfo;                           /* 0x458 */
 
+/* One runtime encounter table. Its full field model lives in
+   config/types/wiz8/encounter_tables.h; the porting header only needs the size,
+   because the bodies recovered so far hand the pointer around without reading
+   through it. */
+typedef struct W8EncounterTableRuntime {
+    unsigned char unknown_000[0x158];
+} W8EncounterTableRuntime;               /* 0x158 */
+
+/* What a generator hangs off itself. Both are released through slot zero of
+   their own vtable with the deleting flag set, so both are polymorphic; nothing
+   else about either is established. */
+class W8MonsterGeneratorNode {
+public:
+    virtual ~W8MonsterGeneratorNode();
+};
+
 typedef struct W8MonsterGenerator {
-    unsigned char unknown_00[0x24];
+    unsigned int flags;                   /* 0x00: bit 2 is cleared on teardown */
+    unsigned char unknown_04[8];
+    /* 0x0c: the block GenerateEncounter is handed. */
+    unsigned char encounter_state[0xc];
+    W8MonsterGeneratorNode* node_18;      /* 0x18 */
+    unsigned char unknown_1c[4];
+    W8MonsterGeneratorNode* node_20;      /* 0x20 */
     char name[32];                        /* 0x24 */
 } W8MonsterGenerator;
 
@@ -559,6 +581,8 @@ extern W8ItemTableRecord** g_item_tables;
 extern unsigned int g_item_table_count;
 extern char** g_item_table_category_names;
 extern unsigned int g_item_table_category_count;
+extern W8EncounterTableRuntime** g_encounter_tables;
+extern unsigned int g_encounter_table_count;
 extern W8LevelDatabaseRecord* g_level_records;
 extern int g_level_record_count;
 extern int g_loaded_level_id;

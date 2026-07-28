@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include <math.h>
+#include "wiz8/vector.h"
 
 #include <string.h>
 
@@ -41,6 +42,11 @@ extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
 extern W8MonsterGroup** g_active_groups;    /* 0x0065BA1C */
 extern void RollRandomEncounters(void);     /* 0x0048CA20 */
+extern void Function49FA30(W8World* world);                  /* 0x0049FA30 */
+extern int Function43A5D0(void);                             /* 0x0043A5D0 */
+extern unsigned char Function48B200(int value);              /* 0x0048B200 */
+extern void Function48B420(void);                            /* 0x0048B420 */
+extern void GenerateEncounter(unsigned char* encounter_state); /* 0x0048AD20 */
 
 /* Ten hours of game time. Past that the elapsed span is not distributed over
    the live groups at all - a fresh roll replaces them instead. */
@@ -149,6 +155,124 @@ void CullExpiredEncounters(void)
                 g_force_encounter_culling != 0) {
                 DespawnMonsterGroup(group);
             }
+        }
+    }
+}
+
+/* How many monster generators the loaded world carries. */
+// FUNCTION: WIZ8 0x0048BD80
+int GetMonsterGeneratorCount(void)
+{
+    return g_world->monster_generators->GetCount();
+}
+
+/* One of them by index. Out of range answers null, which is why the bounds test
+   appears twice: once here, rejecting the index outright, and once inside the
+   vector's own bounds-checked read, which would otherwise fall back to element
+   zero. */
+// FUNCTION: WIZ8 0x0048BD90
+W8MonsterGenerator* GetMonsterGenerator(int index)
+{
+    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
+
+    if (index >= generators->GetCount()) {
+        return 0;
+    }
+    return *generators->GetAt(index);
+}
+
+/* One loaded encounter table by index. Unlike the generator lookup this one has
+   no second bounds test, because the tables are a plain array rather than a
+   vector. */
+// FUNCTION: WIZ8 0x0048AD00
+W8EncounterTableRuntime* GetEncounterTable(int index)
+{
+    if (index < static_cast<int>(g_encounter_table_count)) {
+        return g_encounter_tables[index];
+    }
+    return 0;
+}
+
+/* Appends a generator to the world's list, growing the array by exactly one
+   element when it is full - so filling the list is quadratic, which is what the
+   image does. A failed allocation puts the old array back and drops the
+   generator silently. The grow is written out rather than delegated because the
+   original inlines it here. */
+// FUNCTION: WIZ8 0x0048BE30
+void AddMonsterGenerator(W8MonsterGenerator* generator)
+{
+    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
+    W8MonsterGenerator** previous;
+    int wanted = generators->count + 1;
+    int index;
+
+    if (generators->capacity < wanted) {
+        previous = generators->data;
+        generators->data = static_cast<W8MonsterGenerator**>(
+            ::operator new(wanted * sizeof(W8MonsterGenerator*)));
+        if (generators->data == 0) {
+            generators->data = previous;
+            return;
+        }
+        generators->capacity = wanted;
+        for (index = 0; index < generators->count; ++index) {
+            generators->data[index] = previous[index];
+        }
+        ::operator delete(previous);
+    }
+    generators->data[generators->count] = generator;
+    ++generators->count;
+}
+
+/* Destroys every generator and empties the list. The count is taken once up
+   front and the list is emptied by resetting it rather than by removing
+   elements, so the walk indexes an array it is deleting out of - which is safe
+   only because nothing shifts. */
+// FUNCTION: WIZ8 0x0048BF70
+void DestroyMonsterGenerators(void)
+{
+    int count = g_world->monster_generators->GetCount();
+    W8MonsterGenerator* generator;
+    int index;
+
+    if (count < 1) {
+        g_world->monster_generators->Clear();
+        return;
+    }
+    for (index = 0; index < count; ++index) {
+        generator = *g_world->monster_generators->GetAt(index);
+        if (generator != 0) {
+            if (generator->node_18 != 0) {
+                if ((generator->flags >> 2 & 1) != 0) {
+                    generator->flags &= ~4u;
+                    Function49FA30(g_world);
+                }
+                delete generator->node_18;
+            }
+            delete generator->node_20;
+            ::operator delete(generator);
+        }
+    }
+    g_world->monster_generators->Clear();
+}
+
+/* Runs one encounter roll for every generator that is armed and whose own
+   precondition passes. The count is taken once, but the vector is re-read for
+   each element, which is what the repeated bounds test in the original is. */
+// FUNCTION: WIZ8 0x0048C600
+void RunMonsterGenerators(void)
+{
+    int count = g_world->monster_generators->GetCount();
+    W8MonsterGenerator* generator;
+    int index;
+
+    for (index = 0; index < count; ++index) {
+        generator = *g_world->monster_generators->GetAt(index);
+        if (generator->node_20 != 0 && Function43A5D0() != 0) {
+            if (Function48B200(0) != 0) {
+                GenerateEncounter(generator->encounter_state);
+            }
+            Function48B420();
         }
     }
 }
