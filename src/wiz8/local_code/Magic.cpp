@@ -1307,25 +1307,25 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
     case 0:
     case 1:
     case 3:
-        target.kind = W8_TARGET_KIND_ONE_CHARACTER;
-        target.character_slot = GetRandomCharacter(0, 1, -1, -1);
+        target.iType = W8_TARGET_KIND_ONE_CHARACTER;
+        target.iChar = GetRandomCharacter(0, 1, -1, -1);
         break;
     case 2:
     case 4:
-        target.kind = W8_TARGET_KIND_WHOLE_PARTY;
+        target.iType = W8_TARGET_KIND_WHOLE_PARTY;
         break;
     case 5:
         hostile = 0;
-        target.kind = W8_TARGET_KIND_WHOLE_PARTY;
+        target.iType = W8_TARGET_KIND_WHOLE_PARTY;
         AimCombatSlotAtParty(&target, hostile);
-        target.kind = W8_TARGET_KIND_PARTY_SIDE;
+        target.iType = W8_TARGET_KIND_PARTY_SIDE;
         break;
     case 6:
     case 8:
         hostile = 1;
-        target.kind = W8_TARGET_KIND_WHOLE_PARTY;
+        target.iType = W8_TARGET_KIND_WHOLE_PARTY;
         AimCombatSlotAtParty(&target, hostile);
-        target.kind = W8_TARGET_KIND_PARTY_SIDE;
+        target.iType = W8_TARGET_KIND_PARTY_SIDE;
         break;
     default:
         srAssertFail(
@@ -1799,23 +1799,23 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         srAssertFail("pTarget != NULL", MAGIC_CPP, 0xa4, 0);
     }
 
-    switch (target->kind) {
+    switch (target->iType) {
     case 0:
     case 6:
         return g_no_target_text;
 
     case 1:
     case 9:
-        if (target->character_slot == -1) {
+        if (target->iChar == -1) {
             srAssertFail("pTarget->iChar != BAD_INDEX", MAGIC_CPP, 0xad, 0);
         }
         if (!TargetSourceIsCharacter((const W8TargetSource*)target, 0) || target->described.name_known != 0) {
             return FormatWideString(
                 g_message_strings[W8_MESSAGE_TARGET_AT / 4],
-                g_party_characters[target->character_slot].name);
+                g_party_characters[target->iChar].name);
         }
         name_prefix =
-            g_name_prefix_messages[g_party_characters[target->character_slot].faction * 4];
+            g_name_prefix_messages[g_party_characters[target->iChar].faction * 4];
         break;
 
     case 2:
@@ -1825,11 +1825,11 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         W8MonsterInfo* monster_info;
         W8MonsterRecord* record;
 
-        if (target->monster_id == -1) {
+        if (target->iMonsterID == -1) {
             srAssertFail("pTarget->iMonsterID != BAD_INDEX", MAGIC_CPP, 0xbd, 0);
         }
         monster_info = MonsterGetScriptPartByLocationIndex(
-            MonsterGetIndexByLocationID(0xc0, MAGIC_CPP, target->monster_id, 1));
+            MonsterGetIndexByLocationID(0xc0, MAGIC_CPP, target->iMonsterID, 1));
         record = GetMonsterDataForInfo(monster_info);
         if (!TargetSourceIsMonster((const W8TargetSource*)target, 0)) {
             return FormatWideString(
@@ -1844,7 +1844,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         return FormatWideString(
             g_message_strings[W8_MESSAGE_TARGET_AT / 4],
             GetMonsterGroupName(GetMonsterGroupByListIndex(
-                GetMonsterGroupIndexByID(0xcf, MAGIC_CPP, target->group_id, 1))));
+                GetMonsterGroupIndexByID(0xcf, MAGIC_CPP, target->iGroupID, 1))));
 
     case 5:
         return g_message_strings[W8_MESSAGE_TARGET_PLACE / 4];
@@ -1852,7 +1852,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
     case 7:
         return FormatWideString(
             g_message_strings[W8_MESSAGE_TARGET_ITEM / 4],
-            FormatItemDisplayName(target->item, 0));
+            FormatItemDisplayName(target->pPCItem, 0));
 
     case 8:
         return g_message_strings[W8_MESSAGE_TARGET_DIRECTION / 4];
@@ -1860,7 +1860,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
     default:
         srAssertFail(
             "FALSE", MAGIC_CPP, 0xde,
-            FormatString("SpellTargetString: ERROR - Invalid spell target for %d", target->kind));
+            FormatString("SpellTargetString: ERROR - Invalid spell target for %d", target->iType));
         return g_message_strings[W8_MESSAGE_TARGET_UNKNOWN / 4];
     }
 

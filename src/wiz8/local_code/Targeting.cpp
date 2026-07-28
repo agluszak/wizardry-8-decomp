@@ -143,10 +143,10 @@ void ResetTargetSource(W8TargetSource* source)
 void ResetCombatSlot(W8CombatSlot* slot)
 {
     memset(slot, 0, sizeof(W8CombatSlot));
-    slot->kind = 0;
-    slot->monster_id = BAD_INDEX;
-    slot->character_slot = BAD_INDEX;
-    slot->group_id = BAD_INDEX;
+    slot->iType = 0;
+    slot->iMonsterID = BAD_INDEX;
+    slot->iChar = BAD_INDEX;
+    slot->iGroupID = BAD_INDEX;
 }
 
 /* Clear whatever a monster was aiming at, and report that it now has no
@@ -222,10 +222,10 @@ void AimByKind(int actor, int kind, int context)
     W8CombatSlot target;
 
     memset(&target, 0, sizeof(target));
-    target.monster_id = BAD_INDEX;
-    target.character_slot = BAD_INDEX;
-    target.group_id = BAD_INDEX;
-    target.kind = kind;
+    target.iMonsterID = BAD_INDEX;
+    target.iChar = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = kind;
     AimAtTarget(actor, &target, context);
 }
 
@@ -236,10 +236,10 @@ void AimAtCharacter(int actor, int character_slot, int context)
     W8CombatSlot target;
 
     memset(&target, 0, sizeof(target));
-    target.monster_id = BAD_INDEX;
-    target.group_id = BAD_INDEX;
-    target.character_slot = character_slot;
-    target.kind = W8_TARGET_KIND_CHARACTER;
+    target.iMonsterID = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iChar = character_slot;
+    target.iType = W8_TARGET_KIND_CHARACTER;
     AimAtTarget(actor, &target, context);
 }
 
@@ -252,10 +252,10 @@ void AimAtPlace(int actor)
     unsigned char scratch[16];
 
     memset(&target, 0, sizeof(target));
-    target.monster_id = BAD_INDEX;
-    target.character_slot = BAD_INDEX;
-    target.group_id = BAD_INDEX;
-    target.kind = W8_TARGET_KIND_PLACE;
+    target.iMonsterID = BAD_INDEX;
+    target.iChar = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_PLACE;
     Function492500(scratch);
     AimAtTarget(actor, &target, W8_TARGET_KIND_PLACE);
     g_target_marker_00684073 = 0;
@@ -270,10 +270,10 @@ void SetTargetToCharacter(int character_slot, int context)
     W8CombatSlot target;
 
     memset(&target, 0, sizeof(target));
-    target.monster_id = BAD_INDEX;
-    target.group_id = BAD_INDEX;
-    target.kind = W8_TARGET_KIND_CHARACTER;
-    target.character_slot = character_slot;
+    target.iMonsterID = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_CHARACTER;
+    target.iChar = character_slot;
     ApplyTarget(&target, context);
 }
 
@@ -283,10 +283,10 @@ void SetTargetToMonster(int monster_id, int context)
     W8CombatSlot target;
 
     memset(&target, 0, sizeof(target));
-    target.character_slot = BAD_INDEX;
-    target.group_id = BAD_INDEX;
-    target.kind = W8_TARGET_KIND_MONSTER;
-    target.monster_id = monster_id;
+    target.iChar = BAD_INDEX;
+    target.iGroupID = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_MONSTER;
+    target.iMonsterID = monster_id;
     ApplyTarget(&target, context);
 }
 
@@ -296,10 +296,10 @@ void SetTargetToGroup(int group_id, int context)
     W8CombatSlot target;
 
     memset(&target, 0, sizeof(target));
-    target.monster_id = BAD_INDEX;
-    target.character_slot = BAD_INDEX;
-    target.kind = W8_TARGET_KIND_GROUP;
-    target.group_id = group_id;
+    target.iMonsterID = BAD_INDEX;
+    target.iChar = BAD_INDEX;
+    target.iType = W8_TARGET_KIND_GROUP;
+    target.iGroupID = group_id;
     ApplyTarget(&target, context);
 }
 
@@ -335,10 +335,10 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
     case 1:
     case 2:
     case 8:
-        if (target->kind == W8_TARGET_KIND_CHARACTER && target->character_slot != BAD_INDEX) {
+        if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar != BAD_INDEX) {
             matched = 1;
         }
-        if (target->kind == W8_TARGET_KIND_MONSTER && target->monster_id != BAD_INDEX) {
+        if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
             return TargetIsReachable(target);
         }
         if (matched) {
@@ -347,15 +347,15 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
         break;
     case 3:
     case 4:
-        if (target->kind == W8_TARGET_KIND_PLACE) {
+        if (target->iType == W8_TARGET_KIND_PLACE) {
             return TargetIsReachable(target);
         }
         break;
     case 5:
-        if (target->kind == W8_TARGET_KIND_GROUP && target->group_id != BAD_INDEX) {
+        if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
             matched = 1;
         }
-        if (target->kind == W8_TARGET_KIND_PARTY) {
+        if (target->iType == W8_TARGET_KIND_PARTY) {
             return TargetIsReachable(target);
         }
         if (matched) {
@@ -363,13 +363,13 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
         }
         break;
     case 6:
-        if (target->kind == W8_TARGET_KIND_ITEM && target->item != 0) {
+        if (target->iType == W8_TARGET_KIND_ITEM && target->pPCItem != 0) {
             return TargetIsReachable(target);
         }
         break;
     case 7:
-        if (target->kind == W8_TARGET_KIND_CHARACTER_INDIRECT &&
-            target->character_slot != BAD_INDEX) {
+        if (target->iType == W8_TARGET_KIND_CHARACTER_INDIRECT &&
+            target->iChar != BAD_INDEX) {
             return TargetIsReachable(target);
         }
         break;
@@ -715,4 +715,108 @@ int ChooseMonsterTarget(int party_slot, int group_id, int context)
     chosen = candidates[0].location_id;
     free(candidates);
     return chosen;
+}
+
+/* The two conditions the indirect character kind reads: eighteen has to be
+   running and nineteen not. The monster kind reads the same eighteenth entry of
+   its own array, which is what pairs the two arrays entry for entry. */
+enum { W8_CONDITION_REACHABLE_WHEN_DOWN = 18, W8_CONDITION_BEYOND_REACH = 19 };
+
+/* Whether whatever a target names is still there to be acted on. Each kind
+   checks its own field and then whatever that field points at, which is what
+   makes the four assertions here - on iChar, iMonsterID, iGroupID and pPCItem -
+   name four different fields of one block rather than one field four times.
+
+   The two character kinds differ in what "still there" means: the direct one
+   wants somebody alive and in a state under 0x12, and the indirect one wants
+   the opposite, somebody with no hit points left whose two death fields say
+   they can still be reached. Everything else - a place, the party as a whole -
+   is always there and is not answered here at all. */
+// FUNCTION: WIZ8 0x00536190
+unsigned char IsTargetStillPresent(const W8CombatSlot* target)
+{
+    if (target == 0) {
+        return 0;
+    }
+
+    switch (target->iType) {
+    case W8_TARGET_KIND_CHARACTER:
+        if (target->iChar == BAD_INDEX) {
+            srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x6c, 0);
+        }
+        if (g_party_slot_rows[target->iChar].flag_00 == 0 ||
+            g_party_characters[target->iChar].hp_current == 0 ||
+            g_party_characters[target->iChar].unknown_0b01 > 0x11) {
+            return 0;
+        }
+        break;
+
+    case W8_TARGET_KIND_CHARACTER_INDIRECT:
+        if (target->iChar == BAD_INDEX) {
+            srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x75, 0);
+        }
+        if (g_party_slot_rows[target->iChar].flag_00 == 0 ||
+            g_party_characters[target->iChar].hp_current != 0 ||
+            g_party_characters[target->iChar].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0 ||
+            g_party_characters[target->iChar].condition_turns[W8_CONDITION_BEYOND_REACH] != 0) {
+            return 0;
+        }
+        break;
+
+    case W8_TARGET_KIND_MONSTER: {
+        int index;
+        W8MonsterInfo* monster_info;
+
+        if (target->iMonsterID == BAD_INDEX) {
+            srAssertFail("pTarget->iMonsterID != BAD_INDEX", TARGETING_CPP, 0x7e, 0);
+        }
+        index = MonsterGetIndexByLocationID(0x80, TARGETING_CPP, target->iMonsterID, 0);
+        if (index == BAD_INDEX) {
+            return 0;
+        }
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info == 0) {
+            srAssertFail("pMonsterInfo != NULL", TARGETING_CPP, 0x88, 0);
+        }
+        if (monster_info->hp_current == 0 || monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 ||
+            monster_info->flag_14 == 0) {
+            return 0;
+        }
+        break;
+    }
+
+    case W8_TARGET_KIND_GROUP: {
+        unsigned int group_list_index;
+        W8MonsterGroup* group;
+
+        if (target->iGroupID == BAD_INDEX) {
+            srAssertFail("pTarget->iGroupID != BAD_INDEX", TARGETING_CPP, 0x99, 0);
+        }
+        group_list_index = GetMonsterGroupIndexByID(0x9b, TARGETING_CPP, target->iGroupID, 0);
+        if (group_list_index == 0xffffffff) {
+            return 0;
+        }
+        group = GetMonsterGroupByListIndex(group_list_index);
+        if (group == 0) {
+            srAssertFail("pMonsterGroup != NULL", TARGETING_CPP, 0xa3, 0);
+        }
+        if (group->member_count == 0 || group->flag_28 == 0) {
+            return 0;
+        }
+        break;
+    }
+
+    case W8_TARGET_KIND_ITEM:
+        if (target->pPCItem == 0) {
+            srAssertFail("pTarget->pPCItem != NULL", TARGETING_CPP, 0xb4, 0);
+        }
+        if (target->pPCItem->item_id == BAD_INDEX) {
+            return 0;
+        }
+        break;
+
+    default:
+        break;
+    }
+    return 1;
 }

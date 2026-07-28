@@ -131,7 +131,7 @@ unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterReco
     if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
         GetPartyPosition(&party);
         ResetCombatSlot(&monster_info->combat_slot_2ba);
-        monster_info->combat_slot_2ba.kind = 6;
+        monster_info->combat_slot_2ba.iType = 6;
         monster_info->combat_slot_2ba.point = party;
         return 1;
     }
@@ -149,13 +149,13 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
 
     switch (monster_info->action_kind) {
     case W8_MONSTER_ACTION_ATTACK:
-        return monster_info->combat_slot_2ba.kind == 1;
+        return monster_info->combat_slot_2ba.iType == 1;
     case W8_MONSTER_ACTION_SPELL:
         spell_id = monster_info->action_detail;
         if (!Function5474B0(spell_id)) {
             return 0;
         }
-        switch (monster_info->combat_slot_2ba.kind) {
+        switch (monster_info->combat_slot_2ba.iType) {
         case 1:
         case 2:
             return 1;

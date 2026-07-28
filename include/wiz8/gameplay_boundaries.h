@@ -573,10 +573,14 @@ typedef struct W8TargetSource {
 /* The shorter form a combatant carries inline, with one more field reset to
    -1 and no room for the tail. */
 typedef struct W8CombatSlot {
-    int kind;                             /* 0x00 */
-    int character_slot;                   /* 0x04, -1 when empty */
-    int monster_id;                       /* 0x08, -1 when empty */
-    int group_id;                         /* 0x0c, -1 when empty */
+    /* The four ids are named by the assertions that bound each of them -
+       pTarget->iChar, pTarget->iMonsterID, pTarget->iGroupID and
+       pTarget->pPCItem - and they are the same four the source block carries
+       under the same names, one per target kind. */
+    int iType;                            /* 0x00 */
+    int iChar;                            /* 0x04, -1 when empty */
+    int iMonsterID;                       /* 0x08, -1 when empty */
+    int iGroupID;                         /* 0x0c, -1 when empty */
     /* 0x10 through 0x1b means different things by kind, which is what the two
        readings of it are: a place-kind target keeps the world point there,
        while a character- or monster-kind target keeps a flag at 0x19 that
@@ -591,7 +595,7 @@ typedef struct W8CombatSlot {
         } described;
     };
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
-    W8ItemInstance* item;
+    W8ItemInstance* pPCItem;
 } W8CombatSlot;                           /* 0x20 */
 
 /* The target kinds a combat slot's leading field takes. The four that name

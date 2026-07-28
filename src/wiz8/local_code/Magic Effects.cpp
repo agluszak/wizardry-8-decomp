@@ -160,14 +160,14 @@ void AnnounceEffectResisted(W8CombatSlot* target)
     if (g_announce_resists_0068510c == 0) {
         return;
     }
-    if (target->kind == W8_TARGET_KIND_MONSTER) {
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
         PostMonsterNotice(
             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                3758, MAGIC_EFFECTS_CPP, target->monster_id, 1)),
+                3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
             g_notices[0x6cc / 4]);
         return;
     }
-    PostCharacterNotice(target->character_slot, g_notices[0x6cc / 4]);
+    PostCharacterNotice(target->iChar, g_notices[0x6cc / 4]);
 }
 
 /* Apply an effect and say so if it did not take. Only a zero result counts as
@@ -180,14 +180,14 @@ void ApplyEffectAndAnnounce(int* result, W8CombatSlot* target, int arg_3, int ar
     if (*result != 0 || g_announce_resists_0068510c == 0) {
         return;
     }
-    if (target->kind == W8_TARGET_KIND_MONSTER) {
+    if (target->iType == W8_TARGET_KIND_MONSTER) {
         PostMonsterNotice(
             MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-                3758, MAGIC_EFFECTS_CPP, target->monster_id, 1)),
+                3758, MAGIC_EFFECTS_CPP, target->iMonsterID, 1)),
             g_notices[0x6cc / 4]);
         return;
     }
-    PostCharacterNotice(target->character_slot, g_notices[0x6cc / 4]);
+    PostCharacterNotice(target->iChar, g_notices[0x6cc / 4]);
 }
 
 /* Which of the seven display slots one condition owns. Anything not among the

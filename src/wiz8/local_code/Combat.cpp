@@ -311,10 +311,10 @@ unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
 {
     W8Character* character;
 
-    if (target->kind != W8_TARGET_KIND_CHARACTER) {
+    if (target->iType != W8_TARGET_KIND_CHARACTER) {
         return 0;
     }
-    character = &g_party_characters[target->character_slot];
+    character = &g_party_characters[target->iChar];
     if ((character->hp_current * 100) / (unsigned int)character->hp_max >=
         g_flee_hp_fraction_005ed8f8) {
         return 0;
