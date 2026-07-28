@@ -11,6 +11,20 @@ The CMake graph now has separate matching and bring-up surfaces:
   links with `/OPT:REF`, so only source-backed COMDAT functions reached by recovered Wizardry code
   survive. `WIZ8_BRINGUP` retains `/OPT:NOREF` and remains the whole-image comparison surface.
 
+Build and open the recovered main menu with:
+
+```sh
+just run
+```
+
+The launcher creates `build/runtime/wiz8` for the writable executable, video configuration, and
+save directory. It links the large shipped assets from `$WIZ8_WORK_DIR/variants/gog-base` without
+changing that canonical materialization. Wine state is reused at
+`$WIZ8_WORK_DIR/wine/wiz8-runtime`; set `WIZ8_WINE_PREFIX` to override it. On the first run it
+materializes the reviewed default `Wiz8.CFG` settings record, avoiding the still-incomplete
+first-party settings-discovery path; subsequent in-game configuration changes remain local to the
+staging directory.
+
 The recovered corpus is not link-complete. `WIZ8_BRINGUP` therefore uses `/FORCE:UNRESOLVED` rather
 than contaminating matching source with invented globals or function bodies. LINK reports every
 unresolved first-party boundary and emits an inspectable PE/PDB. The bring-up entry only returns

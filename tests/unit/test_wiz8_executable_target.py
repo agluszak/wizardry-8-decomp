@@ -32,6 +32,15 @@ def test_wiz8_executable_target_uses_real_platform_and_reccmp_surfaces() -> None
     assert "ddraw.lib" in cmake
     assert "gdi32.lib" in cmake
     assert "user32.lib" in cmake
+    justfile = (repository / "Justfile").read_text(encoding="utf-8")
+    assert 'run: (build "WIZ8_RUNTIME")' in justfile
+    assert '$WIZ8_WORK_DIR/variants/gog-base' in justfile
+    assert '$WIZ8_WORK_DIR/wine/wiz8-runtime' in justfile
+    assert "config/runtime/Wiz8.CFG.hex" in justfile
+    run_recipe = justfile.split('run: (build "WIZ8_RUNTIME")', 1)[1].split(
+        "# Refuse a build directory", 1
+    )[0]
+    assert "pkill" not in run_recipe
     # The matching target sees the recovered headers and the vendored SGP tree,
     # and nothing else. SGP is on the path because its structures are library
     # layout that the evidence policy says to take from the real header rather

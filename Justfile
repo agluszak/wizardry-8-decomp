@@ -23,6 +23,43 @@ build target=jpeg_target: configure
         {{vc6_image}} \
         cmd /c "set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& C:\cmake\bin\cmake.exe --build Z:/out --target {{target}}"
 
+# Build and run the recovered Wizardry 8 main-menu slice.
+run: (build "WIZ8_RUNTIME")
+    #!/usr/bin/env bash
+    set -euo pipefail
+    source="$WIZ8_WORK_DIR/variants/gog-base"
+    stage="{{repo}}/build/runtime/wiz8"
+    prefix="${WIZ8_WINE_PREFIX:-$WIZ8_WORK_DIR/wine/wiz8-runtime}"
+    command -v wine >/dev/null || { echo "wine is required to run WIZ8_RUNTIME" >&2; exit 1; }
+    for path in Data Dll Levels; do
+        test -d "$source/$path" || { echo "missing retail asset directory: $source/$path" >&2; exit 1; }
+    done
+    mkdir -p "$stage" "$stage/Saves" "$prefix"
+    for path in Data Dll Levels Patches; do
+        test -e "$source/$path" || continue
+        if test ! -e "$stage/$path"; then
+            ln -s "$source/$path" "$stage/$path"
+        elif test ! -L "$stage/$path"; then
+            echo "runtime staging path is not a managed symlink: $stage/$path" >&2
+            exit 1
+        fi
+    done
+    for path in "$source"/*; do
+        test -f "$path" || continue
+        name="${path##*/}"
+        case "$name" in Wiz8.exe|Wiz8Runtime.exe|3DVideo.CFG) continue ;; esac
+        test -e "$stage/$name" || ln -s "$path" "$stage/$name"
+    done
+    test -e "$stage/3DVideo.CFG" || cp "{{repo}}/config/runtime/3DVideo.CFG" "$stage/3DVideo.CFG"
+    if test ! -e "$stage/Wiz8.CFG"; then
+        uv run --project "{{repo}}" python -c \
+            'import pathlib, sys; pathlib.Path(sys.argv[2]).write_bytes(bytes.fromhex(pathlib.Path(sys.argv[1]).read_text()))' \
+            "{{repo}}/config/runtime/Wiz8.CFG.hex" "$stage/Wiz8.CFG"
+    fi
+    cp "{{repo}}/build/decomp/Wiz8Runtime.exe" "$stage/Wiz8Runtime.exe"
+    cd "$stage"
+    WINEPREFIX="$prefix" WINEDLLOVERRIDES="winemenubuilder.exe=d" wine ./Wiz8Runtime.exe
+
 # Refuse a build directory configured by a different checkout. Two checkouts
 # sharing WIZ8_WORK_DIR overwrite each other's CMake cache and linked
 # Wiz8.exe/Wiz8.pdb, and the symptom is a wrong comparison rather than an error.
