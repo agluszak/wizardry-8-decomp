@@ -38,13 +38,12 @@ extern float g_world_scale_005ebc40;
 extern float g_range_constant_005ec360;
 extern float g_range_constant_005ec35c;
 
-/* The formation. Each party position names up to three characters ahead of it
-   at 0x00687511, the front row is listed on its own at 0x0068751D, and each
-   position's row number sits at 0x00687525 with a twelve-byte stride. -1 marks
-   an empty place. */
-extern const signed char g_formation_ahead[][W8_FORMATION_ROW_WIDTH];    /* 0x00687511 */
-extern const signed char g_formation_front_row[W8_FORMATION_ROW_WIDTH];  /* 0x0068751D */
-extern const unsigned char g_formation_row_of_position[];                /* 0x00687525 */
+/* The formation. Three party positions per row at 0x00687511, and each
+   position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
+   an empty place. Both live inside the block Formation & Facing.cpp saves and
+   restores whole. */
+extern const signed char g_formation_rows[][W8_FORMATION_ROW_WIDTH];     /* 0x00687511 */
+extern const unsigned char g_position_row[];                             /* 0x00687525 */
 
 /* The furthest range category any of this character's hands can reach at. */
 // FUNCTION: WIZ8 0x00519BA0
@@ -193,7 +192,7 @@ bool AnyoneStandsAhead(unsigned char position)
     signed char slot;
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
-        slot = g_formation_ahead[position][index];
+        slot = g_formation_rows[position][index];
         if (slot != -1 && g_party_characters[slot].out_of_formation == 0) {
             ++found;
         }
@@ -206,8 +205,8 @@ bool AnyoneStandsAhead(unsigned char position)
 // FUNCTION: WIZ8 0x0051B000
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 {
-    unsigned char from_row = g_formation_row_of_position[from_position * 0xc];
-    unsigned char to_row = g_formation_row_of_position[to_position * 0xc];
+    unsigned char from_row = g_position_row[from_position * 0xc];
+    unsigned char to_row = g_position_row[to_position * 0xc];
     int rows_apart;
     int found;
     unsigned int index;
@@ -229,7 +228,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 
     found = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
-        slot = g_formation_front_row[index];
+        slot = g_formation_rows[4][index];
         if (slot != -1 && g_party_characters[slot].out_of_formation == 0) {
             ++found;
         }
