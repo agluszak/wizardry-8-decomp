@@ -66,7 +66,10 @@ struct W8ItemDatabaseRecord {
     unsigned char unknown_064[2];
     /* 0x066: zero none, one stack, two through four uses or charges. */
     unsigned char quantity_kind;
-    unsigned char unknown_067[0xf];
+    /* 0x067: the quantity the item is created with, and whose maximum - sides
+       times count plus base - is the most it can ever hold. */
+    W8Dice initial_quantity;
+    unsigned char unknown_06b[0xb];
     /* 0x076: one bit per profession id; the character's current profession has
        to be among them. */
     unsigned short profession_mask;

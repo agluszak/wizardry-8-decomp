@@ -1069,13 +1069,264 @@ bool ItemHasHiddenProperties(int item_id)
         return true;
     }
     for (index = 0; index < 6; ++index) {
-        if (record->unknown_067[4 + index] != 0) {
+        if (record->unknown_06b[4 + index] != 0) {
             return true;
         }
     }
-    if (record->binds_on_equip != 0 || record->unknown_067[1] != 0 ||
-        record->unknown_067[2] != 0 || record->unknown_067[3] != 0) {
+    if (record->binds_on_equip != 0 || record->unknown_06b[1] != 0 ||
+        record->unknown_06b[2] != 0 || record->unknown_06b[3] != 0) {
         return true;
     }
     return false;
+}
+
+/* The skill an identify attempt practises, and the one whose level supplies
+   its strength - a sixth of it. */
+enum { W8_SKILL_IDENTIFY = 0x14 };
+
+extern void PracticeCharacterSkill(W8Character* character, int skill, int amount, int arg_4);
+extern void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
+extern void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
+extern void ShowNotice(int channel, void* notice, int a, int b, int c);
+extern unsigned char g_in_combat_00683f94;
+extern unsigned char g_flag_00683fce;
+extern W8CombatState* g_combat_state;
+
+/* The most of one item a character can hold at once: the record's own quantity
+   dice taken at their maximum. */
+static int MaximumQuantity(int item_id)
+{
+    return g_item_records[item_id].initial_quantity.sides *
+               g_item_records[item_id].initial_quantity.count +
+           g_item_records[item_id].initial_quantity.base;
+}
+
+/* Add uses to one item, never past what it can hold. */
+// FUNCTION: WIZ8 0x0051E920
+void AddItemUses(W8ItemInstance* item, char uses)
+{
+    unsigned char total = item->uses_or_charges + uses;
+    int maximum = MaximumQuantity(item->item_id);
+
+    item->uses_or_charges = total;
+    if ((int)(unsigned int)total < maximum) {
+        item->uses_or_charges = total;
+        return;
+    }
+    item->uses_or_charges = (unsigned char)maximum;
+}
+
+/* Pour one item's uses into another and take that many off the source, one at
+   a time - which is what makes the source disappear when it is emptied. Each
+   side counts its quantity the way its own record says to. */
+// FUNCTION: WIZ8 0x0051E9F0
+void MergeItemUses(int party_slot, W8ItemInstance* into, W8ItemInstance* from)
+{
+    unsigned char available;
+    unsigned char held;
+    unsigned int moved;
+
+    available = g_item_records[from->item_id].quantity_kind == 1 ? from->stack_count
+                                                                : from->uses_or_charges;
+    held = g_item_records[into->item_id].quantity_kind == 1 ? into->stack_count
+                                                            : into->uses_or_charges;
+
+    moved = MaximumQuantity(into->item_id) - held;
+    if (available <= moved) {
+        moved = available;
+    }
+    into->uses_or_charges += (char)moved;
+    for (; moved != 0; --moved) {
+        RemoveCharacterItem(party_slot, from, 0);
+    }
+}
+
+/* Where one item id sits on a character. The worn slots are searched first and
+   the carried ones only when asked for; a starting slot makes the search
+   resume after it rather than from the front. */
+// FUNCTION: WIZ8 0x00520F90
+bool FindItemOnCharacter(
+    W8Character* character,
+    int item_id,
+    W8ItemInstance** found,
+    int include_backpack,
+    const W8ItemInstance* resume_after)
+{
+    unsigned int slot = 0;
+
+    if (resume_after != 0) {
+        for (slot = 0; slot < 12; ++slot) {
+            if (&character->equipment[slot] == resume_after) {
+                ++slot;
+                break;
+            }
+        }
+    }
+    for (; slot < 12; ++slot) {
+        if (character->equipment[slot].item_id == item_id) {
+            if (found != 0) {
+                *found = &character->equipment[slot];
+            }
+            return true;
+        }
+    }
+
+    if (include_backpack == 0) {
+        return false;
+    }
+
+    slot = 0;
+    if (resume_after != 0) {
+        for (slot = 0; slot < 8; ++slot) {
+            if (&character->backpack[slot] == resume_after) {
+                ++slot;
+                break;
+            }
+        }
+    }
+    for (; slot < 8; ++slot) {
+        if (character->backpack[slot].item_id == item_id) {
+            if (found != 0) {
+                *found = &character->backpack[slot];
+            }
+            return true;
+        }
+    }
+    if (found != 0) {
+        *found = 0;
+    }
+    return false;
+}
+
+/* How many of one item a character holds, counting a stack as its count and
+   anything else as one, and optionally reporting the first slot it is in. */
+// FUNCTION: WIZ8 0x005211A0
+int CountItemOnCharacter(
+    W8Character* character, int item_id, W8ItemInstance** first, int include_backpack)
+{
+    int total = 0;
+    int slot;
+
+    for (slot = 0; slot < 12; ++slot) {
+        if (character->equipment[slot].item_id == item_id) {
+            total += character->equipment[slot].stack_count == 0
+                         ? 1
+                         : character->equipment[slot].stack_count;
+            if (first != 0 && *first == 0) {
+                *first = &character->equipment[slot];
+            }
+        }
+    }
+    if (include_backpack != 0) {
+        for (slot = 0; slot < 8; ++slot) {
+            if (character->backpack[slot].item_id == item_id) {
+                total += character->backpack[slot].stack_count == 0
+                             ? 1
+                             : character->backpack[slot].stack_count;
+                if (first != 0 && *first == 0) {
+                    *first = &character->backpack[slot];
+                }
+            }
+        }
+    }
+    return total;
+}
+
+/* Whether every occupied party slot holds one item. The first character who
+   does not settles it. */
+// FUNCTION: WIZ8 0x00521360
+bool EveryCharacterHasItem(int item_id, int include_backpack)
+{
+    int party_slot;
+
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_party_slot_rows[party_slot].flag_00 != 0) {
+            if (!FindItemOnCharacter(&g_party_characters[party_slot], item_id, 0,
+                                     include_backpack, 0)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/* At what range an item's spell works. An item with no spell has no range at
+   all, which is a different answer from touch. */
+// FUNCTION: WIZ8 0x005207E0
+int GetItemSpellRange(const W8ItemInstance* item)
+{
+    if (item == 0) {
+        return -1;
+    }
+    if (item->item_id == -1) {
+        srAssertFail("pPCItem->iItemNo != -1", PC_ITEM_CPP, 4003, 0);
+    }
+    if (item->item_id >= g_item_record_count) {
+        srAssertFail("pPCItem->iItemNo < (INT32) gXStatus.uiItemsInDatabase",
+                     PC_ITEM_CPP, 4004, 0);
+    }
+    if (g_item_records[item->item_id].spell_id != 0) {
+        return g_spell_records[g_item_records[item->item_id].spell_id].range_category;
+    }
+    return -1;
+}
+
+/* One character's attempt at identifying an item. Their strength is a sixth of
+   the identify skill's level; clearing the difficulty reveals the item, three
+   further points also reveal its binding, and an attempt that only just came
+   off practises the skill. */
+// FUNCTION: WIZ8 0x005208F0
+unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
+{
+    char strength;
+    int margin;
+
+    if (item == 0) {
+        srAssertFail("pPCItem", PC_ITEM_CPP, 4014, 0);
+    }
+    if (character->hp_current == 0 || character->unknown_0b01 >= 0xb) {
+        return 0;
+    }
+
+    strength = (char)(character->skills[W8_SKILL_IDENTIFY].level / 6);
+    if ((char)g_item_records[item->item_id].identify_difficulty > strength) {
+        return 0;
+    }
+
+    if (item == 0) {
+        srAssertFail("pPCItem", PC_ITEM_CPP, 2875, 0);
+    }
+    item->identified = 1;
+    item->unknown_07[0] = 1;
+    item->unknown_07[1] = 1;
+    if ((char)(g_item_records[item->item_id].identify_difficulty + 3) <= strength) {
+        item->bound = 1;
+    }
+
+    margin = strength - g_item_records[item->item_id].identify_difficulty;
+    if (margin >= 0 && margin < 3) {
+        PracticeCharacterSkill(character, W8_SKILL_IDENTIFY, 2, 1);
+    }
+    return 1;
+}
+
+/* Bind everything the party is wearing, one character at a time - but not
+   during a fight the party has not yet been let out of, which says so
+   instead. */
+// FUNCTION: WIZ8 0x0051D230
+void BindEveryPartyItem(void)
+{
+    int party_slot;
+
+    if (g_in_combat_00683f94 != 0 && g_combat_state->flag_001 == 0 &&
+        g_flag_00683fce == 0) {
+        ShowNotice(0xc, g_notices[0x7d8 / 4], -1, -1, 0);
+        return;
+    }
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_party_slot_rows[party_slot].flag_0f5 == 0) {
+            BindCharacterItems(party_slot, 0);
+        }
+    }
+    ShowNotice(8, g_notices[0x7b4 / 4], -1, -1, 0);
 }
