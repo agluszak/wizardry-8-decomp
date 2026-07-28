@@ -101,8 +101,27 @@ extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
 extern unsigned short Function4071F0(int font);             /* font line height */
 extern short Function407010(const wchar_t* text, int font);
+extern void Function407210(int font);
+extern int Function406DF0(int font);
+extern void Function4068E0(int font_context, int render_mode);
+extern int Function406DE0(int font);
+extern void Function406DC0(int font, int state);
+extern void Function407090();
+extern void Function407140();
+extern void Function407220(int target, int left, int top, int right, int bottom,
+                           int flags);
+extern void Function407A10(int a, int b, int font, int x, int y,
+                           const wchar_t* format, const wchar_t* text);
+extern void Function407B80(int a, int b, int font, int x, int y);
+extern unsigned char FillSurfaceRect(int surface_id, int left, int top, int right,
+                                     int bottom, int colour);
 extern const wchar_t g_W8EmptyText0060CC74[];
 extern const wchar_t g_W8TextBreakCharacters00617C88[];
+extern const wchar_t g_W8LineBreakCharacters00617C90[];
+extern const wchar_t g_W8TextFormat006068E4[];
+extern int g_W8TextClipTarget005FF5F4;
+extern int g_W8TextClipFlags00650E38;
+extern int g_W8FontStateTable0068EE1C[];
 extern unsigned int g_W8TextControlMask005ED56C;
 extern unsigned int g_W8TextControlMask005ED570;
 
@@ -327,6 +346,12 @@ public:
                          int font, unsigned int layout_mode, int render_mode);
     void CopyTextTo(wchar_t* destination);
     unsigned int GetLineHeight();
+    int GetHorizontalPosition(int width);
+    int GetVerticalPosition();
+    void SetLineHeight(unsigned int height);
+    void FillBounds(int colour);
+    void RenderText(int a, int b, int x_offset, int y_offset,
+                    unsigned char force);
     void UpdateLayout();                  /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);
@@ -365,10 +390,10 @@ protected:
     int m_layoutMode;                    /* 0x38: 10 initially */
     unsigned int m_maxLineWidth;
     unsigned char m_geometryDirty;
-    unsigned char m_flag_41;
+    unsigned char m_alternateRenderer;
     unsigned char pad_42[2];
     int m_renderMode;                    /* 0x44: 4 initially */
-    int m_field_48;                      /* 0x48: the -1 sentinel */
+    int m_fontStateIndex;                /* 0x48: -1 skips the state-table override */
     unsigned char m_flag_4c;
 };
 
@@ -389,8 +414,8 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8()
     m_maxLineWidth = 0;
     m_lineHeight = 0;
     m_renderMode = 4;
-    m_flag_41 = 0;
-    m_field_48 = -1;
+    m_alternateRenderer = 0;
+    m_fontStateIndex = -1;
     m_flag_4c = 0;
     m_layoutBounds.left = 0;
     m_layoutBounds.top = 0;
@@ -415,7 +440,7 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8(const W8ControlsRect* bounds,
     m_maxLineWidth = 0;
     m_geometryDirty = 0;
     m_lineHeight = 0;
-    m_flag_41 = 0;
+    m_alternateRenderer = 0;
     m_layoutMode = layout_mode;
     if ((m_layoutMode & 7) == 0) {
         m_layoutMode |= 2;
@@ -424,7 +449,7 @@ W8TextBuffer005ED5B8::W8TextBuffer005ED5B8(const W8ControlsRect* bounds,
         m_layoutMode |= 8;
     }
     m_renderMode = render_mode;
-    m_field_48 = -1;
+    m_fontStateIndex = -1;
     m_flag_4c = 0;
     m_layoutBounds = *bounds;
     m_pendingBounds = *bounds;
@@ -540,6 +565,141 @@ void W8TextBuffer005ED5B8::UpdateLayout()
         return;
     }
     m_maxLineWidth = wcslen(m_buffer);
+}
+
+/* Resolves one measured line against the horizontal alignment flags. */
+// FUNCTION: WIZ8 0x004F3C00
+int W8TextBuffer005ED5B8::GetHorizontalPosition(int width)
+{
+    if ((m_layoutMode & 2) != 0) {
+        int inset = (m_layoutBounds.right - m_layoutBounds.left - width) / 2;
+        if (inset < 0) {
+            inset = 0;
+        }
+        return m_layoutBounds.left + inset;
+    }
+    if ((m_layoutMode & 4) == 0) {
+        return m_layoutBounds.left;
+    }
+    int position = m_layoutBounds.right - width;
+    if (position <= m_layoutBounds.left) {
+        return m_layoutBounds.left;
+    }
+    return position;
+}
+
+/* Resolves the first baseline from the line count, line height and vertical
+   alignment flags, including the font's own height inside a larger override. */
+// FUNCTION: WIZ8 0x004F3C50
+int W8TextBuffer005ED5B8::GetVerticalPosition()
+{
+    unsigned int line_height = m_lineHeight;
+    unsigned int font_height = Function4071F0(m_font);
+    unsigned int first_line_inset;
+    if (line_height == 0) {
+        line_height = font_height;
+        first_line_inset = 0;
+    } else {
+        first_line_inset = (line_height - font_height + 1) >> 1;
+    }
+
+    if ((m_layoutMode & 0x10) != 0) {
+        return m_layoutBounds.top + first_line_inset;
+    }
+    int free_height = (m_layoutBounds.bottom - m_layoutBounds.top) -
+                      m_lineCount * line_height;
+    if (free_height < 0) {
+        free_height = 0;
+    }
+    if ((m_layoutMode & 0x20) != 0) {
+        return m_layoutBounds.top + free_height + first_line_inset;
+    }
+    return m_layoutBounds.top + free_height / 2 + first_line_inset;
+}
+
+/* Rejects an override smaller than the active font's natural line height. */
+// FUNCTION: WIZ8 0x004F3CF0
+void W8TextBuffer005ED5B8::SetLineHeight(unsigned int height)
+{
+    if (height < Function4071F0(m_font)) {
+        m_lineHeight = 0;
+        return;
+    }
+    m_lineHeight = height;
+}
+
+/* Fills the current text rectangle on the standard UI surface and queues the
+   same rectangle for composition. */
+// FUNCTION: WIZ8 0x004F3D50
+void W8TextBuffer005ED5B8::FillBounds(int colour)
+{
+    FillSurfaceRect(-14, m_layoutBounds.left, m_layoutBounds.top,
+                    m_layoutBounds.right, m_layoutBounds.bottom, colour);
+    Function422D50(m_layoutBounds.left, m_layoutBounds.top,
+                   m_layoutBounds.right, m_layoutBounds.bottom, 0);
+}
+
+/* Draws each newline-delimited line through the active font context. The
+   temporary terminators are restored before advancing to the next line. */
+// FUNCTION: WIZ8 0x004F3710
+void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
+                                     unsigned char force)
+{
+    wchar_t* line = m_buffer;
+    if (line == 0 || (force == 0 && m_geometryDirty == 0)) {
+        return;
+    }
+
+    Function407210(m_font);
+    int font_context = Function406DF0(m_font);
+    if (font_context == 0) {
+        return;
+    }
+    Function4068E0(font_context, m_renderMode);
+    int previous_state = Function406DE0(m_font);
+    if (m_fontStateIndex != -1) {
+        Function406DC0(m_font, g_W8FontStateTable0068EE1C[m_fontStateIndex]);
+    }
+    Function407090();
+    Function407220(g_W8TextClipTarget005FF5F4,
+                   m_pendingBounds.left, m_pendingBounds.top,
+                   m_pendingBounds.right, m_pendingBounds.bottom,
+                   g_W8TextClipFlags00650E38);
+
+    int y = GetVerticalPosition();
+    size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    while (line[span] != L'\0') {
+        line[span] = L'\0';
+        int x = GetHorizontalPosition(Function407010(line, m_font));
+        if (m_alternateRenderer == 0) {
+            Function407A10(a, b, m_font, x + x_offset, y + y_offset,
+                           g_W8TextFormat006068E4, line);
+        } else {
+            Function407B80(a, b, m_font, x + x_offset, y + y_offset);
+        }
+        y += GetLineHeight();
+        line[span] = L'\n';
+        if (m_layoutBounds.bottom <= y) {
+            goto done;
+        }
+        line += span + 1;
+        span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    }
+
+    {
+        int x = GetHorizontalPosition(Function407010(line, m_font));
+        if (m_alternateRenderer == 0) {
+            Function407A10(a, b, m_font, x + x_offset, y + y_offset,
+                           g_W8TextFormat006068E4, line);
+        } else {
+            Function407B80(a, b, m_font, x + x_offset, y + y_offset);
+        }
+    }
+
+done:
+    Function406DC0(m_font, previous_state);
+    Function407140();
+    m_geometryDirty = 0;
 }
 
 /* Copies the owned text into caller storage. The caller supplies the capacity;

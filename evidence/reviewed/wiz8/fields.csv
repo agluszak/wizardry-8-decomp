@@ -42,10 +42,10 @@ wiz8,W8TextBuffer005ED5B8,0x34,0x4,m_buffer,pointer,wchar_t,strong,classes:wiz8:
 wiz8,W8TextBuffer005ED5B8,0x38,0x4,m_layoutMode,uint32,,strong,classes:wiz8:W8TextBuffer005ED5B8,SetLayoutMode normalizes two independent flag groups and UpdateLayout tests bit 0x40
 wiz8,W8TextBuffer005ED5B8,0x3c,0x4,m_maxLineWidth,uint32,,strong,classes:wiz8:W8TextBuffer005ED5B8,UpdateLayout records the widest measured wrapped line here
 wiz8,W8TextBuffer005ED5B8,0x40,0x1,m_geometryDirty,uint8,,strong,classes:wiz8:W8TextBuffer005ED5B8,text and bounds mutations set this byte after any requested layout pass
-wiz8,W8TextBuffer005ED5B8,0x41,0x1,unknown_41,uint8,,strong,classes:wiz8:W8TextBuffer005ED5B8,constructor-cleared flag with semantics not yet identified
+wiz8,W8TextBuffer005ED5B8,0x41,0x1,m_alternateRenderer,uint8,,strong,classes:wiz8:W8TextBuffer005ED5B8,RenderText selects its alternate five-argument drawing path when this byte is nonzero
 wiz8,W8TextBuffer005ED5B8,0x42,0x2,pad_42,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,padding before the aligned render-mode dword
 wiz8,W8TextBuffer005ED5B8,0x44,0x4,m_renderMode,int32,,strong,classes:wiz8:W8TextBuffer005ED5B8,constructor stores the caller render mode and text-control visibility selects known values
-wiz8,W8TextBuffer005ED5B8,0x48,0x4,unknown_48,int32,,strong,classes:wiz8:W8TextBuffer005ED5B8,constructor initializes this unidentified dword to minus one
+wiz8,W8TextBuffer005ED5B8,0x48,0x4,m_fontStateIndex,int32,,strong,classes:wiz8:W8TextBuffer005ED5B8,RenderText indexes the font-state table when this value is not the constructor's minus-one sentinel
 wiz8,W8TextBuffer005ED5B8,0x4c,0x1,unknown_4c,uint8,,strong,classes:wiz8:W8TextBuffer005ED5B8,constructor clears this unidentified trailing flag
 wiz8,W8TextBuffer005ED5B8,0x4d,0x3,pad_4d,bytes,,strong,classes:wiz8:W8TextBuffer005ED5B8,tail padding to the proven 0x50-byte object size
 wiz8,W8TextControl005ED604,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:W8TextControl005ED604,primary vtable W8TextControl005ED604.primary
@@ -89,10 +89,12 @@ wiz8,W8TextControl005ED604,0x94,0x4,text_buffer,pointer,wchar_t,strong,classes:w
 wiz8,W8TextControl005ED604,0x98,0x4,layout_mode,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer layout mode set to nine by SetBounds
 wiz8,W8TextControl005ED604,0x9c,0x4,text_buffer_max_line_width,uint32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer maximum measured line width maintained by UpdateLayout
 wiz8,W8TextControl005ED604,0xa0,0x1,geometry_dirty,uint8,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer geometry dirty byte set by SetBounds and Invalidate
-wiz8,W8TextControl005ED604,0xa1,0x3,text_buffer_flags_a1,bytes,,strong,classes:wiz8:W8TextControl005ED604,remaining embedded text-buffer flags and padding
+wiz8,W8TextControl005ED604,0xa1,0x1,text_buffer_alternate_renderer,uint8,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer alternate renderer selection byte
+wiz8,W8TextControl005ED604,0xa2,0x2,text_buffer_pad_a2,bytes,,strong,classes:wiz8:W8TextControl005ED604,padding before the embedded render-mode dword
 wiz8,W8TextControl005ED604,0xa4,0x4,text_buffer_render_mode,int32,,exact,classes:wiz8:W8TextControl005ED604,embedded text-buffer render mode selected by byte-exact SetVisible
-wiz8,W8TextControl005ED604,0xa8,0x4,text_buffer_field_48,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer minus-one sentinel
-wiz8,W8TextControl005ED604,0xac,0x4,text_buffer_tail,bytes,,strong,classes:wiz8:W8TextControl005ED604,tail of the complete embedded W8TextBuffer005ED5B8
+wiz8,W8TextControl005ED604,0xa8,0x4,text_buffer_font_state_index,int32,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer font-state table index or minus-one sentinel
+wiz8,W8TextControl005ED604,0xac,0x1,text_buffer_unknown_ac,uint8,,strong,classes:wiz8:W8TextControl005ED604,unidentified final embedded text-buffer flag
+wiz8,W8TextControl005ED604,0xad,0x3,text_buffer_pad_ad,bytes,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer tail padding
 wiz8,W8TextControl005ED604,0xb0,0x4,field_b0,int32,,strong,classes:wiz8:W8TextControl005ED604,trailing constructor-initialized control state
 wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
 wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
