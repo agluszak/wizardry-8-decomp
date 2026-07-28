@@ -396,7 +396,8 @@ extern int g_highlight_suppressed_00683fe7;
    actions answer a fixed kind; casting asks the spell and using an item asks
    the item's own spell, which is the same two-step the item path takes. */
 // FUNCTION: WIZ8 0x00536A20
-char GetTargetNeededForAction(int action, int spell_id, const W8ItemInstance** item)
+char GetTargetNeededForAction(
+    int action, int spell_id, const W8ActionDetailBlock* detail_block)
 {
     const W8ItemDatabaseRecord* record;
 
@@ -411,8 +412,8 @@ char GetTargetNeededForAction(int action, int spell_id, const W8ItemInstance** i
     case 7:
         return GetTargetNeededForSpellFriendly(spell_id, 0, 6);
     case 8:
-        if (item[1] != 0 && (*(const int**)&item[1])[0] != -1) {
-            record = &g_item_records[(*(const int**)&item[1])[0]];
+        if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1) {
+            record = &g_item_records[detail_block->item_use.item->item_id];
             if (record->spell_id != 0) {
                 return GetTargetNeededForSpellFriendly(
                     record->spell_id, ItemClassNormalizesTarget(record), 0);
@@ -1118,9 +1119,12 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context)
 }
 
 extern W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);    /* 0x00510180 */
+/* 0x004E77B0: hands back what the slot has chosen - the action, the detail
+   qualifying it, and a pointer to the action's own two-word block, which is
+   the party slot row's own pair rather than a copy. */
 extern void GetSlotChosenAction(
     int party_slot, unsigned int context, int* action, int* detail, void* unused,
-    const W8ItemInstance** item);                                        /* 0x004E77B0 */
+    const W8ActionDetailBlock** detail_block);
 extern unsigned char IsTargetSourceInRangeOfGroup(
     const W8TargetSource* source, W8MonsterGroup* group, int context);   /* 0x00537780 */
 extern unsigned char CanReachTarget(
@@ -1171,7 +1175,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     W8TargetSource source;
     int action;
     int detail;
-    const W8ItemInstance* item;
+    const W8ActionDetailBlock* detail_block;
     char needed;
     unsigned int index;
     int reachable;
@@ -1185,8 +1189,8 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
     else {
         GetSlotChosenAction(
-            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &item);
-        needed = GetTargetNeededForAction(action, detail, &item);
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
+        needed = GetTargetNeededForAction(action, detail, detail_block);
     }
 
     SetTargetSourceToCharacter(party_slot, &source);
@@ -1208,4 +1212,171 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
         }
     }
     return reachable != 0;
+}
+
+extern unsigned char g_camp_open_00683f9b;
+/* 0x00649F1C: the camp screen, which pins targeting to the one monster it is
+   showing. */
+extern unsigned char* g_camp_screen_00649f1c;
+extern unsigned char IsSlotInRangeOfGroup(
+    int party_slot, int group_id, int context, int arg_4);               /* 0x00519920 */
+
+/* Whether a party slot's chosen action can be aimed at one monster. The
+   monster has to be live, standing and reachable; while the camp screen is up
+   only the monster it is showing can be aimed at at all.
+
+   What the action needs decides the rest: a group need is answered against the
+   monster's group, a single-monster need only when the caller allows one, and
+   an action needing nothing is refused outright in combat. The database's
+   untargetable flag is checked last rather than first, so an action needing
+   nothing still reaches a monster carrying it. */
+// FUNCTION: WIZ8 0x00536AD0
+unsigned char CanTargetMonster(
+    int party_slot, int location_id, int allow_single_target, int reason)
+{
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x1ce, TARGETING_CPP, location_id, 1));
+    W8MonsterRecord* record;
+    int action;
+    int detail;
+    const W8ActionDetailBlock* detail_block;
+    char needed;
+
+    if (monster_info->flag_14 == 0) {
+        return 0;
+    }
+    if (monster_info->hp_current == 0) {
+        return 0;
+    }
+    if (monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
+        return 0;
+    }
+    if (g_camp_open_00683f9b != 0 &&
+        *(const int*)(g_camp_screen_00649f1c + 0xf8) != location_id) {
+        return 0;
+    }
+
+    if (ResolveTargetingContext(party_slot, W8_TARGETING_CONTEXT_CURRENT) == 0) {
+        needed = 0;
+        if (g_in_combat_00683f94 != 0) {
+            return 0;
+        }
+    }
+    else {
+        GetSlotChosenAction(
+            party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0, &detail_block);
+        needed = GetTargetNeededForAction(action, detail, detail_block);
+
+        if (needed != 2 && needed != 5) {
+            if (needed == 1) {
+                if (allow_single_target == 0) {
+                    return 0;
+                }
+            }
+            else {
+                if (needed != 0) {
+                    return 0;
+                }
+                if (g_in_combat_00683f94 != 0) {
+                    return 0;
+                }
+            }
+        }
+    }
+
+    record = GetMonsterDataForInfo(monster_info);
+    if (record->untargetable_24a != 0 && needed != 0) {
+        return 0;
+    }
+    if (needed == 5) {
+        return IsSlotInRangeOfGroup(party_slot, monster_info->monster_group_id, 6, reason) != 0;
+    }
+    return CanReachTarget(party_slot, 2, monster_info, 6, reason) != 0;
+}
+
+extern unsigned char CanTargetPartySlot(int party_slot, const W8CombatSlot* target);
+/* 0x00545C20 */
+extern unsigned char SpellHasAnyValidTarget(
+    int party_slot, int spell_id, unsigned char normalize);              /* 0x0053D010 */
+
+/* Whether a party slot's chosen action has anything at all to aim at. Each
+   action asks its own question: an attack looks for one targetable monster, a
+   fifth-kind action looks at the other party members first and then at the
+   monsters, and casting or using an item hands the question to the spell.
+
+   An action this does not know about answers yes, so the check narrows rather
+   than gates - only the actions with a way of being impossible can fail it.
+   The two dialogue-driven actions answer yes as well until the dialogue has
+   settled, since until then there is no spell or item to ask about. */
+// FUNCTION: WIZ8 0x0053CDF0
+unsigned char SlotHasAnyValidTarget(int party_slot)
+{
+    int action;
+    int detail;
+    const W8ActionDetailBlock* detail_block;
+    unsigned char unused[4];
+    W8CombatSlot target;
+    unsigned int index;
+    unsigned int other_slot;
+
+    GetSlotChosenAction(
+        party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, unused, &detail_block);
+
+    switch (action) {
+    case 0:
+    case 1:
+        for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+            if (CanTargetMonster(
+                    party_slot, MonsterGetScriptPartByLocationIndex(index)->location_id, 0, 0)) {
+                return 1;
+            }
+        }
+        return 0;
+
+    case 5:
+        for (other_slot = 0; other_slot < 8; ++other_slot) {
+            if (other_slot == (unsigned int)party_slot) {
+                continue;
+            }
+            memset(&target, 0, sizeof(target));
+            target.iMonsterID = BAD_INDEX;
+            target.iGroupID = BAD_INDEX;
+            target.iType = W8_TARGET_KIND_CHARACTER;
+            target.iChar = other_slot;
+            if (CanTargetPartySlot(party_slot, &target)) {
+                return 1;
+            }
+        }
+        for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+            memset(&target, 0, sizeof(target));
+            target.iChar = BAD_INDEX;
+            target.iGroupID = BAD_INDEX;
+            target.iType = W8_TARGET_KIND_MONSTER;
+            target.iMonsterID = MonsterGetScriptPartByLocationIndex(index)->location_id;
+            if (CanTargetPartySlot(party_slot, &target)) {
+                return 1;
+            }
+        }
+        return 0;
+
+    case 7:
+        if (g_level_block_0068edcc->selection_settled != 0) {
+            return SpellHasAnyValidTarget(party_slot, detail, 0);
+        }
+        break;
+
+    case 8:
+        if (g_level_block_0068edcc->selection_settled != 0) {
+            const W8ItemInstance* item = detail_block->item_use.item;
+
+            if (item == 0) {
+                return 0;
+            }
+            return SpellHasAnyValidTarget(
+                party_slot, g_item_records[item->item_id].spell_id,
+                ItemClassNormalizesTarget(&g_item_records[item->item_id]));
+        }
+        break;
+    }
+    return 1;
 }

@@ -677,6 +677,21 @@ typedef struct W8PartySlotRow {
 } W8PartySlotRow;                        /* 0x106 */
 
 
+/* The two-word block an action carries beside itself. A spell's holds the
+   power level and a spare word; an item use's holds the use kind and the item.
+   It is the party slot row's own pair in both cases rather than a copy, which
+   is why every reader takes a pointer to it. */
+typedef union W8ActionDetailBlock {
+    struct {
+        int power_level;
+        int unused;
+    } spell;
+    struct {
+        int kind;
+        W8ItemInstance* item;
+    } item_use;
+} W8ActionDetailBlock;                    /* 0x08 */
+
 /* The target kinds a combat slot's leading field takes. The four that name
    something put it in their own field, which is what pairs each kind with the
    field the aiming wrappers fill in. */
