@@ -743,6 +743,7 @@ public:
     void RemoveLayoutFlags(unsigned int flags);
     void EnableSecondaryState(unsigned char immediate);
     void DisableSecondaryState(unsigned char immediate);
+    void Function4D30(int event);
     virtual void InvokeFocusCallback();
     virtual void ActivatePrimary();
     virtual void InvokeBlurCallback();
@@ -1102,6 +1103,88 @@ void W8TextControl005ED604::SetVisible(unsigned char visible)
 void W8TextControl005ED604::SetAlternateTextEnabled(unsigned char enabled)
 {
     m_alternateTextEnabled = enabled;
+}
+
+/* The 0x005ed758 text-control variant owns a fixed 200-character region-help
+   buffer immediately after the reviewed W8TextControl base. */
+class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
+public:
+    void SetRegionHelp(const wchar_t* text);
+    void UpdateRegionHelp(int event);
+    virtual void InvokeFocusCallback();
+    virtual void ActivateSecondary();
+    virtual void InvokeBlurCallback();
+
+protected:
+    wchar_t m_regionHelp[200];            /* 0xb8 */
+};
+
+// FUNCTION: WIZ8 0x004F6680
+void W8HelpTextControl005ED758::SetRegionHelp(const wchar_t* text)
+{
+    if (wcslen(text) < 200) {
+        wcscpy(m_regionHelp, text);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F66B0
+void W8HelpTextControl005ED758::UpdateRegionHelp(int event)
+{
+    Function5587C0(0, 1);
+    Function4D30(event);
+    if (wcslen(m_regionHelp) > 1 && m_region_18 != -1) {
+        ::SetRegionHelpText(m_regionHelp);
+        ::EnableRegionHelp(m_region_18);
+        return;
+    }
+    if (m_region_18 != -1) {
+        ::DisableRegionHelp(m_region_18);
+    }
+}
+
+// FUNCTION: WIZ8 0x004F6720
+void W8HelpTextControl005ED758::InvokeFocusCallback()
+{
+    if (m_secondaryCallback == 0) {
+        Function5587C0(0, 1);
+    }
+    W8TextControl005ED604::InvokeFocusCallback();
+}
+
+// FUNCTION: WIZ8 0x004F6780
+void W8HelpTextControl005ED758::ActivateSecondary()
+{
+    if (m_secondaryCallback == 0) {
+        Function5587C0(0, 1);
+    }
+    if (m_flag_5 != 0 && m_flag_4 != 0) {
+        if ((m_flags_38 & 0x20) != 0) {
+            Function5587C0(0, 1);
+        }
+        if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+            m_stateFlags &= ~4u;
+            Function5587C0(0, 1);
+            return;
+        }
+        if (m_listener != 0) {
+            m_listener->OnSecondary(this);
+        }
+        if (m_secondaryCallback != 0) {
+            m_secondaryCallback();
+        }
+        return;
+    }
+    if (m_flag_5 == 0 && m_flag_4 != 0) {
+        return;
+    }
+    Function5587C0(0, 1);
+}
+
+// FUNCTION: WIZ8 0x004F6810
+void W8HelpTextControl005ED758::InvokeBlurCallback()
+{
+    Function5587C0(0, 1);
+    W8TextControl005ED604::InvokeBlurCallback();
 }
 
 /*

@@ -101,6 +101,7 @@ wiz8,W8TextControl005ED604,0xac,0x1,text_buffer_unknown_ac,uint8,,strong,classes
 wiz8,W8TextControl005ED604,0xad,0x3,text_buffer_pad_ad,bytes,,strong,classes:wiz8:W8TextControl005ED604,embedded text-buffer tail padding
 wiz8,W8TextControl005ED604,0xb0,0x4,field_b0,int32,,strong,classes:wiz8:W8TextControl005ED604,trailing constructor-initialized control state
 wiz8,W8TextControl005ED604,0xb4,0x4,listener,pointer,,strong,classes:wiz8:W8TextControl005ED604,primary and secondary activation call listener virtual slots zero and one
+wiz8,W8HelpTextControl005ED758,0xb8,0x190,region_help_text,bytes,,exact,classes:wiz8:W8HelpTextControl005ED758,byte-exact SetRegionHelp copies fewer than 200 wchar_t elements into this fixed buffer
 wiz8,GrCycle,0x0,0x4,vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,primary vtable GrCycle.primary
 wiz8,GrCycle,0x4,0x14,primary_base_storage,bytes,,strong,classes:wiz8:GrCycle,unnamed primary base constructed by 0x004b6900; total base size 0x18
 wiz8,GrCycle,0x18,0x4,secondary_vptr,pointer,virtual_function *,strong,classes:wiz8:GrCycle,secondary vtable GrCycle.secondary_0x18
