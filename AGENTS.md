@@ -237,6 +237,13 @@ Use `jj`, not raw Git, for repository history, bookmarks, synchronization, and p
 Git is acceptable only inside explicitly external source-oracle directories where a command
 requires it.
 
+**The workflow is Jujutsu-first even when the user explicitly requests a pull request.** Finish and
+describe the change in `jj`, fetch and rebase it onto current `main`, create its review bookmark with
+`jj bookmark`, and push that bookmark with `jj git push` before invoking any GitHub PR operation.
+GitHub is then only the review/merge layer over an already coherent Jujutsu commit. Do not begin by
+creating a Git branch, and do not use `git status`, `git add`, `git commit`, `git checkout`, or
+`git push` in this repository.
+
 Starting or resuming work:
 
 ```sh
@@ -268,6 +275,28 @@ bd dolt push
 jj new main
 jj status
 ```
+
+When a PR is explicitly requested, replace the direct `main` bookmark push above with this ordering:
+
+```sh
+jj describe -m "Accurate imperative summary"
+jj git fetch --remote origin
+jj rebase -s @ -d main                 # only when main advanced
+jj bookmark create agent/<topic> -r @  # use `set` when resuming an existing bookmark
+jj git push --remote origin --bookmark agent/<topic>
+gh pr create --base main --head agent/<topic> ...
+gh pr merge <number> ...               # only when the user also authorized merge
+jj git fetch --remote origin
+jj log -r '@::main'                    # the reviewed commit must be an ancestor
+jj diff --from @ --to main --stat      # the merge must not alter its tree
+jj new main
+jj status
+```
+
+Do not open the PR before the `jj` commit, integration check, bookmark, and push exist. After GitHub
+merges it, treat the remote result as external history: fetch it into Jujutsu, verify ancestry and an
+empty tree diff, then move to a clean empty child of the updated `main`. Do not recreate or amend the
+merged change through GitHub tooling.
 
 - Every completed coherent unit must be described, committed by advancing `main`, and pushed.
 - Fetch immediately before moving `main`; Jujutsu's push lease protects against an unseen remote
