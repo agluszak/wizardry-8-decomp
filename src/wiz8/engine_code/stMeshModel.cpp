@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/mesh_model.h"
 
 /*
  * Engine Code\stMeshModel.cpp.
@@ -6,23 +7,20 @@
  * A mesh model and the sibling chain it can be linked into.
  */
 
-/* Only the members these bodies reach are established: the two ends of the
-   sibling link, and the vertex table with its own count. */
-class W8MeshModel {
-public:
-    void LinkTo(W8MeshModel* other);      /* 0x00471D60 */
-    void* GetVertex(unsigned int index);  /* 0x00471AA0 */
-
-    unsigned char unknown_000[0x398];
-    W8MeshModel* next;                    /* 0x398 */
-    W8MeshModel* previous;                /* 0x39c */
-    unsigned char unknown_3a0[0x30];
-    unsigned int vertex_count;            /* 0x3d0 */
-    unsigned char unknown_3d4[0xc];
-    void** vertices;                      /* 0x3e0 */
-};
-
 extern void Function4729F0(void* model);
+
+// FUNCTION: WIZ8 0x004712D0
+int W8MeshModel::FindMappedIndex(short key)
+{
+    if (key < 0) {
+        return -1;
+    }
+    int index = mapped_keys.IndexOf(key);
+    if (index != -1) {
+        return *mapped_values.GetAt(index);
+    }
+    return -1;
+}
 
 /* Link one model onto another, setting both ends - so the two pointers are one
    link rather than two independent fields. Unlinking passes nothing. */

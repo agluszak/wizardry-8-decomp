@@ -618,7 +618,9 @@ def test_reviewed_wiz8_class_model_owns_layout_and_vtable_facts() -> None:
         (0x1AC, 0x4, "m_plsLights"),
         (0x1B0, 0x4, "vector_1b0"),
         (0x1B4, 0x1, "m_fDeleteLights"),
-        (0x1B5, 0x23, "unknown_1b5"),
+        (0x1B5, 0x1B, "unknown_1b5"),
+        (0x1D0, 0x4, "ground_shadow"),
+        (0x1D4, 0x4, "unknown_1d4"),
     ]
     secondary_slots = [slot for slot in model.slots if slot.vtable_id == "GrCycle.secondary_0x18"]
     assert [slot.target for slot in secondary_slots] == [

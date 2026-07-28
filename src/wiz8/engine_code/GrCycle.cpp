@@ -2,6 +2,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
+#include "surrender/srHeap.h"
+#include "surrender/srTypeRegistry.h"
+#include <new>
 #include <string.h>
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
@@ -22,9 +25,43 @@
 class W8VectorElement005ECED4;
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
-extern W8GrowableVector<const char*> g_grcycle_names;                 /* 0x0065BDF0 */
-extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
+extern W8GrowableVector<char*> g_grcycle_names;                       /* 0x0065BDF0 */
+class W8GrCycleRegistryVector005ECEDC
+    : public W8GrowableVector<W8GrCycle*> {
+public:
+    W8GrCycleRegistryVector005ECEDC();
+    virtual ~W8GrCycleRegistryVector005ECEDC();
+};
+
+__forceinline W8GrCycleRegistryVector005ECEDC::W8GrCycleRegistryVector005ECEDC()
+{
+}
+
+extern W8GrowableVector<W8GrCycleRegistryVector005ECEDC*> g_grcycles_by_name;
                                                                     /* 0x0065BE00 */
+
+class srNode : public srRuntimeClass {
+public:
+    __declspec(dllimport) void setFlag(int flag);
+    __declspec(dllimport) void clearFlag(int flag);
+};
+
+/* The allocation size, constructor address, runtime name, and two trailing
+   values are proven. No surviving witness gives the original class name. */
+class W8GroundShadowNode004D61B0 : public srNode {
+public:
+    W8GroundShadowNode004D61B0(int value); /* 0x004D61B0 */
+
+    void* operator new(unsigned int size)
+    {
+        return srHeap.allocate(size);
+    }
+
+    unsigned char unknown_001[0x13b];
+    int value_13c;                       /* 0x13c */
+    int value_140;                       /* 0x140 */
+    unsigned char unknown_144[4];
+};                                      /* 0x148 */
 
 class W8Vector005ECED4
     : public W8GrowableVector<W8VectorElement005ECED4*> {
@@ -92,7 +129,7 @@ const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
     int name_index;
 
     for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
-        W8GrowableVector<W8GrCycle*>* cycles =
+        W8GrCycleRegistryVector005ECEDC* cycles =
             *g_grcycles_by_name.GetAt(name_index);
         if (cycles->GetCount() == 0) {
             srAssertFail(
@@ -114,7 +151,7 @@ unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
     int name_index;
 
     for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
-        W8GrowableVector<W8GrCycle*>* cycles =
+        W8GrCycleRegistryVector005ECEDC* cycles =
             *g_grcycles_by_name.GetAt(name_index);
         if (cycles->GetCount() == 0) {
             srAssertFail(
@@ -137,7 +174,7 @@ W8GrCycle* FindFirstGrCycleByName(const char* name)
 
     for (name_index = 0; name_index < g_grcycle_names.GetCount(); ++name_index) {
         if (_stricmp(name, *g_grcycle_names.GetAt(name_index)) == 0) {
-            W8GrowableVector<W8GrCycle*>* cycles =
+            W8GrCycleRegistryVector005ECEDC* cycles =
                 *g_grcycles_by_name.GetAt(name_index);
             if (cycles->GetCount() == 0) {
                 srAssertFail(
@@ -150,6 +187,89 @@ W8GrCycle* FindFirstGrCycleByName(const char* name)
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x004A8830
+unsigned char UnregisterGrCycle(W8GrCycle* cycle)
+{
+    int name_index;
+
+    for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
+        W8GrCycleRegistryVector005ECEDC* cycles =
+            *g_grcycles_by_name.GetAt(name_index);
+        if (cycles->GetCount() == 0) {
+            srAssertFail(
+                "plsCyclesOfAName->Length()",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                0x726,
+                0);
+        }
+        int cycle_index = cycles->IndexOf(cycle);
+        if (cycle_index != -1) {
+            cycles->RemoveAt(cycle_index);
+            if (cycles->GetCount() != 0) {
+                return 0;
+            }
+            g_grcycles_by_name.RemoveAt(name_index);
+            delete cycles;
+            char* name = g_grcycle_names.RemoveAt(name_index);
+            delete[] name;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004A89A0
+void RegisterGrCycle(const char* name, W8GrCycle* cycle)
+{
+    int name_index;
+
+    for (name_index = 0; name_index < g_grcycle_names.GetCount(); ++name_index) {
+        if (_stricmp(name, *g_grcycle_names.GetAt(name_index)) == 0) {
+            W8GrCycleRegistryVector005ECEDC* cycles =
+                *g_grcycles_by_name.GetAt(name_index);
+            if (cycles->GetCount() == 0) {
+                srAssertFail(
+                    "plsCyclesOfThisName->Length()",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                    0x763,
+                    0);
+            }
+            cycles->Add(cycle);
+            return;
+        }
+    }
+
+    char* owned_name = new char[strlen(name) + 1];
+    strcpy(owned_name, name);
+    W8GrCycleRegistryVector005ECEDC* cycles =
+        new W8GrCycleRegistryVector005ECEDC();
+    cycles->Add(cycle);
+    g_grcycle_names.Add(owned_name);
+    g_grcycles_by_name.Add(cycles);
+}
+
+// FUNCTION: WIZ8 0x004A8D50
+void W8GrCycle::CreateGroundShadow(int value_140, int value_13c)
+{
+    m_ground_shadow = new W8GroundShadowNode004D61B0(0);
+    m_ground_shadow->setName("Ground Shadow");
+    m_ground_shadow->value_140 = value_140;
+    m_ground_shadow->value_13c = value_13c;
+}
+
+// FUNCTION: WIZ8 0x004A8DE0
+void W8GrCycle::SetGroundShadowVisible(char visible)
+{
+    if (m_ground_shadow != 0) {
+        if (visible) {
+            m_ground_shadow->clearFlag(0);
+        }
+        else {
+            m_ground_shadow->setFlag(0);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004A8F90

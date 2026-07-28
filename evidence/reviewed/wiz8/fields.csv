@@ -147,7 +147,19 @@ wiz8,GrCycle,0x1a8,0x4,unknown_1a8,bytes,,strong,classes:wiz8:GrCycle,Unresolved
 wiz8,GrCycle,0x1ac,0x4,m_plsLights,pointer,W8Vector005EC294,exact,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this null-tested pointer and byte-exact SetLights plus nine callers prove the address-qualified vector type
 wiz8,GrCycle,0x1b0,0x4,vector_1b0,pointer,W8Vector005ECED4,exact,classes:wiz8:GrCycle,The byte-exact 0x004A8530 owner method lazily constructs this vector and appends one pointer
 wiz8,GrCycle,0x1b4,0x1,m_fDeleteLights,uint8,,strong,classes:wiz8:GrCycle,The GrCycle.cpp line 1656 assertion names this flag
-wiz8,GrCycle,0x1b5,0x23,unknown_1b5,bytes,,strong,classes:wiz8:GrCycle,Remaining GrCycle-owned storage through the established minimum size
+wiz8,GrCycle,0x1b5,0x1b,unknown_1b5,bytes,,strong,classes:wiz8:GrCycle,Unresolved GrCycle-owned storage before the Ground Shadow pointer
+wiz8,GrCycle,0x1d0,0x4,ground_shadow,pointer,W8GroundShadowNode004D61B0,strong,classes:wiz8:GrCycle,CreateGroundShadow stores the newly allocated runtime-named object here and the byte-exact visibility method reads the same pointer
+wiz8,GrCycle,0x1d4,0x4,unknown_1d4,bytes,,strong,classes:wiz8:GrCycle,Remaining storage through the established 0x1d8 GrCycle minimum
+wiz8,W8GroundShadowNode004D61B0,0x0,0x13c,base_storage,bytes,,strong,classes:wiz8:W8GroundShadowNode004D61B0,Opaque srNode-derived SurRender storage before the two values initialized by CreateGroundShadow
+wiz8,W8GroundShadowNode004D61B0,0x13c,0x4,value_13c,int32,,strong,classes:wiz8:W8GroundShadowNode004D61B0,CreateGroundShadow copies its second stack value here
+wiz8,W8GroundShadowNode004D61B0,0x140,0x4,value_140,int32,,strong,classes:wiz8:W8GroundShadowNode004D61B0,CreateGroundShadow copies its first stack value here
+wiz8,W8GroundShadowNode004D61B0,0x144,0x4,unknown_144,bytes,,strong,classes:wiz8:W8GroundShadowNode004D61B0,Opaque tail through the allocation-proven size 0x148
+wiz8,W8MeshModel,0x398,0x4,next,pointer,W8MeshModel,exact,classes:wiz8:W8MeshModel,Byte-exact LinkTo sets this forward sibling link
+wiz8,W8MeshModel,0x39c,0x4,previous,pointer,W8MeshModel,exact,classes:wiz8:W8MeshModel,Byte-exact LinkTo sets the reciprocal backward sibling link
+wiz8,W8MeshModel,0x3d0,0x4,vertex_count,uint32,,exact,classes:wiz8:W8MeshModel,Byte-exact GetVertex bounds-checks against this count
+wiz8,W8MeshModel,0x3e0,0x4,vertices,pointer,,exact,classes:wiz8:W8MeshModel,Byte-exact GetVertex reads its result from this pointer table
+wiz8,W8MeshModel,0x420,0x10,mapped_values,bytes,,strong,classes:wiz8:W8MeshModel,Embedded W8GrowableVector<short>; FindMappedIndex returns one signed-short element from it
+wiz8,W8MeshModel,0x430,0x10,mapped_keys,bytes,,strong,classes:wiz8:W8MeshModel,Embedded W8GrowableVector<short>; FindMappedIndex searches one signed-short element in it
 wiz8,W8GrCycleTarget,0x0,0x64,unknown_00,bytes,,strong,classes:wiz8:W8GrCycleTarget,opaque prefix before the byte written by exact SetSubCycle
 wiz8,W8GrCycleTarget,0x64,0x1,subcycle,uint8,,exact,classes:wiz8:W8GrCycleTarget,exact SetSubCycle writes the requested bounded low byte here
 wiz8,W8GrCycleTarget,0x65,0xb,unknown_65,bytes,,strong,classes:wiz8:W8GrCycleTarget,opaque span between the two exact setter targets
