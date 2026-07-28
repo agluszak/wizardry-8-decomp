@@ -373,6 +373,11 @@ enum {
 
 /* 0x00689B58: the queued spell effects, the shared growable vector again. */
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
+/* The same vector reached field by field, which is how the append below writes
+   it: count at 0x00689B5C, capacity at 0x00689B60, data at 0x00689B64. */
+extern int g_spell_effects_count;
+extern int g_spell_effects_capacity;
+extern W8SpellEffectEntry** g_spell_effects_data;
 /* 0x0068691F */
 extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
 extern W8PList* g_active_monster_list_00683fad;
@@ -541,4 +546,126 @@ bool PartySlotSpellTargetStillValid(int party_slot)
         return false;
     }
     return Function519180(party_slot, 0, 3) != 0;
+}
+
+extern void ChooseAction(int party_slot, int action, int detail, int a, int b, int c);
+/* 0x004E7CC0 */
+extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x005387F0 */
+extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
+extern void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
+extern bool CanCharReBreathe(int party_slot);                            /* 0x004EBC80 */
+extern bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
+extern int g_combat_difficulty_006850d5;
+extern W8CombatCharacterRow* g_combat_character_rows;
+/* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. */
+extern const int g_spell_failure_table[];
+
+/* Start one character's breath attack. The assertion names the predicate it
+   depends on outright - CanCharReBreathe - so a character who cannot is a
+   caller error rather than a refusal. */
+// FUNCTION: WIZ8 0x00501880
+void StartCharacterBreathAttack(int party_slot)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+
+    if (!CanCharReBreathe(party_slot)) {
+        srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
+    }
+    ChooseAction(party_slot, 2, -1, 0, 0, 1);
+    AimAtTarget(party_slot, (W8CombatSlot*)&row->unknown_0d1, 6);
+    if (IsSpellTargetStillValidIn(party_slot, 0x77, 5)) {
+        StartBreathCycle(party_slot, 0);
+        return;
+    }
+    ReportBreathFailed(party_slot);
+}
+
+/* Append one effect to the queue, growing it by exactly one slot when it is
+   full - the growth is inlined here rather than going through the shared Grow,
+   and a failed allocation leaves the old array in place. */
+// FUNCTION: WIZ8 0x005008A0
+void AddSpellEffect(W8SpellEffectEntry* effect)
+{
+    W8SpellEffectEntry** previous = g_spell_effects_data;
+    int wanted = g_spell_effects_count + 1;
+    int index;
+
+    if (g_spell_effects_capacity < wanted) {
+        g_spell_effects_data = (W8SpellEffectEntry**)operator new(wanted * 4);
+        if (g_spell_effects_data == 0) {
+            g_spell_effects_data = previous;
+            return;
+        }
+        g_spell_effects_capacity = wanted;
+        for (index = 0; index < g_spell_effects_count; ++index) {
+            g_spell_effects_data[index] = previous[index];
+        }
+        operator delete(previous);
+    }
+    g_spell_effects_data[g_spell_effects_count] = effect;
+    ++g_spell_effects_count;
+}
+
+/* Scale a value by how far ahead of the difficulty's own pace one combatant
+   is. Out of combat nothing is scaled; in combat a combatant slower than the
+   pace is left alone too. */
+// FUNCTION: WIZ8 0x00501910
+unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
+{
+    unsigned int pace;
+    unsigned int speed;
+    int scaled;
+
+    if (g_in_combat_00683f94 == 0) {
+        return g_in_combat_00683f94;
+    }
+
+    if (g_combat_difficulty_006850d5 == 0) {
+        pace = 0x50;
+    }
+    else if (g_combat_difficulty_006850d5 == 1) {
+        pace = 0x3c;
+    }
+    else {
+        if (g_combat_difficulty_006850d5 != 2) {
+            srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
+        }
+        pace = 0x28;
+    }
+
+    speed = *(unsigned int*)((char*)&g_combat_character_rows[party_slot] + 0xb4);
+    if (pace <= speed) {
+        scaled = ((0x32 - pace) + speed) * *value;
+        *value = scaled / 50;
+    }
+    return speed;
+}
+
+/* How likely a spell is to fail outright. The spell's own cost band picks a
+   difficulty off a seventeen-entry table, scaled by the caller's factor and
+   divided by seven; a caster already at or past that has no chance of failing
+   at all, and the rest is the shortfall as a percentage capped at a hundred. */
+// FUNCTION: WIZ8 0x004FF410
+unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
+{
+    int band = g_spell_records[spell_id].spell_point_cost / 2 +
+               g_spell_records[spell_id].spell_level;
+    unsigned int needed;
+    unsigned int chance;
+
+    if (band > 0x10) {
+        band = 0x10;
+    }
+    needed = (unsigned int)(g_spell_failure_table[band] * factor) / 7;
+    if (needed <= skill) {
+        return 0;
+    }
+    chance = (needed * 70 - skill * 70) / needed;
+    if ((int)chance < 0) {
+        return 0;
+    }
+    if ((int)chance > 100) {
+        return 100;
+    }
+    return chance;
 }

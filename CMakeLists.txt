@@ -253,6 +253,7 @@ if(WIZ8_BUILD_DECOMP)
         src/wiz8/local_code/Controls.cpp
         src/wiz8/local_code/Factions.cpp
         src/wiz8/local_code/LoadSaveGame.cpp
+        src/wiz8/local_code/LoadSaveGame_extra.cpp
         src/wiz8/local_code/Magic.cpp
         "src/wiz8/local_code/Health Stamina Mana.cpp"
         "src/wiz8/local_code/Conditions & Enchantments.cpp"

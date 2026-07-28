@@ -153,11 +153,12 @@ void CatchUpCombatActor(unsigned int* actor)
     actor[0x27] = g_combat_state->round_counter;
 }
 
-/* Whether one character can still take the action that costs stamina: they
-   have to be free of the condition that forbids it and still hold a fifth of
-   their stamina. */
+/* Whether one character can breathe again. The name is the Magic.cpp:5320
+   assertion's own - assert(CanCharReBreathe(uiChar)) - and the rule is that
+   they have to be free of the condition that forbids it and still hold a fifth
+   of their stamina, the same fifth a run costs. */
 // FUNCTION: WIZ8 0x004EBC80
-unsigned char CanCharacterActAtCost(int party_slot)
+unsigned char CanCharReBreathe(int party_slot)
 {
     W8Character* character = &g_party_characters[party_slot];
 
@@ -183,4 +184,57 @@ void DropCharacterFromRound(int party_slot)
         Function565420();
     }
     Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);
+}
+
+extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
+extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
+extern void NotifyMonsterOfSound(W8Monster* monster, int arg_2);         /* 0x004C6240 */
+extern W8PList* g_active_monster_list_00683fad;
+extern unsigned char g_surprise_possible_00683fc5;
+
+/* Tell every monster within short range about something. A monster has to be
+   in combat, alive, not on its way out, free of whatever 0x087 records, and
+   in the engaged state before it is told. */
+// FUNCTION: WIZ8 0x004ECAA0
+void NotifyNearbyMonsters(int what)
+{
+    unsigned int index;
+    W8MonsterInfo* monster_info;
+
+    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(index);
+        if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
+            (unsigned int)monster_info->value_107 < 0xe &&
+            monster_info->condition_turns[12] == 0 && monster_info->flag_16 == 1) {
+            if (MonsterDistanceToParty(monster_info) <= CalcRangeDistance(1)) {
+                NotifyMonsterOfSound(monster_info->monster, what);
+            }
+        }
+    }
+}
+
+/* Whether the party notices what is coming. The first character in shape to
+   act rolls against half their sixth attribute; nobody in shape at all, or the
+   global being clear, and the answer is yes by default. */
+// FUNCTION: WIZ8 0x004ED1C0
+int PartyAvoidsSurprise(void)
+{
+    unsigned int party_slot = 0;
+
+    if (g_surprise_possible_00683fc5 == 0) {
+        return 0;
+    }
+    while (g_party_slot_rows[party_slot].flag_00 == 0 ||
+           g_party_characters[party_slot].hp_current == 0 ||
+           g_party_characters[party_slot].unknown_0b01 > 10) {
+        ++party_slot;
+        if (party_slot > 7) {
+            return 1;
+        }
+    }
+    Random(1);
+    if (g_party_characters[party_slot].attributes[6].effective >> 1 <= Random(100)) {
+        return 1;
+    }
+    return 0;
 }
