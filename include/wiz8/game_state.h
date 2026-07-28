@@ -78,8 +78,14 @@ typedef struct W8PartySlotRow {
     unsigned char flag_00;               /* 0x000: slot occupied */
     int value_001;                       /* 0x001 */
     unsigned char unknown_005[0x70];
-    int unknown_075;                     /* 0x075 */
-    unsigned char unknown_079[0x57];
+    /* 0x075..0x0a0: the slot's pending spell target - what kind of target it
+       is, which one, a cleared word, and the eight-dword target block the
+       targeting code hands over. */
+    int spell_target_kind;               /* 0x075 */
+    int spell_target_value;              /* 0x079 */
+    int spell_target_reset;              /* 0x07d */
+    int spell_target_block[8];           /* 0x081 */
+    unsigned char unknown_0a1[0x2f];
     unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
     unsigned char unknown_0d1[0x24];
     /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a

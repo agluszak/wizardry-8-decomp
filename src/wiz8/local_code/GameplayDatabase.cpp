@@ -421,7 +421,7 @@ void ResetPartySlotRow(int slot)
 
     memset(row, 0, sizeof(W8PartySlotRow));
     row->flag_00 = 1;
-    row->unknown_075 = 0;
+    row->spell_target_kind = 0;
     row->flag_0d0 = 0xff;
     Function4E8290(slot, 0, -1);
 }

@@ -347,3 +347,198 @@ bool IsSpellFlagged4EBC80(int spell_id)
 {
     return Function4EBC80(spell_id) != 0;
 }
+
+/* One queued spell effect. Each entry counts down a turn at a time and is
+   distinguished only by its kind; the effect body itself lives elsewhere. */
+typedef struct W8SpellEffectEntry {
+    int kind;                            /* 0x00 */
+    int turns_remaining;                 /* 0x04 */
+} W8SpellEffectEntry;
+
+/* The kind whose expiry hands every monster back its own control. */
+enum { W8_SPELL_EFFECT_KIND_MONSTER_CONTROL = 0x26 };
+
+/* One condition slot, as both the party-wide table and the two per-side combat
+   tables lay it out: an occupied flag ahead of the condition it names. */
+typedef struct W8ConditionSlot {
+    unsigned char occupied;              /* 0x00 */
+    int condition_id;                    /* 0x01 */
+    unsigned char unknown_05[0xc];
+} W8ConditionSlot;                       /* 0x11 */
+
+enum {
+    W8_PARTY_CONDITION_SLOTS = 12,
+    W8_COMBAT_CONDITION_SLOTS = 9
+};
+
+/* 0x00689B58: the queued spell effects, the shared growable vector again. */
+extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
+/* 0x0068691F */
+extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
+extern W8PList* g_active_monster_list_00683fad;
+
+/* Whether every queued effect still has time left on it. */
+// FUNCTION: WIZ8 0x00500E50
+bool AllSpellEffectsStillRunning(void)
+{
+    int index;
+
+    for (index = 0; index < g_spell_effects.GetCount(); ++index) {
+        if ((*g_spell_effects.GetAt(index))->turns_remaining == 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/* The queued effect that holds monsters under the party's control, if one is
+   running. */
+// FUNCTION: WIZ8 0x00500F30
+W8SpellEffectEntry* FindMonsterControlSpellEffect(void)
+{
+    int index;
+    W8SpellEffectEntry* effect;
+
+    for (index = 0; index < g_spell_effects.GetCount(); ++index) {
+        effect = *g_spell_effects.GetAt(index);
+        if (effect->kind == W8_SPELL_EFFECT_KIND_MONSTER_CONTROL) {
+            return effect;
+        }
+    }
+    return 0;
+}
+
+/* Count every queued effect down by one turn. The monster-control effect
+   running out is the one with a consequence: every monster that is still alive
+   goes back to controlling itself. */
+// FUNCTION: WIZ8 0x00500E90
+void TickSpellEffects(void)
+{
+    int count = g_spell_effects.GetCount();
+    int index;
+    unsigned int monster_index;
+    W8SpellEffectEntry* effect;
+    W8MonsterInfo* monster_info;
+
+    for (index = 0; index < count; ++index) {
+        effect = *g_spell_effects.GetAt(index);
+        if (effect->turns_remaining != 0) {
+            --effect->turns_remaining;
+            if (effect->turns_remaining == 0 &&
+                effect->kind == W8_SPELL_EFFECT_KIND_MONSTER_CONTROL) {
+                for (monster_index = 0;
+                     monster_index < PListGetCount(g_active_monster_list_00683fad);
+                     ++monster_index) {
+                    monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+                    if (monster_info != 0 && !monster_info->monster->IsDying()) {
+                        SetMonsterControlState(monster_info, 0);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Whether the party as a whole is under one particular condition. */
+// FUNCTION: WIZ8 0x005012B0
+bool PartyHasCondition(int condition_id)
+{
+    W8ConditionSlot* slot = g_party_conditions;
+
+    while (slot->occupied == 0 || slot->condition_id != condition_id) {
+        ++slot;
+        if (slot > &g_party_conditions[W8_PARTY_CONDITION_SLOTS - 1]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/* Whether either side of the current fight is under one particular condition.
+   Both tables are searched, the party's first. */
+// FUNCTION: WIZ8 0x00501250
+bool CombatHasCondition(int condition_id)
+{
+    W8ConditionSlot* slot;
+    unsigned int index;
+
+    if (g_combat_state != 0) {
+        slot = (W8ConditionSlot*)((char*)g_combat_state + 0x7c1);
+        for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
+            if (slot->occupied != 0 && slot->condition_id == condition_id) {
+                return true;
+            }
+        }
+        slot = (W8ConditionSlot*)((char*)g_combat_state + 0x85a);
+        for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index, ++slot) {
+            if (slot->occupied != 0 && slot->condition_id == condition_id) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+extern int CharacterPointerToPartySlot(const W8Character* character);
+extern void Function4E7CC0(
+    int party_slot, int arg_2, int arg_3, void* arg_4, int arg_5, int arg_6);
+extern int* Function53B7F0(int party_slot, int selector);
+extern unsigned char Function537160(int* target, char needed_target);
+extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
+
+/* Record what one party slot is about to cast at, from a target block the
+   caller already holds. */
+// FUNCTION: WIZ8 0x004F9AA0
+void SetPartySlotSpellTarget(
+    int party_slot, int target_kind, int target_value, const int* target_block)
+{
+    W8PartySlotRow* row = &g_party_slot_rows[party_slot];
+    int index;
+
+    row->spell_target_kind = target_kind;
+    row->spell_target_value = target_value;
+    row->spell_target_reset = 0;
+    for (index = 0; index < 8; ++index) {
+        row->spell_target_block[index] = target_block[index];
+    }
+}
+
+/* The same, addressed by character rather than by slot, and taking the target
+   block from the targeting code instead of the caller. */
+// FUNCTION: WIZ8 0x004F9A20
+void SetCharacterSpellTarget(const W8Character* character, int target_kind, int target_value)
+{
+    int party_slot = CharacterPointerToPartySlot(character);
+    int notify[2];
+    const int* target_block;
+    W8PartySlotRow* row;
+    int index;
+
+    notify[0] = target_value;
+    notify[1] = 0;
+    Function4E7CC0(party_slot, 7, target_kind, notify, 0, 1);
+    target_block = Function53B7F0(party_slot, 6);
+
+    row = &g_party_slot_rows[party_slot];
+    row->spell_target_value = target_value;
+    row->spell_target_kind = target_kind;
+    row->spell_target_reset = 0;
+    for (index = 0; index < 8; ++index) {
+        row->spell_target_block[index] = target_block[index];
+    }
+}
+
+/* Whether one party slot's recorded spell target is still a target it could
+   reach: the target has to be of the kind the spell needs, and the slot has to
+   be in range of it. */
+// FUNCTION: WIZ8 0x00501530
+bool PartySlotSpellTargetStillValid(int party_slot)
+{
+    char needed = GetTargetNeededForSpellFriendly(
+        g_party_slot_rows[party_slot].spell_target_kind, 0, 6);
+
+    if (!Function537160(Function53B7F0(party_slot, 3), needed)) {
+        return false;
+    }
+    return Function519180(party_slot, 0, 3) != 0;
+}
