@@ -20,7 +20,8 @@ from .subprocesses import CommandResult, resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
 TARGET_ALIASES = {"match": "WIZ8", "runtime": "WIZ8_RUNTIME"}
-PRODUCT_GENERATOR = "NMake Makefiles JOM"
+PRODUCT_GENERATOR = "NMake Makefiles"
+JOM_PROGRAM = r"C:\jom\jom.exe"
 
 
 @dataclass(frozen=True)
@@ -81,7 +82,6 @@ class ContainerBuild:
                 "Z:/out",
                 "-G",
                 PRODUCT_GENERATOR,
-                "-DCMAKE_MAKE_PROGRAM=C:/jom/jom.exe",
                 "-DIJG_JPEG_SOURCE=Z:/jpeg",
                 "-DZLIB_SOURCE=Z:/zlib",
                 "-DINFOZIP_SOURCE=Z:/infozip",
@@ -102,6 +102,17 @@ class ContainerBuild:
             ),
         ]
 
+    def check_build_system_command(self) -> list[str]:
+        return [
+            *self.docker_prefix(),
+            "cmd",
+            "/c",
+            (
+                r"set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& "
+                rf"cd /d Z:\out&& {JOM_PROGRAM} cmake_check_build_system"
+            ),
+        ]
+
 
 def _result(result: CommandResult) -> dict[str, Any]:
     return asdict(result)
@@ -117,6 +128,26 @@ def _product_cache_ready(build_dir: Path) -> bool:
         return False
     cached = cache.read_text(encoding="utf-8", errors="replace").replace("\r", "")
     return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in cached
+
+
+def _enable_jom_parallelism(build_dir: Path) -> list[str]:
+    """Remove only CMake's generated NMake serialization guards.
+
+    CMake's native JOM generator does not return from its VC6 try-compile under
+    Wine even with Docker's init shim.  The ordinary NMake generator is the
+    stable configuration path; JOM understands those makefiles once the two
+    top-level serialization directives are removed.
+    """
+
+    updated: list[str] = []
+    for path in (build_dir / "Makefile", build_dir / "CMakeFiles" / "Makefile2"):
+        content = path.read_bytes()
+        replacement = content.replace(b".NOTPARALLEL:\r\n", b"# .NOTPARALLEL removed for JOM\r\n")
+        replacement = replacement.replace(b".NOTPARALLEL:\n", b"# .NOTPARALLEL removed for JOM\n")
+        if replacement != content:
+            path.write_bytes(replacement)
+            updated.append(str(path))
+    return updated
 
 
 def validate_build_directory(settings: Settings) -> dict[str, Any]:
@@ -266,6 +297,10 @@ def build_target(
         )
         if not prerequisites_ready or not _product_cache_ready(build.build_dir):
             _configure(settings)
+        # Let CMake regenerate while its NMake serialization guards are intact,
+        # then adapt only those generated guards for the parallel JOM build.
+        run(build.check_build_system_command(), cwd=settings.repo_dir)
+        parallel_makefiles = _enable_jom_parallelism(build.build_dir)
         resolved_target = TARGET_ALIASES.get(target, target)
         result = run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
@@ -273,6 +308,7 @@ def build_target(
         )
         return {
             "target": resolved_target,
+            "parallel_makefiles": parallel_makefiles,
             "command": _result(result),
         }
 
