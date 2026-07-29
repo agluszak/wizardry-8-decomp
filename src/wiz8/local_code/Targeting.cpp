@@ -1104,10 +1104,106 @@ extern W8MonsterRecord* GetMonsterGroupRecord(W8MonsterGroup* group);    /* 0x00
 extern void GetSlotChosenAction(
     int party_slot, unsigned int context, int* action, int* detail, void* unused,
     const W8ActionDetailBlock** detail_block);
+extern int GetTargetNeededForSpellHostile(int spell_id);                 /* 0x005011C0 */
+extern unsigned char GetItemSpell(const W8ItemInstance* item);           /* 0x00520880 */
 extern unsigned char IsTargetSourceInRangeOfGroup(
     const W8TargetSource* source, W8MonsterGroup* group, int context);   /* 0x00537780 */
 extern unsigned char CanReachTarget(
     int party_slot, int kind, W8MonsterInfo* monster_info, int context, int arg_5);
+
+/* Replace a monster's current combat target with one monster id. The target
+   block is cleared as a whole before its four discriminating fields are
+   established, matching the other target builders in this unit. */
+// FUNCTION: WIZ8 0x0053A2C0
+void Function53A2C0(W8MonsterInfo* monster_info, int location_id)
+{
+    W8CombatSlot* target = &monster_info->combat_slot_2ba;
+
+    memset(target, 0, sizeof(*target));
+    target->iType = 0;
+    target->iMonsterID = BAD_INDEX;
+    target->iChar = BAD_INDEX;
+    target->iGroupID = BAD_INDEX;
+    target->iMonsterID = location_id;
+    target->iType = W8_TARGET_KIND_MONSTER;
+}
+
+/* Probe whether a monster's current combat target is one of the kinds its
+   chosen hostile spell accepts. The caller only needs the validator's side
+   effects, so this wrapper discards its answer. */
+// FUNCTION: WIZ8 0x0053A300
+void Function53A300(W8MonsterInfo* monster_info, int spell_id)
+{
+    TargetMatchesNeeded(
+        &monster_info->combat_slot_2ba, GetTargetNeededForSpellHostile(spell_id));
+}
+
+/* Map the current screen state to the targeting context used by this path.
+   The address-qualified name preserves the still-unidentified original name;
+   the screen ids and returned context numbers are direct switch evidence. */
+// FUNCTION: WIZ8 0x0053A3D0
+unsigned int Function53A3D0(int alternate)
+{
+    switch (g_highlight_suppressed_00683fe7) {
+    case 1:
+    case 6:
+    case 7:
+        return (alternate != 0) + 3;
+    case 2:
+        return alternate != 0;
+    case 3:
+        return 2;
+    case 4:
+        return 12;
+    case 5:
+        return 11 - (alternate != 0);
+    default:
+        return 0xffffffff;
+    }
+}
+
+/* Whether the pending spell in one party row needs an explicit target. */
+// FUNCTION: WIZ8 0x0053A700
+unsigned char Function53A700(int party_slot)
+{
+    switch (GetSpellTargetType(g_party_slot_rows[party_slot].spell_id, 0)) {
+    case 0:
+    case 2:
+    case 7:
+    case 10:
+        return 0;
+    case 3:
+        if (g_camp_open_00683f9b != 0) {
+            return 0;
+        }
+        return g_targeting_flag_00685116 == 0;
+    default:
+        return 1;
+    }
+}
+
+/* Return the spell-like id carried by a chosen action: the fixed attack id,
+   a spell's detail word, or the spell attached to an item use. */
+// FUNCTION: WIZ8 0x0053A8D0
+unsigned int Function53A8D0(int party_slot, unsigned int context)
+{
+    int action;
+    int detail;
+    const W8ActionDetailBlock* detail_block;
+
+    GetSlotChosenAction(
+        party_slot, context, &action, &detail, 0, &detail_block);
+    if (action == 2) {
+        return 0x77;
+    }
+    if (action == 7) {
+        return detail;
+    }
+    if (action == 8) {
+        return GetItemSpell(detail_block->item_use.item);
+    }
+    return 0;
+}
 
 /* Validate a targeting context a second time, after resolving "current". The
    inner resolution has an assertion of its own, so a context that gets this far

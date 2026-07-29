@@ -320,7 +320,7 @@ char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int 
 /* The same question for a hostile spell, which has fewer answers because a
    hostile spell never targets the party's own belongings. */
 // FUNCTION: WIZ8 0x005011c0
-char GetTargetNeededForSpellHostile(int spell_id)
+int GetTargetNeededForSpellHostile(int spell_id)
 {
     switch (GetSpellTargetType(spell_id, 0)) {
     case 0:
