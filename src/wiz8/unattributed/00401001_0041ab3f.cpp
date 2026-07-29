@@ -9,9 +9,9 @@ void DeleteFileByName(LPCSTR path)
     DeleteFileA(path);
 }
 // FUNCTION: WIZ8 0x00405720
-void CompareFileTimes(const FILETIME* left, const FILETIME* right)
+int CompareSGPFileTimes(FILETIME* left, FILETIME* right)
 {
-    CompareFileTime(left, right);
+    return CompareFileTime(left, right);
 }
 // FUNCTION: WIZ8 0x00407210
 unsigned char SetValue5FF5F0(int value)
