@@ -13,12 +13,12 @@ public:
 
     int Grow(int minimum_capacity);
 
-    __forceinline int GetCount() const
+    int GetCount() const
     {
         return count;
     }
 
-    __forceinline T* GetAt(int position)
+    T* GetAt(int position)
     {
         T* result = data;
 
@@ -40,30 +40,13 @@ public:
     }
 
     /* Returns the element it unlinked. GenerateItemsFromTable discards that
-       value, so the ItemManager inlining alone does not show it; the dialog
-       destructor at 0x005D1590 deletes what the same shifting body returns. */
-    __forceinline T RemoveAt(int position)
-    {
-        int index;
-        T result;
-
-        if (position >= count || position < 0) {
-            return 0;
-        }
-        result = data[position];
-        for (index = position; index < count - 1; ++index) {
-            data[index] = data[index + 1];
-        }
-        --count;
-        return result;
-    }
-
-    T RemoveEntryAt(int position);
+       value, while callers such as the dialog destructor delete it. */
+    T RemoveAt(int position);
 
     /* The image walks the array from a pointer loaded once rather than
        indexing through GetAt, which bounds-checks. Controls.cpp:2718 asserts on
        the -1 this returns, so the not-found value is the source's own. */
-    __forceinline int IndexOf(T value)
+    int IndexOf(T value)
     {
         T* scan = data;
         int index;
@@ -77,7 +60,7 @@ public:
         return -1;
     }
 
-    __forceinline void Clear()
+    void Clear()
     {
         count = 0;
     }
@@ -151,7 +134,7 @@ int W8GrowableVector<T>::Grow(int minimum_capacity)
 }
 
 template <class T>
-T W8GrowableVector<T>::RemoveEntryAt(int position)
+T W8GrowableVector<T>::RemoveAt(int position)
 {
     int index;
     T result;

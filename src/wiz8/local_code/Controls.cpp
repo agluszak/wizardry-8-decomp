@@ -2036,43 +2036,18 @@ void Controls::SetEnabled(unsigned char enable)
     }
 }
 
-/* Detaches one control by identity. The search stops at the first match and the
-   tail is shifted down over it; a control that is not present leaves the array
-   untouched. The array itself never shrinks. */
+/* Detaches the first matching control through the panel's ordinary vector. */
 // FUNCTION: WIZ8 0x004f2da0
 void Controls::RemoveControl(W8WidgetBase005ED5BC* control)
 {
-    int count = m_controls.count;
-    int index = 0;
+    int index = m_controls.IndexOf(control);
 
-    if (count > 0) {
-        W8WidgetBase005ED5BC** cursor = m_controls.data;
-
-        while (*cursor != control) {
-            ++index;
-            ++cursor;
-            if (index >= count) {
-                return;
-            }
-        }
-        if (index >= 0 && index < count) {
-            if (index < count - 1) {
-                do {
-                    m_controls.data[index] = m_controls.data[index + 1];
-                    ++index;
-                } while (index < m_controls.count - 1);
-            }
-            --m_controls.count;
-        }
+    if (index != -1) {
+        m_controls.RemoveAt(index);
     }
 }
 
-/* Tears the panel down back to front. Each control is detached first and
-   deleted afterwards - `delete` on the polymorphic base, which is the vtable
-   slot 0 call with the deleting flag the image makes - so a control's destructor
-   can safely walk the array it has already left.
-   The shift-down is the same one RemoveControl performs, inlined here because
-   the index is already known. */
+/* Tears the panel down back to front, unlinking each control before deleting it. */
 // FUNCTION: WIZ8 0x004f2df0
 void Controls::DestroyAllControls()
 {
@@ -2080,19 +2055,7 @@ void Controls::DestroyAllControls()
 
     if (index > 0) {
         while (--index, index >= 0) {
-            if (index < m_controls.count && index >= 0) {
-                W8WidgetBase005ED5BC* control = m_controls.data[index];
-                int shift = index;
-
-                if (index < m_controls.count - 1) {
-                    do {
-                        m_controls.data[shift] = m_controls.data[shift + 1];
-                        ++shift;
-                    } while (shift < m_controls.count - 1);
-                }
-                --m_controls.count;
-                delete control;
-            }
+            delete m_controls.RemoveAt(index);
         }
     }
 }

@@ -9,7 +9,7 @@
 // W8GrowableVector<int>::Grow
 
 // TEMPLATE: WIZ8 0x004d99e0
-// W8GrowableVector<T*>::RemoveEntryAt
+// W8GrowableVector<T*>::RemoveAt
 
 // TEMPLATE: WIZ8 0x00445f70
 // W8GrowableVector<T*>::Add

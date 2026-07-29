@@ -22,9 +22,11 @@ vectors — `W8MonsterManagerEntry` at `+0xd8` and `W8MonsterManagerState` at `+
 `W8GrowableVector<int>` is a different specialization rather than the same one spelled two ways.
 
 `GetAt` returns the address of the element, bounds-checked against `count`, and `RemoveAt` returns
-the element it unlinked. Both are inlined at every call site, and `RemoveAt`'s return is why one
-method serves two inlinings: the dialog destructor at `0x005D1590` deletes what it returns while
-`GenerateItemsFromTable` discards the same value. Calling `GetAt` is not always the right port
+the element it unlinked. `RemoveAt` appears both expanded into callers and as pointer-specialization
+COMDATs folded to `0x004D99E0`; those are optimizer and linker outcomes of the one template method,
+not evidence for a second `RemoveEntryAt` source method. Its return is why the dialog destructor at
+`0x005D1590` deletes what it returns while `GenerateItemsFromTable` discards the same value.
+Calling `GetAt` is not always the right port
 even so — `GetNPCItemListByID` reads the count once and keeps the storage pointer it already
 loaded, and spelling that as the accessor re-reads both.
 
@@ -69,13 +71,13 @@ promote that mechanical inventory into named source types.
 
 ## Grow and removal are ordinary vector methods
 
-`Grow`, `RemoveAt`, and `RemoveEntryAt` operate directly on the vector's
+`Grow` and `RemoveAt` operate directly on the vector's
 `count`/`capacity`/`data` fields. They are methods of `W8GrowableVector<T>`; there is no recovered
 `W8GrowableVectorBase` class and no lifecycle evidence for one. Adding such a polymorphic base was
 tested and rejected because its additional construction and destruction vptr stores regress four
 reviewed-exact owner bodies.
 
-The emitted four-byte `Grow` body at `0x004ADDF0` and pointer `RemoveEntryAt` body at `0x004D99E0`
+The emitted four-byte `Grow` body at `0x004ADDF0` and pointer `RemoveAt` body at `0x004D99E0`
 are therefore recorded as `TEMPLATE` emissions, not as `FUNCTION`s on a manufactured base class.
 The source body remains element-width-aware through `sizeof(T)`: the encounter loader proves this
 with `W8GrowableVector<unsigned short>`, `W8GrowableVector<unsigned char>`, and

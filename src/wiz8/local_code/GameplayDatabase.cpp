@@ -817,62 +817,28 @@ void W8StartupRuntimeState::ClearOwnedEntries()
 {
     W8StartupStateElement005EE748* entry;
     int count;
-    int index;
 
     count = vector_40.count;
     while (count > 0) {
-        entry = vector_40.data[0];
-        vector_40.RemoveEntryAt(0);
+        entry = vector_40.RemoveAt(0);
         ProcessStartupStateEntry(entry);
         count = vector_40.count;
     }
     count = vector_30.count;
     while (count > 0) {
-        count = vector_30.count;
-        entry = vector_30.data[0];
-        if (count > 0) {
-            index = 0;
-            if (count != 1 && count - 1 >= 0) {
-                do {
-                    vector_30.data[index] = vector_30.data[index + 1];
-                    ++index;
-                } while (index < vector_30.count - 1);
-            }
-            --vector_30.count;
-        }
+        entry = vector_30.RemoveAt(0);
         ::operator delete(entry);
         count = vector_30.count;
     }
     count = vector_10.count;
     while (count > 0) {
-        count = vector_10.count;
-        entry = vector_10.data[0];
-        if (count > 0) {
-            index = 0;
-            if (count != 1 && count - 1 >= 0) {
-                do {
-                    vector_10.data[index] = vector_10.data[index + 1];
-                    ++index;
-                } while (index < vector_10.count - 1);
-            }
-            --vector_10.count;
-        }
+        entry = vector_10.RemoveAt(0);
         ::operator delete(entry);
         count = vector_10.count;
     }
     count = vector_00.count;
     while (count > 0) {
-        entry = vector_00.data[0];
-        if (count > 0) {
-            index = 0;
-            if (count != 1 && count - 1 >= 0) {
-                do {
-                    vector_00.data[index] = vector_00.data[index + 1];
-                    ++index;
-                } while (index < vector_00.count - 1);
-            }
-            --vector_00.count;
-        }
+        entry = vector_00.RemoveAt(0);
         ::operator delete(entry);
         count = vector_00.count;
     }
