@@ -40,16 +40,16 @@ public:
 
     static SR_DLL_IMPORT const char* sGetClassName();
 
-    virtual SR_DLL_IMPORT const char* getClassName() const;
-    virtual SR_DLL_IMPORT unsigned long getClassID() const;
-    virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const;
-    virtual SR_DLL_IMPORT void dump(std::ostream& stream);
+    virtual SR_DLL_IMPORT const char* getClassName() const override;
+    virtual SR_DLL_IMPORT unsigned long getClassID() const override;
+    virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const override;
+    virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 protected:
-    virtual SR_DLL_IMPORT ~srNode();
+    virtual SR_DLL_IMPORT ~srNode() override;
 
 public:
-    virtual SR_DLL_IMPORT srClass* vInstance();
+    virtual SR_DLL_IMPORT srClass* vInstance() override;
     virtual SR_DLL_IMPORT srNode* vslot7();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info);
     virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type);

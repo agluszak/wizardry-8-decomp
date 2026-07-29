@@ -7,7 +7,10 @@ if(NOT IJG_JPEG_SOURCE)
 endif()
 
 add_library(wiz8_compile_settings INTERFACE)
-target_compile_options(wiz8_compile_settings INTERFACE /nologo /O2 /G6 /MD)
+target_compile_options(wiz8_compile_settings INTERFACE
+    /nologo /O2 /G6 /MD
+    "/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h"
+)
 target_compile_definitions(wiz8_compile_settings INTERFACE NOMINMAX WIN32_LEAN_AND_MEAN)
 target_include_directories(wiz8_compile_settings INTERFACE
     include

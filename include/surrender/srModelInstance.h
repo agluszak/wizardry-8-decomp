@@ -6,12 +6,12 @@
 class SR_DLL_IMPORT srModelInstance : public srNode, public srModel::Client {
 public:
     srModelInstance(srNode* parent);
-    virtual void dump(std::ostream& stream);
-    virtual srClass* vInstance();
-    virtual void traverse(TraverseInfo& info);
-    virtual void process(const ProcessInfo& info, e_processType type);
-    virtual void getLocalBounds(BoundInfo& bounds);
-    virtual void updateClient(srModel::Client::e_update update);
+    virtual void dump(std::ostream& stream) override;
+    virtual srClass* vInstance() override;
+    virtual void traverse(TraverseInfo& info) override;
+    virtual void process(const ProcessInfo& info, e_processType type) override;
+    virtual void getLocalBounds(BoundInfo& bounds) override;
+    virtual void updateClient(srModel::Client::e_update update) override;
 
     void assignModel(srModel* model) {
         static_cast<srModel::Client*>(this)->setModel(model);
@@ -35,7 +35,7 @@ public:
     void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
 
 protected:
-    virtual ~srModelInstance();
+    virtual ~srModelInstance() override;
     unsigned long state_160;
     unsigned long render_depth_164;
     short left_168;

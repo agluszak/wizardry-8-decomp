@@ -66,6 +66,7 @@ Choose the narrowest lane while iterating and run the complete lane before publi
 | Change | Required validation |
 | --- | --- |
 | Python, docs, evidence, marker, or source inventory | `just check` |
+| C++ class declarations or inheritance | `just lint` |
 | Ordinary local work | `just test` |
 | Ported/recovered body | `just build WIZ8_GAMEPLAY_BOUNDARIES`, `just wiz8 verify-boundaries`, then `just test` |
 | Reviewed Ghidra change | representative `just context` checks, `uv run wiz8 ghidra index`, then an intentional checkpoint refresh |
@@ -84,9 +85,13 @@ test driver but consumed by the real screen handler on the UI thread; forward/re
 observations are the determinism criterion. Do not add coordinate automation or test branches to
 matching bodies.
 
-`just check` owns formatting, lint, typing, source inventory, fixture-based unit tests, one
+`just check` owns Python formatting, lint, typing, source inventory, fixture-based unit tests, one
 checked-tree repository lane, marker policy, repository hygiene, and reccmp decomplint. Do not put
 live counts or generated reports into tests or Markdown.
+
+`just lint` is a compile-only C++14 Clang lane over the recovered sources and the real VC6 headers.
+It enforces override and overloaded-virtual diagnostics; it never supplies matching evidence or
+participates in the linked product.
 
 ## Workspace and publication
 

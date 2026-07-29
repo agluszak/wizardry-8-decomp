@@ -21,7 +21,7 @@ class W8Vector005EC294 :
     public W8GrowableVector<W8VectorElement005EC294*> {
 public:
     W8Vector005EC294(int initial_capacity);
-    virtual ~W8Vector005EC294();
+    virtual ~W8Vector005EC294() override;
 };                                       /* 0x10 */
 
 void DestroyVector005EC294(W8Vector005EC294* vector); /* 0x004A8C50 */

@@ -47,17 +47,17 @@ class SR_DLL_IMPORT srTexture : public srTextureIFace {
 public:
     static const char* sGetClassName();
     srTexture& operator=(const srTexture& other);
-    virtual const char* getClassName() const;
-    virtual unsigned long getClassID() const;
-    virtual srRegistry::ClassNode* getClassNode() const;
-    virtual void dump(std::ostream& stream);
-    virtual srClass* vInstance();
-    virtual unsigned long getTextureFrameHandle();
-    virtual float getPriority();
-    virtual void getDimensions(Dimensions& dimensions);
-    virtual void getMipmapData(MultiRequest& request);
-    virtual void getMipmapLevelPartial(PartialRequest& request);
-    virtual void getTextureParms(Parameters& parameters);
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
+    virtual void dump(std::ostream& stream) override;
+    virtual srClass* vInstance() override;
+    virtual unsigned long getTextureFrameHandle() override;
+    virtual float getPriority() override;
+    virtual void getDimensions(Dimensions& dimensions) override;
+    virtual void getMipmapData(MultiRequest& request) override;
+    virtual void getMipmapLevelPartial(PartialRequest& request) override;
+    virtual void getTextureParms(Parameters& parameters) override;
     void setMipmap(e_mipmap mipmap);
     void enableHint(e_hint hint);
     void setCorrection(e_correction correction);
@@ -69,7 +69,7 @@ public:
 protected:
     friend class stSurface2D;
     srTexture();
-    virtual ~srTexture();
+    virtual ~srTexture() override;
     static unsigned long getNewFrameHandle();
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
@@ -89,9 +89,9 @@ class SR_DLL_IMPORT srTextureMap : public srTexture {
 public:
     srTextureMap(srColorSurfaceIFace* surface);
     srTextureMap& operator=(const srTextureMap& other);
-    virtual srClass* vInstance();
+    virtual srClass* vInstance() override;
     void setSurfacePtr(srColorSurfaceIFace* surface);
-    virtual void invalidate();
+    virtual void invalidate() override;
 
 protected:
     unsigned char unknown_54_[0x08];

@@ -12,15 +12,15 @@
 class W8MusicPlaylist : public srClass {
 public:
     W8MusicPlaylist();
-    virtual ~W8MusicPlaylist();
+    virtual ~W8MusicPlaylist() override;
 
-    virtual const char* getClassName() const { return "stScript"; }
-    virtual unsigned long getClassID() const { return 0x1000d; }
-    virtual srRegistry::ClassNode* getClassNode() const
+    virtual const char* getClassName() const override { return "stScript"; }
+    virtual unsigned long getClassID() const override { return 0x1000d; }
+    virtual srRegistry::ClassNode* getClassNode() const override
     { return classNode(); }
-    virtual void dump(std::ostream&) {}
-    virtual void verify(srRuntimeClass::e_verify mode) { srClass::verify(mode); }
-    virtual srClass* vInstance() { return new W8MusicPlaylist(); }
+    virtual void dump(std::ostream&) override {}
+    virtual void verify(srRuntimeClass::e_verify mode) override { srClass::verify(mode); }
+    virtual srClass* vInstance() override { return new W8MusicPlaylist(); }
 
 private:
     static srRegistry::ClassNode* classNode();

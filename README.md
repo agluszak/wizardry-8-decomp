@@ -17,7 +17,9 @@ supported daily workflow:
 uv sync --frozen
 just wiz8 doctor
 just prepare
+just build-lint-image             # once, or after the toolchain Dockerfile changes
 just check
+just lint
 just build
 just compare
 just run
@@ -25,8 +27,10 @@ just runtime-test
 just verify
 ```
 
-`prepare` idempotently materializes configured inputs and pinned source dependencies. `build`
-configures automatically. `compare` is a linked-image diagnostic; relocation-masked
+`prepare` idempotently materializes configured inputs and pinned source dependencies.
+`build-lint-image` builds the pinned VC6 image with its native Clang lane. `lint`
+compile-checks the recovered C++ with Clang's virtual-override diagnostics while the matching build
+continues to use VC6. `build` configures automatically. `compare` is a linked-image diagnostic; relocation-masked
 `just wiz8 verify-boundaries` is the recovered-body criterion. `just test` runs the public unit
 and repository-invariant lanes.
 

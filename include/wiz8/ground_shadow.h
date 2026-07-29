@@ -11,19 +11,19 @@ public:
     stGroundShadow(srNode* parent);                 /* 0x004D61B0 */
     stGroundShadow(const stGroundShadow& other);    /* 0x004D6430 */
 
-    virtual const char* getClassName() const;       /* 0x004D69B0 */
-    virtual unsigned long getClassID() const;       /* 0x004D69A0 */
-    virtual srRegistry::ClassNode* getClassNode() const; /* 0x004D69C0 */
+    virtual const char* getClassName() const override;       /* 0x004D69B0 */
+    virtual unsigned long getClassID() const override;       /* 0x004D69A0 */
+    virtual srRegistry::ClassNode* getClassNode() const override; /* 0x004D69C0 */
 
 protected:
-    virtual ~stGroundShadow();                      /* 0x004D6370 */
+    virtual ~stGroundShadow() override;                      /* 0x004D6370 */
 
 public:
-    virtual srClass* vInstance();                   /* 0x004D6BF0 */
-    virtual srNode* vslot7();                       /* 0x004D6A30 */
-    virtual void traverse(TraverseInfo& info);      /* 0x004D6540 */
+    virtual srClass* vInstance() override;                   /* 0x004D6BF0 */
+    virtual srNode* vslot7() override;                       /* 0x004D6A30 */
+    virtual void traverse(TraverseInfo& info) override;      /* 0x004D6540 */
     virtual void process(
-        const ProcessInfo& info, e_processType type); /* 0x004D6640 */
+        const ProcessInfo& info, e_processType type) override; /* 0x004D6640 */
 
     void* operator new(unsigned int size)
     {

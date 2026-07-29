@@ -19,6 +19,7 @@ from .reccmp_data import write_wiz8_data_source
 from .subprocesses import CommandResult, resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
+LINT_BUILD_DIR = "build/clang"
 TARGET_ALIASES = {
     "match": "WIZ8",
     "runtime": "WIZ8_RUNTIME",
@@ -317,6 +318,58 @@ def build_target(
         }
 
 
+def lint(settings: Settings) -> dict[str, Any]:
+    """Compile recovered C++ with clang-cl and the real VC6 headers."""
+
+    docker = resolve_executable("docker") or "docker"
+    output = settings.repo_dir / LINT_BUILD_DIR
+    output.mkdir(parents=True, exist_ok=True)
+    mounts = (
+        Mount(settings.repo_dir, "/repo"),
+        Mount(output, "/out", read_only=False),
+    )
+
+    def prefix() -> list[str]:
+        command = [docker, "run", "--rm", "--init", "--network", "none"]
+        for mount in mounts:
+            command.extend(("--volume", mount.docker_argument()))
+        return command
+
+    configure_result = run(
+        [
+            *prefix(),
+            "--entrypoint",
+            "cmake",
+            VC6_IMAGE,
+            "--fresh",
+            "-S",
+            "/repo",
+            "-B",
+            "/out",
+            "-G",
+            "Ninja",
+            "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
+        ],
+        cwd=settings.repo_dir,
+    )
+    build_result = run(
+        [
+            *prefix(),
+            "--entrypoint",
+            "cmake",
+            VC6_IMAGE,
+            "--build",
+            "/out",
+            "--",
+            "-k",
+            "0",
+        ],
+        cwd=settings.repo_dir,
+        log_path=settings.repo_dir / "build" / "logs" / "clang-lint-build.json",
+    )
+    return {"configure": _result(configure_result), "build": _result(build_result)}
+
+
 def build_analysis_target(
     settings: Settings, source_dir: str, build_name: str, target: str, jobs: int | None = None
 ) -> dict[str, Any]:
@@ -391,10 +444,10 @@ def compare(
     return {"target": target, "command": _result(result)}
 
 
-def build_toolchain(settings: Settings) -> dict[str, Any]:
+def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) -> dict[str, Any]:
     from .ghidra.fid_seeds import build_toolchain_images
 
-    return build_toolchain_images(settings)
+    return build_toolchain_images(settings, toolchain_ids)
 
 
 def check(repository: Path) -> dict[str, Any]:
@@ -415,6 +468,7 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     from .ghidra.index import export_index
     from .source_layouts import require_source_layouts, verify_source_layouts
 
+    lint_result = lint(settings)
     build_target(settings, "WIZ8")
     build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     ghidra_index = export_index(settings, "wiz8")
@@ -424,6 +478,7 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
     tests = run(["pytest"], cwd=settings.repo_dir)
     return {
+        "lint": lint_result,
         "boundaries": _result(boundaries),
         "ghidra_index": ghidra_index,
         "source_layouts": source_layouts,

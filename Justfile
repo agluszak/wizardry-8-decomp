@@ -13,6 +13,12 @@ test *args:
 check:
     uv run wiz8 check
 
+build-lint-image:
+    uv run wiz8 toolchain build vc6-sp5
+
+lint:
+    uv run wiz8 lint
+
 build target="match" *args:
     uv run wiz8 build {{target}} {{args}}
 

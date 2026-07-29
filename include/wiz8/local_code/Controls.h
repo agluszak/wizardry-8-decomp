@@ -155,29 +155,29 @@ public:
                           int left, int top, int right, int bottom,
                           int text_40, int text_44, int text_48, int text_4c,
                           int text_54, int text_50, int text_58);
-    virtual ~W8TextControl005ED604();
+    virtual ~W8TextControl005ED604() override;
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
-    virtual void SetVisible(unsigned char visible);
-    virtual void Redraw(int full_redraw);
+    virtual void SetVisible(unsigned char visible) override;
+    virtual void Redraw(int full_redraw) override;
     void SetFlaggedRegionBounds(short left, short top, unsigned short right);
-    virtual void AddLayoutFlags(unsigned int flags);
-    virtual void SetAlternateTextEnabled(unsigned char enabled);
+    virtual void AddLayoutFlags(unsigned int flags) override;
+    virtual void SetAlternateTextEnabled(unsigned char enabled) override;
     void RemoveLayoutFlags(unsigned int flags);
     virtual void EnableSecondaryState(unsigned char immediate);
     virtual void DisableSecondaryState(unsigned char immediate);
-    virtual void Function4D30(int event);
-    virtual void Function4E00(int event);
-    virtual void Function4F70(int event);
-    virtual void InvokeFocusCallback(int event);
-    virtual void Function50C0(int event);
-    virtual void Function5290(int event);
-    virtual void InvokeBlurCallback(int event);
-    virtual void ActivatePrimary(int event);
-    virtual void ActivateSecondary(int event);
+    virtual void Function4D30(int event) override;
+    virtual void Function4E00(int event) override;
+    virtual void Function4F70(int event) override;
+    virtual void InvokeFocusCallback(int event) override;
+    virtual void Function50C0(int event) override;
+    virtual void Function5290(int event) override;
+    virtual void InvokeBlurCallback(int event) override;
+    virtual void ActivatePrimary(int event) override;
+    virtual void ActivateSecondary(int event) override;
     void UpdateTextBounds(int left, int top, int right, int bottom);
-    virtual void SetBounds(int left, int top, int right, int bottom);
-    virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
+    virtual void SetBounds(int left, int top, int right, int bottom) override;
+    virtual void SetBoundsFromRect(const W8ControlsRect* bounds) override;
 
 protected:
     unsigned int m_stateFlags;           /* 0x34: paired state masks */
@@ -210,12 +210,12 @@ public:
     W8HelpTextControl005ED758(Controls* panel, unsigned int region,
                               int left, int top, int right, int bottom);
     void SetRegionHelp(const wchar_t* text);
-    virtual void Function4D30(int event);
-    virtual void Function4F70(int event);
-    virtual void InvokeFocusCallback(int event);
-    virtual void Function50C0(int event);
-    virtual void Function5290(int event);
-    virtual void InvokeBlurCallback(int event);
+    virtual void Function4D30(int event) override;
+    virtual void Function4F70(int event) override;
+    virtual void InvokeFocusCallback(int event) override;
+    virtual void Function50C0(int event) override;
+    virtual void Function5290(int event) override;
+    virtual void InvokeBlurCallback(int event) override;
 
 protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
@@ -231,9 +231,9 @@ public:
                           int text_40, int text_44, int text_48, int text_4c,
                           int text_54, int text_50, int text_58,
                           short direction, W8RangeControl005ED74C* range);
-    virtual void Function4F70(int event);
-    virtual void ActivatePrimary(int event);
-    virtual void AdjustValue(int steps);
+    virtual void Function4F70(int event) override;
+    virtual void ActivatePrimary(int event) override;
+    virtual void AdjustValue(int steps) override;
 
 protected:
     short m_direction;                   /* 0xb8: zero decrements */
@@ -248,7 +248,7 @@ class W8ControlsVector005ED5B0
     : public W8GrowableVector<W8WidgetBase005ED5BC*> {
 public:
     W8ControlsVector005ED5B0();
-    virtual ~W8ControlsVector005ED5B0();
+    virtual ~W8ControlsVector005ED5B0() override;
 };
 
 /* The region callback a widget without its own region is given. Ghidra has no

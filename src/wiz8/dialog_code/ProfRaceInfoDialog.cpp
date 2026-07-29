@@ -51,7 +51,7 @@ protected:
 class W8ProfessionInfoDialog005EFBFC : public W8ProfRaceInfoDialogBase005DEAF0 {
 public:
     W8ProfessionInfoDialog005EFBFC(unsigned int uiIndex);
-    virtual ~W8ProfessionInfoDialog005EFBFC();
+    virtual ~W8ProfessionInfoDialog005EFBFC() override;
 
 private:
     unsigned int m_uiTitleId;            /* 0x054 */
@@ -67,7 +67,7 @@ private:
 class W8RaceInfoDialog005EFC38 : public W8ProfRaceInfoDialogBase005DEAF0 {
 public:
     W8RaceInfoDialog005EFC38(unsigned int uiIndex);
-    virtual ~W8RaceInfoDialog005EFC38();
+    virtual ~W8RaceInfoDialog005EFC38() override;
 
 private:
     unsigned int m_uiTitleId;            /* 0x054 */

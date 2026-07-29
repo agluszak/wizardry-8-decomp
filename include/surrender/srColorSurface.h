@@ -140,50 +140,50 @@ public:
 
     static SR_DLL_IMPORT const char* sGetClassName();
 
-    virtual SR_DLL_IMPORT void dump(std::ostream& stream);
-    virtual SR_DLL_IMPORT srClass* vInstance();
+    virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
+    virtual SR_DLL_IMPORT srClass* vInstance() override;
 
-    virtual SR_DLL_IMPORT unsigned long getPixelRaw(long x, long y);
-    virtual SR_DLL_IMPORT void setPixelRaw(long x, long y, unsigned long pixel);
+    virtual SR_DLL_IMPORT unsigned long getPixelRaw(long x, long y) override;
+    virtual SR_DLL_IMPORT void setPixelRaw(long x, long y, unsigned long pixel) override;
     virtual SR_DLL_IMPORT void getPixels(
-        unsigned long* pixels, const srVector2i* positions, long count);
+        unsigned long* pixels, const srVector2i* positions, long count) override;
     virtual SR_DLL_IMPORT void setPixels(
-        const unsigned long* pixels, const srVector2i* positions, long count);
+        const unsigned long* pixels, const srVector2i* positions, long count) override;
     virtual SR_DLL_IMPORT void getPixelsRaw(
-        void* pixels, const srVector2i* positions, long count);
+        void* pixels, const srVector2i* positions, long count) override;
     virtual SR_DLL_IMPORT void setPixelsRaw(
-        const void* pixels, const srVector2i* positions, long count);
+        const void* pixels, const srVector2i* positions, long count) override;
     virtual SR_DLL_IMPORT void getPixelColumn(
-        unsigned long* pixels, long x, long y, long count);
+        unsigned long* pixels, long x, long y, long count) override;
     virtual SR_DLL_IMPORT void setPixelColumn(
-        const unsigned long* pixels, long x, long y, long count);
-    virtual SR_DLL_IMPORT srPalette* getPalette();
-    virtual SR_DLL_IMPORT void setPalette(srPalette* palette);
-    virtual SR_DLL_IMPORT void* getDataPtr();
-    virtual SR_DLL_IMPORT long getDataSize();
-    virtual SR_DLL_IMPORT int resize(long width, long height);
-    virtual SR_DLL_IMPORT int rescale(long width, long height);
+        const unsigned long* pixels, long x, long y, long count) override;
+    virtual SR_DLL_IMPORT srPalette* getPalette() override;
+    virtual SR_DLL_IMPORT void setPalette(srPalette* palette) override;
+    virtual SR_DLL_IMPORT void* getDataPtr() override;
+    virtual SR_DLL_IMPORT long getDataSize() override;
+    virtual SR_DLL_IMPORT int resize(long width, long height) override;
+    virtual SR_DLL_IMPORT int rescale(long width, long height) override;
     virtual SR_DLL_IMPORT int changePixelFormat(
-        const srPixelConvert::PixelFormat& format, int preserve);
-    virtual SR_DLL_IMPORT void fill(unsigned long pixel);
+        const srPixelConvert::PixelFormat& format, int preserve) override;
+    virtual SR_DLL_IMPORT void fill(unsigned long pixel) override;
     virtual SR_DLL_IMPORT void setHLine(
-        long x, long y, long length, unsigned long pixel);
+        long x, long y, long length, unsigned long pixel) override;
     virtual SR_DLL_IMPORT void setVLine(
-        long x, long y, long length, unsigned long pixel);
+        long x, long y, long length, unsigned long pixel) override;
     virtual SR_DLL_IMPORT void blit(
         long x, long y, srColorSurfaceIFace& source,
-        long source_x, long source_y, long width, long height);
+        long source_x, long source_y, long width, long height) override;
     virtual SR_DLL_IMPORT void swapPixelRows(
-        long x, long y0, long y1, long width, long rows);
-    virtual SR_DLL_IMPORT void flipRectangle(const Rectangle& rectangle);
+        long x, long y0, long y1, long width, long rows) override;
+    virtual SR_DLL_IMPORT void flipRectangle(const Rectangle& rectangle) override;
     virtual SR_DLL_IMPORT void getPixelRow(
-        unsigned long* pixels, long x, long y, long count);
+        unsigned long* pixels, long x, long y, long count) override;
     virtual SR_DLL_IMPORT void setPixelRow(
-        const unsigned long* pixels, long x, long y, long count);
+        const unsigned long* pixels, long x, long y, long count) override;
     virtual SR_DLL_IMPORT void getPixelRowRaw(
-        void* pixels, long x, long y, long count);
+        void* pixels, long x, long y, long count) override;
     virtual SR_DLL_IMPORT void setPixelRowRaw(
-        const void* pixels, long x, long y, long count);
+        const void* pixels, long x, long y, long count) override;
 
     long rowPitch() const { return row_pitch_; }
     srColorSurfaceIFace* asInterface() { return this; }
@@ -197,15 +197,15 @@ public:
     void setFilter(srFilter* filter) { filter_ = filter; }
 
 protected:
-    virtual SR_DLL_IMPORT ~srColorSurface();
+    virtual SR_DLL_IMPORT ~srColorSurface() override;
 
 public:
     /* Emitted by Wiz8.exe at 0x00423F00, freeing through the renderer's heap. */
     srColorSurface* scalar_deleting_destructor(unsigned char flags);
 
 private:
-    virtual SR_DLL_IMPORT void copyNoScaling(srColorSurfaceIFace& source);
-    virtual SR_DLL_IMPORT void scaleFast(srColorSurfaceIFace& source);
+    virtual SR_DLL_IMPORT void copyNoScaling(srColorSurfaceIFace& source) override;
+    virtual SR_DLL_IMPORT void scaleFast(srColorSurfaceIFace& source) override;
 
     unsigned char unknown_04_[0x18];
     unsigned long width_; // +0x1c

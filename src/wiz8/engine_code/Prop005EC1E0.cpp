@@ -70,7 +70,7 @@ protected:
 
 class W8Prop005EC1E0 : public W8PropBase004B6B60 {
 public:
-    virtual ~W8Prop005EC1E0();           /* 0x0044BEC0 */
+    virtual ~W8Prop005EC1E0() override;           /* 0x0044BEC0 */
 
     unsigned char GetSetting6C();        /* 0x0044D4F0 */
     void ToggleRepAnimation(int argument);   /* 0x0044D500 */

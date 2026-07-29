@@ -19,7 +19,7 @@ class W8VectorElement005EC514;
 class W8Vector005EC514 : public W8GrowableVector<W8VectorElement005EC514*> {
 public:
     W8Vector005EC514(int initial_capacity);
-    virtual ~W8Vector005EC514();
+    virtual ~W8Vector005EC514() override;
 };                                       /* 0x10 */
 
 // FUNCTION: WIZ8 0x00474BE0

@@ -51,6 +51,7 @@ jj diff --stat
 jj diff
 just check
 just test                       # plus the change-specific gate
+just lint                       # for C++ class or inheritance changes
 jj describe -m "Accurate imperative summary"
 jj git fetch --remote origin
 jj rebase -s @ -d main

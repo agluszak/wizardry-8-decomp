@@ -29,9 +29,9 @@ class SR_DLL_IMPORT srMaterial : public srMaterialIFace {
 public:
     static const char* sGetClassName();
 
-    virtual void dump(std::ostream& stream);
-    virtual void verify(srRuntimeClass::e_verify mode);
-    virtual srClass* vInstance();
+    virtual void dump(std::ostream& stream) override;
+    virtual void verify(srRuntimeClass::e_verify mode) override;
+    virtual srClass* vInstance() override;
 
     /* Slot 7. Unexported, and every subclass overrides it; stMaterial's copies
        through the instance slot 6 returns, so it is a clone. */
@@ -41,7 +41,7 @@ public:
     virtual void postProcess(srVertexPipe& pipe);
 
 protected:
-    virtual ~srMaterial();
+    virtual ~srMaterial() override;
     virtual void updateParms();
     virtual void reset();
 

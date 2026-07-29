@@ -23,7 +23,7 @@ def test_cli_uses_typed_command_tree() -> None:
     assert "doctor" in result.stdout
     assert "evidence" in result.stdout
     assert "analyze" in result.stdout
-    for command in ("triage", "vtable", "datacmp", "addr", "runtime-test"):
+    for command in ("lint", "triage", "vtable", "datacmp", "addr", "runtime-test"):
         assert command in result.stdout
 
     for obsolete_root in ("function-census", "inventory", "trace", "reconstructed-transfer"):

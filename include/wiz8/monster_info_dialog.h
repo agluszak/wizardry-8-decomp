@@ -106,7 +106,7 @@ class W8DialogPtrVector005EF898
     : public W8GrowableVector<W8DialogOwned005D14D0*> {
 public:
     W8DialogPtrVector005EF898();
-    virtual ~W8DialogPtrVector005EF898();
+    virtual ~W8DialogPtrVector005EF898() override;
 };                                      /* 0x10 */
 
 class W8DialogMember005D14D0 {
@@ -138,12 +138,12 @@ private:
 
 class W8MonsterInfoDialog : public W8DialogBase005DC7A0 {
 public:
-    virtual ~W8MonsterInfoDialog();
-    virtual void vslot1();
-    virtual void ResetSubobjectAndRefresh();
-    virtual void vslot3();
-    virtual void ClearField41IfEnabled();
-    virtual void vslot13();
+    virtual ~W8MonsterInfoDialog() override;
+    virtual void vslot1() override;
+    virtual void ResetSubobjectAndRefresh() override;
+    virtual void vslot3() override;
+    virtual void ClearField41IfEnabled() override;
+    virtual void vslot13() override;
 
 private:
     void* m_constructor_argument_54;      /* 0x54 */

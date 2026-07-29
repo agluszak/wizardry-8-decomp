@@ -7,12 +7,19 @@ RUN dpkg --add-architecture i386 \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
       ca-certificates \
+      clang \
+      cmake \
       git \
+      ninja-build \
       unzip \
       wget \
       wine \
       wine32 \
  && rm -rf /var/lib/apt/lists/*
+
+# Debian ships clang's CL-compatible driver mode without the unversioned
+# clang-cl launcher. The executable name selects that mode.
+RUN ln -sf clang /usr/bin/clang-cl
 
 ENV WINEARCH=win32 \
     WINEDEBUG=-all \
@@ -35,6 +42,18 @@ RUN git init /root/.wine/drive_c/msvc \
  && git -C /root/.wine/drive_c/msvc fetch --depth 1 origin "${MSVC_REF}" \
  && git -C /root/.wine/drive_c/msvc checkout --detach FETCH_HEAD \
  && test "$(git -C /root/.wine/drive_c/msvc rev-parse HEAD)" = "${MSVC_REF}"
+
+# VC6's archive stores many headers with uppercase filenames. Wine provides
+# Windows' case-insensitive lookup to cl.exe, but native clang-cl needs a
+# normalized lint-only mirror. Keep the canonical compiler tree untouched.
+RUN for source in VC98/Include VC98/MFC/Include VC98/ATL/Include; do \
+      destination="/opt/msvc6-$(echo "${source}" | tr '[:upper:]/' '[:lower:]-')"; \
+      cp -a "/root/.wine/drive_c/msvc/${source}" "${destination}"; \
+      find "${destination}" -depth -mindepth 1 -exec bash -c 'for path do \
+        directory=${path%/*}; name=${path##*/}; lower=$(echo "$name" | tr "[:upper:]" "[:lower:]"); \
+        if [ "$name" != "$lower" ]; then mv "$path" "$directory/$lower"; fi; \
+      done' bash {} +; \
+    done
 
 # A native Windows CMake drives NMake and VC6 inside the same Wine prefix.
 RUN wget -O /tmp/cmake.zip \

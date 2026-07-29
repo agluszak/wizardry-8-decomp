@@ -26,7 +26,7 @@ class W8VectorElement005ECF00;
 class W8Vector005ECF00 : public W8GrowableVector<W8VectorElement005ECF00*> {
 public:
     W8Vector005ECF00();
-    virtual ~W8Vector005ECF00();
+    virtual ~W8Vector005ECF00() override;
 };                                       /* 0x10 */
 
 struct W8Record004A9750 {

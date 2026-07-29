@@ -51,13 +51,13 @@ extern "C" unsigned char ReadVirtualFile(
 class W8VirtualFileBinIStream : public srBinIStream {
 public:
     W8VirtualFileBinIStream(char* path);
-    virtual ~W8VirtualFileBinIStream();
+    virtual ~W8VirtualFileBinIStream() override;
 
     /* Primary vtable slot 1. */
-    virtual unsigned long vread(void* buffer, unsigned long size);
-    virtual srBinStream& seek(unsigned long position, e_seekDir direction);
-    virtual srBinStream& seek(unsigned long position);
-    virtual unsigned long tell();
+    virtual unsigned long vread(void* buffer, unsigned long size) override;
+    virtual srBinStream& seek(unsigned long position, e_seekDir direction) override;
+    virtual srBinStream& seek(unsigned long position) override;
+    virtual unsigned long tell() override;
 
     int m_hFile;                            /* 0x08 */
     /* The vbtable places the virtual base at +0x10 and the sole caller of the
@@ -135,12 +135,12 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 
 class W8VirtualFileStreamOpener : public srIStreamOpener::Opener {
 public:
-    virtual srBinIStream* open(char* path)
+    virtual srBinIStream* open(char* path) override
     {
         return new W8VirtualFileBinIStream(path);
     }
 
-    virtual const char* getDescription() const
+    virtual const char* getDescription() const override
     {
         return "stBinIStream";
     }

@@ -50,7 +50,7 @@ typedef char srBinStream_must_be_0x10[
 // with its own vread, and Wizardry's virtual-file adapter with its.
 class __declspec(novtable) srBinIStream : public virtual srBinStream {
 public:
-    virtual ~srBinIStream() {}
+    virtual ~srBinIStream() override {}
     SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
 
 protected:
@@ -63,15 +63,15 @@ private:
 class __declspec(novtable) srBinIMStream : public srBinIStream {
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
-    virtual unsigned long getSize();
+    virtual unsigned long getSize() override;
     virtual SR_DLL_IMPORT srBinStream& seek(
-        unsigned long position, srBinStream::e_seekDir direction);
-    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position);
-    virtual SR_DLL_IMPORT unsigned long tell();
+        unsigned long position, srBinStream::e_seekDir direction) override;
+    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
+    virtual SR_DLL_IMPORT unsigned long tell() override;
 
 private:
     virtual SR_DLL_IMPORT unsigned long vread(
-        void* destination, unsigned long size);
+        void* destination, unsigned long size) override;
     // The imported implementation owns the prefix through +0x13. The ZIP
     // extension's zero-data wrapper adds its malloc owner at +0x14 and places
     // the virtual srBinStream base at +0x1c.

@@ -31,7 +31,7 @@ class W8GrCycleRegistryVector005ECEDC
     : public W8GrowableVector<W8GrCycle*> {
 public:
     W8GrCycleRegistryVector005ECEDC();
-    virtual ~W8GrCycleRegistryVector005ECEDC();
+    virtual ~W8GrCycleRegistryVector005ECEDC() override;
 };
 
 __forceinline W8GrCycleRegistryVector005ECEDC::W8GrCycleRegistryVector005ECEDC()
@@ -45,7 +45,7 @@ class W8Vector005ECED4
     : public W8GrowableVector<W8VectorElement005ECED4*> {
 public:
     W8Vector005ECED4();
-    virtual ~W8Vector005ECED4();
+    virtual ~W8Vector005ECED4() override;
 };                                       /* 0x10 */
 
 __forceinline W8Vector005ECED4::W8Vector005ECED4()

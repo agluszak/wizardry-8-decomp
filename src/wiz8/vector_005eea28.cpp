@@ -33,7 +33,7 @@ class W8VectorElement005EEA28;
 class W8Vector005EEA28 : public W8GrowableVector<W8VectorElement005EEA28*> {
 public:
     W8Vector005EEA28();
-    virtual ~W8Vector005EEA28();
+    virtual ~W8Vector005EEA28() override;
 };                                       /* 0x10 */
 
 /* The list itself, reached through this pointer rather than through an owner. */

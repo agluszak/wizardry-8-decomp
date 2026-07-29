@@ -18,7 +18,7 @@ public:
 
 class W8Object005EBCFC : public W8ObjectBase00439A00 {
 public:
-    virtual ~W8Object005EBCFC();         /* 0x004218D0 */
+    virtual ~W8Object005EBCFC() override;         /* 0x004218D0 */
 };
 
 // FUNCTION: WIZ8 0x004218D0

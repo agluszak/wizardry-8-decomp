@@ -1,0 +1,10 @@
+#pragma once
+
+/* The recovered SurRender ABI mentions std::ostream only by reference.  VC6's
+   pre-standard iostream implementation does not parse as C++14, so the modern
+   compile-only lane needs only the incomplete type that these declarations
+   actually consume.  The matching compiler continues to use the real VC6
+   header. */
+namespace std {
+class ostream;
+}

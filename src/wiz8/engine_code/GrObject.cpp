@@ -40,7 +40,7 @@ public:
 class W8SoundEventVector005ED094 : public W8GrowableVector<W8VectorElement005ED094*> {
 public:
     W8SoundEventVector005ED094();
-    virtual ~W8SoundEventVector005ED094();
+    virtual ~W8SoundEventVector005ED094() override;
 };                                       /* 0x10 */
 
 class W8GrObject005ED090 {

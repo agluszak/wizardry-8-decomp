@@ -34,7 +34,7 @@ protected:
 class W8StatInfoDialog005DFC70 : public W8StatInfoDialogBase005DF880 {
 public:
     W8StatInfoDialog005DFC70(unsigned int uiIndex);
-    virtual ~W8StatInfoDialog005DFC70();
+    virtual ~W8StatInfoDialog005DFC70() override;
 
 private:
     unsigned int m_value_140;            /* 0x140: widened from the first table */
@@ -45,7 +45,7 @@ private:
 class W8StatInfoDialog005E0180 : public W8StatInfoDialogBase005DF880 {
 public:
     W8StatInfoDialog005E0180(unsigned int uiIndex);
-    virtual ~W8StatInfoDialog005E0180();
+    virtual ~W8StatInfoDialog005E0180() override;
 
 private:
     unsigned int m_value_140;            /* 0x140 */

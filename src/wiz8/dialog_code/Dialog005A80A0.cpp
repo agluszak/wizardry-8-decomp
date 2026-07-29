@@ -25,7 +25,7 @@ extern void ActivateDialogRegion(int region_set);  /* 0x004F2040 */
 class W8Dialog005A80A0 : public W8DialogBase005D25B0 {
 public:
     W8Dialog005A80A0(int message_index, int caption_id, int notify_value);
-    virtual ~W8Dialog005A80A0();         /* 0x005A8190 */
+    virtual ~W8Dialog005A80A0() override;         /* 0x005A8190 */
     /* The canonical table places this override at the inherited slot 9, whose
        base body is BaseClose. The model cannot say so yet: overriding needs
        the base slot's recovered signature, and only its return type is known

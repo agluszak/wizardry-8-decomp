@@ -55,7 +55,7 @@ class W8GrCycle :
     public W8GrCycleBase004B6900,
     public W8GrCycleBase00451EC0 {
 public:
-    virtual ~W8GrCycle();
+    virtual ~W8GrCycle() override;
     virtual void vslot1();
     virtual void vslot2();
     virtual void vslot3();

@@ -12,7 +12,7 @@
 
 class W8Object005EF894 : public W8TextBuffer005ED5B8 {
 public:
-    virtual ~W8Object005EF894();         /* 0x005D1020 */
+    virtual ~W8Object005EF894() override;         /* 0x005D1020 */
 };
 
 // FUNCTION: WIZ8 0x005D1020

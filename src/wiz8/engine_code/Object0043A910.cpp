@@ -20,7 +20,7 @@ protected:
 class W8Object0043A910 : public W8ObjectBase00439550 {
 public:
     W8Object0043A910();                  /* 0x0043A910 */
-    virtual ~W8Object0043A910();
+    virtual ~W8Object0043A910() override;
 
 private:
     int m_ticks_14;                      /* 0x14: the scaled rate, twice over */

@@ -80,14 +80,14 @@ public:
                    unsigned long pitch)
         : srColorSurface(type, data, width, height, pitch) {}
 
-    virtual const char* getClassName() const {
+    virtual const char* getClassName() const override {
         return srColorSurface::sGetClassName();
     }
-    virtual unsigned long getClassID() const { return 0x3110; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual unsigned long getClassID() const override { return 0x3110; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return color_surface_class_node();
     }
-    virtual srColorSurfaceIFace* clone() {
+    virtual srColorSurfaceIFace* clone() override {
         srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
         *copy = *this;
         return copy;
@@ -98,9 +98,9 @@ class W8Scene : public srScene {
 public:
     W8Scene(srNode* parent) : srScene(parent) {}
 
-    virtual const char* getClassName() const { return "srScene"; }
-    virtual unsigned long getClassID() const { return 0x1010; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual const char* getClassName() const override { return "srScene"; }
+    virtual unsigned long getClassID() const override { return 0x1010; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return concrete_class_node(0x1010, "srScene");
     }
     virtual srNode* clone() {
@@ -119,9 +119,9 @@ class W8Camera : public srCamera {
 public:
     W8Camera(srNode* parent) : srCamera(parent) {}
 
-    virtual const char* getClassName() const { return "srCamera"; }
-    virtual unsigned long getClassID() const { return 0x1400; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual const char* getClassName() const override { return "srCamera"; }
+    virtual unsigned long getClassID() const override { return 0x1400; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return concrete_class_node(0x1400, "srCamera");
     }
     virtual srNode* clone() {
@@ -148,14 +148,14 @@ public:
         reset();
     }
 
-    virtual const char* getClassName() const {
+    virtual const char* getClassName() const override {
         return srMaterial::sGetClassName();
     }
-    virtual unsigned long getClassID() const { return 0x2210; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual unsigned long getClassID() const override { return 0x2210; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return material_class_node();
     }
-    virtual srMaterial* vslot7() {
+    virtual srMaterial* vslot7() override {
         srMaterial* copy = static_cast<srMaterial*>(vInstance());
         *copy = *this;
         return copy;

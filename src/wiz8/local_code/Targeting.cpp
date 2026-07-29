@@ -92,7 +92,7 @@ extern const char g_faction_names[][0x1e];               /* 0x0061CE74 */
 extern W8FactionRuntimeRecord g_faction_runtime[];       /* 0x0068D6EA */
 
 extern char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context);
-extern unsigned char TargetMatchesNeeded(const W8CombatSlot* target, char needed);
+char TargetMatchesNeeded(W8CombatSlot* target, int needed);
 extern unsigned char Function519180(int party_slot, int arg_2, int context);
 extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record, int context);
 extern unsigned char g_targeting_flag_00685116;

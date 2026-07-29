@@ -15,11 +15,11 @@
    srHeap, and the only field past srMaterial's extent is at 0x78. */
 class stMaterial : public srMaterial {
 public:
-    virtual const char* getClassName() const;
-    virtual unsigned long getClassID() const;
-    virtual srRegistry::ClassNode* getClassNode() const;
-    virtual ~stMaterial();
-    virtual srMaterial* vslot7();
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
+    virtual ~stMaterial() override;
+    virtual srMaterial* vslot7() override;
 
     int m_field_78;                          /* 0x78 */
 };

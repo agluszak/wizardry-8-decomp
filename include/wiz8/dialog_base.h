@@ -12,8 +12,8 @@
 class W8DialogBase005D25B0 : public W8DialogBase005DC7A0 {
 public:
     W8DialogBase005D25B0();                     /* 0x005D25B0 */
-    virtual ~W8DialogBase005D25B0();            /* 0x005D2610 */
-    virtual void ResetSubobjectAndRefresh();    /* slot 2, 0x005D2F40 */
+    virtual ~W8DialogBase005D25B0() override;            /* 0x005D2610 */
+    virtual void ResetSubobjectAndRefresh() override;    /* slot 2, 0x005D2F40 */
     virtual void vslot14();                     /* slot 14, 0x005D3020 */
 
 protected:

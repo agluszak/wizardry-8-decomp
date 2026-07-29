@@ -34,9 +34,9 @@ public:
     enum e_side {};
 
     srMeshModel(long polygons, long vertices);
-    virtual void dump(std::ostream& stream);
-    virtual void verify(srRuntimeClass::e_verify mode);
-    virtual srClass* vInstance();
+    virtual void dump(std::ostream& stream) override;
+    virtual void verify(srRuntimeClass::e_verify mode) override;
+    virtual srClass* vInstance() override;
     virtual int getBoundingSphere(srVector3T<float>& center, float& radius);
     virtual int getBoundingBox(srVector3T<float>& minimum,
                                srVector3T<float>& maximum);
@@ -58,7 +58,7 @@ public:
     srMeshModel* scalar_deleting_destructor(unsigned char flags);
 
 protected:
-    virtual ~srMeshModel();
+    virtual ~srMeshModel() override;
     virtual void updateTriMesh();
     virtual void calculateBounds();
     virtual void calculatePolygonNormals();

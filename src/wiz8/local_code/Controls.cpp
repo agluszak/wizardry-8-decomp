@@ -1298,8 +1298,8 @@ public:
                                  int left, int top, int right, int bottom,
                                  int render_arg, int normal_sprite,
                                  int hovered_sprite, int disabled_sprite);
-    virtual void Redraw(int full_redraw);
-    void AdjustValue(int steps);
+    virtual void Redraw(int full_redraw) override;
+    void AdjustValue(int steps) override;
     void BeginDrag(int event);
     void EndDrag(int event);
     void UpdateDrag(int event);
@@ -1363,7 +1363,7 @@ public:
     void SetValue(int value);
     void Decrement();
     void Increment();
-    void SetEnabled(unsigned char enabled);
+    void SetEnabled(unsigned char enabled) override;
 
 protected:
     int m_minimum;                       /* 0x4c */
@@ -1820,13 +1820,13 @@ public:
 
 class W8HorizontalRangeThumb005ED66C : public W8WidgetBase005ED5BC {
 public:
-    virtual ~W8HorizontalRangeThumb005ED66C();
+    virtual ~W8HorizontalRangeThumb005ED66C() override;
     W8HorizontalRangeThumb005ED66C* scalar_deleting_destructor(unsigned char flags);
     W8HorizontalRangeThumb005ED66C(Controls* panel, unsigned int region, int left, int top,
                                    int render_arg_0, int render_arg_1, int background_sprite,
                                    int normal_thumb_sprite, int hovered_thumb_sprite,
                                    int disabled_thumb_sprite);
-    virtual void Redraw(int full_redraw);
+    virtual void Redraw(int full_redraw) override;
     void UpdatePixelPosition();
     void BeginDrag(int event);
     void EndDrag(int event);
@@ -2407,7 +2407,7 @@ class W8ControlEntryVector005ED65C
     : public W8GrowableVector<W8VectorElement005ED65C*> {
 public:
     W8ControlEntryVector005ED65C();
-    virtual ~W8ControlEntryVector005ED65C();
+    virtual ~W8ControlEntryVector005ED65C() override;
 };                                       /* 0x10 */
 
 class W8Control005ED654 : public W8ControlBase005ED664 {

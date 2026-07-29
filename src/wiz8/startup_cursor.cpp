@@ -46,9 +46,9 @@ public:
         }
     }
 
-    virtual const char* getClassName() const { return "srScene"; }
-    virtual unsigned long getClassID() const { return 0x1010; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual const char* getClassName() const override { return "srScene"; }
+    virtual unsigned long getClassID() const override { return 0x1010; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return class_node(0x1010, "srScene", 0x1000, "srNode");
     }
 };
@@ -57,9 +57,9 @@ class CursorMeshModel : public srMeshModel {
 public:
     CursorMeshModel() : srMeshModel(0, 0) {}
 
-    virtual const char* getClassName() const { return "srMeshModel"; }
-    virtual unsigned long getClassID() const { return 0x2010; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual const char* getClassName() const override { return "srMeshModel"; }
+    virtual unsigned long getClassID() const override { return 0x2010; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return class_node(0x2010, "srMeshModel", 0x2000, "srModel");
     }
 };
@@ -68,9 +68,9 @@ class CursorTextureMap : public srTextureMap {
 public:
     CursorTextureMap(srColorSurfaceIFace* surface) : srTextureMap(surface) {}
 
-    virtual const char* getClassName() const { return "srTextureMap"; }
-    virtual unsigned long getClassID() const { return 0x2111; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual const char* getClassName() const override { return "srTextureMap"; }
+    virtual unsigned long getClassID() const override { return 0x2111; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         srRegistry* registry = srCore.getRegistry();
         srRegistry::ClassNode* node = registry->getClassNode(0x2111);
         if (!node) {
@@ -89,21 +89,21 @@ public:
         }
         return node;
     }
-    virtual srTextureIFace* clone() {
+    virtual srTextureIFace* clone() override {
         CursorTextureMap* copy = new CursorTextureMap(0);
         static_cast<srTextureMap&>(*copy) = *this;
         return copy;
     }
-    virtual void update() { invalidate(); }
+    virtual void update() override { invalidate(); }
 };
 
 class CursorModelInstance : public srModelInstance {
 public:
     CursorModelInstance(srNode* parent) : srModelInstance(parent) {}
 
-    virtual const char* getClassName() const { return "stModelInstance2D"; }
-    virtual unsigned long getClassID() const { return 0x10005; }
-    virtual srRegistry::ClassNode* getClassNode() const {
+    virtual const char* getClassName() const override { return "stModelInstance2D"; }
+    virtual unsigned long getClassID() const override { return 0x10005; }
+    virtual srRegistry::ClassNode* getClassNode() const override {
         return class_node(0x10005, "stModelInstance2D", 0x1100,
                           "srModelInstance");
     }

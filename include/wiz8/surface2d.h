@@ -7,17 +7,17 @@
 class stTexture2D : public srTexture {
 public:
     stTexture2D();
-    virtual const char* getClassName() const;
-    virtual unsigned long getClassID() const;
-    virtual srRegistry::ClassNode* getClassNode() const;
-    virtual ~stTexture2D();
-    virtual srClass* vInstance();
-    virtual srTextureIFace* clone();
-    virtual unsigned long getTextureFrameHandle();
-    virtual void getMipmapData(MultiRequest& request);
-    virtual void getMipmapLevelPartial(PartialRequest& request);
-    virtual void invalidate();
-    virtual void update();
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
+    virtual ~stTexture2D() override;
+    virtual srClass* vInstance() override;
+    virtual srTextureIFace* clone() override;
+    virtual unsigned long getTextureFrameHandle() override;
+    virtual void getMipmapData(MultiRequest& request) override;
+    virtual void getMipmapLevelPartial(PartialRequest& request) override;
+    virtual void invalidate() override;
+    virtual void update() override;
 
     int left;                              /* 0x54 */
     int top;                               /* 0x58 */
@@ -31,12 +31,12 @@ class stSurface2D : public srNode {
 public:
     stSurface2D(srColorSurfaceIFace* surface, int width, int height,
                 srNode* parent, int tile_size);
-    virtual const char* getClassName() const;
-    virtual unsigned long getClassID() const;
-    virtual srRegistry::ClassNode* getClassNode() const;
-    virtual ~stSurface2D();
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
+    virtual ~stSurface2D() override;
     virtual srNode* clone();
-    virtual void process(const ProcessInfo& info, e_processType type);
+    virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void enableRendererFlag(unsigned int flag);
     void invalidateTiles();

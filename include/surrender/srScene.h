@@ -10,14 +10,14 @@ public:
     srScene(srNode* parent);
     srScene& operator=(const srScene& other);
 
-    virtual void dump(std::ostream& stream);
-    virtual ~srScene();
+    virtual void dump(std::ostream& stream) override;
+    virtual ~srScene() override;
     /* Emitted by Wiz8.exe at 0x00423EB0, freeing through the renderer's heap
        the way srNode's does. */
     srScene* scalar_deleting_destructor(unsigned char flags);
-    virtual srClass* vInstance();
-    virtual void traverse(TraverseInfo& info);
-    virtual void process(const ProcessInfo& info, e_processType type);
+    virtual srClass* vInstance() override;
+    virtual void traverse(TraverseInfo& info) override;
+    virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void render(srGERD& renderer, class srCamera* camera);
 
@@ -39,12 +39,12 @@ public:
     srCamera(srNode* parent);
     srCamera& operator=(const srCamera& other);
 
-    virtual void dump(std::ostream& stream);
-    virtual ~srCamera();
+    virtual void dump(std::ostream& stream) override;
+    virtual ~srCamera() override;
     /* Emitted by Wiz8.exe at 0x00423E80. */
     srCamera* scalar_deleting_destructor(unsigned char flags);
-    virtual srClass* vInstance();
-    virtual void process(const ProcessInfo& info, e_processType type);
+    virtual srClass* vInstance() override;
+    virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void setClipRange(double near_plane, double far_plane);
     /* The reader for the pair setClipRange writes. Both planes come back
