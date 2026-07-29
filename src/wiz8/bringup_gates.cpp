@@ -2,6 +2,7 @@
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
+#include "wiz8/sgp_vsurface_private.h"
 #include "Button System.h"
 #include "Font.h"
 #include "FileMan.h"
@@ -12,7 +13,6 @@
 #include "timer.h"
 #include "vobject.h"
 #include "vsurface.h"
-#include "vsurface_private.h"
 
 #include <direct.h>
 #include <process.h>

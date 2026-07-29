@@ -300,6 +300,17 @@ def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
     assert by_unit["container"]["retained_physical_bodies"] == "10"
 
 
+def test_private_vsurface_adapter_preserves_c_linkage() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    adapter = (repository / "include/wiz8/sgp_vsurface_private.h").read_text(encoding="utf-8")
+    bringup = (repository / "src/wiz8/bringup_gates.cpp").read_text(encoding="utf-8")
+
+    assert 'extern "C" {' in adapter
+    assert '#include "vsurface_private.h"' in adapter
+    assert '#include "wiz8/sgp_vsurface_private.h"' in bringup
+    assert '#include "vsurface_private.h"' not in bringup
+
+
 def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
     repository = Path(__file__).resolve().parents[2]
     assert (repository / "evidence/snapshots/sgp/harness.csv").is_file()
