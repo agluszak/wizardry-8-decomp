@@ -27,7 +27,7 @@ public:
     virtual ~W8Vector005EC164() override;
 };                                       /* 0x10 */
 
-// FUNCTION: WIZ8 0x00445FF0
+// FUNCTION: WIZ8 0x00445ff0
 W8Vector005EC164::W8Vector005EC164(int initial_capacity)
     : W8GrowableVector<W8VectorElement005EC164*>(initial_capacity)
 {

@@ -52,7 +52,7 @@ __forceinline W8Vector005ECED4::W8Vector005ECED4()
 {
 }
 
-// FUNCTION: WIZ8 0x004A8430
+// FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
 {
     signed char count = vslot5();
@@ -63,7 +63,7 @@ void W8GrCycle::SetSubCycle(unsigned char subcycle)
     }
 }
 
-// FUNCTION: WIZ8 0x004A8460
+// FUNCTION: WIZ8 0x004a8460
 void W8GrCycle::SetBehaviour(signed char bBehaviour)
 {
     W8GrCycleTarget* target = vslot9();
@@ -78,7 +78,7 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
     target->m_bBehaviour = bBehaviour;
 }
 
-// FUNCTION: WIZ8 0x004A84C0
+// FUNCTION: WIZ8 0x004a84c0
 void W8GrCycle::SetLights(W8Vector005EC294* lights)
 {
     if (m_fDeleteLights && m_plsLights != 0) {
@@ -92,7 +92,7 @@ void W8GrCycle::SetLights(W8Vector005EC294* lights)
     m_plsLights = lights;
 }
 
-// FUNCTION: WIZ8 0x004A8530
+// FUNCTION: WIZ8 0x004a8530
 void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
 {
     if (m_vector_1b0 == 0) {
@@ -101,7 +101,7 @@ void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
     m_vector_1b0->Add(element);
 }
 
-// FUNCTION: WIZ8 0x004A8650
+// FUNCTION: WIZ8 0x004a8650
 const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
 {
     int name_index;
@@ -123,7 +123,7 @@ const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004A8700
+// FUNCTION: WIZ8 0x004a8700
 unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
 {
     int name_index;
@@ -145,7 +145,7 @@ unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x004A87A0
+// FUNCTION: WIZ8 0x004a87a0
 W8GrCycle* FindFirstGrCycleByName(const char* name)
 {
     int name_index;
@@ -167,7 +167,7 @@ W8GrCycle* FindFirstGrCycleByName(const char* name)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004A8830
+// FUNCTION: WIZ8 0x004a8830
 unsigned char UnregisterGrCycle(W8GrCycle* cycle)
 {
     int name_index;
@@ -198,7 +198,7 @@ unsigned char UnregisterGrCycle(W8GrCycle* cycle)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004A89A0
+// FUNCTION: WIZ8 0x004a89a0
 void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 {
     int name_index;
@@ -231,7 +231,7 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 extern W8World* g_world_00659ab4;
 extern void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
 
-// FUNCTION: WIZ8 0x004A8C50
+// FUNCTION: WIZ8 0x004a8c50
 void DestroyVector005EC294(W8Vector005EC294* vector)
 {
     int count;
@@ -255,7 +255,7 @@ void DestroyVector005EC294(W8Vector005EC294* vector)
     }
 }
 
-// FUNCTION: WIZ8 0x004A8D10
+// FUNCTION: WIZ8 0x004a8d10
 int FindMappedIndexInMeshChain(W8MeshModel** mesh, int key)
 {
     int result;
@@ -278,7 +278,7 @@ int FindMappedIndexInMeshChain(W8MeshModel** mesh, int key)
     return result;
 }
 
-// FUNCTION: WIZ8 0x004A8D50
+// FUNCTION: WIZ8 0x004a8d50
 void W8GrCycle::CreateGroundShadow(int value_140, int value_13c)
 {
     m_ground_shadow = new stGroundShadow(0);
@@ -287,7 +287,7 @@ void W8GrCycle::CreateGroundShadow(int value_140, int value_13c)
     m_ground_shadow->value_13c = value_13c;
 }
 
-// FUNCTION: WIZ8 0x004A8DE0
+// FUNCTION: WIZ8 0x004a8de0
 void W8GrCycle::SetGroundShadowVisible(char visible)
 {
     if (m_ground_shadow != 0) {
@@ -300,7 +300,7 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
     }
 }
 
-// FUNCTION: WIZ8 0x004A8F90
+// FUNCTION: WIZ8 0x004a8f90
 W8Vector005ECED4::~W8Vector005ECED4()
 {
 }

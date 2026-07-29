@@ -32,7 +32,7 @@ W8Vector005EC16C::W8Vector005EC16C(int initial_capacity)
 /* Stores the base table 0x005EC170, not the 0x005EC16C the constructor above
    installs, for the reason the second-vtable section of
    docs/libraries/wiz8-foundation-types.md sets out. */
-// FUNCTION: WIZ8 0x004460F0
+// FUNCTION: WIZ8 0x004460f0
 W8Vector005EC16C::~W8Vector005EC16C()
 {
 }

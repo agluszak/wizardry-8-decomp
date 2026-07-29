@@ -121,7 +121,7 @@ extern void AssertFailureHandler(const char* expression, const char* file,
 char* g_sound_provider_650e54;
 unsigned char* g_render_options_65a118;
 
-// FUNCTION: WIZ8 0x00421F70
+// FUNCTION: WIZ8 0x00421f70
 void* LockPrimarySurface(int* pitch)
 {
     DDSURFACEDESC description;
@@ -163,7 +163,7 @@ void Function422B10(void)
    given, loads that extension from the DLL subdirectory before returning to the
    original working directory. Each gate that fails returns straight out with
    the callee's own false still in AL. */
-// FUNCTION: WIZ8 0x00421BB0
+// FUNCTION: WIZ8 0x00421bb0
 unsigned char InitializeRenderer(void* instance, unsigned short show_command, void* window_proc)
 {
     MEMORYSTATUS status;
@@ -236,7 +236,7 @@ done:
     return Function4285C0();
 }
 
-// FUNCTION: WIZ8 0x00421DC0
+// FUNCTION: WIZ8 0x00421dc0
 void ShutdownRenderer(void)
 {
     if (g_cursor_node_659694) {
@@ -257,7 +257,7 @@ void ShutdownRenderer(void)
 /* Derives the 16-bit channel masks and their leading-bit positions from the
    renderer's reviewed pixel-format selector.  The startup configuration uses
    format 9, RGB 5:5:5 with the high bit reserved. */
-// FUNCTION: WIZ8 0x004265C0
+// FUNCTION: WIZ8 0x004265c0
 void Initialize16BitPixelFormatMasks(void)
 {
     unsigned short bit;
@@ -300,7 +300,7 @@ void Initialize16BitPixelFormatMasks(void)
    the horizontal screen metric for both axes is present in the retail body and
    is preserved here; AdjustWindowRect turns the four stored client bounds into
    the outer window rectangle before CreateWindowEx. */
-// FUNCTION: WIZ8 0x00425EC0
+// FUNCTION: WIZ8 0x00425ec0
 unsigned char CreateWizardryWindow(void)
 {
     WNDCLASSA window_class;
@@ -542,7 +542,7 @@ unsigned char Function422550(void)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004277E0
+// FUNCTION: WIZ8 0x004277e0
 unsigned char Function4277E0(void)
 {
     return g_flag_65970f;
@@ -561,7 +561,7 @@ unsigned char Function4220B0(void)
 /* Releases the lock the frame tick takes on the primary surface. The second
    argument is the locked pointer SGP's wrapper wants; the original passes null
    because it unlocks the whole surface. */
-// FUNCTION: WIZ8 0x00421FB0
+// FUNCTION: WIZ8 0x00421fb0
 void UnlockPrimarySurface(void)
 {
     DDUnlockSurface(g_primary_surface_6596a8, NULL);
@@ -569,7 +569,7 @@ void UnlockPrimarySurface(void)
 
 /* The mode the engine falls back to: 640x480 at 16bpp, reported height first.
    Nothing here reads a configuration - the three constants are inline. */
-// FUNCTION: WIZ8 0x00422AF0
+// FUNCTION: WIZ8 0x00422af0
 void GetDefaultScreenMode(unsigned short* height, unsigned short* width,
                           unsigned char* depth)
 {
@@ -583,7 +583,7 @@ void GetDefaultScreenMode(unsigned short* height, unsigned short* width,
    times fifteen, masked, shifted left three - is VC6's inline memset over
    pitch times 480 bytes, which is why the byte-remainder loop that follows it
    runs zero times: the length is always a multiple of four. */
-// FUNCTION: WIZ8 0x00421FF0
+// FUNCTION: WIZ8 0x00421ff0
 unsigned char ClearPrimarySurface(void)
 {
     DDSURFACEDESC description;

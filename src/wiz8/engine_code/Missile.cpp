@@ -25,7 +25,7 @@ typedef char W8MissileTableRecord_must_be_0x1e5[
 
 /* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
    0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
-// FUNCTION: WIZ8 0x004A5600
+// FUNCTION: WIZ8 0x004a5600
 extern "C" unsigned char LoadMissileDatabase(void)
 {
     char path[] = "Data\\Databases\\MissileTables.dbs";
@@ -71,7 +71,7 @@ extern "C" unsigned char LoadMissileDatabase(void)
 }
 
 /* Release the one allocation that owns every runtime missile-table row. */
-// FUNCTION: WIZ8 0x004A5760
+// FUNCTION: WIZ8 0x004a5760
 extern "C" void ReleaseMissileDatabase(void)
 {
     if (g_missile_table_65bde0) {
@@ -104,21 +104,21 @@ extern void Function4A15D0(void* node, unsigned char value);
 extern void Function4A72F0(int arg_1, int arg_2);
 
 /* The launcher a missile was fired from. */
-// FUNCTION: WIZ8 0x004A45E0
+// FUNCTION: WIZ8 0x004a45e0
 W8EmitterHost* W8Missile::GetLauncher()
 {
     return this->launcher;
 }
 
 /* The emitter the launcher is currently firing from. */
-// FUNCTION: WIZ8 0x004A4570
+// FUNCTION: WIZ8 0x004a4570
 W8Emitter* W8Missile::GetActiveEmitter()
 {
     return this->launcher->emitters[this->launcher->emitter_index];
 }
 
 /* That emitter's own value. */
-// FUNCTION: WIZ8 0x004A45C0
+// FUNCTION: WIZ8 0x004a45c0
 float W8Missile::GetActiveEmitterValue()
 {
     return this->launcher->emitters[this->launcher->emitter_index]->value_08;
@@ -126,7 +126,7 @@ float W8Missile::GetActiveEmitterValue()
 
 /* How many emitters the launcher has, counted by testing each for null rather
    than read from a stored count. */
-// FUNCTION: WIZ8 0x004A4590
+// FUNCTION: WIZ8 0x004a4590
 char W8Missile::GetEmitterCount()
 {
     char count = this->launcher->emitters[0] != 0;
@@ -138,7 +138,7 @@ char W8Missile::GetEmitterCount()
 }
 
 /* Thirteen-byte forwarder onto the release path. */
-// FUNCTION: WIZ8 0x004A4100
+// FUNCTION: WIZ8 0x004a4100
 void W8Missile::Release()
 {
     ReleaseMissile(this);
@@ -146,7 +146,7 @@ void W8Missile::Release()
 
 /* Hand the launcher's setting at 0x98 to whatever the missile's own virtual
    accessor answers with. */
-// FUNCTION: WIZ8 0x004A4110
+// FUNCTION: WIZ8 0x004a4110
 void W8Missile::ApplyLauncherSetting98()
 {
     Function4A15D0(Method34(), this->launcher->setting_98);
@@ -155,7 +155,7 @@ void W8Missile::ApplyLauncherSetting98()
 /* Reset the launcher's two counters at 0x94 and 0x95. The second is one less
    than the missile's own virtual answer, and the launcher pointer is taken
    before the virtual call rather than after. */
-// FUNCTION: WIZ8 0x004A4140
+// FUNCTION: WIZ8 0x004a4140
 void W8Missile::ResetLauncherCounters(int arg_1, int arg_2)
 {
     W8EmitterHost* launcher_before;

@@ -22,7 +22,7 @@ int g_game_time_days;                                /* 0x00687595 */
 
 // Defined with forced inlining so VC6 folds the teardown into the deleting
 // destructor at 0x00439750; a normal out-of-line definition emits a call.
-// FUNCTION: WIZ8 0x00439A00
+// FUNCTION: WIZ8 0x00439a00
 __forceinline W8Timer005EC0A4::~W8Timer005EC0A4()
 {
     srTimer* shared = m_shared;

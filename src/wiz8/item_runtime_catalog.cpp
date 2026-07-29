@@ -24,7 +24,7 @@ typedef char W8ItemRuntimeCatalog_must_be_0x0c[
 
 W8ItemRuntimeCatalog g_item_runtime_catalog_683f78;
 
-// FUNCTION: WIZ8 0x0055CDC0
+// FUNCTION: WIZ8 0x0055cdc0
 void InitializeItemRuntimeCatalog(W8ItemRuntimeCatalog* catalog, int count)
 {
     catalog->count = count;
@@ -32,7 +32,7 @@ void InitializeItemRuntimeCatalog(W8ItemRuntimeCatalog* catalog, int count)
     catalog->used = 0;
 }
 
-// FUNCTION: WIZ8 0x0051B560
+// FUNCTION: WIZ8 0x0051b560
 void Function51B560(void)
 {
     InitializeItemRuntimeCatalog(&g_item_runtime_catalog_683f78,

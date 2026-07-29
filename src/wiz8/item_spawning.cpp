@@ -17,7 +17,7 @@ extern void CopyItemInstance( /* 0x0051FE30 */
 extern void InitializeWorldItemPlacement(W8WorldItem* item); /* 0x004F93D0 */
 extern int AddWorldItemToList(void* list, W8WorldItem* item); /* 0x005E2480 */
 
-// FUNCTION: WIZ8 0x004F6B90
+// FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(
     const W8ItemInstance* item,
     const srVector3T<float>* position,
@@ -49,7 +49,7 @@ W8WorldItem* CreateWorldItem(
     return result;
 }
 
-// FUNCTION: WIZ8 0x004F6C50
+// FUNCTION: WIZ8 0x004f6c50
 W8WorldItem* SpawnItem(
     int item_id,
     const srVector3T<float>* position,

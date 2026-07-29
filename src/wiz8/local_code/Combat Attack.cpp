@@ -33,7 +33,7 @@ void ClearAttackBlock(void* block)
 /* Fold the attack modes that share a resolution onto the mode that resolves
    them. Seven of the eighteen collapse onto one mode and two onto another;
    the rest answer for themselves. */
-// FUNCTION: WIZ8 0x005430C0
+// FUNCTION: WIZ8 0x005430c0
 int NormalizeAttackMode(int attack_mode)
 {
     switch (attack_mode) {
@@ -56,7 +56,7 @@ int NormalizeAttackMode(int attack_mode)
    the nine bits, counting only the ones that are set, until it has passed as
    many as the roll asked for - so a mask with one bit always answers that bit
    however the roll came out. */
-// FUNCTION: WIZ8 0x00542DB0
+// FUNCTION: WIZ8 0x00542db0
 unsigned int ChooseAttackMode(unsigned int attack_modes)
 {
     unsigned int wanted;
@@ -79,7 +79,7 @@ unsigned int ChooseAttackMode(unsigned int attack_modes)
 
 /* Whether one character can swing this round: engaged, in better shape than
    the attack threshold, and with the first hand in play. */
-// FUNCTION: WIZ8 0x00545B80
+// FUNCTION: WIZ8 0x00545b80
 bool CanCharacterAttack(int party_slot)
 {
     const W8Character* character = &g_party_characters[party_slot];
@@ -96,7 +96,7 @@ bool CanCharacterAttack(int party_slot)
 /* Whether one monster can. It has to be in the world, in combat, alive, below
    the deactivation threshold, marked as attacking at all by its record, and
    actually have a first attack. */
-// FUNCTION: WIZ8 0x00545BD0
+// FUNCTION: WIZ8 0x00545bd0
 bool CanMonsterAttack(W8MonsterInfo* monster_info)
 {
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -112,7 +112,7 @@ bool CanMonsterAttack(W8MonsterInfo* monster_info)
 /* How much of a hit the target actually takes. The two reductions add, the
    remainder is taken as a percentage rounding to nearest, and nothing goes
    below zero. */
-// FUNCTION: WIZ8 0x005459B0
+// FUNCTION: WIZ8 0x005459b0
 int ApplyDamageReduction(
     const W8MonsterInfo* monster_info, const W8MonsterRecord* record, int damage)
 {
@@ -131,7 +131,7 @@ int ApplyDamageReduction(
 /* How good this monster's best attack on a target is. A motionless monster is
    always rated at one; otherwise every one of its three attacks is rated and
    the best kept, with any attack rating zero stopping the walk outright. */
-// FUNCTION: WIZ8 0x0053D450
+// FUNCTION: WIZ8 0x0053d450
 unsigned char RateMonsterBestAttack(W8MonsterInfo* monster_info, int target, int arg_3)
 {
     unsigned char best = 0;
@@ -170,7 +170,7 @@ extern unsigned char TargetIsInPlay(int party_slot, int arg_2, int arg_3);   /* 
 
 /* Whether one of a character's hands can reach the target it is aimed at: the
    hand has to be in play and to have a range category at all. */
-// FUNCTION: WIZ8 0x0053D2A0
+// FUNCTION: WIZ8 0x0053d2a0
 bool CanHandReachTarget(int party_slot, unsigned int hand)
 {
     if (hand >= W8_HAND_COUNT) {
@@ -183,7 +183,7 @@ bool CanHandReachTarget(int party_slot, unsigned int hand)
 }
 
 /* Whether either hand can. */
-// FUNCTION: WIZ8 0x0053D310
+// FUNCTION: WIZ8 0x0053d310
 bool CanAnyHandReachTarget(int party_slot)
 {
     unsigned int hand;
@@ -201,7 +201,7 @@ bool CanAnyHandReachTarget(int party_slot)
 }
 
 /* What one hand's attack is worth, or nothing when it cannot reach. */
-// FUNCTION: WIZ8 0x0053D7F0
+// FUNCTION: WIZ8 0x0053d7f0
 int GetHandAttackValue(int party_slot, unsigned int hand)
 {
     if (hand >= W8_HAND_COUNT) {
@@ -234,7 +234,7 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
 
 /* Whether one monster has an attack it could make on what it is aimed at. The
    same six checks CanMonsterAttack makes, and then the attack itself. */
-// FUNCTION: WIZ8 0x00545B20
+// FUNCTION: WIZ8 0x00545b20
 bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
 {
     const W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -251,7 +251,7 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info)
 /* The character counterpart: the target has to still be in play, the character
    engaged and in shape, the first hand in play, and the attack itself has to
    come off. */
-// FUNCTION: WIZ8 0x00545AA0
+// FUNCTION: WIZ8 0x00545aa0
 bool CanCharacterAttackItsTarget(int party_slot)
 {
     W8Character* character;
@@ -273,7 +273,7 @@ bool CanCharacterAttackItsTarget(int party_slot)
 /* What an attack mode is worth to hit with, which depends on whether the
    attacker is a monster or a character - the same nine modes score differently
    for each. Its error text carries the function's own name. */
-// FUNCTION: WIZ8 0x00542E10
+// FUNCTION: WIZ8 0x00542e10
 int AttackModeMod(int is_character, int attack_mode)
 {
     if (is_character == 0) {

@@ -28,7 +28,7 @@ void InitializeMessageBoxState(void)
     g_message_box_runtime_650ea4 = 0;
 }
 
-// FUNCTION: WIZ8 0x004F11D0
+// FUNCTION: WIZ8 0x004f11d0
 void InitializeRegionHelpState(void)
 {
     g_region_help_delay = g_settings_6850c8.field_025;
@@ -42,19 +42,19 @@ void InitializeRegionHelpState(void)
     g_default_help_text = 0;
 }
 
-// FUNCTION: WIZ8 0x0040C200
+// FUNCTION: WIZ8 0x0040c200
 void SetMessageBoxModeEnabled(void)
 {
     g_flag_5ff7ca = 1;
 }
 
-// FUNCTION: WIZ8 0x0040C210
+// FUNCTION: WIZ8 0x0040c210
 void SetMessageBoxModeDisabled(void)
 {
     g_flag_5ff7ca = 0;
 }
 
-// FUNCTION: WIZ8 0x0040C1F0
+// FUNCTION: WIZ8 0x0040c1f0
 void SetMessageBoxWord(unsigned short value)
 {
     g_word_5ff7c8 = static_cast<short>(value);

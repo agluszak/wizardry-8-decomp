@@ -8,7 +8,7 @@ extern unsigned char Function547940(W8Character* character, int trait_id);
    realms, gated by the profession's magic-level offset; 0x22..0x28 index the
    attribute records instead, and count as available only once the attribute has
    reached its cap. */
-// FUNCTION: WIZ8 0x00553D90
+// FUNCTION: WIZ8 0x00553d90
 unsigned char IsCharacterSkillAvailable(
     W8Character* character,
     unsigned int skill_id,
@@ -108,7 +108,7 @@ unsigned char IsCharacterSkillAvailable(
    the per-channel one, and only the total is clamped - the base is left as
    computed, which is why a subsequent pass over the same character produces the
    same answer rather than compounding. */
-// FUNCTION: WIZ8 0x00551A60
+// FUNCTION: WIZ8 0x00551a60
 void RecalculateCharacterResistances(W8Character* character)
 {
     unsigned int index;

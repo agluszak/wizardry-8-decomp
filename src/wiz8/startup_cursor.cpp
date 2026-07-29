@@ -217,7 +217,7 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
 }
 
 /* Creates the shipped 128x128 mouse polygon inside its dedicated scene. */
-// FUNCTION: WIZ8 0x004285C0
+// FUNCTION: WIZ8 0x004285c0
 extern "C" unsigned char Function4285C0(void)
 {
     g_cursor_scene_659684 = new CursorScene;

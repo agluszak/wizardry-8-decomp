@@ -27,13 +27,13 @@ public:
     virtual ~W8Vector005EC27C() override;
 };                                       /* 0x10 */
 
-// FUNCTION: WIZ8 0x00501E50
+// FUNCTION: WIZ8 0x00501e50
 W8Vector005EC27C::W8Vector005EC27C(int initial_capacity)
     : W8GrowableVector<W8VectorElement005EC27C*>(initial_capacity)
 {
 }
 
-// FUNCTION: WIZ8 0x00451B20
+// FUNCTION: WIZ8 0x00451b20
 W8Vector005EC27C::~W8Vector005EC27C()
 {
 }

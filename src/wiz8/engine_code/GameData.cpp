@@ -40,7 +40,7 @@ extern unsigned char g_level_override_00652dba;
    vector's "no value" here, and Controls.cpp's own range start. Neither is
    proven, so it keeps its address. */
 /* Copy one four-byte handle over another. */
-// FUNCTION: WIZ8 0x0041CF80
+// FUNCTION: WIZ8 0x0041cf80
 void CopyLevelDataHandle(int* destination, const int* source)
 {
     *destination = *source;
@@ -48,7 +48,7 @@ void CopyLevelDataHandle(int* destination, const int* source)
 
 /* Call one function a fixed number of times. The guard is written against the
    count less one, so a count of zero runs nothing. */
-// FUNCTION: WIZ8 0x0041E880
+// FUNCTION: WIZ8 0x0041e880
 void RepeatLevelDataCallback(int arg_1, int arg_2, int count, void (*callback)(void))
 {
     if (count - 1 >= 0) {
@@ -60,7 +60,7 @@ void RepeatLevelDataCallback(int arg_1, int arg_2, int count, void (*callback)(v
 }
 
 /* Bit eight: read, cleared and set by three neighbouring bodies. */
-// FUNCTION: WIZ8 0x0041EFB0
+// FUNCTION: WIZ8 0x0041efb0
 unsigned int GetLevelDataFlag8(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -69,7 +69,7 @@ unsigned int GetLevelDataFlag8(void)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x0041EFD0
+// FUNCTION: WIZ8 0x0041efd0
 void ClearLevelDataFlag8(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -77,7 +77,7 @@ void ClearLevelDataFlag8(void)
     }
 }
 
-// FUNCTION: WIZ8 0x0041EFE0
+// FUNCTION: WIZ8 0x0041efe0
 void SetLevelDataFlag8(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -85,7 +85,7 @@ void SetLevelDataFlag8(void)
     }
 }
 
-// FUNCTION: WIZ8 0x0041EFF0
+// FUNCTION: WIZ8 0x0041eff0
 unsigned int GetLevelDataFlag9(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -95,7 +95,7 @@ unsigned int GetLevelDataFlag9(void)
 }
 
 /* Bit four, read out of the low byte rather than the whole word. */
-// FUNCTION: WIZ8 0x0041F070
+// FUNCTION: WIZ8 0x0041f070
 unsigned int GetLevelDataFlag4(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -105,7 +105,7 @@ unsigned int GetLevelDataFlag4(void)
 }
 
 /* Bits five through seven together, cleared as a group. */
-// FUNCTION: WIZ8 0x0041F0C0
+// FUNCTION: WIZ8 0x0041f0c0
 void ClearLevelDataFlags5To7(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -113,7 +113,7 @@ void ClearLevelDataFlags5To7(void)
     }
 }
 
-// FUNCTION: WIZ8 0x0041F140
+// FUNCTION: WIZ8 0x0041f140
 unsigned int GetLevelDataFlag6(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -122,7 +122,7 @@ unsigned int GetLevelDataFlag6(void)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x0041F160
+// FUNCTION: WIZ8 0x0041f160
 void ClearLevelDataFlag6(void)
 {
     if (g_level_data_00652dac != 0) {
@@ -132,7 +132,7 @@ void ClearLevelDataFlag6(void)
 
 /* Bit four again, but with a global override: with the bit down, the override
    being set is what withholds the answer. */
-// FUNCTION: WIZ8 0x0041F090
+// FUNCTION: WIZ8 0x0041f090
 int IsLevelDataFlag4EffectivelySet(void)
 {
     if (g_level_data_00652dac == 0) {
@@ -147,7 +147,7 @@ int IsLevelDataFlag4EffectivelySet(void)
 
 /* Whether the level has a live vector at 0x88: bit zero has to be up and at
    least one of the three floats has to differ from the default. */
-// FUNCTION: WIZ8 0x0041F010
+// FUNCTION: WIZ8 0x0041f010
 unsigned char HasLevelDataVector(void)
 {
     if (g_level_data_00652dac == 0) {

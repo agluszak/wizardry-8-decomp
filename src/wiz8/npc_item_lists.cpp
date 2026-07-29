@@ -1,6 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 
-// FUNCTION: WIZ8 0x0050B830
+// FUNCTION: WIZ8 0x0050b830
 W8NPCItemList* GetNPCItemListByID(int npc_record_id)
 {
     int count = g_npc_item_lists->count;

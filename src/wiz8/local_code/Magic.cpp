@@ -7,7 +7,7 @@ extern bool CanCharReBreathe(int party_slot);                             /* 0x0
 
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
-// FUNCTION: WIZ8 0x004FF3B0
+// FUNCTION: WIZ8 0x004ff3b0
 int GetProfessionCasterLevel(W8Character* character, int profession_id)
 {
     int magic_level_offset;
@@ -41,7 +41,7 @@ enum { W8_SPELL_TARGET_DISCOUNTED = 7 };
    together - so the point cost counts a quarter and the level a half. One
    target type is three easier than the rest, and the answer never goes below
    zero. */
-// FUNCTION: WIZ8 0x004FF790
+// FUNCTION: WIZ8 0x004ff790
 int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus)
 {
     int difficulty = (caster_figure >> 1) + bonus +
@@ -128,7 +128,7 @@ extern unsigned char Function5330E0(
 /* Whether a spellcasting block stops this character casting this spell. The
    block stops everything except alchemy in the hands of someone who has the
    skill for it. */
-// FUNCTION: WIZ8 0x004FAE70
+// FUNCTION: WIZ8 0x004fae70
 bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id)
 {
     if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
@@ -142,7 +142,7 @@ bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id)
 
 /* The same question for a monster. The block stops everything except alchemy
    from the three kinds that keep it. */
-// FUNCTION: WIZ8 0x004FB1D0
+// FUNCTION: WIZ8 0x004fb1d0
 bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
 {
     unsigned char kind;
@@ -164,7 +164,7 @@ bool IsSpellBlockedForMonster(W8MonsterInfo* monster_info, int spell_id)
    has to be one monsters can cast at all, the monster has to be in a state to
    cast it, it has to have somewhere to aim, it has to be able to act, and the
    two combat gates have to agree. */
-// FUNCTION: WIZ8 0x004FB0A0
+// FUNCTION: WIZ8 0x004fb0a0
 bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -215,7 +215,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id)
    spells are always allowed on the shop screen out of combat; otherwise the
    record's usable-when value picks which of camp, combat and the shop admit
    it. */
-// FUNCTION: WIZ8 0x005001E0
+// FUNCTION: WIZ8 0x005001e0
 unsigned char SpellUsableNow(
     int spell_id, int unused, char allow_out_of_combat, unsigned char fallback)
 {
@@ -279,7 +279,7 @@ unsigned char SpellUsableNow(
    be cast. Nine target types map onto seven answers; the one that depends on
    the selection owner only needs a pick when there is nothing selected already
    and the caller is not in one of the two contexts that supply it. */
-// FUNCTION: WIZ8 0x005010F0
+// FUNCTION: WIZ8 0x005010f0
 char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int context)
 {
     if (spell_id != 0) {
@@ -319,7 +319,7 @@ char GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize, int 
 
 /* The same question for a hostile spell, which has fewer answers because a
    hostile spell never targets the party's own belongings. */
-// FUNCTION: WIZ8 0x005011C0
+// FUNCTION: WIZ8 0x005011c0
 char GetTargetNeededForSpellHostile(int spell_id)
 {
     switch (GetSpellTargetType(spell_id, 0)) {
@@ -388,7 +388,7 @@ extern W8SpellEffectEntry** g_spell_effects_data;
 /* 0x0068691F */
 extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
 /* Whether every queued effect still has time left on it. */
-// FUNCTION: WIZ8 0x00500E50
+// FUNCTION: WIZ8 0x00500e50
 bool AllSpellEffectsStillRunning(void)
 {
     int index;
@@ -403,7 +403,7 @@ bool AllSpellEffectsStillRunning(void)
 
 /* The queued effect that holds monsters under the party's control, if one is
    running. */
-// FUNCTION: WIZ8 0x00500F30
+// FUNCTION: WIZ8 0x00500f30
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void)
 {
     int index;
@@ -421,7 +421,7 @@ W8SpellEffectEntry* FindMonsterControlSpellEffect(void)
 /* Count every queued effect down by one turn. The monster-control effect
    running out is the one with a consequence: every monster that is still alive
    goes back to controlling itself. */
-// FUNCTION: WIZ8 0x00500E90
+// FUNCTION: WIZ8 0x00500e90
 void TickSpellEffects(void)
 {
     int count = g_spell_effects.GetCount();
@@ -450,7 +450,7 @@ void TickSpellEffects(void)
 }
 
 /* Whether the party as a whole is under one particular condition. */
-// FUNCTION: WIZ8 0x005012B0
+// FUNCTION: WIZ8 0x005012b0
 bool PartyHasCondition(int condition_id)
 {
     W8ConditionSlot* slot = g_party_conditions;
@@ -499,7 +499,7 @@ extern unsigned char Function519180(int party_slot, int arg_2, int arg_3);
 
 /* Record the spell one party slot is about to cast, at what strength, and at
    what, from a target block the caller already holds. */
-// FUNCTION: WIZ8 0x004F9AA0
+// FUNCTION: WIZ8 0x004f9aa0
 void SetPartySlotSpell(
     int party_slot, int spell_id, int power_level, const W8CombatSlot* target)
 {
@@ -513,7 +513,7 @@ void SetPartySlotSpell(
 
 /* The same, addressed by character rather than by slot, and taking the target
    block from the targeting code instead of the caller. */
-// FUNCTION: WIZ8 0x004F9A20
+// FUNCTION: WIZ8 0x004f9a20
 void SetCharacterSpell(const W8Character* character, int spell_id, int power_level)
 {
     int party_slot = CharacterPointerToPartySlot(character);
@@ -581,7 +581,7 @@ void StartCharacterBreathAttack(int party_slot)
 /* Append one effect to the queue, growing it by exactly one slot when it is
    full - the growth is inlined here rather than going through the shared Grow,
    and a failed allocation leaves the old array in place. */
-// FUNCTION: WIZ8 0x005008A0
+// FUNCTION: WIZ8 0x005008a0
 void AddSpellEffect(W8SpellEffectEntry* effect)
 {
     W8SpellEffectEntry** previous = g_spell_effects_data;
@@ -643,7 +643,7 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
    difficulty off a seventeen-entry table, scaled by the caller's factor and
    divided by seven; a caster already at or past that has no chance of failing
    at all, and the rest is the shortfall as a percentage capped at a hundred. */
-// FUNCTION: WIZ8 0x004FF410
+// FUNCTION: WIZ8 0x004ff410
 unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 {
     int band = g_spell_records[spell_id].spell_point_cost / 2 +
@@ -737,7 +737,7 @@ void StartCharacterItemUse(int party_slot)
    that shares the book. Only positive contributions count, and a caster level
    of nothing at all short-circuits unless the caller asks for the sum
    anyway. */
-// FUNCTION: WIZ8 0x004FFBD0
+// FUNCTION: WIZ8 0x004ffbd0
 int GetTotalCasterLevel(
     const W8Character* character, int unused, int spellbook, char include_all)
 {
@@ -824,7 +824,7 @@ static unsigned char SpellbookMaskForSpell(int spell_id)
 
    The two ceilings are computed even when the first alone would settle it,
    which is what shows them as one rule rather than two guards. */
-// FUNCTION: WIZ8 0x004FFCB0
+// FUNCTION: WIZ8 0x004ffcb0
 char CanCharacterLearnSpell(W8Character* character, int spell_id)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
@@ -896,7 +896,7 @@ extern const unsigned short g_realm_message_offsets[];
 
    The line is assembled twice over: once only to measure the three pieces so
    the buffer can be allocated, and once into it. */
-// FUNCTION: WIZ8 0x004FFE70
+// FUNCTION: WIZ8 0x004ffe70
 void LearnSpell(W8Character* character, int spell_id, char announce)
 {
     W8SpellRealm realm;
@@ -999,7 +999,7 @@ enum { W8_SPELL_CONDITIONAL = 0x3c };
    A spell asking for the affordable power level is priced at one here, so this
    answers whether the cast is possible at all rather than at the level the
    player picked. */
-// FUNCTION: WIZ8 0x005012E0
+// FUNCTION: WIZ8 0x005012e0
 bool CanPartySlotCastRecordedSpell(int party_slot)
 {
     const W8PartySlotRow* row = &g_party_slot_rows[party_slot];
@@ -1255,7 +1255,7 @@ enum {
    A power level outside one through seven is silently taken as one, which is
    what makes a caller passing zero cast nothing at all rather than cast weakly.
    Its error text names the function. */
-// FUNCTION: WIZ8 0x004FB220
+// FUNCTION: WIZ8 0x004fb220
 int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_level)
 {
     W8TargetSource source;
@@ -1322,7 +1322,7 @@ int PointCastSpell(float x, float y, float z, int spell_id, unsigned int power_l
 
    The alchemy shortcut ahead of all of it: a character the alchemy-exempting
    field marks is answered with the fixed skill outright. */
-// FUNCTION: WIZ8 0x004FF7F0
+// FUNCTION: WIZ8 0x004ff7f0
 unsigned int GetBestSpellbookSkillForSpell(
     W8Character* character, int spell_id, char pricing, char prefer_unlocked,
     unsigned int power_level, int level_bonus)
@@ -1436,7 +1436,7 @@ done:
    Power level eight is the request to cast as high as affordable rather than a
    level, so it has no failure chance of its own. The power-level choosers
    carry this whole body inline rather than calling it. */
-// FUNCTION: WIZ8 0x004FF4B0
+// FUNCTION: WIZ8 0x004ff4b0
 unsigned int GetSpellFailureChanceForCast(
     W8Character* character, int spell_id, unsigned int power_level, int level_bonus)
 {
@@ -1502,7 +1502,7 @@ enum {
 
    A condition that never runs out cannot be out-waited, so it is answered with
    the lowest power level rather than the cheapest. */
-// FUNCTION: WIZ8 0x004FDF30
+// FUNCTION: WIZ8 0x004fdf30
 unsigned int ChoosePowerLevelForDuration(
     W8Character* character, int spell_id, unsigned int turns_needed)
 {
@@ -1552,7 +1552,7 @@ unsigned int ChoosePowerLevelForDuration(
    Which pool is missing comes from the spell: one restores hit points, one
    stamina, and one takes hit points first and falls back to stamina when they
    are already full. */
-// FUNCTION: WIZ8 0x004FE1C0
+// FUNCTION: WIZ8 0x004fe1c0
 unsigned int ChoosePowerLevelToRestore(
     W8Character* character, int spell_id, const W8Character* target)
 {
@@ -1629,7 +1629,7 @@ enum {
 
    Zero from any of the sub-decisions means "no reason to cast harder", which
    comes back as the lowest power level rather than as nothing. */
-// FUNCTION: WIZ8 0x004FE480
+// FUNCTION: WIZ8 0x004fe480
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context)
 {
     W8Character* caster = &g_party_characters[party_slot];
@@ -1763,7 +1763,7 @@ extern wchar_t g_no_target_text[];
    one table. The entry is a message-table offset rather than a string, so it
    is resolved twice. Everything else is a fixed word. Its error
    text names the function. */
-// FUNCTION: WIZ8 0x004F97A0
+// FUNCTION: WIZ8 0x004f97a0
 wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
 {
     unsigned short name_prefix;
@@ -1858,7 +1858,7 @@ enum { W8_MESSAGE_MONSTER_CAST_VERBOSE = 0x638, W8_MESSAGE_MONSTER_CAST = 0x63c 
    Its failure chance is the same rule the party's is, with the monster's
    spell-point budget standing in for a caster's spellbook skill, which is what
    makes the two one rule rather than a monster-specific one. */
-// FUNCTION: WIZ8 0x004FAEC0
+// FUNCTION: WIZ8 0x004faec0
 void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -1932,7 +1932,7 @@ enum { W8_SPELL_LURE = 0x26 };
    named companion effect at the landing point itself, and only that one has
    its mode set. Both are appended to whatever the cast hangs its effects off,
    and an effect that failed to spawn is simply not appended. */
-// FUNCTION: WIZ8 0x004FB360
+// FUNCTION: WIZ8 0x004fb360
 void SpawnLureEffects(W8CastEffectOwner* owner, int arg_2, const W8CombatSlot* target)
 {
     W8Position position;

@@ -14,7 +14,7 @@ struct W8Prop {
 
 // Source unit is Engine Code\3d.cpp; the assertion at line 344 is what names
 // and types World::plsProps.
-// FUNCTION: WIZ8 0x0046DED0
+// FUNCTION: WIZ8 0x0046ded0
 void WorldUpdateProps(W8World* world)
 {
     int count;
@@ -52,19 +52,19 @@ extern void Function46E640(void* target, int argument);
 /* Add to and remove from the world's two unnamed lists. The add on the first
    list has no matching remove here, which is what separates it from the
    second. */
-// FUNCTION: WIZ8 0x0046E580
+// FUNCTION: WIZ8 0x0046e580
 void WorldAddToList00(W8World* unused, void* entry)
 {
     PListAdd(g_world_00659ab4->plsList00, entry);
 }
 
-// FUNCTION: WIZ8 0x0046E5C0
+// FUNCTION: WIZ8 0x0046e5c0
 void WorldAddToList04(W8World* unused, void* entry)
 {
     PListAdd(g_world_00659ab4->plsList04, entry);
 }
 
-// FUNCTION: WIZ8 0x0046E5E0
+// FUNCTION: WIZ8 0x0046e5e0
 void WorldRemoveFromList04(W8World* unused, void* entry)
 {
     PListRemove(g_world_00659ab4->plsList04, entry);
@@ -73,13 +73,13 @@ void WorldRemoveFromList04(W8World* unused, void* entry)
 /* How many props the world holds, and the one at a position - both answers
    discarded by the wrapper itself, which is what makes these thin forwarders
    rather than accessors. */
-// FUNCTION: WIZ8 0x0046E600
+// FUNCTION: WIZ8 0x0046e600
 void WorldGetPropCount(void)
 {
     PListGetCount(g_world_00659ab4->plsProps);
 }
 
-// FUNCTION: WIZ8 0x0046E620
+// FUNCTION: WIZ8 0x0046e620
 void WorldGetPropAt(W8World* unused, int index)
 {
     PListGetAt(g_world_00659ab4->plsProps, index);
@@ -87,20 +87,20 @@ void WorldGetPropAt(W8World* unused, int index)
 
 /* Two wrappers that reach one member along before forwarding, which is what
    places that member at 0x3c of whatever they are called on. */
-// FUNCTION: WIZ8 0x0046E860
+// FUNCTION: WIZ8 0x0046e860
 void ForwardThroughMember3C_46E750(void* owner, int argument)
 {
     Function46E750(*(void**)((char*)owner + 0x3c), argument);
 }
 
-// FUNCTION: WIZ8 0x0046E880
+// FUNCTION: WIZ8 0x0046e880
 void ForwardThroughMember3C_46E640(void* owner, int argument)
 {
     Function46E640(*(void**)((char*)owner + 0x3c), argument);
 }
 
 /* Release one block back to the renderer's heap rather than the CRT's. */
-// FUNCTION: WIZ8 0x0046F3F0
+// FUNCTION: WIZ8 0x0046f3f0
 void FreeThroughRenderHeap(void* block)
 {
     SetHeapFree(block);
@@ -108,7 +108,7 @@ void FreeThroughRenderHeap(void* block)
 
 /* Walk a chain through its link at 0x134 and set the same field on every node
    of it. */
-// FUNCTION: WIZ8 0x0046F4F0
+// FUNCTION: WIZ8 0x0046f4f0
 void SetChainValue15C(char* node, int value)
 {
     for (; node != 0; node = *(char**)(node + 0x134)) {
@@ -120,7 +120,7 @@ void SetChainValue15C(char* node, int value)
    argument, and only zero is rejected, so the guard is a "leave it alone"
    rather than a range check. The assertion at 3d.cpp:651 is what names the
    receiver pWorld. */
-// FUNCTION: WIZ8 0x0046E350
+// FUNCTION: WIZ8 0x0046e350
 void WorldSetValue74(W8World* world, float value)
 {
     if (!world) {
@@ -135,7 +135,7 @@ void WorldSetValue74(W8World* world, float value)
 
 /* Reads back only the second of the pair, which is what makes 0x78 the live
    copy and 0x74 the one nothing here consumes. */
-// FUNCTION: WIZ8 0x0046E3A0
+// FUNCTION: WIZ8 0x0046e3a0
 float WorldGetValue78(W8World* world)
 {
     if (!world) {
@@ -148,7 +148,7 @@ float WorldGetValue78(W8World* world)
    near plane is the fixed 62.5 the original materialises inline. The guard is
    against a denormal-scale epsilon rather than zero, so a distance that has
    collapsed leaves the camera as it was. */
-// FUNCTION: WIZ8 0x0046E3D0
+// FUNCTION: WIZ8 0x0046e3d0
 void WorldSetFarClip(W8World* world, float distance)
 {
     if (!world) {
@@ -164,7 +164,7 @@ void WorldSetFarClip(W8World* world, float distance)
 /* The matching reader. Both planes come back, and only the far one is
    returned, which is the same asymmetry the setter has. A world without a
    camera answers zero rather than reading through it. */
-// FUNCTION: WIZ8 0x0046E440
+// FUNCTION: WIZ8 0x0046e440
 double WorldGetFarClip(W8World* world)
 {
     double near_plane = 0;

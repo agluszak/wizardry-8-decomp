@@ -14,7 +14,7 @@ W8GameSettings g_settings_6850c8;
 unsigned int g_master_sound_volume_5ff644;
 int g_music_sample_handle_60aae0 = -1;
 
-// FUNCTION: WIZ8 0x00428E60
+// FUNCTION: WIZ8 0x00428e60
 unsigned int GetTotalPhysicalMemory(void)
 {
     MEMORYSTATUS status;
@@ -48,7 +48,7 @@ void SetMasterSoundVolume(unsigned int volume)
 
 extern void Function409210(int sample, unsigned int volume);
 
-// FUNCTION: WIZ8 0x0048FE50
+// FUNCTION: WIZ8 0x0048fe50
 void SetMusicVolume(unsigned char volume)
 {
     g_settings_6850c8.field_02f = volume;
@@ -57,7 +57,7 @@ void SetMusicVolume(unsigned char volume)
     }
 }
 
-// FUNCTION: WIZ8 0x004291D0
+// FUNCTION: WIZ8 0x004291d0
 void SetDisplayGamma(float value)
 {
     srVector3T<float> gamma;
@@ -70,7 +70,7 @@ void SetDisplayGamma(float value)
 /* The 3D setup record is a 14-byte RIFF-like header followed by chunks with a
    four-byte tag, two reserved bytes, a little-endian length and payload.  The
    CNFG payload is the reviewed 0xa4-byte W8GameSettings block. */
-// FUNCTION: WIZ8 0x0054B810
+// FUNCTION: WIZ8 0x0054b810
 void LoadGameConfiguration(void)
 {
     FILE* file = fopen("Wiz8.CFG", "rb");

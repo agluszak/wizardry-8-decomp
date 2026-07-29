@@ -28,7 +28,7 @@ extern const int g_character_table_00616604[];
 
 /* Whether any monster is engaged with the party right now: in combat, in the
    engaged state, still alive and not yet on its way out. */
-// FUNCTION: WIZ8 0x004EEE20
+// FUNCTION: WIZ8 0x004eee20
 bool AnyMonsterEngaged(void)
 {
     unsigned int index;
@@ -45,7 +45,7 @@ bool AnyMonsterEngaged(void)
 }
 
 /* How many party members are still on their feet. */
-// FUNCTION: WIZ8 0x004EEE80
+// FUNCTION: WIZ8 0x004eee80
 int CountActiveCharacters(void)
 {
     int count = 0;
@@ -62,7 +62,7 @@ int CountActiveCharacters(void)
 }
 
 /* Whether anybody is. The same count, narrowed to a yes or no. */
-// FUNCTION: WIZ8 0x004EEEC0
+// FUNCTION: WIZ8 0x004eeec0
 bool AnyCharacterActive(void)
 {
     int count = 0;
@@ -81,7 +81,7 @@ bool AnyCharacterActive(void)
 /* Walk a character up to a level from scratch, recomputing the experience goal
    at each step so the goals for the level below are the ones they actually
    passed. */
-// FUNCTION: WIZ8 0x004EF010
+// FUNCTION: WIZ8 0x004ef010
 void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
 {
     character->level = 1;
@@ -98,7 +98,7 @@ void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
 
 /* Whether one party slot has earned its next level: occupied, alive, in shape
    to act, and holding at least the experience the next level asks for. */
-// FUNCTION: WIZ8 0x004EF3C0
+// FUNCTION: WIZ8 0x004ef3c0
 bool IsCharacterReadyToAdvance(int party_slot)
 {
     const W8Character* character = &g_party_characters[party_slot];
@@ -116,7 +116,7 @@ bool IsCharacterReadyToAdvance(int party_slot)
 }
 
 /* The first free party slot in a range, or -1 when the range is full. */
-// FUNCTION: WIZ8 0x004EF460
+// FUNCTION: WIZ8 0x004ef460
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
 {
     unsigned int slot;
@@ -133,7 +133,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
    profession. A character who has changed profession is banded on the whole
    level; one still in their first profession has the starting base taken off
    first. */
-// FUNCTION: WIZ8 0x004EED80
+// FUNCTION: WIZ8 0x004eed80
 void CalcCharacterLevelBand(W8Character* character)
 {
     unsigned int level = character->profession_levels[character->current_profession];
@@ -169,7 +169,7 @@ void CalcCharacterLevelBand(W8Character* character)
 }
 
 /* Look up the value that faction, race and profession together select. */
-// FUNCTION: WIZ8 0x004EF950
+// FUNCTION: WIZ8 0x004ef950
 void CalcCharacterTableValue(W8Character* character)
 {
     if (character->race > 10) {
@@ -183,7 +183,7 @@ void CalcCharacterTableValue(W8Character* character)
 /* What the character's levels are worth towards physical combat. Every
    profession they have ever held counts, weighted by how much fighting that
    profession does. */
-// FUNCTION: WIZ8 0x004EE130
+// FUNCTION: WIZ8 0x004ee130
 int CalcPhysCombatExperience(W8Character* character)
 {
     int total = 0;

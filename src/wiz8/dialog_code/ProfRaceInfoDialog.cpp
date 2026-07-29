@@ -82,7 +82,7 @@ private:
 
 /* Copies the row straight out of the table: every profession has minimums, so
    there is no per-entry test the way the race dialog needs one. */
-// FUNCTION: WIZ8 0x005DF0D0
+// FUNCTION: WIZ8 0x005df0d0
 W8ProfessionInfoDialog005EFBFC::W8ProfessionInfoDialog005EFBFC(unsigned int uiIndex)
 {
     int* source;
@@ -106,7 +106,7 @@ W8ProfessionInfoDialog005EFBFC::W8ProfessionInfoDialog005EFBFC(unsigned int uiIn
 /* The same shape, except that only the first eleven races have minimums and the
    rest show -1, so the copy is a counted loop with the test inside it rather
    than the profession dialog's straight block move. */
-// FUNCTION: WIZ8 0x005DF570
+// FUNCTION: WIZ8 0x005df570
 W8RaceInfoDialog005EFC38::W8RaceInfoDialog005EFC38(unsigned int uiIndex)
 {
     unsigned int index;

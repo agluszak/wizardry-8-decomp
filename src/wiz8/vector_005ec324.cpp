@@ -28,7 +28,7 @@ W8Vector005EC324::W8Vector005EC324(int initial_capacity)
 {
 }
 
-// FUNCTION: WIZ8 0x004561A0
+// FUNCTION: WIZ8 0x004561a0
 W8Vector005EC324::~W8Vector005EC324()
 {
 }

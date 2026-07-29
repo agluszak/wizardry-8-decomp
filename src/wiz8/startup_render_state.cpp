@@ -11,7 +11,7 @@ extern "C" {
 /* Engine Code\Quality.cpp allocates one 0x34-byte process-wide record.  Its
    leading fields are still unnamed, but the allocation, clear and reviewed
    defaults are complete observations from the startup constructor. */
-// FUNCTION: WIZ8 0x0047B500
+// FUNCTION: WIZ8 0x0047b500
 void InitializeRenderQuality(void)
 {
     unsigned int* quality;

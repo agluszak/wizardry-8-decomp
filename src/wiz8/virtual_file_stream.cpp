@@ -11,13 +11,13 @@
 /* The retained FileMan implementation owns the physical/SLF handle split.
    These reviewed first-party entry points keep Wizardry's historical names
    while delegating to that source-backed interface. */
-// FUNCTION: WIZ8 0x00404E10
+// FUNCTION: WIZ8 0x00404e10
 extern "C" void CloseVirtualFile(int handle)
 {
     FileClose(handle);
 }
 
-// FUNCTION: WIZ8 0x00404EA0
+// FUNCTION: WIZ8 0x00404ea0
 extern "C" unsigned char ReadVirtualFile(
     int handle, void* buffer, unsigned int size, unsigned int* done)
 {
@@ -115,7 +115,7 @@ unsigned long W8VirtualFileBinIStream::tell()
 
 // Note the original reuses the `size` parameter slot as the completed-count
 // out-parameter, and returns it branchlessly.
-// FUNCTION: WIZ8 0x0047D5C0
+// FUNCTION: WIZ8 0x0047d5c0
 unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 {
     /* SurRender spells its 32-bit count unsigned long; SGP spells the same
@@ -145,7 +145,7 @@ W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
 
 /* Loads the image importers and routes their JPG/TGA reads through Wizardry's
    SLF-aware virtual file stream, which is the bridge the real menu assets use. */
-// FUNCTION: WIZ8 0x0047D5F0
+// FUNCTION: WIZ8 0x0047d5f0
 extern "C" void Function47D5F0(void)
 {
     srExtension::load("JPEGImporter", NULL);

@@ -63,7 +63,7 @@ int g_music_state_60aaf0;
 extern "C" unsigned char g_flag_650e50;
 
 /* Builds the named playlist object before the screen loop begins. */
-// FUNCTION: WIZ8 0x0048F940
+// FUNCTION: WIZ8 0x0048f940
 extern "C" unsigned char InitializeMusicPlaylist(void)
 {
     g_music_playlist_65ba74 = new W8MusicPlaylist();

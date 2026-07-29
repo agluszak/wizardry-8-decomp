@@ -1,7 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
-// FUNCTION: WIZ8 0x00510B60
+// FUNCTION: WIZ8 0x00510b60
 W8MonsterGroup* FindFirstMonsterByID(int monster_id)
 {
     unsigned int index;
@@ -25,7 +25,7 @@ found:
     return group;
 }
 
-// FUNCTION: WIZ8 0x00510BF0
+// FUNCTION: WIZ8 0x00510bf0
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous)
 {
     /* One variable carries both the PListIndexOf result and the loop index; the

@@ -45,7 +45,7 @@ extern const signed char g_formation_rows[][W8_FORMATION_ROW_WIDTH];     /* 0x00
 extern const unsigned char g_position_row[];                             /* 0x00687525 */
 
 /* The furthest range category any of this character's hands can reach at. */
-// FUNCTION: WIZ8 0x00519BA0
+// FUNCTION: WIZ8 0x00519ba0
 int GetBestHandRangeCategory(const W8Character* character)
 {
     int best = W8_RANGE_NONE;
@@ -65,7 +65,7 @@ int GetBestHandRangeCategory(const W8Character* character)
 
 /* Whether the first lighting condition applies, but only for the two middle
    range categories - at touch and at extreme range it never does. */
-// FUNCTION: WIZ8 0x00519BE0
+// FUNCTION: WIZ8 0x00519be0
 bool RangeCategoryUsesSightCondition(const void* conditions, int range_category)
 {
     if (range_category > W8_RANGE_SHORT && range_category < W8_RANGE_EXTREME) {
@@ -76,7 +76,7 @@ bool RangeCategoryUsesSightCondition(const void* conditions, int range_category)
 
 /* The furthest range category among a monster's three attacks. Asking for the
    close-quarters band only considers the two categories inside it. */
-// FUNCTION: WIZ8 0x0051A800
+// FUNCTION: WIZ8 0x0051a800
 int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters_only)
 {
     int best = W8_RANGE_NONE;
@@ -98,7 +98,7 @@ int GetBestMonsterAttackRange(const W8MonsterRecord* record, char close_quarters
 /* The range category one monster action works at. A spell takes the range off
    the spell record; two of the actions have a fixed answer and the rest have
    none. A plain attack takes it from the attack itself, which has to exist. */
-// FUNCTION: WIZ8 0x0051A730
+// FUNCTION: WIZ8 0x0051a730
 unsigned int GetMonsterActionRangeCategory(
     const W8MonsterInfo* monster_info, const W8MonsterRecord* record, unsigned int attack)
 {
@@ -126,7 +126,7 @@ unsigned int GetMonsterActionRangeCategory(
 
 /* How far a range category actually is. The four categories step 2, 4, 25, 50
    before the world scale multiplies them; no range at all is zero distance. */
-// FUNCTION: WIZ8 0x0051A9A0
+// FUNCTION: WIZ8 0x0051a9a0
 float CalcRangeDistance(int range_category)
 {
     unsigned int steps = 0;
@@ -157,7 +157,7 @@ float CalcRangeDistance(int range_category)
 /* Close a gap of rows one row at a time, stopping when either the gap or the
    number of rows that could be crossed runs out. A gap that cannot be closed
    at all is marked unreachable. */
-// FUNCTION: WIZ8 0x0051ABE0
+// FUNCTION: WIZ8 0x0051abe0
 void CloseFormationGap(int from_position, int to_position, int* rows_apart)
 {
     char crossable;
@@ -183,7 +183,7 @@ void CloseFormationGap(int from_position, int to_position, int* rows_apart)
 }
 
 /* Whether anybody standing ahead of this position is still in formation. */
-// FUNCTION: WIZ8 0x0051AE60
+// FUNCTION: WIZ8 0x0051ae60
 bool AnyoneStandsAhead(unsigned char position)
 {
     int found = 0;
@@ -201,7 +201,7 @@ bool AnyoneStandsAhead(unsigned char position)
 
 /* Whether the front rank stands between two positions. Only positions exactly
    two rows apart can be screened, and the fifth row is never in the way. */
-// FUNCTION: WIZ8 0x0051B000
+// FUNCTION: WIZ8 0x0051b000
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 {
     unsigned char from_row = g_position_row[from_position * 0xc];
@@ -236,13 +236,13 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 }
 
 /* Two seven-byte constant readers the range rules share. */
-// FUNCTION: WIZ8 0x0051B300
+// FUNCTION: WIZ8 0x0051b300
 float GetRangeConstant5EC360(void)
 {
     return g_range_constant_005ec360;
 }
 
-// FUNCTION: WIZ8 0x0051B310
+// FUNCTION: WIZ8 0x0051b310
 float GetRangeConstant5EC35C(void)
 {
     return g_range_constant_005ec35c;

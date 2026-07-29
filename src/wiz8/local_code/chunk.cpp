@@ -5,7 +5,7 @@
 
 #define CHUNK_CPP "C:\\Projects\\Wizardry 8\\Local Code\\chunk.cpp"
 
-// FUNCTION: WIZ8 0x0055CA20
+// FUNCTION: WIZ8 0x0055ca20
 unsigned char W8Chunk::Read(void* buffer, unsigned int size, unsigned int* transferred)
 {
     unsigned int done;
@@ -21,7 +21,7 @@ unsigned char W8Chunk::Read(void* buffer, unsigned int size, unsigned int* trans
     return result;
 }
 
-// FUNCTION: WIZ8 0x0055CA80
+// FUNCTION: WIZ8 0x0055ca80
 unsigned char W8Chunk::Write(const void* buffer, unsigned int size, unsigned int* transferred)
 {
     unsigned int done;

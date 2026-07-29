@@ -73,7 +73,7 @@ int g_dword_650e30;
 unsigned char g_video_objects_ready_650e20;
 unsigned char g_flag_5ff5e8;
 
-// FUNCTION: WIZ8 0x00402E60
+// FUNCTION: WIZ8 0x00402e60
 void Function402E60(void)
 {
     if (g_surface_650dd4) {
@@ -94,13 +94,13 @@ void Function402E60(void)
     }
 }
 
-// FUNCTION: WIZ8 0x00421F20
+// FUNCTION: WIZ8 0x00421f20
 IDirectDrawSurface2* Function421F20(void)
 {
     return g_primary_surface_6596a8;
 }
 
-// FUNCTION: WIZ8 0x004044C0
+// FUNCTION: WIZ8 0x004044c0
 HVSURFACE Function4044C0(IDirectDrawSurface2* surface)
 {
     return CreateVideoSurfaceFromDDSurface(surface);
@@ -116,7 +116,7 @@ char g_application_key_650eac[0x34];
 char g_application_name_copy_650ee0[0x34];
 char g_application_name_650f14[0x34];
 
-// FUNCTION: WIZ8 0x0040F020
+// FUNCTION: WIZ8 0x0040f020
 unsigned char RegisterWindowClass(const char* application_name, const char* key_class)
 {
     if (!application_name || !key_class) {
@@ -157,7 +157,7 @@ bool g_flag_6505a9;
    surface, and 0x004044C0 wraps it in the 0x30-byte descriptor that carries its
    width, height and depth. Reports whether the wrapper was built; a missing
    surface is not an error the caller distinguishes from a failed wrap. */
-// FUNCTION: WIZ8 0x00402E30
+// FUNCTION: WIZ8 0x00402e30
 bool Function402E30(void)
 {
     IDirectDrawSurface2* surface;
@@ -182,7 +182,7 @@ bool Function402E30(void)
 
 /* Shared success stub. BringUpEngine uses it as a gate and the 62-entry frame
    dispatch table parks it in seventeen slots. */
-// FUNCTION: WIZ8 0x005B1740
+// FUNCTION: WIZ8 0x005b1740
 unsigned char Function5B1740(int unused)
 {
     return 1;
@@ -200,7 +200,7 @@ bool InitializeWizardryVideoSurfaceManager(void)
     return ready;
 }
 
-// FUNCTION: WIZ8 0x00404BA0
+// FUNCTION: WIZ8 0x00404ba0
 bool InitializeVideoSurfaceState(void)
 {
     g_dword_650e00 = 0;
@@ -211,7 +211,7 @@ bool InitializeVideoSurfaceState(void)
     return true;
 }
 
-// FUNCTION: WIZ8 0x00405E60
+// FUNCTION: WIZ8 0x00405e60
 bool InitializeWizardryVideoObjectManager(void)
 {
     g_dword_650e28 = 0;
@@ -239,7 +239,7 @@ bool ShutdownWizardryVideoSurfaceManager(void)
     return true;
 }
 
-// FUNCTION: WIZ8 0x00405E80
+// FUNCTION: WIZ8 0x00405e80
 void ShutdownWizardryVideoObjectManager(void)
 {
     W8VideoManagerNode* node;
@@ -257,13 +257,13 @@ void ShutdownWizardryVideoObjectManager(void)
     g_flag_5ff5e8 = 1;
 }
 
-// FUNCTION: WIZ8 0x00428B80
+// FUNCTION: WIZ8 0x00428b80
 int ReturnZero(void)
 {
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00427A60
+// FUNCTION: WIZ8 0x00427a60
 char* GetVideoConfigFileName(void)
 {
     return "3DVideo.CFG";
@@ -296,33 +296,33 @@ extern int ReturnZero(void);
 
 
 /* Stores the byte 0x004086D0's environment selection consults. */
-// FUNCTION: WIZ8 0x004086C0
+// FUNCTION: WIZ8 0x004086c0
 void Function4086C0(int enable)
 {
     g_flag_5ff651 = (unsigned char)enable;
 }
 
 /* Reports the byte at 0x00603C39; the only reader is 0x00421BB0. */
-// FUNCTION: WIZ8 0x004229B0
+// FUNCTION: WIZ8 0x004229b0
 unsigned char Function4229B0(void)
 {
     return g_fullscreen_603c39;
 }
 
 /* Three latches, each set once and never cleared here. */
-// FUNCTION: WIZ8 0x004229D0
+// FUNCTION: WIZ8 0x004229d0
 void Function4229D0(void)
 {
     g_flag_659711 = 1;
 }
 
-// FUNCTION: WIZ8 0x004277D0
+// FUNCTION: WIZ8 0x004277d0
 void Function4277D0(void)
 {
     g_flag_65970f = 1;
 }
 
-// FUNCTION: WIZ8 0x0042BC00
+// FUNCTION: WIZ8 0x0042bc00
 void Function42BC00(void)
 {
     g_flag_6598a8 = 1;
@@ -332,7 +332,7 @@ void Function42BC00(void)
 /* Takes the default unless the caller names a size. Nothing yet establishes
    what consumes the value, so both it and its holder keep address-derived
    names. */
-// FUNCTION: WIZ8 0x004098D0
+// FUNCTION: WIZ8 0x004098d0
 unsigned char Function4098D0(int size)
 {
     g_dword_5ff64c = 0x1f5800;
@@ -354,7 +354,7 @@ void Function479010(void)
    full dword and hands the same value back - it materializes the 1 in eax and
    stores through it - so its global is not the byte flag its one-bit use
    suggests, and it is not the void setter the other two are. */
-// FUNCTION: WIZ8 0x00443A50
+// FUNCTION: WIZ8 0x00443a50
 int Function443A50(void)
 {
     g_status_count_6874c6 = 1;
@@ -367,7 +367,7 @@ void Function482740(int value)
     g_dword_687595 = value;
 }
 
-// FUNCTION: WIZ8 0x005588E0
+// FUNCTION: WIZ8 0x005588e0
 void Function5588E0(unsigned char value)
 {
     g_byte_68de44 = value;
@@ -375,7 +375,7 @@ void Function5588E0(unsigned char value)
 
 /* Clears the flag InitializeVideoSurfaceState raises. Both the window
    procedure's teardown and the shutdown handler reach it. */
-// FUNCTION: WIZ8 0x00404BC0
+// FUNCTION: WIZ8 0x00404bc0
 void ShutdownVideoSurfaceState(void)
 {
     g_flag_650e04 = false;
@@ -389,7 +389,7 @@ void Function408850(void)
 }
 
 /* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
-// FUNCTION: WIZ8 0x004023A0
+// FUNCTION: WIZ8 0x004023a0
 void NoOp(void)
 {
 }
@@ -397,7 +397,7 @@ void NoOp(void)
 /* Clears the pointer table, then walks it releasing each entry. The walk can
    never see a live entry because the clear precedes it, but both are in the
    original and the compiler kept them, so both are reproduced. */
-// FUNCTION: WIZ8 0x00404B00
+// FUNCTION: WIZ8 0x00404b00
 void Function404B00(void)
 {
     unsigned short** table;
@@ -434,7 +434,7 @@ extern unsigned char gfApplicationActive;
 extern unsigned char gfSGPInputReceived;
 
 /* The caller shifts the result right by ten and stores kilobytes. */
-// FUNCTION: WIZ8 0x00404BD0
+// FUNCTION: WIZ8 0x00404bd0
 unsigned int QueryAvailableMemory(void)
 {
     MEMORYSTATUS status;
@@ -492,7 +492,7 @@ unsigned char g_buffer_7dc000[1];
    string, opens it and its listener, and records whether the provider exposes
    EAX environment selection. Any failure leaves the subsystem closed and still
    reports success, so audio never blocks bring-up. */
-// FUNCTION: WIZ8 0x004086D0
+// FUNCTION: WIZ8 0x004086d0
 bool Function4086D0(void)
 {
     HPROENUM next;
@@ -556,7 +556,7 @@ bool Function4086D0(void)
    entry to the middle of the table. Post-increment, pre-increment, indexing,
    and dropping the second cursor local all compile to one of these two shapes,
    so the phase is not reachable by rewriting the loop body. */
-// FUNCTION: WIZ8 0x00407EC0
+// FUNCTION: WIZ8 0x00407ec0
 W8BindingNode* Function407EC0(void)
 {
     W8BindingNode* node;
@@ -826,7 +826,7 @@ W8BindingNode* Function407EC0(void)
 /* Publishes the three values 0x00422AF0 reports, narrowed to their field
    widths, then - when given a source node - allocates a head and a copy of it.
    Either allocation failing abandons the whole thing, leaking the first. */
-// FUNCTION: WIZ8 0x00407D30
+// FUNCTION: WIZ8 0x00407d30
 bool Function407D30(unsigned short code, W8BindingNode* source)
 {
     unsigned short first;
@@ -899,7 +899,7 @@ bool SetModuleSubdirectory(const char* subdirectory)
    release sequence runs at most once. The engine flag BringUpEngine sets on
    success decides how much of it applies. Any message left in the buffer is
    shown before handing off. */
-// FUNCTION: WIZ8 0x004017F0
+// FUNCTION: WIZ8 0x004017f0
 void ShutdownHandler(void)
 {
     unsigned char engine_up;
@@ -1013,7 +1013,7 @@ bool BringUpEngine(void* instance, int show_command)
    and is recorded structurally-strong: matching 87 bytes of retained-but-
    unreachable code is not something C can express, since the compiler would
    delete it. */
-// FUNCTION: WIZ8 0x0042B830
+// FUNCTION: WIZ8 0x0042b830
 bool CheckCdPresent(void)
 {
     return true;

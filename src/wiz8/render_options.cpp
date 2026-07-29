@@ -63,7 +63,7 @@ static void SetSwapInterval(unsigned char enabled)
     g_gerd_659634->setSwapInterval(enabled ? 1 : 0);
 }
 
-// FUNCTION: WIZ8 0x0047B630
+// FUNCTION: WIZ8 0x0047b630
 void SetRenderOption(int option, int enabled)
 {
     switch (option) {
@@ -96,7 +96,7 @@ void SetRenderOption(int option, int enabled)
     }
 }
 
-// FUNCTION: WIZ8 0x0047B5B0
+// FUNCTION: WIZ8 0x0047b5b0
 void DisableRenderOption(int option)
 {
     if (option < 0x11) {
@@ -110,7 +110,7 @@ void DisableRenderOption(int option)
    it away here whichever way the loop is written - for, while and do-while all
    give the same 22 bytes. The five-byte difference is that fold, not a
    difference in what the loop does. */
-// FUNCTION: WIZ8 0x0047B5F0
+// FUNCTION: WIZ8 0x0047b5f0
 void EnableAllRenderOptions(void)
 {
     int option;
@@ -123,7 +123,7 @@ void EnableAllRenderOptions(void)
 }
 
 /* Out-of-range reads report zero rather than indexing past the block. */
-// FUNCTION: WIZ8 0x0047B610
+// FUNCTION: WIZ8 0x0047b610
 unsigned char GetRenderOptionState(int option)
 {
     if (option >= 0x11) {

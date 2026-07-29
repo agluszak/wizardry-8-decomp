@@ -44,7 +44,7 @@ void register_cycle_base(W8GrCycleBase00451EC0* value)
 
 }
 
-// FUNCTION: WIZ8 0x004B6900
+// FUNCTION: WIZ8 0x004b6900
 W8GrCycleBase004B6900::W8GrCycleBase004B6900()
 {
     unknown_004 = 0;
@@ -57,7 +57,7 @@ W8GrCycleBase004B6900::W8GrCycleBase004B6900()
    registers the instance and owns an ordinary srNode at +0x18c.  Its two
    internal helper constructors only establish these same scalar defaults; the
    source-visible identity of those helpers is not known. */
-// FUNCTION: WIZ8 0x00451EC0
+// FUNCTION: WIZ8 0x00451ec0
 W8GrCycleBase00451EC0::W8GrCycleBase00451EC0()
 {
     memset(unknown_004, 0, sizeof(unknown_004));

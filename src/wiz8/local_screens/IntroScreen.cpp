@@ -49,7 +49,7 @@ static const char g_intro_video_names[7][40] = {
 };
 W8BinkVideo* gpVideo;
 
-// FUNCTION: WIZ8 0x005AE510
+// FUNCTION: WIZ8 0x005ae510
 unsigned char IntroScreenEnter(void)
 {
     char path[500];
@@ -91,7 +91,7 @@ unsigned char IntroScreenEnter(void)
 
 void AdvanceIntroScreen(void);
 
-// FUNCTION: WIZ8 0x005AE6F0
+// FUNCTION: WIZ8 0x005ae6f0
 void IntroScreenFrame(void)
 {
     InputAtom input;
@@ -117,7 +117,7 @@ void IntroScreenFrame(void)
     }
 }
 
-// FUNCTION: WIZ8 0x005AE780
+// FUNCTION: WIZ8 0x005ae780
 void AdvanceIntroScreen(void)
 {
     char path[500];
@@ -183,7 +183,7 @@ cleared:
     SetFlag603C60();
 }
 
-// FUNCTION: WIZ8 0x005AE940
+// FUNCTION: WIZ8 0x005ae940
 unsigned char IntroScreenLeave(int)
 {
     if (gpVideo != 0) {
@@ -194,7 +194,7 @@ unsigned char IntroScreenLeave(int)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005AE980
+// FUNCTION: WIZ8 0x005ae980
 unsigned char IntroScreenRegionEvent(const W8RegionEvent* event, W8Region* region)
 {
     switch (event->reason) {

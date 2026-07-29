@@ -84,7 +84,7 @@ extern void Function55ADA0(void* fact_rules_runtime);
    All three leak the handle when the allocation fails while every other failure
    closes it; the asymmetry is the original's and is reproduced. */
 
-// FUNCTION: WIZ8 0x0054AD00
+// FUNCTION: WIZ8 0x0054ad00
 unsigned char InitializeFactDatabase(void)
 {
     char path[60];
@@ -115,14 +115,14 @@ unsigned char InitializeFactDatabase(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054AE00
+// FUNCTION: WIZ8 0x0054ae00
 void DestroyFactDatabase(void)
 {
     free(g_fact_records);
     g_fact_records = 0;
 }
 
-// FUNCTION: WIZ8 0x0054A400
+// FUNCTION: WIZ8 0x0054a400
 unsigned char InitializeItemDatabase(void)
 {
     char path[60];
@@ -153,7 +153,7 @@ unsigned char InitializeItemDatabase(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054AE20
+// FUNCTION: WIZ8 0x0054ae20
 unsigned char InitializeLevelDatabase(void)
 {
     char path[60];
@@ -189,7 +189,7 @@ unsigned char InitializeLevelDatabase(void)
    before use. The category reads are unchecked in the original while the table
    reads are not, and the per-table allocation is cleared before its own null
    check rather than after; both are reproduced. */
-// FUNCTION: WIZ8 0x0054A510
+// FUNCTION: WIZ8 0x0054a510
 unsigned char InitializeItemTables(void)
 {
     char path[60];
@@ -246,7 +246,7 @@ unsigned char InitializeItemTables(void)
 /* NPC.DBS records carry an optional sub-list, stored after the record when its
    leading count exceeds one and its 0x9D flag is clear: a count, then that many
    six-byte elements appended to a freshly created list. */
-// FUNCTION: WIZ8 0x0054AAC0
+// FUNCTION: WIZ8 0x0054aac0
 unsigned char InitializeNpcDatabase(void)
 {
     char path[60];
@@ -306,7 +306,7 @@ unsigned char InitializeNpcDatabase(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054AC90
+// FUNCTION: WIZ8 0x0054ac90
 void DestroyNpcDatabase(void)
 {
     unsigned int index;
@@ -328,7 +328,7 @@ void DestroyNpcDatabase(void)
    every other failure closes it, as elsewhere in this unit. The bytes-read
    out-parameter is the index's own incoming slot, dead once it has been copied
    into a register. */
-// FUNCTION: WIZ8 0x0054A8A0
+// FUNCTION: WIZ8 0x0054a8a0
 unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
 {
     char path[60];
@@ -362,7 +362,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
 /* Unlike its fact and level siblings this one guards the free and then leaves
    the pointer dangling rather than clearing it. Both halves of that asymmetry
    are the original's. */
-// FUNCTION: WIZ8 0x0054A4F0
+// FUNCTION: WIZ8 0x0054a4f0
 void DestroyItemDatabase(void)
 {
     if (g_item_records) {
@@ -370,7 +370,7 @@ void DestroyItemDatabase(void)
     }
 }
 
-// FUNCTION: WIZ8 0x0054AF10
+// FUNCTION: WIZ8 0x0054af10
 void DestroyLevelDatabase(void)
 {
     free(g_level_records);
@@ -379,7 +379,7 @@ void DestroyLevelDatabase(void)
 
 /* A generic guarded free, called from three unrelated subsystems, so it is named
    for what it does rather than for any one database. */
-// FUNCTION: WIZ8 0x0054A880
+// FUNCTION: WIZ8 0x0054a880
 void FreeIfNotNull(void* block)
 {
     if (block) {
@@ -389,7 +389,7 @@ void FreeIfNotNull(void* block)
 
 /* Both buffers are cleared only after both allocations succeed, so a failed
    second allocation leaves the first one live and unzeroed. */
-// FUNCTION: WIZ8 0x0054B4C0
+// FUNCTION: WIZ8 0x0054b4c0
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
 {
     status->buffer_04 = malloc(0xc310);
@@ -405,7 +405,7 @@ unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0054B520
+// FUNCTION: WIZ8 0x0054b520
 void FreeStatusBuffers(W8StatusBuffers* status)
 {
     if (status->buffer_04) {
@@ -418,7 +418,7 @@ void FreeStatusBuffers(W8StatusBuffers* status)
     }
 }
 
-// FUNCTION: WIZ8 0x0054B470
+// FUNCTION: WIZ8 0x0054b470
 void ResetPartySlotRow(int slot)
 {
     W8PartySlotRow* row = &g_party_slot_rows[slot];
@@ -430,7 +430,7 @@ void ResetPartySlotRow(int slot)
     SetSlotAction(slot, 0, -1);
 }
 
-// FUNCTION: WIZ8 0x0054B080
+// FUNCTION: WIZ8 0x0054b080
 void ResetGameplayStatusBlock(void)
 {
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
@@ -439,7 +439,7 @@ void ResetGameplayStatusBlock(void)
     g_surprise_possible_00683fc5 = 0;
 }
 
-// FUNCTION: WIZ8 0x0054B2D0
+// FUNCTION: WIZ8 0x0054b2d0
 void ResetTargetingState(void)
 {
     unsigned int slot;
@@ -454,7 +454,7 @@ void ResetTargetingState(void)
 /* The counterpart to InitializeItemTables: the category names first, then the
    tables, each entry freed before its array. Both arrays are re-read after
    every free because nothing tells VC6 that free leaves them alone. */
-// FUNCTION: WIZ8 0x0054A6E0
+// FUNCTION: WIZ8 0x0054a6e0
 void DestroyItemTables(void)
 {
     unsigned int index;
@@ -480,7 +480,7 @@ void DestroyItemTables(void)
 /* Raises three flags, optionally hands the caller's target to 0x005A9E70, then
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
-// FUNCTION: WIZ8 0x0054B250
+// FUNCTION: WIZ8 0x0054b250
 void Function54B250(unsigned char notify, void* target)
 {
     g_flag_68517c = true;
@@ -507,7 +507,7 @@ void Function54B250(unsigned char notify, void* target)
    whole block - which zeroes those pointers as a side effect, since they live
    inside it - and allocates them again. Either allocation failing leaves the
    block cleared and the other buffer live, as the original does. */
-// FUNCTION: WIZ8 0x0054AF30
+// FUNCTION: WIZ8 0x0054af30
 void Function54AF30(unsigned char release)
 {
     if (release) {
@@ -536,7 +536,7 @@ void Function54AF30(unsigned char release)
 /* Reads MONSTERS.DBS whole: the count into gXStatus, then - only when the
    caller wants them - every record into one allocation handed back through the
    out-parameter. InitializeGameData calls it with null just to publish the count. */
-// FUNCTION: WIZ8 0x0054A760
+// FUNCTION: WIZ8 0x0054a760
 unsigned char Function54A760(W8MonsterRecord** records)
 {
     char path[60];
@@ -580,7 +580,7 @@ unsigned char Function54A760(W8MonsterRecord** records)
    offsets subtracted rather than from a record count. The bytes-read
    out-parameter is uiEndIndex's own slot, dead once copied into a register, and
    a failed seek leaves the handle open where every other failure closes it. */
-// FUNCTION: WIZ8 0x0054A9A0
+// FUNCTION: WIZ8 0x0054a9a0
 unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
                              unsigned int unused, W8MonsterRecord* records)
 {
@@ -613,7 +613,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
    rather than calling it, clears the item in hand and the carried pool, then
    grants the starting items. The pool and the id list are both walked by
    address against the symbol that follows them, not by index. */
-// FUNCTION: WIZ8 0x0054B100
+// FUNCTION: WIZ8 0x0054b100
 void Function54B100(void)
 {
     W8ItemInstance item;
@@ -666,7 +666,7 @@ void Function54B100(void)
 /* Clears the settings block and writes its defaults. The constants 0, 1, 0x40
    and 0xff are each used many times over, which is why VC6 holds them in
    registers rather than spelling out immediates. */
-// FUNCTION: WIZ8 0x0054B560
+// FUNCTION: WIZ8 0x0054b560
 void Function54B560(void)
 {
     memset(&g_settings_6850c8, 0, sizeof(g_settings_6850c8));
@@ -730,7 +730,7 @@ void Function54B560(void)
    party-member selection thresholds against 0x12 and 0x0f - decides between 1
    and 2 here. The five countdown clocks and the Random call share one stack
    cleanup, as consecutive cdecl calls do. */
-// FUNCTION: WIZ8 0x0054B300
+// FUNCTION: WIZ8 0x0054b300
 void Function54B300(unsigned int slot)
 {
     W8MonsterSlot* record = &g_monster_slots_6836b8[slot];
@@ -823,7 +823,7 @@ typedef char W8GameplayObjectA_must_be_0x6c[
 void* g_object_683fd7;
 void* g_object_685067;
 
-// FUNCTION: WIZ8 0x0054AFD0
+// FUNCTION: WIZ8 0x0054afd0
 void Function54AFD0(void)
 {
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
@@ -832,14 +832,14 @@ void Function54AFD0(void)
 }
 
 /* Stores the value the frame tick and the new-game reset both read back. */
-// FUNCTION: WIZ8 0x0055EC50
+// FUNCTION: WIZ8 0x0055ec50
 void SetPendingScreenState(int value)
 {
     g_dword_68ed10.id = value;
 }
 
 /* Latches the flag the frame tick clears once it has acted on it. */
-// FUNCTION: WIZ8 0x0055EC60
+// FUNCTION: WIZ8 0x0055ec60
 void RequestScreenTransition(void)
 {
     g_flag_68edac = 1;
@@ -857,7 +857,7 @@ void RequestScreenTransition(void)
  
    The assertion at Spells.cpp:1908 names the table s_pSpellTable, which is why
    this body treats the global as the table itself rather than as a cursor. */
-// FUNCTION: WIZ8 0x004ACC10
+// FUNCTION: WIZ8 0x004acc10
 unsigned char InitializeSpellDatabase(void)
 {
     int handle;

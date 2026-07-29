@@ -58,7 +58,7 @@ static char* DuplicateHitSound(const char* source)
 /* Local Code\\Combat Sound.cpp reads the attack list followed by twelve
    material columns of up to twenty-eight impact sounds.  A hash line advances
    the material column; an asterisk starts an inline comment. */
-// FUNCTION: WIZ8 0x00549B00
+// FUNCTION: WIZ8 0x00549b00
 extern "C" unsigned char LoadHitSoundDatabase(void)
 {
     char path[] = "Data\\Databases\\HitSounds.txt";
@@ -116,7 +116,7 @@ extern "C" unsigned char LoadHitSoundDatabase(void)
 }
 
 /* Free the two string tables populated by LoadHitSoundDatabase. */
-// FUNCTION: WIZ8 0x00549E50
+// FUNCTION: WIZ8 0x00549e50
 extern "C" void ReleaseHitSoundDatabase(void)
 {
     int row;

@@ -11,7 +11,7 @@
    PListGetAt returns null. Every assertion in the unit names the parameter
    pls. */
 
-// FUNCTION: WIZ8 0x005E2900
+// FUNCTION: WIZ8 0x005e2900
 W8IList* IListCreate(void)
 {
     W8IList* pls;
@@ -43,7 +43,7 @@ W8IList* IListCreate(void)
     return pls;
 }
 
-// FUNCTION: WIZ8 0x005E29A0
+// FUNCTION: WIZ8 0x005e29a0
 unsigned char IListInit(W8IList* pls)
 {
     unsigned char created;
@@ -66,7 +66,7 @@ unsigned char IListInit(W8IList* pls)
     return created;
 }
 
-// FUNCTION: WIZ8 0x005E2A00
+// FUNCTION: WIZ8 0x005e2a00
 unsigned char IListDestroy(W8IList* pls)
 {
     /* The 0x9a assertion is IListFreeData's, inlined here; VC6 merges the two
@@ -81,7 +81,7 @@ unsigned char IListDestroy(W8IList* pls)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005E2A60
+// FUNCTION: WIZ8 0x005e2a60
 unsigned char IListFreeData(W8IList* pls)
 {
     if (!pls) {
@@ -93,7 +93,7 @@ unsigned char IListFreeData(W8IList* pls)
 }
 
 // Grows by five, and the growth assertion names its temporary pTemp.
-// FUNCTION: WIZ8 0x005E2AA0
+// FUNCTION: WIZ8 0x005e2aa0
 int IListAdd(W8IList* pls, int value)
 {
     int* pTemp;
@@ -119,7 +119,7 @@ int IListAdd(W8IList* pls, int value)
     return pls->count - 1;
 }
 
-// FUNCTION: WIZ8 0x005E2B50
+// FUNCTION: WIZ8 0x005e2b50
 void IListClear(W8IList* pls)
 {
     if (!pls) {
@@ -128,7 +128,7 @@ void IListClear(W8IList* pls)
     pls->count = 0;
 }
 
-// FUNCTION: WIZ8 0x005E2B80
+// FUNCTION: WIZ8 0x005e2b80
 int IListRemove(W8IList* pls, int value)
 {
     int index;
@@ -160,7 +160,7 @@ int IListRemove(W8IList* pls, int value)
     return -1;
 }
 
-// FUNCTION: WIZ8 0x005E2C80
+// FUNCTION: WIZ8 0x005e2c80
 int IListGetAt(W8IList* pls, int index)
 {
     if (!pls) {
@@ -172,7 +172,7 @@ int IListGetAt(W8IList* pls, int index)
     return -1;
 }
 
-// FUNCTION: WIZ8 0x005E2CC0
+// FUNCTION: WIZ8 0x005e2cc0
 int IListIndexOf(W8IList* pls, int value)
 {
     int count;

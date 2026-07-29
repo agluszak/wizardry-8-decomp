@@ -133,7 +133,7 @@ __forceinline W8GrowableVector<T>::~W8GrowableVector()
     ::operator delete(data);
 }
 
-// TEMPLATE: WIZ8 0x004ADDF0
+// TEMPLATE: WIZ8 0x004addf0
 // W8GrowableVector<int>::Grow
 template <class T>
 int W8GrowableVector<T>::Grow(int minimum_capacity)

@@ -22,7 +22,7 @@ extern void Function427AB0(int cursor);
 extern void Function427FC0(int cursor);
 extern void Function427FF0(void);
 
-// FUNCTION: WIZ8 0x0055EF90
+// FUNCTION: WIZ8 0x0055ef90
 void Function55EF90(void)
 {
     int surface;

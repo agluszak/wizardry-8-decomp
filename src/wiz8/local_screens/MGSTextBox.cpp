@@ -25,14 +25,14 @@ extern void ScrollTextBoxTo(int line);                                  /* 0x005
 extern void RedrawTextBoxBody(void);                                    /* 0x00588E60 */
 
 /* How many lines the text box can still be scrolled through. */
-// FUNCTION: WIZ8 0x0058FB30
+// FUNCTION: WIZ8 0x0058fb30
 int GetTextBoxScrollRange(void)
 {
     return g_level_block->scroll_bottom - g_level_block->scroll_top;
 }
 
 /* One entry of the second slot table. */
-// FUNCTION: WIZ8 0x0058FA60
+// FUNCTION: WIZ8 0x0058fa60
 int GetTextSlot1E8(int index)
 {
     return g_level_block->text_slots_1e8[index];
@@ -40,14 +40,14 @@ int GetTextSlot1E8(int index)
 
 /* Empty one entry of either slot table and ask for a redraw. The two bodies
    differ only in which table they clear, which is what pairs them. */
-// FUNCTION: WIZ8 0x0058F960
+// FUNCTION: WIZ8 0x0058f960
 void ClearTextSlot1D8(int index)
 {
     g_level_block->text_slots_1d8[index] = -1;
     RequestRedraw(W8_REDRAW_TEXT_BOX);
 }
 
-// FUNCTION: WIZ8 0x0058FA30
+// FUNCTION: WIZ8 0x0058fa30
 void ClearTextSlot1E8(int index)
 {
     g_level_block->text_slots_1e8[index] = -1;
@@ -55,21 +55,21 @@ void ClearTextSlot1E8(int index)
 }
 
 /* Ask for the text box to be redrawn without changing anything. */
-// FUNCTION: WIZ8 0x0058AA00
+// FUNCTION: WIZ8 0x0058aa00
 void RedrawTextBox(void)
 {
     RequestRedraw(W8_REDRAW_TEXT_BOX);
 }
 
 /* The value the screen keeps beside the text. */
-// FUNCTION: WIZ8 0x0058AA10
+// FUNCTION: WIZ8 0x0058aa10
 int GetTextBoxValue2E8(void)
 {
     return g_level_block->value_2e8;
 }
 
 /* Whether the line the cursor is on has anything on it. */
-// FUNCTION: WIZ8 0x0058B940
+// FUNCTION: WIZ8 0x0058b940
 bool CurrentTextLineHasContent(void)
 {
     return g_level_block->text_lines[g_text_line_cursor_00686905] != 0;
@@ -77,7 +77,7 @@ bool CurrentTextLineHasContent(void)
 
 /* Scroll so the line the cursor is on is the last of eight showing, or to the
    top when it would fit anyway. */
-// FUNCTION: WIZ8 0x0058B910
+// FUNCTION: WIZ8 0x0058b910
 void ScrollTextBoxToCursor(void)
 {
     if (g_text_line_counts[g_text_line_cursor_00686905] > 8) {
@@ -89,7 +89,7 @@ void ScrollTextBoxToCursor(void)
 
 /* Whichever byte the open dialogue exposes at 0x2d, or nothing when no
    dialogue is open - the flag has to be up before the pointer is read. */
-// FUNCTION: WIZ8 0x0058D7C0
+// FUNCTION: WIZ8 0x0058d7c0
 unsigned char GetOpenDialogueFlag(void)
 {
     if (g_level_block->dialogue_open != 0 && g_level_block->dialogue_owner != 0) {
@@ -100,13 +100,13 @@ unsigned char GetOpenDialogueFlag(void)
 
 /* The text box's mode, and the setter that also records a value when one is
    given - passing -1 leaves the value alone. */
-// FUNCTION: WIZ8 0x005905E0
+// FUNCTION: WIZ8 0x005905e0
 unsigned char GetTextBoxMode(void)
 {
     return g_text_box_mode_0069b7b8;
 }
 
-// FUNCTION: WIZ8 0x005905C0
+// FUNCTION: WIZ8 0x005905c0
 void SetTextBoxMode(unsigned char mode, int value)
 {
     g_text_box_mode_0069b7b8 = mode;
@@ -119,7 +119,7 @@ void SetTextBoxMode(unsigned char mode, int value)
    the second panel is drawn after the body rather than with the first. The two
    panels are Local Code\\Controls.cpp's Controls, and the null rectangle is how
    that class spells "all of it"; the screen holds them at 0x0c and 0x14. */
-// FUNCTION: WIZ8 0x0058A8C0
+// FUNCTION: WIZ8 0x0058a8c0
 void RedrawTextBoxComplete(void)
 {
     unsigned char* screen = g_main_game_screen_0068f2d4;
@@ -141,7 +141,7 @@ extern void ShowNotice(int channel, const void* text, int a, int b, int c);
 /* The last message on the current line whose clock has stopped, searched from
    the newest backwards - so the first one found is the most recent finished
    message rather than the oldest. */
-// FUNCTION: WIZ8 0x0058D760
+// FUNCTION: WIZ8 0x0058d760
 int FindStoppedTextLine(void)
 {
     int index = g_text_line_counts[g_text_line_cursor_00686905];
@@ -160,7 +160,7 @@ int FindStoppedTextLine(void)
 
 /* Hand one key to the text box's own handler. A key that moved the selection
    is followed by the two calls that settle it; a key that did not is not. */
-// FUNCTION: WIZ8 0x0058A8F0
+// FUNCTION: WIZ8 0x0058a8f0
 char TextBoxHandleKey(const void* event)
 {
     char* panel = *(char**)(g_main_game_screen_0068f2d4 + 0xc);
@@ -181,7 +181,7 @@ char TextBoxHandleKey(const void* event)
 /* Record what the Knock Knock spell is aimed at. Casting it anywhere the
    overlay is not up says so and records nothing - the message is the
    function's own name in the player's words. */
-// FUNCTION: WIZ8 0x0058A9C0
+// FUNCTION: WIZ8 0x0058a9c0
 void SetKnockKnockTarget(int target)
 {
     unsigned char* screen = g_main_game_screen_0068f2d4;

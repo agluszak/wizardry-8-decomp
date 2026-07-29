@@ -276,7 +276,7 @@ static void ProcessMainMenuInput(void)
    calling once: the original pushes each id as a literal and lets VC6 cross-jump
    the four identical calls together. An unrecognised state draws no sprite but
    still redraws the row. */
-// FUNCTION: WIZ8 0x005BCAB0
+// FUNCTION: WIZ8 0x005bcab0
 unsigned char Function5BCAB0(short item, short state)
 {
     int slot;
@@ -313,7 +313,7 @@ unsigned char Function5BCAB0(short item, short state)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005BC810
+// FUNCTION: WIZ8 0x005bc810
 unsigned char MainMenuScreenFunction005BC810(void)
 {
     char text[64];

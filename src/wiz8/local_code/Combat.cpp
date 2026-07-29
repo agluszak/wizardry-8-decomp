@@ -34,7 +34,7 @@ extern void RequestRedrawParty(void);
 extern void Function4E8000(int party_slot, int action_kind, int action_detail, int a, int b);
 
 /* Whether anybody in the party is engaged with something. */
-// FUNCTION: WIZ8 0x004E7CA0
+// FUNCTION: WIZ8 0x004e7ca0
 unsigned char AnyCharacterEngaged(void)
 {
     unsigned int party_slot;
@@ -49,7 +49,7 @@ unsigned char AnyCharacterEngaged(void)
 
 /* Which of the two engagement counts to report - the forced one when combat
    says so, the derived one otherwise. */
-// FUNCTION: WIZ8 0x004ED2B0
+// FUNCTION: WIZ8 0x004ed2b0
 int GetEngagementCount(void)
 {
     if (g_combat_state->turn_phase != 0) {
@@ -61,7 +61,7 @@ int GetEngagementCount(void)
 /* Whether the party is engaged at all. Being told so outright settles it;
    otherwise, with nothing derived, one conscious character whose combat row is
    flagged is enough. */
-// FUNCTION: WIZ8 0x004E7E70
+// FUNCTION: WIZ8 0x004e7e70
 int IsPartyEngaged(void)
 {
     unsigned int party_slot;
@@ -83,7 +83,7 @@ int IsPartyEngaged(void)
 }
 
 /* Note that one character died this round. */
-// FUNCTION: WIZ8 0x004ECDD0
+// FUNCTION: WIZ8 0x004ecdd0
 void RecordCharacterDeath(int party_slot)
 {
     if (g_in_combat_00683f94 != 0) {
@@ -94,7 +94,7 @@ void RecordCharacterDeath(int party_slot)
 
 /* Record what one slot has chosen to do, and cache whether it is the first
    kind beside it. */
-// FUNCTION: WIZ8 0x004E8290
+// FUNCTION: WIZ8 0x004e8290
 void SetSlotAction(int party_slot, int action_kind, int action_detail)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
@@ -106,7 +106,7 @@ void SetSlotAction(int party_slot, int action_kind, int action_detail)
 
 /* Post one line to the combat log, if the log is on. The whole line is
    formatted whether or not it will be shown. */
-// FUNCTION: WIZ8 0x004ED260
+// FUNCTION: WIZ8 0x004ed260
 void CombatLog(const char* format, ...)
 {
     char line[200];
@@ -121,7 +121,7 @@ void CombatLog(const char* format, ...)
 
 /* Start a fresh round: lift the one action that does not survive it and clear
    the two round flags. */
-// FUNCTION: WIZ8 0x004ECF00
+// FUNCTION: WIZ8 0x004ecf00
 void BeginCombatRound(void)
 {
     int party_slot;
@@ -141,7 +141,7 @@ void BeginCombatRound(void)
 /* Bring one combatant's clock up to the current round: advance it by however
    many rounds have passed since it last caught up, clamp it, and remember
    where it got to. */
-// FUNCTION: WIZ8 0x004ECEB0
+// FUNCTION: WIZ8 0x004eceb0
 void CatchUpCombatActor(unsigned int* actor)
 {
     actor[0] += g_combat_state->round_counter - actor[0x27];
@@ -154,7 +154,7 @@ void CatchUpCombatActor(unsigned int* actor)
    assertion's own - assert(CanCharReBreathe(uiChar)) - and the rule is that
    they have to be free of the condition that forbids it and still hold a fifth
    of their stamina, the same fifth a run costs. */
-// FUNCTION: WIZ8 0x004EBC80
+// FUNCTION: WIZ8 0x004ebc80
 unsigned char CanCharReBreathe(int party_slot)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -167,7 +167,7 @@ unsigned char CanCharReBreathe(int party_slot)
 
 /* Take one character out of the round: hand back whatever they were aiming at,
    clear the slot, and re-choose an action of the same kind. */
-// FUNCTION: WIZ8 0x004E82E0
+// FUNCTION: WIZ8 0x004e82e0
 void DropCharacterFromRound(int party_slot)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
@@ -191,7 +191,7 @@ extern unsigned char g_surprise_possible_00683fc5;
 /* Tell every monster within short range about something. A monster has to be
    in combat, alive, not on its way out, free of whatever 0x087 records, and
    in the engaged state before it is told. */
-// FUNCTION: WIZ8 0x004ECAA0
+// FUNCTION: WIZ8 0x004ecaa0
 void NotifyNearbyMonsters(int what)
 {
     unsigned int index;
@@ -212,7 +212,7 @@ void NotifyNearbyMonsters(int what)
 /* Whether the party notices what is coming. The first character in shape to
    act rolls against half their sixth attribute; nobody in shape at all, or the
    global being clear, and the answer is yes by default. */
-// FUNCTION: WIZ8 0x004ED1C0
+// FUNCTION: WIZ8 0x004ed1c0
 int PartyAvoidsSurprise(void)
 {
     unsigned int party_slot = 0;
@@ -268,7 +268,7 @@ extern int g_saved_attack_values[];
 /* What one character's whole turn is worth. A character whose turn combat has
    already set up uses the values it saved; anyone else is asked afresh. A
    phase of exactly a hundred is worth one whatever the hands say. */
-// FUNCTION: WIZ8 0x004EC860
+// FUNCTION: WIZ8 0x004ec860
 int GetCharacterTurnValue(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_character_rows[party_slot];
@@ -300,7 +300,7 @@ int GetCharacterTurnValue(int party_slot)
 /* Whether a wounded character panics. Only a character target counts, they
    have to be below the fraction of their hit points that triggers it, and then
    it is a roll - so the same wound does not always panic. */
-// FUNCTION: WIZ8 0x004ECE00
+// FUNCTION: WIZ8 0x004ece00
 unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
 {
     W8Character* character;
@@ -324,7 +324,7 @@ unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
 /* End one monster's turn: forget what it was doing, mark its combat state
    inactive, and - if it is still in the fight - either stand it down or turn
    it to face whoever it settled on. */
-// FUNCTION: WIZ8 0x004E76F0
+// FUNCTION: WIZ8 0x004e76f0
 void EndMonsterTurn(W8MonsterInfo* monster_info)
 {
     int chosen[2];
@@ -358,7 +358,7 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
    on what it chose - fleeing is half speed and one action is half again - and
    an enchanted monster is quickened by ten per point instead of slowed by the
    condition it is under. */
-// FUNCTION: WIZ8 0x004EB8C0
+// FUNCTION: WIZ8 0x004eb8c0
 void SetUpMonsterTurn(W8MonsterInfo* monster_info)
 {
     unsigned int speed = 100;
@@ -400,7 +400,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
 /* Finish one monster's attack: charge it the fatigue, drop the party's
    selection, and give it its next phase if it still has attacks left - which
    divides whatever is left of the round between them. */
-// FUNCTION: WIZ8 0x004EB7F0
+// FUNCTION: WIZ8 0x004eb7f0
 void EndMonsterAttack(W8MonsterInfo* monster_info)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
@@ -433,7 +433,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
    whose turn combat has set up already only agrees to the action they are
    already on; anyone else may switch, except into the fourth action while
    something else forbids it. */
-// FUNCTION: WIZ8 0x004ED2D0
+// FUNCTION: WIZ8 0x004ed2d0
 unsigned char TryCharacterAction(int party_slot, int action, char commit)
 {
     W8Character* character = &g_party_characters[party_slot];

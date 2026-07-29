@@ -19,7 +19,7 @@ enum { W8_DEGREES_PER_TURN = 360, W8_DEGREES_PER_QUADRANT = 90 };
    into a single turn, then biased by half a quadrant before the divide - so
    quadrant zero is the 90 degrees centred on straight ahead rather than the 90
    beginning there. */
-// FUNCTION: WIZ8 0x00555F30
+// FUNCTION: WIZ8 0x00555f30
 int GetQuadrantForPosition(srVector3T<float> position)
 {
     srVector3T<float> party;
@@ -72,7 +72,7 @@ extern float g_facing_tolerance_005ebcf4;
 
 /* Whether one character can hold a place in the formation at all: they have to
    be alive and in better shape than the party sweeps demand. */
-// FUNCTION: WIZ8 0x005549E0
+// FUNCTION: WIZ8 0x005549e0
 bool CanHoldFormationPlace(int party_slot)
 {
     const W8Character* character = &g_party_characters[party_slot];
@@ -82,7 +82,7 @@ bool CanHoldFormationPlace(int party_slot)
 }
 
 /* Remember the formation combat started with. */
-// FUNCTION: WIZ8 0x00554A20
+// FUNCTION: WIZ8 0x00554a20
 void SaveCombatFormation(void)
 {
     int index;
@@ -99,7 +99,7 @@ void SaveCombatFormation(void)
 
 /* Put the formation combat started with back, if anything moved. Comparing the
    whole block is what makes it one object rather than a set of tables. */
-// FUNCTION: WIZ8 0x00554A60
+// FUNCTION: WIZ8 0x00554a60
 void RestoreCombatFormation(void)
 {
     int index;
@@ -129,7 +129,7 @@ void RestoreCombatFormation(void)
 
 /* Turn the party to a new heading, moving the camera with it unless it is
    already looking that way. */
-// FUNCTION: WIZ8 0x005553C0
+// FUNCTION: WIZ8 0x005553c0
 unsigned int TurnPartyTo(unsigned int degrees)
 {
     unsigned int previous;
@@ -170,7 +170,7 @@ void TurnPartyToImmediate(unsigned int degrees, char snap)
 
 /* Face one position the way the rules say it should, unless the rules have no
    preference or it already faces that way. */
-// FUNCTION: WIZ8 0x005557E0
+// FUNCTION: WIZ8 0x005557e0
 void FacePositionAsDecided(int position, int arg_2)
 {
     signed char facing = DecideFacingForPosition(position, arg_2);
@@ -196,7 +196,7 @@ bool PositionFacesAsDecided(int position, int arg_2)
 
 /* Whether a position is facing exactly away from where the rules want it -
    two of the four facings apart. */
-// FUNCTION: WIZ8 0x00555C20
+// FUNCTION: WIZ8 0x00555c20
 bool PositionFacesOppositeToDecided(int arg_1, int position)
 {
     signed char facing = DecideFacingForPosition(position, arg_1);
@@ -214,7 +214,7 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
 
 /* Whether the party is looking far enough away from a point to count as not
    facing it, measured as the shortest way round. */
-// FUNCTION: WIZ8 0x00555D60
+// FUNCTION: WIZ8 0x00555d60
 bool IsPartyLookingAwayFrom(srVector3T<float> from, srVector3T<float> to)
 {
     float bearing = NormalizeAngle(BearingBetween(&to, &from));
@@ -226,7 +226,7 @@ bool IsPartyLookingAwayFrom(srVector3T<float> from, srVector3T<float> to)
 /* Whether the party is looking at a point, measured as a plain difference
    rather than the shortest way round - so a bearing either side of the wrap
    answers no. */
-// FUNCTION: WIZ8 0x00555BA0
+// FUNCTION: WIZ8 0x00555ba0
 bool IsPartyLookingAt(srVector3T<float> point)
 {
     srVector3T<float> party;

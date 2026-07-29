@@ -37,7 +37,7 @@ z_streamp DecompressInit(Bytef* input, uInt input_size)
     return stream;
 }
 
-// FUNCTION: WIZ8 0x004158B0
+// FUNCTION: WIZ8 0x004158b0
 uInt Decompress(z_streamp stream, Bytef* output, uInt output_size)
 {
     if (stream->avail_in == 0) {
@@ -50,7 +50,7 @@ uInt Decompress(z_streamp stream, Bytef* output, uInt output_size)
     return output_size - stream->avail_out;
 }
 
-// FUNCTION: WIZ8 0x004158F0
+// FUNCTION: WIZ8 0x004158f0
 void DecompressFini(z_streamp stream)
 {
     inflateEnd(stream);

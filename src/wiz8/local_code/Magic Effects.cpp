@@ -49,7 +49,7 @@ extern void Function50E8C0(int location_id);
 
 /* How big the effect lands. A permanent magnitude is taken as it is; anything
    else is scaled by the definition's percentage. */
-// FUNCTION: WIZ8 0x00551A20
+// FUNCTION: WIZ8 0x00551a20
 unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition)
 {
     unsigned int magnitude = RollDice(&definition->magnitude);
@@ -64,7 +64,7 @@ unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition)
    turn it starts on, and a quarter of the time one more is added - but only
    at the two shortest durations, so a long effect never gains the extra
    turn. */
-// FUNCTION: WIZ8 0x005519C0
+// FUNCTION: WIZ8 0x005519c0
 unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 {
     int combined = definition->duration_per_power * definition->duration_scale +
@@ -93,7 +93,7 @@ unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 
 /* Take the named effect off a monster: say so, lower the flag, and drop the
    visual. */
-// FUNCTION: WIZ8 0x005523D0
+// FUNCTION: WIZ8 0x005523d0
 void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
 {
     if (monster_info->effect_2de != 0) {
@@ -106,7 +106,7 @@ void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
 /* Empty one effect slot, dropping its visual first if it was running. The
    clear is written field by field rather than as a block, which is what leaves
    the four bytes at 0x09 untouched. */
-// FUNCTION: WIZ8 0x005524E0
+// FUNCTION: WIZ8 0x005524e0
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
 {
     unsigned char* bytes = (unsigned char*)slot;
@@ -126,7 +126,7 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
 }
 
 /* Wipe the party-wide effect block and tell the three displays that read it. */
-// FUNCTION: WIZ8 0x005524B0
+// FUNCTION: WIZ8 0x005524b0
 void ResetPartyEffectBlock(W8EffectSlot* slot)
 {
     unsigned char* bytes = (unsigned char*)slot;

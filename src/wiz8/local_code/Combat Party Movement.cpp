@@ -35,7 +35,7 @@ extern void RefreshOutwardSightForAllMonsters(void);                     /* 0x00
 extern unsigned char Function4F0010(unsigned int* out_steps);
 
 /* Note that the party has started moving. */
-// FUNCTION: WIZ8 0x004EFBE0
+// FUNCTION: WIZ8 0x004efbe0
 void BeginPartyMovement(void)
 {
     g_party_moving_006850b5 = 1;
@@ -44,7 +44,7 @@ void BeginPartyMovement(void)
 
 /* One or ten, depending on whether the party is moving under combat rules -
    the step the phase counter advances by. */
-// FUNCTION: WIZ8 0x004F0500
+// FUNCTION: WIZ8 0x004f0500
 char GetPhaseStep(void)
 {
     return g_combat_state->movement_mode != 0 ? 10 : 1;
@@ -52,7 +52,7 @@ char GetPhaseStep(void)
 
 /* Note what kind of move is pending. Only one value is singled out; everything
    else counts as the other kind. */
-// FUNCTION: WIZ8 0x004F0520
+// FUNCTION: WIZ8 0x004f0520
 void SetPendingMoveKind(int kind)
 {
     if (g_in_combat_00683f94 == 0) {
@@ -64,7 +64,7 @@ void SetPendingMoveKind(int kind)
 /* Hand movement back to the party, or take it away and fill both budgets. The
    party has its own movement only out of combat mode, or in the free phase,
    and only with nothing pending. */
-// FUNCTION: WIZ8 0x004F0AA0
+// FUNCTION: WIZ8 0x004f0aa0
 void UpdatePartyMovementControl(void)
 {
     if ((g_combat_state->movement_mode == 0 ||
@@ -81,7 +81,7 @@ void UpdatePartyMovementControl(void)
 /* Whether the party may move at all right now. Out of combat mode, or in the
    free phase, it comes down to whether a move is already pending; in the
    opening phase it is always allowed. */
-// FUNCTION: WIZ8 0x004F0800
+// FUNCTION: WIZ8 0x004f0800
 unsigned char CanPartyMove(void)
 {
     unsigned int phase;
@@ -104,7 +104,7 @@ unsigned char CanPartyMove(void)
 
 /* How fast the party moves. The second combat mode is half again as fast, and
    whatever the step count adds is scaled by the same world constant. */
-// FUNCTION: WIZ8 0x004EFFA0
+// FUNCTION: WIZ8 0x004effa0
 float GetPartyMovementSpeed(void)
 {
     float speed = 1.0f;
@@ -122,7 +122,7 @@ float GetPartyMovementSpeed(void)
 /* End the party's movement phase. Outside the two combat modes there is
    nothing to unwind; inside them the notice is posted unless the level says
    otherwise, and everything that watched the party move is told. */
-// FUNCTION: WIZ8 0x004EFD30
+// FUNCTION: WIZ8 0x004efd30
 void EndPartyMovementPhase(void)
 {
     if (g_combat_state->movement_mode != 1 && g_combat_state->movement_mode != 2) {
@@ -141,7 +141,7 @@ void EndPartyMovementPhase(void)
 
 /* Enter the free phase: everything that was waiting on the party is released,
    the monsters are told, and movement control is settled. */
-// FUNCTION: WIZ8 0x004F0630
+// FUNCTION: WIZ8 0x004f0630
 void BeginFreeTurnPhase(void)
 {
     Function41F0D0();
@@ -165,7 +165,7 @@ void BeginFreeTurnPhase(void)
 
 /* Round one combatant's phase to the ten it belongs in and clamp it into the
    round. The assertion names the bound as PHASES_PER_ROUND. */
-// FUNCTION: WIZ8 0x004F0480
+// FUNCTION: WIZ8 0x004f0480
 void RoundPhaseToStep(unsigned int* phase, unsigned int base)
 {
     if (g_combat_state->movement_mode != 0) {

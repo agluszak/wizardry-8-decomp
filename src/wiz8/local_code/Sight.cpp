@@ -57,7 +57,7 @@ extern void Function48CBE0(void);
 extern float g_sight_default_005ec254;
 
 /* Put the sight subsystem back to its starting state. */
-// FUNCTION: WIZ8 0x005048E0
+// FUNCTION: WIZ8 0x005048e0
 void ResetSight(void)
 {
     SetViewDistance(12.0f);
@@ -99,7 +99,7 @@ void RefreshOutwardSightForAllMonsters(void)
 }
 
 /* The inward direction on its own, with nothing to tell the display. */
-// FUNCTION: WIZ8 0x005057D0
+// FUNCTION: WIZ8 0x005057d0
 void RefreshInwardSightForAllMonsters(void)
 {
     unsigned int index;
@@ -130,7 +130,7 @@ void RefreshAllSight(void)
 }
 
 /* Drop every visibility record anyone held about one departing monster. */
-// FUNCTION: WIZ8 0x00505BA0
+// FUNCTION: WIZ8 0x00505ba0
 void ReleaseMonToMonVisibilityInfoAbout(int location_id)
 {
     unsigned int monster_index;
@@ -171,7 +171,7 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
 
 /* Empty and destroy one monster's whole visibility list, then drop what
    everybody else held about it. */
-// FUNCTION: WIZ8 0x00505C80
+// FUNCTION: WIZ8 0x00505c80
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
 {
     W8MonToMonVisibility* visibility;
@@ -194,7 +194,7 @@ void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
 
 /* Whether a monster group still has anybody in it worth seeing: alive, not
    dying, not too far gone, and marked as a threat. */
-// FUNCTION: WIZ8 0x00505EA0
+// FUNCTION: WIZ8 0x00505ea0
 bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
 {
     unsigned int index;
@@ -213,7 +213,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
 
 /* Which of the two adjacent visibility entries the first lighting condition
    selects. */
-// FUNCTION: WIZ8 0x00505E60
+// FUNCTION: WIZ8 0x00505e60
 bool GetSightCondition37A(const W8SightConditions* conditions)
 {
     return conditions->condition_37a != 0;
@@ -221,7 +221,7 @@ bool GetSightCondition37A(const W8SightConditions* conditions)
 
 /* The second condition, answered as the entry index it picks rather than as a
    flag - two or three. */
-// FUNCTION: WIZ8 0x00505E80
+// FUNCTION: WIZ8 0x00505e80
 char GetSightCondition37CIndex(const W8SightConditions* conditions)
 {
     return (conditions->condition_37c != 0) + 2;
@@ -230,7 +230,7 @@ char GetSightCondition37CIndex(const W8SightConditions* conditions)
 /* Read one flag out of a visibility row. Two of the seven kinds are pairs that
    the lighting conditions choose between; the rest are fixed, and anything
    past the named kinds falls back to the last flag. */
-// FUNCTION: WIZ8 0x00505DD0
+// FUNCTION: WIZ8 0x00505dd0
 bool IsVisibleUnderConditions(
     const W8SightConditions* conditions, const W8VisibilityRow* row, int kind)
 {
@@ -286,7 +286,7 @@ unsigned int AgeAllMonsterSight(void)
 /* What one monster has recorded about another, if anything. Both monsters have
    to be in the world - the two assertions name that field fActive - and a null
    entry in the list is itself an error rather than an end marker. */
-// FUNCTION: WIZ8 0x00505D20
+// FUNCTION: WIZ8 0x00505d20
 W8MonToMonVisibility* FindMonToMonVisibility(
     W8MonsterInfo* source, int unused, W8MonsterInfo* target)
 {

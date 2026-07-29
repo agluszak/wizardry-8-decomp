@@ -41,7 +41,7 @@ enum { W8_CONDITION_SURVIVES_DEATH = 10 };
 /* Copy every condition a character is under onto something else in the world.
    Condition seven carries an argument alongside its duration, so it is the one
    entry that is not just a duration. */
-// FUNCTION: WIZ8 0x005241E0
+// FUNCTION: WIZ8 0x005241e0
 void CopyCharacterConditionsToTarget(const W8Character* character, const int* target)
 {
     W8TargetSource target_block;
@@ -89,7 +89,7 @@ void CopyMonsterConditionsToCharacter(int party_slot, const W8MonsterInfo* monst
 /* Empty one of a character's enchantment slots and find the highest one still
    in use, scanning down from the last. Emptying the sixth also raises the flag
    the interface watches. */
-// FUNCTION: WIZ8 0x00523A80
+// FUNCTION: WIZ8 0x00523a80
 void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -163,7 +163,7 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
 }
 
 /* Lift one condition from everybody in the party who is under it. */
-// FUNCTION: WIZ8 0x005246C0
+// FUNCTION: WIZ8 0x005246c0
 void RemoveConditionFromParty(int condition)
 {
     int party_slot;
@@ -179,7 +179,7 @@ void RemoveConditionFromParty(int condition)
 /* Lift one condition from everybody in the world - the party first, then every
    live monster. The monster count is re-read every iteration because lifting a
    condition can remove one. */
-// FUNCTION: WIZ8 0x005244A0
+// FUNCTION: WIZ8 0x005244a0
 void RemoveConditionFromEveryone(int condition)
 {
     int party_slot;

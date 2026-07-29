@@ -32,7 +32,7 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 
 /* Roll the dice once per eligible party member and apply the result to each of
    them. The roll is separate per character rather than shared. */
-// FUNCTION: WIZ8 0x0052A820
+// FUNCTION: WIZ8 0x0052a820
 void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3)
 {
     int party_slot;
@@ -49,7 +49,7 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3)
 /* Heal every occupied slot by its own roll, announced. The dice are assembled
    from the caller's own arguments rather than passed as a record, which is why
    the two count bytes arrive separately from the base. */
-// FUNCTION: WIZ8 0x0052AD70
+// FUNCTION: WIZ8 0x0052ad70
 void HealPartyByDice(unsigned char count, unsigned char sides, short base)
 {
     W8Dice dice;
@@ -66,7 +66,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
 }
 
 /* The stamina form, which is the same sweep unannounced. */
-// FUNCTION: WIZ8 0x0052B160
+// FUNCTION: WIZ8 0x0052b160
 void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short base)
 {
     W8Dice dice;
@@ -84,7 +84,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 
 /* Spend spell points from one realm. Spending more than is left is a caller
    error rather than something to clamp. */
-// FUNCTION: WIZ8 0x0052B480
+// FUNCTION: WIZ8 0x0052b480
 void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -100,7 +100,7 @@ void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 }
 
 /* Give spell points back to one realm, never past its ceiling. */
-// FUNCTION: WIZ8 0x0052B4F0
+// FUNCTION: WIZ8 0x0052b4f0
 void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -115,7 +115,7 @@ void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
 /* Drain spell points across the party. Unlike its neighbours this does not
    filter on the eligibility window - an unconscious character still loses
    points. */
-// FUNCTION: WIZ8 0x0052B550
+// FUNCTION: WIZ8 0x0052b550
 void DrainPartySpellPoints(int arg_1, int arg_2)
 {
     int party_slot;
@@ -130,7 +130,7 @@ void DrainPartySpellPoints(int arg_1, int arg_2)
 /* Restore spell points across the party. A negative amount means as much as
    the character could possibly hold, which is the sum of all six realm
    ceilings. */
-// FUNCTION: WIZ8 0x0052BA00
+// FUNCTION: WIZ8 0x0052ba00
 void RestorePartySpellPoints(int amount)
 {
     int party_slot;
@@ -155,7 +155,7 @@ void RestorePartySpellPoints(int amount)
 
 /* Heal one monster. A monster that is already dead or already whole is left
    alone; healing it to full says so differently from healing it partway. */
-// FUNCTION: WIZ8 0x0052BFD0
+// FUNCTION: WIZ8 0x0052bfd0
 void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
 {
     if (monster_info->hp_current == 0 || monster_info->hp_current == monster_info->hp_max ||
@@ -185,7 +185,7 @@ void HealMonster(W8MonsterInfo* monster_info, int amount, char announce)
 /* What one monster action costs in fatigue, before it is spent. Four of the
    ten actions are free; the plain attack costs markedly more when its detail
    is three. A monster that tires twice as fast pays double. */
-// FUNCTION: WIZ8 0x0052C240
+// FUNCTION: WIZ8 0x0052c240
 int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
 {
     int cost = 0;
@@ -302,7 +302,7 @@ static int FatigueBandFromMissing(int missing_percent)
 /* Heal one character, never past their maximum. Recovering enough of their
    hit points breaks the effects that only held while they were badly hurt -
    the deeper threshold breaks two more than the shallower one. */
-// FUNCTION: WIZ8 0x0052ADD0
+// FUNCTION: WIZ8 0x0052add0
 void HealCharacter(int party_slot, int amount, char announce)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -353,7 +353,7 @@ void HealCharacter(int party_slot, int amount, char announce)
 /* Give one character stamina back, never past their maximum. Any move re-bands
    their fatigue, and a change of band re-runs the armour class pass because
    fatigue feeds it. Enough stamina also shakes off exhaustion. */
-// FUNCTION: WIZ8 0x0052B1C0
+// FUNCTION: WIZ8 0x0052b1c0
 void RestoreCharacterStamina(int party_slot, int amount, char announce)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -399,7 +399,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
    realms until the whole amount is gone or fifty attempts have been spent.
    Each realm only gives up what it has, and each withdrawal is announced with
    that realm's name. */
-// FUNCTION: WIZ8 0x0052B590
+// FUNCTION: WIZ8 0x0052b590
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -438,7 +438,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
    realm that is furthest from full. The realms are sorted by how far short
    they are, then handed a point each in turn; ties are given a point together
    so the deficits stay level. */
-// FUNCTION: WIZ8 0x0052B910
+// FUNCTION: WIZ8 0x0052b910
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -494,7 +494,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
    itself is booked against the hit-point adjustment and the pools rebuilt from
    it, and a character with no protection against it is put under condition
    one. */
-// FUNCTION: WIZ8 0x0052B7E0
+// FUNCTION: WIZ8 0x0052b7e0
 void DamageCharacter(int party_slot, int unused, int damage, char announce)
 {
     W8Character* character = &g_party_characters[party_slot];
@@ -522,7 +522,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
 /* Tire one monster. Running its pool down to nothing puts it under the
    exhausted condition indefinitely, and tells whoever asked for the fatigue
    that it landed. */
-// FUNCTION: WIZ8 0x0052C070
+// FUNCTION: WIZ8 0x0052c070
 void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report_to)
 {
     W8TargetSource target_block;
@@ -557,7 +557,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report
 
 /* Give one monster stamina back, the mirror of the character form down to the
    band ladder and the exhaustion it shakes off. */
-// FUNCTION: WIZ8 0x0052C140
+// FUNCTION: WIZ8 0x0052c140
 void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announce)
 {
     unsigned int stamina_max;
@@ -602,7 +602,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
    riding on half its fifth converted attribute; a monster the party had under
    control is handed back to itself; and if the attacker is not already an
    enemy, the disposition check decides whether being hit makes them one. */
-// FUNCTION: WIZ8 0x0052BEB0
+// FUNCTION: WIZ8 0x0052beb0
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, int attacker, char quiet)
 {
     StartMonsterCycle(monster_info, 0x14, 1);
@@ -661,7 +661,7 @@ extern void PlaySound(const char* path, int flags);
    stamina without going below nothing. Running out puts them under the
    exhausted condition; merely dropping into the deep band applies the
    deep-fatigue effect once. */
-// FUNCTION: WIZ8 0x0052AF50
+// FUNCTION: WIZ8 0x0052af50
 void FatigueCharacter(int party_slot, int amount, char scale_by_load, int load_percent,
                       int report_to)
 {
@@ -732,7 +732,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load, int load_p
    modes are flat rolls instead - a run costs a fifth of the character's whole
    stamina with a floor, and the rest are free. A character who tires twice as
    fast pays double. */
-// FUNCTION: WIZ8 0x0052B2F0
+// FUNCTION: WIZ8 0x0052b2f0
 unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
 {
     unsigned int cost = 0;
@@ -797,7 +797,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
 
 /* Drain spell points from one named realm, taking no more than it holds.
    Announced with the realm's own name. */
-// FUNCTION: WIZ8 0x0052B6D0
+// FUNCTION: WIZ8 0x0052b6d0
 void DrainCharacterRealmSpellPoints(
     int party_slot, int realm, unsigned int amount, int unused, char announce)
 {
@@ -838,7 +838,7 @@ void DrainCharacterRealmSpellPoints(
    emptied, the two targeting blocks on their slot row are cleared, combat
    forgets them as a participant, and whatever they were animating is told to
    stop. */
-// FUNCTION: WIZ8 0x0052ABF0
+// FUNCTION: WIZ8 0x0052abf0
 void CharacterDies(int party_slot)
 {
     W8Character* character = &g_party_characters[party_slot];

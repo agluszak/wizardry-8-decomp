@@ -17,7 +17,7 @@ unsigned char g_dialog_font_enabled_69ca32;
 unsigned char g_dialog_font_foreground_64fdec;
 unsigned char g_dialog_font_background_64fded;
 
-// FUNCTION: WIZ8 0x005CF250
+// FUNCTION: WIZ8 0x005cf250
 void Function5CF250(int font, unsigned char enabled,
                     unsigned char foreground, unsigned char background)
 {
@@ -34,7 +34,7 @@ typedef struct W8DialogInterface {
 
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
 
-// FUNCTION: WIZ8 0x005CF580
+// FUNCTION: WIZ8 0x005cf580
 void Function5CF580(W8DialogInterface* dialog, int value)
 {
     if (dialog == 0) {

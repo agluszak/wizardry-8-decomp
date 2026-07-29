@@ -5,7 +5,7 @@
    embeds, and the 0..20 domain they bound is the same one the contiguous
    21-name faction table establishes. */
 
-// FUNCTION: WIZ8 0x00535AD0
+// FUNCTION: WIZ8 0x00535ad0
 W8FactionDisposition GetFactionDisposition(signed char faction)
 {
     signed char disposition_score;
@@ -39,7 +39,7 @@ W8FactionDisposition GetFactionDisposition(signed char faction)
    asserts nothing, which is what makes the checked accessor the one callers
    outside the file are meant to use. The index arithmetic is the 14-byte
    record stride the reviewed table already establishes. */
-// FUNCTION: WIZ8 0x00535D30
+// FUNCTION: WIZ8 0x00535d30
 signed char GetFactionDispositionScore(signed char faction)
 {
     return g_factions[faction].disposition_score;

@@ -55,7 +55,7 @@ void ReportAssertion(const char* expression, const char* source_path, long line)
    Both assertions belong to this body: 3dapi.cpp:975 names the world and
    3dapi.cpp:976 names its camera member pWorld->psrCamera, which is what puts
    the camera at 0x44 rather than anywhere else. */
-// FUNCTION: WIZ8 0x004503C0
+// FUNCTION: WIZ8 0x004503c0
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation)
 {
     if (!world) {
@@ -95,7 +95,7 @@ void WorldSetCameraLocation(W8World* world, const float* location)
 /* An srNode's scalar deleting destructor. It releases through the renderer's
    own heap rather than the CRT's, which is what makes it the renderer's node
    rather than one of ours. */
-// FUNCTION: WIZ8 0x0044F3D0
+// FUNCTION: WIZ8 0x0044f3d0
 srNode* srNode::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srNode();
@@ -115,7 +115,7 @@ srNode* srNode::scalar_deleting_destructor(unsigned char flags)
  * on the same slot, which is what puts them in this file beside srNode's.
  */
 
-// FUNCTION: WIZ8 0x00423E50
+// FUNCTION: WIZ8 0x00423e50
 srMaterial* srMaterial::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srMaterial();
@@ -125,7 +125,7 @@ srMaterial* srMaterial::scalar_deleting_destructor(unsigned char flags)
     return this;
 }
 
-// FUNCTION: WIZ8 0x00423E80
+// FUNCTION: WIZ8 0x00423e80
 srCamera* srCamera::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srCamera();
@@ -135,7 +135,7 @@ srCamera* srCamera::scalar_deleting_destructor(unsigned char flags)
     return this;
 }
 
-// FUNCTION: WIZ8 0x00423EB0
+// FUNCTION: WIZ8 0x00423eb0
 srScene* srScene::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srScene();
@@ -145,7 +145,7 @@ srScene* srScene::scalar_deleting_destructor(unsigned char flags)
     return this;
 }
 
-// FUNCTION: WIZ8 0x00423F00
+// FUNCTION: WIZ8 0x00423f00
 srColorSurface* srColorSurface::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srColorSurface();
@@ -155,7 +155,7 @@ srColorSurface* srColorSurface::scalar_deleting_destructor(unsigned char flags)
     return this;
 }
 
-// FUNCTION: WIZ8 0x00424A50
+// FUNCTION: WIZ8 0x00424a50
 srMeshModel* srMeshModel::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srMeshModel();
@@ -168,7 +168,7 @@ srMeshModel* srMeshModel::scalar_deleting_destructor(unsigned char flags)
 /* The second world, read straight out of the global with no guard. Its type is
    settled by the viewport, which reads a camera member through the same
    object. */
-// FUNCTION: WIZ8 0x004512A0
+// FUNCTION: WIZ8 0x004512a0
 W8World* GetWorld659AB8(void)
 {
     return g_world_659ab8;

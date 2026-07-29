@@ -117,7 +117,7 @@ W8DisplayNode* g_display_ptr_650e8c;
  * The identifier written into the node is the counter's value from before the
  * increment, so the search updates the global and never the node.
  */
-// FUNCTION: WIZ8 0x0040B720
+// FUNCTION: WIZ8 0x0040b720
 void Function40B720(W8DisplayNode* node)
 {
     W8DisplayNode* scan;
@@ -206,7 +206,7 @@ void Function40B720(W8DisplayNode* node)
  * identifiers rather than pointers, so a node is unlinked when one carrying
  * its id is on the list, not only when that exact node is.
  */
-// FUNCTION: WIZ8 0x0040B830
+// FUNCTION: WIZ8 0x0040b830
 void Function40B830(W8DisplayNode* node)
 {
     W8DisplayNode* scan;
@@ -260,7 +260,7 @@ void Function40B830(W8DisplayNode* node)
     }
 }
 
-// FUNCTION: WIZ8 0x0040B290
+// FUNCTION: WIZ8 0x0040b290
 int Function40B290(void)
 {
     W8DisplayNode* node;
@@ -345,7 +345,7 @@ int Function40B290(void)
  * and the image carries the destruction block inline in both, so it is written
  * out twice here rather than shared behind a helper VC6 would not have inlined.
  */
-// FUNCTION: WIZ8 0x0040B450
+// FUNCTION: WIZ8 0x0040b450
 void ShutdownDisplayList(void)
 {
     W8DisplayNode* node;
@@ -402,7 +402,7 @@ void ShutdownDisplayList(void)
  * left, and the double-click window is compared with a 400 unit tolerance
  * against a clock the caller never resets.
  */
-// FUNCTION: WIZ8 0x0040B900
+// FUNCTION: WIZ8 0x0040b900
 void Function40B900(void)
 {
     W8DisplayNode* node;
@@ -613,7 +613,7 @@ void Function40B900(void)
  * this call took it. Only the last case writes anything, so a second capture
  * does not displace the first.
  */
-// FUNCTION: WIZ8 0x0040BFC0
+// FUNCTION: WIZ8 0x0040bfc0
 int Function40BFC0(W8DisplayNode* node)
 {
     W8DisplayNode* scan;

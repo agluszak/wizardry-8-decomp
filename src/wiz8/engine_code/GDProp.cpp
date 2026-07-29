@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 
-// FUNCTION: WIZ8 0x004B6E00
+// FUNCTION: WIZ8 0x004b6e00
 GDProp::GDProp(
     srNode* instance,
     const unsigned char* path_name,
@@ -52,7 +52,7 @@ GDProp::GDProp(
     }
 }
 
-// FUNCTION: WIZ8 0x004B6ED0
+// FUNCTION: WIZ8 0x004b6ed0
 GDProp::~GDProp()
 {
     if (m_pGDSurfaces != 0) {

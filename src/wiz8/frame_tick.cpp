@@ -97,7 +97,7 @@ void ReleaseScreenTransitionObjects(void)
     }
 }
 
-// FUNCTION: WIZ8 0x004E3340
+// FUNCTION: WIZ8 0x004e3340
 void Function4E3340(void)
 {
     int state;
@@ -163,7 +163,7 @@ stop:
     gfProgramIsRunning = 0;
 }
 
-// FUNCTION: WIZ8 0x004E34B0
+// FUNCTION: WIZ8 0x004e34b0
 void ShutdownScreenStack(int release_screens)
 {
     int state;

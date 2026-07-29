@@ -1,6 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 
-// FUNCTION: WIZ8 0x004ACA60
+// FUNCTION: WIZ8 0x004aca60
 bool CanSpellBackfire(int spell_id)
 {
     switch (g_spell_records[spell_id].target_type) {

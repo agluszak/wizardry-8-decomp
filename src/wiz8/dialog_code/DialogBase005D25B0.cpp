@@ -16,7 +16,7 @@
    already recorded for Function4E3340 and Function54B560 - so the arrangement
    that keeps all nineteen instructions and both constants correct is the one
    kept here. */
-// FUNCTION: WIZ8 0x005D25B0
+// FUNCTION: WIZ8 0x005d25b0
 W8DialogBase005D25B0::W8DialogBase005D25B0()
     : m_field_54(0),
       m_field_55(1),
@@ -33,7 +33,7 @@ W8DialogBase005D25B0::W8DialogBase005D25B0()
 
 /* A virtual called from a destructor has a fixed dynamic type, so the
    compiler dispatches it directly; that direct call is slot 2. */
-// FUNCTION: WIZ8 0x005D2610
+// FUNCTION: WIZ8 0x005d2610
 W8DialogBase005D25B0::~W8DialogBase005D25B0()
 {
     ResetSubobjectAndRefresh();

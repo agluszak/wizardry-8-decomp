@@ -74,7 +74,7 @@ __forceinline W8SoundEventVector005ED094::W8SoundEventVector005ED094()
 /* Empty, and the emptiness is the point: what the image contains for it is the
    base's body, reached by the compiler-generated deleting destructor at
    0x004B6DC0 with no vptr store of its own in between. */
-// FUNCTION: WIZ8 0x004B6DE0
+// FUNCTION: WIZ8 0x004b6de0
 W8SoundEventVector005ED094::~W8SoundEventVector005ED094()
 {
 }
@@ -88,7 +88,7 @@ W8SoundEventVector005ED094::~W8SoundEventVector005ED094()
    Add's own result is discarded: the growth-failure path and the success path
    both leave this returning the same value, and only a null event returns
    zero. Preserved as found. */
-// FUNCTION: WIZ8 0x004B6BD0
+// FUNCTION: WIZ8 0x004b6bd0
 unsigned char W8GrObject005ED090::AddSoundEvent(W8VectorElement005ED094* pse)
 {
     if (!pse) {

@@ -44,7 +44,7 @@ unsigned short g_word_6850ed;
    selected text comes either from the region's indexed notice entry or the
    shared fallback, and the final position is clamped inside the 640x480
    screen before the region records ownership of the box. */
-// FUNCTION: WIZ8 0x004F2650
+// FUNCTION: WIZ8 0x004f2650
 void ShowRegionHelp(unsigned int region_index)
 {
     W8Region* region;
@@ -95,7 +95,7 @@ void ShowRegionHelp(unsigned int region_index)
     region->flags |= W8_REGION_HELP_SHOWN;
 }
 
-// FUNCTION: WIZ8 0x004F21B0
+// FUNCTION: WIZ8 0x004f21b0
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
 {
     if (g_forced_region_index == region_index) {
@@ -106,13 +106,13 @@ unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004F21D0
+// FUNCTION: WIZ8 0x004f21d0
 unsigned int GetForcedRegion(void)
 {
     return g_forced_region_index;
 }
 
-// FUNCTION: WIZ8 0x004F21E0
+// FUNCTION: WIZ8 0x004f21e0
 void RegionSetEnable(unsigned int region_set_index)
 {
     if (region_set_index >= g_region_set_count) {
@@ -125,7 +125,7 @@ void RegionSetEnable(unsigned int region_set_index)
     g_region_sets[region_set_index].enabled = 1;
 }
 
-// FUNCTION: WIZ8 0x004F2220
+// FUNCTION: WIZ8 0x004f2220
 void RegionSetDisable(unsigned int region_set_index)
 {
     if (region_set_index >= g_region_set_count) {
@@ -138,7 +138,7 @@ void RegionSetDisable(unsigned int region_set_index)
     g_region_sets[region_set_index].enabled = 0;
 }
 
-// FUNCTION: WIZ8 0x004F2260
+// FUNCTION: WIZ8 0x004f2260
 void ClearRegionSetModeBits(unsigned int region_set_index)
 {
     unsigned int region_index;
@@ -169,7 +169,7 @@ void ClearRegionSetModeBits(unsigned int region_set_index)
     }
 }
 
-// FUNCTION: WIZ8 0x004F22F0
+// FUNCTION: WIZ8 0x004f22f0
 void SetRegionSetMode4(unsigned int region_set_index)
 {
     unsigned int region_index;
@@ -200,7 +200,7 @@ void SetRegionSetMode4(unsigned int region_set_index)
     }
 }
 
-// FUNCTION: WIZ8 0x004F2380
+// FUNCTION: WIZ8 0x004f2380
 void ClearRegionModeBits(unsigned int region_index)
 {
     if (region_index >= g_region_count) {
@@ -213,7 +213,7 @@ void ClearRegionModeBits(unsigned int region_index)
     g_regions[region_index].flags &= 0xfff3;
 }
 
-// FUNCTION: WIZ8 0x004F23D0
+// FUNCTION: WIZ8 0x004f23d0
 void SetRegionMode4(unsigned int region_index)
 {
     if (region_index >= g_region_count) {
@@ -229,7 +229,7 @@ void SetRegionMode4(unsigned int region_index)
     g_regions[region_index].flags = flags;
 }
 
-// FUNCTION: WIZ8 0x004F2420
+// FUNCTION: WIZ8 0x004f2420
 void SetRegionBounds(unsigned int region_index, unsigned short x1, unsigned short y1,
                      unsigned short x2, unsigned short y2)
 {
@@ -246,7 +246,7 @@ void SetRegionBounds(unsigned int region_index, unsigned short x1, unsigned shor
     g_regions[region_index].y2 = y2;
 }
 
-// FUNCTION: WIZ8 0x004F2490
+// FUNCTION: WIZ8 0x004f2490
 bool RegionContainsPoint(unsigned int region_index, unsigned short x, unsigned short y)
 {
     W8Region* region;
@@ -278,7 +278,7 @@ bool RegionContainsPoint(unsigned int region_index, unsigned short x, unsigned s
     return false;
 }
 
-// FUNCTION: WIZ8 0x004F2550
+// FUNCTION: WIZ8 0x004f2550
 bool RegionHasFlags(unsigned int region_index, unsigned int flags)
 {
     bool has_flags;
@@ -294,7 +294,7 @@ bool RegionHasFlags(unsigned int region_index, unsigned int flags)
     return has_flags;
 }
 
-// FUNCTION: WIZ8 0x004F25A0
+// FUNCTION: WIZ8 0x004f25a0
 void UpdateRegionHelp(void)
 {
     if (g_forced_region_index == 0) {
@@ -312,7 +312,7 @@ void UpdateRegionHelp(void)
 }
 
 
-// FUNCTION: WIZ8 0x004F2750
+// FUNCTION: WIZ8 0x004f2750
 void SetRegionHelpText(const wchar_t* text)
 {
     if (g_region_help_text != 0) {
@@ -327,7 +327,7 @@ void SetRegionHelpText(const wchar_t* text)
     }
 }
 
-// FUNCTION: WIZ8 0x004F27F0
+// FUNCTION: WIZ8 0x004f27f0
 void ResetRegionHelp(unsigned char delayed)
 {
     unsigned int region_index = g_active_region_index;
@@ -343,7 +343,7 @@ void ResetRegionHelp(unsigned char delayed)
 }
 
 
-// FUNCTION: WIZ8 0x004F2880
+// FUNCTION: WIZ8 0x004f2880
 unsigned int CreateRegionSet(void)
 {
     unsigned int region_set_index = g_region_set_count++;
@@ -361,7 +361,7 @@ unsigned int CreateRegionSet(void)
     return region_set_index;
 }
 
-// FUNCTION: WIZ8 0x004F28E0
+// FUNCTION: WIZ8 0x004f28e0
 void ResetRegionSet(unsigned int region_set_index)
 {
     if (region_set_index >= g_region_set_count) {
@@ -374,7 +374,7 @@ void ResetRegionSet(unsigned int region_set_index)
     g_region_sets[region_set_index].last_region = 0;
 }
 
-// FUNCTION: WIZ8 0x004F2920
+// FUNCTION: WIZ8 0x004f2920
 unsigned int AddRegionToSet(unsigned int region_set_index)
 {
     unsigned int region_index;
@@ -406,7 +406,7 @@ unsigned int AddRegionToSet(unsigned int region_set_index)
     return region_index;
 }
 
-// FUNCTION: WIZ8 0x004F29C0
+// FUNCTION: WIZ8 0x004f29c0
 void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id)
 {
@@ -421,13 +421,13 @@ void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
     g_regions[region_index].callback_id = callback_id;
 }
 
-// FUNCTION: WIZ8 0x004F2A10
+// FUNCTION: WIZ8 0x004f2a10
 void SetRegionOwner(unsigned int region_index, void* owner)
 {
     g_regions[region_index].owner = owner;
 }
 
-// FUNCTION: WIZ8 0x004F2A30
+// FUNCTION: WIZ8 0x004f2a30
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id)
 {
     if (region_index > g_region_count) {
@@ -441,7 +441,7 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
     g_regions[region_index].help_text_id = help_text_id;
 }
 
-// FUNCTION: WIZ8 0x004F2BB0
+// FUNCTION: WIZ8 0x004f2bb0
 void EnableRegionHelp(unsigned int region_index)
 {
     if (region_index > g_region_count) {
@@ -454,7 +454,7 @@ void EnableRegionHelp(unsigned int region_index)
     g_regions[region_index].help_enabled = 1;
 }
 
-// FUNCTION: WIZ8 0x004F2BF0
+// FUNCTION: WIZ8 0x004f2bf0
 void DisableRegionHelp(unsigned int region_index)
 {
     if (region_index > g_region_count) {
@@ -474,7 +474,7 @@ extern void ReleaseScreenTransitionObjects(void);
    set is disabled and every region keeps only its low two flag bits. The three
    trackers are cleared last, and the fourth field is reseeded from the
    settings word rather than zeroed. */
-// FUNCTION: WIZ8 0x004F1240
+// FUNCTION: WIZ8 0x004f1240
 void ResetRegions(void)
 {
     unsigned int index;

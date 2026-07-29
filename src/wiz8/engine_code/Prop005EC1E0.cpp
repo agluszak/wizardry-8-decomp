@@ -104,7 +104,7 @@ __forceinline W8PropOwned0020::~W8PropOwned0020()
 {
 }
 
-// FUNCTION: WIZ8 0x0044BEC0
+// FUNCTION: WIZ8 0x0044bec0
 W8Prop005EC1E0::~W8Prop005EC1E0()
 {
     delete m_owned_14;
@@ -117,7 +117,7 @@ extern void Function439D80(void);
 
 /* Vtable slot zero: the complete destructor followed by the conditional
    release the deleting flag selects. */
-// FUNCTION: WIZ8 0x0044BEA0
+// FUNCTION: WIZ8 0x0044bea0
 void* __fastcall W8Prop005EC1E0_ScalarDeletingDestructor(
     W8Prop005EC1E0* self, int /* unused edx */, unsigned char flags)
 {
@@ -129,34 +129,34 @@ void* __fastcall W8Prop005EC1E0_ScalarDeletingDestructor(
 }
 
 /* Four accessors reaching through the owned member at 0x14. */
-// FUNCTION: WIZ8 0x0044D4F0
+// FUNCTION: WIZ8 0x0044d4f0
 unsigned char W8Prop005EC1E0::GetSetting6C()
 {
     return this->m_owned_14->setting_6c;
 }
 
-// FUNCTION: WIZ8 0x0044D5B0
+// FUNCTION: WIZ8 0x0044d5b0
 void W8Prop005EC1E0::SetSetting66(char value)
 {
     this->m_owned_14->setting_66 = value;
 }
 
 /* Whether the owned member is in the state the value two stands for. */
-// FUNCTION: WIZ8 0x0044E1C0
+// FUNCTION: WIZ8 0x0044e1c0
 bool W8Prop005EC1E0::IsSetting6FTwo()
 {
     return this->m_owned_14->setting_6f == 2;
 }
 
 /* Flip the owned member between the only two values it takes: one and three. */
-// FUNCTION: WIZ8 0x0044E1D0
+// FUNCTION: WIZ8 0x0044e1d0
 void W8Prop005EC1E0::ToggleSetting6E()
 {
     this->m_owned_14->setting_6e = this->m_owned_14->setting_6e == 1 ? 3 : 1;
 }
 
 /* The prop's own value at 0x18. */
-// FUNCTION: WIZ8 0x0044D5A0
+// FUNCTION: WIZ8 0x0044d5a0
 int W8Prop005EC1E0::GetValue18()
 {
     return this->value_18;
@@ -164,7 +164,7 @@ int W8Prop005EC1E0::GetValue18()
 
 /* One value out of the owned GDProp, but only once the flag that says it is
    there is up. */
-// FUNCTION: WIZ8 0x0044E0A0
+// FUNCTION: WIZ8 0x0044e0a0
 int W8Prop005EC1E0::GetGDPropValue24()
 {
     if ((this->flags_1c & 0x80) != 0 && this->m_owned_38 != 0) {
@@ -176,7 +176,7 @@ int W8Prop005EC1E0::GetGDPropValue24()
 /* Write the settings block's byte at 0x6c. Going from zero to anything else
    costs an extra call first, so zero is the state that has to be left rather
    than a value like the others. */
-// FUNCTION: WIZ8 0x0044D4B0
+// FUNCTION: WIZ8 0x0044d4b0
 void W8Prop005EC1E0::SetSetting6C(unsigned char value)
 {
     if (m_owned_14->setting_6c == 0) {
@@ -194,7 +194,7 @@ extern unsigned char Function4B75F0(int arg_1, int arg_2);
 extern void Function444750(void);
 
 /* Start or stop the prop's own animation, whichever it is not doing. */
-// FUNCTION: WIZ8 0x0044BA00
+// FUNCTION: WIZ8 0x0044ba00
 void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
 {
     if (AnimationIsRunning(animation)) {
@@ -207,7 +207,7 @@ void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
 /* Which slot carries the current tag. The tag is matched against each slot's
    own leading byte rather than used as an index, so the slots need not be in
    tag order. */
-// FUNCTION: WIZ8 0x0044BAE0
+// FUNCTION: WIZ8 0x0044bae0
 int W8PropOwnedPolymorphic::FindSlotByCurrentTag()
 {
     int index;
@@ -221,7 +221,7 @@ int W8PropOwnedPolymorphic::FindSlotByCurrentTag()
 }
 
 /* The same toggle reached through the prop rather than through the member. */
-// FUNCTION: WIZ8 0x0044D500
+// FUNCTION: WIZ8 0x0044d500
 void W8Prop005EC1E0::ToggleRepAnimation(int argument)
 {
     if (AnimationIsRunning(m_owned_14->animation)) {
@@ -233,7 +233,7 @@ void W8Prop005EC1E0::ToggleRepAnimation(int argument)
 
 /* And again with the member's own stored argument instead of a caller's -
    which is what makes 0x64 the animation's default argument. */
-// FUNCTION: WIZ8 0x0044D550
+// FUNCTION: WIZ8 0x0044d550
 void W8Prop005EC1E0::ToggleRepAnimationDefault()
 {
     unsigned char argument = m_owned_14->setting_64;
@@ -247,7 +247,7 @@ void W8Prop005EC1E0::ToggleRepAnimationDefault()
 
 /* Play the prop's animation between two points, with the same default
    argument. */
-// FUNCTION: WIZ8 0x0044D5C0
+// FUNCTION: WIZ8 0x0044d5c0
 int W8Prop005EC1E0::PlayRepAnimation(int from, int to)
 {
     AnimationPlayFromTo(m_owned_14->animation, 2, m_owned_14->setting_64, from, to);
@@ -257,7 +257,7 @@ int W8Prop005EC1E0::PlayRepAnimation(int from, int to)
 /* Write the member's setting at 0x6e. The assertion names the member m_pRep,
    and the guarded store is written after the assertion rather than instead of
    it, so a null member writes through null on a build with assertions off. */
-// FUNCTION: WIZ8 0x0044E1F0
+// FUNCTION: WIZ8 0x0044e1f0
 void W8Prop005EC1E0::SetSetting6E(unsigned char value, unsigned char fallback)
 {
     if (m_owned_14 == 0) {
@@ -271,7 +271,7 @@ void W8Prop005EC1E0::SetSetting6E(unsigned char value, unsigned char fallback)
 /* Whether the prop can be used from where the caller is. The owned GDProp has
    to be there, its own owner has to be, that owner must not be in the tenth
    state or hold either of two bits, and the reach test has to pass. */
-// FUNCTION: WIZ8 0x0044E0C0
+// FUNCTION: WIZ8 0x0044e0c0
 bool W8Prop005EC1E0::CanBeUsedFrom(int arg_2, int arg_3, char notify)
 {
     char* owner;

@@ -10,7 +10,7 @@ extern "C" {
 int giStringListLen;
 wchar_t** gppStringList;   /* 0x0068C09C */
 
-// FUNCTION: WIZ8 0x005300E0
+// FUNCTION: WIZ8 0x005300e0
 void DecodeLocalizedText(unsigned short* text, int character_count)
 {
     while (character_count-- > 0) {

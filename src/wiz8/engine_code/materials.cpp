@@ -86,7 +86,7 @@ stMaterial::~stMaterial()
 
 // Slot 7. Copies through the instance slot 6 returns, then carries the one
 // field srMaterial's assignment operator cannot know about.
-// FUNCTION: WIZ8 0x00492A00
+// FUNCTION: WIZ8 0x00492a00
 srMaterial* stMaterial::vslot7()
 {
     /* srClass is srMaterial's base at offset zero, so the original reuses the

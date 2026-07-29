@@ -10,7 +10,7 @@
    W8GrowableVector: the element array is at +0x00 and the count at +0x08, with
    no vptr, and the accessors are free functions rather than methods. */
 
-// FUNCTION: WIZ8 0x005E22C0
+// FUNCTION: WIZ8 0x005e22c0
 W8PList* PListCreate(void)
 {
     W8PList* ppl;
@@ -44,7 +44,7 @@ W8PList* PListCreate(void)
     return ppl;
 }
 
-// FUNCTION: WIZ8 0x005E2370
+// FUNCTION: WIZ8 0x005e2370
 unsigned char PListInit(W8PList* ppl)
 {
     unsigned char created;
@@ -65,7 +65,7 @@ unsigned char PListInit(W8PList* ppl)
     return created;
 }
 
-// FUNCTION: WIZ8 0x005E23E0
+// FUNCTION: WIZ8 0x005e23e0
 unsigned char PListDestroy(W8PList* ppl)
 {
     /* The second assertion is PListFreeData's, retained after inlining. */
@@ -81,7 +81,7 @@ unsigned char PListDestroy(W8PList* ppl)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005E2440
+// FUNCTION: WIZ8 0x005e2440
 unsigned char PListFreeData(W8PList* ppl)
 {
     if (!ppl) {
@@ -94,7 +94,7 @@ unsigned char PListFreeData(W8PList* ppl)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005E2480
+// FUNCTION: WIZ8 0x005e2480
 int PListAdd(W8PList* ppl, void* pEntry)
 {
     void** pTemp;
@@ -120,7 +120,7 @@ int PListAdd(W8PList* ppl, void* pEntry)
     return ppl->count - 1;
 }
 
-// FUNCTION: WIZ8 0x005E2530
+// FUNCTION: WIZ8 0x005e2530
 int PListInsert(W8PList* ppl, int position, void* pEntry)
 {
     void** pTemp;
@@ -172,7 +172,7 @@ int PListInsert(W8PList* ppl, int position, void* pEntry)
     return position;
 }
 
-// FUNCTION: WIZ8 0x005E26B0
+// FUNCTION: WIZ8 0x005e26b0
 void PListClear(W8PList* ppl)
 {
     if (!ppl) {
@@ -181,7 +181,7 @@ void PListClear(W8PList* ppl)
     ppl->count = 0;
 }
 
-// FUNCTION: WIZ8 0x005E26E0
+// FUNCTION: WIZ8 0x005e26e0
 void* PListRemove(W8PList* ppl, void* pEntry)
 {
     int index;
@@ -213,7 +213,7 @@ void* PListRemove(W8PList* ppl, void* pEntry)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x005E27C0
+// FUNCTION: WIZ8 0x005e27c0
 void* PListRemoveAt(W8PList* ppl, int position)
 {
     void* entry;
@@ -236,7 +236,7 @@ void* PListRemoveAt(W8PList* ppl, int position)
     return entry;
 }
 
-// FUNCTION: WIZ8 0x005E2870
+// FUNCTION: WIZ8 0x005e2870
 void* PListGetAt(W8PList* ppl, int index)
 {
     if (ppl && index < ppl->count) {
@@ -245,7 +245,7 @@ void* PListGetAt(W8PList* ppl, int index)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x005E2890
+// FUNCTION: WIZ8 0x005e2890
 int PListIndexOf(W8PList* ppl, void* pEntry)
 {
     int count;
@@ -270,7 +270,7 @@ done:
 }
 
 /* Emitted later as a folded COMDAT at 0x005e2c70, but owned by PList.cpp. */
-// FUNCTION: WIZ8 0x005E2C70
+// FUNCTION: WIZ8 0x005e2c70
 unsigned int PListGetCount(W8PList* ppl)
 {
     if (!ppl) {

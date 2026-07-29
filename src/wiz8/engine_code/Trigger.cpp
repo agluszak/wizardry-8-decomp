@@ -8,13 +8,13 @@
  * Only the class registry slots are recovered so far.
  */
 
-// FUNCTION: WIZ8 0x00445AE0
+// FUNCTION: WIZ8 0x00445ae0
 const char* Trigger::getClassName() const
 {
     return "Trigger";
 }
 
-// FUNCTION: WIZ8 0x00445AD0
+// FUNCTION: WIZ8 0x00445ad0
 unsigned long Trigger::getClassID() const
 {
     return 0x10008;
@@ -25,7 +25,7 @@ unsigned long Trigger::getClassID() const
    cache probe and, when it misses, one registerClass with the concrete flag
    set. That single level is the whole of the difference against the 104-byte
    form the srNode-derived classes use. */
-// FUNCTION: WIZ8 0x00445F30
+// FUNCTION: WIZ8 0x00445f30
 srRegistry::ClassNode* Trigger::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();

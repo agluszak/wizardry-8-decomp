@@ -71,7 +71,7 @@ extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char g_block_68f2d8[0xc4e0];
 extern unsigned char g_flag_65beaf;
 
-// FUNCTION: WIZ8 0x004E2F40
+// FUNCTION: WIZ8 0x004e2f40
 unsigned char InitializeGameData(void)
 {
     char version[64];
@@ -170,7 +170,7 @@ extern unsigned char DeleteStack(void* stack);
 extern void ReleaseHitSoundDatabase(void);
 extern void ReleaseMissileDatabase(void);
 
-// FUNCTION: WIZ8 0x004E3290
+// FUNCTION: WIZ8 0x004e3290
 void ShutdownGameData(void)
 {
     int index;

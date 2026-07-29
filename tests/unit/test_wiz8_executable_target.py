@@ -39,7 +39,7 @@ def test_main_menu_runtime_uses_dirty_uploads_and_real_input_dispatch() -> None:
     assert "Function425B40();" in video
     assert "invalidateTiles" not in video
     assert "setTextureSubImage" in surface
-    assert "// FUNCTION: WIZ8 0x00425B40" in dirty
+    assert "// FUNCTION: WIZ8 0x00425b40" in dirty
 
 
 def test_semantic_runtime_driver_is_a_separate_product() -> None:

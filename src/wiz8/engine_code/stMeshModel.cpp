@@ -11,7 +11,7 @@
 
 extern void Function4729F0(void* model);
 
-// FUNCTION: WIZ8 0x004712D0
+// FUNCTION: WIZ8 0x004712d0
 int W8MeshModel::FindMappedIndex(short key)
 {
     if (key < 0) {
@@ -26,7 +26,7 @@ int W8MeshModel::FindMappedIndex(short key)
 
 /* Link one model onto another, setting both ends - so the two pointers are one
    link rather than two independent fields. Unlinking passes nothing. */
-// FUNCTION: WIZ8 0x00471D60
+// FUNCTION: WIZ8 0x00471d60
 void W8MeshModel::LinkTo(W8MeshModel* other)
 {
     next = other;
@@ -37,7 +37,7 @@ void W8MeshModel::LinkTo(W8MeshModel* other)
 
 /* One vertex, bounds-checked against the model's own count and refused
    outright when there is no table at all. */
-// FUNCTION: WIZ8 0x00471AA0
+// FUNCTION: WIZ8 0x00471aa0
 void* W8MeshModel::GetVertex(unsigned int index)
 {
     if (vertices != 0 && index < vertex_count) {
@@ -57,13 +57,13 @@ void ReleaseMeshModel(void* model)
    name and the id sits in the Wizardry-registered range at 0x10000 and up,
    which is what separates this class from SurRender's own srMeshModel at
    0x2010. */
-// FUNCTION: WIZ8 0x004741F0
+// FUNCTION: WIZ8 0x004741f0
 const char* W8MeshModel::getClassName() const
 {
     return "stMeshModel";
 }
 
-// FUNCTION: WIZ8 0x004741E0
+// FUNCTION: WIZ8 0x004741e0
 unsigned long W8MeshModel::getClassID() const
 {
     return 0x10003;

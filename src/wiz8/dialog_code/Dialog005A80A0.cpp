@@ -42,7 +42,7 @@ private:
    body is just the two own fields and the dialog setup sequence. The /GX EH
    frame comes from the base having a destructor: an exception in any setup
    call has to unwind it. */
-// FUNCTION: WIZ8 0x005A80A0
+// FUNCTION: WIZ8 0x005a80a0
 W8Dialog005A80A0::W8Dialog005A80A0(int message_index, int caption_id, int notify_value)
     : notify_value_98(notify_value), notify_target(0)
 {
@@ -57,12 +57,12 @@ W8Dialog005A80A0::W8Dialog005A80A0(int message_index, int caption_id, int notify
 /* Restoring the vtable and tail-jumping to the base destructor is the whole
    body; the compiler generates the scalar deleting destructor at 0x005A8170
    from this same declaration. */
-// FUNCTION: WIZ8 0x005A8190
+// FUNCTION: WIZ8 0x005a8190
 W8Dialog005A80A0::~W8Dialog005A80A0()
 {
 }
 
-// FUNCTION: WIZ8 0x005A81A0
+// FUNCTION: WIZ8 0x005a81a0
 unsigned char W8Dialog005A80A0::Close()
 {
     unsigned char handled;

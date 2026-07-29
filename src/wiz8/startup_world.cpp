@@ -26,7 +26,7 @@ W8PList g_storage_list_65be90;
 
 /* The two caller-provided values override the original 16 MiB and 1 MiB
    defaults only when positive.  Startup deliberately passes -1 for both. */
-// FUNCTION: WIZ8 0x004B5780
+// FUNCTION: WIZ8 0x004b5780
 void Function4B5780(int primary_limit, int secondary_limit)
 {
     g_storage_state_65be80 = 0;
@@ -46,7 +46,7 @@ void Function4B5780(int primary_limit, int secondary_limit)
    open.  The allocated 0x190-byte object's reviewed identity is deliberately
    address-qualified: the available evidence proves its role as GrCycle's
    secondary base, but not its original source name. */
-// FUNCTION: WIZ8 0x0044F060
+// FUNCTION: WIZ8 0x0044f060
 unsigned char Function44F060(void)
 {
     W8GrCycleBase00451EC0* world;

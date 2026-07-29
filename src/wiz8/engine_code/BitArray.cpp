@@ -16,7 +16,7 @@ enum { W8_BITARRAY_GROWTH_SLACK = 100 };
 /* Reallocate to hold this many bits and clear every one of them. The tail mask
    is rebuilt from the bits that spill past the last whole word; asking for the
    size it already has skips straight to the clear. */
-// FUNCTION: WIZ8 0x0043ADA0
+// FUNCTION: WIZ8 0x0043ada0
 void BitArray::SetSize(unsigned int new_bit_count)
 {
     unsigned int spill;
@@ -56,7 +56,7 @@ void BitArray::SetSize(unsigned int new_bit_count)
 
 /* Release the index. Nothing else is touched, so the caller owns whatever is
    left behind. */
-// FUNCTION: WIZ8 0x0043AD90
+// FUNCTION: WIZ8 0x0043ad90
 void BitArray::FreeIndex()
 {
     free(puiIndex);
@@ -65,7 +65,7 @@ void BitArray::FreeIndex()
 /* Take on another array's bits. The source is resized to this array's bit
    count first, which clears it - so this copies a freshly sized array's zeroed
    words and then its count. */
-// FUNCTION: WIZ8 0x0043AE80
+// FUNCTION: WIZ8 0x0043ae80
 void BitArray::CopyFrom(BitArray& other)
 {
     other.SetSize(other.bit_count);
@@ -75,7 +75,7 @@ void BitArray::CopyFrom(BitArray& other)
 
 /* Raise one bit, answering whether it was already up. A bit past the end is
    refused. */
-// FUNCTION: WIZ8 0x0043B390
+// FUNCTION: WIZ8 0x0043b390
 bool BitArray::Set(unsigned int bit)
 {
     unsigned int mask;
@@ -96,7 +96,7 @@ bool BitArray::Set(unsigned int bit)
 
 /* The same, except a bit past the end grows the array to reach it rather than
    being refused. */
-// FUNCTION: WIZ8 0x0043B3D0
+// FUNCTION: WIZ8 0x0043b3d0
 bool BitArray::SetAndGrow(unsigned int bit)
 {
     unsigned int mask;
@@ -117,7 +117,7 @@ bool BitArray::SetAndGrow(unsigned int bit)
 
 /* Raise every bit, including the ones past the end in the last word - the
    count is set to the array's own length regardless. */
-// FUNCTION: WIZ8 0x0043B420
+// FUNCTION: WIZ8 0x0043b420
 bool BitArray::SetAll()
 {
     unsigned int index;
@@ -130,7 +130,7 @@ bool BitArray::SetAll()
 }
 
 /* Lower one bit, answering whether it had been up. */
-// FUNCTION: WIZ8 0x0043B450
+// FUNCTION: WIZ8 0x0043b450
 bool BitArray::Clear(unsigned int bit)
 {
     unsigned int mask;
@@ -149,7 +149,7 @@ bool BitArray::Clear(unsigned int bit)
 }
 
 /* Lower every bit and rewind the cursor. */
-// FUNCTION: WIZ8 0x0043B490
+// FUNCTION: WIZ8 0x0043b490
 void BitArray::ClearAll()
 {
     memset(puiIndex, 0, word_count * sizeof(unsigned int));
@@ -160,7 +160,7 @@ void BitArray::ClearAll()
 }
 
 /* Whether one bit is up. */
-// FUNCTION: WIZ8 0x0043B620
+// FUNCTION: WIZ8 0x0043b620
 bool BitArray::Test(unsigned int bit)
 {
     if (bit > bit_count) {
@@ -171,7 +171,7 @@ bool BitArray::Test(unsigned int bit)
 
 /* Keep only the bits both arrays have. The shorter of the two bounds the walk,
    so this array's bits past the other's end are left alone. */
-// FUNCTION: WIZ8 0x0043B4C0
+// FUNCTION: WIZ8 0x0043b4c0
 bool BitArray::IntersectWith(BitArray& other)
 {
     unsigned int shared = other.word_count;
@@ -187,7 +187,7 @@ bool BitArray::IntersectWith(BitArray& other)
 }
 
 /* Take on every bit the other array has, over the same shared extent. */
-// FUNCTION: WIZ8 0x0043B510
+// FUNCTION: WIZ8 0x0043b510
 bool BitArray::UnionWith(BitArray& other)
 {
     unsigned int shared = other.word_count;
@@ -205,7 +205,7 @@ bool BitArray::UnionWith(BitArray& other)
 /* Become the complement of another array. The last word is masked back to
    whichever of the two arrays ends sooner, so the bits past the end do not
    come up; the count can only be derived when the two are the same length. */
-// FUNCTION: WIZ8 0x0043B560
+// FUNCTION: WIZ8 0x0043b560
 void BitArray::SetToComplementOf(BitArray& other)
 {
     unsigned int shared;
@@ -242,7 +242,7 @@ void BitArray::SetToComplementOf(BitArray& other)
 /* Count the bits that are up by walking them from the start, which is a
    different answer from the running count if anything has gone wrong with
    it. */
-// FUNCTION: WIZ8 0x0043B5F0
+// FUNCTION: WIZ8 0x0043b5f0
 int BitArray::CountSetBits()
 {
     set_count = 0;
@@ -256,7 +256,7 @@ int BitArray::CountSetBits()
 /* The next bit that is up, numbered from one so that zero can mean the end.
    Restarting rewinds the cursor first, and answers -1 outright when there is
    no index to walk. Reaching the end rewinds so the next walk starts over. */
-// FUNCTION: WIZ8 0x0043B660
+// FUNCTION: WIZ8 0x0043b660
 int BitArray::NextSetBit(char restart)
 {
     if (restart != 0) {
@@ -293,7 +293,7 @@ int BitArray::NextSetBit(char restart)
    copied into the front of the new one and released; an array that had no
    index yet comes out with a word count of zero, which the first store then
    corrects. */
-// FUNCTION: WIZ8 0x0043B700
+// FUNCTION: WIZ8 0x0043b700
 void BitArray::Grow(unsigned int wanted_bits, unsigned int new_bit_count)
 {
     unsigned int spill;

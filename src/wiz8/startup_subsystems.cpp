@@ -106,7 +106,7 @@ int g_dword_683fe3;
 unsigned char g_item_in_hand_shown_006874ca;
 W8ItemInstance g_item_in_hand = { -1 };
 
-// FUNCTION: WIZ8 0x005BC800
+// FUNCTION: WIZ8 0x005bc800
 unsigned char InitializeSubsystemFlag(void)
 {
     g_selected_item_0069c4b4 = 0;
@@ -147,7 +147,7 @@ static unsigned char InitializeMenuRegionGrids(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x0055F7B0
+// FUNCTION: WIZ8 0x0055f7b0
 unsigned char InitializeStartupGrid(void)
 {
     unsigned int index;
@@ -161,7 +161,7 @@ unsigned char InitializeStartupGrid(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005A9B00
+// FUNCTION: WIZ8 0x005a9b00
 unsigned char AllocateSmallStartupSubsystem(void)
 {
     if (!g_small_subsystem_69c130) {
@@ -190,7 +190,7 @@ unsigned char InitializeMenuStartupSubsystems(void)
    video-object managers.  The individual globals are intentional: consumers
    select fonts by role, while this initializer preserves the retail load and
    derived-object order. */
-// FUNCTION: WIZ8 0x004E27A0
+// FUNCTION: WIZ8 0x004e27a0
 unsigned char InitializeMenuFonts(void)
 {
     char path[64];

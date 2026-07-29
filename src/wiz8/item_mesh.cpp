@@ -16,7 +16,7 @@ struct W8Item {
     void* GetMesh();
 };
 
-// FUNCTION: WIZ8 0x0049FB20
+// FUNCTION: WIZ8 0x0049fb20
 void* W8Item::GetMesh()
 {
     return m_pRep->m_psrMesh;

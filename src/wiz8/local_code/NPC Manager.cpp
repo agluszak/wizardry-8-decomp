@@ -75,7 +75,7 @@ extern unsigned int GetItemStackValue(const W8ItemInstance* item);       /* 0x00
 extern void UpdateNpcAt(W8NpcState* npc, int arg_2, void* scratch);      /* 0x0050B2F0 */
 
 /* Whether the NPC's database entry carries the value at 0x002 at all. */
-// FUNCTION: WIZ8 0x0050AA00
+// FUNCTION: WIZ8 0x0050aa00
 bool NpcRecordHasValue002(W8NpcState* npc)
 {
     return npc->record->value_002 != 0;
@@ -83,7 +83,7 @@ bool NpcRecordHasValue002(W8NpcState* npc)
 
 /* Which of the three disposition bands the NPC falls in. The bands are cut at
    0x21 and 0x42, and the hostile band answers two rather than zero. */
-// FUNCTION: WIZ8 0x0050A500
+// FUNCTION: WIZ8 0x0050a500
 unsigned char GetNpcDispositionBand(W8NpcState* npc)
 {
     char disposition = GetNpcDisposition(npc);
@@ -95,7 +95,7 @@ unsigned char GetNpcDispositionBand(W8NpcState* npc)
 }
 
 /* Run the update with an empty scratch block the caller does not see. */
-// FUNCTION: WIZ8 0x0050B2D0
+// FUNCTION: WIZ8 0x0050b2d0
 void UpdateNpc(W8NpcState* npc)
 {
     unsigned char scratch[12];
@@ -105,7 +105,7 @@ void UpdateNpc(W8NpcState* npc)
 
 /* Whether the NPC will talk about one topic. Topics are stored one more than
    they name, so zero can mean an empty slot. */
-// FUNCTION: WIZ8 0x0050C190
+// FUNCTION: WIZ8 0x0050c190
 bool NpcHasTopic(W8NpcState* npc, int topic)
 {
     int slot;
@@ -120,7 +120,7 @@ bool NpcHasTopic(W8NpcState* npc, int topic)
 
 /* Tell the NPC one fact, in the first empty slot. A full list silently drops
    it. */
-// FUNCTION: WIZ8 0x0050DD50
+// FUNCTION: WIZ8 0x0050dd50
 void TellNpcFact(W8NpcState* npc, short fact)
 {
     int slot;
@@ -135,7 +135,7 @@ void TellNpcFact(W8NpcState* npc, short fact)
 
 /* Whether the NPC has already been told a fact. The scan stops at the first
    empty slot, so the list is packed from the front. */
-// FUNCTION: WIZ8 0x0050DD10
+// FUNCTION: WIZ8 0x0050dd10
 bool NpcKnowsFact(W8NpcState* npc, unsigned int fact)
 {
     int slot;
@@ -153,7 +153,7 @@ bool NpcKnowsFact(W8NpcState* npc, unsigned int fact)
 
 /* The NPC state at one index, skipping deleted database entries. Out-of-range
    indices are clamped to the front by the shared vector rather than refused. */
-// FUNCTION: WIZ8 0x0050B800
+// FUNCTION: WIZ8 0x0050b800
 W8NpcState* GetNpcState(int index)
 {
     W8NpcState* npc;
@@ -172,7 +172,7 @@ W8NpcState* GetNpcState(int index)
 }
 
 /* The monster standing in the world for this NPC, if one is. */
-// FUNCTION: WIZ8 0x0050A3C0
+// FUNCTION: WIZ8 0x0050a3c0
 W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)
 {
     if (npc->has_monster == 0 || npc->is_present == 0) {
@@ -184,7 +184,7 @@ W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)
 
 /* The monster manager entry this NPC's group occupies, if its database entry
    says it has a group and it is in one. */
-// FUNCTION: WIZ8 0x0050B870
+// FUNCTION: WIZ8 0x0050b870
 unsigned char* GetNpcGroupEntry(W8NpcState* npc)
 {
     if (npc->record->has_group == 0) {
@@ -199,7 +199,7 @@ unsigned char* GetNpcGroupEntry(W8NpcState* npc)
 /* Whether an NPC would take one item in trade. The kind that trades in nothing
    refuses outright, one particular item is always taken, and everything else
    has to be worth enough. */
-// FUNCTION: WIZ8 0x0050A9C0
+// FUNCTION: WIZ8 0x0050a9c0
 char WillNpcTradeForItem(W8NpcState* npc, const W8ItemInstance* item)
 {
     if (npc->record->kind == W8_NPC_KIND_NO_TRADE) {
@@ -213,7 +213,7 @@ char WillNpcTradeForItem(W8NpcState* npc, const W8ItemInstance* item)
 
 /* How many of the two leading party slots are occupied. Written as nested
    tests rather than a count, which is why the first slot is read twice. */
-// FUNCTION: WIZ8 0x0050B9B0
+// FUNCTION: WIZ8 0x0050b9b0
 unsigned char CountLeadingPartySlots(void)
 {
     if (g_party_slot_rows[0].flag_00 != 0) {
@@ -254,7 +254,7 @@ enum { W8_FACT_NPC_NAME_KNOWN = 0x44 };
 extern unsigned char GetFact(int fact);
 
 /* The engine object standing in the world for this NPC. */
-// FUNCTION: WIZ8 0x0050A400
+// FUNCTION: WIZ8 0x0050a400
 W8Monster* GetNpcMonster(W8NpcState* npc)
 {
     W8MonsterInfo* monster_info;
@@ -273,7 +273,7 @@ W8Monster* GetNpcMonster(W8NpcState* npc)
 /* Move the NPC into one disposition band. Each band is written as one
    representative value rather than a range, and a band it is already in is
    left alone - which is why the current band is computed twice. */
-// FUNCTION: WIZ8 0x0050A520
+// FUNCTION: WIZ8 0x0050a520
 void SetNpcDispositionBand(W8NpcState* npc, char band)
 {
     char current;
@@ -299,7 +299,7 @@ void SetNpcDispositionBand(W8NpcState* npc, char band)
 /* Whether any NPC of one kind is in the world, and what its own byte at 0x04
    says - the two answers are the same value, so a kind that is not there is
    indistinguishable from one whose byte is zero. */
-// FUNCTION: WIZ8 0x0050DD80
+// FUNCTION: WIZ8 0x0050dd80
 unsigned char FindNpcOfKind(int kind)
 {
     int index;
@@ -318,7 +318,7 @@ unsigned char FindNpcOfKind(int kind)
 }
 
 /* Mark the NPC of one kind, raising both of the two flags that go together. */
-// FUNCTION: WIZ8 0x0050CA30
+// FUNCTION: WIZ8 0x0050ca30
 void MarkNpcOfKind(int kind)
 {
     int index;
@@ -338,7 +338,7 @@ void MarkNpcOfKind(int kind)
 
 /* Whether the NPC offers one service. The service id is looked up in a table
    that pairs it with its bit, so the ids need not be contiguous. */
-// FUNCTION: WIZ8 0x0050C9E0
+// FUNCTION: WIZ8 0x0050c9e0
 bool NpcOffersService(W8NpcState* npc, unsigned int service_id)
 {
     int row = 0;
@@ -357,7 +357,7 @@ bool NpcOffersService(W8NpcState* npc, unsigned int service_id)
 
 /* Add a topic to the front of the NPC's five, pushing the oldest off the end
    when they are full. An empty slot is filled in place instead. */
-// FUNCTION: WIZ8 0x0050C140
+// FUNCTION: WIZ8 0x0050c140
 void AddNpcTopic(W8NpcState* npc, int topic)
 {
     int slot;
@@ -377,7 +377,7 @@ void AddNpcTopic(W8NpcState* npc, int topic)
 /* What to call the NPC. One naming style takes a substituted name once the
    party has learned it, copied into a shared buffer so the caller always gets
    a writable string; everything else is named by its record. */
-// FUNCTION: WIZ8 0x0050C770
+// FUNCTION: WIZ8 0x0050c770
 const char* GetNpcDisplayName(W8NpcState* npc)
 {
     if (npc->name_style == W8_NPC_NAME_STYLE_SUBSTITUTABLE &&

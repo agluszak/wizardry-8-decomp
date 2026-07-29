@@ -48,7 +48,7 @@ int RollDice(const W8Dice* dice)
     return result;
 }
 
-// FUNCTION: WIZ8 0x005179B0
+// FUNCTION: WIZ8 0x005179b0
 int IntegerPower(int base, unsigned int exponent)
 {
     int result;
@@ -59,7 +59,7 @@ int IntegerPower(int base, unsigned int exponent)
     return result;
 }
 
-// FUNCTION: WIZ8 0x005179D0
+// FUNCTION: WIZ8 0x005179d0
 void ClampInteger(int* value, int minimum, int maximum)
 {
     int current = *value;
@@ -71,7 +71,7 @@ void ClampInteger(int* value, int minimum, int maximum)
     }
 }
 
-// FUNCTION: WIZ8 0x005179F0
+// FUNCTION: WIZ8 0x005179f0
 void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
                           unsigned int maximum)
 {
@@ -82,7 +82,7 @@ void ClampUnsignedInteger(unsigned int* value, unsigned int minimum,
     }
 }
 
-// FUNCTION: WIZ8 0x00517A10
+// FUNCTION: WIZ8 0x00517a10
 int CompareUnsignedDescending(const unsigned int* first, const unsigned int* second)
 {
     unsigned int left = *first;
@@ -97,7 +97,7 @@ int CompareUnsignedDescending(const unsigned int* first, const unsigned int* sec
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00517A30
+// FUNCTION: WIZ8 0x00517a30
 int CompareSignedAscending(const int* first, const int* second)
 {
     int left = *first;
@@ -112,7 +112,7 @@ int CompareSignedAscending(const int* first, const int* second)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00517A50
+// FUNCTION: WIZ8 0x00517a50
 int CompareSignedDescending(const int* first, const int* second)
 {
     int left = *first;
@@ -127,7 +127,7 @@ int CompareSignedDescending(const int* first, const int* second)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00517A70
+// FUNCTION: WIZ8 0x00517a70
 char* FormatString(const char* format, ...)
 {
     va_list arguments;
@@ -137,7 +137,7 @@ char* FormatString(const char* format, ...)
     return g_format_string_buffer;
 }
 
-// FUNCTION: WIZ8 0x00517A90
+// FUNCTION: WIZ8 0x00517a90
 wchar_t* FormatWideString(const wchar_t* format, ...)
 {
     va_list arguments;
@@ -147,21 +147,21 @@ wchar_t* FormatWideString(const wchar_t* format, ...)
     return g_wide_string_buffer;
 }
 
-// FUNCTION: WIZ8 0x00517AB0
+// FUNCTION: WIZ8 0x00517ab0
 wchar_t* ConvertStringToWide(const char* string)
 {
     swprintf(g_wide_string_buffer, L"%hs", string);
     return g_wide_string_buffer;
 }
 
-// FUNCTION: WIZ8 0x00517AD0
+// FUNCTION: WIZ8 0x00517ad0
 char* ConvertWideStringToString(const wchar_t* string)
 {
     sprintf(reinterpret_cast<char*>(g_wide_string_buffer), "%ls", string);
     return reinterpret_cast<char*>(g_wide_string_buffer);
 }
 
-// FUNCTION: WIZ8 0x00517AF0
+// FUNCTION: WIZ8 0x00517af0
 wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
 {
     bool first_group = true;
@@ -196,7 +196,7 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
     return output;
 }
 
-// FUNCTION: WIZ8 0x00517BD0
+// FUNCTION: WIZ8 0x00517bd0
 char* TitleCaseString(char* string)
 {
     bool capitalize = true;
@@ -250,13 +250,13 @@ static __forceinline float NormalizeAngleInline(float angle)
     return angle;
 }
 
-// FUNCTION: WIZ8 0x00517C60
+// FUNCTION: WIZ8 0x00517c60
 float NormalizeAngle(float angle)
 {
     return NormalizeAngleInline(angle);
 }
 
-// FUNCTION: WIZ8 0x00517CE0
+// FUNCTION: WIZ8 0x00517ce0
 float ShortestAngleDistance(float first, float second)
 {
     float forward = NormalizeAngleInline(first - second);
@@ -265,7 +265,7 @@ float ShortestAngleDistance(float first, float second)
     return forward < backward ? forward : backward;
 }
 
-// FUNCTION: WIZ8 0x00517E20
+// FUNCTION: WIZ8 0x00517e20
 void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
                       W8ScreenRect* result)
 {
@@ -275,7 +275,7 @@ void UnionScreenRects(const W8ScreenRect* first, const W8ScreenRect* second,
     result->bottom = first->bottom > second->bottom ? first->bottom : second->bottom;
 }
 
-// FUNCTION: WIZ8 0x00517E70
+// FUNCTION: WIZ8 0x00517e70
 unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* point)
 {
     if (rect != 0 && point != 0 && point->x >= rect->left && point->x < rect->right
@@ -285,7 +285,7 @@ unsigned char ScreenPointInRect(const W8ScreenRect* rect, const W8ScreenPoint* p
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00517EA0
+// FUNCTION: WIZ8 0x00517ea0
 void StripMonsterNameSuffix(W8WideChar* name)
 {
     wchar_t* suffix = wcschr((wchar_t*)name, L'#');
@@ -295,7 +295,7 @@ void StripMonsterNameSuffix(W8WideChar* name)
     }
 }
 
-// FUNCTION: WIZ8 0x00517EC0
+// FUNCTION: WIZ8 0x00517ec0
 unsigned int CharacterPointerToPartySlot(W8Character* character)
 {
     unsigned int slot;
@@ -324,7 +324,7 @@ unsigned int CharacterPointerToPartySlot(W8Character* character)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00517F30
+// FUNCTION: WIZ8 0x00517f30
 unsigned char IsPartyCharacterPointer(const W8Character* character)
 {
     W8Character* party_character = g_party_characters;
@@ -339,13 +339,13 @@ unsigned char IsPartyCharacterPointer(const W8Character* character)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x00517F60
+// FUNCTION: WIZ8 0x00517f60
 void AdjustByteByPercent(unsigned char* value, unsigned int percent)
 {
     *value = (unsigned char)(((percent + 100) * *value + 50) / 100);
 }
 
-// FUNCTION: WIZ8 0x00517F90
+// FUNCTION: WIZ8 0x00517f90
 void AdjustIntegerByPercent(unsigned int* value, unsigned int percent)
 {
     *value += *value * percent / 100;
@@ -446,7 +446,7 @@ retry:
     return -1;
 }
 
-// FUNCTION: WIZ8 0x005182E0
+// FUNCTION: WIZ8 0x005182e0
 void FormatDebugMessage(int channel, const char* format, ...)
 {
     char message[200];
@@ -477,7 +477,7 @@ int RPCPtrToPCSlot(const W8RPCSlot* rpc)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x005184B0
+// FUNCTION: WIZ8 0x005184b0
 void FreeStringTable(void)
 {
     if (g_string_table != 0) {
@@ -498,7 +498,7 @@ void FreeStringTable(void)
     }
 }
 
-// FUNCTION: WIZ8 0x00518B20
+// FUNCTION: WIZ8 0x00518b20
 bool IsStringTableLoaded(void)
 {
     bool loaded;

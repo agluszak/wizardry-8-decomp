@@ -15,7 +15,7 @@ public:
     virtual ~W8Object005EF894() override;         /* 0x005D1020 */
 };
 
-// FUNCTION: WIZ8 0x005D1020
+// FUNCTION: WIZ8 0x005d1020
 W8Object005EF894::~W8Object005EF894()
 {
 }

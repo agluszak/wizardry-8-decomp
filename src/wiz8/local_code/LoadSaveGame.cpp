@@ -116,7 +116,7 @@ extern int g_small_font_683678;
    The record is cleared before the read, and the read is two calls: a four-byte
    length and then that many bytes. A short or failed second read leaves the
    record cleared and reports failure, and the file is closed either way. */
-// FUNCTION: WIZ8 0x005152B0
+// FUNCTION: WIZ8 0x005152b0
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure)
 {
@@ -221,7 +221,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
    A record whose database entry is marked deleted is read and then dropped: it
    is neither listed nor given a monster list, and the function still reports
    success. */
-// FUNCTION: WIZ8 0x00513C20
+// FUNCTION: WIZ8 0x00513c20
 unsigned char LoadMonsterGroup(W8Chunk* chunk)
 {
     /* The record size lands in the incoming parameter's own stack slot. The
@@ -294,7 +294,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
    strlen at the bottom of the loop.
    The empty fourth slot is initialized from a string literal, not zeroed in
    place, so it is spelled as one here. */
-// FUNCTION: WIZ8 0x00512D00
+// FUNCTION: WIZ8 0x00512d00
 unsigned char VerifyDataSubdirs(void)
 {
     char directories[4][60] = { "Saves", "Saves\\Characters", "Saves\\NPCs", "" };
@@ -348,7 +348,7 @@ unsigned char VerifyDataSubdirs(void)
    while VC6 here loads ESI and copies ESI to EDI. Size, instruction count and
    every other encoding agree, and neither declaration order nor a guarded
    do-while moves it. */
-// FUNCTION: WIZ8 0x00514BE0
+// FUNCTION: WIZ8 0x00514be0
 unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
 {
     W8WorldItem* first = item_info;
@@ -379,7 +379,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
    pointer as a file-resident flag: a non-null value only means another record
    follows, and the real link is rebuilt here. Every failure after the first
    allocation abandons the partial chain, which the original does too. */
-// FUNCTION: WIZ8 0x00514C80
+// FUNCTION: WIZ8 0x00514c80
 W8WorldItem* LoadItem(int handle, char add_to_list)
 {
     W8WorldItem* previous = 0;
@@ -421,7 +421,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
 /* Reports whether any save exists other than the autosave. The main menu stores
    this and greys its second item out when it is clear, which is what makes the
    continue entry unavailable on a fresh install. */
-// FUNCTION: WIZ8 0x00512FB0
+// FUNCTION: WIZ8 0x00512fb0
 unsigned char SaveGameExists(void)
 {
     GETFILESTRUCT find;
@@ -556,7 +556,7 @@ unsigned char TakePendingSaveFlag(void)
 
 /* Whether one save slot's file is on disk. The path is built into a MAX_PATH
    buffer from the saves directory, the slot name and the extension. */
-// FUNCTION: WIZ8 0x00512F70
+// FUNCTION: WIZ8 0x00512f70
 unsigned char SaveSlotFileExists(const char* slot_name)
 {
     char path[260];
@@ -567,7 +567,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 
 /* Note that the save could not be written. The notice is only shown on the
    screen that owns saving, but the flag is raised either way. */
-// FUNCTION: WIZ8 0x00515AC0
+// FUNCTION: WIZ8 0x00515ac0
 void ReportSaveFailed(char quiet)
 {
     if (quiet == 0 || g_save_flag_00687599 != 0) {
@@ -581,7 +581,7 @@ void ReportSaveFailed(char quiet)
 /* Walk every chunk of a saved game. Character chunks are read straight in; a
    level chunk is read only for the level the party is actually on, and one for
    any other level is rewound and read as a character chunk instead. */
-// FUNCTION: WIZ8 0x00514D50
+// FUNCTION: WIZ8 0x00514d50
 void ReadSaveChunks(int destination)
 {
     int remaining = SaveChunkCount();

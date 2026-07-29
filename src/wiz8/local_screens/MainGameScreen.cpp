@@ -36,7 +36,7 @@ extern void Function55EE70(int arg_1);
 /* Ask for part of the screen to be redrawn. A request made while another
    screen is up, or before the level block exists, is dropped rather than
    queued - which is what makes the block the only place redraw state lives. */
-// FUNCTION: WIZ8 0x00562A50
+// FUNCTION: WIZ8 0x00562a50
 void RequestRedraw(unsigned int mask)
 {
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
@@ -55,7 +55,7 @@ void RequestRedrawParty(void)
     }
 }
 
-// FUNCTION: WIZ8 0x005699B0
+// FUNCTION: WIZ8 0x005699b0
 void RequestRedrawCombatBar(void)
 {
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
@@ -65,7 +65,7 @@ void RequestRedrawCombatBar(void)
 
 /* Note that the party's state changed. The combat half is only asked for while
    a fight is on; the party half always. */
-// FUNCTION: WIZ8 0x005653F0
+// FUNCTION: WIZ8 0x005653f0
 void RequestRefreshPartyState(void)
 {
     if (g_level_block == 0) {
@@ -78,14 +78,14 @@ void RequestRefreshPartyState(void)
 }
 
 /* Whether a modal owner has the screen. */
-// FUNCTION: WIZ8 0x0056AA20
+// FUNCTION: WIZ8 0x0056aa20
 bool IsModalOpen(void)
 {
     return g_modal_owner_0068edd0 != 0;
 }
 
 /* Take the screen for a modal owner and put its region up. */
-// FUNCTION: WIZ8 0x005698A0
+// FUNCTION: WIZ8 0x005698a0
 void OpenModal(void* owner)
 {
     g_modal_owner_0068edd0 = owner;
@@ -94,13 +94,13 @@ void OpenModal(void* owner)
 
 /* Put the main region set up, and take it down again with its mode reset -
    the two are not symmetric, which is what the extra call shows. */
-// FUNCTION: WIZ8 0x00561FA0
+// FUNCTION: WIZ8 0x00561fa0
 void EnableMainRegionSet(void)
 {
     RegionSetEnable(W8_REGION_SET_MAIN);
 }
 
-// FUNCTION: WIZ8 0x00561FB0
+// FUNCTION: WIZ8 0x00561fb0
 void DisableMainRegionSet(void)
 {
     RegionSetDisable(W8_REGION_SET_MAIN);
@@ -118,7 +118,7 @@ void ClearScreenWait(void)
 
 /* Forget the whole combat selection - what is picked, what it is aimed at, and
    what is going to be done - and then re-derive who is acting. */
-// FUNCTION: WIZ8 0x0056A5A0
+// FUNCTION: WIZ8 0x0056a5a0
 void ClearCombatSelection(void)
 {
     SetCombatSelection(-1);
@@ -128,7 +128,7 @@ void ClearCombatSelection(void)
 }
 
 /* Drop the highlight when the thing being highlighted is the one going away. */
-// FUNCTION: WIZ8 0x0056A2A0
+// FUNCTION: WIZ8 0x0056a2a0
 void ClearHighlightIfItIs(const int* item)
 {
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
@@ -204,7 +204,7 @@ int IsScreenIdle(void)
 /* Load the level the party is on. With no level yet there is nothing to load
    and the answer is yes; otherwise the loading flag is up for the duration so
    whatever watches it knows. */
-// FUNCTION: WIZ8 0x00560A20
+// FUNCTION: WIZ8 0x00560a20
 bool LoadCurrentLevelData(void)
 {
     bool loaded = true;
@@ -223,7 +223,7 @@ bool LoadCurrentLevelData(void)
 /* Note what the pointer is hovering over. Moving to anything else restarts the
    tooltip clock; staying put leaves it running, which is what makes the four
    fields one tooltip rather than four settings. */
-// FUNCTION: WIZ8 0x00569C60
+// FUNCTION: WIZ8 0x00569c60
 void SetTooltipSubject(int kind, int subject)
 {
     if (g_level_block->tooltip_kind != kind || g_level_block->tooltip_subject != subject) {
@@ -236,7 +236,7 @@ void SetTooltipSubject(int kind, int subject)
 
 /* Put the seven combat regions into their inactive mode, and the eighth with
    its whole set only when the screen says it is not needed. */
-// FUNCTION: WIZ8 0x005690C0
+// FUNCTION: WIZ8 0x005690c0
 void DisableCombatRegions(void)
 {
     SetRegionMode4(0x52);
@@ -254,7 +254,7 @@ void DisableCombatRegions(void)
 
 /* Hand one frame to whichever overlays are up. Each is independent, so more
    than one can take the same frame. */
-// FUNCTION: WIZ8 0x0056AF20
+// FUNCTION: WIZ8 0x0056af20
 void UpdateScreenOverlays(int frame)
 {
     if (g_flag_00683f98 != 0) {
@@ -277,7 +277,7 @@ void UpdateScreenOverlays(int frame)
 /* Which party portrait the pointer is over, if any. The slots are walked
    against two runs of region numbers at once - one starting at 0x24 six apart
    and one at 0x5a one apart - and only two event kinds are answered. */
-// FUNCTION: WIZ8 0x00569C00
+// FUNCTION: WIZ8 0x00569c00
 unsigned int HitTestPartyPortrait(const void* event)
 {
     unsigned int region = 0x24;

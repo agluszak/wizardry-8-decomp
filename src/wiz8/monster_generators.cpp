@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-// FUNCTION: WIZ8 0x0048BDC0
+// FUNCTION: WIZ8 0x0048bdc0
 W8MonsterGenerator* FindMonGenByName(const char* name)
 {
     W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
@@ -139,7 +139,7 @@ static unsigned char InitializeEncounterVector(W8EncounterRuntimeVector* vector,
    fixed 64-byte script names.  Keeping those columns in their reviewed inline
    vector layout makes this useful to the later encounter path as well as to
    startup. */
-// FUNCTION: WIZ8 0x0048A7A0
+// FUNCTION: WIZ8 0x0048a7a0
 extern "C" unsigned int InitializeEncounterTables(void)
 {
     char archive_path[] = "Data\\Databases\\EncounterTables.dbs";
@@ -280,7 +280,7 @@ enum { W8_ENCOUNTER_STALE_SECONDS = 36000 };
    The elapsed span is finally added to every live group's own timestamp, so a
    group that existed through the gap ages by exactly as much as the level did.
    Past ten hours that is not worth doing and the encounters are rerolled. */
-// FUNCTION: WIZ8 0x0048C810
+// FUNCTION: WIZ8 0x0048c810
 void UpdateRandomEncounterBudget(unsigned char reset_budget)
 {
     W8LevelDatabaseRecord* level;
@@ -338,7 +338,7 @@ extern const float g_encounter_culling_distance;    /* 0x005ECA90 */
    The elapsed span is compared as unsigned, so a group whose timestamp is ahead
    of the clock reads as very old rather than as not yet due. Preserved as
    found. */
-// FUNCTION: WIZ8 0x0048C8E0
+// FUNCTION: WIZ8 0x0048c8e0
 void CullExpiredEncounters(void)
 {
     srVector3T<float> party;
@@ -377,7 +377,7 @@ void CullExpiredEncounters(void)
 }
 
 /* How many monster generators the loaded world carries. */
-// FUNCTION: WIZ8 0x0048BD80
+// FUNCTION: WIZ8 0x0048bd80
 int GetMonsterGeneratorCount(void)
 {
     return g_world->monster_generators->GetCount();
@@ -387,7 +387,7 @@ int GetMonsterGeneratorCount(void)
    appears twice: once here, rejecting the index outright, and once inside the
    vector's own bounds-checked read, which would otherwise fall back to element
    zero. */
-// FUNCTION: WIZ8 0x0048BD90
+// FUNCTION: WIZ8 0x0048bd90
 W8MonsterGenerator* GetMonsterGenerator(int index)
 {
     W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
@@ -401,7 +401,7 @@ W8MonsterGenerator* GetMonsterGenerator(int index)
 /* One loaded encounter table by index. Unlike the generator lookup this one has
    no second bounds test, because the tables are a plain array rather than a
    vector. */
-// FUNCTION: WIZ8 0x0048AD00
+// FUNCTION: WIZ8 0x0048ad00
 W8EncounterTableRuntime* GetEncounterTable(int index)
 {
     if (index < static_cast<int>(g_encounter_table_count)) {
@@ -415,7 +415,7 @@ W8EncounterTableRuntime* GetEncounterTable(int index)
    image does. A failed allocation puts the old array back and drops the
    generator silently. The grow is written out rather than delegated because the
    original inlines it here. */
-// FUNCTION: WIZ8 0x0048BE30
+// FUNCTION: WIZ8 0x0048be30
 void AddMonsterGenerator(W8MonsterGenerator* generator)
 {
     W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
@@ -465,7 +465,7 @@ static __inline void DestroyMonsterGeneratorInline(W8MonsterGenerator* generator
    front and the list is emptied by resetting it rather than by removing
    elements, so the walk indexes an array it is deleting out of - which is safe
    only because nothing shifts. */
-// FUNCTION: WIZ8 0x0048BF70
+// FUNCTION: WIZ8 0x0048bf70
 void DestroyMonsterGenerators(void)
 {
     int count = g_world->monster_generators->GetCount();
@@ -485,7 +485,7 @@ void DestroyMonsterGenerators(void)
 /* Runs one encounter roll for every generator that is armed and whose own
    precondition passes. The count is taken once, but the vector is re-read for
    each element, which is what the repeated bounds test in the original is. */
-// FUNCTION: WIZ8 0x0048C600
+// FUNCTION: WIZ8 0x0048c600
 void RunMonsterGenerators(void)
 {
     int count = g_world->monster_generators->GetCount();
@@ -507,7 +507,7 @@ void RunMonsterGenerators(void)
    level loaded. Both walks re-read their base pointer and count from memory
    each iteration, because destroying a table can reallocate neither but the
    original reloads them anyway. */
-// FUNCTION: WIZ8 0x0048A710
+// FUNCTION: WIZ8 0x0048a710
 void UnloadEncounterTables(void)
 {
     W8EncounterTableRuntime* table;
@@ -535,7 +535,7 @@ void UnloadEncounterTables(void)
 /* Writes the world's generators to a save. The record version goes out first,
    then a shared flag byte, then the count, and then each generator as its name,
    its trailing flag, its own flag word and whatever 0x0043A770 appends. */
-// FUNCTION: WIZ8 0x0048C3B0
+// FUNCTION: WIZ8 0x0048c3b0
 void SaveMonsterGenerators(int handle)
 {
     W8MonsterGenerator* generator;
@@ -561,7 +561,7 @@ void SaveMonsterGenerators(int handle)
    record on disk is narrower than the structure and skips +0x05, +0x0A and
    +0x18. The leading byte is written uninitialised - a one-byte local the
    original never assigns. Preserved as found. */
-// FUNCTION: WIZ8 0x0048B520
+// FUNCTION: WIZ8 0x0048b520
 void W8MonsterGenerator::Save(int handle)
 {
     unsigned char leading;
@@ -586,7 +586,7 @@ void W8MonsterGenerator::Save(int handle)
    through the same conjunction, so the first failure abandons the rest and the
    record is reported bad; the timer is rearmed either way, and the armed bit is
    always cleared on the way out so a loaded generator starts disarmed. */
-// FUNCTION: WIZ8 0x0048B5E0
+// FUNCTION: WIZ8 0x0048b5e0
 unsigned char W8MonsterGenerator::Load(int handle)
 {
     unsigned char version;
@@ -619,7 +619,7 @@ unsigned char W8MonsterGenerator::Load(int handle)
    search stops at the first match and the tail is shifted down over it; a
    generator that is not in the list is left alone entirely, so this is safe to
    call on one that has already been removed. */
-// FUNCTION: WIZ8 0x0048BEB0
+// FUNCTION: WIZ8 0x0048beb0
 void RemoveMonsterGenerator(W8MonsterGenerator* generator)
 {
     W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
@@ -661,7 +661,7 @@ void RemoveMonsterGenerator(W8MonsterGenerator* generator)
  
    Allocating the timer is what gives this body its unwind frame, and the
    assertion that guards it is where m_pTimer, MonGen and Reset all come from. */
-// FUNCTION: WIZ8 0x0048B420
+// FUNCTION: WIZ8 0x0048b420
 void W8MonsterGenerator::Reset()
 {
     short interval;
@@ -711,7 +711,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(W8MonsterGenerator* genera
    Data\\Items3D\\Bitmaps the first time and hands the caller's node over;
    disarming drops the flag and notifies the world. Both directions are no-ops
    when the flag already reads as asked. */
-// FUNCTION: WIZ8 0x0048B770
+// FUNCTION: WIZ8 0x0048b770
 void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode* node)
 {
     (void)node;
@@ -736,7 +736,7 @@ void W8MonsterGenerator::SetActive(unsigned char active, W8MonsterGeneratorNode*
    records themselves: the record version, the level's saved budget, the running
    budget and culling span, the shared flag byte, three shared interval words,
    and then the count followed by that many generator records. */
-// FUNCTION: WIZ8 0x0048C020
+// FUNCTION: WIZ8 0x0048c020
 void SaveEncounterState(int handle)
 {
     int count;
@@ -763,7 +763,7 @@ void SaveEncounterState(int handle)
    the generator was still holding the armed bit, which is why that clear sits
    inside the first node's guard rather than beside it. The generator's own
    storage is not freed here - the callers do that. */
-// FUNCTION: WIZ8 0x0048A6C0
+// FUNCTION: WIZ8 0x0048a6c0
 W8MonsterGenerator::~W8MonsterGenerator()
 {
     if (node_18 != 0) {
@@ -778,7 +778,7 @@ W8MonsterGenerator::~W8MonsterGenerator()
 
 /* Moves the generator. The scene is only told when the generator is armed and
    therefore actually has something placed. */
-// FUNCTION: WIZ8 0x0048B730
+// FUNCTION: WIZ8 0x0048b730
 void W8MonsterGenerator::SetState(const W8Position* state)
 {
     state_0c = *reinterpret_cast<const int*>(&state->x);
@@ -795,7 +795,7 @@ void W8MonsterGenerator::SetState(const W8Position* state)
    when the generator has none - so this is what replaces a marker rather than
    what installs the first. The state application afterwards is the same body
    SetActive is, inlined, including its own conditional second load. */
-// FUNCTION: WIZ8 0x0048B850
+// FUNCTION: WIZ8 0x0048b850
 void W8MonsterGenerator::Reload(int unused, unsigned char active)
 {
     (void)unused;

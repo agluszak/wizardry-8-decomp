@@ -20,7 +20,7 @@ unsigned char GetCurrentTargetingContext(int party_slot);
 /* Point a source at one party character. Everything is cleared first and the
    monster id invalidated, so a source built this way never reads as a monster;
    the character id is the only thing left set. */
-// FUNCTION: WIZ8 0x0053BE00
+// FUNCTION: WIZ8 0x0053be00
 void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source)
 {
     if (source == 0) {
@@ -37,7 +37,7 @@ void SetTargetSourceToCharacter(int party_slot, W8TargetSource* source)
    as its info record rather than as an id, so the id is read out of it here -
    which is what makes the two builders take different kinds of argument for
    the same job. */
-// FUNCTION: WIZ8 0x0053BE50
+// FUNCTION: WIZ8 0x0053be50
 void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source)
 {
     if (source == 0) {
@@ -50,7 +50,7 @@ void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource*
     source->iMonsterID = monster_info->location_id;
 }
 
-// FUNCTION: WIZ8 0x0053BEA0
+// FUNCTION: WIZ8 0x0053bea0
 unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect)
 {
     if (source->iType == 1) {
@@ -68,7 +68,7 @@ unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_in
     return 0;
 }
 
-// FUNCTION: WIZ8 0x0053BF10
+// FUNCTION: WIZ8 0x0053bf10
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect)
 {
     if (source->iType == 2) {
@@ -99,7 +99,7 @@ extern unsigned char g_targeting_flag_00685116;
 
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */
-// FUNCTION: WIZ8 0x005360B0
+// FUNCTION: WIZ8 0x005360b0
 char FindFactionByName(const char* name)
 {
     char faction;
@@ -113,7 +113,7 @@ char FindFactionByName(const char* name)
 }
 
 /* One faction's runtime value. */
-// FUNCTION: WIZ8 0x005360F0
+// FUNCTION: WIZ8 0x005360f0
 int GetFactionValue(char faction)
 {
     return g_faction_runtime[faction].value_04;
@@ -157,7 +157,7 @@ void ResetCombatSlot(W8CombatSlot* slot)
 
 /* Clear whatever a monster was aiming at, and report that it now has no
    target. */
-// FUNCTION: WIZ8 0x005369F0
+// FUNCTION: WIZ8 0x005369f0
 bool ClearMonsterCombatSlot(W8MonsterInfo* monster_info)
 {
     ResetCombatSlot(&monster_info->combat_slot_2ba);
@@ -270,7 +270,7 @@ void AimAtPlace(int actor)
 
 /* The three wrappers that set the party's own target rather than a
    combatant's, one per kind that names something. */
-// FUNCTION: WIZ8 0x00538D10
+// FUNCTION: WIZ8 0x00538d10
 void SetTargetToCharacter(int character_slot, int context)
 {
     W8CombatSlot target;
@@ -283,7 +283,7 @@ void SetTargetToCharacter(int character_slot, int context)
     ApplyTarget(&target, context);
 }
 
-// FUNCTION: WIZ8 0x00538D60
+// FUNCTION: WIZ8 0x00538d60
 void SetTargetToMonster(int monster_id, int context)
 {
     W8CombatSlot target;
@@ -296,7 +296,7 @@ void SetTargetToMonster(int monster_id, int context)
     ApplyTarget(&target, context);
 }
 
-// FUNCTION: WIZ8 0x00538DB0
+// FUNCTION: WIZ8 0x00538db0
 void SetTargetToGroup(int group_id, int context)
 {
     W8CombatSlot target;
@@ -398,7 +398,7 @@ extern int g_highlight_suppressed_00683fe7;
 /* What the interface has to ask the player to pick for one action. Most
    actions answer a fixed kind; casting asks the spell and using an item asks
    the item's own spell, which is the same two-step the item path takes. */
-// FUNCTION: WIZ8 0x00536A20
+// FUNCTION: WIZ8 0x00536a20
 char GetTargetNeededForAction(
     int action, int spell_id, const W8ActionDetailBlock* detail_block)
 {
@@ -430,7 +430,7 @@ char GetTargetNeededForAction(
 /* Whether a slot's recorded target suits the item it would be used with. An
    item with no spell needs nothing picked, and one target kind a global
    override always accepts. */
-// FUNCTION: WIZ8 0x005372B0
+// FUNCTION: WIZ8 0x005372b0
 unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
 {
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
@@ -503,7 +503,7 @@ void SetMonsterHighlight(int party_slot, int location_id, int unused, char on)
 
 /* The same over a whole group, one member at a time. The count is re-read each
    step because highlighting can remove a member. */
-// FUNCTION: WIZ8 0x00538C00
+// FUNCTION: WIZ8 0x00538c00
 void SetGroupHighlight(int party_slot, int group_id, char on)
 {
     unsigned int group_index =
@@ -610,7 +610,7 @@ extern W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
    first, then the one that can actually be reached, then the nearest. Only
    three of the record's seven fields are compared, so the rest are carried for
    the caller rather than for the sort. */
-// FUNCTION: WIZ8 0x0053C920
+// FUNCTION: WIZ8 0x0053c920
 int CompareMonsterTargetCandidates(const void* left, const void* right)
 {
     const W8MonsterTargetCandidate* a = (const W8MonsterTargetCandidate*)left;
@@ -646,7 +646,7 @@ int CompareMonsterTargetCandidates(const void* left, const void* right)
    record carries fields the ordering never reads - they are what the caller
    would need if it took more than the first. A monster with no hit points at
    all is a data error rather than a candidate to skip. */
-// FUNCTION: WIZ8 0x0053C720
+// FUNCTION: WIZ8 0x0053c720
 int ChooseMonsterTarget(int party_slot, int group_id, int context)
 {
     unsigned int monster_count = PListGetCount(g_active_monster_list_00683fad);
@@ -903,7 +903,7 @@ extern W8MonsterSlot g_monster_slots_6836b8[];
    mask, so a monster several slots are highlighting stays lit for the rest;
    the original carries that body inline at both places rather than calling
    it. */
-// FUNCTION: WIZ8 0x0053AC30
+// FUNCTION: WIZ8 0x0053ac30
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 {
     W8MonsterSlot* slot = &g_monster_slots_6836b8[party_slot];
@@ -951,7 +951,7 @@ enum { W8_SIDE_ANY = 3 };
    highlighting on, a monster out of range has its tint cleared and one in
    range is taken without looking, and with it off nothing is tinted and a
    monster in range still has to be visible from the given eye point. */
-// FUNCTION: WIZ8 0x00539E70
+// FUNCTION: WIZ8 0x00539e70
 void CollectMonstersWithinRadius(
     const W8Position* centre, const W8Position* eye, W8GrowableVector<int>* found, float radius,
     char side, char highlighting)
@@ -1019,7 +1019,7 @@ enum { W8_SELECTION_SPELL = 7, W8_SELECTION_ITEM = 8 };
 
    Everything below carries this body inline rather than calling it, which is
    why the same fifteen-odd instructions open three of them. */
-// FUNCTION: WIZ8 0x0053BC10
+// FUNCTION: WIZ8 0x0053bc10
 unsigned char GetCurrentTargetingContext(int party_slot)
 {
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
@@ -1044,7 +1044,7 @@ unsigned char GetCurrentTargetingContext(int party_slot)
 /* Resolve "current" to a real context and check that what comes back is one.
    The switch answers each context with itself, so it exists only to catch a
    sixth value the caller invented rather than to map anything. */
-// FUNCTION: WIZ8 0x0053B920
+// FUNCTION: WIZ8 0x0053b920
 int ResolveTargetingContext(int party_slot, unsigned int context)
 {
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
@@ -1075,7 +1075,7 @@ int ResolveTargetingContext(int party_slot, unsigned int context)
    row and the sixth is shared by the party, which is what makes this the one
    place that knows the row holds five blocks of the same shape rather than one
    block and four runs of numbers. */
-// FUNCTION: WIZ8 0x0053B7F0
+// FUNCTION: WIZ8 0x0053b7f0
 W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context)
 {
     W8PartySlotRow* row = &g_party_slot_rows[party_slot];
@@ -1118,7 +1118,7 @@ extern unsigned char CanReachTarget(
    inner resolution has an assertion of its own, so a context that gets this far
    has already been checked once; this one guards the caller's own use of the
    answer, and the two report different lines. */
-// FUNCTION: WIZ8 0x0053BA20
+// FUNCTION: WIZ8 0x0053ba20
 int GetValidatedTargetingContext(int party_slot, unsigned int context)
 {
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
@@ -1153,7 +1153,7 @@ int GetValidatedTargetingContext(int party_slot, unsigned int context)
 
    The source block is built here rather than passed in, so this always asks on
    the character's own behalf. */
-// FUNCTION: WIZ8 0x00536D60
+// FUNCTION: WIZ8 0x00536d60
 unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
 {
     W8TargetSource source;
@@ -1212,7 +1212,7 @@ extern unsigned char IsSlotInRangeOfGroup(
    an action needing nothing is refused outright in combat. The database's
    untargetable flag is checked last rather than first, so an action needing
    nothing still reaches a monster carrying it. */
-// FUNCTION: WIZ8 0x00536AD0
+// FUNCTION: WIZ8 0x00536ad0
 unsigned char CanTargetMonster(
     int party_slot, int location_id, int allow_single_target, int reason)
 {
@@ -1290,7 +1290,7 @@ extern unsigned char SpellHasAnyValidTarget(
    than gates - only the actions with a way of being impossible can fail it.
    The two dialogue-driven actions answer yes as well until the dialogue has
    settled, since until then there is no spell or item to ask about. */
-// FUNCTION: WIZ8 0x0053CDF0
+// FUNCTION: WIZ8 0x0053cdf0
 unsigned char SlotHasAnyValidTarget(int party_slot)
 {
     int action;
@@ -1383,7 +1383,7 @@ enum {
 
    Out of combat the one-monster kind answers yes without looking, since
    anything in the level can be walked up to. */
-// FUNCTION: WIZ8 0x0053D010
+// FUNCTION: WIZ8 0x0053d010
 unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normalize)
 {
     unsigned int index;
@@ -1455,7 +1455,7 @@ typedef struct W8GroupMemberByAngle {
    The angle is what makes this feel like cycling across the screen rather than
    jumping about, and it is why the sort buffer holds a pair per candidate
    rather than just the ids. */
-// FUNCTION: WIZ8 0x005383E0
+// FUNCTION: WIZ8 0x005383e0
 int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int current)
 {
     unsigned int count = (unsigned int)candidates->GetCount();
@@ -1530,7 +1530,7 @@ int PickNextTargetableGroupMember(int party_slot, W8MonsterGroup* group)
    it can be put out, and once after to find it again so it can be lit. That
    the same call answers differently each time is exactly what the group's own
    record of where it got to is for. */
-// FUNCTION: WIZ8 0x00537B00
+// FUNCTION: WIZ8 0x00537b00
 void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
 {
     W8CombatSlot target;
@@ -1599,7 +1599,7 @@ extern int g_picked_group_006840b7;
    to where it began, so the same group is only offered again when nothing else
    will do. A picked group that has since gone away resets the starting point
    rather than ending the sweep. */
-// FUNCTION: WIZ8 0x00537ED0
+// FUNCTION: WIZ8 0x00537ed0
 int PickNextTargetableGroup(int party_slot)
 {
     unsigned int count = PListGetCount(g_monster_group_list_00683fb1);

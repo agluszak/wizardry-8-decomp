@@ -95,7 +95,7 @@ static __inline unsigned char CheckFactLogged(int fact_id)
 /* Reads the fact array back, then re-applies the consequences that do not
    survive a save. As in SaveFactState the handle's own incoming slot doubles as
    the bytes-read scratch. */
-// FUNCTION: WIZ8 0x005064A0
+// FUNCTION: WIZ8 0x005064a0
 void LoadFactState(int save_handle)
 {
     W8NPCItemList* list;

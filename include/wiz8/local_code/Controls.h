@@ -91,7 +91,7 @@ struct Controls;
 struct W8Region;
 struct W8RegionEvent;
 
-// VTABLE: WIZ8 0x005ED5BC
+// VTABLE: WIZ8 0x005ed5bc
 class W8WidgetBase005ED5BC {
 public:
     friend struct Controls;
@@ -108,7 +108,7 @@ public:
     virtual ~W8WidgetBase005ED5BC();
 
     virtual void SetVisible(unsigned char visible);
-    // FUNCTION: WIZ8 0x005B1BE0
+    // FUNCTION: WIZ8 0x005b1be0
     virtual void Redraw(int) {}
     virtual void SetBounds(int left, int top, int right, int bottom);
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
@@ -148,7 +148,7 @@ public:
     W8ControlCallback m_blurCallback;    /* 0x30 */
 };                                       /* 0x34 established */
 
-// VTABLE: WIZ8 0x005ED604
+// VTABLE: WIZ8 0x005ed604
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
     W8TextControl005ED604(Controls* panel, unsigned int region,
@@ -204,7 +204,7 @@ protected:
     __forceinline void InvalidateCore(unsigned char immediate);
 };
 
-// VTABLE: WIZ8 0x005ED758
+// VTABLE: WIZ8 0x005ed758
 class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
 public:
     W8HelpTextControl005ED758(Controls* panel, unsigned int region,
@@ -223,7 +223,7 @@ protected:
 
 class W8RangeControl005ED74C;
 
-// VTABLE: WIZ8 0x005ED6FC
+// VTABLE: WIZ8 0x005ed6fc
 class W8RangeButton005ED6FC : public W8TextControl005ED604 {
 public:
     W8RangeButton005ED6FC(Controls* panel, unsigned int region,

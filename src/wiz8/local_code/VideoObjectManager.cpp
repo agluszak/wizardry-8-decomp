@@ -134,7 +134,7 @@ void InitializeMenuVideoObjectCatalog(void)
 
 #define VIDEO_OBJECT_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\VideoObjectManager.cpp"
 
-// FUNCTION: WIZ8 0x00548F90
+// FUNCTION: WIZ8 0x00548f90
 void Function548F90(int target, int object, int frame, short y,
                     int a5, int a6, int a7, int a8)
 {
@@ -219,7 +219,7 @@ void Function549090(int object, int frame)
 /* Copies the loaded frame's released-SGP palette into an owned 256-entry
    table.  The allocation is intentionally retained when the source API says
    the object has no palette, matching the shipped failure path. */
-// FUNCTION: WIZ8 0x005492E0
+// FUNCTION: WIZ8 0x005492e0
 unsigned short* Function5492E0(int object, int frame)
 {
     unsigned short* palette;
@@ -254,7 +254,7 @@ void* Function549390(int object, int frame)
         g_video_slots_6448c8[object].first_frame + frame].handle;
 }
 
-// FUNCTION: WIZ8 0x005493E0
+// FUNCTION: WIZ8 0x005493e0
 short Function5493E0(int object, int fallback)
 {
     if (!g_video_objects_ready_650e20) {

@@ -16,13 +16,13 @@ extern void UnlockPrimarySurface(void);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void NoOp(int result, int line, const char* source);
 
-// FUNCTION: WIZ8 0x005E2F90
+// FUNCTION: WIZ8 0x005e2f90
 W8BinkVideo::W8BinkVideo()
     : m_handle(0), m_value_04(0)
 {
 }
 
-// FUNCTION: WIZ8 0x005E2FA0
+// FUNCTION: WIZ8 0x005e2fa0
 W8BinkVideo::~W8BinkVideo()
 {
     if (m_handle != 0) {
@@ -33,7 +33,7 @@ W8BinkVideo::~W8BinkVideo()
     }
 }
 
-// FUNCTION: WIZ8 0x005E2FE0
+// FUNCTION: WIZ8 0x005e2fe0
 unsigned char W8BinkVideo::Open(const char* path, int flags)
 {
     BinkSetSoundSystem(BinkOpenMiles, GetMilesDigitalDriver0040A8A0());
@@ -41,7 +41,7 @@ unsigned char W8BinkVideo::Open(const char* path, int flags)
     return m_handle != 0;
 }
 
-// FUNCTION: WIZ8 0x005E3020
+// FUNCTION: WIZ8 0x005e3020
 unsigned char W8BinkVideo::UpdateFrame()
 {
     if (m_handle != 0 && !BinkWait(m_handle)) {
@@ -60,7 +60,7 @@ unsigned char W8BinkVideo::UpdateFrame()
     return 0;
 }
 
-// FUNCTION: WIZ8 0x005E3070
+// FUNCTION: WIZ8 0x005e3070
 unsigned char W8BinkVideo::CopyFrameToPrimarySurface()
 {
     int pitch;
@@ -81,7 +81,7 @@ unsigned char W8BinkVideo::CopyFrameToPrimarySurface()
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005E3100
+// FUNCTION: WIZ8 0x005e3100
 unsigned char W8BinkVideo::CopyFrameToTargetSurface()
 {
     if (m_target == 0) {
@@ -112,7 +112,7 @@ unsigned char W8BinkVideo::CopyFrameToTargetSurface()
     return 1;
 }
 
-// FUNCTION: WIZ8 0x005E31E0
+// FUNCTION: WIZ8 0x005e31e0
 void W8BinkVideo::SetTarget(IDirectDrawSurface2* target)
 {
     if (target != 0) {

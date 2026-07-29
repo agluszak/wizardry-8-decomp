@@ -48,7 +48,7 @@ W8Vector005EEA28::~W8Vector005EEA28()
 {
 }
 
-// FUNCTION: WIZ8 0x0057E5D0
+// FUNCTION: WIZ8 0x0057e5d0
 unsigned char CreateList005EEA28(void)
 {
     W8Vector005EEA28* list;

@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-// FUNCTION: WIZ8 0x0042B580
+// FUNCTION: WIZ8 0x0042b580
 int GetLoadedLevelID(void)
 {
     return g_loaded_level_id;
@@ -10,7 +10,7 @@ int GetLoadedLevelID(void)
 
 // The original bounds-checks only the upper end, so a negative level_id reads
 // before the table. Reproduced as-is; LevelGetFolderNameByID checks both ends.
-// FUNCTION: WIZ8 0x0042B500
+// FUNCTION: WIZ8 0x0042b500
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code)
 {
     if (level_id >= 47) {
@@ -39,7 +39,7 @@ static __inline int LevelFindIDByLocationCode(const char* location_code)
     return -1;
 }
 
-// FUNCTION: WIZ8 0x0042B410
+// FUNCTION: WIZ8 0x0042b410
 int GetLocationIDFromCode(const char* location_code)
 {
     W8LevelInfo info;
@@ -67,7 +67,7 @@ int GetLocationIDFromCode(const char* location_code)
     return level_id;
 }
 
-// FUNCTION: WIZ8 0x0042B550
+// FUNCTION: WIZ8 0x0042b550
 const char* LevelGetFolderNameByID(int level_id)
 {
     if (level_id >= 47 || level_id < 0) {
@@ -82,7 +82,7 @@ W8World* GetWorld(void)
     return g_world;
 }
 
-// FUNCTION: WIZ8 0x0051B9E0
+// FUNCTION: WIZ8 0x0051b9e0
 int GetItemInHand(void)
 {
     if (!g_item_in_hand_valid) {

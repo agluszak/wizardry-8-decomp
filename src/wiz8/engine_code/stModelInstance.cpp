@@ -23,13 +23,13 @@ unsigned long stModelInstance::getClassID() const
     return 0x10004;
 }
 
-// FUNCTION: WIZ8 0x00481A50
+// FUNCTION: WIZ8 0x00481a50
 const char* stModelInstance2D::getClassName() const
 {
     return "stModelInstance2D";
 }
 
-// FUNCTION: WIZ8 0x00481A40
+// FUNCTION: WIZ8 0x00481a40
 unsigned long stModelInstance2D::getClassID() const
 {
     return 0x10005;
@@ -67,7 +67,7 @@ srRegistry::ClassNode* stModelInstance::getClassNode() const
 
 /* The 2D form takes the identical chain: both model-instance classes hang off
    srModelInstance, which is what pairs them beyond their adjacent ids. */
-// FUNCTION: WIZ8 0x00481A60
+// FUNCTION: WIZ8 0x00481a60
 srRegistry::ClassNode* stModelInstance2D::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();

@@ -53,7 +53,7 @@ private:
     unsigned int m_uiIndex;              /* 0x148 */
 };                                       /* 0x14c */
 
-// FUNCTION: WIZ8 0x005DFC70
+// FUNCTION: WIZ8 0x005dfc70
 W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)
 {
     if (!(uiIndex < ATTR_COUNT)) {
@@ -64,7 +64,7 @@ W8StatInfoDialog005DFC70::W8StatInfoDialog005DFC70(unsigned int uiIndex)
     m_value_144 = g_attr_table_61E4FC[uiIndex];
 }
 
-// FUNCTION: WIZ8 0x005E0180
+// FUNCTION: WIZ8 0x005e0180
 W8StatInfoDialog005E0180::W8StatInfoDialog005E0180(unsigned int uiIndex)
 {
     if (!(uiIndex < ATTR_COUNT)) {

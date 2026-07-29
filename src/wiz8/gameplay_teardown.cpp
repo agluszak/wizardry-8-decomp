@@ -17,7 +17,7 @@ extern "C" {
 
 extern void __fastcall Function52D5B0(void* self);
 
-// FUNCTION: WIZ8 0x0054B0B0
+// FUNCTION: WIZ8 0x0054b0b0
 void DestroyGameplayObjects(void)
 {
     void* owned = g_object_683fd7;

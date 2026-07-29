@@ -9,13 +9,13 @@
  * Only the class registry slots are recovered so far.
  */
 
-// FUNCTION: WIZ8 0x0049B550
+// FUNCTION: WIZ8 0x0049b550
 const char* stParticle::getClassName() const
 {
     return "stParticle";
 }
 
-// FUNCTION: WIZ8 0x0049B540
+// FUNCTION: WIZ8 0x0049b540
 unsigned long stParticle::getClassID() const
 {
     return 0x10009;
@@ -24,7 +24,7 @@ unsigned long stParticle::getClassID() const
 /* Registry node builder in the proven two-level shape: the class hangs
    directly off srNode, whose name comes from its static getter while this
    class's own name is a literal. */
-// FUNCTION: WIZ8 0x0049B560
+// FUNCTION: WIZ8 0x0049b560
 srRegistry::ClassNode* stParticle::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();

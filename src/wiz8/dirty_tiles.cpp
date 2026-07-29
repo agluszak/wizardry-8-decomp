@@ -55,7 +55,7 @@ void Function4259B0(int cell, unsigned int flags)
     }
 }
 
-// FUNCTION: WIZ8 0x00422D50
+// FUNCTION: WIZ8 0x00422d50
 void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags)
 {
     unsigned char cell_flags;
@@ -116,7 +116,7 @@ void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags)
 /* Coalesces dirty 8x8 cells into rectangular texture updates. Retail keeps the
    software surface locked for the complete batch and clears only the uploaded
    bit, preserving the lower per-cell state for the page lifecycle. */
-// FUNCTION: WIZ8 0x00425B40
+// FUNCTION: WIZ8 0x00425b40
 void Function425B40(void)
 {
     DDSURFACEDESC description;

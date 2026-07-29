@@ -18,14 +18,14 @@ extern int g_rcs_mode_0064cbe8;
    Controls::Invalidate spells "the whole area", so these are not a separate
    one-argument redraw slot - they are the panel class Local Code\Controls.cpp
    models, reached through its second vtable slot. */
-// FUNCTION: WIZ8 0x005B6590
+// FUNCTION: WIZ8 0x005b6590
 void RedrawRcsPanelA(void)
 {
     g_rcs_panel_a_0069c3c4->Invalidate(0);
 }
 
 /* Redraw the second. */
-// FUNCTION: WIZ8 0x005B68D0
+// FUNCTION: WIZ8 0x005b68d0
 void RedrawRcsPanelB(void)
 {
     g_rcs_panel_b_0069c3c8->Invalidate(0);
@@ -34,7 +34,7 @@ void RedrawRcsPanelB(void)
 /* Tear the first panel down. The Controls object is destroyed and released by
    hand; the widget goes through its own vtable slot zero with the deleting
    flag, which is what tells the two apart. */
-// FUNCTION: WIZ8 0x005B6540
+// FUNCTION: WIZ8 0x005b6540
 void DestroyRcsPanelA(void)
 {
     Controls* panel = g_rcs_panel_a_0069c3c4;
@@ -51,7 +51,7 @@ void DestroyRcsPanelA(void)
 }
 
 /* The same for the second panel and its widget. */
-// FUNCTION: WIZ8 0x005B6880
+// FUNCTION: WIZ8 0x005b6880
 void DestroyRcsPanelB(void)
 {
     Controls* panel = g_rcs_panel_b_0069c3c8;
@@ -70,7 +70,7 @@ void DestroyRcsPanelB(void)
 /* Bring the second panel up to date. Its widget is available only in the two
    leading modes, out of combat and out of camp; enabling it also invalidates the
    panel, disabling it does not. Either way the panel is then updated. */
-// FUNCTION: WIZ8 0x005B68E0
+// FUNCTION: WIZ8 0x005b68e0
 void UpdateRcsPanelB(void)
 {
     if ((g_rcs_mode_0064cbe8 == 0 || g_rcs_mode_0064cbe8 == 1) &&

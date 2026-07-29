@@ -33,7 +33,7 @@ private:
     int m_value_30;                      /* 0x30 */
 };                                       /* 0x34 */
 
-// FUNCTION: WIZ8 0x0043A910
+// FUNCTION: WIZ8 0x0043a910
 W8Object0043A910::W8Object0043A910()
 {
     m_rate_1c = g_rate_006068EC;

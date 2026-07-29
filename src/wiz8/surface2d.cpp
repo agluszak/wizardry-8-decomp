@@ -55,9 +55,9 @@ stTexture2D::stTexture2D()
     texture_height_ = 128;
 }
 
-// FUNCTION: WIZ8 0x0047E7E0
+// FUNCTION: WIZ8 0x0047e7e0
 const char* stTexture2D::getClassName() const { return kTextureClassName; }
-// FUNCTION: WIZ8 0x0047E7D0
+// FUNCTION: WIZ8 0x0047e7d0
 unsigned long stTexture2D::getClassID() const { return 0x1000f; }
 srRegistry::ClassNode* stTexture2D::getClassNode() const { return texture_class_node(); }
 
@@ -165,9 +165,9 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
     coordinates[7] = 1.0f;
 }
 
-// FUNCTION: WIZ8 0x0047E940
+// FUNCTION: WIZ8 0x0047e940
 const char* stSurface2D::getClassName() const { return kSurfaceClassName; }
-// FUNCTION: WIZ8 0x0047E930
+// FUNCTION: WIZ8 0x0047e930
 unsigned long stSurface2D::getClassID() const { return 0x1000e; }
 srRegistry::ClassNode* stSurface2D::getClassNode() const { return surface_class_node(); }
 
@@ -310,7 +310,7 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
     }
 }
 
-// FUNCTION: WIZ8 0x0047E5B0
+// FUNCTION: WIZ8 0x0047e5b0
 void stSurface2D::enableRendererFlag(unsigned int flag)
 {
     field_194 |= flag;

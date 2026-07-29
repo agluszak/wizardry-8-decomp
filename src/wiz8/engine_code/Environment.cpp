@@ -55,26 +55,26 @@ float GetViewDistance(void)
     return g_view_distance_0060a390;
 }
 
-// FUNCTION: WIZ8 0x00482A10
+// FUNCTION: WIZ8 0x00482a10
 unsigned char GetEnvironmentFlag0060A394(void)
 {
     return g_environment_flag_0060a394;
 }
 
-// FUNCTION: WIZ8 0x004842F0
+// FUNCTION: WIZ8 0x004842f0
 int GetEnvironmentValue0060A3A8(void)
 {
     return g_environment_value_0060a3a8;
 }
 
 /* Fog, which is a plain flag with a matched pair of accessors. */
-// FUNCTION: WIZ8 0x00482E80
+// FUNCTION: WIZ8 0x00482e80
 void SetFogEnabled(unsigned char enabled)
 {
     g_fog_enabled_0065b9ad = enabled;
 }
 
-// FUNCTION: WIZ8 0x00482E90
+// FUNCTION: WIZ8 0x00482e90
 unsigned char IsFogEnabled(void)
 {
     return g_fog_enabled_0065b9ad;
@@ -82,14 +82,14 @@ unsigned char IsFogEnabled(void)
 
 /* The sky, whose flag has to be cleared alongside the work of turning it off,
    so the read and the clear are not symmetric. */
-// FUNCTION: WIZ8 0x00482F60
+// FUNCTION: WIZ8 0x00482f60
 void DisableSky(void)
 {
     SetSkyEnabled(0);
     g_sky_enabled_0065b9ae = 0;
 }
 
-// FUNCTION: WIZ8 0x00482F80
+// FUNCTION: WIZ8 0x00482f80
 unsigned char IsSkyEnabled(void)
 {
     return g_sky_enabled_0065b9ae;
@@ -97,7 +97,7 @@ unsigned char IsSkyEnabled(void)
 
 /* Clear the whole ambient block. The six globals reset together are what makes
    them one group; the last is set to minus one rather than zero. */
-// FUNCTION: WIZ8 0x004826B0
+// FUNCTION: WIZ8 0x004826b0
 void ResetEnvironment(void)
 {
     g_environment_value_0065a168 = 0;
@@ -131,7 +131,7 @@ void GetLightDirection(int* direction)
    own gate at 0x3c is clear. Both assertions belong to this body: line 616
    names the world and line 617 names the out-parameter pLightValue, which is
    what makes the three writes a colour triple rather than three fields. */
-// FUNCTION: WIZ8 0x004839E0
+// FUNCTION: WIZ8 0x004839e0
 void GetWorldLightValue(const void* world, int* light_value)
 {
     if (world == 0) {
@@ -154,7 +154,7 @@ void GetWorldLightValue(const void* world, int* light_value)
 /* Drops the two renderer objects the environment holds and clears the count
    that goes with them. Both releases run through one loaded import address,
    which is what makes the two globals the same class rather than two. */
-// FUNCTION: WIZ8 0x004826E0
+// FUNCTION: WIZ8 0x004826e0
 void ReleaseEnvironmentObjects(void)
 {
     if (g_environment_object_0065b9b0 != 0) {
@@ -169,7 +169,7 @@ void ReleaseEnvironmentObjects(void)
 }
 
 /* One value off the world object, guarded by an assertion that names it. */
-// FUNCTION: WIZ8 0x00483AB0
+// FUNCTION: WIZ8 0x00483ab0
 float GetWorldValue24(const void* world)
 {
     if (world == 0) {
@@ -179,7 +179,7 @@ float GetWorldValue24(const void* world)
 }
 
 /* Write one field of the sky node, if the sky has one. */
-// FUNCTION: WIZ8 0x00483E30
+// FUNCTION: WIZ8 0x00483e30
 void SetSkyNodeValue1D0(int value)
 {
     unsigned char* sky = (unsigned char*)g_world_00659ab4->sky_node;
@@ -191,7 +191,7 @@ void SetSkyNodeValue1D0(int value)
 
 /* Show or hide the sky node, which is the renderer's flag zero the other way
    round: showing it clears the flag. */
-// FUNCTION: WIZ8 0x00483E50
+// FUNCTION: WIZ8 0x00483e50
 void SetSkyNodeVisible(char visible)
 {
     srNode* sky = (srNode*)g_world_00659ab4->sky_node;

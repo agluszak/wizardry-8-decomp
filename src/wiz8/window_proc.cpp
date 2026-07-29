@@ -43,7 +43,7 @@ extern void ShutdownInputManager(void);
 extern void NoOp(void);
 extern void ShutdownVideoSurfaceState(void);
 
-// FUNCTION: WIZ8 0x004011E0
+// FUNCTION: WIZ8 0x004011e0
 long __stdcall WindowProc4011E0(void* window, int message,
                                 unsigned int wparam, long lparam)
 {

@@ -14,7 +14,7 @@ extern W8PList* g_world_item_list_00683fb5;
 
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
-// FUNCTION: WIZ8 0x004F69F0
+// FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {
     g_status_count_006874c2 = 1;
@@ -30,7 +30,7 @@ bool InitializeItemManagerState()
     return g_world_item_list_00683fb5 != 0;
 }
 
-// FUNCTION: WIZ8 0x004F8130
+// FUNCTION: WIZ8 0x004f8130
 bool ItemHasFlags(W8WorldItem* item, unsigned int mask)
 {
     if (item == 0) {
@@ -39,7 +39,7 @@ bool ItemHasFlags(W8WorldItem* item, unsigned int mask)
     return (item->flags & mask) != 0;
 }
 
-// FUNCTION: WIZ8 0x004F8170
+// FUNCTION: WIZ8 0x004f8170
 void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
 {
     if (item == 0) {
@@ -52,7 +52,7 @@ void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
     }
 }
 
-// FUNCTION: WIZ8 0x004F81C0
+// FUNCTION: WIZ8 0x004f81c0
 void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled)
 {
     if (item == 0) {
@@ -68,7 +68,7 @@ void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char e
     }
 }
 
-// FUNCTION: WIZ8 0x004F8300
+// FUNCTION: WIZ8 0x004f8300
 int ItemInfoGetNumInGroup(W8WorldItem* item)
 {
     if (item == 0) {
@@ -84,7 +84,7 @@ int ItemInfoGetNumInGroup(W8WorldItem* item)
     return count;
 }
 
-// FUNCTION: WIZ8 0x004F8340
+// FUNCTION: WIZ8 0x004f8340
 void ItemInfoAddToGroup(W8WorldItem* group, W8WorldItem* item)
 {
     W8WorldItem* tail;
@@ -117,7 +117,7 @@ static const W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
     {31, 1000, 1000000},
 };
 
-// FUNCTION: WIZ8 0x004EF420
+// FUNCTION: WIZ8 0x004ef420
 unsigned int GetAveragePartyLevel(void)
 {
     unsigned int total_level = 0;
@@ -133,7 +133,7 @@ unsigned int GetAveragePartyLevel(void)
     return total_level / occupied_slots;
 }
 
-// FUNCTION: WIZ8 0x004F88A0
+// FUNCTION: WIZ8 0x004f88a0
 int FindItemTableByName(const char* name)
 {
     int index;
@@ -172,7 +172,7 @@ static __forceinline W8WorldItem* CreateTableItem(
     return result;
 }
 
-// FUNCTION: WIZ8 0x004F88F0
+// FUNCTION: WIZ8 0x004f88f0
 int GenerateItemsFromTable(
     W8GrowableVector<W8WorldItem*>* output_items,
     unsigned int table_id,
@@ -274,7 +274,7 @@ enum { W8_ITEM_FLAG_PERSISTENT = 0x20 };
 enum { W8_WORLD_ITEM_FLAG_02 = 2 };
 
 /* Free a whole group of world items, following the link that chains them. */
-// FUNCTION: WIZ8 0x004F6CC0
+// FUNCTION: WIZ8 0x004f6cc0
 void FreeWorldItemGroup(W8WorldItem* item)
 {
     W8WorldItem* next;
@@ -289,7 +289,7 @@ void FreeWorldItemGroup(W8WorldItem* item)
 /* Look an item record up by its internal name. The name sits at 0x8d in the
    record; a record whose name is empty is matched against the display name
    converted down from wide instead. */
-// FUNCTION: WIZ8 0x004F8220
+// FUNCTION: WIZ8 0x004f8220
 int FindItemRecordByName(const char* name)
 {
     int index;
@@ -312,7 +312,7 @@ int FindItemRecordByName(const char* name)
 
 /* Walk the world item list, resuming where the last call left off. Restarting
    rewinds; running off the end answers nothing without rewinding. */
-// FUNCTION: WIZ8 0x004F82B0
+// FUNCTION: WIZ8 0x004f82b0
 W8WorldItem* GetNextWorldItem(char restart)
 {
     int index;
@@ -331,7 +331,7 @@ W8WorldItem* GetNextWorldItem(char restart)
 /* Take one item out of the group chained onto another. Unlinking the head
    promotes whatever followed it; unlinking anything else just closes the gap.
    Answers the group's head afterwards. */
-// FUNCTION: WIZ8 0x004F83A0
+// FUNCTION: WIZ8 0x004f83a0
 W8WorldItem* ItemInfoRemoveFromGroup(W8WorldItem* head, int unused, W8WorldItem* item)
 {
     W8WorldItem* previous;
@@ -371,7 +371,7 @@ W8WorldItem* ItemInfoRemoveFromGroup(W8WorldItem* head, int unused, W8WorldItem*
 }
 
 /* The next item in a group. */
-// FUNCTION: WIZ8 0x004F8410
+// FUNCTION: WIZ8 0x004f8410
 W8WorldItem* ItemInfoGroupGetNext(W8WorldItem* item)
 {
     if (item == 0) {
@@ -382,7 +382,7 @@ W8WorldItem* ItemInfoGroupGetNext(W8WorldItem* item)
 }
 
 /* Whether the item's record marks it as one the world keeps. */
-// FUNCTION: WIZ8 0x004F91E0
+// FUNCTION: WIZ8 0x004f91e0
 bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
 {
     if (item == 0) {
@@ -392,7 +392,7 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
 }
 
 /* Copy a world item's carried item out onto the heap. */
-// FUNCTION: WIZ8 0x004F9210
+// FUNCTION: WIZ8 0x004f9210
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 {
     W8ItemInstance* copy = (W8ItemInstance*)malloc(0xc);
@@ -407,7 +407,7 @@ W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
 }
 
 /* Raise or lower bit one of the world item's own flag word. */
-// FUNCTION: WIZ8 0x004F94A0
+// FUNCTION: WIZ8 0x004f94a0
 void SetWorldItemFlag02(W8WorldItem* item, char enabled)
 {
     if (enabled) {
@@ -420,7 +420,7 @@ void SetWorldItemFlag02(W8WorldItem* item, char enabled)
 
 /* The world item at one list position. Both the bound and the fetch are
    asserted, and the second reports the list it failed on. */
-// FUNCTION: WIZ8 0x004F7FE0
+// FUNCTION: WIZ8 0x004f7fe0
 W8WorldItem* ItemInfo(unsigned int item_list_index)
 {
     W8WorldItem* item;
@@ -440,7 +440,7 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
 
 /* Where in the world item list one runtime id sits. Not finding it is a data
    error rather than a -1. */
-// FUNCTION: WIZ8 0x004F8060
+// FUNCTION: WIZ8 0x004f8060
 unsigned int ItemIndex(int runtime_id)
 {
     unsigned int index;
@@ -486,7 +486,7 @@ extern float g_world_scale_005ebc40;
 /* Flatten one item's whole group into a vector, the item itself first and then
    everything chained onto it. The append is written out rather than called, so
    a failed growth silently drops that entry and keeps walking. */
-// FUNCTION: WIZ8 0x004F8440
+// FUNCTION: WIZ8 0x004f8440
 int ItemInfoMakeGroupList(W8WorldItem* item, int unused, W8WorldItemVector* out)
 {
     W8WorldItem* next;
@@ -541,7 +541,7 @@ walk:
 /* Take one item out of the world. Its three assertions name the two fields
    they guard - fActive and p3D - and the item keeps its last position and
    entity flags so it can be put back. */
-// FUNCTION: WIZ8 0x004F70D0
+// FUNCTION: WIZ8 0x004f70d0
 void DeactivateWorldItem(W8WorldItem* item)
 {
     float position[3];
@@ -578,7 +578,7 @@ void DeactivateWorldItem(W8WorldItem* item)
 /* Whether one world item is close enough to a point to be reached, and in
    sight of the party's eye. The distance is compared before the trace, so a
    far item is never traced to. */
-// FUNCTION: WIZ8 0x004F8560
+// FUNCTION: WIZ8 0x004f8560
 unsigned char IsWorldItemWithinReach(void* item, const float* from, float radius)
 {
     float position[3];
@@ -613,7 +613,7 @@ unsigned char IsWorldItemWithinReach(void* item, const float* from, float radius
 /* Drop one item onto the ground below where it is. The search starts one world
    unit up so an item already resting does not settle into the floor; landing
    moves it between sectors and clears its saved-marker flag. */
-// FUNCTION: WIZ8 0x004F93D0
+// FUNCTION: WIZ8 0x004f93d0
 int SettleWorldItem(W8WorldItem* item)
 {
     float start[3];
@@ -652,7 +652,7 @@ int SettleWorldItem(W8WorldItem* item)
 
 /* Rebuild every world item's carried instance from its own item id, which
    re-rolls whatever the record decides rather than keeping what was there. */
-// FUNCTION: WIZ8 0x004F94C0
+// FUNCTION: WIZ8 0x004f94c0
 void RebuildAllWorldItemInstances(void)
 {
     unsigned int index;

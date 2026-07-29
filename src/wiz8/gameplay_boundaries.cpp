@@ -29,7 +29,7 @@ static __inline int MinimumCasterLevel(int spell_level)
     }
 }
 
-// FUNCTION: WIZ8 0x004AC9D0
+// FUNCTION: WIZ8 0x004ac9d0
 int GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
 {
     int target_type = g_spell_records[spell_id].target_type;
@@ -40,13 +40,13 @@ int GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
     return target_type;
 }
 
-// FUNCTION: WIZ8 0x004ACB40
+// FUNCTION: WIZ8 0x004acb40
 int MinimumCasterLevelForSpellLevel(int spell_level)
 {
     return MinimumCasterLevel(spell_level);
 }
 
-// FUNCTION: WIZ8 0x004ACBA0
+// FUNCTION: WIZ8 0x004acba0
 int GetMinimumCasterLevelForSpell(int spell_id)
 {
     return MinimumCasterLevel(g_spell_records[spell_id].spell_level);
@@ -80,7 +80,7 @@ unsigned char GetFact(int fact_id)
     return value;
 }
 
-// FUNCTION: WIZ8 0x005061A0
+// FUNCTION: WIZ8 0x005061a0
 void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects)
 {
     unsigned char previous_value;

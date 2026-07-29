@@ -53,7 +53,7 @@ void DestroyMonsterActionQueue(W8MonsterInfo* monster_info)
 }
 
 /* Run the decision over every monster that is in the fight and still alive. */
-// FUNCTION: WIZ8 0x005314F0
+// FUNCTION: WIZ8 0x005314f0
 void UpdateAllMonsterAI(void)
 {
     unsigned int index;
@@ -122,7 +122,7 @@ unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
 
 /* Aim a monster that wants to get away. A monster of the singled-out AI kind
    aims at where the party is standing instead of at anybody in it. */
-// FUNCTION: WIZ8 0x00534CB0
+// FUNCTION: WIZ8 0x00534cb0
 unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
 {
     W8Position party;
@@ -179,7 +179,7 @@ unsigned char IsMonsterActionUsable(W8MonsterInfo* monster_info)
 }
 
 /* How near the nearest member of a group has come. */
-// FUNCTION: WIZ8 0x005324B0
+// FUNCTION: WIZ8 0x005324b0
 float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 {
     unsigned int index;
@@ -206,7 +206,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
 /* Whether the point the monster-control effect is anchored to is still within
    reach. With no effect running, or nothing anchored, there is nothing to be
    in range of; failing the test falls back on where the party is standing. */
-// FUNCTION: WIZ8 0x00534D50
+// FUNCTION: WIZ8 0x00534d50
 short IsMonsterControlPointInRange(void)
 {
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();

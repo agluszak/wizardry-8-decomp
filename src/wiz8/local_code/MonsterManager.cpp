@@ -74,7 +74,7 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 /* The character array the alternate-name form indexes, and the slot it uses. */
 
-// FUNCTION: WIZ8 0x004E3930
+// FUNCTION: WIZ8 0x004e3930
 W8MonsterInfo* CreateMonsterInfo(
     W8MonsterGroup* group,
     W8MonsterRecord* record,
@@ -212,7 +212,7 @@ typedef char W8MonsterManagerEntry_size_must_be_0x118[
 typedef char W8MonsterManagerState_size_must_be_0x9c7[
     sizeof(W8MonsterManagerState) == 0x9c7 ? 1 : -1];
 
-// FUNCTION: WIZ8 0x004E4600
+// FUNCTION: WIZ8 0x004e4600
 void Function4E4600(W8MonsterInfo* monster_info)
 {
     int result;
@@ -232,7 +232,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
     }
 }
 
-// FUNCTION: WIZ8 0x004E4690
+// FUNCTION: WIZ8 0x004e4690
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message)
 {
     if (monster_info->monster->IsDying() == 0) {
@@ -249,7 +249,7 @@ void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message)
     }
 }
 
-// FUNCTION: WIZ8 0x004E5550
+// FUNCTION: WIZ8 0x004e5550
 unsigned int MonsterGetIndexByLocationID(
     int caller_line,
     const char* caller_file,
@@ -287,7 +287,7 @@ unsigned int MonsterGetIndexByLocationID(
     return 0xffffffff;
 }
 
-// FUNCTION: WIZ8 0x004E5620
+// FUNCTION: WIZ8 0x004e5620
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index)
 {
     W8MonsterInfo* result;
@@ -364,7 +364,7 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
     return record;
 }
 
-// FUNCTION: WIZ8 0x004E5720
+// FUNCTION: WIZ8 0x004e5720
 W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
@@ -377,7 +377,7 @@ W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info)
     return MonsterDBFromSpeciesInline(monster_info->monster_species);
 }
 
-// FUNCTION: WIZ8 0x004E57C0
+// FUNCTION: WIZ8 0x004e57c0
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species)
 {
     return MonsterDBFromSpeciesInline(monster_species);
@@ -410,7 +410,7 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(
     return monster;
 }
 
-// FUNCTION: WIZ8 0x004E5840
+// FUNCTION: WIZ8 0x004e5840
 W8MonsterInfo* MonsterInfoFromID(
     int caller_line,
     const char* caller_file,
@@ -424,7 +424,7 @@ W8MonsterInfo* MonsterInfoFromID(
         assert_on_failure);
 }
 
-// FUNCTION: WIZ8 0x004E58B0
+// FUNCTION: WIZ8 0x004e58b0
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
 {
     W8MonsterInfo* monster;
@@ -438,7 +438,7 @@ W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
     return MonsterDBFromSpeciesInline(monster->monster_species);
 }
 
-// FUNCTION: WIZ8 0x004E5950
+// FUNCTION: WIZ8 0x004e5950
 W8Monster* GetMonsterByLocationID(int location_id)
 {
     W8MonsterInfo* monster_info;
@@ -456,7 +456,7 @@ W8Monster* GetMonsterByLocationID(int location_id)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004E5990
+// FUNCTION: WIZ8 0x004e5990
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
 {
     W8MonsterRecord* record;
@@ -481,7 +481,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
     return result;
 }
 
-// FUNCTION: WIZ8 0x004E5A50
+// FUNCTION: WIZ8 0x004e5a50
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
 {
     W8Monster* monster = monster_info->monster;
@@ -499,7 +499,7 @@ void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
     }
 }
 
-// FUNCTION: WIZ8 0x004E5AA0
+// FUNCTION: WIZ8 0x004e5aa0
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
 {
     W8MonsterInfo* result = 0;
@@ -515,7 +515,7 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
     return result;
 }
 
-// FUNCTION: WIZ8 0x004E5AF0
+// FUNCTION: WIZ8 0x004e5af0
 int GetMonsterQuadrant(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
@@ -524,7 +524,7 @@ int GetMonsterQuadrant(W8MonsterInfo* monster_info)
     return GetQuadrantForPosition(monster_info->monster->member_18.GetPosition());
 }
 
-// FUNCTION: WIZ8 0x004E5B50
+// FUNCTION: WIZ8 0x004e5b50
 int Function4E5B50(unsigned int monster_species)
 {
     W8MonsterRecord* record;
@@ -542,7 +542,7 @@ int Function4E5B50(unsigned int monster_species)
     return record->value_253;
 }
 
-// FUNCTION: WIZ8 0x004E5C00
+// FUNCTION: WIZ8 0x004e5c00
 void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
 {
     unsigned int index;
@@ -581,7 +581,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
     }
 }
 
-// FUNCTION: WIZ8 0x004E5D00
+// FUNCTION: WIZ8 0x004e5d00
 void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
 {
     unsigned int monster_attribute = 0;
@@ -646,7 +646,7 @@ void ConvertMonsterAttributes(W8MonsterInfo* monster_info)
     } while (monster_attribute < 5);
 }
 
-// FUNCTION: WIZ8 0x004E5E50
+// FUNCTION: WIZ8 0x004e5e50
 W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
 {
     unsigned int index;
@@ -661,7 +661,7 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004E5EA0
+// FUNCTION: WIZ8 0x004e5ea0
 void ResetLivingMonstersAfterCombat(void)
 {
     unsigned int index;
@@ -678,7 +678,7 @@ void ResetLivingMonstersAfterCombat(void)
     }
 }
 
-// FUNCTION: WIZ8 0x004E5F00
+// FUNCTION: WIZ8 0x004e5f00
 void DestroyUngroupedMonsters(void)
 {
     unsigned int index;
@@ -720,7 +720,7 @@ void DestroyUngroupedMonsters(void)
     }
 }
 
-// FUNCTION: WIZ8 0x004E6020
+// FUNCTION: WIZ8 0x004e6020
 void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
 {
     if (monster_info == 0) {
@@ -746,7 +746,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
                 1)));
 }
 
-// FUNCTION: WIZ8 0x004E60B0
+// FUNCTION: WIZ8 0x004e60b0
 void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless)
 {
     unsigned char previous = monster_info->motionless;
@@ -774,7 +774,7 @@ void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionl
     }
 }
 
-// FUNCTION: WIZ8 0x004E6130
+// FUNCTION: WIZ8 0x004e6130
 void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
 {
     if (monster_info == 0) {
@@ -809,7 +809,7 @@ static __forceinline double DistanceBetweenPositions(
     return sqrt(x * x + y * y + z * z);
 }
 
-// FUNCTION: WIZ8 0x004E61E0
+// FUNCTION: WIZ8 0x004e61e0
 W8MonsterInfo* FindNearestMonsterInfo(
     const srVector3T<float>* position,
     double maximum_distance)
@@ -846,7 +846,7 @@ W8MonsterInfo* FindNearestMonsterInfo(
     return nearest;
 }
 
-// FUNCTION: WIZ8 0x004E6370
+// FUNCTION: WIZ8 0x004e6370
 void InitializeMonsterRuntimeStats(void)
 {
     unsigned int index;
@@ -904,7 +904,7 @@ void InitializeMonsterRuntimeStats(void)
     }
 }
 
-// FUNCTION: WIZ8 0x004E65D0
+// FUNCTION: WIZ8 0x004e65d0
 float CalculateMonsterScale(W8MonsterInfo* monster_info)
 {
     float minimum;
@@ -940,7 +940,7 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
     return result;
 }
 
-// FUNCTION: WIZ8 0x004E67A0
+// FUNCTION: WIZ8 0x004e67a0
 void TryStartMonsterCycle2(
     W8MonsterInfo* monster_info,
     W8Monster* monster,
@@ -981,7 +981,7 @@ void TryStartMonsterCycle2(
     }
 }
 
-// FUNCTION: WIZ8 0x004E6780
+// FUNCTION: WIZ8 0x004e6780
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record)
 {
     unsigned int value = record->combat_value_override_26b;
@@ -992,7 +992,7 @@ unsigned int GetMonsterCombatValue(const W8MonsterRecord* record)
     return value;
 }
 
-// FUNCTION: WIZ8 0x004E68C0
+// FUNCTION: WIZ8 0x004e68c0
 unsigned char AnyMonsterDying(void)
 {
     unsigned int index;
@@ -1011,7 +1011,7 @@ unsigned char AnyMonsterDying(void)
    entry zero rather than walking it, then releases the four gXStatus lists and
    the species-indexed record cache. The cache walk is a pointer sweep against
    the address one past the last slot, which is how the original spells it. */
-// FUNCTION: WIZ8 0x004E3820
+// FUNCTION: WIZ8 0x004e3820
 unsigned char ShutdownMonsterManager(void)
 {
     W8MonsterRecord** slot;
@@ -1055,7 +1055,7 @@ unsigned char ShutdownMonsterManager(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x004E3AF0
+// FUNCTION: WIZ8 0x004e3af0
 unsigned char RemoveMonster(
     unsigned int monster_list_index,
     unsigned char destroy_monster)
@@ -1116,7 +1116,7 @@ unsigned char RemoveMonster(
    lowers the live count. In combat it also clears the two selection slots the
    global at 0x006836A8 holds if this entry occupied them. The p3D name for the
    Monster pointer at +0x0c comes from the MonsterManager.cpp:585 assertion. */
-// FUNCTION: WIZ8 0x004E4280
+// FUNCTION: WIZ8 0x004e4280
 void DeactivateMonster(W8MonsterInfo* monster_info)
 {
     srVector3T<float> position;
@@ -1160,7 +1160,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
    names, and clears it as 0x54 dwords plus a trailing word and byte - the
    inline `memset` shape VC6 emits for a zero-initialised structure of that
    size, which is also what fixes the block's extent. */
-// FUNCTION: WIZ8 0x004E4390
+// FUNCTION: WIZ8 0x004e4390
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
 {
     int query_state;
@@ -1210,7 +1210,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
    runs releasing every occupied one, then frees the block and lowers fInCombat.
    Both runs step by 0x11 bytes; the first starts at +0x3e and the second at
    +0xd7, which is what places them inside the 0x153-byte allocation. */
-// FUNCTION: WIZ8 0x004E4500
+// FUNCTION: WIZ8 0x004e4500
 void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
 {
     unsigned int index;
@@ -1259,7 +1259,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
    flag; inside it also swaps the two engine bits at +0x001 and +0xa62 of the
    state block, and in engine mode 7 it announces the new posture with the
    message the block at 0x0068C09C holds for that direction. */
-// FUNCTION: WIZ8 0x004E6C10
+// FUNCTION: WIZ8 0x004e6c10
 void TogglePartyCombatStance(void)
 {
     void* message;
@@ -1301,7 +1301,7 @@ void TogglePartyCombatStance(void)
    raised, announcing the reason in each case. Only when all three clear does it
    end combat and, if the level record's field at +0x2ca is not -1, run the
    trailing notification. */
-// FUNCTION: WIZ8 0x004E6A80
+// FUNCTION: WIZ8 0x004e6a80
 void ToggleCombatMode(void)
 {
     unsigned int group_list_index;
@@ -1363,7 +1363,7 @@ void ToggleCombatMode(void)
  
    The combat-mode query on the way in is made for its effect: its result is
    discarded here. */
-// FUNCTION: WIZ8 0x004E4DB0
+// FUNCTION: WIZ8 0x004e4db0
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
 {
     W8Monster* monster = monster_info->monster;
@@ -1426,7 +1426,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
    used, and name_form picks the variant within it - the sets are twenty-four
    wide characters apart. A monster with no group at all is a bug unless it is
    already dying, and says so on the debug channel rather than asserting. */
-// FUNCTION: WIZ8 0x004E5150
+// FUNCTION: WIZ8 0x004e5150
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form)
 {
@@ -1466,22 +1466,22 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
 
 static W8MonsterManagerState g_monster_manager_state;
 
-// FUNCTION: WIZ8 0x004E6940
+// FUNCTION: WIZ8 0x004e6940
 W8MonsterManagerState::~W8MonsterManagerState()
 {
 }
 
-// FUNCTION: WIZ8 0x004E6970
+// FUNCTION: WIZ8 0x004e6970
 W8MonsterManagerState::W8MonsterManagerState()
 {
 }
 
-// FUNCTION: WIZ8 0x004E6A10
+// FUNCTION: WIZ8 0x004e6a10
 W8MonsterManagerEntry::~W8MonsterManagerEntry()
 {
 }
 
-// FUNCTION: WIZ8 0x004E6A30
+// FUNCTION: WIZ8 0x004e6a30
 W8MonsterManagerEntry::W8MonsterManagerEntry()
 {
 }

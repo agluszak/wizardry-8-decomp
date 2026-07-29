@@ -13,7 +13,7 @@ extern "C" int __stdcall Function4C4660(int query);
    "GetNumSubsPerCycle() -> Invalid cycle num.". The element count and stride
    agree with the reviewed constructor: 27 entries of 0x10 bytes at 0xAC ends at
    0x25C, exactly where Monster's second subobject array begins. */
-// FUNCTION: WIZ8 0x004BFAB0
+// FUNCTION: WIZ8 0x004bfab0
 unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
 {
     if (bCycle >= W8_MONSTER_CYCLE_COUNT) {
@@ -29,7 +29,7 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
     return m_cycles[bCycle].ubNumSubs;
 }
 
-// FUNCTION: WIZ8 0x004C5710
+// FUNCTION: WIZ8 0x004c5710
 bool MonsterHasPendingCycle(W8Monster* monster)
 {
     return monster->m_cycles[18].runtime->pending_cycle != -1;
@@ -37,25 +37,25 @@ bool MonsterHasPendingCycle(W8Monster* monster)
 
 /* Cycle 17's third state byte is preserved by ActivateMonster while the live
    engine object is rebuilt, then restored into the replacement. */
-// FUNCTION: WIZ8 0x004C57F0
+// FUNCTION: WIZ8 0x004c57f0
 unsigned char MonsterGetCycle17State(W8Monster* monster)
 {
     return monster->m_cycles[17].bytes.state_02;
 }
 
-// FUNCTION: WIZ8 0x004C5800
+// FUNCTION: WIZ8 0x004c5800
 void MonsterSetCycle17State(W8Monster* monster, unsigned char state)
 {
     monster->m_cycles[17].bytes.state_02 = state;
 }
 
-// FUNCTION: WIZ8 0x004C5820
+// FUNCTION: WIZ8 0x004c5820
 unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster)
 {
     return monster->m_cycles[18].runtime->flag_5bc;
 }
 
-// FUNCTION: WIZ8 0x004C5840
+// FUNCTION: WIZ8 0x004c5840
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag)
 {
     monster->m_cycles[18].runtime->flag_5bc = flag;
@@ -65,19 +65,19 @@ void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag)
    same way - through the pointer at the cycle's +0x0c, which 0x004E60B0 also
    reads a byte from - so the pointee is a shared engine object rather than
    anything the cycle owns. It is not modelled: only this one field is known. */
-// FUNCTION: WIZ8 0x004C5780
+// FUNCTION: WIZ8 0x004c5780
 float MonsterGetScale(W8Monster* monster)
 {
     return monster->m_cycles[18].runtime->scale;
 }
 
-// FUNCTION: WIZ8 0x004C57A0
+// FUNCTION: WIZ8 0x004c57a0
 void MonsterSetScale(W8Monster* monster, float scale)
 {
     monster->m_cycles[18].runtime->scale = scale;
 }
 
-// FUNCTION: WIZ8 0x004C57C0
+// FUNCTION: WIZ8 0x004c57c0
 void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum)
 {
     W8MonsterCycleRuntime* runtime = monster->m_cycles[18].runtime;
@@ -88,7 +88,7 @@ void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum)
 
 /* Returns the previous animation state and timestamps every update through the
    recovered shared SurRender timer. */
-// FUNCTION: WIZ8 0x004C5A00
+// FUNCTION: WIZ8 0x004c5a00
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating)
 {
     if (monster != 0) {
@@ -103,7 +103,7 @@ unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004C59E0
+// FUNCTION: WIZ8 0x004c59e0
 unsigned char MonsterIsAnimating(W8Monster* monster)
 {
     if (monster != 0) {
@@ -114,7 +114,7 @@ unsigned char MonsterIsAnimating(W8Monster* monster)
 
 /* Cycle 19 bit 5 blocks pending-cycle changes. Otherwise the request is stored
    as the signed low byte in cycle 18's runtime record. */
-// FUNCTION: WIZ8 0x004C5AA0
+// FUNCTION: WIZ8 0x004c5aa0
 void MonsterSetPendingCycle(W8Monster* monster, int cycle)
 {
     if (monster != 0 && ((monster->m_cycles[19].flags_00 >> 5) & 1) == 0) {
@@ -122,7 +122,7 @@ void MonsterSetPendingCycle(W8Monster* monster, int cycle)
     }
 }
 
-// FUNCTION: WIZ8 0x004C5E40
+// FUNCTION: WIZ8 0x004c5e40
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour)
 {
     if (monster != 0) {
@@ -137,7 +137,7 @@ void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour)
     }
 }
 
-// FUNCTION: WIZ8 0x004C5EE0
+// FUNCTION: WIZ8 0x004c5ee0
 unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
 {
     if (monster != 0) {
@@ -146,7 +146,7 @@ unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
     return 0;
 }
 
-// FUNCTION: WIZ8 0x004C6160
+// FUNCTION: WIZ8 0x004c6160
 void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 {
     if (monster != 0) {
@@ -156,7 +156,7 @@ void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 
 /* Named by the MonsterManager assertions. A null monster answers -1 rather than
    forwarding, which is how the callers tell "no monster" from a real result. */
-// FUNCTION: WIZ8 0x004C5B40
+// FUNCTION: WIZ8 0x004c5b40
 int MonsterQuery(W8Monster* monster, int query)
 {
     if (monster != NULL) {
@@ -165,7 +165,7 @@ int MonsterQuery(W8Monster* monster, int query)
     return -1;
 }
 
-// FUNCTION: WIZ8 0x004CA4C0
+// FUNCTION: WIZ8 0x004ca4c0
 unsigned char W8Monster::IsDying()
 {
     return Function4C4660(6) == 0x15 ||
@@ -183,7 +183,7 @@ extern void* g_monster_vtable_005ed290;
 
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */
-// FUNCTION: WIZ8 0x004C5B30
+// FUNCTION: WIZ8 0x004c5b30
 void* MonsterGetObject0C(W8Monster* monster)
 {
     if (monster != 0) {
@@ -193,7 +193,7 @@ void* MonsterGetObject0C(W8Monster* monster)
 }
 
 /* Run the member update with no monster of its own to name. */
-// FUNCTION: WIZ8 0x004C5770
+// FUNCTION: WIZ8 0x004c5770
 void MonsterUpdateMember18(void)
 {
     MonsterMember18Update(0);
@@ -201,7 +201,7 @@ void MonsterUpdateMember18(void)
 
 /* Two null-checked forwards that share one shape: a monster that is not there
    is simply not acted on. */
-// FUNCTION: WIZ8 0x004C5EA0
+// FUNCTION: WIZ8 0x004c5ea0
 void MonsterForward4A84A0(W8Monster* monster)
 {
     if (monster != 0) {
@@ -209,7 +209,7 @@ void MonsterForward4A84A0(W8Monster* monster)
     }
 }
 
-// FUNCTION: WIZ8 0x004C6140
+// FUNCTION: WIZ8 0x004c6140
 void MonsterForward4537E0(W8Monster* monster)
 {
     if (monster != 0) {
@@ -219,14 +219,14 @@ void MonsterForward4537E0(W8Monster* monster)
 
 /* Install the vtable at 0x005ED290 and nothing else - the whole of a base
    constructor whose own members are all left as they were. */
-// FUNCTION: WIZ8 0x004C3730
+// FUNCTION: WIZ8 0x004c3730
 void MonsterInstallVtable5ED290(void** object)
 {
     *object = &g_monster_vtable_005ed290;
 }
 
 /* Forward to the object's own vtable slot four. */
-// FUNCTION: WIZ8 0x004C59B0
+// FUNCTION: WIZ8 0x004c59b0
 void MonsterCallSlot10(void* object, int argument)
 {
     (*(void(**)(void*, int))(*(void***)object + 4))(object, argument);

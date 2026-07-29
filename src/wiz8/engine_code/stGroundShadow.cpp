@@ -10,7 +10,7 @@
 
 extern unsigned char g_ground_shadow_enabled_00685110;
 
-// FUNCTION: WIZ8 0x004D6430
+// FUNCTION: WIZ8 0x004d6430
 stGroundShadow::stGroundShadow(const stGroundShadow& other)
     : srNode(0)
 {
@@ -42,7 +42,7 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     value_140 = other.value_140;
 }
 
-// FUNCTION: WIZ8 0x004D6540
+// FUNCTION: WIZ8 0x004d6540
 void stGroundShadow::traverse(TraverseInfo& info)
 {
     unsigned int old_capacity;
@@ -87,7 +87,7 @@ void stGroundShadow::traverse(TraverseInfo& info)
     }
 }
 
-// FUNCTION: WIZ8 0x004D6640
+// FUNCTION: WIZ8 0x004d6640
 void stGroundShadow::process(const ProcessInfo& info, e_processType)
 {
     if (g_ground_shadow_enabled_00685110 != 0) {
@@ -102,19 +102,19 @@ void stGroundShadow::process(const ProcessInfo& info, e_processType)
     }
 }
 
-// FUNCTION: WIZ8 0x004D69A0
+// FUNCTION: WIZ8 0x004d69a0
 unsigned long stGroundShadow::getClassID() const
 {
     return 0x10010;
 }
 
-// FUNCTION: WIZ8 0x004D69B0
+// FUNCTION: WIZ8 0x004d69b0
 const char* stGroundShadow::getClassName() const
 {
     return g_stGroundShadowClassName;
 }
 
-// FUNCTION: WIZ8 0x004D69C0
+// FUNCTION: WIZ8 0x004d69c0
 srRegistry::ClassNode* stGroundShadow::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -139,7 +139,7 @@ srRegistry::ClassNode* stGroundShadow::getClassNode() const
     return node;
 }
 
-// FUNCTION: WIZ8 0x004D6A30
+// FUNCTION: WIZ8 0x004d6a30
 srNode* stGroundShadow::vslot7()
 {
     stGroundShadow* instance = static_cast<stGroundShadow*>(vInstance());
@@ -151,7 +151,7 @@ srNode* stGroundShadow::vslot7()
     return instance;
 }
 
-// FUNCTION: WIZ8 0x004D6BF0
+// FUNCTION: WIZ8 0x004d6bf0
 srClass* stGroundShadow::vInstance()
 {
     return new stGroundShadow(0);

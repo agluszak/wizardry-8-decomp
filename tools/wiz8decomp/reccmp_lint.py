@@ -12,14 +12,12 @@ from reccmp.tools.decomplint import decomplint_parse_args, lint_all_targets
 
 # Many recovered translation units preserve reviewed source/link ordering that is
 # not monotonically increasing by address. reccmp's generic order advice cannot
-# be applied without changing emitted-code evidence. These two legacy style
-# warnings are also not correctness failures. Every other parser/linter alert
-# remains fatal, including duplicate offsets and stray markers.
+# be applied without changing emitted-code evidence. Every other parser/linter
+# alert remains fatal, including implementation by-name fallback, non-canonical
+# formatting, duplicate offsets, and stray markers.
 ALLOWED_ALERTS = frozenset(
     {
-        AlertCode.BYNAME_FUNCTION_IN_CPP,
         AlertCode.FUNCTION_OUT_OF_ORDER,
-        AlertCode.NOT_STRICT_FORMAT,
     }
 )
 

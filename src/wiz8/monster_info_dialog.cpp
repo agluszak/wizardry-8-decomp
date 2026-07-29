@@ -11,7 +11,7 @@ extern int g_dword_69ca28;
    by byte-exact ports; the fields keep positional names. The 0x58 subobject is
    the first of the three the reviewed complete destructor tears down. */
 
-// FUNCTION: WIZ8 0x005E0C40
+// FUNCTION: WIZ8 0x005e0c40
 W8DialogMember005E0C40::W8DialogMember005E0C40()
 {
     unknown_000 = 0;
@@ -37,7 +37,7 @@ W8DialogMember005E0C40::W8DialogMember005E0C40()
     unknown_048 = 0;
 }
 
-// FUNCTION: WIZ8 0x005DB1B0
+// FUNCTION: WIZ8 0x005db1b0
 W8DialogMember005DB1B0::W8DialogMember005DB1B0()
 {
     m_resource_018 = -1;
@@ -65,7 +65,7 @@ W8DialogMember005DB1B0::W8DialogMember005DB1B0()
     unknown_044 = g_dword_69ca28;
 }
 
-// FUNCTION: WIZ8 0x005DB260
+// FUNCTION: WIZ8 0x005db260
 W8DialogMember005DB1B0::~W8DialogMember005DB1B0()
 {
     if (m_resource_018 != -1) {
@@ -82,12 +82,12 @@ __forceinline W8DialogPtrVector005EF898::W8DialogPtrVector005EF898()
 {
 }
 
-// FUNCTION: WIZ8 0x005D2540
+// FUNCTION: WIZ8 0x005d2540
 __forceinline W8DialogPtrVector005EF898::~W8DialogPtrVector005EF898()
 {
 }
 
-// FUNCTION: WIZ8 0x005D14D0
+// FUNCTION: WIZ8 0x005d14d0
 W8DialogMember005D14D0::W8DialogMember005D14D0()
 {
     int invalid;
@@ -109,7 +109,7 @@ W8DialogMember005D14D0::W8DialogMember005D14D0()
     unknown_056 = 0;
 }
 
-// FUNCTION: WIZ8 0x005D1590
+// FUNCTION: WIZ8 0x005d1590
 W8DialogMember005D14D0::~W8DialogMember005D14D0()
 {
     int index;
@@ -122,7 +122,7 @@ W8DialogMember005D14D0::~W8DialogMember005D14D0()
 }
 
 // Primary vtable slot 12.
-// FUNCTION: WIZ8 0x005D6E60
+// FUNCTION: WIZ8 0x005d6e60
 void W8MonsterInfoDialog::ClearField41IfEnabled()
 {
     if (m_field_50) {
@@ -131,7 +131,7 @@ void W8MonsterInfoDialog::ClearField41IfEnabled()
 }
 
 // Primary vtable slot 2.
-// FUNCTION: WIZ8 0x005DBDE0
+// FUNCTION: WIZ8 0x005dbde0
 void W8MonsterInfoDialog::ResetSubobjectAndRefresh()
 {
     m_member_58.Reset();

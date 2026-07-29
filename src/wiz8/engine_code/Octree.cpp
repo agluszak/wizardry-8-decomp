@@ -25,7 +25,7 @@ struct W8Octree {
     void AddLoadedParticle(void* particle);
 };
 
-// FUNCTION: WIZ8 0x0042E440
+// FUNCTION: WIZ8 0x0042e440
 void W8Octree::AddLoadedProp(void* prop)
 {
     if (m_fAccumulating) {
@@ -42,7 +42,7 @@ void W8Octree::AddLoadedProp(void* prop)
     }
 }
 
-// FUNCTION: WIZ8 0x0042E4C0
+// FUNCTION: WIZ8 0x0042e4c0
 void W8Octree::AddLoadedParticle(void* particle)
 {
     if (m_fAccumulating) {
@@ -88,7 +88,7 @@ extern void OctreeQueue(int kind, int id, const int* point);                 /* 
 extern float OctreeNextCoordinate(void);
 
 /* Attach a visited set to the walker, but only one that has been built. */
-// FUNCTION: WIZ8 0x0042E3E0
+// FUNCTION: WIZ8 0x0042e3e0
 void W8OctreeWalker_SetVisitedSet(W8OctreeWalker* walker, BitArray* visited)
 {
     if (visited->puiIndex != 0) {
@@ -100,7 +100,7 @@ void W8OctreeWalker_SetVisitedSet(W8OctreeWalker* walker, BitArray* visited)
    counter's value as this walk's base; anything else advances the shared
    counter and reports whether that mark has already been visited - which with
    no set attached is always no. */
-// FUNCTION: WIZ8 0x0042E400
+// FUNCTION: WIZ8 0x0042e400
 int W8OctreeWalker_MarkVisited(W8OctreeWalker* walker, int offset)
 {
     if (offset < 0) {
@@ -116,7 +116,7 @@ int W8OctreeWalker_MarkVisited(W8OctreeWalker* walker, int offset)
 
 /* Visit a point handed over by address, copied to the stack first so the
    caller's copy is not the one the traversal holds. */
-// FUNCTION: WIZ8 0x0042E620
+// FUNCTION: WIZ8 0x0042e620
 void W8OctreeWalker_VisitPointCopy(void* walker, const float* point)
 {
     float copy[3];
@@ -129,7 +129,7 @@ void W8OctreeWalker_VisitPointCopy(void* walker, const float* point)
 
 /* Start a traversal of the twelfth kind. A limit of zero means no limit, which
    is what the -1 stands for. */
-// FUNCTION: WIZ8 0x0042EF00
+// FUNCTION: WIZ8 0x0042ef00
 void OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3, unsigned short limit)
 {
     unsigned int bound = (unsigned int)-1;
@@ -142,7 +142,7 @@ void OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3, unsigned short
 
 /* Queue one node of the thirteenth kind, with its three coordinates converted
    from floating point - which is what puts three ftol calls in a row here. */
-// FUNCTION: WIZ8 0x0042E810
+// FUNCTION: WIZ8 0x0042e810
 void OctreeQueueKind13(int id)
 {
     int point[3];
@@ -165,7 +165,7 @@ extern int g_trigger_flag_006598e4;
 
 /* Release every live trigger and forget the three pieces of state that go with
    the list, which is what groups them. */
-// FUNCTION: WIZ8 0x004445B0
+// FUNCTION: WIZ8 0x004445b0
 void ReleaseAllTriggers(void)
 {
     int index;

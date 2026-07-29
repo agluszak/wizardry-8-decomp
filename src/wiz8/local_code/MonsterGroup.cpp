@@ -133,7 +133,7 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
  
    The diagnostic in the encounter branch reports the loaded list rather than
    the encounter list it actually read. Preserved as found. */
-// FUNCTION: WIZ8 0x005101B0
+// FUNCTION: WIZ8 0x005101b0
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
 {
     W8MonsterGroup* result;
@@ -179,7 +179,7 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
    then the encounters, whose answers are biased by 10000 the way the lookup
    above expects. Not finding it is only an error when the caller says so, and
    the caller's own file and line are threaded through for the message. */
-// FUNCTION: WIZ8 0x005100B0
+// FUNCTION: WIZ8 0x005100b0
 unsigned int GetMonsterGroupIndexByID(
     int caller_line,
     const char* caller_file,
@@ -292,7 +292,7 @@ static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monste
     return 0;
 }
 
-// FUNCTION: WIZ8 0x0050F5D0
+// FUNCTION: WIZ8 0x0050f5d0
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
 {
     return RemoveAllGroupMembersInline(monster_group);
@@ -300,7 +300,7 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
 
 /* Brings every member of a group into the world. Front to back, and the list
    length is re-read each time because activation can add to it. */
-// FUNCTION: WIZ8 0x0050F6A0
+// FUNCTION: WIZ8 0x0050f6a0
 void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode)
 {
     unsigned int index;
@@ -342,14 +342,14 @@ static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_
     Function454C80();
 }
 
-// FUNCTION: WIZ8 0x005106D0
+// FUNCTION: WIZ8 0x005106d0
 void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 {
     RefreshMonsterGroupAndAlliesInline(monster_group);
 }
 
 /* Detaches a group from whatever is tracking it and marks it no longer loaded. */
-// FUNCTION: WIZ8 0x0050F700
+// FUNCTION: WIZ8 0x0050f700
 void DetachMonsterGroup(W8MonsterGroup* monster_group)
 {
     SetTargetToGroup(monster_group->group_id, 0);
@@ -359,7 +359,7 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group)
 /* Whether a group is live: loaded, still flagged, and with members left. A
    group flagged at +0x2A is live on that alone; any other group also has to
    pass the global gate at 0x00547510. */
-// FUNCTION: WIZ8 0x00510B30
+// FUNCTION: WIZ8 0x00510b30
 unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
     if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
@@ -376,7 +376,7 @@ unsigned char IsMonsterGroupLive(W8MonsterGroup* monster_group)
    and acts on its lead member. A broken link - a leader id that resolves to no
    group - stops the walk and reports success anyway, as does a null group,
    which is why every path returns one. */
-// FUNCTION: WIZ8 0x0050FBA0
+// FUNCTION: WIZ8 0x0050fba0
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group, int value,
                                         char follow_leader)
 {
@@ -420,7 +420,7 @@ void ReapplyMonsterGroupFormations(void)
 
 /* Sets a group's formation and pushes it straight onto every member's live
    Monster, so the group record and the members never disagree. */
-// FUNCTION: WIZ8 0x0050FF40
+// FUNCTION: WIZ8 0x0050ff40
 void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
                               const W8MonsterFormation* formation)
 {
@@ -453,7 +453,7 @@ void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
    followed first, so calling this on any member of a formation retires the
    whole formation; the retire itself is idempotent, gated on the flag it
    clears. All four ally slots are walked and the empty ones skipped. */
-// FUNCTION: WIZ8 0x00510A10
+// FUNCTION: WIZ8 0x00510a10
 void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 {
     int index;
@@ -521,7 +521,7 @@ W8WideChar* GetMonsterGroupName(W8MonsterGroup* monster_group)
    list length is re-read each iteration because leaving combat can change it.
    Both assertions name what they guard - the global combat mode and the group's
    own fInCombat, which is what gives +0x29 its name. */
-// FUNCTION: WIZ8 0x0050FAD0
+// FUNCTION: WIZ8 0x0050fad0
 void MonsterGroupLeaveCombat(int unused, W8MonsterGroup* monster_group)
 {
     unsigned int index;
@@ -572,7 +572,7 @@ void DespawnMonsterGroup(W8MonsterGroup* monster_group)
 /* Brings a freshly loaded group's members into the world and marks the group
    loaded. Members that are already active are left alone. The sentinel at +0x9B
    is reset first, so a reload does not inherit the previous run's value. */
-// FUNCTION: WIZ8 0x0050F630
+// FUNCTION: WIZ8 0x0050f630
 void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
 {
     unsigned int index;
@@ -619,7 +619,7 @@ void ResetMonsterGroupTurnState(void)
    The divisor is the member count captured before the walk, not re-read after
    it, which is what makes a member added during the walk skew the average
    rather than divide by the wrong count. Preserved as found. */
-// FUNCTION: WIZ8 0x0050FFD0
+// FUNCTION: WIZ8 0x0050ffd0
 void GetMonsterGroupCentre(W8MonsterGroup* monster_group, W8Position* centre)
 {
     unsigned int count;
@@ -738,7 +738,7 @@ static __inline W8MonsterGroup* UnlinkMonsterGroupFromLeaderInline(
    refuses the link and answers zero, leaving the group detached rather than
    half-attached. Detaching instead - a null leader - hands a live group back to
    the budget through the other of the two 0x0048C6xx entry points. */
-// FUNCTION: WIZ8 0x0050FC20
+// FUNCTION: WIZ8 0x0050fc20
 unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
                                        W8MonsterGroup* monster_group)
 {
@@ -777,7 +777,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader,
  
    Failing to destroy the member list leaves the record in place and reports
    failure, so the group survives rather than being half-freed. */
-// FUNCTION: WIZ8 0x0050F4A0
+// FUNCTION: WIZ8 0x0050f4a0
 unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
 {
     unsigned int group_list_index;
@@ -816,7 +816,7 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
 /* Gives every live group whose lead member has no cycle-24 runtime the default
    sound set. The list length is read once up front, and the lead member is
    fetched for every group even though only the flagged ones use it. */
-// FUNCTION: WIZ8 0x005108C0
+// FUNCTION: WIZ8 0x005108c0
 void ApplyDefaultMonsterGroupSounds(void)
 {
     unsigned int count;

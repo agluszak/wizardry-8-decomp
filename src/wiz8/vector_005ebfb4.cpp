@@ -24,7 +24,7 @@ public:
     virtual ~W8Vector005EBFB4() override;
 };                                       /* 0x10 */
 
-// FUNCTION: WIZ8 0x0042A260
+// FUNCTION: WIZ8 0x0042a260
 W8Vector005EBFB4::W8Vector005EBFB4(int initial_capacity)
     : W8GrowableVector<W8VectorElement005EBFB4*>(initial_capacity)
 {
@@ -34,7 +34,7 @@ W8Vector005EBFB4::W8Vector005EBFB4(int initial_capacity)
    store is overwritten by the inlined base destructor before anything can
    observe it, so VC6 drops it and this stores 0x005EBFB8 rather than the
    0x005EBFB4 the constructor above installs. */
-// FUNCTION: WIZ8 0x0042A2C0
+// FUNCTION: WIZ8 0x0042a2c0
 W8Vector005EBFB4::~W8Vector005EBFB4()
 {
 }

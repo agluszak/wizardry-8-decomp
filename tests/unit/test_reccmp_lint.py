@@ -10,3 +10,5 @@ def test_reccmp_consumer_accepts_the_checked_in_annotations() -> None:
 
     assert result["ok"] is True
     assert result["engine"] == "reccmp-decomplint"
+    assert set(result["alerts"]) <= {"function_out_of_order"}
+    assert result["waived"] == ["function_out_of_order"]

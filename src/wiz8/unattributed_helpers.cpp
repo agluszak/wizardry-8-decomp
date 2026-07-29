@@ -48,7 +48,7 @@ extern int g_dword_6874f7;
 extern unsigned long g_tick_65b9a8;
 
 /* Releases through the virtual destructor, tolerating a null. */
-// FUNCTION: WIZ8 0x004C5860
+// FUNCTION: WIZ8 0x004c5860
 void Function4C5860(W8Releasable* object)
 {
     if (object != NULL) {
@@ -59,7 +59,7 @@ void Function4C5860(W8Releasable* object)
 /* The original holds the argument in ecx where this holds it in eax. Declaring
    it as a pointer does not change that - VC6 picks eax either way - so the
    argument stays an int and the register is left as the wobble it is. */
-// FUNCTION: WIZ8 0x004C5ED0
+// FUNCTION: WIZ8 0x004c5ed0
 void Function4C5ED0(int enabled)
 {
     if (enabled != 0) {
@@ -78,14 +78,14 @@ void Function482720(int value)
 /* Takes an argument the decompiler does not show and hands it on in ecx, so the
    callee is a method and this is a forwarder, not the nullary call it looks
    like. Nothing follows the call, so it leaves as a jump. */
-// FUNCTION: WIZ8 0x004C5810
+// FUNCTION: WIZ8 0x004c5810
 void Function4C5810(W8Forwarded* target)
 {
     target->Method4C5290();
 }
 
 /* Acts only when both arguments are set, and passes the second on. */
-// FUNCTION: WIZ8 0x004C59C0
+// FUNCTION: WIZ8 0x004c59c0
 void Function4C59C0(int enabled, int value)
 {
     if (enabled != 0 && value != 0) {
@@ -95,7 +95,7 @@ void Function4C59C0(int enabled, int value)
 
 /* The first argument is dead: the list comes from the global, not the caller.
    Both are reproduced because the original takes and ignores it. */
-// FUNCTION: WIZ8 0x0046E5A0
+// FUNCTION: WIZ8 0x0046e5a0
 void Function46E5A0(int unused, void* item)
 {
     PListRemove(g_world_00659ab4->plsList00, item);
@@ -107,7 +107,7 @@ void Function46E5A0(int unused, void* item)
    their own flag, which is how the main menu asks for the bare "v1.2.4" while
    0x004E2F40 asks for all four parts. The constants are inline here exactly as
    they are there - nothing reads them from a resource. */
-// FUNCTION: WIZ8 0x004E3620
+// FUNCTION: WIZ8 0x004e3620
 void Function4E3620(char* out, char with_title, char with_build, char with_date)
 {
     out[0] = '\0';
@@ -133,7 +133,7 @@ void Function4E3620(char* out, char with_title, char with_build, char with_date)
    absent on the earliest shells this shipped for; when it is missing the older
    call is multiplied out by hand instead, which is why the fallback carries the
    64-bit helpers. */
-// FUNCTION: WIZ8 0x004298F0
+// FUNCTION: WIZ8 0x004298f0
 unsigned char Function4298F0(void)
 {
     FARPROC extended;
@@ -197,67 +197,67 @@ const char* stTextureAnim::getClassName() const
     return "stTextureAnim";
 }
 
-// FUNCTION: WIZ8 0x004857F0
+// FUNCTION: WIZ8 0x004857f0
 unsigned long stTextureAnim::getClassID() const
 {
     return 0x10000;
 }
 
-// FUNCTION: WIZ8 0x0047D6E0
+// FUNCTION: WIZ8 0x0047d6e0
 const char* stTextureFile::getClassName() const
 {
     return "stTextureFile";
 }
 
-// FUNCTION: WIZ8 0x0047D6D0
+// FUNCTION: WIZ8 0x0047d6d0
 unsigned long stTextureFile::getClassID() const
 {
     return 0x10001;
 }
 
-// FUNCTION: WIZ8 0x0049DC70
+// FUNCTION: WIZ8 0x0049dc70
 const char* stLight::getClassName() const
 {
     return "stLight";
 }
 
-// FUNCTION: WIZ8 0x0049DC60
+// FUNCTION: WIZ8 0x0049dc60
 unsigned long stLight::getClassID() const
 {
     return 0x10006;
 }
 
-// FUNCTION: WIZ8 0x004BA1C0
+// FUNCTION: WIZ8 0x004ba1c0
 const char* stLevel::getClassName() const
 {
     return "stLevel";
 }
 
-// FUNCTION: WIZ8 0x004BA1B0
+// FUNCTION: WIZ8 0x004ba1b0
 unsigned long stLevel::getClassID() const
 {
     return 0x10007;
 }
 
-// FUNCTION: WIZ8 0x004AF3E0
+// FUNCTION: WIZ8 0x004af3e0
 const char* stSound3D::getClassName() const
 {
     return "stSound3D";
 }
 
-// FUNCTION: WIZ8 0x004AF3D0
+// FUNCTION: WIZ8 0x004af3d0
 unsigned long stSound3D::getClassID() const
 {
     return 0x1000b;
 }
 
-// FUNCTION: WIZ8 0x004CF7C0
+// FUNCTION: WIZ8 0x004cf7c0
 unsigned long stScript::getClassID() const
 {
     return 0x1000d;
 }
 
-// FUNCTION: WIZ8 0x004CF7D0
+// FUNCTION: WIZ8 0x004cf7d0
 const char* stScript::getClassName() const
 {
     return "stScript";
@@ -265,7 +265,7 @@ const char* stScript::getClassName() const
 
 /* The one-level builder, identical in shape to Trigger's: no parent lookup,
    just the cache probe and a single registerClass with the concrete flag set. */
-// FUNCTION: WIZ8 0x004CF7E0
+// FUNCTION: WIZ8 0x004cf7e0
 srRegistry::ClassNode* stScript::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -280,7 +280,7 @@ srRegistry::ClassNode* stScript::getClassNode() const
 
 /* The name half alone: no id body sits in range, so the class's id stays
    unrecovered rather than guessed. */
-// FUNCTION: WIZ8 0x0047CBA0
+// FUNCTION: WIZ8 0x0047cba0
 const char* stBinIStream::getClassName() const
 {
     return "stBinIStream";
@@ -298,61 +298,61 @@ const char* stBinIStream::getClassName() const
  * slots independently.
  */
 
-// FUNCTION: WIZ8 0x0049DC30
+// FUNCTION: WIZ8 0x0049dc30
 const char* MonsterLight::getClassName() const
 {
     return "srLight";
 }
 
-// FUNCTION: WIZ8 0x0049DC20
+// FUNCTION: WIZ8 0x0049dc20
 unsigned long MonsterLight::getClassID() const
 {
     return 0x1220;
 }
 
-// FUNCTION: WIZ8 0x0042A020
+// FUNCTION: WIZ8 0x0042a020
 const char* W8Camera005EBE14::getClassName() const
 {
     return "srCamera";
 }
 
-// FUNCTION: WIZ8 0x0042A010
+// FUNCTION: WIZ8 0x0042a010
 unsigned long W8Camera005EBE14::getClassID() const
 {
     return 0x1400;
 }
 
-// FUNCTION: WIZ8 0x0042A0D0
+// FUNCTION: WIZ8 0x0042a0d0
 const char* W8Scene005EBE48::getClassName() const
 {
     return "srScene";
 }
 
-// FUNCTION: WIZ8 0x0042A0C0
+// FUNCTION: WIZ8 0x0042a0c0
 unsigned long W8Scene005EBE48::getClassID() const
 {
     return 0x1010;
 }
 
-// FUNCTION: WIZ8 0x00429B40
+// FUNCTION: WIZ8 0x00429b40
 const char* W8MeshModel005EBE98::getClassName() const
 {
     return "srMeshModel";
 }
 
-// FUNCTION: WIZ8 0x00429B30
+// FUNCTION: WIZ8 0x00429b30
 unsigned long W8MeshModel005EBE98::getClassID() const
 {
     return 0x2010;
 }
 
-// FUNCTION: WIZ8 0x00429BF0
+// FUNCTION: WIZ8 0x00429bf0
 const char* W8TextureMap005EBEEC::getClassName() const
 {
     return "srTextureMap";
 }
 
-// FUNCTION: WIZ8 0x00429BE0
+// FUNCTION: WIZ8 0x00429be0
 unsigned long W8TextureMap005EBEEC::getClassID() const
 {
     return 0x2111;
@@ -370,13 +370,13 @@ unsigned long W8Fog005EC94C::getClassID() const
     return 0x1210;
 }
 
-// FUNCTION: WIZ8 0x004BDF10
+// FUNCTION: WIZ8 0x004bdf10
 const char* W8ClipPlane005ED180::getClassName() const
 {
     return "srClipPlane";
 }
 
-// FUNCTION: WIZ8 0x004BDF00
+// FUNCTION: WIZ8 0x004bdf00
 unsigned long W8ClipPlane005ED180::getClassID() const
 {
     return 0x1500;
@@ -386,37 +386,37 @@ unsigned long W8ClipPlane005ED180::getClassID() const
    than an owned body, so only this half of the registry pair exists to
    recover. 0x00429CC0 is shared by two vtables: VC6 folded one emission. */
 
-// FUNCTION: WIZ8 0x004519D0
+// FUNCTION: WIZ8 0x004519d0
 unsigned long W8Node005EC208::getClassID() const
 {
     return 0x1000;
 }
 
-// FUNCTION: WIZ8 0x0049DB10
+// FUNCTION: WIZ8 0x0049db10
 unsigned long W8Illuminator005ECCD8::getClassID() const
 {
     return 0x1200;
 }
 
-// FUNCTION: WIZ8 0x00429A40
+// FUNCTION: WIZ8 0x00429a40
 unsigned long W8Registered005EBD10::getClassID() const
 {
     return 0x3110;
 }
 
-// FUNCTION: WIZ8 0x00429CC0
+// FUNCTION: WIZ8 0x00429cc0
 unsigned long W8Registered005EBDE0::getClassID() const
 {
     return 0x2210;
 }
 
-// FUNCTION: WIZ8 0x00429E80
+// FUNCTION: WIZ8 0x00429e80
 unsigned long W8Registered005EBF94::getClassID() const
 {
     return 0x2200;
 }
 
-// FUNCTION: WIZ8 0x0047D650
+// FUNCTION: WIZ8 0x0047d650
 unsigned long W8Registered005EC5D8::getClassID() const
 {
     return 0x2900;
@@ -428,7 +428,7 @@ unsigned long W8Registered005EC5D8::getClassID() const
    are reached through include/wiz8/render_state.h rather than re-declared
    here, so there is one declaration of each object in the tree. */
 
-// FUNCTION: WIZ8 0x00421F30
+// FUNCTION: WIZ8 0x00421f30
 IDirectDraw2* GetDirectDraw2(void)
 {
     return g_direct_draw2_6596a0;
@@ -442,7 +442,7 @@ int GetValue65962C(void)
 
 /* Narrower than the global it reads: the load is a byte, so only the low byte
    of the renderer mode reaches the caller. */
-// FUNCTION: WIZ8 0x004291C0
+// FUNCTION: WIZ8 0x004291c0
 unsigned char GetRendererModeByte(void)
 {
     return (unsigned char)g_renderer_mode_603d74;
@@ -466,13 +466,13 @@ extern unsigned char g_flag_68f104;
 extern unsigned char g_flag_68f105;
 }
 
-// FUNCTION: WIZ8 0x0048ED00
+// FUNCTION: WIZ8 0x0048ed00
 int GetValue65BA5C(void)
 {
     return g_value_65ba5c;
 }
 
-// FUNCTION: WIZ8 0x004AFE90
+// FUNCTION: WIZ8 0x004afe90
 int GetValue65BE60(void)
 {
     return g_value_65be60;
@@ -484,26 +484,26 @@ int GetValue64C1C8(void)
     return g_value_64c1c8;
 }
 
-// FUNCTION: WIZ8 0x0047AE70
+// FUNCTION: WIZ8 0x0047ae70
 unsigned char GetFlag6850F6(void)
 {
     return g_flag_6850f6;
 }
 
-// FUNCTION: WIZ8 0x0052A070
+// FUNCTION: WIZ8 0x0052a070
 unsigned char GetFlag68C4FA(void)
 {
     return g_flag_68c4fa;
 }
 
 /* An adjacent pair, read by two bodies that sit next to each other as well. */
-// FUNCTION: WIZ8 0x0057DBC0
+// FUNCTION: WIZ8 0x0057dbc0
 unsigned char GetFlag68F104(void)
 {
     return g_flag_68f104;
 }
 
-// FUNCTION: WIZ8 0x0057DBB0
+// FUNCTION: WIZ8 0x0057dbb0
 unsigned char GetFlag68F105(void)
 {
     return g_flag_68f105;
@@ -514,7 +514,7 @@ unsigned char GetFlag68F105(void)
    base's static sGetClassName rather than a literal, and the registry is
    fetched a second time inside the branch rather than reused, both of which
    the helper's shape cannot express. */
-// FUNCTION: WIZ8 0x0042A030
+// FUNCTION: WIZ8 0x0042a030
 srRegistry::ClassNode* W8Camera005EBE14::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -536,7 +536,7 @@ srRegistry::ClassNode* W8Camera005EBE14::getClassNode() const
 /* The same two-level shape for two more classes: each registers under a
    SurRender base whose own parent is srNode, so the fallback branch registers
    srNode first and hangs the class off it. */
-// FUNCTION: WIZ8 0x0042A0E0
+// FUNCTION: WIZ8 0x0042a0e0
 srRegistry::ClassNode* W8Scene005EBE48::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -555,7 +555,7 @@ srRegistry::ClassNode* W8Scene005EBE48::getClassNode() const
     return node;
 }
 
-// FUNCTION: WIZ8 0x004BDF20
+// FUNCTION: WIZ8 0x004bdf20
 srRegistry::ClassNode* W8ClipPlane005ED180::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -579,7 +579,7 @@ srRegistry::ClassNode* W8ClipPlane005ED180::getClassNode() const
    a pushed immediate is five bytes where the call is six. "srModel" is fixed
    by arithmetic - it occupies exactly the eight bytes between "srMeshModel"
    and "srTextureMap" in the string block. */
-// FUNCTION: WIZ8 0x00429B50
+// FUNCTION: WIZ8 0x00429b50
 srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -602,7 +602,7 @@ srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
    as the parent's, which is the two bytes over 0x0042A030 - each call is six
    where a pushed literal is five. Both statics are imported by decorated name,
    so the pairing of id 0x1200 with srIlluminator is the original's own. */
-// FUNCTION: WIZ8 0x0049DB30
+// FUNCTION: WIZ8 0x0049db30
 srRegistry::ClassNode* W8Illuminator005ECCD8::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -623,7 +623,7 @@ srRegistry::ClassNode* W8Illuminator005ECCD8::getClassNode() const
 }
 
 /* The same two-level shape for stLevel, which also hangs directly off srNode. */
-// FUNCTION: WIZ8 0x004BA1D0
+// FUNCTION: WIZ8 0x004ba1d0
 srRegistry::ClassNode* stLevel::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -644,7 +644,7 @@ srRegistry::ClassNode* stLevel::getClassNode() const
 
 /* The two-level shape again, for the class that hangs off srNode as stLevel
    and stParticle do. */
-// FUNCTION: WIZ8 0x004AF3F0
+// FUNCTION: WIZ8 0x004af3f0
 srRegistry::ClassNode* stSound3D::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -697,7 +697,7 @@ srRegistry::ClassNode* stTextureAnim::getClassNode() const
 }
 
 /* The same chain for the sibling that loads a texture from a file. */
-// FUNCTION: WIZ8 0x0047D6F0
+// FUNCTION: WIZ8 0x0047d6f0
 srRegistry::ClassNode* stTextureFile::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -730,7 +730,7 @@ srRegistry::ClassNode* stTextureFile::getClassNode() const
    class are literals; that is why the body is 211 bytes rather than 155. The
    srIlluminator level is the same one MonsterLight's reviewed row spells out
    as srClassSupport<srIlluminator,srNode,0,0x1200>. */
-// FUNCTION: WIZ8 0x0049DC80
+// FUNCTION: WIZ8 0x0049dc80
 srRegistry::ClassNode* stLight::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
@@ -773,13 +773,13 @@ extern void* g_vtable_005ec138;
 extern void* g_vtable_005ebfd0;
 }
 
-// FUNCTION: WIZ8 0x00445EE0
+// FUNCTION: WIZ8 0x00445ee0
 void W8Object005EC138::InstallVtable()
 {
     *(void**)this = &g_vtable_005ec138;
 }
 
-// FUNCTION: WIZ8 0x0042A360
+// FUNCTION: WIZ8 0x0042a360
 void W8Object005EBFD0::InstallVtable()
 {
     *(void**)this = &g_vtable_005ebfd0;
@@ -790,13 +790,13 @@ extern void* g_vtable_005ec1d8;
 extern void* g_vtable_005ecdb0;
 }
 
-// FUNCTION: WIZ8 0x0044EF20
+// FUNCTION: WIZ8 0x0044ef20
 void W8Object005EC1D8::InstallVtable()
 {
     *(void**)this = &g_vtable_005ec1d8;
 }
 
-// FUNCTION: WIZ8 0x004A2220
+// FUNCTION: WIZ8 0x004a2220
 void W8Object005ECDB0::InstallVtable()
 {
     *(void**)this = &g_vtable_005ecdb0;
@@ -822,37 +822,37 @@ extern Controls* g_panel_69b998;
 extern Controls* g_panel_69bf4c;
 extern Controls* g_panel_69bf40;
 
-// FUNCTION: WIZ8 0x005D5A00
+// FUNCTION: WIZ8 0x005d5a00
 unsigned char GetFlag69C808(void)
 {
     return g_flag_69c808;
 }
 
-// FUNCTION: WIZ8 0x005E3600
+// FUNCTION: WIZ8 0x005e3600
 unsigned char GetFlag69DA6C(void)
 {
     return g_flag_69da6c;
 }
 
-// FUNCTION: WIZ8 0x0059BC00
+// FUNCTION: WIZ8 0x0059bc00
 void RedrawPanel69B940(void)
 {
     g_panel_69b940->Invalidate(0);
 }
 
-// FUNCTION: WIZ8 0x0059CF40
+// FUNCTION: WIZ8 0x0059cf40
 void RedrawPanel69B998(void)
 {
     g_panel_69b998->Invalidate(0);
 }
 
-// FUNCTION: WIZ8 0x005A1DD0
+// FUNCTION: WIZ8 0x005a1dd0
 void RedrawPanel69BF4C(void)
 {
     g_panel_69bf4c->Invalidate(0);
 }
 
-// FUNCTION: WIZ8 0x005A1E90
+// FUNCTION: WIZ8 0x005a1e90
 void RedrawPanel69BF40(void)
 {
     g_panel_69bf40->Invalidate(0);
@@ -911,7 +911,7 @@ extern unsigned char g_flag_68c4f7;
 extern unsigned char g_flag_68c500;
 }
 
-// FUNCTION: WIZ8 0x0040A8A0
+// FUNCTION: WIZ8 0x0040a8a0
 int GetMilesDigitalDriver0040A8A0(void)
 {
     return g_value_6e4104;
@@ -931,7 +931,7 @@ void SetValue659668(int value)
     g_value_659668 = value;
 }
 
-// FUNCTION: WIZ8 0x004298E0
+// FUNCTION: WIZ8 0x004298e0
 void SetFlag603C4C(unsigned char value)
 {
     g_flag_603c4c = value;
@@ -945,7 +945,7 @@ void SetValue659AB4(int value)
 
 /* Writes the second world, the object whose one declaration gameplay_boundaries.h
    settled; the viewport's reads through it are what typed it. */
-// FUNCTION: WIZ8 0x004512B0
+// FUNCTION: WIZ8 0x004512b0
 void SetWorld659AB8(W8World* world)
 {
     g_world_659ab8 = world;
@@ -954,13 +954,13 @@ void SetWorld659AB8(W8World* world)
 /* The one setter of this group that cleans its own argument: the body ends in
    `ret 4` rather than `ret`, which is __stdcall and the whole of the two-byte
    difference against the cdecl siblings above. */
-// FUNCTION: WIZ8 0x0046D7D0
+// FUNCTION: WIZ8 0x0046d7d0
 void __stdcall SetValue652DB0(int value)
 {
     g_value_652db0 = value;
 }
 
-// FUNCTION: WIZ8 0x0052A1A0
+// FUNCTION: WIZ8 0x0052a1a0
 void SetFlag68C500(unsigned char value)
 {
     g_flag_68c500 = value;
@@ -981,19 +981,19 @@ unsigned char SetFlag603C60(void)
     return 1;
 }
 
-// FUNCTION: WIZ8 0x004B6D20
+// FUNCTION: WIZ8 0x004b6d20
 void SetValue60DFAC(void)
 {
     g_value_60dfac = 1;
 }
 
-// FUNCTION: WIZ8 0x004D96F0
+// FUNCTION: WIZ8 0x004d96f0
 void ClearValue6834D4(void)
 {
     g_value_6834d4 = 0;
 }
 
-// FUNCTION: WIZ8 0x005171B0
+// FUNCTION: WIZ8 0x005171b0
 void ClearValue689FAC(void)
 {
     g_value_689fac = 0;
@@ -1007,19 +1007,19 @@ void SetFlag68C4F4(void)
 
 /* An adjacent set/clear pair over one flag, the two bodies sitting next to each
    other as well. */
-// FUNCTION: WIZ8 0x00529BC0
+// FUNCTION: WIZ8 0x00529bc0
 void SetFlag68C4F7(void)
 {
     g_flag_68c4f7 = 1;
 }
 
-// FUNCTION: WIZ8 0x00529BD0
+// FUNCTION: WIZ8 0x00529bd0
 void ClearFlag68C4F7(void)
 {
     g_flag_68c4f7 = 0;
 }
 
-// FUNCTION: WIZ8 0x00428A90
+// FUNCTION: WIZ8 0x00428a90
 void SetRendererMode6596EC(void)
 {
     g_dword_6596ec = 2;
@@ -1027,7 +1027,7 @@ void SetRendererMode6596EC(void)
 
 /* Writes both halves of the renderer-mode pair. The order is the source's: the
    later address stores first. */
-// FUNCTION: WIZ8 0x00428AA0
+// FUNCTION: WIZ8 0x00428aa0
 void SetRendererModePair(void)
 {
     g_dword_6596f0 = 2;
@@ -1053,20 +1053,20 @@ unsigned char SetValue5FF5F0(int value)
 /* Steps the same counter 0x004B6D20 initialises and hands back the new value.
    The step runs through EAX rather than as an in-place `inc [mem]`, which is
    what returning it costs and the whole of the five-byte difference. */
-// FUNCTION: WIZ8 0x004B6D10
+// FUNCTION: WIZ8 0x004b6d10
 int IncrementValue60DFAC(void)
 {
     g_value_60dfac = g_value_60dfac + 1;
     return g_value_60dfac;
 }
 
-// FUNCTION: WIZ8 0x005E35F0
+// FUNCTION: WIZ8 0x005e35f0
 void ClearValue69DA68(void)
 {
     g_value_69da68 = 0;
 }
 
-// FUNCTION: WIZ8 0x0059E1E0
+// FUNCTION: WIZ8 0x0059e1e0
 void SetValue69B9A4(int value)
 {
     g_value_69b9a4 = value;
@@ -1088,7 +1088,7 @@ void SetFloat60AB48(void)
 
 /* Hands back the global's address rather than its value - one lea-shaped load
    of the constant and a return. */
-// FUNCTION: WIZ8 0x005A9E90
+// FUNCTION: WIZ8 0x005a9e90
 int* GetAddress69C1CC(void)
 {
     return &g_value_69c1cc;
@@ -1114,25 +1114,25 @@ float GetFloat64B914(void)
  * what widens the byte-sized result to a full 0/1 register.
  */
 
-// FUNCTION: WIZ8 0x004297D0
+// FUNCTION: WIZ8 0x004297d0
 bool HasScreenTransitionObjects(void)
 {
     return g_screen_transition_object_count_654aac != 0;
 }
 
-// FUNCTION: WIZ8 0x0052E360
+// FUNCTION: WIZ8 0x0052e360
 bool IsFlag6850FCSet(void)
 {
     return g_flag_6850fc != 0xff;
 }
 
-// FUNCTION: WIZ8 0x0047AE80
+// FUNCTION: WIZ8 0x0047ae80
 bool IsFlag6850FASet(void)
 {
     return g_flag_6850fa != 0xff;
 }
 
-// FUNCTION: WIZ8 0x0048FE80
+// FUNCTION: WIZ8 0x0048fe80
 bool IsFlag6850FBSet(void)
 {
     return g_flag_6850fb != 0xff;
@@ -1146,13 +1146,13 @@ bool IsFlag6850FBSet(void)
  */
 
 /* The region index is the body's own constant rather than an argument. */
-// FUNCTION: WIZ8 0x005A19A0
+// FUNCTION: WIZ8 0x005a19a0
 void DisableRegionSet1C(void)
 {
     RegionSetDisable(0x1c);
 }
 
-// FUNCTION: WIZ8 0x00404C70
+// FUNCTION: WIZ8 0x00404c70
 void DeleteFileByName(LPCSTR path)
 {
     DeleteFileA(path);
@@ -1166,7 +1166,7 @@ void CompareFileTimes(const FILETIME* left, const FILETIME* right)
     CompareFileTime(left, right);
 }
 
-// FUNCTION: WIZ8 0x004F1220
+// FUNCTION: WIZ8 0x004f1220
 void ReleasePointer689B40(void)
 {
     if (g_pointer_689b40) {
@@ -1175,7 +1175,7 @@ void ReleasePointer689B40(void)
 }
 
 /* Two stores over unrelated globals, the second a literal zero. */
-// FUNCTION: WIZ8 0x004C6220
+// FUNCTION: WIZ8 0x004c6220
 void SetFlag6081E4(unsigned char value)
 {
     g_flag_6081e4 = value;
@@ -1194,7 +1194,7 @@ void ClearNodeFlag(srNode* node)
 
 /* Takes its owner in ECX rather than on the stack, which is the four bytes
    between this and the cdecl forwarders above. */
-// FUNCTION: WIZ8 0x00429AF0
+// FUNCTION: WIZ8 0x00429af0
 void __fastcall ReleaseOwnedClass(srClass** owner)
 {
     if (*owner) {
@@ -1204,13 +1204,13 @@ void __fastcall ReleaseOwnedClass(srClass** owner)
 
 /* Indexed by a signed char, which is what makes the loaded byte reach the
    caller alongside the index's own sign in the upper bytes. */
-// FUNCTION: WIZ8 0x0055F2B0
+// FUNCTION: WIZ8 0x0055f2b0
 unsigned char GetTable647CCCEntry(char index)
 {
     return g_table_647ccc[index];
 }
 
-// FUNCTION: WIZ8 0x0040C220
+// FUNCTION: WIZ8 0x0040c220
 void ClearDisplayFlag650E90(void)
 {
     g_display_flag_650e90 = 0;
@@ -1218,7 +1218,7 @@ void ClearDisplayFlag650E90(void)
 
 /* Row-major lookup with a stride of eight; the scaled index is what fixes the
    inner dimension. */
-// FUNCTION: WIZ8 0x005E3730
+// FUNCTION: WIZ8 0x005e3730
 unsigned char GetTable650434Entry(int row, int column)
 {
     return g_table_650434[row][column];
@@ -1226,25 +1226,25 @@ unsigned char GetTable650434Entry(int row, int column)
 
 /* Four more whole-body stores, each one store and a return. */
 
-// FUNCTION: WIZ8 0x00587C10
+// FUNCTION: WIZ8 0x00587c10
 void SetValue68F2B0(int value)
 {
     g_value_68f2b0 = value;
 }
 
-// FUNCTION: WIZ8 0x0058A870
+// FUNCTION: WIZ8 0x0058a870
 void SetValue68F2C4(int value)
 {
     g_value_68f2c4 = value;
 }
 
-// FUNCTION: WIZ8 0x0059CF30
+// FUNCTION: WIZ8 0x0059cf30
 void SetValue69B988(int value)
 {
     g_value_69b988 = value;
 }
 
-// FUNCTION: WIZ8 0x005AE9C0
+// FUNCTION: WIZ8 0x005ae9c0
 void SetValue64D8AC(unsigned long value)
 {
     g_value_64d8ac = value;
@@ -1252,7 +1252,7 @@ void SetValue64D8AC(unsigned long value)
 
 /* The same forwarder shape as 0x005A19A0, except the region set comes from a
    global rather than being written into the body. */
-// FUNCTION: WIZ8 0x005C5D70
+// FUNCTION: WIZ8 0x005c5d70
 void DisableRegionSet69C528(void)
 {
     RegionSetDisable(g_region_set_69c528);
@@ -1266,7 +1266,7 @@ void DisableRegionSet69C528(void)
    zeroes EAX first. The `mov eax` form is the evidence the global is dword-wide
    rather than the byte its one use suggests, so the read itself is settled and
    only the register choice is not. */
-// FUNCTION: WIZ8 0x00525E50
+// FUNCTION: WIZ8 0x00525e50
 bool IsValue68C4C0Clear(void)
 {
     return g_value_68c4c0 == 0;
