@@ -80,6 +80,44 @@ void PathAIClearOwned004A9BB0(W8PathAI* path)
     }
 }
 
+// FUNCTION: WIZ8 0x004a9b90
+void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value)
+{
+    path->flag_3a = value;
+}
+
+// FUNCTION: WIZ8 0x004a9ba0
+void PathAIEnableTimedMode004A9BA0(W8PathAI* path)
+{
+    path->flag_3a = 1;
+    path->flag_3c = 1;
+}
+
+// FUNCTION: WIZ8 0x004a9c20
+void PathAIResetTick004A9C20(W8PathAI* path)
+{
+    path->tick_28 = GetTickCount();
+}
+
+// FUNCTION: WIZ8 0x004a9e70
+float PathAIGetValue004A9E70(W8PathAI* path)
+{
+    if (path == 0) {
+        return g_float_005ebb34;
+    }
+    return path->value_04;
+}
+
+// FUNCTION: WIZ8 0x004a9ef0
+unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
+{
+    if (path != 0 && path->nodes_0c != 0 &&
+        (path->value_20 < path->nodes_0c->count || path->flag_38 != 0)) {
+        return 0;
+    }
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x004a9f20
 unsigned int PathAIEntryCount004A9F20(W8PathAI* path)
 {

@@ -53,6 +53,11 @@ static_assert(sizeof(W8PathRepresentation) == 0x28, "W8PathRepresentation_size_m
 void PathAIApplyToRep004A91F0(W8PathAI* path, W8PathRepresentation* representation);
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);
+void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value);
+void PathAIEnableTimedMode004A9BA0(W8PathAI* path);
+void PathAIResetTick004A9C20(W8PathAI* path);
+float PathAIGetValue004A9E70(W8PathAI* path);
+unsigned char PathAIIsComplete004A9EF0(W8PathAI* path);
 unsigned int PathAIEntryCount004A9F20(W8PathAI* path);
 void PathAISetValue004A9F60(W8PathAI* path, float value);
 void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount);
