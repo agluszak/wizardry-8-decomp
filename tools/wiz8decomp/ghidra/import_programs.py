@@ -7,7 +7,6 @@ from ..config import Settings
 from ..paths import atomic_json
 from .environment import start_pyghidra
 from .project import configured_modules
-from .query_daemon import stop_daemon
 
 LOG = logging.getLogger(__name__)
 HASH_OPTION = "WIZ8_IMPORTED_SHA256"
@@ -33,7 +32,6 @@ def _existing_hash(settings: Settings, name: str) -> str | None:
 
 def _delete_existing_program(settings: Settings, name: str, expected_hash: str) -> bool:
     """Delete one exact hash-validated domain file before a deterministic rebuild."""
-
     import pyghidra
 
     try:
@@ -51,8 +49,6 @@ def _delete_existing_program(settings: Settings, name: str, expected_hash: str) 
                 f"refusing to delete {name}: project hash {actual_hash} != "
                 f"configured input hash {expected_hash}"
             )
-        # GhidraFile.delete() is a Java void method. Confirm the postcondition
-        # instead of interpreting JPype's None return as failure.
         domain_file.delete()
         if project.getProjectData().getFile("/" + name) is not None:
             raise RuntimeError(f"Ghidra did not delete program {name}")
@@ -69,7 +65,6 @@ def import_programs(
     requested_program: str | None = None,
     replace_existing: bool = False,
 ) -> dict[str, Any]:
-    stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     modules = configured_modules(
         settings, all_modules=all_modules, variant=variant, requested_program=requested_program
