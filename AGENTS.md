@@ -56,6 +56,17 @@ Recover the immediate call graph needed for the next visible product transition.
 only when it repeatedly saves recovery work, proves emitted code or runtime behavior, or preserves
 evidence Ghidra cannot express.
 
+Use the ordinary circa-2000/2001 C++ program model as the default hypothesis. Apply Occam's razor:
+prefer normal language, compiler, ABI, and container semantics over bespoke mechanisms unless
+concrete evidence requires otherwise. If a routine has the shape of a regular constructor or
+destructor, recover it as the regular constructor or destructor; if a layout and its operations
+have the shape of a vector, list, string, or other familiar container, model that container rather
+than inventing an unrelated wrapper or one-off procedure. In templated ownership code, recover the
+general typed template operation and use ordinary typed construction or deletion so the compiler
+emits the expected calls. Treat special calling conventions, explicit allocation/deallocation
+calls, custom lifecycle helpers, and novel container abstractions as claims that require positive
+evidence, not as starting assumptions.
+
 Load the task's skill before starting: porting or near-matching a function body uses
 `matching-decomp`; promoting candidate classes or deciding what an unnamed
 constructor/destructor constructs uses `class-triage`.
