@@ -102,11 +102,9 @@ public:
    before this derived layer installs 0x005EF898 at the same address; the
    derived layer adds no storage, so both classes are 0x10 bytes. The derived
    name stays address-qualified because no source-backed name is available. */
+// VTABLE: WIZ8 0x005ef898
 class W8DialogPtrVector005EF898
     : public W8GrowableVector<W8DialogOwned005D14D0*> {
-public:
-    W8DialogPtrVector005EF898();
-    virtual ~W8DialogPtrVector005EF898() override;
 };                                      /* 0x10 */
 
 class W8DialogMember005D14D0 {

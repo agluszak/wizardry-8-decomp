@@ -16,12 +16,12 @@ private:
     int field_234_;                       /* 0x234 */
 };
 
-/* Address-qualified empty derived vector whose reviewed vtable is 0x005EC294. */
+/* Address-qualified empty derived vector with its own reviewed type identity. */
+// VTABLE: WIZ8 0x005ec294
 class W8Vector005EC294 :
     public W8GrowableVector<W8VectorElement005EC294*> {
 public:
     W8Vector005EC294(int initial_capacity);
-    virtual ~W8Vector005EC294() override;
 };                                       /* 0x10 */
 
 void DestroyVector005EC294(W8Vector005EC294* vector); /* 0x004A8C50 */

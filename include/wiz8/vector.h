@@ -112,7 +112,7 @@ class W8VectorElement005EBFE0;
    separate default constructor the image cannot say, because every capacity-5
    site is inlined. */
 template <class T>
-__forceinline W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
+W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
 {
     if (initial_capacity < 1) {
         initial_capacity = 1;
@@ -128,7 +128,7 @@ __forceinline W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
 }
 
 template <class T>
-__forceinline W8GrowableVector<T>::~W8GrowableVector()
+W8GrowableVector<T>::~W8GrowableVector()
 {
     ::operator delete(data);
 }

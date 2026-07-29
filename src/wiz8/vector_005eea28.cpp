@@ -30,23 +30,21 @@
 
 class W8VectorElement005EEA28;
 
+// VTABLE: WIZ8 0x005eea28
 class W8Vector005EEA28 : public W8GrowableVector<W8VectorElement005EEA28*> {
-public:
-    W8Vector005EEA28();
-    virtual ~W8Vector005EEA28() override;
 };                                       /* 0x10 */
 
 /* The list itself, reached through this pointer rather than through an owner. */
 static W8Vector005EEA28* g_list_0068F258;
 
-__forceinline W8Vector005EEA28::W8Vector005EEA28()
-{
-}
+// SYNTHETIC: WIZ8 0x005853f0
+// W8GrowableVector<W8VectorElement005EEA28*>::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x00585440
-W8Vector005EEA28::~W8Vector005EEA28()
-{
-}
+// SYNTHETIC: WIZ8 0x00585420
+// W8Vector005EEA28::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00585440
+// W8GrowableVector<W8VectorElement005EEA28*>::~W8GrowableVector<W8VectorElement005EEA28*>
 
 // FUNCTION: WIZ8 0x0057e5d0
 unsigned char CreateList005EEA28(void)

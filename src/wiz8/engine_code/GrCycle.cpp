@@ -27,30 +27,36 @@ class W8VectorElement005ECED4;
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
 extern W8GrowableVector<char*> g_grcycle_names;                       /* 0x0065BDF0 */
+// VTABLE: WIZ8 0x005ecedc
 class W8GrCycleRegistryVector005ECEDC
     : public W8GrowableVector<W8GrCycle*> {
-public:
-    W8GrCycleRegistryVector005ECEDC();
-    virtual ~W8GrCycleRegistryVector005ECEDC() override;
 };
 
-__forceinline W8GrCycleRegistryVector005ECEDC::W8GrCycleRegistryVector005ECEDC()
-{
-}
+// SYNTHETIC: WIZ8 0x004a9020
+// W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004a9050
+// W8GrCycleRegistryVector005ECEDC::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004a9070
+// W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
 
 extern W8GrowableVector<W8GrCycleRegistryVector005ECEDC*> g_grcycles_by_name;
                                                                     /* 0x0065BE00 */
 
+// VTABLE: WIZ8 0x005eced4
 class W8Vector005ECED4
     : public W8GrowableVector<W8VectorElement005ECED4*> {
-public:
-    W8Vector005ECED4();
-    virtual ~W8Vector005ECED4() override;
 };                                       /* 0x10 */
 
-__forceinline W8Vector005ECED4::W8Vector005ECED4()
-{
-}
+// SYNTHETIC: WIZ8 0x004a8f40
+// W8GrowableVector<W8VectorElement005ECED4*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004a8f70
+// W8Vector005ECED4::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004a8f90
+// W8GrowableVector<W8VectorElement005ECED4*>::~W8GrowableVector<W8VectorElement005ECED4*>
 
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
@@ -298,9 +304,4 @@ void W8GrCycle::SetGroundShadowVisible(char visible)
             m_ground_shadow->setFlag(srNode::FLAG_POSITIONAL_0);
         }
     }
-}
-
-// FUNCTION: WIZ8 0x004a8f90
-W8Vector005ECED4::~W8Vector005ECED4()
-{
 }

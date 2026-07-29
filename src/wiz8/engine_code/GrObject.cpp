@@ -37,10 +37,9 @@ public:
     ~W8VectorElement005ED094();          /* 0x004D5770 */
 };
 
-class W8SoundEventVector005ED094 : public W8GrowableVector<W8VectorElement005ED094*> {
-public:
-    W8SoundEventVector005ED094();
-    virtual ~W8SoundEventVector005ED094() override;
+// VTABLE: WIZ8 0x005ed094
+class W8SoundEventVector005ED094
+    : public W8GrowableVector<W8VectorElement005ED094*> {
 };                                       /* 0x10 */
 
 class W8GrObject005ED090 {
@@ -67,17 +66,14 @@ protected:
     W8SoundEventVector005ED094* m_plsSoundEvents; /* 0x10 */
 };                                       /* 0x14 established */
 
-__forceinline W8SoundEventVector005ED094::W8SoundEventVector005ED094()
-{
-}
+// SYNTHETIC: WIZ8 0x004b6d90
+// W8GrowableVector<W8VectorElement005ED094*>::`scalar deleting destructor'
 
-/* Empty, and the emptiness is the point: what the image contains for it is the
-   base's body, reached by the compiler-generated deleting destructor at
-   0x004B6DC0 with no vptr store of its own in between. */
-// FUNCTION: WIZ8 0x004b6de0
-W8SoundEventVector005ED094::~W8SoundEventVector005ED094()
-{
-}
+// SYNTHETIC: WIZ8 0x004b6dc0
+// W8SoundEventVector005ED094::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004b6de0
+// W8GrowableVector<W8VectorElement005ED094*>::~W8GrowableVector<W8VectorElement005ED094*>
 
 /* Creates the list on first use and appends one event to it. Only one argument
    reaches this from its three call sites, each of which builds the event with

@@ -78,14 +78,14 @@ W8DialogMember005DB1B0::~W8DialogMember005DB1B0()
     }
 }
 
-__forceinline W8DialogPtrVector005EF898::W8DialogPtrVector005EF898()
-{
-}
+// SYNTHETIC: WIZ8 0x005d2560
+// W8GrowableVector<W8DialogOwned005D14D0*>::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x005d2540
-__forceinline W8DialogPtrVector005EF898::~W8DialogPtrVector005EF898()
-{
-}
+// SYNTHETIC: WIZ8 0x005d2590
+// W8DialogPtrVector005EF898::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x005d2540
+// W8GrowableVector<W8DialogOwned005D14D0*>::~W8GrowableVector<W8DialogOwned005D14D0*>
 
 // FUNCTION: WIZ8 0x005d14d0
 W8DialogMember005D14D0::W8DialogMember005D14D0()

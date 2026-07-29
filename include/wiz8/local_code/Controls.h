@@ -248,11 +248,9 @@ WIZ8_ASSERT_SIZE(W8RangeButton005ED6FC, 0xc0);
 class W8WidgetBase005ED5BC;
 struct W8RangeControlConstruction005ED74C {};
 
+// VTABLE: WIZ8 0x005ed5b0
 class W8ControlsVector005ED5B0
     : public W8GrowableVector<W8WidgetBase005ED5BC*> {
-public:
-    W8ControlsVector005ED5B0();
-    virtual ~W8ControlsVector005ED5B0() override;
 };
 
 /* The region callback a widget without its own region is given. Ghidra has no

@@ -16,10 +16,10 @@
 
 class W8VectorElement005ECAD0;
 
+// VTABLE: WIZ8 0x005ecad0
 class W8Vector005ECAD0 : public W8GrowableVector<W8VectorElement005ECAD0*> {
 public:
     W8Vector005ECAD0(int initial_capacity);
-    virtual ~W8Vector005ECAD0() override;
 };                                       /* 0x10 */
 
 // FUNCTION: WIZ8 0x0048f190
@@ -28,7 +28,11 @@ W8Vector005ECAD0::W8Vector005ECAD0(int initial_capacity)
 {
 }
 
-// FUNCTION: WIZ8 0x0048f1f0
-W8Vector005ECAD0::~W8Vector005ECAD0()
-{
-}
+// SYNTHETIC: WIZ8 0x0048f210
+// W8GrowableVector<W8VectorElement005ECAD0*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0048f240
+// W8Vector005ECAD0::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0048f1f0
+// W8GrowableVector<W8VectorElement005ECAD0*>::~W8GrowableVector<W8VectorElement005ECAD0*>

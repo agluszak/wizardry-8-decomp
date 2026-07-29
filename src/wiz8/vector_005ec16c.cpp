@@ -17,10 +17,10 @@
 
 class W8VectorElement005EC16C;
 
+// VTABLE: WIZ8 0x005ec16c
 class W8Vector005EC16C : public W8GrowableVector<W8VectorElement005EC16C*> {
 public:
     W8Vector005EC16C(int initial_capacity);
-    virtual ~W8Vector005EC16C() override;
 };                                       /* 0x10 */
 
 // FUNCTION: WIZ8 0x00446090
@@ -32,7 +32,11 @@ W8Vector005EC16C::W8Vector005EC16C(int initial_capacity)
 /* Stores the base table 0x005EC170, not the 0x005EC16C the constructor above
    installs, for the reason the second-vtable section of
    docs/libraries/wiz8-foundation-types.md sets out. */
-// FUNCTION: WIZ8 0x004460f0
-W8Vector005EC16C::~W8Vector005EC16C()
-{
-}
+// SYNTHETIC: WIZ8 0x00446200
+// W8GrowableVector<W8VectorElement005EC16C*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00446230
+// W8Vector005EC16C::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004460f0
+// W8GrowableVector<W8VectorElement005EC16C*>::~W8GrowableVector<W8VectorElement005EC16C*>

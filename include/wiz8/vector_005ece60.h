@@ -9,11 +9,11 @@
    element type without changing this vector family's reviewed vtable. */
 typedef W8Vector005EC294 W8VectorElement005ECE60;
 
+// VTABLE: WIZ8 0x005ece60
 class W8Vector005ECE60 :
     public W8GrowableVector<W8VectorElement005ECE60*> {
 public:
     W8Vector005ECE60(int initial_capacity = 5);
-    virtual ~W8Vector005ECE60() override;
 };                                       /* 0x10 */
 
 #endif

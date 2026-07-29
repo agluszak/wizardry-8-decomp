@@ -23,10 +23,8 @@
 
 class W8VectorElement005ECF00;
 
+// VTABLE: WIZ8 0x005ecf00
 class W8Vector005ECF00 : public W8GrowableVector<W8VectorElement005ECF00*> {
-public:
-    W8Vector005ECF00();
-    virtual ~W8Vector005ECF00() override;
 };                                       /* 0x10 */
 
 struct W8Record004A9750 {
@@ -35,14 +33,14 @@ struct W8Record004A9750 {
     unsigned char unknown_010[0x30];
 };                                       /* 0x40 */
 
-__forceinline W8Vector005ECF00::W8Vector005ECF00()
-{
-}
+// SYNTHETIC: WIZ8 0x004aaac0
+// W8GrowableVector<W8VectorElement005ECF00*>::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x004aab10
-W8Vector005ECF00::~W8Vector005ECF00()
-{
-}
+// SYNTHETIC: WIZ8 0x004aaaf0
+// W8Vector005ECF00::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004aab10
+// W8GrowableVector<W8VectorElement005ECF00*>::~W8GrowableVector<W8VectorElement005ECF00*>
 
 // FUNCTION: WIZ8 0x004a9750
 W8Record004A9750* CreateRecord004A9750(void)

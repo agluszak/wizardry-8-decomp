@@ -12,9 +12,10 @@
    is claimed here; a second emission would need its own file, and there is not
    one.
 
-   The complete destructor stores the base table 0x005EC298, not the
-   0x005EC294 the constructor installs, because its own store is dead
-   against the inlined base destructor and VC6 drops it.
+   The template destructor stores the base table 0x005EC298, not the
+   0x005EC294 the constructor installs. The two deleting wrappers are
+   compiler-generated; the markers below account for them separately without
+   pretending that an empty wrapper destructor was written in source.
 
    Nothing anchors these bodies to a translation unit, so the file is named for
    the class and the class for its vtable. */
@@ -25,7 +26,11 @@ W8Vector005EC294::W8Vector005EC294(int initial_capacity)
 {
 }
 
-// FUNCTION: WIZ8 0x00451d30
-W8Vector005EC294::~W8Vector005EC294()
-{
-}
+// SYNTHETIC: WIZ8 0x00451ce0
+// W8GrowableVector<W8VectorElement005EC294*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00451d10
+// W8Vector005EC294::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00451d30
+// W8GrowableVector<W8VectorElement005EC294*>::~W8GrowableVector<W8VectorElement005EC294*>

@@ -20,7 +20,11 @@ W8Vector005ECE60::W8Vector005ECE60(int initial_capacity)
 {
 }
 
-// FUNCTION: WIZ8 0x004a5c90
-W8Vector005ECE60::~W8Vector005ECE60()
-{
-}
+// SYNTHETIC: WIZ8 0x004a5cf0
+// W8GrowableVector<W8VectorElement005ECE60*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004a5d20
+// W8Vector005ECE60::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004a5c90
+// W8GrowableVector<W8VectorElement005ECE60*>::~W8GrowableVector<W8VectorElement005ECE60*>

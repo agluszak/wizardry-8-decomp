@@ -30,13 +30,14 @@
 #define REGSET_NULL 0
 
 
-__forceinline W8ControlsVector005ED5B0::W8ControlsVector005ED5B0()
-{
-}
+// SYNTHETIC: WIZ8 0x004f6870
+// W8GrowableVector<W8WidgetBase005ED5BC*>::`scalar deleting destructor'
 
-__forceinline W8ControlsVector005ED5B0::~W8ControlsVector005ED5B0()
-{
-}
+// SYNTHETIC: WIZ8 0x004f68a0
+// W8ControlsVector005ED5B0::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004f68c0
+// W8GrowableVector<W8WidgetBase005ED5BC*>::~W8GrowableVector<W8WidgetBase005ED5BC*>
 
 /* The class at vtable 0x005ED5A4 is Controls itself. Its embedded vector at
    +0x38 stores the widget pointers walked by every panel method; the former
@@ -2403,11 +2404,9 @@ public:
     virtual void vslot00(class W8Control005ED654* control, int selected);
 };
 
+// VTABLE: WIZ8 0x005ed65c
 class W8ControlEntryVector005ED65C
     : public W8GrowableVector<W8VectorElement005ED65C*> {
-public:
-    W8ControlEntryVector005ED65C();
-    virtual ~W8ControlEntryVector005ED65C() override;
 };                                       /* 0x10 */
 
 class W8Control005ED654 : public W8ControlBase005ED664 {
@@ -2429,9 +2428,14 @@ __forceinline W8ControlBase005ED664::W8ControlBase005ED664()
     m_index_c = -1;
 }
 
-__forceinline W8ControlEntryVector005ED65C::W8ControlEntryVector005ED65C()
-{
-}
+// SYNTHETIC: WIZ8 0x004f68e0
+// W8GrowableVector<W8VectorElement005ED65C*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004f6910
+// W8ControlEntryVector005ED65C::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004f6930
+// W8GrowableVector<W8VectorElement005ED65C*>::~W8GrowableVector<W8VectorElement005ED65C*>
 
 // FUNCTION: WIZ8 0x004f5450
 W8Control005ED654::W8Control005ED654()

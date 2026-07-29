@@ -18,10 +18,10 @@
 
 class W8VectorElement005EBFB4;
 
+// VTABLE: WIZ8 0x005ebfb4
 class W8Vector005EBFB4 : public W8GrowableVector<W8VectorElement005EBFB4*> {
 public:
     W8Vector005EBFB4(int initial_capacity);
-    virtual ~W8Vector005EBFB4() override;
 };                                       /* 0x10 */
 
 // FUNCTION: WIZ8 0x0042a260
@@ -34,7 +34,11 @@ W8Vector005EBFB4::W8Vector005EBFB4(int initial_capacity)
    store is overwritten by the inlined base destructor before anything can
    observe it, so VC6 drops it and this stores 0x005EBFB8 rather than the
    0x005EBFB4 the constructor above installs. */
-// FUNCTION: WIZ8 0x0042a2c0
-W8Vector005EBFB4::~W8Vector005EBFB4()
-{
-}
+// SYNTHETIC: WIZ8 0x0042a2e0
+// W8GrowableVector<W8VectorElement005EBFB4*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0042a310
+// W8Vector005EBFB4::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0042a2c0
+// W8GrowableVector<W8VectorElement005EBFB4*>::~W8GrowableVector<W8VectorElement005EBFB4*>
