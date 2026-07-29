@@ -3,6 +3,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
 #include "Font.h"
+#include "vobject.h"
 #include "vsurface.h"
 
 #include <direct.h>
@@ -23,7 +24,13 @@ extern "C" {
 
 HVSURFACE CreateVideoSurfaceFromDDSurface(IDirectDrawSurface2* surface);
 
-int g_surface_list_650dbc;
+struct W8VideoManagerNode {
+    unsigned int handle;
+    int unused_04;
+    W8VideoManagerNode* next;
+};
+
+W8VideoManagerNode* g_surface_list_650dbc;
 /* Released and cleared together by 0x00402E60, which frees each through
    0x00403A50; only the third is rebuilt here. */
 HVSURFACE g_surface_650dd4;
@@ -33,6 +40,9 @@ HVSURFACE g_surface_650de0;
 extern HVSURFACE ghFrameBuffer;
 extern HVSURFACE ghMouseBuffer;
 int g_dword_650dc0;
+int g_dword_650dc4;
+int g_dword_650dc8;
+int g_dword_650dcc;
 int g_dword_6ef4c0;
 int g_dword_650df4;
 int g_dword_650df8;
@@ -54,9 +64,12 @@ extern unsigned char g_flag_65970f;
 extern unsigned char g_flag_6598a8;
 extern unsigned char g_flag_659711;
 extern unsigned char g_fullscreen_603c39;
-int g_dword_650e24;
+W8VideoManagerNode* g_video_object_list_650e24;
 int g_dword_650e28;
+int g_dword_650e2c;
+int g_dword_650e30;
 unsigned char g_video_objects_ready_650e20;
+unsigned char g_flag_5ff5e8;
 
 // FUNCTION: WIZ8 0x00402E60
 void Function402E60(void)
@@ -132,7 +145,7 @@ extern void InitializeSGPPixelFormat(void);
 
 
 
-extern unsigned char Function4E2F40(void);
+extern unsigned char InitializeGameData(void);
 unsigned int g_mswheel_roll_message;
 bool g_flag_6505a9;
 
@@ -174,7 +187,7 @@ unsigned char Function5B1740(int unused)
 }
 
 // FUNCTION: WIZ8 0x00402970
-bool Function402970(void)
+bool InitializeWizardryVideoSurfaceManager(void)
 {
     bool ready;
 
@@ -197,12 +210,55 @@ bool InitializeVideoSurfaceState(void)
 }
 
 // FUNCTION: WIZ8 0x00405E60
-bool Function405E60(void)
+bool InitializeWizardryVideoObjectManager(void)
 {
     g_dword_650e28 = 0;
-    g_dword_650e24 = 0;
+    g_video_object_list_650e24 = 0;
     g_video_objects_ready_650e20 = 1;
     return true;
+}
+
+// FUNCTION: WIZ8 0x00402990
+bool ShutdownWizardryVideoSurfaceManager(void)
+{
+    W8VideoManagerNode* node;
+
+    Function402E60();
+    while (g_surface_list_650dbc) {
+        node = g_surface_list_650dbc;
+        g_surface_list_650dbc = node->next;
+        DeleteVideoSurface((HVSURFACE)node->handle);
+        free(node);
+    }
+    g_dword_650dc0 = 0;
+    g_dword_650dc4 = 0;
+    g_dword_650dc8 = 0;
+    g_dword_650dcc = 0;
+    return true;
+}
+
+// FUNCTION: WIZ8 0x00405E80
+void ShutdownWizardryVideoObjectManager(void)
+{
+    W8VideoManagerNode* node;
+
+    while (g_video_object_list_650e24) {
+        node = g_video_object_list_650e24;
+        g_video_object_list_650e24 = node->next;
+        DeleteVideoObject((HVOBJECT)node->handle);
+        free(node);
+    }
+    g_dword_650e28 = 0;
+    g_dword_650e2c = 0;
+    g_dword_650e30 = 0;
+    g_video_objects_ready_650e20 = 0;
+    g_flag_5ff5e8 = 1;
+}
+
+// FUNCTION: WIZ8 0x00428B80
+int ReturnZero(void)
+{
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x00427A60
@@ -222,18 +278,18 @@ bool SetModuleSubdirectory(const char* subdirectory);
 bool g_shutdown_started_650db5;
 bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
-extern void Function4E34B0(int flag);
-extern void Function4E3290(void);
-extern void Function40CF90(void);
-extern void Function40B450(void);
-extern void Function407E70(void);
-extern void Function407E30(void);
+extern void ShutdownScreenStack(int flag);
+extern void ShutdownGameData(void);
+extern void ShutdownButtonSystem(void);
+extern void ShutdownDisplayList(void);
+extern void DestroyEnglishTransTable(void);
+extern void ShutdownFontManager(void);
 extern void ShutdownClockManager(void);
-extern void Function402990(void);
-extern void Function405E80(void);
-extern void Function421DC0(void);
+extern bool ShutdownWizardryVideoSurfaceManager(void);
+extern void ShutdownWizardryVideoObjectManager(void);
+extern void ShutdownRenderer(void);
 extern void ShutdownInputManager(void);
-extern void Function428B80(void);
+extern int ReturnZero(void);
 
 
 
@@ -868,23 +924,23 @@ void ShutdownHandler(void)
     gfProgramIsRunning = 0;
     Function408850();
     if (g_flag_6505a9) {
-        Function4E34B0(1);
+        ShutdownScreenStack(1);
     }
     if (!g_teardown_done_650db4) {
         engine_up = g_flag_6505a9;
         g_teardown_done_650db4 = true;
         if (engine_up) {
-            Function4E3290();
+            ShutdownGameData();
         }
-        Function40CF90();
-        Function40B450();
+        ShutdownButtonSystem();
+        ShutdownDisplayList();
         Function408850();
-        Function407E70();
-        Function407E30();
+        DestroyEnglishTransTable();
+        ShutdownFontManager();
         ShutdownClockManager();
-        Function402990();
-        Function405E80();
-        Function421DC0();
+        ShutdownWizardryVideoSurfaceManager();
+        ShutdownWizardryVideoObjectManager();
+        ShutdownRenderer();
         ShutdownInputManager();
         Function4023A0();
         Function4023A0();
@@ -895,7 +951,7 @@ void ShutdownHandler(void)
     if (strlen(g_shutdown_message_6505ac) != 0) {
         MessageBoxA(NULL, g_shutdown_message_6505ac, "Error", MB_ICONHAND);
     }
-    Function428B80();
+    ReturnZero();
 }
 
 /* The window init sequence. Registers the window class, points module loading
@@ -925,10 +981,10 @@ bool BringUpEngine(void* instance, int show_command)
     if (!Function421BB0(instance, show_command, WindowProc4011E0)) {
         return false;
     }
-    if (!Function405E60()) {
+    if (!InitializeWizardryVideoObjectManager()) {
         return false;
     }
-    if (!Function402970()) {
+    if (!InitializeWizardryVideoSurfaceManager()) {
         return false;
     }
     InitializeClockManager();
@@ -944,7 +1000,7 @@ bool BringUpEngine(void* instance, int show_command)
         return false;
     }
     InitializeRandom();
-    if (!Function4E2F40()) {
+    if (!InitializeGameData()) {
         return false;
     }
     g_mswheel_roll_message = RegisterWindowMessageA("MSWHEEL_ROLLMSG");

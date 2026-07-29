@@ -2,6 +2,7 @@
 #include "wiz8/screen_state.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 /* GameplayDatabase.cpp is an original C++ translation unit.  Keep these
    declarations outside the C-linkage block: spelling them as C functions
@@ -13,6 +14,11 @@ extern unsigned char VerifyDataSubdirs(void);
 extern void Function51B560(void);
 extern void Function55EC50(int value);
 extern unsigned char InitializeSpellDatabase(void);
+extern void ReleaseGenericItemNames(void);
+extern void UnloadEncounterTables(void);
+extern void ReleaseSpellDatabase(void);
+extern void ReleaseAllTriggers(void);
+extern void ReleasePointer689B40(void);
 
 /*
  * The data bring-up gate BringUpEngine calls last. It stamps the version
@@ -61,11 +67,12 @@ extern int g_dword_68ed18;
 extern unsigned char g_save_slot_68ed28[];
 extern unsigned char g_flag_6850d4;
 extern unsigned short g_word_6850ed;
+extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char g_block_68f2d8[0xc4e0];
 extern unsigned char g_flag_65beaf;
 
 // FUNCTION: WIZ8 0x004E2F40
-unsigned char Function4E2F40(void)
+unsigned char InitializeGameData(void)
 {
     char version[64];
     void* buffer;
@@ -156,6 +163,25 @@ unsigned char Function4E2F40(void)
     ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
     g_flag_65beaf = ok;
     return 1;
+}
+
+extern unsigned char ShutDownFileDatabase(void);
+extern unsigned char DeleteStack(void* stack);
+
+// FUNCTION: WIZ8 0x004E3290
+void ShutdownGameData(void)
+{
+    int index;
+
+    for (index = 0; index < 15; ++index) {
+        free(g_font_state_palettes_68ee1c[index]);
+        g_font_state_palettes_68ee1c[index] = 0;
+    }
+    if (g_stack_68eda8) {
+        DeleteStack(g_stack_68eda8);
+        g_stack_68eda8 = 0;
+    }
+    ShutDownFileDatabase();
 }
 
 }

@@ -121,7 +121,7 @@ extern void Function407210(int font);
 extern int Function406DF0(int font);
 extern void Function4068E0(int font_context, int render_mode);
 extern int Function406DE0(int font);
-extern void Function406DC0(int font, int state);
+extern "C" unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* palette);
 extern void Function407090();
 extern void Function407140();
 extern void Function407220(int target, int left, int top, int right, int bottom,
@@ -588,7 +588,7 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
     Function4068E0(font_context, m_renderMode);
     int previous_state = Function406DE0(m_font);
     if (m_fontStateIndex != -1) {
-        Function406DC0(m_font, g_W8FontStateTable0068EE1C[m_fontStateIndex]);
+        SetFontObjectPalette16BPP(m_font, (unsigned short*)g_W8FontStateTable0068EE1C[m_fontStateIndex]);
     }
     Function407090();
     Function407220(g_W8TextClipTarget005FF5F4,
@@ -627,7 +627,7 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
     }
 
 done:
-    Function406DC0(m_font, previous_state);
+    SetFontObjectPalette16BPP(m_font, (unsigned short*)previous_state);
     Function407140();
     m_geometryDirty = 0;
 }

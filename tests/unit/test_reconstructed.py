@@ -198,7 +198,10 @@ def _object(path: Path) -> Path:
     """A COFF object shaped like a `/Z7` one: two `.debug$S`, one `.debug$T`."""
 
     sections = [
-        (".debug$S", _procedure("Function402970", 28, 0x1001) + _record(0x0006, b"")),
+        (
+            ".debug$S",
+            _procedure("InitializeWizardryVideoSurfaceManager", 28, 0x1001) + _record(0x0006, b""),
+        ),
         (".debug$S", _symbols()),
         (".debug$T", struct.pack("<I", 1) + _type_records()),
     ]
@@ -252,7 +255,7 @@ def test_every_comdat_debug_section_of_an_object_is_read(tmp_path: Path) -> None
     info = load_object(_object(tmp_path / "engine.obj"))
 
     assert [procedure.name for procedure in info.procedures] == [
-        "Function402970",
+        "InitializeWizardryVideoSurfaceManager",
         "BringUpEngine",
     ]
 
@@ -264,7 +267,10 @@ def test_objects_cover_what_the_link_left_out(tmp_path: Path) -> None:
 
     bodies = bodies_from_objects(build)
 
-    assert {body.name for body in bodies} == {"Function402970", "BringUpEngine"}
+    assert {body.name for body in bodies} == {
+        "InitializeWizardryVideoSurfaceManager",
+        "BringUpEngine",
+    }
     assert all(body.object_file == "CMakeFiles/engine.obj" for body in bodies)
 
 
@@ -366,7 +372,7 @@ def test_parameter_names_come_from_the_source_or_say_they_did_not() -> None:
     )
     optimised = Transfer(
         address="00402970",
-        symbol="Function402970",
+        symbol="InitializeWizardryVideoSurfaceManager",
         confidence="exact",
         tier=REVIEWED_TIER,
         object_file="engine.obj",

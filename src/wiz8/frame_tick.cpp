@@ -1,5 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/screen_state.h"
+#include "Container.h"
+#include "surrender/srTypeRegistry.h"
 
 #include <string.h>
 
@@ -7,11 +9,11 @@
  * The per-frame tick WinMain calls when no message is waiting and the
  * application is active. It drives a screen-state stack: the current state
  * descriptor sits at 0x0068EC78 and the pending one immediately after it at
- * 0x0068ED10, both 0x98 bytes, which is the element size Function4E2F40 gives
+ * 0x0068ED10, both 0x98 bytes, which is the element size InitializeGameData gives
  * CreateStack. A state transition copies pending over current, and the
  * displaced state is pushed so it can be returned to.
  *
- * Each state owns five dwords in the table at 0x00647BC8. Function4E2F40 walks
+ * Each state owns five dwords in the table at 0x00647BC8. InitializeGameData walks
  * slot 0 of every record as an initialiser; this walks three more: the entry
  * handler at 0x00647BCC, the one at 0x00647BD0 that closes out a frame, and the
  * tick at 0x00647BD4, which takes a flag distinguishing the leaving pass from
@@ -21,7 +23,7 @@
 extern "C" {
 
 struct W8ScreenStateHandlers {
-    unsigned char (*initialise)(void);    /* 0x00, walked by Function4E2F40 */
+    unsigned char (*initialise)(void);    /* 0x00, walked by InitializeGameData */
     unsigned char (*enter)(void);         /* 0x04 */
     void (*finish)(void);                 /* 0x08 */
     unsigned char (*tick)(int leaving);   /* 0x0c */
@@ -68,14 +70,32 @@ extern void* g_object_683fd7;
 
 extern void Function4095B0(void);
 extern void Function48F9E0(void);
-extern void Function429770(void);
 extern void Function52E3B0(void);
-extern unsigned char StackSize(void* stack);
-extern unsigned char Pop(void* stack, W8ScreenStateRuntime* into);
-extern void* Push(void* stack, W8ScreenStateRuntime* from);
 
 void Function4095B0(void) {}
 void Function48F9E0(void) {}
+
+int g_screen_transition_object_count_654aac;
+srClass** g_screen_transition_objects_654ab4;
+
+// FUNCTION: WIZ8 0x00429770
+void ReleaseScreenTransitionObjects(void)
+{
+    int index;
+    srClass* object;
+
+    while (g_screen_transition_object_count_654aac != 0) {
+        object = g_screen_transition_objects_654ab4[0];
+        if (g_screen_transition_object_count_654aac > 0) {
+            for (index = 0; index < g_screen_transition_object_count_654aac - 1; ++index) {
+                g_screen_transition_objects_654ab4[index] =
+                    g_screen_transition_objects_654ab4[index + 1];
+            }
+            --g_screen_transition_object_count_654aac;
+        }
+        object->release();
+    }
+}
 
 // FUNCTION: WIZ8 0x004E3340
 void Function4E3340(void)
@@ -87,7 +107,7 @@ void Function4E3340(void)
     state = g_screen_state.id;
     if (g_flag_68edac) {
         g_dword_647bc0 = state;
-        Function429770();
+        ReleaseScreenTransitionObjects();
         if (!g_screen_handlers[g_screen_state.id].tick(1)) {
             gfProgramIsRunning = 0;
             g_screen_state.id = -1;
@@ -115,7 +135,7 @@ void Function4E3340(void)
     }
     if (state != -1) {
         g_dword_647bc0 = state;
-        Function429770();
+        ReleaseScreenTransitionObjects();
         if (!g_screen_handlers[g_screen_state.id].tick(0)) {
             goto clear;
         }
@@ -141,6 +161,36 @@ clear:
     g_screen_state.id = -1;
 stop:
     gfProgramIsRunning = 0;
+}
+
+// FUNCTION: WIZ8 0x004E34B0
+void ShutdownScreenStack(int release_screens)
+{
+    int state;
+
+    if (!release_screens) {
+        return;
+    }
+    for (;;) {
+        if (g_screen_state.id != -1) {
+            g_dword_647bc0 = g_screen_state.id;
+            ReleaseScreenTransitionObjects();
+            g_screen_handlers[g_screen_state.id].tick(1);
+            g_screen_state.id = -1;
+        }
+        if (!StackSize(g_stack_68eda8) || !Pop(g_stack_68eda8, &g_pending_state)) {
+            break;
+        }
+        if (g_pending_state.id != -1) {
+            state = g_pending_state.id;
+            memcpy(&g_screen_state, &g_pending_state, sizeof(g_screen_state));
+            if (!g_screen_handlers[state].enter()) {
+                g_screen_state.id = -1;
+            } else {
+                g_pending_state.id = -1;
+            }
+        }
+    }
 }
 
 }

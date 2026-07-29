@@ -25,7 +25,7 @@ extern unsigned char g_flag_00683f99;
 
 extern void Function55EC50(int arg_1);
 extern void Function4F2040(int region);
-extern void Function429770(void);
+extern void ReleaseScreenTransitionObjects(void);
 extern unsigned char Function577850(void);
 extern void SetCombatSelection(int value);                              /* 0x00569F70 */
 extern void SetCombatTarget(int value);                                 /* 0x0056A2D0 */
@@ -134,7 +134,7 @@ void ClearHighlightIfItIs(const int* item)
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0 &&
         g_level_block->highlighted_item != -1 &&
         *item == g_level_block->highlighted_item) {
-        Function429770();
+        ReleaseScreenTransitionObjects();
     }
 }
 

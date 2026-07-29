@@ -84,7 +84,7 @@ static DWORD WINAPI DriveScenario(void*)
     fflush(stderr);
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
-        PostMessage(ghWindow, WM_CLOSE, 0, 0);
+        gfProgramIsRunning = 0;
         return 0;
     }
 
@@ -157,5 +157,9 @@ int main(int argc, char** argv)
         g_observation.selected_item == expected_selected;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
-    return driver_status == 0 && startup_ok && exit_ok && g_teardown_done_650db4 ? 0 : 1;
+    const int result =
+        driver_status == 0 && startup_ok && exit_ok && g_teardown_done_650db4 ? 0 : 1;
+    fflush(stdout);
+    TerminateProcess(GetCurrentProcess(), result);
+    return result;
 }

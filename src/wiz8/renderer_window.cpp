@@ -108,8 +108,10 @@ unsigned int g_index_6596e4;
 int g_dword_6596d8;
 int g_dword_6596ec;
 int g_dword_6596f0;
+extern srClass* g_cursor_node_659694;
 
 extern void Function4265C0(void);
+extern void FreeMouseCursor(void);
 extern unsigned char Function425EC0(void);
 extern unsigned char Function426080(void);
 extern unsigned char InitializeVideoDevice(void);
@@ -243,6 +245,24 @@ done:
     }
     EnableAllRenderOptions();
     return Function4285C0();
+}
+
+// FUNCTION: WIZ8 0x00421DC0
+void ShutdownRenderer(void)
+{
+    if (g_cursor_node_659694) {
+        g_cursor_node_659694->release();
+        g_cursor_node_659694 = 0;
+    }
+    FreeMouseCursor();
+    if (g_flag_659710) {
+        g_flag_659710 = 0;
+        g_flush_pending_603c3a = 0;
+        if (!g_fullscreen_603c39 && ghWindow) {
+            GetWindowRect(ghWindow, &g_window_rect_659610);
+        }
+        FreeMouseCursor();
+    }
 }
 
 /* Derives the 16-bit channel masks and their leading-bit positions from the

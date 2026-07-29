@@ -346,7 +346,7 @@ int Function40B290(void)
  * out twice here rather than shared behind a helper VC6 would not have inlined.
  */
 // FUNCTION: WIZ8 0x0040B450
-void Function40B450(void)
+void ShutdownDisplayList(void)
 {
     W8DisplayNode* node;
     void (*deallocate)(void*);

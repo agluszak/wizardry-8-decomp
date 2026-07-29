@@ -467,7 +467,7 @@ void DisableRegionHelp(unsigned int region_index)
     g_regions[region_index].help_enabled = 0;
 }
 
-extern void Function429770(void);
+extern void ReleaseScreenTransitionObjects(void);
 
 /* Drops every region back to its resting state. The three tracked regions are
    released first - each only if it still carries bit 0x200 - then every region
@@ -484,17 +484,17 @@ void ResetRegions(void)
 
     index = g_hot_region_689b3c;
     if (g_hot_region_689b3c != 0 && (g_regions[g_hot_region_689b3c].flags & 0x200) != 0) {
-        Function429770();
+        ReleaseScreenTransitionObjects();
         g_regions[index].flags &= ~0x200u;
     }
     index = g_hot_region_689b4c;
     if (g_hot_region_689b4c != 0 && (g_regions[g_hot_region_689b4c].flags & 0x200) != 0) {
-        Function429770();
+        ReleaseScreenTransitionObjects();
         g_regions[index].flags &= ~0x200u;
     }
     index = g_hot_region_689b44;
     if (g_hot_region_689b44 != 0 && (g_regions[g_hot_region_689b44].flags & 0x200) != 0) {
-        Function429770();
+        ReleaseScreenTransitionObjects();
         g_regions[index].flags &= ~0x200u;
     }
     if (g_region_set_count != 0) {

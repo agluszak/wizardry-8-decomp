@@ -549,7 +549,7 @@ void Function54AF30(unsigned char release)
 
 /* Reads MONSTERS.DBS whole: the count into gXStatus, then - only when the
    caller wants them - every record into one allocation handed back through the
-   out-parameter. Function4E2F40 calls it with null just to publish the count. */
+   out-parameter. InitializeGameData calls it with null just to publish the count. */
 // FUNCTION: WIZ8 0x0054A760
 unsigned char Function54A760(W8MonsterRecord** records)
 {

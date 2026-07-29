@@ -160,13 +160,7 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
     ) as display:
         _configure_wine_window_management(environment, private_display=display is not None)
         environment["WIZ8_RUNTIME_EXPECTED_SELECTED"] = "2" if display is not None else "0"
-        desktop = subprocess.Popen(
-            ["wine", "explorer", "/desktop=Wizardry8Tests,640x480"],
-            cwd=stage,
-            env=environment,
-        )
         try:
-            time.sleep(1)
             for order_name, scenarios in (
                 ("forward", RUNTIME_SCENARIOS),
                 ("reverse", tuple(reversed(RUNTIME_SCENARIOS))),
@@ -183,7 +177,6 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
                 check=False,
                 capture_output=True,
             )
-            desktop.wait()
     if runs["forward"] != runs["reverse"]:
         raise RuntimeError("runtime observations depend on scenario order")
     return {

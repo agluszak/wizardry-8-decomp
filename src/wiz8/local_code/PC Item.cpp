@@ -145,14 +145,32 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
    0x0061E810: the notice each index formats from. The table's extent is the
    pointer bound the release walk stops at. */
 enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
-extern W8WideChar* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
+W8WideChar* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 extern const unsigned short g_generic_item_name_notice[];
 extern unsigned char g_item_in_hand_shown_006874ca;
 extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
 
-extern void ReleaseItemNameFormatter(void);                  /* 0x0055CE40 */
+struct W8ItemNameFormatterStorage {
+    void* entries;
+    int capacity;
+    int count;
+
+    void Clear();
+};
+
+W8ItemNameFormatterStorage g_item_name_formatter_68ec68;
+
+// FUNCTION: WIZ8 0x0055CE40
+void W8ItemNameFormatterStorage::Clear()
+{
+    if (entries) {
+        operator delete((char*)entries - 4);
+        entries = 0;
+    }
+    count = 0;
+}
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 extern void ShowNotice(void* notice, int a, int b, int c);   /* 0x0055F260 */
 extern void ClearHeldItemDisplay(void);                      /* 0x0055F1E0 */
@@ -715,7 +733,7 @@ void ReleaseGenericItemNames(void)
 {
     W8WideChar** name;
 
-    ReleaseItemNameFormatter();
+    g_item_name_formatter_68ec68.Clear();
     for (name = g_generic_item_names;
          name < g_generic_item_names + W8_GENERIC_ITEM_NAME_COUNT;
          ++name) {

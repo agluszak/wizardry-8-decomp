@@ -34,6 +34,8 @@
      "groups": ["WIZ8_SGP_PROBE_ONLY"]},
     {"id": "container", "source": "Container.c", "overlay": "container", "pch": true,
      "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
+    {"id": "button_system", "source": "Button System.c", "overlay": "button-system", "pch": false,
+     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
     {"id": "vsurface", "source": "vsurface.c", "overlay": "vsurface", "pch": true,
      "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false,
      "definitions": ["FillSurfaceRect=SgpReleasedFillSurfaceRect"]},

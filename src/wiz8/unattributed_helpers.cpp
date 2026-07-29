@@ -887,7 +887,7 @@ extern int g_value_69da68;
 extern int g_value_69b9a4;
 extern int g_value_62a518;
 extern int g_value_69c1cc;
-extern int g_value_654aac;
+extern int g_screen_transition_object_count_654aac;
 extern float g_float_60ab48;
 extern float g_float_64b914;
 /* Three bytes of one dword-aligned run, read individually one address apart.
@@ -1115,9 +1115,9 @@ float GetFloat64B914(void)
  */
 
 // FUNCTION: WIZ8 0x004297D0
-bool GetFlag654AAC(void)
+bool HasScreenTransitionObjects(void)
 {
-    return g_value_654aac != 0;
+    return g_screen_transition_object_count_654aac != 0;
 }
 
 // FUNCTION: WIZ8 0x0052E360
