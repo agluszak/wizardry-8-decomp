@@ -23,14 +23,13 @@ public:
     char GetEmitterCount();              /* 0x004AC840 */
     void ApplyHostSetting98();           /* 0x004AC360 */
     void StartIfHostActive();            /* 0x004ABDC0 */
+    void* GetActiveEmitterEntry004AC8A0();
 
     unsigned char unknown_004[0x1dc];
     W8SpellEmitterHost* host;            /* 0x1e0 */
     unsigned char started;               /* 0x1e4 */
 };
 
-extern void Function4A14D0(W8Emitter* emitter, int arg_2, int arg_3);
-extern void Function4A1660(W8Emitter* emitter, unsigned char setting, int arg_3);
 extern void DestroyEmitter(W8Emitter* emitter);                         /* 0x004A01E0 */
 extern void Function4A6E20(float value);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
@@ -54,6 +53,17 @@ W8Emitter* W8SpellVisual::GetActiveEmitter()
 float W8SpellVisual::GetActiveEmitterValue()
 {
     return this->host->emitters[this->host->emitter_index]->value_08;
+}
+
+// FUNCTION: WIZ8 0x004ac8a0
+void* W8SpellVisual::GetActiveEmitterEntry004AC8A0()
+{
+    W8Emitter* emitter = this->host->emitters[this->host->emitter_index];
+
+    if (emitter == 0) {
+        srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x653, 0);
+    }
+    return emitter->values_18[this->host->setting_98];
 }
 
 /* How many emitters the host has, counted by testing each for null. */
@@ -96,7 +106,7 @@ void W8SpellVisual::StartIfHostActive()
 // FUNCTION: WIZ8 0x004ab290
 void W8SpellEmitterHost::SendToEmitter(char emitter, int arg_2, int arg_3)
 {
-    Function4A14D0(this->emitters[emitter], arg_3, arg_2);
+    AnimObjDispatch004A14D0((W8AnimObj*)this->emitters[emitter], 0, arg_3, arg_2);
 }
 
 /* Apply the host setting to one required emitter.  The source assertion names
@@ -126,7 +136,7 @@ void W8SpellEmitterHost::StopEmitter(char emitter)
     if (target == 0) {
         return;
     }
-    Function4A1660(target, this->setting_98, 0);
+    AnimObjEntry004A1660((W8AnimObj*)target, 0, this->setting_98, 0);
 }
 
 /* The clone slot owns both the 0x37c allocation and the copy-construction

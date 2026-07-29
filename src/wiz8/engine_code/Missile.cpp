@@ -9,6 +9,7 @@
 
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 
@@ -94,6 +95,7 @@ public:
     virtual char Method14();
     void ApplyLauncherSetting98();       /* 0x004A4110 */
     void ResetLauncherCounters(int arg_1, int arg_2);   /* 0x004A4140 */
+    void* GetActiveEmitterEntry004A45F0();
 
     unsigned char unknown_004[0x1d8];
     W8EmitterTableHost* launcher;        /* 0x1dc */
@@ -121,6 +123,17 @@ W8Emitter* W8Missile::GetActiveEmitter()
 float W8Missile::GetActiveEmitterValue()
 {
     return this->launcher->emitters[this->launcher->emitter_index]->value_08;
+}
+
+// FUNCTION: WIZ8 0x004a45f0
+void* W8Missile::GetActiveEmitterEntry004A45F0()
+{
+    W8Emitter* emitter = this->launcher->emitters[this->launcher->emitter_index];
+
+    if (emitter == 0) {
+        srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);
+    }
+    return emitter->values_18[this->launcher->setting_98];
 }
 
 /* How many emitters the launcher has, counted by testing each for null rather

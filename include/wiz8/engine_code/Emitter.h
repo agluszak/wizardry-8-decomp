@@ -17,6 +17,8 @@ class W8Emitter {
 public:
     unsigned char unknown_00[8];
     float value_08;                      /* 0x08 */
+    unsigned char unknown_0c[0x0c];
+    void* values_18[4];                  /* 0x18 */
 };
 
 /* Copy constructors establish these aggregate boundaries, but no independent
