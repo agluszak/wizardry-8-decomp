@@ -173,6 +173,18 @@ unsigned char AllocateSmallStartupSubsystem(void)
     return 1;
 }
 
+/* The finalizer half of the pair above, and the fifth dword of lifecycle record
+   10 - which is what establishes that the record's last slot is the finalizer
+   rather than a second initializer: record 10's first slot allocates this exact
+   block and its fifth releases it. The release is unguarded and leaves the
+   pointer set, so it relies on running once at shutdown. */
+// FUNCTION: WIZ8 0x005a9b30
+unsigned char FreeSmallStartupSubsystem(void)
+{
+    ::operator delete(g_small_subsystem_69c130);
+    return 1;
+}
+
 unsigned char InitializeMenuStartupSubsystems(void)
 {
     if (!InitializeSubsystemFlag()) return 0;
