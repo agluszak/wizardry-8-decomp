@@ -8,6 +8,7 @@
 #define PATH_AI_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\PathAI.CPP"
 
 extern "C" void NoOp(W8PathAI* path, W8PathRepresentation* representation);
+extern unsigned char Function4A4CF0(W8PathAI* path);
 extern void Function4A9FE0(W8PathAI* path, float value);
 extern float g_float_005ebb34;
 extern float g_float_005ebb38;
@@ -15,6 +16,38 @@ extern float g_float_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;
 extern double g_double_005ec3b0;
+
+// FUNCTION: WIZ8 0x004a9260
+unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
+{
+    if (path == 0) {
+        return 0;
+    }
+    switch (path->kind_00) {
+    case 0:
+        return static_cast<unsigned char>(PathAITick004AA1F0(path, direction));
+    case 1:
+        return 0;
+    case 3:
+        return Function4A4CF0(path);
+    default:
+        return 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x004a9720
+void PathAIResetRecord004A9720(W8PathRecord004A9750* record)
+{
+    if (record != 0 && record->flag_00 == 0) {
+        record->value_04 = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x004a9740
+unsigned char PathAIRecordFlag004A9740(const W8PathRecord004A9750* record)
+{
+    return record->flag_00;
+}
 
 // FUNCTION: WIZ8 0x004a91f0
 void PathAIApplyToRep004A91F0(W8PathAI* path, W8PathRepresentation* representation)
@@ -108,6 +141,30 @@ float PathAIGetValue004A9E70(W8PathAI* path)
     return path->value_04;
 }
 
+// FUNCTION: WIZ8 0x004a9e90
+unsigned char PathAINextPoint004A9E90(W8PathAI* path, W8PathVector3* point)
+{
+    W8PathVector3* source;
+
+    if (path == 0 || path->nodes_0c == 0) {
+        return 0;
+    }
+    if (path->value_20 >= path->nodes_0c->count) {
+        if (path->flag_38 == 0) {
+            return 0;
+        }
+        path->value_20 = 0;
+    }
+    W8PathVector3** slot = path->nodes_0c->data;
+    if (path->value_20 < path->nodes_0c->count) {
+        slot += path->value_20;
+    }
+    source = *slot;
+    *point = *source;
+    ++path->value_20;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x004a9ef0
 unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
 {
@@ -176,7 +233,7 @@ void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount)
 }
 
 // FUNCTION: WIZ8 0x004aa1f0
-int PathAITick004AA1F0(W8PathAI* path, int, signed char direction)
+int PathAITick004AA1F0(W8PathAI* path, signed char direction)
 {
     DWORD now;
     unsigned int elapsed;
@@ -284,6 +341,12 @@ void PathAIPosition004AA370(W8PathAI* path, W8PathVector3* value)
     if (first != 0) {
         *value = *first;
     }
+}
+
+// FUNCTION: WIZ8 0x004aa9c0
+void PathAISetScale004AA9C0(W8PathAI* path, float value)
+{
+    path->value_2c = value;
 }
 
 // FUNCTION: WIZ8 0x004aa9d0

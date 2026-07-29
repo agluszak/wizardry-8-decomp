@@ -1,4 +1,5 @@
 #include "wiz8/vector_005ece60.h"
+#include "wiz8/engine_code/PathAI.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -235,16 +236,10 @@ class W8VectorElement005ECEE4;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ECF00;
-
 // VTABLE: WIZ8 0x005ecf00
 // class W8GrowableVector<W8VectorElement005ECF00*>
 
-struct W8Record004A9750 {
-    unsigned char unknown_000[0xc];
-    W8GrowableVector<W8VectorElement005ECF00*>* m_list_c; /* 0x0c */
-    unsigned char unknown_010[0x30];
-};                                       /* 0x40 */
+typedef W8PathRecord004A9750 W8Record004A9750;
 
 // SYNTHETIC: WIZ8 0x004aaaf0
 // W8GrowableVector<W8VectorElement005ECF00*>::`scalar deleting destructor'
@@ -262,7 +257,7 @@ W8Record004A9750* CreateRecord004A9750(void)
         return 0;
     }
     memset(record, 0, sizeof(W8Record004A9750));
-    record->m_list_c = new W8GrowableVector<W8VectorElement005ECF00*>();
+    record->list_0c = new W8GrowableVector<W8VectorElement005ECF00*>();
     return record;
 }
 
