@@ -542,7 +542,9 @@ typedef struct W8World {
     W8PList* plsList00;
     W8PList* plsList04;
     W8PList* plsProps;                    /* 0x008: PList of props; byte-proven */
-    unsigned char unknown_00c[0x38];
+    unsigned char unknown_00c[4];
+    W8PList* plsAmbientSounds;            /* 0x010: Engine Code\AmbientSound.cpp */
+    unsigned char unknown_014[0x30];
     /* 0x044: the camera the viewport rebuilds its view plane against. It was
        modelled separately as a camera-owner class before the two globals were
        shown to be one, and it is the same object. */
