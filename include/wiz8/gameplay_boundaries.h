@@ -528,7 +528,13 @@ typedef struct W8World {
     /* 0x054: the node the sky hangs from, which the environment accessors
        reach through this same world pointer. */
     void* sky_node;
-    unsigned char unknown_058[0x64];
+    unsigned char unknown_058[0x1c];
+    /* 0x074 and 0x078: written together from one argument by 0x0046E350 and
+       read back individually, so they are a pair rather than one field. Only
+       the second is ever read, by the getter at 0x0046E3A0. */
+    float value_74;
+    float value_78;
+    unsigned char unknown_07c[0x40];
     W8GrowableVector<class W8VectorElement005EC294*>* lights; /* 0xbc */
     unsigned char unknown_0c0[4];
     W8GrowableVector<W8MonsterGenerator*>* monster_generators; /* 0xc4 */
@@ -1047,6 +1053,11 @@ extern W8LevelDatabaseRecord* g_level_records;
 extern int g_level_record_count;
 extern int g_loaded_level_id;
 extern W8World* g_world;
+/* 0x00659AB8: the second world. It was spelled `void*` where it is defined and
+   `W8World*` where the viewport reaches through it, which is two claims about
+   one object; the viewport's is the one a body proves, since it reads the
+   camera member off it. One declaration here settles it. */
+extern W8World* g_world_659ab8;
 extern unsigned char g_item_in_hand_valid;
 extern W8ItemInstance g_item_in_hand;
 /* The party's carried pool, bounded by the count that follows it in memory;

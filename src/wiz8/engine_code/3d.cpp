@@ -1,5 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srScene.h"
+
+#define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
 
 /* Three thiscall methods invoked on each prop. Their names are not established;
    only their signatures are, from the call sites. */
@@ -40,6 +43,8 @@ void WorldUpdateProps(W8World* world)
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
 extern W8World* g_world_00659ab4;
+extern void MarkRendererReady(void);                                   /* 0x00451010 */
+extern void Function4836A0(void);
 extern void SetHeapFree(void* block);
 extern void Function46E750(void* target, int argument);
 extern void Function46E640(void* target, int argument);
@@ -109,4 +114,64 @@ void SetChainValue15C(char* node, int value)
     for (; node != 0; node = *(char**)(node + 0x134)) {
         *(int*)(node + 0x15c) = value;
     }
+}
+
+/* The world's own float pair at 0x74 and 0x78. Both are assigned from the one
+   argument, and only zero is rejected, so the guard is a "leave it alone"
+   rather than a range check. The assertion at 3d.cpp:651 is what names the
+   receiver pWorld. */
+// FUNCTION: WIZ8 0x0046E350
+void WorldSetValue74(W8World* world, float value)
+{
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_CPP, 0x28b, 0);
+    }
+    if (value != 0.0f) {
+        world->value_74 = value;
+        world->value_78 = value;
+        MarkRendererReady();
+    }
+}
+
+/* Reads back only the second of the pair, which is what makes 0x78 the live
+   copy and 0x74 the one nothing here consumes. */
+// FUNCTION: WIZ8 0x0046E3A0
+float WorldGetValue78(W8World* world)
+{
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_CPP, 0x297, 0);
+    }
+    return world->value_78;
+}
+
+/* Pushes the world's view distance into the camera as the far clip plane; the
+   near plane is the fixed 62.5 the original materialises inline. The guard is
+   against a denormal-scale epsilon rather than zero, so a distance that has
+   collapsed leaves the camera as it was. */
+// FUNCTION: WIZ8 0x0046E3D0
+void WorldSetFarClip(W8World* world, float distance)
+{
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_CPP, 0x29e, 0);
+    }
+    if ((double)distance > 5.9604644775390625e-008) {
+        world->camera->setClipRange(62.5, (double)distance);
+        Function4836A0();
+        MarkRendererReady();
+    }
+}
+
+/* The matching reader. Both planes come back, and only the far one is
+   returned, which is the same asymmetry the setter has. A world without a
+   camera answers zero rather than reading through it. */
+// FUNCTION: WIZ8 0x0046E440
+double WorldGetFarClip(W8World* world)
+{
+    double near_plane = 0;
+    double far_plane = 0;
+
+    if (world != 0 && world->camera != 0) {
+        world->camera->getClipRange(&near_plane, &far_plane);
+    }
+    return far_plane;
 }

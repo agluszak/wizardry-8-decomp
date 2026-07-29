@@ -64,10 +64,19 @@ public:
     SR_DLL_IMPORT void setLocation(double x, double y, double z);
     SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
     SR_DLL_IMPORT void setRotation(double x, double y, double z);
+    /* The reader for the rotation basis, taken through an out-parameter rather
+       than returned. 3dapi.cpp's camera-rotation accessor is what establishes
+       the float element type. */
+    SR_DLL_IMPORT void getRotation(srMatrix3T<float>* rotation);
     SR_DLL_IMPORT void setFlag(e_flag flag);
     SR_DLL_IMPORT void clearFlag(e_flag flag);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT srNode* getParent() const;
+    /* Wiz8.exe emits its own deleting destructor for this base at 0x0044F3D0
+       and releases through the renderer's heap rather than the CRT's. It is a
+       member because the destructor it runs is protected, so nothing outside
+       the class can spell the teardown at all. */
+    srNode* scalar_deleting_destructor(unsigned char flags);
     srNode* nextSibling() const { return next_sibling_; }
     srNode* parentNode() const { return parent_; }
     srNode* firstChild() const { return first_child_; }
@@ -78,6 +87,17 @@ private:
     unsigned char unknown_12c_[0x04];
     srNode* parent_;                        /* 0x130 */
     srNode* first_child_;                   /* 0x134 */
+};
+
+/* Declared for its static registry getter alone, which Wiz8.exe imports by
+   decorated name - `original-export` evidence, so the name and the ABI are the
+   original's. The reviewed MonsterLight row places it between srNode and
+   srLight, spelling the relation out as
+   srClassSupport<srIlluminator,srNode,0,0x1200>; nothing else about the class
+   is recovered, so nothing else is declared. */
+class srIlluminator : public srNode {
+public:
+    static SR_DLL_IMPORT const char* sGetClassName();
 };
 
 typedef char srNode_must_be_0x138[(sizeof(srNode) == 0x138) ? 1 : -1];

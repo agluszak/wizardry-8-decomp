@@ -34,3 +34,13 @@ W8FactionDisposition GetFactionDisposition(signed char faction)
     }
     return W8_FACTION_FRIENDLY;
 }
+
+/* The raw score the band above is derived from. Unlike its neighbour this one
+   asserts nothing, which is what makes the checked accessor the one callers
+   outside the file are meant to use. The index arithmetic is the 14-byte
+   record stride the reviewed table already establishes. */
+// FUNCTION: WIZ8 0x00535D30
+signed char GetFactionDispositionScore(signed char faction)
+{
+    return g_factions[faction].disposition_score;
+}

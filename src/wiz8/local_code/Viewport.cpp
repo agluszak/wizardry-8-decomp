@@ -37,7 +37,6 @@ extern "C" {
 
 extern unsigned char g_flush_pending_603c3a;
 extern W8World* g_world_00659ab4;
-extern W8World* g_world_659ab8;
 extern unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;

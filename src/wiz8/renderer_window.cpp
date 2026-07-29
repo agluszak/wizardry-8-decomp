@@ -1,4 +1,5 @@
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/gameplay_boundaries.h"
 #include "surrender/srConfig.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srGERD.h"
@@ -96,7 +97,7 @@ int g_viewport_top_6595ec;
 int g_viewport_right_6595f0;
 int g_viewport_bottom_6595f4;
 void* g_world_00659ab4;
-void* g_world_659ab8;
+W8World* g_world_659ab8;
 unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;

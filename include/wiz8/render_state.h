@@ -19,6 +19,14 @@ extern srMaterial* g_blit_material_65967c;
 extern srColorSurface* g_mouse_surface_659688;
 extern srNode* g_surface_nodes_654adc[0x12c0];
 extern unsigned char g_block_652ddc[0x12c0];
+/* Globals the accessor bodies below reach and that more than one recovered
+   unit needs. They were each declared locally in the unit that first used
+   them; holding them here instead is what stops a second unit from spelling
+   the same object a second, divergent way. */
+extern IDirectDraw2* g_direct_draw2_6596a0;
+extern int g_dword_65962c;
+extern int g_renderer_mode_603d74;
+
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
 extern int g_viewport_left_6595e8;

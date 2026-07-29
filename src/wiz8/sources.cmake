@@ -41,6 +41,9 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Octree.cpp
     src/wiz8/engine_code/3dapi.cpp
     src/wiz8/engine_code/stMeshModel.cpp
+    src/wiz8/engine_code/stModelInstance.cpp
+    src/wiz8/engine_code/stParticle.cpp
+    src/wiz8/engine_code/Trigger.cpp
     src/wiz8/engine_code/Environment.cpp
     src/wiz8/engine_code/Missile.cpp
     src/wiz8/engine_code/Spells.cpp

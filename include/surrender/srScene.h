@@ -42,6 +42,10 @@ public:
     virtual void process(const ProcessInfo& info, e_processType type);
 
     void setClipRange(double near_plane, double far_plane);
+    /* The reader for the pair setClipRange writes. Both planes come back
+       through out-parameters, which is why the caller at 0x0046E440 keeps two
+       doubles on its frame and returns only the far one. */
+    void getClipRange(double* near_plane, double* far_plane);
     void setViewPlane(const Rect& rectangle, double distance);
     void setEnvironmentRange(float near_range, float far_range);
 

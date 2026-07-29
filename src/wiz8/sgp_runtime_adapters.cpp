@@ -29,7 +29,6 @@ extern unsigned char BltVideoSurface(
     int x, int y, unsigned int flags, void* effects);
 extern HWND ghWindow;
 extern unsigned char g_fullscreen_603c39;
-extern IDirectDraw2* g_direct_draw2_6596a0;
 extern unsigned short g_red_mask_650f4a;
 extern unsigned short g_green_mask_650f4c;
 extern unsigned short g_blue_mask_650f4e;

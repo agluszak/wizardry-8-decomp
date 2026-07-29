@@ -190,7 +190,6 @@ extern srScene* g_scene_square_65965c;
 extern srColorSurface* g_primary_color_surface_659660;
 extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
-extern int g_renderer_mode_603d74;
 
 extern void DDUnlockSurface(void* surface, void* locked);
 extern void DDLockSurface(void* surface, RECT* area,

@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srTypeRegistry.h"
 
 /* The renderer node the sky hangs from. Only the two flag methods this file
    reaches are declared; the class itself is SurRender's. */
@@ -37,6 +38,13 @@ extern int g_environment_value_0065a170;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 extern W8World* g_world_00659ab4;
+
+/* Two renderer objects the environment owns outright and the count that tracks
+   them. They are srClass because the teardown releases both through the one
+   srClass::release import address it loads once. */
+extern srClass* g_environment_object_0065b9b0;
+extern srClass* g_environment_object_0065b9b4;
+extern int g_environment_count_0065b99c;
 
 extern void SetSkyEnabled(int enabled);                                  /* 0x00483750 */
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
@@ -124,6 +132,47 @@ void GetLightDirection(int* direction)
     direction[0] = g_light_direction_0065ad78;
     direction[1] = g_light_direction_0065ad7c;
     direction[2] = g_light_direction_0065ad80;
+}
+
+/* The ambient light the world contributes, or nothing at all when the world's
+   own gate at 0x3c is clear. Both assertions belong to this body: line 616
+   names the world and line 617 names the out-parameter pLightValue, which is
+   what makes the three writes a colour triple rather than three fields. */
+// FUNCTION: WIZ8 0x004839E0
+void GetWorldLightValue(const void* world, int* light_value)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", ENVIRONMENT_CPP, 616, 0);
+    }
+    if (light_value == 0) {
+        srAssertFail("pLightValue", ENVIRONMENT_CPP, 617, 0);
+    }
+    if (*(const int*)((const char*)world + 0x3c) != 0) {
+        light_value[0] = *(const int*)((const char*)world + 0x2c);
+        light_value[1] = *(const int*)((const char*)world + 0x30);
+        light_value[2] = *(const int*)((const char*)world + 0x34);
+    } else {
+        light_value[0] = 0;
+        light_value[1] = 0;
+        light_value[2] = 0;
+    }
+}
+
+/* Drops the two renderer objects the environment holds and clears the count
+   that goes with them. Both releases run through one loaded import address,
+   which is what makes the two globals the same class rather than two. */
+// FUNCTION: WIZ8 0x004826E0
+void ReleaseEnvironmentObjects(void)
+{
+    if (g_environment_object_0065b9b0 != 0) {
+        g_environment_object_0065b9b0->release();
+    }
+    if (g_environment_object_0065b9b4 != 0) {
+        g_environment_object_0065b9b4->release();
+    }
+    g_environment_object_0065b9b0 = 0;
+    g_environment_object_0065b9b4 = 0;
+    g_environment_count_0065b99c = 0;
 }
 
 /* One value off the world object, guarded by an assertion that names it. */
