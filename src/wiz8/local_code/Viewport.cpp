@@ -17,7 +17,6 @@
 extern "C" {
 
 extern unsigned char g_flush_pending_603c3a;
-extern W8World* g_world_00659ab4;
 extern unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c;
 extern const float g_scale_y_5ebb20;
@@ -52,11 +51,11 @@ void SetViewport(int left, int top, int right, int bottom)
     fractional_right = (float)g_viewport_right_6595f0 * g_scale_x_5ebb1c;
     fractional_bottom = (float)g_viewport_bottom_6595f4 * g_scale_y_5ebb20;
 
-    if (g_world_00659ab4 != 0 && g_world_00659ab4->camera != 0) {
-        g_world_00659ab4->camera->setViewPlane(
+    if (g_world != 0 && g_world->camera != 0) {
+        g_world->camera->setViewPlane(
             g_plane_5ebd00 * g_plane_5ebcf8 * g_plane_5ebf48,
             g_plane_5ebd00 * g_plane_5ebcf8 * g_plane_5ebf4c);
-        g_world_00659ab4->camera->getViewPlane(view, depth);
+        g_world->camera->getViewPlane(view, depth);
 
         plane.left = (double)fractional_left * (view.right - view.left) + view.left;
         plane.right = (double)fractional_right * (view.right - view.left) + view.left;
@@ -65,12 +64,12 @@ void SetViewport(int left, int top, int right, int bottom)
         plane.top = (double)((g_one_5ebc30 - fractional_top)
                              * (float)(view.top - view.bottom) + (float)view.bottom);
 
-        g_world_00659ab4->camera->setViewPlane(plane, 1.0);
+        g_world->camera->setViewPlane(plane, 1.0);
         if (g_world_659ab8 != 0) {
             g_world_659ab8->camera->setViewPlane(plane, 1.0);
         }
         if (g_flag_652da4) {
-            Function450080(g_world_00659ab4->camera, 1);
+            Function450080(g_world->camera, 1);
         }
     }
 }

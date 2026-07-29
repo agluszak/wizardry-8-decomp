@@ -57,10 +57,7 @@ enum {
    learn-from-item assertion names. */
 enum { W8_SPELL_NONE = 0 };
 
-/* One spell, as the database holds it at run time. Kept in step with
-   config/types/wiz8/gameplay_databases.h, which is the same record as Ghidra
-   applies it - the two were recovered from different ends and each knew fields
-   the other did not. */
+/* One spell, as the database holds it at run time. */
 typedef struct W8SpellRuntimeRecord {
     char database_name[64];             /* 0x000 */
     unsigned char unknown_040[8];
@@ -102,9 +99,8 @@ typedef struct W8FactDatabaseRecord {
     W8WideChar description[106];         /* 0x104 */
 } W8FactDatabaseRecord;                  /* 0x1d8 */
 
-/* One Data\Databases\NPC.DBS record. Only the loader-touched fields are
-   modelled here; config/types/wiz8/npc_database.h carries the full field
-   model under the same name, and the spellings are kept convergent. */
+/* One Data\Databases\NPC.DBS record. Only source-consumed fields are modelled
+   here; Ghidra owns the wider operational field inventory. */
 typedef struct W8NpcDatabaseRecord {
     unsigned short version;              /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
     /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
@@ -137,7 +133,7 @@ typedef struct W8LevelDatabaseRecord {
     unsigned char unknown_000[0x3c];
     /* 0x3c..0x50: the per-level random-encounter budget parameters, all five
        read by UpdateRandomEncounterBudget and the sixth by the culling pass.
-       Mirrors config/types/wiz8/gameplay_databases.h. */
+       The reviewed Ghidra type carries the wider operational inventory. */
     int maximum_random_encounters;       /* 0x3c */
     int minimum_random_encounters;       /* 0x40 */
     int maximum_encounter_budget;        /* 0x44 */
@@ -148,12 +144,8 @@ typedef struct W8LevelDatabaseRecord {
 } W8LevelDatabaseRecord;                 /* 0xd8 */
 
 /* One runtime DATABASES\MONSTERS.DBS record. The size is the tracked disk and
-   runtime record size; the fields are typed by their consumers elsewhere.
-   This is the same record config/types/wiz8/gameplay_databases.h models as
-   W8MonsterDatabaseRecord and the Ghidra applied types use under that name;
-   the porting name deliberately keeps the established W8MonsterRecord
-   spelling of its byte-exact consumers, and the two field models are kept
-   convergent rather than merged. */
+   runtime record size; source-consumed fields are typed here and the reviewed
+   Ghidra type owns the wider operational inventory. */
 /* The one monster record whose alternate name is used in place of its own;
    both bodies that name a monster test for it, which is why it lives here
    rather than in either of them. */
@@ -236,7 +228,7 @@ static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x
 /* Data\Databases race table rows the resistance recalculation reads. A
    resistance_index of -1 terminates a race's list; an adjustment above
    W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS names a character attribute instead of a
-   flat amount. Mirrors config/types/wiz8/gameplay_databases.h. */
+   flat amount. */
 typedef struct W8RaceResistanceAdjustment {
     int resistance_index;
     int adjustment_or_attribute;

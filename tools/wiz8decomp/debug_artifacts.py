@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import csv
-import io
 import json
 import re
 import shutil
@@ -15,7 +13,8 @@ from .binary.pe import inspect_pe, is_pe
 from .config import Settings
 from .extract.variants import EXTRACTED_NAMES
 from .inputs.scan import scan_inputs
-from .paths import atomic_write, sha256_file
+from .paths import sha256_file
+from .reports.snapshots import csv_text, publish_report_snapshot
 from .subprocesses import run
 
 ARTIFACT_EXTENSIONS = {".pdb", ".obj", ".lib", ".cpp", ".c", ".h", ".dsp", ".dsw", ".map"}
@@ -290,14 +289,6 @@ def _parse_7z_slt(output: str) -> list[dict[str, str]]:
     return members
 
 
-def _csv_text(fields: list[str], rows: list[dict[str, str]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
-
-
 def _snapshot_readme() -> str:
     return """# Debug-artifact corpus snapshot
 
@@ -523,7 +514,7 @@ def sweep_debug_artifacts(
         )
     )
     outputs = {
-        "containers.csv": _csv_text(
+        "containers.csv": csv_text(
             [
                 "container",
                 "role",
@@ -538,10 +529,10 @@ def sweep_debug_artifacts(
             ],
             container_rows,
         ),
-        "container-members.csv": _csv_text(
+        "container-members.csv": csv_text(
             ["container", "role", "member_path", "extension", "size", "encrypted"], member_rows
         ),
-        "binaries.csv": _csv_text(
+        "binaries.csv": csv_text(
             [
                 "container",
                 "role",
@@ -558,7 +549,7 @@ def sweep_debug_artifacts(
             ],
             binary_rows,
         ),
-        "binary-records.csv": _csv_text(
+        "binary-records.csv": csv_text(
             [
                 "container",
                 "binary_path",
@@ -572,24 +563,18 @@ def sweep_debug_artifacts(
             record_rows,
         ),
     }
-    report_dir = settings.build_dir / "reports" / "debug-artifacts"
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / "debug-artifacts"
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name="debug-artifacts",
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "debug-artifact report differs from the tracked snapshot; review build/reports/"
             "debug-artifacts and rerun with --update-snapshot"
-        )
+        ),
+    )
     for temporary in temporary_extractions:
         temporary.cleanup()
     return {

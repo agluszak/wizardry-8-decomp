@@ -34,7 +34,6 @@ extern int g_dword_6874f7;
 extern unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
-extern W8World* g_world_00659ab4;
 
 /* Two renderer objects the environment owns outright and the count that tracks
    them. They are srClass because the teardown releases both through the one
@@ -186,7 +185,7 @@ float GetWorldValue24(const void* world)
 // FUNCTION: WIZ8 0x00483e30
 void SetSkyNodeValue1D0(int value)
 {
-    unsigned char* sky = (unsigned char*)g_world_00659ab4->sky_node;
+    unsigned char* sky = (unsigned char*)g_world->sky_node;
 
     if (sky != 0) {
         *(int*)(sky + 0x1d0) = value;
@@ -198,7 +197,7 @@ void SetSkyNodeValue1D0(int value)
 // FUNCTION: WIZ8 0x00483e50
 void SetSkyNodeVisible(char visible)
 {
-    srNode* sky = (srNode*)g_world_00659ab4->sky_node;
+    srNode* sky = (srNode*)g_world->sky_node;
 
     if (sky != 0) {
         if (visible) {

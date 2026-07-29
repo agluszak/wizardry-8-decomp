@@ -63,7 +63,6 @@ static_assert(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
 extern void ReleaseSoundHandle00408F70(int handle);
 extern void ReleaseAmbientChannel0040A8E0(int handle, int channel);
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
-extern W8World* g_world_00659ab4;
 extern void AudioUpdateBegin00409310();
 extern void AudioUpdateStage004095B0();
 extern void AudioUpdateFinish004AEFD0();
@@ -78,15 +77,15 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
     int count;
     int index;
 
-    if (g_world_00659ab4 == 0) {
+    if (g_world == 0) {
         return 0;
     }
-    count = static_cast<int>(PListGetCount(g_world_00659ab4->plsAmbientSounds));
+    count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
     if (previous == 0) {
         index = 0;
     }
     else {
-        index = PListIndexOf(g_world_00659ab4->plsAmbientSounds, previous) + 1;
+        index = PListIndexOf(g_world->plsAmbientSounds, previous) + 1;
         if (index < 0 || index > count) {
             return 0;
         }
@@ -96,7 +95,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
     }
     do {
         W8AmbientSound* candidate = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+            PListGetAt(g_world->plsAmbientSounds, index));
         if (candidate != 0 && candidate != this && candidate->flag_c4 != 0 &&
             _stricmp(candidate->config_004.match_name, match_name) == 0) {
             return candidate;
@@ -345,12 +344,12 @@ unsigned char AddAmbientSound0047A790(
 // FUNCTION: WIZ8 0x0047a950
 void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PListGetCount(g_world_00659ab4->plsAmbientSounds));
+    int count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+            PListGetAt(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             srVector3T<float> position;
             GetPartyPosition(&position);
@@ -364,12 +363,12 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047a9e0
 void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PListGetCount(g_world_00659ab4->plsAmbientSounds));
+    int count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+            PListGetAt(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             ReleaseSoundHandle00408F70(sound->sound_handle_bc);
             sound->flag_b8 = 0;
@@ -383,12 +382,12 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047aa70
 void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PListGetCount(g_world_00659ab4->plsAmbientSounds));
+    int count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+            PListGetAt(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound->flag_84 != 0) {
                 srVector3T<float> position;
@@ -476,11 +475,11 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
 
     g_master_ambient_volume_6850f6 = volume;
     SetMasterSoundVolume(volume);
-    if (g_world_00659ab4 != 0 && g_world_00659ab4->plsAmbientSounds != 0) {
-        count = static_cast<int>(PListGetCount(g_world_00659ab4->plsAmbientSounds));
+    if (g_world != 0 && g_world->plsAmbientSounds != 0) {
+        count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+                PListGetAt(g_world->plsAmbientSounds, index));
             if (sound != 0) {
                 if (sound->sound_handle_bc != -1) {
                     unsigned int adjusted =
@@ -533,13 +532,13 @@ void SetAmbientSoundMuted0047AE90(char muted)
         if (g_saved_ambient_volume_6850fa != 0xff) {
             g_master_ambient_volume_6850f6 = g_saved_ambient_volume_6850fa;
             SetMasterSoundVolume(g_saved_ambient_volume_6850fa);
-            if (g_world_00659ab4 != 0 &&
-                g_world_00659ab4->plsAmbientSounds != 0) {
+            if (g_world != 0 &&
+                g_world->plsAmbientSounds != 0) {
                 count = static_cast<int>(
-                    PListGetCount(g_world_00659ab4->plsAmbientSounds));
+                    PListGetCount(g_world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+                        PListGetAt(g_world->plsAmbientSounds, index));
                     if (sound != 0) {
                         if (sound->sound_handle_bc != -1) {
                             unsigned int adjusted =
@@ -587,13 +586,13 @@ void SetAmbientSoundMuted0047AE90(char muted)
         g_saved_ambient_volume_6850fa = g_master_ambient_volume_6850f6;
         g_master_ambient_volume_6850f6 = 0;
         SetMasterSoundVolume(0);
-        if (g_world_00659ab4 != 0 &&
-            g_world_00659ab4->plsAmbientSounds != 0) {
+        if (g_world != 0 &&
+            g_world->plsAmbientSounds != 0) {
             count = static_cast<int>(
-                PListGetCount(g_world_00659ab4->plsAmbientSounds));
+                PListGetCount(g_world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                    PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+                    PListGetAt(g_world->plsAmbientSounds, index));
                 if (sound != 0) {
                     if (sound->sound_handle_bc != -1) {
                         unsigned int adjusted =
@@ -639,16 +638,16 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
     memcpy(empty_name, &g_empty_ambient_name_65a110, 2);
     memset(empty_name + 2, 0, sizeof(empty_name) - 2);
     ok = FileWrite(handle, &version, 1, 0);
-    if (g_world_00659ab4->plsAmbientSounds == 0) {
+    if (g_world->plsAmbientSounds == 0) {
         count = 0;
         FileWrite(handle, &count, 4, 0);
         return;
     }
-    count = PListGetCount(g_world_00659ab4->plsAmbientSounds);
+    count = PListGetCount(g_world->plsAmbientSounds);
     ok = ok && FileWrite(handle, &count, 4, 0);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+            PListGetAt(g_world->plsAmbientSounds, index));
         if (sound != 0) {
             if (sound->pacSoundName == 0) {
                 if (ok) {

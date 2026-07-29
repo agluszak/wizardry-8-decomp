@@ -8,6 +8,7 @@
 #include <stddef.h>
 
 #include "wiz8/item_tables.h"
+#include "wiz8/item_instance.h"
 #include "wiz8/character.h"
 #include "wiz8/geometry.h"
 #ifdef __cplusplus
@@ -24,7 +25,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/game_state.h"
-#include "wiz8/gameplay_databases.h"
+#include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/layouts/encounter_tables.h"
 #include "wiz8/regions.h"
@@ -46,14 +47,9 @@ typedef struct W8SavedLocation {
     unsigned char unknown_0c[0x30];
 } W8SavedLocation;                       /* 0x3c */
 
-
-
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
-   records and manipulated through the CRT wide-string functions. The same
-   typedef models these fields in config/types/wiz8/gameplay_databases.h;
-   under VC6 wchar_t is unsigned short, so the two spellings are one type. */
-
-
+   records and manipulated through the CRT wide-string functions. Under VC6
+   wchar_t is unsigned short, so the two spellings are one type. */
 
 /* The twenty-one factions, the domain the name lookup enumerates. */
 enum { W8_FACTION_COUNT = 21 };
@@ -103,7 +99,7 @@ typedef struct W8CharacterResistance {
 } W8CharacterResistance;                  /* 0x10 */
 
 /* The six realms a spell point pool is kept per are W8SpellRealm's, declared
-   with the spell record in wiz8/gameplay_databases.h. */
+   with the spell record in wiz8/layouts/gameplay_databases.h. */
 
 enum {
     W8_RESISTANCE_COUNT = 6,
@@ -127,20 +123,6 @@ typedef struct W8HandAttack {
     int attack_value;
     unsigned char unknown_15[0x46];
 } W8HandAttack;                           /* 0x5b */
-
-typedef struct W8ItemInstance {
-    int item_id;
-    unsigned char stack_count;           /* 0x04: quantity-kind 1 */
-    unsigned char uses_or_charges;       /* 0x05: quantity-kinds 2 through 4 */
-    unsigned char identified;
-    unsigned char unknown_07[3];
-    /* 0x0a: the binding has already been announced for this instance, which is
-       what stops the log line repeating. */
-    unsigned char bind_announced;
-    /* 0x0b: the instance is bound to its wearer. Raised when a binds-on-equip
-       item is worn and read by the predicates that refuse to take it off. */
-    unsigned char bound;
-} W8ItemInstance;                        /* 0x0c */
 
 typedef struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
@@ -757,7 +739,6 @@ extern unsigned int g_encounter_table_count;
 extern W8LevelDatabaseRecord* g_level_records;
 extern int g_level_record_count;
 extern int g_loaded_level_id;
-extern W8World* g_world;
 /* 0x00659AB8: the second world. It was spelled `void*` where it is defined and
    `W8World*` where the viewport reaches through it, which is two claims about
    one object; the viewport's is the one a body proves, since it reads the
@@ -795,8 +776,6 @@ extern int g_location_variable_count;
 extern char** g_location_variable_names;
 extern int g_location_variable_level_count;
 extern int* g_location_variable_levels;
-extern int g_next_world_item_id;
-extern W8PList* g_world_item_list;
 extern W8GrowableVector<W8NPCItemList*>* g_npc_item_lists;
 /* 0x006840C7: lazily populated cache of runtime monster records, one slot per
    species ID. MAX_MONSTERS_IN_DATABASE comes from the canonical assertion text. */

@@ -20,8 +20,6 @@ recovered from the runtime's own code.
 
 from __future__ import annotations
 
-import csv
-import io
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -32,7 +30,7 @@ from .binary.image import PeImage
 from .binary.inventory import is_first_party, representative_modules
 from .config import Settings
 from .ghidra.project import program_name
-from .paths import atomic_write
+from .reports.snapshots import csv_text, publish_report_snapshot
 
 FUNC_INFO_MAGICS = (0x19930520, 0x19930521, 0x19930522)
 _REPORT_FILES = ("functions.csv", "unwind.csv", "catch.csv")
@@ -330,14 +328,6 @@ def analyse_image(path: Path) -> list[Record]:
     return records
 
 
-def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
-
-
 def _hex(value: int | None) -> str:
     return "" if value is None else f"{value:08x}"
 
@@ -454,7 +444,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
     )
 
     outputs = {
-        "functions.csv": _csv_text(
+        "functions.csv": csv_text(
             [
                 "program",
                 "funcinfo",
@@ -468,7 +458,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
             ],
             function_rows,
         ),
-        "unwind.csv": _csv_text(
+        "unwind.csv": csv_text(
             [
                 "program",
                 "funcinfo",
@@ -484,7 +474,7 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
             ],
             unwind_rows,
         ),
-        "catch.csv": _csv_text(
+        "catch.csv": csv_text(
             [
                 "program",
                 "funcinfo",
@@ -503,24 +493,18 @@ def sweep_eh_metadata(settings: Settings, *, update_snapshot: bool = False) -> d
         ),
     }
 
-    report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name=_SNAPSHOT_NAME,
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "exception-metadata report differs from the tracked snapshot; review "
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
-        )
+        ),
+    )
 
     resolved = sum(1 for row in function_rows if row["eh_setup_start"])
     typed_catches = sum(1 for row in catch_rows if row["type_name"])

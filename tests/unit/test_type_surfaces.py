@@ -28,15 +28,8 @@ def _field(text: str, name: str, *, offset: int | None = None) -> tuple[str, int
     return match.group("type").strip(), count, int(match.group("offset"), 16)
 
 
-def test_catalogue_headers_do_not_redeclare_compiled_records() -> None:
-    gameplay = (REPOSITORY / "config/types/wiz8/gameplay_databases.h").read_text(encoding="utf-8")
-    encounter = (REPOSITORY / "config/types/wiz8/encounter_tables.h").read_text(encoding="utf-8")
-    assert "include/wiz8/layouts/gameplay_databases.h" in gameplay
-    assert "include/wiz8/layouts/item_tables.h" in gameplay
-    assert "typedef struct W8ItemDatabaseRecord" not in gameplay
-    assert "typedef struct W8MonsterDatabaseRecord" not in gameplay
-    assert "include/wiz8/layouts/encounter_tables.h" in encounter
-    assert "typedef struct W8EncounterByteVector" not in encounter
+def test_legacy_type_catalogue_is_removed() -> None:
+    assert not list((REPOSITORY / "config/types").rglob("*.h"))
 
 
 def test_monster_attribute_array_and_alias_have_one_inventory() -> None:

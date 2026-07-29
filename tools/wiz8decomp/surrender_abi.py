@@ -23,8 +23,6 @@ template arguments.
 
 from __future__ import annotations
 
-import csv
-import io
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -32,10 +30,10 @@ from typing import Any
 from .binary.code import relocation_sites
 from .binary.demangle import demangle, tool_version
 from .binary.image import PeImage
-from .binary.inventory import load_inventory
+from .binary.inventory import representative_modules
 from .config import Settings
 from .ghidra.project import program_name
-from .paths import atomic_write
+from .reports.snapshots import csv_text, publish_report_snapshot
 
 _SNAPSHOT_NAME = "surrender-abi"
 _REPORT_FILES = ("exports.csv", "vftable-slots.csv", "vbtable-entries.csv")
@@ -387,14 +385,6 @@ def decode_vbtable(
     return entries
 
 
-def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
-
-
 def _snapshot_readme() -> str:
     return """# SurRender export-ABI snapshot
 
@@ -446,33 +436,12 @@ variant; `wiz8 surrender-abi` reports the aliases it collapsed.
 
 
 def _representative_modules(settings: Settings) -> tuple[list[dict[str, Any]], dict[str, str]]:
-    import yaml
-
-    modules = [
-        module
-        for module in load_inventory(settings)["modules"]
-        if module["module_name"].casefold().startswith(_MODULE_PREFIX) and module["exports"]
-    ]
-    if not modules:
-        raise RuntimeError("no SurRender modules in the inventory; run 'wiz8 inventory' first")
-    canonical = yaml.safe_load(
-        (settings.repo_dir / "config" / "variants.yml").read_text(encoding="utf-8")
-    )["canonical_matching_target"]["variant"]
-
-    groups: dict[str, list[dict[str, Any]]] = {}
-    for module in modules:
-        groups.setdefault(module["sha256"], []).append(module)
-    chosen: list[dict[str, Any]] = []
-    aliases: dict[str, str] = {}
-    for members in groups.values():
-        members.sort(
-            key=lambda item: (item["variant"] != canonical, item["variant"], item["relative_path"])
-        )
-        chosen.append(members[0])
-        for other in members[1:]:
-            aliases[program_name(other)] = program_name(members[0])
-    chosen.sort(key=lambda item: (item["variant"], item["relative_path"]))
-    return chosen, dict(sorted(aliases.items()))
+    return representative_modules(
+        settings,
+        lambda module: (
+            module["module_name"].casefold().startswith(_MODULE_PREFIX) and bool(module["exports"])
+        ),
+    )
 
 
 def _decode_module_tables(
@@ -588,7 +557,7 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
 
     rows.sort(key=lambda row: (row["program"], row["decorated_name"]))
     outputs = {
-        "exports.csv": _csv_text(
+        "exports.csv": csv_text(
             [
                 "program",
                 "module",
@@ -610,7 +579,7 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
             ],
             rows,
         ),
-        "vftable-slots.csv": _csv_text(
+        "vftable-slots.csv": csv_text(
             [
                 "program",
                 "module",
@@ -627,7 +596,7 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
             ],
             sorted(slot_rows, key=lambda row: (row["program"], row["table"], row["slot"])),
         ),
-        "vbtable-entries.csv": _csv_text(
+        "vbtable-entries.csv": csv_text(
             [
                 "program",
                 "module",
@@ -643,24 +612,18 @@ def sweep_surrender_abi(settings: Settings, *, update_snapshot: bool = False) ->
         ),
     }
 
-    report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name=_SNAPSHOT_NAME,
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "SurRender ABI report differs from the tracked snapshot; review "
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
-        )
+        ),
+    )
 
     classes = {row["class_name"] for row in rows if row["class_name"]}
     vftables = [row for row in rows if row["kind"] == "vftable"]

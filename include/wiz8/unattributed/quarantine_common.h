@@ -2,6 +2,7 @@
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/render_state.h"
@@ -49,8 +50,6 @@ struct W8Forwarded {
 };
 
 extern "C" {
-
-extern W8World* g_world_00659ab4;
 
 extern void Function4C4EF0(void);
 extern void Function4A7A70(int value);
