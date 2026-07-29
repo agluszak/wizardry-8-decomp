@@ -66,11 +66,9 @@ extern unsigned char g_flag_68edac;
 int g_dword_647bc0;
 int g_dword_647bc4;
 extern void* g_stack_68eda8;
-extern void* g_object_683fd7;
 
 extern void Function4095B0(void);
 extern void Function48F9E0(void);
-extern void Function52E3B0(void);
 
 void Function4095B0(void) {}
 void Function48F9E0(void) {}
@@ -129,8 +127,10 @@ void Function4E3340(void)
     if (g_pending_state.id == -1 || g_pending_state.id == state) {
         goto finish;
     }
-    if (*((unsigned char*)g_object_683fd7 + 0x44) != 0) {
-        Function52E3B0();
+    /* The original tests only the low byte of the vector count. Preserve that
+       aliasing instead of widening the load to the field's full int type. */
+    if (*reinterpret_cast<const unsigned char*>(&g_startup_runtime_state->vector_40.count) != 0) {
+        g_startup_runtime_state->ProcessNextPendingEntry();
         state = g_screen_state.id;
     }
     if (state != -1) {

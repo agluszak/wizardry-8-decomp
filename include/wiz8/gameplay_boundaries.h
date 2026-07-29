@@ -6,6 +6,7 @@
 #include "wiz8/item_tables.h"
 #ifdef __cplusplus
 #include "surrender/srMath.h"
+#include "wiz8/startup_runtime_state.h"
 #endif
 
 /* Shared recovered Wizardry interfaces used by matching translation units. */
@@ -1032,7 +1033,11 @@ extern unsigned int g_party_gold;
    so they keep address-positional names. The object at 0x00683FD7 is torn down
    by 0x0054B0B0 through operator delete after the same method's sibling. */
 extern unsigned char g_status_block_685078[56];
-extern void* g_object_683fd7;
+#ifdef __cplusplus
+extern W8StartupRuntimeState* g_startup_runtime_state;
+#else
+extern void* g_startup_runtime_state;
+#endif
 extern void* g_object_685067;
 extern unsigned char g_party_moving_006850b5;
 extern unsigned char g_surprise_possible_00683fc5;

@@ -15,18 +15,16 @@ struct W8Deletable {
 
 extern "C" {
 
-extern void __fastcall Function52D5B0(void* self);
-
 // FUNCTION: WIZ8 0x0054b0b0
 void DestroyGameplayObjects(void)
 {
-    void* owned = g_object_683fd7;
+    W8StartupRuntimeState* owned = g_startup_runtime_state;
     W8Deletable* deletable;
 
     if (owned) {
-        Function52D5B0(owned);
+        owned->~W8StartupRuntimeState();
         operator delete(owned);
-        g_object_683fd7 = 0;
+        g_startup_runtime_state = 0;
     }
     deletable = static_cast<W8Deletable*>(g_object_685067);
     if (deletable) {

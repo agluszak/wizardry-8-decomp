@@ -1,6 +1,7 @@
 #include "wiz8/wiz8_windows.h"
 
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/startup_runtime_state.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/render_state.h"
@@ -30,6 +31,28 @@ struct W8Releasable {
 struct W8Forwarded {
     void Method4C5290();
 };
+
+// FUNCTION: WIZ8 0x004d99e0
+W8StartupStateElement005EE748* W8StartupStateVector005EE744::RemoveEntryAt(
+    int position)
+{
+    W8StartupStateElement005EE748* result;
+    int index;
+
+    if (position < count && position >= 0) {
+        result = data[position];
+        if (position < count - 1) {
+            index = position;
+            do {
+                data[index] = data[index + 1];
+                ++index;
+            } while (index < count - 1);
+        }
+        --count;
+        return result;
+    }
+    return 0;
+}
 
 extern "C" {
 

@@ -11,11 +11,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* 0x0052DB80 is a member function of the object at 0x00683FD7. VC6 has no way
-   to spell __thiscall on a free declaration, but __fastcall passes its first
-   argument in ECX, which is the same instruction the canonical emits.
-   0x0054B300 resets one of eight slots. */
-extern void __fastcall Function52DB80(void* self);
+extern void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry);
+/* 0x0054B300 resets one of eight slots. */
 extern void Function54B300(unsigned int slot);
 W8GlobalStatus g_status_685170;
 /* Persistent database roots owned by this translation unit.  Leaving these as
@@ -432,7 +429,7 @@ void ResetPartySlotRow(int slot)
 void ResetGameplayStatusBlock(void)
 {
     memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
-    Function52DB80(g_object_683fd7);
+    g_startup_runtime_state->ClearOwnedEntries();
     g_party_moving_006850b5 = 0;
     g_surprise_possible_00683fc5 = 0;
 }
@@ -780,42 +777,13 @@ void Function54B300(unsigned int slot)
     record->field_0d2 = SetCountdownClock(0);
 }
 
-/* Neither class is identified. Only what this constructor call establishes is
-   declared: an allocation size and a constructor signature. */
-class W8StartupStateElement005EE748;
-
-class W8StartupStateVector005EE748
-    : public W8GrowableVector<W8StartupStateElement005EE748*> {
-};
-
 /* 0x0052D460 proves four equal derived growable-vector instantiations followed
-   by a fifth instantiation with a distinct vtable and the tail state below.  Element identity and the
+   by a fifth instantiation with a distinct vtable and the tail state below. Element identity and the
    complete lifetime remain tracked by wiz8-bxj; this gives startup the real
    allocation and field shape without inventing semantic names. */
-class W8StartupStateVector005EE744
-    : public W8GrowableVector<W8StartupStateElement005EE748*> {
-};
-
-struct W8GameplayObjectA {
-    W8StartupStateVector005EE748 vector_00;
-    W8StartupStateVector005EE748 vector_10;
-    W8StartupStateVector005EE748 vector_20;
-    W8StartupStateVector005EE748 vector_30;
-    W8StartupStateVector005EE744 vector_40;
-    int value_50;
-    int value_54;
-    int unknown_58;
-    int value_5c;
-    int unknown_60;
-    int value_64;
-    unsigned char* bytes_68;
-
-    W8GameplayObjectA();
-    ~W8GameplayObjectA();
-};
 
 // FUNCTION: WIZ8 0x0052d460
-W8GameplayObjectA::W8GameplayObjectA()
+W8StartupRuntimeState::W8StartupRuntimeState()
     : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
 {
     bytes_68 = static_cast<unsigned char*>(::operator new(0xb1));
@@ -823,24 +791,108 @@ W8GameplayObjectA::W8GameplayObjectA()
 }
 
 // FUNCTION: WIZ8 0x0052d5b0
-W8GameplayObjectA::~W8GameplayObjectA()
+W8StartupRuntimeState::~W8StartupRuntimeState()
 {
     ::operator delete(bytes_68);
 }
 
-typedef char W8GameplayObjectA_must_be_0x6c[
-    sizeof(W8GameplayObjectA) == 0x6c ? 1 : -1];
+// FUNCTION: WIZ8 0x0052db80
+void W8StartupRuntimeState::ClearOwnedEntries()
+{
+    W8StartupStateElement005EE748* entry;
+    int count;
+    int index;
+
+    count = vector_40.count;
+    while (count > 0) {
+        entry = vector_40.data[0];
+        vector_40.RemoveEntryAt(0);
+        ProcessStartupStateEntry(entry);
+        count = vector_40.count;
+    }
+    count = vector_30.count;
+    while (count > 0) {
+        count = vector_30.count;
+        entry = vector_30.data[0];
+        if (count > 0) {
+            index = 0;
+            if (count != 1 && count - 1 >= 0) {
+                do {
+                    vector_30.data[index] = vector_30.data[index + 1];
+                    ++index;
+                } while (index < vector_30.count - 1);
+            }
+            --vector_30.count;
+        }
+        ::operator delete(entry);
+        count = vector_30.count;
+    }
+    count = vector_10.count;
+    while (count > 0) {
+        count = vector_10.count;
+        entry = vector_10.data[0];
+        if (count > 0) {
+            index = 0;
+            if (count != 1 && count - 1 >= 0) {
+                do {
+                    vector_10.data[index] = vector_10.data[index + 1];
+                    ++index;
+                } while (index < vector_10.count - 1);
+            }
+            --vector_10.count;
+        }
+        ::operator delete(entry);
+        count = vector_10.count;
+    }
+    count = vector_00.count;
+    while (count > 0) {
+        entry = vector_00.data[0];
+        if (count > 0) {
+            index = 0;
+            if (count != 1 && count - 1 >= 0) {
+                do {
+                    vector_00.data[index] = vector_00.data[index + 1];
+                    ++index;
+                } while (index < vector_00.count - 1);
+            }
+            --vector_00.count;
+        }
+        ::operator delete(entry);
+        count = vector_00.count;
+    }
+}
+
+// FUNCTION: WIZ8 0x0052e3b0
+void W8StartupRuntimeState::ProcessNextPendingEntry()
+{
+    W8StartupStateElement005EE748* entry;
+
+    if (vector_40.count > 0) {
+        entry = *vector_40.GetAt(0);
+        vector_40.RemoveAt(vector_40.IndexOf(entry));
+        if ((value_5c & 1) != 0 && entry->type_08 >= 14 && entry->type_08 < 16) {
+            if ((value_5c & 2) != 0) {
+                unknown_60 = SetCountdownClock(Random(6000) + 2000);
+            }
+            else {
+                unknown_60 = SetCountdownClock(Random(60000) + 300000);
+            }
+        }
+        ProcessStartupStateEntry(entry);
+        ::operator delete(entry);
+    }
+}
 
 /* The block 0x0054AF30 and 0x0054B300 also work through; cleared here as bytes,
    which is why it is reached by a second, byte-wide declaration. */
-void* g_object_683fd7;
+W8StartupRuntimeState* g_startup_runtime_state;
 void* g_object_685067;
 
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
-    g_object_683fd7 = new W8GameplayObjectA();
+    g_startup_runtime_state = new W8StartupRuntimeState();
     g_object_685067 = new W8Timer005EC0A4(300.0f, 0);
 }
 
