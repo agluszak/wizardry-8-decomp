@@ -385,35 +385,12 @@ W8EncounterTableRuntime* GetEncounterTable(int index)
     return 0;
 }
 
-/* Appends a generator to the world's list, growing the array by exactly one
-   element when it is full - so filling the list is quadratic, which is what the
-   image does. A failed allocation puts the old array back and drops the
-   generator silently. The grow is written out rather than delegated because the
-   original inlines it here. */
+/* Appends through the world's ordinary growable vector. Add is header-visible,
+   so VC6 expands both it and Grow into this caller just as the image does. */
 // FUNCTION: WIZ8 0x0048be30
 void AddMonsterGenerator(W8MonsterGenerator* generator)
 {
-    W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
-    W8MonsterGenerator** previous;
-    int wanted = generators->count + 1;
-    int index;
-
-    if (generators->capacity < wanted) {
-        previous = generators->data;
-        generators->data = static_cast<W8MonsterGenerator**>(
-            ::operator new(wanted * sizeof(W8MonsterGenerator*)));
-        if (generators->data == 0) {
-            generators->data = previous;
-            return;
-        }
-        generators->capacity = wanted;
-        for (index = 0; index < generators->count; ++index) {
-            generators->data[index] = previous[index];
-        }
-        ::operator delete(previous);
-    }
-    generators->data[generators->count] = generator;
-    ++generators->count;
+    g_world->monster_generators->Add(generator);
 }
 
 /* Releases one generator and everything it hangs off itself. Both the list
@@ -598,34 +575,13 @@ unsigned char W8MonsterGenerator::Load(int handle)
 void RemoveMonsterGenerator(W8MonsterGenerator* generator)
 {
     W8GrowableVector<W8MonsterGenerator*>* generators = g_world->monster_generators;
-    W8MonsterGenerator** scan;
     W8MonsterGenerator* removed;
-    int index = 0;
+    int index = generators->IndexOf(generator);
 
-    if (generators->count <= 0) {
+    if (index == -1) {
         return;
     }
-    scan = generators->data;
-    while (*scan != generator) {
-        ++index;
-        ++scan;
-        if (index >= generators->count) {
-            return;
-        }
-    }
-    if (index == -1 || index >= generators->count) {
-        return;
-    }
-    removed = *generators->GetAt(index);
-    if (index < generators->count && index >= 0) {
-        if (index < generators->count - 1) {
-            do {
-                generators->data[index] = generators->data[index + 1];
-                ++index;
-            } while (index < generators->count - 1);
-        }
-        --generators->count;
-    }
+    removed = generators->RemoveAt(index);
     DestroyMonsterGeneratorInline(removed);
 }
 

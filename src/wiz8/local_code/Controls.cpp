@@ -198,11 +198,8 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
                                            int left, int top, int right, int bottom)
 {
     Controls* holder;
-    W8WidgetBase005ED5BC** previous;
     unsigned int taken;
-    int wanted;
     int index;
-    int i;
     int origin_x;
     int origin_y;
 
@@ -232,30 +229,7 @@ W8WidgetBase005ED5BC::W8WidgetBase005ED5BC(Controls* owner, unsigned int region,
     }
 
     holder = m_pPanel;
-    wanted = holder->m_controls.count + 1;
-    if (holder->m_controls.capacity < wanted) {
-        previous = holder->m_controls.data;
-        holder->m_controls.data = (W8WidgetBase005ED5BC**)new void*[wanted];
-        if (holder->m_controls.data == 0) {
-            holder->m_controls.data = previous;
-            index = -1;
-            goto registered;
-        }
-        i = 0;
-        holder->m_controls.capacity = wanted;
-        if (0 < holder->m_controls.count) {
-            do {
-                holder->m_controls.data[i] = previous[i];
-                i = i + 1;
-            } while (i < holder->m_controls.count);
-        }
-        delete[] previous;
-    }
-    holder->m_controls.data[holder->m_controls.count] = this;
-    index = holder->m_controls.count;
-    holder->m_controls.count = index + 1;
-
-registered:
+    index = holder->m_controls.Add(this);
     if (holder->m_uiRegionSetId != 0 && m_region_18 == -1) {
         taken = AddRegionToSet(holder->m_uiRegionSetId);
         SetRegion(taken);

@@ -1,5 +1,6 @@
 #include "wiz8/vector_005ece60.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/targeting.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,26 @@
 
 // VTABLE: WIZ8 0x005eca78
 // class W8GrowableVector<unsigned short>
+
+// VTABLE: WIZ8 0x005ee7e8
+// class W8GrowableVector<W8TargetSource>
+
+// SYNTHETIC: WIZ8 0x00546dc0
+// W8GrowableVector<W8TargetSource>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00546df0
+// W8GrowableVector<W8TargetSource>::Grow
+
+class W8VectorElement005EE8A0;
+
+// VTABLE: WIZ8 0x005ee8a0
+// class W8GrowableVector<W8VectorElement005EE8A0>
+
+// SYNTHETIC: WIZ8 0x00558c10
+// W8GrowableVector<W8VectorElement005EE8A0>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x005be1f0
+// W8GrowableVector<W8VectorElement005EE8A0>::Grow
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
