@@ -17,7 +17,6 @@ from .commands.evidence import app as evidence_app
 from .commands.evidence import register_root as register_evidence_root
 from .commands.ghidra import app as ghidra_app
 from .commands.inputs import app as corpus_app
-from .commands.overlay import app as overlay_app
 from .commands.reports import app as report_app
 from .commands.sgp import app as sgp_app
 from .config import load_settings
@@ -29,7 +28,6 @@ app = typer.Typer(
 )
 app.add_typer(corpus_app, name="corpus")
 app.add_typer(ghidra_app, name="ghidra")
-ghidra_app.add_typer(overlay_app, name="overlay")
 app.add_typer(report_app, name="report")
 app.add_typer(toolchain_app, name="toolchain")
 app.add_typer(evidence_app, name="evidence")
