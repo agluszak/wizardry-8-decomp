@@ -365,7 +365,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
     float scale;
 
     if (monster_info->pCombat->turn_started != 0) {
-        monster_info->monster->member_18.unknown_10[0x16] = 0;
+        monster_info->monster->polymorphic_subobject_18.unknown_10[0x16] = 0;
         return;
     }
 
@@ -394,7 +394,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
     monster_info->monster->m_cycles[8].unknown_0a[0] = 0;
     monster_info->monster->m_cycles[8].unknown_0a[1] = 0;
     monster_info->pCombat->turn_started = 1;
-    monster_info->monster->member_18.unknown_10[0x16] = 0;
+    monster_info->monster->polymorphic_subobject_18.unknown_10[0x16] = 0;
 }
 
 /* Finish one monster's attack: charge it the fatigue, drop the party's

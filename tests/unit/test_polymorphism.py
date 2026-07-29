@@ -5,6 +5,8 @@ from collections import Counter
 from itertools import pairwise
 from pathlib import Path
 
+from wiz8decomp.polymorphism import _observation_counts
+
 _CANONICAL = "wiz8--gog-base--wiz8--18a74ff61c65"
 
 
@@ -83,11 +85,29 @@ def test_virtual_inheritance_occurs_once_per_build() -> None:
     assert set(per_program.values()) == {1}
 
 
-def test_primary_tables_are_stored_at_object_offset_zero() -> None:
-    rows = [row for row in _snapshot("vtables.csv") if row["subobject_offsets"]]
+def test_raw_store_displacements_are_retained_without_semantic_classification() -> None:
+    rows = [row for row in _snapshot("vtables.csv") if row["store_displacements"]]
 
     assert rows
-    assert any("0x0" in row["subobject_offsets"].split() for row in rows)
+    assert any("0x0" in row["store_displacements"].split() for row in rows)
+    assert any(
+        row["store_displacements"] and "0x0" not in row["store_displacements"].split()
+        for row in rows
+    )
+
+
+def test_raw_displacements_do_not_produce_primary_or_secondary_statistics() -> None:
+    tables = [
+        {"kind": "vftable", "vptr_write_count": 1, "store_displacements": "0x0"},
+        {"kind": "vftable", "vptr_write_count": 1, "store_displacements": "0x18"},
+    ]
+
+    counts = _observation_counts(tables, [], [])
+
+    assert counts["tables_with_zero_store_displacement"] == 1
+    assert counts["tables_with_only_nonzero_store_displacements"] == 1
+    assert "primary_tables" not in counts
+    assert "secondary_tables" not in counts
 
 
 def test_allocation_size_hints_agree_with_reviewed_sizes() -> None:
@@ -115,13 +135,13 @@ def test_an_inlined_construction_still_records_its_allocation_size() -> None:
 
     Most heap construction in this image inlines the constructor, so a scan that
     only looks at calls sees nothing there. Reading back from the store covers
-    it - and the sizes it finds have to be sizes, so each one is checked against
-    the object offsets its own class is known to write.
+    it. The table association remains a hint until receiver provenance proves
+    which complete object the store addresses.
     """
     writes = [
         row
         for row in _snapshot("vptr-writes.csv")
-        if row["program"] == _CANONICAL and row["object_offset"] == "0x0"
+        if row["program"] == _CANONICAL and row["store_displacement"] == "0x0"
     ]
     sized = {row["site"]: row for row in writes if row["allocation_size"]}
     assert len(sized) >= 40

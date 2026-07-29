@@ -214,7 +214,11 @@ name to present itself to the scene graph.
 * An imported `??_7Class@@6B...` **vftable** referenced from `.text` marks a function installing a
   base vptr — proof of derivation from a *named* base, with the mangling spelling out the
   inheritance.
-* Two vptr writes a few bytes apart in one function means multiple inheritance.
+* Two vptr writes a few bytes apart prove only that the function installs two tables. Track each
+  receiver from entry `this`; then use base-constructor calls, derived-table replacement,
+  destructor restoration, adjustor thunks, and base-pointer uses to prove multiple inheritance.
+  Without that lifecycle and dispatch evidence, retain an additional vftable or opaque
+  polymorphic subobject rather than inventing a base.
 * A vbptr at `+4` selecting a vbtable means **virtual** inheritance: vbtable entry 1 is the offset
   from the vbptr to the virtual base subobject. Corroborate against the constructor's own
   `lea ecx, [this+offset]` base call.

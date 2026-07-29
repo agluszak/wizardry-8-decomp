@@ -6,19 +6,21 @@ of consecutive relocated slots that point into code, and nothing that is not a
 relocated slot can be part of one. That is what makes the census exhaustive
 instead of an open-ended search for pointer-shaped bytes.
 
-The hard part is not finding runs but ending them. Two vtables of the same class
-sit adjacent in `.rdata`, so a naive maximal run merges them and reports one
-table holding the sum of both slot counts. The boundary rule is that a table has
-to be referred to to be used at all: any `.rdata` slot address that appears as a
+The hard part is not finding runs but ending them. Distinct vftables can sit
+adjacent in `.rdata`, so a naive maximal run merges them and reports one table
+holding the sum of both slot counts. The boundary rule is that a table has to be
+referred to to be used at all: any `.rdata` slot address that appears as a
 relocated operand in code begins a table. Splitting there reproduces every
 reviewed slot count that is independently correct, and shows that three reviewed
 counts were each the sum of a table and the one following it.
 
-Constructor stores are collected separately, because they carry something a bare
-reference does not: `mov [reg+N], offset table` says the pointer lives at offset
-`N` in the object, which distinguishes a primary table from the base subobject
-tables. They are evidence about the table, not the rule that bounds it - a
-secondary table whose store is not decodable still has to be split off.
+Vptr stores are collected separately, but their memory displacement stays a raw
+ABI observation. `mov [reg+N], offset table` proves only the displacement from
+that register at that instruction. It does not prove a root-relative placement
+unless register provenance establishes that the register still denotes the
+complete object. These writes are evidence about the table, not the rule that
+bounds it - an additional table whose store is not decodable still has to be
+split off.
 
 Slot kinds are read, not guessed. `_purecall` is resolved through the import
 table by name, so pure-virtual slots need no hardcoded address, and a slot
@@ -68,7 +70,7 @@ _VBTABLE_LIMIT = 0x10000
 class VptrWrite:
     site: int
     function: int | None
-    object_offset: int
+    store_displacement: int
     table: int
     allocation_size: int | None = None
 
@@ -135,7 +137,7 @@ def _adjustor(image: PeImage, engine: Any, target: int) -> tuple[int, int] | Non
 def _collect_vptr_writes(
     image: PeImage, engine: Any, sites: list[int], data_ranges: list[tuple[int, int]]
 ) -> list[VptrWrite]:
-    """Relocated operands that a constructor stores into an object."""
+    """Relocated operands decoded as register-relative vftable stores."""
     from capstone import CS_OP_IMM, CS_OP_MEM
 
     text = image.text
@@ -163,7 +165,7 @@ def _collect_vptr_writes(
             VptrWrite(
                 site=instruction.address,
                 function=function_start(image, instruction.address),
-                object_offset=destination.mem.disp,
+                store_displacement=destination.mem.disp,
                 table=value,
             )
         )
@@ -232,10 +234,9 @@ def analyse_image(path: Path) -> dict[str, Any]:
         writes_by_table.setdefault(write.table, []).append(write)
 
     # Every table address the code refers to at all, not only the ones stored by
-    # a decodable `mov [reg+N], imm`. A secondary table whose constructor store
+    # a decodable `mov [reg+N], imm`. An additional table whose constructor store
     # is not decodable is still referenced, and without it the preceding table
-    # absorbs the secondary's slots and reports the sum of both counts - which is
-    # exactly how two reviewed secondary counts came to be overstated.
+    # absorbs the additional table's slots and reports the sum of both counts.
     text = image.text
     referenced: set[int] = set()
     for site in sites:
@@ -303,7 +304,7 @@ def analyse_image(path: Path) -> dict[str, Any]:
     tables.sort(key=lambda table: table.address)
 
     # Allocation-size hints: for each vftable, the push-immediates found before
-    # operator-new calls at its offset-0 writers' call sites. The slot 0 target
+    # operator-new calls at its zero-displacement writers' call sites. The slot 0 target
     # is the deleting destructor and never a construction entry, so it is
     # excluded from the scanned writers.
     allocators = {
@@ -315,22 +316,24 @@ def analyse_image(path: Path) -> dict[str, Any]:
     allocator_slots = {
         address for address, name in slots.items() if name.split("!", 1)[-1] == _SRHEAP_ALLOCATE
     }
-    constructors_by_table: dict[int, set[int]] = {}
+    zero_displacement_writers_by_table: dict[int, set[int]] = {}
     for table in tables:
         if table.kind != "vftable":
             continue
         deleting = table.slots[0].target if table.slots else None
-        constructors_by_table[table.address] = {
+        zero_displacement_writers_by_table[table.address] = {
             write.function
             for write in table.writes
-            if write.object_offset == 0
+            if write.store_displacement == 0
             and write.function is not None
             and write.function != deleting
         }
-    all_constructors = sorted(set().union(*constructors_by_table.values(), set()))
+    zero_displacement_writers = sorted(
+        set().union(*zero_displacement_writers_by_table.values(), set())
+    )
     hints = (
-        allocation_size_hints(image, all_constructors, allocators, allocator_slots)
-        if (allocators or allocator_slots) and all_constructors
+        allocation_size_hints(image, zero_displacement_writers, allocators, allocator_slots)
+        if (allocators or allocator_slots) and zero_displacement_writers
         else {}
     )
     # The hints above are read at calls to a constructor, so they see nothing
@@ -340,7 +343,7 @@ def analyse_image(path: Path) -> dict[str, Any]:
     # becomes a call.
     if allocators or allocator_slots:
         for write in writes:
-            if write.object_offset == 0:
+            if write.store_displacement == 0:
                 write.allocation_size = allocation_size_before(
                     image, write.site, write.function, allocators, allocator_slots
                 )
@@ -353,7 +356,7 @@ def analyse_image(path: Path) -> dict[str, Any]:
                 if write.allocation_size is not None
             }
         )
-        for address, writers in constructors_by_table.items()
+        for address, writers in zero_displacement_writers_by_table.items()
     }
     return {
         "tables": tables,
@@ -375,18 +378,46 @@ def _hex(value: Any) -> str:
     return f"{value:08x}" if isinstance(value, int) else ""
 
 
+def _observation_counts(
+    table_rows: list[dict[str, Any]],
+    slot_rows: list[dict[str, Any]],
+    write_rows: list[dict[str, Any]],
+) -> dict[str, int]:
+    """Summarize raw observations without assigning source-level roles."""
+
+    zero_displacement_tables = [
+        row for row in table_rows if "0x0" in row["store_displacements"].split()
+    ]
+    return {
+        "vtables": sum(1 for row in table_rows if row["kind"] == "vftable"),
+        "vbtables": sum(1 for row in table_rows if row["kind"] == "vbtable"),
+        "slots": len(slot_rows),
+        "tables_with_a_decoded_vptr_write": sum(1 for row in table_rows if row["vptr_write_count"]),
+        "tables_with_zero_store_displacement": len(zero_displacement_tables),
+        "tables_with_only_nonzero_store_displacements": sum(
+            1
+            for row in table_rows
+            if row["store_displacements"] and "0x0" not in row["store_displacements"].split()
+        ),
+        "pure_virtual_slots": sum(1 for row in slot_rows if row["kind"] == "pure-virtual"),
+        "adjustor_thunk_slots": sum(1 for row in slot_rows if row["kind"] == "adjustor-thunk"),
+        "import_slots": sum(1 for row in slot_rows if row["kind"] == "import-thunk"),
+        "vptr_writes": len(write_rows),
+    }
+
+
 def _snapshot_readme() -> str:
     return """# Polymorphism-ABI snapshot
 
-Every vtable, vtable slot and constructor vptr write in the first-party Wizardry executables whose
+Every vtable, vtable slot and decoded vptr write in the first-party Wizardry executables whose
 code is readable. Tracked because reproduction needs the proprietary binaries.
 
 The producer is `wiz8decomp.polymorphism`. Normal runs write the same CSVs under
 `build/reports/polymorphism/` and fail when they differ from this snapshot:
 
 ```sh
-uv run wiz8 polymorphism                  # verify against the snapshot
-uv run wiz8 polymorphism --update-snapshot
+uv run wiz8 evidence refresh polymorphism                  # verify against the snapshot
+uv run wiz8 evidence refresh polymorphism --update-snapshot
 ```
 
 The scan is bounded by the image's own relocation table rather than by a byte pattern: a vtable is a
@@ -394,17 +425,20 @@ run of consecutive relocated slots pointing into code, and a value that is not a
 cannot belong to one.
 
 `boundary` records why each table ended, which is the part that is easy to get wrong. Adjacent
-tables of one class merge into a single run unless something splits them, so a run is also cut at
-any address a constructor writes as a vptr (`vptr-write-boundary`). Without that rule a table
-absorbs the next one and reports the sum of both slot counts.
+tables merge into a single run unless something splits them, so a run is cut at any table address
+referenced from code (`code-reference-boundary`). This remains valid even when the corresponding
+constructor store cannot be decoded. Without that rule a table absorbs the next one and reports
+the sum of both slot counts.
 
-`vptr-writes.csv` is the class-identity channel: `object_offset` is where in the object the pointer
-is stored, so offset `0` marks a primary table and any other offset marks the base subobject at that
-offset. A table written at several offsets by several functions is normal - a constructor, a copy
-constructor and a destructor each write it.
+`vptr-writes.csv` records `store_displacement`, the raw displacement in the decoded memory operand.
+It is not a root-relative object offset unless a separate receiver-provenance analysis establishes
+the register's relation to the complete object. Zero and nonzero displacements therefore do not by
+themselves classify primary tables, embedded polymorphic members, or secondary bases. A table
+written at several displacements by several functions is normal.
 
-`allocation_size` on an offset-`0` write is the size pushed to `operator new` just before it, which
-is what fixes a class's extent when nothing else does. It is read back from the store rather than
+`allocation_size` on a zero-displacement write is the size pushed to `operator new` just before it.
+It is an allocation hint until receiver provenance associates the write with that allocation. It is
+read back from the store rather than
 from a call to a constructor, so an inlined construction has one too. It is empty when the object is
 embedded, stack-placed, or - as the srMaterial builders do - allocated through a register holding the
 allocator, where no size is visible at the site at all.
@@ -451,7 +485,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             "vptr_writes": len(writes),
         }
         for table in tables:
-            offsets = sorted({write.object_offset for write in table.writes})
+            displacements = sorted({write.store_displacement for write in table.writes})
             table_rows.append(
                 {
                     "program": program,
@@ -461,8 +495,9 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                     "slot_count": len(table.slots),
                     "boundary": table.boundary,
                     "vptr_write_count": len(table.writes),
-                    "subobject_offsets": " ".join(
-                        f"-0x{-offset:x}" if offset < 0 else f"0x{offset:x}" for offset in offsets
+                    "store_displacements": " ".join(
+                        f"-0x{-displacement:x}" if displacement < 0 else f"0x{displacement:x}"
+                        for displacement in displacements
                     ),
                     "pure_virtual_slots": sum(
                         1 for slot in table.slots if slot.kind == "pure-virtual"
@@ -496,10 +531,10 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                     "program": program,
                     "site": _hex(write.site),
                     "function_start": _hex(write.function),
-                    "object_offset": (
-                        f"-0x{-write.object_offset:x}"
-                        if write.object_offset < 0
-                        else f"0x{write.object_offset:x}"
+                    "store_displacement": (
+                        f"-0x{-write.store_displacement:x}"
+                        if write.store_displacement < 0
+                        else f"0x{write.store_displacement:x}"
                     ),
                     "vtable": _hex(write.table),
                     "allocation_size": (
@@ -526,7 +561,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                 "slot_count",
                 "boundary",
                 "vptr_write_count",
-                "subobject_offsets",
+                "store_displacements",
                 "pure_virtual_slots",
                 "adjustor_thunk_slots",
                 "import_slots",
@@ -553,7 +588,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
                 "program",
                 "site",
                 "function_start",
-                "object_offset",
+                "store_displacement",
                 "vtable",
                 "allocation_size",
             ],
@@ -580,26 +615,12 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
         )
 
-    primaries = [row for row in table_rows if "0x0" in row["subobject_offsets"].split()]
     return {
         "schema": "wiz8.polymorphism",
         "programs": per_program,
         "byte_identical_aliases": aliases,
         "programs_without_readable_code": skipped,
-        "vtables": sum(1 for row in table_rows if row["kind"] == "vftable"),
-        "vbtables": sum(1 for row in table_rows if row["kind"] == "vbtable"),
-        "slots": len(slot_rows),
-        "tables_with_a_constructor_write": sum(1 for row in table_rows if row["vptr_write_count"]),
-        "primary_tables": len(primaries),
-        "secondary_tables": sum(
-            1
-            for row in table_rows
-            if row["subobject_offsets"] and "0x0" not in row["subobject_offsets"].split()
-        ),
-        "pure_virtual_slots": sum(1 for row in slot_rows if row["kind"] == "pure-virtual"),
-        "adjustor_thunk_slots": sum(1 for row in slot_rows if row["kind"] == "adjustor-thunk"),
-        "import_slots": sum(1 for row in slot_rows if row["kind"] == "import-thunk"),
-        "vptr_writes": len(write_rows),
+        **_observation_counts(table_rows, slot_rows, write_rows),
         "report": str(report_dir.relative_to(settings.repo_dir)),
         "snapshot": str(snapshot_dir.relative_to(settings.repo_dir)),
         "snapshot_fresh": snapshot_fresh,

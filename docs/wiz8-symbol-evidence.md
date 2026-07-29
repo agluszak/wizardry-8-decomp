@@ -133,14 +133,23 @@ Ending a run is the part that is easy to get wrong. Two tables of one class sit 
 maximal run reports a single table holding the sum of both slot counts. The rule is that a table must
 be referred to in order to be used, so a run is cut at any slot address appearing as a relocated
 operand in code. Splitting only at decodable constructor stores is *not* sufficient - it misses
-secondary tables whose store does not decode, and those are exactly the cases where a neighbouring
+additional vftables whose store does not decode, and those are exactly the cases where a neighbouring
 count was overstated.
 
-Constructor stores are collected separately because they carry what a bare reference does not:
-`mov [reg+N], offset table` places the pointer at offset `N` in the object, so offset `0` marks a
-primary table and any other offset marks the base subobject at that offset. Note that `N` is the
-instruction's displacement, which equals the subobject offset only when the register holds the start
-of the object; a compiler addressing the object from a shifted base produces a negative displacement.
+Vptr stores are collected separately because they carry an addressing observation a bare reference
+does not. The `N` in `mov [reg+N], offset table` is only the instruction's store displacement. It is
+a root-relative vptr placement only when register provenance proves that `reg` still denotes the
+complete object. A shifted register can produce an arbitrary or negative displacement, so zero does
+not prove a primary table and nonzero does not prove a base subobject.
+
+Keep the evidence states separate:
+
+1. **Additional vftable** — a distinct table boundary is proven; placement and owner are unknown.
+2. **Polymorphic subobject at offset N** — root-relative placement is proven; base versus embedded
+   member remains unknown.
+3. **Secondary base vftable** — constructor, destructor, dispatch, adjustor, or base-pointer evidence
+   proves multiple inheritance.
+4. **Virtual-base vftable** — a vbptr/vbtable or imported ABI declaration proves virtual inheritance.
 
 Slot kinds are read rather than guessed. `_purecall` is resolved through the import table by name, so
 pure-virtual slots need no per-build address, and a slot pointing at a jump thunk is reported with the
@@ -266,11 +275,12 @@ left untyped. The funclet's
 before the owning function pushes its registration node. Ghidra's stack analysis handles both VC6
 prologue shapes (classic `push ebp` and the frameless ESP-relative form).
 
-### Is this vtable a primary or a base subobject's?
+### What does this vptr store prove?
 
-`polymorphism/vptr-writes.csv` gives the `object_offset` a constructor stores the pointer at: `0x0`
-marks a primary, anything else marks the base subobject at that offset. `vtables.csv` aggregates the
-offsets per table, so a table with several is written by several constructors, which is normal.
+`polymorphism/vptr-writes.csv` gives the raw `store_displacement`; `vtables.csv` aggregates those
+displacements per table. Neither classifies the table. Follow the receiver from entry `this` through
+register copies and `lea` adjustments to establish a root-relative placement. Then use lifecycle and
+dispatch evidence to decide whether the placement is a base or an embedded polymorphic member.
 
 Treat a slot count as bounded by `boundary`. A table ending in `code-reference-boundary` was split
 because the next address is referred to from code - that is what separates adjacent tables of one

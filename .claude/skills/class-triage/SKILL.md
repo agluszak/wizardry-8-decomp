@@ -31,9 +31,10 @@ just wiz8 report class-candidates        # regenerates build/reports/class-candi
   direct allocation hint of its own.
 - `reviewed_class = yes` rows are done; the replay already drops them from the skeleton layer.
 
-`families.csv` is the other entry point, and usually the cheaper one. It pairs the two one-slot
-tables a single writer installs at offset zero - a base and a class derived from it, in construction
-order, so the second is the derived one - and sorts by how big that writer is. A small writer is a
+`families.csv` is the other entry point, and usually the cheaper one. It pairs two one-slot tables
+a single writer stores with zero instruction displacement and sorts by how big that writer is. The
+pair is a recovery lead, not inheritance evidence: first prove both receiver registers denote the
+same complete object. Only then can lifecycle order identify a base and derived table. A small writer is a
 dedicated constructor and ports in one sitting; a thousand-byte writer installing the same two
 tables is a heap builder that happens to construct two objects on its way through, and the pair is
 then a fact about its locals rather than a class waiting to be recovered. `writer_size` is the whole
@@ -76,12 +77,9 @@ comment is telling you what the function you are reading constructs.
   `just ghidra query <program> function-of <site>,<site>`.
 - **`just wiz8 report class-family <vtable>`** when a destructor restores a table that is not the
   one you expected. It prints every table in the family and, per writer function, which table goes
-  in at which object offset. A writer installing two tables at the *same* offset is a constructor
-  doing base-then-derived; a writer installing one at a non-zero offset and one at zero is a
-  destructor tearing down a subobject before its owner; and a destructor restoring a table that is
-  not its own class's means the derived vptr store was dropped as dead and what you are reading is
-  an **inlined base destructor**. Two bodies restoring the same table while touching different
-  members is that case, not a contradiction.
+  through which raw store displacement. Normalize each receiver to the complete-object root before
+  treating that displacement as a placement. Once that provenance is established, lifecycle order
+  can distinguish base-to-derived churn, subobject teardown, and an inlined base destructor.
 - In interactive Ghidra, retype `this` to `Candidate_<vtable>` (category `/wiz8/candidates`);
   virtual calls then render as `(*vptr[n])()` because every censused slot is typed
   `virtual_function *`. The struct's vptr fields and size are the census hypothesis you are
@@ -101,9 +99,10 @@ Facts to settle from the decompiles, in order of value:
 2. **Allocation size.** Confirm the hint at a `push N; call operator_new; ... call ctor` site.
    A hint can exceed the class's own extent — the `push` belongs to the *most-derived* class
    being constructed, so a hint on an abstract base's candidate is really a derived class's size.
-3. **Subobject offsets.** Skeleton vptrs beyond +0 passed a unanimity rule (every ctor writer
-   installs them), but confirm against the constructor body; a blank there does not mean none
-   exist — a single shared writer can hide them.
+3. **Polymorphic subobject placement.** The census records raw memory-operand displacements, not
+   root-relative offsets. Follow register copies and `lea` adjustments from entry `this`; only a
+   normalized placement may become a skeleton field. Lifecycle and dispatch evidence must then
+   distinguish a base from an embedded polymorphic member.
 4. **Slot-count boundary.** The census splits adjacent tables on code references; check the last
    slot's target is plausibly a method, not the next table's first entry.
 5. **A name, only if the program provides one**: class-registry `getClassName` strings, assertion
@@ -173,7 +172,7 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
 
 - The candidate layer regenerates from tracked inputs on every materialization; editing
   `evidence/` or anything under `tools/wiz8decomp/ghidra/` triggers the (~1 min, 51MB) rebuild.
-- `just wiz8 polymorphism --update-snapshot` refreshes the census (and its
+- `just wiz8 evidence refresh polymorphism --update-snapshot` refreshes the census (and its
   `allocation_sizes`); `just wiz8 report data-segmentation --update-snapshot` refreshes the unit
   data intervals. Both need `WIZ8_WORK_DIR` binaries and gate byte-for-byte otherwise.
 - Full background: `docs/wiz8-class-candidates.md`; the long-form procedure with the
@@ -184,8 +183,8 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
 - `scalar_deleting_destructor` empty does not mean there is none — it is only filled when the
   slot 0 target itself writes the vtable; many deleting destructors delegate to a complete
   destructor that does the writing.
-- Two vtable writes at the *same* offset in one function are base→derived vtable churn during
-  construction, not two subobjects.
+- Two vtable writes with the same raw displacement are only a table-churn lead. Prove both receiver
+  registers have the same complete-object provenance before inferring base-to-derived construction.
 - A candidate whose writers are all large multi-object builders (the `srMaterial` pattern in
   `imported-vftable-sites.csv`) has no dedicated constructor to port; recover it from the builder
   or from its destructor instead.
@@ -201,11 +200,11 @@ mark the body `// FUNCTION: WIZ8 0x<ADDR>`, add a row to
   `just ghidra query <program> function-of <comma-separated sites>`, run it through
   `object_model.attribute_writers`, and pass the corrected writes to `derived_families`. That
   removed six invented pairs and surfaced two real ones the census had split across two functions.
-- **Two tables in one body may be an object and its embedded member, not a hierarchy.** They only
-  differ by the offset written, and the census sometimes records a member's store at zero -
-  `0x0055D180` looks like a textbook pair and is an object with a vector four bytes in.
-  `derived_families` drops pairs another body places at different offsets, but that guard needs
-  such a body to exist, so read the decompile before porting: both stores must go to `this`.
+- **A raw displacement is not an object offset.** It becomes root-relative only when the receiver's
+  affine provenance is known. A shifted register can make the displacement arbitrary or negative.
+  Two tables in one body may still be an object and embedded member rather than a hierarchy;
+  `0x0055D180` is the concrete warning case. Read the lifecycle and prove both receivers before
+  promoting any family or subobject relationship.
 - **Check `writer_role` before believing which table is the base.** A constructor stores the
   derived table last; a destructor stores it *first*, because the base destructor runs after the
   derived body. Getting that backwards inverts the hierarchy silently. A destructor-written pair

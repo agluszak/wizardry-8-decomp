@@ -39,7 +39,7 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
             "GetNumSubsPerCycle() -> Invalid cycle num.");
     }
     if (bCycle == -1) {
-        bCycle = member_18.m_bCurrentCycle;
+        bCycle = polymorphic_subobject_18.m_bCurrentCycle;
     }
     return m_cycles[bCycle].ubNumSubs;
 }
@@ -165,7 +165,7 @@ unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
 void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 {
     if (monster != 0) {
-        monster->member_18.state_a0 = state;
+        monster->polymorphic_subobject_18.state_a0 = state;
     }
 }
 
@@ -191,7 +191,7 @@ unsigned char W8Monster::IsDying()
    forward, or a single member read; nothing here says what the members and
    slots are for, so each is named for what it reaches. */
 
-extern void MonsterMember18Update(W8MonsterMember18* member);            /* 0x00453970 */
+extern void MonsterPolymorphicSubobject18Update(W8MonsterPolymorphicSubobject18* member);            /* 0x00453970 */
 extern void Function4A84A0(W8Monster* monster);
 extern void Function4537E0(W8Monster* monster);
 extern void* g_monster_vtable_005ed290;
@@ -209,9 +209,9 @@ void* MonsterGetObject0C(W8Monster* monster)
 
 /* Run the member update with no monster of its own to name. */
 // FUNCTION: WIZ8 0x004c5770
-void MonsterUpdateMember18(void)
+void MonsterUpdatePolymorphicSubobject18(void)
 {
-    MonsterMember18Update(0);
+    MonsterPolymorphicSubobject18Update(0);
 }
 
 /* Two null-checked forwards that share one shape: a monster that is not there

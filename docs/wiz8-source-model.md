@@ -259,7 +259,10 @@ Two separate classes live in this area, which is worth being careful about:
   returns `0x10006`. This is a genuine original class name, and it has *two unrelated origins*: the
   runtime registry string, and the relative assertion path `..\Engine Code\Include\stLight.hpp`
   recovered by the assertion harvest. Its vtables are installed by eight distinct functions,
-  including `GrCycle`'s copy constructor at `0x004A5F20`, so `GrCycle` owns or embeds one.
+  including `GrCycle`'s copy constructor at `0x004A5F20`, so `GrCycle` owns or embeds one. The
+  source-owned lifecycle now models `stLight` as an `srLight` subclass; the recovered SurRender ABI
+  establishes `srLight`'s `srIlluminator` and `srVertexProcessor` bases. That source and lifecycle
+  proof—not adjacency or the raw store displacements—licenses the secondary-base interpretation.
 
 ## The SurRender ABI surface `Wiz8.exe` consumes
 
@@ -446,15 +449,21 @@ and the remaining fields are intentionally unnamed pending use-site review. The 
 slots; the reviewed Ghidra project defines the slot targets, but no behavioral method names are
 assigned from slot position alone.
 
+The binary also proves a five-slot polymorphic subobject at `Monster+0x18`, using vftable
+`0x005ED218`. Its source role is unresolved: neither base-class lifecycle nor embedded-member
+lifecycle has been established. The source therefore names it `W8MonsterPolymorphicSubobject18`
+and does not encode inheritance or composition in the type name.
+
 ## `GrCycle`
 
-`GrCycle` is a `0x1D8`-byte graphics-cycle object with two polymorphic bases or interfaces. Its
+`GrCycle` is a `0x1D8`-byte graphics-cycle object with two polymorphic bases. Its
 default constructor at `0x004A5E50` constructs the primary base at offset zero and a secondary
 subobject at offset `0x18`, then installs vtables `0x005ECE78` and `0x005ECEB8`. The copy
 constructor at `0x004A5F20` repeats that layout while rebuilding owned graphics state. The
 complete destructor at `0x004A6610` restores both vtables before releasing the owned cycle data
-and destroying both subobjects; primary slot zero at `0x004A5F00` is its scalar deleting
-destructor.
+and destroying both bases; primary slot zero at `0x004A5F00` is its scalar deleting destructor.
+That complete constructor/copy/destructor family is what proves multiple inheritance; adjacency
+and the raw `+0x18` store displacement alone would not.
 
 The primary table ends at the independently installed secondary table, giving 16 slots. The
 secondary table has **five**, not thirteen: the copy constructor writes `0x005ECECC`, the next

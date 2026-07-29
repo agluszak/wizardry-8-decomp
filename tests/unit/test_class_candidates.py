@@ -16,7 +16,7 @@ def _vtable(address: str, **overrides: str) -> dict[str, str]:
         "slot_count": "4",
         "boundary": "code-reference-boundary",
         "vptr_write_count": "2",
-        "subobject_offsets": "0x0",
+        "store_displacements": "0x0",
         "pure_virtual_slots": "0",
         "adjustor_thunk_slots": "0",
         "import_slots": "0",
@@ -40,21 +40,21 @@ def test_classify_separates_deleting_destructor_from_constructors() -> None:
         {
             "site": "00400110",
             "function_start": "00400100",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "00500000",
         },
-        # A second writer is the constructor; it also installs a subobject
-        # table at +0x18.
+        # A second writer is the constructor; it also installs another table
+        # through a memory operand with displacement +0x18.
         {
             "site": "00400210",
             "function_start": "00400200",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "00500000",
         },
         {
             "site": "00400220",
             "function_start": "00400200",
-            "object_offset": "0x18",
+            "store_displacement": "0x18",
             "vtable": "00500200",
         },
     ]
@@ -66,52 +66,52 @@ def test_classify_separates_deleting_destructor_from_constructors() -> None:
     assert candidate["scalar_deleting_destructor"] == 0x00400100
     assert candidate["constructor_or_destructor"] == [0x00400200]
     assert candidate["co_installed_vtables"] == [(0x00500200, 0x18)]
-    assert candidate["subobject_vtables"] == [(0x00500200, 0x18)]
+    assert candidate["store_displacements"] == "0x0"
     assert candidate["allocation_sizes"] == [0x250]
     assert candidate["reviewed"] is False
 
 
-def test_classify_skips_vtables_without_primary_writers() -> None:
+def test_classify_skips_vtables_without_zero_displacement_writers() -> None:
     vtables = [_vtable("00500000")]
     writes = [
         {
             "site": "00400110",
             "function_start": "00400100",
-            "object_offset": "0x18",
+            "store_displacement": "0x18",
             "vtable": "00500000",
         },
     ]
     assert classify_candidates(vtables, [], writes, set()) == []
 
 
-def test_skeletons_cover_vptrs_and_allocation_hints() -> None:
+def test_skeletons_do_not_materialize_raw_displacements_as_vptr_offsets() -> None:
     candidates = [
         {
             "vtable": 0x00500000,
             "allocation_sizes": [0x250],
-            "subobject_vtables": [(0x00500200, 0x138)],
+            "co_installed_vtables": [(0x00500200, 0x138)],
             "reviewed": False,
         },
-        # No allocation hint: the size falls back to covering the last vptr.
+        # No allocation hint: a raw additional-table displacement does not
+        # establish a root-relative field or grow the candidate skeleton.
         {
             "vtable": 0x00500400,
             "allocation_sizes": [],
-            "subobject_vtables": [(0x00500500, 0x18)],
+            "co_installed_vtables": [(0x00500500, 0x18)],
             "reviewed": False,
         },
-        # An allocation hint smaller than the vptr extent cannot be the
-        # object size; the vptr extent wins.
+        # An allocation hint still covers the candidate's sole proven vptr.
         {
             "vtable": 0x00500600,
             "allocation_sizes": [0x8],
-            "subobject_vtables": [(0x00500700, 0x20)],
+            "co_installed_vtables": [(0x00500700, 0x20)],
             "reviewed": False,
         },
         # Reviewed candidates belong to the reviewed class model.
         {
             "vtable": 0x00500800,
             "allocation_sizes": [0x10],
-            "subobject_vtables": [],
+            "co_installed_vtables": [],
             "reviewed": True,
         },
     ]
@@ -125,10 +125,10 @@ def test_skeletons_cover_vptrs_and_allocation_hints() -> None:
     first = skeletons[0]
     assert first["size"] == 0x250
     assert first["size_is_allocation_hint"] is True
-    assert first["vptr_offsets"] == [(0, 0x00500000), (0x138, 0x00500200)]
-    assert skeletons[1]["size"] == 0x1C
+    assert first["vptr_offsets"] == [(0, 0x00500000)]
+    assert skeletons[1]["size"] == 0x4
     assert skeletons[1]["size_is_allocation_hint"] is False
-    assert skeletons[2]["size"] == 0x24
+    assert skeletons[2]["size"] == 0x8
 
 
 def test_push_before_allocator_reads_the_allocation_size() -> None:
@@ -152,33 +152,33 @@ def test_derived_families_orders_the_pair_by_construction_and_ranks_by_writer_si
         {
             "site": "0042a26b",
             "function_start": "0042a260",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ebfb8",
         },
         {
             "site": "0042a298",
             "function_start": "0042a260",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ebfb4",
         },
         # A far larger body installing another pair.
         {
             "site": "00473300",
             "function_start": "00473260",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ec50c",
         },
         {
             "site": "00473400",
             "function_start": "00473260",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ec508",
         },
         # A subobject store is not a derivation.
         {
             "site": "0042a2a8",
             "function_start": "0042a260",
-            "object_offset": "0x10",
+            "store_displacement": "0x10",
             "vtable": "005ec000",
         },
     ]
@@ -200,13 +200,13 @@ def test_derived_families_ignores_a_table_with_more_than_one_slot() -> None:
         {
             "site": "0042a26b",
             "function_start": "0042a260",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ebfb8",
         },
         {
             "site": "0042a298",
             "function_start": "0042a260",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ebfb4",
         },
     ]
@@ -226,13 +226,13 @@ def test_derived_families_inverts_the_pair_for_a_destructor_writer() -> None:
         {
             "site": "00443756",
             "function_start": "00443750",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ec158",
         },
         {
             "site": "0044376a",
             "function_start": "00443750",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ec138",
         },
     ]
@@ -261,14 +261,14 @@ def test_teardown_writers_is_relative_to_the_table_being_written() -> None:
         {
             "site": "00443756",
             "function_start": "00443750",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ec158",
         },
         # A constructor, called by a deleting destructor of some other class.
         {
             "site": "004a5c36",
             "function_start": "004a5c30",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ece64",
         },
     ]
@@ -283,39 +283,39 @@ def test_teardown_writers_is_relative_to_the_table_being_written() -> None:
     assert teardown_writers(writes, slots, calls) == {0x00443750}
 
 
-def test_derived_families_rejects_an_object_and_its_embedded_member() -> None:
-    """Two tables at different offsets are an owner and a member, not a hierarchy.
+def test_derived_families_rejects_differently_addressed_tables() -> None:
+    """Different store displacements do not establish same-address table churn.
 
-    The census sometimes records the member's store at offset zero, and the pair
-    then looks exactly like a derivation. Another body getting the offset right
-    is enough to rule it out, which is the real 0x005EE8F0 / 0x005EE8F8 case.
+    Another body using distinct addressing expressions is enough to rule out the
+    family hypothesis, without deciding whether either table belongs to a base
+    or an embedded member. This is the real 0x005EE8F0 / 0x005EE8F8 case.
     """
 
     writes = [
-        # The constructor records the member's real offset.
+        # The constructor uses a distinct +4 displacement for one table.
         {
             "site": "0055cff4",
             "function_start": "0055cfd0",
-            "object_offset": "0x4",
+            "store_displacement": "0x4",
             "vtable": "005ee8f8",
         },
         {
             "site": "0055d149",
             "function_start": "0055cfd0",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ee8f0",
         },
-        # The destructor's second store is recorded at zero, which it is not.
+        # The destructor uses zero displacements for both stores.
         {
             "site": "0055d19f",
             "function_start": "0055d180",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ee8f0",
         },
         {
             "site": "0055d235",
             "function_start": "0055d180",
-            "object_offset": "0x0",
+            "store_displacement": "0x0",
             "vtable": "005ee8f8",
         },
     ]
@@ -323,6 +323,6 @@ def test_derived_families_rejects_an_object_and_its_embedded_member() -> None:
     assert derived_families(writes, slot_counts) == []
 
     # Without the constructor's evidence there is nothing to rule it out, and the
-    # pair is reported - the guard needs a body that recorded the offset.
+    # pair is reported - the guard needs a body with distinct displacements.
     only_destructor = [row for row in writes if row["function_start"] == "0055d180"]
     assert len(derived_families(only_destructor, slot_counts)) == 1

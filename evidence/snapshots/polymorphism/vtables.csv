@@ -1,4 +1,4 @@
-program,address,section,kind,slot_count,boundary,vptr_write_count,subobject_offsets,pure_virtual_slots,adjustor_thunk_slots,import_slots,allocation_sizes
+program,address,section,kind,slot_count,boundary,vptr_write_count,store_displacements,pure_virtual_slots,adjustor_thunk_slots,import_slots,allocation_sizes
 wiz8--demo--wiz8--8acda50afe39,005f7b34,.rdata,vftable,2,code-reference-boundary,0,,0,0,0,
 wiz8--demo--wiz8--8acda50afe39,005f7d1c,.rdata,vftable,1,code-reference-boundary,2,0x0,0,0,0,0x28
 wiz8--demo--wiz8--8acda50afe39,005f7d30,.rdata,vftable,52,code-reference-boundary,19,0x0,0,0,48,0x5c

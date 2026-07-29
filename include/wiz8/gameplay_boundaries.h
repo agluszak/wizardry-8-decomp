@@ -1163,10 +1163,10 @@ struct W8MonsterCycle {
     W8MonsterCycleRuntime* runtime;          /* 0x0c: shared cycle engine state */
 };                                          /* 0x10 */
 
-struct W8MonsterMember18 {
-    /* 0x00, which is Monster +0x18: the secondary vtable at 0x005ED218, five
-       slots. That this subobject begins exactly where the secondary vtable is
-       installed is why it is a subobject at all rather than a run of fields. */
+struct W8MonsterPolymorphicSubobject18 {
+    /* 0x00, which is Monster +0x18: the additional vftable at 0x005ED218,
+       five slots. The root-relative placement is proven; whether this
+       polymorphic subobject is a base or an embedded member is not. */
     void* vptr;
     unsigned char unknown_04[8];
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
@@ -1189,15 +1189,14 @@ struct W8MonsterMember18 {
    constructor 0x004bea20). Only members proven by recovered consumers are
    modelled here; unresolved layout remains original-binary analysis. */
 struct W8Monster {
-    /* 0x000: the primary vtable at 0x005ED200, six slots. Held as a field
+    /* 0x000: the root vtable at 0x005ED200, six slots. Held as a field
        rather than declared through a virtual member, because giving this class
-       virtuals would have VC6 synthesize its own vptr and the secondary one at
-       +0x18 cannot be expressed that way until the base it belongs to is
-       recovered from the constructor. Naming it is what the layout supports
-       today; the polymorphic form waits on 0x004BEA20. */
+       virtuals would have VC6 synthesize its own vptr. The additional vptr at
+       +0x18 cannot be expressed through inheritance or composition until its
+       lifecycle role is recovered from the constructor family. */
     void* vptr;
     unsigned char unknown_004[0x14];
-    W8MonsterMember18 member_18;            /* 0x018: positional member proven by 0x004e4600 */
+    W8MonsterPolymorphicSubobject18 polymorphic_subobject_18; /* 0x018: proven placement */
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
     /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
        the array above. Nothing proves they are the same type, so they stay
@@ -1223,7 +1222,7 @@ struct W8Monster {
 static_assert(sizeof(W8Monster) == 0x628, "W8Monster_size_must_be_0x628");
 
 static_assert(sizeof(W8MonsterCycle) == 0x10, "W8MonsterCycle_size_must_be_0x10");
-static_assert(sizeof(W8MonsterMember18) == 0x94, "W8MonsterMember18_size_must_be_0x94");
+static_assert(sizeof(W8MonsterPolymorphicSubobject18) == 0x94, "W8MonsterPolymorphicSubobject18_size_must_be_0x94");
 #endif
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.

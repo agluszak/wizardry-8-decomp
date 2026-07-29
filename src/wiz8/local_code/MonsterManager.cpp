@@ -67,8 +67,8 @@ extern W8CycleNameRow g_cycle_names[];
 enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
 enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
 void MonsterDies(W8MonsterInfo* monster_info, int display_message);
-void __fastcall Function452C90(W8MonsterMember18* member);
-void __fastcall Function4537E0(W8MonsterMember18* member);
+void __fastcall Function452C90(W8MonsterPolymorphicSubobject18* member);
+void __fastcall Function4537E0(W8MonsterPolymorphicSubobject18* member);
 W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
                            unsigned char name_form);
 /* The character array the alternate-name form indexes, and the slot it uses. */
@@ -217,7 +217,7 @@ void Function4E4600(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
     Function4C5B10(monster_info->monster, 0);
-    monster_info->monster->member_18.flags_0c &= 0xdfffffff;
+    monster_info->monster->polymorphic_subobject_18.flags_0c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         result = MonsterQuery(monster_info->monster, 6);
@@ -517,7 +517,7 @@ int GetMonsterQuadrant(W8MonsterInfo* monster_info)
     if (monster_info == 0) {
         srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x6b9, 0);
     }
-    return GetQuadrantForPosition(monster_info->monster->member_18.GetPosition());
+    return GetQuadrantForPosition(monster_info->monster->polymorphic_subobject_18.GetPosition());
 }
 
 // FUNCTION: WIZ8 0x004e5b50
@@ -666,7 +666,7 @@ void ResetLivingMonstersAfterCombat(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
-            Function452C90(&monster_info->monster->member_18);
+            Function452C90(&monster_info->monster->polymorphic_subobject_18);
             if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
                 monster_info->flag_255 = 0;
             }
@@ -726,8 +726,8 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     case 0:
     case 2:
         if (monster_info->control_state == 1 &&
-            monster_info->monster->member_18.value_5c == 0) {
-            Function4537E0(&monster_info->monster->member_18);
+            monster_info->monster->polymorphic_subobject_18.value_5c == 0) {
+            Function4537E0(&monster_info->monster->polymorphic_subobject_18);
             monster_info->flag_255 = 0;
         }
         break;
@@ -791,7 +791,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
     MonsterSetSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
-    monster_info->monster->member_18.state_a0 = 1;
+    monster_info->monster->polymorphic_subobject_18.state_a0 = 1;
     monster_info->monster->m_cycles[22].unknown_09 = 0;
 }
 
@@ -818,7 +818,7 @@ W8MonsterInfo* FindNearestMonsterInfo(
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
         double distance = DistanceBetweenPositions(
             position,
-            monster_info->monster->member_18.GetPosition());
+            monster_info->monster->polymorphic_subobject_18.GetPosition());
 
         if (distance < nearest_distance &&
             (maximum_distance == 0.0 || distance < maximum_distance)) {
@@ -831,7 +831,7 @@ W8MonsterInfo* FindNearestMonsterInfo(
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
         double distance = DistanceBetweenPositions(
             position,
-            monster_info->monster->member_18.GetPosition());
+            monster_info->monster->polymorphic_subobject_18.GetPosition());
 
         if (distance < nearest_distance &&
             (maximum_distance == 0.0 || distance < maximum_distance)) {
@@ -1128,8 +1128,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->value_107 = 0x12;
         monster_info->hp_current = 0;
         monster_info->runtime_stat_current_33 = 0;
-        monster_info->monster->member_18.state_a0 = 0;
-        monster_info->monster->member_18.flags_0c = 0x200000;
+        monster_info->monster->polymorphic_subobject_18.state_a0 = 0;
+        monster_info->monster->polymorphic_subobject_18.flags_0c = 0x200000;
         Function4ACF90(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
         Function4C5750(monster_info->monster, &position);
@@ -1171,7 +1171,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x2f7, 0);
     }
     Function4C5B10(monster_info->monster, 0);
-    monster_info->monster->member_18.flags_0c &= 0xdfffffff;
+    monster_info->monster->polymorphic_subobject_18.flags_0c &= 0xdfffffff;
     MonsterForward4537E0(monster_info->monster);
     if (monster_info->motionless == 0) {
         query_state = MonsterQuery(monster_info->monster, 6);
@@ -1192,7 +1192,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     }
     ResetCombatSlot(&monster_info->combat_slot_2ba);
     MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
-    monster_info->monster->member_18.flags_0c = 0;
+    monster_info->monster->polymorphic_subobject_18.flags_0c = 0;
     if (monster_info->flag_16 == 1) {
         Function546E70();
     }

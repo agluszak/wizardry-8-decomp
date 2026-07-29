@@ -155,7 +155,7 @@ def _markdown(context: dict[str, Any]) -> str:
             [
                 "## Vptr writes",
                 "",
-                "| Site | Object offset | Vtable | Slots |",
+                "| Site | Store displacement | Vtable | Slots |",
                 "|---|---:|---|---:|",
             ]
         )
@@ -163,7 +163,7 @@ def _markdown(context: dict[str, Any]) -> str:
         for row in context["polymorphism"]["vptr_writes"]:
             table = tables[row["vtable"]]
             lines.append(
-                f"| {row['site']} | {row['object_offset']} | {row['vtable']} | "
+                f"| {row['site']} | {row['store_displacement']} | {row['vtable']} | "
                 f"{table['slot_count']} |"
             )
         lines.append("")

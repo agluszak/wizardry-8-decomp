@@ -1,4 +1,4 @@
-program,site,function_start,object_offset,vtable,allocation_size
+program,site,function_start,store_displacement,vtable,allocation_size
 wiz8--demo--wiz8--8acda50afe39,0042382f,004237e0,0x0,005f7e9c,0x14
 wiz8--demo--wiz8--8acda50afe39,0042387b,004237e0,0x0,005f7e68,
 wiz8--demo--wiz8--8acda50afe39,004238f2,004237e0,0x0,005f7e68,

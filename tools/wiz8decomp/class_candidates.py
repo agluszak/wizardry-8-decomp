@@ -17,13 +17,14 @@ def classify_candidates(
     reviewed_vtables: set[int],
     resolve_function: Any = None,
 ) -> list[dict[str, Any]]:
-    """One candidate per constructor-written vftable, writers classified.
+    """One candidate per zero-displacement vftable write, writers classified.
 
     A writer that is also the vtable's slot 0 target is MSVC's scalar
     deleting destructor writing the vtable during destruction; every other
     writer is a constructor or the complete destructor, which this evidence
-    alone cannot separate. Vtables the same writers install at non-zero
-    object offsets are that candidate's subobject tables.
+    alone cannot separate. Other tables installed by the same writer remain
+    co-installation observations: their raw store displacements do not prove
+    root-relative placement, composition, or inheritance.
 
     The census derives each write's owning function from inter-function
     padding, which merges two adjacent bodies when no padding run separates
@@ -50,7 +51,7 @@ def classify_candidates(
         if writer is None:
             continue
         writers_by_vtable[vtable].append({**row, "function_start": f"{writer:08x}"})
-        vtables_by_writer[writer].add((vtable, int(row["object_offset"], 0)))
+        vtables_by_writer[writer].add((vtable, int(row["store_displacement"], 0)))
 
     candidates: list[dict[str, Any]] = []
     for row in vtables:
@@ -58,37 +59,23 @@ def classify_candidates(
             continue
         vtable = int(row["address"], 16)
         write_rows = writers_by_vtable.get(vtable, [])
-        primary_writers = sorted(
+        zero_displacement_writers = sorted(
             {
                 int(item["function_start"], 16)
                 for item in write_rows
-                if int(item["object_offset"], 0) == 0
+                if int(item["store_displacement"], 0) == 0
             }
         )
-        if not primary_writers:
+        if not zero_displacement_writers:
             continue
         deleting = slot0.get(vtable)
-        constructors = [writer for writer in primary_writers if writer != deleting]
+        constructors = [writer for writer in zero_displacement_writers if writer != deleting]
         co_installed = sorted(
             {
                 (other, offset)
-                for writer in primary_writers
+                for writer in zero_displacement_writers
                 for other, offset in vtables_by_writer[writer]
                 if other != vtable and offset != 0
-            }
-        )
-        # A subobject table is installed by every constructor of its owner
-        # (and restored by the destructor), while a heap-builder function
-        # writes unrelated objects' vtables that only it touches. Requiring
-        # unanimity across the constructor writers separates the two; with
-        # only the deleting destructor available its writes stand alone.
-        deciders = constructors or primary_writers
-        subobjects = sorted(
-            {
-                (other, offset)
-                for other, offset in co_installed
-                if offset > 0
-                and all((other, offset) in vtables_by_writer[writer] for writer in deciders)
             }
         )
         candidates.append(
@@ -98,7 +85,7 @@ def classify_candidates(
                 "slot_count": int(row["slot_count"] or 0),
                 "pure_virtual_slots": int(row["pure_virtual_slots"] or 0),
                 "import_slots": int(row["import_slots"] or 0),
-                "subobject_offsets": row["subobject_offsets"],
+                "store_displacements": row["store_displacements"],
                 "allocation_sizes": sorted(
                     int(value, 16)
                     for value in (row.get("allocation_sizes") or "").split("|")
@@ -110,10 +97,11 @@ def classify_candidates(
                 # target to write the vtable itself, and the bare target is
                 # recorded separately as the hedged pointer for review.
                 "slot0_target": deleting,
-                "scalar_deleting_destructor": (deleting if deleting in primary_writers else None),
+                "scalar_deleting_destructor": (
+                    deleting if deleting in zero_displacement_writers else None
+                ),
                 "constructor_or_destructor": constructors,
                 "co_installed_vtables": co_installed,
-                "subobject_vtables": subobjects,
                 "write_sites": sorted(item["site"] for item in write_rows),
                 "reviewed": vtable in reviewed_vtables,
             }
@@ -124,10 +112,10 @@ def classify_candidates(
 def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Struct specs for the unreviewed candidates.
 
-    A skeleton has the primary vptr at 0, one vptr per co-installed vtable at
-    its non-negative object offset, and a size that covers the largest
-    allocation hint and every vptr. Reviewed candidates are skipped - the
-    reviewed class model owns their structures.
+    A skeleton carries only the table that selected the candidate. Raw
+    co-installed store displacements are not materialized as root-relative
+    vptr fields; lifecycle review must first prove their placement and role.
+    Reviewed candidates are skipped because the source model owns them.
     """
 
     skeletons: list[dict[str, Any]] = []
@@ -135,9 +123,7 @@ def derive_skeletons(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if candidate["reviewed"]:
             continue
         vptr_offsets: list[tuple[int, int]] = [(0, candidate["vtable"])]
-        vptr_offsets.extend((offset, vtable) for vtable, offset in candidate["subobject_vtables"])
-        vptr_offsets.sort()
-        minimum = vptr_offsets[-1][0] + 4
+        minimum = 4
         hints = candidate["allocation_sizes"]
         size = max([minimum] + [hint for hint in hints if hint >= minimum])
         skeletons.append(
@@ -332,20 +318,17 @@ def derived_families(
     sizes = function_sizes or {}
     destructors = destructor_writers or set()
 
-    # A pair of tables one body installs at *different* offsets is an object and
-    # an embedded member, never a base and a derived class. Collect those pairs
-    # first, because the census sometimes records the member's store at offset
-    # zero and the pair then looks exactly like a derivation: 0x0055D180 stores
-    # 0x005EE8F0 over its own vptr and 0x005EE8F8 four bytes in, and only the
-    # constructor at 0x0055CFD0 records the second offset correctly.
-    offsets_by_writer: dict[int, dict[int, set[str]]] = defaultdict(lambda: defaultdict(set))
+    # Different raw displacements in one body prove only that the two stores use
+    # different addressing expressions. They are enough to reject a same-address
+    # table-churn family hypothesis, but not to classify owner/member or base/derived.
+    displacements_by_writer: dict[int, dict[int, set[str]]] = defaultdict(lambda: defaultdict(set))
     for row in writes:
         if row.get("function_start"):
-            offsets_by_writer[int(row["function_start"], 16)][int(row["vtable"], 16)].add(
-                row.get("object_offset", "")
+            displacements_by_writer[int(row["function_start"], 16)][int(row["vtable"], 16)].add(
+                row.get("store_displacement", "")
             )
     embedded: set[frozenset[int]] = set()
-    for seen in offsets_by_writer.values():
+    for seen in displacements_by_writer.values():
         at_zero = {v for v, offs in seen.items() if offs & {"0x0", "0"}}
         elsewhere = {v for v, offs in seen.items() if offs - {"0x0", "0"}}
         for owner in at_zero:
@@ -355,7 +338,7 @@ def derived_families(
 
     by_writer: dict[int, list[tuple[int, int]]] = defaultdict(list)
     for row in writes:
-        if row.get("object_offset") not in ("0x0", "0"):
+        if row.get("store_displacement") not in ("0x0", "0"):
             continue
         if not row.get("function_start"):
             continue
