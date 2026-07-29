@@ -413,12 +413,12 @@ def check(repository: Path) -> dict[str, Any]:
 
 def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     from .ghidra.index import export_index
-    from .source_layouts import verify_source_layouts
+    from .source_layouts import require_source_layouts, verify_source_layouts
 
     build_target(settings, "WIZ8")
     build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     ghidra_index = export_index(settings, "wiz8")
-    source_layouts = verify_source_layouts(settings)
+    source_layouts = require_source_layouts(verify_source_layouts(settings))
     boundaries = run(["wiz8", "verify-boundaries"], cwd=settings.repo_dir)
     comparison = compare(settings, "WIZ8", build_first=False) if compare_image else None
     decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)

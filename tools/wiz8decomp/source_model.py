@@ -2,8 +2,9 @@
 
 The source model is intentionally generated, never reviewed by hand.  A
 ``FUNCTION`` marker and the declaration immediately following it own the
-address, name, prototype, and translation unit for recovered code.  ``TEMPLATE``
-and ``LIBRARY`` markers use the conventional symbol comment below the marker.
+address, name, prototype, and translation unit for recovered code. ``TEMPLATE``,
+``SYNTHETIC``, and ``LIBRARY`` markers use the conventional symbol comment below
+the marker.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from typing import Any
 from .markers import (
     FUNCTION_MARKER,
     LIBRARY_MARKER,
+    SYNTHETIC_MARKER,
     TEMPLATE_MARKER,
     iter_source_files,
     normalize_offset,
@@ -197,6 +199,9 @@ def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
             if marker is None:
                 marker = LIBRARY_MARKER.match(line)
                 kind = "LIBRARY"
+            if marker is None:
+                marker = SYNTHETIC_MARKER.match(line)
+                kind = "SYNTHETIC"
             if marker is None or marker.group("module").upper() != target.upper():
                 continue
 
@@ -248,7 +253,15 @@ def validate_source_names_against_index(repository: Path, document: dict[str, An
     indexed_functions = {int(item["entry"], 16): item for item in document["functions"]}
     model = build_source_model(repository)
     mismatches = []
+    checked = 0
     for address, source in model.functions.items():
+        # Compiler-generated names use MSVC spellings such as backticks and
+        # spaces that are not legal Ghidra symbols. Their SYNTHETIC marker owns
+        # the reccmp identity, but there is no source declaration to synchronize
+        # into the ProgramDB.
+        if source.kind == "SYNTHETIC":
+            continue
+        checked += 1
         indexed = indexed_functions.get(address)
         if indexed is None:
             mismatches.append(f"0x{address:08x}: missing")
@@ -261,4 +274,4 @@ def validate_source_names_against_index(repository: Path, document: dict[str, An
             "Ghidra source-name synchronization is pending; run "
             "`uv run wiz8 ghidra sync-source --apply`: " + "; ".join(mismatches[:20])
         )
-    return len(model.functions)
+    return checked

@@ -180,3 +180,14 @@ def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, A
     atomic_json(destination, report)
     report["report"] = str(destination)
     return report
+
+
+def require_source_layouts(report: dict[str, Any]) -> dict[str, Any]:
+    """Reject a completed layout audit that found compiled-model drift."""
+
+    if not report["ok"]:
+        raise ValueError(
+            f"compiled source layout differs at {report['failure_count']} checks; "
+            f"see {report['report']}"
+        )
+    return report

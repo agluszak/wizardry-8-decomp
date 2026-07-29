@@ -127,8 +127,8 @@ public:
  * Wizardry name".
  */
 
-/* Reviewed as MonsterLight in evidence/reviewed/wiz8/classes.csv, whose row
-   already records both of these slots; Monster owns a pointer to it. */
+/* Reviewed as MonsterLight in class-provenance.csv, whose row already records
+   both of these slots; Monster owns a pointer to it. */
 class MonsterLight {
 public:
     const char* getClassName() const;     /* 0x0049DC30, vtable 0x005ECD18 + 0 */

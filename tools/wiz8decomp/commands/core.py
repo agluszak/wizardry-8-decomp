@@ -408,15 +408,9 @@ def verify_source_layouts_command(
     ] = None,
 ) -> None:
     from .. import command_support as cli
-    from ..source_layouts import verify_source_layouts
+    from ..source_layouts import require_source_layouts, verify_source_layouts
 
     def action() -> dict[str, Any]:
-        report = verify_source_layouts(cli.settings(), pdb)
-        if not report["ok"]:
-            raise ValueError(
-                f"compiled source layout differs at {report['failure_count']} checks; "
-                f"see {report['report']}"
-            )
-        return report
+        return require_source_layouts(verify_source_layouts(cli.settings(), pdb))
 
     cli.run_action(action)

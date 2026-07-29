@@ -167,6 +167,8 @@ void Controls::EnableRegionSet(unsigned char enable)
 }
 
 
+// SYNTHETIC: WIZ8 0x004F3D90
+// W8WidgetBase005ED5BC::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004F3F10
 W8WidgetBase005ED5BC::~W8WidgetBase005ED5BC()
 {
@@ -650,78 +652,22 @@ unsigned int W8TextBuffer005ED5B8::GetLineHeight()
     return height;
 }
 
-/*
- * The text control at vtable 0x005ED604. The bounds and draw methods prove it
- * derives from the widget base and embeds a complete W8TextBuffer005ED5B8 at
- * +0x60: 0x004F44D0 writes both rectangle pairs inside that subobject and
- * passes its +0x60 address as this to W8TextBuffer005ED5B8::UpdateLayout.
- */
-class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
-public:
-    W8TextControl005ED604(Controls* panel, unsigned int region,
-                          int left, int top, int right, int bottom,
-                          int text_40, int text_44, int text_48, int text_4c,
-                          int text_54, int text_50, int text_58);
-    virtual ~W8TextControl005ED604();
-    W8TextControl005ED604* scalar_deleting_destructor(unsigned char flags);
-    void GetTextOrigin(int unused, int* px, int* py);
-    void Invalidate(unsigned char immediate);
-    virtual void SetVisible(unsigned char visible);
-    virtual void Redraw(int full_redraw);
-    void SetFlaggedRegionBounds(short left, short top, unsigned short right);
-    virtual void AddLayoutFlags(unsigned int flags);
-    virtual void SetAlternateTextEnabled(unsigned char enabled);
-    void RemoveLayoutFlags(unsigned int flags);
-    void EnableSecondaryState(unsigned char immediate);
-    void DisableSecondaryState(unsigned char immediate);
-    void Function4D30(int event);
-    void Function4F70(int event);
-    virtual void InvokeFocusCallback();
-    virtual void ActivatePrimary();
-    virtual void InvokeBlurCallback();
-    virtual void ActivateSecondary();
-    void UpdateTextBounds(int left, int top, int right, int bottom);
-
-    virtual void SetBounds(int left, int top, int right, int bottom);
-    virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
-
-protected:
-    unsigned int m_stateFlags;           /* 0x34: paired state masks */
-    unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
-    unsigned char m_alternateTextEnabled;/* 0x3c: alternate text-selection flag */
-    unsigned char pad_3d[3];
-    int m_text_40;
-    int m_text_44;
-    int m_text_48;
-    int m_text_4c;
-    int m_text_50;
-    int m_text_54;
-    int m_text_58;
-    short m_measured_w;                  /* 0x5c: -1 until measured */
-    short m_measured_h;                  /* 0x5e */
-    W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
-    int m_field_b0;
-    class Listener {
-    public:
-        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
-        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
-    } *m_listener;                       /* 0xb4 */
-
-    __forceinline void InvalidateCore(unsigned char immediate)
-    {
-        if (m_pPanel != 0) {
-            m_flag_6 = 1;
-            if (immediate) {
-                m_pPanel->Invalidate(0);
-            } else {
-                m_pPanel->m_fLayoutDirty = 1;
-                RequestRedraw(0x80000000);
-            }
+/* The text-control declaration is shared in Controls.h so every consumer sees
+   the same 20-slot hierarchy and its embedded W8TextBuffer at +0x60. */
+__forceinline void W8TextControl005ED604::InvalidateCore(unsigned char immediate)
+{
+    if (m_pPanel != 0) {
+        m_flag_6 = 1;
+        if (immediate) {
+            m_pPanel->Invalidate(0);
+        } else {
+            m_pPanel->m_fLayoutDirty = 1;
             RequestRedraw(0x80000000);
         }
-        m_textBuffer.SetGeometryDirty();
+        RequestRedraw(0x80000000);
     }
-};
+    m_textBuffer.SetGeometryDirty();
+}
 
 /* The 182-caller text-control constructor. The first six arguments construct
    the reviewed widget base, while the implicit W8TextBuffer constructor owns
@@ -841,6 +787,64 @@ aligned:
 plain:
     *px = *px + m_left;
     *py = *py + m_top;
+}
+
+// FUNCTION: WIZ8 0x004F4990
+void W8TextControl005ED604::Redraw(int full_redraw)
+{
+    if (m_flag_5 == 0 || m_pPanel == 0) {
+        return;
+    }
+
+    int text_state = 0;
+    if ((m_stateFlags & 1) != 0 && (m_flags_38 & 2) == 0) {
+        text_state = m_field_b0;
+    }
+
+    if (full_redraw == 0 && m_flag_6 == 0) {
+        if (m_textBuffer.HasBuffer()) {
+            m_textBuffer.RenderText(text_state, full_redraw, 0, 0, 1);
+        }
+        return;
+    }
+
+    int sprite = -1;
+    if (m_text_40 != -1 && m_text_44 != -1) {
+        if (m_flag_4 == 0) {
+            sprite = m_text_58;
+        } else if ((m_stateFlags & 1) == 0) {
+            sprite = m_alternateTextEnabled != 0 && m_text_54 != -1
+                ? m_text_54 : m_text_48;
+        } else {
+            sprite = m_alternateTextEnabled != 0 && m_text_50 != -1
+                ? m_text_50 : m_text_4c;
+        }
+    }
+
+    int x;
+    int y;
+    GetTextOrigin(0, &x, &y);
+    if (sprite != -1) {
+        if (m_alternateTextEnabled != 0) {
+            short width;
+            short height;
+            Function549660(m_text_40, m_text_44, sprite, &width, &height);
+            int x_inset = m_left - m_right + (unsigned short)width;
+            int y_inset = m_top - m_bottom + (unsigned short)height;
+            if (x_inset > 0) {
+                x += x_inset / 2;
+            }
+            if (y_inset > 0) {
+                y += y_inset / 2;
+            }
+        }
+        Function549600(-14, m_text_40, m_text_44, sprite, x, y, 2, 0);
+    }
+
+    if (m_textBuffer.HasBuffer()) {
+        m_textBuffer.RenderText(text_state, full_redraw, 0, 0, 1);
+    }
+    m_flag_6 = 0;
 }
 
 // FUNCTION: WIZ8 0x004F4460
@@ -983,8 +987,113 @@ void W8TextControl005ED604::DisableSecondaryState(unsigned char immediate)
     }
 }
 
+// FUNCTION: WIZ8 0x004F4D30
+void W8TextControl005ED604::Function4D30(int event)
+{
+    if (m_flag_5 == 0) {
+        return;
+    }
+    if (m_flag_4 == 0) {
+        Function5587C0(0, 1);
+        SetAlternateTextEnabled(1);
+        return;
+    }
+    if ((m_flags_38 & 0x60) != 0) {
+        Function5587C0(0, 1);
+    }
+
+    if ((m_stateFlags & 1) == 0) {
+        if (m_text_54 == -1) {
+            return;
+        }
+    } else if (m_text_50 == -1) {
+        return;
+    }
+
+    SetAlternateTextEnabled(1);
+    InvalidateCore((unsigned char)event);
+}
+
+// FUNCTION: WIZ8 0x004F4E00
+void W8TextControl005ED604::Function4E00(int event)
+{
+    if (m_flag_5 == 0) {
+        return;
+    }
+    if (m_flag_4 == 0) {
+        Function5587C0(0, 1);
+        if ((m_flags_38 & 1) == 0) {
+            m_stateFlags &= ~g_W8TextControlMask005ED56C;
+        }
+        SetAlternateTextEnabled(0);
+        return;
+    }
+    if ((m_flags_38 & 0x60) != 0) {
+        Function5587C0(0, 1);
+    }
+    if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+        Function5587C0(0, 1);
+        m_stateFlags &= ~4u;
+    }
+
+    if ((m_stateFlags & 1) == 0) {
+        if (m_text_54 == -1) {
+            return;
+        }
+        SetAlternateTextEnabled(0);
+        InvalidateCore((unsigned char)event);
+        return;
+    }
+
+    if (m_text_50 != -1 || (m_text_54 != -1 && (m_flags_38 & 0x10) != 0)) {
+        SetAlternateTextEnabled(0);
+        InvalidateCore((unsigned char)event);
+    }
+    if ((m_stateFlags & 2) != 0) {
+        return;
+    }
+    m_stateFlags &= ~g_W8TextControlMask005ED56C;
+    InvalidateCore((unsigned char)event);
+}
+
+// FUNCTION: WIZ8 0x004F4F70
+void W8TextControl005ED604::Function4F70(int event)
+{
+    if (m_flag_5 == 0) {
+        if (m_flag_4 != 0) {
+            return;
+        }
+        Function5587C0(0, 1);
+        return;
+    }
+    if (m_flag_4 == 0) {
+        Function5587C0(0, 1);
+        return;
+    }
+    if ((m_flags_38 & 0x20) != 0) {
+        Function5587C0(0, 1);
+    }
+
+    if ((m_flags_38 & 1) == 0) {
+        m_stateFlags |= g_W8TextControlMask005ED56C;
+        if (m_text_40 != -1 && m_text_44 != -1) {
+            InvalidateCore((unsigned char)event);
+        }
+    } else if ((m_stateFlags & 1) == 0) {
+        m_stateFlags |= g_W8TextControlMask005ED56C;
+        if ((m_flags_38 & 0x10) == 0) {
+            InvalidateCore((unsigned char)event);
+        }
+    }
+
+    m_textBuffer.SetGeometryDirty();
+    if (m_primaryCallback != 0) {
+        m_primaryCallback();
+    }
+}
+
 // FUNCTION: WIZ8 0x004F5070
-void W8TextControl005ED604::InvokeFocusCallback()
+void W8TextControl005ED604::InvokeFocusCallback(int)
 {
     if ((m_flag_5 != 0 && m_flag_4 != 0)) {
         if ((m_flags_38 & 0x20) != 0) {
@@ -1001,8 +1110,87 @@ void W8TextControl005ED604::InvokeFocusCallback()
     Function5587C0(0, 1);
 }
 
+// FUNCTION: WIZ8 0x004F50C0
+void W8TextControl005ED604::Function50C0(int event)
+{
+    if (m_flag_5 == 0) {
+        return;
+    }
+    if (m_flag_4 == 0) {
+        Function5587C0(0, 1);
+        if ((m_flags_38 & 1) == 0) {
+            m_stateFlags &= ~g_W8TextControlMask005ED56C;
+        }
+        return;
+    }
+    if ((m_stateFlags & 1) == 0) {
+        return;
+    }
+    if ((m_flags_38 & 0x20) != 0) {
+        Function5587C0(0, 1);
+    }
+
+    if ((m_flags_38 & 1) == 0) {
+        m_stateFlags &= ~g_W8TextControlMask005ED56C;
+        InvalidateCore((unsigned char)event);
+    } else if ((m_stateFlags & 2) == 0) {
+        m_stateFlags |= g_W8TextControlMask005ED56C;
+        m_stateFlags |= g_W8TextControlMask005ED570;
+        if ((m_flags_38 & 0x10) != 0) {
+            InvalidateCore((unsigned char)event);
+        }
+    } else if ((m_flags_38 & 8) == 0) {
+        m_stateFlags &= ~g_W8TextControlMask005ED56C;
+        m_stateFlags &= ~g_W8TextControlMask005ED570;
+        InvalidateCore((unsigned char)event);
+    }
+
+    m_textBuffer.SetGeometryDirty();
+    if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+        m_stateFlags &= ~4u;
+        Function5587C0(0, 1);
+        return;
+    }
+    if (m_listener != 0) {
+        m_listener->OnPrimary(this);
+    }
+    if (m_primaryCallback != 0) {
+        m_primaryCallback();
+    }
+}
+
+// FUNCTION: WIZ8 0x004F5290
+void W8TextControl005ED604::Function5290(int)
+{
+    if (m_flag_5 == 0) {
+        if (m_flag_4 != 0) {
+            return;
+        }
+        Function5587C0(0, 1);
+        return;
+    }
+    if (m_flag_4 == 0) {
+        Function5587C0(0, 1);
+        return;
+    }
+    if ((m_flags_38 & 0x20) != 0) {
+        Function5587C0(0, 1);
+    }
+    if ((m_flags_38 & 0x100) != 0 && (m_stateFlags & 4) != 0) {
+        m_stateFlags &= ~4u;
+        Function5587C0(0, 1);
+        return;
+    }
+    if (m_listener != 0) {
+        m_listener->OnSecondary(this);
+    }
+    if (m_secondaryCallback != 0) {
+        m_secondaryCallback();
+    }
+}
+
 // FUNCTION: WIZ8 0x004F5230
-void W8TextControl005ED604::ActivatePrimary()
+void W8TextControl005ED604::ActivatePrimary(int)
 {
     if ((m_flags_38 & 0x100) != 0 && m_flag_5 != 0 && m_flag_4 != 0 &&
         (m_stateFlags & 1) != 0) {
@@ -1020,7 +1208,7 @@ void W8TextControl005ED604::ActivatePrimary()
 }
 
 // FUNCTION: WIZ8 0x004F5310
-void W8TextControl005ED604::InvokeBlurCallback()
+void W8TextControl005ED604::InvokeBlurCallback(int)
 {
     if (m_flag_5 != 0 && m_flag_4 != 0) {
         if ((m_flags_38 & 0x20) != 0) {
@@ -1041,7 +1229,7 @@ void W8TextControl005ED604::InvokeBlurCallback()
 }
 
 // FUNCTION: WIZ8 0x004F5360
-void W8TextControl005ED604::ActivateSecondary()
+void W8TextControl005ED604::ActivateSecondary(int)
 {
     if ((m_flags_38 & 0x100) != 0 && m_flag_5 != 0 && m_flag_4 != 0) {
         m_stateFlags |= 4;
@@ -1091,22 +1279,6 @@ void W8TextControl005ED604::SetAlternateTextEnabled(unsigned char enabled)
 {
     m_alternateTextEnabled = enabled;
 }
-
-/* The 0x005ed758 text-control variant owns a fixed 200-character region-help
-   buffer immediately after the reviewed W8TextControl base. */
-class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
-public:
-    W8HelpTextControl005ED758(Controls* panel, unsigned int region,
-                              int left, int top, int right, int bottom);
-    void SetRegionHelp(const wchar_t* text);
-    void UpdateRegionHelp(int event);
-    virtual void InvokeFocusCallback();
-    virtual void ActivateSecondary();
-    virtual void InvokeBlurCallback();
-
-protected:
-    wchar_t m_regionHelp[200];            /* 0xb8 */
-};
 
 // FUNCTION: WIZ8 0x004F65E0
 W8HelpTextControl005ED758::W8HelpTextControl005ED758(
@@ -1202,23 +1374,6 @@ protected:
     W8VerticalRangeThumb005ED6B4* m_thumb; /* 0x60 */
     W8RangeListener* m_listener;         /* 0x64 */
     unsigned char m_enabled;             /* 0x68 */
-};
-
-class W8RangeButton005ED6FC : public W8TextControl005ED604 {
-public:
-    W8RangeButton005ED6FC(Controls* panel, unsigned int region,
-                          int left, int top, int right, int bottom,
-                          int text_40, int text_44, int text_48, int text_4c,
-                          int text_54, int text_50, int text_58,
-                          short direction, W8RangeControl005ED74C* range);
-    void HandlePress(int event);
-    virtual void ActivatePrimary();
-    void AdjustValue(int steps);
-
-protected:
-    short m_direction;                   /* 0xb8: zero decrements */
-    unsigned short pad_ba;
-    W8RangeControl005ED74C* m_range;     /* 0xbc */
 };
 
 __forceinline W8RangeButton005ED6FC::W8RangeButton005ED6FC(
@@ -1526,9 +1681,9 @@ void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
 }
 
 // FUNCTION: WIZ8 0x004F6050
-void W8RangeButton005ED6FC::HandlePress(int event)
+void W8RangeButton005ED6FC::Function4F70(int event)
 {
-    Function4F70(event);
+    W8TextControl005ED604::Function4F70(event);
     if (m_flag_5 != 0 && m_flag_4 != 0) {
         if (m_direction == 0) {
             m_range->Decrement();
@@ -1539,9 +1694,9 @@ void W8RangeButton005ED6FC::HandlePress(int event)
 }
 
 // FUNCTION: WIZ8 0x004F60C0
-void W8RangeButton005ED6FC::ActivatePrimary()
+void W8RangeButton005ED6FC::ActivatePrimary(int event)
 {
-    W8TextControl005ED604::ActivatePrimary();
+    W8TextControl005ED604::ActivatePrimary(event);
     if (m_flag_5 != 0 && m_flag_4 != 0) {
         if (m_direction == 0) {
             m_range->Decrement();
@@ -1577,10 +1732,10 @@ void W8HelpTextControl005ED758::SetRegionHelp(const wchar_t* text)
 }
 
 // FUNCTION: WIZ8 0x004F66B0
-void W8HelpTextControl005ED758::UpdateRegionHelp(int event)
+void W8HelpTextControl005ED758::Function4D30(int event)
 {
     Function5587C0(0, 1);
-    Function4D30(event);
+    W8TextControl005ED604::Function4D30(event);
     if (wcslen(m_regionHelp) > 1 && m_region_18 != -1) {
         ::SetRegionHelpText(m_regionHelp);
         ::EnableRegionHelp(m_region_18);
@@ -1591,17 +1746,31 @@ void W8HelpTextControl005ED758::UpdateRegionHelp(int event)
     }
 }
 
+// FUNCTION: WIZ8 0x005B7CB0
+void W8HelpTextControl005ED758::Function4F70(int event)
+{
+    Function5587C0(0, 1);
+    W8TextControl005ED604::Function4F70(event);
+}
+
 // FUNCTION: WIZ8 0x004F6720
-void W8HelpTextControl005ED758::InvokeFocusCallback()
+void W8HelpTextControl005ED758::InvokeFocusCallback(int event)
 {
     if (m_secondaryCallback == 0) {
         Function5587C0(0, 1);
     }
-    W8TextControl005ED604::InvokeFocusCallback();
+    W8TextControl005ED604::InvokeFocusCallback(event);
+}
+
+// FUNCTION: WIZ8 0x005B7CD0
+void W8HelpTextControl005ED758::Function50C0(int event)
+{
+    Function5587C0(0, 1);
+    W8TextControl005ED604::Function50C0(event);
 }
 
 // FUNCTION: WIZ8 0x004F6780
-void W8HelpTextControl005ED758::ActivateSecondary()
+void W8HelpTextControl005ED758::Function5290(int)
 {
     if (m_secondaryCallback == 0) {
         Function5587C0(0, 1);
@@ -1630,21 +1799,10 @@ void W8HelpTextControl005ED758::ActivateSecondary()
 }
 
 // FUNCTION: WIZ8 0x004F6810
-void W8HelpTextControl005ED758::InvokeBlurCallback()
+void W8HelpTextControl005ED758::InvokeBlurCallback(int event)
 {
     Function5587C0(0, 1);
-    W8TextControl005ED604::InvokeBlurCallback();
-}
-
-// FUNCTION: WIZ8 0x004F6030
-W8TextControl005ED604*
-W8TextControl005ED604::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~W8TextControl005ED604();
-    if ((flags & 1) != 0) {
-        ::operator delete(this);
-    }
-    return this;
+    W8TextControl005ED604::InvokeBlurCallback(event);
 }
 
 /* The vtable at 0x005ED66C is the horizontal draggable range thumb. Its
@@ -1886,6 +2044,8 @@ W8HorizontalRangeThumb005ED66C::~W8HorizontalRangeThumb005ED66C()
 {
 }
 
+// SYNTHETIC: WIZ8 0x004F6030
+// W8TextControl005ED604::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004F6640
 W8TextControl005ED604::~W8TextControl005ED604()
 {

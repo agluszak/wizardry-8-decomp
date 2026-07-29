@@ -1,7 +1,8 @@
 from types import SimpleNamespace
 
+import pytest
 from wiz8decomp.reconstructed_pdb import CompiledField, CompiledLayout
-from wiz8decomp.source_layouts import compare_source_layouts
+from wiz8decomp.source_layouts import compare_source_layouts, require_source_layouts
 
 
 def test_source_layout_audit_checks_size_offset_width_and_pointer_depth() -> None:
@@ -41,3 +42,14 @@ def test_source_layout_audit_treats_reviewed_size_as_a_minimum() -> None:
     compiled = {"Node": CompiledLayout("Node", 8, (), ())}
 
     assert compare_source_layouts(reviewed, compiled)["ok"] is True
+
+
+def test_source_layout_gate_rejects_reported_drift() -> None:
+    with pytest.raises(ValueError, match="differs at 1 checks"):
+        require_source_layouts(
+            {
+                "ok": False,
+                "failure_count": 1,
+                "report": "build/reports/source-layouts/report.json",
+            }
+        )

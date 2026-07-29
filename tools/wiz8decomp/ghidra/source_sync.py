@@ -117,6 +117,9 @@ def synchronize_source_program(
     external_changed: set[str] = set()
     external_unsupported: set[str] = set()
     external_missing: list[str] = []
+    source_functions = {
+        address: source for address, source in model.functions.items() if source.kind != "SYNTHETIC"
+    }
 
     def namespace(parts: list[str]) -> Any:
         parent = global_namespace
@@ -133,7 +136,7 @@ def synchronize_source_program(
                 parent = symbols.createNameSpace(parent, part, SourceType.USER_DEFINED)
         return parent
 
-    for address, source in model.functions.items():
+    for address, source in source_functions.items():
         target = address_space.getAddress(address)
         item = functions.getFunctionAt(target)
         if item is None:
@@ -253,9 +256,9 @@ def synchronize_source_program(
                 raise ValueError(f"Ghidra did not retain the source signature for external {name}")
 
     return {
-        "source_functions": len(model.functions),
+        "source_functions": len(source_functions),
         "source_externals": len(model.externals),
-        "already_current": len(model.functions)
+        "already_current": len(source_functions)
         + len(model.externals)
         - len(changed_addresses | missing_addresses | unsupported_addresses)
         - len(external_changed | external_unsupported | set(external_missing)),

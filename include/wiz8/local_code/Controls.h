@@ -91,6 +91,7 @@ struct Controls;
 struct W8Region;
 struct W8RegionEvent;
 
+// VTABLE: WIZ8 0x005ED5BC
 class W8WidgetBase005ED5BC {
 public:
     friend struct Controls;
@@ -107,9 +108,23 @@ public:
     virtual ~W8WidgetBase005ED5BC();
 
     virtual void SetVisible(unsigned char visible);
-    virtual void Redraw(int full_redraw) = 0;
+    // FUNCTION: WIZ8 0x005B1BE0
+    virtual void Redraw(int) {}
     virtual void SetBounds(int left, int top, int right, int bottom);
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
+    virtual void AddLayoutFlags(unsigned int) {}
+    virtual void SetAlternateTextEnabled(unsigned char) {}
+    virtual void Function4D30(int) {}
+    virtual void Function4E00(int) {}
+    virtual void FunctionSlot09(int) {}
+    virtual void AdjustValue(int) {}
+    virtual void Function4F70(int) {}
+    virtual void InvokeFocusCallback(int) {}
+    virtual void Function50C0(int) {}
+    virtual void Function5290(int) {}
+    virtual void InvokeBlurCallback(int) {}
+    virtual void ActivatePrimary(int) {}
+    virtual void ActivateSecondary(int) {}
 
     /* Read from outside the class by Local Screens\RCSCommon.cpp, which is what
        keeps the three flags reachable rather than protected. */
@@ -132,6 +147,99 @@ public:
     W8ControlCallback m_focusCallback;   /* 0x2c */
     W8ControlCallback m_blurCallback;    /* 0x30 */
 };                                       /* 0x34 established */
+
+// VTABLE: WIZ8 0x005ED604
+class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
+public:
+    W8TextControl005ED604(Controls* panel, unsigned int region,
+                          int left, int top, int right, int bottom,
+                          int text_40, int text_44, int text_48, int text_4c,
+                          int text_54, int text_50, int text_58);
+    virtual ~W8TextControl005ED604();
+    void GetTextOrigin(int unused, int* px, int* py);
+    void Invalidate(unsigned char immediate);
+    virtual void SetVisible(unsigned char visible);
+    virtual void Redraw(int full_redraw);
+    void SetFlaggedRegionBounds(short left, short top, unsigned short right);
+    virtual void AddLayoutFlags(unsigned int flags);
+    virtual void SetAlternateTextEnabled(unsigned char enabled);
+    void RemoveLayoutFlags(unsigned int flags);
+    virtual void EnableSecondaryState(unsigned char immediate);
+    virtual void DisableSecondaryState(unsigned char immediate);
+    virtual void Function4D30(int event);
+    virtual void Function4E00(int event);
+    virtual void Function4F70(int event);
+    virtual void InvokeFocusCallback(int event);
+    virtual void Function50C0(int event);
+    virtual void Function5290(int event);
+    virtual void InvokeBlurCallback(int event);
+    virtual void ActivatePrimary(int event);
+    virtual void ActivateSecondary(int event);
+    void UpdateTextBounds(int left, int top, int right, int bottom);
+    virtual void SetBounds(int left, int top, int right, int bottom);
+    virtual void SetBoundsFromRect(const W8ControlsRect* bounds);
+
+protected:
+    unsigned int m_stateFlags;           /* 0x34: paired state masks */
+    unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
+    unsigned char m_alternateTextEnabled;/* 0x3c: alternate text-selection flag */
+    unsigned char pad_3d[3];
+    int m_text_40;
+    int m_text_44;
+    int m_text_48;
+    int m_text_4c;
+    int m_text_50;
+    int m_text_54;
+    int m_text_58;
+    short m_measured_w;                  /* 0x5c: -1 until measured */
+    short m_measured_h;                  /* 0x5e */
+    W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
+    int m_field_b0;
+    class Listener {
+    public:
+        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
+        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
+    } *m_listener;                       /* 0xb4 */
+
+    __forceinline void InvalidateCore(unsigned char immediate);
+};
+
+// VTABLE: WIZ8 0x005ED758
+class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
+public:
+    W8HelpTextControl005ED758(Controls* panel, unsigned int region,
+                              int left, int top, int right, int bottom);
+    void SetRegionHelp(const wchar_t* text);
+    virtual void Function4D30(int event);
+    virtual void Function4F70(int event);
+    virtual void InvokeFocusCallback(int event);
+    virtual void Function50C0(int event);
+    virtual void Function5290(int event);
+    virtual void InvokeBlurCallback(int event);
+
+protected:
+    wchar_t m_regionHelp[200];            /* 0xb8 */
+};
+
+class W8RangeControl005ED74C;
+
+// VTABLE: WIZ8 0x005ED6FC
+class W8RangeButton005ED6FC : public W8TextControl005ED604 {
+public:
+    W8RangeButton005ED6FC(Controls* panel, unsigned int region,
+                          int left, int top, int right, int bottom,
+                          int text_40, int text_44, int text_48, int text_4c,
+                          int text_54, int text_50, int text_58,
+                          short direction, W8RangeControl005ED74C* range);
+    virtual void Function4F70(int event);
+    virtual void ActivatePrimary(int event);
+    virtual void AdjustValue(int steps);
+
+protected:
+    short m_direction;                   /* 0xb8: zero decrements */
+    unsigned short pad_ba;
+    W8RangeControl005ED74C* m_range;     /* 0xbc */
+};
 
 class W8WidgetBase005ED5BC;
 struct W8RangeControlConstruction005ED74C {};
