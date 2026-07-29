@@ -240,6 +240,7 @@ EXPORTS
     ??0srModelInstance@@QAE@PAVsrNode@@@Z
     ?addReference@srClass@@QBEXXZ
     ?autoRelease@srClass@@QAEXXZ
+    ?touch@srClass@@QAEXXZ
     ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
     ?clone@srNode@@UAEPAV1@XZ
     ??1srModelInstance@@MAE@XZ
