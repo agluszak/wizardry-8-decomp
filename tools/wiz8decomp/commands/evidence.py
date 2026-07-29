@@ -26,9 +26,10 @@ def resolve_conflict_command(
 def validate_command(program: str = typer.Option("wiz8", "--program")) -> None:
     """Validate canonical schemas, identities, references, and image observations."""
     from .. import cli
+    from ..config import repository_root
     from ..evidence.validate import require_valid_repository
 
-    cli._run_action(lambda: require_valid_repository(cli._settings().repo_dir, program))
+    cli._run_action(lambda: require_valid_repository(repository_root(), program))
 
 
 @app.command("upsert")
