@@ -11,17 +11,24 @@ Every tracked data artifact has one of these roles:
 - **Observation** records what a binary, source oracle, matcher, decompiler, or other tool exposed.
   Irreplaceable or reviewed observations belong under `evidence/observations/`.
 - **Reviewed conclusion** records a human decision such as an accepted identity, rejected mapping,
-  proven layout, or ownership assignment. Conclusions belong under `evidence/reviewed/`.
-- **Projection or report** is deterministically derived from canonical configuration and evidence.
-  It belongs under the gitignored `build/` directory and must not be edited or tracked.
+  proven layout, or ownership assignment. Conclusions belong under `evidence/reviewed/` when the
+  claim carries provenance or relationships that Ghidra cannot express by itself.
+- **Ghidra analysis state** is the live representation of functions, symbols, signatures, data
+  types, vtables, comments, references, and decompiler decisions. It lives only in the checkout's
+  untracked project under `WIZ8_WORK_DIR/ghidra`; do not mirror it in a new tracked table merely to
+  replay a native Ghidra object.
+- **Projection or report** is deterministically derived from canonical configuration, evidence, the
+  Ghidra project, or build results. It belongs under the gitignored `build/` directory and must not
+  be edited or tracked.
 - **Snapshot** is a generated observation retained because ordinary contributors cannot reproduce
   it without proprietary or otherwise unavailable inputs. Snapshots belong under
   `evidence/snapshots/`, declare their producer and input identities, and require a freshness check
   wherever those inputs are available.
-- **Materialization seed** is a derived binary cache used only to avoid expensive deterministic
-  analysis. The canonical Wiz8 GZF under `vendor/ghidra/exports/` is the sole current exception. Its
-  manifest pins the original binary and tool runtime; current reviewed evidence is replayed and
-  validated after every content-addressed restore. No accepted fact may exist only in that archive.
+- **Recovery seed** is a derived binary checkpoint used only to recover the live Ghidra project.
+  The canonical Wiz8 GZF under `vendor/ghidra/exports/` is the sole current exception. Its manifest
+  pins the original binary and tool runtime. It restores into the one canonical project only when
+  requested; ordinary queries never create clones or replay it automatically. No accepted fact may
+  exist only in that archive.
 
 Directory placement is the primary role declaration. Evidence must not be placed under `config/`
 merely because an analysis tool consumes it; generate a compatibility input when one is required.
@@ -30,19 +37,23 @@ merely because an analysis tool consumes it; generate a compatibility input when
 
 1. A fact has one canonical editable home. Other forms are generated projections.
 2. Machine observations and reviewed conclusions are separate even when they share an address.
-3. A function identity is unique by `(program, address)`. Multiple origins are evidence records,
+3. Native Ghidra analysis objects are edited in Ghidra. Tracked evidence records provenance,
+   externally reproducible observations, cross-build relationships, matcher claims, and other facts
+   that are not adequately represented by the Program database itself.
+4. A function identity is unique by `(program, address)`. Multiple origins are evidence records,
    aliases, or provenance tokens rather than duplicate identity rows.
-4. Classes, functions, assertions, imports, source paths, formats, and cross-build relationships are
-   distinct entities and may remain separate tables.
-5. A new CSV must represent a new entity or relationship. A subset, reordered view, source-specific
+5. Classes, functions, assertions, imports, source paths, formats, and cross-build relationships are
+   distinct entities and may remain separate tables when those tables own provenance rather than a
+   duplicate Ghidra layout.
+6. A new CSV must represent a new entity or relationship. A subset, reordered view, source-specific
    view, or report does not justify another tracked CSV.
-6. Compatibility inputs for Ghidra, reccmp, or another consumer are generated from canonical data
+7. Compatibility inputs for Ghidra, reccmp, or another consumer are generated from canonical data
    and protected by freshness tests until the consumer can read that data directly.
 
 ## Generated material and documentation
 
 - Generated outputs go under `build/` by default. They may be tracked only through the snapshot or
-  materialization-seed exceptions above.
+  recovery-seed exceptions above.
 - Markdown contains stable reasoning, architecture, procedures, examples, and unresolved questions.
   It does not duplicate exhaustive inventories, hashes, match percentages, or current counts.
 - Counts, percentages, ownership coverage, and status tables are generated. Do not maintain them by
@@ -61,8 +72,9 @@ Before adding or changing a tracked artifact, answer:
 2. What is its stable key?
 3. Is it configuration, an observation, a reviewed conclusion, or an exceptional snapshot?
 4. What produces it and what consumes it?
-5. Can an existing canonical artifact represent the fact instead?
-6. If it is generated, why can it not remain under `build/`?
+5. Can the fact live directly in Ghidra instead?
+6. Can an existing canonical artifact represent the non-Ghidra part of the fact?
+7. If it is generated, why can it not remain under `build/`?
 
 Tests should validate schemas, keys, provenance vocabularies, and generated compatibility surfaces.
 Prefer directory- and schema-based enforcement over another exhaustive hand-maintained artifact
