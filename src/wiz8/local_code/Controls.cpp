@@ -1819,7 +1819,6 @@ public:
 class W8HorizontalRangeThumb005ED66C : public W8WidgetBase005ED5BC {
 public:
     virtual ~W8HorizontalRangeThumb005ED66C() override;
-    W8HorizontalRangeThumb005ED66C* scalar_deleting_destructor(unsigned char flags);
     W8HorizontalRangeThumb005ED66C(Controls* panel, unsigned int region, int left, int top,
                                    int render_arg_0, int render_arg_1, int background_sprite,
                                    int normal_thumb_sprite, int hovered_thumb_sprite,
@@ -2026,17 +2025,8 @@ void W8HorizontalRangeThumb005ED66C::Redraw(int full_redraw)
                    x + m_pixelPosition, y, 2, 0);
 }
 
-// FUNCTION: WIZ8 0x004f69b0
-W8HorizontalRangeThumb005ED66C*
-W8HorizontalRangeThumb005ED66C::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~W8HorizontalRangeThumb005ED66C();
-    if ((flags & 1) != 0) {
-        ::operator delete(this);
-    }
-    return this;
-}
-
+// SYNTHETIC: WIZ8 0x004f69b0
+// W8HorizontalRangeThumb005ED66C::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004f69d0
 W8HorizontalRangeThumb005ED66C::~W8HorizontalRangeThumb005ED66C()
 {

@@ -43,11 +43,6 @@ protected:
     virtual void reset();
 
 public:
-    /* Wiz8.exe emits this class's deleting destructor itself, at 0x00423E50,
-       and frees through the renderer's heap. A member for the same reason
-       srNode's is: the destructor it runs is protected. */
-    srMaterial* scalar_deleting_destructor(unsigned char flags);
-
     srMaterial& operator=(const srMaterial& other);
 
 protected:

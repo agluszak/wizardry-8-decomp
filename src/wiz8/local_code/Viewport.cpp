@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/render_state.h"
 #include "surrender/srGERD.h"
 #include "surrender/srScene.h"

@@ -90,11 +90,6 @@ public:
     SR_DLL_IMPORT void clearFlag(e_flag flag);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT srNode* getParent() const;
-    /* Wiz8.exe emits its own deleting destructor for this base at 0x0044F3D0
-       and releases through the renderer's heap rather than the CRT's. It is a
-       member because the destructor it runs is protected, so nothing outside
-       the class can spell the teardown at all. */
-    srNode* scalar_deleting_destructor(unsigned char flags);
     srNode* nextSibling() const { return next_sibling_; }
     srNode* parentNode() const { return parent_; }
     srNode* firstChild() const { return first_child_; }

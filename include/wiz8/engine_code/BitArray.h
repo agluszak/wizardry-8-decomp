@@ -19,6 +19,8 @@
 
 class BitArray {
 public:
+    explicit BitArray(unsigned int bit_count);  /* 0x0043ACC0 */
+
     /* Reallocate to hold this many bits and clear every one of them. Asking
        for the size it already has only clears. */
     void SetSize(unsigned int bit_count);       /* 0x0043ADA0 */

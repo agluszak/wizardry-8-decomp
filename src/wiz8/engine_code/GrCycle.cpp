@@ -1,5 +1,6 @@
 #include "wiz8/grcycle.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/ground_shadow.h"
 #include "wiz8/mesh_model.h"
 #include "wiz8/engine_code/PathAI.h"
@@ -317,9 +318,9 @@ void DestroyLightVector(
             W8VectorElement005EC294* light = *vector->GetAt(index);
 
             if (light->world_link_234() != 0) {
-                int world_index = g_world_00659ab4->lights->IndexOf(light);
+                int world_index = g_world_00659ab4->lights_to_update->IndexOf(light);
                 if (world_index != -1) {
-                    g_world_00659ab4->lights->RemoveAt(world_index);
+                    g_world_00659ab4->lights_to_update->RemoveAt(world_index);
                 }
             }
             light->setParent(0, 1);

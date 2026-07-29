@@ -2,6 +2,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "random.h"

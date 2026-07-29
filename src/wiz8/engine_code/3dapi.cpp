@@ -1,4 +1,11 @@
+#include <cstdlib>
+#include <cstring>
+
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Level.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srMaterial.h"
@@ -18,10 +25,272 @@
 
 extern void SetRendererReady(void);
 extern void Function421090(const float* location);
-extern void Function44FAF0(int argument);
 extern void Function44F5F0(int a, int b, int c, int d, int e);
-extern void SetHeapFree(void* block);
 extern unsigned char g_renderer_ready_00607d7c;
+extern void Function46DC90(srScene* scene);
+extern void Function449BB0(void* owner);
+extern void Function4BE0A0(void* owner);
+extern void Function426790(void);
+extern void Function443A60(W8World* world);
+extern void Function479030(void);
+extern void Function47A700(void* ambient_sound);
+extern void Function4A9810(void* camera_owner);
+extern void Function4A4210(W8World* world);
+extern void Function4AC3D0(W8World* world);
+extern void Function46E4A0(W8World* world);
+extern unsigned char Function4914C0(void);
+extern void Function490B90(void);
+extern unsigned char g_world_cleanup_flag_00659757;
+extern int g_world_count_00659a84;
+extern W8World** g_worlds_00659a8c;
+
+namespace {
+
+class W8WorldOwnedObject {
+public:
+    virtual ~W8WorldOwnedObject() = 0;
+};
+
+W8WorldOwnedObject::~W8WorldOwnedObject()
+{
+}
+
+struct W8WorldCameraEntry {
+    unsigned char positional_00[0x18];
+    void* owner_18;
+};
+
+void DestroyObjectList(W8PList*& list)
+{
+    while (list != 0 && PListGetCount(list) != 0) {
+        W8WorldOwnedObject* object =
+            static_cast<W8WorldOwnedObject*>(PListRemoveAt(list, 0));
+        delete object;
+    }
+    if (list != 0) {
+        PListDestroy(list);
+        list = 0;
+    }
+}
+
+} // namespace
+
+// FUNCTION: WIZ8 0x00450B10
+void ConstructWorldCollections(W8World* world)
+{
+    world->plsMonsters = PListCreate();
+    world->plsItems = PListCreate();
+    world->plsProps = PListCreate();
+    world->plsCameras = PListCreate();
+    world->plsAmbientSounds = PListCreate();
+    world->lights_to_update = new W8GrowableVector<W8VectorElement005EC294*>;
+    world->collidable_props = new W8GrowableVector<W8CollidableProp*>;
+    world->monster_generators = new W8GrowableVector<W8MonsterGenerator*>;
+    world->m_vector_b4 = new W8GrowableVector<W8VectorElement005EC280*>;
+    world->missiles = new W8GrowableVector<W8Missile*>;
+    world->triggers = new W8GrowableVector<Trigger*>;
+    world->particles = new W8GrowableVector<stParticle*>;
+    world->named_positions = new W8GrowableVector<W8NamedPosition*>;
+
+    if (world->plsMonsters == 0) {
+        srAssertFail("pWorld->plsMonsters", THREE_D_API_CPP, 0x57e,
+                     "Out of memory creating plsMonsters.");
+    }
+    if (world->plsItems == 0) {
+        srAssertFail("pWorld->plsItems", THREE_D_API_CPP, 0x57f,
+                     "Out of memory creating plsItems.");
+    }
+    if (world->plsProps == 0) {
+        srAssertFail("pWorld->plsProps", THREE_D_API_CPP, 0x580,
+                     "Out of memory creating plsProps.");
+    }
+    if (world->plsCameras == 0) {
+        srAssertFail("pWorld->plsCameras", THREE_D_API_CPP, 0x581,
+                     "Out of memory creating plsCameras.");
+    }
+    if (world->plsAmbientSounds == 0) {
+        srAssertFail("pWorld->plsAmbientSounds", THREE_D_API_CPP, 0x582,
+                     "Out of memory creating plsAmbientSounds.");
+    }
+    if (world->lights_to_update == 0) {
+        srAssertFail("pWorld->plsLightsToUpdate", THREE_D_API_CPP, 0x583,
+                     "Out of memory creating plsLightsToUpdate.");
+    }
+    if (world->collidable_props == 0) {
+        srAssertFail("pWorld->plsCollidableProps", THREE_D_API_CPP, 0x584,
+                     "Out of memory creating plsCollidableProps.");
+    }
+    if (world->monster_generators == 0) {
+        srAssertFail("pWorld->plsMonsterGenerators", THREE_D_API_CPP, 0x585,
+                     "Out of memory creating plsMonsterGenerators.");
+    }
+    if (world->missiles == 0) {
+        srAssertFail("pWorld->plsMissiles", THREE_D_API_CPP, 0x588,
+                     "Out of memory creating plsMissiles.");
+    }
+    if (world->triggers == 0) {
+        srAssertFail("pWorld->plsTriggers", THREE_D_API_CPP, 0x589,
+                     "Out of memory creating plsTriggers.");
+    }
+    if (world->particles == 0) {
+        srAssertFail("pWorld->plsParticles", THREE_D_API_CPP, 0x58a,
+                     "Out of memory creating plsParticles.");
+    }
+    if (world->named_positions == 0) {
+        srAssertFail("pWorld->plsNamedPositions", THREE_D_API_CPP, 0x58b,
+                     "Out of memory creating plsNamedPositions.");
+    }
+}
+
+// FUNCTION: WIZ8 0x0044F1C0
+W8World* CreateWorld()
+{
+    W8World* world = static_cast<W8World*>(malloc(sizeof(W8World)));
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0xa0, 0);
+    }
+    memset(world, 0, sizeof(*world));
+
+    world->static_scene = new srScene(0);
+    if (world->static_scene == 0) {
+        free(world);
+        return 0;
+    }
+    world->static_scene->setName("Sir-Tech Scene Static Scene");
+
+    world->level = new stLevel(world->static_scene);
+    if (world->level == 0) {
+        world->static_scene->release();
+        free(world);
+        return 0;
+    }
+    world->level->setName("Sir-Tech Level");
+    world->level->m_active = 1;
+
+    world->dynamic_scene = new srNode(world->static_scene);
+    if (world->dynamic_scene == 0) {
+        world->static_scene->release();
+        world->level->release();
+        free(world);
+        return 0;
+    }
+    world->dynamic_scene->setName("Sir-Tech Dynamic Scene");
+    Function46DC90(world->static_scene);
+    ConstructWorldCollections(world);
+    world->m_positional_018 = 1.0f;
+    world->m_positional_01c = 1.0f;
+    world->m_positional_014 = 0.75f;
+    return world;
+}
+
+// FUNCTION: WIZ8 0x004507A0
+void DestroyWorldCollections(W8World* world)
+{
+    if (world == 0) {
+        return;
+    }
+
+    DestroyObjectList(world->plsMonsters);
+    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    DestroyObjectList(world->plsItems);
+    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    DestroyObjectList(world->plsProps);
+    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+
+    Function443A60(world);
+    delete world->triggers;
+    world->triggers = 0;
+    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+
+    while (world->plsCameras != 0 && PListGetCount(world->plsCameras) != 0) {
+        W8WorldCameraEntry* entry = static_cast<W8WorldCameraEntry*>(
+            PListRemoveAt(world->plsCameras, 0));
+        Function4A9810(entry->owner_18);
+        free(entry);
+    }
+    if (world->plsCameras != 0) {
+        PListDestroy(world->plsCameras);
+        world->plsCameras = 0;
+    }
+
+    Function479030();
+    while (world->plsAmbientSounds != 0 &&
+           PListGetCount(world->plsAmbientSounds) != 0) {
+        Function47A700(PListRemoveAt(world->plsAmbientSounds, 0));
+    }
+    if (world->plsAmbientSounds != 0) {
+        PListDestroy(world->plsAmbientSounds);
+        world->plsAmbientSounds = 0;
+    }
+
+    while (world->particles != 0 && world->particles->GetCount() != 0) {
+        (*world->particles->GetAt(0))->release();
+        world->particles->RemoveAt(0);
+    }
+    while (world->named_positions != 0 && world->named_positions->GetCount() != 0) {
+        operator delete(*world->named_positions->GetAt(0));
+        world->named_positions->RemoveAt(0);
+    }
+
+    Function4A4210(world);
+    Function4AC3D0(world);
+    Function46E4A0(world);
+    PListFreeData(&world->m_list_0a8);
+    PListFreeData(&world->m_list_09c);
+
+    delete world->lights_to_update;
+    delete world->collidable_props;
+    delete world->monster_generators;
+    delete world->m_vector_b4;
+    delete world->missiles;
+    delete world->particles;
+    delete world->named_positions;
+}
+
+// FUNCTION: WIZ8 0x0044FAF0
+void DestroyWorld(W8World* world)
+{
+    int index;
+
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x1ff, 0);
+    }
+    free(world->psrMeshes);
+    world->psrMeshes = 0;
+    world->update_mesh_source = 0;
+    if (world->m_owned_04c != 0) {
+        Function449BB0(world->m_owned_04c);
+        operator delete(world->m_owned_04c);
+        world->m_owned_04c = 0;
+    }
+    if (world->octree != 0) {
+        delete world->octree;
+        world->octree = 0;
+    }
+    if (world->m_owned_06c != 0) {
+        Function4BE0A0(world->m_owned_06c);
+        world->m_owned_06c = 0;
+    }
+    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    DestroyWorldCollections(world);
+    if (g_world_cleanup_flag_00659757 != 0) Function426790();
+    if (Function4914C0() != 0) Function490B90();
+
+    for (index = 0; index < g_world_count_00659a84; ++index) {
+        if (g_worlds_00659a8c[index] == world) {
+            for (; index < g_world_count_00659a84 - 1; ++index) {
+                g_worlds_00659a8c[index] = g_worlds_00659a8c[index + 1];
+            }
+            --g_world_count_00659a84;
+            break;
+        }
+    }
+    if (world->static_scene != 0) {
+        world->static_scene->release();
+        world->static_scene = 0;
+    }
+    free(world);
+}
 
 /* Note that the renderer is up. Eight bytes and no branch. */
 // FUNCTION: WIZ8 0x00451010
@@ -32,9 +301,9 @@ void MarkRendererReady(void)
 
 /* Two forwarders that pass their arguments through unchanged. */
 // FUNCTION: WIZ8 0x00451140
-void Forward44FAF0(int argument)
+void Forward44FAF0(W8World* world)
 {
-    Function44FAF0(argument);
+    DestroyWorld(world);
 }
 
 // FUNCTION: WIZ8 0x00451110
@@ -92,78 +361,18 @@ void WorldSetCameraLocation(W8World* world, const float* location)
     }
 }
 
-/* An srNode's scalar deleting destructor. It releases through the renderer's
-   own heap rather than the CRT's, which is what makes it the renderer's node
-   rather than one of ours. */
-// FUNCTION: WIZ8 0x0044f3d0
-srNode* srNode::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~srNode();
-    if ((flags & 1) != 0) {
-        SetHeapFree(this);
-    }
-    return this;
-}
-
-/*
- * The same slot for five more renderer classes. Every one is byte for byte the
- * body above apart from the destructor it calls, and that import slot is what
- * names the class: 0x005EB508, 0x005EB50C, 0x005EB510, 0x005EB518 and
- * 0x005EB584 resolve to srMaterial, srCamera, srScene, srColorSurface and
- * srMeshModel's decorated destructors, which is `original-export` evidence
- * rather than a reading of the body. All five free through the renderer's heap
- * on the same slot, which is what puts them in this file beside srNode's.
- */
-
-// FUNCTION: WIZ8 0x00423e50
-srMaterial* srMaterial::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~srMaterial();
-    if ((flags & 1) != 0) {
-        SetHeapFree(this);
-    }
-    return this;
-}
-
-// FUNCTION: WIZ8 0x00423e80
-srCamera* srCamera::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~srCamera();
-    if ((flags & 1) != 0) {
-        SetHeapFree(this);
-    }
-    return this;
-}
-
-// FUNCTION: WIZ8 0x00423eb0
-srScene* srScene::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~srScene();
-    if ((flags & 1) != 0) {
-        SetHeapFree(this);
-    }
-    return this;
-}
-
-// FUNCTION: WIZ8 0x00423f00
-srColorSurface* srColorSurface::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~srColorSurface();
-    if ((flags & 1) != 0) {
-        SetHeapFree(this);
-    }
-    return this;
-}
-
-// FUNCTION: WIZ8 0x00424a50
-srMeshModel* srMeshModel::scalar_deleting_destructor(unsigned char flags)
-{
-    this->~srMeshModel();
-    if ((flags & 1) != 0) {
-        SetHeapFree(this);
-    }
-    return this;
-}
+// SYNTHETIC: WIZ8 0x0044f3d0
+// srNode::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00423e50
+// srMaterial::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00423e80
+// srCamera::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00423eb0
+// srScene::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00423f00
+// srColorSurface::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00424a50
+// srMeshModel::`scalar deleting destructor'
 
 /* The second world, read straight out of the global with no guard. Its type is
    settled by the viewport, which reads a camera member through the same

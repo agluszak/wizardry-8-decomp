@@ -1,6 +1,25 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/engine_code/Level.h"
 
 /* Closed family of source-declared registry class methods. */
+
+// FUNCTION: WIZ8 0x004B9C00
+stLevel::stLevel(srNode* parent)
+    : srNode(0), m_active(0), m_positional_13c(0)
+{
+    srRegistry* registry = srCore.getRegistry();
+    registry->registerInstance(getClassNode(), this);
+    if (parent != 0) {
+        setParent(parent, 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x004B9D10
+stLevel::~stLevel()
+{
+    srRegistry* registry = srCore.getRegistry();
+    registry->unregisterInstance(getClassNode(), this);
+}
 
 // FUNCTION: WIZ8 0x00429A40
 unsigned long W8Registered005EBD10::getClassID() const

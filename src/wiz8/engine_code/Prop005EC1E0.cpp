@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/PList.h"
 
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four

@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 
 #include "surrender/srMeshModel.h"
@@ -36,7 +37,7 @@ void UpdateWorldMesh004BAF60(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\UpdateMesh.cpp", 0x2a2, 0);
     }
-    source = world->update_mesh_source_70;
+    source = world->update_mesh_source;
     if (source != 0) {
         W8UpdateMeshProvider* provider = &source->provider_138;
         mesh = provider->GetMesh004BAF92();

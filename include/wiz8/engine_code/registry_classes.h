@@ -38,20 +38,20 @@ public:
 };
 
 /* Engine Code\stParticle.cpp. */
-class stParticle {
+class stParticle : public srNode {
 public:
-    const char* getClassName() const;     /* 0x0049B550 */
-    unsigned long getClassID() const;     /* 0x0049B540 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x0049B560 */
+    const char* getClassName() const override;     /* 0x0049B550 */
+    unsigned long getClassID() const override;     /* 0x0049B540 */
+    srRegistry::ClassNode* getClassNode() const override; /* 0x0049B560 */
 };
 
 /* Engine Code\Trigger.cpp. The registry name has no st prefix, which is what
    separates the gameplay trigger from the renderer's own class family. */
-class Trigger {
+class Trigger : public srNode {
 public:
-    const char* getClassName() const;     /* 0x00445AE0 */
-    unsigned long getClassID() const;     /* 0x00445AD0 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x00445F30 */
+    const char* getClassName() const override;     /* 0x00445AE0 */
+    unsigned long getClassID() const override;     /* 0x00445AD0 */
+    srRegistry::ClassNode* getClassNode() const override; /* 0x00445F30 */
 };
 
 /*
@@ -116,13 +116,6 @@ private:
 };
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
-
-class stLevel {
-public:
-    const char* getClassName() const;     /* 0x004BA1C0 */
-    unsigned long getClassID() const;     /* 0x004BA1B0 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x004BA1D0 */
-};
 
 class stSound3D {
 public:

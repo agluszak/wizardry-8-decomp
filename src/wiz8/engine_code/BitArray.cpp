@@ -13,6 +13,34 @@
 /* How much slack SetAndGrow leaves beyond the bit that overflowed. */
 enum { W8_BITARRAY_GROWTH_SLACK = 100 };
 
+// FUNCTION: WIZ8 0x0043acc0
+BitArray::BitArray(unsigned int new_bit_count)
+{
+    unsigned int spill;
+
+    bit_count = new_bit_count;
+    word_count = W8_WHOLE_WORDS(new_bit_count) + 1;
+    spill = new_bit_count - W8_WHOLE_WORDS(new_bit_count) * W8_BITS_PER_WORD;
+    cursor_base = spill;
+    tail_mask = 0;
+    cursor_bit = 0;
+    while ((unsigned int)cursor_bit < spill) {
+        tail_mask |= 1 << cursor_bit;
+        ++cursor_bit;
+    }
+
+    cursor_base = 0;
+    cursor_bit = 0;
+    cursor_word = 0;
+    set_count = 0;
+    puiIndex = (unsigned int*)malloc(word_count * sizeof(unsigned int));
+    if (puiIndex == 0) {
+        srAssertFail("puiIndex", BITARRAY_CPP, 63,
+                     "BitArray: Couldn't allocate bit index.");
+    }
+    memset(puiIndex, 0, word_count * sizeof(unsigned int));
+}
+
 /* Reallocate to hold this many bits and clear every one of them. The tail mask
    is rebuilt from the bits that spill past the last whole word; asking for the
    size it already has skips straight to the clear. */

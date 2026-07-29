@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 
@@ -54,19 +55,19 @@ extern void Function46E640(void* target, int argument);
 // FUNCTION: WIZ8 0x0046e580
 void WorldAddToList00(W8World* unused, void* entry)
 {
-    PListAdd(g_world_00659ab4->plsList00, entry);
+    PListAdd(g_world_00659ab4->plsMonsters, entry);
 }
 
 // FUNCTION: WIZ8 0x0046e5c0
 void WorldAddToList04(W8World* unused, void* entry)
 {
-    PListAdd(g_world_00659ab4->plsList04, entry);
+    PListAdd(g_world_00659ab4->plsItems, entry);
 }
 
 // FUNCTION: WIZ8 0x0046e5e0
 void WorldRemoveFromList04(W8World* unused, void* entry)
 {
-    PListRemove(g_world_00659ab4->plsList04, entry);
+    PListRemove(g_world_00659ab4->plsItems, entry);
 }
 
 /* How many props the world holds, and the one at a position - both answers
@@ -179,6 +180,6 @@ extern "C" {
 // FUNCTION: WIZ8 0x0046E5A0
 void Function46E5A0(int unused, void* item)
 {
-    PListRemove(g_world_00659ab4->plsList00, item);
+    PListRemove(g_world_00659ab4->plsMonsters, item);
 }
 }

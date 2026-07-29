@@ -379,51 +379,7 @@ typedef struct W8LevelInfo {
     unsigned char unknown_000[0x458];
 } W8LevelInfo;                           /* 0x458 */
 
-/* 3D Code\PList.cpp. Distinct from W8GrowableVector: no vptr, elements at +0x00
-   and count at +0x08, accessed through free functions. */
-
-/* Member names and types at 0x08 and 0x48 come from the canonical assertion
-   expressions "pWorld && pWorld->plsProps" (Engine Code\3d.cpp:344) and
-   "pWorld->psrMeshes" (Engine Code\3dapi.cpp:446). The pls/psr prefixes are
-   the original's own Hungarian coding for a PList and a SurRender object.
-   The two offsets do not carry the same weight: plsProps is byte-proven by
-   WorldUpdateProps (0x0046DED0), while psrMeshes is only placed by a reading
-   of its asserting body and has no ported consumer yet. */
-struct W8UpdateMeshSource;
-class W8Missile;
-struct W8MonsterGenerator;
-
-typedef struct W8World {
-    /* 0x000 and 0x004: two more lists beside the props, each with its own
-       add/remove pair; nothing establishes what they hold. */
-    W8PList* plsList00;
-    W8PList* plsList04;
-    W8PList* plsProps;                    /* 0x008: PList of props; byte-proven */
-    unsigned char unknown_00c[4];
-    W8PList* plsAmbientSounds;            /* 0x010: Engine Code\AmbientSound.cpp */
-    unsigned char unknown_014[0x30];
-    /* 0x044: the camera the viewport rebuilds its view plane against. It was
-       modelled separately as a camera-owner class before the two globals were
-       shown to be one, and it is the same object. */
-    struct srCamera* camera;
-    void** psrMeshes;                     /* 0x048: mesh pointer array; UNPROVEN placement */
-    unsigned char unknown_04c[8];
-    /* 0x054: the node the sky hangs from, which the environment accessors
-       reach through this same world pointer. */
-    void* sky_node;
-    unsigned char unknown_058[0x18];
-    W8UpdateMeshSource* update_mesh_source_70;
-    /* 0x074 and 0x078: written together from one argument by 0x0046E350 and
-       read back individually, so they are a pair rather than one field. Only
-       the second is ever read, by the getter at 0x0046E3A0. */
-    float value_74;
-    float value_78;
-    unsigned char unknown_07c[0x3c];
-    W8GrowableVector<W8Missile*>* missiles; /* 0xb8 */
-    W8GrowableVector<class W8VectorElement005EC294*>* lights; /* 0xbc */
-    unsigned char unknown_0c0[4];
-    W8GrowableVector<W8MonsterGenerator*>* monster_generators; /* 0xc4 */
-} W8World;
+struct W8World;
 
 typedef struct W8NPCRecordRef {
     unsigned char unknown_00[0x58];

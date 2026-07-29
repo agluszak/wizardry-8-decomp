@@ -12,9 +12,6 @@ public:
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srScene() override;
-    /* Emitted by Wiz8.exe at 0x00423EB0, freeing through the renderer's heap
-       the way srNode's does. */
-    srScene* scalar_deleting_destructor(unsigned char flags);
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
@@ -41,8 +38,6 @@ public:
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srCamera() override;
-    /* Emitted by Wiz8.exe at 0x00423E80. */
-    srCamera* scalar_deleting_destructor(unsigned char flags);
     virtual srClass* vInstance() override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
