@@ -8,6 +8,12 @@ extern srTimer* g_shared_timer_base;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
+// VTABLE: WIZ8 0x005ed200
+// class W8Monster
+
+// SYNTHETIC: WIZ8 0x004beba0
+// W8Monster::`scalar deleting destructor'
+
 struct W8Releasable {
     virtual ~W8Releasable();
 };
@@ -73,7 +79,7 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
             "GetNumSubsPerCycle() -> Invalid cycle num.");
     }
     if (bCycle == -1) {
-        bCycle = polymorphic_subobject_18.m_bCurrentCycle;
+        bCycle = Subobject18().m_bCurrentCycle;
     }
     return m_cycles[bCycle].count.ubNumSubs;
 }
@@ -83,16 +89,16 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
    animation index.  The assertion's `pao` spelling establishes the pointee's
    AnimObj identity without supplying a name for this Monster method. */
 // FUNCTION: WIZ8 0x004bf970
-void W8Monster::SubmitCycleAnimValue004BF970(signed char cycle)
+void W8Monster::ApplyEmitterSetting(char cycle)
 {
     W8MonsterCycle* selected_cycle = &m_cycles[cycle];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (polymorphic_subobject_18.current_subcycle_8d <
+    if (unknown_0a5[0] <
         (int)selected_cycle->num_subs_04) {
         animation_slot = selected_cycle->animation_objects +
-            polymorphic_subobject_18.current_subcycle_8d;
+            unknown_0a5[0];
     } else {
         animation_slot = selected_cycle->animation_objects;
     }
@@ -105,7 +111,7 @@ void W8Monster::SubmitCycleAnimValue004BF970(signed char cycle)
             0);
     }
     AnimObjValue004A15D0(
-        animation, polymorphic_subobject_18.animation_index_80);
+        animation, setting_98);
 }
 
 /* The concrete Monster GrCycle keeps its owning Monster immediately after the
@@ -132,9 +138,9 @@ void W8MonsterGrCycle005ED290::SubmitCurrentAnimEntry004C3F00()
         W8AnimObj*, signed char, unsigned int);
 
     int cycle_index =
-        monster_1d8->polymorphic_subobject_18.m_bCurrentCycle;
+        monster_1d8->Subobject18().m_bCurrentCycle;
     int subcycle_index =
-        monster_1d8->polymorphic_subobject_18.current_subcycle_8d;
+        monster_1d8->Subobject18().current_subcycle_8d;
     W8MonsterCycle* cycle = &monster_1d8->m_cycles[cycle_index];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
@@ -158,7 +164,7 @@ void W8MonsterGrCycle005ED290::SubmitCurrentAnimEntry004C3F00()
        callee's reviewed declaration. */
     ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
         animation,
-        monster_1d8->polymorphic_subobject_18.animation_index_80,
+        monster_1d8->Subobject18().animation_index_80,
         0);
 }
 
@@ -180,15 +186,15 @@ void MonsterPropagateValue004C5870(W8Monster* monster, int value)
     }
     monster->m_cycles[19].value_08 = value;
     *(short*)&monster->m_cycles[3].flags_00 = (short)value;
-    if (monster->linked_objects_010 != 0) {
+    if (monster->LinkedObjects010() != 0) {
         count = ((W8MonsterLinkedObjectList004C5870*)
-            monster->linked_objects_010)->count_04;
+            monster->LinkedObjects010())->count_04;
         index = 0;
         if (count > 0) {
             do {
                 W8MonsterLinkedObjectList004C5870* list =
                     (W8MonsterLinkedObjectList004C5870*)
-                    monster->linked_objects_010;
+                    monster->LinkedObjects010();
                 int propagated_value = monster->m_cycles[19].value_08;
                 W8MonsterLinkedObject004C5870* object = list->GetAt(index);
                 ++index;
@@ -319,7 +325,7 @@ unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
 void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 {
     if (monster != 0) {
-        monster->polymorphic_subobject_18.state_a0 = state;
+        monster->Subobject18().state_a0 = state;
     }
 }
 
@@ -477,7 +483,7 @@ void MonsterForward4A84A0(W8Monster* monster)
 void MonsterForward4537E0(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4537E0(&monster->polymorphic_subobject_18);
+        Function4537E0(&monster->Subobject18());
     }
 }
 
@@ -550,7 +556,7 @@ void MonsterForward4531A0(void)
 void MonsterSetSubobjectValue120(W8Monster* monster, float value)
 {
     if (monster != 0) {
-        monster->polymorphic_subobject_18.SetValue120(value);
+        monster->Subobject18().SetValue120(value);
     }
 }
 
@@ -558,7 +564,7 @@ void MonsterSetSubobjectValue120(W8Monster* monster, float value)
 float MonsterGetSubobjectValue120(W8Monster* monster)
 {
     if (monster != 0) {
-        float value = monster->polymorphic_subobject_18.GetValue120();
+        float value = monster->Subobject18().GetValue120();
         return value;
     }
     return 0.0f;
@@ -568,7 +574,7 @@ float MonsterGetSubobjectValue120(W8Monster* monster)
 unsigned char MonsterForward452630(W8Monster* monster, const W8Position* position)
 {
     if (monster != 0) {
-        return monster->polymorphic_subobject_18.Function452630(position);
+        return monster->Subobject18().Function452630(position);
     }
     return 0;
 }
@@ -577,7 +583,7 @@ unsigned char MonsterForward452630(W8Monster* monster, const W8Position* positio
 void MonsterForward453690(W8Monster* monster, void* argument)
 {
     if (monster != 0) {
-        monster->polymorphic_subobject_18.Function453690(argument);
+        monster->Subobject18().Function453690(argument);
     }
 }
 
@@ -585,7 +591,7 @@ void MonsterForward453690(W8Monster* monster, void* argument)
 void MonsterSetSubobjectObject68Flag38(W8Monster* monster, char value)
 {
     if (monster != 0) {
-        monster->polymorphic_subobject_18.SetObject68Flag38(value);
+        monster->Subobject18().SetObject68Flag38(value);
     }
 }
 
@@ -593,7 +599,7 @@ void MonsterSetSubobjectObject68Flag38(W8Monster* monster, char value)
 void MonsterSetSubobjectFlag25(W8Monster* monster, char value)
 {
     if (monster != 0) {
-        monster->polymorphic_subobject_18.SetFlag25(value);
+        monster->Subobject18().SetFlag25(value);
     }
 }
 
@@ -619,9 +625,9 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
         if (monster_info->control_state != 1) {
             GetPosition421070(&position);
             if (alternate != 0) {
-                monster->polymorphic_subobject_18.Function454040(&position);
+                monster->Subobject18().Function454040(&position);
             } else {
-                monster->polymorphic_subobject_18.Function453F30(&position);
+                monster->Subobject18().Function453F30(&position);
             }
         }
     }

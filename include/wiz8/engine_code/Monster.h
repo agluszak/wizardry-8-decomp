@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_MONSTER_H
 
 #include "surrender/srMath.h"
+#include "wiz8/engine_code/Emitter.h"
 #include "wiz8/geometry.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
@@ -83,11 +84,11 @@ struct W8MonsterCycle {
 };                                          /* 0x10 */
 
 struct W8MonsterPolymorphicSubobject18 {
-    /* 0x00, which is Monster +0x18: the additional vftable at 0x005ED218,
-       five slots. The root-relative placement is proven; whether this
-       polymorphic subobject is a base or an embedded member is not. */
-    void* vptr;
-    unsigned char unknown_04[8];
+    /* This is a positional view beginning at Monster +0x18, not an owned
+       member and not a polymorphic base. Monster's constructor never writes
+       a vptr here; the previously associated 0x005ED218 table belongs to the
+       separate GrCycle-derived lifecycle at 0x004C0170. */
+    unsigned char unknown_00[0x0c];
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
     unsigned char unknown_10[0x4c];
     int value_5c;                           /* 0x5c: Monster +0x74 */
@@ -136,19 +137,19 @@ struct W8MonsterPolymorphicSubobject18 {
     void SetFlag25(char value);               /* 0x004531F0 */
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
-/* Partial source model of the Monster class (0x628 bytes, vtable 0x005ed200,
-   constructor 0x004bea20). Only members proven by recovered consumers are
-   modelled here; unresolved layout remains original-binary analysis. */
-struct W8Monster {
-    /* 0x000: the root vtable at 0x005ED200, six slots. Slot zero is the
-       compiler-generated scalar-deleting wrapper at 0x004BEBA0, which calls
-       the complete destructor at 0x004BEE50. The additional vptr at +0x18
-       remains an unresolved polymorphic subobject. */
-    virtual ~W8Monster();
-    unsigned char unknown_004[0x0c];
-    void* linked_objects_010;                /* 0x010: collection traversed by 0x004c5870 */
-    unsigned char unknown_014[4];
-    W8MonsterPolymorphicSubobject18 polymorphic_subobject_18; /* 0x018: proven placement */
+/* Monster's constructor calls the 0xac-byte W8EmitterHost constructor at
+   offset zero, constructs its three cycle arrays at +0xac/+0x25c/+0x40c,
+   and only then installs the six-slot 0x005ED200 vtable. The inherited five
+   slots are followed by one Monster-specific extension. */
+struct W8Monster : public W8EmitterHost {
+    W8Monster(const W8Monster& other);
+    virtual ~W8Monster() override;
+    virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
+    virtual void SendToEmitter(char cycle, int arg_2, int arg_3) override; /* 0x004BF8C0 */
+    virtual void ApplyEmitterSetting(char cycle) override; /* 0x004BF970 */
+    virtual void StopEmitter(char cycle) override; /* 0x004BF920 */
+    virtual void Method004BF0F0(signed char arg_1, int arg_2, signed char arg_3);
+
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
     /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
        the array above. Nothing proves they are the same type, so they stay
@@ -157,10 +158,26 @@ struct W8Monster {
     W8MonsterFormation formation;               /* 0x280: from the owning group */
     unsigned char subobject_array_28c[0x180];   /* 0x28c */
     unsigned char subobject_array_40c[0x1b0];   /* 0x40c */
-    unsigned char tail_fields_5bc[0x6c];        /* 0x5bc: fields seen through 0x624 */
+    unsigned char tail_fields_5bc[0x58];        /* 0x5bc */
+    /* A 0x10-byte growable vector is constructed here, but its element type is
+       not established by the shared emitted vtable alone. Keep the storage
+       opaque until a consumer proves the element type. */
+    unsigned char vector_614[0x10];              /* 0x614 */
+    int value_624;                               /* 0x624 */
+
+    W8MonsterPolymorphicSubobject18& Subobject18()
+    {
+        return *reinterpret_cast<W8MonsterPolymorphicSubobject18*>(
+            reinterpret_cast<unsigned char*>(this) + 0x18);
+    }
+
+    void*& LinkedObjects010()
+    {
+        return *reinterpret_cast<void**>(
+            reinterpret_cast<unsigned char*>(this) + 0x10);
+    }
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
-    void SubmitCycleAnimValue004BF970(signed char cycle);
     /* 0x004C4660. A method, not the free function an earlier reading assumed:
        it takes its receiver in ECX and IsDying calls it without reloading ECX
        at all, relying on `this` already being there. The query selector is

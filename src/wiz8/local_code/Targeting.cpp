@@ -979,12 +979,12 @@ void CollectMonstersWithinRadius(
             continue;
         }
 
-        position = monster->polymorphic_subobject_18.GetPosition();
+        position = monster->Subobject18().GetPosition();
         dx = centre->x - position.x;
         dy = centre->y - position.y;
         dz = centre->z - position.z;
 
-        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->polymorphic_subobject_18.radius_84) {
+        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->Subobject18().radius_84) {
             if (highlighting != 0) {
                 SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
             }
@@ -1684,7 +1684,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
         int location_id = *((W8GrowableVector<int>*)candidates)->GetAt((int)index);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x4a1, TARGETING_CPP, location_id, 1));
-        srVector3T<float> position = monster_info->monster->polymorphic_subobject_18.GetPosition();
+        srVector3T<float> position = monster_info->monster->Subobject18().GetPosition();
 
         sorted[index].location_id = location_id;
         sorted[index].angle = (int)NormalizeAngle(AngleFromPartyTo(&party, &position));
