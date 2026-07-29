@@ -18,6 +18,7 @@ extern unsigned char Function54A760(W8MonsterRecord** records);
 extern unsigned char VerifyDataSubdirs(void);
 extern void InitializeItemVideoObjects(void);
 extern unsigned char FindStartupQuickSave(char* slot_name);
+extern int GetSaveGameLevel(const char* slot_name);
 extern void SetPendingScreenState(int value);
 extern unsigned char InitializeSpellDatabase(void);
 extern void ReleaseGenericItemNames(void);
@@ -50,7 +51,6 @@ extern void SetMessageBoxModeEnabled(void);
 extern void SetMessageBoxWord(unsigned short value);
 extern void UpdateHeldItemCursor(void);
 extern void Function479010(void);
-extern int GetSaveGameLevel(void* slot);
 extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
@@ -140,7 +140,7 @@ unsigned char InitializeGameData(void)
     g_dword_686a70 = -1;
     if (gfLoadAtStartup && FindStartupQuickSave((char*)g_save_slot_68ed28)) {
         g_flag_68ed14 = 1;
-        g_dword_68ed18 = GetSaveGameLevel(g_save_slot_68ed28);
+        g_dword_68ed18 = GetSaveGameLevel((const char*)g_save_slot_68ed28);
         SetPendingScreenState(4);
     }
     InitializeEncounterTables();

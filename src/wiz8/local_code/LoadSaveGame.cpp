@@ -99,6 +99,7 @@ extern char Function5155B0(const char* path, int slot, W8Character* character);
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 extern void Function518510(void* notice);
+extern void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);    /* 0x00515CF0 */
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
    consulted only when it is set. The failure notice comes out of the shared
@@ -168,6 +169,39 @@ report:
         Function518510(notice);
     }
     return loaded;
+}
+
+/* Open one save slot and read only its game-status chunk. Startup needs the
+   saved level before it commits to the full load, so every other top-level
+   chunk is skipped and released without being materialized. */
+// FUNCTION: WIZ8 0x00512290
+int GetSaveGameLevel(const char* slot_name)
+{
+    W8Chunk chunks;
+    char path[260];
+    W8GlobalStatus status;
+    int count;
+    int index;
+
+    sprintf(path, "%s\\%s.%s", "Saves", slot_name, "SAV");
+    if (chunks.OpenRead(path)) {
+        count = chunks.ChunkCount();
+        for (index = 0; index < count; ++index) {
+            chunks.ReadChunkHeader(0, 0);
+            if (!chunks.CurrentChunkAtEnd() &&
+                chunks.CurrentChunkId() == 0x41545347) {
+                AllocateStatusBuffers(&status.buffers);
+                LoadGameStatus(&chunks, &status);
+                FreeStatusBuffers(&status.buffers);
+                chunks.Close();
+                return status.saved_level;
+            }
+            chunks.SkipCurrentChunk();
+            chunks.ReleaseCurrentChunk();
+        }
+        chunks.Close();
+    }
+    return 0;
 }
 
 /* Reads and validates the header, then publishes the four counts and the block
@@ -531,17 +565,6 @@ extern unsigned char g_save_pending_00689f98;
 extern unsigned char g_save_flag_00687599;
 extern unsigned char g_save_notice_shown_0068506b;
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);  /* 0x0058AC00 */
-extern int SaveChunkCount(void);                                        /* 0x0055C6C0 */
-extern void SaveChunkSeek(int arg_1, int arg_2);                        /* 0x0055C6D0 */
-extern unsigned char SaveChunkAtEnd(void);                              /* 0x0055CB60 */
-extern int SaveChunkTag(void);                                          /* 0x0055C660 */
-extern void ReadCharacterChunk(int arg_1);                              /* 0x0055C1E0 */
-extern void SaveChunkOpen(void);                                        /* 0x0055C3F0 */
-extern void SaveChunkRead(void* buffer, int size, int arg_3);           /* 0x0055CA20 */
-extern void SaveChunkRewind(void);                                      /* 0x0055CAE0 */
-extern void SaveChunkClose(void);                                       /* 0x0055C5A0 */
-extern void SaveChunkNext(void);                                        /* 0x0055C390 */
-extern void SaveChunkRelease(void);                                     /* 0x0055C930 */
 
 /* Take the pending-save flag and clear it in one go, so the caller that reads
    it is the only one that sees it. */
@@ -669,32 +692,34 @@ unsigned char FindStartupQuickSave(char* slot_name)
    level chunk is read only for the level the party is actually on, and one for
    any other level is rewound and read as a character chunk instead. */
 // FUNCTION: WIZ8 0x00514d50
-void ReadSaveChunks(int destination)
+void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
 {
-    int remaining = SaveChunkCount();
-    int level;
+    int remaining = source->ChunkCount();
 
-    if (remaining <= 0) {
-        return;
-    }
-    do {
-        SaveChunkSeek(0, 0);
-        if (!SaveChunkAtEnd()) {
-            if (SaveChunkTag() == W8_SAVE_TAG_CHAR) {
-                ReadCharacterChunk(destination);
-            }
-            else if (SaveChunkTag() == W8_SAVE_TAG_LVLS) {
-                SaveChunkOpen();
-                SaveChunkRead(&level, 4, 0);
-                if (level != g_current_level) {
-                    SaveChunkRewind();
-                    ReadCharacterChunk(destination);
+    if (remaining > 0) {
+        int level;
+        unsigned int tag;
+
+        do {
+            source->ReadChunkHeader(0, 0);
+            if (!source->CurrentChunkAtEnd()) {
+                tag = source->CurrentChunkId();
+                if (tag == W8_SAVE_TAG_CHAR) {
+                    destination->CopyCurrentChunkFrom(source);
                 }
-                SaveChunkClose();
+                else if (tag == W8_SAVE_TAG_LVLS) {
+                    source->OpenChunkGroup();
+                    source->Read(&level, 4, 0);
+                    if (level != g_current_level) {
+                        source->RewindCurrentChunk();
+                        destination->CopyCurrentChunkFrom(source);
+                    }
+                    source->CloseChunkGroup();
+                }
             }
-        }
-        SaveChunkNext();
-        SaveChunkRelease();
-        --remaining;
-    } while (remaining != 0);
+            source->SkipCurrentChunk();
+            source->ReleaseCurrentChunk();
+            --remaining;
+        } while (remaining != 0);
+    }
 }

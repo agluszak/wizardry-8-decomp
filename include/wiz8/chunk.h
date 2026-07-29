@@ -1,39 +1,59 @@
 #pragma once
 
+#include "wiz8/vector.h"
+
 struct W8ChunkHead {
     unsigned int chunk_id;                   /* 0x00 */
-    unsigned int unknown_04;
+    unsigned char unknown_04;
+    unsigned char at_end;                    /* 0x05 */
+    unsigned char unknown_06[2];
     int extent_08;                           /* 0x08 */
 };
 
 static_assert(sizeof(W8ChunkHead) == 0x0c, "W8ChunkHead_size_must_be_0x0c");
 
-/* Local Code\chunk.cpp. m_fWriting is named by the canonical assertions at
-   lines 640 and 669, which guard the two directions against each other; the
-   handle at +0 is whatever ReadVirtualFile/WriteVirtualFile take.  The two
-   head stacks and their indices are established by the five current-head
-   consumers at 0x0055C000..0x0055C690. */
+/* This specialization has a distinct vtable from W8GrowableVector<int> and
+   owns heap-allocated chunk heads. Its destructor is not recovered yet, so
+   preserve the established vector layout without claiming an element-template
+   identity. */
+struct W8ChunkHeadVectorStorage {
+    void* vptr;
+    int count;
+    int capacity;
+    W8ChunkHead** data;
+};
+
+/* Local Code\chunk.cpp. The constructor at 0x0055BCE0 initializes this complete
+   0x48-byte object: the asserted direction state, one owning head vector and
+   three W8GrowableVector<int> navigation stacks. */
 struct W8Chunk {
     int m_hFile;                            /* 0x00 */
     unsigned char m_fWriting;               /* 0x04 */
-    unsigned char unknown_05[7];
-    int head_count_0c;                      /* 0x0c */
-    unsigned int unknown_10;
-    W8ChunkHead** heads_14;                 /* 0x14 */
-    unsigned char unknown_18[0x14];
-    int secondary_head_count_2c;            /* 0x2c */
-    unsigned int unknown_30;
-    W8ChunkHead** secondary_heads_34;       /* 0x34 */
+    unsigned char padding_05[3];            /* 0x05 */
+    W8ChunkHeadVectorStorage m_heads;        /* 0x08 */
+    W8GrowableVector<int> m_group_counts;   /* 0x18 */
+    W8GrowableVector<int> m_offsets;        /* 0x28 */
+    W8GrowableVector<int> m_group_progress; /* 0x38 */
 
-    unsigned char OpenRead0055C000(char* path);
-    unsigned char OpenReadWrite0055C080(char* path);
-    unsigned char FinishCurrentHead0055C390();
-    unsigned int CurrentChunkID0055C660();
-    int CurrentChunkExtent0055C690();
+    W8Chunk();
+    ~W8Chunk();
+
+    unsigned char OpenRead(char* path);
+    unsigned char OpenReadWrite(char* path);
+    void Close();
+    unsigned char CopyCurrentChunkFrom(W8Chunk* source);
+    unsigned char SkipCurrentChunk();
+    unsigned char OpenChunkGroup();
+    unsigned char CloseChunkGroup();
+    unsigned int CurrentChunkId();
+    int CurrentChunkExtent();
+    int ChunkCount();
+    unsigned char ReadChunkHeader(unsigned int chunk_id, int value);
     unsigned char Read(void* buffer, unsigned int size, unsigned int* transferred);
     unsigned char Write(const void* buffer, unsigned int size, unsigned int* transferred);
-
-    void Function55C6D0(unsigned int chunk_id, int value);
+    void RewindCurrentChunk();
+    unsigned char ReleaseCurrentChunk();
+    unsigned char CurrentChunkAtEnd();
 };
 
-static_assert(sizeof(W8Chunk) == 0x38, "W8Chunk_size_must_be_0x38");
+static_assert(sizeof(W8Chunk) == 0x48, "W8Chunk_size_must_be_0x48");
