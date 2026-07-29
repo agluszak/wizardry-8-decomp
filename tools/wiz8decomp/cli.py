@@ -5,7 +5,7 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -89,6 +89,21 @@ def _run_action(action: Any, *, force_json: bool = False) -> None:
             logger.exception("command failed")
         console.print(f"[red]error:[/red] {error}", highlight=False)
         raise typer.Exit(1) from error
+
+
+# commands.core historically registered this repository-only check through
+# machine-local Settings. Registering the corrected command last intentionally
+# replaces that adapter without weakening Settings validation for real tooling.
+@app.command("check-markers", hidden=True)
+def check_markers_command(
+    paths: Annotated[list[Path] | None, typer.Option(help="Files or directories to scan.")] = None,
+) -> None:
+    from .config import repository_root
+    from .markers import check_marker_hygiene
+
+    repo = repository_root()
+    roots = paths or [repo / "src", repo / "include"]
+    _run_action(lambda: check_marker_hygiene(list(roots), repo))
 
 
 def _tracked_copyrighted(settings: Any) -> list[str]:
