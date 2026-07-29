@@ -1,4 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/MonsterGenerator.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include <math.h>
 #include "wiz8/vector.h"
 #include "wiz8/sr_api.h"

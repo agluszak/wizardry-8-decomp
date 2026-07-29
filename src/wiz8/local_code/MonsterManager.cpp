@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_state_006598a4.h"
 #include "wiz8/sr_api.h"

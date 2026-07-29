@@ -1,4 +1,4 @@
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/sr_api.h"

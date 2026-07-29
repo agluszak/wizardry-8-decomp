@@ -1,9 +1,15 @@
 #ifndef WIZ8_GAMEPLAY_BOUNDARIES_H
 #define WIZ8_GAMEPLAY_BOUNDARIES_H
 
+/* Quarantine only: move declarations to their owning subsystem before
+   changing them. This header may shrink, but must not gain new APIs or become
+   a compatibility facade for extracted declarations. */
+
 #include <stddef.h>
 
 #include "wiz8/item_tables.h"
+#include "wiz8/character.h"
+#include "wiz8/geometry.h"
 #ifdef __cplusplus
 #include "surrender/srMath.h"
 #include "wiz8/startup_runtime_state.h"
@@ -31,11 +37,6 @@
 
 /* A world position as the packed records carry it: three floats, C-compatible,
    distinct from srVector3T<float> which only exists for C++ consumers. */
-typedef struct W8Position {
-    float x;
-    float y;
-    float z;
-} W8Position;
 
 /* The 0x3c-byte anchor a character carries and the recall effect restores.
    Only the leading point is read field by field; the rest travels as one
@@ -103,38 +104,6 @@ typedef struct W8CharacterResistance {
 
 /* The six realms a spell point pool is kept per are W8SpellRealm's, declared
    with the spell record in wiz8/gameplay_databases.h. */
-
-/* The eighteen conditions a character can be under, indexed directly into
-   W8Character::condition_turns. Only the ones a recovered body names are
-   spelled out; the rest keep their numbers. */
-enum {
-    /* Twenty entries: the per-character copier walks all twenty, while the
-       sweep that lifts everything stops at eighteen because the last two are
-       not the kind a rest clears. */
-    W8_CONDITION_COUNT = 20,
-    W8_CONDITION_CLEARABLE_COUNT = 18,
-    W8_CONDITION_FATIGUE_DOUBLED = 2,
-    W8_CONDITION_LOAD_EASED = 5,
-    /* Seven is the one condition that carries a second value alongside its
-       duration, which both copiers special-case. */
-    W8_CONDITION_WITH_ARGUMENT = 7,
-    W8_CONDITION_SPELLCASTING_BLOCKED = 8,
-    W8_CONDITION_HOSTILE = 0xd,
-    W8_CONDITION_EXHAUSTED = 0x11,
-    W8_CONDITION_EQUIPMENT_UNLOCKED = 18,
-    /* The duration that means "until lifted". */
-    W8_CONDITION_INDEFINITE = 9999
-};
-
-/* One enchantment slot. Both a character and a monster carry eight of them,
-   and both clear a slot by zeroing all three dwords at once. */
-typedef struct W8Enchantment {
-    int value_00;
-    int value_04;
-    /* 0x08: the field the topmost-slot scan reads and the one the fatigue path
-       consults on slot five. */
-    int value_08;
-} W8Enchantment;                          /* 0x0c */
 
 enum {
     W8_RESISTANCE_COUNT = 6,
@@ -410,120 +379,6 @@ typedef struct W8LevelInfo {
     unsigned char unknown_000[0x458];
 } W8LevelInfo;                           /* 0x458 */
 
-/* What a generator hangs off itself. Both are released through slot zero of
-   their own vtable with the deleting flag set, so both are polymorphic; nothing
-   else about either is established. */
-class W8MonsterGeneratorNode {
-public:
-    virtual ~W8MonsterGeneratorNode();
-};
-
-typedef struct W8MonsterGenerator {
-    unsigned int flags;                   /* 0x00: bit 2 is cleared on teardown */
-    unsigned char flag_04;                /* 0x04 */
-    unsigned char unknown_05;
-    unsigned short value_06;              /* 0x06 */
-    unsigned short value_08;              /* 0x08 */
-    unsigned char unknown_0a[2];
-    /* 0x0c..0x14: three dwords, saved individually and handed to
-       GenerateEncounter as a block. */
-    int state_0c;
-    int state_10;
-    int state_14;
-    W8MonsterGeneratorNode* node_18;      /* 0x18 */
-    int value_1c;                         /* 0x1c */
-    /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
-       gives the owning class and method - "MonGen::Reset() out of memory
-       allocating m_pTimer". */
-    W8MonsterGeneratorNode* m_pTimer;
-    char name[32];                        /* 0x24 */
-    unsigned char flag_44;                /* 0x44: written to the save after the name */
-
-#ifdef __cplusplus
-    /* Named by the assertion message above. Rearms the generator's timer,
-       creating it on first use, with a delay jittered around the configured
-       interval. */
-    void Reset();
-    /* Arms or disarms the generator, loading its marker on the way in. */
-    void SetActive(unsigned char active, W8MonsterGeneratorNode* node);
-    /* The save pair. Both are __thiscall in the image. */
-    void Save(int handle);
-    unsigned char Load(int handle);
-    /* Moves the generator, notifying the scene when it is armed. */
-    void SetState(const W8Position* state);
-    /* Loads the marker unconditionally, then applies the armed state. */
-    void Reload(int unused, unsigned char active);
-    ~W8MonsterGenerator();
-#endif
-} W8MonsterGenerator;
-
-/* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
-   and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
-   that loader establishes are named; the rest stays opaque. */
-/* The twelve formation bytes a group hands its members. Three dwords rather
-   than a byte block because 0x0050FF40 sets them one dword at a time from a
-   caller-supplied triple; what they mean is not established. */
-typedef struct W8MonsterFormation {
-    unsigned int value_00;
-    unsigned int value_04;
-    unsigned int value_08;
-} W8MonsterFormation;
-
-typedef struct W8MonsterGroup {
-    int group_id;                         /* 0x00: GroupIndex ID lookup key */
-    int member_count;                     /* 0x04: decremented when members leave */
-    struct W8IList* monsters;             /* 0x08: fresh IList per live group */
-    unsigned char unknown_0c[8];
-    int active_member_count;              /* 0x14: recomputed from member conditions */
-    int monster_id;                       /* 0x18 */
-    /* 0x1c: the mean of the live members' positions, recomputed on demand. */
-    W8Position centre;
-    unsigned char flag_28;                /* 0x28: cleared after the record loads */
-    /* 0x29: fInCombat, named by the MonsterGroup.cpp:492 assertion. Cleared
-       after the record loads and again when the group leaves combat. */
-    unsigned char flag_29;
-    /* 0x2a: at one the group is live regardless of the global gate at
-       0x00547510; anything else has to pass that gate as well. */
-    unsigned char flag_2a;
-    unsigned char unknown_2b;
-    /* 0x2c: selects which of the record's two name sets a member is displayed
-       under. GetMonsterName reads it and nothing recovered yet writes it. */
-    unsigned char flag_2c;
-    unsigned char unknown_2d[0x6e];
-    /* 0x9b: which member of the group the party currently has picked out,
-       by location id, and -1 when none - which is how the group loads. Cycling
-       through the group's targetable members reads it to know where it is and
-       writes back where it got to. */
-    int highlighted_member;
-    int value_9f;                         /* 0x9f: a member location id; RemoveMonster
-                                             compares it against the departing
-                                             member's before renotifying */
-    /* 0xa3: the group this one follows. Walking it is how a member request is
-       redirected to the group that actually leads the formation, and a zero
-       ends the walk. */
-    int leader_group_id;
-    /* 0xa7: up to four allied group ids. The notification pass walks all four
-       unconditionally and skips the zero entries, so the array is fixed-size
-       rather than terminated. */
-    int allied_group_ids[4];
-    /* 0xb7: copied verbatim onto every member's live Monster when the formation
-       is re-applied. Unaligned inside this packed record, which is why the copy
-       comes out as twelve byte moves rather than three dword ones. */
-    W8MonsterFormation formation;
-    unsigned char flag_c3;                /* 0xc3: gates the trailing notification */
-    /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
-       byte, and below 3 it clears flag_ca that older saves never wrote. */
-    unsigned int version;                 /* 0xc4 */
-    unsigned char unknown_c8[2];
-    unsigned char flag_ca;                /* 0xca */
-    int value_cb;                         /* 0xcb: cleared by the per-turn reset */
-    /* 0xcf: when this group was last budgeted. UpdateRandomEncounterBudget
-       advances it by the elapsed time and the culling pass measures against it. */
-    int spawn_time;
-    unsigned char flag_d3;                /* 0xd3: raised as flag_c3 is cleared */
-    unsigned char unknown_d4[0x57];
-} W8MonsterGroup;                         /* 0x12b */
-
 /* 3D Code\PList.cpp. Distinct from W8GrowableVector: no vptr, elements at +0x00
    and count at +0x08, accessed through free functions. */
 
@@ -536,6 +391,7 @@ typedef struct W8MonsterGroup {
    of its asserting body and has no ported consumer yet. */
 struct W8UpdateMeshSource;
 class W8Missile;
+struct W8MonsterGenerator;
 
 typedef struct W8World {
     /* 0x000 and 0x004: two more lists beside the props, each with its own
@@ -582,169 +438,6 @@ typedef struct W8NPCItemList {
     unsigned char flag_1a;                /* 0x1a: gates the teardown in LoadFactState */
 } W8NPCItemList;
 
-/* Local Code\Targeting.cpp. Field names and the BAD_INDEX sentinel come from
-   the canonical assertions at lines 3299, 3307, 3320 and 3328; offsets come
-   from the asserting bodies. iType 1 selects the character, 2 the monster, and
-   3 either, which is why the type-3 path additionally requires a backfire or
-   reflection flag. */
-/* The block a spell or attack records its target in. Only the leading three
-   fields are established; the two resets that build an empty one agree on the
-   extent and on which of them start at -1 rather than zero. */
-/* Where a spell or an attack comes from. Targeting.cpp's assertions name every
-   field here - iType, iChar, iMonsterID, fBackfire and fReflection - and the
-   three source kinds are a character, a monster and a point in the world; a
-   backfired or reflected spell keeps the original's iChar or iMonsterID while
-   reading as a point, which is what the two flags distinguish.
-
-   This was modelled twice before, once from the assertions and once from
-   SpellBackfires' stack frame, and they are one struct. */
-typedef struct W8TargetSource {
-    int iType;                            /* 0x00 */
-    int iChar;                            /* 0x04, -1 when empty */
-    int iMonsterID;                       /* 0x08, -1 when empty */
-    /* 0x0c: the world point, for a source that is a place rather than
-       somebody. Note that this is not where the combat slot keeps its own
-       point - that one has a group id at 0x0c and the point at 0x10 - so the
-       two blocks are related but not the same shape. */
-    W8Position point;
-    unsigned char unknown_18[3];
-    unsigned char fReflection;            /* 0x1b */
-    unsigned char fBackfire;              /* 0x1c */
-    unsigned char unknown_1d[0x17];
-} W8TargetSource;                         /* 0x34 */
-
-/* The shorter form a combatant carries inline, with one more field reset to
-   -1 and no room for the tail. */
-typedef struct W8CombatSlot {
-    /* The four ids are named by the assertions that bound each of them -
-       pTarget->iChar, pTarget->iMonsterID, pTarget->iGroupID and
-       pTarget->pPCItem - and they are the same four the source block carries
-       under the same names, one per target kind. */
-    int iType;                            /* 0x00 */
-    int iChar;                            /* 0x04, -1 when empty */
-    int iMonsterID;                       /* 0x08, -1 when empty */
-    int iGroupID;                         /* 0x0c, -1 when empty */
-    /* 0x10 through 0x1b means different things by kind, which is what the two
-       readings of it are: a place-kind target keeps the world point there,
-       while a character- or monster-kind target keeps a flag at 0x19 that
-       decides whether it is described by name or by its faction's word for it.
-       They are alternatives, not neighbours. */
-    union {
-        W8Position point;                 /* 0x10 */
-        struct {
-            unsigned char unknown_10[9];
-            unsigned char name_known;     /* 0x19 */
-            unsigned char unknown_1a[2];
-        } described;
-    };
-    /* 0x1c: the item aimed at, for the one kind that aims at one. */
-    W8ItemInstance* pPCItem;
-} W8CombatSlot;                           /* 0x20 */
-
-/* One party slot row. Only the three fields the reset touches are established,
-   plus the leading flag UtilityFunctions reads as slot-occupied. */
-typedef struct W8PartySlotRow {
-    unsigned char flag_00;               /* 0x000: slot occupied */
-    /* 0x001: the action this slot has chosen this round; -1 is none, and the
-       round reset lifts the ninth action specifically. */
-    int pending_action;
-    /* 0x005: the attack mode chosen per hand, indexed by the combat state's
-       current hand. The bound is a partition of the unknown run, not proven. */
-    int attack_mode[4];                  /* 0x005 */
-    unsigned char unknown_015[8];
-    /* 0x01d, 0x04d, 0x081, 0x0a9 and 0x0d1: five target blocks of the same
-       shape, one per targeting context. GetTargetBlockForContext picks between
-       them by context number, which is what shows them as one array of
-       alternatives rather than five unrelated fields; context two is answered
-       from a shared global instead of from the row. The first two are cleared
-       together when the character dies. */
-    struct W8CombatSlot target_out_of_combat;   /* 0x01d, context 0 */
-    unsigned char unknown_03d[0x10];
-    struct W8CombatSlot target_in_combat;       /* 0x04d, context 1 */
-    /* 0x06d and 0x071: what the slot is doing and the detail that qualifies
-       it, the character counterpart of the monster's 0x2e1 and 0x2e5. */
-    int action_kind;
-    int action_detail;
-    /* 0x075..0x0a0: the slot's pending spell target - what kind of target it
-       is, at what strength, a cleared word, and the eight-dword target block
-       the targeting code hands over. The strength is uiPowerLevel, which the
-       Magic.cpp:4287 assertion bounds at one through seven; eight is the
-       further "as high as the caster can afford" request that the affordable-
-       power walk resolves before the cost is taken. */
-    int spell_id;                        /* 0x075 */
-    int spell_power_level;               /* 0x079 */
-    int spell_power_extra;               /* 0x07d */
-    struct W8CombatSlot spell_target;    /* 0x081, context 3 */
-    /* 0x0a1..0x0cf: the item-use block, the same shape as the spell one above -
-       what is being used, which item, where it is aimed and where it came
-       from. */
-    int item_use_kind;                   /* 0x0a1 */
-    struct W8ItemInstance* item_in_use;  /* 0x0a5 */
-    struct W8CombatSlot item_target;     /* 0x0a9, context 4 */
-    /* 0x0c9: the item id recorded when the use was chosen. The use is checked
-       again by looking the item up from its origin and slot and comparing this
-       against what comes back, so it is what catches an item that moved. */
-    int item_id_0c9;
-    unsigned char item_origin;           /* 0x0cd */
-    unsigned short item_slot;            /* 0x0ce */
-    unsigned char flag_0d0;              /* 0x0d0: reset to 0xff */
-    struct W8CombatSlot target_context_5;   /* 0x0d1 */
-    unsigned char unknown_0f1[4];
-    /* 0x0f5: set while the slot is out of action. The party-wide sweeps skip a
-       slot that has it raised, and the targeting guard reads the same byte. */
-    unsigned char flag_0f5;
-    unsigned char unknown_0f6[4];
-    /* 0x0fa: the animation this slot is driving, -1 when none. Death tells it
-       to stop. */
-    int animation_0fa;
-    unsigned char unknown_0fe[6];
-    /* 0x104: the slot's action is the first kind, cached beside it. */
-    unsigned char action_is_kind_one;
-    unsigned char flag_105;              /* 0x105 */
-} W8PartySlotRow;                        /* 0x106 */
-
-
-/* The two-word block an action carries beside itself. A spell's holds the
-   power level and a spare word; an item use's holds the use kind and the item.
-   It is the party slot row's own pair in both cases rather than a copy, which
-   is why every reader takes a pointer to it. */
-typedef union W8ActionDetailBlock {
-    struct {
-        int power_level;
-        int unused;
-    } spell;
-    struct {
-        int kind;
-        W8ItemInstance* item;
-    } item_use;
-} W8ActionDetailBlock;                    /* 0x08 */
-
-/* The targeting contexts. Six of them name a block the slot carries; the
-   seventh, "current", is not a context at all but the request to work out
-   which of the others applies right now. */
-enum {
-    W8_TARGETING_CONTEXT_OUT_OF_COMBAT = 0,
-    W8_TARGETING_CONTEXT_IN_COMBAT = 1,
-    W8_TARGETING_CONTEXT_SHARED = 2,
-    W8_TARGETING_CONTEXT_SPELL = 3,
-    W8_TARGETING_CONTEXT_ITEM = 4,
-    W8_TARGETING_CONTEXT_FIVE = 5,
-    W8_TARGETING_CONTEXT_CURRENT = 6,
-    W8_TARGETING_CONTEXT_DIALOGUE = 7
-};
-
-/* The target kinds a combat slot's leading field takes. The four that name
-   something put it in their own field, which is what pairs each kind with the
-   field the aiming wrappers fill in. */
-enum {
-    W8_TARGET_KIND_CHARACTER = 1,
-    W8_TARGET_KIND_PARTY = 2,
-    W8_TARGET_KIND_MONSTER = 3,
-    W8_TARGET_KIND_GROUP = 4,
-    W8_TARGET_KIND_PLACE = 6,
-    W8_TARGET_KIND_ITEM = 7,
-    W8_TARGET_KIND_CHARACTER_INDIRECT = 9
-};
 
 
 typedef unsigned char W8FactionDisposition;
@@ -1022,7 +715,6 @@ extern W8FactionRuntimeRecord g_factions[21];
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 /* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
    established, and GetRandomCharacter treats it as a slot-occupied flag. */
-extern W8PartySlotRow* g_party_slot_rows;
 /* Flat table indexed by skill_id * 15 + profession. */
 extern int g_profession_skill_availability[0x29][15];
 extern int g_profession_bonus_skills[15];
@@ -1162,379 +854,6 @@ extern unsigned int g_shared_item_pool_count;
    elements, which is why a failed lookup returns -1 rather than null. */
 
 
-unsigned int GetMonsterGroupIndexByID(
-    int caller_line,
-    const char* caller_file,
-    int group_id,
-    unsigned char assert_on_failure);
-W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
-void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
-
-typedef struct W8Monster W8Monster;
-struct W8AnimObj;
-
-#ifdef __cplusplus
-enum { W8_MONSTER_CYCLE_COUNT = 27 };
-
-/* Partial layout of the engine object referenced by cycle 18. The Monster
-   wrappers at 0x004C5780..0x004C5AA0 establish the timestamp, animation state,
-   pending cycle, and scale fields below. */
-/* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
-   by the setter at 0x004C5AD0. That setter takes the block by value and VC6
-   copies it with the interleaved two-register rotation it uses for a struct
-   assignment, rather than the sequential load/store pairs four separate scalar
-   parameters would emit - which is what makes this one object and not four.
-   Nothing observed so far types its contents. */
-typedef struct W8MonsterRuntimeBlock4C {
-    unsigned int values[4];
-} W8MonsterRuntimeBlock4C;                  /* 0x10 */
-
-struct W8MonsterCycleRuntime {
-    unsigned char unknown_000[0x4c];
-    W8MonsterRuntimeBlock4C block_04c;      /* 0x04c */
-    unsigned char unknown_05c[0xa];
-    unsigned short value_066;               /* 0x066: cleared when a cycle starts */
-    unsigned int animation_timestamp;       /* 0x068 */
-    unsigned char unknown_06c;
-    unsigned char animating;                /* 0x06d */
-    unsigned char unknown_06e[3];
-    signed char behaviour;                   /* 0x071: asserted BEHAVIOUR_FIRST..LAST */
-    unsigned char unknown_072[0x32];
-    /* 0x0a4 is copied straight into pending_cycle when nothing is pending, so
-       it is a cycle number and carries pending_cycle's own signedness - the
-       fallback the setter at 0x004C6C00 applies. */
-    signed char value_0a4;                   /* 0x0a4 */
-    unsigned char unknown_0a5;
-    unsigned char value_0a6;                 /* 0x0a6: written by that same setter */
-    signed char pending_cycle;               /* 0x0a7 */
-    unsigned char unknown_0a8[0x514];
-    unsigned char flag_5bc;                 /* 0x5bc */
-    unsigned char unknown_5bd[0x33];
-    float scale;                             /* 0x5f0 */
-    float minimum_scale;                     /* 0x5f4 */
-    float maximum_scale;                     /* 0x5f8 */
-};
-
-struct W8MonsterCycle {
-    union {
-        unsigned int flags_00;              /* 0x00: cycle 19 bit 7 set by 0x004e67a0 */
-        struct {
-            unsigned char flag_00;
-            unsigned char flag_01;
-            unsigned char state_02;         /* 0x02: cycle 17 state saved across activation */
-            unsigned char flag_03;
-        } bytes;
-    };
-    union {
-        unsigned int num_subs_04;           /* 0x04: IsCycleSupported tests the complete field */
-        struct {
-            unsigned char ubNumSubs;        /* 0x04: GetNumSubsPerCycle returns the low byte */
-            unsigned char unknown_05[3];
-        } count;
-    };
-    union {
-        unsigned int value_08;              /* 0x08: copied by 0x004c5870 */
-        unsigned int location_id_08;        /* 0x08: consumed as a location id by 0x004c6240 */
-        struct {
-            unsigned char unknown_08;
-            unsigned char unknown_09;       /* 0x09: cleared for cycle 22 by 0x004e6130 */
-            unsigned char unknown_0a[2];
-        } bytes_08;
-    };
-    union {
-        W8MonsterCycleRuntime* runtime;      /* 0x0c: cycle 18's shared engine state */
-        W8AnimObj** animation_objects;       /* 0x0c: per-subcycle AnimObj table */
-    };
-};                                          /* 0x10 */
-
-struct W8MonsterPolymorphicSubobject18 {
-    /* 0x00, which is Monster +0x18: the additional vftable at 0x005ED218,
-       five slots. The root-relative placement is proven; whether this
-       polymorphic subobject is a base or an embedded member is not. */
-    void* vptr;
-    unsigned char unknown_04[8];
-    unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
-    unsigned char unknown_10[0x4c];
-    int value_5c;                           /* 0x5c: Monster +0x74 */
-    unsigned char unknown_60[0x20];
-    signed char animation_index_80;          /* 0x80: Monster +0x98 */
-    unsigned char unknown_81[3];
-    /* 0x84, which is Monster +0x9c: the monster's own extent. Every range test
-       subtracts it from the centre-to-centre distance, so it is a radius
-       rather than a diameter or a bounding box. */
-    float radius_84;
-    unsigned char state_a0;                 /* 0x88: Monster +0xa0 */
-    unsigned char unknown_89[3];
-    signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
-    signed char current_subcycle_8d;         /* 0x8d: Monster +0xa5 */
-    unsigned char unknown_8e[6];
-
-    srVector3T<float> GetPosition();
-
-    /* Six methods the Monster.cpp forwarder family reaches on this subobject.
-       Each forwarder derives the receiver with `lea ecx, [monster + 0x18]`,
-       which is what proves they are this object's methods and not the
-       monster's; only the offset is proved that way, so the names stay
-       address-qualified wherever the body does not say what a member means.
-
-       These bodies read members at 0x25, 0x68, 0xc4, 0xd0, 0xf4 and 0x120,
-       past the 0x94 this model covers - and Monster's cycle array is placed at
-       Monster +0xac, which is subobject +0x94. Either this object is larger
-       than the extent below and the cycle array lies inside it, or the two
-       placements do not both hold. 0x120 is not on a cycle boundary, so
-       neither reading is settled here. The disagreement is recorded rather
-       than resolved: declaring a method claims nothing about the extent, and
-       the static_assert below still pins what is proved. */
-    void SetValue120(float value);            /* 0x00453C50 */
-    float GetValue120();                      /* 0x00453C60 */
-    unsigned char Function452630(const W8Position* position);  /* 0x00452630 */
-    void Function453690(void* argument);      /* 0x00453690 */
-    /* Reaches the object at 0x68 and raises or clears its own flag at 0x38. */
-    void SetObject68Flag38(char value);       /* 0x004537C0 */
-    /* Two more that take a position and read the three-dword block at 0x100.
-       Which one 0x004C6240 picks is the whole of what its flag argument
-       decides; nothing in either body says how they differ. */
-    void Function454040(const W8Position* position);  /* 0x00454040 */
-    void Function453F30(const W8Position* position);  /* 0x00453F30 */
-    /* Writes the byte at 0x25 and, when it is cleared, releases the object at
-       0x68; when it is set, zeroes the member at 0xf4 instead. */
-    void SetFlag25(char value);               /* 0x004531F0 */
-};                                          /* 0x94: through the cycle array at Monster +0xac */
-
-/* Partial source model of the Monster class (0x628 bytes, vtable 0x005ed200,
-   constructor 0x004bea20). Only members proven by recovered consumers are
-   modelled here; unresolved layout remains original-binary analysis. */
-struct W8Monster {
-    /* 0x000: the root vtable at 0x005ED200, six slots. Held as a field
-       rather than declared through a virtual member, because giving this class
-       virtuals would have VC6 synthesize its own vptr. The additional vptr at
-       +0x18 cannot be expressed through inheritance or composition until its
-       lifecycle role is recovered from the constructor family. */
-    void* vptr;
-    unsigned char unknown_004[0x0c];
-    void* linked_objects_010;                /* 0x010: collection traversed by 0x004c5870 */
-    unsigned char unknown_014[4];
-    W8MonsterPolymorphicSubobject18 polymorphic_subobject_18; /* 0x018: proven placement */
-    W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
-    /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
-       the array above. Nothing proves they are the same type, so they stay
-       opaque rather than borrowing its name. */
-    unsigned char subobject_array_25c[0x24];    /* 0x25c */
-    W8MonsterFormation formation;               /* 0x280: from the owning group */
-    unsigned char subobject_array_28c[0x180];   /* 0x28c */
-    unsigned char subobject_array_40c[0x1b0];   /* 0x40c */
-    unsigned char tail_fields_5bc[0x6c];        /* 0x5bc: fields seen through 0x624 */
-
-    unsigned char GetNumSubsPerCycle(signed char bCycle);
-    void SubmitCycleAnimValue004BF970(signed char cycle);
-    /* 0x004C4660. A method, not the free function an earlier reading assumed:
-       it takes its receiver in ECX and IsDying calls it without reloading ECX
-       at all, relying on `this` already being there. The query selector is
-       bounded at nine by the body's own `ja` against the jump table. */
-    int Query(int query);
-    void SetRuntimeValueA6(unsigned char value);   /* 0x004C6C00 */
-    unsigned char IsDying();
-    unsigned char Function4C2CF0(signed char cycle);
-    void Function4C50F0();
-    int Function4C6A50();
-    void Function4C6990(int value);
-};
-
-/* The constructor at 0x004BEA20 initialises through 0x624 and its sole caller
-   allocates this much, so the extent is proven even though most of it is not.
-   Asserting it here is what stops a field edit from silently shortening the
-   object. */
-static_assert(sizeof(W8Monster) == 0x628, "W8Monster_size_must_be_0x628");
-
-static_assert(sizeof(W8MonsterCycle) == 0x10, "W8MonsterCycle_size_must_be_0x10");
-static_assert(sizeof(W8MonsterPolymorphicSubobject18) == 0x94, "W8MonsterPolymorphicSubobject18_size_must_be_0x94");
-#endif
-
-/* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
-   ClearEffectSlot consumes a record whenever its leading active byte is set. */
-typedef struct W8MonsterCombatEntry {
-    signed char active;
-    unsigned char unknown_01[0x10];
-} W8MonsterCombatEntry;                    /* 0x11 */
-
-#pragma pack(push, 1)
-typedef struct W8MonsterCombatState {
-    /* 0x000: the phase of the round this monster next acts on, zero when it
-       has finished acting. */
-    unsigned int phase;
-    unsigned char active;                   /* 0x004 */
-    unsigned char unknown_005[4];
-    /* 0x009: how many attacks it gets this round, which is what divides the
-       remaining phases between them. */
-    int attacks_per_round;
-    unsigned char unknown_00d[9];
-    /* 0x016: the queue of actions the monster's AI has decided on, one 0x30
-       byte record each. The AI owns the list and destroys it outright. */
-    W8PList* pending_actions;
-    unsigned char unknown_01a[0x24];
-    W8MonsterCombatEntry entries_3e[9];     /* 0x03e .. 0x0d7 */
-    W8MonsterCombatEntry entries_d7[6];     /* 0x0d7 .. 0x13d */
-    unsigned char unknown_13d[0xf];
-    int value_14c;                          /* 0x14c */
-    /* 0x150: the monster's turn has been set up already, so the setup runs
-       once per turn however often it is asked for. */
-    unsigned char turn_started;
-    unsigned char unknown_151[2];
-} W8MonsterCombatState;                    /* 0x153 */
-#pragma pack(pop)
-
-#pragma pack(push, 1)
-/* One initialization unit inside W8MonsterInfo. The creator clears all 0x67
-   bytes in one constant-sized operation; later consumers independently name
-   the damage reduction and per-attribute adjustments inside it. */
-typedef struct W8MonsterRuntimeBlock1DB {
-    unsigned char unknown_00[6];
-    signed char damage_reduction;              /* +0x06, W8MonsterInfo +0x1e1 */
-    unsigned char unknown_07[5];
-    signed char attribute_adjustments[7];      /* +0x0c, W8MonsterInfo +0x1e7 */
-    unsigned char unknown_13[0x54];
-} W8MonsterRuntimeBlock1DB;                    /* 0x67 */
-
-typedef struct W8MonsterInfo {
-    int location_id;                      /* 0x00 */
-    int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
-    unsigned int monster_species;         /* 0x08 */
-    W8Monster* monster;                   /* 0x0c: live engine object, if any */
-    /* 0x10: pCombat, named by the MonsterManager.cpp:672 assertion
-       "pMonsterInfo->pCombat != NULL" over the malloc 0x004e4390 stores here.
-       The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
-       byte, and 0x004e4500 frees it and nulls the field again. */
-    W8MonsterCombatState* pCombat;
-    unsigned char flag_14;                /* 0x14: live-entry gate in 0x004e5c00 */
-    /* 0x15: fInCombat, named by the MonsterManager.cpp:666 and :712 assertions
-       "!pMonsterInfo->fInCombat" and "pMonsterInfo->fInCombat", which bracket
-       the pair that allocates and releases pCombat. */
-    unsigned char fInCombat;
-    unsigned char flag_16;                /* 0x16: copied from the group's +0x2a */
-    /* 0x17: the spawn position, unaligned. 0x004e3930 copies the caller's three
-       floats here and hands the same triple to 0x004be5c0, whose result it
-       stores next, and to 0x0042e620 with the new entry's id. */
-    srVector3T<float> position_17;
-    float derived_23;                     /* 0x23: 0x004be5c0 over position_17 */
-    int hp_max;                           /* 0x27: uiHPMax in the Targeting.cpp assertion */
-    int hp_current;                       /* 0x2b: reduced by canonical damage consumers */
-    int runtime_stat_max_2f;              /* 0x02f: initialized from MONSTERS.DBS dice */
-    int runtime_stat_current_33;          /* 0x033: initialized to the same roll */
-    unsigned char unknown_37[0x20];
-    /* 0x057: the monster's copy of the character condition array, entry for
-       entry - condition two doubles its action fatigue at 0x05f, eight blocks
-       its spellcasting at 0x077, thirteen makes it hostile at 0x08b, fifteen
-       at 0x093 and seventeen is exhaustion at 0x09b. */
-    int condition_turns[W8_CONDITION_COUNT];   /* 0x057 */
-    W8Enchantment enchantments[8];             /* 0x0a7 */
-    int value_107;                        /* 0x107: set to 0x12 when an entry deactivates */
-    /* 0x10b: the argument a condition carries when a monster's conditions are
-       copied onto a character. */
-    int condition_argument;
-    unsigned char unknown_10f[0xcc];
-    W8MonsterRuntimeBlock1DB runtime_block_1db; /* 0x1db */
-    int runtime_value_242;                /* 0x242: derived from runtime_stat_current_33 */
-    unsigned char unknown_246;
-    unsigned char converted_attributes_247[5]; /* 0x247: values clamped to 1..125 */
-    unsigned char unknown_24c;
-    unsigned char flag_24d;                 /* 0x24d: cycle-2 eligibility gate */
-    unsigned char motionless;               /* 0x24e: fMotionless in the demo diagnostic */
-    float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
-    unsigned char flag_253;                 /* 0x253: set by 0x004e5c00 after processing */
-    unsigned char unknown_254;
-    unsigned char flag_255;                 /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
-    unsigned char unknown_256[0x34];
-    /* 0x28a: at one the monster counts as a live threat for the group-level
-       sight query, on top of being alive and not too far gone. */
-    unsigned char threat_28a;
-    unsigned char unknown_28b[3];
-    int value_28e;                          /* 0x28e: cleared by the per-turn reset */
-    unsigned char unknown_292[0x24];
-    /* 0x2b6: what this monster can see of other monsters, one heap record per
-       other monster. The two release paths own it: one drops every record
-       about a departing monster, the other empties and destroys the whole
-       list. */
-    W8PList* mon_to_mon_visibility;
-    /* 0x2ba: passed by address to 0x00536170 when combat begins; extent runs to
-       the next established field, so the array bound is a partition of the
-       unknown run rather than a proven size. */
-    W8CombatSlot combat_slot_2ba;
-    int value_2da;                          /* 0x2da: nonzero gate in 0x004e5c00 */
-    /* 0x2de: the monster is under the effect the magic code clears by name;
-       clearing it posts a notice and drops the visual. */
-    unsigned char effect_2de;
-    unsigned char unknown_2df[2];
-    /* 0x2e1: the action the monster is taking, -1 through 9. Its whole domain
-       is enumerated by MonsterActionFatigueCost, whose error text names it. */
-    int action_kind;
-    /* 0x2e5: qualifies action kind zero; three costs markedly more. */
-    int action_detail;
-    unsigned char unknown_2e9[8];
-    int runtime_value_2f1;                /* 0x2f1: released when an entry is destroyed */
-    /* 0x2f5: the monster's own contribution to the spell-point budget its
-       database record sets a base for; the power-level chooser adds the two
-       and reports a DATA ERROR when the base is zero. */
-    int sp_budget_bonus;
-    unsigned char unknown_2f9[4];
-    int control_state;                      /* 0x2fd: group-recomputed control state */
-    unsigned char unknown_301[0x37];
-    int runtime_values_338[3];              /* 0x338: creator clears as one unit */
-    int value_344;                          /* 0x344: creator initializes to -1 */
-    unsigned char unknown_348[4];
-    /* 0x34c: a combat-entry state byte 0x004e4390 raises to 2 when it is still
-       zero, stamping the global at 0x00686a48 into value_354 at the same time. */
-    unsigned char state_34c;
-    unsigned char unknown_34d[7];
-    int value_354;                          /* 0x354 */
-    unsigned char unknown_358[0xcd];
-} W8MonsterInfo;                          /* 0x425 */
-#pragma pack(pop)
-
-static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");
-static_assert(sizeof(W8MonsterRuntimeBlock1DB) == 0x67, "W8MonsterRuntimeBlock1DB_size_must_be_0x67");
-
-
-W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
-void Function4E4600(W8MonsterInfo* monster_info);
-void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
-W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
-unsigned int MonsterGetIndexByLocationID(
-    int caller_line,
-    const char* caller_file,
-    int location_id,
-    unsigned char assert_on_failure);
-W8MonsterInfo* MonsterInfoFromID(
-    int caller_line,
-    const char* caller_file,
-    int location_id,
-    unsigned char assert_on_failure);
-W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
-W8Monster* GetMonsterByLocationID(int location_id);
-float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
-void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
-W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
-int GetMonsterQuadrant(W8MonsterInfo* monster_info);
-int GetQuadrantForPosition(srVector3T<float> position);
-int Function4E5B50(unsigned int monster_species);
-void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup);
-void ConvertMonsterAttributes(W8MonsterInfo* monster_info);
-W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species);
-void ResetLivingMonstersAfterCombat(void);
-void DestroyUngroupedMonsters(void);
-void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state);
-void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless);
-void MoveMonsterToLiveList(W8MonsterInfo* monster_info);
-W8MonsterInfo* FindNearestMonsterInfo(
-    const srVector3T<float>* position,
-    double maximum_distance);
-void InitializeMonsterRuntimeStats(void);
-float CalculateMonsterScale(W8MonsterInfo* monster_info);
-void TryStartMonsterCycle2(
-    W8MonsterInfo* monster_info,
-    W8Monster* monster,
-    int query_state);
-unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
-unsigned char AnyMonsterDying(void);
 
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base);
 int RollDice(const W8Dice* dice);
@@ -1639,8 +958,6 @@ const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 void WorldUpdateProps(W8World* world);
-unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
-unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
                        signed char excluded_faction);
 /* 0x0054A8A0, reviewed in evidence/reviewed/wiz8/functions.csv. */
@@ -1655,10 +972,7 @@ W8World* GetWorld659AB8(void);                                           /* 0x00
 void MarkRendererReady(void);                                            /* 0x00451010 */
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
-W8MonsterGenerator* FindMonGenByName(const char* name);
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
-W8MonsterGroup* FindFirstMonsterByID(int monster_id);
-W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
 void GetOriginOfCharacterItem(
     int character_index,
     void* item,
