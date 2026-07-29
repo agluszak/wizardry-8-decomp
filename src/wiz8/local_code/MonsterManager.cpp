@@ -14,15 +14,15 @@
 
 int FindFirstGrCycleByName(const char* name);
 unsigned char GetRenderOptionState(int index);
-unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
-unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
-void MonsterSetPendingCycle(W8Monster* monster, int cycle);
-void Function4C5B10(W8Monster* monster, int value);
-int MonsterQuery(W8Monster* monster, int query);
-void MonsterForward4537E0(W8Monster* monster);
-void MonsterSetCycle(W8Monster* monster, int cycle);
-void MonsterSetBehaviour(W8Monster* monster, int behavior);
-void MonsterSetSubCycle(W8Monster* monster, int subcycle);
+unsigned char MonsterSetAnimating(W8MonsterRep* monster, unsigned char animating);
+unsigned char MonsterIsCycleSupported(W8MonsterRep* monster, int cycle);
+void MonsterSetPendingCycle(W8MonsterRep* monster, int cycle);
+void Function4C5B10(W8MonsterRep* monster, int value);
+int MonsterQuery(W8MonsterRep* monster, int query);
+void MonsterForward4537E0(W8MonsterRep* monster);
+void MonsterSetCycle(W8MonsterRep* monster, int cycle);
+void MonsterSetBehaviour(W8MonsterRep* monster, int behavior);
+void MonsterSetSubCycle(W8MonsterRep* monster, int subcycle);
 unsigned char RemoveMonster(
     unsigned int monster_list_index,
     unsigned char destroy_monster);
@@ -36,22 +36,22 @@ void ClearEffectSlot(W8MonsterInfo* monster_info, W8MonsterCombatEntry* entry);
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
 void Function546E70(void);
 void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
-void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
+void MonsterSetRuntimeFlag5BC(W8MonsterRep* monster, unsigned char flag);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
 extern int g_status_count_6874be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
-void Function4ACF90(W8Monster* monster);
+void Function4ACF90(W8MonsterRep* monster);
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
 /* Writes the monster's world position through an out-parameter; __cdecl, since
    0x004C5750 ends in a bare `ret`. */
-void Function4C5750(W8Monster* monster, srVector3T<float>* position);
+void Function4C5750(W8MonsterRep* monster, srVector3T<float>* position);
 void RefreshAllSight(void);
 void SetTargetToMonster(int location_id, int value);
 void Function593330(void);
 extern int g_active_monster_count_683fa1;
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
-void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
-void MonsterForward4A84A0(W8Monster* monster);
+void MonsterSetRuntimeBehaviour(W8MonsterRep* monster, signed char behaviour);
+void MonsterForward4A84A0(W8MonsterRep* monster);
 float Function4BE5C0(srVector3T<float>* position);
 int Function52A780(int first, int second);
 
@@ -147,19 +147,19 @@ W8MonsterInfo* CreateMonsterInfo(
    rather than out of the monster database. */
 void Function5248D0(W8MonsterInfo* monster_info);
 void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
-void Function4C59C0(W8Monster* monster, W8World* world);
-W8World* GetWorld(W8Monster* monster);
+void Function4C59C0(W8MonsterRep* monster, W8World* world);
+W8World* GetWorld(W8MonsterRep* monster);
 void Function46E5A0(W8World* world);
-void Function4C5860(W8Monster* monster);
+void Function4C5860(W8MonsterRep* monster);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void __stdcall Function42E650(unsigned short location_id);
 void Function509EA0(int value);
-void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
-float MonsterGetScale(W8Monster* monster);
-void MonsterSetScale(W8Monster* monster, float scale);
-void Function4C5810(W8Monster* monster);
-void Function4C5ED0(W8Monster* monster);
+void MonsterGetScaleRange(W8MonsterRep* monster, float* minimum, float* maximum);
+float MonsterGetScale(W8MonsterRep* monster);
+void MonsterSetScale(W8MonsterRep* monster, float scale);
+void Function4C5810(W8MonsterRep* monster);
+void Function4C5ED0(W8MonsterRep* monster);
 void __cdecl Function58AC00(int channel, void* message, int first, int second,
                             int flag);
 void RequestRedraw(int mask);
@@ -434,7 +434,7 @@ W8MonsterRecord* GetMonsterDataByLocationID(int location_id)
 }
 
 // FUNCTION: WIZ8 0x004e5950
-W8Monster* GetMonsterByLocationID(int location_id)
+W8MonsterRep* GetMonsterByLocationID(int location_id)
 {
     W8MonsterInfo* monster_info;
     unsigned int index;
@@ -479,7 +479,7 @@ float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004e5a50
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
 {
-    W8Monster* monster = monster_info->monster;
+    W8MonsterRep* monster = monster_info->monster;
 
     if (monster != 0) {
         int count = monster->Function4C6A50();
@@ -682,7 +682,7 @@ void DestroyUngroupedMonsters(void)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->monster_group_id == 0) {
-            W8Monster* monster = monster_info->monster;
+            W8MonsterRep* monster = monster_info->monster;
 
             if (monster != 0) {
                 unsigned int flags = monster->m_cycles[19].flags_00;
@@ -745,7 +745,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
 void MonsterInfoSetMotionless(W8MonsterInfo* monster_info, unsigned char motionless)
 {
     unsigned char previous = monster_info->motionless;
-    W8Monster* monster = monster_info->monster;
+    W8MonsterRep* monster = monster_info->monster;
 
     monster_info->motionless = motionless;
     if (motionless == 0) {
@@ -938,7 +938,7 @@ float CalculateMonsterScale(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004e67a0
 void TryStartMonsterCycle2(
     W8MonsterInfo* monster_info,
-    W8Monster* monster,
+    W8MonsterRep* monster,
     int query_state)
 {
     if (monster_info->flag_14 != 0 &&
@@ -1361,7 +1361,7 @@ void ToggleCombatMode(void)
 // FUNCTION: WIZ8 0x004e4db0
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
 {
-    W8Monster* monster = monster_info->monster;
+    W8MonsterRep* monster = monster_info->monster;
     unsigned char pending;
     const char* detail;
     int line;

@@ -335,7 +335,7 @@ void CullExpiredEncounters(void)
 
         if (span < static_cast<float>(
                        static_cast<unsigned int>(g_game_time - group->spawn_time))) {
-            W8Monster* monster = GetMonsterByLocationID(group->value_9f);
+            W8MonsterRep* monster = GetMonsterByLocationID(group->value_9f);
 
             position = monster->Subobject18().GetPosition();
             float dx = position.x - party.x;

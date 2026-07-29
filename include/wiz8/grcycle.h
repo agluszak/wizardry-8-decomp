@@ -61,19 +61,21 @@ public:
 
 class W8VectorElement005ECED4;
 class W8VectorElement005EC294;
+class W8GrCycleShakeEvent;
 class stGroundShadow;
 
 class W8GrCycle :
     public W8GrCycleBase004B6900,
     public W8GrCycleBase00451EC0 {
 public:
+    W8GrCycle();
     virtual ~W8GrCycle() override;
     virtual void vslot1();
     virtual void vslot2();
     virtual void vslot3();
     virtual void vslot4();
     virtual signed char vslot5() = 0;
-    virtual void vslot6() = 0;
+    virtual unsigned char IsCycleSupported(signed char cycle) = 0;
     virtual void vslot7() = 0;
     virtual void vslot8() = 0;
     virtual W8GrCycleTarget* vslot9() = 0;
@@ -82,7 +84,7 @@ public:
     virtual void vslot12() = 0;
     virtual void vslot13() = 0;
     virtual void vslot14();
-    virtual void vslot15() = 0;
+    virtual void SubmitCurrentAnimEntry004C3F00() = 0;
 
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
@@ -97,11 +99,24 @@ public:
     void SubmitTargetValue004A84A0();
 
 private:
-    unsigned char unknown_1a8[0x4];
+    int unknown_1a8;
     W8GrowableVector<W8VectorElement005EC294*>* m_plsLights; /* 0x1ac */
     W8GrowableVector<W8VectorElement005ECED4*>* m_vector_1b0; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
-    unsigned char unknown_1b5[0x1b];
+    unsigned char unknown_1b5;
+    unsigned char unknown_1b6[2];
+    W8GrowableVector<W8GrCycleShakeEvent*>* m_shake_events; /* 0x1b8 */
+    unsigned char unknown_1bc;
+    unsigned char enabled_1bd;
+    unsigned char unknown_1be;
+    unsigned char unknown_1bf;
+    unsigned char unknown_1c0[0xc];
+    float scale_1cc;
     stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
-    unsigned char unknown_1d4[4];
-};                                      /* modeled minimum 0x1d8 */
+    int unknown_1d4;
+};                                      /* 0x1d8 */
+
+static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
+
+unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle);
+unsigned char UnregisterGrCycle(W8GrCycle* cycle);

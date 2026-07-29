@@ -429,9 +429,10 @@ The vtable has 14 slots. Seven slot targets missed by initial auto-analysis were
 `0x005D6E70`. Only the constructor, destructor, and compiler-generated deleting destructor are
 named so far; the other virtual methods remain unnamed until their behavior is reviewed.
 
-## `Monster`
+## `W8Monster` and `W8MonsterRep`
 
-The second reviewed class is the engine-level `Monster` object:
+The object constructed at `0x004BEA20` is `W8MonsterRep`, the animation object stored in
+`W8Monster::m_pRep`:
 
 * `0x004BEA20` constructs three adjacent `0x1B0`-byte subobject arrays at offsets `0xAC`,
   `0x25C`, and `0x40C`, initializes fields through offset `0x624`, and finally writes vtable
@@ -443,16 +444,18 @@ The second reviewed class is the engine-level `Monster` object:
 * virtual slots 5, 12, and 26 directly reference
   `C:\Projects\Wizardry 8\Engine Code\Monster.cpp`.
 
-The reviewed minimum extent is `0x628`, based on constructor accesses through offset `0x624`.
+Its reviewed minimum extent is `0x628`, based on constructor accesses through offset `0x624`.
 The three repeated regions contain 27 adjacent `0x10`-byte elements each, but their element type
 and the remaining fields are intentionally unnamed pending use-site review. The vtable has 31
 slots; the reviewed Ghidra project defines the slot targets, but no behavioral method names are
 assigned from slot position alone.
 
-The binary also proves a five-slot polymorphic subobject at `Monster+0x18`, using vftable
-`0x005ED218`. Its source role is unresolved: neither base-class lifecycle nor embedded-member
-lifecycle has been established. The source therefore names it `W8MonsterPolymorphicSubobject18`
-and does not encode inheritance or composition in the type name.
+The concrete world object is the `0x348`-byte `W8Monster : W8GrCycle` constructed at
+`0x004BFB00` and destroyed at `0x004C0170`. Its `m_pRep` member points to the separately allocated
+`W8MonsterRep`. The five-slot vftable `0x005ED218` is the inherited secondary GrCycle base at
+`W8Monster+0x18`; it is not part of `W8MonsterRep`. The positional
+`W8MonsterPolymorphicSubobject18` view remains useful for forwarded field accesses inside
+`W8MonsterRep`, but it is neither a base nor an embedded polymorphic object.
 
 ## `GrCycle`
 
@@ -471,12 +474,28 @@ pointer-sized address, into a separate embedded container at `0x004A63FC` and `0
 Treating the following eight one-entry/container vtables as secondary slots repeated the same
 maximal-pointer-run error that originally joined the primary and secondary tables.
 
+The `+0x18` table is a base vtable, not a polymorphic member. Its first slot, `0x004A9100`,
+subtracts `0x18` from `this` and jumps to the complete object's scalar-deleting destructor at
+`0x004A5F00`. The constructor first calls `0x00451EC0` on `this+0x18`, then replaces that
+subobject's `0x005EC2D0` vptr with `0x005ECEB8`; the complete destructor calls `0x00452120` on
+the same `this+0x18` subobject after the GrCycle fields are released. Those are the VC6 multiple-
+inheritance constructor, adjustor-thunk, and reverse-destruction patterns. The concrete
+`W8Monster` table repeats the proof: `0x004CAE30` subtracts `0x18` and jumps to `0x004BFDE0`.
+
 The constructor also settles the storage boundary. The base constructed by `0x004B6900` occupies
 `0x18` bytes. The base constructed by `0x00451EC0` at `+0x18` occupies `0x190` bytes, because the
 first derived initialization is at `+0x1A8`; `GrCycle` then owns the final `0x30` bytes. No checked
 source supplies either base name, so the public header uses constructor-address-qualified names
 rather than semantic guesses. Primary slots 4 (`0x004A7470`) and 11 (`0x004A7E10`) directly
 reference `C:\Projects\Wizardry 8\Engine Code\GrCycle.cpp`.
+
+The concrete `W8Monster` GrCycle is now modelled directly. The GrCycle factory allocates `0x348`
+bytes and calls its default constructor at `0x004BFB00`; the copy constructor at `0x004BFE00`
+and complete destructor at `0x004C0170` install primary vtable `0x005ED22C` and the inherited
+secondary vtable `0x005ED218`. Its members are a `W8MonsterRep*`, byte and integer growable
+vectors, three timer objects, and the SurRender-heap vector. Its destructor releases those and
+then runs the `GrCycle` base destructor. Primary slot zero at `0x004BFDE0` is compiler-generated
+and is represented only by a `SYNTHETIC` marker.
 
 Inspect the reviewed model and export its disposable index with:
 

@@ -4,6 +4,7 @@
 #include "wiz8/ground_shadow.h"
 #include "wiz8/mesh_model.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
@@ -18,6 +19,111 @@
    is what the canonical virtual call uses. */
 #define BEHAVIOUR_FIRST 1
 #define BEHAVIOUR_LAST  3
+
+// VTABLE: WIZ8 0x005ece78 W8GrCycle
+// VTABLE: WIZ8 0x005eceb8 W8GrCycleBase00451EC0
+// class W8GrCycle
+
+// SYNTHETIC: WIZ8 0x004a5f00
+// W8GrCycle::`scalar deleting destructor'
+
+/* The event object owns a timer at +0x18. Its implicit destructor is the
+   eight-byte adjust-and-tail-jump body emitted at 0x004AE070. */
+class W8VectorElement005ECED4 {
+public:
+    unsigned char unknown_00[0x18];
+    W8Timer005EC0A4 timer_18;
+};
+
+// SYNTHETIC: WIZ8 0x004ae070
+// W8VectorElement005ECED4::~W8VectorElement005ECED4
+
+class W8GrCycleShakeOwner : public srClass {
+public:
+    unsigned char unknown_004[0x180];
+    int state_184;
+    unsigned char unknown_188[4];
+    void* node_18c;
+    unsigned char active_190;
+};
+
+class W8GrCycleShakeEvent {
+public:
+    unsigned char unknown_00[8];
+    W8GrCycleShakeOwner* owner_08;
+};
+
+extern unsigned char UnregisterGrCycle(W8GrCycle* cycle);
+extern void PrepareGrCycleEvents004AE270(
+    W8GrowableVector<W8VectorElement005ECED4*>* events);
+extern void ActivateGrCycleShakeOwner0049ACD0(
+    W8GrCycleShakeOwner* owner, int active);
+
+// FUNCTION: WIZ8 0x004a5e50
+W8GrCycle::W8GrCycle()
+{
+    unknown_1a8 = 0;
+    m_plsLights = 0;
+    m_vector_1b0 = 0;
+    m_fDeleteLights = 0;
+    unknown_1b5 = 0;
+    m_shake_events = 0;
+    unknown_1bc = 0;
+    enabled_1bd = 1;
+    unknown_1be = 0;
+    unknown_1bf = 0;
+    m_ground_shadow = 0;
+    unknown_1d4 = 0;
+    scale_1cc = 1.0f;
+}
+
+// FUNCTION: WIZ8 0x004a6610
+W8GrCycle::~W8GrCycle()
+{
+    int count;
+    int index;
+
+    UnregisterGrCycle(this);
+    if (m_plsLights != 0 && m_fDeleteLights != 0) {
+        DestroyLightVector(m_plsLights);
+        m_plsLights = 0;
+    }
+    if (m_vector_1b0 != 0) {
+        count = m_vector_1b0->GetCount();
+        PrepareGrCycleEvents004AE270(m_vector_1b0);
+        for (index = 0; index < count; ++index) {
+            delete *m_vector_1b0->GetAt(index);
+        }
+        delete m_vector_1b0;
+        m_vector_1b0 = 0;
+    }
+    if (m_shake_events != 0) {
+        count = m_shake_events->GetCount();
+        for (index = 0; index < count; ++index) {
+            W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
+            W8GrCycleShakeOwner* owner = event->owner_08;
+
+            if (owner == 0 || owner->node_18c == 0) {
+                if (event->owner_08 != 0) {
+                    event->owner_08->release();
+                }
+                delete event;
+            }
+            else {
+                event->owner_08 = 0;
+                delete event;
+                ActivateGrCycleShakeOwner0049ACD0(owner, 1);
+                owner->state_184 = 1;
+                owner->active_190 = 1;
+            }
+        }
+        delete m_shake_events;
+        m_shake_events = 0;
+    }
+    if (m_ground_shadow != 0) {
+        m_ground_shadow->release();
+    }
+}
 
 class W8TimeSource006598B8 {
 public:

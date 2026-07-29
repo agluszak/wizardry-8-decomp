@@ -2,13 +2,18 @@
 #define WIZ8_ENGINE_CODE_MONSTER_H
 
 #include "surrender/srMath.h"
+#include "surrender/srHeap.h"
+#include "surrender/srTypeRegistry.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/geometry.h"
+#include "wiz8/grcycle.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
 struct W8AnimObj;
+struct W8PList;
 
-typedef struct W8Monster W8Monster;
+typedef struct W8MonsterRep W8MonsterRep;
 
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
@@ -84,10 +89,10 @@ struct W8MonsterCycle {
 };                                          /* 0x10 */
 
 struct W8MonsterPolymorphicSubobject18 {
-    /* This is a positional view beginning at Monster +0x18, not an owned
-       member and not a polymorphic base. Monster's constructor never writes
-       a vptr here; the previously associated 0x005ED218 table belongs to the
-       separate GrCycle-derived lifecycle at 0x004C0170. */
+    /* This is a positional view beginning at W8MonsterRep +0x18, not a member
+       declaration and not a polymorphic base. W8MonsterRep's constructor does
+       not write a vptr here; vtable 0x005ED218 belongs to W8Monster's inherited
+       secondary GrCycle base. */
     unsigned char unknown_00[0x0c];
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
     unsigned char unknown_10[0x4c];
@@ -137,13 +142,14 @@ struct W8MonsterPolymorphicSubobject18 {
     void SetFlag25(char value);               /* 0x004531F0 */
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
-/* Monster's constructor calls the 0xac-byte W8EmitterHost constructor at
+/* W8MonsterRep's constructor calls the 0xac-byte W8EmitterHost constructor at
    offset zero, constructs its three cycle arrays at +0xac/+0x25c/+0x40c,
    and only then installs the six-slot 0x005ED200 vtable. The inherited five
    slots are followed by one Monster-specific extension. */
-struct W8Monster : public W8EmitterHost {
-    W8Monster(const W8Monster& other);
-    virtual ~W8Monster() override;
+struct W8MonsterRep : public W8EmitterHost {
+    W8MonsterRep();
+    W8MonsterRep(const W8MonsterRep& other);
+    virtual ~W8MonsterRep() override;
     virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
     virtual void SendToEmitter(char cycle, int arg_2, int arg_3) override; /* 0x004BF8C0 */
     virtual void ApplyEmitterSetting(char cycle) override; /* 0x004BF970 */
@@ -158,7 +164,9 @@ struct W8Monster : public W8EmitterHost {
     W8MonsterFormation formation;               /* 0x280: from the owning group */
     unsigned char subobject_array_28c[0x180];   /* 0x28c */
     unsigned char subobject_array_40c[0x1b0];   /* 0x40c */
-    unsigned char tail_fields_5bc[0x58];        /* 0x5bc */
+    unsigned char tail_fields_5bc[0x2c];        /* 0x5bc */
+    W8PList* linked_objects_5e8;                 /* 0x5e8 */
+    unsigned char tail_fields_5ec[0x28];        /* 0x5ec */
     /* A 0x10-byte growable vector is constructed here, but its element type is
        not established by the shared emitted vtable alone. Keep the storage
        opaque until a consumer proves the element type. */
@@ -195,9 +203,93 @@ struct W8Monster : public W8EmitterHost {
    allocates this much, so the extent is proven even though most of it is not.
    Asserting it here is what stops a field edit from silently shortening the
    object. */
-static_assert(sizeof(W8Monster) == 0x628, "W8Monster_size_must_be_0x628");
+static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 
 static_assert(sizeof(W8MonsterCycle) == 0x10, "W8MonsterCycle_size_must_be_0x10");
 static_assert(sizeof(W8MonsterPolymorphicSubobject18) == 0x94, "W8MonsterPolymorphicSubobject18_size_must_be_0x94");
+
+/* Five twelve-byte records are allocated from SurRender's heap by the
+   embedded vector at +0x29c. The record contents are not yet identified. */
+struct W8MonsterVectorElement005ECDC8 {
+    unsigned int values[3];
+};
+
+class W8MonsterVector005ECDC8 {
+public:
+    W8MonsterVector005ECDC8()
+        : count(0), capacity(0), data(static_cast<W8MonsterVectorElement005ECDC8*>(
+              srHeap.allocate(5 * sizeof(W8MonsterVectorElement005ECDC8))))
+    {
+        if (data != 0) {
+            capacity = 5;
+        }
+    }
+
+    virtual ~W8MonsterVector005ECDC8()
+    {
+        srHeap.free(data);
+    }
+
+    int count;
+    int capacity;
+    W8MonsterVectorElement005ECDC8* data;
+};
+
+/* The GrCycle factory allocates 0x348 bytes and calls the constructor at
+   0x004BFB00 for object type zero. Both constructors and the destructor install
+   primary vtable 0x005ED22C and the W8GrCycle secondary table at +0x18. */
+class W8Monster : public W8GrCycle {
+public:
+    W8Monster();
+    W8Monster(const W8Monster& rhs);
+    virtual ~W8Monster() override;
+
+    virtual void vslot1() override;
+    virtual void vslot4() override;
+    virtual signed char vslot5() override;
+    virtual unsigned char IsCycleSupported(signed char cycle) override;
+    virtual void vslot7() override;
+    virtual void vslot8() override;
+    virtual W8GrCycleTarget* vslot9() override;
+    virtual void vslot10() override;
+    virtual void vslot11(void* value) override;
+    virtual void vslot12() override;
+    virtual void vslot13() override;
+    virtual void vslot14() override;
+    virtual void SubmitCurrentAnimEntry004C3F00() override;
+    virtual void vslot16();
+    virtual void vslot17();
+    virtual void vslot18();
+    virtual void vslot19();
+    virtual void secondary_vslot4() override;
+
+private:
+    W8MonsterRep* m_pRep;
+    unsigned int flags_1dc;
+    unsigned char fields_1e0[0x58];
+    srClass* object_238;
+    int value_23c;
+    int value_240;
+    W8GrowableVector<unsigned char> bytes_244;
+    W8Timer005EC0A4 timer_254;
+    int value_278;
+    int registry_weight_27c;
+    int value_280;
+    int value_284;
+    int value_288;
+    unsigned char fields_28c[0x10];
+    W8MonsterVector005ECDC8 vector_29c;
+    unsigned char fields_2ac[0x2c];
+    W8Timer005EC0A4 timer_2d8;
+    unsigned char fields_2fc[0x10];
+    W8Timer005EC0A4 timer_30c;
+    unsigned char flags_330[4];
+    srClass* object_334;
+    W8GrowableVector<int> values_338;
+};
+
+static_assert(
+    sizeof(W8Monster) == 0x348,
+    "W8Monster_size_must_be_0x348");
 
 #endif

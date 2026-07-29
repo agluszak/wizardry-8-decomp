@@ -30,6 +30,48 @@ def test_source_layout_audit_checks_exact_size_fields_and_bases() -> None:
     assert report["checks"] == {"classes": 1, "source_fields": 1, "fields": 1, "bases": 1}
 
 
+def test_source_layout_audit_accepts_named_secondary_base_components() -> None:
+    source = [
+        {
+            "qualified_name": "Widget",
+            "asserted_size": 12,
+            "bases": ["Primary", "Secondary"],
+            "fields": [{"name": "value", "type": "int"}],
+        }
+    ]
+    ghidra = {
+        "/Widget": {
+            "length": 12,
+            "components": [
+                {"field": "base", "offset": 0, "length": 4, "type": "Primary"},
+                {
+                    "field": "base_Secondary",
+                    "offset": 4,
+                    "length": 4,
+                    "type": "Secondary",
+                },
+                {"field": "value", "offset": 8, "length": 4, "type": "int"},
+            ],
+        },
+        "/Primary": {
+            "length": 4,
+            "components": [{"field": "primary", "offset": 0, "length": 4, "type": "int"}],
+        },
+        "/Secondary": {
+            "length": 4,
+            "components": [{"field": "secondary", "offset": 0, "length": 4, "type": "int"}],
+        },
+        "/wiz8/classes/Widget": {
+            "components": [{"field": "value", "offset": 8, "length": 4, "type": "int"}]
+        },
+    }
+
+    report = compare_source_layouts(source, ghidra)
+
+    assert report["ok"] is True
+    assert report["checks"]["bases"] == 2
+
+
 def test_source_layout_audit_rejects_missing_pdb_class_and_size_drift() -> None:
     source = [
         {"qualified_name": "Missing", "asserted_size": 4, "bases": []},

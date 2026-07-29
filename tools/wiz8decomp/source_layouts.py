@@ -23,6 +23,11 @@ def _pointer_depth(spelling: str) -> int:
     return depth
 
 
+def _is_base_component(component: dict[str, Any]) -> bool:
+    field = str(component.get("field") or "")
+    return field == "base" or field.startswith("base_")
+
+
 def compare_source_layouts(
     source_classes: list[dict[str, Any]],
     ghidra_types: dict[str, dict[str, Any]],
@@ -57,7 +62,7 @@ def compare_source_layouts(
         actual_bases = {
             str(component["type"])
             for component in rebuilt.get("components", [])
-            if component.get("field") == "base"
+            if _is_base_component(component)
         }
         for expected_base in source_class.get("bases", []):
             checks["bases"] += 1
@@ -74,7 +79,7 @@ def compare_source_layouts(
         rebuilt_fields = {
             str(component.get("field")): component
             for component in rebuilt.get("components", [])
-            if component.get("field") not in {None, "base", "vftable"}
+            if component.get("field") not in {None, "vftable"} and not _is_base_component(component)
         }
         for source_field in source_class.get("fields", []):
             checks["source_fields"] += 1
@@ -106,7 +111,7 @@ def compare_source_layouts(
             for component in data_type.get("components", []):
                 offset = origin + int(component["offset"])
                 base = ghidra_types.get(f"/{component.get('type', '')}")
-                if component.get("field") == "base" and base is not None:
+                if _is_base_component(component) and base is not None:
                     values.extend(flattened(base, offset))
                 else:
                     values.append({**component, "offset": offset})

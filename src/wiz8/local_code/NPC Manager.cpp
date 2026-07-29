@@ -256,7 +256,7 @@ extern unsigned char GetFact(int fact);
 
 /* The engine object standing in the world for this NPC. */
 // FUNCTION: WIZ8 0x0050a400
-W8Monster* GetNpcMonster(W8NpcState* npc)
+W8MonsterRep* GetNpcMonster(W8NpcState* npc)
 {
     W8MonsterInfo* monster_info;
 

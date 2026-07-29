@@ -41,7 +41,7 @@ enum { W8_EFFECT_PERMANENT = 9999 };
 /* 0x0060CFFC: eight bytes per visual, whose leading dword names it. */
 extern const int g_effect_visual_table[][2];
 
-extern void DropMonsterVisual(W8Monster* monster, int visual, int arg_3);  /* 0x004ACD80 */
+extern void DropMonsterVisual(W8MonsterRep* monster, int visual, int arg_3);  /* 0x004ACD80 */
 extern void PostMonsterNotice(W8MonsterInfo* monster_info, void* notice);  /* 0x00590B40 */
 extern void Function50E700(void);
 extern void Function5AF2D0(void);

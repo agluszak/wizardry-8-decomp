@@ -25,7 +25,7 @@ extern int CharacterPointerToPartySlot(const W8Character* character);
 extern unsigned int MonsterGetIndexByLocationID(
     int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
 extern void NotifySpellPointsChanged(int party_slot);                    /* 0x0055EE30 */
-extern void Function4ACD80(W8Monster* monster, int slot, int arg_3);
+extern void Function4ACD80(W8MonsterRep* monster, int slot, int arg_3);
 extern void Function50E8C0(int location_id);
 extern void Function50E650(int party_slot);
 extern void RefreshMonsterSight(W8MonsterInfo* monster_info);
