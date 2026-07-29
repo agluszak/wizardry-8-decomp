@@ -64,6 +64,22 @@ Marker policy follows reccmp's entity conventions:
 
 Put explanatory prose above the marker sequence.
 
+## Inlining policy
+
+- Recover source placement before attempting to control optimizer decisions.
+- Ordinary recovered functions remain unannotated and use the pinned compiler's normal
+  optimization heuristics.
+- Define a function in a header or class body only when evidence establishes that its original
+  body was visible in multiple translation units.
+- Do not add `__forceinline`, `__declspec(noinline)`, or inline-control pragmas to improve one
+  isolated comparison score.
+- An explicit inline-control annotation requires concrete call-site evidence and must improve the
+  complete callee/caller/thunk comparison bundle without regressing an exact boundary.
+- Treat constructors, destructors, virtual methods, deleting destructors, and vtable-related
+  thunks as one ABI bundle.
+- Revisit and remove explicit inline controls after later source recovery; they are not substitutes
+  for correct declarations, bodies, ownership, or source order.
+
 ## Validation
 
 Choose the narrowest lane while iterating and run the complete lane before publication:
