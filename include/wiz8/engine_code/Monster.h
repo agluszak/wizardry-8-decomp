@@ -140,12 +140,11 @@ struct W8MonsterPolymorphicSubobject18 {
    constructor 0x004bea20). Only members proven by recovered consumers are
    modelled here; unresolved layout remains original-binary analysis. */
 struct W8Monster {
-    /* 0x000: the root vtable at 0x005ED200, six slots. Held as a field
-       rather than declared through a virtual member, because giving this class
-       virtuals would have VC6 synthesize its own vptr. The additional vptr at
-       +0x18 cannot be expressed through inheritance or composition until its
-       lifecycle role is recovered from the constructor family. */
-    void* vptr;
+    /* 0x000: the root vtable at 0x005ED200, six slots. Slot zero is the
+       compiler-generated scalar-deleting wrapper at 0x004BEBA0, which calls
+       the complete destructor at 0x004BEE50. The additional vptr at +0x18
+       remains an unresolved polymorphic subobject. */
+    virtual ~W8Monster();
     unsigned char unknown_004[0x0c];
     void* linked_objects_010;                /* 0x010: collection traversed by 0x004c5870 */
     unsigned char unknown_014[4];
@@ -185,4 +184,3 @@ static_assert(sizeof(W8MonsterCycle) == 0x10, "W8MonsterCycle_size_must_be_0x10"
 static_assert(sizeof(W8MonsterPolymorphicSubobject18) == 0x94, "W8MonsterPolymorphicSubobject18_size_must_be_0x94");
 
 #endif
-

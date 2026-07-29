@@ -3,6 +3,7 @@
 #include "wiz8/vector.h"
 
 class srNode;
+struct W8ItemRep;
 
 /* The original names of GrCycle's two bases are not present in the available
    source-path, binary, or Cosmic Forge evidence. Their constructor addresses
@@ -18,7 +19,8 @@ protected:
     int unknown_008;                     /* 0x08 */
     void* unknown_00c;                   /* 0x0c */
     void* unknown_010;                   /* 0x10 */
-    unsigned char unknown_014[4];
+public:
+    W8ItemRep* m_pRep;                   /* 0x14: typed by Engine Code\Item.cpp */
 };                                      /* 0x18 */
 
 class W8GrCycleBase00451EC0 {

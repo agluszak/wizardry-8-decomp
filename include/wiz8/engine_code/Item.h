@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "surrender/srNode.h"
+#include "wiz8/grcycle.h"
 
 struct W8World;
 struct W8Position;
@@ -11,7 +12,7 @@ struct W8Position;
 /* This is the live world entity the item manager reaches through an item's
    owner, so the position and flag members the manager uses live here too. */
 struct W8ItemRep {
-    unsigned char unknown_00[4];
+    virtual ~W8ItemRep();
     srVector3T<float> position;           /* 0x04 */
     unsigned char unknown_10[0x54];
     srNode* m_psrMesh;                    /* 0x64 */
@@ -24,9 +25,11 @@ struct W8ItemRep {
     unsigned int SetFlags(unsigned int mask, unsigned char enabled); /* 0x0049F310 */
 };
 
-struct W8Item {
-    unsigned char unknown_00[0x14];
-    W8ItemRep* m_pRep;                    /* 0x14 */
+struct W8Item : public W8GrCycleBase004B6900 {
+    virtual ~W8Item() override;
+
+    int value_018;
+    int value_01c;
 
     void DetachMesh0049FA30(W8World* world);
     void ApplyRepTransform0049FAA0();
@@ -36,4 +39,4 @@ struct W8Item {
 
 /* Both sizes are the last proven member plus its width, not a proven extent. */
 static_assert(sizeof(W8ItemRep) == 0x94, "W8ItemRep_must_be_0x94");
-static_assert(sizeof(W8Item) == 0x18, "W8Item_must_be_0x18");
+static_assert(sizeof(W8Item) == 0x20, "W8Item_must_be_0x20");

@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/gameplay_boundaries.h"
@@ -64,46 +65,6 @@ public:
     ~W8PropOwned0020();
 };
 
-class W8PropBase004B6B60 {
-public:
-    virtual ~W8PropBase004B6B60();       /* 0x004B6B60 */
-
-protected:
-    unsigned char unknown_004[0x10];
-};                                       /* 0x14 */
-
-class W8Prop005EC1E0 : public W8PropBase004B6B60 {
-public:
-    virtual ~W8Prop005EC1E0() override;           /* 0x0044BEC0 */
-
-    unsigned char GetSetting6C();        /* 0x0044D4F0 */
-    void ToggleRepAnimation(int argument);   /* 0x0044D500 */
-    void ToggleRepAnimationDefault();        /* 0x0044D550 */
-    int PlayRepAnimation(int arg_2, int arg_3);  /* 0x0044D5C0 */
-    void SetSetting6E(unsigned char value, unsigned char fallback);  /* 0x0044E1F0 */
-    bool CanBeUsedFrom(int arg_2, int arg_3, char notify);  /* 0x0044E0C0 */
-    void SetSetting6C(unsigned char value);  /* 0x0044D4B0 */
-    void SetSetting66(char value);       /* 0x0044D5B0 */
-    bool IsSetting6FTwo();               /* 0x0044E1C0 */
-    void ToggleSetting6E();              /* 0x0044E1D0 */
-    int GetValue18();                    /* 0x0044D5A0 */
-    int GetGDPropValue24();              /* 0x0044E0A0 */
-
-private:
-public:
-    W8PropOwnedPolymorphic* m_owned_14;  /* 0x14 */
-    int value_18;                        /* 0x18 */
-    /* 0x1c: bit seven has to be up before the owned GDProp is consulted. */
-    unsigned int flags_1c;
-private:
-    W8PropOwned0020* m_owned_20;         /* 0x20 */
-    unsigned char unknown_024[0x4];
-    W8PropOwnedPolymorphic* m_owned_28;  /* 0x28 */
-    unsigned char unknown_02c[0xc];
-public:
-    GDProp* m_owned_38;                  /* 0x38 */
-};                                       /* 0x3c established */
-
 extern int Function443830(W8World* world, W8Prop005EC1E0* prop);
 extern void Function4B7470(int value);
 
@@ -134,7 +95,10 @@ __forceinline W8PropOwned0020::~W8PropOwned0020()
 {
 }
 
-// FUNCTION: WIZ8 0x0044bec0
+/* VC6 emits the scalar-deleting wrapper from this ordinary virtual
+   destructor. */
+// SYNTHETIC: WIZ8 0x0044BEA0
+// W8Prop005EC1E0::`scalar deleting destructor'
 W8Prop005EC1E0::~W8Prop005EC1E0()
 {
     delete m_owned_14;
@@ -144,19 +108,6 @@ W8Prop005EC1E0::~W8Prop005EC1E0()
 }
 
 extern void Function439D80(void);
-
-/* Vtable slot zero: the complete destructor followed by the conditional
-   release the deleting flag selects. */
-// FUNCTION: WIZ8 0x0044bea0
-void* __fastcall W8Prop005EC1E0_ScalarDeletingDestructor(
-    W8Prop005EC1E0* self, int /* unused edx */, unsigned char flags)
-{
-    self->~W8Prop005EC1E0();
-    if ((flags & 1) != 0) {
-        operator delete(self);
-    }
-    return self;
-}
 
 /* Four accessors reaching through the owned member at 0x14. */
 // FUNCTION: WIZ8 0x0044d4f0

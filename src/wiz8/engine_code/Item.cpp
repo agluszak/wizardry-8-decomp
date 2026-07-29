@@ -3,6 +3,15 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+/* VC6 emits the scalar-deleting wrapper at 0x0049F420 from this ordinary
+   virtual destructor. */
+// SYNTHETIC: WIZ8 0x0049F420
+// W8Item::`scalar deleting destructor'
+W8Item::~W8Item()
+{
+    delete m_pRep;
+}
+
 /* Detach the item's mesh from the world graph. The world parameter is asserted
    even though the body needs no field from it. */
 // FUNCTION: WIZ8 0x0049fa30

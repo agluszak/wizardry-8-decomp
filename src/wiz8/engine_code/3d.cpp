@@ -1,17 +1,10 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
-
-/* Three thiscall methods invoked on each prop. Their names are not established;
-   only their signatures are, from the call sites. */
-struct W8Prop {
-    void Method44D360(W8World* world);
-    void Method44C030(void);
-    void Method44C830(W8World* world);
-};
 
 // Source unit is Engine Code\3d.cpp; the assertion at line 344 is what names
 // and types World::plsProps.
@@ -20,7 +13,7 @@ void WorldUpdateProps(W8World* world)
 {
     int count;
     int index;
-    W8Prop* prop;
+    W8Prop005EC1E0* prop;
 
     if (!world || !world->plsProps) {
         srAssertFail(
@@ -31,7 +24,7 @@ void WorldUpdateProps(W8World* world)
     }
     count = (int)PListGetCount(world->plsProps);
     for (index = 0; index < count; index++) {
-        prop = (W8Prop*)PListGetAt(world->plsProps, index);
+        prop = (W8Prop005EC1E0*)PListGetAt(world->plsProps, index);
         if (prop) {
             prop->Method44D360(world);
             prop->Method44C030();

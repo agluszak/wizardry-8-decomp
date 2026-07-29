@@ -3,7 +3,10 @@
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Level.h"
+#include "wiz8/engine_code/Item.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
@@ -45,33 +48,10 @@ extern int g_world_count_00659a84;
 extern W8World** g_worlds_00659a8c;
 
 namespace {
-
-class W8WorldOwnedObject {
-public:
-    virtual ~W8WorldOwnedObject() = 0;
-};
-
-W8WorldOwnedObject::~W8WorldOwnedObject()
-{
-}
-
 struct W8WorldCameraEntry {
     unsigned char positional_00[0x18];
     void* owner_18;
 };
-
-void DestroyObjectList(W8PList*& list)
-{
-    while (list != 0 && PListGetCount(list) != 0) {
-        W8WorldOwnedObject* object =
-            static_cast<W8WorldOwnedObject*>(PListRemoveAt(list, 0));
-        delete object;
-    }
-    if (list != 0) {
-        PListDestroy(list);
-        list = 0;
-    }
-}
 
 } // namespace
 
@@ -196,46 +176,81 @@ void DestroyWorldCollections(W8World* world)
         return;
     }
 
-    DestroyObjectList(world->plsMonsters);
+    if (world->plsMonsters != 0) {
+        while (PListGetCount(world->plsMonsters) != 0) {
+            W8Monster* object = static_cast<W8Monster*>(
+                PListGetAt(world->plsMonsters, 0));
+            PListRemoveAt(world->plsMonsters, 0);
+            delete object;
+        }
+        PListDestroy(world->plsMonsters);
+        world->plsMonsters = 0;
+    }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
-    DestroyObjectList(world->plsItems);
+    if (world->plsItems != 0) {
+        while (PListGetCount(world->plsItems) != 0) {
+            W8Item* object = static_cast<W8Item*>(
+                PListGetAt(world->plsItems, 0));
+            PListRemoveAt(world->plsItems, 0);
+            delete object;
+        }
+        PListDestroy(world->plsItems);
+        world->plsItems = 0;
+    }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
-    DestroyObjectList(world->plsProps);
+    if (world->plsProps != 0) {
+        while (PListGetCount(world->plsProps) != 0) {
+            W8Prop005EC1E0* object = static_cast<W8Prop005EC1E0*>(
+                PListGetAt(world->plsProps, 0));
+            PListRemoveAt(world->plsProps, 0);
+            delete object;
+        }
+        PListDestroy(world->plsProps);
+        world->plsProps = 0;
+    }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
 
     Function443A60(world);
-    delete world->triggers;
-    world->triggers = 0;
+    if (world->triggers != 0) {
+        delete world->triggers;
+        world->triggers = 0;
+    }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
 
-    while (world->plsCameras != 0 && PListGetCount(world->plsCameras) != 0) {
-        W8WorldCameraEntry* entry = static_cast<W8WorldCameraEntry*>(
-            PListRemoveAt(world->plsCameras, 0));
-        Function4A9810(entry->owner_18);
-        free(entry);
-    }
     if (world->plsCameras != 0) {
+        while (PListGetCount(world->plsCameras) != 0) {
+            W8WorldCameraEntry* entry = static_cast<W8WorldCameraEntry*>(
+                PListGetAt(world->plsCameras, 0));
+            PListRemoveAt(world->plsCameras, 0);
+            Function4A9810(entry->owner_18);
+            free(entry);
+        }
         PListDestroy(world->plsCameras);
         world->plsCameras = 0;
     }
 
     Function479030();
-    while (world->plsAmbientSounds != 0 &&
-           PListGetCount(world->plsAmbientSounds) != 0) {
-        Function47A700(PListRemoveAt(world->plsAmbientSounds, 0));
-    }
     if (world->plsAmbientSounds != 0) {
+        while (PListGetCount(world->plsAmbientSounds) != 0) {
+            void* ambient_sound = PListGetAt(world->plsAmbientSounds, 0);
+            PListRemoveAt(world->plsAmbientSounds, 0);
+            Function47A700(ambient_sound);
+        }
         PListDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
     }
 
-    while (world->particles != 0 && world->particles->GetCount() != 0) {
-        (*world->particles->GetAt(0))->release();
-        world->particles->RemoveAt(0);
+    if (world->particles != 0) {
+        while (world->particles->GetCount() != 0) {
+            (*world->particles->GetAt(0))->release();
+            world->particles->RemoveAt(0);
+        }
     }
-    while (world->named_positions != 0 && world->named_positions->GetCount() != 0) {
-        operator delete(*world->named_positions->GetAt(0));
-        world->named_positions->RemoveAt(0);
+    if (world->named_positions != 0) {
+        while (world->named_positions->GetCount() != 0) {
+            operator delete(*world->named_positions->GetAt(0));
+            world->named_positions->RemoveAt(0);
+        }
     }
 
     Function4A4210(world);
@@ -261,9 +276,13 @@ void DestroyWorld(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x1ff, 0);
     }
-    free(world->psrMeshes);
-    world->psrMeshes = 0;
-    world->update_mesh_source = 0;
+    if (world->psrMeshes != 0) {
+        free(world->psrMeshes);
+        world->psrMeshes = 0;
+    }
+    if (world->update_mesh_source != 0) {
+        world->update_mesh_source = 0;
+    }
     if (world->m_owned_04c != 0) {
         Function449BB0(world->m_owned_04c);
         operator delete(world->m_owned_04c);
