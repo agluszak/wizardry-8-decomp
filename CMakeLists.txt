@@ -16,9 +16,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
     target_include_directories(WIZ8_CLANG_LINT PRIVATE
         tools/lint/include
         include
-        config/sgp-overlays/common
-        config/sgp-overlays/font-video
-        config/sgp-overlays/librarydatabase
+        include/wiz8/sgp-compat
         third_party/sfi-sgp/sgp
         /zlib
     )

@@ -13,14 +13,9 @@ def sweep_command(
         list[str] | None,
         typer.Option("--unit", help="Configured SGP unit ID; repeat to select several."),
     ] = None,
-    update_snapshot: bool = typer.Option(
-        False,
-        "--update-snapshot",
-        help="Replace the tracked proprietary-input snapshot; requires a complete sweep.",
-    ),
 ) -> None:
-    """Compile the declarative flag matrix and compare every reviewed build."""
+    """Optionally rebuild normal SGP objects and compare historical binaries."""
     from .. import command_support as cli
     from ..sgp_oracle import sweep_sgp_units
 
-    cli.run_action(lambda: sweep_sgp_units(cli.settings(), unit, update_snapshot=update_snapshot))
+    cli.run_action(lambda: sweep_sgp_units(cli.settings(), unit))

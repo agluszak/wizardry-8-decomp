@@ -5,8 +5,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import yaml
 from wiz8decomp.sgp_oracle import (
+    BUILDS,
+    PROJECT_FLAGS,
+    UNITS,
     BuildText,
     CoffFunction,
     _evaluate,
@@ -143,6 +145,13 @@ def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
 
     assert len(active) == 33
     assert {path.name for path in set(candidates) - set(active)} == {"MemMan.c"}
+    project_text = "\n".join(
+        path.read_text(encoding="utf-8", errors="replace")
+        for root in (repository / "CMakeLists.txt", repository / "cmake")
+        for path in ([root] if root.is_file() else root.rglob("*.cmake"))
+    )
+    assert "WIZ8_PRECOMPILED_HEADERS" not in project_text
+    assert not list((repository / "config").rglob("WIZ8 SGP ALL.H"))
 
 
 def test_wizardry_does_not_redeclare_vendored_sgp_header_symbols() -> None:
@@ -176,7 +185,11 @@ def test_wizardry_does_not_redeclare_vendored_sgp_header_symbols() -> None:
             if name not in {"return", "void", "WIN32_LEAN_AND_MEAN"}
         )
 
-    assert sorted(overlaps) == []
+    assert sorted(overlaps) == [
+        ("include/wiz8/sgp-compat/WizLibs.h", "NUMBER_OF_LIBRARIES"),
+        ("include/wiz8/sgp-compat/WizLibs.h", "gGameLibaries"),
+        ("include/wiz8/sgp-compat/video2.h", "InvalidateRegion"),
+    ]
 
 
 def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
@@ -243,11 +256,8 @@ def test_the_source_oracle_owns_the_name_at_0x0040efa0() -> None:
 
 def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
-    harness = yaml.safe_load((repository / "config/sgp.yml").read_text(encoding="utf-8"))
-    units = [unit for unit in harness["units"] if unit.get("harness", True)]
-    assert harness["schema"] == "wiz8.sgp-harness"
-    assert harness["project_flags"] == ["/O2", "/Ob2", "/G5", "/MD"]
-    assert {unit["id"] for unit in units} == {
+    assert PROJECT_FLAGS == ("/O2", "/Ob2", "/G5", "/MD")
+    assert {unit["id"] for unit in UNITS} == {
         "compression",
         "container",
         "dbman",
@@ -261,19 +271,20 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
         "timer",
         "input",
     }
-    assert "flag_axes" not in harness
-    assert {build["id"] for build in harness["builds"]} >= {
+    assert {build["id"] for build in BUILDS} >= {
         "demo",
         "gog_base",
         "gog_1261",
         "gog_128_base",
     }
-    assert harness["report"] == "build/reports/sgp/harness.csv"
-    assert harness["snapshot"] == "evidence/snapshots/sgp/harness.csv"
-    exception_unit = next(unit for unit in units if unit["id"] == "exceptionhandling")
+    cmake = (repository / "cmake/Sgp.cmake").read_text(encoding="utf-8")
+    assert "WIZ8_SGP_WHOLE_SOURCES" in cmake
+    assert "WIZ8_SGP_RUNTIME_PARTIAL_SOURCES" in cmake
+    assert "WIZ8_SGP_ANALYSIS_ONLY_SOURCES" in cmake
+    exception_unit = next(unit for unit in UNITS if unit["id"] == "exceptionhandling")
     assert exception_unit["expected_empty"] is True
-    selected = {unit["id"]: unit.get("functions") for unit in units}
-    assert selected["sgp"] == ["GetRuntimeSettings", "ProcessCommandLine"]
+    selected = {unit["id"]: unit.get("functions") for unit in UNITS}
+    assert selected["sgp"] == ("GetRuntimeSettings", "ProcessCommandLine")
     assert set(selected["input"]) == {
         "KeyboardHandler",
         "MouseHandler",
@@ -289,16 +300,14 @@ def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() 
 
 def test_every_configured_sgp_unit_has_a_reviewed_retention_class() -> None:
     repository = Path(__file__).resolve().parents[2]
-    harness = yaml.safe_load((repository / "config/sgp.yml").read_text(encoding="utf-8"))
-    harness_units = [unit for unit in harness["units"] if unit.get("harness", True)]
     with (repository / "evidence/reviewed/sgp/units.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = list(csv.DictReader(stream))
 
     by_unit = {row["unit"]: row for row in rows}
-    assert len(rows) == len(by_unit) == len(harness_units)
-    assert set(by_unit) == {unit["id"] for unit in harness_units}
+    assert len(rows) == len(by_unit) == len(UNITS)
+    assert set(by_unit) == {unit["id"] for unit in UNITS}
     assert {unit: row["retention_class"] for unit, row in by_unit.items()} == {
         "directdraw": "partial",
         "random": "whole",
@@ -343,9 +352,9 @@ def test_sgp_csvs_have_one_surface_per_evidence_role() -> None:
         assert all(None not in row for row in csv.DictReader(stream))
 
 
-def test_partial_sgp_sweep_cannot_replace_the_reviewed_snapshot() -> None:
-    with pytest.raises(RuntimeError, match="complete sweep"):
-        sweep_sgp_units(SimpleNamespace(), ["random"], update_snapshot=True)
+def test_sgp_sweep_rejects_unknown_units() -> None:
+    with pytest.raises(RuntimeError, match="unknown SGP unit"):
+        sweep_sgp_units(SimpleNamespace(), ["unknown"])
 
 
 def test_relocation_masked_matcher_uses_the_five_way_vocabulary() -> None:

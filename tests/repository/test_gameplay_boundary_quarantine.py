@@ -1,7 +1,6 @@
 import re
 from pathlib import Path
 
-
 REPOSITORY = Path(__file__).resolve().parents[2]
 QUARANTINE = REPOSITORY / "include/wiz8/gameplay_boundaries.h"
 
