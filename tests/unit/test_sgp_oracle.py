@@ -1,5 +1,6 @@
 import csv
 import hashlib
+import re
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -12,6 +13,42 @@ from wiz8decomp.sgp_oracle import (
     classify_body,
     sweep_sgp_units,
 )
+
+
+def _without_c_comments(source: str) -> str:
+    source = re.sub(r"/\*.*?\*/", " ", source, flags=re.DOTALL)
+    return re.sub(r"//.*", " ", source)
+
+
+def _declared_function_names(source: str) -> set[str]:
+    declaration = re.compile(
+        r"(?:^|;)\s*(?:extern\s+)?[^;{}#]*?\b([A-Za-z_]\w*)"
+        r"\s*\([^;{}]*\)\s*;",
+        re.MULTILINE,
+    )
+    return {match.group(1) for match in declaration.finditer(_without_c_comments(source))}
+
+
+def _local_extern_function_names(source: str) -> set[str]:
+    declaration = re.compile(
+        r'\bextern(?:\s+"C")?\s+[^;{}]*?\b([A-Za-z_]\w*)'
+        r"\s*\([^;{}]*\)\s*;",
+        re.DOTALL,
+    )
+    return {match.group(1) for match in declaration.finditer(_without_c_comments(source))}
+
+
+def _extern_variable_names(source: str) -> set[str]:
+    declaration = re.compile(
+        r'\bextern(?:\s+"C")?\s+[^;(){}#]*?\b([A-Za-z_]\w*)'
+        r"\s*(?:\[[^;]*\])?\s*;",
+        re.DOTALL,
+    )
+    return {match.group(1) for match in declaration.finditer(_without_c_comments(source))}
+
+
+def _macro_names(source: str) -> set[str]:
+    return set(re.findall(r"^\s*#\s*define\s+([A-Za-z_]\w*)", source, re.MULTILINE))
 
 
 def _harness_rows(repository: Path, unit: str) -> list[dict[str, str]]:
@@ -75,6 +112,40 @@ def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
 
     assert len(active) == 33
     assert {path.name for path in set(candidates) - set(active)} == {"MemMan.c"}
+
+
+def test_wizardry_does_not_redeclare_vendored_sgp_header_symbols() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    sgp = repository / "third_party/sfi-sgp/sgp"
+    sgp_function_names: set[str] = set()
+    sgp_variable_names: set[str] = set()
+    sgp_macro_names: set[str] = set()
+    for header in sgp.iterdir():
+        if header.is_file() and header.suffix.lower() == ".h":
+            contents = header.read_text(encoding="latin-1")
+            sgp_function_names |= _declared_function_names(contents)
+            sgp_variable_names |= _extern_variable_names(contents)
+            sgp_macro_names |= _macro_names(contents)
+
+    overlaps: list[tuple[str, str]] = []
+    for source in (repository / "src/wiz8").rglob("*.cpp"):
+        contents = source.read_text(encoding="utf-8")
+        names = _local_extern_function_names(contents) & sgp_function_names
+        names |= _extern_variable_names(contents) & sgp_variable_names
+        names |= _macro_names(contents) & sgp_macro_names
+        overlaps.extend((str(source.relative_to(repository)), name) for name in names)
+    for header in (repository / "include/wiz8").rglob("*.h"):
+        contents = header.read_text(encoding="utf-8")
+        names = _declared_function_names(contents) & sgp_function_names
+        names |= _extern_variable_names(contents) & sgp_variable_names
+        names |= _macro_names(contents) & sgp_macro_names
+        overlaps.extend(
+            (str(header.relative_to(repository)), name)
+            for name in names
+            if name not in {"return", "void", "WIN32_LEAN_AND_MEAN"}
+        )
+
+    assert sorted(overlaps) == []
 
 
 def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:

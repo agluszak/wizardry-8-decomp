@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/screen_state.h"
 #include "Container.h"
+#include "sgp.h"
 #include "surrender/srTypeRegistry.h"
 
 #include <string.h>
@@ -62,7 +63,6 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 }
 };
 extern unsigned char g_flag_68edac;
-extern unsigned char gfProgramIsRunning;
 int g_dword_647bc0;
 int g_dword_647bc4;
 extern void* g_stack_68eda8;

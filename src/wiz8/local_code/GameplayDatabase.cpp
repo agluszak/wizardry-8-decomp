@@ -43,8 +43,6 @@ void SetPendingScreenState(int value);
 void RequestScreenTransition(void);
 unsigned char g_monster_slot_block[0x1a0a];
 extern W8MonsterSlot g_monster_slots_6836b8[];
-extern int SetCountdownClock(int delay);
-extern int Random(int limit);
 extern void EnableAllRenderOptions(void);
 extern void DisableRenderOption(int id);
 extern unsigned int GetTotalPhysicalMemory(void);

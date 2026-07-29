@@ -1,7 +1,10 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sgp_video.h"
 #include "wiz8/sr_api.h"
 #include "DirectDraw Calls.h"
+#include "input.h"
+#include "sgp.h"
 #include "surrender/srConfig.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srGERD.h"
@@ -100,7 +103,6 @@ int g_dword_6596f0;
 extern srClass* g_cursor_node_659694;
 
 extern void Initialize16BitPixelFormatMasks(void);
-extern void FreeMouseCursor(void);
 extern unsigned char CreateWizardryWindow(void);
 extern unsigned char InitializePrimaryDirectDrawSurface(void);
 extern unsigned char InitializeVideoDevice(void);
@@ -114,7 +116,6 @@ extern unsigned char Function44F060(void);
 extern "C" void EnableAllRenderOptions(void);
 extern void Function47D5F0(void);
 extern unsigned char Function4285C0(void);
-extern void ShutdownWithErrorBox(char* message);
 extern void AssertFailureHandler(const char* expression, const char* file,
                                  long line, const char* message);
 
@@ -122,7 +123,7 @@ char* g_sound_provider_650e54;
 unsigned char* g_render_options_65a118;
 
 // FUNCTION: WIZ8 0x00421f70
-void* LockPrimarySurface(int* pitch)
+PTR LockPrimarySurface(UINT32* pitch)
 {
     DDSURFACEDESC description;
 

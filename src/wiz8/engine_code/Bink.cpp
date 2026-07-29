@@ -1,4 +1,5 @@
 #include "wiz8/bink_video.h"
+#include "wiz8/sgp_video.h"
 
 #include "DirectDraw Calls.h"
 
@@ -11,8 +12,6 @@ typedef char BINK_FrameRects_at_0x34[
 extern "C" {
 
 extern int GetMilesDigitalDriver0040A8A0(void);
-extern void* LockPrimarySurface(int* pitch);
-extern void UnlockPrimarySurface(void);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void NoOp(int result, int line, const char* source);
 
@@ -63,7 +62,7 @@ unsigned char W8BinkVideo::UpdateFrame()
 // FUNCTION: WIZ8 0x005e3070
 unsigned char W8BinkVideo::CopyFrameToPrimarySurface()
 {
-    int pitch;
+    UINT32 pitch;
     void* pixels = LockPrimarySurface(&pitch);
     if (pixels == 0) {
         return 0;

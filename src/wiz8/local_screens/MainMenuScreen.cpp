@@ -1,9 +1,13 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sgp_video.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/wiz8_windows.h"
 
 #include "input.h"
 #include "english.h"
+#include "Font.h"
+#include "himage.h"
+#include "sgp.h"
 
 #include <wchar.h>
 
@@ -25,7 +29,6 @@ extern W8RegionSet g_region_sets[];
 extern W8Region g_regions[];
 extern unsigned int g_hot_region_689b3c;
 extern unsigned int g_hot_region_689b4c;
-extern unsigned char gfProgramIsRunning;
 extern unsigned char g_flag_68ed14;
 
 
@@ -44,22 +47,15 @@ extern unsigned short* g_colour_68ee08;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
-extern HWND ghWindow;
-
 extern void Function422B10(void);
 extern void Function40B290(void);
 extern unsigned char ClearPrimarySurface(void);
-extern unsigned short Get16BPPColor(unsigned int packed_colour);
 extern unsigned char FillSurfaceRect(int id, int x, int y, int width, int height,
                                      int colour);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int g);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void Function4E3620(char* text, int a, int b, int c);
-extern unsigned char SetFont(int font);
-extern unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* colour);
-extern short StringPixLength(unsigned short* text, int font);
-extern unsigned int mprintf(int x, int y, unsigned short* text, ...);
 extern unsigned char Function48FC10(const char* playlist, int immediate, int replace);
 extern void Function55EF90(void);
 extern void* Function5CF300(int a);

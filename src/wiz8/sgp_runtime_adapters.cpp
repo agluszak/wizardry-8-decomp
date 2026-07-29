@@ -4,36 +4,15 @@
 
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/render_state.h"
+#include "wiz8/sgp_video.h"
+#include "Font.h"
+#include "himage.h"
+#include "sgp.h"
+#include "vobject.h"
+#include "vobject_blitters.h"
+#include "vsurface.h"
 extern "C" {
 
-struct FontTranslationTable;
-extern unsigned char InitializeFontManager(
-    unsigned short pixel_depth, FontTranslationTable* translation);
-extern unsigned char SetFontDestBuffer(
-    unsigned int destination, int left, int top, int right, int bottom,
-    unsigned char wrap);
-
-struct W8VideoObjectRequest {
-    unsigned int flags;
-    char path[104];
-};
-
-struct W8VideoSurfaceRequest {
-    unsigned int flags;
-    char path[108];
-};
-
-extern unsigned char AddStandardVideoObject(
-    W8VideoObjectRequest* request, unsigned int* index);
-extern unsigned char AddStandardVideoSurface(
-    W8VideoSurfaceRequest* request, unsigned int* index);
-extern unsigned char BltVideoObjectFromIndex(
-    unsigned int destination, unsigned int source, unsigned short region,
-    int x, int y, unsigned int flags, void* effects);
-extern unsigned char BltVideoSurface(
-    unsigned int destination, unsigned int source, unsigned short region,
-    int x, int y, unsigned int flags, void* effects);
-extern HWND ghWindow;
 extern unsigned char g_fullscreen_603c39;
 extern unsigned short g_red_mask_650f4a;
 extern unsigned short g_green_mask_650f4c;
@@ -45,19 +24,7 @@ extern unsigned short g_blue_shift_650f52;
 extern int g_screen_width_603c3c;
 extern int g_screen_height_603c40;
 extern int g_screen_depth_603c44;
-extern void* LockPrimarySurface(int* pitch);
-extern void UnlockPrimarySurface(void);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
-extern unsigned char gbPixelDepth;
-extern unsigned short gusAlphaMask;
-extern unsigned short gusRedMask;
-extern unsigned short gusGreenMask;
-extern unsigned short gusBlueMask;
-extern short gusRedShift;
-extern short gusGreenShift;
-extern short gusBlueShift;
-extern unsigned int guiTranslucentMask;
-
 unsigned char InitializeWiz8FontManager(
     unsigned short pixel_depth, FontTranslationTable* translation)
 {
@@ -119,7 +86,7 @@ IDirectDrawSurface2* GetMouseBufferObject(void)
 
 void* LockFrameBuffer(unsigned int* pitch)
 {
-    int value;
+    UINT32 value;
     void* pixels = LockPrimarySurface(&value);
     *pitch = value;
     return pixels;
@@ -162,12 +129,12 @@ void InvalidateRegion(int left, int top, int right, int bottom)
     MarkScreenRectDirty(left, top, right, bottom, 0);
 }
 
-unsigned char Function405EF0(W8VideoObjectRequest* request, unsigned int* handle)
+unsigned char Function405EF0(VOBJECT_DESC* request, unsigned int* handle)
 {
     return AddStandardVideoObject(request, handle);
 }
 
-unsigned char Function402A70(W8VideoSurfaceRequest* request, unsigned int* handle)
+unsigned char Function402A70(VSURFACE_DESC* request, unsigned int* handle)
 {
     return AddStandardVideoSurface(request, handle);
 }
@@ -177,7 +144,7 @@ unsigned char Function405FF0(int destination, unsigned int source, short region,
 {
     return BltVideoObjectFromIndex(
         destination, source, static_cast<unsigned short>(region), x, y,
-        static_cast<unsigned int>(flags), reinterpret_cast<void*>(effects));
+        static_cast<unsigned int>(flags), reinterpret_cast<blt_fx*>(effects));
 }
 
 unsigned char Function402ED0(int destination, unsigned int source, short region,
@@ -185,7 +152,7 @@ unsigned char Function402ED0(int destination, unsigned int source, short region,
 {
     return BltVideoSurface(
         destination, source, static_cast<unsigned short>(region), x, y,
-        static_cast<unsigned int>(flags), reinterpret_cast<void*>(effects));
+        static_cast<unsigned int>(flags), reinterpret_cast<blt_vs_fx*>(effects));
 }
 
 }

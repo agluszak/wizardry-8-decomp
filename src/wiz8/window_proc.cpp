@@ -1,4 +1,8 @@
 #include "wiz8/wiz8_windows.h"
+#include "Button System.h"
+#include "Font.h"
+#include "input.h"
+#include "timer.h"
 
 /*
  * The window procedure BringUpEngine hands to the renderer. Ghidra defines no
@@ -20,26 +24,19 @@ int g_dword_650db0;
 extern unsigned char g_flag_6505a9;
 extern bool g_teardown_done_650db4;
 
-extern void QueueEvent(int code, unsigned int wparam, long lparam);
 extern void Function422970(int enable);
 extern void Function422550(void);
 extern unsigned char Function4277E0(void);
 extern void Function4220B0(void);
 extern void Function422050(void);
-extern void FreeMouseCursor(void);
 extern void Function4029F0(void);
 extern float Function420B40(int value);
 extern void ShutdownGameData(void);
-extern void ShutdownButtonSystem(void);
 extern void ShutdownDisplayList(void);
 extern void Function408850(void);
-extern void DestroyEnglishTransTable(void);
-extern void ShutdownFontManager(void);
-extern void ShutdownClockManager(void);
 extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
 extern void ShutdownRenderer(void);
-extern void ShutdownInputManager(void);
 extern void NoOp(void);
 extern void ShutdownVideoSurfaceState(void);
 

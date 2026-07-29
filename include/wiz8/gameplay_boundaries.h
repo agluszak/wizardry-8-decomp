@@ -23,6 +23,8 @@
 #include "wiz8/regions.h"
 #include "wiz8/ui_state.h"
 #include "wiz8/utility.h"
+#include "random.h"
+#include "timer.h"
 
 #pragma pack(push, 1)
 
@@ -1412,7 +1414,6 @@ void TryStartMonsterCycle2(
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 
-unsigned int Random(unsigned int upper_bound);
 void SetDice(W8Dice* dice, unsigned char count, unsigned char sides, short base);
 int RollDice(const W8Dice* dice);
 int IntegerPower(int base, unsigned int exponent);
@@ -1467,15 +1468,6 @@ void SetRegionCallback(unsigned int region_index, W8RegionCallback callback,
                        unsigned short callback_id);
 void SetRegionOwner(unsigned int region_index, void* owner);
 void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_text_id);
-/* SGP clock, declared in sgp/timer.h as TIMER GetClock(void), TIMER
-   SetCountdownClock(UINT32) and UINT32 ClockIsTicking(TIMER), where TIMER is
-   UINT32. Spelled in plain types because this header has to compile for
-   targets that do not carry SGP on their include path, which is also why it is
-   a restatement rather than an include. The two that were here previously took
-   and returned int, which the real header does not say. */
-unsigned int GetClock(void);
-unsigned int ClockIsTicking(unsigned int clock);
-unsigned int SetCountdownClock(unsigned int delay);
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 int RPCPtrToPCSlot(const W8RPCSlot* rpc);
 void FreeStringTable(void);

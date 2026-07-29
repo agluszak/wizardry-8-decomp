@@ -15,8 +15,6 @@ LibraryInitHeader gGameLibaries[6] = {
     {"Levels\\Levels.slf", 0, 1}
 };
 
-extern unsigned char InitializeFileDatabase(void);
-
 unsigned char InitializeSlfArchives(void)
 {
     return InitializeFileDatabase();

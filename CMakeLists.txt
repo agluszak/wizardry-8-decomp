@@ -16,6 +16,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         tools/lint/include
         include
         config/sgp-overlays/common
+        config/sgp-overlays/font-video
         config/sgp-overlays/librarydatabase
         third_party/sfi-sgp/sgp
     )

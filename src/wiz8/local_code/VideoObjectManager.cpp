@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vobject.h"
+#include "vsurface.h"
 
 /*
  * Local Code\VideoObjectManager.cpp, named by the three assertions this body
@@ -50,24 +51,11 @@ W8VideoObjectSlot g_video_slots_6448c8[494];
 W8VideoFrame g_video_frames_62c430[566];
 
 
-/* Two loaders, chosen by the frame's mode. Each takes a request whose first
-   field is 0x40 and whose path follows it inline, and hands back a surface.
-   The two path buffers are not the same size - 104 and 108 - which the frame
-   proves: the original reserves 0xe0, and only 4+104 plus 4+108 plus the
-   surface pointer adds up to it. The decompiler shows the second as 96 because
-   that is as much of it as this body touches. */
-typedef struct W8VideoLoadRequestA {
-    int kind;
-    char path[104];
-} W8VideoLoadRequestA;
-
-typedef struct W8VideoLoadRequestB {
-    int kind;
-    char path[108];
-} W8VideoLoadRequestB;
-
-extern char Function405EF0(W8VideoLoadRequestA* request, unsigned int* handle);
-extern char Function402A70(W8VideoLoadRequestB* request, unsigned int* handle);
+/* The two loaders consume the released SGP object and surface request records.
+   Their 0x6c and 0x70 sizes account exactly for this function's 0xe0-byte pair
+   of stack objects. */
+extern char Function405EF0(VOBJECT_DESC* request, unsigned int* handle);
+extern char Function402A70(VSURFACE_DESC* request, unsigned int* handle);
 
 void Function549090(int object, int frame);
 extern char Function405FF0(int object, unsigned int handle, short y,
@@ -175,8 +163,8 @@ void Function548F90(int target, int object, int frame, short y,
 // FUNCTION: WIZ8 0x00549090
 void Function549090(int object, int frame)
 {
-    W8VideoLoadRequestA request_a;
-    W8VideoLoadRequestB request_b;
+    VOBJECT_DESC request_a;
+    VSURFACE_DESC request_b;
     W8VideoFrame* record;
     unsigned int handle;
     char loaded_ok;
@@ -195,12 +183,12 @@ void Function549090(int object, int frame)
             srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
         }
         if (record->mode == 0) {
-            request_a.kind = 0x40;
-            strcpy(request_a.path, record->path);
+            request_a.fCreateFlags = VOBJECT_CREATE_FROMFILE;
+            strcpy(request_a.ImageFile, record->path);
             loaded_ok = Function405EF0(&request_a, &handle);
         } else {
-            request_b.kind = 0x40;
-            strcpy(request_b.path, record->path);
+            request_b.fCreateFlags = VSURFACE_CREATE_FROMFILE;
+            strcpy(request_b.ImageFile, record->path);
             loaded_ok = Function402A70(&request_b, &handle);
         }
         if (loaded_ok == 0) {

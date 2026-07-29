@@ -1,5 +1,9 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/sgp_video.h"
+#include "Container.h"
+#include "LibraryDataBase.h"
+#include "sgp.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -30,14 +34,11 @@ extern void ReleasePointer689B40(void);
 
 extern "C" {
 
-extern void* CreateStack(int count, int size);
 extern unsigned char InitializeMenuStartupSubsystems(void);
 
 extern unsigned char InitializeSlfArchives(void);
 extern int LoadPatchSlfArchives(const char* directory);
 extern void LoadLocalizedStrings(const char* path);
-extern void* LockPrimarySurface(int* count);
-extern void UnlockPrimarySurface(void);
 extern void LoadGameConfiguration(void);
 extern void SetStartupColorTransform(unsigned int value);
 extern void RebuildStartupColorTable(void);
@@ -54,12 +55,9 @@ extern int GetSaveGameLevel(void* slot);
 extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
-extern void ShutdownWithErrorBox(char* message);
 extern unsigned char InitializeMusicPlaylist(void);
 extern unsigned int GetTotalPhysicalMemory(void);
 
-extern char* gzStringDataOverride;
-extern unsigned char gfLoadAtStartup;
 extern void* g_stack_68eda8;
 extern int g_dword_686a70;
 extern unsigned char g_flag_68ed14;
@@ -76,7 +74,7 @@ unsigned char InitializeGameData(void)
 {
     char version[64];
     void* buffer;
-    int count;
+    UINT32 count;
     unsigned char ok;
 
     version[0] = '\0';
@@ -165,8 +163,6 @@ unsigned char InitializeGameData(void)
     return 1;
 }
 
-extern unsigned char ShutDownFileDatabase(void);
-extern unsigned char DeleteStack(void* stack);
 extern void ReleaseHitSoundDatabase(void);
 extern void ReleaseMissileDatabase(void);
 

@@ -2,11 +2,17 @@
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
+#include "Button System.h"
 #include "Font.h"
 #include "FileMan.h"
 #include "Mss.h"
+#include "input.h"
+#include "random.h"
+#include "sgp.h"
+#include "timer.h"
 #include "vobject.h"
 #include "vsurface.h"
+#include "vsurface_private.h"
 
 #include <direct.h>
 #include <process.h>
@@ -23,8 +29,6 @@
  */
 
 extern "C" {
-
-HVSURFACE CreateVideoSurfaceFromDDSurface(IDirectDrawSurface2* surface);
 
 struct W8VideoManagerNode {
     unsigned int handle;
@@ -130,9 +134,6 @@ unsigned char RegisterWindowClass(const char* application_name, const char* key_
 
 extern void ProcessCommandLine(char* pCommandLine);
 extern void GetRuntimeSettings(void);
-extern unsigned char InitializeInputManager(void);
-extern void InitializeClockManager(void);
-extern void InitializeRandom(void);
 extern unsigned char InitializeWiz8FontManager(
     unsigned short pixel_depth, FontTranslationTable* translation);
 
@@ -282,15 +283,10 @@ bool g_teardown_done_650db4;
 char g_shutdown_message_6505ac[0x100];
 extern void ShutdownScreenStack(int flag);
 extern void ShutdownGameData(void);
-extern void ShutdownButtonSystem(void);
 extern void ShutdownDisplayList(void);
-extern void DestroyEnglishTransTable(void);
-extern void ShutdownFontManager(void);
-extern void ShutdownClockManager(void);
 extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
 extern void ShutdownRenderer(void);
-extern void ShutdownInputManager(void);
 extern int ReturnZero(void);
 
 
@@ -428,10 +424,7 @@ void Function404B00(void)
 extern void Function4E3340(void);
 /* These are retained SGP globals, named by the vendored declaration surface. */
 extern HINSTANCE ghInstance;
-extern unsigned int giStartMem;
-extern unsigned char gfProgramIsRunning;
 extern unsigned char gfApplicationActive;
-extern unsigned char gfSGPInputReceived;
 
 /* The caller shifts the result right by ten and stores kilobytes. */
 // FUNCTION: WIZ8 0x00404bd0
@@ -471,10 +464,6 @@ extern void GetDefaultScreenMode(unsigned short* height,
                                  unsigned char* depth);
 extern void Function427A30(const char* path);
 extern void Function422970(int enable);
-extern unsigned char gfLoadAtStartup;
-extern unsigned char gfUsingBoundsChecker;
-extern unsigned char gfCapturingVideo;
-extern char* gzStringDataOverride;
 
 extern unsigned char Function409C50(void);
 

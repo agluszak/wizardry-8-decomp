@@ -8,7 +8,6 @@
 #include <wchar.h>
 #include <stdlib.h>
 
-extern "C" char* String(const char* format, ...);
 extern W8RPCSlot g_rpc_slots[8];
 extern W8RPCSlot g_rpc_slots_end[];
 extern int g_string_table_count;
@@ -320,7 +319,8 @@ unsigned int CharacterPointerToPartySlot(W8Character* character)
         "FALSE",
         "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
         0x1d1,
-        String("PCPtrToPCSlot: ERROR - no match on ptr %d", character));
+        reinterpret_cast<const char*>(
+            String("PCPtrToPCSlot: ERROR - no match on ptr %d", character)));
     return 0;
 }
 
@@ -468,12 +468,12 @@ int RPCPtrToPCSlot(const W8RPCSlot* rpc)
         }
         ++slot;
     }
-    char* message = String("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc);
+    UINT8* message = String("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc);
     srAssertFail(
         "FALSE",
         "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp",
         0x385,
-        message);
+        reinterpret_cast<const char*>(message));
     return 0;
 }
 

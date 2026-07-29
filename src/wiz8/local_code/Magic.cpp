@@ -1147,7 +1147,6 @@ extern W8MonsterRecord* GetMonsterDataForInfo(W8MonsterInfo* monster_info);
 extern wchar_t* GetMonsterName(
     W8MonsterInfo* monster_info, W8MonsterRecord* record, char arg_3);
 extern void FormatDebugMessage(int channel, const char* format, ...);
-extern int Random(int bound);
 
 /* The spell id that stands for no monster spell. */
 enum { W8_MONSTER_SPELL_NONE = 0x77 };

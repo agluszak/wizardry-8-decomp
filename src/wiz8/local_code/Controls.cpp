@@ -2,6 +2,7 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "Font.h"
 
 #include <wchar.h>
 
@@ -121,7 +122,6 @@ extern void Function407210(int font);
 extern int Function406DF0(int font);
 extern void Function4068E0(int font_context, int render_mode);
 extern int Function406DE0(int font);
-extern "C" unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* palette);
 extern void Function407090();
 extern void Function407140();
 extern void SetRenderClip00407220(int target, int left, int top, int right,

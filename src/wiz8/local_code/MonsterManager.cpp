@@ -11,7 +11,6 @@
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000
 
-extern "C" char* String(const char* format, ...);
 int FindFirstGrCycleByName(const char* name);
 unsigned char GetRenderOptionState(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
@@ -278,11 +277,11 @@ unsigned int MonsterGetIndexByLocationID(
             "FALSE",
             MONSTER_MANAGER_CPP,
             0x5c1,
-            String(
+            reinterpret_cast<const char*>(String(
                 "MonsterIndex: ID %d not found (%s line %d)",
                 location_id,
                 caller_file,
-                caller_line));
+                caller_line)));
     }
     return 0xffffffff;
 }
@@ -306,10 +305,10 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        detail = String(
+        detail = reinterpret_cast<const char*>(String(
             "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
             monster_list_index,
-            g_monster_list);
+            g_monster_list));
         line = 0x5de;
     }
     else {
@@ -324,10 +323,10 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        detail = String(
+        detail = reinterpret_cast<const char*>(String(
             "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
             monster_list_index,
-            g_monster_list);
+            g_monster_list));
         line = 0x5d5;
     }
     /* One tail, reached from both branches with only the line number differing.
@@ -401,11 +400,11 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(
             "FALSE",
             MONSTER_MANAGER_CPP,
             0x626,
-            String(
+            reinterpret_cast<const char*>(String(
                 "MonsterInfoFromID: ID %d not found (%s line %d)",
                 location_id,
                 caller_file,
-                caller_line));
+                caller_line)));
     }
     return monster;
 }
@@ -1389,11 +1388,11 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
                 "FALSE",
                 MONSTER_MANAGER_CPP,
                 0x497,
-                String(
+                reinterpret_cast<const char*>(String(
                     "%ls starting new cycle (%s) with an uninterruptable cycle pending (%s)!",
                     GetMonsterName(monster_info, 0, 0),
                     g_cycle_names[static_cast<signed char>(cycle)].name,
-                    g_cycle_names[static_cast<signed char>(pending)].name));
+                    g_cycle_names[static_cast<signed char>(pending)].name)));
             return;
         }
         if (static_cast<signed char>(cycle) == W8_CYCLE_STOP ||

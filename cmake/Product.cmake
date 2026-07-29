@@ -15,6 +15,8 @@ target_compile_definitions(wiz8_compile_settings INTERFACE NOMINMAX WIN32_LEAN_A
 target_include_directories(wiz8_compile_settings INTERFACE
     include
     config/sgp-overlays/common
+    config/sgp-overlays/font-video
+    config/sgp-overlays/librarydatabase
     "${SGP_SOURCE}"
 )
 

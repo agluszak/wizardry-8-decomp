@@ -129,7 +129,6 @@ void RedrawTextBoxComplete(void)
     (*(Controls**)(screen + 0x14))->Invalidate(0);
 }
 
-extern unsigned int ClockIsTicking(int clock);
 /* 0x0068F2E0: one clock per message, nine dwords apart, in per-line runs of
    0x15e. */
 extern int g_message_clocks[];

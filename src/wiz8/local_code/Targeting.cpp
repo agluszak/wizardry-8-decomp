@@ -7,11 +7,6 @@
 
 #define TARGETING_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Targeting.cpp"
 
-/* BAD_INDEX is -1: the canonical assertions read "!= BAD_INDEX" where the
-   bodies compare against -1. */
-#define BAD_INDEX (-1)
-
-
 W8CombatSlot* GetTargetBlockForContext(int party_slot, unsigned int context);
 int ResolveTargetingContext(int party_slot, unsigned int context);
 unsigned char GetCurrentTargetingContext(int party_slot);
