@@ -1,6 +1,6 @@
 # The dynamic oracle
 
-`wiz8 trace` runs the original under Wine with a debugger attached and reports
+`wiz8 analyze trace` runs the original under Wine with a debugger attached and reports
 which reviewed bodies executed, in what order. It answers the questions the
 image at rest cannot: which gates actually run, which screen handler the
 dispatcher reaches, whether a body is reached at all in a given scenario.
@@ -65,9 +65,9 @@ Nothing here touches the desktop: the game renders into the virtual server.
 ## Running
 
 ```sh
-just wiz8 trace bring-up --seconds 90       # WinMain through the first frame
-just wiz8 trace screens --seconds 180       # plus every dispatcher handler
-just wiz8 trace bring-up --plan-only        # the breakpoints, no run
+just wiz8 analyze trace bring-up --seconds 90       # WinMain through the first frame
+just wiz8 analyze trace screens --seconds 180       # plus every dispatcher handler
+just wiz8 analyze trace bring-up --plan-only        # the breakpoints, no run
 ```
 
 The bring-up selection is generated from `evidence/reviewed/wiz8/startup-spine.csv`; names join the

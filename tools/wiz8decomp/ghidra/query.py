@@ -312,10 +312,6 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
                 traced["entry"], traced["root"], traced["accesses"], traced["calls"], deleters
             ),
         }
-    if command == "facts-at":
-        from .apply_provenance import facts_at
-
-        return facts_at(program, arguments[0])
     if command == "high-function":
         from .semantic import high_function
 
@@ -365,7 +361,6 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "high-function": 1,
         "field-accesses": 2,
         "callsite": 1,
-        "facts-at": 1,
         "type-variables": 2,
         "condition-accesses": 1,
     }

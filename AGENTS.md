@@ -1,67 +1,59 @@
 # Repository instructions
 
 This is a Jujutsu repository for evidence-driven Wizardry 8 matching decompilation. Use Beads for
-durable task state and `just` as the normal command surface.
+durable task state and `just` for the supported daily workflow.
 
 ## Authority and ownership
 
+- Ghidra owns operational analysis state: function boundaries and names, signatures, labels,
+  namespaces, comments, structures, fields, enums, vtables, applied types, cross-references, and
+  decompiler state.
+- Git owns recovered C++ source, declarations, translation-unit ownership, source/link order,
+  compiler settings, matching markers, and provenance claims.
+- Provenance explains why an identity is accepted, its origin and authority ceiling, confidence,
+  aliases, and supporting observations. It must not clone Ghidra's complete function or type model.
+- Generated projections under `build/` bridge canonical authorities. They are disposable and must
+  never become editable evidence.
 - Do not reverse engineer implementations whose source or declarations are available. Windows,
-  MSVC runtime, SGP, zlib, IJG JPEG, and Info-ZIP behavior comes from the pinned source/header
-  oracle. Recover first-party callers instead. SurRender is closed middleware and remains a valid
-  recovery subject.
+  MSVC runtime, SGP, zlib, IJG JPEG, and Info-ZIP behavior comes from pinned source/header oracles.
+  SurRender is closed middleware and remains a valid recovery subject.
 - Search before declaring anything. A function, global, class, field, vtable, import, or constant
-  has one canonical declaration and one evidence identity. Extend that owner; do not add a cast,
-  raw vtable call, duplicate extern, wrapper, guessed name, or parallel inventory.
-- Recovered Wizardry translation units are C++ and use `.cpp`. Preserve proven original TU
-  ownership and the explicit source/link order in `src/wiz8/sources.cmake`. Keep address-qualified
-  template emissions separate until ownership is proved.
-- Prefer typed layouts and calling conventions. Names, ABI, ownership, and behavior must be grounded
-  in reviewed evidence, original images, source oracles, cross-build facts, or Ghidra observations.
-  Preserve partial knowledge with positional/address-qualified names.
-- Neutral machine observations and reviewed conclusions are different authorities. Canonical
-  execution inputs live in `config/`, observations and reviewed facts in `evidence/`, and
-  disposable reports in `build/`. Follow [the evidence policy](docs/evidence-policy.md).
+  has one canonical owner. Extend it; do not add duplicate externs, raw vtable calls, wrappers,
+  guessed aliases, or parallel inventories.
+- Preserve proven original translation-unit ownership and the explicit matching-sensitive order in
+  `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is
+  proved.
 - Never commit game binaries, extracted trees, live Ghidra projects, or build products. The
-  validated canonical GZF seed declared by `vendor/ghidra/exports/manifest.json` is the sole
-  tracked cache exception and is never fact authority.
-- Preserve the SFI-SCLA and upstream notices under `third_party/sfi-sgp`. Mark modifications as
-  required by the license and prefer adapting the vendored source to reconstructing it.
+  reviewed GZF checkpoint declared by `vendor/ghidra/exports/manifest.json` is the sole approved
+  tracked analysis artifact.
+- Preserve the SFI-SCLA and upstream notices under `third_party/sfi-sgp`.
 
 ## Recovery loop
 
-Start a port with the canonical program selector and the joined context packet:
+Restore the reviewed project once, then edit and version that project directly:
 
 ```sh
-CANON=wiz8--gog-base--wiz8--18a74ff61c65
-just wiz8 report context 0x<address> --program "$CANON"
-just ghidra query "$CANON" \
-  -q 'facts-at 0x<address>' \
-  -q 'decompile 0x<address>' \
-  -q 'high-function 0x<address>' \
-  -q 'field-accesses 0x<address> this' \
-  -q 'type-variables 0x<address> this' \
-  -q 'pcode 0x<address> normalize'
+uv run wiz8 ghidra restore
+just context 0x<address>
 ```
 
-Use decompile for behavior, high-function for ABI/storage, field accesses for layout, type variables
-for anonymous ownership, and normalized P-code for receiver identity and indirect flow. Use a listing
-only to explain a remaining encoding/compiler-order difference.
+The context command is the supported joined interface. It combines provenance, source ownership,
+match state, cross-build mappings, strings/assertions, callers/callees, decompilation, and relevant
+fields. Use the Ghidra UI/API for ordinary listing, symbol, type, and cross-reference work. For a
+speculative experiment, clone or version the project, use undo, or use a temporary GZF.
 
-Candidate conclusions belong in a disposable overlay:
+Recover the immediate call graph needed for the next visible product transition. Tooling is retained
+only when it repeatedly saves recovery work, proves emitted code or runtime behavior, or preserves
+evidence Ghidra cannot express.
 
-```sh
-just ghidra overlay analyze "$CANON" config/ghidra/hypotheses/<plan>.json
-just ghidra overlay inspect "$CANON" <overlay-id> 0x<address>
-just ghidra overlay discard "$CANON" <overlay-id>
-```
+Marker policy follows reccmp's entity conventions:
 
-Promotion goes through canonical reviewed evidence and a rebuilt baseline. The detailed lifecycle,
-class, and reconstructed-transfer procedure is in
-[the class recovery guide](docs/wiz8-class-recovery-procedure.md).
+- `// FUNCTION:` must sit immediately above its C++ declaration.
+- `// TEMPLATE:` must be followed immediately by the specialization-symbol comment and then the
+  template definition.
+- `// LIBRARY:` is address-only and has no owned declaration adjacency requirement.
 
-Keep every `// FUNCTION:` or `// TEMPLATE:` marker immediately above its declaration, with no
-blank line or prose between them. Put explanatory prose above the marker. `// LIBRARY:` has no
-owned definition and is exempt.
+Put explanatory prose above the marker sequence.
 
 ## Validation
 
@@ -69,29 +61,29 @@ Choose the narrowest lane while iterating and run the complete lane before publi
 
 | Change | Required validation |
 | --- | --- |
-| Python, docs, evidence, or source inventory | `just check` |
-| Ordinary local work | `just test` (unit + repository invariants) |
+| Python, docs, evidence, marker, or source inventory | `just check` |
+| Ordinary local work | `just test` |
 | Ported/recovered body | `just build WIZ8_GAMEPLAY_BOUNDARIES`, `just wiz8 verify-boundaries`, then `just test` |
-| Reviewed replay/evidence change | `just ghidra rebuild <program>` plus representative `facts-at`/caller queries |
-| Complete local product/integration gate | `just verify` |
+| Reviewed Ghidra change | representative `just context` checks, `uv run wiz8 ghidra index`, then an intentional checkpoint refresh |
+| Complete product/integration gate | `just verify` |
 
-Relocation-masked boundary verification is the body criterion. Linked-image `compare` is diagnostic:
-relocated globals reduce its score even for exact bodies. Preserve `/OPT:NOREF` comparison and
-`/OPT:REF` runtime modes.
+Relocation-masked boundary verification is the exact-body authority. Linked-image `compare` is
+diagnostic because relocated globals can reduce its score even for exact bodies. Preserve
+`/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
 
-`just check` owns formatting, lint, types, unit tests, repository evidence validation, and marker
-validation. Do not copy live counts into tests or Markdown; use `just wiz8 report status`.
+`just check` owns formatting, lint, typing, source inventory, fixture-based unit tests, one
+checked-tree repository lane, marker policy, repository hygiene, and reccmp decomplint. Do not put
+live counts or generated reports into tests or Markdown.
 
 ## Workspace and publication
 
-Give each checkout its own `WIZ8_WORK_DIR` and `WIZ8_GHIDRA_AGENT_ID`. Never hardlink a live
-`ghidra/` directory. Ghidra query automatically restores, replays, validates, and reuses the
-checkout-isolated project; do not manually manage daemon/cache internals.
+Give every checkout its own absolute `WIZ8_WORK_DIR`. Never hardlink a live `ghidra/` directory.
+Product builds use a per-checkout lock under `build/decomp`.
 
 At session start, run `bd prime`, `bd dolt pull`, inspect `bd ready`, and claim or create a Bead
 before substantial work. Record partial evidence; close only after acceptance and push Beads state.
 
 Use Jujutsu, not raw Git, for repository history. Preserve unrelated working-copy changes, inspect
-`jj status` after meaningful edits, fetch/rebase before publication, advance and push `main`, then
-leave a clean empty child. Pull requests remain Jujutsu-first. The exact workspace, Beads, rebase,
-publication, and PR commands live in [the contributor workflow](docs/contributor-workflow.md).
+`jj status` after meaningful edits, fetch/rebase before publication, and publish a named review
+bookmark. The exact workspace, Beads, rebase, and PR commands live in
+[the contributor workflow](docs/contributor-workflow.md).

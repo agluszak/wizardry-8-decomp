@@ -10,13 +10,13 @@ call site.
 
 The decompiler is a service, not a subprocess-per-question: sessions are
 DecompInterface instances configured once per (program, style) and reused for
-the daemon's lifetime. Three styles matter here - `decompile` for typed
+one batch session. Three styles matter here - `decompile` for typed
 analysis, `normalize` for a stable data-flow form without type-recovery noise,
 and `paramid` for parameter measurement - and the extraction styles keep the
 syntax tree while skipping C generation entirely.
 
 Read-only by construction: nothing here mutates the program, so the module is
-replay-inert for the materialization key.
+read-only with respect to the reviewed project.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ _TIMEOUT_SECONDS = 120
 _TRACE_LIMIT = 20000
 _STYLES = ("decompile", "normalize", "paramid")
 
-# (program unique id, style) -> DecompInterface. The daemon serves one program,
+# (program unique id, style) -> DecompInterface. A batch session serves one program,
 # so this holds at most a handful of interfaces; one-shot paths dispose on exit.
 _sessions: dict[tuple[int, str, str], Any] = {}
 
@@ -90,7 +90,7 @@ def _session(program: Any, style: str, *, c_output: bool) -> Any:
 
 
 def dispose_sessions() -> None:
-    """Release every cached interface; the daemon calls this on shutdown."""
+    """Release every cached interface when the batch session closes."""
 
     import contextlib
 

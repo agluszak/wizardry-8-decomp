@@ -4,13 +4,15 @@ The root instructions contain policy; this page contains the repeatable machine 
 
 ## Isolated workspace setup
 
-Copy `.env.example` to `.env`. Every checkout needs a unique absolute `WIZ8_WORK_DIR` and
-`WIZ8_GHIDRA_AGENT_ID`. A private work directory may use `cp -al` for immutable `extracted`,
-`fid`, `variants`, `oracles`, and `sgp` trees. Never hardlink `ghidra/`,
-`ghidra-agents/`, or `daemon/`; Ghidra writes them in place.
+Copy `.env.example` to `.env`. Every checkout needs a unique absolute `WIZ8_WORK_DIR`.
+A private work directory may use `cp -al` for immutable `extracted`, `fid`, `variants`,
+`oracles`, and `sgp` trees. Never hardlink `ghidra/`; Ghidra writes the canonical local
+project in place.
 
 The product CMake directory is `build/decomp` inside each checkout. `wiz8 build` configures it
 automatically and refuses a cache owned by another checkout.
+Product configure/link operations also take a non-blocking per-checkout lock and report the
+holder when another build is active.
 
 ## Beads
 
@@ -81,4 +83,3 @@ jj diff --from @ --to main --stat
 jj new main
 jj status
 ```
-

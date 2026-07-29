@@ -171,16 +171,8 @@ source-compatible, while Wizardry extends the runtime library header with mappin
 wrapper found only inside another function is retained as a rejected interior match rather than
 promoted to a function start.
 
-## Applying the reviewed model
+## Reviewed analysis model
 
-Until the canonical function catalog replaces compatibility maps, apply the accepted SGP names and
-types with:
-
-```sh
-just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
-  --map evidence/reviewed/wiz8/functions.csv
-just ghidra apply-sgp-model wiz8--gog-base--wiz8--18a74ff61c65
-```
-
-The first command applies reviewed identities. The second installs source-derived structures and
-prototypes. Neither command promotes near, ambiguous, stripped, or interior matches.
+Accepted SGP identities, source-derived structures, and prototypes live directly in the canonical
+Ghidra project. The evidence ledger preserves their source-oracle provenance. Near, ambiguous,
+stripped, and interior matches remain observations rather than promoted identities.

@@ -3,8 +3,8 @@ import io
 from pathlib import Path
 
 import pytest
+from wiz8decomp.evidence.functions import load_function_identities
 from wiz8decomp.evidence.schema import schema_for
-from wiz8decomp.ghidra.apply_function_map import load_function_identities
 
 HEADER = "address,provisional_name,owner,confidence,name_origin,authority,evidence\n"
 

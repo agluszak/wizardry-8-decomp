@@ -14,8 +14,7 @@ of its writers, then record the accepted identity as rows in
 (and the writers in ``functions.csv``), citing the writer sites this report
 points at. The generator reads snapshots and reviewed evidence; it writes
 neither, and it needs no proprietary inputs - the classification core is
-shared with the candidate replay in
-``tools/wiz8decomp/ghidra/candidate_model.py``.
+shared with the binary census in ``tools/wiz8decomp/class_candidates.py``.
 
 One limitation is structural and stated in every template: outside Ghidra
 there is no reliable way to say which function a vptr write belongs to. The
@@ -24,8 +23,7 @@ small bodies, and the tracked function census proposes starts inside real
 functions; adjudicating the 295 canonical disagreements against Ghidra found
 the padding attribution right 55 times, the function census right 119, and
 neither right 118. So writer *roles* in this report are leads to confirm, and
-the authoritative attribution is the one the replay materializes into the
-program from Ghidra's own containment.
+Ghidra's own function containment is authoritative.
 """
 
 from __future__ import annotations
@@ -35,7 +33,7 @@ import io
 from pathlib import Path
 from typing import Any
 
-from ..ghidra.candidate_model import (
+from ..class_candidates import (
     candidate_name,
     classify_candidates,
     derive_skeletons,
@@ -149,10 +147,7 @@ def promotion_template(
         f"- writers to review: {writers or 'none'}",
         (
             "  (census padding attribution, which merges adjacent small bodies -"
-            " resolve the write sites below with"
-            " `just ghidra query <program> function-of <sites>`, or read the"
-            " candidate-class comments in the materialized program, which use"
-            " Ghidra's own containment)"
+            " resolve the write sites below in the canonical Ghidra project)"
         ),
         deleting_note,
         f"- allocation hints: {hints}",

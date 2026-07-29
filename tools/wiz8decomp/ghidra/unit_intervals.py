@@ -1,8 +1,7 @@
 """Assertion-anchored translation-unit intervals over the ``.text`` order.
 
 This is the pure core behind the translation-units report. It lives under
-``ghidra/`` because the candidate replay derives bounded unit attribution from
-it, and everything a replay imports must feed the materialization key. The
+``ghidra/`` because recovery reports derive bounded unit attribution from it. The
 inputs are tracked: the reviewed assertion observations and the call-sites
 snapshot.
 """

@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim
+FROM debian:bookworm-20260623-slim@sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df
 
 ARG MSVC_REPOSITORY=https://github.com/archaic-msvc/msvc600_sp5.git
 ARG MSVC_REF=b0b07e29108e2695eb0274c2a377a7b7d7326150

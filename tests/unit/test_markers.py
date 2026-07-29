@@ -86,6 +86,45 @@ def test_library_markers_may_be_followed_by_the_symbol_name(tmp_path: Path) -> N
     assert check_marker_hygiene([tmp_path], tmp_path)["library_markers"] == 1
 
 
+def test_template_marker_requires_symbol_comment_and_template_definition(
+    tmp_path: Path,
+) -> None:
+    _source(
+        tmp_path,
+        "// TEMPLATE: WIZ8 0x004ADDF0\n"
+        "// W8GrowableVector<int>::Grow\n"
+        "template <class T>\n"
+        "int W8GrowableVector<T>::Grow(int minimum_capacity) { return minimum_capacity; }\n",
+    )
+
+    result = check_marker_hygiene([tmp_path], tmp_path)
+
+    assert result["template_markers"] == 1
+    assert result["template_addresses"] == 1
+
+
+@pytest.mark.parametrize(
+    "text, message",
+    [
+        (
+            "// TEMPLATE: WIZ8 0x004ADDF0\ntemplate <class T>\nint f() { return 0; }\n",
+            "specialization-symbol comment",
+        ),
+        (
+            (
+                "// TEMPLATE: WIZ8 0x004ADDF0\n// W8GrowableVector<int>::Grow\n\n"
+                "template <class T>\nint f() { return 0; }\n"
+            ),
+            "template definition",
+        ),
+    ],
+)
+def test_malformed_template_marker_is_refused(tmp_path: Path, text: str, message: str) -> None:
+    _source(tmp_path, text)
+    with pytest.raises(MarkerHygieneError, match=message):
+        check_marker_hygiene([tmp_path], tmp_path)
+
+
 def test_repeated_source_extern_shadowing_an_owner_header_is_refused(tmp_path: Path) -> None:
     (tmp_path / "owner.h").write_text("extern int g_owned;\n", encoding="utf-8")
     (tmp_path / "a.cpp").write_text("extern int g_owned;\n", encoding="utf-8")

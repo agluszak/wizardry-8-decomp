@@ -74,12 +74,10 @@ decompression, and tears the stream down.
 against the pristine zlib 1.0.4 headers. Relocation-normalized classifications and hashes live in
 the canonical matching data rather than this document.
 
-## Applied Ghidra model
+## Reviewed Ghidra model
 
-`uv run wiz8 ghidra apply-functions ... --map evidence/reviewed/wiz8/functions.csv` creates missing
-starts and applies the reviewed identities.
-
-`uv run wiz8 ghidra apply-zlib-model` installs the exact 32-bit release-1.0.4 layouts for
+The canonical project contains the reviewed function starts and identities plus the exact 32-bit
+release-1.0.4 layouts for
 `z_stream`, the `0x18`-byte inflate state, the `0x3C`-byte block state, the `0x1C`-byte code state,
 the eight-byte `inflate_huft`, the four-byte `ct_data`, and the 12-byte `tree_desc`. It applies
 source-derived `__cdecl` prototypes to the zlib and Wizardry boundary functions. As a result, the

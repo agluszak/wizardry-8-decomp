@@ -1,8 +1,7 @@
 """Read-only comparison between canonical observations and a Ghidra program.
 
 The snapshot files contain machine observations, not reviewed semantic names.
-This module therefore reports what Ghidra already materialized and what a
-neutral replay could add; it never mutates the program.
+This module reports what Ghidra already contains; it never mutates the program.
 """
 
 from __future__ import annotations

@@ -7,7 +7,6 @@ from ..config import Settings
 from ..paths import atomic_json
 from .environment import start_pyghidra
 from .project import configured_modules
-from .query_daemon import stop_daemon
 
 LOG = logging.getLogger(__name__)
 HASH_OPTION = "WIZ8_IMPORTED_SHA256"
@@ -69,7 +68,6 @@ def import_programs(
     requested_program: str | None = None,
     replace_existing: bool = False,
 ) -> dict[str, Any]:
-    stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     modules = configured_modules(
         settings, all_modules=all_modules, variant=variant, requested_program=requested_program

@@ -15,7 +15,6 @@ from ..paths import atomic_json, atomic_write, json_hash, sha256_file
 from ..provenance import derive_authority, origin_for_fid_source_kind
 from .environment import start_pyghidra
 from .project import resolve_program_name
-from .query_daemon import stop_daemon
 
 
 def _config(settings: Settings) -> dict[str, Any]:
@@ -144,7 +143,6 @@ def fid_status(settings: Settings) -> dict[str, Any]:
 
 
 def build_srs_fid(settings: Settings) -> dict[str, Any]:
-    stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
     from ghidra.feature.fid.db import FidFileManager
@@ -283,7 +281,6 @@ def import_static_seed_objects(
     from .fid_seeds import build_all_seed_objects
     from .import_programs import HASH_OPTION, PATH_OPTION
 
-    stop_daemon(settings, quiet=True)
     start_pyghidra(settings, max_heap="16G")
     import pyghidra
     from java.lang import System
@@ -401,7 +398,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
     from .fid_seeds import load_static_libraries
 
     imported = import_static_seed_objects(settings, use_cached_objects=True)
-    stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
     from ghidra.feature.fid.db import FidFileManager
@@ -542,7 +538,6 @@ def build_fid(settings: Settings) -> dict[str, Any]:
 def match_fid(
     settings: Settings, selector: str, threshold: float | None = None, database_kind: str = "static"
 ) -> dict[str, Any]:
-    stop_daemon(settings, quiet=True)
     start_pyghidra(settings)
     import pyghidra
     from ghidra.feature.fid.db import FidFileManager

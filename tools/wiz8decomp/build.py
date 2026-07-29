@@ -2,19 +2,25 @@ from __future__ import annotations
 
 import json
 import os
+import sys
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from fcntl import LOCK_EX, LOCK_NB, LOCK_UN, flock
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from .build_dir import check_build_directory
 from .config import Settings
 from .paths import atomic_json, atomic_write
+from .reccmp_data import write_wiz8_data_source
 from .subprocesses import CommandResult, resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
-TARGET_ALIASES = {"match": "WIZ8_MATCHING", "runtime": "WIZ8_RUNTIME"}
-PRODUCT_GENERATOR = "NMake Makefiles"
-JOM_PROGRAM = r"C:\jom\jom.exe"
+TARGET_ALIASES = {"match": "WIZ8", "runtime": "WIZ8_RUNTIME"}
+PRODUCT_GENERATOR = "NMake Makefiles JOM"
 
 
 @dataclass(frozen=True)
@@ -75,6 +81,7 @@ class ContainerBuild:
                 "Z:/out",
                 "-G",
                 PRODUCT_GENERATOR,
+                "-DCMAKE_MAKE_PROGRAM=C:/jom/jom.exe",
                 "-DIJG_JPEG_SOURCE=Z:/jpeg",
                 "-DZLIB_SOURCE=Z:/zlib",
                 "-DINFOZIP_SOURCE=Z:/infozip",
@@ -95,17 +102,6 @@ class ContainerBuild:
             ),
         ]
 
-    def check_build_system_command(self) -> list[str]:
-        return [
-            *self.docker_prefix(),
-            "cmd",
-            "/c",
-            (
-                r"set TEMP=Z:\out\tmp&& set TMP=Z:\out\tmp&& "
-                rf"cd /d Z:\out&& {JOM_PROGRAM} cmake_check_build_system"
-            ),
-        ]
-
 
 def _result(result: CommandResult) -> dict[str, Any]:
     return asdict(result)
@@ -123,19 +119,6 @@ def _product_cache_ready(build_dir: Path) -> bool:
     return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in cached
 
 
-def _enable_jom_parallelism(build_dir: Path) -> list[str]:
-    """Remove only CMake's NMake serialization guards after regeneration."""
-    updated: list[str] = []
-    for path in (build_dir / "Makefile", build_dir / "CMakeFiles" / "Makefile2"):
-        content = path.read_bytes()
-        replacement = content.replace(b".NOTPARALLEL:\r\n", b"# .NOTPARALLEL removed for JOM\r\n")
-        replacement = replacement.replace(b".NOTPARALLEL:\n", b"# .NOTPARALLEL removed for JOM\n")
-        if replacement != content:
-            path.write_bytes(replacement)
-            updated.append(str(path))
-    return updated
-
-
 def validate_build_directory(settings: Settings) -> dict[str, Any]:
     build_dir = settings.repo_dir / "build" / "decomp"
     marker = _owner_path(build_dir)
@@ -147,6 +130,37 @@ def validate_build_directory(settings: Settings) -> dict[str, Any]:
             raise RuntimeError(f"{marker} records a moved build directory: {owner['build_dir']}")
         return {"ok": True, "configured": True, **owner}
     return check_build_directory(build_dir, settings.repo_dir)
+
+
+@contextmanager
+def build_lock(settings: Settings):
+    """Fail fast when another command owns this checkout's product build."""
+
+    build_dir = settings.repo_dir / "build" / "decomp"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = build_dir / ".wiz8-build.lock"
+    with lock_path.open("a+", encoding="utf-8") as stream:
+        try:
+            flock(stream.fileno(), LOCK_EX | LOCK_NB)
+        except BlockingIOError as error:
+            stream.seek(0)
+            holder = stream.read().strip() or "unknown holder"
+            raise RuntimeError(f"product build is already running: {holder}") from error
+        record = {
+            "pid": os.getpid(),
+            "command": sys.argv,
+            "cwd": str(Path.cwd()),
+            "started_at": datetime.now(UTC).isoformat(),
+        }
+        stream.seek(0)
+        stream.truncate()
+        json.dump(record, stream)
+        stream.flush()
+        os.fsync(stream.fileno())
+        try:
+            yield
+        finally:
+            flock(stream.fileno(), LOCK_UN)
 
 
 def prepare(settings: Settings) -> dict[str, Any]:
@@ -180,28 +194,32 @@ def prepare(settings: Settings) -> dict[str, Any]:
 
 def _write_reccmp_build(settings: Settings) -> None:
     build_dir = settings.repo_dir / "build" / "decomp"
-    lines = [f"project: '{settings.repo_dir}'", "targets:"]
+    targets = {}
     for target, stem in (
         ("WIZ8", "Wiz8"),
         ("SREXT_JPEGIMPORTER", "srEXT_JPEGImporter"),
         ("SREXT_UNZIP", "srEXT_Unzip"),
     ):
-        lines.extend(
-            (
-                f"  {target}:",
-                f"    path: '{build_dir / (stem + ('.exe' if target == 'WIZ8' else '.dll'))}'",
-                f"    pdb: '{build_dir / (stem + '.pdb')}'",
-            )
-        )
-    atomic_write(build_dir / "reccmp-build.yml", "\n".join(lines) + "\n")
+        targets[target] = {
+            "path": str(build_dir / (stem + (".exe" if target == "WIZ8" else ".dll"))),
+            "pdb": str(build_dir / (stem + ".pdb")),
+        }
+    atomic_write(
+        build_dir / "reccmp-build.yml",
+        yaml.safe_dump(
+            {"project": str(settings.repo_dir), "targets": targets},
+            sort_keys=False,
+        ),
+    )
 
 
-def configure(settings: Settings) -> dict[str, Any]:
+def _configure(settings: Settings) -> dict[str, Any]:
     prepare_result = prepare(settings)
     build = ContainerBuild.from_settings(settings)
     build.build_dir.mkdir(parents=True, exist_ok=True)
     (build.build_dir / "tmp").mkdir(parents=True, exist_ok=True)
     validate_build_directory(settings)
+    write_wiz8_data_source(settings.repo_dir)
     detect = run(
         [
             "reccmp-project",
@@ -229,36 +247,40 @@ def configure(settings: Settings) -> dict[str, Any]:
     }
 
 
+def configure(settings: Settings) -> dict[str, Any]:
+    with build_lock(settings):
+        return _configure(settings)
+
+
 def build_target(
-    settings: Settings, target: str = "runtime", jobs: int | None = None
+    settings: Settings, target: str = "match", jobs: int | None = None
 ) -> dict[str, Any]:
-    build = ContainerBuild.from_settings(settings)
-    validate_build_directory(settings)
-    prerequisites_ready = all(
-        mount.host.exists() for mount in build.mounts if mount.container not in {"/repo", "/out"}
-    )
-    if not prerequisites_ready or not _product_cache_ready(build.build_dir):
-        configure(settings)
-    # CMake owns regeneration. Run its check while the generated NMake guards
-    # are intact, then adapt only those guards for the parallel JOM build.
-    run(build.check_build_system_command(), cwd=settings.repo_dir)
-    parallel_makefiles = _enable_jom_parallelism(build.build_dir)
-    resolved_target = TARGET_ALIASES.get(target, target)
-    result = run(
-        build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
-        cwd=settings.repo_dir,
-    )
-    return {
-        "target": resolved_target,
-        "parallel_makefiles": parallel_makefiles,
-        "command": _result(result),
-    }
+    with build_lock(settings):
+        build = ContainerBuild.from_settings(settings)
+        write_wiz8_data_source(settings.repo_dir)
+        validate_build_directory(settings)
+        prerequisites_ready = all(
+            mount.host.exists()
+            for mount in build.mounts
+            if mount.container not in {"/repo", "/out"}
+        )
+        if not prerequisites_ready or not _product_cache_ready(build.build_dir):
+            _configure(settings)
+        resolved_target = TARGET_ALIASES.get(target, target)
+        result = run(
+            build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
+            cwd=settings.repo_dir,
+        )
+        return {
+            "target": resolved_target,
+            "command": _result(result),
+        }
 
 
 def build_analysis_target(
     settings: Settings, source_dir: str, build_name: str, target: str, jobs: int | None = None
 ) -> dict[str, Any]:
-    output = settings.repo_dir / "build" / "decomp" / "CMakeFiles" / build_name
+    output = settings.repo_dir / "build" / "analysis" / build_name
     output.mkdir(parents=True, exist_ok=True)
     (output / "tmp").mkdir(exist_ok=True)
     build = ContainerBuild(
@@ -278,6 +300,13 @@ def build_analysis_target(
         build.build_command(target, jobs or 1),
         cwd=settings.repo_dir,
     )
+    manifest_path = settings.repo_dir / "build" / "analysis" / "object-roots.json"
+    if manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    else:
+        manifest = {"schema": "wiz8.analysis-object-roots", "roots": {}}
+    manifest["roots"][build_name] = str((output / "CMakeFiles").relative_to(settings.repo_dir))
+    atomic_json(manifest_path, manifest)
     return {
         "target": target,
         "configure": _result(configure_result),
@@ -285,9 +314,29 @@ def build_analysis_target(
     }
 
 
+def boundary_object_roots(settings: Settings) -> list[Path]:
+    roots = [settings.repo_dir / "build" / "decomp" / "CMakeFiles"]
+    manifest_path = settings.repo_dir / "build" / "analysis" / "object-roots.json"
+    if manifest_path.is_file():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("schema") != "wiz8.analysis-object-roots":
+            raise RuntimeError(f"unsupported analysis object-root manifest: {manifest_path}")
+        roots.extend(
+            settings.repo_dir / relative
+            for _, relative in sorted((manifest.get("roots") or {}).items())
+        )
+    return roots
+
+
 def compare(
-    settings: Settings, target: str = "WIZ8", arguments: list[str] | None = None
+    settings: Settings,
+    target: str = "WIZ8",
+    arguments: list[str] | None = None,
+    *,
+    build_first: bool = True,
 ) -> dict[str, Any]:
+    if build_first:
+        build_target(settings, target)
     validate_build_directory(settings)
     build_dir = settings.repo_dir / "build" / "decomp"
     if (
@@ -309,26 +358,29 @@ def build_toolchain(settings: Settings) -> dict[str, Any]:
 
 
 def check(repository: Path) -> dict[str, Any]:
+    write_wiz8_data_source(repository)
     commands = (
         ["ruff", "format", "--check", "."],
         ["ruff", "check", "."],
         ["pyright"],
-        ["pytest", "tests/unit"],
-        ["wiz8", "evidence", "validate"],
+        ["cmake", "-P", "cmake/ValidateWiz8Sources.cmake"],
+        ["pytest", "tests/unit", "tests/repository"],
         ["wiz8", "check-markers"],
+        ["wiz8", "check-reccmp"],
     )
     return {"commands": [_result(run(command, cwd=repository)) for command in commands]}
 
 
 def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     build_target(settings, "WIZ8")
-    build_target(settings, "WIZ8_GAMEPLAY_BOUNDARIES")
     build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     boundaries = run(["wiz8", "verify-boundaries"], cwd=settings.repo_dir)
-    comparison = compare(settings, "WIZ8") if compare_image else None
+    comparison = compare(settings, "WIZ8", build_first=False) if compare_image else None
+    decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
     tests = run(["pytest"], cwd=settings.repo_dir)
     return {
         "boundaries": _result(boundaries),
         "compare": comparison,
+        "decomplint": _result(decomplint),
         "tests": _result(tests),
     }

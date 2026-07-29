@@ -8,8 +8,6 @@ from wiz8decomp.evidence.classes import (
     parse_pointee,
 )
 from wiz8decomp.evidence.schema import schema_for
-from wiz8decomp.ghidra.apply_wiz8_signature_fixes import type_category_paths
-from wiz8decomp.ghidra.validate_replay import expected_pointee_display
 
 
 def _write(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
@@ -119,11 +117,6 @@ def test_parse_pointee_splits_base_and_depth() -> None:
     assert parse_pointee(" Node * * ") == ("Node", 2)
 
 
-def test_expected_pointee_display_adds_the_field_pointer_level() -> None:
-    assert expected_pointee_display("Node") == "Node *"
-    assert expected_pointee_display("Node *") == "Node * *"
-
-
 def test_pointee_accepts_self_reference(tmp_path: Path) -> None:
     repo = _model_dir(tmp_path, [_field_row()])
     model = load_reviewed_class_model(repo, "demo")
@@ -148,23 +141,10 @@ def test_pointee_rejects_unsized_class(tmp_path: Path) -> None:
         load_reviewed_class_model(repo, "demo")
 
 
-def test_signature_type_categories_reach_the_vendored_models() -> None:
-    # Reviewed signatures may reference SGP and zlib types; the first-party
-    # categories stay first so they shadow the vendored ones deterministically.
-    assert type_category_paths("wiz8") == (
-        "/wiz8/classes",
-        "/wiz8/formats/slf",
-        "/wiz8/sgp",
-        "/wiz8/zlib_1_0_4",
-        "/wiz8/srext_unzip",
-    )
-
-
 def test_ghidra_namespace_name_closes_the_space_a_pointer_instantiation_carries() -> None:
     """Ghidra refuses whitespace in a symbol, and the model's spelling has some.
 
-    The reviewed name is what joins a row to its COFF symbol, so the replay
-    adapts to Ghidra rather than the other way round.
+    The reviewed name is what joins a row to a COFF symbol.
     """
 
     assert (

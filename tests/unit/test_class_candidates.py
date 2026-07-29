@@ -1,4 +1,4 @@
-from wiz8decomp.ghidra.candidate_model import (
+from wiz8decomp.class_candidates import (
     classify_candidates,
     derive_skeletons,
     derived_families,

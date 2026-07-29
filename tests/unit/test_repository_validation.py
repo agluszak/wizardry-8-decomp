@@ -7,12 +7,9 @@ from wiz8decomp.evidence.schema import schema_for
 from wiz8decomp.evidence.validate import (
     _validate_boundaries,
     _validate_functions,
-    require_valid_repository,
     validate_source_entries,
 )
 from wiz8decomp.evidence_merge import EvidenceMergeConflict, stronger
-
-REPOSITORY = Path(__file__).resolve().parents[2]
 
 
 def _write(path: Path, rows: list[dict[str, str]]) -> None:
@@ -99,10 +96,6 @@ def _slot(vtable_id: str = "Node.primary") -> dict[str, str]:
         "confidence": "exact",
         "evidence_id": "classes:demo:Node",
     }
-
-
-def test_repository_validator_accepts_the_current_canonical_ledger() -> None:
-    assert require_valid_repository(REPOSITORY)["ok"] is True
 
 
 def test_function_validator_rejects_duplicate_address(tmp_path: Path) -> None:

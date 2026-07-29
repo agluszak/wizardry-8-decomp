@@ -45,7 +45,7 @@ program: call site, call kind, containing function, source path, line, the **exp
 and the optional fourth-argument **message**. All but one direct site decode their literal
 arguments. They span 128 files; 789 distinct functions contain at least one site, and 84 sites
 fall outside any function the canonical Ghidra program currently defines and record an empty
-containing function. The containing function is resolved through the materialized canonical
+containing function. The containing function is resolved through the reviewed canonical
 program, and the cross-build raw harvest behind this table is
 `evidence/snapshots/call-sites/assertions.csv`.
 
@@ -443,7 +443,7 @@ The second reviewed class is the engine-level `Monster` object:
 The reviewed minimum extent is `0x628`, based on constructor accesses through offset `0x624`.
 The three repeated regions contain 27 adjacent `0x10`-byte elements each, but their element type
 and the remaining fields are intentionally unnamed pending use-site review. The vtable has 31
-slots; missing slot targets are created during model replay, but no behavioral method names are
+slots; the reviewed Ghidra project defines the slot targets, but no behavioral method names are
 assigned from slot position alone.
 
 ## `GrCycle`
@@ -469,12 +469,11 @@ source supplies either base name, so the public header uses constructor-address-
 rather than semantic guesses. Primary slots 4 (`0x004A7470`) and 11 (`0x004A7E10`) directly
 reference `C:\Projects\Wizardry 8\Engine Code\GrCycle.cpp`.
 
-Replay the tracked model with:
+Inspect the reviewed model and export its disposable index with:
 
 ```sh
-just ghidra apply-functions wiz8--gog-base--wiz8--18a74ff61c65 \
-  --map evidence/reviewed/wiz8/functions.csv
-just ghidra apply-wiz8-class-model wiz8--gog-base--wiz8--18a74ff61c65
+uv run wiz8 ghidra restore
+uv run wiz8 ghidra index
 ```
 
 The authoritative class relationships are in `evidence/reviewed/wiz8/classes.csv`; their constructor

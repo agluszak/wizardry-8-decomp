@@ -5,7 +5,7 @@
  * The on-disk gameplay records, as the matching source compiles them.
  *
  * This is the canonical field inventory consumed by matching source, review
- * tools, and Ghidra replay. Everything here is a file format read by seeking
+ * tools, and the reviewed Ghidra project. Everything here is a file format read by seeking
  * to a record index and fixed stride, so the sizes are part of the format
  * rather than incidental layout.
  */

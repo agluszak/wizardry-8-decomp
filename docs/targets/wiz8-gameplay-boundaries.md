@@ -64,11 +64,7 @@ the owning translation-unit level rather than patched independently in each func
 
 Ghidra initially assigned extra parameters to `PListIndexOf` and
 `GetOriginOfCharacterItem`. Walking the raw `ESP`-relative reads against caller push counts proved
-the correct signatures. Replay the corrected model with:
-
-```sh
-just ghidra apply-wiz8-signature-fixes wiz8--gog-base--wiz8--18a74ff61c65
-```
+the correct signatures. The reviewed signatures now live directly in the canonical Ghidra project.
 
 This is a useful boundary rule: decompiler pseudocode is an observation, not reviewed ABI evidence.
 

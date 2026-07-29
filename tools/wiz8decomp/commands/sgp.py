@@ -20,7 +20,7 @@ def sweep_command(
     ),
 ) -> None:
     """Compile the declarative flag matrix and compare every reviewed build."""
-    from .. import cli
+    from .. import command_support as cli
     from ..sgp_oracle import sweep_sgp_units
 
-    cli._run_action(lambda: sweep_sgp_units(cli._settings(), unit, update_snapshot=update_snapshot))
+    cli.run_action(lambda: sweep_sgp_units(cli.settings(), unit, update_snapshot=update_snapshot))

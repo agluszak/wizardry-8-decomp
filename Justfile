@@ -13,7 +13,7 @@ test *args:
 check:
     uv run wiz8 check
 
-build target="runtime" *args:
+build target="match" *args:
     uv run wiz8 build {{target}} {{args}}
 
 run:
@@ -25,9 +25,8 @@ compare target="WIZ8" *args:
 verify *args:
     uv run wiz8 verify {{args}}
 
-[positional-arguments]
-ghidra *args:
-    uv run wiz8 ghidra "$@"
+context address program="wiz8" *args:
+    uv run wiz8 report context {{address}} --program {{program}} {{args}}
 
 wiz8 *args:
     uv run wiz8 {{args}}

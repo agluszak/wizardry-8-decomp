@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -292,6 +293,19 @@ def collect_object_candidates(root: Path) -> dict[str, tuple[CoffFunction, ...]]
     return {name: tuple(claimants) for name, claimants in functions.items()}
 
 
+def collect_object_candidates_from_roots(
+    roots: Iterable[Path],
+) -> dict[str, tuple[CoffFunction, ...]]:
+    combined: dict[str, list[CoffFunction]] = {}
+    for root in roots:
+        for name, claimants in collect_object_candidates(root).items():
+            values = combined.setdefault(name, [])
+            for claimant in claimants:
+                if not any(bytes(seen.body) == bytes(claimant.body) for seen in values):
+                    values.append(claimant)
+    return {name: tuple(claimants) for name, claimants in combined.items()}
+
+
 def resolve_boundary_function(
     claimants: tuple[CoffFunction, ...], size: int, canonical: bytes | None
 ) -> CoffFunction | None:
@@ -548,9 +562,21 @@ class BoundaryResult:
     object: str | None = None
 
 
+def _relative_object(function: CoffFunction | None, roots: tuple[Path, ...]) -> str | None:
+    if function is None or not function.source_object:
+        return None
+    source = Path(function.source_object)
+    for root in roots:
+        try:
+            return str(source.relative_to(root))
+        except ValueError:
+            continue
+    return str(source)
+
+
 def verify_boundaries(
     mapping_path: Path,
-    object_root: Path,
+    object_root: Path | Iterable[Path],
     image: Path | None = None,
 ) -> dict[str, Any]:
     """Check every reviewed row against the objects built from our sources.
@@ -565,11 +591,15 @@ def verify_boundaries(
     precisely the direction this work moves in.
     """
 
-    if not object_root.is_dir():
-        raise RuntimeError(f"no built objects to verify against: {object_root}")
+    object_roots = (object_root,) if isinstance(object_root, Path) else tuple(object_root)
+    if not object_roots:
+        raise RuntimeError("no object roots were configured for boundary verification")
+    missing = [root for root in object_roots if not root.is_dir()]
+    if missing:
+        raise RuntimeError(f"no built objects to verify against: {', '.join(map(str, missing))}")
     rows = load_boundary_rows(mapping_path)
 
-    claimants_by_name = collect_object_candidates(object_root)
+    claimants_by_name = collect_object_candidates_from_roots(object_roots)
     results: list[BoundaryResult] = []
     for row in rows:
         symbol = row["symbol"].strip()
@@ -601,11 +631,7 @@ def verify_boundaries(
                 state=state,
                 reviewed_size=size,
                 comdat_size=len(function.body) if function is not None else None,
-                object=(
-                    str(Path(function.source_object).relative_to(object_root))
-                    if function is not None and function.source_object
-                    else None
-                ),
+                object=_relative_object(function, object_roots),
             )
         )
 
@@ -615,7 +641,7 @@ def verify_boundaries(
     failures = [result for result in results if result.state in {"regressed", "promotable"}]
     summary = {
         "mapping": str(mapping_path),
-        "objects": str(object_root),
+        "objects": [str(root) for root in object_roots],
         "rows": len(results),
         "states": dict(sorted(counts.items())),
         "results": [result.__dict__ for result in results],
