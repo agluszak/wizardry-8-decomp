@@ -37,10 +37,9 @@ packages = ["tools/wiz8decomp"]
 
 [tool.pytest.ini_options]
 addopts = "-ra"
-testpaths = ["tests"]
+testpaths = ["tests/unit", "tests/repository"]
 markers = [
   "repository: checked-in evidence and source invariants",
-  "integration: proprietary inputs and external toolchains",
 ]
 
 [tool.ruff]
@@ -54,7 +53,6 @@ exclude = [
   # objects. They need Protocol surfaces before useful static checking.
   "tools/wiz8decomp/binary/pe.py",
   "tools/wiz8decomp/binary/inventory.py",
-  "tools/wiz8decomp/boundaries.py",
   "tools/wiz8decomp/sgp_oracle.py",
 ]
 typeCheckingMode = "basic"

@@ -8,7 +8,6 @@ prepare:
     uv run wiz8 prepare
 
 test *args:
-    uv run wiz8 lint
     uv run wiz8 analyze source-index
     uv run pytest tests/unit tests/repository {{args}}
 

@@ -33,6 +33,21 @@ def build_source_index(settings: Settings) -> SourceIndex:
         raise FileNotFoundError(
             f"{compilation_database} is missing; run `just lint` to generate it"
         )
+    database_mtime = compilation_database.stat().st_mtime
+    inventories = (
+        repository / "src/wiz8/sources.cmake",
+        repository / "src/surrender/CMakeLists.txt",
+        repository / "CMakeLists.txt",
+    )
+    stale = [
+        path for path in inventories if path.is_file() and path.stat().st_mtime > database_mtime
+    ]
+    if stale:
+        raise RuntimeError(
+            "the compile database predates "
+            + ", ".join(path.relative_to(repository).as_posix() for path in stale)
+            + "; run `just lint` to reconfigure it before indexing"
+        )
     docker = resolve_executable("docker") or "docker"
     command_prefix = (
         docker,

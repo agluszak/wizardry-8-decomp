@@ -235,7 +235,6 @@ def register(app: typer.Typer) -> None:
     app.command("verify")(verify_command)
     app.add_typer(analyze_app, name="analyze")
     app.command("check-build-dir", hidden=True)(check_build_dir_command)
-    app.command("check-repository", hidden=True)(check_repository_command)
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
     analyze_app.command("unresolved")(unresolved_report_command)
     analyze_app.command("inventory")(inventory_command)
@@ -279,15 +278,6 @@ def check_build_dir_command(
             cli.settings().repo_dir,
         )
     )
-
-
-def check_repository_command() -> None:
-    """Reject tracked generated, proprietary, editor, and oversized artifacts."""
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..repository import validate_repository_hygiene
-
-    cli.run_action(lambda: validate_repository_hygiene(repository_root()))
 
 
 def check_reccmp_command() -> None:

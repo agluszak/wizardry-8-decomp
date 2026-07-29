@@ -46,7 +46,10 @@ class Settings(BaseModel):
 
     @property
     def project_dir(self) -> Path:
-        return self.ghidra_project_dir_override or self.work_dir / "ghidra"
+        # Ghidra writes the project in place, so every checkout must own its
+        # project. The in-repo default (gitignored) guarantees that; the
+        # override exists for relocating one checkout's project, not sharing.
+        return self.ghidra_project_dir_override or self.repo_dir / "ghidra-project"
 
     @property
     def project_name(self) -> str:

@@ -6,8 +6,16 @@ The root instructions contain policy; this page contains the repeatable machine 
 
 Copy `.env.example` to `.env`. Every checkout needs a unique absolute `WIZ8_WORK_DIR`.
 A private work directory may use `cp -al` for immutable `extracted`, `fid`, `variants`,
-`oracles`, and `sgp` trees. Never hardlink `ghidra/`; Ghidra writes the canonical local
-project in place.
+`oracles`, and `sgp` trees.
+
+The live Ghidra project lives inside the checkout at `ghidra-project/` (gitignored), so
+every workspace owns its project by construction. `WIZ8_GHIDRA_PROJECT_DIR` relocates one
+checkout's project; it must never point two checkouts at the same directory, and the
+tooling refuses a project restored by a different checkout. Never hardlink or copy a live
+project; Ghidra writes it in place. A checkout that previously kept its project at
+`$WIZ8_WORK_DIR/ghidra` should `mv` that directory to `<checkout>/ghidra-project` (or set
+`WIZ8_GHIDRA_PROJECT_DIR` to the old path) to keep analysis state past the reviewed
+checkpoint.
 
 The product CMake directory is `build/decomp` inside each checkout. `wiz8 build` configures it
 automatically and refuses a cache owned by another checkout.

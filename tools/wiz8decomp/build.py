@@ -498,7 +498,7 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
         else None
     )
     decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
-    tests = run(["pytest"], cwd=settings.repo_dir)
+    tests = run(["pytest", "tests/unit", "tests/repository"], cwd=settings.repo_dir)
     runtime_tests = run_runtime_suite(settings)
     return {
         "lint": lint_result,

@@ -55,7 +55,26 @@ Recover the immediate call graph needed for the next visible product transition.
 only when it repeatedly saves recovery work, proves emitted code or runtime behavior, or preserves
 evidence Ghidra cannot express.
 
-Marker policy follows reccmp's entity conventions:
+Load the task's skill before starting: porting or near-matching a function body uses
+`matching-decomp`; promoting candidate classes or deciding what an unnamed
+constructor/destructor constructs uses `class-triage`.
+
+## Matching expectations
+
+Faithfulness is absolute; byte-identity is incremental. A first-pass port will usually not be
+byte-identical, and that is an acceptable, recordable state once the body is structurally
+faithful. The two hard invariants are completeness in both directions: never invent code the
+retail binary does not contain, and never skip, stub, or approximate code it does contain.
+Every retail instruction must be accounted for by the ported source even while the emitted
+encoding still differs.
+
+Spend matching effort where it changes evidence. When the residual divergence comes down to
+inliner, scheduling, or register-allocation choice, do not run an exhaustive search over
+inlining combinations to win the final fraction of instruction similarity; record the
+divergence and move on. Return for byte-identity when new evidence — a caller, a layout, a
+compiler-flag proof — makes it cheap, not by brute force.
+
+Marker policy follows reccmp's entity conventions (enforced by `just check`):
 
 - `// FUNCTION:` must sit immediately above its C++ declaration.
 - `// TEMPLATE:` must be followed immediately by the specialization-symbol comment and then the
@@ -93,6 +112,12 @@ Choose the narrowest lane while iterating and run the complete lane before publi
 | Reviewed Ghidra change | representative `just context` checks, `uv run wiz8 ghidra index`, then an intentional checkpoint refresh |
 | Complete product/integration gate | `just verify` |
 
+`just test` is the fast lane: it refreshes the source index and runs the unit and repository
+suites without rebuilding the clang lint lane. The lint build itself runs only in `just lint`,
+`just check`, and `just verify`; after changing the source inventory or CMake configuration,
+run `just lint` once so the source index sees a current compile database (the index refuses a
+stale one).
+
 Relocation-masked boundary verification is the exact-body authority. Linked-image `compare` is
 diagnostic because relocated globals can reduce its score even for exact bodies. Preserve
 `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
@@ -116,11 +141,14 @@ participates in the linked product.
 
 ## Workspace and publication
 
-Give every checkout its own absolute `WIZ8_WORK_DIR`. Never hardlink a live `ghidra/` directory.
-Product builds use a per-checkout lock under `build/decomp`.
+Give every checkout its own absolute `WIZ8_WORK_DIR`. The live Ghidra project lives inside the
+checkout at `ghidra-project/`; never point two checkouts at one project and never hardlink or
+copy a live project directory. Product builds use a per-checkout lock under `build/decomp`.
 
 At session start, run `bd prime`, `bd dolt pull`, inspect `bd ready`, and claim or create a Bead
 before substantial work. Record partial evidence; close only after acceptance and push Beads state.
+End a session by handing off what changed, how it was verified, the status of every touched Bead,
+and any step that stayed blocked, naming the exact command and error.
 
 Use Jujutsu, not raw Git, for repository history. Preserve unrelated working-copy changes, inspect
 `jj status` after meaningful edits, fetch/rebase before publication, and publish a named review

@@ -91,6 +91,40 @@ def _program_hash(project: Any, program_name: str) -> str | None:
         return program.getOptions("Program Information").getString(HASH_OPTION, None)
 
 
+OWNER_MARKER = "checkout-owner.json"
+
+
+def check_project_owner(settings: Settings) -> None:
+    """Refuse a project directory that another checkout restored.
+
+    Ghidra writes the project in place, so two checkouts sharing one project
+    silently corrupt each other's analysis state. The in-repo default makes
+    ownership structural; this guard catches an override pointed at another
+    checkout's live project.
+    """
+
+    marker = settings.project_dir / OWNER_MARKER
+    if not marker.is_file():
+        return
+    recorded = json.loads(marker.read_text(encoding="utf-8")).get("repo_dir")
+    if recorded and Path(recorded).resolve() != settings.repo_dir.resolve():
+        raise RuntimeError(
+            f"{settings.project_dir} was restored by a different checkout ({recorded}). "
+            "Every checkout needs its own live Ghidra project; point "
+            "WIZ8_GHIDRA_PROJECT_DIR elsewhere or unset it to use this checkout's "
+            "ghidra-project/ directory."
+        )
+
+
+def _write_project_owner(settings: Settings) -> None:
+    marker = settings.project_dir / OWNER_MARKER
+    if not marker.is_file():
+        marker.write_text(
+            json.dumps({"schema": "wiz8.ghidra-owner", "repo_dir": str(settings.repo_dir)}) + "\n",
+            encoding="utf-8",
+        )
+
+
 def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, Any]:
     """Restore the reviewed checkpoint once into the canonical local project.
 
@@ -100,12 +134,14 @@ def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, A
 
     seed = seed_record(settings, selector)
     program_name = str(seed["program"])
+    check_project_owner(settings)
     start_pyghidra(settings)
     import pyghidra
     from ghidra.util.task import TaskMonitor
     from java.io import File
 
     settings.project_dir.mkdir(parents=True, exist_ok=True)
+    _write_project_owner(settings)
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=True)
     try:
         existing_hash = _program_hash(project, program_name)
@@ -113,7 +149,8 @@ def restore_seed(settings: Settings, selector: str | None = None) -> dict[str, A
             if existing_hash != seed["binary_sha256"]:
                 raise RuntimeError(
                     f"existing {program_name} hash {existing_hash} differs from the seed's "
-                    f"{seed['binary_sha256']}; use a different WIZ8_WORK_DIR"
+                    f"{seed['binary_sha256']}; use a different Ghidra project directory "
+                    "(WIZ8_GHIDRA_PROJECT_DIR)"
                 )
             status = "already-restored"
         else:
