@@ -29,6 +29,18 @@ configures automatically. `compare` is a linked-image diagnostic; relocation-mas
 `just wiz8 verify-boundaries` is the recovered-body criterion. `just test` runs the public unit
 and repository-invariant lanes.
 
+For focused recovery, one reccmp process can compare or triage several original addresses, or all
+`FUNCTION` markers in a source file. The wrappers consume reccmp's structured result; they do not
+infer meaning by parsing rendered disassembly.
+
+```sh
+just compare 0x00406b70 0x00406ba0
+just triage --file src/wiz8/local_code/Combat.cpp
+just vtable W8Widget
+just datacmp
+just addr 0x00406b70
+```
+
 Generated reports live under the gitignored `build/` directory. Extracted files, materialized
 variants, live Ghidra projects, and Wine prefixes live under `WIZ8_WORK_DIR` outside this checkout.
 The CMake build directory is `build/decomp` inside the checkout, so several checkouts can share one

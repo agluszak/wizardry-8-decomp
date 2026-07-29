@@ -48,16 +48,120 @@ def build_command(
 
 def compare_command(
     ctx: typer.Context,
-    target: str = "WIZ8",
+    addresses: Annotated[
+        list[str] | None,
+        typer.Argument(help="Original addresses; omit for whole-image diagnostics."),
+    ] = None,
+    files: Annotated[
+        list[Path] | None,
+        typer.Option("--file", help="Compare every FUNCTION marker in this source file."),
+    ] = None,
+    target: Annotated[str, typer.Option("--target")] = "WIZ8",
     no_build: bool = typer.Option(False, "--no-build"),
 ) -> None:
-    """Run the diagnostic linked-image comparison."""
+    """Compare selected functions in one process, or diagnose the whole image."""
     from .. import command_support as cli
-    from ..build import compare
+    from ..build import build_target, compare
+    from ..reccmp_workflows import compare_selected, selected_addresses
 
-    cli.run_action(
-        lambda: compare(cli.settings(), target, list(ctx.args), build_first=not no_build)
-    )
+    def action() -> dict[str, Any]:
+        settings = cli.settings()
+        if addresses or files:
+            if ctx.args:
+                raise ValueError("raw reccmp options cannot be combined with selected functions")
+            if not no_build:
+                build_target(settings, target)
+            selected = selected_addresses(addresses or [], files or [])
+            return compare_selected(settings.repo_dir, target, selected)
+        return compare(settings, target, list(ctx.args), build_first=not no_build)
+
+    cli.run_action(action)
+
+
+def triage_command(
+    addresses: Annotated[list[str] | None, typer.Argument(help="Original addresses.")] = None,
+    files: Annotated[
+        list[Path] | None,
+        typer.Option("--file", help="Triage every FUNCTION marker in this source file."),
+    ] = None,
+    target: Annotated[str, typer.Option("--target")] = "WIZ8",
+    no_build: bool = typer.Option(False, "--no-build"),
+) -> None:
+    """Interpret reccmp's structured first divergence without parsing assembly."""
+    from .. import command_support as cli
+    from ..build import build_target
+    from ..reccmp_workflows import selected_addresses, triage_selected
+
+    def action() -> dict[str, Any]:
+        settings = cli.settings()
+        if not no_build:
+            build_target(settings, target)
+        selected = selected_addresses(addresses or [], files or [])
+        return triage_selected(settings.repo_dir, target, selected)
+
+    cli.run_action(action)
+
+
+def vtable_command(
+    class_filter: Annotated[str | None, typer.Argument(help="Class-name substring.")] = None,
+    target: Annotated[str, typer.Option("--target")] = "WIZ8",
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    no_build: bool = typer.Option(False, "--no-build"),
+) -> None:
+    """Compare vtables and refuse a vacuous zero-entity success."""
+    from .. import command_support as cli
+    from ..build import build_target
+    from ..reccmp_workflows import compare_vtables
+
+    def action() -> dict[str, Any]:
+        settings = cli.settings()
+        if not no_build:
+            build_target(settings, target)
+        return compare_vtables(settings.repo_dir, target, class_filter, verbose=verbose)
+
+    cli.run_action(action)
+
+
+def datacmp_command(
+    target: Annotated[str, typer.Option("--target")] = "WIZ8",
+    show_all: bool = typer.Option(False, "--all", "-a"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    no_build: bool = typer.Option(False, "--no-build"),
+) -> None:
+    """Compare reviewed global data through reccmp."""
+    from .. import command_support as cli
+    from ..build import build_target
+    from ..reccmp_workflows import compare_data
+
+    def action() -> dict[str, Any]:
+        settings = cli.settings()
+        if not no_build:
+            build_target(settings, target)
+        return compare_data(settings.repo_dir, target, show_all=show_all, verbose=verbose)
+
+    cli.run_action(action)
+
+
+def address_command(
+    addresses: Annotated[list[str], typer.Argument(help="Original or recompiled addresses.")],
+    target: Annotated[str, typer.Option("--target")] = "WIZ8",
+    no_build: bool = typer.Option(False, "--no-build"),
+) -> None:
+    """Translate paired original and recompiled addresses in one process."""
+    from .. import command_support as cli
+    from ..build import build_target
+    from ..reccmp_workflows import parse_address, translate_addresses
+
+    def action() -> dict[str, Any]:
+        settings = cli.settings()
+        if not no_build:
+            build_target(settings, target)
+        queries = sorted({parse_address(address) for address in addresses})
+        if not queries:
+            raise ValueError("pass one or more addresses")
+        return translate_addresses(settings.repo_dir, target, queries)
+
+    cli.run_action(action)
 
 
 def run_command() -> None:
@@ -99,6 +203,10 @@ def register(app: typer.Typer) -> None:
     app.command(
         "compare", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
     )(compare_command)
+    app.command("triage")(triage_command)
+    app.command("vtable")(vtable_command)
+    app.command("datacmp")(datacmp_command)
+    app.command("addr")(address_command)
     app.command("run")(run_command)
     app.command("verify")(verify_command)
     app.add_typer(analyze_app, name="analyze")

@@ -61,7 +61,7 @@ def test_justfile_contains_aliases_not_host_implementation() -> None:
     assert "wine" not in justfile.casefold()
     assert "uv run wiz8 build" in justfile
     assert 'build target="match"' in justfile
-    assert 'compare target="WIZ8"' in justfile
+    assert "compare *args:" in justfile
 
     dockerfile = (repository / "docker/msvc600/Dockerfile").read_text(encoding="utf-8")
     assert dockerfile.startswith("FROM debian:bookworm-20260623-slim@sha256:")

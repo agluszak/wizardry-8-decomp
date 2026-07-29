@@ -71,6 +71,10 @@ Relocation-masked boundary verification is the exact-body authority. Linked-imag
 diagnostic because relocated globals can reduce its score even for exact bodies. Preserve
 `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
 
+Use `just compare ADDRESS...` or `just compare --file SOURCE...` for one batch comparison and
+`just triage` for reccmp's structured first divergence. `just vtable`, `just datacmp`, and `just
+addr` expose reccmp's owned vtable/data/pairing analyses; they do not supersede boundary proof.
+
 `just check` owns formatting, lint, typing, source inventory, fixture-based unit tests, one
 checked-tree repository lane, marker policy, repository hygiene, and reccmp decomplint. Do not put
 live counts or generated reports into tests or Markdown.

@@ -19,8 +19,20 @@ build target="match" *args:
 run:
     uv run wiz8 run
 
-compare target="WIZ8" *args:
-    uv run wiz8 compare {{target}} {{args}}
+compare *args:
+    uv run wiz8 compare {{args}}
+
+triage *args:
+    uv run wiz8 triage {{args}}
+
+vtable *args:
+    uv run wiz8 vtable {{args}}
+
+datacmp *args:
+    uv run wiz8 datacmp {{args}}
+
+addr *args:
+    uv run wiz8 addr {{args}}
 
 verify *args:
     uv run wiz8 verify {{args}}
