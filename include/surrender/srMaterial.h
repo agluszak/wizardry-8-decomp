@@ -2,12 +2,9 @@
 
 #include "srMath.h"
 #include "srTypeRegistry.h"
+#include "srVertexProcessor.h"
 
 class srVertexPipe;
-class srVertexProcessor {
-public:
-    struct MaterialInfo;
-};
 
 /* srMaterial's exported vftable has thirteen slots, and the first seven are
    srClass's: evidence/snapshots/surrender-abi/vftable-slots.csv resolves slots

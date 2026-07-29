@@ -164,6 +164,9 @@ EXPORTS
     ?traverse@srNode@@UAEXAAVTraverseInfo@1@@Z
     ?updateBounds@srNode@@UAEXXZ
     ?vInstance@srNode@@UAEPAVsrClass@@XZ
+    ?sGetClassName@srIlluminator@@SAPBDXZ
+    ??4srLight@@QAEAAV0@ABV0@@Z
+    ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ??0srTexture@@IAE@XZ
     ??1srTexture@@MAE@XZ
     ??4srTexture@@QAEAAV0@ABV0@@Z

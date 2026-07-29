@@ -292,6 +292,32 @@ srRegistry::ClassNode* stLight::getClassNode() const
     }
     return node;
 }
+// FUNCTION: WIZ8 0x0049E300
+srRegistry::ClassNode* MonsterLight::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* light = registry->getClassNode(0x1220);
+
+    if (!light) {
+        srRegistry* illuminator_registry = srCore.getRegistry();
+        srRegistry::ClassNode* illuminator =
+            illuminator_registry->getClassNode(0x1200);
+
+        if (!illuminator) {
+            srRegistry* node_registry = srCore.getRegistry();
+            srRegistry::ClassNode* node = node_registry->getClassNode(0x1000);
+
+            if (!node) {
+                node = node_registry->registerClass(
+                    srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
+            }
+            illuminator = illuminator_registry->registerClass(
+                srIlluminator::sGetClassName(), node, 0x1200, 0);
+        }
+        light = registry->registerClass("srLight", illuminator, 0x1220, 0);
+    }
+    return light;
+}
 // FUNCTION: WIZ8 0x004A2220
 void W8Object005ECDB0::InstallVtable()
 {

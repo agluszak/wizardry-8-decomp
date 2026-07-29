@@ -1,6 +1,6 @@
 #pragma once
 
-#include "surrender/srTypeRegistry.h"
+#include "surrender/srLight.h"
 
 /*
  * Classes whose only recovered members so far are the two SurRender class
@@ -76,12 +76,45 @@ public:
     unsigned long getClassID() const;     /* 0x0047D6D0 */
 };
 
-class stLight {
+// VTABLE: WIZ8 0x005ecc64
+class stLight : public srLight {
 public:
-    const char* getClassName() const;     /* 0x0049DC70 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x0049DC80 */
-    unsigned long getClassID() const;     /* 0x0049DC60 */
+    stLight(srNode* parent);                         /* 0x0049C2C0 */
+
+    virtual const char* getClassName() const override; /* 0x0049DC70 */
+    virtual srRegistry::ClassNode* getClassNode() const override; /* 0x0049DC80 */
+    virtual unsigned long getClassID() const override; /* 0x0049DC60 */
+
+protected:
+    virtual ~stLight() override;                    /* 0x0049C430 */
+
+public:
+    virtual srClass* vInstance() override;          /* 0x0049E3A0 */
+    virtual srNode* vslot7() override;              /* 0x0049DD60 */
+    virtual void traverse(srNode::TraverseInfo& info) override; /* 0x0049C7A0 */
+    virtual void process(
+        const srNode::ProcessInfo& info,
+        srNode::e_processType type) override;       /* 0x0049C8D0 */
+
+private:
+    unsigned long m_positional_228;                 /* 0x228 */
+    unsigned long m_positional_22c;                 /* 0x22c */
+    unsigned long m_positional_230;                 /* 0x230 */
+    void* m_owned_234;                              /* 0x234 */
+    unsigned char m_positional_238;                 /* 0x238 */
+    unsigned char m_positional_239;                 /* 0x239 */
+    unsigned char m_positional_23a;                 /* 0x23a */
+    unsigned char m_padding_23b;
+    float m_positional_23c;                         /* 0x23c */
+    unsigned long m_positional_240;                 /* 0x240 */
+    void* m_owned_244;                              /* 0x244 */
+    unsigned long m_positional_248;                 /* 0x248 */
+    float m_positional_24c;                         /* 0x24c */
+    unsigned long m_positional_250;                 /* 0x250 */
+    unsigned long m_positional_254;                 /* 0x254 */
 };
+
+static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
 class stLevel {
 public:
@@ -127,17 +160,37 @@ public:
  * Wizardry name".
  */
 
-/* Both slots are source-owned here; Monster owns a pointer to this class. */
-class MonsterLight {
+/* Monster's copy constructor establishes ownership of this complete object. */
+// VTABLE: WIZ8 0x005ecd18
+class MonsterLight : public srLight {
 public:
-    virtual const char* getClassName() const; /* 0x0049DC30, vtable 0x005ECD18 + 0 */
-    virtual unsigned long getClassID() const; /* 0x0049DC20, vtable 0x005ECD18 + 4 */
+    MonsterLight(const MonsterLight& other);          /* 0x0049D660 */
+
+    virtual const char* getClassName() const override; /* 0x0049DC30 */
+    virtual unsigned long getClassID() const override; /* 0x0049DC20 */
+    virtual srRegistry::ClassNode* getClassNode() const override; /* 0x0049E300 */
+
+protected:
+    virtual ~MonsterLight() override;                 /* 0x0049E0D0 */
+
+public:
+    virtual srNode* vslot7() override;                /* 0x0049DC40 */
 
 private:
-    unsigned char m_unknown_0x004[0x134];
-    void* m_vptr_0x138;
-    unsigned char m_unknown_0x13c[0x114];
+    unsigned long m_positional_228;                   /* 0x228 */
+    unsigned long m_positional_22c;                   /* 0x22c */
+    unsigned long m_positional_230;                   /* 0x230 */
+    unsigned long m_positional_234;                   /* 0x234 */
+    unsigned long m_positional_238;                   /* 0x238 */
+    unsigned long m_positional_23c;                   /* 0x23c */
+    unsigned long m_positional_240;                   /* 0x240 */
+    unsigned long m_positional_244;                   /* 0x244 */
+    unsigned char m_positional_248;                   /* 0x248 */
+    unsigned char m_positional_249;                   /* 0x249 */
+    unsigned char m_padding_24a[6];
 };
+
+static_assert(sizeof(MonsterLight) == 0x250, "MonsterLight_must_be_0x250");
 
 class W8Camera005EBE14 {
 public:
