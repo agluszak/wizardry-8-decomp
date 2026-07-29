@@ -51,6 +51,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Environment.cpp
     src/wiz8/engine_code/AnimObj.cpp
     src/wiz8/engine_code/AniMesh.cpp
+    src/wiz8/engine_code/Item.cpp
     src/wiz8/engine_code/Missile.cpp
     src/wiz8/engine_code/PathAI.cpp
     src/wiz8/engine_code/Spells.cpp
@@ -61,6 +62,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/RegionManager.cpp
     src/wiz8/local_code/chunk.cpp
     src/wiz8/engine_code/GrCycle.cpp
+    src/wiz8/engine_code/UpdateMesh.cpp
     src/wiz8/engine_code/stGroundShadow.cpp
     src/wiz8/local_code/GameplayDatabase.cpp
     src/wiz8/dialog_code/DialogInterface.cpp
@@ -157,7 +159,6 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/frame_tick.cpp
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
-    src/wiz8/item_mesh.cpp
     src/wiz8/item_spawning.cpp
     src/wiz8/message_box.cpp
     src/wiz8/monster_info_dialog.cpp

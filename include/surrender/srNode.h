@@ -81,6 +81,7 @@ public:
     SR_DLL_IMPORT void setLocation(double x, double y, double z);
     SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
     SR_DLL_IMPORT void setRotation(double x, double y, double z);
+    SR_DLL_IMPORT void setRotation(const srMatrix3T<float>& rotation);
     /* The reader for the rotation basis, taken through an out-parameter rather
        than returned. 3dapi.cpp's camera-rotation accessor is what establishes
        the float element type. */

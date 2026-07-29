@@ -515,6 +515,8 @@ typedef struct W8MonsterGroup {
    The two offsets do not carry the same weight: plsProps is byte-proven by
    WorldUpdateProps (0x0046DED0), while psrMeshes is only placed by a reading
    of its asserting body and has no ported consumer yet. */
+struct W8UpdateMeshSource;
+
 typedef struct W8World {
     /* 0x000 and 0x004: two more lists beside the props, each with its own
        add/remove pair; nothing establishes what they hold. */
@@ -531,7 +533,8 @@ typedef struct W8World {
     /* 0x054: the node the sky hangs from, which the environment accessors
        reach through this same world pointer. */
     void* sky_node;
-    unsigned char unknown_058[0x1c];
+    unsigned char unknown_058[0x18];
+    W8UpdateMeshSource* update_mesh_source_70;
     /* 0x074 and 0x078: written together from one argument by 0x0046E350 and
        read back individually, so they are a pair rather than one field. Only
        the second is ever read, by the getter at 0x0046E3A0. */

@@ -1,6 +1,8 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/PList.h"
 
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:
@@ -100,6 +102,32 @@ private:
 public:
     GDProp* m_owned_38;                  /* 0x38 */
 };                                       /* 0x3c established */
+
+extern int Function443830(W8World* world, W8Prop005EC1E0* prop);
+extern void Function4B7470(int value);
+
+/* Visit every prop attached to the world and activate those whose companion
+   object can be resolved and whose owned GDProp exists. */
+// FUNCTION: WIZ8 0x0044e010
+void UpdateWorldProps0044E010(W8World* world)
+{
+    unsigned int count;
+    int index;
+
+    if (world == 0 || world->plsProps == 0) {
+        srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x969, 0);
+    }
+    count = PListGetCount(world->plsProps);
+    for (index = 0; index < static_cast<int>(count); ++index) {
+        W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(PListGetAt(world->plsProps, index));
+        int value;
+
+        if (prop != 0 && (value = Function443830(world, prop)) != 0 && prop->m_owned_38 != 0) {
+            prop->flags_1c |= 0x80;
+            Function4B7470(value);
+        }
+    }
+}
 
 __forceinline W8PropOwned0020::~W8PropOwned0020()
 {

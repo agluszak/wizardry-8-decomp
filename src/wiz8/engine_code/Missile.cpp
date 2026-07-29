@@ -13,6 +13,45 @@
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 
+#include <stdlib.h>
+
+/* The copy body establishes only these fields. Padding remains explicit: the
+   source leaves it uninitialized in the freshly allocated result. */
+struct W8AIMissile {
+    unsigned char value_00;
+    unsigned char value_01;
+    unsigned char unknown_02[2];
+    int value_04;
+    int value_08;
+    unsigned char unknown_0c[4];
+    int value_10;
+    int value_14;
+    int value_18;
+    unsigned char value_1c;
+    unsigned char unknown_1d[3];
+};
+
+static_assert(sizeof(W8AIMissile) == 0x20, "W8AIMissile_must_be_0x20");
+
+// FUNCTION: WIZ8 0x004a53a0
+W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
+{
+    W8AIMissile* copy = static_cast<W8AIMissile*>(malloc(sizeof(W8AIMissile)));
+
+    if (copy == 0) {
+        srAssertFail("pAIMissile", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x86d, 0);
+    }
+    copy->value_00 = source->value_00;
+    copy->value_01 = source->value_01;
+    copy->value_04 = source->value_04;
+    copy->value_08 = source->value_08;
+    copy->value_10 = source->value_10;
+    copy->value_14 = source->value_14;
+    copy->value_18 = source->value_18;
+    copy->value_1c = source->value_1c;
+    return copy;
+}
+
 #pragma pack(push, 1)
 struct W8MissileTableRecord {
     unsigned char bytes[0x1e5];

@@ -47,6 +47,8 @@ public:
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
     void setShader(srShader shader, long pass);
+    void setActivePolygonCount(long count);
+    unsigned long* getActivePolygonTable(int table);
     void enableStartupControls() {
         control_state_394 |= 0x40;
         control_state_390 |= 8;
@@ -63,7 +65,10 @@ protected:
     virtual void calculateBounds();
     virtual void calculatePolygonNormals();
     virtual void calculateVertexNormals();
-    unsigned char unknown_04_[0x38c];
+public:
+    unsigned char unknown_04_[0x22c];
+    long polygon_count_230;
+    unsigned char unknown_234_[0x15c];
     unsigned long control_state_390;
     unsigned long control_state_394;
 };
