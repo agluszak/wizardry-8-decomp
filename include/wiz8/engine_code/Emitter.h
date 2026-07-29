@@ -76,6 +76,7 @@ class W8AnimRep005ED050 : public W8AnimRepBase005EC1D8 {
 public:
     W8AnimRep005ED050(const W8AnimRep005ED050& other);
     virtual ~W8AnimRep005ED050() override;
+    void SetFrameMethod004B55C0(signed char method);
 
 public:
     unsigned char flag_064;

@@ -4,6 +4,19 @@
 
 extern srTimer* g_shared_timer_base;
 
+// FUNCTION: WIZ8 0x004b55c0
+void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
+{
+    if (method < 1 || method > 4) {
+        srAssertFail(
+            "bFrameMethod >= DIR_FIRST && bFrameMethod <= DIR_LAST",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp",
+            0x6a,
+            0);
+    }
+    flag_06f = method;
+}
+
 /* The root copy preserves five aggregate values, but deliberately resets its
    runtime scale and flags instead of copying them.  Bytes 0x62 and 0x63 are
    not touched by the canonical constructor. */
