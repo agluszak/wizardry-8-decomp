@@ -10,6 +10,21 @@
 // TEMPLATE: WIZ8 0x004d99e0
 // W8GrowableVector<T*>::RemoveEntryAt
 
+// TEMPLATE: WIZ8 0x00445f70
+// W8GrowableVector<T*>::Add
+
+// TEMPLATE: WIZ8 0x00474c60
+// W8GrowableVector<unsigned char>::W8GrowableVector
+
+// TEMPLATE: WIZ8 0x00474ca0
+// W8GrowableVector<unsigned char>::Add
+
+// SYNTHETIC: WIZ8 0x00474e30
+// W8GrowableVector<unsigned char>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0048cea0
+// W8GrowableVector<unsigned short>::`scalar deleting destructor'
+
 // VTABLE: WIZ8 0x005ee8c8
 // class W8GrowableVector<W8ChunkHead*>
 

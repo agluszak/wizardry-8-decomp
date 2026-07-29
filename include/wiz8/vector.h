@@ -30,12 +30,13 @@ public:
 
     int Add(T value)
     {
-        if (count + 1 <= capacity || Grow(count + 1)) {
-            data[count] = value;
-            ++count;
-            return 1;
+        int position = count + 1;
+
+        if (position > capacity && !Grow(position)) {
+            return -1;
         }
-        return 0;
+        data[count] = value;
+        return count++;
     }
 
     /* Returns the element it unlinked. GenerateItemsFromTable discards that
