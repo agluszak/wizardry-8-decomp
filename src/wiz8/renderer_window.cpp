@@ -110,12 +110,12 @@ int g_dword_6596ec;
 int g_dword_6596f0;
 extern srClass* g_cursor_node_659694;
 
-extern void Function4265C0(void);
+extern void Initialize16BitPixelFormatMasks(void);
 extern void FreeMouseCursor(void);
-extern unsigned char Function425EC0(void);
-extern unsigned char Function426080(void);
+extern unsigned char CreateWizardryWindow(void);
+extern unsigned char InitializePrimaryDirectDrawSurface(void);
 extern unsigned char InitializeVideoDevice(void);
-extern unsigned char Function423500(void);
+extern unsigned char InitializeRendererSceneObjects(void);
 extern void Function56AAB0(void);
 extern unsigned char Function422800(void);
 extern void Function422D50(int a, int b, int c, int d, int e);
@@ -175,7 +175,7 @@ void Function422B10(void)
    original working directory. Each gate that fails returns straight out with
    the callee's own false still in AL. */
 // FUNCTION: WIZ8 0x00421BB0
-unsigned char Function421BB0(void* instance, unsigned short show_command, void* window_proc)
+unsigned char InitializeRenderer(void* instance, unsigned short show_command, void* window_proc)
 {
     MEMORYSTATUS status;
     unsigned int active;
@@ -194,17 +194,17 @@ unsigned char Function421BB0(void* instance, unsigned short show_command, void* 
     g_instance_654ac4 = (HINSTANCE)instance;
     g_show_command_659620 = show_command;
     g_window_proc_6595f8 = (WNDPROC)window_proc;
-    Function4265C0();
-    if (!Function425EC0()) {
+    Initialize16BitPixelFormatMasks();
+    if (!CreateWizardryWindow()) {
         return 0;
     }
-    if (!Function426080()) {
+    if (!InitializePrimaryDirectDrawSurface()) {
         return 0;
     }
     if (!InitializeVideoDevice()) {
         return 0;
     }
-    Function423500();
+    InitializeRendererSceneObjects();
     if (!g_flag_659710) {
         if (g_flag_6840bc) {
             Function56AAB0();
@@ -269,7 +269,7 @@ void ShutdownRenderer(void)
    renderer's reviewed pixel-format selector.  The startup configuration uses
    format 9, RGB 5:5:5 with the high bit reserved. */
 // FUNCTION: WIZ8 0x004265C0
-void Function4265C0(void)
+void Initialize16BitPixelFormatMasks(void)
 {
     unsigned short bit;
 
@@ -312,7 +312,7 @@ void Function4265C0(void)
    is preserved here; AdjustWindowRect turns the four stored client bounds into
    the outer window rectangle before CreateWindowEx. */
 // FUNCTION: WIZ8 0x00425EC0
-unsigned char Function425EC0(void)
+unsigned char CreateWizardryWindow(void)
 {
     WNDCLASSA window_class;
     int extent;
@@ -376,7 +376,7 @@ unsigned char Function425EC0(void)
    its color output.  Interface identities, flags and HRESULT semantics are
    from the published DirectDraw headers; only the orchestration is Wiz8 code. */
 // FUNCTION: WIZ8 0x00426080
-unsigned char Function426080(void)
+unsigned char InitializePrimaryDirectDrawSurface(void)
 {
     DDSURFACEDESC description;
     HRESULT result;

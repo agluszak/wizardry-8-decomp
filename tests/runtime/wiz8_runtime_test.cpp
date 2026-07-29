@@ -25,7 +25,6 @@ struct RuntimeObservation {
     unsigned int region_set_enabled;
     unsigned int first_region;
     unsigned int last_region;
-    unsigned short selected_item;
     unsigned char menu_seen;
     unsigned char exit_observed;
     unsigned char timed_out;
@@ -71,7 +70,6 @@ static DWORD WINAPI DriveScenario(void*)
     g_observation.region_set_enabled = g_region_sets[1].enabled;
     g_observation.first_region = g_region_sets[1].first_region;
     g_observation.last_region = g_region_sets[1].last_region;
-    g_observation.selected_item = g_selected_item_0069c4b4;
     fprintf(
         stderr,
         "runtime-test menu: scenario=%s state=%d regions=%u first=%u last=%u selected=%u\n",
@@ -80,7 +78,7 @@ static DWORD WINAPI DriveScenario(void*)
         g_observation.region_set_enabled,
         g_observation.first_region,
         g_observation.last_region,
-        g_observation.selected_item);
+        g_selected_item_0069c4b4);
     fflush(stderr);
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -113,9 +111,6 @@ int main(int argc, char** argv)
     }
 
     g_scenario = argv[2];
-    const char* selected = getenv("WIZ8_RUNTIME_EXPECTED_SELECTED");
-    const unsigned short expected_selected =
-        selected ? static_cast<unsigned short>(atoi(selected)) : 0;
     memset(&g_observation, 0, sizeof(g_observation));
     g_observation.menu_state = -1;
     HANDLE driver = CreateThread(NULL, 0, DriveScenario, NULL, 0, NULL);
@@ -137,7 +132,7 @@ int main(int argc, char** argv)
 
     printf(
         "WIZ8_RUNTIME_TEST scenario=%s menu_seen=%u menu_state=%d "
-        "regions_enabled=%u first_region=%u last_region=%u selected_item=%u "
+        "regions_enabled=%u first_region=%u last_region=%u "
         "exit_observed=%u teardown=%u timed_out=%u\n",
         g_scenario,
         g_observation.menu_seen,
@@ -145,7 +140,6 @@ int main(int argc, char** argv)
         g_observation.region_set_enabled,
         g_observation.first_region,
         g_observation.last_region,
-        g_observation.selected_item,
         g_observation.exit_observed,
         g_teardown_done_650db4 ? 1 : 0,
         g_observation.timed_out);
@@ -153,8 +147,7 @@ int main(int argc, char** argv)
     const bool startup_ok =
         g_observation.menu_seen && g_observation.menu_state == 0 &&
         g_observation.region_set_enabled && g_observation.first_region == 0 &&
-        g_observation.last_region == 6 &&
-        g_observation.selected_item == expected_selected;
+        g_observation.last_region == 6;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const int result =

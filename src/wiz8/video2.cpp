@@ -261,7 +261,7 @@ static W8Camera* make_camera(srNode* parent, const char* name,
 }
 
 // FUNCTION: WIZ8 0x00423500
-extern "C" unsigned char Function423500(void)
+extern "C" unsigned char InitializeRendererSceneObjects(void)
 {
     DDSURFACEDESC surface_description;
     W8Material* material;

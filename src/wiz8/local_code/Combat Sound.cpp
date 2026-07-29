@@ -63,7 +63,7 @@ static char* DuplicateHitSound(const char* source)
    material columns of up to twenty-eight impact sounds.  A hash line advances
    the material column; an asterisk starts an inline comment. */
 // FUNCTION: WIZ8 0x00549B00
-extern "C" unsigned char Function549B00(void)
+extern "C" unsigned char LoadHitSoundDatabase(void)
 {
     char path[] = "Data\\Databases\\HitSounds.txt";
     char line[256];
@@ -117,4 +117,27 @@ extern "C" unsigned char Function549B00(void)
     // Several impact materials intentionally provide one catch-all sound rather than one
     // entry per weapon class.  The retail loader accepts EOF after any valid final entry.
     return 1;
+}
+
+/* Free the two string tables populated by LoadHitSoundDatabase. */
+// FUNCTION: WIZ8 0x00549E50
+extern "C" void ReleaseHitSoundDatabase(void)
+{
+    int row;
+    int column;
+
+    for (row = 0; row < 38; ++row) {
+        if (g_weapon_attack_sounds_68dd90[row]) {
+            free(g_weapon_attack_sounds_68dd90[row]);
+            g_weapon_attack_sounds_68dd90[row] = 0;
+        }
+    }
+    for (column = 0; column < 12; ++column) {
+        for (row = 0; row < 28; ++row) {
+            if (g_material_impact_sounds_68d850[row][column]) {
+                free(g_material_impact_sounds_68d850[row][column]);
+                g_material_impact_sounds_68d850[row][column] = 0;
+            }
+        }
+    }
 }

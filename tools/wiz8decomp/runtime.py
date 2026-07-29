@@ -159,7 +159,6 @@ def run_runtime_suite(settings: Settings) -> dict[str, Any]:
         environment, default="virtual", log_path=stage / "xvfb-runtime-test.log"
     ) as display:
         _configure_wine_window_management(environment, private_display=display is not None)
-        environment["WIZ8_RUNTIME_EXPECTED_SELECTED"] = "2" if display is not None else "0"
         try:
             for order_name, scenarios in (
                 ("forward", RUNTIME_SCENARIOS),

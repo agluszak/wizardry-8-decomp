@@ -40,7 +40,7 @@ extern bool ShutdownWizardryVideoSurfaceManager(void);
 extern void ShutdownWizardryVideoObjectManager(void);
 extern void ShutdownRenderer(void);
 extern void ShutdownInputManager(void);
-extern void Function4023A0(void);
+extern void NoOp(void);
 extern void ShutdownVideoSurfaceState(void);
 
 // FUNCTION: WIZ8 0x004011E0
@@ -100,10 +100,10 @@ long __stdcall WindowProc4011E0(void* window, int message,
             ShutdownWizardryVideoObjectManager();
             ShutdownRenderer();
             ShutdownInputManager();
-            Function4023A0();
-            Function4023A0();
+            NoOp();
+            NoOp();
             ShutdownVideoSurfaceState();
-            Function4023A0();
+            NoOp();
         }
         ShowCursor(TRUE);
         PostQuitMessage(0);

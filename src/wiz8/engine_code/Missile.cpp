@@ -33,7 +33,7 @@ typedef char W8MissileTableRecord_must_be_0x1e5[
 /* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
    0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
 // FUNCTION: WIZ8 0x004A5600
-extern "C" unsigned char Function4A5600(void)
+extern "C" unsigned char LoadMissileDatabase(void)
 {
     char path[] = "Data\\Databases\\MissileTables.dbs";
     int allocated_count;
@@ -75,6 +75,17 @@ extern "C" unsigned char Function4A5600(void)
     g_missile_table_count_65bddc = record_count;
     CloseVirtualFile(handle);
     return 1;
+}
+
+/* Release the one allocation that owns every runtime missile-table row. */
+// FUNCTION: WIZ8 0x004A5760
+extern "C" void ReleaseMissileDatabase(void)
+{
+    if (g_missile_table_65bde0) {
+        ::operator delete(g_missile_table_65bde0);
+        g_missile_table_65bde0 = 0;
+        g_missile_table_count_65bddc = 0;
+    }
 }
 
 class W8Missile {

@@ -52,10 +52,10 @@ extern void Function479010(void);
 extern unsigned char Function516740(void* slot);
 extern int GetSaveGameLevel(void* slot);
 extern void InitializeEncounterTables(void);
-extern unsigned char Function4A5600(void);
-extern unsigned char Function549B00(void);
+extern unsigned char LoadMissileDatabase(void);
+extern unsigned char LoadHitSoundDatabase(void);
 extern void ShutdownWithErrorBox(char* message);
-extern unsigned char Function48F940(void);
+extern unsigned char InitializeMusicPlaylist(void);
 extern unsigned int GetTotalPhysicalMemory(void);
 
 extern char* gzStringDataOverride;
@@ -147,17 +147,17 @@ unsigned char InitializeGameData(void)
         Function55EC50(4);
     }
     InitializeEncounterTables();
-    if (!Function4A5600()) {
+    if (!LoadMissileDatabase()) {
         ShutdownWithErrorBox("Could not load missile database!");
     }
     if (!InitializeSpellDatabase()) {
         ShutdownWithErrorBox("Could not load spell database!");
     }
-    if (!Function549B00()) {
+    if (!LoadHitSoundDatabase()) {
         ShutdownWithErrorBox("Could not load hit sound database!");
     }
     memset(g_block_68f2d8, 0, sizeof(g_block_68f2d8));
-    if (!Function48F940()) {
+    if (!InitializeMusicPlaylist()) {
         return 0;
     }
     ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
@@ -167,12 +167,16 @@ unsigned char InitializeGameData(void)
 
 extern unsigned char ShutDownFileDatabase(void);
 extern unsigned char DeleteStack(void* stack);
+extern void ReleaseHitSoundDatabase(void);
+extern void ReleaseMissileDatabase(void);
 
 // FUNCTION: WIZ8 0x004E3290
 void ShutdownGameData(void)
 {
     int index;
 
+    ReleaseHitSoundDatabase();
+    ReleaseMissileDatabase();
     for (index = 0; index < 15; ++index) {
         free(g_font_state_palettes_68ee1c[index]);
         g_font_state_palettes_68ee1c[index] = 0;

@@ -138,9 +138,9 @@ extern long __stdcall WindowProc4011E0(void* window, int message,
                                        unsigned int wparam, long lparam);
 
 
-extern unsigned char Function421BB0(void* instance, int show_command,
-                                    long(__stdcall* window_proc)(void*, int,
-                                                                 unsigned int, long));
+extern unsigned char InitializeRenderer(void* instance, int show_command,
+                                        long(__stdcall* window_proc)(void*, int,
+                                                                     unsigned int, long));
 extern void InitializeSGPPixelFormat(void);
 
 
@@ -388,7 +388,7 @@ void Function408850(void)
 
 /* Empty in the shipped build: a single ret. BringUpEngine still calls it. */
 // FUNCTION: WIZ8 0x004023A0
-void Function4023A0(void)
+void NoOp(void)
 {
 }
 
@@ -942,10 +942,10 @@ void ShutdownHandler(void)
         ShutdownWizardryVideoObjectManager();
         ShutdownRenderer();
         ShutdownInputManager();
-        Function4023A0();
-        Function4023A0();
+        NoOp();
+        NoOp();
         ShutdownVideoSurfaceState();
-        Function4023A0();
+        NoOp();
     }
     ShowCursor(TRUE);
     if (strlen(g_shutdown_message_6505ac) != 0) {
@@ -974,11 +974,11 @@ bool BringUpEngine(void* instance, int show_command)
     if (!Function5B1740(0)) {
         return false;
     }
-    Function4023A0();
+    NoOp();
     if (!InitializeInputManager()) {
         return false;
     }
-    if (!Function421BB0(instance, show_command, WindowProc4011E0)) {
+    if (!InitializeRenderer(instance, show_command, WindowProc4011E0)) {
         return false;
     }
     if (!InitializeWizardryVideoObjectManager()) {

@@ -8,7 +8,7 @@
 
 extern "C" {
 
-extern void Function4023A0(void);
+extern void NoOp(void);
 extern void InitializeRenderQuality(void);
 extern unsigned char InitializeEnvironmentColours(void);
 
@@ -51,7 +51,7 @@ unsigned char Function44F060(void)
 {
     W8GrCycleBase00451EC0* world;
 
-    Function4023A0();
+    NoOp();
     Function4B5780(-1, -1);
     InitializeRenderQuality();
     InitializeEnvironmentColours();
