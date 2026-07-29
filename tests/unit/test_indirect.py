@@ -17,11 +17,13 @@ CANONICAL = "wiz8--gog-base--wiz8--18a74ff61c65"
 def test_the_screen_dispatcher_becomes_reachable_targets() -> None:
     table = resolve_handler_table(REPOSITORY)
 
-    # 62 states; the handlers are the application's real navigation graph,
-    # invisible to a direct-edge call census.
-    assert table["table_slots"] == 62
-    assert table["distinct_handlers"] == 44
+    # Thirteen five-pointer lifecycle records are the application's real
+    # navigation graph, invisible to a direct-edge call census.
+    assert table["table_records"] == 13
+    assert table["table_slots"] == 65
+    assert table["distinct_handlers"] == 46
     assert all(slots for slots in table["handler_targets"].values())
+    assert table["handler_targets"]["005bc810"] == [{"state": 1, "role": "enter"}]
 
 
 def test_a_folded_stub_is_many_handlers_not_one_shared_handler() -> None:
@@ -31,7 +33,7 @@ def test_a_folded_stub_is_many_handlers_not_one_shared_handler() -> None:
     table = resolve_handler_table(REPOSITORY)
 
     assert list(table["folded_stubs"]) == ["005b1740"]
-    assert len(table["folded_stubs"]["005b1740"]) == 17
+    assert len(table["folded_stubs"]["005b1740"]) == 18
     assert "005b1740" not in table["handler_targets"]
 
 

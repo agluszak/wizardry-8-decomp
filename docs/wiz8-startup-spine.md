@@ -164,22 +164,24 @@ The source matches identify lower-level shutdown edges reached by that product-s
 
 ## A caveat about the shared stub
 
-`0x005B1740` is `mov al, 1; ret`. It appears 17 times in the frame dispatch table **and** as one of
+`0x005B1740` is `mov al, 1; ret`. It appears 18 times in the complete frame dispatch table **and** as one of
 `BringUpEngine`'s gates. That is almost certainly identical-COMDAT folding rather than one function
-used eighteen ways: the linker merges byte-identical bodies, so a single address can stand for many
+used nineteen ways: the linker merges byte-identical bodies, so a single address can stand for many
 distinct source functions that all just return true.
 
-The practical consequence is that the 17 stub slots should not be read as "seventeen slots share one
-handler". They are seventeen slots whose handlers were each trivial enough to fold. The bring-up
+The practical consequence is that the 18 stub slots should not be read as "eighteen slots share one
+handler". They are eighteen slots whose handlers were each trivial enough to fold. The bring-up
 target links with `/OPT:NOICF` precisely so recovered code does not inherit this ambiguity.
 
 ## Unresolved boundaries
 
 Recorded explicitly rather than guessed:
-* The per-frame tick's table at `0x00647BD4` is now enumerated in
-  `evidence/observations/wiz8/frame-dispatch-table.csv`: a flat 62-entry function-pointer table indexed by
-  state id, of which 17 slots hold one shared default stub at `0x005B1740` (`mov al,1; ret`, i.e.
-  "handled") and 45 are real handlers. Joining it against the generated
+* The per-frame tick's table begins at `0x00647BC8` and is enumerated in
+  `evidence/observations/wiz8/frame-dispatch-table.csv`: thirteen five-pointer lifecycle records,
+  of whose 65 slots 18 hold one shared default stub at `0x005B1740` (`mov al,1; ret`, i.e.
+  "handled") and 47 are real-handler entries. The dispatcher references its tick column at
+  `0x00647BD4`; treating that interior pointer as the start used to omit the first three fields and
+  shift every state/role attribution. Joining the complete table against the generated
   `build/reports/translation-units/translation-unit-intervals.csv` attributes
   five handlers, and all five land in `Local Screens\*.cpp` — `MainGameScreen.cpp` (three),
   `MainMenuScreen.cpp` and `ReviewCharacterScreen.cpp` — which is what identifies this as the

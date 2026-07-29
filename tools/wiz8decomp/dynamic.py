@@ -112,19 +112,19 @@ def screen_points(repo: Path) -> list[TracePoint]:
     a hit there cannot say which state it belonged to.
     """
 
-    slots: dict[str, list[int]] = {}
+    slots: dict[str, list[tuple[int, str]]] = {}
     kinds: dict[str, str] = {}
     with (repo / "evidence" / "observations" / "wiz8" / "frame-dispatch-table.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         for row in csv.DictReader(stream):
-            slots.setdefault(row["handler_address"], []).append(int(row["slot"]))
+            slots.setdefault(row["handler_address"], []).append((int(row["state"]), row["role"]))
             kinds[row["handler_address"]] = row["kind"]
     return sorted(
         (
             TracePoint(
                 address=address,
-                name="screen" + "".join(f"_{slot}" for slot in sorted(states)),
+                name="screen" + "".join(f"_{state}_{role}" for state, role in sorted(states)),
                 kind="screen",
             )
             for address, states in slots.items()

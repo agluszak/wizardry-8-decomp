@@ -13,9 +13,9 @@ Nothing here narrows a set by guessing which is likely; a runtime trace can
 later mark which were observed, and that is a different claim from possible.
 
 Identical-COMDAT folding makes one more caveat structural rather than
-incidental. The dispatch table's shared `mov al,1; ret` stub occupies 17
-slots, and those are seventeen trivial handlers the linker merged - not one
-handler used seventeen ways - so a resolver that reports them as a single
+incidental. The dispatch table's shared `mov al,1; ret` stub occupies 18
+slots, and those are eighteen trivial handlers the linker merged - not one
+handler used eighteen ways - so a resolver that reports them as a single
 target would be inventing a relationship the binary does not have.
 """
 
@@ -34,21 +34,22 @@ def resolve_handler_table(repo: Path) -> dict[str, Any]:
     with path.open(newline="", encoding="utf-8") as stream:
         rows = list(csv.DictReader(stream))
 
-    handlers: dict[str, list[int]] = defaultdict(list)
-    stubs: dict[str, list[int]] = defaultdict(list)
+    handlers: dict[str, list[dict[str, int | str]]] = defaultdict(list)
+    stubs: dict[str, list[dict[str, int | str]]] = defaultdict(list)
     for row in rows:
-        slot = int(row["slot"])
+        location = {"state": int(row["state"]), "role": row["role"]}
         if row["kind"] == "handler":
-            handlers[row["handler_address"]].append(slot)
+            handlers[row["handler_address"]].append(location)
         else:
-            stubs[row["handler_address"]].append(slot)
+            stubs[row["handler_address"]].append(location)
 
     folded = {address: slots for address, slots in stubs.items() if len(slots) > 1}
     return {
+        "table_records": len({int(row["state"]) for row in rows}),
         "table_slots": len(rows),
         "distinct_handlers": len(handlers),
-        "handler_targets": {address: sorted(slots) for address, slots in sorted(handlers.items())},
-        "folded_stubs": {address: sorted(slots) for address, slots in sorted(folded.items())},
+        "handler_targets": {address: slots for address, slots in sorted(handlers.items())},
+        "folded_stubs": {address: slots for address, slots in sorted(folded.items())},
         "note": (
             "a folded stub's slots are that many trivial handlers the linker merged, "
             "not one handler shared by that many states"
