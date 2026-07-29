@@ -97,6 +97,16 @@ def test_public_ghidra_surface_hides_replay_and_process_lifecycle() -> None:
         assert command in result.stdout
 
 
+def test_composition_module_does_not_own_domain_commands() -> None:
+    cli_source = (REPOSITORY / "tools/wiz8decomp/cli.py").read_text(encoding="utf-8")
+    core_source = (REPOSITORY / "tools/wiz8decomp/commands/core.py").read_text(encoding="utf-8")
+
+    assert "def doctor(" not in cli_source
+    assert "from ..cli import" not in core_source
+    assert "reconstructed_transfer_command" not in core_source
+    assert "debug_artifacts_command" not in core_source
+
+
 def test_just_exposes_one_joined_context_command() -> None:
     justfile = (REPOSITORY / "Justfile").read_text(encoding="utf-8")
 

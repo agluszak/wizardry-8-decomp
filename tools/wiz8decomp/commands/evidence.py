@@ -6,21 +6,72 @@ from typing import Annotated
 
 import typer
 
-from .core import (
-    call_sites_command,
-    debug_artifacts_command,
-    eh_metadata_command,
-    function_census_command,
-    globals_command,
-    polymorphism_command,
-    surrender_abi_command,
-)
-
 app = typer.Typer(help="Validate and update canonical evidence.", no_args_is_help=True)
 refresh_app = typer.Typer(
     help="Refresh proprietary-input evidence snapshots.", no_args_is_help=True
 )
 app.add_typer(refresh_app, name="refresh")
+
+
+def debug_artifacts_command(
+    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
+    archive_password: str | None = typer.Option(
+        None, "--archive-password", envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD"
+    ),
+) -> None:
+    from .. import command_support as cli
+    from ..debug_artifacts import sweep_debug_artifacts
+
+    cli.run_action(
+        lambda: sweep_debug_artifacts(
+            cli.settings(), update_snapshot=update_snapshot, archive_password=archive_password
+        )
+    )
+
+
+def eh_metadata_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import command_support as cli
+    from ..eh_metadata import sweep_eh_metadata
+
+    cli.run_action(lambda: sweep_eh_metadata(cli.settings(), update_snapshot=update_snapshot))
+
+
+def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import command_support as cli
+    from ..surrender_abi import sweep_surrender_abi
+
+    cli.run_action(lambda: sweep_surrender_abi(cli.settings(), update_snapshot=update_snapshot))
+
+
+def call_sites_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import command_support as cli
+    from ..call_sites import sweep_call_sites
+
+    cli.run_action(lambda: sweep_call_sites(cli.settings(), update_snapshot=update_snapshot))
+
+
+def polymorphism_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import command_support as cli
+    from ..polymorphism import sweep_polymorphism
+
+    cli.run_action(lambda: sweep_polymorphism(cli.settings(), update_snapshot=update_snapshot))
+
+
+def globals_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
+    from .. import command_support as cli
+    from ..data_globals import sweep_globals
+
+    cli.run_action(lambda: sweep_globals(cli.settings(), update_snapshot=update_snapshot))
+
+
+def function_census_command(
+    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
+) -> None:
+    from .. import command_support as cli
+    from ..function_census import sweep_function_census
+
+    cli.run_action(lambda: sweep_function_census(cli.settings(), update_snapshot=update_snapshot))
+
 
 refresh_app.command("debug-artifacts")(debug_artifacts_command)
 refresh_app.command("eh-metadata")(eh_metadata_command)

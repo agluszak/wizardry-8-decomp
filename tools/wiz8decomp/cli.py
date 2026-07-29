@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import typer
 
@@ -50,78 +49,3 @@ def main(
         level=logging.DEBUG if verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
-
-
-def doctor() -> None:
-    """Compatibility entry point used by the core command adapter."""
-    import importlib.metadata
-    import os
-    import tempfile
-
-    from .config import (
-        REQUIRED_GHIDRA_RELEASE,
-        REQUIRED_GHIDRA_VERSION,
-        REQUIRED_PYGHIDRA_VERSION,
-        ghidra_version,
-    )
-    from .subprocesses import tool_version
-
-    def action() -> dict[str, Any]:
-        settings = command_support.settings()
-        checks = []
-        version, release = ghidra_version(settings.ghidra_install_dir)
-        checks.append(
-            {
-                "name": "ghidra",
-                "ok": version == REQUIRED_GHIDRA_VERSION and release == REQUIRED_GHIDRA_RELEASE,
-                "expected": f"{REQUIRED_GHIDRA_VERSION} {REQUIRED_GHIDRA_RELEASE}",
-                "actual": f"{version} {release}",
-                "path": str(settings.ghidra_install_dir),
-            }
-        )
-        try:
-            pyghidra_version = importlib.metadata.version("pyghidra")
-        except importlib.metadata.PackageNotFoundError:
-            pyghidra_version = None
-        checks.append(
-            {
-                "name": "pyghidra",
-                "ok": pyghidra_version == REQUIRED_PYGHIDRA_VERSION,
-                "expected": REQUIRED_PYGHIDRA_VERSION,
-                "actual": pyghidra_version,
-            }
-        )
-        checks.append(
-            {
-                "name": "input-directory",
-                "ok": settings.input_dir.is_dir() and os.access(settings.input_dir, os.R_OK),
-                "path": str(settings.input_dir),
-            }
-        )
-        settings.work_dir.mkdir(parents=True, exist_ok=True)
-        try:
-            with tempfile.NamedTemporaryFile(prefix="wiz8-doctor-", dir=settings.work_dir):
-                work_writable = True
-        except OSError:
-            work_writable = False
-        checks.append(
-            {"name": "work-directory", "ok": work_writable, "path": str(settings.work_dir)}
-        )
-        required = {"7z": ["--help"], "innoextract": ["--version"], "cabextract": ["--version"]}
-        optional = {"unshield": ["-V"], "wine": ["--version"], "git-lfs": ["version"]}
-        for name, args in required.items():
-            info = tool_version(name, args)
-            checks.append({"name": name, "ok": bool(info["executable"]), **info, "required": True})
-        for name, args in optional.items():
-            info = tool_version(name, args)
-            checks.append({"name": name, "ok": True, **info, "required": False})
-        from .repository import validate_repository_hygiene
-
-        hygiene = validate_repository_hygiene(settings.repo_dir)
-        checks.append({"name": "repository-hygiene", **hygiene})
-        failed = [item["name"] for item in checks if not item["ok"]]
-        if failed:
-            raise RuntimeError("doctor failed: " + ", ".join(failed))
-        return {"ok": True, "checks": checks, "failures": []}
-
-    command_support.run_action(action)

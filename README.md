@@ -54,18 +54,6 @@ relevant fields. `ghidra index` writes disposable normalized review views to
 `build/ghidra-index/`. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
 consequence of editing evidence.
 
-Reconstructed debug transfer additionally requires current body proof:
-
-```sh
-just build WIZ8_GAMEPLAY_BOUNDARIES
-just wiz8 verify-boundaries
-just wiz8 reconstructed-transfer
-```
-
-The command recomputes the recorded relocation-masked digests itself. Calling convention and stack
-shape may have exact-body authority, while reconstructed semantic types and parameter names remain
-separately labelled candidate/source components.
-
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed
 ownership and interface findings are in

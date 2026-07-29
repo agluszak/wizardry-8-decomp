@@ -403,10 +403,10 @@ def recovery_context_report(
 
 
 def _candidate_relations(repo: Path, program: str, entry: int) -> dict[str, Any]:
-    """Relevant disposable cross-build, object-map and reconstructed rows."""
+    """Relevant disposable cross-build and object-map rows."""
 
     build = repo / "build" / "reports"
-    relations: dict[str, Any] = {"cross_build": [], "object_map": [], "reconstructed": []}
+    relations: dict[str, Any] = {"cross_build": [], "object_map": []}
     for path in sorted((build / "cross-build").glob("*/alignment.csv")):
         for row in _read(path):
             if any(
@@ -423,9 +423,4 @@ def _candidate_relations(repo: Path, program: str, entry: int) -> dict[str, Any]
                 if value
             ):
                 relations["object_map"].append(row)
-    path = build / "reconstructed-transfer" / "transfers.csv"
-    if path.is_file():
-        relations["reconstructed"] = [
-            row for row in _read(path) if row.get("address", "").lower().zfill(8) == f"{entry:08x}"
-        ]
     return relations

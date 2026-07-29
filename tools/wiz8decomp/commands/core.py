@@ -12,9 +12,10 @@ analyze_app = typer.Typer(help="Run project-specific binary analysis.", no_args_
 
 def doctor_command() -> None:
     """Validate paths, pinned tools, extractors, and repository safety."""
-    from ..cli import doctor
+    from .. import command_support as cli
+    from ..doctor import validate_environment
 
-    doctor()
+    cli.run_action(lambda: validate_environment(cli.settings()))
 
 
 def prepare_command() -> None:
@@ -175,40 +176,6 @@ def check_reccmp_command() -> None:
     cli.run_action(lambda: validate_reccmp_annotations(repository_root()))
 
 
-def reconstructed_transfer_command(
-    objects: Annotated[Path | None, typer.Option(help="Build directory with /Z7 objects.")] = None,
-    pdb: Annotated[Path | None, typer.Option(help="Linked PDB to read.")] = None,
-) -> None:
-    from .. import command_support as cli
-    from ..reconstructed import (
-        bodies_from_objects,
-        bodies_from_pdb,
-        build_transfer_plan,
-        verified_boundary_addresses,
-        write_report,
-    )
-
-    def action() -> dict[str, Any]:
-        settings = cli.settings()
-        bodies = (
-            bodies_from_pdb(pdb)
-            if pdb is not None
-            else bodies_from_objects(objects or settings.build_dir)
-        )
-        root = objects or settings.repo_dir / "build" / "decomp" / "CMakeFiles"
-        plan = build_transfer_plan(
-            settings.repo_dir,
-            bodies,
-            verified_exact=verified_boundary_addresses(settings.repo_dir, root),
-        )
-        destination = settings.repo_dir / "build" / "reports" / "reconstructed-transfer"
-        summary = write_report(plan, destination)
-        summary["report"] = str(destination)
-        return summary
-
-    cli.run_action(action)
-
-
 def verify_boundaries_command(
     mapping: Annotated[Path | None, typer.Option(help="Reviewed boundary map.")] = None,
     objects: Annotated[Path | None, typer.Option(help="Root of built objects.")] = None,
@@ -278,66 +245,6 @@ def inventory_command(json_output: bool = typer.Option(False, "--json", help="Em
     from ..binary.inventory import inventory
 
     cli.run_action(lambda: inventory(cli.settings()), force_json=json_output)
-
-
-def debug_artifacts_command(
-    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
-    archive_password: str | None = typer.Option(
-        None, "--archive-password", envvar="WIZ8_DEBUG_ARCHIVE_PASSWORD"
-    ),
-) -> None:
-    from .. import command_support as cli
-    from ..debug_artifacts import sweep_debug_artifacts
-
-    cli.run_action(
-        lambda: sweep_debug_artifacts(
-            cli.settings(), update_snapshot=update_snapshot, archive_password=archive_password
-        )
-    )
-
-
-def eh_metadata_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
-    from .. import command_support as cli
-    from ..eh_metadata import sweep_eh_metadata
-
-    cli.run_action(lambda: sweep_eh_metadata(cli.settings(), update_snapshot=update_snapshot))
-
-
-def surrender_abi_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
-    from .. import command_support as cli
-    from ..surrender_abi import sweep_surrender_abi
-
-    cli.run_action(lambda: sweep_surrender_abi(cli.settings(), update_snapshot=update_snapshot))
-
-
-def call_sites_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
-    from .. import command_support as cli
-    from ..call_sites import sweep_call_sites
-
-    cli.run_action(lambda: sweep_call_sites(cli.settings(), update_snapshot=update_snapshot))
-
-
-def polymorphism_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
-    from .. import command_support as cli
-    from ..polymorphism import sweep_polymorphism
-
-    cli.run_action(lambda: sweep_polymorphism(cli.settings(), update_snapshot=update_snapshot))
-
-
-def globals_command(update_snapshot: bool = typer.Option(False, "--update-snapshot")) -> None:
-    from .. import command_support as cli
-    from ..data_globals import sweep_globals
-
-    cli.run_action(lambda: sweep_globals(cli.settings(), update_snapshot=update_snapshot))
-
-
-def function_census_command(
-    update_snapshot: bool = typer.Option(False, "--update-snapshot"),
-) -> None:
-    from .. import command_support as cli
-    from ..function_census import sweep_function_census
-
-    cli.run_action(lambda: sweep_function_census(cli.settings(), update_snapshot=update_snapshot))
 
 
 def trace_command(
