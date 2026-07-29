@@ -10,7 +10,7 @@ public:
     W8GrCycleBase004B6900();             /* 0x004B6900 */
     virtual ~W8GrCycleBase004B6900();    /* 0x004B6B60 */
 
-private:
+protected:
     unsigned char unknown_004;           /* 0x04 */
     unsigned char unknown_005[3];
     int unknown_008;                     /* 0x08 */
@@ -39,10 +39,19 @@ private:
     srNode* node_18c;                    /* 0x18c: constructed srNode */
 };                                      /* 0x190 */
 
-struct W8GrCycleTarget {
-    unsigned char unknown_00[0x64];
+class W8GrCycleTarget {
+public:
+    virtual void vslot0();
+    virtual void vslot1();
+    virtual void SetCycleFrameLod(signed char cycle, signed char frame, signed char lod) = 0;
+
+    unsigned char unknown_004[0x60];
     unsigned char m_subcycle;             /* 0x64 */
-    unsigned char unknown_65[0xb];
+    unsigned char unknown_65[3];
+    unsigned int tick_68;                 /* 0x68 */
+    unsigned char unknown_6c[2];
+    unsigned char flag_6e;                /* 0x6e */
+    unsigned char unknown_6f;
     signed char m_bBehaviour;            /* 0x70 */
 };
 
@@ -66,7 +75,7 @@ public:
     virtual void vslot8() = 0;
     virtual W8GrCycleTarget* vslot9() = 0;
     virtual void vslot10();
-    virtual void vslot11();
+    virtual void vslot11(void* value);
     virtual void vslot12() = 0;
     virtual void vslot13() = 0;
     virtual void vslot14();
@@ -78,6 +87,11 @@ public:
     void AddVectorElement005ECED4(W8VectorElement005ECED4* element);
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
+    void ResetRepresentation004A7420();
+    unsigned char ReturnTrue004A7140(int unused);
+    void SelectCycleFrameLod004A8360(signed char cycle, signed char frame, signed char lod);
+    unsigned char ReplacePath004A8400(void* path);
+    void SubmitTargetValue004A84A0();
 
 private:
     unsigned char unknown_1a8[0x4];

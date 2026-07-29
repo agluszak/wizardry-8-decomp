@@ -2,6 +2,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/ground_shadow.h"
 #include "wiz8/mesh_model.h"
+#include "wiz8/engine_code/PathAI.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
@@ -16,6 +17,86 @@
    is what the canonical virtual call uses. */
 #define BEHAVIOUR_FIRST 1
 #define BEHAVIOUR_LAST  3
+
+class W8TimeSource006598B8 {
+public:
+    virtual void vslot0();
+    virtual void vslot1();
+    virtual void vslot2();
+    virtual void vslot3();
+    virtual void vslot4();
+    virtual unsigned int vslot5(int value);
+};
+
+extern W8TimeSource006598B8* g_time_source_006598b8;
+extern void Function4A9720(void* path);
+extern void Function4A9110(void* path);
+
+// FUNCTION: WIZ8 0x004a7140
+unsigned char W8GrCycle::ReturnTrue004A7140(int)
+{
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004a7420
+void W8GrCycle::ResetRepresentation004A7420()
+{
+    W8GrCycleTarget* target = vslot9();
+
+    if (target == 0) {
+        srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
+    }
+    Function4A9720(unknown_00c);
+    target->flag_6e = 1;
+    target->m_subcycle = 0;
+    target->tick_68 = g_time_source_006598b8->vslot5(0);
+}
+
+// FUNCTION: WIZ8 0x004a8360
+void W8GrCycle::SelectCycleFrameLod004A8360(
+    signed char cycle, signed char frame, signed char lod)
+{
+    W8GrCycleTarget* target;
+
+    if (lod < 0 || lod >= 3) {
+        srAssertFail(
+            "bLOD >= 0 && bLOD < NUM_LODS",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x5f1,
+            0);
+    }
+    if (frame < 0) {
+        srAssertFail("bFrame >= 0", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x5f2, 0);
+    }
+    if (cycle < 0) {
+        srAssertFail("bCycle >= 0", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x5f3, 0);
+    }
+    if (unknown_00c != 0) {
+        target = vslot9();
+        PathAIApplyToRep004A91F0(
+            (W8PathAI*)unknown_00c, (W8PathRepresentation*)target);
+    }
+    target = vslot9();
+    target->SetCycleFrameLod(cycle, frame, lod);
+}
+
+// FUNCTION: WIZ8 0x004a8400
+unsigned char W8GrCycle::ReplacePath004A8400(void* path)
+{
+    if (unknown_00c != 0) {
+        Function4A9110(unknown_00c);
+    }
+    unknown_00c = path;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004a84a0
+void W8GrCycle::SubmitTargetValue004A84A0()
+{
+    W8GrCycleTarget* target = vslot9();
+
+    vslot11((unsigned char*)target + 0xa8);
+}
 
 /* The pointer at W8GrCycle +0x1b0 owns this list. The construction path at
    0x004A8530 installs the growable-vector table 0x005ECED8 followed by the
