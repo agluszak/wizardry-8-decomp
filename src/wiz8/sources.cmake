@@ -155,7 +155,6 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
     src/wiz8/item_mesh.cpp
-    src/wiz8/item_runtime_catalog.cpp
     src/wiz8/item_spawning.cpp
     src/wiz8/message_box.cpp
     src/wiz8/monster_info_dialog.cpp

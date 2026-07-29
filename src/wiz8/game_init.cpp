@@ -16,7 +16,8 @@ extern void Function54AF30(unsigned char release);
 extern void InitializeGameplayRuntimeObjects(void);
 extern unsigned char Function54A760(W8MonsterRecord** records);
 extern unsigned char VerifyDataSubdirs(void);
-extern void Function51B560(void);
+extern void InitializeItemVideoObjects(void);
+extern unsigned char FindStartupQuickSave(char* slot_name);
 extern void SetPendingScreenState(int value);
 extern unsigned char InitializeSpellDatabase(void);
 extern void ReleaseGenericItemNames(void);
@@ -47,9 +48,8 @@ extern void InitializeRegionHelpState(void);
 extern void SetMessageBoxModeDisabled(void);
 extern void SetMessageBoxModeEnabled(void);
 extern void SetMessageBoxWord(unsigned short value);
-extern void Function55EF90(void);
+extern void UpdateHeldItemCursor(void);
 extern void Function479010(void);
-extern unsigned char Function516740(void* slot);
 extern int GetSaveGameLevel(void* slot);
 extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
@@ -112,7 +112,7 @@ unsigned char InitializeGameData(void)
     SetMessageBoxWord(g_word_6850ed);
     Function54AF30(0);
     InitializeGameplayRuntimeObjects();
-    Function55EF90();
+    UpdateHeldItemCursor();
     if (!VerifyDataSubdirs()) {
         return 0;
     }
@@ -134,11 +134,11 @@ unsigned char InitializeGameData(void)
     if (!InitializeLevelDatabase()) {
         return 0;
     }
-    Function51B560();
+    InitializeItemVideoObjects();
     Function479010();
     SetPendingScreenState(0);
     g_dword_686a70 = -1;
-    if (gfLoadAtStartup && Function516740(g_save_slot_68ed28)) {
+    if (gfLoadAtStartup && FindStartupQuickSave((char*)g_save_slot_68ed28)) {
         g_flag_68ed14 = 1;
         g_dword_68ed18 = GetSaveGameLevel(g_save_slot_68ed28);
         SetPendingScreenState(4);

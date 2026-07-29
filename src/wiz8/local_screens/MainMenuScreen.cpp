@@ -58,7 +58,7 @@ extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void Function4E3620(char* text, int a, int b, int c);
 extern unsigned char Function48FC10(const char* playlist, int immediate, int replace);
-extern void Function55EF90(void);
+extern void UpdateHeldItemCursor(void);
 extern void* Function5CF300(int a);
 extern void Function5D2CB0(int a, int b);
 extern void Function5D2800(int a, int b, int c, int d, int e, int f, int g, int h, int i);
@@ -364,7 +364,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     if (g_dword_647bc0 != 10) {
         Function48FC10("MainMenu.MPL", 0, 1);
     }
-    Function55EF90();
+    UpdateHeldItemCursor();
 
     pending = g_dword_69c4bc;
     if (pending != 0) {

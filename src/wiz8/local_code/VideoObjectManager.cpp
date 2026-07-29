@@ -264,13 +264,9 @@ unsigned short* Function5492E0(int object, int frame)
     return palette;
 }
 
-/* The unused third parameter is real: callers leave it on the stack for the
-   following cursor call while VC6 retires only this accessor's first two
-   arguments. */
 // FUNCTION: WIZ8 0x00549390
-unsigned int GetCatalogVideoObjectHandle(int object, int frame, int passthrough)
+unsigned int GetCatalogVideoObjectHandle(int object, int frame)
 {
-    (void)passthrough;
     if (!g_video_objects_ready_650e20) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xe6, 0);
@@ -281,13 +277,11 @@ unsigned int GetCatalogVideoObjectHandle(int object, int frame, int passthrough)
 }
 
 // FUNCTION: WIZ8 0x005493e0
-short GetCatalogVideoObjectYOffset(int object, int unused, int fallback)
+short GetCatalogVideoObjectYOffset(int object)
 {
-    (void)unused;
     if (!g_video_objects_ready_650e20) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xf2, 0);
-        return g_video_slots_6448c8[fallback].y_offset;
     }
     return g_video_slots_6448c8[object].y_offset;
 }

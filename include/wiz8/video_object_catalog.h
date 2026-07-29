@@ -3,8 +3,8 @@
 
 extern "C" {
 
-unsigned int GetCatalogVideoObjectHandle(int object, int frame, int passthrough);
-short GetCatalogVideoObjectYOffset(int object, int unused, int fallback);
+unsigned int GetCatalogVideoObjectHandle(int object, int frame);
+short GetCatalogVideoObjectYOffset(int object);
 
 }
 
