@@ -42,6 +42,43 @@ extern unsigned char RemoveMonster(unsigned int monster_list_index,
 enum { W8_MONSTER_STATE_ACTIVE_LIMIT = 0xd, W8_MONSTER_CONTROL_EXCLUDED = 1 };
 enum { W8_MONSTER_GROUP_ALLY_COUNT = 4 };
 
+/* A group is done dying only when every live script record either has no
+   engine Monster or reports the Monster death cycle.  Save-list location IDs
+   are deliberately resolved through the canonical lookup path rather than
+   treated as list indices. */
+// FUNCTION: WIZ8 0x00511850
+unsigned char MonsterGroupAllMembersDying00511850(
+    W8MonsterGroup* monster_group)
+{
+    unsigned int index;
+    unsigned int monster_list_index;
+    int location_id;
+    W8MonsterInfo* monster_info;
+
+    if (monster_group == 0) {
+        srAssertFail(
+            "pMonsterGroup",
+            "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp",
+            0x82b,
+            0);
+    }
+    for (index = 0;
+         index < PListGetCount((W8PList*)monster_group->monsters);
+         ++index) {
+        location_id = IListGetAt(monster_group->monsters, index);
+        monster_list_index = MonsterGetIndexByLocationID(
+            0x830,
+            "C:\\Projects\\Wizardry 8\\Local Code\\MonsterGroup.cpp",
+            location_id,
+            1);
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+        if (monster_info != 0 && !monster_info->monster->IsDying()) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /* How a monster group starts out disposed towards the party.
  
    A record flagged at +0xD0 answers from its NPC data instead of its faction:

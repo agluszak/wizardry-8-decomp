@@ -1121,6 +1121,7 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 
 typedef struct W8Monster W8Monster;
+struct W8AnimObj;
 
 #ifdef __cplusplus
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
@@ -1156,11 +1157,25 @@ struct W8MonsterCycle {
             unsigned char flag_03;
         } bytes;
     };
-    unsigned char ubNumSubs;                /* 0x04 */
-    unsigned char unknown_05[4];
-    unsigned char unknown_09;               /* 0x09: cleared for cycle 22 by 0x004e6130 */
-    unsigned char unknown_0a[2];
-    W8MonsterCycleRuntime* runtime;          /* 0x0c: shared cycle engine state */
+    union {
+        unsigned int num_subs_04;           /* 0x04: IsCycleSupported tests the complete field */
+        struct {
+            unsigned char ubNumSubs;        /* 0x04: GetNumSubsPerCycle returns the low byte */
+            unsigned char unknown_05[3];
+        } count;
+    };
+    union {
+        unsigned int value_08;              /* 0x08: copied by 0x004c5870 */
+        struct {
+            unsigned char unknown_08;
+            unsigned char unknown_09;       /* 0x09: cleared for cycle 22 by 0x004e6130 */
+            unsigned char unknown_0a[2];
+        } bytes_08;
+    };
+    union {
+        W8MonsterCycleRuntime* runtime;      /* 0x0c: cycle 18's shared engine state */
+        W8AnimObj** animation_objects;       /* 0x0c: per-subcycle AnimObj table */
+    };
 };                                          /* 0x10 */
 
 struct W8MonsterPolymorphicSubobject18 {
@@ -1172,7 +1187,9 @@ struct W8MonsterPolymorphicSubobject18 {
     unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
     unsigned char unknown_10[0x4c];
     int value_5c;                           /* 0x5c: Monster +0x74 */
-    unsigned char unknown_60[0x24];
+    unsigned char unknown_60[0x20];
+    signed char animation_index_80;          /* 0x80: Monster +0x98 */
+    unsigned char unknown_81[3];
     /* 0x84, which is Monster +0x9c: the monster's own extent. Every range test
        subtracts it from the centre-to-centre distance, so it is a radius
        rather than a diameter or a bounding box. */
@@ -1180,7 +1197,8 @@ struct W8MonsterPolymorphicSubobject18 {
     unsigned char state_a0;                 /* 0x88: Monster +0xa0 */
     unsigned char unknown_89[3];
     signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
-    unsigned char unknown_8d[7];
+    signed char current_subcycle_8d;         /* 0x8d: Monster +0xa5 */
+    unsigned char unknown_8e[6];
 
     srVector3T<float> GetPosition();
 };                                          /* 0x94: through the cycle array at Monster +0xac */
@@ -1195,7 +1213,9 @@ struct W8Monster {
        +0x18 cannot be expressed through inheritance or composition until its
        lifecycle role is recovered from the constructor family. */
     void* vptr;
-    unsigned char unknown_004[0x14];
+    unsigned char unknown_004[0x0c];
+    void* linked_objects_010;                /* 0x010: collection traversed by 0x004c5870 */
+    unsigned char unknown_014[4];
     W8MonsterPolymorphicSubobject18 polymorphic_subobject_18; /* 0x018: proven placement */
     W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
     /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
@@ -1208,6 +1228,7 @@ struct W8Monster {
     unsigned char tail_fields_5bc[0x6c];        /* 0x5bc: fields seen through 0x624 */
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
+    void SubmitCycleAnimValue004BF970(signed char cycle);
     unsigned char IsDying();
     unsigned char Function4C2CF0(signed char cycle);
     void Function4C50F0();

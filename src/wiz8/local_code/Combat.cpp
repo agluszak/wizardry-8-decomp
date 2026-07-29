@@ -389,10 +389,10 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
 
     SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
     /* Four bytes inside cycle eight's block, cleared together. */
-    monster_info->monster->m_cycles[8].unknown_05[3] = 0;
-    monster_info->monster->m_cycles[8].unknown_09 = 0;
-    monster_info->monster->m_cycles[8].unknown_0a[0] = 0;
-    monster_info->monster->m_cycles[8].unknown_0a[1] = 0;
+    monster_info->monster->m_cycles[8].bytes_08.unknown_08 = 0;
+    monster_info->monster->m_cycles[8].bytes_08.unknown_09 = 0;
+    monster_info->monster->m_cycles[8].bytes_08.unknown_0a[0] = 0;
+    monster_info->monster->m_cycles[8].bytes_08.unknown_0a[1] = 0;
     monster_info->pCombat->turn_started = 1;
     monster_info->monster->polymorphic_subobject_18.unknown_10[0x16] = 0;
 }

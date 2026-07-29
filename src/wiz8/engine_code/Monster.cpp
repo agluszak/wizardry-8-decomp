@@ -1,4 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/grcycle.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srTimer.h"
 
@@ -18,6 +20,40 @@ extern void Function4A7A70(int value);
 extern unsigned char g_flag_6081e4;
 extern int g_value_659c14;
 }
+
+class W8MonsterGrCycle005ED290 : public W8GrCycle {
+public:
+    unsigned char IsCycleSupported(signed char cycle);
+    void SubmitCurrentAnimEntry004C3F00();
+
+private:
+    W8Monster* monster_1d8;
+};
+
+static_assert(
+    sizeof(W8MonsterGrCycle005ED290) == 0x1dc,
+    "W8MonsterGrCycle005ED290_size_must_be_0x1dc");
+
+struct W8MonsterLinkedObject004C5870 {
+    unsigned char unknown_00[0x28];
+    int value_28;
+};
+
+struct W8MonsterLinkedObjectList004C5870 {
+    void* unknown_00;
+    int count_04;
+    void* unknown_08;
+    W8MonsterLinkedObject004C5870** entries_0c;
+
+    W8MonsterLinkedObject004C5870* GetAt(int index)
+    {
+        W8MonsterLinkedObject004C5870** slot = entries_0c;
+        if (index < count_04) {
+            slot += index;
+        }
+        return *slot;
+    }
+};
 
 /* Cleans its own argument, so it is __stdcall and not the cdecl the
    decompiler assumes. */
@@ -41,7 +77,127 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
     if (bCycle == -1) {
         bCycle = polymorphic_subobject_18.m_bCurrentCycle;
     }
-    return m_cycles[bCycle].ubNumSubs;
+    return m_cycles[bCycle].count.ubNumSubs;
+}
+
+/* The Monster vtable's slot-three method selects the active subcycle's
+   AnimObj (falling back to entry zero) and submits the Monster's current
+   animation index.  The assertion's `pao` spelling establishes the pointee's
+   AnimObj identity without supplying a name for this Monster method. */
+// FUNCTION: WIZ8 0x004bf970
+void W8Monster::SubmitCycleAnimValue004BF970(signed char cycle)
+{
+    W8MonsterCycle* selected_cycle = &m_cycles[cycle];
+    W8AnimObj** animation_slot;
+    W8AnimObj* animation;
+
+    if (polymorphic_subobject_18.current_subcycle_8d <
+        (int)selected_cycle->num_subs_04) {
+        animation_slot = selected_cycle->animation_objects +
+            polymorphic_subobject_18.current_subcycle_8d;
+    } else {
+        animation_slot = selected_cycle->animation_objects;
+    }
+    animation = *animation_slot;
+    if (animation == 0) {
+        srAssertFail(
+            "pao",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            0x2de,
+            0);
+    }
+    AnimObjValue004A15D0(
+        animation, polymorphic_subobject_18.animation_index_80);
+}
+
+/* The concrete Monster GrCycle keeps its owning Monster immediately after the
+   shared 0x1d8-byte GrCycle base. */
+// FUNCTION: WIZ8 0x004c3740
+unsigned char W8MonsterGrCycle005ED290::IsCycleSupported(signed char cycle)
+{
+    if (cycle >= W8_MONSTER_CYCLE_COUNT) {
+        srAssertFail(
+            "bCycle < CYCLE_NUM_UNIQUE",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            0xafc,
+            "IsCycleSupported() -> Invalid cycle num.");
+    }
+    return monster_1d8->m_cycles[cycle].num_subs_04 != 0;
+}
+
+/* Resolve the active cycle/subcycle AnimObj and submit entry zero using the
+   Monster's animation index. */
+// FUNCTION: WIZ8 0x004c3f00
+void W8MonsterGrCycle005ED290::SubmitCurrentAnimEntry004C3F00()
+{
+    typedef void* (__cdecl *LegacyAnimObjEntryCall)(
+        W8AnimObj*, signed char, unsigned int);
+
+    int cycle_index =
+        monster_1d8->polymorphic_subobject_18.m_bCurrentCycle;
+    int subcycle_index =
+        monster_1d8->polymorphic_subobject_18.current_subcycle_8d;
+    W8MonsterCycle* cycle = &monster_1d8->m_cycles[cycle_index];
+    W8AnimObj** animation_slot;
+    W8AnimObj* animation;
+
+    if (subcycle_index < (int)cycle->num_subs_04) {
+        animation_slot = cycle->animation_objects + subcycle_index;
+    } else {
+        animation_slot = cycle->animation_objects;
+    }
+    animation = *animation_slot;
+    if (animation == 0) {
+        srAssertFail(
+            "pao",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            0xc4e,
+            0);
+    }
+    /* This canonical caller passes the legacy three-argument call shape to
+       0x004A1660 even though that callee's own body has a four-slot prototype.
+       Preserve the observed caller ABI locally rather than weakening the
+       callee's reviewed declaration. */
+    ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
+        animation,
+        monster_1d8->polymorphic_subobject_18.animation_index_80,
+        0);
+}
+
+/* Store one value in the two cycle records used as its compact mirrors, then
+   propagate it to every attached object's +0x28 field.  The body consumes two
+   cdecl arguments; callers that reserve another stack slot clean it themselves. */
+// FUNCTION: WIZ8 0x004c5870
+void MonsterPropagateValue004C5870(W8Monster* monster, int value)
+{
+    int index;
+    int count;
+
+    if (monster == 0) {
+        srAssertFail(
+            "pMonster",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            0x125f,
+            0);
+    }
+    monster->m_cycles[19].value_08 = value;
+    *(short*)&monster->m_cycles[3].flags_00 = (short)value;
+    if (monster->linked_objects_010 != 0) {
+        count = ((W8MonsterLinkedObjectList004C5870*)
+            monster->linked_objects_010)->count_04;
+        index = 0;
+        if (count > 0) {
+            do {
+                W8MonsterLinkedObjectList004C5870* list =
+                    (W8MonsterLinkedObjectList004C5870*)
+                    monster->linked_objects_010;
+                int propagated_value = monster->m_cycles[19].value_08;
+                W8MonsterLinkedObject004C5870* object = list->GetAt(index);
+                ++index;
+                object->value_28 = propagated_value;
+            } while (index < count);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004c5710

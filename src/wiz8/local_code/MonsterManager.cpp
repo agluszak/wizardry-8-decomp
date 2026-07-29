@@ -792,7 +792,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     MonsterSetSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
     monster_info->monster->polymorphic_subobject_18.state_a0 = 1;
-    monster_info->monster->m_cycles[22].unknown_09 = 0;
+    monster_info->monster->m_cycles[22].bytes_08.unknown_09 = 0;
 }
 
 static __forceinline double DistanceBetweenPositions(
