@@ -566,6 +566,101 @@ extern unsigned char g_save_flag_00687599;
 extern unsigned char g_save_notice_shown_0068506b;
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);  /* 0x0058AC00 */
 
+/* 0x0061A144, the save-file extension. It sits in writable .data with 16
+   reference sites across 10 functions rather than in .rdata with the format
+   literals, so it is a variable the game can repoint rather than a constant;
+   this build initialises it to "SAV". */
+extern char g_save_extension[];
+
+/* Both are owned by address-quarantine units and have no header yet, so they
+   are declared the way this unit declares every other cross-unit callee: the
+   canonical name and signature, with the owning address named. They are
+   deliberately not added to gameplay_boundaries.h, whose declarations sit in an
+   extern "C" block that would relink the existing C++-mangled definitions. */
+extern void DeleteFileByName(const char* path);                         /* 0x00404C70 */
+extern int* GetAddress69C1CC(void);                                     /* 0x005A9E90 */
+
+/* GetAddress69C1CC (0x005A9E90) hands back the current save name. Its canonical
+   declaration returns int* and is not restated or widened here; this call is
+   what establishes the buffer is wide characters, because the name is handed
+   straight to ConvertWideStringToString. Retyping the accessor and the global
+   behind it is a separate change to a proved body, so the evidence is recorded
+   here and the conversion is spelled as a cast, which costs no instruction. */
+
+/* Delete both files a current game occupies: the slot the current save name
+   selects, and the fixed CurrentGame file. Each delete is preceded by the same
+   read-only repair the rest of this unit makes - EACCES from _access is the one
+   errno that means the file is there but not writable. */
+// FUNCTION: WIZ8 0x00515920
+void DeleteCurrentSaveFiles(void)
+{
+    char path[260];
+
+    sprintf(path, "%s\\%s.%s", "Saves",
+            ConvertWideStringToString((const wchar_t*)GetAddress69C1CC()),
+            g_save_extension);
+    if (_access(path, 2) != 0 && errno == EACCES) {
+        _chmod(path, _S_IREAD | _S_IWRITE);
+    }
+    DeleteFileByName(path);
+    if (_access("Saves\\CurrentGame.SAV", 2) != 0 && errno == EACCES) {
+        _chmod("Saves\\CurrentGame.SAV", _S_IREAD | _S_IWRITE);
+    }
+    DeleteFileByName("Saves\\CurrentGame.SAV");
+}
+
+/* Two gates with no established meaning beyond their position in the chain, so
+   both keep positional names. Both are zero in the shipped image. */
+extern unsigned char g_flag_006875a5;
+extern unsigned char g_flag_0068510d;
+
+/* g_in_combat_00683f94 and g_camp_open_00683f9b already reach this unit through
+   combat_state.h and gameplay_boundaries.h, so they are used rather than
+   redeclared. 0x00683F97 has no header owner and is declared here under the
+   name MainGameScreen.cpp already gives it. */
+extern unsigned char g_flag_00683f97;
+extern unsigned char IsSightRangeOverridden(void);                      /* 0x00504910 */
+extern int IsLevelDataFlag4EffectivelySet(void);                        /* 0x0041F090 */
+/* Byte-sized, not int: the refusal below returns through `mov al,1` and the
+   save arm returns this result unchanged, so both share one byte register. */
+extern unsigned char SaveGame(const char* name, void* destination);     /* 0x005123F0 */
+
+/* Autosave, if every gate allows it. Declining is reported as success, which is
+   why the whole chain is one condition with a single trailing `return 1` rather
+   than a run of early returns: the canonical has one epilogue for the refusal
+   and one for the save. The chain breaks around each call because a call cannot
+   be hoisted into a short-circuit, which is what the decompiler's nesting is.
+
+   g_save_flag_00687599 does double duty: it both admits a save that the
+   0x0068510d gate would otherwise refuse for a forced call, and selects the
+   name, so a save made under it overwrites the current slot instead of the
+   fixed AutoSave one. */
+// FUNCTION: WIZ8 0x005159e0
+unsigned char AutoSaveIfAllowed(char forced)
+{
+    char name[64];
+
+    g_save_notice_shown_0068506b = 0;
+    if (g_flag_006875a5 == 0 && AnyMonsterDying() == 0
+        && ((g_flag_0068510d != 0 && forced == 0) || g_save_flag_00687599 != 0)
+        && g_in_combat_00683f94 == 0 && IsSightRangeOverridden() == 0
+        && (char)IsLevelDataFlag4EffectivelySet() != 0 && g_flag_00683f97 == 0
+        && g_camp_open_00683f9b == 0) {
+        /* The copy is written out in both arms rather than selecting the source
+           into one call. VC6 tail-merges the two inlined copies but keeps each
+           arm's own destination `lea` and source load, which is the canonical
+           encoding; funnelling both arms through one pointer costs the extra
+           move that a selected argument needs. */
+        if (g_save_flag_00687599 != 0) {
+            strcpy(name, ConvertWideStringToString((const wchar_t*)GetAddress69C1CC()));
+        } else {
+            strcpy(name, "AutoSave");
+        }
+        return SaveGame(name, 0);
+    }
+    return 1;
+}
+
 /* Take the pending-save flag and clear it in one go, so the caller that reads
    it is the only one that sees it. */
 // FUNCTION: WIZ8 0x00515910
