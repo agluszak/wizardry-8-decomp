@@ -22,9 +22,7 @@ These values are observations, not identities: mtimes and corpus paths are not p
 the format.
 
 The tracked declarations are in `config/types/wiz8/slf.h` with the SGP names canonical and the old
-`W8SlfHeader`/`W8SlfDirectoryEntry` names retained only as compatibility aliases. The parser in
-`tools/wiz8decomp/binary/slf.py` reads only the header and EOF directory; it does not
-extract payloads.
+`W8SlfHeader`/`W8SlfDirectoryEntry` names retained only as compatibility aliases.
 
 Six packed `W8SlfConfiguration` records begin at `0x006000c8`. They correspond to the six paths
 embedded by Wizardry's missing `WizLibs.c`. The initialized game allocates six

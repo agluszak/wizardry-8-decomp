@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import shutil
 import subprocess
 from typing import Any
 
 import pytest
 from wiz8decomp.binary import demangle as demangle_module
 from wiz8decomp.binary.demangle import DemanglerMissing, demangle
-
-_HAS_TOOL = shutil.which("llvm-undname") is not None
 
 
 def _fake_run(stdout: str) -> Any:
@@ -72,8 +69,15 @@ def test_missing_tool_is_reported_rather_than_silently_skipped(monkeypatch: Any)
         demangle(["?a@C@@QAEXXZ"])
 
 
-@pytest.mark.skipif(not _HAS_TOOL, reason="llvm-undname is not installed")
 def test_real_demangler_decodes_the_shapes_this_corpus_depends_on() -> None:
+    """Runs against the real tool, which is a hard requirement, not an option.
+
+    `docs/wiz8-symbol-evidence.md` requires `llvm-undname` on `PATH` for the
+    `surrender-abi`, `polymorphism`, and `eh-metadata` lanes, and
+    `demangle.tool_path` raises without it. Skipping here would report a green
+    lane on a toolchain that cannot produce those tables at all.
+    """
+
     names = [
         "??_7srBinIFStream@@6BsrBinFStream@@@",
         "??1Decompressor@srHuffman@@QAE@XZ",

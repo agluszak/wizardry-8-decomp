@@ -388,7 +388,6 @@ def recovery_context_report(
             "field_accesses": semantic_fields,
             "indirect_calls": indirect_calls,
         },
-        "candidate_relations": _candidate_relations(settings.repo_dir, program_name, entry),
         "ghidra": {
             "function": function,
             "decompiled": by_command["decompile"]["decompiled"] or "",
@@ -422,27 +421,3 @@ def recovery_context_report(
             str(markdown_path.relative_to(settings.repo_dir)),
         ],
     }
-
-
-def _candidate_relations(repo: Path, program: str, entry: int) -> dict[str, Any]:
-    """Relevant disposable cross-build and object-map rows."""
-
-    build = repo / "build" / "reports"
-    relations: dict[str, Any] = {"cross_build": [], "object_map": []}
-    for path in sorted((build / "cross-build").glob("*/alignment.csv")):
-        for row in _read(path):
-            if any(
-                value and value.lower().removeprefix("0x").zfill(8) == f"{entry:08x}"
-                for key, value in row.items()
-                if "address" in key or key in {"left", "right"}
-            ):
-                relations["cross_build"].append({"report": str(path.relative_to(repo)), **row})
-    for path in sorted((build / "object-map" / program).glob("*.csv")):
-        for row in _read(path):
-            if any(
-                value.lower().removeprefix("0x").zfill(8) == f"{entry:08x}"
-                for value in row.values()
-                if value
-            ):
-                relations["object_map"].append(row)
-    return relations

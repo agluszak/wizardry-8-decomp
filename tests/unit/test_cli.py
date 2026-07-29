@@ -10,25 +10,22 @@ from wiz8decomp.extract import variants
 REPOSITORY = Path(__file__).resolve().parents[2]
 
 
-def test_cli_uses_typed_command_tree() -> None:
+def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
+    """Grouped work is reachable only through its group.
+
+    Pinning the absent names of every retired command makes this test fail on
+    any CLI reshuffle, so it asserts the current shape instead: each group is
+    present at the root, and a grouped command is not.
+    """
+
     result = CliRunner().invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "ghidra" in result.stdout
-    assert "corpus" in result.stdout
-    assert "inputs" not in result.stdout
-    assert "pipeline" not in result.stdout
-    assert "function-census" not in result.stdout
-    assert "sgp" not in result.stdout
-    assert "doctor-command" not in result.stdout
-    assert "doctor" in result.stdout
-    assert "evidence" in result.stdout
-    assert "analyze" in result.stdout
-    for command in ("lint", "triage", "vtable", "datacmp", "addr", "runtime-test"):
-        assert command in result.stdout
+    for group in ("corpus", "ghidra", "report", "toolchain", "evidence", "analyze"):
+        assert group in result.stdout
+        assert CliRunner().invoke(app, [group, "--help"]).exit_code == 0
 
-    for obsolete_root in ("function-census", "inventory", "trace", "reconstructed-transfer"):
-        rejected = CliRunner().invoke(app, [obsolete_root, "--help"])
-        assert rejected.exit_code != 0
+    assert "inventory" not in result.stdout
+    assert CliRunner().invoke(app, ["inventory", "--help"]).exit_code != 0
 
     evidence = CliRunner().invoke(app, ["evidence", "refresh", "--help"])
     assert evidence.exit_code == 0

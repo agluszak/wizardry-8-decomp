@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from wiz8decomp.reports.recovery_context import (
-    _candidate_relations,
     _in_body,
     _translation_unit,
 )
@@ -51,17 +48,3 @@ def test_multiple_direct_units_are_reported_as_inlined_instead_of_guessed() -> N
     assert result["attribution"] == "inlined-or-conflicting"
     assert result["source_path"] == ""
     assert result["alternatives"] == [r"Engine Code\A.cpp", r"Local Code\B.cpp"]
-
-
-def test_candidate_relations_use_actual_report_paths(tmp_path: Path) -> None:
-    cross = tmp_path / "build/reports/cross-build/retail-patch/alignment.csv"
-    cross.parent.mkdir(parents=True)
-    cross.write_text("left_address,right_address\n0044bec0,0045bec0\n", encoding="utf-8")
-    objects = tmp_path / "build/reports/object-map/canonical/objects.csv"
-    objects.parent.mkdir(parents=True)
-    objects.write_text("address,object\n0044bec0,Prop.obj\n", encoding="utf-8")
-
-    relations = _candidate_relations(tmp_path, "canonical", 0x0044BEC0)
-
-    assert relations["cross_build"][0]["report"].endswith("alignment.csv")
-    assert relations["object_map"] == [{"address": "0044bec0", "object": "Prop.obj"}]
