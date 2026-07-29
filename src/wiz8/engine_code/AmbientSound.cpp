@@ -2,11 +2,13 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "random.h"
 
 #include <string.h>
+#include <stdio.h>
 
 struct W8AmbientSoundConfig0047A790 {
-    unsigned char bytes[0x80];
+    char match_name[0x80];
 };
 
 /* Engine Code\AmbientSound.cpp. The allocation and release pair establishes
@@ -23,8 +25,8 @@ public:
     srVector3T<float> vector_88;
     int value_94;
     int value_98;
-    int value_9c;
-    unsigned char unknown_0a0[4];
+    unsigned int value_9c;
+    unsigned int value_a0;
     int value_a4;
     int value_a8;
     int value_ac;
@@ -47,6 +49,10 @@ public:
     W8Timer005EC0A4 timer_108;
 
     void ApplyPosition00479350(const srVector3T<float>* position);
+    void SetState00479970(int state);
+    void Update0047A310();
+    W8AmbientSound* FindNextMatching0047A260(
+        const char* match_name, W8AmbientSound* previous);
 };
 
 static_assert(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
@@ -55,6 +61,172 @@ extern void ReleaseSoundHandle00408F70(int handle);
 extern void ReleaseAmbientChannel0040A8E0(int handle, int channel);
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
 extern W8World* g_world_00659ab4;
+extern void AudioUpdateBegin00409310();
+extern void AudioUpdateStage004095B0();
+extern void AudioUpdateFinish004AEFD0();
+extern void SetSoundValue00409210(int handle, unsigned int value);
+
+/* The contiguous class lifecycle and shared world-list accesses identify these
+   pre-assertion bodies as the same AmbientSound.cpp unit. */
+// FUNCTION: WIZ8 0x0047a260
+W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
+    const char* match_name, W8AmbientSound* previous)
+{
+    int count;
+    int index;
+
+    if (g_world_00659ab4 == 0) {
+        return 0;
+    }
+    count = static_cast<int>(PListGetCount(g_world_00659ab4->plsAmbientSounds));
+    if (previous == 0) {
+        index = 0;
+    }
+    else {
+        index = PListIndexOf(g_world_00659ab4->plsAmbientSounds, previous) + 1;
+        if (index < 0 || index > count) {
+            return 0;
+        }
+    }
+    if (index >= count) {
+        return 0;
+    }
+    do {
+        W8AmbientSound* candidate = static_cast<W8AmbientSound*>(
+            PListGetAt(g_world_00659ab4->plsAmbientSounds, index));
+        if (candidate != 0 && candidate != this && candidate->flag_c4 != 0 &&
+            _stricmp(candidate->config_004.match_name, match_name) == 0) {
+            return candidate;
+        }
+        ++index;
+    } while (index < count);
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x0047a310
+void W8AmbientSound::Update0047A310()
+{
+    if (flag_c4 != 0) {
+        if (sound_handle_bc != -1) {
+            W8Timer005EC0A4* timer = &timer_108;
+
+            if (timer->Method0043A190() >= 1.0f) {
+                if (value_9c > value_a0) {
+                    ++value_a0;
+                }
+                else if (value_9c < value_a0) {
+                    --value_a0;
+                }
+                else if ((timer->m_flags & 8) == 0) {
+                    timer->m_flags |= 8;
+                    timer->m_start = timer->Method00439A60() - timer->m_start;
+                }
+                SetSoundValue00409210(sound_handle_bc, value_a0);
+            }
+        }
+        if (flag_b8 == 0 && value_9c == value_a0 && sound_handle_bc != -1) {
+            ReleaseSoundHandle00408F70(sound_handle_bc);
+            sound_handle_bc = -1;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x0047a3e0
+void UpdateAmbientSounds0047A3E0(W8World* world)
+{
+    if (world != 0) {
+        int count;
+        int index;
+
+        AudioUpdateBegin00409310();
+        AudioUpdateStage004095B0();
+        count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+        for (index = 0; index < count; ++index) {
+            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
+                PListGetAt(world->plsAmbientSounds, index));
+            if (sound != 0) {
+                sound->SetState00479970(0);
+                sound->Update0047A310();
+            }
+        }
+        AudioUpdateFinish004AEFD0();
+    }
+}
+
+extern unsigned char GetRenderOptionState(int option);
+extern void BuildFootstepPath0047A540(
+    char* path, char surface, char material, int argument, int variant);
+extern int PlaySound00408860(const char* path, int* options);
+extern unsigned char g_default_footstep_surface_65a108;
+extern unsigned char g_default_footstep_material_65a109;
+extern unsigned char g_footstep_alternate_65a10a;
+extern int g_previous_footstep_variant_65a10c;
+extern unsigned char g_footstep_option_6850f9;
+extern const char* g_footstep_names_609edc[];
+
+// FUNCTION: WIZ8 0x0047a440
+int PlayFootstep0047A440(char surface, char material, int argument)
+{
+    char selected_surface;
+    char selected_material;
+    char path[260];
+    int options[8];
+    int attempts = 0;
+    int index;
+
+    if (GetRenderOptionState(0xf) == 0) {
+        return -1;
+    }
+    selected_surface = surface;
+    if (selected_surface < 1 || selected_surface > 9) {
+        selected_surface = g_default_footstep_surface_65a108;
+    }
+    selected_material = material;
+    if (selected_material < 1 || selected_material > 25) {
+        selected_material = g_default_footstep_material_65a109;
+    }
+    if (selected_material >= 18) {
+        sprintf(path, "Data\\Sound\\Footsteps\\Step_%s.WAV",
+                g_footstep_names_609edc[selected_material]);
+    }
+    else {
+        int variant;
+        do {
+            variant = Random(4) + 1;
+            ++attempts;
+        } while (variant == g_previous_footstep_variant_65a10c && attempts < 100);
+        BuildFootstepPath0047A540(
+            path, selected_surface, selected_material, argument, variant);
+        g_previous_footstep_variant_65a10c = variant;
+    }
+    for (index = 0; index < 8; ++index) {
+        options[index] = -1;
+    }
+    options[2] = g_footstep_option_6850f9;
+    g_footstep_alternate_65a10a = g_footstep_alternate_65a10a == 0;
+    return PlaySound00408860(path, options);
+}
+
+// FUNCTION: WIZ8 0x0047a600
+void RepositionAmbientSounds0047A600(W8World* world)
+{
+    if (world != 0) {
+        int count;
+        int index;
+
+        AudioUpdateBegin00409310();
+        count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+        for (index = 0; index < count; ++index) {
+            W8AmbientSound* sound = static_cast<W8AmbientSound*>(
+                PListGetAt(world->plsAmbientSounds, index));
+            if (sound != 0) {
+                srVector3T<float> position;
+                GetPartyPosition(&position);
+                sound->ApplyPosition00479350(&position);
+            }
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x0047a670
 W8AmbientSound* CreateAmbientSound0047A670()

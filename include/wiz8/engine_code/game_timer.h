@@ -8,6 +8,8 @@ public:
     W8Timer005EC0A4(float duration, unsigned char raw_time);
     virtual ~W8Timer005EC0A4();
     int Sample() const;
+    int Method00439A60();
+    float Method0043A190();
 
     int m_mode;                          /* 0x04: 1 reads the game clock */
     unsigned short m_flags;              /* 0x08: bit 0 reads the timer raw */
