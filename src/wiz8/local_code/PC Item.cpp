@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/item_video_object_vector.h"
 #include "wiz8/sr_api.h"
 
 /* The twelve places an item can be worn or held. GetItemDefaultEquipSlot maps
@@ -152,25 +153,41 @@ extern int g_held_item_source_006840c0;
 extern unsigned char g_held_item_origin_006840c4;
 extern unsigned short g_held_item_slot_006840c5;
 
-struct W8ItemNameFormatterStorage {
-    void* entries;
-    int capacity;
-    int count;
+static_assert(sizeof(W8ItemVideoObjectEntry) == 8,
+              "W8ItemVideoObjectEntry_must_be_8");
+static_assert(sizeof(W8ItemVideoObjectVector) == 0x0c,
+              "W8ItemVideoObjectVector_must_be_0x0c");
 
-    void Clear();
-};
+W8ItemVideoObjectVector g_item_video_objects_68ec68;
 
-W8ItemNameFormatterStorage g_item_name_formatter_68ec68;
+// FUNCTION: WIZ8 0x0055cdb0
+W8ItemVideoObjectEntry::W8ItemVideoObjectEntry()
+    : initialized(0), video_object(0)
+{
+}
+
+W8ItemVideoObjectEntry::~W8ItemVideoObjectEntry()
+{
+}
+
+// FUNCTION: WIZ8 0x0055cdc0
+void W8ItemVideoObjectVector::Initialize(int new_capacity)
+{
+    capacity = new_capacity;
+    data = new W8ItemVideoObjectEntry[new_capacity];
+    count = 0;
+}
 
 // FUNCTION: WIZ8 0x0055ce40
-void W8ItemNameFormatterStorage::Clear()
+void W8ItemVideoObjectVector::Clear()
 {
-    if (entries) {
-        operator delete((char*)entries - 4);
-        entries = 0;
+    if (data) {
+        delete[] data;
+        data = 0;
     }
     count = 0;
 }
+
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 extern void ShowNotice(void* notice, int a, int b, int c);   /* 0x0055F260 */
 extern void ClearHeldItemDisplay(void);                      /* 0x0055F1E0 */
@@ -726,14 +743,22 @@ void GetOriginOfCharacterItem(
 }
 
 
-/* Throw away every lazily built generic name. The walk is bounded by the
-   address just past the table rather than by a count. */
+/* Initialize the fixed item-video-object vector to one entry per item record. */
+// FUNCTION: WIZ8 0x0051b560
+void InitializeItemVideoObjects(void)
+{
+    g_item_video_objects_68ec68.Initialize(g_item_record_count);
+}
+
+/* Throw away the item-video-object vector and every lazily built generic name.
+   The name walk is bounded by the address just past the table rather than by a
+   count. */
 // FUNCTION: WIZ8 0x0051b580
 void ReleaseGenericItemNames(void)
 {
     W8WideChar** name;
 
-    g_item_name_formatter_68ec68.Clear();
+    g_item_video_objects_68ec68.Clear();
     for (name = g_generic_item_names;
          name < g_generic_item_names + W8_GENERIC_ITEM_NAME_COUNT;
          ++name) {

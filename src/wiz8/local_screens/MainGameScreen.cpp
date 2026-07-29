@@ -175,7 +175,7 @@ public:
 extern unsigned char g_flag_00683f9a;
 extern unsigned char g_map_loading_00659757;
 extern void Function55EE70(int reason);
-extern void Function55EF90(void);
+extern void UpdateHeldItemCursor(void);
 extern void Function42B3E0(void);
 extern unsigned char Function42ACE0(const char* path);
 extern void SetRegionMode4(unsigned int region);
@@ -215,7 +215,7 @@ bool LoadCurrentLevelData(void)
         Function42B3E0();
         loaded = Function42ACE0("MAP") != 0;
         g_map_loading_00659757 = 0;
-        Function55EF90();
+        UpdateHeldItemCursor();
     }
     return loaded;
 }
