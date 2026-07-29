@@ -175,12 +175,10 @@ extern int g_dword_683fa5;
 extern unsigned char g_flag_683f97;
 
 /* The global constructed at 0x006836b8 contains eight 0x118-byte records.
-   Each record owns one instantiation of the growable-vector template at +0xd8,
-   and the outer object owns the same instantiation at +0x9b7: both constructors
-   install vtable 0x005EBFE0, which twenty-one owner bodies across the image
-   share and which is not the W8GrowableVector<int> at 0x005EC0E0. The element
-   type itself is still unproven, so it keeps the address-qualified name that
-   holds those owners together without claiming what they hold. */
+   Targeting.cpp reads each record's +0xd8 vector as monster location IDs, and
+   local vectors with the same 0x005EBFE0 vtable carry the same integer IDs.
+   0x005EC0E0 is another emitted W8GrowableVector<int> vtable, not a different
+   specialization identity. */
 #pragma pack(push, 1)
 class W8MonsterManagerEntry {
 public:
@@ -189,7 +187,7 @@ public:
 
 private:
     unsigned char unknown_000[0xd8];
-    W8GrowableVector<W8VectorElement005EBFE0*> vector_d8; /* 0x0d8 */
+    W8GrowableVector<int> vector_d8; /* 0x0d8 */
     unsigned char unknown_0e8[0x30];
 };                                       /* 0x118 */
 
@@ -201,11 +199,11 @@ public:
 private:
     W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
     unsigned char unknown_8c0[0xf7];
-    W8GrowableVector<W8VectorElement005EBFE0*> vector_9b7; /* 0x9b7 */
+    W8GrowableVector<int> vector_9b7; /* 0x9b7 */
 };                                       /* 0x9c7 */
 #pragma pack(pop)
 
-static_assert(sizeof(W8GrowableVector<W8VectorElement005EBFE0*>) == 0x10, "W8VectorElement005EBFE0_vector_size_must_be_0x10");
+static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
 static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
 static_assert(sizeof(W8MonsterManagerState) == 0x9c7, "W8MonsterManagerState_size_must_be_0x9c7");
 

@@ -20,6 +20,12 @@
 // TEMPLATE: WIZ8 0x00474ca0
 // W8GrowableVector<unsigned char>::Add
 
+// VTABLE: WIZ8 0x005ebfe0
+// class W8GrowableVector<int>
+
+// SYNTHETIC: WIZ8 0x0042bb70
+// W8GrowableVector<int>::`scalar deleting destructor'
+
 // SYNTHETIC: WIZ8 0x00474e30
 // W8GrowableVector<unsigned char>::`scalar deleting destructor'
 

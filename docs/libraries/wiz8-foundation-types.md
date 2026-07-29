@@ -10,16 +10,15 @@ element type through that template: `g_npc_item_lists` is a
 `W8GrowableVector<W8MonsterGenerator*>*`, and the dialog member at `0x005D14D0` embeds two
 `W8GrowableVector<W8DialogOwned005D14D0*>` subobjects. An owner whose element type is not yet
 recovered names it positionally rather than erasing it to `void*`, because one erased spelling
-shared by unrelated owners would merge template identities the image keeps apart — each element
-type has its own vtable and its own destructor COMDATs.
+shared by unrelated owners would merge element types the consumers keep apart.
 
-The vtable a constructor installs is what separates them, and
-`evidence/snapshots/polymorphism/vptr-writes.csv` records it per site. Both `MonsterManager.cpp`
-vectors — `W8MonsterManagerEntry` at `+0xd8` and `W8MonsterManagerState` at `+0x9b7` — install
-`0x005EBFE0`, so they are one instantiation, shared with nineteen further owner bodies and named
-`W8GrowableVector<W8VectorElement005EBFE0*>` until the element type itself is proven. The vector
-`GenerateItemsFromTable` builds for candidate indices installs `0x005EC0E0` instead, which is why
-`W8GrowableVector<int>` is a different specialization rather than the same one spelled two ways.
+The vtable a constructor installs identifies one emitted copy, not necessarily one specialization.
+`evidence/snapshots/polymorphism/vptr-writes.csv` records those copies per site. Targeting's local
+integer vectors and the `W8MonsterManagerEntry` vector at `+0xd8` install `0x005EBFE0`; their
+consumers store and retrieve monster location IDs. `GenerateItemsFromTable` also builds a
+`W8GrowableVector<int>` but installs `0x005EC0E0`. VC6 emitted separate vtable and destructor
+COMDAT copies for the same specialization in those translation-unit clusters, so consumers and
+element operations establish the template argument; a vtable address alone does not.
 
 `GetAt` returns the address of the element, bounds-checked against `count`, and `RemoveAt` returns
 the element it unlinked. `RemoveAt` appears both expanded into callers and as pointer-specialization

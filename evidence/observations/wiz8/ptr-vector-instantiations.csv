@@ -1,6 +1,6 @@
 vtable,slot0_destructor,single_virtual,destructor_bodies,source_unit,after_unit,before_unit,element_type
 005ebfb8,0042a2e0,yes,2,,Engine Code\Video2.cpp,Engine Code\Levels.cpp,
-005ebfe0,0042bb70,adjacent-vtable,2,,Engine Code\Levels.cpp,Engine Code\Octree.cpp,
+005ebfe0,0042bb70,adjacent-vtable,2,,Engine Code\Levels.cpp,Engine Code\Octree.cpp,int
 005ebfe4,0042bba0,adjacent-vtable,2,,Engine Code\Levels.cpp,Engine Code\Octree.cpp,
 005ebfe8,0042bbd0,adjacent-vtable,2,,Engine Code\Levels.cpp,Engine Code\Octree.cpp,
 005ebfec,0042bb40,yes,1,,Engine Code\Levels.cpp,Engine Code\Octree.cpp,

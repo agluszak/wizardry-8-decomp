@@ -70,17 +70,6 @@ public:
     T* data;                             /* 0x0c */
 };                                      /* 0x10 in the 32-bit target */
 
-/* An instantiation whose element type is still unproven is named for the vtable
-   the image gives it, so two owners share a spelling exactly when they share an
-   instantiation. Erasing every such element to one `void*` spelling would do
-   the opposite: 0x005EBFE0 and 0x005EC0E0 are different specializations and
-   only the second is W8GrowableVector<int>.
-
-   0x005EBFE0 is embedded by W8MonsterManagerEntry at +0xd8, by
-   W8MonsterManagerState at +0x9b7, and by nineteen further owner bodies listed
-   in evidence/snapshots/polymorphism/vptr-writes.csv. */
-class W8VectorElement005EBFE0;
-
 /* The initial capacity is a parameter, clamped to at least one. Every site that
    constructs with the default folds both the clamp and the multiply away, which
    is why the inlined copies show only `operator new(20)`; the out-of-line
