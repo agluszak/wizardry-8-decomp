@@ -58,8 +58,12 @@ spine:
   separate an import's symbol name from its name-table string, so closing that would need a
   hand-built long-form import object.
 
-`MSS32` (Miles) and `BINKW32` (Bink) are imported by the canonical executable but no recovered source
-references them yet, so they are deliberately not linked until something needs them.
+`MSS32` (Miles) and `BINKW32` (Bink) are imported by the canonical executable. The recovered Intro
+Screen now reaches the `W8BinkVideo` owner and links the canonical Bink import surface. Its
+`include/bink.h` declarations use the public Bink 1.5J SDK header retained by the JA2 source oracle
+for names, types, callback shapes and the public handle prefix, while preserving the older
+trackless `_BinkSetVolume@8` ABI proven by the Wizardry import table. Miles remains linked through
+its canonical import surface as callers are recovered.
 
 After those two fixes every remaining unresolved symbol in the bring-up link is **first-party** —
 Wizardry globals, `PList` helpers and not-yet-recovered callees. No library symbol is missing.

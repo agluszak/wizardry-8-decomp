@@ -63,12 +63,20 @@ def test_semantic_runtime_driver_is_a_separate_product() -> None:
 
 def test_intro_video_owner_uses_canonical_bink_import_surface() -> None:
     repository = Path(__file__).resolve().parents[2]
+    sdk = (repository / "include/bink.h").read_text(encoding="utf-8")
     header = (repository / "include/wiz8/bink_video.h").read_text(encoding="utf-8")
     source = (repository / "src/wiz8/engine_code/Bink.cpp").read_text(encoding="utf-8")
     imports = (repository / "src/wiz8/imports/binkw32.def").read_text(encoding="utf-8")
     product = (repository / "src/wiz8/CMakeLists.txt").read_text(encoding="utf-8")
 
     assert "sizeof(W8BinkVideo) == 0x0c" in header
+    assert '#include "bink.h"' in header
+    assert "typedef BINK* HBINK" in sdk
+    assert "BINKRECT FrameRects[BINKMAXDIRTYRECTS]" in sdk
+    assert "S32 __stdcall BinkCopyToBuffer" in sdk
+    assert "void __stdcall BinkSetVolume(HBINK bink, S32 volume)" in sdk
+    assert "__declspec(dllimport)" not in source
+    assert "struct W8BinkHandle" not in source
     assert "BinkSetSoundSystem(BinkOpenMiles" in source
     assert "m_target->Lock" in source
     assert "m_target->Restore" in source

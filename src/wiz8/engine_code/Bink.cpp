@@ -5,44 +5,10 @@
 #include <stddef.h>
 #include <string.h>
 
-struct W8BinkRect {
-    int left;
-    int top;
-    int width;
-    int height;
-};
-
-struct W8BinkHandle {
-    int width;                       /* 0x00 */
-    int height;                      /* 0x04 */
-    unsigned int frames;             /* 0x08 */
-    unsigned int frame_number;       /* 0x0c */
-    unsigned char unknown_10[0x24];
-    W8BinkRect dirty_rects[1];       /* 0x34 */
-};
-
-typedef char W8BinkHandle_dirty_rects_at_0x34[
-    offsetof(W8BinkHandle, dirty_rects) == 0x34 ? 1 : -1];
+typedef char BINK_FrameRects_at_0x34[
+    offsetof(BINK, FrameRects) == 0x34 ? 1 : -1];
 
 extern "C" {
-
-typedef void* (__stdcall *W8BinkSoundOpen)(unsigned long driver);
-
-__declspec(dllimport) int __stdcall BinkDDSurfaceType(IDirectDrawSurface2* surface);
-__declspec(dllimport) void __stdcall BinkCopyToBuffer(
-    W8BinkHandle* handle, void* pixels, int pitch, int height,
-    int destination_x, int destination_y, int surface_type);
-__declspec(dllimport) int __stdcall BinkGetRects(W8BinkHandle* handle, int flags);
-__declspec(dllimport) void __stdcall BinkPause(W8BinkHandle* handle, int paused);
-__declspec(dllimport) void __stdcall BinkSetVolume(W8BinkHandle* handle, int volume);
-__declspec(dllimport) void __stdcall BinkClose(W8BinkHandle* handle);
-__declspec(dllimport) void __stdcall BinkSetSoundSystem(
-    W8BinkSoundOpen open, unsigned long driver);
-__declspec(dllimport) void* __stdcall BinkOpenMiles(unsigned long driver);
-__declspec(dllimport) W8BinkHandle* __stdcall BinkOpen(const char* path, int flags);
-__declspec(dllimport) void __stdcall BinkDoFrame(W8BinkHandle* handle);
-__declspec(dllimport) int __stdcall BinkWait(W8BinkHandle* handle);
-__declspec(dllimport) void __stdcall BinkNextFrame(W8BinkHandle* handle);
 
 extern int GetMilesDigitalDriver0040A8A0(void);
 extern void* LockPrimarySurface(int* pitch);
@@ -85,7 +51,7 @@ unsigned char W8BinkVideo::UpdateFrame()
         } else {
             CopyFrameToPrimarySurface();
         }
-        if (m_handle->frame_number < m_handle->frames - 1) {
+        if (m_handle->FrameNum < m_handle->Frames - 1) {
             BinkNextFrame(m_handle);
         } else {
             return 1;
@@ -103,13 +69,14 @@ unsigned char W8BinkVideo::CopyFrameToPrimarySurface()
         return 0;
     }
 
-    BinkCopyToBuffer(m_handle, pixels, pitch, 0x1e0, 0, 0, 9);
+    BinkCopyToBuffer(
+        m_handle, pixels, pitch, 0x1e0, 0, 0, BINKSURFACE555);
     UnlockPrimarySurface();
     int count = BinkGetRects(m_handle, 0);
     for (int index = 0; index < count; ++index) {
-        const W8BinkRect& rect = m_handle->dirty_rects[index];
-        MarkScreenRectDirty(rect.left, rect.top,
-                            rect.left + rect.width, rect.top + rect.height, 0);
+        const BINKRECT& rect = m_handle->FrameRects[index];
+        MarkScreenRectDirty(rect.Left, rect.Top,
+                            rect.Left + rect.Width, rect.Top + rect.Height, 0);
     }
     return 1;
 }
@@ -140,7 +107,7 @@ unsigned char W8BinkVideo::CopyFrameToTargetSurface()
     }
 
     BinkCopyToBuffer(m_handle, description.lpSurface, description.lPitch,
-                     m_handle->height, 0, 0, surface_type);
+                     m_handle->Height, 0, 0, surface_type);
     m_target->Unlock(description.lpSurface);
     return 1;
 }
