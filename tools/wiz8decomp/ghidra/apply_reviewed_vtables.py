@@ -47,7 +47,9 @@ def _slot_prototype(
         source = "generic"
 
     return_type = target.getReturnType() if trusted_signature else VoidDataType.dataType
-    explicit = [parameter for parameter in target.getParameters() if not parameter.isAutoParameter()]
+    explicit = [
+        parameter for parameter in target.getParameters() if not parameter.isAutoParameter()
+    ]
     arguments = [parameter_definition("this", receiver, None)]
     if explicit and trusted_signature:
         arguments.extend(
