@@ -151,7 +151,7 @@ W8World* CreateWorld()
     }
     memset(world, 0, sizeof(*world));
 
-    world->static_scene = new srScene(0);
+    world->static_scene = new W8Scene005EBE48(0);
     if (world->static_scene == 0) {
         free(world);
         return 0;
@@ -160,17 +160,17 @@ W8World* CreateWorld()
 
     world->level = new stLevel(world->static_scene);
     if (world->level == 0) {
-        world->static_scene->release();
+        delete world->static_scene;
         free(world);
         return 0;
     }
     world->level->setName("Sir-Tech Level");
     world->level->m_active = 1;
 
-    world->dynamic_scene = new srNode(world->static_scene);
+    world->dynamic_scene = new W8Node005EC208(world->static_scene);
     if (world->dynamic_scene == 0) {
-        world->static_scene->release();
-        world->level->release();
+        delete world->static_scene;
+        delete world->level;
         free(world);
         return 0;
     }
@@ -181,6 +181,12 @@ W8World* CreateWorld()
     world->m_positional_01c = 1.0f;
     world->m_positional_014 = 0.75f;
     return world;
+}
+
+// SYNTHETIC: WIZ8 0x0044F3D0
+// W8Node005EC208::`scalar deleting destructor'
+W8Node005EC208::~W8Node005EC208()
+{
 }
 
 // FUNCTION: WIZ8 0x004507A0
@@ -361,14 +367,12 @@ void WorldSetCameraLocation(W8World* world, const float* location)
     }
 }
 
-// SYNTHETIC: WIZ8 0x0044f3d0
-// srNode::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423e50
 // srMaterial::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423e80
 // srCamera::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423eb0
-// srScene::`scalar deleting destructor'
+// W8Scene005EBE48::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423f00
 // srColorSurface::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00424a50

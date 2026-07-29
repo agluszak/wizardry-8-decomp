@@ -130,6 +130,14 @@ srRegistry::ClassNode* W8Scene005EBE48::getClassNode() const
     }
     return node;
 }
+
+// FUNCTION: WIZ8 0x0042A150
+srNode* W8Scene005EBE48::vslot7()
+{
+    srScene* copy = static_cast<srScene*>(vInstance());
+    *copy = *this;
+    return copy;
+}
 // FUNCTION: WIZ8 0x0042A360
 void W8Object005EBFD0::InstallVtable()
 {
@@ -144,6 +152,26 @@ void W8Object005EC138::InstallVtable()
 unsigned long W8Node005EC208::getClassID() const
 {
     return 0x1000;
+}
+
+// FUNCTION: WIZ8 0x00445EF0
+srRegistry::ClassNode* W8Node005EC208::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x1000);
+    if (!node) {
+        node = registry->registerClass(
+            srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
+    }
+    return node;
+}
+
+// FUNCTION: WIZ8 0x004519F0
+srNode* W8Node005EC208::vslot7()
+{
+    srNode* copy = static_cast<srNode*>(vInstance());
+    *copy = *this;
+    return copy;
 }
 // FUNCTION: WIZ8 0x0047CBA0
 const char* stBinIStream::getClassName() const

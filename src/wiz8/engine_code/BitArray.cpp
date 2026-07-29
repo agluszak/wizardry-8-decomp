@@ -8,7 +8,7 @@
 
 /* The word count is computed through a floating divide rather than a shift,
    which is why every sizing path in here goes through ftol. */
-#define W8_WHOLE_WORDS(bits) ((int)((bits) / 32.0))
+#define W8_WHOLE_WORDS(bits) ((int)((bits) / 32.0f))
 
 /* How much slack SetAndGrow leaves beyond the bit that overflowed. */
 enum { W8_BITARRAY_GROWTH_SLACK = 100 };
@@ -16,17 +16,19 @@ enum { W8_BITARRAY_GROWTH_SLACK = 100 };
 // FUNCTION: WIZ8 0x0043acc0
 BitArray::BitArray(unsigned int new_bit_count)
 {
-    unsigned int spill;
+    int whole_words;
 
     bit_count = new_bit_count;
-    word_count = W8_WHOLE_WORDS(new_bit_count) + 1;
-    spill = new_bit_count - W8_WHOLE_WORDS(new_bit_count) * W8_BITS_PER_WORD;
-    cursor_base = spill;
+    whole_words = W8_WHOLE_WORDS(new_bit_count);
+    cursor_base = new_bit_count - whole_words * W8_BITS_PER_WORD;
+    word_count = whole_words + 1;
     tail_mask = 0;
     cursor_bit = 0;
-    while ((unsigned int)cursor_bit < spill) {
-        tail_mask |= 1 << cursor_bit;
-        ++cursor_bit;
+    if (cursor_base != 0) {
+        do {
+            tail_mask |= 1 << cursor_bit;
+            ++cursor_bit;
+        } while ((unsigned int)cursor_bit < cursor_base);
     }
 
     cursor_base = 0;
@@ -35,7 +37,7 @@ BitArray::BitArray(unsigned int new_bit_count)
     set_count = 0;
     puiIndex = (unsigned int*)malloc(word_count * sizeof(unsigned int));
     if (puiIndex == 0) {
-        srAssertFail("puiIndex", BITARRAY_CPP, 63,
+        srAssertFail("puiIndex", BITARRAY_CPP, 59,
                      "BitArray: Couldn't allocate bit index.");
     }
     memset(puiIndex, 0, word_count * sizeof(unsigned int));

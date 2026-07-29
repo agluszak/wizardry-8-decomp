@@ -1,6 +1,7 @@
 #pragma once
 
 #include "surrender/srLight.h"
+#include "surrender/srScene.h"
 
 /*
  * Classes whose only recovered members so far are the two SurRender class
@@ -193,12 +194,26 @@ public:
     srRegistry::ClassNode* getClassNode() const;        /* 0x0042A030 */
 };
 
-class W8Scene005EBE48 {
+class W8Scene005EBE48 : public srScene {
 public:
-    const char* getClassName() const;     /* 0x0042A0D0 */
-    unsigned long getClassID() const;     /* 0x0042A0C0 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x0042A0E0 */
+    explicit W8Scene005EBE48(srNode* parent) : srScene(parent) {}
+
+    const char* getClassName() const override;     /* 0x0042A0D0 */
+    unsigned long getClassID() const override;     /* 0x0042A0C0 */
+    srRegistry::ClassNode* getClassNode() const override; /* 0x0042A0E0 */
+    srNode* vslot7() override;                     /* 0x0042A150 */
+
+    void ClearOverlayState()
+    {
+        int index;
+        for (index = 0; index != 6; ++index) {
+            overlay_state_[index] = 0;
+        }
+    }
 };
+
+static_assert(sizeof(W8Scene005EBE48) == 0x190,
+              "W8Scene005EBE48_must_be_0x190");
 
 class W8MeshModel005EBE98 {
 public:
@@ -235,10 +250,22 @@ public:
  * The rest stay vtable-qualified because nothing names their base.
  */
 
-class W8Node005EC208 {
+class W8Node005EC208 : public srNode {
 public:
-    unsigned long getClassID() const;     /* 0x004519D0, base id 0x1000 */
+    explicit W8Node005EC208(srNode* parent) : srNode(parent) {}
+    virtual ~W8Node005EC208() override;
+
+    const char* getClassName() const override
+    {
+        return srNode::sGetClassName();
+    }
+    unsigned long getClassID() const override;     /* 0x004519D0, base id 0x1000 */
+    srRegistry::ClassNode* getClassNode() const override; /* 0x00445EF0 */
+    srNode* vslot7() override;                     /* 0x004519F0 */
 };
+
+static_assert(sizeof(W8Node005EC208) == 0x138,
+              "W8Node005EC208_must_be_0x138");
 
 class W8Illuminator005ECCD8 {
 public:

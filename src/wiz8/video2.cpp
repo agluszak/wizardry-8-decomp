@@ -4,6 +4,7 @@
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srScene.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"
 #include "wiz8/surface2d.h"
@@ -92,27 +93,6 @@ public:
         srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
         *copy = *this;
         return copy;
-    }
-};
-
-class W8Scene : public srScene {
-public:
-    W8Scene(srNode* parent) : srScene(parent) {}
-
-    virtual const char* getClassName() const override { return "srScene"; }
-    virtual unsigned long getClassID() const override { return 0x1010; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return concrete_class_node(0x1010, "srScene");
-    }
-    virtual srNode* clone() {
-        srScene* copy = static_cast<srScene*>(vInstance());
-        *copy = *this;
-        return copy;
-    }
-
-    void clearOverlayState() {
-        int index;
-        for (index = 0; index != 6; ++index) overlay_state_[index] = 0;
     }
 };
 
@@ -232,11 +212,11 @@ unsigned char InitializeMouseSurface(void)
     return 1;
 }
 
-static W8Scene* make_scene(const char* name)
+static W8Scene005EBE48* make_scene(const char* name)
 {
-    W8Scene* scene = new W8Scene(0);
+    W8Scene005EBE48* scene = new W8Scene005EBE48(0);
     scene->setName(name);
-    scene->clearOverlayState();
+    scene->ClearOverlayState();
     return scene;
 }
 

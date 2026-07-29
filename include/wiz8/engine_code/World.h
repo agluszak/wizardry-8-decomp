@@ -5,9 +5,10 @@
 
 class srCamera;
 class srNode;
-class srScene;
 class stLevel;
 class W8Octree;
+class W8Node005EC208;
+class W8Scene005EBE48;
 class W8Missile;
 class W8MonsterGenerator;
 class W8VectorElement005EC294;
@@ -31,8 +32,8 @@ struct W8World {
     float m_positional_01c;
     unsigned char m_positional_020[0x18];
     stLevel* level;
-    srScene* static_scene;
-    srNode* dynamic_scene;
+    W8Scene005EBE48* static_scene;
+    W8Node005EC208* dynamic_scene;
     srCamera* camera;
     void** psrMeshes;
     void* m_owned_04c;
