@@ -126,6 +126,7 @@ def _vtables(program: Any) -> list[dict[str, Any]]:
 def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
     from ..evidence.claims import validate_claims_against_documents
     from ..source_model import validate_source_names_against_index
+    from .source_sync import audit_source_program
 
     program_name = ensure_seed(settings, selector)
     start_pyghidra(settings)
@@ -151,6 +152,7 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
                     "vtables": _vtables(program),
                 },
             }
+            source_sync = audit_source_program(program, settings.repo_dir)
     finally:
         project.close()
 
@@ -170,5 +172,6 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
         "counts": counts,
         "claims": claim_counts,
         "source_functions": source_count,
+        "source_sync": source_sync,
         "outputs": paths,
     }

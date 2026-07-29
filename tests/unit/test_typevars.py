@@ -10,7 +10,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 
 # The access stream field-accesses returns for the Prop destructor at
 # 0x0044BEC0, reduced to the fields the derivation consumes. Regenerate with:
-# just ghidra query <canonical> type-variables 0x0044bec0 this
+# just context 0x0044bec0 <canonical> --deep
 _PROP_ACCESSES = [
     {"kind": "load", "site": "0044bee4", "path": "this", "offset": "0x14"},
     {"kind": "load", "site": "0044bef9", "path": "this", "offset": "0x20"},

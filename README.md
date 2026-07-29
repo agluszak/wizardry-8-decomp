@@ -71,10 +71,14 @@ uv run wiz8 ghidra index
 call graph with provenance, source ownership, match state, cross-build mappings, strings, and
 relevant fields. `ghidra index` writes disposable normalized review views to
 `build/ghidra-index/` and refuses provenance claims whose function/type/vtable entity no longer
-exists. `ghidra sync-source` is the only source-to-Ghidra mutation: it applies names for explicitly
-marked functions and leaves every unclaimed analysis entity alone. Ghidra-to-source remains a
-review workflow through `just context`; no generator rewrites C++. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
-consequence of editing evidence.
+exists. `ghidra sync-source` is the only source-to-Ghidra mutation: it applies names, calling
+conventions, and every prototype whose types resolve uniquely in Ghidra for explicitly marked
+functions. Deterministic `__declspec(dllimport)` declarations use the same path, which keeps import
+ABI such as `srAssertFail` source-owned. It reports unresolved source types instead of guessing them
+and leaves every unclaimed analysis entity alone. Ghidra-to-source remains a review workflow through `just context`; no
+generator rewrites C++. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
+consequence of editing evidence. Full verification rejects drift in every resolvable source-owned
+signature.
 
 An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
 signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;

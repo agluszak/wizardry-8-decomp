@@ -9,7 +9,7 @@ and ``LIBRARY`` markers use the conventional symbol comment below the marker.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +26,13 @@ _CLASS_DECLARATION = re.compile(
 )
 _COMMENT_NAME = re.compile(r"^//\s*(\S(?:.*\S)?)\s*$")
 _NON_NAMES = frozenset({"__declspec", "if", "while", "for", "switch", "sizeof"})
+_BLOCK_COMMENT = re.compile(r"/\*.*?\*/")
+_SOURCE_QUALIFIER = re.compile(
+    r"\b(?:static|virtual|inline|__inline|__forceinline|explicit|friend|"
+    r"__cdecl|__stdcall|__fastcall|WINAPI|CALLBACK)\b\s*"
+)
+_SCOPED_TYPE = re.compile(r"\b(?:[A-Za-z_]\w*::)+([A-Za-z_]\w*)")
+_DLLIMPORT = re.compile(r"__declspec\s*\(\s*dllimport\s*\)")
 
 
 class SourceModelError(ValueError):
@@ -40,11 +47,14 @@ class SourceFunction:
     line: int
     name: str
     prototype: str
+    ghidra_prototype: str
+    calling_convention: str
 
 
 @dataclass(frozen=True)
 class SourceModel:
     functions: dict[int, SourceFunction]
+    externals: dict[str, SourceFunction] = field(default_factory=dict)
 
 
 def _enclosing_class(lines: list[str], marker_index: int) -> str:
@@ -116,15 +126,69 @@ def _comment_name(lines: list[str], marker_index: int) -> str:
     return match.group(1).strip() if match is not None else ""
 
 
+def _calling_convention(name: str, prototype: str) -> str:
+    if "__stdcall" in prototype or "WINAPI" in prototype or "CALLBACK" in prototype:
+        return "__stdcall"
+    if "__fastcall" in prototype:
+        return "__fastcall"
+    if "__cdecl" in prototype:
+        return "__cdecl"
+    return "__thiscall" if "::" in name else "__cdecl"
+
+
+def _ghidra_prototype(prototype: str) -> str:
+    """Translate one C++ declaration into Ghidra's C signature grammar.
+
+    Ghidra's native parser supplies the actual data types.  This normalization
+    only removes C++ syntax that the parser cannot represent: method
+    qualification, cv qualifiers, references, and source-level calling
+    convention spellings.  Unresolvable types remain unresolvable and are
+    reported by the synchronization pass rather than guessed here.
+    """
+
+    if not prototype:
+        return ""
+    text = _BLOCK_COMMENT.sub("", prototype)
+    name = _function_name(text)
+    if not name:
+        return ""
+    text = text.replace(name, "source_function", 1)
+    text = _DLLIMPORT.sub("", text)
+    text = re.sub(r'extern(?:al)?\s+"C"\s*', "", text)
+    text = _SOURCE_QUALIFIER.sub("", text)
+    before_name = text.split("source_function", 1)[0].strip()
+    if not before_name:
+        text = "void " + text
+    text = re.sub(r"\s+(?:const|volatile|override|final)\s*$", "", text)
+    text = re.sub(r"\b(?:const|volatile)\s+", "", text)
+    text = text.replace("&", "*")
+    text = _SCOPED_TYPE.sub(r"\1", text)
+    return " ".join(text.split())
+
+
 def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
     roots = [repository / "src" / "wiz8", repository / "include" / "wiz8"]
     functions: dict[int, SourceFunction] = {}
+    externals: dict[str, SourceFunction] = {}
     locations: dict[int, str] = {}
 
     for path in iter_source_files(roots):
         relative = path.relative_to(repository).as_posix()
         lines = path.read_text(encoding="utf-8", errors="ignore").splitlines()
         for index, line in enumerate(lines):
+            if _DLLIMPORT.search(line) and not _CLASS_DECLARATION.match(line):
+                external_name, external_prototype = _declaration(lines, index)
+                if external_name and external_name not in externals:
+                    externals[external_name] = SourceFunction(
+                        address=0,
+                        kind="EXTERNAL",
+                        file=relative,
+                        line=index + 1,
+                        name=external_name,
+                        prototype=external_prototype,
+                        ghidra_prototype=_ghidra_prototype(external_prototype),
+                        calling_convention=_calling_convention(external_name, external_prototype),
+                    )
             marker = FUNCTION_MARKER.match(line)
             kind = "FUNCTION"
             if marker is None:
@@ -167,11 +231,15 @@ def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
                 line=index + 1,
                 name=name,
                 prototype=prototype,
+                ghidra_prototype=_ghidra_prototype(prototype),
+                calling_convention=_calling_convention(name, prototype),
             )
             functions[address] = item
             locations[address] = f"{relative}:{index + 1}"
 
-    return SourceModel(functions=dict(sorted(functions.items())))
+    return SourceModel(
+        functions=dict(sorted(functions.items())), externals=dict(sorted(externals.items()))
+    )
 
 
 def validate_source_names_against_index(repository: Path, document: dict[str, Any]) -> int:

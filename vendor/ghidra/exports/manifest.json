@@ -4,7 +4,7 @@
     {
       "binary_sha256": "18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2",
       "compiler_spec": "windows",
-      "function_count": 7496,
+      "function_count": 7504,
       "ghidra_release": "PUBLIC",
       "ghidra_version": "12.1.2",
       "language": "x86:LE:32:default",
@@ -12,7 +12,7 @@
       "path": "vendor/ghidra/exports/wiz8--gog-base--wiz8--18a74ff61c65.gzf",
       "program": "wiz8--gog-base--wiz8--18a74ff61c65",
       "pyghidra_version": "3.1.0",
-      "sha256": "930996e54b71f56022cad7ae7aa82d9b1e130b46726cf68d4de736028b2f525b"
+      "sha256": "7d2feb720e48438924adfe55bba76912047511c24932b17ac0b8e40d0dd17296"
     }
   ]
 }

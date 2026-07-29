@@ -53,7 +53,7 @@ def sync_source_command(
     program: str = "wiz8",
     apply: bool = typer.Option(False, "--apply", help="Write and save source-owned names."),
 ) -> None:
-    """Check or apply address-marked source names to Ghidra."""
+    """Check or apply source-owned function names and signatures to Ghidra."""
     from .. import command_support as cli
     from ..ghidra.source_sync import sync_source_names
 

@@ -16,6 +16,22 @@ def test_source_model_derives_identity_and_prototype_from_source() -> None:
     method = model.functions[0x004A8430]
     assert method.name == "W8GrCycle::SetSubCycle"
     assert method.prototype == "void W8GrCycle::SetSubCycle(unsigned char subcycle)"
+    assert method.ghidra_prototype == "void source_function(unsigned char subcycle)"
+    assert method.calling_convention == "__thiscall"
+
+    stdcall = model.functions[0x004011E0]
+    assert stdcall.ghidra_prototype == (
+        "long source_function(void* window, int message, unsigned int wparam, long lparam)"
+    )
+    assert stdcall.calling_convention == "__stdcall"
+
+    const_pointer = model.functions[0x00427A60]
+    assert const_pointer.ghidra_prototype == "char* source_function(void)"
+    assert const_pointer.calling_convention == "__cdecl"
+
+    destructor = model.functions[0x00439A00]
+    assert destructor.ghidra_prototype == "void source_function()"
+    assert destructor.calling_convention == "__thiscall"
 
     template = model.functions[0x004ADDF0]
     assert template.kind == "TEMPLATE"
@@ -26,6 +42,14 @@ def test_source_model_derives_identity_and_prototype_from_source() -> None:
     assert library.kind == "LIBRARY"
     assert library.name == "__WinMainCRTStartup"
     assert library.prototype == ""
+    assert library.ghidra_prototype == ""
+
+    external = model.externals["srAssertFail"]
+    assert external.calling_convention == "__cdecl"
+    assert external.ghidra_prototype == (
+        "void source_function( char* expression, char* source_path, long line, char* message)"
+    )
+    assert "..." not in external.ghidra_prototype
 
 
 def test_source_index_validation_rejects_a_stale_ghidra_name(tmp_path: Path) -> None:

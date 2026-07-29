@@ -34,6 +34,7 @@ Restore the reviewed project once, then edit and version that project directly:
 
 ```sh
 uv run wiz8 ghidra restore
+uv run wiz8 ghidra sync-source --apply
 just context 0x<address>
 ```
 
@@ -41,6 +42,9 @@ The context command is the supported joined interface. It combines provenance, s
 match state, cross-build mappings, strings/assertions, callers/callees, decompilation, and relevant
 fields. Use the Ghidra UI/API for ordinary listing, symbol, type, and cross-reference work. For a
 speculative experiment, clone or version the project, use undo, or use a temporary GZF.
+`ghidra sync-source` applies source-owned names and resolvable prototypes transactionally;
+unresolved source types are reported explicitly rather than replaced with guessed Ghidra types.
+There is no generic `just ghidra query` command.
 
 Recover the immediate call graph needed for the next visible product transition. Tooling is retained
 only when it repeatedly saves recovery work, proves emitted code or runtime behavior, or preserves
