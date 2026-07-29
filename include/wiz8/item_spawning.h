@@ -1,28 +1,19 @@
 #pragma once
 
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Item.h"
 #include "surrender/srMath.h"
 
 #pragma pack(push, 1)
 
-struct W8WorldEntity {
-    unsigned char unknown_00[4];
-    srVector3T<float> position;          /* 0x04 */
-    unsigned char unknown_10[0x80];
-    unsigned int flags;                 /* 0x90 */
-
-    unsigned int SetFlags(unsigned int mask, unsigned char enabled); /* 0x0049F310 */
-    void Method4B8890(srVector3T<float>* position);
-};
-
-struct W8WorldItemOwner {
-    unsigned char unknown_00[0x14];
-    W8WorldEntity* entity;               /* 0x14 */
-};
+/* The owner and the entity it holds are Engine Code\Item.cpp's W8Item and
+   W8ItemRep. They were modelled a second time here before that unit was
+   recovered, which declared 0x004B8890 twice; the canonical pair now lives in
+   engine_code/Item.h and this header uses it. */
 
 typedef struct W8WorldItem {
     int runtime_id;                      /* 0x00 */
-    W8WorldItemOwner* owner;             /* 0x04: owns the live world entity */
+    W8Item* owner;                       /* 0x04: owns the live world entity */
     unsigned char unknown_08;
     W8ItemInstance item;                 /* 0x09 */
     srVector3T<float> position;          /* 0x15 */

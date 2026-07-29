@@ -358,11 +358,11 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
         item->saved_marker = 1;
         if (item->unknown_08 != 0) {
             srVector3T<float> position;
-            item->owner->entity->Method4B8890(&position);
+            item->owner->m_pRep->GetLocation004B8890(&position);
             item->position.x = position.x;
             item->position.y = position.y;
             item->position.z = position.z;
-            item->entity_flags = first->owner->entity->flags;
+            item->entity_flags = first->owner->m_pRep->flags;
         }
         if (g_flag_659756 != 0) {
             first->entity_flags &= ~8;

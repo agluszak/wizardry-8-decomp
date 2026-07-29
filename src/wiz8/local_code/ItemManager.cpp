@@ -64,7 +64,7 @@ void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char e
         item->entity_flags &= ~mask;
     }
     if (item->owner != 0) {
-        item->owner->entity->SetFlags(mask, enabled);
+        item->owner->m_pRep->SetFlags(mask, enabled);
     }
 }
 
@@ -464,12 +464,10 @@ struct W8WorldItemVector {
     W8WorldItem** data;                  /* 0x0c */
 };
 
-extern void GetWorldItemPosition(float* position);                       /* 0x004B8890 */
 extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
 extern unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
 /* 0x0046F820 */
-extern void Function49FA30(W8World* world);
 extern void WorldRemoveFromList04(W8World* world);
 extern void Function49F720(const float* position);
 extern unsigned char SettleItemOnGround(
@@ -544,7 +542,7 @@ walk:
 // FUNCTION: WIZ8 0x004f70d0
 void DeactivateWorldItem(W8WorldItem* item)
 {
-    float position[3];
+    srVector3T<float> position;
 
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 554, 0);
@@ -561,13 +559,13 @@ void DeactivateWorldItem(W8WorldItem* item)
         g_level_block->selected_item = -1;
     }
 
-    GetWorldItemPosition(position);
-    item->position.x = position[0];
-    item->position.y = position[1];
-    item->position.z = position[2];
-    item->entity_flags = item->owner->entity->flags;
+    item->owner->m_pRep->GetLocation004B8890(&position);
+    item->position.x = position.x;
+    item->position.y = position.y;
+    item->position.z = position.z;
+    item->entity_flags = item->owner->m_pRep->flags;
 
-    Function49FA30(GetWorld());
+    item->owner->DetachMesh0049FA30(GetWorld());
     WorldRemoveFromList04(GetWorld());
     delete item->owner;
     item->owner = 0;
@@ -579,9 +577,9 @@ void DeactivateWorldItem(W8WorldItem* item)
    sight of the party's eye. The distance is compared before the trace, so a
    far item is never traced to. */
 // FUNCTION: WIZ8 0x004f8560
-unsigned char IsWorldItemWithinReach(void* item, const float* from, float radius)
+unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float radius)
 {
-    float position[3];
+    srVector3T<float> position;
     float lower[3];
     float upper[3];
     unsigned char eye[12];
@@ -589,20 +587,20 @@ unsigned char IsWorldItemWithinReach(void* item, const float* from, float radius
     float dy;
     float dz;
 
-    GetWorldItemPosition(position);
+    owner->m_pRep->GetLocation004B8890(&position);
     GetPartyEyePosition(eye);
 
-    dx = position[0] - from[0];
-    dy = position[1] - from[1];
-    dz = position[2] - from[2];
+    dx = position.x - from[0];
+    dy = position.y - from[1];
+    dz = position.z - from[2];
     if (dx * dx + dy * dy + dz * dz < radius * radius) {
         GetWorldItemBounds(lower, upper);
-        lower[0] += position[0];
-        lower[1] += position[1];
-        lower[2] += position[2];
-        upper[0] += position[0];
-        upper[1] += position[1];
-        upper[2] += position[2];
+        lower[0] += position.x;
+        lower[1] += position.y;
+        lower[2] += position.z;
+        upper[0] += position.x;
+        upper[1] += position.y;
+        upper[2] += position.z;
         if (TraceToBounds(eye, lower, upper)) {
             return 1;
         }
