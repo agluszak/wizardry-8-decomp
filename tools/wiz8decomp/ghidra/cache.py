@@ -32,7 +32,9 @@ def _seed_record(settings: Settings, program_name: str) -> dict[str, Any]:
     manifest = json.loads(path.read_text(encoding="utf-8"))
     if manifest.get("schema") != SEED_SCHEMA:
         raise RuntimeError(f"unsupported Ghidra seed manifest schema: {manifest.get('schema')!r}")
-    matches = [record for record in manifest.get("seeds", []) if record.get("program") == program_name]
+    matches = [
+        record for record in manifest.get("seeds", []) if record.get("program") == program_name
+    ]
     if len(matches) != 1:
         raise RuntimeError(
             f"expected one validated GZF seed for {program_name}; found {len(matches)}"
@@ -59,8 +61,7 @@ def _seed_record(settings: Settings, program_name: str) -> dict[str, Any]:
     actual_archive_hash = sha256_file(archive)
     if actual_archive_hash != record.get("sha256"):
         raise RuntimeError(
-            f"GZF seed hash mismatch for {archive}: "
-            f"{actual_archive_hash} != {record.get('sha256')}"
+            f"GZF seed hash mismatch for {archive}: {actual_archive_hash} != {record.get('sha256')}"
         )
     module = module_for_program(settings, program_name)
     if record.get("binary_sha256") != module["sha256"]:
