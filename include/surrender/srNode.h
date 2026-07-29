@@ -15,10 +15,26 @@ public:
             unsigned long value;
         };
 
-        unsigned char unknown_00_[8];
-        Entry* entries;                    /* 0x08 */
-        unsigned int capacity;             /* 0x0c */
-        unsigned int count;                /* 0x10 */
+        class NodeArray {
+        public:
+            void setCapacity(unsigned int new_capacity); /* 0x0049E290 */
+
+            srNode** data;                 /* 0x00 */
+            unsigned int capacity;         /* 0x04 */
+        };
+
+        class EntryArray {
+        public:
+            void setCapacity(unsigned int new_capacity); /* 0x00481C80 */
+
+            Entry* data;                   /* 0x00 */
+            unsigned int capacity;         /* 0x04 */
+        };
+
+        NodeArray nodes;                    /* 0x00 */
+        EntryArray entries;                 /* 0x08 */
+        unsigned int entry_count;           /* 0x10 */
+        unsigned int node_count;            /* 0x14 */
     };
     struct ProcessInfo {
         class srGERD* renderer;
@@ -31,7 +47,8 @@ public:
 
     enum e_flag {
         FLAG_POSITIONAL_0 = 0,
-        FLAG_POSITIONAL_1 = 1
+        FLAG_POSITIONAL_1 = 1,
+        FLAG_POSITIONAL_2 = 2
     };
 
     SR_DLL_IMPORT srNode(srNode* parent);
@@ -101,4 +118,4 @@ public:
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
-static_assert((sizeof(srNode::TraverseInfo) == 0x14), "srNode_TraverseInfo_must_be_0x14");
+static_assert((sizeof(srNode::TraverseInfo) == 0x18), "srNode_TraverseInfo_must_be_0x18");

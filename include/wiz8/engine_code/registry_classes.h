@@ -80,6 +80,7 @@ public:
 class stLight : public srLight {
 public:
     stLight(srNode* parent);                         /* 0x0049C2C0 */
+    stLight& operator=(const stLight& other);         /* 0x0049C690 */
 
     virtual const char* getClassName() const override; /* 0x0049DC70 */
     virtual srRegistry::ClassNode* getClassNode() const override; /* 0x0049DC80 */

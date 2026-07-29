@@ -3,6 +3,35 @@
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
 
+#include <new>
+
+// FUNCTION: WIZ8 0x00481C80
+void srNode::TraverseInfo::EntryArray::setCapacity(unsigned int new_capacity)
+{
+    unsigned int copy_capacity;
+    unsigned int index;
+    Entry* replacement;
+
+    if (capacity != new_capacity) {
+        replacement = 0;
+        if (new_capacity > 0) {
+            replacement = static_cast<Entry*>(
+                ::operator new(new_capacity * sizeof(Entry)));
+            if (data != 0 && capacity != 0) {
+                copy_capacity = capacity;
+                if (new_capacity <= copy_capacity) {
+                    copy_capacity = new_capacity;
+                }
+                for (index = 0; index < copy_capacity; ++index) {
+                    replacement[index] = data[index];
+                }
+            }
+        }
+        ::operator delete(data);
+        data = replacement;
+        capacity = new_capacity;
+    }
+}
 /*
  * Engine Code\stModelInstance.cpp.
  *

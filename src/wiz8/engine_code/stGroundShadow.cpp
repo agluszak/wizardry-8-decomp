@@ -56,30 +56,30 @@ void stGroundShadow::traverse(TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_POSITIONAL_0)) {
-        old_capacity = info.capacity;
-        if (old_capacity <= info.count) {
-            new_capacity = old_capacity + 8 + info.count;
+        old_capacity = info.entries.capacity;
+        if (old_capacity <= info.entry_count) {
+            new_capacity = old_capacity + 8 + info.entry_count;
             if (old_capacity != new_capacity) {
                 replacement = 0;
                 if (new_capacity != 0) {
                     replacement = static_cast<TraverseInfo::Entry*>(
                         ::operator new(new_capacity * sizeof(TraverseInfo::Entry)));
-                    if (info.entries != 0 && old_capacity != 0) {
+                    if (info.entries.data != 0 && old_capacity != 0) {
                         copy_count = new_capacity < old_capacity
                             ? new_capacity : old_capacity;
                         for (index = 0; index < copy_count; ++index) {
-                            replacement[index] = info.entries[index];
+                            replacement[index] = info.entries.data[index];
                         }
                     }
                 }
-                ::operator delete(info.entries);
-                info.entries = replacement;
-                info.capacity = new_capacity;
+                ::operator delete(info.entries.data);
+                info.entries.data = replacement;
+                info.entries.capacity = new_capacity;
             }
         }
-        info.entries[info.count].node = this;
-        info.entries[info.count].value = 0;
-        ++info.count;
+        info.entries.data[info.entry_count].node = this;
+        info.entries.data[info.entry_count].value = 0;
+        ++info.entry_count;
     }
 
     if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
