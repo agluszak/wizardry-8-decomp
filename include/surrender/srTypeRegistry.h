@@ -55,6 +55,7 @@ public:
     SR_DLL_IMPORT int release() const;
     SR_DLL_IMPORT void addReference() const;
     SR_DLL_IMPORT void autoRelease();
+    SR_DLL_IMPORT void touch();
     void* operator new(unsigned int size) { return srHeap.allocate(size); }
 
     /* Every class in this hierarchy is freed through the SurRender heap rather

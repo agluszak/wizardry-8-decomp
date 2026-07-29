@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/video_object_catalog.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -263,17 +264,26 @@ unsigned short* Function5492E0(int object, int frame)
     return palette;
 }
 
+/* The unused third parameter is real: callers leave it on the stack for the
+   following cursor call while VC6 retires only this accessor's first two
+   arguments. */
 // FUNCTION: WIZ8 0x00549390
-void* Function549390(int object, int frame)
+unsigned int GetCatalogVideoObjectHandle(int object, int frame, int passthrough)
 {
+    (void)passthrough;
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xe6, 0);
+    }
     Function549090(object, frame);
-    return (void*)g_video_frames_62c430[
+    return g_video_frames_62c430[
         g_video_slots_6448c8[object].first_frame + frame].handle;
 }
 
 // FUNCTION: WIZ8 0x005493e0
-short Function5493E0(int object, int fallback)
+short GetCatalogVideoObjectYOffset(int object, int unused, int fallback)
 {
+    (void)unused;
     if (!g_video_objects_ready_650e20) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
                      0xf2, 0);

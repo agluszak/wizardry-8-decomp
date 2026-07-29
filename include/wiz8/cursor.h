@@ -1,0 +1,16 @@
+#ifndef WIZ8_CURSOR_H
+#define WIZ8_CURSOR_H
+
+#include "Types.h"
+
+extern "C" {
+
+BOOLEAN SetMouseCursorFromVideoObject(
+    UINT32 video_object, UINT16 region, INT16 offset_x, INT16 offset_y);
+void BlitToMouseCursor(
+    UINT32 video_object, UINT16 region, UINT16 x, UINT16 y);
+void RefreshMouseCursorTexture(void);
+
+}
+
+#endif

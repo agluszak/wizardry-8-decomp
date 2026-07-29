@@ -97,10 +97,9 @@ unsigned short* g_font_palette_wiz_text_68ee14;
 unsigned short* g_font_palette_calligraphy_shadow_68ee18;
 unsigned short* g_font_state_palettes_68ee1c[15];
 
-/* Until wiz8-9qy restores the retail cursor-image transfer, starting at -1
-   prevents the synchronization call from pretending an unloaded cursor frame
-   exists.  The cursor scene itself remains the real SurRender object. */
-int g_cursor_state_00683fdb = -1;
+/* Zero is the retail BSS state. The first screen synchronization replaces it
+   with the default cursor and then records the normal -1 state. */
+int g_cursor_state_00683fdb;
 int g_dword_683fdf;
 int g_dword_683fe3;
 unsigned char g_item_in_hand_shown_006874ca;
