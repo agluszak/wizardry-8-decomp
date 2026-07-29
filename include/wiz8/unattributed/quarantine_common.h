@@ -242,7 +242,6 @@ extern void* g_vtable_005ebfd0;
 
 
 extern "C" {
-extern void* g_vtable_005ec1d8;
 extern void* g_vtable_005ecdb0;
 }
 

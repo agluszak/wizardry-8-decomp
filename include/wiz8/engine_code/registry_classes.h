@@ -240,15 +240,6 @@ public:
     void InstallVtable();                 /* 0x0042A360 */
 };
 
-/* Two more of the same seven-byte shape. 0x005EC1D8 is installed twice, by
-   0x0044EF20 and 0x004B56F0; only the first is claimed here, because nothing
-   yet separates the two emissions into two classes and naming the second would
-   assert a class the vtable alone does not establish. */
-class W8Object005EC1D8 {
-public:
-    void InstallVtable();                 /* 0x0044EF20 */
-};
-
 class W8Object005ECDB0 {
 public:
     void InstallVtable();                 /* 0x004A2220 */

@@ -23,7 +23,8 @@ public:
    0x64-byte polymorphic root below.  Its original name is not available. */
 class W8AnimRepBase005EC1D8 {
 public:
-    virtual ~W8AnimRepBase005EC1D8();
+    W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other);
+    virtual __forceinline ~W8AnimRepBase005EC1D8();
     virtual W8AnimRepBase005EC1D8* Clone();
 
 protected:
@@ -38,7 +39,8 @@ protected:
    0x98.  The address suffix preserves the unresolved original class name. */
 class W8AnimRep005ED050 : public W8AnimRepBase005EC1D8 {
 public:
-    virtual ~W8AnimRep005ED050() override;
+    W8AnimRep005ED050(const W8AnimRep005ED050& other);
+    virtual __forceinline ~W8AnimRep005ED050() override;
 
 public:
     unsigned char flag_064;
@@ -62,7 +64,8 @@ public:
    AnimRep hierarchy.  Concrete missile and spell hosts supply those slots. */
 class W8EmitterHost : public W8AnimRep005ED050 {
 public:
-    virtual ~W8EmitterHost() override;
+    W8EmitterHost(const W8EmitterHost& other);
+    virtual __forceinline ~W8EmitterHost() override;
     virtual void SendToEmitter(char emitter, int arg_2, int arg_3) = 0;
     virtual void ApplyEmitterSetting(char emitter) = 0;
     virtual void StopEmitter(char emitter) = 0;

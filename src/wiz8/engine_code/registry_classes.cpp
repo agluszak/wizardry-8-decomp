@@ -121,11 +121,6 @@ void W8Object005EC138::InstallVtable()
 {
     *(void**)this = &g_vtable_005ec138;
 }
-// FUNCTION: WIZ8 0x0044EF20
-void W8Object005EC1D8::InstallVtable()
-{
-    *(void**)this = &g_vtable_005ec1d8;
-}
 // FUNCTION: WIZ8 0x004519D0
 unsigned long W8Node005EC208::getClassID() const
 {

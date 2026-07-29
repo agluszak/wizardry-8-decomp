@@ -51,6 +51,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Environment.cpp
     src/wiz8/engine_code/Missile.cpp
     src/wiz8/engine_code/Spells.cpp
+    src/wiz8/engine_code/AnimRep.cpp
     src/wiz8/engine_code/GDProp.cpp
     src/wiz8/engine_code/Prop005EC1E0.cpp
     src/wiz8/engine_code/GrObject.cpp
