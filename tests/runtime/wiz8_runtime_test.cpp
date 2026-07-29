@@ -6,6 +6,7 @@
 #include "input.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 extern "C" {
@@ -112,6 +113,9 @@ int main(int argc, char** argv)
     }
 
     g_scenario = argv[2];
+    const char* selected = getenv("WIZ8_RUNTIME_EXPECTED_SELECTED");
+    const unsigned short expected_selected =
+        selected ? static_cast<unsigned short>(atoi(selected)) : 0;
     memset(&g_observation, 0, sizeof(g_observation));
     g_observation.menu_state = -1;
     HANDLE driver = CreateThread(NULL, 0, DriveScenario, NULL, 0, NULL);
@@ -149,7 +153,8 @@ int main(int argc, char** argv)
     const bool startup_ok =
         g_observation.menu_seen && g_observation.menu_state == 0 &&
         g_observation.region_set_enabled && g_observation.first_region == 0 &&
-        g_observation.last_region == 6 && g_observation.selected_item == 0;
+        g_observation.last_region == 6 &&
+        g_observation.selected_item == expected_selected;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     return driver_status == 0 && startup_ok && exit_ok && g_teardown_done_650db4 ? 0 : 1;

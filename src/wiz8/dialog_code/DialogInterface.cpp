@@ -12,6 +12,21 @@
 
 extern "C" {
 
+int g_dialog_font_64fde8;
+unsigned char g_dialog_font_enabled_69ca32;
+unsigned char g_dialog_font_foreground_64fdec;
+unsigned char g_dialog_font_background_64fded;
+
+// FUNCTION: WIZ8 0x005CF250
+void Function5CF250(int font, unsigned char enabled,
+                    unsigned char foreground, unsigned char background)
+{
+    g_dialog_font_64fde8 = font;
+    g_dialog_font_enabled_69ca32 = enabled;
+    g_dialog_font_foreground_64fdec = foreground;
+    g_dialog_font_background_64fded = background;
+}
+
 typedef struct W8DialogInterface {
     unsigned char unknown_00[0x44];
     int value_44;                         /* 0x44: the only field this proves */

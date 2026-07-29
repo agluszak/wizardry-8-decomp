@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 from wiz8decomp.config import Settings
-from wiz8decomp.runtime import _parse_runtime_observation, _run_runtime_scenario, stage_runtime
+from wiz8decomp.display import runtime_display
+from wiz8decomp.runtime import (
+    _configure_wine_window_management,
+    _parse_runtime_observation,
+    _run_runtime_scenario,
+    stage_runtime,
+)
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -88,3 +94,58 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
 
     with pytest.raises(RuntimeError, match="menu reached; teardown stuck"):
         _run_runtime_scenario(tmp_path / "test.exe", tmp_path, {}, "main-menu-startup")
+
+
+def test_runtime_display_accepts_an_existing_private_display(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    environment = {"DISPLAY": ":0"}
+    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", ":91")
+
+    with runtime_display(environment, default="virtual", log_path=tmp_path / "xvfb.log") as display:
+        assert display == ":91"
+        assert environment["DISPLAY"] == ":91"
+
+    assert environment["DISPLAY"] == ":0"
+
+
+def test_runtime_display_host_mode_preserves_the_inherited_display(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    environment = {"DISPLAY": ":0"}
+    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", "host")
+
+    with runtime_display(environment, default="virtual", log_path=tmp_path / "xvfb.log") as display:
+        assert display is None
+        assert environment["DISPLAY"] == ":0"
+
+
+def test_virtual_runtime_display_fails_closed_without_xvfb(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", "virtual")
+    monkeypatch.setattr("wiz8decomp.display.shutil.which", lambda _: None)
+
+    with (
+        pytest.raises(RuntimeError, match="requires Xvfb"),
+        runtime_display({}, default="virtual", log_path=tmp_path / "xvfb.log"),
+    ):
+        pass
+
+
+@pytest.mark.parametrize(("private_display", "managed"), [(True, "N"), (False, "Y")])
+def test_wine_window_management_matches_display_mode(
+    private_display: bool, managed: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = []
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.run",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+
+    environment = {"WINEPREFIX": "/prefix"}
+    _configure_wine_window_management(environment, private_display=private_display)
+
+    argv = calls[0][0][0]
+    assert argv[-3:] == ["/d", managed, "/f"]
+    assert calls[0][1]["env"] is environment

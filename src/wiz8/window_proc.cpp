@@ -41,7 +41,7 @@ extern void Function405E80(void);
 extern void Function421DC0(void);
 extern void ShutdownInputManager(void);
 extern void Function4023A0(void);
-extern void Function404BC0(void);
+extern void ShutdownVideoSurfaceState(void);
 
 // FUNCTION: WIZ8 0x004011E0
 long __stdcall WindowProc4011E0(void* window, int message,
@@ -102,7 +102,7 @@ long __stdcall WindowProc4011E0(void* window, int message,
             ShutdownInputManager();
             Function4023A0();
             Function4023A0();
-            Function404BC0();
+            ShutdownVideoSurfaceState();
             Function4023A0();
         }
         ShowCursor(TRUE);

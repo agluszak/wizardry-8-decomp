@@ -1,7 +1,9 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
 
+#include <stdlib.h>
 #include <string.h>
+#include "vobject.h"
 
 /*
  * Local Code\VideoObjectManager.cpp, named by the three assertions this body
@@ -33,7 +35,7 @@ typedef struct W8VideoFrame {
     int mode;                             /* 0x30: zero selects the second blitter */
     unsigned char loaded;                 /* 0x34: cleared until the frame is loaded */
     unsigned char unknown_35[3];
-    void* surface;                        /* 0x38 */
+    unsigned int handle;                  /* 0x38: released SGP object/surface handle */
 } W8VideoFrame;                           /* 0x3c */
 
 #pragma pack(pop)
@@ -45,7 +47,7 @@ extern "C" {
 
 extern unsigned char g_video_objects_ready_650e20;
 W8VideoObjectSlot g_video_slots_6448c8[494];
-W8VideoFrame g_video_frames_62c430[459];
+W8VideoFrame g_video_frames_62c430[566];
 
 
 /* Two loaders, chosen by the frame's mode. Each takes a request whose first
@@ -64,17 +66,38 @@ typedef struct W8VideoLoadRequestB {
     char path[108];
 } W8VideoLoadRequestB;
 
-extern char Function405EF0(W8VideoLoadRequestA* request, void** surface);
-extern char Function402A70(W8VideoLoadRequestB* request, void** surface);
+extern char Function405EF0(W8VideoLoadRequestA* request, unsigned int* handle);
+extern char Function402A70(W8VideoLoadRequestB* request, unsigned int* handle);
 
 void Function549090(int object, int frame);
-extern char Function405FF0(int object, void* surface, short y, int a, int b, int c, int d);
-extern char Function402ED0(int object, void* surface, short y, int a, int b, int c, int d);
+extern char Function405FF0(int object, unsigned int handle, short y,
+                           int a, int b, int c, int d);
+extern char Function402ED0(int object, unsigned int handle, short y,
+                           int a, int b, int c, int d);
 
 /* The complete checked-in catalog remains part of wiz8-a69.  These are the
    exact records consumed by startup, the default cursor and the main menu. */
 void InitializeMenuVideoObjectCatalog(void)
 {
+    static const char* const font_palette_paths[15] = {
+        "Data\\Fonts\\PaletteRed.sti",
+        "Data\\Fonts\\PaletteGreen.sti",
+        "Data\\Fonts\\PalettePurple.sti",
+        "Data\\Fonts\\PaletteBlue.sti",
+        "Data\\Fonts\\PaletteOrange.sti",
+        "Data\\Fonts\\PaletteYellow.sti",
+        "Data\\Fonts\\PalettePink.sti",
+        "Data\\Fonts\\PaletteBrown.sti",
+        "Data\\Fonts\\PaletteWhite.sti",
+        "Data\\Fonts\\PaletteRust.sti",
+        "Data\\Fonts\\PaletteBronze.sti",
+        "Data\\Fonts\\PaletteGray.sti",
+        "Data\\Fonts\\PaletteBeige.sti",
+        "Data\\Fonts\\PaletteOptGreen.sti",
+        "Data\\Fonts\\PaletteOptWhite.sti"
+    };
+    unsigned int index;
+
     strcpy(g_video_frames_62c430[0].path, "Data\\Cursors\\2D-Cursors.sti");
 
     g_video_slots_6448c8[0xe8].first_frame = 0x1c5;
@@ -98,6 +121,15 @@ void InitializeMenuVideoObjectCatalog(void)
            "Data\\Options\\introtext_highlight.sti");
     strcpy(g_video_frames_62c430[0x1ca].path,
            "Data\\Options\\introtext_unavailable.sti");
+
+    /* Object 0x1e5 is the 15-frame palette catalog consumed by the font
+       initializer.  The paths are initialized data at frame records
+       0x227..0x235 in the retail image. */
+    g_video_slots_6448c8[0x1e5].first_frame = 0x227;
+    for (index = 0; index != 15; ++index) {
+        strcpy(g_video_frames_62c430[0x227 + index].path,
+               font_palette_paths[index]);
+    }
 }
 
 #define VIDEO_OBJECT_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\VideoObjectManager.cpp"
@@ -108,7 +140,7 @@ void Function548F90(int target, int object, int frame, short y,
 {
     W8VideoObjectSlot* slot;
     short row;
-    void* surface;
+    unsigned int surface;
     char ok;
 
     if (!g_video_objects_ready_650e20) {
@@ -121,7 +153,7 @@ void Function548F90(int target, int object, int frame, short y,
        both are shorts and the original adds them as such. */
     slot = &g_video_slots_6448c8[object];
     row = slot->y_offset + y;
-    surface = g_video_frames_62c430[slot->first_frame + frame].surface;
+    surface = g_video_frames_62c430[slot->first_frame + frame].handle;
     if (!g_video_objects_ready_650e20) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
@@ -146,7 +178,7 @@ void Function549090(int object, int frame)
     W8VideoLoadRequestA request_a;
     W8VideoLoadRequestB request_b;
     W8VideoFrame* record;
-    void* surface;
+    unsigned int handle;
     char loaded_ok;
 
     /* Two nested checks, both in the original: the assertion does not return,
@@ -165,11 +197,11 @@ void Function549090(int object, int frame)
         if (record->mode == 0) {
             request_a.kind = 0x40;
             strcpy(request_a.path, record->path);
-            loaded_ok = Function405EF0(&request_a, &surface);
+            loaded_ok = Function405EF0(&request_a, &handle);
         } else {
             request_b.kind = 0x40;
             strcpy(request_b.path, record->path);
-            loaded_ok = Function402A70(&request_b, &surface);
+            loaded_ok = Function402A70(&request_b, &handle);
         }
         if (loaded_ok == 0) {
             if (!g_video_objects_ready_650e20) {
@@ -179,17 +211,47 @@ void Function549090(int object, int frame)
                          FormatString("LoadVideoObject: ERROR - Add %s failed, type %d",
                                       record->path, record->mode));
         }
-        record->surface = surface;
+        record->handle = handle;
         record->loaded = 1;
     }
+}
+
+/* Copies the loaded frame's released-SGP palette into an owned 256-entry
+   table.  The allocation is intentionally retained when the source API says
+   the object has no palette, matching the shipped failure path. */
+// FUNCTION: WIZ8 0x005492E0
+unsigned short* Function5492E0(int object, int frame)
+{
+    unsigned short* palette;
+
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xaf, 0);
+    }
+    palette = (unsigned short*)malloc(0x200);
+    if (!palette) {
+        return 0;
+    }
+    Function549090(object, frame);
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xe6, 0);
+    }
+    if (!CopyVideoObjectPalette16BPP(
+            g_video_frames_62c430[
+                g_video_slots_6448c8[object].first_frame + frame].handle,
+            palette)) {
+        return 0;
+    }
+    return palette;
 }
 
 // FUNCTION: WIZ8 0x00549390
 void* Function549390(int object, int frame)
 {
     Function549090(object, frame);
-    return g_video_frames_62c430[
-        g_video_slots_6448c8[object].first_frame + frame].surface;
+    return (void*)g_video_frames_62c430[
+        g_video_slots_6448c8[object].first_frame + frame].handle;
 }
 
 // FUNCTION: WIZ8 0x005493E0

@@ -11,10 +11,16 @@ The CMake graph now has separate matching and bring-up surfaces:
   links with `/OPT:REF`, so only source-backed COMDAT functions reached by recovered Wizardry code
   survive. `WIZ8_BRINGUP` retains `/OPT:NOREF` and remains the whole-image comparison surface.
 
-Build and open the recovered main menu with:
+Build and open the recovered main menu on the host display with:
 
 ```sh
 just run
+```
+
+For an unattended run that cannot map a window or steal focus from the host desktop:
+
+```sh
+WIZ8_RUNTIME_DISPLAY=virtual just run
 ```
 
 Bare `just build` builds that same `WIZ8_RUNTIME` graph; pass an explicit target only when building
@@ -28,17 +34,18 @@ materializes the reviewed default `Wiz8.CFG` settings record, avoiding the still
 first-party settings-discovery path; subsequent in-game configuration changes remain local to the
 staging directory.
 
-The launcher uses one named 640x480 Wine virtual desktop in that same prefix. Retail opens a
-desktop-sized popup and then asks SurRender to switch the physical display to 640x480. Modern
-compositors often preserve the host mode instead, leaving the fifth texture tile stretched across
-the native desktop and making mouse coordinates disagree with the 640x480 region catalog. The
-named desktop preserves retail's logical display without allocating a new X server or Wine prefix
-on every run. Mouse motion and button events still enter through released SGP input, are converted
-to client coordinates, and traverse the recovered region catalog and callbacks; arrow, Home, End,
-and Enter keys use the same menu selection and activation path. Exiting the launcher terminates only
-this dedicated Wine prefix. The launcher runs the game as its foreground child, so `just run` stays
-attached to the menu and returns the game's status instead of guessing its lifetime from Wine's
-desktop helper.
+The launcher uses a named 640x480 Wine desktop. Interactive `just run` inherits the host X display;
+`WIZ8_RUNTIME_DISPLAY=virtual` creates a private 640x480x16 Xvfb server and points Wine at it for the
+life of the run. The exact mode matters because SurRender rejects a virtual server whose geometry or
+depth differs from `3DVideo.CFG`. `WIZ8_RUNTIME_DISPLAY=:5` selects an already-running display, and
+`host` explicitly selects the inherited display. Virtual mode fails closed if Xvfb is unavailable,
+so an unattended command cannot silently fall back to the desktop.
+
+`just runtime-test` defaults to the private display; set `WIZ8_RUNTIME_DISPLAY=host` for visual
+debugging. Off-screen Wine is configured to own its windows because Xvfb has no window manager.
+Mouse and keyboard events still traverse released SGP input and the recovered region callbacks.
+Exiting the launcher terminates only this dedicated Wine prefix. The launcher stays attached to the
+game and returns its status instead of guessing its lifetime from Wine's desktop helper.
 
 `just build <target> --jobs <count>` invokes the pinned 32-bit JOM 1.1.3 through the Python build
 driver. It validates the checkout-local build directory and configures automatically when required;

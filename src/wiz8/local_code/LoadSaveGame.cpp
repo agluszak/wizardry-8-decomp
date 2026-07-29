@@ -117,7 +117,7 @@ extern void Function518510(void* notice);
    beyond that, so both keep positional names. */
 extern unsigned char g_flag_68517c;
 extern unsigned char g_flags_6874d7[];
-extern int g_value_683678;
+extern int g_small_font_683678;
 
 /* Loads one character record, either from a loose file under Saves\Characters
    or Saves\NPCs, or through 0x005156C0 when 0x0068517C says characters are not
@@ -174,7 +174,8 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
 report:
     if (report_failure) {
         wchar_t* notice = FormatWideString(
-            gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name, g_value_683678, 1, 1, 0, 0);
+            gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name,
+            g_small_font_683678, 1, 1, 0, 0);
         Function518510(notice);
     }
     return loaded;
@@ -520,7 +521,7 @@ report:
     if (report_failure) {
         wchar_t* notice = FormatWideString(
             gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED],
-            character->name, g_value_683678, 1, 1, 0, continuation);
+            character->name, g_small_font_683678, 1, 1, 0, continuation);
         Function518510(notice);
         return 0;
     }

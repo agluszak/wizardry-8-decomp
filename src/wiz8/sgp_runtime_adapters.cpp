@@ -4,8 +4,14 @@
 
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/render_state.h"
-
 extern "C" {
+
+struct FontTranslationTable;
+extern unsigned char InitializeFontManager(
+    unsigned short pixel_depth, FontTranslationTable* translation);
+extern unsigned char SetFontDestBuffer(
+    unsigned int destination, int left, int top, int right, int bottom,
+    unsigned char wrap);
 
 struct W8VideoObjectRequest {
     unsigned int flags;
@@ -51,6 +57,16 @@ extern short gusRedShift;
 extern short gusGreenShift;
 extern short gusBlueShift;
 extern unsigned int guiTranslucentMask;
+
+unsigned char InitializeWiz8FontManager(
+    unsigned short pixel_depth, FontTranslationTable* translation)
+{
+    if (!InitializeFontManager(pixel_depth, translation)) {
+        return 0;
+    }
+    return SetFontDestBuffer(
+        0xfffffff2u, 0, 0, g_screen_width_603c3c, g_screen_height_603c40, 0);
+}
 
 void InitializeSGPPixelFormat(void)
 {
@@ -146,37 +162,29 @@ void InvalidateRegion(int left, int top, int right, int bottom)
     Function422D50(left, top, right, bottom, 0);
 }
 
-unsigned char Function405EF0(W8VideoObjectRequest* request, void** handle)
+unsigned char Function405EF0(W8VideoObjectRequest* request, unsigned int* handle)
 {
-    unsigned int index;
-    unsigned char ok = AddStandardVideoObject(request, &index);
-    *handle = reinterpret_cast<void*>(index);
-    return ok;
+    return AddStandardVideoObject(request, handle);
 }
 
-unsigned char Function402A70(W8VideoSurfaceRequest* request, void** handle)
+unsigned char Function402A70(W8VideoSurfaceRequest* request, unsigned int* handle)
 {
-    unsigned int index;
-    unsigned char ok = AddStandardVideoSurface(request, &index);
-    *handle = reinterpret_cast<void*>(index);
-    return ok;
+    return AddStandardVideoSurface(request, handle);
 }
 
-unsigned char Function405FF0(int destination, void* source, short region,
+unsigned char Function405FF0(int destination, unsigned int source, short region,
                              int x, int y, int flags, int effects)
 {
     return BltVideoObjectFromIndex(
-        destination, reinterpret_cast<unsigned int>(source),
-        static_cast<unsigned short>(region), x, y,
+        destination, source, static_cast<unsigned short>(region), x, y,
         static_cast<unsigned int>(flags), reinterpret_cast<void*>(effects));
 }
 
-unsigned char Function402ED0(int destination, void* source, short region,
+unsigned char Function402ED0(int destination, unsigned int source, short region,
                              int x, int y, int flags, int effects)
 {
     return BltVideoSurface(
-        destination, reinterpret_cast<unsigned int>(source),
-        static_cast<unsigned short>(region), x, y,
+        destination, source, static_cast<unsigned short>(region), x, y,
         static_cast<unsigned int>(flags), reinterpret_cast<void*>(effects));
 }
 

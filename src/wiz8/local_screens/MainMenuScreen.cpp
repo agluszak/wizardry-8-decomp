@@ -39,7 +39,7 @@ int g_dword_69c4bc;
 int g_dword_69c4c0;
 extern int g_dword_647bc0;
 extern int g_font_683660;
-extern unsigned short* g_colour_68ee3c;
+extern unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned short* g_colour_68ee08;
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
@@ -348,7 +348,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     Function4E3620(text, 0, 0, 0);
     wcscpy(wide, ConvertStringToWide(text));
     SetFont(g_font_683660);
-    SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee3c);
+    SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[8]);
     measured = StringPixLength((unsigned short*)wide, g_font_683660);
     mprintf(0x27b - measured, 5, (unsigned short*)wide);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);

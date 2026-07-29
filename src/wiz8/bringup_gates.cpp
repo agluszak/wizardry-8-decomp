@@ -2,6 +2,7 @@
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
+#include "Font.h"
 #include "vsurface.h"
 
 #include <direct.h>
@@ -117,6 +118,8 @@ extern void GetRuntimeSettings(void);
 extern unsigned char InitializeInputManager(void);
 extern void InitializeClockManager(void);
 extern void InitializeRandom(void);
+extern unsigned char InitializeWiz8FontManager(
+    unsigned short pixel_depth, FontTranslationTable* translation);
 
 extern long __stdcall WindowProc4011E0(void* window, int message,
                                        unsigned int wparam, long lparam);
@@ -183,7 +186,7 @@ bool Function402970(void)
 }
 
 // FUNCTION: WIZ8 0x00404BA0
-bool Function404BA0(void)
+bool InitializeVideoSurfaceState(void)
 {
     g_dword_650e00 = 0;
     g_dword_650df4 = 0;
@@ -312,10 +315,10 @@ void Function5588E0(unsigned char value)
     g_byte_68de44 = value;
 }
 
-/* Clears the flag 0x005B1740's gate sets. Both the window procedure's teardown
-   and the shutdown handler reach it. */
+/* Clears the flag InitializeVideoSurfaceState raises. Both the window
+   procedure's teardown and the shutdown handler reach it. */
 // FUNCTION: WIZ8 0x00404BC0
-void Function404BC0(void)
+void ShutdownVideoSurfaceState(void)
 {
     g_flag_650e04 = false;
 }
@@ -885,7 +888,7 @@ void ShutdownHandler(void)
         ShutdownInputManager();
         Function4023A0();
         Function4023A0();
-        Function404BC0();
+        ShutdownVideoSurfaceState();
         Function4023A0();
     }
     ShowCursor(TRUE);
@@ -902,14 +905,14 @@ void ShutdownHandler(void)
 // FUNCTION: WIZ8 0x00401570
 bool BringUpEngine(void* instance, int show_command)
 {
-    void* buffer;
+    FontTranslationTable* font_table;
 
     atexit(ShutdownHandler);
     RegisterWindowClass("Wizardry8", "Wizardry8key");
     SetModuleSubdirectory("DLL");
     GetRuntimeSettings();
     Function404B00();
-    if (!Function404BA0()) {
+    if (!InitializeVideoSurfaceState()) {
         return false;
     }
     if (!Function5B1740(0)) {
@@ -929,14 +932,14 @@ bool BringUpEngine(void* instance, int show_command)
         return false;
     }
     InitializeClockManager();
-    buffer = Function407EC0();
-    if (!buffer) {
+    font_table = CreateEnglishTransTable();
+    if (!font_table) {
         return false;
     }
-    if (!Function407D30(8, (W8BindingNode*)buffer)) {
+    if (!InitializeWiz8FontManager(8, font_table)) {
         return false;
     }
-    free(buffer);
+    free(font_table);
     if (!Function4086D0()) {
         return false;
     }
