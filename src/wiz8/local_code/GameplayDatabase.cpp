@@ -12,6 +12,13 @@
 #include <stdlib.h>
 
 extern void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry);
+extern unsigned char IsSoundPlaying(int sound_handle);
+extern unsigned char StopSound(int sound_handle);
+extern void Function52F890(int party_slot, int value_1, int value_2, int value_3, int value_4);
+extern void QueueGameplayEvent(int event_type, int party_slot);
+extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
+extern W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
+extern unsigned char* g_message_table_68c09c;
 /* 0x0054B300 resets one of eight slots. */
 extern void Function54B300(unsigned int slot);
 W8GlobalStatus g_status_685170;
@@ -880,6 +887,45 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
         }
         ProcessStartupStateEntry(entry);
         ::operator delete(entry);
+    }
+}
+
+// FUNCTION: WIZ8 0x0052ced0
+void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
+{
+    W8MonsterSlot* slot;
+    int party_slot;
+    unsigned char sound_was_active;
+
+    party_slot = CharacterPointerToPartySlot(entry->character_04);
+    slot = &g_monster_slots_6836b8[party_slot];
+    sound_was_active = slot->field_000;
+    slot->field_071 = 0;
+    if (sound_was_active != 0) {
+        if (IsSoundPlaying(slot->field_001) != 0) {
+            entry->handled_00 = 1;
+            StopSound(slot->field_001);
+        }
+        Function52F890(party_slot, 0, -1, 0, 1);
+    }
+    if (entry->type_08 == 23 || entry->type_08 == 24) {
+        if ((entry->flags_10 & 0x40) == 0) {
+            if (entry->item_id_24 == -1) {
+                PostCharacterMessage(
+                    party_slot,
+                    *reinterpret_cast<W8WideChar**>(g_message_table_68c09c + 0x1dc4));
+            }
+            else {
+                PostCharacterMessage(
+                    party_slot,
+                    *reinterpret_cast<W8WideChar**>(g_message_table_68c09c + 0x1dc8),
+                    GetItemDisplayName(
+                        reinterpret_cast<const W8ItemInstance*>(&entry->item_id_24)));
+            }
+        }
+    }
+    else if (entry->type_08 == 51) {
+        QueueGameplayEvent(30, party_slot);
     }
 }
 

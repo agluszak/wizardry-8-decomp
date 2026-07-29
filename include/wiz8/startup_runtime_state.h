@@ -3,11 +3,17 @@
 
 #include "wiz8/vector.h"
 
+struct W8Character;
+
 struct W8StartupStateElement005EE748 {
-    unsigned char unknown_00[8];
+    unsigned char handled_00;
+    unsigned char unknown_01[3];
+    W8Character* character_04;
     unsigned int type_08;
     unsigned char unknown_0c[4];
     unsigned int flags_10;
+    unsigned char unknown_14[0x10];
+    int item_id_24;
 };
 
 class W8StartupStateVector005EE748
