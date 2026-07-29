@@ -5,8 +5,7 @@ import io
 from pathlib import Path
 from typing import Any
 
-# The interval derivation is shared with the Ghidra candidate replay, so its
-# pure core lives under ghidra/ where it feeds the materialization key.
+# The interval derivation is shared with Ghidra-backed recovery reports.
 from ..ghidra.unit_intervals import (
     TranslationUnitInterval,
     _address,

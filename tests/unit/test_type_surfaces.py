@@ -63,13 +63,3 @@ def test_encounter_vector_starts_with_exact_vtable_identity() -> None:
     assert _field(text, "capacity") == ("int", None, 0x08)
     assert re.search(r"^\s*unsigned char\s*\*values;\s*/\*\s*0x0c\s*\*/", text, re.MULTILINE)
     assert re.search(r"}\s*W8EncounterByteVector;\s*/\*\s*0x10\s*\*/", text)
-
-
-def test_replay_imports_the_canonical_layout_headers() -> None:
-    replay = (REPOSITORY / "tools/wiz8decomp/ghidra/apply_wiz8_format_model.py").read_text(
-        encoding="utf-8"
-    )
-    for name in ("item_tables.h", "encounter_tables.h"):
-        assert f'"include/wiz8/layouts/{name}"' in replay
-    assert '"disposition_cache_factor"' not in replay
-    assert '(0x00, dword, "unknown_00"' not in replay

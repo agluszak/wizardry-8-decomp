@@ -148,16 +148,15 @@ void ReleaseSpellDatabase(void)
 
 /* Two vtable slot-zero thunks: the complete destructor followed by the
    conditional release the deleting flag selects. */
-// FUNCTION: WIZ8 0x004AAD00
 void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
     void* self, int /* unused edx */, unsigned char flags);
-// FUNCTION: WIZ8 0x004ABCE0
 void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
     void* self, int /* unused edx */, unsigned char flags);
 
 extern void __fastcall SpellObject5ECF18_Destroy(void* self);            /* 0x004AB1C0 */
 extern void __fastcall SpellObject5ECF40_Destroy(void* self);            /* 0x004ABD00 */
 
+// FUNCTION: WIZ8 0x004AAD00
 void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
     void* self, int, unsigned char flags)
 {
@@ -168,6 +167,7 @@ void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
     return self;
 }
 
+// FUNCTION: WIZ8 0x004ABCE0
 void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
     void* self, int, unsigned char flags)
 {

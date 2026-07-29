@@ -1,7 +1,11 @@
 targets:
   WIZ8:
     filename: Wiz8.exe
-    source-root: src/wiz8
+    source-root:
+      - src/wiz8
+      - include/wiz8
+    data-sources:
+      - build/reccmp/wiz8-symbols.csv
     hash:
       sha256: 18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2
   SREXT_JPEGIMPORTER:

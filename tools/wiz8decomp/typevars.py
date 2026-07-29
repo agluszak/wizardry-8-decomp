@@ -173,7 +173,7 @@ def load_knowledge(repo: Path, program: str | None = None) -> list[dict[str, Any
         writes = [
             row for row in csv.DictReader(stream) if program is None or row["program"] == program
         ]
-    from .ghidra.candidate_model import classify_candidates
+    from .class_candidates import classify_candidates
 
     reviewed_tables = {
         int(row["address"], 16) for row in _dict_rows(reviewed / "vtables.csv") if row["address"]
@@ -239,7 +239,7 @@ def unify(variable: dict[str, Any], knowledge: list[dict[str, Any]]) -> list[dic
         match for match in matches if any("complete destructor" in r for r in match["reasons"])
     ]
     if decisive:
-        # An overlay may already contain an address-qualified candidate for a
+        # The reviewed project may already contain an address-qualified candidate for a
         # destructor that has since acquired a reviewed class identity. That
         # shadow is the same evidence at a weaker tier, not a second plausible
         # type. Keep genuine ambiguity between peers while letting the

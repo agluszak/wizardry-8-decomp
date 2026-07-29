@@ -1,27 +1,4 @@
-"""Gate the hygiene of reccmp address markers in owned sources.
-
-Ported from imperialism-decomp's `check_marker_hygiene`, which enforces the same
-two rules against the same reccmp marker convention.
-
-A `// FUNCTION: <MODULE> 0x...` marker must be *immediately* followed by the
-declaration it names, with no blank line and no comment between them. reccmp
-attributes a marker to whatever declaration follows it, so an explanatory
-comment in the gap does not merely look untidy: it is the difference between a
-marker that binds to its function and one that binds to nothing. Prose belongs
-above the marker, where it reads the same and cannot separate the two.
-
-Each address may also own at most one marker across the tree. Two definitions
-carrying one original address means one original function modelled twice;
-reccmp silently keeps one of them, so the duplicate is invisible in its report.
-Addresses are keyed by module, unlike the single-module original this is ported
-from: this tree builds WIZ8 alongside the srEXT DLLs, which are separate images
-that legitimately reuse the same offsets.
-
-`// LIBRARY:` markers are deliberately exempt from the adjacency rule. They name
-linked library code that has no owned definition to sit against, and the
-established convention in vc6_runtime.cpp is to follow one with the symbol's
-name as a comment. They are still checked for duplicate addresses.
-"""
+"""Gate project-specific policy around reccmp address markers."""
 
 from __future__ import annotations
 
@@ -35,6 +12,9 @@ FUNCTION_MARKER = re.compile(
 )
 LIBRARY_MARKER = re.compile(
     r"^\s*//\s*LIBRARY\s*:\s*(?P<module>[A-Za-z0-9_]+)\s+(?P<offset>(?:0x)?[0-9a-fA-F]+)"
+)
+TEMPLATE_MARKER = re.compile(
+    r"^\s*//\s*TEMPLATE\s*:\s*(?P<module>[A-Za-z0-9_]+)\s+(?P<offset>(?:0x)?[0-9a-fA-F]+)"
 )
 SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 EXTERN_DECLARATION = re.compile(r'^\s*extern\s+(?:"C"\s+)?(?P<body>[^;]+);', re.MULTILINE)
@@ -112,6 +92,7 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
     detached: list[str] = []
     owners: dict[tuple[str, str], list[str]] = defaultdict(list)
     library_owners: dict[tuple[str, str], list[str]] = defaultdict(list)
+    template_owners: dict[tuple[str, str], list[str]] = defaultdict(list)
     header_externs: set[str] = set()
     source_externs: dict[str, set[str]] = defaultdict(set)
 
@@ -140,6 +121,25 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
                 key = (library.group("module"), normalize_offset(library.group("offset")))
                 library_owners[key].append(f"{relative}:{index + 1}")
                 continue
+            template = TEMPLATE_MARKER.match(line)
+            if template is not None:
+                offset = normalize_offset(template.group("offset"))
+                template_owners[(template.group("module"), offset)].append(
+                    f"{relative}:{index + 1}"
+                )
+                symbol_line = lines[index + 1].strip() if index + 1 < len(lines) else ""
+                definition_line = lines[index + 2].strip() if index + 2 < len(lines) else ""
+                if not symbol_line.startswith("//") or not symbol_line[2:].strip():
+                    detached.append(
+                        f"{relative}:{index + 1}: // TEMPLATE {offset} must be followed "
+                        "by its specialization-symbol comment"
+                    )
+                elif not definition_line.startswith("template"):
+                    detached.append(
+                        f"{relative}:{index + 1}: // TEMPLATE {offset} specialization "
+                        "must be followed by its template definition"
+                    )
+                continue
             match = FUNCTION_MARKER.match(line)
             if match is None:
                 continue
@@ -156,12 +156,25 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
     duplicated_library = {
         offset: places for offset, places in library_owners.items() if len(places) > 1
     }
+    duplicated_templates = {
+        offset: places for offset, places in template_owners.items() if len(places) > 1
+    }
 
     problems: list[str] = list(detached)
     problems += [
         f"{module} {offset} is claimed by {len(places)} FUNCTION markers: {', '.join(places)}"
         for (module, offset), places in sorted(duplicated.items())
     ]
+    problems += [
+        f"{module} {offset} is claimed by {len(places)} TEMPLATE markers: {', '.join(places)}"
+        for (module, offset), places in sorted(duplicated_templates.items())
+    ]
+    for key in sorted(owners.keys() & template_owners.keys()):
+        places = owners[key] + template_owners[key]
+        problems.append(
+            f"{key[0]} {key[1]} is claimed by both FUNCTION and TEMPLATE markers: "
+            f"{', '.join(places)}"
+        )
     shadowed_externs = {
         symbol: sorted(paths)
         for symbol, paths in source_externs.items()
@@ -184,6 +197,8 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
         "function_addresses": len(owners),
         "library_markers": sum(len(places) for places in library_owners.values()),
         "library_addresses": len(library_owners),
+        "template_markers": sum(len(places) for places in template_owners.values()),
+        "template_addresses": len(template_owners),
         "shadowed_externs": len(shadowed_externs),
         "files": len(iter_source_files(roots)),
     }

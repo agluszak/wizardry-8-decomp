@@ -20,12 +20,12 @@ report those.
 Six producers write the snapshots under `evidence/snapshots/`:
 
 ```sh
-uv run wiz8 eh-metadata          # exception tables
-uv run wiz8 surrender-abi        # SurRender export ABI
-uv run wiz8 call-sites           # srAssertFail / srRuntimeClass::setName literals
-uv run wiz8 polymorphism         # vtables, slots, constructor vptr writes
-uv run wiz8 globals              # global variables and their references
-uv run wiz8 function-census      # candidate function starts and the call graph
+uv run wiz8 evidence refresh eh-metadata       # exception tables
+uv run wiz8 evidence refresh surrender-abi     # SurRender export ABI
+uv run wiz8 evidence refresh call-sites        # assertion / instance-name literals
+uv run wiz8 evidence refresh polymorphism      # vtables, slots, vptr writes
+uv run wiz8 evidence refresh globals           # globals and references
+uv run wiz8 evidence refresh function-census   # function starts and call graph
 ```
 
 Run bare, each one regenerates its report under `build/reports/` and **fails if the result differs
@@ -212,20 +212,10 @@ function's direct or interval-inferred translation unit, assertions, EH cleanup 
 references, vptr writes, observed vtables and reviewed identities without creating tracked source
 scaffolding or promoting observations into semantic names.
 
-The canonical Ghidra materialization also replays the subset that is safe without semantic review:
-uncovered vtable targets become anonymous functions, undefined vtable slots become pointer data,
-strict scalar globals receive only their observed width, and assertion/EH facts become owned
-comments. Literal or non-literal `srRuntimeClass::setName` calls are annotated as instance-name
-calls, never promoted to class types. The replay never assigns class, function, field or global
-names, never splits a target that lies inside an existing function, and never clears conflicting
-code or data. Inspect the result with:
-
-```sh
-just ghidra query wiz8 observation-audit
-```
-
-`missing_*` and `undefined` counts are replayable gaps. Targets inside existing functions and
-conflicts remain explicit review work rather than being forced into Ghidra.
+The canonical Ghidra project owns the reviewed result: vtable targets, pointer data, scalar widths,
+assertion/EH comments, and instance-name annotations are edited and reviewed there. Observations do
+not automatically assign class, function, field, or global names, split an existing function, or
+clear conflicting code/data. Conflicts remain explicit review work.
 
 ### Which translation unit does this function belong to?
 
@@ -265,18 +255,15 @@ Join `functions.csv` on `funcinfo`, then resolve the function containing its exa
 address in Ghidra. Do not create a function at `eh_setup_start`; that sequence may occur after work
 already performed by the owning function.
 
-The materialization replays this join as typed stack variables (the `eh_frame_types` phase) for
-exactly the slots whose class is proven: a demangled library destructor import, or a destructor the
-reviewed identity layer already assigns to a class. The example above decompiles as a
+The reviewed Ghidra project types stack variables only for slots whose class is proven: a
+demangled library destructor import, or a destructor the reviewed identity layer already assigns
+to a class. The example above decompiles as a
 `srStringTable` local named `eh_srStringTable_144`, constructed and destroyed in place. A slot VC6
 reuses for differently-typed temporaries - or shares with a destructor no evidence names - is
-skipped, and `just ghidra apply-eh-frame-types` reports each skip with its reason. The funclet's
+left untyped. The funclet's
 `[ebp-N]` is relative to the frame pointer the EH runtime passes, which is the stack pointer just
-before the owning function pushes its registration node; the replay reads that depth from Ghidra's
-stack analysis, so both VC6 prologue shapes (classic `push ebp` and the frameless ESP-relative
-form) land on the right Ghidra offset. The apply report's `unresolved_destructors` ranking is
-review fuel: one unreviewed destructor, `0x005e1c10`, guards 594 frame slots by itself, so
-identifying its class types more locals than every library import combined.
+before the owning function pushes its registration node. Ghidra's stack analysis handles both VC6
+prologue shapes (classic `push ebp` and the frameless ESP-relative form).
 
 ### Is this vtable a primary or a base subobject's?
 

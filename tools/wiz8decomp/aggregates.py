@@ -184,7 +184,7 @@ def resolve_members(
     input, so decompiler presentation changes cannot move a field.
     """
 
-    from .ghidra.query_daemon import query_many
+    from .ghidra.session import query_many
 
     wanted = [
         reference

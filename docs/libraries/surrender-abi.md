@@ -9,7 +9,7 @@ where that surface comes from and how far it can honestly be taken.
 
 `sr.dll` exports 2059 decorated symbols and Wizardry imports 461 of them across 51 classes. Names,
 signatures, calling conventions, access and virtuality are all read out of the export table by
-`wiz8 surrender-abi`, decoded through `llvm-undname` rather than a local demangler.
+`wiz8 evidence refresh surrender-abi`, decoded through `llvm-undname` rather than a local demangler.
 
 Sixty-five of those exports are vftables and fifteen are vbtables. A table export names a *data*
 address, so the table itself can be read - which is why `evidence/snapshots/surrender-abi/` carries

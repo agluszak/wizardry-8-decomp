@@ -44,9 +44,9 @@ from .binary.code import (
 from .binary.demangle import demangle
 from .binary.image import PeImage
 from .binary.inventory import is_first_party, representative_modules
+from .class_candidates import allocation_size_before, allocation_size_hints
 from .config import Settings
 from .eh_metadata import import_slots
-from .ghidra.candidate_model import allocation_size_before, allocation_size_hints
 from .ghidra.project import program_name
 from .paths import atomic_write
 

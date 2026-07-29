@@ -54,10 +54,10 @@ def ghidra_namespace_name(class_name: str) -> str:
     over a pointer carries one: `W8GrowableVector<W8WorldItem *>` is how the
     demangler writes it and how the reviewed model records it, so that spelling
     is what joins a row to a COFF symbol and must not be changed to suit the
-    replay. Closing the space is enough, and it is reversible by eye.
+    reviewed project. Closing the space is enough, and it is reversible by eye.
 
     Only the namespace is affected. The class name itself, the structure the
-    replay builds and every evidence row keep the model's spelling.
+    Ghidra and every evidence row keep the model's spelling.
     """
 
     return class_name.replace(" ", "")

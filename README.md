@@ -37,49 +37,22 @@ The distinction between configuration, observations, reviewed conclusions, gener
 exceptional proprietary-input snapshots is defined in
 [docs/evidence-policy.md](docs/evidence-policy.md).
 
-The normal Ghidra path is GZF-first. `just ghidra query <program> ...` transparently restores the
-validated canonical seed into a `CODEX_THREAD_ID`- or `WIZ8_GHIDRA_AGENT_ID`-isolated project,
-replays current reviewed evidence, validates it, and reuses a persistent daemon. The tracked GZF is
-a disposable binary cache, not canonical analysis knowledge. `just ghidra rebuild <program>` performs
-the slower fresh import and auto-analysis parity check; `just ghidra seed refresh <program>` validates
-and packs an intentionally refreshed canonical seed.
-
-Several read-only queries can share one daemon request by repeating `--query` (or `-q`). Results are
-returned in request order, and each clause uses shell-style quoting when one argument contains spaces:
+Ghidra owns operational analysis state: functions, symbols, signatures, structures, fields, vtables,
+comments, cross-references, and decompiler state. Restore the validated reviewed checkpoint once,
+then review and edit that project directly. There is no evidence replay, materialization cache,
+query daemon, or speculative overlay layer.
 
 ```sh
-just ghidra query wiz8--gog-base--wiz8--18a74ff61c65 \
-  -q 'function 0x004B6900' \
-  -q 'read-data 0x005ED090 16' \
-  -q 'search "Monster Info"'
+uv run wiz8 ghidra restore
+just context 0x0044bec0
+uv run wiz8 ghidra index
 ```
 
-Source recovery starts from the fast joined semantic context. Add `--deep --root this` only when the
-full listing, normalized P-code, rooted field accesses and anonymous type variables are needed.
-The deep path shares the persistent decompiler service used by ordinary queries.
-
-```sh
-CANON=wiz8--gog-base--wiz8--18a74ff61c65
-just wiz8 report context 0x0044bec0 --program "$CANON"
-just wiz8 report context 0x0044bec0 --program "$CANON" --deep --root this
-```
-
-Candidate inference is plan-driven and stays inside a fresh disposable clone identified by the
-reviewed materialization and strict plan hash. Plans contain only typed speculative seeds. Atomic
-candidate facts own their references and payloads; a directed dependency worklist runs to bounded
-stabilization and reports truncation explicitly. Screen dispatch and reviewed vtable typing are
-already deterministic reviewed replay state.
-
-```sh
-just ghidra overlay analyze "$CANON" \
-  config/ghidra/hypotheses/inference-closure-acceptance.json
-just ghidra overlay inspect "$CANON" <overlay-id> 0x0044bec0
-just ghidra overlay discard "$CANON" <overlay-id>
-```
-
-The analyzer reports reviewed-to-seeded, seeded-to-closure and reviewed-to-final semantic deltas,
-including prototypes, resolved fields, genuinely narrowed target sets, unifications,
-contradictions and incomplete scope. Promotion remains the reviewed evidence workflow.
+`just context` is the supported joined recovery view: it combines the current decompilation and
+call graph with provenance, source ownership, match state, cross-build mappings, strings, and
+relevant fields. `ghidra index` writes disposable normalized review views to
+`build/ghidra-index/`. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
+consequence of editing evidence.
 
 Reconstructed debug transfer additionally requires current body proof:
 
@@ -113,7 +86,8 @@ name came from and how far that may be trusted, validated against a closed vocab
 No Wiz8 build carries debug information, and the game was linked without RTTI, so class and type
 evidence comes from what survived anyway: C++ exception metadata, the SurRender export tables, the
 literals passed to diagnostic calls, and what the relocation table says about vtables and globals.
-`wiz8 eh-metadata`, `wiz8 surrender-abi`, `wiz8 call-sites`, `wiz8 polymorphism`, `wiz8 globals` and `wiz8 function-census`
+`wiz8 evidence refresh eh-metadata`, `surrender-abi`, `call-sites`, `polymorphism`, `globals`, and
+`function-census`
 produce those snapshots. How they are refreshed, what each can and cannot establish, and how to join
 them to find a function's translation unit, the type in a frame slot, or the next function worth
 porting are in [docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md).

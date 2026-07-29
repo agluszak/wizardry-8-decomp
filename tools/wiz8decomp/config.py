@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import hashlib
 import os
-import re
-import tempfile
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -12,36 +9,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 REQUIRED_GHIDRA_VERSION = "12.1.2"
 REQUIRED_GHIDRA_RELEASE = "PUBLIC"
 REQUIRED_PYGHIDRA_VERSION = "3.1.0"
-
-
-class GhidraAgentIdMissing(RuntimeError):
-    """No agent identity is configured, so a project cannot be isolated."""
-
-
-def ghidra_agent_id() -> str:
-    """The identity that separates one agent's Ghidra project from another's.
-
-    There is deliberately no fallback. A default would silently place two
-    checkouts in the same per-agent project root, which is exactly the
-    collision this identity exists to prevent: the second agent then contends
-    for - or blocks on - a lock it has no reason to touch. Failing here is
-    loud, immediate, and fixed by one line in .env.
-    """
-
-    raw = os.environ.get("WIZ8_GHIDRA_AGENT_ID") or os.environ.get("CODEX_THREAD_ID") or ""
-    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "-", raw).strip("-.")
-    if not cleaned:
-        raise GhidraAgentIdMissing(
-            "no Ghidra agent identity: set WIZ8_GHIDRA_AGENT_ID in .env to something "
-            "unique to this checkout, for example its directory name. Without it two "
-            "checkouts share one per-agent project and collide on its lock."
-        )
-    return cleaned[:96]
-
-
-def ghidra_agent_token(work_dir: Path) -> str:
-    identity = f"{work_dir.resolve()}\0{ghidra_agent_id()}"
-    return hashlib.sha256(identity.encode("utf-8")).hexdigest()[:16]
 
 
 def repository_root() -> Path:
@@ -55,7 +22,6 @@ class Settings(BaseModel):
     input_dir: Path = Field(alias="WIZ8_INPUT_DIR")
     work_dir: Path = Field(alias="WIZ8_WORK_DIR")
     ghidra_project_dir_override: Path | None = Field(default=None, alias="WIZ8_GHIDRA_PROJECT_DIR")
-    ghidra_runtime_dir_override: Path | None = Field(default=None, alias="WIZ8_GHIDRA_RUNTIME_DIR")
     repo_dir: Path = Field(default_factory=repository_root)
 
     @field_validator(
@@ -63,7 +29,6 @@ class Settings(BaseModel):
         "input_dir",
         "work_dir",
         "ghidra_project_dir_override",
-        "ghidra_runtime_dir_override",
         mode="before",
     )
     @classmethod
@@ -87,12 +52,6 @@ class Settings(BaseModel):
     def project_name(self) -> str:
         return "wizardry8"
 
-    @property
-    def ghidra_runtime_dir(self) -> Path:
-        return self.ghidra_runtime_dir_override or (
-            Path(tempfile.gettempdir()) / f"wiz8-ghidra-{ghidra_agent_token(self.work_dir)}"
-        )
-
 
 def load_settings(*, require: bool = True) -> Settings | None:
     load_dotenv(repository_root() / ".env", override=False)
@@ -102,7 +61,7 @@ def load_settings(*, require: bool = True) -> Settings | None:
         if require:
             raise ValueError("missing environment variables: " + ", ".join(missing))
         return None
-    optional_keys = ("WIZ8_GHIDRA_PROJECT_DIR", "WIZ8_GHIDRA_RUNTIME_DIR")
+    optional_keys = ("WIZ8_GHIDRA_PROJECT_DIR",)
     values = {key: os.environ[key] for key in required_keys}
     values.update({key: os.environ[key] for key in optional_keys if os.environ.get(key)})
     return Settings.model_validate(values)

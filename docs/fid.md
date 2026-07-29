@@ -11,10 +11,10 @@ the resulting FID database are tracked.
 ```sh
 just wiz8 toolchain build
 # Advanced/internal corpus regeneration:
-just ghidra fid build-seeds
-just ghidra fid extract-libraries
-just ghidra fid build
-just ghidra fid match --program wiz8--gog-base--wiz8--18a74ff61c65
+uv run wiz8 ghidra fid build-seeds
+uv run wiz8 ghidra fid extract-libraries
+uv run wiz8 ghidra fid build
+uv run wiz8 ghidra fid match --program wiz8--gog-base--wiz8--18a74ff61c65
 ```
 
 `toolchain build` clones only the exact archaic-msvc commits declared in

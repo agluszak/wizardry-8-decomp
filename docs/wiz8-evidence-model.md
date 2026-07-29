@@ -171,8 +171,8 @@ indistinguishable from a recovered one, which is exactly the failure this taxono
 `name_origin` and `authority` are required on every row of every reviewed identity CSV under
 `evidence/reviewed/*/functions.csv`, validated against the closed vocabularies and the ceiling rule by
 `tests/unit/test_provenance.py`. `wiz8decomp.provenance` owns the vocabulary; the function-map
-loader rejects any row that violates it, and `apply-functions` writes the origin, authority and
-aliases into the Ghidra plate comment so the provenance is visible while reading the program.
+loader rejects any row that violates it. Reviewed plate comments in the canonical Ghidra project
+link identities back to this provenance rather than reconstructing the program from the ledger.
 
 Generated candidate artifacts under `build/` are not covered: they are heuristic output, and
 promoting a candidate into the reviewed layer is what triggers the provenance decision.

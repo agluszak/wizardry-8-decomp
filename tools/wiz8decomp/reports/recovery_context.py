@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Any
 
 from ..ghidra.observation_evidence import load_observation_bundle
-from ..ghidra.project import resolve_program_name
-from ..ghidra.query_daemon import query_many
+from ..ghidra.session import query_many
+from ..ghidra.workspace import resolve_seed_program
 from ..paths import atomic_json, atomic_write
 
 
@@ -205,13 +205,12 @@ def recovery_context_report(
     root: str = "this",
 ) -> dict[str, Any]:
     requested = int(address, 0)
-    program_name = resolve_program_name(settings, selector)
-    canonical_program = resolve_program_name(settings, "wiz8")
+    program_name = resolve_seed_program(settings, selector)
+    canonical_program = resolve_seed_program(settings, "wiz8")
     has_canonical_addresses = program_name == canonical_program
     queries = [
         ("function", [f"0x{requested:08x}"]),
         ("decompile", [f"0x{requested:08x}"]),
-        ("facts-at", [f"0x{requested:08x}"]),
     ]
     if deep:
         queries.extend(
@@ -226,12 +225,7 @@ def recovery_context_report(
     function = by_command["function"]["function"]
     entry = int(function["entry"], 16)
     instruction_addresses = {int(value, 16) for value in function.get("instruction_addresses", [])}
-    semantic_facts = by_command["facts-at"]
-    if requested != entry:
-        entry_results, _ = query_many(settings, selector, [("facts-at", [f"0x{entry:08x}"])])
-        entry_facts = entry_results[0]["result"]
-        if entry_facts.get("properties"):
-            semantic_facts = entry_facts
+    semantic_facts: dict[str, Any] = {}
     high = by_command.get("high-function", {})
     semantic_fields: dict[str, Any] = {}
     semantic_variables: dict[str, Any] = {}

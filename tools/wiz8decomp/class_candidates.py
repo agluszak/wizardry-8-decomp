@@ -1,15 +1,4 @@
-"""Candidate class derivation from the polymorphism snapshots.
-
-Pure logic shared by the class-candidates report and the candidate replay.
-It lives under ``ghidra/`` because replay behavior must be reproducible from
-the materialization key, which hashes this directory and the tracked
-evidence; nothing here reads the proprietary image.
-
-Candidates are machine observations, never reviewed conclusions: the replay
-materializes them under candidate-marked names and categories, and promotion
-into ``evidence/reviewed/wiz8/`` always passes through a human review of the
-writers' decompiles.
-"""
+"""Pure class-candidate derivation from binary observations."""
 
 from __future__ import annotations
 
@@ -40,9 +29,8 @@ def classify_candidates(
     padding, which merges two adjacent bodies when no padding run separates
     them - the complete destructor immediately after its scalar deleting
     destructor is the common case. ``resolve_function`` lets a caller that
-    has authoritative containment (the replay, inside Ghidra) map a write
-    site to its real function instead; sites it cannot place keep the
-    census attribution.
+    has authoritative Ghidra containment map a write site to its real
+    function instead; sites it cannot place keep the census attribution.
     """
 
     slot0: dict[int, int] = {}
