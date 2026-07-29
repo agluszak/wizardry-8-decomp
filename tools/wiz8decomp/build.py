@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -20,6 +21,19 @@ from .subprocesses import CommandResult, resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
 LINT_BUILD_DIR = "build/clang"
+SOURCE_INDEXER_SOURCE = "tools/source-indexer/indexer.cpp"
+SOURCE_INDEXER_DIR = "build/source-indexer"
+# Clang's own libraries are built without RTTI, and the LLVM headers want the
+# C99 macro guards defined. The shared libraries are named by full path because
+# Debian ships the versioned objects without development symlinks.
+SOURCE_INDEXER_COMPILE = (
+    "clang++ -O2 -std=c++17 -fno-rtti -fno-exceptions"
+    " -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS"
+    " -I/usr/lib/llvm-14/include"
+    " /repo/tools/source-indexer/indexer.cpp -o /indexer/indexer"
+    " /usr/lib/llvm-14/lib/libclang-cpp.so.14"
+    " /usr/lib/x86_64-linux-gnu/libLLVM-14.so.1"
+)
 TARGET_ALIASES = {
     "match": "WIZ8",
     "runtime": "WIZ8_RUNTIME",
@@ -399,6 +413,76 @@ def lint(settings: Settings) -> dict[str, Any]:
         log_path=settings.repo_dir / "build" / "logs" / "clang-lint-build.json",
     )
     return {"configure": _result(configure_result), "build": _result(build_result)}
+
+
+def build_source_indexer(settings: Settings) -> Path:
+    """Compile the source indexer inside the toolchain image, and return it.
+
+    The indexer links against the image's own Clang, so it has to be built with
+    that Clang rather than the host's: the AST it walks and the mangled names it
+    emits have to be the ones the lint lane's clang-cl produces. The binary is a
+    disposable projection under `build/`, rebuilt only when its source or the
+    image changes.
+    """
+
+    source = settings.repo_dir / SOURCE_INDEXER_SOURCE
+    output = settings.repo_dir / SOURCE_INDEXER_DIR
+    binary = output / "indexer"
+    stamp = output / "inputs.sha256"
+    docker = resolve_executable("docker") or "docker"
+    # The image's own identity, not its tag: rebuilding the image under the same
+    # tag changes the Clang the indexer links against, and a binary built by the
+    # previous one would keep emitting that Clang's AST facts.
+    image_id = run(
+        [docker, "image", "inspect", "--format", "{{.Id}}", VC6_IMAGE],
+        cwd=settings.repo_dir,
+    ).stdout.strip()
+    fingerprint = hashlib.sha256(
+        b"\0".join(
+            (
+                b"wiz8.source-indexer.v1",
+                VC6_IMAGE.encode(),
+                image_id.encode(),
+                SOURCE_INDEXER_COMPILE.encode(),
+                source.read_bytes(),
+            )
+        )
+    ).hexdigest()
+    if (
+        binary.is_file()
+        and stamp.is_file()
+        and stamp.read_text(encoding="utf-8").strip() == fingerprint
+    ):
+        return binary
+
+    output.mkdir(parents=True, exist_ok=True)
+    run(
+        [
+            docker,
+            "run",
+            "--rm",
+            "--init",
+            "--network",
+            "none",
+            # clang writes temporary files, and the image points TMP at a Wine path.
+            "--env",
+            "TMPDIR=/tmp",
+            "--volume",
+            f"{settings.repo_dir}:/repo:ro",
+            "--volume",
+            f"{output}:/indexer",
+            "--entrypoint",
+            "/bin/sh",
+            VC6_IMAGE,
+            "-c",
+            SOURCE_INDEXER_COMPILE,
+        ],
+        cwd=settings.repo_dir,
+    )
+    if not binary.is_file():
+        raise RuntimeError(f"the source indexer did not produce {binary}")
+    stamp.write_text(fingerprint + "\n", encoding="utf-8")
+    return binary
 
 
 def build_analysis_target(

@@ -10,6 +10,7 @@ RUN dpkg --add-architecture i386 \
       clang \
       cmake \
       libclang-dev \
+      llvm-dev \
       git \
       ninja-build \
       unzip \

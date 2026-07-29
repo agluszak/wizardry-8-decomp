@@ -2,26 +2,33 @@
 
 reccmp emits one Clang AST per compile command and joins the result with the
 reccmp markers. Done literally that is one container per translation unit, run
-one at a time: 147 units here, each paying container startup before clang sees
-a byte, with the machine's other 27 cores idle and every unit reparsed on every
-invocation even when nothing changed.
+one at a time, each unit serialising its whole AST to JSON so Python can walk it
+back: 147 units here, each paying container startup before clang sees a byte,
+with the machine's other 27 cores idle.
 
-This adapter keeps reccmp's parsing and joining exactly as they are - the AST
-documents it feeds `from_ast_documents_targets` are the ones reccmp would have
-produced itself - and changes only how they are obtained:
+This adapter keeps reccmp's join exactly as it is - the declarations, classes and
+markers it produces are the ones reccmp would have derived itself - and changes
+only how the semantic records are obtained:
 
 * a fingerprint short-circuit, so an index that is already current is not
   rebuilt at all;
 * one container for the whole batch instead of one per unit;
-* the units in that batch parsed in parallel inside it.
+* the units in that batch parsed in parallel inside it;
+* each unit emitting the index records directly from Clang's AST, rather than
+  the whole AST as JSON for Python to rebuild them from.
 
-Caching the AST documents themselves was tried and removed. Once the batch runs
-in parallel in one container the entire clang step is about seven seconds, while
-the documents are 3.7 GB and reloading them still costs the twenty-odd seconds
-of json.loads that then dominate - so the cache bought about seven seconds for
-several gigabytes. Redundant work is avoided at the index level instead, by the
-fingerprint below. The only state kept under `build/` is that fingerprint, and
-it is disposable: deleting it costs one rebuild, never accuracy.
+The last of those is `tools/source-indexer/indexer.cpp`, and it is the reason
+this is fast rather than merely parallel. The JSON documents were 3.7 GB, of
+which the index kept a few per cent; loading them back cost about a minute of
+json.loads and tree walking, some fifty times what compiling the same sources
+costs. The same records come to ~34 MB of NDJSON, and the whole index is a few
+seconds. Caching the JSON documents was tried first and was the wrong trade: it
+bought about seven seconds for several gigabytes, because the reload dominated.
+
+What stays in reccmp: deduplication across translation units is spelled out
+below because the collector is the boundary, but marker parsing, marker-to-
+declaration binding, asserted sizes and vtable addresses all come from
+`SourceIndex._from_collector`, which owns them.
 """
 
 from __future__ import annotations
@@ -30,7 +37,6 @@ import hashlib
 import json
 import os
 import shlex
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -38,16 +44,20 @@ from typing import Any
 
 from reccmp.source import SourceIndex
 
-# reccmp builds the AST argument list by stripping the output flags out of a
-# compile command, and joins the documents through a collector that maps the
-# compiler's view of a path back onto the repository. Reusing those rather than
-# restating them keeps both the arguments and the join identical to what reccmp
-# would have done; its public document entry points take no compilation root, so
-# the collector is the only way to keep the /repo mapping the container needs.
+# `_ast_command` builds reccmp's own argument list by stripping the output flags
+# out of a compile command. Reusing it rather than restating it keeps the
+# arguments the indexer replays identical to the ones reccmp would have compiled.
 # reccmp is pinned to an exact revision, so this is a fixed surface.
-from reccmp.source.index import _ast_command, _AstCollector
+from reccmp.source.index import (
+    SourceClass,
+    SourceDeclaration,
+    SourceField,
+    SourceIndexError,
+    _ast_command,
+    _AstCollector,
+)
 
-from .build import LINT_BUILD_DIR, VC6_IMAGE
+from .build import LINT_BUILD_DIR, VC6_IMAGE, build_source_indexer
 from .config import Settings
 from .subprocesses import resolve_executable
 
@@ -55,6 +65,8 @@ _SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 _HEADER_SUFFIXES = frozenset({".h", ".hpp", ".inc"})
 _CACHE_DIR = "build/source-index-cache"
 _INDEX_PATH = "build/source-index.json"
+_INDEXER_CONTAINER_PATH = "/indexer/indexer"
+_CLANG_CL = "/usr/bin/clang-cl"
 
 
 def _source_paths(repository: Path, stem: str) -> tuple[Path, ...]:
@@ -77,13 +89,13 @@ def _digest(*parts: bytes) -> str:
 def _header_fingerprint(repository: Path) -> str:
     """One digest over every header a recovered unit can include.
 
-    An AST depends on the headers the unit pulls in, not only on its own text,
-    so a per-unit key over the `.cpp` alone would happily serve a stale AST
-    after a header edit. Hashing the whole header surface makes a header change
-    invalidate every unit: coarser than tracking real include edges, and the
-    error is always in the safe direction. Content is hashed rather than mtime
-    because a jj rebase rewrites the working copy and would otherwise
-    invalidate everything on every history operation.
+    A unit's records depend on the headers it pulls in, not only on its own
+    text, so a per-unit key over the `.cpp` alone would happily serve a stale
+    record set after a header edit. Hashing the whole header surface makes a
+    header change invalidate every unit: coarser than tracking real include
+    edges, and the error is always in the safe direction. Content is hashed
+    rather than mtime because a jj rebase rewrites the working copy and would
+    otherwise invalidate everything on every history operation.
     """
 
     roots = (
@@ -101,10 +113,6 @@ def _header_fingerprint(repository: Path) -> str:
                 digest.update(path.relative_to(repository).as_posix().encode())
                 digest.update(path.read_bytes())
     return digest.hexdigest()
-
-
-def _entry_source(entry: dict[str, Any]) -> Path:
-    return Path(entry.get("directory") or ".") / entry["file"]
 
 
 def _validate_database(repository: Path, compilation_database: Path) -> None:
@@ -129,36 +137,106 @@ def _validate_database(repository: Path, compilation_database: Path) -> None:
         )
 
 
+def _index_command(entry: dict[str, Any]) -> list[str]:
+    """The indexer invocation for one compile command.
+
+    reccmp's own argument list is the starting point, with clang-cl named as the
+    compiler so the driver inside the indexer selects cl mode from the program
+    name exactly as the real build does, and the indexer itself in front of it.
+    reccmp's `-ast-dump=json` request is the one thing dropped: the records come
+    out of the AST rather than a serialised copy of it. The build's other
+    `-Xclang` options have to survive, so the pair is removed by position rather
+    than by name.
+    """
+
+    arguments = _ast_command(entry, None, (_INDEXER_CONTAINER_PATH, _CLANG_CL))
+    position = arguments.index("-ast-dump=json")
+    del arguments[position - 1 : position + 1]
+    return arguments
+
+
+class _RecordCollector(_AstCollector):
+    """reccmp's own collector, filled from the indexer's records.
+
+    It stays reccmp's class because `SourceIndex._from_collector` reads its
+    state directly; only the way that state arrives changes. Deduplication is
+    the one piece of the collector restated here, because the records arrive
+    already reduced: a declaration is replaced when a later unit contributes the
+    definition, a class record is kept from the first unit that gave it a source
+    line, and conflicting size assertions are an error rather than a
+    last-one-wins.
+    """
+
+    def collect_records(self, records: str) -> None:
+        for line in records.splitlines():
+            if line:
+                self._collect(json.loads(line))
+
+    def _collect(self, record: dict[str, Any]) -> None:
+        kind = record.pop("record")
+        if kind == "declaration":
+            declaration = SourceDeclaration(
+                **{**record, "parameter_types": tuple(record["parameter_types"])}
+            )
+            previous = self.declarations.get(declaration.semantic_id)
+            if previous is None or (declaration.is_definition and not previous.is_definition):
+                self.declarations[declaration.semantic_id] = declaration
+        elif kind == "class":
+            source_class = SourceClass(
+                **{
+                    **record,
+                    "bases": tuple(record["bases"]),
+                    "fields": tuple(SourceField(**field) for field in record["fields"]),
+                    "virtual_declarations": tuple(record["virtual_declarations"]),
+                }
+            )
+            previous = self.classes.get(source_class.semantic_id)
+            if previous is None or (not previous.line and source_class.line):
+                self.classes[source_class.semantic_id] = source_class
+        elif kind == "size-assertion":
+            name = record["qualified_name"]
+            asserted_size = record["asserted_size"]
+            previous_size = self.size_assertions.get(name)
+            if previous_size is not None and previous_size != asserted_size:
+                raise SourceIndexError(
+                    f"{name} has conflicting size assertions: "
+                    f"{previous_size:#x} and {asserted_size:#x}"
+                )
+            self.size_assertions[name] = asserted_size
+        else:
+            raise SourceIndexError(f"the source indexer emitted an unknown record: {kind!r}")
+
+
 def _emit_batch(
     settings: Settings,
+    indexer: Path,
     pending: list[tuple[str, list[str]]],
-    cache: Path,
+    scratch: Path,
 ) -> None:
-    """Parse every pending unit in one container, in parallel.
+    """Index every pending unit in one container, in parallel.
 
     Each unit gets its own script so the arguments keep the quoting reccmp gave
-    them, and `xargs` only ever passes a filename. A unit that fails leaves its
-    stderr next to the missing output, which is what the caller reports.
+    them, and `xargs` only ever passes a filename. The exit status is recorded
+    next to the output because a unit that legitimately contributes no records -
+    a translation unit holding only `LIBRARY:` markers - emits nothing at all,
+    and must not be confused with one that failed.
     """
 
     repository = settings.repo_dir.resolve()
-    clang_build = repository / LINT_BUILD_DIR
-    jobs = cache / "jobs"
-    shutil.rmtree(jobs, ignore_errors=True)
+    jobs = scratch / "jobs"
     jobs.mkdir(parents=True)
+    (scratch / "out").mkdir(parents=True, exist_ok=True)
 
     for index, (key, arguments) in enumerate(pending):
         script = " ".join(shlex.quote(argument) for argument in arguments)
         (jobs / f"{index:05d}.sh").write_text(
-            f"{script} > /ast/out/{key}.json 2> /ast/out/{key}.err\n"
-            f"test -s /ast/out/{key}.json || exit 0\n"
-            f"rm -f /ast/out/{key}.err\n",
+            f"{script} > /work/out/{key}.ndjson 2> /work/out/{key}.err\n"
+            f"echo $? > /work/out/{key}.status\n",
             encoding="utf-8",
         )
 
-    (cache / "out").mkdir(parents=True, exist_ok=True)
     docker = resolve_executable("docker") or "docker"
-    jobs_ = max(1, min(len(pending), os.cpu_count() or 1))
+    parallelism = max(1, min(len(pending), os.cpu_count() or 1))
     command = (
         docker,
         "run",
@@ -166,77 +244,64 @@ def _emit_batch(
         "--init",
         "--network",
         "none",
+        # clang writes temporary files, and the image points TMP at a Wine path.
+        "--env",
+        "TMPDIR=/tmp",
         "--volume",
         f"{repository}:/repo:ro",
         "--volume",
-        f"{clang_build}:/out:ro",
+        f"{repository / LINT_BUILD_DIR}:/out:ro",
+        "--volume",
+        f"{indexer.parent}:/indexer:ro",
         "--volume",
         f"{settings.work_dir / 'fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4'}:/zlib:ro",
         "--volume",
-        f"{cache}:/ast",
+        f"{scratch}:/work",
         "--workdir",
         "/out",
         "--entrypoint",
         "/bin/sh",
         VC6_IMAGE,
         "-c",
-        f"ls /ast/jobs/*.sh | xargs -P {jobs_} -n 1 /bin/sh",
+        f"ls /work/jobs/*.sh | xargs -P {parallelism} -n 1 /bin/sh",
     )
     subprocess.run(command, check=False, capture_output=True)
-    shutil.rmtree(jobs, ignore_errors=True)
 
 
 def build_source_index(settings: Settings) -> SourceIndex:
-    """Replay clang-cl compile commands and join their AST with reccmp markers."""
+    """Replay clang-cl compile commands and join their records with the markers."""
 
     repository = settings.repo_dir.resolve()
-    clang_build = repository / LINT_BUILD_DIR
-    compilation_database = clang_build / "compile_commands.json"
+    compilation_database = repository / LINT_BUILD_DIR / "compile_commands.json"
     _validate_database(repository, compilation_database)
+    indexer = build_source_indexer(settings)
 
     database = json.loads(compilation_database.read_text(encoding="utf-8"))
+    units = [(entry, _index_command(entry)) for entry in database]
 
-    # reccmp prepends the command prefix in place of the recorded compiler, so
-    # naming clang-cl here yields exactly the argument list it would have run,
-    # minus the docker wrapper that used to be one container per unit.
-    #
-    # The AST documents are deliberately NOT cached between runs. Caching them
-    # was measured against this tree and is the wrong trade: with the batch
-    # parsed in parallel inside one container the whole clang step is about
-    # seven seconds, while the documents it produces are 3.7 GB, and rebuilding
-    # from them still costs the twenty-odd seconds of json.loads that dominate
-    # what is left. The rebuild is skipped wholesale by the fingerprint in
-    # write_source_index, which is where redundant work is actually avoided.
-    units = [(entry, _ast_command(entry, None, ("/usr/bin/clang-cl",))) for entry in database]
-
-    documents: list[tuple[dict[str, Any], Path]] = []
-    with tempfile.TemporaryDirectory(prefix="wiz8-ast-", dir=repository / "build") as scratch:
-        cache = Path(scratch)
+    collector = _RecordCollector(repository)
+    with tempfile.TemporaryDirectory(prefix="wiz8-index-", dir=repository / "build") as directory:
+        scratch = Path(directory)
         _emit_batch(
             settings,
+            indexer,
             [(f"{index:05d}", arguments) for index, (_, arguments) in enumerate(units)],
-            cache,
+            scratch,
         )
         for index, (entry, _arguments) in enumerate(units):
-            payload = cache / "out" / f"{index:05d}.json"
-            if not payload.is_file() or payload.stat().st_size == 0:
-                failure = cache / "out" / f"{index:05d}.err"
-                detail = (
-                    failure.read_text(encoding="utf-8", errors="replace")
-                    if failure.is_file()
-                    else ""
-                )
-                raise RuntimeError(f"Clang did not emit an AST for {entry.get('file')}: {detail}")
-            documents.append(
-                (json.loads(payload.read_text(encoding="utf-8")), _entry_source(entry))
+            key = f"{index:05d}"
+            status = scratch / "out" / f"{key}.status"
+            payload = scratch / "out" / f"{key}.ndjson"
+            failure = scratch / "out" / f"{key}.err"
+            detail = (
+                failure.read_text(encoding="utf-8", errors="replace") if failure.is_file() else ""
             )
+            if not status.is_file() or status.read_text(encoding="utf-8").strip() != "0":
+                raise SourceIndexError(
+                    f"the source indexer failed on {entry.get('file')}: {detail}"
+                )
+            collector.collect_records(payload.read_text(encoding="utf-8"))
 
-    # The compilation root is what the compiler saw, which inside the container
-    # is /repo. Dropping it makes every recorded path fail to resolve back onto
-    # the checkout and every marker bind to nothing.
-    collector = _AstCollector(repository, Path("/repo"))
-    for document, main_file in documents:
-        collector.collect(document, main_file)
     targets = {
         "WIZ8": _source_paths(repository, "wiz8"),
         "SURRENDER": _source_paths(repository, "surrender"),
@@ -276,9 +341,10 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
 
     stamp = repository / _CACHE_DIR / "inputs.sha256"
     fingerprint = _digest(
-        b"wiz8.source-index.inputs.v1",
+        b"wiz8.source-index.inputs.v2",
         compilation_database.read_bytes(),
         _header_fingerprint(repository).encode(),
+        (repository / "tools/source-indexer/indexer.cpp").read_bytes(),
         _digest(
             *(
                 path.read_bytes()
