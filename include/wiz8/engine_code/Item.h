@@ -4,6 +4,7 @@
 #include "surrender/srNode.h"
 
 struct W8World;
+struct W8Position;
 
 /* Engine Code\Item.cpp. The assertion expressions establish the original
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
@@ -19,6 +20,7 @@ struct W8ItemRep {
 
     void GetLocation004B8890(srVector3T<float>* location);
     void GetRotation004B88F0(srMatrix3T<float>* rotation);
+    void SetLocation004B8850(const W8Position* location);
     unsigned int SetFlags(unsigned int mask, unsigned char enabled); /* 0x0049F310 */
 };
 
@@ -28,6 +30,7 @@ struct W8Item {
 
     void DetachMesh0049FA30(W8World* world);
     void ApplyRepTransform0049FAA0();
+    void Function49F720(const W8Position* location);
     srNode* GetMesh();
 };
 

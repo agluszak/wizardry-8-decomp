@@ -14,6 +14,7 @@
 #include "FileMan.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */
@@ -142,6 +143,70 @@ public:
 
 extern void ReleaseMissile(W8Missile* missile);                          /* 0x004A7470 */
 extern void Function4A72F0(int arg_1, int arg_2);
+
+static int g_missile_iterator_0065bde4;
+
+/* Iterate the world's missile vector. A nonzero argument restarts the shared
+   cursor; a missing world or vector answers null. */
+// FUNCTION: WIZ8 0x004A2760
+W8Missile* Function4A2760(char restart)
+{
+    W8Missile* missile = 0;
+
+    if (g_world != 0 && g_world->missiles != 0) {
+        if (restart != 0) {
+            g_missile_iterator_0065bde4 = 0;
+        }
+        if (g_missile_iterator_0065bde4 < g_world->missiles->GetCount()) {
+            missile = *g_world->missiles->GetAt(g_missile_iterator_0065bde4);
+            ++g_missile_iterator_0065bde4;
+        }
+    }
+    return missile;
+}
+
+extern float Function4BE490(
+    unsigned int arg_1, unsigned int arg_2, unsigned int arg_3,
+    unsigned int arg_4, unsigned int arg_5, unsigned int arg_6);
+extern float Function4BE420(unsigned int arg_1, unsigned int arg_2, float value);
+extern void Function4A28D0(unsigned int owner, unsigned int value, float result);
+
+/* Preserve the still-untyped six-word missile calculation as a typed float
+   pipeline instead of reconstructing names for its forwarded values. */
+// FUNCTION: WIZ8 0x004A2D30
+void Function4A2D30(
+    unsigned int owner, unsigned int arg_2, unsigned int arg_3,
+    unsigned int arg_4, unsigned int arg_5, unsigned int arg_6,
+    unsigned int arg_7)
+{
+    Function4A28D0(
+        owner, arg_2,
+        Function4BE420(
+            arg_2, arg_3,
+            Function4BE490(arg_2, arg_3, arg_4, arg_5, arg_6, arg_7)));
+}
+
+class W8MissileState004A5410 {
+public:
+    void Function4A5410(const unsigned int* values);
+
+private:
+    unsigned char m_positional_000[0x1d8];
+    int m_missile_table_index;            /* 0x1d8 */
+    unsigned char m_positional_1dc[0x20];
+    unsigned int m_values_1fc[12];         /* 0x1fc */
+};
+
+/* Copy the twelve-word state block, then replace its first float from the
+   selected 0x1e5-byte missile database row. */
+// FUNCTION: WIZ8 0x004A5410
+void W8MissileState004A5410::Function4A5410(const unsigned int* values)
+{
+    memcpy(m_values_1fc, values, sizeof(m_values_1fc));
+    m_values_1fc[0] = *reinterpret_cast<const unsigned int*>(
+        reinterpret_cast<const unsigned char*>(g_missile_table_65bde0) +
+        m_missile_table_index * sizeof(W8MissileTableRecord) + 0x140);
+}
 
 /* The launcher a missile was fired from. */
 // FUNCTION: WIZ8 0x004a45e0

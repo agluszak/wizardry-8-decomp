@@ -49,3 +49,24 @@ srNode* W8Item::GetMesh()
 {
     return m_pRep->m_psrMesh;
 }
+
+/* Raise or clear the selected representation flags and return the resulting
+   flag word. */
+// FUNCTION: WIZ8 0x0049F310
+unsigned int W8ItemRep::SetFlags(unsigned int mask, unsigned char enabled)
+{
+    if (enabled != 0) {
+        flags |= mask;
+    }
+    else {
+        flags &= ~mask;
+    }
+    return flags;
+}
+
+/* Forward a new item location to the representation owned at +0x14. */
+// FUNCTION: WIZ8 0x0049F720
+void W8Item::Function49F720(const W8Position* location)
+{
+    m_pRep->SetLocation004B8850(location);
+}

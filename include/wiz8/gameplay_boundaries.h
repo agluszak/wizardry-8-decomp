@@ -535,6 +535,7 @@ typedef struct W8MonsterGroup {
    WorldUpdateProps (0x0046DED0), while psrMeshes is only placed by a reading
    of its asserting body and has no ported consumer yet. */
 struct W8UpdateMeshSource;
+class W8Missile;
 
 typedef struct W8World {
     /* 0x000 and 0x004: two more lists beside the props, each with its own
@@ -561,7 +562,8 @@ typedef struct W8World {
        the second is ever read, by the getter at 0x0046E3A0. */
     float value_74;
     float value_78;
-    unsigned char unknown_07c[0x40];
+    unsigned char unknown_07c[0x3c];
+    W8GrowableVector<W8Missile*>* missiles; /* 0xb8 */
     W8GrowableVector<class W8VectorElement005EC294*>* lights; /* 0xbc */
     unsigned char unknown_0c0[4];
     W8GrowableVector<W8MonsterGenerator*>* monster_generators; /* 0xc4 */
