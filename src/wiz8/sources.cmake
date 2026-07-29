@@ -148,6 +148,7 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/monster_generators.cpp
     src/wiz8/monster_lookup.cpp
     src/wiz8/music_playlist.cpp
+    src/wiz8/npc_items.cpp
     src/wiz8/npc_item_lists.cpp
     src/wiz8/spell_backfire.cpp
     src/wiz8/state_getters.cpp

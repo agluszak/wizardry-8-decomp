@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/npc_state.h"
 #include "wiz8/sr_api.h"
 
 /*
@@ -12,47 +13,6 @@
  */
 
 #define NPC_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\NPC Manager.cpp"
-
-#pragma pack(push, 1)
-
-/* One NPC's runtime state. The database pointer sits unaligned at 0x06, which
-   is what the byte-offset loads through it show, and everything the bodies
-   here reach is placed off it. */
-typedef struct W8NpcState {
-    unsigned char unknown_00[6];
-    W8NpcDatabaseRecord* record;          /* 0x06 */
-    unsigned char unknown_0a[0xc];
-    int location_id;                      /* 0x16 */
-    unsigned char has_monster;            /* 0x1a */
-    /* 0x1b: the NPC's disposition. Setting a band writes one of three
-       representative values rather than a range. */
-    unsigned char disposition;
-    unsigned char unknown_1c[9];
-    unsigned char is_present;             /* 0x25 */
-    unsigned char is_grouped;             /* 0x26 */
-    unsigned char unknown_27[4];
-    signed char group_index;              /* 0x2b */
-    unsigned char unknown_2c[2];
-    /* 0x2e: which naming style the NPC uses; the space character selects the
-       one a fact can substitute a name for. */
-    char name_style;
-    unsigned char unknown_2f[0x5a];
-    /* 0x089: five slots holding the topics the NPC will talk about, stored
-       one more than the topic they name so that zero can mean empty. */
-    int topics[5];
-    unsigned char unknown_9d[0x4c];
-    /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
-    unsigned char marked_e9;
-    unsigned char unknown_ea[8];
-    /* 0x0f2: the fourteen facts the NPC has been told, appended in order and
-       terminated by the first zero. */
-    short known_facts[14];
-    unsigned char unknown_10e[6];
-    unsigned char marked_114;
-    unsigned char unknown_115[0x15];
-} W8NpcState;                             /* 0x12a partitioned */
-
-#pragma pack(pop)
 
 enum { W8_NPC_TOPIC_SLOTS = 5, W8_NPC_FACT_SLOTS = 14 };
 
@@ -67,8 +27,10 @@ enum { W8_NPC_ALWAYS_TRADED_ITEM = 0x29f, W8_NPC_MINIMUM_TRADE_VALUE = 300 };
 enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 
 /* 0x00689F94: every NPC state, held in the shared growable vector. */
+// GLOBAL: WIZ8 0x00689F94
 extern W8GrowableVector<W8NpcState*>* g_npc_states;
 /* 0x006836B8: the monster manager's eight entries, 0x118 bytes each. */
+// GLOBAL: WIZ8 0x006836B8
 extern unsigned char g_monster_manager_entries[];
 
 extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
