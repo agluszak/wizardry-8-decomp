@@ -1,4 +1,7 @@
 function(wiz8_load_sgp_model)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${WIZ8_REPO_ROOT}/config/sgp.yml"
+    )
     file(READ "${WIZ8_REPO_ROOT}/config/sgp.yml" model)
     string(JSON flag_count LENGTH "${model}" project_flags)
     math(EXPR flag_last "${flag_count} - 1")

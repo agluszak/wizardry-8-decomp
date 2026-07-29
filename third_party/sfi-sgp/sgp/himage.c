@@ -24,6 +24,7 @@
 #define BLACK_SUBSTITUTE	0x0001
 
 
+#ifndef WIZ8_EXTERNAL_PIXEL_FORMAT
 UINT16 gusAlphaMask = 0;
 UINT16 gusRedMask = 0;
 UINT16 gusGreenMask = 0;
@@ -31,6 +32,7 @@ UINT16 gusBlueMask = 0;
 INT16  gusRedShift = 0;
 INT16  gusBlueShift = 0;
 INT16  gusGreenShift = 0;
+#endif
 
 
 // this funky union is used for fast 16-bit pixel format conversions
