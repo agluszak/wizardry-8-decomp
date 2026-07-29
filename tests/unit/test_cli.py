@@ -117,3 +117,7 @@ def test_just_exposes_one_joined_context_command() -> None:
     assert "compare *args:" in justfile
     assert "uv run wiz8 triage" in justfile
     assert "uv run wiz8 runtime-test" in justfile
+
+    context = CliRunner().invoke(app, ["report", "context", "--help"])
+    assert context.exit_code == 0
+    assert "--discover" in context.stdout

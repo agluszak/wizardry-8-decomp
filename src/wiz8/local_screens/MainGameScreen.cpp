@@ -23,7 +23,7 @@ extern unsigned char g_flag_00683f97;
 extern unsigned char g_flag_00683f98;
 extern unsigned char g_flag_00683f99;
 
-extern void Function55EC50(int arg_1);
+extern void SetPendingScreenState(int state);
 extern void Function4F2040(int region);
 extern void ReleaseScreenTransitionObjects(void);
 extern unsigned char Function577850(void);
@@ -113,7 +113,7 @@ void DisableMainRegionSet(void)
 void ClearScreenWait(void)
 {
     g_flag_0068ed14 = 0;
-    Function55EC50(10);
+    SetPendingScreenState(10);
 }
 
 /* Forget the whole combat selection - what is picked, what it is aimed at, and
@@ -184,7 +184,7 @@ extern void Function58A790(int arg_1);
 extern void Function59F2B0(void);
 extern void Function59CAC0(void);
 extern void Function5B2200(void);
-extern unsigned int Function4F1910(const void* event);
+extern unsigned int DispatchScreenInput004F1910(const void* event);
 extern void Function558810(void);
 extern void Function558720(int arg_1);
 extern void ShowNotice(int channel, const void* text, int a, int b, int c);
@@ -295,7 +295,7 @@ unsigned int HitTestPartyPortrait(const void* event)
     }
     kind = *(const unsigned short*)((const char*)event + 6);
     if (kind == 8 || kind == 0x10) {
-        return Function4F1910(event);
+        return DispatchScreenInput004F1910(event);
     }
     return 0;
 }

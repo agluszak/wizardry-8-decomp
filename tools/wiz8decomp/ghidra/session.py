@@ -9,9 +9,18 @@ from .workspace import ensure_seed
 
 
 def query_many(
-    settings: Settings, selector: str, queries: list[tuple[str, list[str]]]
+    settings: Settings,
+    selector: str,
+    queries: list[tuple[str, list[str]]],
+    *,
+    function_seeds: list[str] | None = None,
 ) -> tuple[list[dict[str, Any]], str]:
-    """Run one ordered batch in one ordinary PyGhidra project session."""
+    """Run one ordered batch in one ordinary PyGhidra project session.
+
+    Explicit function seeds are speculative analysis inputs. They are created
+    inside a transaction that is always rolled back, so a data-pointer target
+    can be decompiled without silently changing the reviewed Ghidra seed.
+    """
 
     if not queries:
         raise ValueError("at least one query is required")
@@ -24,24 +33,57 @@ def query_many(
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
-            results = [
-                {
-                    "command": command,
-                    "arguments": arguments,
-                    "result": execute_query(program, command, arguments),
-                }
-                for command, arguments in queries
-            ]
-    finally:
-        from .semantic import dispose_sessions
+            transaction = None
+            try:
+                if function_seeds:
+                    from ghidra.app.cmd.disassemble import DisassembleCommand
+                    from ghidra.app.cmd.function import CreateFunctionCmd
 
-        dispose_sessions()
+                    from .query import _address
+
+                    transaction = program.startTransaction("disposable function seeds")
+                    for seed in function_seeds:
+                        address = _address(program, seed)
+                        if program.getFunctionManager().getFunctionAt(address) is not None:
+                            continue
+                        if program.getListing().getInstructionAt(address) is None:
+                            command = DisassembleCommand(address, None, True)
+                            if not command.applyTo(program):
+                                raise ValueError(f"could not disassemble function seed {address}")
+                        command = CreateFunctionCmd(address)
+                        if not command.applyTo(program):
+                            raise ValueError(f"could not create function seed {address}")
+                results = [
+                    {
+                        "command": command,
+                        "arguments": arguments,
+                        "result": execute_query(program, command, arguments),
+                    }
+                    for command, arguments in queries
+                ]
+            finally:
+                from .semantic import dispose_sessions
+
+                dispose_sessions()
+                if transaction is not None:
+                    program.endTransaction(transaction, False)
+    finally:
         project.close()
     return results, "pyghidra"
 
 
 def query(
-    settings: Settings, selector: str, command: str, arguments: list[str]
+    settings: Settings,
+    selector: str,
+    command: str,
+    arguments: list[str],
+    *,
+    function_seeds: list[str] | None = None,
 ) -> tuple[dict[str, Any], str]:
-    results, transport = query_many(settings, selector, [(command, arguments)])
+    results, transport = query_many(
+        settings,
+        selector,
+        [(command, arguments)],
+        function_seeds=function_seeds,
+    )
     return results[0]["result"], transport

@@ -33,11 +33,18 @@ def context_command(
     program: str = typer.Option("wiz8", "--program"),
     deep: bool = typer.Option(False, "--deep", help="Include listing, P-code and rooted flow."),
     root: str = typer.Option("this", "--root", help="Deep-analysis parameter root."),
+    discover: bool = typer.Option(
+        False,
+        "--discover",
+        help="Create a missing function transactionally for this report, then roll it back.",
+    ),
 ) -> None:
     """Join Ghidra and every relevant evidence channel for one function."""
     from .. import command_support as cli
     from ..reports.recovery_context import recovery_context_report
 
     cli.run_action(
-        lambda: recovery_context_report(cli.settings(), address, program, deep=deep, root=root)
+        lambda: recovery_context_report(
+            cli.settings(), address, program, deep=deep, root=root, discover=discover
+        )
     )

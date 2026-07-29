@@ -12,7 +12,7 @@ extern void Function54AFD0(void);
 extern unsigned char Function54A760(W8MonsterRecord** records);
 extern unsigned char VerifyDataSubdirs(void);
 extern void Function51B560(void);
-extern void Function55EC50(int value);
+extern void SetPendingScreenState(int value);
 extern unsigned char InitializeSpellDatabase(void);
 extern void ReleaseGenericItemNames(void);
 extern void UnloadEncounterTables(void);
@@ -139,12 +139,12 @@ unsigned char InitializeGameData(void)
     }
     Function51B560();
     Function479010();
-    Function55EC50(0);
+    SetPendingScreenState(0);
     g_dword_686a70 = -1;
     if (gfLoadAtStartup && Function516740(g_save_slot_68ed28)) {
         g_flag_68ed14 = 1;
         g_dword_68ed18 = GetSaveGameLevel(g_save_slot_68ed28);
-        Function55EC50(4);
+        SetPendingScreenState(4);
     }
     InitializeEncounterTables();
     if (!LoadMissileDatabase()) {

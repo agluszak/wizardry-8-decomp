@@ -69,7 +69,7 @@ extern void Function5CF580(void* a, int b);
 extern unsigned char Function4298F0(void);
 extern wchar_t* ConvertStringToWide(const char* text);
 unsigned char Function5BCAB0(short item, short state);
-extern void Function55EC50(int state);
+extern void SetPendingScreenState(int state);
 extern void PresentMenuOverlayFrame(void);
 
 static void MainMenuRegionEvent(
@@ -108,7 +108,7 @@ static void MainMenuRegionEvent(
     if (item == 4) {
         /* Options uses screen 10 with the load-game flag clear in retail. */
         g_flag_68ed14 = 0;
-        Function55EC50(10);
+        SetPendingScreenState(10);
     } else if (item == 5) {
         gfProgramIsRunning = 0;
     }

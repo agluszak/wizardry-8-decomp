@@ -35,7 +35,7 @@ def test_main_menu_runtime_uses_dirty_uploads_and_real_input_dispatch() -> None:
     assert "region->callback((const W8RegionEvent*)&input, region)" in menu
     assert "input.usParam == UPARROW" in menu
     assert "input.usParam == ENTER" in menu
-    assert "Function55EC50(10)" in menu
+    assert "SetPendingScreenState(10)" in menu
     assert "Function425B40();" in video
     assert "invalidateTiles" not in video
     assert "setTextureSubImage" in surface

@@ -41,8 +41,8 @@ W8SpellRuntimeRecord* g_spell_records;
 unsigned int g_spell_database_version;
 extern W8GameSettings g_settings_6850c8;
 extern "C" unsigned char g_flag_68edac;
-void Function55EC50(int value);
-void Function55EC60(void);
+void SetPendingScreenState(int value);
+void RequestScreenTransition(void);
 unsigned char g_monster_slot_block[0x1a0a];
 extern W8MonsterSlot g_monster_slots_6836b8[];
 extern int SetCountdownClock(int delay);
@@ -507,14 +507,14 @@ void Function54B250(unsigned char notify, void* target)
     Function482720(0x2932e00);
     Function482740(1);
     if (notify) {
-        Function55EC60();
+        RequestScreenTransition();
     }
     Function509890();
     Function509920();
     Function558820();
     Function535920();
     Function56C520();
-    Function55EC50(2);
+    SetPendingScreenState(2);
 }
 
 /* Optionally releases the global status block's two buffers, then clears the
@@ -847,14 +847,14 @@ void Function54AFD0(void)
 
 /* Stores the value the frame tick and the new-game reset both read back. */
 // FUNCTION: WIZ8 0x0055EC50
-void Function55EC50(int value)
+void SetPendingScreenState(int value)
 {
     g_dword_68ed10.id = value;
 }
 
 /* Latches the flag the frame tick clears once it has acted on it. */
 // FUNCTION: WIZ8 0x0055EC60
-void Function55EC60(void)
+void RequestScreenTransition(void)
 {
     g_flag_68edac = 1;
 }

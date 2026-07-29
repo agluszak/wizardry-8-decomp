@@ -204,6 +204,7 @@ def recovery_context_report(
     *,
     deep: bool = False,
     root: str = "this",
+    discover: bool = False,
 ) -> dict[str, Any]:
     requested = int(address, 0)
     program_name = resolve_seed_program(settings, selector)
@@ -221,7 +222,13 @@ def recovery_context_report(
                 ("pcode", [f"0x{requested:08x}", "normalize"]),
             ]
         )
-    results, transport = query_many(settings, selector, queries)
+    function_seeds = [f"0x{requested:08x}"] if discover else None
+    results, transport = query_many(
+        settings,
+        selector,
+        queries,
+        function_seeds=function_seeds,
+    )
     by_command = {item["command"]: item["result"] for item in results}
     function = by_command["function"]["function"]
     entry = int(function["entry"], 16)
@@ -238,6 +245,7 @@ def recovery_context_report(
                 ("field-accesses", [f"0x{entry:08x}", root]),
                 ("type-variables", [f"0x{entry:08x}", root]),
             ],
+            function_seeds=function_seeds,
         )
         semantic_fields = semantic_results[0]["result"]
         semantic_variables = semantic_results[1]["result"]
@@ -251,7 +259,10 @@ def recovery_context_report(
     indirect_calls = []
     if indirect_sites:
         call_results, _ = query_many(
-            settings, selector, [("callsite", [f"0x{site}"]) for site in indirect_sites]
+            settings,
+            selector,
+            [("callsite", [f"0x{site}"]) for site in indirect_sites],
+            function_seeds=function_seeds,
         )
         indirect_calls = [item["result"] for item in call_results]
 
@@ -372,6 +383,7 @@ def recovery_context_report(
         "entry": entry,
         "transport": transport,
         "deep": deep,
+        "discovered": discover,
         "root": root if deep else None,
         "translation_unit": _translation_unit(
             assertions, intervals if has_canonical_addresses else [], entry
@@ -416,6 +428,7 @@ def recovery_context_report(
         "program": program_name,
         "entry": f"0x{entry:08x}",
         "transport": transport,
+        "discovered": discover,
         "translation_unit": context["translation_unit"],
         "counts": {
             "assertions": len(assertions),

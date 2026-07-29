@@ -124,8 +124,8 @@ extern int Function406DE0(int font);
 extern "C" unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* palette);
 extern void Function407090();
 extern void Function407140();
-extern void Function407220(int target, int left, int top, int right, int bottom,
-                           int flags);
+extern void SetRenderClip00407220(int target, int left, int top, int right,
+                                 int bottom, int flags);
 extern void Function407A10(int a, int b, int font, int x, int y,
                            const wchar_t* format, const wchar_t* text);
 extern void Function407B80(int a, int b, int font, int x, int y);
@@ -591,10 +591,10 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
         SetFontObjectPalette16BPP(m_font, (unsigned short*)g_W8FontStateTable0068EE1C[m_fontStateIndex]);
     }
     Function407090();
-    Function407220(g_W8TextClipTarget005FF5F4,
-                   m_pendingBounds.left, m_pendingBounds.top,
-                   m_pendingBounds.right, m_pendingBounds.bottom,
-                   g_W8TextClipFlags00650E38);
+    SetRenderClip00407220(g_W8TextClipTarget005FF5F4,
+                         m_pendingBounds.left, m_pendingBounds.top,
+                         m_pendingBounds.right, m_pendingBounds.bottom,
+                         g_W8TextClipFlags00650E38);
 
     int y = GetVerticalPosition();
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
