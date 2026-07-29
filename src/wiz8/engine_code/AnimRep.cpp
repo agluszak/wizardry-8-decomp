@@ -2,18 +2,20 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/sr_api.h"
 
-#include <string.h>
-
 extern srTimer* g_shared_timer_base;
 
-/* The root copy keeps the opaque animation representation, but deliberately
-   resets its runtime scale and flags instead of copying them.  Bytes 0x62 and
-   0x63 are not touched by the canonical constructor. */
+/* The root copy preserves five aggregate values, but deliberately resets its
+   runtime scale and flags instead of copying them.  Bytes 0x62 and 0x63 are
+   not touched by the canonical constructor. */
 // FUNCTION: WIZ8 0x004b87c0
 W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(
     const W8AnimRepBase005EC1D8& other)
 {
-    memcpy(unknown_004, other.unknown_004, sizeof(unknown_004));
+    value_004 = other.value_004;
+    value_010 = other.value_010;
+    value_01c = other.value_01c;
+    value_028 = other.value_028;
+    value_04c = other.value_04c;
     value_05c = 1.0f;
     flag_060 = 0;
     flag_061 = 0;
@@ -52,7 +54,10 @@ W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other)
     flag_06f = other.flag_06f;
     flag_070 = other.flag_070;
     behaviour_071 = other.behaviour_071;
-    memcpy(values_074, other.values_074, sizeof(values_074));
+    value_074 = other.value_074;
+    value_080 = other.value_080;
+    value_08c = other.value_08c;
+    value_090 = other.value_090;
     counter_094 = other.counter_094;
     counter_095 = other.counter_095;
 

@@ -19,6 +19,35 @@ public:
     float value_08;                      /* 0x08 */
 };
 
+/* Copy constructors establish these aggregate boundaries, but no independent
+   witness yet establishes their original semantic types.  Keep their names
+   positional until consumers prove whether they are vectors, matrices, or
+   another animation representation. */
+struct W8AnimRepValue3 {
+    unsigned int value_00;
+    unsigned int value_04;
+    unsigned int value_08;
+};
+
+struct W8AnimRepValue4 {
+    unsigned int value_00;
+    unsigned int value_04;
+    unsigned int value_08;
+    unsigned int value_0c;
+};
+
+struct W8AnimRepValue9 {
+    unsigned int value_00;
+    unsigned int value_04;
+    unsigned int value_08;
+    unsigned int value_0c;
+    unsigned int value_10;
+    unsigned int value_14;
+    unsigned int value_18;
+    unsigned int value_1c;
+    unsigned int value_20;
+};
+
 /* The copy path at 0x004B87C0 and clone slot at 0x0044EDF0 establish the
    0x64-byte polymorphic root below.  Its original name is not available. */
 class W8AnimRepBase005EC1D8 {
@@ -28,7 +57,11 @@ public:
     virtual W8AnimRepBase005EC1D8* Clone();
 
 protected:
-    unsigned char unknown_004[0x58];
+    W8AnimRepValue3 value_004;
+    W8AnimRepValue3 value_010;
+    W8AnimRepValue3 value_01c;
+    W8AnimRepValue9 value_028;
+    W8AnimRepValue4 value_04c;
     float value_05c;
     unsigned char flag_060;
     unsigned char flag_061;
@@ -54,7 +87,10 @@ public:
     unsigned char flag_070;
     unsigned char behaviour_071;
     unsigned char unknown_072[2];
-    unsigned int values_074[8];
+    W8AnimRepValue3 value_074;
+    W8AnimRepValue3 value_080;
+    unsigned int value_08c;
+    unsigned int value_090;
     unsigned char counter_094;
     unsigned char counter_095;
     unsigned char unknown_096[2];
@@ -93,6 +129,9 @@ public:
     W8Emitter* emitters[2];              /* 0xd8 */
 };                                       /* 0xe0 */
 
+static_assert(sizeof(W8AnimRepValue3) == 0x0c, "W8AnimRepValue3_size_must_be_0x0c");
+static_assert(sizeof(W8AnimRepValue4) == 0x10, "W8AnimRepValue4_size_must_be_0x10");
+static_assert(sizeof(W8AnimRepValue9) == 0x24, "W8AnimRepValue9_size_must_be_0x24");
 static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep005ED050) == 0x98, "W8AnimRep005ED050_size_must_be_0x98");
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");
