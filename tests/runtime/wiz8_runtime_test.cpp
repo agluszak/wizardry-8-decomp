@@ -4,6 +4,7 @@
 
 #include "english.h"
 #include "input.h"
+#include "shading.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,12 +27,54 @@ struct RuntimeObservation {
     unsigned int first_region;
     unsigned int last_region;
     unsigned char menu_seen;
+    unsigned char shade_table_ok;
     unsigned char exit_observed;
     unsigned char timed_out;
 };
 
 static RuntimeObservation g_observation;
 static const char* g_scenario;
+
+static bool VerifyShadeTable(FLOAT coefficient)
+{
+    static UINT16 expected[65536];
+    unsigned int red;
+    unsigned int green;
+    unsigned int blue;
+    unsigned int index;
+
+    memset(expected, 0, sizeof(expected));
+    for (red = 0; red < 256; red += 4) {
+        for (green = 0; green < 256; green += 4) {
+            for (blue = 0; blue < 256; blue += 4) {
+                index = Get16BPPColor(FROMRGB(red, green, blue));
+                expected[index] = Get16BPPColor(FROMRGB(
+                    (UINT8)(red * coefficient),
+                    (UINT8)(green * coefficient),
+                    (UINT8)(blue * coefficient)));
+            }
+        }
+    }
+    if (memcmp(expected, ShadeTable, sizeof(expected)) != 0) {
+        for (index = 0; index < 65536; ++index) {
+            if (expected[index] != ShadeTable[index]) {
+                fprintf(stderr,
+                        "shade-table mismatch coefficient=%g index=%u expected=%u actual=%u\n",
+                        coefficient, index, expected[index], ShadeTable[index]);
+                break;
+            }
+        }
+        return false;
+    }
+    for (index = 0; index < 256; ++index) {
+        if (White16BPPPalette[index] != 0xffff) {
+            fprintf(stderr, "white-palette mismatch index=%u actual=%u\n",
+                    index, White16BPPPalette[index]);
+            return false;
+        }
+    }
+    return true;
+}
 
 static bool WaitForMainMenu(unsigned int timeout_ms)
 {
@@ -70,6 +113,13 @@ static DWORD WINAPI DriveScenario(void*)
     g_observation.region_set_enabled = g_region_sets[1].enabled;
     g_observation.first_region = g_region_sets[1].first_region;
     g_observation.last_region = g_region_sets[1].last_region;
+    const bool initial_table = VerifyShadeTable((FLOAT)0.66);
+    SetShadeTablePercent((FLOAT)0.50);
+    const bool changed_table = VerifyShadeTable((FLOAT)0.50);
+    SetShadeTablePercent((FLOAT)0.66);
+    const bool restored_table = VerifyShadeTable((FLOAT)0.66);
+    g_observation.shade_table_ok =
+        initial_table && changed_table && restored_table;
     fprintf(
         stderr,
         "runtime-test menu: scenario=%s state=%d regions=%u first=%u last=%u selected=%u\n",
@@ -133,13 +183,14 @@ int main(int argc, char** argv)
     printf(
         "WIZ8_RUNTIME_TEST scenario=%s menu_seen=%u menu_state=%d "
         "regions_enabled=%u first_region=%u last_region=%u "
-        "exit_observed=%u teardown=%u timed_out=%u\n",
+        "shade_table_ok=%u exit_observed=%u teardown=%u timed_out=%u\n",
         g_scenario,
         g_observation.menu_seen,
         g_observation.menu_state,
         g_observation.region_set_enabled,
         g_observation.first_region,
         g_observation.last_region,
+        g_observation.shade_table_ok,
         g_observation.exit_observed,
         g_teardown_done_650db4 ? 1 : 0,
         g_observation.timed_out);
@@ -147,7 +198,7 @@ int main(int argc, char** argv)
     const bool startup_ok =
         g_observation.menu_seen && g_observation.menu_state == 0 &&
         g_observation.region_set_enabled && g_observation.first_region == 0 &&
-        g_observation.last_region == 6;
+        g_observation.last_region == 6 && g_observation.shade_table_ok;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const int result =

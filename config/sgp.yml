@@ -54,7 +54,7 @@
     {"id": "vobject_blitters", "source": "vobject_blitters.c", "overlay": "font-video", "pch": false,
      "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
     {"id": "shading", "source": "shading.c", "overlay": "font-video", "pch": false,
-     "groups": ["WIZ8_SGP_RUNTIME_SHARED"], "harness": false},
+     "groups": ["WIZ8_SGP_RETAINED"], "harness": false},
     {"id": "debug", "source": "DEBUG.C", "overlay": "debug", "pch": true, "language": "C",
      "groups": ["WIZ8_SGP_RUNTIME_SHARED"]},
     {"id": "exceptionhandling", "source": "ExceptionHandling.cpp", "overlay": "exceptionhandling", "pch": true,

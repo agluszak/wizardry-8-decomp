@@ -144,7 +144,6 @@ extern long __stdcall WindowProc4011E0(void* window, int message,
 extern unsigned char InitializeRenderer(void* instance, int show_command,
                                         long(__stdcall* window_proc)(void*, int,
                                                                      unsigned int, long));
-extern void InitializeSGPPixelFormat(void);
 
 
 
@@ -1036,7 +1035,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!BringUpEngine(hInstance, nShowCmd)) {
         return 0;
     }
-    InitializeSGPPixelFormat();
     gfApplicationActive = 1;
     gfProgramIsRunning = 1;
     do {

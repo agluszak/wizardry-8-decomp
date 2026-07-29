@@ -59,4 +59,16 @@ function(wiz8_add_sgp_group target)
         "${SGP_SOURCE}"
     )
     target_compile_options(${target} PRIVATE ${WIZ8_SGP_PROJECT_FLAGS})
+    # Wizardry retained SGP's color conversion bodies but made the renderer's
+    # 0x00650F48 mask block their canonical storage as well.  Map the released
+    # SGP spellings onto that one owner instead of creating a parallel mask set.
+    target_compile_definitions(${target} PRIVATE
+        gusAlphaMask=g_alpha_mask_650f48
+        gusRedMask=g_red_mask_650f4a
+        gusGreenMask=g_green_mask_650f4c
+        gusBlueMask=g_blue_mask_650f4e
+        gusRedShift=g_red_shift_650f50
+        gusBlueShift=g_blue_shift_650f52
+        gusGreenShift=g_green_shift_650f54
+    )
 endfunction()

@@ -3,6 +3,7 @@
 #include "wiz8/sgp_video.h"
 #include "Container.h"
 #include "LibraryDataBase.h"
+#include "shading.h"
 #include "sgp.h"
 
 #include <string.h>
@@ -40,8 +41,6 @@ extern unsigned char InitializeSlfArchives(void);
 extern int LoadPatchSlfArchives(const char* directory);
 extern void LoadLocalizedStrings(const char* path);
 extern void LoadGameConfiguration(void);
-extern void SetStartupColorTransform(unsigned int value);
-extern void RebuildStartupColorTable(void);
 extern unsigned char InitializeMenuFonts(void);
 extern void InitializeMessageBoxState(void);
 extern void InitializeRegionHelpState(void);
@@ -98,8 +97,8 @@ unsigned char InitializeGameData(void)
     if (!InitializeMenuStartupSubsystems()) {
         return 0;
     }
-    SetStartupColorTransform(0x3f28f5c3);
-    RebuildStartupColorTable();
+    SetShadeTablePercent((FLOAT)0.66);
+    BuildShadeTable();
     if (!InitializeMenuFonts()) {
         return 0;
     }

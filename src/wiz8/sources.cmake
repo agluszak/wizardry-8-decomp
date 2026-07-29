@@ -109,7 +109,6 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/startup_render_state.cpp
     src/wiz8/startup_world.cpp
     src/wiz8/startup_subsystems.cpp
-    src/wiz8/startup_color.cpp
     src/wiz8/startup_ui_state.cpp
     src/wiz8/startup_cursor.cpp
     src/wiz8/slf_archives.cpp
