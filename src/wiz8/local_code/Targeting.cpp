@@ -1205,6 +1205,120 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
     return 0;
 }
 
+extern void Function4ADD30(int enabled);
+extern void Function56AA30(void);
+extern void Function56AAB0(void);
+extern void Function53B660(const W8Position* position, W8Position* target, int enabled);
+extern W8Position g_target_position_0068406f;
+extern W8Position g_target_position_0068407f;
+
+/* Select the cursor and renderer-side targeting mode for one targeting state,
+   then clear the cached world point so the following refresh recomputes it. */
+// FUNCTION: WIZ8 0x0053A320
+void Function53A320(int state)
+{
+    int cursor;
+
+    g_highlight_suppressed_00683fe7 = state;
+    switch (state) {
+    case 1:
+    case 6:
+    case 7:
+        cursor = 3;
+        break;
+    case 2:
+        cursor = 0;
+        break;
+    case 3:
+        cursor = 2;
+        break;
+    case 4:
+        cursor = 12;
+        break;
+    case 5:
+        cursor = 11;
+        break;
+    default:
+        cursor = -1;
+        break;
+    }
+    if (cursor != g_cursor_state_00683fdb) {
+        SetTargetCursor(cursor);
+    }
+    g_target_position_0068407f.x = 0.0f;
+    g_target_position_0068407f.y = 0.0f;
+    g_target_position_0068407f.z = 0.0f;
+    RequestRefreshPartyState();
+    if (state == 4) {
+        Function4ADD30(1);
+        Function56AA30();
+    }
+    else {
+        Function4ADD30(0);
+        if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME) {
+            Function56AAB0();
+        }
+    }
+}
+
+/* Remove one party slot's highlight bit from every live monster that carries
+   it, notifying the render-side highlight owner for each changed monster. */
+// FUNCTION: WIZ8 0x0053AEB0
+void Function53AEB0(unsigned int party_slot)
+{
+    unsigned int index;
+
+    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
+        W8Monster* monster = monster_info->monster;
+
+        if (monster_info->flag_14 != 0 && monster != 0) {
+            unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
+            unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
+
+            if ((flags & bit) != 0) {
+                MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags & ~bit));
+                NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
+            }
+        }
+    }
+}
+
+/* Clear the target marker and request the party-display refresh that consumes
+   the change. */
+// FUNCTION: WIZ8 0x0053B160
+void Function53B160(void)
+{
+    g_target_marker_00684073 = 0;
+    RequestRefreshPartyState();
+}
+
+/* Recompute the target point and hand it to the marker only when it differs
+   from the cached three-float position. */
+// FUNCTION: WIZ8 0x0053B170
+void Function53B170(void)
+{
+    W8Position position;
+
+    Function492500(&position);
+    if (position.x != g_target_position_0068407f.x ||
+        position.y != g_target_position_0068407f.y ||
+        position.z != g_target_position_0068407f.z) {
+        g_target_position_0068407f = position;
+        Function53B660(&position, &g_target_position_0068406f, 1);
+    }
+}
+
+/* A party slot can participate only while occupied, alive, and below the
+   terminal character-state threshold. */
+// FUNCTION: WIZ8 0x0053C270
+unsigned char Function53C270(int party_slot)
+{
+    return g_party_slot_rows[party_slot].flag_00 != 0 &&
+           g_party_characters[party_slot].hp_current != 0 &&
+           g_party_characters[party_slot].unknown_0b01 < 0x12;
+}
+
 /* Validate a targeting context a second time, after resolving "current". The
    inner resolution has an assertion of its own, so a context that gets this far
    has already been checked once; this one guards the caller's own use of the
