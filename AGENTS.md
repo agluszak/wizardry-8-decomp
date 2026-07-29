@@ -126,3 +126,16 @@ Use Jujutsu, not raw Git, for repository history. Preserve unrelated working-cop
 `jj status` after meaningful edits, fetch/rebase before publication, and publish a named review
 bookmark. The exact workspace, Beads, rebase, and PR commands live in
 [the contributor workflow](docs/contributor-workflow.md).
+
+Jujutsu workspaces have separate working copies but share bookmarks and operation history. `main`
+is therefore repository-global, not workspace-local. Never point `main` at unfinished, conflicted,
+or otherwise unpublished work; keep that work on its workspace commit and a named review bookmark.
+A concurrent operation reconciliation can replay another workspace's bookmark movement, so run
+`jj workspace update-stale` when requested and recheck `main`, `main@origin`, and the intended
+publication commit immediately before publishing.
+
+When direct publication to `main` is explicitly authorized, perform the final fetch, rebase,
+bookmark move, and push as one uninterrupted sequence. If another workspace moved local `main`,
+inspect and integrate that work rather than overwriting its bookmark movement. After the push,
+fetch again and prove that local `main` and `main@origin` resolve to the published commit and have
+an empty tree diff. This final proof is required even when the push itself reported success.
