@@ -249,9 +249,7 @@ class W8WidgetBase005ED5BC;
 struct W8RangeControlConstruction005ED74C {};
 
 // VTABLE: WIZ8 0x005ed5b0
-class W8ControlsVector005ED5B0
-    : public W8GrowableVector<W8WidgetBase005ED5BC*> {
-};
+// class W8GrowableVector<W8WidgetBase005ED5BC*>
 
 /* The region callback a widget without its own region is given. Ghidra has no
    function at 0x004F3140, only a label, so this is a declaration and not a
@@ -291,7 +289,7 @@ struct Controls {
     W8ControlsRect m_dirtyRect;             /* 0x24 */
     unsigned char m_fWholeAreaDirty;        /* 0x34: set when a caller passes no rectangle */
     unsigned char unknown_35[3];
-    W8ControlsVector005ED5B0 m_controls;    /* 0x38 */
+    W8GrowableVector<W8WidgetBase005ED5BC*> m_controls; /* 0x38 */
     unsigned int m_uiRegionSetId;           /* 0x48 */
 
     void EnableRegionSet(unsigned char enable);

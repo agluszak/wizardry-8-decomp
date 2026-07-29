@@ -30,11 +30,8 @@
 #define REGSET_NULL 0
 
 
-// SYNTHETIC: WIZ8 0x004f6870
-// W8GrowableVector<W8WidgetBase005ED5BC*>::`scalar deleting destructor'
-
 // SYNTHETIC: WIZ8 0x004f68a0
-// W8ControlsVector005ED5B0::`scalar deleting destructor'
+// W8GrowableVector<W8WidgetBase005ED5BC*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f68c0
 // W8GrowableVector<W8WidgetBase005ED5BC*>::~W8GrowableVector<W8WidgetBase005ED5BC*>
@@ -2338,7 +2335,7 @@ void W8WidgetBase005ED5BC::SetBoundsFromRect(const W8ControlsRect* bounds)
    its base's construction inlined and embeds one growable vector at +0x10 -
    the shared template in wiz8/vector.h, not a fourth private copy of it. The
    family map reads the shape straight off the vtable stores: the base's table
-   at +0, the vector's base and derived tables at +0x10, and the control's own
+   at +0, the vector specialization's table at +0x10, and the control's own
    table last, which is construction order exactly.
 
    Neither class is named by the image, so both carry address-qualified
@@ -2365,9 +2362,8 @@ protected:
     int m_index_c;                       /* 0x0c: the -1 sentinel when unset */
 };                                       /* 0x10 */
 
-/* The embedded vector installs two tables at +0x10, the template's and its
-   own, which is the second-vtable shape wiz8/vector.h describes. Its element
-   type is unproven, so it is named for the vtable the image gives it. */
+/* The embedded vector's element type is unproven, so it is named for the
+   specialization vtable the image gives it. */
 /* The element type. 0x004F5540 calls two of its virtuals, at +0x48 and +0x4c,
    which puts them at slots 18 and 19 and forces the eighteen before them to be
    declared for the slots to land. Only the two that are called are described;
@@ -2405,9 +2401,7 @@ public:
 };
 
 // VTABLE: WIZ8 0x005ed65c
-class W8ControlEntryVector005ED65C
-    : public W8GrowableVector<W8VectorElement005ED65C*> {
-};                                       /* 0x10 */
+// class W8GrowableVector<W8VectorElement005ED65C*>
 
 class W8Control005ED654 : public W8ControlBase005ED664 {
 public:
@@ -2417,7 +2411,7 @@ public:
     virtual void SelectEntry(W8VectorElement005ED65C* entry);
 
 protected:
-    W8ControlEntryVector005ED65C m_lsButtons;  /* 0x10: named by Controls.cpp:2679 */
+    W8GrowableVector<W8VectorElement005ED65C*> m_lsButtons; /* 0x10 */
     W8ControlListener* m_value_20;       /* 0x20: notified on a change */
 };                                       /* 0x24 established */
 
@@ -2428,11 +2422,8 @@ __forceinline W8ControlBase005ED664::W8ControlBase005ED664()
     m_index_c = -1;
 }
 
-// SYNTHETIC: WIZ8 0x004f68e0
-// W8GrowableVector<W8VectorElement005ED65C*>::`scalar deleting destructor'
-
 // SYNTHETIC: WIZ8 0x004f6910
-// W8ControlEntryVector005ED65C::`scalar deleting destructor'
+// W8GrowableVector<W8VectorElement005ED65C*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f6930
 // W8GrowableVector<W8VectorElement005ED65C*>::~W8GrowableVector<W8VectorElement005ED65C*>

@@ -98,43 +98,29 @@ void W8GrCycle::SubmitTargetValue004A84A0()
     vslot11((unsigned char*)target + 0xa8);
 }
 
-/* The pointer at W8GrCycle +0x1b0 owns this list. The construction path at
-   0x004A8530 installs the growable-vector table 0x005ECED8 followed by the
-   derived table 0x005ECED4, and the 44/30/17-byte destructor family proves
-   the same empty-derived shape used by the other reviewed vector families.
-   No source or debug witness names the element type, so it remains qualified
-   by the derived vtable address. */
+/* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug
+   witness names the element type, so it remains address-qualified. */
 class W8VectorElement005ECED4;
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
 extern W8GrowableVector<char*> g_grcycle_names;                       /* 0x0065BDF0 */
 // VTABLE: WIZ8 0x005ecedc
-class W8GrCycleRegistryVector005ECEDC
-    : public W8GrowableVector<W8GrCycle*> {
-};
-
-// SYNTHETIC: WIZ8 0x004a9020
-// W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
+// class W8GrowableVector<W8GrCycle*>
 
 // SYNTHETIC: WIZ8 0x004a9050
-// W8GrCycleRegistryVector005ECEDC::`scalar deleting destructor'
+// W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a9070
 // W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
 
-extern W8GrowableVector<W8GrCycleRegistryVector005ECEDC*> g_grcycles_by_name;
+extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
                                                                     /* 0x0065BE00 */
 
 // VTABLE: WIZ8 0x005eced4
-class W8Vector005ECED4
-    : public W8GrowableVector<W8VectorElement005ECED4*> {
-};                                       /* 0x10 */
-
-// SYNTHETIC: WIZ8 0x004a8f40
-// W8GrowableVector<W8VectorElement005ECED4*>::`scalar deleting destructor'
+// class W8GrowableVector<W8VectorElement005ECED4*>
 
 // SYNTHETIC: WIZ8 0x004a8f70
-// W8Vector005ECED4::`scalar deleting destructor'
+// W8GrowableVector<W8VectorElement005ECED4*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a8f90
 // W8GrowableVector<W8VectorElement005ECED4*>::~W8GrowableVector<W8VectorElement005ECED4*>
@@ -166,7 +152,7 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
 }
 
 // FUNCTION: WIZ8 0x004a84c0
-void W8GrCycle::SetLights(W8Vector005EC294* lights)
+void W8GrCycle::SetLights(W8GrowableVector<W8VectorElement005EC294*>* lights)
 {
     if (m_fDeleteLights && m_plsLights != 0) {
         srAssertFail(
@@ -183,7 +169,7 @@ void W8GrCycle::SetLights(W8Vector005EC294* lights)
 void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
 {
     if (m_vector_1b0 == 0) {
-        m_vector_1b0 = new W8Vector005ECED4();
+        m_vector_1b0 = new W8GrowableVector<W8VectorElement005ECED4*>();
     }
     m_vector_1b0->Add(element);
 }
@@ -194,7 +180,7 @@ const char* __fastcall GetGrCycleName(W8GrCycle* cycle)
     int name_index;
 
     for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
-        W8GrCycleRegistryVector005ECEDC* cycles =
+        W8GrowableVector<W8GrCycle*>* cycles =
             *g_grcycles_by_name.GetAt(name_index);
         if (cycles->GetCount() == 0) {
             srAssertFail(
@@ -216,7 +202,7 @@ unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle)
     int name_index;
 
     for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
-        W8GrCycleRegistryVector005ECEDC* cycles =
+        W8GrowableVector<W8GrCycle*>* cycles =
             *g_grcycles_by_name.GetAt(name_index);
         if (cycles->GetCount() == 0) {
             srAssertFail(
@@ -239,7 +225,7 @@ W8GrCycle* FindFirstGrCycleByName(const char* name)
 
     for (name_index = 0; name_index < g_grcycle_names.GetCount(); ++name_index) {
         if (_stricmp(name, *g_grcycle_names.GetAt(name_index)) == 0) {
-            W8GrCycleRegistryVector005ECEDC* cycles =
+            W8GrowableVector<W8GrCycle*>* cycles =
                 *g_grcycles_by_name.GetAt(name_index);
             if (cycles->GetCount() == 0) {
                 srAssertFail(
@@ -260,7 +246,7 @@ unsigned char UnregisterGrCycle(W8GrCycle* cycle)
     int name_index;
 
     for (name_index = 0; name_index < g_grcycles_by_name.GetCount(); ++name_index) {
-        W8GrCycleRegistryVector005ECEDC* cycles =
+        W8GrowableVector<W8GrCycle*>* cycles =
             *g_grcycles_by_name.GetAt(name_index);
         if (cycles->GetCount() == 0) {
             srAssertFail(
@@ -292,7 +278,7 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 
     for (name_index = 0; name_index < g_grcycle_names.GetCount(); ++name_index) {
         if (_stricmp(name, *g_grcycle_names.GetAt(name_index)) == 0) {
-            W8GrCycleRegistryVector005ECEDC* cycles =
+            W8GrowableVector<W8GrCycle*>* cycles =
                 *g_grcycles_by_name.GetAt(name_index);
             if (cycles->GetCount() == 0) {
                 srAssertFail(
@@ -308,8 +294,8 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 
     char* owned_name = new char[strlen(name) + 1];
     strcpy(owned_name, name);
-    W8GrCycleRegistryVector005ECEDC* cycles =
-        new W8GrCycleRegistryVector005ECEDC();
+    W8GrowableVector<W8GrCycle*>* cycles =
+        new W8GrowableVector<W8GrCycle*>();
     cycles->Add(cycle);
     g_grcycle_names.Add(owned_name);
     g_grcycles_by_name.Add(cycles);
@@ -319,7 +305,8 @@ extern W8World* g_world_00659ab4;
 extern void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
 
 // FUNCTION: WIZ8 0x004a8c50
-void DestroyVector005EC294(W8Vector005EC294* vector)
+void DestroyLightVector(
+    W8GrowableVector<W8VectorElement005EC294*>* vector)
 {
     int count;
     int index;

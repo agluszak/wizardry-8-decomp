@@ -1,5 +1,7 @@
 #pragma once
 
+#include "wiz8/vector.h"
+
 class srNode;
 
 /* The original names of GrCycle's two bases are not present in the available
@@ -56,8 +58,7 @@ public:
 };
 
 class W8VectorElement005ECED4;
-class W8Vector005ECED4;
-class W8Vector005EC294;
+class W8VectorElement005EC294;
 class stGroundShadow;
 
 class W8GrCycle :
@@ -83,7 +84,7 @@ public:
 
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
-    void SetLights(W8Vector005EC294* lights);
+    void SetLights(W8GrowableVector<W8VectorElement005EC294*>* lights);
     void AddVectorElement005ECED4(W8VectorElement005ECED4* element);
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
@@ -95,8 +96,8 @@ public:
 
 private:
     unsigned char unknown_1a8[0x4];
-    W8Vector005EC294* m_plsLights;        /* 0x1ac: named by GrCycle.cpp:1656 */
-    W8Vector005ECED4* m_vector_1b0;       /* 0x1b0 */
+    W8GrowableVector<W8VectorElement005EC294*>* m_plsLights; /* 0x1ac */
+    W8GrowableVector<W8VectorElement005ECED4*>* m_vector_1b0; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5[0x1b];
     stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */

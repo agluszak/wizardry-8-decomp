@@ -5,15 +5,11 @@
 #include "wiz8/vector_005ec294.h"
 
 /* The Spells.cpp host destructor at 0x004AB1C0 walks every element and hands
-   it directly to DestroyVector005EC294.  That closes the formerly anonymous
+   it directly to DestroyLightVector.  That closes the formerly anonymous
    element type without changing this vector family's reviewed vtable. */
-typedef W8Vector005EC294 W8VectorElement005ECE60;
+typedef W8GrowableVector<W8VectorElement005EC294*> W8VectorElement005ECE60;
 
 // VTABLE: WIZ8 0x005ece60
-class W8Vector005ECE60 :
-    public W8GrowableVector<W8VectorElement005ECE60*> {
-public:
-    W8Vector005ECE60(int initial_capacity = 5);
-};                                       /* 0x10 */
+// class W8GrowableVector<W8VectorElement005ECE60*>
 
 #endif

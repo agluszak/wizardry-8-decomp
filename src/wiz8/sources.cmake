@@ -82,33 +82,10 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Bink.cpp
     src/wiz8/level_specific_code/MasterFunctionList.cpp
 )
-# Address-qualified sources are distinct VC6 template emissions. Their
-# original translation-unit ownership is not established, so grouping
-# them here does not merge or rename any emission.
+# Compiler-emitted growable-vector specializations whose original
+# translation-unit ownership is not established.
 set(WIZ8_TEMPLATE_EMISSIONS
-    src/wiz8/vector_005ebfb4.cpp
-    src/wiz8/vector_005ec16c.cpp
-    src/wiz8/vector_005ec2b8.cpp
-    src/wiz8/vector_005ec324.cpp
-    src/wiz8/vector_005ec514.cpp
-    src/wiz8/vector_005eca98.cpp
-    src/wiz8/vector_005ecaa0.cpp
-    src/wiz8/vector_005ecad0.cpp
-    src/wiz8/vector_005ece60.cpp
-    src/wiz8/vector_005ecee4.cpp
-    src/wiz8/vector_005ed018.cpp
-    src/wiz8/vector_005ed2c8.cpp
-    src/wiz8/vector_005ed7d4.cpp
-    src/wiz8/vector_005ef08c.cpp
-    src/wiz8/vector_005ec018.cpp
-    src/wiz8/vector_005ed1b8.cpp
-    src/wiz8/vector_005ec164.cpp
-    src/wiz8/vector_005eca5c.cpp
-    src/wiz8/vector_005ec294.cpp
-    src/wiz8/vector_005ed840.cpp
-    src/wiz8/vector_005eea28.cpp
-    src/wiz8/vector_005ecf00.cpp
-    src/wiz8/vector_005ec27c.cpp
+    src/wiz8/vector.cpp
 )
 set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/bringup_gates.cpp

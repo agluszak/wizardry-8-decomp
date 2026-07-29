@@ -96,16 +96,10 @@ public:
     virtual ~W8DialogOwned005D14D0();
 };
 
-/* Two instances of this suffix-sharing pointer-vector specialization are
-   embedded in W8DialogMember005D14D0. The base subobject is one instantiation
-   of the growable-vector template, whose constructor installs 0x005EF89C
-   before this derived layer installs 0x005EF898 at the same address; the
-   derived layer adds no storage, so both classes are 0x10 bytes. The derived
-   name stays address-qualified because no source-backed name is available. */
+/* Two instances of this pointer-vector specialization are embedded in
+   W8DialogMember005D14D0. */
 // VTABLE: WIZ8 0x005ef898
-class W8DialogPtrVector005EF898
-    : public W8GrowableVector<W8DialogOwned005D14D0*> {
-};                                      /* 0x10 */
+// class W8GrowableVector<W8DialogOwned005D14D0*>
 
 class W8DialogMember005D14D0 {
 public:
@@ -117,8 +111,8 @@ private:
     int unknown_010;
     int unknown_014;
     int unknown_018;
-    W8DialogPtrVector005EF898 m_vector_01c;
-    W8DialogPtrVector005EF898 m_vector_02c;
+    W8GrowableVector<W8DialogOwned005D14D0*> m_vector_01c;
+    W8GrowableVector<W8DialogOwned005D14D0*> m_vector_02c;
     unsigned char unknown_03c;
     unsigned char unknown_03d;
     unsigned char unknown_03e;

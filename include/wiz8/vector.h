@@ -105,12 +105,10 @@ class W8VectorElement005EBFE0;
 
 /* The initial capacity is a parameter, clamped to at least one. Every site that
    constructs with the default folds both the clamp and the multiply away, which
-   is why the inlined copies show only `operator new(20)`; the thirty-six
-   out-of-line copies - fourteen at 0x004390F0 and its siblings, twenty-two more
-   that install a second vtable the way 0x0042A260 does - keep the parameter and
-   are what proves it. Whether the original spelled a default argument or a
-   separate default constructor the image cannot say, because every capacity-5
-   site is inlined. */
+   is why the inlined copies show only `operator new(20)`; the out-of-line
+   constructor emissions keep the parameter and are what proves it. Whether the
+   original spelled a default argument or a separate default constructor the
+   image cannot say, because every capacity-5 site is inlined. */
 template <class T>
 W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
 {

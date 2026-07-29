@@ -50,11 +50,9 @@ Size `0x10`. If the backing allocation fails the constructor stores capacity `0`
 which is why the field is read rather than assumed.
 
 The 5 is an argument, not a constant. Every construction that uses it is inlined, so the clamp and
-the multiply fold away and only `operator new(20)` survives — but the constructor also exists
-out-of-line, in two shapes that keep the parameter: `0x004390F0` installs one vtable, and
-`0x0042A260` installs a second one over it after the allocation, which is the derived-layer shape
-`W8DialogPtrVector005EF898` also has. Both clamp the requested capacity up to one. Whether the
-original spelled a default argument or a separate default constructor cannot be read off the image.
+the multiply fold away and only `operator new(20)` survives. Out-of-line template constructor
+emissions retain the parameter and clamp the requested capacity up to one. Whether the original
+spelled a default argument or a separate default constructor cannot be read off the image.
 
 The destructor for that instantiation, `0x0050E510`, is a textbook MSVC scalar deleting destructor:
 restore the vptr, `operator delete` the backing store at `+0x0c`, then conditionally `operator
@@ -90,44 +88,25 @@ because the extra polymorphic level is one more than the original constructs. So
 wrong too, and the header keeps `Grow` as a template member: a spelling that is knowingly not the
 original's, chosen because it costs no reviewed body. Resolving it is tracked in Beads.
 
-### The second vtable is user-defined derivation, not a hidden level
+### Specialization identities are recorded directly
 
-The two-store sites and the one-store sites are not one shape emitted two ways. A site that installs
-two tables is constructing a class the original *declared* as deriving from the instantiation; a site
-that installs one is constructing the instantiation directly. `Engine Code\GrObject.cpp` proves it,
-because it is the first unit where the whole family is byte-exact at once:
+The source index follows the same convention used by ISLE: a standalone vtable annotation names the
+template specialization directly, without inventing an empty address-qualified derived class:
 
-| Address | Bytes | What it is |
-| --- | --- | --- |
-| `0x004B6BD0` | 319 | `AddSoundEvent`, which creates the list and installs **both** tables |
-| `0x004B6D90` | 44 | the instantiation's deleting destructor, complete destructor folded in |
-| `0x004B6DC0` | 30 | the derived class's deleting destructor |
-| `0x004B6DE0` | 17 | the derived class's complete destructor |
+```cpp
+// VTABLE: WIZ8 0x005ec294
+// class W8GrowableVector<W8VectorElement005EC294*>
+```
 
-The teardown is where it gets counter-intuitive, and it is worth knowing before reading any other
-vector's destructor: **`0x004B6DE0` stores the base table `0x005ED098`, not the derived class's own
-`0x005ED094`** — even though it *is* the derived destructor and the constructor plainly writes both.
-The derived store is dead. It is overwritten by the inlined base destructor's store to the same
-address with nothing in between that could observe the difference, so VC6 drops it and the derived
-body becomes the base body. Construction cannot collapse the same way, because the base constructor
-calls the allocator between the two stores.
+Template constructor and complete-destructor emissions use `TEMPLATE`; compiler-generated deleting
+destructors use `SYNTHETIC`. These annotations account for emitted code without claiming that the
+original source contained wrapper lifecycle bodies. The specialization annotations are consolidated
+in `src/wiz8/vector.cpp`.
 
-So a vtable count taken from constructors and one taken from destructors will disagree, and the
-constructor is the one telling the truth about the hierarchy. This does not by itself settle the
-shared `Grow`, which is still open: it settles what a second vptr store means.
-
-`src/wiz8/vector_005ebfb4.cpp` then confirms it on the site this question actually named. Its four
-bodies are byte-exact on the same declarations, and its constructor `0x0042A260` keeps the capacity
-parameter and the clamp instead of folding in a default, so it can be laid directly beside the
-single-store constructor `0x004390F0`: **84 bytes against 72, and the twelve are exactly the two
-extra six-byte vtable stores.** Nothing else in the two bodies differs. Whatever remains unresolved
-about `Grow`, the store count is not evidence of a level inside the template.
-
-What the single-store form still needs is an out-of-line copy of the template constructor, and the
-header currently spells that constructor `__forceinline`. The fourteen out-of-line copies in the
-image say the original did not force it, so reproducing `0x004390F0` means relaxing that keyword and
-re-verifying every site that currently depends on the inlining - a whole-corpus experiment rather
-than a port, and one to run on its own.
+Some constructors write an adjacent vtable before the specialization table. That observation remains
+real, but it does not justify manufacturing a second source class. Until independent evidence names
+the adjacent owner, it remains unresolved rather than being projected as a base or derived wrapper.
+This also leaves the shared `Grow` source hierarchy open.
 
 ## Everything else the image repeats is not a first-party template
 

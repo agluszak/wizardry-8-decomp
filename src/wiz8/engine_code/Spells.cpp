@@ -167,7 +167,7 @@ W8SpellEmitterHost::~W8SpellEmitterHost()
     for (emitter = 0; emitter < 28; ++emitter) {
         for (light_list = 0; light_list < light_lists[emitter].GetCount();
              ++light_list) {
-            DestroyVector005EC294(*light_lists[emitter].GetAt(light_list));
+            DestroyLightVector(*light_lists[emitter].GetAt(light_list));
         }
         light_lists[emitter].Clear();
     }

@@ -5,30 +5,9 @@
 
 #define GROBJECT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\GrObject.cpp"
 
-/* Engine Code\GrObject.cpp. The sound-event list is the first growable vector
-   whose *teardown* is recovered rather than only its construction, which is
-   what makes it worth having: wiz8/vector.h records that some sites install one
-   vtable and others install two, and the two-store sites were only ever proven
-   from constructors. Here the whole family is present at once - the derived
-   vector's deleting destructor at 0x004B6DC0, the instantiation's complete
-   destructor at 0x004B6DE0, and the instantiation's own deleting destructor at
-   0x004B6D90 - so the hierarchy has to explain three encodings, not one.
-
-   What it has to explain is that 0x004B6DC0 sits in the derived class's vtable
-   0x005ED094 and calls 0x004B6DE0, which stores the *base* vtable 0x005ED098.
-   No store of 0x005ED094 survives anywhere in the teardown path, though the
-   constructor plainly writes one. That is the derived destructor's own vptr
-   store being dropped: it is immediately overwritten by the base destructor's
-   store to the same address with nothing in between that could observe it, so
-   the two collapse into the base's single store and the derived body becomes
-   the base body. Construction cannot do that - the base constructor runs first
-   and calls out to the allocator between the two stores - which is why the
-   two-store shape is visible there and invisible here.
-
-   The element type is unproven, so it is named for the vtable the image gives
-   the vector, per the convention wiz8/vector.h sets out. The vector itself is
-   named for the member it is assigned to, m_plsSoundEvents, which the canonical
-   assertion at line 139 spells out. */
+/* Engine Code\GrObject.cpp. The element type is unproven, so it is named for
+   the specialization vtable. The member name m_plsSoundEvents comes from the
+   canonical assertion in this translation unit. */
 
 /* Destroyed by a direct call to 0x004D5770 followed by operator delete, so the
    element type has a non-virtual destructor of its own. */
@@ -38,9 +17,7 @@ public:
 };
 
 // VTABLE: WIZ8 0x005ed094
-class W8SoundEventVector005ED094
-    : public W8GrowableVector<W8VectorElement005ED094*> {
-};                                       /* 0x10 */
+// class W8GrowableVector<W8VectorElement005ED094*>
 
 class W8GrObject005ED090 {
 public:
@@ -63,14 +40,11 @@ protected:
     /* Released with free, not operator delete, so this one is malloc storage
        and not a vector. */
     void* m_buffer_c;                    /* 0x0c */
-    W8SoundEventVector005ED094* m_plsSoundEvents; /* 0x10 */
+    W8GrowableVector<W8VectorElement005ED094*>* m_plsSoundEvents; /* 0x10 */
 };                                       /* 0x14 established */
 
-// SYNTHETIC: WIZ8 0x004b6d90
-// W8GrowableVector<W8VectorElement005ED094*>::`scalar deleting destructor'
-
 // SYNTHETIC: WIZ8 0x004b6dc0
-// W8SoundEventVector005ED094::`scalar deleting destructor'
+// W8GrowableVector<W8VectorElement005ED094*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004b6de0
 // W8GrowableVector<W8VectorElement005ED094*>::~W8GrowableVector<W8VectorElement005ED094*>
@@ -91,7 +65,7 @@ unsigned char W8GrObject005ED090::AddSoundEvent(W8VectorElement005ED094* pse)
         return 0;
     }
     if (!m_plsSoundEvents) {
-        m_plsSoundEvents = new W8SoundEventVector005ED094();
+        m_plsSoundEvents = new W8GrowableVector<W8VectorElement005ED094*>();
         if (!m_plsSoundEvents) {
             srAssertFail("m_plsSoundEvents", GROBJECT_CPP, 0x8b, 0);
         }

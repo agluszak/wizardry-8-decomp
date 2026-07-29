@@ -21,7 +21,7 @@ public:
     unsigned char unknown_0ac[0x2c];
     W8Emitter* emitters[28];              /* 0x0d8 */
     float emitter_values[28];             /* 0x148 */
-    W8Vector005ECE60 light_lists[28];      /* 0x1b8 */
+    W8GrowableVector<W8VectorElement005ECE60*> light_lists[28]; /* 0x1b8 */
     unsigned char flag_378;
     unsigned char unknown_379[3];
 };                                        /* 0x37c */
