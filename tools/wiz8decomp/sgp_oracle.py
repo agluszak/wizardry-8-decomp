@@ -3,14 +3,11 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
-import shutil
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import pefile
-import yaml
 from reccmp.compare.exact import (
     CoffFunction,
     mask_relocations,
@@ -21,8 +18,69 @@ from reccmp.compare.exact import (
 )
 
 from .config import Settings
-from .ghidra.fid_seeds import _docker_cmake_build, load_static_libraries
 from .paths import atomic_write, sha256_file
+
+PROJECT_FLAGS = ("/O2", "/Ob2", "/G5", "/MD")
+NEAR_MATCH_THRESHOLD = 0.75
+REPORT = Path("build/reports/sgp/harness.csv")
+
+BUILDS = (
+    {"id": "demo", "variant": "demo", "module": "Wiz8.EXE"},
+    {"id": "gog_base", "variant": "gog-base", "module": "Wiz8.exe"},
+    {"id": "gog_1261", "variant": "gog-1261", "module": "Wiz8.exe"},
+    {"id": "gog_1261_new", "variant": "gog-1261", "module": "Wiz8New.exe"},
+    {"id": "gog_128_base", "variant": "gog-128", "module": "Wiz8.exe"},
+    {
+        "id": "gog_128_patch",
+        "variant": "gog-128",
+        "module": "Wiz8_v128.exe",
+    },
+    {
+        "id": "retail_2001_12_23",
+        "variant": "retail-2001-12-23",
+        "module": "Wiz8.exe",
+        "unavailable_reason": "protected-executable",
+    },
+)
+
+UNITS = (
+    {"id": "directdraw", "source": "DirectDraw Calls.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "random", "source": "Random.c", "target": "WIZ8_SGP_WHOLE"},
+    {"id": "compression", "source": "Compression.c", "target": "WIZ8_SGP_ANALYSIS"},
+    {"id": "fileman", "source": "FileMan.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "librarydatabase", "source": "LibraryDataBase.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "dbman", "source": "DbMan.c", "target": "WIZ8_SGP_ANALYSIS"},
+    {"id": "container", "source": "Container.c", "target": "WIZ8_SGP_RUNTIME"},
+    {"id": "debug", "source": "DEBUG.C", "target": "WIZ8_SGP_RUNTIME"},
+    {
+        "id": "exceptionhandling",
+        "source": "ExceptionHandling.cpp",
+        "target": "WIZ8_SGP_ANALYSIS",
+        "expected_empty": True,
+    },
+    {
+        "id": "sgp",
+        "source": "sgp.c",
+        "target": "WIZ8_SGP_RUNTIME",
+        "functions": ("GetRuntimeSettings", "ProcessCommandLine"),
+    },
+    {"id": "timer", "source": "timer.c", "target": "WIZ8_SGP_WHOLE"},
+    {
+        "id": "input",
+        "source": "input.c",
+        "target": "WIZ8_SGP_RUNTIME",
+        "functions": (
+            "KeyboardHandler",
+            "MouseHandler",
+            "InitializeInputManager",
+            "ShutdownInputManager",
+            "QueueEvent",
+            "DequeueEvent",
+            "FreeMouseCursor",
+            "GetMouseWheelDeltaValue",
+        ),
+    },
+)
 
 CLASSIFICATION_RANK = {
     "unavailable": 0,
@@ -109,25 +167,15 @@ def classify_body(
     return {"classification": "absent-or-stripped", "positions": [], "similarity": best_similarity}
 
 
-def _load_config(settings: Settings) -> dict[str, Any]:
-    path = settings.repo_dir / "config" / "sgp.yml"
-    config = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if config.get("schema") != "wiz8.sgp-harness":
-        raise RuntimeError("invalid SGP harness schema")
-    if not config.get("units") or not config.get("builds") or not config.get("project_flags"):
-        raise RuntimeError("SGP harness must configure units, builds, and project flags")
-    return config
-
-
-def _load_builds(settings: Settings, config: dict[str, Any]) -> list[BuildText]:
+def _load_builds(settings: Settings) -> list[BuildText]:
     builds = []
-    for record in config["builds"]:
+    for record in BUILDS:
         path = settings.work_dir / "variants" / record["variant"] / record["module"]
         if not path.is_file():
             builds.append(BuildText(record["id"], "", None, None, "module-missing"))
             continue
         module_hash = sha256_file(path)
-        if record.get("static_matching") == "unavailable":
+        if record.get("unavailable_reason"):
             builds.append(
                 BuildText(
                     record["id"],
@@ -160,77 +208,52 @@ def _load_builds(settings: Settings, config: dict[str, Any]) -> list[BuildText]:
 
 def _compile_units(
     settings: Settings,
-    config: dict[str, Any],
     units: list[dict[str, Any]],
 ) -> dict[str, list[tuple[tuple[str, ...], list[CoffFunction]]]]:
-    source = settings.repo_dir / config["source_root"]
+    from .build import build_target
+
+    source = settings.repo_dir / "third_party/sfi-sgp/sgp"
     if not source.is_dir():
         raise RuntimeError(f"vendored SGP source is missing: {source}")
     if not (source / "SFI Source Code license agreement.txt").is_file():
         raise RuntimeError("vendored SGP source is missing its required SFI license")
-    toolchains = {item.id: item for item in load_static_libraries(settings).toolchains}
-    toolchain = toolchains.get(config["toolchain"])
-    if toolchain is None or "compiler" not in toolchain.capabilities:
-        raise RuntimeError(
-            f"configured SGP toolchain is not compiler-capable: {config['toolchain']}"
-        )
     results = {unit["id"]: [] for unit in units}
-    sweep_root = settings.work_dir / "sgp" / "sweeps"
-    sweep_root.mkdir(parents=True, exist_ok=True)
-    flags = tuple(config["project_flags"])
-    output = Path(tempfile.mkdtemp(prefix="project-profile-", dir=sweep_root))
-    try:
-        definitions = {
-            "SGP_SOURCE": "Z:/repo/third_party/sfi-sgp/sgp",
-        }
-        for unit in units:
-            target = unit["groups"][0]
-            _docker_cmake_build(
-                settings,
-                toolchain,
-                output=output,
-                source_dir="tools/sgp-oracle",
-                target=target,
-                definitions=definitions,
-                log_name=f"sgp-{unit['id']}-project-profile",
+    for target in sorted({unit["target"] for unit in units}):
+        build_target(settings, target)
+    output = settings.repo_dir / "build/decomp"
+    for unit in units:
+        target = unit["target"]
+        target_root = output / "CMakeFiles" / f"{target}.dir"
+        source_object = f"{Path(unit['source']).name.replace(' ', '_')}.obj".casefold()
+        objects = sorted(
+            obj for obj in target_root.rglob("*.obj") if obj.name.casefold() == source_object
+        )
+        if len(objects) != 1:
+            raise RuntimeError(
+                f"{target} produced {len(objects)} objects for "
+                f"{unit['source']}; expected exactly one"
             )
-            target_root = output / "CMakeFiles" / f"{target}.dir"
-            source_object = f"{Path(unit['source']).name.replace(' ', '_')}.obj".casefold()
-            objects = sorted(
-                obj for obj in target_root.rglob("*.obj") if obj.name.casefold() == source_object
-            )
-            if len(objects) != 1:
+        try:
+            functions = parse_coff_functions(objects[0])
+        except RuntimeError as error:
+            if unit.get("expected_empty") and "exposes no external .text functions" in str(error):
+                functions = []
+            else:
+                raise
+        selected = unit.get("functions")
+        if selected is not None:
+            selected_names = set(selected)
+            available_names = {function.name for function in functions}
+            missing = sorted(selected_names - available_names)
+            if missing:
                 raise RuntimeError(
-                    f"{target} produced {len(objects)} objects for "
-                    f"{unit['source']}; expected exactly one"
+                    f"{target} did not expose selected functions: " + ", ".join(missing)
                 )
-            try:
-                functions = parse_coff_functions(objects[0])
-            except RuntimeError as error:
-                if unit.get("expected_empty") and "exposes no external .text functions" in str(
-                    error
-                ):
-                    functions = []
-                else:
-                    raise
-            selected = unit.get("functions")
-            if selected is not None:
-                selected_names = set(selected)
-                available_names = {function.name for function in functions}
-                missing = sorted(selected_names - available_names)
-                if missing:
-                    raise RuntimeError(
-                        f"{target} did not expose selected functions: " + ", ".join(missing)
-                    )
-                functions = [function for function in functions if function.name in selected_names]
-            if unit.get("expected_empty") and functions:
-                names = ", ".join(function.name for function in functions)
-                raise RuntimeError(
-                    f"{target} was expected to emit no functions but exposed: {names}"
-                )
-            results[unit["id"]].append((flags, functions))
-    finally:
-        shutil.rmtree(output, ignore_errors=True)
+            functions = [function for function in functions if function.name in selected_names]
+        if unit.get("expected_empty") and functions:
+            names = ", ".join(function.name for function in functions)
+            raise RuntimeError(f"{target} was expected to emit no functions but exposed: {names}")
+        results[unit["id"]].append((PROJECT_FLAGS, functions))
     return results
 
 
@@ -338,34 +361,28 @@ def _write_report(path: Path, rows: list[dict[str, Any]]) -> None:
 def sweep_sgp_units(
     settings: Settings,
     unit_ids: list[str] | None = None,
-    *,
-    update_snapshot: bool = False,
 ) -> dict[str, Any]:
-    if update_snapshot and unit_ids:
-        raise RuntimeError("the tracked SGP snapshot can only be refreshed by a complete sweep")
-    config = _load_config(settings)
-    harness_units = [unit for unit in config["units"] if unit.get("harness", True)]
-    by_id = {unit["id"]: unit for unit in harness_units}
+    by_id = {unit["id"]: unit for unit in UNITS}
     unknown = sorted(set(unit_ids or ()) - set(by_id))
     if unknown:
         raise RuntimeError(f"unknown SGP unit(s): {', '.join(unknown)}")
-    units = [by_id[item] for item in unit_ids] if unit_ids else harness_units
-    builds = _load_builds(settings, config)
-    compiled = _compile_units(settings, config, units)
+    units = [by_id[item] for item in unit_ids] if unit_ids else list(UNITS)
+    builds = _load_builds(settings)
+    compiled = _compile_units(settings, units)
     summaries = []
     generated_rows = []
     for unit in units:
         rows = _evaluate(
             compiled[unit["id"]],
             builds,
-            float(config["near_match_threshold"]),
-            tuple(config["project_flags"]),
+            NEAR_MATCH_THRESHOLD,
+            PROJECT_FLAGS,
         )
         generated_rows.extend({"unit": unit["id"], **row} for row in rows)
         summaries.append(
             {
                 "unit": unit["id"],
-                "report": config["report"],
+                "report": str(REPORT),
                 "functions": len({row["function"] for row in rows}),
                 "compiled_empty": bool(unit.get("expected_empty")) and not rows,
                 "rows": len(rows),
@@ -375,16 +392,15 @@ def sweep_sgp_units(
                 },
             }
         )
-    report = settings.repo_dir / config["report"]
-    snapshot = settings.repo_dir / config["snapshot"]
+    report = settings.repo_dir / REPORT
     selected_ids = {unit["id"] for unit in units}
-    merge_source = report if report.is_file() else snapshot
+    merge_source = report
     if unit_ids and merge_source.is_file():
         with merge_source.open(newline="", encoding="utf-8") as stream:
             generated_rows.extend(
                 row for row in csv.DictReader(stream) if row["unit"] not in selected_ids
             )
-    unit_order = {unit["id"]: index for index, unit in enumerate(config["units"])}
+    unit_order = {unit["id"]: index for index, unit in enumerate(UNITS)}
     build_order = {build.identifier: index for index, build in enumerate(builds)}
     generated_rows.sort(
         key=lambda row: (
@@ -394,13 +410,10 @@ def sweep_sgp_units(
         )
     )
     _write_report(report, generated_rows)
-    if update_snapshot:
-        _write_report(snapshot, generated_rows)
     return {
         "schema": "wiz8.sgp-harness-run",
-        "project_flags": config["project_flags"],
+        "project_flags": list(PROJECT_FLAGS),
         "builds": [build.identifier for build in builds],
         "units": summaries,
         "report": str(report.relative_to(settings.repo_dir)),
-        "snapshot_updated": update_snapshot,
     }

@@ -31,8 +31,6 @@ endif()
     # them. GETFILESTRUCT is the first: LoadSaveGame.cpp walks the save
     # directory through GetFileFirst.
     target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
-    set_source_files_properties(src/wiz8/slf_archives.cpp PROPERTIES
-        COMPILE_OPTIONS "/I${CMAKE_CURRENT_SOURCE_DIR}/config/sgp-overlays/librarydatabase")
 
     wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def)
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def)
@@ -70,26 +68,17 @@ endif()
         LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
 if(SGP_SOURCE)
-    set(WIZ8_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
-    include(cmake/SgpModel.cmake)
-    wiz8_load_sgp_model()
-
-    wiz8_add_sgp_group(WIZ8_SGP_RETAINED ${WIZ8_SGP_RETAINED_SOURCES})
-    wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_SHARED ${WIZ8_SGP_RUNTIME_SHARED_SOURCES})
-    wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_CORE ${WIZ8_SGP_RUNTIME_CORE_SOURCES})
-    target_compile_definitions(WIZ8_SGP_RUNTIME_CORE PRIVATE WinMain=SgpRetainedWinMain)
+    include(cmake/Sgp.cmake)
 
     target_sources(WIZ8_BRINGUP PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
+        $<TARGET_OBJECTS:WIZ8_SGP_WHOLE>
     )
     target_sources(WIZ8_RUNTIME PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
-        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_SHARED>
-        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
+        $<TARGET_OBJECTS:WIZ8_SGP_WHOLE>
+        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
     )
     target_sources(WIZ8_RUNTIME_TEST PRIVATE
-        $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
-        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_SHARED>
-        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
+        $<TARGET_OBJECTS:WIZ8_SGP_WHOLE>
+        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME>
     )
 endif()

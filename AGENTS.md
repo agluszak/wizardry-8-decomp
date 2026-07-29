@@ -20,7 +20,8 @@ durable task state and `just` for the supported daily workflow.
 - For every SGP call, type, handle, constant, or record, search `third_party/sfi-sgp/sgp` first and
   include its owning header; never restate that interface in a Wizardry source or shared header.
   When a public SGP header requires a missing product header such as `Local.h` or `WizLibs.h`, use
-  or extend the narrow overlay under `config/sgp-overlays` and expose that overlay to the target.
+  or extend its original include name under `include/wiz8/sgp-compat` and expose that shared
+  directory to the target.
   Do not work around the dependency by inventing a compatible prototype, typedef, or struct.
 - Search before declaring anything. A function, global, class, field, vtable, import, or constant
   has one canonical owner. Extend it; do not add duplicate externs, raw vtable calls, wrappers,

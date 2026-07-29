@@ -480,7 +480,6 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     build_target(settings, "WIZ8")
     build_target(settings, "SURRENDER")
     build_target(settings, "WIZ8_RUNTIME_TEST")
-    build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     source_import = import_reccmp_source(settings, "wiz8")
     surrender_source_import = import_reccmp_source(settings, "wiz8--gog-base--sr--")
     ghidra_index = export_index(settings, "wiz8")
