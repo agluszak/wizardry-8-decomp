@@ -75,6 +75,16 @@ does not extend to a member call *with* arguments: `__fastcall` would place the 
 EDX, and the canonical passes it on the stack. Those need a real virtual or member call, which is
 one more reason owned units are C++.
 
+**Never hand-write a scalar-deleting destructor.** A decompiler rendering such as
+`object->vtable[0](object, 1)` is the lowering of typed source-level `delete object`, and the flag
+test plus `operator delete` belong to MSVC-generated code. Give the class an ordinary virtual
+destructor, write `delete object`, and let VC6 emit or inline the scalar-deleting wrapper. This rule
+still applies when the concrete class name is unknown: create only a positional polymorphic type
+with a virtual destructor; never expose a `ScalarDeletingDestructor(flags)` member. Write the
+ordinary complete-destructor body only. Mark the compiler-owned wrapper with `// SYNTHETIC:` and
+its decorated-name comment above that destructor, then verify the emitted COMDAT. Do not add a
+`// FUNCTION:` body that manually calls `~Class()`, tests bit zero, and invokes `operator delete`.
+
 **A duplicated tail in the decompiler output is often the compiler's, not the source's.** Ghidra
 shows what the binary does, so a compiler-duplicated epilogue appears as a real second copy. Writing
 it out literally can cost bytes: on `InitializeFactState` the duplicated call before an early return

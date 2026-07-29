@@ -1,6 +1,6 @@
 ---
 name: class-triage
-description: Workflow for reviewing Wizardry 8 candidate classes and promoting them into the reviewed model. Use when picking the next class to recover, when decompiling an unnamed constructor/destructor and deciding what it constructs, when turning a Candidate_<vtable> into reviewed classes.csv/vtables.csv/vtable-slots.csv rows, or when interpreting candidate-class and translation-unit comments in Ghidra output.
+description: Workflow for reviewing Wizardry 8 candidate classes and promoting them into the reviewed model. Use when picking the next class to recover, when decompiling an unnamed constructor/destructor and deciding what it constructs, when turning a vtable candidate into reviewed classes.csv/vtables.csv/vtable-slots.csv rows, or when interpreting candidate-class and translation-unit comments in Ghidra output.
 ---
 
 # Class triage: from candidate vtable to reviewed class
@@ -136,6 +136,38 @@ Facts to settle from the decompiles, in order of value:
    layer automatically.
 
 ## Header skeletons and the byte proof
+
+### Hard rule: deleting destructors are compiler output
+
+Never declare, define, or call a `ScalarDeletingDestructor` method or free-function shim. A slot-0
+virtual call with the deleting flag set is the code generated for a source-level typed `delete`;
+it is not an authored interface. Model an ordinary virtual destructor and write the ownership
+operation that produced it:
+
+```cpp
+class W8Owned {
+public:
+    virtual ~W8Owned();
+};
+
+W8Owned* owned = GetOwned();
+delete owned;
+```
+
+Do not spell the decompiler artifact:
+
+```cpp
+virtual void ScalarDeletingDestructor(unsigned char flags) = 0; // forbidden
+owned->ScalarDeletingDestructor(1);                              // forbidden
+```
+
+If the concrete identity is unresolved, use an address-qualified positional class with only the
+proven virtual destructor contract, then still use typed `delete`. Write only the ordinary
+destructor's source body; let MSVC generate and inline the scalar-deleting wrapper. Associate the
+wrapper address with the destructor by placing its `// SYNTHETIC:` marker and decorated-name line
+above the ordinary destructor definition. Never attach `// FUNCTION:` to a hand-written deleting
+wrapper. Confirm the emitted wrapper through the object/boundary tools, but do not reproduce its
+flag test, explicit destructor call, or `operator delete` in source.
 
 `build/reports/class-candidates/headers/candidate_<vtable>.h` is a compilable starting struct
 (vptr layout + size assert) for porting work. Copy it into owned source only as a draft, and
