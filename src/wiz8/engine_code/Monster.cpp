@@ -389,21 +389,30 @@ extern void* g_monster_vtable_005ed290;
    doubles, so each float round-trips through the FPU instead of being copied
    as bits. The image carries both an out-of-line COMDAT copy of that setter at
    0x00421680 and this inlined expansion, which is the multiple-translation-unit
-   visibility the inlining policy asks for before a body moves into a header -
-   but vector_conversions.cpp owns it out of line today, so VC6 cannot inline it
-   here. Recorded rather than forced: moving that definition is an ownership
-   decision for the setter's own bundle, not something to settle from one
-   call site. */
+   visibility the inlining policy asks for before a body moves into a header.
+
+   That was measured rather than argued. Defining the setter in srMath.h and
+   calling it here reproduces the copy exactly - the three fld/fstp pairs land
+   instruction for instruction, leaving only a register choice and one
+   scheduling swap - and takes this body from 0.375 to 0.8125. It also stops
+   VC6 emitting the out-of-line copy at all, because this is the only call site
+   in the tree and it inlines: 0x00421680 goes from exact to missing. The
+   inlining policy requires the bundle to improve without regressing an exact
+   boundary, so the trade is refused and the out-of-line definition stays.
+   Hand-spelling the conversion does not work either - `(float)(double)f` is
+   value-preserving, so VC6 folds it straight back to the integer copy.
+   Reproducing both emissions needs a second call site that does not inline,
+   which is not decidable from this one; the filed bead tracks it. */
 // FUNCTION: WIZ8 0x004c5a40
 void MonsterForward4A7BE0(W8Monster* monster, const W8Position* position)
 {
-    float local[3];
+    srVector3T<float> local;
 
     if (monster != 0) {
-        local[0] = position->x;
-        local[1] = position->y;
-        local[2] = position->z;
-        Function4A7BE0(local);
+        local.x = position->x;
+        local.y = position->y;
+        local.z = position->z;
+        Function4A7BE0(&local.x);
     }
 }
 
