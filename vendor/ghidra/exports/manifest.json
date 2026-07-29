@@ -2,6 +2,19 @@
   "schema": "wiz8.ghidra-seeds",
   "seeds": [
     {
+      "binary_sha256": "cec1caf85861c34bc4583ef1c69209e96a6930bdfc9af545c429f7470a8b6165",
+      "compiler_spec": "windows",
+      "function_count": 3784,
+      "ghidra_release": "PUBLIC",
+      "ghidra_version": "12.1.2",
+      "language": "x86:LE:32:default",
+      "memory_block_count": 7,
+      "path": "vendor/ghidra/exports/wiz8--gog-base--sr--cec1caf85861.gzf",
+      "program": "wiz8--gog-base--sr--cec1caf85861",
+      "pyghidra_version": "3.1.0",
+      "sha256": "1605583bf679adcd062467201178efd93501a5fa1483124aab6dc978979e678b"
+    },
+    {
       "binary_sha256": "18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2",
       "compiler_spec": "windows",
       "function_count": 7505,

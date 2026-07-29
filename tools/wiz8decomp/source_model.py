@@ -168,8 +168,17 @@ def _ghidra_prototype(prototype: str) -> str:
     return " ".join(text.split())
 
 
+def target_for_program(program_name: str) -> str:
+    """Return the source marker target owned by a configured Ghidra program."""
+
+    return "SURRENDER" if "--sr--" in program_name else "WIZ8"
+
+
 def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
-    roots = [repository / "src" / "wiz8", repository / "include" / "wiz8"]
+    source_stem = {"WIZ8": "wiz8", "SURRENDER": "surrender"}.get(target.upper())
+    if source_stem is None:
+        raise SourceModelError(f"unsupported source-model target: {target}")
+    roots = [repository / "src" / source_stem, repository / "include" / source_stem]
     functions: dict[int, SourceFunction] = {}
     externals: dict[str, SourceFunction] = {}
     locations: dict[int, str] = {}
@@ -247,11 +256,13 @@ def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
     )
 
 
-def validate_source_names_against_index(repository: Path, document: dict[str, Any]) -> int:
+def validate_source_names_against_index(
+    repository: Path, document: dict[str, Any], target: str = "WIZ8"
+) -> int:
     """Require Ghidra's primary names to agree with source-owned identities."""
 
     indexed_functions = {int(item["entry"], 16): item for item in document["functions"]}
-    model = build_source_model(repository)
+    model = build_source_model(repository, target)
     mismatches = []
     checked = 0
     for address, source in model.functions.items():

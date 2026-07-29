@@ -10,6 +10,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         ${WIZ8_ORIGINAL_UNITS}
         ${WIZ8_TEMPLATE_EMISSIONS}
         ${WIZ8_UNATTRIBUTED_UNITS}
+        src/surrender/core.cpp
     )
     target_include_directories(WIZ8_CLANG_LINT PRIVATE
         tools/lint/include

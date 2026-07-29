@@ -24,3 +24,10 @@ targets:
       - config/reccmp/srext-unzip-symbols.csv
     hash:
       sha256: dba6cdc5741ae57574e019ab8f37935362bc288bee738bc711460f34d7647f62
+  SURRENDER:
+    filename: sr.dll
+    source-root:
+      - src/surrender
+      - include/surrender
+    hash:
+      sha256: cec1caf85861c34bc4583ef1c69209e96a6930bdfc9af545c429f7470a8b6165

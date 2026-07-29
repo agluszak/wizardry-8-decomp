@@ -233,6 +233,7 @@ def _write_reccmp_build(settings: Settings) -> None:
     targets = {}
     for target, stem in (
         ("WIZ8", "Wiz8"),
+        ("SURRENDER", "sr"),
         ("SREXT_JPEGIMPORTER", "srEXT_JPEGImporter"),
         ("SREXT_UNZIP", "srEXT_Unzip"),
     ):
@@ -470,16 +471,28 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
 
     lint_result = lint(settings)
     build_target(settings, "WIZ8")
+    build_target(settings, "SURRENDER")
     build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     ghidra_index = export_index(settings, "wiz8")
     source_layouts = require_source_layouts(verify_source_layouts(settings))
     boundaries = run(["wiz8", "verify-boundaries"], cwd=settings.repo_dir)
-    comparison = compare(settings, "WIZ8", build_first=False) if compare_image else None
+    surrender_boundaries = run(
+        ["wiz8", "verify-boundaries", "--target", "SURRENDER"], cwd=settings.repo_dir
+    )
+    comparison = (
+        {
+            "wiz8": compare(settings, "WIZ8", build_first=False),
+            "surrender": compare(settings, "SURRENDER", build_first=False),
+        }
+        if compare_image
+        else None
+    )
     decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
     tests = run(["pytest"], cwd=settings.repo_dir)
     return {
         "lint": lint_result,
         "boundaries": _result(boundaries),
+        "surrender_boundaries": _result(surrender_boundaries),
         "ghidra_index": ghidra_index,
         "source_layouts": source_layouts,
         "compare": comparison,

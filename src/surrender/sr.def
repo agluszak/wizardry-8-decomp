@@ -1,0 +1,4 @@
+LIBRARY sr
+EXPORTS
+    ?getCopyright@srCore@@QBEPBDXZ
+    ?getVersion@srCore@@QBEPBDXZ

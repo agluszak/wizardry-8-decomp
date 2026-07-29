@@ -298,8 +298,10 @@ def require_source_synchronized(report: dict[str, Any]) -> None:
     )
 
 
-def audit_source_program(program: Any, repository: Path) -> dict[str, Any]:
-    report = synchronize_source_program(program, build_source_model(repository), apply=False)
+def audit_source_program(program: Any, repository: Path, target: str = "WIZ8") -> dict[str, Any]:
+    report = synchronize_source_program(
+        program, build_source_model(repository, target), apply=False
+    )
     require_source_synchronized(report)
     report["unsupported_count"] = len(report.pop("unsupported"))
     return report
@@ -311,7 +313,10 @@ def sync_source_names(
     """Report or apply source-owned names and resolvable signatures."""
 
     program_name = ensure_seed(settings, selector)
-    model = build_source_model(settings.repo_dir)
+    from ..source_model import target_for_program
+
+    target = target_for_program(program_name)
+    model = build_source_model(settings.repo_dir, target)
     start_pyghidra(settings)
     import pyghidra
 

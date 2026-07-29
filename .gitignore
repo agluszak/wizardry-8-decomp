@@ -17,6 +17,7 @@ build/
 ghidra-project/
 vendor/ghidra/exports/*.gzf
 !vendor/ghidra/exports/wiz8--gog-base--wiz8--18a74ff61c65.gzf
+!vendor/ghidra/exports/wiz8--gog-base--sr--cec1caf85861.gzf
 
 # Project-owned FID databases are generated from curated known libraries.
 # Their manifests/configuration are tracked; generated databases are exported explicitly.

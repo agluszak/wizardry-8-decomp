@@ -125,10 +125,11 @@ def _vtables(program: Any) -> list[dict[str, Any]]:
 
 def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
     from ..evidence.claims import validate_claims_against_documents
-    from ..source_model import validate_source_names_against_index
+    from ..source_model import target_for_program, validate_source_names_against_index
     from .source_sync import audit_source_program
 
     program_name = ensure_seed(settings, selector)
+    source_target = target_for_program(program_name)
     start_pyghidra(settings)
     import pyghidra
 
@@ -152,7 +153,7 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
                     "vtables": _vtables(program),
                 },
             }
-            source_sync = audit_source_program(program, settings.repo_dir)
+            source_sync = audit_source_program(program, settings.repo_dir, source_target)
     finally:
         project.close()
 
@@ -164,8 +165,14 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
         atomic_json(path, document)
         paths.append(str(path.relative_to(settings.repo_dir)))
         counts[name] = len(document[name])
-    claim_counts = validate_claims_against_documents(settings.repo_dir, documents)
-    source_count = validate_source_names_against_index(settings.repo_dir, documents["functions"])
+    claim_counts = (
+        validate_claims_against_documents(settings.repo_dir, documents)
+        if source_target == "WIZ8"
+        else {"function": 0, "type": 0, "vtable": 0}
+    )
+    source_count = validate_source_names_against_index(
+        settings.repo_dir, documents["functions"], source_target
+    )
     return {
         "schema": "wiz8.ghidra-index",
         "program": program_name,

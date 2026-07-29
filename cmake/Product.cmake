@@ -94,5 +94,6 @@ function(wiz8_collect_zlib_units RESULT SOURCE_ROOT)
 endfunction()
 
 include(src/srext_jpegimporter/CMakeLists.txt)
+include(src/surrender/CMakeLists.txt)
 include(src/wiz8/CMakeLists.txt)
 include(src/srext_unzip/CMakeLists.txt)

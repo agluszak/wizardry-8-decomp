@@ -78,3 +78,13 @@ def test_source_index_validation_rejects_a_stale_ghidra_name(tmp_path: Path) -> 
 
     with pytest.raises(ValueError, match="synchronization is pending"):
         validate_source_names_against_index(tmp_path, document)
+
+
+def test_surrender_source_model_uses_its_own_roots_and_marker_target() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    model = build_source_model(repository, "SURRENDER")
+
+    assert set(model.functions) == {0x10015010, 0x10015030}
+    assert model.functions[0x10015010].name == "srCore::getCopyright"
+    assert model.functions[0x10015030].name == "srCore::getVersion"
+    assert all(item.file.startswith("src/surrender/") for item in model.functions.values())

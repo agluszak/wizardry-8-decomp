@@ -24,8 +24,8 @@ durable task state and `just` for the supported daily workflow.
   `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is
   proved.
 - Never commit game binaries, extracted trees, live Ghidra projects, or build products. The
-  reviewed GZF checkpoint declared by `vendor/ghidra/exports/manifest.json` is the sole approved
-  tracked analysis artifact.
+  reviewed GZF checkpoints declared by `vendor/ghidra/exports/manifest.json` are the sole approved
+  tracked analysis artifacts.
 - Preserve the SFI-SCLA and upstream notices under `third_party/sfi-sgp`.
 
 ## Recovery loop

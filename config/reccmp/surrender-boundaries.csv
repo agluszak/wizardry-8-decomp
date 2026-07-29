@@ -1,0 +1,3 @@
+address,size,symbol,owner,confidence,relocation_masked_sha256,evidence
+10015010,4,srCore::getCopyright,surrender,exact,3ea8287135856912e7ff6aa28852329972dd3ff3a59d8130ef36f6875f479aa2,"Export ordinal 948 gives the original decorated const-member identity. Ghidra shows lea eax,[ecx+0x5c]; ret, establishing the inline character buffer at offset 0x5c; the VC6 body is relocation-masked exact."
+10015030,4,srCore::getVersion,surrender,exact,7c5a62b9fc7d2511344d53723148f1cbcc38548931bd247f5f671657e168c9dd,"Export ordinal 1297 gives the original decorated const-member identity. Ghidra shows lea eax,[ecx+0x3c]; ret, establishing the inline character buffer at offset 0x3c; the VC6 body is relocation-masked exact."

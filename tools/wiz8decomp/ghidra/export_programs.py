@@ -8,17 +8,20 @@ from ..config import Settings
 from ..paths import atomic_json, sha256_file
 from .environment import start_pyghidra, validate_environment
 from .import_programs import HASH_OPTION
-from .workspace import SEED_SCHEMA, resolve_seed_program, seed_manifest_path, seed_record
+from .project import module_for_program, resolve_program_name
+from .workspace import SEED_SCHEMA, resolve_seed_program, seed_manifest_path, seed_records
 
 
 def export_project(settings: Settings, selector: str | None = None) -> dict[str, Any]:
     """Pack an intentionally reviewed canonical project checkpoint."""
 
-    program_name = resolve_seed_program(settings, selector)
-    canonical_name = resolve_seed_program(settings, None)
-    if program_name != canonical_name:
-        raise ValueError("only the canonical Wiz8 executable has a shared reviewed checkpoint")
-    previous = seed_record(settings, program_name)
+    program_name = (
+        resolve_seed_program(settings, None)
+        if selector is None
+        else resolve_program_name(settings, selector)
+    )
+    module = module_for_program(settings, program_name)
+    previous_records = seed_records(settings)
     runtime = validate_environment(settings)
 
     start_pyghidra(settings)
@@ -41,7 +44,7 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
             raise RuntimeError(f"canonical Ghidra program is missing: {program_name}")
         with pyghidra.program_context(project, "/" + program_name) as program:
             actual_hash = program.getOptions("Program Information").getString(HASH_OPTION, None)
-            if actual_hash != previous["binary_sha256"]:
+            if actual_hash != module["sha256"]:
                 raise RuntimeError(
                     f"canonical program binary hash metadata mismatch for {program_name}"
                 )
@@ -61,11 +64,14 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
         "program": program_name,
         "path": output.relative_to(settings.repo_dir).as_posix(),
         "sha256": sha256_file(output),
-        "binary_sha256": previous["binary_sha256"],
+        "binary_sha256": module["sha256"],
         **runtime,
         **program_summary,
     }
-    manifest = {"schema": SEED_SCHEMA, "seeds": [record]}
+    records = [item for item in previous_records if item.get("program") != program_name]
+    records.append(record)
+    records.sort(key=lambda item: str(item["program"]))
+    manifest = {"schema": SEED_SCHEMA, "seeds": records}
     atomic_json(seed_manifest_path(settings), manifest)
     report = {
         "schema": "wiz8.ghidra-seed-build",

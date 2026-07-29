@@ -310,19 +310,32 @@ def check_reccmp_command() -> None:
 
 
 def verify_boundaries_command(
+    target: Annotated[str, typer.Option(help="reccmp target owning the reviewed bodies.")] = "WIZ8",
     mapping: Annotated[Path | None, typer.Option(help="Reviewed boundary map.")] = None,
     objects: Annotated[Path | None, typer.Option(help="Root of built objects.")] = None,
-    image: Annotated[Path | None, typer.Option(help="Original Wiz8.exe.")] = None,
+    image: Annotated[Path | None, typer.Option(help="Original target image.")] = None,
 ) -> None:
     from .. import command_support as cli
     from ..boundaries import BoundariesDisagree, verify_boundaries
     from ..build import boundary_object_roots
 
     settings = cli.settings()
-    mapping_path = mapping or settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv"
-    object_root = [objects] if objects is not None else boundary_object_roots(settings)
+    target = target.upper()
+    default_mappings = {
+        "WIZ8": settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv",
+        "SURRENDER": settings.repo_dir / "config/reccmp/surrender-boundaries.csv",
+    }
+    if target not in default_mappings:
+        raise typer.BadParameter(f"unsupported boundary target: {target}", param_hint="--target")
+    mapping_path = mapping or default_mappings[target]
+    if objects is not None:
+        object_root = [objects]
+    elif target == "SURRENDER":
+        object_root = [settings.repo_dir / "build/decomp/CMakeFiles/SURRENDER.dir"]
+    else:
+        object_root = boundary_object_roots(settings)
     try:
-        cli.emit(verify_boundaries(mapping_path, object_root, image or cli.reccmp_original("WIZ8")))
+        cli.emit(verify_boundaries(mapping_path, object_root, image or cli.reccmp_original(target)))
     except BoundariesDisagree as error:
         cli.emit(error.report)
         cli.console.print(f"[red]error:[/red] {error}", highlight=False)

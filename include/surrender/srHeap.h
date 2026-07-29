@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(SURRENDER_BUILD)
 #define SR_DLL_IMPORT __declspec(dllimport)
 #else
 #define SR_DLL_IMPORT
