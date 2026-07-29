@@ -242,7 +242,8 @@ whose expression dereferences a member:
 
 The first row is a useful check on the method: `004f30f0` is already recorded in `class-provenance.csv` as the
 byte-proof for `Controls`, so the ranking rediscovers a function that was found by hand and used
-successfully for exactly this purpose. Port the body, then confirm with `just verify-boundaries` -
+successfully for exactly this purpose. Port the body, then confirm with
+`just wiz8 verify-boundaries` -
 not `just compare`, which scores byte-exact bodies well under 100%.
 
 ### What type is the object at `[ebp-N]` in this function?

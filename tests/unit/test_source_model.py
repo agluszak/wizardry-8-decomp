@@ -38,6 +38,11 @@ def test_source_model_derives_identity_and_prototype_from_source() -> None:
     assert template.name == "W8GrowableVector<int>::Grow"
     assert template.prototype.startswith("int W8GrowableVector<T>::Grow(")
 
+    synthetic = model.functions[0x004F6030]
+    assert synthetic.kind == "SYNTHETIC"
+    assert synthetic.name == "W8TextControl005ED604::`scalar deleting destructor'"
+    assert synthetic.prototype == ""
+
     library = model.functions[0x00401000]
     assert library.kind == "LIBRARY"
     assert library.name == "__WinMainCRTStartup"

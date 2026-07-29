@@ -103,6 +103,25 @@ def test_template_marker_requires_symbol_comment_and_template_definition(
     assert result["template_addresses"] == 1
 
 
+def test_synthetic_marker_requires_generated_symbol_comment(tmp_path: Path) -> None:
+    _source(
+        tmp_path,
+        "// SYNTHETIC: WIZ8 0x00401000\n// Widget::`scalar deleting destructor'\n",
+    )
+
+    result = check_marker_hygiene([tmp_path], tmp_path)
+
+    assert result["synthetic_markers"] == 1
+    assert result["synthetic_addresses"] == 1
+
+
+def test_synthetic_marker_without_symbol_comment_is_refused(tmp_path: Path) -> None:
+    _source(tmp_path, "// SYNTHETIC: WIZ8 0x00401000\nvoid f() {}\n")
+
+    with pytest.raises(MarkerHygieneError, match="generated-symbol comment"):
+        check_marker_hygiene([tmp_path], tmp_path)
+
+
 @pytest.mark.parametrize(
     "text, message",
     [

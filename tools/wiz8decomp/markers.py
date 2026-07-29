@@ -16,6 +16,9 @@ LIBRARY_MARKER = re.compile(
 TEMPLATE_MARKER = re.compile(
     r"^\s*//\s*TEMPLATE\s*:\s*(?P<module>[A-Za-z0-9_]+)\s+(?P<offset>(?:0x)?[0-9a-fA-F]+)"
 )
+SYNTHETIC_MARKER = re.compile(
+    r"^\s*//\s*SYNTHETIC\s*:\s*(?P<module>[A-Za-z0-9_]+)\s+(?P<offset>(?:0x)?[0-9a-fA-F]+)"
+)
 SOURCE_SUFFIXES = frozenset({".c", ".cpp", ".h", ".hpp"})
 EXTERN_DECLARATION = re.compile(r'^\s*extern\s+(?:"C"\s+)?(?P<body>[^;]+);', re.MULTILINE)
 DATA_SYMBOL = re.compile(r"(?P<symbol>[A-Za-z_]\w*)\s*(?:\[[^]]*\])?$")
@@ -93,6 +96,7 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
     owners: dict[tuple[str, str], list[str]] = defaultdict(list)
     library_owners: dict[tuple[str, str], list[str]] = defaultdict(list)
     template_owners: dict[tuple[str, str], list[str]] = defaultdict(list)
+    synthetic_owners: dict[tuple[str, str], list[str]] = defaultdict(list)
     header_externs: set[str] = set()
     source_externs: dict[str, set[str]] = defaultdict(set)
 
@@ -140,6 +144,19 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
                         "must be followed by its template definition"
                     )
                 continue
+            synthetic = SYNTHETIC_MARKER.match(line)
+            if synthetic is not None:
+                offset = normalize_offset(synthetic.group("offset"))
+                synthetic_owners[(synthetic.group("module"), offset)].append(
+                    f"{relative}:{index + 1}"
+                )
+                symbol_line = lines[index + 1].strip() if index + 1 < len(lines) else ""
+                if not symbol_line.startswith("//") or not symbol_line[2:].strip():
+                    detached.append(
+                        f"{relative}:{index + 1}: // SYNTHETIC {offset} must be followed "
+                        "by its generated-symbol comment"
+                    )
+                continue
             match = FUNCTION_MARKER.match(line)
             if match is None:
                 continue
@@ -159,12 +176,25 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
     duplicated_templates = {
         offset: places for offset, places in template_owners.items() if len(places) > 1
     }
+    duplicated_synthetics = {
+        offset: places for offset, places in synthetic_owners.items() if len(places) > 1
+    }
 
     problems: list[str] = list(detached)
     problems += [
         f"{module} {offset} is claimed by {len(places)} FUNCTION markers: {', '.join(places)}"
         for (module, offset), places in sorted(duplicated.items())
     ]
+    problems += [
+        f"{module} {offset} is claimed by {len(places)} SYNTHETIC markers: {', '.join(places)}"
+        for (module, offset), places in sorted(duplicated_synthetics.items())
+    ]
+    for key in sorted(owners.keys() & synthetic_owners.keys()):
+        places = owners[key] + synthetic_owners[key]
+        problems.append(
+            f"{key[0]} {key[1]} is claimed by both FUNCTION and SYNTHETIC markers: "
+            f"{', '.join(places)}"
+        )
     problems += [
         f"{module} {offset} is claimed by {len(places)} TEMPLATE markers: {', '.join(places)}"
         for (module, offset), places in sorted(duplicated_templates.items())
@@ -199,6 +229,8 @@ def check_marker_hygiene(roots: list[Path], repo_dir: Path) -> dict[str, Any]:
         "library_addresses": len(library_owners),
         "template_markers": sum(len(places) for places in template_owners.values()),
         "template_addresses": len(template_owners),
+        "synthetic_markers": sum(len(places) for places in synthetic_owners.values()),
+        "synthetic_addresses": len(synthetic_owners),
         "shadowed_externs": len(shadowed_externs),
         "files": len(iter_source_files(roots)),
     }
