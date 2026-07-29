@@ -29,7 +29,6 @@ struct W8Forwarded {
 extern "C" {
 
 extern W8World* g_world_00659ab4;
-extern int g_save_flag_00687599;
 
 extern void Function4C4EF0(void);
 extern void Function4A7A70(int value);

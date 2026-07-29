@@ -986,6 +986,18 @@ extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
    ended up with two names and two more with two types; one declaration each is
    what keeps that from happening again. */
 extern unsigned char g_camp_open_00683f9b;
+/* 0x00687599: one byte, and the image proves it. All 16 relocation sites that
+   name the address touch it a byte at a time - fifteen `mov r8, byte ptr [..]`
+   reads across seven functions and the single write `mov byte ptr [..], 1` in
+   Function54B250 - and the globals census puts its extent at one byte, between
+   a dword at 0x00687595 and another at 0x0068759A. It had been declared `int`
+   in quarantine_common.h, `bool` in GameplayDatabase.cpp and `unsigned char` in
+   LoadSaveGame.cpp, which emitted three different symbols for one address and
+   only linked because /FORCE leaves them unresolved.
+   It admits a save the autosave interval gate would otherwise refuse and
+   selects the current slot over the fixed AutoSave name, so the recovered name
+   stays positional until the meaning behind that pairing is established. */
+extern unsigned char g_save_flag_00687599;
 /* 0x00683FAD: every monster currently in the level. */
 extern W8PList* g_active_monster_list_00683fad;
 /* 0x0068EC78: which screen is up. The whole 0x98-byte block lives there; the

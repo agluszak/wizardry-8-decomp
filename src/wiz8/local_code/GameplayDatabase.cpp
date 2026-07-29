@@ -61,7 +61,6 @@ extern void Function520070(W8ItemInstance* item, int a, int b);
 extern void Function554580(unsigned char* target);
 extern void ReplaceOrCreateItem(W8ItemInstance* item, unsigned int id, int a, int b, int c);
 extern bool g_flag_68517c;
-extern bool g_save_flag_00687599;
 extern bool g_flag_683fa0;
 extern int g_combat_difficulty_006850d5;
 extern int g_dword_6875b7;
@@ -479,6 +478,16 @@ void DestroyItemTables(void)
     }
 }
 
+/* Defined here because this unit holds the only site in the image that writes
+   it - the store below is the single `mov byte ptr [0x687599], 1` among its 16
+   reference sites, and the other fifteen are reads in seven other functions.
+   Sole-writer ownership is weaker than a proved layout boundary: the .bss run
+   around 0x00687599 is packed with no gap marking a unit edge, so this is the
+   best available evidence rather than a settled fact. It is declared once in
+   gameplay_boundaries.h; see that declaration for why the type is one byte. */
+// GLOBAL: WIZ8 0x00687599
+unsigned char g_save_flag_00687599;
+
 /* Raises three flags, optionally hands the caller's target to 0x005A9E70, then
    runs a fixed opening sequence. The two calls into 0x00482720 and 0x00482740
    share one stack cleanup, as consecutive cdecl calls do. */
@@ -487,7 +496,7 @@ void Function54B250(unsigned char notify, void* target)
 {
     g_flag_68517c = true;
     if (target) {
-        g_save_flag_00687599 = true;
+        g_save_flag_00687599 = 1;
         Function5A9E70(target);
     }
     g_dword_6875b7 = g_combat_difficulty_006850d5;
