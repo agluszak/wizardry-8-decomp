@@ -5,9 +5,10 @@
  * Dialog Code\DialogInterface.cpp, named by the assertion this body embeds at
  * line 152.
  *
- * Only the one field is established here, so the dialog is modelled as exactly
- * that and nothing more. The assertion does not return, which is why the store
- * below is unconditional even though the null case reaches it.
+ * The forwarders below establish virtual slots three and nine, while the
+ * setter establishes the field at 0x44. Everything between stays opaque. The
+ * assertion does not return, which is why each operation remains unconditional
+ * after its null check.
  */
 
 extern "C" {
@@ -27,12 +28,47 @@ void Function5CF250(int font, unsigned char enabled,
     g_dialog_font_background_64fded = background;
 }
 
-typedef struct W8DialogInterface {
-    unsigned char unknown_00[0x44];
+class W8DialogInterface {
+public:
+    virtual void Method0();
+    virtual void Method1();
+    virtual void Method2();
+    virtual void Method3();
+    virtual void Method4();
+    virtual void Method5();
+    virtual void Method6();
+    virtual void Method7();
+    virtual void Method8();
+    virtual void Method9();
+
+    unsigned char unknown_04[0x40];
     int value_44;                         /* 0x44: the only field this proves */
-} W8DialogInterface;
+};
+
+static_assert(sizeof(W8DialogInterface) == 0x48,
+              "W8DialogInterface_must_be_0x48");
 
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"
+
+/* Two interface forwarders. Their slot positions, not semantic names, are the
+   reviewed fact, so the methods remain positional. */
+// FUNCTION: WIZ8 0x005cf520
+void Function5CF520(W8DialogInterface* dialog)
+{
+    if (dialog == 0) {
+        srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x66, 0);
+    }
+    dialog->Method3();
+}
+
+// FUNCTION: WIZ8 0x005cf550
+void Function5CF550(W8DialogInterface* dialog)
+{
+    if (dialog == 0) {
+        srAssertFail("pDialog", DIALOG_INTERFACE_CPP, 0x74, 0);
+    }
+    dialog->Method9();
+}
 
 // FUNCTION: WIZ8 0x005cf580
 void Function5CF580(W8DialogInterface* dialog, int value)

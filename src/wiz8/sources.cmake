@@ -33,6 +33,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/UtilityFunctions.cpp
     src/wiz8/local_code/Strings.cpp
     src/wiz8/local_code/Configuration.cpp
+    src/wiz8/local_code/ButtonSound.cpp
     src/wiz8/dialog_code/Dialog005A80A0.cpp
     src/wiz8/dialog_code/DialogBase005D25B0.cpp
     src/wiz8/dialog_code/Object005EF894.cpp
@@ -49,6 +50,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/stParticle.cpp
     src/wiz8/engine_code/Trigger.cpp
     src/wiz8/engine_code/Environment.cpp
+    src/wiz8/engine_code/AmbientSound.cpp
     src/wiz8/engine_code/AnimObj.cpp
     src/wiz8/engine_code/AniMesh.cpp
     src/wiz8/engine_code/Item.cpp
