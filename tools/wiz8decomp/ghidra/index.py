@@ -123,6 +123,8 @@ def _vtables(program: Any) -> list[dict[str, Any]]:
 
 
 def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
+    from ..evidence.claims import validate_claims_against_documents
+
     program_name = ensure_seed(settings, selector)
     start_pyghidra(settings)
     import pyghidra
@@ -158,9 +160,11 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
         atomic_json(path, document)
         paths.append(str(path.relative_to(settings.repo_dir)))
         counts[name] = len(document[name])
+    claim_counts = validate_claims_against_documents(settings.repo_dir, documents)
     return {
         "schema": "wiz8.ghidra-index",
         "program": program_name,
         "counts": counts,
+        "claims": claim_counts,
         "outputs": paths,
     }

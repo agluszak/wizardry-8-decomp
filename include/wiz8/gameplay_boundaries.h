@@ -1164,7 +1164,8 @@ struct W8MonsterMember18 {
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
 /* Partial porting model of the reviewed Monster class (0x628 bytes, vtable
-   0x005ed200, constructor 0x004bea20) in evidence/reviewed/wiz8/classes.csv.
+   0x005ed200, constructor 0x004bea20) in
+   evidence/reviewed/wiz8/class-provenance.csv.
    Only the members the byte-exact consumers touch are modelled; the reviewed
    layer, not this struct, owns the class facts. */
 struct W8Monster {

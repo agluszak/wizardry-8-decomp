@@ -26,15 +26,17 @@ class FunctionIdentity:
 
 
 def _load_evidence_ids(path: Path) -> dict[tuple[str, int], tuple[str, ...]]:
-    evidence_path = path.parent / "function-evidence.csv"
-    if not evidence_path.is_file():
+    claims_path = path.parent / "claims.csv"
+    if not claims_path.is_file():
         return {}
     grouped: dict[tuple[str, int], list[str]] = {}
-    for row_number, row in enumerate(read_table(evidence_path).rows, start=2):
-        evidence_id = row["evidence_id"].strip()
+    for row_number, row in enumerate(read_table(claims_path).rows, start=2):
+        if row["entity_kind"].strip() != "function":
+            continue
+        evidence_id = row["claim_id"].strip()
         if not evidence_id:
-            raise ValueError(f"{evidence_path}:{row_number}: missing evidence_id")
-        address = parse_hex(row["address"], field="address", path=evidence_path) or 0
+            raise ValueError(f"{claims_path}:{row_number}: missing claim_id")
+        address = parse_hex(row["entity_key"], field="entity_key", path=claims_path) or 0
         key = (row["program"].strip(), address)
         grouped.setdefault(key, []).append(evidence_id)
     return {key: tuple(sorted(values)) for key, values in grouped.items()}
@@ -44,7 +46,7 @@ def load_function_identities(path: Path, *, program: str | None = None) -> list[
     identities: list[FunctionIdentity] = []
     evidence_ids = _load_evidence_ids(path)
     for row_number, row in enumerate(read_table(path, program=program).rows, start=2):
-        name = row["provisional_name"].strip()
+        name = row.get("claimed_name", row.get("provisional_name", "")).strip()
         confidence = row["confidence"].strip()
         if not name or confidence not in ACCEPTED_CONFIDENCE:
             continue
@@ -57,7 +59,7 @@ def load_function_identities(path: Path, *, program: str | None = None) -> list[
             raise ValueError(f"{path}:{row_number}: {name} is listed as its own alias")
         program_name = row["program"].strip()
         address = parse_hex(row["address"], field="address", path=path) or 0
-        size_token = row["size"].strip()
+        size_token = row.get("size", "").strip()
         identities.append(
             FunctionIdentity(
                 address=address,
@@ -66,7 +68,7 @@ def load_function_identities(path: Path, *, program: str | None = None) -> list[
                 identity_id=f"functions:{program_name}:{address:08x}",
                 owner=row["owner"].strip(),
                 confidence=confidence,
-                evidence=row["evidence"].strip(),
+                evidence=row.get("evidence", "").strip(),
                 name_origin=origins,
                 authority=authority,
                 source_unit=row["source_path"].strip() or None,

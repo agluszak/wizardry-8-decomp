@@ -5,8 +5,7 @@
    no member and no override. The census fingerprint that selects it - an
    eighty-four byte constructor, a seventeen byte complete destructor and
    deleting destructors of forty-four and thirty - comes from
-   `just wiz8 report class-candidates`, which pairs and ranks these families in
-   families.csv.
+   the recorded polymorphism census and its reviewed class-family evidence.
 
    The complete destructor stores the base table 0x005ED2CC, not the
    0x005ED2C8 the constructor installs, because its own store is dead

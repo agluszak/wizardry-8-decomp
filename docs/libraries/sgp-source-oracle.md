@@ -20,8 +20,8 @@ The SGP workflow deliberately separates four roles:
   `evidence/observations/sgp/source-paths.csv` contains binary path observations.
 
 Accepted identities live once in the canonical WIZ8 function catalog at
-`evidence/reviewed/wiz8/functions.csv`. Multiple SGP and CFAgent observations for one address are
-retained as separate rows in `evidence/reviewed/wiz8/function-evidence.csv`.
+`evidence/reviewed/wiz8/function-provenance.csv`. Multiple SGP and CFAgent observations for one
+address are retained as separate rows in `evidence/reviewed/wiz8/claims.csv`.
 
 ## Wizardry branches and overlays
 

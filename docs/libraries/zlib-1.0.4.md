@@ -8,7 +8,7 @@ source archive whose SHA-256 is
 
 ## Recovered ownership
 
-The reviewed identities live in the canonical `evidence/reviewed/wiz8/functions.csv` catalog.
+The reviewed identities live in the canonical `evidence/reviewed/wiz8/function-provenance.csv` catalog.
 Ownership distinguishes Sir-Tech's allocation and stream adapters from bodies compiled from zlib
 itself; current counts are generated from that catalog rather than maintained here.
 

@@ -48,7 +48,7 @@ def render_wiz8_data_source(repository: Path) -> str:
 
     entities = _boundary_entities(repository / "config/reccmp/wiz8-gameplay-boundaries.csv")
     identities = load_function_identities(
-        repository / "evidence/reviewed/wiz8/functions.csv",
+        repository / "evidence/reviewed/wiz8/function-provenance.csv",
         program="wiz8",
     )
     for identity in identities:

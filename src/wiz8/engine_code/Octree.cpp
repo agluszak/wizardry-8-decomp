@@ -6,8 +6,8 @@
    expressions at lines 1157 and 1181; their messages name the class "Octree".
    Offsets come from the asserting bodies. Everything else stays opaque.
    This is the porting model of the reviewed Octree class in
-   evidence/reviewed/wiz8/classes.csv, which owns the class facts; the W8
-   prefix is the porting convention for classes.csv names. */
+   evidence/reviewed/wiz8/class-provenance.csv, which owns the class identity;
+   the W8 prefix is the porting convention for reviewed class names. */
 struct W8Octree {
     unsigned char unknown_000[0xc4];
     unsigned char m_fAccumulating;          /* 0x0c4: gates both accumulators */

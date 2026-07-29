@@ -84,9 +84,10 @@ default type.
 
 ## What belongs elsewhere
 
-- Canonical applied identities and provenance: `evidence/reviewed/wiz8/functions.csv`.
-- Additional identity observations: `evidence/reviewed/wiz8/function-evidence.csv`.
-- Class relationships and layout proofs: `evidence/reviewed/wiz8/classes.csv`.
+- Accepted identity provenance: `evidence/reviewed/wiz8/function-provenance.csv`.
+- Atomic supporting claims: `evidence/reviewed/wiz8/claims.csv`.
+- Class relationships and provenance: `evidence/reviewed/wiz8/class-provenance.csv`.
+- Native layouts and fields: the canonical Ghidra project, reviewed through `build/ghidra-index/types.json`.
 - Full matching rows and hashes: `config/reccmp/wiz8-gameplay-boundaries.csv`.
 - Current totals, exact/structural classifications, ownership, and source-unit coverage:
   `build/reports/status.md`.

@@ -14,10 +14,11 @@ from wiz8decomp.provenance import (
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
+FUNCTION_MAPS.append(REPOSITORY / "evidence/reviewed/wiz8/function-provenance.csv")
 
 
 def _wiz8_rows() -> list[dict[str, str]]:
-    with (REPOSITORY / "evidence/reviewed/wiz8/functions.csv").open(
+    with (REPOSITORY / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         return list(csv.DictReader(stream))
@@ -116,9 +117,9 @@ def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
             raise AssertionError(f"{path.name}:{number}: {error}") from error
 
 
-def test_wiz8_function_evidence_is_many_to_one_without_duplicate_identities() -> None:
+def test_wiz8_claims_are_many_to_one_without_duplicate_identities() -> None:
     functions = _wiz8_rows()
-    with (REPOSITORY / "evidence/reviewed/wiz8/function-evidence.csv").open(
+    with (REPOSITORY / "evidence/reviewed/wiz8/claims.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         evidence = list(csv.DictReader(stream))
@@ -147,19 +148,19 @@ def test_wiz8_function_evidence_is_many_to_one_without_duplicate_identities() ->
         "005e2c80",
         "005e2cc0",
     } <= {row["address"] for row in functions}
-    assert len({(row["program"], row["address"], row["origin"]) for row in evidence}) == len(
-        evidence
-    )
-    assert len({row["evidence_id"] for row in evidence}) == len(evidence)
+    assert len({row["claim_id"] for row in evidence}) == len(evidence)
+    assert {row["entity_kind"] for row in evidence} == {"function", "type"}
     assert all(
-        row["evidence_id"] == f"function-evidence:{row['program']}:{row['address']}:{row['origin']}"
+        row["entity_key"].startswith("/wiz8/classes/")
         for row in evidence
+        if row["entity_kind"] == "type"
     )
     by_address = {row["address"] for row in functions}
-    assert {row["address"] for row in evidence} <= by_address
-    assert {row["origin"] for row in evidence if row["address"] == "0040efa0"} == {
+    assert {row["entity_key"] for row in evidence if row["entity_kind"] == "function"} <= by_address
+    assert {row["origin"] for row in evidence if row["entity_key"] == "0040efa0"} == {
         "cfagent-oracle",
         "sgp",
+        "fan-patch-signature|sgp-source",
     }
 
 

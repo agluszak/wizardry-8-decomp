@@ -52,7 +52,7 @@ def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
 
 def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         functions = [row for row in csv.DictReader(stream) if row["source_path"].startswith("sgp/")]
@@ -82,7 +82,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
 
 def test_random_unit_is_complete_and_consistent_across_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         unit = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/Random.c"]
@@ -90,14 +90,13 @@ def test_random_unit_is_complete_and_consistent_across_builds() -> None:
 
     # Wizardry does not define JA2, so PRERANDOM_GENERATOR is off and the unit
     # compiles to exactly these three functions. All three are exact.
-    assert [row["provisional_name"] for row in unit] == ["InitializeRandom", "Random", "Chance"]
+    assert [row["claimed_name"] for row in unit] == ["InitializeRandom", "Random", "Chance"]
     assert {row["authority"] for row in unit} == {"source-backed"}
 
     for row in unit:
-        mappings = [entry for entry in harness if entry["function"] == row["provisional_name"]]
+        mappings = [entry for entry in harness if entry["function"] == row["claimed_name"]]
         by_build = {entry["build"]: entry for entry in mappings}
         assert by_build["gog_base"]["address"] == row["address"]
-        assert row["size"] == by_build["gog_base"]["size"]
         # The demo carries the whole unit at the same +0x360 shift as DirectDraw Calls.c.
         assert int(by_build["demo"]["address"], 16) - int(row["address"], 16) == 0x360
         # The packed 1.28 patch executable and the protected retail build are
@@ -110,22 +109,26 @@ def test_random_unit_is_complete_and_consistent_across_builds() -> None:
 
 def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         rows = [row for row in csv.DictReader(stream) if row["address"] == "0040efa0"]
     assert len(rows) == 1
     row = rows[0]
-    assert row["provisional_name"] == "Random"
+    assert row["claimed_name"] == "Random"
     assert row["aliases"] == "GetRandomNumber"
     assert set(row["name_origin"].split("|")) == {"sgp-source", "fan-patch-signature"}
     assert row["authority"] == "source-backed"
 
-    with (repository / "evidence/reviewed/wiz8/function-evidence.csv").open(
+    with (repository / "evidence/reviewed/wiz8/claims.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        evidence = [row for row in csv.DictReader(stream) if row["address"] == "0040efa0"]
-    assert {row["origin"] for row in evidence} == {"cfagent-oracle", "sgp"}
+        evidence = [row for row in csv.DictReader(stream) if row["entity_key"] == "0040efa0"]
+    assert {row["origin"] for row in evidence} == {
+        "cfagent-oracle",
+        "fan-patch-signature|sgp-source",
+        "sgp",
+    }
 
 
 def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() -> None:
@@ -328,7 +331,7 @@ def test_container_unit_separates_retained_stack_list_apis_from_stripped_familie
         "ListSize",
     }
 
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         accepted = [
@@ -354,7 +357,7 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
     debug = _harness_rows(repository, "debug")
     reviewed_debug = _reviewed_rows(repository, "debug")
     reviewed_exception = _reviewed_rows(repository, "exceptionhandling")
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         accepted = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/DEBUG.C"]
@@ -362,9 +365,7 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
     assert len(debug) == 15 * 7
     assert len(reviewed_debug) == 15
     assert {row["flags"] for row in debug} == {"/O2 /Ob2 /G5 /MD"}
-    assert [(row["provisional_name"], row["address"]) for row in accepted] == [
-        ("String", "00404b50")
-    ]
+    assert [(row["claimed_name"], row["address"]) for row in accepted] == [("String", "00404b50")]
     assert reviewed_debug[-1]["canonical_classification"] == "relocation-equivalent"
     assert reviewed_exception[0]["finding"] == "compiled-empty"
     assert reviewed_exception[0]["canonical_classification"] == "compiled-empty"
@@ -372,7 +373,7 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
 
 def test_startup_input_and_timer_surfaces_are_restricted_to_retained_code() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         accepted = list(csv.DictReader(stream))
@@ -387,11 +388,11 @@ def test_startup_input_and_timer_surfaces_are_restricted_to_retained_code() -> N
     assert len(startup) == 2
     assert len(timer) == 6
     assert len(input_rows) == 8
-    assert {row["provisional_name"] for row in accepted if row["source_path"] == "sgp/sgp.c"} == {
+    assert {row["claimed_name"] for row in accepted if row["source_path"] == "sgp/sgp.c"} == {
         "GetRuntimeSettings",
         "ProcessCommandLine",
     }
-    assert {row["provisional_name"] for row in accepted if row["source_path"] == "sgp/timer.c"} == {
+    assert {row["claimed_name"] for row in accepted if row["source_path"] == "sgp/timer.c"} == {
         "Clock",
         "InitializeClockManager",
         "ShutdownClockManager",
@@ -406,7 +407,7 @@ def test_fileman_exact_and_near_results_stay_separate() -> None:
     repository = Path(__file__).resolve().parents[2]
     harness = _harness_rows(repository, "fileman")
     near = _reviewed_rows(repository, "fileman")
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         exact = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/FileMan.c"]
@@ -442,7 +443,7 @@ def test_library_database_units_keep_exact_near_and_interior_results_distinct() 
     dbman = _harness_rows(repository, "dbman")
     reviewed_library = _reviewed_rows(repository, "librarydatabase")
     reviewed_dbman = _reviewed_rows(repository, "dbman")
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         accepted = [
@@ -452,7 +453,7 @@ def test_library_database_units_keep_exact_near_and_interior_results_distinct() 
     assert len(library) == 23 * 7
     assert len(dbman) == 20 * 7
     assert {row["flags"] for row in library + dbman} == {"/O2 /Ob2 /G5 /MD"}
-    assert {row["provisional_name"] for row in accepted} == {
+    assert {row["claimed_name"] for row in accepted} == {
         "ShutDownFileDatabase",
         "CreateRealFileHandle",
         "GetLibraryAndFileIDFromLibraryFileHandle",

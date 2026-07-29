@@ -69,8 +69,14 @@ uv run wiz8 ghidra index
 `just context` is the supported joined recovery view: it combines the current decompilation and
 call graph with provenance, source ownership, match state, cross-build mappings, strings, and
 relevant fields. `ghidra index` writes disposable normalized review views to
-`build/ghidra-index/`. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
+`build/ghidra-index/` and refuses provenance claims whose function/type/vtable entity no longer
+exists. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
 consequence of editing evidence.
+
+Wiz8 function identities live in the small `function-provenance.csv` entity ledger; class
+relationships live in `class-provenance.csv`; supporting facts live in atomic `claims.csv` rows.
+There is no tracked function-size table or class-field catalogue. Full verification exports the
+current Ghidra state and uses it for claim resolution and VC6 source-layout checks.
 
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed

@@ -194,7 +194,7 @@ not land on it, which flags a sweep that stayed out of phase rather than filing 
 "rejected"; and `rejected` otherwise.
 
 These are candidates, not identities. Promoting one is a reviewed decision belonging in
-`evidence/reviewed/wiz8/functions.csv`, and regenerating the snapshot cannot touch it.
+`evidence/reviewed/wiz8/function-provenance.csv`, and regenerating the snapshot cannot touch it.
 
 ## Using it
 
@@ -239,7 +239,7 @@ whose expression dereferences a member:
     ~ 96B  004503c0  3dapi.cpp:976       pWorld->psrCamera
     ~112B  00520880  PC Item.cpp:4003    pPCItem->iItemNo != -1
 
-The first row is a useful check on the method: `004f30f0` is already recorded in `classes.csv` as the
+The first row is a useful check on the method: `004f30f0` is already recorded in `class-provenance.csv` as the
 byte-proof for `Controls`, so the ranking rediscovers a function that was found by hand and used
 successfully for exactly this purpose. Port the body, then confirm with `just verify-boundaries` -
 not `just compare`, which scores byte-exact bodies well under 100%.

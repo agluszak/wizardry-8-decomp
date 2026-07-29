@@ -156,7 +156,7 @@ inferred one. `psrMeshes` is placed at `0x48` by the same method from
 `Engine Code\3dapi.cpp:446`, but has no ported consumer yet and is therefore recorded as
 unproven.
 
-`evidence/reviewed/wiz8/classes.csv` carries a `layout_proof` column for exactly this distinction.
+Type `layout-supported` claims in `evidence/reviewed/wiz8/claims.csv` carry this distinction without duplicating Ghidra's current layout.
 
 ## `Octree`: a class named and laid out entirely by its own assertions
 
@@ -180,7 +180,7 @@ reproduces 118/118 bytes each on the first build, which proves all seven fields 
 | `0x11E` | `m_usNumParticlesLoaded` | `UINT16` |
 | `0x188` | `m_ulNumProps` | `UINT32` |
 
-`Octree` is therefore the first class in `classes.csv` whose layout is byte-proven rather than
+`Octree` is therefore the first class whose layout claim is byte-proven rather than
 inferred. It has no identified vtable, constructor or destructor yet, so its recorded minimum size is
 only the extent the proven fields require, not a claim about the object's real size.
 
@@ -476,5 +476,5 @@ uv run wiz8 ghidra restore
 uv run wiz8 ghidra index
 ```
 
-The authoritative class relationships are in `evidence/reviewed/wiz8/classes.csv`; their constructor
-and destructor identities live in `evidence/reviewed/wiz8/functions.csv`.
+The authoritative class relationships are in `evidence/reviewed/wiz8/class-provenance.csv`; their constructor
+and destructor identities live in `evidence/reviewed/wiz8/function-provenance.csv`.

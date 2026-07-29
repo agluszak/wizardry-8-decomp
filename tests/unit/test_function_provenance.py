@@ -102,10 +102,12 @@ def test_load_function_identities_uses_stable_ids_not_evidence_narratives(
         "wiz8,005e2890,PListIndexOf,wiz8-foundation,exact,descriptive,descriptive,"
         "3D Code\\PList.cpp,a long reconstruction narrative\n",
     )
-    (tmp_path / "function-evidence.csv").write_text(
-        "evidence_id,program,address,origin,kind,reference,details\n"
-        "function-evidence:wiz8:005e2890:reccmp,wiz8,005e2890,reccmp,exact-compile,"
-        "match:e0393a26,a much longer explanation\n",
+    (tmp_path / "claims.csv").write_text(
+        "claim_id,program,entity_kind,entity_key,predicate,value,origin,authority,"
+        "confidence,reference,details\n"
+        "function-evidence:wiz8:005e2890:reccmp,wiz8,function,005e2890,"
+        "relocation-masked-exact,,reccmp,,exact,match:e0393a26,"
+        "a much longer explanation\n",
         encoding="utf-8",
     )
 
@@ -119,7 +121,9 @@ def test_load_function_identities_uses_stable_ids_not_evidence_narratives(
 
 def test_wiz8_zlib_map_covers_library_and_owned_boundary() -> None:
     repository = Path(__file__).resolve().parents[2]
-    identities = load_function_identities(repository / "evidence/reviewed/wiz8/functions.csv")
+    identities = load_function_identities(
+        repository / "evidence/reviewed/wiz8/function-provenance.csv"
+    )
     identities = [
         identity for identity in identities if identity.owner in {"sgp-compression", "zlib-1.0.4"}
     ]

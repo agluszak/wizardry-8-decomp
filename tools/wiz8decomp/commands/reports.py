@@ -18,15 +18,6 @@ def class_family_command(
     cli.run_action(lambda: class_family_report(cli.settings(), vtable)["rendered"])
 
 
-@app.command("class-candidates")
-def class_candidates_command() -> None:
-    """Generate reviewable class candidates from the polymorphism snapshots."""
-    from .. import command_support as cli
-    from ..reports.class_candidates import class_candidates_report
-
-    cli.run_action(lambda: class_candidates_report(cli.settings()))
-
-
 @app.command("status")
 def status_command() -> None:
     """Summarize canonical identities, ownership, matching, and source-unit coverage."""

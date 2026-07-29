@@ -31,12 +31,39 @@ TABLE_SCHEMAS: dict[str, TableSchema] = {
         ),
         ("program", "address"),
     ),
-    "function-evidence.csv": TableSchema(
-        ("evidence_id", "program", "address", "origin", "kind", "reference", "details"),
-        ("evidence_id",),
+    "function-provenance.csv": TableSchema(
+        (
+            "program",
+            "address",
+            "claimed_name",
+            "owner",
+            "confidence",
+            "name_origin",
+            "authority",
+            "aliases",
+            "source_path",
+            "source_line",
+        ),
+        ("program", "address"),
+    ),
+    "claims.csv": TableSchema(
+        (
+            "claim_id",
+            "program",
+            "entity_kind",
+            "entity_key",
+            "predicate",
+            "value",
+            "origin",
+            "authority",
+            "confidence",
+            "reference",
+            "details",
+        ),
+        ("claim_id",),
         None,
     ),
-    "classes.csv": TableSchema(
+    "class-provenance.csv": TableSchema(
         (
             "program",
             "class_name",
@@ -45,29 +72,12 @@ TABLE_SCHEMAS: dict[str, TableSchema] = {
             "constructor",
             "destructor",
             "scalar_deleting_destructor",
-            "minimum_size",
             "base_classes",
             "base_name_origin",
             "source_path",
             "evidence",
-            "layout_proof",
         ),
         ("program", "class_name"),
-    ),
-    "fields.csv": TableSchema(
-        (
-            "program",
-            "class_name",
-            "offset",
-            "size",
-            "field_name",
-            "data_type",
-            "pointee",
-            "confidence",
-            "evidence_id",
-            "description",
-        ),
-        ("program", "class_name", "offset"),
     ),
     "vtables.csv": TableSchema(
         (

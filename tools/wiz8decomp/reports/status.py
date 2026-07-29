@@ -24,6 +24,7 @@ def _counts(rows: list[dict[str, str]], field: str) -> dict[str, int]:
 
 def derive_status(repo_dir: Path) -> dict[str, Any]:
     catalogs = sorted((repo_dir / "evidence" / "reviewed").glob("*/functions.csv"))
+    catalogs.append(repo_dir / "evidence/reviewed/wiz8/function-provenance.csv")
     programs = []
     by_program: dict[str, list[dict[str, str]]] = {}
     for path in catalogs:
@@ -40,8 +41,8 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
         )
 
     wiz8_functions = by_program["wiz8"]
-    function_evidence = _rows(repo_dir / "evidence/reviewed/wiz8/function-evidence.csv")
-    classes = _rows(repo_dir / "evidence/reviewed/wiz8/classes.csv")
+    claims = _rows(repo_dir / "evidence/reviewed/wiz8/claims.csv")
+    classes = _rows(repo_dir / "evidence/reviewed/wiz8/class-provenance.csv")
     source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
     assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
     gameplay = _rows(repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv")
@@ -58,7 +59,7 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
         "programs": programs,
         "wiz8": {
             "function_identities": len(wiz8_functions),
-            "function_evidence": len(function_evidence),
+            "claims": len(claims),
             "authority": _counts(wiz8_functions, "authority"),
             "owners": _counts(wiz8_functions, "owner"),
             "classes": len(classes),
@@ -103,7 +104,7 @@ def render_status_markdown(report: dict[str, Any]) -> str:
             "## Wiz8.exe",
             "",
             f"- Canonical function identities: {wiz8['function_identities']}",
-            f"- Function evidence records: {wiz8['function_evidence']}",
+            f"- Provenance claims: {wiz8['claims']}",
             f"- Reviewed classes: {wiz8['classes']}",
             f"- Observed original source units: {wiz8['source_units']}",
             "",

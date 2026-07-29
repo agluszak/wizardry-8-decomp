@@ -169,7 +169,7 @@ def lifecycle_unifications(
 
 def load_reviewed_lifecycles(repo: Path) -> dict[str, set[str]]:
     lifecycles: dict[str, set[str]] = {}
-    with (repo / "evidence" / "reviewed" / "wiz8" / "classes.csv").open(
+    with (repo / "evidence" / "reviewed" / "wiz8" / "class-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         for row in csv.DictReader(stream):

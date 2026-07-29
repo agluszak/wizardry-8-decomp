@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -76,9 +77,7 @@ def _markdown(context: dict[str, Any]) -> str:
     function = context["ghidra"]["function"]
     unit = context["translation_unit"]
     reviewed_function = context["reviewed"]["function"]
-    reviewed_name = (
-        reviewed_function.get("current_name") or reviewed_function.get("provisional_name") or "none"
-    )
+    reviewed_name = reviewed_function.get("claimed_name") or "none"
     lines = [
         f"# Recovery context for 0x{context['entry']:08X}",
         "",
@@ -291,7 +290,7 @@ def recovery_context_report(
 
     reviewed_functions = [
         row
-        for row in _reviewed(settings.repo_dir, "functions.csv")
+        for row in _reviewed(settings.repo_dir, "function-provenance.csv")
         if has_canonical_addresses
         and row["program"] == "wiz8"
         and row["address"]
@@ -309,7 +308,7 @@ def recovery_context_report(
         and row["program"] == "wiz8"
         and row["address"] in table_addresses
     }
-    reviewed_classes = _reviewed(settings.repo_dir, "classes.csv")
+    reviewed_classes = _reviewed(settings.repo_dir, "class-provenance.csv")
     class_names = {
         row["class_name"]
         for row in reviewed_classes
@@ -320,15 +319,21 @@ def recovery_context_report(
     }
     class_names.update(row["class_name"] for row in reviewed_vtables.values())
     if reviewed_functions:
-        reviewed_name = reviewed_functions[0]["current_name"]
+        reviewed_name = reviewed_functions[0]["claimed_name"]
         if "::" in reviewed_name:
             class_names.add(reviewed_name.split("::", 1)[0])
     selected_classes = [row for row in reviewed_classes if row["class_name"] in class_names]
-    selected_fields = [
-        row
-        for row in _reviewed(settings.repo_dir, "fields.csv")
-        if row["class_name"] in class_names
-    ]
+    selected_fields = []
+    types_index = settings.build_dir / "ghidra-index/types.json"
+    if types_index.is_file():
+        indexed_types = json.loads(types_index.read_text(encoding="utf-8"))["types"]
+        selected_fields = [
+            {"class_name": row["name"], **component}
+            for row in indexed_types
+            if row["path"].startswith("/wiz8/classes/") and row["name"] in class_names
+            for component in row.get("components", [])
+            if component.get("field")
+        ]
     interval_path = (
         settings.build_dir / "reports" / "translation-units" / "translation-unit-intervals.csv"
     )

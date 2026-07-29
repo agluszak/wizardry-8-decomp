@@ -123,23 +123,13 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
     """Load and cross-validate the canonical reviewed class relationships."""
 
     directory = repo_dir / "evidence" / "reviewed" / program
-    classes_path = directory / "classes.csv"
-    fields_path = directory / "fields.csv"
+    classes_path = directory / "class-provenance.csv"
     vtables_path = directory / "vtables.csv"
     slots_path = directory / "vtable-slots.csv"
-    imported_path = repo_dir / "evidence" / "observations" / "surrender" / "wiz8-sr-imports.csv"
-    imported_types = (
-        {row["class_name"] for row in _untyped_rows(imported_path) if row.get("class_name")}
-        if imported_path.is_file()
-        else set()
-    )
-
     classes = tuple(
         ReviewedClass(
             name=row["class_name"].strip(),
-            size=parse_hex(
-                row["minimum_size"], field="minimum_size", path=classes_path, allow_empty=True
-            ),
+            size=None,
             primary_vtable_id=row["primary_vtable_id"].strip() or None,
             constructor=parse_hex(
                 row.get("constructor", ""),
@@ -171,77 +161,7 @@ def load_reviewed_class_model(repo_dir: Path, program: str) -> ReviewedClassMode
     if len(classes_by_name) != len(classes):
         raise ValueError(f"{classes_path}: duplicate accepted class names")
 
-    fields = tuple(
-        ReviewedField(
-            class_name=row["class_name"].strip(),
-            offset=parse_hex(row["offset"], field="offset", path=fields_path) or 0,
-            size=parse_hex(row["size"], field="size", path=fields_path) or 0,
-            name=row["field_name"].strip(),
-            data_type=row["data_type"].strip(),
-            pointee=row.get("pointee", "").strip(),
-            description=row["description"].strip(),
-            evidence_id=row["evidence_id"].strip(),
-        )
-        for row in read_table(fields_path, program=program).rows
-        if _accepted(row, program)
-    )
-    field_keys: set[tuple[str, int]] = set()
-    last_end: dict[str, int] = {}
-    for field in sorted(fields, key=lambda item: (item.class_name, item.offset)):
-        owner = classes_by_name.get(field.class_name)
-        if owner is None:
-            raise ValueError(f"{fields_path}: unknown class {field.class_name}")
-        if (
-            not field.name
-            or field.size <= 0
-            or field.data_type
-            not in {
-                "bytes",
-                "float",
-                "int16",
-                "int32",
-                "pointer",
-                "uint8",
-                "uint16",
-                "uint32",
-            }
-        ):
-            raise ValueError(f"{fields_path}: invalid field {field.class_name}+0x{field.offset:x}")
-        key = (field.class_name, field.offset)
-        if key in field_keys or field.offset < last_end.get(field.class_name, 0):
-            raise ValueError(
-                f"{fields_path}: overlapping field {field.class_name}+0x{field.offset:x}"
-            )
-        if owner.size is None or field.offset + field.size > owner.size:
-            raise ValueError(f"{fields_path}: field exceeds {field.class_name} size")
-        if field.data_type == "pointer" and field.size != 4:
-            raise ValueError(f"{fields_path}: reviewed x86 pointer field must be four bytes")
-        if field.pointee:
-            if field.data_type != "pointer":
-                raise ValueError(
-                    f"{fields_path}: pointee on non-pointer field "
-                    f"{field.class_name}+0x{field.offset:x}"
-                )
-            base, _ = parse_pointee(field.pointee)
-            if (
-                base != VIRTUAL_SLOT_TYPE_NAME
-                and base not in BUILTIN_POINTEE_TYPES
-                and base not in imported_types
-            ):
-                target = classes_by_name.get(base)
-                if target is None or target.size is None:
-                    raise ValueError(
-                        f"{fields_path}: pointee {field.pointee!r} of "
-                        f"{field.class_name}+0x{field.offset:x} does not name a sized "
-                        "accepted class"
-                    )
-        scalar_size = SCALAR_FIELD_SIZES.get(field.data_type)
-        if scalar_size is not None and field.size != scalar_size:
-            raise ValueError(
-                f"{fields_path}: reviewed {field.data_type} field must be {scalar_size} bytes"
-            )
-        field_keys.add(key)
-        last_end[field.class_name] = field.offset + field.size
+    fields: tuple[ReviewedField, ...] = ()
 
     vtables = tuple(
         ReviewedVtable(

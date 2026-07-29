@@ -61,7 +61,7 @@ def test_semantic_runtime_driver_is_a_separate_product() -> None:
 
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/functions.csv").open(
+    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
         expected = {

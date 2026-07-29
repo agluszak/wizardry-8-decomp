@@ -1,9 +1,8 @@
 #include "wiz8/vector.h"
 
-/* A third growable-vector family, and the first one the tooling picked rather
-   than a person: `just wiz8 report class-candidates` now emits families.csv,
-   which pairs the two one-slot tables a single writer installs at offset zero
-   and orders them by how big that writer is. This family sat near the top with
+/* A third growable-vector family, first identified from the recorded
+   polymorphism census by pairing the two one-slot tables a single writer
+   installs at offset zero. This family stood out with
    an eighty-four byte constructor, and it turned out to be the same four bodies
    on the same declarations as src/wiz8/vector_005ebfb4.cpp - constructor,
    complete destructor and both deleting destructors, byte-exact with no

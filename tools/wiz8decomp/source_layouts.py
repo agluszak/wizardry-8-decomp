@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import json
 import re
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from .evidence.classes import load_reviewed_class_model, parse_pointee
+from .evidence.classes import (
+    ReviewedClassModel,
+    ReviewedField,
+    load_reviewed_class_model,
+    parse_pointee,
+)
 from .paths import atomic_json
 from .reconstructed_pdb import CompiledLayout, load
 
@@ -118,12 +125,55 @@ def compare_source_layouts(reviewed: Any, compiled: dict[str, CompiledLayout]) -
     }
 
 
+def load_ghidra_layout_model(repository: Path) -> ReviewedClassModel:
+    """Join class provenance to the disposable native Ghidra type export."""
+
+    model = load_reviewed_class_model(repository, "wiz8")
+    path = repository / "build/ghidra-index/types.json"
+    if not path.is_file():
+        raise ValueError(f"Ghidra type index does not exist: {path}; run wiz8 ghidra index")
+    document = json.loads(path.read_text(encoding="utf-8"))
+    records = {row["path"]: row for row in document["types"]}
+    classes = []
+    fields = []
+    for item in model.classes:
+        record = records.get(f"/wiz8/classes/{item.name}")
+        if record is None:
+            # An identity without a reviewed layout (currently stLight) remains
+            # useful provenance but is outside the source-layout audit.
+            classes.append(item)
+            continue
+        classes.append(replace(item, size=int(record["length"])))
+        for component in record.get("components", []):
+            name = component.get("field")
+            if not name:
+                continue
+            spelling = str(component["type"]).rstrip()
+            depth = 0
+            while spelling.endswith("*"):
+                depth += 1
+                spelling = spelling[:-1].rstrip()
+            fields.append(
+                ReviewedField(
+                    class_name=item.name,
+                    offset=int(component["offset"]),
+                    size=int(component["length"]),
+                    name=name,
+                    data_type="pointer" if depth else "native",
+                    pointee=("void" + " *" * (depth - 1)) if depth else "",
+                    description=component.get("comment") or "",
+                    evidence_id=f"ghidra:{record['path']}+0x{int(component['offset']):x}",
+                )
+            )
+    return ReviewedClassModel(tuple(classes), tuple(fields), model.vtables, model.slots)
+
+
 def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, Any]:
     path = pdb or (settings.repo_dir / "build" / "decomp" / "Wiz8.pdb")
     if not path.is_file():
         raise ValueError(f"compiled VC6 PDB does not exist: {path}; build WIZ8 first")
     database = load(path)
-    reviewed = load_reviewed_class_model(settings.repo_dir, "wiz8")
+    reviewed = load_ghidra_layout_model(settings.repo_dir)
     report = compare_source_layouts(reviewed, database.types.layouts())
     report["pdb"] = str(path)
     destination = settings.build_dir / "reports" / "source-layouts" / "report.json"

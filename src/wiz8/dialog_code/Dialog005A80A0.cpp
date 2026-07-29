@@ -2,7 +2,7 @@
 #include "wiz8/gameplay_boundaries.h"
 
 /* Dialog Code. This is the reviewed class W8Dialog005A80A0 in
-   evidence/reviewed/wiz8/classes.csv - a modal popup built on the unnamed base
+   evidence/reviewed/wiz8/class-provenance.csv - a modal popup built on the unnamed base
    constructed by 0x005D25B0 and destroyed by 0x005D2610. Only the members
    these bodies touch are modelled; the base storage stays opaque, and the two
    own fields at 0x98 and 0x9c are what the ports prove.

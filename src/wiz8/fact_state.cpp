@@ -5,7 +5,7 @@
 #include <string.h>
 #include <wchar.h>
 
-/* 0x005080F0, reviewed in evidence/reviewed/wiz8/functions.csv. */
+/* 0x005080F0, reviewed in evidence/reviewed/wiz8/function-provenance.csv. */
 extern unsigned char EvaluateFact(int fact_id);
 /* Not yet identified; named by address as elsewhere in src/wiz8. 0x0058AAD0 is a
    wide-string logger taking a channel, 0x0055A0A0 and 0x00524CA0 tear down an

@@ -329,7 +329,7 @@ uv run wiz8 function-census --update-snapshot
 ```
 
 These are candidates, not identities. Promoting a start to a canonical function is a reviewed
-decision and belongs in `evidence/reviewed/wiz8/functions.csv`; regenerating this snapshot cannot
+decision and belongs in `evidence/reviewed/wiz8/function-provenance.csv`; regenerating this snapshot cannot
 overwrite one, because nothing here writes there.
 
 `sources` lists which independent things attest the address, and they are not equal. `eh-record` is

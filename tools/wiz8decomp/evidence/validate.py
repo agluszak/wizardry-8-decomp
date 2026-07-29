@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..provenance import ProvenanceError, validate_provenance
 from .boundaries import load_boundary_rows
+from .claims import validate_claim_rows
 from .classes import load_reviewed_class_model
 from .functions import load_function_identities
 from .io import parse_hex, read_table
@@ -52,14 +53,13 @@ def _validate_csv_shapes(repo_dir: Path) -> int:
 
 
 def _validate_functions(repo_dir: Path, program: str) -> set[int]:
-    path = repo_dir / "evidence/reviewed" / program / "functions.csv"
+    path = repo_dir / "evidence/reviewed" / program / "function-provenance.csv"
     table = read_table(path, program=program)
     addresses: set[int] = set()
     for line, row in enumerate(table.rows, start=2):
         address = parse_hex(row["address"], field="address", path=path) or 0
-        size = parse_hex(row["size"], field="size", path=path, allow_empty=True)
-        if address <= 0 or (size is not None and size <= 0):
-            raise ValueError(f"{path}:{line}: address and size must be positive")
+        if address <= 0:
+            raise ValueError(f"{path}:{line}: address must be positive")
         try:
             validate_provenance(row["name_origin"], row["authority"])
         except ProvenanceError as error:
@@ -172,6 +172,9 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
     functions = run("reviewed-functions", lambda: _validate_functions(repo_dir, program))
     boundaries = run("reviewed-boundaries", lambda: _validate_boundaries(repo_dir))
     if isinstance(functions, set):
+        run(
+            "reviewed-claims", lambda: {"claims": validate_claim_rows(repo_dir, functions, program)}
+        )
         canonical_addresses = (
             functions
             | (boundaries if isinstance(boundaries, set) else set())

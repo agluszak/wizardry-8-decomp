@@ -144,7 +144,7 @@ def load_knowledge(repo: Path, program: str | None = None) -> list[dict[str, Any
             if row["slot_index"] == "0":
                 slot0[row["vtable_id"]] = row["target"].strip().lower()
 
-    with (reviewed / "classes.csv").open(newline="", encoding="utf-8") as stream:
+    with (reviewed / "class-provenance.csv").open(newline="", encoding="utf-8") as stream:
         for row in csv.DictReader(stream):
             destructors = {
                 row[key].strip().lower()
