@@ -13,8 +13,9 @@ struct W8ChunkHead {
 static_assert(sizeof(W8ChunkHead) == 0x0c, "W8ChunkHead_size_must_be_0x0c");
 
 /* Local Code\chunk.cpp. The constructor at 0x0055BCE0 initializes this complete
-   0x48-byte object: the asserted direction state, one owning head vector and
-   three W8GrowableVector<int> navigation stacks. */
+   0x48-byte object: the asserted direction state, one head-pointer vector and
+   three W8GrowableVector<int> navigation stacks. W8Chunk itself removes and
+   deletes heads; the vector destructor releases only its backing storage. */
 struct W8Chunk {
     int m_hFile;                            /* 0x00 */
     unsigned char m_fWriting;               /* 0x04 */

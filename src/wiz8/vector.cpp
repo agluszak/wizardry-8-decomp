@@ -4,6 +4,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+// TEMPLATE: WIZ8 0x004addf0
+// W8GrowableVector<int>::Grow
+
+// TEMPLATE: WIZ8 0x004d99e0
+// W8GrowableVector<T*>::RemoveEntryAt
+
+// VTABLE: WIZ8 0x005ee8c8
+// class W8GrowableVector<W8ChunkHead*>
+
+// VTABLE: WIZ8 0x005ec15c
+// class W8GrowableVector<W8WorldItem*>
+
+// VTABLE: WIZ8 0x005ec51c
+// class W8GrowableVector<unsigned char>
+
+// VTABLE: WIZ8 0x005eca78
+// class W8GrowableVector<unsigned short>
+
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 class W8VectorElement005EBFB4;
@@ -38,19 +56,19 @@ class W8VectorElement005EC018;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005EC164;
+struct W8EncounterScriptName;
 
 // VTABLE: WIZ8 0x005ec164
-// class W8GrowableVector<W8VectorElement005EC164*>
+// class W8GrowableVector<W8EncounterScriptName*>
 
 // TEMPLATE: WIZ8 0x00445ff0
-// W8GrowableVector<W8VectorElement005EC164*>::W8GrowableVector
+// W8GrowableVector<W8EncounterScriptName*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x00446190
-// W8GrowableVector<W8VectorElement005EC164*>::`scalar deleting destructor'
+// W8GrowableVector<W8EncounterScriptName*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00446050
-// W8GrowableVector<W8VectorElement005EC164*>::~W8GrowableVector<W8VectorElement005EC164*>
+// W8GrowableVector<W8EncounterScriptName*>::~W8GrowableVector<W8EncounterScriptName*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

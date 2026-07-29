@@ -67,26 +67,25 @@ canonical per-vtable observations live in
 `evidence/observations/wiz8/ptr-vector-instantiations.csv`; this document deliberately does not
 promote that mechanical inventory into named source types.
 
-## Grow is shared, and the hierarchy that allows that is unresolved
+## Grow and removal are ordinary vector methods
 
-`Grow` is not instantiated per element type. The image contains exactly one body, at `0x004ADDF0`.
-Its callers span roughly thirty translation units, and joining them against
-`evidence/snapshots/polymorphism/vptr-writes.csv` shows sixteen *different* vector vtables being
-constructed inside those same caller bodies — including the `W8GrowableVector<int>` at `0x005EC0E0`
-and the `0x005EBFE0` instantiation `MonsterManager.cpp` embeds. One body cannot be a template
-member of sixteen specializations.
+`Grow`, `RemoveAt`, and `RemoveEntryAt` operate directly on the vector's
+`count`/`capacity`/`data` fields. They are methods of `W8GrowableVector<T>`; there is no recovered
+`W8GrowableVectorBase` class and no lifecycle evidence for one. Adding such a polymorphic base was
+tested and rejected because its additional construction and destruction vptr stores regress four
+reviewed-exact owner bodies.
 
-It is reached through `ecx`, so it is a member function rather than a free helper, and it reads
-count, capacity and data at `+0x04`, `+0x08` and `+0x0c` off its own `this` — so the object it
-receives already carries a vptr at offset zero.
+The emitted four-byte `Grow` body at `0x004ADDF0` and pointer `RemoveEntryAt` body at `0x004D99E0`
+are therefore recorded as `TEMPLATE` emissions, not as `FUNCTION`s on a manufactured base class.
+The source body remains element-width-aware through `sizeof(T)`: the encounter loader proves this
+with `W8GrowableVector<unsigned short>`, `W8GrowableVector<unsigned char>`, and
+`W8GrowableVector<W8EncounterScriptName*>` members and their distinct emitted growth code.
 
-The obvious model, a polymorphic `W8GrowableVectorBase` holding the storage and `Grow` with
-`W8GrowableVector<T>` derived from it, reproduces `Grow` byte-exactly and pulls
-`GenerateItemsFromTable` from 139 bytes over the original to 24. It also costs four reviewed-exact
-lifetime bodies — `0x005D14D0`, `0x005D1590`, `0x005D2540` and `0x005D2560` — an extra vptr store,
-because the extra polymorphic level is one more than the original constructs. So that hierarchy is
-wrong too, and the header keeps `Grow` as a template member: a spelling that is knowingly not the
-original's, chosen because it costs no reviewed body. Resolving it is tracked in Beads.
+Consumers use the container interface rather than restating its storage algorithm.
+`InitializeEncounterTables` constructs the five typed vectors and calls `Grow` and `Add`;
+`ItemInfoMakeGroupList` accepts a `W8GrowableVector<W8WorldItem*>` and calls `Add`; and `W8Chunk`
+embeds `W8GrowableVector<W8ChunkHead*>`. The owners still perform element-specific cleanup—the
+vector destructor owns only its backing allocation.
 
 ### Specialization identities are recorded directly
 
@@ -104,9 +103,9 @@ original source contained wrapper lifecycle bodies. The specialization annotatio
 in `src/wiz8/vector.cpp`.
 
 Some constructors write an adjacent vtable before the specialization table. That observation remains
-real, but it does not justify manufacturing a second source class. Until independent evidence names
-the adjacent owner, it remains unresolved rather than being projected as a base or derived wrapper.
-This also leaves the shared `Grow` source hierarchy open.
+real, but it does not justify manufacturing a base for the vector template. Until independent
+evidence names the adjacent owner, it remains unresolved rather than being projected as a base or
+derived wrapper.
 
 ## Everything else the image repeats is not a first-party template
 

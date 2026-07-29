@@ -455,15 +455,6 @@ unsigned int ItemIndex(int runtime_id)
     return 0;
 }
 
-/* One growable vector of world items, reached field by field because
-   ItemInfoMakeGroupList inlines the append rather than calling Add. */
-struct W8WorldItemVector {
-    void* vptr;                          /* 0x00 */
-    int count;                           /* 0x04 */
-    int capacity;                        /* 0x08 */
-    W8WorldItem** data;                  /* 0x0c */
-};
-
 extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
 extern void GetWorldItemBounds(float* lower, float* upper);              /* 0x0049FB30 */
 extern unsigned char TraceToBounds(void* eye, const float* lower, const float* upper);
@@ -482,56 +473,23 @@ extern int g_item_manager_pending_00683FA9;
 extern float g_world_scale_005ebc40;
 
 /* Flatten one item's whole group into a vector, the item itself first and then
-   everything chained onto it. The append is written out rather than called, so
-   a failed growth silently drops that entry and keeps walking. */
+   everything chained onto it. A failed append drops that entry and the walk
+   continues. */
 // FUNCTION: WIZ8 0x004f8440
-int ItemInfoMakeGroupList(W8WorldItem* item, int unused, W8WorldItemVector* out)
+int ItemInfoMakeGroupList(
+    W8WorldItem* item, int unused, W8GrowableVector<W8WorldItem*>* out)
 {
     W8WorldItem* next;
-    W8WorldItem** previous;
-    int wanted;
-    int index;
 
     if (item == 0) {
         srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 1185,
                      "Bad ITEM_STRUCT in ItemInfoMakeGroupList");
     }
 
-    wanted = out->count + 1;
-    if (out->capacity < wanted) {
-        previous = out->data;
-        out->data = (W8WorldItem**)operator new(wanted * 4);
-        if (out->data == 0) {
-            out->data = previous;
-            goto walk;
-        }
-        out->capacity = wanted;
-        for (index = 0; index < out->count; ++index) {
-            out->data[index] = previous[index];
-        }
-        operator delete(previous);
-    }
-    out->data[out->count] = item;
-    ++out->count;
+    out->Add(item);
 
-walk:
     for (next = item->next; next != 0; next = next->next) {
-        wanted = out->count + 1;
-        if (out->capacity < wanted) {
-            previous = out->data;
-            out->data = (W8WorldItem**)operator new(wanted * 4);
-            if (out->data == 0) {
-                out->data = previous;
-                continue;
-            }
-            out->capacity = wanted;
-            for (index = 0; index < out->count; ++index) {
-                out->data[index] = previous[index];
-            }
-            operator delete(previous);
-        }
-        out->data[out->count] = next;
-        ++out->count;
+        out->Add(next);
     }
     return out->count;
 }

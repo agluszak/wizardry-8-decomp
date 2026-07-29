@@ -22,8 +22,6 @@ class W8StartupStateVector005EE748
 
 class W8StartupStateVector005EE744
     : public W8GrowableVector<W8StartupStateElement005EE748*> {
-public:
-    W8StartupStateElement005EE748* RemoveEntryAt(int position);
 };
 
 struct W8StartupRuntimeState {

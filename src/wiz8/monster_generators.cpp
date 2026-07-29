@@ -78,26 +78,17 @@ static unsigned int g_encounter_table_capacity;
 
 void UnloadEncounterTables(void);
 
-#pragma pack(push, 1)
-struct W8EncounterRuntimeVector {
-    void* vtable;
-    int count;
-    int capacity;
-    void* data;
-};
-
 struct W8EncounterTableLayout {
-    W8EncounterRuntimeVector species_ids;
-    W8EncounterRuntimeVector rarity_class;
-    W8EncounterRuntimeVector time_condition;
-    W8EncounterRuntimeVector challenge_level;
-    W8EncounterRuntimeVector script_names;
+    W8GrowableVector<unsigned short> species_ids;
+    W8GrowableVector<unsigned char> rarity_class;
+    W8GrowableVector<unsigned char> time_condition;
+    W8GrowableVector<unsigned char> challenge_level;
+    W8GrowableVector<W8EncounterScriptName*> script_names;
     char name[256];
     unsigned int unknown_150;
     unsigned char version_two_flags;
     unsigned char padding_155[3];
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8EncounterTableLayout) == 0x158, "W8EncounterTableLayout_must_be_0x158");
 
@@ -121,16 +112,6 @@ static unsigned char GrowPointerArray(void*** values, unsigned int* capacity,
     *values = replacement;
     *capacity = next;
     return 1;
-}
-
-static unsigned char InitializeEncounterVector(W8EncounterRuntimeVector* vector,
-                                                unsigned int width, int capacity)
-{
-    vector->vtable = 0;
-    vector->count = 0;
-    vector->capacity = capacity;
-    vector->data = ::operator new(width * capacity);
-    return vector->data != 0;
 }
 
 /* Engine Code\\MonGen.cpp's startup loader.  EncounterTables.dbs stores the
@@ -197,19 +178,17 @@ extern "C" unsigned int InitializeEncounterTables(void)
             CloseVirtualFile(handle);
             return 0;
         }
-        table = static_cast<W8EncounterTableLayout*>(
-            ::operator new(sizeof(W8EncounterTableLayout)));
+        table = new W8EncounterTableLayout;
         if (!table) {
             CloseVirtualFile(handle);
             return 0;
         }
-        memset(table, 0, sizeof(*table));
         initial_capacity = entry_count > 5 ? entry_count : 5;
-        if (!InitializeEncounterVector(&table->species_ids, 2, initial_capacity) ||
-            !InitializeEncounterVector(&table->rarity_class, 1, initial_capacity) ||
-            !InitializeEncounterVector(&table->time_condition, 1, initial_capacity) ||
-            !InitializeEncounterVector(&table->challenge_level, 1, initial_capacity) ||
-            !InitializeEncounterVector(&table->script_names, 4, initial_capacity) ||
+        if (!table->species_ids.Grow(initial_capacity) ||
+            !table->rarity_class.Grow(initial_capacity) ||
+            !table->time_condition.Grow(initial_capacity) ||
+            !table->challenge_level.Grow(initial_capacity) ||
+            !table->script_names.Grow(initial_capacity) ||
             !ReadVirtualFile(handle, species, entry_count * 2, 0) ||
             !ReadVirtualFile(handle, rarity, entry_count, 0) ||
             !ReadVirtualFile(handle, time, entry_count, 0) ||
@@ -218,22 +197,16 @@ extern "C" unsigned int InitializeEncounterTables(void)
             return 0;
         }
         for (entry = 0; entry < entry_count; ++entry) {
-            char* script = static_cast<char*>(::operator new(0x40));
+            W8EncounterScriptName* script = new W8EncounterScriptName;
             if (!script || !ReadVirtualFile(handle, script, 0x40, 0)) {
                 CloseVirtualFile(handle);
                 return 0;
             }
-            static_cast<unsigned short*>(table->species_ids.data)[entry] =
-                species[entry];
-            static_cast<unsigned char*>(table->rarity_class.data)[entry] = rarity[entry];
-            static_cast<unsigned char*>(table->time_condition.data)[entry] = time[entry];
-            static_cast<unsigned char*>(table->challenge_level.data)[entry] = challenge[entry];
-            static_cast<char**>(table->script_names.data)[entry] = script;
-            table->species_ids.count = entry + 1;
-            table->rarity_class.count = entry + 1;
-            table->time_condition.count = entry + 1;
-            table->challenge_level.count = entry + 1;
-            table->script_names.count = entry + 1;
+            table->species_ids.Add(species[entry]);
+            table->rarity_class.Add(rarity[entry]);
+            table->time_condition.Add(time[entry]);
+            table->challenge_level.Add(challenge[entry]);
+            table->script_names.Add(script);
         }
         memcpy(table->name, name, sizeof(name));
         table->unknown_150 = unknown_150;

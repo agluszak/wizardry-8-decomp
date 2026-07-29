@@ -4,21 +4,13 @@
 #include <new>
 
 /* One hand-rolled growable-array template. Each element type emits its own
-   vtable and its own destructors, but they all call one shared Grow rather than
-   an instantiation of it. The original template name is not known. */
+   constructor, destructor, vtable and element-width-specific methods. */
 template <class T>
 class W8GrowableVector {
 public:
-    W8GrowableVector(int initial_capacity = 5);
+    explicit W8GrowableVector(int initial_capacity = 5);
     virtual ~W8GrowableVector();
 
-    /* Not per-element-type in the original, whatever this declaration says:
-       the image holds one Grow body, and the fifty-nine callers of 0x004ADDF0
-       span about thirty translation units and construct sixteen different
-       vector vtables between them. Modelling that as a shared base reproduces
-       Grow exactly but costs four reviewed-exact lifetime bodies an extra vptr
-       store, so the hierarchy that produces both is still open - see the
-       growable-vector section of docs/libraries/wiz8-foundation-types.md. */
     int Grow(int minimum_capacity);
 
     __forceinline int GetCount() const
@@ -64,6 +56,8 @@ public:
         --count;
         return result;
     }
+
+    T RemoveEntryAt(int position);
 
     /* The image walks the array from a pointer loaded once rather than
        indexing through GetAt, which bounds-checks. Controls.cpp:2718 asserts on
@@ -131,8 +125,6 @@ W8GrowableVector<T>::~W8GrowableVector()
     ::operator delete(data);
 }
 
-// TEMPLATE: WIZ8 0x004addf0
-// W8GrowableVector<int>::Grow
 template <class T>
 int W8GrowableVector<T>::Grow(int minimum_capacity)
 {
@@ -155,6 +147,23 @@ int W8GrowableVector<T>::Grow(int minimum_capacity)
         ::operator delete(previous_data);
     }
     return 1;
+}
+
+template <class T>
+T W8GrowableVector<T>::RemoveEntryAt(int position)
+{
+    int index;
+    T result;
+
+    if (position >= count || position < 0) {
+        return 0;
+    }
+    result = data[position];
+    for (index = position; index < count - 1; ++index) {
+        data[index] = data[index + 1];
+    }
+    --count;
+    return result;
 }
 
 #endif
