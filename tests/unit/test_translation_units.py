@@ -9,6 +9,7 @@ from types import SimpleNamespace
 from wiz8decomp.reports.translation_units import (
     call_site_anchors,
     derive_intervals,
+    function_inventory,
     render_gameplay_map_csv,
     render_interval_csv,
     translation_unit_report,
@@ -23,7 +24,7 @@ def _rows(path: Path) -> list[dict[str, str]]:
 def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     repository = Path(__file__).resolve().parents[2]
     assertions = _rows(repository / "evidence/observations/wiz8/assertions.csv")
-    gameplay = _rows(repository / "config/reccmp/wiz8-gameplay-boundaries.csv")
+    gameplay = function_inventory(repository)
     intervals = derive_intervals(assertions)
 
     assert len(intervals) == 117
@@ -32,30 +33,24 @@ def test_translation_unit_map_is_current_and_non_overlapping() -> None:
     rendered_intervals = render_interval_csv(intervals)
     rendered_gameplay, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
     assert counts["direct"] + counts["inferred"] >= 25
-    assert counts["external"] == 4
+    assert counts["direct"] >= len(
+        __import__("wiz8decomp.source_model", fromlist=["build_source_model"])
+        .build_source_model(repository)
+        .functions
+    )
 
     mapped = list(csv.DictReader(io.StringIO(rendered_gameplay)))
-    assert Counter(row["attribution"] for row in mapped) == counts
-    external = [row for row in mapped if row["attribution"] == "external"]
-    # SurRender inline bodies the game's own units emit. They belong to no
-    # first-party translation unit, so they carry no source path and no
-    # interval, which is what "external" records here.
-    assert {row["symbol"] for row in external} == {
-        "method_00421680",
-        "method_00446110",
-        "method_004817E0",
-        "method_004D6B30",
+    assert Counter(row["attribution"] for row in mapped) == {
+        name: count for name, count in counts.items() if count
     }
-    assert all(not row["source_path"] for row in external)
-    assert all(not row["interval_lower"] and not row["interval_upper"] for row in external)
     assert len(list(csv.DictReader(io.StringIO(rendered_intervals)))) == 233
     assert (
         next(row for row in mapped if row["symbol"] == "MonsterDBFromSpecies")["source_path"]
-        == "Local Code\\MonsterManager.cpp"
+        == "src/wiz8/local_code/MonsterManager.cpp"
     )
     assert (
         next(row for row in mapped if row["symbol"] == "GetRandomCharacter")["source_path"]
-        == "Local Code\\UtilityFunctions.cpp"
+        == "src/wiz8/local_code/UtilityFunctions.cpp"
     )
 
 
@@ -100,16 +95,16 @@ def test_snapshot_anchors_extend_the_interval_map_without_overlapping() -> None:
 def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: Path) -> None:
     repository = Path(__file__).resolve().parents[2]
     observations = tmp_path / "evidence" / "observations" / "wiz8"
-    reccmp = tmp_path / "config" / "reccmp"
     observations.mkdir(parents=True)
-    reccmp.mkdir(parents=True)
     shutil.copyfile(
         repository / "evidence/observations/wiz8/assertions.csv",
         observations / "assertions.csv",
     )
+    (tmp_path / "build/ghidra-index").mkdir(parents=True)
+    shutil.copyfile(repository / "build/source-index.json", tmp_path / "build/source-index.json")
     shutil.copyfile(
-        repository / "config/reccmp/wiz8-gameplay-boundaries.csv",
-        reccmp / "wiz8-gameplay-boundaries.csv",
+        repository / "build/ghidra-index/functions.json",
+        tmp_path / "build/ghidra-index/functions.json",
     )
 
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")

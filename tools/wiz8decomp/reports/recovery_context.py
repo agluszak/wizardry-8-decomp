@@ -13,7 +13,7 @@ from ..ghidra.observation_evidence import load_observation_bundle
 from ..ghidra.session import query_many
 from ..ghidra.workspace import resolve_seed_program
 from ..paths import atomic_json, atomic_write
-from ..source_model import build_source_model
+from ..source_model import build_source_model, load_source_index
 
 
 def _read(path: Path) -> list[dict[str, str]]:
@@ -23,10 +23,6 @@ def _read(path: Path) -> list[dict[str, str]]:
 
 def _in_body(row: dict[str, str], field: str, instruction_addresses: set[int]) -> bool:
     return bool(row.get(field)) and int(row[field], 16) in instruction_addresses
-
-
-def _reviewed(repo_dir: Path, name: str) -> list[dict[str, str]]:
-    return _read(repo_dir / "evidence" / "reviewed" / "wiz8" / name)
 
 
 def _source_unit(path: str) -> str:
@@ -96,7 +92,6 @@ def _markdown(context: dict[str, Any]) -> str:
         f"- Vptr writes: {len(context['polymorphism']['vptr_writes'])}",
         f"- Program facts: {len(context['semantic']['facts'].get('properties', {}))}",
         f"- Field accesses: {len(context['semantic'].get('field_accesses', {}).get('accesses', []))}",
-        f"- Type variables: {len(context['semantic'].get('type_variables', {}).get('variables', []))}",
         f"- Indirect call sites: {len(context['semantic'].get('indirect_calls', []))}",
         "",
     ]
@@ -236,19 +231,14 @@ def recovery_context_report(
     semantic_facts: dict[str, Any] = {}
     high = by_command.get("high-function", {})
     semantic_fields: dict[str, Any] = {}
-    semantic_variables: dict[str, Any] = {}
     if deep and high.get("parameters"):
         semantic_results, _ = query_many(
             settings,
             selector,
-            [
-                ("field-accesses", [f"0x{entry:08x}", root]),
-                ("type-variables", [f"0x{entry:08x}", root]),
-            ],
+            [("field-accesses", [f"0x{entry:08x}", root])],
             function_seeds=function_seeds,
         )
         semantic_fields = semantic_results[0]["result"]
-        semantic_variables = semantic_results[1]["result"]
     indirect_sites = sorted(
         {
             operation["address"]
@@ -338,28 +328,17 @@ def recovery_context_report(
         "calling_convention": function.get("calling_convention", ""),
         "authority": "source" if source_function else "ghidra",
     }
-    reviewed_vtables = {
-        row["address"]: row
-        for row in _reviewed(settings.repo_dir, "vtables.csv")
-        if has_canonical_addresses
-        and row["program"] == "wiz8"
-        and row["address"] in table_addresses
+    source_classes = load_source_index(settings.repo_dir)["classes"]
+    source_vtables = {
+        f"{int(row['vtable_address']):08x}": row
+        for row in source_classes
+        if row.get("vtable_address") is not None
+        and f"{int(row['vtable_address']):08x}" in table_addresses
     }
-    reviewed_classes = _reviewed(settings.repo_dir, "class-provenance.csv")
-    class_names = {
-        row["class_name"]
-        for row in reviewed_classes
-        if any(
-            row.get(field) and int(row[field], 16) == entry
-            for field in ("constructor", "destructor", "scalar_deleting_destructor")
-        )
-    }
-    class_names.update(row["class_name"] for row in reviewed_vtables.values())
-    if reviewed_function:
-        reviewed_name = reviewed_function["name"]
-        if "::" in reviewed_name:
-            class_names.add(reviewed_name.split("::", 1)[0])
-    selected_classes = [row for row in reviewed_classes if row["class_name"] in class_names]
+    class_names = {row["qualified_name"] for row in source_vtables.values()}
+    if source_function is not None and source_function.owning_class:
+        class_names.add(source_function.owning_class)
+    selected_classes = [row for row in source_classes if row["qualified_name"] in class_names]
     selected_fields = []
     types_index = settings.build_dir / "ghidra-index/types.json"
     if types_index.is_file():
@@ -392,7 +371,7 @@ def recovery_context_report(
             "function": reviewed_function,
             "signature": reviewed_signature,
             "function_claims": function_claims,
-            "vtables": reviewed_vtables,
+            "vtables": source_vtables,
             "class_names": sorted(class_names, key=str.casefold),
             "classes": selected_classes,
             "fields": selected_fields,
@@ -407,7 +386,6 @@ def recovery_context_report(
             "high_function": high,
             "normalized_pcode": by_command.get("pcode", {}),
             "field_accesses": semantic_fields,
-            "type_variables": semantic_variables,
             "indirect_calls": indirect_calls,
         },
         "candidate_relations": _candidate_relations(settings.repo_dir, program_name, entry),
@@ -437,7 +415,6 @@ def recovery_context_report(
             "vptr_writes": len(vptr_writes),
             "program_facts": len(semantic_facts.get("properties", {})),
             "field_accesses": len(semantic_fields.get("accesses", [])),
-            "type_variables": len(semantic_variables.get("variables", [])),
             "indirect_calls": len(indirect_calls),
         },
         "outputs": [

@@ -4,6 +4,21 @@
 
 extern srTimer* g_shared_timer_base;
 
+struct W8Releasable {
+    virtual ~W8Releasable();
+};
+
+struct W8Forwarded {
+    void Method4C5290();
+};
+
+extern "C" {
+extern void Function4C4EF0(void);
+extern void Function4A7A70(int value);
+extern unsigned char g_flag_6081e4;
+extern int g_value_659c14;
+}
+
 /* Cleans its own argument, so it is __stdcall and not the cdecl the
    decompiler assumes. */
 extern "C" int __stdcall Function4C4660(int query);
@@ -230,4 +245,45 @@ void MonsterInstallVtable5ED290(void** object)
 void MonsterCallSlot10(void* object, int argument)
 {
     (*(void(**)(void*, int))(*(void***)object + 4))(object, argument);
+}
+
+extern "C" {
+// FUNCTION: WIZ8 0x004C5810
+void Function4C5810(W8Forwarded* target)
+{
+    target->Method4C5290();
+}
+}
+extern "C" {
+// FUNCTION: WIZ8 0x004C5860
+void Function4C5860(W8Releasable* object)
+{
+    if (object != NULL) {
+        delete object;
+    }
+}
+}
+extern "C" {
+// FUNCTION: WIZ8 0x004C59C0
+void Function4C59C0(int enabled, int value)
+{
+    if (enabled != 0 && value != 0) {
+        Function4A7A70(value);
+    }
+}
+}
+extern "C" {
+// FUNCTION: WIZ8 0x004C5ED0
+void Function4C5ED0(int enabled)
+{
+    if (enabled != 0) {
+        Function4C4EF0();
+    }
+}
+}
+// FUNCTION: WIZ8 0x004C6220
+void SetFlag6081E4(unsigned char value)
+{
+    g_flag_6081e4 = value;
+    g_value_659c14 = 0;
 }

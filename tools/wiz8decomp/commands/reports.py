@@ -7,17 +7,6 @@ import typer
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 
 
-@app.command("class-family")
-def class_family_command(
-    vtable: Annotated[str, typer.Argument(help="A vtable address in the family, e.g. 005ed5bc.")],
-) -> None:
-    """Show every vptr write around one class, so a family reads at a glance."""
-    from .. import command_support as cli
-    from ..reports.class_family import class_family_report
-
-    cli.run_action(lambda: class_family_report(cli.settings(), vtable)["rendered"])
-
-
 @app.command("status")
 def status_command() -> None:
     """Summarize canonical identities, ownership, matching, and source-unit coverage."""
@@ -48,3 +37,13 @@ def context_command(
             cli.settings(), address, program, deep=deep, root=root, discover=discover
         )
     )
+
+
+@app.command("translation-units")
+def translation_units_command() -> None:
+    """Generate source ownership and bounded address-quarantine projections."""
+
+    from .. import command_support as cli
+    from ..reports.translation_units import translation_unit_report
+
+    cli.run_action(lambda: translation_unit_report(cli.settings()))

@@ -70,8 +70,8 @@ just wiz8 analyze trace screens --seconds 180       # plus every dispatcher hand
 just wiz8 analyze trace bring-up --plan-only        # the breakpoints, no run
 ```
 
-The bring-up selection is generated from `evidence/reviewed/wiz8/startup-spine.csv`; names join the
-boundary ledger, and screen targets come from `frame-dispatch-table.csv`. Each run allocates its own
+The bring-up selection is generated from compiler-bound startup translation units; screen targets
+still come from `frame-dispatch-table.csv`. Each run allocates its own
 proxy port and records the executable, variant, plan, reviewed-evidence and repository identities,
 tool versions and timeout. Results land in `build/reports/trace/`.
 

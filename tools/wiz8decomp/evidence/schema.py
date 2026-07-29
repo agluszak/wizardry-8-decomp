@@ -48,53 +48,6 @@ TABLE_SCHEMAS: dict[str, TableSchema] = {
         ("claim_id",),
         None,
     ),
-    "class-provenance.csv": TableSchema(
-        (
-            "program",
-            "class_name",
-            "confidence",
-            "primary_vtable_id",
-            "constructor",
-            "destructor",
-            "scalar_deleting_destructor",
-            "base_classes",
-            "base_name_origin",
-            "source_path",
-            "evidence",
-        ),
-        ("program", "class_name"),
-    ),
-    "vtables.csv": TableSchema(
-        (
-            "program",
-            "vtable_id",
-            "class_name",
-            "address",
-            "subobject_offset",
-            "kind",
-            "slot_count",
-            "confidence",
-            "evidence_id",
-        ),
-        ("program", "vtable_id"),
-    ),
-    "vtable-slots.csv": TableSchema(
-        ("program", "vtable_id", "slot_index", "target", "slot_name", "confidence", "evidence_id"),
-        ("program", "vtable_id", "slot_index"),
-    ),
-    "wiz8-gameplay-boundaries.csv": TableSchema(
-        (
-            "address",
-            "size",
-            "symbol",
-            "owner",
-            "confidence",
-            "relocation_masked_sha256",
-            "evidence",
-        ),
-        ("address",),
-        None,
-    ),
 }
 
 

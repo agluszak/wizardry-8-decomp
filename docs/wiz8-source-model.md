@@ -331,8 +331,8 @@ the mangled name spells out the inheritance:
 ??_7srMaterial@@6B@
 ```
 
-Fifteen reference sites in fourteen distinct functions install one of these; every site and its
-classification is tracked in `evidence/reviewed/wiz8/imported-vftable-sites.csv`. An earlier
+Fifteen reference sites in fourteen distinct functions install one of these; the disposable Ghidra
+vtable-reference index reports every site and its classification. An earlier
 revision guessed that most `srMaterial` sites were stack temporaries: they are not. Seven are
 **inlined heap constructions** — operator new with a null check, the imported vftable,
 `srMaterial::reset`, then a local derived vtable (`0x005EBDE0`) — and two are dedicated
@@ -476,5 +476,5 @@ uv run wiz8 ghidra restore
 uv run wiz8 ghidra index
 ```
 
-The authoritative class relationships are in `evidence/reviewed/wiz8/class-provenance.csv`; owned
-constructor and destructor identities come from their address-marked C++ definitions.
+Authoritative class relationships and owned lifecycle identities come from the C++ declarations;
+the Ghidra index retains original-only analysis until it is promoted.

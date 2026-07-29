@@ -1,4 +1,4 @@
-"""Reading the build's own debug information, and joining it to the ledger.
+"""Reading the build's own VC6 debug information.
 
 The fixtures are built here rather than checked in: a PDB and a COFF object are
 build products, and the repository does not track those. Building the container
@@ -13,28 +13,17 @@ from pathlib import Path
 
 import pytest
 from wiz8decomp.reconstructed import (
-    OVERLAY_TIER,
-    REVIEWED_TIER,
     Body,
-    Transfer,
     bodies_from_objects,
     bodies_from_pdb,
-    build_transfer_plan,
-    frame_origin,
     index_bodies,
-    parameter_names,
     reviewed_spelling,
 )
 from wiz8decomp.reconstructed_pdb import (
-    LF_CLASS,
-    LF_FIELDLIST,
-    LF_MEMBER_ST,
-    LF_POINTER,
     MAGIC_20,
     S_BPREL32,
     S_GPROC32,
     Signature,
-    TypeStream,
     UnsupportedPdb,
     load,
     load_object,
@@ -52,39 +41,6 @@ def _record(kind: int, payload: bytes) -> bytes:
 
 def _name(text: str) -> bytes:
     return bytes([len(text)]) + text.encode("latin-1")
-
-
-def _field_member(name: str, type_index: int, offset: int) -> bytes:
-    value = struct.pack("<HHIH", LF_MEMBER_ST, 0, type_index, offset) + _name(name)
-    padding = (-len(value)) % 4
-    if padding:
-        value += bytes([0xF0 + padding]) + b"\0" * (padding - 1)
-    return value
-
-
-def test_vc6_type_stream_exposes_compiled_class_layout() -> None:
-    field_list = _field_member("m_flags_00", 0x0073, 0) + _field_member(
-        "m_instance_24", 0x1001, 0x24
-    )
-    pointer = struct.pack("<I", 0x0003)
-    class_record = struct.pack("<HHIIIH", 2, 0, 0x1000, 0, 0, 0x58) + _name("GDProp")
-    types = TypeStream(
-        {
-            0x1000: (LF_FIELDLIST, field_list),
-            0x1001: (LF_POINTER, pointer),
-            0x1002: (LF_CLASS, class_record),
-        }
-    )
-
-    layout = types.layouts()["GDProp"]
-
-    assert layout.size == 0x58
-    assert [
-        (field.name, field.offset, field.width, field.pointer_depth) for field in layout.fields
-    ] == [
-        ("m_flags_00", 0, 2, 0),
-        ("m_instance_24", 0x24, 4, 1),
-    ]
 
 
 def _procedure(name: str, length: int, type_index: int, offset: int = 0x1000) -> bytes:
@@ -303,82 +259,3 @@ def test_one_comdat_in_many_objects_is_one_body_two_different_ones_are_neither()
     assert "Vector::Grow" in unique
     assert ambiguous["helper"] == ["a.obj", "b.obj"]
     assert "helper" not in unique
-
-
-def test_only_an_exact_row_reaches_the_reviewed_tier(tmp_path: Path) -> None:
-    repo = tmp_path
-    (repo / "config" / "reccmp").mkdir(parents=True)
-    (repo / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv").write_text(
-        "address,size,symbol,owner,confidence,relocation_masked_sha256,evidence\n"
-        "00401570,242,BringUpEngine,wiz8,exact,abc,proved\n"
-        "004011e0,844,WindowProc,wiz8,structurally-strong,,close\n"
-        "00402970,28,TooShort,wiz8,exact,def,proved\n"
-        "00404000,10,Missing,wiz8,exact,ghi,proved\n",
-        encoding="utf-8",
-    )
-    bodies = [
-        _body("BringUpEngine", 242, "engine.obj"),
-        _body("WindowProc", 908, "window.obj"),
-        _body("TooShort", 12, "engine.obj"),
-    ]
-
-    plan = build_transfer_plan(repo, bodies, verified_exact={"00401570"})
-    by_symbol = {transfer.symbol: transfer for transfer in plan.transfers}
-
-    assert by_symbol["BringUpEngine"].tier == REVIEWED_TIER
-    # A longer compiled body is ordinary - the COMDAT carries the switch table
-    # and the padding after it - so length alone does not block a transfer.
-    assert by_symbol["WindowProc"].tier == OVERLAY_TIER
-    assert not by_symbol["WindowProc"].blocked
-    assert "too short" in by_symbol["TooShort"].blocked
-    assert by_symbol["TooShort"].tier == OVERLAY_TIER
-    assert [item["symbol"] for item in plan.unmatched] == ["Missing"]
-
-
-def test_an_exact_ledger_row_stays_overlay_only_without_fresh_body_verification(
-    tmp_path: Path,
-) -> None:
-    repo = tmp_path
-    (repo / "config" / "reccmp").mkdir(parents=True)
-    (repo / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv").write_text(
-        "address,size,symbol,owner,confidence,relocation_masked_sha256,evidence\n"
-        "00401570,242,BringUpEngine,wiz8,exact,abc,proved\n",
-        encoding="utf-8",
-    )
-
-    plan = build_transfer_plan(repo, [_body("BringUpEngine", 242, "engine.obj")])
-
-    assert plan.transfers[0].tier == OVERLAY_TIER
-    assert plan.transfers[0].blocked == "fresh relocation-masked boundary verification required"
-
-
-def test_the_frame_says_where_its_own_offsets_are_measured_from() -> None:
-    # A body that keeps its frame pointer puts the first parameter at ebp+8;
-    # one `/O2` made frameless puts it at 4, which is Ghidra's own origin.
-    assert frame_origin((("this", 8, "int"), ("local", -4, "int"))) == 8
-    assert frame_origin((("value", 4, "int"),)) == 4
-    assert frame_origin((("local", -8, "int"),)) is None
-
-
-def test_parameter_names_come_from_the_source_or_say_they_did_not() -> None:
-    named = Transfer(
-        address="00401570",
-        symbol="BringUpEngine",
-        confidence="exact",
-        tier=REVIEWED_TIER,
-        object_file="engine.obj",
-        signature=Signature("int", "__cdecl", ("void *", "int"), ""),
-        frame_variables=(("instance", 4, "void *"), ("show_command", 8, "int")),
-    )
-    optimised = Transfer(
-        address="00402970",
-        symbol="InitializeWizardryVideoSurfaceManager",
-        confidence="exact",
-        tier=REVIEWED_TIER,
-        object_file="engine.obj",
-        signature=Signature("int", "__cdecl", ("void *", "int"), ""),
-        frame_variables=(("kept", 4, "void *"),),
-    )
-
-    assert parameter_names(named) == ("instance", "show_command")
-    assert parameter_names(optimised) == ("argument1", "argument2")

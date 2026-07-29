@@ -1,190 +1,195 @@
-"""Audit VC6 CodeView class layouts against the reviewed evidence ledger."""
+"""Audit source-owned layouts against the VC6 PDB and live Ghidra index."""
 
 from __future__ import annotations
 
 import json
-import re
-from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from .evidence.classes import (
-    ReviewedClassModel,
-    ReviewedField,
-    load_reviewed_class_model,
-    parse_pointee,
-)
 from .paths import atomic_json
-from .reconstructed_pdb import CompiledLayout, load
+from .source_model import load_source_index
 
 
 def _field_name(name: str) -> str:
     return name.removeprefix("m_")
 
 
-def _reviewed_base_offsets(spec: str) -> set[int]:
-    """Offsets explicitly present in the reviewed free-form base relationship."""
+def _pointer_depth(spelling: str) -> int:
+    depth = 0
+    value = spelling.rstrip()
+    while value.endswith("*"):
+        depth += 1
+        value = value[:-1].rstrip()
+    return depth
 
-    return {int(value, 16) for value in re.findall(r"\+0x([0-9a-fA-F]+)", spec)}
 
+def compare_source_layouts(
+    source_classes: list[dict[str, Any]],
+    ghidra_types: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    """Check every class made layout-owned by a compiler-enforced size assertion."""
 
-def compare_source_layouts(reviewed: Any, compiled: dict[str, CompiledLayout]) -> dict[str, Any]:
     failures: list[dict[str, Any]] = []
-    checks = {"classes": 0, "fields": 0, "bases": 0}
-    skipped_fields = 0
-    compiled_classes = 0
-    fields_by_class: dict[str, list[Any]] = {}
-    for field in reviewed.fields:
-        fields_by_class.setdefault(field.class_name, []).append(field)
-    for source_class in reviewed.classes:
-        layout = compiled.get(source_class.name)
-        if layout is None:
+    checks = {"classes": 0, "source_fields": 0, "fields": 0, "bases": 0}
+    layout_owned = [item for item in source_classes if item.get("asserted_size") is not None]
+    for source_class in layout_owned:
+        name = source_class["qualified_name"]
+        expected_size = int(source_class["asserted_size"])
+        # The reccmp importer materializes the rebuilt PDB class at the root
+        # category.  Original reviewed Ghidra layouts remain under
+        # /wiz8/classes.  Comparing those two projections keeps PDB decoding in
+        # reccmp instead of growing another Wizardry ABI frontend here.
+        rebuilt = ghidra_types.get(f"/{name}")
+        if rebuilt is None:
+            failures.append({"kind": "missing-pdb-class", "class": name})
             continue
-        compiled_classes += 1
         checks["classes"] += 1
-        if source_class.size is not None and layout.size < source_class.size:
+        if int(rebuilt["length"]) != expected_size:
             failures.append(
                 {
-                    "kind": "minimum-size",
-                    "class": source_class.name,
-                    "expected": source_class.size,
-                    "actual": layout.size,
+                    "kind": "size",
+                    "class": name,
+                    "expected": expected_size,
+                    "actual": int(rebuilt["length"]),
                 }
             )
-        ordered = sorted(layout.fields, key=lambda item: item.offset)
-        source_fields = {_field_name(item.name): item for item in ordered}
-        inferred_widths = {
-            item.name: (
-                ordered[index + 1].offset - item.offset
-                if index + 1 < len(ordered)
-                else layout.size - item.offset
-            )
-            for index, item in enumerate(ordered)
+
+        actual_bases = {
+            str(component["type"])
+            for component in rebuilt.get("components", [])
+            if component.get("field") == "base"
         }
-        for field in fields_by_class.get(source_class.name, []):
-            # Compiler-owned vptrs are not LF_MEMBER records. Their offsets are
-            # covered by reviewed vtable/subobject evidence instead.
-            if "vptr" in field.name:
+        for expected_base in source_class.get("bases", []):
+            checks["bases"] += 1
+            if expected_base not in actual_bases:
+                failures.append(
+                    {
+                        "kind": "base",
+                        "class": name,
+                        "expected": expected_base,
+                        "actual": sorted(actual_bases),
+                    }
+                )
+
+        rebuilt_fields = {
+            str(component.get("field")): component
+            for component in rebuilt.get("components", [])
+            if component.get("field") not in {None, "base", "vftable"}
+        }
+        for source_field in source_class.get("fields", []):
+            checks["source_fields"] += 1
+            field_name = str(source_field["name"])
+            actual_field = rebuilt_fields.get(field_name)
+            if actual_field is None:
+                failures.append({"kind": "missing-pdb-field", "class": name, "field": field_name})
                 continue
-            actual = source_fields.get(_field_name(field.name))
-            # Positional unknown/base-storage names do not prove that a source
-            # array and a reviewed subdivision are the same member. They are
-            # covered by the class extent, not joined by suggestive spelling.
-            if actual is None or field.name.startswith(("unknown_", "base_storage")):
-                skipped_fields += 1
+            expected_depth = _pointer_depth(str(source_field["type"]))
+            actual_depth = _pointer_depth(str(actual_field["type"]))
+            if expected_depth and expected_depth != actual_depth:
+                failures.append(
+                    {
+                        "kind": "source-field-pointer-depth",
+                        "class": name,
+                        "field": field_name,
+                        "expected": expected_depth,
+                        "actual": actual_depth,
+                    }
+                )
+
+        original = ghidra_types.get(f"/wiz8/classes/{name}")
+        if original is None:
+            failures.append({"kind": "missing-ghidra-class", "class": name})
+            continue
+
+        def flattened(data_type: dict[str, Any], origin: int = 0) -> list[dict[str, Any]]:
+            values: list[dict[str, Any]] = []
+            for component in data_type.get("components", []):
+                offset = origin + int(component["offset"])
+                base = ghidra_types.get(f"/{component.get('type', '')}")
+                if component.get("field") == "base" and base is not None:
+                    values.extend(flattened(base, offset))
+                else:
+                    values.append({**component, "offset": offset})
+            return values
+
+        source_fields = flattened(rebuilt)
+        for component in original.get("components", []):
+            field = component.get("field")
+            if not field:
+                continue
+            component_offset = int(component["offset"])
+            component_end = component_offset + int(component["length"])
+            covering = [
+                item
+                for item in source_fields
+                if int(item["offset"]) < component_end
+                and int(item["offset"]) + int(item["length"]) > component_offset
+            ]
+            covered = {
+                byte
+                for item in covering
+                for byte in range(
+                    max(component_offset, int(item["offset"])),
+                    min(component_end, int(item["offset"]) + int(item["length"])),
+                )
+            }
+            if len(covered) != int(component["length"]):
+                failures.append({"kind": "missing-field", "class": name, "field": field})
                 continue
             checks["fields"] += 1
-            expected_depth: int | None = None
-            if field.data_type == "pointer" and field.pointee:
-                _base, extra = parse_pointee(field.pointee)
-                expected_depth = 1 + extra
-            actual_width = (
-                actual.width if actual.width not in (None, 0) else inferred_widths[actual.name]
-            )
-            expected = (field.offset, field.size, expected_depth)
-            observed = (actual.offset, actual_width, actual.pointer_depth)
-            matches = (
-                actual.offset == field.offset
-                and actual_width == field.size
-                and (expected_depth is None or actual.pointer_depth == expected_depth)
-            )
-            if not matches:
+            if "vptr" in field:
+                continue
+            exact = [
+                item
+                for item in covering
+                if int(item["offset"]) == component_offset
+                and int(item["length"]) == int(component["length"])
+            ]
+            expected_depth = _pointer_depth(str(component["type"]))
+            actual_depth = _pointer_depth(str(exact[0]["type"])) if exact else 0
+            if expected_depth and actual_depth and actual_depth != expected_depth:
                 failures.append(
                     {
                         "kind": "field",
-                        "class": source_class.name,
-                        "field": field.name,
-                        "expected": expected,
-                        "actual": observed,
-                        "compiled_type": actual.type_name,
-                    }
-                )
-        expected_bases = _reviewed_base_offsets(source_class.base_classes)
-        if expected_bases:
-            actual_bases = {item.offset for item in layout.bases}
-            checks["bases"] += len(expected_bases)
-            missing_bases = sorted(expected_bases - actual_bases)
-            if missing_bases:
-                failures.append(
-                    {
-                        "kind": "base-offset",
-                        "class": source_class.name,
-                        "expected": sorted(expected_bases),
-                        "actual": sorted(actual_bases),
-                        "missing": missing_bases,
+                        "class": name,
+                        "field": field,
+                        "expected_pointer_depth": expected_depth,
+                        "actual_types": [str(item["type"]) for item in exact],
                     }
                 )
     return {
         "schema": "wiz8.source-layout-audit",
         "ok": not failures,
-        "compiled_classes": compiled_classes,
+        "layout_owned_classes": len(layout_owned),
         "checks": checks,
-        "skipped_unjoined_fields": skipped_fields,
         "failure_count": len(failures),
         "failures": failures,
     }
 
 
-def load_ghidra_layout_model(repository: Path) -> ReviewedClassModel:
-    """Join class provenance to the disposable native Ghidra type export."""
-
-    model = load_reviewed_class_model(repository, "wiz8")
-    path = repository / "build/ghidra-index/types.json"
-    if not path.is_file():
-        raise ValueError(f"Ghidra type index does not exist: {path}; run wiz8 ghidra index")
-    document = json.loads(path.read_text(encoding="utf-8"))
-    records = {row["path"]: row for row in document["types"]}
-    classes = []
-    fields = []
-    for item in model.classes:
-        record = records.get(f"/wiz8/classes/{item.name}")
-        if record is None:
-            # An identity without a reviewed layout (currently stLight) remains
-            # useful provenance but is outside the source-layout audit.
-            classes.append(item)
-            continue
-        classes.append(replace(item, size=int(record["length"])))
-        for component in record.get("components", []):
-            name = component.get("field")
-            if not name:
-                continue
-            spelling = str(component["type"]).rstrip()
-            depth = 0
-            while spelling.endswith("*"):
-                depth += 1
-                spelling = spelling[:-1].rstrip()
-            fields.append(
-                ReviewedField(
-                    class_name=item.name,
-                    offset=int(component["offset"]),
-                    size=int(component["length"]),
-                    name=name,
-                    data_type="pointer" if depth else "native",
-                    pointee=("void" + " *" * (depth - 1)) if depth else "",
-                    description=component.get("comment") or "",
-                    evidence_id=f"ghidra:{record['path']}+0x{int(component['offset']):x}",
-                )
-            )
-    return ReviewedClassModel(tuple(classes), tuple(fields), model.vtables, model.slots)
-
-
 def verify_source_layouts(settings: Any, pdb: Path | None = None) -> dict[str, Any]:
-    path = pdb or (settings.repo_dir / "build" / "decomp" / "Wiz8.pdb")
+    path = pdb or (settings.repo_dir / "build/decomp/Wiz8.pdb")
     if not path.is_file():
         raise ValueError(f"compiled VC6 PDB does not exist: {path}; build WIZ8 first")
-    database = load(path)
-    reviewed = load_ghidra_layout_model(settings.repo_dir)
-    report = compare_source_layouts(reviewed, database.types.layouts())
+    types_path = settings.repo_dir / "build/ghidra-index/types.json"
+    if not types_path.is_file():
+        raise ValueError(f"Ghidra type index does not exist: {types_path}; run wiz8 ghidra index")
+    ghidra_document = json.loads(types_path.read_text(encoding="utf-8"))
+    ghidra_types = {item["path"]: item for item in ghidra_document["types"]}
+    source_classes = [
+        item
+        for item in load_source_index(settings.repo_dir)["classes"]
+        if item["source_file"].startswith(("src/wiz8/", "include/wiz8/"))
+    ]
+    report = compare_source_layouts(source_classes, ghidra_types)
     report["pdb"] = str(path)
-    destination = settings.build_dir / "reports" / "source-layouts" / "report.json"
+    destination = settings.build_dir / "reports/source-layouts/report.json"
     atomic_json(destination, report)
     report["report"] = str(destination)
     return report
 
 
 def require_source_layouts(report: dict[str, Any]) -> dict[str, Any]:
-    """Reject a completed layout audit that found compiled-model drift."""
-
     if not report["ok"]:
         raise ValueError(
             f"compiled source layout differs at {report['failure_count']} checks; "

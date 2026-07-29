@@ -8,7 +8,7 @@
    guesses which function contains a vptr write from inter-function padding, and
    for this constructor it guessed wrong, so the two stores were credited to
    different functions and the pair never formed. Resolving the write sites
-   through Ghidra's own containment - object_model.attribute_writers over
+   through Ghidra's own containment and vptr-writer queries over
    `function-of` - puts both stores back in 0x00489ED0 and the family
    appears.
 

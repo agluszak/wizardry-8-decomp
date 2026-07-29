@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 from pathlib import Path
 from typing import Any
 
@@ -19,11 +20,40 @@ __all__ = [
     "TranslationUnitInterval",
     "call_site_anchors",
     "derive_intervals",
+    "function_inventory",
     "load_call_site_anchors",
     "render_gameplay_map_csv",
     "render_interval_csv",
     "translation_unit_report",
 ]
+
+
+def function_inventory(repo_dir: Path) -> list[dict[str, str]]:
+    """Generated original-function inventory with source marker ownership overlaid."""
+
+    ghidra_path = repo_dir / "build" / "ghidra-index" / "functions.json"
+    if not ghidra_path.is_file():
+        raise ValueError(f"Ghidra function index does not exist: {ghidra_path}")
+    values = [
+        {
+            "address": item["entry"],
+            "symbol": item.get("qualified_name") or item["name"],
+            "owner": "",
+            "source_path": "",
+        }
+        for item in json.loads(ghidra_path.read_text(encoding="utf-8"))["functions"]
+    ]
+    from ..source_model import build_source_model
+
+    by_address = {int(item["address"], 16): item for item in values}
+    for address, function in build_source_model(repo_dir).functions.items():
+        by_address[address] = {
+            "address": f"{address:08x}",
+            "symbol": function.name,
+            "owner": "surrender-template" if function.kind == "TEMPLATE" else "source",
+            "source_path": function.file,
+        }
+    return list(by_address.values())
 
 
 def _read_rows(path: Path) -> list[dict[str, str]]:
@@ -115,7 +145,14 @@ def render_gameplay_map_csv(
             (interval for interval in intervals if interval.lower <= address <= interval.upper),
             None,
         )
-        if function["owner"] == "surrender-template":
+        if function.get("source_path"):
+            attribution = "direct"
+            source_path = function["source_path"]
+            lower = address
+            upper = address
+            bounds = "source-marker"
+            evidence = "physical source file owning the compiler-bound marker"
+        elif function["owner"] == "surrender-template":
             attribution = "external"
             source_path = ""
             lower = 0
@@ -230,7 +267,7 @@ def translation_unit_report(settings: Any) -> dict[str, Any]:
     assertions = _read_rows(
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
     )
-    gameplay = _read_rows(settings.repo_dir / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv")
+    gameplay = function_inventory(settings.repo_dir)
     extra_anchors = load_call_site_anchors(settings.repo_dir)
 
     intervals = derive_intervals(assertions, extra_anchors)

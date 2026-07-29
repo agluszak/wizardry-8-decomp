@@ -240,11 +240,10 @@ whose expression dereferences a member:
     ~ 96B  004503c0  3dapi.cpp:976       pWorld->psrCamera
     ~112B  00520880  PC Item.cpp:4003    pPCItem->iItemNo != -1
 
-The first row is a useful check on the method: `004f30f0` is already recorded in `class-provenance.csv` as the
-byte-proof for `Controls`, so the ranking rediscovers a function that was found by hand and used
-successfully for exactly this purpose. Port the body, then confirm with
-`just wiz8 verify-boundaries` -
-not `just compare`, which scores byte-exact bodies well under 100%.
+The first row is a useful check on the method: `004f30f0` is the source-owned byte proof for
+`Controls`, so the ranking rediscovers a function that was found by hand and used
+successfully for exactly this purpose. Port the body, then confirm the paired entity with reccmp's
+relocation-masked exact mode; linked-image percentage alone remains diagnostic.
 
 ### What type is the object at `[ebp-N]` in this function?
 

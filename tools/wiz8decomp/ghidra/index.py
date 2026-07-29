@@ -125,8 +125,7 @@ def _vtables(program: Any) -> list[dict[str, Any]]:
 
 def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
     from ..evidence.claims import validate_claims_against_documents
-    from ..source_model import target_for_program, validate_source_names_against_index
-    from .source_sync import audit_source_program
+    from ..source_model import target_for_program
 
     program_name = ensure_seed(settings, selector)
     source_target = target_for_program(program_name)
@@ -153,11 +152,12 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
                     "vtables": _vtables(program),
                 },
             }
-            source_sync = audit_source_program(program, settings.repo_dir, source_target)
     finally:
         project.close()
 
     output = settings.build_dir / "ghidra-index"
+    if source_target != "WIZ8":
+        output /= source_target.casefold()
     paths = []
     counts = {}
     for name, document in documents.items():
@@ -168,17 +168,12 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
     claim_counts = (
         validate_claims_against_documents(settings.repo_dir, documents)
         if source_target == "WIZ8"
-        else {"function": 0, "type": 0, "vtable": 0}
-    )
-    source_count = validate_source_names_against_index(
-        settings.repo_dir, documents["functions"], source_target
+        else {"function": 0}
     )
     return {
         "schema": "wiz8.ghidra-index",
         "program": program_name,
         "counts": counts,
         "claims": claim_counts,
-        "source_functions": source_count,
-        "source_sync": source_sync,
         "outputs": paths,
     }

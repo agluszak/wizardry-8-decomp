@@ -5,8 +5,7 @@ conflict as a matter of routine and the resolution is nearly always "keep both
 sides". Doing that by hand is where it goes wrong: when both sides carry a row
 for the *same* key, appending both duplicates an identity, and picking
 whichever half came last can silently demote a row somebody already promoted.
-That happened - a boundary row went back to ``structurally-strong`` and lost
-its recorded hash, and only ``just verify-boundaries`` noticed.
+The merger remains limited to exceptional external observations and claims.
 
 So the merge is mechanical here instead. Rows only one side has are kept.
 Rows both sides have are reconciled field by field. Confidence may only move
@@ -25,8 +24,7 @@ from typing import Any
 
 from .evidence.schema import TABLE_SCHEMAS
 
-# Ordered weakest to strongest. Reviewed evidence and the boundary map use
-# overlapping vocabularies, so one table covers both.
+# Ordered weakest to strongest across the remaining reviewed evidence.
 _CONFIDENCE_RANK = {
     "": 0,
     "not-built": 0,
@@ -39,22 +37,11 @@ _CONFIDENCE_RANK = {
 # The identity of a row, per table. A merge cannot be safe without knowing
 # which columns name the thing the row is about.
 _KEYS: dict[str, tuple[str, ...]] = {
-    # Original address is the identity. A symbol is reviewed metadata and may
-    # be renamed; including it here allowed two names for one function to
-    # survive a merge as distinct rows.
-    "wiz8-gameplay-boundaries.csv": ("address",),
     "srext-jpegimporter.csv": ("address",),
     "srext-unzip.csv": ("address",),
     "functions.csv": ("program", "address"),
     "claims.csv": ("claim_id",),
-    "class-provenance.csv": ("program", "class_name"),
-    "vtables.csv": ("program", "vtable_id"),
-    "vtable-slots.csv": ("program", "vtable_id", "slot_index"),
-    "imported-vftable-sites.csv": ("program", "site"),
     "allocator-layers.csv": ("address",),
-    # No program column, and the ordering column repeats where two nodes share
-    # a step, so the spine needs the role alongside it.
-    "startup-spine.csv": ("order", "role"),
 }
 
 

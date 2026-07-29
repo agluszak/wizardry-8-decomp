@@ -42,28 +42,4 @@ def test_generated_index_validation_accepts_a_resolved_claim(tmp_path: Path) -> 
 
     assert validate_claims_against_documents(tmp_path, _documents({"00401000"})) == {
         "function": 1,
-        "type": 0,
-        "vtable": 0,
     }
-
-
-def test_generated_index_validation_checks_claimed_field_identity(tmp_path: Path) -> None:
-    directory = tmp_path / "evidence/reviewed/wiz8"
-    directory.mkdir(parents=True)
-    (directory / "claims.csv").write_text(
-        "claim_id,program,entity_kind,entity_key,predicate,value,origin,authority,"
-        "confidence,reference,details\n"
-        "field:wiz8:Node:4,wiz8,type,/wiz8/classes/Node,field-identity,"
-        '"{""field"":""next"",""length"":4,""offset"":4}",'
-        "descriptive,descriptive,exact,fixture,fixture\n",
-        encoding="utf-8",
-    )
-    types = [
-        {
-            "path": "/wiz8/classes/Node",
-            "components": [{"offset": 0, "length": 4, "field": "next"}],
-        }
-    ]
-
-    with pytest.raises(ValueError, match="does not resolve to a matching Ghidra field"):
-        validate_claims_against_documents(tmp_path, _documents(set(), types))

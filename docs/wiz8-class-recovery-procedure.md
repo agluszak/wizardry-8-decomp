@@ -53,10 +53,9 @@ For a recovered function, require the narrowest applicable proof:
 
 ```sh
 just build WIZ8
-just wiz8 verify-boundaries
 just compare
 just test
 ```
 
-Relocation-masked boundary verification is the exact-body authority. Runtime behavior is the
-product authority. Linked-image reccmp output is a diagnostic and pairing surface.
+Reccmp's current-binary relocation-masked result is the exact-body authority. Runtime behavior is
+the product authority.

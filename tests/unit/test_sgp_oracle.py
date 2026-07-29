@@ -66,30 +66,61 @@ def _reviewed_rows(repository: Path, unit: str) -> list[dict[str, str]]:
 
 
 def _accepted_functions(repository: Path) -> list[dict[str, str]]:
-    with (repository / "evidence/reviewed/wiz8/claims.csv").open(
+    with (repository / "evidence/reviewed/sgp/units.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        rows = [
+        paths = {row["unit"]: row["source_path"] for row in csv.DictReader(stream)}
+    with (repository / "evidence/snapshots/sgp/harness.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        harness = [
             row
             for row in csv.DictReader(stream)
-            if row["entity_kind"] == "function" and row["predicate"] == "accepted-identity"
+            if row["build"] == "gog_base"
+            and row["classification"] in {"exact", "relocation-equivalent"}
         ]
-    accepted = []
-    for row in rows:
-        reference = row["reference"]
-        source_path = (
-            reference.rsplit(":", 1)[0] if reference.rsplit(":", 1)[-1].isdigit() else reference
-        )
-        accepted.append(
-            {
-                **row,
-                "address": row["entity_key"],
-                "claimed_name": row["value"],
-                "name_origin": row["origin"],
-                "source_path": source_path,
-            }
-        )
-    return accepted
+    with (repository / "evidence/reviewed/sgp/findings.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        retained = [row for row in csv.DictReader(stream) if row["finding"] == "retained"]
+
+    # COFF folding gives Container and Timer fewer physical bodies than source
+    # identities. Their reviewed unit findings preserve the source surface;
+    # every other accepted identity comes directly from the generated sweep.
+    harness = [row for row in harness if row["unit"] not in {"container", "timer"}]
+    harness.extend(
+        {
+            "unit": row["unit"],
+            "function": row["function"],
+            "address": row["canonical_address"],
+        }
+        for row in retained
+        if row["unit"] in {"container", "timer"}
+    )
+    allowed = {
+        "directdraw",
+        "container",
+        "fileman",
+        "librarydatabase",
+        "random",
+        "debug",
+        "sgp",
+        "input",
+        "timer",
+    }
+    accepted = {
+        (row["unit"], row["address"]): {
+            "address": row["address"],
+            "claimed_name": row["function"],
+            "name_origin": "sgp-source",
+            "authority": "source-backed",
+            "source_path": paths[row["unit"]],
+            "confidence": "exact",
+        }
+        for row in harness
+        if row["unit"] in allowed and row["address"]
+    }
+    return sorted(accepted.values(), key=lambda row: (row["source_path"], row["address"]))
 
 
 def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
@@ -200,24 +231,14 @@ def test_random_unit_is_complete_and_consistent_across_builds() -> None:
         assert by_build["retail_2001_12_23"]["address"] == ""
 
 
-def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
+def test_the_source_oracle_owns_the_name_at_0x0040efa0() -> None:
     repository = Path(__file__).resolve().parents[2]
     rows = [row for row in _accepted_functions(repository) if row["address"] == "0040efa0"]
     assert len(rows) == 1
     row = rows[0]
     assert row["claimed_name"] == "Random"
-    assert set(row["name_origin"].split("|")) == {"sgp-source", "fan-patch-signature"}
+    assert row["name_origin"] == "sgp-source"
     assert row["authority"] == "source-backed"
-
-    with (repository / "evidence/reviewed/wiz8/claims.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        evidence = [row for row in csv.DictReader(stream) if row["entity_key"] == "0040efa0"]
-    assert {row["origin"] for row in evidence} == {
-        "cfagent-oracle",
-        "fan-patch-signature|sgp-source",
-        "sgp",
-    }
 
 
 def test_sgp_harness_declares_the_settled_project_profile_and_reviewed_builds() -> None:

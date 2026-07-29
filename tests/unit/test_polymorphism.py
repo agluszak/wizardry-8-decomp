@@ -16,14 +16,6 @@ def _snapshot(name: str) -> list[dict[str, str]]:
         return list(csv.DictReader(stream))
 
 
-def _reviewed() -> list[dict[str, str]]:
-    repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/vtables.csv").open(
-        encoding="utf-8", newline=""
-    ) as stream:
-        return list(csv.DictReader(stream))
-
-
 def test_tables_are_keyed_by_program_and_address() -> None:
     rows = _snapshot("vtables.csv")
 
@@ -96,34 +88,6 @@ def test_primary_tables_are_stored_at_object_offset_zero() -> None:
 
     assert rows
     assert any("0x0" in row["subobject_offsets"].split() for row in rows)
-
-
-def test_census_reproduces_every_independently_correct_reviewed_count() -> None:
-    """The three it contradicts are each a table plus the one following it.
-
-    That is the overcount signature wiz8-8ga.5 describes, so a mismatch here is a
-    regression in the boundary rule rather than a new disagreement.
-    """
-    census = {
-        int(row["address"], 16): int(row["slot_count"])
-        for row in _snapshot("vtables.csv")
-        if row["program"] == _CANONICAL
-    }
-    overstated = {
-        "Monster.primary",
-        "VirtualFileBinIStream.secondary_0x10",
-        "MonsterLight.secondary_0x138",
-    }
-
-    checked = 0
-    for row in _reviewed():
-        if not row["slot_count"] or row["vtable_id"] in overstated:
-            continue
-        address = int(row["address"], 16)
-        assert address in census, row["vtable_id"]
-        assert census[address] == int(row["slot_count"]), row["vtable_id"]
-        checked += 1
-    assert checked >= 8
 
 
 def test_allocation_size_hints_agree_with_reviewed_sizes() -> None:

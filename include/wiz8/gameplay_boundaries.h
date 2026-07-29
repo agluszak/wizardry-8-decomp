@@ -1185,11 +1185,9 @@ struct W8MonsterMember18 {
     srVector3T<float> GetPosition();
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
-/* Partial porting model of the reviewed Monster class (0x628 bytes, vtable
-   0x005ed200, constructor 0x004bea20) in
-   evidence/reviewed/wiz8/class-provenance.csv.
-   Only the members the byte-exact consumers touch are modelled; the reviewed
-   layer, not this struct, owns the class facts. */
+/* Partial source model of the Monster class (0x628 bytes, vtable 0x005ed200,
+   constructor 0x004bea20). Only members proven by recovered consumers are
+   modelled here; unresolved layout remains original-binary analysis. */
 struct W8Monster {
     /* 0x000: the primary vtable at 0x005ED200, six slots. Held as a field
        rather than declared through a virtual member, because giving this class

@@ -9,10 +9,9 @@ reviewed model already knows into an event stream.
 
 Three properties keep it honest.
 
-**The breakpoints come from the ledger, not from taste.** A trace plan is
-generated from the reviewed boundary map and the frame-dispatch table, so what
-is watched is exactly what the project has already established, and a plan can
-be regenerated after the evidence changes rather than drifting away from it.
+**The breakpoints come from canonical owners.** A trace plan is generated from
+compiler-bound source markers and the original frame-dispatch observation, so
+it can be regenerated after either model changes rather than drifting away.
 
 **A claim is bounded by the scenario that produced it.** An event stream says
 what happened in *this* run to *this* point - it never says a function is
@@ -78,29 +77,22 @@ class Event:
 
 
 def bring_up_points(repo: Path) -> list[TracePoint]:
-    """Reviewed first-party function nodes in the canonical startup spine."""
+    """Source-owned startup functions, derived from physical TU ownership."""
 
-    names: dict[str, str] = {}
-    with (repo / "config" / "reccmp" / "wiz8-gameplay-boundaries.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        for row in csv.DictReader(stream):
-            names[row["address"].strip().lower()] = row["symbol"].strip()
+    from .source_model import build_source_model
 
-    points: dict[str, TracePoint] = {}
-    spine = repo / "evidence" / "reviewed" / "wiz8" / "startup-spine.csv"
-    with spine.open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            address = row["node_address"].strip().lower()
-            name = names.get(address)
-            if (
-                row["ownership"].strip() != "first-party"
-                or row["status"].strip() != "resolved"
-                or not name
-            ):
-                continue
-            points.setdefault(address, TracePoint(address=address, name=name, kind="gate"))
-    return sorted(points.values(), key=lambda point: point.address)
+    points = []
+    for function in build_source_model(repo).functions.values():
+        path = Path(function.file)
+        if not (
+            path.stem.startswith("startup_")
+            or path.name in {"bringup_gates.cpp", "game_init.cpp", "winmain.cpp"}
+        ):
+            continue
+        points.append(
+            TracePoint(address=f"{function.address:08x}", name=function.name, kind="gate")
+        )
+    return sorted(points, key=lambda point: point.address)
 
 
 def screen_points(repo: Path) -> list[TracePoint]:

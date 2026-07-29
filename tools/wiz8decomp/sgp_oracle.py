@@ -3,9 +3,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import io
-import re
 import shutil
-import struct
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,12 +11,19 @@ from typing import Any
 
 import pefile
 import yaml
+from reccmp.compare.exact import (
+    CoffFunction,
+    mask_relocations,
+    parse_coff_functions,
+)
+from reccmp.compare.exact import (
+    stable_ranges as _stable_ranges,
+)
 
 from .config import Settings
 from .ghidra.fid_seeds import _docker_cmake_build, load_static_libraries
 from .paths import atomic_write, sha256_file
 
-RELOCATION_TYPES = frozenset({0x06, 0x07, 0x14})
 CLASSIFICATION_RANK = {
     "unavailable": 0,
     "absent-or-stripped": 1,
@@ -30,137 +35,12 @@ CLASSIFICATION_RANK = {
 
 
 @dataclass(frozen=True)
-class CoffFunction:
-    name: str
-    body: bytes
-    relocation_offsets: tuple[int, ...]
-    # The object that defined this body. Diagnostic, not identity: a stale
-    # object under the build tree claims symbols exactly like a fresh one, and
-    # naming the claimant is what makes that findable.
-    source_object: str = ""
-
-    @property
-    def masked_body(self) -> bytes:
-        return mask_relocations(self.body, self.relocation_offsets)
-
-
-@dataclass(frozen=True)
 class BuildText:
     identifier: str
     module_sha256: str
     base: int | None
     data: bytes | None
     unavailable_reason: str | None
-
-
-def _coff_name(data: bytes, raw: bytes, string_table: int) -> str:
-    if raw[:4] == b"\0\0\0\0":
-        offset = struct.unpack_from("<I", raw, 4)[0]
-        return data[string_table + offset :].split(b"\0", 1)[0].decode("utf-8", errors="replace")
-    return raw[:8].rstrip(b"\0").decode("utf-8", errors="replace")
-
-
-def _source_name(name: str) -> str:
-    value = name.removeprefix("_")
-    return re.sub(r"@\d+$", "", value)
-
-
-def parse_coff_functions(path: Path) -> list[CoffFunction]:
-    data = path.read_bytes()
-    if len(data) < 20:
-        raise RuntimeError(f"COFF object is too short: {path}")
-    machine, section_count, _timestamp, symbol_table, symbol_count, optional_size, _flags = (
-        struct.unpack_from("<HHIIIHH", data, 0)
-    )
-    if machine != 0x14C or optional_size != 0:
-        raise RuntimeError(f"not an i386 COFF object: {path}")
-    string_table = symbol_table + symbol_count * 18
-    sections: dict[int, dict[str, Any]] = {}
-    section_offset = 20
-    for index in range(1, section_count + 1):
-        header = data[section_offset : section_offset + 40]
-        name = _coff_name(data, header[:8], string_table)
-        size, raw_offset, relocation_offset, _lines, relocation_count, _line_count, _attrs = (
-            struct.unpack_from("<IIIIHHI", header, 16)
-        )
-        sections[index] = {
-            "name": name,
-            "data": data[raw_offset : raw_offset + size] if raw_offset else b"",
-            "relocations": [
-                struct.unpack_from("<IIH", data, relocation_offset + position * 10)
-                for position in range(relocation_count)
-            ],
-        }
-        section_offset += 40
-
-    symbols: list[tuple[str, int, int, int, int]] = []
-    symbol_index = 0
-    while symbol_index < symbol_count:
-        raw = data[symbol_table + symbol_index * 18 : symbol_table + symbol_index * 18 + 18]
-        name = _coff_name(data, raw, string_table)
-        value, section, symbol_type, storage, auxiliary_count = struct.unpack_from("<IhHBB", raw, 8)
-        symbols.append((name, value, section, symbol_type, storage))
-        symbol_index += 1 + auxiliary_count
-
-    functions: list[CoffFunction] = []
-    by_section: dict[int, list[tuple[str, int]]] = {}
-    for name, value, section, symbol_type, storage in symbols:
-        if (
-            section > 0
-            and storage == 2
-            and symbol_type == 0x20
-            and sections[section]["name"].startswith(".text")
-        ):
-            by_section.setdefault(section, []).append((name, value))
-    for section_index, entries in sorted(by_section.items()):
-        section = sections[section_index]
-        entries.sort(key=lambda item: (item[1], item[0]))
-        for position, (name, start) in enumerate(entries):
-            end = entries[position + 1][1] if position + 1 < len(entries) else len(section["data"])
-            body = section["data"][start:end].rstrip(b"\x90")
-            if not body:
-                continue
-            offsets = tuple(
-                sorted(
-                    address - start
-                    for address, _symbol, kind in section["relocations"]
-                    if kind in RELOCATION_TYPES and start <= address <= end - 4
-                )
-            )
-            functions.append(
-                CoffFunction(
-                    name=_source_name(name),
-                    body=body,
-                    relocation_offsets=offsets,
-                    source_object=str(path),
-                )
-            )
-    if not functions:
-        raise RuntimeError(f"COFF object exposes no external .text functions: {path}")
-    return sorted(functions, key=lambda item: item.name.casefold())
-
-
-def mask_relocations(body: bytes, offsets: tuple[int, ...]) -> bytes:
-    masked = bytearray(body)
-    for offset in offsets:
-        masked[offset : offset + 4] = b"\0\0\0\0"
-    return bytes(masked)
-
-
-def _stable_ranges(length: int, offsets: tuple[int, ...]) -> list[tuple[int, int]]:
-    holes = [False] * length
-    for offset in offsets:
-        for index in range(offset, min(offset + 4, length)):
-            holes[index] = True
-    ranges = []
-    start = None
-    for index, hole in enumerate([*holes, True]):
-        if not hole and start is None:
-            start = index
-        elif hole and start is not None:
-            ranges.append((start, index))
-            start = None
-    return ranges
 
 
 def _candidate_positions(text: bytes, body: bytes, offsets: tuple[int, ...]) -> list[int]:

@@ -22,7 +22,7 @@ from wiz8decomp.dynamic import (
 REPOSITORY = Path(__file__).resolve().parents[2]
 
 
-def test_the_plan_is_generated_from_the_ledger() -> None:
+def test_the_plan_is_generated_from_source_owned_startup_units() -> None:
     points = trace_plan(REPOSITORY, BRING_UP)
     named = {point.name: point.address for point in points}
 

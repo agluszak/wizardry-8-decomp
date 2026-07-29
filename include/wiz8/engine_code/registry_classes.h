@@ -58,8 +58,8 @@ public:
  * The same slots for further host-registered classes whose owning translation
  * unit is not established. Their ids are in the 0x10000 range, so each names a
  * class the program registers itself rather than a SurRender base it is
- * presenting as, but nothing yet places the bodies in a named unit - which is
- * why they live in unattributed_helpers.cpp for now.
+ * presenting as. They remain together as the explicit closed registry-method
+ * family in engine_code/registry_classes.cpp until original TU ownership is proved.
  */
 
 class stTextureAnim {
@@ -127,8 +127,7 @@ public:
  * Wizardry name".
  */
 
-/* Reviewed as MonsterLight in class-provenance.csv, whose row already records
-   both of these slots; Monster owns a pointer to it. */
+/* Both slots are source-owned here; Monster owns a pointer to this class. */
 class MonsterLight {
 public:
     virtual const char* getClassName() const; /* 0x0049DC30, vtable 0x005ECD18 + 0 */

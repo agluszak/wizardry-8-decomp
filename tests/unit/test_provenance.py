@@ -1,3 +1,6 @@
+import csv
+from pathlib import Path
+
 import pytest
 from wiz8decomp.provenance import (
     NAME_ORIGIN_CEILING,
@@ -8,6 +11,10 @@ from wiz8decomp.provenance import (
     parse_name_origin,
     validate_provenance,
 )
+from wiz8decomp.source_model import build_source_model
+
+REPOSITORY = Path(__file__).resolve().parents[2]
+FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
 
 
 def test_authority_is_the_strongest_ceiling_among_the_origins() -> None:
@@ -17,7 +24,6 @@ def test_authority_is_the_strongest_ceiling_among_the_origins() -> None:
 
 
 def test_official_builds_alone_cannot_name_anything() -> None:
-    # The demo and retail are boundary oracles: they locate code, they do not name it.
     assert derive_authority(("official-demo",)) == "descriptive"
     assert derive_authority(("official-cross-build",)) == "descriptive"
 
@@ -29,12 +35,6 @@ def test_external_semantic_origins_cannot_be_promoted_by_themselves() -> None:
         validate_provenance("fan-patch-signature|official-demo", "string-backed")
 
 
-def test_under_claiming_is_expressed_by_dropping_an_origin_not_by_weakening_authority() -> None:
-    with pytest.raises(ProvenanceError, match="not derivable"):
-        validate_provenance("sgp-source", "descriptive")
-    assert validate_provenance("descriptive", "descriptive") == (("descriptive",), "descriptive")
-
-
 def test_unknown_and_malformed_tokens_are_rejected() -> None:
     with pytest.raises(ProvenanceError, match="unknown name_origin: guessed"):
         parse_name_origin("guessed")
@@ -44,8 +44,6 @@ def test_unknown_and_malformed_tokens_are_rejected() -> None:
         parse_name_origin("sgp-source|sgp-source")
     with pytest.raises(ProvenanceError, match="cannot be combined"):
         parse_name_origin("descriptive|cosmic-forge")
-    with pytest.raises(ProvenanceError, match="unknown authority"):
-        validate_provenance("descriptive", "medium")
 
 
 def test_only_original_evidence_counts_as_original() -> None:
@@ -56,20 +54,10 @@ def test_only_original_evidence_counts_as_original() -> None:
 
 
 def test_fid_seed_build_provenance_maps_onto_name_provenance() -> None:
-    # A pinned library archive carries the original COFF symbol table; a source-built
-    # object carries names the pinned source declares. Both are original evidence.
     assert origin_for_fid_source_kind("precompiled-archive") == "original-export"
     assert derive_authority(("original-export",)) == "abi-backed"
     assert origin_for_fid_source_kind("cmake-object-library") == "original-source"
     assert derive_authority(("original-source",)) == "source-backed"
-
-
-def test_a_fid_match_without_seed_provenance_claims_nothing() -> None:
-    # The srs database has no recorded seed provenance, so its names must not
-    # inherit the authority of the database they happen to live in.
-    assert origin_for_fid_source_kind(None) == "descriptive"
-    with pytest.raises(ProvenanceError, match="unknown FID seed source_kind"):
-        origin_for_fid_source_kind("hand-written")
 
 
 def test_every_origin_token_has_a_ceiling() -> None:
@@ -85,3 +73,39 @@ def test_every_origin_token_has_a_ceiling() -> None:
         "cosmic-forge",
         "descriptive",
     }
+
+
+@pytest.mark.parametrize("path", FUNCTION_MAPS, ids=lambda path: path.name)
+def test_reviewed_function_maps_carry_valid_provenance(path: Path) -> None:
+    with path.open(newline="", encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream))
+    assert rows
+    assert len({row["address"] for row in rows}) == len(rows)
+    for number, row in enumerate(rows, start=2):
+        try:
+            validate_provenance(row["name_origin"], row["authority"])
+        except ProvenanceError as error:
+            raise AssertionError(f"{path.name}:{number}: {error}") from error
+
+
+def test_claims_exclude_source_owned_identities_and_type_layouts() -> None:
+    source_addresses = set(build_source_model(REPOSITORY).functions)
+    with (REPOSITORY / "evidence/reviewed/wiz8/claims.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        claims = list(csv.DictReader(stream))
+
+    assert claims
+    assert {row["entity_kind"] for row in claims} == {"function"}
+    assert len({row["claim_id"] for row in claims}) == len(claims)
+    assert not [
+        row
+        for row in claims
+        if int(row["entity_key"], 16) in source_addresses
+        and row["predicate"] in {"accepted-identity", "identity-provenance"}
+    ]
+
+
+def test_analysis_artifacts_are_not_stored_as_configuration() -> None:
+    legacy = REPOSITORY / "config/analysis"
+    assert not [path for path in legacy.rglob("*") if path.is_file()]

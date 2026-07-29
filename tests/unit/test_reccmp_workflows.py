@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -33,9 +34,45 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
         "// FUNCTION: WIZ8 00401010\nvoid b();\n",
         encoding="utf-8",
     )
+    (tmp_path / "build").mkdir()
+    (tmp_path / "build/source-index.json").write_text(
+        json.dumps(
+            {
+                "schema": "reccmp-source-index-v1",
+                "classes": [],
+                "markers": [
+                    {
+                        "marker_kind": "FUNCTION",
+                        "address": 0x00401000,
+                        "source_file": "unit.cpp",
+                        "line": 1,
+                        "declaration": {"qualified_name": "a"},
+                    },
+                    {
+                        "marker_kind": "LIBRARY",
+                        "address": 0x00402000,
+                        "source_file": "unit.cpp",
+                        "line": 3,
+                        "declaration": None,
+                    },
+                    {
+                        "marker_kind": "FUNCTION",
+                        "address": 0x00401010,
+                        "source_file": "unit.cpp",
+                        "line": 4,
+                        "declaration": {"qualified_name": "b"},
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
 
-    assert addresses_from_files([source]) == [0x00401000, 0x00401010]
-    assert selected_addresses(["0x00401000"], [source]) == [0x00401000, 0x00401010]
+    assert addresses_from_files(tmp_path, [source]) == [0x00401000, 0x00401010]
+    assert selected_addresses(tmp_path, ["0x00401000"], [source]) == [
+        0x00401000,
+        0x00401010,
+    ]
 
 
 def test_compare_treats_semantically_effective_as_complete() -> None:

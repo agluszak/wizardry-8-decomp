@@ -11,6 +11,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         ${WIZ8_TEMPLATE_EMISSIONS}
         ${WIZ8_UNATTRIBUTED_UNITS}
         src/surrender/core.cpp
+        src/wiz8/zlib_wrappers.c
     )
     target_include_directories(WIZ8_CLANG_LINT PRIVATE
         tools/lint/include
@@ -19,6 +20,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         config/sgp-overlays/font-video
         config/sgp-overlays/librarydatabase
         third_party/sfi-sgp/sgp
+        /zlib
     )
     target_compile_definitions(WIZ8_CLANG_LINT PRIVATE
         NOMINMAX WIN32_LEAN_AND_MEAN NDEBUG WIZ8_CLANG_LINT

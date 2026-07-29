@@ -228,67 +228,6 @@ def assign(repo: Path, program: str) -> ObjectMap:
     return result
 
 
-def check_against_build(repo: Path, mapping: ObjectMap, build_dir: Path) -> dict[str, Any]:
-    """Compare the map against the reconstructed build's own object files.
-
-    Where a recovered source is named after an original unit - `IList.cpp`,
-    `GameplayDatabase.cpp`, `Targeting.cpp` - the build states which unit a
-    byte-exact body came from, and the map should agree. Most recovered files
-    are not: `bringup_gates.cpp` and `state_getters.cpp` group bodies by what
-    the recovery was doing, not by the original unit, and they are counted as
-    unnameable rather than scored as disagreements. This is a check and not an
-    input: feeding it back in would make the map agree with itself.
-    """
-
-    from .reconstructed import (
-        bodies_from_objects,
-        build_transfer_plan,
-        verified_boundary_addresses,
-    )
-
-    plan = build_transfer_plan(
-        repo,
-        bodies_from_objects(build_dir),
-        verified_exact=verified_boundary_addresses(repo, build_dir),
-    )
-    unit_names = {unit.rsplit("/", 1)[-1] for unit in mapping.owners.values()}
-    agreed: list[dict[str, str]] = []
-    disagreed: list[dict[str, str]] = []
-    unassigned = 0
-    unnameable = 0
-    for transfer in plan.transfers:
-        if transfer.blocked:
-            continue
-        compiled = transfer.object_file.rsplit("/", 1)[-1].removesuffix(".obj").casefold()
-        if compiled not in unit_names:
-            unnameable += 1
-            continue
-        owner = mapping.owners.get(transfer.address)
-        if owner is None:
-            unassigned += 1
-            continue
-        record = {
-            "address": transfer.address,
-            "assigned": owner,
-            "compiled_from": compiled,
-            "basis": mapping.basis.get(transfer.address, ""),
-        }
-        if owner.rsplit("/", 1)[-1] == compiled:
-            agreed.append(record)
-        else:
-            disagreed.append(record)
-    checked = len(agreed) + len(disagreed)
-    return {
-        "checked": checked,
-        "agreed": len(agreed),
-        "disagreed": len(disagreed),
-        "agreement": round(len(agreed) / checked, 4) if checked else None,
-        "unassigned": unassigned,
-        "not_named_after_a_unit": unnameable,
-        "disagreements": disagreed,
-    }
-
-
 def write_report(mapping: ObjectMap, destination: Path) -> dict[str, Any]:
     """Emit the candidate object map under `build/`."""
 

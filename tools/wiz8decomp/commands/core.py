@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import typer
-from rich.markup import escape
 
 toolchain_app = typer.Typer(help="Build the pinned analysis toolchain.", no_args_is_help=True)
 analyze_app = typer.Typer(help="Run project-specific binary analysis.", no_args_is_help=True)
@@ -79,7 +78,7 @@ def compare_command(
                 raise ValueError("raw reccmp options cannot be combined with selected functions")
             if not no_build:
                 build_target(settings, target)
-            selected = selected_addresses(addresses or [], files or [])
+            selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
             return compare_selected(settings.repo_dir, target, selected)
         return compare(settings, target, list(ctx.args), build_first=not no_build)
 
@@ -104,7 +103,7 @@ def triage_command(
         settings = cli.settings()
         if not no_build:
             build_target(settings, target)
-        selected = selected_addresses(addresses or [], files or [])
+        selected = selected_addresses(settings.repo_dir, addresses or [], files or [])
         return triage_selected(settings.repo_dir, target, selected)
 
     cli.run_action(action)
@@ -201,7 +200,7 @@ def runtime_test_command() -> None:
 def verify_command(
     compare_image: Annotated[bool, typer.Option("--compare/--no-compare")] = True,
 ) -> None:
-    """Run build, boundary, linked-image, and test validation."""
+    """Run compiler, source-model, linked-image, unit, and runtime validation."""
     from .. import command_support as cli
     from ..build import verify
 
@@ -236,15 +235,21 @@ def register(app: typer.Typer) -> None:
     app.command("verify")(verify_command)
     app.add_typer(analyze_app, name="analyze")
     app.command("check-build-dir", hidden=True)(check_build_dir_command)
-    app.command("check-markers", hidden=True)(check_markers_command)
     app.command("check-repository", hidden=True)(check_repository_command)
     app.command("check-reccmp", hidden=True)(check_reccmp_command)
-    app.command("verify-boundaries", hidden=True)(verify_boundaries_command)
     analyze_app.command("unresolved")(unresolved_report_command)
-    analyze_app.command("diff-boundary")(diff_boundary_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
+    analyze_app.command("source-index")(source_index_command)
+
+
+def source_index_command() -> None:
+    """Generate build/source-index.json from reccmp markers and Clang AST."""
+    from .. import command_support as cli
+    from ..source_index import write_source_index
+
+    cli.run_action(lambda: write_source_index(cli.settings()))
 
 
 def unresolved_report_command(
@@ -276,21 +281,6 @@ def check_build_dir_command(
     )
 
 
-def check_markers_command(
-    paths: Annotated[list[Path] | None, typer.Option(help="Files or directories to scan.")] = None,
-) -> None:
-    from .. import command_support as cli
-    from ..config import repository_root
-    from ..markers import check_marker_hygiene
-
-    def action() -> dict[str, Any]:
-        repository = repository_root()
-        roots = paths or [repository / "src", repository / "include"]
-        return check_marker_hygiene(list(roots), repository)
-
-    cli.run_action(action)
-
-
 def check_repository_command() -> None:
     """Reject tracked generated, proprietary, editor, and oversized artifacts."""
     from .. import command_support as cli
@@ -307,83 +297,6 @@ def check_reccmp_command() -> None:
     from ..reccmp_lint import validate_reccmp_annotations
 
     cli.run_action(lambda: validate_reccmp_annotations(repository_root()))
-
-
-def verify_boundaries_command(
-    target: Annotated[str, typer.Option(help="reccmp target owning the reviewed bodies.")] = "WIZ8",
-    mapping: Annotated[Path | None, typer.Option(help="Reviewed boundary map.")] = None,
-    objects: Annotated[Path | None, typer.Option(help="Root of built objects.")] = None,
-    image: Annotated[Path | None, typer.Option(help="Original target image.")] = None,
-) -> None:
-    from .. import command_support as cli
-    from ..boundaries import BoundariesDisagree, verify_boundaries
-    from ..build import boundary_object_roots
-
-    settings = cli.settings()
-    target = target.upper()
-    default_mappings = {
-        "WIZ8": settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv",
-        "SURRENDER": settings.repo_dir / "config/reccmp/surrender-boundaries.csv",
-    }
-    if target not in default_mappings:
-        raise typer.BadParameter(f"unsupported boundary target: {target}", param_hint="--target")
-    mapping_path = mapping or default_mappings[target]
-    if objects is not None:
-        object_root = [objects]
-    elif target == "SURRENDER":
-        object_root = [settings.repo_dir / "build/decomp/CMakeFiles/SURRENDER.dir"]
-    else:
-        object_root = boundary_object_roots(settings)
-    try:
-        cli.emit(verify_boundaries(mapping_path, object_root, image or cli.reccmp_original(target)))
-    except BoundariesDisagree as error:
-        cli.emit(error.report)
-        cli.console.print(f"[red]error:[/red] {error}", highlight=False)
-        raise typer.Exit(1) from error
-    except Exception as error:
-        cli.console.print(f"[red]error:[/red] {error}", highlight=False)
-        raise typer.Exit(1) from error
-
-
-def diff_boundary_command(
-    selector: Annotated[str, typer.Argument(help="Reviewed address or unambiguous symbol.")],
-    mapping: Annotated[Path | None, typer.Option(help="Reviewed boundary map.")] = None,
-    objects: Annotated[Path | None, typer.Option(help="Root of built objects.")] = None,
-    image: Annotated[Path | None, typer.Option(help="Original Wiz8.exe.")] = None,
-    all_lines: Annotated[bool, typer.Option("--all", help="Show matching instructions.")] = False,
-) -> None:
-    from .. import command_support as cli
-    from ..boundaries import diff_boundary
-
-    def action() -> dict[str, Any]:
-        settings = cli.settings()
-        original = image or cli.reccmp_original("WIZ8")
-        if original is None:
-            raise RuntimeError("no original Wiz8.exe configured; pass --image")
-        result = diff_boundary(
-            mapping or settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv",
-            objects or settings.repo_dir / "build/decomp/CMakeFiles",
-            original,
-            selector,
-        )
-        cli.console.print(
-            f"[bold]{result['symbol']}[/bold] {result['address']} ({result['confidence']}): "
-            f"canonical {result['canonical_size']}B/{result['canonical_instructions']} insns, "
-            f"ours {result['our_size']}B/{result['our_instructions']} insns, "
-            f"{result['differing']} differing"
-        )
-        marker = {"differ": "[red]>>[/red]", "reloc": "[yellow]~~[/yellow]", "same": "  "}
-        for line in result["lines"]:
-            if line["state"] == "same" and not all_lines:
-                continue
-            cli.console.print(
-                f"{marker[line['state']]} \\[{line['index']:3}] "
-                f"{escape(line['canonical']):<38} | {escape(line['ours'])}",
-                highlight=False,
-            )
-        return {key: value for key, value in result.items() if key != "lines"}
-
-    cli.run_action(action)
 
 
 def inventory_command(json_output: bool = typer.Option(False, "--json", help="Emit JSON.")) -> None:

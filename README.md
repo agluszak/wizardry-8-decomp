@@ -30,9 +30,8 @@ just verify
 `prepare` idempotently materializes configured inputs and pinned source dependencies.
 `build-lint-image` builds the pinned VC6 image with its native Clang lane. `lint`
 compile-checks the recovered C++ with Clang's virtual-override diagnostics while the matching build
-continues to use VC6. `build` configures automatically. `compare` is a linked-image diagnostic; relocation-masked
-`just wiz8 verify-boundaries` is the recovered-body criterion. `just test` runs the public unit
-and repository-invariant lanes.
+continues to use VC6. `build` configures automatically. `compare` is reccmp's live linked-image and
+exact-body diagnostic. `just test` runs the public unit and repository-invariant lanes.
 
 `just runtime-test` builds a separate test product and runs named main-menu scenarios inside the
 process. The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse
@@ -66,7 +65,7 @@ query daemon, or speculative overlay layer.
 
 ```sh
 uv run wiz8 ghidra restore
-uv run wiz8 ghidra sync-source --apply
+uv run wiz8 ghidra import-source
 just context 0x0044bec0
 uv run wiz8 ghidra index
 ```
@@ -75,20 +74,19 @@ uv run wiz8 ghidra index
 call graph with provenance, source ownership, match state, cross-build mappings, strings, and
 relevant fields. `ghidra index` writes disposable normalized review views to
 `build/ghidra-index/` and refuses provenance claims whose function/type/vtable entity no longer
-exists. `ghidra sync-source` is the only source-to-Ghidra mutation: it applies names, calling
-conventions, and every prototype whose types resolve uniquely in Ghidra for explicitly marked
-functions. Deterministic `__declspec(dllimport)` declarations use the same path, which keeps import
-ABI such as `srAssertFail` source-owned. It reports unresolved source types instead of guessing them
-and leaves every unclaimed analysis entity alone. Ghidra-to-source remains a review workflow through `just context`; no
-generator rewrites C++. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
-consequence of editing evidence. Full verification rejects drift in every resolvable source-owned
-signature.
+exists. `ghidra import-source` is the only source-to-Ghidra projection: reccmp imports rebuilt
+PDB names, types, globals, and vtables into the paired original program. Source indexing never
+parses declarations for Ghidra independently.
+Ghidra-to-source remains a review workflow through `just context`; no generator rewrites C++.
+`ghidra seed refresh` is an intentional checkpoint operation, not a routine consequence of editing
+evidence.
 
 An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
 signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;
 atomic `claims.csv` rows explain provenance without recreating the source model. Class relationships
-live in `class-provenance.csv`. There is no tracked function or signature catalogue. Full
-verification exports Ghidra state and uses it for claim resolution and VC6 source-layout checks.
+and virtual declarations live in C++ beside `// VTABLE` markers and `WIZ8_ASSERT_SIZE` gates. There
+is no tracked function, class, vtable, field, or signature catalogue. Full verification exports
+Ghidra state and uses it with the rebuilt PDB for source-layout checks.
 
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed

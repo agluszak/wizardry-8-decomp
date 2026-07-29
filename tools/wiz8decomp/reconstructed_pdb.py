@@ -58,15 +58,6 @@ LF_ENUM = 0x1007
 LF_PROCEDURE = 0x1008
 LF_MFUNCTION = 0x1009
 LF_ARGLIST = 0x1201
-LF_FIELDLIST = 0x1203
-LF_BCLASS = 0x1400
-LF_INDEX = 0x1404
-LF_MEMBER_ST = 0x1405
-LF_STMEMBER_ST = 0x1406
-LF_METHOD_ST = 0x1407
-LF_NESTTYPE_ST = 0x1408
-LF_VFUNCTAB = 0x1409
-LF_ONEMETHOD_ST = 0x140B
 
 FIRST_TYPE_INDEX = 0x1000
 
@@ -161,29 +152,6 @@ class Signature:
         return f"{self.return_type} {self.convention} {name}({arguments})"
 
 
-@dataclass(frozen=True)
-class CompiledField:
-    name: str
-    offset: int
-    width: int | None
-    pointer_depth: int
-    type_name: str
-
-
-@dataclass(frozen=True)
-class CompiledBase:
-    name: str
-    offset: int
-
-
-@dataclass(frozen=True)
-class CompiledLayout:
-    name: str
-    size: int
-    fields: tuple[CompiledField, ...]
-    bases: tuple[CompiledBase, ...]
-
-
 class TypeStream:
     """Type records, resolved lazily into spellings.
 
@@ -260,129 +228,6 @@ class TypeStream:
             parameters=self.arguments(arglist),
             owner=owner,
         )
-
-    def _width_and_depth(self, index: int) -> tuple[int | None, int]:
-        if index < FIRST_TYPE_INDEX:
-            mode = (index & 0x700) >> 8
-            if mode:
-                return (4, 1)
-            name = self.name(index)
-            widths = {
-                "bool": 1,
-                "bool16": 2,
-                "bool32": 4,
-                "char": 1,
-                "double": 8,
-                "float": 4,
-                "int": 4,
-                "long": 4,
-                "short": 2,
-                "signed char": 1,
-                "unsigned char": 1,
-                "unsigned int": 4,
-                "unsigned long": 4,
-                "unsigned short": 2,
-                "void": 0,
-                "wchar_t": 2,
-            }
-            return (widths.get(name), 0)
-        record = self.records.get(index)
-        if record is None:
-            return (None, 0)
-        leaf, payload = record
-        if leaf == LF_POINTER:
-            _width, depth = self._width_and_depth(struct.unpack_from("<I", payload, 0)[0])
-            return (4, depth + 1)
-        if leaf == LF_MODIFIER:
-            return self._width_and_depth(struct.unpack_from("<I", payload, 0)[0])
-        if leaf == LF_ARRAY:
-            size, _cursor = _numeric_value(payload, 8)
-            _element_width, depth = self._width_and_depth(struct.unpack_from("<I", payload, 0)[0])
-            return (size, depth)
-        if leaf in {LF_CLASS, LF_STRUCTURE}:
-            size, _cursor = _numeric_value(payload, 16)
-            return (size, 0)
-        return (None, 0)
-
-    def layout(self, index: int) -> CompiledLayout | None:
-        record = self.records.get(index)
-        if record is None or record[0] not in {LF_CLASS, LF_STRUCTURE}:
-            return None
-        payload = record[1]
-        field_list = struct.unpack_from("<I", payload, 4)[0]
-        size, cursor = _numeric_value(payload, 16)
-        name, _cursor = _name_at(payload, cursor)
-        fields: list[CompiledField] = []
-        bases: list[CompiledBase] = []
-        self._field_list(field_list, fields, bases, set())
-        return CompiledLayout(name, size, tuple(fields), tuple(bases))
-
-    def _field_list(
-        self,
-        index: int,
-        fields: list[CompiledField],
-        bases: list[CompiledBase],
-        visited: set[int],
-    ) -> None:
-        if index in visited:
-            return
-        visited.add(index)
-        record = self.records.get(index)
-        if record is None or record[0] != LF_FIELDLIST:
-            return
-        payload = record[1]
-        cursor = 0
-        while cursor + 2 <= len(payload):
-            padding = payload[cursor]
-            if padding >= 0xF0:
-                cursor += padding & 0x0F
-                continue
-            leaf = struct.unpack_from("<H", payload, cursor)[0]
-            cursor += 2
-            if leaf == LF_MEMBER_ST:
-                _attributes, type_index = struct.unpack_from("<HI", payload, cursor)
-                cursor += 6
-                offset, cursor = _numeric_value(payload, cursor)
-                name, cursor = _name_at(payload, cursor)
-                width, depth = self._width_and_depth(type_index)
-                fields.append(CompiledField(name, offset, width, depth, self.name(type_index)))
-            elif leaf == LF_BCLASS:
-                _attributes, type_index = struct.unpack_from("<HI", payload, cursor)
-                cursor += 6
-                offset, cursor = _numeric_value(payload, cursor)
-                bases.append(CompiledBase(self.name(type_index), offset))
-            elif leaf == LF_INDEX:
-                continuation = struct.unpack_from("<I", payload, cursor)[0]
-                cursor += 4
-                self._field_list(continuation, fields, bases, visited)
-            elif leaf == LF_VFUNCTAB:
-                cursor += 4
-            elif leaf in {LF_STMEMBER_ST, LF_NESTTYPE_ST}:
-                cursor += 6 if leaf == LF_STMEMBER_ST else 4
-                _name, cursor = _name_at(payload, cursor)
-            elif leaf == LF_METHOD_ST:
-                cursor += 6
-                _name, cursor = _name_at(payload, cursor)
-            elif leaf == LF_ONEMETHOD_ST:
-                attributes = struct.unpack_from("<H", payload, cursor)[0]
-                cursor += 6
-                method_property = (attributes >> 2) & 0x7
-                if method_property in {4, 6}:
-                    cursor += 4
-                _name, cursor = _name_at(payload, cursor)
-            else:
-                # Unknown member records have no length prefix. Returning a
-                # partial layout is honest; guessing their extent would shift
-                # every following field.
-                return
-
-    def layouts(self) -> dict[str, CompiledLayout]:
-        result: dict[str, CompiledLayout] = {}
-        for index in sorted(self.records):
-            layout = self.layout(index)
-            if layout is not None and (layout.size or layout.name not in result):
-                result[layout.name] = layout
-        return result
 
 
 def _numeric_value(payload: bytes, offset: int) -> tuple[int, int]:

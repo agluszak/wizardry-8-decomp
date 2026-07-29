@@ -175,3 +175,11 @@ double WorldGetFarClip(W8World* world)
     }
     return far_plane;
 }
+
+extern "C" {
+// FUNCTION: WIZ8 0x0046E5A0
+void Function46E5A0(int unused, void* item)
+{
+    PListRemove(g_world_00659ab4->plsList00, item);
+}
+}

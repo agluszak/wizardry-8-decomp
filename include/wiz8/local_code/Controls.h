@@ -147,6 +147,7 @@ public:
     W8ControlCallback m_focusCallback;   /* 0x2c */
     W8ControlCallback m_blurCallback;    /* 0x30 */
 };                                       /* 0x34 established */
+WIZ8_ASSERT_SIZE(W8WidgetBase005ED5BC, 0x34);
 
 // VTABLE: WIZ8 0x005ed604
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
@@ -203,6 +204,7 @@ protected:
 
     __forceinline void InvalidateCore(unsigned char immediate);
 };
+WIZ8_ASSERT_SIZE(W8TextControl005ED604, 0xb8);
 
 // VTABLE: WIZ8 0x005ed758
 class W8HelpTextControl005ED758 : public W8TextControl005ED604 {
@@ -220,6 +222,7 @@ public:
 protected:
     wchar_t m_regionHelp[200];            /* 0xb8 */
 };
+WIZ8_ASSERT_SIZE(W8HelpTextControl005ED758, 0x248);
 
 class W8RangeControl005ED74C;
 
@@ -240,6 +243,7 @@ protected:
     unsigned short pad_ba;
     W8RangeControl005ED74C* m_range;     /* 0xbc */
 };
+WIZ8_ASSERT_SIZE(W8RangeButton005ED6FC, 0xc0);
 
 class W8WidgetBase005ED5BC;
 struct W8RangeControlConstruction005ED74C {};

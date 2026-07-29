@@ -208,13 +208,8 @@ and stable key, then records one predicate, origin, optional authority/confidenc
 details. Multiple sources for one address are multiple claims, not duplicate function identities.
 `uv run wiz8 ghidra index` exports the disposable function/type/vtable views and validates that every
 claim resolves; `uv run wiz8 evidence validate-index` repeats that check against the current export.
-For source-owned functions, `identity-provenance` deliberately carries no duplicate name: the marker
-and declaration supply it. An analysis-only `accepted-identity` claim may carry a name until an owned
-declaration supersedes it. The claim ledger cannot recreate Ghidra's functions or types.
-
-`class-provenance.csv` retains only the relationships Ghidra does not explain well by itself:
-accepted class identity, lifecycle functions, base-name provenance, source ownership and narrative
-evidence. Class extents and field layouts are not tracked tables. Field evidence is an atomic
-`field-identity` claim whose type key and offset/name/length must resolve against Ghidra's exported
-structure, while `layout-supported` preserves the independent proof for the native layout. Full
-verification regenerates the index before comparing VC6 CodeView layouts with those native types.
+An analysis-only `accepted-identity` claim may carry a name until an owned declaration supersedes it.
+Claims do not restate source-owned functions, classes, fields, layouts, or vtables. C++ owns those
+facts, Ghidra owns unpromoted analysis, and reccmp pairs the original and rebuilt entities. Full
+verification regenerates the Clang source index before comparing asserted source layouts, the VC6
+CodeView model, and Ghidra's original-binary types.

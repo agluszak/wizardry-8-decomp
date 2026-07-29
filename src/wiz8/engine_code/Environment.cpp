@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srNode.h"
 #include "surrender/srTypeRegistry.h"
@@ -28,6 +29,8 @@ extern int g_environment_value_0065a160;
 extern int g_environment_value_0065a168;
 extern int g_environment_value_0065a16c;
 extern int g_environment_value_0065a170;
+extern int g_dword_6874f7;
+extern unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 extern W8World* g_world_00659ab4;
@@ -204,4 +207,13 @@ void SetSkyNodeVisible(char visible)
             sky->setFlag(srNode::FLAG_POSITIONAL_0);
         }
     }
+}
+
+extern "C" {
+// FUNCTION: WIZ8 0x00482720
+void Function482720(int value)
+{
+    g_dword_6874f7 = value;
+    g_tick_65b9a8 = GetTickCount();
+}
 }

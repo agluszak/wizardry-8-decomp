@@ -1,19 +1,13 @@
 from __future__ import annotations
 
 import csv
-import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 from ..provenance import ProvenanceError, validate_provenance
-from ..source_classes import validate_source_classes
-from ..source_model import build_source_model
-from .boundaries import load_boundary_rows
+from ..source_model import build_source_model, validate_source_index
 from .claims import load_claims, validate_claim_rows
-from .classes import load_reviewed_class_model
 from .io import parse_hex
-
-_DIGEST = re.compile(r"[0-9a-f]{64}")
 
 
 def validate_source_entries(categories: Mapping[str, Iterable[str]], root: Path) -> None:
@@ -67,7 +61,8 @@ def _validate_functions(repo_dir: Path, program: str) -> set[int]:
 
 
 def _validate_function_catalogs(repo_dir: Path) -> int:
-    """Validate provenance once in the repository lane, not in inventory tests."""
+    """Validate exceptional external function catalogs and their provenance."""
+
     checked = 0
     for path in sorted((repo_dir / "evidence/reviewed").glob("*/functions.csv")):
         seen: set[tuple[str, str]] = set()
@@ -79,7 +74,8 @@ def _validate_function_catalogs(repo_dir: Path) -> int:
                     raise ValueError(f"{path}:{line}: duplicate function identity {identity}")
                 if row["program"] != path.parent.name:
                     raise ValueError(
-                        f"{path}:{line}: program {row['program']!r} does not match {path.parent.name!r}"
+                        f"{path}:{line}: program {row['program']!r} "
+                        f"does not match {path.parent.name!r}"
                     )
                 try:
                     validate_provenance(row["name_origin"], row["authority"])
@@ -90,82 +86,6 @@ def _validate_function_catalogs(repo_dir: Path) -> int:
                 checked += 1
         if not path_count:
             raise ValueError(f"{path}: function catalog is empty")
-    return checked
-
-
-def _validate_boundaries(repo_dir: Path) -> set[int]:
-    path = repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv"
-    addresses: set[int] = set()
-    for line, row in enumerate(load_boundary_rows(path), start=2):
-        address = parse_hex(row["address"], field="address", path=path) or 0
-        size = parse_hex(row["size"], field="size", path=path)
-        if not size or size <= 0:
-            raise ValueError(f"{path}:{line}: boundary size must be positive")
-        digest = row["relocation_masked_sha256"].strip()
-        if row["confidence"].strip() == "exact" and not _DIGEST.fullmatch(digest):
-            raise ValueError(f"{path}:{line}: exact boundary requires a SHA-256 digest")
-        addresses.add(address)
-    return addresses
-
-
-def _validate_class_references(repo_dir: Path, program: str, functions: set[int]) -> None:
-    model = load_reviewed_class_model(repo_dir, program)
-    classes = {item.name for item in model.classes}
-    for reviewed_class in model.classes:
-        for address in (
-            reviewed_class.constructor,
-            reviewed_class.destructor,
-            reviewed_class.scalar_deleting_destructor,
-        ):
-            if address is not None and address not in functions:
-                raise ValueError(
-                    f"class {reviewed_class.name} lifecycle address {address:08x} "
-                    "does not resolve to canonical function evidence"
-                )
-    for slot in model.slots:
-        if slot.target not in functions:
-            raise ValueError(
-                f"{slot.vtable_id} slot {slot.index} target {slot.target:08x} "
-                "does not resolve to canonical function evidence"
-            )
-        prefix = f"classes:{program}:"
-        if slot.evidence_id.startswith(prefix) and slot.evidence_id[len(prefix) :] not in classes:
-            raise ValueError(f"{slot.vtable_id} slot {slot.index} has dangling {slot.evidence_id}")
-
-
-def _observed_function_addresses(repo_dir: Path) -> set[int]:
-    path = repo_dir / "evidence/snapshots/functions/candidates.csv"
-    with path.open(newline="", encoding="utf-8") as stream:
-        return {
-            int(row["address"], 16)
-            for row in csv.DictReader(stream)
-            if "--gog-base--" in row["program"]
-        }
-
-
-def _validate_polymorphism_observation(repo_dir: Path, program: str) -> int:
-    model = load_reviewed_class_model(repo_dir, program)
-    census_path = repo_dir / "evidence/snapshots/polymorphism/slots.csv"
-    with census_path.open(newline="", encoding="utf-8") as stream:
-        census = {
-            (row["vtable"], int(row["slot_index"])): row["target"]
-            for row in csv.DictReader(stream)
-            if "--gog-base--" in row["program"]
-        }
-    addresses = {item.vtable_id: f"{item.address:08x}" for item in model.vtables}
-    checked = 0
-    for slot in model.slots:
-        expected = census.get((addresses[slot.vtable_id], slot.index))
-        if expected is None:
-            continue
-        checked += 1
-        actual = f"{slot.target:08x}"
-        if actual != expected:
-            raise ValueError(
-                f"{slot.vtable_id} slot {slot.index} records {actual}; image holds {expected}"
-            )
-    if not checked:
-        raise ValueError("reviewed vtable slots have no overlap with the polymorphism census")
     return checked
 
 
@@ -185,26 +105,12 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
 
     run("csv-shapes", lambda: {"files": _validate_csv_shapes(repo_dir)})
     run("function-provenance", lambda: {"functions": _validate_function_catalogs(repo_dir)})
-    run("source-classes", lambda: validate_source_classes(repo_dir))
+    run("source-index", lambda: validate_source_index(repo_dir))
     functions = run("source-functions", lambda: _validate_functions(repo_dir, program))
-    boundaries = run("reviewed-boundaries", lambda: _validate_boundaries(repo_dir))
     if isinstance(functions, set):
         run(
             "reviewed-claims", lambda: {"claims": validate_claim_rows(repo_dir, functions, program)}
         )
-        canonical_addresses = (
-            functions
-            | (boundaries if isinstance(boundaries, set) else set())
-            | _observed_function_addresses(repo_dir)
-        )
-        run(
-            "reviewed-classes",
-            lambda: _validate_class_references(repo_dir, program, canonical_addresses),
-        )
-    run(
-        "reviewed-polymorphism-observation",
-        lambda: {"slots": _validate_polymorphism_observation(repo_dir, program)},
-    )
     failures = [check for check in checks if not check["ok"]]
     return {"ok": not failures, "checks": checks, "failure_count": len(failures)}
 

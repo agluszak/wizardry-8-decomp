@@ -24,7 +24,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from .sgp_oracle import _coff_name
+from reccmp.compare.exact import coff_name
 
 # The linker prefixes an imported symbol's thunk this way. It is never a name a
 # recovered unit writes, so matching on it cannot hide a real gap.
@@ -49,7 +49,7 @@ def object_symbols(path: Path) -> tuple[set[str], set[str]]:
     index = 0
     while index < symbol_count:
         raw = data[symbol_table + index * 18 : symbol_table + index * 18 + 18]
-        name = _coff_name(data, raw, string_table)
+        name = coff_name(data, raw, string_table)
         value, section, _type, storage, auxiliary = struct.unpack_from("<IhHBB", raw, 8)
         if storage == 2:
             # Section zero with a zero value is the COFF spelling of "wanted but

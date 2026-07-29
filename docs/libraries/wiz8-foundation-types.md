@@ -164,8 +164,8 @@ concrete: it uses `W8GrowableVector<int>` for candidate indices and
 
 The bounds-checked element accessor is inlined into its callers, which explains the in-loop
 `cmp index, count` / `jge` guard around the `lea` that
-`config/reccmp/wiz8-gameplay-boundaries.csv` records as odd in both `GetNPCItemListByID`
-and `FindMonGenByName`. It is this template's accessor, not a quirk of those two functions.
+the compiler emits in both `GetNPCItemListByID` and `FindMonGenByName`. It is this template's
+accessor, not a quirk of those two functions.
 
 ## Allocator as an ownership discriminator
 
@@ -195,8 +195,7 @@ forms, both of which eventually reach the shared delete wrapper.
 ## `PList`
 
 A second, unrelated container comes from `3D Code\PList.cpp`. Its canonical assertions name the
-parameters `ppl` and `pEntry`; the reviewed function inventory and matching state live in
-`config/reccmp/wiz8-gameplay-boundaries.csv`.
+parameters `ppl` and `pEntry`; source markers own its functions and reccmp reports current matching.
 
 | Offset | Field |
 | --- | --- |
@@ -218,8 +217,7 @@ nine IList bodies are now source-owned and relocation-masked exact.
 ### The loop shape that finally matched
 
 `PListIndexOf` is a search loop, and it took four attempts, which is worth recording because five
-other functions in `config/reccmp/wiz8-gameplay-boundaries.csv` are still
-`structurally-strong` with "loop peeling" named as the remaining difference:
+other functions still show the same loop-peeling difference in live comparison:
 
 | Source shape | Result |
 | --- | ---: |

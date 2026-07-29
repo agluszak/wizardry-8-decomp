@@ -45,8 +45,8 @@ def test_merge_keeps_both_sides_and_never_duplicates_an_identity() -> None:
 def test_merge_does_not_demote_a_row_the_other_side_promoted() -> None:
     """The regression this module exists for.
 
-    Resolving by appending both halves put a promoted boundary row back to
-    structurally-strong and dropped its hash; only verify-boundaries noticed.
+    Resolving by appending both halves can put a promoted observation back to
+    a weaker confidence and drop its supporting detail.
     """
 
     theirs = [_row("004f3d90", "structurally-strong", "")]
@@ -111,42 +111,6 @@ def test_split_conflict_reads_both_jj_sides() -> None:
     assert split_conflict(f"{_HEADER}\n0001,10,A::a,o,exact,h,e\n") is None
 
 
-def test_resolving_a_file_writes_a_well_formed_table(tmp_path: Path) -> None:
-    path = tmp_path / "wiz8-gameplay-boundaries.csv"
-    path.write_text(
-        f"{_HEADER}\n"
-        "0001,10,A::a,o,exact,h1,kept\n"
-        "<<<<<<< conflict 1 of 1\n"
-        "+++++++ destination\n"
-        "0002,10,B::b,o,structurally-strong,,theirs only\n"
-        "0003,10,C::c,o,structurally-strong,,\n"
-        "%%%%%%% diff from: parent\n"
-        "\\\\\\\\        to: rebased\n"
-        "+0003,10,C::c,o,exact,h3,promoted\n"
-        "+0004,10,D::d,o,exact,h4,mine only\n"
-        ">>>>>>> conflict 1 of 1 ends\n",
-        encoding="utf-8",
-    )
-    summary = resolve_evidence_conflict(path)
-    assert summary["conflicted"] is True
-
-    with path.open(newline="", encoding="utf-8") as stream:
-        rows = list(csv.DictReader(stream))
-    assert not any(None in row for row in rows)
-    by_address = {row["address"]: row for row in rows}
-    assert set(by_address) == {"0001", "0002", "0003", "0004"}
-    # The promoted copy of 0003 survived the merge.
-    assert by_address["0003"]["confidence"] == "exact"
-    assert by_address["0003"]["relocation_masked_sha256"] == "h3"
-
-    # Re-running on the resolved file is a no-op rather than an error.
-    assert resolve_evidence_conflict(path)["conflicted"] is False
-
-
-def test_boundary_map_identity_is_address_not_mutable_symbol() -> None:
-    assert key_columns(Path("wiz8-gameplay-boundaries.csv")) == ("address",)
-
-
 def test_unknown_table_refuses_to_merge(tmp_path: Path) -> None:
     path = tmp_path / "something-else.csv"
     path.write_text("a,b\n<<<<<<< conflict\n+++++++ x\n1,2\n>>>>>>> ends\n", encoding="utf-8")
@@ -158,7 +122,6 @@ def test_every_evidence_table_in_the_repo_has_known_identity_columns() -> None:
     repository = Path(__file__).resolve().parents[2]
     tables = [
         *(repository / "evidence/reviewed/wiz8").glob("*.csv"),
-        repository / "config/reccmp/wiz8-gameplay-boundaries.csv",
     ]
     for table in tables:
         columns = key_columns(table)

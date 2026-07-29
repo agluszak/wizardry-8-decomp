@@ -11,16 +11,6 @@ from .evidence.claims import load_claims
 from .paths import atomic_write
 from .source_model import build_source_model
 
-LIBRARY_OWNERS = frozenset(
-    {
-        "infozip-library",
-        "msvc6-runtime",
-        "sgp-compression",
-        "sgp-shared",
-        "zlib-library",
-    }
-)
-
 
 @dataclass
 class ReccmpEntity:
@@ -30,31 +20,16 @@ class ReccmpEntity:
     kind: str
 
 
-def _boundary_entities(path: Path) -> dict[int, ReccmpEntity]:
-    entities: dict[int, ReccmpEntity] = {}
-    with path.open(newline="", encoding="utf-8") as stream:
-        for row in csv.DictReader(stream):
-            address = int(row["address"], 16)
-            entities[address] = ReccmpEntity(
-                address=address,
-                symbol=row["symbol"].strip(),
-                size=int(row["size"], 0) if row["size"].strip() else None,
-                kind="library" if row["owner"].strip() in LIBRARY_OWNERS else "function",
-            )
-    return entities
-
-
 def render_wiz8_data_source(repository: Path) -> str:
     """Project canonical evidence into reccmp's pipe-delimited schema."""
 
-    entities = _boundary_entities(repository / "config/reccmp/wiz8-gameplay-boundaries.csv")
+    entities: dict[int, ReccmpEntity] = {}
     model = build_source_model(repository)
     for function in model.functions.values():
-        existing = entities.get(function.address)
         entities[function.address] = ReccmpEntity(
             address=function.address,
             symbol=function.name,
-            size=existing.size if existing else None,
+            size=None,
             kind="library" if function.kind == "LIBRARY" else "function",
         )
 
@@ -69,17 +44,12 @@ def render_wiz8_data_source(repository: Path) -> str:
         address = int(claim["entity_key"], 16)
         if address in model.functions:
             continue
-        existing = entities.get(address)
         origin = set(claim["origin"].split("|"))
         entities[address] = ReccmpEntity(
             address=address,
             symbol=claim["value"].strip(),
-            size=existing.size if existing else None,
-            kind=(
-                "library"
-                if origin & {"original-source", "sgp-source"}
-                else (existing.kind if existing else "function")
-            ),
+            size=None,
+            kind=("library" if origin & {"original-source", "sgp-source"} else "function"),
         )
 
     output = io.StringIO(newline="")

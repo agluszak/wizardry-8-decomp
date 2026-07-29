@@ -11,9 +11,6 @@ from typing import Any
 
 from .subprocesses import run
 
-FUNCTION_MARKER = re.compile(
-    r"^\s*//\s*FUNCTION\s*:\s*[A-Za-z0-9_]+\s+(?P<address>(?:0x)?[0-9a-fA-F]+)"
-)
 VTABLE_COUNT = re.compile(r"Vtables found:\s*(?P<count>\d+)\.")
 
 
@@ -27,19 +24,25 @@ def parse_address(value: str) -> int:
     return address
 
 
-def addresses_from_files(paths: Iterable[Path]) -> list[int]:
-    addresses: list[int] = []
-    for path in paths:
-        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
-            marker = FUNCTION_MARKER.match(line)
-            if marker is not None:
-                addresses.append(parse_address(marker.group("address")))
-    return addresses
+def addresses_from_files(repository: Path, paths: Iterable[Path]) -> list[int]:
+    """Select compiler-bound FUNCTION markers from the shared source index."""
+
+    from .source_model import load_source_index
+
+    selected = {
+        str((path if path.is_absolute() else repository / path).resolve()) for path in paths
+    }
+    return [
+        int(marker["address"])
+        for marker in load_source_index(repository)["markers"]
+        if marker["marker_kind"] == "FUNCTION"
+        and str((repository / marker["source_file"]).resolve()) in selected
+    ]
 
 
-def selected_addresses(raw: Iterable[str], paths: Iterable[Path]) -> list[int]:
+def selected_addresses(repository: Path, raw: Iterable[str], paths: Iterable[Path]) -> list[int]:
     selected = {parse_address(value) for value in raw}
-    selected.update(addresses_from_files(paths))
+    selected.update(addresses_from_files(repository, paths))
     if not selected:
         raise ValueError("pass one or more addresses and/or --file source paths")
     return sorted(selected)

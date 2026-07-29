@@ -328,6 +328,10 @@ def lint(settings: Settings) -> dict[str, Any]:
     mounts = (
         Mount(settings.repo_dir, "/repo"),
         Mount(output, "/out", read_only=False),
+        Mount(
+            settings.work_dir / "fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4",
+            "/zlib",
+        ),
     )
 
     def prefix() -> list[str]:
@@ -349,6 +353,7 @@ def lint(settings: Settings) -> dict[str, Any]:
             "/out",
             "-G",
             "Ninja",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
             "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
         ],
         cwd=settings.repo_dir,
@@ -394,32 +399,19 @@ def build_analysis_target(
         build.build_command(target, jobs or 1),
         cwd=settings.repo_dir,
     )
-    manifest_path = settings.repo_dir / "build" / "analysis" / "object-roots.json"
-    if manifest_path.is_file():
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    else:
-        manifest = {"schema": "wiz8.analysis-object-roots", "roots": {}}
-    manifest["roots"][build_name] = str((output / "CMakeFiles").relative_to(settings.repo_dir))
-    atomic_json(manifest_path, manifest)
+    atomic_json(
+        output / "objects.json",
+        {
+            "schema": "wiz8.analysis-object-root",
+            "name": build_name,
+            "root": str((output / "CMakeFiles").relative_to(settings.repo_dir)),
+        },
+    )
     return {
         "target": target,
         "configure": _result(configure_result),
         "build": _result(build_result),
     }
-
-
-def boundary_object_roots(settings: Settings) -> list[Path]:
-    roots = [settings.repo_dir / "build" / "decomp" / "CMakeFiles"]
-    manifest_path = settings.repo_dir / "build" / "analysis" / "object-roots.json"
-    if manifest_path.is_file():
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if manifest.get("schema") != "wiz8.analysis-object-roots":
-            raise RuntimeError(f"unsupported analysis object-root manifest: {manifest_path}")
-        roots.extend(
-            settings.repo_dir / relative
-            for _, relative in sorted((manifest.get("roots") or {}).items())
-        )
-    return roots
 
 
 def compare(
@@ -452,6 +444,13 @@ def build_toolchain(settings: Settings, toolchain_ids: list[str] | None = None) 
 
 
 def check(repository: Path) -> dict[str, Any]:
+    from .config import load_settings
+    from .source_index import write_source_index
+
+    settings = load_settings()
+    assert settings is not None
+    lint_result = lint(settings)
+    source_index = write_source_index(settings)
     write_wiz8_data_source(repository)
     commands = (
         ["ruff", "format", "--check", "."],
@@ -459,28 +458,37 @@ def check(repository: Path) -> dict[str, Any]:
         ["pyright"],
         ["cmake", "-P", "cmake/ValidateWiz8Sources.cmake"],
         ["pytest", "tests/unit", "tests/repository"],
-        ["wiz8", "check-markers"],
         ["wiz8", "check-reccmp"],
     )
-    return {"commands": [_result(run(command, cwd=repository)) for command in commands]}
+    return {
+        "lint": lint_result,
+        "source_index": source_index,
+        "commands": [_result(run(command, cwd=repository)) for command in commands],
+    }
 
 
 def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     from .ghidra.index import export_index
+    from .ghidra.reccmp_import import import_reccmp_source
+    from .reccmp_workflows import compare_vtables
     from .runtime import run_runtime_suite
+    from .source_index import write_source_index
     from .source_layouts import require_source_layouts, verify_source_layouts
 
     lint_result = lint(settings)
+    source_index = write_source_index(settings)
     build_target(settings, "WIZ8")
     build_target(settings, "SURRENDER")
     build_target(settings, "WIZ8_RUNTIME_TEST")
     build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
+    source_import = import_reccmp_source(settings, "wiz8")
+    surrender_source_import = import_reccmp_source(settings, "wiz8--gog-base--sr--")
     ghidra_index = export_index(settings, "wiz8")
+    surrender_ghidra_index = export_index(settings, "wiz8--gog-base--sr--")
     source_layouts = require_source_layouts(verify_source_layouts(settings))
-    boundaries = run(["wiz8", "verify-boundaries"], cwd=settings.repo_dir)
-    surrender_boundaries = run(
-        ["wiz8", "verify-boundaries", "--target", "SURRENDER"], cwd=settings.repo_dir
-    )
+    vtables = compare_vtables(settings.repo_dir, "WIZ8", None)
+    if not vtables["ok"]:
+        raise ValueError("source-owned vtable slots differ from the paired original")
     comparison = (
         {
             "wiz8": compare(settings, "WIZ8", build_first=False),
@@ -490,16 +498,19 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
         else None
     )
     decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
-    runtime = run_runtime_suite(settings)
     tests = run(["pytest"], cwd=settings.repo_dir)
+    runtime_tests = run_runtime_suite(settings)
     return {
         "lint": lint_result,
-        "boundaries": _result(boundaries),
-        "surrender_boundaries": _result(surrender_boundaries),
+        "source_index": source_index,
+        "source_import": source_import,
+        "surrender_source_import": surrender_source_import,
         "ghidra_index": ghidra_index,
+        "surrender_ghidra_index": surrender_ghidra_index,
         "source_layouts": source_layouts,
+        "vtables": vtables,
         "compare": comparison,
         "decomplint": _result(decomplint),
-        "runtime": runtime,
         "tests": _result(tests),
+        "runtime_tests": runtime_tests,
     }

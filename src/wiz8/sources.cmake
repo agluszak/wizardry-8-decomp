@@ -24,6 +24,9 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_screens/RCSCommon.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
+    src/wiz8/local_screens/MGSPortraits.cpp
+    src/wiz8/local_screens/MGSUseItemSelect.cpp
+    src/wiz8/local_screens/MGSPartyMovement.cpp
     src/wiz8/location_variables.cpp
     src/wiz8/local_code/MonsterManager.cpp
     src/wiz8/local_code/MonsterGroup.cpp
@@ -69,6 +72,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/3d_code/PList.cpp
     src/wiz8/engine_code/3d.cpp
     src/wiz8/engine_code/Bink.cpp
+    src/wiz8/level_specific_code/MasterFunctionList.cpp
 )
 # Address-qualified sources are distinct VC6 template emissions. Their
 # original translation-unit ownership is not established, so grouping
@@ -118,7 +122,34 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/fact_state.cpp
     src/wiz8/dirty_tiles.cpp
     src/wiz8/render_options.cpp
-    src/wiz8/unattributed_helpers.cpp
+    src/wiz8/engine_code/registry_classes.cpp
+    src/wiz8/unattributed/00401001_0041ab3f.cpp
+    src/wiz8/unattributed/0041f261_0042403f.cpp
+    src/wiz8/unattributed/00424041_0042a36f.cpp
+    src/wiz8/unattributed/004511d1_0045368f.cpp
+    src/wiz8/unattributed/0046c0f1_0046dc8f.cpp
+    src/wiz8/unattributed/0047a791_0047b4ff.cpp
+    src/wiz8/unattributed/0048e7b1_00490c5f.cpp
+    src/wiz8/unattributed/00490c61_00497aef.cpp
+    src/wiz8/unattributed/004adb21_004b19ef.cpp
+    src/wiz8/unattributed/004b6bd1_004b6f2f.cpp
+    src/wiz8/unattributed/004e34b1_004e381f.cpp
+    src/wiz8/unattributed/004f0c81_004f203f.cpp
+    src/wiz8/unattributed/00516f01_00517c5f.cpp
+    src/wiz8/unattributed/00524781_00526e8f.cpp
+    src/wiz8/unattributed/00526e91_0052a88f.cpp
+    src/wiz8/unattributed/0052c241_0053014f.cpp
+    src/wiz8/unattributed/005587c1_005592cf.cpp
+    src/wiz8/unattributed/0055f081_0056af7f.cpp
+    src/wiz8/unattributed/0057d741_005817cf.cpp
+    src/wiz8/unattributed/00583bc1_0058abff.cpp
+    src/wiz8/unattributed/00590bd1_005963df.cpp
+    src/wiz8/unattributed/0059e0f1_0059f70f.cpp
+    src/wiz8/unattributed/005a1151_005a19af.cpp
+    src/wiz8/unattributed/005a8ed1_005b478f.cpp
+    src/wiz8/unattributed/005c4341_005c87af.cpp
+    src/wiz8/unattributed/005d2a51_005d730f.cpp
+    src/wiz8/unattributed/005e2cc1_005e37ff.cpp
     src/wiz8/frame_tick.cpp
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
@@ -158,6 +189,33 @@ foreach(category IN LISTS WIZ8_RECOVERED_SOURCE_CATEGORIES)
         endif()
         list(APPEND WIZ8_CLASSIFIED_SOURCES "${source}")
     endforeach()
+endforeach()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
+    message(FATAL_ERROR "Synthetic catch-all source is forbidden: unattributed_helpers.cpp")
+endif()
+foreach(source IN LISTS WIZ8_UNATTRIBUTED_UNITS)
+    if(source MATCHES "^src/wiz8/unattributed/([0-9a-f]+)_([0-9a-f]+)[.]cpp$")
+        set(lower "${CMAKE_MATCH_1}")
+        set(upper "${CMAKE_MATCH_2}")
+        string(LENGTH "${lower}" lower_length)
+        string(LENGTH "${upper}" upper_length)
+        if(NOT lower_length EQUAL 8 OR NOT upper_length EQUAL 8)
+            message(FATAL_ERROR "Quarantine bounds must be eight hex digits: ${source}")
+        endif()
+        file(READ "${CMAKE_CURRENT_SOURCE_DIR}/${source}" contents)
+        string(REGEX MATCHALL "// FUNCTION: WIZ8 0x[0-9A-Fa-f]+" markers "${contents}")
+        if(NOT markers)
+            message(FATAL_ERROR "Address quarantine has no FUNCTION markers: ${source}")
+        endif()
+        foreach(marker IN LISTS markers)
+            string(REGEX REPLACE ".*0x" "" address "${marker}")
+            string(TOLOWER "${address}" address)
+            if(address STRLESS lower OR upper STRLESS address)
+                message(FATAL_ERROR
+                    "${source} owns ${address}, outside its ${lower}-${upper} bounds")
+            endif()
+        endforeach()
+    endif()
 endforeach()
 if(CMAKE_SCRIPT_MODE_FILE)
     file(GLOB_RECURSE WIZ8_CPP_SOURCES

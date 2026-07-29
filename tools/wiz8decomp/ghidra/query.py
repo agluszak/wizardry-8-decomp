@@ -247,25 +247,6 @@ def _read_data(program: Any, address_text: str, size_text: str) -> dict[str, Any
     }
 
 
-def _operator_delete_entries(program: Any) -> set[str]:
-    """Entry addresses of every operator-delete function, thunks included.
-
-    The deleters anchor the destruction-shape rules, so they are read from the
-    program's own symbols rather than hardcoded: the MSVC decorated name and
-    the demangled spelling both count, and a thunk's entry is what call sites
-    actually target.
-    """
-
-    entries: set[str] = set()
-    iterator = program.getFunctionManager().getFunctions(True)
-    while iterator.hasNext():
-        function = iterator.next()
-        name = function.getName()
-        if "operator_delete" in name or name.startswith("??3@"):
-            entries.add(str(function.getEntryPoint()))
-    return entries
-
-
 def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str, Any]:
     if command == "listing":
         return _listing(program, arguments[0])
@@ -297,21 +278,6 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         return _symbols(program, False)
     if command == "sections":
         return _sections(program)
-    if command == "type-variables":
-        from .semantic import field_accesses
-
-        traced = field_accesses(program, arguments[0], arguments[1])
-        deleters = _operator_delete_entries(program)
-        from ..typevars import derive_type_variables
-
-        return {
-            "entry": traced["entry"],
-            "root": traced["root"],
-            "deleters": sorted(deleters),
-            "variables": derive_type_variables(
-                traced["entry"], traced["root"], traced["accesses"], traced["calls"], deleters
-            ),
-        }
     if command == "high-function":
         from .semantic import high_function
 
@@ -361,7 +327,6 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "high-function": 1,
         "field-accesses": 2,
         "callsite": 1,
-        "type-variables": 2,
         "condition-accesses": 1,
     }
     if command == "pcode":

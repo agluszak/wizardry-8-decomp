@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import Any
 
 from ..paths import atomic_json, atomic_write
-from ..source_model import build_source_model
+from ..source_model import build_source_model, load_source_index
 from .translation_units import (
     derive_intervals,
+    function_inventory,
     load_call_site_anchors,
     render_gameplay_map_csv,
 )
@@ -59,10 +60,10 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
             "confidence": _counts(identity_claims, "confidence"),
         }
     )
-    classes = _rows(repo_dir / "evidence/reviewed/wiz8/class-provenance.csv")
+    classes = load_source_index(repo_dir)["classes"]
     source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
     assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
-    gameplay = _rows(repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv")
+    gameplay = function_inventory(repo_dir)
     extra_anchors = load_call_site_anchors(repo_dir)
     intervals = derive_intervals(assertions, extra_anchors)
     gameplay_map, attribution = render_gameplay_map_csv(
@@ -85,11 +86,9 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
             "source_units_by_subsystem": _counts(source_units, "subsystem"),
             "gameplay": {
                 "functions": len(gameplay),
-                "confidence": _counts(gameplay, "confidence"),
                 "owners": _counts(gameplay, "owner"),
                 "translation_unit_attribution": attribution,
                 "attributed_source_units": len(attributed_units),
-                "unresolved_matches": sum(row["confidence"] != "exact" for row in gameplay),
                 "unowned_functions": attribution["gap"],
             },
         },
@@ -125,7 +124,7 @@ def render_status_markdown(report: dict[str, Any]) -> str:
             f"- Source-owned functions: {wiz8['source_functions']}",
             f"- Analysis-only identities: {wiz8['analysis_only_identities']}",
             f"- Provenance claims: {wiz8['claims']}",
-            f"- Reviewed classes: {wiz8['classes']}",
+            f"- Source classes: {wiz8['classes']}",
             f"- Observed original source units: {wiz8['source_units']}",
             "",
             "### Name authority",
@@ -137,13 +136,8 @@ def render_status_markdown(report: dict[str, Any]) -> str:
             "### Owned gameplay matching",
             "",
             f"- Reviewed functions: {gameplay['functions']}",
-            f"- Unresolved non-exact matches: {gameplay['unresolved_matches']}",
             f"- Functions outside an assertion-bounded source interval: {gameplay['unowned_functions']}",
             f"- Original source units represented by attributed functions: {gameplay['attributed_source_units']}",
-            "",
-            "| Match classification | Functions |",
-            "| --- | ---: |",
-            *_table(gameplay["confidence"]),
             "",
             "| Translation-unit attribution | Functions |",
             "| --- | ---: |",

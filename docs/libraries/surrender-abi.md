@@ -31,8 +31,8 @@ against instability rather than proof of a boundary.
 
 ## The Wizardry side derives from these classes
 
-`evidence/reviewed/wiz8/imported-vftable-sites.csv` records Wizardry installing imported SurRender
-vftables in its own constructors: `srMaterial` in a family of builders, `srLight` under
+The Ghidra vtable-reference index records Wizardry installing imported SurRender vftables in its own
+constructors: `srMaterial` in a family of builders, `srLight` under
 `MonsterLight`, and `srBinIStream` under the virtual-file stream adapter. Some of those inherit
 virtually and adjust `this` through a vbtable displacement. So the surface has to support real
 derivation, not just calls.

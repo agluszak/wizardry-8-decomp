@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -8,7 +7,7 @@ from typing import Any
 from ..provenance import ProvenanceError, validate_provenance
 from .io import parse_hex, read_table
 
-ENTITY_KINDS = frozenset({"function", "type", "vtable"})
+ENTITY_KINDS = frozenset({"function"})
 CONFIDENCE = frozenset({"", "candidate", "structurally-strong", "strong", "high", "exact"})
 
 
@@ -54,34 +53,18 @@ def validate_claims_against_documents(
         str(row["entry"]).lower().removeprefix("0x").zfill(8)
         for row in documents["functions"]["functions"]
     }
-    type_records = {str(row["path"]): row for row in documents["types"]["types"]}
-    types = set(type_records)
-    vtables = {
-        str(row["address"]).lower().removeprefix("0x").zfill(8)
-        for row in documents["vtables"]["vtables"]
-    }
-    entities = {"function": functions, "type": types, "vtable": vtables}
+    entities = {"function": functions}
     counts = {kind: 0 for kind in sorted(ENTITY_KINDS)}
     for claim in load_claims(repository, program):
         kind = claim["entity_kind"].strip()
         key = claim["entity_key"].strip()
-        normalized = key if kind == "type" else key.lower().removeprefix("0x").zfill(8)
+        if kind not in entities:
+            raise ValueError(f"claim {claim['claim_id']} uses unsupported entity kind: {kind}")
+        normalized = key.lower().removeprefix("0x").zfill(8)
         if normalized not in entities[kind]:
             raise ValueError(
                 f"claim {claim['claim_id']} does not resolve in the Ghidra {kind} index: {key}"
             )
-        if kind == "type" and claim["predicate"].strip() == "field-identity":
-            expected = json.loads(claim["value"])
-            components = {
-                (int(component["offset"]), component.get("field")): component
-                for component in type_records[normalized].get("components", [])
-            }
-            component = components.get((int(expected["offset"]), expected["field"]))
-            if component is None or int(component["length"]) != int(expected["length"]):
-                raise ValueError(
-                    f"claim {claim['claim_id']} does not resolve to a matching Ghidra field: "
-                    f"{key}+0x{int(expected['offset']):x} {expected['field']}"
-                )
         counts[kind] += 1
     return counts
 
@@ -94,8 +77,4 @@ def validate_claims_against_index(repository: Path, program: str = "wiz8") -> di
         name: json.loads((directory / f"{name}.json").read_text(encoding="utf-8"))
         for name in ("functions", "types", "vtables")
     }
-    counts = validate_claims_against_documents(repository, documents, program)
-    from ..source_model import validate_source_names_against_index
-
-    counts["source"] = validate_source_names_against_index(repository, documents["functions"])
-    return counts
+    return validate_claims_against_documents(repository, documents, program)

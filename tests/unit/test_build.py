@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 import wiz8decomp.build as build_module
-from wiz8decomp import runtime, source_layouts
+from wiz8decomp import reccmp_workflows, runtime, source_index, source_layouts
 from wiz8decomp.build import (
     LINT_BUILD_DIR,
     PRODUCT_GENERATOR,
@@ -17,6 +17,7 @@ from wiz8decomp.build import (
 )
 from wiz8decomp.config import Settings
 from wiz8decomp.ghidra import index as ghidra_index
+from wiz8decomp.ghidra import reccmp_import
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -125,7 +126,18 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
     )
     monkeypatch.setattr(build_module, "compare", lambda *_args, **_kwargs: {"match": "ok"})
 
+    monkeypatch.setattr(source_index, "write_source_index", lambda *_args: {"index": "ok"})
+    monkeypatch.setattr(
+        reccmp_import,
+        "import_reccmp_source",
+        lambda *_args: {"import": "ok"},
+    )
     monkeypatch.setattr(ghidra_index, "export_index", lambda *_args: {"index": "ok"})
+    monkeypatch.setattr(
+        reccmp_workflows,
+        "compare_vtables",
+        lambda *_args: {"ok": True},
+    )
     monkeypatch.setattr(source_layouts, "verify_source_layouts", lambda *_args: {"valid": True})
     monkeypatch.setattr(source_layouts, "require_source_layouts", lambda result: result)
     monkeypatch.setattr(
@@ -137,4 +149,4 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
     result = build_module.verify(settings)
 
     assert built == ["WIZ8", "SURRENDER", "WIZ8_RUNTIME_TEST"]
-    assert result["runtime"] == {"deterministic": True}
+    assert result["runtime_tests"] == {"deterministic": True}
