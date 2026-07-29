@@ -32,6 +32,14 @@
 // VTABLE: WIZ8 0x005ec15c
 // class W8GrowableVector<W8WorldItem*>
 
+class W8VectorElement005EBFE4;
+
+// VTABLE: WIZ8 0x005ebfe4
+// class W8GrowableVector<W8VectorElement005EBFE4*>
+
+// SYNTHETIC: WIZ8 0x0042bba0
+// W8GrowableVector<W8VectorElement005EBFE4*>::`scalar deleting destructor'
+
 // VTABLE: WIZ8 0x005ec51c
 // class W8GrowableVector<unsigned char>
 

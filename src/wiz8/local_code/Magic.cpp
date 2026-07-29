@@ -381,11 +381,6 @@ enum {
 
 /* 0x00689B58: the queued spell effects, the shared growable vector again. */
 extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
-/* The same vector reached field by field, which is how the append below writes
-   it: count at 0x00689B5C, capacity at 0x00689B60, data at 0x00689B64. */
-extern int g_spell_effects_count;
-extern int g_spell_effects_capacity;
-extern W8SpellEffectEntry** g_spell_effects_data;
 /* 0x0068691F */
 extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
 /* Whether every queued effect still has time left on it. */
@@ -579,30 +574,11 @@ void StartCharacterBreathAttack(int party_slot)
     ReportBreathFailed(party_slot);
 }
 
-/* Append one effect to the queue, growing it by exactly one slot when it is
-   full - the growth is inlined here rather than going through the shared Grow,
-   and a failed allocation leaves the old array in place. */
+/* Append one effect to the shared queue. */
 // FUNCTION: WIZ8 0x005008a0
 void AddSpellEffect(W8SpellEffectEntry* effect)
 {
-    W8SpellEffectEntry** previous = g_spell_effects_data;
-    int wanted = g_spell_effects_count + 1;
-    int index;
-
-    if (g_spell_effects_capacity < wanted) {
-        g_spell_effects_data = (W8SpellEffectEntry**)operator new(wanted * 4);
-        if (g_spell_effects_data == 0) {
-            g_spell_effects_data = previous;
-            return;
-        }
-        g_spell_effects_capacity = wanted;
-        for (index = 0; index < g_spell_effects_count; ++index) {
-            g_spell_effects_data[index] = previous[index];
-        }
-        operator delete(previous);
-    }
-    g_spell_effects_data[g_spell_effects_count] = effect;
-    ++g_spell_effects_count;
+    g_spell_effects.Add(effect);
 }
 
 /* Scale a value by how far ahead of the difficulty's own pace one combatant
@@ -1903,25 +1879,18 @@ void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int p
     NoteSpellCast(spell_id, result);
 }
 
-/* The object a running cast hangs its spawned effects off. Only the vector at
-   0x100 is established, and it is the one every effect this file spawns is
-   appended to. */
+class W8VectorElement005EBFE4;
+
+/* The object a running cast hangs its spawned effects off. */
 typedef struct W8CastEffectOwner {
     unsigned char unknown_000[0x100];
-    /* 0x100: the spawned effects, in a growable vector's storage. Spelled as
-       the layout rather than as the class so the owner stays a plain record. */
-    struct {
-        void* vptr;                      /* 0x100 */
-        int count;                       /* 0x104 */
-        int capacity;                    /* 0x108 */
-        void** data;                     /* 0x10c */
-    } effects;
+    W8GrowableVector<W8VectorElement005EBFE4*> effects; /* 0x100 */
 } W8CastEffectOwner;
 
-extern void* SpawnSpellEffect(
+static_assert(sizeof(W8CastEffectOwner) == 0x110, "W8CastEffectOwner_must_be_0x110");
+
+extern W8VectorElement005EBFE4* SpawnSpellEffect(
     const W8Position* position, const char* resource_name, int arg_3, int arg_4, int arg_5);
-/* 0x004AD430, Engine Code\Spells.cpp */
-extern int GrowEffectVector(void* vector, int minimum_capacity);         /* 0x004ADDF0 */
 
 /* The lure spell, and how far under the target the first of its two effects is
    placed. */
@@ -1936,7 +1905,7 @@ enum { W8_SPELL_LURE = 0x26 };
 void SpawnLureEffects(W8CastEffectOwner* owner, int arg_2, const W8CombatSlot* target)
 {
     W8Position position;
-    void* effect;
+    W8VectorElement005EBFE4* effect;
 
     position.x = target->point.x;
     position.y = target->point.y - 1000.0f;
@@ -1946,11 +1915,7 @@ void SpawnLureEffects(W8CastEffectOwner* owner, int arg_2, const W8CombatSlot* t
         &position, g_spell_records[W8_SPELL_LURE].resource_name, arg_2, 0, 0);
     if (effect != 0) {
         *((unsigned char*)effect + 0x1e6) = 0;
-        if (owner->effects.count + 1 <= owner->effects.capacity ||
-            GrowEffectVector(&owner->effects, owner->effects.count + 1) != 0) {
-            owner->effects.data[owner->effects.count] = effect;
-            ++owner->effects.count;
-        }
+        owner->effects.Add(effect);
     }
 
     position = target->point;
@@ -1958,10 +1923,6 @@ void SpawnLureEffects(W8CastEffectOwner* owner, int arg_2, const W8CombatSlot* t
     if (effect != 0) {
         *((unsigned char*)effect + 0x1e6) = 0;
         *(*(unsigned char**)((char*)effect + 0x1e0) + 0x71) = 3;
-        if (owner->effects.count + 1 <= owner->effects.capacity ||
-            GrowEffectVector(&owner->effects, owner->effects.count + 1) != 0) {
-            owner->effects.data[owner->effects.count] = effect;
-            ++owner->effects.count;
-        }
+        owner->effects.Add(effect);
     }
 }
