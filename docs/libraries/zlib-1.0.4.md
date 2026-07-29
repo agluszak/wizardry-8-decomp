@@ -8,9 +8,9 @@ source archive whose SHA-256 is
 
 ## Recovered ownership
 
-The reviewed identities live in the canonical `evidence/reviewed/wiz8/function-provenance.csv` catalog.
-Ownership distinguishes Sir-Tech's allocation and stream adapters from bodies compiled from zlib
-itself; current counts are generated from that catalog rather than maintained here.
+The reviewed analysis-only identities live as source-backed claims in
+`evidence/reviewed/wiz8/claims.csv`. Owned adapters use address-marked declarations instead. Current
+counts are generated from source and claims rather than maintained here.
 
 The zlib-owned range begins at `0x00415910` with `inflateReset` and ends at `0x0041A7ED` with
 `inflate_fast`. The next defined function at `0x0041A7F0` is game code, and the larger function at

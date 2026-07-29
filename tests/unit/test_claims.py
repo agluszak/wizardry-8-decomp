@@ -1,4 +1,3 @@
-import csv
 from pathlib import Path
 
 import pytest
@@ -7,6 +6,7 @@ from wiz8decomp.evidence.claims import (
     validate_claim_rows,
     validate_claims_against_documents,
 )
+from wiz8decomp.evidence.validate import _validate_functions
 
 
 def _documents(
@@ -21,10 +21,7 @@ def _documents(
 
 def test_reviewed_claims_resolve_to_the_function_entity_ledger() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        addresses = {int(row["address"], 16) for row in csv.DictReader(stream)}
+    addresses = _validate_functions(repository, "wiz8")
 
     assert validate_claim_rows(repository, addresses) == len(load_claims(repository))
 

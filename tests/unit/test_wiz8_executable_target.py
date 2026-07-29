@@ -1,8 +1,7 @@
-import csv
-import re
 from pathlib import Path
 
 import yaml
+from wiz8decomp.source_model import build_source_model
 
 
 def test_wiz8_reccmp_target_and_platform_header_are_canonical() -> None:
@@ -61,20 +60,11 @@ def test_semantic_runtime_driver_is_a_separate_product() -> None:
 
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        expected = {
-            int(row["address"], 16)
-            for row in csv.DictReader(stream)
-            if row["owner"] == "msvc6-runtime"
-        }
-
+    model = build_source_model(repository)
+    expected = {address for address, item in model.functions.items() if item.kind == "LIBRARY"}
     source = (repository / "src/wiz8/vc6_runtime.cpp").read_text(encoding="utf-8")
-    actual = {
-        int(address, 16) for address in re.findall(r"// LIBRARY: WIZ8 0x([0-9A-Fa-f]+)", source)
-    }
-    assert actual == expected
+    assert len(expected) == 16
+    assert 0x00401000 in expected
     assert "// FUNCTION:" not in source
 
     # The bring-up entry was a marker-less link stub until WinMain itself was

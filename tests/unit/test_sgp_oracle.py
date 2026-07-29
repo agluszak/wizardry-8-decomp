@@ -28,6 +28,33 @@ def _reviewed_rows(repository: Path, unit: str) -> list[dict[str, str]]:
         return [row for row in csv.DictReader(stream) if row["unit"] == unit]
 
 
+def _accepted_functions(repository: Path) -> list[dict[str, str]]:
+    with (repository / "evidence/reviewed/wiz8/claims.csv").open(
+        newline="", encoding="utf-8"
+    ) as stream:
+        rows = [
+            row
+            for row in csv.DictReader(stream)
+            if row["entity_kind"] == "function" and row["predicate"] == "accepted-identity"
+        ]
+    accepted = []
+    for row in rows:
+        reference = row["reference"]
+        source_path = (
+            reference.rsplit(":", 1)[0] if reference.rsplit(":", 1)[-1].isdigit() else reference
+        )
+        accepted.append(
+            {
+                **row,
+                "address": row["entity_key"],
+                "claimed_name": row["value"],
+                "name_origin": row["origin"],
+                "source_path": source_path,
+            }
+        )
+    return accepted
+
+
 def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
     repository = Path(__file__).resolve().parents[2]
     source = repository / "third_party/sfi-sgp/sgp"
@@ -52,10 +79,9 @@ def test_vendored_sgp_source_exposes_the_wizardry_branch_census() -> None:
 
 def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        functions = [row for row in csv.DictReader(stream) if row["source_path"].startswith("sgp/")]
+    functions = [
+        row for row in _accepted_functions(repository) if row["source_path"].startswith("sgp/")
+    ]
     with (repository / "evidence/observations/sgp/source-paths.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
@@ -63,7 +89,6 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
 
     assert len(functions) == 62
     assert {row["confidence"] for row in functions} == {"exact"}
-    assert {row["owner"] for row in functions} == {"sgp-shared"}
     assert {row["source_path"] for row in functions} == {
         "sgp/DirectDraw Calls.c",
         "sgp/Container.c",
@@ -82,10 +107,7 @@ def test_sgp_maps_keep_exact_and_absent_evidence_distinct() -> None:
 
 def test_random_unit_is_complete_and_consistent_across_builds() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        unit = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/Random.c"]
+    unit = [row for row in _accepted_functions(repository) if row["source_path"] == "sgp/Random.c"]
     harness = _harness_rows(repository, "random")
 
     # Wizardry does not define JA2, so PRERANDOM_GENERATOR is off and the unit
@@ -109,14 +131,10 @@ def test_random_unit_is_complete_and_consistent_across_builds() -> None:
 
 def test_the_sgp_name_supersedes_the_cfagent_name_at_0x0040efa0() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        rows = [row for row in csv.DictReader(stream) if row["address"] == "0040efa0"]
+    rows = [row for row in _accepted_functions(repository) if row["address"] == "0040efa0"]
     assert len(rows) == 1
     row = rows[0]
     assert row["claimed_name"] == "Random"
-    assert row["aliases"] == "GetRandomNumber"
     assert set(row["name_origin"].split("|")) == {"sgp-source", "fan-patch-signature"}
     assert row["authority"] == "source-backed"
 
@@ -331,12 +349,9 @@ def test_container_unit_separates_retained_stack_list_apis_from_stripped_familie
         "ListSize",
     }
 
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        accepted = [
-            row for row in csv.DictReader(stream) if row["source_path"] == "sgp/Container.c"
-        ]
+    accepted = [
+        row for row in _accepted_functions(repository) if row["source_path"] == "sgp/Container.c"
+    ]
     assert len(accepted) == 10
     assert {row["address"] for row in accepted} == {
         "00405970",
@@ -357,10 +372,9 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
     debug = _harness_rows(repository, "debug")
     reviewed_debug = _reviewed_rows(repository, "debug")
     reviewed_exception = _reviewed_rows(repository, "exceptionhandling")
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        accepted = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/DEBUG.C"]
+    accepted = [
+        row for row in _accepted_functions(repository) if row["source_path"] == "sgp/DEBUG.C"
+    ]
 
     assert len(debug) == 15 * 7
     assert len(reviewed_debug) == 15
@@ -373,10 +387,7 @@ def test_debug_and_exception_support_boundaries_are_explicit() -> None:
 
 def test_startup_input_and_timer_surfaces_are_restricted_to_retained_code() -> None:
     repository = Path(__file__).resolve().parents[2]
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        accepted = list(csv.DictReader(stream))
+    accepted = _accepted_functions(repository)
 
     startup = _reviewed_rows(repository, "sgp")
     timer = _reviewed_rows(repository, "timer")
@@ -407,10 +418,9 @@ def test_fileman_exact_and_near_results_stay_separate() -> None:
     repository = Path(__file__).resolve().parents[2]
     harness = _harness_rows(repository, "fileman")
     near = _reviewed_rows(repository, "fileman")
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        exact = [row for row in csv.DictReader(stream) if row["source_path"] == "sgp/FileMan.c"]
+    exact = [
+        row for row in _accepted_functions(repository) if row["source_path"] == "sgp/FileMan.c"
+    ]
 
     assert len(harness) == 43 * 7
     assert {row["flags"] for row in harness} == {"/O2 /Ob2 /G5 /MD"}
@@ -443,12 +453,11 @@ def test_library_database_units_keep_exact_near_and_interior_results_distinct() 
     dbman = _harness_rows(repository, "dbman")
     reviewed_library = _reviewed_rows(repository, "librarydatabase")
     reviewed_dbman = _reviewed_rows(repository, "dbman")
-    with (repository / "evidence/reviewed/wiz8/function-provenance.csv").open(
-        newline="", encoding="utf-8"
-    ) as stream:
-        accepted = [
-            row for row in csv.DictReader(stream) if row["source_path"] == "sgp/LibraryDataBase.c"
-        ]
+    accepted = [
+        row
+        for row in _accepted_functions(repository)
+        if row["source_path"] == "sgp/LibraryDataBase.c"
+    ]
 
     assert len(library) == 23 * 7
     assert len(dbman) == 20 * 7

@@ -193,8 +193,9 @@ never accepted; `decode-disagrees` when something genuinely refers to the addres
 not land on it, which flags a sweep that stayed out of phase rather than filing real evidence under
 "rejected"; and `rejected` otherwise.
 
-These are candidates, not identities. Promoting one is a reviewed decision belonging in
-`evidence/reviewed/wiz8/function-provenance.csv`, and regenerating the snapshot cannot touch it.
+These are candidates, not identities. A recovered identity is accepted by putting its address marker
+against the owned C++ declaration; provenance that source cannot express belongs in
+`evidence/reviewed/wiz8/claims.csv`. Regenerating the snapshot can touch neither.
 
 ## Using it
 

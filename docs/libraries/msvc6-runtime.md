@@ -16,9 +16,8 @@ across all five snapshots.
 | `0x005E1E71` | 104 | `??_M@YGXPAXIHP6EX0@Z@Z` | vector-destructor iterator |
 | `0x005E1EF1` | 81 | `?__ArrayUnwind@@YGXPAXIHP6EX0@Z@Z` | array unwind after construction failure |
 
-Ghidra already recognizes `__aulldiv`, `__allmul`, and `__aullshr`. The reviewed map in
-`evidence/reviewed/wiz8/function-provenance.csv` supplies the missing names with their original
-decorated spelling. Keeping these functions classified as compiler support prevents them from
+Ghidra already recognizes `__aulldiv`, `__allmul`, and `__aullshr`. `LIBRARY` source markers supply
+the reviewed names with their original decorated spelling. Keeping these functions classified as compiler support prevents them from
 inflating Wizardry source-recovery counts.
 
 The agreement across snapshots is deliberately not described as evidence for one VC6 service
@@ -38,8 +37,8 @@ The canonical executable's global C++ allocation boundary is asymmetric:
 Calling both outer entries "import thunks" hides a real distinction. The `operator new` identity is
 read directly from the imported decorated export and is therefore ABI-backed. The delete wrapper
 is not imported under that name: its descriptive identity comes from its exact forwarding body and
-the compiler-generated destructor sites that call it. Both callable identities are reviewed in
-`evidence/reviewed/wiz8/function-provenance.csv`; the IAT identities and their ownership meaning
+the compiler-generated destructor sites that call it. Both callable identities are source-marked;
+the IAT identities and their ownership meaning
 are reviewed separately in `evidence/reviewed/wiz8/allocator-layers.csv` because an IAT slot is data,
 not a function.
 

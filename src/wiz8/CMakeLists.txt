@@ -7,7 +7,7 @@ if(ZLIB_SOURCE)
     target_include_directories(WIZ8_ZLIB_WRAPPERS PRIVATE "${ZLIB_SOURCE}")
 
     # The canonical executable statically links pristine zlib 1.0.4; 46 of its
-    # bodies are already reviewed in evidence/reviewed/wiz8/function-provenance.csv.
+    # bodies are already reviewed by their source markers and provenance claims.
     # Build the pinned source as a real library so bring-up resolves inflate*
     # by linking it, rather than by stubbing library code.
     wiz8_collect_zlib_units(WIZ8_ZLIB_UNITS "${ZLIB_SOURCE}")

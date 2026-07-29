@@ -1,5 +1,5 @@
 order,node_address,caller_address,role,ownership,provided_by,evidence,source_unit,status
-1,00401000,,__WinMainCRTStartup,library,MSVCRT (named in evidence/reviewed/wiz8/function-provenance.csv),"PE entry point from the optional header. CRT code: supplied by linking, never modelled. Installs the SEH frame at 0x004011C0 and the standard MSVCRT startup sequence",,resolved
+1,00401000,,__WinMainCRTStartup,library,MSVCRT (source LIBRARY marker with provenance in claims.csv),"PE entry point from the optional header. CRT code: supplied by linking, never modelled. Installs the SEH frame at 0x004011C0 and the standard MSVCRT startup sequence",,resolved
 2,00401164,00401000,_initterm (C initializers),library,MSVCRT _initterm thunk 0x00401164,Called with the 0x005FF430..0x005FF434 table,,resolved
 3,00401164,00401000,_initterm (C++ global constructors),library,MSVCRT,"Called with the 0x005FF000..0x005FF42C table: 267 slots, 266 pointing into .text. The _initterm call is library code, but the 266 initializers it runs are FIRST-PARTY dynamic initializers, one per translation unit with a namespace-scope object",,resolved
 4,00401670,00401000,WinMain,first-party,,"Called with GetModuleHandleA(0), the parsed command line and the startup show command; its result is passed to MSVCRT exit",unresolved,resolved

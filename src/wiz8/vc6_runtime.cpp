@@ -26,13 +26,13 @@
 // atexit
 
 // LIBRARY: WIZ8 0x005E1C10
-// operator delete
+// operator_delete
 
 // LIBRARY: WIZ8 0x005E1CA0
 // __allmul
 
 // LIBRARY: WIZ8 0x005E1CE0
-// operator new import thunk
+// operator_new_import_thunk
 
 // LIBRARY: WIZ8 0x005E1CF0
 // __alldiv

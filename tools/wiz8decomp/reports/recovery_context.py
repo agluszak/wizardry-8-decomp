@@ -8,10 +8,12 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from ..evidence.claims import load_claims
 from ..ghidra.observation_evidence import load_observation_bundle
 from ..ghidra.session import query_many
 from ..ghidra.workspace import resolve_seed_program
 from ..paths import atomic_json, atomic_write
+from ..source_model import build_source_model
 
 
 def _read(path: Path) -> list[dict[str, str]]:
@@ -77,7 +79,7 @@ def _markdown(context: dict[str, Any]) -> str:
     function = context["ghidra"]["function"]
     unit = context["translation_unit"]
     reviewed_function = context["reviewed"]["function"]
-    reviewed_name = reviewed_function.get("claimed_name") or "none"
+    reviewed_name = reviewed_function.get("name") or "none"
     lines = [
         f"# Recovery context for 0x{context['entry']:08X}",
         "",
@@ -288,19 +290,43 @@ def recovery_context_report(
         if row["address"] in table_addresses
     }
 
-    reviewed_functions = [
-        row
-        for row in _reviewed(settings.repo_dir, "function-provenance.csv")
+    source_function = (
+        build_source_model(settings.repo_dir).functions.get(entry)
         if has_canonical_addresses
-        and row["program"] == "wiz8"
-        and row["address"]
-        and int(row["address"], 16) == entry
-    ]
-    reviewed_signatures = [
+        else None
+    )
+    function_claims = [
         row
-        for row in _reviewed(settings.repo_dir, "signatures.csv")
-        if has_canonical_addresses and row["program"] == "wiz8" and int(row["address"], 16) == entry
+        for row in load_claims(settings.repo_dir)
+        if has_canonical_addresses
+        and row["entity_kind"] == "function"
+        and int(row["entity_key"], 16) == entry
     ]
+    accepted_identity = next(
+        (row for row in function_claims if row["predicate"] == "accepted-identity"), None
+    )
+    reviewed_function = (
+        {
+            "address": f"{entry:08x}",
+            "name": source_function.name,
+            "kind": source_function.kind,
+            "source_path": source_function.file,
+            "source_line": source_function.line,
+        }
+        if source_function is not None
+        else {
+            "address": f"{entry:08x}",
+            "name": accepted_identity["value"] if accepted_identity else function["name"],
+            "kind": "GHIDRA",
+            "source_path": "",
+            "source_line": "",
+        }
+    )
+    reviewed_signature = {
+        "prototype": source_function.prototype if source_function else function["prototype"],
+        "calling_convention": function.get("calling_convention", ""),
+        "authority": "source" if source_function else "ghidra",
+    }
     reviewed_vtables = {
         row["address"]: row
         for row in _reviewed(settings.repo_dir, "vtables.csv")
@@ -318,8 +344,8 @@ def recovery_context_report(
         )
     }
     class_names.update(row["class_name"] for row in reviewed_vtables.values())
-    if reviewed_functions:
-        reviewed_name = reviewed_functions[0]["claimed_name"]
+    if reviewed_function:
+        reviewed_name = reviewed_function["name"]
         if "::" in reviewed_name:
             class_names.add(reviewed_name.split("::", 1)[0])
     selected_classes = [row for row in reviewed_classes if row["class_name"] in class_names]
@@ -351,8 +377,9 @@ def recovery_context_report(
             assertions, intervals if has_canonical_addresses else [], entry
         ),
         "reviewed": {
-            "function": reviewed_functions[0] if reviewed_functions else {},
-            "signature": reviewed_signatures[0] if reviewed_signatures else {},
+            "function": reviewed_function,
+            "signature": reviewed_signature,
+            "function_claims": function_claims,
             "vtables": reviewed_vtables,
             "class_names": sorted(class_names, key=str.casefold),
             "classes": selected_classes,

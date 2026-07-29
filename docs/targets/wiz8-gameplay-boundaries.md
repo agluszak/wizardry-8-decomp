@@ -64,7 +64,8 @@ the owning translation-unit level rather than patched independently in each func
 
 Ghidra initially assigned extra parameters to `PListIndexOf` and
 `GetOriginOfCharacterItem`. Walking the raw `ESP`-relative reads against caller push counts proved
-the correct signatures. The reviewed signatures now live directly in the canonical Ghidra project.
+the correct signatures. For recovered functions the C++ declaration now owns that ABI; Ghidra keeps
+the analysis signature for bodies that do not yet have owned source.
 
 This is a useful boundary rule: decompiler pseudocode is an observation, not reviewed ABI evidence.
 
@@ -84,8 +85,8 @@ default type.
 
 ## What belongs elsewhere
 
-- Accepted identity provenance: `evidence/reviewed/wiz8/function-provenance.csv`.
-- Atomic supporting claims: `evidence/reviewed/wiz8/claims.csv`.
+- Recovered identity and signature: the address-marked C++ declaration.
+- Identity provenance and atomic supporting facts: `evidence/reviewed/wiz8/claims.csv`.
 - Class relationships and provenance: `evidence/reviewed/wiz8/class-provenance.csv`.
 - Native layouts and fields: the canonical Ghidra project, reviewed through `build/ghidra-index/types.json`.
 - Full matching rows and hashes: `config/reccmp/wiz8-gameplay-boundaries.csv`.

@@ -19,9 +19,10 @@ The SGP workflow deliberately separates four roles:
 - `evidence/reviewed/sgp/findings.csv` contains conclusions that require human review, while
   `evidence/observations/sgp/source-paths.csv` contains binary path observations.
 
-Accepted identities live once in the canonical WIZ8 function catalog at
-`evidence/reviewed/wiz8/function-provenance.csv`. Multiple SGP and CFAgent observations for one
-address are retained as separate rows in `evidence/reviewed/wiz8/claims.csv`.
+Accepted analysis-only identities and their provenance live in
+`evidence/reviewed/wiz8/claims.csv`. Once a retained body has an owned address-marked declaration,
+that source spelling supersedes the claim value. Multiple SGP and CFAgent observations for one
+address remain separate claims.
 
 ## Wizardry branches and overlays
 

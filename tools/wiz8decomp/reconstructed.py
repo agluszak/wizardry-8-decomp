@@ -20,10 +20,10 @@ Three rules keep this from becoming laundering:
   a structurally-strong row's do not, so its signature is a hypothesis and goes
   to the candidate overlay only. The tier travels with every record.
 
-The reviewed program is not written here. Exact transfers are emitted as
-proposed `signatures.csv` rows for review, because the reviewed Ghidra database
-is rebuilt from the tracked ledger and a fact that skips the ledger does not
-survive the next rebuild.
+The reviewed program is not written here. Source declarations own recovered
+signatures and the reviewed Ghidra project owns analysis-only signatures; this
+module reports the compiled debug record without projecting either into a
+second editable database.
 """
 
 from __future__ import annotations
@@ -317,54 +317,7 @@ def parameter_names(transfer: Transfer) -> tuple[str, ...]:
     return tuple(f"argument{index}" for index in range(1, len(parameters) + 1))
 
 
-def proposed_signature_rows(plan: TransferPlan, program: str = "wiz8") -> list[dict[str, str]]:
-    """Reviewed-tier transfers as `signatures.csv` rows, for a human to accept.
-
-    The rows are complete but deliberately not written into the ledger: an
-    exact body proves the *bytes* match, and a reviewer still has to agree that
-    our parameter names and spellings describe the original's intent rather than
-    ours. `previous_auto_signature` stays empty because only Ghidra can fill it.
-    """
-
-    rows = []
-    for transfer in plan.transfers:
-        signature = transfer.signature
-        if transfer.tier != REVIEWED_TIER or signature is None or transfer.blocked:
-            continue
-        parameters = [
-            [name, parameter]
-            for name, parameter in zip(parameter_names(transfer), signature.parameters, strict=True)
-        ]
-        rows.append(
-            {
-                "program": program,
-                "address": transfer.address,
-                "calling_convention": signature.convention,
-                "return_type": signature.return_type,
-                "parameters_json": json.dumps(parameters),
-                "variadic": "false",
-                "this_type": f"{signature.owner} *" if signature.owner else "",
-                # Exact bytes prove convention and stack shape, not every
-                # semantic spelling reconstructed source chose.
-                "confidence": "strong",
-                "calling_convention_authority": "exact-body",
-                "stack_argument_shape_authority": "exact-body",
-                "return_type_authority": "candidate-reconstructed-source",
-                "parameter_type_authority": "candidate-reconstructed-source",
-                "parameter_name_authority": "reconstructed-source-not-original-name-evidence",
-                "evidence_id": f"signatures:{program}:{transfer.address}",
-                "previous_auto_signature": "",
-                "evidence": (
-                    f"The reconstructed build's debug information for {transfer.symbol}, "
-                    f"compiled from {transfer.object_file}, whose body is byte-exact "
-                    "against this address under relocation masking"
-                ),
-            }
-        )
-    return rows
-
-
-def write_report(plan: TransferPlan, destination: Path, program: str = "wiz8") -> dict[str, Any]:
+def write_report(plan: TransferPlan, destination: Path) -> dict[str, Any]:
     """Emit the plan under `build/` as CSV rows plus a summary."""
 
     destination.mkdir(parents=True, exist_ok=True)
@@ -390,13 +343,6 @@ def write_report(plan: TransferPlan, destination: Path, program: str = "wiz8") -
         for transfer in sorted(plan.transfers, key=lambda item: item.address):
             writer.writerow(transfer.row())
 
-    proposals = proposed_signature_rows(plan, program)
-    signatures = destination / "proposed-signatures.csv"
-    with signatures.open("w", newline="", encoding="utf-8") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(proposals[0]) if proposals else ["program"])
-        writer.writeheader()
-        writer.writerows(proposals)
-
     unmatched = destination / "unmatched.csv"
     with unmatched.open("w", newline="", encoding="utf-8") as stream:
         writer = csv.DictWriter(stream, fieldnames=["address", "symbol", "confidence", "reason"])
@@ -404,7 +350,6 @@ def write_report(plan: TransferPlan, destination: Path, program: str = "wiz8") -
         writer.writerows(plan.unmatched)
 
     summary = plan.summary()
-    summary["proposed_signatures"] = len(proposals)
     (destination / "summary.json").write_text(
         json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )

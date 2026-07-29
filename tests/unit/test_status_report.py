@@ -2,6 +2,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from wiz8decomp.reports.status import derive_status, status_report
+from wiz8decomp.source_model import build_source_model
 
 
 def _data_rows(path: Path) -> int:
@@ -19,9 +20,8 @@ def test_status_is_derived_from_canonical_evidence() -> None:
         "srext-unzip",
         "wiz8",
     }
-    assert report["wiz8"]["function_identities"] == _data_rows(
-        repository / "evidence/reviewed/wiz8/function-provenance.csv"
-    )
+    assert report["wiz8"]["source_functions"] == len(build_source_model(repository).functions)
+    assert report["wiz8"]["function_identities"] >= report["wiz8"]["source_functions"]
     assert report["wiz8"]["claims"] == _data_rows(repository / "evidence/reviewed/wiz8/claims.csv")
     assert report["wiz8"]["source_units"] == _data_rows(
         repository / "evidence/observations/wiz8/source-tree.csv"

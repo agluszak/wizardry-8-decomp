@@ -24,7 +24,7 @@
    the bodies below sit inside the interval rather than being assigned to it by
    subsystem guesswork. */
 
-/* SGP's FileMan.c, reviewed in evidence/reviewed/wiz8/function-provenance.csv at
+/* SGP's FileMan.c, reviewed in evidence/reviewed/wiz8/claims.csv at
    0x004051D0, 0x004051F0 and 0x004054F0. Declared here rather than included
    from third_party/sfi-sgp, as the other recovered units declare their SGP
    callees: this track does not build or modify the vendored tree. */

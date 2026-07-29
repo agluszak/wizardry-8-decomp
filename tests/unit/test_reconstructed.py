@@ -17,14 +17,12 @@ from wiz8decomp.reconstructed import (
     REVIEWED_TIER,
     Body,
     Transfer,
-    TransferPlan,
     bodies_from_objects,
     bodies_from_pdb,
     build_transfer_plan,
     frame_origin,
     index_bodies,
     parameter_names,
-    proposed_signature_rows,
     reviewed_spelling,
 )
 from wiz8decomp.reconstructed_pdb import (
@@ -378,36 +376,3 @@ def test_parameter_names_come_from_the_source_or_say_they_did_not() -> None:
 
     assert parameter_names(named) == ("instance", "show_command")
     assert parameter_names(optimised) == ("argument1", "argument2")
-
-
-def test_proposals_are_ledger_shaped_and_only_ever_proposals() -> None:
-    transfer = Transfer(
-        address="00401570",
-        symbol="BringUpEngine",
-        confidence="exact",
-        tier=REVIEWED_TIER,
-        object_file="engine.obj",
-        signature=Signature("unsigned char", "__cdecl", ("void *",), ""),
-        frame_variables=(("instance", 4, "void *"),),
-    )
-    overlay_only = Transfer(
-        address="004011e0",
-        symbol="WindowProc",
-        confidence="structurally-strong",
-        tier=OVERLAY_TIER,
-        object_file="window.obj",
-        signature=Signature("long", "__stdcall", ("void *",), ""),
-        frame_variables=(),
-    )
-
-    rows = proposed_signature_rows(TransferPlan(transfers=[transfer, overlay_only]))
-
-    assert len(rows) == 1
-    assert rows[0]["address"] == "00401570"
-    assert rows[0]["evidence_id"] == "signatures:wiz8:00401570"
-    assert rows[0]["parameters_json"] == '[["instance", "void *"]]'
-    assert rows[0]["confidence"] == "strong"
-    assert rows[0]["calling_convention_authority"] == "exact-body"
-    assert rows[0]["parameter_name_authority"].startswith("reconstructed-source")
-    # Only Ghidra can state what it had before, so the column stays empty here.
-    assert rows[0]["previous_auto_signature"] == ""

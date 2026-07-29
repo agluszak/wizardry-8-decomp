@@ -476,5 +476,5 @@ uv run wiz8 ghidra restore
 uv run wiz8 ghidra index
 ```
 
-The authoritative class relationships are in `evidence/reviewed/wiz8/class-provenance.csv`; their constructor
-and destructor identities live in `evidence/reviewed/wiz8/function-provenance.csv`.
+The authoritative class relationships are in `evidence/reviewed/wiz8/class-provenance.csv`; owned
+constructor and destructor identities come from their address-marked C++ definitions.

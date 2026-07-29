@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from ..paths import atomic_json, atomic_write
+from ..source_model import build_source_model
 from .translation_units import (
     derive_intervals,
     load_call_site_anchors,
@@ -24,13 +25,10 @@ def _counts(rows: list[dict[str, str]], field: str) -> dict[str, int]:
 
 def derive_status(repo_dir: Path) -> dict[str, Any]:
     catalogs = sorted((repo_dir / "evidence" / "reviewed").glob("*/functions.csv"))
-    catalogs.append(repo_dir / "evidence/reviewed/wiz8/function-provenance.csv")
     programs = []
-    by_program: dict[str, list[dict[str, str]]] = {}
     for path in catalogs:
         rows = _rows(path)
         program = path.parent.name
-        by_program[program] = rows
         programs.append(
             {
                 "program": program,
@@ -40,8 +38,27 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
             }
         )
 
-    wiz8_functions = by_program["wiz8"]
     claims = _rows(repo_dir / "evidence/reviewed/wiz8/claims.csv")
+    identity_claims = [
+        row
+        for row in claims
+        if row["entity_kind"] == "function"
+        and row["predicate"] in {"accepted-identity", "identity-provenance"}
+    ]
+    source_functions = build_source_model(repo_dir).functions
+    function_addresses = set(source_functions) | {
+        int(row["entity_key"], 16)
+        for row in identity_claims
+        if row["predicate"] == "accepted-identity"
+    }
+    programs.append(
+        {
+            "program": "wiz8",
+            "identities": len(function_addresses),
+            "authority": _counts(identity_claims, "authority"),
+            "confidence": _counts(identity_claims, "confidence"),
+        }
+    )
     classes = _rows(repo_dir / "evidence/reviewed/wiz8/class-provenance.csv")
     source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
     assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
@@ -58,10 +75,11 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
         "schema": "wiz8.recovery-status",
         "programs": programs,
         "wiz8": {
-            "function_identities": len(wiz8_functions),
+            "function_identities": len(function_addresses),
+            "source_functions": len(source_functions),
+            "analysis_only_identities": len(function_addresses - set(source_functions)),
             "claims": len(claims),
-            "authority": _counts(wiz8_functions, "authority"),
-            "owners": _counts(wiz8_functions, "owner"),
+            "authority": _counts(identity_claims, "authority"),
             "classes": len(classes),
             "source_units": len(source_units),
             "source_units_by_subsystem": _counts(source_units, "subsystem"),
@@ -104,6 +122,8 @@ def render_status_markdown(report: dict[str, Any]) -> str:
             "## Wiz8.exe",
             "",
             f"- Canonical function identities: {wiz8['function_identities']}",
+            f"- Source-owned functions: {wiz8['source_functions']}",
+            f"- Analysis-only identities: {wiz8['analysis_only_identities']}",
             f"- Provenance claims: {wiz8['claims']}",
             f"- Reviewed classes: {wiz8['classes']}",
             f"- Observed original source units: {wiz8['source_units']}",

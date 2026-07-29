@@ -31,21 +31,6 @@ TABLE_SCHEMAS: dict[str, TableSchema] = {
         ),
         ("program", "address"),
     ),
-    "function-provenance.csv": TableSchema(
-        (
-            "program",
-            "address",
-            "claimed_name",
-            "owner",
-            "confidence",
-            "name_origin",
-            "authority",
-            "aliases",
-            "source_path",
-            "source_line",
-        ),
-        ("program", "address"),
-    ),
     "claims.csv": TableSchema(
         (
             "claim_id",
@@ -96,22 +81,6 @@ TABLE_SCHEMAS: dict[str, TableSchema] = {
     "vtable-slots.csv": TableSchema(
         ("program", "vtable_id", "slot_index", "target", "slot_name", "confidence", "evidence_id"),
         ("program", "vtable_id", "slot_index"),
-    ),
-    "signatures.csv": TableSchema(
-        (
-            "program",
-            "address",
-            "calling_convention",
-            "return_type",
-            "parameters_json",
-            "variadic",
-            "this_type",
-            "confidence",
-            "evidence_id",
-            "previous_auto_signature",
-            "evidence",
-        ),
-        ("program", "address"),
     ),
     "wiz8-gameplay-boundaries.csv": TableSchema(
         (

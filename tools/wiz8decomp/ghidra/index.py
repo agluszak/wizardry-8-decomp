@@ -22,6 +22,7 @@ def function_record(function: Any) -> dict[str, Any]:
     return {
         "entry": str(function.getEntryPoint()),
         "name": function.getName(),
+        "qualified_name": function.getName(True),
         "namespace": str(function.getParentNamespace()),
         "signature": function.getPrototypeString(False, False),
         "calling_convention": function.getCallingConventionName(),
@@ -124,6 +125,7 @@ def _vtables(program: Any) -> list[dict[str, Any]]:
 
 def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
     from ..evidence.claims import validate_claims_against_documents
+    from ..source_model import validate_source_names_against_index
 
     program_name = ensure_seed(settings, selector)
     start_pyghidra(settings)
@@ -161,10 +163,12 @@ def export_index(settings: Settings, selector: str = "wiz8") -> dict[str, Any]:
         paths.append(str(path.relative_to(settings.repo_dir)))
         counts[name] = len(document[name])
     claim_counts = validate_claims_against_documents(settings.repo_dir, documents)
+    source_count = validate_source_names_against_index(settings.repo_dir, documents["functions"])
     return {
         "schema": "wiz8.ghidra-index",
         "program": program_name,
         "counts": counts,
         "claims": claim_counts,
+        "source_functions": source_count,
         "outputs": paths,
     }

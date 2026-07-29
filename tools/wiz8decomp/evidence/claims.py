@@ -94,4 +94,8 @@ def validate_claims_against_index(repository: Path, program: str = "wiz8") -> di
         name: json.loads((directory / f"{name}.json").read_text(encoding="utf-8"))
         for name in ("functions", "types", "vtables")
     }
-    return validate_claims_against_documents(repository, documents, program)
+    counts = validate_claims_against_documents(repository, documents, program)
+    from ..source_model import validate_source_names_against_index
+
+    counts["source"] = validate_source_names_against_index(repository, documents["functions"])
+    return counts

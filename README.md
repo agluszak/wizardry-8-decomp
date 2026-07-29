@@ -62,6 +62,7 @@ query daemon, or speculative overlay layer.
 
 ```sh
 uv run wiz8 ghidra restore
+uv run wiz8 ghidra sync-source --apply
 just context 0x0044bec0
 uv run wiz8 ghidra index
 ```
@@ -70,13 +71,16 @@ uv run wiz8 ghidra index
 call graph with provenance, source ownership, match state, cross-build mappings, strings, and
 relevant fields. `ghidra index` writes disposable normalized review views to
 `build/ghidra-index/` and refuses provenance claims whose function/type/vtable entity no longer
-exists. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
+exists. `ghidra sync-source` is the only source-to-Ghidra mutation: it applies names for explicitly
+marked functions and leaves every unclaimed analysis entity alone. Ghidra-to-source remains a
+review workflow through `just context`; no generator rewrites C++. `ghidra seed refresh` is an intentional checkpoint operation, not a routine
 consequence of editing evidence.
 
-Wiz8 function identities live in the small `function-provenance.csv` entity ledger; class
-relationships live in `class-provenance.csv`; supporting facts live in atomic `claims.csv` rows.
-There is no tracked function-size table or class-field catalogue. Full verification exports the
-current Ghidra state and uses it for claim resolution and VC6 source-layout checks.
+An address-marked C++ declaration is the authority for a recovered Wiz8 function's address, name,
+signature, and source ownership. Ghidra owns analysis-only functions that have no owned declaration;
+atomic `claims.csv` rows explain provenance without recreating the source model. Class relationships
+live in `class-provenance.csv`. There is no tracked function or signature catalogue. Full
+verification exports Ghidra state and uses it for claim resolution and VC6 source-layout checks.
 
 The FID workflow and current VC6 evidence are recorded in [docs/fid.md](docs/fid.md).
 Active source recovery starts with the byte-identical SurRender JPEG extension; its address-backed

@@ -7,8 +7,9 @@ import io
 from dataclasses import dataclass
 from pathlib import Path
 
-from .evidence.functions import load_function_identities
+from .evidence.claims import load_claims
 from .paths import atomic_write
+from .source_model import build_source_model
 
 LIBRARY_OWNERS = frozenset(
     {
@@ -26,7 +27,7 @@ class ReccmpEntity:
     address: int
     symbol: str
     size: int | None
-    owner: str
+    kind: str
 
 
 def _boundary_entities(path: Path) -> dict[int, ReccmpEntity]:
@@ -38,7 +39,7 @@ def _boundary_entities(path: Path) -> dict[int, ReccmpEntity]:
                 address=address,
                 symbol=row["symbol"].strip(),
                 size=int(row["size"], 0) if row["size"].strip() else None,
-                owner=row["owner"].strip(),
+                kind="library" if row["owner"].strip() in LIBRARY_OWNERS else "function",
             )
     return entities
 
@@ -47,19 +48,38 @@ def render_wiz8_data_source(repository: Path) -> str:
     """Project canonical evidence into reccmp's pipe-delimited schema."""
 
     entities = _boundary_entities(repository / "config/reccmp/wiz8-gameplay-boundaries.csv")
-    identities = load_function_identities(
-        repository / "evidence/reviewed/wiz8/function-provenance.csv",
-        program="wiz8",
-    )
-    for identity in identities:
-        existing = entities.get(identity.address)
-        entities[identity.address] = ReccmpEntity(
-            address=identity.address,
-            symbol=identity.name,
-            size=identity.size
-            if identity.size is not None
-            else (existing.size if existing else None),
-            owner=identity.owner or (existing.owner if existing else ""),
+    model = build_source_model(repository)
+    for function in model.functions.values():
+        existing = entities.get(function.address)
+        entities[function.address] = ReccmpEntity(
+            address=function.address,
+            symbol=function.name,
+            size=existing.size if existing else None,
+            kind="library" if function.kind == "LIBRARY" else "function",
+        )
+
+    # Unrecovered functions have no owned declaration yet.  Their reviewed
+    # identities remain evidence claims over Ghidra entities; a source claim
+    # at the same address always wins.
+    for claim in load_claims(repository):
+        if claim["entity_kind"].strip() != "function":
+            continue
+        if claim["predicate"].strip() != "accepted-identity":
+            continue
+        address = int(claim["entity_key"], 16)
+        if address in model.functions:
+            continue
+        existing = entities.get(address)
+        origin = set(claim["origin"].split("|"))
+        entities[address] = ReccmpEntity(
+            address=address,
+            symbol=claim["value"].strip(),
+            size=existing.size if existing else None,
+            kind=(
+                "library"
+                if origin & {"original-source", "sgp-source"}
+                else (existing.kind if existing else "function")
+            ),
         )
 
     output = io.StringIO(newline="")
@@ -71,7 +91,7 @@ def render_wiz8_data_source(repository: Path) -> str:
                 f"{entity.address:08x}",
                 entity.symbol,
                 "" if entity.size is None else entity.size,
-                "library" if entity.owner in LIBRARY_OWNERS else "function",
+                entity.kind,
             )
         )
     return output.getvalue()

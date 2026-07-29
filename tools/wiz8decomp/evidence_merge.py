@@ -46,12 +46,10 @@ _KEYS: dict[str, tuple[str, ...]] = {
     "srext-jpegimporter.csv": ("address",),
     "srext-unzip.csv": ("address",),
     "functions.csv": ("program", "address"),
-    "function-provenance.csv": ("program", "address"),
     "claims.csv": ("claim_id",),
     "class-provenance.csv": ("program", "class_name"),
     "vtables.csv": ("program", "vtable_id"),
     "vtable-slots.csv": ("program", "vtable_id", "slot_index"),
-    "signatures.csv": ("program", "address"),
     "imported-vftable-sites.csv": ("program", "site"),
     "allocator-layers.csv": ("address",),
     # No program column, and the ordering column repeats where two nodes share

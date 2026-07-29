@@ -328,9 +328,9 @@ uv run wiz8 function-census                  # verify against the snapshot
 uv run wiz8 function-census --update-snapshot
 ```
 
-These are candidates, not identities. Promoting a start to a canonical function is a reviewed
-decision and belongs in `evidence/reviewed/wiz8/function-provenance.csv`; regenerating this snapshot cannot
-overwrite one, because nothing here writes there.
+These are candidates, not identities. Promoting a recovered start means adding its address marker to
+the owned C++ declaration; analysis-only identity provenance belongs in
+`evidence/reviewed/wiz8/claims.csv`. Regenerating this snapshot can overwrite neither.
 
 `sources` lists which independent things attest the address, and they are not equal. `eh-record` is
 read from the exception tables through the handler thunk and is exact. `call-target` and

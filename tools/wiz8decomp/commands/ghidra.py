@@ -48,6 +48,18 @@ def index_command(program: str = "wiz8") -> None:
     cli.run_action(lambda: export_index(cli.settings(), program))
 
 
+@app.command("sync-source")
+def sync_source_command(
+    program: str = "wiz8",
+    apply: bool = typer.Option(False, "--apply", help="Write and save source-owned names."),
+) -> None:
+    """Check or apply address-marked source names to Ghidra."""
+    from .. import command_support as cli
+    from ..ghidra.source_sync import sync_source_names
+
+    cli.run_action(lambda: sync_source_names(cli.settings(), program, apply=apply))
+
+
 @seed_app.command("refresh")
 def seed_refresh_command(program: str | None = typer.Argument(None)) -> None:
     """Pack an intentionally reviewed canonical project checkpoint."""

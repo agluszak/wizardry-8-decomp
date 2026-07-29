@@ -5,13 +5,11 @@ import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
-from ..provenance import ProvenanceError, validate_provenance
+from ..source_model import build_source_model
 from .boundaries import load_boundary_rows
-from .claims import validate_claim_rows
+from .claims import load_claims, validate_claim_rows
 from .classes import load_reviewed_class_model
-from .functions import load_function_identities
-from .io import parse_hex, read_table
-from .signatures import load_reviewed_signatures
+from .io import parse_hex
 
 _DIGEST = re.compile(r"[0-9a-f]{64}")
 
@@ -53,19 +51,16 @@ def _validate_csv_shapes(repo_dir: Path) -> int:
 
 
 def _validate_functions(repo_dir: Path, program: str) -> set[int]:
-    path = repo_dir / "evidence/reviewed" / program / "function-provenance.csv"
-    table = read_table(path, program=program)
-    addresses: set[int] = set()
-    for line, row in enumerate(table.rows, start=2):
-        address = parse_hex(row["address"], field="address", path=path) or 0
-        if address <= 0:
-            raise ValueError(f"{path}:{line}: address must be positive")
-        try:
-            validate_provenance(row["name_origin"], row["authority"])
-        except ProvenanceError as error:
-            raise ValueError(f"{path}:{line}: {error}") from error
-        addresses.add(address)
-    load_function_identities(path, program=program)
+    source_addresses = set(build_source_model(repo_dir, program.upper()).functions)
+    claims_path = repo_dir / "evidence" / "reviewed" / program / "claims.csv"
+    reviewed_addresses = {
+        parse_hex(claim["entity_key"], field="entity_key", path=claims_path) or 0
+        for claim in load_claims(repo_dir, program)
+        if claim["entity_kind"].strip() == "function"
+    }
+    addresses = source_addresses | reviewed_addresses
+    if not addresses or 0 in addresses:
+        raise ValueError("function source/claim model contains an invalid address")
     return addresses
 
 
@@ -107,15 +102,6 @@ def _validate_class_references(repo_dir: Path, program: str, functions: set[int]
         prefix = f"classes:{program}:"
         if slot.evidence_id.startswith(prefix) and slot.evidence_id[len(prefix) :] not in classes:
             raise ValueError(f"{slot.vtable_id} slot {slot.index} has dangling {slot.evidence_id}")
-
-
-def _validate_signatures(repo_dir: Path, program: str, functions: set[int]) -> None:
-    for signature in load_reviewed_signatures(repo_dir, program):
-        if signature.address not in functions:
-            raise ValueError(
-                f"signature {signature.evidence_id} address {signature.address:08x} "
-                "does not resolve to functions.csv"
-            )
 
 
 def _observed_function_addresses(repo_dir: Path) -> set[int]:
@@ -169,7 +155,7 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
         return detail
 
     run("csv-shapes", lambda: {"files": _validate_csv_shapes(repo_dir)})
-    functions = run("reviewed-functions", lambda: _validate_functions(repo_dir, program))
+    functions = run("source-functions", lambda: _validate_functions(repo_dir, program))
     boundaries = run("reviewed-boundaries", lambda: _validate_boundaries(repo_dir))
     if isinstance(functions, set):
         run(
@@ -183,10 +169,6 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
         run(
             "reviewed-classes",
             lambda: _validate_class_references(repo_dir, program, canonical_addresses),
-        )
-        run(
-            "reviewed-signatures",
-            lambda: _validate_signatures(repo_dir, program, functions),
         )
     run(
         "reviewed-polymorphism-observation",

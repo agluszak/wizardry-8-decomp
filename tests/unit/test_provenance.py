@@ -11,17 +11,36 @@ from wiz8decomp.provenance import (
     parse_name_origin,
     validate_provenance,
 )
+from wiz8decomp.source_model import build_source_model
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 FUNCTION_MAPS = sorted((REPOSITORY / "evidence/reviewed").glob("*/functions.csv"))
-FUNCTION_MAPS.append(REPOSITORY / "evidence/reviewed/wiz8/function-provenance.csv")
 
 
 def _wiz8_rows() -> list[dict[str, str]]:
-    with (REPOSITORY / "evidence/reviewed/wiz8/function-provenance.csv").open(
+    source = build_source_model(REPOSITORY).functions
+    with (REPOSITORY / "evidence/reviewed/wiz8/claims.csv").open(
         newline="", encoding="utf-8"
     ) as stream:
-        return list(csv.DictReader(stream))
+        rows = [
+            row
+            for row in csv.DictReader(stream)
+            if row["entity_kind"] == "function"
+            and row["predicate"] in {"accepted-identity", "identity-provenance"}
+        ]
+    return [
+        {
+            **row,
+            "address": row["entity_key"],
+            "claimed_name": (
+                source[int(row["entity_key"], 16)].name
+                if row["predicate"] == "identity-provenance"
+                else row["value"]
+            ),
+            "name_origin": row["origin"],
+        }
+        for row in rows
+    ]
 
 
 def test_authority_is_the_strongest_ceiling_among_the_origins() -> None:
@@ -186,38 +205,33 @@ def test_cfagent_names_remain_external_semantic_until_corroborated() -> None:
     assert promoted[0]["authority"] == "source-backed"
     assert "sgp-source" in promoted[0]["name_origin"].split("|")
     assert promoted[1]["authority"] == "string-backed"
-    assert promoted[1]["aliases"] == "GetMonsterDataByID"
     assert promoted[2]["authority"] == "string-backed"
-    assert promoted[2]["aliases"] == "CastSpellAtParty"
 
-    # CFAgent's descriptive seeds are retained only as aliases once SR.DLL's
-    # own exports establish the vendor template owner and base type name.
+    # Source declarations own the current spelling once SR.DLL establishes the
+    # vendor template owner and base type name.
     by_address = {row["address"]: row for row in _wiz8_rows()}
     assert {
         address: (
-            by_address[address]["owner"],
             by_address[address]["name_origin"],
             by_address[address]["authority"],
-            by_address[address]["aliases"],
         )
         for address in ("00421680", "00446110")
     } == {
         "00421680": (
-            "surrender-template",
             "original-export",
             "abi-backed",
-            "VectorFromThreeFloats",
         ),
         "00446110": (
-            "surrender-template",
             "original-export",
             "abi-backed",
-            "Copy3DVector",
         ),
     }
+    source = build_source_model(REPOSITORY).functions
+    assert source[0x00421680].name == "srVector3T<float>::method_00421680"
+    assert source[0x00446110].name == "srVector3T<float>::method_00446110"
 
 
-def test_only_sgp_and_upstream_source_matches_are_source_backed() -> None:
+def test_only_source_oracle_origins_are_source_backed() -> None:
     owners: set[str] = set()
     for path in FUNCTION_MAPS:
         with path.open(newline="", encoding="utf-8") as stream:
@@ -229,10 +243,13 @@ def test_only_sgp_and_upstream_source_matches_are_source_backed() -> None:
         "ijg-jpeg-6",
         "infozip-unzip-5.4",
         "infozip-zcrypt-2.8",
-        "sgp-compression",
-        "sgp-shared",
-        "zlib-1.0.4",
     }
+    source_backed = [row for row in _wiz8_rows() if row["authority"] == "source-backed"]
+    assert source_backed
+    assert all(
+        set(row["name_origin"].split("|")) & {"original-source", "sgp-source"}
+        for row in source_backed
+    )
 
 
 def test_the_demo_supplies_names_only_through_retained_diagnostics() -> None:

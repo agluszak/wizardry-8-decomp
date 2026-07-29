@@ -4,11 +4,7 @@ from pathlib import Path
 import pytest
 from wiz8decomp.evidence.classes import load_reviewed_class_model
 from wiz8decomp.evidence.schema import schema_for
-from wiz8decomp.evidence.validate import (
-    _validate_boundaries,
-    _validate_functions,
-    validate_source_entries,
-)
+from wiz8decomp.evidence.validate import _validate_boundaries, validate_source_entries
 from wiz8decomp.evidence_merge import EvidenceMergeConflict, stronger
 
 
@@ -19,21 +15,6 @@ def _write(path: Path, rows: list[dict[str, str]]) -> None:
         writer = csv.DictWriter(stream, fieldnames=schema.columns)
         writer.writeheader()
         writer.writerows(rows)
-
-
-def _function(address: str, **overrides: str) -> dict[str, str]:
-    row = {column: "" for column in schema_for("function-provenance.csv").columns}
-    row.update(
-        program="wiz8",
-        address=address,
-        claimed_name="Function" + address,
-        owner="wiz8",
-        confidence="strong",
-        name_origin="descriptive",
-        authority="descriptive",
-    )
-    row.update(overrides)
-    return row
 
 
 def _class_model(repo: Path, slots: list[dict[str, str]]) -> None:
@@ -77,24 +58,6 @@ def _slot(vtable_id: str = "Node.primary") -> dict[str, str]:
         "confidence": "exact",
         "evidence_id": "classes:demo:Node",
     }
-
-
-def test_function_validator_rejects_duplicate_address(tmp_path: Path) -> None:
-    path = tmp_path / "evidence/reviewed/wiz8/function-provenance.csv"
-    _write(path, [_function("00401000"), _function("00401000")])
-
-    with pytest.raises(ValueError, match="duplicate identity"):
-        _validate_functions(tmp_path, "wiz8")
-
-
-def test_function_validator_rejects_invalid_provenance(tmp_path: Path) -> None:
-    path = tmp_path / "evidence/reviewed/wiz8/function-provenance.csv"
-    _write(
-        path, [_function("00401000", name_origin="fan-patch-signature", authority="source-backed")]
-    )
-
-    with pytest.raises(ValueError, match="not derivable"):
-        _validate_functions(tmp_path, "wiz8")
 
 
 def test_class_validator_rejects_dangling_vtable_id(tmp_path: Path) -> None:
