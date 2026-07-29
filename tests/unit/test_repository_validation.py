@@ -4,7 +4,11 @@ from pathlib import Path
 import pytest
 from wiz8decomp.evidence.classes import load_reviewed_class_model
 from wiz8decomp.evidence.schema import schema_for
-from wiz8decomp.evidence.validate import _validate_boundaries, validate_source_entries
+from wiz8decomp.evidence.validate import (
+    _validate_boundaries,
+    _validate_function_catalogs,
+    validate_source_entries,
+)
 from wiz8decomp.evidence_merge import EvidenceMergeConflict, stronger
 
 
@@ -86,6 +90,40 @@ def test_boundary_validator_requires_digest_for_exact_row(tmp_path: Path) -> Non
 
     with pytest.raises(ValueError, match="requires a SHA-256 digest"):
         _validate_boundaries(tmp_path)
+
+
+def test_function_catalog_validator_rejects_invalid_provenance(tmp_path: Path) -> None:
+    _write(
+        tmp_path / "evidence/reviewed/demo/functions.csv",
+        [
+            {
+                "program": "demo",
+                "address": "00401000",
+                "current_name": "Entry",
+                "confidence": "strong",
+                "name_origin": "official-demo",
+                "authority": "source-backed",
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError, match="authority 'source-backed' is not derivable"):
+        _validate_function_catalogs(tmp_path)
+
+
+def test_function_catalog_validator_rejects_duplicate_identity(tmp_path: Path) -> None:
+    row = {
+        "program": "demo",
+        "address": "00401000",
+        "current_name": "Entry",
+        "confidence": "strong",
+        "name_origin": "official-demo",
+        "authority": "descriptive",
+    }
+    _write(tmp_path / "evidence/reviewed/demo/functions.csv", [row, row])
+
+    with pytest.raises(ValueError, match="duplicate function identity"):
+        _validate_function_catalogs(tmp_path)
 
 
 def test_conflicting_semantic_merge_is_rejected() -> None:

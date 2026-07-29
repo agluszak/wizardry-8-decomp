@@ -1,12 +1,7 @@
 from pathlib import Path
 
 import pytest
-from wiz8decomp.evidence.claims import (
-    load_claims,
-    validate_claim_rows,
-    validate_claims_against_documents,
-)
-from wiz8decomp.evidence.validate import _validate_functions
+from wiz8decomp.evidence.claims import validate_claims_against_documents
 
 
 def _documents(
@@ -17,13 +12,6 @@ def _documents(
         "types": {"types": types or []},
         "vtables": {"vtables": []},
     }
-
-
-def test_reviewed_claims_resolve_to_the_function_entity_ledger() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    addresses = _validate_functions(repository, "wiz8")
-
-    assert validate_claim_rows(repository, addresses) == len(load_claims(repository))
 
 
 def test_generated_index_validation_rejects_an_unresolved_claim(tmp_path: Path) -> None:

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import csv
+from functools import cache
 from pathlib import Path
 
 _CANONICAL = "wiz8--gog-base--wiz8--18a74ff61c65"
 
 
+@cache
 def _snapshot() -> list[dict[str, str]]:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/snapshots/globals/globals.csv").open(
@@ -14,6 +16,7 @@ def _snapshot() -> list[dict[str, str]]:
         return list(csv.DictReader(stream))
 
 
+@cache
 def _polymorphism() -> list[dict[str, str]]:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/snapshots/polymorphism/vtables.csv").open(

@@ -5,6 +5,7 @@ import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
+from ..provenance import ProvenanceError, validate_provenance
 from ..source_classes import validate_source_classes
 from ..source_model import build_source_model
 from .boundaries import load_boundary_rows
@@ -63,6 +64,33 @@ def _validate_functions(repo_dir: Path, program: str) -> set[int]:
     if not addresses or 0 in addresses:
         raise ValueError("function source/claim model contains an invalid address")
     return addresses
+
+
+def _validate_function_catalogs(repo_dir: Path) -> int:
+    """Validate provenance once in the repository lane, not in inventory tests."""
+    checked = 0
+    for path in sorted((repo_dir / "evidence/reviewed").glob("*/functions.csv")):
+        seen: set[tuple[str, str]] = set()
+        path_count = 0
+        with path.open(newline="", encoding="utf-8") as stream:
+            for line, row in enumerate(csv.DictReader(stream), start=2):
+                identity = (row["program"], row["address"])
+                if identity in seen:
+                    raise ValueError(f"{path}:{line}: duplicate function identity {identity}")
+                if row["program"] != path.parent.name:
+                    raise ValueError(
+                        f"{path}:{line}: program {row['program']!r} does not match {path.parent.name!r}"
+                    )
+                try:
+                    validate_provenance(row["name_origin"], row["authority"])
+                except (KeyError, ProvenanceError) as error:
+                    raise ValueError(f"{path}:{line}: {error}") from error
+                seen.add(identity)
+                path_count += 1
+                checked += 1
+        if not path_count:
+            raise ValueError(f"{path}: function catalog is empty")
+    return checked
 
 
 def _validate_boundaries(repo_dir: Path) -> set[int]:
@@ -156,6 +184,7 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
         return detail
 
     run("csv-shapes", lambda: {"files": _validate_csv_shapes(repo_dir)})
+    run("function-provenance", lambda: {"functions": _validate_function_catalogs(repo_dir)})
     run("source-classes", lambda: validate_source_classes(repo_dir))
     functions = run("source-functions", lambda: _validate_functions(repo_dir, program))
     boundaries = run("reviewed-boundaries", lambda: _validate_boundaries(repo_dir))

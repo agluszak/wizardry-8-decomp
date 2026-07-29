@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import csv
 from collections import Counter
+from functools import cache
 from pathlib import Path
 
 _CANONICAL = "wiz8--gog-base--wiz8--18a74ff61c65"
 _ACCEPTED = {"exact", "strong"}
 
 
+@cache
 def _snapshot(name: str) -> list[dict[str, str]]:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/snapshots/functions" / name).open(
@@ -16,6 +18,7 @@ def _snapshot(name: str) -> list[dict[str, str]]:
         return list(csv.DictReader(stream))
 
 
+@cache
 def _other(directory: str, name: str) -> list[dict[str, str]]:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/snapshots" / directory / name).open(

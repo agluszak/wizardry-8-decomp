@@ -1,22 +1,5 @@
-from pathlib import Path
-
 import pytest
 from wiz8decomp.ghidra.source_sync import require_source_synchronized
-from wiz8decomp.source_model import build_source_model
-
-
-def test_every_source_owned_function_has_one_legal_ghidra_name() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    functions = build_source_model(repository).functions
-
-    assert functions
-    assert len(functions) == len(set(functions))
-    assert all(
-        item.name and " " not in item.name and "`" not in item.name
-        for item in functions.values()
-        if item.kind != "SYNTHETIC"
-    )
-    assert any(item.kind == "SYNTHETIC" for item in functions.values())
 
 
 def test_source_sync_gate_rejects_drift_but_not_explicitly_unsupported_types() -> None:

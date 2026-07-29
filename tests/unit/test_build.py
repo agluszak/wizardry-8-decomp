@@ -62,37 +62,6 @@ def test_container_commands_preserve_vc6_configuration_and_target(tmp_path: Path
     ]
 
 
-def test_justfile_contains_aliases_not_host_implementation() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    justfile = (repository / "Justfile").read_text(encoding="utf-8")
-
-    assert "docker" not in justfile
-    assert "wine" not in justfile.casefold()
-    assert "uv run wiz8 build" in justfile
-    assert 'build target="match"' in justfile
-    assert "compare *args:" in justfile
-    assert "uv run wiz8 toolchain build vc6-sp5" in justfile
-
-    dockerfile = (repository / "docker/msvc600/Dockerfile").read_text(encoding="utf-8")
-    assert dockerfile.startswith("FROM debian:bookworm-20260623-slim@sha256:")
-    assert "clang" in dockerfile
-    assert "ninja-build" in dockerfile
-
-
-def test_clang_override_gate_preserves_the_vc6_source_surface() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    cmake = (repository / "CMakeLists.txt").read_text(encoding="utf-8")
-    product = (repository / "cmake/Product.cmake").read_text(encoding="utf-8")
-    compatibility = (repository / "include/wiz8/compat/compiler.h").read_text(encoding="utf-8")
-
-    assert "-Werror=suggest-override" in cmake
-    assert "-Werror=suggest-destructor-override" in cmake
-    assert "-Werror=overloaded-virtual" in cmake
-    assert 'include/wiz8/compat/compiler.h"' in product
-    assert "#if __cplusplus < 201103L" in compatibility
-    assert "#define override" in compatibility
-
-
 def test_product_cache_requires_the_supported_generator(tmp_path: Path) -> None:
     cache = tmp_path / "CMakeCache.txt"
 

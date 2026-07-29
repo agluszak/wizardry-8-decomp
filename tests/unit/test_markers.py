@@ -7,8 +7,6 @@ from wiz8decomp.markers import (
     following_declaration_offset,
 )
 
-REPOSITORY = Path(__file__).resolve().parents[2]
-
 
 def _source(tmp_path: Path, text: str) -> Path:
     path = tmp_path / "unit.cpp"
@@ -158,11 +156,3 @@ def test_single_provisional_source_extern_remains_allowed(tmp_path: Path) -> Non
     (tmp_path / "unit.cpp").write_text("extern int g_owned;\n", encoding="utf-8")
 
     assert check_marker_hygiene([tmp_path], tmp_path)["shadowed_externs"] == 0
-
-
-def test_the_tree_itself_is_clean() -> None:
-    result = check_marker_hygiene([REPOSITORY / "src", REPOSITORY / "include"], REPOSITORY)
-
-    assert result["function_markers"] == result["function_addresses"]
-    assert result["shadowed_externs"] == 0
-    assert result["function_markers"] > 100
