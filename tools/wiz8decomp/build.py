@@ -19,7 +19,11 @@ from .reccmp_data import write_wiz8_data_source
 from .subprocesses import CommandResult, resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
-TARGET_ALIASES = {"match": "WIZ8", "runtime": "WIZ8_RUNTIME"}
+TARGET_ALIASES = {
+    "match": "WIZ8",
+    "runtime": "WIZ8_RUNTIME",
+    "runtime-test": "WIZ8_RUNTIME_TEST",
+}
 PRODUCT_GENERATOR = "NMake Makefiles"
 JOM_PROGRAM = r"C:\jom\jom.exe"
 

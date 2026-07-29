@@ -177,6 +177,19 @@ def run_command() -> None:
     cli.run_action(action)
 
 
+def runtime_test_command() -> None:
+    """Build and run deterministic in-process semantic scenarios."""
+    from .. import command_support as cli
+    from ..build import build_target
+    from ..runtime import run_runtime_suite
+
+    def action() -> dict[str, Any]:
+        build_target(cli.settings(), "runtime-test")
+        return run_runtime_suite(cli.settings())
+
+    cli.run_action(action)
+
+
 def verify_command(
     compare_image: Annotated[bool, typer.Option("--compare/--no-compare")] = True,
 ) -> None:
@@ -208,6 +221,7 @@ def register(app: typer.Typer) -> None:
     app.command("datacmp")(datacmp_command)
     app.command("addr")(address_command)
     app.command("run")(run_command)
+    app.command("runtime-test")(runtime_test_command)
     app.command("verify")(verify_command)
     app.add_typer(analyze_app, name="analyze")
     app.command("check-build-dir", hidden=True)(check_build_dir_command)

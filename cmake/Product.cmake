@@ -32,10 +32,20 @@ function(wiz8_add_import_library NAME DEF_FILE)
 endfunction()
 
 function(wiz8_add_executable)
-    cmake_parse_arguments(ARG "OPT_REF" "TARGET;OUTPUT;MAP" "LIBRARIES" ${ARGN})
-    add_executable(${ARG_TARGET} WIN32
-        $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
-    )
+    cmake_parse_arguments(ARG "OPT_REF;CONSOLE" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
+    if(ARG_CONSOLE)
+        add_executable(${ARG_TARGET}
+            $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+            ${ARG_SOURCES}
+        )
+        set(subsystem /SUBSYSTEM:CONSOLE,4.0)
+    else()
+        add_executable(${ARG_TARGET} WIN32
+            $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+            ${ARG_SOURCES}
+        )
+        set(subsystem /SUBSYSTEM:WINDOWS,4.0)
+    endif()
     if(TARGET WIZ8_ZLIB_WRAPPERS)
         target_sources(${ARG_TARGET} PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
     endif()
@@ -57,7 +67,7 @@ function(wiz8_add_executable)
     target_link_options(${ARG_TARGET} PRIVATE
         /DEBUG /DEBUGTYPE:CV /INCREMENTAL:NO ${opt_ref} /OPT:NOICF
         /FORCE:UNRESOLVED /BASE:0x400000 /FILEALIGN:0x1000
-        /OSVERSION:4.0 /SUBSYSTEM:WINDOWS,4.0
+        /OSVERSION:4.0 ${subsystem}
         /STACK:0x100000,0x1000 /HEAP:0x100000,0x1000
         "/MAP:${CMAKE_CURRENT_BINARY_DIR}/${ARG_MAP}"
     )

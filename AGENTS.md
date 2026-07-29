@@ -75,6 +75,11 @@ Use `just compare ADDRESS...` or `just compare --file SOURCE...` for one batch c
 `just triage` for reccmp's structured first divergence. `just vtable`, `just datacmp`, and `just
 addr` expose reccmp's owned vtable/data/pairing analyses; they do not supersede boundary proof.
 
+Use `just runtime-test` for the separate in-process semantic product. Its input is queued from the
+test driver but consumed by the real screen handler on the UI thread; forward/reverse normalized
+observations are the determinism criterion. Do not add coordinate automation or test branches to
+matching bodies.
+
 `just check` owns formatting, lint, typing, source inventory, fixture-based unit tests, one
 checked-tree repository lane, marker policy, repository hygiene, and reccmp decomplint. Do not put
 live counts or generated reports into tests or Markdown.

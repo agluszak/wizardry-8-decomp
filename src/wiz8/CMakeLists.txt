@@ -61,6 +61,19 @@ endif()
         LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
     )
     add_custom_target(WIZ8_RUNNABLE DEPENDS WIZ8_RUNTIME)
+
+    # The semantic test product links the same recovered and retained runtime
+    # objects, but owns a console entry point and test driver that never enter
+    # either matching image.
+    wiz8_add_executable(
+        TARGET WIZ8_RUNTIME_TEST
+        OUTPUT Wiz8RuntimeTest
+        MAP Wiz8RuntimeTest.map
+        OPT_REF
+        CONSOLE
+        SOURCES tests/runtime/wiz8_runtime_test.cpp
+        LIBRARIES ddraw.lib dxguid.lib gdi32.lib user32.lib
+    )
 if(SGP_SOURCE)
     set(WIZ8_REPO_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
     include(cmake/SgpModel.cmake)
@@ -76,6 +89,11 @@ if(SGP_SOURCE)
         $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
     )
     target_sources(WIZ8_RUNTIME PRIVATE
+        $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
+        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_SHARED>
+        $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>
+    )
+    target_sources(WIZ8_RUNTIME_TEST PRIVATE
         $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
         $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_SHARED>
         $<TARGET_OBJECTS:WIZ8_SGP_RUNTIME_CORE>

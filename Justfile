@@ -19,6 +19,9 @@ build target="match" *args:
 run:
     uv run wiz8 run
 
+runtime-test:
+    uv run wiz8 runtime-test
+
 compare *args:
     uv run wiz8 compare {{args}}
 

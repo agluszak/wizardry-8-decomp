@@ -43,6 +43,22 @@ def test_main_menu_runtime_uses_dirty_uploads_and_real_input_dispatch() -> None:
     assert "// FUNCTION: WIZ8 0x00425B40" in dirty
 
 
+def test_semantic_runtime_driver_is_a_separate_product() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    product = (repository / "src/wiz8/CMakeLists.txt").read_text(encoding="utf-8")
+    driver = (repository / "tests/runtime/wiz8_runtime_test.cpp").read_text(encoding="utf-8")
+
+    assert "TARGET WIZ8_RUNTIME_TEST" in product
+    assert "SOURCES tests/runtime/wiz8_runtime_test.cpp" in product
+    assert "TARGET WIZ8_BRINGUP" in product
+    assert "TARGET WIZ8_RUNTIME\n" in product
+    assert "QueueEvent(KEY_DOWN, KEY_END, 0)" in driver
+    assert "QueueEvent(KEY_DOWN, ENTER, 0)" in driver
+    assert "tests/runtime" not in (repository / "src/wiz8/sources.cmake").read_text(
+        encoding="utf-8"
+    )
+
+
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     repository = Path(__file__).resolve().parents[2]
     with (repository / "evidence/reviewed/wiz8/functions.csv").open(

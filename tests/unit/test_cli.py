@@ -23,7 +23,7 @@ def test_cli_uses_typed_command_tree() -> None:
     assert "doctor" in result.stdout
     assert "evidence" in result.stdout
     assert "analyze" in result.stdout
-    for command in ("triage", "vtable", "datacmp", "addr"):
+    for command in ("triage", "vtable", "datacmp", "addr", "runtime-test"):
         assert command in result.stdout
 
     for obsolete_root in ("function-census", "inventory", "trace", "reconstructed-transfer"):
@@ -116,3 +116,4 @@ def test_just_exposes_one_joined_context_command() -> None:
     assert "uv run wiz8 report context" in justfile
     assert "compare *args:" in justfile
     assert "uv run wiz8 triage" in justfile
+    assert "uv run wiz8 runtime-test" in justfile

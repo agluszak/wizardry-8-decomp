@@ -33,7 +33,11 @@ def test_container_build_owns_the_product_mounts(tmp_path: Path) -> None:
     assert build.docker_prefix()[1:5] == ["run", "--rm", "--init", "--network"]
     assert build.mounts[0] == Mount(tmp_path / "repo", "/repo")
     assert build.mounts[-1] == Mount(tmp_path / "repo/build/decomp", "/out", False)
-    assert TARGET_ALIASES == {"match": "WIZ8", "runtime": "WIZ8_RUNTIME"}
+    assert TARGET_ALIASES == {
+        "match": "WIZ8",
+        "runtime": "WIZ8_RUNTIME",
+        "runtime-test": "WIZ8_RUNTIME_TEST",
+    }
 
 
 def test_container_commands_preserve_vc6_configuration_and_target(tmp_path: Path) -> None:

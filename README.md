@@ -21,6 +21,7 @@ just check
 just build
 just compare
 just run
+just runtime-test
 just verify
 ```
 
@@ -28,6 +29,11 @@ just verify
 configures automatically. `compare` is a linked-image diagnostic; relocation-masked
 `just wiz8 verify-boundaries` is the recovered-body criterion. `just test` runs the public unit
 and repository-invariant lanes.
+
+`just runtime-test` builds a separate test product and runs named main-menu scenarios inside the
+process. The real menu handlers execute on the UI thread; the host reruns the scenarios in reverse
+order and requires identical normalized observations. Test-only code is not linked into either
+matching image.
 
 For focused recovery, one reccmp process can compare or triage several original addresses, or all
 `FUNCTION` markers in a source file. The wrappers consume reccmp's structured result; they do not
