@@ -10,13 +10,11 @@ from .cache import SEED_SCHEMA, materialize_program, seed_manifest_path
 from .environment import start_pyghidra, validate_environment
 from .import_programs import HASH_OPTION
 from .project import module_for_program, resolve_program_name
-from .query_daemon import stop_daemon
 from .validate_replay import validate_reviewed_replay
 
 
 def export_project(settings: Settings, selector: str | None = None) -> dict[str, Any]:
-    """Pack the validated canonical program as the repository's reviewed GZF seed."""
-
+    """Pack the validated canonical program as the repository's recovery seed."""
     program_name = resolve_program_name(settings, selector)
     canonical_name = resolve_program_name(settings, None)
     if program_name != canonical_name:
@@ -24,7 +22,6 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
             "only the canonical Wiz8 executable has a reviewed replay profile and shared seed"
         )
     module = module_for_program(settings, program_name)
-    stop_daemon(settings, quiet=True)
     runtime = validate_environment(settings)
 
     validation_started = perf_counter()
@@ -90,14 +87,13 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
         "total_seconds": round(validation_seconds + pack_seconds, 3),
     }
     atomic_json(
-        settings.build_dir / "reports" / "ghidra-cache" / f"seed-{program_name}.json",
+        settings.build_dir / "reports" / "ghidra-project" / f"seed-{program_name}.json",
         report,
     )
     return report
 
 
 def restore_project(settings: Settings, selector: str | None = None) -> dict[str, Any]:
-    """Compatibility alias for the agent-local validated materializer."""
-
+    """Restore the validated seed into the checkout's canonical project."""
     _, report = materialize_program(settings, selector)
     return report
