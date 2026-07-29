@@ -1,6 +1,10 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srGERD.h"
+#include "FileMan.h"
+
+#include <stdlib.h>
 
 /*
  * The render-option table. 0x0047B630 is a switch over 0x11 options that pushes
@@ -16,6 +20,8 @@
  */
 
 extern "C" {
+
+void SetRenderOption(int option, int enabled);
 
 float g_render_brightness_60a210;
 float g_render_fog_distance_60e610;
@@ -63,6 +69,23 @@ static void SetSwapInterval(unsigned char enabled)
     g_gerd_659634->setSwapInterval(enabled ? 1 : 0);
 }
 
+// FUNCTION: WIZ8 0x0047b570
+void DestroyRenderQuality0047B570(void)
+{
+    if (g_render_options_65a118 != 0) {
+        free(g_render_options_65a118);
+    }
+    g_render_options_65a118 = 0;
+}
+
+// FUNCTION: WIZ8 0x0047b590
+void EnableRenderOption0047B590(int option)
+{
+    if (option < 0x11) {
+        SetRenderOption(option, 1);
+    }
+}
+
 // FUNCTION: WIZ8 0x0047b630
 void SetRenderOption(int option, int enabled)
 {
@@ -104,6 +127,17 @@ void DisableRenderOption(int option)
     }
 }
 
+// FUNCTION: WIZ8 0x0047b5d0
+void DisableAllRenderOptions0047B5D0(void)
+{
+    int option = 0;
+
+    do {
+        SetRenderOption(option, 0);
+        ++option;
+    } while (option < 0x11);
+}
+
 /* The original carries a dead entry test: it compares the counter against the
    bound before the first iteration and, when that fails, jumps to the increment
    rather than past the loop. Starting at zero it can never fire, and VC6 folds
@@ -130,6 +164,40 @@ unsigned char GetRenderOptionState(int option)
         return 0;
     }
     return g_render_options_65a118[2 + option];
+}
+
+// FUNCTION: WIZ8 0x0047b890
+unsigned char LoadRenderOptions0047B890(int handle)
+{
+    int version;
+    unsigned int transferred;
+    unsigned char options[0x14];
+    int option;
+
+    if (ReadVirtualFile(handle, &version, 4, &transferred) == 0 || version != 1) {
+        return 0;
+    }
+    if (ReadVirtualFile(handle, options, 0x11, &transferred) == 0) {
+        return 0;
+    }
+    option = 0;
+    do {
+        SetRenderOption(option, options[option] != 0);
+        ++option;
+    } while (option < 0x11);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0047b920
+bool SaveRenderOptions0047B920(HWFILE handle)
+{
+    unsigned int transferred;
+    int version = 1;
+
+    if (FileWrite(handle, &version, 4, &transferred) == 0) {
+        return false;
+    }
+    return FileWrite(handle, g_render_options_65a118 + 2, 0x11, &transferred) != 0;
 }
 
 }
