@@ -102,7 +102,8 @@ evidence, note the review bookmark/PR, and close only after the implementation i
 Use Jujutsu, not raw Git, for repository history. Preserve unrelated working-copy changes, inspect
 `jj status` after meaningful edits, and create local checkpoint commits whenever they improve
 recoverability or review structure. Rebase the whole local stack onto `main@origin`, run the full
-relevant gate on its final tip, and publish its parent through a named review bookmark/PR. Ordinary
-work never moves or pushes `main`; direct integration requires explicit repository-owner
+relevant gate on its final tip, and publish its parent through a named review bookmark/PR. Publishing
+a completed integration unit is the default and needs no separate authorization; merging it does.
+Ordinary work never moves or pushes `main`; direct integration requires explicit repository-owner
 authorization. The exact workspace, Beads, rebase, and PR commands live in
 [the contributor workflow](docs/contributor-workflow.md).

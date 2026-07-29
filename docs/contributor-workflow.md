@@ -101,7 +101,9 @@ just test                       # plus build, boundary, runtime, Ghidra, or inte
 ```
 
 Require an empty `@`, then publish its parent as the review tip. The bookmark, not `main`, is the
-ordinary publication target:
+ordinary publication target. Publishing a completed, validated integration unit is the default and
+does not require a separate request. Open a draft PR unless the user explicitly requests a
+ready-for-review PR:
 
 ```sh
 jj status                       # must report an empty working-copy commit
@@ -110,7 +112,8 @@ jj git push --remote origin --bookmark agent/<bead-id>-<topic>
 gh pr create --base main --head agent/<bead-id>-<topic> --title "..." --body "..."
 ```
 
-Do not push an unnamed or empty-description change or use `--allow-empty-description`. For later
+Do not stop at a local commit merely because publication was not separately requested. Do not push
+an unnamed or empty-description change or use `--allow-empty-description`. For later
 review updates, rebase the whole stack again, rerun affected gates, and move the existing bookmark:
 
 ```sh

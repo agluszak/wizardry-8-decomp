@@ -8,6 +8,7 @@ The Dolt database is independent of Jujutsu history:
 - Push immediately after claiming.
 - Push after dependency, scope, ownership, review, or status changes.
 - Note review bookmarks and pull requests.
+- Publish a completed integration unit for review by default; merging still requires authorization.
 - Close only after the implementation is integrated into `main`.
 
 A Bead is not a commit. One Bead may contain several local jj commits and normally produces one
