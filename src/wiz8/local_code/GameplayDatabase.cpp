@@ -786,8 +786,12 @@ void Function54B300(unsigned int slot)
    declared: an allocation size and a constructor signature. */
 class W8StartupStateElement005EE748;
 
-/* 0x0052D460 proves four equal growable-vector bases followed by a fifth
-   derived instantiation and the tail state below.  Element identity and the
+class W8StartupStateVector005EE748
+    : public W8GrowableVector<W8StartupStateElement005EE748*> {
+};
+
+/* 0x0052D460 proves four equal derived growable-vector instantiations followed
+   by a fifth instantiation with a distinct vtable and the tail state below.  Element identity and the
    complete lifetime remain tracked by wiz8-bxj; this gives startup the real
    allocation and field shape without inventing semantic names. */
 class W8StartupStateVector005EE744
@@ -795,7 +799,10 @@ class W8StartupStateVector005EE744
 };
 
 struct W8GameplayObjectA {
-    W8GrowableVector<W8StartupStateElement005EE748*> vectors_00[4];
+    W8StartupStateVector005EE748 vector_00;
+    W8StartupStateVector005EE748 vector_10;
+    W8StartupStateVector005EE748 vector_20;
+    W8StartupStateVector005EE748 vector_30;
     W8StartupStateVector005EE744 vector_40;
     int value_50;
     int value_54;
@@ -806,13 +813,21 @@ struct W8GameplayObjectA {
     unsigned char* bytes_68;
 
     W8GameplayObjectA();
+    ~W8GameplayObjectA();
 };
 
+// FUNCTION: WIZ8 0x0052d460
 W8GameplayObjectA::W8GameplayObjectA()
     : value_50(-1), value_54(-1), value_5c(0), value_64(-1)
 {
     bytes_68 = static_cast<unsigned char*>(::operator new(0xb1));
     memset(bytes_68, 0, 0xb1);
+}
+
+// FUNCTION: WIZ8 0x0052d5b0
+W8GameplayObjectA::~W8GameplayObjectA()
+{
+    ::operator delete(bytes_68);
 }
 
 typedef char W8GameplayObjectA_must_be_0x6c[
@@ -824,7 +839,7 @@ void* g_object_683fd7;
 void* g_object_685067;
 
 // FUNCTION: WIZ8 0x0054afd0
-void Function54AFD0(void)
+void InitializeGameplayRuntimeObjects(void)
 {
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
     g_object_683fd7 = new W8GameplayObjectA();

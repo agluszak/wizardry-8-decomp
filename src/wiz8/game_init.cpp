@@ -8,7 +8,7 @@
    declarations outside the C-linkage block: spelling them as C functions
    leaves the recovered bodies present but unreachable from this unit. */
 extern void Function54AF30(unsigned char release);
-extern void Function54AFD0(void);
+extern void InitializeGameplayRuntimeObjects(void);
 extern unsigned char Function54A760(W8MonsterRecord** records);
 extern unsigned char VerifyDataSubdirs(void);
 extern void Function51B560(void);
@@ -114,7 +114,7 @@ unsigned char InitializeGameData(void)
     }
     SetMessageBoxWord(g_word_6850ed);
     Function54AF30(0);
-    Function54AFD0();
+    InitializeGameplayRuntimeObjects();
     Function55EF90();
     if (!VerifyDataSubdirs()) {
         return 0;
