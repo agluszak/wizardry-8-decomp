@@ -1058,6 +1058,10 @@ extern W8World* g_world;
    one object; the viewport's is the one a body proves, since it reads the
    camera member off it. One declaration here settles it. */
 extern W8World* g_world_659ab8;
+/* Defined by DisplayList.cpp, which owns the list this gates; the recovered
+   clear at 0x0040C220 reads it from outside that unit, so the declaration sits
+   here rather than being spelled a second time where it is used. */
+extern unsigned char g_display_flag_650e90;
 extern unsigned char g_item_in_hand_valid;
 extern W8ItemInstance g_item_in_hand;
 /* The party's carried pool, bounded by the count that follows it in memory;

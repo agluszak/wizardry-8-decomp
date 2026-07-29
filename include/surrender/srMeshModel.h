@@ -53,6 +53,10 @@ public:
         control_state_394 |= 0x30;
     }
 
+public:
+    /* Emitted by Wiz8.exe at 0x00424A50, freeing through the renderer's heap. */
+    srMeshModel* scalar_deleting_destructor(unsigned char flags);
+
 protected:
     virtual ~srMeshModel();
     virtual void updateTriMesh();

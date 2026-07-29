@@ -55,11 +55,11 @@ public:
 };
 
 /*
- * The same slot pair for five more host-registered classes whose owning
- * translation unit is not established. Their ids are in the 0x10000 range, so
- * each names a class the program registers itself rather than a SurRender base
- * it is presenting as, but nothing yet places the bodies in a named unit -
- * which is why they live in unattributed_helpers.cpp for now.
+ * The same slots for further host-registered classes whose owning translation
+ * unit is not established. Their ids are in the 0x10000 range, so each names a
+ * class the program registers itself rather than a SurRender base it is
+ * presenting as, but nothing yet places the bodies in a named unit - which is
+ * why they live in unattributed_helpers.cpp for now.
  */
 
 class stTextureAnim {
@@ -95,6 +95,36 @@ public:
     const char* getClassName() const;     /* 0x004AF3E0 */
     unsigned long getClassID() const;     /* 0x004AF3D0 */
     srRegistry::ClassNode* getClassNode() const;        /* 0x004AF3F0 */
+};
+
+/* The two surface classes sit at adjacent ids and adjacent addresses, which is
+   what pairs them the way the two stModelInstance forms are paired. */
+class stTexture2D {
+public:
+    unsigned long getClassID() const;     /* 0x0047E7D0 */
+    const char* getClassName() const;     /* 0x0047E7E0 */
+};
+
+class stSurface2D {
+public:
+    unsigned long getClassID() const;     /* 0x0047E930 */
+    const char* getClassName() const;     /* 0x0047E940 */
+};
+
+/* The only one of this group whose registry builder is also recovered. It takes
+   the one-level form, hanging straight off srClass with no intermediate base. */
+class stScript {
+public:
+    unsigned long getClassID() const;     /* 0x004CF7C0 */
+    const char* getClassName() const;     /* 0x004CF7D0 */
+    srRegistry::ClassNode* getClassNode() const;        /* 0x004CF7E0 */
+};
+
+/* Only the name slot is an owned body here; nothing in range supplies an id
+   half, so none is declared. */
+class stBinIStream {
+public:
+    const char* getClassName() const;     /* 0x0047CBA0 */
 };
 
 /*
@@ -218,4 +248,18 @@ public:
 class W8Object005EBFD0 {
 public:
     void InstallVtable();                 /* 0x0042A360 */
+};
+
+/* Two more of the same seven-byte shape. 0x005EC1D8 is installed twice, by
+   0x0044EF20 and 0x004B56F0; only the first is claimed here, because nothing
+   yet separates the two emissions into two classes and naming the second would
+   assert a class the vtable alone does not establish. */
+class W8Object005EC1D8 {
+public:
+    void InstallVtable();                 /* 0x0044EF20 */
+};
+
+class W8Object005ECDB0 {
+public:
+    void InstallVtable();                 /* 0x004A2220 */
 };

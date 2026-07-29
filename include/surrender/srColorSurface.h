@@ -199,6 +199,10 @@ public:
 protected:
     virtual SR_DLL_IMPORT ~srColorSurface();
 
+public:
+    /* Emitted by Wiz8.exe at 0x00423F00, freeing through the renderer's heap. */
+    srColorSurface* scalar_deleting_destructor(unsigned char flags);
+
 private:
     virtual SR_DLL_IMPORT void copyNoScaling(srColorSurfaceIFace& source);
     virtual SR_DLL_IMPORT void scaleFast(srColorSurfaceIFace& source);

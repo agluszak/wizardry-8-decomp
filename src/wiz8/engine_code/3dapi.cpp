@@ -1,5 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srColorSurface.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srMeshModel.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
 
@@ -96,6 +99,66 @@ void WorldSetCameraLocation(W8World* world, const float* location)
 srNode* srNode::scalar_deleting_destructor(unsigned char flags)
 {
     this->~srNode();
+    if ((flags & 1) != 0) {
+        SetHeapFree(this);
+    }
+    return this;
+}
+
+/*
+ * The same slot for five more renderer classes. Every one is byte for byte the
+ * body above apart from the destructor it calls, and that import slot is what
+ * names the class: 0x005EB508, 0x005EB50C, 0x005EB510, 0x005EB518 and
+ * 0x005EB584 resolve to srMaterial, srCamera, srScene, srColorSurface and
+ * srMeshModel's decorated destructors, which is `original-export` evidence
+ * rather than a reading of the body. All five free through the renderer's heap
+ * on the same slot, which is what puts them in this file beside srNode's.
+ */
+
+// FUNCTION: WIZ8 0x00423E50
+srMaterial* srMaterial::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~srMaterial();
+    if ((flags & 1) != 0) {
+        SetHeapFree(this);
+    }
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00423E80
+srCamera* srCamera::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~srCamera();
+    if ((flags & 1) != 0) {
+        SetHeapFree(this);
+    }
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00423EB0
+srScene* srScene::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~srScene();
+    if ((flags & 1) != 0) {
+        SetHeapFree(this);
+    }
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00423F00
+srColorSurface* srColorSurface::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~srColorSurface();
+    if ((flags & 1) != 0) {
+        SetHeapFree(this);
+    }
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00424A50
+srMeshModel* srMeshModel::scalar_deleting_destructor(unsigned char flags)
+{
+    this->~srMeshModel();
     if ((flags & 1) != 0) {
         SetHeapFree(this);
     }

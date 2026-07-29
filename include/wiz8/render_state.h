@@ -26,6 +26,13 @@ extern unsigned char g_block_652ddc[0x12c0];
 extern IDirectDraw2* g_direct_draw2_6596a0;
 extern int g_dword_65962c;
 extern int g_renderer_mode_603d74;
+/* The pair the mode-select bodies write together, promoted here for the same
+   reason: renderer_window.cpp defines them and the recovered setters read them
+   from outside it. */
+extern int g_dword_6596ec;
+extern int g_dword_6596f0;
+/* Defined by bringup_gates.cpp, written by a setter recovered outside it. */
+extern int g_dword_5ff5f0;
 
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;

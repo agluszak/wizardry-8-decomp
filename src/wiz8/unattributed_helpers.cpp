@@ -2,6 +2,7 @@
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/local_code/Controls.h"
 #include "wiz8/render_state.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
@@ -181,7 +182,7 @@ void GetClipRect(int* rect)
 }
 
 /*
- * Class registry slots for five host-registered classes.
+ * Class registry slots for the host-registered classes.
  *
  * Each pair is a getClassName returning the class's own original name and a
  * getClassID returning a constant in the 0x10000 range SurRender reserves for
@@ -248,6 +249,65 @@ const char* stSound3D::getClassName() const
 unsigned long stSound3D::getClassID() const
 {
     return 0x1000b;
+}
+
+// FUNCTION: WIZ8 0x0047E7D0
+unsigned long stTexture2D::getClassID() const
+{
+    return 0x1000f;
+}
+
+// FUNCTION: WIZ8 0x0047E7E0
+const char* stTexture2D::getClassName() const
+{
+    return "stTexture2D";
+}
+
+// FUNCTION: WIZ8 0x0047E930
+unsigned long stSurface2D::getClassID() const
+{
+    return 0x1000e;
+}
+
+// FUNCTION: WIZ8 0x0047E940
+const char* stSurface2D::getClassName() const
+{
+    return "stSurface2D";
+}
+
+// FUNCTION: WIZ8 0x004CF7C0
+unsigned long stScript::getClassID() const
+{
+    return 0x1000d;
+}
+
+// FUNCTION: WIZ8 0x004CF7D0
+const char* stScript::getClassName() const
+{
+    return "stScript";
+}
+
+/* The one-level builder, identical in shape to Trigger's: no parent lookup,
+   just the cache probe and a single registerClass with the concrete flag set. */
+// FUNCTION: WIZ8 0x004CF7E0
+srRegistry::ClassNode* stScript::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x1000d);
+
+    if (!node) {
+        node = registry->registerClass(
+            "stScript", srClass::sGetClassNode(), 0x1000d, 1);
+    }
+    return node;
+}
+
+/* The name half alone: no id body sits in range, so the class's id stays
+   unrecovered rather than guessed. */
+// FUNCTION: WIZ8 0x0047CBA0
+const char* stBinIStream::getClassName() const
+{
+    return "stBinIStream";
 }
 
 /*
@@ -747,4 +807,491 @@ void W8Object005EC138::InstallVtable()
 void W8Object005EBFD0::InstallVtable()
 {
     *(void**)this = &g_vtable_005ebfd0;
+}
+
+extern "C" {
+extern void* g_vtable_005ec1d8;
+extern void* g_vtable_005ecdb0;
+}
+
+// FUNCTION: WIZ8 0x0044EF20
+void W8Object005EC1D8::InstallVtable()
+{
+    *(void**)this = &g_vtable_005ec1d8;
+}
+
+// FUNCTION: WIZ8 0x004A2220
+void W8Object005ECDB0::InstallVtable()
+{
+    *(void**)this = &g_vtable_005ecdb0;
+}
+
+/*
+ * Two more byte reads and four more panel redraws.
+ *
+ * The redraws are the shape RedrawRcsPanelA already proved exact: load the
+ * panel pointer, reach its second vtable slot and pass the null rectangle that
+ * spells "the whole area". The receiver is spelled Controls for that reason -
+ * the slot index and the argument are what the shape fixes, and the proved
+ * body is the only thing that names the class behind them.
+ */
+
+extern "C" {
+extern unsigned char g_flag_69c808;
+extern unsigned char g_flag_69da6c;
+}
+
+extern Controls* g_panel_69b940;
+extern Controls* g_panel_69b998;
+extern Controls* g_panel_69bf4c;
+extern Controls* g_panel_69bf40;
+
+// FUNCTION: WIZ8 0x005D5A00
+unsigned char GetFlag69C808(void)
+{
+    return g_flag_69c808;
+}
+
+// FUNCTION: WIZ8 0x005E3600
+unsigned char GetFlag69DA6C(void)
+{
+    return g_flag_69da6c;
+}
+
+// FUNCTION: WIZ8 0x0059BC00
+void RedrawPanel69B940(void)
+{
+    g_panel_69b940->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x0059CF40
+void RedrawPanel69B998(void)
+{
+    g_panel_69b998->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x005A1DD0
+void RedrawPanel69BF4C(void)
+{
+    g_panel_69bf4c->Invalidate(0);
+}
+
+// FUNCTION: WIZ8 0x005A1E90
+void RedrawPanel69BF40(void)
+{
+    g_panel_69bf40->Invalidate(0);
+}
+
+/*
+ * Whole-body writes over globals, the mirror image of the reads above: one
+ * store and a return, with no guard. Each name stays address-qualified for the
+ * same reason the readers' do - the store is the entire evidence, and it fixes
+ * only the width. The globals that a recovered unit already owns are reached
+ * through that unit's header rather than re-declared, so each object keeps one
+ * declaration; only the ones nothing has claimed are declared here.
+ */
+
+extern "C" {
+extern int g_value_68f2b0;
+extern int g_value_68f2c4;
+extern int g_value_69b988;
+extern unsigned long g_value_64d8ac;
+extern unsigned int g_region_set_69c528;
+/* Dword-wide despite reading like a flag: the load is `mov eax`, not a byte
+   load, which is what rules out the narrower type its one use suggests. */
+extern int g_value_68c4c0;
+extern void* g_pointer_689b40;
+extern unsigned char g_flag_6081e4;
+extern int g_value_659c14;
+extern unsigned char g_table_647ccc[128];
+/* Indexed row-major with a stride of eight, which is what makes the second
+   subscript the inner one. */
+extern unsigned char g_table_650434[][8];
+extern int g_value_69da68;
+extern int g_value_69b9a4;
+extern int g_value_62a518;
+extern int g_value_69c1cc;
+extern int g_value_654aac;
+extern float g_float_60ab48;
+extern float g_float_64b914;
+/* Three bytes of one dword-aligned run, read individually one address apart.
+   Each load is a byte, which is what makes them three flags rather than one
+   wider object - the reader at 0x0052E360 loads CL exactly as its two
+   neighbours do. */
+extern unsigned char g_flag_6850fa;
+extern unsigned char g_flag_6850fb;
+extern unsigned char g_flag_6850fc;
+extern int g_value_6e4104;
+extern unsigned char g_flag_603c60;
+extern unsigned char g_flag_603c4c;
+extern int g_value_659668;
+extern int g_value_659ab4;
+extern int g_value_652db0;
+extern int g_value_60dfac;
+extern int g_value_6834d4;
+extern int g_value_689fac;
+extern unsigned char g_flag_68c4f4;
+extern unsigned char g_flag_68c4f7;
+extern unsigned char g_flag_68c500;
+}
+
+// FUNCTION: WIZ8 0x0040A8A0
+int GetValue6E4104(void)
+{
+    return g_value_6e4104;
+}
+
+/* The setter half of the pair whose getter is GetValue65962C above; both reach
+   the one declaration in render_state.h. */
+// FUNCTION: WIZ8 0x00427820
+void SetValue65962C(int value)
+{
+    g_dword_65962c = value;
+}
+
+// FUNCTION: WIZ8 0x00429200
+void SetValue659668(int value)
+{
+    g_value_659668 = value;
+}
+
+// FUNCTION: WIZ8 0x004298E0
+void SetFlag603C4C(unsigned char value)
+{
+    g_flag_603c4c = value;
+}
+
+// FUNCTION: WIZ8 0x00451290
+void SetValue659AB4(int value)
+{
+    g_value_659ab4 = value;
+}
+
+/* Writes the second world, the object whose one declaration gameplay_boundaries.h
+   settled; the viewport's reads through it are what typed it. */
+// FUNCTION: WIZ8 0x004512B0
+void SetWorld659AB8(W8World* world)
+{
+    g_world_659ab8 = world;
+}
+
+/* The one setter of this group that cleans its own argument: the body ends in
+   `ret 4` rather than `ret`, which is __stdcall and the whole of the two-byte
+   difference against the cdecl siblings above. */
+// FUNCTION: WIZ8 0x0046D7D0
+void __stdcall SetValue652DB0(int value)
+{
+    g_value_652db0 = value;
+}
+
+// FUNCTION: WIZ8 0x0052A1A0
+void SetFlag68C500(unsigned char value)
+{
+    g_flag_68c500 = value;
+}
+
+/*
+ * The same shape with the stored value fixed by the body rather than passed in.
+ * Each is a store of a literal and a return.
+ */
+
+/* Stores the constant through AL rather than as an immediate, which is what
+   VC6 does when the same constant is also the return value; the sibling at
+   0x00529560 keeps the immediate form precisely because it returns nothing. */
+// FUNCTION: WIZ8 0x00428020
+unsigned char SetFlag603C60(void)
+{
+    g_flag_603c60 = 1;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004B6D20
+void SetValue60DFAC(void)
+{
+    g_value_60dfac = 1;
+}
+
+// FUNCTION: WIZ8 0x004D96F0
+void ClearValue6834D4(void)
+{
+    g_value_6834d4 = 0;
+}
+
+// FUNCTION: WIZ8 0x005171B0
+void ClearValue689FAC(void)
+{
+    g_value_689fac = 0;
+}
+
+// FUNCTION: WIZ8 0x00529560
+void SetFlag68C4F4(void)
+{
+    g_flag_68c4f4 = 1;
+}
+
+/* An adjacent set/clear pair over one flag, the two bodies sitting next to each
+   other as well. */
+// FUNCTION: WIZ8 0x00529BC0
+void SetFlag68C4F7(void)
+{
+    g_flag_68c4f7 = 1;
+}
+
+// FUNCTION: WIZ8 0x00529BD0
+void ClearFlag68C4F7(void)
+{
+    g_flag_68c4f7 = 0;
+}
+
+// FUNCTION: WIZ8 0x00428A90
+void SetRendererMode6596EC(void)
+{
+    g_dword_6596ec = 2;
+}
+
+/* Writes both halves of the renderer-mode pair. The order is the source's: the
+   later address stores first. */
+// FUNCTION: WIZ8 0x00428AA0
+void SetRendererModePair(void)
+{
+    g_dword_6596f0 = 2;
+    g_dword_6596ec = 2;
+}
+
+/* Clears the flag and reports success with a constant the caller ignores at
+   every recovered site; the byte return is what the store's width types. */
+// FUNCTION: WIZ8 0x00428010
+unsigned char ClearFlag603C60(void)
+{
+    g_flag_603c60 = 0;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00407210
+unsigned char SetValue5FF5F0(int value)
+{
+    g_dword_5ff5f0 = value;
+    return 1;
+}
+
+/* Steps the same counter 0x004B6D20 initialises and hands back the new value.
+   The step runs through EAX rather than as an in-place `inc [mem]`, which is
+   what returning it costs and the whole of the five-byte difference. */
+// FUNCTION: WIZ8 0x004B6D10
+int IncrementValue60DFAC(void)
+{
+    g_value_60dfac = g_value_60dfac + 1;
+    return g_value_60dfac;
+}
+
+// FUNCTION: WIZ8 0x005E35F0
+void ClearValue69DA68(void)
+{
+    g_value_69da68 = 0;
+}
+
+// FUNCTION: WIZ8 0x0059E1E0
+void SetValue69B9A4(int value)
+{
+    g_value_69b9a4 = value;
+}
+
+// FUNCTION: WIZ8 0x00558810
+void ResetValue62A518(void)
+{
+    g_value_62a518 = -1;
+}
+
+/* The stored bit pattern is a float constant, not an int: 0x457A0000 is
+   4000.0f, and the store is what types the object. */
+// FUNCTION: WIZ8 0x00492530
+void SetFloat60AB48(void)
+{
+    g_float_60ab48 = 4000.0f;
+}
+
+/* Hands back the global's address rather than its value - one lea-shaped load
+   of the constant and a return. */
+// FUNCTION: WIZ8 0x005A9E90
+int* GetAddress69C1CC(void)
+{
+    return &g_value_69c1cc;
+}
+
+/* A setter/getter pair over one float. The setter copies the four bytes
+   straight through rather than loading the FPU, which is what keeps it the
+   same length as the integer setters above. */
+// FUNCTION: WIZ8 0x00585300
+void SetFloat64B914(float value)
+{
+    g_float_64b914 = value;
+}
+
+// FUNCTION: WIZ8 0x00585310
+float GetFloat64B914(void)
+{
+    return g_float_64b914;
+}
+
+/*
+ * Three predicates over globals. Each returns the comparison itself, which is
+ * what widens the byte-sized result to a full 0/1 register.
+ */
+
+// FUNCTION: WIZ8 0x004297D0
+bool GetFlag654AAC(void)
+{
+    return g_value_654aac != 0;
+}
+
+// FUNCTION: WIZ8 0x0052E360
+bool IsFlag6850FCSet(void)
+{
+    return g_flag_6850fc != 0xff;
+}
+
+// FUNCTION: WIZ8 0x0047AE80
+bool IsFlag6850FASet(void)
+{
+    return g_flag_6850fa != 0xff;
+}
+
+// FUNCTION: WIZ8 0x0048FE80
+bool IsFlag6850FBSet(void)
+{
+    return g_flag_6850fb != 0xff;
+}
+
+/*
+ * Forwarders. Each is a call and a return, with the guard the original wrote
+ * and nothing more; the callee in every case is a function some other unit
+ * already declares, which is what keeps these bodies free of a second spelling
+ * of anything.
+ */
+
+/* The region index is the body's own constant rather than an argument. */
+// FUNCTION: WIZ8 0x005A19A0
+void DisableRegionSet1C(void)
+{
+    RegionSetDisable(0x1c);
+}
+
+// FUNCTION: WIZ8 0x00404C70
+void DeleteFileByName(LPCSTR path)
+{
+    DeleteFileA(path);
+}
+
+/* Discards the ordering the API returns; the caller of this wrapper only ever
+   needed the call made. */
+// FUNCTION: WIZ8 0x00405720
+void CompareFileTimes(const FILETIME* left, const FILETIME* right)
+{
+    CompareFileTime(left, right);
+}
+
+// FUNCTION: WIZ8 0x004F1220
+void ReleasePointer689B40(void)
+{
+    if (g_pointer_689b40) {
+        operator delete(g_pointer_689b40);
+    }
+}
+
+/* Two stores over unrelated globals, the second a literal zero. */
+// FUNCTION: WIZ8 0x004C6220
+void SetFlag6081E4(unsigned char value)
+{
+    g_flag_6081e4 = value;
+    g_value_659c14 = 0;
+}
+
+/* Null-guarded forwarders onto the SurRender bases. The guard is the original's
+   own: both callees are imports that would fault on a null receiver. */
+// FUNCTION: WIZ8 0x00425820
+void ClearNodeFlag(srNode* node)
+{
+    if (node) {
+        node->setFlag(srNode::FLAG_POSITIONAL_0);
+    }
+}
+
+/* Takes its owner in ECX rather than on the stack, which is the four bytes
+   between this and the cdecl forwarders above. */
+// FUNCTION: WIZ8 0x00429AF0
+void __fastcall ReleaseOwnedClass(srClass** owner)
+{
+    if (*owner) {
+        (*owner)->release();
+    }
+}
+
+/* Indexed by a signed char, which is what makes the loaded byte reach the
+   caller alongside the index's own sign in the upper bytes. */
+// FUNCTION: WIZ8 0x0055F2B0
+unsigned char GetTable647CCCEntry(char index)
+{
+    return g_table_647ccc[index];
+}
+
+// FUNCTION: WIZ8 0x0040C220
+void ClearDisplayFlag650E90(void)
+{
+    g_display_flag_650e90 = 0;
+}
+
+/* Row-major lookup with a stride of eight; the scaled index is what fixes the
+   inner dimension. */
+// FUNCTION: WIZ8 0x005E3730
+unsigned char GetTable650434Entry(int row, int column)
+{
+    return g_table_650434[row][column];
+}
+
+/* Four more whole-body stores, each one store and a return. */
+
+// FUNCTION: WIZ8 0x00587C10
+void SetValue68F2B0(int value)
+{
+    g_value_68f2b0 = value;
+}
+
+// FUNCTION: WIZ8 0x0058A870
+void SetValue68F2C4(int value)
+{
+    g_value_68f2c4 = value;
+}
+
+// FUNCTION: WIZ8 0x0059CF30
+void SetValue69B988(int value)
+{
+    g_value_69b988 = value;
+}
+
+// FUNCTION: WIZ8 0x005AE9C0
+void SetValue64D8AC(unsigned long value)
+{
+    g_value_64d8ac = value;
+}
+
+/* The same forwarder shape as 0x005A19A0, except the region set comes from a
+   global rather than being written into the body. */
+// FUNCTION: WIZ8 0x005C5D70
+void DisableRegionSet69C528(void)
+{
+    RegionSetDisable(g_region_set_69c528);
+}
+
+/* Reports the value zero rather than non-zero, which is the inverted sense
+   against the predicates above.
+
+   Three bytes long: the canonical loads the global into EAX and lets `sete al`
+   land in the same register, where every source shape tried here loads ECX and
+   zeroes EAX first. The `mov eax` form is the evidence the global is dword-wide
+   rather than the byte its one use suggests, so the read itself is settled and
+   only the register choice is not. */
+// FUNCTION: WIZ8 0x00525E50
+bool IsValue68C4C0Clear(void)
+{
+    return g_value_68c4c0 == 0;
 }
