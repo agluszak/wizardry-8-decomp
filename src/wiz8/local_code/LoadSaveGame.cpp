@@ -187,7 +187,7 @@ int GetSaveGameLevel(const char* slot_name)
     if (chunks.OpenRead(path)) {
         count = chunks.ChunkCount();
         for (index = 0; index < count; ++index) {
-            chunks.ReadChunkHeader(0, 0);
+            chunks.OpenChunk(0, 0);
             if (!chunks.CurrentChunkAtEnd() &&
                 chunks.CurrentChunkId() == 0x41545347) {
                 AllocateStatusBuffers(&status.buffers);
@@ -795,20 +795,18 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
         unsigned int tag;
 
         do {
-            source->ReadChunkHeader(0, 0);
+            source->OpenChunk(0, 0);
             if (!source->CurrentChunkAtEnd()) {
                 tag = source->CurrentChunkId();
                 if (tag == W8_SAVE_TAG_CHAR) {
                     destination->CopyCurrentChunkFrom(source);
                 }
                 else if (tag == W8_SAVE_TAG_LVLS) {
-                    source->OpenChunkGroup();
                     source->Read(&level, 4, 0);
                     if (level != g_current_level) {
                         source->RewindCurrentChunk();
                         destination->CopyCurrentChunkFrom(source);
                     }
-                    source->CloseChunkGroup();
                 }
             }
             source->SkipCurrentChunk();
@@ -816,4 +814,30 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
             --remaining;
         } while (remaining != 0);
     }
+}
+
+/* Write the global status as one GSTA chunk. The two pointed-to collections
+   follow the fixed status object in record-sized pieces so each record remains
+   an independently sized save field. */
+// FUNCTION: WIZ8 0x00515fa0
+void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status)
+{
+    unsigned int size;
+    unsigned int offset;
+
+    chunks->OpenChunk(0x41545347, 0);
+    size = sizeof(*status);
+    chunks->Write(&size, sizeof(size), 0);
+    chunks->Write(status, size, 0);
+    for (offset = 0; offset < 0xc310; offset += sizeof(W8Character)) {
+        size = sizeof(W8Character);
+        chunks->Write(&size, sizeof(size), 0);
+        chunks->Write(static_cast<unsigned char*>(status->buffers.buffer_04) + offset, size, 0);
+    }
+    for (offset = 0; offset < 0x830; offset += sizeof(W8PartySlotRow)) {
+        size = sizeof(W8PartySlotRow);
+        chunks->Write(&size, sizeof(size), 0);
+        chunks->Write(static_cast<unsigned char*>(status->buffers.buffer_08) + offset, size, 0);
+    }
+    chunks->ReleaseCurrentChunk();
 }
