@@ -118,7 +118,7 @@ extern unsigned char InitializeVideoDevice(void);
 extern unsigned char InitializeRendererSceneObjects(void);
 extern void Function56AAB0(void);
 extern unsigned char Function422800(void);
-extern void Function422D50(int a, int b, int c, int d, int e);
+extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void Function426500(srScene* scene);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern unsigned char Function44F060(void);
@@ -166,7 +166,7 @@ void Function422B10(void)
     Function426500(g_scene_overlay0_659654);
     Function426500(g_scene_prerender1_659650);
     Function426500(g_scene_overlay1_659658);
-    Function422D50(0, 0, 640, 480, 0);
+    MarkScreenRectDirty(0, 0, 640, 480, 0);
 }
 
 
@@ -228,7 +228,7 @@ unsigned char InitializeRenderer(void* instance, unsigned short show_command, vo
             Function426500(g_scene_overlay0_659654);
             Function426500(g_scene_prerender1_659650);
             Function426500(g_scene_overlay1_659658);
-            Function422D50(0, 0, 0x280, 0x1e0, 0);
+            MarkScreenRectDirty(0, 0, 0x280, 0x1e0, 0);
             g_dword_6596f0 = 2;
             g_dword_6596ec = 2;
         }

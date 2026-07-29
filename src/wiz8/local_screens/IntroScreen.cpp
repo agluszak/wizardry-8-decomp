@@ -1,3 +1,4 @@
+#include "wiz8/bink_video.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
@@ -10,22 +11,6 @@
 
 /* Local Screens\IntroScreen.cpp is named by the gpVideo assertion at line 98.
    The canonical state-zero row owns this enter/frame/leave bundle. */
-
-class W8BinkVideo005E2F90 {
-public:
-    W8BinkVideo005E2F90();
-    ~W8BinkVideo005E2F90();
-
-    unsigned char Open(const char* path, int flags);
-    unsigned char Finished();
-    void SetTarget(void* target);
-
-private:
-    unsigned char unknown_00[0x0c];
-};
-
-typedef char W8BinkVideo005E2F90_must_be_0x0c[
-    sizeof(W8BinkVideo005E2F90) == 0x0c ? 1 : -1];
 
 extern "C" {
 
@@ -41,7 +26,7 @@ extern void InvalidateScreenRect004263F0(int left, int top, int right, int botto
 extern unsigned char FindGameDataPath0042B590(char* path, int drive);
 extern void PrepareVideoPlayback0048FF00(int value);
 extern unsigned char ClearFlag603C60(void);
-extern void* GetPrimaryRenderTarget00423390(void);
+extern IDirectDrawSurface2* GetPrimaryRenderTarget00423390(void);
 extern void FinishVideoPresentation004234A0(void);
 extern unsigned char DispatchScreenInput004F1910(const void* event);
 extern int GetActiveScreenState0055EC10(void);
@@ -62,7 +47,7 @@ static const char g_intro_video_names[7][40] = {
     "darkend.bik",
     "sirtech.bik",
 };
-W8BinkVideo005E2F90* gpVideo;
+W8BinkVideo* gpVideo;
 
 // FUNCTION: WIZ8 0x005AE510
 unsigned char IntroScreenEnter(void)
@@ -88,7 +73,7 @@ unsigned char IntroScreenEnter(void)
     }
     PrepareVideoPlayback0048FF00(1);
     ClearFlag603C60();
-    gpVideo = new W8BinkVideo005E2F90();
+    gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
         srAssertFail(
             "gpVideo",
@@ -127,7 +112,7 @@ void IntroScreenFrame(void)
             }
         }
     }
-    if (gpVideo == 0 || gpVideo->Finished()) {
+    if (gpVideo == 0 || gpVideo->UpdateFrame()) {
         AdvanceIntroScreen();
     }
 }
@@ -136,7 +121,7 @@ void IntroScreenFrame(void)
 void AdvanceIntroScreen(void)
 {
     char path[500];
-    W8BinkVideo005E2F90* video;
+    W8BinkVideo* video;
 
     if (g_intro_video_index_0064d8ac == 6 && !g_flag_68510e) {
         g_intro_video_index_0064d8ac = 0;

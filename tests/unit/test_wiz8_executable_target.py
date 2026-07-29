@@ -61,6 +61,22 @@ def test_semantic_runtime_driver_is_a_separate_product() -> None:
     )
 
 
+def test_intro_video_owner_uses_canonical_bink_import_surface() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    header = (repository / "include/wiz8/bink_video.h").read_text(encoding="utf-8")
+    source = (repository / "src/wiz8/engine_code/Bink.cpp").read_text(encoding="utf-8")
+    imports = (repository / "src/wiz8/imports/binkw32.def").read_text(encoding="utf-8")
+    product = (repository / "src/wiz8/CMakeLists.txt").read_text(encoding="utf-8")
+
+    assert "sizeof(W8BinkVideo) == 0x0c" in header
+    assert "BinkSetSoundSystem(BinkOpenMiles" in source
+    assert "m_target->Lock" in source
+    assert "m_target->Restore" in source
+    assert "BinkCopyToBuffer@28" in imports
+    assert "BinkNextFrame@4" in imports
+    assert "wiz8_add_import_library(WIZ8_BINKW32" in product
+
+
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = build_source_model(repository)

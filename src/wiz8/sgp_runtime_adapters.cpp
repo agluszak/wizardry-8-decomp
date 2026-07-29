@@ -47,7 +47,7 @@ extern int g_screen_height_603c40;
 extern int g_screen_depth_603c44;
 extern void* LockPrimarySurface(int* pitch);
 extern void UnlockPrimarySurface(void);
-extern void Function422D50(int left, int top, int right, int bottom, int flags);
+extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern unsigned char gbPixelDepth;
 extern unsigned short gusAlphaMask;
 extern unsigned short gusRedMask;
@@ -159,7 +159,7 @@ void GetCurrentVideoSettings(
 
 void InvalidateRegion(int left, int top, int right, int bottom)
 {
-    Function422D50(left, top, right, bottom, 0);
+    MarkScreenRectDirty(left, top, right, bottom, 0);
 }
 
 unsigned char Function405EF0(W8VideoObjectRequest* request, unsigned int* handle)

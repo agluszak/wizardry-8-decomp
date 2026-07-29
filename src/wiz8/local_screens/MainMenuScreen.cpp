@@ -54,7 +54,7 @@ extern unsigned char FillSurfaceRect(int id, int x, int y, int width, int height
                                      int colour);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int g);
-extern void Function422D50(int left, int top, int right, int bottom, int a);
+extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void Function4E3620(char* text, int a, int b, int c);
 extern unsigned char SetFont(int font);
 extern unsigned short* SetFontObjectPalette16BPP(int font, unsigned short* colour);
@@ -309,7 +309,7 @@ unsigned char Function5BCAB0(short item, short state)
     case 3: Function548F90(-14, 0xed, 0, slot, 0x98, top, 2, 0); break;
     }
 
-    Function422D50(0x98, top, 0x1f2, bottom, 0);
+    MarkScreenRectDirty(0x98, top, 0x1f2, bottom, 0);
     return 1;
 }
 

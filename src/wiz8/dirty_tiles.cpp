@@ -59,7 +59,7 @@ void Function4259B0(int cell, unsigned int flags)
 }
 
 // FUNCTION: WIZ8 0x00422D50
-void Function422D50(int left, int top, int right, int bottom, int flags)
+void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags)
 {
     unsigned char cell_flags;
     unsigned int clipped_left;

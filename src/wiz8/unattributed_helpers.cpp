@@ -912,7 +912,7 @@ extern unsigned char g_flag_68c500;
 }
 
 // FUNCTION: WIZ8 0x0040A8A0
-int GetValue6E4104(void)
+int GetMilesDigitalDriver0040A8A0(void)
 {
     return g_value_6e4104;
 }

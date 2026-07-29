@@ -52,12 +52,17 @@ function(wiz8_add_executable)
     if(TARGET WIZ8_ZLIB_WRAPPERS)
         target_sources(${ARG_TARGET} PRIVATE $<TARGET_OBJECTS:WIZ8_ZLIB_WRAPPERS>)
     endif()
-    add_dependencies(${ARG_TARGET} ${WIZ8_SR_IMPORT_TARGET} ${WIZ8_MSS32_IMPORT_TARGET})
+    add_dependencies(${ARG_TARGET}
+        ${WIZ8_SR_IMPORT_TARGET}
+        ${WIZ8_MSS32_IMPORT_TARGET}
+        ${WIZ8_BINKW32_IMPORT_TARGET}
+    )
     target_link_libraries(${ARG_TARGET} PRIVATE
         wiz8_compile_settings
         ${ARG_LIBRARIES}
         "${WIZ8_SR_IMPORT_LIBRARY}"
         "${WIZ8_MSS32_IMPORT_LIBRARY}"
+        "${WIZ8_BINKW32_IMPORT_LIBRARY}"
     )
     if(TARGET WIZ8_ZLIB_1_0_4)
         target_link_libraries(${ARG_TARGET} PRIVATE WIZ8_ZLIB_1_0_4)

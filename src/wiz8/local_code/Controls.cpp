@@ -108,7 +108,7 @@ __forceinline Controls::~Controls()
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 extern void RequestRedraw(unsigned int mask);
-extern void Function422D50(int left, int top, int right, int bottom, int mode);
+extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void Function548F90(int operation, int target, int arg_1c, int arg_20,
                            int left, int top, int mode, int flags);
 extern void Function5494F0(int target, int arg_1c, int arg_20,
@@ -565,7 +565,7 @@ void W8TextBuffer005ED5B8::FillBounds(int colour)
 {
     FillSurfaceRect(-14, m_layoutBounds.left, m_layoutBounds.top,
                     m_layoutBounds.right, m_layoutBounds.bottom, colour);
-    Function422D50(m_layoutBounds.left, m_layoutBounds.top,
+    MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
                    m_layoutBounds.right, m_layoutBounds.bottom, 0);
 }
 
@@ -1663,7 +1663,7 @@ void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
     int top = m_pPanel->origin_y + m_top;
     int right = m_pPanel->origin_x + m_right;
     int bottom = m_pPanel->origin_y + m_bottom;
-    Function422D50(left, top, right, bottom, 0);
+    MarkScreenRectDirty(left, top, right, bottom, 0);
     FillSurfaceRect(-14, left, top, right, bottom, 0x8000);
 
     int sprite;
@@ -2212,7 +2212,7 @@ void Controls::Redraw()
                                origin_x, origin_y, 2);
             }
         } else {
-            Function422D50(m_dirtyRect.left, m_dirtyRect.top,
+            MarkScreenRectDirty(m_dirtyRect.left, m_dirtyRect.top,
                            m_dirtyRect.right, m_dirtyRect.bottom, 2);
         }
         m_fDirty = 0;

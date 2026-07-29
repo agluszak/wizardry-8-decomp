@@ -68,6 +68,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/Viewport.cpp
     src/wiz8/3d_code/PList.cpp
     src/wiz8/engine_code/3d.cpp
+    src/wiz8/engine_code/Bink.cpp
 )
 # Address-qualified sources are distinct VC6 template emissions. Their
 # original translation-unit ownership is not established, so grouping
