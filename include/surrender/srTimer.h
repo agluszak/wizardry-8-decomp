@@ -58,4 +58,4 @@ public:
 #pragma pack(pop)
 
 
-typedef char srTimer_must_be_0x868[(sizeof(srTimer) == 0x868) ? 1 : -1];
+static_assert((sizeof(srTimer) == 0x868), "srTimer_must_be_0x868");

@@ -47,7 +47,6 @@ struct W8StartupRuntimeState {
 
 };
 
-typedef char W8StartupRuntimeState_must_be_0x6c[
-    sizeof(W8StartupRuntimeState) == 0x6c ? 1 : -1];
+static_assert(sizeof(W8StartupRuntimeState) == 0x6c, "W8StartupRuntimeState_must_be_0x6c");
 
 #endif

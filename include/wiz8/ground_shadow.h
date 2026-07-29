@@ -39,7 +39,6 @@ private:
     void renderGroundShadow(srGERD* renderer);      /* 0x004D66A0 */
 };
 
-typedef char stGroundShadow_must_be_0x148[
-    (sizeof(stGroundShadow) == 0x148) ? 1 : -1];
+static_assert((sizeof(stGroundShadow) == 0x148), "stGroundShadow_must_be_0x148");
 
 extern "C" char g_stGroundShadowClassName[];

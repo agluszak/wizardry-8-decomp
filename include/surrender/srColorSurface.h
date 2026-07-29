@@ -217,6 +217,5 @@ private:
     unsigned char unknown_44_[0x18];
 };
 
-typedef char srSurfaceDesc_must_be_0x28[
-    (sizeof(srColorSurfaceIFace::SurfaceDesc) == 0x28) ? 1 : -1];
-typedef char srColorSurface_must_be_0x5c[(sizeof(srColorSurface) == 0x5c) ? 1 : -1];
+static_assert((sizeof(srColorSurfaceIFace::SurfaceDesc) == 0x28), "srSurfaceDesc_must_be_0x28");
+static_assert((sizeof(srColorSurface) == 0x5c), "srColorSurface_must_be_0x5c");

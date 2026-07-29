@@ -16,5 +16,4 @@ union W8ScreenStateStorage {
 extern "C" W8ScreenStateStorage g_screen_state_0068ec78;
 extern "C" W8ScreenStateStorage g_dword_68ed10;
 
-typedef char W8ScreenStateRuntime_must_be_0x98[
-    sizeof(W8ScreenStateRuntime) == 0x98 ? 1 : -1];
+static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");

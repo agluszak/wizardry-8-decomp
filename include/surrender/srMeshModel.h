@@ -91,7 +91,6 @@ private:
     unsigned char unknown_04_[0x10];
 };
 
-typedef char srModelClient_must_be_0x28[
-    (sizeof(srModel::Client) == 0x28) ? 1 : -1];
-typedef char srMeshModel_must_be_0x398[(sizeof(srMeshModel) == 0x398) ? 1 : -1];
-typedef char srModeler_must_be_0x14[(sizeof(srModeler) == 0x14) ? 1 : -1];
+static_assert((sizeof(srModel::Client) == 0x28), "srModelClient_must_be_0x28");
+static_assert((sizeof(srMeshModel) == 0x398), "srMeshModel_must_be_0x398");
+static_assert((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");

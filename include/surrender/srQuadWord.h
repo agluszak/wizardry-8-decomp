@@ -19,4 +19,4 @@ public:
     }
 };
 
-typedef char srQuadWord_must_be_8[(sizeof(srQuadWord) == 8) ? 1 : -1];
+static_assert((sizeof(srQuadWord) == 8), "srQuadWord_must_be_8");

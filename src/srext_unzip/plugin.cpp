@@ -36,8 +36,7 @@ private:
     void* allocation_;
 };
 
-typedef char srOwnedBinIMStream_must_be_0x2c[
-    (sizeof(srOwnedBinIMStream) == 0x2c) ? 1 : -1];
+static_assert((sizeof(srOwnedBinIMStream) == 0x2c), "srOwnedBinIMStream_must_be_0x2c");
 
 struct srInlineString {
     srInlineString();
@@ -81,8 +80,7 @@ struct srInlineString {
     char* data_;
 };
 
-typedef char srInlineString_must_be_0x0c[
-    (sizeof(srInlineString) == 0x0c) ? 1 : -1];
+static_assert((sizeof(srInlineString) == 0x0c), "srInlineString_must_be_0x0c");
 
 srInlineString operator+(
     const srInlineString& left,
@@ -94,8 +92,7 @@ struct srZipCallbacks : USERFUNCTIONS {
     srZipAdapter* adapter;
 };
 
-typedef char srZipCallbacks_must_be_0x30[
-    (sizeof(srZipCallbacks) == 0x30) ? 1 : -1];
+static_assert((sizeof(srZipCallbacks) == 0x30), "srZipCallbacks_must_be_0x30");
 
 class srZipAdapter {
 public:
@@ -119,8 +116,7 @@ private:
     int case_insensitive_;
 };
 
-typedef char srZipAdapter_must_be_0x20[
-    (sizeof(srZipAdapter) == 0x20) ? 1 : -1];
+static_assert((sizeof(srZipAdapter) == 0x20), "srZipAdapter_must_be_0x20");
 
 class srZipOpener : public srIStreamOpener::Opener {
 public:
@@ -135,8 +131,7 @@ private:
     srZipAdapter adapter_;
 };
 
-typedef char srZipOpener_must_be_0x24[
-    (sizeof(srZipOpener) == 0x24) ? 1 : -1];
+static_assert((sizeof(srZipOpener) == 0x24), "srZipOpener_must_be_0x24");
 
 class srUnzipPlugin : public srPlugin {
 public:

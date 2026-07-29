@@ -19,5 +19,4 @@ public:
     float m_speed_2;                     /* 0x20 */
 };
 
-typedef char W8Timer005EC0A4_must_be_0x24[
-    sizeof(W8Timer005EC0A4) == 0x24 ? 1 : -1];
+static_assert(sizeof(W8Timer005EC0A4) == 0x24, "W8Timer005EC0A4_must_be_0x24");

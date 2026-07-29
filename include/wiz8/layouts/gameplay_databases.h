@@ -226,8 +226,7 @@ typedef struct W8MonsterRecord {
    canonical record above rather than carrying parallel field inventories. */
 typedef W8MonsterRecord W8MonsterDatabaseRecord;
 #ifndef __WIZ8_GHIDRA_LAYOUTS__
-typedef char W8MonsterRecord_size_must_be_0x297[
-    sizeof(W8MonsterRecord) == 0x297 ? 1 : -1];
+static_assert(sizeof(W8MonsterRecord) == 0x297, "W8MonsterRecord_size_must_be_0x297");
 #endif
 
 #pragma pack(pop)

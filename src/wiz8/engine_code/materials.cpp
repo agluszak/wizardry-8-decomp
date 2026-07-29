@@ -24,7 +24,7 @@ public:
     int m_field_78;                          /* 0x78 */
 };
 
-typedef char stMaterial_must_be_0x7c[(sizeof(stMaterial) == 0x7C) ? 1 : -1];
+static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
 
 extern "C" char g_stMaterialClassName[];
 

@@ -20,6 +20,12 @@ target_include_directories(wiz8_compile_settings INTERFACE
     "${SGP_SOURCE}"
 )
 
+function(wiz8_enable_cpp_compat TARGET)
+    target_compile_options(${TARGET} PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:/FI${CMAKE_CURRENT_SOURCE_DIR}/include/wiz8/compat/compiler.h>"
+    )
+endfunction()
+
 function(wiz8_add_import_library NAME DEF_FILE)
     string(TOLOWER "${NAME}" target_stem)
     set(import_library "${CMAKE_CURRENT_BINARY_DIR}/${target_stem}.lib")

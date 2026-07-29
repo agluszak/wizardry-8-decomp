@@ -56,10 +56,8 @@ typedef struct W8ItemDatabaseRecord {
 } W8ItemDatabaseRecord;                   /* 0x10d */
 
 #ifndef __WIZ8_GHIDRA_LAYOUTS__
-typedef char W8ItemDatabaseRecord_size_must_be_0x10d[
-    sizeof(W8ItemDatabaseRecord) == 0x10d ? 1 : -1];
-typedef char W8ItemTableRecord_size_must_be_0x1f1[
-    sizeof(W8ItemTableRecord) == 0x1f1 ? 1 : -1];
+static_assert(sizeof(W8ItemDatabaseRecord) == 0x10d, "W8ItemDatabaseRecord_size_must_be_0x10d");
+static_assert(sizeof(W8ItemTableRecord) == 0x1f1, "W8ItemTableRecord_size_must_be_0x1f1");
 #endif
 
 #pragma pack(pop)

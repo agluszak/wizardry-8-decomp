@@ -58,8 +58,7 @@ public:
 };
 #pragma vtordisp(on)
 
-typedef char W8VirtualFileBinIStream_size_must_be_0x20[
-    sizeof(W8VirtualFileBinIStream) == 0x20 ? 1 : -1];
+static_assert(sizeof(W8VirtualFileBinIStream) == 0x20, "W8VirtualFileBinIStream_size_must_be_0x20");
 
 W8VirtualFileBinIStream::W8VirtualFileBinIStream(char* path)
     : m_hFile(0)

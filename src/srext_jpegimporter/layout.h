@@ -39,7 +39,7 @@ struct srJPEGPluginLayout32 {
     srJPEGImporterLayout32 jpeg;  // +0x04
 };
 
-typedef char JpegCodecState32_must_be_0x30[(sizeof(JpegCodecState32) == 0x30) ? 1 : -1];
-typedef char JpegExportOptions32_must_be_0x0c[(sizeof(JpegExportOptions32) == 0x0c) ? 1 : -1];
-typedef char srJPEGImporterLayout32_must_be_0x44[(sizeof(srJPEGImporterLayout32) == 0x44) ? 1 : -1];
-typedef char srJPEGPluginLayout32_must_be_0x48[(sizeof(srJPEGPluginLayout32) == 0x48) ? 1 : -1];
+static_assert((sizeof(JpegCodecState32) == 0x30), "JpegCodecState32_must_be_0x30");
+static_assert((sizeof(JpegExportOptions32) == 0x0c), "JpegExportOptions32_must_be_0x0c");
+static_assert((sizeof(srJPEGImporterLayout32) == 0x44), "srJPEGImporterLayout32_must_be_0x44");
+static_assert((sizeof(srJPEGPluginLayout32) == 0x48), "srJPEGPluginLayout32_must_be_0x48");

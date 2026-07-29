@@ -42,6 +42,7 @@ if(INFOZIP_SOURCE)
         src/srext_unzip/infozip_adapter.c
         src/srext_unzip/plugin.cpp
     )
+    wiz8_enable_cpp_compat(SREXT_UNZIP_ADAPTER_PROBE)
     target_compile_options(SREXT_UNZIP_ADAPTER_PROBE PRIVATE
         /nologo /W3 /GX /O2 /Zp4
     )
@@ -105,6 +106,7 @@ if(INFOZIP_SOURCE)
         src/srext_unzip/srEXT_Unzip.def
         "${SREXT_UNZIP_RESOURCE_OBJECT}"
     )
+    wiz8_enable_cpp_compat(SREXT_UNZIP)
     add_dependencies(SREXT_UNZIP surrender_unzip_import_library)
     target_compile_options(SREXT_UNZIP PRIVATE /nologo /W3 /GX /O2 /Zp4)
     target_compile_definitions(SREXT_UNZIP PRIVATE

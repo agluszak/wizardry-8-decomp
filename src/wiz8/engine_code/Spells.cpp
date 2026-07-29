@@ -7,7 +7,9 @@
  */
 
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/SpellEmitterHost.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
 
 class W8SpellVisual {
 public:
@@ -22,21 +24,14 @@ public:
     void StartIfHostActive();            /* 0x004ABDC0 */
 
     unsigned char unknown_004[0x1dc];
-    W8EmitterHost* host;                 /* 0x1e0 */
+    W8SpellEmitterHost* host;            /* 0x1e0 */
     unsigned char started;               /* 0x1e4 */
-};
-
-/* The emitter host's own two forwarders, which take the emitter by index
-   rather than reading the one in use. */
-class W8SpellEmitterHost : public W8EmitterHost {
-public:
-    void SendToEmitter(char emitter, int arg_2, int arg_3);  /* 0x004AB290 */
-    void StopEmitter(char emitter);                          /* 0x004AB310 */
 };
 
 extern void Function4A14D0(W8Emitter* emitter, int arg_2, int arg_3);
 extern void Function4A1660(W8Emitter* emitter, unsigned char setting, int arg_3);
 extern void Function4A15D0(void* node, unsigned char value);
+extern void DestroyEmitter(W8Emitter* emitter);                         /* 0x004A01E0 */
 extern void Function4A6E20(float value);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 
@@ -104,6 +99,23 @@ void W8SpellEmitterHost::SendToEmitter(char emitter, int arg_2, int arg_3)
     Function4A14D0(this->emitters[emitter], arg_3, arg_2);
 }
 
+/* Apply the host setting to one required emitter.  The source assertion names
+   that local pointer `pao`; assertions do not replace the following call. */
+// FUNCTION: WIZ8 0x004ab2c0
+void W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
+{
+    W8Emitter* target = this->emitters[emitter];
+
+    if (target == 0) {
+        srAssertFail(
+            "pao",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x200,
+            0);
+    }
+    Function4A15D0(target, this->setting_98);
+}
+
 /* Stop one named emitter, passing the host's own setting; an empty slot is
    left alone. */
 // FUNCTION: WIZ8 0x004ab310
@@ -115,6 +127,40 @@ void W8SpellEmitterHost::StopEmitter(char emitter)
         return;
     }
     Function4A1660(target, this->setting_98, 0);
+}
+
+/* The clone slot owns both the 0x37c allocation and the copy-construction
+   call.  The constructor body remains the next lifecycle member to recover. */
+// FUNCTION: WIZ8 0x004ade70
+W8AnimRepBase005EC1D8* W8SpellEmitterHost::Clone()
+{
+    return new W8SpellEmitterHost(*this);
+}
+
+/* Release each owned emitter and every per-emitter vector of cloned lights.
+   The member-array and base destructors then run in reverse construction
+   order, matching the two vector/base cleanup phases in the image. */
+// SYNTHETIC: WIZ8 0x004aad00
+// W8SpellEmitterHost::`scalar deleting destructor'
+// FUNCTION: WIZ8 0x004ab1c0
+W8SpellEmitterHost::~W8SpellEmitterHost()
+{
+    int emitter;
+    int light_list;
+
+    for (emitter = 0; emitter < 28; ++emitter) {
+        if (emitters[emitter] != 0) {
+            DestroyEmitter(emitters[emitter]);
+            emitters[emitter] = 0;
+        }
+    }
+    for (emitter = 0; emitter < 28; ++emitter) {
+        for (light_list = 0; light_list < light_lists[emitter].GetCount();
+             ++light_list) {
+            DestroyVector005EC294(*light_lists[emitter].GetAt(light_list));
+        }
+        light_lists[emitter].Clear();
+    }
 }
 
 /* Whether one spell id is among the six the caller singles out. */
@@ -146,26 +192,12 @@ void ReleaseSpellDatabase(void)
     }
 }
 
-/* Two vtable slot-zero thunks: the complete destructor followed by the
-   conditional release the deleting flag selects. */
-void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
-    void* self, int /* unused edx */, unsigned char flags);
+/* The second class remains at the older positional boundary.  The recovered
+   W8SpellEmitterHost above now emits its own typed deleting destructor. */
 void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
     void* self, int /* unused edx */, unsigned char flags);
 
-extern void __fastcall SpellObject5ECF18_Destroy(void* self);            /* 0x004AB1C0 */
 extern void __fastcall SpellObject5ECF40_Destroy(void* self);            /* 0x004ABD00 */
-
-// FUNCTION: WIZ8 0x004aad00
-void* __fastcall SpellObject5ECF18_ScalarDeletingDestructor(
-    void* self, int, unsigned char flags)
-{
-    SpellObject5ECF18_Destroy(self);
-    if ((flags & 1) != 0) {
-        operator delete(self);
-    }
-    return self;
-}
 
 // FUNCTION: WIZ8 0x004abce0
 void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(

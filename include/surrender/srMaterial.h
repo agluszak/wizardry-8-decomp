@@ -70,4 +70,4 @@ protected:
     unsigned long field_74;
 };
 
-typedef char srMaterial_must_be_0x78[(sizeof(srMaterial) == 0x78) ? 1 : -1];
+static_assert((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");

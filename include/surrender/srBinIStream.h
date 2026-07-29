@@ -38,8 +38,7 @@ private:
     unsigned char unknown_04_[0x0c];
 };
 
-typedef char srBinStream_must_be_0x10[
-    (sizeof(srBinStream) == 0x10) ? 1 : -1];
+static_assert((sizeof(srBinStream) == 0x10), "srBinStream_must_be_0x10");
 
 // The vbtable accesses in the JPEG extension prove that srBinStream is a
 // virtual base of both directional stream interfaces.

@@ -17,10 +17,8 @@ struct W8ItemRuntimeCatalog {
     int used;
 };
 
-typedef char W8ItemRuntimeRow_must_be_8[
-    sizeof(W8ItemRuntimeRow) == 8 ? 1 : -1];
-typedef char W8ItemRuntimeCatalog_must_be_0x0c[
-    sizeof(W8ItemRuntimeCatalog) == 0x0c ? 1 : -1];
+static_assert(sizeof(W8ItemRuntimeRow) == 8, "W8ItemRuntimeRow_must_be_8");
+static_assert(sizeof(W8ItemRuntimeCatalog) == 0x0c, "W8ItemRuntimeCatalog_must_be_0x0c");
 
 W8ItemRuntimeCatalog g_item_runtime_catalog_683f78;
 

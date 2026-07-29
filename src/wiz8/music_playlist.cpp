@@ -30,8 +30,7 @@ private:
     W8GrowableVector<void*> entries_28;
 };
 
-typedef char W8MusicPlaylist_must_be_0x38[
-    sizeof(W8MusicPlaylist) == 0x38 ? 1 : -1];
+static_assert(sizeof(W8MusicPlaylist) == 0x38, "W8MusicPlaylist_must_be_0x38");
 
 srRegistry::ClassNode* W8MusicPlaylist::classNode()
 {

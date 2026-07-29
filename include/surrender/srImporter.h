@@ -42,10 +42,8 @@ public:
     class SurfaceExporter;
 };
 
-typedef char srSurfaceImportInfo_must_be_0x0c[
-    (sizeof(srSurfaceIOManager::ImportInfo) == 0x0c) ? 1 : -1];
-typedef char srSurfaceExportInfo_must_be_0x0c[
-    (sizeof(srSurfaceIOManager::ExportInfo) == 0x0c) ? 1 : -1];
+static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");
+static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
 class __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:

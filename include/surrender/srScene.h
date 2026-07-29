@@ -60,5 +60,5 @@ private:
     unsigned char unknown_138_[0x50];
 };
 
-typedef char srScene_must_be_0x190[(sizeof(srScene) == 0x190) ? 1 : -1];
-typedef char srCamera_must_be_0x188[(sizeof(srCamera) == 0x188) ? 1 : -1];
+static_assert((sizeof(srScene) == 0x190), "srScene_must_be_0x190");
+static_assert((sizeof(srCamera) == 0x188), "srCamera_must_be_0x188");

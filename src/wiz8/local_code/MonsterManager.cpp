@@ -204,12 +204,9 @@ private:
 };                                       /* 0x9c7 */
 #pragma pack(pop)
 
-typedef char W8VectorElement005EBFE0_vector_size_must_be_0x10[
-    sizeof(W8GrowableVector<W8VectorElement005EBFE0*>) == 0x10 ? 1 : -1];
-typedef char W8MonsterManagerEntry_size_must_be_0x118[
-    sizeof(W8MonsterManagerEntry) == 0x118 ? 1 : -1];
-typedef char W8MonsterManagerState_size_must_be_0x9c7[
-    sizeof(W8MonsterManagerState) == 0x9c7 ? 1 : -1];
+static_assert(sizeof(W8GrowableVector<W8VectorElement005EBFE0*>) == 0x10, "W8VectorElement005EBFE0_vector_size_must_be_0x10");
+static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
+static_assert(sizeof(W8MonsterManagerState) == 0x9c7, "W8MonsterManagerState_size_must_be_0x9c7");
 
 // FUNCTION: WIZ8 0x004e4600
 void Function4E4600(W8MonsterInfo* monster_info)

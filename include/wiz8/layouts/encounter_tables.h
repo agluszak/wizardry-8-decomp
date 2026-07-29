@@ -49,10 +49,8 @@ typedef struct W8EncounterTableRuntime {
 } W8EncounterTableRuntime;              /* 0x158 */
 
 #ifndef __WIZ8_GHIDRA_LAYOUTS__
-typedef char W8EncounterByteVector_size_must_be_0x10[
-    sizeof(W8EncounterByteVector) == 0x10 ? 1 : -1];
-typedef char W8EncounterTableRuntime_size_must_be_0x158[
-    sizeof(W8EncounterTableRuntime) == 0x158 ? 1 : -1];
+static_assert(sizeof(W8EncounterByteVector) == 0x10, "W8EncounterByteVector_size_must_be_0x10");
+static_assert(sizeof(W8EncounterTableRuntime) == 0x158, "W8EncounterTableRuntime_size_must_be_0x158");
 #endif
 
 #pragma pack(pop)

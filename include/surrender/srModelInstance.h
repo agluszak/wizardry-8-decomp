@@ -50,5 +50,4 @@ protected:
     unsigned long state_17c;
 };
 
-typedef char srModelInstance_must_be_0x180[
-    (sizeof(srModelInstance) == 0x180) ? 1 : -1];
+static_assert((sizeof(srModelInstance) == 0x180), "srModelInstance_must_be_0x180");

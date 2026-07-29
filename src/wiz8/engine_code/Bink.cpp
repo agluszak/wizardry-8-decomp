@@ -6,8 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 
-typedef char BINK_FrameRects_at_0x34[
-    offsetof(BINK, FrameRects) == 0x34 ? 1 : -1];
+static_assert(offsetof(BINK, FrameRects) == 0x34, "BINK_FrameRects_at_0x34");
 
 extern "C" {
 

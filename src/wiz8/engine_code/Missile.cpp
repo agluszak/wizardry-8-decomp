@@ -20,8 +20,7 @@ struct W8MissileTableRecord {
 W8MissileTableRecord* g_missile_table_65bde0;
 unsigned int g_missile_table_count_65bddc;
 
-typedef char W8MissileTableRecord_must_be_0x1e5[
-    sizeof(W8MissileTableRecord) == 0x1e5 ? 1 : -1];
+static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
 
 /* Engine Code\\Missile.cpp's startup database load.  Each disk row has a
    0x101-byte editor prefix followed by the 0x1e5-byte runtime record. */
@@ -85,7 +84,7 @@ class W8Missile {
 public:
     virtual ~W8Missile();
 
-    W8EmitterHost* GetLauncher();    /* 0x004A45E0 */
+    W8EmitterTableHost* GetLauncher();    /* 0x004A45E0 */
     W8Emitter* GetActiveEmitter();/* 0x004A4570 */
     float GetActiveEmitterValue();       /* 0x004A45C0 */
     char GetEmitterCount();              /* 0x004A4590 */
@@ -96,7 +95,7 @@ public:
     void ResetLauncherCounters(int arg_1, int arg_2);   /* 0x004A4140 */
 
     unsigned char unknown_004[0x1d8];
-    W8EmitterHost* launcher;             /* 0x1dc */
+    W8EmitterTableHost* launcher;        /* 0x1dc */
 };
 
 extern void ReleaseMissile(W8Missile* missile);                          /* 0x004A7470 */
@@ -105,7 +104,7 @@ extern void Function4A72F0(int arg_1, int arg_2);
 
 /* The launcher a missile was fired from. */
 // FUNCTION: WIZ8 0x004a45e0
-W8EmitterHost* W8Missile::GetLauncher()
+W8EmitterTableHost* W8Missile::GetLauncher()
 {
     return this->launcher;
 }
@@ -158,7 +157,7 @@ void W8Missile::ApplyLauncherSetting98()
 // FUNCTION: WIZ8 0x004a4140
 void W8Missile::ResetLauncherCounters(int arg_1, int arg_2)
 {
-    W8EmitterHost* launcher_before;
+    W8EmitterTableHost* launcher_before;
 
     *(unsigned char*)((char*)this->launcher + 0x94) = 0;
     launcher_before = this->launcher;

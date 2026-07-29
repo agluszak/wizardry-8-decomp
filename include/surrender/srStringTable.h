@@ -19,5 +19,4 @@ private:
     long count_;
 };
 
-typedef char srStringTable_must_be_0x0c[
-    (sizeof(srStringTable) == 0x0c) ? 1 : -1];
+static_assert((sizeof(srStringTable) == 0x0c), "srStringTable_must_be_0x0c");

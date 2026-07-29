@@ -1222,13 +1222,10 @@ struct W8Monster {
    allocates this much, so the extent is proven even though most of it is not.
    Asserting it here is what stops a field edit from silently shortening the
    object. */
-typedef char W8Monster_size_must_be_0x628[
-    sizeof(W8Monster) == 0x628 ? 1 : -1];
+static_assert(sizeof(W8Monster) == 0x628, "W8Monster_size_must_be_0x628");
 
-typedef char W8MonsterCycle_size_must_be_0x10[
-    sizeof(W8MonsterCycle) == 0x10 ? 1 : -1];
-typedef char W8MonsterMember18_size_must_be_0x94[
-    sizeof(W8MonsterMember18) == 0x94 ? 1 : -1];
+static_assert(sizeof(W8MonsterCycle) == 0x10, "W8MonsterCycle_size_must_be_0x10");
+static_assert(sizeof(W8MonsterMember18) == 0x94, "W8MonsterMember18_size_must_be_0x94");
 #endif
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
@@ -1371,10 +1368,8 @@ typedef struct W8MonsterInfo {
 } W8MonsterInfo;                          /* 0x425 */
 #pragma pack(pop)
 
-typedef char W8MonsterInfo_size_must_be_0x425[
-    sizeof(W8MonsterInfo) == 0x425 ? 1 : -1];
-typedef char W8MonsterRuntimeBlock1DB_size_must_be_0x67[
-    sizeof(W8MonsterRuntimeBlock1DB) == 0x67 ? 1 : -1];
+static_assert(sizeof(W8MonsterInfo) == 0x425, "W8MonsterInfo_size_must_be_0x425");
+static_assert(sizeof(W8MonsterRuntimeBlock1DB) == 0x67, "W8MonsterRuntimeBlock1DB_size_must_be_0x67");
 
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);

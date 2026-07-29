@@ -125,7 +125,6 @@ extern "C" srPlugin* __cdecl srInitPlugin()
     return new srJPEGPlugin;
 }
 
-typedef char srJPEGImporter_must_be_0x44[(sizeof(srJPEGImporter) == 0x44) ? 1 : -1];
-typedef char srJPEGPlugin_must_be_0x48[(sizeof(srJPEGPlugin) == 0x48) ? 1 : -1];
-typedef char srJPEGColorSurface_must_be_0x5c[
-    (sizeof(srJPEGColorSurface) == 0x5c) ? 1 : -1];
+static_assert((sizeof(srJPEGImporter) == 0x44), "srJPEGImporter_must_be_0x44");
+static_assert((sizeof(srJPEGPlugin) == 0x48), "srJPEGPlugin_must_be_0x48");
+static_assert((sizeof(srJPEGColorSurface) == 0x5c), "srJPEGColorSurface_must_be_0x5c");

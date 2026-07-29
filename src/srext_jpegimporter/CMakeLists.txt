@@ -133,6 +133,7 @@
         src/srext_jpegimporter/srEXT_JPEGImporter.def
         src/srext_jpegimporter/srEXT_JPEGImporter.rc
     )
+    wiz8_enable_cpp_compat(SREXT_JPEGIMPORTER)
     add_dependencies(SREXT_JPEGIMPORTER surrender_import_library)
     target_include_directories(SREXT_JPEGIMPORTER PRIVATE
         include

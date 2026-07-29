@@ -99,8 +99,7 @@ struct W8EncounterTableLayout {
 };
 #pragma pack(pop)
 
-typedef char W8EncounterTableLayout_must_be_0x158[
-    sizeof(W8EncounterTableLayout) == 0x158 ? 1 : -1];
+static_assert(sizeof(W8EncounterTableLayout) == 0x158, "W8EncounterTableLayout_must_be_0x158");
 
 static unsigned char GrowPointerArray(void*** values, unsigned int* capacity,
                                       unsigned int wanted)

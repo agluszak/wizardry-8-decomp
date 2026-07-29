@@ -62,5 +62,5 @@ public:
     int field_194;
 };
 
-typedef char stTexture2D_must_be_0x6c[(sizeof(stTexture2D) == 0x6c) ? 1 : -1];
-typedef char stSurface2D_must_be_0x198[(sizeof(stSurface2D) == 0x198) ? 1 : -1];
+static_assert((sizeof(stTexture2D) == 0x6c), "stTexture2D_must_be_0x6c");
+static_assert((sizeof(stSurface2D) == 0x198), "stSurface2D_must_be_0x198");

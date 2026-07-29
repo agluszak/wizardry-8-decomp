@@ -23,6 +23,6 @@ private:
     IDirectDrawSurface2* m_target;   /* 0x08 */
 };
 
-typedef char W8BinkVideo_must_be_0x0c[sizeof(W8BinkVideo) == 0x0c ? 1 : -1];
+static_assert(sizeof(W8BinkVideo) == 0x0c, "W8BinkVideo_must_be_0x0c");
 
 #endif

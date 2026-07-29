@@ -42,8 +42,8 @@ typedef struct W8VideoFrame {
 
 #pragma pack(pop)
 
-typedef char W8VideoObjectSlot_size_must_be_8[sizeof(W8VideoObjectSlot) == 8 ? 1 : -1];
-typedef char W8VideoFrame_size_must_be_0x3c[sizeof(W8VideoFrame) == 0x3c ? 1 : -1];
+static_assert(sizeof(W8VideoObjectSlot) == 8, "W8VideoObjectSlot_size_must_be_8");
+static_assert(sizeof(W8VideoFrame) == 0x3c, "W8VideoFrame_size_must_be_0x3c");
 
 extern "C" {
 

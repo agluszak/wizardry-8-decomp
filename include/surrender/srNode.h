@@ -100,6 +100,5 @@ public:
     static SR_DLL_IMPORT const char* sGetClassName();
 };
 
-typedef char srNode_must_be_0x138[(sizeof(srNode) == 0x138) ? 1 : -1];
-typedef char srNode_TraverseInfo_must_be_0x14[
-    (sizeof(srNode::TraverseInfo) == 0x14) ? 1 : -1];
+static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
+static_assert((sizeof(srNode::TraverseInfo) == 0x14), "srNode_TraverseInfo_must_be_0x14");

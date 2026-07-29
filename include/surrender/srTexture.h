@@ -83,7 +83,7 @@ protected:
     unsigned long texture_flags_;           /* 0x50 */
 };
 
-typedef char srTexture_must_be_0x54[(sizeof(srTexture) == 0x54) ? 1 : -1];
+static_assert((sizeof(srTexture) == 0x54), "srTexture_must_be_0x54");
 
 class SR_DLL_IMPORT srTextureMap : public srTexture {
 public:
@@ -97,4 +97,4 @@ protected:
     unsigned char unknown_54_[0x08];
 };
 
-typedef char srTextureMap_must_be_0x5c[(sizeof(srTextureMap) == 0x5c) ? 1 : -1];
+static_assert((sizeof(srTextureMap) == 0x5c), "srTextureMap_must_be_0x5c");
