@@ -2,12 +2,8 @@
 #include <math.h>
 #include "wiz8/vector.h"
 #include "wiz8/sr_api.h"
-
-/* Declared rather than pulled in from the vendored SGP FileMan.h: that header
-   is C and including it here re-declares the CRT wide-string overloads with C
-   linkage. The signature is the header's, spelled out. */
-extern "C" unsigned char FileWrite(int handle, void* source, unsigned int size,
-                                  unsigned int* written);
+#include "wiz8/virtual_file.h"
+#include "FileMan.h"
 
 #include <string.h>
 
@@ -69,11 +65,6 @@ extern short g_generator_interval_max;                       /* 0x0060A6B8 */
 extern int g_saved_encounter_budget;                         /* 0x006850B6 */
 extern int g_encounter_culling_time_seconds;
 extern void Function43A690(int handle);                      /* 0x0043A690 */
-extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
-                                         unsigned int size, unsigned int* done);
-extern "C" int FileOpen(char* path, unsigned int options,
-                         unsigned char delete_on_close);
-extern "C" void CloseVirtualFile(int handle);
 extern const float g_generator_jitter_fraction;              /* 0x005EC040 */
 
 W8EncounterTableRuntime** g_encounter_tables;

@@ -1,13 +1,9 @@
+#include "wiz8/virtual_file.h"
+#include "FileMan.h"
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-
-extern "C" int FileOpen(char* path, unsigned int options,
-                         unsigned char delete_on_close);
-extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
-                                          unsigned int size,
-                                          unsigned int* done);
-extern "C" void CloseVirtualFile(int handle);
 
 char* g_weapon_attack_sounds_68dd90[38];
 char* g_material_impact_sounds_68d850[28][12];

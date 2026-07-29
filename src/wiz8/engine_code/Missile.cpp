@@ -8,15 +8,8 @@
  */
 
 #include "wiz8/engine_code/Emitter.h"
-
-extern "C" int FileOpen(char* path, unsigned int options,
-                         unsigned char delete_on_close);
-extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
-                                          unsigned int size,
-                                          unsigned int* done);
-extern "C" unsigned char FileSeek(int handle, unsigned int distance,
-                                   unsigned char origin);
-extern "C" void CloseVirtualFile(int handle);
+#include "wiz8/virtual_file.h"
+#include "FileMan.h"
 
 #pragma pack(push, 1)
 struct W8MissileTableRecord {

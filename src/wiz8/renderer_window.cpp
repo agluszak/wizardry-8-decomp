@@ -1,5 +1,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/sr_api.h"
+#include "DirectDraw Calls.h"
 #include "surrender/srConfig.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srGERD.h"
@@ -19,15 +21,6 @@
  * carry address-derived names; only the SR.DLL entry points and the window
  * handle have real ones.
  */
-
-/* Declared to produce exactly the decorated names Wiz8.exe imports:
-   ?isWindowOpen@srGERD@@QBEHXZ and ?load@srExtension@@SAPAV1@PBD0@Z. The
-   dllimport is not decoration: without it VC6 emits a five-byte direct call to
-   the import thunk where the canonical has a six-byte indirect call through the
-   import address table. */
-__declspec(dllimport) int __cdecl srInit(void);
-__declspec(dllimport) void __cdecl srAssertSetFunc(
-    void (__cdecl *handler)(const char*, const char*, long, const char*));
 
 extern "C" {
 
@@ -99,10 +92,6 @@ extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
 extern const float g_one_5ebc30 = 1.0f;
 
-/* From the vendored SGP DirectDraw Calls.c. */
-extern void DDUnlockSurface(void* surface, void* locked);
-extern void DDLockSurface(void* surface, RECT* area,
-                          DDSURFACEDESC* description, int flags, void* event);
 unsigned char g_block_652ddc[0x12c0];
 unsigned int g_index_6596e4;
 int g_dword_6596d8;

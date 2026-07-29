@@ -3,6 +3,8 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
 #include "Font.h"
+#include "FileMan.h"
+#include "Mss.h"
 #include "vobject.h"
 #include "vsurface.h"
 
@@ -262,7 +264,7 @@ int ReturnZero(void)
 }
 
 // FUNCTION: WIZ8 0x00427A60
-const char* GetVideoConfigFileName(void)
+char* GetVideoConfigFileName(void)
 {
     return "3DVideo.CFG";
 }
@@ -423,9 +425,6 @@ void Function404B00(void)
     g_flag_6ef440 = 0;
 }
 
-extern unsigned char FileExists(const char* path);
-
-
 extern void Function4E3340(void);
 /* These are retained SGP globals, named by the vendored declaration surface. */
 extern HINSTANCE ghInstance;
@@ -477,18 +476,6 @@ extern unsigned char gfUsingBoundsChecker;
 extern unsigned char gfCapturingVideo;
 extern char* gzStringDataOverride;
 
-/* Miles Sound System, declared __stdcall so the decorated names match the
-   import library built from Wiz8.exe's own import table. Miles is library code
-   and is linked, never modelled. */
-extern "C" {
-int __stdcall AIL_enumerate_3D_providers(int* next, int* destination, char** name);
-int __stdcall AIL_open_3D_provider(int provider);
-int __stdcall AIL_open_3D_listener(int provider);
-void __stdcall AIL_close_3D_provider(int provider);
-void __stdcall AIL_set_3D_position(int listener, float x, float y, float z);
-int __stdcall AIL_3D_provider_attribute(int provider, const char* name, void* value);
-}
-
 extern unsigned char Function409C50(void);
 
 unsigned char g_flag_5ff652;
@@ -497,8 +484,8 @@ unsigned char g_block_6e4120[0x980];
 unsigned char g_block_6e4aa0[0x6c00];
 int g_dword_650e4c;
 extern char* g_sound_provider_650e54;
-int g_provider_650e58;
-int g_listener_650e5c;
+HPROVIDER g_provider_650e58;
+H3DPOBJECT g_listener_650e5c;
 unsigned char g_buffer_7dc000[1];
 
 /* Walks the Miles 3D providers for the one whose name matches the configured
@@ -508,10 +495,10 @@ unsigned char g_buffer_7dc000[1];
 // FUNCTION: WIZ8 0x004086D0
 bool Function4086D0(void)
 {
-    int next;
-    int provider;
-    char* name;
-    int attribute;
+    HPROENUM next;
+    HPROVIDER provider;
+    C8* name;
+    S32 attribute;
 
     if (g_flag_650e50) {
         g_flag_650e50 = 0;

@@ -3,6 +3,7 @@
 #include <ddraw.h>
 
 #include "wiz8/gameplay_boundaries.h"
+#include "DirectDraw Calls.h"
 
 /*
  * Fills a rectangle on one of the managed surfaces.
@@ -37,10 +38,6 @@ extern W8SurfaceSlot* g_surface_650de0;
 extern W8ManagedSurface* g_surface_list_650dbc;
 
 extern void GetClipRect(int* rect);
-extern int DDBltSurface(IDirectDrawSurface2* target, RECT* area,
-                        IDirectDrawSurface2* source, RECT* source_area,
-                        unsigned int flags, DDBLTFX* effects);
-
 // FUNCTION: WIZ8 0x00402FA0
 unsigned char FillSurfaceRect(int surface_id, int left, int top, int right, int bottom,
                               int colour)

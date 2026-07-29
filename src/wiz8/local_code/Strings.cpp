@@ -1,13 +1,11 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "FileMan.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 extern "C" {
-
-extern int FileOpen(const char* path, int options, int delete_on_close);
-extern void CloseVirtualFile(int handle);
 
 int giStringListLen;
 wchar_t** gppStringList;   /* 0x0068C09C */
@@ -26,7 +24,7 @@ void LoadLocalizedStrings(const char* path)
 {
     static const char source[] =
         "C:\\Projects\\Wizardry 8\\Local Code\\Strings.cpp";
-    int handle = FileOpen(path, 0x41, 0);
+    int handle = FileOpen(const_cast<char*>(path), 0x41, 0);
     int index;
 
     if (!handle) {

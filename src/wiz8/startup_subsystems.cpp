@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/screen_state.h"
 #include "Font.h"
+#include "FileMan.h"
 #include "vobject.h"
 
 #include <stdlib.h>
@@ -37,7 +38,6 @@ struct W8StartupGridRow {
 
 W8StartupGridRow g_startup_grid_647da0[8];
 
-extern unsigned char FileExistsNoDB(const char* path);
 extern unsigned char InitializeVector005EEA28(void);
 extern void InitializeMenuVideoObjectCatalog(void);
 extern void Function549090(int object, int frame);

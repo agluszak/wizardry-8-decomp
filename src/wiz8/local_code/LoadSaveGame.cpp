@@ -24,14 +24,6 @@
    the bodies below sit inside the interval rather than being assigned to it by
    subsystem guesswork. */
 
-/* SGP's FileMan.c, reviewed in evidence/reviewed/wiz8/claims.csv at
-   0x004051D0, 0x004051F0 and 0x004054F0. Declared here rather than included
-   from third_party/sfi-sgp, as the other recovered units declare their SGP
-   callees: this track does not build or modify the vendored tree. */
-extern unsigned char DirectoryExists(const char* directory);
-extern unsigned char MakeFileManDirectory(const char* directory);
-extern unsigned int FileGetAttributes(const char* path);
-
 /* The attribute word this gate tests is a Windows attribute word, so the two
    constants come from windows.h and are not restated here. Ghidra labels the
    pair with the vendored SFI release's SGP names, which number those bits
@@ -96,9 +88,6 @@ struct W8StatusHeader {
     unsigned char block_014[0x100];      /* 0x014 */
     unsigned char unknown_114[0x200];
 };                                       /* 0x314 */
-
-/* The game-side virtual-file close wrapper is distinct from SGP FileClose. */
-extern "C" void CloseVirtualFile(int handle);
 
 /* 0x005156C0, 0x00517A90 and 0x00518510, not yet identified; named by address
    as elsewhere in src/wiz8. The first loads a character from somewhere other

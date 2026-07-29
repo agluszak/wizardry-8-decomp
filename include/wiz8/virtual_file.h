@@ -2,6 +2,8 @@
 
 extern "C" {
 
+void CloseVirtualFile(int handle);
+
 unsigned char ReadVirtualFile(
     int handle,
     void* buffer,

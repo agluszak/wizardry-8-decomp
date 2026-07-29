@@ -2,20 +2,11 @@
 #include "surrender/srCore.h"
 #include "surrender/srExtension.h"
 #include "surrender/srIStreamOpener.h"
+#include "wiz8/virtual_file.h"
+#include "FileMan.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-/* Returns a byte-sized boolean, not an int: the canonical body tests it with
-   `neg al`, which an int-returning declaration cannot produce. */
-extern "C" unsigned char ReadVirtualFile(int handle, void* buffer, unsigned long size,
-                                         unsigned long* done);
-extern "C" int FileOpen(const char* path, int mode, int flags);
-extern "C" unsigned char FileSeek(int handle, int offset, int origin);
-extern "C" int FileGetPos(int handle);
-extern "C" unsigned char FileRead(
-    int handle, void* buffer, unsigned long size, unsigned long* done);
-extern "C" void FileClose(int handle);
 
 /* The retained FileMan implementation owns the physical/SLF handle split.
    These reviewed first-party entry points keep Wizardry's historical names
@@ -28,7 +19,7 @@ extern "C" void CloseVirtualFile(int handle)
 
 // FUNCTION: WIZ8 0x00404EA0
 extern "C" unsigned char ReadVirtualFile(
-    int handle, void* buffer, unsigned long size, unsigned long* done)
+    int handle, void* buffer, unsigned int size, unsigned int* done)
 {
     return FileRead(handle, buffer, size, done);
 }
@@ -127,7 +118,11 @@ unsigned long W8VirtualFileBinIStream::tell()
 // FUNCTION: WIZ8 0x0047D5C0
 unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 {
-    if (ReadVirtualFile(m_hFile, buffer, size, &size)) {
+    /* SurRender spells its 32-bit count unsigned long; SGP spells the same
+       ABI word UINT32 (unsigned int). The canonical body reuses this parameter
+       slot, so keep that ownership explicit at the header boundary. */
+    if (ReadVirtualFile(
+            m_hFile, buffer, size, reinterpret_cast<unsigned int*>(&size))) {
         return size;
     }
     return 0;

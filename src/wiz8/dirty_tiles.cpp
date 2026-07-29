@@ -3,6 +3,7 @@
 #include "wiz8/surface2d.h"
 #include "wiz8/wiz8_windows.h"
 #include "surrender/srGERD.h"
+#include "DirectDraw Calls.h"
 
 class srNode;
 
@@ -24,10 +25,6 @@ extern unsigned int g_index_6596e4;
 extern unsigned char g_flags_6596e8[2];
 unsigned char g_flag_65970d;
 unsigned char g_flag_6596ea;
-extern void DDLockSurface(void* surface, RECT* area,
-                          DDSURFACEDESC* description, int flags, void* event);
-extern void DDUnlockSurface(void* surface, void* locked);
-
 /* The initial full-screen invalidation runs before any 2D node occupies the
    tile table.  Preserve that complete empty-slot path here; the non-empty path
    remains owned by the 2D-node recovery rather than pretending a partial

@@ -85,6 +85,33 @@ def test_intro_video_owner_uses_canonical_bink_import_surface() -> None:
     assert "wiz8_add_import_library(WIZ8_BINKW32" in product
 
 
+def test_library_calls_use_their_owned_interface_headers() -> None:
+    repository = Path(__file__).resolve().parents[2]
+    bringup = (repository / "src/wiz8/bringup_gates.cpp").read_text(encoding="utf-8")
+    renderer = (repository / "src/wiz8/renderer_window.cpp").read_text(encoding="utf-8")
+    gameplay_database = (repository / "src/wiz8/local_code/GameplayDatabase.cpp").read_text(
+        encoding="utf-8"
+    )
+    directdraw_users = [
+        renderer,
+        (repository / "src/wiz8/dirty_tiles.cpp").read_text(encoding="utf-8"),
+        (repository / "src/wiz8/video2.cpp").read_text(encoding="utf-8"),
+        (repository / "src/wiz8/local_code/SurfaceFill.cpp").read_text(encoding="utf-8"),
+    ]
+    sr_api = (repository / "include/wiz8/sr_api.h").read_text(encoding="utf-8")
+
+    assert '#include "Mss.h"' in bringup
+    assert "int __stdcall AIL_" not in bringup
+    assert '#include "FileMan.h"' in gameplay_database
+    assert "int FileOpen(" not in gameplay_database
+    assert all('#include "DirectDraw Calls.h"' in source for source in directdraw_users)
+    assert all("void DDLockSurface(" not in source for source in directdraw_users)
+    assert '#include "wiz8/sr_api.h"' in renderer
+    assert "__declspec(dllimport) int __cdecl srInit(void);" in sr_api
+    assert "__declspec(dllimport) void __cdecl srAssertSetFunc" in sr_api
+    assert "__declspec(dllimport)" not in renderer
+
+
 def test_reviewed_vc6_runtime_functions_are_library_annotations() -> None:
     repository = Path(__file__).resolve().parents[2]
     model = build_source_model(repository)

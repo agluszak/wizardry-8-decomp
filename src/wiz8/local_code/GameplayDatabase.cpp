@@ -4,15 +4,13 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "wiz8/virtual_file.h"
+#include "FileMan.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-extern "C" unsigned char ReadVirtualFile(int handle, void* buffer,
-                                          unsigned int size,
-                                          unsigned int* done);
-extern "C" int FileOpen(const char* path, int mode, int flags);
 /* 0x0052DB80 is a member function of the object at 0x00683FD7. VC6 has no way
    to spell __thiscall on a free declaration, but __fastcall passes its first
    argument in ECX, which is the same instruction the canonical emits.
@@ -77,18 +75,6 @@ extern void Function56C520(void);
 extern void SetSlotAction(int slot, int a, int b);
 /* 0x0055ADA0, not yet identified; releases one record's sub-list. */
 extern void Function55ADA0(void* fact_rules_runtime);
-extern "C" void CloseVirtualFile(int handle);
-extern "C" unsigned char FileSeek(int handle, int offset, int origin);
-
-/* The SGP file-manager seek origins, spelled the way FileMan.h does. This unit
-   does not include that header, so the three it uses are restated here rather
-   than left as the bare 1 and 4 the calls would otherwise carry. */
-enum {
-    W8_SEEK_FROM_START = 0x01,
-    W8_SEEK_FROM_END = 0x02,
-    W8_SEEK_FROM_CURRENT = 0x04
-};
-
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
@@ -909,7 +895,7 @@ unsigned char InitializeSpellDatabase(void)
             goto discard;
         }
         ok = 0;
-        if (FileSeek(handle, 0x101, W8_SEEK_FROM_CURRENT) &&
+        if (FileSeek(handle, 0x101, FILE_SEEK_FROM_CURRENT) &&
             ReadVirtualFile(
                 handle,
                 reinterpret_cast<unsigned char*>(g_spell_records) + offset,

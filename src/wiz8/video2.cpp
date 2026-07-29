@@ -8,6 +8,7 @@
 #include "wiz8/render_state.h"
 #include "wiz8/surface2d.h"
 #include "wiz8/wiz8_windows.h"
+#include "DirectDraw Calls.h"
 
 #include <string.h>
 
@@ -191,9 +192,6 @@ extern srColorSurface* g_primary_color_surface_659660;
 extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
 
-extern void DDUnlockSurface(void* surface, void* locked);
-extern void DDLockSurface(void* surface, RECT* area,
-                          DDSURFACEDESC* description, int flags, void* event);
 }
 
 extern "C" void PresentMenuOverlayFrame(void)
