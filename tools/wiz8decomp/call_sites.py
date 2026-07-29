@@ -17,19 +17,18 @@ same way rather than only the one that has a Ghidra project.
 
 from __future__ import annotations
 
-import csv
-import io
 import struct
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .binary.code import decode_chain_ending_at, function_start
 from .binary.image import PeImage
 from .binary.inventory import is_first_party, representative_modules
 from .config import Settings
 from .eh_metadata import _disassembler, import_slots
 from .ghidra.project import program_name
-from .paths import atomic_write
+from .reports.snapshots import csv_text, publish_report_snapshot
 
 _SNAPSHOT_NAME = "call-sites"
 _REPORT_FILES = ("assertions.csv", "runtime-class-names.csv")
@@ -40,19 +39,6 @@ SET_NAME_SYMBOL = "?setName@srRuntimeClass@@QAEXPBD@Z"
 # How far back a call's arguments may be pushed. Generous enough for the
 # four-argument assert plus interleaved argument evaluation.
 _WINDOW = 96
-# How far back to look for the padding that precedes a function's first byte.
-_FUNCTION_SCAN = 0x3000
-_PADDING = {0xCC, 0x90}
-_PROLOGUES = (
-    b"\x55\x8b\xec",
-    b"\x6a\xff",
-    b"\x83\xec",
-    b"\x81\xec",
-    b"\x53",
-    b"\x56",
-    b"\x57",
-    b"\x8b\xff",
-)
 
 
 @dataclass
@@ -75,57 +61,6 @@ def _string_at(image: PeImage, address: int | None) -> str | None:
     return value
 
 
-def _function_start(image: PeImage, address: int) -> int | None:
-    """The entry point of the function containing ``address``.
-
-    VC6 pads between functions with int3 or nop, so the first byte after the
-    nearest preceding padding run is the entry point. The candidate is only
-    accepted when it actually starts with a prologue, which keeps a jump table
-    or an unpadded tail from inventing a boundary.
-    """
-    offset = image.offset(address)
-    if offset is None:
-        return None
-    data = image.data
-    limit = max(0, offset - _FUNCTION_SCAN)
-    cursor = offset
-    while cursor > limit:
-        cursor -= 1
-        if data[cursor] not in _PADDING:
-            continue
-        run_end = cursor + 1
-        while cursor > limit and data[cursor - 1] in _PADDING:
-            cursor -= 1
-        if run_end - cursor < 1:
-            continue
-        candidate = image.virtual_address(run_end)
-        if candidate is None:
-            return None
-        body = image.read(candidate, 3)
-        if any(body.startswith(prologue) for prologue in _PROLOGUES):
-            return candidate
-        # A lone 0x90 inside an instruction stream is not padding; keep going.
-    return None
-
-
-def _decode_chain(image: PeImage, engine: Any, call: int) -> list[Any]:
-    """Instructions in a short window that decode to end exactly on ``call``.
-
-    x86 cannot be disassembled backwards, so every start offset in the window is
-    tried and the longest chain that lands precisely on the call is kept.
-    """
-    best: list[Any] = []
-    for back in range(4, _WINDOW):
-        start = call - back
-        raw = image.read(start, back)
-        if len(raw) != back:
-            continue
-        chain = list(engine.disasm(raw, start))
-        if chain and chain[-1].address + chain[-1].size == call:
-            best = chain
-    return best
-
-
 def _pushed_arguments(image: PeImage, engine: Any, call: int, count: int) -> list[int | None]:
     """The first ``count`` __cdecl/__thiscall arguments of a call.
 
@@ -134,7 +69,7 @@ def _pushed_arguments(image: PeImage, engine: Any, call: int, count: int) -> lis
     """
     from capstone import CS_OP_IMM
 
-    chain = _decode_chain(image, engine, call)
+    chain = decode_chain_ending_at(image, engine, call, _WINDOW)
     pushes = [item for item in chain if item.mnemonic == "push"]
     values: list[int | None] = []
     for instruction in reversed(pushes):
@@ -268,7 +203,7 @@ def analyse_image(path: Path) -> dict[str, list[dict[str, Any]]]:
                 {
                     "call_site": address,
                     "call_kind": kind,
-                    "function_start": _function_start(image, address),
+                    "function_start": function_start(image, address),
                     "source_path": _string_at(image, source) or "",
                     "line": line if line is not None and 0 < line < 1_000_000 else "",
                     "expression": _string_at(image, expression) or "",
@@ -284,19 +219,11 @@ def analyse_image(path: Path) -> dict[str, list[dict[str, Any]]]:
                 {
                     "call_site": address,
                     "call_kind": kind,
-                    "function_start": _function_start(image, address),
+                    "function_start": function_start(image, address),
                     "name": _string_at(image, argument) or "",
                 }
             )
     return {"assertions": assertions, "runtime_class_names": names}
-
-
-def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
 
 
 def _hex(value: Any) -> str:
@@ -382,7 +309,7 @@ def sweep_call_sites(settings: Settings, *, update_snapshot: bool = False) -> di
     assertion_rows.sort(key=lambda row: (row["program"], row["call_site"]))
     name_rows.sort(key=lambda row: (row["program"], row["call_site"]))
     outputs = {
-        "assertions.csv": _csv_text(
+        "assertions.csv": csv_text(
             [
                 "program",
                 "call_site",
@@ -395,29 +322,23 @@ def sweep_call_sites(settings: Settings, *, update_snapshot: bool = False) -> di
             ],
             assertion_rows,
         ),
-        "runtime-class-names.csv": _csv_text(
+        "runtime-class-names.csv": csv_text(
             ["program", "call_site", "call_kind", "function_start", "name"], name_rows
         ),
     }
 
-    report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name=_SNAPSHOT_NAME,
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "call-site report differs from the tracked snapshot; review "
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
-        )
+        ),
+    )
 
     resolved = [row for row in assertion_rows if row["source_path"]]
     return {

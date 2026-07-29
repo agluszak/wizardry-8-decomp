@@ -1,5 +1,6 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/sgp_video.h"
 #include "wiz8/sr_api.h"
 #include "DirectDraw Calls.h"
@@ -88,7 +89,8 @@ int g_viewport_left_6595e8;
 int g_viewport_top_6595ec;
 int g_viewport_right_6595f0;
 int g_viewport_bottom_6595f4;
-W8World* g_world_00659ab4;
+// GLOBAL: WIZ8 0x00659AB4
+W8World* g_world;
 W8World* g_world_659ab8;
 unsigned char g_flag_652da4;
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;

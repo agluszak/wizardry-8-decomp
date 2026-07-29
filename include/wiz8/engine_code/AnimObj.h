@@ -1,7 +1,7 @@
 #ifndef WIZ8_ENGINE_CODE_ANIM_OBJ_H
 #define WIZ8_ENGINE_CODE_ANIM_OBJ_H
 
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/3d_code/PList.h"
 
 /*
  * Engine Code\AnimObj.cpp.

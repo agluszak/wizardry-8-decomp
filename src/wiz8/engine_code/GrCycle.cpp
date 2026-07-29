@@ -302,7 +302,6 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
     g_grcycles_by_name.Add(cycles);
 }
 
-extern W8World* g_world_00659ab4;
 extern void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
 
 // FUNCTION: WIZ8 0x004a8c50
@@ -318,13 +317,13 @@ void DestroyLightVector(
             W8VectorElement005EC294* light = *vector->GetAt(index);
 
             if (light->world_link_234() != 0) {
-                int world_index = g_world_00659ab4->lights_to_update->IndexOf(light);
+                int world_index = g_world->lights_to_update->IndexOf(light);
                 if (world_index != -1) {
-                    g_world_00659ab4->lights_to_update->RemoveAt(world_index);
+                    g_world->lights_to_update->RemoveAt(world_index);
                 }
             }
             light->setParent(0, 1);
-            WorldRemoveLight(g_world_00659ab4, light);
+            WorldRemoveLight(g_world, light);
         }
         delete vector;
     }

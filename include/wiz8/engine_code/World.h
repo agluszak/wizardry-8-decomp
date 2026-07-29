@@ -61,6 +61,8 @@ struct W8World {
 
 };
 
+extern "C" W8World* g_world;
+
 W8World* CreateWorld();
 void ConstructWorldCollections(W8World* world);
 void DestroyWorldCollections(W8World* world);

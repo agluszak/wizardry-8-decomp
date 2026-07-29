@@ -6,28 +6,25 @@
 
 #include <string.h>
 
-extern int g_status_count_006874c2;
 extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
-extern W8PList* g_world_item_list_00683fb5;
-
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {
-    g_status_count_006874c2 = 1;
+    g_next_world_item_id = 1;
     g_item_manager_pending_00683FA9 = 0;
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
     }
-    if (g_world_item_list_00683fb5 != 0) {
-        PListClear(g_world_item_list_00683fb5);
-        return g_world_item_list_00683fb5 != 0;
+    if (g_world_item_list != 0) {
+        PListClear(g_world_item_list);
+        return g_world_item_list != 0;
     }
-    g_world_item_list_00683fb5 = PListCreate();
-    return g_world_item_list_00683fb5 != 0;
+    g_world_item_list = PListCreate();
+    return g_world_item_list != 0;
 }
 
 // FUNCTION: WIZ8 0x004f8130
@@ -259,9 +256,6 @@ int GenerateItemsFromTable(
 
 #include <stdlib.h>
 
-/* gXStatus.plsItemList, named by the ItemInfo assertion that bounds an index
-   against PLLength(gXStatus.plsItemList). */
-extern W8PList* g_world_item_list_00683fb5;
 /* 0x00689B54: the cursor the iterator below resumes from. */
 extern int g_world_item_cursor;
 
@@ -321,9 +315,9 @@ W8WorldItem* GetNextWorldItem(char restart)
         g_world_item_cursor = 0;
     }
     index = g_world_item_cursor;
-    if ((unsigned int)index < PListGetCount(g_world_item_list_00683fb5)) {
+    if ((unsigned int)index < PListGetCount(g_world_item_list)) {
         ++g_world_item_cursor;
-        return (W8WorldItem*)PListGetAt(g_world_item_list_00683fb5, index);
+        return (W8WorldItem*)PListGetAt(g_world_item_list, index);
     }
     return 0;
 }
@@ -425,15 +419,15 @@ W8WorldItem* ItemInfo(unsigned int item_list_index)
 {
     W8WorldItem* item;
 
-    if (item_list_index >= PListGetCount(g_world_item_list_00683fb5)) {
+    if (item_list_index >= PListGetCount(g_world_item_list)) {
         srAssertFail("uiItemListIndex < (UINT32) PLLength(gXStatus.plsItemList)",
                      ITEM_MANAGER_CPP, 961, 0);
     }
-    item = (W8WorldItem*)PListGetAt(g_world_item_list_00683fb5, item_list_index);
+    item = (W8WorldItem*)PListGetAt(g_world_item_list, item_list_index);
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 965,
                      FormatString("ItemInfo: ERROR - PLGet failed, index %d, pList %d",
-                                  item_list_index, g_world_item_list_00683fb5));
+                                  item_list_index, g_world_item_list));
     }
     return item;
 }
@@ -445,7 +439,7 @@ unsigned int ItemIndex(int runtime_id)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_world_item_list_00683fb5); ++index) {
+    for (index = 0; index < PListGetCount(g_world_item_list); ++index) {
         if (ItemInfo(index)->runtime_id == runtime_id) {
             return index;
         }
@@ -614,7 +608,7 @@ void RebuildAllWorldItemInstances(void)
     unsigned int index;
     W8WorldItem* item;
 
-    for (index = 0; index < PListGetCount(g_world_item_list_00683fb5); ++index) {
+    for (index = 0; index < PListGetCount(g_world_item_list); ++index) {
         item = ItemInfo(index);
         ReplaceOrCreateItem(&item->item, item->item.item_id, 0, 0, 0);
     }

@@ -38,8 +38,6 @@ candidates are regenerated.
 from __future__ import annotations
 
 import bisect
-import csv
-import io
 import struct
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -57,7 +55,7 @@ from .binary.image import PeImage
 from .binary.inventory import is_first_party, representative_modules
 from .config import Settings
 from .ghidra.project import program_name
-from .paths import atomic_write
+from .reports.snapshots import csv_text, publish_report_snapshot
 
 _SNAPSHOT_NAME = "functions"
 _REPORT_FILES = ("candidates.csv", "calls.csv")
@@ -302,14 +300,6 @@ def analyse_image(path: Path) -> dict[str, Any]:
     return {"candidates": candidates, "graph": graph, "accepted": accepted}
 
 
-def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
-
-
 def _hex(value: Any) -> str:
     return f"{value:08x}" if isinstance(value, int) else ""
 
@@ -409,7 +399,7 @@ def sweep_function_census(settings: Settings, *, update_snapshot: bool = False) 
     candidate_rows.sort(key=lambda row: (row["program"], row["address"]))
     call_rows.sort(key=lambda row: (row["program"], row["caller"], row["callee"]))
     outputs = {
-        "candidates.csv": _csv_text(
+        "candidates.csv": csv_text(
             [
                 "program",
                 "address",
@@ -424,27 +414,21 @@ def sweep_function_census(settings: Settings, *, update_snapshot: bool = False) 
             ],
             candidate_rows,
         ),
-        "calls.csv": _csv_text(["program", "caller", "callee", "call_sites"], call_rows),
+        "calls.csv": csv_text(["program", "caller", "callee", "call_sites"], call_rows),
     }
 
-    report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name=_SNAPSHOT_NAME,
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "function-census report differs from the tracked snapshot; review "
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
-        )
+        ),
+    )
 
     accepted_rows = [row for row in candidate_rows if row["verdict"] in {"exact", "strong"}]
     return {

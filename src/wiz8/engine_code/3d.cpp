@@ -43,7 +43,6 @@ void WorldUpdateProps(W8World* world)
 /* 0x00659AB4: the world being rendered, which the list wrappers below reach
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
-extern W8World* g_world_00659ab4;
 extern void Function4836A0(void);
 extern void SetHeapFree(void* block);
 extern void Function46E750(void* target, int argument);
@@ -55,19 +54,19 @@ extern void Function46E640(void* target, int argument);
 // FUNCTION: WIZ8 0x0046e580
 void WorldAddToList00(W8World* unused, void* entry)
 {
-    PListAdd(g_world_00659ab4->plsMonsters, entry);
+    PListAdd(g_world->plsMonsters, entry);
 }
 
 // FUNCTION: WIZ8 0x0046e5c0
 void WorldAddToList04(W8World* unused, void* entry)
 {
-    PListAdd(g_world_00659ab4->plsItems, entry);
+    PListAdd(g_world->plsItems, entry);
 }
 
 // FUNCTION: WIZ8 0x0046e5e0
 void WorldRemoveFromList04(W8World* unused, void* entry)
 {
-    PListRemove(g_world_00659ab4->plsItems, entry);
+    PListRemove(g_world->plsItems, entry);
 }
 
 /* How many props the world holds, and the one at a position - both answers
@@ -76,13 +75,13 @@ void WorldRemoveFromList04(W8World* unused, void* entry)
 // FUNCTION: WIZ8 0x0046e600
 void WorldGetPropCount(void)
 {
-    PListGetCount(g_world_00659ab4->plsProps);
+    PListGetCount(g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620
 void WorldGetPropAt(W8World* unused, int index)
 {
-    PListGetAt(g_world_00659ab4->plsProps, index);
+    PListGetAt(g_world->plsProps, index);
 }
 
 /* Two wrappers that reach one member along before forwarding, which is what
@@ -180,6 +179,6 @@ extern "C" {
 // FUNCTION: WIZ8 0x0046E5A0
 void Function46E5A0(int unused, void* item)
 {
-    PListRemove(g_world_00659ab4->plsMonsters, item);
+    PListRemove(g_world->plsMonsters, item);
 }
 }

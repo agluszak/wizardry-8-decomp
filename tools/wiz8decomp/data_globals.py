@@ -18,8 +18,6 @@ globals - they simply have no initialiser in the file - so they are reported wit
 
 from __future__ import annotations
 
-import csv
-import io
 from dataclasses import dataclass, field
 from itertools import pairwise
 from pathlib import Path
@@ -40,6 +38,7 @@ from .config import Settings
 from .eh_metadata import import_slots
 from .ghidra.project import program_name
 from .paths import atomic_write
+from .reports.snapshots import csv_text, publish_report_snapshot
 
 _SNAPSHOT_NAME = "globals"
 _REPORT_FILES = ("globals.csv",)
@@ -198,14 +197,6 @@ def analyse_image(path: Path) -> list[Global]:
     return ordered_globals
 
 
-def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
-
-
 def _hex(value: Any) -> str:
     return f"{value:08x}" if isinstance(value, int) else ""
 
@@ -311,7 +302,7 @@ def sweep_globals(settings: Settings, *, update_snapshot: bool = False) -> dict[
     rows.sort(key=lambda row: (row["program"], row["address"]))
     reference_rows.sort(key=lambda row: (row["program"], row["site"]))
     outputs = {
-        "globals.csv": _csv_text(
+        "globals.csv": csv_text(
             [
                 "program",
                 "address",
@@ -331,30 +322,25 @@ def sweep_globals(settings: Settings, *, update_snapshot: bool = False) -> dict[
     }
 
     report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
     atomic_write(
         report_dir / "references.csv",
-        _csv_text(
+        csv_text(
             ["program", "site", "function_start", "target", "mnemonic", "access", "width"],
             reference_rows,
         ),
     )
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name=_SNAPSHOT_NAME,
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "global-variable report differs from the tracked snapshot; review "
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
-        )
+        ),
+    )
 
     return {
         "schema": "wiz8.globals",

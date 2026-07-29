@@ -29,8 +29,6 @@ pointing at a jump thunk is reported with the library method it stands for.
 
 from __future__ import annotations
 
-import csv
-import io
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -50,7 +48,7 @@ from .class_candidates import allocation_size_before, allocation_size_hints
 from .config import Settings
 from .eh_metadata import import_slots
 from .ghidra.project import program_name
-from .paths import atomic_write
+from .reports.snapshots import csv_text, publish_report_snapshot
 
 _SNAPSHOT_NAME = "polymorphism"
 _REPORT_FILES = ("vtables.csv", "slots.csv", "vptr-writes.csv")
@@ -366,14 +364,6 @@ def analyse_image(path: Path) -> dict[str, Any]:
     }
 
 
-def _csv_text(fields: list[str], rows: list[dict[str, Any]]) -> str:
-    stream = io.StringIO(newline="")
-    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
-    writer.writeheader()
-    writer.writerows(rows)
-    return stream.getvalue()
-
-
 def _hex(value: Any) -> str:
     return f"{value:08x}" if isinstance(value, int) else ""
 
@@ -552,7 +542,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
     write_rows.sort(key=lambda row: (row["program"], row["site"]))
 
     outputs = {
-        "vtables.csv": _csv_text(
+        "vtables.csv": csv_text(
             [
                 "program",
                 "address",
@@ -569,7 +559,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             ],
             table_rows,
         ),
-        "slots.csv": _csv_text(
+        "slots.csv": csv_text(
             [
                 "program",
                 "vtable",
@@ -583,7 +573,7 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
             ],
             slot_rows,
         ),
-        "vptr-writes.csv": _csv_text(
+        "vptr-writes.csv": csv_text(
             [
                 "program",
                 "site",
@@ -596,24 +586,18 @@ def sweep_polymorphism(settings: Settings, *, update_snapshot: bool = False) -> 
         ),
     }
 
-    report_dir = settings.build_dir / "reports" / _SNAPSHOT_NAME
-    snapshot_dir = settings.repo_dir / "evidence" / "snapshots" / _SNAPSHOT_NAME
-    for name, value in outputs.items():
-        atomic_write(report_dir / name, value)
-    if update_snapshot:
-        for name, value in outputs.items():
-            atomic_write(snapshot_dir / name, value)
-        atomic_write(snapshot_dir / "README.md", _snapshot_readme())
-    snapshot_fresh = all(
-        (snapshot_dir / name).is_file()
-        and (snapshot_dir / name).read_text(encoding="utf-8") == outputs[name]
-        for name in _REPORT_FILES
-    )
-    if not update_snapshot and not snapshot_fresh:
-        raise RuntimeError(
+    report_dir, snapshot_dir, snapshot_fresh = publish_report_snapshot(
+        settings,
+        name=_SNAPSHOT_NAME,
+        outputs=outputs,
+        snapshot_files=_REPORT_FILES,
+        snapshot_readme=_snapshot_readme(),
+        update_snapshot=update_snapshot,
+        stale_error=(
             "polymorphism report differs from the tracked snapshot; review "
             f"build/reports/{_SNAPSHOT_NAME} and rerun with --update-snapshot"
-        )
+        ),
+    )
 
     return {
         "schema": "wiz8.polymorphism",

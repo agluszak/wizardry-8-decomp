@@ -21,8 +21,9 @@ bytes and contains 3,612 entries, with its directory beginning at `0x07892649`.
 These values are observations, not identities: mtimes and corpus paths are not part of
 the format.
 
-The tracked declarations are in `config/types/wiz8/slf.h` with the SGP names canonical and the old
-`W8SlfHeader`/`W8SlfDirectoryEntry` names retained only as compatibility aliases.
+The canonical declarations are the vendored SGP `LibraryDataBase.h` records. Wizardry-specific
+extensions and their applied field types live in the reviewed Ghidra project; Git does not retain a
+second format-only copy.
 
 Six packed `W8SlfConfiguration` records begin at `0x006000c8`. They correspond to the six paths
 embedded by Wizardry's missing `WizLibs.c`. The initialized game allocates six
@@ -39,8 +40,8 @@ The game wraps physical and archived files behind one integer handle API:
 - `SeekVirtualFile` at `0x00405030` dispatches physical or archive seeks.
 
 The seek-origin values are Wizardry-specific (`1` begin, `2` end, `4` current), not
-the Win32 constants passed internally. They are declared in
-`config/types/wiz8/virtual_file.h`.
+the Win32 constants passed internally. Their operational enum and applied uses live in Ghidra;
+recovered source declares them when a matching owner needs them.
 
 ## Level and waypoint files
 
@@ -263,10 +264,9 @@ and substitutes one for any zero among the four state values. The remaining `0x2
 are reserved and zero in newly written records. Later variable-size monster, item, and
 character records remain separate serializers and are not folded into this header.
 
-The remaining fields are intentionally opaque in
-`config/types/wiz8/gameplay_databases.h`. Their offsets will be named only after
-reconciling canonical field accesses. `evidence/reviewed/wiz8/formats/database-records.csv`
-preserves the corpus arithmetic and consumer evidence.
+The remaining fields stay unnamed in the reviewed Ghidra structures until canonical field accesses
+establish them. `evidence/reviewed/wiz8/formats/database-records.csv` preserves the corpus arithmetic
+and consumer evidence without cloning the field model.
 
 The item model has progressed beyond its record boundary. `FormatItemDisplayName` at
 `0x0051b5c0` establishes the generic-name index at `+0x03f` and selects the leading

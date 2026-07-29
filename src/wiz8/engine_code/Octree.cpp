@@ -2,7 +2,6 @@
 #include <cstring>
 
 #include "surrender/srHeap.h"
-#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/sr_api.h"
 
