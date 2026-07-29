@@ -467,11 +467,13 @@ def check(repository: Path) -> dict[str, Any]:
 
 def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     from .ghidra.index import export_index
+    from .runtime import run_runtime_suite
     from .source_layouts import require_source_layouts, verify_source_layouts
 
     lint_result = lint(settings)
     build_target(settings, "WIZ8")
     build_target(settings, "SURRENDER")
+    build_target(settings, "WIZ8_RUNTIME_TEST")
     build_analysis_target(settings, "tools/sgp-oracle", "sgp-oracle", "WIZ8_SGP_PROBES")
     ghidra_index = export_index(settings, "wiz8")
     source_layouts = require_source_layouts(verify_source_layouts(settings))
@@ -488,6 +490,7 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
         else None
     )
     decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
+    runtime = run_runtime_suite(settings)
     tests = run(["pytest"], cwd=settings.repo_dir)
     return {
         "lint": lint_result,
@@ -497,5 +500,6 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
         "source_layouts": source_layouts,
         "compare": comparison,
         "decomplint": _result(decomplint),
+        "runtime": runtime,
         "tests": _result(tests),
     }

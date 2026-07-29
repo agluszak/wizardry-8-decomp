@@ -131,8 +131,13 @@ public:
    both of these slots; Monster owns a pointer to it. */
 class MonsterLight {
 public:
-    const char* getClassName() const;     /* 0x0049DC30, vtable 0x005ECD18 + 0 */
-    unsigned long getClassID() const;     /* 0x0049DC20, vtable 0x005ECD18 + 4 */
+    virtual const char* getClassName() const; /* 0x0049DC30, vtable 0x005ECD18 + 0 */
+    virtual unsigned long getClassID() const; /* 0x0049DC20, vtable 0x005ECD18 + 4 */
+
+private:
+    unsigned char m_unknown_0x004[0x134];
+    void* m_vptr_0x138;
+    unsigned char m_unknown_0x13c[0x114];
 };
 
 class W8Camera005EBE14 {
