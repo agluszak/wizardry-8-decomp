@@ -94,9 +94,15 @@ Give every checkout its own absolute `WIZ8_WORK_DIR`. Never hardlink a live `ghi
 Product builds use a per-checkout lock under `build/decomp`.
 
 At session start, run `bd prime`, `bd dolt pull`, inspect `bd ready`, and claim or create a Bead
-before substantial work. Record partial evidence; close only after acceptance and push Beads state.
+before substantial work. A Bead is a durable outcome, not a commit: one Bead may contain several
+local jj commits and normally produces one review bookmark/PR. Push Beads immediately after a
+claim and after meaningful ownership, dependency, scope, review, or status changes. Record partial
+evidence, note the review bookmark/PR, and close only after the implementation is integrated.
 
 Use Jujutsu, not raw Git, for repository history. Preserve unrelated working-copy changes, inspect
-`jj status` after meaningful edits, fetch/rebase before publication, and publish a named review
-bookmark. The exact workspace, Beads, rebase, and PR commands live in
+`jj status` after meaningful edits, and create local checkpoint commits whenever they improve
+recoverability or review structure. Rebase the whole local stack onto `main@origin`, run the full
+relevant gate on its final tip, and publish its parent through a named review bookmark/PR. Ordinary
+work never moves or pushes `main`; direct integration requires explicit repository-owner
+authorization. The exact workspace, Beads, rebase, and PR commands live in
 [the contributor workflow](docs/contributor-workflow.md).
