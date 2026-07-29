@@ -135,6 +135,27 @@ def _product_cache_ready(build_dir: Path) -> bool:
     return f"CMAKE_GENERATOR:INTERNAL={PRODUCT_GENERATOR}\n" in cached
 
 
+def _reccmp_configs_ready(settings: Settings) -> bool:
+    project_path = settings.repo_dir / "reccmp-project.yml"
+    user_path = settings.repo_dir / "reccmp-user.yml"
+    build_path = settings.repo_dir / "build" / "decomp" / "reccmp-build.yml"
+    if not all(path.is_file() for path in (project_path, user_path, build_path)):
+        return False
+
+    project = yaml.safe_load(project_path.read_text(encoding="utf-8")) or {}
+    user = yaml.safe_load(user_path.read_text(encoding="utf-8")) or {}
+    build = yaml.safe_load(build_path.read_text(encoding="utf-8")) or {}
+    required = set(project.get("targets") or {})
+    user_targets = user.get("targets") or {}
+    build_targets = build.get("targets") or {}
+    return all(
+        user_targets.get(target, {}).get("path")
+        and build_targets.get(target, {}).get("path")
+        and build_targets.get(target, {}).get("pdb")
+        for target in required
+    )
+
+
 def _enable_jom_parallelism(build_dir: Path) -> list[str]:
     """Remove only CMake's generated NMake serialization guards.
 
@@ -301,7 +322,11 @@ def build_target(
             for mount in build.mounts
             if mount.container not in {"/repo", "/out"}
         )
-        if not prerequisites_ready or not _product_cache_ready(build.build_dir):
+        if (
+            not prerequisites_ready
+            or not _product_cache_ready(build.build_dir)
+            or not _reccmp_configs_ready(settings)
+        ):
             _configure(settings)
         # Let CMake regenerate while its NMake serialization guards are intact,
         # then adapt only those generated guards for the parallel JOM build.

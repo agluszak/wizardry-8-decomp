@@ -11,6 +11,7 @@ from wiz8decomp.build import (
     Mount,
     _enable_jom_parallelism,
     _product_cache_ready,
+    _reccmp_configs_ready,
     build_lock,
 )
 from wiz8decomp.config import Settings
@@ -62,6 +63,38 @@ def test_product_cache_requires_the_supported_generator(tmp_path: Path) -> None:
     assert _product_cache_ready(tmp_path) is True
     cache.write_text("CMAKE_GENERATOR:INTERNAL=Ninja\r\n", encoding="utf-8")
     assert _product_cache_ready(tmp_path) is False
+
+
+def test_reccmp_configs_require_every_project_target(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    repository = settings.repo_dir
+    build_dir = repository / "build/decomp"
+    build_dir.mkdir(parents=True)
+    (repository / "reccmp-project.yml").write_text(
+        "targets:\n  WIZ8: {}\n  SURRENDER: {}\n", encoding="utf-8"
+    )
+    (repository / "reccmp-user.yml").write_text(
+        "targets:\n  WIZ8:\n    path: original.exe\n", encoding="utf-8"
+    )
+    (build_dir / "reccmp-build.yml").write_text(
+        "targets:\n  WIZ8:\n    path: Wiz8.exe\n    pdb: Wiz8.pdb\n",
+        encoding="utf-8",
+    )
+
+    assert _reccmp_configs_ready(settings) is False
+
+    (repository / "reccmp-user.yml").write_text(
+        "targets:\n  WIZ8:\n    path: original.exe\n  SURRENDER:\n    path: sr.dll\n",
+        encoding="utf-8",
+    )
+    (build_dir / "reccmp-build.yml").write_text(
+        "targets:\n"
+        "  WIZ8:\n    path: Wiz8.exe\n    pdb: Wiz8.pdb\n"
+        "  SURRENDER:\n    path: sr.dll\n    pdb: sr.pdb\n",
+        encoding="utf-8",
+    )
+
+    assert _reccmp_configs_ready(settings) is True
 
 
 def test_parallel_adaptation_removes_only_generated_serial_guards(tmp_path: Path) -> None:
