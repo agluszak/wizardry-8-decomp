@@ -12,6 +12,10 @@ durable task state and `just` as the normal command surface.
 - Search before declaring anything. A function, global, class, field, vtable, import, or constant
   has one canonical declaration and one evidence identity. Extend that owner; do not add a cast,
   raw vtable call, duplicate extern, wrapper, guessed name, or parallel inventory.
+- Ghidra owns live analysis state: function boundaries, symbols, signatures, namespaces, data types,
+  vtables, comments, and decompiler state. Git owns recovered source, build configuration, provenance,
+  externally reproducible observations, and reviewed claims that Ghidra cannot explain by itself.
+  Do not add another tracked representation merely to replay a native Ghidra object.
 - Recovered Wizardry translation units are C++ and use `.cpp`. Preserve proven original TU
   ownership and the explicit source/link order in `src/wiz8/sources.cmake`. Keep address-qualified
   template emissions separate until ownership is proved.
@@ -29,10 +33,16 @@ durable task state and `just` as the normal command surface.
 
 ## Recovery loop
 
-Start a port with the canonical program selector and the joined context packet:
+Create or deliberately refresh the checkout's canonical project when necessary:
 
 ```sh
 CANON=wiz8--gog-base--wiz8--18a74ff61c65
+just ghidra rebuild "$CANON"
+```
+
+Start a port with the joined context packet and, where useful, one ordered read-only query batch:
+
+```sh
 just wiz8 report context 0x<address> --program "$CANON"
 just ghidra query "$CANON" \
   -q 'facts-at 0x<address>' \
@@ -45,23 +55,18 @@ just ghidra query "$CANON" \
 
 Use decompile for behavior, high-function for ABI/storage, field accesses for layout, type variables
 for anonymous ownership, and normalized P-code for receiver identity and indirect flow. Use a listing
-only to explain a remaining encoding/compiler-order difference.
+only to explain a remaining encoding/compiler-order difference. Repeated query clauses share one
+project open; there is no daemon or implicit materialization.
 
-Candidate conclusions belong in a disposable overlay:
-
-```sh
-just ghidra overlay analyze "$CANON" config/ghidra/hypotheses/<plan>.json
-just ghidra overlay inspect "$CANON" <overlay-id> 0x<address>
-just ghidra overlay discard "$CANON" <overlay-id>
-```
-
-Promotion goes through canonical reviewed evidence and a rebuilt baseline. The detailed lifecycle,
-class, and reconstructed-transfer procedure is in
+Use an ordinary disposable Ghidra project copy, transaction, or undo history for speculative work.
+Do not recreate the removed overlay/candidate-inference platform. Durable conclusions go through the
+reviewed evidence workflow; rebuild explicitly when replay-backed state changes. The detailed class
+and reconstructed-transfer procedure is in
 [the class recovery guide](docs/wiz8-class-recovery-procedure.md).
 
-Keep every `// FUNCTION:` or `// TEMPLATE:` marker immediately above its declaration, with no
-blank line or prose between them. Put explanatory prose above the marker. `// LIBRARY:` has no
-owned definition and is exempt.
+Keep every `// FUNCTION:` or `// TEMPLATE:` marker immediately above its declaration, with no blank
+line or prose between them. Put explanatory prose above the marker. `// LIBRARY:` has no owned
+definition and is exempt.
 
 ## Validation
 
@@ -84,9 +89,9 @@ validation. Do not copy live counts into tests or Markdown; use `just wiz8 repor
 
 ## Workspace and publication
 
-Give each checkout its own `WIZ8_WORK_DIR` and `WIZ8_GHIDRA_AGENT_ID`. Never hardlink a live
-`ghidra/` directory. Ghidra query automatically restores, replays, validates, and reuses the
-checkout-isolated project; do not manually manage daemon/cache internals.
+Give each concurrently active checkout its own `WIZ8_WORK_DIR`. Never hardlink a live `ghidra/`
+directory. The project at `WIZ8_WORK_DIR/ghidra` is written in place and queried directly; no agent
+identity, content-addressed project farm, or query daemon is part of the workflow.
 
 At session start, run `bd prime`, `bd dolt pull`, inspect `bd ready`, and claim or create a Bead
 before substantial work. Record partial evidence; close only after acceptance and push Beads state.
