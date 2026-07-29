@@ -505,7 +505,6 @@ extern int g_profession_magic_level_offsets[15];
    extent. The entries are floats - the multiply is `fmul dword ptr` - and the
    table sits in .data rather than .rdata. */
 extern float g_profession_hit_point_factors[15];
-extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
 extern unsigned char g_fact_values[1001];
 /* Suppresses the journal entry and its sound in the fact-change recorder at
@@ -525,9 +524,6 @@ extern int g_import_ending_choice;
 /* One byte per bit of the imported 96-bit mask. Only elements 5 and 11 are
    consumed so far, by InitializeFactState. */
 extern unsigned char g_import_flags[0x60];
-extern int g_fact_record_count;
-extern W8ItemDatabaseRecord* g_item_records;
-extern int g_item_record_count;
 /* 0x00616E84: one entry per item category, giving the interface presentation
    of whatever spell the item carries. */
 extern const int g_item_spell_presentation[];
@@ -564,20 +560,12 @@ extern unsigned char g_surprise_possible_00683fc5;
 /* Written by Targeting.cpp and reset to -1 here; meaning not established. */
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;
-extern W8NpcDatabaseRecord* g_npc_records;
-extern unsigned int g_npc_record_count;
-extern W8ItemTableRecord** g_item_tables;
-extern unsigned int g_item_table_count;
-extern char** g_item_table_category_names;
-extern unsigned int g_item_table_category_count;
 extern W8EncounterTableRuntime** g_encounter_tables;
 extern char** g_encounter_names;
 extern unsigned int g_encounter_name_count;
 /* 0x0060A6BC: the level whose encounter tables are loaded, -1 when none are. */
 extern int g_encounter_tables_level;
 extern unsigned int g_encounter_table_count;
-extern W8LevelDatabaseRecord* g_level_records;
-extern int g_level_record_count;
 extern int g_loaded_level_id;
 /* 0x00659AB8: the second world. It was spelled `void*` where it is defined and
    `W8World*` where the viewport reaches through it, which is two claims about

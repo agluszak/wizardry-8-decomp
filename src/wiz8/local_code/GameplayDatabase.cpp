@@ -21,25 +21,42 @@ extern W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
 extern unsigned char* g_message_table_68c09c;
 /* 0x0054B300 resets one of eight slots. */
 extern void Function54B300(unsigned int slot);
+/* The gStatus object owned by GameplayDatabase.cpp. */
+// GLOBAL: WIZ8 0x00685170
 W8GlobalStatus g_status_685170;
 /* Persistent database roots owned by this translation unit.  Leaving these as
    unresolved externals made the runnable image relocate every load/store to
    the PE image base; the first four-byte count read consequently targeted a
    read-only header instead of game state. */
+// GLOBAL: WIZ8 0x006836AC
 W8FactDatabaseRecord* g_fact_records;
+// GLOBAL: WIZ8 0x00683F8C
 int g_fact_record_count;
+// GLOBAL: WIZ8 0x0068516C
 W8ItemDatabaseRecord* g_item_records;
+// GLOBAL: WIZ8 0x00683F78
 int g_item_record_count;
+// GLOBAL: WIZ8 0x006836A4
 W8LevelDatabaseRecord* g_level_records;
+// GLOBAL: WIZ8 0x00683F90
 int g_level_record_count;
+// GLOBAL: WIZ8 0x006836A0
 W8NpcDatabaseRecord* g_npc_records;
+// GLOBAL: WIZ8 0x00683F88
 unsigned int g_npc_record_count;
+// GLOBAL: WIZ8 0x00683F84
 unsigned int g_monster_record_count;
+// GLOBAL: WIZ8 0x006836B0
 W8ItemTableRecord** g_item_tables;
+// GLOBAL: WIZ8 0x00683F7C
 unsigned int g_item_table_count;
+// GLOBAL: WIZ8 0x006836B4
 char** g_item_table_category_names;
+// GLOBAL: WIZ8 0x00683F80
 unsigned int g_item_table_category_count;
+// GLOBAL: WIZ8 0x0065BE1C
 W8SpellRuntimeRecord* g_spell_records;
+// GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
 extern W8GameSettings g_settings_6850c8;
 extern "C" unsigned char g_flag_68edac;
@@ -74,8 +91,6 @@ extern void Function535920(void);
 extern void Function56C520(void);
 /* 0x004E8290, not yet identified; notified when a party slot is reset. */
 extern void SetSlotAction(int slot, int a, int b);
-/* 0x0055ADA0, not yet identified; releases one record's sub-list. */
-extern void Function55ADA0(void* fact_rules_runtime);
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
@@ -307,6 +322,21 @@ unsigned char InitializeNpcDatabase(void)
     return 1;
 }
 
+/* The general owning-PList destruction path deletes every typed element before
+   releasing the pointer array and the list itself. This emission is the
+   six-byte NPC fact-rule specialization. */
+// TEMPLATE: WIZ8 0x0055ada0
+// DestroyOwnedPList
+template <>
+void DestroyOwnedPList<W8NpcFactRule>(W8PList* list)
+{
+    while (PListGetCount(list) != 0) {
+        delete static_cast<W8NpcFactRule*>(PListRemoveAt(list, 0));
+    }
+    PListFreeData(list);
+    PListDestroy(list);
+}
+
 // FUNCTION: WIZ8 0x0054ac90
 void DestroyNpcDatabase(void)
 {
@@ -315,7 +345,8 @@ void DestroyNpcDatabase(void)
     if (g_npc_records) {
         for (index = 0; index < g_npc_record_count; ++index) {
             if (g_npc_records[index].fact_rules_runtime) {
-                Function55ADA0(g_npc_records[index].fact_rules_runtime);
+                DestroyOwnedPList<W8NpcFactRule>(
+                    (W8PList*)g_npc_records[index].fact_rules_runtime);
                 g_npc_records[index].fact_rules_runtime = 0;
             }
         }

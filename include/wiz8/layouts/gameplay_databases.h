@@ -134,6 +134,11 @@ typedef struct W8NpcDatabaseRecord {
     unsigned char unknown_2ce[0x3b];
 } W8NpcDatabaseRecord;                   /* 0x309 */
 
+/* One optional NPC fact-rule entry appended after its database record. */
+typedef struct W8NpcFactRule {
+    unsigned char bytes[6];
+} W8NpcFactRule;                         /* 0x06 */
+
 /* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
    established; the leading field is a display name. */
 typedef struct W8LevelDatabaseRecord {
@@ -249,5 +254,16 @@ typedef struct W8RaceResistanceAdjustment {
 typedef struct W8RaceResistanceProfile {
     W8RaceResistanceAdjustment adjustments[6];
 } W8RaceResistanceProfile;              /* 0x30 */
+
+/* Runtime roots for the database records described above. GameplayDatabase.cpp
+   owns their storage; consumers reach it through this one declaration surface
+   instead of the gameplay-boundary quarantine. */
+extern W8FactDatabaseRecord* g_fact_records;
+extern int g_fact_record_count;
+extern W8LevelDatabaseRecord* g_level_records;
+extern int g_level_record_count;
+extern W8NpcDatabaseRecord* g_npc_records;
+extern unsigned int g_npc_record_count;
+extern unsigned int g_monster_record_count;
 
 #endif

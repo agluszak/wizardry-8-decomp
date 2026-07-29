@@ -6,7 +6,6 @@
 
 extern "C" {
 
-extern unsigned int g_monster_record_count;
 extern W8MonsterRecord* g_monster_record_cache[1000];
 extern W8PList* g_monster_list;               /* gXStatus.plsMonsterList */
 extern W8PList* g_unborn_monster_list;        /* gXStatus.plsUnbornMonsterList */

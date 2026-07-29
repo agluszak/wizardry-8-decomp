@@ -26,4 +26,7 @@ unsigned int PListGetCount(W8PList* ppl);
 void* PListGetAt(W8PList* ppl, int index);
 int PListIndexOf(W8PList* ppl, void* pEntry);
 
+template <class T>
+void DestroyOwnedPList(W8PList* list);
+
 #endif
