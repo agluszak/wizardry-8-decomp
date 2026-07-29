@@ -13,6 +13,7 @@
 
 unsigned char SaveGameExists(void);
 void ResetRegions(void);
+void ShutdownDisplayList(void);
 
 /*
  * Local Screens\MainMenuScreen.cpp.
@@ -67,6 +68,7 @@ extern wchar_t* ConvertStringToWide(const char* text);
 unsigned char Function5BCAB0(short item, short state);
 extern void SetPendingScreenState(int state);
 extern void PresentMenuOverlayFrame(void);
+extern void ReleaseLoadedVideoFrames(void);
 
 static void MainMenuRegionEvent(
     short item, const W8RegionEvent* event, W8Region* region)
@@ -392,6 +394,15 @@ void MainMenuScreenFrame(void)
 {
     ProcessMainMenuInput();
     PresentMenuOverlayFrame();
+}
+
+// FUNCTION: WIZ8 0x00591870
+unsigned char MainMenuScreenLeave(int)
+{
+    ReleaseLoadedVideoFrames();
+    ResetRegions();
+    ShutdownDisplayList();
+    return 1;
 }
 
 }

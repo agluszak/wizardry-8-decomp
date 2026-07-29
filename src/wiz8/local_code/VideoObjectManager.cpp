@@ -48,7 +48,9 @@ extern "C" {
 
 extern unsigned char g_video_objects_ready_650e20;
 W8VideoObjectSlot g_video_slots_6448c8[494];
-W8VideoFrame g_video_frames_62c430[566];
+/* The cleanup loop bounds the complete table at 0x00644900: 0x184d0 bytes,
+   or 1658 records.  Only the first 566 catalog entries are attributed so far. */
+W8VideoFrame g_video_frames_62c430[1658];
 
 
 /* The two loaders consume the released SGP object and surface request records.
@@ -62,6 +64,35 @@ extern char Function405FF0(int object, unsigned int handle, short y,
                            int a, int b, int c, int d);
 extern char Function402ED0(int object, unsigned int handle, short y,
                            int a, int b, int c, int d);
+
+#define VIDEO_OBJECT_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\VideoObjectManager.cpp"
+
+// FUNCTION: WIZ8 0x00549250
+void ReleaseLoadedVideoFrames(void)
+{
+    W8VideoFrame* frame;
+    char released;
+
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x9c, 0);
+    }
+    frame = g_video_frames_62c430;
+    do {
+        if (frame->loaded) {
+            if (frame->mode == 0) {
+                released = DeleteVideoObject((HVOBJECT)frame->handle);
+            } else {
+                released = DeleteVideoSurface((HVSURFACE)frame->handle);
+            }
+            if (!released) {
+                srAssertFail("fReturnCode", VIDEO_OBJECT_MANAGER_CPP, 0x85, 0);
+            }
+            frame->handle = 0;
+            frame->loaded = 0;
+        }
+        ++frame;
+    } while (&frame->handle < (unsigned int*)(g_video_frames_62c430 + 1658));
+}
 
 /* The complete checked-in catalog remains part of wiz8-a69.  These are the
    exact records consumed by startup, the default cursor and the main menu. */
@@ -119,8 +150,6 @@ void InitializeMenuVideoObjectCatalog(void)
                font_palette_paths[index]);
     }
 }
-
-#define VIDEO_OBJECT_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\VideoObjectManager.cpp"
 
 // FUNCTION: WIZ8 0x00548f90
 void Function548F90(int target, int object, int frame, short y,
