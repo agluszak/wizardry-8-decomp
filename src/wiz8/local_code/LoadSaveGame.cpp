@@ -578,6 +578,45 @@ void ReportSaveFailed(char quiet)
     }
 }
 
+/* Choose the numbered quick-save slot that the next quick save should write.
+   A missing slot wins immediately; when all three exist, replace the one with
+   the oldest modification time. */
+// FUNCTION: WIZ8 0x00516670
+unsigned char SelectQuickSaveSlotForWrite(char* slot_name)
+{
+    SGP_FILETIME creation_time;
+    SGP_FILETIME access_time;
+    SGP_FILETIME write_time;
+    SGP_FILETIME oldest_write_time;
+    int oldest_slot = 1;
+    int slot;
+    int handle;
+
+    for (slot = 1; slot <= 3; ++slot) {
+        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot,
+                "SAV");
+        handle = FileOpen(slot_name, 1, 0);
+        if (!handle) {
+            goto format_slot;
+        }
+        GetFileManFileTime(handle, &creation_time, &access_time, &write_time);
+        FileClose(handle);
+        if (slot > 1) {
+            if (CompareSGPFileTimes(&write_time, &oldest_write_time) < 0) {
+                oldest_write_time = write_time;
+                oldest_slot = slot;
+            }
+        }
+        else {
+            oldest_write_time = write_time;
+        }
+    }
+    slot = oldest_slot;
+format_slot:
+    sprintf(slot_name, "%s %d", "Quick", slot);
+    return 1;
+}
+
 /* Select the newest numbered quick save for command-line startup. The three
    candidates are real save files named Quick 1 through Quick 3; the unnumbered
    Quick slot is accepted only when none of those files exists. */
