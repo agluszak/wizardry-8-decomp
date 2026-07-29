@@ -1,6 +1,8 @@
 #ifndef WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
+#include "wiz8/3d_code/PList.h"
+
 /*
  * The on-disk gameplay records, as the matching source compiles them.
  *
@@ -106,6 +108,15 @@ typedef struct W8FactDatabaseRecord {
     W8WideChar description[106];         /* 0x104 */
 } W8FactDatabaseRecord;                  /* 0x1d8 */
 
+/* One optional NPC stock-rule entry appended after its database record.
+   DecayNpcInventory establishes the leading item id and the keep flag at 0x05;
+   the remaining byte is unread by recovered source and stays unnamed. */
+typedef struct W8NpcItemStockRule {
+    int item_id;                           /* 0x00: Items.dbs index */
+    unsigned char unknown_04;             /* 0x04: not read by recovered source */
+    unsigned char persistent;             /* 0x05: retain and replenish this item */
+} W8NpcItemStockRule;                     /* 0x06 */
+
 /* One Data\Databases\NPC.DBS record. Only source-consumed fields are modelled
    here; Ghidra owns the wider operational field inventory. */
 typedef struct W8NpcDatabaseRecord {
@@ -130,14 +141,9 @@ typedef struct W8NpcDatabaseRecord {
     char display_name[0x29];
     unsigned char deleted;               /* 0x0c7 */
     unsigned char unknown_0c8[0x202];
-    void* fact_rules_runtime;            /* 0x2ca: runtime-owned rule PList */
+    W8PList* item_stock_rules;           /* 0x2ca: W8NpcItemStockRule* elements */
     unsigned char unknown_2ce[0x3b];
 } W8NpcDatabaseRecord;                   /* 0x309 */
-
-/* One optional NPC fact-rule entry appended after its database record. */
-typedef struct W8NpcFactRule {
-    unsigned char bytes[6];
-} W8NpcFactRule;                         /* 0x06 */
 
 /* One Data\Databases\LEVELS.DBS record. Only the disk and runtime stride is
    established; the leading field is a display name. */

@@ -8,7 +8,7 @@
 #pragma pack(push, 1)
 
 typedef struct W8NpcItemEntry {
-    int state;                            /* 0x00: zero is the ordinary trade entry */
+    unsigned int state;                   /* 0x00: zero is the ordinary trade entry */
     W8ItemInstance item;                 /* 0x04 */
     unsigned char quantity;              /* 0x10: non-stack remaining quantity */
 } W8NpcItemEntry;                        /* 0x11 established */
@@ -54,5 +54,6 @@ typedef struct W8NpcState {
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
+void DecayNpcInventory(W8NpcState* npc);
 
 #endif

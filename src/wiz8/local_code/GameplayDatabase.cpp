@@ -291,7 +291,7 @@ unsigned char InitializeNpcDatabase(void)
             CloseVirtualFile(handle);
             return 0;
         }
-        g_npc_records[index].fact_rules_runtime = 0;
+        g_npc_records[index].item_stock_rules = 0;
         if (g_npc_records[index].flag_9d == 0 && g_npc_records[index].version > 1) {
             entry_count = 0;
             if (!ReadVirtualFile(handle, &entry_count, 4, &transferred)) {
@@ -299,7 +299,7 @@ unsigned char InitializeNpcDatabase(void)
                 return 0;
             }
             if (entry_count > 0) {
-                g_npc_records[index].fact_rules_runtime = PListCreate();
+                g_npc_records[index].item_stock_rules = PListCreate();
                 for (entry = 0; entry < entry_count; ++entry) {
                     element = ::operator new(6);
                     if (!element) {
@@ -312,7 +312,7 @@ unsigned char InitializeNpcDatabase(void)
                         return 0;
                     }
                     PListInsert(
-                        (W8PList*)g_npc_records[index].fact_rules_runtime,
+                        g_npc_records[index].item_stock_rules,
                         entry, element);
                 }
             }
@@ -322,16 +322,16 @@ unsigned char InitializeNpcDatabase(void)
     return 1;
 }
 
-/* The general owning-PList destruction path deletes every typed element before
-   releasing the pointer array and the list itself. This emission is the
-   six-byte NPC fact-rule specialization. */
+/* The general typed PList destructor deletes every element before releasing
+   the pointer array and the list itself. This is the six-byte NPC item-stock
+   specialization, not an NPC-specific lifecycle helper. */
 // TEMPLATE: WIZ8 0x0055ada0
-// DestroyOwnedPList
+// PListDestructor
 template <>
-void DestroyOwnedPList<W8NpcFactRule>(W8PList* list)
+void PListDestructor<W8NpcItemStockRule>(W8PList* list)
 {
     while (PListGetCount(list) != 0) {
-        delete static_cast<W8NpcFactRule*>(PListRemoveAt(list, 0));
+        delete static_cast<W8NpcItemStockRule*>(PListRemoveAt(list, 0));
     }
     PListFreeData(list);
     PListDestroy(list);
@@ -344,10 +344,9 @@ void DestroyNpcDatabase(void)
 
     if (g_npc_records) {
         for (index = 0; index < g_npc_record_count; ++index) {
-            if (g_npc_records[index].fact_rules_runtime) {
-                DestroyOwnedPList<W8NpcFactRule>(
-                    (W8PList*)g_npc_records[index].fact_rules_runtime);
-                g_npc_records[index].fact_rules_runtime = 0;
+            if (g_npc_records[index].item_stock_rules) {
+                PListDestructor<W8NpcItemStockRule>(g_npc_records[index].item_stock_rules);
+                g_npc_records[index].item_stock_rules = 0;
             }
         }
         free(g_npc_records);

@@ -27,6 +27,6 @@ void* PListGetAt(W8PList* ppl, int index);
 int PListIndexOf(W8PList* ppl, void* pEntry);
 
 template <class T>
-void DestroyOwnedPList(W8PList* list);
+void PListDestructor(W8PList* list);
 
 #endif
