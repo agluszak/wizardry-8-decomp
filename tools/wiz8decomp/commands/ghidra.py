@@ -6,7 +6,7 @@ from typing import Annotated, Any
 import typer
 
 app = typer.Typer(
-    help="Query Ghidra, rebuild the reviewed baseline, and analyze overlays.",
+    help="Query and deliberately rebuild the canonical Ghidra project.",
     no_args_is_help=True,
 )
 seed_app = typer.Typer(help="Refresh the validated canonical GZF seed.", no_args_is_help=True)
@@ -19,7 +19,7 @@ app.add_typer(fid_app, name="fid", hidden=True)
 
 @app.command("rebuild")
 def rebuild_command(program: str) -> None:
-    """Fresh-import one program, replay all reviewed knowledge, and validate it."""
+    """Fresh-import one program, replay reviewed knowledge, and validate it."""
     from .. import cli
     from ..ghidra.rebuild import rebuild_program
 
@@ -45,11 +45,11 @@ def query_command(
         typer.Option(
             "--query",
             "-q",
-            help="Complete query to run; repeat to execute an ordered batch in one Ghidra request.",
+            help="Complete query to run; repeat to share one project open.",
         ),
     ] = None,
 ) -> None:
-    """Query PROGRAM through the automatically managed persistent Ghidra process."""
+    """Run one read-only query batch against the existing canonical project."""
     from .. import cli
     from ..ghidra.query_daemon import query, query_many
 

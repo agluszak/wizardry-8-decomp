@@ -1,23 +1,17 @@
 """Stamp reviewed-fact provenance into the program itself.
 
-Ghidra is the database: the reviewed facts already land in its normal model as
-functions, names, classes and types, but the *ledger entry* each one came from
-- which CSV row accepted it, at what tier - previously lived only in the files.
-This replay step writes that provenance into address-indexed user property
-maps, so a query at an address can answer "what is reviewed here, and why"
-from the program alone:
+Ghidra owns the reviewed program objects as functions, names, classes and data
+types. The tracked ledger still owns why a conclusion was accepted and at what
+authority. This replay step writes compact address-indexed provenance properties
+into the canonical project:
 
-    wiz8.layer      exact | reviewed        (the strongest tier at the anchor)
-    wiz8.evidence   file:line|file:line     (every accepting row)
+    wiz8.layer      exact | reviewed
+    wiz8.evidence   file:line|file:line
 
 Anchors are the natural address of each fact: a function fact at its entry, a
 vtable fact at the table, a class fact at its primary vtable (or constructor
-when no vtable is reviewed), a boundary row at its function address. Facts
+when no vtable is reviewed), and a boundary row at its function address. Facts
 with no address anchor are not forced into one.
-
-This is part of the reviewed replay, so it feeds the materialization key and
-its edits rebuild every agent's project - which is correct: a program whose
-provenance stamps are stale is exactly the staleness the key exists to catch.
 """
 
 from __future__ import annotations
@@ -45,7 +39,6 @@ def _rows(path: Path) -> list[tuple[int, dict[str, str]]]:
 
 def _collect_anchors(repo: Path) -> dict[str, dict[str, Any]]:
     """address -> {layer, citations} from every reviewed channel with an anchor."""
-
     anchors: dict[str, dict[str, Any]] = {}
 
     def stamp(address: str, tier: str, citation: str) -> None:
@@ -140,12 +133,7 @@ def apply_provenance(
 
 
 def facts_at(program: Any, argument: str) -> dict[str, Any]:
-    """Every wiz8.* property at an address, with the program's own context.
-
-    This is the query the property maps exist for: what is accepted here, at
-    what tier, and which ledger rows say so - answered from the program alone.
-    """
-
+    """Return every wiz8.* property at an address with its program context."""
     from .query import _address
 
     address = _address(program, argument)
@@ -172,7 +160,7 @@ def facts_at(program: Any, argument: str) -> dict[str, Any]:
     return {
         "address": str(address),
         "properties": properties,
-        "candidate_facts": decoded,
+        "decoded_properties": decoded,
         "citations": (
             properties.get(_EVIDENCE, "").split("|") if properties.get(_EVIDENCE) else []
         ),

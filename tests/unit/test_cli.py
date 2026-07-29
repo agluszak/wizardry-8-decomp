@@ -56,14 +56,21 @@ def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
     assert json.loads(result.stdout) == {"all": True}
 
 
-def test_public_ghidra_surface_hides_replay_and_process_lifecycle() -> None:
+def test_public_ghidra_surface_hides_replay_process_and_overlay_plumbing() -> None:
     result = CliRunner().invoke(app, ["ghidra", "--help"])
 
     assert result.exit_code == 0
-    for command in ("apply-functions", "validate-replay", "daemon", "cache", "import"):
+    for command in (
+        "apply-functions",
+        "validate-replay",
+        "daemon",
+        "cache",
+        "import",
+        "overlay",
+    ):
         rejected = CliRunner().invoke(app, ["ghidra", command, "--help"])
         assert rejected.exit_code != 0
-    for command in ("query", "rebuild", "seed", "overlay"):
+    for command in ("query", "rebuild", "seed"):
         assert command in result.stdout
 
 
@@ -75,7 +82,7 @@ def test_ghidra_query_emits_unwrapped_json_at_narrow_terminal_width(monkeypatch)
         "query",
         lambda _settings, program, command, arguments: (
             {"decompiled": decompiled, "arguments": arguments},
-            "daemon",
+            "one-shot",
         ),
     )
 
@@ -87,7 +94,7 @@ def test_ghidra_query_emits_unwrapped_json_at_narrow_terminal_width(monkeypatch)
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["transport"] == "daemon"
+    assert payload["transport"] == "one-shot"
     assert payload["program"] == "canonical"
     assert payload["result"]["decompiled"] == decompiled
     assert payload["result"]["arguments"] == ["0x401000"]
@@ -102,7 +109,7 @@ def test_ghidra_query_sends_repeated_query_clauses_as_one_ordered_batch(monkeypa
         return [
             {"command": command, "arguments": arguments, "result": {"index": index}}
             for index, (command, arguments) in enumerate(queries)
-        ], "daemon"
+        ], "one-shot"
 
     monkeypatch.setattr(query_daemon, "query_many", query_many)
 
@@ -121,6 +128,7 @@ def test_ghidra_query_sends_repeated_query_clauses_as_one_ordered_batch(monkeypa
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
+    assert payload["transport"] == "one-shot"
     assert seen == [
         (
             "canonical",

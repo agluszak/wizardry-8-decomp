@@ -5,7 +5,7 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -17,7 +17,6 @@ from .commands.evidence import app as evidence_app
 from .commands.evidence import register_root as register_evidence_root
 from .commands.ghidra import app as ghidra_app
 from .commands.inputs import app as corpus_app
-from .commands.overlay import app as overlay_app
 from .commands.reports import app as report_app
 from .commands.sgp import app as sgp_app
 from .config import load_settings
@@ -29,7 +28,6 @@ app = typer.Typer(
 )
 app.add_typer(corpus_app, name="corpus")
 app.add_typer(ghidra_app, name="ghidra")
-ghidra_app.add_typer(overlay_app, name="overlay")
 app.add_typer(report_app, name="report")
 app.add_typer(toolchain_app, name="toolchain")
 app.add_typer(evidence_app, name="evidence")
@@ -91,6 +89,21 @@ def _run_action(action: Any, *, force_json: bool = False) -> None:
             logger.exception("command failed")
         console.print(f"[red]error:[/red] {error}", highlight=False)
         raise typer.Exit(1) from error
+
+
+# commands.core historically registered this repository-only check through
+# machine-local Settings. Registering the corrected command last intentionally
+# replaces that adapter without weakening Settings validation for real tooling.
+@app.command("check-markers", hidden=True)
+def check_markers_command(
+    paths: Annotated[list[Path] | None, typer.Option(help="Files or directories to scan.")] = None,
+) -> None:
+    from .config import repository_root
+    from .markers import check_marker_hygiene
+
+    repo = repository_root()
+    roots = paths or [repo / "src", repo / "include"]
+    _run_action(lambda: check_marker_hygiene(list(roots), repo))
 
 
 def _tracked_copyrighted(settings: Any) -> list[str]:
