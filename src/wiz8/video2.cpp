@@ -243,7 +243,7 @@ static W8Scene* make_scene(const char* name)
 }
 
 static W8Camera* make_camera(srNode* parent, const char* name,
-                             double view_right)
+                             double view_top)
 {
     W8Camera* camera = new W8Camera(parent);
     srCamera::Rect view;
@@ -252,9 +252,9 @@ static W8Camera* make_camera(srNode* parent, const char* name,
     camera->setLocation(0.0, 0.0, -1.0);
     camera->setRotation(0.0, 0.0, 0.0);
     view.left = 0.0;
-    view.top = 0.0;
+    view.bottom = 0.0;
     view.right = 1.0;
-    view.bottom = view_right;
+    view.top = view_top;
     camera->setViewPlane(view, 1.0);
     camera->setEnvironmentRange(0.0f, 0.0f);
     return camera;

@@ -1,10 +1,9 @@
 #pragma once
 
 #include "srStringTable.h"
+#include "srTexture.h"
 #include "srTypeRegistry.h"
 #include "srMath.h"
-
-class srTextureIFace;
 
 class srRendererDefs {
 public:
@@ -28,6 +27,7 @@ public:
     enum e_error {};
     enum e_matrixMode {};
     enum e_antiAlias {};
+    enum e_enable {};
 
     static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
     e_error createContext(unsigned long window);
@@ -39,6 +39,7 @@ public:
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
     void endFrame();
+    void flush();
     void flushRenderers();
     void matrixMode(e_matrixMode mode);
     void pushMatrix();
@@ -49,12 +50,21 @@ public:
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
+    void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
+    void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
+    void setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap);
     void setTextureSubImage(srTextureIFace* texture, long mipmap,
                             long x, long y, long width, long height);
     void drawArrays(srRendererDefs::e_primitive primitive, long first,
                     unsigned long count);
     void popPick(Pick& pick);
     void pushPick(const Pick& pick);
+    void toggle(e_enable option);
+    void invalidateResidentTextures();
+    void invalidateTextureCache();
+    unsigned long getTextureCacheSize() const;
+    void setTextureCacheSize(unsigned long bytes);
+    void setSwapInterval(unsigned long interval);
 
     int hasPickState() const { return pick_state_19ec_ != 0; }
 

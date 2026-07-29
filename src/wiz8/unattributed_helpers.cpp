@@ -251,30 +251,6 @@ unsigned long stSound3D::getClassID() const
     return 0x1000b;
 }
 
-// FUNCTION: WIZ8 0x0047E7D0
-unsigned long stTexture2D::getClassID() const
-{
-    return 0x1000f;
-}
-
-// FUNCTION: WIZ8 0x0047E7E0
-const char* stTexture2D::getClassName() const
-{
-    return "stTexture2D";
-}
-
-// FUNCTION: WIZ8 0x0047E930
-unsigned long stSurface2D::getClassID() const
-{
-    return 0x1000e;
-}
-
-// FUNCTION: WIZ8 0x0047E940
-const char* stSurface2D::getClassName() const
-{
-    return "stSurface2D";
-}
-
 // FUNCTION: WIZ8 0x004CF7C0
 unsigned long stScript::getClassID() const
 {

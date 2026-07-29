@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
@@ -830,15 +831,6 @@ W8GameplayObjectA::W8GameplayObjectA()
 
 typedef char W8GameplayObjectA_must_be_0x6c[
     sizeof(W8GameplayObjectA) == 0x6c ? 1 : -1];
-
-class W8Timer005EC0A4 {
-public:
-    W8Timer005EC0A4(float duration, unsigned char raw_time);
-
-private:
-    unsigned char storage_00[0x24];
-};
-
 
 /* The block 0x0054AF30 and 0x0054B300 also work through; cleared here as bytes,
    which is why it is reached by a second, byte-wide declaration. */

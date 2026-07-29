@@ -1,5 +1,6 @@
 #include "surrender/srBinIStream.h"
 #include "surrender/srCore.h"
+#include "surrender/srExtension.h"
 #include "surrender/srIStreamOpener.h"
 
 #include <stdlib.h>
@@ -31,11 +32,6 @@ extern "C" unsigned char ReadVirtualFile(
 {
     return FileRead(handle, buffer, size, done);
 }
-
-class __declspec(dllimport) srExtension {
-public:
-    static srExtension* load(const char* name, const char* path);
-};
 
 /* The SurRender-facing stream adapter that carries the SLF virtual file system
    into the SR stream hierarchy. It is declared as what it is rather than as an

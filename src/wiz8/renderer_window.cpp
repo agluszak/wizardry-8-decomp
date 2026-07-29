@@ -3,6 +3,7 @@
 #include "surrender/srConfig.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srGERD.h"
+#include "surrender/srExtension.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srScene.h"
 #include "surrender/srStringTable.h"
@@ -24,11 +25,6 @@
    dllimport is not decoration: without it VC6 emits a five-byte direct call to
    the import thunk where the canonical has a six-byte indirect call through the
    import address table. */
-class __declspec(dllimport) srExtension {
-public:
-    static srExtension* load(const char* name, const char* path);
-};
-
 __declspec(dllimport) int __cdecl srInit(void);
 __declspec(dllimport) void __cdecl srAssertSetFunc(
     void (__cdecl *handler)(const char*, const char*, long, const char*));

@@ -97,20 +97,6 @@ public:
     srRegistry::ClassNode* getClassNode() const;        /* 0x004AF3F0 */
 };
 
-/* The two surface classes sit at adjacent ids and adjacent addresses, which is
-   what pairs them the way the two stModelInstance forms are paired. */
-class stTexture2D {
-public:
-    unsigned long getClassID() const;     /* 0x0047E7D0 */
-    const char* getClassName() const;     /* 0x0047E7E0 */
-};
-
-class stSurface2D {
-public:
-    unsigned long getClassID() const;     /* 0x0047E930 */
-    const char* getClassName() const;     /* 0x0047E940 */
-};
-
 /* The only one of this group whose registry builder is also recovered. It takes
    the one-level form, hanging straight off srClass with no intermediate base. */
 class stScript {

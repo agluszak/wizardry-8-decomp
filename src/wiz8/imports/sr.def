@@ -81,6 +81,8 @@ EXPORTS
     ?setClipRange@srCamera@@QAEXNN@Z
     ?setEnvironmentRange@srCamera@@QAEXMM@Z
     ?setViewPlane@srCamera@@QAEXABURect@1@N@Z
+    ?clearFlag@srNode@@QAEXW4e_flag@1@@Z
+    ?setFlag@srNode@@QAEXW4e_flag@1@@Z
     ?setTextureDefaultMagFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMinFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMipmap@srGERD@@QAEXW4e_mipmap@srTextureIFace@@@Z

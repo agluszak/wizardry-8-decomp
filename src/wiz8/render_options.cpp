@@ -1,25 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
-
-class srTextureIFace {
-public:
-    enum e_filter {};
-    enum e_mipmap {};
-};
-
-class __declspec(dllimport) srGERD {
-public:
-    enum e_enable {};
-    void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
-    void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
-    void setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap);
-    void toggle(e_enable option);
-    void invalidateResidentTextures();
-    void invalidateTextureCache();
-    unsigned long getTextureCacheSize() const;
-    void setTextureCacheSize(unsigned long bytes);
-    void setSwapInterval(unsigned long interval);
-};
+#include "surrender/srGERD.h"
 
 /*
  * The render-option table. 0x0047B630 is a switch over 0x11 options that pushes

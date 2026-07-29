@@ -31,9 +31,9 @@ class SR_DLL_IMPORT srCamera : public srNode {
 public:
     struct Rect {
         double left;
-        double top;
-        double right;
         double bottom;
+        double right;
+        double top;
     };
 
     srCamera(srNode* parent);
@@ -52,6 +52,8 @@ public:
        doubles on its frame and returns only the far one. */
     void getClipRange(double* near_plane, double* far_plane);
     void setViewPlane(const Rect& rectangle, double distance);
+    void setViewPlane(double width, double height);
+    void getViewPlane(Rect& rectangle, double& distance) const;
     void setEnvironmentRange(float near_range, float far_range);
 
 private:

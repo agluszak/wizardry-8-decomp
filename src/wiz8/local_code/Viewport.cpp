@@ -1,5 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/render_state.h"
+#include "surrender/srGERD.h"
+#include "surrender/srScene.h"
 
 /*
  * Sets the viewport and rebuilds the camera view plane to match it.
@@ -10,28 +12,6 @@
  * dllimport is not decoration - without it VC6 emits a direct call to the
  * thunk where the canonical has an indirect call through the import table.
  */
-
-class __declspec(dllimport) srCamera {
-public:
-    /* Four doubles: left, bottom, right, top. The body only establishes that
-       the third minus the first is a width and the fourth minus the second a
-       height, which is what the two differences it takes are used for. */
-    struct Rect {
-        double left;
-        double bottom;
-        double right;
-        double top;
-    };
-
-    void setViewPlane(double width, double height);
-    void setViewPlane(const Rect& plane, double depth);
-    void getViewPlane(Rect& plane, double& depth) const;
-};
-
-class __declspec(dllimport) srGERD {
-public:
-    void flush();
-};
 
 extern "C" {
 

@@ -2195,8 +2195,8 @@ void W8WidgetBase005ED5BC::SetBoundsFromRect(const W8ControlsRect* bounds)
 class W8ControlBase005ED664 {
 public:
     W8ControlBase005ED664();
-    virtual void vslot0();
-    virtual void vslot1();
+    virtual void vslot0() = 0;
+    virtual void vslot1() {}
 
 protected:
     int m_value_4;                       /* 0x04 */
@@ -2253,10 +2253,9 @@ public:
 class W8Control005ED654 : public W8ControlBase005ED664 {
 public:
     W8Control005ED654();
-    virtual ~W8Control005ED654();
 
     void SetSelected(int iSelected);
-    void SelectEntry(W8VectorElement005ED65C* entry);
+    virtual void SelectEntry(W8VectorElement005ED65C* entry);
 
 protected:
     W8ControlEntryVector005ED65C m_lsButtons;  /* 0x10: named by Controls.cpp:2679 */

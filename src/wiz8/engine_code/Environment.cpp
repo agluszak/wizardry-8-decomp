@@ -1,14 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "surrender/srNode.h"
 #include "surrender/srTypeRegistry.h"
-
-/* The renderer node the sky hangs from. Only the two flag methods this file
-   reaches are declared; the class itself is SurRender's. */
-class srNode {
-public:
-    void setFlag(int flag);
-    void clearFlag(int flag);
-};
 
 /*
  * Engine Code\Environment.cpp.
@@ -205,10 +198,10 @@ void SetSkyNodeVisible(char visible)
 
     if (sky != 0) {
         if (visible) {
-            sky->clearFlag(0);
+            sky->clearFlag(srNode::FLAG_POSITIONAL_0);
         }
         else {
-            sky->setFlag(0);
+            sky->setFlag(srNode::FLAG_POSITIONAL_0);
         }
     }
 }

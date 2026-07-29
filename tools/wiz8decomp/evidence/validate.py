@@ -5,6 +5,7 @@ import re
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 
+from ..source_classes import validate_source_classes
 from ..source_model import build_source_model
 from .boundaries import load_boundary_rows
 from .claims import load_claims, validate_claim_rows
@@ -155,6 +156,7 @@ def validate_repository(repo_dir: Path, program: str = "wiz8") -> dict[str, obje
         return detail
 
     run("csv-shapes", lambda: {"files": _validate_csv_shapes(repo_dir)})
+    run("source-classes", lambda: validate_source_classes(repo_dir))
     functions = run("source-functions", lambda: _validate_functions(repo_dir, program))
     boundaries = run("reviewed-boundaries", lambda: _validate_boundaries(repo_dir))
     if isinstance(functions, set):
