@@ -10,6 +10,61 @@ from .apply_unzip_model import _apply_data
 from .project import resolve_program_name
 
 
+def _slot_prototype(
+    program: Any,
+    target: Any | None,
+    receiver: Any,
+    category: Any,
+    name: str,
+    parameter_definition: Any,
+    function_definition: Any,
+) -> tuple[Any, str]:
+    """Copy only trusted target prototypes, replacing the receiver with ``this``."""
+
+    from ghidra.program.model.data import VoidDataType
+
+    definition = function_definition(category, name)
+    if target is None:
+        definition.setReturnType(VoidDataType.dataType)
+        definition.setArguments([parameter_definition("this", receiver, None)])
+        return definition, "receiver-only-fallback"
+
+    property_manager = program.getUsrPropertyManager()
+    reconstructed = property_manager.getStringPropertyMap("wiz8.reconstructed")
+    address = target.getEntryPoint()
+    signature_source = str(target.getSignatureSource()).upper()
+    trusted_signature = signature_source in {"USER_DEFINED", "IMPORTED"}
+    if target.isExternal() and trusted_signature:
+        source = "imported"
+    elif reconstructed is not None and reconstructed.hasProperty(address):
+        source = "reconstructed"
+        trusted_signature = True
+    elif trusted_signature:
+        source = "reviewed"
+    elif "PURE" in target.getName().upper():
+        source = "pure-virtual"
+    else:
+        source = "generic"
+
+    return_type = target.getReturnType() if trusted_signature else VoidDataType.dataType
+    explicit = [parameter for parameter in target.getParameters() if not parameter.isAutoParameter()]
+    arguments = [parameter_definition("this", receiver, None)]
+    if explicit and trusted_signature:
+        arguments.extend(
+            parameter_definition(
+                parameter.getName() or f"argument{index}", parameter.getDataType(), None
+            )
+            for index, parameter in enumerate(explicit, start=1)
+        )
+    definition.setReturnType(return_type or VoidDataType.dataType)
+    definition.setArguments(arguments)
+    try:
+        definition.setCallingConvention("__thiscall")
+    except Exception:  # noqa: BLE001,S110 - older Ghidra accepts the prototype without it
+        pass
+    return definition, source
+
+
 def apply_reviewed_vtables(
     settings: Settings,
     selector: str,
@@ -30,8 +85,6 @@ def apply_reviewed_vtables(
         PointerDataType,
         StructureDataType,
     )
-
-    from .overlay import _slot_prototype
 
     program_name = resolve_program_name(settings, selector)
     model = load_reviewed_class_model(settings.repo_dir, "wiz8")
@@ -90,7 +143,6 @@ def apply_reviewed_vtables(
                             f"{reviewed.vtable_id}.{name}",
                             ParameterDefinitionImpl,
                             FunctionDefinitionDataType,
-                            allow_inferred=False,
                         )
                         added = dtm.addDataType(definition, DataTypeConflictHandler.REPLACE_HANDLER)
                         table.add(PointerDataType(added, dtm), 4, name, None)
@@ -108,9 +160,6 @@ def apply_reviewed_vtables(
                         and "vptr" in str(component.getFieldName() or "")
                     )
                     if not explicit_vptr:
-                        # The table and receiver-specific slot definitions are
-                        # still reviewed state. Do not split an opaque base span
-                        # merely to make the owner display a secondary vptr.
                         report["unbound_owner_fields"].append(reviewed.vtable_id)
                         report["tables"] += 1
                         continue
