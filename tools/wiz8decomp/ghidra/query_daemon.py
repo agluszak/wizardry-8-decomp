@@ -79,9 +79,7 @@ def daemon_status(_settings: Settings) -> dict[str, Any]:
     return {"running": False, "removed": True}
 
 
-def stop_daemon(
-    _settings: Settings, *, quiet: bool = False
-) -> dict[str, Any]:
+def stop_daemon(_settings: Settings, *, quiet: bool = False) -> dict[str, Any]:
     """Compatibility no-op; the persistent query process no longer exists."""
 
     del quiet
