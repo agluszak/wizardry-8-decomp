@@ -52,7 +52,7 @@ the canonical analysis checkpoint, while provenance remains the explanation of a
 For a recovered function, require the narrowest applicable proof:
 
 ```sh
-just build WIZ8_GAMEPLAY_BOUNDARIES
+just build WIZ8
 just wiz8 verify-boundaries
 just compare
 just test

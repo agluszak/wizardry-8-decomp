@@ -68,7 +68,7 @@ Choose the narrowest lane while iterating and run the complete lane before publi
 | Python, docs, evidence, marker, or source inventory | `just check` |
 | C++ class declarations or inheritance | `just lint` |
 | Ordinary local work | `just test` |
-| Ported/recovered body | `just build WIZ8_GAMEPLAY_BOUNDARIES`, `just wiz8 verify-boundaries`, then `just test` |
+| Ported/recovered body | `just build WIZ8`, `just wiz8 verify-boundaries`, then `just test` |
 | Reviewed Ghidra change | representative `just context` checks, `uv run wiz8 ghidra index`, then an intentional checkpoint refresh |
 | Complete product/integration gate | `just verify` |
 

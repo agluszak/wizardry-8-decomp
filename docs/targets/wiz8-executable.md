@@ -1,10 +1,9 @@
 # Wiz8 executable target
 
-The CMake graph now has separate matching and bring-up surfaces:
+The CMake graph compiles the recovered first-party sources once in an internal object library and
+reuses those exact objects in three product surfaces:
 
-* `WIZ8_MATCHING` builds only recovered Wizardry-owned objects and the owned zlib adapters. It
-  contains no synthetic implementations.
-* `WIZ8_BRINGUP` links those same objects with a bring-up-only `WinMain`, producing `Wiz8.exe` and
+* `WIZ8_BRINGUP` links the recovered objects, producing `Wiz8.exe` and
   `Wiz8.pdb` for PE, PDB, and reccmp integration.
 * `WIZ8` is the convenient build alias for `WIZ8_BRINGUP`; `just build WIZ8` builds the executable.
 * `WIZ8_RUNTIME` is the runnable vertical-slice image. It adds the vendored SGP probe objects and
@@ -23,8 +22,8 @@ For an unattended run that cannot map a window or steal focus from the host desk
 WIZ8_RUNTIME_DISPLAY=virtual just run
 ```
 
-Bare `just build` builds that same `WIZ8_RUNTIME` graph; pass an explicit target only when building
-a comparison or library surface such as `just build WIZ8` or `just build SREXT_JPEGIMPORTER`.
+Bare `just build` builds the `WIZ8` comparison image. `just run` builds the runtime image itself;
+pass an explicit target only for a library surface such as `just build SREXT_JPEGIMPORTER`.
 
 The launcher creates `build/runtime/wiz8` for the writable executable, video configuration, and
 save directory. It links the large shipped assets from `$WIZ8_WORK_DIR/variants/gog-base` without
@@ -55,7 +54,7 @@ owns idempotent source/input preparation.
 The recovered corpus is not link-complete. `WIZ8_BRINGUP` therefore uses `/FORCE:UNRESOLVED` rather
 than contaminating matching source with invented globals or function bodies. LINK reports every
 unresolved first-party boundary and emits an inspectable PE/PDB. The bring-up entry only returns
-zero; it carries no address marker and is excluded from `WIZ8_MATCHING`.
+zero; it carries no address marker and is not part of the recovered source object list.
 
 ## Platform and import libraries
 

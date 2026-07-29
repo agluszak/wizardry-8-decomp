@@ -51,6 +51,9 @@ def test_semantic_runtime_driver_is_a_separate_product() -> None:
     assert "SOURCES tests/runtime/wiz8_runtime_test.cpp" in product
     assert "TARGET WIZ8_BRINGUP" in product
     assert "TARGET WIZ8_RUNTIME\n" in product
+    assert "add_library(wiz8_recovered_objects OBJECT" in product
+    assert "WIZ8_GAMEPLAY_BOUNDARIES" not in product
+    assert "WIZ8_MATCHING" not in product
     assert "QueueEvent(KEY_DOWN, KEY_END, 0)" in driver
     assert "QueueEvent(KEY_DOWN, ENTER, 0)" in driver
     assert "tests/runtime" not in (repository / "src/wiz8/sources.cmake").read_text(

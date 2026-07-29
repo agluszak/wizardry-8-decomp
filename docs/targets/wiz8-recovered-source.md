@@ -1,4 +1,4 @@
-# Wiz8.exe owned gameplay recovery
+# Wiz8.exe recovered source
 
 The executable recovery target contains only source with reviewed ownership and comparison
 evidence. The complete address, size, confidence, hash, and per-function rationale live in
@@ -9,13 +9,14 @@ just wiz8 report status
 ```
 
 Owned definitions are split by original translation unit where ownership is established. The
-`WIZ8_GAMEPLAY_BOUNDARIES` target remains an umbrella object target, not a claim that the recovered
-functions originally shared one source file.
+The recovered translation units compile once in an internal object library and are reused unchanged
+by the comparison, runtime and semantic-test products. The object library is a CMake implementation
+detail, not a separate supported product or a claim that the functions shared one source file.
 
 Build and compare with:
 
 ```sh
-just build WIZ8_GAMEPLAY_BOUNDARIES
+just build WIZ8
 just compare WIZ8
 ```
 

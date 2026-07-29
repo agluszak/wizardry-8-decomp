@@ -349,7 +349,7 @@ def diff_boundary_command(
             raise RuntimeError("no original Wiz8.exe configured; pass --image")
         result = diff_boundary(
             mapping or settings.repo_dir / "config/reccmp/wiz8-gameplay-boundaries.csv",
-            objects or settings.repo_dir / "build/decomp/CMakeFiles/WIZ8_GAMEPLAY_BOUNDARIES.dir",
+            objects or settings.repo_dir / "build/decomp/CMakeFiles",
             original,
             selector,
         )

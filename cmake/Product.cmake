@@ -38,13 +38,13 @@ function(wiz8_add_executable)
     cmake_parse_arguments(ARG "OPT_REF;CONSOLE" "TARGET;OUTPUT;MAP" "LIBRARIES;SOURCES" ${ARGN})
     if(ARG_CONSOLE)
         add_executable(${ARG_TARGET}
-            $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+            $<TARGET_OBJECTS:wiz8_recovered_objects>
             ${ARG_SOURCES}
         )
         set(subsystem /SUBSYSTEM:CONSOLE,4.0)
     else()
         add_executable(${ARG_TARGET} WIN32
-            $<TARGET_OBJECTS:WIZ8_GAMEPLAY_BOUNDARIES>
+            $<TARGET_OBJECTS:wiz8_recovered_objects>
             ${ARG_SOURCES}
         )
         set(subsystem /SUBSYSTEM:WINDOWS,4.0)

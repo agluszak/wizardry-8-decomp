@@ -19,7 +19,9 @@ if(ZLIB_SOURCE)
 endif()
 
     include(src/wiz8/sources.cmake)
-    add_library(WIZ8_GAMEPLAY_BOUNDARIES OBJECT
+    # Compile recovered first-party sources once, then reuse those exact
+    # objects in the comparison, runtime and semantic-test products.
+    add_library(wiz8_recovered_objects OBJECT
         ${WIZ8_ORIGINAL_UNITS}
         ${WIZ8_TEMPLATE_EMISSIONS}
         ${WIZ8_UNATTRIBUTED_UNITS}
@@ -28,17 +30,9 @@ endif()
     # into SGP declare its types from the real header rather than restating
     # them. GETFILESTRUCT is the first: LoadSaveGame.cpp walks the save
     # directory through GetFileFirst.
-    target_link_libraries(WIZ8_GAMEPLAY_BOUNDARIES PRIVATE wiz8_compile_settings)
+    target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
     set_source_files_properties(src/wiz8/slf_archives.cpp PROPERTIES
         COMPILE_OPTIONS "/I${CMAKE_CURRENT_SOURCE_DIR}/config/sgp-overlays/librarydatabase")
-
-    # Matching source stays free of synthetic implementations. This umbrella
-    # preserves the old object-target name while giving the executable work a
-    # target whose contract is explicitly source matching.
-    add_custom_target(WIZ8_MATCHING DEPENDS WIZ8_GAMEPLAY_BOUNDARIES)
-    if(TARGET WIZ8_ZLIB_WRAPPERS)
-        add_dependencies(WIZ8_MATCHING WIZ8_ZLIB_WRAPPERS)
-    endif()
 
     wiz8_add_import_library(WIZ8_SR src/wiz8/imports/sr.def)
     wiz8_add_import_library(WIZ8_MSS32 src/wiz8/imports/mss32.def)
@@ -84,7 +78,6 @@ if(SGP_SOURCE)
     wiz8_add_sgp_group(WIZ8_SGP_RUNTIME_CORE ${WIZ8_SGP_RUNTIME_CORE_SOURCES})
     target_compile_definitions(WIZ8_SGP_RUNTIME_CORE PRIVATE WinMain=SgpRetainedWinMain)
 
-    add_dependencies(WIZ8_MATCHING WIZ8_SGP_RETAINED)
     target_sources(WIZ8_BRINGUP PRIVATE
         $<TARGET_OBJECTS:WIZ8_SGP_RETAINED>
     )

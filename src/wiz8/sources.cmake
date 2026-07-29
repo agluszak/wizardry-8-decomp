@@ -141,13 +141,13 @@ set(WIZ8_UNATTRIBUTED_UNITS
 # glob is validation-only: it prevents a new recovered C++ source from
 # silently escaping ownership without using the filesystem to order or
 # populate the build.
-set(WIZ8_MATCHING_SOURCE_CATEGORIES
+set(WIZ8_RECOVERED_SOURCE_CATEGORIES
     WIZ8_ORIGINAL_UNITS
     WIZ8_TEMPLATE_EMISSIONS
     WIZ8_UNATTRIBUTED_UNITS
 )
 set(WIZ8_CLASSIFIED_SOURCES)
-foreach(category IN LISTS WIZ8_MATCHING_SOURCE_CATEGORIES)
+foreach(category IN LISTS WIZ8_RECOVERED_SOURCE_CATEGORIES)
     foreach(source IN LISTS ${category})
         if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
             message(FATAL_ERROR "${category} names missing source: ${source}")
