@@ -114,6 +114,7 @@ Ranked by how often it has been the answer here:
 | `neg r`/`sbb`/`neg` where canonical has `test al,al` then `setne al` | a comparison returned directly, which widens to a 32-bit 0/1 | assign it to a `bool` local first, then return that |
 | A constant stored with an immediate where canonical materialises it into AL first | the function also *returns* that constant | give the gate its real return value; VC6 then uses one register for both |
 | `neg eax` where canonical has `neg al` | callee's **return type** is byte-sized, not `int` | narrow the extern declaration |
+| A tail `jmp` to the callee where canonical has `call` then `ret` | the result was returned directly, so VC6 tail-called | name a local for it and return that; the local blocks the tail call without changing the value. Confirmed on `MonsterGetSubobjectValue120`, whose float return went 0.57 → instruction-identical |
 
 Iterating on shape is normal. Sizes of 261 → 162 → 247 → 231 before an exact match happened here.
 

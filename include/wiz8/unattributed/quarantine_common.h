@@ -14,6 +14,28 @@
 /* Shared declarations for address-interval quarantine units. Definitions live
    only in the physical source selected by source-path or bounded-gap evidence. */
 
+/* 0x00522FE0, the condition applier Local Code\Conditions & Enchantments.cpp
+   and Local Code\Health Stamina Mana.cpp already reach; the hit-point
+   recalculation below is its third caller. */
+extern void SetCharacterCondition(
+    int party_slot, int condition, int duration, int argument, int arg_5, int arg_6);
+
+/* The object behind the pointer at 0x0065A0F8. Only two members are
+   established, both by the two readers in the 0041F261-0042403F quarantine:
+   a float at 0x04 that one converts from radians to degrees, and a twelve-byte
+   position at 0x8C that the other copies out as one block through integer
+   registers rather than the FPU, which is what makes it a struct assignment
+   rather than three float stores. Nothing else about the object is known, so
+   nothing else is modelled and the name stays address-qualified. */
+struct W8Object65A0F8 {
+    unsigned char unknown_00[4];
+    float angle_04;                       /* 0x04, radians */
+    unsigned char unknown_08[0x84];
+    W8Position position_8c;               /* 0x8c */
+};
+
+extern W8Object65A0F8* g_object_65a0f8;
+
 /* Only the virtual destructor is established: the call goes through slot 0 with
    the deleting flag set, which is what `delete` on a polymorphic object emits.
    No field is known, so none is modelled. */

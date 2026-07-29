@@ -1027,6 +1027,12 @@ extern int g_profession_bonus_skills[15];
 /* Four skill ids per profession. */
 extern int g_profession_skills[15][4];
 extern int g_profession_magic_level_offsets[15];
+/* 0x00615570: hit points a profession contributes per level it has been taken,
+   before the vitality-derived multiplier. Fifteen entries; the recalculation at
+   0x0052A2F0 walks it to the address one past the last, which is what fixes the
+   extent. The entries are floats - the multiply is `fmul dword ptr` - and the
+   table sits in .data rather than .rdata. */
+extern float g_profession_hit_point_factors[15];
 extern W8FactDatabaseRecord* g_fact_records;
 extern unsigned char g_log_fact_checks;
 extern unsigned char g_fact_values[1001];
@@ -1171,15 +1177,33 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
 /* Partial layout of the engine object referenced by cycle 18. The Monster
    wrappers at 0x004C5780..0x004C5AA0 establish the timestamp, animation state,
    pending cycle, and scale fields below. */
+/* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
+   by the setter at 0x004C5AD0. That setter takes the block by value and VC6
+   copies it with the interleaved two-register rotation it uses for a struct
+   assignment, rather than the sequential load/store pairs four separate scalar
+   parameters would emit - which is what makes this one object and not four.
+   Nothing observed so far types its contents. */
+typedef struct W8MonsterRuntimeBlock4C {
+    unsigned int values[4];
+} W8MonsterRuntimeBlock4C;                  /* 0x10 */
+
 struct W8MonsterCycleRuntime {
-    unsigned char unknown_000[0x66];
+    unsigned char unknown_000[0x4c];
+    W8MonsterRuntimeBlock4C block_04c;      /* 0x04c */
+    unsigned char unknown_05c[0xa];
     unsigned short value_066;               /* 0x066: cleared when a cycle starts */
     unsigned int animation_timestamp;       /* 0x068 */
     unsigned char unknown_06c;
     unsigned char animating;                /* 0x06d */
     unsigned char unknown_06e[3];
     signed char behaviour;                   /* 0x071: asserted BEHAVIOUR_FIRST..LAST */
-    unsigned char unknown_072[0x35];
+    unsigned char unknown_072[0x32];
+    /* 0x0a4 is copied straight into pending_cycle when nothing is pending, so
+       it is a cycle number and carries pending_cycle's own signedness - the
+       fallback the setter at 0x004C6C00 applies. */
+    signed char value_0a4;                   /* 0x0a4 */
+    unsigned char unknown_0a5;
+    unsigned char value_0a6;                 /* 0x0a6: written by that same setter */
     signed char pending_cycle;               /* 0x0a7 */
     unsigned char unknown_0a8[0x514];
     unsigned char flag_5bc;                 /* 0x5bc */
@@ -1208,6 +1232,7 @@ struct W8MonsterCycle {
     };
     union {
         unsigned int value_08;              /* 0x08: copied by 0x004c5870 */
+        unsigned int location_id_08;        /* 0x08: consumed as a location id by 0x004c6240 */
         struct {
             unsigned char unknown_08;
             unsigned char unknown_09;       /* 0x09: cleared for cycle 22 by 0x004e6130 */
@@ -1243,6 +1268,35 @@ struct W8MonsterPolymorphicSubobject18 {
     unsigned char unknown_8e[6];
 
     srVector3T<float> GetPosition();
+
+    /* Six methods the Monster.cpp forwarder family reaches on this subobject.
+       Each forwarder derives the receiver with `lea ecx, [monster + 0x18]`,
+       which is what proves they are this object's methods and not the
+       monster's; only the offset is proved that way, so the names stay
+       address-qualified wherever the body does not say what a member means.
+
+       These bodies read members at 0x25, 0x68, 0xc4, 0xd0, 0xf4 and 0x120,
+       past the 0x94 this model covers - and Monster's cycle array is placed at
+       Monster +0xac, which is subobject +0x94. Either this object is larger
+       than the extent below and the cycle array lies inside it, or the two
+       placements do not both hold. 0x120 is not on a cycle boundary, so
+       neither reading is settled here. The disagreement is recorded rather
+       than resolved: declaring a method claims nothing about the extent, and
+       the static_assert below still pins what is proved. */
+    void SetValue120(float value);            /* 0x00453C50 */
+    float GetValue120();                      /* 0x00453C60 */
+    unsigned char Function452630(const W8Position* position);  /* 0x00452630 */
+    void Function453690(void* argument);      /* 0x00453690 */
+    /* Reaches the object at 0x68 and raises or clears its own flag at 0x38. */
+    void SetObject68Flag38(char value);       /* 0x004537C0 */
+    /* Two more that take a position and read the three-dword block at 0x100.
+       Which one 0x004C6240 picks is the whole of what its flag argument
+       decides; nothing in either body says how they differ. */
+    void Function454040(const W8Position* position);  /* 0x00454040 */
+    void Function453F30(const W8Position* position);  /* 0x00453F30 */
+    /* Writes the byte at 0x25 and, when it is cleared, releases the object at
+       0x68; when it is set, zeroes the member at 0xf4 instead. */
+    void SetFlag25(char value);               /* 0x004531F0 */
 };                                          /* 0x94: through the cycle array at Monster +0xac */
 
 /* Partial source model of the Monster class (0x628 bytes, vtable 0x005ed200,
@@ -1271,6 +1325,12 @@ struct W8Monster {
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
     void SubmitCycleAnimValue004BF970(signed char cycle);
+    /* 0x004C4660. A method, not the free function an earlier reading assumed:
+       it takes its receiver in ECX and IsDying calls it without reloading ECX
+       at all, relying on `this` already being there. The query selector is
+       bounded at nine by the body's own `ja` against the jump table. */
+    int Query(int query);
+    void SetRuntimeValueA6(unsigned char value);   /* 0x004C6C00 */
     unsigned char IsDying();
     unsigned char Function4C2CF0(signed char cycle);
     void Function4C50F0();

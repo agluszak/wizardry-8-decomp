@@ -6,6 +6,8 @@
 
 extern srTimer* g_shared_timer_base;
 
+#define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
+
 struct W8Releasable {
     virtual ~W8Releasable();
 };
@@ -55,10 +57,6 @@ struct W8MonsterLinkedObjectList004C5870 {
     }
 };
 
-/* Cleans its own argument, so it is __stdcall and not the cdecl the
-   decompiler assumes. */
-extern "C" int __stdcall Function4C4660(int query);
-
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
    the canonical assertion at line 960, whose message reads
    "GetNumSubsPerCycle() -> Invalid cycle num.". The element count and stride
@@ -70,7 +68,7 @@ unsigned char W8Monster::GetNumSubsPerCycle(signed char bCycle)
     if (bCycle >= W8_MONSTER_CYCLE_COUNT) {
         srAssertFail(
             "bCycle < CYCLE_NUM_UNIQUE",
-            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            MONSTER_CPP,
             0x3c0,
             "GetNumSubsPerCycle() -> Invalid cycle num.");
     }
@@ -331,7 +329,7 @@ void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 int MonsterQuery(W8Monster* monster, int query)
 {
     if (monster != NULL) {
-        return Function4C4660(query);
+        return monster->Query(query);
     }
     return -1;
 }
@@ -339,18 +337,104 @@ int MonsterQuery(W8Monster* monster, int query)
 // FUNCTION: WIZ8 0x004ca4c0
 unsigned char W8Monster::IsDying()
 {
-    return Function4C4660(6) == 0x15 ||
-           m_cycles[18].runtime->pending_cycle == 0x15;
+    unsigned char dying = Query(6) == 0x15 ||
+                          m_cycles[18].runtime->pending_cycle == 0x15;
+
+    return dying;
 }
 
 /* Six thin bodies over the live engine object. Each is a null check and a
    forward, or a single member read; nothing here says what the members and
    slots are for, so each is named for what it reaches. */
 
+extern void Function4C4DE0(int arg_1, int arg_2, int arg_3);
+extern void Function4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5);
+/* Neither takes an argument nor reads ECX: both work entirely over the pair of
+   globals at 0x00659B34 and 0x00659B3C, which is what makes them free
+   functions rather than the subobject methods their neighbours in the same
+   address range are. */
+extern void Function453160(void);
+extern void Function4531A0(void);
+/* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
+   afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
+extern void __stdcall Function4A7BE0(const float* position);
+
+/* The location-id lookup pair, spelled as Magic Effects.cpp already declares
+   it: the index comes first and the script part is fetched from it. */
+extern unsigned int MonsterGetIndexByLocationID(
+    int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
+extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
+
+/* 0x00421070, owned by the 0041F261-0042403F quarantine: the shared reference
+   position every consumer of the object at 0x0065A0F8 reads. */
+extern void GetPosition421070(W8Position* position);
 extern void MonsterPolymorphicSubobject18Update(W8MonsterPolymorphicSubobject18* member);            /* 0x00453970 */
 extern void Function4A84A0(W8Monster* monster);
-extern void Function4537E0(W8Monster* monster);
+/* Spelled the way MonsterManager.cpp already declares it: the callee takes its
+   receiver in ECX, which __fastcall is how a no-argument member call is
+   reachable from a free declaration. The receiver is the monster's subobject at
+   0x18, not the monster - the forwarder derives it with a `lea`. */
+extern void __fastcall Function4537E0(W8MonsterPolymorphicSubobject18* member);
 extern void* g_monster_vtable_005ed290;
+
+/* Copies a position into a local and hands the local on. The monster argument
+   is dead beyond its own null check - the callee never receives it - which is
+   the same shape the other guarded forwarders here take, except that what
+   survives the guard is the copy rather than the object.
+   The copy goes through the FPU one component at a time - `fld dword` then
+   `fstp dword` per component - rather than as the three integer moves VC6
+   emits for a plain three-float assignment, which is what this body still gets
+   and the whole of its remaining difference. That shape is the signature of
+   srVector3T<float>::method_00421680 expanded inline: its parameters are
+   doubles, so each float round-trips through the FPU instead of being copied
+   as bits. The image carries both an out-of-line COMDAT copy of that setter at
+   0x00421680 and this inlined expansion, which is the multiple-translation-unit
+   visibility the inlining policy asks for before a body moves into a header -
+   but vector_conversions.cpp owns it out of line today, so VC6 cannot inline it
+   here. Recorded rather than forced: moving that definition is an ownership
+   decision for the setter's own bundle, not something to settle from one
+   call site. */
+// FUNCTION: WIZ8 0x004c5a40
+void MonsterForward4A7BE0(W8Monster* monster, const W8Position* position)
+{
+    float local[3];
+
+    if (monster != 0) {
+        local[0] = position->x;
+        local[1] = position->y;
+        local[2] = position->z;
+        Function4A7BE0(local);
+    }
+}
+
+/* Records a value on the cycle runtime and, when nothing is pending, seeds the
+   pending cycle from the runtime's own fallback at 0x0a4 rather than leaving it
+   at -1. The runtime pointer is fetched twice rather than held in a local -
+   the second `mov` reloads it from the cycle - which is what says the original
+   spelled the two reaches out separately instead of naming the record once. */
+// FUNCTION: WIZ8 0x004c6c00
+void W8Monster::SetRuntimeValueA6(unsigned char value)
+{
+    m_cycles[18].runtime->value_0a6 = value;
+    if (m_cycles[18].runtime->pending_cycle == -1) {
+        m_cycles[18].runtime->pending_cycle = m_cycles[18].runtime->value_0a4;
+    }
+}
+
+/* Writes the sixteen-byte block the cycle runtime carries at 0x4c, but only for
+   a monster that is neither absent nor already answering the dying cycle to
+   query six - the same 0x15 the death test compares against, reached the same
+   way. Both guards leave through one shared exit, which is why the body has a
+   single epilogue despite testing two things. The block arrives by value and is
+   stored as one assignment. */
+// FUNCTION: WIZ8 0x004c5ad0
+void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
+{
+    if (monster != 0 && monster->Query(6) != 0x15) {
+        monster->m_cycles[18].runtime->block_04c = block;
+    }
+}
+
 
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */
@@ -384,7 +468,153 @@ void MonsterForward4A84A0(W8Monster* monster)
 void MonsterForward4537E0(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4537E0(monster);
+        Function4537E0(&monster->polymorphic_subobject_18);
+    }
+}
+
+/* Two more of the same null-checked shape, except that what they forward to is
+   already recovered: both callees are W8GrCycle setters GrCycle.cpp owns, and
+   both are reached as methods rather than as free functions - the receiver
+   stays in ECX across the guard and only the value is pushed. That is what
+   types the parameter as the cycle rather than as the opaque pointer the
+   neighbouring forwarders take. */
+// FUNCTION: WIZ8 0x004c61a0
+void MonsterSetCycleBehaviour(W8GrCycle* cycle, signed char bBehaviour)
+{
+    if (cycle != 0) {
+        cycle->SetBehaviour(bBehaviour);
+    }
+}
+
+// FUNCTION: WIZ8 0x004c61c0
+void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
+{
+    if (cycle != 0) {
+        cycle->SetSubCycle(subcycle);
+    }
+}
+
+/* An unguarded three-argument forward. The arguments are pushed back to front
+   and handed straight on, so nothing here says what any of them mean. */
+// FUNCTION: WIZ8 0x004c5eb0
+void MonsterForward4C4DE0(int arg_1, int arg_2, int arg_3)
+{
+    Function4C4DE0(arg_1, arg_2, arg_3);
+}
+
+/* The same unguarded cdecl pass-through with five arguments. Like its
+   three-argument sibling it re-pushes its own stack slots and makes a real
+   call rather than jumping: caller-cleanup cdecl cannot tail-jump when there
+   are stack arguments to account for. */
+// FUNCTION: WIZ8 0x004c58e0
+void MonsterForward4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5)
+{
+    Function4C0300(arg_1, arg_2, arg_3, arg_4, arg_5);
+}
+
+/* Two whole-body tail calls. Neither wrapper takes an argument and neither
+   callee touches ECX - both read only the pair of globals at 0x00659B34 and
+   0x00659B3C - so the wrappers pass nothing on and VC6 lowers each to a bare
+   jump. That is the whole difference from the cdecl pass-throughs above: with
+   no stack arguments there is nothing left to clean up. */
+// FUNCTION: WIZ8 0x004c61e0
+void MonsterForward453160(void)
+{
+    Function453160();
+}
+
+// FUNCTION: WIZ8 0x004c61f0
+void MonsterForward4531A0(void)
+{
+    Function4531A0();
+}
+
+/*
+ * Six more null-guarded forwarders onto the subobject at 0x18, the same shape
+ * MonsterForward4537E0 has: the guard tests the monster, the receiver is
+ * derived from it with a `lea`, and a monster that is not there is simply not
+ * acted on. What each one answers on the null path is the evidence for its
+ * return type - a cleared AL for the byte-sized ones, a loaded 0.0f for the
+ * float, and a bare return for the four that hand nothing back.
+ */
+// FUNCTION: WIZ8 0x004c5f50
+void MonsterSetSubobjectValue120(W8Monster* monster, float value)
+{
+    if (monster != 0) {
+        monster->polymorphic_subobject_18.SetValue120(value);
+    }
+}
+
+// FUNCTION: WIZ8 0x004c5f70
+float MonsterGetSubobjectValue120(W8Monster* monster)
+{
+    if (monster != 0) {
+        float value = monster->polymorphic_subobject_18.GetValue120();
+        return value;
+    }
+    return 0.0f;
+}
+
+// FUNCTION: WIZ8 0x004c5f90
+unsigned char MonsterForward452630(W8Monster* monster, const W8Position* position)
+{
+    if (monster != 0) {
+        return monster->polymorphic_subobject_18.Function452630(position);
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c5fb0
+void MonsterForward453690(W8Monster* monster, void* argument)
+{
+    if (monster != 0) {
+        monster->polymorphic_subobject_18.Function453690(argument);
+    }
+}
+
+// FUNCTION: WIZ8 0x004c5fd0
+void MonsterSetSubobjectObject68Flag38(W8Monster* monster, char value)
+{
+    if (monster != 0) {
+        monster->polymorphic_subobject_18.SetObject68Flag38(value);
+    }
+}
+
+// FUNCTION: WIZ8 0x004c6200
+void MonsterSetSubobjectFlag25(W8Monster* monster, char value)
+{
+    if (monster != 0) {
+        monster->polymorphic_subobject_18.SetFlag25(value);
+    }
+}
+
+/* Hands the shared reference position to one of the subobject's two position
+   sinks. The monster's script part is found the long way round - the location
+   id lives in the cycle array at 0x1e4, and the lookup pair turns it into the
+   W8MonsterInfo whose control state gates the whole body - which is what puts
+   this in Monster.cpp rather than in the engine: the assertion path the lookup
+   carries names this file and line 5299.
+   Control state one is the only value that suppresses the update; every other
+   value falls through. The position is fetched before the flag is read, so it
+   is read even on the path that turns out not to need one sink over the other,
+   and the flag decides only which sink receives it. */
+// FUNCTION: WIZ8 0x004c6240
+void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
+{
+    W8MonsterInfo* monster_info;
+    W8Position position;
+
+    if (monster != 0) {
+        monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0x14b3, MONSTER_CPP, monster->m_cycles[19].location_id_08, 1));
+        if (monster_info->control_state != 1) {
+            GetPosition421070(&position);
+            if (alternate != 0) {
+                monster->polymorphic_subobject_18.Function454040(&position);
+            } else {
+                monster->polymorphic_subobject_18.Function453F30(&position);
+            }
+        }
     }
 }
 

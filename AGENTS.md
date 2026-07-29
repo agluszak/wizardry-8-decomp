@@ -74,6 +74,21 @@ inlining combinations to win the final fraction of instruction similarity; recor
 divergence and move on. Return for byte-identity when new evidence — a caller, a layout, a
 compiler-flag proof — makes it cheap, not by brute force.
 
+**Register allocation choice does not matter.** A body whose instructions correspond one for
+one with the retail body, in the same order and with the same operands, is done — even when
+the two disagree about which scratch register each site uses. A register permutation carries
+no evidence: it does not change what the code reads, writes, or calls, and it cannot falsify a
+field offset, a signedness, a calling convention, or a control-flow shape. Do not iterate on
+source shape to chase one, do not report it as a defect, and do not let it hold a body back
+from being recorded as recovered. Note it in a sentence and move on.
+
+The corollary matters as much: a register difference is only ever *residual*. Register roles
+that are permuted **because the control-flow shape is wrong** are a real finding, and the
+tell is that the instruction sequence itself diverges — a different count, a different order,
+a missing or extra test. Line the two bodies up instruction by instruction first. If they
+correspond and only the register names differ, stop; if they do not correspond, the registers
+were a symptom and the shape is the bug.
+
 Marker policy follows reccmp's entity conventions (enforced by `just check`):
 
 - `// FUNCTION:` must sit immediately above its C++ declaration.
