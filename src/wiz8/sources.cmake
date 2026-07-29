@@ -49,6 +49,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/stParticle.cpp
     src/wiz8/engine_code/Trigger.cpp
     src/wiz8/engine_code/Environment.cpp
+    src/wiz8/engine_code/AnimObj.cpp
     src/wiz8/engine_code/Missile.cpp
     src/wiz8/engine_code/Spells.cpp
     src/wiz8/engine_code/AnimRep.cpp

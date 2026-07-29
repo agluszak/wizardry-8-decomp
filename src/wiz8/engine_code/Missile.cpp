@@ -7,6 +7,7 @@
  * emitter, count how many the record has, and reach the emitter's own value.
  */
 
+#include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
@@ -89,7 +90,7 @@ public:
     float GetActiveEmitterValue();       /* 0x004A45C0 */
     char GetEmitterCount();              /* 0x004A4590 */
     void Release();                      /* 0x004A4100 */
-    virtual void* Method34();
+    virtual W8AnimObj* Method34();
     virtual char Method14();
     void ApplyLauncherSetting98();       /* 0x004A4110 */
     void ResetLauncherCounters(int arg_1, int arg_2);   /* 0x004A4140 */
@@ -99,7 +100,6 @@ public:
 };
 
 extern void ReleaseMissile(W8Missile* missile);                          /* 0x004A7470 */
-extern void Function4A15D0(void* node, unsigned char value);
 extern void Function4A72F0(int arg_1, int arg_2);
 
 /* The launcher a missile was fired from. */
@@ -148,7 +148,7 @@ void W8Missile::Release()
 // FUNCTION: WIZ8 0x004a4110
 void W8Missile::ApplyLauncherSetting98()
 {
-    Function4A15D0(Method34(), this->launcher->setting_98);
+    AnimObjValue004A15D0(Method34(), this->launcher->setting_98);
 }
 
 /* Reset the launcher's two counters at 0x94 and 0x95. The second is one less

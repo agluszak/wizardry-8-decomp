@@ -7,6 +7,7 @@
  */
 
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/SpellEmitterHost.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
@@ -14,7 +15,7 @@
 class W8SpellVisual {
 public:
     virtual ~W8SpellVisual();
-    virtual void* Method34();
+    virtual W8AnimObj* Method34();
 
     W8EmitterHost* GetHost();            /* 0x004AC890 */
     W8Emitter* GetActiveEmitter();       /* 0x004AC820 */
@@ -30,7 +31,6 @@ public:
 
 extern void Function4A14D0(W8Emitter* emitter, int arg_2, int arg_3);
 extern void Function4A1660(W8Emitter* emitter, unsigned char setting, int arg_3);
-extern void Function4A15D0(void* node, unsigned char value);
 extern void DestroyEmitter(W8Emitter* emitter);                         /* 0x004A01E0 */
 extern void Function4A6E20(float value);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
@@ -73,7 +73,7 @@ char W8SpellVisual::GetEmitterCount()
 // FUNCTION: WIZ8 0x004ac360
 void W8SpellVisual::ApplyHostSetting98()
 {
-    Function4A15D0(Method34(), this->host->setting_98);
+    AnimObjValue004A15D0(Method34(), this->host->setting_98);
 }
 
 /* Start the visual, but only while the host is live. A spell of the seventh
@@ -113,7 +113,7 @@ void W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
             0x200,
             0);
     }
-    Function4A15D0(target, this->setting_98);
+    AnimObjValue004A15D0((W8AnimObj*)target, this->setting_98);
 }
 
 /* Stop one named emitter, passing the host's own setting; an empty slot is

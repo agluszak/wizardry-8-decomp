@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/sr_api.h"
 
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
@@ -43,7 +44,7 @@ public:
     unsigned char current_tag;
     unsigned char unknown_095[3];
     /* 0x98: the animation the prop drives. */
-    void* animation;
+    W8AnimObj* animation;
     unsigned char unknown_09c[0x18];
     /* 0xb4 and 0xbc: the slot table, count first and data three dwords along -
        the shared growable vector's shape. */
@@ -185,11 +186,10 @@ void W8Prop005EC1E0::SetSetting6C(unsigned char value)
     m_owned_14->setting_6c = value;
 }
 
-extern unsigned char AnimationIsRunning(void* animation);               /* 0x004A1DC0 */
-extern void AnimationStart(void* animation, int channel, int argument); /* 0x004A14D0 */
-extern void AnimationStop(void* animation, int channel, int argument);   /* 0x004A1560 */
+extern void AnimationStart(W8AnimObj* animation, int channel, int argument); /* 0x004A14D0 */
+extern void AnimationStop(W8AnimObj* animation, int channel, int argument);  /* 0x004A1560 */
 extern void AnimationPlayFromTo(
-    void* animation, int channel, unsigned char argument, int from, int to); /* 0x004A1710 */
+    W8AnimObj* animation, int channel, unsigned char argument, int from, int to); /* 0x004A1710 */
 extern unsigned char Function4B75F0(int arg_1, int arg_2);
 extern void Function444750(void);
 

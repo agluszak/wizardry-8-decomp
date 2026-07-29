@@ -1,0 +1,74 @@
+#include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/sr_api.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+#define ANIM_OBJ_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\AnimObj.cpp"
+
+/* The callee returns its byte value in an int-sized result; this wrapper is
+   the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
+extern int Function4B64F0(void* entry);                        /* 0x004B64F0 */
+
+// FUNCTION: WIZ8 0x004a01a0
+W8AnimObj* CreateAnimObj004A01A0()
+{
+    W8AnimObj* animation = (W8AnimObj*)malloc(sizeof(W8AnimObj));
+
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x24, 0);
+    }
+    memset(animation, 0, sizeof(W8AnimObj));
+    return animation;
+}
+
+/* While the object is inactive the selected owned entry supplies the value;
+   once active, AnimObj keeps the live value in its own byte at 0x16. */
+// FUNCTION: WIZ8 0x004a15d0
+unsigned int AnimObjValue004A15D0(W8AnimObj* animation, signed char index)
+{
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
+    }
+    if (animation->flag_05 == 0) {
+        return (unsigned char)Function4B64F0(animation->entries_18[index]);
+    }
+    return animation->value_16;
+}
+
+// FUNCTION: WIZ8 0x004a1620
+unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index)
+{
+    W8PList* list;
+
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x2a7, 0);
+    }
+    list = animation->lists_28[index];
+    if (list != 0) {
+        return PListGetCount(list);
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004a16c0
+void* AnimObjListEntry004A16C0(
+    W8AnimObj* animation, signed char list_index, signed char entry_index)
+{
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x2d3, 0);
+    }
+    if (animation->flag_05 == 0) {
+        return 0;
+    }
+    return PListGetAt(animation->lists_34[list_index], entry_index);
+}
+
+// FUNCTION: WIZ8 0x004a1dc0
+unsigned char AnimationIsRunning(W8AnimObj* animation)
+{
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x3b1, 0);
+    }
+    return animation->flag_05;
+}
