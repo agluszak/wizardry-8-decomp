@@ -212,3 +212,51 @@ int GetConditionDisplaySlot(int condition)
         return 0;
     }
 }
+
+/* One queued spell effect. Only the source block matters here; the assertion
+   at Magic Effects.cpp:2685 names it pQueue->Source, and the recall reads the
+   caster out of it. */
+struct W8SpellQueueEntry {
+    unsigned char unknown_00[0x5c];
+    W8TargetSource Source;               /* 0x5c */
+};
+
+/* 0x00687417: where a staged cross-level move parks the destination anchor
+   until the transition runs. The whole 0x3c-byte block travels, not just its
+   point, so it is the same shape the character carries. */
+extern W8SavedLocation g_pending_move_location_00687417;
+
+extern void MoveWorldToPoint(W8World* destination, W8World* source, const W8Position* point);
+/* 0x00450610 */
+extern void PlacePartyAtPoint(const W8Position* point);                  /* 0x00421090 */
+extern void BeginLevelTransition(void);                                  /* 0x005611A0 */
+
+/* Return the casting character to the anchor they set earlier. Nothing happens
+   unless the anchor was ever set. On the same level the party is moved there
+   directly and the renderer is told to catch up; on any other level the anchor
+   is staged into the pending-transition globals instead and the level change
+   does the work. The whole 0x3c-byte anchor travels, not just its point. */
+// FUNCTION: WIZ8 0x005507d0
+void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
+{
+    W8Character* caster;
+    W8Position point;
+
+    if (!TargetSourceIsCharacter(&pQueue->Source, 0)) {
+        srAssertFail("SourceIsCharacter(&(pQueue->Source))", MAGIC_EFFECTS_CPP, 2685, 0);
+    }
+    caster = &g_party_characters[pQueue->Source.iChar];
+    if (caster->has_saved_location != 0) {
+        if (caster->saved_level == g_current_level) {
+            MoveWorldToPoint(GetWorld(), GetWorld659AB8(), &caster->saved_location.point);
+            point = caster->saved_location.point;
+            PlacePartyAtPoint(&point);
+            MarkRendererReady();
+            return;
+        }
+        g_pending_move_location_00687417 = caster->saved_location;
+        g_level_block->pending_level = g_party_characters[pQueue->Source.iChar].saved_level;
+        g_level_block->pending_entry_id = -1;
+        BeginLevelTransition();
+    }
+}

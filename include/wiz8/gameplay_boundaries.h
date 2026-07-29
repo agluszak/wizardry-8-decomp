@@ -37,6 +37,14 @@ typedef struct W8Position {
     float z;
 } W8Position;
 
+/* The 0x3c-byte anchor a character carries and the recall effect restores.
+   Only the leading point is read field by field; the rest travels as one
+   block, so nothing beyond it is named. */
+typedef struct W8SavedLocation {
+    W8Position point;                    /* 0x00 */
+    unsigned char unknown_0c[0x30];
+} W8SavedLocation;                       /* 0x3c */
+
 
 
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
@@ -294,11 +302,22 @@ typedef struct W8Character {
     /* 0x17b5: the character is out of the formation, which is what the
        front-rank counts skip. */
     unsigned char out_of_formation;
-    unsigned char unknown_17b6[0xa5];
+    unsigned char unknown_17b6[0x21];
+    /* 0x17d7: where the character was last anchored, restored by the recall
+       effect in Magic Effects.cpp. Its extent is proven rather than assumed:
+       the cross-level path copies exactly 0x3c bytes from here with one
+       rep movsd, which lands precisely on the level id below. */
+    W8SavedLocation saved_location;      /* 0x17d7 */
+    /* 0x1813: which level that anchor belongs to. The recall compares it
+       against g_current_level and takes a different path when they differ. */
+    int saved_level;                     /* 0x1813 */
+    unsigned char unknown_1817[0x44];
     /* 0x185b: the deep-fatigue effect is already on this character, which is
        what stops FatigueCharacter re-applying it every turn. */
     unsigned char deep_fatigue_applied;
-    unsigned char unknown_185c[6];
+    unsigned char unknown_185c[5];
+    /* 0x1861: the anchor above has been set. Recall does nothing without it. */
+    unsigned char has_saved_location;
 } W8Character;                           /* 0x1862 */
 
 typedef struct W8RPCSlot {
@@ -897,7 +916,13 @@ typedef struct W8LevelRuntimeBlock {
     int highlighted_item;
     /* 0x268: the item the interface has selected, -1 for none. */
     int selected_item;
-    unsigned char unknown_26c[0x54];
+    unsigned char unknown_26c[0x10];
+    /* 0x27c and 0x280: the level a queued transition is bound for and the
+       entry point within it, the second always -1 when the recall effect
+       stages the move. */
+    int pending_level;                   /* 0x27c */
+    int pending_entry_id;                /* 0x280 */
+    unsigned char unknown_284[0x3c];
     /* 0x2c0 and 0x2c8: two redraw requests the party-state change raises. Only
        the first is conditional on a fight being on. */
     unsigned char refresh_combat_panel;
@@ -1548,6 +1573,10 @@ int GetLocationIDFromCode(const char* location_code);
 /* 0x0042A370, not yet recovered. */
 unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 W8World* GetWorld(void);
+/* The second world the 3D API keeps, and the renderer's catch-up request.
+   Both are defined in Engine Code\3dapi.cpp. */
+W8World* GetWorld659AB8(void);                                           /* 0x004512A0 */
+void MarkRendererReady(void);                                            /* 0x00451010 */
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
 W8MonsterGenerator* FindMonGenByName(const char* name);

@@ -43,7 +43,6 @@ void WorldUpdateProps(W8World* world)
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */
 extern W8World* g_world_00659ab4;
-extern void MarkRendererReady(void);                                   /* 0x00451010 */
 extern void Function4836A0(void);
 extern void SetHeapFree(void* block);
 extern void Function46E750(void* target, int argument);
