@@ -24,6 +24,10 @@ public:
 
 class SR_DLL_IMPORT srMaterial : public srMaterialIFace {
 public:
+    enum e_oper {};
+
+    srMaterial();
+    srMaterial(const srMaterial& other);
     static const char* sGetClassName();
 
     virtual void dump(std::ostream& stream) override;
@@ -44,21 +48,39 @@ protected:
 
 public:
     srMaterial& operator=(const srMaterial& other);
+    void disable(e_oper operation);
+    void enable(e_oper operation);
+    srVector4T<float> getAmbient() const;
+    void getAmbient(srVector4T<float>& ambient) const;
+    srVector4T<float> getDiffuse() const;
+    void getDiffuse(srVector4T<float>& diffuse) const;
+    srVector4T<float> getEmissive() const;
+    void getEmissive(srVector4T<float>& emissive) const;
+    srVertexProcessor* getMapper() const;
+    float getOpacity() const;
+    float getShininess() const;
+    srVector4T<float> getSpecular() const;
+    void getSpecular(srVector4T<float>& specular) const;
+    float getTranslucency() const;
+    int isEnabled(e_oper operation) const;
+    void setAmbient(const srVector4T<float>& ambient);
+    void setAmbientAndDiffuse(const srVector4T<float>& color);
+    void setDiffuse(const srVector4T<float>& diffuse);
+    void setEmissive(const srVector4T<float>& emissive);
+    void setMapper(srVertexProcessor* mapper);
+    void setOpacity(double opacity);
+    void setShininess(double shininess);
+    void setSpecular(const srVector4T<float>& specular);
+    void setTranslucency(double translucency);
 
 protected:
     void setVector(srVector4T<float>& destination,
                    const srVector4T<float>& source);
 
-    srVector4T<float> vector_18;
-    unsigned char unknown_28_[0x10];
-    srVector4T<float> vector_38;
-    unsigned char unknown_48_[0x0c];
-    srVector4T<float> vector_54;
-    unsigned long field_64;
-    unsigned long field_68;
-    unsigned long field_6c;
-    unsigned long field_70;
-    unsigned long field_74;
+    srVertexProcessor::MaterialInfo parms_18; /* 0x18 */
+    srFlags<e_oper> operations_6c;             /* 0x6c */
+    srVertexProcessor* mapper_70;              /* 0x70 */
+    int dirty_74;                              /* 0x74 */
 };
 
 static_assert((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");

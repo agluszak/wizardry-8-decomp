@@ -12,26 +12,6 @@ class W8Material005EBDE0 : public srMaterial {
 public:
     W8Material005EBDE0()
     {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* iface = registry->getClassNode(0x2200);
-        if (iface == 0) {
-            iface = registry->registerClass(
-                srMaterialIFace::sGetClassName(),
-                srClass::sGetClassNode(),
-                0x2200,
-                1);
-        }
-        registry->registerInstance(iface, this);
-
-        srRegistry::ClassNode* material = registry->getClassNode(0x2210);
-        if (material == 0) {
-            material = registry->registerClass(
-                srMaterial::sGetClassName(), iface, 0x2210, 0);
-        }
-        registry->registerInstance(material, this);
-        field_68 = 0;
-        field_6c = 0;
-        reset();
     }
 
     const char* getClassName() const override
@@ -71,17 +51,18 @@ public:
         value.y = 1.0f;
         value.z = 1.0f;
         value.w = 1.0f;
-        setVector(vector_54, value);
+        setVector(parms_18.emissive, value);
         value.x = value.y = value.z = value.w = 0.0f;
-        setVector(vector_18, value);
-        setVector(vector_38, value);
-        vector_18.w = 1.0f;
-        field_74 = 1;
+        setVector(parms_18.diffuse, value);
+        setVector(parms_18.specular, value);
+        parms_18.diffuse.w = 1.0f;
+        dirty_74 = 1;
     }
 
     void setParameterSource(const void* source)
     {
-        field_70 = reinterpret_cast<unsigned long>(source);
+        mapper_70 = reinterpret_cast<srVertexProcessor*>(
+            const_cast<void*>(source));
     }
 };
 

@@ -16,7 +16,17 @@ class srVertexPipe;
 #pragma pack(push, 4)
 class srVertexProcessor {
 public:
-    struct MaterialInfo;
+    struct MaterialInfo {
+        srVector4T<float> diffuse;           /* 0x00 */
+        srVector4T<float> ambient;           /* 0x10 */
+        srVector4T<float> specular;          /* 0x20 */
+        float translucency;                  /* 0x30 */
+        float shininess;                     /* 0x34 */
+        float value_38;                      /* 0x38 */
+        srVector4T<float> emissive;          /* 0x3c */
+        float value_4c;                      /* 0x4c */
+        unsigned long flags;                 /* 0x50 */
+    };
 
     enum e_channel {};
 
@@ -42,6 +52,9 @@ public:
 static_assert(
     sizeof(srVertexProcessor) == 0x30,
     "srVertexProcessor_must_be_0x30");
+static_assert(
+    sizeof(srVertexProcessor::MaterialInfo) == 0x54,
+    "srVertexProcessor_MaterialInfo_must_be_0x54");
 
 class srVertexPipe {
 public:
