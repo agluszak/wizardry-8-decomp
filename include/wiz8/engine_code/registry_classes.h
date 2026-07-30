@@ -8,6 +8,7 @@
 class W8MonsterShakeCallback;
 class Trigger;
 class stTextureAnim;
+struct W8PathAI;
 struct W8Position;
 
 /*
@@ -73,26 +74,90 @@ static_assert(sizeof(stParticle) == 0x270, "stParticle_size_must_be_0x270");
 
 class stLightDefinition {
 public:
-    virtual void vslot0() = 0;
-    virtual void vslot1() = 0;
+    virtual ~stLightDefinition();
+    virtual stLightDefinition* Clone() const = 0;
     virtual unsigned char IsEnabledForSubcycle(unsigned char subcycle) = 0;
 
     int type_04;
-    unsigned int flags_08;
-    unsigned char unknown_0c[4];
-    srVector3T<float> color_10;
-    unsigned char unknown_1c[0x0c];
-    float intensity_28;
-    unsigned char unknown_2c[0x10];
-    int value_3c;
-    unsigned char unknown_40[8];
-    int value_48;
-    float time_4c;
 };
 
-static_assert(
-    sizeof(stLightDefinition) == 0x50,
-    "stLightDefinition_size_must_be_0x50");
+static_assert(sizeof(stLightDefinition) == 0x8,
+              "stLightDefinition_size_must_be_0x8");
+
+// VTABLE: WIZ8 0x005ecdbc
+class stLightDefinition005ECDBC : public stLightDefinition {
+public:
+    stLightDefinition005ECDBC() { type_04 = 1; }
+    stLightDefinition005ECDBC(
+        const stLightDefinition005ECDBC& other)
+    {
+        type_04 = 1;
+        flags_08 = other.flags_08;
+        value_0c = other.value_0c;
+        color_10.x = other.color_10.x;
+        color_10.y = other.color_10.y;
+        color_10.z = other.color_10.z;
+        value_1c = other.value_1c;
+        value_20 = other.value_20;
+        value_24 = other.value_24;
+        intensity_28 = other.intensity_28;
+        value_2c = other.value_2c;
+        value_30 = other.value_30;
+        value_34 = other.value_34;
+        path_value_38 = other.path_value_38;
+        value_3c = other.value_3c;
+        value_40 = other.value_40;
+    }
+
+    // FUNCTION: WIZ8 0x004A2140
+    virtual stLightDefinition* Clone() const override
+    {
+        return new stLightDefinition005ECDBC(*this);
+    }
+
+    // FUNCTION: WIZ8 0x004A21E0
+    virtual unsigned char IsEnabledForSubcycle(
+        unsigned char subcycle) override
+    {
+        if (subcycle >= value_3c && subcycle <= value_40) {
+            return 1;
+        }
+        return 0;
+    }
+
+    unsigned int flags_08;
+    unsigned int value_0c;
+    srVector3T<float> color_10;
+    unsigned int value_1c;
+    unsigned int value_20;
+    unsigned int value_24;
+    float intensity_28;
+    float value_2c;
+    unsigned int value_30;
+    unsigned int value_34;
+    float path_value_38;
+    int value_3c;
+    int value_40;
+};
+
+static_assert(sizeof(stLightDefinition005ECDBC) == 0x44,
+              "stLightDefinition005ECDBC_size_must_be_0x44");
+
+// VTABLE: WIZ8 0x005ecda0
+class stLightDefinition005ECDA0 : public stLightDefinition {
+public:
+    virtual stLightDefinition* Clone() const override;
+    virtual unsigned char IsEnabledForSubcycle(
+        unsigned char subcycle) override;
+
+    unsigned char unknown_08[0x40];
+    int value_48;
+    float time_4c;
+    unsigned char unknown_50[8];
+};
+
+static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,
+              "stLightDefinition005ECDA0_size_must_be_0x58");
 
 // VTABLE: WIZ8 0x005ecc64
 class stLight : public srLight {
@@ -132,7 +197,7 @@ public:
         m_positional_flags_5c |= 4;
     }
 
-private:
+public:
     float m_positional_228;                         /* 0x228 */
     float m_positional_22c;                         /* 0x22c */
     float m_positional_230;                         /* 0x230 */
@@ -143,7 +208,7 @@ private:
     unsigned char m_padding_23b;
     float m_positional_23c;                         /* 0x23c */
     unsigned long m_positional_240;                 /* 0x240 */
-    void* m_owned_244;                              /* 0x244 */
+    W8PathAI* m_owned_244;                          /* 0x244 */
     unsigned long m_positional_248;                 /* 0x248 */
     float m_positional_24c;                         /* 0x24c */
     unsigned long m_positional_250;                 /* 0x250 */

@@ -124,5 +124,9 @@ void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void SetWorldScenePosition004511D0(
     W8World* world, const W8Position* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
+stLight* CreateLight0046DF90(srNode* parent, const char* name);
+stLight* CreateWorldLight0046E030(W8World* world, const char* name);
+stLight* CreateWorldLight0046E140(W8World* world, const char* name);
+void ConfigureWorldLight0046E300(srLight* light, float range);
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

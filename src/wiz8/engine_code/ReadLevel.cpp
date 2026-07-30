@@ -43,6 +43,20 @@ struct W8LevelItemRecord004BC380 {
 static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
               "W8LevelItemRecord004BC380_size_must_be_0x30");
 
+struct W8LevelLightRecord004BBAD0 {
+    short version;
+    unsigned char create;
+    unsigned char visible;
+    unsigned int flags;
+    W8Position location;
+    srVector3T<float> colour;
+    float intensity;
+    float range;
+};
+
+static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
+              "W8LevelLightRecord004BBAD0_size_must_be_0x28");
+
 } // namespace
 
 extern const float g_world_scale_005ebc40;
@@ -61,7 +75,6 @@ extern unsigned char ReadSingleLevelMesh00485B20(
 extern unsigned char ReadMultipleLevelMeshes00488240(
     W8ReadLevelInfo* info, srModelInstance** instances,
     unsigned long count, unsigned int flags);
-extern unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile);
 extern void AssociateWorldLights004BC060(W8World* world);
 extern void UpdateSky00482EA0(void);
 extern void FinalizeWorldTriggers00448840(void);
@@ -82,6 +95,137 @@ extern unsigned char ReadWorldParticles004BD0D0(
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 extern void ReportLevelLoadError00401920(const char* message);
 extern void SetChainValue15C(char* node, int value);
+
+// FUNCTION: WIZ8 0x004BBAD0
+unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
+{
+    short light_count;
+    int index;
+    unsigned char success;
+    unsigned char path_success;
+
+    success = ReadVirtualFile(hFile, &light_count, sizeof(light_count), 0);
+    if (!success) {
+        srAssertFail("fSuccess", READ_LEVEL_CPP, 486,
+                     "Couldn't read number of lights");
+    }
+
+    for (index = 0; index < light_count; ++index) {
+        W8LevelLightRecord004BBAD0 record;
+        stLightDefinition005ECDBC* definition = 0;
+        W8PathAI* path = 0;
+        stLight* light = 0;
+        char name[20];
+
+        ReadVirtualFile(hFile, &record, sizeof(record), 0);
+        if (record.version >= 2) {
+            ReadVirtualFile(hFile, name, sizeof(name), 0);
+            _strupr(name);
+
+            if ((record.flags & 2) != 0) {
+                definition = new stLightDefinition005ECDBC;
+                record.create = 1;
+
+                ReadVirtualFile(hFile, &definition->flags_08, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_0c, 4, 0);
+                ReadVirtualFile(hFile, &definition->color_10.x, 4, 0);
+                ReadVirtualFile(hFile, &definition->color_10.y, 4, 0);
+                ReadVirtualFile(hFile, &definition->color_10.z, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_1c, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_20, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_24, 4, 0);
+                ReadVirtualFile(hFile, &definition->intensity_28, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_2c, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_30, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_34, 4, 0);
+                ReadVirtualFile(hFile, &definition->path_value_38, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_3c, 4, 0);
+                ReadVirtualFile(hFile, &definition->value_40, 4, 0);
+
+                if ((definition->flags_08 & 0x10) != 0) {
+                    path_success = LoadPathAI004A92A0(&path, hFile);
+                    if (!path_success) {
+                        srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
+                    }
+                    path->flag_1c = 1;
+                    path->flag_3a = 0;
+                    path->value_2c = definition->path_value_38;
+                }
+            }
+        }
+
+        if (record.version >= 2 && record.create != 0) {
+            if (definition == 0) {
+                light = CreateWorldLight0046E140(world, name);
+            }
+            else {
+                light = CreateWorldLight0046E030(world, name);
+                light->m_definition_234 = definition;
+                world->lights_to_update->Add(light);
+                if (path != 0) {
+                    light->m_owned_244 = path;
+                }
+                record.intensity = definition->intensity_28;
+                if (definition->value_2c < definition->intensity_28) {
+                    float swap = definition->intensity_28;
+                    definition->intensity_28 = definition->value_2c;
+                    definition->value_2c = swap;
+                }
+            }
+            if (record.visible == 0) {
+                light->setFlag(srNode::FLAG_POSITIONAL_0);
+            }
+            light->setGroupMask(2);
+        }
+        else if (record.version < 2 || record.visible != 0) {
+            record.visible = 1;
+            if (record.version < 2) {
+                strcpy(name, "Static Point Light");
+            }
+            light = CreateLight0046DF90(world->dynamic_scene, name);
+            if (light == 0) {
+                srAssertFail("pstLight", READ_LEVEL_CPP, 593, 0);
+            }
+            light->setGroupMask(1);
+        }
+        else {
+            delete definition;
+        }
+
+        if (light != 0) {
+            if (_strnicmp(light->getName(), "Sun", 3) == 0) {
+                light->m_color_6c.x = 0.0f;
+                light->m_color_6c.y = 0.0f;
+                light->m_color_6c.z = 0.0f;
+                light->m_direction_60 = record.colour;
+                light->setGroupMask(light->getGroupMask() | 4);
+                AddEnvironmentLight00483F30(light);
+            }
+            else {
+                light->m_color_6c = record.colour;
+                light->m_direction_60.x = 0.0f;
+                light->m_direction_60.y = 0.0f;
+                light->m_direction_60.z = 0.0f;
+            }
+
+            light->m_position_78.x = 0.0f;
+            light->m_position_78.y = 0.0f;
+            light->m_position_78.z = 0.0f;
+            ConfigureWorldLight0046E300(
+                light, record.range * g_world_scale_005ebc40);
+            light->m_positional_98 = record.intensity;
+            light->setLocation(
+                record.location.x * g_world_scale_005ebc40,
+                record.location.y * g_world_scale_005ebc40,
+                record.location.z * g_world_scale_005ebc40);
+        }
+    }
+
+    if (light_count < 1) {
+        return success;
+    }
+    return path_success;
+}
 
 // FUNCTION: WIZ8 0x004BC9D0
 unsigned char ReadWorldEnvironment004BC9D0(

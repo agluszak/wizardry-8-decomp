@@ -1,10 +1,103 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
+
+// FUNCTION: WIZ8 0x0046DF90
+stLight* CreateLight0046DF90(srNode* parent, const char* name)
+{
+    stLight* light = new stLight(parent);
+
+    if (light != 0) {
+        light->setName(name);
+        light->m_positional_18 = 2;
+        light->m_positional_flags_5c |= 0x10;
+        light->m_positional_flags_5c |= 4;
+    }
+    return light;
+}
+
+// FUNCTION: WIZ8 0x0046E030
+stLight* CreateWorldLight0046E030(W8World* world, const char* name)
+{
+    stLight* light;
+
+    if (name == 0) {
+        srAssertFail("name", THREE_D_CPP, 570, 0);
+    }
+
+    if (world != 0) {
+        light = new stLight(world->dynamic_scene);
+    }
+    else {
+        light = new stLight(0);
+    }
+
+    if (light == 0) {
+        srAssertFail("pLight", THREE_D_CPP, 579, 0);
+    }
+    light->setName(name);
+    light->m_positional_18 = 2;
+    light->m_positional_flags_5c |= 0x10;
+    light->m_positional_flags_5c |= 4;
+
+    if (world != 0) {
+        PListAdd(&world->m_list_0a8, light);
+    }
+    return light;
+}
+
+// FUNCTION: WIZ8 0x0046E140
+stLight* CreateWorldLight0046E140(W8World* world, const char* name)
+{
+    stLight* light;
+
+    if (name == 0) {
+        srAssertFail("name", THREE_D_CPP, 603, 0);
+    }
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_CPP, 604, 0);
+    }
+
+    light = CreateLight0046DF90(world->dynamic_scene, name);
+    if (light == 0) {
+        srAssertFail("pLight", THREE_D_CPP, 608, 0);
+    }
+
+    light->m_positional_18 = 2;
+    light->m_positional_flags_5c |= 0x10;
+    light->m_positional_flags_5c |= 4;
+    light->setName(name);
+    light->m_positional_20 = 0.0f;
+    light->m_positional_28 = 0.0f;
+    light->m_positional_168 = 0.0f;
+    light->m_positional_24 = 0.0f;
+    light->unknown_2c = 0;
+    light->m_positional_16c = 0.0f;
+    light->m_range_170 = 1500.0;
+    light->m_positional_1d4 = 5000.0f;
+    light->setLinearAttenuation(1500.0f, 0.0019569471f);
+    PListAdd(&world->m_list_0a8, light);
+    return light;
+}
+
+// FUNCTION: WIZ8 0x0046E300
+void ConfigureWorldLight0046E300(srLight* light, float range)
+{
+    light->m_range_170 = (double)range;
+    light->m_positional_20 = 0.0f;
+    light->m_positional_28 = 0.0f;
+    light->m_positional_168 = 0.0f;
+    light->m_positional_24 = 0.0f;
+    light->unknown_2c = 0;
+    light->m_positional_16c = 0.0f;
+    light->m_positional_1d4 = 5000.0f;
+    light->setLinearAttenuation(range, 0.0019569471f);
+}
 
 // Source unit is Engine Code\3d.cpp; the assertion at line 344 is what names
 // and types World::plsProps.

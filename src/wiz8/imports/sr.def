@@ -543,6 +543,7 @@ EXPORTS
     ?updateTransformation@srNode@@ABEXXZ
     ??4srLight@@QAEAAV0@ABV0@@Z
     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?setLinearAttenuation@srLight@@QAEXMM@Z
     ??0srTexture@@IAE@XZ
     ??1srTexture@@MAE@XZ
     ??4srTexture@@QAEAAV0@ABV0@@Z

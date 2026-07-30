@@ -32,7 +32,12 @@ public:
     virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;
 
 public:
-    unsigned char unknown_168_[0x2c];
+    SR_DLL_IMPORT void setLinearAttenuation(float range, float attenuation);
+
+    float m_positional_168;                         /* complete +0x168 */
+    float m_positional_16c;                         /* complete +0x16c */
+    double m_range_170;                             /* complete +0x170 */
+    unsigned char unknown_178_[0x1c];
     unsigned int m_positional_flags_5c;              /* complete +0x194 */
     srVector3T<float> m_direction_60;                 /* complete +0x198 */
     srVector3T<float> m_color_6c;                    /* complete +0x1a4 */
@@ -40,7 +45,8 @@ public:
     unsigned char unknown_1bc_[0x14];
     /* stLight::process temporarily scales this renderer-owned value. */
     float m_positional_98;                           /* complete +0x1d0 */
-    unsigned char unknown_1d4_[0x54];
+    float m_positional_1d4;                         /* complete +0x1d4 */
+    unsigned char unknown_1d8_[0x50];
 };
 
 static_assert(sizeof(srLight) == 0x228, "srLight_must_be_0x228");

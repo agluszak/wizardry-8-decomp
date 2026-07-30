@@ -43,9 +43,15 @@ public:
         int m_positional_18;
         double m_positional_double_18;
     };
-    double m_positional_double_20;
+    union {
+        double m_positional_double_20;
+        struct {
+            float m_positional_20;
+            float m_positional_24;
+        };
+    };
     float m_positional_28;
-    unsigned char unknown_2c_[4];
+    unsigned int unknown_2c;
 };
 #pragma pack(pop)
 

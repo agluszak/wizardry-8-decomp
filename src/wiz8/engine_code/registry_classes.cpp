@@ -13,6 +13,9 @@
 #include <string.h>
 #include <math.h>
 
+// SYNTHETIC: WIZ8 0x004A2200
+// stLightDefinition005ECDBC::`scalar deleting destructor'
+
 extern void ReleaseSoundHandle00408F70(int handle);
 extern void GetPosition421070(W8Position* position);
 extern unsigned char g_master_ambient_volume_6850f6;
@@ -22,6 +25,11 @@ extern float g_light_scale_identity_005ebb38;
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
 /* Closed family of source-declared registry class methods. */
+
+// FUNCTION: WIZ8 0x004A2220
+stLightDefinition::~stLightDefinition()
+{
+}
 
 // FUNCTION: WIZ8 0x004B9C00
 stLevel::stLevel(srNode* parent)

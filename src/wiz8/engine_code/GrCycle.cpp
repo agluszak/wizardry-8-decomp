@@ -282,15 +282,17 @@ void W8GrCycle::UpdateLights004A7150()
             continue;
         }
         if (definition->type_04 == 1) {
-            if ((definition->flags_08 & 3) == 3 &&
-                (definition->flags_08 & 0x40) != 0) {
-                if (definition->IsEnabledForSubcycle(
+            stLightDefinition005ECDBC* cycle_definition =
+                static_cast<stLightDefinition005ECDBC*>(definition);
+            if ((cycle_definition->flags_08 & 3) == 3 &&
+                (cycle_definition->flags_08 & 0x40) != 0) {
+                if (cycle_definition->IsEnabledForSubcycle(
                         representation->flag_064) == 0) {
                     if (light->parentNode() != 0) {
                         light->setParent(0, 0);
                     }
                 } else if ((representation->flag_064 == 0 &&
-                            definition->value_3c == 0) ||
+                            cycle_definition->value_3c == 0) ||
                            light->parentNode() == srCore.getRootNode()) {
                     light->setParent(g_world->dynamic_scene, 0);
                     light->m_positional_248 = 0;

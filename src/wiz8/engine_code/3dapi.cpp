@@ -44,9 +44,6 @@ extern void Function46DC90(srScene* scene);
 extern void* ReadGameData00447570(const char* path, void* parent);
 extern unsigned char InitializeGameData004497C0(void* game_data);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
-extern srLight* CreateWorldLight0046E140(
-    W8World* world, const char* name);
-extern void ConfigureWorldLight0046E300(srLight* light, float range);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
 extern void Function449BB0(void* owner);

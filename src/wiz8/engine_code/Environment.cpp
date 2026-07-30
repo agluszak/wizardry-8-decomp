@@ -48,7 +48,11 @@ extern "C" EnvironmentColour g_environment_colours_65ad98[256];
 /* The static and dynamic scene fogs owned by the environment. */
 extern W8Fog005EC94C* g_environment_object_0065b9b0;
 extern W8Fog005EC94C* g_environment_object_0065b9b4;
-extern int g_environment_count_0065b99c;
+// SYNTHETIC: WIZ8 0x00482250
+// `dynamic initializer for 'g_environment_lights_0065b998''
+// SYNTHETIC: WIZ8 0x00482270
+// `dynamic atexit destructor for 'g_environment_lights_0065b998''
+W8LightVector g_environment_lights_0065b998(5);
 
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
 
@@ -402,7 +406,15 @@ void ReleaseEnvironmentObjects(void)
     }
     g_environment_object_0065b9b0 = 0;
     g_environment_object_0065b9b4 = 0;
-    g_environment_count_0065b99c = 0;
+    g_environment_lights_0065b998.Clear();
+}
+
+// FUNCTION: WIZ8 0x00483F30
+void AddEnvironmentLight00483F30(stLight* light)
+{
+    if (light != 0) {
+        g_environment_lights_0065b998.Add(light);
+    }
 }
 
 /* One value off the world object, guarded by an assertion that names it. */

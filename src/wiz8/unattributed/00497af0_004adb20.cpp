@@ -122,7 +122,8 @@ void stLight::process(
 void stLight::SetDefinitionTime0049C940(float time)
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
-        m_definition_234->time_4c = time;
+        static_cast<stLightDefinition005ECDA0*>(m_definition_234)->time_4c =
+            time;
     }
 }
 
@@ -135,15 +136,19 @@ void stLight::Reset0049D070()
 {
     if (m_definition_234 != 0) {
         if (m_definition_234->type_04 == 2) {
-            m_definition_234->time_4c = 0.0f;
-            m_definition_234->value_48 = 0;
+            stLightDefinition005ECDA0* definition =
+                static_cast<stLightDefinition005ECDA0*>(m_definition_234);
+            definition->time_4c = 0.0f;
+            definition->value_48 = 0;
             m_positional_248 = 0;
             m_positional_250 = 1;
         }
         else {
-            m_positional_98 = m_definition_234->intensity_28;
-            if ((m_definition_234->flags_08 & 8) != 0) {
-                m_color_6c = m_definition_234->color_10;
+            stLightDefinition005ECDBC* definition =
+                static_cast<stLightDefinition005ECDBC*>(m_definition_234);
+            m_positional_98 = definition->intensity_28;
+            if ((definition->flags_08 & 8) != 0) {
+                m_color_6c = definition->color_10;
             }
         }
     }

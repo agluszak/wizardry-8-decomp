@@ -14,6 +14,9 @@ static_assert(sizeof(EnvironmentColour) == 0x0c,
 extern "C" {
 extern EnvironmentColour g_environment_colours_65a178[256];
 extern EnvironmentColour g_environment_colours_65ad98[256];
+
+class stLight;
+void AddEnvironmentLight00483F30(stLight* light);
 }
 
 unsigned char ReadLightColourTable00482F90(int hFile);
