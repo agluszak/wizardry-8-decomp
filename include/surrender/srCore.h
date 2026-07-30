@@ -12,6 +12,7 @@
 
 class srColorSurfaceIFace;
 class srFilter;
+class srFStreamOpener;
 class srHierarchyIOManager;
 class srIStreamOpener;
 class srMaterial;
@@ -58,10 +59,12 @@ public:
     SR_DLL_IMPORT int supportMultiThread();
     SR_DLL_IMPORT void supportMultiThread(int enabled);
 
-    srRegistry* getRegistry() const { return registry_; }
+    SR_DLL_IMPORT srRegistry* getRegistry() const;
 
 private:
     SR_DLL_IMPORT void reset();
+
+    static SR_DLL_IMPORT int initialized;
 
     srScheduler* scheduler_00;
     srGlobalRecycler* global_recycler_04;
@@ -69,7 +72,7 @@ private:
     srColorSurfaceIFace* surface_0c;
     srSurfaceIOManager* surface_io_manager_10;
     srIStreamOpener* stream_opener_14;
-    void* unknown_18;
+    srFStreamOpener* file_stream_opener_18;
     srFilter* filter_1c;
     srMemoryAllocator* memory_allocator_20;
     srFileManager* file_manager_24;

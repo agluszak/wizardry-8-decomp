@@ -47,3 +47,15 @@ static_assert(sizeof(srIStreamOpener::Opener) == 0x04,
               "srIStreamOpener_Opener_must_be_0x04");
 static_assert(sizeof(srIStreamOpener) == 0x0c,
               "srIStreamOpener_must_be_0x0c");
+
+class SR_DLL_IMPORT srFStreamOpener : public srIStreamOpener::Opener {
+public:
+    srFStreamOpener();
+    virtual ~srFStreamOpener() override;
+
+    virtual srBinIStream* open(const char* path) override;
+    virtual const char* getDescription() const override;
+};
+
+static_assert(sizeof(srFStreamOpener) == 0x04,
+              "srFStreamOpener_must_be_0x04");
