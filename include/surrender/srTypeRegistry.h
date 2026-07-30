@@ -53,7 +53,18 @@ public:
     SR_DLL_IMPORT srRuntimeClass* findExact(ClassNode* node, unsigned long id);
     SR_DLL_IMPORT void refreshInstance(
         ClassNode* node, srRuntimeClass* instance);
+
+private:
+    SR_DLL_IMPORT ClassNode* addToTree(
+        ClassNode* parent, const char* class_name, unsigned long class_id);
+
+    ClassNode* root_00;
+    void* class_index_04;
+    unsigned long next_class_id_08;
+    void* critical_section_0c;
 };
+
+static_assert(sizeof(srRegistry) == 0x10, "srRegistry_must_be_0x10");
 
 class srRuntimeClass {
 public:

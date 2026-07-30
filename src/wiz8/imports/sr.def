@@ -104,8 +104,6 @@ EXPORTS
     ?setSwapInterval@srGERD@@QAEXK@Z
     ?setLocation@srNode@@QAEXNNN@Z
     ?getLocation@srNode@@QBE?AV?$srVector3T@N@@XZ
-    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z
-    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z
     ?setRotation@srNode@@QAEXNNN@Z
     ?getScale@srNode@@QBE?AV?$srVector3T@N@@XZ
     ?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z
@@ -217,7 +215,29 @@ EXPORTS
     ?setMipmapBias@srTexture@@QAEXM@Z
     ?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
+    ??0srRegistry@@QAE@XZ
+    ??1srRegistry@@QAE@XZ
+    ??4srRegistry@@QAEAAV0@ABV0@@Z
+    ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
+    ?allocateID@srRegistry@@QAEKXZ
+    ?checkValidity@srRegistry@@QAEHXZ
+    ?dumpClassHierarchy@srRegistry@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dumpInstanceNames@srRegistry@@QAEXPAVClassNode@1@AAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@K@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z
+    ?findExact@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@K@Z
+    ?findExact@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z
+    ?findExact@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z
+    ?getChildClass@srRegistry@@QAEPAVClassNode@1@PAV21@0@Z
+    ?getClassID@srRegistry@@QAEKPAVClassNode@1@@Z
+    ?getClassName@srRegistry@@QAEPBDPAVClassNode@1@@Z
     ?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z
+    ?getNumberOfInstances@srRegistry@@QAEJPAVClassNode@1@H@Z
+    ?getRootClass@srRegistry@@QAEPAVClassNode@1@XZ
+    ?getRootNode@srRegistry@@QAEPAVClassNode@1@XZ
+    ?isDerivedOrSame@srRegistry@@QAEHPAVClassNode@1@0@Z
+    ?refreshInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
     ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
     ?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
     ?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
