@@ -199,6 +199,7 @@ EXPORTS
     ?invalidateFrameHandle@srTexture@@IAEXK@Z
     ?sGetClassName@srTexture@@SAPBDXZ
     ?setMipmap@srTexture@@QAEXW4e_mipmap@srTextureIFace@@@Z
+    ?setMipmapBias@srTexture@@QAEXM@Z
     ?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?getClassNode@srRegistry@@QAEPAVClassNode@1@K@Z
@@ -244,9 +245,14 @@ EXPORTS
     ?convert@srModeler@@QAEXAAVsrMeshModel@@H@Z
     ?discard@srModeler@@QAEXXZ
     ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
+    ??1srTextureMap@@MAE@XZ
     ??4srTextureMap@@QAEAAV0@ABV0@@Z
+    ?dump@srTextureMap@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getMipmapData@srTextureMap@@UAEXAAUMultiRequest@srTextureIFace@@@Z
+    ?getTextureFrameHandle@srTextureMap@@UAEKXZ
     ?setSurfacePtr@srTextureMap@@QAEXPAVsrColorSurfaceIFace@@@Z
     ?invalidate@srTextureMap@@UAEXXZ
+    ?setupDefaultValues@srTextureMap@@MAEXXZ
     ?vInstance@srTextureMap@@UAEPAVsrClass@@XZ
     ?setCorrection@srTexture@@QAEXW4e_correction@srTextureIFace@@@Z
     ?setMagFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z

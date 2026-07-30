@@ -105,7 +105,7 @@ void stTexture2D::getMipmapLevelPartial(PartialRequest& request)
 
 void stTexture2D::invalidate() { invalidateFrameHandle(frame_handle); }
 
-void stTexture2D::update()
+void stTexture2D::setupDefaultValues()
 {
     int index;
 

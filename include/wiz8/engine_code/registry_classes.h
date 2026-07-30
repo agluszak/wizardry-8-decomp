@@ -208,12 +208,6 @@ public:
     srRegistry::ClassNode* getClassNode() const;        /* 0x00429B50 */
 };
 
-class W8TextureMap005EBEEC {
-public:
-    const char* getClassName() const;     /* 0x00429BF0 */
-    unsigned long getClassID() const;     /* 0x00429BE0 */
-};
-
 /*
  * Six more classes that present under a SurRender base, but whose name slot is
  * an import thunk straight to SR.DLL rather than an owned body - so only the

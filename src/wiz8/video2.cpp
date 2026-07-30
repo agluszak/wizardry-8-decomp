@@ -9,6 +9,7 @@
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/TextureMap.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"
@@ -19,6 +20,87 @@
 #include <string.h>
 
 extern "C" void Function425B40(void);
+extern srNode* Function424BA0(
+    srTextureIFace* texture,
+    float width,
+    float height,
+    unsigned char positional_3);
+
+// SYNTHETIC: WIZ8 0x00424b70
+// W8TextureMap005EBEEC::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00429BE0
+unsigned long W8TextureMap005EBEEC::getClassID() const
+{
+    return 0x2111;
+}
+
+// FUNCTION: WIZ8 0x00429BF0
+const char* W8TextureMap005EBEEC::getClassName() const
+{
+    return "srTextureMap";
+}
+
+// FUNCTION: WIZ8 0x00429C00
+srRegistry::ClassNode* W8TextureMap005EBEEC::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x2111);
+
+    if (node == 0) {
+        srRegistry* texture_registry = srCore.getRegistry();
+        srRegistry::ClassNode* texture =
+            texture_registry->getClassNode(0x2110);
+
+        if (texture == 0) {
+            srRegistry* iface_registry = srCore.getRegistry();
+            srRegistry::ClassNode* iface =
+                iface_registry->getClassNode(0x2100);
+
+            if (iface == 0) {
+                iface = iface_registry->registerClass(
+                    "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
+            }
+            texture = texture_registry->registerClass(
+                srTexture::sGetClassName(), iface, 0x2110, 0);
+        }
+        node = registry->registerClass(
+            "srTextureMap", texture, 0x2111, 0);
+    }
+    return node;
+}
+
+// FUNCTION: WIZ8 0x00429CA0
+srTextureIFace* W8TextureMap005EBEEC::clone()
+{
+    srTextureMap* copy = static_cast<srTextureMap*>(vInstance());
+    *copy = *this;
+    return copy;
+}
+
+// FUNCTION: WIZ8 0x00424A90
+srNode* VideoMakePoster(
+    srColorSurfaceIFace* surface,
+    float width,
+    float height,
+    unsigned char positional_3)
+{
+    srTextureIFace::e_hint hint;
+    W8TextureMap005EBEEC* texture = new W8TextureMap005EBEEC(0);
+    texture->setMipmapBias(-8.0f);
+    texture->autoRelease();
+    texture->setName("VideoMakePoster");
+    texture->setSurfacePtr(surface);
+    texture->setWrapS(srTextureIFace::WRAP_POSITIONAL_1);
+    texture->setWrapT(srTextureIFace::WRAP_POSITIONAL_1);
+    if (positional_3 == 0) {
+        hint = srTextureIFace::HINT_POSITIONAL_1;
+    } else {
+        hint = srTextureIFace::HINT_POSITIONAL_2;
+    }
+    texture->enableHint(hint);
+    return Function424BA0(texture, width, height, positional_3);
+}
 
 static srRegistry::ClassNode* color_surface_class_node()
 {

@@ -74,16 +74,6 @@ srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
     }
     return node;
 }
-// FUNCTION: WIZ8 0x00429BE0
-unsigned long W8TextureMap005EBEEC::getClassID() const
-{
-    return 0x2111;
-}
-// FUNCTION: WIZ8 0x00429BF0
-const char* W8TextureMap005EBEEC::getClassName() const
-{
-    return "srTextureMap";
-}
 // FUNCTION: WIZ8 0x00429CC0
 unsigned long W8Material005EBDE0::getClassID() const
 {

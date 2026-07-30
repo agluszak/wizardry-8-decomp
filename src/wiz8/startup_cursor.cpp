@@ -8,6 +8,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/TextureMap.h"
 #include "wiz8/render_state.h"
 #include "himage.h"
 #include "video.h"
@@ -51,39 +52,6 @@ public:
     virtual srRegistry::ClassNode* getClassNode() const override {
         return class_node(0x2010, "srMeshModel", 0x2000, "srModel");
     }
-};
-
-class CursorTextureMap : public srTextureMap {
-public:
-    CursorTextureMap(srColorSurfaceIFace* surface) : srTextureMap(surface) {}
-
-    virtual const char* getClassName() const override { return "srTextureMap"; }
-    virtual unsigned long getClassID() const override { return 0x2111; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x2111);
-        if (!node) {
-            srRegistry::ClassNode* texture = registry->getClassNode(0x2110);
-            if (!texture) {
-                srRegistry::ClassNode* iface = registry->getClassNode(0x2100);
-                if (!iface) {
-                    iface = registry->registerClass(
-                        "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
-                }
-                texture = registry->registerClass(
-                    srTexture::sGetClassName(), iface, 0x2110, 0);
-            }
-            node = registry->registerClass(
-                "srTextureMap", texture, 0x2111, 0);
-        }
-        return node;
-    }
-    virtual srTextureIFace* clone() override {
-        CursorTextureMap* copy = new CursorTextureMap(0);
-        static_cast<srTextureMap&>(*copy) = *this;
-        return copy;
-    }
-    virtual void update() override { invalidate(); }
 };
 
 class CursorModelInstance : public srModelInstance {
@@ -160,7 +128,7 @@ static srModelInstance* MakePolygonBrush(
     unsigned char overlay)
 {
     CursorMeshModel* model;
-    CursorTextureMap* texture;
+    W8TextureMap005EBEEC* texture;
     CursorModelInstance* instance;
     srModeler::MappingInfo mapping;
     srVector3T<float> scale;
@@ -192,7 +160,7 @@ static srModelInstance* MakePolygonBrush(
     if (!surface) {
         shader.value &= 0xffff7fff;
     } else {
-        texture = new CursorTextureMap(0);
+        texture = new W8TextureMap005EBEEC(0);
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
         texture->setSurfacePtr(surface);

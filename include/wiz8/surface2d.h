@@ -17,7 +17,11 @@ public:
     virtual void getMipmapData(MultiRequest& request) override;
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void invalidate() override;
-    virtual void update() override;
+
+protected:
+    virtual void setupDefaultValues() override;
+
+public:
 
     int left;                              /* 0x54 */
     int top;                               /* 0x58 */

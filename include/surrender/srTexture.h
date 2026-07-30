@@ -24,8 +24,13 @@ public:
     struct Parameters;
     enum e_filter {};
     enum e_mipmap {};
-    enum e_hint {};
-    enum e_wrap {};
+    enum e_hint {
+        HINT_POSITIONAL_1 = 1,
+        HINT_POSITIONAL_2 = 2
+    };
+    enum e_wrap {
+        WRAP_POSITIONAL_1 = 1
+    };
     enum e_correction {};
 
     static const char* sGetClassName();
@@ -40,7 +45,9 @@ public:
     virtual void getTextureParms(Parameters& parameters) = 0;
     virtual const char* getTextureName();
     virtual void invalidate() = 0;
-    virtual void update() = 0;
+
+protected:
+    virtual void setupDefaultValues() = 0;
 };
 
 class SR_DLL_IMPORT srTexture : public srTextureIFace {
@@ -59,6 +66,7 @@ public:
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void getTextureParms(Parameters& parameters) override;
     void setMipmap(e_mipmap mipmap);
+    void setMipmapBias(float bias);
     void enableHint(e_hint hint);
     void setCorrection(e_correction correction);
     void setMagFilter(e_filter filter);
@@ -89,11 +97,20 @@ class SR_DLL_IMPORT srTextureMap : public srTexture {
 public:
     srTextureMap(srColorSurfaceIFace* surface);
     srTextureMap& operator=(const srTextureMap& other);
+    virtual void dump(std::ostream& stream) override;
+
+protected:
+    virtual ~srTextureMap() override;
+
+public:
     virtual srClass* vInstance() override;
+    virtual unsigned long getTextureFrameHandle() override;
+    virtual void getMipmapData(MultiRequest& request) override;
     void setSurfacePtr(srColorSurfaceIFace* surface);
     virtual void invalidate() override;
 
 protected:
+    virtual void setupDefaultValues() override;
     unsigned char unknown_54_[0x08];
 };
 
