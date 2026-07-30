@@ -173,6 +173,7 @@ EXPORTS
     ??4srColorSurface@@QAEAAV0@ABV0@@Z
     ?allocate@srHeap@@QAEPAXK@Z
     ??0srNode@@QAE@PAV0@@Z
+    ??0srNode@@QAE@ABV0@@Z
     ??1srNode@@MAE@XZ
     ??4srNode@@QAEAAV0@ABV0@@Z
     ?dump@srNode@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
@@ -197,6 +198,7 @@ EXPORTS
     ?getFullPathLength@srNode@@QBEJXZ
     ?getHierarchyLevel@srNode@@QBEJXZ
     ?getNext@srNode@@QBEPAV1@XZ
+    ?getParent@srNode@@QBEPAV1@XZ
     ?getPrev@srNode@@QBEPAV1@XZ
     ?isChildOf@srNode@@QBEHABV1@@Z
     ?isParentOf@srNode@@QBEHABV1@@Z
@@ -265,7 +267,19 @@ EXPORTS
     ?setNotify@srNode@@IAEXW4e_notify@1@@Z
     ?signal@srNode@@QAEXKPAX@Z
     ?signalInternal@srNode@@AAEXKPAX@Z
+    ?testFlag@srNode@@QBEHW4e_flag@1@@Z
     ?testNotify@srNode@@IBEHW4e_notify@1@@Z
+    ?checkTransformation@srNode@@ABEXXZ
+    ?cloneHierarchyInternal@srNode@@AAEPAV1@PAV1@@Z
+    ?findChildByNameAndTypeInternal@srNode@@AAEPAV1@PBDK@Z
+    ?findChildInternal@srNode@@AAEPAV1@PBD@Z
+    ?findParentByTypeInternal@srNode@@AAEPAV1@K@Z
+    ?findParentInternal@srNode@@AAEPAV1@PBD@Z
+    ?getFullPathInternal@srNode@@ABEXPAD@Z
+    ?getFullPathLengthInternal@srNode@@ABEJXZ
+    ?setWSDirty@srNode@@AAEXXZ
+    ?unlink@srNode@@AAEXXZ
+    ?updateTransformation@srNode@@ABEXXZ
     ??4srLight@@QAEAAV0@ABV0@@Z
     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ??0srTexture@@IAE@XZ
@@ -423,7 +437,6 @@ EXPORTS
     ?updateClient@Client@srModel@@UAEXW4e_update@12@@Z
     ??0srModelInstance@@QAE@PAVsrNode@@@Z
     ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
-    ?clone@srNode@@UAEPAV1@XZ
     ??1srModelInstance@@MAE@XZ
     ?dump@srModelInstance@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?vInstance@srModelInstance@@UAEPAVsrClass@@XZ

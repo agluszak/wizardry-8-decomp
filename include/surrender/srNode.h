@@ -76,9 +76,9 @@ public:
         return node;
     }
 
-    virtual SR_DLL_IMPORT const char* getClassName() const override;
-    virtual SR_DLL_IMPORT unsigned long getClassID() const override;
-    virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const override;
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 protected:
@@ -86,7 +86,7 @@ protected:
 
 public:
     virtual SR_DLL_IMPORT srClass* vInstance() override;
-    virtual SR_DLL_IMPORT srNode* clone();
+    virtual srNode* clone();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info);
     virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type);
     virtual SR_DLL_IMPORT void getLocalBounds(BoundInfo& bounds);
@@ -214,7 +214,19 @@ public:
     srNode* firstChild() const { return first_child_; }
 
 private:
+    SR_DLL_IMPORT void checkTransformation() const;
+    SR_DLL_IMPORT srNode* cloneHierarchyInternal(srNode* parent);
+    SR_DLL_IMPORT srNode* findChildByNameAndTypeInternal(
+        const char* name, unsigned long class_id);
+    SR_DLL_IMPORT srNode* findChildInternal(const char* name);
+    SR_DLL_IMPORT srNode* findParentByTypeInternal(unsigned long class_id);
+    SR_DLL_IMPORT srNode* findParentInternal(const char* name);
+    SR_DLL_IMPORT void getFullPathInternal(char* path) const;
+    SR_DLL_IMPORT long getFullPathLengthInternal() const;
+    SR_DLL_IMPORT void setWSDirty();
     SR_DLL_IMPORT void signalInternal(unsigned long signal, void* value);
+    SR_DLL_IMPORT void unlink();
+    SR_DLL_IMPORT void updateTransformation() const;
 
     static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
     static SR_DLL_IMPORT long sceneGraphLockCount;
