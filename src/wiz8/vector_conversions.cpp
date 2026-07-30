@@ -18,6 +18,14 @@ srVector3T<float>* srVector3T<float>::method_00421680(
     return this;
 }
 
+// FUNCTION: WIZ8 0x004218E0
+float Function4218E0(
+    const srVector3T<float>& first,
+    const srVector3T<float>& second)
+{
+    return first.x * second.x + first.y * second.y + first.z * second.z;
+}
+
 // FUNCTION: WIZ8 0x00446110
 srVector3T<float>* srVector3T<float>::method_00446110(const srVector3T<double>* source)
 {

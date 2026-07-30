@@ -837,8 +837,43 @@ void GDCamera::Method004784C0(float pitch)
     m_matrix_00c.vectors[2].y = 0.0f;
     m_matrix_00c.vectors[2].z = 1.0f;
     if ((double)pitch != g_zero_005ebb40) {
-        m_matrix_00c.method_00478EB0(
-            sin((double)pitch), cos((double)pitch));
+        float sine = (float)sin((double)pitch);
+        float cosine = (float)cos((double)pitch);
+        srVector3T<float> rotation[3];
+        rotation[0].x = 1.0f;
+        rotation[0].y = 0.0f;
+        rotation[0].z = 0.0f;
+        rotation[1].x = 0.0f;
+        rotation[1].y = cosine;
+        rotation[1].z = -sine;
+        rotation[2].x = 0.0f;
+        rotation[2].y = sine;
+        rotation[2].z = cosine;
+
+        W8CameraMatrixRow004D6930 result[3];
+        float* result_values = &result[0].x;
+        const float* rotation_values = &rotation[0].x;
+        for (int index = 0; index != 3; ++index) {
+            srVector3T<float> column;
+            column.x = rotation_values[index];
+            column.y = rotation_values[index + 3];
+            column.z = rotation_values[index + 6];
+            result_values[index] =
+                Function4218E0(m_matrix_00c.vectors[0], column);
+            result_values[index + 3] =
+                Function4218E0(m_matrix_00c.vectors[1], column);
+            result_values[index + 6] =
+                Function4218E0(m_matrix_00c.vectors[2], column);
+        }
+        m_matrix_00c.vectors[0].x = result[0].x;
+        m_matrix_00c.vectors[0].y = result[0].y;
+        m_matrix_00c.vectors[0].z = result[0].z;
+        m_matrix_00c.vectors[1].x = result[1].x;
+        m_matrix_00c.vectors[1].y = result[1].y;
+        m_matrix_00c.vectors[1].z = result[1].z;
+        m_matrix_00c.vectors[2].x = result[2].x;
+        m_matrix_00c.vectors[2].y = result[2].y;
+        m_matrix_00c.vectors[2].z = result[2].z;
     }
     MarkRendererReady();
 }
@@ -923,9 +958,36 @@ void GDCamera::Method004788E0(float angle, float pitch)
 // FUNCTION: WIZ8 0x00478BD0
 void GDCamera::Method00478BD0(srMatrix3T<float>* output)
 {
-    m_matrix_054 = m_matrix_030;
-    m_matrix_054.method_00421A40(m_matrix_00c);
-    *output = m_matrix_054;
+    srMatrix3T<float>* composed = &m_matrix_054;
+    *composed = m_matrix_030;
+    const float* right_values = &m_matrix_00c.vectors[0].x;
+    W8CameraMatrixRow004D6930 result[3];
+    float* result_values = &result[0].x;
+    const float* left_values = &composed->vectors[0].x;
+    for (int index = 0; index != 3; ++index) {
+        float x = right_values[index];
+        float y = right_values[index + 3];
+        float z = right_values[index + 6];
+
+        result_values[index] = x * left_values[0] + y * left_values[1]
+                               + z * left_values[2];
+        result_values[index + 3] = x * left_values[3]
+                                   + y * left_values[4]
+                                   + z * left_values[5];
+        result_values[index + 6] = x * left_values[6]
+                                   + y * left_values[7]
+                                   + z * left_values[8];
+    }
+    composed->vectors[0].x = result[0].x;
+    composed->vectors[0].y = result[0].y;
+    composed->vectors[0].z = result[0].z;
+    composed->vectors[1].x = result[1].x;
+    composed->vectors[1].y = result[1].y;
+    composed->vectors[2].x = result[2].x;
+    composed->vectors[1].z = result[1].z;
+    composed->vectors[2].y = result[2].y;
+    composed->vectors[2].z = result[2].z;
+    *output = *composed;
 }
 
 // FUNCTION: WIZ8 0x00478CC0
@@ -950,9 +1012,7 @@ void GDCamera::Method00478CE0(float distance, W8Position* output)
     float y = m_matrix_054.vectors[1].x * m_direction_078.x
               + m_matrix_054.vectors[1].y * m_direction_078.y
               + m_matrix_054.vectors[1].z * m_direction_078.z;
-    float z = m_matrix_054.vectors[2].x * m_direction_078.x
-              + m_matrix_054.vectors[2].y * m_direction_078.y
-              + m_matrix_054.vectors[2].z * m_direction_078.z;
+    float z = Function4218E0(m_matrix_054.vectors[2], m_direction_078);
     m_direction_078.x = x;
     m_direction_078.y = y;
     m_direction_078.z = z;

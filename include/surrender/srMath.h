@@ -32,6 +32,10 @@ public:
     srVector3T<float>* method_00446110(const srVector3T<double>* source);
 };
 
+float Function4218E0(
+    const srVector3T<float>& first,
+    const srVector3T<float>& second);
+
 template <class T>
 class srVector4T {
 public:

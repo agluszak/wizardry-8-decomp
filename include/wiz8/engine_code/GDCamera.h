@@ -71,7 +71,7 @@ public:
     srMatrix3T<float> m_matrix_00c;                   /* 0x00c */
     srMatrix3T<float> m_matrix_030;                   /* 0x030 */
     srMatrix3T<float> m_matrix_054;                   /* 0x054 */
-    W8Position m_direction_078;                      /* 0x078 */
+    srVector3T<float> m_direction_078;                /* 0x078 */
     float m_elapsed_084;                             /* 0x084 */
     unsigned char m_flag_088;                        /* 0x088 */
     unsigned char m_flag_089;                        /* 0x089 */
