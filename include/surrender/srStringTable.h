@@ -1,21 +1,27 @@
 #pragma once
 
-#include "srHeap.h"
+#if defined(SURRENDER_BUILD)
+#define SR_STRING_TABLE_API __declspec(dllexport)
+#elif defined(_MSC_VER) && !defined(WIZ8_CLANG_LINT)
+#define SR_STRING_TABLE_API __declspec(dllimport)
+#else
+#define SR_STRING_TABLE_API
+#endif
 
-class srStringTable {
+class SR_STRING_TABLE_API srStringTable {
 public:
-    SR_DLL_IMPORT srStringTable();
-    SR_DLL_IMPORT srStringTable(const srStringTable& other);
-    SR_DLL_IMPORT ~srStringTable();
-    SR_DLL_IMPORT srStringTable& operator=(const srStringTable& other);
-    SR_DLL_IMPORT char* operator[](int index);
+    srStringTable();
+    srStringTable(const srStringTable& other);
+    ~srStringTable();
+    srStringTable& operator=(const srStringTable& other);
+    char* operator[](int index);
 
-    SR_DLL_IMPORT void addString(const char* string);
-    SR_DLL_IMPORT void addSeparatedStrings(
-        const char* strings, const char* separators, int preserve_empty);
-    SR_DLL_IMPORT long getCount() const;
-    SR_DLL_IMPORT char* getString(long index) const;
-    SR_DLL_IMPORT void reset();
+    void addString(const char* string);
+    void addSeparatedStrings(
+        const char* strings, const char* separators, int append_slash);
+    long getCount() const;
+    char* getString(long index) const;
+    void reset();
 
 private:
     char** strings_00;
@@ -24,3 +30,5 @@ private:
 };
 
 static_assert((sizeof(srStringTable) == 0x0c), "srStringTable_must_be_0x0c");
+
+#undef SR_STRING_TABLE_API

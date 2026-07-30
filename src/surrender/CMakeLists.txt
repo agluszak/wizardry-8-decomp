@@ -1,6 +1,8 @@
 add_library(SURRENDER SHARED
     src/surrender/core.cpp
     src/surrender/dynamic_library.cpp
+    src/surrender/string_table.cpp
+    src/surrender/system.cpp
     src/surrender/sr.def
 )
 target_compile_definitions(SURRENDER PRIVATE SURRENDER_BUILD)
