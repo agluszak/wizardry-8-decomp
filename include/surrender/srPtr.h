@@ -6,6 +6,14 @@
 template<class T>
 class srPtr {
 public:
+    srPtr() : pointer_(0) {}
+    srPtr(const srPtr& other) : pointer_(0) { *this = other.pointer_; }
+    ~srPtr() {
+        if (pointer_ != 0) {
+            pointer_->release();
+        }
+    }
+
     T* get() const { return pointer_; }
     T* operator->() const { return pointer_; }
     operator T*() const { return pointer_; }
@@ -21,6 +29,10 @@ public:
             pointer_ = pointer;
         }
         return *this;
+    }
+
+    srPtr& operator=(const srPtr& other) {
+        return *this = other.pointer_;
     }
 
 private:

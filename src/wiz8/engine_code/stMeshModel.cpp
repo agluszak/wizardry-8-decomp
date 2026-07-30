@@ -1,9 +1,11 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/mesh_model.h"
+#include "wiz8/sr_api.h"
 #include "surrender/srCore.h"
 #include "surrender/srTypeRegistry.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 /*
  * Engine Code\stMeshModel.cpp.
@@ -68,6 +70,108 @@ srPtr<srTextureIFace>* stMeshModel::GetTextureTable00473720(int table)
         return *skin_texture_tables.GetAt(index);
     }
     return 0;
+}
+
+/* Clone one polygon-texture table under a new name and allocate the parallel
+   skin-blanking state used by the renderer. Table ids are the lowest free
+   non-negative integer and remain stable independently of vector position. */
+// FUNCTION: WIZ8 0x00473260
+int stMeshModel::CreateSkinTable00473260(
+    const char* name, int base_table)
+{
+    int base_index = skin_table_ids.IndexOf(base_table);
+
+    if (FindSkinTable004736D0(name) != -1) {
+        return -1;
+    }
+
+    srPtr<srTextureIFace>* source;
+    if (base_index == -1) {
+        source = getPolyTexture(0, 0, 0);
+    }
+    else {
+        source = *skin_texture_tables.GetAt(base_index);
+    }
+    if (source == 0) {
+        return -1;
+    }
+
+    int table = 0;
+    while (skin_table_ids.IndexOf(table) != -1) {
+        ++table;
+    }
+
+    srPtr<srTextureIFace>* textures =
+        new srPtr<srTextureIFace>[polygon_count_230];
+    for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+        textures[polygon] = source[polygon];
+    }
+    skin_texture_tables.Add(textures);
+    skin_table_ids.Add(table);
+
+    char* copied_name = static_cast<char*>(malloc(strlen(name) + 1));
+    strcpy(copied_name, name);
+    skin_table_names.Add(copied_name);
+
+    if (skin_blanking_apt_458 == 0) {
+        skin_blanking_apt_458 = new W8GrowableVector<int*>;
+        if (skin_blanking_apt_458 == 0) {
+            srAssertFail(
+                "m_plsSkinBlankingAPT",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
+                0x5cd,
+                0);
+        }
+    }
+    skin_blanking_apt_458->Add(0);
+
+    if (skin_blanking_apt_number_45c == 0) {
+        skin_blanking_apt_number_45c = new W8GrowableVector<int>;
+        if (skin_blanking_apt_number_45c == 0) {
+            srAssertFail(
+                "m_plsSkinBlankingAPTNum",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
+                0x5d6,
+                0);
+        }
+    }
+    skin_blanking_apt_number_45c->Add(0);
+
+    if (skin_blanking_checked_460 == 0) {
+        skin_blanking_checked_460 = new W8GrowableVector<unsigned char>;
+        if (skin_blanking_checked_460 == 0) {
+            srAssertFail(
+                "m_plsSkinBlankingChecked",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\stMeshModel.cpp",
+                0x5df,
+                0);
+        }
+    }
+    skin_blanking_checked_460->Add(0);
+    return table;
+}
+
+// FUNCTION: WIZ8 0x00473830
+void stMeshModel::RemoveSkinTable00473830(int index)
+{
+    srPtr<srTextureIFace>* textures = *skin_texture_tables.GetAt(index);
+    for (int polygon = 0; polygon < polygon_count_230; ++polygon) {
+        textures[polygon] = static_cast<srTextureIFace*>(0);
+    }
+    delete[] textures;
+    free(*skin_table_names.GetAt(index));
+
+    skin_texture_tables.RemoveAt(index);
+    skin_table_names.RemoveAt(index);
+    skin_table_ids.RemoveAt(index);
+
+    int* apt = *skin_blanking_apt_458->GetAt(index);
+    if (apt != 0) {
+        delete apt;
+    }
+    skin_blanking_apt_458->RemoveAt(index);
+    skin_blanking_apt_number_45c->RemoveAt(index);
+    skin_blanking_checked_460->RemoveAt(index);
 }
 
 /* Skin tables are named with the owning cycle plus a one-character suffix.

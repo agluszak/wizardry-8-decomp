@@ -37,7 +37,14 @@ public:
     W8GrowableVector<char*> skin_table_names; /* 0x410 */
     W8GrowableVector<short> mapped_values; /* 0x420 */
     W8GrowableVector<short> mapped_keys;   /* 0x430 */
+    unsigned char unknown_440[0x18];
+    W8GrowableVector<int*>* skin_blanking_apt_458;
+    W8GrowableVector<int>* skin_blanking_apt_number_45c;
+    W8GrowableVector<unsigned char>* skin_blanking_checked_460;
 };
+
+static_assert(sizeof(stMeshModel) == 0x464,
+              "stMeshModel_size_must_be_0x464");
 
 int FindMappedIndexInMeshChain(
     stMeshModel** mesh, int key);          /* 0x004A8D10 */
