@@ -56,6 +56,16 @@ public:
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();
+    static srRegistry::ClassNode* sGetClassNode()
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x1000);
+        if (node == 0) {
+            node = registry->registerClass(
+                sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
+        }
+        return node;
+    }
 
     virtual SR_DLL_IMPORT const char* getClassName() const override;
     virtual SR_DLL_IMPORT unsigned long getClassID() const override;
@@ -81,6 +91,7 @@ public:
     SR_DLL_IMPORT void setLocation(double x, double y, double z);
     SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
     SR_DLL_IMPORT srVector3T<double> getLocation() const;
+    SR_DLL_IMPORT void getLocation(srVector3T<float>& location) const;
     SR_DLL_IMPORT void setRotation(double x, double y, double z);
     SR_DLL_IMPORT void setRotation(const srMatrix3T<float>& rotation);
     SR_DLL_IMPORT srVector3T<double> getScale() const;

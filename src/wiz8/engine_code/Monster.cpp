@@ -15,6 +15,7 @@
 #include "wiz8/magic.h"
 #include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srTimer.h"
@@ -74,14 +75,155 @@ extern W8WideChar* GetMonsterName(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
     unsigned char name_form);
+extern int FindItemRecordByName(const char* name);
+extern void CreateItemIntoHandOrPool(int item_id, unsigned char quality);
+extern void Function4A2D30(
+    unsigned int owner, unsigned int source, unsigned int target,
+    unsigned int value_4, unsigned int value_5, unsigned int value_6,
+    unsigned int value_7);
+extern int Function50A440(unsigned int monster_list_index);
+extern void Function56C590(
+    int npc_record, int value, int line, unsigned char suppress);
+extern void Function547570(
+    W8MonsterGroup* monster_group, unsigned char disposition, int value);
+extern Trigger* FindTriggerByName(const char* name);
+extern void Function48F650(
+    W8MonsterInfo* monster_info, unsigned char value_1, unsigned char value_2);
+extern unsigned char RemoveMonster(
+    unsigned int monster_list_index, unsigned char destroy_monster);
+extern const float g_monster_script_time_scale_005ec128;
+extern const double g_monster_script_direction_step_005ed2b8;
+extern const float g_monster_script_direction_scale_005ec150;
+extern void Function577540();
+extern void Function50F720(W8MonsterGroup* monster_group);
+extern void* GetNPCItemListByID(int npc_record_id);
+extern void Function56C5E0(
+    void* item_list, int value_1, int value_2, int value_3, int value_4);
+extern void ResetTargetSource(W8TargetSource* source);
+extern void Function523C00(
+    int monster_id, int value_2, int value_3, int value_4,
+    W8TargetSource* source, int value_6);
 
 static W8GrowableVector<stModelInstance005EC7D0*>
     g_monster_model_instances_682fd0;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
+enum W8MonsterScriptCommand {
+    MONSCR_GOTO,
+    MONSCR_WALKTO,
+    MONSCR_FACE,
+    MONSCR_SAY,
+    MONSCR_CYCLE,
+    MONSCR_SHOOT,
+    MONSCR_GIVE,
+    MONSCR_TELEPORT,
+    MONSCR_CAST,
+    MONSCR_DIE,
+    MONSCR_END,
+    MONSCR_IF,
+    MONSCR_ELSE,
+    MONSCR_ENDIF,
+    MONSCR_NPCINTERACTION,
+    MONSCR_DISPOSITION,
+    MONSCR_DISAPPEAR,
+    MONSCR_LOOKHERE,
+    MONSCR_NPCNUMBER,
+    MONSCR_FOLLOW,
+    MONSCR_PATROL,
+    MONSCR_STOPPATROL,
+    MONSCR_TRIGGER,
+    MONSCR_DELAY,
+    MONSCR_BEGINORDERS,
+    MONSCR_ENDORDERS,
+    MONSCR_GUARD,
+    MONSCR_POINTPATROL,
+    MONSCR_RANDOMPOINTPATROL,
+    MONSCR_DEAF,
+    MONSCR_DOACTION,
+    MONSCR_EAST,
+    MONSCR_NORTHEAST,
+    MONSCR_NORTH,
+    MONSCR_NORTHWEST,
+    MONSCR_WEST,
+    MONSCR_SOUTHWEST,
+    MONSCR_SOUTH,
+    MONSCR_SOUTHEAST,
+    MONSCR_TURNTOFACEPARTY,
+    MONSCR_LOOKABOUT,
+    MONSCR_PLAY,
+    MONSCR_FADEOUT,
+    MONSCR_STAYHOME,
+    MONSCR_COUNT
+};
+
+// GLOBAL: WIZ8 0x0060e958
+const char* g_monster_script_commands[MONSCR_COUNT] = {
+    "GOTO", "WALKTO", "FACE", "SAY", "CYCLE", "SHOOT", "GIVE",
+    "TELEPORT", "CAST", "DIE", "END", "IF", "ELSE", "ENDIF",
+    "NPCINTERACTION", "DISPOSITION", "DISAPPEAR", "LOOKHERE",
+    "NPCNUMBER", "FOLLOW", "PATROL", "STOPPATROL", "TRIGGER", "DELAY",
+    "BEGINORDERS", "ENDORDERS", "GUARD", "POINTPATROL",
+    "RANDOMPOINTPATROL", "DEAF", "DOACTION", "EAST", "NORTHEAST",
+    "NORTH", "NORTHWEST", "WEST", "SOUTHWEST", "SOUTH", "SOUTHEAST",
+    "TURNTOFACEPARTY", "LOOKABOUT", "PLAY", "FADEOUT", "STAYHOME"
+};
+
 // VTABLE: WIZ8 0x005ecdac
 // class W8GrowableVector<float>
+
+// VTABLE: WIZ8 0x005ecdc8
+// class W8GrowableVector<W8Position>
+
+// TEMPLATE: WIZ8 0x004a2080
+// W8GrowableVector<W8Position>::W8GrowableVector
+
+// SYNTHETIC: WIZ8 0x004a2110
+// W8GrowableVector<W8Position>::`scalar deleting destructor'
+
+template <>
+W8GrowableVector<W8Position>::W8GrowableVector()
+{
+    data = static_cast<W8Position*>(srHeap.allocate(5 * sizeof(W8Position)));
+    count = 0;
+    if (data != 0) {
+        capacity = 5;
+    }
+    else {
+        capacity = 0;
+    }
+}
+
+template <>
+W8GrowableVector<W8Position>::~W8GrowableVector()
+{
+    srHeap.free(data);
+}
+
+template <>
+int W8GrowableVector<W8Position>::Grow(int minimum_capacity)
+{
+    W8Position* previous_data;
+    W8Position* replacement;
+    int index;
+
+    if (minimum_capacity > capacity) {
+        previous_data = data;
+        replacement = static_cast<W8Position*>(
+            srHeap.allocate(minimum_capacity * sizeof(W8Position)));
+        data = replacement;
+        if (replacement == 0) {
+            data = previous_data;
+            return 0;
+        }
+        capacity = minimum_capacity;
+        for (index = 0; index < count; ++index) {
+            data[index] = previous_data[index];
+        }
+        srHeap.free(previous_data);
+    }
+    return 1;
+}
 
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
@@ -416,18 +558,18 @@ W8Monster::W8Monster(const W8Monster& rhs)
     m_pRep = static_cast<W8MonsterRep*>(rhs.m_pRep->Clone());
     m_pRep->linked_objects_5e8 = PListCreate();
 
-    state_28c.flag_00 = 0;
-    state_28c.flag_01 = 0;
-    state_28c.value_02 = -1;
-    state_28c.flag_03 = 0;
-    state_28c.flag_04 = 0;
-    state_28c.flag_05 = 0;
+    state_28c.defining_orders = 0;
+    state_28c.orders_finished = 0;
+    state_28c.order_mode = -1;
+    state_28c.deaf = 0;
+    state_28c.face_party = 0;
+    state_28c.stay_home = 0;
     state_2ac.flag_00 = 0;
-    state_2ac.value_04 = 0;
-    state_2ac.value_08 = 0;
-    state_2ac.value_0c = 0;
-    state_2ac.value_1c = 0;
-    state_2ac.value_20 = 0;
+    state_2ac.direction_x = 0;
+    state_2ac.direction_y = 0;
+    state_2ac.direction_z = 0;
+    state_2ac.look_frequency = 0;
+    state_2ac.look_duration = 0;
     state_2ac.value_24 = -1;
     state_2ac.flag_28 = 1;
     state_2fc.scale_00 = 1.0f;
@@ -947,7 +1089,7 @@ unsigned char W8Monster::SetScript004C7F10(
         sound_334 = 0;
     }
     if (reset_orders != 0) {
-        state_28c.flag_01 = 0;
+        state_28c.orders_finished = 0;
     }
 
     registry = srCore.getRegistry();
@@ -972,6 +1114,752 @@ unsigned char W8Monster::SetScript004C7F10(
     }
     script_238->addReference();
     return 1;
+}
+
+// FUNCTION: WIZ8 0x004C77F0
+unsigned char W8Monster::GetProjectilePosition004C77F0(
+    W8Position* position)
+{
+    signed char cycle;
+    unsigned char result;
+
+    if (position == 0) {
+        return 0;
+    }
+    if (IsCycleSupported(0x11) != 0 && IsCycleSupported(0x0d) != 0) {
+        srAssertFail(
+            "!(IsCycleSupported(CYCLE_ATTACK_1) && "
+            "IsCycleSupported(CYCLE_ATTACK_2))",
+            MONSTER_CPP, 0x18b1, 0);
+    }
+    if (IsCycleSupported(0x0d) != 0) {
+        cycle = 0x0d;
+    }
+    else if (IsCycleSupported(0x11) != 0) {
+        cycle = 0x11;
+    }
+    else if (IsCycleSupported(7) != 0) {
+        cycle = 7;
+    }
+    else {
+        return 0;
+    }
+
+    result = GetCycleMappedPosition004C7960(cycle, 5, position);
+    if (result == 0 && flag_22d == 0) {
+        if (g_flag_00689b32 != 0) {
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(
+                    0x18c3, MONSTER_CPP, propagated_value_1e4, 1));
+            FormatDebugMessage(
+                0,
+                "WARNING: %ls does not have a MISSILE_START_POINT defined",
+                GetMonsterDataForInfo(info));
+        }
+        flag_22d = 1;
+    }
+    return result;
+}
+
+// FUNCTION: WIZ8 0x004C7960
+unsigned char W8Monster::GetCycleMappedPosition004C7960(
+    signed char cycle, int mapped_index, W8Position* position)
+{
+    srModelInstance* current_model = GetCurrentModelInstance004A8250();
+    W8MonsterAnimationVector* animations;
+    W8AnimObj* animation;
+    int subcycle;
+    int dispatch_value;
+
+    if (cycle == -1) {
+        cycle = m_pRep->selection.monster.current_cycle;
+        subcycle = m_pRep->selection.monster.current_subcycle;
+    }
+    else {
+        subcycle = 0;
+    }
+    animations = &m_pRep->animations[cycle];
+    if (animations->GetCount() <= subcycle) {
+        Function401920(FormatString(
+            "Monster %s: Missing CYCLE %s subcycle %d",
+            m_pRep->name_5c0, g_cycle_names[cycle].name, subcycle));
+    }
+    animation = *animations->GetAt(subcycle);
+
+    if (mapped_index == 5) {
+        dispatch_value = (int)flags_1dc;
+    }
+    else if (mapped_index == 6) {
+        dispatch_value = fields.navigation_mode_008;
+    }
+    else {
+        dispatch_value = 0;
+    }
+    if (animation == 0) {
+        return 0;
+    }
+    if (AnimationIsRunning(animation) != 0) {
+        return GetAnimationCenter(position);
+    }
+
+    srModelInstance* model =
+        AnimObjDispatch004A14D0(animation, 2, dispatch_value);
+    if (model != 0) {
+        stMeshModel* mesh = static_cast<stMeshModel*>(model->model());
+        int vertex = FindMappedIndexInMeshChain(&mesh, mapped_index);
+        if (mesh != 0 && vertex != -1) {
+            srVector3T<float>* vertices =
+                mesh->GetVertexLocations00471AD0(dispatch_value, 1, 0.0f);
+            if (vertices != 0) {
+                srMatrix4T<float> matrix;
+                srVector3T<float> owner_position = GetPosition();
+                float x = vertices[vertex].x * m_pRep->scale_5f0;
+                float y = vertices[vertex].y * m_pRep->scale_5f0;
+                float z = vertices[vertex].z * m_pRep->scale_5f0;
+
+                current_model->getWorldSpaceMatrix(matrix);
+                position->x = matrix.vectors[0].x * x +
+                              matrix.vectors[0].y * y +
+                              matrix.vectors[0].z * z + owner_position.x;
+                position->y = matrix.vectors[1].x * x +
+                              matrix.vectors[1].y * y +
+                              matrix.vectors[1].z * z + owner_position.y +
+                              fields.movement_0c0.vertical_base_07c;
+                position->z = matrix.vectors[2].x * x +
+                              matrix.vectors[2].y * y +
+                              matrix.vectors[2].z * z + owner_position.z;
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+/* Execute source lines until a command starts an asynchronous operation, ends
+   the script, or the runaway-command guard trips. The two command modes share
+   the original table: normal mode performs actions, while BEGINORDERS records
+   the persistent movement policy that the Navigator update consumes. */
+// FUNCTION: WIZ8 0x004C80E0
+void W8Monster::ProcessScript004C80E0()
+{
+    W8MonsterInfo* monster_info;
+    unsigned int monster_index;
+    int command_count;
+    unsigned char stop;
+
+    if (script_238 == 0) {
+        return;
+    }
+
+    monster_index = MonsterGetIndexByLocationID(
+        0x1a4a, MONSTER_CPP, propagated_value_1e4, 1);
+    monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+    if (state_28c.orders_finished != 0) {
+        if (monster_info == 0 || (monster_info->flag_255 & 0x10) == 0) {
+            return;
+        }
+        monster_info->flag_255 &= ~0x10;
+        return;
+    }
+
+    if (monster_info != 0 && (monster_info->flag_255 & 0x10) != 0) {
+        monster_info->flag_255 &= ~0x10;
+        if (script_wait_240 == MONSCR_WALKTO && fields.flag_024 != 0) {
+            if (script_line_23c > 0) {
+                --script_line_23c;
+            }
+        }
+        else if (CanContinueScript004CA0F0() == 0) {
+            return;
+        }
+    }
+    else if (CanContinueScript004CA0F0() == 0) {
+        return;
+    }
+
+    script_wait_240 = -1;
+    stop = 0;
+    command_count = 0;
+    while (script_238 != 0 && script_wait_240 == -1 && stop == 0) {
+        char line[256];
+        char* token;
+        int command;
+        stScriptLine* source_line;
+
+        if (script_line_23c >= script_238->lines.GetCount()) {
+            break;
+        }
+        source_line = *script_238->lines.GetAt(script_line_23c++);
+        if (source_line == 0 || source_line->text == 0) {
+            continue;
+        }
+        strcpy(line, source_line->text);
+        token = strtok(line, " \t");
+        if (token == 0) {
+            continue;
+        }
+
+        command = -1;
+        for (int index = 0; index < MONSCR_COUNT; ++index) {
+            if (_stricmp(token, g_monster_script_commands[index]) == 0) {
+                command = index;
+                break;
+            }
+        }
+
+        if (script_conditions_244.GetCount() != 0 &&
+            *script_conditions_244.GetAt(0) == 0 &&
+            command != MONSCR_ELSE && command != MONSCR_ENDIF) {
+            if (++command_count > 50) {
+                stop = 1;
+            }
+            continue;
+        }
+
+        if (state_28c.defining_orders == 0) {
+            switch (command) {
+            case MONSCR_GOTO: {
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    int line_number = script_238->FindLabelLine004CF730(token);
+                    if (line_number != -1) {
+                        script_conditions_244.Clear();
+                        script_line_23c = line_number;
+                    }
+                }
+                stop = 1;
+                break;
+            }
+            case MONSCR_WALKTO: {
+                W8Position position;
+                token = strtok(0, " \t");
+                if (token == 0) {
+                    break;
+                }
+                if (_stricmp(token, "home") == 0) {
+                    memcpy(&position, &formation, sizeof(position));
+                }
+                else if (_stricmp(token, "off_camera") == 0) {
+                    position.x = position.y = position.z = -10000000.0f;
+                }
+                else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    break;
+                }
+                if (_stricmp(token, "PARTY") == 0) {
+                    Function4526C0(g_startup_world_659c0c, 5.0);
+                }
+                else {
+                    Function452630(&position);
+                }
+                token = strtok(0, " \t");
+                if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
+                    script_wait_240 = MONSCR_WALKTO;
+                }
+                else {
+                    stop = 1;
+                }
+                break;
+            }
+            case MONSCR_FACE: {
+                W8Position position;
+                token = strtok(0, " \t");
+                if (token == 0) {
+                    break;
+                }
+                if (_stricmp(token, "home") == 0) {
+                    memcpy(&position, &formation, sizeof(position));
+                }
+                else if (_stricmp(token, "off_camera") == 0) {
+                    position.x = position.y = position.z = -10000000.0f;
+                }
+                else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                    break;
+                }
+                AimAtPosition00453F30(&position);
+                token = strtok(0, " \t");
+                if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
+                    script_wait_240 = MONSCR_FACE;
+                }
+                else {
+                    stop = 1;
+                }
+                break;
+            }
+            case MONSCR_SAY:
+            case MONSCR_NPCINTERACTION: {
+                int line_number = -1;
+                unsigned char suppress = 0;
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    line_number = atoi(token);
+                    token = strtok(0, " \t");
+                    if (token != 0 && _strnicmp(token, "SUPPRESS", 8) == 0) {
+                        suppress = 1;
+                    }
+                }
+                Function56C590(
+                    Function50A440(MonsterGetIndexByLocationID(
+                        command == MONSCR_SAY ? 0x1ac9 : 0x1b77,
+                        MONSTER_CPP, propagated_value_1e4, 1)),
+                    0, line_number,
+                    command == MONSCR_SAY ? 1 : suppress);
+                if (command == MONSCR_NPCINTERACTION) {
+                    script_wait_240 = MONSCR_NPCINTERACTION;
+                }
+                else if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
+                    script_wait_240 = MONSCR_SAY;
+                }
+                else {
+                    stop = 1;
+                }
+                break;
+            }
+            case MONSCR_CYCLE: {
+                signed char subcycle;
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    int cycle = ParseMonsterCycleName004C2010(token, &subcycle);
+                    if (cycle != -1) {
+                        m_pRep->selection.monster.pending_cycle = (signed char)cycle;
+                        m_pRep->active = 1;
+                        m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                            srTimer::TIMER_READ_DEFAULT);
+                        SetSubCycle(0);
+                        m_pRep->selection.monster.runtime_value_a6 = subcycle - 1;
+                        if (m_pRep->selection.monster.pending_cycle == -1) {
+                            m_pRep->selection.monster.pending_cycle =
+                                m_pRep->selection.monster.current_cycle;
+                        }
+                        flags_1dc |= 0x10;
+                        token = strtok(0, " \t");
+                        if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
+                            m_pRep->behaviour_071 = 1;
+                            flags_1dc |= 0x20;
+                            script_wait_240 = MONSCR_CYCLE;
+                        }
+                        else {
+                            stop = 1;
+                        }
+                    }
+                }
+                break;
+            }
+            case MONSCR_SHOOT: {
+                W8Position source;
+                W8Position target;
+                token = strtok(0, " \t");
+                if (token == 0) {
+                    break;
+                }
+                unsigned int owner = (unsigned int)atoi(token);
+                token = strtok(0, " \t");
+                if (token == 0) {
+                    break;
+                }
+                if (_stricmp(token, "home") == 0) {
+                    memcpy(&target, &formation, sizeof(target));
+                }
+                else if (_stricmp(token, "off_camera") == 0) {
+                    target.x = target.y = target.z = -10000000.0f;
+                }
+                else if (FindEntityByName(token, &target, 0, 0) == 0) {
+                    break;
+                }
+                if (GetProjectilePosition004C77F0(&source) == 0) {
+                    GetMappedPosition004C72A0(&source);
+                }
+                Function4A2D30(
+                    owner, (unsigned int)&source, (unsigned int)&target,
+                    0, 0, 1, 0x47435000);
+                break;
+            }
+            case MONSCR_GIVE:
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    int item = FindItemRecordByName(token);
+                    if (item != -1) {
+                        CreateItemIntoHandOrPool(item, 1);
+                    }
+                }
+                break;
+            case MONSCR_TELEPORT: {
+                W8Position position;
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    if (_stricmp(token, "home") == 0) {
+                        memcpy(&position, &formation, sizeof(position));
+                    }
+                    else if (_stricmp(token, "off_camera") == 0) {
+                        position.x = position.y = position.z = -10000000.0f;
+                    }
+                    else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                        break;
+                    }
+                    SetPositionInternal00453590(&position);
+                }
+                break;
+            }
+            case MONSCR_DIE:
+                m_pRep->behaviour_071 = 1;
+                m_pRep->selection.monster.pending_cycle = 0x15;
+                m_pRep->active = 1;
+                m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                    srTimer::TIMER_READ_DEFAULT);
+                SetSubCycle(0);
+                break;
+            case MONSCR_END:
+                stop = 1;
+                script_line_23c = script_238->lines.GetCount();
+                break;
+            case MONSCR_IF: {
+                unsigned char invert = 0;
+                unsigned char value;
+                token = strtok(0, " \t");
+                if (token != 0 && _strnicmp(token, "NOT", 3) == 0) {
+                    invert = 1;
+                    token = strtok(0, " \t");
+                }
+                value = EvaluateScriptCondition004C9DC0(token);
+                script_conditions_244.InsertAt(
+                    0, invert != 0 ? value == 0 : value != 0);
+                break;
+            }
+            case MONSCR_ELSE:
+                if (script_conditions_244.GetCount() != 0) {
+                    *script_conditions_244.GetAt(0) =
+                        *script_conditions_244.GetAt(0) == 0;
+                }
+                break;
+            case MONSCR_ENDIF:
+                if (script_conditions_244.GetCount() != 0) {
+                    script_conditions_244.RemoveAt(0);
+                }
+                break;
+            case MONSCR_DISPOSITION: {
+                unsigned char disposition = 0xff;
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    if (_stricmp(token, "DISP_NEUTRAL") == 0) disposition = 0;
+                    else if (_stricmp(token, "DISP_HOSTILE") == 0) disposition = 1;
+                    else if (_stricmp(token, "DISP_FRIENDLY") == 0) disposition = 2;
+                    monster_info = MonsterGetScriptPartByLocationIndex(
+                        MonsterGetIndexByLocationID(
+                            0x1b8b, MONSTER_CPP, propagated_value_1e4, 1));
+                    if (monster_info != 0) {
+                        unsigned int group_index = GetMonsterGroupIndexByID(
+                            0x1b90, MONSTER_CPP,
+                            monster_info->monster_group_id, 0);
+                        if (group_index != (unsigned int)-1) {
+                            W8MonsterGroup* group =
+                                GetMonsterGroupByListIndex(group_index);
+                            if (group != 0) {
+                                Function547570(group, disposition, 0);
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case MONSCR_DISAPPEAR:
+                flags_1dc |= 0x40;
+                break;
+            case MONSCR_LOOKHERE:
+                Function48F650(
+                    MonsterGetScriptPartByLocationIndex(
+                        MonsterGetIndexByLocationID(
+                            0x1ba0, MONSTER_CPP, propagated_value_1e4, 1)),
+                    1, 1);
+                token = strtok(0, " \t");
+                if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
+                    script_wait_240 = MONSCR_LOOKHERE;
+                }
+                else {
+                    stop = 1;
+                }
+                break;
+            case MONSCR_PATROL: {
+                W8Position home;
+                float distance;
+                float variation;
+                token = strtok(0, " \t");
+                if (token == 0) break;
+                distance = (float)atof(token) * g_world_scale_005ebc40;
+                token = strtok(0, " \t");
+                if (token == 0) break;
+                variation = (float)atof(token) * g_world_scale_005ebc40;
+                memcpy(&home, &formation, sizeof(home));
+                if (home.x == 0.0f && home.y == 0.0f && home.z == 0.0f) {
+                    srVector3T<float> current = GetPosition();
+                    home.x = current.x;
+                    home.y = current.y;
+                    home.z = current.z;
+                    memcpy(&formation, &home, sizeof(home));
+                }
+                StartPatrol00453CC0(&home, distance, variation);
+                break;
+            }
+            case MONSCR_STOPPATROL:
+                fields.flags_00c &= 0xdfffffff;
+                break;
+            case MONSCR_TRIGGER:
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    trigger_278 = FindTriggerByName(token);
+                    if (trigger_278 != 0) {
+                        trigger_278->Run(-1);
+                        script_wait_240 = MONSCR_TRIGGER;
+                    }
+                }
+                break;
+            case MONSCR_DELAY:
+                token = strtok(0, " \t");
+                if (token != 0 && (float)atof(token) != 0.0f) {
+                    timer_254.SetDuration(
+                        (float)atof(token) * g_monster_script_time_scale_005ec128);
+                    timer_254.Restart();
+                    script_wait_240 = MONSCR_DELAY;
+                }
+                break;
+            case MONSCR_BEGINORDERS:
+                state_28c.defining_orders = 1;
+                break;
+            case MONSCR_DEAF:
+                state_28c.deaf = 1;
+                break;
+            case MONSCR_DOACTION:
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    if (_stricmp(token, "STARTGOLEMATTACK") == 0) {
+                        Function577540();
+                        W8MonsterGroup* group = FindFirstMonsterByID(0x68);
+                        if (group != 0) Function547570(group, 1, 0);
+                        group = FindFirstMonsterByID(0x13e);
+                        if (group != 0) {
+                            Function547570(group, 1, 0);
+                            Function50F720(group);
+                        }
+                    }
+                    else if (_stricmp(token, "ENDSAVANTWALK") == 0) {
+                        flags_1dc |= 0x40;
+                        Trigger* trigger = FindTriggerByName("Path3Trigger");
+                        if (trigger != 0) trigger->Run(-1);
+                    }
+                    else if (_stricmp(token, "UNLOCKUI") == 0 ||
+                             _stricmp(token, "ENDGARIWALK") == 0) {
+                        Function577540();
+                    }
+                    else if (_stricmp(token, "ENDHOGARWALK") == 0) {
+                        Function577540();
+                        SetScript004C7F10("ClosePatrol.msf", 1);
+                    }
+                    else if (_stricmp(token, "ENDHOGARWALKANDPUTTOSLEEP") == 0) {
+                        W8TargetSource source;
+                        Function577540();
+                        SetScript004C7F10("ClosePatrol.msf", 1);
+                        monster_info = MonsterGetScriptPartByLocationIndex(
+                            MonsterGetIndexByLocationID(
+                                0x1c3a, MONSTER_CPP, propagated_value_1e4, 1));
+                        ResetTargetSource(&source);
+                        Function523C00(
+                            monster_info->location_id, 0xf, 6, 0, &source, 1);
+                    }
+                    else if (_stricmp(token, "ENDBELAWALK") == 0) {
+                        flags_1dc |= 0x40;
+                        Function577540();
+                    }
+                    else if (_stricmp(token, "BELA_END_CC_WALK") == 0) {
+                        void* list = GetNPCItemListByID(0x8d);
+                        if (list != 0) Function56C5E0(list, 0, 6, 0, 0);
+                        monster_info = MonsterGetScriptPartByLocationIndex(
+                            MonsterGetIndexByLocationID(
+                                0x14b3, MONSTER_CPP,
+                                propagated_value_1e4, 1));
+                        if (monster_info->control_state != 1) {
+                            W8Position party;
+                            GetPosition421070(&party);
+                            AimAtPosition00453F30(&party);
+                        }
+                    }
+                }
+                break;
+            case MONSCR_PLAY: {
+                int value = 0;
+                float distance = 0.0f;
+                token = strtok(0, " \t");
+                if (token == 0) break;
+                value = atoi(token);
+                if (value != 0) token = strtok(0, " \t");
+                if (token == 0) break;
+                distance = (float)atof(token) * g_world_scale_005ebc40;
+                if (distance != 0.0f) token = strtok(0, " \t");
+                if (token == 0) break;
+                sound_334 = new stSound3D(token, 0);
+                if (sound_334 != 0) {
+                    srVector3T<float> position = GetPosition();
+                    sound_334->value_140 = value;
+                    sound_334->setLocation(
+                        (double)position.x, (double)position.y, (double)position.z);
+                    if (distance != 0.0f) sound_334->value_144 = distance;
+                    if (sound_334->Play004AEBF0(0, 0) == 0) {
+                        sound_334->release();
+                        sound_334 = 0;
+                    }
+                    else {
+                        script_wait_240 = MONSCR_PLAY;
+                    }
+                }
+                break;
+            }
+            case MONSCR_FADEOUT:
+                flags_1dc |= 0x100;
+                if ((signed char)flags_330.flag_00 >= 0) {
+                    timer_30c.SetDuration(3.0f);
+                    timer_30c.Restart();
+                    if ((signed char)flags_330.flag_00 < 1) {
+                        m_pRep->value_05c = 1.0f;
+                        m_pRep->flag_061 = 1;
+                    }
+                    else {
+                        timer_30c.SetProgress(1.0f - m_pRep->value_05c);
+                    }
+                    flags_330.flag_00 = 0xff;
+                }
+                RemoveMonster(
+                    MonsterGetIndexByLocationID(
+                        0x1021, MONSTER_CPP, propagated_value_1e4, 1),
+                    0);
+                stop = 1;
+                script_line_23c = script_238->lines.GetCount();
+                break;
+            default:
+                break;
+            }
+        }
+        else {
+            switch (command) {
+            case MONSCR_FACE:
+                token = strtok(0, " \t");
+                if (token != 0 && _stricmp(token, "PARTY") == 0) {
+                    state_28c.face_party = 1;
+                }
+                else if (token != 0) {
+                    int direction = -1;
+                    for (int index = MONSCR_EAST;
+                         index <= MONSCR_SOUTHEAST; ++index) {
+                        if (_stricmp(token, g_monster_script_commands[index]) == 0) {
+                            direction = index;
+                            break;
+                        }
+                    }
+                    if (direction != -1) {
+                        double angle =
+                            (direction - MONSCR_EAST) *
+                            g_monster_script_direction_step_005ed2b8;
+                        state_28c.order_mode = 4;
+                        state_2ac.direction_x =
+                            (float)cos(angle) * g_monster_script_direction_scale_005ec150;
+                        state_2ac.direction_y = 0.0f;
+                        state_2ac.direction_z =
+                            (float)sin(angle) * g_monster_script_direction_scale_005ec150;
+                    }
+                }
+                break;
+            case MONSCR_PATROL:
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    state_28c.patrol_distance =
+                        (float)atof(token) * g_world_scale_005ebc40;
+                    token = strtok(0, " \t");
+                    if (token != 0) {
+                        state_28c.patrol_variation =
+                            (float)atof(token) * g_world_scale_005ebc40;
+                        state_28c.order_mode = 1;
+                    }
+                }
+                break;
+            case MONSCR_ENDORDERS:
+                state_28c.defining_orders = 0;
+                state_28c.orders_finished = 1;
+                script_wait_240 = MONSCR_ENDORDERS;
+                break;
+            case MONSCR_GUARD:
+            case MONSCR_POINTPATROL:
+            case MONSCR_RANDOMPOINTPATROL: {
+                int added = 0;
+                if (command == MONSCR_GUARD) vector_29c.Clear();
+                while ((token = strtok(0, " \t")) != 0) {
+                    W8Position position;
+                    if (_stricmp(token, "home") == 0) {
+                        memcpy(&position, &formation, sizeof(position));
+                    }
+                    else if (_stricmp(token, "off_camera") == 0) {
+                        position.x = position.y = position.z = -10000000.0f;
+                    }
+                    else if (FindEntityByName(token, &position, 0, 0) == 0) {
+                        continue;
+                    }
+                    if ((command == MONSCR_POINTPATROL ||
+                         command == MONSCR_RANDOMPOINTPATROL) && added == 0) {
+                        vector_29c.Clear();
+                    }
+                    if (vector_29c.Add(position) != -1) ++added;
+                    if (command == MONSCR_GUARD) break;
+                }
+                if (command == MONSCR_GUARD && added != 0) {
+                    state_28c.orders_finished = 0;
+                    state_28c.order_mode = 0;
+                }
+                else if (added != 0) {
+                    state_28c.order_mode =
+                        command == MONSCR_POINTPATROL ? 2 : 3;
+                }
+                break;
+            }
+            case MONSCR_DEAF:
+                state_28c.deaf = 1;
+                break;
+            case MONSCR_TURNTOFACEPARTY:
+                state_28c.face_party = 1;
+                break;
+            case MONSCR_LOOKABOUT:
+                token = strtok(0, " \t");
+                if (token != 0) {
+                    state_2ac.look_frequency = (float)atoi(token);
+                    if (monster_info != 0) {
+                        monster_info->unknown_301[1] = (unsigned char)atoi(token);
+                    }
+                    token = strtok(0, " \t");
+                    if (token != 0) {
+                        state_2ac.look_duration = (float)atoi(token);
+                    }
+                }
+                break;
+            case MONSCR_STAYHOME:
+                state_28c.stay_home = 1;
+                break;
+            default:
+                break;
+            }
+        }
+
+        if (++command_count > 50) {
+            stop = 1;
+        }
+    }
+
+    if (script_238 != 0 &&
+        script_line_23c >= script_238->lines.GetCount() &&
+        script_wait_240 == -1) {
+        script_238->release();
+        script_238 = 0;
+        flags_1dc &= ~0x20;
+        script_line_23c = 0;
+        script_wait_240 = -1;
+        if (sound_334 != 0) {
+            sound_334->release();
+            sound_334 = 0;
+        }
+    }
 }
 
 /* A script command that requested blocking leaves its command number here.

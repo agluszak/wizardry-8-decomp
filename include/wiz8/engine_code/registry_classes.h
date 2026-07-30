@@ -104,6 +104,7 @@ public:
     const char* getClassName() const override;     /* 0x00445AE0 */
     unsigned long getClassID() const override;     /* 0x00445AD0 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x00445F30 */
+    void Run(int source);
 };
 
 /*

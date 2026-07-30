@@ -100,52 +100,38 @@ static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 
 static_assert(sizeof(W8MonsterAnimationVector) == 0x10, "W8MonsterAnimationVector_size_must_be_0x10");
 
-/* Five twelve-byte records are allocated from SurRender's heap by the
-   embedded vector at +0x29c. The record contents are not yet identified. */
-struct W8MonsterVectorElement005ECDC8 {
-    unsigned int values[3];
-};
+/* ProcessScript's POINTPATROL and RANDOMPOINTPATROL commands establish the
+   embedded vector at +0x29c as ordinary world-space patrol positions. */
+typedef W8Position W8MonsterPatrolPoint;
 
-class W8MonsterVector005ECDC8 {
-public:
-    W8MonsterVector005ECDC8()
-        : count(0), capacity(0), data(static_cast<W8MonsterVectorElement005ECDC8*>(
-              srHeap.allocate(5 * sizeof(W8MonsterVectorElement005ECDC8))))
-    {
-        if (data != 0) {
-            capacity = 5;
-        }
-    }
-
-    virtual ~W8MonsterVector005ECDC8()
-    {
-        srHeap.free(data);
-    }
-
-    int count;
-    int capacity;
-    W8MonsterVectorElement005ECDC8* data;
-};
+template <>
+W8GrowableVector<W8MonsterPatrolPoint>::W8GrowableVector();
+template <>
+W8GrowableVector<W8MonsterPatrolPoint>::~W8GrowableVector();
+template <>
+int W8GrowableVector<W8MonsterPatrolPoint>::Grow(int minimum_capacity);
 
 struct W8MonsterState28C {
-    unsigned char flag_00;
-    unsigned char flag_01;
-    signed char value_02;
-    unsigned char flag_03;
-    unsigned char flag_04;
-    unsigned char flag_05;
-    unsigned char unknown_06[0x0a];
+    unsigned char defining_orders;
+    unsigned char orders_finished;
+    signed char order_mode;
+    unsigned char deaf;
+    unsigned char face_party;
+    unsigned char stay_home;
+    unsigned char unknown_06[2];
+    float patrol_distance;
+    float patrol_variation;
 };
 
 struct W8MonsterState2AC {
     unsigned char flag_00;
     unsigned char unknown_01[3];
-    int value_04;
-    int value_08;
-    int value_0c;
+    float direction_x;
+    float direction_y;
+    float direction_z;
     unsigned char unknown_10[0x0c];
-    int value_1c;
-    int value_20;
+    float look_frequency;
+    float look_duration;
     int value_24;
     unsigned char flag_28;
     unsigned char unknown_29[3];
@@ -213,6 +199,9 @@ public:
     unsigned char SetScript004C7F10(
         const char* script_name, unsigned char reset_orders);
     void ProcessScript004C80E0();
+    unsigned char GetProjectilePosition004C77F0(W8Position* position);
+    unsigned char GetCycleMappedPosition004C7960(
+        signed char cycle, int mapped_index, W8Position* position);
     unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
     unsigned char CanContinueScript004CA0F0();
     unsigned char SetScriptLabel004CA260(const char* label);
@@ -263,7 +252,7 @@ public:
     int registry_weight_27c;
     W8MonsterFormation formation;
     W8MonsterState28C state_28c;
-    W8MonsterVector005ECDC8 vector_29c;
+    W8GrowableVector<W8MonsterPatrolPoint> vector_29c;
     W8MonsterState2AC state_2ac;
     W8Timer005EC0A4 timer_2d8;
     W8MonsterState2FC state_2fc;

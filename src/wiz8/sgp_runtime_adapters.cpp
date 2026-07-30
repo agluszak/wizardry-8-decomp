@@ -12,6 +12,9 @@
 #include "vobject_blitters.h"
 #include "vsurface.h"
 
+// LIBRARY: WIZ8 0x0040ABF0
+// Sound3DPlay
+
 /* These bodies are retained byte-for-byte from the pinned SFI SGP shading.c
    oracle; Wizardry's source model owns only their linked addresses. */
 // LIBRARY: WIZ8 0x00413d60

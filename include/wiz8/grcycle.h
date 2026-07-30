@@ -135,6 +135,8 @@ public:
     void SetValue120(float value);                         /* 0x00453C50 */
     float GetValue120();                                  /* 0x00453C60 */
     unsigned char Function452630(const W8Position* position); /* 0x00452630 */
+    unsigned short Function4526C0(
+        W8Navigator* target, double separation); /* 0x004526C0 */
     void Function453690(void* argument);                   /* 0x00453690 */
     void SetPositionInternal00453590(const W8Position* position);
     void SetObject68Flag38(char value);                    /* 0x004537C0 */
@@ -142,6 +144,8 @@ public:
         W8Navigator* target, double separation);           /* 0x004527A0 */
     void Function454040(const W8Position* position);       /* 0x00454040 */
     void AimAtPosition00453F30(const W8Position* position); /* 0x00453F30 */
+    void StartPatrol00453CC0(
+        const W8Position* home, float distance, float variation);
     void SetFlag25(char value);                            /* 0x004531F0 */
     void SetMovementStopped00453880();                     /* 0x00453880 */
     void UpdateAngles00453990();                           /* 0x00453990 */

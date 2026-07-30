@@ -125,6 +125,12 @@ protected:
         srCore.getRegistry()->registerInstance(sGetClassNode(), this);
     }
 
+    explicit srClassSupport(Base* parent)
+        : Base(parent)
+    {
+        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+    }
+
     virtual ~srClassSupport() override
     {
         srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);

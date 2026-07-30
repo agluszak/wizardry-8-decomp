@@ -8,7 +8,8 @@
 template <class T>
 class W8GrowableVector {
 public:
-    explicit W8GrowableVector(int initial_capacity = 5);
+    W8GrowableVector();
+    explicit W8GrowableVector(int initial_capacity);
     virtual ~W8GrowableVector();
     W8GrowableVector& operator=(const W8GrowableVector& other);
 
@@ -50,6 +51,24 @@ public:
         return count++;
     }
 
+    int InsertAt(int position, T value)
+    {
+        int index;
+
+        if (position < 0 || position > count) {
+            return -1;
+        }
+        if (count + 1 > capacity && !Grow(count + 1)) {
+            return -1;
+        }
+        for (index = count; index > position; --index) {
+            data[index] = data[index - 1];
+        }
+        data[position] = value;
+        ++count;
+        return position;
+    }
+
     /* Returns the element it unlinked. GenerateItemsFromTable discards that
        value, while callers such as the dialog destructor delete it. */
     T RemoveAt(int position);
@@ -87,6 +106,19 @@ public:
    constructor emissions keep the parameter and are what proves it. Whether the
    original spelled a default argument or a separate default constructor the
    image cannot say, because every capacity-5 site is inlined. */
+template <class T>
+W8GrowableVector<T>::W8GrowableVector()
+{
+    data = static_cast<T*>(::operator new(5 * sizeof(T)));
+    count = 0;
+    if (data != 0) {
+        capacity = 5;
+    }
+    else {
+        capacity = 0;
+    }
+}
+
 template <class T>
 W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
 {

@@ -1,5 +1,6 @@
 set(WIZ8_SGP_WHOLE_SOURCES
     "${SGP_SOURCE}/Random.c"
+    "${SGP_SOURCE}/soundman.c"
     "${SGP_SOURCE}/timer.c"
     "${SGP_SOURCE}/shading.c"
 )
@@ -41,6 +42,9 @@ set_source_files_properties("${SGP_SOURCE}/vsurface.c" PROPERTIES
 )
 set_source_files_properties("${SGP_SOURCE}/himage.c" PROPERTIES
     COMPILE_DEFINITIONS WIZ8_EXTERNAL_PIXEL_FORMAT
+)
+set_source_files_properties("${SGP_SOURCE}/soundman.c" PROPERTIES
+    COMPILE_OPTIONS "/FI${SGP_SOURCE}/LibraryDataBase.h"
 )
 set_source_files_properties("${SGP_SOURCE}/DirectDraw Calls.c" PROPERTIES
     COMPILE_OPTIONS "/FI${SGP_SOURCE}/sgp.h"

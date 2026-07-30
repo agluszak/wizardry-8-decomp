@@ -182,6 +182,67 @@ extern float g_navigator_snap_angle_005ec2f0;
 extern float g_navigator_mode3_scale_005ebca4;
 extern float g_float_005ebb34;
 extern unsigned char g_flag_006081e4;
+
+// FUNCTION: WIZ8 0x004526c0
+unsigned short W8Navigator::Function4526C0(
+    W8Navigator* target, double separation)
+{
+    unsigned short result = 0;
+
+    fields.movement_target_018.x = 0.0f;
+    fields.movement_target_018.y = 0.0f;
+    fields.movement_target_018.z = 0.0f;
+    fields.collision_margin_010 = separation;
+    fields.target_navigator_04c = target;
+    if (target == g_startup_world_659c0c ||
+        target->fields.movement_0c0.location_id_004 != 0) {
+        fields.movement_0c0.value_010 =
+            target->fields.movement_0c0.location_id_004;
+    }
+    else {
+        fields.movement_0c0.value_010 = -1;
+    }
+    PathAIClearOwned004A9BB0(fields.path_ai_068);
+    if (g_flag_006081e4 == 0) {
+        fields.movement_0c0.attachment_0ac->flags_00 |= 0x10000;
+    }
+    if (SetMovementTarget00454170(
+            &target->fields.movement_0c0.position_040, 0) == 0) {
+        if (g_flag_006081e4 == 0) {
+            fields.navigation_mode_008 = 0;
+            fields.unknown_0bc[0] = 1;
+        }
+    }
+    else {
+        fields.navigation_mode_008 = 5;
+        result = 1;
+        if (g_flag_006081e4 == 0) {
+            result = (unsigned short)(
+                fields.movement_0c0.attachment_0ac->flags_00 & 7);
+        }
+    }
+    fields.target_last_position_050 =
+        target->fields.movement_0c0.position_040;
+    return result;
+}
+
+// FUNCTION: WIZ8 0x00453cc0
+void W8Navigator::StartPatrol00453CC0(
+    const W8Position* home, float distance, float variation)
+{
+    W8Navigator* navigator = this;
+
+    while (navigator->fields.linked_navigator_05c != 0) {
+        navigator = navigator->fields.linked_navigator_05c;
+    }
+    navigator->fields.navigation_mode_008 = 0;
+    navigator->fields.position_03c.x = home->x;
+    navigator->fields.position_03c.y = home->y;
+    navigator->fields.position_03c.z = home->z;
+    navigator->fields.minimum_height_034 = distance;
+    navigator->fields.maximum_height_038 = variation;
+    navigator->ConfigureMovement00453D20(distance, variation);
+}
 extern unsigned char g_navigator_vertical_enabled_006081f8;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_speed_006850ff;

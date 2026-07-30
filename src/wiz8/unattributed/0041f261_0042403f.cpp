@@ -18,6 +18,12 @@ void Function420D40(srNode* parent, W8Camera005EBE14* camera)
     g_gd_camera_65a0f8->Method00476440(parent, camera);
 }
 
+// FUNCTION: WIZ8 0x00420DD0
+float GetCameraAngleRadians420DD0()
+{
+    return g_gd_camera_65a0f8->m_angle_004;
+}
+
 // FUNCTION: WIZ8 0x00420E00
 void Function420E00()
 {
