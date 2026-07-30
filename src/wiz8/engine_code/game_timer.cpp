@@ -143,6 +143,14 @@ void W8Timer005EC0A4::SetDuration(float duration)
     m_end = m_start + m_duration;
 }
 
+// FUNCTION: WIZ8 0x00439ad0
+void W8Timer005EC0A4::SetMode(int mode)
+{
+    m_mode = mode;
+    m_start = Sample();
+    m_end = m_start + m_duration;
+}
+
 // FUNCTION: WIZ8 0x00439d80
 void W8Timer005EC0A4::Restart()
 {

@@ -326,7 +326,7 @@ W8WorldItem* GetNextWorldItem(char restart)
    promotes whatever followed it; unlinking anything else just closes the gap.
    Answers the group's head afterwards. */
 // FUNCTION: WIZ8 0x004f83a0
-W8WorldItem* ItemInfoRemoveFromGroup(W8WorldItem* head, int unused, W8WorldItem* item)
+W8WorldItem* ItemInfoRemoveFromGroup(W8WorldItem* head, W8WorldItem* item)
 {
     W8WorldItem* previous;
     W8WorldItem* scan;

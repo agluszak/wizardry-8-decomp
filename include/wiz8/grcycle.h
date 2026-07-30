@@ -120,6 +120,7 @@ public:
     virtual ~W8Navigator();               /* 0x00452120 */
     virtual void SetPathAI(W8PathAI* path_ai);
     virtual W8PathAI* GetPathAI();
+    void ResetPathAI();
     virtual unsigned char Function4A7140(int) const { return 1; }
     virtual void SetPosition(const W8Position* position); /* 0x00456020 */
 

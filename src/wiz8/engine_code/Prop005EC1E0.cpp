@@ -7,27 +7,20 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/PList.h"
 
+#include <string.h>
+
 /* Engine Code\Prop.cpp. The complete destructor at 0x0044BEC0 releases four
    owned members, and each release names the shape of what it owns:
 
      +0x14  delete through vtable slot 0 with the deleting flag - a class with
             a virtual destructor
-     +0x20  a null check and a bare operator delete - a pointer to something
-            with no destructor at all
+     +0x20  a null check and a bare operator delete - the owned name string
      +0x28  the same virtual-destructor shape as +0x14
      +0x38  its destructor called directly and then operator delete - a class
             with a non-virtual destructor
 
-   Nothing names the class or its members, so all keep positional names, and
-   the gaps between the four members stay opaque. */
-
-/* Released with a null check and then a bare operator delete. A pointer to
-   something trivially destructible skips the check entirely, so the check
-   without a destructor call is what a declared-but-empty destructor emits. */
-class W8PropOwned0020 {
-public:
-    ~W8PropOwned0020();
-};
+   FindPropByName independently proves that +0x20 is the owned prop name.
+   Unresolved members and the gaps between them remain positional. */
 
 extern int Function443830(W8World* world, W8Prop005EC1E0* prop);
 extern void Function4B7470(int value);
@@ -55,10 +48,6 @@ void UpdateWorldProps0044E010(W8World* world)
     }
 }
 
-W8PropOwned0020::~W8PropOwned0020()
-{
-}
-
 /* VC6 emits the scalar-deleting wrapper from this ordinary virtual
    destructor. */
 // SYNTHETIC: WIZ8 0x0044BEA0
@@ -66,9 +55,40 @@ W8PropOwned0020::~W8PropOwned0020()
 W8Prop005EC1E0::~W8Prop005EC1E0()
 {
     delete m_owned_14;
-    delete m_owned_20;
+    delete[] m_name_20;
     delete m_owned_28;
     delete m_owned_38;
+}
+
+// FUNCTION: WIZ8 0x0044db60
+W8Prop005EC1E0* FindPropByName(W8World* world, const char* name)
+{
+    int index;
+
+    if (world != 0 && name != 0) {
+        unsigned int count = PListGetCount(world->plsProps);
+
+        for (index = 0; index < (int)count; ++index) {
+            W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
+                PListGetAt(world->plsProps, index));
+            if (prop->m_name_20 != 0 &&
+                _stricmp(prop->m_name_20, name) == 0) {
+                return prop;
+            }
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x0044e270
+void W8Prop005EC1E0::SetAnimationSpeed(float speed)
+{
+    if (speed > 0.0f) {
+        m_owned_14->animation_speed_09c = speed;
+        if (m_owned_28 != 0) {
+            m_owned_28->SetDuration(1.0f / speed);
+        }
+    }
 }
 
 extern void Function439D80(void);
@@ -213,6 +233,42 @@ int W8PropOwnedPolymorphic::FindSlotByCurrentTag()
         }
     }
     return -1;
+}
+
+// FUNCTION: WIZ8 0x0044bb20
+unsigned char W8PropOwnedPolymorphic::AdvanceAnimationSegment()
+{
+    int segment;
+
+    if (slot_count < 3) {
+        return 0;
+    }
+    for (segment = 0; segment < slot_count; ++segment) {
+        if ((int)(char)slots[segment][0] == (unsigned int)current_tag) {
+            break;
+        }
+    }
+    if (segment == slot_count) {
+        segment = -1;
+    }
+    if (segment == -1) {
+        srAssertFail(
+            "lSegment!=(-1)",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp",
+            0x2c3, 0);
+    }
+    if (segment == slot_count - 2) {
+        segment = 0;
+    }
+    else {
+        ++segment;
+    }
+    current_tag = slots[segment][0];
+    unknown_095[0] = slots[segment + 1][0];
+    setting_6e = 1;
+    unknown_06d = 1;
+    setting_64 = current_tag;
+    return (unsigned char)segment;
 }
 
 /* The same toggle reached through the prop rather than through the member. */

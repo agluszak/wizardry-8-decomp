@@ -151,6 +151,16 @@ W8PathAI* W8Navigator::GetPathAI()
     return fields.path_ai_068;
 }
 
+// FUNCTION: WIZ8 0x00454930
+void W8Navigator::ResetPathAI()
+{
+    if (fields.path_ai_068 != 0) {
+        fields.path_ai_068->value_04 = 0.0f;
+        fields.path_ai_068->value_24 = 0.0f;
+        PathAIResetTick004A9C20(fields.path_ai_068);
+    }
+}
+
 void W8Navigator::configureStartupRange(float range)
 {
     unknown_004[32] = float_bits(range);

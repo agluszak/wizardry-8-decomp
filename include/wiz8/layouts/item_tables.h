@@ -16,7 +16,10 @@ typedef struct W8ItemTableRecord {
     unsigned int category_id;             /* 0x100 */
     W8ItemTableEntry entries[40];         /* 0x104 */
     unsigned char level_scaled;           /* 0x1cc */
-    unsigned char unknown_1cd[0x24];      /* 0x1cd */
+    W8Dice item_count_dice;               /* 0x1cd */
+    unsigned char unknown_1d1[4];
+    W8Dice gold_dice;                     /* 0x1d5 */
+    unsigned char unknown_1d9[0x18];
 } W8ItemTableRecord;                      /* 0x1f1 */
 
 /* One "you need this much of that" entry. CanCharacterUseItem walks two of

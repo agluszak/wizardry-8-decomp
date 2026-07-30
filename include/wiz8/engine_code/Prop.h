@@ -5,7 +5,6 @@
 struct GDProp;
 struct W8AnimObj;
 struct W8World;
-class W8PropOwned0020;
 class W8Timer005EC0A4;
 
 /* Prop.cpp owns this animation/state object through a virtual destructor.
@@ -19,6 +18,7 @@ public:
     void ToggleAnimation(int argument);   /* 0x0044BA00 */
     unsigned char SelectSlot0044BA50(unsigned char tag);
     int FindSlotByCurrentTag();           /* 0x0044BAE0 */
+    unsigned char AdvanceAnimationSegment();
 
     unsigned char unknown_004[0x60];
     unsigned char setting_64;
@@ -33,7 +33,8 @@ public:
     unsigned char current_tag;
     unsigned char unknown_095[3];
     W8AnimObj* animation;
-    unsigned char unknown_09c[0x18];
+    float animation_speed_09c;
+    unsigned char unknown_0a0[0x14];
     int slot_count;
     unsigned char unknown_0b8[4];
     unsigned char** slots;
@@ -67,6 +68,7 @@ public:
     bool CanBeUsedFrom(int arg_2, int arg_3, char notify);
     void SetSetting6C(unsigned char value);
     void SetSetting66(char value);
+    void SetAnimationSpeed(float speed);
     bool IsSetting6FTwo();
     void ToggleSetting6E();
     int GetValue18();
@@ -77,15 +79,14 @@ public:
     int value_18;
     unsigned int flags_1c;
 
-private:
-    W8PropOwned0020* m_owned_20;
+    char* m_name_20;
     unsigned char unknown_024[0x4];
     W8Timer005EC0A4* m_owned_28;
     unsigned char unknown_02c[0xc];
-
-public:
     GDProp* m_owned_38;
 };                                       /* 0x3c */
 
 static_assert(sizeof(W8Prop005EC1E0) == 0x3c,
               "W8Prop005EC1E0_must_be_0x3c");
+
+W8Prop005EC1E0* FindPropByName(W8World* world, const char* name);

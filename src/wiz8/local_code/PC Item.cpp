@@ -971,11 +971,12 @@ unsigned char GetItemSpell(const W8ItemInstance* item)
     return g_item_records[item->item_id].spell_id;
 }
 
-/* Let the whole party have a go at identifying one item. Everybody able to
+/* Let the whole party have a go at identifying one item. Every retail caller
+   passes a second zero argument; the body does not inspect it. Everybody able
    tries, but only the first attempt's answer is reported - the rest still
    happen for whatever they do to the item. */
 // FUNCTION: WIZ8 0x005209f0
-char PartyAttemptsToIdentifyItem(W8ItemInstance* item)
+char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2)
 {
     char result = 0;
     int party_slot;

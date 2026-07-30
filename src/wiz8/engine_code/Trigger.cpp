@@ -6,15 +6,22 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_state_006598a4.h"
 #include "wiz8/game_state.h"
 #include "wiz8/item_spawning.h"
+#include "wiz8/item_tables.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/monster_runtime.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "wiz8/vector.h"
 #include "Random.h"
 #include "surrender/srCore.h"
 #include "surrender/srMath.h"
+#include "surrender/srScene.h"
 
 #include <windows.h>
 
@@ -69,6 +76,50 @@ extern void SetWorldScenePosition004511D0(
     W8World* world, const W8Position* position);
 extern void* SpawnSpellEffect004AD080(
     const char* name, int animation, int value_1, int value_2);
+extern void Function48F280(W8World* world, const char* name, int active);
+extern unsigned char Function521060(
+    int item_id, int value_1, int value_2, int value_3, int value_4);
+extern void Function41C680(int interface_id, int state);
+extern float GetWorldValue24(const void* world);
+extern void PositionAmbientSoundByName0047A950(int unused, const char* name);
+extern void StopAmbientSoundByName0047A9E0(int unused, const char* name);
+extern void ToggleAmbientSoundByName0047AA70(int unused, const char* name);
+extern void UpdateCameraView00450080(srCamera* camera, int mode);
+extern void RestorePartyStaminaByDice(
+    unsigned char count, unsigned char sides, short base);
+extern void HealPartyByDice(
+    unsigned char count, unsigned char sides, short base);
+extern void RestorePartySpellPoints(int amount);
+extern int PointCastSpell(
+    float x, float y, float z, int spell_id, unsigned int power_level);
+extern void RemoveAllConditionsFromParty(void);
+extern unsigned char* g_message_table_68c09c;
+extern void GetPosition421070(W8Position* position);
+
+class W8CameraShakeEffect004AE080 {
+public:
+    ~W8CameraShakeEffect004AE080();
+
+    unsigned int flags_000;
+};
+
+extern W8CameraShakeEffect004AE080* CreateCameraShakeEffect004AE080(
+    float duration, int value_2, float intensity, int value_4, int value_5);
+extern int ApplyItemEffectToRandomCharacter0052E5C0(
+    unsigned int item_id, int character_filter, int value_3, int value_4);
+extern void AddPartyGold(int amount, char announce);
+extern char PartyAttemptsToIdentifyItem(
+    W8ItemInstance* item, int argument_2);
+extern void MoveItem(
+    W8ItemInstance* destination, W8ItemInstance* source,
+    int argument_3, int argument_4);
+extern unsigned char g_item_in_hand_shown_006874ca;
+extern unsigned char g_flag_0068506e;
+extern int g_value_0068c520;
+extern int g_value_0068c548;
+extern int g_value_005ee59c;
+extern int g_value_005ee5a0;
+extern int g_value_005ed8c8;
 static int g_next_trigger_id_006874c6;
 
 Trigger* FindTriggerByName(const char* name)
@@ -105,6 +156,57 @@ W8TriggerEvent::W8TriggerEvent()
 // FUNCTION: WIZ8 0x004409a0
 W8TriggerEvent::~W8TriggerEvent()
 {
+}
+
+class W8TriggerShakeEvent : public W8TriggerEvent {
+public:
+    W8TriggerShakeEvent();
+    virtual void Update() override;
+
+    W8CameraShakeEffect004AE080* effect_038;
+    int intensity_03c;
+    unsigned char reverse_040;
+    unsigned char unknown_041[3];
+};
+
+static_assert(sizeof(W8TriggerShakeEvent) == 0x44,
+              "W8TriggerShakeEvent_must_be_0x44");
+
+// VTABLE: WIZ8 0x005ec140
+// class W8TriggerShakeEvent
+
+W8TriggerShakeEvent::W8TriggerShakeEvent()
+    : effect_038(0), intensity_03c(1), reverse_040(0)
+{
+}
+
+// FUNCTION: WIZ8 0x00444ec0
+void W8TriggerShakeEvent::Update()
+{
+    if (effect_038 == 0) {
+        float intensity = (float)intensity_03c / 1000.0f;
+
+        if (intensity > 1.0f) {
+            intensity = 1.0f;
+        }
+        effect_038 = CreateCameraShakeEffect004AE080(
+            auxiliary_timer_02c->m_speed, 0, intensity, 0, 0);
+        effect_038->flags_000 &= ~2;
+        if (reverse_040 != 0) {
+            effect_038->flags_000 |= 0x10;
+        }
+    }
+
+    if ((effect_038->flags_000 & 1) == 0) {
+        delete effect_038;
+        effect_038 = 0;
+        if (trigger_030 != 0) {
+            trigger_030->FinishAction();
+        }
+        if (repeat_034 != 0) {
+            completed_035 = 1;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x00444810
@@ -857,6 +959,1236 @@ void Trigger::RunDestination00440DD0(const char* destination)
     }
     Function421030(&rotation);
     SpawnSpellEffect004AD080("set_portal", 1, 0, 0);
+}
+
+/* Materialize this trigger's item table once. The two dice fields are the
+   item-count and gold rolls at ItemTable record offsets 0x1cd and 0x1d5. */
+// FUNCTION: WIZ8 0x00445500
+void Trigger::GenerateItemGroup()
+{
+    W8GrowableVector<W8WorldItem*> items(5);
+    srVector3T<float> position;
+    unsigned int table_id;
+    unsigned int maximum_items;
+    int index;
+
+    if (inline_action_data_24c[0] == '\0' || flag_350 != 0) {
+        return;
+    }
+
+    srand(next_activation_time_354);
+    table_id = FindItemTableByName(inline_action_data_24c);
+    if (table_id == (unsigned int)-1) {
+        return;
+    }
+
+    maximum_items = RollDice(&g_item_tables[table_id]->item_count_dice);
+    GenerateItemsFromTable(&items, table_id, maximum_items);
+    if (world_item_group_34c == 0) {
+        world_item_group_34c = SpawnItem(0x23c, &position, 0, 0);
+    }
+    for (index = 0; index < items.GetCount(); ++index) {
+        ItemInfoAddToGroup(world_item_group_34c, *items.GetAt(index));
+    }
+    gold_358 = RollDice(&g_item_tables[table_id]->gold_dice);
+    flag_350 = 1;
+}
+
+/* Execute the selected Trigger action. The original keeps the three trigger
+   kinds in one dispatcher: kind two handles invisible/timed actions first,
+   kind one handles Prop-backed actions, and everything else falls through to
+   the common action table. */
+// FUNCTION: WIZ8 0x0043d940
+void Trigger::Run(int source)
+{
+    ActivationCallback callback = activation_callback_360;
+    unsigned char apply_state_changes = 1;
+    unsigned char action_succeeded = 0;
+
+    if (SelectAction() == 0) {
+        return;
+    }
+    if (callback != 0 && callback(this) == 0) {
+        return;
+    }
+
+    if (trigger_kind_018 == 2) {
+        switch (action_230) {
+        case 0:
+            goto commit_action;
+
+        case 9:
+            if (m_pacRecipients == 0) {
+                break;
+            }
+            Function48F280(m_pWorld, m_pacRecipients, 1);
+            FinishAction();
+            goto commit_action;
+
+        case 0x0a: {
+            int camera = -1;
+            int id;
+            int switch0;
+            int switch1;
+            int switch2;
+            int switch3;
+            int switch4;
+            int switch5;
+            int switch6;
+
+            id = GetLocationVarIDByName("Switch0");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch0 = *g_location_variable_values_00659990.GetAt(id);
+            id = GetLocationVarIDByName("Switch1");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch1 = *g_location_variable_values_00659990.GetAt(id);
+            id = GetLocationVarIDByName("Switch2");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch2 = *g_location_variable_values_00659990.GetAt(id);
+            id = GetLocationVarIDByName("Switch3");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch3 = *g_location_variable_values_00659990.GetAt(id);
+            id = GetLocationVarIDByName("Switch4");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch4 = *g_location_variable_values_00659990.GetAt(id);
+            id = GetLocationVarIDByName("Switch5");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch5 = *g_location_variable_values_00659990.GetAt(id);
+            id = GetLocationVarIDByName("Switch6");
+            if (id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10dd, 0);
+            }
+            switch6 = *g_location_variable_values_00659990.GetAt(id);
+
+            if (switch0 == 1 && switch1 == 1) {
+                camera = 2;
+            }
+            else if (switch0 == 0 && switch1 == 1) {
+                if (switch4 == 0 && switch6 == 1) {
+                    camera = 1;
+                }
+                else if (switch3 == 1 && switch4 == 1) {
+                    camera = 3;
+                }
+                else if (switch4 == 0 && switch6 == 0) {
+                    camera = 4;
+                }
+                else if (switch3 == 0 && switch4 == 1) {
+                    camera = 5;
+                }
+            }
+            else if (switch1 == 0) {
+                if (switch2 == 1) {
+                    if (switch3 == 1 && switch5 == 1) {
+                        camera = 6;
+                    }
+                    else if (switch5 == 0 && switch6 == 0) {
+                        camera = 7;
+                    }
+                    else if (switch3 == 0 && switch5 == 1) {
+                        camera = 9;
+                    }
+                    else if (switch5 == 0 && switch6 == 1) {
+                        camera = 10;
+                    }
+                }
+                else if (switch2 == 0) {
+                    camera = 8;
+                }
+            }
+
+            if (camera != -1) {
+                char name[24];
+
+                sprintf(name, "Camera0%d", camera);
+                Function48F280(m_pWorld, name, 1);
+            }
+            FinishAction();
+            goto commit_action;
+        }
+
+        case 0x0e:
+            if (m_pacRecipients == 0 ||
+                _stricmp(m_pacRecipients, "party") != 0) {
+                break;
+            }
+            ApplyItemEffectToRandomCharacter0052E5C0(
+                Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0,
+                -1, 0, g_value_005ed8c8);
+            flag_0a0_06 = 1;
+            goto commit_action;
+
+        case 0x11:
+            if (flag_0a0_06 != 0) {
+                break;
+            }
+            flag_0a0_06 = 1;
+            goto commit_action;
+
+        case 0x22: {
+            float previous_value = GetWorldValue24(g_world);
+
+            delete m_pActionData;
+            m_pActionData = new W8TriggerActionData005EC148;
+            m_pActionData->type_004 = 5;
+            m_pActionData->float_value_008 = previous_value;
+            SetWorldEnvironmentValue00483AE0(g_world, 0.0f);
+            flag_0a0_06 = 1;
+            goto commit_action;
+        }
+
+        case 0x23:
+            if (m_pEvent == 0) {
+                m_pEvent = new W8TriggerEvent;
+                if (m_pEvent == 0) {
+                    srAssertFail(
+                        "m_pEvent",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                        0x5fa, 0);
+                }
+                m_pEvent->trigger_030 = this;
+                m_pEvent->action_004 = (short)action_230;
+                m_pEvent->timer_008.SetDuration(0.5f);
+            }
+            else {
+                if (g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
+                    srAssertFail(
+                        "glsTimedEvents.Find(m_pEvent) == -1",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                        0x603, 0);
+                }
+            }
+            m_pEvent->timer_008.Restart();
+            if (m_pEvent->auxiliary_timer_02c != 0) {
+                m_pEvent->auxiliary_timer_02c->Restart();
+            }
+            g_timed_events_006599b8.Add(m_pEvent);
+            flag_0a0_06 = 1;
+            goto commit_action;
+
+        case 0x34:
+            if (m_pacRecipients == 0 || m_pacRecipients[0] == '\0') {
+                break;
+            }
+            RunDestination00440DD0(m_pacRecipients);
+            goto commit_action;
+
+        default:
+            break;
+        }
+    }
+
+    if (trigger_kind_018 == 1) {
+        switch (action_230) {
+        case 1: {
+            W8TriggerActionData005EC134* action_data = 0;
+
+            if (m_bRepType != 2 || m_pProp == 0 || value_0b1 != 0 ||
+                m_pProp->m_owned_14->unknown_06d != 0) {
+                break;
+            }
+            if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
+                action_data =
+                    static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+            }
+            if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
+                action_data->item_00a != -1) {
+                if (Function521060(
+                        action_data->item_00a, 0, 2, 0, 0) == 0) {
+                    return;
+                }
+                action_data->flags_008 &= ~4;
+            }
+
+            m_pProp->SetRepActive0044DA80(1, 1);
+            value_0b1 = 1;
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+                Function41C680(value_0b8, 1);
+            }
+            flag_0a0_06 = 1;
+            if (action_data != 0) {
+                action_data->flags_008 |= 1;
+            }
+
+            if (m_lData1 != 0) {
+                if (m_pEvent != 0 &&
+                    g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
+                    m_pEvent->timer_008.Restart();
+                    if (m_pEvent->auxiliary_timer_02c != 0) {
+                        m_pEvent->auxiliary_timer_02c->Restart();
+                    }
+                    goto commit_action;
+                }
+
+                m_pEvent = new W8TriggerEvent;
+                m_pEvent->trigger_030 = this;
+                m_pEvent->action_004 = 2;
+                m_pEvent->timer_008.SetDuration(
+                    m_lData1 < 0 ? 10.0f : (float)m_lData1);
+                m_pEvent->timer_008.Restart();
+                m_pEvent->repeat_034 = 1;
+                g_timed_events_006599b8.Add(m_pEvent);
+            }
+            goto commit_action;
+        }
+
+        case 2: {
+            unsigned char active;
+
+            if (m_bRepType != 2 || m_pProp == 0) {
+                break;
+            }
+            active = m_pProp->m_owned_14->unknown_06d;
+            if (active != 0) {
+                break;
+            }
+            value_0b1 = value_0b1 == 1 ? 0 : 1;
+            m_pProp->SetRepActive0044DA80(value_0b1, 1);
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+                Function41C680(value_0b8, value_0b1);
+            }
+            flag_0a0_06 = 1;
+            if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
+                if (value_0b1 == 0) {
+                    m_pActionData->flags_008 &= ~1;
+                }
+                else {
+                    m_pActionData->flags_008 |= 1;
+                }
+            }
+            goto commit_action;
+        }
+
+        case 8: {
+            signed char previous = (signed char)value_0b1;
+
+            if (value_0b0 > 1) {
+                signed char next =
+                    (signed char)value_0b1 + (signed char)value_0b2;
+                value_0b1 = (unsigned char)next;
+                if ((unsigned char)next == value_0b0) {
+                    if (value_0b3 == 0) {
+                        value_0b1 = 0;
+                    }
+                    else {
+                        value_0b1 = value_0b0 - 2;
+                        value_0b2 = 0xff;
+                    }
+                }
+                else if (next < 0) {
+                    value_0b1 = 1;
+                    value_0b2 = 1;
+                }
+            }
+
+            if (flag_0a0_00 != 0) {
+                W8AnimObj* animation;
+                unsigned int count;
+                unsigned int index;
+
+                if (m_pProp == 0 || m_bRepType != 2) {
+                    srAssertFail(
+                        "m_pProp && m_bRepType == TRIGGER_REP_PROP",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                        0x592, 0);
+                }
+                animation = m_pProp->m_owned_14->animation;
+                if (AnimationIsRunning(animation) == 1) {
+                    count = AnimObjListCount004A1620(animation, 2);
+                    for (index = 0; index < count; ++index) {
+                        W8PathAI* path = static_cast<W8PathAI*>(
+                            AnimObjListEntry004A16C0(
+                                animation, 2, (signed char)index));
+                        PathAIUpdate004A9260(
+                            path, previous <= (signed char)value_0b1 ? 1 : -1);
+                    }
+                }
+                else {
+                    m_pProp->SetSetting66((char)value_0b1);
+                }
+            }
+            goto commit_action;
+        }
+
+        case 0x2c: {
+            W8TriggerActionData005EC134* action_data = 0;
+            unsigned char was_active;
+
+            if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
+                action_data =
+                    static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+            }
+            if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
+                action_data->item_00a != -1) {
+                if (Function521060(
+                        action_data->item_00a, 0, 2, 0, 0) == 0) {
+                    return;
+                }
+                action_data->flags_008 &= ~4;
+            }
+            if (m_bRepType != 2 || m_pProp == 0) {
+                break;
+            }
+            was_active = m_pProp->m_owned_14->unknown_06d;
+            m_pProp->SetRepActive0044DA80(was_active == 0, 1);
+            value_0b1 = value_0b1 == 0;
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+                Function41C680(value_0b8, value_0b1);
+            }
+            if (was_active == 0) {
+                flag_0a0_06 = 1;
+            }
+            else {
+                flag_0a0_06 = 0;
+            }
+            if (action_data != 0) {
+                action_data->flags_008 =
+                    (action_data->flags_008 & ~1) | (value_0b1 & 1);
+            }
+            goto commit_action;
+        }
+
+        case 0x37: {
+            int tag = source == -1 ? m_lData1 : source;
+
+            if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
+                m_pProp->m_owned_14->SelectSlot0044BA50((unsigned char)tag);
+                m_pProp->SetRepActive0044DA80(1, 1);
+                value_0b1 = (unsigned char)tag;
+                goto commit_action;
+            }
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    switch (action_230) {
+    case 0:
+    case 0x38:
+        break;
+
+    case 3: {
+        unsigned char was_active;
+        unsigned char action_succeeded = 1;
+
+        if (m_bRepType != 2 || m_pProp == 0) {
+            return;
+        }
+        was_active = m_pProp->m_owned_14->unknown_06d;
+
+        if (inline_action_data_24c[0] != '\0') {
+            if (g_item_in_hand_shown_006874ca != 0) {
+                srVector3T<float> item_position;
+                W8WorldItem* item = CreateWorldItem(
+                    &g_item_in_hand, &item_position, 3, 0);
+
+                if (item != 0) {
+                    if (world_item_group_34c == 0) {
+                        srVector3T<float> group_position;
+                        world_item_group_34c = SpawnItem(
+                            0x23c, &group_position, 0, 0);
+                    }
+                    ItemInfoAddToGroup(world_item_group_34c, item);
+                }
+                g_flag_00606994 = 1;
+                return;
+            }
+            if (flag_0a0_25 != 0) {
+                return;
+            }
+
+            g_flag_00606994 = 1;
+            if (flag_350 == 0) {
+                GenerateItemGroup();
+            }
+            if (world_item_group_34c != 0) {
+                int item_count =
+                    ItemInfoGetNumInGroup(world_item_group_34c) - 1;
+                W8WorldItem* item;
+                int contained_items = 0;
+
+                if (item_count != 1 &&
+                    m_pProp->m_owned_14->setting_64 != 0) {
+                    action_succeeded = 0;
+                }
+
+                item = world_item_group_34c->next;
+                while (item != 0) {
+                    ++contained_items;
+                    if (item->item.identified == 0) {
+                        PartyAttemptsToIdentifyItem(&item->item, 0);
+                    }
+                    item = item->next;
+                }
+                if (contained_items > 1) {
+                    g_flag_0068506e = 1;
+                }
+
+                if (gold_358 != 0) {
+                    AddPartyGold(gold_358, 1);
+                    gold_358 = 0;
+                }
+
+                if (item_count == 1) {
+                    if (m_pProp->m_owned_14->setting_64 == 0) {
+                        ApplyItemEffectToRandomCharacter0052E5C0(
+                            Random(2) != 0 ? g_value_0068c548
+                                           : g_value_0068c520,
+                            -1, 0, g_value_005ed8c8);
+                    }
+                }
+                else if (item_count == 2 &&
+                         g_item_in_hand_shown_006874ca == 0) {
+                    item = world_item_group_34c->next;
+                    MoveItem(&g_item_in_hand, &item->item, 0, 1);
+                    ItemInfoRemoveFromGroup(world_item_group_34c, item);
+                    if (m_pProp->m_owned_14->setting_64 != 0) {
+                        goto toggle_item_prop;
+                    }
+                }
+                else {
+                    flag_0a0_25 = 1;
+                }
+
+                if (action_succeeded == 0) {
+                    return;
+                }
+            }
+        }
+
+toggle_item_prop:
+        m_pProp->SetRepActive0044DA80(was_active == 0, 1);
+        value_0b1 = value_0b1 == 0;
+        if (m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+            Function41C680(value_0b8, value_0b1);
+        }
+        if (was_active == 0) {
+            flag_0a0_06 = 1;
+        }
+        else {
+            flag_0a0_06 = 0;
+        }
+        break;
+    }
+
+    case 4:
+    case 0x30:
+    case 0x31: {
+        char* recipient = m_pacRecipients;
+
+        while (recipient != 0) {
+            stLight* light = FindLightByName00445A10(
+                NextTriggerRecipient(&recipient), 0);
+            if (light != 0) {
+                light->m_positional_23a = 1;
+                if (action_230 == 4) {
+                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
+                        light->setFlag(srNode::FLAG_POSITIONAL_0);
+                    }
+                    else {
+                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    }
+                }
+                else if (action_230 == 0x30) {
+                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) != 0) {
+                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    }
+                }
+                else if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
+                    light->setFlag(srNode::FLAG_POSITIONAL_0);
+                }
+                action_succeeded = 1;
+            }
+        }
+        if (trigger_kind_018 == 2) {
+            flag_0a0_06 = 1;
+        }
+        if (action_succeeded == 0) {
+            return;
+        }
+        break;
+    }
+
+    case 0x0b: {
+        W8MonsterGroup* group = 0;
+        W8MonsterInfo* monster_info = 0;
+        int monster_id;
+        int index;
+
+        if (m_pacRecipients == 0) {
+            return;
+        }
+        monster_id = atoi(m_pacRecipients);
+        for (index = 0;
+             index < (int)PListGetCount(g_monster_group_list);
+             ++index) {
+            group = static_cast<W8MonsterGroup*>(
+                PListGetAt(g_monster_group_list, index));
+            if (group->monster_id == monster_id) {
+                int location_id = IListGetAt(group->monsters, 0);
+                unsigned int monster_index = MonsterGetIndexByLocationID(
+                    0x7aa,
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    location_id, 1);
+
+                monster_info = MonsterGetScriptPartByLocationIndex(
+                    monster_index);
+                break;
+            }
+        }
+        if (group == 0 || monster_info == 0) {
+            return;
+        }
+
+        group->flag_28 = 1;
+        monster_info->monster->m_pRep->active = 1;
+        monster_info->monster->m_pRep->flag_06d = 1;
+        monster_info->monster->m_pRep->timer_068 =
+            g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+        monster_info->monster->ResetRepresentation004A7420();
+        monster_info->monster->ResetPathAI();
+        monster_info->monster->fields.unknown_09d[0] = 1;
+        return;
+    }
+
+    case 0x0f: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0) {
+            return;
+        }
+        while (recipient != 0) {
+            Trigger* target = FindTriggerByName(
+                NextTriggerRecipient(&recipient));
+            if (target != 0) {
+                unsigned char was_running = flag_0a0_06;
+                flag_0a0_06 = 1;
+                target->Run(m_lData1);
+                flag_0a0_06 = was_running;
+                action_succeeded = 1;
+            }
+        }
+        if (action_succeeded == 0) {
+            return;
+        }
+        break;
+    }
+
+    case 0x0c:
+        if (m_lData1 < 0) {
+            return;
+        }
+        if (m_lData2 == 0) {
+            srVector3T<float> source_position;
+            srVector3T<float> target_position;
+            srVector3T<float> transformed;
+            srVector3T<float> axis;
+            srMatrix3T<float> rotation;
+
+            source_position.x = position_118;
+            source_position.y = position_11c;
+            source_position.z = position_120;
+            target_position = source_position;
+            target_position.z += 100.0f;
+            rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
+            rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
+            rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+            axis = rotation.vectors[2];
+            if (angle_0fc != 0.0f) {
+                RotateMatrixAroundAxis0042B910(
+                    &rotation.vectors[0].x, sin(angle_0fc), cos(angle_0fc),
+                    &axis.x);
+            }
+            transformed.x = Function4218E0(
+                rotation.vectors[0], target_position);
+            transformed.y = Function4218E0(
+                rotation.vectors[1], target_position);
+            transformed.z = Function4218E0(
+                rotation.vectors[2], target_position);
+            Function4A2D30(
+                (unsigned int)m_lData1, (unsigned int)&source_position,
+                (unsigned int)&transformed, 0, 1, 1, 0x47435000);
+        }
+        else if (m_pEvent == 0) {
+            float duration = (float)abs(m_lData2) * 0.001f;
+
+            if (m_lData2 > 0 && trigger_kind_018 != 2) {
+                srAssertFail(
+                    "m_lData2 < 0 || m_iType == TRIGGER_INVISIBLE",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x87f,
+                    "Continous firing missile must be invisible trigger.");
+            }
+            m_pEvent = new W8TriggerEvent;
+            if (m_pEvent == 0) {
+                srAssertFail(
+                    "m_pEvent",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x883, 0);
+            }
+            m_pEvent->action_004 = (short)action_230;
+            m_pEvent->timer_008.SetDuration(duration);
+            m_pEvent->timer_008.Restart();
+            m_pEvent->trigger_030 = this;
+            flag_0a0_06 = 1;
+            g_timed_events_006599b8.Add(m_pEvent);
+        }
+        break;
+
+    case 0x10:
+        UpdateCameraView00450080(
+            m_pWorld->camera, source > 0 ? 1 : -1);
+        return;
+
+    case 0x24: {
+        W8Dice dice;
+
+        if (m_lData1 < 0) {
+            m_lData1 = 1;
+        }
+        if (m_lData2 < 0) {
+            m_lData2 = 6;
+        }
+        if (m_lData3 < 0) {
+            m_lData3 = 2;
+        }
+        SetDice(
+            &dice, (unsigned char)m_lData1, (unsigned char)m_lData2,
+            (short)m_lData3);
+        ApplyRolledHealthChangeToParty(&dice, 0, 1);
+        if (trigger_kind_018 == 2) {
+            flag_0a0_06 = 1;
+        }
+        break;
+    }
+
+    case 0x25:
+    case 0x26:
+    case 0x27:
+    case 0x28:
+    case 0x29:
+    case 0x2a:
+    case 0x2b: {
+        if (value_35c != 0 || m_lData1 == -1) {
+            if (action_230 == 0x25) {
+                RestorePartyStaminaByDice(0, 0, (short)m_lData3);
+                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
+            }
+            else if (action_230 == 0x26) {
+                HealPartyByDice(0, 0, (short)m_lData3);
+                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
+            }
+            else if (action_230 == 0x27) {
+                RestorePartySpellPoints(m_lData3);
+                ShowString(*reinterpret_cast<W8WideChar**>(
+                    g_message_table_68c09c + 0x1c88));
+                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
+            }
+            else {
+                int spell_id;
+                srVector3T<double> position = g_world->camera->getLocation();
+
+                if (action_230 == 0x28) {
+                    spell_id = 0x44;
+                }
+                else if (action_230 == 0x29) {
+                    spell_id = 0x45;
+                }
+                else if (action_230 == 0x2a) {
+                    spell_id = 0x0c;
+                }
+                else {
+                    spell_id = 0x2a;
+                }
+                PointCastSpell(
+                    (float)position.x, (float)position.y, (float)position.z,
+                    spell_id, (unsigned int)m_lData3);
+                if (action_230 == 0x2b) {
+                    RemoveAllConditionsFromParty();
+                }
+            }
+        }
+
+        if (value_35c == 0) {
+            if (m_lData1 != -1) {
+                return;
+            }
+        }
+        else {
+            --value_35c;
+            if (m_lData2 > 0 && m_pEvent == 0) {
+                m_pEvent = new W8TriggerEvent;
+                if (m_pEvent == 0) {
+                    srAssertFail(
+                        "m_pEvent",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                        0x84c, 0);
+                }
+                m_pEvent->action_004 = (short)action_230;
+                m_pEvent->timer_008.SetDuration(m_lData2 * 720.0f);
+                m_pEvent->timer_008.Restart();
+                m_pEvent->trigger_030 = this;
+                m_pEvent->timer_008.SetMode(1);
+                g_timed_events_006599b8.Add(m_pEvent);
+            }
+        }
+        if (trigger_kind_018 == 2) {
+            flag_0a0_06 = 1;
+        }
+        break;
+    }
+
+    case 0x2d:
+    case 0x2e:
+    case 0x2f: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0) {
+            return;
+        }
+        while (recipient != 0) {
+            Trigger* target = FindTriggerByName(
+                NextTriggerRecipient(&recipient));
+            if (target != 0) {
+                if (action_230 == 0x2d) {
+                    target->flag_0a0_04 = 1;
+                }
+                else if (action_230 == 0x2e) {
+                    target->flag_0a0_04 = 0;
+                }
+                else {
+                    target->flag_0a0_04 = target->flag_0a0_04 == 0;
+                }
+                action_succeeded = 1;
+            }
+        }
+        if (action_succeeded == 0) {
+            return;
+        }
+        break;
+    }
+
+    case 0x32:
+    case 0x33:
+        if (m_bRepType != 2 || m_pProp == 0) {
+            return;
+        }
+        if ((action_230 == 0x32 &&
+             m_pProp->m_owned_14->unknown_06d != 0) ||
+            (action_230 == 0x33 &&
+             m_pProp->m_owned_14->unknown_06d == 0)) {
+            return;
+        }
+        m_pProp->SetRepActive0044DA80(action_230 == 0x32, 1);
+        value_0b1 = value_0b1 == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+            Function41C680(value_0b8, value_0b1);
+        }
+        if (action_230 == 0x32) {
+            flag_0a0_06 = 1;
+        }
+        else {
+            flag_0a0_06 = 0;
+        }
+        break;
+
+    case 0x36:
+        if (action_state_232 == 4 && action_data_mode_228 == 2) {
+            PlayActionSound((const char*)alternate_action_data_1a8, 0);
+        }
+        else {
+            PlayActionSound((const char*)action_data_128, 0);
+        }
+        return;
+
+    case 0x39: {
+        W8Position party_position;
+        W8TriggerShakeEvent* event;
+
+        GetPosition421070(&party_position);
+        if (m_pEvent == 0) {
+            event = new W8TriggerShakeEvent;
+            m_pEvent = event;
+            if (m_pEvent == 0) {
+                srAssertFail(
+                    "m_pEvent",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x7c4, 0);
+            }
+            event->trigger_030 = this;
+            event->action_004 = (short)action_230;
+            event->timer_008.SetDuration(
+                m_lData2 == -1 ? 0.07f : m_lData2 * 0.001f);
+            event->timer_008.Restart();
+            event->intensity_03c = m_lData1 == -1 ? 800 : m_lData1;
+
+            if (m_lData3 != -1) {
+                delete event->auxiliary_timer_02c;
+                event->auxiliary_timer_02c = new W8Timer005EC0A4;
+                if (event->auxiliary_timer_02c == 0) {
+                    srAssertFail(
+                        "m_pCountdown",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                        0x12de, 0);
+                }
+                event->auxiliary_timer_02c->SetDuration(
+                    (float)abs(m_lData3) * 0.001f);
+                event->auxiliary_timer_02c->Restart();
+                if (m_lData3 < 0) {
+                    event->reverse_040 = 1;
+                }
+            }
+        }
+        else {
+            event = static_cast<W8TriggerShakeEvent*>(m_pEvent);
+            event->timer_008.Restart();
+            if (event->auxiliary_timer_02c != 0) {
+                event->auxiliary_timer_02c->Restart();
+            }
+        }
+
+        if (flag_0a0_06 == 0) {
+            g_timed_events_006599b8.Add(m_pEvent);
+            if (trigger_kind_018 == 2) {
+                flag_0a0_06 = 1;
+            }
+            else if (m_lData3 == -1) {
+                srAssertFail(
+                    "m_lData3 != -1",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x7e4,
+                    "Non invisible triggers with shake must have a duration.");
+            }
+        }
+        break;
+    }
+
+    case 0x3a:
+        if (m_pProp == 0 || source != m_lData1) {
+            return;
+        }
+        m_pProp->SetSetting6C(0);
+        break;
+
+    case 0x3b:
+        if (m_pProp == 0 || source != m_lData1 ||
+            m_pProp->m_owned_14->unknown_06d == 0) {
+            return;
+        }
+        m_pProp->SetRepActive0044DA80(
+            m_pProp->m_owned_14->unknown_06d == 0, 1);
+        value_0b1 = value_0b1 == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+            Function41C680(value_0b8, value_0b1);
+        }
+        break;
+
+    case 0x3c:
+        if (m_pProp == 0 || source != m_lData1) {
+            return;
+        }
+        m_pProp->SetRepActive0044DA80(
+            m_pProp->m_owned_14->unknown_06d == 0, 1);
+        value_0b1 = value_0b1 == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
+            Function41C680(value_0b8, value_0b1);
+        }
+        break;
+
+    case 0x3d:
+        if (m_pProp == 0) {
+            return;
+        }
+        m_pProp->SetSetting6C(1);
+        break;
+
+    case 0x3e:
+        if (m_pProp == 0) {
+            return;
+        }
+        m_pProp->SetSetting6C(0);
+        break;
+
+    case 0x3f:
+        if (m_pEvent == 0) {
+            m_pEvent = new W8TriggerEvent;
+            if (m_pEvent == 0) {
+                srAssertFail(
+                    "m_pEvent",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x8a4, 0);
+            }
+            m_pEvent->action_004 = (short)action_230;
+            m_pEvent->timer_008.SetDuration(m_lData1 * 0.001f);
+            m_pEvent->timer_008.Restart();
+            m_pEvent->trigger_030 = this;
+            m_pEvent->repeat_034 = 1;
+        }
+        else {
+            if (g_timed_events_006599b8.IndexOf(m_pEvent) != -1) {
+                srAssertFail(
+                    "glsTimedEvents.Find(m_pEvent) == -1",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x8ae, 0);
+            }
+            m_pEvent->timer_008.Restart();
+            if (m_pEvent->auxiliary_timer_02c != 0) {
+                m_pEvent->auxiliary_timer_02c->Restart();
+            }
+        }
+        g_timed_events_006599b8.Add(m_pEvent);
+        break;
+
+    case 0x40:
+        if (m_bRepType != 2 || m_pProp == 0) {
+            return;
+        }
+        if (m_pacStateToMod != 0) {
+            char state_name[132];
+            int state_id;
+
+            sprintf(
+                state_name, "%s%d", m_pacStateToMod,
+                (int)(signed char)value_0b1);
+            state_id = GetLocationVarIDByName(state_name);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10c9, 0);
+            }
+            g_location_variable_values_00659990.SetAt(state_id, 0);
+        }
+        value_0b1 = m_pProp->m_owned_14->AdvanceAnimationSegment();
+        m_pProp->SetRepActive0044DA80(1, 0);
+        if (m_pacStateToMod != 0) {
+            char state_name[132];
+            int state_id;
+
+            sprintf(
+                state_name, "%s%d", m_pacStateToMod,
+                (int)(signed char)value_0b1);
+            state_id = GetLocationVarIDByName(state_name);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x10c9, 0);
+            }
+            g_location_variable_values_00659990.SetAt(state_id, 1);
+        }
+        apply_state_changes = 0;
+        break;
+
+    case 0x41:
+    case 0x42:
+    case 0x43: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0) {
+            return;
+        }
+        while (recipient != 0) {
+            const char* name = NextTriggerRecipient(&recipient);
+            if (action_230 == 0x41) {
+                PositionAmbientSoundByName0047A950((int)g_world, name);
+            }
+            else if (action_230 == 0x42) {
+                StopAmbientSoundByName0047A9E0((int)g_world, name);
+            }
+            else {
+                ToggleAmbientSoundByName0047AA70((int)g_world, name);
+            }
+            action_succeeded = 1;
+        }
+        break;
+    }
+
+    case 0x44:
+    case 0x45:
+    case 0x46: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0) {
+            return;
+        }
+        while (recipient != 0) {
+            stParticle* particle = FindParticleByName(
+                g_world, NextTriggerRecipient(&recipient));
+            if (particle != 0) {
+                particle->trigger_flag_192 = 1;
+                if (action_230 == 0x44) {
+                    particle->SetActive(1);
+                }
+                else if (action_230 == 0x45) {
+                    particle->SetActive(0);
+                }
+                else {
+                    particle->SetActive(particle->active_1a0 == 0);
+                }
+                action_succeeded = 1;
+            }
+        }
+        if (action_succeeded == 0) {
+            return;
+        }
+        break;
+    }
+
+    case 0x47: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0 || m_pEvent != 0) {
+            return;
+        }
+        action_succeeded = 0;
+        while (recipient != 0) {
+            stParticle* particle = FindParticleByName(
+                g_world, NextTriggerRecipient(&recipient));
+            if (particle != 0) {
+                particle->trigger_flag_192 = 1;
+                particle->SetActive(1);
+                action_succeeded = 1;
+            }
+        }
+        if (action_succeeded == 0) {
+            return;
+        }
+
+        m_pEvent = new W8TriggerEvent;
+        if (m_pEvent == 0) {
+            srAssertFail(
+                "m_pEvent",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                0x940, 0);
+        }
+        g_timed_events_006599b8.Add(m_pEvent);
+        m_pEvent->trigger_030 = this;
+        m_pEvent->action_004 = (short)action_230;
+        delete m_pEvent->auxiliary_timer_02c;
+        m_pEvent->auxiliary_timer_02c = new W8Timer005EC0A4;
+        if (m_pEvent->auxiliary_timer_02c == 0) {
+            srAssertFail(
+                "m_pCountdown",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                0x12de, 0);
+        }
+        m_pEvent->auxiliary_timer_02c->SetDuration(
+            m_lData1 == -1 ? 10.0f : m_lData1 * 0.001f);
+        m_pEvent->auxiliary_timer_02c->Restart();
+        m_pEvent->repeat_034 = 1;
+        break;
+    }
+
+    case 0x48: {
+        unsigned int count;
+
+        if (m_pProp == 0 || m_lData1 < 0) {
+            return;
+        }
+        count = AnimObjValue004A15D0(m_pProp->m_owned_14->animation, 2);
+        if ((int)count <= m_lData1) {
+            return;
+        }
+        m_pProp->SetSetting66((char)m_lData1);
+        break;
+    }
+
+    case 0x49:
+        if (m_pProp == 0 || m_lData1 < 0) {
+            return;
+        }
+        m_pProp->SetAnimationSpeed((float)m_lData1);
+        break;
+
+    case 0x4a: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0 || m_lData1 < 0) {
+            return;
+        }
+        while (recipient != 0) {
+            W8Prop005EC1E0* prop = FindPropByName(
+                g_world, NextTriggerRecipient(&recipient));
+            if (prop != 0) {
+                prop->SetAnimationSpeed((float)m_lData1);
+            }
+        }
+        break;
+    }
+
+    case 0x4b: {
+        char* recipient;
+        unsigned char count = 0;
+        unsigned char selected;
+        unsigned char index = 0;
+
+        if (m_pacRecipients == 0 || m_pacRecipients[0] == '\0') {
+            return;
+        }
+        recipient = m_pacRecipients;
+        while (recipient != 0) {
+            NextTriggerRecipient(&recipient);
+            ++count;
+        }
+        selected = (unsigned char)(GetTickCount() % count);
+        recipient = m_pacRecipients;
+        do {
+            NextTriggerRecipient(&recipient);
+            if (index == selected) {
+                break;
+            }
+            ++index;
+        } while (recipient != 0);
+        RunDestination00440DD0(g_trigger_parse_buffer_00659908);
+        break;
+    }
+
+    default:
+        return;
+    }
+
+commit_action:
+    if (flag_364 == 0) {
+        g_flag_00606994 = 1;
+    }
+    CommitActionResult(apply_state_changes);
 }
 
 // FUNCTION: WIZ8 0x00444600

@@ -72,4 +72,6 @@ void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled);
 void SetItemAndEntityFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled);
 int ItemInfoGetNumInGroup(W8WorldItem* item);
 void ItemInfoAddToGroup(W8WorldItem* group, W8WorldItem* item);
+W8WorldItem* ItemInfoRemoveFromGroup(
+    W8WorldItem* group, W8WorldItem* item);
 void FreeWorldItemGroup(W8WorldItem* item);
