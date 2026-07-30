@@ -15,28 +15,6 @@
 
 extern "C" void Function425B40(void);
 
-static srRegistry::ClassNode* node_class_node()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000);
-    if (!node) {
-        node = registry->registerClass(
-            srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-    }
-    return node;
-}
-
-static srRegistry::ClassNode* concrete_class_node(
-    unsigned long class_id, const char* name)
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(class_id);
-    if (!node) {
-        node = registry->registerClass(name, node_class_node(), class_id, 0);
-    }
-    return node;
-}
-
 static srRegistry::ClassNode* color_surface_class_node()
 {
     srRegistry* registry = srCore.getRegistry();
@@ -91,22 +69,6 @@ public:
     }
     virtual srColorSurfaceIFace* clone() override {
         srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
-        *copy = *this;
-        return copy;
-    }
-};
-
-class W8Camera : public srCamera {
-public:
-    W8Camera(srNode* parent) : srCamera(parent) {}
-
-    virtual const char* getClassName() const override { return "srCamera"; }
-    virtual unsigned long getClassID() const override { return 0x1400; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return concrete_class_node(0x1400, "srCamera");
-    }
-    virtual srNode* clone() {
-        srCamera* copy = static_cast<srCamera*>(vInstance());
         *copy = *this;
         return copy;
     }
@@ -220,10 +182,10 @@ static W8Scene005EBE48* make_scene(const char* name)
     return scene;
 }
 
-static W8Camera* make_camera(srNode* parent, const char* name,
-                             double view_top)
+static W8Camera005EBE14* make_camera(srNode* parent, const char* name,
+                                    double view_top)
 {
-    W8Camera* camera = new W8Camera(parent);
+    W8Camera005EBE14* camera = new W8Camera005EBE14(parent);
     srCamera::Rect view;
     camera->setName(name);
     camera->setClipRange(0.01, 2.0);

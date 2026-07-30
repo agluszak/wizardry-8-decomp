@@ -102,6 +102,14 @@ srRegistry::ClassNode* W8Camera005EBE14::getClassNode() const
     }
     return node;
 }
+
+// FUNCTION: WIZ8 0x0042A0A0
+srNode* W8Camera005EBE14::vslot7()
+{
+    srCamera* copy = static_cast<srCamera*>(vInstance());
+    *copy = *this;
+    return copy;
+}
 // FUNCTION: WIZ8 0x0042A0C0
 unsigned long W8Scene005EBE48::getClassID() const
 {

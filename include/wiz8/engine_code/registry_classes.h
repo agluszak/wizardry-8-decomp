@@ -187,12 +187,19 @@ private:
 
 static_assert(sizeof(MonsterLight) == 0x250, "MonsterLight_must_be_0x250");
 
-class W8Camera005EBE14 {
+// VTABLE: WIZ8 0x005ebe14
+class W8Camera005EBE14 : public srCamera {
 public:
-    const char* getClassName() const;     /* 0x0042A020 */
-    unsigned long getClassID() const;     /* 0x0042A010 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x0042A030 */
+    explicit W8Camera005EBE14(srNode* parent) : srCamera(parent) {}
+
+    const char* getClassName() const override;     /* 0x0042A020 */
+    unsigned long getClassID() const override;     /* 0x0042A010 */
+    srRegistry::ClassNode* getClassNode() const override; /* 0x0042A030 */
+    srNode* vslot7() override;                     /* 0x0042A0A0 */
 };
+
+static_assert(sizeof(W8Camera005EBE14) == 0x188,
+              "W8Camera005EBE14_must_be_0x188");
 
 class W8Scene005EBE48 : public srScene {
 public:
