@@ -22,7 +22,18 @@ public:
     SR_DLL_IMPORT void dump(std::ostream& stream);
 
 private:
-    struct Block;
+    struct Block {
+        void* allocation_00;
+        unsigned long allocation_size_04;
+        Block* next_08;
+        Block* previous_0c;
+        unsigned long largest_free_size_10;
+        void* largest_free_block_14;
+        unsigned long guard_18;
+        unsigned long guard_1c;
+    };
+
+    static_assert(sizeof(Block) == 0x20, "srHeap_Block_must_be_0x20");
 
     void* small_free_lists_00[32];
     unsigned long current_block_offset_80;
