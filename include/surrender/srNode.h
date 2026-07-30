@@ -5,14 +5,11 @@
 #include "srTypeRegistry.h"
 #include "srVertexProcessor.h"
 
-template <class T>
-class srMatrix4x3T;
-
 class srCriticalSection;
 
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
-   vtable. First-party scene traversal establishes the two child-list links;
-   the remaining bytes stay opaque. */
+   vtable. Its exported transform and hierarchy operations establish the
+   complete object layout. */
 class srNode : public srClass {
 public:
     class TraverseInfo {
@@ -231,7 +228,13 @@ private:
     static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
     static SR_DLL_IMPORT long sceneGraphLockCount;
 
-    unsigned char unknown_18_[0x110];
+    srMatrix3T<double> rotation_18;         /* 0x018 */
+    srVector3T<double> location_60;         /* 0x060 */
+    srVector3T<double> scale_78;            /* 0x078 */
+    srMatrix4x3T<double> world_transform_90; /* 0x090 */
+    srMatrix4x3T<float> world_transform_f0; /* 0x0f0 */
+    srFlags<e_notify> notifications_120;    /* 0x120 */
+    srFlags<e_flag> flags_124;              /* 0x124 */
     srNode* next_sibling_;                  /* 0x128 */
     srNode* previous_sibling_;              /* 0x12c */
     srNode* parent_;                        /* 0x130 */

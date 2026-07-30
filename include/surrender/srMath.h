@@ -102,6 +102,17 @@ public:
     srVector4T<T> vectors[4];
 };
 
+template <class T>
+class srMatrix4x3T {
+public:
+    srVector4T<T> rows[3];
+};
+
+static_assert(sizeof(srMatrix4x3T<float>) == 0x30,
+              "srMatrix4x3T_float_must_be_0x30");
+static_assert(sizeof(srMatrix4x3T<double>) == 0x60,
+              "srMatrix4x3T_double_must_be_0x60");
+
 class srVector2i {
 public:
     int x;
