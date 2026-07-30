@@ -286,4 +286,21 @@ short GetCatalogVideoObjectYOffset(int object)
     return g_video_slots_6448c8[object].y_offset;
 }
 
+/* Defined later in this unit at 0x005494F0 and not yet recovered. Its parameter
+   list is taken from this call site: Ghidra's inference for that body is
+   degraded, showing an unresolved return-address value and a stack-address
+   argument, and the list it infers disagrees with what is actually pushed here. */
+void Function5494F0(int object, int frame, int y, int a5, int a6, int flag);
+
+/* Draw a catalog video object, then mark the area it covered. The vertical
+   argument is truncated to a short for the draw and passed whole to the mark,
+   and the seventh reaches the mark only as whether it equals two. */
+// FUNCTION: WIZ8 0x00549600
+void Function549600(int target, int object, int frame, int y,
+                    int a5, int a6, int a7, int a8)
+{
+    Function548F90(target, object, frame, (short)y, a5, a6, a7, a8);
+    Function5494F0(object, frame, y, a5, a6, a7 == 2);
+}
+
 }
