@@ -1,6 +1,26 @@
 #pragma once
 
+#include "surrender/srMath.h"
 #include "wiz8/engine_code/BitArray.h"
+
+class GDProp;
+struct W8Position;
+struct W8NavigatorMovement004572C0;
+
+class W8OctreeQueue00437000 {
+public:
+    void Queue00437000(int kind, int id, const int* point);
+};
+
+class W8Pathing00457CF0 {
+public:
+    unsigned int FindPathHandle(
+        const unsigned char* path_name,
+        unsigned short* path_bounds,
+        float* path_range);              /* 0x00457CF0 */
+    void LinkPropSurfaces(GDProp* prop);  /* 0x00460020 */
+    void LinkPropVertices(GDProp* prop);  /* 0x004600B0 */
+};
 
 /* Engine Code\Octree.cpp. LoadWorld allocates exactly 0x29c bytes. This object
    is deliberately non-polymorphic: every owner calls the complete teardown at
@@ -13,13 +33,35 @@ public:
     ~W8Octree();
     void AddLoadedProp(void* prop);
     void AddLoadedParticle(void* particle);
+    void SetVisitedSet0042E3E0(BitArray* visited);
+    int MarkVisited0042E400(int offset);
+    void VisitPointCopy0042E620(
+        unsigned short location_id, srVector3T<float>* position);
+    void UpdateMonsterLocation0042E540(
+        unsigned short location_id, const W8Position* position);
+    bool HasLineOfSight00434B60(
+        const W8Position* from, W8Position* to, char allow_fallback);
+    short TraceLineOfSight00434F20(
+        const W8Position* from, const W8Position* to, char trace_world,
+        int from_location_id, int to_location_id, char visit_octree,
+        int trace_mode);
+    void AdjustPortalDestination00434A30(
+        W8Position* destination, const W8Position* source);
+    unsigned int AdvanceNavigator00434620(
+        W8NavigatorMovement004572C0* movement,
+        float radius, float separation);
+    void QueueOctreeKind130042E810(
+        int id, const srVector3T<float>* position);
 
     bool HasLoadError() const { return (m_flags_000 & 0x80000000) != 0; }
     unsigned long GetMeshCount() const { return m_mesh_count_074; }
 
-private:
+public:
     unsigned long m_flags_000;
-    unsigned char m_positional_004[0x70];
+    unsigned char m_positional_004[8];
+    srVector3T<float> octree_origin_00c;
+    unsigned char m_positional_018[0x58];
+    float octree_cell_size_070;
     unsigned long m_mesh_count_074;
     unsigned char m_positional_078[0x24];
     void* m_owned_09c;
@@ -30,7 +72,7 @@ private:
     void* m_owned_0b0;
     unsigned long m_positional_0b4;
     unsigned long m_positional_0b8;
-    void* m_owned_0bc;
+    W8OctreeQueue00437000* octree_queue_0bc;
     void* m_owned_0c0;
     unsigned char m_fAccumulating;
     unsigned char m_positional_0c5[3];
@@ -59,7 +101,7 @@ private:
     void** m_papParticles;
     unsigned short m_usNumPropsLoaded;
     unsigned short m_usNumParticlesLoaded;
-    long m_positional_120;
+    int current_sector;
     unsigned long m_positional_124;
     unsigned long m_positional_128;
     void* m_owned_12c;
@@ -88,10 +130,10 @@ private:
     void* m_sr_owned_174;
     unsigned long m_positional_178;
     unsigned long m_positional_17c;
-    void* m_owned_180;
-    unsigned long m_positional_184;
+    W8Pathing00457CF0* pathing_180;
+    int mark_base_184;
     unsigned long m_ulNumProps;
-    BitArray* m_owned_18c;
+    BitArray* visited_18c;
     BitArray* m_owned_190;
     BitArray* m_owned_194;
     BitArray* m_owned_198;
@@ -118,5 +160,10 @@ private:
     unsigned char m_positional_299;
     unsigned char m_padding_29a[2];
 };
+
+/* The shared spatial-service pointer at 0x006598A4 is the active W8Octree.
+   Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves
+   that the same receiver dispatches ordinary W8Octree methods. */
+extern W8Octree* g_octree_6598a4;
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");

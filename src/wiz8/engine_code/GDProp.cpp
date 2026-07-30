@@ -1,7 +1,7 @@
 /* Engine Code\GDProp.cpp */
 
 #include "wiz8/engine_code/GDProp.h"
-#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/engine_code/Octree.h"
 
 #include "surrender/srHeap.h"
 
@@ -34,9 +34,9 @@ GDProp::GDProp(
     m_path_bound_4e = 0;
     m_path_bound_4c = 0;
 
-    if (g_engine_state_6598a4 != 0 &&
-        g_engine_state_6598a4->pathing_180 != 0) {
-        m_path_handle_04 = g_engine_state_6598a4->pathing_180->FindPathHandle(
+    if (g_octree_6598a4 != 0 &&
+        g_octree_6598a4->pathing_180 != 0) {
+        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(
             path_name,
             &m_path_bound_4c,
             &m_path_range_28);
@@ -44,9 +44,9 @@ GDProp::GDProp(
 
     if (instance != 0) {
         if (m_path_handle_04 != 0 &&
-            g_engine_state_6598a4->pathing_180 != 0) {
-            g_engine_state_6598a4->pathing_180->LinkPropSurfaces(this);
-            g_engine_state_6598a4->pathing_180->LinkPropVertices(this);
+            g_octree_6598a4->pathing_180 != 0) {
+            g_octree_6598a4->pathing_180->LinkPropSurfaces(this);
+            g_octree_6598a4->pathing_180->LinkPropVertices(this);
         }
         Initialize(instance, 1, prop_number, surface_flag, vertex_flag);
     }

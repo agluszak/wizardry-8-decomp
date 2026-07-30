@@ -1,5 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
-#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
@@ -581,7 +581,7 @@ int SettleWorldItem(W8WorldItem* item)
         return 0;
     }
 
-    sector = g_engine_state_6598a4->current_sector;
+    sector = g_octree_6598a4->current_sector;
     if (sector != item->sector_id) {
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);

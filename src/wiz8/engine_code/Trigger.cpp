@@ -8,7 +8,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
-#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/game_state.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/item_tables.h"
@@ -951,7 +951,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     source_position.x = position_118;
     source_position.y = position_11c;
     source_position.z = position_120;
-    g_engine_state_6598a4->AdjustPortalDestination00434A30(
+    g_octree_6598a4->AdjustPortalDestination00434A30(
         &destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 

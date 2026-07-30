@@ -1,7 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
-#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/sr_api.h"
 #include <math.h>
 #include <new>
@@ -130,7 +130,7 @@ W8MonsterInfo* CreateMonsterInfo(
     ++group->member_count;
     ++group->active_member_count;
     RequestRedrawParty();
-    g_engine_state_6598a4->W8OctreeWalker_VisitPointCopy(
+    g_octree_6598a4->VisitPointCopy0042E620(
         static_cast<unsigned short>(monster_info->location_id), position);
     return monster_info;
 }
@@ -695,7 +695,7 @@ void DestroyUngroupedMonsters(void)
                 DeleteMonster004C5860(monster_info->monster);
                 monster_info->monster = 0;
             }
-            (void)g_engine_state_6598a4;
+            (void)g_octree_6598a4;
             Function42E650(static_cast<unsigned short>(monster_info->location_id));
             Function509EA0(monster_info->runtime_value_2f1);
             void* removed = PListRemoveAt(g_monster_list, index);
@@ -1086,7 +1086,7 @@ unsigned char RemoveMonster(
             DeleteMonster004C5860(monster_info->monster);
             monster_info->monster = 0;
         }
-        (void)g_engine_state_6598a4;
+        (void)g_octree_6598a4;
         Function42E650(static_cast<unsigned short>(monster_info->location_id));
         Function509EA0(monster_info->runtime_value_2f1);
         void* removed = PListRemoveAt(g_monster_list, monster_list_index);

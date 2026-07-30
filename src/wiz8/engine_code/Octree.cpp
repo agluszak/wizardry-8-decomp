@@ -3,7 +3,7 @@
 
 #include "surrender/srHeap.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 
 extern unsigned long g_octree_storage_00659770;
@@ -91,7 +91,7 @@ void W8Octree::Reset()
     g_octree_state_00659890 = 0;
     Function46CDC0();
     memset(this, 0, sizeof(*this));
-    m_positional_120 = -1;
+    current_sector = -1;
 }
 
 /* ReadOctFile calls this after Reset. The file header is packed and several
@@ -186,7 +186,7 @@ void W8Octree::Initialize(const void* raw_header)
         W8OctreeIndex** pair = new W8OctreeIndex*[2];
         pair[0] = CreateIndex();
         pair[1] = CreateIndex();
-        m_owned_0bc = pair;
+        octree_queue_0bc = reinterpret_cast<W8OctreeQueue00437000*>(pair);
         m_owned_150 = CreateIndex();
 
         unsigned int visited_size = ReadHeader<unsigned short>(header, 0x64) + 1;
@@ -258,7 +258,7 @@ W8Octree::~W8Octree()
     if (m_positional_16d != 0) {
         Function432D60(m_owned_0c0);
     }
-    if (m_owned_180 != 0) {
+    if (pathing_180 != 0) {
         Function459400(0);
     }
 
@@ -322,7 +322,7 @@ W8Octree::~W8Octree()
     DestroyBitArray(m_owned_1a0);
     DestroyBitArray(m_owned_1a4);
 
-    pair = static_cast<W8OctreeIndex**>(m_owned_0bc);
+    pair = reinterpret_cast<W8OctreeIndex**>(octree_queue_0bc);
     if (pair != 0) {
         DestroyIndex(pair[0]);
         DestroyIndex(pair[1]);
@@ -330,47 +330,27 @@ W8Octree::~W8Octree()
     }
 
     free(m_owned_0d8);
-    if (m_owned_180 != 0) {
-        Function457B10(m_owned_180);
-        operator delete(m_owned_180);
-        m_owned_180 = 0;
+    if (pathing_180 != 0) {
+        Function457B10(pathing_180);
+        operator delete(pathing_180);
+        pathing_180 = 0;
     }
-    DestroyBitArray(m_owned_18c);
+    DestroyBitArray(visited_18c);
     Function46CDD0();
 }
-
-/* The visit marking a traversal uses to avoid walking the same node twice, and
-   three thin wrappers over the shared traversal entry points. */
-
-#include "wiz8/engine_code/BitArray.h"
-
-/* The octree walker. Only the two fields the visit marking reaches are
-   established: the running mark and the bit array it is checked against. */
-class W8OctreeWalker {
-public:
-    unsigned char unknown_000[0x184];
-    /* 0x184: the base this walk's marks are counted from. A negative offset
-       resets it from the shared counter instead of advancing it. */
-    int mark_base;
-    unsigned char unknown_188[4];
-    /* 0x18c: the visited set. With no set attached nothing is ever reported
-       as already seen. */
-    BitArray* visited;
-};
 
 /* The node whose 0x1c is non-null is the only kind worth attaching. */
 extern int g_shared_mark_006598ac;
 
 extern void OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
-extern void OctreeVisitPoint(void* walker, const float* point);              /* 0x0042E540 */
 
 /* Attach a visited set to the walker, but only one that has been built. */
 // FUNCTION: WIZ8 0x0042e3e0
-void W8OctreeWalker_SetVisitedSet(W8OctreeWalker* walker, BitArray* visited)
+void W8Octree::SetVisitedSet0042E3E0(BitArray* visited)
 {
     if (visited->puiIndex != 0) {
-        walker->visited = visited;
+        visited_18c = visited;
     }
 }
 
@@ -379,14 +359,14 @@ void W8OctreeWalker_SetVisitedSet(W8OctreeWalker* walker, BitArray* visited)
    counter and reports whether that mark has already been visited - which with
    no set attached is always no. */
 // FUNCTION: WIZ8 0x0042e400
-int W8OctreeWalker_MarkVisited(W8OctreeWalker* walker, int offset)
+int W8Octree::MarkVisited0042E400(int offset)
 {
     if (offset < 0) {
-        walker->mark_base = g_shared_mark_006598ac;
+        mark_base_184 = g_shared_mark_006598ac;
         return 0;
     }
-    g_shared_mark_006598ac = walker->mark_base + offset;
-    if (walker->visited != 0 && walker->visited->Test(g_shared_mark_006598ac)) {
+    g_shared_mark_006598ac = mark_base_184 + offset;
+    if (visited_18c != 0 && visited_18c->Test(g_shared_mark_006598ac)) {
         return 1;
     }
     return 0;
@@ -395,14 +375,15 @@ int W8OctreeWalker_MarkVisited(W8OctreeWalker* walker, int offset)
 /* Visit a point handed over by address, copied to the stack first so the
    caller's copy is not the one the traversal holds. */
 // FUNCTION: WIZ8 0x0042e620
-void W8OctreeWalker_VisitPointCopy(void* walker, const float* point)
+void W8Octree::VisitPointCopy0042E620(
+    unsigned short location_id, srVector3T<float>* position)
 {
-    float copy[3];
+    W8Position copy;
 
-    copy[0] = point[0];
-    copy[1] = point[1];
-    copy[2] = point[2];
-    OctreeVisitPoint(walker, copy);
+    copy.x = position->x;
+    copy.y = position->y;
+    copy.z = position->z;
+    UpdateMonsterLocation0042E540(location_id, &copy);
 }
 
 /* Start a traversal of the twelfth kind. A limit of zero means no limit, which
@@ -421,7 +402,7 @@ void OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3, unsigned short
 /* Queue one node of the thirteenth kind, with its three coordinates converted
    from floating point - which is what puts three ftol calls in a row here. */
 // FUNCTION: WIZ8 0x0042e810
-void W8EngineState006598A4::QueueOctreeKind130042E810(
+void W8Octree::QueueOctreeKind130042E810(
     int id,
     const srVector3T<float>* position)
 {

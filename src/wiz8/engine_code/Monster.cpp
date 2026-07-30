@@ -12,7 +12,7 @@
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/magic.h"
 #include "wiz8/mesh_model.h"
@@ -843,7 +843,7 @@ void W8Monster::Update()
                 sun_position.x = (float)sun_location.x;
                 sun_position.y = (float)sun_location.y;
                 sun_position.z = (float)sun_location.z;
-                if (g_engine_state_6598a4->HasLineOfSight00434B60(
+                if (g_octree_6598a4->HasLineOfSight00434B60(
                         &mapped_position, &sun_position, 1)) {
                     if (state_2ac.value_24 == 0) {
                         state_2fc.scale_00 = 0.75f;
@@ -2149,7 +2149,7 @@ void W8Monster::CheckLineOfSightToPlayer004C4810()
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
     GetPosition421070(&player_position);
-    g_engine_state_6598a4->HasLineOfSight00434B60(
+    g_octree_6598a4->HasLineOfSight00434B60(
         &monster_position, &player_position, 1);
 }
 
@@ -2169,7 +2169,7 @@ void W8Monster::GetPlayerSightFlags004C4870(
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
     GetPosition421070(&player_position);
-    result = g_engine_state_6598a4->TraceLineOfSight00434F20(
+    result = g_octree_6598a4->TraceLineOfSight00434F20(
         &monster_position, &player_position, 1,
         propagated_value_1e4, -1, 1, 0);
     if (result == -1) {
@@ -2221,7 +2221,7 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
     monster_position.y = fields.movement_0c0.position_040.y +
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
-    return g_engine_state_6598a4->HasLineOfSight00434B60(
+    return g_octree_6598a4->HasLineOfSight00434B60(
         &player_position, &monster_position, 1);
 }
 
@@ -2245,7 +2245,7 @@ void W8Monster::GetPlayerToMonsterSightFlags004C4A20(
     else {
         player_position = *source;
     }
-    result = g_engine_state_6598a4->TraceLineOfSight00434F20(
+    result = g_octree_6598a4->TraceLineOfSight00434F20(
         &player_position, &monster_position, 1,
         -1, propagated_value_1e4, 1, 0);
     if (result == -1) {
@@ -2277,7 +2277,7 @@ unsigned char W8Monster::HasLineOfSightToMonster004C4AF0(
     to.y = monster->fields.movement_0c0.position_040.y +
            monster->fields.movement_0c0.height_offset_0b8;
     to.z = monster->fields.movement_0c0.position_040.z;
-    return g_engine_state_6598a4->HasLineOfSight00434B60(&from, &to, 1);
+    return g_octree_6598a4->HasLineOfSight00434B60(&from, &to, 1);
 }
 
 // FUNCTION: WIZ8 0x004c4b70
@@ -2298,7 +2298,7 @@ void W8Monster::GetMonsterSightFlags004C4B70(
     to.y = monster->fields.movement_0c0.position_040.y +
            monster->fields.movement_0c0.height_offset_0b8;
     to.z = monster->fields.movement_0c0.position_040.z;
-    result = g_engine_state_6598a4->TraceLineOfSight00434F20(
+    result = g_octree_6598a4->TraceLineOfSight00434F20(
         &from, &to, 1,
         propagated_value_1e4, monster->propagated_value_1e4, 1, 0);
     if (result == -1) {
@@ -2325,7 +2325,7 @@ unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(
     monster_position.y = fields.movement_0c0.position_040.y +
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
-    return g_engine_state_6598a4->TraceLineOfSight00434F20(
+    return g_octree_6598a4->TraceLineOfSight00434F20(
         &point, &monster_position, 1, -3, -3, 1, 0) != 1;
 }
 
@@ -2983,7 +2983,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
 
     if (fields.position_dirty_09c != 0 ||
         fields.movement_0c0.position_adjusted_0c8 != 0) {
-        g_engine_state_6598a4->UpdateMonsterLocation0042E540(
+        g_octree_6598a4->UpdateMonsterLocation0042E540(
             (unsigned short)propagated_value_1e4, &position);
     }
 
