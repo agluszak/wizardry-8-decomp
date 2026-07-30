@@ -199,12 +199,22 @@ def runtime_test_command() -> None:
 
 def verify_command(
     compare_image: Annotated[bool, typer.Option("--compare/--no-compare")] = True,
+    against: Annotated[
+        Path | None,
+        typer.Option(
+            "--against",
+            exists=True,
+            dir_okay=False,
+            readable=True,
+            help="Alternate normalized source-layout baseline CSV.",
+        ),
+    ] = None,
 ) -> None:
     """Run compiler, source-model, linked-image, unit, and runtime validation."""
     from .. import command_support as cli
     from ..build import verify
 
-    cli.run_action(lambda: verify(cli.settings(), compare_image=compare_image))
+    cli.run_action(lambda: verify(cli.settings(), compare_image=compare_image, against=against))
 
 
 @toolchain_app.command("build")
@@ -333,11 +343,27 @@ def verify_source_layouts_command(
         Path | None,
         typer.Option("--pdb", exists=True, dir_okay=False, readable=True),
     ] = None,
+    write_baseline: Annotated[
+        bool,
+        typer.Option(
+            "--write-baseline",
+            help="Initialize or strictly reduce the tracked failure baseline.",
+        ),
+    ] = False,
 ) -> None:
     from .. import command_support as cli
-    from ..source_layouts import require_source_layouts, verify_source_layouts
+    from ..source_layouts import (
+        DEFAULT_BASELINE,
+        require_source_layouts,
+        verify_source_layouts,
+        write_source_layout_baseline,
+    )
 
     def action() -> dict[str, Any]:
-        return require_source_layouts(verify_source_layouts(cli.settings(), pdb))
+        settings = cli.settings()
+        report = verify_source_layouts(settings, pdb)
+        if write_baseline:
+            return write_source_layout_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
+        return require_source_layouts(report)
 
     cli.run_action(action)

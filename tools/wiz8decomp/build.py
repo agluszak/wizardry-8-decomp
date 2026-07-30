@@ -576,13 +576,22 @@ def check(repository: Path) -> dict[str, Any]:
     }
 
 
-def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
+def verify(
+    settings: Settings,
+    *,
+    compare_image: bool = True,
+    against: Path | None = None,
+) -> dict[str, Any]:
     from .ghidra.index import export_index
     from .ghidra.reccmp_import import import_reccmp_source
     from .reccmp_workflows import compare_vtables
     from .runtime import run_runtime_suite
     from .source_index import write_source_index
-    from .source_layouts import require_source_layouts, verify_source_layouts
+    from .source_layouts import (
+        require_source_layout_delta,
+        verify_source_layout_delta,
+        verify_source_layouts,
+    )
 
     lint_result = lint(settings)
     source_index = write_source_index(settings)
@@ -593,7 +602,10 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
     surrender_source_import = import_reccmp_source(settings, "wiz8--gog-base--sr--")
     ghidra_index = export_index(settings, "wiz8")
     surrender_ghidra_index = export_index(settings, "wiz8--gog-base--sr--")
-    source_layouts = require_source_layouts(verify_source_layouts(settings))
+    current_source_layouts = verify_source_layouts(settings)
+    source_layouts = require_source_layout_delta(
+        verify_source_layout_delta(settings, current_source_layouts, against)
+    )
     vtables = compare_vtables(settings.repo_dir, "WIZ8", None)
     if not vtables["ok"]:
         raise ValueError("source-owned vtable slots differ from the paired original")
@@ -615,6 +627,7 @@ def verify(settings: Settings, *, compare_image: bool = True) -> dict[str, Any]:
         "surrender_source_import": surrender_source_import,
         "ghidra_index": ghidra_index,
         "surrender_ghidra_index": surrender_ghidra_index,
+        "current_source_layouts": current_source_layouts,
         "source_layouts": source_layouts,
         "vtables": vtables,
         "compare": comparison,

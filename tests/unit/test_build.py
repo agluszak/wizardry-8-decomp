@@ -163,7 +163,12 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
         lambda *_args: {"ok": True},
     )
     monkeypatch.setattr(source_layouts, "verify_source_layouts", lambda *_args: {"valid": True})
-    monkeypatch.setattr(source_layouts, "require_source_layouts", lambda result: result)
+    monkeypatch.setattr(
+        source_layouts,
+        "verify_source_layout_delta",
+        lambda _settings, _current, against: {"valid": True, "against": against},
+    )
+    monkeypatch.setattr(source_layouts, "require_source_layout_delta", lambda result: result)
     monkeypatch.setattr(
         runtime,
         "run_runtime_suite",
@@ -174,3 +179,4 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
 
     assert built == ["WIZ8", "SURRENDER", "WIZ8_RUNTIME_TEST"]
     assert result["runtime_tests"] == {"deterministic": True}
+    assert result["source_layouts"]["against"] is None
