@@ -1,4 +1,5 @@
 #include "surrender/srCore.h"
+#include "surrender/srBinIAsyncStream.h"
 #include "surrender/srIStreamOpener.h"
 #include "surrender/srMemoryPool.h"
 
