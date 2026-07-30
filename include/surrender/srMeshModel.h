@@ -101,6 +101,7 @@ public:
     virtual void getTriMesh(TriMesh& mesh);
     virtual void renderTriMesh(class srGERD& renderer, const TriMesh& mesh);
     srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
+    srVector3i* getPolyVertex();
     srMaterialIFace* getMaterial(long polygon, e_side side) const;
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);

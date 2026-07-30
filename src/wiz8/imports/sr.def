@@ -703,6 +703,8 @@ EXPORTS
     ?vInstance@srMaterial@@UAEPAVsrClass@@XZ
     ?getTexture@srMeshModel@@QBEPAVsrTextureIFace@@JJ@Z
     ?getPolyTexture@srMeshModel@@QAEPAV?$srPtr@VsrTextureIFace@@@@JJH@Z
+    ?getPolyVertex@srMeshModel@@QAEPAVsrVector3i@@XZ
+    ?getVertexLoc@srMeshModel@@QAEPAV?$srVector3T@M@@XZ
     ??0srMeshModel@@QAE@JJ@Z
     ??1srMeshModel@@MAE@XZ
     ??4srMeshModel@@QAEAAV0@ABV0@@Z

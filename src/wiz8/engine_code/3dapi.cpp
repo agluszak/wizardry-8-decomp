@@ -13,6 +13,7 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
@@ -47,7 +48,6 @@ extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
 extern void Function449BB0(void* owner);
-extern void Function4BE0A0(void* owner);
 extern void Function426790(void);
 extern void Function443A60(W8World* world);
 extern void Function479030(void);
@@ -243,7 +243,7 @@ unsigned char LoadWorld(
         UpdateWorldMeshFromOctree004BAF50(world);
     }
     else if (world->m_owned_06c != 0) {
-        static_cast<unsigned long*>(world->m_owned_06c)[6] = 1;
+        world->m_owned_06c->dirty = 1;
         UpdateWorldMeshFromQuads004BAD40(world);
     }
     return 1;
@@ -420,7 +420,7 @@ void DestroyWorld(W8World* world)
         world->octree = 0;
     }
     if (world->m_owned_06c != 0) {
-        Function4BE0A0(world->m_owned_06c);
+        DestroyWorldQuad004BE0A0(world->m_owned_06c);
         world->m_owned_06c = 0;
     }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();

@@ -46,6 +46,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Octree.cpp
     src/wiz8/engine_code/Levels.cpp
     src/wiz8/engine_code/ReadLevel.cpp
+    src/wiz8/engine_code/quad.cpp
     src/wiz8/engine_code/3dapi.cpp
     src/wiz8/engine_code/stMeshModel.cpp
     src/wiz8/engine_code/stModelInstance.cpp

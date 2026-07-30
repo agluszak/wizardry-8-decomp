@@ -15,6 +15,7 @@ class stLevel;
 class W8Octree;
 class W8Node005EC208;
 class W8Scene005EBE48;
+struct W8Quad;
 class W8Missile;
 class W8MonsterGenerator;
 class stLight;
@@ -82,7 +83,7 @@ struct W8World {
     unsigned char m_positional_058[0x11];
     unsigned char m_loaded;
     unsigned char m_padding_06a[2];
-    void* m_owned_06c;
+    W8Quad* m_owned_06c;
     srModelInstance* update_mesh_source;
     float value_74;
     float value_78;

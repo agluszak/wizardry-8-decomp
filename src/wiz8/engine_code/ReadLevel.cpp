@@ -16,6 +16,7 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -83,11 +84,6 @@ extern void UpdateWorldProps0044E010(W8World* world);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
     W8Scene005EBE48* static_scene, W8Node005EC208* dynamic_scene);
-extern void* BuildWorldQuad004BE200(
-    srModelInstance* instance, int positional,
-    float minimum_x, float minimum_y, float minimum_z,
-    float maximum_x, float maximum_y, float maximum_z,
-    W8Scene005EBE48* scene, int flags);
 extern void RefreshEnvironment00483560(void);
 extern void FinalizeStaticScene0046F3A0(W8Scene005EBE48* scene);
 extern unsigned char ReadWorldParticles004BD0D0(
