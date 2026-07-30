@@ -25,6 +25,8 @@ extern const float g_camera_forced_speed_005ec560;
 extern const float g_camera_half_period_005ec564;
 extern const float g_camera_angle_dead_zone_005ec578;
 extern const float g_camera_transition_duration_scale_005ec57c;
+extern const double g_camera_smoothing_scale_005ec580;
+extern const double g_camera_step_average_005ebe80;
 extern float g_startup_depth_603ac8;
 extern float g_camera_transition_speed_65a0f4;
 extern unsigned char g_flag_00683f97;
@@ -400,6 +402,93 @@ unsigned char GDCamera::Method00477440(
         }
     }
     return m_flag_088;
+}
+
+// FUNCTION: WIZ8 0x004776A0
+void GDCamera::Method004776A0(float elapsed)
+{
+    m_elapsed_084 = elapsed;
+    if (m_flag_088 == 0 && m_flag_089 == 0) {
+        Method00478290();
+        return;
+    }
+
+    float angle_traveled =
+        (float)fabs((double)(m_start_angle_0a0 - m_angle_004));
+    if (angle_traveled > g_camera_half_period_005ec564) {
+        angle_traveled = g_camera_angle_period_005ec014 - angle_traveled;
+    }
+    float pitch_traveled =
+        (float)fabs((double)(m_start_pitch_0a4 - m_positional_008));
+    if (angle_traveled > m_angle_distance_0b0) {
+        angle_traveled = m_angle_distance_0b0;
+    }
+    if (pitch_traveled > m_pitch_distance_0b4) {
+        pitch_traveled = m_pitch_distance_0b4;
+    }
+
+    float phase;
+    if (m_flag_089 == 0) {
+        float doubled_progress;
+        if (m_angle_distance_0b0 <= m_pitch_distance_0b4) {
+            doubled_progress =
+                (pitch_traveled + pitch_traveled) / m_pitch_distance_0b4;
+        } else {
+            doubled_progress =
+                (angle_traveled + angle_traveled) / m_angle_distance_0b0;
+        }
+        float eased_input = g_one_005ebb38 - doubled_progress;
+        if (eased_input > g_one_005ebb38) {
+            eased_input = g_one_005ebb38;
+        } else if (eased_input < g_negative_one_005ebc38) {
+            eased_input = g_negative_one_005ebc38;
+        }
+        phase = (float)(acos((double)eased_input)
+                            * g_camera_smoothing_scale_005ec580);
+    } else if (m_angle_distance_0b0 <= m_pitch_distance_0b4) {
+        phase = g_one_005ebb38
+                - pitch_traveled / m_pitch_distance_0b4;
+    } else {
+        phase = g_one_005ebb38
+                - angle_traveled / m_angle_distance_0b0;
+    }
+
+    float next_time = phase * m_transition_duration_0b8 + elapsed;
+    if (next_time <= m_transition_duration_0b8) {
+        float step;
+        if (m_flag_089 == 0) {
+            float next_weight = (float)sin(
+                (double)(next_time / m_transition_duration_0b8)
+                * (double)g_camera_half_period_005ec564);
+            float current_weight = (float)sin(
+                (double)phase * (double)g_camera_half_period_005ec564);
+            step = (float)fabs(
+                (double)((next_weight + current_weight) * elapsed)
+                * g_camera_step_average_005ebe80);
+        } else {
+            step = elapsed;
+        }
+        m_angle_004 += step * m_angle_velocity_0a8;
+        m_positional_008 += step * m_pitch_velocity_0ac;
+        if (m_angle_004 > g_camera_angle_period_005ec014) {
+            m_angle_004 -= g_camera_angle_period_005ec014;
+        } else if (m_angle_004 < g_zero_005ebb34) {
+            m_angle_004 += g_camera_angle_period_005ec014;
+        }
+    } else {
+        m_positional_008 = m_target_pitch_09c;
+        m_angle_004 = m_target_angle_098;
+        if ((m_positional_000 & 0x20) == 0) {
+            m_angle_velocity_0a8 = 0.0f;
+            m_positional_000 &= ~0x40UL;
+        }
+        m_pitch_velocity_0ac = 0.0f;
+        m_flag_088 = 0;
+        m_positional_000 &= ~0x20UL;
+    }
+
+    Method00478720(m_angle_004);
+    Method004784C0(m_positional_008);
 }
 
 // FUNCTION: WIZ8 0x004784C0
