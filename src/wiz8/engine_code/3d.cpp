@@ -163,7 +163,7 @@ double WorldGetFarClip(W8World* world)
     double far_plane = 0;
 
     if (world != 0 && world->camera != 0) {
-        world->camera->getClipRange(&near_plane, &far_plane);
+        world->camera->getClipRange(near_plane, far_plane);
     }
     return far_plane;
 }
