@@ -22,7 +22,15 @@ public:
     SR_DLL_IMPORT srBinIStream* open(const char* path);
 
 private:
-    struct StreamType;
+    struct StreamType {
+        Opener* opener_00;
+        char* extension_04;
+        StreamType* next_08;
+        StreamType* previous_0c;
+    };
+
+    static_assert(sizeof(StreamType) == 0x10,
+                  "srIStreamOpener_StreamType_must_be_0x10");
 
     SR_DLL_IMPORT Opener* findOpener(const char* extension);
     SR_DLL_IMPORT srBinIStream* open(
