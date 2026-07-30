@@ -217,6 +217,7 @@ public:
         const char* script_name, unsigned char reset_orders);
     void ProcessScript004C80E0();
     unsigned char GetProjectilePosition004C77F0(W8Position* position);
+    unsigned char GetSpellPosition004C78E0(W8Position* position);
     unsigned char GetCycleMappedPosition004C7960(
         signed char cycle, int mapped_index, W8Position* position);
     unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
@@ -314,7 +315,23 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
 unsigned short MonsterApproachStartupNavigator004C5FF0(
     W8Monster* monster, double separation);
 unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
+unsigned short MonsterConfigureMovementToPlayer004C6070(
+    W8Monster* monster,
+    int value_1,
+    int value_2,
+    W8Position position,
+    int value_3,
+    int value_4);
+unsigned short MonsterConfigureMovementToMonster004C60D0(
+    W8Monster* monster,
+    W8Monster* target,
+    int value_1,
+    int value_2,
+    W8Position position,
+    int value_3,
+    int value_4);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
+void UpdateNearestMonsterGroupMembers004CA570();
 
 static_assert(
     sizeof(W8Monster) == 0x348,

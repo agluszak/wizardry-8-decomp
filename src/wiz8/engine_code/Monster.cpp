@@ -1,5 +1,6 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
+#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/AnimObj.h"
@@ -15,6 +16,7 @@
 #include "wiz8/grcycle.h"
 #include "wiz8/magic.h"
 #include "wiz8/mesh_model.h"
+#include "wiz8/monster_runtime.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
@@ -99,6 +101,8 @@ extern const float g_monster_script_time_scale_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const float g_monster_script_direction_scale_005ec150;
 extern const double g_monster_facing_tolerance_005ec2b0;
+extern const double g_monster_group_nearest_range_005ed2c0;
+extern const char g_warning_missing_spell_vertex_0060f684[];
 extern float BearingBetween(
     const srVector3T<float>* from, const srVector3T<float>* to);
 extern unsigned char HasLineOfSightToBounds0046FD70(
@@ -1170,6 +1174,31 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(
         flag_22d = 1;
     }
     return result;
+}
+
+/* Cycle 25 mapping six is the spell launch vertex. Missing mappings warn at
+   most once per Monster, while the returned byte remains the mapping result. */
+// FUNCTION: WIZ8 0x004c78e0
+unsigned char W8Monster::GetSpellPosition004C78E0(W8Position* position)
+{
+    unsigned char found;
+
+    if (position == 0) {
+        return 0;
+    }
+    found = GetCycleMappedPosition004C7960(0x19, 6, position);
+    if (found == 0 && flag_22c == 0) {
+        if (g_flag_00689b32 != 0) {
+            W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(
+                    0x18e4, MONSTER_CPP, propagated_value_1e4, 1));
+            W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
+            FormatDebugMessage(
+                0, g_warning_missing_spell_vertex_0060f684, record);
+        }
+        flag_22c = 1;
+    }
+    return found;
 }
 
 // FUNCTION: WIZ8 0x004C7960
@@ -2398,6 +2427,59 @@ void W8Monster::TrackSoundHandle004CA6E0(int handle)
             }
             ++index;
         } while (index < count);
+    }
+}
+
+/* Mark the closest live member of each loaded group inside the selection
+   range. Members that do not improve the current candidate are unmarked. */
+// FUNCTION: WIZ8 0x004ca570
+void UpdateNearestMonsterGroupMembers004CA570()
+{
+    W8Position player_position;
+    unsigned int group_index;
+
+    GetPosition421070(&player_position);
+    for (group_index = 0;
+         group_index < PListGetCount(g_monster_group_list);
+         ++group_index) {
+        W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
+
+        if (group != 0) {
+            double nearest_distance = 1e11;
+            W8MonsterInfo* nearest = 0;
+            unsigned int member_index;
+
+            for (member_index = 0;
+                 member_index < PListGetCount((W8PList*)group->monsters);
+                 ++member_index) {
+                W8MonsterInfo* member = MonsterGetScriptPartByLocationIndex(
+                    MonsterGetIndexByLocationID(
+                        0x1efe,
+                        MONSTER_CPP,
+                        IListGetAt(group->monsters, member_index),
+                        1));
+
+                if (member != 0 && member->monster != 0) {
+                    srVector3T<float> position = member->monster->GetPosition();
+                    float x = position.x - player_position.x;
+                    float y = position.y - player_position.y;
+                    float z = position.z - player_position.z;
+                    float distance = (float)sqrt(x * x + y * y + z * z);
+
+                    if (distance < g_monster_group_nearest_range_005ed2c0 &&
+                        distance < nearest_distance) {
+                        nearest_distance = distance;
+                        nearest = member;
+                    }
+                    else {
+                        member->monster->flag_218 = 0;
+                    }
+                }
+            }
+            if (nearest != 0) {
+                nearest->monster->flag_218 = 1;
+            }
+        }
     }
 }
 
@@ -4478,6 +4560,53 @@ unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
 
         return monster->LinkToNavigator004527A0(
             target, WorldGetFarClip(GetWorld()) * 2.0);
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c6070
+unsigned short MonsterConfigureMovementToPlayer004C6070(
+    W8Monster* monster,
+    int value_1,
+    int value_2,
+    W8Position position,
+    int value_3,
+    int value_4)
+{
+    if (monster != 0) {
+        W8Navigator* target = g_startup_world_659c0c;
+
+        return monster->ConfigureMovementToNavigator004529A0(
+            target,
+            value_1,
+            value_2,
+            position,
+            value_3,
+            monster->GetAngleD400453970(),
+            value_4);
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c60d0
+unsigned short MonsterConfigureMovementToMonster004C60D0(
+    W8Monster* monster,
+    W8Monster* target,
+    int value_1,
+    int value_2,
+    W8Position position,
+    int value_3,
+    int value_4)
+{
+    if (monster != 0 && target != 0) {
+        return monster->ConfigureMovementToNavigator004529A0(
+            target,
+            value_1,
+            value_2,
+            position,
+            value_3,
+            monster->GetAngleD400453970(),
+            value_4);
     }
     return 0;
 }
