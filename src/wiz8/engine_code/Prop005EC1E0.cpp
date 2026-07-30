@@ -284,15 +284,15 @@ srModelInstance* W8Prop005EC1E0::ToggleRepAnimation(int argument)
 /* And again with the member's own stored argument instead of a caller's -
    which is what makes 0x64 the animation's default argument. */
 // FUNCTION: WIZ8 0x0044d550
-void W8Prop005EC1E0::ToggleRepAnimationDefault()
+srModelInstance* W8Prop005EC1E0::ToggleRepAnimationDefault()
 {
-    unsigned char argument = m_owned_14->setting_64;
+    W8PropOwnedPolymorphic* rep = m_owned_14;
+    unsigned char argument = rep->setting_64;
 
-    if (AnimationIsRunning(m_owned_14->animation)) {
-        AnimObjDispatchList004A1560(m_owned_14->animation, 2, 0);
-        return;
+    if (!AnimationIsRunning(rep->animation)) {
+        return AnimObjDispatch004A14D0(rep->animation, 2, argument);
     }
-    AnimObjDispatch004A14D0(m_owned_14->animation, 2, argument);
+    return AnimObjDispatchList004A1560(rep->animation, 2, 0);
 }
 
 /* Play the prop's animation between two points, with the same default

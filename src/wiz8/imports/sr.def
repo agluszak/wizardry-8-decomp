@@ -702,6 +702,7 @@ EXPORTS
     ?updateParms@srMaterial@@MAEXXZ
     ?vInstance@srMaterial@@UAEPAVsrClass@@XZ
     ?getTexture@srMeshModel@@QBEPAVsrTextureIFace@@JJ@Z
+    ?getPolyTexture@srMeshModel@@QAEPAV?$srPtr@VsrTextureIFace@@@@JJH@Z
     ??0srMeshModel@@QAE@JJ@Z
     ??1srMeshModel@@MAE@XZ
     ??4srMeshModel@@QAEAAV0@ABV0@@Z

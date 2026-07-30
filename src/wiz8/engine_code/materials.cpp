@@ -151,3 +151,25 @@ void SetModelAnimatedTextureFrame004B9B00(
         }
     }
 }
+
+// FUNCTION: WIZ8 0x004B9B50
+stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance)
+{
+    if (instance != 0) {
+        srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+
+        if (model != 0) {
+            srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 0);
+
+            if (textures != 0) {
+                srTextureIFace* texture = textures[0].get();
+
+                if (texture != 0 &&
+                    texture->getClassID() == stTextureAnim::CLASS_ID) {
+                    return static_cast<stTextureAnim*>(texture);
+                }
+            }
+        }
+    }
+    return 0;
+}

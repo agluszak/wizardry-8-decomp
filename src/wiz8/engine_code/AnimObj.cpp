@@ -77,7 +77,7 @@ unsigned char AnimationIsRunning(W8AnimObj* animation)
 
 // FUNCTION: WIZ8 0x004a14d0
 srModelInstance* AnimObjDispatch004A14D0(
-    W8AnimObj* animation, signed char list_index, int value)
+    W8AnimObj* animation, signed char list_index, unsigned char value)
 {
     W8AniMesh* entry;
 

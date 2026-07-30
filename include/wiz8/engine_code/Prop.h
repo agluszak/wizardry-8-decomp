@@ -64,7 +64,7 @@ public:
     void Method44C830(W8World* world);
     unsigned char GetSetting6C();
     srModelInstance* ToggleRepAnimation(int argument);
-    void ToggleRepAnimationDefault();
+    srModelInstance* ToggleRepAnimationDefault();
     int PlayRepAnimation(int arg_2, int arg_3);
     void SetSetting6E(unsigned char value, unsigned char fallback);
     void SetRepActive0044DA80(

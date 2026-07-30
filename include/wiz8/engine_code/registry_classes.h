@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/stModelInstance.h"
 
 class W8MonsterShakeCallback;
+class W8Prop005EC1E0;
 class Trigger;
 class stTextureAnim;
 struct W8PathAI;
@@ -212,7 +213,7 @@ public:
     unsigned long m_positional_248;                 /* 0x248 */
     float m_positional_24c;                         /* 0x24c */
     unsigned long m_positional_250;                 /* 0x250 */
-    unsigned long m_positional_254;                 /* 0x254 */
+    W8Prop005EC1E0* m_prop_254;                     /* 0x254 */
 };
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");

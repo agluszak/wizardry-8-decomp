@@ -15,8 +15,10 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/IList.h"
@@ -75,7 +77,6 @@ extern unsigned char ReadSingleLevelMesh00485B20(
 extern unsigned char ReadMultipleLevelMeshes00488240(
     W8ReadLevelInfo* info, srModelInstance** instances,
     unsigned long count, unsigned int flags);
-extern void AssociateWorldLights004BC060(W8World* world);
 extern void UpdateSky00482EA0(void);
 extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateWorldProps0044E010(W8World* world);
@@ -95,6 +96,39 @@ extern unsigned char ReadWorldParticles004BD0D0(
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 extern void ReportLevelLoadError00401920(const char* message);
 extern void SetChainValue15C(char* node, int value);
+
+// FUNCTION: WIZ8 0x004BC060
+void AssociateWorldLights004BC060(W8World* world)
+{
+    int light_index;
+
+    for (light_index = 0;
+         light_index < world->lights_to_update->GetCount();
+         ++light_index) {
+        stLight* light = *world->lights_to_update->GetAt(light_index);
+        stLightDefinition* definition = light->m_definition_234;
+
+        if (definition != 0 && definition->type_04 == 1 &&
+            (static_cast<stLightDefinition005ECDBC*>(definition)->flags_08 &
+             1) != 0) {
+            int prop_count = PListGetCount(world->plsProps);
+            int prop_index;
+
+            for (prop_index = 0; prop_index < prop_count; ++prop_index) {
+                W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
+                    PListGetAt(world->plsProps, prop_index));
+
+                if (prop->m_name_20 != 0 &&
+                    _stricmp(prop->m_name_20, light->getName()) == 0) {
+                    srModelInstance* instance =
+                        prop->ToggleRepAnimationDefault();
+                    light->m_prop_254 = prop;
+                    GetModelAnimatedTexture004B9B50(instance)->flag_60 = 3;
+                }
+            }
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x004BBAD0
 unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)

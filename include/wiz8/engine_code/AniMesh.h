@@ -21,7 +21,8 @@ struct W8AniMesh {
 static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 
 class stModelInstance005EC7D0;
-stModelInstance005EC7D0* GetAniMeshFrame004B6550(W8AniMesh* mesh, int frame);
+stModelInstance005EC7D0* GetAniMeshFrame004B6550(
+    W8AniMesh* mesh, unsigned char frame);
 void DestroyAniMesh004B5880(W8AniMesh* mesh);
 unsigned char AniMeshValue004B64F0(W8AniMesh* mesh);
 unsigned char AniMeshRadius004B66E0(W8AniMesh* mesh, float* radius);

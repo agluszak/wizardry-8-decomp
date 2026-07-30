@@ -40,7 +40,7 @@ void* AnimObjListEntry004A16C0(
     W8AnimObj* animation, signed char list_index, signed char entry_index);
 unsigned char AnimationIsRunning(W8AnimObj* animation);
 srModelInstance* AnimObjDispatch004A14D0(
-    W8AnimObj* animation, signed char list_index, int value);
+    W8AnimObj* animation, signed char list_index, unsigned char value);
 srModelInstance* AnimObjDispatchList004A1560(
     W8AnimObj* animation, signed char list_index, signed char entry_index);
 void* AnimObjEntry004A1660(
