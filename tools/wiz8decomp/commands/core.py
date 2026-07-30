@@ -42,6 +42,14 @@ def lint_command() -> None:
     cli.run_action(lambda: lint(cli.settings()))
 
 
+def diagnostics_command() -> None:
+    """Emit non-gating recovery-relevant clang diagnostics."""
+    from .. import command_support as cli
+    from ..build import lint
+
+    cli.run_action(lambda: lint(cli.settings(), full_diagnostics=True))
+
+
 def build_command(
     target: Annotated[str, typer.Argument(help="Friendly alias or CMake target.")] = "match",
     jobs: Annotated[int | None, typer.Option("--jobs", "-j")] = None,
@@ -232,6 +240,7 @@ def register(app: typer.Typer) -> None:
     app.command("prepare")(prepare_command)
     app.command("check")(check_command)
     app.command("lint")(lint_command)
+    app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command(
         "compare", context_settings={"allow_extra_args": True, "ignore_unknown_options": True}

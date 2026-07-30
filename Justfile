@@ -20,6 +20,9 @@ build-lint-image:
 lint:
     uv run wiz8 lint
 
+diagnostics:
+    uv run wiz8 diagnostics
+
 build target="match" *args:
     uv run wiz8 build {{target}} {{args}}
 

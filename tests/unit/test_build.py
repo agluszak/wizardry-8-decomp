@@ -122,6 +122,51 @@ def test_build_lock_reports_the_current_holder(tmp_path: Path) -> None:
             pass
 
 
+def test_full_diagnostics_uses_an_isolated_build_and_explicit_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    settings = _settings(tmp_path)
+    commands: list[list[str]] = []
+
+    monkeypatch.setattr(build_module, "resolve_executable", lambda _name: "/usr/bin/docker")
+
+    def fake_run(command: list[str], **_kwargs) -> build_module.CommandResult:
+        commands.append(command)
+        return build_module.CommandResult(
+            argv=command,
+            executable=command[0],
+            cwd=str(settings.repo_dir),
+            exit_status=0,
+            stdout="",
+            stderr="",
+            timestamp_utc="2026-07-30T00:00:00+00:00",
+        )
+
+    monkeypatch.setattr(build_module, "run", fake_run)
+
+    result = build_module.lint(settings, full_diagnostics=True)
+
+    assert result["mode"] == "full-diagnostics"
+    assert "-DWIZ8_FULL_DIAGNOSTICS=ON" in commands[0]
+    assert "WIZ8_CLANG_DIAGNOSTICS" in commands[1]
+    assert (settings.repo_dir / build_module.DIAGNOSTICS_BUILD_DIR).is_dir()
+
+
+def test_strict_warning_surface_enables_every_recovery_diagnostic() -> None:
+    cmake = (Path(__file__).resolve().parents[2] / "CMakeLists.txt").read_text()
+
+    assert "set(WIZ8_STRICT_WARNING_UNITS" in cmake
+    assert "src/wiz8/engine_code/BitArray.cpp" in cmake
+    for warning in (
+        "-Werror=sometimes-uninitialized",
+        "-Werror=switch",
+        "-Werror=array-bounds",
+        "-Werror=sign-compare",
+        "-Werror=missing-field-initializers",
+    ):
+        assert warning in cmake
+
+
 def test_verify_builds_and_runs_the_runtime_semantic_suite(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

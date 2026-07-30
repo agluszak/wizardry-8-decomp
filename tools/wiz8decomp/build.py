@@ -21,6 +21,7 @@ from .subprocesses import CommandResult, resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
 LINT_BUILD_DIR = "build/clang"
+DIAGNOSTICS_BUILD_DIR = "build/clang-diagnostics"
 SOURCE_INDEXER_SOURCE = "tools/source-indexer/indexer.cpp"
 SOURCE_INDEXER_DIR = "build/source-indexer"
 # Clang's own libraries are built without RTTI, and the LLVM headers want the
@@ -358,11 +359,11 @@ def build_target(
         }
 
 
-def lint(settings: Settings) -> dict[str, Any]:
-    """Compile recovered C++ with clang-cl and the real VC6 headers."""
+def lint(settings: Settings, *, full_diagnostics: bool = False) -> dict[str, Any]:
+    """Compile recovered C++ with structural or full recovery diagnostics."""
 
     docker = resolve_executable("docker") or "docker"
-    output = settings.repo_dir / LINT_BUILD_DIR
+    output = settings.repo_dir / (DIAGNOSTICS_BUILD_DIR if full_diagnostics else LINT_BUILD_DIR)
     output.mkdir(parents=True, exist_ok=True)
     mounts = (
         Mount(settings.repo_dir, "/repo"),
@@ -379,24 +380,28 @@ def lint(settings: Settings) -> dict[str, Any]:
             command.extend(("--volume", mount.docker_argument()))
         return command
 
+    configure_command = [
+        *prefix(),
+        "--entrypoint",
+        "cmake",
+        VC6_IMAGE,
+        "--fresh",
+        "-S",
+        "/repo",
+        "-B",
+        "/out",
+        "-G",
+        "Ninja",
+        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
+    ]
+    if full_diagnostics:
+        configure_command.append("-DWIZ8_FULL_DIAGNOSTICS=ON")
     configure_result = run(
-        [
-            *prefix(),
-            "--entrypoint",
-            "cmake",
-            VC6_IMAGE,
-            "--fresh",
-            "-S",
-            "/repo",
-            "-B",
-            "/out",
-            "-G",
-            "Ninja",
-            "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-            "-DCMAKE_TOOLCHAIN_FILE=/repo/cmake/clang-cl-i686.cmake",
-        ],
+        configure_command,
         cwd=settings.repo_dir,
     )
+    target = "WIZ8_CLANG_DIAGNOSTICS" if full_diagnostics else "WIZ8_CLANG_LINT"
     build_result = run(
         [
             *prefix(),
@@ -405,14 +410,23 @@ def lint(settings: Settings) -> dict[str, Any]:
             VC6_IMAGE,
             "--build",
             "/out",
+            "--target",
+            target,
             "--",
             "-k",
             "0",
         ],
         cwd=settings.repo_dir,
-        log_path=settings.repo_dir / "build" / "logs" / "clang-lint-build.json",
+        log_path=settings.repo_dir
+        / "build"
+        / "logs"
+        / ("clang-full-diagnostics.json" if full_diagnostics else "clang-lint-build.json"),
     )
-    return {"configure": _result(configure_result), "build": _result(build_result)}
+    return {
+        "mode": "full-diagnostics" if full_diagnostics else "gating",
+        "configure": _result(configure_result),
+        "build": _result(build_result),
+    }
 
 
 def build_source_indexer(settings: Settings) -> Path:
