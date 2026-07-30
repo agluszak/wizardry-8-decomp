@@ -19,7 +19,7 @@ struct W8PathAI {
     float value_04;                      /* 0x04 */
     unsigned char unknown_08[4];
     W8GrowableVector<W8PathVector3*>* nodes_0c; /* 0x0c */
-    unsigned char unknown_10[4];
+    int value_10;                        /* 0x10 */
     void* allocation_14;                 /* 0x14 */
     void* render_allocation_18;          /* 0x18 */
     unsigned char flag_1c;               /* 0x1c */
@@ -82,5 +82,6 @@ void PathAIPosition004AA370(W8PathAI* path, W8PathVector3* value);
 void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value);
 void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
+unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
 
 #endif

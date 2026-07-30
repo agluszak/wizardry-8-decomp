@@ -21,6 +21,7 @@ class W8VectorElement005EC280;
 class W8CollidableProp;
 class Trigger;
 class stParticle;
+struct W8PathAI;
 struct W8NamedPosition {
     W8NamedPosition()
     {
@@ -44,6 +45,15 @@ struct W8NamedPosition {
 
 static_assert(sizeof(W8NamedPosition) == 0x9c,
               "W8NamedPosition_must_be_0x9c");
+
+struct W8WorldCameraEntry {
+    unsigned char positional_00[0x14];
+    unsigned char positional_14[4];
+    W8PathAI* path;
+};
+
+static_assert(sizeof(W8WorldCameraEntry) == 0x1c,
+              "W8WorldCameraEntry_must_be_0x1c");
 
 /* Engine Code\3dapi.cpp. CreateWorld allocates and zeroes exactly 0xdc bytes;
    the list/vector setup and teardown routines prove the owned fields below. */

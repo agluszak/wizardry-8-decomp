@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/ReadLevel.h"
@@ -54,7 +55,6 @@ extern void Function426790(void);
 extern void Function443A60(W8World* world);
 extern void Function479030(void);
 extern void Function47A700(void* ambient_sound);
-extern void Function4A9810(void* camera_owner);
 extern void Function4A4210(W8World* world);
 extern void Function4AC3D0(W8World* world);
 extern void Function46E4A0(W8World* world);
@@ -62,14 +62,6 @@ extern unsigned char Function4914C0(void);
 extern void Function490B90(void);
 extern unsigned char g_world_cleanup_flag_00659757;
 extern W8GrowableVector<W8World*> g_worlds_00659a80;
-
-namespace {
-struct W8WorldCameraEntry {
-    unsigned char positional_00[0x18];
-    void* owner_18;
-};
-
-} // namespace
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -358,7 +350,7 @@ void DestroyWorldCollections(W8World* world)
             W8WorldCameraEntry* entry = static_cast<W8WorldCameraEntry*>(
                 PListGetAt(world->plsCameras, 0));
             PListRemoveAt(world->plsCameras, 0);
-            Function4A9810(entry->owner_18);
+            DestroyPathAI004A9810(entry->path);
             free(entry);
         }
         PListDestroy(world->plsCameras);
