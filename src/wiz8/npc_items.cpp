@@ -94,6 +94,99 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     return index;
 }
 
+/* Populate an NPC's stock from its database rules on first use. Each rule rolls
+   once per configured unit against the chance its difficulty tier selects, and
+   the successes are added as one batch. The stock is then sorted and both clock
+   stamps are set, which is what makes 0x0055AFA0's two staleness windows start
+   from the same instant.
+
+   A rule whose item id is past the end of the item database is skipped, and an
+   NPC with no rules or an empty rule list ends up with no item list at all. */
+// FUNCTION: WIZ8 0x0055a630
+unsigned char PopulateNpcStock(W8NpcState* npc)
+{
+    W8PList* rules;
+    W8NpcItemStockRule* rule;
+    unsigned int rule_count;
+    unsigned int rule_index;
+    unsigned int remaining;
+    int item_id;
+    char persistent;
+    char added;
+    char chance;
+    char tier;
+
+    rules = npc->record->item_stock_rules;
+    if (rules == 0) {
+        npc->items = 0;
+        return 1;
+    }
+    rule_count = PListGetCount(rules);
+    if (rule_count == 0) {
+        npc->items = 0;
+        return 1;
+    }
+    if (npc->items == 0) {
+        npc->items = PListCreate();
+    }
+    rule_count = PListGetCount(npc->record->item_stock_rules);
+    rule_index = 0;
+    if (rule_count > 0) {
+        do {
+            rule = static_cast<W8NpcItemStockRule*>(
+                PListGetAt(npc->record->item_stock_rules, rule_index));
+            item_id = rule->item_id;
+            if (item_id < g_item_record_count) {
+                persistent = rule->persistent;
+                added = 0;
+                if (rule->quantity != 0) {
+                    remaining = rule->quantity;
+                    do {
+                        if (persistent == 0) {
+                            tier = RateItemIdentifyDifficulty(npc, item_id);
+                        }
+                        else {
+                            tier = 4;
+                        }
+                        switch (tier) {
+                        case 0:
+                            chance = 0;
+                            break;
+                        case 1:
+                            chance = 25;
+                            break;
+                        case 2:
+                            chance = 50;
+                            break;
+                        case 3:
+                            chance = 75;
+                            break;
+                        case 4:
+                            chance = 100;
+                            break;
+                        default:
+                            chance = 0;
+                            break;
+                        }
+                        if (Random(100) < static_cast<unsigned int>(chance)) {
+                            ++added;
+                        }
+                        --remaining;
+                    } while (remaining != 0);
+                }
+                if (added != 0) {
+                    AddNpcItem(npc, rule->item_id, added);
+                }
+            }
+            ++rule_index;
+        } while (rule_index < rule_count);
+    }
+    SortNpcItems(npc);
+    npc->maintenance_clock = g_world_clock_00686a48;
+    npc->restock_clock = g_world_clock_00686a48;
+    return 1;
+}
+
 /* The qsort predicate SortNpcItems passes. The reviewed Ghidra project has no
    function boundary at this address yet, so the signature comes from qsort's
    contract rather than from a recovered body; wiz8-kq15 tracks defining the

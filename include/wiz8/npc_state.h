@@ -30,7 +30,12 @@ typedef struct W8NpcState {
     unsigned char unknown_00[6];
     W8NpcDatabaseRecord* record;          /* 0x06 */
     W8PList* items;                       /* 0x0a: W8NpcItemEntry* elements */
-    unsigned char unknown_0e[8];
+    /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
+       populated at 0x0055A630. 0x0055AFA0 reads them as separate windows: it
+       reruns the stock-rule pass once 0x0e is more than 0xa8c0 old, and the
+       decay and restock pass once 0x12 is more than 0x15180 old. */
+    int restock_clock;                    /* 0x0e */
+    int maintenance_clock;                /* 0x12 */
     int location_id;                      /* 0x16 */
     unsigned char has_monster;            /* 0x1a */
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
@@ -68,6 +73,7 @@ char RateItemIdentifyDifficulty(W8NpcState* npc, int item_id);
 int RestockNpcItems(W8NpcState* npc);
 void ClearNpcItems(W8NpcState* npc);
 void SortNpcItems(W8NpcState* npc);
+unsigned char PopulateNpcStock(W8NpcState* npc);
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
