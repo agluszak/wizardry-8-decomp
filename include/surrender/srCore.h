@@ -4,6 +4,7 @@
 
 #include "srFileManager.h"
 #include "srHeap.h"
+#include "srMemoryAllocator.h"
 
 class srColorSurfaceIFace;
 class srFilter;
@@ -11,7 +12,6 @@ class srGlobalRecycler;
 class srHierarchyIOManager;
 class srIStreamOpener;
 class srMaterial;
-class srMemoryAllocator;
 class srModelIOManager;
 class srNode;
 class srPalette;

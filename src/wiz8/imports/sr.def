@@ -176,6 +176,17 @@ EXPORTS
     ?removePath@srFileManager@@QAEXPBD@Z
     ?save@srFileManager@@UAEXPBDPAXK@Z
     ?setPath@srFileManager@@QAEXPBD@Z
+    ??0srMemoryAllocator@@QAE@XZ
+    ??1srMemoryAllocator@@QAE@XZ
+    ??4srMemoryAllocator@@QAEAAV0@ABV0@@Z
+    ?align@srMemoryAllocator@@AAEPAVBlock@1@PAX@Z
+    ?allocate@srMemoryAllocator@@QAEPAXKKPBD@Z
+    ?allocate@srMemoryAllocator@@QAEPAXKPBD@Z
+    ?dump@srMemoryAllocator@@QBEXXZ
+    ?free@srMemoryAllocator@@QAEXPAX@Z
+    ?getName@srMemoryAllocator@@QBEPBDPAX@Z
+    ?getSize@srMemoryAllocator@@QBEKPAX@Z
+    ?setAlignment@srMemoryAllocator@@QAEXW4e_alignSize@1@@Z
     ??0srBinStream@@IAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@
