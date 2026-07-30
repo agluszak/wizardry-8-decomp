@@ -96,6 +96,8 @@ protected:
     virtual SR_DLL_IMPORT ~srRuntimeClass();
 
 private:
+    static SR_DLL_IMPORT unsigned long sGetClassID();
+
     char* name_04;
     unsigned long id_08;
 };
@@ -164,6 +166,10 @@ protected:
 
 private:
     struct Update;
+
+    static SR_DLL_IMPORT Update* _firstUpdate;
+    static SR_DLL_IMPORT double _lastUpdateTime;
+    static SR_DLL_IMPORT unsigned long _timestampCtr;
 
     long reference_count_0c;
     unsigned long timestamp_10;

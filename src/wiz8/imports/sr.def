@@ -86,8 +86,6 @@ EXPORTS
     ??0srCamera@@QAE@PAVsrNode@@@Z
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@PAXKKK@Z
-    ?setName@srRuntimeClass@@QAEXPBD@Z
-    ?getName@srRuntimeClass@@QBEPBDXZ
     ?setClipRange@srCamera@@QAEXNN@Z
     ?setEnvironmentRange@srCamera@@QAEXMM@Z
     ?setViewPlane@srCamera@@QAEXABURect@1@N@Z
@@ -115,9 +113,6 @@ EXPORTS
     ?free@srHeap@@QAEXPAXI@Z
     ?freeAll@srHeap@@QAEXXZ
     ?msize@srHeap@@QAEKPAX@Z
-    ??4srClass@@QAEAAV0@ABV0@@Z
-    ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
-    ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
     ??1srColorSurface@@MAE@XZ
     ?getPixel@srColorSurfaceIFace@@UAEKJJ@Z
     ?setPixel@srColorSurfaceIFace@@UAEXJJK@Z
@@ -177,10 +172,6 @@ EXPORTS
     ?sGetClassName@srColorSurfaceIFace@@SAPBDXZ
     ??4srColorSurface@@QAEAAV0@ABV0@@Z
     ?allocate@srHeap@@QAEPAXK@Z
-    ?release@srClass@@QBEHXZ
-    ?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ
-    ??0srClass@@IAE@XZ
-    ??1srClass@@MAE@XZ
     ??0srNode@@QAE@PAV0@@Z
     ??1srNode@@MAE@XZ
     ??4srNode@@QAEAAV0@ABV0@@Z
@@ -241,6 +232,54 @@ EXPORTS
     ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
     ?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
     ?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ??0srRuntimeClass@@IAE@XZ
+    ??0srRuntimeClass@@QAE@ABV0@@Z
+    ??1srRuntimeClass@@MAE@XZ
+    ??4srRuntimeClass@@QAEAAV0@ABV0@@Z
+    ?dump@srRuntimeClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dumpNames@srRuntimeClass@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
+    ?getClassID@srRuntimeClass@@UBEKXZ
+    ?getClassName@srRuntimeClass@@UBEPBDXZ
+    ?getClassNode@srRuntimeClass@@UBEPAVClassNode@srRegistry@@XZ
+    ?getID@srRuntimeClass@@QBEKXZ
+    ?getName@srRuntimeClass@@QBEPBDXZ
+    ?getTotalInstances@srRuntimeClass@@SAJH@Z
+    ?getUniqueName@srRuntimeClass@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?isNamed@srRuntimeClass@@QBEHXZ
+    ?matchClassID@srRuntimeClass@@QBEHK@Z
+    ?sGetClassID@srRuntimeClass@@CAKXZ
+    ?sGetClassNode@srRuntimeClass@@SAPAVClassNode@srRegistry@@XZ
+    ?setName@srRuntimeClass@@QAEXPBD@Z
+    ?verify@srRuntimeClass@@UAEXW4e_verify@1@@Z
+    ??0srClass@@IAE@XZ
+    ??0srClass@@QAE@ABV0@@Z
+    ??1srClass@@MAE@XZ
+    ??4srClass@@QAEAAV0@ABV0@@Z
+    ?_firstUpdate@srClass@@0PAUUpdate@1@A
+    ?_lastUpdateTime@srClass@@0NA
+    ?_timestampCtr@srClass@@0KA
+    ?addReference@srClass@@QBEXXZ
+    ?allocateTimeStamps@srClass@@IBEKK@Z
+    ?autoRelease@srClass@@QAEXXZ
+    ?clone@srClass@@QAEPAV1@XZ
+    ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?find@srClass@@SAPAV1@K@Z
+    ?find@srClass@@SAPAV1@PBDKPBVsrRuntimeClass@@@Z
+    ?find@srClass@@SAPAV1@PBDPBV1@@Z
+    ?find@srClass@@SAPAV1@PBV1@@Z
+    ?getReferenceCount@srClass@@QBEJXZ
+    ?getTimestamp@srClass@@QBEKXZ
+    ?getUpdateCallBack@srClass@@QAEP6AXPAV1@NN@ZXZ
+    ?getUpdateInterval@srClass@@QAENXZ
+    ?instance@srClass@@QAEPAV1@XZ
+    ?performUpdates@srClass@@SAXN@Z
+    ?release@srClass@@QBEHXZ
+    ?sGetClassName@srClass@@SAPBDXZ
+    ?sGetClassNode@srClass@@SAPAVClassNode@srRegistry@@XZ
+    ?setUpdate@srClass@@QAEXP6AXPAV1@NN@ZN@Z
+    ?setUpdatesTime@srClass@@QAEXN@Z
+    ?touch@srClass@@QAEXXZ
+    ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
     ??1srMaterialIFace@@UAE@XZ
     ?sGetClassName@srMaterialIFace@@SAPBDXZ
     ??1srMaterial@@MAE@XZ
@@ -302,10 +341,6 @@ EXPORTS
     ?setModel@Client@srModel@@UAEXPAV2@@Z
     ?updateClient@Client@srModel@@UAEXW4e_update@12@@Z
     ??0srModelInstance@@QAE@PAVsrNode@@@Z
-    ?addReference@srClass@@QBEXXZ
-    ?autoRelease@srClass@@QAEXXZ
-    ?getReferenceCount@srClass@@QBEJXZ
-    ?touch@srClass@@QAEXXZ
     ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
     ?clone@srNode@@UAEPAV1@XZ
     ??1srModelInstance@@MAE@XZ
