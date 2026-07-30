@@ -118,6 +118,14 @@ void stLight::process(
     srLight::process(info, type);
 }
 
+// FUNCTION: WIZ8 0x0049C940
+void stLight::SetDefinitionTime0049C940(float time)
+{
+    if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
+        m_definition_234->time_4c = time;
+    }
+}
+
 /* Restart the light-definition driven state when a Monster switches cycles.
    The definition at +0x234 is owned by stLight; type two resets its own pair
    of counters, while the other forms restore intensity and an optional
@@ -127,7 +135,7 @@ void stLight::Reset0049D070()
 {
     if (m_definition_234 != 0) {
         if (m_definition_234->type_04 == 2) {
-            m_definition_234->value_4c = 0;
+            m_definition_234->time_4c = 0.0f;
             m_definition_234->value_48 = 0;
             m_positional_248 = 0;
             m_positional_250 = 1;

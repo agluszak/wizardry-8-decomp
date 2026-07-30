@@ -59,6 +59,7 @@ EXPORTS
     ?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z
     ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
+    ?getRootNode@srCore@@QBEPAVsrNode@@XZ
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?srCore@@3V0@A
     ?srBoxFilter@@3V0@A

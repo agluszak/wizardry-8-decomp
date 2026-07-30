@@ -138,11 +138,12 @@ public:
     void Function453690(void* argument);                   /* 0x00453690 */
     void SetPositionInternal00453590(const W8Position* position);
     void SetObject68Flag38(char value);                    /* 0x004537C0 */
-    unsigned char LinkToNavigator004527A0(
+    unsigned short LinkToNavigator004527A0(
         W8Navigator* target, double separation);           /* 0x004527A0 */
     void Function454040(const W8Position* position);       /* 0x00454040 */
-    void Function453F30(const W8Position* position);       /* 0x00453F30 */
+    void AimAtPosition00453F30(const W8Position* position); /* 0x00453F30 */
     void SetFlag25(char value);                            /* 0x004531F0 */
+    void SetMovementStopped00453880();                     /* 0x00453880 */
     void UpdateAngles00453990();                           /* 0x00453990 */
     unsigned char ConfigureMovement00453D20(
         float minimum, float maximum);                     /* 0x00453D20 */
@@ -267,6 +268,7 @@ public:
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
+    void UpdateLights004A7150();
     srModelInstance* SelectCycleFrameLod004A8360(
         signed char cycle, signed char frame, signed char lod);
     srModelInstance* GetCurrentModelInstance004A8250();

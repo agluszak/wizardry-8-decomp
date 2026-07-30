@@ -12,6 +12,7 @@
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srModelInstance.h"
+#include "surrender/srCore.h"
 #include <new>
 #include <string.h>
 
@@ -45,6 +46,21 @@ public:
 extern unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 extern void PrepareGrCycleEvents004AE270(
     W8GrowableVector<W8VectorElement005ECED4*>* events);
+extern int UpdateSoundEvents004D5890(
+    W8GrowableVector<W8VectorElement005ED094*>* events,
+    const srVector3T<float>* position,
+    unsigned int event_mask,
+    int cycle,
+    unsigned int frame,
+    int subcycle);
+extern void UpdateGrCycleEvents004AE170(
+    W8GrowableVector<W8VectorElement005ECED4*>* events,
+    int cycle,
+    unsigned int frame,
+    int subcycle,
+    const srVector3T<float>* position);
+extern float g_float_005ec128;
+extern float g_float_005ebc64;
 
 // FUNCTION: WIZ8 0x004a5e50
 W8GrCycle::W8GrCycle()
@@ -109,6 +125,193 @@ W8GrCycle::~W8GrCycle()
     }
     if (m_ground_shadow != 0) {
         m_ground_shadow->release();
+    }
+}
+
+// FUNCTION: WIZ8 0x004a6e20
+void W8GrCycle::TickAnimation(float scale)
+{
+    W8EmitterHost* representation = GetRepresentation();
+
+    ApplyPendingCycle();
+    if (representation->flag_06d != 0) {
+        signed char subcycle_count = GetNumSubCycles();
+
+        if (subcycle_count != 0) {
+            unsigned int now = g_shared_timer_base->getMsTime(
+                srTimer::TIMER_READ_DEFAULT);
+            unsigned int elapsed = now - representation->timer_068;
+            float rate;
+            float progress;
+            int frames;
+
+            if (elapsed > 1000) {
+                elapsed = 1000;
+                representation->timer_068 = now - 1000;
+            }
+
+            rate = GetCurrentAnimationScale() * scale;
+            progress = elapsed * rate * g_float_005ec128;
+            frames = (int)progress;
+            unknown_1d4 = progress - (float)frames;
+
+            if (frames != 0) {
+                srVector3T<float> position;
+
+                representation->timer_068 +=
+                    (int)((float)frames * g_float_005ebc64 / rate);
+                unknown_1bc = 0;
+                position = GetPosition();
+                do {
+                    --frames;
+                    AdvanceAnimationFrame(subcycle_count, 0);
+                    if (ApplyPendingCycle() != 0) {
+                        frames = 0;
+                    }
+                    if (m_plsSoundEvents != 0) {
+                        UpdateSoundEvents004D5890(
+                            m_plsSoundEvents,
+                            &position,
+                            0x101,
+                            representation->selection.monster.current_cycle,
+                            representation->flag_064,
+                            representation->selection.monster.current_subcycle);
+                    }
+                    if (m_vector_1b0 != 0) {
+                        UpdateGrCycleEvents004AE170(
+                            m_vector_1b0,
+                            representation->selection.monster.current_cycle,
+                            representation->flag_064,
+                            representation->selection.monster.current_subcycle,
+                            &position);
+                    }
+                } while (frames != 0);
+            }
+        }
+
+        if (m_plsLights != 0 && m_plsLights->GetCount() != 0) {
+            UpdateLights004A7150();
+        }
+        unknown_1b5 = representation->flag_064;
+    }
+}
+
+// FUNCTION: WIZ8 0x004a6fc0
+unsigned char W8GrCycle::ApplyPendingCycle()
+{
+    W8EmitterHost* representation = GetRepresentation();
+
+    if (representation != 0 &&
+        representation->selection.monster.pending_cycle != -1 &&
+        CanEnterCycle(representation->selection.monster.pending_cycle) != 0) {
+        signed char pending_cycle =
+            representation->selection.monster.pending_cycle;
+        SetCycle(pending_cycle);
+        representation->selection.monster.pending_cycle = -1;
+
+        if (representation->value_066 != 0xffff) {
+            unsigned char subcycle = (unsigned char)representation->value_066;
+            signed char subcycle_count = GetNumSubCycles();
+            W8EmitterHost* current = GetRepresentation();
+
+            if ((int)subcycle < (int)subcycle_count) {
+                current->flag_064 = subcycle;
+            }
+            representation->value_066 = 0xffff;
+        }
+
+        if ((signed char)representation->behaviour_071 != -1) {
+            signed char behaviour = (signed char)representation->behaviour_071;
+            W8EmitterHost* current = GetRepresentation();
+
+            if (behaviour < BEHAVIOUR_FIRST || behaviour > BEHAVIOUR_LAST) {
+                srAssertFail(
+                    "(bBehaviour >= BEHAVIOUR_FIRST) && (bBehaviour <= BEHAVIOUR_LAST)",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+                    0x63e,
+                    0);
+            }
+            current->flag_070 = behaviour;
+            representation->behaviour_071 = 0xff;
+        }
+
+        srVector3T<float> position = GetPosition();
+        if (m_plsSoundEvents != 0) {
+            UpdateSoundEvents004D5890(
+                m_plsSoundEvents,
+                &position,
+                0x103,
+                representation->selection.monster.current_cycle,
+                representation->flag_064,
+                representation->selection.monster.current_subcycle);
+        }
+        if (m_vector_1b0 != 0) {
+            UpdateGrCycleEvents004AE170(
+                m_vector_1b0,
+                representation->selection.monster.current_cycle,
+                representation->flag_064,
+                representation->selection.monster.current_subcycle,
+                &position);
+        }
+
+        signed char subcycle_count = GetNumSubCycles();
+        if ((unsigned char)representation->flag_064 >=
+            (unsigned char)subcycle_count) {
+            representation->flag_064 = subcycle_count - 1;
+        }
+        representation->flag_06d = 1;
+        representation->timer_068 = g_shared_timer_base->getMsTime(
+            srTimer::TIMER_READ_DEFAULT);
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004a7150
+void W8GrCycle::UpdateLights004A7150()
+{
+    W8EmitterHost* representation = GetRepresentation();
+    int count = m_plsLights->GetCount();
+    int index;
+
+    for (index = 0; index < count; ++index) {
+        stLight* light = *m_plsLights->GetAt(index);
+        stLightDefinition* definition = light->definition();
+
+        if (definition == 0) {
+            continue;
+        }
+        if (definition->type_04 == 1) {
+            if ((definition->flags_08 & 3) == 3 &&
+                (definition->flags_08 & 0x40) != 0) {
+                if (definition->IsEnabledForSubcycle(
+                        representation->flag_064) == 0) {
+                    if (light->parentNode() != 0) {
+                        light->setParent(0, 0);
+                    }
+                } else if ((representation->flag_064 == 0 &&
+                            definition->value_3c == 0) ||
+                           light->parentNode() == srCore.getRootNode()) {
+                    light->setParent(g_world->dynamic_scene, 0);
+                    light->m_positional_248 = 0;
+                    light->m_positional_250 = 1;
+                    light->Reset0049D070();
+                }
+            }
+        } else if (definition->type_04 == 2) {
+            if (representation->flag_064 == 0 || unknown_1bc != 0) {
+                light->Reset0049D070();
+            }
+            light->SetDefinitionTime0049C940(
+                (float)representation->flag_064 + unknown_1d4);
+            if (definition->IsEnabledForSubcycle(0) == 0) {
+                if (light->parentNode() != 0) {
+                    light->setParent(0, 0);
+                }
+            } else if (light->parentNode() == srCore.getRootNode()) {
+                light->setParent(g_world->dynamic_scene, 0);
+            }
+        }
     }
 }
 

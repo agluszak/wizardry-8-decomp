@@ -2449,7 +2449,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
             if (alternate != 0) {
                 monster->Function454040(&position);
             } else {
-                monster->Function453F30(&position);
+                monster->AimAtPosition00453F30(&position);
             }
         }
     }

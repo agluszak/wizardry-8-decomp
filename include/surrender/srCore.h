@@ -3,6 +3,7 @@
 #include "srHeap.h"
 
 class srIStreamOpener;
+class srNode;
 class srRegistry;
 class srSurfaceIOManager;
 
@@ -12,6 +13,7 @@ public:
     SR_DLL_IMPORT srIStreamOpener* getIStreamOpener() const;
     SR_DLL_IMPORT const char* getCopyright() const;
     SR_DLL_IMPORT const char* getVersion() const;
+    SR_DLL_IMPORT srNode* getRootNode() const;
 
     srRegistry* getRegistry() const { return registry_; }
 

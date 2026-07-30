@@ -121,25 +121,33 @@ public:
     unsigned long getClassID() const;     /* 0x0047D6D0 */
 };
 
-// VTABLE: WIZ8 0x005ecc64
-struct stLightDefinition {
-    void* vftable_00;
+class stLightDefinition {
+public:
+    virtual void vslot0() = 0;
+    virtual void vslot1() = 0;
+    virtual unsigned char IsEnabledForSubcycle(unsigned char subcycle) = 0;
+
     int type_04;
     unsigned int flags_08;
     unsigned char unknown_0c[4];
     srVector3T<float> color_10;
     unsigned char unknown_1c[0x0c];
     float intensity_28;
-    unsigned char unknown_2c[0x1c];
+    unsigned char unknown_2c[0x10];
+    int value_3c;
+    unsigned char unknown_40[8];
     int value_48;
-    int value_4c;
+    float time_4c;
 };
 
 static_assert(
     sizeof(stLightDefinition) == 0x50,
     "stLightDefinition_size_must_be_0x50");
 
+// VTABLE: WIZ8 0x005ecc64
 class stLight : public srLight {
+    friend class W8GrCycle;
+
 public:
     stLight();                                         /* 0x004CA8B0 */
     stLight(srNode* parent);                         /* 0x0049C2C0 */
@@ -160,6 +168,7 @@ public:
         const srNode::ProcessInfo& info,
         srNode::e_processType type) override;       /* 0x0049C8D0 */
     void Reset0049D070();                           /* 0x0049D070 */
+    void SetDefinitionTime0049C940(float time);      /* 0x0049C940 */
 
     float positionalX() const { return m_positional_228; }
     float positionalY() const { return m_positional_22c; }
