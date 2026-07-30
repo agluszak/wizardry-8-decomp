@@ -2,6 +2,7 @@
 
 #include "srMath.h"
 #include "srTypeRegistry.h"
+#include "srVertexProcessor.h"
 
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
    vtable. First-party scene traversal establishes the two child-list links;
@@ -117,16 +118,26 @@ private:
     srNode* first_child_;                   /* 0x134 */
 };
 
-/* Declared for its static registry getter alone, which Wiz8.exe imports by
-   decorated name - `original-export` evidence, so the name and the ABI are the
-   original's. The reviewed MonsterLight row places it between srNode and
-   srLight, spelling the relation out as
-   srClassSupport<srIlluminator,srNode,0,0x1200>; nothing else about the class
-   is recovered, so nothing else is declared. */
-class srIlluminator : public srNode {
+/* SR.DLL's exported primary and secondary vtable names establish the exact
+   srNode/srVertexProcessor multiple-inheritance prefix. */
+class srIlluminator : public srNode, public srVertexProcessor {
 public:
+    SR_DLL_IMPORT srIlluminator(srNode* parent);
+    SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();
+    virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
+    virtual SR_DLL_IMPORT void process(
+        const ProcessInfo& info, e_processType type) override;
+    virtual int isActive(srVertexPipe& pipe) override = 0;
+    virtual void process(srVertexPipe& pipe) override = 0;
+    SR_DLL_IMPORT unsigned long getGroupMask() const;
+    SR_DLL_IMPORT void setGroupMask(unsigned long mask);
+
+protected:
+    virtual SR_DLL_IMPORT ~srIlluminator() override;
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
+static_assert((sizeof(srIlluminator) == 0x168),
+              "srIlluminator_must_be_0x168");
 static_assert((sizeof(srNode::TraverseInfo) == 0x18), "srNode_TraverseInfo_must_be_0x18");

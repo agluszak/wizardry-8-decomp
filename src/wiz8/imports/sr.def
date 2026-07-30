@@ -11,6 +11,14 @@ LIBRARY SR
 ; object could close that, not a .def.
 EXPORTS
     ??4srModelInstance@@QAEAAV0@ABV0@@Z
+    ??0srFog@@QAE@PAVsrNode@@@Z
+    ??1srFog@@UAE@XZ
+    ??4srFog@@QAEAAV0@ABV0@@Z
+    ?dump@srFog@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?isActive@srFog@@UAEHAAVsrVertexPipe@@@Z
+    ?process@srFog@@UAEXAAVsrVertexPipe@@@Z
+    ?vInstance@srFog@@UAEPAVsrClass@@XZ
+    ?verify@srFog@@UAEXW4e_verify@srRuntimeClass@@@Z
     ??0srTimer@@QAE@HHH@Z
     ??1srTimer@@UAE@XZ
     ?getAscTime@srTimer@@UAEPADPADW4e_timerReadControl@1@@Z

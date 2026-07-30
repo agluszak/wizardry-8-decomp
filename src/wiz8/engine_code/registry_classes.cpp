@@ -241,16 +241,6 @@ srRegistry::ClassNode* stTextureFile::getClassNode() const
     }
     return node;
 }
-// FUNCTION: WIZ8 0x00484700
-unsigned long W8Fog005EC94C::getClassID() const
-{
-    return 0x1210;
-}
-// FUNCTION: WIZ8 0x00484710
-const char* W8Fog005EC94C::getClassName() const
-{
-    return "srFog";
-}
 // FUNCTION: WIZ8 0x0049DB10
 unsigned long W8Illuminator005ECCD8::getClassID() const
 {

@@ -1,8 +1,12 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Fog.h"
+#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srNode.h"
+#include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
 
 /*
@@ -35,15 +39,120 @@ extern unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 
-/* Two renderer objects the environment owns outright and the count that tracks
-   them. They are srClass because the teardown releases both through the one
-   srClass::release import address it loads once. */
-extern srClass* g_environment_object_0065b9b0;
-extern srClass* g_environment_object_0065b9b4;
+/* The static and dynamic scene fogs owned by the environment. */
+extern W8Fog005EC94C* g_environment_object_0065b9b0;
+extern W8Fog005EC94C* g_environment_object_0065b9b4;
 extern int g_environment_count_0065b99c;
 
-extern void SetSkyEnabled(int enabled);                                  /* 0x00483750 */
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
+
+// SYNTHETIC: WIZ8 0x00484840
+// W8Fog005EC94C::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00484700
+unsigned long W8Fog005EC94C::getClassID() const
+{
+    return 0x1210;
+}
+
+// FUNCTION: WIZ8 0x00484710
+const char* W8Fog005EC94C::getClassName() const
+{
+    return "srFog";
+}
+
+// FUNCTION: WIZ8 0x00484720
+srRegistry::ClassNode* W8Fog005EC94C::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x1210);
+
+    if (node == 0) {
+        srRegistry* parent_registry = srCore.getRegistry();
+        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1200);
+
+        if (parent == 0) {
+            srRegistry* node_registry = srCore.getRegistry();
+            srRegistry::ClassNode* node_parent =
+                node_registry->getClassNode(0x1000);
+
+            if (node_parent == 0) {
+                node_parent = node_registry->registerClass(
+                    srNode::sGetClassName(),
+                    srClass::sGetClassNode(),
+                    0x1000,
+                    1);
+            }
+            parent = parent_registry->registerClass(
+                srIlluminator::sGetClassName(), node_parent, 0x1200, 0);
+        }
+        node = registry->registerClass("srFog", parent, 0x1210, 0);
+    }
+    return node;
+}
+
+// FUNCTION: WIZ8 0x004847C0
+srNode* W8Fog005EC94C::vslot7()
+{
+    srFog* copy = static_cast<srFog*>(vInstance());
+    *copy = *this;
+    return copy;
+}
+
+// FUNCTION: WIZ8 0x00483750
+void SetSkyEnabled(unsigned char enabled)
+{
+    if (enabled != 0) {
+        if (g_world == 0 || g_world->dynamic_scene == 0 ||
+            g_environment_object_0065b9b0 != 0) {
+            return;
+        }
+
+        g_environment_object_0065b9b0 =
+            new W8Fog005EC94C(g_world->static_scene);
+        g_environment_object_0065b9b4 =
+            new W8Fog005EC94C(g_world->dynamic_scene);
+        g_environment_object_0065b9b0->m_positional_28 = 1.0f;
+        g_environment_object_0065b9b4->m_positional_28 = 1.0f;
+
+        if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
+            g_environment_object_0065b9b0->m_positional_double_20 =
+                WorldGetFarClip(g_world) * g_world->m_positional_018;
+            g_environment_object_0065b9b0->m_positional_double_18 =
+                WorldGetFarClip(g_world) * g_world->m_positional_014;
+            g_environment_object_0065b9b4->m_positional_double_18 =
+                WorldGetFarClip(g_world) * g_world->m_positional_014;
+            g_environment_object_0065b9b4->m_positional_double_20 =
+                WorldGetFarClip(g_world) * g_world->m_positional_018;
+        }
+
+        PublishLightDirection(&g_light_direction_0065ad78);
+        if (g_world == 0 || g_world->camera == 0) {
+            return;
+        }
+        g_world->camera->setEnvironmentRange(
+            (float)WorldGetFarClip(g_world) * g_world->m_positional_014,
+            (float)WorldGetFarClip(g_world) * g_world->m_positional_018);
+        return;
+    }
+
+    if (g_environment_object_0065b9b0 != 0) {
+        g_environment_object_0065b9b0->release();
+    }
+    if (g_environment_object_0065b9b4 != 0) {
+        g_environment_object_0065b9b4->release();
+    }
+    g_environment_object_0065b9b0 = 0;
+    g_environment_object_0065b9b4 = 0;
+
+    int direction[3] = {0, 0, 0};
+    PublishLightDirection(direction);
+    if (g_world == 0 || g_world->camera == 0) {
+        return;
+    }
+    g_world->camera->setEnvironmentRange(
+        0.0f, (float)WorldGetFarClip(g_world));
+}
 
 /* The far plane the world is drawn to. */
 // FUNCTION: WIZ8 0x00482750
