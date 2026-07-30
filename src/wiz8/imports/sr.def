@@ -43,7 +43,21 @@ EXPORTS
     ?load@srExtension@@SAPAV1@PBD0@Z
     ?srInit@@YAHXZ
     ?srAssertSetFunc@@YAXP6AXPBD0J0@Z@Z
+    ??0srConfig@@QAE@XZ
+    ??1srConfig@@QAE@XZ
+    ?append@srConfig@@QAEXPBD0@Z
+    ?dump@srConfig@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?exists@srConfig@@QBEHPBD@Z
+    ?get@srConfig@@QBEPBDPBD@Z
+    ?getBool@srConfig@@QBEHPBD@Z
+    ?getFloat@srConfig@@QBEMPBD@Z
+    ?getLong@srConfig@@QBEJPBD@Z
+    ?remove@srConfig@@QAEXPBD@Z
+    ?removeAll@srConfig@@QAEXXZ
     ?set@srConfig@@QAEXPBD0@Z
+    ?setBool@srConfig@@QAEXPBDH@Z
+    ?setFloat@srConfig@@QAEXPBDM@Z
+    ?setLong@srConfig@@QAEXPBDJ@Z
     ?srConfig@@3V0@A
     ??0srStringTable@@QAE@XZ
     ??0srStringTable@@QAE@ABV0@@Z

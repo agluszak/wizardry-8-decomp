@@ -8,14 +8,26 @@ EXPORTS
     ??_7srBinStream@@6B@
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?allocate@srHeap@@QAEPAXK@Z
-    ?exists@srConfig@@QBEHPBD@Z
     ?free@srHeap@@QAEXPAX@Z
-    ?get@srConfig@@QBEPBDPBD@Z
-    ?getBool@srConfig@@QBEHPBD@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
     ?getSize@srBinIMStream@@UAEKXZ
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ??0srConfig@@QAE@XZ
+    ??1srConfig@@QAE@XZ
+    ?append@srConfig@@QAEXPBD0@Z
+    ?dump@srConfig@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?exists@srConfig@@QBEHPBD@Z
+    ?get@srConfig@@QBEPBDPBD@Z
+    ?getBool@srConfig@@QBEHPBD@Z
+    ?getFloat@srConfig@@QBEMPBD@Z
+    ?getLong@srConfig@@QBEJPBD@Z
+    ?remove@srConfig@@QAEXPBD@Z
+    ?removeAll@srConfig@@QAEXXZ
+    ?set@srConfig@@QAEXPBD0@Z
+    ?setBool@srConfig@@QAEXPBDH@Z
+    ?setFloat@srConfig@@QAEXPBDM@Z
+    ?setLong@srConfig@@QAEXPBDJ@Z
     ?srConfig@@3V0@A
     ?srCore@@3V0@A
     ?srHeap@@3V0@A
