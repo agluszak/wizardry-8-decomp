@@ -89,6 +89,17 @@ EXPORTS
     ?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z
     ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
+    ??0Opener@srIStreamOpener@@QAE@XZ
+    ??1Opener@srIStreamOpener@@UAE@XZ
+    ??4Opener@srIStreamOpener@@QAEAAV01@ABV01@@Z
+    ??0srIStreamOpener@@QAE@XZ
+    ??1srIStreamOpener@@QAE@XZ
+    ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
+    ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
+    ?findOpener@srIStreamOpener@@AAEPAVOpener@1@PBD@Z
+    ?open@srIStreamOpener@@AAEPAVsrBinIStream@@PBD0@Z
+    ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
+    ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?getRootNode@srCore@@QBEPAVsrNode@@XZ
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?srCore@@3V0@A

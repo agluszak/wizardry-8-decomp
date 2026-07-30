@@ -3,13 +3,22 @@ LIBRARY SR
 EXPORTS
     ??0srBinStream@@IAE@XZ
     ??0srBinIMStream@@QAE@PBXK@Z
-    ??1Opener@srIStreamOpener@@UAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@
-    ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?allocate@srHeap@@QAEPAXK@Z
     ?free@srHeap@@QAEXPAX@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
+    ??0Opener@srIStreamOpener@@QAE@XZ
+    ??1Opener@srIStreamOpener@@UAE@XZ
+    ??4Opener@srIStreamOpener@@QAEAAV01@ABV01@@Z
+    ??0srIStreamOpener@@QAE@XZ
+    ??1srIStreamOpener@@QAE@XZ
+    ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
+    ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
+    ?findOpener@srIStreamOpener@@AAEPAVOpener@1@PBD@Z
+    ?open@srIStreamOpener@@AAEPAVsrBinIStream@@PBD0@Z
+    ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
+    ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?getSize@srBinIMStream@@UAEKXZ
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
