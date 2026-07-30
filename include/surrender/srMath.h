@@ -67,6 +67,24 @@ public:
     srVector3T<T> vectors[3];
 };
 
+template <>
+class srMatrix3T<float> {
+public:
+    srMatrix3T<float>* method_004219F0(
+        const srVector3T<float>& first,
+        const srVector3T<float>& second,
+        const srVector3T<float>& third);         /* 0x004219F0 */
+
+    srMatrix3T<float>* method_00421A40(
+        const srMatrix3T<float>& other);         /* 0x00421A40 */
+    srMatrix3T<float>* method_00438F90(
+        double sine, double cosine);             /* 0x00438F90 */
+    srMatrix3T<float>* method_00478EB0(
+        double sine, double cosine);             /* 0x00478EB0 */
+
+    srVector3T<float> vectors[3];
+};
+
 template <class T>
 class srMatrix4T {
 public:

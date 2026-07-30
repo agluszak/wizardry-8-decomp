@@ -7,15 +7,24 @@ class srNode;
 class W8Camera005EBE14;
 class W8Object005EBCFC;
 
-class W8CameraMatrix : public srMatrix3T<float> {
+/* The 12-byte empty-constructed row helper passed to VC6's three-element
+   vector-constructor iterator by the camera rotation expressions. Nothing in
+   the image exposes its source name, so the constructor address remains its
+   stable identity. */
+class W8CameraMatrixRow004D6930 {
 public:
-    void Method00421A40(const W8CameraMatrix& other); /* 0x00421A40 */
-    void Method00438F90(double sine, double cosine); /* 0x00438F90 */
-    void Method00478EB0(double sine, double cosine); /* 0x00478EB0 */
+    W8CameraMatrixRow004D6930();                    /* 0x004D6930 */
+
+    float x;
+    float y;
+    float z;
 };
 
-static_assert(sizeof(W8CameraMatrix) == 0x24,
-              "W8CameraMatrix_must_be_0x24");
+static_assert(sizeof(W8CameraMatrixRow004D6930) == 0x0c,
+              "W8CameraMatrixRow004D6930_must_be_0x0c");
+
+static_assert(sizeof(srMatrix3T<float>) == 0x24,
+              "srMatrix3T_float_must_be_0x24");
 
 /* Engine Code\Camera.cpp. GameData.cpp's original `gpGDCamera` assertion
    identifies the owner allocated at 0x0065A0F8; its constructor allocation
@@ -36,9 +45,9 @@ public:
     unsigned long m_positional_000;                  /* 0x000 */
     float m_angle_004;                               /* 0x004 */
     float m_positional_008;                          /* 0x008 */
-    W8CameraMatrix m_matrix_00c;                     /* 0x00c */
-    W8CameraMatrix m_matrix_030;                     /* 0x030 */
-    W8CameraMatrix m_matrix_054;                     /* 0x054 */
+    srMatrix3T<float> m_matrix_00c;                   /* 0x00c */
+    srMatrix3T<float> m_matrix_030;                   /* 0x030 */
+    srMatrix3T<float> m_matrix_054;                   /* 0x054 */
     unsigned char m_positional_078[0x0c];            /* 0x078 */
     unsigned long m_positional_084;                  /* 0x084 */
     unsigned char m_flag_088;                        /* 0x088 */

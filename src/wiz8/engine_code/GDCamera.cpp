@@ -25,8 +25,8 @@ GDCamera::GDCamera()
 {
     srVector3T<float> temporary;
     srVector3T<float> final_temporary;
-    W8CameraMatrix* first_matrix = &m_matrix_00c;
-    W8CameraMatrix* second_matrix = &m_matrix_030;
+    srMatrix3T<float>* first_matrix = &m_matrix_00c;
+    srMatrix3T<float>* second_matrix = &m_matrix_030;
     float pitch;
     float angle;
 
@@ -55,7 +55,7 @@ GDCamera::GDCamera()
     first_matrix->vectors[1] = *temporary.method_00421680(0.0, 1.0, 0.0);
     first_matrix->vectors[2] = *temporary.method_00421680(0.0, 0.0, 1.0);
     if ((double)pitch != g_zero_005ebb40) {
-        first_matrix->Method00478EB0(sin((double)pitch), cos((double)pitch));
+        first_matrix->method_00478EB0(sin((double)pitch), cos((double)pitch));
     }
     MarkRendererReady();
 
@@ -72,7 +72,7 @@ GDCamera::GDCamera()
     second_matrix->vectors[1] = *temporary.method_00421680(0.0, 1.0, 0.0);
     second_matrix->vectors[2] = *final_temporary.method_00421680(0.0, 0.0, 1.0);
     if ((double)angle != g_zero_005ebb40) {
-        second_matrix->Method00438F90(sin((double)angle), cos((double)angle));
+        second_matrix->method_00438F90(sin((double)angle), cos((double)angle));
     }
     MarkRendererReady();
 
@@ -91,7 +91,7 @@ GDCamera::GDCamera()
     m_owned_0bc = new W8Object005EBCFC(1.0f, 0, 1);
 
     m_matrix_054 = *second_matrix;
-    m_matrix_054.Method00421A40(m_matrix_00c);
+    m_matrix_054.method_00421A40(m_matrix_00c);
 }
 
 /* Creates the game camera when a parent is supplied, otherwise installs or
@@ -157,4 +157,33 @@ void GDCamera::Method00478E00(unsigned char enabled)
         return;
     }
     m_positional_000 &= ~1UL;
+}
+
+// FUNCTION: WIZ8 0x00478EB0
+srMatrix3T<float>* srMatrix3T<float>::method_00478EB0(
+    double sine, double cosine)
+{
+    W8CameraMatrixRow004D6930 basis[3];
+    srMatrix3T<float> rotation;
+
+    basis[0].x = 1.0f;
+    basis[0].y = 0.0f;
+    basis[0].z = 0.0f;
+    basis[1].x = 0.0f;
+    basis[1].y = (float)cosine;
+    basis[1].z = -(float)sine;
+    basis[2].x = 0.0f;
+    basis[2].y = (float)sine;
+    basis[2].z = (float)cosine;
+    rotation.vectors[0].x = basis[0].x;
+    rotation.vectors[0].y = basis[0].y;
+    rotation.vectors[0].z = basis[0].z;
+    rotation.vectors[1].x = basis[1].x;
+    rotation.vectors[1].y = basis[1].y;
+    rotation.vectors[1].z = basis[1].z;
+    rotation.vectors[2].x = basis[2].x;
+    rotation.vectors[2].y = basis[2].y;
+    rotation.vectors[2].z = basis[2].z;
+    method_00421A40(rotation);
+    return this;
 }

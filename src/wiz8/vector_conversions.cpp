@@ -1,4 +1,10 @@
 #include "surrender/srMath.h"
+#include "wiz8/engine_code/GDCamera.h"
+
+// FUNCTION: WIZ8 0x004D6930
+W8CameraMatrixRow004D6930::W8CameraMatrixRow004D6930()
+{
+}
 
 // FUNCTION: WIZ8 0x00421680
 srVector3T<float>* srVector3T<float>::method_00421680(
@@ -18,6 +24,76 @@ srVector3T<float>* srVector3T<float>::method_00446110(const srVector3T<double>* 
     x = (float)source->x;
     y = (float)source->y;
     z = (float)source->z;
+    return this;
+}
+
+// FUNCTION: WIZ8 0x004219F0
+srMatrix3T<float>* srMatrix3T<float>::method_004219F0(
+    const srVector3T<float>& first,
+    const srVector3T<float>& second,
+    const srVector3T<float>& third)
+{
+    vectors[0] = first;
+    vectors[1] = second;
+    vectors[2] = third;
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00421A40
+srMatrix3T<float>* srMatrix3T<float>::method_00421A40(
+    const srMatrix3T<float>& other)
+{
+    float result[9];
+    float* output = result;
+    const float* right = &other.vectors[0].x;
+    const float* left = &vectors[0].x;
+
+    for (int index = 0; index != 3; ++index) {
+        float x = right[index];
+        float y = right[index + 3];
+        float z = right[index + 6];
+
+        output[index] = x * left[0] + y * left[1] + z * left[2];
+        output[index + 3] = x * left[3] + y * left[4] + z * left[5];
+        output[index + 6] = x * left[6] + y * left[7] + z * left[8];
+    }
+    vectors[0].x = result[0];
+    vectors[0].y = result[1];
+    vectors[0].z = result[2];
+    vectors[1].x = result[3];
+    vectors[1].y = result[4];
+    vectors[2].x = result[6];
+    vectors[1].z = result[5];
+    vectors[2].y = result[7];
+    vectors[2].z = result[8];
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00438F90
+srMatrix3T<float>* srMatrix3T<float>::method_00438F90(double sine, double cosine)
+{
+    W8CameraMatrixRow004D6930 basis[3];
+    srMatrix3T<float> rotation;
+
+    basis[0].x = (float)cosine;
+    basis[0].y = 0.0f;
+    basis[0].z = (float)sine;
+    basis[1].x = 0.0f;
+    basis[1].y = 1.0f;
+    basis[1].z = 0.0f;
+    basis[2].x = -(float)sine;
+    basis[2].y = 0.0f;
+    basis[2].z = (float)cosine;
+    rotation.vectors[0].x = basis[0].x;
+    rotation.vectors[0].y = basis[0].y;
+    rotation.vectors[0].z = basis[0].z;
+    rotation.vectors[1].x = basis[1].x;
+    rotation.vectors[1].y = basis[1].y;
+    rotation.vectors[1].z = basis[1].z;
+    rotation.vectors[2].x = basis[2].x;
+    rotation.vectors[2].y = basis[2].y;
+    rotation.vectors[2].z = basis[2].z;
+    method_00421A40(rotation);
     return this;
 }
 
