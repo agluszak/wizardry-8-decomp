@@ -81,7 +81,7 @@ unsigned char AnimationIsRunning(W8AnimObj* animation)
 
 // FUNCTION: WIZ8 0x004a14d0
 int AnimObjDispatch004A14D0(
-    W8AnimObj* animation, int, signed char list_index, int value)
+    W8AnimObj* animation, signed char list_index, int value)
 {
     W8AnimObjEntry004B6550* entry;
 
@@ -107,7 +107,7 @@ int AnimObjDispatch004A14D0(
 
 // FUNCTION: WIZ8 0x004a1560
 int AnimObjDispatchList004A1560(
-    W8AnimObj* animation, int, signed char list_index, signed char entry_index)
+    W8AnimObj* animation, signed char list_index, signed char entry_index)
 {
     W8AnimObjEntry004B6550* entry;
     W8PList* list;

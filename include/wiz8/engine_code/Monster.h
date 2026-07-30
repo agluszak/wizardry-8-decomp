@@ -17,130 +17,32 @@ typedef struct W8MonsterRep W8MonsterRep;
 
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
-/* Partial layout of the engine object referenced by cycle 18. The Monster
-   wrappers at 0x004C5780..0x004C5AA0 establish the timestamp, animation state,
-   pending cycle, and scale fields below. */
 /* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
    by the setter at 0x004C5AD0. That setter takes the block by value and VC6
    copies it with the interleaved two-register rotation it uses for a struct
    assignment, rather than the sequential load/store pairs four separate scalar
    parameters would emit - which is what makes this one object and not four.
    Nothing observed so far types its contents. */
-typedef struct W8MonsterRuntimeBlock4C {
-    unsigned int values[4];
-} W8MonsterRuntimeBlock4C;                  /* 0x10 */
+typedef W8AnimRepValue4 W8MonsterRuntimeBlock4C;
 
-struct W8MonsterCycleRuntime {
-    unsigned char unknown_000[0x4c];
-    W8MonsterRuntimeBlock4C block_04c;      /* 0x04c */
-    unsigned char unknown_05c[0xa];
-    unsigned short value_066;               /* 0x066: cleared when a cycle starts */
-    unsigned int animation_timestamp;       /* 0x068 */
-    unsigned char unknown_06c;
-    unsigned char animating;                /* 0x06d */
-    unsigned char unknown_06e[3];
-    signed char behaviour;                   /* 0x071: asserted BEHAVIOUR_FIRST..LAST */
-    unsigned char unknown_072[0x32];
-    /* 0x0a4 is copied straight into pending_cycle when nothing is pending, so
-       it is a cycle number and carries pending_cycle's own signedness - the
-       fallback the setter at 0x004C6C00 applies. */
-    signed char value_0a4;                   /* 0x0a4 */
-    unsigned char unknown_0a5;
-    unsigned char value_0a6;                 /* 0x0a6: written by that same setter */
-    signed char pending_cycle;               /* 0x0a7 */
-    unsigned char unknown_0a8[0x514];
-    unsigned char flag_5bc;                 /* 0x5bc */
-    unsigned char unknown_5bd[0x33];
-    float scale;                             /* 0x5f0 */
-    float minimum_scale;                     /* 0x5f4 */
-    float maximum_scale;                     /* 0x5f8 */
+class W8VectorElement005ECDAC;
+class W8VectorElement005EC018 : public srClass {
+public:
+    virtual ~W8VectorElement005EC018() override;
 };
 
-struct W8MonsterCycle {
-    union {
-        unsigned int flags_00;              /* 0x00: cycle 19 bit 7 set by 0x004e67a0 */
-        struct {
-            unsigned char flag_00;
-            unsigned char flag_01;
-            unsigned char state_02;         /* 0x02: cycle 17 state saved across activation */
-            unsigned char flag_03;
-        } bytes;
-    };
-    union {
-        unsigned int num_subs_04;           /* 0x04: IsCycleSupported tests the complete field */
-        struct {
-            unsigned char ubNumSubs;        /* 0x04: GetNumSubsPerCycle returns the low byte */
-            unsigned char unknown_05[3];
-        } count;
-    };
-    union {
-        unsigned int value_08;              /* 0x08: copied by 0x004c5870 */
-        unsigned int location_id_08;        /* 0x08: consumed as a location id by 0x004c6240 */
-        struct {
-            unsigned char unknown_08;
-            unsigned char unknown_09;       /* 0x09: cleared for cycle 22 by 0x004e6130 */
-            unsigned char unknown_0a[2];
-        } bytes_08;
-    };
-    union {
-        W8MonsterCycleRuntime* runtime;      /* 0x0c: cycle 18's shared engine state */
-        W8AnimObj** animation_objects;       /* 0x0c: per-subcycle AnimObj table */
-    };
-};                                          /* 0x10 */
+class W8MonsterReleasable005C8 {
+public:
+    virtual ~W8MonsterReleasable005C8();
+};
 
-struct W8MonsterPolymorphicSubobject18 {
-    /* This is a positional view beginning at W8MonsterRep +0x18, not a member
-       declaration and not a polymorphic base. W8MonsterRep's constructor does
-       not write a vptr here; vtable 0x005ED218 belongs to W8Monster's inherited
-       secondary GrCycle base. */
-    unsigned char unknown_00[0x0c];
-    unsigned int flags_0c;                  /* 0x0c: Monster +0x24 */
-    unsigned char unknown_10[0x4c];
-    int value_5c;                           /* 0x5c: Monster +0x74 */
-    unsigned char unknown_60[0x20];
-    signed char animation_index_80;          /* 0x80: Monster +0x98 */
-    unsigned char unknown_81[3];
-    /* 0x84, which is Monster +0x9c: the monster's own extent. Every range test
-       subtracts it from the centre-to-centre distance, so it is a radius
-       rather than a diameter or a bounding box. */
-    float radius_84;
-    unsigned char state_a0;                 /* 0x88: Monster +0xa0 */
-    unsigned char unknown_89[3];
-    signed char m_bCurrentCycle;             /* 0x8c: Monster +0xa4 */
-    signed char current_subcycle_8d;         /* 0x8d: Monster +0xa5 */
-    unsigned char unknown_8e[6];
-
-    srVector3T<float> GetPosition();
-
-    /* Six methods the Monster.cpp forwarder family reaches on this subobject.
-       Each forwarder derives the receiver with `lea ecx, [monster + 0x18]`,
-       which is what proves they are this object's methods and not the
-       monster's; only the offset is proved that way, so the names stay
-       address-qualified wherever the body does not say what a member means.
-
-       These bodies read members at 0x25, 0x68, 0xc4, 0xd0, 0xf4 and 0x120,
-       past the 0x94 this model covers - and Monster's cycle array is placed at
-       Monster +0xac, which is subobject +0x94. Either this object is larger
-       than the extent below and the cycle array lies inside it, or the two
-       placements do not both hold. 0x120 is not on a cycle boundary, so
-       neither reading is settled here. The disagreement is recorded rather
-       than resolved: declaring a method claims nothing about the extent, and
-       the static_assert below still pins what is proved. */
-    void SetValue120(float value);            /* 0x00453C50 */
-    float GetValue120();                      /* 0x00453C60 */
-    unsigned char Function452630(const W8Position* position);  /* 0x00452630 */
-    void Function453690(void* argument);      /* 0x00453690 */
-    /* Reaches the object at 0x68 and raises or clears its own flag at 0x38. */
-    void SetObject68Flag38(char value);       /* 0x004537C0 */
-    /* Two more that take a position and read the three-dword block at 0x100.
-       Which one 0x004C6240 picks is the whole of what its flag argument
-       decides; nothing in either body says how they differ. */
-    void Function454040(const W8Position* position);  /* 0x00454040 */
-    void Function453F30(const W8Position* position);  /* 0x00453F30 */
-    /* Writes the byte at 0x25 and, when it is cleared, releases the object at
-       0x68; when it is set, zeroes the member at 0xf4 instead. */
-    void SetFlag25(char value);               /* 0x004531F0 */
-};                                          /* 0x94: through the cycle array at Monster +0xac */
+/* MonsterRep owns three ordinary arrays of growable vectors.  The first is
+   proven as AnimObj* by its consumers; the second element identity remains
+   unknown; the third owns vectors of light nodes. */
+typedef W8GrowableVector<W8AnimObj*> W8MonsterAnimationVector;
+typedef W8GrowableVector<W8VectorElement005ECDAC*> W8MonsterVector005ECDAC;
+typedef W8GrowableVector<W8VectorElement005EC294*> W8MonsterLightVector;
+typedef W8GrowableVector<W8MonsterLightVector*> W8MonsterLightVectorList;
 
 /* W8MonsterRep's constructor calls the 0xac-byte W8EmitterHost constructor at
    offset zero, constructs its three cycle arrays at +0xac/+0x25c/+0x40c,
@@ -151,52 +53,44 @@ struct W8MonsterRep : public W8EmitterHost {
     W8MonsterRep(const W8MonsterRep& other);
     virtual ~W8MonsterRep() override;
     virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
-    virtual void SendToEmitter(char cycle, int arg_2, int arg_3) override; /* 0x004BF8C0 */
+    virtual void SetCycleFrameLod(
+        signed char cycle, int frame, int lod) override; /* 0x004BF8C0 */
     virtual void ApplyEmitterSetting(char cycle) override; /* 0x004BF970 */
     virtual void StopEmitter(char cycle) override; /* 0x004BF920 */
-    virtual void Method004BF0F0(signed char arg_1, int arg_2, signed char arg_3);
+    virtual void Method004BF0F0(
+        signed char cycle,
+        const W8MonsterRep* other,
+        signed char other_cycle);
 
-    W8MonsterCycle m_cycles[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac .. 0x25c */
-    /* Two further runs of 27 adjacent 0x10-byte subobjects, the same shape as
-       the array above. Nothing proves they are the same type, so they stay
-       opaque rather than borrowing its name. */
-    unsigned char subobject_array_25c[0x24];    /* 0x25c */
-    W8MonsterFormation formation;               /* 0x280: from the owning group */
-    unsigned char subobject_array_28c[0x180];   /* 0x28c */
-    unsigned char subobject_array_40c[0x1b0];   /* 0x40c */
-    unsigned char tail_fields_5bc[0x2c];        /* 0x5bc */
-    W8PList* linked_objects_5e8;                 /* 0x5e8 */
-    unsigned char tail_fields_5ec[0x28];        /* 0x5ec */
-    /* A 0x10-byte growable vector is constructed here, but its element type is
-       not established by the shared emitted vtable alone. Keep the storage
-       opaque until a consumer proves the element type. */
-    unsigned char vector_614[0x10];              /* 0x614 */
-    int value_624;                               /* 0x624 */
-
-    W8MonsterPolymorphicSubobject18& Subobject18()
-    {
-        return *reinterpret_cast<W8MonsterPolymorphicSubobject18*>(
-            reinterpret_cast<unsigned char*>(this) + 0x18);
-    }
-
-    void*& LinkedObjects010()
-    {
-        return *reinterpret_cast<void**>(
-            reinterpret_cast<unsigned char*>(this) + 0x10);
-    }
+    W8MonsterAnimationVector animations[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac */
+    W8MonsterVector005ECDAC objects_25c[W8_MONSTER_CYCLE_COUNT];  /* 0x25c */
+    W8MonsterLightVectorList light_lists[W8_MONSTER_CYCLE_COUNT];/* 0x40c */
+    unsigned char flag_5bc;                    /* 0x5bc */
+    unsigned char unknown_5bd[3];
+    char* name_5c0;                            /* 0x5c0: owned copy */
+    int value_5c4;
+    W8MonsterReleasable005C8* objects_5c8[8]; /* 0x5c8 */
+    W8PList* linked_objects_5e8;               /* 0x5e8 */
+    int value_5ec;
+    float scale_5f0;
+    float minimum_scale_5f4;
+    float maximum_scale_5f8;
+    float value_5fc;
+    unsigned char flag_600;
+    unsigned char flag_601;
+    unsigned char unknown_602[2];
+    float value_604;
+    int value_608;
+    int value_60c;
+    int value_610;
+    W8GrowableVector<W8VectorElement005EC018*> linked_runtime_objects_614;
+    class MonsterLight* monster_light_624;
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);
     /* 0x004C4660. A method, not the free function an earlier reading assumed:
        it takes its receiver in ECX and IsDying calls it without reloading ECX
        at all, relying on `this` already being there. The query selector is
        bounded at nine by the body's own `ja` against the jump table. */
-    int Query(int query);
-    void SetRuntimeValueA6(unsigned char value);   /* 0x004C6C00 */
-    unsigned char IsDying();
-    unsigned char Function4C2CF0(signed char cycle);
-    void Function4C50F0();
-    int Function4C6A50();
-    void Function4C6990(int value);
 };
 
 /* The constructor at 0x004BEA20 initialises through 0x624 and its sole caller
@@ -205,8 +99,7 @@ struct W8MonsterRep : public W8EmitterHost {
    object. */
 static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 
-static_assert(sizeof(W8MonsterCycle) == 0x10, "W8MonsterCycle_size_must_be_0x10");
-static_assert(sizeof(W8MonsterPolymorphicSubobject18) == 0x94, "W8MonsterPolymorphicSubobject18_size_must_be_0x94");
+static_assert(sizeof(W8MonsterAnimationVector) == 0x10, "W8MonsterAnimationVector_size_must_be_0x10");
 
 /* Five twelve-byte records are allocated from SurRender's heap by the
    embedded vector at +0x29c. The record contents are not yet identified. */
@@ -235,6 +128,43 @@ public:
     W8MonsterVectorElement005ECDC8* data;
 };
 
+struct W8MonsterState28C {
+    unsigned char flag_00;
+    unsigned char flag_01;
+    signed char value_02;
+    unsigned char flag_03;
+    unsigned char flag_04;
+    unsigned char flag_05;
+    unsigned char unknown_06[0x0a];
+};
+
+struct W8MonsterState2AC {
+    unsigned char flag_00;
+    unsigned char unknown_01[3];
+    int value_04;
+    int value_08;
+    int value_0c;
+    unsigned char unknown_10[0x0c];
+    int value_1c;
+    int value_20;
+    int value_24;
+    unsigned char flag_28;
+    unsigned char unknown_29[3];
+};
+
+struct W8MonsterState2FC {
+    float scale_00;
+    float scale_04;
+    unsigned char unknown_08[8];
+};
+
+struct W8MonsterFlags330 {
+    unsigned char flag_00;
+    unsigned char flag_01;
+    unsigned char copied_flag_02;
+    unsigned char unknown_03;
+};
+
 /* The GrCycle factory allocates 0x348 bytes and calls the constructor at
    0x004BFB00 for object type zero. Both constructors and the destructor install
    primary vtable 0x005ED22C and the W8GrCycle secondary table at +0x18. */
@@ -250,7 +180,7 @@ public:
     virtual unsigned char IsCycleSupported(signed char cycle) override;
     virtual void vslot7() override;
     virtual void vslot8() override;
-    virtual W8GrCycleTarget* vslot9() override;
+    virtual W8EmitterHost* vslot9() override;
     virtual void vslot10() override;
     virtual void vslot11(void* value) override;
     virtual void vslot12() override;
@@ -261,12 +191,49 @@ public:
     virtual void vslot17();
     virtual void vslot18();
     virtual void vslot19();
-    virtual void secondary_vslot4() override;
+    virtual void SetPosition(const W8Position* position) override;
 
-private:
+    int Query(int query);                              /* 0x004C4660 */
+    void SetRuntimeValueA6(unsigned char value);       /* 0x004C6C00 */
+    unsigned char IsDying();                           /* 0x004CA4C0 */
+    unsigned char Function4C2CF0(signed char cycle);
+    void Function4C50F0();
+    int Function4C6A50();
+    void Function4C6990(int value);
+
+public:
     W8MonsterRep* m_pRep;
     unsigned int flags_1dc;
-    unsigned char fields_1e0[0x58];
+    int value_1e0;
+    int propagated_value_1e4;
+    float value_1e8;
+    float value_1ec;
+    float value_1f0;
+    int value_1f4;
+    int value_1f8;
+    unsigned char flag_1fc;
+    unsigned char flag_1fd;
+    unsigned char unknown_1fe[2];
+    int value_200;
+    int value_204;
+    int value_208;
+    int value_20c;
+    int value_210;
+    unsigned char unknown_214;
+    unsigned char flag_215;
+    unsigned char flag_216;
+    unsigned char flag_217;
+    unsigned char flag_218;
+    unsigned char unknown_219[3];
+    int value_21c;
+    int value_220;
+    int value_224;
+    int value_228;
+    unsigned char flag_22c;
+    unsigned char flag_22d;
+    unsigned char state_22e;
+    unsigned char unknown_22f;
+    unsigned char unknown_230[8];
     srClass* object_238;
     int value_23c;
     int value_240;
@@ -274,16 +241,14 @@ private:
     W8Timer005EC0A4 timer_254;
     int value_278;
     int registry_weight_27c;
-    int value_280;
-    int value_284;
-    int value_288;
-    unsigned char fields_28c[0x10];
+    W8MonsterFormation formation;
+    W8MonsterState28C state_28c;
     W8MonsterVector005ECDC8 vector_29c;
-    unsigned char fields_2ac[0x2c];
+    W8MonsterState2AC state_2ac;
     W8Timer005EC0A4 timer_2d8;
-    unsigned char fields_2fc[0x10];
+    W8MonsterState2FC state_2fc;
     W8Timer005EC0A4 timer_30c;
-    unsigned char flags_330[4];
+    W8MonsterFlags330 flags_330;
     srClass* object_334;
     W8GrowableVector<int> values_338;
 };
@@ -291,5 +256,9 @@ private:
 static_assert(
     sizeof(W8Monster) == 0x348,
     "W8Monster_size_must_be_0x348");
+static_assert(sizeof(W8MonsterState28C) == 0x10, "W8MonsterState28C_size_must_be_0x10");
+static_assert(sizeof(W8MonsterState2AC) == 0x2c, "W8MonsterState2AC_size_must_be_0x2c");
+static_assert(sizeof(W8MonsterState2FC) == 0x10, "W8MonsterState2FC_size_must_be_0x10");
+static_assert(sizeof(W8MonsterFlags330) == 4, "W8MonsterFlags330_size_must_be_4");
 
 #endif

@@ -1,63 +1,126 @@
 #pragma once
 
+#include "surrender/srMath.h"
+#include "wiz8/engine_code/Emitter.h"
+#include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 
 class srNode;
 struct W8ItemRep;
+struct W8PathAI;
 
-/* The original names of GrCycle's two bases are not present in the available
-   source-path, binary, or Cosmic Forge evidence. Their constructor addresses
-   keep these types unambiguous without inventing semantic names. */
-class W8GrCycleBase004B6900 {
+struct W8NavigatorAttachment {
+    unsigned char unknown_00[0x10];
+    srVector3T<float> position_10;
+    unsigned char unknown_1c[0x18];
+    srVector3T<float> position_34;
+    unsigned char unknown_40[0x0c];
+    srVector3T<float>* position_4c;
+};
+
+/* GrObject.cpp calls these sound events `pse`/`m_plsSoundEvents`; no stronger
+   source witness for the concrete event class name is available yet. */
+class W8VectorElement005ED094 {
 public:
-    W8GrCycleBase004B6900();             /* 0x004B6900 */
-    virtual ~W8GrCycleBase004B6900();    /* 0x004B6B60 */
+    ~W8VectorElement005ED094();          /* 0x004D5770 */
 
-protected:
+    unsigned char unknown_000[0x28];
+    int value_028;
+};
+
+/* GrObject.cpp owns this base.  The original Item.cpp assertion
+   `pMissile->GrObject::GetAI()` independently establishes the class name. */
+class W8GrObject {
+public:
+    W8GrObject();                         /* 0x004B6900 */
+    W8GrObject(const W8GrObject& other); /* 0x004B69A0 */
+    virtual ~W8GrObject();                /* 0x004B6B60 */
+
+    unsigned char AddSoundEvent(W8VectorElement005ED094* event);
+
+public:
     unsigned char unknown_004;           /* 0x04 */
     unsigned char unknown_005[3];
     int unknown_008;                     /* 0x08 */
-    void* unknown_00c;                   /* 0x0c */
-    void* unknown_010;                   /* 0x10 */
-public:
+    void* m_pAI;                         /* 0x0c: GrObject::GetAI() assertion */
+    W8GrowableVector<W8VectorElement005ED094*>* m_plsSoundEvents; /* 0x10 */
     W8ItemRep* m_pRep;                   /* 0x14: typed by Engine Code\Item.cpp */
 };                                      /* 0x18 */
 
-class W8GrCycleBase00451EC0 {
+/* Navigator.cpp owns the path, position, orientation, and scene-node state
+   below. It is GrCycle's ordinary second base, not a representation object. */
+class W8Navigator {
 public:
-    W8GrCycleBase00451EC0();             /* 0x00451EC0 */
-    virtual ~W8GrCycleBase00451EC0();    /* 0x00452120 */
+    W8Navigator();                        /* 0x00451EC0 */
+    W8Navigator(const W8Navigator& other); /* 0x00452220 */
+    virtual ~W8Navigator();               /* 0x00452120 */
     virtual void secondary_vslot1();
     virtual void secondary_vslot2();
     virtual void secondary_vslot3();
-    virtual void secondary_vslot4();
+    virtual void SetPosition(const W8Position* position); /* 0x00456020 */
 
     void configureStartupRange(float range);
     void configureStartupDepth(float near_depth, float far_depth);
 
-private:
-    /* The secondary-base constructor treats this payload as 99 contiguous
-       four-byte fields.  Keeping that observed granularity lets startup set
-       the six proven range fields without claiming names for the rest. */
-    unsigned int unknown_004[98];
+    srVector3T<float> GetPosition();
+    void SetValue120(float value);                         /* 0x00453C50 */
+    float GetValue120();                                  /* 0x00453C60 */
+    unsigned char Function452630(const W8Position* position); /* 0x00452630 */
+    void Function453690(void* argument);                   /* 0x00453690 */
+    void SetPositionInternal00453590(const W8Position* position);
+    void SetObject68Flag38(char value);                    /* 0x004537C0 */
+    void Function454040(const W8Position* position);       /* 0x00454040 */
+    void Function453F30(const W8Position* position);       /* 0x00453F30 */
+    void SetFlag25(char value);                            /* 0x004531F0 */
+
+public:
+    /* The constructor clears this payload as 98 dwords, while Monster.cpp
+       reaches the same secondary base through `lea ecx,[monster+0x18]`.
+       The union preserves the constructor's observed dword view and exposes
+       only independently witnessed fields. */
+    union {
+        unsigned int unknown_004[98];
+        struct {
+            unsigned char unknown_004_to_00c[8];
+            unsigned int flags_00c;
+            unsigned char unknown_010_to_024[0x14];
+            unsigned char flag_024;
+            unsigned char flag_025;
+            unsigned char unknown_026_to_05c[0x36];
+            int value_05c;
+            unsigned char unknown_060_to_068[8];
+            W8PathAI* path_ai_068;
+            unsigned char unknown_06c_to_080[0x14];
+            signed char animation_index_080;
+            unsigned char unknown_081[3];
+            float radius_084;
+            unsigned char state_088;
+            unsigned char unknown_089[3];
+            signed char current_cycle_08c;
+            signed char current_subcycle_08d;
+            unsigned char unknown_08e_to_09c[0x0e];
+            unsigned char position_dirty_09c;
+            unsigned char unknown_09d_to_0c4[0x27];
+            unsigned short location_id_0c4;
+            unsigned char unknown_0c6[2];
+            int value_0c8;
+            int value_0cc;
+            int value_0d0;
+            float angle_0d4;
+            float angle_0d8;
+            unsigned char unknown_0dc_to_0f4[0x18];
+            srVector3T<float> position_0f4;
+            srVector3T<float> position_100;
+            srVector3T<float> position_10c;
+            unsigned char unknown_118_to_120[8];
+            float value_120;
+            unsigned char unknown_124_to_16c[0x48];
+            W8NavigatorAttachment* attachment_16c;
+            unsigned char unknown_170_to_18c[0x1c];
+        } fields;
+    };
     srNode* node_18c;                    /* 0x18c: constructed srNode */
 };                                      /* 0x190 */
-
-class W8GrCycleTarget {
-public:
-    virtual void vslot0();
-    virtual void vslot1();
-    virtual void SetCycleFrameLod(signed char cycle, signed char frame, signed char lod) = 0;
-
-    unsigned char unknown_004[0x60];
-    unsigned char m_subcycle;             /* 0x64 */
-    unsigned char unknown_65[3];
-    unsigned int tick_68;                 /* 0x68 */
-    unsigned char unknown_6c[2];
-    unsigned char flag_6e;                /* 0x6e */
-    unsigned char unknown_6f;
-    signed char m_bBehaviour;            /* 0x70 */
-};
 
 class W8VectorElement005ECED4;
 class W8VectorElement005EC294;
@@ -65,10 +128,11 @@ class W8GrCycleShakeEvent;
 class stGroundShadow;
 
 class W8GrCycle :
-    public W8GrCycleBase004B6900,
-    public W8GrCycleBase00451EC0 {
+    public W8GrObject,
+    public W8Navigator {
 public:
     W8GrCycle();
+    W8GrCycle(const W8GrCycle& other);
     virtual ~W8GrCycle() override;
     virtual void vslot1();
     virtual void vslot2();
@@ -78,7 +142,7 @@ public:
     virtual unsigned char IsCycleSupported(signed char cycle) = 0;
     virtual void vslot7() = 0;
     virtual void vslot8() = 0;
-    virtual W8GrCycleTarget* vslot9() = 0;
+    virtual W8EmitterHost* vslot9() = 0;
     virtual void vslot10();
     virtual void vslot11(void* value);
     virtual void vslot12() = 0;
@@ -98,7 +162,7 @@ public:
     unsigned char ReplacePath004A8400(void* path);
     void SubmitTargetValue004A84A0();
 
-private:
+public:
     int unknown_1a8;
     W8GrowableVector<W8VectorElement005EC294*>* m_plsLights; /* 0x1ac */
     W8GrowableVector<W8VectorElement005ECED4*>* m_vector_1b0; /* 0x1b0 */

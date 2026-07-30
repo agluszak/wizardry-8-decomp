@@ -57,7 +57,7 @@ typedef struct W8MonsterInfo {
     int location_id;                      /* 0x00 */
     int monster_group_id;                 /* 0x04: group lookup input in 0x004e6020 */
     unsigned int monster_species;         /* 0x08 */
-    W8MonsterRep* monster;                /* 0x0c: live animation object, if any */
+    W8Monster* monster;                   /* 0x0c: p3D, named by source assertions */
     /* 0x10: pCombat, named by the MonsterManager.cpp:672 assertion
        "pMonsterInfo->pCombat != NULL" over the malloc 0x004e4390 stores here.
        The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
@@ -167,7 +167,7 @@ W8MonsterInfo* MonsterInfoFromID(
     int location_id,
     unsigned char assert_on_failure);
 W8MonsterRecord* GetMonsterDataByLocationID(int location_id);
-W8MonsterRep* GetMonsterByLocationID(int location_id);
+W8Monster* GetMonsterByLocationID(int location_id);
 float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
 void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info);
 W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator);
@@ -189,7 +189,7 @@ void InitializeMonsterRuntimeStats(void);
 float CalculateMonsterScale(W8MonsterInfo* monster_info);
 void TryStartMonsterCycle2(
     W8MonsterInfo* monster_info,
-    W8MonsterRep* monster,
+    W8Monster* monster,
     int query_state);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);

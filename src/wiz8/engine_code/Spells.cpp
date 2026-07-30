@@ -45,20 +45,21 @@ W8EmitterHost* W8SpellVisual::GetHost()
 // FUNCTION: WIZ8 0x004ac820
 W8Emitter* W8SpellVisual::GetActiveEmitter()
 {
-    return this->host->emitters[this->host->emitter_index];
+    return this->host->emitters[this->host->selection.emitter.emitter_index];
 }
 
 /* That emitter's own value. */
 // FUNCTION: WIZ8 0x004ac870
 float W8SpellVisual::GetActiveEmitterValue()
 {
-    return this->host->emitters[this->host->emitter_index]->value_08;
+    return this->host->emitters[this->host->selection.emitter.emitter_index]->value_08;
 }
 
 // FUNCTION: WIZ8 0x004ac8a0
 void* W8SpellVisual::GetActiveEmitterEntry004AC8A0()
 {
-    W8Emitter* emitter = this->host->emitters[this->host->emitter_index];
+    W8Emitter* emitter = this->host->emitters[
+        this->host->selection.emitter.emitter_index];
 
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x653, 0);
@@ -104,9 +105,12 @@ void W8SpellVisual::StartIfHostActive()
 /* Send something to one named emitter. The arguments are handed on in the
    reverse of the order they arrive. */
 // FUNCTION: WIZ8 0x004ab290
-void W8SpellEmitterHost::SendToEmitter(char emitter, int arg_2, int arg_3)
+void W8SpellEmitterHost::SetCycleFrameLod(
+    signed char emitter, int frame, int lod)
 {
-    AnimObjDispatch004A14D0((W8AnimObj*)this->emitters[emitter], 0, arg_3, arg_2);
+    typedef int (__cdecl *DispatchCall)(W8AnimObj*, int, int);
+    ((DispatchCall)AnimObjDispatch004A14D0)(
+        (W8AnimObj*)this->emitters[emitter], lod, frame);
 }
 
 /* Apply the host setting to one required emitter.  The source assertion names

@@ -3,6 +3,38 @@
 #include "wiz8/sr_api.h"
 
 extern srTimer* g_shared_timer_base;
+extern unsigned int g_emitter_default_0060e608;
+extern unsigned int g_emitter_default_0060e60c;
+
+// FUNCTION: WIZ8 0x004b86e0
+W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
+{
+    value_004.value_00 = 0;
+    value_004.value_04 = 0;
+    value_004.value_08 = 0;
+    value_010.value_00 = 0;
+    value_010.value_04 = 0;
+    value_010.value_08 = 0;
+    value_01c.value_00 = 0;
+    value_01c.value_04 = 0;
+    value_01c.value_08 = 0;
+    value_028.value_00 = 0x3f800000;
+    value_028.value_04 = 0;
+    value_028.value_08 = 0;
+    value_028.value_0c = 0;
+    value_028.value_10 = 0x3f800000;
+    value_028.value_14 = 0;
+    value_028.value_18 = 0;
+    value_028.value_1c = 0;
+    value_028.value_20 = 0x3f800000;
+    value_04c.value_00 = 0;
+    value_04c.value_04 = 0;
+    value_04c.value_08 = 0;
+    value_04c.value_0c = 0;
+    value_05c = 1.0f;
+    flag_060 = 0;
+    flag_061 = 0;
+}
 
 // FUNCTION: WIZ8 0x004b55c0
 void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
@@ -32,6 +64,38 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(
     value_05c = 1.0f;
     flag_060 = 0;
     flag_061 = 0;
+}
+
+// FUNCTION: WIZ8 0x004b53d0
+W8AnimRep005ED050::W8AnimRep005ED050()
+{
+    flag_064 = 0;
+    value_066 = 0xffff;
+    timer_068 = 0;
+    active = 0;
+    flag_06d = 0;
+    flag_06e = 0;
+    flag_06f = 0;
+    flag_070 = 0;
+    behaviour_071 = -1;
+    value_074.value_00 = 0;
+    value_074.value_04 = 0;
+    value_074.value_08 = 0;
+    value_080.value_00 = 0;
+    value_080.value_04 = 0;
+    value_080.value_08 = 0;
+    value_08c = 0;
+    value_090 = 0;
+    counter_094 = 0xff;
+    counter_095 = 0xff;
+    if (g_shared_timer_base == 0) {
+        srAssertFail(
+            "gpsrTimer",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\AnimRep.cpp",
+            0x4e,
+            0);
+    }
+    timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 /* Vtable 0x005EC1D8's clone slot allocates exactly the root's 0x64-byte
@@ -103,11 +167,24 @@ W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
     setting_98 = other.setting_98;
     value_09c = other.value_09c;
     value_0a0 = other.value_0a0;
-    emitter_index = 0;
-    unknown_0a5[0] = 0;
-    unknown_0a5[1] = 0xff;
-    unknown_0a5[2] = 0xff;
+    selection.emitter.emitter_index = 0;
+    selection.emitter.emitter_subindex = 0;
+    selection.emitter.emitter_value_a6 = 0xff;
+    selection.emitter.emitter_value_a7 = -1;
     value_0a8 = other.value_0a8;
+}
+
+// FUNCTION: WIZ8 0x004b5600
+W8EmitterHost::W8EmitterHost()
+{
+    setting_98 = 0;
+    value_09c = g_emitter_default_0060e608;
+    value_0a0 = g_emitter_default_0060e60c;
+    selection.emitter.emitter_index = 0;
+    selection.emitter.emitter_subindex = 0;
+    selection.emitter.emitter_value_a6 = 0xff;
+    selection.emitter.emitter_value_a7 = -1;
+    value_0a8 = 0;
 }
 
 /* As above, 0x004B56F0 is the complete destructor and 0x004B5660 is its

@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "surrender/srNode.h"
+#include "wiz8/engine_code/Emitter.h"
 #include "wiz8/grcycle.h"
 
 struct W8World;
@@ -11,21 +12,16 @@ struct W8Position;
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
 /* This is the live world entity the item manager reaches through an item's
    owner, so the position and flag members the manager uses live here too. */
-struct W8ItemRep {
-    virtual ~W8ItemRep();
-    srVector3T<float> position;           /* 0x04 */
-    unsigned char unknown_10[0x54];
+struct W8ItemRep : public W8AnimRepBase005EC1D8 {
+    virtual ~W8ItemRep() override;
     srNode* m_psrMesh;                    /* 0x64 */
     unsigned char unknown_68[0x28];
     unsigned int flags;                   /* 0x90 */
 
-    void GetLocation004B8890(srVector3T<float>* location);
-    void GetRotation004B88F0(srMatrix3T<float>* rotation);
-    void SetLocation004B8850(const W8Position* location);
     unsigned int SetFlags(unsigned int mask, unsigned char enabled); /* 0x0049F310 */
 };
 
-struct W8Item : public W8GrCycleBase004B6900 {
+struct W8Item : public W8GrObject {
     virtual ~W8Item() override;
 
     int value_018;

@@ -1,8 +1,10 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/vector_005ec294.h"
 #include "surrender/srTimer.h"
 
 #include <string.h>
@@ -17,9 +19,105 @@ extern srTimer* g_shared_timer_base;
 // SYNTHETIC: WIZ8 0x004beba0
 // W8MonsterRep::`scalar deleting destructor'
 
-struct W8Releasable {
-    virtual ~W8Releasable();
-};
+// FUNCTION: WIZ8 0x004bea20
+W8MonsterRep::W8MonsterRep()
+    : flag_5bc(0),
+      name_5c0(0),
+      linked_objects_5e8(0),
+      value_5ec(0),
+      scale_5f0(1.0f),
+      minimum_scale_5f4(0.0f),
+      maximum_scale_5f8(0.0f),
+      value_5fc(1.0f),
+      flag_600(0),
+      flag_601(0),
+      value_604(10.0f),
+      value_608(0),
+      value_60c(0),
+      value_610(0),
+      monster_light_624(0)
+{
+    int index;
+
+    value_5c4 = 0;
+    for (index = 0; index < 8; ++index) {
+        objects_5c8[index] = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x004bebd0
+W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
+    : W8EmitterHost(other),
+      flag_5bc(other.flag_5bc),
+      linked_objects_5e8(0),
+      value_5ec(other.value_5ec),
+      scale_5f0(other.scale_5f0),
+      minimum_scale_5f4(other.minimum_scale_5f4),
+      maximum_scale_5f8(other.maximum_scale_5f8),
+      value_5fc(other.value_5fc),
+      flag_600(other.flag_600),
+      flag_601(other.flag_601),
+      value_604(other.value_604),
+      value_608(other.value_608),
+      value_60c(other.value_60c),
+      value_610(other.value_610),
+      monster_light_624(0)
+{
+    signed char cycle;
+    int index;
+
+    value_5c4 = 0;
+    for (index = 0; index < 8; ++index) {
+        objects_5c8[index] = 0;
+    }
+    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        Method004BF0F0(cycle, &other, cycle);
+    }
+    if (other.monster_light_624 != 0) {
+        monster_light_624 = new MonsterLight(*other.monster_light_624);
+    }
+    name_5c0 = 0;
+    if (other.name_5c0 != 0) {
+        name_5c0 = new char[strlen(other.name_5c0) + 1];
+        if (name_5c0 != 0) {
+            strcpy(name_5c0, other.name_5c0);
+        }
+    }
+}
+
+extern void DestroyAnimObj004A01E0(W8AnimObj* animation);
+
+// FUNCTION: WIZ8 0x004bee50
+W8MonsterRep::~W8MonsterRep()
+{
+    int cycle;
+    int index;
+
+    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        int count = animations[cycle].GetCount();
+        for (index = 0; index < count; ++index) {
+            W8AnimObj* animation = *animations[cycle].GetAt(index);
+            if (animation != 0) {
+                DestroyAnimObj004A01E0(animation);
+            }
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        delete objects_5c8[index];
+    }
+    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        int count = light_lists[cycle].GetCount();
+        for (index = 0; index < count; ++index) {
+            DestroyLightVector(*light_lists[cycle].GetAt(index));
+        }
+        light_lists[cycle].Clear();
+    }
+    while (linked_runtime_objects_614.GetCount() != 0) {
+        delete linked_runtime_objects_614.RemoveAt(0);
+    }
+    delete monster_light_624;
+    delete[] name_5c0;
+}
 
 struct W8Forwarded {
     void Method4C5290();
@@ -33,11 +131,14 @@ extern int g_value_659c14;
 }
 
 // VTABLE: WIZ8 0x005ed22c W8Monster
-// VTABLE: WIZ8 0x005ed218 W8GrCycleBase00451EC0
+// VTABLE: WIZ8 0x005ed218 W8Navigator
 // class W8Monster
 
 // SYNTHETIC: WIZ8 0x004bfde0
 // W8Monster::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004cae30
+// W8Monster::`vector deleting destructor' adjustor{24}
 
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern void PrepareMonsterCycleForDestruction004ACF90(
@@ -48,31 +149,105 @@ extern void __fastcall RefreshMonsterCycleRegistry004C6B10(
 // FUNCTION: WIZ8 0x004bfb00
 W8Monster::W8Monster()
 {
-    memset(fields_1e0, 0, sizeof(fields_1e0));
-    memset(fields_28c, 0, sizeof(fields_28c));
-    memset(fields_2ac, 0, sizeof(fields_2ac));
-    memset(fields_2fc, 0, sizeof(fields_2fc));
-    memset(flags_330, 0, sizeof(flags_330));
+    memset(&value_1e0, 0, 0x58);
+    memset(&state_28c, 0, sizeof(state_28c));
+    memset(&state_2ac, 0, sizeof(state_2ac));
+    memset(&state_2fc, 0, sizeof(state_2fc));
+    memset(&flags_330, 0, sizeof(flags_330));
 
     flags_1dc = 0;
-    *reinterpret_cast<int*>(&fields_1e0[0]) = -1;
-    *reinterpret_cast<int*>(&fields_1e0[4]) = -1;
-    *reinterpret_cast<float*>(&fields_1e0[8]) = 1.0f;
-    *reinterpret_cast<float*>(&fields_1e0[0xc]) = 1.0f;
-    *reinterpret_cast<float*>(&fields_1e0[0x10]) = 1.0f;
-    *reinterpret_cast<int*>(&fields_1e0[0x30]) = -1;
+    value_1e0 = -1;
+    propagated_value_1e4 = -1;
+    value_1e8 = 1.0f;
+    value_1ec = 1.0f;
+    value_1f0 = 1.0f;
+    value_210 = -1;
     object_238 = 0;
     value_23c = 0;
     value_240 = -1;
     value_278 = 0;
     registry_weight_27c = 0;
-    value_280 = 0;
-    value_284 = 0;
-    value_288 = 0;
+    formation.value_00 = 0;
+    formation.value_04 = 0;
+    formation.value_08 = 0;
     object_334 = 0;
 
     m_pRep = new W8MonsterRep;
     m_pRep->linked_objects_5e8 = PListCreate();
+}
+
+// FUNCTION: WIZ8 0x004bfe00
+W8Monster::W8Monster(const W8Monster& rhs)
+    : W8GrCycle(rhs),
+      flags_1dc(rhs.flags_1dc),
+      value_1e0(rhs.value_1e0),
+      propagated_value_1e4(rhs.propagated_value_1e4),
+      value_1e8(1.0f),
+      value_1ec(1.0f),
+      value_1f0(1.0f),
+      value_1f4(rhs.value_1f4),
+      value_1f8(rhs.value_1f8),
+      flag_1fc(0),
+      flag_1fd(0),
+      value_200(0),
+      value_204(0),
+      value_208(0),
+      value_210(-1),
+      flag_215(rhs.flag_215),
+      flag_216(1),
+      flag_217(0),
+      flag_218(0),
+      value_21c(rhs.value_21c),
+      value_220(rhs.value_220),
+      value_224(rhs.value_224),
+      value_228(rhs.value_228),
+      flag_22c(0),
+      flag_22d(0),
+      object_238(0),
+      value_240(-1),
+      value_278(0),
+      registry_weight_27c(rhs.registry_weight_27c),
+      object_334(0)
+{
+    formation.value_00 = 0;
+    formation.value_04 = 0;
+    formation.value_08 = 0;
+    flags_330.flag_00 = 0;
+    flags_330.flag_01 = 0;
+    flags_330.copied_flag_02 = rhs.flags_330.copied_flag_02;
+
+    if (rhs.m_pRep == 0) {
+        srAssertFail(
+            "rhs.m_pRep",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp",
+            1099,
+            0);
+    }
+    m_pRep = static_cast<W8MonsterRep*>(rhs.m_pRep->Clone());
+    m_pRep->linked_objects_5e8 = PListCreate();
+
+    state_28c.flag_00 = 0;
+    state_28c.flag_01 = 0;
+    state_28c.value_02 = -1;
+    state_28c.flag_03 = 0;
+    state_28c.flag_04 = 0;
+    state_28c.flag_05 = 0;
+    state_2ac.flag_00 = 0;
+    state_2ac.value_04 = 0;
+    state_2ac.value_08 = 0;
+    state_2ac.value_0c = 0;
+    state_2ac.value_1c = 0;
+    state_2ac.value_20 = 0;
+    state_2ac.value_24 = -1;
+    state_2ac.flag_28 = 1;
+    state_2fc.scale_00 = 1.0f;
+    state_2fc.scale_04 = 1.0f;
+    flags_1dc &= 0xfffffcb6;
+    state_22e = 0;
+    unknown_230[0] = 0;
+    if (flags_330.copied_flag_02 != 0) {
+        fields.state_088 = 0;
+    }
 }
 
 // FUNCTION: WIZ8 0x004c0170
@@ -102,32 +277,22 @@ W8Monster::~W8Monster()
     }
 }
 
-struct W8MonsterLinkedObject004C5870 {
-    unsigned char unknown_00[0x28];
-    int value_28;
-};
-
-struct W8MonsterLinkedObjectList004C5870 {
-    void* unknown_00;
-    int count_04;
-    void* unknown_08;
-    W8MonsterLinkedObject004C5870** entries_0c;
-
-    W8MonsterLinkedObject004C5870* GetAt(int index)
-    {
-        W8MonsterLinkedObject004C5870** slot = entries_0c;
-        if (index < count_04) {
-            slot += index;
-        }
-        return *slot;
-    }
-};
+/* Navigator is W8Monster's second base at +0x18. VC6 places this override in
+   that secondary table and emits the adjusted entry form at 0x004CA840. */
+// FUNCTION: WIZ8 0x004ca840
+void W8Monster::SetPosition(const W8Position* position)
+{
+    vslot9()->SetLocation004B8850(position);
+    m_pRep->SetLocation004B8850(position);
+    SetPositionInternal00453590(position);
+    fields.position_dirty_09c = 1;
+}
 
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
    the canonical assertion at line 960, whose message reads
    "GetNumSubsPerCycle() -> Invalid cycle num.". The element count and stride
    agree with the reviewed constructor: 27 entries of 0x10 bytes at 0xAC ends at
-   0x25C, exactly where Monster's second subobject array begins. */
+   0x25C, exactly where Monster's second vector array begins. */
 // FUNCTION: WIZ8 0x004bfab0
 unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
 {
@@ -139,9 +304,37 @@ unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
             "GetNumSubsPerCycle() -> Invalid cycle num.");
     }
     if (bCycle == -1) {
-        bCycle = Subobject18().m_bCurrentCycle;
+        bCycle = selection.monster.current_cycle;
     }
-    return m_cycles[bCycle].count.ubNumSubs;
+    return (unsigned char)animations[bCycle].GetCount();
+}
+
+/* Select the active AnimObj for a cycle and dispatch the requested LOD/frame.
+   This is the concrete implementation behind AnimRep's third vtable slot. */
+// FUNCTION: WIZ8 0x004bf8c0
+void W8MonsterRep::SetCycleFrameLod(
+    signed char cycle, int frame, int lod)
+{
+    typedef int (__cdecl *DispatchCall)(W8AnimObj*, int, int);
+
+    int subcycle = selection.monster.current_subcycle;
+    W8MonsterAnimationVector* selected_cycle = &animations[cycle];
+    W8AnimObj** animation_slot;
+    W8AnimObj* animation;
+
+    if (subcycle < selected_cycle->GetCount()) {
+        animation_slot = selected_cycle->data + subcycle;
+    }
+    else {
+        animation_slot = selected_cycle->data;
+    }
+    animation = *animation_slot;
+    if (animation->flag_05 == 0) {
+        ((DispatchCall)AnimObjDispatch004A14D0)(animation, lod, frame);
+    }
+    else {
+        ((DispatchCall)AnimObjDispatchList004A1560)(animation, lod, 0);
+    }
 }
 
 /* The Monster vtable's slot-three method selects the active subcycle's
@@ -151,16 +344,15 @@ unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
 // FUNCTION: WIZ8 0x004bf970
 void W8MonsterRep::ApplyEmitterSetting(char cycle)
 {
-    W8MonsterCycle* selected_cycle = &m_cycles[cycle];
+    W8MonsterAnimationVector* selected_cycle = &animations[cycle];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (unknown_0a5[0] <
-        (int)selected_cycle->num_subs_04) {
-        animation_slot = selected_cycle->animation_objects +
-            unknown_0a5[0];
+    if (selection.monster.current_subcycle < selected_cycle->GetCount()) {
+        animation_slot = selected_cycle->data +
+            selection.monster.current_subcycle;
     } else {
-        animation_slot = selected_cycle->animation_objects;
+        animation_slot = selected_cycle->data;
     }
     animation = *animation_slot;
     if (animation == 0) {
@@ -186,7 +378,7 @@ unsigned char W8Monster::IsCycleSupported(signed char cycle)
             0xafc,
             "IsCycleSupported() -> Invalid cycle num.");
     }
-    return m_pRep->m_cycles[cycle].num_subs_04 != 0;
+    return m_pRep->animations[cycle].GetCount() != 0;
 }
 
 /* Resolve the active cycle/subcycle AnimObj and submit entry zero using the
@@ -198,17 +390,17 @@ void W8Monster::SubmitCurrentAnimEntry004C3F00()
         W8AnimObj*, signed char, unsigned int);
 
     int cycle_index =
-        m_pRep->Subobject18().m_bCurrentCycle;
+        m_pRep->selection.monster.current_cycle;
     int subcycle_index =
-        m_pRep->Subobject18().current_subcycle_8d;
-    W8MonsterCycle* cycle = &m_pRep->m_cycles[cycle_index];
+        m_pRep->selection.monster.current_subcycle;
+    W8MonsterAnimationVector* cycle = &m_pRep->animations[cycle_index];
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 
-    if (subcycle_index < (int)cycle->num_subs_04) {
-        animation_slot = cycle->animation_objects + subcycle_index;
+    if (subcycle_index < cycle->GetCount()) {
+        animation_slot = cycle->data + subcycle_index;
     } else {
-        animation_slot = cycle->animation_objects;
+        animation_slot = cycle->data;
     }
     animation = *animation_slot;
     if (animation == 0) {
@@ -224,7 +416,7 @@ void W8Monster::SubmitCurrentAnimEntry004C3F00()
        callee's reviewed declaration. */
     ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
         animation,
-        m_pRep->Subobject18().animation_index_80,
+        fields.animation_index_080,
         0);
 }
 
@@ -232,7 +424,7 @@ void W8Monster::SubmitCurrentAnimEntry004C3F00()
    propagate it to every attached object's +0x28 field.  The body consumes two
    cdecl arguments; callers that reserve another stack slot clean it themselves. */
 // FUNCTION: WIZ8 0x004c5870
-void MonsterPropagateValue004C5870(W8MonsterRep* monster, int value)
+void MonsterPropagateValue004C5870(W8Monster* monster, int value)
 {
     int index;
     int count;
@@ -244,56 +436,53 @@ void MonsterPropagateValue004C5870(W8MonsterRep* monster, int value)
             0x125f,
             0);
     }
-    monster->m_cycles[19].value_08 = value;
-    *(short*)&monster->m_cycles[3].flags_00 = (short)value;
-    if (monster->LinkedObjects010() != 0) {
-        count = ((W8MonsterLinkedObjectList004C5870*)
-            monster->LinkedObjects010())->count_04;
+    monster->propagated_value_1e4 = value;
+    monster->fields.location_id_0c4 = (unsigned short)value;
+    if (monster->m_plsSoundEvents != 0) {
+        count = monster->m_plsSoundEvents->GetCount();
         index = 0;
         if (count > 0) {
             do {
-                W8MonsterLinkedObjectList004C5870* list =
-                    (W8MonsterLinkedObjectList004C5870*)
-                    monster->LinkedObjects010();
-                int propagated_value = monster->m_cycles[19].value_08;
-                W8MonsterLinkedObject004C5870* object = list->GetAt(index);
+                int propagated_value = monster->propagated_value_1e4;
+                W8VectorElement005ED094* object =
+                    *monster->m_plsSoundEvents->GetAt(index);
                 ++index;
-                object->value_28 = propagated_value;
+                object->value_028 = propagated_value;
             } while (index < count);
         }
     }
 }
 
 // FUNCTION: WIZ8 0x004c5710
-bool MonsterHasPendingCycle(W8MonsterRep* monster)
+bool MonsterHasPendingCycle(W8Monster* monster)
 {
-    return monster->m_cycles[18].runtime->pending_cycle != -1;
+    return monster->m_pRep->selection.monster.pending_cycle != -1;
 }
 
 /* Cycle 17's third state byte is preserved by ActivateMonster while the live
    engine object is rebuilt, then restored into the replacement. */
 // FUNCTION: WIZ8 0x004c57f0
-unsigned char MonsterGetCycle17State(W8MonsterRep* monster)
+unsigned char MonsterGetCycle17State(W8Monster* monster)
 {
-    return monster->m_cycles[17].bytes.state_02;
+    return monster->unknown_1be;
 }
 
 // FUNCTION: WIZ8 0x004c5800
-void MonsterSetCycle17State(W8MonsterRep* monster, unsigned char state)
+void MonsterSetCycle17State(W8Monster* monster, unsigned char state)
 {
-    monster->m_cycles[17].bytes.state_02 = state;
+    monster->unknown_1be = state;
 }
 
 // FUNCTION: WIZ8 0x004c5820
-unsigned char MonsterGetRuntimeFlag5BC(W8MonsterRep* monster)
+unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster)
 {
-    return monster->m_cycles[18].runtime->flag_5bc;
+    return monster->m_pRep->flag_5bc;
 }
 
 // FUNCTION: WIZ8 0x004c5840
-void MonsterSetRuntimeFlag5BC(W8MonsterRep* monster, unsigned char flag)
+void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag)
 {
-    monster->m_cycles[18].runtime->flag_5bc = flag;
+    monster->m_pRep->flag_5bc = flag;
 }
 
 /* Cycle 18's pointee carries the scale at +0x5f0. Both accessors reach it the
@@ -301,37 +490,37 @@ void MonsterSetRuntimeFlag5BC(W8MonsterRep* monster, unsigned char flag)
    reads a byte from - so the pointee is a shared engine object rather than
    anything the cycle owns. It is not modelled: only this one field is known. */
 // FUNCTION: WIZ8 0x004c5780
-float MonsterGetScale(W8MonsterRep* monster)
+float MonsterGetScale(W8Monster* monster)
 {
-    return monster->m_cycles[18].runtime->scale;
+    return monster->m_pRep->scale_5f0;
 }
 
 // FUNCTION: WIZ8 0x004c57a0
-void MonsterSetScale(W8MonsterRep* monster, float scale)
+void MonsterSetScale(W8Monster* monster, float scale)
 {
-    monster->m_cycles[18].runtime->scale = scale;
+    monster->m_pRep->scale_5f0 = scale;
 }
 
 // FUNCTION: WIZ8 0x004c57c0
-void MonsterGetScaleRange(W8MonsterRep* monster, float* minimum, float* maximum)
+void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum)
 {
-    W8MonsterCycleRuntime* runtime = monster->m_cycles[18].runtime;
+    W8MonsterRep* runtime = monster->m_pRep;
 
-    *minimum = runtime->minimum_scale;
-    *maximum = runtime->maximum_scale;
+    *minimum = runtime->minimum_scale_5f4;
+    *maximum = runtime->maximum_scale_5f8;
 }
 
 /* Returns the previous animation state and timestamps every update through the
    recovered shared SurRender timer. */
 // FUNCTION: WIZ8 0x004c5a00
-unsigned char MonsterSetAnimating(W8MonsterRep* monster, unsigned char animating)
+unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating)
 {
     if (monster != 0) {
-        W8MonsterCycleRuntime* runtime = monster->m_cycles[18].runtime;
-        unsigned char previous = runtime->animating;
+        W8MonsterRep* runtime = monster->m_pRep;
+        unsigned char previous = runtime->flag_06d;
 
-        runtime->animating = animating;
-        runtime->animation_timestamp =
+        runtime->flag_06d = animating;
+        runtime->timer_068 =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         return previous;
     }
@@ -339,10 +528,10 @@ unsigned char MonsterSetAnimating(W8MonsterRep* monster, unsigned char animating
 }
 
 // FUNCTION: WIZ8 0x004c59e0
-unsigned char MonsterIsAnimating(W8MonsterRep* monster)
+unsigned char MonsterIsAnimating(W8Monster* monster)
 {
     if (monster != 0) {
-        return monster->m_cycles[18].runtime->animating;
+        return monster->m_pRep->flag_06d;
     }
     return 0;
 }
@@ -350,15 +539,15 @@ unsigned char MonsterIsAnimating(W8MonsterRep* monster)
 /* Cycle 19 bit 5 blocks pending-cycle changes. Otherwise the request is stored
    as the signed low byte in cycle 18's runtime record. */
 // FUNCTION: WIZ8 0x004c5aa0
-void MonsterSetPendingCycle(W8MonsterRep* monster, int cycle)
+void MonsterSetPendingCycle(W8Monster* monster, int cycle)
 {
-    if (monster != 0 && ((monster->m_cycles[19].flags_00 >> 5) & 1) == 0) {
-        monster->m_cycles[18].runtime->pending_cycle = (signed char)cycle;
+    if (monster != 0 && ((monster->flags_1dc >> 5) & 1) == 0) {
+        monster->m_pRep->selection.monster.pending_cycle = (signed char)cycle;
     }
 }
 
 // FUNCTION: WIZ8 0x004c5e40
-void MonsterSetRuntimeBehaviour(W8MonsterRep* monster, signed char behaviour)
+void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour)
 {
     if (monster != 0) {
         if (behaviour < 1 || behaviour > 3) {
@@ -368,31 +557,31 @@ void MonsterSetRuntimeBehaviour(W8MonsterRep* monster, signed char behaviour)
                 0x87,
                 0);
         }
-        monster->m_cycles[18].runtime->behaviour = behaviour;
+        monster->m_pRep->behaviour_071 = behaviour;
     }
 }
 
 // FUNCTION: WIZ8 0x004c5ee0
-unsigned char MonsterHasCycle19Flag3(W8MonsterRep* monster)
+unsigned char MonsterHasCycle19Flag3(W8Monster* monster)
 {
     if (monster != 0) {
-        return (monster->m_cycles[19].flags_00 >> 3) & 1;
+        return (monster->flags_1dc >> 3) & 1;
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004c6160
-void MonsterSetStateA0(W8MonsterRep* monster, unsigned char state)
+void MonsterSetStateA0(W8Monster* monster, unsigned char state)
 {
     if (monster != 0) {
-        monster->Subobject18().state_a0 = state;
+        monster->fields.state_088 = state;
     }
 }
 
 /* Named by the MonsterManager assertions. A null monster answers -1 rather than
    forwarding, which is how the callers tell "no monster" from a real result. */
 // FUNCTION: WIZ8 0x004c5b40
-int MonsterQuery(W8MonsterRep* monster, int query)
+int MonsterQuery(W8Monster* monster, int query)
 {
     if (monster != NULL) {
         return monster->Query(query);
@@ -401,10 +590,10 @@ int MonsterQuery(W8MonsterRep* monster, int query)
 }
 
 // FUNCTION: WIZ8 0x004ca4c0
-unsigned char W8MonsterRep::IsDying()
+unsigned char W8Monster::IsDying()
 {
     unsigned char dying = Query(6) == 0x15 ||
-                          m_cycles[18].runtime->pending_cycle == 0x15;
+                          m_pRep->selection.monster.pending_cycle == 0x15;
 
     return dying;
 }
@@ -417,7 +606,7 @@ extern void Function4C4DE0(int arg_1, int arg_2, int arg_3);
 extern void Function4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5);
 /* Neither takes an argument nor reads ECX: both work entirely over the pair of
    globals at 0x00659B34 and 0x00659B3C, which is what makes them free
-   functions rather than the subobject methods their neighbours in the same
+   functions rather than the Navigator methods their neighbours in the same
    address range are. */
 extern void Function453160(void);
 extern void Function4531A0(void);
@@ -434,13 +623,13 @@ extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
 /* 0x00421070, owned by the 0041F261-0042403F quarantine: the shared reference
    position every consumer of the object at 0x0065A0F8 reads. */
 extern void GetPosition421070(W8Position* position);
-extern void MonsterPolymorphicSubobject18Update(W8MonsterPolymorphicSubobject18* member);            /* 0x00453970 */
-extern void Function4A84A0(W8MonsterRep* monster);
+extern void MonsterNavigatorUpdate(W8Navigator* navigator); /* 0x00453970 */
+extern void Function4A84A0(W8GrCycle* monster);
 /* Spelled the way MonsterManager.cpp already declares it: the callee takes its
    receiver in ECX, which __fastcall is how a no-argument member call is
-   reachable from a free declaration. The receiver is the monster's subobject at
-   0x18, not the monster - the forwarder derives it with a `lea`. */
-extern void __fastcall Function4537E0(W8MonsterPolymorphicSubobject18* member);
+   reachable from a free declaration. The receiver is the monster's Navigator
+   base at +0x18. */
+extern void __fastcall Function4537E0(W8Navigator* navigator);
 extern void* g_monster_vtable_005ed290;
 
 /* Copies a position into a local and hands the local on. The monster argument
@@ -470,7 +659,7 @@ extern void* g_monster_vtable_005ed290;
    Reproducing both emissions needs a second call site that does not inline,
    which is not decidable from this one; the filed bead tracks it. */
 // FUNCTION: WIZ8 0x004c5a40
-void MonsterForward4A7BE0(W8MonsterRep* monster, const W8Position* position)
+void MonsterForward4A7BE0(W8Monster* monster, const W8Position* position)
 {
     srVector3T<float> local;
 
@@ -488,11 +677,12 @@ void MonsterForward4A7BE0(W8MonsterRep* monster, const W8Position* position)
    the second `mov` reloads it from the cycle - which is what says the original
    spelled the two reaches out separately instead of naming the record once. */
 // FUNCTION: WIZ8 0x004c6c00
-void W8MonsterRep::SetRuntimeValueA6(unsigned char value)
+void W8Monster::SetRuntimeValueA6(unsigned char value)
 {
-    m_cycles[18].runtime->value_0a6 = value;
-    if (m_cycles[18].runtime->pending_cycle == -1) {
-        m_cycles[18].runtime->pending_cycle = m_cycles[18].runtime->value_0a4;
+    m_pRep->selection.monster.runtime_value_a6 = value;
+    if (m_pRep->selection.monster.pending_cycle == -1) {
+        m_pRep->selection.monster.pending_cycle =
+            m_pRep->selection.monster.current_cycle;
     }
 }
 
@@ -503,10 +693,10 @@ void W8MonsterRep::SetRuntimeValueA6(unsigned char value)
    single epilogue despite testing two things. The block arrives by value and is
    stored as one assignment. */
 // FUNCTION: WIZ8 0x004c5ad0
-void MonsterSetRuntimeBlock4C(W8MonsterRep* monster, W8MonsterRuntimeBlock4C block)
+void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
 {
     if (monster != 0 && monster->Query(6) != 0x15) {
-        monster->m_cycles[18].runtime->block_04c = block;
+        monster->m_pRep->value_04c = block;
     }
 }
 
@@ -514,25 +704,25 @@ void MonsterSetRuntimeBlock4C(W8MonsterRep* monster, W8MonsterRuntimeBlock4C blo
 /* The engine object a monster holds at 0x0c, or nothing when there is no
    monster to ask. */
 // FUNCTION: WIZ8 0x004c5b30
-void* MonsterGetObject0C(W8MonsterRep* monster)
+void* MonsterGetObject0C(W8Monster* monster)
 {
     if (monster != 0) {
-        return *(void**)((char*)monster + 0xc);
+        return monster->m_pAI;
     }
     return 0;
 }
 
 /* Run the member update with no monster of its own to name. */
 // FUNCTION: WIZ8 0x004c5770
-void MonsterUpdatePolymorphicSubobject18(void)
+void UpdateMonsterNavigator(void)
 {
-    MonsterPolymorphicSubobject18Update(0);
+    MonsterNavigatorUpdate(0);
 }
 
 /* Two null-checked forwards that share one shape: a monster that is not there
    is simply not acted on. */
 // FUNCTION: WIZ8 0x004c5ea0
-void MonsterForward4A84A0(W8MonsterRep* monster)
+void MonsterForward4A84A0(W8Monster* monster)
 {
     if (monster != 0) {
         Function4A84A0(monster);
@@ -540,10 +730,10 @@ void MonsterForward4A84A0(W8MonsterRep* monster)
 }
 
 // FUNCTION: WIZ8 0x004c6140
-void MonsterForward4537E0(W8MonsterRep* monster)
+void MonsterForward4537E0(W8Monster* monster)
 {
     if (monster != 0) {
-        Function4537E0(&monster->Subobject18());
+        Function4537E0(monster);
     }
 }
 
@@ -605,7 +795,7 @@ void MonsterForward4531A0(void)
 }
 
 /*
- * Six more null-guarded forwarders onto the subobject at 0x18, the same shape
+ * Six more null-guarded forwarders onto the Navigator base at +0x18, the same shape
  * MonsterForward4537E0 has: the guard tests the monster, the receiver is
  * derived from it with a `lea`, and a monster that is not there is simply not
  * acted on. What each one answers on the null path is the evidence for its
@@ -613,57 +803,57 @@ void MonsterForward4531A0(void)
  * float, and a bare return for the four that hand nothing back.
  */
 // FUNCTION: WIZ8 0x004c5f50
-void MonsterSetSubobjectValue120(W8MonsterRep* monster, float value)
+void MonsterSetNavigatorValue120(W8Monster* monster, float value)
 {
     if (monster != 0) {
-        monster->Subobject18().SetValue120(value);
+        monster->SetValue120(value);
     }
 }
 
 // FUNCTION: WIZ8 0x004c5f70
-float MonsterGetSubobjectValue120(W8MonsterRep* monster)
+float MonsterGetNavigatorValue120(W8Monster* monster)
 {
     if (monster != 0) {
-        float value = monster->Subobject18().GetValue120();
+        float value = monster->GetValue120();
         return value;
     }
     return 0.0f;
 }
 
 // FUNCTION: WIZ8 0x004c5f90
-unsigned char MonsterForward452630(W8MonsterRep* monster, const W8Position* position)
+unsigned char MonsterForward452630(W8Monster* monster, const W8Position* position)
 {
     if (monster != 0) {
-        return monster->Subobject18().Function452630(position);
+        return monster->Function452630(position);
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004c5fb0
-void MonsterForward453690(W8MonsterRep* monster, void* argument)
+void MonsterForward453690(W8Monster* monster, void* argument)
 {
     if (monster != 0) {
-        monster->Subobject18().Function453690(argument);
+        monster->Function453690(argument);
     }
 }
 
 // FUNCTION: WIZ8 0x004c5fd0
-void MonsterSetSubobjectObject68Flag38(W8MonsterRep* monster, char value)
+void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value)
 {
     if (monster != 0) {
-        monster->Subobject18().SetObject68Flag38(value);
+        monster->SetObject68Flag38(value);
     }
 }
 
 // FUNCTION: WIZ8 0x004c6200
-void MonsterSetSubobjectFlag25(W8MonsterRep* monster, char value)
+void MonsterSetNavigatorFlag25(W8Monster* monster, char value)
 {
     if (monster != 0) {
-        monster->Subobject18().SetFlag25(value);
+        monster->SetFlag25(value);
     }
 }
 
-/* Hands the shared reference position to one of the subobject's two position
+/* Hands the shared reference position to one of Navigator's two position
    sinks. The monster's script part is found the long way round - the location
    id lives in the cycle array at 0x1e4, and the lookup pair turns it into the
    W8MonsterInfo whose control state gates the whole body - which is what puts
@@ -674,20 +864,20 @@ void MonsterSetSubobjectFlag25(W8MonsterRep* monster, char value)
    is read even on the path that turns out not to need one sink over the other,
    and the flag decides only which sink receives it. */
 // FUNCTION: WIZ8 0x004c6240
-void MonsterForwardReferencePosition(W8MonsterRep* monster, char alternate)
+void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
 {
     W8MonsterInfo* monster_info;
     W8Position position;
 
     if (monster != 0) {
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-            0x14b3, MONSTER_CPP, monster->m_cycles[19].location_id_08, 1));
+            0x14b3, MONSTER_CPP, monster->propagated_value_1e4, 1));
         if (monster_info->control_state != 1) {
             GetPosition421070(&position);
             if (alternate != 0) {
-                monster->Subobject18().Function454040(&position);
+                monster->Function454040(&position);
             } else {
-                monster->Subobject18().Function453F30(&position);
+                monster->Function453F30(&position);
             }
         }
     }
@@ -717,7 +907,7 @@ void Function4C5810(W8Forwarded* target)
 }
 extern "C" {
 // FUNCTION: WIZ8 0x004C5860
-void Function4C5860(W8Releasable* object)
+void Function4C5860(W8MonsterReleasable005C8* object)
 {
     if (object != NULL) {
         delete object;

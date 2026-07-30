@@ -21,7 +21,7 @@
 #define BEHAVIOUR_LAST  3
 
 // VTABLE: WIZ8 0x005ece78 W8GrCycle
-// VTABLE: WIZ8 0x005eceb8 W8GrCycleBase00451EC0
+// VTABLE: WIZ8 0x005eceb8 W8Navigator
 // class W8GrCycle
 
 // SYNTHETIC: WIZ8 0x004a5f00
@@ -148,22 +148,22 @@ unsigned char W8GrCycle::ReturnTrue004A7140(int)
 // FUNCTION: WIZ8 0x004a7420
 void W8GrCycle::ResetRepresentation004A7420()
 {
-    W8GrCycleTarget* target = vslot9();
+    W8EmitterHost* target = vslot9();
 
     if (target == 0) {
         srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
     }
-    Function4A9720(unknown_00c);
-    target->flag_6e = 1;
-    target->m_subcycle = 0;
-    target->tick_68 = g_time_source_006598b8->vslot5(0);
+    Function4A9720(m_pAI);
+    target->flag_06e = 1;
+    target->flag_064 = 0;
+    target->timer_068 = g_time_source_006598b8->vslot5(0);
 }
 
 // FUNCTION: WIZ8 0x004a8360
 void W8GrCycle::SelectCycleFrameLod004A8360(
     signed char cycle, signed char frame, signed char lod)
 {
-    W8GrCycleTarget* target;
+    W8EmitterHost* target;
 
     if (lod < 0 || lod >= 3) {
         srAssertFail(
@@ -178,10 +178,10 @@ void W8GrCycle::SelectCycleFrameLod004A8360(
     if (cycle < 0) {
         srAssertFail("bCycle >= 0", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x5f3, 0);
     }
-    if (unknown_00c != 0) {
+    if (m_pAI != 0) {
         target = vslot9();
         PathAIApplyToRep004A91F0(
-            (W8PathAI*)unknown_00c, (W8PathRepresentation*)target);
+            (W8PathAI*)m_pAI, (W8PathRepresentation*)target);
     }
     target = vslot9();
     target->SetCycleFrameLod(cycle, frame, lod);
@@ -190,19 +190,19 @@ void W8GrCycle::SelectCycleFrameLod004A8360(
 // FUNCTION: WIZ8 0x004a8400
 unsigned char W8GrCycle::ReplacePath004A8400(void* path)
 {
-    if (unknown_00c != 0) {
-        Function4A9110(unknown_00c);
+    if (m_pAI != 0) {
+        Function4A9110(m_pAI);
     }
-    unknown_00c = path;
+    m_pAI = path;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x004a84a0
 void W8GrCycle::SubmitTargetValue004A84A0()
 {
-    W8GrCycleTarget* target = vslot9();
+    W8EmitterHost* target = vslot9();
 
-    vslot11((unsigned char*)target + 0xa8);
+    vslot11(&target->value_0a8);
 }
 
 /* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug
@@ -236,17 +236,17 @@ extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
 {
     signed char count = vslot5();
-    W8GrCycleTarget* target = vslot9();
+    W8EmitterHost* target = vslot9();
 
     if (subcycle < count) {
-        target->m_subcycle = subcycle;
+        target->flag_064 = subcycle;
     }
 }
 
 // FUNCTION: WIZ8 0x004a8460
 void W8GrCycle::SetBehaviour(signed char bBehaviour)
 {
-    W8GrCycleTarget* target = vslot9();
+    W8EmitterHost* target = vslot9();
 
     if (bBehaviour < BEHAVIOUR_FIRST || bBehaviour > BEHAVIOUR_LAST) {
         srAssertFail(
@@ -255,7 +255,7 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
             0x63e,
             0);
     }
-    target->m_bBehaviour = bBehaviour;
+    target->flag_070 = bBehaviour;
 }
 
 // FUNCTION: WIZ8 0x004a84c0

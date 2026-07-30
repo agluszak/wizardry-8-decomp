@@ -60,6 +60,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/AnimRep.cpp
     src/wiz8/engine_code/GDProp.cpp
     src/wiz8/engine_code/Prop005EC1E0.cpp
+    src/wiz8/engine_code/Navigator.cpp
     src/wiz8/engine_code/GrObject.cpp
     src/wiz8/local_code/RegionManager.cpp
     src/wiz8/local_code/chunk.cpp
@@ -102,7 +103,6 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/window_proc.cpp
     src/wiz8/character_skills.cpp
     src/wiz8/gameplay_boundaries.cpp
-    src/wiz8/grcycle.cpp
     src/wiz8/fact_state.cpp
     src/wiz8/dirty_tiles.cpp
     src/wiz8/render_options.cpp

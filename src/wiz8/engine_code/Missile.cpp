@@ -220,20 +220,21 @@ W8EmitterTableHost* W8Missile::GetLauncher()
 // FUNCTION: WIZ8 0x004a4570
 W8Emitter* W8Missile::GetActiveEmitter()
 {
-    return this->launcher->emitters[this->launcher->emitter_index];
+    return this->launcher->emitters[this->launcher->selection.emitter.emitter_index];
 }
 
 /* That emitter's own value. */
 // FUNCTION: WIZ8 0x004a45c0
 float W8Missile::GetActiveEmitterValue()
 {
-    return this->launcher->emitters[this->launcher->emitter_index]->value_08;
+    return this->launcher->emitters[this->launcher->selection.emitter.emitter_index]->value_08;
 }
 
 // FUNCTION: WIZ8 0x004a45f0
 void* W8Missile::GetActiveEmitterEntry004A45F0()
 {
-    W8Emitter* emitter = this->launcher->emitters[this->launcher->emitter_index];
+    W8Emitter* emitter = this->launcher->emitters[
+        this->launcher->selection.emitter.emitter_index];
 
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);

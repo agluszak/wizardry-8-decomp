@@ -186,7 +186,7 @@ void DropCharacterFromRound(int party_slot)
 
 extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
 extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
-extern void NotifyMonsterOfSound(W8MonsterRep* monster, int arg_2);      /* 0x004C6240 */
+extern void NotifyMonsterOfSound(W8Monster* monster, int arg_2);      /* 0x004C6240 */
 extern unsigned char g_surprise_possible_00683fc5;
 
 /* Tell every monster within short range about something. A monster has to be
@@ -246,10 +246,10 @@ extern unsigned char CharacterCanSwitchTo(int party_slot, int a, int b, int c);
 extern void SwitchCharacterTo(int party_slot, int action);               /* 0x004ED390 */
 extern void MonsterChooseTarget(W8MonsterInfo* monster_info, int* out, int arg_3);
 /* 0x0051AC30 */
-extern void NotifyMonsterIdle(W8MonsterRep* monster, int arg_2);         /* 0x004C6240 */
-extern void NotifyMonsterFacing(W8MonsterRep* monster, W8MonsterRep* target, int arg_3);
+extern void NotifyMonsterIdle(W8Monster* monster, int arg_2);         /* 0x004C6240 */
+extern void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
 /* 0x004C62C0 */
-extern void Function4C6200(W8MonsterRep* monster, int arg_2);
+extern void Function4C6200(W8Monster* monster, int arg_2);
 extern unsigned char Function5323F0(W8MonsterInfo* monster_info, int a, int b, int c);
 extern void SetMonsterTurnSpeed(float speed);                            /* 0x00453C70 */
 extern int MonsterActionFatigueCost(const W8MonsterInfo* monster_info);
@@ -257,7 +257,7 @@ extern void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int
 extern void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 extern void RequestRedraw(unsigned int mask);
 extern float GetMonsterRecordScaledFloat1BA(W8MonsterInfo* monster_info);
-extern W8MonsterRep* GetMonsterByLocationID(int location_id);
+extern W8Monster* GetMonsterByLocationID(int location_id);
 extern void* g_effect_005ee610;
 extern unsigned int g_flee_hp_fraction_005ed8f8;
 extern unsigned int g_flee_chance_005ed908;
@@ -366,7 +366,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
     float scale;
 
     if (monster_info->pCombat->turn_started != 0) {
-        monster_info->monster->Subobject18().unknown_10[0x16] = 0;
+        monster_info->monster->fields.unknown_026_to_05c[0] = 0;
         return;
     }
 
@@ -390,12 +390,12 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
 
     SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
     /* Four bytes inside cycle eight's block, cleared together. */
-    monster_info->monster->m_cycles[8].bytes_08.unknown_08 = 0;
-    monster_info->monster->m_cycles[8].bytes_08.unknown_09 = 0;
-    monster_info->monster->m_cycles[8].bytes_08.unknown_0a[0] = 0;
-    monster_info->monster->m_cycles[8].bytes_08.unknown_0a[1] = 0;
+    monster_info->monster->fields.unknown_118_to_120[4] = 0;
+    monster_info->monster->fields.unknown_118_to_120[5] = 0;
+    monster_info->monster->fields.unknown_118_to_120[6] = 0;
+    monster_info->monster->fields.unknown_118_to_120[7] = 0;
     monster_info->pCombat->turn_started = 1;
-    monster_info->monster->Subobject18().unknown_10[0x16] = 0;
+    monster_info->monster->fields.unknown_026_to_05c[0] = 0;
 }
 
 /* Finish one monster's attack: charge it the fatigue, drop the party's

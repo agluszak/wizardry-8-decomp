@@ -165,7 +165,7 @@ public:
     virtual unsigned long getClassID() const override; /* 0x0049DC20 */
     virtual srRegistry::ClassNode* getClassNode() const override; /* 0x0049E300 */
 
-protected:
+public:
     virtual ~MonsterLight() override;                 /* 0x0049E0D0 */
 
 public:

@@ -42,27 +42,24 @@ void Function4B5780(int primary_limit, int secondary_limit)
     PListInit(&g_storage_list_65be90);
 }
 
-/* Builds the startup rendering/world state after the real renderer graph is
-   open.  The allocated 0x190-byte object's reviewed identity is deliberately
-   address-qualified: the available evidence proves its role as GrCycle's
-   secondary base, but not its original source name. */
+/* Builds the startup navigation state after the renderer graph is open. */
 // FUNCTION: WIZ8 0x0044f060
 unsigned char Function44F060(void)
 {
-    W8GrCycleBase00451EC0* world;
+    W8Navigator* navigator;
 
     NoOp();
     Function4B5780(-1, -1);
     InitializeRenderQuality();
     InitializeEnvironmentColours();
 
-    world = new W8GrCycleBase00451EC0;
-    g_startup_world_659c0c = world;
-    world->configureStartupRange(500.0f);
+    navigator = new W8Navigator;
+    g_startup_world_659c0c = navigator;
+    navigator->configureStartupRange(500.0f);
     if (g_runtime_world_scale_6081e8 < g_world_scale_005ebc40) {
         g_runtime_world_scale_6081e8 = 500.0f;
     }
-    world->configureStartupDepth(
+    navigator->configureStartupDepth(
         g_startup_depth_603ac8 < g_startup_near_limit_005ec000
             ? g_startup_near_limit_005ec000
             : g_startup_depth_603ac8,

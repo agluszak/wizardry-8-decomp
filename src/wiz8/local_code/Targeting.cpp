@@ -209,7 +209,7 @@ extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x00
 extern void ApplyTarget(W8CombatSlot* target, int context);              /* 0x00538E00 */
 extern unsigned char TargetIsReachable(W8CombatSlot* target);            /* 0x00536190 */
 extern void GetPartyEyePosition(void* position);                         /* 0x00421070 */
-extern void GetMonsterBounds(W8MonsterRep* monster, void* lower, void* upper);
+extern void GetMonsterBounds(W8Monster* monster, void* lower, void* upper);
 /* 0x004CA4F0 */
 extern void ShowTargetMarker(void* eye, void* lower, void* upper);       /* 0x0046F820 */
 extern void Function492500(void* scratch);
@@ -379,12 +379,12 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
     return 0;
 }
 
-extern unsigned char MonsterGetRuntimeFlag5BC(W8MonsterRep* monster);
-extern void MonsterSetRuntimeFlag5BC(W8MonsterRep* monster, unsigned char flags);
+extern unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster);
+extern void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flags);
 extern void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 /* 0x004C5EB0 */
 extern void SetMonsterHighlightColour(
-    W8MonsterRep* monster, float r, float g, float b, float a);         /* 0x004C5AD0 */
+    W8Monster* monster, float r, float g, float b, float a);         /* 0x004C5AD0 */
 extern unsigned int GetMonsterGroupIndexByID(
     int caller_line, const char* caller_file, int group_id, unsigned char assert_on_failure);
 extern W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int index);
@@ -450,7 +450,7 @@ unsigned char IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* ite
    nothing, and two that differ only in which channel is lit - and everything
    else leaves the colour as it was. */
 // FUNCTION: WIZ8 0x00539480
-void TintHighlightedMonster(W8MonsterRep* monster, int tint)
+void TintHighlightedMonster(W8Monster* monster, int tint)
 {
     float r = 0.0f;
     float g = 0.0f;
@@ -475,7 +475,7 @@ void SetMonsterHighlight(int party_slot, int location_id, int unused, char on)
 {
     int index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
-    W8MonsterRep* monster;
+    W8Monster* monster;
     unsigned char bit;
 
     if (index == -1) {
@@ -509,7 +509,7 @@ void SetGroupHighlight(int party_slot, int group_id, char on)
     int location_id;
     int index;
     W8MonsterInfo* monster_info;
-    W8MonsterRep* monster;
+    W8Monster* monster;
     unsigned char bit;
 
     if (group_index == 0xffffffff) {
@@ -851,7 +851,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
 {
     int index = MonsterGetIndexByLocationID(0x68d, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
-    W8MonsterRep* monster;
+    W8Monster* monster;
     char valid = 0;
 
     if (index == BAD_INDEX) {
@@ -960,7 +960,7 @@ void CollectMonstersWithinRadius(
 
     for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8MonsterRep* monster = monster_info->monster;
+        W8Monster* monster = monster_info->monster;
         W8MonsterRecord* record;
         srVector3T<float> position;
         float dx;
@@ -979,12 +979,12 @@ void CollectMonstersWithinRadius(
             continue;
         }
 
-        position = monster->Subobject18().GetPosition();
+        position = monster->GetPosition();
         dx = centre->x - position.x;
         dy = centre->y - position.y;
         dz = centre->z - position.z;
 
-        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->Subobject18().radius_84) {
+        if (radius < (float)sqrt(dx * dx + dy * dy + dz * dz) - monster->fields.radius_084) {
             if (highlighting != 0) {
                 SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
             }
@@ -1271,7 +1271,7 @@ void Function53AEB0(unsigned int party_slot)
 
     for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8MonsterRep* monster = monster_info->monster;
+        W8Monster* monster = monster_info->monster;
 
         if (monster_info->flag_14 != 0 && monster != 0) {
             unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
@@ -1638,7 +1638,7 @@ extern float AngleFromPartyTo(const W8Position* from, const srVector3T<float>* t
 /* 0x004BE420 */
 extern float NormalizeAngle(float radians);
 extern int CompareSignedAscending(const void* left, const void* right);  /* 0x004534C0 */
-extern W8MonsterRep* GetMonsterByLocationID(int location_id);
+extern W8Monster* GetMonsterByLocationID(int location_id);
 extern void AimAtTarget(int actor, const W8CombatSlot* target, int context);
 /* 0x005387F0 */
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
@@ -1684,7 +1684,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
         int location_id = *((W8GrowableVector<int>*)candidates)->GetAt((int)index);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x4a1, TARGETING_CPP, location_id, 1));
-        srVector3T<float> position = monster_info->monster->Subobject18().GetPosition();
+        srVector3T<float> position = monster_info->monster->GetPosition();
 
         sorted[index].location_id = location_id;
         sorted[index].angle = (int)NormalizeAngle(AngleFromPartyTo(&party, &position));

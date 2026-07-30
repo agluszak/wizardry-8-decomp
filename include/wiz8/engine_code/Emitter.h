@@ -1,6 +1,10 @@
 #ifndef WIZ8_ENGINE_CODE_EMITTER_H
 #define WIZ8_ENGINE_CODE_EMITTER_H
 
+struct W8Position;
+template<class T> class srMatrix3T;
+template<class T> class srVector3T;
+
 /*
  * The emitter record Engine Code\Missile.cpp and Engine Code\Spells.cpp both
  * hang their visuals off. The two files carry the pointer at different
@@ -54,11 +58,16 @@ struct W8AnimRepValue9 {
    0x64-byte polymorphic root below.  Its original name is not available. */
 class W8AnimRepBase005EC1D8 {
 public:
+    W8AnimRepBase005EC1D8();
     W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other);
     virtual ~W8AnimRepBase005EC1D8();
     virtual W8AnimRepBase005EC1D8* Clone();
 
-protected:
+    void SetLocation004B8850(const W8Position* location);
+    void GetLocation004B8890(srVector3T<float>* location);
+    void GetRotation004B88F0(srMatrix3T<float>* rotation);
+
+public:
     W8AnimRepValue3 value_004;
     W8AnimRepValue3 value_010;
     W8AnimRepValue3 value_01c;
@@ -74,6 +83,7 @@ protected:
    0x98.  The address suffix preserves the unresolved original class name. */
 class W8AnimRep005ED050 : public W8AnimRepBase005EC1D8 {
 public:
+    W8AnimRep005ED050();
     W8AnimRep005ED050(const W8AnimRep005ED050& other);
     virtual ~W8AnimRep005ED050() override;
     void SetFrameMethod004B55C0(signed char method);
@@ -103,9 +113,11 @@ public:
    AnimRep hierarchy.  Concrete missile and spell hosts supply those slots. */
 class W8EmitterHost : public W8AnimRep005ED050 {
 public:
+    W8EmitterHost();
     W8EmitterHost(const W8EmitterHost& other);
     virtual ~W8EmitterHost() override;
-    virtual void SendToEmitter(char emitter, int arg_2, int arg_3) = 0;
+    virtual void SetCycleFrameLod(
+        signed char cycle, int frame, int lod) = 0;
     virtual void ApplyEmitterSetting(char emitter) = 0;
     virtual void StopEmitter(char emitter) = 0;
 
@@ -115,10 +127,24 @@ public:
     unsigned char unknown_099[3];
     unsigned int value_09c;
     unsigned int value_0a0;
-    /* 0xa4: which emitter is in use. Signed, and read as a byte into a
-       full-width index. */
-    signed char emitter_index;
-    unsigned char unknown_0a5[3];
+    /* The shared emitter host treats this as an emitter/sub-entry quartet.
+       MonsterRep gives the same four bytes the cycle meanings witnessed by
+       Monster.cpp.  Keeping both views here models the real inherited storage
+       instead of inventing a second runtime object at Monster +0x18. */
+    union {
+        struct {
+            signed char emitter_index;       /* 0xa4 */
+            unsigned char emitter_subindex;  /* 0xa5 */
+            unsigned char emitter_value_a6;  /* 0xa6 */
+            signed char emitter_value_a7;    /* 0xa7 */
+        } emitter;
+        struct {
+            signed char current_cycle;       /* 0xa4 */
+            signed char current_subcycle;    /* 0xa5 */
+            unsigned char runtime_value_a6;  /* 0xa6 */
+            signed char pending_cycle;       /* 0xa7 */
+        } monster;
+    } selection;
     unsigned int value_0a8;
 };                                       /* 0xac */
 
