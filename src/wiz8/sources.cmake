@@ -107,6 +107,7 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/dirty_tiles.cpp
     src/wiz8/render_options.cpp
     src/wiz8/engine_code/registry_classes.cpp
+    src/wiz8/engine_code/GDCamera.cpp
     src/wiz8/unattributed/00401001_0041ab3f.cpp
     src/wiz8/unattributed/0041f261_0042403f.cpp
     src/wiz8/unattributed/00424041_0042a36f.cpp
