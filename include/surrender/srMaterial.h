@@ -32,7 +32,7 @@ public:
 
     /* Slot 7. Unexported, and every subclass overrides it; stMaterial's copies
        through the instance slot 6 returns, so it is a clone. */
-    virtual srMaterial* vslot7();
+    virtual srMaterial* clone();
     virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info);
     virtual void preProcess(srVertexPipe& pipe);
     virtual void postProcess(srVertexPipe& pipe);

@@ -10,7 +10,7 @@ public:
     const char* getClassName() const override;     /* 0x0042A0D0 */
     unsigned long getClassID() const override;     /* 0x0042A0C0 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x0042A0E0 */
-    srNode* vslot7() override;                     /* 0x0042A150 */
+    srNode* clone() override;                      /* 0x0042A150 */
 
     void ClearOverlayState()
     {

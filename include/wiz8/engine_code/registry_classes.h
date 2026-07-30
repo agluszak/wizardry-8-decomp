@@ -113,7 +113,7 @@ protected:
 
 public:
     virtual srClass* vInstance() override;          /* 0x0049E3A0 */
-    virtual srNode* vslot7() override;              /* 0x0049DD60 */
+    virtual srNode* clone() override;               /* 0x0049DD60 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x0049C7A0 */
     virtual void process(
         const srNode::ProcessInfo& info,
@@ -184,7 +184,7 @@ public:
     virtual ~MonsterLight() override;                 /* 0x0049E0D0 */
 
 public:
-    virtual srNode* vslot7() override;                /* 0x0049DC40 */
+    virtual srNode* clone() override;                 /* 0x0049DC40 */
 
 private:
     float m_vertical_offset_228;                      /* 0x228 */
@@ -218,7 +218,7 @@ public:
     }
     unsigned long getClassID() const override;     /* 0x004519D0, base id 0x1000 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x00445EF0 */
-    srNode* vslot7() override;                     /* 0x004519F0 */
+    srNode* clone() override;                      /* 0x004519F0 */
 };
 
 static_assert(sizeof(W8Node005EC208) == 0x138,
@@ -233,9 +233,4 @@ public:
 class W8Registered005EBF94 {
 public:
     unsigned long getClassID() const;     /* 0x00429E80 */
-};
-
-class W8Registered005EC5D8 {
-public:
-    unsigned long getClassID() const;     /* 0x0047D650 */
 };

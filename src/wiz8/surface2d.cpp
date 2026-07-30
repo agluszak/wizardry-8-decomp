@@ -70,7 +70,7 @@ stTexture2D::~stTexture2D()
 
 srClass* stTexture2D::vInstance() { return new stTexture2D; }
 
-srTextureIFace* stTexture2D::clone()
+srTexture* stTexture2D::clone()
 {
     stTexture2D* copy = new stTexture2D;
     *static_cast<srTexture*>(copy) = *this;

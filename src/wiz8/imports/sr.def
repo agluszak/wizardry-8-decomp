@@ -126,6 +126,14 @@ EXPORTS
     ?setPixelColumn@srColorSurface@@UAEXPBKJJJ@Z
     ?getPalette@srColorSurface@@UAEPAVsrPalette@@XZ
     ?setPalette@srColorSurface@@UAEXPAVsrPalette@@@Z
+    ??0srPalette@@QAE@PAVsrARGB@@J@Z
+    ??0srPalette@@QAE@ABV0@@Z
+    ??1srPalette@@MAE@XZ
+    ??4srPalette@@QAEAAV0@ABV0@@Z
+    ?dump@srPalette@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?findMatchingPalette@srPalette@@SAPAV1@QBVsrARGB@@J@Z
+    ?sGetClassName@srPalette@@SAPBDXZ
+    ?vInstance@srPalette@@UAEPAVsrClass@@XZ
     ?getDataPtr@srColorSurface@@UAEPAXXZ
     ?getDataSize@srColorSurface@@UAEJXZ
     ?resize@srColorSurface@@UAEHJJ@Z

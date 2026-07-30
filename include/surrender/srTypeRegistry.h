@@ -86,7 +86,7 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
 
 /* SurRender's exported decorated vtable names establish this template's
    parameter order. It contributes no storage: it supplies registry identity,
-   instance registration and the virtual half of srClass::clone() for a class
+   instance registration and the class hierarchy's clone slot for a class
    derived from an existing registry class. */
 template <class Derived, class Base, int Abstract, unsigned long ClassID>
 class srClassSupport : public Base {
@@ -136,9 +136,7 @@ protected:
         srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
     }
 
-    /* srClass::clone() dispatches through slot 7. The export is non-virtual;
-       this is its unexported per-class implementation hook. */
-    virtual srClass* vClone()
+    virtual Base* clone()
     {
         Derived* copy = static_cast<Derived*>(this->vInstance());
         *copy = *static_cast<const Derived*>(this);

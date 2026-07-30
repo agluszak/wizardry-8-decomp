@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/stTextureFile.h"
 
 #include "FileMan.h"
+#include "surrender/srPalette.h"
 #include "wiz8/engine_code/ColorSurface.h"
 #include "wiz8/virtual_file.h"
 
@@ -17,80 +18,24 @@ extern void Function4881D0();
 
 // TEMPLATE: WIZ8 0x0047D6D0
 // srClassSupport<stTextureFile,srTexture,0,65537>::getClassID
-unsigned long
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::getClassID() const
-{
-    return 0x10001;
-}
 
 // TEMPLATE: WIZ8 0x0047D6E0
 // srClassSupport<stTextureFile,srTexture,0,65537>::getClassName
-const char*
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::getClassName() const
-{
-    return stTextureFile::sGetClassName();
-}
 
 // TEMPLATE: WIZ8 0x0047D6F0
 // srClassSupport<stTextureFile,srTexture,0,65537>::getClassNode
-srRegistry::ClassNode*
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::getClassNode() const
-{
-    return sGetClassNode();
-}
 
 // TEMPLATE: WIZ8 0x0047D790
 // srClassSupport<stTextureFile,srTexture,0,65537>::clone
-srTextureIFace*
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::clone()
-{
-    stTextureFile* copy = static_cast<stTextureFile*>(vInstance());
-    if (copy != static_cast<stTextureFile*>(this)) {
-        *copy = *static_cast<const stTextureFile*>(this);
-    }
-    return copy;
-}
 
 // TEMPLATE: WIZ8 0x0047D870
 // srClassSupport<stTextureFile,srTexture,0,65537>::~srClassSupport<stTextureFile,srTexture,0,65537>
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::~srClassSupport()
-{
-    srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
-}
 
 // SYNTHETIC: WIZ8 0x0047D970
 // srClassSupport<stTextureFile,srTexture,0,65537>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0047D9A0
 // srClassSupport<stTextureFile,srTexture,0,65537>::sGetClassNode
-srRegistry::ClassNode*
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::sGetClassNode()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10001);
-    if (node == 0) {
-        srRegistry::ClassNode* texture = registry->getClassNode(0x2110);
-        if (texture == 0) {
-            srRegistry::ClassNode* texture_interface =
-                registry->getClassNode(0x2100);
-            if (texture_interface == 0) {
-                texture_interface = registry->registerClass(
-                    srTextureIFace::sGetClassName(),
-                    srClass::sGetClassNode(), 0x2100, 1);
-            }
-            texture = registry->registerClass(
-                srTexture::sGetClassName(), texture_interface, 0x2110, 0);
-        }
-        node = registry->registerClass(
-            stTextureFile::sGetClassName(), texture, 0x10001, 0);
-    }
-    return node;
-}
-
-srClassSupport<stTextureFile, srTexture, 0, 0x10001>::srClassSupport()
-{
-    srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-}
 
 // FUNCTION: WIZ8 0x0047C630
 stTextureFile::stTextureFile(const char* file_name, int cached)

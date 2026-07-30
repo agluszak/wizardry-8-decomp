@@ -57,7 +57,7 @@ public:
         }
         return node;
     }
-    srMaterial* vslot7() override
+    srMaterial* clone() override
     {
         srMaterial* copy = static_cast<srMaterial*>(vInstance());
         *copy = *this;

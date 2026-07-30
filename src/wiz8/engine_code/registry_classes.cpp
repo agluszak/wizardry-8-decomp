@@ -81,7 +81,7 @@ srRegistry::ClassNode* W8Camera005EBE14::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x0042A0A0
-srNode* W8Camera005EBE14::vslot7()
+srNode* W8Camera005EBE14::clone()
 {
     srCamera* copy = static_cast<srCamera*>(vInstance());
     *copy = *this;
@@ -117,7 +117,7 @@ srRegistry::ClassNode* W8Scene005EBE48::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x0042A150
-srNode* W8Scene005EBE48::vslot7()
+srNode* W8Scene005EBE48::clone()
 {
     srScene* copy = static_cast<srScene*>(vInstance());
     *copy = *this;
@@ -149,16 +149,11 @@ srRegistry::ClassNode* W8Node005EC208::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x004519F0
-srNode* W8Node005EC208::vslot7()
+srNode* W8Node005EC208::clone()
 {
     srNode* copy = static_cast<srNode*>(vInstance());
     *copy = *this;
     return copy;
-}
-// FUNCTION: WIZ8 0x0047D650
-unsigned long W8Registered005EC5D8::getClassID() const
-{
-    return 0x2900;
 }
 // FUNCTION: WIZ8 0x0049DB10
 unsigned long W8Illuminator005ECCD8::getClassID() const
@@ -281,7 +276,7 @@ srRegistry::ClassNode* MonsterLight::getClassNode() const
 // srClassSupport<stSound3D,srNode,0,65547>::getClassNode
 
 // TEMPLATE: WIZ8 0x004AF460
-// srClassSupport<stSound3D,srNode,0,65547>::vClone
+// srClassSupport<stSound3D,srNode,0,65547>::clone
 
 // TEMPLATE: WIZ8 0x004AF5A0
 // srClassSupport<stSound3D,srNode,0,65547>::~srClassSupport<stSound3D,srNode,0,65547>
@@ -485,7 +480,7 @@ srRegistry::ClassNode* W8ClipPlane005ED180::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x004BDF90
-srNode* W8ClipPlane005ED180::vslot7()
+srNode* W8ClipPlane005ED180::clone()
 {
     srClipPlane* copy = static_cast<srClipPlane*>(vInstance());
     *copy = *this;

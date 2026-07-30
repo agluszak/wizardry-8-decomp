@@ -19,7 +19,7 @@ protected:
 
 public:
     virtual SR_DLL_IMPORT srClass* vInstance() override;
-    virtual SR_DLL_IMPORT srNode* vslot7() override;
+    virtual SR_DLL_IMPORT srNode* clone() override;
     virtual SR_DLL_IMPORT int isActive(srVertexPipe& pipe) override;
     virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;
 };

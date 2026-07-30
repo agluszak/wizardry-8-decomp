@@ -23,7 +23,7 @@ protected:
     virtual SR_DLL_IMPORT ~srLight() override;
 
 public:
-    virtual srNode* vslot7() override;
+    virtual srNode* clone() override;
     virtual SR_DLL_IMPORT void traverse(srNode::TraverseInfo& info) override;
     virtual SR_DLL_IMPORT void process(
         const srNode::ProcessInfo& info,

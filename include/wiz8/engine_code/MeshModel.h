@@ -13,7 +13,7 @@ public:
     const char* getClassName() const override;             /* 0x00429B40 */
     unsigned long getClassID() const override;             /* 0x00429B30 */
     srRegistry::ClassNode* getClassNode() const override;  /* 0x00429B50 */
-    srClass* vslot7() override;                            /* 0x00429BC0 */
+    srClass* clone() override;                             /* 0x00429BC0 */
 
 protected:
     virtual ~W8MeshModel005EBE98() override {}

@@ -14,7 +14,7 @@ public:
     srRegistry::ClassNode* getClassNode() const override;  /* 0x00485810 */
     unsigned long getClassID() const override;             /* 0x004857F0 */
     virtual srClass* vInstance() override = 0;
-    virtual srTextureIFace* clone() override;              /* 0x004858B0 */
+    virtual srTexture* clone() override;                   /* 0x004858B0 */
 
     void SetFrame00485400(int frame);
     unsigned char Prepare004857B0();

@@ -56,7 +56,7 @@ srRegistry::ClassNode* stTextureAnim::getClassNode() const
 /* Clone through the concrete implementation's vInstance slot, then carry the
    Wizardry playback state that srTexture's assignment cannot know about. */
 // FUNCTION: WIZ8 0x004858b0
-srTextureIFace* stTextureAnim::clone()
+srTexture* stTextureAnim::clone()
 {
     stTextureAnim* instance = static_cast<stTextureAnim*>(vInstance());
 

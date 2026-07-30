@@ -4,6 +4,7 @@
 
 class srColorSurfaceIFace;
 class srFilter;
+class srTexture;
 class stSurface2D;
 
 class SR_DLL_IMPORT srTextureIFace : public srClass {
@@ -35,9 +36,19 @@ public:
     enum e_correction {};
 
     static const char* sGetClassName();
+    static srRegistry::ClassNode* sGetClassNode()
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x2100);
+        if (node == 0) {
+            node = registry->registerClass(
+                sGetClassName(), srClass::sGetClassNode(), 0x2100, 1);
+        }
+        return node;
+    }
 
     /* Slot 7. Slot 6 remains srClass::vInstance. */
-    virtual srTextureIFace* clone() = 0;
+    virtual srTexture* clone() = 0;
     virtual unsigned long getTextureFrameHandle() = 0;
     virtual float getPriority() = 0;
     virtual void getDimensions(Dimensions& dimensions) = 0;
@@ -54,6 +65,16 @@ protected:
 class SR_DLL_IMPORT srTexture : public srTextureIFace {
 public:
     static const char* sGetClassName();
+    static srRegistry::ClassNode* sGetClassNode()
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x2110);
+        if (node == 0) {
+            node = registry->registerClass(
+                sGetClassName(), srTextureIFace::sGetClassNode(), 0x2110, 0);
+        }
+        return node;
+    }
     srTexture& operator=(const srTexture& other);
     virtual const char* getClassName() const override;
     virtual unsigned long getClassID() const override;

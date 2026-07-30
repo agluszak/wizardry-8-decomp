@@ -12,7 +12,7 @@ public:
     const char* getClassName() const override;             /* 0x00484710 */
     unsigned long getClassID() const override;             /* 0x00484700 */
     srRegistry::ClassNode* getClassNode() const override;  /* 0x00484720 */
-    srNode* vslot7() override;                             /* 0x004847C0 */
+    srNode* clone() override;                              /* 0x004847C0 */
 };
 
 static_assert(sizeof(W8Fog005EC94C) == 0x168,

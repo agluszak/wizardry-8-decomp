@@ -92,7 +92,7 @@ srRegistry::ClassNode* W8Fog005EC94C::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x004847C0
-srNode* W8Fog005EC94C::vslot7()
+srNode* W8Fog005EC94C::clone()
 {
     srFog* copy = static_cast<srFog*>(vInstance());
     *copy = *this;

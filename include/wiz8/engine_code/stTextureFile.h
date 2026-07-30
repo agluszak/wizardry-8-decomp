@@ -5,9 +5,6 @@
 class W8ColorSurface005EBD10;
 class stTextureFile;
 
-/* This specialization closes the srTextureIFace clone slot covariantly. The
-   generic support class supplies the same slot to srClass-derived types, whose
-   base declaration is still positional. */
 template <>
 class srClassSupport<stTextureFile, srTexture, 0, 0x10001>
     : public srTexture {
@@ -16,7 +13,7 @@ public:
     virtual const char* getClassName() const override;
     virtual unsigned long getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
-    virtual srTextureIFace* clone() override;
+    virtual srTexture* clone() override;
 
 protected:
     srClassSupport();
@@ -71,3 +68,54 @@ private:
 
 static_assert(sizeof(stTextureFile) == 0x68,
               "stTextureFile_must_be_0x68");
+
+inline srRegistry::ClassNode*
+srClassSupport<stTextureFile, srTexture, 0, 0x10001>::sGetClassNode()
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x10001);
+    if (node == 0) {
+        node = registry->registerClass(
+            stTextureFile::sGetClassName(), srTexture::sGetClassNode(),
+            0x10001, 1);
+    }
+    return node;
+}
+
+inline const char*
+srClassSupport<stTextureFile, srTexture, 0, 0x10001>::getClassName() const
+{
+    return stTextureFile::sGetClassName();
+}
+
+inline unsigned long
+srClassSupport<stTextureFile, srTexture, 0, 0x10001>::getClassID() const
+{
+    return 0x10001;
+}
+
+inline srRegistry::ClassNode*
+srClassSupport<stTextureFile, srTexture, 0, 0x10001>::getClassNode() const
+{
+    return sGetClassNode();
+}
+
+inline srTexture*
+srClassSupport<stTextureFile, srTexture, 0, 0x10001>::clone()
+{
+    stTextureFile* copy = static_cast<stTextureFile*>(vInstance());
+    if (copy != static_cast<stTextureFile*>(this)) {
+        *copy = *static_cast<const stTextureFile*>(this);
+    }
+    return copy;
+}
+
+inline srClassSupport<stTextureFile, srTexture, 0, 0x10001>::srClassSupport()
+{
+    srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+}
+
+inline srClassSupport<stTextureFile, srTexture, 0, 0x10001>::~srClassSupport()
+{
+    srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
+}

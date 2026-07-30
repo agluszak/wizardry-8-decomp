@@ -10,7 +10,7 @@ public:
     const char* getClassName() const override;     /* 0x004BDF10 */
     unsigned long getClassID() const override;     /* 0x004BDF00 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x004BDF20 */
-    srNode* vslot7() override;                     /* 0x004BDF90 */
+    srNode* clone() override;                      /* 0x004BDF90 */
 };
 
 static_assert(sizeof(W8ClipPlane005ED180) == 0x150,

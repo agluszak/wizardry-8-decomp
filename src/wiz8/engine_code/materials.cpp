@@ -23,7 +23,7 @@ public:
     virtual unsigned long getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual ~stMaterial() override;
-    virtual srMaterial* vslot7() override;
+    virtual srMaterial* clone() override;
 
     int m_field_78;                          /* 0x78 */
 };
@@ -91,7 +91,7 @@ stMaterial::~stMaterial()
 // Slot 7. Copies through the instance slot 6 returns, then carries the one
 // field srMaterial's assignment operator cannot know about.
 // FUNCTION: WIZ8 0x00492a00
-srMaterial* stMaterial::vslot7()
+srMaterial* stMaterial::clone()
 {
     /* srClass is srMaterial's base at offset zero, so the original reuses the
        returned pointer without adjusting it. */

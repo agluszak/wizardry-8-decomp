@@ -78,7 +78,7 @@ protected:
 
 public:
     virtual SR_DLL_IMPORT srClass* vInstance() override;
-    virtual SR_DLL_IMPORT srNode* vslot7();
+    virtual SR_DLL_IMPORT srNode* clone();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info);
     virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type);
     virtual SR_DLL_IMPORT void getLocalBounds(BoundInfo& bounds);

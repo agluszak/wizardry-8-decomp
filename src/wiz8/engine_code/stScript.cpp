@@ -35,7 +35,7 @@ srClass* stScript::vInstance()
 // srClassSupport<stScript,srClass,0,65549>::getClassNode
 
 // TEMPLATE: WIZ8 0x004CF820
-// srClassSupport<stScript,srClass,0,65549>::vClone
+// srClassSupport<stScript,srClass,0,65549>::clone
 
 // TEMPLATE: WIZ8 0x004CF940
 // srClassSupport<stScript,srClass,0,65549>::~srClassSupport<stScript,srClass,0,65549>

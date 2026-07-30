@@ -40,7 +40,7 @@ public:
     virtual void dump(std::ostream& stream) override;
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
-    virtual srClass* vslot7();
+    virtual srClass* clone();
     virtual int getBoundingSphere(srVector3T<float>& center, float& radius);
     virtual int getBoundingBox(srVector3T<float>& minimum,
                                srVector3T<float>& maximum);

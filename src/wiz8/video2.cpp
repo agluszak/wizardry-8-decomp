@@ -60,7 +60,7 @@ srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x00429BC0
-srClass* W8MeshModel005EBE98::vslot7()
+srClass* W8MeshModel005EBE98::clone()
 {
     srMeshModel* copy = static_cast<srMeshModel*>(vInstance());
     *copy = *this;
@@ -112,7 +112,7 @@ srRegistry::ClassNode* W8TextureMap005EBEEC::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x00429CA0
-srTextureIFace* W8TextureMap005EBEEC::clone()
+srTexture* W8TextureMap005EBEEC::clone()
 {
     srTextureMap* copy = static_cast<srTextureMap*>(vInstance());
     *copy = *this;
