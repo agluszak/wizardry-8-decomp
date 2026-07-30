@@ -165,41 +165,6 @@ unsigned long W8Registered005EC5D8::getClassID() const
 {
     return 0x2900;
 }
-// FUNCTION: WIZ8 0x0047D6D0
-unsigned long stTextureFile::getClassID() const
-{
-    return 0x10001;
-}
-// FUNCTION: WIZ8 0x0047D6E0
-const char* stTextureFile::getClassName() const
-{
-    return "stTextureFile";
-}
-// FUNCTION: WIZ8 0x0047D6F0
-srRegistry::ClassNode* stTextureFile::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10001);
-
-    if (!node) {
-        srRegistry* texture_registry = srCore.getRegistry();
-        srRegistry::ClassNode* texture = texture_registry->getClassNode(0x2110);
-
-        if (!texture) {
-            srRegistry* iface_registry = srCore.getRegistry();
-            srRegistry::ClassNode* iface = iface_registry->getClassNode(0x2100);
-
-            if (!iface) {
-                iface = iface_registry->registerClass(
-                    "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
-            }
-            texture = texture_registry->registerClass(
-                srTexture::sGetClassName(), iface, 0x2110, 0);
-        }
-        node = registry->registerClass("stTextureFile", texture, 0x10001, 0);
-    }
-    return node;
-}
 // FUNCTION: WIZ8 0x0049DB10
 unsigned long W8Illuminator005ECCD8::getClassID() const
 {

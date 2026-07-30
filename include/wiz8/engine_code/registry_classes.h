@@ -60,13 +60,6 @@ static_assert(sizeof(stParticle) == 0x270, "stParticle_size_must_be_0x270");
  * family in engine_code/registry_classes.cpp until original TU ownership is proved.
  */
 
-class stTextureFile {
-public:
-    const char* getClassName() const;     /* 0x0047D6E0 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x0047D6F0 */
-    unsigned long getClassID() const;     /* 0x0047D6D0 */
-};
-
 class stLightDefinition {
 public:
     virtual void vslot0() = 0;

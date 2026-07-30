@@ -3,6 +3,7 @@
 #include "srTypeRegistry.h"
 
 class srColorSurfaceIFace;
+class srFilter;
 class stSurface2D;
 
 class SR_DLL_IMPORT srTextureIFace : public srClass {
@@ -65,6 +66,7 @@ public:
     virtual void getMipmapData(MultiRequest& request) override;
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void getTextureParms(Parameters& parameters) override;
+    srFilter* getFilter() const;
     void setMipmap(e_mipmap mipmap);
     void setMipmapBias(float bias);
     void enableHint(e_hint hint);

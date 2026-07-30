@@ -48,6 +48,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/stMeshModel.cpp
     src/wiz8/engine_code/stModelInstance.cpp
     src/wiz8/engine_code/stTextureAnim.cpp
+    src/wiz8/engine_code/stTextureFile.cpp
     src/wiz8/engine_code/stParticle.cpp
     src/wiz8/engine_code/Trigger.cpp
     src/wiz8/engine_code/Environment.cpp
