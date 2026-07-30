@@ -2,9 +2,13 @@
 #include <cstring>
 
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/3d_code/IList.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "surrender/srScene.h"
 
 #define READ_LEVEL_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\ReadLevel.cpp"
 
@@ -17,6 +21,106 @@ struct W8ReadLevelInfo {
 };
 
 } // namespace
+
+// FUNCTION: WIZ8 0x004BC140
+unsigned char ReadMonsterPaths004BC140(
+    W8ReadLevelInfo* pInfo, W8World* pWorld)
+{
+    int count;
+    int index;
+    unsigned char success;
+    unsigned char has_options;
+    unsigned char update_representation;
+    unsigned char active;
+    char monster_name[20];
+    char options[12];
+    char* separator;
+    W8Position origin;
+    W8Position camera_position;
+    W8MonsterGroup* group;
+    int monster_id;
+    int location_id;
+    unsigned int monster_index;
+    W8MonsterInfo* monster_info;
+    W8Monster* monster;
+    W8PathAI* path;
+
+    has_options = 0;
+    if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
+        return 0;
+    }
+    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    if (!success || count >= 100000) {
+        return 0;
+    }
+    if (count == 0) {
+        return 1;
+    }
+
+    origin.x = 0.0f;
+    origin.y = 0.0f;
+    origin.z = 0.0f;
+    for (index = 0; index < count; ++index) {
+        update_representation = 1;
+        active = 1;
+        success = success && ReadVirtualFile(
+            pInfo->hFile, monster_name, sizeof(monster_name), 0);
+        separator = strchr(monster_name, ':');
+        if (separator != 0) {
+            has_options = 1;
+            strncpy(options, separator + 1, sizeof(options));
+            *separator = '\0';
+        }
+
+        monster_id = atoi(monster_name);
+        group = CreateGroup(monster_id, 1, &origin, 1, 0, 1);
+        if (group == 0) {
+            continue;
+        }
+        location_id = IListGetAt(group->monsters, 0);
+        monster_index = MonsterGetIndexByLocationID(
+            0x315, READ_LEVEL_CPP, location_id, 1);
+        monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+        ActivateMonster(monster_info, 0);
+        monster = monster_info->monster;
+
+        {
+            srVector3T<double> camera_location =
+                pWorld->camera->getLocation();
+            camera_position.x = static_cast<float>(camera_location.x);
+            camera_position.y = static_cast<float>(camera_location.y);
+            camera_position.z = static_cast<float>(camera_location.z);
+        }
+        monster->Function4A7BE0(&camera_position.x);
+
+        if (LoadPathAI004A92A0(&path, pInfo->hFile)) {
+            monster->SetPathAI(path);
+        }
+        if (has_options) {
+            if (options[0] == '0' || options[0] == '\0') {
+                update_representation = 0;
+            }
+            if (options[1] == '0' || options[1] == '\0') {
+                active = 0;
+            }
+            if (options[2] == '1') {
+                PathAISetFlag3A004A9B90(path, 1);
+            }
+            if (options[3] == '1') {
+                PathAISetFlag38004AA9D0(path, 1);
+            }
+            if (!active) {
+                group->flag_28 = 0;
+                monster->m_pRep->active = 0;
+            }
+            if (!update_representation) {
+                continue;
+            }
+        }
+        monster->UpdateRepresentation(pWorld);
+    }
+    return success;
+}
 
 // FUNCTION: WIZ8 0x004BC850
 unsigned char ReadWorldCameras004BC850(

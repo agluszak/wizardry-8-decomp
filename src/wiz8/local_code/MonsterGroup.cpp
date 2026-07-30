@@ -33,7 +33,6 @@ extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
    form, which is the second entry of each name set. */
 enum { W8_MONSTER_GROUP_SINGULAR = 1, W8_MONSTER_NAME_STRIDE = 24 };
 
-extern void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 extern unsigned char RemoveMonster(unsigned int monster_list_index,
                                   unsigned char destroy_monster);
 

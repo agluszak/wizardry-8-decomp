@@ -70,7 +70,6 @@ extern void ReleaseSoundHandle00408F70(int handle);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern void GetPosition421070(W8Position* position);
 extern W8World* GetWorld(void);
-extern void __stdcall Function4A7BE0(const float* position);
 extern unsigned char Function525DF0(int value);
 extern unsigned char g_flag_00683f97;
 extern W8Navigator* g_startup_world_659c0c;
@@ -4512,7 +4511,7 @@ void MonsterForward4A7BE0(W8Monster* monster, const W8Position* position)
         local.x = position->x;
         local.y = position->y;
         local.z = position->z;
-        Function4A7BE0(&local.x);
+        monster->Function4A7BE0(&local.x);
     }
 }
 

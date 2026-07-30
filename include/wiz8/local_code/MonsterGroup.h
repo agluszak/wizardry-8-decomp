@@ -79,5 +79,12 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(
     int monster_id, W8MonsterGroup* previous);
+W8MonsterGroup* CreateGroup(
+    unsigned int monster_id,
+    unsigned int count,
+    const W8Position* position,
+    unsigned char flag_1,
+    unsigned char flag_2,
+    unsigned char flag_3);
 
 #endif
