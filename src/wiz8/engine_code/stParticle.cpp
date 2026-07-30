@@ -160,7 +160,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_1f8 = -4905.0f;
     value_1fc = 0.0f;
     value_1c0 = 0;
-    allocation_17c = 0;
+    m_pflFlutterAngle = 0;
     value_200 = 0.0f;
     value_204 = 0.0f;
     value_218 = 4000.0f;
@@ -260,8 +260,8 @@ stParticle::~stParticle()
         }
         ::operator delete(texture_frames_178);
     }
-    if (allocation_17c != 0) {
-        ::operator delete(allocation_17c);
+    if (m_pflFlutterAngle != 0) {
+        ::operator delete(m_pflFlutterAngle);
     }
     texture_154->release();
     setParent(0, 1);
@@ -321,4 +321,39 @@ unsigned char stParticle::ReplaceTexture0049AC30(
         return 1;
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x0049ACA0
+void stParticle::SetRetainedObject0049ACA0(srClass* object)
+{
+    if (retained_14c != 0) {
+        retained_14c->release();
+    }
+    retained_14c = object;
+    if (object != 0) {
+        object->addReference();
+    }
+}
+
+// FUNCTION: WIZ8 0x0049AD10
+void stParticle::SetFlutter0049AD10(int enabled)
+{
+    unsigned int i;
+
+    value_1c0 = enabled;
+    if (enabled == 0) {
+        if (m_pflFlutterAngle != 0) {
+            ::operator delete(m_pflFlutterAngle);
+            m_pflFlutterAngle = 0;
+        }
+    }
+    else if (m_pflFlutterAngle == 0) {
+        m_pflFlutterAngle = new float[particle_count_180];
+        if (m_pflFlutterAngle == 0) {
+            srAssertFail("m_pflFlutterAngle", ST_PARTICLE_CPP, 1210, 0);
+        }
+        for (i = 0; i < particle_count_180; ++i) {
+            m_pflFlutterAngle[i] = 0.0f;
+        }
+    }
 }

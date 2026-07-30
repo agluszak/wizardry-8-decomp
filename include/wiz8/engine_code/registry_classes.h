@@ -38,6 +38,8 @@ public:
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
     void SetActive(unsigned char active);
     void SetTexture0049AB00(srTextureIFace* texture);
+    void SetRetainedObject0049ACA0(srClass* object);
+    void SetFlutter0049AD10(int enabled);
     unsigned char ReplaceTexture0049AC30(
         const char* old_name, srTextureIFace* replacement);
     virtual srClass* vInstance() override;         /* 0x004980E0 */
@@ -64,7 +66,7 @@ public:
     void* allocation_170;
     float* allocation_174;
     stTextureAnim** texture_frames_178;
-    void* allocation_17c;
+    float* m_pflFlutterAngle;                     /* 0x17c */
     unsigned int particle_count_180;
     int state_184;
     int value_188;
