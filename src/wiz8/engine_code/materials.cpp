@@ -30,13 +30,12 @@ public:
 
 static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
 
-extern "C" char g_stMaterialClassName[];
 
 // Slot 0. The name the constructor also hands to srRegistry::registerClass.
 // FUNCTION: WIZ8 0x00492950
 const char* stMaterial::getClassName() const
 {
-    return g_stMaterialClassName;
+    return "stMaterial";
 }
 
 // Slot 1. The class id registered for stMaterial.
@@ -74,7 +73,7 @@ srRegistry::ClassNode* stMaterial::getClassNode() const
             node = material_registry->registerClass(
                 srMaterial::sGetClassName(), node, 0x2210, 0);
         }
-        node = registry->registerClass(g_stMaterialClassName, node, 0x10002, 0);
+        node = registry->registerClass("stMaterial", node, 0x10002, 0);
     }
     return node;
 }
