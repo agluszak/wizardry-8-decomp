@@ -48,8 +48,8 @@ public:
         float* angle,
         float* pitch);                              /* 0x00477180 */
     unsigned char Method00477440(
-        float positional_09c, float positional_098,
-        unsigned char positional_089);              /* 0x00477440 */
+        float target_pitch, float target_angle,
+        unsigned char force);                       /* 0x00477440 */
     void Method004776A0(float elapsed);              /* 0x004776A0 */
     void Method00477B90(float input);                /* 0x00477B90 */
     void Method00477EB0(float input);                /* 0x00477EB0 */
