@@ -62,6 +62,7 @@ typedef struct W8NpcState {
 #pragma pack(pop)
 
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
+int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay);
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);

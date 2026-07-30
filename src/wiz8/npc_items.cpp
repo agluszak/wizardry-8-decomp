@@ -1,6 +1,7 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/item_spawning.h"
+#include "wiz8/monster_runtime.h"
 #include "random.h"
 #include <string.h>
 
@@ -85,6 +86,27 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
             ++added;
         } while (added < repeats);
     }
+    return index;
+}
+
+/* Add stock that only becomes ordinary trade stock once the world clock passes
+   the given delay. This is what establishes the leading field as a clock stamp
+   rather than a state enum. */
+// FUNCTION: WIZ8 0x0055aa80
+int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int delay)
+{
+    int index;
+    W8NpcItemEntry* entry;
+
+    if (npc == 0) {
+        return -1;
+    }
+    index = AddNpcItem(npc, item_id, quantity);
+    if (index == -1) {
+        return -1;
+    }
+    entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+    entry->available_at = g_world_clock_00686a48 + delay;
     return index;
 }
 

@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/local_code/MonsterGenerator.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/monster_runtime.h"
 #include <math.h>
 #include "wiz8/vector.h"
 #include "wiz8/sr_api.h"
@@ -41,7 +42,6 @@ struct W8LevelRuntimeRow {
 };                                          /* 0x21 */
 
 extern W8LevelRuntimeRow g_level_runtime[]; /* 0x00686B74 */
-extern int g_game_time;                     /* 0x00686A48 */
 extern int g_random_encounter_budget;
 extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
@@ -263,7 +263,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
     int index;
 
     if (reset_budget == 0) {
-        elapsed = g_game_time - g_level_runtime[g_current_level].last_budget_update;
+        elapsed = g_world_clock_00686a48 - g_level_runtime[g_current_level].last_budget_update;
         g_random_encounter_budget +=
             elapsed / g_level_records[g_current_level].encounter_budget_period;
     } else {
@@ -334,7 +334,7 @@ void CullExpiredEncounters(void)
             index < g_active_group_count ? g_active_groups[index] : g_active_groups[0];
 
         if (span < static_cast<float>(
-                       static_cast<unsigned int>(g_game_time - group->spawn_time))) {
+                       static_cast<unsigned int>(g_world_clock_00686a48 - group->spawn_time))) {
             W8Monster* monster = GetMonsterByLocationID(group->value_9f);
 
             position = monster->GetPosition();
