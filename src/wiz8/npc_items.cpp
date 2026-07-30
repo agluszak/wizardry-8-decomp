@@ -93,6 +93,21 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     return index;
 }
 
+/* Release an NPC's owned item list, but only for the database records that ask
+   for it. This is the W8NpcItemEntry instantiation of the general owning-list
+   teardown, inlined here rather than emitted out of line the way the stock-rule
+   instantiation at 0x0055ADA0 is. */
+// FUNCTION: WIZ8 0x0055a5d0
+void ClearNpcItems(W8NpcState* npc)
+{
+    W8PList* items;
+
+    if (npc->record->flag_055 != 0 && (items = npc->items) != 0) {
+        PListDestructor<W8NpcItemEntry>(items);
+        npc->items = 0;
+    }
+}
+
 /* Add stock described by an item instance. Only the instance's item id is used;
    the entry receives a freshly built item rather than a copy of the argument.
    Equipment, equip_class four, always takes a new entry instead of merging. The

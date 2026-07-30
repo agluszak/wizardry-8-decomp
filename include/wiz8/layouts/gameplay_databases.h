@@ -125,7 +125,11 @@ typedef struct W8NpcDatabaseRecord {
     /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
        first predicate asks about. */
     short value_002;
-    unsigned char unknown_004[0x53];
+    unsigned char unknown_004[0x51];
+    /* 0x055: gates the owned item-list teardown at 0x0055A5D0, which only
+       releases the NPC's stock while this is set. */
+    unsigned char flag_055;
+    unsigned char unknown_056;
     /* 0x057: the NPC belongs to a monster group, which is what makes the group
        index on its runtime state meaningful. */
     unsigned char has_group;
