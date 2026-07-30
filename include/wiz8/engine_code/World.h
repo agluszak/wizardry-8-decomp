@@ -6,6 +6,7 @@
 #include "wiz8/vector_005ec294.h"
 
 class srCamera;
+class srModelInstance;
 class srNode;
 class stLevel;
 class W8Octree;
@@ -19,7 +20,6 @@ class W8CollidableProp;
 class Trigger;
 class stParticle;
 class W8NamedPosition;
-struct W8UpdateMeshSource;
 
 /* Engine Code\3dapi.cpp. CreateWorld allocates and zeroes exactly 0xdc bytes;
    the list/vector setup and teardown routines prove the owned fields below. */
@@ -45,7 +45,7 @@ struct W8World {
     unsigned char m_loaded;
     unsigned char m_padding_06a[2];
     void* m_owned_06c;
-    W8UpdateMeshSource* update_mesh_source;
+    srModelInstance* update_mesh_source;
     float value_74;
     float value_78;
     unsigned char m_positional_07c[0x20];

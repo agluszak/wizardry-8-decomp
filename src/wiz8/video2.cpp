@@ -3,6 +3,7 @@
 #include "surrender/srGERD.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
+#include "surrender/srModelInstance.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Scene.h"
@@ -266,21 +267,6 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     return 1;
 }
 
-class W8ModelProvider {
-public:
-    virtual void slot0() = 0;
-    virtual void slot1() = 0;
-    virtual void slot2() = 0;
-    virtual srMeshModel* getModel() = 0;
-};
-
-class W8OverlaySceneNode : public srNode {
-public:
-    W8ModelProvider* model_provider;        /* 0x138 */
-    unsigned char unknown_13c[0x34];
-    int display_state;                      /* 0x170 */
-};
-
 // FUNCTION: WIZ8 0x00426500
 extern "C" void Function426500(srScene* scene)
 {
@@ -291,19 +277,19 @@ extern "C" void Function426500(srScene* scene)
     while (node) {
         srNode* next = node->nextSibling();
         unsigned long class_id = node->getClassID();
+        srModelInstance* instance = static_cast<srModelInstance*>(node);
         if ((class_id == 0x10004 || class_id == 0x10005) &&
-            static_cast<W8OverlaySceneNode*>(node)->display_state != 3) {
+            instance->displayState() != 3) {
             int index;
-            W8OverlaySceneNode* overlay =
-                static_cast<W8OverlaySceneNode*>(node);
             for (index = 0; index != 0x12c0; ++index) {
                 if (g_surface_nodes_654adc[index] == node) {
                     g_surface_nodes_654adc[index] = 0;
                     g_block_652ddc[index] = 0;
                 }
             }
-            if (overlay->model_provider) {
-                srMeshModel* model = overlay->model_provider->getModel();
+            if (instance->model()) {
+                srMeshModel* model =
+                    static_cast<srMeshModel*>(instance->model());
                 if (model) {
                     srTextureIFace* texture = model->getTexture(0, 0);
                     if (texture) texture->invalidate();

@@ -19,6 +19,7 @@ public:
     srModel* model() const {
         return static_cast<const srModel::Client*>(this)->getModel();
     }
+    unsigned char displayState() const { return state_170; }
     void configure2D(short width, short height) {
         state_160 = 0;
         render_depth_164 = 2000;
