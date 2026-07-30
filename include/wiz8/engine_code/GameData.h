@@ -25,3 +25,5 @@ static_assert(sizeof(W8LevelDataRecord) == 0x98,
               "W8LevelDataRecord_must_be_0x98");
 
 extern W8LevelDataRecord* g_level_data_00652dac;
+
+void Function41F260();

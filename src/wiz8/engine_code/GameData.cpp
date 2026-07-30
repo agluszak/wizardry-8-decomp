@@ -1,5 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/sr_api.h"
 
 /*
  * Engine Code\GameData.cpp.
@@ -21,6 +24,37 @@ enum {
 };
 
 extern unsigned char g_level_override_00652dba;
+extern unsigned char g_flag_00652dce;
+extern W8Object0043A910* g_object_6598bc;
+extern void Function439CA0();
+extern void Function43AAD0();
+
+// FUNCTION: WIZ8 0x0041F260
+void Function41F260()
+{
+    if (g_gd_camera_65a0f8 == 0) {
+        g_gd_camera_65a0f8 = new GDCamera;
+        if (g_gd_camera_65a0f8 == 0) {
+            srAssertFail(
+                "gpGDCamera",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp",
+                2739,
+                0);
+        }
+    }
+    if (g_object_6598bc == 0) {
+        g_object_6598bc = new W8Object0043A910;
+        if (g_object_6598bc == 0) {
+            Function43AAD0();
+            return;
+        }
+    }
+    if (g_flag_00652dce != 0) {
+        Function439CA0();
+        g_flag_00652dce = 0;
+    }
+    Function43AAD0();
+}
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is
    proven, so it keeps its address. */
