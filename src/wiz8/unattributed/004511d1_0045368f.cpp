@@ -4,9 +4,9 @@
    assertion-backed original translation-unit intervals. */
 
 // FUNCTION: WIZ8 0x00451290
-void SetValue659AB4(int value)
+void SetCurrentWorld(W8World* world)
 {
-    g_value_659ab4 = value;
+    g_value_659ab4 = reinterpret_cast<int>(world);
 }
 // FUNCTION: WIZ8 0x004512B0
 void SetWorld659AB8(W8World* world)

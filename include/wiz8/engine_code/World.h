@@ -74,6 +74,7 @@ unsigned char ForwardLoadWorld(
     W8World* world, char* level_file_name, const char* level_folder,
     const char* asset_folder, unsigned char use_octree);
 void Forward44FAF0(W8World* world);
+void SetCurrentWorld(W8World* world);
 void ConstructWorldCollections(W8World* world);
 void DestroyWorldCollections(W8World* world);
 void DestroyWorld(W8World* world);

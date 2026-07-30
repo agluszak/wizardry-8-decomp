@@ -183,7 +183,7 @@ bool Function402E30(void)
 /* Shared success stub. BringUpEngine uses it as a gate and the 62-entry frame
    dispatch table parks it in seventeen slots. */
 // FUNCTION: WIZ8 0x005b1740
-unsigned char Function5B1740(int unused)
+unsigned char Function5B1740(void)
 {
     return 1;
 }
@@ -946,7 +946,7 @@ bool BringUpEngine(void* instance, int show_command)
     if (!InitializeVideoSurfaceState()) {
         return false;
     }
-    if (!Function5B1740(0)) {
+    if (!Function5B1740()) {
         return false;
     }
     NoOp();
