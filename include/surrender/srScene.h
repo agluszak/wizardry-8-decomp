@@ -26,6 +26,14 @@ protected:
 
 class SR_DLL_IMPORT srCamera : public srNode {
 public:
+    enum e_project {
+        PROJECT_POSITIONAL_0 = 0
+    };
+
+    enum e_projectionResult {
+        PROJECTION_RESULT_POSITIONAL_0 = 0
+    };
+
     struct Rect {
         double left;
         double bottom;
@@ -48,6 +56,10 @@ public:
     void getClipRange(double& near_plane, double& far_plane) const;
     double getHorizontalFOV() const;
     double getVerticalFOV() const;
+    e_projectionResult project(
+        srVector3T<float>& output,
+        const srVector3T<double>& input);
+    void setProjectionType(e_project projection);
     void setViewPlane(const Rect& rectangle, double distance);
     void setViewPlane(double width, double height);
     void getViewPlane(Rect& rectangle, double& distance) const;
