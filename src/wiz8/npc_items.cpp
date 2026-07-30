@@ -69,7 +69,9 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
                 entry->item.stack_count = 0;
                 index = PListAdd(npc->items, entry);
             }
-            entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+            else {
+                entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+            }
             if (entry == 0) {
                 return -1;
             }
@@ -88,6 +90,71 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
             ++added;
         } while (added < repeats);
     }
+    return index;
+}
+
+/* Add stock described by an item instance. Only the instance's item id is used;
+   the entry receives a freshly built item rather than a copy of the argument.
+   Equipment, equip_class four, always takes a new entry instead of merging. The
+   quantity then lands in whichever of the two counts the item's quantity kind
+   uses, and the other count is raised to one while it is still clear. */
+// FUNCTION: WIZ8 0x0055a930
+int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char quantity)
+{
+    W8NpcItemEntry* entry;
+    unsigned int existing_count;
+    unsigned int search;
+    int item_id;
+    int index;
+
+    if (npc == 0) {
+        return -1;
+    }
+    if (item->item_id < 0) {
+        return -1;
+    }
+    if (npc->items == 0) {
+        npc->items = PListCreate();
+    }
+    item_id = item->item_id;
+    index = -1;
+    if (g_item_records[item_id].equip_class != 4) {
+        existing_count = PListGetCount(npc->items);
+        for (search = 0; search < existing_count; ++search) {
+            entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, search));
+            if (entry != 0 && entry->item.item_id == item_id) {
+                index = search;
+                break;
+            }
+        }
+    }
+    if (index == -1) {
+        item_id = item->item_id;
+        entry = new W8NpcItemEntry;
+        if (entry != 0) {
+            memset(entry, 0, sizeof(*entry));
+            ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
+        }
+        entry->item.stack_count = 0;
+        index = PListAdd(npc->items, entry);
+    }
+    else {
+        entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+    }
+    if (entry == 0) {
+        return -1;
+    }
+    if (g_item_records[entry->item.item_id].quantity_kind == 1) {
+        if (entry->quantity == 0) {
+            entry->quantity = 1;
+        }
+        entry->item.stack_count = entry->item.stack_count + quantity;
+        return index;
+    }
+    if (entry->item.stack_count == 0) {
+        entry->item.stack_count = 1;
+    }
+    entry->quantity = entry->quantity + quantity;
     return index;
 }
 
