@@ -233,11 +233,6 @@ public:
     srRegistry::ClassNode* getClassNode() const;        /* 0x0049DB30 */
 };
 
-class W8Registered005EBD10 {
-public:
-    unsigned long getClassID() const;     /* 0x00429A40 */
-};
-
 class W8Registered005EBF94 {
 public:
     unsigned long getClassID() const;     /* 0x00429E80 */

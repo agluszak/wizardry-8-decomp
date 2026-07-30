@@ -414,7 +414,7 @@ void WorldSetCameraLocation(W8World* world, const float* location)
 // SYNTHETIC: WIZ8 0x00423eb0
 // W8Scene005EBE48::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423f00
-// srColorSurface::`scalar deleting destructor'
+// W8ColorSurface005EBD10::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00424a50
 // W8MeshModel005EBE98::`scalar deleting destructor'
 

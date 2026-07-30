@@ -1,6 +1,7 @@
 #include "surrender/srColorSurface.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
+#include "wiz8/engine_code/ColorSurface.h"
 #include "wiz8/engine_code/Material.h"
 #include "wiz8/engine_code/MeshModel.h"
 #include "wiz8/engine_code/stModelInstance.h"
@@ -142,16 +143,32 @@ srNode* VideoMakePoster(
     return Function424BA0(texture, width, height, positional_3);
 }
 
-static srRegistry::ClassNode* color_surface_class_node()
+// FUNCTION: WIZ8 0x00429A40
+unsigned long W8ColorSurface005EBD10::getClassID() const
+{
+    return 0x3110;
+}
+
+// FUNCTION: WIZ8 0x00429A50
+const char* W8ColorSurface005EBD10::getClassName() const
+{
+    return srColorSurface::sGetClassName();
+}
+
+// FUNCTION: WIZ8 0x00429A60
+srRegistry::ClassNode* W8ColorSurface005EBD10::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(0x3110);
-    if (!node) {
+
+    if (node == 0) {
         srRegistry::ClassNode* parent = registry->getClassNode(0x3100);
-        if (!parent) {
+        if (parent == 0) {
             parent = registry->registerClass(
                 srColorSurfaceIFace::sGetClassName(),
-                srClass::sGetClassNode(), 0x3100, 1);
+                srClass::sGetClassNode(),
+                0x3100,
+                1);
         }
         node = registry->registerClass(
             srColorSurface::sGetClassName(), parent, 0x3110, 0);
@@ -159,30 +176,13 @@ static srRegistry::ClassNode* color_surface_class_node()
     return node;
 }
 
-class W8ColorSurface : public srColorSurface {
-public:
-    W8ColorSurface(srPixelConvert::e_surfaceType type,
-                   unsigned long width, unsigned long height)
-        : srColorSurface(type, width, height) {}
-
-    W8ColorSurface(srPixelConvert::e_surfaceType type, void* data,
-                   unsigned long width, unsigned long height,
-                   unsigned long pitch)
-        : srColorSurface(type, data, width, height, pitch) {}
-
-    virtual const char* getClassName() const override {
-        return srColorSurface::sGetClassName();
-    }
-    virtual unsigned long getClassID() const override { return 0x3110; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return color_surface_class_node();
-    }
-    virtual srColorSurfaceIFace* clone() override {
-        srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
-        *copy = *this;
-        return copy;
-    }
-};
+// FUNCTION: WIZ8 0x00429AD0
+srColorSurfaceIFace* W8ColorSurface005EBD10::clone()
+{
+    srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
+    *copy = *this;
+    return copy;
+}
 
 extern "C" {
 extern int g_pixel_format_603c48;
@@ -229,7 +229,7 @@ unsigned char InitializeMouseSurface(void)
         return 0;
     }
 
-    g_mouse_surface_659688 = new W8ColorSurface(type, 128, 128);
+    g_mouse_surface_659688 = new W8ColorSurface005EBD10(type, 128, 128);
     if (!g_mouse_surface_659688) {
         srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
                      0x635, 0);
@@ -306,7 +306,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     surface_description.dwSize = sizeof(surface_description);
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_primary_color_surface_659660 = new W8ColorSurface(
+    g_primary_color_surface_659660 = new W8ColorSurface005EBD10(
         srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
         640, 480, surface_description.lPitch);
     if (!g_primary_color_surface_659660) return 0;

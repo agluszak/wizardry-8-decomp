@@ -41,11 +41,6 @@ stLevel::~stLevel()
     registry->unregisterInstance(getClassNode(), this);
 }
 
-// FUNCTION: WIZ8 0x00429A40
-unsigned long W8Registered005EBD10::getClassID() const
-{
-    return 0x3110;
-}
 // FUNCTION: WIZ8 0x00429CC0
 unsigned long W8Material005EBDE0::getClassID() const
 {
