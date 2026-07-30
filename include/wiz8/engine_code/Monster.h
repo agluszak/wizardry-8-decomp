@@ -145,7 +145,7 @@ struct W8MonsterState2FC {
 };
 
 struct W8MonsterFlags330 {
-    unsigned char flag_00;
+    signed char flag_00;
     unsigned char flag_01;
     unsigned char copied_flag_02;
     unsigned char unknown_03;
@@ -156,6 +156,8 @@ struct W8MonsterFlags330 {
    primary vtable 0x005ED22C and the W8Navigator secondary-base table at +0x18. */
 class W8Monster : public W8GrCycle {
 public:
+    typedef void (__cdecl *CycleCallback)(W8Monster* monster);
+
     W8Monster();
     W8Monster(const W8Monster& rhs);
     virtual ~W8Monster() override;
@@ -196,6 +198,19 @@ public:
     void UpdateShakeEvents004C3380(unsigned char frame);
     void SetShakeEventVisibility004BF9E0(signed char cycle);
     void UpdateAttachedObjects004C3F70();
+    void BeginFadeIn004C4F80(float duration);
+    void BeginDelayedRemoval004C5000();
+    void BeginFadeOutAndRemove004C5040(signed char state);
+    void BeginFadeOut004C5150(float duration);
+    void StartTalking004C73F0(unsigned char animate_mouth);
+    void StopTalking004C7470();
+    void SetCycleCallback004CA340(
+        int cycle, CycleCallback callback);
+    float GetDistanceToPlayer004C7CB0();
+    float GetPointDistanceToPlayer004C7D50(float x, float y, float z);
+    float GetDistanceToMonster004C7DD0(W8Monster* monster);
+    float GetPointDistanceToMonster004C7E80(
+        W8Monster* monster, float x, float y, float z);
     unsigned char SetScript004C7F10(
         const char* script_name, unsigned char reset_orders);
     void ProcessScript004C80E0();
@@ -240,7 +255,6 @@ public:
     unsigned char flag_22d;
     signed char state_22e;
     unsigned char unknown_22f;
-    typedef void (__cdecl *CycleCallback)(W8Monster* monster);
     CycleCallback cycle_callback_230;
     int callback_cycle_234;
     stScript* script_238;

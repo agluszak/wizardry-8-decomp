@@ -70,6 +70,7 @@ extern void __stdcall Function4A7BE0(const float* position);
 extern unsigned char Function525DF0(int value);
 extern unsigned char g_flag_00683f97;
 extern W8Navigator* g_startup_world_659c0c;
+extern float g_startup_depth_603ac8;
 extern const float g_monster_script_facing_tolerance_005ebc84;
 extern const float g_world_scale_005ebc40;
 extern unsigned char g_force_encounter_culling; /* 0x00687500 */
@@ -745,7 +746,7 @@ void W8Monster::Update()
         if (progress > g_light_scale_identity_005ebb38) {
             progress = g_light_scale_identity_005ebb38;
         }
-        if (flags_330.flag_00 == 0xfe) {
+        if (flags_330.flag_00 == -2) {
             if (progress == g_light_scale_identity_005ebb38) {
                 flags_330.flag_00 = 0;
                 timer_30c.SetDuration(3.0f);
@@ -753,12 +754,12 @@ void W8Monster::Update()
                 if ((signed char)flags_330.flag_00 < 1) {
                     m_pRep->value_05c = g_light_scale_identity_005ebb38;
                     m_pRep->flag_061 = 1;
-                    flags_330.flag_00 = 0xff;
+                    flags_330.flag_00 = -1;
                 }
                 else {
                     timer_30c.SetProgress(
                         g_light_scale_identity_005ebb38 - m_pRep->value_05c);
-                    flags_330.flag_00 = 0xff;
+                    flags_330.flag_00 = -1;
                 }
             }
         }
@@ -1724,7 +1725,7 @@ void W8Monster::ProcessScript004C80E0()
                     else {
                         timer_30c.SetProgress(1.0f - m_pRep->value_05c);
                     }
-                    flags_330.flag_00 = 0xff;
+                    flags_330.flag_00 = -1;
                 }
                 RemoveMonster(
                     MonsterGetIndexByLocationID(
@@ -1959,6 +1960,218 @@ unsigned char W8Monster::IsWithinWorldRange004CA2A0()
         return dx * dx + dy * dy + dz * dz <=
                (float)far_clip * (float)far_clip;
     }
+}
+
+/* Start making the representation visible.  Reversing an active fade-out
+   preserves its current scale by seeding the opposite timer at that progress;
+   an idle monster starts from zero instead. */
+// FUNCTION: WIZ8 0x004c4f80
+void W8Monster::BeginFadeIn004C4F80(float duration)
+{
+    if (flags_330.flag_00 <= 0) {
+        timer_30c.SetDuration(duration);
+        timer_30c.Restart();
+        if (flags_330.flag_00 < 0) {
+            W8MonsterRep* rep = m_pRep;
+            timer_30c.SetProgress(rep->value_05c);
+        }
+        else {
+            W8MonsterRep* rep = m_pRep;
+            rep->value_05c = 0.0f;
+            rep->flag_061 = 1;
+        }
+        flags_330.flag_00 = 1;
+        flags_1dc &= ~0x400;
+    }
+}
+
+// FUNCTION: WIZ8 0x004c5000
+void W8Monster::BeginDelayedRemoval004C5000()
+{
+    flags_1dc |= 0x100;
+    flags_330.flag_00 = -2;
+    timer_30c.SetDuration(5.0f);
+    timer_30c.Restart();
+}
+
+/* Begin the three-second disappearance transition, remove the live monster
+   from the manager without destroying it, and retain the requested terminal
+   state for the transition's completion. */
+// FUNCTION: WIZ8 0x004c5040
+void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
+{
+    flags_1dc |= 0x100;
+    if (flags_330.flag_00 >= 0) {
+        timer_30c.SetDuration(3.0f);
+        timer_30c.Restart();
+        W8MonsterRep* rep = m_pRep;
+        if (flags_330.flag_00 > 0) {
+            timer_30c.SetProgress(
+                1.0f - rep->value_05c);
+        }
+        else {
+            rep->value_05c = 1.0f;
+            rep->flag_061 = 1;
+        }
+        flags_330.flag_00 = -1;
+    }
+    RemoveMonster(
+        MonsterGetIndexByLocationID(
+            0x1021, MONSTER_CPP, propagated_value_1e4, 1),
+        0);
+    state_22e = state;
+}
+
+// FUNCTION: WIZ8 0x004c5150
+void W8Monster::BeginFadeOut004C5150(float duration)
+{
+    if (flags_330.flag_00 < 0) {
+        return;
+    }
+    timer_30c.SetDuration(duration);
+    timer_30c.Restart();
+    if (flags_330.flag_00 > 0) {
+        W8MonsterRep* rep = m_pRep;
+        timer_30c.SetProgress(1.0f - rep->value_05c);
+        flags_330.flag_00 = -1;
+        return;
+    }
+    W8MonsterRep* rep = m_pRep;
+    rep->value_05c = 1.0f;
+    rep->flag_061 = 1;
+    flags_330.flag_00 = -1;
+}
+
+// FUNCTION: WIZ8 0x004c73f0
+void W8Monster::StartTalking004C73F0(unsigned char animate_mouth)
+{
+    if (m_pRep != 0) {
+        flag_1fc = 1;
+        flag_1fd = animate_mouth;
+        value_200 = GetTickCount();
+        unknown_214 = 0;
+        value_210 = -1;
+        value_208 = GetTickCount();
+        value_20c = Random(2000) + 2000;
+        m_pRep->selection.monster.pending_cycle = 0x18;
+        m_pRep->behaviour_071 = 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x004c7470
+void W8Monster::StopTalking004C7470()
+{
+    if (m_pRep != 0) {
+        srModelInstance* model;
+        stTextureAnim* mouth;
+
+        flag_1fc = 0;
+        model = GetCurrentModelInstance004A8250();
+        if (model != 0) {
+            mouth = static_cast<stModelInstance*>(model)
+                        ->FindMouthTexture00481080();
+            if (mouth != 0) {
+                mouth->flag_60 = 3;
+                mouth->SetFrame00485400(0);
+            }
+        }
+        if (m_pRep->selection.monster.current_cycle != 0x15) {
+            m_pRep->behaviour_071 = 3;
+            m_pRep->selection.monster.pending_cycle = 1;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004ca340
+void W8Monster::SetCycleCallback004CA340(
+    int cycle, CycleCallback callback)
+{
+    cycle_callback_230 = callback;
+    callback_cycle_234 = cycle;
+}
+
+// FUNCTION: WIZ8 0x004c7cb0
+float W8Monster::GetDistanceToPlayer004C7CB0()
+{
+    srVector3T<float> position = GetPosition();
+    W8Position player_position;
+    float x;
+    float y;
+    float z;
+    float distance;
+
+    GetPosition421070(&player_position);
+    x = position.x - player_position.x;
+    y = position.y - (player_position.y - g_startup_depth_603ac8);
+    z = position.z - player_position.z;
+    distance = (float)sqrt(x * x + y * y + z * z) -
+        fields.movement_0c0.alternate_radius_0b4 -
+        g_startup_world_659c0c->fields.movement_0c0.alternate_radius_0b4;
+    if (distance < g_float_005ebb34) {
+        distance = g_float_005ebb34;
+    }
+    return distance;
+}
+
+// FUNCTION: WIZ8 0x004c7d50
+float W8Monster::GetPointDistanceToPlayer004C7D50(
+    float x, float y, float z)
+{
+    W8Position player_position;
+    float delta_x;
+    float delta_y;
+    float delta_z;
+    float distance;
+
+    GetPosition421070(&player_position);
+    delta_x = x - player_position.x;
+    delta_y = y - (player_position.y - g_startup_depth_603ac8);
+    delta_z = z - player_position.z;
+    distance = (float)sqrt(
+        delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) -
+        fields.movement_0c0.alternate_radius_0b4 -
+        g_startup_world_659c0c->fields.movement_0c0.alternate_radius_0b4;
+    if (distance < g_float_005ebb34) {
+        distance = g_float_005ebb34;
+    }
+    return distance;
+}
+
+// FUNCTION: WIZ8 0x004c7dd0
+float W8Monster::GetDistanceToMonster004C7DD0(W8Monster* monster)
+{
+    srVector3T<float> position = GetPosition();
+    srVector3T<float> other_position = monster->GetPosition();
+    float x = position.x - other_position.x;
+    float y = position.y - other_position.y;
+    float z = position.z - other_position.z;
+    float distance = (float)sqrt(x * x + y * y + z * z) -
+        fields.movement_0c0.alternate_radius_0b4 -
+        monster->fields.movement_0c0.alternate_radius_0b4;
+
+    if (distance < g_float_005ebb34) {
+        distance = g_float_005ebb34;
+    }
+    return distance;
+}
+
+// FUNCTION: WIZ8 0x004c7e80
+float W8Monster::GetPointDistanceToMonster004C7E80(
+    W8Monster* monster, float x, float y, float z)
+{
+    srVector3T<float> position = monster->GetPosition();
+    float delta_x = x - position.x;
+    float delta_y = y - position.y;
+    float delta_z = z - position.z;
+    float distance = (float)sqrt(
+        delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) -
+        fields.movement_0c0.alternate_radius_0b4 -
+        monster->fields.movement_0c0.alternate_radius_0b4;
+
+    if (distance < g_float_005ebb34) {
+        distance = g_float_005ebb34;
+    }
+    return distance;
 }
 
 /* Decide whether a requested cycle can replace the current one. Monster adds
