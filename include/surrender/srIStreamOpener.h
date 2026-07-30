@@ -1,6 +1,6 @@
 #pragma once
 
-#include "srBinIStream.h"
+#include "srBinFStream.h"
 
 class srIStreamOpener {
 public:
