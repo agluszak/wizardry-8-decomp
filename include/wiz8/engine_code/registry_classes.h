@@ -29,41 +29,65 @@ struct W8Position;
  */
 
 /* Engine Code\stParticle.cpp. */
-class stParticle : public srNode {
+class stParticle
+    : public srClassSupport<stParticle, srNode, 0, 0x10009> {
 public:
-    const char* getClassName() const override;     /* 0x0049B550 */
-    unsigned long getClassID() const override;     /* 0x0049B540 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x0049B560 */
+    static const char* sGetClassName() { return "stParticle"; }
+    stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
     void SetActive(unsigned char active);
     void SetTexture0049AB00(srTextureIFace* texture);
     unsigned char ReplaceTexture0049AC30(
         const char* old_name, srTextureIFace* replacement);
+    virtual srClass* vInstance() override;         /* 0x004980E0 */
 
-    unsigned char unknown_138[0x1c];
+protected:
+    virtual ~stParticle() override;                /* 0x00498A20 */
+
+public:
+
+    unsigned char unknown_138[0x10];
+    void* allocation_148;
+    srClass* retained_14c;
+    unsigned int value_150;
     srTextureIFace* texture_154;
-    unsigned char unknown_158[4];
+    unsigned int vertex_count_158;
     unsigned int texture_frame_count_15c;
-    unsigned char unknown_160[0x18];
+    void* allocation_160;
+    void* allocation_164;
+    void* allocation_168;
+    void* allocation_16c;
+    void* allocation_170;
+    void* allocation_174;
     stTextureAnim** texture_frames_178;
-    unsigned char unknown_17c[8];
+    void* allocation_17c;
+    unsigned int particle_count_180;
     int state_184;
     int value_188;
     void* node_18c;
     unsigned char active_190;
     unsigned char unknown_191;
     unsigned char trigger_flag_192;
-    unsigned char unknown_193[0x0d];
+    unsigned char unknown_193;
+    void* allocation_194;
+    void* allocation_198;
+    void* allocation_19c;
     unsigned char active_1a0;
-    unsigned char unknown_1a1[0xb7];
+    unsigned char unknown_1a1[0xaf];
+    void* allocation_250;
+    void* allocation_254;
     unsigned int activated_at_258;
     unsigned int updated_at_25c;
     unsigned char unknown_260[4];
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
+    int value_270;
+    int value_274;
+    float value_278;
+    unsigned char unknown_27c[4];
 };
 
-static_assert(sizeof(stParticle) == 0x270, "stParticle_size_must_be_0x270");
+static_assert(sizeof(stParticle) == 0x280, "stParticle_size_must_be_0x280");
 
 /*
  * The same slots for further host-registered classes whose owning translation

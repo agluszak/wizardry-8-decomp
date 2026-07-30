@@ -1,16 +1,97 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/engine_code/stTextureAnim.h"
 #include "surrender/srCore.h"
+#include "surrender/srHeap.h"
 #include "surrender/srNode.h"
 
 #include <string.h>
 
-/*
- * Engine Code\stParticle.cpp.
- *
- * Only the class registry slots are recovered so far.
- */
+// VTABLE: WIZ8 0x005ECBD0
+// class stParticle
+
+// VTABLE: WIZ8 0x005ECC04
+// class srClassSupport<stParticle,srNode,0,65545>
+
+// TEMPLATE: WIZ8 0x0049B540
+// srClassSupport<stParticle,srNode,0,65545>::getClassID
+
+// TEMPLATE: WIZ8 0x0049B550
+// srClassSupport<stParticle,srNode,0,65545>::getClassName
+
+// TEMPLATE: WIZ8 0x0049B560
+// srClassSupport<stParticle,srNode,0,65545>::getClassNode
+
+// TEMPLATE: WIZ8 0x0049B5D0
+// srClassSupport<stParticle,srNode,0,65545>::clone
+
+// TEMPLATE: WIZ8 0x0049B990
+// srClassSupport<stParticle,srNode,0,65545>::~srClassSupport<stParticle,srNode,0,65545>
+
+// SYNTHETIC: WIZ8 0x0049BA50
+// srClassSupport<stParticle,srNode,0,65545>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00498150
+// stParticle::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x004980E0
+srClass* stParticle::vInstance()
+{
+    return new stParticle(0, 0);
+}
+
+// FUNCTION: WIZ8 0x00498A20
+stParticle::~stParticle()
+{
+    if (allocation_148 != 0) {
+        srHeap.free(allocation_148);
+    }
+    if (allocation_170 != 0) {
+        srHeap.free(allocation_170);
+    }
+    if (allocation_164 != 0) {
+        srHeap.free(allocation_164);
+    }
+    if (allocation_160 != 0) {
+        srHeap.free(allocation_160);
+    }
+    if (allocation_168 != 0) {
+        srHeap.free(allocation_168);
+    }
+    if (allocation_16c != 0) {
+        srHeap.free(allocation_16c);
+    }
+    if (allocation_174 != 0) {
+        ::operator delete(allocation_174);
+    }
+    if (retained_14c != 0) {
+        retained_14c->release();
+    }
+    if (allocation_198 != 0) {
+        srHeap.free(allocation_198);
+    }
+    if (allocation_19c != 0) {
+        ::operator delete(allocation_19c);
+    }
+    if (allocation_254 != 0) {
+        ::operator delete(allocation_254);
+    }
+    if (allocation_194 != 0) {
+        ::operator delete(allocation_194);
+    }
+    if (texture_frames_178 != 0) {
+        for (unsigned int i = 0; i < texture_frame_count_15c; i += 2) {
+            texture_frames_178[i]->release();
+        }
+        ::operator delete(texture_frames_178);
+    }
+    if (allocation_17c != 0) {
+        ::operator delete(allocation_17c);
+    }
+    texture_154->release();
+    setParent(0, 1);
+}
 
 // FUNCTION: WIZ8 0x0049acd0
 void stParticle::SetActive(unsigned char active)
@@ -36,38 +117,4 @@ unsigned char stParticle::ReplaceTexture0049AC30(
         return 1;
     }
     return 0;
-}
-
-// FUNCTION: WIZ8 0x0049b550
-const char* stParticle::getClassName() const
-{
-    return "stParticle";
-}
-
-// FUNCTION: WIZ8 0x0049b540
-unsigned long stParticle::getClassID() const
-{
-    return 0x10009;
-}
-
-/* Registry node builder in the proven two-level shape: the class hangs
-   directly off srNode, whose name comes from its static getter while this
-   class's own name is a literal. */
-// FUNCTION: WIZ8 0x0049b560
-srRegistry::ClassNode* stParticle::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10009);
-
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
-
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("stParticle", parent, 0x10009, 0);
-    }
-    return node;
 }
