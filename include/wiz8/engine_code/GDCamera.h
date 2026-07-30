@@ -5,6 +5,17 @@
 
 class srNode;
 class W8Camera005EBE14;
+class W8Object005EBCFC;
+
+class W8CameraMatrix : public srMatrix3T<float> {
+public:
+    void Method00421A40(const W8CameraMatrix& other); /* 0x00421A40 */
+    void Method00438F90(double sine, double cosine); /* 0x00438F90 */
+    void Method00478EB0(double sine, double cosine); /* 0x00478EB0 */
+};
+
+static_assert(sizeof(W8CameraMatrix) == 0x24,
+              "W8CameraMatrix_must_be_0x24");
 
 /* Engine Code\Camera.cpp. GameData.cpp's original `gpGDCamera` assertion
    identifies the owner allocated at 0x0065A0F8; its constructor allocation
@@ -16,20 +27,34 @@ public:
 
     W8Camera005EBE14* Method00476440(
         srNode* parent, W8Camera005EBE14* camera);   /* 0x00476440 */
+    unsigned char Method00477440(
+        float positional_09c, float positional_098,
+        unsigned char positional_089);              /* 0x00477440 */
+    void Method00478CC0();                          /* 0x00478CC0 */
+    void Method00478E00(unsigned char enabled);      /* 0x00478E00 */
 
-    unsigned char m_positional_000[4];               /* 0x000 */
+    unsigned long m_positional_000;                  /* 0x000 */
     float m_angle_004;                               /* 0x004 */
     float m_positional_008;                          /* 0x008 */
-    srMatrix3T<float> m_matrix_00c;                  /* 0x00c */
-    srMatrix3T<float> m_matrix_030;                  /* 0x030 */
-    srMatrix3T<float> m_matrix_054;                  /* 0x054 */
-    unsigned char m_positional_078[0x10];            /* 0x078 */
+    W8CameraMatrix m_matrix_00c;                     /* 0x00c */
+    W8CameraMatrix m_matrix_030;                     /* 0x030 */
+    W8CameraMatrix m_matrix_054;                     /* 0x054 */
+    unsigned char m_positional_078[0x0c];            /* 0x078 */
+    unsigned long m_positional_084;                  /* 0x084 */
     unsigned char m_flag_088;                        /* 0x088 */
     unsigned char m_flag_089;                        /* 0x089 */
     unsigned char m_padding_08a[2];
     W8Position m_position_08c;                       /* 0x08c */
-    unsigned char m_positional_098[0x24];            /* 0x098 */
-    void* m_owned_0bc;                               /* 0x0bc */
+    unsigned long m_positional_098;                  /* 0x098 */
+    unsigned long m_positional_09c;                  /* 0x09c */
+    unsigned long m_positional_0a0;                  /* 0x0a0 */
+    unsigned long m_positional_0a4;                  /* 0x0a4 */
+    unsigned long m_positional_0a8;                  /* 0x0a8 */
+    unsigned long m_positional_0ac;                  /* 0x0ac */
+    unsigned long m_positional_0b0;                  /* 0x0b0 */
+    unsigned long m_positional_0b4;                  /* 0x0b4 */
+    unsigned long m_positional_0b8;                  /* 0x0b8 */
+    W8Object005EBCFC* m_owned_0bc;                   /* 0x0bc */
 };
 
 extern GDCamera* g_gd_camera_65a0f8;
