@@ -1,4 +1,5 @@
 #include "wiz8/npc_state.h"
+#include "wiz8/gameplay_boundaries.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/item_tables.h"
 #include "wiz8/item_spawning.h"
@@ -88,6 +89,122 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
         } while (added < repeats);
     }
     return index;
+}
+
+/* Top up an NPC's stock from its database rules. A rule restocks only while it
+   is not the persistent kind, while any fact gating its item is set, and while
+   the NPC holds no more than half the configured quantity. The difficulty tier
+   then becomes a percentage chance, and the shortfall is jittered by half up or
+   down before being added. Item 0x1fc is gated behind fact 0x15f; neither has a
+   recovered symbolic name. */
+// FUNCTION: WIZ8 0x0055ab80
+int RestockNpcItems(W8NpcState* npc)
+{
+    W8NpcItemStockRule* rule;
+    W8NpcItemStockRule* candidate;
+    W8NpcItemEntry* entry;
+    unsigned int rule_count;
+    unsigned int rule_index;
+    unsigned int search_count;
+    unsigned int search;
+    int item_id;
+    int configured;
+    unsigned char held;
+    unsigned char amount;
+    unsigned char jitter;
+    char tier;
+    char chance;
+    int roll;
+
+    rule_count = PListGetCount(npc->record->item_stock_rules);
+    rule_index = 0;
+    if (rule_count > 0) {
+        do {
+            rule = static_cast<W8NpcItemStockRule*>(
+                PListGetAt(npc->record->item_stock_rules, rule_index));
+            if (rule->persistent != 0 ||
+                (rule->item_id == 0x1fc && GetFact(0x15f) == 0)) {
+                goto next_rule;
+            }
+
+            item_id = rule->item_id;
+            configured = 0;
+            search_count = PListGetCount(npc->record->item_stock_rules);
+            for (search = 0; search < search_count; ++search) {
+                candidate = static_cast<W8NpcItemStockRule*>(
+                    PListGetAt(npc->record->item_stock_rules, search));
+                if (candidate->item_id == item_id) {
+                    configured = candidate->quantity;
+                    break;
+                }
+            }
+            if (configured <= 0) {
+                goto next_rule;
+            }
+
+            item_id = rule->item_id;
+            held = 0;
+            search_count = PListGetCount(npc->items);
+            for (search = 0; search < search_count; ++search) {
+                entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, search));
+                if (entry != 0 && entry->item.item_id == item_id) {
+                    held = entry->quantity;
+                    break;
+                }
+            }
+            if (held > configured / 2) {
+                goto next_rule;
+            }
+
+            if (rule->persistent == 0) {
+                tier = RateItemIdentifyDifficulty(npc, rule->item_id);
+            }
+            else {
+                tier = 4;
+            }
+            switch (tier) {
+            case 0:
+                chance = 0;
+                break;
+            case 1:
+                chance = 25;
+                break;
+            case 2:
+                chance = 50;
+                break;
+            case 3:
+                chance = 75;
+                break;
+            case 4:
+                chance = 100;
+                break;
+            default:
+                chance = 0;
+                break;
+            }
+            if (static_cast<unsigned int>(chance) <= Random(100)) {
+                goto next_rule;
+            }
+
+            amount = configured - held;
+            roll = Random(3);
+            if (roll == 0) {
+                jitter = static_cast<unsigned char>(amount >> 1);
+                amount = amount + jitter;
+            }
+            else if (roll == 1) {
+                jitter = static_cast<unsigned char>(-(amount >> 1));
+                amount = amount + jitter;
+            }
+            if (amount != 0) {
+                AddNpcItem(npc, rule->item_id, amount);
+            }
+
+        next_rule:
+            ++rule_index;
+        } while (rule_index < rule_count);
+    }
+    return 1;
 }
 
 /* Rate an item's identify difficulty against the band the party's average level

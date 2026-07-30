@@ -109,11 +109,12 @@ typedef struct W8FactDatabaseRecord {
 } W8FactDatabaseRecord;                  /* 0x1d8 */
 
 /* One optional NPC stock-rule entry appended after its database record.
-   DecayNpcInventory establishes the leading item id and the keep flag at 0x05;
-   the remaining byte is unread by recovered source and stays unnamed. */
+   DecayNpcInventory establishes the leading item id and the keep flag at 0x05.
+   RestockNpcItems establishes 0x04 as the configured quantity: it restocks only
+   while the NPC holds no more than half of it, and tops up by the shortfall. */
 typedef struct W8NpcItemStockRule {
     int item_id;                           /* 0x00: Items.dbs index */
-    unsigned char unknown_04;             /* 0x04: not read by recovered source */
+    unsigned char quantity;               /* 0x04: configured stock quantity */
     unsigned char persistent;             /* 0x05: retain and replenish this item */
 } W8NpcItemStockRule;                     /* 0x06 */
 
