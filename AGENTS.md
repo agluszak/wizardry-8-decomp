@@ -117,8 +117,12 @@ were a symptom and the shape is the bug.
 Marker policy follows reccmp's entity conventions (enforced by `just check`):
 
 - `// FUNCTION:` must sit immediately above its C++ declaration.
-- `// TEMPLATE:` must be followed immediately by the specialization-symbol comment and then the
-  template definition.
+- `// TEMPLATE:` must be followed immediately by a comment naming the specialization symbol.
+  Nothing else has to follow it. The generic definition lives once in the header that owns the
+  template; a `TEMPLATE` marker in a `.cpp` records only that the specialization was emitted into
+  that translation unit at that address, so emission-only markers with no adjacent definition are
+  the normal case, not a defect. A body written under a `TEMPLATE` marker is the defect: it means
+  a template emission was mistaken for a hand-written method.
 - `// LIBRARY:` is address-only and has no owned declaration adjacency requirement.
 
 Put explanatory prose above the marker sequence.
@@ -147,14 +151,22 @@ finished and rebased onto current `main`, immediately before integration:
 | Change | Required validation |
 | --- | --- |
 | Python, docs, evidence, marker, or source inventory | `just check` |
-| C++ class declarations or inheritance | `just lint` |
 | Ordinary local work | `just test` |
+| Inheritance, virtual declarations, `srClassSupport`, constructors, or destructors | `just lint`, `just build WIZ8`, focused `just compare ADDRESS...`, focused `just vtable CLASS`, then `just test` |
+| Other C++ class declarations | `just lint` |
 | Ported/recovered body | `just build WIZ8`, focused reccmp exact/effective comparison, then `just test` |
 | Reviewed Ghidra change | representative `just context` checks, `uv run wiz8 ghidra index`, then an intentional checkpoint refresh |
 | Complete product/integration gate | `just verify` |
 
+`just lint` compiles declarations, so it cannot see a vtable slot the linker left null or a body
+that stopped being emitted. That is why inheritance and virtual-declaration changes additionally
+require the linked-image vtable and boundary comparisons above; `just verify` performs the same
+vtable comparison as the integration gate.
+
 `just test` is the fast lane: it refreshes the source index and runs the unit and repository
-suites without rebuilding the clang lint lane. The lint build itself runs only in `just lint`,
+suites without rebuilding the clang lint lane. The repository suite includes the class-ABI audit
+in `tests/repository/test_class_abi.py`, which reads the generated source index; refresh it with
+`uv run wiz8 analyze source-index` if running pytest directly. The lint build itself runs only in `just lint`,
 `just check`, and `just verify`; after changing the source inventory or CMake configuration,
 run `just lint` once so the source index sees a current compile database (the index refuses a
 stale one).

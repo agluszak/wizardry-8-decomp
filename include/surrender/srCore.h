@@ -59,7 +59,13 @@ public:
     SR_DLL_IMPORT int supportMultiThread();
     SR_DLL_IMPORT void supportMultiThread(int enabled);
 
-    SR_DLL_IMPORT srRegistry* getRegistry() const;
+    /* Defined inline because Wiz8 inlines it. Every srClassSupport
+       sGetClassNode emission loads the registry as a direct [srCore + 0x2c]
+       field read rather than calling an import thunk, so the original header
+       carried this body even though SR.DLL also exports an out-of-line copy.
+       Declaring it SR_DLL_IMPORT instead costs every getClassNode body its
+       exact match. */
+    srRegistry* getRegistry() const { return registry_; }
 
 private:
     SR_DLL_IMPORT void reset();

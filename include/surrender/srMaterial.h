@@ -39,14 +39,6 @@ class SR_DLL_IMPORT srMaterial
 public:
     enum e_oper {};
 
-    /* ReadLevel.cpp clones a prop's material through a bare srMaterial*;
-       srClassSupport's clone() is protected, and VC6 rejects narrowing its
-       return type through the template (C2555), so the caller needs access
-       rather than a covariant public override. */
-    friend unsigned char ReadLevel(
-        struct W8World* world, int handle, unsigned char use_octree,
-        const char* bitmap_folder);
-
     srMaterial();
     srMaterial(const srMaterial& other);
     static const char* sGetClassName();
