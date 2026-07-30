@@ -201,13 +201,6 @@ private:
 
 static_assert(sizeof(MonsterLight) == 0x250, "MonsterLight_must_be_0x250");
 
-class W8MeshModel005EBE98 {
-public:
-    const char* getClassName() const;     /* 0x00429B40 */
-    unsigned long getClassID() const;     /* 0x00429B30 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x00429B50 */
-};
-
 /*
  * Six more classes that present under a SurRender base, but whose name slot is
  * an import thunk straight to SR.DLL rather than an owned body - so only the

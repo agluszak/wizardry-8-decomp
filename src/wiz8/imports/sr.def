@@ -223,6 +223,7 @@ EXPORTS
     ?getTexture@srMeshModel@@QBEPAVsrTextureIFace@@JJ@Z
     ??0srMeshModel@@QAE@JJ@Z
     ??1srMeshModel@@MAE@XZ
+    ??4srMeshModel@@QAEAAV0@ABV0@@Z
     ?dump@srMeshModel@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?verify@srMeshModel@@UAEXW4e_verify@srRuntimeClass@@@Z
     ?vInstance@srMeshModel@@UAEPAVsrClass@@XZ
@@ -232,6 +233,9 @@ EXPORTS
     ?updateAllClients@srModel@@UAEXW4e_update@Client@1@@Z
     ?reindexPolygons@srMeshModel@@UAEXPBK@Z
     ?reindexVertices@srMeshModel@@UAEXPBK@Z
+    ?getTriMesh@srMeshModel@@UAEABUTriMesh@1@XZ
+    ?getTriMesh@srMeshModel@@UAEXAAUTriMesh@1@@Z
+    ?renderTriMesh@srMeshModel@@UAEXAAVsrGERD@@ABUTriMesh@1@@Z
     ?updateTriMesh@srMeshModel@@MAEXXZ
     ?calculateBounds@srMeshModel@@MAEXXZ
     ?calculatePolygonNormals@srMeshModel@@MAEXXZ

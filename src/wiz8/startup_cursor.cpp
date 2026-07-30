@@ -8,6 +8,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/MeshModel.h"
 #include "wiz8/engine_code/TextureMap.h"
 #include "wiz8/render_state.h"
 #include "himage.h"
@@ -42,17 +43,6 @@ srRegistry::ClassNode* class_node(unsigned long id, const char* name,
     }
     return node;
 }
-
-class CursorMeshModel : public srMeshModel {
-public:
-    CursorMeshModel() : srMeshModel(0, 0) {}
-
-    virtual const char* getClassName() const override { return "srMeshModel"; }
-    virtual unsigned long getClassID() const override { return 0x2010; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return class_node(0x2010, "srMeshModel", 0x2000, "srModel");
-    }
-};
 
 class CursorModelInstance : public srModelInstance {
 public:
@@ -120,6 +110,7 @@ extern unsigned char g_fullscreen_603c39;
 
 }
 
+// FUNCTION: WIZ8 0x00424EB0
 static srModelInstance* MakePolygonBrush(
     srNode* parent, srColorSurfaceIFace* surface,
     double width, double height,
@@ -127,14 +118,14 @@ static srModelInstance* MakePolygonBrush(
     float mapping_width, float mapping_height,
     unsigned char overlay)
 {
-    CursorMeshModel* model;
+    W8MeshModel005EBE98* model;
     W8TextureMap005EBEEC* texture;
     CursorModelInstance* instance;
     srModeler::MappingInfo mapping;
     srVector3T<float> scale;
     srShader shader;
 
-    model = new CursorMeshModel;
+    model = new W8MeshModel005EBE98(0, 0);
     if (!model) {
         return 0;
     }

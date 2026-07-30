@@ -2,6 +2,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 #include "wiz8/engine_code/Material.h"
+#include "wiz8/engine_code/MeshModel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
@@ -25,6 +26,45 @@ extern srNode* Function424BA0(
     float width,
     float height,
     unsigned char positional_3);
+
+// FUNCTION: WIZ8 0x00429B30
+unsigned long W8MeshModel005EBE98::getClassID() const
+{
+    return 0x2010;
+}
+
+// FUNCTION: WIZ8 0x00429B40
+const char* W8MeshModel005EBE98::getClassName() const
+{
+    return "srMeshModel";
+}
+
+// FUNCTION: WIZ8 0x00429B50
+srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x2010);
+
+    if (node == 0) {
+        srRegistry* parent_registry = srCore.getRegistry();
+        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x2000);
+
+        if (parent == 0) {
+            parent = parent_registry->registerClass(
+                "srModel", srClass::sGetClassNode(), 0x2000, 1);
+        }
+        node = registry->registerClass("srMeshModel", parent, 0x2010, 0);
+    }
+    return node;
+}
+
+// FUNCTION: WIZ8 0x00429BC0
+srClass* W8MeshModel005EBE98::vslot7()
+{
+    srMeshModel* copy = static_cast<srMeshModel*>(vInstance());
+    *copy = *this;
+    return copy;
+}
 
 // SYNTHETIC: WIZ8 0x00424b70
 // W8TextureMap005EBEEC::`scalar deleting destructor'

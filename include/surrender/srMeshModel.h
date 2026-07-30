@@ -33,17 +33,23 @@ public:
 class SR_DLL_IMPORT srMeshModel : public srModel {
 public:
     enum e_side {};
+    struct TriMesh;
 
     srMeshModel(long polygons, long vertices);
+    srMeshModel& operator=(const srMeshModel& other);
     virtual void dump(std::ostream& stream) override;
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
+    virtual srClass* vslot7();
     virtual int getBoundingSphere(srVector3T<float>& center, float& radius);
     virtual int getBoundingBox(srVector3T<float>& minimum,
                                srVector3T<float>& maximum);
     virtual void render(class srGERD& renderer);
     virtual void reindexPolygons(const unsigned long* indices);
     virtual void reindexVertices(const unsigned long* indices);
+    virtual const TriMesh& getTriMesh();
+    virtual void getTriMesh(TriMesh& mesh);
+    virtual void renderTriMesh(class srGERD& renderer, const TriMesh& mesh);
     srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);

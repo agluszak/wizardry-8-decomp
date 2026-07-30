@@ -46,34 +46,6 @@ unsigned long W8Registered005EBD10::getClassID() const
 {
     return 0x3110;
 }
-// FUNCTION: WIZ8 0x00429B30
-unsigned long W8MeshModel005EBE98::getClassID() const
-{
-    return 0x2010;
-}
-// FUNCTION: WIZ8 0x00429B40
-const char* W8MeshModel005EBE98::getClassName() const
-{
-    return "srMeshModel";
-}
-// FUNCTION: WIZ8 0x00429B50
-srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2010);
-
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x2000);
-
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                "srModel", srClass::sGetClassNode(), 0x2000, 1);
-        }
-        node = registry->registerClass("srMeshModel", parent, 0x2010, 0);
-    }
-    return node;
-}
 // FUNCTION: WIZ8 0x00429CC0
 unsigned long W8Material005EBDE0::getClassID() const
 {

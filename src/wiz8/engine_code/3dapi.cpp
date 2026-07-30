@@ -416,7 +416,7 @@ void WorldSetCameraLocation(W8World* world, const float* location)
 // SYNTHETIC: WIZ8 0x00423f00
 // srColorSurface::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00424a50
-// srMeshModel::`scalar deleting destructor'
+// W8MeshModel005EBE98::`scalar deleting destructor'
 
 /* The second world, read straight out of the global with no guard. Its type is
    settled by the viewport, which reads a camera member through the same
