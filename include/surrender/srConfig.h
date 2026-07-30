@@ -24,7 +24,22 @@ public:
     SR_DLL_IMPORT void setLong(const char* name, long value);
 
 private:
-    unsigned char unknown_00_[0x1c];
+    struct Entry {
+        char* name;
+        char* value;
+        Entry* previous;
+        Entry* next;
+    };
+
+    struct Index;
+
+    Entry* first_entry_00;
+    unsigned long entry_count_04;
+    Entry* free_entries_08;
+    Entry** entry_blocks_0c;
+    unsigned long entry_block_capacity_10;
+    unsigned long entry_block_count_14;
+    Index* index_18;
 };
 
 static_assert(sizeof(srConfig) == 0x1c, "srConfig_must_be_0x1c");
