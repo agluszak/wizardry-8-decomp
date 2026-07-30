@@ -33,12 +33,17 @@ public:
         VERIFY_DEFAULT = 0
     };
 
-    virtual const char* getClassName() const = 0;
-    virtual unsigned long getClassID() const = 0;
-    virtual srRegistry::ClassNode* getClassNode() const = 0;
+    virtual SR_DLL_IMPORT const char* getClassName() const;
+    virtual SR_DLL_IMPORT unsigned long getClassID() const;
+    virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const;
+    virtual SR_DLL_IMPORT void dump(std::ostream& stream);
+    virtual SR_DLL_IMPORT void verify(e_verify mode);
 
     SR_DLL_IMPORT void setName(const char* name);
     SR_DLL_IMPORT const char* getName() const;
+
+protected:
+    virtual SR_DLL_IMPORT ~srRuntimeClass();
 };
 
 class srClass : public srRuntimeClass {
@@ -49,17 +54,18 @@ public:
     virtual const char* getClassName() const override = 0;
     virtual unsigned long getClassID() const override = 0;
     virtual srRegistry::ClassNode* getClassNode() const override = 0;
-    virtual SR_DLL_IMPORT void dump(std::ostream& stream);
-    virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode);
+    virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
+    virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode) override;
 
 protected:
-    virtual SR_DLL_IMPORT ~srClass();
+    virtual SR_DLL_IMPORT ~srClass() override;
 
 public:
     virtual srClass* vInstance() = 0;
 
     SR_DLL_IMPORT int release() const;
     SR_DLL_IMPORT void addReference() const;
+    SR_DLL_IMPORT long getReferenceCount() const;
     SR_DLL_IMPORT void autoRelease();
     SR_DLL_IMPORT void touch();
     void* operator new(unsigned int size) { return srHeap.allocate(size); }
@@ -88,7 +94,7 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
    parameter order. It contributes no storage: it supplies registry identity,
    instance registration and the class hierarchy's clone slot for a class
    derived from an existing registry class. */
-template <class Derived, class Base, int Abstract, unsigned long ClassID>
+template <class Derived, class Base, bool IsAbstract, unsigned long ClassID>
 class srClassSupport : public Base {
 public:
     static srRegistry::ClassNode* sGetClassNode()
@@ -99,7 +105,7 @@ public:
         if (node == 0) {
             node = registry->registerClass(
                 Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
-                Abstract == 0);
+                !IsAbstract);
         }
         return node;
     }
@@ -136,10 +142,21 @@ protected:
         srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
     }
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#pragma clang diagnostic ignored "-Wsuggest-override"
+#endif
+    /* This introduces clone when Base is srClass and overrides the family
+       clone when Base is srNode or srTexture. It cannot truthfully carry an
+       unconditional override specifier. */
     virtual Base* clone()
     {
         Derived* copy = static_cast<Derived*>(this->vInstance());
         *copy = *static_cast<const Derived*>(this);
         return copy;
     }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 };

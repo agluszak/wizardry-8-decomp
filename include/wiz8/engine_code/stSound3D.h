@@ -11,20 +11,6 @@
 class stSound3D;
 extern W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
-template <>
-class srClassSupport<stSound3D, srNode, 0, 0x1000b> : public srNode {
-public:
-    static srRegistry::ClassNode* sGetClassNode();
-    virtual const char* getClassName() const override;
-    virtual unsigned long getClassID() const override;
-    virtual srRegistry::ClassNode* getClassNode() const override;
-    virtual srNode* clone() override;
-
-protected:
-    explicit srClassSupport(srNode* parent);
-    virtual ~srClassSupport() override;
-};
-
 class stSound3D : public srClassSupport<stSound3D, srNode, 0, 0x1000b> {
 public:
     static const char* sGetClassName() { return "stSound3D"; }
@@ -72,52 +58,3 @@ public:
 };
 
 static_assert(sizeof(stSound3D) == 0x150, "stSound3D_must_be_0x150");
-
-inline srRegistry::ClassNode*
-srClassSupport<stSound3D, srNode, 0, 0x1000b>::sGetClassNode()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000b);
-    if (node == 0) {
-        node = registry->registerClass(
-            stSound3D::sGetClassName(), srNode::sGetClassNode(), 0x1000b, 1);
-    }
-    return node;
-}
-
-inline const char*
-srClassSupport<stSound3D, srNode, 0, 0x1000b>::getClassName() const
-{
-    return stSound3D::sGetClassName();
-}
-
-inline unsigned long
-srClassSupport<stSound3D, srNode, 0, 0x1000b>::getClassID() const
-{
-    return 0x1000b;
-}
-
-inline srRegistry::ClassNode*
-srClassSupport<stSound3D, srNode, 0, 0x1000b>::getClassNode() const
-{
-    return sGetClassNode();
-}
-
-inline srNode* srClassSupport<stSound3D, srNode, 0, 0x1000b>::clone()
-{
-    stSound3D* copy = static_cast<stSound3D*>(vInstance());
-    *copy = *static_cast<const stSound3D*>(this);
-    return copy;
-}
-
-inline srClassSupport<stSound3D, srNode, 0, 0x1000b>::srClassSupport(
-    srNode* parent)
-    : srNode(parent)
-{
-    srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-}
-
-inline srClassSupport<stSound3D, srNode, 0, 0x1000b>::~srClassSupport()
-{
-    srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
-}
