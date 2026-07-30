@@ -72,7 +72,7 @@ void ConstructWorldCollections(W8World* world)
     world->plsCameras = PListCreate();
     world->plsAmbientSounds = PListCreate();
     world->lights_to_update = new W8LightVector;
-    world->collidable_props = new W8GrowableVector<W8CollidableProp*>;
+    world->collidable_props = new W8GrowableVector<W8Prop005EC1E0*>;
     world->monster_generators = new W8GrowableVector<W8MonsterGenerator*>;
     world->m_vector_b4 = new W8GrowableVector<W8VectorElement005EC280*>;
     world->missiles = new W8GrowableVector<W8Missile*>;

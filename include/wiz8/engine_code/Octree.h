@@ -35,6 +35,8 @@ public:
     void AddLoadedParticle(void* particle);
     void SetVisitedSet0042E3E0(BitArray* visited);
     int MarkVisited0042E400(int offset);
+    void AddCollidablePropBounds0042EAB0(
+        int index, const srVector3T<float>* bounds);
     void VisitPointCopy0042E620(
         unsigned short location_id, srVector3T<float>* position);
     void UpdateMonsterLocation0042E540(

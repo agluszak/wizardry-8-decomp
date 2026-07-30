@@ -3,6 +3,10 @@
 
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/IList.h"
@@ -15,12 +19,6 @@
 #define READ_LEVEL_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\ReadLevel.cpp"
 
 namespace {
-
-struct W8ReadLevelInfo {
-    W8World* world;
-    int hFile;
-    const char* bitmap_folder;
-};
 
 struct W8LevelItemRecord004BC380 {
     int positional_00;
@@ -37,6 +35,84 @@ static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
 } // namespace
 
 extern const float g_world_scale_005ebc40;
+
+struct W8PropBounds004BC5E0 {
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+};
+
+static_assert(sizeof(W8PropBounds004BC5E0) == 0x18,
+              "W8PropBounds004BC5E0_size_must_be_0x18");
+
+// FUNCTION: WIZ8 0x004BC5E0
+unsigned char ReadWorldProps004BC5E0(
+    W8ReadLevelInfo* pInfo, W8World* pWorld,
+    unsigned char mark_model_instances)
+{
+    W8GrowableVector<stModelInstance005EC7D0*> model_instances(5);
+    W8Prop005EC1E0* prop;
+    W8PropBounds004BC5E0 bounds;
+    int count;
+    int index;
+    int collidable_index;
+    int model_index;
+    unsigned char success;
+
+    collidable_index = 0;
+    if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
+        return 0;
+    }
+    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    if (!success || count >= 100000) {
+        return 0;
+    }
+    if (count == 0) {
+        return 1;
+    }
+
+    for (index = 0; index < count; ++index) {
+        prop = 0;
+        if (!success || !CreateAndLoadProp0044BF50(pInfo, &prop)) {
+            success = 0;
+        }
+        else {
+            success = 1;
+            if (g_octree_6598a4 != 0) {
+                if (!g_octree_6598a4->MarkVisited0042E400(index)) {
+                    prop->flags_1c |= 0x40;
+                }
+                g_octree_6598a4->AddLoadedProp(prop);
+            }
+            PListAdd(pWorld->plsProps, prop);
+            if ((prop->flags_1c & 1) != 0) {
+                prop->GetBounds0044DD60(&bounds.minimum, &bounds.maximum);
+                pWorld->collidable_props->Add(prop);
+                if (pWorld->octree != 0) {
+                    pWorld->octree->AddCollidablePropBounds0042EAB0(
+                        collidable_index, &bounds.minimum);
+                    ++collidable_index;
+                }
+            }
+        }
+
+        if (mark_model_instances && prop != 0) {
+            prop->CollectModelInstances0044E570(&model_instances);
+            for (model_index = 0;
+                 model_index < model_instances.GetCount();
+                 ++model_index) {
+                stModelInstance005EC7D0* instance =
+                    *model_instances.GetAt(model_index);
+                if (instance != 0) {
+                    instance->state_178 |= 0x10;
+                }
+            }
+        }
+    }
+    if (g_octree_6598a4 != 0) {
+        g_octree_6598a4->MarkVisited0042E400(-1);
+    }
+    return success;
+}
 
 // FUNCTION: WIZ8 0x004BC380
 unsigned char ReadWorldItems004BC380(

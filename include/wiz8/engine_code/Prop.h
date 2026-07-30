@@ -4,8 +4,11 @@
 
 struct GDProp;
 struct W8AnimObj;
+struct W8ReadLevelInfo;
 struct W8World;
+class stModelInstance005EC7D0;
 class W8Timer005EC0A4;
+template <class T> class W8GrowableVector;
 
 /* Prop.cpp owns this animation/state object through a virtual destructor.
    Trigger.cpp also reads unknown_06d to decide whether a prop-backed trigger
@@ -74,6 +77,10 @@ public:
     int GetValue18();
     int GetGDPropValue24();
     void GetCenterPosition(srVector3T<float>* position);
+    void GetBounds0044DD60(
+        srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void CollectModelInstances0044E570(
+        W8GrowableVector<stModelInstance005EC7D0*>* instances);
 
     W8PropOwnedPolymorphic* m_owned_14;
     int value_18;
@@ -90,3 +97,5 @@ static_assert(sizeof(W8Prop005EC1E0) == 0x3c,
               "W8Prop005EC1E0_must_be_0x3c");
 
 W8Prop005EC1E0* FindPropByName(W8World* world, const char* name);
+unsigned char CreateAndLoadProp0044BF50(
+    W8ReadLevelInfo* info, W8Prop005EC1E0** prop);

@@ -18,7 +18,7 @@ class W8Missile;
 class W8MonsterGenerator;
 class stLight;
 class W8VectorElement005EC280;
-class W8CollidableProp;
+class W8Prop005EC1E0;
 class Trigger;
 class stParticle;
 struct W8PathAI;
@@ -88,7 +88,7 @@ struct W8World {
     W8GrowableVector<W8VectorElement005EC280*>* m_vector_b4;
     W8GrowableVector<W8Missile*>* missiles;
     W8LightVector* lights_to_update;
-    W8GrowableVector<W8CollidableProp*>* collidable_props;
+    W8GrowableVector<W8Prop005EC1E0*>* collidable_props;
     W8GrowableVector<W8MonsterGenerator*>* monster_generators;
     W8GrowableVector<Trigger*>* triggers;
     W8GrowableVector<stParticle*>* particles;
