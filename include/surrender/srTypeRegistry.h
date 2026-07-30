@@ -47,11 +47,18 @@ public:
     SR_DLL_IMPORT ClassNode* getRootClass();
     SR_DLL_IMPORT ClassNode* getRootNode();
     SR_DLL_IMPORT int isDerivedOrSame(ClassNode* derived, ClassNode* base);
+    /* SR.DLL's registerClass at 0x1000EC60 adds the node, then calls
+       0x1000F7E0 only when the last argument is non-zero. That routine
+       allocates this node's own instance indices, named_instances_18 and
+       instances_by_id_20, when they are still null. So the argument selects
+       whether the node carries its own instance lookup tables; it is not C++
+       abstractness. stTexture2D and stSurface2D are constructed directly and
+       still pass 0, which independently rules that reading out. */
     SR_DLL_IMPORT ClassNode* registerClass(
         const char* class_name,
         ClassNode* parent,
         unsigned long class_id,
-        int concrete);
+        int registration_flag);
     SR_DLL_IMPORT void registerInstance(
         ClassNode* node, srRuntimeClass* instance);
     SR_DLL_IMPORT void unregisterInstance(
@@ -214,7 +221,7 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
    parameter order. It contributes no storage: it supplies registry identity,
    instance registration and the class hierarchy's clone slot for a class
    derived from an existing registry class. */
-template <class Derived, class Base, bool IsAbstract, unsigned long ClassID>
+template <class Derived, class Base, bool RegistrationFlag, unsigned long ClassID>
 class srClassSupport : public Base {
 public:
     static srRegistry::ClassNode* sGetClassNode()
@@ -225,7 +232,7 @@ public:
         if (node == 0) {
             node = registry->registerClass(
                 Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
-                IsAbstract);
+                RegistrationFlag);
         }
         return node;
     }
@@ -265,6 +272,7 @@ protected:
         registry->unregisterInstance(sGetClassNode(), this);
     }
 
+public:
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"

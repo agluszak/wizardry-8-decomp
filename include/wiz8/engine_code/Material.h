@@ -3,10 +3,12 @@
 #include "surrender/srCore.h"
 #include "surrender/srMaterial.h"
 
-/* Concrete wrapper used when Wiz8 needs an instantiable srMaterial. Its
-   runtime identity remains SurRender's srMaterial (0x2210); the address in the
-   source name records the first-party vtable that supplies the otherwise
-   abstract registry and clone slots. */
+/* Zero-storage client subclass used where Wiz8 needs an instantiable
+   srMaterial; its runtime identity stays SurRender's srMaterial (0x2210). The
+   local vtable the source name records is real, but its registry and clone
+   entries point at srClassSupport<srMaterial,srMaterialIFace,0,0x2210>
+   emissions inherited from srMaterial; this class defines none of them. Do not
+   reintroduce getClassName, getClassID, getClassNode or clone overrides here. */
 // VTABLE: WIZ8 0x005ebde0
 class W8Material005EBDE0 : public srMaterial {
 public:
