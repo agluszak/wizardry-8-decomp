@@ -1,252 +1,232 @@
 ---
 name: matching-decomp
-description: Techniques for recovering Wizardry 8 function bodies and struct layouts byte-exactly against Wiz8.exe. Use when porting a canonical function to owned C/C++, when a ported body is close but not byte-identical, when recovering field offsets/types/names, or when locating callers and class boundaries in the executable.
+description: Recover Wizardry 8 function bodies, declarations, and layouts against the pinned VC6 target. Use when porting a function, interpreting an exact/effective mismatch, proving field or return types, or testing a source-level model against Wiz8.exe.
 ---
 
 # Matching decompilation for Wiz8.exe
 
-The VC6 target is not just a build — it is a **falsifier**. A wrong field offset, size, signedness
-or field *order* does not compile to identical bytes. Use it to prove layout hypotheses, not merely
-to reproduce code you already understand.
+The pinned VC6 target is a **falsifier**. Static analysis and C++ reasoning propose a source model;
+the emitted instruction sequence decides whether that model survives. A clean-looking constructor,
+container abstraction, field type, or control-flow rewrite is still wrong when VC6 moves farther
+from the retail body.
 
-## The loop
+## Supported recovery loop
 
-0. **Decompile it first**: `just ghidra query <program> decompile 0x<addr>`. Ghidra carries the
-   applied types, global names, and callee identities, so it names `g_fact_values` and `FileWrite`
-   where a raw listing shows bare addresses. Reading instructions by hand to work out what a function
-   *does* re-derives, badly, what the project already recorded. Use the full program selector
-   (`wiz8` is ambiguous across 21 programs), set `COLUMNS` wide so rich does not wrap the payload,
-   and parse with `strict=False` — plate comments contain raw newlines. Disassembly answers the
-   narrower question of why two encodings differ; `just wiz8 diff-boundary <symbol>` is the tool
-   for that.
-1. Confirm the canonical function's extent (see *Function extents* below).
-2. Write owned **C++** under `src/wiz8/` - the game is C++ and every original unit is a `.cpp`;
-   only genuine C library code stays `.c` - add the file to the `WIZ8_GAMEPLAY_BOUNDARIES` source list
-   in `CMakeLists.txt`, and mark it `// FUNCTION: WIZ8 0x<ADDR>`.
-3. `just build WIZ8_GAMEPLAY_BOUNDARIES`.
-4. Compare the emitted COMDAT against every build with relocation masking.
-5. **`just verify-boundaries`** for the verdict, and `just compare WIZ8` for link-level problems it
-   cannot see — wrong import names, unreachable functions, stale links. Only the first decides
-   whether a body matches; see the warning below before reading any reccmp percentage.
-6. `just check-markers`: the `// FUNCTION:` marker must sit immediately above its declaration, with
-   any explanation above the marker rather than between the two.
-7. Record the proved boundary in `config/reccmp/wiz8-gameplay-boundaries.csv` and update only the
-   canonical evidence or target documentation that the result changes. `just check` validates
-   identities and relationships without copied progress totals.
+1. Start with the joined context report:
 
-Comparison masks COFF `DIR32`/`DIR32NB`/`REL32` relocation fields, so global addresses and call
-targets are irrelevant to the match — only instruction shape matters. Relocation masking does not
-license a second name or declaration: search by address and aliases, then reuse the canonical
-subsystem-owned declaration.
+   ```sh
+   just context 0x<address>
+   ```
 
-**Relink before trusting reccmp.** A successful `just build` does not guarantee the link step
-reran, and a stale `Wiz8.exe`/`Wiz8.pdb` reports correct functions at 34–43% when they are actually
-92–94%. Delete both and rebuild before reading any reccmp number.
+   It combines Ghidra decompilation, source ownership, provenance, callers/callees, strings and
+   assertions, fields, cross-build mappings, and current match state. Use the Ghidra UI/API for
+   ordinary listing, type, namespace, xref, and function-boundary work. There is no generic
+   `just ghidra query` command.
 
-To check whose sources a build dir belongs to, read `RECCMP_PROJECT_DIR_HOST` in its
-`CMakeCache.txt`. The PDB itself is not the signal — the container build records `Z:\repo\...`
-paths, and reccmp maps them to a host tree through that cache variable. If it names a checkout other
-than yours, every number from that build dir is about someone else's code.
+2. Confirm the canonical owner before declaring anything. Search by address, symbol, class, and
+   aliases. Extend the existing declaration and translation unit; do not add duplicate externs,
+   raw vtable calls, guessed wrappers, or a second inventory.
 
-The build directory is `build/decomp` inside the checkout, so checkouts no longer share build state
-even when they share `WIZ8_WORK_DIR`. `just configure` and `just compare` also refuse to run on a
-build directory another checkout configured, so a moved or copied working copy fails loudly instead
-of producing a plausible wrong number.
+3. Recover ordinary C++ under `src/wiz8/`. Update `src/wiz8/sources.cmake` when adding or moving a
+   translation unit. Source markers and declarations are authoritative; do not maintain a parallel
+   boundary CSV.
 
-**Never choose between two candidate bodies by reccmp percentage.** reccmp diffs the *linked* image,
-where our globals and call targets sit at different addresses than the original, so every relocated
-operand counts as a difference. A byte-exact body scores far below 100%: `AddLinesToMessageBox` is
-byte-identical under relocation masking and reccmp reports 75%, and most confirmed-exact bodies here
-sit at 88–98%. The percentage is a whole-image progress signal, not a matching criterion.
+4. Build with the pinned compiler and compare the smallest useful batch:
 
-The criterion is `just verify-boundaries`, which masks relocated operands and compares against the
-original image. It reports `exact`, `near-miss`, `regressed` (reviewed exact, no longer matching --
-the regression reccmp cannot see) and `promotable` (reviewed a near miss, now matching). Run it after
-every transform, and read reccmp for link-level problems only.
+   ```sh
+   just build WIZ8
+   just compare 0x<address>...
+   just triage 0x<address>...
+   # or:
+   just compare --file src/wiz8/<unit>.cpp
+   just triage --file src/wiz8/<unit>.cpp
+   ```
 
-This mattered concretely. On `GetOriginOfCharacterItem`, removing the loop peeling produced the
-original's exact instruction sequence, and reccmp fell from 77.03% to 65.25% purely because a
-register swap touches more operands. Reverting on that number was wrong: neither body is exact, and
-the structurally-aligned one is a byte away rather than a shape away.
+   `just compare` builds by default. Use `--no-build` only when the current checkout's product was
+   already rebuilt after the last source change.
 
-**Spelling `__thiscall`.** VC6 cannot put `__thiscall` on a free declaration, but `__fastcall`
-passes its first argument in ECX, which is the instruction a no-argument member call emits. That
-does not extend to a member call *with* arguments: `__fastcall` would place the second argument in
-EDX, and the canonical passes it on the stack. Those need a real virtual or member call, which is
-one more reason owned units are C++.
+5. Run the required repository lane after the focused result is understood:
 
-**Never hand-write a scalar-deleting destructor.** A decompiler rendering such as
-`object->vtable[0](object, 1)` is the lowering of typed source-level `delete object`, and the flag
-test plus `operator delete` belong to MSVC-generated code. Give the class an ordinary virtual
-destructor, write `delete object`, and let VC6 emit or inline the scalar-deleting wrapper. This rule
-still applies when the concrete class name is unknown: create only a positional polymorphic type
-with a virtual destructor; never expose a `ScalarDeletingDestructor(flags)` member. Write the
-ordinary complete-destructor body only. Mark the compiler-owned wrapper with `// SYNTHETIC:` and
-its decorated-name comment above that destructor, then verify the emitted COMDAT. Do not add a
-`// FUNCTION:` body that manually calls `~Class()`, tests bit zero, and invokes `operator delete`.
+   ```sh
+   just test
+   just lint        # class declarations or inheritance
+   just check       # source inventory, markers, evidence, Python, or docs
+   ```
 
-**A duplicated tail in the decompiler output is often the compiler's, not the source's.** Ghidra
-shows what the binary does, so a compiler-duplicated epilogue appears as a real second copy. Writing
-it out literally can cost bytes: on `InitializeFactState` the duplicated call before an early return
-made VC6 merge two argument cleanups into one `add esp,0x10` where the original keeps `add esp,0xc`
-and `pop ecx`. Writing the tail once, and letting the compiler duplicate it, was byte-exact.
+6. Record accepted evidence and compiler-falsified experiments in the Bead. Do not copy live progress
+   totals into Markdown or add a second machine-readable evidence store.
 
-**Diff whole instructions, not mnemonics.** A diff that compares only the mnemonic silently hides
-operand and register differences, which are exactly what most near-misses consist of. Compare the
-full instruction text and the encoded size, normalising only branch targets. A one-byte delta with
-an identical instruction count usually means a register swap rather than a missing instruction:
-`add eax,imm32` encodes a byte shorter than the same add on any other register, and several
-`eax`-specific forms behave the same way.
+## Read the structured verdict, not the percentage
 
-## Reading a near-miss
+Focused comparison classifies each selected function as:
 
-When the size is right but bytes differ, the cause is almost always source shape, not structure.
-Ranked by how often it has been the answer here:
+- `exact`: instruction-identical after the comparison's supported normalization;
+- `effective`: the remaining difference is proved semantically harmless, such as a residual register
+  permutation;
+- `mismatch`: a real machine-state divergence remains;
+- `inconclusive`: the analysis reached a limit and has not proved a source defect.
 
-| Symptom | Cause | Fix |
+Use `just triage` for the first structured divergence. Its categories point at the evidence-bearing
+part of the model: field/global selection, stored value, callee identity, receiver or argument,
+branch condition, branch target, return value, or preserved state.
+
+The raw linked-image percentage is diagnostic, not a choice function. Relocated operands and scratch
+register choices can lower it even when a selected body is exact or effective. Never select between
+two source candidates because one has the larger raw percentage. Compare instruction sequence,
+operands, control flow, and the structured status.
+
+A register difference is harmless only after the bodies line up instruction for instruction. When
+instruction count, order, tests, calls, or memory operands differ, the register permutation is a
+symptom of the wrong source shape rather than an excuse.
+
+## Falsification discipline
+
+Run a focused comparison immediately after any change that can alter the source model:
+
+- field width, order, offset, signedness, or constness;
+- parameter or return type, especially byte-sized values;
+- calling convention, virtual dispatch, or inheritance;
+- constructor, destructor, allocation, deletion, or ownership shape;
+- container representation or template instantiation;
+- loop, branch, early-return, reload, or local-lifetime structure.
+
+A worse exact/effective status, an earlier first divergence, or a newly changed memory/call operand
+falsifies the experiment unless the diff proves a stale build, wrong checkout, or unrelated pairing
+problem. Do not reason past the compiler because the model looked more idiomatic.
+
+Revert code that the experiment proved worse, but preserve the negative result. A useful Bead note
+contains:
+
+```text
+symbol/address:
+hypothesis:
+source shape tried:
+comparison command:
+before:
+after / first divergence:
+conclusion:
+```
+
+“This shape is not the original's” is reusable evidence. A silent revert throws that evidence away;
+leaving the known-regressed code in the recovered source is equally wrong.
+
+## Build trust
+
+Each checkout owns `build/decomp`, and the tooling rejects a build directory configured by another
+checkout. Trust comparison output only when it comes from the same checkout and after the relevant
+source change was rebuilt.
+
+If output looks implausibly stale, run the supported build/compare command again rather than invoking
+reccmp manually against arbitrary artifacts. Preserve the separate `/OPT:NOREF` matching image and
+`/OPT:REF` runtime image; do not “fix” comparison by changing the product mode.
+
+## Recover normal C++ first
+
+Use the ordinary circa-2000/2001 C++ model as the default hypothesis:
+
+- recover a constructor-shaped routine as a constructor;
+- recover a destructor-shaped routine as a destructor;
+- model vector/list/string-like operations with the corresponding ordinary container semantics;
+- recover typed template operations rather than hand-written special-case wrappers;
+- use typed construction and deletion so VC6 emits compiler-owned lifecycle machinery.
+
+Special calling conventions, explicit scalar-deleting destructor methods, custom alloc/free helpers,
+manual vtable calls, and novel one-off containers require positive evidence.
+
+### Deleting destructors
+
+Never hand-write a scalar-deleting destructor. A decompiler rendering such as a vtable call with a
+delete flag is the lowering of typed `delete object`. Give the class an ordinary virtual destructor,
+write typed `delete`, and let VC6 emit or inline the deleting wrapper. Treat the complete destructor,
+deleting destructor, adjustor thunks, constructors, and vtable installation as one ABI bundle.
+
+### Duplicated compiler tails
+
+Ghidra shows emitted code, including tails duplicated by VC6. Writing both copies literally can make
+the compiler merge cleanups that the original kept separate. When a duplicated epilogue or call tail
+looks compiler-generated, write the source-level tail once and test whether VC6 reproduces the
+copies.
+
+### Inline control
+
+Do not add `__forceinline`, `__declspec(noinline)`, or inline pragmas to improve one isolated score.
+First recover declaration ownership, header visibility, source order, class shape, and callers. An
+inline-control annotation needs call-site evidence and must improve the complete callee/caller/thunk
+bundle without regressing an exact boundary.
+
+## Reading a mismatch
+
+Compare full instructions, including operands and encoded size, not mnemonics alone. Common signals:
+
+| Signal | Likely source fact | Experiment |
 | --- | --- | --- |
-| `JL`/`JE` where canonical has `JB`/`JBE` | field or variable is **unsigned** | change the type |
-| `JE` where canonical has `JBE` on an unsigned value | source wrote `if (x)` where the original wrote `if (x > 0)` | spell the comparison out; truthiness and `> 0` differ in encoding even though they agree in meaning |
-| Register roles permuted | control-flow shape is wrong | fix the flow; registers follow |
-| `lea r,[x+1]` where canonical has `mov r,x` then `inc r` | two source variables where the original reused one | merge them into a single variable stepped by `++` |
-| A second cursor built with `lea` where canonical has `add r,imm` | the original advances one base pointer in place | reuse and mutate the base rather than deriving each cursor |
-| Index cleared *after* the cursor is computed | initialisation order | assign the index before the pointer, with an empty `for` init |
-| `cmp r,1`/`jne` chain where canonical has `dec r`/`je` | an if/else-if chain where the original wrote a `switch` | use `switch`; VC6 emits the dec/je ladder for small dense cases |
-| A constant materialised into a register then pushed, where canonical pushes it directly | one call with a selected argument, where the original wrote a call per branch | put the whole call in each branch and let VC6 tail-merge them |
-| Two argument cleanups merged into one `add esp,N` | a tail the *compiler* duplicated, written out literally in the source | write the tail once and let VC6 duplicate it |
-| Duplicated `return` epilogue | separate `if`s where the original used one short-circuit `\|\|` | merge into `\|\|` |
-| Loop's first comparison duplicated, two `return` epilogues | hand-rolled cursor in a `do`/`while` | use a counted `for` indexing the array; let VC6 strength-reduce it |
-| Extra redundant bound test | post-loop test the original did not have | make the search a separate `__inline` helper that returns the sentinel |
-| Dead guards missing | `goto` let VC6 range-propagate and delete them | same fix — an inlined helper keeps the value opaque |
-| A global reloaded for each use where canonical loads it once into a callee-saved register | the original read it into a local | assign it to a local and use that throughout |
-| A parameter reloaded from its stack slot mid-body, costing an extra `lea` in an address chain | its address is taken elsewhere, so VC6 forces it to memory | copy it into a local and use that for the arithmetic; the slot still serves as the address |
-| Registers clear in the wrong order | declaration/initialization order | reorder the initializers |
-| `neg r`/`sbb`/`neg` where canonical has `test al,al` then `setne al` | a comparison returned directly, which widens to a 32-bit 0/1 | assign it to a `bool` local first, then return that |
-| A constant stored with an immediate where canonical materialises it into AL first | the function also *returns* that constant | give the gate its real return value; VC6 then uses one register for both |
-| `neg eax` where canonical has `neg al` | callee's **return type** is byte-sized, not `int` | narrow the extern declaration |
-| A tail `jmp` to the callee where canonical has `call` then `ret` | the result was returned directly, so VC6 tail-called | name a local for it and return that; the local blocks the tail call without changing the value. Confirmed on `MonsterGetSubobjectValue120`, whose float return went 0.57 → instruction-identical |
+| `JB`/`JBE` versus `JL`/`JLE` | unsigned versus signed value | correct the declaration or field type |
+| `JE` versus `JBE` on an unsigned value | truthiness versus explicit `> 0` | spell out the comparison |
+| `neg eax` versus `neg al` | return value is byte-sized | narrow the declaration |
+| constant stored through `AL` and returned | function has a real byte return | recover and use that return value |
+| register roles permuted with changed flow | source block or local-lifetime shape is wrong | fix flow before chasing registers |
+| `lea` for `x + 1` versus `mov`/`inc` | two locals where original reused one | merge and increment one variable |
+| repeated derived cursors versus `add base, imm` | original mutates one base pointer | advance the base in place |
+| initialization emitted in wrong order | declaration/initializer order differs | reorder locals and initializers |
+| `dec`/`je` ladder versus comparisons | original likely used a small `switch` | test a `switch` |
+| materialized call argument versus direct push | original duplicated calls per branch | put the call in each branch and let VC6 merge tails |
+| merged stack cleanup versus separate cleanups | duplicated compiler tail written literally | write one source-level tail |
+| duplicate return epilogues | separate conditions versus short-circuit expression | test `||`/`&&` with the observed order |
+| peeled comparison or extra epilogue | hand-rolled cursor versus counted indexed loop | test the ordinary counted `for` form |
+| global reloaded at every use | original kept it in a local | load once and reuse |
+| parameter reloaded from stack | address-taken parameter forced to memory | copy to a local for arithmetic |
+| tail `jmp` versus `call`/`ret` | direct return enabled tail call | name a local result before returning |
 
-Iterating on shape is normal. Sizes of 261 → 162 → 247 → 231 before an exact match happened here.
+These are hypotheses, not recipes. Count returns and branches first. A transform that matches one
+function can regress its sibling because the original intentionally used another shape.
 
-## Proving layout, not guessing it
+## Proving layouts and types
 
-**Signedness.** `JB`/`JBE` means unsigned, `JL`/`JLE` means signed. This types fields the
-decompiler shows as plain ints.
+Use emitted code to settle facts that static reading leaves ambiguous:
 
-**Field order via short-circuit.** When an assertion reads `a->fFoo || a->fBar`, `||` evaluates its
-left operand first, so the byte order of the two emitted tests decides which offset is which.
-Swapping them reorders the tests and the body stops matching. This settles orderings that static
-reading cannot.
+- allocation size immediately before a constructor call proves object size;
+- stack-frame use bounds by-value local size;
+- signed and unsigned branch opcodes type comparisons;
+- byte-register operations expose byte-sized fields and returns;
+- short-circuit evaluation order can prove field order;
+- constructor base calls, vptr replacement, destructor restoration, adjustor thunks, and base-pointer
+  uses prove subobject layout and inheritance.
 
-**Loop shape.** VC6 lowers a counted `for (i = 0; i < n; ++i)` over `base[i]` into a guard plus a
-rotated `do`/`while` with a single backward branch, and sinks the `base` load past the guard because
-it is only needed inside. Writing the same loop with your own cursor pointer instead makes it peel
-the first comparison and emit a second epilogue. If a search function is close but ~8 bytes long
-with a duplicated compare, try the counted-`for`-over-index form before anything else. Confirmed on
-`PListIndexOf`, `IListIndexOf` and `FindFirstMonsterByID`, the last of which had been recorded
-`structurally-strong` for exactly this reason.
+Assertions can name and suggest types for members, but they do not place them. The asserting body's
+memory operands place the field, and the VC6 comparison tests the complete declaration.
 
-The transform is: a guarded `do`/`while` with an early `return` inside becomes a counted `for` whose
-body `goto`s a single shared exit label, with the not-found value assigned just before that label.
-One backward branch, one epilogue.
+Do not infer multiple inheritance merely from two nearby vptr writes. Track the receiver for each
+write and corroborate with lifecycle and dispatch evidence. Without that proof, retain an opaque
+polymorphic subobject or additional vftable rather than inventing a base.
 
-Apply the shared-exit half **only when the canonical has one `ret`**. Count the `ret`s first:
-`MonsterGetIndexByLocationID` has three distinct return values and three epilogues, and matched with
-the loop conversion alone once the returns were left in place.
+## SurRender registry evidence
 
-**One variable, not two.** When a search returns a position that then becomes the loop index, the
-original often keeps both in the same variable and steps it with `++`. Declaring separate `position`
-and `index` locals makes VC6 fold the increment into a `lea`, which costs a byte and shifts every
-later offset. This closed the final difference in `FindNextExistingMonsterByID`, and it is a
-plausible reading of the "register-role swap" noted on the remaining near-misses.
+SurRender classes expose registry names and IDs through virtual methods, and decorated imported base
+names can carry the same template ID. This can identify classes without RTTI. Treat a registry string
+as the concrete class's name only when the getter belongs to that class's own vtable; a Wizardry class
+may register under a SurRender-facing base name.
 
-It does **not** apply when the *original* peels deliberately. In `FindMonGenByName` the canonical
-back-edge lands past the bounds check, so the check runs only on the first iteration and the body
-has two epilogues; that shape has to be reproduced as written rather than normalised.
+An imported named base vftable referenced from Wizardry code proves derivation from that named base.
+Virtual-base layout additionally requires vbptr/vbtable and base-constructor evidence.
 
-**Object size.** Search the caller for `push <size>; call <allocator>` immediately before the
-constructor call. That is the exact object size.
+## Choose targets that multiply evidence
 
-**By-value locals.** A caller's stack-frame size bounds a struct passed by value.
+Prefer small functions that settle reusable declarations: byte return types, field widths, field
+order, object size, constructor families, container operations, and symmetric sibling pairs. A
+70-byte getter/setter pair can prove more than a 5000-byte routine containing many unresolved facts.
 
-## Assertion strings are the richest name source
+Recover the immediate call graph needed for the next visible product transition. Do not expand the
+task into unrelated library or tooling work.
 
-`srAssertFail` (imported from `SR.DLL`) is called from ~1048 sites; `evidence/observations/wiz8/assertions.csv`
-holds the 1038 that decode. Arguments are cdecl `(expression, source_path, line, message)`, pushed
-right-to-left, so the last `68` push before the call is the expression pointer.
+## Library code is linked, not recovered
 
-They yield far more than file ownership:
-
-* member names, via `->` or `.`. An `m_` prefix is a per-class habit here, not a project rule -
-  most member accesses have none - so check the owning class rather than assuming it;
-* named constants and enumerators (`BAD_INDEX`, `CYCLE_NUM_UNIQUE`, `MAX_MONSTERS_IN_DATABASE`);
-* **types**, via Hungarian prefixes established from the original's own text — `p` pointer,
-  `ui`/`i` `UINT32`/`INT32`, `f` flag, `b`/`ub`/`us` byte/unsigned byte/`UINT16`, `g`/`gp`/`gui`
-  global forms, `psr` SurRender object, `pls` `PList`, `pac`/`pst`/`h`;
-* sometimes the class name, when the call also passes a *message*
-  ("Too many props loaded for Octree").
-
-Assertions name and type fields but do **not** place them. The asserting body supplies the offset,
-and the port proves it.
-
-**Pick targets by size.** Sort candidate asserting functions by extent before choosing. A dense
-cluster of member names is worthless if all its asserts sit in one 5000-byte function; a 70-byte
-sibling pair proves more per unit of effort. Prefer symmetric pairs — they share a layout and cost
-little more than one.
-
-## Locating things in the executable
-
-**Do not trust linear-sweep disassembly for xrefs.** It desyncs and silently reports zero callers.
-Search the encoding instead:
-
-* direct calls — scan for `E8` and check `target == va + 5 + rel32`;
-* global/vtable references — scan for the little-endian address bytes.
-
-**Function extents.** Inter-function padding is a run of `0x90`. Scan backwards for two consecutive
-`0x90` to find a start, forwards to find an end. Reliable here, unlike linear sweep.
-
-## The SurRender class registry
-
-SurRender classes carry two registry slots: a virtual `getClassName` returning a literal string and a
-virtual `getClassID` returning a constant. Reading them identifies a class with no RTTI at all, and
-the ID ranges separate the codebases — Wizardry-registered classes use `0x10000` and up, SurRender's
-own sit near `0x1200`–`0x3110`. `srClassSupport<Iface, Node, 0, ID>` in a mangled base name carries
-the same ID.
-
-A class-registry name is `original-runtime-string` evidence. Treat it as the class's own name only
-when the getter belongs to that class's vtable: a Wizardry class may register under a SurRender base
-name to present itself to the scene graph.
-
-## Class structure without RTTI
-
-`Wiz8.exe` is `/GR-` and has zero RTTI type descriptors, but imports 461 decorated C++ symbols from
-`SR.DLL` over 49 classes.
-
-* An imported `??_7Class@@6B...` **vftable** referenced from `.text` marks a function installing a
-  base vptr — proof of derivation from a *named* base, with the mangling spelling out the
-  inheritance.
-* Two vptr writes a few bytes apart prove only that the function installs two tables. Track each
-  receiver from entry `this`; then use base-constructor calls, derived-table replacement,
-  destructor restoration, adjustor thunks, and base-pointer uses to prove multiple inheritance.
-  Without that lifecycle and dispatch evidence, retain an additional vftable or opaque
-  polymorphic subobject rather than inventing a base.
-* A vbptr at `+4` selecting a vbtable means **virtual** inheritance: vbtable entry 1 is the offset
-  from the vbptr to the virtual base subobject. Corroborate against the constructor's own
-  `lea ecx, [this+offset]` base call.
-* Derived constructors install base vptrs first, then overwrite with their own.
-
-## Library code is linked, not modelled
-
-CRT startup, MFC, Win32 and DirectX code are **not recovery targets**. Mark them as library and let
-the linker supply them, the way `imperialism-decomp` links `gdi32 user32 winmm vfw32 dsound …` with
-a comment naming which calls need each one. Never write a body for `__WinMainCRTStartup`,
-`_initterm`, CRT helpers or Win32 wrappers.
-
-Classify every node on a traced path as `library` or `first-party` before proposing work on it, and
-record which library provides each library node so the runtime target knows what to link.
+CRT startup, Win32, DirectX, MFC, SGP, zlib, IJG JPEG, and Info-ZIP implementations are not Wizardry
+recovery targets when pinned source, headers, or system libraries already provide them. Classify each
+traced node as first-party or library and use the canonical owner. SurRender remains recoverable where
+its implementation is closed.
 
 ## Provenance
 
-Every accepted name records where it came from; see `docs/wiz8-evidence-model.md`. Names taken from
-assertion text are `original-runtime-string`; names from decorated SR imports are `original-export`;
-behaviour-derived names are `descriptive`. Do not promote a name because it looks right.
+Every accepted identity records where it came from and its authority ceiling. Original assertion text,
+decorated imports, registry strings, pinned headers, source paths, and behavioral descriptions are not
+interchangeable evidence. Do not promote a plausible name or class model beyond what its source proves.
