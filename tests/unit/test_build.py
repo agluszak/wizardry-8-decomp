@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 import wiz8decomp.build as build_module
-from wiz8decomp import reccmp_workflows, runtime, source_index, source_layouts
+from wiz8decomp import reccmp_workflows, runtime, source_index, source_layouts, unresolved
 from wiz8decomp.build import (
     PRODUCT_GENERATOR,
     ContainerBuild,
@@ -169,6 +169,17 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
         lambda _settings, _current, against: {"valid": True, "against": against},
     )
     monkeypatch.setattr(source_layouts, "require_source_layout_delta", lambda result: result)
+    monkeypatch.setattr(
+        unresolved,
+        "unresolved_report",
+        lambda *_args: {"by_symbol": {}, "ranked_units": [], "near_link_complete_units": []},
+    )
+    monkeypatch.setattr(
+        unresolved,
+        "verify_unresolved_delta",
+        lambda _settings, _current: {"valid": True},
+    )
+    monkeypatch.setattr(unresolved, "require_unresolved_delta", lambda result: result)
     monkeypatch.setattr(
         runtime,
         "run_runtime_suite",

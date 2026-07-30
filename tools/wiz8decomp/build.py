@@ -592,10 +592,16 @@ def verify(
         verify_source_layout_delta,
         verify_source_layouts,
     )
+    from .unresolved import require_unresolved_delta, unresolved_report, verify_unresolved_delta
 
     lint_result = lint(settings)
     source_index = write_source_index(settings)
     build_target(settings, "WIZ8")
+    current_unresolved = unresolved_report(
+        settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
+        settings.repo_dir / "build/decomp/Wiz8.map",
+    )
+    unresolved = require_unresolved_delta(verify_unresolved_delta(settings, current_unresolved))
     build_target(settings, "SURRENDER")
     build_target(settings, "WIZ8_RUNTIME_TEST")
     source_import = import_reccmp_source(settings, "wiz8")
@@ -623,6 +629,8 @@ def verify(
     return {
         "lint": lint_result,
         "source_index": source_index,
+        "current_unresolved": current_unresolved,
+        "unresolved": unresolved,
         "source_import": source_import,
         "surrender_source_import": surrender_source_import,
         "ghidra_index": ghidra_index,

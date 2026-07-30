@@ -264,14 +264,24 @@ def source_index_command() -> None:
 def unresolved_report_command(
     objects: Annotated[Path | None, typer.Option(help="Object root.")] = None,
     link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
+    write_baseline: Annotated[
+        bool,
+        typer.Option("--write-baseline", help="Initialize or reduce the reviewed baseline."),
+    ] = False,
 ) -> None:
     from .. import command_support as cli
-    from ..unresolved import unresolved_report
+    from ..unresolved import DEFAULT_BASELINE, unresolved_report, write_unresolved_baseline
 
     def action() -> dict[str, Any]:
         settings = cli.settings()
         build = settings.repo_dir / "build" / "decomp"
-        return unresolved_report(objects or build / "CMakeFiles", link_map or build / "Wiz8.map")
+        report = unresolved_report(
+            objects or build / "CMakeFiles" / "wiz8_recovered_objects.dir",
+            link_map or build / "Wiz8.map",
+        )
+        if write_baseline:
+            return write_unresolved_baseline(settings.repo_dir / DEFAULT_BASELINE, report)
+        return report
 
     cli.run_action(action)
 
