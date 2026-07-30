@@ -12,7 +12,7 @@ public:
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual ~stTexture2D() override;
     virtual srClass* vInstance() override;
-    virtual srTexture* clone() override;
+    virtual srClass* clone() override;
     virtual unsigned long getTextureFrameHandle() override;
     virtual void getMipmapData(MultiRequest& request) override;
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
@@ -39,7 +39,7 @@ public:
     virtual unsigned long getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual ~stSurface2D() override;
-    virtual srNode* clone() override;
+    virtual srClass* clone() override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void enableRendererFlag(unsigned int flag);

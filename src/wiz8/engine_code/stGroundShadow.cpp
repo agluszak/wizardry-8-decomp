@@ -166,7 +166,7 @@ stGroundShadow::~stGroundShadow()
 }
 
 // FUNCTION: WIZ8 0x004d6a30
-srNode* W8GroundShadowRegistry005ED3F8::clone()
+srClass* W8GroundShadowRegistry005ED3F8::clone()
 {
     stGroundShadow* source = static_cast<stGroundShadow*>(this);
     stGroundShadow* instance = static_cast<stGroundShadow*>(source->vInstance());

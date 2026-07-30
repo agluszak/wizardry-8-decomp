@@ -27,7 +27,7 @@ public:
     virtual const char* getClassName() const;
     virtual unsigned long getClassID() const;
     virtual srRegistry::ClassNode* getClassNode() const;
-    virtual srColorSurfaceIFace* clone();
+    virtual srClass* clone();
 };
 
 // SYNTHETIC: SREXT_JPEGIMPORTER 0x100151D0

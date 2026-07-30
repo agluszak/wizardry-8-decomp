@@ -12,7 +12,32 @@ class srCriticalSection;
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
    vtable. Its exported transform and hierarchy operations establish the
    complete object layout. */
-class srNode : public srClass {
+/* The srClassSupport base here is proven, not inferred.
+
+   srNode's constructor at 0x10050C10 calls srClass::srClass, installs an
+   intermediate vtable at 0x10077204, looks up class 0x1000 through the generic
+   sGetClassNode shape at 0x100556D0 (registering with flag 1 on miss), calls
+   registerInstance, and only then installs srNode's own vtable. The destructor
+   at 0x10050E20 mirrors it: restore srNode's vtable, tear down children,
+   restore 0x10077204, repeat the 0x1000 lookup, unregisterInstance, then
+   srClass::~srClass. That is srClassSupport construction and destruction, with
+   the distinct support phase a plain srClass base could not produce.
+
+   That intermediate vtable also settles who owns clone. It has eight slots, and
+   slots 0, 1, 2 (identity), 4 (verify) and 7 (clone, 0x10055510) hold the same
+   targets as srNode's own vtable; srNode overrides only 3 (dump), 5 (destructor)
+   and 6 (vInstance). So the support level introduces clone and srNode inherits
+   it -- srNode does not author it, and modelling it as a clone-declaring root
+   was wrong.
+
+   The template's clone returns srClass* uniformly at every level, which is what
+   makes the chain legal. srClass::clone at 0x1000E860 is the corroboration: it
+   is a non-virtual forwarder that tail-calls vtable offset 0x1c, that is slot 7,
+   and returns srClass*, so srClass itself types the slot that way. Reconstructing
+   the return as Base* instead makes this level yield srClass* while every
+   descendant yields srNode*, and VC6 rejects that narrowing with C2555 -- the
+   error is an artifact of the wrong reconstruction, not of the hierarchy. */
+class srNode : public srClassSupport<srNode, srClass, true, 0x1000> {
 public:
     class TraverseInfo {
     public:
@@ -116,20 +141,7 @@ public:
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();
-    static srRegistry::ClassNode* sGetClassNode()
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x1000);
-        if (node == 0) {
-            node = registry->registerClass(
-                sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        return node;
-    }
 
-    virtual const char* getClassName() const override;
-    virtual unsigned long getClassID() const override;
-    virtual srRegistry::ClassNode* getClassNode() const override;
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 protected:
@@ -137,7 +149,6 @@ protected:
 
 public:
     virtual SR_DLL_IMPORT srClass* vInstance() override;
-    virtual srNode* clone();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info);
     virtual SR_DLL_IMPORT void process(const ProcessInfo& info, e_processType type);
     virtual SR_DLL_IMPORT void getLocalBounds(BoundInfo& bounds);

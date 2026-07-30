@@ -3,8 +3,6 @@
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
 
-static const char kSurfaceClassName[] = "stSurface2D";
-static const char kTextureClassName[] = "stTexture2D";
 
 static srRegistry::ClassNode* texture_class_node()
 {
@@ -21,7 +19,7 @@ static srRegistry::ClassNode* texture_class_node()
             parent = registry->registerClass(
                 srTexture::sGetClassName(), parent, 0x2110, 0);
         }
-        node = registry->registerClass(kTextureClassName, parent, 0x1000f, 0);
+        node = registry->registerClass("stTexture2D", parent, 0x1000f, 0);
     }
     return node;
 }
@@ -36,7 +34,7 @@ static srRegistry::ClassNode* surface_class_node()
             parent = registry->registerClass(
                 srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
         }
-        node = registry->registerClass(kSurfaceClassName, parent, 0x1000e, 0);
+        node = registry->registerClass("stSurface2D", parent, 0x1000e, 0);
     }
     return node;
 }
@@ -56,7 +54,7 @@ stTexture2D::stTexture2D()
 }
 
 // FUNCTION: WIZ8 0x0047e7e0
-const char* stTexture2D::getClassName() const { return kTextureClassName; }
+const char* stTexture2D::getClassName() const { return "stTexture2D"; }
 // FUNCTION: WIZ8 0x0047e7d0
 unsigned long stTexture2D::getClassID() const { return 0x1000f; }
 srRegistry::ClassNode* stTexture2D::getClassNode() const { return texture_class_node(); }
@@ -70,7 +68,7 @@ stTexture2D::~stTexture2D()
 
 srClass* stTexture2D::vInstance() { return new stTexture2D; }
 
-srTexture* stTexture2D::clone()
+srClass* stTexture2D::clone()
 {
     stTexture2D* copy = new stTexture2D;
     *static_cast<srTexture*>(copy) = *this;
@@ -158,7 +156,7 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
 }
 
 // FUNCTION: WIZ8 0x0047e940
-const char* stSurface2D::getClassName() const { return kSurfaceClassName; }
+const char* stSurface2D::getClassName() const { return "stSurface2D"; }
 // FUNCTION: WIZ8 0x0047e930
 unsigned long stSurface2D::getClassID() const { return 0x1000e; }
 srRegistry::ClassNode* stSurface2D::getClassNode() const { return surface_class_node(); }
@@ -172,7 +170,7 @@ stSurface2D::~stSurface2D()
         surface_class_node(), this);
 }
 
-srNode* stSurface2D::clone()
+srClass* stSurface2D::clone()
 {
     stSurface2D* copy = static_cast<stSurface2D*>(vInstance());
     *static_cast<srNode*>(copy) = *this;

@@ -189,7 +189,7 @@ void MonsterLight::StartFadeOut0049DAF0()
 }
 
 // FUNCTION: WIZ8 0x0049DC40
-srNode* MonsterLight::clone()
+srClass* MonsterLight::clone()
 {
     srLight* instance = (srLight*)vInstance();
     *instance = *this;
@@ -197,7 +197,7 @@ srNode* MonsterLight::clone()
 }
 
 // FUNCTION: WIZ8 0x0049DD60
-srNode* stLight::clone()
+srClass* stLight::clone()
 {
     stLight* instance = static_cast<stLight*>(vInstance());
     *instance = *this;

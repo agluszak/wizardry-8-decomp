@@ -91,7 +91,7 @@ srRegistry::ClassNode* srJPEGColorSurface::getClassNode() const
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x100154E0
-srColorSurfaceIFace* srJPEGColorSurface::clone()
+srClass* srJPEGColorSurface::clone()
 {
     srColorSurface* result = static_cast<srColorSurface*>(vInstance());
     *result = *this;

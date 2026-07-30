@@ -15,7 +15,18 @@ from pathlib import Path
 from typing import Any
 
 REPOSITORY = Path(__file__).resolve().parents[2]
-IDENTITY_METHODS = ("getClassName", "getClassID", "getClassNode", "clone")
+"""The identity trio, and deliberately not clone.
+
+A support-derived class never re-declares the identity trio: those three bodies
+are fixed by the template arguments, so a hand-written copy is always the
+address-qualified-wrapper mistake. clone is different. The template's clone
+copies memberwise through Derived, which is wrong for a class holding state its
+base's assignment operator cannot carry, and such a class overrides it for real.
+stTextureAnim is the worked example: its clone assigns through srTexture and then
+copies each playback field individually, and it compares byte-exact against
+0x004858B0. Listing clone here rejected that legitimate override, so it is out.
+"""
+IDENTITY_METHODS = ("getClassName", "getClassID", "getClassNode")
 SUPPORT_BASE = "srClassSupport<"
 DELETING_DESTRUCTOR = "`scalar deleting destructor'"
 

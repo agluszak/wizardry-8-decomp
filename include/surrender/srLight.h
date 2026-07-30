@@ -5,7 +5,8 @@
 
 /* The imported vtable pair and first-party light field accesses establish an
    srIlluminator prefix followed by a 0xc0-byte light-specific renderer tail. */
-class srLight : public srIlluminator {
+class srLight
+    : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
     enum e_preset {
         PRESET_POSITIONAL_0 = 0
@@ -14,16 +15,12 @@ public:
     SR_DLL_IMPORT srLight(srNode* parent, e_preset preset);
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 
-    virtual const char* getClassName() const override;
-    virtual unsigned long getClassID() const override;
-    virtual srRegistry::ClassNode* getClassNode() const override;
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 protected:
     virtual SR_DLL_IMPORT ~srLight() override;
 
 public:
-    virtual srNode* clone() override;
     virtual SR_DLL_IMPORT void traverse(srNode::TraverseInfo& info) override;
     virtual SR_DLL_IMPORT void process(
         const srNode::ProcessInfo& info,
