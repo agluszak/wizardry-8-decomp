@@ -243,7 +243,9 @@ private:
 
 /* SR.DLL's exported primary and secondary vtable names establish the exact
    srNode/srVertexProcessor multiple-inheritance prefix. */
-class srIlluminator : public srNode, public srVertexProcessor {
+class srIlluminator
+    : public srClassSupport<srIlluminator, srNode, false, 0x1200>,
+      public srVertexProcessor {
 public:
     SR_DLL_IMPORT srIlluminator(srNode* parent);
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
