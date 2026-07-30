@@ -20,12 +20,29 @@ public:
 
 private:
     struct WorkerSlot {
-        long state;
-        srScheduler* scheduler;
+        long thread_handle_00;
+        srScheduler* scheduler_04;
     };
 
-    struct LookupEntry;
-    struct QueueEntry;
+    struct QueueEntry {
+        Job* job_00;
+        QueueEntry* next_04;
+        QueueEntry* previous_08;
+        long state_0c;
+    };
+
+    struct LookupEntry {
+        long next_index_00;
+        Job* job_04;
+        QueueEntry* queue_entry_08;
+    };
+
+    static_assert(sizeof(WorkerSlot) == 0x08,
+                  "srScheduler_WorkerSlot_must_be_0x08");
+    static_assert(sizeof(QueueEntry) == 0x10,
+                  "srScheduler_QueueEntry_must_be_0x10");
+    static_assert(sizeof(LookupEntry) == 0x0c,
+                  "srScheduler_LookupEntry_must_be_0x0c");
 
     WorkerSlot workers_00[4];
     long* lookup_buckets_20;
