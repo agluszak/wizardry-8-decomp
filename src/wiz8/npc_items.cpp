@@ -5,6 +5,7 @@
 #include "wiz8/item_spawning.h"
 #include "wiz8/monster_runtime.h"
 #include "random.h"
+#include <stdlib.h>
 #include <string.h>
 
 /* Add stock to an NPC's item list. Equipment, which is equip_class four, never
@@ -91,6 +92,53 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
         } while (added < repeats);
     }
     return index;
+}
+
+/* The qsort predicate SortNpcItems passes. The reviewed Ghidra project has no
+   function boundary at this address yet, so the signature comes from qsort's
+   contract rather than from a recovered body; wiz8-kq15 tracks defining the
+   boundary and recovering it. */
+extern "C" int CompareNpcItems(const void* left, const void* right); /* 0x0055BAF0 */
+
+/* Sort an NPC's stock in place by flattening the owned list into an array,
+   sorting that, and rebuilding the list from it. The array allocation of one
+   0x14-byte element per entry, and the five-dword element copies, are
+   independent confirmation that an entry is 0x14 rather than the 0x11 a packed
+   layout would give. */
+// FUNCTION: WIZ8 0x0055b9c0
+void SortNpcItems(W8NpcState* npc)
+{
+    W8NpcItemEntry* array;
+    W8NpcItemEntry* cursor;
+    W8NpcItemEntry* entry;
+    W8PList* items;
+    unsigned int count;
+    unsigned int index;
+
+    count = PListGetCount(npc->items);
+    if (count != 0 && (array = new W8NpcItemEntry[count]) != 0) {
+        cursor = array;
+        for (index = 0; index < count; ++index) {
+            *cursor = *static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+            cursor = cursor + 1;
+        }
+        qsort(array, count, sizeof(W8NpcItemEntry), CompareNpcItems);
+
+        items = npc->items;
+        PListDestructor<W8NpcItemEntry>(items);
+        npc->items = PListCreate();
+        cursor = array;
+        for (index = 0; index < count; ++index) {
+            entry = new W8NpcItemEntry;
+            if (entry == 0) {
+                return;
+            }
+            *entry = *cursor;
+            PListAdd(npc->items, entry);
+            cursor = cursor + 1;
+        }
+        delete[] array;
+    }
 }
 
 /* Release an NPC's owned item list, but only for the database records that ask
