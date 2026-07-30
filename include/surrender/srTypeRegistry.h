@@ -188,7 +188,16 @@ protected:
     SR_DLL_IMPORT unsigned long allocateTimeStamps(unsigned long count) const;
 
 private:
-    struct Update;
+    struct Update {
+        double last_update_time_00;
+        double interval_08;
+        UpdateCallBack callback_10;
+        srClass* instance_14;
+        Update* previous_18;
+        Update* next_1c;
+    };
+
+    static_assert(sizeof(Update) == 0x20, "srClass_Update_must_be_0x20");
 
     static SR_DLL_IMPORT Update* _firstUpdate;
     static SR_DLL_IMPORT double _lastUpdateTime;
