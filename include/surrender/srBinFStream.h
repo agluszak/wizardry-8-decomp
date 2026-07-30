@@ -1,6 +1,7 @@
 #pragma once
 
 #include "srBinIStream.h"
+#include "srBinOStream.h"
 
 #include <stdio.h>
 
@@ -58,7 +59,57 @@ private:
         void* destination, unsigned long size) override;
 };
 
+class srBinIOFStream : public srBinFStream,
+                       public srBinIStream,
+                       public srBinOStream {
+public:
+    SR_DLL_IMPORT srBinIOFStream();
+    SR_DLL_IMPORT srBinIOFStream(const char* path);
+    SR_DLL_IMPORT srBinIOFStream(const srBinIOFStream& stream);
+    virtual SR_DLL_IMPORT ~srBinIOFStream() override;
+    SR_DLL_IMPORT srBinIOFStream& operator=(const srBinIOFStream& stream);
+
+    SR_DLL_IMPORT void open(const char* path);
+    virtual SR_DLL_IMPORT srBinStream& seek(
+        unsigned long position, srBinStream::e_seekDir direction) override;
+    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
+    virtual SR_DLL_IMPORT unsigned long tell() override;
+
+private:
+    virtual SR_DLL_IMPORT unsigned short vget() override;
+    virtual SR_DLL_IMPORT unsigned short vput(char value) override;
+    virtual SR_DLL_IMPORT unsigned long vread(
+        void* destination, unsigned long size) override;
+    virtual SR_DLL_IMPORT unsigned long vwrite(
+        const void* source, unsigned long size) override;
+};
+
+class srBinOFStream : public virtual srBinOStream,
+                      public virtual srBinFStream {
+public:
+    SR_DLL_IMPORT srBinOFStream();
+    SR_DLL_IMPORT srBinOFStream(const char* path);
+    SR_DLL_IMPORT srBinOFStream(const srBinOFStream& stream);
+    virtual SR_DLL_IMPORT ~srBinOFStream() override;
+    SR_DLL_IMPORT srBinOFStream& operator=(const srBinOFStream& stream);
+
+    SR_DLL_IMPORT void open(const char* path);
+    virtual SR_DLL_IMPORT srBinStream& seek(
+        unsigned long position, srBinStream::e_seekDir direction) override;
+    virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
+    virtual SR_DLL_IMPORT unsigned long tell() override;
+
+private:
+    virtual SR_DLL_IMPORT unsigned short vput(char value) override;
+    virtual SR_DLL_IMPORT unsigned long vwrite(
+        const void* source, unsigned long size) override;
+};
+
 static_assert(sizeof(srBinFStream) == 0x28,
               "srBinFStream_must_be_0x28");
 static_assert(sizeof(srBinIFStream) == 0x34,
               "srBinIFStream_must_be_0x34");
+static_assert(sizeof(srBinIOFStream) == 0x3c,
+              "srBinIOFStream_must_be_0x3c");
+static_assert(sizeof(srBinOFStream) == 0x3c,
+              "srBinOFStream_must_be_0x3c");
