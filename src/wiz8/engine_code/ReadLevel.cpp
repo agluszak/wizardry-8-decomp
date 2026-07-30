@@ -3,9 +3,11 @@
 
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/item_spawning.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srScene.h"
@@ -20,7 +22,114 @@ struct W8ReadLevelInfo {
     const char* bitmap_folder;
 };
 
+struct W8LevelItemRecord004BC380 {
+    int positional_00;
+    srVector3T<float> position_04;
+    int positional_10;
+    int positional_14;
+    int positional_18;
+    char item_name_1c[20];
+};
+
+static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
+              "W8LevelItemRecord004BC380_size_must_be_0x30");
+
 } // namespace
+
+extern const float g_world_scale_005ebc40;
+
+// FUNCTION: WIZ8 0x004BC380
+unsigned char ReadWorldItems004BC380(
+    W8ReadLevelInfo* pInfo, W8World* pWorld)
+{
+    unsigned char has_trigger;
+    int positional_value;
+    int index;
+    int count;
+    W8LevelItemRecord004BC380 record;
+    unsigned char positional_byte;
+    unsigned char success;
+    Trigger* trigger;
+    int item_id;
+    W8WorldItem* world_item;
+    W8Item* item;
+
+    if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
+        return 0;
+    }
+    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    if (!success || count >= 100000) {
+        return 0;
+    }
+    if (count == 0) {
+        return 1;
+    }
+
+    for (index = 0; index < count; ++index) {
+        item = 0;
+        trigger = 0;
+        success = ReadVirtualFile(
+            pInfo->hFile, record.item_name_1c,
+            sizeof(record.item_name_1c), 0);
+        if (success) {
+            ReadVirtualFile(pInfo->hFile, &record.position_04,
+                            sizeof(record.position_04), 0);
+            record.position_04.x *= g_world_scale_005ebc40;
+            record.position_04.y *= g_world_scale_005ebc40;
+            record.position_04.z *= g_world_scale_005ebc40;
+            ReadVirtualFile(
+                pInfo->hFile, &record.positional_00, sizeof(int), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &record.positional_10, sizeof(int), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &record.positional_14, sizeof(int), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &record.positional_18, sizeof(int), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &has_trigger, sizeof(has_trigger), 0);
+            if (has_trigger != 0) {
+                trigger = Trigger::CreateAndLoadLevelTrigger(
+                    pInfo->hFile, pInfo->world);
+            }
+            ReadVirtualFile(
+                pInfo->hFile, &positional_byte, sizeof(positional_byte), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &positional_byte, sizeof(positional_byte), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &positional_byte, sizeof(positional_byte), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &positional_value, sizeof(positional_value), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &positional_value, sizeof(positional_value), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &positional_value, sizeof(positional_value), 0);
+            ReadVirtualFile(
+                pInfo->hFile, &positional_value, sizeof(positional_value), 0);
+
+            if (record.item_name_1c[0] >= '0' &&
+                record.item_name_1c[0] <= '9') {
+                item_id = atoi(record.item_name_1c);
+            }
+            else {
+                item_id = FindItemRecordByName(record.item_name_1c);
+            }
+            if (item_id >= 0) {
+                world_item = SpawnItem(item_id, &record.position_04, 3, 1);
+                if (world_item != 0) {
+                    success = 1;
+                    ActivateItem(world_item);
+                    item = world_item->owner;
+                }
+            }
+            if (trigger != 0 && item != 0) {
+                trigger->m_bRepType = 1;
+                trigger->value_114 = item;
+                item->trigger_018 = trigger;
+            }
+        }
+    }
+    return success;
+}
 
 // FUNCTION: WIZ8 0x004BC140
 unsigned char ReadMonsterPaths004BC140(

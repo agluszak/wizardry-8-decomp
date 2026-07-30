@@ -7,6 +7,7 @@
 
 struct W8World;
 struct W8Position;
+class Trigger;
 
 /* Engine Code\Item.cpp. The assertion expressions establish the original
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
@@ -24,7 +25,7 @@ struct W8ItemRep : public W8AnimRepBase005EC1D8 {
 struct W8Item : public W8GrObject {
     virtual ~W8Item() override;
 
-    int value_018;
+    Trigger* trigger_018;
     int value_01c;
 
     void DetachMesh0049FA30(W8World* world);

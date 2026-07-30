@@ -75,3 +75,5 @@ void ItemInfoAddToGroup(W8WorldItem* group, W8WorldItem* item);
 W8WorldItem* ItemInfoRemoveFromGroup(
     W8WorldItem* group, W8WorldItem* item);
 void FreeWorldItemGroup(W8WorldItem* item);
+void ActivateItem(W8WorldItem* item);
+int FindItemRecordByName(const char* name);

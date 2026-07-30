@@ -111,6 +111,8 @@ public:
     virtual ~Trigger() override;
     virtual srClass* vInstance() override;
 
+    static Trigger* CreateAndLoadLevelTrigger(int handle, W8World* world);
+
     unsigned char HasActorWithinRadius(float radius, unsigned char include_party);
     unsigned char PlayActionSound(const char* sound_name, int volume);
     void UpdateActionAnimation();
