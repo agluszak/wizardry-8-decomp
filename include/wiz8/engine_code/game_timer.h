@@ -2,12 +2,32 @@
 
 #include "surrender/srTimer.h"
 
+extern int g_shared_timer_pause_base;
+extern int g_shared_timer_pause_time;
+extern unsigned char g_shared_timer_paused;
+extern int g_game_time_ms;
+extern int g_game_time_days;
+
 class W8Timer005EC0A4 {
 public:
     W8Timer005EC0A4();
     W8Timer005EC0A4(float duration, unsigned char raw_time);
     virtual ~W8Timer005EC0A4();
-    int Sample() const;
+    __forceinline int Sample() const
+    {
+        switch (m_mode) {
+        case 1:
+            return (g_game_time_days * 86400000 + g_game_time_ms) * 10;
+        }
+        if ((m_flags & 1) == 0) {
+            if (g_shared_timer_paused != 0) {
+                return g_shared_timer_pause_time;
+            }
+            return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT)
+                   - g_shared_timer_pause_base;
+        }
+        return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
+    }
     int Method00439A60();
     float Method0043A190();
 

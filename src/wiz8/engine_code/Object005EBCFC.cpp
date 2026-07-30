@@ -26,3 +26,30 @@ W8Object005EBCFC::W8Object005EBCFC(
 W8Object005EBCFC::~W8Object005EBCFC()
 {
 }
+
+// FUNCTION: WIZ8 0x0043A530
+void W8Object005EBCFC::Method0043A530()
+{
+    m_positional_024 = 0;
+    m_start = Sample();
+    m_end = m_duration + m_start;
+}
+
+// FUNCTION: WIZ8 0x0043A5D0
+unsigned int W8Object005EBCFC::Method0043A5D0()
+{
+    if (m_positional_024 != 0) {
+        return 1;
+    }
+    unsigned int intervals = (unsigned int)(Sample() - m_start)
+                             / (unsigned int)(m_end - m_start);
+    if ((int)intervals > 0) {
+        if ((m_flags & 2) != 0) {
+            m_positional_024 = 1;
+            return intervals;
+        }
+        m_start = (intervals - 1) * m_duration + m_end;
+        m_end = m_start + m_duration;
+    }
+    return intervals;
+}

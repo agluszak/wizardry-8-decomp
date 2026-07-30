@@ -43,25 +43,6 @@ __forceinline W8Timer005EC0A4::~W8Timer005EC0A4()
     m_shared = 0;
 }
 
-/* The current time in the wrapper's units. The game clock is carried as days
-   and milliseconds and scaled to tenths of a millisecond; the shared timer is
-   rebased while unpaused and frozen while paused, except under the raw flag. */
-__forceinline int W8Timer005EC0A4::Sample() const
-{
-    switch (m_mode) {
-    case 1:
-        return (g_game_time_days * 86400000 + g_game_time_ms) * 10;
-    }
-    if ((m_flags & 1) == 0) {
-        if (g_shared_timer_paused != 0) {
-            return g_shared_timer_pause_time;
-        }
-        return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
-               g_shared_timer_pause_base;
-    }
-    return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
-}
-
 // FUNCTION: WIZ8 0x00439550
 W8Timer005EC0A4::W8Timer005EC0A4()
 {
