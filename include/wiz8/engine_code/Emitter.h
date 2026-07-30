@@ -1,10 +1,10 @@
 #ifndef WIZ8_ENGINE_CODE_EMITTER_H
 #define WIZ8_ENGINE_CODE_EMITTER_H
 
+#include "surrender/srMath.h"
+
 struct W8Position;
 class srModelInstance;
-template<class T> class srMatrix3T;
-template<class T> class srVector3T;
 
 /*
  * The emitter record Engine Code\Missile.cpp and Engine Code\Spells.cpp both
@@ -65,15 +65,16 @@ public:
     virtual W8AnimRepBase005EC1D8* Clone();
 
     void SetLocation004B8850(const W8Position* location);
-    void GetLocation004B8890(srVector3T<float>* location);
+    void GetLocation004B8890(srVector3T<float>* location) const;
+    void GetLocalLocation004B88B0(srVector3T<float>* location) const;
     void SetRotation004B88D0(const srMatrix3T<float>* rotation);
     void GetRotation004B88F0(srMatrix3T<float>* rotation);
 
 public:
-    W8AnimRepValue3 value_004;
-    W8AnimRepValue3 value_010;
-    W8AnimRepValue3 value_01c;
-    W8AnimRepValue9 value_028;
+    srVector3T<float> location_004;
+    srVector3T<float> local_location_010;
+    srVector3T<float> parent_location_01c;
+    srMatrix3T<float> rotation_028;
     W8AnimRepValue4 value_04c;
     float value_05c;
     unsigned char flag_060;

@@ -1,5 +1,6 @@
 #include "surrender/srTimer.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 
 extern srTimer* g_shared_timer_base;
@@ -9,24 +10,24 @@ extern unsigned int g_emitter_default_0060e60c;
 // FUNCTION: WIZ8 0x004b86e0
 W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
 {
-    value_004.value_00 = 0;
-    value_004.value_04 = 0;
-    value_004.value_08 = 0;
-    value_010.value_00 = 0;
-    value_010.value_04 = 0;
-    value_010.value_08 = 0;
-    value_01c.value_00 = 0;
-    value_01c.value_04 = 0;
-    value_01c.value_08 = 0;
-    value_028.value_00 = 0x3f800000;
-    value_028.value_04 = 0;
-    value_028.value_08 = 0;
-    value_028.value_0c = 0;
-    value_028.value_10 = 0x3f800000;
-    value_028.value_14 = 0;
-    value_028.value_18 = 0;
-    value_028.value_1c = 0;
-    value_028.value_20 = 0x3f800000;
+    location_004.x = 0.0f;
+    location_004.y = 0.0f;
+    location_004.z = 0.0f;
+    local_location_010.x = 0.0f;
+    local_location_010.y = 0.0f;
+    local_location_010.z = 0.0f;
+    parent_location_01c.x = 0.0f;
+    parent_location_01c.y = 0.0f;
+    parent_location_01c.z = 0.0f;
+    rotation_028.vectors[0].x = 1.0f;
+    rotation_028.vectors[0].y = 0.0f;
+    rotation_028.vectors[0].z = 0.0f;
+    rotation_028.vectors[1].x = 0.0f;
+    rotation_028.vectors[1].y = 1.0f;
+    rotation_028.vectors[1].z = 0.0f;
+    rotation_028.vectors[2].x = 0.0f;
+    rotation_028.vectors[2].y = 0.0f;
+    rotation_028.vectors[2].z = 1.0f;
     value_04c.value_00 = 0;
     value_04c.value_04 = 0;
     value_04c.value_08 = 0;
@@ -56,14 +57,61 @@ void W8AnimRep005ED050::SetFrameMethod004B55C0(signed char method)
 W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(
     const W8AnimRepBase005EC1D8& other)
 {
-    value_004 = other.value_004;
-    value_010 = other.value_010;
-    value_01c = other.value_01c;
-    value_028 = other.value_028;
+    location_004 = other.location_004;
+    local_location_010 = other.local_location_010;
+    parent_location_01c = other.parent_location_01c;
+    rotation_028 = other.rotation_028;
     value_04c = other.value_04c;
     value_05c = 1.0f;
     flag_060 = 0;
     flag_061 = 0;
+}
+
+/* Store the representation's local location, then rebuild the world location
+   from its parent location.  The three floating-point additions establish
+   these as vectors rather than opaque twelve-byte values. */
+// FUNCTION: WIZ8 0x004b8850
+void W8AnimRepBase005EC1D8::SetLocation004B8850(
+    const W8Position* location)
+{
+    local_location_010.x = location->x;
+    local_location_010.y = location->y;
+    local_location_010.z = location->z;
+    location_004.x = parent_location_01c.x + local_location_010.x;
+    location_004.y = parent_location_01c.y + local_location_010.y;
+    location_004.z = parent_location_01c.z + local_location_010.z;
+}
+
+// FUNCTION: WIZ8 0x004b8890
+void W8AnimRepBase005EC1D8::GetLocation004B8890(
+    srVector3T<float>* location) const
+{
+    location->x = location_004.x;
+    location->y = location_004.y;
+    location->z = location_004.z;
+}
+
+// FUNCTION: WIZ8 0x004b88b0
+void W8AnimRepBase005EC1D8::GetLocalLocation004B88B0(
+    srVector3T<float>* location) const
+{
+    location->x = local_location_010.x;
+    location->y = local_location_010.y;
+    location->z = local_location_010.z;
+}
+
+// FUNCTION: WIZ8 0x004b88d0
+void W8AnimRepBase005EC1D8::SetRotation004B88D0(
+    const srMatrix3T<float>* rotation)
+{
+    rotation_028 = *rotation;
+}
+
+// FUNCTION: WIZ8 0x004b88f0
+void W8AnimRepBase005EC1D8::GetRotation004B88F0(
+    srMatrix3T<float>* rotation)
+{
+    *rotation = rotation_028;
 }
 
 // FUNCTION: WIZ8 0x004b53d0

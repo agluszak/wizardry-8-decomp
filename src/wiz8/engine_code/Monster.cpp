@@ -41,6 +41,7 @@ extern void SetTriggerVariableByName00444030(const char* name, int value);
 extern void Function401920(const char* message);
 extern char* FormatString(const char* format, ...);
 extern const float g_monster_rotation_offset_005ec04c;
+extern const double g_zero_005ebb40;
 extern const float g_monster_scale_step_005ebc3c;
 extern float g_float_005ebb34;
 extern const float g_float_005ebcf8;
@@ -3335,6 +3336,146 @@ bool MonsterHasPendingCycle(W8Monster* monster)
     return monster->m_pRep->selection.monster.pending_cycle != -1;
 }
 
+extern srModelInstance* GetValue65962C(void);
+
+/* Compare the cycle's selected frame against the renderer's typed current-model
+   slot.  Prop.cpp independently compares that slot with srModelInstance values. */
+// FUNCTION: WIZ8 0x004c56f0
+unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
+{
+    srModelInstance* current = cycle->GetCurrentModelInstance004A8250();
+    return current == GetValue65962C();
+}
+
+// FUNCTION: WIZ8 0x004c5730
+void MonsterGetLocation(
+    W8Monster* monster, srVector3T<float>* location)
+{
+    monster->m_pRep->GetLocation004B8890(location);
+}
+
+// FUNCTION: WIZ8 0x004c5750
+void MonsterGetLocalLocation(
+    W8Monster* monster, srVector3T<float>* location)
+{
+    monster->m_pRep->GetLocalLocation004B88B0(location);
+}
+
+/* The wrapper is intentionally unguarded: every retail caller supplies a live
+   Monster, and the original immediately dispatches through slot 16. */
+// FUNCTION: WIZ8 0x004c59a0
+void UpdateMonster(W8Monster* monster)
+{
+    monster->Update();
+}
+
+// FUNCTION: WIZ8 0x004c5a80
+unsigned char MonsterIsCycleSupported(
+    W8Monster* monster, signed char cycle)
+{
+    if (monster != 0) {
+        return monster->IsCycleSupported(cycle);
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c5b10
+unsigned char MonsterReplacePath(W8Monster* monster, void* path)
+{
+    if (monster != 0) {
+        return monster->ReplacePath004A8400(path);
+    }
+    return 0;
+}
+
+/* Reset pitch, update the Navigator's facing, and rebuild the representation's
+   complete yaw/pitch/roll matrix.  The explicit vector and matrix operations
+   reproduce the ordinary SurRender math calls retained in this large body. */
+// FUNCTION: WIZ8 0x004c5b60
+void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
+{
+    srMatrix3T<float> rotation;
+    srMatrix3T<float> adjustment;
+    srVector3T<float> first;
+    srVector3T<float> second;
+    srVector3T<float> third;
+    double sine;
+    double cosine;
+
+    if (monster == 0) {
+        return;
+    }
+
+    monster->SetAngles004538F0(NormalizeAngle(angle));
+    monster->SetPitch00453940(0.0f);
+
+    rotation.vectors[0].x = 1.0f;
+    rotation.vectors[0].y = 0.0f;
+    rotation.vectors[0].z = 0.0f;
+    rotation.vectors[1].x = 0.0f;
+    rotation.vectors[1].y = 1.0f;
+    rotation.vectors[1].z = 0.0f;
+    rotation.vectors[2].x = 0.0f;
+    rotation.vectors[2].y = 0.0f;
+    rotation.vectors[2].z = 1.0f;
+
+    angle = NormalizeAngle(
+        monster->GetAngleD400453970() +
+        g_monster_rotation_offset_005ec04c);
+    if ((double)angle != g_zero_005ebb40) {
+        cosine = cos((double)angle);
+        sine = sin((double)angle);
+        third.method_00421680(-sine, 0.0, cosine);
+        second.method_00421680(0.0, 1.0, 0.0);
+        first.method_00421680(cosine, 0.0, sine);
+        adjustment.method_004219F0(first, second, third);
+        rotation.method_00421A40(adjustment);
+    }
+
+    angle = monster->GetAngleE000453980();
+    if (angle != g_float_005ebb34 &&
+        (double)angle != g_zero_005ebb40) {
+        cosine = cos((double)angle);
+        sine = sin((double)angle);
+        third.method_00421680(0.0, sine, cosine);
+        second.method_00421680(0.0, cosine, -sine);
+        first.method_00421680(1.0, 0.0, 0.0);
+        adjustment.method_004219F0(first, second, third);
+        rotation.method_00421A40(adjustment);
+    }
+
+    angle = monster->fields.movement_0c0.roll_028;
+    if (angle != g_float_005ebb34 &&
+        (double)angle != g_zero_005ebb40) {
+        cosine = cos((double)angle);
+        sine = sin((double)angle);
+        third.method_00421680(0.0, 0.0, 1.0);
+        second.method_00421680(sine, cosine, 0.0);
+        first.method_00421680(cosine, -sine, 0.0);
+        adjustment.method_004219F0(first, second, third);
+        rotation.method_00421A40(adjustment);
+    }
+
+    monster->m_pRep->SetRotation004B88D0(&rotation);
+}
+
+// FUNCTION: WIZ8 0x004c5e80
+unsigned char MonsterGetAnimationRadius(W8Monster* monster, float* radius)
+{
+    if (monster != 0) {
+        return monster->GetAnimationRadius(radius);
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c6180
+void MonsterSetCycle(W8Monster* monster, signed char cycle)
+{
+    if (monster != 0) {
+        monster->SetCycle(cycle);
+    }
+}
+
 /* Cycle 17's third state byte is preserved by ActivateMonster while the live
    engine object is rebuilt, then restored into the replacement. */
 // FUNCTION: WIZ8 0x004c57f0
@@ -3786,6 +3927,35 @@ void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value)
     if (monster != 0) {
         monster->SetObject68Flag38(value);
     }
+}
+
+// FUNCTION: WIZ8 0x004c5ff0
+unsigned short MonsterApproachStartupNavigator004C5FF0(
+    W8Monster* monster, double separation)
+{
+    unsigned short result;
+
+    if (monster != 0) {
+        result = monster->Function4526C0(
+            g_startup_world_659c0c, separation);
+        if (result != 0) {
+            monster->fields.movement_0c0.unknown_076[0] = 0;
+        }
+        return result;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c6030
+unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
+{
+    if (monster != 0) {
+        W8Navigator* target = g_startup_world_659c0c;
+
+        return monster->LinkToNavigator004527A0(
+            target, WorldGetFarClip(GetWorld()) * 2.0);
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x004c6200

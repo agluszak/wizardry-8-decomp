@@ -127,6 +127,13 @@ void W8Navigator::SetAngles004538F0(float angle)
     fields.movement_0c0.target_angle_018 = NormalizeAngle(angle);
 }
 
+// FUNCTION: WIZ8 0x00453940
+void W8Navigator::SetPitch00453940(float pitch)
+{
+    fields.movement_0c0.pitch_020 = NormalizeAngle(pitch);
+    fields.movement_0c0.target_pitch_024 = NormalizeAngle(pitch);
+}
+
 // FUNCTION: WIZ8 0x00453970
 float W8Navigator::GetAngleD400453970()
 {

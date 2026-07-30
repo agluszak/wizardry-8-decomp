@@ -11,14 +11,14 @@ void ClearNodeFlag(srNode* node)
     }
 }
 // FUNCTION: WIZ8 0x00427810
-int GetValue65962C(void)
+srModelInstance* GetValue65962C(void)
 {
-    return g_dword_65962c;
+    return g_current_model_instance_65962c;
 }
 // FUNCTION: WIZ8 0x00427820
-void SetValue65962C(int value)
+void SetValue65962C(srModelInstance* value)
 {
-    g_dword_65962c = value;
+    g_current_model_instance_65962c = value;
 }
 // FUNCTION: WIZ8 0x00428010
 unsigned char ClearFlag603C60(void)

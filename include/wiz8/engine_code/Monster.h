@@ -265,6 +265,23 @@ public:
 int ParseMonsterCycleName004C2010(
     const char* name, signed char* subcycle = 0);
 
+unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
+void MonsterGetLocation(
+    W8Monster* monster, srVector3T<float>* location);
+void MonsterGetLocalLocation(
+    W8Monster* monster, srVector3T<float>* location);
+void UpdateMonster(W8Monster* monster);
+unsigned char MonsterIsCycleSupported(
+    W8Monster* monster, signed char cycle);
+unsigned char MonsterReplacePath(W8Monster* monster, void* path);
+unsigned char MonsterGetAnimationRadius(
+    W8Monster* monster, float* radius);
+void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
+unsigned short MonsterApproachStartupNavigator004C5FF0(
+    W8Monster* monster, double separation);
+unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
+void MonsterSetCycle(W8Monster* monster, signed char cycle);
+
 static_assert(
     sizeof(W8Monster) == 0x348,
     "W8Monster_size_must_be_0x348");

@@ -131,6 +131,7 @@ public:
     unsigned char UpdateTrackedPosition00454950();       /* 0x00454950 */
     void UpdateNavigation004553A0(int value, char condition); /* 0x004553A0 */
     void SetAngles004538F0(float angle);                    /* 0x004538F0 */
+    void SetPitch00453940(float pitch);                     /* 0x00453940 */
     float GetAngleD400453970();                           /* 0x00453970 */
     float GetAngleE000453980();                           /* 0x00453980 */
     void SetValue120(float value);                         /* 0x00453C50 */

@@ -40,7 +40,7 @@ int g_screen_height_603c40 = 480;
 int g_screen_depth_603c44 = 16;
 int g_pixel_format_603c48 = 9;
 int g_renderer_mode_603d74;
-int g_dword_65962c;
+srModelInstance* g_current_model_instance_65962c;
 int g_dword_6596fc;
 unsigned int g_tick_659700;
 int g_dword_6596dc;
@@ -176,7 +176,7 @@ unsigned char InitializeRenderer(void* instance, unsigned short show_command, vo
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
     g_flag_603c38 = 1;
-    g_dword_65962c = 0;
+    g_current_model_instance_65962c = 0;
     g_dword_6596fc = 0;
     g_tick_659700 = GetTickCount();
     g_dword_6596dc = 0;
