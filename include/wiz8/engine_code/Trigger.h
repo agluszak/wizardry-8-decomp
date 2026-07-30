@@ -116,6 +116,7 @@ public:
     void UpdateActionAnimation();
     void CommitActionResult(unsigned char apply_state_changes);
     void FinishAction();
+    void GetPosition(W8Position* position) const;
     unsigned char CanRunLinkedTriggers();
     unsigned char SelectAction();
     void GenerateItemGroup();

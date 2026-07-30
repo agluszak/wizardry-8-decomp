@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
 
@@ -81,6 +82,8 @@ void DestroyWorld(W8World* world);
 float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
+void SetWorldScenePosition004511D0(
+    W8World* world, const W8Position* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

@@ -355,12 +355,6 @@ typedef struct W8MonsterSlot {
 
 
 
-/* Filled by 0x0042A370 from a level-table row; only its size is established
-   here, by the 0x458-byte stack frame of its sole recovered caller. */
-typedef struct W8LevelInfo {
-    unsigned char unknown_000[0x458];
-} W8LevelInfo;                           /* 0x458 */
-
 struct W8World;
 
 typedef struct W8NPCRecordRef {
@@ -590,14 +584,15 @@ extern W8LevelFolderRecord g_level_folders[47];
 /* 0x00686A70: the level the party is on. The save loader compares it against
    the level id in an LVLS chunk, and it indexes the per-level rows below -
    bounded at 0x2f, the same forty-seven the folder table has. */
-/* 0x00686B7D: one row per level. Gold picked up there and the clock its sight
-   state was last brought up to are the two fields established; the gold credit
-   and the sight ageing reach the row four bytes apart, which is what makes it
-   one row rather than two arrays. */
+/* 0x00686B74: one row per level. LoadLevel owns the leading visited flag. Gold
+   picked up there starts at +9 (0x00686B7D), and the clock its sight state was
+   last brought up to follows at +0xd (0x00686B81). */
 typedef struct W8LevelProgressRow {
-    int gold_collected;                   /* 0x00 */
-    int sight_clock;                      /* 0x04 */
-    unsigned char unknown_08[0x19];
+    unsigned char visited;                /* 0x00 */
+    unsigned char unknown_01[8];
+    int gold_collected;                   /* 0x09 */
+    int sight_clock;                      /* 0x0d */
+    unsigned char unknown_11[0x10];
 } W8LevelProgressRow;                     /* 0x21 */
 extern W8LevelProgressRow g_level_progress[47];
 extern int g_location_variable_count;
@@ -722,8 +717,6 @@ void WorldUpdateProps(W8World* world);
 /* 0x0054A8A0, reviewed in evidence/reviewed/wiz8/functions.csv. */
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 int GetLocationIDFromCode(const char* location_code);
-/* 0x0042A370, not yet recovered. */
-unsigned char LevelBuildInfoByID(int level_id, W8LevelInfo* info);
 W8World* GetWorld(void);
 /* The second world the 3D API keeps, and the renderer's catch-up request.
    Both are defined in Engine Code\3dapi.cpp. */

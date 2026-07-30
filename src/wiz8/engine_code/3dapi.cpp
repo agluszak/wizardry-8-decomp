@@ -481,6 +481,38 @@ void Forward44FAF0(W8World* world)
     DestroyWorld(world);
 }
 
+/* Set the view position after loading or traversing a portal. The camera light
+   follows the camera, while only the camera move publishes the new game-space
+   position. */
+// FUNCTION: WIZ8 0x004511D0
+void SetWorldScenePosition004511D0(
+    W8World* world, const W8Position* location)
+{
+    srVector3T<float> position;
+    srVector3T<double> render_position;
+
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 1043, 0);
+    }
+
+    position.x = location->x;
+    position.y = location->y;
+    position.z = location->z;
+    if (world->camera != 0) {
+        render_position.x = position.x;
+        render_position.y = position.y;
+        render_position.z = position.z;
+        static_cast<srNode*>(world->camera)->setLocation(render_position);
+        Function421090(&position.x);
+    }
+    if (world->camera_light != 0) {
+        render_position.x = position.x;
+        render_position.y = position.y;
+        render_position.z = position.z;
+        static_cast<srNode*>(world->camera_light)->setLocation(render_position);
+    }
+}
+
 // FUNCTION: WIZ8 0x00451110
 unsigned char ForwardLoadWorld(
     W8World* world, char* level_file_name, const char* level_folder,

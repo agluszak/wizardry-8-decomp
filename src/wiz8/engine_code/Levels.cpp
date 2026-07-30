@@ -1,14 +1,25 @@
+#include <cmath>
+#include <cstdio>
 #include <cstring>
 
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/ClipPlane.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/game_state.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/spell_effect.h"
+#include "wiz8/sr_api.h"
+#include "wiz8/targeting.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
+
+#include "FileMan.h"
 
 extern void Function4EA310(int mode);
 extern void Function426790(void);
@@ -24,9 +35,71 @@ extern void Function489920(void);
 extern void ReleaseEnvironmentObjects(void);
 extern void ClearValue6834D4(void);
 extern unsigned char SaveLevelStatus(const char* path);
+extern int Function4D9700(int level);
+extern void Function427440(void);
+extern "C" unsigned char Function48FC10(
+    const char* playlist, int immediate, int replace);
+extern void Function48F9E0(void);
+extern unsigned char Function42B020(int level, W8LevelInfo* info);
+extern void Function4E3720(void);
+extern void InitializeItemManagerState(void);
+extern void Function443A50(void);
+extern void Function5817D0(void);
+extern unsigned char LoadLevelStatus(const char* path, int level);
+extern void BuildLevelStatusPath(char* path, int level);
+extern float Function420BD0(const W8Position* position, unsigned char* hit);
+extern float* RotateMatrixAroundAxis0042B910(
+    float* matrix, double sine, double cosine, float* axis);
+extern void MoveWorldToPoint(
+    W8World* destination, W8World* source, const W8Position* point);
+extern void Function5115B0(void);
+extern void ResetMonsterGroupTurnState(void);
+extern unsigned char LoadAmbientSoundList0047AB40(char* filename);
+extern void Function41AA40(void);
+extern void Function482410(void);
+extern void Function4D6C50(int level);
+extern void Function50AC60(void);
+extern void Function48ED70(unsigned char value);
+extern void Function50E700(void);
+extern void Function50DB50(void);
+extern void Function50C270(void);
+extern void Function50C2E0(void);
+extern void Function5777C0(void);
+extern void UpdateRandomEncounterBudget(unsigned char first_visit);
+extern void Function48C9F0(void);
+extern void Function5060C0(void);
+extern unsigned int AgeAllMonsterSight(void);
+extern void RebuildAllWorldItemInstances(void);
+extern void Function451020(void);
+extern void Function4881D0(void);
+extern void SetSkyNodeVisible(char visible);
+
+struct W8CastEffectOwner;
+extern void SpawnLureEffects(
+    W8CastEffectOwner* owner, int argument, const W8CombatSlot* target);
 
 extern unsigned char g_world_cleanup_flag_00659757;
 extern float g_runtime_world_scale_6081e8;
+extern unsigned char g_flag_00659756;
+extern float g_default_world_height_00603ac8;
+extern float g_position_height_epsilon_005ebfdc;
+extern W8Position g_saved_world_position_00687417;
+extern unsigned char g_environment_load_flag_00603ad0;
+extern unsigned char g_level_runtime_flag_0065ba70;
+extern unsigned char g_value_0068f0fd;
+extern int g_value_006850b0;
+extern unsigned char g_flag_00687607;
+
+struct W8LevelNameRecord {
+    char music_name[0x32];
+    char entrance_prefix[0x39];
+};
+
+static_assert(sizeof(W8LevelNameRecord) == 0x6b,
+              "W8LevelNameRecord_must_be_0x6b");
+
+extern W8LevelNameRecord g_level_names_006044aa[57];
+extern char g_ambient_sound_filename_006059e0[];
 
 namespace {
 
@@ -49,6 +122,204 @@ srRegistry::ClassNode* GetClipPlaneClassNode()
 }
 
 } // namespace
+
+/* Build the complete live level around the current world. The subordinate
+   loaders remain in their original units; this body owns their ordering,
+   rollback boundary, entry positioning, first-visit work and final renderer
+   publication. */
+// FUNCTION: WIZ8 0x0042A6F0
+unsigned char LoadLevel(
+    int requested_level, int entrance, unsigned char restoring_game)
+{
+    int level = Function4D9700(requested_level);
+    W8LevelInfo level_info;
+    int previous_level;
+    unsigned char first_visit = 0;
+    char path[260];
+    char music_path[260];
+
+    if (level >= 57) {
+        srAssertFail(
+            "iLevel < TEST_LEVEL_COUNT",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp",
+            385, 0);
+    }
+    if (!LevelBuildInfoByID(level, &level_info)) {
+        return 0;
+    }
+
+    DisableSky();
+    if (GetWorld() != 0) {
+        Forward44FAF0(GetWorld());
+        SetCurrentWorld(0);
+    }
+    Function489920();
+    Function427440();
+    SetCurrentWorld(CreateWorld());
+
+    previous_level = g_current_level;
+    g_current_level = level;
+    sprintf(
+        music_path, "Data\\Music\\%s.MPL",
+        g_level_names_006044aa[level].music_name);
+    if (FileExists(music_path)) {
+        sprintf(
+            music_path, "%s.MPL",
+            g_level_names_006044aa[g_current_level].music_name);
+        Function48FC10(music_path, 1, 1);
+    }
+    else {
+        Function48FC10("", 1, 1);
+    }
+    Function48F9E0();
+
+    if (!Function42B020(level, &level_info)) {
+        return 0;
+    }
+    Function4E3720();
+    InitializeItemManagerState();
+    Function443A50();
+    if (!ForwardLoadWorld(
+            GetWorld(), level_info.level_file_name, level_info.level_folder,
+            level_info.asset_folder, 1)) {
+        g_current_level = previous_level;
+        return 0;
+    }
+
+    SetSkyNodeVisible(0);
+    Function5817D0();
+    if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
+        BuildLevelStatusPath(path, level);
+        g_flag_00659756 = 1;
+        LoadLevelStatus(path, level);
+        g_flag_00659756 = 0;
+    }
+
+    if (!restoring_game && entrance != -1) {
+        Trigger* trigger = 0;
+
+        if (level < 47) {
+            char trigger_name[8];
+            sprintf(
+                trigger_name, "%3s%02d",
+                g_level_names_006044aa[level].entrance_prefix, entrance);
+            trigger = FindTriggerByName(trigger_name);
+        }
+        if (trigger != 0 && trigger->flag_0a0_11) {
+            W8Position trigger_position;
+            W8Position position;
+
+            trigger->GetPosition(&trigger_position);
+            position = trigger_position;
+            position.y = Function420BD0(&trigger_position, 0)
+                       + g_default_world_height_00603ac8;
+            if (fabs(position.y - trigger_position.y)
+                > g_position_height_epsilon_005ebfdc) {
+                position.y = trigger_position.y;
+            }
+            SetWorldScenePosition004511D0(GetWorld(), &position);
+
+            if (trigger->trigger_kind_018 == 2) {
+                srVector3T<float> axis;
+                srMatrix3T<float> rotation;
+
+                axis.x = trigger->value_100;
+                axis.y = trigger->value_104;
+                axis.z = trigger->value_108;
+                rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
+                rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
+                rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+                if (trigger->angle_0fc != 0.0f) {
+                    RotateMatrixAroundAxis0042B910(
+                        &rotation.vectors[0].x,
+                        sin(trigger->angle_0fc), cos(trigger->angle_0fc),
+                        &axis.x);
+                }
+                Function421030(&rotation);
+            }
+        }
+        else {
+            W8Position position;
+
+            position.x = 0.0f;
+            position.y = g_default_world_height_00603ac8;
+            position.z = 0.0f;
+            SetWorldScenePosition004511D0(GetWorld(), &position);
+        }
+    }
+    else {
+        MoveWorldToPoint(
+            GetWorld(), GetWorld659AB8(), &g_saved_world_position_00687417);
+    }
+
+    if (level < 47 && !g_level_progress[level].visited) {
+        ResetMonsterGroupTurnState();
+        Function5115B0();
+        g_level_progress[level].visited = 1;
+        first_visit = 1;
+    }
+
+    sprintf(
+        path, "%s\\%s\\%s", level_info.level_folder,
+        level_info.level_file_name, g_ambient_sound_filename_006059e0);
+    LoadAmbientSoundList0047AB40(path);
+    if (!g_environment_load_flag_00603ad0) {
+        Function41AA40();
+    }
+    g_level_runtime_flag_0065ba70 = 0;
+    Function482410();
+    Function4D6C50(level);
+    Function50AC60();
+    Function48ED70(g_value_0068f0fd);
+    Function50E700();
+
+    if (!restoring_game) {
+        if (level < 47) {
+            Function50DB50();
+            Function50C270();
+            Function50C2E0();
+            Function5777C0();
+            g_value_006850b0 = 0;
+        }
+        if (g_flag_00687607
+            && (GetFact(0x4c) || GetFact(0x4b))) {
+            Function48C9F0();
+        }
+        else {
+            UpdateRandomEncounterBudget(first_visit);
+        }
+        if (!first_visit) {
+            Function5060C0();
+            AgeAllMonsterSight();
+        }
+        for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
+            delete g_spell_effects.RemoveAt(index);
+        }
+    }
+    else {
+        W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
+
+        if (effect != 0) {
+            /* The full cast-effect layout is still owned by the Magic
+               campaign. LoadLevel proves these two positional views. */
+            SpawnLureEffects(
+                reinterpret_cast<W8CastEffectOwner*>(effect),
+                *reinterpret_cast<int*>(
+                    reinterpret_cast<unsigned char*>(effect) + 0xd0),
+                reinterpret_cast<W8CombatSlot*>(
+                    reinterpret_cast<unsigned char*>(effect) + 0x90));
+        }
+    }
+
+    if (first_visit) {
+        InitializeMonsterRuntimeStats();
+        RebuildAllWorldItemInstances();
+    }
+    MarkRendererReady();
+    Function451020();
+    Function4881D0();
+    return 1;
+}
 
 // FUNCTION: WIZ8 0x0042ACE0
 unsigned char UnloadLevel(const char* save_directory)

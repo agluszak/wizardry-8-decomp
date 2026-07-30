@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/spell_effect.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 
@@ -358,11 +359,6 @@ bool CanPartySlotReBreathe(int party_slot)
 
 /* One queued spell effect. Each entry counts down a turn at a time and is
    distinguished only by its kind; the effect body itself lives elsewhere. */
-typedef struct W8SpellEffectEntry {
-    int kind;                            /* 0x00 */
-    int turns_remaining;                 /* 0x04 */
-} W8SpellEffectEntry;
-
 /* The kind whose expiry hands every monster back its own control. */
 enum { W8_SPELL_EFFECT_KIND_MONSTER_CONTROL = 0x26 };
 
@@ -379,8 +375,6 @@ enum {
     W8_COMBAT_CONDITION_SLOTS = 9
 };
 
-/* 0x00689B58: the queued spell effects, the shared growable vector again. */
-extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 /* 0x0068691F */
 extern W8ConditionSlot g_party_conditions[W8_PARTY_CONDITION_SLOTS];
 /* Whether every queued effect still has time left on it. */

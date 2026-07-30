@@ -72,8 +72,6 @@ extern unsigned char FindEntityByName(
 extern void Function41EF50(void);
 extern void RequestLevelTransition005615F0(
     int location_id, int entrance, unsigned char show_message);
-extern void SetWorldScenePosition004511D0(
-    W8World* world, const W8Position* position);
 extern void* SpawnSpellEffect004AD080(
     const char* name, int animation, int value_1, int value_2);
 extern void Function48F280(W8World* world, const char* name, int active);
@@ -505,6 +503,14 @@ W8TriggerActionData005EC158::~W8TriggerActionData005EC158()
 
 // VTABLE: WIZ8 0x005ec0e4
 // class Trigger
+
+// FUNCTION: WIZ8 0x00441750
+void Trigger::GetPosition(W8Position* position) const
+{
+    position->x = position_118;
+    position->y = position_11c;
+    position->z = position_120;
+}
 
 // VTABLE: WIZ8 0x005ec104
 // class srClassSupport<Trigger,srClass,0,65544>
