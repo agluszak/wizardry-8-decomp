@@ -218,13 +218,6 @@ public:
     unsigned long getClassID() const;     /* 0x00484700 */
 };
 
-class W8ClipPlane005ED180 {
-public:
-    const char* getClassName() const;     /* 0x004BDF10 */
-    unsigned long getClassID() const;     /* 0x004BDF00 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x004BDF20 */
-};
-
 /*
  * Six more classes that present under a SurRender base, but whose name slot is
  * an import thunk straight to SR.DLL rather than an owned body - so only the

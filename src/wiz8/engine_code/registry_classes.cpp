@@ -1,5 +1,6 @@
 #include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/engine_code/Camera.h"
+#include "wiz8/engine_code/ClipPlane.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Scene.h"
 
@@ -463,6 +464,14 @@ srRegistry::ClassNode* W8ClipPlane005ED180::getClassNode() const
         node = registry->registerClass("srClipPlane", parent, 0x1500, 0);
     }
     return node;
+}
+
+// FUNCTION: WIZ8 0x004BDF90
+srNode* W8ClipPlane005ED180::vslot7()
+{
+    srClipPlane* copy = static_cast<srClipPlane*>(vInstance());
+    *copy = *this;
+    return copy;
 }
 // FUNCTION: WIZ8 0x004CF7C0
 unsigned long stScript::getClassID() const
