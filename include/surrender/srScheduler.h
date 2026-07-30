@@ -6,7 +6,14 @@
 
 class srScheduler {
 public:
-    class Job;
+    class Job {
+    public:
+        virtual ~Job() {}
+        virtual void execute() = 0;
+        virtual void cancel() = 0;
+    };
+
+    static_assert(sizeof(Job) == 0x04, "srScheduler_Job_must_be_0x04");
 
     SR_DLL_IMPORT srScheduler();
     SR_DLL_IMPORT ~srScheduler();
