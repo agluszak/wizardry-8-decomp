@@ -240,6 +240,36 @@ EXPORTS
     ?finishAll@srScheduler@@QAEXXZ
     ?getJobCount@srScheduler@@QBEJXZ
     ?queue@srScheduler@@QAEXAAVJob@1@@Z
+    ??0Error@srIOManager@@QAE@PBD@Z
+    ??0Exporter@srIOManager@@QAE@ABV01@@Z
+    ??0Exporter@srIOManager@@QAE@XZ
+    ??0Importer@srIOManager@@QAE@ABV01@@Z
+    ??0Importer@srIOManager@@QAE@XZ
+    ??0srIOManager@@IAE@XZ
+    ??0srIOManager@@QAE@ABV0@@Z
+    ??1Exporter@srIOManager@@UAE@XZ
+    ??1Importer@srIOManager@@UAE@XZ
+    ??1srIOManager@@MAE@XZ
+    ??4Error@srIOManager@@QAEAAV01@ABV01@@Z
+    ??4Exporter@srIOManager@@QAEAAV01@ABV01@@Z
+    ??4Importer@srIOManager@@QAEAAV01@ABV01@@Z
+    ??4srIOManager@@QAEAAV0@ABV0@@Z
+    ??_7srIOManager@@6B@
+    ?addExporter@srIOManager@@IAEXPAVExporter@1@PBD@Z
+    ?addImporter@srIOManager@@IAEXPAVImporter@1@PBD@Z
+    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PAV12@PBD@Z
+    ?addToExporters@Exporter@srIOManager@@IAEXPAV2@PBD@Z
+    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PAV12@PBD@Z
+    ?addToImporters@Importer@srIOManager@@IAEXPAV2@PBD@Z
+    ?dump@srIOManager@@QAEXXZ
+    ?findExporter@srIOManager@@IAEPAVExporter@1@PBD@Z
+    ?findImporter@srIOManager@@IAEPAVImporter@1@PBD@Z
+    ?getDescription@Error@srIOManager@@QAEPBDXZ
+    ?getExtension@srIOManager@@QAEPBDPBD@Z
+    ?removeExporter@srIOManager@@IAEXPAVExporter@1@@Z
+    ?removeFromExporters@Exporter@srIOManager@@IAEXPAV2@@Z
+    ?removeFromImporters@Importer@srIOManager@@IAEXPAV2@@Z
+    ?removeImporter@srIOManager@@IAEXPAVImporter@1@@Z
     ??0srBinStream@@IAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@

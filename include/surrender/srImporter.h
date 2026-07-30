@@ -2,27 +2,8 @@
 
 #include "srBinIStream.h"
 #include "srColorSurface.h"
+#include "srIOManager.h"
 #include "srOptionList.h"
-
-class srIOManager {
-public:
-    class Importer;
-    class Exporter;
-};
-
-class __declspec(novtable) srIOManager::Importer {
-public:
-    virtual const char* getTypeName() const = 0;
-    virtual ~Importer() {}
-
-protected:
-    SR_DLL_IMPORT void addToImporters(srIOManager* manager, const char* extension);
-    SR_DLL_IMPORT void addToImporters(
-        srIOManager* manager,
-        srIOManager::Importer* importer,
-        const char* extension);
-    SR_DLL_IMPORT void removeFromImporters(srIOManager* manager);
-};
 
 class srSurfaceIOManager : public srIOManager {
 public:
