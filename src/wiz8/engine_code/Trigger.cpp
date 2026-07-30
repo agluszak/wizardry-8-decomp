@@ -5,6 +5,9 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stSound3D.h"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_state_006598a4.h"
+#include "wiz8/game_state.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
@@ -53,6 +56,19 @@ extern unsigned char g_flag_00606994;
 extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 extern int OpenLockInteraction00587510(Trigger* trigger);
 extern int OpenTrapInteraction0058A470(Trigger* trigger);
+extern void* g_modal_owner_0068edd0;
+extern unsigned char FindEntityByName(
+    const char* name,
+    W8Position* position,
+    int* location_id,
+    W8Position* direction);
+extern void Function41EF50(void);
+extern void RequestLevelTransition005615F0(
+    int location_id, int entrance, unsigned char show_message);
+extern void SetWorldScenePosition004511D0(
+    W8World* world, const W8Position* position);
+extern void* SpawnSpellEffect004AD080(
+    const char* name, int animation, int value_1, int value_2);
 static int g_next_trigger_id_006874c6;
 
 Trigger* FindTriggerByName(const char* name)
@@ -753,6 +769,94 @@ show_action_message:
 
 action_complete:
     flag_0a0_19 = 1;
+}
+
+/* Resolve an entity or a five-character level/entrance code, then either
+   request the level transition or move the current world to the resolved
+   destination. The destination Trigger supplies the local portal orientation
+   when the name was not one of the world's named entities. */
+// FUNCTION: WIZ8 0x00440dd0
+void Trigger::RunDestination00440DD0(const char* destination)
+{
+    W8Position destination_position;
+    W8Position destination_direction;
+    W8Position source_position;
+    srMatrix3T<float> rotation;
+    int location_id;
+    int entrance;
+    int entity_value;
+    int current_location;
+    float angle;
+    unsigned char named_entity;
+
+    if (g_modal_owner_0068edd0 != 0) {
+        return;
+    }
+
+    Function41EF50();
+    current_location = g_current_level;
+    named_entity = FindEntityByName(
+        destination, &destination_position, &entity_value,
+        &destination_direction);
+    /* Retail leaves location_id and entrance uninitialised on the named-entity
+       path. Both GOG builds then read the stack slot holding this for those
+       values. Preserve that source bug rather than assigning entity_value and
+       silently making the path behave differently. */
+    if (named_entity == 0) {
+        char location_code[4];
+        char entrance_code[3];
+
+        strncpy(location_code, destination, 3);
+        location_code[3] = '\0';
+        location_id = GetLocationIDFromCode(location_code);
+        if (location_id == -1) {
+            return;
+        }
+        strncpy(entrance_code, destination + 3, 2);
+        entrance_code[2] = '\0';
+        entrance = atoi(entrance_code);
+    }
+    Function41EF50();
+
+    if (location_id != current_location) {
+        RequestLevelTransition005615F0(
+            location_id, entrance,
+            m_lData1 < 0 ? 0 : (unsigned char)m_lData1);
+        return;
+    }
+
+    if (named_entity == 0) {
+        Trigger* target = FindTriggerByName(destination);
+
+        destination_position.x = target->position_118;
+        destination_position.y = target->position_11c;
+        destination_position.z = target->position_120;
+        angle = target->angle_0fc;
+        destination_direction.x = target->value_100;
+        destination_direction.y = target->value_104;
+        destination_direction.z = target->value_108;
+    }
+    else {
+        angle = 0.0f;
+    }
+
+    source_position.x = position_118;
+    source_position.y = position_11c;
+    source_position.z = position_120;
+    g_engine_state_6598a4->AdjustPortalDestination00434A30(
+        &destination_position, &source_position);
+    SetWorldScenePosition004511D0(GetWorld(), &destination_position);
+
+    rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
+    rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
+    rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+    if (angle != 0.0f) {
+        RotateMatrixAroundAxis0042B910(
+            &rotation.vectors[0].x, sin(angle), cos(angle),
+            &destination_direction.x);
+    }
+    Function421030(&rotation);
+    SpawnSpellEffect004AD080("set_portal", 1, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x00444600

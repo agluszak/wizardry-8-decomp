@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
@@ -54,7 +55,7 @@ void UpdateWorldProps0044E010(W8World* world)
     }
 }
 
-__forceinline W8PropOwned0020::~W8PropOwned0020()
+W8PropOwned0020::~W8PropOwned0020()
 {
 }
 
@@ -164,6 +165,40 @@ void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
     AnimationStart(animation, 2, argument);
 }
 
+/* Select the animation slot whose second byte carries the requested tag.
+   The slot's signed first byte is the new animation tag; the old and new
+   values are retained as an ordered range for the transition state. */
+// FUNCTION: WIZ8 0x0044ba50
+unsigned char W8PropOwnedPolymorphic::SelectSlot0044BA50(unsigned char tag)
+{
+    int index;
+
+    for (index = 0; index < slot_count; ++index) {
+        if (slots[index][1] == tag) {
+            signed char selected = (signed char)slots[index][0];
+
+            if (selected < 0) {
+                return 0;
+            }
+            unknown_068[0] = current_tag;
+            unknown_068[1] = (unsigned char)selected;
+            if (selected < (signed char)current_tag) {
+                unknown_068[0] = (unsigned char)selected;
+                unknown_068[1] = current_tag;
+            }
+            if (unknown_068[1] <= current_tag) {
+                setting_6e = 3;
+            }
+            else {
+                setting_6e = 1;
+            }
+            unknown_06d = 1;
+            return 1;
+        }
+    }
+    return 0;
+}
+
 /* Which slot carries the current tag. The tag is matched against each slot's
    own leading byte rather than used as an index, so the slots need not be in
    tag order. */
@@ -226,6 +261,49 @@ void W8Prop005EC1E0::SetSetting6E(unsigned char value, unsigned char fallback)
         return;
     }
     m_owned_14->setting_6e = value;
+}
+
+/* Set the live representation state. When requested, choose the direction
+   and endpoint of the transition from the current and target animation tags. */
+// FUNCTION: WIZ8 0x0044da80
+void W8Prop005EC1E0::SetRepActive0044DA80(
+    unsigned char active, unsigned char update_animation)
+{
+    m_owned_14->unknown_06d = active;
+    if (active == 0) {
+        return;
+    }
+
+    m_owned_28->Restart();
+    if (update_animation == 0) {
+        return;
+    }
+
+    if (m_owned_14->unknown_070[0] == 1) {
+        if ((m_owned_14->setting_6e == 2 &&
+             m_owned_14->setting_6f != 2) ||
+            (m_owned_14->setting_6e != 2 &&
+             m_owned_14->setting_6f == 2)) {
+            m_owned_14->setting_6e = 1;
+            m_owned_14->setting_64 = m_owned_14->current_tag;
+            return;
+        }
+        m_owned_14->setting_6e = 3;
+        m_owned_14->setting_64 = m_owned_14->unknown_095[0];
+        return;
+    }
+    if (m_owned_14->unknown_070[0] == 2) {
+        if ((m_owned_14->setting_6e == 2 &&
+             m_owned_14->setting_6f != 2) ||
+            (m_owned_14->setting_6e != 2 &&
+             m_owned_14->setting_6f == 2)) {
+            m_owned_14->setting_6e = 1;
+            m_owned_14->setting_64 = m_owned_14->current_tag;
+            return;
+        }
+        m_owned_14->setting_6e = 3;
+        m_owned_14->setting_64 = m_owned_14->unknown_095[0];
+    }
 }
 
 /* Whether the prop can be used from where the caller is. The owned GDProp has

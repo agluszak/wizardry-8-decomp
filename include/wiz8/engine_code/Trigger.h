@@ -118,6 +118,7 @@ public:
     void FinishAction();
     unsigned char CanRunLinkedTriggers();
     unsigned char SelectAction();
+    void RunDestination00440DD0(const char* destination);
     void Run(int source);
 
     int trigger_kind_018;

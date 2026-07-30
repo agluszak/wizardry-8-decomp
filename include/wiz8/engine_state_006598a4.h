@@ -49,6 +49,9 @@ struct W8EngineState006598A4 {
         const W8Position* from,
         W8Position* to,
         char allow_fallback);             /* 0x00434B60 */
+    void AdjustPortalDestination00434A30(
+        W8Position* destination,
+        const W8Position* source);        /* 0x00434A30 */
     unsigned int AdvanceNavigator00434620(
         W8NavigatorMovement004572C0* movement,
         float radius,

@@ -6,6 +6,7 @@ struct GDProp;
 struct W8AnimObj;
 struct W8World;
 class W8PropOwned0020;
+class W8Timer005EC0A4;
 
 /* Prop.cpp owns this animation/state object through a virtual destructor.
    Trigger.cpp also reads unknown_06d to decide whether a prop-backed trigger
@@ -16,6 +17,7 @@ public:
     virtual ~W8PropOwnedPolymorphic();
 
     void ToggleAnimation(int argument);   /* 0x0044BA00 */
+    unsigned char SelectSlot0044BA50(unsigned char tag);
     int FindSlotByCurrentTag();           /* 0x0044BAE0 */
 
     unsigned char unknown_004[0x60];
@@ -37,6 +39,9 @@ public:
     unsigned char** slots;
 };
 
+static_assert(sizeof(W8PropOwnedPolymorphic) == 0xc0,
+              "W8PropOwnedPolymorphic_must_be_0xc0");
+
 class W8PropBase004B6B60 {
 public:
     virtual ~W8PropBase004B6B60();       /* 0x004B6B60 */
@@ -57,6 +62,8 @@ public:
     void ToggleRepAnimationDefault();
     int PlayRepAnimation(int arg_2, int arg_3);
     void SetSetting6E(unsigned char value, unsigned char fallback);
+    void SetRepActive0044DA80(
+        unsigned char active, unsigned char update_animation);
     bool CanBeUsedFrom(int arg_2, int arg_3, char notify);
     void SetSetting6C(unsigned char value);
     void SetSetting66(char value);
@@ -73,7 +80,7 @@ public:
 private:
     W8PropOwned0020* m_owned_20;
     unsigned char unknown_024[0x4];
-    W8PropOwnedPolymorphic* m_owned_28;
+    W8Timer005EC0A4* m_owned_28;
     unsigned char unknown_02c[0xc];
 
 public:
