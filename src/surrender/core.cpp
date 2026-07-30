@@ -2,6 +2,7 @@
 #include "surrender/srBinIAsyncStream.h"
 #include "surrender/srIStreamOpener.h"
 #include "surrender/srMemoryPool.h"
+#include "surrender/srMutex.h"
 #include "surrender/srThread.h"
 
 // FUNCTION: SURRENDER 0x10015010
