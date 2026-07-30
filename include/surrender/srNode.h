@@ -88,6 +88,19 @@ protected:
     virtual SR_DLL_IMPORT int processSignal(unsigned long signal, void* value);
 
 public:
+    SR_DLL_IMPORT srNode* cloneHierarchy(srNode* parent);
+    SR_DLL_IMPORT void dumpHierarchy(std::ostream& stream, long indent) const;
+    SR_DLL_IMPORT srNode* findChild(const char* name) const;
+    SR_DLL_IMPORT srNode* findChildByNameAndType(
+        const char* name, unsigned long class_id) const;
+    SR_DLL_IMPORT srNode* findParent(const char* name) const;
+    SR_DLL_IMPORT srNode* findParentByType(unsigned long class_id) const;
+    SR_DLL_IMPORT srNode* getChild() const;
+    SR_DLL_IMPORT long getChildCount() const;
+    SR_DLL_IMPORT char* getFullPath(char* path) const;
+    SR_DLL_IMPORT long getFullPathLength() const;
+    SR_DLL_IMPORT long getHierarchyLevel() const;
+    SR_DLL_IMPORT srNode* getNext() const;
     SR_DLL_IMPORT int setParent(srNode* parent, int preserve_world_transform);
     SR_DLL_IMPORT void setLocation(double x, double y, double z);
     SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
@@ -106,6 +119,12 @@ public:
     SR_DLL_IMPORT void clearFlag(e_flag flag);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT srNode* getParent() const;
+    SR_DLL_IMPORT srNode* getPrev() const;
+    SR_DLL_IMPORT int isChildOf(const srNode& node) const;
+    SR_DLL_IMPORT int isParentOf(const srNode& node) const;
+    static SR_DLL_IMPORT int isSceneGraphLocked();
+    static SR_DLL_IMPORT void lockSceneGraph();
+    static SR_DLL_IMPORT void unlockSceneGraph();
     srNode* nextSibling() const { return next_sibling_; }
     srNode* parentNode() const { return parent_; }
     srNode* firstChild() const { return first_child_; }
@@ -113,7 +132,7 @@ public:
 private:
     unsigned char unknown_18_[0x110];
     srNode* next_sibling_;                  /* 0x128 */
-    unsigned char unknown_12c_[0x04];
+    srNode* previous_sibling_;              /* 0x12c */
     srNode* parent_;                        /* 0x130 */
     srNode* first_child_;                   /* 0x134 */
 };

@@ -185,6 +185,24 @@ EXPORTS
     ?updateBounds@srNode@@UAEXXZ
     ?vInstance@srNode@@UAEPAVsrClass@@XZ
     ?sGetClassName@srIlluminator@@SAPBDXZ
+    ?cloneHierarchy@srNode@@QAEPAV1@PAV1@@Z
+    ?dumpHierarchy@srNode@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@J@Z
+    ?findChild@srNode@@QBEPAV1@PBD@Z
+    ?findChildByNameAndType@srNode@@QBEPAV1@PBDK@Z
+    ?findParent@srNode@@QBEPAV1@PBD@Z
+    ?findParentByType@srNode@@QBEPAV1@K@Z
+    ?getChild@srNode@@QBEPAV1@XZ
+    ?getChildCount@srNode@@QBEJXZ
+    ?getFullPath@srNode@@QBEPADPAD@Z
+    ?getFullPathLength@srNode@@QBEJXZ
+    ?getHierarchyLevel@srNode@@QBEJXZ
+    ?getNext@srNode@@QBEPAV1@XZ
+    ?getPrev@srNode@@QBEPAV1@XZ
+    ?isChildOf@srNode@@QBEHABV1@@Z
+    ?isParentOf@srNode@@QBEHABV1@@Z
+    ?isSceneGraphLocked@srNode@@SAHXZ
+    ?lockSceneGraph@srNode@@SAXXZ
+    ?unlockSceneGraph@srNode@@SAXXZ
     ??4srLight@@QAEAAV0@ABV0@@Z
     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ??0srTexture@@IAE@XZ
