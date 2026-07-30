@@ -16,7 +16,7 @@ public:
     virtual W8AnimRepBase005EC1D8* Clone() override;
     virtual void SetCycleFrameLod(
         signed char cycle, int frame, int lod) override;
-    virtual void ApplyEmitterSetting(char emitter) override;
+    virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual void StopEmitter(char emitter) override;
 
     unsigned char unknown_0ac[0x2c];

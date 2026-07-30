@@ -54,7 +54,7 @@ struct W8MonsterRep : public W8EmitterHost {
     virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
     virtual void SetCycleFrameLod(
         signed char cycle, int frame, int lod) override; /* 0x004BF8C0 */
-    virtual void ApplyEmitterSetting(char cycle) override; /* 0x004BF970 */
+    virtual unsigned int ApplyEmitterSetting(char cycle) override; /* 0x004BF970 */
     virtual void StopEmitter(char cycle) override; /* 0x004BF920 */
     virtual void Method004BF0F0(
         signed char cycle,
@@ -196,8 +196,8 @@ public:
     int Query(int query);                              /* 0x004C4660 */
     void SetRuntimeValueA6(unsigned char value);       /* 0x004C6C00 */
     unsigned char IsDying();                           /* 0x004CA4C0 */
-    unsigned char Function4C2CF0(signed char cycle);
-    void Function4C50F0();
+    unsigned char IsCycleInterruptable(signed char cycle);
+    void ApplyRemovalStateEffects();
     int Function4C6A50();
     void Function4C6990(int value);
     void HandleAnimationThreshold004C75C0();
@@ -234,7 +234,7 @@ public:
     int value_228;
     unsigned char flag_22c;
     unsigned char flag_22d;
-    unsigned char state_22e;
+    signed char state_22e;
     unsigned char unknown_22f;
     unsigned char unknown_230[8];
     srClass* object_238;

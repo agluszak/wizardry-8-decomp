@@ -8,6 +8,15 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/targeting.h"
 
+/* One eight-byte row per animation cycle at 0x0060EA08. The leading pointer
+   is the cycle's name; the second field has not yet been identified. */
+struct W8CycleNameRow {
+    const char* name;
+    void* unknown_04;
+};
+
+extern W8CycleNameRow g_cycle_names[];
+
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 typedef struct W8MonsterCombatEntry {

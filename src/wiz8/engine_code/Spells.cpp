@@ -116,7 +116,7 @@ void W8SpellEmitterHost::SetCycleFrameLod(
 /* Apply the host setting to one required emitter.  The source assertion names
    that local pointer `pao`; assertions do not replace the following call. */
 // FUNCTION: WIZ8 0x004ab2c0
-void W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
+unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
 {
     W8Emitter* target = this->emitters[emitter];
 
@@ -127,7 +127,7 @@ void W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
             0x200,
             0);
     }
-    AnimObjValue004A15D0((W8AnimObj*)target, this->setting_98);
+    return AnimObjValue004A15D0((W8AnimObj*)target, this->setting_98);
 }
 
 /* Stop one named emitter, passing the host's own setting; an empty slot is

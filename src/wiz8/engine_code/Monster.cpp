@@ -14,6 +14,13 @@
 #include <string.h>
 
 extern srTimer* g_shared_timer_base;
+extern unsigned char GetFlag68F105(void);
+extern unsigned char FindEntityByName(
+    const char* name,
+    W8Position* position,
+    int* value,
+    W8Position* direction);
+extern void SetTriggerVariableByName00444030(const char* name, int value);
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
@@ -398,7 +405,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
             return 0;
         }
     } else {
-        if (Function4C2CF0((signed char)Query(6)) == 0 && Query(7) == 0) {
+        if (IsCycleInterruptable((signed char)Query(6)) == 0 && Query(7) == 0) {
             return 0;
         }
         if (cycle == 0x15 && monster_info->monster_species == 0x199 &&
@@ -407,6 +414,84 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
         }
     }
     return 1;
+}
+
+/* Report whether a cycle may be interrupted. The original diagnostic names
+   this operation `Monster::CycleInterruptable`; its spelling is retained here
+   because it is the only source-level name available. */
+// FUNCTION: WIZ8 0x004c2cf0
+unsigned char W8Monster::IsCycleInterruptable(signed char cycle)
+{
+    signed char current_cycle;
+    signed char pending_cycle;
+    const char* pending_name;
+    const char* current_name;
+    const char* requested_name;
+
+    if (GetFlag68F105() != 0) {
+        return 1;
+    }
+    if (m_pRep->flag_06d == 0) {
+        current_cycle = (signed char)Query(6);
+        pending_cycle = m_pRep->selection.monster.pending_cycle;
+        if (pending_cycle != -1 && CanEnterCycle(pending_cycle) != 0) {
+            pending_name = g_cycle_names[pending_cycle].name;
+            if (current_cycle != -1) {
+                current_name = g_cycle_names[current_cycle].name;
+            } else {
+                current_name = "";
+            }
+            if (cycle != -1) {
+                requested_name = g_cycle_names[cycle].name;
+            } else {
+                requested_name = "";
+            }
+            FormatDebugMessage(
+                1,
+                "Monster::CycleInterruptable (ID %d) - WARNING: Monster is "
+                "not animating - Cycle %d(%s), current %d(%s), pending "
+                "%d(%s)",
+                propagated_value_1e4,
+                (int)cycle,
+                requested_name,
+                (int)current_cycle,
+                current_name,
+                (int)pending_cycle,
+                pending_name);
+        }
+        return 1;
+    }
+
+    switch (cycle) {
+    case -1:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 0x16:
+        return 1;
+    }
+    return 0;
+}
+
+/* Apply the two script-specific side effects selected before an ungrouped
+   monster is removed: state two returns it to Balbrak's home marker, while
+   state three clears the ScregActive trigger variable. */
+// FUNCTION: WIZ8 0x004c50f0
+void W8Monster::ApplyRemovalStateEffects()
+{
+    W8Position position;
+
+    switch (state_22e) {
+    case 2:
+        if (FindEntityByName("NP_Balbrakhome", &position, 0, 0) != 0) {
+            SetPosition(&position);
+        }
+        break;
+    case 3:
+        SetTriggerVariableByName00444030("ScregActive", 0);
+        break;
+    }
 }
 
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
@@ -482,7 +567,7 @@ void W8MonsterRep::StopEmitter(char cycle)
    animation index.  The assertion's `pao` spelling establishes the pointee's
    AnimObj identity without supplying a name for this Monster method. */
 // FUNCTION: WIZ8 0x004bf970
-void W8MonsterRep::ApplyEmitterSetting(char cycle)
+unsigned int W8MonsterRep::ApplyEmitterSetting(char cycle)
 {
     W8MonsterAnimationVector* selected_cycle = &animations[cycle];
     W8AnimObj** animation_slot;
@@ -502,7 +587,7 @@ void W8MonsterRep::ApplyEmitterSetting(char cycle)
             0x2de,
             0);
     }
-    AnimObjValue004A15D0(
+    return AnimObjValue004A15D0(
         animation, setting_98);
 }
 
@@ -613,6 +698,75 @@ unsigned char W8Monster::GetAnimationCenter(W8Position* center)
         return 1;
     }
     return 0;
+}
+
+/* Query the current animation state. The selector is an internal ten-entry
+   interface used by MonsterManager and the animation driver; selector eight is
+   intentionally unsupported and returns -1 with out-of-range selectors. */
+// FUNCTION: WIZ8 0x004c4660
+int W8Monster::Query(int query)
+{
+    int result = -1;
+    unsigned int animation_value;
+
+    switch (query) {
+    case 0:
+        result = m_pRep->ApplyEmitterSetting(
+            m_pRep->selection.monster.current_cycle);
+        break;
+    case 1:
+        result = GetTotalAnimationCount();
+        break;
+    case 2:
+        if (m_pRep->flag_06e != 1 && m_pRep->flag_06e != 2) {
+            result = m_pRep->flag_064 == 0;
+            break;
+        }
+        animation_value = m_pRep->ApplyEmitterSetting(
+            m_pRep->selection.monster.current_cycle);
+        result = m_pRep->flag_064 == animation_value - 1;
+        break;
+    case 3:
+        if (m_pRep->flag_06e == 1 || m_pRep->flag_06e == 2) {
+            result = m_pRep->flag_064 == 0;
+            break;
+        }
+        animation_value = m_pRep->ApplyEmitterSetting(
+            m_pRep->selection.monster.current_cycle);
+        result = m_pRep->flag_064 == animation_value - 1;
+        break;
+    case 4:
+        result = m_pRep->flag_064;
+        break;
+    case 5:
+        result = m_pRep->ApplyEmitterSetting(
+            m_pRep->selection.monster.current_cycle) != (unsigned int)-1;
+        break;
+    case 6:
+        result = m_pRep->selection.monster.current_cycle;
+        break;
+    case 7:
+        if (m_pRep->flag_070 == 3) {
+            if (m_pRep->flag_06d == 0) {
+                result = 1;
+            }
+            break;
+        }
+
+        animation_value = m_pRep->ApplyEmitterSetting(
+            m_pRep->selection.monster.current_cycle);
+        if ((m_pRep->flag_06e == 1 &&
+             m_pRep->flag_064 == animation_value - 1) ||
+            (m_pRep->flag_06e == 3 && m_pRep->flag_064 == 0) ||
+            m_pRep->flag_06e == 4 || m_pRep->flag_06e == 2) {
+            result = 1;
+        }
+        break;
+    case 9:
+        result = m_pRep->selection.monster.current_subcycle;
+        break;
+    }
+    return result;
 }
 
 // FUNCTION: WIZ8 0x004c32e0

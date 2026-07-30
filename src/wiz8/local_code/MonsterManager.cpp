@@ -55,14 +55,6 @@ void MonsterForward4A84A0(W8Monster* monster);
 float Function4BE5C0(srVector3T<float>* position);
 int Function52A780(int first, int second);
 
-/* One 8-byte row per animation cycle at 0x0060EA08, whose leading pointer is
-   the cycle's name - BIRTH is row zero. Only that field is reached. */
-struct W8CycleNameRow {
-    const char* name;
-    void* unknown_04;
-};
-extern W8CycleNameRow g_cycle_names[];
-
 /* The two cycles that always start regardless of the pending one: 0x14 is the
    cycle a motionless monster is still allowed to enter, and 0x15 is death. */
 enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
@@ -689,7 +681,7 @@ void DestroyUngroupedMonsters(void)
                 flags >>= 8;
                 if ((flags & 1) != 0 &&
                     monster->state_22e != 0) {
-                    monster->Function4C50F0();
+                    monster->ApplyRemovalStateEffects();
                 }
             }
             monster_info = MonsterGetScriptPartByLocationIndex(index);
@@ -954,7 +946,7 @@ void TryStartMonsterCycle2(
                 signed char cycle = monster->m_pRep->selection.monster.pending_cycle;
 
                 if (cycle == 2 ||
-                    monster->Function4C2CF0(cycle) == 0 ||
+                    monster->IsCycleInterruptable(cycle) == 0 ||
                     (g_in_combat_00683f94 != 0 &&
                      g_combat_state->selected_slot != 0 &&
                      g_combat_state->selected_monster == monster_info)) {
@@ -1367,7 +1359,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
     int line;
 
     if (static_cast<signed char>(behavior) == W8_BEHAVIOUR_NEVER_STOP &&
-        monster->Function4C2CF0(static_cast<signed char>(cycle)) == 0) {
+        monster->IsCycleInterruptable(static_cast<signed char>(cycle)) == 0) {
         detail = "Trying to set a NEVER_STOP behaviour with an uninterruptable cycle!";
         line = 0x46f;
     } else {
@@ -1376,7 +1368,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
             MonsterQuery(monster, 6);
         }
         if (pending != W8_CYCLE_STOP && pending != W8_CYCLE_NONE &&
-            monster->Function4C2CF0(static_cast<signed char>(pending)) == 0) {
+            monster->IsCycleInterruptable(static_cast<signed char>(pending)) == 0) {
             if (static_cast<signed char>(cycle) == W8_CYCLE_STOP) {
                 return;
             }

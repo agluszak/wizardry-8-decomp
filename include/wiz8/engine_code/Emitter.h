@@ -118,7 +118,7 @@ public:
     virtual ~W8EmitterHost() override;
     virtual void SetCycleFrameLod(
         signed char cycle, int frame, int lod) = 0;
-    virtual void ApplyEmitterSetting(char emitter) = 0;
+    virtual unsigned int ApplyEmitterSetting(char emitter) = 0;
     virtual void StopEmitter(char emitter) = 0;
 
     /* 0x6c: the host is live; the spell side checks it before starting. */
