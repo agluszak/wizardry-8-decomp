@@ -513,7 +513,7 @@ void Trigger::GetPosition(W8Position* position) const
 }
 
 // VTABLE: WIZ8 0x005ec104
-// class srClassSupport<Trigger,srClass,0,65544>
+// class srClassSupport<Trigger,srClass,1,65544>
 
 // FUNCTION: WIZ8 0x0043ba10
 Trigger::Trigger()
@@ -2465,19 +2465,19 @@ Trigger::~Trigger()
 }
 
 // TEMPLATE: WIZ8 0x00445ad0
-// srClassSupport<Trigger,srClass,0,65544>::getClassID
+// srClassSupport<Trigger,srClass,1,65544>::getClassID
 
 // TEMPLATE: WIZ8 0x00445ae0
-// srClassSupport<Trigger,srClass,0,65544>::getClassName
+// srClassSupport<Trigger,srClass,1,65544>::getClassName
 
 // TEMPLATE: WIZ8 0x00445af0
-// srClassSupport<Trigger,srClass,0,65544>::clone
+// srClassSupport<Trigger,srClass,1,65544>::clone
 
 // TEMPLATE: WIZ8 0x00445e00
-// srClassSupport<Trigger,srClass,0,65544>::~srClassSupport<Trigger,srClass,0,65544>
+// srClassSupport<Trigger,srClass,1,65544>::~srClassSupport<Trigger,srClass,1,65544>
 
 // SYNTHETIC: WIZ8 0x00445e90
-// srClassSupport<Trigger,srClass,0,65544>::`scalar deleting destructor'
+// srClassSupport<Trigger,srClass,1,65544>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00445f30
-// srClassSupport<Trigger,srClass,0,65544>::getClassNode
+// srClassSupport<Trigger,srClass,1,65544>::getClassNode

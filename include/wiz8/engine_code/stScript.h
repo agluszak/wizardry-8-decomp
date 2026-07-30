@@ -16,7 +16,7 @@ struct stScriptLabel {
 /* Engine Code\stScript.cpp. The two members at +0x18 and +0x28 are ordinary
    growable vectors: construction gives each capacity five, and destruction
    removes and frees every pointed-to line/label before the vector storage. */
-class stScript : public srClassSupport<stScript, srClass, 0, 0x1000d> {
+class stScript : public srClassSupport<stScript, srClass, 1, 0x1000d> {
 public:
     static const char* sGetClassName() { return "stScript"; }
 

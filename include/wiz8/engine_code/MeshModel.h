@@ -10,11 +10,6 @@ public:
     W8MeshModel005EBE98(long polygons, long vertices)
         : srMeshModel(polygons, vertices) {}
 
-    const char* getClassName() const override;             /* 0x00429B40 */
-    unsigned long getClassID() const override;             /* 0x00429B30 */
-    srRegistry::ClassNode* getClassNode() const override;  /* 0x00429B50 */
-    srModel* clone() override;                             /* 0x00429BC0 */
-
 protected:
     virtual ~W8MeshModel005EBE98() override {}
 };

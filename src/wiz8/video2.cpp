@@ -28,96 +28,32 @@ extern srNode* Function424BA0(
     float height,
     unsigned char positional_3);
 
-// FUNCTION: WIZ8 0x00429B30
-unsigned long W8MeshModel005EBE98::getClassID() const
-{
-    return 0x2010;
-}
+// TEMPLATE: WIZ8 0x00429B30
+// srClassSupport<srMeshModel,srModel,0,8208>::getClassID
 
-// FUNCTION: WIZ8 0x00429B40
-const char* W8MeshModel005EBE98::getClassName() const
-{
-    return "srMeshModel";
-}
+// TEMPLATE: WIZ8 0x00429B40
+// srClassSupport<srMeshModel,srModel,0,8208>::getClassName
 
-// FUNCTION: WIZ8 0x00429B50
-srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2010);
+// TEMPLATE: WIZ8 0x00429B50
+// srClassSupport<srMeshModel,srModel,0,8208>::getClassNode
 
-    if (node == 0) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x2000);
-
-        if (parent == 0) {
-            parent = parent_registry->registerClass(
-                "srModel", srClass::sGetClassNode(), 0x2000, 1);
-        }
-        node = registry->registerClass("srMeshModel", parent, 0x2010, 0);
-    }
-    return node;
-}
-
-// FUNCTION: WIZ8 0x00429BC0
-srModel* W8MeshModel005EBE98::clone()
-{
-    srMeshModel* copy = static_cast<srMeshModel*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x00429BC0
+// srClassSupport<srMeshModel,srModel,0,8208>::clone
 
 // SYNTHETIC: WIZ8 0x00424b70
 // W8TextureMap005EBEEC::`scalar deleting destructor'
 
-// FUNCTION: WIZ8 0x00429BE0
-unsigned long W8TextureMap005EBEEC::getClassID() const
-{
-    return 0x2111;
-}
+// TEMPLATE: WIZ8 0x00429BE0
+// srClassSupport<srTextureMap,srTexture,0,8465>::getClassID
 
-// FUNCTION: WIZ8 0x00429BF0
-const char* W8TextureMap005EBEEC::getClassName() const
-{
-    return "srTextureMap";
-}
+// TEMPLATE: WIZ8 0x00429BF0
+// srClassSupport<srTextureMap,srTexture,0,8465>::getClassName
 
-// FUNCTION: WIZ8 0x00429C00
-srRegistry::ClassNode* W8TextureMap005EBEEC::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2111);
+// TEMPLATE: WIZ8 0x00429C00
+// srClassSupport<srTextureMap,srTexture,0,8465>::getClassNode
 
-    if (node == 0) {
-        srRegistry* texture_registry = srCore.getRegistry();
-        srRegistry::ClassNode* texture =
-            texture_registry->getClassNode(0x2110);
-
-        if (texture == 0) {
-            srRegistry* iface_registry = srCore.getRegistry();
-            srRegistry::ClassNode* iface =
-                iface_registry->getClassNode(0x2100);
-
-            if (iface == 0) {
-                iface = iface_registry->registerClass(
-                    "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
-            }
-            texture = texture_registry->registerClass(
-                srTexture::sGetClassName(), iface, 0x2110, 0);
-        }
-        node = registry->registerClass(
-            "srTextureMap", texture, 0x2111, 0);
-    }
-    return node;
-}
-
-// FUNCTION: WIZ8 0x00429CA0
-srTexture* W8TextureMap005EBEEC::clone()
-{
-    srTextureMap* copy = static_cast<srTextureMap*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x00429CA0
+// srClassSupport<srTextureMap,srTexture,0,8465>::clone
 
 // FUNCTION: WIZ8 0x00424A90
 srNode* VideoMakePoster(
@@ -143,46 +79,17 @@ srNode* VideoMakePoster(
     return Function424BA0(texture, width, height, positional_3);
 }
 
-// FUNCTION: WIZ8 0x00429A40
-unsigned long W8ColorSurface005EBD10::getClassID() const
-{
-    return 0x3110;
-}
+// TEMPLATE: WIZ8 0x00429A40
+// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassID
 
-// FUNCTION: WIZ8 0x00429A50
-const char* W8ColorSurface005EBD10::getClassName() const
-{
-    return srColorSurface::sGetClassName();
-}
+// TEMPLATE: WIZ8 0x00429A50
+// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassName
 
-// FUNCTION: WIZ8 0x00429A60
-srRegistry::ClassNode* W8ColorSurface005EBD10::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x3110);
+// TEMPLATE: WIZ8 0x00429A60
+// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassNode
 
-    if (node == 0) {
-        srRegistry::ClassNode* parent = registry->getClassNode(0x3100);
-        if (parent == 0) {
-            parent = registry->registerClass(
-                srColorSurfaceIFace::sGetClassName(),
-                srClass::sGetClassNode(),
-                0x3100,
-                1);
-        }
-        node = registry->registerClass(
-            srColorSurface::sGetClassName(), parent, 0x3110, 0);
-    }
-    return node;
-}
-
-// FUNCTION: WIZ8 0x00429AD0
-srColorSurfaceIFace* W8ColorSurface005EBD10::clone()
-{
-    srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x00429AD0
+// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::clone
 
 extern "C" {
 extern int g_pixel_format_603c48;

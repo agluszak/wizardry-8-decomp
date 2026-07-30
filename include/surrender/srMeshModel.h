@@ -36,7 +36,22 @@ public:
     srModel();
     srModel(const srModel& other);
 
-    static const char* sGetClassName();
+    static const char* sGetClassName()
+    {
+        return "srModel";
+    }
+
+    static srRegistry::ClassNode* sGetClassNode()
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x2000);
+
+        if (node == 0) {
+            node = registry->registerClass(
+                sGetClassName(), srClass::sGetClassNode(), 0x2000, 1);
+        }
+        return node;
+    }
 
     virtual void dump(std::ostream& stream) override;
 
@@ -58,17 +73,23 @@ protected:
     Client* first_client_18;
 };
 
-class SR_DLL_IMPORT srMeshModel : public srModel {
+class SR_DLL_IMPORT srMeshModel
+    : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
     struct TriMesh;
 
     srMeshModel(long polygons, long vertices);
     srMeshModel& operator=(const srMeshModel& other);
+
+    static const char* sGetClassName()
+    {
+        return "srMeshModel";
+    }
+
     virtual void dump(std::ostream& stream) override;
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
-    virtual srModel* clone() override;
     virtual int getBoundingSphere(
         srVector3T<float>& center, float& radius) override;
     virtual int getBoundingBox(srVector3T<float>& minimum,

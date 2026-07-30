@@ -5,7 +5,8 @@
 class srGERD;
 class srModeler;
 
-class SR_DLL_IMPORT srScene : public srNode {
+class SR_DLL_IMPORT srScene
+    : public srClassSupport<srScene, srNode, 0, 0x1010> {
 public:
     enum e_enable {
         ENABLE_POSITIONAL_0 = 0
@@ -39,7 +40,10 @@ public:
     int isEnabled(e_enable option) const;
     void render(srGERD& renderer, class srCamera* camera);
     void resetStatistics();
-    static const char* sGetClassName();
+    static const char* sGetClassName()
+    {
+        return "srScene";
+    }
     void setAmbientLight(float red, float green, float blue);
     void setAmbientLight(const srVector3T<float>& color);
     void setFogColor(float red, float green, float blue);
@@ -55,7 +59,8 @@ protected:
     unsigned long unknown_18c_;              /* 0x18c */
 };
 
-class SR_DLL_IMPORT srCamera : public srNode {
+class SR_DLL_IMPORT srCamera
+    : public srClassSupport<srCamera, srNode, 0, 0x1400> {
 public:
     enum e_project {
         PROJECT_POSITIONAL_0 = 0
@@ -100,7 +105,10 @@ public:
         const srVector3T<double>& input);
     void setProjectionType(e_project projection);
     void normalizeViewPlane();
-    static const char* sGetClassName();
+    static const char* sGetClassName()
+    {
+        return "srCamera";
+    }
     void setEnvironmentScale(float near_scale, float far_scale);
     void setFocalLength(double focal_length, double aspect_ratio);
     void setFOV(double field_of_view, double aspect_ratio);

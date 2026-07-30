@@ -7,11 +7,6 @@ class W8Scene005EBE48 : public srScene {
 public:
     explicit W8Scene005EBE48(srNode* parent) : srScene(parent) {}
 
-    const char* getClassName() const override;     /* 0x0042A0D0 */
-    unsigned long getClassID() const override;     /* 0x0042A0C0 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x0042A0E0 */
-    srNode* clone() override;                      /* 0x0042A150 */
-
     void ClearOverlayState()
     {
         ambient_light_174.x = 0.0f;

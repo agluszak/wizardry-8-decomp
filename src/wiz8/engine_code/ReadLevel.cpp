@@ -852,7 +852,7 @@ unsigned char ReadLevel(
                     if (material_iface != 0) {
                         srMaterial* material = static_cast<srMaterial*>(
                             material_iface);
-                        srMaterial* copy = material->clone();
+                        srMaterial* copy = static_cast<srMaterial*>(material->clone());
                         copy->setName("Unsunlit Prop Material");
                         copy->autoRelease();
                         copy->parms_18.ambient.x = 0.0f;
