@@ -23,7 +23,15 @@ public:
     SR_DLL_IMPORT void setAlignment(e_alignSize alignment);
 
 private:
-    class Block;
+    struct Block {
+        Block* next_00;
+        Block* previous_04;
+        void* raw_allocation_08;
+        const char* name_0c;
+        unsigned long allocation_size_10;
+        unsigned long requested_size_14;
+        unsigned long reserved_18[2];
+    };
 
     SR_DLL_IMPORT Block* align(void* allocation);
 
@@ -31,7 +39,7 @@ private:
     unsigned long allocated_bytes_04;
     unsigned long allocation_count_08;
     e_alignSize alignment_0c;
-    int unknown_10;
+    int clear_10;
 };
 
 static_assert(sizeof(srMemoryAllocator) == 0x14,
