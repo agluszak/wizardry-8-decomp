@@ -187,6 +187,12 @@ EXPORTS
     ?getName@srMemoryAllocator@@QBEPBDPAX@Z
     ?getSize@srMemoryAllocator@@QBEKPAX@Z
     ?setAlignment@srMemoryAllocator@@QAEXW4e_alignSize@1@@Z
+    ??0srGlobalRecycler@@QAE@XZ
+    ??1srGlobalRecycler@@QAE@XZ
+    ?allocate@srGlobalRecycler@@QAEPAXK@Z
+    ?free@srGlobalRecycler@@QAEXPAX@Z
+    ?releaseAllUnused@srGlobalRecycler@@QAEXXZ
+    ?setLimit@srGlobalRecycler@@QAEXK@Z
     ??0srBinStream@@IAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@

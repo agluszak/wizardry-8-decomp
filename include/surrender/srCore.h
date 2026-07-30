@@ -3,12 +3,12 @@
 #include <iostream>
 
 #include "srFileManager.h"
+#include "srGlobalRecycler.h"
 #include "srHeap.h"
 #include "srMemoryAllocator.h"
 
 class srColorSurfaceIFace;
 class srFilter;
-class srGlobalRecycler;
 class srHierarchyIOManager;
 class srIStreamOpener;
 class srMaterial;
