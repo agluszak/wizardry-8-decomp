@@ -80,6 +80,7 @@ public:
     SR_DLL_IMPORT int setParent(srNode* parent, int preserve_world_transform);
     SR_DLL_IMPORT void setLocation(double x, double y, double z);
     SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
+    SR_DLL_IMPORT srVector3T<double> getLocation() const;
     SR_DLL_IMPORT void setRotation(double x, double y, double z);
     SR_DLL_IMPORT void setRotation(const srMatrix3T<float>& rotation);
     SR_DLL_IMPORT srVector3T<double> getScale() const;

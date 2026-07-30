@@ -20,6 +20,10 @@ public:
         ClassNode* node, srRuntimeClass* instance);
     SR_DLL_IMPORT void unregisterInstance(
         ClassNode* node, srRuntimeClass* instance);
+    SR_DLL_IMPORT srRuntimeClass* find(
+        ClassNode* node,
+        const char* name,
+        const srRuntimeClass* relative_to);
 };
 
 class srRuntimeClass {

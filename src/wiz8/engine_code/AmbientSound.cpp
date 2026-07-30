@@ -112,7 +112,7 @@ void W8AmbientSound::Update0047A310()
         if (sound_handle_bc != -1) {
             W8Timer005EC0A4* timer = &timer_108;
 
-            if (timer->Method0043A190() >= 1.0f) {
+            if (timer->GetProgress() >= 1.0f) {
                 if (value_9c > value_a0) {
                     ++value_a0;
                 }

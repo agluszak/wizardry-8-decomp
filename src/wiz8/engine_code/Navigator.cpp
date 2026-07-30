@@ -1,8 +1,10 @@
 #include "wiz8/grcycle.h"
 
 #include "surrender/srNode.h"
+#include "wiz8/utility.h"
 
 #include <string.h>
+#include <math.h>
 
 namespace {
 
@@ -76,6 +78,28 @@ W8Navigator::W8Navigator()
 srVector3T<float> W8Navigator::GetPosition()
 {
     return fields.position_100;
+}
+
+// FUNCTION: WIZ8 0x00454950
+unsigned char W8Navigator::UpdateTrackedPosition00454950()
+{
+    float dx = fields.tracked_position_0a4.x - fields.position_100.x;
+    float dy = fields.tracked_position_0a4.y - fields.position_100.y;
+    float dz = fields.tracked_position_0a4.z - fields.position_100.z;
+    float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+
+    if (distance > fields.tracked_distance_0b0) {
+        fields.tracked_position_0a4 = fields.position_100;
+        fields.tracked_dirty_0b4 = 1;
+    }
+    return fields.tracked_dirty_0b4;
+}
+
+// FUNCTION: WIZ8 0x004538f0
+void W8Navigator::SetAngles004538F0(float angle)
+{
+    fields.angle_0d4 = NormalizeAngle(angle);
+    fields.angle_0d8 = NormalizeAngle(angle);
 }
 
 // FUNCTION: WIZ8 0x00453970

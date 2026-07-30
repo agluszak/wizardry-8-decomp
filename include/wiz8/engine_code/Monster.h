@@ -12,7 +12,7 @@
 
 struct W8AnimObj;
 struct W8PList;
-class stModelInstance;
+class stModelInstance005EC7D0;
 
 typedef struct W8MonsterRep W8MonsterRep;
 
@@ -185,23 +185,23 @@ public:
     virtual unsigned char GetAnimationBounds(
         W8Position* minimum, W8Position* maximum) override;
     virtual unsigned char GetAnimationRadius(float* radius) override;
-    virtual void vslot12() override;
+    virtual void SetCycle(signed char cycle) override;
     virtual W8AnimObj* GetCurrentAnimation() override;
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
-    virtual void vslot16();
+    virtual void Update();
     virtual void SetCurrentAnimationScale(float scale);
     virtual void GetMappedPosition004C72A0(W8Position* position);
     virtual unsigned char GetAnimationCenter(W8Position* center);
     virtual void SetPosition(const W8Position* position) override;
 
     int Query(int query);                              /* 0x004C4660 */
-    void SetRuntimeValueA6(unsigned char value);       /* 0x004C6C00 */
+    void SetRuntimeValueA6(signed char value);         /* 0x004C6C00 */
     unsigned char IsDying();                           /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
     void CollectModelInstances004C6350(
-        W8GrowableVector<stModelInstance*>* instances);
+        W8GrowableVector<stModelInstance005EC7D0*>* instances);
     void SetDamageStage004C6990(int stage);
     int GetDamageStageCount004C6A50();
     unsigned char IsRenderable004C7C00(char alternate);
@@ -210,6 +210,8 @@ public:
     void HandleAnimationFrame004C74D0(unsigned char frame);
     void UpdateShakeEvents004C3380(unsigned char frame);
     void SetShakeEventVisibility004BF9E0(signed char cycle);
+    void UpdateAttachedObjects004C3F70();
+    void ProcessScript004C80E0();
 
 public:
     W8MonsterRep* m_pRep;
@@ -243,7 +245,9 @@ public:
     unsigned char flag_22d;
     signed char state_22e;
     unsigned char unknown_22f;
-    unsigned char unknown_230[8];
+    typedef void (__cdecl *CycleCallback)(W8Monster* monster);
+    CycleCallback cycle_callback_230;
+    int callback_cycle_234;
     srClass* object_238;
     int value_23c;
     int value_240;
@@ -259,7 +263,7 @@ public:
     W8MonsterState2FC state_2fc;
     W8Timer005EC0A4 timer_30c;
     W8MonsterFlags330 flags_330;
-    srClass* object_334;
+    srNode* object_334;
     W8GrowableVector<int> values_338;
 };
 

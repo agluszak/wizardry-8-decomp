@@ -47,6 +47,26 @@ public:
 
 static_assert(sizeof(stModelInstance) == 0x190, "stModelInstance_size_must_be_0x190");
 
+/* The constructor at 0x0047EC80 first builds the 0x190-byte
+   stModelInstance base, then installs vtables 0x005EC7D0/0x005EC7C0 and
+   initializes the fields below through +0x1ac.  Its original derived-class
+   name is not yet available. */
+class stModelInstance005EC7D0 : public stModelInstance {
+public:
+    int value_190;
+    srVector3T<float> scale_194;
+    unsigned char flag_1a0;
+    unsigned char flag_1a1;
+    unsigned char unknown_1a2[2];
+    int value_1a4;
+    int value_1a8;
+    float value_1ac;
+};
+
+static_assert(
+    sizeof(stModelInstance005EC7D0) == 0x1b0,
+    "stModelInstance005EC7D0_size_must_be_0x1b0");
+
 /* Engine Code\stModelInstance.cpp, alongside the 3D form above. The two ids are
    adjacent, which is what pairs them. */
 class stModelInstance2D {
@@ -102,6 +122,23 @@ public:
 };
 
 // VTABLE: WIZ8 0x005ecc64
+struct stLightDefinition {
+    void* vftable_00;
+    int type_04;
+    unsigned int flags_08;
+    unsigned char unknown_0c[4];
+    srVector3T<float> color_10;
+    unsigned char unknown_1c[0x0c];
+    float intensity_28;
+    unsigned char unknown_2c[0x1c];
+    int value_48;
+    int value_4c;
+};
+
+static_assert(
+    sizeof(stLightDefinition) == 0x50,
+    "stLightDefinition_size_must_be_0x50");
+
 class stLight : public srLight {
 public:
     stLight();                                         /* 0x004CA8B0 */
@@ -122,11 +159,12 @@ public:
     virtual void process(
         const srNode::ProcessInfo& info,
         srNode::e_processType type) override;       /* 0x0049C8D0 */
+    void Reset0049D070();                           /* 0x0049D070 */
 
     float positionalX() const { return m_positional_228; }
     float positionalY() const { return m_positional_22c; }
     float positionalZ() const { return m_positional_230; }
-    void* worldLink() const { return m_owned_234; }
+    stLightDefinition* definition() const { return m_definition_234; }
     void ConfigureMonsterCopy()
     {
         m_positional_18 = 2;
@@ -138,7 +176,7 @@ private:
     float m_positional_228;                         /* 0x228 */
     float m_positional_22c;                         /* 0x22c */
     float m_positional_230;                         /* 0x230 */
-    void* m_owned_234;                              /* 0x234 */
+    stLightDefinition* m_definition_234;            /* 0x234: owned */
     unsigned char m_positional_238;                 /* 0x238 */
     unsigned char m_positional_239;                 /* 0x239 */
     unsigned char m_positional_23a;                 /* 0x23a */
@@ -198,6 +236,7 @@ public:
     MonsterLight(const MonsterLight& other);          /* 0x0049D660 */
     void SetVisible0049D970(char visible);
     void Update0049D990(const W8Position* position);
+    void StartFadeOut0049DAF0();
 
     virtual const char* getClassName() const override; /* 0x0049DC30 */
     virtual unsigned long getClassID() const override; /* 0x0049DC20 */

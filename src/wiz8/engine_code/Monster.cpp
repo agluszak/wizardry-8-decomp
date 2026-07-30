@@ -15,7 +15,9 @@
 #include "wiz8/utility.h"
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srTimer.h"
+#include "surrender/srScene.h"
 #include "surrender/srModelInstance.h"
+#include "surrender/srCore.h"
 #include "Random.h"
 #include <windows.h>
 
@@ -35,8 +37,27 @@ extern char* FormatString(const char* format, ...);
 extern const float g_monster_rotation_offset_005ec04c;
 extern const float g_monster_scale_step_005ebc3c;
 extern float g_float_005ebb34;
+extern const float g_float_005ebcf8;
+extern const double g_monster_death_rotation_pi_005ed1f0;
+extern float g_light_scale_0060bfe0;
+extern float g_light_scale_identity_005ebb38;
+extern float g_monster_scale_transition_step_005ebcf4;
+extern float g_monster_condition_scale_005ebc7c;
 extern unsigned char g_monster_model_value_enabled_00685111;
+extern unsigned char g_monster_shadow_updates_enabled_0065970c;
+extern unsigned char g_monster_combat_timer_enabled_006f0531;
+extern unsigned char g_flag_00683fce;
 extern void SetChainValue15C(char* node, int value);
+extern void ReleaseSoundHandle00408F70(int handle);
+extern void GetPosition421070(W8Position* position);
+extern void __stdcall Function4A7BE0(const float* position);
+extern W8WideChar* GetMonsterName(
+    W8MonsterInfo* monster_info,
+    W8MonsterRecord* record,
+    unsigned char name_form);
+
+static W8GrowableVector<stModelInstance005EC7D0*>
+    g_monster_model_instances_682fd0;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
@@ -353,7 +374,7 @@ W8Monster::W8Monster(const W8Monster& rhs)
     state_2fc.scale_04 = 1.0f;
     flags_1dc &= 0xfffffcb6;
     state_22e = 0;
-    unknown_230[0] = 0;
+    cycle_callback_230 = 0;
     if (flags_330.copied_flag_02 != 0) {
         fields.state_088 = 0;
     }
@@ -395,6 +416,368 @@ void W8Monster::SetPosition(const W8Position* position)
     m_pRep->SetLocation004B8850(position);
     SetPositionInternal00453590(position);
     fields.position_dirty_09c = 1;
+}
+
+/* Advance the non-rendering half of one live Monster. This is the main
+   Monster.cpp update slot: it maintains distance-driven model scale, the
+   sunlight/ground-shadow transition, Navigator state, pending animation
+   cycles, attached objects, and the optional scene node. Rendering remains in
+   UpdateRepresentation. */
+// FUNCTION: WIZ8 0x004c2100
+void W8Monster::Update()
+{
+    W8Position party_position;
+    W8Position monster_position;
+    W8MonsterInfo* monster_info = 0;
+    float dx;
+    float dy;
+    float dz;
+    float distance;
+    int cycle;
+    int index;
+
+    if (m_pRep == 0) {
+        srAssertFail("m_pRep", MONSTER_CPP, 0x7f9, 0);
+    }
+
+    GetPosition421070(&party_position);
+    {
+        srVector3T<float> position = GetPosition();
+        monster_position.x = position.x;
+        monster_position.y = position.y;
+        monster_position.z = position.z;
+    }
+    dx = monster_position.x - party_position.x;
+    dy = monster_position.y - party_position.y;
+    dz = monster_position.z - party_position.z;
+    distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+
+    if (state_2ac.value_24 == -1 ||
+        g_light_scale_0060bfe0 < g_light_scale_identity_005ebb38) {
+        state_2fc.scale_04 = 0.75f;
+        g_monster_model_instances_682fd0.Clear();
+        CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
+        for (index = 0;
+             index < g_monster_model_instances_682fd0.GetCount();
+             ++index) {
+            stModelInstance005EC7D0* model =
+                *g_monster_model_instances_682fd0.GetAt(index);
+            model->scale_194.x = 0.75f;
+            model->scale_194.y = 0.75f;
+            model->scale_194.z = 0.75f;
+        }
+        state_2fc.scale_00 = 0.75f;
+        timer_2d8.SetDuration(0.025f);
+        timer_2d8.Restart();
+        state_2ac.value_24 = 1;
+        state_2ac.flag_28 = 1;
+    }
+
+    if (g_monster_shadow_updates_enabled_0065970c != 0 &&
+        (state_2ac.flag_28 != 0 || UpdateTrackedPosition00454950() != 0)) {
+        state_2ac.flag_28 = 0;
+        if (distance < WorldGetValue78(g_world)) {
+            srNode* sun = static_cast<srNode*>(
+                srCore.getRegistry()->find(
+                    g_world->dynamic_scene->getClassNode(), "SUN", 0));
+            if (sun != 0) {
+                W8Position mapped_position;
+                srVector3T<double> sun_location = sun->getLocation();
+                W8Position sun_position;
+
+                GetMappedPosition004C72A0(&mapped_position);
+                sun_position.x = (float)sun_location.x;
+                sun_position.y = (float)sun_location.y;
+                sun_position.z = (float)sun_location.z;
+                if (g_engine_state_6598a4->HasLineOfSight00434B60(
+                        &mapped_position, &sun_position, 1)) {
+                    if (state_2ac.value_24 == 0) {
+                        state_2fc.scale_00 = 0.75f;
+                        timer_2d8.SetDuration(0.025f);
+                        timer_2d8.Restart();
+                        state_2ac.value_24 = 1;
+                    }
+                }
+                else if (state_2ac.value_24 == 1) {
+                    state_2fc.scale_00 = 0.0f;
+                    timer_2d8.SetDuration(0.025f);
+                    timer_2d8.Restart();
+                    state_2ac.value_24 = 0;
+                }
+            }
+        }
+    }
+
+    if (state_2fc.scale_04 != state_2fc.scale_00 &&
+        timer_2d8.GetProgress() >= g_light_scale_identity_005ebb38) {
+        if (state_2fc.scale_00 <= state_2fc.scale_04) {
+            state_2fc.scale_04 -= g_monster_scale_transition_step_005ebcf4;
+            if (state_2fc.scale_04 < state_2fc.scale_00) {
+                state_2fc.scale_04 = state_2fc.scale_00;
+            }
+        }
+        else {
+            state_2fc.scale_04 += g_monster_scale_transition_step_005ebcf4;
+            if (state_2fc.scale_04 > state_2fc.scale_00) {
+                state_2fc.scale_04 = state_2fc.scale_00;
+            }
+        }
+        g_monster_model_instances_682fd0.Clear();
+        CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
+        for (index = 0;
+             index < g_monster_model_instances_682fd0.GetCount();
+             ++index) {
+            stModelInstance005EC7D0* model =
+                *g_monster_model_instances_682fd0.GetAt(index);
+            model->scale_194.x = state_2fc.scale_04;
+            model->scale_194.y = state_2fc.scale_04;
+            model->scale_194.z = state_2fc.scale_04;
+        }
+        timer_2d8.Restart();
+    }
+
+    if (flags_330.flag_00 != 0) {
+        float progress = timer_30c.GetProgress();
+        if (progress > g_light_scale_identity_005ebb38) {
+            progress = g_light_scale_identity_005ebb38;
+        }
+        if (flags_330.flag_00 == 0xfe) {
+            if (progress == g_light_scale_identity_005ebb38) {
+                flags_330.flag_00 = 0;
+                timer_30c.SetDuration(3.0f);
+                timer_30c.Restart();
+                if ((signed char)flags_330.flag_00 < 1) {
+                    m_pRep->value_05c = g_light_scale_identity_005ebb38;
+                    m_pRep->flag_061 = 1;
+                    flags_330.flag_00 = 0xff;
+                }
+                else {
+                    timer_30c.SetProgress(
+                        g_light_scale_identity_005ebb38 - m_pRep->value_05c);
+                    flags_330.flag_00 = 0xff;
+                }
+            }
+        }
+        else {
+            if ((signed char)flags_330.flag_00 < 1) {
+                m_pRep->value_05c =
+                    g_light_scale_identity_005ebb38 - progress;
+            }
+            else {
+                m_pRep->value_05c = progress;
+            }
+            m_pRep->flag_061 = 1;
+            if (progress == g_light_scale_identity_005ebb38) {
+                if ((signed char)flags_330.flag_00 < 0) {
+                    flags_1dc |= 0x400;
+                }
+                flags_330.flag_00 = 0;
+            }
+        }
+    }
+
+    cycle = Query(6);
+    SetGroundShadowVisible(
+        cycle != 0 && cycle != 0x15 && flags_330.flag_00 == 0 &&
+        (flags_1dc & 0x400) == 0);
+
+    {
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x86a, MONSTER_CPP, propagated_value_1e4, 0);
+        if (monster_index != 0xffffffff) {
+            monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+        }
+    }
+
+    if (GetFlag68F105() == 0) {
+        if ((cycle == 1 || cycle == 2) &&
+            m_pRep->selection.monster.pending_cycle == -1 &&
+            fields.flag_024 == 0 && fields.flag_025 == 0) {
+            fields.flags_00c |= 0x100000;
+        }
+
+        if (monster_info == 0) {
+            UpdateNavigation004553A0(0, 0);
+        }
+        else {
+            UpdateNavigation004553A0(
+                monster_info->value_107 >= 0x0e,
+                monster_info->condition_turns[5] != 0);
+        }
+
+        if (cycle != 0x15 && object_238 != 0 &&
+            g_in_combat_00683f94 == 0) {
+            ProcessScript004C80E0();
+            cycle = Query(6);
+        }
+
+        if ((flags_1dc & 0x20) == 0 &&
+            m_pRep->selection.monster.pending_cycle == -1) {
+            switch (cycle) {
+            case 0:
+                if (Query(7) != 0) {
+                    m_pRep->selection.monster.pending_cycle = 1;
+                    m_pRep->active = 1;
+                    m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                        srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->behaviour_071 = 3;
+                    m_pRep->value_066 = 0;
+                }
+                break;
+            case 1:
+            case 2:
+                if (fields.flag_024 == 0 && fields.flag_025 == 0 &&
+                    (Query(2) != 0 || unknown_1bc != 0)) {
+                    fields.flags_00c &= ~0x100000;
+                    if (IsCycleSupported(3) == 0) {
+                        m_pRep->behaviour_071 = 3;
+                        m_pRep->selection.monster.pending_cycle = 4;
+                    }
+                    else {
+                        m_pRep->selection.monster.pending_cycle = 3;
+                        m_pRep->flag_06e = 1;
+                        m_pRep->behaviour_071 = 1;
+                        m_pRep->value_066 = 0;
+                    }
+                    m_pRep->active = 1;
+                    m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                        srTimer::TIMER_READ_DEFAULT);
+                }
+                break;
+            case 3:
+                if (Query(7) != 0) {
+                    if (m_pRep->flag_06e == 3) {
+                        m_pRep->flag_06e = 1;
+                        m_pRep->selection.monster.pending_cycle = 1;
+                    }
+                    else {
+                        m_pRep->selection.monster.pending_cycle = 4;
+                    }
+                    m_pRep->active = 1;
+                    m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                        srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->behaviour_071 = 3;
+                    m_pRep->value_066 = 0;
+                }
+                break;
+            case 4:
+                if (fields.flag_024 != 0 || fields.flag_025 != 0) {
+                    bool transition = Query(2) != 0 || unknown_1bc != 0;
+                    if (!transition && m_pRep->flag_601 == 0) {
+                        transition = Query(4) < Query(0) / 2;
+                    }
+                    if (transition) {
+                        while (values_338.GetCount() != 0) {
+                            ReleaseSoundHandle00408F70(*values_338.GetAt(0));
+                            values_338.RemoveAt(0);
+                        }
+                        if (IsCycleSupported(3) == 0) {
+                            m_pRep->behaviour_071 = 3;
+                            m_pRep->selection.monster.pending_cycle = 1;
+                        }
+                        else {
+                            m_pRep->selection.monster.pending_cycle = 3;
+                            m_pRep->flag_06e = 3;
+                            m_pRep->behaviour_071 = 1;
+                            m_pRep->value_066 = (unsigned short)(Query(0) - 1);
+                            flags_1dc |= 1;
+                        }
+                        m_pRep->active = 1;
+                        m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                            srTimer::TIMER_READ_DEFAULT);
+                    }
+                }
+                break;
+            case 0x17:
+                if (Query(7) != 0) {
+                    if ((signed char)fields.flags_00c != 0) {
+                        fields.value_020 = 0x17;
+                        fields.value_018 = GetTickCount();
+                        fields.value_01c = Random(2000) + 2000;
+                        m_pRep->selection.monster.pending_cycle = 0x18;
+                        m_pRep->flag_06e = 1;
+                        m_pRep->behaviour_071 = 1;
+                    }
+                    else {
+                        m_pRep->selection.monster.pending_cycle = 1;
+                    }
+                    m_pRep->active = 1;
+                    m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                        srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->value_066 = 0;
+                }
+                break;
+            case 0x18:
+                if (Query(7) != 0) {
+                    if (fields.value_01c < GetTickCount() - fields.value_018 &&
+                        IsCycleSupported(0x17) != 0) {
+                        m_pRep->selection.monster.pending_cycle = 0x17;
+                    }
+                    else {
+                        m_pRep->selection.monster.pending_cycle = 0x18;
+                    }
+                    m_pRep->flag_06e = 1;
+                    m_pRep->behaviour_071 = 1;
+                    m_pRep->active = 1;
+                    m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                        srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->value_066 = 0;
+                }
+                break;
+            case 0x19:
+                if (Query(7) != 0) {
+                    m_pRep->selection.monster.pending_cycle = 1;
+                    m_pRep->flag_06e = 1;
+                    m_pRep->active = 1;
+                    m_pRep->timer_068 = g_shared_timer_base->getUTime(
+                        srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->behaviour_071 = 3;
+                    m_pRep->value_066 = 0;
+                }
+                break;
+            }
+        }
+    }
+
+    if (m_pRep->active == 0) {
+        return;
+    }
+
+    UpdateAttachedObjects004C3F70();
+    cycle = Query(6);
+    if (g_monster_combat_timer_enabled_006f0531 != 0 &&
+        g_combat_state != 0 &&
+        (g_combat_state->flag_001 != 0 || g_flag_00683fce != 0) &&
+        (cycle == 1 || cycle == 2) &&
+        (m_pRep->selection.monster.pending_cycle == -1 ||
+         m_pRep->selection.monster.pending_cycle == 1 ||
+         m_pRep->selection.monster.pending_cycle == 2) &&
+        (g_combat_state->selected_slot != 2 ||
+         g_combat_state->selected_monster == 0 ||
+         g_combat_state->selected_monster->location_id != propagated_value_1e4)) {
+        m_pRep->timer_068 = g_shared_timer_base->getUTime(
+            srTimer::TIMER_READ_DEFAULT);
+    }
+
+    if (monster_info != 0 && monster_info->condition_turns[5] != 0) {
+        TickAnimation(
+            Query(6) == 4
+                ? fields.value_124 * g_monster_condition_scale_005ebc7c
+                : 0.5f);
+    }
+    else {
+        TickAnimation(Query(6) == 4 ? fields.value_124 : 1.0f);
+    }
+    InitializeAnimatedTexture004C51D0();
+
+    if (object_334 != 0) {
+        srVector3T<float> position = GetPosition();
+        srVector3T<double> location;
+        location.x = position.x;
+        location.y = position.y;
+        location.z = position.z;
+        object_334->setLocation(location);
+    }
 }
 
 /* Decide whether a requested cycle can replace the current one. Monster adds
@@ -668,7 +1051,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
-            *(float*)((char*)model + 0x1ac) =
+            static_cast<stModelInstance005EC7D0*>(model)->value_1ac =
                 g_monster_model_value_enabled_00685111 != 0
                     ? unknown_1d4 : 0.0f;
             SetChainValue15C((char*)model, 4);
@@ -813,6 +1196,206 @@ unsigned char W8Monster::IsCycleSupported(signed char cycle)
             "IsCycleSupported() -> Invalid cycle num.");
     }
     return m_pRep->animations[cycle].GetCount() != 0;
+}
+
+/* Select a concrete animation subcycle and rebuild the renderer-facing light
+   and model state for it.  The one stack argument and RET 4 establish the
+   primary-vtable slot as an ordinary signed-byte cycle setter. */
+// FUNCTION: WIZ8 0x004c3790
+void W8Monster::SetCycle(signed char cycle)
+{
+    W8MonsterAnimationVector* animations;
+    W8MonsterLightVector* lights;
+    W8AnimObj* animation;
+    signed char subcycle;
+    int count;
+    int index;
+
+    if (cycle < 0 || cycle >= W8_MONSTER_CYCLE_COUNT) {
+        srAssertFail(
+            "bCycle >= CYCLE_FIRST && bCycle <= CYCLE_LAST",
+            MONSTER_CPP,
+            0xb14,
+            0);
+    }
+
+    animations = &m_pRep->animations[cycle];
+    count = animations->GetCount();
+    if (count == 0) {
+        if (m_pRep->animations[1].GetCount() < 1) {
+            W8MonsterInfo* monster_info =
+                MonsterGetScriptPartByLocationIndex(
+                    MonsterGetIndexByLocationID(
+                        0xb26, MONSTER_CPP, propagated_value_1e4, 1));
+            srAssertFail(
+                "FALSE",
+                MONSTER_CPP,
+                0xb26,
+                FormatString(
+                    "ERROR: Monster %ls has no IDLE cycle!",
+                    GetMonsterName(monster_info, 0, 0)));
+            return;
+        }
+
+        W8MonsterInfo* monster_info =
+            MonsterGetScriptPartByLocationIndex(
+                MonsterGetIndexByLocationID(
+                    0xb1d, MONSTER_CPP, propagated_value_1e4, 1));
+        FormatDebugMessage(
+            0,
+            "WARNING: Monster %ls is missing anim cycle %s",
+            GetMonsterName(monster_info, 0, 0),
+            g_cycle_names[cycle].name);
+        m_pRep->Method004BF0F0(cycle, m_pRep, 1);
+        count = animations->GetCount();
+        if (count == 0) {
+            return;
+        }
+    }
+
+    if (count == 1) {
+        subcycle = 0;
+    }
+    else if (count < 2) {
+        srAssertFail("0", MONSTER_CPP, 0xb43, 0);
+        subcycle = 0;
+    }
+    else if (m_pRep->selection.monster.runtime_value_a6 == -1 ||
+             count <= m_pRep->selection.monster.runtime_value_a6) {
+        if ((flags_1dc & 0x10) == 0) {
+            subcycle = (signed char)(GetTickCount() % count);
+        }
+        else {
+            flags_1dc &= ~0x10;
+            subcycle = m_pRep->selection.monster.current_subcycle;
+        }
+    }
+    else {
+        flags_1dc &= ~0x10;
+        subcycle = m_pRep->selection.monster.runtime_value_a6;
+        m_pRep->selection.monster.runtime_value_a6 = -1;
+    }
+
+    if (cycle_callback_230 != 0 &&
+        callback_cycle_234 == m_pRep->selection.monster.current_cycle) {
+        cycle_callback_230(this);
+        cycle_callback_230 = 0;
+    }
+
+    if (m_pRep->selection.monster.current_cycle != 0) {
+        lights = *m_pRep->light_lists[
+            m_pRep->selection.monster.current_cycle].GetAt(
+                m_pRep->selection.monster.current_subcycle);
+        if (lights != 0) {
+            count = lights->GetCount();
+            for (index = 0; index < count; ++index) {
+                stLight* light = *lights->GetAt(index);
+
+                light->setParent(0, 1);
+                if (light->definition() != 0) {
+                    int world_index =
+                        g_world->lights_to_update->IndexOf(light);
+                    if (world_index != -1) {
+                        g_world->lights_to_update->RemoveAt(world_index);
+                    }
+                }
+            }
+        }
+    }
+
+    m_pRep->selection.monster.current_cycle = cycle;
+    m_pRep->selection.monster.current_subcycle = subcycle;
+    animation = *animations->GetAt(subcycle);
+    if (animation == 0) {
+        srAssertFail("pao", MONSTER_CPP, 0xb51, 0);
+    }
+    m_pRep->flag_06f = animation->value_02;
+
+    {
+        srVector3T<double> camera_location = g_world->camera->getLocation();
+        W8Position listener;
+        listener.x = (float)camera_location.x;
+        listener.y = (float)camera_location.y;
+        listener.z = (float)camera_location.z;
+        Function4A7BE0(&listener.x);
+    }
+
+    GetAnimationRadius(&m_pRep->value_0a8);
+    if ((flags_1dc & 1) != 0) {
+        flags_1dc &= ~1;
+    }
+    else {
+        m_pRep->flag_06e = 1;
+    }
+
+    lights = *m_pRep->light_lists[cycle].GetAt(subcycle);
+    SetLights(lights);
+    if (lights != 0) {
+        count = lights->GetCount();
+        for (index = 0; index < count; ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(g_world->dynamic_scene, 1);
+            light->Reset0049D070();
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Add(light);
+            }
+        }
+    }
+
+    flags_1dc &= ~2;
+    m_pRep->counter_094 = 0;
+    m_pRep->counter_095 = GetNumSubCycles() - 1;
+    SetShakeEventVisibility004BF9E0(cycle);
+
+    if (lights != 0) {
+        count = lights->GetCount();
+        for (index = 0; index < count; ++index) {
+            if (enabled_1bd != 0) {
+                (*lights->GetAt(index))->clearFlag(
+                    srNode::FLAG_POSITIONAL_0);
+            }
+            else {
+                (*lights->GetAt(index))->setFlag(
+                    srNode::FLAG_POSITIONAL_0);
+            }
+        }
+    }
+    if (m_pRep->monster_light_624 != 0) {
+        m_pRep->monster_light_624->SetVisible0049D970(enabled_1bd);
+    }
+
+    g_monster_model_instances_682fd0.Clear();
+    CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
+    for (index = 0;
+         index < g_monster_model_instances_682fd0.GetCount();
+         ++index) {
+        stModelInstance005EC7D0* model =
+            *g_monster_model_instances_682fd0.GetAt(index);
+        model->scale_194.x = state_2fc.scale_04;
+        model->scale_194.y = state_2fc.scale_04;
+        model->scale_194.z = state_2fc.scale_04;
+    }
+
+    if (cycle == 0x15) {
+        W8AnimRepValue4 empty = {0, 0, 0, 0};
+        srModelInstance* instance;
+
+        m_pRep->value_04c = empty;
+        instance = SelectCycleFrameLod004A8360(
+            m_pRep->selection.monster.current_cycle,
+            0,
+            m_pRep->setting_98);
+        if (instance != 0 && instance->model() != 0 &&
+            strstr(instance->model()->getName(), "gib") != 0) {
+            SetAngles004538F0(
+                (float)(g_monster_death_rotation_pi_005ed1f0 *
+                        g_float_005ebcf8 * Random(0x168)));
+        }
+        if (m_pRep->monster_light_624 != 0) {
+            m_pRep->monster_light_624->StartFadeOut0049DAF0();
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004c3dd0
@@ -1589,8 +2172,6 @@ extern void Function453160(void);
 extern void Function4531A0(void);
 /* Cleans its own argument - the caller at 0x004C5A40 pushes and never adjusts
    afterwards - so it is __stdcall and not the cdecl the decompiler assumes. */
-extern void __stdcall Function4A7BE0(const float* position);
-
 /* The location-id lookup pair, spelled as Magic Effects.cpp already declares
    it: the index comes first and the script part is fetched from it. */
 extern unsigned int MonsterGetIndexByLocationID(
@@ -1664,7 +2245,7 @@ void MonsterForward4A7BE0(W8Monster* monster, const W8Position* position)
    the second `mov` reloads it from the cycle - which is what says the original
    spelled the two reaches out separately instead of naming the record once. */
 // FUNCTION: WIZ8 0x004c6c00
-void W8Monster::SetRuntimeValueA6(unsigned char value)
+void W8Monster::SetRuntimeValueA6(signed char value)
 {
     m_pRep->selection.monster.runtime_value_a6 = value;
     if (m_pRep->selection.monster.pending_cycle == -1) {
@@ -1876,7 +2457,7 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
    consumers read their first-party fields beyond the srModelInstance base. */
 // FUNCTION: WIZ8 0x004c6350
 void W8Monster::CollectModelInstances004C6350(
-    W8GrowableVector<stModelInstance*>* instances)
+    W8GrowableVector<stModelInstance005EC7D0*>* instances)
 {
     int cycle;
 
@@ -1960,7 +2541,7 @@ void W8Monster::CollectModelInstances004C6350(
 // FUNCTION: WIZ8 0x004c6990
 void W8Monster::SetDamageStage004C6990(int stage)
 {
-    W8GrowableVector<stModelInstance*> instances;
+    W8GrowableVector<stModelInstance005EC7D0*> instances;
     int index;
 
     CollectModelInstances004C6350(&instances);
@@ -1974,7 +2555,7 @@ void W8Monster::SetDamageStage004C6990(int stage)
 // FUNCTION: WIZ8 0x004c6a50
 int W8Monster::GetDamageStageCount004C6A50()
 {
-    W8GrowableVector<stModelInstance*> instances;
+    W8GrowableVector<stModelInstance005EC7D0*> instances;
 
     CollectModelInstances004C6350(&instances);
     if (instances.GetCount() != 0) {

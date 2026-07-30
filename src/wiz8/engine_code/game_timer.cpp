@@ -129,6 +129,55 @@ W8Timer005EC0A4::W8Timer005EC0A4(float duration, unsigned char raw_time)
     m_end = m_start + m_duration;
 }
 
+// FUNCTION: WIZ8 0x00439b80
+void W8Timer005EC0A4::SetDuration(float duration)
+{
+    if (duration > 0.0f) {
+        m_speed = duration;
+    }
+    m_duration = (int)(m_speed_2 * m_speed * 10000.0f);
+    m_end = m_start + m_duration;
+}
+
+// FUNCTION: WIZ8 0x00439d80
+void W8Timer005EC0A4::Restart()
+{
+    m_start = Sample();
+    m_end = m_start + m_duration;
+}
+
+// FUNCTION: WIZ8 0x0043a190
+float W8Timer005EC0A4::GetProgress()
+{
+    int sample = Sample();
+    int start = m_start;
+    int end = m_end;
+    float progress = (float)(unsigned int)(sample - start) /
+                     (float)(unsigned int)(end - start);
+    int completed = (int)progress;
+
+    if (completed != 0 && completed > 0) {
+        m_start = (completed - 1) * m_duration + end;
+        m_end = m_start + m_duration;
+    }
+
+    if ((m_flags & 8) == 0 &&
+        (g_shared_timer_paused == 0 || (m_flags & 1) != 0) &&
+        g_shared_timer_flag_d1 == 0 &&
+        (g_shared_timer_flag_d2 == 0 || (m_flags & 1) != 0)) {
+        return progress;
+    }
+    return 0.0f;
+}
+
+// FUNCTION: WIZ8 0x0043a290
+void W8Timer005EC0A4::SetProgress(float progress)
+{
+    int sample = Sample();
+    m_start = sample - (int)((float)(unsigned int)m_duration * progress);
+    m_end = m_start + m_duration;
+}
+
 void* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)
 {
     return new W8Timer005EC0A4(duration, raw_time);

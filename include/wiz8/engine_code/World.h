@@ -68,5 +68,6 @@ W8World* CreateWorld();
 void ConstructWorldCollections(W8World* world);
 void DestroyWorldCollections(W8World* world);
 void DestroyWorld(W8World* world);
+float WorldGetValue78(W8World* world);
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

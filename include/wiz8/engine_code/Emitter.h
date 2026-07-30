@@ -143,11 +143,11 @@ public:
         struct {
             signed char current_cycle;       /* 0xa4 */
             signed char current_subcycle;    /* 0xa5 */
-            unsigned char runtime_value_a6;  /* 0xa6 */
+            signed char runtime_value_a6;    /* 0xa6 */
             signed char pending_cycle;       /* 0xa7 */
         } monster;
     } selection;
-    unsigned int value_0a8;
+    float value_0a8;
 };                                       /* 0xac */
 
 /* Both recovered consumers directly address the first two emitters at 0xd8;

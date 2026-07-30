@@ -59,13 +59,16 @@ public:
     virtual ~W8Navigator();               /* 0x00452120 */
     virtual void SetPathAI(W8PathAI* path_ai);
     virtual W8PathAI* GetPathAI();
-    virtual unsigned char secondary_vslot3(int) const { return 1; }
+    virtual unsigned char Function4A7140(int) const { return 1; }
     virtual void SetPosition(const W8Position* position); /* 0x00456020 */
 
     void configureStartupRange(float range);
     void configureStartupDepth(float near_depth, float far_depth);
 
     srVector3T<float> GetPosition();
+    unsigned char UpdateTrackedPosition00454950();       /* 0x00454950 */
+    void UpdateNavigation004553A0(int value, char condition); /* 0x004553A0 */
+    void SetAngles004538F0(float angle);                    /* 0x004538F0 */
     float GetAngleD400453970();                           /* 0x00453970 */
     float GetAngleE000453980();                           /* 0x00453980 */
     void SetValue120(float value);                         /* 0x00453C50 */
@@ -88,7 +91,10 @@ public:
         struct {
             unsigned char unknown_004_to_00c[8];
             unsigned int flags_00c;
-            unsigned char unknown_010_to_024[0x14];
+            unsigned char unknown_010_to_018[8];
+            unsigned int value_018;
+            unsigned int value_01c;
+            unsigned int value_020;
             unsigned char flag_024;
             unsigned char flag_025;
             unsigned char unknown_026_to_05c[0x36];
@@ -105,7 +111,11 @@ public:
             signed char current_subcycle_08d;
             unsigned char unknown_08e_to_09c[0x0e];
             unsigned char position_dirty_09c;
-            unsigned char unknown_09d_to_0c4[0x27];
+            unsigned char unknown_09d_to_0a4[7];
+            srVector3T<float> tracked_position_0a4;
+            float tracked_distance_0b0;
+            unsigned char tracked_dirty_0b4;
+            unsigned char unknown_0b5_to_0c4[0x0f];
             unsigned short location_id_0c4;
             unsigned char unknown_0c6[2];
             int value_0c8;
@@ -123,7 +133,8 @@ public:
             srVector3T<float> position_10c;
             unsigned char unknown_118_to_120[8];
             float value_120;
-            unsigned char unknown_124_to_16c[0x48];
+            float value_124;
+            unsigned char unknown_128_to_16c[0x44];
             W8NavigatorAttachment* attachment_16c;
             unsigned char unknown_170_to_178[8];
             float value_178;
@@ -161,8 +172,8 @@ public:
     virtual ~W8GrCycle() override;
     // FUNCTION: WIZ8 0x004a7140
     virtual unsigned char CanEnterCycle(signed char) { return 1; }
-    virtual void vslot2();
-    virtual void vslot3();
+    virtual void TickAnimation(float scale);             /* 0x004A6E20 */
+    virtual unsigned char ApplyPendingCycle();           /* 0x004A6FC0 */
     virtual void UpdateRepresentation(W8World* world); /* 0x004A7470 */
     virtual signed char GetNumSubCycles() = 0;
     virtual unsigned char IsCycleSupported(signed char cycle) = 0;
@@ -172,7 +183,7 @@ public:
     virtual unsigned char GetAnimationBounds(
         W8Position* minimum, W8Position* maximum);
     virtual unsigned char GetAnimationRadius(float* radius);
-    virtual void vslot12() = 0;
+    virtual void SetCycle(signed char cycle) = 0;
     virtual W8AnimObj* GetCurrentAnimation() = 0;
     virtual void AdvanceAnimationFrame(int value, int flags);
     virtual W8AniMesh* GetCurrentAniMesh() = 0;
@@ -207,9 +218,6 @@ public:
     stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
     float unknown_1d4;
 };                                      /* 0x1d8 */
-
-// SYNTHETIC: WIZ8 0x004a7140 folded
-// W8Navigator::secondary_vslot3
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 

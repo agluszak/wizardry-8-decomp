@@ -15,7 +15,9 @@ class srModelInstance;
  * semantic names.
  */
 struct W8AnimObj {
-    unsigned char unknown_00[5];
+    unsigned char unknown_00[2];
+    unsigned char value_02;              /* 0x02 */
+    unsigned char unknown_03[2];
     unsigned char flag_05;               /* 0x05 */
     unsigned char unknown_06[0x0e];
     unsigned char start_frame_14;

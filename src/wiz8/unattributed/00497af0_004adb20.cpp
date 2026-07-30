@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/geometry.h"
 
+#include <windows.h>
 #include <math.h>
 #include <new>
 
@@ -17,6 +18,7 @@ extern float g_monster_light_fade_rate_005ebc3c;
 extern float g_monster_light_cycle_rate_005ecd4c;
 extern double g_monster_light_cycle_angle_005ec318;
 extern float g_monster_light_half_005ebc7c;
+extern const float g_light_time_scale_005ec128;
 }
 
 extern W8Object0043A910* g_object_6598bc;
@@ -36,7 +38,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
                 firstChild()->traverse(info);
             }
         }
-        else {
+        else if (m_definition_234 != 0) {
             if (!testFlag(FLAG_POSITIONAL_2)) {
                 if (info.entries.capacity <= info.entry_count) {
                     info.entries.setCapacity(
@@ -116,6 +118,33 @@ void stLight::process(
     srLight::process(info, type);
 }
 
+/* Restart the light-definition driven state when a Monster switches cycles.
+   The definition at +0x234 is owned by stLight; type two resets its own pair
+   of counters, while the other forms restore intensity and an optional
+   colour. */
+// FUNCTION: WIZ8 0x0049D070
+void stLight::Reset0049D070()
+{
+    if (m_definition_234 != 0) {
+        if (m_definition_234->type_04 == 2) {
+            m_definition_234->value_4c = 0;
+            m_definition_234->value_48 = 0;
+            m_positional_248 = 0;
+            m_positional_250 = 1;
+        }
+        else {
+            m_positional_98 = m_definition_234->intensity_28;
+            if ((m_definition_234->flags_08 & 8) != 0) {
+                m_color_6c = m_definition_234->color_10;
+            }
+        }
+    }
+
+    m_positional_240 = 0;
+    m_positional_24c = GetTickCount() * g_light_time_scale_005ec128;
+    m_positional_23c = m_positional_24c;
+}
+
 // FUNCTION: WIZ8 0x0049D970
 void MonsterLight::SetVisible0049D970(char visible)
 {
@@ -165,6 +194,13 @@ void MonsterLight::Update0049D990(const W8Position* position)
     location.y = position->y + m_vertical_offset_228;
     location.z = position->z;
     setLocation(location);
+}
+
+// FUNCTION: WIZ8 0x0049DAF0
+void MonsterLight::StartFadeOut0049DAF0()
+{
+    m_fade_out_249 = 1;
+    m_start_time_244 = g_object_6598bc->GetValue30();
 }
 
 // FUNCTION: WIZ8 0x0049DC40

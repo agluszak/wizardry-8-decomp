@@ -5,8 +5,11 @@
 extern int g_shared_timer_pause_base;
 extern int g_shared_timer_pause_time;
 extern unsigned char g_shared_timer_paused;
+extern unsigned char g_shared_timer_flag_d1;
+extern unsigned char g_shared_timer_flag_d2;
 extern int g_game_time_ms;
 extern int g_game_time_days;
+extern srTimer* g_shared_timer_base;
 
 class W8Timer005EC0A4 {
 public:
@@ -29,7 +32,10 @@ public:
         return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
     int Method00439A60();
-    float Method0043A190();
+    void SetDuration(float duration);
+    void Restart();
+    float GetProgress();
+    void SetProgress(float progress);
 
     int m_mode;                          /* 0x04: 1 reads the game clock */
     unsigned short m_flags;              /* 0x08: bit 0 reads the timer raw */

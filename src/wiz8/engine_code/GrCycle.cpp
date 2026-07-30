@@ -112,17 +112,6 @@ W8GrCycle::~W8GrCycle()
     }
 }
 
-class W8TimeSource006598B8 {
-public:
-    virtual void vslot0();
-    virtual void vslot1();
-    virtual void vslot2();
-    virtual void vslot3();
-    virtual void vslot4();
-    virtual unsigned int vslot5(int value);
-};
-
-extern W8TimeSource006598B8* g_time_source_006598b8;
 extern void Function4A9720(void* path);
 extern void Function4A9110(void* path);
 
@@ -230,7 +219,8 @@ void W8GrCycle::ResetRepresentation004A7420()
     Function4A9720(m_pAI);
     target->flag_06e = 1;
     target->flag_064 = 0;
-    target->timer_068 = g_time_source_006598b8->vslot5(0);
+    target->timer_068 =
+        g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 /* Select the model instance for the representation's current cycle, frame,
@@ -302,7 +292,7 @@ void W8GrCycle::SubmitTargetValue004A84A0()
 {
     W8EmitterHost* target = GetRepresentation();
 
-    GetAnimationRadius((float*)&target->value_0a8);
+    GetAnimationRadius(&target->value_0a8);
 }
 
 /* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug
@@ -521,7 +511,7 @@ void DestroyLightVector(W8LightVector* vector)
         for (index = 0; index < count; ++index) {
             stLight* light = *vector->GetAt(index);
 
-            if (light->worldLink() != 0) {
+            if (light->definition() != 0) {
                 int world_index = g_world->lights_to_update->IndexOf(light);
                 if (world_index != -1) {
                     g_world->lights_to_update->RemoveAt(world_index);

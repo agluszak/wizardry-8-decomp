@@ -32,6 +32,10 @@ struct W8EngineState006598A4 {
     void UpdateMonsterLocation0042E540(
         unsigned short location_id,
         const W8Position* position);      /* 0x0042E540 */
+    bool HasLineOfSight00434B60(
+        const W8Position* from,
+        W8Position* to,
+        char allow_fallback);             /* 0x00434B60 */
 };
 
 extern W8EngineState006598A4* g_engine_state_6598a4;
