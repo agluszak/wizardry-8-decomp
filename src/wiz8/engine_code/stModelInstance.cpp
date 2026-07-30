@@ -1,5 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
-#include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/mesh_model.h"
 #include "surrender/srCore.h"
@@ -7,6 +7,11 @@
 
 #include <new>
 #include <string.h>
+
+// SYNTHETIC: WIZ8 0x0047F260
+// stModelInstance2D::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00481C50
+// W8ModelInstance2DRegistry005EC89C::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00481C80
 void srNode::TraverseInfo::EntryArray::setCapacity(unsigned int new_capacity)
@@ -111,13 +116,13 @@ unsigned long stModelInstance::getClassID() const
 }
 
 // FUNCTION: WIZ8 0x00481a50
-const char* stModelInstance2D::getClassName() const
+const char* W8ModelInstance2DRegistry005EC89C::getClassName() const
 {
     return "stModelInstance2D";
 }
 
 // FUNCTION: WIZ8 0x00481a40
-unsigned long stModelInstance2D::getClassID() const
+unsigned long W8ModelInstance2DRegistry005EC89C::getClassID() const
 {
     return 0x10005;
 }
@@ -165,7 +170,7 @@ stModelInstance::~stModelInstance()
 /* The 2D form takes the identical chain: both model-instance classes hang off
    srModelInstance, which is what pairs them beyond their adjacent ids. */
 // FUNCTION: WIZ8 0x00481a60
-srRegistry::ClassNode* stModelInstance2D::getClassNode() const
+srRegistry::ClassNode* W8ModelInstance2DRegistry005EC89C::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(0x10005);
@@ -188,4 +193,72 @@ srRegistry::ClassNode* stModelInstance2D::getClassNode() const
         node = registry->registerClass("stModelInstance2D", instance, 0x10005, 0);
     }
     return node;
+}
+
+// FUNCTION: WIZ8 0x00481B20
+W8ModelInstance2DRegistry005EC89C::~W8ModelInstance2DRegistry005EC89C()
+{
+    srCore.getRegistry()->unregisterInstance(getClassNode(), this);
+}
+
+// FUNCTION: WIZ8 0x0047F0F0
+stModelInstance2D::stModelInstance2D(srNode* parent)
+    : W8ModelInstance2DRegistry005EC89C(0)
+{
+    state_170 = 0;
+    left_168 = 0;
+    top_16a = 0;
+    right_16c = 0;
+    bottom_16e = 0;
+    state_160 = 0;
+    state_171 = 0;
+    render_depth_164 = 2000;
+    state_174 = 0;
+    state_178 = 0;
+    m_pGlowMaterial_17c = 0;
+    if (parent != 0) {
+        setParent(parent, 1);
+    }
+}
+
+// FUNCTION: WIZ8 0x0047F290
+stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
+{
+    srModelInstance::operator=(other);
+    state_170 = other.state_170;
+    left_168 = other.left_168;
+    top_16a = other.top_16a;
+    right_16c = other.right_16c;
+    bottom_16e = other.bottom_16e;
+    state_160 = other.state_160;
+    if (other.parentNode() != 0) {
+        setParent(other.parentNode(), 1);
+    }
+    state_171 = other.state_171;
+    render_depth_164 = other.render_depth_164;
+    if (other.state_174 != 0) {
+        state_174 = static_cast<srVector4T<float>*>(
+            srHeap.allocate(sizeof(srVector4T<float>)));
+        *state_174 = *other.state_174;
+    }
+    if (other.state_178 != 0) {
+        state_178 = static_cast<srVector4T<float>*>(
+            srHeap.allocate(sizeof(srVector4T<float>)));
+        *state_178 = *other.state_178;
+    }
+    return *this;
+}
+
+// FUNCTION: WIZ8 0x00481E30
+srClass* stModelInstance2D::vInstance()
+{
+    return new stModelInstance2D(0);
+}
+
+// FUNCTION: WIZ8 0x00481B00
+srNode* stModelInstance2D::vslot7()
+{
+    stModelInstance2D* copy = static_cast<stModelInstance2D*>(vInstance());
+    *copy = *this;
+    return copy;
 }

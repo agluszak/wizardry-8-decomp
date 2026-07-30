@@ -10,6 +10,7 @@ LIBRARY SR
 ; original imports the variadic one; only a hand-built long-form import
 ; object could close that, not a .def.
 EXPORTS
+    ??4srModelInstance@@QAEAAV0@ABV0@@Z
     ??0srTimer@@QAE@HHH@Z
     ??1srTimer@@UAE@XZ
     ?getAscTime@srTimer@@UAEPADPADW4e_timerReadControl@1@@Z

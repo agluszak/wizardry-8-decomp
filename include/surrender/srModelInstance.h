@@ -3,9 +3,12 @@
 #include "srMeshModel.h"
 #include "srNode.h"
 
+class srMaterial;
+
 class SR_DLL_IMPORT srModelInstance : public srNode, public srModel::Client {
 public:
     srModelInstance(srNode* parent);
+    srModelInstance& operator=(const srModelInstance& other);
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
     virtual void traverse(TraverseInfo& info) override;
@@ -31,7 +34,7 @@ public:
         state_171 = 0;
         state_174 = 0;
         state_178 = 0;
-        state_17c = 0;
+        m_pGlowMaterial_17c = 0;
     }
     void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
 
@@ -46,9 +49,9 @@ protected:
     unsigned char state_170;
     unsigned char state_171;
     unsigned char padding_172[2];
-    unsigned long state_174;
-    unsigned long state_178;
-    unsigned long state_17c;
+    srVector4T<float>* state_174;
+    srVector4T<float>* state_178;
+    srMaterial* m_pGlowMaterial_17c;
 };
 
 static_assert((sizeof(srModelInstance) == 0x180), "srModelInstance_must_be_0x180");

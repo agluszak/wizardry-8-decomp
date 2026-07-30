@@ -1,8 +1,8 @@
 #pragma once
 
 #include "surrender/srLight.h"
-#include "surrender/srModelInstance.h"
 #include "surrender/srScene.h"
+#include "wiz8/engine_code/stModelInstance.h"
 
 class W8MonsterShakeCallback;
 class Trigger;
@@ -23,59 +23,6 @@ struct W8Position;
  * the complete inheritance evidence. Closed classes move into their owned
  * headers instead of accumulating here.
  */
-
-/* Engine Code\stModelInstance.cpp. The destructor writes both tables before
-   unregistering the instance and delegating to srModelInstance. The second
-   table is the ordinary srModel::Client base at srModelInstance +0x138. */
-// VTABLE: WIZ8 0x005ec814 stModelInstance
-// VTABLE: WIZ8 0x005ec804 srModel::Client
-class stModelInstance : public srModelInstance {
-public:
-    const char* getClassName() const override;     /* 0x00481870 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
-    unsigned long getClassID() const override;     /* 0x00481860 */
-    class stTextureAnim* FindMouthTexture00481080(); /* 0x00481080 */
-
-protected:
-    virtual ~stModelInstance() override;           /* 0x00481940 */
-
-public:
-    unsigned int frame_index_180;
-    int damage_stage_184;
-    void** damage_stage_tables_188;
-    int damage_stage_count_18c;
-};
-
-static_assert(sizeof(stModelInstance) == 0x190, "stModelInstance_size_must_be_0x190");
-
-/* The constructor at 0x0047EC80 first builds the 0x190-byte
-   stModelInstance base, then installs vtables 0x005EC7D0/0x005EC7C0 and
-   initializes the fields below through +0x1ac.  Its original derived-class
-   name is not yet available. */
-class stModelInstance005EC7D0 : public stModelInstance {
-public:
-    int value_190;
-    srVector3T<float> scale_194;
-    unsigned char flag_1a0;
-    unsigned char flag_1a1;
-    unsigned char unknown_1a2[2];
-    int value_1a4;
-    int value_1a8;
-    float value_1ac;
-};
-
-static_assert(
-    sizeof(stModelInstance005EC7D0) == 0x1b0,
-    "stModelInstance005EC7D0_size_must_be_0x1b0");
-
-/* Engine Code\stModelInstance.cpp, alongside the 3D form above. The two ids are
-   adjacent, which is what pairs them. */
-class stModelInstance2D {
-public:
-    const char* getClassName() const;     /* 0x00481A50 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x00481A60 */
-    unsigned long getClassID() const;     /* 0x00481A40 */
-};
 
 /* Engine Code\stParticle.cpp. */
 class stParticle : public srNode {
