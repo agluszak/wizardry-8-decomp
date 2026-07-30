@@ -41,26 +41,9 @@ public:
 // SYNTHETIC: WIZ8 0x004ae070
 // W8VectorElement005ECED4::~W8VectorElement005ECED4
 
-class W8GrCycleShakeOwner : public srClass {
-public:
-    unsigned char unknown_004[0x180];
-    int state_184;
-    unsigned char unknown_188[4];
-    void* node_18c;
-    unsigned char active_190;
-};
-
-class W8GrCycleShakeEvent {
-public:
-    unsigned char unknown_00[8];
-    W8GrCycleShakeOwner* owner_08;
-};
-
 extern unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 extern void PrepareGrCycleEvents004AE270(
     W8GrowableVector<W8VectorElement005ECED4*>* events);
-extern void ActivateGrCycleShakeOwner0049ACD0(
-    W8GrCycleShakeOwner* owner, int active);
 
 // FUNCTION: WIZ8 0x004a5e50
 W8GrCycle::W8GrCycle()
@@ -104,18 +87,18 @@ W8GrCycle::~W8GrCycle()
         count = m_shake_events->GetCount();
         for (index = 0; index < count; ++index) {
             W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
-            W8GrCycleShakeOwner* owner = event->owner_08;
+            stParticle* owner = event->particle_08;
 
             if (owner == 0 || owner->node_18c == 0) {
-                if (event->owner_08 != 0) {
-                    event->owner_08->release();
+                if (event->particle_08 != 0) {
+                    event->particle_08->release();
                 }
                 delete event;
             }
             else {
-                event->owner_08 = 0;
+                event->particle_08 = 0;
                 delete event;
-                ActivateGrCycleShakeOwner0049ACD0(owner, 1);
+                owner->SetActive0049ACD0(1);
                 owner->state_184 = 1;
                 owner->active_190 = 1;
             }

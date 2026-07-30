@@ -16,15 +16,22 @@ typedef unsigned short W8WideChar;
 
 enum { W8_MAX_MONSTER_ATTACKS = 3 };
 
-/* One of a monster's three attacks. Only the two fields the range rules read
-   are established: whether the attack exists at all and what range category it
-   works at. */
+/* One of a monster's three attacks. Monster.cpp walks the array with a
+   0x22-byte stride and copies the missile-launch fields below into its local
+   attack block. */
 typedef struct W8MonsterAttack {
     unsigned char fHasAttack;           /* 0x00 */
     unsigned char unknown_01[2];
     unsigned char range_category;       /* 0x03 */
-    unsigned char unknown_04[0x1f];
-} W8MonsterAttack;                      /* 0x23 */
+    unsigned char unknown_04;
+    unsigned char missile_values_05[0x10]; /* 0x05 */
+    unsigned short attack_modes;        /* 0x15 */
+    int missile_value_17;               /* 0x17 */
+    unsigned char missile_value_1b;
+    unsigned char unknown_1c;
+    signed char missile_type;            /* 0x1d */
+    unsigned char unknown_1e[4];
+} W8MonsterAttack;                      /* 0x22 */
 
 typedef struct W8Dice {
     short base;
@@ -185,6 +192,7 @@ typedef struct W8MonsterRecord {
        assertions pMonsterDB->Attack[uiAttack].fHasAttack and uiAttack <
        MAX_MONSTER_ATTACKS, which is what bounds the array at three. */
     W8MonsterAttack attacks[W8_MAX_MONSTER_ATTACKS];   /* 0x0e7 */
+    unsigned char unknown_14d[3];
     unsigned char unknown_150[0x31];
     unsigned int combat_value_181;         /* 0x181: combat-strength/display value */
     unsigned char unknown_185[2];
@@ -195,7 +203,9 @@ typedef struct W8MonsterRecord {
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers
        candidates drops it before any other test. */
     unsigned char untargetable_24a;
-    unsigned char unknown_24b[8];
+    unsigned char unknown_24b[4];
+    unsigned char missile_value_24f;
+    unsigned char unknown_250[3];
     int value_253;                        /* 0x253: selected by 0x004e5b50 */
     int value_257;                        /* 0x257: alternate selected value */
     int hostility_range_25b;              /* 0x25b: unaligned; positive is a proximity threshold */

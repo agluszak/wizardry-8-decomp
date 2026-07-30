@@ -16,7 +16,9 @@ struct W8Position;
 struct W8AnimObj {
     unsigned char unknown_00[5];
     unsigned char flag_05;               /* 0x05 */
-    unsigned char unknown_06[0x10];
+    unsigned char unknown_06[0x0e];
+    unsigned char start_frame_14;
+    unsigned char end_frame_15;
     unsigned char value_16;              /* 0x16 */
     unsigned char unknown_17;
     void* entries_18[4];                 /* 0x18 */

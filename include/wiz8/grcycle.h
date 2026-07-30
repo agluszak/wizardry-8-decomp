@@ -55,8 +55,8 @@ public:
     W8Navigator();                        /* 0x00451EC0 */
     W8Navigator(const W8Navigator& other); /* 0x00452220 */
     virtual ~W8Navigator();               /* 0x00452120 */
-    virtual void secondary_vslot1();
-    virtual void secondary_vslot2();
+    virtual void SetPathAI(W8PathAI* path_ai);
+    virtual W8PathAI* GetPathAI();
     virtual unsigned char secondary_vslot3(int) const { return 1; }
     virtual void SetPosition(const W8Position* position); /* 0x00456020 */
 
@@ -125,10 +125,18 @@ public:
 
 class W8VectorElement005ECED4;
 class stLight;
-class W8GrCycleShakeEvent;
+class stParticle;
 class stGroundShadow;
 struct W8AnimObj;
 struct W8AniMesh;
+
+class W8GrCycleShakeEvent {
+public:
+    int cycle_00;
+    signed char subcycle_04;
+    unsigned char unknown_05[3];
+    stParticle* particle_08;
+};
 
 class W8GrCycle :
     public W8GrObject,
@@ -183,6 +191,9 @@ public:
     stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
     int unknown_1d4;
 };                                      /* 0x1d8 */
+
+// SYNTHETIC: WIZ8 0x004a7140 folded
+// W8Navigator::secondary_vslot3
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 

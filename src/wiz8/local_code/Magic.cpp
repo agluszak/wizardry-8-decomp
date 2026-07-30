@@ -1204,8 +1204,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, int unuse
 
 extern void ResetTargetSource(W8TargetSource* target_block);               /* 0x00536150 */
 extern void ResetCombatSlot(W8CombatSlot* combat_slot);                  /* 0x00536170 */
-extern int GetRandomCharacter(
-    int require_primary, int require_secondary, int excluded_slot, int excluded_slot_2);
 extern void AimCombatSlotAtParty(W8CombatSlot* combat_slot, int hostile);
 /* 0x0053C630 */
 extern int CastSpellFromSource(
@@ -1819,7 +1817,7 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
 
 extern void SetTargetSourceToMonster(const W8MonsterInfo* monster_info, W8TargetSource* source);
 /* 0x0053BE50 */
-extern void NoteSpellCast(int spell_id, int result);                     /* 0x0052C320 */
+extern unsigned int SpellCastFatigueCost(int spell_id, int result);      /* 0x0052C320 */
 extern void SetTextBoxMode(unsigned char mode, int value);   /* 0x005905C0 */
 
 /* The two log lines a monster's cast is announced with: one that names the
@@ -1835,7 +1833,8 @@ enum { W8_MESSAGE_MONSTER_CAST_VERBOSE = 0x638, W8_MESSAGE_MONSTER_CAST = 0x63c 
    spell-point budget standing in for a caster's spellbook skill, which is what
    makes the two one rule rather than a monster-specific one. */
 // FUNCTION: WIZ8 0x004faec0
-void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int power_level)
+unsigned int MonsterCastsSpell(
+    W8MonsterInfo* monster_info, int spell_id, unsigned int power_level)
 {
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     W8TargetSource source;
@@ -1876,7 +1875,7 @@ void MonsterCastsSpell(W8MonsterInfo* monster_info, int spell_id, unsigned int p
     CastSpellFromSource(
         spell_id, &source, &monster_info->combat_slot_2ba, power_level, 0, failure, 0,
         (int)&result, 0, 0, 0);
-    NoteSpellCast(spell_id, result);
+    return SpellCastFatigueCost(spell_id, result);
 }
 
 class W8VectorElement005EBFE4;

@@ -78,6 +78,18 @@ srVector3T<float> W8Navigator::GetPosition()
     return fields.position_100;
 }
 
+// FUNCTION: WIZ8 0x004538b0
+void W8Navigator::SetPathAI(W8PathAI* path_ai)
+{
+    fields.path_ai_068 = path_ai;
+}
+
+// FUNCTION: WIZ8 0x004538c0
+W8PathAI* W8Navigator::GetPathAI()
+{
+    return fields.path_ai_068;
+}
+
 void W8Navigator::configureStartupRange(float range)
 {
     unknown_004[32] = float_bits(range);

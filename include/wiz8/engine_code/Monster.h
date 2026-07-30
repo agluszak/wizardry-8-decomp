@@ -166,7 +166,7 @@ struct W8MonsterFlags330 {
 
 /* The GrCycle factory allocates 0x348 bytes and calls the constructor at
    0x004BFB00 for object type zero. Both constructors and the destructor install
-   primary vtable 0x005ED22C and the W8GrCycle secondary table at +0x18. */
+   primary vtable 0x005ED22C and the W8Navigator secondary-base table at +0x18. */
 class W8Monster : public W8GrCycle {
 public:
     W8Monster();
@@ -259,6 +259,34 @@ public:
 static_assert(
     sizeof(W8Monster) == 0x348,
     "W8Monster_size_must_be_0x348");
+
+/* A particle temporarily takes over a monster animation while its shake event
+   runs. The derived callback restores the saved representation state when the
+   particle finishes and then deletes itself. */
+class W8MonsterShakeCallbackBase {
+public:
+    virtual ~W8MonsterShakeCallbackBase() {}
+};
+
+class W8MonsterShakeCallback : public W8MonsterShakeCallbackBase {
+public:
+    W8MonsterShakeCallback()
+        : m_pMonster(0), m_pParticles(0)
+    {
+    }
+
+    virtual void RestoreAnimation();
+
+    W8Monster* m_pMonster;
+    stParticle* m_pParticles;
+    unsigned char saved_behaviour;
+    signed char saved_frame_method;
+    unsigned char unknown_0e[2];
+};
+
+static_assert(
+    sizeof(W8MonsterShakeCallback) == 0x10,
+    "W8MonsterShakeCallback_size_must_be_0x10");
 static_assert(sizeof(W8MonsterState28C) == 0x10, "W8MonsterState28C_size_must_be_0x10");
 static_assert(sizeof(W8MonsterState2AC) == 0x2c, "W8MonsterState2AC_size_must_be_0x2c");
 static_assert(sizeof(W8MonsterState2FC) == 0x10, "W8MonsterState2FC_size_must_be_0x10");

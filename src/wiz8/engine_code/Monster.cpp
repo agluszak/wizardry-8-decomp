@@ -5,7 +5,9 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/grcycle.h"
+#include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srTimer.h"
 
@@ -217,8 +219,10 @@ extern int g_value_659c14;
 // SYNTHETIC: WIZ8 0x004bfde0
 // W8Monster::`scalar deleting destructor'
 
+/* cvdump preserves a terminal space in this generated thunk's demangled name;
+   the explicit name reference must preserve it too. */
 // SYNTHETIC: WIZ8 0x004cae30
-// W8Monster::`vector deleting destructor' adjustor{24}
+// W8Monster::`vector deleting destructor'`adjustor{24}' 
 
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern void PrepareMonsterCycleForDestruction004ACF90(
@@ -370,9 +374,9 @@ void W8Monster::SetPosition(const W8Position* position)
     fields.position_dirty_09c = 1;
 }
 
-/* Decide whether a requested cycle can replace the current one.  This is the
-   same virtual Navigator/GrCycle operation whose base implementation always
-   allows the transition; Monster adds combat, motionless, and death rules. */
+/* Decide whether a requested cycle can replace the current one. Monster adds
+   combat, motionless, and death rules to W8GrCycle's primary-table operation;
+   W8Navigator's distinct slot 3 remains inherited in the secondary table. */
 // FUNCTION: WIZ8 0x004c2bf0
 unsigned char W8Monster::CanEnterCycle(signed char cycle)
 {
@@ -628,6 +632,306 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
     HandleAnimationFrame004C74D0(previous_frame);
     if (m_shake_events != 0 && m_shake_events->GetCount() != 0) {
         UpdateShakeEvents004C3380(previous_frame);
+    }
+}
+
+extern unsigned int MonsterGetIndexByLocationID(
+    int caller_line, const char* caller_file, int location_id,
+    unsigned char assert_on_failure);
+extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
+extern unsigned int MonsterCastsSpell(
+    W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
+extern void FatigueMonster(
+    W8MonsterInfo* monster_info, unsigned int amount, int report_to);
+extern int g_spell_effect_frame_0064c158;
+extern int g_spell_index_0069b7dc;
+extern void* CreateSpellEffect004AD8A0(
+    const char* mls_name, int frame, W8Monster* parent, int value, int flags);
+extern void SetTargetSourceToMonster(
+    const W8MonsterInfo* monster_info, W8TargetSource* source);
+extern void ClearAttackBlock(void* block);
+extern unsigned int ChooseAttackMode(unsigned int attack_modes);
+extern int CalculateMonsterMissileAccuracy(
+    W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
+    int attack_mode, int flags);
+extern void CombatLog(const char* format, ...);
+extern void FireMissileSourceToTarget(
+    int missile_type, W8TargetSource* source, W8CombatSlot* target,
+    void* attack_block, unsigned char use_default_accuracy,
+    unsigned int range_category, int accuracy);
+extern unsigned int g_missile_table_count_65bddc;
+
+// VTABLE: WIZ8 0x005ed288
+// class W8MonsterShakeCallback
+
+// VTABLE: WIZ8 0x005ed290
+// class W8MonsterShakeCallbackBase
+
+// SYNTHETIC: WIZ8 0x004c3710
+// W8MonsterShakeCallback::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004c3730
+// W8MonsterShakeCallback::~W8MonsterShakeCallback
+
+// SYNTHETIC: WIZ8 0x004cab40
+// W8MonsterShakeCallbackBase::`scalar deleting destructor'
+
+/* Cycle 25 launches either the queued spell visual or the monster's pending
+   spell action when its animation crosses the configured frame. The cast
+   returns the stamina charge; passing that value straight to FatigueMonster
+   is why MonsterCastsSpell cannot have the void return type previously used
+   by Magic.cpp. */
+// FUNCTION: WIZ8 0x004c74d0
+void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
+{
+    W8MonsterInfo* monster_info;
+    int action_kind;
+    int action_detail;
+    unsigned int power_level;
+    unsigned int fatigue;
+
+    if (m_pRep->selection.monster.current_cycle == 25 &&
+        ((value_1f8 > 0 && previous_frame < value_1f8 &&
+          value_1f8 <= m_pRep->flag_064) ||
+         (value_1f8 == 0 && m_pRep->flag_064 == 1))) {
+        if (state_2fc.unknown_08[0] != 0) {
+            state_2fc.unknown_08[0] = 0;
+            CreateSpellEffect004AD8A0(
+                g_spell_records[g_spell_index_0069b7dc].resource_name,
+                g_spell_effect_frame_0064c158, this, 0, 0);
+            return;
+        }
+
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(
+                0x1804, MONSTER_CPP, propagated_value_1e4, 1));
+        action_kind = monster_info->action_kind;
+        action_detail = monster_info->action_detail;
+        power_level = *(unsigned int*)monster_info->unknown_2e9;
+        if (action_kind == 2 && action_detail != 0 && power_level != 0) {
+            fatigue = MonsterCastsSpell(
+                monster_info, action_detail, power_level);
+            FatigueMonster(monster_info, fatigue, 0);
+            monster_info->unknown_2df[1] = 1;
+        }
+    }
+}
+
+struct W8MonsterMissileAttackBlock {
+    int unknown_00;
+    int missile_value_04;
+    unsigned char missile_values_08[0x10];
+    int monster_value_18;
+    int missile_value_1c;
+    unsigned char unknown_20[0x10];
+};
+
+static_assert(
+    sizeof(W8MonsterMissileAttackBlock) == 0x30,
+    "W8MonsterMissileAttackBlock_size_must_be_0x30");
+
+/* Launch the missile at the frame shared by attack cycles 7, 13 and 17. In
+   combat an already-selected attack is reused; otherwise the monster picks a
+   live character and the first database attack that permits a missile mode. */
+// FUNCTION: WIZ8 0x004c75c0
+void W8Monster::HandleAnimationThreshold004C75C0()
+{
+    W8MonsterInfo* monster_info;
+    W8MonsterRecord* record;
+    W8TargetSource source;
+    W8MonsterMissileAttackBlock attack_block;
+    const W8MonsterAttack* attack;
+    unsigned int attack_index;
+    unsigned int range_category;
+    int missile_type;
+    int accuracy;
+    unsigned char selected_attack;
+    unsigned char monster_value;
+
+    selected_attack = 0;
+    monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(
+            0x1834, MONSTER_CPP, propagated_value_1e4, 1));
+    record = GetMonsterDataForInfo(monster_info);
+    SetTargetSourceToMonster(monster_info, &source);
+
+    if (g_in_combat_00683f94 != 0 &&
+        g_combat_state->selected_slot == 2 &&
+        g_combat_state->selected_monster == monster_info) {
+        attack_index = monster_info->pCombat->attack_index_11;
+        selected_attack = 1;
+        goto prepare_attack;
+    }
+
+    monster_info->combat_slot_2ba.iType = W8_TARGET_KIND_CHARACTER;
+    monster_info->combat_slot_2ba.iChar = GetRandomCharacter(1, 1, -1, -1);
+    monster_info->combat_slot_2ba.iMonsterID = -1;
+    if (monster_info->combat_slot_2ba.iChar == -1) {
+        return;
+    }
+
+    for (attack_index = 0; attack_index < W8_MAX_MONSTER_ATTACKS;
+         ++attack_index) {
+        attack = &record->attacks[attack_index];
+        if (attack->fHasAttack != 0 &&
+            (attack->attack_modes & 0x110) != 0) {
+            monster_info->action_detail = ChooseAttackMode(attack->attack_modes);
+            goto prepare_attack;
+        }
+    }
+
+    missile_type = 0;
+    range_category = 3;
+    ClearAttackBlock(&attack_block);
+    accuracy = 50;
+    goto fire_missile;
+
+prepare_attack:
+    if (attack_index >= W8_MAX_MONSTER_ATTACKS) {
+        srAssertFail(
+            "uiAttack < MAX_MONSTER_ATTACKS", MONSTER_CPP, 0x1862, 0);
+    }
+    attack = &record->attacks[attack_index];
+    missile_type = attack->missile_type;
+    if ((unsigned int)missile_type >= g_missile_table_count_65bddc) {
+        FormatDebugMessage(
+            0, "WARNING: %ls has invalid missile type %d for attack %d",
+            record, missile_type, attack_index);
+        missile_type = 0;
+    }
+
+    range_category = attack->range_category;
+    ClearAttackBlock(&attack_block);
+    attack_block.missile_value_04 = attack->missile_value_17;
+    memcpy(attack_block.missile_values_08, attack->missile_values_05, 0x10);
+    monster_value = record->missile_value_24f;
+    attack_block.monster_value_18 =
+        monster_value + (monster_value < 15 ? monster_value : 15);
+    attack_block.missile_value_1c = attack->missile_value_1b;
+
+    if (selected_attack != 0) {
+        accuracy = CalculateMonsterMissileAccuracy(
+            monster_info, attack, monster_info->action_detail, 0);
+        CombatLog("TO HIT: MISSILE ACCURACY = %d%%\n", accuracy);
+    } else {
+        accuracy = 50;
+    }
+
+fire_missile:
+    monster_info->unknown_2df[0] = 1;
+    FireMissileSourceToTarget(
+        missile_type, &source, &monster_info->combat_slot_2ba, &attack_block,
+        selected_attack == 0, range_category, accuracy);
+}
+
+// FUNCTION: WIZ8 0x004c3620
+void W8MonsterShakeCallback::RestoreAnimation()
+{
+    W8MonsterRep* representation;
+
+    if (m_pMonster == 0) {
+        srAssertFail("m_pMonster", MONSTER_CPP, 0x102, 0);
+    }
+    if (m_pParticles == 0) {
+        srAssertFail("m_pParticles", MONSTER_CPP, 0x103, 0);
+    }
+
+    m_pParticles->callback_26c = 0;
+    m_pParticles->SetActive0049ACD0(0);
+    representation = m_pMonster->m_pRep;
+    if (saved_behaviour < 1 || saved_behaviour > 3) {
+        srAssertFail(
+            "bBehaviour >= BEHAVIOUR_FIRST && bBehaviour <= BEHAVIOUR_LAST",
+            "..\\Engine Code\\Include\\AnimRep.hpp", 0x87, 0);
+    }
+    representation->behaviour_071 = saved_behaviour;
+    representation->SetFrameMethod004B55C0(saved_frame_method);
+    representation->flag_06e = 1;
+    representation->counter_094 = 0;
+    representation->counter_095 = m_pMonster->GetNumSubCycles() - 1;
+    delete this;
+}
+
+/* Drive the particles attached to the active cycle/subcycle. A particle with
+   no distinct frame range fires when the animation crosses its own start
+   frame; a ranged particle is switched on and off at its explicit bounds. */
+// FUNCTION: WIZ8 0x004c3380
+void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
+{
+    W8AnimObj* animation;
+    W8GrCycleShakeEvent* event;
+    stParticle* particle;
+    W8MonsterShakeCallback* callback;
+    int count;
+    int index;
+    unsigned char animation_has_range;
+
+    count = m_shake_events->GetCount();
+    animation = *m_pRep->animations[
+        m_pRep->selection.monster.current_cycle].GetAt(
+            m_pRep->selection.monster.current_subcycle);
+    animation_has_range =
+        animation != 0 && animation->start_frame_14 != 0 &&
+        animation->end_frame_15 >= animation->start_frame_14;
+
+    for (index = 0; index < count; ++index) {
+        event = *m_shake_events->GetAt(index);
+        if (event->cycle_00 != m_pRep->selection.monster.current_cycle ||
+            event->subcycle_04 !=
+                m_pRep->selection.monster.current_subcycle) {
+            continue;
+        }
+
+        particle = event->particle_08;
+        if (animation_has_range != 0 &&
+            (particle->start_frame_264 == -1 ||
+             particle->end_frame_268 == -1 ||
+             particle->start_frame_264 == particle->end_frame_268) &&
+            previous_frame < animation->start_frame_14 &&
+            animation->start_frame_14 <= m_pRep->flag_064) {
+            if (enabled_1bd != 0) {
+                particle->SetActive0049ACD0(1);
+                particle->value_188 = 0;
+                if (index == 0) {
+                    callback = new W8MonsterShakeCallback;
+                    callback->m_pMonster = this;
+                    callback->m_pParticles = particle;
+                    callback->saved_behaviour = m_pRep->flag_070;
+                    callback->saved_frame_method = m_pRep->flag_06f;
+                    particle->callback_26c = callback;
+
+                    m_pRep->behaviour_071 = 3;
+                    if (animation->start_frame_14 == animation->end_frame_15) {
+                        m_pRep->SetFrameMethod004B55C0(4);
+                        m_pRep->flag_06e = 1;
+                    } else {
+                        m_pRep->SetFrameMethod004B55C0(2);
+                        m_pRep->counter_094 = animation->start_frame_14;
+                        if (animation->end_frame_15 < GetNumSubCycles()) {
+                            m_pRep->counter_095 = animation->end_frame_15;
+                        } else {
+                            m_pRep->counter_095 = GetNumSubCycles() - 1;
+                        }
+                    }
+                }
+            }
+            continue;
+        }
+
+        if (particle->start_frame_264 != -1 &&
+            particle->end_frame_268 != -1 &&
+            particle->start_frame_264 != particle->end_frame_268) {
+            if ((unsigned int)previous_frame ==
+                (unsigned int)particle->start_frame_264) {
+                if (enabled_1bd != 0) {
+                    particle->SetActive0049ACD0(1);
+                    particle->value_188 = 0;
+                }
+            } else if ((unsigned int)m_pRep->flag_064 ==
+                       (unsigned int)particle->end_frame_268) {
+                particle->SetActive0049ACD0(0);
+            }
+        }
     }
 }
 
@@ -887,6 +1191,18 @@ extern void __stdcall Function4A7BE0(const float* position);
 extern unsigned int MonsterGetIndexByLocationID(
     int caller_line, const char* caller_file, int location_id, unsigned char assert_on_failure);
 extern W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int index);
+extern unsigned int MonsterCastsSpell(
+    W8MonsterInfo* monster_info, int spell_id, unsigned int power_level);
+extern void FatigueMonster(
+    W8MonsterInfo* monster_info, unsigned int amount, int report_to);
+
+/* The caller proves only the roles below: the first global selects a frame in
+   the spell animation, and the second indexes g_spell_records. Their original
+   descriptive names have not been recovered. */
+extern int g_spell_effect_frame_0064c158;
+extern int g_spell_index_0069b7dc;
+extern void* CreateSpellEffect004AD8A0(
+    const char* mls_name, int frame, W8Monster* parent, int value, int flags);
 
 /* 0x00421070, owned by the 0041F261-0042403F quarantine: the shared reference
    position every consumer of the object at 0x0065A0F8 reads. */
@@ -898,7 +1214,6 @@ extern void Function4A84A0(W8GrCycle* monster);
    reachable from a free declaration. The receiver is the monster's Navigator
    base at +0x18. */
 extern void __fastcall Function4537E0(W8Navigator* navigator);
-extern void* g_monster_vtable_005ed290;
 
 /* Copies a position into a local and hands the local on. The monster argument
    is dead beyond its own null check - the callee never receives it - which is
@@ -1149,14 +1464,6 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
             }
         }
     }
-}
-
-/* Install the vtable at 0x005ED290 and nothing else - the whole of a base
-   constructor whose own members are all left as they were. */
-// FUNCTION: WIZ8 0x004c3730
-void MonsterInstallVtable5ED290(void** object)
-{
-    *object = &g_monster_vtable_005ed290;
 }
 
 /* Forward to the object's own vtable slot four. */

@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from wiz8decomp.source_model import build_source_model
+import pytest
+from wiz8decomp.source_model import SourceModelError, build_source_model
 
 
 def test_source_model_exposes_clang_semantics_from_generated_index() -> None:
@@ -47,3 +48,82 @@ def test_surrender_source_model_uses_its_own_marker_target() -> None:
     assert model.functions[0x10015010].name == "srCore::getCopyright"
     assert model.functions[0x10015030].name == "srCore::getVersion"
     assert all(item.file.startswith("src/surrender/") for item in model.functions.values())
+
+
+def test_source_model_keeps_definition_as_owner_of_folded_alias(tmp_path: Path) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "source-index.json").write_text(
+        """{
+  "schema": "reccmp-source-index-v1",
+  "markers": [
+    {
+      "address": 4878656,
+      "marker_kind": "FUNCTION",
+      "source_file": "include/wiz8/grcycle.h",
+      "line": 149,
+      "declaration": {
+        "semantic_id": "?CanEnterCycle@W8GrCycle@@UAEEC@Z",
+        "qualified_name": "W8GrCycle::CanEnterCycle",
+        "semantic_kind": "instance_method",
+        "calling_convention": "__thiscall",
+        "return_type": "unsigned char",
+        "parameter_types": ["signed char"],
+        "owning_class": "W8GrCycle",
+        "is_virtual": true
+      },
+      "marker_name": null
+    },
+    {
+      "address": 4878656,
+      "marker_kind": "SYNTHETIC",
+      "source_file": "include/wiz8/grcycle.h",
+      "line": 196,
+      "declaration": null,
+      "marker_name": "W8Navigator::secondary_vslot3",
+      "folded": true
+    }
+  ],
+  "declarations": [],
+  "classes": []
+}\n""",
+        encoding="utf-8",
+    )
+
+    function = build_source_model(tmp_path).functions[0x004A7140]
+    assert function.name == "W8GrCycle::CanEnterCycle"
+    assert function.kind == "FUNCTION"
+
+
+def test_source_model_rejects_two_non_folded_owners(tmp_path: Path) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "source-index.json").write_text(
+        """{
+  "schema": "reccmp-source-index-v1",
+  "markers": [
+    {
+      "address": 1,
+      "marker_kind": "SYNTHETIC",
+      "source_file": "src/wiz8/a.cpp",
+      "line": 1,
+      "declaration": null,
+      "marker_name": "First"
+    },
+    {
+      "address": 1,
+      "marker_kind": "SYNTHETIC",
+      "source_file": "src/wiz8/b.cpp",
+      "line": 1,
+      "declaration": null,
+      "marker_name": "Second"
+    }
+  ],
+  "declarations": [],
+  "classes": []
+}\n""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SourceModelError, match="more than one source owner"):
+        build_source_model(tmp_path)

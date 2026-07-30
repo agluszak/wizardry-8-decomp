@@ -418,8 +418,6 @@ enum {
     W8_DISPOSITION_FRIENDLY = 2
 };
 
-struct W8MonsterInfo;
-
 /* 0x0068C09C addresses a flat array of localized notice pointers. ShowRegionHelp
    indexes it by a region's help id, which is what fixes the shape as an array
    rather than a record; the constants below are the entries a ported body picks
@@ -437,82 +435,6 @@ enum W8NoticeId {
     W8_NOTICE_COMBAT_STANCE_RELAXED = 0x888 / 4,
     W8_NOTICE_COMBAT_STANCE_READY = 0x88c / 4
 };
-
-/* One record per character class, 0x1e5 bytes, indexed by the class index a
-   combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
-   established. */
-typedef struct W8CharacterClassRecord {
-    unsigned char unknown_000[0x154];
-    unsigned char flag_154;               /* 0x154 */
-    unsigned char unknown_155[0x90];
-} W8CharacterClassRecord;                 /* 0x1e5 */
-
-/* What the engaged-actor iterator at 0x004A2760 hands back. Only the class
-   index is placed; the object is much larger and otherwise unrecovered. */
-typedef struct W8CombatActor {
-    unsigned char unknown_000[0x1d8];
-    int class_record_index;               /* 0x1d8 */
-} W8CombatActor;
-
-/* The block the pointer at 0x006836A8 addresses: the engine's combat state.
-   Only what a ported body reaches is named, and only where the use establishes
-   a meaning - the monster slot at +0x7b8 is named because every consumer either
-   compares it against a W8MonsterInfo it already holds or clears it when that
-   entry leaves the world. The rest keep positional names. */
-/* One combat participant's row, 0xd4 bytes per character. The eight of them
-   begin at the combat state's own address, so W8CombatState's leading fields
-   are the first row's; only the fields the fatigue, death and engagement paths
-   touch are established. */
-typedef struct W8CombatCharacterRow {
-    unsigned char unknown_00[0x18];
-    int value_18;                        /* 0x18: cleared when the character dies */
-    unsigned char unknown_1c[0x30];
-    unsigned char flag_4c;               /* 0x4c: raised when the character dies */
-    unsigned char unknown_4d[0x37];
-    int current_hand;                    /* 0x84: indexes the slot row's attack modes */
-    int current_equip_slot;              /* 0x88: indexes the character's equipment */
-    unsigned char unknown_8c[0x48];
-} W8CombatCharacterRow;                  /* 0xd4 */
-
-typedef struct W8CombatState {
-    unsigned char flag_000;               /* 0x000: blocks ending combat while set */
-    unsigned char flag_001;               /* 0x001 */
-    unsigned char unknown_002[2];
-    int value_004;                        /* 0x004: blocks ending combat while non-zero */
-    /* 0x008: the round counter every combatant stamps itself against. */
-    int round_counter;
-    unsigned char unknown_00c[0x7a4];
-    int selected_slot;                    /* 0x7b0: cleared with selected_monster */
-    /* 0x7b4: the party slot whose turn it is; -1 when nobody's. It is cleared
-       alongside selected_slot when that character dies. */
-    int selected_character;
-    struct W8MonsterInfo* selected_monster; /* 0x7b8 */
-    unsigned char unknown_7bc[0x104];
-    W8CombatActor* engaged_actor;         /* 0x8c0 */
-    unsigned char unknown_8c4[0x24];
-    /* 0x8e8: the slots whose characters died this round, and how many. */
-    int pending_deaths[8];
-    int pending_death_count;              /* 0x908 */
-    /* 0x90c: what kind of move is pending, one or two; zero is none. */
-    int pending_move_kind;
-    /* 0x910: how the party is moving - zero out of combat, one and two the two
-       combat modes, which is what the speed and phase rules branch on. */
-    int movement_mode;
-    unsigned char unknown_914[4];
-    /* 0x918: which phase of the turn is running, zero through three. */
-    int turn_phase;
-    unsigned char unknown_91c[4];
-    /* 0x920: the formation combat started with, thirty-three dwords copied
-       whole out of 0x00687511. */
-    int saved_formation[0x21];
-    unsigned char unknown_9a4[0xac];
-    unsigned char flag_a50;               /* 0xa50 */
-    unsigned char flag_a51;               /* 0xa51 */
-    unsigned char unknown_a52[2];
-    unsigned char flag_a54;               /* 0xa54 */
-    unsigned char unknown_a55[0xd];
-    unsigned char flag_a62;               /* 0xa62: the party's combat-ready bit */
-} W8CombatState;
 
 #pragma pack(pop)
 
@@ -533,7 +455,6 @@ extern wchar_t** gppStringList;
 extern int giStringListLen;
 /* 0x00517A90. One shared buffer, so the answer is only good until the next
    call - which is why every caller consumes it immediately. */
-extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 /* The gameplay globals reached from more than a couple of units. Each was
    declared separately in every file that used it, which is how two of them
    ended up with two names and two more with two types; one declaration each is
@@ -559,7 +480,6 @@ extern W8PList* g_active_monster_list_00683fad;
 /* 0x005EBB34: the float that stands for "no distance given", which the level
    vector reads as its absent value too. */
 extern float g_float_005ebb34;
-extern W8CombatCharacterRow* g_combat_character_rows;
 
 /* Which screen is up, as g_screen_state_0068ec78.id holds it. Only the two the
    recovered bodies test are named. */
@@ -727,7 +647,6 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
 float ShortestAngleDistance(float first, float second);
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot);
-void FormatDebugMessage(int channel, const char* format, ...);
 int GetSpellTargetType(int spell_id, unsigned char normalize_single_target);
 #ifdef __cplusplus
 bool CanSpellBackfire(int spell_id);
@@ -812,8 +731,6 @@ const char* LevelGetFolderNameByID(int level_id);
 unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 void WorldUpdateProps(W8World* world);
-int GetRandomCharacter(int require_primary, int require_secondary, int excluded_slot,
-                       signed char excluded_faction);
 /* 0x0054A8A0, reviewed in evidence/reviewed/wiz8/functions.csv. */
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
 int GetLocationIDFromCode(const char* location_code);

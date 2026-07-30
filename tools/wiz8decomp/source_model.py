@@ -67,6 +67,7 @@ def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
         raise SourceModelError(f"unsupported source-model target: {target}")
     source_prefixes = (f"src/{source_stem}/", f"include/{source_stem}/")
     functions: dict[int, SourceFunction] = {}
+    folded: dict[int, bool] = {}
     for marker in load_source_index(repository)["markers"]:
         if not marker["source_file"].startswith(source_prefixes):
             continue
@@ -78,9 +79,16 @@ def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
             )
         address = int(marker["address"])
         if address in functions:
-            raise SourceModelError(
-                f"{target.upper()} 0x{address:08x} has more than one source owner"
-            )
+            current_folded = bool(marker.get("folded"))
+            previous_folded = folded[address]
+            if current_folded and not previous_folded:
+                continue
+            if not current_folded and previous_folded:
+                pass
+            else:
+                raise SourceModelError(
+                    f"{target.upper()} 0x{address:08x} has more than one source owner"
+                )
         functions[address] = SourceFunction(
             address=address,
             kind=marker["marker_kind"],
@@ -95,6 +103,7 @@ def build_source_model(repository: Path, target: str = "WIZ8") -> SourceModel:
             owning_class=declaration.get("owning_class") if declaration else None,
             is_virtual=bool(declaration.get("is_virtual")) if declaration else False,
         )
+        folded[address] = bool(marker.get("folded"))
     return SourceModel(functions=dict(sorted(functions.items())))
 
 

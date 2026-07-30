@@ -3,6 +3,8 @@
 #include "surrender/srLight.h"
 #include "surrender/srScene.h"
 
+class W8MonsterShakeCallback;
+
 /*
  * Classes whose only recovered members so far are the two SurRender class
  * registry slots.
@@ -44,7 +46,20 @@ public:
     const char* getClassName() const override;     /* 0x0049B550 */
     unsigned long getClassID() const override;     /* 0x0049B540 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x0049B560 */
+    void SetActive0049ACD0(int active);
+
+    unsigned char unknown_138[0x4c];
+    int state_184;
+    int value_188;
+    void* node_18c;
+    unsigned char active_190;
+    unsigned char unknown_191[0xd3];
+    int start_frame_264;
+    int end_frame_268;
+    W8MonsterShakeCallback* callback_26c;
 };
+
+static_assert(sizeof(stParticle) == 0x270, "stParticle_size_must_be_0x270");
 
 /* Engine Code\Trigger.cpp. The registry name has no st prefix, which is what
    separates the gameplay trigger from the renderer's own class family. */

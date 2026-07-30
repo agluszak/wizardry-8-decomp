@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/magic.h"
 #include "wiz8/sr_api.h"
 
 #include <stdlib.h>
@@ -554,6 +555,18 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount, int report
             *(int*)((char*)report_to + 0x4c) += 1;
         }
     }
+}
+
+/* A completed spell costs its database level plus the cast result. Result
+   eight is the one outcome that carries no stamina charge. MonsterCastsSpell
+   deliberately returns this value to its caller. */
+// FUNCTION: WIZ8 0x0052c320
+unsigned int SpellCastFatigueCost(int spell_id, int result)
+{
+    if (result == 8) {
+        return 0;
+    }
+    return g_spell_records[spell_id].spell_level + result;
 }
 
 /* Give one monster stamina back, the mirror of the character form down to the

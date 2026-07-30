@@ -42,6 +42,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from reccmp.parser.marker import match_marker
 from reccmp.source import SourceIndex
 
 # `_ast_command` builds reccmp's own argument list by stripping the output flags
@@ -326,6 +327,43 @@ def _summary(settings: Settings, index: SourceIndex) -> dict[str, Any]:
     }
 
 
+def _index_document(repository: Path, index: SourceIndex) -> dict[str, Any]:
+    """Retain marker properties that reccmp's v1 projection omits.
+
+    A `folded` marker names another compiler emission whose original body shares
+    an address with the canonical source function. It is evidence for emitted
+    code, not a second owner of that address. reccmp's parser already records
+    this distinction, but SourceMarker does not yet carry it into JSON, so
+    recover it from the adjacent source marker while writing our disposable
+    projection.
+    """
+
+    document = index.to_dict()
+    source_lines: dict[str, list[str]] = {}
+    for item in document["markers"]:
+        source_file = item["source_file"]
+        lines = source_lines.get(source_file)
+        if lines is None:
+            lines = (repository / source_file).read_text(encoding="utf-8").splitlines()
+            source_lines[source_file] = lines
+
+        marker_line = int(item["line"]) - 2
+        while marker_line >= 0:
+            marker = match_marker(lines[marker_line])
+            if marker is None:
+                break
+            if (
+                marker.offset == int(item["address"])
+                and marker.type.name == item["marker_kind"]
+                and marker.extra is not None
+                and marker.extra.casefold() == "folded"
+            ):
+                item["folded"] = True
+                break
+            marker_line -= 1
+    return document
+
+
 def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, Any]:
     """Write the disposable canonical source projection.
 
@@ -369,7 +407,11 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         }
 
     index = build_source_index(settings)
-    index.write(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(
+        json.dumps(_index_document(repository, index), indent=2) + "\n",
+        encoding="utf-8",
+    )
     stamp.parent.mkdir(parents=True, exist_ok=True)
     stamp.write_text(fingerprint + "\n", encoding="utf-8")
     return _summary(settings, index)

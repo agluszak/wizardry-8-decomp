@@ -25,7 +25,12 @@ typedef struct W8MonsterCombatState {
     /* 0x009: how many attacks it gets this round, which is what divides the
        remaining phases between them. */
     int attacks_per_round;
-    unsigned char unknown_00d[9];
+    unsigned char unknown_00d[4];
+    /* 0x011: the attack index Monster.cpp launches when combat has already
+       selected this monster. It is asserted below MAX_MONSTER_ATTACKS before
+       indexing the database record. */
+    unsigned int attack_index_11;
+    unsigned char unknown_015;
     /* 0x016: the queue of actions the monster's AI has decided on, one 0x30
        byte record each. The AI owns the list and destroys it outright. */
     W8PList* pending_actions;
