@@ -105,6 +105,7 @@ EXPORTS
     ?setLocation@srNode@@QAEXNNN@Z
     ?getLocation@srNode@@QBE?AV?$srVector3T@N@@XZ
     ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBDPBV2@@Z
+    ?find@srRegistry@@QAEPAVsrRuntimeClass@@PAVClassNode@1@PBV2@@Z
     ?setRotation@srNode@@QAEXNNN@Z
     ?getScale@srNode@@QBE?AV?$srVector3T@N@@XZ
     ?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z
@@ -277,6 +278,7 @@ EXPORTS
     ??0srModelInstance@@QAE@PAVsrNode@@@Z
     ?addReference@srClass@@QBEXXZ
     ?autoRelease@srClass@@QAEXXZ
+    ?getReferenceCount@srClass@@QBEJXZ
     ?touch@srClass@@QAEXXZ
     ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
     ?clone@srNode@@UAEPAV1@XZ
