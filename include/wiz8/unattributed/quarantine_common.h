@@ -315,6 +315,18 @@ extern int g_value_689fac;
 extern unsigned char g_flag_68c4f4;
 extern unsigned char g_flag_68c4f7;
 extern unsigned char g_flag_68c500;
+
+/* The refresh 0x004284F0 runs before reading the pair below. Its own body is not
+   recovered, so it keeps an address-qualified name. */
+extern void Function00428340(void);
+
+/* Two pairs of adjacent ints that 0x004284F0 sums into a screen point: the first
+   supplies x and the second y in each pair. Only that use is established, so
+   they stay four separate values rather than being grouped into a point type. */
+extern int g_value_6596bc;
+extern int g_value_6596c0;
+extern int g_value_654ad0;
+extern int g_value_654ad4;
 }
 
 

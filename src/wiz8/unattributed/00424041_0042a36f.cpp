@@ -105,3 +105,16 @@ void __fastcall ReleaseOwnedClass(srClass** owner)
         (*owner)->release();
     }
 }
+
+/* Fill a caller-supplied point with the sum of the two global pairs, after the
+   refresh that recomputes them. Fifty callers reach this; what the two pairs
+   mean is not established beyond the sum, so both keep address-qualified names. */
+// FUNCTION: WIZ8 0x004284f0
+void GetScreenPoint004284F0(W8ScreenPoint* point)
+{
+    if (point != 0) {
+        Function00428340();
+        point->x = g_value_6596bc + g_value_654ad0;
+        point->y = g_value_6596c0 + g_value_654ad4;
+    }
+}
