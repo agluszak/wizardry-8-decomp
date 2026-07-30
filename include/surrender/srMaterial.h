@@ -77,6 +77,10 @@ protected:
     void setVector(srVector4T<float>& destination,
                    const srVector4T<float>& source);
 
+public:
+    /* ReadLevel.cpp directly edits cloned material parameters before setting
+       dirty_74. The original SurRender declaration therefore exposed this
+       state to clients; keeping it protected would force a fabricated wrapper. */
     srVertexProcessor::MaterialInfo parms_18; /* 0x18 */
     srFlags<e_oper> operations_6c;             /* 0x6c */
     srVertexProcessor* mapper_70;              /* 0x70 */

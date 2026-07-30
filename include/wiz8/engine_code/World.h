@@ -75,7 +75,7 @@ struct W8World {
     W8Scene005EBE48* static_scene;
     W8Node005EC208* dynamic_scene;
     srCamera* camera;
-    void** psrMeshes;
+    srModelInstance** psrMeshes;
     void* m_owned_04c;
     W8Octree* octree;
     srLight* camera_light;

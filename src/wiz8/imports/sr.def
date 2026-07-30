@@ -720,6 +720,7 @@ EXPORTS
     ?calculateBounds@srMeshModel@@MAEXXZ
     ?calculatePolygonNormals@srMeshModel@@MAEXXZ
     ?calculateVertexNormals@srMeshModel@@MAEXXZ
+    ?getMaterial@srMeshModel@@QBEPAVsrMaterialIFace@@JW4e_side@1@@Z
     ?setMaterial@srMeshModel@@QAEXPAVsrMaterialIFace@@JW4e_side@1@@Z
     ?setTexture@srMeshModel@@QAEXPAVsrTextureIFace@@JJ@Z
     ?setShader@srMeshModel@@QAEXVsrShader@@J@Z

@@ -1,11 +1,15 @@
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <windows.h>
 
+#include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
@@ -21,6 +25,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srScene.h"
+#include "wiz8/mesh_model.h"
 
 #define READ_LEVEL_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\ReadLevel.cpp"
 
@@ -49,6 +54,34 @@ extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern void WorldSetFarClip(W8World* world, float distance);
 extern void WorldSetValue74(W8World* world, float value);
+extern unsigned char ReadSingleLevelMesh00485B20(
+    W8ReadLevelInfo* info, srModelInstance** instance,
+    int positional_0, int positional_1, const char* name,
+    unsigned char load_materials);
+extern unsigned char ReadMultipleLevelMeshes00488240(
+    W8ReadLevelInfo* info, srModelInstance** instances,
+    unsigned long count, unsigned int flags);
+extern unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile);
+extern void AssociateWorldLights004BC060(W8World* world);
+extern void UpdateSky00482EA0(void);
+extern void FinalizeWorldTriggers00448840(void);
+extern void UpdateWorldProps0044E010(W8World* world);
+extern void UpdateCameraView00450080(srCamera* camera, int mode);
+extern void FinalizeWorldScenes0046F410(
+    W8Scene005EBE48* static_scene, W8Node005EC208* dynamic_scene);
+extern void* BuildWorldQuad004BE200(
+    srModelInstance* instance, int positional,
+    float minimum_x, float minimum_y, float minimum_z,
+    float maximum_x, float maximum_y, float maximum_z,
+    W8Scene005EBE48* scene, int flags);
+extern void RefreshEnvironment00483560(void);
+extern void FinalizeStaticScene0046F3A0(W8Scene005EBE48* scene);
+extern unsigned char ReadWorldParticles004BD0D0(
+    W8ReadLevelInfo* info, W8Node005EC208* scene,
+    W8GrowableVector<stParticle*>* particles);
+extern unsigned char ReadAutomapNodes00584DD0(int hFile);
+extern void ReportLevelLoadError00401920(const char* message);
+extern void SetChainValue15C(char* node, int value);
 
 // FUNCTION: WIZ8 0x004BC9D0
 unsigned char ReadWorldEnvironment004BC9D0(
@@ -598,3 +631,246 @@ unsigned char ReadNamedPositions004BDC90(
     }
     return 1;
 }
+
+#define CHECK_PVL_OFFSET(message)                                             \
+    if (world->octree != 0 &&                                                \
+        (!ReadVirtualFile(handle, &section_end, sizeof(section_end), 0) ||    \
+         section_end != -1)) {                                               \
+        sprintf(error_message, "%s\nTry deleting .PVL file and reloading.", \
+                message);                                                    \
+        ReportLevelLoadError00401920(error_message);                         \
+    }
+
+// FUNCTION: WIZ8 0x004BAFF0
+unsigned char ReadLevel(
+    W8World* world, int handle, unsigned char use_octree,
+    const char* bitmap_folder)
+{
+    W8ReadLevelInfo info;
+    srModelInstance* level_mesh;
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    srVector3T<float> environment_offset;
+    char error_message[512];
+    int section_end;
+    int section_count;
+    int camera_mode;
+    int index;
+    unsigned int prop_count;
+    unsigned char success;
+
+    level_mesh = 0;
+    if (world->update_mesh_source != 0) {
+        world->update_mesh_source->release();
+    }
+    if (world->psrMeshes != 0) {
+        while (world->psrMeshes[0] != 0) {
+            world->psrMeshes[0]->release();
+            world->psrMeshes[0] = 0;
+        }
+        if (world->octree == 0) {
+            free(world->psrMeshes);
+            world->psrMeshes = 0;
+        }
+    }
+
+    if (world == 0 || world->static_scene == 0 || handle == 0) {
+        return 0;
+    }
+
+    info.world = world;
+    info.hFile = handle;
+    info.bitmap_folder = bitmap_folder;
+    GetTickCount();
+
+    if (world->psrMeshes == 0 || world->octree == 0) {
+        if (!ReadSingleLevelMesh00485B20(
+                &info, &level_mesh, 0, 0, 0, 1)) {
+            return 0;
+        }
+        if (level_mesh == 0) {
+            srAssertFail("psrMesh", READ_LEVEL_CPP, 0xfa, 0);
+        }
+        level_mesh->setName("ReadLevel");
+        world->update_mesh_source = level_mesh;
+        level_mesh->setParent(world->level, 1);
+        SetChainValue15C((char*)level_mesh, 1);
+    }
+    else {
+        if (!ReadMultipleLevelMeshes00488240(
+                &info, world->psrMeshes, world->octree->GetMeshCount(), 0)) {
+            ReportLevelLoadError00401920(
+                "ReadLevel: Error reading multi-meshes.");
+        }
+        for (unsigned int mesh_index = 0;
+             mesh_index < world->octree->m_positional_1b4;
+             ++mesh_index) {
+            if (world->psrMeshes[mesh_index] != 0) {
+                world->psrMeshes[mesh_index]->setParent(world->level, 1);
+                SetChainValue15C((char*)world->psrMeshes[mesh_index], 1);
+            }
+        }
+    }
+
+    success = ReadWorldLights004BBAD0(world, handle);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after lights.");
+    success = success && ReadMonsterPaths004BC140(&info, world);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after monsters.");
+    success = success && ReadWorldItems004BC380(&info, world);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after items.");
+
+    if (!success || info.hFile == 0 ||
+        !ReadVirtualFile(info.hFile, &section_count,
+                         sizeof(section_count), 0) ||
+        section_count >= 100000) {
+        success = 0;
+    }
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after missiles.");
+    success = success && ReadWorldProps004BC5E0(&info, world, 0);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after props.");
+    success = success && ReadWorldProps004BC5E0(&info, world, 1);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after bitmaps.");
+    success = success && ReadWorldCameras004BC850(&info, world);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after cameras.");
+    AssociateWorldLights004BC060(world);
+    if (!success) {
+        return 0;
+    }
+
+    ReadVirtualFile(info.hFile, &section_count, sizeof(section_count), 0);
+    if (section_count == 0) {
+        WorldSetFarClip(world, 42500.0f);
+        WorldSetValue74(world, 37500.0f);
+        if (!IsSkyEnabled()) {
+            DisableSky();
+        }
+        else {
+            UpdateSky00482EA0();
+        }
+    }
+    else {
+        success = ReadWorldEnvironment004BC9D0(&info, world);
+    }
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after fog options.");
+
+    if (success && info.hFile != 0) {
+        ReadVirtualFile(info.hFile, &section_count, sizeof(section_count), 0);
+        if (section_count != 0) {
+            for (index = 0; index < section_count; ++index) {
+                Trigger::CreateAndLoadLevelTrigger(info.hFile, world);
+            }
+            if (world->m_owned_04c != 0 &&
+                *(int*)world->m_owned_04c != 0) {
+                FinalizeWorldTriggers00448840();
+            }
+        }
+    }
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after triggers.");
+
+    UpdateWorldProps0044E010(world);
+    ReadVirtualFile(info.hFile, &camera_mode, sizeof(camera_mode), 0);
+    UpdateCameraView00450080(world->camera, camera_mode == 0 ? -1 : 1);
+    if (world->octree == 0 && world != g_world) {
+        FinalizeWorldScenes0046F410(world->static_scene, world->dynamic_scene);
+    }
+
+    success = ReadWorldClipPlanes004BCE20(&info, world);
+    if (!success) {
+        srAssertFail("fSuccess", READ_LEVEL_CPP, 0x15c, 0);
+    }
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after Clipping Planes.");
+
+    if (use_octree != 0) {
+        srMeshModel* model = static_cast<srMeshModel*>(level_mesh->model());
+        model->getBoundingBox(minimum, maximum);
+        world->m_owned_06c = BuildWorldQuad004BE200(
+            level_mesh, 0,
+            minimum.x, minimum.y, minimum.z,
+            maximum.x, maximum.y, maximum.z,
+            world->static_scene, 0);
+    }
+    RefreshEnvironment00483560();
+    FinalizeStaticScene0046F3A0(world->static_scene);
+
+    if (!success ||
+        !ReadVirtualFile(handle, &environment_offset.x,
+                         sizeof(environment_offset.x), 0) ||
+        !ReadVirtualFile(handle, &environment_offset.y,
+                         sizeof(environment_offset.y), 0) ||
+        !ReadVirtualFile(handle, &environment_offset.z,
+                         sizeof(environment_offset.z), 0)) {
+        success = 0;
+    }
+    else {
+        success = ReadWorldParticles004BD0D0(
+            &info, world->dynamic_scene, world->particles);
+    }
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after particles.");
+    success = success &&
+        ReadNamedPositions004BDC90(&info, world->named_positions);
+    CHECK_PVL_OFFSET(
+        "Wrong offset in .pvl file after named position points.");
+    success = success && ReadAutomapNodes00584DD0(handle);
+    CHECK_PVL_OFFSET("Wrong offset in .pvl file after automap nodes.");
+
+    g_environment_offset_00659cd0 = environment_offset;
+    prop_count = PListGetCount(world->plsProps);
+    for (index = 0; index < (int)prop_count; ++index) {
+        W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
+            PListGetAt(world->plsProps, index));
+        W8AnimObj* animation = prop->m_owned_14->animation;
+
+        if ((prop->flags_1c & 0x40) != 0) {
+            unsigned int animation_count = AnimObjListCount004A1620(
+                animation, 2);
+            for (unsigned int animation_index = 0;
+                 animation_index < animation_count;
+                 ++animation_index) {
+                srModelInstance* instance = prop->ToggleRepAnimation(
+                    animation_index);
+                stMeshModel* mesh = static_cast<stMeshModel*>(
+                    instance->model());
+
+                for (; mesh != 0; mesh = mesh->next) {
+                    if (!AnimationIsRunning(animation)) {
+                        mesh->InitializeVertexWeights004721E0(1);
+                        SetChainValue15C((char*)instance, 5);
+                    }
+                    else if (AnimationIsRunning(animation) == 1) {
+                        SetChainValue15C((char*)instance, 4);
+                    }
+
+                    srMaterialIFace* material_iface = mesh->getMaterial(
+                        0, (srMeshModel::e_side)0);
+                    if (material_iface != 0) {
+                        srMaterial* material = static_cast<srMaterial*>(
+                            material_iface);
+                        srMaterial* copy = material->clone();
+                        copy->setName("Unsunlit Prop Material");
+                        copy->autoRelease();
+                        copy->parms_18.ambient.x = 0.0f;
+                        copy->parms_18.ambient.y = 0.0f;
+                        copy->parms_18.ambient.z = 0.0f;
+                        copy->parms_18.ambient.w = 0.0f;
+                        copy->dirty_74 = 1;
+                        copy->parms_18.emissive.x +=
+                            g_environment_offset_00659cd0.x;
+                        copy->parms_18.emissive.y +=
+                            g_environment_offset_00659cd0.y;
+                        copy->parms_18.emissive.z +=
+                            g_environment_offset_00659cd0.z;
+                        copy->dirty_74 = 1;
+                        mesh->setMaterial(
+                            copy, 0, (srMeshModel::e_side)0);
+                    }
+                }
+            }
+        }
+    }
+    if (g_octree_6598a4 != 0) {
+        g_octree_6598a4->m_fAccumulating = 0;
+    }
+    return success;
+}
+
+#undef CHECK_PVL_OFFSET

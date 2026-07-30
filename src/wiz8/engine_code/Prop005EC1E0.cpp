@@ -150,8 +150,6 @@ void W8Prop005EC1E0::SetSetting6C(unsigned char value)
     m_owned_14->setting_6c = value;
 }
 
-extern void AnimationStart(W8AnimObj* animation, int channel, int argument); /* 0x004A14D0 */
-extern void AnimationStop(W8AnimObj* animation, int channel, int argument);  /* 0x004A1560 */
 extern void AnimationPlayFromTo(
     W8AnimObj* animation, int channel, unsigned char argument, int from, int to); /* 0x004A1710 */
 extern void GetAnimationBounds004A1710(
@@ -179,10 +177,10 @@ void W8Prop005EC1E0::GetCenterPosition(srVector3T<float>* position)
 void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
 {
     if (AnimationIsRunning(animation)) {
-        AnimationStop(animation, 2, 0);
+        AnimObjDispatchList004A1560(animation, 2, 0);
         return;
     }
-    AnimationStart(animation, 2, argument);
+    AnimObjDispatch004A14D0(animation, 2, argument);
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
@@ -273,13 +271,14 @@ unsigned char W8PropOwnedPolymorphic::AdvanceAnimationSegment()
 
 /* The same toggle reached through the prop rather than through the member. */
 // FUNCTION: WIZ8 0x0044d500
-void W8Prop005EC1E0::ToggleRepAnimation(int argument)
+srModelInstance* W8Prop005EC1E0::ToggleRepAnimation(int argument)
 {
-    if (AnimationIsRunning(m_owned_14->animation)) {
-        AnimationStop(m_owned_14->animation, 2, 0);
-        return;
+    W8PropOwnedPolymorphic* rep = m_owned_14;
+
+    if (!AnimationIsRunning(rep->animation)) {
+        return AnimObjDispatch004A14D0(rep->animation, 2, argument);
     }
-    AnimationStart(m_owned_14->animation, 2, argument);
+    return AnimObjDispatchList004A1560(rep->animation, 2, 0);
 }
 
 /* And again with the member's own stored argument instead of a caller's -
@@ -290,10 +289,10 @@ void W8Prop005EC1E0::ToggleRepAnimationDefault()
     unsigned char argument = m_owned_14->setting_64;
 
     if (AnimationIsRunning(m_owned_14->animation)) {
-        AnimationStop(m_owned_14->animation, 2, 0);
+        AnimObjDispatchList004A1560(m_owned_14->animation, 2, 0);
         return;
     }
-    AnimationStart(m_owned_14->animation, 2, argument);
+    AnimObjDispatch004A14D0(m_owned_14->animation, 2, argument);
 }
 
 /* Play the prop's animation between two points, with the same default

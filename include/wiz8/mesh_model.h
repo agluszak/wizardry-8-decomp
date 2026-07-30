@@ -23,6 +23,7 @@ public:
     void RemoveSkinTablesForCycle00473780(const char* cycle_name);
     srVector3T<float>* GetVertexLocations00471AD0(
         unsigned int frame, char load, float interpolation);
+    int InitializeVertexWeights004721E0(char initialize);
 
     stMeshModel* next;                    /* 0x398 */
     stMeshModel* previous;                /* 0x39c */

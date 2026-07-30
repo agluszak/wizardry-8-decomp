@@ -6,6 +6,7 @@ struct GDProp;
 struct W8AnimObj;
 struct W8ReadLevelInfo;
 struct W8World;
+class srModelInstance;
 class stModelInstance005EC7D0;
 class W8Timer005EC0A4;
 template <class T> class W8GrowableVector;
@@ -62,7 +63,7 @@ public:
     void Method44C030();
     void Method44C830(W8World* world);
     unsigned char GetSetting6C();
-    void ToggleRepAnimation(int argument);
+    srModelInstance* ToggleRepAnimation(int argument);
     void ToggleRepAnimationDefault();
     int PlayRepAnimation(int arg_2, int arg_3);
     void SetSetting6E(unsigned char value, unsigned char fallback);

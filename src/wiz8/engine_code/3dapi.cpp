@@ -209,8 +209,8 @@ unsigned char LoadWorld(
     }
     else {
         unsigned long mesh_count = world->octree->GetMeshCount();
-        world->psrMeshes = static_cast<void**>(
-            malloc((mesh_count + 1) * sizeof(void*)));
+        world->psrMeshes = static_cast<srModelInstance**>(
+            malloc((mesh_count + 1) * sizeof(srModelInstance*)));
         if (world->psrMeshes == 0) {
             srAssertFail("pWorld->psrMeshes", THREE_D_API_CPP, 0x1be,
                          "LoadWorld: Couldn't allocate psrMeshes.");
