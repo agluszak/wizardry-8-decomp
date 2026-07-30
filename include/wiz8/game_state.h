@@ -92,6 +92,11 @@ typedef struct W8GlobalStatus {
     unsigned char unknown_1904[0x30be];
 } W8GlobalStatus;                        /* 0x49c2 */
 
+/* Defined by GameplayDatabase.cpp, which carries the address marker. Declared
+   here beside its type so consumers share one declaration instead of repeating
+   a local extern each time. */
+extern W8GlobalStatus g_status_685170;
+
 typedef struct W8LevelRuntimeBlock {
     unsigned char unknown_000[0xf4];
     /* Everything that changes the screen ORs its redraw bit here. */
