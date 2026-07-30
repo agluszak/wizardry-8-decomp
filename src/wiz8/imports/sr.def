@@ -384,6 +384,41 @@ EXPORTS
     ?getMaterialInfo@srMaterial@@UAEXAAUMaterialInfo@srVertexProcessor@@@Z
     ?postProcess@srMaterial@@UAEXAAVsrVertexPipe@@@Z
     ?preProcess@srMaterial@@UAEXAAVsrVertexPipe@@@Z
+    ??0srVertexPipe@@QAE@XZ
+    ??1srVertexPipe@@QAE@XZ
+    ??4srVertexPipe@@QAEAAV0@ABV0@@Z
+    ?applyDiffuseLight@srVertexPipe@@QAEXABV?$srVector4T@M@@@Z
+    ?applyDiffuseLight@srVertexPipe@@QAEXPBMABV?$srVector4T@M@@@Z
+    ?applyFog@srVertexPipe@@QAEXPBM@Z
+    ?copyDiffuseToSpecular@srVertexPipe@@QAEXXZ
+    ?copySpecularToDiffuse@srVertexPipe@@QAEXXZ
+    ?disableChannel@srVertexPipe@@QAEXW4e_channel@srVertexProcessor@@@Z
+    ?enableChannel@srVertexPipe@@QAEXW4e_channel@srVertexProcessor@@@Z
+    ?getAVT@srVertexPipe@@QBEPBKXZ
+    ?getAlpha@srVertexPipe@@QAEPAMXZ
+    ?getChannelMask@srVertexPipe@@QBE?AV?$srFlags@W4e_channel@srVertexProcessor@@@@XZ
+    ?getDepthCue@srVertexPipe@@QAEPBMXZ
+    ?getDiffuse@srVertexPipe@@QAEPAV?$srVector4T@M@@XZ
+    ?getExclusionMask@srVertexPipe@@QBEKXZ
+    ?getEyeSpaceBoundingSphere@srVertexPipe@@QBEXAAV?$srVector3T@M@@AAM@Z
+    ?getEyeSpaceDir@srVertexPipe@@QAEPBV?$srVector3T@M@@XZ
+    ?getEyeSpaceDist@srVertexPipe@@QAEPBMXZ
+    ?getEyeSpaceLocation@srVertexPipe@@QAEPBV?$srVector4T@M@@XZ
+    ?getEyeSpaceNormal@srVertexPipe@@QAEPBV?$srVector3T@M@@XZ
+    ?getEyeSpaceZDist@srVertexPipe@@QAEPBMXZ
+    ?getFog@srVertexPipe@@QAEPAMXZ
+    ?getMaterialInfo@srVertexPipe@@QBEABUMaterialInfo@srVertexProcessor@@XZ
+    ?getQ@srVertexPipe@@QAEPAMKH@Z
+    ?getST@srVertexPipe@@QAEPAV?$srVector2T@M@@KH@Z
+    ?getShaderDisableMask@srVertexPipe@@SA?AV?$srFlags@W4e_channel@srVertexProcessor@@@@ABVsrShader@@@Z
+    ?getShaderDisableMask@srVertexPipe@@SA?AV?$srFlags@W4e_channel@srVertexProcessor@@@@PBVsrShader@@PBKK@Z
+    ?getSpecular@srVertexPipe@@QAEPAV?$srVector4T@M@@XZ
+    ?getUserArray@srVertexPipe@@QAEPAXK@Z
+    ?getVertexCount@srVertexPipe@@QBEKXZ
+    ?isChannelAvailable@srVertexPipe@@QBEHW4e_channel@srVertexProcessor@@@Z
+    ?process@srVertexPipe@@QAEXABUInput@1@@Z
+    ?swapDiffuseAndSpecular@srVertexPipe@@QAEXXZ
+    ?testEyeSpaceBounds@srVertexPipe@@QBEHABV?$srVector3T@M@@M@Z
     ?reset@srMaterial@@MAEXXZ
     ?sGetClassName@srMaterial@@SAPBDXZ
     ?setVector@srMaterial@@IAEXAAV?$srVector4T@M@@ABV2@@Z

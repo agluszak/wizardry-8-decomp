@@ -1,8 +1,11 @@
 #pragma once
 
+#include "srFlags.h"
 #include "srHeap.h"
 #include "srMath.h"
 
+class srMaterialIFace;
+class srShader;
 class srVertexPipe;
 
 /* SR.DLL exports secondary vtables qualified as srVertexProcessor for
@@ -14,6 +17,8 @@ class srVertexPipe;
 class srVertexProcessor {
 public:
     struct MaterialInfo;
+
+    enum e_channel {};
 
 protected:
     virtual ~srVertexProcessor();
@@ -37,3 +42,60 @@ public:
 static_assert(
     sizeof(srVertexProcessor) == 0x30,
     "srVertexProcessor_must_be_0x30");
+
+class srVertexPipe {
+public:
+    struct Input;
+
+    SR_DLL_IMPORT srVertexPipe();
+    SR_DLL_IMPORT ~srVertexPipe();
+    SR_DLL_IMPORT srVertexPipe& operator=(const srVertexPipe& other);
+
+    SR_DLL_IMPORT void applyDiffuseLight(
+        const srVector4T<float>& light);
+    SR_DLL_IMPORT void applyDiffuseLight(
+        const float* values, const srVector4T<float>& light);
+    SR_DLL_IMPORT void applyFog(const float* values);
+    SR_DLL_IMPORT void copyDiffuseToSpecular();
+    SR_DLL_IMPORT void copySpecularToDiffuse();
+    SR_DLL_IMPORT void disableChannel(srVertexProcessor::e_channel channel);
+    SR_DLL_IMPORT void enableChannel(srVertexProcessor::e_channel channel);
+    SR_DLL_IMPORT const unsigned long* getAVT() const;
+    SR_DLL_IMPORT float* getAlpha();
+    SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel> getChannelMask() const;
+    SR_DLL_IMPORT const float* getDepthCue();
+    SR_DLL_IMPORT srVector4T<float>* getDiffuse();
+    SR_DLL_IMPORT unsigned long getExclusionMask() const;
+    SR_DLL_IMPORT void getEyeSpaceBoundingSphere(
+        srVector3T<float>& center, float& radius) const;
+    SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceDir();
+    SR_DLL_IMPORT const float* getEyeSpaceDist();
+    SR_DLL_IMPORT const srVector4T<float>* getEyeSpaceLocation();
+    SR_DLL_IMPORT const srVector3T<float>* getEyeSpaceNormal();
+    SR_DLL_IMPORT const float* getEyeSpaceZDist();
+    SR_DLL_IMPORT float* getFog();
+    SR_DLL_IMPORT const srVertexProcessor::MaterialInfo& getMaterialInfo() const;
+    SR_DLL_IMPORT float* getQ(unsigned long index, int create);
+    SR_DLL_IMPORT srVector2T<float>* getST(unsigned long index, int create);
+    static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
+    getShaderDisableMask(const srShader& shader);
+    static SR_DLL_IMPORT srFlags<srVertexProcessor::e_channel>
+    getShaderDisableMask(
+        const srShader* shader,
+        const unsigned long* channels,
+        unsigned long channel_count);
+    SR_DLL_IMPORT srVector4T<float>* getSpecular();
+    SR_DLL_IMPORT void* getUserArray(unsigned long index);
+    SR_DLL_IMPORT unsigned long getVertexCount() const;
+    SR_DLL_IMPORT int isChannelAvailable(
+        srVertexProcessor::e_channel channel) const;
+    SR_DLL_IMPORT void process(const Input& input);
+    SR_DLL_IMPORT void swapDiffuseAndSpecular();
+    SR_DLL_IMPORT int testEyeSpaceBounds(
+        const srVector3T<float>& center, float radius) const;
+
+private:
+    unsigned char unknown_00_[0x9c];
+};
+
+static_assert(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
