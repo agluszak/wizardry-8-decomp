@@ -16,6 +16,7 @@ class W8Object0043A910 : public W8ObjectBase00439550 {
 public:
     W8Object0043A910();                  /* 0x0043A910 */
     virtual ~W8Object0043A910() override;
+    float GetValue28() const { return m_value_28; }
     float GetValue30() const { return m_value_30; }
 
 private:
@@ -24,8 +25,8 @@ private:
     float m_rate_1c;
     float m_scale_20;
     float m_scale_24;
-    int m_value_28;
-    int m_value_2c;
+    float m_value_28;
+    float m_value_2c;
     float m_value_30;
 };
 

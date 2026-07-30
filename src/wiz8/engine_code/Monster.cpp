@@ -691,9 +691,9 @@ void W8Monster::Update()
             case 0x17:
                 if (Query(7) != 0) {
                     if ((signed char)fields.flags_00c != 0) {
-                        fields.value_020 = 0x17;
-                        fields.value_018 = GetTickCount();
-                        fields.value_01c = Random(2000) + 2000;
+                        fields.values_018.value_020 = 0x17;
+                        fields.values_018.value_018 = GetTickCount();
+                        fields.values_018.value_01c = Random(2000) + 2000;
                         m_pRep->selection.monster.pending_cycle = 0x18;
                         m_pRep->flag_06e = 1;
                         m_pRep->behaviour_071 = 1;
@@ -709,7 +709,8 @@ void W8Monster::Update()
                 break;
             case 0x18:
                 if (Query(7) != 0) {
-                    if (fields.value_01c < GetTickCount() - fields.value_018 &&
+                    if (fields.values_018.value_01c <
+                            GetTickCount() - fields.values_018.value_018 &&
                         IsCycleSupported(0x17) != 0) {
                         m_pRep->selection.monster.pending_cycle = 0x17;
                     }
@@ -762,11 +763,13 @@ void W8Monster::Update()
     if (monster_info != 0 && monster_info->condition_turns[5] != 0) {
         TickAnimation(
             Query(6) == 4
-                ? fields.value_124 * g_monster_condition_scale_005ebc7c
+                ? fields.movement_0c0.movement_speed_064 *
+                      g_monster_condition_scale_005ebc7c
                 : 0.5f);
     }
     else {
-        TickAnimation(Query(6) == 4 ? fields.value_124 : 1.0f);
+        TickAnimation(
+            Query(6) == 4 ? fields.movement_0c0.movement_speed_064 : 1.0f);
     }
     InitializeAnimatedTexture004C51D0();
 
@@ -972,10 +975,10 @@ void W8Monster::UpdateRepresentation(W8World* world)
     int index;
     int count;
 
-    position.x = fields.position_100.x;
-    position.y = fields.position_100.y;
-    position.z = fields.position_100.z;
-    position.y += fields.value_180;
+    position.x = fields.movement_0c0.position_040.x;
+    position.y = fields.movement_0c0.position_040.y;
+    position.z = fields.movement_0c0.position_040.z;
+    position.y += fields.movement_0c0.vertical_offset_0c0;
     GetRepresentation()->SetLocation004B8850(&position);
 
     rotation.SetIdentity00467310();
@@ -992,8 +995,8 @@ void W8Monster::UpdateRepresentation(W8World* world)
             rotation.method_004A5AB0((double)angle);
         }
     }
-    if (fields.angle_0e8 != g_float_005ebb34) {
-        rotation.method_004CAB60((double)fields.angle_0e8);
+    if (fields.movement_0c0.roll_028 != g_float_005ebb34) {
+        rotation.method_004CAB60((double)fields.movement_0c0.roll_028);
     }
     m_pRep->SetRotation004B88D0(&rotation);
 
@@ -1040,7 +1043,8 @@ void W8Monster::UpdateRepresentation(W8World* world)
         }
     }
 
-    if (fields.position_dirty_09c != 0 || fields.flag_188 != 0) {
+    if (fields.position_dirty_09c != 0 ||
+        fields.movement_0c0.position_adjusted_0c8 != 0) {
         g_engine_state_6598a4->UpdateMonsterLocation0042E540(
             (unsigned short)propagated_value_1e4, &position);
     }
@@ -1938,7 +1942,7 @@ void MonsterPropagateValue004C5870(W8Monster* monster, int value)
             0);
     }
     monster->propagated_value_1e4 = value;
-    monster->fields.location_id_0c4 = (unsigned short)value;
+    monster->fields.movement_0c0.location_id_004 = (unsigned short)value;
     if (monster->m_plsSoundEvents != 0) {
         count = monster->m_plsSoundEvents->GetCount();
         index = 0;
@@ -2152,10 +2156,10 @@ void W8Monster::GetMappedPosition004C72A0(W8Position* position)
         }
     }
 
-    position->x = fields.position_100.x;
-    position->y = fields.position_100.y;
-    position->z = fields.position_100.z;
-    position->y += fields.value_178;
+    position->x = fields.movement_0c0.position_040.x;
+    position->y = fields.movement_0c0.position_040.y;
+    position->z = fields.movement_0c0.position_040.z;
+    position->y += fields.movement_0c0.height_offset_0b8;
 }
 
 /* Six thin bodies over the live animation object. Each is a null check and a

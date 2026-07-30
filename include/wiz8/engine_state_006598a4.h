@@ -5,6 +5,12 @@
 
 class GDProp;
 struct W8Position;
+struct W8NavigatorMovement004572C0;
+
+class W8OctreeQueue00437000 {
+public:
+    void Queue00437000(int kind, int id, const int* point);
+};
 
 class W8Pathing00457CF0 {
 public:
@@ -17,9 +23,16 @@ public:
 };
 
 /* Address-qualified shared engine state reached through 0x006598A4. Only the
-   pathing member and the monster-location notification method are recovered. */
+   world services exercised by current Octree, item, prop, and Navigator ports
+   are exposed. */
 struct W8EngineState006598A4 {
-    unsigned char unknown_000[0x120];
+    unsigned char unknown_000[0x0c];
+    srVector3T<float> octree_origin_00c;
+    unsigned char unknown_018[0x58];
+    float octree_cell_size_070;
+    unsigned char unknown_074[0x48];
+    W8OctreeQueue00437000* octree_queue_0bc;
+    unsigned char unknown_0c0[0x60];
     /* 0x120: the sector the world is currently resolving against, which the
        item settle path reads to decide whether a dropped item changed sector. */
     int current_sector;
@@ -36,6 +49,13 @@ struct W8EngineState006598A4 {
         const W8Position* from,
         W8Position* to,
         char allow_fallback);             /* 0x00434B60 */
+    unsigned int AdvanceNavigator00434620(
+        W8NavigatorMovement004572C0* movement,
+        float radius,
+        float separation);                /* 0x00434620 */
+    void QueueOctreeKind130042E810(
+        int id,
+        const srVector3T<float>* position); /* 0x0042E810 */
 };
 
 extern W8EngineState006598A4* g_engine_state_6598a4;

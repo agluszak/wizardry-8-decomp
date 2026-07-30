@@ -28,7 +28,11 @@ public:
     float z;
 
     /* Exact inline bodies; the original member names are not exported. */
+    srVector3T<float>* method_00421650(float source_0, float source_1,
+                                       float source_2);
+    void method_00421670();
     srVector3T<float>* method_00421680(double source_0, double source_1, double source_2);
+    float method_00421700() const;
     srVector3T<float>* method_00446110(const srVector3T<double>* source);
 };
 

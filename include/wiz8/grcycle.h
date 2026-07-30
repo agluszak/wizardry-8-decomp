@@ -13,13 +13,73 @@ struct W8ItemRep;
 struct W8PathAI;
 
 struct W8NavigatorAttachment {
-    unsigned char unknown_00[0x10];
+    unsigned int flags_00;
+    unsigned short value_04;
+    unsigned short unknown_06;
+    unsigned short value_08;
+    unsigned char unknown_0a[6];
     srVector3T<float> position_10;
-    unsigned char unknown_1c[0x18];
+    srVector3T<float> position_1c;
+    srVector3T<float> position_28;
     srVector3T<float> position_34;
-    unsigned char unknown_40[0x0c];
+    srVector3T<float> position_40;
     srVector3T<float>* position_4c;
+
+    void RecordPosition00456AE0(const srVector3T<float>* position);
 };
+
+class W8Navigator;
+
+/* Navigator.cpp constructs the 0xCC-byte movement/collision tail at +0xC0
+   independently. World collision routines receive this subobject, while the
+   surrounding Navigator owns the path and group-following state. */
+struct W8NavigatorMovement004572C0 {
+    unsigned int unknown_000;
+    unsigned short location_id_004;
+    unsigned short unknown_006;
+    int value_008;
+    int value_00c;
+    int value_010;
+    float angle_014;
+    float target_angle_018;
+    float unknown_01c;
+    float pitch_020;
+    float target_pitch_024;
+    float roll_028;
+    float target_roll_02c;
+    float unknown_030;
+    srVector3T<float> velocity_034;
+    srVector3T<float> position_040;
+    srVector3T<float> target_position_04c;
+    float callback_threshold_058;
+    float callback_progress_05c;
+    float movement_scale_060;
+    float movement_speed_064;
+    float turn_rate_068;
+    unsigned char unknown_06c[8];
+    unsigned char pitch_enabled_074;
+    unsigned char roll_enabled_075;
+    unsigned char unknown_076[2];
+    float vertical_velocity_078;
+    float vertical_base_07c;
+    float vertical_amplitude_080;
+    float vertical_phase_084;
+    unsigned char unknown_088[0x24];
+    W8NavigatorAttachment* attachment_0ac;
+    unsigned char unknown_0b0[4];
+    float alternate_radius_0b4;
+    float height_offset_0b8;
+    unsigned char unknown_0bc[4];
+    float vertical_offset_0c0;
+    unsigned char unknown_0c4[4];
+    unsigned char position_adjusted_0c8;
+    unsigned char unknown_0c9[3];
+};
+
+static_assert(sizeof(W8NavigatorAttachment) == 0x50,
+              "W8NavigatorAttachment_size_must_be_0x50");
+static_assert(sizeof(W8NavigatorMovement004572C0) == 0xcc,
+              "W8NavigatorMovement004572C0_size_must_be_0xcc");
 
 /* GrObject.cpp calls these sound events `pse`/`m_plsSoundEvents`; no stronger
    source witness for the concrete event class name is available yet. */
@@ -52,6 +112,7 @@ public:
 
 /* Navigator.cpp owns the path, position, orientation, and scene-node state
    below. It is GrCycle's ordinary second base, not a representation object. */
+#pragma pack(push, 4)
 class W8Navigator {
 public:
     W8Navigator();                        /* 0x00451EC0 */
@@ -77,9 +138,26 @@ public:
     void Function453690(void* argument);                   /* 0x00453690 */
     void SetPositionInternal00453590(const W8Position* position);
     void SetObject68Flag38(char value);                    /* 0x004537C0 */
+    unsigned char LinkToNavigator004527A0(
+        W8Navigator* target, double separation);           /* 0x004527A0 */
     void Function454040(const W8Position* position);       /* 0x00454040 */
     void Function453F30(const W8Position* position);       /* 0x00453F30 */
     void SetFlag25(char value);                            /* 0x004531F0 */
+    void UpdateAngles00453990();                           /* 0x00453990 */
+    unsigned char ConfigureMovement00453D20(
+        float minimum, float maximum);                     /* 0x00453D20 */
+    unsigned char SetMovementTarget00454170(
+        const srVector3T<float>* target, char propagate);  /* 0x00454170 */
+    srVector3T<float>* AdjustPosition00454440(
+        srVector3T<float>* result,
+        const srVector3T<float>* current,
+        const srVector3T<float>* previous);                /* 0x00454440 */
+    void UpdateFacing00454780(char immediate);             /* 0x00454780 */
+    void UpdateLinkedNavigator00454D70();                  /* 0x00454D70 */
+    void CollectGroupNavigators00455140(
+        W8GrowableVector<W8Navigator*>* navigators);       /* 0x00455140 */
+    int ResolveMovement00455CC0();                         /* 0x00455CC0 */
+    void ClearMovement004537E0();                          /* 0x004537E0 */
 
 public:
     /* The constructor clears this payload as 98 dwords, while Monster.cpp
@@ -89,16 +167,31 @@ public:
     union {
         unsigned int unknown_004[98];
         struct {
-            unsigned char unknown_004_to_00c[8];
+            unsigned char unknown_004;
+            unsigned char unknown_005[3];
+            int navigation_mode_008;
             unsigned int flags_00c;
-            unsigned char unknown_010_to_018[8];
-            unsigned int value_018;
-            unsigned int value_01c;
-            unsigned int value_020;
+            double collision_margin_010;
+            union {
+                srVector3T<float> movement_target_018;
+                struct {
+                    unsigned int value_018;
+                    unsigned int value_01c;
+                    unsigned int value_020;
+                } values_018;
+            };
             unsigned char flag_024;
             unsigned char flag_025;
-            unsigned char unknown_026_to_05c[0x36];
-            int value_05c;
+            unsigned char movement_complete_026;
+            unsigned char unknown_027;
+            srVector3T<float> position_028;
+            float minimum_height_034;
+            float maximum_height_038;
+            srVector3T<float> position_03c;
+            unsigned char unknown_048[4];
+            W8Navigator* target_navigator_04c;
+            srVector3T<float> target_last_position_050;
+            W8Navigator* linked_navigator_05c;
             unsigned char unknown_060_to_068[8];
             W8PathAI* path_ai_068;
             unsigned char unknown_06c_to_080[0x14];
@@ -107,46 +200,25 @@ public:
             float radius_084;
             unsigned char state_088;
             unsigned char unknown_089[3];
-            signed char current_cycle_08c;
-            signed char current_subcycle_08d;
-            unsigned char unknown_08e_to_09c[0x0e];
+            void (__cdecl *movement_callback_08c)(W8Navigator* navigator);
+            unsigned int unknown_090;
+            unsigned int unknown_094;
+            unsigned int unknown_098;
             unsigned char position_dirty_09c;
-            unsigned char unknown_09d_to_0a4[7];
+            unsigned char unknown_09d[3];
+            void* owned_object_0a0;
             srVector3T<float> tracked_position_0a4;
             float tracked_distance_0b0;
             unsigned char tracked_dirty_0b4;
-            unsigned char unknown_0b5_to_0c4[0x0f];
-            unsigned short location_id_0c4;
-            unsigned char unknown_0c6[2];
-            int value_0c8;
-            int value_0cc;
-            int value_0d0;
-            float angle_0d4;
-            float angle_0d8;
-            unsigned char unknown_0dc[4];
-            float angle_0e0;
-            unsigned char unknown_0e4[4];
-            float angle_0e8;
-            unsigned char unknown_0ec_to_0f4[8];
-            srVector3T<float> position_0f4;
-            srVector3T<float> position_100;
-            srVector3T<float> position_10c;
-            unsigned char unknown_118_to_120[8];
-            float value_120;
-            float value_124;
-            unsigned char unknown_128_to_16c[0x44];
-            W8NavigatorAttachment* attachment_16c;
-            unsigned char unknown_170_to_178[8];
-            float value_178;
-            unsigned char unknown_17c[4];
-            float value_180;
-            unsigned char unknown_184[4];
-            unsigned char flag_188;
-            unsigned char unknown_189[3];
+            unsigned char unknown_0b5[3];
+            int linked_update_time_0b8;
+            unsigned char unknown_0bc[4];
+            W8NavigatorMovement004572C0 movement_0c0;
         } fields;
     };
     srNode* node_18c;                    /* 0x18c: constructed srNode */
 };                                      /* 0x190 */
+#pragma pack(pop)
 
 class W8VectorElement005ECED4;
 class stLight;

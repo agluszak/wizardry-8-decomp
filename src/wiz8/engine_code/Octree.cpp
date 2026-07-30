@@ -3,6 +3,7 @@
 
 #include "surrender/srHeap.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_state_006598a4.h"
 #include "wiz8/sr_api.h"
 
 extern unsigned long g_octree_storage_00659770;
@@ -363,8 +364,6 @@ extern int g_shared_mark_006598ac;
 extern void OctreeTraverse(
     void* walker, void* arg_2, void* arg_3, int kind, unsigned int limit);   /* 0x0042F280 */
 extern void OctreeVisitPoint(void* walker, const float* point);              /* 0x0042E540 */
-extern void OctreeQueue(int kind, int id, const int* point);                 /* 0x00437000 */
-extern float OctreeNextCoordinate(void);
 
 /* Attach a visited set to the walker, but only one that has been built. */
 // FUNCTION: WIZ8 0x0042e3e0
@@ -422,15 +421,19 @@ void OctreeTraverseKind12(void* walker, void* arg_2, void* arg_3, unsigned short
 /* Queue one node of the thirteenth kind, with its three coordinates converted
    from floating point - which is what puts three ftol calls in a row here. */
 // FUNCTION: WIZ8 0x0042e810
-void OctreeQueueKind13(int id)
+void W8EngineState006598A4::QueueOctreeKind130042E810(
+    int id,
+    const srVector3T<float>* position)
 {
     int point[3];
-    int index;
 
-    for (index = 0; index < 3; ++index) {
-        point[index] = (int)OctreeNextCoordinate();
-    }
-    OctreeQueue(0xd, id + 1, point);
+    point[0] = (int)((position->x - octree_origin_00c.x) /
+                     octree_cell_size_070);
+    point[1] = (int)((position->y - octree_origin_00c.y) /
+                     octree_cell_size_070);
+    point[2] = (int)((position->z - octree_origin_00c.z) /
+                     octree_cell_size_070);
+    octree_queue_0bc->Queue00437000(0xd, id + 1, point);
 }
 
 /* Engine Code\Trigger.cpp lives in the same interval. Its list of live

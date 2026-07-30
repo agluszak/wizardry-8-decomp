@@ -1,9 +1,31 @@
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/GDCamera.h"
 
+#include <math.h>
+
 // FUNCTION: WIZ8 0x004D6930
 W8CameraMatrixRow004D6930::W8CameraMatrixRow004D6930()
 {
+}
+
+// FUNCTION: WIZ8 0x00421650
+srVector3T<float>* srVector3T<float>::method_00421650(
+    float source_0,
+    float source_1,
+    float source_2)
+{
+    x = source_0;
+    y = source_1;
+    z = source_2;
+    return this;
+}
+
+// FUNCTION: WIZ8 0x00421670
+void srVector3T<float>::method_00421670()
+{
+    x = 0.0f;
+    y = 0.0f;
+    z = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x00421680
@@ -16,6 +38,12 @@ srVector3T<float>* srVector3T<float>::method_00421680(
     y = (float)source_1;
     z = (float)source_2;
     return this;
+}
+
+// FUNCTION: WIZ8 0x00421700
+float srVector3T<float>::method_00421700() const
+{
+    return (float)sqrt(x * x + y * y + z * z);
 }
 
 // FUNCTION: WIZ8 0x004218E0

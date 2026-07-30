@@ -717,7 +717,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     case 0:
     case 2:
         if (monster_info->control_state == 1 &&
-            monster_info->monster->fields.value_05c == 0) {
+            monster_info->monster->fields.linked_navigator_05c == 0) {
             Function4537E0(monster_info->monster);
             monster_info->flag_255 = 0;
         }
