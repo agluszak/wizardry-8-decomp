@@ -1,13 +1,18 @@
 #pragma once
 
-/* Engine Code\Levels.cpp. LevelBuildInfoByID fills three consecutive path
-   buffers. LoadLevel passes them to LoadWorld as the level folder, mutable
-   level filename, and asset folder respectively. Only the string prefix of
-   the final 0x390-byte region is consumed by the recovered orchestration. */
+/* Engine Code\Levels.cpp. LevelBuildInfoByID fills eight consecutive path
+   buffers. LoadLevel passes the first three to LoadWorld as the level folder,
+   mutable level filename and bitmap folder; the remaining buffers are the
+   complete level path and the corresponding four sky paths. */
 struct W8LevelInfo {
     char level_folder[0x64];
     char level_file_name[0x64];
-    char asset_folder[0x390];
+    char level_bitmap_folder[0x64];
+    char level_path[0x100];
+    char sky_folder[0x64];
+    char sky_file_name[0x64];
+    char sky_bitmap_folder[0x64];
+    char sky_path[0x100];
 };
 
 static_assert(sizeof(W8LevelInfo) == 0x458,

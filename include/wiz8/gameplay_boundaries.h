@@ -281,7 +281,7 @@ typedef struct W8LevelFolderRecord {
     char folder_name[50];
     char level_name[50];                 /* 0x32 */
     char location_code[4];               /* 0x64: three-letter code plus NUL */
-    signed char unknown_68;
+    signed char sky_index;                /* 0x68: -1 means this level has no sky */
     signed char unknown_69;
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */

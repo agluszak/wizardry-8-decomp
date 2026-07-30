@@ -100,6 +100,7 @@ static_assert(sizeof(W8LevelNameRecord) == 0x6b,
 
 extern W8LevelNameRecord g_level_names_006044aa[57];
 extern char g_ambient_sound_filename_006059e0[];
+extern const char* g_sky_names_00605880[];
 
 namespace {
 
@@ -122,6 +123,89 @@ srRegistry::ClassNode* GetClipPlaneClassNode()
 }
 
 } // namespace
+
+/* Resolve a database level number into all level and sky resource paths. The
+   regular forty-seven levels use the database row directly; the ten test
+   slots synthesize level1..level9 and DefaultLevel. A missing LVL file is
+   valid only when both its OCT and PVL replacements exist. */
+// FUNCTION: WIZ8 0x0042A370
+unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
+{
+    char oct_path[1020];
+    char pvl_path[1020];
+
+    if ((unsigned int)level >= 57) {
+        srAssertFail(
+            "ulLevel < TEST_LEVEL_COUNT",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Levels.cpp",
+            237, 0);
+    }
+
+    if (level < 47) {
+        sprintf(info->level_folder, "%s\\%s", "Levels",
+                g_level_folders[level].folder_name);
+        sprintf(info->level_file_name, "%s.%s",
+                g_level_folders[level].level_name, "LVL");
+        if (g_level_folders[level].sky_index == -1) {
+            info->sky_file_name[0] = '\0';
+        }
+        else {
+            sprintf(info->sky_file_name, "%s.%s",
+                    g_sky_names_00605880[g_level_folders[level].sky_index],
+                    "LVL");
+        }
+    }
+    else {
+        sprintf(info->level_folder, "%s\\Test", "Levels");
+        if (level == 56) {
+            sprintf(info->level_file_name, "DefaultLevel.%s", "LVL");
+            sprintf(info->sky_file_name, "%s.%s",
+                    g_sky_names_00605880[0], "LVL");
+        }
+        else {
+            char test_level = static_cast<char>(level + 2);
+            sprintf(info->level_file_name, "level%c.%s", test_level, "LVL");
+            sprintf(info->sky_file_name, "sky%c.%s", test_level, "LVL");
+        }
+    }
+
+    strcpy(info->sky_folder, info->level_folder);
+    sprintf(info->level_bitmap_folder, "%s\\Bitmaps", info->level_folder);
+    sprintf(info->sky_bitmap_folder, "%s\\Bitmaps", info->sky_folder);
+    sprintf(info->level_path, "%s\\%s", info->level_folder,
+            info->level_file_name);
+
+    strcpy(oct_path, info->level_path);
+    strcpy(oct_path + strlen(oct_path) - 3, "oct");
+    strcpy(pvl_path, info->level_path);
+    strcpy(pvl_path + strlen(pvl_path) - 3, "pvl");
+    if (!FileExists(info->level_path)
+        && (!FileExists(oct_path) || !FileExists(pvl_path))) {
+        return 0;
+    }
+
+    sprintf(info->sky_path, "%s\\%s", info->sky_folder,
+            info->sky_file_name);
+    if (level < 47) {
+        if (g_level_folders[level].sky_index != -1
+            && !FileExists(info->sky_path)) {
+            sprintf(info->sky_folder, "%s\\Test", "Levels");
+            sprintf(info->sky_file_name, "%s.%s",
+                    g_sky_names_00605880[0], "LVL");
+            sprintf(info->sky_bitmap_folder, "%s\\Bitmaps",
+                    info->sky_folder);
+            sprintf(info->sky_path, "%s\\%s", info->sky_folder,
+                    info->sky_file_name);
+            if (!FileExists(info->sky_path)) {
+                return 0;
+            }
+        }
+    }
+    else if (!FileExists(info->sky_path)) {
+        info->sky_file_name[0] = '\0';
+    }
+    return 1;
+}
 
 /* Build the complete live level around the current world. The subordinate
    loaders remain in their original units; this body owns their ordering,
@@ -181,7 +265,7 @@ unsigned char LoadLevel(
     Function443A50();
     if (!ForwardLoadWorld(
             GetWorld(), level_info.level_file_name, level_info.level_folder,
-            level_info.asset_folder, 1)) {
+            level_info.level_bitmap_folder, 1)) {
         g_current_level = previous_level;
         return 0;
     }
