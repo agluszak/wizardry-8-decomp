@@ -20,3 +20,4 @@ typedef struct W8ItemInstance {
 #pragma pack(pop)
 
 void NormalizeItemQuantityKind(W8ItemInstance* item);
+int __cdecl CompareItemsForPool(const void* first, const void* second);

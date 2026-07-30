@@ -316,11 +316,16 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
     return 1;
 }
 
-/* The qsort predicate SortNpcItems passes. The reviewed Ghidra project has no
-   function boundary at this address yet, so the signature comes from qsort's
-   contract rather than from a recovered body; wiz8-kq15 tracks defining the
-   boundary and recovering it. */
-extern "C" int CompareNpcItems(const void* left, const void* right); /* 0x0055BAF0 */
+/* SortNpcItems stores the clock before the item itself. Its qsort predicate
+   therefore delegates to the ordinary item-pool ordering on the embedded item. */
+// FUNCTION: WIZ8 0x0055baf0
+static int __cdecl CompareNpcItems(const void* left, const void* right)
+{
+    const W8NpcItemEntry* first = static_cast<const W8NpcItemEntry*>(left);
+    const W8NpcItemEntry* second = static_cast<const W8NpcItemEntry*>(right);
+
+    return CompareItemsForPool(&first->item, &second->item);
+}
 
 /* Sort an NPC's stock in place by flattening the owned list into an array,
    sorting that, and rebuilding the list from it. The array allocation of one
