@@ -32,8 +32,8 @@ public:
         bottom_16e = 0;
         state_170 = 0;
         state_171 = 0;
-        state_174 = 0;
-        state_178 = 0;
+        vector_174 = 0;
+        vector_178 = 0;
         m_pGlowMaterial_17c = 0;
     }
     void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
@@ -42,16 +42,40 @@ protected:
     virtual ~srModelInstance() override;
     unsigned long state_160;
     unsigned long render_depth_164;
-    short left_168;
-    short top_16a;
-    short right_16c;
-    short bottom_16e;
-    unsigned char state_170;
-    unsigned char state_171;
-    unsigned char padding_172[2];
-    srVector4T<float>* state_174;
-    srVector4T<float>* state_178;
-    srMaterial* m_pGlowMaterial_17c;
+    union {
+        unsigned long state_168;
+        struct {
+            short left_168;
+            short top_16a;
+        };
+    };
+    union {
+        unsigned long state_16c;
+        struct {
+            short right_16c;
+            short bottom_16e;
+        };
+    };
+    union {
+        unsigned long state_170_173;
+        struct {
+            unsigned char state_170;
+            unsigned char state_171;
+            unsigned char padding_172[2];
+        };
+    };
+    union {
+        unsigned long state_174;
+        srVector4T<float>* vector_174;
+    };
+    union {
+        unsigned long state_178;
+        srVector4T<float>* vector_178;
+    };
+    union {
+        unsigned long state_17c;
+        srMaterial* m_pGlowMaterial_17c;
+    };
 };
 
 static_assert((sizeof(srModelInstance) == 0x180), "srModelInstance_must_be_0x180");

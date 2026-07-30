@@ -4,11 +4,31 @@
 
 class stTextureAnim;
 
+srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00();
+
 /* Engine Code\stModelInstance.cpp. */
 // VTABLE: WIZ8 0x005ec814 stModelInstance
 // VTABLE: WIZ8 0x005ec804 srModel::Client
 class stModelInstance : public srModelInstance {
 public:
+    stModelInstance()
+        : srModelInstance(0)
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x10004);
+
+        if (node == 0) {
+            node = registry->registerClass(
+                "stModelInstance",
+                GetSrModelInstanceClassNode00481D00(),
+                0x10004,
+                0);
+        }
+        registry->registerInstance(node, this);
+        damage_stage_tables_188 = 0;
+        damage_stage_count_18c = 0;
+    }
+
     const char* getClassName() const override;     /* 0x00481870 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
     unsigned long getClassID() const override;     /* 0x00481860 */
@@ -33,6 +53,8 @@ static_assert(sizeof(stModelInstance) == 0x190,
    name is not yet available. */
 class stModelInstance005EC7D0 : public stModelInstance {
 public:
+    explicit stModelInstance005EC7D0(srNode* parent); /* 0x0047EC80 */
+
     int value_190;
     srVector3T<float> scale_194;
     unsigned char flag_1a0;

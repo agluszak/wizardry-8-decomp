@@ -236,15 +236,15 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     }
     state_171 = other.state_171;
     render_depth_164 = other.render_depth_164;
-    if (other.state_174 != 0) {
-        state_174 = static_cast<srVector4T<float>*>(
+    if (other.vector_174 != 0) {
+        vector_174 = static_cast<srVector4T<float>*>(
             srHeap.allocate(sizeof(srVector4T<float>)));
-        *state_174 = *other.state_174;
+        *vector_174 = *other.vector_174;
     }
-    if (other.state_178 != 0) {
-        state_178 = static_cast<srVector4T<float>*>(
+    if (other.vector_178 != 0) {
+        vector_178 = static_cast<srVector4T<float>*>(
             srHeap.allocate(sizeof(srVector4T<float>)));
-        *state_178 = *other.state_178;
+        *vector_178 = *other.vector_178;
     }
     return *this;
 }
@@ -261,4 +261,59 @@ srNode* stModelInstance2D::vslot7()
     stModelInstance2D* copy = static_cast<stModelInstance2D*>(vInstance());
     *copy = *this;
     return copy;
+}
+
+/* Shared parent class-node builder used by the inlined stModelInstance
+   construction layer. */
+// FUNCTION: WIZ8 0x00481D00
+srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00()
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x1100);
+
+    if (node == 0) {
+        srRegistry* node_registry = srCore.getRegistry();
+
+        node = node_registry->getClassNode(0x1000);
+        if (node == 0) {
+            node = node_registry->registerClass(
+                srNode::sGetClassName(),
+                srClass::sGetClassNode(),
+                0x1000,
+                1);
+        }
+        node = registry->registerClass(
+            "srModelInstance", node, 0x1100, 0);
+    }
+    return node;
+}
+
+// SYNTHETIC: WIZ8 0x0047EDC0
+// stModelInstance005EC7D0::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x0047EC80
+stModelInstance005EC7D0::stModelInstance005EC7D0(srNode* parent)
+    : stModelInstance()
+{
+    render_depth_164 = 0;
+    state_168 = 0;
+    state_16c = 0;
+    state_170_173 = 0;
+    state_178 = 0;
+    state_17c = static_cast<unsigned long>(-1);
+    frame_index_180 = 0;
+    value_190 = 0;
+    if (parent != 0) {
+        setParent(parent, 1);
+    }
+    damage_stage_184 = -1;
+    state_174 = 0;
+    scale_194.x = 1.0f;
+    scale_194.y = 1.0f;
+    scale_194.z = 1.0f;
+    flag_1a0 = 0;
+    value_1a4 = 0;
+    flag_1a1 = 0;
+    value_1a8 = 0;
+    value_1ac = 0.0f;
 }
