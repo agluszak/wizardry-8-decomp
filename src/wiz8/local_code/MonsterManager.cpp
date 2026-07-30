@@ -142,7 +142,7 @@ void Function58AB60(int value_1, int value_2, void* notice, W8WideChar* name);
 void Function4C59C0(W8Monster* monster, W8World* world);
 W8World* GetWorld(W8Monster* monster);
 void Function46E5A0(W8World* world);
-void Function4C5860(W8Monster* monster);
+void DeleteMonster004C5860(W8Monster* monster);
 /* __stdcall, not __cdecl: 0x0042E650 ends in `ret 0x4`, and both callers here
    clean only three of the four dwords they push across the tail. */
 void __stdcall Function42E650(unsigned short location_id);
@@ -692,7 +692,7 @@ void DestroyUngroupedMonsters(void)
             if (monster_info->monster != 0) {
                 Function4C59C0(monster_info->monster, GetWorld());
                 Function46E5A0(GetWorld(monster_info->monster));
-                Function4C5860(monster_info->monster);
+                DeleteMonster004C5860(monster_info->monster);
                 monster_info->monster = 0;
             }
             (void)g_engine_state_6598a4;
@@ -1083,7 +1083,7 @@ unsigned char RemoveMonster(
         if (monster_info->monster != 0) {
             Function4C59C0(monster_info->monster, GetWorld());
             Function46E5A0(GetWorld(monster_info->monster));
-            Function4C5860(monster_info->monster);
+            DeleteMonster004C5860(monster_info->monster);
             monster_info->monster = 0;
         }
         (void)g_engine_state_6598a4;

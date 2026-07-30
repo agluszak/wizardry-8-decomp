@@ -12,6 +12,7 @@
 
 struct W8AnimObj;
 struct W8PList;
+struct W8Item;
 class stModelInstance005EC7D0;
 
 typedef struct W8MonsterRep W8MonsterRep;
@@ -26,14 +27,9 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
    Nothing observed so far types its contents. */
 typedef W8AnimRepValue4 W8MonsterRuntimeBlock4C;
 
-class W8VectorElement005EC018 : public srClass {
-public:
-    virtual ~W8VectorElement005EC018() override;
-};
-
-class W8MonsterReleasable005C8 {
-public:
-    virtual ~W8MonsterReleasable005C8();
+struct W8MonsterLinkedItem005E8 {
+    int unknown_00;
+    W8Item* item_04;
 };
 
 /* MonsterRep owns three ordinary arrays of growable vectors.  The first is
@@ -69,7 +65,7 @@ struct W8MonsterRep : public W8EmitterHost {
     unsigned char unknown_5bd[3];
     char* name_5c0;                            /* 0x5c0: owned copy */
     int value_5c4;
-    W8MonsterReleasable005C8* objects_5c8[8]; /* 0x5c8 */
+    W8Item* objects_5c8[8];                   /* 0x5c8 */
     W8PList* linked_objects_5e8;               /* 0x5e8 */
     int value_5ec;
     float scale_5f0;
@@ -83,7 +79,7 @@ struct W8MonsterRep : public W8EmitterHost {
     int value_608;
     int value_60c;
     int value_610;
-    W8GrowableVector<W8VectorElement005EC018*> linked_runtime_objects_614;
+    W8GrowableVector<stModelInstance005EC7D0*> linked_runtime_objects_614;
     class MonsterLight* monster_light_624;
 
     unsigned char GetNumSubsPerCycle(signed char bCycle);

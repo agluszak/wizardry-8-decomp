@@ -3,6 +3,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -47,6 +48,14 @@ extern unsigned char g_monster_model_value_enabled_00685111;
 extern unsigned char g_monster_shadow_updates_enabled_0065970c;
 extern unsigned char g_monster_combat_timer_enabled_006f0531;
 extern unsigned char g_flag_00683fce;
+extern const float g_monster_attachment_distance_scale_005ed2a8;
+extern const float g_monster_attachment_vertical_scale_005eca84;
+extern const double g_monster_attachment_group_spacing_005ed2a0;
+extern const float g_monster_linked_vertical_scale_005ed29c;
+extern const float g_monster_poster_vertical_rate_005ed298;
+extern const double g_monster_poster_max_distance_005ec3d8;
+extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
+extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
 extern void ReleaseSoundHandle00408F70(int handle);
 extern void GetPosition421070(W8Position* position);
@@ -1479,6 +1488,200 @@ unsigned char W8Monster::GetAnimationCenter(W8Position* center)
     return 0;
 }
 
+/* Keep equipped items, linked items, and temporary poster model instances in
+   the camera-facing attachment layout selected by the representation. */
+// FUNCTION: WIZ8 0x004c3f70
+void W8Monster::UpdateAttachedObjects004C3F70()
+{
+    W8MonsterRep* representation = m_pRep;
+    int attachment_layout = representation->value_5c4;
+    unsigned int linked_count =
+        PListGetCount(representation->linked_objects_5e8);
+    int poster_count = representation->linked_runtime_objects_614.GetCount();
+    srMatrix3T<float> camera_rotation;
+    W8Position base_position;
+    W8Position party_position;
+    float distance_scale;
+    unsigned int elapsed;
+    int index;
+
+    if (attachment_layout == 0 && linked_count == 0 && poster_count == 0) {
+        return;
+    }
+
+    elapsed = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) -
+        representation->timer_068;
+    WorldGetCameraRotation(g_world, &camera_rotation);
+    base_position.x = fields.movement_0c0.position_040.x;
+    base_position.y = fields.movement_0c0.position_040.y +
+        fields.movement_0c0.vertical_base_07c +
+        fields.movement_0c0.vertical_amplitude_080;
+    base_position.z = fields.movement_0c0.position_040.z;
+
+    GetPosition421070(&party_position);
+    party_position.x -= base_position.x;
+    party_position.y -= base_position.y;
+    party_position.z -= base_position.z;
+    distance_scale = (float)sqrt(
+        party_position.x * party_position.x +
+        party_position.y * party_position.y +
+        party_position.z * party_position.z) *
+        g_monster_attachment_distance_scale_005ed2a8;
+    if (flags_330.flag_01 == 0 && distance_scale > g_light_scale_identity_005ebb38) {
+        distance_scale = g_light_scale_identity_005ebb38;
+    }
+
+    if (attachment_layout != 0) {
+        for (index = 0; index < 8; ++index) {
+            W8Item* item = representation->objects_5c8[index];
+
+            if (item != 0) {
+                const srVector3T<float>& source =
+                    g_monster_attachment_offsets_0060e618[
+                        attachment_layout - 1][index];
+                srVector3T<float> offset;
+                W8Position location;
+                srNode* mesh;
+                float mesh_scale;
+                srVector3T<double> widened_scale;
+
+                offset.x = source.x * distance_scale;
+                offset.y = source.y * distance_scale;
+                offset.z = source.z * distance_scale;
+                location.x = base_position.x +
+                    camera_rotation.vectors[0].x * offset.x +
+                    camera_rotation.vectors[0].y * offset.y +
+                    camera_rotation.vectors[0].z * offset.z;
+                location.y = base_position.y + representation->value_5ec +
+                    distance_scale * g_monster_attachment_vertical_scale_005eca84 +
+                    camera_rotation.vectors[1].x * offset.x +
+                    camera_rotation.vectors[1].y * offset.y +
+                    camera_rotation.vectors[1].z * offset.z;
+                location.z = base_position.z +
+                    Function4218E0(camera_rotation.vectors[2], offset);
+
+                item->Function49F720(&location);
+                mesh = item->GetMesh();
+                mesh_scale = distance_scale *
+                    g_monster_attachment_scales_0060e914[attachment_layout];
+                widened_scale.x = mesh_scale;
+                widened_scale.y = mesh_scale;
+                widened_scale.z = mesh_scale;
+                mesh->setScale(widened_scale);
+                if ((flags_1dc & 0x400) == 0) {
+                    mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+                }
+                else {
+                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+                }
+                item->ApplyRepTransform0049FAA0();
+            }
+        }
+    }
+
+    index = 0;
+    {
+        int group = 0;
+
+        while (index < (int)linked_count) {
+            int chunk_count = (int)linked_count - index;
+            int chunk_index;
+            float group_height;
+
+            if (chunk_count > 4) {
+                chunk_count = 4;
+            }
+            group_height = (float)(group *
+                g_monster_attachment_group_spacing_005ed2a0);
+
+            for (chunk_index = 0; chunk_index < chunk_count;
+                 ++chunk_index, ++index) {
+                W8MonsterLinkedItem005E8* entry =
+                    static_cast<W8MonsterLinkedItem005E8*>(
+                        PListGetAt(representation->linked_objects_5e8, index));
+                W8Item* item = entry->item_04;
+                const srVector3T<float>& source =
+                    g_monster_attachment_offsets_0060e618[
+                        chunk_count - 1][chunk_index];
+                srVector3T<float> offset;
+                W8Position location;
+                srNode* mesh;
+                float mesh_scale;
+                srVector3T<double> widened;
+
+                offset.x = source.x * distance_scale;
+                offset.y = (source.y + group_height) * distance_scale;
+                offset.z = source.z * distance_scale;
+                location.x = base_position.x +
+                    camera_rotation.vectors[0].x * offset.x +
+                    camera_rotation.vectors[0].y * offset.y +
+                    camera_rotation.vectors[0].z * offset.z;
+                location.y = base_position.y + representation->value_5ec +
+                    distance_scale * g_monster_linked_vertical_scale_005ed29c +
+                    camera_rotation.vectors[1].x * offset.x +
+                    camera_rotation.vectors[1].y * offset.y +
+                    camera_rotation.vectors[1].z * offset.z;
+                location.z = base_position.z +
+                    Function4218E0(camera_rotation.vectors[2], offset);
+
+                item->Function49F720(&location);
+                mesh = item->GetMesh();
+                mesh_scale = distance_scale *
+                    g_monster_attachment_scales_0060e914[chunk_count];
+                widened.x = mesh_scale;
+                widened.y = mesh_scale;
+                widened.z = mesh_scale;
+                mesh->setScale(widened);
+                widened.x = location.x;
+                widened.y = location.y;
+                widened.z = location.z;
+                mesh->setLocation(widened);
+                if ((flags_1dc & 0x400) == 0) {
+                    mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+                }
+                else {
+                    mesh->setFlag(srNode::FLAG_POSITIONAL_0);
+                }
+            }
+            ++group;
+        }
+    }
+
+    if (poster_count != 0) {
+        W8Position mapped_position;
+        float vertical_offset = elapsed * g_monster_poster_vertical_rate_005ed298;
+        int poster_index = 0;
+
+        GetMappedPosition004C72A0(&mapped_position);
+        while (poster_index < poster_count) {
+            stModelInstance005EC7D0* poster =
+                *representation->linked_runtime_objects_614.GetAt(poster_index);
+            srVector3T<double> location = poster->getLocation();
+            float x = (float)location.x;
+            float y = (float)location.y + vertical_offset;
+            float z = (float)location.z;
+            float dx = x - mapped_position.x;
+            float dy = y - mapped_position.y;
+            float dz = z - mapped_position.z;
+
+            if ((float)sqrt(dx * dx + dy * dy + dz * dz) <=
+                (float)g_monster_poster_max_distance_005ec3d8) {
+                location.x = x;
+                location.y = y;
+                location.z = z;
+                poster->setLocation(location);
+                ++poster_index;
+            }
+            else {
+                representation->linked_runtime_objects_614.RemoveAt(
+                    representation->linked_runtime_objects_614.IndexOf(poster));
+                delete poster;
+                --poster_count;
+            }
+        }
+    }
+}
+
 /* Query the current animation state. The selector is an internal ten-entry
    interface used by MonsterManager and the animation driver; selector eight is
    intentionally unsupported and returns -1 with out-of-range selectors. */
@@ -2659,10 +2862,10 @@ void Function4C5810(W8Forwarded* target)
 }
 extern "C" {
 // FUNCTION: WIZ8 0x004C5860
-void Function4C5860(W8MonsterReleasable005C8* object)
+void DeleteMonster004C5860(W8Monster* monster)
 {
-    if (object != NULL) {
-        delete object;
+    if (monster != NULL) {
+        delete monster;
     }
 }
 }
