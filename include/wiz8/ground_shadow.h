@@ -4,7 +4,6 @@
 #include "surrender/srHeap.h"
 #include "surrender/srNode.h"
 
-extern "C" char g_stGroundShadowClassName[];
 
 class stGroundShadow;
 
@@ -30,7 +29,7 @@ public:
                     1);
             }
             node = registry->registerClass(
-                g_stGroundShadowClassName, node, 0x10010, 0);
+                "stGroundShadow", node, 0x10010, 0);
         }
         registry->registerInstance(node, this);
     }
@@ -57,7 +56,7 @@ protected:
                     1);
             }
             node = registry->registerClass(
-                g_stGroundShadowClassName, node, 0x10010, 0);
+                "stGroundShadow", node, 0x10010, 0);
         }
         registry->unregisterInstance(node, this);
     }

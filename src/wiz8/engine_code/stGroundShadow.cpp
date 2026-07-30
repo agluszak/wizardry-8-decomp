@@ -132,7 +132,7 @@ unsigned long W8GroundShadowRegistry005ED3F8::getClassID() const
 // FUNCTION: WIZ8 0x004d69b0
 const char* W8GroundShadowRegistry005ED3F8::getClassName() const
 {
-    return g_stGroundShadowClassName;
+    return "stGroundShadow";
 }
 
 // FUNCTION: WIZ8 0x004d69c0
@@ -152,7 +152,7 @@ srRegistry::ClassNode* W8GroundShadowRegistry005ED3F8::getClassNode() const
                 1);
         }
         node = registry->registerClass(
-            g_stGroundShadowClassName,
+            "stGroundShadow",
             node,
             0x10010,
             0);
