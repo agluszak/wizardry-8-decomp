@@ -80,6 +80,19 @@ retail binary does not contain, and never skip, stub, or approximate code it doe
 Every retail instruction must be accounted for by the ported source even while the emitted
 encoding still differs.
 
+The pinned VC6 build is a falsifier, not a score generator. Static analysis, source archaeology,
+and language intuition propose a source model; the emitted instruction sequence decides whether
+that model survives. Run a focused comparison immediately after changing field widths or order,
+signedness, return types, calling conventions, constructor/destructor shape, container ownership,
+or control flow. A worse exact/effective result or an earlier structural divergence falsifies the
+change unless the instruction diff proves that the measurement is stale or otherwise unrelated.
+Do not reason past a compiler result merely because the proposed model looked cleaner.
+
+Negative experiments are durable evidence. Record the symbol and address, the hypothesis, the
+source shape tried, the exact comparison command, the before/after status or first divergence, and
+the conclusion in the Bead. Revert source that the experiment showed to be worse; do not leave a
+known-regressed shape in the recovered code, but do not erase the result with a silent revert.
+
 Spend matching effort where it changes evidence. When the residual divergence comes down to
 inliner, scheduling, or register-allocation choice, do not run an exhaustive search over
 inlining combinations to win the final fraction of instruction similarity; record the
@@ -128,7 +141,8 @@ Put explanatory prose above the marker sequence.
 
 ## Validation
 
-Choose the narrowest lane while iterating and run the complete lane before publication:
+Choose the narrowest lane while iterating. Run the complete applicable lane after the task is
+finished and rebased onto current `main`, immediately before integration:
 
 | Change | Required validation |
 | --- | --- |
@@ -145,13 +159,14 @@ suites without rebuilding the clang lint lane. The lint build itself runs only i
 run `just lint` once so the source index sees a current compile database (the index refuses a
 stale one).
 
-Relocation-masked boundary verification is the exact-body authority. Linked-image `compare` is
-diagnostic because relocated globals can reduce its score even for exact bodies. Preserve
-`/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
+Relocation-masked selected-function comparison is the exact/effective body authority. Whole-image
+comparison is diagnostic because relocated globals can reduce its raw score even for an exact body.
+Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes.
 
 Use `just compare ADDRESS...` or `just compare --file SOURCE...` for one batch comparison and
-`just triage` for reccmp's structured first divergence. `just vtable`, `just datacmp`, and `just
-addr` expose reccmp's owned vtable/data/pairing analyses; they do not supersede boundary proof.
+`just triage ADDRESS...` or `just triage --file SOURCE...` for reccmp's structured first
+divergence. `just vtable`, `just datacmp`, and `just addr` expose reccmp's owned
+vtable/data/pairing analyses; they do not supersede function comparison.
 
 Use `just runtime-test` for the separate in-process semantic product. Its input is queued from the
 test driver but consumed by the real screen handler on the UI thread; forward/reverse normalized
@@ -166,6 +181,13 @@ live counts or generated reports into tests or Markdown.
 It enforces override and overloaded-virtual diagnostics; it never supplies matching evidence or
 participates in the linked product.
 
+A red integration gate is not excused by calling it “pre-existing.” When `just verify` fails on the
+topic, reproduce the same command in a clean sibling workspace at the exact rebased `main` commit.
+Integration is allowed only when every narrower required lane passes and the topic adds no failure:
+record the base commit, the baseline failure identities, the topic failure identities, and their
+empty delta in the Bead and handoff. Do not fix unrelated baseline failures unless the task scope is
+explicitly expanded.
+
 ## Workspace and publication
 
 Give every checkout its own absolute `WIZ8_WORK_DIR`. The live Ghidra project lives inside the
@@ -173,24 +195,30 @@ checkout at `ghidra-project/`; never point two checkouts at one project and neve
 copy a live project directory. Product builds use a per-checkout lock under `build/decomp`.
 
 At session start, run `bd prime`, `bd dolt pull`, inspect `bd ready`, and claim or create a Bead
-before substantial work. Record partial evidence; close only after acceptance and push Beads state.
-End a session by handing off what changed, how it was verified, the status of every touched Bead,
-and any step that stayed blocked, naming the exact command and error.
+before substantial work. Record partial and negative evidence; close only after acceptance and push
+Beads state. End a session by handing off what changed, how it was verified, the status of every
+touched Bead, and any step that stayed blocked, naming the exact command and error.
 
-Use Jujutsu, not raw Git, for repository history. Preserve unrelated working-copy changes, inspect
-`jj status` after meaningful edits, fetch/rebase before publication, and publish a named review
-bookmark. The exact workspace, Beads, rebase, and PR commands live in
+Use Jujutsu, not raw Git, for repository history. Start substantial work from current integrated
+`main` on a unique named bookmark such as `agent/<bead>-<topic>`. Keep the whole task or coherent
+batch isolated there. Commits inside that stack are review and recovery checkpoints; they are not
+individual integration events. Never move `main` merely because one intermediate commit passes.
+The exact workspace, Beads, rebase, checkpoint-push, PR, and integration commands live in
 [the contributor workflow](docs/contributor-workflow.md).
 
 Jujutsu workspaces have separate working copies but share bookmarks and operation history. `main`
 is therefore repository-global, not workspace-local. Never point `main` at unfinished, conflicted,
-or otherwise unpublished work; keep that work on its workspace commit and a named review bookmark.
-A concurrent operation reconciliation can replay another workspace's bookmark movement, so run
-`jj workspace update-stale` when requested and recheck `main`, `main@origin`, and the intended
-publication commit immediately before publishing.
+or partially validated work. Keep implementation on its task bookmark, and publish that bookmark
+for backup or review when useful. Do not continuously rebase just because another agent advanced
+`main`; rebase when upstream evidence is needed and once more immediately before integration.
 
-When direct publication to `main` is explicitly authorized, perform the final fetch, rebase,
-bookmark move, and push as one uninterrupted sequence. If another workspace moved local `main`,
-inspect and integrate that work rather than overwriting its bookmark movement. After the push,
-fetch again and prove that local `main` and `main@origin` resolve to the published commit and have
-an empty tree diff. This final proof is required even when the push itself reported success.
+Integrate a task exactly once, after its Bead scope and acceptance criteria are complete, its stack
+has been rebased onto current `main`, and the final applicable gates have been run on that rebased
+tip. If `main` or `main@origin` moves during the final sequence, stop, inspect the new commits,
+rebase the whole task stack again, and rerun the gates affected by the rebase. Never overwrite or
+push over another workspace's bookmark movement.
+
+When direct publication to `main` is authorized, perform the final fetch, stack rebase, validation,
+bookmark move, and push as one controlled integration sequence. After the push, fetch again and
+prove that local `main` and `main@origin` resolve to the published commit and have an empty tree
+diff. This final proof is required even when the push itself reported success.
