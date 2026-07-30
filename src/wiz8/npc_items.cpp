@@ -1,5 +1,6 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/item_tables.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/monster_runtime.h"
 #include "random.h"
@@ -87,6 +88,47 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
         } while (added < repeats);
     }
     return index;
+}
+
+/* Rate an item's identify difficulty against the band the party's average level
+   supports. Three means the difficulty sits inside the band, zero that it is
+   past the upper bound, and one or two grade how far below the lower bound it
+   falls. Every comparison here is signed, so the difficulty byte is read into a
+   char, and the tier is returned byte-sized. The NPC argument is unused by the
+   original. */
+// FUNCTION: WIZ8 0x0055aad0
+char RateItemIdentifyDifficulty(W8NpcState* npc, int item_id)
+{
+    char difficulty;
+    char level;
+    char base;
+    char raw_upper;
+    char lower;
+    char upper;
+
+    difficulty = static_cast<char>(g_item_records[item_id].identify_difficulty);
+    level = static_cast<char>(GetAveragePartyLevel());
+    base = static_cast<char>(level * 100 / 30) / 5;
+    raw_upper = base + 4;
+    if (base <= 16) {
+        lower = base < 1 ? 1 : base;
+    }
+    else {
+        lower = 16;
+    }
+    if (raw_upper <= 20) {
+        upper = raw_upper < 4 ? 4 : raw_upper;
+    }
+    else {
+        upper = 20;
+    }
+    if (difficulty > upper) {
+        return 0;
+    }
+    if (difficulty < lower) {
+        return static_cast<char>((difficulty + 4 >= lower) + 1);
+    }
+    return 3;
 }
 
 /* Add stock that only becomes ordinary trade stock once the world clock passes
