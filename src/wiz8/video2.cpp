@@ -1,6 +1,7 @@
 #include "surrender/srColorSurface.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
+#include "wiz8/engine_code/Material.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
@@ -36,23 +37,6 @@ static srRegistry::ClassNode* color_surface_class_node()
     return node;
 }
 
-static srRegistry::ClassNode* material_class_node()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2210);
-    if (!node) {
-        srRegistry::ClassNode* parent = registry->getClassNode(0x2200);
-        if (!parent) {
-            parent = registry->registerClass(
-                srMaterialIFace::sGetClassName(),
-                srClass::sGetClassNode(), 0x2200, 1);
-        }
-        node = registry->registerClass(
-            srMaterial::sGetClassName(), parent, 0x2210, 0);
-    }
-    return node;
-}
-
 class W8ColorSurface : public srColorSurface {
 public:
     W8ColorSurface(srPixelConvert::e_surfaceType type,
@@ -75,51 +59,6 @@ public:
         srColorSurface* copy = static_cast<srColorSurface*>(vInstance());
         *copy = *this;
         return copy;
-    }
-};
-
-class W8Material : public srMaterial {
-public:
-    W8Material() {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* iface = registry->getClassNode(0x2200);
-        if (!iface) {
-            iface = registry->registerClass(
-                srMaterialIFace::sGetClassName(),
-                srClass::sGetClassNode(), 0x2200, 1);
-        }
-        registry->registerInstance(iface, this);
-        registry->registerInstance(material_class_node(), this);
-        field_68 = 0;
-        field_6c = 0;
-        reset();
-    }
-
-    virtual const char* getClassName() const override {
-        return srMaterial::sGetClassName();
-    }
-    virtual unsigned long getClassID() const override { return 0x2210; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return material_class_node();
-    }
-    virtual srMaterial* vslot7() override {
-        srMaterial* copy = static_cast<srMaterial*>(vInstance());
-        *copy = *this;
-        return copy;
-    }
-
-    void initializeBlitRect() {
-        srVector4T<float> value;
-        value.x = 1.0f;
-        value.y = 1.0f;
-        value.z = 1.0f;
-        value.w = 1.0f;
-        setVector(vector_54, value);
-        value.x = value.y = value.z = value.w = 0.0f;
-        setVector(vector_18, value);
-        setVector(vector_38, value);
-        vector_18.w = 1.0f;
-        field_74 = 1;
     }
 };
 
@@ -208,7 +147,7 @@ static W8Camera005EBE14* make_camera(srNode* parent, const char* name,
 extern "C" unsigned char InitializeRendererSceneObjects(void)
 {
     DDSURFACEDESC surface_description;
-    W8Material* material;
+    W8Material005EBDE0* material;
     char renderer_name[128];
 
     InitializeMouseSurface();
@@ -226,7 +165,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     g_square_camera_659674 = make_camera(
         g_scene_square_65965c, "2D Square Overlay Camera", 0.75);
 
-    material = new W8Material;
+    material = new W8Material005EBDE0;
     g_blit_material_65967c = material;
     material->setName("Blit Rect Material");
     material->initializeBlitRect();

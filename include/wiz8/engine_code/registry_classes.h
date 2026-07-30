@@ -257,13 +257,6 @@ public:
     unsigned long getClassID() const;     /* 0x00429A40 */
 };
 
-/* The one body VC6 folded: vtables 0x005EBDE0 and 0x005EBF68 both point their
-   id slot at it, so two classes share one emission. */
-class W8Registered005EBDE0 {
-public:
-    unsigned long getClassID() const;     /* 0x00429CC0 */
-};
-
 class W8Registered005EBF94 {
 public:
     unsigned long getClassID() const;     /* 0x00429E80 */

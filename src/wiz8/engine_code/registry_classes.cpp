@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/ClipPlane.h"
 #include "wiz8/engine_code/Level.h"
+#include "wiz8/engine_code/Material.h"
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stScript.h"
@@ -84,7 +85,7 @@ const char* W8TextureMap005EBEEC::getClassName() const
     return "srTextureMap";
 }
 // FUNCTION: WIZ8 0x00429CC0
-unsigned long W8Registered005EBDE0::getClassID() const
+unsigned long W8Material005EBDE0::getClassID() const
 {
     return 0x2210;
 }

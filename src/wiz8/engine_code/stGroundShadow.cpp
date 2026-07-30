@@ -1,40 +1,61 @@
 #include "wiz8/ground_shadow.h"
 
 #include "surrender/srCore.h"
+#include "surrender/srTexture.h"
+#include "wiz8/engine_code/Material.h"
 
 #include <new>
 
-/* The SR.DLL registry string is the original runtime class identity. The
-   constructor's material subobject remains unrecovered, so this unit starts
-   with the independent vtable identity, clone, and factory bodies. */
+/* The SR.DLL registry string is the original runtime class identity. */
 
 extern unsigned char g_ground_shadow_enabled_00685110;
+extern srTexture* g_ground_shadow_texture_006834cc;
+extern srMaterial* g_ground_shadow_material_006834d0;
+extern unsigned long g_ground_shadow_shader_006834c8;
+extern unsigned char g_ground_shadow_material_parameters_00683430[];
+
+srTexture* LoadTexture004B95D0(
+    const char* folder, const char* name, unsigned char required);
+
+// SYNTHETIC: WIZ8 0x004D6340
+// stGroundShadow::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x004D6B50
+// W8GroundShadowRegistry005ED3F8::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x004D61B0
+stGroundShadow::stGroundShadow(srNode* parent)
+    : W8GroundShadowRegistry005ED3F8(0)
+{
+    field_138 = 0;
+    value_13c = 500;
+    value_140 = 500;
+    setParent(parent, 1);
+
+    if (g_ground_shadow_texture_006834cc == 0) {
+        g_ground_shadow_texture_006834cc = LoadTexture004B95D0(
+            "Data\\Monsters\\Bitmaps\\", "Shadow.tga", 1);
+        g_ground_shadow_texture_006834cc->addReference();
+        g_ground_shadow_texture_006834cc->setMipmap(
+            static_cast<srTextureIFace::e_mipmap>(0));
+        g_ground_shadow_texture_006834cc->setWrapS(
+            static_cast<srTextureIFace::e_wrap>(1));
+        g_ground_shadow_texture_006834cc->setWrapT(
+            static_cast<srTextureIFace::e_wrap>(1));
+
+        W8Material005EBDE0* material = new W8Material005EBDE0;
+        g_ground_shadow_material_006834d0 = material;
+        material->setParameterSource(
+            g_ground_shadow_material_parameters_00683430);
+        g_ground_shadow_shader_006834c8 =
+            (g_ground_shadow_shader_006834c8 & 0xfeff9277UL) |
+            0x00808260UL;
+    }
+}
 
 // FUNCTION: WIZ8 0x004d6430
 stGroundShadow::stGroundShadow(const stGroundShadow& other)
-    : srNode(0)
+    : W8GroundShadowRegistry005ED3F8(0)
 {
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10010);
-
-    if (node == 0) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        node = parent_registry->getClassNode(0x1000);
-        if (node == 0) {
-            node = parent_registry->registerClass(
-                srNode::sGetClassName(),
-                srClass::sGetClassNode(),
-                0x1000,
-                1);
-        }
-        node = registry->registerClass(
-            g_stGroundShadowClassName,
-            node,
-            0x10010,
-            0);
-    }
-    registry->registerInstance(node, this);
-
     setParent(other.parentNode(), 1);
     setName(other.getName());
     field_138 = other.field_138;
@@ -103,19 +124,19 @@ void stGroundShadow::process(const ProcessInfo& info, e_processType)
 }
 
 // FUNCTION: WIZ8 0x004d69a0
-unsigned long stGroundShadow::getClassID() const
+unsigned long W8GroundShadowRegistry005ED3F8::getClassID() const
 {
     return 0x10010;
 }
 
 // FUNCTION: WIZ8 0x004d69b0
-const char* stGroundShadow::getClassName() const
+const char* W8GroundShadowRegistry005ED3F8::getClassName() const
 {
     return g_stGroundShadowClassName;
 }
 
 // FUNCTION: WIZ8 0x004d69c0
-srRegistry::ClassNode* stGroundShadow::getClassNode() const
+srRegistry::ClassNode* W8GroundShadowRegistry005ED3F8::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(0x10010);
@@ -139,15 +160,21 @@ srRegistry::ClassNode* stGroundShadow::getClassNode() const
     return node;
 }
 
-// FUNCTION: WIZ8 0x004d6a30
-srNode* stGroundShadow::vslot7()
+// FUNCTION: WIZ8 0x004D6370
+stGroundShadow::~stGroundShadow()
 {
-    stGroundShadow* instance = static_cast<stGroundShadow*>(vInstance());
+}
 
-    *static_cast<srNode*>(instance) = *this;
-    instance->field_138 = field_138;
-    instance->value_13c = value_13c;
-    instance->value_140 = value_140;
+// FUNCTION: WIZ8 0x004d6a30
+srNode* W8GroundShadowRegistry005ED3F8::vslot7()
+{
+    stGroundShadow* source = static_cast<stGroundShadow*>(this);
+    stGroundShadow* instance = static_cast<stGroundShadow*>(source->vInstance());
+
+    *static_cast<srNode*>(instance) = *source;
+    instance->field_138 = source->field_138;
+    instance->value_13c = source->value_13c;
+    instance->value_140 = source->value_140;
     return instance;
 }
 
