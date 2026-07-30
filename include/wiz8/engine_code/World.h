@@ -21,7 +21,29 @@ class W8VectorElement005EC280;
 class W8CollidableProp;
 class Trigger;
 class stParticle;
-class W8NamedPosition;
+struct W8NamedPosition {
+    W8NamedPosition()
+    {
+        name[0] = '\0';
+        position.x = 0.0f;
+        position.y = 0.0f;
+        position.z = 0.0f;
+        value_08c = 0.0f;
+        value_090 = 0.0f;
+        value_094 = 0.0f;
+        value_098 = 0.0f;
+    }
+
+    char name[0x80];
+    W8Position position;
+    float value_08c;
+    float value_090;
+    float value_094;
+    float value_098;
+};
+
+static_assert(sizeof(W8NamedPosition) == 0x9c,
+              "W8NamedPosition_must_be_0x9c");
 
 /* Engine Code\3dapi.cpp. CreateWorld allocates and zeroes exactly 0xdc bytes;
    the list/vector setup and teardown routines prove the owned fields below. */
