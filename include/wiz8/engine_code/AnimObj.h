@@ -19,7 +19,9 @@ struct W8AnimObj {
     unsigned char value_02;              /* 0x02 */
     unsigned char unknown_03[2];
     unsigned char flag_05;               /* 0x05 */
-    unsigned char unknown_06[0x0e];
+    unsigned char unknown_06[2];
+    float playback_scale_08;             /* 0x08 */
+    unsigned char unknown_0c[8];
     unsigned char start_frame_14;
     unsigned char end_frame_15;
     unsigned char value_16;              /* 0x16 */

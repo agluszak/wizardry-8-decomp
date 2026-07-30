@@ -69,7 +69,7 @@ struct W8NavigatorMovement004572C0 {
     unsigned char unknown_0b0[4];
     float alternate_radius_0b4;
     float height_offset_0b8;
-    unsigned char unknown_0bc[4];
+    float secondary_height_offset_0bc;
     float vertical_offset_0c0;
     unsigned char unknown_0c4[4];
     unsigned char position_adjusted_0c8;

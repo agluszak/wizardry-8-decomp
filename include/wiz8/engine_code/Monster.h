@@ -191,6 +191,7 @@ public:
         W8GrowableVector<stModelInstance005EC7D0*>* instances);
     void SetDamageStage004C6990(int stage);
     int GetDamageStageCount004C6A50();
+    void RandomizeAppearanceAndMotion004C1D20();
     unsigned char IsRenderable004C7C00(char alternate);
     void InitializeAnimatedTexture004C51D0();
     void HandleAnimationThreshold004C75C0();
@@ -225,6 +226,7 @@ public:
     unsigned char SetScriptLabel004CA260(const char* label);
     unsigned char GetFlag216004CA290() const;
     unsigned char IsWithinWorldRange004CA2A0();
+    void CheckLineOfSightToPlayer004C4810();
     void GetPlayerSightFlags004C4870(
         unsigned char* primary, unsigned char* secondary);
     unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);
@@ -296,6 +298,8 @@ public:
 
 int ParseMonsterCycleName004C2010(
     const char* name, signed char* subcycle = 0);
+unsigned short ChooseDifferentMonsterDirection004C2E00(
+    unsigned short previous_direction);
 
 unsigned char MonsterGetWorldAnimationBounds004CA4F0(
     W8Monster* monster, W8Position* minimum, W8Position* maximum);
@@ -312,6 +316,8 @@ unsigned char MonsterReplacePath(W8Monster* monster, void* path);
 unsigned char MonsterGetAnimationRadius(
     W8Monster* monster, float* radius);
 void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
+void MonsterSetAdjustedPosition004C5F00(
+    W8Monster* monster, const W8Position* position);
 unsigned short MonsterApproachStartupNavigator004C5FF0(
     W8Monster* monster, double separation);
 unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
@@ -330,6 +336,8 @@ unsigned short MonsterConfigureMovementToMonster004C60D0(
     W8Position position,
     int value_3,
     int value_4);
+void MonsterAimAtMonster004C62C0(
+    W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void UpdateNearestMonsterGroupMembers004CA570();
 
