@@ -191,6 +191,30 @@ srClass* stParticle::vInstance()
     return new stParticle(0, 0);
 }
 
+// FUNCTION: WIZ8 0x00498C40
+void stParticle::traverse(srNode::TraverseInfo& info)
+{
+    if (nextSibling() != 0) {
+        nextSibling()->traverse(info);
+    }
+
+    if (!testFlag(FLAG_POSITIONAL_0)) {
+        if ((active_1a0 != 0 || node_18c != 0) && flag_1a1 != 0) {
+            if (info.entries.capacity <= info.entry_count) {
+                info.entries.setCapacity(
+                    info.entries.capacity + 8 + info.entry_count);
+            }
+            info.entries.data[info.entry_count].node = this;
+            info.entries.data[info.entry_count].value = 0;
+            ++info.entry_count;
+        }
+    }
+
+    if (!testFlag(FLAG_POSITIONAL_1) && firstChild() != 0) {
+        firstChild()->traverse(info);
+    }
+}
+
 // FUNCTION: WIZ8 0x00498A20
 stParticle::~stParticle()
 {

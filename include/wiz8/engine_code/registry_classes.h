@@ -41,6 +41,7 @@ public:
     unsigned char ReplaceTexture0049AC30(
         const char* old_name, srTextureIFace* replacement);
     virtual srClass* vInstance() override;         /* 0x004980E0 */
+    virtual void traverse(srNode::TraverseInfo& info) override; /* 0x00498C40 */
 
 protected:
     virtual ~stParticle() override;                /* 0x00498A20 */

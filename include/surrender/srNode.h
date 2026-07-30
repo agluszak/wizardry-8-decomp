@@ -5,6 +5,8 @@
 #include "srTypeRegistry.h"
 #include "srVertexProcessor.h"
 
+#include <new>
+
 class srCriticalSection;
 
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
@@ -21,7 +23,33 @@ public:
 
         class NodeArray {
         public:
-            void setCapacity(unsigned int new_capacity); /* 0x0049E290 */
+            // FUNCTION: WIZ8 0x0049E290
+            void setCapacity(unsigned int new_capacity)
+            {
+                unsigned int copy_capacity;
+                unsigned int index;
+                srNode** replacement;
+
+                if (capacity != new_capacity) {
+                    replacement = 0;
+                    if (new_capacity > 0) {
+                        replacement = static_cast<srNode**>(
+                            ::operator new(new_capacity * sizeof(srNode*)));
+                        if (data != 0 && capacity != 0) {
+                            copy_capacity = capacity;
+                            if (new_capacity <= copy_capacity) {
+                                copy_capacity = new_capacity;
+                            }
+                            for (index = 0; index < copy_capacity; ++index) {
+                                replacement[index] = data[index];
+                            }
+                        }
+                    }
+                    ::operator delete(data);
+                    data = replacement;
+                    capacity = new_capacity;
+                }
+            }
 
             srNode** data;                 /* 0x00 */
             unsigned int capacity;         /* 0x04 */
@@ -29,7 +57,33 @@ public:
 
         class EntryArray {
         public:
-            void setCapacity(unsigned int new_capacity); /* 0x00481C80 */
+            // FUNCTION: WIZ8 0x00481C80
+            void setCapacity(unsigned int new_capacity)
+            {
+                unsigned int copy_capacity;
+                unsigned int index;
+                Entry* replacement;
+
+                if (capacity != new_capacity) {
+                    replacement = 0;
+                    if (new_capacity > 0) {
+                        replacement = static_cast<Entry*>(
+                            ::operator new(new_capacity * sizeof(Entry)));
+                        if (data != 0 && capacity != 0) {
+                            copy_capacity = capacity;
+                            if (new_capacity <= copy_capacity) {
+                                copy_capacity = new_capacity;
+                            }
+                            for (index = 0; index < copy_capacity; ++index) {
+                                replacement[index] = data[index];
+                            }
+                        }
+                    }
+                    ::operator delete(data);
+                    data = replacement;
+                    capacity = new_capacity;
+                }
+            }
 
             Entry* data;                   /* 0x00 */
             unsigned int capacity;         /* 0x04 */
