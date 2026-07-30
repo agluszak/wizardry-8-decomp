@@ -6,10 +6,12 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/magic.h"
+#include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srTimer.h"
+#include "surrender/srModelInstance.h"
 
 #include <string.h>
 
@@ -518,11 +520,9 @@ unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
 /* Select the active AnimObj for a cycle and dispatch the requested LOD/frame.
    This is the concrete implementation behind AnimRep's third vtable slot. */
 // FUNCTION: WIZ8 0x004bf8c0
-void W8MonsterRep::SetCycleFrameLod(
+srModelInstance* W8MonsterRep::SetCycleFrameLod(
     signed char cycle, int frame, int lod)
 {
-    typedef int (__cdecl *DispatchCall)(W8AnimObj*, int, int);
-
     int subcycle = selection.monster.current_subcycle;
     W8MonsterAnimationVector* selected_cycle = &animations[cycle];
     W8AnimObj** animation_slot;
@@ -536,11 +536,9 @@ void W8MonsterRep::SetCycleFrameLod(
     }
     animation = *animation_slot;
     if (animation->flag_05 == 0) {
-        ((DispatchCall)AnimObjDispatch004A14D0)(animation, lod, frame);
+        return AnimObjDispatch004A14D0(animation, (signed char)lod, frame);
     }
-    else {
-        ((DispatchCall)AnimObjDispatchList004A1560)(animation, lod, 0);
-    }
+    return AnimObjDispatchList004A1560(animation, (signed char)lod, 0);
 }
 
 /* Stop the selected subcycle for one animation cycle.  AnimObj's canonical
@@ -1322,6 +1320,65 @@ unsigned char W8Monster::IsDying()
                           m_pRep->selection.monster.pending_cycle == 0x15;
 
     return dying;
+}
+
+/* Resolve mapped vertex zero on the current model and transform it into world
+   space. Models without that mapping use the Navigator position plus the
+   Monster's vertical offset. */
+// FUNCTION: WIZ8 0x004c72a0
+void W8Monster::GetMappedPosition004C72A0(W8Position* position)
+{
+    srModelInstance* instance = GetCurrentModelInstance004A8250();
+
+    if (instance != 0) {
+        stMeshModel* mesh = static_cast<stMeshModel*>(instance->model());
+        while (mesh != 0) {
+            int index = mesh->FindMappedIndex(0);
+
+            if (index >= 0) {
+                srVector3T<float>* vertices;
+                if ((mesh->flags_3a0 & 4) == 0) {
+                    vertices = mesh->getVertexLoc();
+                }
+                else {
+                    vertices = mesh->GetVertexLocations00471AD0(0, 1, 0.0f);
+                }
+                if (vertices != 0) {
+                    srMatrix4T<float> matrix;
+                    float x;
+                    float y;
+                    float z;
+
+                    position->x = vertices[index].x;
+                    position->y = vertices[index].y;
+                    position->z = vertices[index].z;
+                    instance->getWorldSpaceMatrix(matrix);
+                    x = position->x;
+                    y = position->y;
+                    z = position->z;
+                    position->y = matrix.vectors[1].x * x +
+                                  matrix.vectors[1].y * y +
+                                  matrix.vectors[1].z * z +
+                                  matrix.vectors[1].w;
+                    position->x = matrix.vectors[0].x * x +
+                                  matrix.vectors[0].y * y +
+                                  matrix.vectors[0].z * z +
+                                  matrix.vectors[0].w;
+                    position->z = matrix.vectors[2].x * x +
+                                  matrix.vectors[2].y * y +
+                                  matrix.vectors[2].z * z +
+                                  matrix.vectors[2].w;
+                    return;
+                }
+            }
+            mesh = mesh->next;
+        }
+    }
+
+    position->x = fields.position_100.x;
+    position->y = fields.position_100.y;
+    position->z = fields.position_100.z;
+    position->y += fields.value_178;
 }
 
 /* Six thin bodies over the live animation object. Each is a null check and a

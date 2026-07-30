@@ -9,7 +9,9 @@ struct W8AniMesh {
     unsigned char value_01;              /* 0x01 */
     unsigned char unknown_02[0x1e];
     float radius_20;                     /* 0x20 */
-    unsigned char unknown_24[8];
+    unsigned char unknown_24[4];
+    signed char list_index_28;
+    unsigned char unknown_29[3];
     void* allocation_2c;                 /* 0x2c */
     void* allocation_30;                 /* 0x30 */
     unsigned char unknown_34[8];

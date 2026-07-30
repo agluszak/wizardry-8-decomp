@@ -1,4 +1,6 @@
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/AniMesh.h"
+#include "surrender/srModelInstance.h"
 #include "wiz8/sr_api.h"
 
 #include <stdlib.h>
@@ -9,12 +11,8 @@
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
 extern int Function4B64F0(void* entry);                        /* 0x004B64F0 */
-extern int Function4B6550(void* entry, int value);              /* 0x004B6550 */
-
-struct W8AnimObjEntry004B6550 {
-    unsigned char unknown_00[0x28];
-    signed char list_index_28;
-};
+extern srModelInstance* GetAniMeshFrame004B6550(
+    W8AniMesh* mesh, int frame);                               /* 0x004B6550 */
 
 // FUNCTION: WIZ8 0x004a01a0
 W8AnimObj* CreateAnimObj004A01A0()
@@ -80,36 +78,36 @@ unsigned char AnimationIsRunning(W8AnimObj* animation)
 }
 
 // FUNCTION: WIZ8 0x004a14d0
-int AnimObjDispatch004A14D0(
+srModelInstance* AnimObjDispatch004A14D0(
     W8AnimObj* animation, signed char list_index, int value)
 {
-    W8AnimObjEntry004B6550* entry;
+    W8AniMesh* entry;
 
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x243, 0);
     }
     if (animation->flag_05 == 0) {
-        entry = (W8AnimObjEntry004B6550*)animation->entries_18[list_index];
-        if (entry != (W8AnimObjEntry004B6550*)0xdddddddd && entry != 0) {
+        entry = (W8AniMesh*)animation->entries_18[list_index];
+        if (entry != (W8AniMesh*)0xdddddddd && entry != 0) {
             entry->list_index_28 = list_index;
-            return Function4B6550(entry, value);
+            return GetAniMeshFrame004B6550(entry, value);
         }
     }
     else {
-        entry = (W8AnimObjEntry004B6550*)PListGetAt(animation->lists_28[list_index], 0);
+        entry = (W8AniMesh*)PListGetAt(animation->lists_28[list_index], 0);
         if (entry != 0) {
             entry->list_index_28 = list_index;
-            return Function4B6550(entry, value);
+            return GetAniMeshFrame004B6550(entry, value);
         }
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004a1560
-int AnimObjDispatchList004A1560(
+srModelInstance* AnimObjDispatchList004A1560(
     W8AnimObj* animation, signed char list_index, signed char entry_index)
 {
-    W8AnimObjEntry004B6550* entry;
+    W8AniMesh* entry;
     W8PList* list;
 
     if (animation == 0) {
@@ -118,10 +116,10 @@ int AnimObjDispatchList004A1560(
     if (animation->flag_05 == 1) {
         list = animation->lists_28[list_index];
         if (list != 0) {
-            entry = (W8AnimObjEntry004B6550*)PListGetAt(list, entry_index);
+            entry = (W8AniMesh*)PListGetAt(list, entry_index);
             if (entry != 0) {
                 entry->list_index_28 = list_index;
-                return Function4B6550(entry, 0);
+                return GetAniMeshFrame004B6550(entry, 0);
             }
         }
     }

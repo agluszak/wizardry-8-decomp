@@ -105,12 +105,11 @@ void W8SpellVisual::StartIfHostActive()
 /* Send something to one named emitter. The arguments are handed on in the
    reverse of the order they arrive. */
 // FUNCTION: WIZ8 0x004ab290
-void W8SpellEmitterHost::SetCycleFrameLod(
+srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(
     signed char emitter, int frame, int lod)
 {
-    typedef int (__cdecl *DispatchCall)(W8AnimObj*, int, int);
-    ((DispatchCall)AnimObjDispatch004A14D0)(
-        (W8AnimObj*)this->emitters[emitter], lod, frame);
+    return AnimObjDispatch004A14D0(
+        (W8AnimObj*)this->emitters[emitter], (signed char)lod, frame);
 }
 
 /* Apply the host setting to one required emitter.  The source assertion names

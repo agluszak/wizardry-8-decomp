@@ -86,6 +86,7 @@ public:
        than returned. 3dapi.cpp's camera-rotation accessor is what establishes
        the float element type. */
     SR_DLL_IMPORT void getRotation(srMatrix3T<float>* rotation);
+    SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4T<float>& matrix) const;
     SR_DLL_IMPORT void setFlag(e_flag flag);
     SR_DLL_IMPORT void clearFlag(e_flag flag);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;

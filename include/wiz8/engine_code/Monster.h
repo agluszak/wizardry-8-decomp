@@ -52,7 +52,7 @@ struct W8MonsterRep : public W8EmitterHost {
     W8MonsterRep(const W8MonsterRep& other);
     virtual ~W8MonsterRep() override;
     virtual W8AnimRepBase005EC1D8* Clone() override; /* 0x004CA9E0 */
-    virtual void SetCycleFrameLod(
+    virtual srModelInstance* SetCycleFrameLod(
         signed char cycle, int frame, int lod) override; /* 0x004BF8C0 */
     virtual unsigned int ApplyEmitterSetting(char cycle) override; /* 0x004BF970 */
     virtual void StopEmitter(char cycle) override; /* 0x004BF920 */
@@ -189,7 +189,7 @@ public:
     virtual W8AniMesh* GetCurrentAniMesh() override;
     virtual void vslot16();
     virtual void SetCurrentAnimationScale(float scale);
-    virtual void vslot18();
+    virtual void GetMappedPosition004C72A0(W8Position* position);
     virtual unsigned char GetAnimationCenter(W8Position* center);
     virtual void SetPosition(const W8Position* position) override;
 

@@ -18,9 +18,9 @@ public:
 
         Client();
         virtual ~Client();
-        virtual srModel* getModel() const;
         virtual void setModel(srModel* model);
         virtual void updateClient(e_update update);
+        virtual srModel* getModel() const;
 
     private:
         unsigned char unknown_04_[0x24];
@@ -49,6 +49,7 @@ public:
     void setShader(srShader shader, long pass);
     void setActivePolygonCount(long count);
     unsigned long* getActivePolygonTable(int table);
+    srVector3T<float>* getVertexLoc();
     void enableStartupControls() {
         control_state_394 |= 0x40;
         control_state_390 |= 8;

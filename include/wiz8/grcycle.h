@@ -7,6 +7,7 @@
 #include "wiz8/vector_005ec294.h"
 
 class srNode;
+class srModelInstance;
 struct W8ItemRep;
 struct W8PathAI;
 
@@ -117,7 +118,9 @@ public:
             float value_120;
             unsigned char unknown_124_to_16c[0x48];
             W8NavigatorAttachment* attachment_16c;
-            unsigned char unknown_170_to_18c[0x1c];
+            unsigned char unknown_170_to_178[8];
+            float value_178;
+            unsigned char unknown_17c_to_18c[0x10];
         } fields;
     };
     srNode* node_18c;                    /* 0x18c: constructed srNode */
@@ -170,12 +173,14 @@ public:
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
-    void SelectCycleFrameLod004A8360(signed char cycle, signed char frame, signed char lod);
+    srModelInstance* SelectCycleFrameLod004A8360(
+        signed char cycle, signed char frame, signed char lod);
+    srModelInstance* GetCurrentModelInstance004A8250();
     unsigned char ReplacePath004A8400(void* path);
     void SubmitTargetValue004A84A0();
 
 public:
-    int unknown_1a8;
+    srModelInstance* current_model_instance_1a8;
     W8LightVector* m_plsLights; /* 0x1ac */
     W8GrowableVector<W8VectorElement005ECED4*>* m_vector_1b0; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */

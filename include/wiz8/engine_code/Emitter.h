@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_EMITTER_H
 
 struct W8Position;
+class srModelInstance;
 template<class T> class srMatrix3T;
 template<class T> class srVector3T;
 
@@ -116,7 +117,7 @@ public:
     W8EmitterHost();
     W8EmitterHost(const W8EmitterHost& other);
     virtual ~W8EmitterHost() override;
-    virtual void SetCycleFrameLod(
+    virtual srModelInstance* SetCycleFrameLod(
         signed char cycle, int frame, int lod) = 0;
     virtual unsigned int ApplyEmitterSetting(char emitter) = 0;
     virtual void StopEmitter(char emitter) = 0;

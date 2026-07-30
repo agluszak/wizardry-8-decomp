@@ -11,6 +11,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
+#include "surrender/srModelInstance.h"
 #include <new>
 #include <string.h>
 
@@ -48,7 +49,7 @@ extern void PrepareGrCycleEvents004AE270(
 // FUNCTION: WIZ8 0x004a5e50
 W8GrCycle::W8GrCycle()
 {
-    unknown_1a8 = 0;
+    current_model_instance_1a8 = 0;
     m_plsLights = 0;
     m_vector_1b0 = 0;
     m_fDeleteLights = 0;
@@ -232,8 +233,34 @@ void W8GrCycle::ResetRepresentation004A7420()
     target->timer_068 = g_time_source_006598b8->vslot5(0);
 }
 
+/* Select the model instance for the representation's current cycle, frame,
+   and LOD. AnimObj's frame lookup is the source of the returned instance; the
+   callers immediately use it as an srNode/srModelInstance. */
+// FUNCTION: WIZ8 0x004a8250
+srModelInstance* W8GrCycle::GetCurrentModelInstance004A8250()
+{
+    W8AnimObj* animation;
+    W8EmitterHost* representation;
+
+    if (current_model_instance_1a8 != 0) {
+        return current_model_instance_1a8;
+    }
+
+    animation = GetCurrentAnimation();
+    representation = GetRepresentation();
+    if (AnimationIsRunning(animation) == 1) {
+        return AnimObjDispatchList004A1560(
+            animation, representation->setting_98, 0);
+    }
+
+    return SelectCycleFrameLod004A8360(
+        representation->selection.monster.current_cycle,
+        representation->flag_064,
+        (signed char)representation->setting_98);
+}
+
 // FUNCTION: WIZ8 0x004a8360
-void W8GrCycle::SelectCycleFrameLod004A8360(
+srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(
     signed char cycle, signed char frame, signed char lod)
 {
     W8EmitterHost* target;
@@ -257,7 +284,7 @@ void W8GrCycle::SelectCycleFrameLod004A8360(
             (W8PathAI*)m_pAI, (W8PathRepresentation*)target);
     }
     target = GetRepresentation();
-    target->SetCycleFrameLod(cycle, frame, lod);
+    return target->SetCycleFrameLod(cycle, frame, lod);
 }
 
 // FUNCTION: WIZ8 0x004a8400
@@ -508,10 +535,10 @@ void DestroyLightVector(W8LightVector* vector)
 }
 
 // FUNCTION: WIZ8 0x004a8d10
-int FindMappedIndexInMeshChain(W8MeshModel** mesh, int key)
+int FindMappedIndexInMeshChain(stMeshModel** mesh, int key)
 {
     int result;
-    W8MeshModel* current;
+    stMeshModel* current;
 
     if (key < 0 || mesh == 0 || *mesh == 0) {
         return -1;

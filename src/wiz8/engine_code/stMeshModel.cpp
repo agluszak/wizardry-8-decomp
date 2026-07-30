@@ -12,7 +12,7 @@
 extern void Function4729F0(void* model);
 
 // FUNCTION: WIZ8 0x004712d0
-int W8MeshModel::FindMappedIndex(short key)
+int stMeshModel::FindMappedIndex(short key)
 {
     if (key < 0) {
         return -1;
@@ -27,7 +27,7 @@ int W8MeshModel::FindMappedIndex(short key)
 /* Link one model onto another, setting both ends - so the two pointers are one
    link rather than two independent fields. Unlinking passes nothing. */
 // FUNCTION: WIZ8 0x00471d60
-void W8MeshModel::LinkTo(W8MeshModel* other)
+void stMeshModel::LinkTo(stMeshModel* other)
 {
     next = other;
     if (other != 0) {
@@ -38,7 +38,7 @@ void W8MeshModel::LinkTo(W8MeshModel* other)
 /* One vertex, bounds-checked against the model's own count and refused
    outright when there is no table at all. */
 // FUNCTION: WIZ8 0x00471aa0
-void* W8MeshModel::GetVertex(unsigned int index)
+void* stMeshModel::GetVertex(unsigned int index)
 {
     if (vertices != 0 && index < vertex_count) {
         return vertices[index];
@@ -58,13 +58,13 @@ void ReleaseMeshModel(void* model)
    which is what separates this class from SurRender's own srMeshModel at
    0x2010. */
 // FUNCTION: WIZ8 0x004741f0
-const char* W8MeshModel::getClassName() const
+const char* stMeshModel::getClassName() const
 {
     return "stMeshModel";
 }
 
 // FUNCTION: WIZ8 0x004741e0
-unsigned long W8MeshModel::getClassID() const
+unsigned long stMeshModel::getClassID() const
 {
     return 0x10003;
 }
@@ -74,7 +74,7 @@ unsigned long W8MeshModel::getClassID() const
    three-level forms. The chain is stMeshModel under srMeshModel under srModel
    under srClass. */
 // FUNCTION: WIZ8 0x00474820
-srRegistry::ClassNode* W8MeshModel::getClassNode() const
+srRegistry::ClassNode* stMeshModel::getClassNode() const
 {
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node = registry->getClassNode(0x10003);
