@@ -94,7 +94,9 @@ set(WIZ8_ORIGINAL_UNITS
 set(WIZ8_TEMPLATE_EMISSIONS
     src/wiz8/vector.cpp
 )
-set(WIZ8_UNATTRIBUTED_UNITS
+# Provisionally named subsystem units: their contents have coherent ownership,
+# but the original translation-unit spelling is not yet independently proved.
+set(WIZ8_PROVISIONAL_PREFIX_UNITS
     src/wiz8/bringup_gates.cpp
     src/wiz8/renderer_window.cpp
     src/wiz8/startup_render_state.cpp
@@ -114,6 +116,11 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/render_options.cpp
     src/wiz8/engine_code/registry_classes.cpp
     src/wiz8/engine_code/GDCamera.cpp
+)
+
+# Address-bounded quarantine: every marker must fall inside the filename's
+# explicit range. These files make no subsystem or original-TU claim.
+set(WIZ8_ADDRESS_QUARANTINE_UNITS
     src/wiz8/unattributed/00401001_0041ab3f.cpp
     src/wiz8/unattributed/0041f261_0042403f.cpp
     src/wiz8/unattributed/00424041_0042a36f.cpp
@@ -142,6 +149,9 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/unattributed/005c4341_005c87af.cpp
     src/wiz8/unattributed/005d2a51_005d730f.cpp
     src/wiz8/unattributed/005e2cc1_005e37ff.cpp
+)
+
+set(WIZ8_PROVISIONAL_SUFFIX_UNITS
     src/wiz8/frame_tick.cpp
     src/wiz8/game_init.cpp
     src/wiz8/gameplay_teardown.cpp
@@ -161,6 +171,14 @@ set(WIZ8_UNATTRIBUTED_UNITS
     src/wiz8/vc6_runtime.cpp
 )
 
+# Build consumers need the original interleaved quarantine surface, while the
+# validation categories above retain the actual ownership distinction.
+set(WIZ8_UNATTRIBUTED_UNITS
+    ${WIZ8_PROVISIONAL_PREFIX_UNITS}
+    ${WIZ8_ADDRESS_QUARANTINE_UNITS}
+    ${WIZ8_PROVISIONAL_SUFFIX_UNITS}
+)
+
 # These explicit categories preserve matching-sensitive object order. The
 # glob is validation-only: it prevents a new recovered C++ source from
 # silently escaping ownership without using the filesystem to order or
@@ -168,7 +186,9 @@ set(WIZ8_UNATTRIBUTED_UNITS
 set(WIZ8_RECOVERED_SOURCE_CATEGORIES
     WIZ8_ORIGINAL_UNITS
     WIZ8_TEMPLATE_EMISSIONS
-    WIZ8_UNATTRIBUTED_UNITS
+    WIZ8_PROVISIONAL_PREFIX_UNITS
+    WIZ8_ADDRESS_QUARANTINE_UNITS
+    WIZ8_PROVISIONAL_SUFFIX_UNITS
 )
 set(WIZ8_CLASSIFIED_SOURCES)
 foreach(category IN LISTS WIZ8_RECOVERED_SOURCE_CATEGORIES)
@@ -185,7 +205,7 @@ endforeach()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/wiz8/unattributed_helpers.cpp")
     message(FATAL_ERROR "Synthetic catch-all source is forbidden: unattributed_helpers.cpp")
 endif()
-foreach(source IN LISTS WIZ8_UNATTRIBUTED_UNITS)
+foreach(source IN LISTS WIZ8_ADDRESS_QUARANTINE_UNITS)
     if(source MATCHES "^src/wiz8/unattributed/([0-9a-f]+)_([0-9a-f]+)[.]cpp$")
         set(lower "${CMAKE_MATCH_1}")
         set(upper "${CMAKE_MATCH_2}")

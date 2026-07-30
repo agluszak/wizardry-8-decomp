@@ -9,6 +9,7 @@
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srScene.h"
+#include "surrender/srVertexProcessor.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/TextureMap.h"
@@ -54,6 +55,53 @@ extern srNode* Function424BA0(
 
 // TEMPLATE: WIZ8 0x00429CA0
 // srClassSupport<srTextureMap,srTexture,0,8465>::clone
+
+// TEMPLATE: WIZ8 0x00429CC0
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassID
+
+// TEMPLATE: WIZ8 0x00429CE0
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassNode
+
+// TEMPLATE: WIZ8 0x00429D50
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::clone
+
+// FUNCTION: WIZ8 0x00429E80
+unsigned long W8Registered005EBF94::getClassID() const
+{
+    return 0x2200;
+}
+
+// TEMPLATE: WIZ8 0x0042A010
+// srClassSupport<srCamera,srNode,0,5120>::getClassID
+
+// TEMPLATE: WIZ8 0x0042A020
+// srClassSupport<srCamera,srNode,0,5120>::getClassName
+
+// TEMPLATE: WIZ8 0x0042A030
+// srClassSupport<srCamera,srNode,0,5120>::getClassNode
+
+// TEMPLATE: WIZ8 0x0042A0A0
+// srClassSupport<srCamera,srNode,0,5120>::clone
+
+// TEMPLATE: WIZ8 0x0042A0C0
+// srClassSupport<srScene,srNode,0,4112>::getClassID
+
+// TEMPLATE: WIZ8 0x0042A0D0
+// srClassSupport<srScene,srNode,0,4112>::getClassName
+
+// TEMPLATE: WIZ8 0x0042A0E0
+// srClassSupport<srScene,srNode,0,4112>::getClassNode
+
+// TEMPLATE: WIZ8 0x0042A150
+// srClassSupport<srScene,srNode,0,4112>::clone
+
+// FUNCTION: WIZ8 0x0042A360
+srVertexProcessor::~srVertexProcessor()
+{
+}
+
+// SYNTHETIC: WIZ8 0x0042B890
+// srVertexProcessor::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424A90
 srNode* VideoMakePoster(
