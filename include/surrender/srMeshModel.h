@@ -18,16 +18,44 @@ public:
         enum e_update {};
 
         Client();
+        Client(const Client& other);
         virtual ~Client();
+        Client& operator=(const Client& other);
         virtual void setModel(srModel* model);
         virtual void updateClient(e_update update);
         virtual srModel* getModel() const;
+        Client* getNextClient() const;
+        Client* getPrevClient() const;
 
     private:
-        unsigned char unknown_04_[0x24];
+        srPtr<srModel> model_04;
+        Client* previous_08;
+        Client* next_0c;
     };
 
+    srModel();
+    srModel(const srModel& other);
+
+    static const char* sGetClassName();
+
+    virtual void dump(std::ostream& stream) override;
+
+protected:
+    virtual ~srModel() override;
+
+public:
+    virtual srModel* clone();
+    virtual int getBoundingSphere(
+        srVector3T<float>& center, float& radius) = 0;
+    virtual int getBoundingBox(
+        srVector3T<float>& minimum, srVector3T<float>& maximum) = 0;
+    virtual void render(class srGERD& renderer) = 0;
     virtual void updateAllClients(Client::e_update update);
+
+    Client* getFirstClient() const;
+
+protected:
+    Client* first_client_18;
 };
 
 class SR_DLL_IMPORT srMeshModel : public srModel {
@@ -40,11 +68,12 @@ public:
     virtual void dump(std::ostream& stream) override;
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
-    virtual srClass* clone();
-    virtual int getBoundingSphere(srVector3T<float>& center, float& radius);
+    virtual srModel* clone() override;
+    virtual int getBoundingSphere(
+        srVector3T<float>& center, float& radius) override;
     virtual int getBoundingBox(srVector3T<float>& minimum,
-                               srVector3T<float>& maximum);
-    virtual void render(class srGERD& renderer);
+                               srVector3T<float>& maximum) override;
+    virtual void render(class srGERD& renderer) override;
     virtual void reindexPolygons(const unsigned long* indices);
     virtual void reindexVertices(const unsigned long* indices);
     virtual const TriMesh& getTriMesh();
@@ -71,7 +100,7 @@ protected:
     virtual void calculatePolygonNormals();
     virtual void calculateVertexNormals();
 public:
-    unsigned char unknown_18_[0x218];
+    unsigned char unknown_1c_[0x214];
     long polygon_count_230;
     unsigned char unknown_234_[0x15c];
     unsigned long control_state_390;
@@ -101,6 +130,7 @@ private:
     unsigned char unknown_04_[0x10];
 };
 
-static_assert((sizeof(srModel::Client) == 0x28), "srModelClient_must_be_0x28");
+static_assert((sizeof(srModel::Client) == 0x10), "srModelClient_must_be_0x10");
+static_assert((sizeof(srModel) == 0x1c), "srModel_must_be_0x1c");
 static_assert((sizeof(srMeshModel) == 0x398), "srMeshModel_must_be_0x398");
 static_assert((sizeof(srModeler) == 0x14), "srModeler_must_be_0x14");

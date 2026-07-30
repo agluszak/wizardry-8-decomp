@@ -60,7 +60,7 @@ srRegistry::ClassNode* W8MeshModel005EBE98::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x00429BC0
-srClass* W8MeshModel005EBE98::clone()
+srModel* W8MeshModel005EBE98::clone()
 {
     srMeshModel* copy = static_cast<srMeshModel*>(vInstance());
     *copy = *this;
