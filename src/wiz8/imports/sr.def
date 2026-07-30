@@ -94,6 +94,8 @@ EXPORTS
     ?setSwapInterval@srGERD@@QAEXK@Z
     ?setLocation@srNode@@QAEXNNN@Z
     ?setRotation@srNode@@QAEXNNN@Z
+    ?getScale@srNode@@QBE?AV?$srVector3T@N@@XZ
+    ?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z
     ?srHeap@@3V0@A
     ?free@srHeap@@QAEXPAX@Z
     ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z

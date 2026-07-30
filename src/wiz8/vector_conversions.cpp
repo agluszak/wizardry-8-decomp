@@ -77,6 +77,20 @@ srMatrix3T<float>* srMatrix3T<float>::method_00421A40(
     return this;
 }
 
+// FUNCTION: WIZ8 0x00467310
+void srMatrix3T<float>::SetIdentity00467310()
+{
+    vectors[0].x = 1.0f;
+    vectors[0].y = 0.0f;
+    vectors[0].z = 0.0f;
+    vectors[1].x = 0.0f;
+    vectors[1].y = 1.0f;
+    vectors[1].z = 0.0f;
+    vectors[2].x = 0.0f;
+    vectors[2].y = 0.0f;
+    vectors[2].z = 1.0f;
+}
+
 // FUNCTION: WIZ8 0x00438F90
 srMatrix3T<float>* srMatrix3T<float>::method_00438F90(double sine, double cosine)
 {

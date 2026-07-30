@@ -16,6 +16,7 @@ class W8Object0043A910 : public W8ObjectBase00439550 {
 public:
     W8Object0043A910();                  /* 0x0043A910 */
     virtual ~W8Object0043A910() override;
+    float GetValue30() const { return m_value_30; }
 
 private:
     int m_ticks_14;
@@ -25,7 +26,7 @@ private:
     float m_scale_24;
     int m_value_28;
     int m_value_2c;
-    int m_value_30;
+    float m_value_30;
 };
 
 static_assert(sizeof(W8ObjectBase00439550) == 0x14,

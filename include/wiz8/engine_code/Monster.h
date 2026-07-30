@@ -155,7 +155,8 @@ struct W8MonsterState2AC {
 struct W8MonsterState2FC {
     float scale_00;
     float scale_04;
-    unsigned char unknown_08[8];
+    unsigned char unknown_08[4];
+    srNode* node_0c;
 };
 
 struct W8MonsterFlags330 {
@@ -175,7 +176,7 @@ public:
     virtual ~W8Monster() override;
 
     virtual unsigned char CanEnterCycle(signed char cycle) override;
-    virtual void vslot4() override;
+    virtual void UpdateRepresentation(W8World* world) override;
     virtual signed char GetNumSubCycles() override;
     virtual unsigned char IsCycleSupported(signed char cycle) override;
     virtual signed char GetTotalAnimationCount() override;
@@ -208,6 +209,7 @@ public:
     void HandleAnimationThreshold004C75C0();
     void HandleAnimationFrame004C74D0(unsigned char frame);
     void UpdateShakeEvents004C3380(unsigned char frame);
+    void SetShakeEventVisibility004BF9E0(signed char cycle);
 
 public:
     W8MonsterRep* m_pRep;

@@ -8,6 +8,7 @@
 
 class srNode;
 class srModelInstance;
+struct W8World;
 struct W8ItemRep;
 struct W8PathAI;
 
@@ -65,6 +66,8 @@ public:
     void configureStartupDepth(float near_depth, float far_depth);
 
     srVector3T<float> GetPosition();
+    float GetAngleD400453970();                           /* 0x00453970 */
+    float GetAngleE000453980();                           /* 0x00453980 */
     void SetValue120(float value);                         /* 0x00453C50 */
     float GetValue120();                                  /* 0x00453C60 */
     unsigned char Function452630(const W8Position* position); /* 0x00452630 */
@@ -110,7 +113,11 @@ public:
             int value_0d0;
             float angle_0d4;
             float angle_0d8;
-            unsigned char unknown_0dc_to_0f4[0x18];
+            unsigned char unknown_0dc[4];
+            float angle_0e0;
+            unsigned char unknown_0e4[4];
+            float angle_0e8;
+            unsigned char unknown_0ec_to_0f4[8];
             srVector3T<float> position_0f4;
             srVector3T<float> position_100;
             srVector3T<float> position_10c;
@@ -120,7 +127,11 @@ public:
             W8NavigatorAttachment* attachment_16c;
             unsigned char unknown_170_to_178[8];
             float value_178;
-            unsigned char unknown_17c_to_18c[0x10];
+            unsigned char unknown_17c[4];
+            float value_180;
+            unsigned char unknown_184[4];
+            unsigned char flag_188;
+            unsigned char unknown_189[3];
         } fields;
     };
     srNode* node_18c;                    /* 0x18c: constructed srNode */
@@ -152,7 +163,7 @@ public:
     virtual unsigned char CanEnterCycle(signed char) { return 1; }
     virtual void vslot2();
     virtual void vslot3();
-    virtual void vslot4();
+    virtual void UpdateRepresentation(W8World* world); /* 0x004A7470 */
     virtual signed char GetNumSubCycles() = 0;
     virtual unsigned char IsCycleSupported(signed char cycle) = 0;
     virtual signed char GetTotalAnimationCount() = 0;
@@ -194,7 +205,7 @@ public:
     unsigned char unknown_1c0[0xc];
     float scale_1cc;
     stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
-    int unknown_1d4;
+    float unknown_1d4;
 };                                      /* 0x1d8 */
 
 // SYNTHETIC: WIZ8 0x004a7140 folded

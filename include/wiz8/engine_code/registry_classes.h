@@ -5,6 +5,7 @@
 #include "surrender/srScene.h"
 
 class W8MonsterShakeCallback;
+struct W8Position;
 
 /*
  * Classes whose only recovered members so far are the two SurRender class
@@ -32,6 +33,7 @@ public:
     const char* getClassName() const override;     /* 0x00481870 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
     unsigned long getClassID() const override;     /* 0x00481860 */
+    class stTextureAnim* FindMouthTexture00481080(); /* 0x00481080 */
 
 protected:
     virtual ~stModelInstance() override;           /* 0x00481940 */
@@ -39,7 +41,7 @@ protected:
 public:
     unsigned int frame_index_180;
     int damage_stage_184;
-    int value_188;
+    void** damage_stage_tables_188;
     int damage_stage_count_18c;
 };
 
@@ -194,6 +196,8 @@ public:
 class MonsterLight : public srLight {
 public:
     MonsterLight(const MonsterLight& other);          /* 0x0049D660 */
+    void SetVisible0049D970(char visible);
+    void Update0049D990(const W8Position* position);
 
     virtual const char* getClassName() const override; /* 0x0049DC30 */
     virtual unsigned long getClassID() const override; /* 0x0049DC20 */
@@ -206,16 +210,12 @@ public:
     virtual srNode* vslot7() override;                /* 0x0049DC40 */
 
 private:
-    unsigned long m_positional_228;                   /* 0x228 */
-    unsigned long m_positional_22c;                   /* 0x22c */
-    unsigned long m_positional_230;                   /* 0x230 */
-    unsigned long m_positional_234;                   /* 0x234 */
-    unsigned long m_positional_238;                   /* 0x238 */
-    unsigned long m_positional_23c;                   /* 0x23c */
-    unsigned long m_positional_240;                   /* 0x240 */
-    unsigned long m_positional_244;                   /* 0x244 */
-    unsigned char m_positional_248;                   /* 0x248 */
-    unsigned char m_positional_249;                   /* 0x249 */
+    float m_vertical_offset_228;                      /* 0x228 */
+    srVector3T<float> m_color_first_22c;              /* 0x22c */
+    srVector3T<float> m_color_second_238;             /* 0x238 */
+    float m_start_time_244;                           /* 0x244 */
+    unsigned char m_cycle_color_248;                  /* 0x248 */
+    unsigned char m_fade_out_249;                     /* 0x249 */
     unsigned char m_padding_24a[6];
 };
 

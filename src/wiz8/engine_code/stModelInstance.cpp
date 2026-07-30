@@ -1,9 +1,12 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/mesh_model.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
 
 #include <new>
+#include <string.h>
 
 // FUNCTION: WIZ8 0x00481C80
 void srNode::TraverseInfo::EntryArray::setCapacity(unsigned int new_capacity)
@@ -39,6 +42,61 @@ void srNode::TraverseInfo::EntryArray::setCapacity(unsigned int new_capacity)
  * adjacent. Only their class registry slots are recovered; the interval this
  * unit bounds still holds the rest.
  */
+
+/* Find the animated texture assigned to polygons whose runtime name begins
+   with "mouth". Damage-stage instances use the stage-specific texture table;
+   ordinary instances use the mesh's active polygon texture table. */
+// FUNCTION: WIZ8 0x00481080
+stTextureAnim* stModelInstance::FindMouthTexture00481080()
+{
+    stMeshModel* mesh = static_cast<stMeshModel*>(
+        static_cast<srModel::Client&>(*this).getModel());
+
+    if (damage_stage_184 == -1) {
+        while (mesh != 0) {
+            srPtr<srTextureIFace>* textures =
+                mesh->getPolyTexture(0, 0, 0);
+
+            if (textures != 0) {
+                for (int polygon = 0;
+                     polygon < mesh->polygon_count_230;
+                     ++polygon) {
+                    srTextureIFace* texture = textures[polygon].get();
+
+                    if (texture != 0 &&
+                        texture->getClassID() == stTextureAnim::CLASS_ID &&
+                        _strnicmp(texture->getName(), "mouth", 5) == 0) {
+                        return static_cast<stTextureAnim*>(texture);
+                    }
+                }
+            }
+            mesh = mesh->next;
+        }
+    }
+    else {
+        while (mesh != 0) {
+            srPtr<srTextureIFace>* textures =
+                mesh->GetTextureTable00473720(
+                    damage_stage_tables_188[damage_stage_184]);
+
+            if (textures != 0) {
+                for (int polygon = 0;
+                     polygon < mesh->polygon_count_230;
+                     ++polygon) {
+                    srTextureIFace* texture = textures[polygon].get();
+
+                    if (texture != 0 &&
+                        texture->getClassID() == stTextureAnim::CLASS_ID &&
+                        _strnicmp(texture->getName(), "mouth", 5) == 0) {
+                        return static_cast<stTextureAnim*>(texture);
+                    }
+                }
+            }
+            mesh = mesh->next;
+        }
+    }
+    return 0;
+}
 
 // FUNCTION: WIZ8 0x00481870
 const char* stModelInstance::getClassName() const

@@ -5,7 +5,9 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_state_006598a4.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/magic.h"
 #include "wiz8/mesh_model.h"
@@ -14,8 +16,11 @@
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srTimer.h"
 #include "surrender/srModelInstance.h"
+#include "Random.h"
+#include <windows.h>
 
 #include <string.h>
+#include <math.h>
 
 extern srTimer* g_shared_timer_base;
 extern unsigned char GetFlag68F105(void);
@@ -27,6 +32,11 @@ extern unsigned char FindEntityByName(
 extern void SetTriggerVariableByName00444030(const char* name, int value);
 extern void Function401920(const char* message);
 extern char* FormatString(const char* format, ...);
+extern const float g_monster_rotation_offset_005ec04c;
+extern const float g_monster_scale_step_005ebc3c;
+extern float g_float_005ebb34;
+extern unsigned char g_monster_model_value_enabled_00685111;
+extern void SetChainValue15C(char* node, int value);
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
@@ -561,6 +571,186 @@ void W8MonsterRep::StopEmitter(char cycle)
     if (animation != 0) {
         ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
             animation, setting_98, 0);
+    }
+}
+
+/* Synchronize the live world representation with the Navigator state, update
+   transient mouth/scale effects, and attach or hide the cycle's light graph.
+   This is Monster's primary slot four; the world is the ordinary stack
+   argument also consumed by the inherited GrCycle implementation. */
+// FUNCTION: WIZ8 0x004c2e60
+void W8Monster::UpdateRepresentation(W8World* world)
+{
+    W8Position position;
+    srMatrix3T<float> rotation;
+    srModelInstance* model;
+    stTextureAnim* mouth;
+    W8MonsterLightVector* lights;
+    int index;
+    int count;
+
+    position.x = fields.position_100.x;
+    position.y = fields.position_100.y;
+    position.z = fields.position_100.z;
+    position.y += fields.value_180;
+    GetRepresentation()->SetLocation004B8850(&position);
+
+    rotation.SetIdentity00467310();
+    {
+        float angle = NormalizeAngle(
+            GetAngleD400453970() + g_monster_rotation_offset_005ec04c);
+        if (angle != 0.0f) {
+            rotation.method_00438F90(sin((double)angle), cos((double)angle));
+        }
+    }
+    {
+        float angle = GetAngleE000453980();
+        if (angle != g_float_005ebb34) {
+            rotation.method_004A5AB0((double)angle);
+        }
+    }
+    if (fields.angle_0e8 != g_float_005ebb34) {
+        rotation.method_004CAB60((double)fields.angle_0e8);
+    }
+    m_pRep->SetRotation004B88D0(&rotation);
+
+    if ((flags_1dc & 8) != 0) {
+        model = GetCurrentModelInstance004A8250();
+        srVector3T<double> source_scale = model->getScale();
+        float scale_y = (float)source_scale.y * value_1ec;
+        float scale_z = (float)source_scale.z;
+        srVector3T<double> scale;
+        scale.x = source_scale.x;
+        scale.y = (double)scale_y;
+        scale.z = (double)scale_z;
+        model->setScale(scale);
+        value_1ec -= g_monster_scale_step_005ebc3c;
+    }
+
+    if (flag_1fc != 0 && flag_1fd != 0) {
+        if (unknown_214 != 0) {
+            model = GetCurrentModelInstance004A8250();
+            if (model != 0 &&
+                (mouth = static_cast<stModelInstance*>(model)
+                    ->FindMouthTexture00481080()) != 0) {
+                mouth->flag_60 = 3;
+                mouth->SetFrame00485400(0);
+            }
+        }
+        else if (GetTickCount() - value_200 > 120) {
+            unsigned short frame;
+            value_200 = GetTickCount();
+            do {
+                frame = (unsigned short)Random(6);
+                if (frame > 3) {
+                    frame = 0;
+                }
+            } while (frame == (unsigned short)value_204);
+            value_204 = frame;
+            model = GetCurrentModelInstance004A8250();
+            if (model != 0 &&
+                (mouth = static_cast<stModelInstance*>(model)
+                    ->FindMouthTexture00481080()) != 0) {
+                mouth->flag_60 = 3;
+                mouth->SetFrame00485400(frame);
+            }
+        }
+    }
+
+    if (fields.position_dirty_09c != 0 || fields.flag_188 != 0) {
+        g_engine_state_6598a4->UpdateMonsterLocation0042E540(
+            (unsigned short)propagated_value_1e4, &position);
+    }
+
+    if ((state_2fc.node_0c == 0 ||
+         state_2fc.node_0c->testFlag(srNode::FLAG_POSITIONAL_0) == 0) &&
+        IsRenderable004C7C00(0) != 0) {
+        W8GrCycle::UpdateRepresentation(world);
+        model = GetCurrentModelInstance004A8250();
+        if (model != 0) {
+            *(float*)((char*)model + 0x1ac) =
+                g_monster_model_value_enabled_00685111 != 0
+                    ? unknown_1d4 : 0.0f;
+            SetChainValue15C((char*)model, 4);
+        }
+        if (m_pRep->monster_light_624 != 0) {
+            m_pRep->monster_light_624->Update0049D990(&position);
+        }
+        if (enabled_1bd == 0) {
+            enabled_1bd = 1;
+            SetShakeEventVisibility004BF9E0(
+                m_pRep->selection.monster.current_cycle);
+            lights = *m_pRep->light_lists[
+                m_pRep->selection.monster.current_cycle].GetAt(
+                    m_pRep->selection.monster.current_subcycle);
+            if (lights != 0 && (count = lights->GetCount()) != 0) {
+                for (index = 0; index < count; ++index) {
+                    (*lights->GetAt(index))->clearFlag(
+                        srNode::FLAG_POSITIONAL_0);
+                }
+            }
+            if (m_pRep->monster_light_624 != 0) {
+                m_pRep->monster_light_624->SetVisible0049D970(1);
+            }
+        }
+    }
+    else if (enabled_1bd != 0) {
+        enabled_1bd = 0;
+        SetShakeEventVisibility004BF9E0(
+            m_pRep->selection.monster.current_cycle);
+        lights = *m_pRep->light_lists[
+            m_pRep->selection.monster.current_cycle].GetAt(
+                m_pRep->selection.monster.current_subcycle);
+        if (lights != 0 && (count = lights->GetCount()) != 0) {
+            for (index = 0; index < count; ++index) {
+                (*lights->GetAt(index))->setFlag(srNode::FLAG_POSITIONAL_0);
+            }
+        }
+        if (m_pRep->monster_light_624 != 0) {
+            m_pRep->monster_light_624->SetVisible0049D970(0);
+        }
+    }
+}
+
+/* Enable only the shake particles belonging to the requested cycle and the
+   currently selected subcycle. A ranged particle is left to the frame-driven
+   update path; this method only toggles particles without a distinct range. */
+// FUNCTION: WIZ8 0x004bf9e0
+void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
+{
+    int index;
+    int count;
+
+    if (m_shake_events == 0 ||
+        (count = m_shake_events->GetCount()) == 0) {
+        return;
+    }
+
+    for (index = 0; index < count; ++index) {
+        W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
+
+        if (event->cycle_00 == cycle &&
+            event->subcycle_04 ==
+                m_pRep->selection.monster.current_subcycle &&
+            enabled_1bd != 0) {
+            W8AnimObj* animation = *m_pRep->animations[
+                m_pRep->selection.monster.current_cycle].GetAt(
+                    m_pRep->selection.monster.current_subcycle);
+
+            if (animation == 0 || animation->start_frame_14 == 0 ||
+                animation->end_frame_15 < animation->start_frame_14) {
+                stParticle* particle = event->particle_08;
+                if (particle->start_frame_264 != -1 &&
+                    particle->end_frame_268 != -1 &&
+                    particle->start_frame_264 != particle->end_frame_268) {
+                    continue;
+                }
+                particle->SetActive0049ACD0(1);
+            }
+        }
+        else {
+            event->particle_08->SetActive0049ACD0(0);
+        }
     }
 }
 
@@ -1422,7 +1612,6 @@ extern void* CreateSpellEffect004AD8A0(
 /* 0x00421070, owned by the 0041F261-0042403F quarantine: the shared reference
    position every consumer of the object at 0x0065A0F8 reads. */
 extern void GetPosition421070(W8Position* position);
-extern void MonsterNavigatorUpdate(W8Navigator* navigator); /* 0x00453970 */
 extern void Function4A84A0(W8GrCycle* monster);
 /* Spelled the way MonsterManager.cpp already declares it: the callee takes its
    receiver in ECX, which __fastcall is how a no-argument member call is
@@ -1510,11 +1699,11 @@ void* MonsterGetObject0C(W8Monster* monster)
     return 0;
 }
 
-/* Run the member update with no monster of its own to name. */
+/* Expose the first Navigator angle through the enclosing Monster. */
 // FUNCTION: WIZ8 0x004c5770
-void UpdateMonsterNavigator(void)
+float MonsterGetAngleD4004C5770(W8Monster* monster)
 {
-    MonsterNavigatorUpdate(0);
+    return monster->GetAngleD400453970();
 }
 
 /* Two null-checked forwards that share one shape: a monster that is not there

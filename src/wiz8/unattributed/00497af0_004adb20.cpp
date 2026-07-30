@@ -1,4 +1,6 @@
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/Object0043A910.h"
+#include "wiz8/geometry.h"
 
 #include <math.h>
 #include <new>
@@ -11,7 +13,13 @@ extern float g_light_scale_0060bfe0;
 extern float g_light_scale_identity_005ebb38;
 extern double g_double_005ebc70;
 extern unsigned char g_byte_0060bfdc;
+extern float g_monster_light_fade_rate_005ebc3c;
+extern float g_monster_light_cycle_rate_005ecd4c;
+extern double g_monster_light_cycle_angle_005ec318;
+extern float g_monster_light_half_005ebc7c;
 }
+
+extern W8Object0043A910* g_object_6598bc;
 
 // FUNCTION: WIZ8 0x0049C7A0
 void stLight::traverse(srNode::TraverseInfo& info)
@@ -106,6 +114,57 @@ void stLight::process(
         return;
     }
     srLight::process(info, type);
+}
+
+// FUNCTION: WIZ8 0x0049D970
+void MonsterLight::SetVisible0049D970(char visible)
+{
+    if (visible != 0) {
+        clearFlag(srNode::FLAG_POSITIONAL_0);
+    }
+    else {
+        setFlag(srNode::FLAG_POSITIONAL_0);
+    }
+}
+
+// FUNCTION: WIZ8 0x0049D990
+void MonsterLight::Update0049D990(const W8Position* position)
+{
+    float elapsed = g_object_6598bc->GetValue30() - m_start_time_244;
+
+    if (m_fade_out_249 != 0) {
+        float fade = elapsed * g_monster_light_fade_rate_005ebc3c;
+        if (fade > g_light_scale_identity_005ebb38) {
+            fade = g_light_scale_identity_005ebb38;
+        }
+        m_positional_98 = g_light_scale_identity_005ebb38 - fade;
+    }
+    else if (m_cycle_color_248 != 0) {
+        float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
+        double whole = floor((double)cycle);
+        float first_weight = (float)(
+            sin(((double)cycle - whole) * g_monster_light_cycle_angle_005ec318)
+            + g_light_scale_identity_005ebb38) *
+            g_monster_light_half_005ebc7c;
+        float second_weight =
+            g_light_scale_identity_005ebb38 - first_weight;
+
+        m_color_6c.x =
+            m_color_first_22c.x * first_weight +
+            m_color_second_238.x * second_weight;
+        m_color_6c.y =
+            m_color_first_22c.y * first_weight +
+            m_color_second_238.y * second_weight;
+        m_color_6c.z =
+            m_color_first_22c.z * first_weight +
+            m_color_second_238.z * second_weight;
+    }
+
+    srVector3T<double> location;
+    location.x = position->x;
+    location.y = position->y + m_vertical_offset_228;
+    location.z = position->z;
+    setLocation(location);
 }
 
 // FUNCTION: WIZ8 0x0049DC40

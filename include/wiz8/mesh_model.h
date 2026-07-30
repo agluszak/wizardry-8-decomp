@@ -16,6 +16,7 @@ public:
     int FindMappedIndex(short key);       /* 0x004712D0 */
     void LinkTo(stMeshModel* other);      /* 0x00471D60 */
     void* GetVertex(unsigned int index);  /* 0x00471AA0 */
+    srPtr<srTextureIFace>* GetTextureTable00473720(void* table); /* 0x00473720 */
     srVector3T<float>* GetVertexLocations00471AD0(
         unsigned int frame, char load, float interpolation);
 

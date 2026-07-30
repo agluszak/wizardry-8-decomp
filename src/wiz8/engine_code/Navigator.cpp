@@ -78,6 +78,18 @@ srVector3T<float> W8Navigator::GetPosition()
     return fields.position_100;
 }
 
+// FUNCTION: WIZ8 0x00453970
+float W8Navigator::GetAngleD400453970()
+{
+    return fields.angle_0d4;
+}
+
+// FUNCTION: WIZ8 0x00453980
+float W8Navigator::GetAngleE000453980()
+{
+    return fields.angle_0e0;
+}
+
 // FUNCTION: WIZ8 0x004538b0
 void W8Navigator::SetPathAI(W8PathAI* path_ai)
 {

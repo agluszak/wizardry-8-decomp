@@ -4,6 +4,7 @@
 #include "surrender/srMath.h"
 
 class GDProp;
+struct W8Position;
 
 class W8Pathing00457CF0 {
 public:
@@ -28,6 +29,9 @@ struct W8EngineState006598A4 {
     void W8OctreeWalker_VisitPointCopy(
         unsigned short location_id,
         srVector3T<float>* position);     /* 0x0042E620 */
+    void UpdateMonsterLocation0042E540(
+        unsigned short location_id,
+        const W8Position* position);      /* 0x0042E540 */
 };
 
 extern W8EngineState006598A4* g_engine_state_6598a4;

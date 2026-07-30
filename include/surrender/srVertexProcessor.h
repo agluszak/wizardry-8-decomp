@@ -1,6 +1,7 @@
 #pragma once
 
 #include "srHeap.h"
+#include "srMath.h"
 
 class srVertexPipe;
 
@@ -26,7 +27,9 @@ protected:
     int m_positional_18;
     unsigned char unknown_1c_[0x40];
     unsigned int m_positional_flags_5c;
-    unsigned char unknown_60_[0x38];
+    unsigned char unknown_60_[0x0c];
+    srVector3T<float> m_color_6c;
+    unsigned char unknown_78_[0x20];
 
 protected:
     /* stLight::process temporarily scales this renderer-owned value. */

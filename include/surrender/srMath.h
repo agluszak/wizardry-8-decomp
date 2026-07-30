@@ -81,8 +81,11 @@ public:
 
     srMatrix3T<float>* method_00421A40(
         const srMatrix3T<float>& other);         /* 0x00421A40 */
+    void SetIdentity00467310();                  /* 0x00467310 */
     srMatrix3T<float>* method_00438F90(
         double sine, double cosine);             /* 0x00438F90 */
+    srMatrix3T<float>* method_004A5AB0(double angle); /* 0x004A5AB0 */
+    srMatrix3T<float>* method_004CAB60(double angle); /* 0x004CAB60 */
     srMatrix3T<float>* method_00478EB0(
         double sine, double cosine);             /* 0x00478EB0 */
 
