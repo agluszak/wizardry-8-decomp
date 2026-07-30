@@ -46,8 +46,15 @@ EXPORTS
     ?set@srConfig@@QAEXPBD0@Z
     ?srConfig@@3V0@A
     ??0srStringTable@@QAE@XZ
+    ??0srStringTable@@QAE@ABV0@@Z
     ??1srStringTable@@QAE@XZ
+    ??4srStringTable@@QAEAAV0@ABV0@@Z
+    ??AsrStringTable@@QAEPADH@Z
+    ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
     ?addString@srStringTable@@QAEXPBD@Z
+    ?getCount@srStringTable@@QBEJXZ
+    ?getString@srStringTable@@QBEPADJ@Z
+    ?reset@srStringTable@@QAEXXZ
     ?loadDevice@srGERD@@SAPAV1@AAVsrStringTable@@K@Z
     ?createContext@srGERD@@QAE?AW4e_error@1@K@Z
     ?getDisplayMode@srGERD@@QBEJKKK@Z

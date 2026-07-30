@@ -166,7 +166,7 @@ srBinIStream* srZipOpener::open(const char* path)
 
     srStringTable search_paths;
     search_paths.addSeparatedStrings(srConfig.get("ZIP_PATH"), ";", 1);
-    for (long index = 0; index < search_paths.count(); ++index) {
+    for (long index = 0; index < search_paths.getCount(); ++index) {
         srInlineString prefix;
         char* search_path = search_paths.getString(index);
         if (search_path != 0) {

@@ -6,7 +6,6 @@ EXPORTS
     ??1Opener@srIStreamOpener@@UAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@
-    ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
     ?allocate@srHeap@@QAEPAXK@Z
     ?exists@srConfig@@QBEHPBD@Z
@@ -15,7 +14,6 @@ EXPORTS
     ?getBool@srConfig@@QBEHPBD@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
     ?getSize@srBinIMStream@@UAEKXZ
-    ?getString@srStringTable@@QBEPADJ@Z
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
     ?srConfig@@3V0@A
@@ -25,4 +23,12 @@ EXPORTS
     ?vget@srBinIStream@@MAEGXZ
     ?vread@srBinIMStream@@EAEKPAXK@Z
     ??0srStringTable@@QAE@XZ
+    ??0srStringTable@@QAE@ABV0@@Z
     ??1srStringTable@@QAE@XZ
+    ??4srStringTable@@QAEAAV0@ABV0@@Z
+    ??AsrStringTable@@QAEPADH@Z
+    ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
+    ?addString@srStringTable@@QAEXPBD@Z
+    ?getCount@srStringTable@@QBEJXZ
+    ?getString@srStringTable@@QBEPADJ@Z
+    ?reset@srStringTable@@QAEXXZ
