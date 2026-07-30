@@ -1,5 +1,4 @@
 #include "surrender/srColorSurface.h"
-#include "surrender/srCore.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
@@ -10,6 +9,7 @@
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/MeshModel.h"
 #include "wiz8/engine_code/TextureMap.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/render_state.h"
 #include "himage.h"
 #include "video.h"
@@ -26,66 +26,6 @@ unsigned long float_bits(float value)
     representation.floating = value;
     return representation.bits;
 }
-
-srRegistry::ClassNode* class_node(unsigned long id, const char* name,
-                                  unsigned long parent_id,
-                                  const char* parent_name)
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(id);
-    if (!node) {
-        srRegistry::ClassNode* parent = registry->getClassNode(parent_id);
-        if (!parent) {
-            parent = registry->registerClass(
-                parent_name, srClass::sGetClassNode(), parent_id, 1);
-        }
-        node = registry->registerClass(name, parent, id, 0);
-    }
-    return node;
-}
-
-class CursorModelInstance : public srModelInstance {
-public:
-    CursorModelInstance(srNode* parent) : srModelInstance(parent) {
-        configure2D(0, 0);
-    }
-
-    virtual const char* getClassName() const override { return "stModelInstance2D"; }
-    virtual unsigned long getClassID() const override { return 0x10005; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return class_node(0x10005, "stModelInstance2D", 0x1100,
-                          "srModelInstance");
-    }
-
-    void configure2D(short width, short height) {
-        state_160 = 0;
-        render_depth_164 = 2000;
-        left_168 = width;
-        top_16a = height;
-        right_16c = 0;
-        bottom_16e = 0;
-        state_170 = 0;
-        state_171 = 0;
-        vector_174 = 0;
-        vector_178 = 0;
-        material_17c = 0;
-    }
-    void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
-
-private:
-    unsigned long state_160;
-    unsigned long render_depth_164;
-    short left_168;
-    short top_16a;
-    short right_16c;
-    short bottom_16e;
-    unsigned char state_170;
-    unsigned char state_171;
-    unsigned char padding_172[2];
-    srVector4T<float>* vector_174;
-    srVector4T<float>* vector_178;
-    srMaterial* material_17c;
-};
 
 }
 
@@ -120,7 +60,7 @@ static srModelInstance* MakePolygonBrush(
 {
     W8MeshModel005EBE98* model;
     W8TextureMap005EBEEC* texture;
-    CursorModelInstance* instance;
+    stModelInstance2D* instance;
     srModeler::MappingInfo mapping;
     srVector3T<float> scale;
     srShader shader;
@@ -169,9 +109,9 @@ static srModelInstance* MakePolygonBrush(
     }
     model->setShader(shader, 0);
 
-    instance = new CursorModelInstance(parent);
+    instance = new stModelInstance2D(parent);
     instance->setName("Video2DMakePolygonBrush");
-    instance->assignModel(model);
+    instance->SetModel0047F3A0(model);
     instance->configure2D(
         static_cast<short>(width * 640.0),
         static_cast<short>(height * 480.0));
@@ -254,7 +194,7 @@ static BOOLEAN ResizeMouseCursorSurface(int width, int height)
     PositionMouseCursor(g_cursor_width_654ad0, g_cursor_height_654ad4, 0);
     g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
     g_cursor_model_65968c->enableStartupControls();
-    static_cast<CursorModelInstance*>(g_cursor_node_659694)->setRenderDepth(
+    static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(
         0xc7c35000);
     g_cursor_model_65968c->enableStartupControls();
     g_cursor_model_65968c->setName("Mouse Cursor Mesh");
@@ -363,7 +303,7 @@ extern "C" unsigned char Function4285C0(void)
         g_cursor_node_659694->setName("MouseInit");
         g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
         g_cursor_model_65968c->enableStartupControls();
-        static_cast<CursorModelInstance*>(g_cursor_node_659694)->setRenderDepth(
+        static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(
             0xc7c35000);
         g_cursor_texture_659690 = static_cast<srTexture*>(
             g_cursor_model_65968c->getTexture(0, 0));

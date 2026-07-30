@@ -292,6 +292,15 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     return *this;
 }
 
+// FUNCTION: WIZ8 0x0047F3A0
+void stModelInstance2D::SetModel0047F3A0(srModel* model)
+{
+    assignModel(model);
+    if (model != 0) {
+        static_cast<srMeshModel*>(model)->enableStartupControls();
+    }
+}
+
 // FUNCTION: WIZ8 0x00481E30
 srClass* stModelInstance2D::vInstance()
 {

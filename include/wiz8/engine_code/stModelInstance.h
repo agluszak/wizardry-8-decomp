@@ -175,6 +175,7 @@ public:
     }
 
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
+    void SetModel0047F3A0(srModel* model);              /* 0x0047F3A0 */
 
     srClass* vInstance() override;                 /* 0x00481E30 */
     srNode* vslot7() override;                     /* 0x00481B00 */
