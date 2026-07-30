@@ -3,6 +3,7 @@
 #include "surrender/srExtension.h"
 #include "surrender/srIStreamOpener.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/virtual_file_stream.h"
 #include "FileMan.h"
 
 #include <stdlib.h>
@@ -38,28 +39,6 @@ extern "C" unsigned char ReadVirtualFile(
    The 0x20-byte size the sole caller of the constructor allocates is what the
    assertion below checks, and it holds only if the srBinIStream base really is
    vptr, vbptr and a virtual srBinStream subobject placed last. */
-#pragma vtordisp(off)
-class W8VirtualFileBinIStream : public srBinIStream {
-public:
-    W8VirtualFileBinIStream(char* path);
-    virtual ~W8VirtualFileBinIStream() override;
-
-    /* Primary vtable slot 1. */
-    virtual unsigned long vread(void* buffer, unsigned long size) override;
-    virtual srBinStream& seek(unsigned long position, e_seekDir direction) override;
-    virtual srBinStream& seek(unsigned long position) override;
-    virtual unsigned long tell() override;
-
-    int m_hFile;                            /* 0x08 */
-    /* The vbtable places the virtual base at +0x10 and the sole caller of the
-       constructor allocates 0x20, so these four bytes belong to this class.
-       Nothing recovered so far reads or writes them. */
-    unsigned char unknown_0c[4];            /* 0x0c */
-};
-#pragma vtordisp(on)
-
-static_assert(sizeof(W8VirtualFileBinIStream) == 0x20, "W8VirtualFileBinIStream_size_must_be_0x20");
-
 W8VirtualFileBinIStream::W8VirtualFileBinIStream(char* path)
     : m_hFile(0)
 {
@@ -127,18 +106,15 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
     return 0;
 }
 
-class W8VirtualFileStreamOpener : public srIStreamOpener::Opener {
-public:
-    virtual srBinIStream* open(char* path) override
-    {
-        return new W8VirtualFileBinIStream(path);
-    }
+srBinIStream* W8VirtualFileStreamOpener::open(char* path)
+{
+    return new W8VirtualFileBinIStream(path);
+}
 
-    virtual const char* getDescription() const override
-    {
-        return "stBinIStream";
-    }
-};
+const char* W8VirtualFileStreamOpener::getDescription() const
+{
+    return "stBinIStream";
+}
 
 W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
 
