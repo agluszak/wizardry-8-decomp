@@ -1,6 +1,92 @@
 #include "wiz8/npc_state.h"
 #include "wiz8/layouts/item_tables.h"
+#include "wiz8/item_spawning.h"
 #include "random.h"
+#include <string.h>
+
+/* Add stock to an NPC's item list. Equipment, which is equip_class four, never
+   merges: it takes one fresh entry per requested unit and a fixed stock count.
+   Anything else merges into the existing entry for that item when there is one,
+   and the quantity lands in whichever of the two counts the item's quantity
+   kind uses.
+
+   The allocation is 0x14 bytes with a source-level null test around the clear
+   and the item build, and the retail body carries no exception frame, so the
+   entry is an ordinary cleared allocation rather than a constructed object.
+
+   The original guards the loop and falls through to one shared exit that
+   returns the index register, so when no unit is added at all it returns
+   whatever that register still held rather than a list index. That is the
+   original's own defect, reproduced here by leaving the index unset on the
+   path that never enters the loop. */
+// FUNCTION: WIZ8 0x0055a7b0
+int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
+{
+    W8ItemDatabaseRecord* record;
+    W8NpcItemEntry* entry;
+    unsigned int existing_count;
+    unsigned int repeats;
+    unsigned int added;
+    unsigned int search;
+    int index;
+
+    if (npc == 0) {
+        return -1;
+    }
+    if (npc->items == 0) {
+        npc->items = PListCreate();
+    }
+    record = &g_item_records[item_id];
+    if (record->equip_class == 4) {
+        repeats = quantity;
+    }
+    else {
+        repeats = 1;
+    }
+    added = 0;
+    if (repeats > 0) {
+        do {
+            index = -1;
+            if (record->equip_class != 4) {
+                existing_count = PListGetCount(npc->items);
+                for (search = 0; search < existing_count; ++search) {
+                    entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, search));
+                    if (entry != 0 && entry->item.item_id == item_id) {
+                        index = search;
+                        break;
+                    }
+                }
+            }
+            if (index == -1) {
+                entry = new W8NpcItemEntry;
+                if (entry != 0) {
+                    memset(entry, 0, sizeof(*entry));
+                    ReplaceOrCreateItem(&entry->item, item_id, 1, 1, 0);
+                }
+                entry->item.stack_count = 0;
+                index = PListAdd(npc->items, entry);
+            }
+            entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+            if (entry == 0) {
+                return -1;
+            }
+            if (record->equip_class == 4) {
+                entry->item.stack_count = 0x19;
+                entry->quantity = 1;
+            }
+            else if (record->quantity_kind == 1) {
+                entry->item.stack_count += quantity;
+                entry->quantity = 1;
+            }
+            else {
+                entry->item.stack_count = 1;
+                entry->quantity += quantity;
+            }
+            ++added;
+        } while (added < repeats);
+    }
+    return index;
+}
 
 // FUNCTION: WIZ8 0x0055ade0
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index)
@@ -68,7 +154,7 @@ void DecayNpcInventory(W8NpcState* npc)
             if (((entry != 0 && entry->quantity != 0) &&
                  (item_id = entry->item.item_id,
                   (g_item_records[item_id].flags_041 & 0x12) == 0))) {
-                if (entry->state > 0) {
+                if (entry->available_at > 0) {
                     goto next_item;
                 }
                 rule_count = PListGetCount(npc->record->item_stock_rules);

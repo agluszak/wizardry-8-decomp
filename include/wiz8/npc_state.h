@@ -5,13 +5,23 @@
 #include "wiz8/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
-#pragma pack(push, 1)
-
+/* One entry in an NPC's stock list. This one is deliberately outside the
+   pack(1) block below: AddNpcItem allocates 0x14 bytes for it, which the packed
+   size of 0x11 cannot produce. An ordinary naturally-aligned struct places
+   every field at the offset the recovered bodies read and pads the tail to
+   0x14, so the allocation is the size evidence. Offsets are identical either
+   way; only the tail padding differs. See wiz8-4of.8 for the wider packing
+   rule. */
 typedef struct W8NpcItemEntry {
-    unsigned int state;                   /* 0x00: zero is the ordinary trade entry */
+    /* 0x00: the game-clock stamp before which the entry is not ordinary trade
+       stock. Zero is the ordinary tradeable entry, and the restock helper at
+       0x0055AA80 writes a clock reading plus a delay here. */
+    unsigned int available_at;
     W8ItemInstance item;                 /* 0x04 */
     unsigned char quantity;              /* 0x10: non-stack remaining quantity */
-} W8NpcItemEntry;                        /* 0x11 established */
+} W8NpcItemEntry;                        /* 0x14 by allocation */
+
+#pragma pack(push, 1)
 
 /* The database pointer sits unaligned at 0x06, which is what the byte-offset
    loads through it show, and everything reached by the recovered NPC bodies is
@@ -51,6 +61,7 @@ typedef struct W8NpcState {
 
 #pragma pack(pop)
 
+int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity);
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
