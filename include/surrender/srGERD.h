@@ -6,6 +6,8 @@
 #include "srMath.h"
 #include "srFlags.h"
 
+class srDD;
+
 class srRendererDefs {
 public:
     enum e_primitive {};
@@ -22,6 +24,18 @@ public:
     enum e_matrixMode {};
     enum e_antiAlias {};
     enum e_enable {};
+
+    static const char* sGetClassName();
+    static srRegistry::ClassNode* sGetClassNode();
+
+    srGERD(srDD* device, void* module, const char* device_name);
+    srGERD(const srGERD& other);
+    virtual ~srGERD() override;
+
+    virtual const char* getClassName() const override;
+    virtual unsigned long getClassID() const override;
+    virtual srRegistry::ClassNode* getClassNode() const override;
+    virtual void dump(std::ostream& stream) override;
 
     static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
     e_error createContext(unsigned long window);
@@ -91,7 +105,9 @@ public:
     }
 
 private:
-    unsigned char unknown_04_[0x20];
+    srGERD& operator=(const srGERD& other);
+
+    unsigned char unknown_0c_[0x18];
     unsigned long dirty_24_;
     unsigned char unknown_28_[0x1620];
     long render_mode_1648_;
@@ -119,4 +135,7 @@ private:
     const float* vertices_2218_;
     unsigned char unknown_221c_[0xc];
     const float* texture_coordinates_2228_;
+    unsigned char unknown_222c_[0xc];
 };
+
+static_assert(sizeof(srGERD) == 0x2238, "srGERD_must_be_0x2238");

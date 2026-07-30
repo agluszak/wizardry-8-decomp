@@ -359,6 +359,8 @@ EXPORTS
     ?getTextureCacheSize@srGERD@@QBEKXZ
     ?setTextureCacheSize@srGERD@@QAEXK@Z
     ?setSwapInterval@srGERD@@QAEXK@Z
+    ?popPick@srGERD@@QAEXAAUPick@1@@Z
+    ?pushPick@srGERD@@QAEXABUPick@1@@Z
     ?setLocation@srNode@@QAEXNNN@Z
     ?getLocation@srNode@@QBE?AV?$srVector3T@N@@XZ
     ?setRotation@srNode@@QAEXNNN@Z
