@@ -232,6 +232,14 @@ EXPORTS
     ?dump@srStatisticsManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABUStatistics@1@@Z
     ?getStatistics@srStatisticsManager@@QBEXAAUStatistics@1@@Z
     ?reset@srStatisticsManager@@QAEXXZ
+    ??0srScheduler@@QAE@XZ
+    ??1srScheduler@@QAE@XZ
+    ?cancel@srScheduler@@QAEXAAVJob@1@@Z
+    ?cancelAll@srScheduler@@QAEXXZ
+    ?finish@srScheduler@@QAEXAAVJob@1@@Z
+    ?finishAll@srScheduler@@QAEXXZ
+    ?getJobCount@srScheduler@@QBEJXZ
+    ?queue@srScheduler@@QAEXAAVJob@1@@Z
     ??0srBinStream@@IAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@

@@ -6,6 +6,7 @@
 #include "srGlobalRecycler.h"
 #include "srHeap.h"
 #include "srMemoryAllocator.h"
+#include "srScheduler.h"
 #include "srStatisticsManager.h"
 #include "srVariableTimer.h"
 
@@ -18,7 +19,6 @@ class srModelIOManager;
 class srNode;
 class srPalette;
 class srRegistry;
-class srScheduler;
 class srSurfaceIOManager;
 class srTexture;
 class srVideoManager;
