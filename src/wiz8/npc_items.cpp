@@ -94,6 +94,142 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     return index;
 }
 
+/* Move an item instance's quantity into whichever of its two counts the item's
+   quantity kind actually uses. The reviewed Ghidra project has a boundary for
+   this body, but it sits in an attribution gap between PC Item.cpp and
+   ConditionsAndEnchantments.cpp that needs an address-quarantine file with
+   assertion-backed bounds, so it is declared here and recovered separately. */
+extern void NormalizeItemQuantityKind(W8ItemInstance* item); /* 0x00522E80 */
+
+/* Keep an NPC's stock current. Three passes, each with its own trigger.
+
+   First every entry is normalized: the quantity moves into the count its kind
+   uses, and a stackable entry whose stack has fallen below its remaining count
+   is topped back up to it.
+
+   Then, once the restock clock is more than 0xa8c0 old or the caller forces it,
+   every persistent stock rule is replenished toward its configured quantity.
+   Unlike RestockNpcItems this pass rolls no chance: persistent stock always
+   comes back, jittered by half up or down.
+
+   Finally, once the maintenance clock is more than 0x15180 old or the caller
+   forces it, the stock decays, non-persistent rules restock, emptied entries are
+   removed, and both clocks are restamped. Removing an entry steps the cursor back
+   so the shifted-down successor is not skipped. */
+// FUNCTION: WIZ8 0x0055afa0
+unsigned char MaintainNpcStock(W8NpcState* npc, char force)
+{
+    W8NpcItemEntry* entry;
+    W8NpcItemStockRule* rule;
+    W8NpcItemStockRule* candidate;
+    unsigned int count;
+    unsigned int index;
+    unsigned int rule_index;
+    unsigned int search_count;
+    unsigned int search;
+    int item_id;
+    unsigned char configured;
+    unsigned char held;
+    unsigned char jitter;
+    int roll;
+
+    count = PListGetCount(npc->items);
+    index = 0;
+    if (count > 0) {
+        do {
+            entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+            if (((entry != 0 && entry->quantity != 0) &&
+                 (NormalizeItemQuantityKind(&entry->item),
+                  g_item_records[entry->item.item_id].quantity_kind == 1)) &&
+                entry->quantity > entry->item.stack_count) {
+                entry->item.stack_count = entry->quantity;
+                entry->quantity = 1;
+            }
+            ++index;
+        } while (index < count);
+    }
+
+    if (static_cast<unsigned int>(g_world_clock_00686a48 - npc->restock_clock) > 0xa8c0 ||
+        force != 0) {
+        npc->restock_clock = g_world_clock_00686a48;
+        count = PListGetCount(npc->record->item_stock_rules);
+        rule_index = 0;
+        if (count > 0) {
+            do {
+                rule = static_cast<W8NpcItemStockRule*>(
+                    PListGetAt(npc->record->item_stock_rules, rule_index));
+                if (rule->persistent != 0) {
+                    item_id = rule->item_id;
+                    configured = 0;
+                    search_count = PListGetCount(npc->record->item_stock_rules);
+                    for (search = 0; search < search_count; ++search) {
+                        candidate = static_cast<W8NpcItemStockRule*>(
+                            PListGetAt(npc->record->item_stock_rules, search));
+                        if (candidate->item_id == item_id) {
+                            configured = candidate->quantity;
+                            break;
+                        }
+                    }
+                    if (configured != 0) {
+                        item_id = rule->item_id;
+                        held = 0;
+                        search_count = PListGetCount(npc->items);
+                        for (search = 0; search < search_count; ++search) {
+                            entry = static_cast<W8NpcItemEntry*>(
+                                PListGetAt(npc->items, search));
+                            if (entry != 0 && entry->item.item_id == item_id) {
+                                held = entry->quantity;
+                                break;
+                            }
+                        }
+                        if (held <= configured / 2) {
+                            configured = configured - held;
+                            roll = Random(3);
+                            if (roll == 0) {
+                                jitter = static_cast<unsigned char>(configured >> 1);
+                                configured = configured + jitter;
+                            }
+                            else if (roll == 1) {
+                                jitter = static_cast<unsigned char>(-(configured >> 1));
+                                configured = configured + jitter;
+                            }
+                            if (configured != 0) {
+                                AddNpcItem(npc, rule->item_id, configured);
+                            }
+                        }
+                    }
+                }
+                ++rule_index;
+            } while (rule_index < count);
+        }
+    }
+
+    if (static_cast<unsigned int>(g_world_clock_00686a48 - npc->maintenance_clock) < 0x15180 &&
+        force == 0) {
+        return 0;
+    }
+    DecayNpcInventory(npc);
+    RestockNpcItems(npc);
+    count = PListGetCount(npc->items);
+    index = 0;
+    if (count != 0) {
+        do {
+            entry = static_cast<W8NpcItemEntry*>(PListGetAt(npc->items, index));
+            if (entry != 0 && entry->quantity == 0) {
+                delete static_cast<W8NpcItemEntry*>(PListRemoveAt(npc->items, index));
+                if (index != 0) {
+                    index = index - 1;
+                }
+                count = PListGetCount(npc->items);
+            }
+            ++index;
+        } while (index < count);
+    }
+    npc->maintenance_clock = g_world_clock_00686a48;
+    npc->restock_clock = g_world_clock_00686a48;
+    return 1;
+}
+
 /* Populate an NPC's stock from its database rules on first use. Each rule rolls
    once per configured unit against the chance its difficulty tier selects, and
    the successes are added as one batch. The stock is then sorted and both clock
