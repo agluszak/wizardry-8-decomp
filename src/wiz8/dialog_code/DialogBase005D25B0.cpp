@@ -1,21 +1,13 @@
 #include "wiz8/dialog_base.h"
 
+#include "english.h"
+#include "mousesystem_macros.h"
+
+#include <ctype.h>
+
 /* Dialog Code. The shared dialog base at vtable 0x005EF8B0. Its lifetime
    bodies are what every derived dialog runs before and after its own. */
 
-/* All ten fields initialize here, which reproduces every instruction and both
-   constant materializations; the sole residual is that VC6 places the implicit
-   vtable store after the whole list where the canonical has it after the six
-   -1 stores and before the four zero and one stores.
-
-   Splitting the list six/four does move the vtable store to the canonical
-   position, but it then costs more than it buys: VC6 materializes the zero
-   into EAX at its first use and hoists the three zero stores above the vtable
-   store, where the canonical holds zero in ECX from the top of the function.
-   That is register caching the source cannot direct - the same residual class
-   already recorded for Function4E3340 and Function54B560 - so the arrangement
-   that keeps all nineteen instructions and both constants correct is the one
-   kept here. */
 // FUNCTION: WIZ8 0x005d25b0
 W8DialogBase005D25B0::W8DialogBase005D25B0()
     : m_field_54(0),
@@ -37,4 +29,75 @@ W8DialogBase005D25B0::W8DialogBase005D25B0()
 W8DialogBase005D25B0::~W8DialogBase005D25B0()
 {
     ResetSubobjectAndRefresh();
+}
+
+// FUNCTION: WIZ8 0x005d3020
+unsigned char W8DialogBase005D25B0::HandleInput005D3020(
+    const InputAtom* input)
+{
+    if (input->usEvent != KEY_DOWN) {
+        return m_field_55;
+    }
+
+    if (m_field_95 != 0) {
+        int key = toupper(input->usParam);
+        if (key == ESC) {
+            m_field_54 = 0;
+            m_field_55 = 0;
+            return 0;
+        }
+        if (key != '\r') {
+            return m_field_55;
+        }
+    }
+
+    m_field_54 = 1;
+    m_field_55 = 0;
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x005d3080
+unsigned char W8DialogBase005D25B0::Close()
+{
+    SGPPoint mouse;
+    InputAtom input;
+
+    GetMousePos(&mouse);
+    MSYS_SGP_Mouse_Handler_Hook(
+        MOUSE_POS,
+        mouse.iX,
+        mouse.iY,
+        gfLeftButtonState,
+        gfRightButtonState);
+
+    while (DequeueEvent(&input)) {
+        unsigned short mouse_event;
+
+        switch (input.usEvent) {
+        case LEFT_BUTTON_DOWN:
+        case LEFT_BUTTON_REPEAT:
+            mouse_event = LEFT_BUTTON_DOWN;
+            break;
+        case LEFT_BUTTON_UP:
+            mouse_event = LEFT_BUTTON_UP;
+            break;
+        case RIGHT_BUTTON_DOWN:
+            mouse_event = RIGHT_BUTTON_DOWN;
+            break;
+        case RIGHT_BUTTON_UP:
+            mouse_event = RIGHT_BUTTON_UP;
+            break;
+        default:
+            return HandleInput005D3020(&input);
+        }
+
+        MSYS_SGP_Mouse_Handler_Hook(
+            mouse_event,
+            mouse.iX,
+            mouse.iY,
+            gfLeftButtonState,
+            gfRightButtonState);
+    }
+
+    return m_field_55;
 }

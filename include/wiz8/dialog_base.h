@@ -1,6 +1,7 @@
 #pragma once
 
 #include "wiz8/monster_info_dialog.h"
+#include "input.h"
 
 /* The shared dialog base at vtable 0x005EF8B0, between W8DialogBase005DC7A0
    and the concrete dialogs. Its fifteen slots are what every derived dialog
@@ -11,15 +12,14 @@
    qualified by its constructor address. */
 class W8DialogBase005D25B0 : public W8DialogBase005DC7A0 {
 public:
-    W8DialogBase005D25B0();                     /* 0x005D25B0 */
+    W8DialogBase005D25B0();                              /* 0x005D25B0 */
     virtual ~W8DialogBase005D25B0() override;            /* 0x005D2610 */
     virtual void ResetSubobjectAndRefresh() override;    /* slot 2, 0x005D2F40 */
-    virtual void vslot14();                     /* slot 14, 0x005D3020 */
+    virtual unsigned char Close() override;              /* slot 9, 0x005D3080 */
+    virtual unsigned char HandleInput005D3020(
+        const InputAtom* input);                         /* slot 14 */
 
 protected:
-    /* The slot 9 body. A derived override calls it non-virtually, which is
-       why it is declared here rather than reached through the vtable. */
-    void BaseClose();                                /* 0x005D3080 */
     void SetExtent(int width, int height);           /* 0x005DC9C0 */
     void SetOrigin(int x, int y);                    /* 0x005DC9F0 */
     void SetBackground(const char* path, int flags); /* 0x005DCA70 */
@@ -39,5 +39,10 @@ protected:
     unsigned char unknown_07c[0x10];
     int m_field_8c;                      /* 0x8c */
     int m_field_90;                      /* 0x90 */
-    unsigned char unknown_094[4];
+    unsigned char m_field_94;            /* 0x94 */
+    unsigned char m_field_95;            /* 0x95: changes Escape handling */
+    unsigned char unknown_096[2];
 };                                       /* 0x98 */
+
+static_assert(sizeof(W8DialogBase005D25B0) == 0x98,
+              "W8DialogBase005D25B0_must_be_0x98");

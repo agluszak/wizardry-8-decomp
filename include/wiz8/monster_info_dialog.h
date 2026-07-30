@@ -17,7 +17,7 @@ public:
     virtual void vslot6();
     virtual void vslot7();
     virtual void vslot8();
-    virtual void vslot9();
+    virtual unsigned char Close();
     virtual void vslot10();
     virtual void vslot11();
     virtual void ClearField41IfEnabled();

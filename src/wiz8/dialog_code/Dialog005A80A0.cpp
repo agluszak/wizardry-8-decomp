@@ -45,7 +45,7 @@ unsigned char W8Dialog005A80A0::Close()
 {
     unsigned char handled;
 
-    BaseClose();
+    W8DialogBase005D25B0::Close();
     handled = m_field_55;
     if (!handled) {
         ClearActiveRegionIfMatches(0x138);
