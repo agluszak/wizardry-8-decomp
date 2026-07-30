@@ -543,7 +543,7 @@ void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation)
     if (!world->camera) {
         srAssertFail("pWorld->psrCamera", THREE_D_API_CPP, 0x3d0, 0);
     }
-    world->camera->getRotation(rotation);
+    world->camera->getRotation(*rotation);
 }
 
 /* Moves the camera and its camera light together. Only the camera's move

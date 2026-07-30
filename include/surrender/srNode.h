@@ -4,6 +4,9 @@
 #include "srTypeRegistry.h"
 #include "srVertexProcessor.h"
 
+template <class T>
+class srMatrix4x3T;
+
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
    vtable. First-party scene traversal establishes the two child-list links;
    the remaining bytes stay opaque. */
@@ -101,23 +104,6 @@ public:
     SR_DLL_IMPORT long getFullPathLength() const;
     SR_DLL_IMPORT long getHierarchyLevel() const;
     SR_DLL_IMPORT srNode* getNext() const;
-    SR_DLL_IMPORT int setParent(srNode* parent, int preserve_world_transform);
-    SR_DLL_IMPORT void setLocation(double x, double y, double z);
-    SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
-    SR_DLL_IMPORT srVector3T<double> getLocation() const;
-    SR_DLL_IMPORT void getLocation(srVector3T<float>& location) const;
-    SR_DLL_IMPORT void setRotation(double x, double y, double z);
-    SR_DLL_IMPORT void setRotation(const srMatrix3T<float>& rotation);
-    SR_DLL_IMPORT srVector3T<double> getScale() const;
-    SR_DLL_IMPORT void setScale(const srVector3T<double>& scale);
-    /* The reader for the rotation basis, taken through an out-parameter rather
-       than returned. 3dapi.cpp's camera-rotation accessor is what establishes
-       the float element type. */
-    SR_DLL_IMPORT void getRotation(srMatrix3T<float>* rotation);
-    SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4T<float>& matrix) const;
-    SR_DLL_IMPORT void setFlag(e_flag flag);
-    SR_DLL_IMPORT void clearFlag(e_flag flag);
-    SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT srNode* getParent() const;
     SR_DLL_IMPORT srNode* getPrev() const;
     SR_DLL_IMPORT int isChildOf(const srNode& node) const;
@@ -125,6 +111,92 @@ public:
     static SR_DLL_IMPORT int isSceneGraphLocked();
     static SR_DLL_IMPORT void lockSceneGraph();
     static SR_DLL_IMPORT void unlockSceneGraph();
+
+    SR_DLL_IMPORT void applyWorldSpaceMatrix(class srGERD& renderer);
+    SR_DLL_IMPORT double getDistance(const srNode& node) const;
+    SR_DLL_IMPORT srVector3T<double> getLocation() const;
+    SR_DLL_IMPORT void getLocation(srVector3T<float>& location) const;
+    SR_DLL_IMPORT void getLocation(srVector3T<double>& location) const;
+    SR_DLL_IMPORT double getLocationX() const;
+    SR_DLL_IMPORT double getLocationY() const;
+    SR_DLL_IMPORT double getLocationZ() const;
+    SR_DLL_IMPORT void getRotation(srMatrix3T<float>& rotation) const;
+    SR_DLL_IMPORT void getRotation(srMatrix3T<double>& rotation) const;
+    SR_DLL_IMPORT srVector3T<double> getScale() const;
+    SR_DLL_IMPORT void getWorldSpaceCoordinates(
+        srMatrix3T<float>& rotation,
+        srVector3T<float>& location,
+        srVector3T<float>& scale) const;
+    SR_DLL_IMPORT void getWorldSpaceCoordinates(
+        srMatrix3T<double>& rotation,
+        srVector3T<double>& location,
+        srVector3T<double>& scale) const;
+    SR_DLL_IMPORT srVector3T<double> getWorldSpaceDOF() const;
+    SR_DLL_IMPORT srVector3T<double> getWorldSpaceLocation() const;
+    SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4T<float>& matrix) const;
+    SR_DLL_IMPORT void getWorldSpaceMatrix(srMatrix4T<double>& matrix) const;
+    SR_DLL_IMPORT void getWorldSpaceMatrix(
+        srMatrix4x3T<float>& matrix) const;
+    SR_DLL_IMPORT void getWorldSpaceMatrix(
+        srMatrix4x3T<double>& matrix) const;
+    SR_DLL_IMPORT void getWorldSpaceRotation(
+        srMatrix3T<float>& rotation) const;
+    SR_DLL_IMPORT void getWorldSpaceRotation(
+        srMatrix3T<double>& rotation) const;
+    SR_DLL_IMPORT srVector3T<double> getWorldSpaceScale() const;
+    SR_DLL_IMPORT void move(const srVector3T<double>& offset);
+    SR_DLL_IMPORT void moveBackward(double distance);
+    SR_DLL_IMPORT void moveDown(double distance);
+    SR_DLL_IMPORT void moveForward(double distance);
+    SR_DLL_IMPORT void moveLeft(double distance);
+    SR_DLL_IMPORT void moveRight(double distance);
+    SR_DLL_IMPORT void moveUp(double distance);
+    SR_DLL_IMPORT void offsetLocation(const srVector3T<double>& offset);
+    SR_DLL_IMPORT void offsetLocation(double x, double y, double z);
+    SR_DLL_IMPORT void pitchAt(
+        const srVector3T<double>& target, double amount);
+    SR_DLL_IMPORT void pitchAt(const srNode* target, double amount);
+    SR_DLL_IMPORT void rollAt(
+        const srVector3T<double>& target, double amount);
+    SR_DLL_IMPORT void rollAt(const srNode* target, double amount);
+    SR_DLL_IMPORT void rollUp(double amount);
+    SR_DLL_IMPORT void rotate(const srMatrix3T<double>& rotation);
+    SR_DLL_IMPORT void rotate(
+        double angle, const srVector3T<double>& axis);
+    SR_DLL_IMPORT void rotateX(double angle);
+    SR_DLL_IMPORT void rotateY(double angle);
+    SR_DLL_IMPORT void rotateZ(double angle);
+    SR_DLL_IMPORT int setParent(srNode* parent, int preserve_world_transform);
+    SR_DLL_IMPORT void setLocation(const srVector3T<double>& location);
+    SR_DLL_IMPORT void setLocation(double x, double y, double z);
+    SR_DLL_IMPORT void setLocationX(double x);
+    SR_DLL_IMPORT void setLocationY(double y);
+    SR_DLL_IMPORT void setLocationZ(double z);
+    SR_DLL_IMPORT void setRotation(const srMatrix3T<float>& rotation);
+    SR_DLL_IMPORT void setRotation(const srMatrix3T<double>& rotation);
+    SR_DLL_IMPORT void setRotation(
+        const srVector3T<double>& first,
+        const srVector3T<double>& second,
+        double amount);
+    SR_DLL_IMPORT void setRotation(
+        const srVector3T<double>& direction, double amount);
+    SR_DLL_IMPORT void setRotation(
+        double amount, const srVector3T<double>& direction);
+    SR_DLL_IMPORT void setRotation(double x, double y, double z);
+    SR_DLL_IMPORT void setScale(const srVector3T<double>& scale);
+    SR_DLL_IMPORT void setScale(double scale);
+    SR_DLL_IMPORT void setWorldSpaceLocation(
+        const srVector3T<double>& location);
+    SR_DLL_IMPORT void setWorldSpaceMatrix(
+        const srMatrix4T<double>& matrix);
+    SR_DLL_IMPORT void setWorldSpaceRotation(
+        const srMatrix3T<double>& rotation);
+    SR_DLL_IMPORT void setFlag(e_flag flag);
+    SR_DLL_IMPORT void clearFlag(e_flag flag);
+    SR_DLL_IMPORT int testFlag(e_flag flag) const;
+    SR_DLL_IMPORT void yawAt(
+        const srVector3T<double>& target, double amount);
+    SR_DLL_IMPORT void yawAt(const srNode* target, double amount);
     srNode* nextSibling() const { return next_sibling_; }
     srNode* parentNode() const { return parent_; }
     srNode* firstChild() const { return first_child_; }

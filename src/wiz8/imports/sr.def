@@ -203,6 +203,59 @@ EXPORTS
     ?isSceneGraphLocked@srNode@@SAHXZ
     ?lockSceneGraph@srNode@@SAXXZ
     ?unlockSceneGraph@srNode@@SAXXZ
+    ?applyWorldSpaceMatrix@srNode@@QAEXAAVsrGERD@@@Z
+    ?getDistance@srNode@@QBENABV1@@Z
+    ?getLocation@srNode@@QBEXAAV?$srVector3T@M@@@Z
+    ?getLocation@srNode@@QBEXAAV?$srVector3T@N@@@Z
+    ?getLocationX@srNode@@QBENXZ
+    ?getLocationY@srNode@@QBENXZ
+    ?getLocationZ@srNode@@QBENXZ
+    ?getRotation@srNode@@QBEXAAV?$srMatrix3T@M@@@Z
+    ?getRotation@srNode@@QBEXAAV?$srMatrix3T@N@@@Z
+    ?getWorldSpaceCoordinates@srNode@@QBEXAAV?$srMatrix3T@M@@AAV?$srVector3T@M@@1@Z
+    ?getWorldSpaceCoordinates@srNode@@QBEXAAV?$srMatrix3T@N@@AAV?$srVector3T@N@@1@Z
+    ?getWorldSpaceDOF@srNode@@QBE?AV?$srVector3T@N@@XZ
+    ?getWorldSpaceLocation@srNode@@QBE?AV?$srVector3T@N@@XZ
+    ?getWorldSpaceMatrix@srNode@@QBEXAAV?$srMatrix4T@M@@@Z
+    ?getWorldSpaceMatrix@srNode@@QBEXAAV?$srMatrix4T@N@@@Z
+    ?getWorldSpaceMatrix@srNode@@QBEXAAV?$srMatrix4x3T@M@@@Z
+    ?getWorldSpaceMatrix@srNode@@QBEXAAV?$srMatrix4x3T@N@@@Z
+    ?getWorldSpaceRotation@srNode@@QBEXAAV?$srMatrix3T@M@@@Z
+    ?getWorldSpaceRotation@srNode@@QBEXAAV?$srMatrix3T@N@@@Z
+    ?getWorldSpaceScale@srNode@@QBE?AV?$srVector3T@N@@XZ
+    ?move@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ?moveBackward@srNode@@QAEXN@Z
+    ?moveDown@srNode@@QAEXN@Z
+    ?moveForward@srNode@@QAEXN@Z
+    ?moveLeft@srNode@@QAEXN@Z
+    ?moveRight@srNode@@QAEXN@Z
+    ?moveUp@srNode@@QAEXN@Z
+    ?offsetLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ?offsetLocation@srNode@@QAEXNNN@Z
+    ?pitchAt@srNode@@QAEXABV?$srVector3T@N@@N@Z
+    ?pitchAt@srNode@@QAEXPBV1@N@Z
+    ?rollAt@srNode@@QAEXABV?$srVector3T@N@@N@Z
+    ?rollAt@srNode@@QAEXPBV1@N@Z
+    ?rollUp@srNode@@QAEXN@Z
+    ?rotate@srNode@@QAEXABV?$srMatrix3T@N@@@Z
+    ?rotate@srNode@@QAEXNABV?$srVector3T@N@@@Z
+    ?rotateX@srNode@@QAEXN@Z
+    ?rotateY@srNode@@QAEXN@Z
+    ?rotateZ@srNode@@QAEXN@Z
+    ?setLocationX@srNode@@QAEXN@Z
+    ?setLocationY@srNode@@QAEXN@Z
+    ?setLocationZ@srNode@@QAEXN@Z
+    ?setRotation@srNode@@QAEXABV?$srMatrix3T@M@@@Z
+    ?setRotation@srNode@@QAEXABV?$srMatrix3T@N@@@Z
+    ?setRotation@srNode@@QAEXABV?$srVector3T@N@@0N@Z
+    ?setRotation@srNode@@QAEXABV?$srVector3T@N@@N@Z
+    ?setRotation@srNode@@QAEXNABV?$srVector3T@N@@@Z
+    ?setScale@srNode@@QAEXN@Z
+    ?setWorldSpaceLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ?setWorldSpaceMatrix@srNode@@QAEXABV?$srMatrix4T@N@@@Z
+    ?setWorldSpaceRotation@srNode@@QAEXABV?$srMatrix3T@N@@@Z
+    ?yawAt@srNode@@QAEXABV?$srVector3T@N@@N@Z
+    ?yawAt@srNode@@QAEXPBV1@N@Z
     ??4srLight@@QAEAAV0@ABV0@@Z
     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ??0srTexture@@IAE@XZ
