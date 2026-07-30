@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <windows.h>
 
 #include "srCore.h"
 #include "srHeap.h"
@@ -61,7 +62,7 @@ private:
     ClassNode* root_00;
     void* class_index_04;
     unsigned long next_class_id_08;
-    void* critical_section_0c;
+    CRITICAL_SECTION* critical_section_0c;
 };
 
 static_assert(sizeof(srRegistry) == 0x10, "srRegistry_must_be_0x10");
@@ -105,7 +106,11 @@ private:
 static_assert(sizeof(srRuntimeClass) == 0x0c,
               "srRuntimeClass_must_be_0x0c");
 
-class srClass : public srRuntimeClass {
+/* The exported constructor and copy constructor never install an srClass
+   vtable; they leave the srRuntimeClass construction vtable in place until a
+   concrete derived class installs its own. That is MSVC's novtable ABI, not a
+   missing handwritten vtable write. */
+class __declspec(novtable) srClass : public srRuntimeClass {
 public:
     typedef void (__cdecl *UpdateCallBack)(
         srClass* instance, double time, double elapsed);
@@ -125,9 +130,7 @@ public:
     SR_DLL_IMPORT srClass(const srClass& other);
     SR_DLL_IMPORT srClass& operator=(const srClass& other);
 
-    virtual const char* getClassName() const override = 0;
-    virtual unsigned long getClassID() const override = 0;
-    virtual srRegistry::ClassNode* getClassNode() const override = 0;
+    virtual SR_DLL_IMPORT srRegistry::ClassNode* getClassNode() const override;
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
     virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode) override;
 
