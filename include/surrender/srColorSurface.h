@@ -1,13 +1,11 @@
 #pragma once
 
+#include "srFilter.h"
 #include "srMath.h"
 #include "srTypeRegistry.h"
 
 class srPalette;
 class srStat;
-class srFilter {};
-class srBoxFilter : public srFilter {};
-extern SR_DLL_IMPORT srBoxFilter srBoxFilter;
 
 class srARGB {
 public:
