@@ -191,6 +191,10 @@ public:
         W8GrowableVector<stModelInstance005EC7D0*>* instances);
     void SetDamageStage004C6990(int stage);
     int GetDamageStageCount004C6A50();
+    unsigned char ReplaceSkinTexture004C6700(
+        int stage, const char* old_name, const char* new_name);
+    int AddDamageStage004C6880(const char* base_name, int stage);
+    void RemoveCycleSkinTables004C6B10();
     void RandomizeAppearanceAndMotion004C1D20();
     unsigned char IsRenderable004C7C00(char alternate);
     void InitializeAnimatedTexture004C51D0();

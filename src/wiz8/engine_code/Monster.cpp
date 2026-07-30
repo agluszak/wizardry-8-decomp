@@ -30,6 +30,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 extern srTimer* g_shared_timer_base;
@@ -119,6 +120,8 @@ extern void ResetTargetSource(W8TargetSource* source);
 extern void Function523C00(
     int monster_id, int value_2, int value_3, int value_4,
     W8TargetSource* source, int value_6);
+extern srTextureIFace* LoadTexture004B9460(
+    const char* path, unsigned char cached, unsigned char required);
 
 static W8GrowableVector<stModelInstance005EC7D0*>
     g_monster_model_instances_682fd0;
@@ -625,8 +628,6 @@ extern int g_value_659c14;
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern void PrepareMonsterCycleForDestruction004ACF90(
     W8Monster* cycle);
-extern void __fastcall RefreshMonsterCycleRegistry004C6B10(
-    W8Monster* cycle);
 extern unsigned char Function420E10(void);
 extern unsigned char g_flag_00689b32;
 
@@ -744,7 +745,7 @@ W8Monster::~W8Monster()
     }
     if (IsSoleGrCycleForName(this)) {
         g_monster_cycle_registry_weight_0065ba4c -= registry_weight_27c;
-        RefreshMonsterCycleRegistry004C6B10(this);
+        RemoveCycleSkinTables004C6B10();
     }
     UnregisterGrCycle(this);
     delete m_pRep;
@@ -4935,6 +4936,86 @@ void W8Monster::CollectModelInstances004C6350(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/* Replace one named texture in a damage stage. Model instances own the normal
+   skin tables; shake particles are the fallback when no model uses the name. */
+// FUNCTION: WIZ8 0x004c6700
+unsigned char W8Monster::ReplaceSkinTexture004C6700(
+    int stage, const char* old_name, const char* new_name)
+{
+    char path[200];
+    unsigned char replaced = 0;
+
+    sprintf(path, "Data\\Monsters\\Bitmaps\\%s", new_name);
+    srTextureIFace* texture = LoadTexture004B9460(path, 0, 1);
+    if (texture == 0) {
+        Function401920(FormatString("Missing skin texture: %s", new_name));
+        return 0;
+    }
+
+    W8GrowableVector<stModelInstance005EC7D0*> instances;
+    CollectModelInstances004C6350(&instances);
+    for (int index = 0; index < instances.GetCount(); ++index) {
+        if ((*instances.GetAt(index))->ReplaceDamageStageTexture004807B0(
+                stage, old_name, texture) != 0) {
+            replaced = 1;
+        }
+    }
+
+    if (replaced == 0 && m_shake_events != 0) {
+        for (int index = 0; index < m_shake_events->GetCount(); ++index) {
+            W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
+            if (event->particle_08->ReplaceTexture0049AC30(
+                    old_name, texture) != 0) {
+                replaced = 1;
+            }
+        }
+    }
+    return replaced;
+}
+
+/* Damage table names are the parsed skin name followed by its numeric stage.
+   A frame either creates the table or attaches the already-created table. */
+// FUNCTION: WIZ8 0x004c6880
+int W8Monster::AddDamageStage004C6880(const char* base_name, int stage)
+{
+    char name[128];
+    int result = -1;
+    W8GrowableVector<stModelInstance005EC7D0*> instances;
+
+    sprintf(name, "%s%d", base_name, stage);
+    CollectModelInstances004C6350(&instances);
+    for (int index = 0; index < instances.GetCount(); ++index) {
+        stModelInstance005EC7D0* instance = *instances.GetAt(index);
+        if (instance->FindDamageStage00480790(name) == -1) {
+            result = instance->AddDamageStage00480560(name);
+        }
+        else {
+            result = instance->AddExistingDamageStage00480670(name);
+        }
+    }
+    return result;
+}
+
+/* The final registered Monster for a cycle name owns removal of that name's
+   per-mesh skin tables. */
+// FUNCTION: WIZ8 0x004c6b10
+void W8Monster::RemoveCycleSkinTables004C6B10()
+{
+    const char* cycle_name = GetGrCycleName(this);
+    W8GrowableVector<stModelInstance005EC7D0*> instances;
+
+    if (cycle_name != 0) {
+        CollectModelInstances004C6350(&instances);
+        for (int index = 0; index < instances.GetCount(); ++index) {
+            stMeshModel* mesh = static_cast<stMeshModel*>(
+                (*instances.GetAt(index))->model());
+            for (; mesh != 0; mesh = mesh->next) {
+                mesh->RemoveSkinTablesForCycle00473780(cycle_name);
             }
         }
     }

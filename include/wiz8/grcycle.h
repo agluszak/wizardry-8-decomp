@@ -311,3 +311,4 @@ static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 
 unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
+const char* __fastcall GetGrCycleName(W8GrCycle* cycle);

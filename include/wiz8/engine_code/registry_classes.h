@@ -2,10 +2,12 @@
 
 #include "surrender/srLight.h"
 #include "surrender/srScene.h"
+#include "surrender/srTexture.h"
 #include "wiz8/engine_code/stModelInstance.h"
 
 class W8MonsterShakeCallback;
 class Trigger;
+class stTextureAnim;
 struct W8Position;
 
 /*
@@ -31,8 +33,17 @@ public:
     unsigned long getClassID() const override;     /* 0x0049B540 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x0049B560 */
     void SetActive(unsigned char active);
+    void SetTexture0049AB00(srTextureIFace* texture);
+    unsigned char ReplaceTexture0049AC30(
+        const char* old_name, srTextureIFace* replacement);
 
-    unsigned char unknown_138[0x4c];
+    unsigned char unknown_138[0x1c];
+    srTextureIFace* texture_154;
+    unsigned char unknown_158[4];
+    unsigned int texture_frame_count_15c;
+    unsigned char unknown_160[0x18];
+    stTextureAnim** texture_frames_178;
+    unsigned char unknown_17c[8];
     int state_184;
     int value_188;
     void* node_18c;

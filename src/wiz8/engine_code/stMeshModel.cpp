@@ -3,6 +3,8 @@
 #include "surrender/srCore.h"
 #include "surrender/srTypeRegistry.h"
 
+#include <string.h>
+
 /*
  * Engine Code\stMeshModel.cpp.
  *
@@ -44,6 +46,48 @@ void* stMeshModel::GetVertex(unsigned int index)
         return vertices[index];
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x004736d0
+int stMeshModel::FindSkinTable004736D0(const char* name)
+{
+    for (int index = 0; index < skin_table_names.GetCount(); ++index) {
+        if (_stricmp(name, *skin_table_names.GetAt(index)) == 0) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+// FUNCTION: WIZ8 0x00473720
+srPtr<srTextureIFace>* stMeshModel::GetTextureTable00473720(int table)
+{
+    int index = skin_table_ids.IndexOf(table);
+
+    if (index != -1) {
+        return *skin_texture_tables.GetAt(index);
+    }
+    return 0;
+}
+
+/* Skin tables are named with the owning cycle plus a one-character suffix.
+   Final teardown removes every table whose name has that cycle prefix. */
+// FUNCTION: WIZ8 0x00473780
+void stMeshModel::RemoveSkinTablesForCycle00473780(const char* cycle_name)
+{
+    if (cycle_name != 0) {
+        for (int index = 0; index < skin_table_names.GetCount(); ++index) {
+            char name[200];
+
+            strncpy(name, *skin_table_names.GetAt(index), 199);
+            name[199] = '\0';
+            name[strlen(name) - 1] = '\0';
+            if (strlen(name) != 0 && _stricmp(cycle_name, name) == 0) {
+                RemoveSkinTable00473830(index);
+                --index;
+            }
+        }
+    }
 }
 
 /* Thirteen-byte forwarder onto the model release path. */

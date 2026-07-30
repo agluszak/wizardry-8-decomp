@@ -4,6 +4,8 @@
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
 
+#include <string.h>
+
 /*
  * Engine Code\stParticle.cpp.
  *
@@ -20,6 +22,20 @@ void stParticle::SetActive(unsigned char active)
         updated_at_25c = now;
     }
     active_1a0 = active;
+}
+
+// FUNCTION: WIZ8 0x0049ac30
+unsigned char stParticle::ReplaceTexture0049AC30(
+    const char* old_name, srTextureIFace* replacement)
+{
+    if (texture_154 != 0 &&
+        (texture_154->getClassID() == 0x10001 ||
+         texture_154->getClassID() == 0x10000) &&
+        _stricmp(texture_154->getName(), old_name) == 0) {
+        SetTexture0049AB00(replacement);
+        return 1;
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x0049b550

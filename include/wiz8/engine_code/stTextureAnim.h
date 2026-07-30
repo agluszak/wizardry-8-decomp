@@ -17,6 +17,7 @@ public:
     virtual srTextureIFace* clone() override;              /* 0x004858B0 */
 
     void SetFrame00485400(int frame);
+    unsigned char Prepare004857B0();
 
 protected:
     virtual ~stTextureAnim() override;                     /* 0x00485910 */

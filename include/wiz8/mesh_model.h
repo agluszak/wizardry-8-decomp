@@ -16,7 +16,11 @@ public:
     int FindMappedIndex(short key);       /* 0x004712D0 */
     void LinkTo(stMeshModel* other);      /* 0x00471D60 */
     void* GetVertex(unsigned int index);  /* 0x00471AA0 */
-    srPtr<srTextureIFace>* GetTextureTable00473720(void* table); /* 0x00473720 */
+    int FindSkinTable004736D0(const char* name);
+    int CreateSkinTable00473260(const char* name, int base_table);
+    srPtr<srTextureIFace>* GetTextureTable00473720(int table); /* 0x00473720 */
+    void RemoveSkinTable00473830(int index);
+    void RemoveSkinTablesForCycle00473780(const char* cycle_name);
     srVector3T<float>* GetVertexLocations00471AD0(
         unsigned int frame, char load, float interpolation);
 
@@ -27,7 +31,10 @@ public:
     unsigned int vertex_count;            /* 0x3d0 */
     unsigned char unknown_3d4[0xc];
     void** vertices;                      /* 0x3e0 */
-    unsigned char unknown_3e4[0x3c];
+    unsigned char unknown_3e4[0xc];
+    W8GrowableVector<int> skin_table_ids; /* 0x3f0; count at 0x3f4 */
+    W8GrowableVector<srPtr<srTextureIFace>*> skin_texture_tables; /* 0x400 */
+    W8GrowableVector<char*> skin_table_names; /* 0x410 */
     W8GrowableVector<short> mapped_values; /* 0x420 */
     W8GrowableVector<short> mapped_keys;   /* 0x430 */
 };

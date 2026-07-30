@@ -3,6 +3,7 @@
 #include "surrender/srModelInstance.h"
 
 class srMaterial;
+class srTextureIFace;
 class stTextureAnim;
 
 srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00();
@@ -34,6 +35,11 @@ public:
     srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
     unsigned long getClassID() const override;     /* 0x00481860 */
     stTextureAnim* FindMouthTexture00481080();     /* 0x00481080 */
+    int AddDamageStage00480560(const char* name);
+    int AddExistingDamageStage00480670(const char* name);
+    int FindDamageStage00480790(const char* name);
+    unsigned char ReplaceDamageStageTexture004807B0(
+        int stage, const char* old_name, srTextureIFace* replacement);
     unsigned char displayState() const { return state_170; }
     void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
 
@@ -70,7 +76,7 @@ public:
     unsigned long state_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
-    void** damage_stage_tables_188;
+    int* damage_stage_tables_188;
     int damage_stage_count_18c;
 };
 

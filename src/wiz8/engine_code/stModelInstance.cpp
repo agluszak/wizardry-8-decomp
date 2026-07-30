@@ -5,6 +5,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srNode.h"
+#include "surrender/srHeap.h"
 
 #include <new>
 #include <string.h>
@@ -102,6 +103,121 @@ stTextureAnim* stModelInstance::FindMouthTexture00481080()
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x00480790
+int stModelInstance::FindDamageStage00480790(const char* name)
+{
+    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    return mesh->FindSkinTable004736D0(name);
+}
+
+/* Add a stage by cloning the first stage's table across the complete linked
+   mesh chain. The instance stores the table id shared by that chain. */
+// FUNCTION: WIZ8 0x00480560
+int stModelInstance::AddDamageStage00480560(const char* name)
+{
+    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+
+    if (mesh->FindSkinTable004736D0(name) != -1) {
+        return -1;
+    }
+
+    int stage = damage_stage_count_18c;
+    int new_count = stage + 1;
+    int* replacement = static_cast<int*>(
+        srHeap.allocate(new_count * sizeof(int)));
+    for (int index = 0; index < damage_stage_count_18c; ++index) {
+        replacement[index] = damage_stage_tables_188[index];
+    }
+    if (damage_stage_tables_188 != 0) {
+        srHeap.free(damage_stage_tables_188);
+    }
+    damage_stage_tables_188 = replacement;
+    damage_stage_count_18c = new_count;
+
+    int base_table = stage > 0 ? damage_stage_tables_188[0] : -1;
+    damage_stage_tables_188[stage] =
+        mesh->CreateSkinTable00473260(name, base_table);
+    for (mesh = mesh->next; mesh != 0; mesh = mesh->next) {
+        mesh->CreateSkinTable00473260(name, base_table);
+    }
+    return stage;
+}
+
+// FUNCTION: WIZ8 0x00480670
+int stModelInstance::AddExistingDamageStage00480670(const char* name)
+{
+    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    int table = mesh->FindSkinTable004736D0(name);
+
+    if (table == -1) {
+        return -1;
+    }
+
+    int stage = damage_stage_count_18c;
+    int new_count = stage + 1;
+    int* replacement = static_cast<int*>(
+        srHeap.allocate(new_count * sizeof(int)));
+    for (int index = 0; index < damage_stage_count_18c; ++index) {
+        replacement[index] = damage_stage_tables_188[index];
+    }
+    if (damage_stage_tables_188 != 0) {
+        srHeap.free(damage_stage_tables_188);
+    }
+    damage_stage_tables_188 = replacement;
+    damage_stage_count_18c = new_count;
+    damage_stage_tables_188[stage] = table;
+    return stage;
+}
+
+// FUNCTION: WIZ8 0x004807b0
+unsigned char stModelInstance::ReplaceDamageStageTexture004807B0(
+    int stage, const char* old_name, srTextureIFace* replacement)
+{
+    stMeshModel* mesh = static_cast<stMeshModel*>(model());
+    unsigned char replaced = 0;
+
+    if (replacement != 0) {
+        if (replacement->getClassID() == stTextureAnim::CLASS_ID) {
+            static_cast<stTextureAnim*>(replacement)->Prepare004857B0();
+        }
+        replacement->getClassID();
+    }
+
+    for (; mesh != 0; mesh = mesh->next) {
+        srPtr<srTextureIFace>* textures =
+            mesh->GetTextureTable00473720(damage_stage_tables_188[stage]);
+        if (textures == 0) {
+            continue;
+        }
+
+        for (int polygon = 0; polygon < mesh->polygon_count_230; ++polygon) {
+            srTextureIFace* texture = textures[polygon].get();
+            if (texture == 0 ||
+                (texture->getClassID() != 0x10001 &&
+                 texture->getClassID() != stTextureAnim::CLASS_ID)) {
+                continue;
+            }
+
+            if (_stricmp(texture->getName(), old_name) == 0) {
+                replaced = 1;
+                while (polygon < mesh->polygon_count_230 &&
+                       textures[polygon].get() == texture) {
+                    textures[polygon] = replacement;
+                    ++polygon;
+                }
+            }
+            else {
+                while (polygon < mesh->polygon_count_230 &&
+                       textures[polygon].get() == texture) {
+                    ++polygon;
+                }
+            }
+            --polygon;
+        }
+    }
+    return replaced;
 }
 
 // FUNCTION: WIZ8 0x00481870
