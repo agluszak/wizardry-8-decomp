@@ -42,12 +42,16 @@ def test_source_model_exposes_clang_semantics_from_generated_index() -> None:
 
 def test_surrender_source_model_uses_its_own_marker_target() -> None:
     repository = Path(__file__).resolve().parents[2]
-    model = build_source_model(repository, "SURRENDER")
+    surrender = build_source_model(repository, "SURRENDER")
+    wiz8 = build_source_model(repository, "WIZ8")
 
-    assert set(model.functions) == {0x10015010, 0x10015030}
-    assert model.functions[0x10015010].name == "srCore::getCopyright"
-    assert model.functions[0x10015030].name == "srCore::getVersion"
-    assert all(item.file.startswith("src/surrender/") for item in model.functions.values())
+    assert surrender.functions[0x10015010].name == "srCore::getCopyright"
+    assert surrender.functions[0x10045780].name == ("srDynamicLibrary::checkCompatibility")
+    assert set(surrender.functions).isdisjoint(wiz8.functions)
+    assert all(
+        item.file.startswith(("src/surrender/", "include/surrender/"))
+        for item in surrender.functions.values()
+    )
 
 
 def test_source_model_keeps_definition_as_owner_of_folded_alias(tmp_path: Path) -> None:

@@ -17,6 +17,7 @@ if(WIZ8_LINT_COMPILE_ONLY)
         ${WIZ8_TEMPLATE_EMISSIONS}
         ${WIZ8_UNATTRIBUTED_UNITS}
         src/surrender/core.cpp
+        src/surrender/dynamic_library.cpp
         src/wiz8/zlib_wrappers.c
     )
     target_include_directories(${wiz8_clang_target} PRIVATE
