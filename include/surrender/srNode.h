@@ -1,13 +1,12 @@
 #pragma once
 
+#include "srCriticalSection.h"
 #include "srFlags.h"
 #include "srMath.h"
 #include "srTypeRegistry.h"
 #include "srVertexProcessor.h"
 
 #include <new>
-
-class srCriticalSection;
 
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
    vtable. Its exported transform and hierarchy operations establish the
