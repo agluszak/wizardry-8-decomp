@@ -14,36 +14,6 @@ public:
     {
     }
 
-    const char* getClassName() const override
-    {
-        return srMaterial::sGetClassName();
-    }
-    unsigned long getClassID() const override; /* 0x00429CC0 */
-    srRegistry::ClassNode* getClassNode() const override
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x2210);
-        if (node == 0) {
-            srRegistry::ClassNode* iface = registry->getClassNode(0x2200);
-            if (iface == 0) {
-                iface = registry->registerClass(
-                    srMaterialIFace::sGetClassName(),
-                    srClass::sGetClassNode(),
-                    0x2200,
-                    1);
-            }
-            node = registry->registerClass(
-                srMaterial::sGetClassName(), iface, 0x2210, 0);
-        }
-        return node;
-    }
-    srMaterial* clone() override
-    {
-        srMaterial* copy = static_cast<srMaterial*>(vInstance());
-        *copy = *this;
-        return copy;
-    }
-
     void initializeBlitRect()
     {
         srVector4T<float> value;

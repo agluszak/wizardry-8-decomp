@@ -41,88 +41,42 @@ stLevel::~stLevel()
     registry->unregisterInstance(getClassNode(), this);
 }
 
-// FUNCTION: WIZ8 0x00429CC0
-unsigned long W8Material005EBDE0::getClassID() const
-{
-    return 0x2210;
-}
+// TEMPLATE: WIZ8 0x00429CC0
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassID
+
+// TEMPLATE: WIZ8 0x00429CE0
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassNode
+
+// TEMPLATE: WIZ8 0x00429D50
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::clone
+
 // FUNCTION: WIZ8 0x00429E80
 unsigned long W8Registered005EBF94::getClassID() const
 {
     return 0x2200;
 }
-// FUNCTION: WIZ8 0x0042A010
-unsigned long W8Camera005EBE14::getClassID() const
-{
-    return 0x1400;
-}
-// FUNCTION: WIZ8 0x0042A020
-const char* W8Camera005EBE14::getClassName() const
-{
-    return "srCamera";
-}
-// FUNCTION: WIZ8 0x0042A030
-srRegistry::ClassNode* W8Camera005EBE14::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1400);
+// TEMPLATE: WIZ8 0x0042A010
+// srClassSupport<srCamera,srNode,0,5120>::getClassID
 
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
+// TEMPLATE: WIZ8 0x0042A020
+// srClassSupport<srCamera,srNode,0,5120>::getClassName
 
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("srCamera", parent, 0x1400, 0);
-    }
-    return node;
-}
+// TEMPLATE: WIZ8 0x0042A030
+// srClassSupport<srCamera,srNode,0,5120>::getClassNode
 
-// FUNCTION: WIZ8 0x0042A0A0
-srNode* W8Camera005EBE14::clone()
-{
-    srCamera* copy = static_cast<srCamera*>(vInstance());
-    *copy = *this;
-    return copy;
-}
-// FUNCTION: WIZ8 0x0042A0C0
-unsigned long W8Scene005EBE48::getClassID() const
-{
-    return 0x1010;
-}
-// FUNCTION: WIZ8 0x0042A0D0
-const char* W8Scene005EBE48::getClassName() const
-{
-    return "srScene";
-}
-// FUNCTION: WIZ8 0x0042A0E0
-srRegistry::ClassNode* W8Scene005EBE48::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1010);
+// TEMPLATE: WIZ8 0x0042A0A0
+// srClassSupport<srCamera,srNode,0,5120>::clone
+// TEMPLATE: WIZ8 0x0042A0C0
+// srClassSupport<srScene,srNode,0,4112>::getClassID
 
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
+// TEMPLATE: WIZ8 0x0042A0D0
+// srClassSupport<srScene,srNode,0,4112>::getClassName
 
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("srScene", parent, 0x1010, 0);
-    }
-    return node;
-}
+// TEMPLATE: WIZ8 0x0042A0E0
+// srClassSupport<srScene,srNode,0,4112>::getClassNode
 
-// FUNCTION: WIZ8 0x0042A150
-srNode* W8Scene005EBE48::clone()
-{
-    srScene* copy = static_cast<srScene*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x0042A150
+// srClassSupport<srScene,srNode,0,4112>::clone
 // FUNCTION: WIZ8 0x0042A360
 srVertexProcessor::~srVertexProcessor()
 {

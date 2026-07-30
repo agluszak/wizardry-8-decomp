@@ -225,7 +225,7 @@ public:
         if (node == 0) {
             node = registry->registerClass(
                 Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
-                !IsAbstract);
+                IsAbstract);
         }
         return node;
     }
@@ -248,18 +248,21 @@ public:
 protected:
     srClassSupport()
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
     explicit srClassSupport(Base* parent)
         : Base(parent)
     {
-        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->registerInstance(sGetClassNode(), this);
     }
 
     virtual ~srClassSupport() override
     {
-        srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        registry->unregisterInstance(sGetClassNode(), this);
     }
 
 #if defined(__clang__)

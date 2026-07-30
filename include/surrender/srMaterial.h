@@ -20,11 +20,32 @@ class srVertexPipe;
 class SR_DLL_IMPORT srMaterialIFace : public srClass {
 public:
     static const char* sGetClassName();
+
+    static srRegistry::ClassNode* sGetClassNode()
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x2200);
+
+        if (node == 0) {
+            node = registry->registerClass(
+                sGetClassName(), srClass::sGetClassNode(), 0x2200, 1);
+        }
+        return node;
+    }
 };
 
-class SR_DLL_IMPORT srMaterial : public srMaterialIFace {
+class SR_DLL_IMPORT srMaterial
+    : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
 public:
     enum e_oper {};
+
+    /* ReadLevel.cpp clones a prop's material through a bare srMaterial*;
+       srClassSupport's clone() is protected, and VC6 rejects narrowing its
+       return type through the template (C2555), so the caller needs access
+       rather than a covariant public override. */
+    friend unsigned char ReadLevel(
+        struct W8World* world, int handle, unsigned char use_octree,
+        const char* bitmap_folder);
 
     srMaterial();
     srMaterial(const srMaterial& other);
@@ -34,9 +55,6 @@ public:
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
 
-    /* Slot 7. Unexported, and every subclass overrides it; stMaterial's copies
-       through the instance slot 6 returns, so it is a clone. */
-    virtual srMaterial* clone();
     virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info);
     virtual void preProcess(srVertexPipe& pipe);
     virtual void postProcess(srVertexPipe& pipe);

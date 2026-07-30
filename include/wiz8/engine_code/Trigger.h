@@ -101,7 +101,7 @@ static_assert(sizeof(W8TriggerState370) == 9,
    not an srNode: the temporary table installed while srClassSupport is under
    construction has the same +0 vptr as the final Trigger table, and neither
    table contains any srNode slots. */
-class Trigger : public srClassSupport<Trigger, srClass, 0, 0x10008> {
+class Trigger : public srClassSupport<Trigger, srClass, 1, 0x10008> {
 public:
     typedef unsigned char (__cdecl *ActivationCallback)(Trigger* trigger);
 

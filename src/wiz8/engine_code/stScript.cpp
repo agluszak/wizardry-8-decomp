@@ -11,7 +11,7 @@
 // class stScript
 
 // VTABLE: WIZ8 0x005ED358
-// class srClassSupport<stScript,srClass,0,65549>
+// class srClassSupport<stScript,srClass,1,65549>
 
 // SYNTHETIC: WIZ8 0x004CF020
 // stScript::stScript
@@ -26,22 +26,22 @@ srClass* stScript::vInstance()
 // stScript::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004CF7C0
-// srClassSupport<stScript,srClass,0,65549>::getClassID
+// srClassSupport<stScript,srClass,1,65549>::getClassID
 
 // TEMPLATE: WIZ8 0x004CF7D0
-// srClassSupport<stScript,srClass,0,65549>::getClassName
+// srClassSupport<stScript,srClass,1,65549>::getClassName
 
 // TEMPLATE: WIZ8 0x004CF7E0
-// srClassSupport<stScript,srClass,0,65549>::getClassNode
+// srClassSupport<stScript,srClass,1,65549>::getClassNode
 
 // TEMPLATE: WIZ8 0x004CF820
-// srClassSupport<stScript,srClass,0,65549>::clone
+// srClassSupport<stScript,srClass,1,65549>::clone
 
 // TEMPLATE: WIZ8 0x004CF940
-// srClassSupport<stScript,srClass,0,65549>::~srClassSupport<stScript,srClass,0,65549>
+// srClassSupport<stScript,srClass,1,65549>::~srClassSupport<stScript,srClass,1,65549>
 
 // SYNTHETIC: WIZ8 0x004CF9D0
-// srClassSupport<stScript,srClass,0,65549>::`scalar deleting destructor'
+// srClassSupport<stScript,srClass,1,65549>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004CF260
 stScript::~stScript()

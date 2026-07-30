@@ -35,7 +35,10 @@ public:
     };
     enum e_correction {};
 
-    static const char* sGetClassName();
+    static const char* sGetClassName()
+    {
+        return "srTextureIFace";
+    }
     static srRegistry::ClassNode* sGetClassNode()
     {
         srRegistry* registry = srCore.getRegistry();
@@ -116,9 +119,15 @@ protected:
 
 static_assert((sizeof(srTexture) == 0x54), "srTexture_must_be_0x54");
 
-class SR_DLL_IMPORT srTextureMap : public srTexture {
+class SR_DLL_IMPORT srTextureMap
+    : public srClassSupport<srTextureMap, srTexture, 0, 0x2111> {
 public:
     srTextureMap(srColorSurfaceIFace* surface);
+
+    static const char* sGetClassName()
+    {
+        return "srTextureMap";
+    }
     srTextureMap& operator=(const srTextureMap& other);
     virtual void dump(std::ostream& stream) override;
 
