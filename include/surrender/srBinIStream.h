@@ -1,44 +1,7 @@
 #pragma once
 
-#include "srHeap.h"
-
-class SR_DLL_IMPORT srBinStream {
-public:
-    enum e_state {
-        SR_STREAM_OK = 0,
-        SR_STREAM_ERROR = 1
-    };
-    enum e_seekDir {
-        SR_SEEK_BEGIN = 0,
-        SR_SEEK_CURRENT = 1,
-        SR_SEEK_END = 2
-    };
-
-    // Slot order and pure-ness are read off the exported vftables in
-    // evidence/snapshots/surrender-abi/vftable-slots.csv: ??_7srBinStream@@6B@
-    // has five slots, of which 2 to 4 share one internal target - the
-    // pure-virtual stub - while slot 1 holds a real srBinStream::getSize.
-    virtual ~srBinStream() {}
-    virtual unsigned long getSize();
-    virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
-    virtual srBinStream& seek(unsigned long position) = 0;
-    virtual unsigned long tell() = 0;
-
-    void setState(e_state state);
-
-    bool good() const;
-
-protected:
-    srBinStream();
-
-private:
-    // The ZIP extension's owned memory-stream subclass proves that the
-    // virtual srBinStream subobject is 0x10 bytes: a vptr followed by 0x0c
-    // bytes of SR.DLL-owned stream state.
-    unsigned char unknown_04_[0x0c];
-};
-
-static_assert((sizeof(srBinStream) == 0x10), "srBinStream_must_be_0x10");
+#include "srBinStream.h"
+#include "srQuadWord.h"
 
 // The vbtable accesses in the JPEG extension prove that srBinStream is a
 // virtual base of both directional stream interfaces.
@@ -49,7 +12,17 @@ static_assert((sizeof(srBinStream) == 0x10), "srBinStream_must_be_0x10");
 // with its own vread, and Wizardry's virtual-file adapter with its.
 class __declspec(novtable) srBinIStream : public virtual srBinStream {
 public:
-    virtual ~srBinIStream() override {}
+    SR_DLL_IMPORT srBinIStream();
+    SR_DLL_IMPORT srBinIStream(const srBinIStream& stream);
+    virtual SR_DLL_IMPORT ~srBinIStream() override;
+    SR_DLL_IMPORT srBinIStream& operator=(const srBinIStream& stream);
+
+    SR_DLL_IMPORT unsigned short getChar();
+    SR_DLL_IMPORT unsigned long getDWord();
+    SR_DLL_IMPORT double getDouble();
+    SR_DLL_IMPORT float getFloat();
+    SR_DLL_IMPORT srQuadWord getQuadWord();
+    SR_DLL_IMPORT unsigned short getWord();
     SR_DLL_IMPORT srBinIStream& read(void* destination, unsigned long size);
 
 protected:
@@ -62,7 +35,11 @@ private:
 class __declspec(novtable) srBinIMStream : public srBinIStream {
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
-    virtual unsigned long getSize() override;
+    SR_DLL_IMPORT srBinIMStream(const srBinIMStream& stream);
+    virtual SR_DLL_IMPORT ~srBinIMStream() override;
+    SR_DLL_IMPORT srBinIMStream& operator=(const srBinIMStream& stream);
+
+    virtual SR_DLL_IMPORT unsigned long getSize() override;
     virtual SR_DLL_IMPORT srBinStream& seek(
         unsigned long position, srBinStream::e_seekDir direction) override;
     virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position) override;
@@ -71,8 +48,12 @@ public:
 private:
     virtual SR_DLL_IMPORT unsigned long vread(
         void* destination, unsigned long size) override;
-    // The imported implementation owns the prefix through +0x13. The ZIP
-    // extension's zero-data wrapper adds its malloc owner at +0x14 and places
-    // the virtual srBinStream base at +0x1c.
-    unsigned char unknown_08_[0x0c];
+    const unsigned char* data_08;
+    unsigned long size_0c;
+    unsigned long position_10;
 };
+
+static_assert(sizeof(srBinIStream) == 0x18,
+              "srBinIStream_must_be_0x18");
+static_assert(sizeof(srBinIMStream) == 0x28,
+              "srBinIMStream_must_be_0x28");

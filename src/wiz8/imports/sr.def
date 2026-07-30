@@ -279,6 +279,67 @@ EXPORTS
     ??_7srBinIStream@@6B0@@
     ??_7srBinIStream@@6BsrBinStream@@@
     ?vget@srBinIStream@@MAEGXZ
+    ??0srBinStream@@QAE@ABV0@@Z
+    ??4srBinStream@@QAEAAV0@ABV0@@Z
+    ??BsrBinStream@@QBEPAXXZ
+    ?byteOrderMatch@srBinStream@@IBE_NXZ
+    ?byteSwap@srBinStream@@KAXPAEH@Z
+    ?clear@srBinStream@@QAEXXZ
+    ?exceptions@srBinStream@@QAE_N_N@Z
+    ?getByteOrder@srBinStream@@QBE?AW4e_byteOrder@1@XZ
+    ?good@srBinStream@@QBE_NXZ
+    ?setByteOrder@srBinStream@@QAEXW4e_byteOrder@1@@Z
+    ??0srBinIStream@@QAE@ABV0@@Z
+    ??0srBinIStream@@QAE@XZ
+    ??4srBinIStream@@QAEAAV0@ABV0@@Z
+    ??_8srBinIStream@@7B@
+    ?getChar@srBinIStream@@QAEGXZ
+    ?getDWord@srBinIStream@@QAEKXZ
+    ?getDouble@srBinIStream@@QAENXZ
+    ?getFloat@srBinIStream@@QAEMXZ
+    ?getQuadWord@srBinIStream@@QAE?AVsrQuadWord@@XZ
+    ?getWord@srBinIStream@@QAEGXZ
+    ?read@srBinIStream@@QAEAAV1@PAXK@Z
+    ??0srBinIMStream@@QAE@ABV0@@Z
+    ??0srBinIMStream@@QAE@PBXK@Z
+    ??1srBinIMStream@@UAE@XZ
+    ??4srBinIMStream@@QAEAAV0@ABV0@@Z
+    ??_7srBinIMStream@@6BsrBinIStream@@@
+    ??_7srBinIMStream@@6BsrBinStream@@@
+    ??_8srBinIMStream@@7B@
+    ?getSize@srBinIMStream@@UAEKXZ
+    ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?tell@srBinIMStream@@UAEKXZ
+    ?vread@srBinIMStream@@EAEKPAXK@Z
+    ??0srBinOStream@@QAE@ABV0@@Z
+    ??0srBinOStream@@QAE@XZ
+    ??1srBinOStream@@UAE@XZ
+    ??4srBinOStream@@QAEAAV0@ABV0@@Z
+    ??_7srBinOStream@@6B0@@
+    ??_7srBinOStream@@6BsrBinStream@@@
+    ??_8srBinOStream@@7B@
+    ?putChar@srBinOStream@@QAEAAV1@D@Z
+    ?putDWord@srBinOStream@@QAEAAV1@K@Z
+    ?putDouble@srBinOStream@@QAEAAV1@N@Z
+    ?putFloat@srBinOStream@@QAEAAV1@M@Z
+    ?putQWord@srBinOStream@@QAEAAV1@VsrQuadWord@@@Z
+    ?putWord@srBinOStream@@QAEAAV1@G@Z
+    ?vput@srBinOStream@@MAEGD@Z
+    ?write@srBinOStream@@QAEAAV1@PBXK@Z
+    ??0srBinOMStream@@QAE@ABV0@@Z
+    ??0srBinOMStream@@QAE@XZ
+    ??1srBinOMStream@@UAE@XZ
+    ??4srBinOMStream@@QAEAAV0@ABV0@@Z
+    ??_7srBinOMStream@@6BsrBinOStream@@@
+    ??_7srBinOMStream@@6BsrBinStream@@@
+    ??_8srBinOMStream@@7B@
+    ?getPtr@srBinOMStream@@QAEPAXXZ
+    ?getSize@srBinOMStream@@UAEKXZ
+    ?seek@srBinOMStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinOMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?tell@srBinOMStream@@UAEKXZ
+    ?vwrite@srBinOMStream@@EAEKPBXK@Z
     ??0srModeler@@QAE@XZ
     ??0srScene@@QAE@PAVsrNode@@@Z
     ??0srCamera@@QAE@PAVsrNode@@@Z
