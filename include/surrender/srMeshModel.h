@@ -11,7 +11,8 @@ public:
     unsigned long value;
 };
 
-class SR_DLL_IMPORT srModel : public srClass {
+class SR_DLL_IMPORT srModel
+    : public srClassSupport<srModel, srClass, true, 0x2000> {
 public:
     class Client {
     public:
@@ -41,17 +42,6 @@ public:
         return "srModel";
     }
 
-    static srRegistry::ClassNode* sGetClassNode()
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x2000);
-
-        if (node == 0) {
-            node = registry->registerClass(
-                sGetClassName(), srClass::sGetClassNode(), 0x2000, 1);
-        }
-        return node;
-    }
 
     virtual void dump(std::ostream& stream) override;
 
@@ -59,7 +49,6 @@ protected:
     virtual ~srModel() override;
 
 public:
-    virtual srModel* clone();
     virtual int getBoundingSphere(
         srVector3T<float>& center, float& radius) = 0;
     virtual int getBoundingBox(

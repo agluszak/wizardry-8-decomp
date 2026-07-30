@@ -64,7 +64,8 @@ public:
 static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,
               "srPixelConvert_PixelFormat_must_be_0x14");
 
-class srColorSurfaceIFace : public srClass {
+class srColorSurfaceIFace
+    : public srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100> {
 public:
     struct Rectangle {
         long left;
@@ -91,21 +92,9 @@ public:
 
     static SR_DLL_IMPORT const char* sGetClassName();
 
-    static srRegistry::ClassNode* sGetClassNode()
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x3100);
-
-        if (node == 0) {
-            node = registry->registerClass(
-                sGetClassName(), srClass::sGetClassNode(), 0x3100, 1);
-        }
-        return node;
-    }
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
     virtual SR_DLL_IMPORT ~srColorSurfaceIFace() override;
-    virtual srColorSurfaceIFace* clone() = 0;
     virtual SR_DLL_IMPORT unsigned long getPixel(long x, long y);
     virtual SR_DLL_IMPORT void setPixel(long x, long y, unsigned long pixel);
     virtual SR_DLL_IMPORT unsigned long getPixelRaw(long x, long y);

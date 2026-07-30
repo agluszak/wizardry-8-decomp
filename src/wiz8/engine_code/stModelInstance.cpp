@@ -397,7 +397,7 @@ srClass* stModelInstance2D::vInstance()
 }
 
 // FUNCTION: WIZ8 0x00481B00
-srNode* stModelInstance2D::clone()
+srClass* stModelInstance2D::clone()
 {
     stModelInstance2D* copy = static_cast<stModelInstance2D*>(vInstance());
     *copy = *this;

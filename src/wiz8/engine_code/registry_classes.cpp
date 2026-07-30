@@ -19,10 +19,10 @@ stLightDefinition::~stLightDefinition()
 
 // FUNCTION: WIZ8 0x004B9C00
 stLevel::stLevel(srNode* parent)
-    : srNode(0), m_active(0), m_positional_13c(0)
+    : srClassSupport<stLevel, srNode, false, 0x10007>(
+          static_cast<srNode*>(0)),
+      m_active(0), m_positional_13c(0)
 {
-    srRegistry* registry = srCore.getRegistry();
-    registry->registerInstance(getClassNode(), this);
     if (parent != 0) {
         setParent(parent, 1);
     }
@@ -31,35 +31,10 @@ stLevel::stLevel(srNode* parent)
 // FUNCTION: WIZ8 0x004B9D10
 stLevel::~stLevel()
 {
-    srRegistry* registry = srCore.getRegistry();
-    registry->unregisterInstance(getClassNode(), this);
 }
 
-// FUNCTION: WIZ8 0x004519D0
-unsigned long W8Node005EC208::getClassID() const
-{
-    return 0x1000;
-}
 
-// FUNCTION: WIZ8 0x00445EF0
-srRegistry::ClassNode* W8Node005EC208::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000);
-    if (!node) {
-        node = registry->registerClass(
-            srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-    }
-    return node;
-}
 
-// FUNCTION: WIZ8 0x004519F0
-srNode* W8Node005EC208::clone()
-{
-    srNode* copy = static_cast<srNode*>(vInstance());
-    *copy = *this;
-    return copy;
-}
 // FUNCTION: WIZ8 0x0049DB10
 unsigned long W8Illuminator005ECCD8::getClassID() const
 {
@@ -162,34 +137,6 @@ srRegistry::ClassNode* MonsterLight::getClassNode() const
     }
     return light;
 }
-// FUNCTION: WIZ8 0x004BA1B0
-unsigned long stLevel::getClassID() const
-{
-    return 0x10007;
-}
-// FUNCTION: WIZ8 0x004BA1C0
-const char* stLevel::getClassName() const
-{
-    return "stLevel";
-}
-// FUNCTION: WIZ8 0x004BA1D0
-srRegistry::ClassNode* stLevel::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10007);
-
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
-
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("stLevel", parent, 0x10007, 0);
-    }
-    return node;
-}
 // FUNCTION: WIZ8 0x004BDF00
 unsigned long W8ClipPlane005ED180::getClassID() const
 {
@@ -220,9 +167,27 @@ srRegistry::ClassNode* W8ClipPlane005ED180::getClassNode() const
 }
 
 // FUNCTION: WIZ8 0x004BDF90
-srNode* W8ClipPlane005ED180::clone()
+srClass* W8ClipPlane005ED180::clone()
 {
     srClipPlane* copy = static_cast<srClipPlane*>(vInstance());
     *copy = *this;
     return copy;
 }
+
+// TEMPLATE: WIZ8 0x004519D0
+// srClassSupport<srNode,srClass,1,4096>::getClassID
+
+// TEMPLATE: WIZ8 0x00445EF0
+// srClassSupport<srNode,srClass,1,4096>::getClassNode
+
+// TEMPLATE: WIZ8 0x004519F0
+// srClassSupport<srNode,srClass,1,4096>::clone
+
+// TEMPLATE: WIZ8 0x004BA1B0
+// srClassSupport<stLevel,srNode,0,65543>::getClassID
+
+// TEMPLATE: WIZ8 0x004BA1C0
+// srClassSupport<stLevel,srNode,0,65543>::getClassName
+
+// TEMPLATE: WIZ8 0x004BA1D0
+// srClassSupport<stLevel,srNode,0,65543>::getClassNode

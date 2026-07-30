@@ -7,7 +7,8 @@ class srFilter;
 class srTexture;
 class stSurface2D;
 
-class SR_DLL_IMPORT srTextureIFace : public srClass {
+class SR_DLL_IMPORT srTextureIFace
+    : public srClassSupport<srTextureIFace, srClass, true, 0x2100> {
 public:
     struct Dimensions {
         unsigned long width;
@@ -42,19 +43,8 @@ public:
     {
         return "srTextureIFace";
     }
-    static srRegistry::ClassNode* sGetClassNode()
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x2100);
-        if (node == 0) {
-            node = registry->registerClass(
-                sGetClassName(), srClass::sGetClassNode(), 0x2100, 1);
-        }
-        return node;
-    }
 
     /* Slot 7. Slot 6 remains srClass::vInstance. */
-    virtual srTexture* clone() = 0;
     virtual unsigned long getTextureFrameHandle() = 0;
     virtual float getPriority() = 0;
     virtual void getDimensions(Dimensions& dimensions) = 0;
@@ -68,23 +58,11 @@ protected:
     virtual void setupDefaultValues() = 0;
 };
 
-class SR_DLL_IMPORT srTexture : public srTextureIFace {
+class SR_DLL_IMPORT srTexture
+    : public srClassSupport<srTexture, srTextureIFace, false, 0x2110> {
 public:
     static const char* sGetClassName();
-    static srRegistry::ClassNode* sGetClassNode()
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x2110);
-        if (node == 0) {
-            node = registry->registerClass(
-                sGetClassName(), srTextureIFace::sGetClassNode(), 0x2110, 0);
-        }
-        return node;
-    }
     srTexture& operator=(const srTexture& other);
-    virtual const char* getClassName() const override;
-    virtual unsigned long getClassID() const override;
-    virtual srRegistry::ClassNode* getClassNode() const override;
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
     virtual unsigned long getTextureFrameHandle() override;

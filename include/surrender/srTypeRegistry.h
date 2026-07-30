@@ -281,7 +281,7 @@ public:
     /* This introduces clone when Base is srClass and overrides the family
        clone when Base is srNode or srTexture. It cannot truthfully carry an
        unconditional override specifier. */
-    virtual Base* clone()
+    virtual srClass* clone()
     {
         Derived* copy = static_cast<Derived*>(this->vInstance());
         *copy = *static_cast<const Derived*>(this);

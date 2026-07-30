@@ -184,7 +184,7 @@ public:
     void SetModel0047F3A0(srModel* model);              /* 0x0047F3A0 */
 
     srClass* vInstance() override;                 /* 0x00481E30 */
-    srNode* clone() override;                      /* 0x00481B00 */
+    srClass* clone() override;                      /* 0x00481B00 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
 
     unsigned char displayState() const { return state_170; }

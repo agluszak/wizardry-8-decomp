@@ -38,7 +38,7 @@ public:
     const char* getClassName() const override;       /* 0x004D69B0 */
     unsigned long getClassID() const override;       /* 0x004D69A0 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x004D69C0 */
-    srNode* clone() override;                        /* 0x004D6A30 */
+    srClass* clone() override;                        /* 0x004D6A30 */
 
 protected:
     // FUNCTION: WIZ8 0x004D6A70

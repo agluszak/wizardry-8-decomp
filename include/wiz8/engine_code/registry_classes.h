@@ -243,7 +243,7 @@ protected:
 
 public:
     virtual srClass* vInstance() override;          /* 0x0049E3A0 */
-    virtual srNode* clone() override;               /* 0x0049DD60 */
+    virtual srClass* clone() override;               /* 0x0049DD60 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x0049C7A0 */
     virtual void process(
         const srNode::ProcessInfo& info,
@@ -314,7 +314,7 @@ public:
     virtual ~MonsterLight() override;                 /* 0x0049E0D0 */
 
 public:
-    virtual srNode* clone() override;                 /* 0x0049DC40 */
+    virtual srClass* clone() override;                 /* 0x0049DC40 */
 
 private:
     float m_vertical_offset_228;                      /* 0x228 */
@@ -342,13 +342,6 @@ public:
     explicit W8Node005EC208(srNode* parent) : srNode(parent) {}
     virtual ~W8Node005EC208() override;
 
-    const char* getClassName() const override
-    {
-        return srNode::sGetClassName();
-    }
-    unsigned long getClassID() const override;     /* 0x004519D0, base id 0x1000 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x00445EF0 */
-    srNode* clone() override;                      /* 0x004519F0 */
 };
 
 static_assert(sizeof(W8Node005EC208) == 0x138,

@@ -17,21 +17,11 @@ class srVertexPipe;
 
    Two parameter types are simplified and neither moves a slot:
    getMaterialInfo really takes srVertexProcessor::MaterialInfo&. */
-class SR_DLL_IMPORT srMaterialIFace : public srClass {
+class SR_DLL_IMPORT srMaterialIFace
+    : public srClassSupport<srMaterialIFace, srClass, true, 0x2200> {
 public:
     static const char* sGetClassName();
 
-    static srRegistry::ClassNode* sGetClassNode()
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x2200);
-
-        if (node == 0) {
-            node = registry->registerClass(
-                sGetClassName(), srClass::sGetClassNode(), 0x2200, 1);
-        }
-        return node;
-    }
 };
 
 class SR_DLL_IMPORT srMaterial
