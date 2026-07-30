@@ -28,7 +28,18 @@ protected:
     SR_DLL_IMPORT void removeExporter(Exporter* exporter);
 
 private:
-    struct Registration;
+    struct Registration {
+        char* extension_00;
+        union {
+            Importer* importer_04;
+            Exporter* exporter_04;
+        };
+        Registration* next_08;
+        Registration* previous_0c;
+    };
+
+    static_assert(sizeof(Registration) == 0x10,
+                  "srIOManager_Registration_must_be_0x10");
 
     unsigned long importer_count_04;
     Registration* first_importer_08;
