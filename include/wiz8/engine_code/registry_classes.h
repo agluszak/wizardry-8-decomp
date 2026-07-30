@@ -242,9 +242,3 @@ class W8Registered005EC5D8 {
 public:
     unsigned long getClassID() const;     /* 0x0047D650 */
 };
-
-/* The 0x005ECDB0 owner remains unresolved. */
-class W8Object005ECDB0 {
-public:
-    void InstallVtable();                 /* 0x004A2220 */
-};

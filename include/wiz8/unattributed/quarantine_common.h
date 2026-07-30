@@ -234,7 +234,6 @@ extern unsigned char g_flag_68f105;
    as srClassSupport<srIlluminator,srNode,0,0x1200>. */
 
 extern "C" {
-extern void* g_vtable_005ecdb0;
 }
 
 

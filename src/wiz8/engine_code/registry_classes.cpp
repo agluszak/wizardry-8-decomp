@@ -302,11 +302,6 @@ srRegistry::ClassNode* MonsterLight::getClassNode() const
     }
     return light;
 }
-// FUNCTION: WIZ8 0x004A2220
-void W8Object005ECDB0::InstallVtable()
-{
-    *(void**)this = &g_vtable_005ecdb0;
-}
 // VTABLE: WIZ8 0x005ecfb0
 // class stSound3D
 

@@ -205,20 +205,5 @@ void ReleaseSpellDatabase(void)
     }
 }
 
-/* The second class remains at the older positional boundary.  The recovered
-   W8SpellEmitterHost above now emits its own typed deleting destructor. */
-void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
-    void* self, int /* unused edx */, unsigned char flags);
-
-extern void __fastcall SpellObject5ECF40_Destroy(void* self);            /* 0x004ABD00 */
-
-// FUNCTION: WIZ8 0x004abce0
-void* __fastcall SpellObject5ECF40_ScalarDeletingDestructor(
-    void* self, int, unsigned char flags)
-{
-    SpellObject5ECF40_Destroy(self);
-    if ((flags & 1) != 0) {
-        operator delete(self);
-    }
-    return self;
-}
+// SYNTHETIC: WIZ8 0x004abce0
+// SpellObject005ECF40::`scalar deleting destructor'
