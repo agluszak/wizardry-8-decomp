@@ -26,7 +26,6 @@ extern void Function4E3C70(W8MonsterInfo* monster_info);     /* 0x004E3C70 */
 extern void Function4C5730(W8Monster* monster, W8Position* position); /* 0x004C5730 */
 extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
 extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
-extern void Function4C7F10(const char* sound_file, int value);        /* 0x004C7F10 */
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
                            int value);                       /* 0x00547570 */
 
@@ -869,7 +868,7 @@ void ApplyDefaultMonsterGroupSounds(void)
             0x501, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
         if (monster_group->flag_c3 != 0 &&
             lead->monster->script_238 == 0) {
-            Function4C7F10("Default.MSF", 1);
+            lead->monster->SetScript004C7F10("Default.MSF", 1);
         }
     }
 }

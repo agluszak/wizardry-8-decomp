@@ -924,6 +924,56 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(
     return 0;
 }
 
+/* Replace the current Monster script with an existing named runtime object or
+   load it from the Monster script directory on first use. Registry ownership
+   is balanced the same way on both paths: a newly loaded script is marked for
+   automatic release, then the Monster takes its own reference. */
+// FUNCTION: WIZ8 0x004C7F10
+unsigned char W8Monster::SetScript004C7F10(
+    const char* script_name, unsigned char reset_orders)
+{
+    srRegistry* registry;
+    char path[256] = "Data\\Monsters\\Scripts\\";
+
+    if (script_238 != 0) {
+        script_238->release();
+        script_238 = 0;
+    }
+    flags_1dc &= ~0x20;
+    script_line_23c = 0;
+    script_wait_240 = -1;
+    if (sound_334 != 0) {
+        sound_334->release();
+        sound_334 = 0;
+    }
+    if (reset_orders != 0) {
+        state_28c.flag_01 = 0;
+    }
+
+    registry = srCore.getRegistry();
+    script_238 = static_cast<stScript*>(registry->find(
+        stScript::sGetClassNode(), script_name, 0));
+    if (script_238 == 0) {
+        strcat(path, script_name);
+        script_238 = new stScript;
+        if (script_238 != 0) {
+            if (script_238->Load004CF3B0(path) != 0) {
+                script_238->setName(script_name);
+                script_238->autoRelease();
+            }
+            else {
+                script_238->release();
+                script_238 = 0;
+            }
+        }
+    }
+    if (script_238 == 0) {
+        return 0;
+    }
+    script_238->addReference();
+    return 1;
+}
+
 /* A script command that requested blocking leaves its command number here.
    Each command family has one concrete completion condition; commands without
    a condition are immediately ready. */

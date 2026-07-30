@@ -210,6 +210,8 @@ public:
     void UpdateShakeEvents004C3380(unsigned char frame);
     void SetShakeEventVisibility004BF9E0(signed char cycle);
     void UpdateAttachedObjects004C3F70();
+    unsigned char SetScript004C7F10(
+        const char* script_name, unsigned char reset_orders);
     void ProcessScript004C80E0();
     unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
     unsigned char CanContinueScript004CA0F0();
