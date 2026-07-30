@@ -8,6 +8,7 @@ extern "C" {
 void WriteGameLog(int channel, const wchar_t* format, ...);
 void AdjustByteByPercent(unsigned char* value, unsigned int percent);
 void AdjustIntegerByPercent(unsigned int* value, unsigned int percent);
+float NormalizeAngle(float angle);
 
 #ifdef __cplusplus
 }

@@ -514,86 +514,6 @@ typedef struct W8CombatState {
     unsigned char flag_a62;               /* 0xa62: the party's combat-ready bit */
 } W8CombatState;
 
-typedef struct W8LevelRuntimeBlock {
-    unsigned char unknown_000[0xf4];
-    /* 0x0f4: what still needs redrawing. Everything that changes anything the
-       screen shows ORs its own bit in here rather than drawing. */
-    unsigned int redraw_flags;
-    unsigned char unknown_0f8[0xc];
-    /* 0x104: which region the pointer is over. The portrait hit test walks the
-       party slots against two runs of region numbers. */
-    unsigned int hover_region;
-    unsigned char unknown_108[0x4c];
-    /* 0x154: raised whenever the party moves its pick from one monster to
-       another, so whatever draws the pick knows to look again. */
-    unsigned char pick_changed_154;
-    /* 0x155: the last of the combat regions is only taken down when this is
-       clear. */
-    unsigned char flag_155;
-    unsigned char unknown_156[0x16];
-    /* 0x16c: the character whose highlight overrides everyone else's, -1 when
-       none does. */
-    int highlight_override;
-    unsigned char unknown_170[0x38];
-    /* 0x1a8: one entry per message line the main game screen is showing. */
-    int text_lines[12];
-    /* 0x1d8 and 0x1e8: two four-entry tables the text box clears a slot of at
-       a time, each to -1. */
-    int text_slots_1d8[4];
-    int text_slots_1e8[4];
-    /* 0x1f8: a dialogue is open, and 0x1fc is whose - the flag has to be up
-       before the pointer is worth reading. */
-    unsigned char dialogue_open;
-    unsigned char unknown_1f9[3];
-    unsigned char* dialogue_owner;         /* 0x1fc */
-    unsigned char unknown_200[0x64];
-    /* 0x264: the item the pointer is over, -1 for none. */
-    int highlighted_item;
-    /* 0x268: the item the interface has selected, -1 for none. */
-    int selected_item;
-    unsigned char unknown_26c[0x10];
-    /* 0x27c and 0x280: the level a queued transition is bound for and the
-       entry point within it, the second always -1 when the recall effect
-       stages the move. */
-    int pending_level;                   /* 0x27c */
-    int pending_entry_id;                /* 0x280 */
-    unsigned char unknown_284[0x3c];
-    /* 0x2c0 and 0x2c8: two redraw requests the party-state change raises. Only
-       the first is conditional on a fight being on. */
-    unsigned char refresh_combat_panel;
-    unsigned char unknown_2c1[7];
-    unsigned char refresh_party_panel;
-    unsigned char unknown_2c9;
-    short combat_end_notification;         /* 0x2ca: -1 suppresses the callback */
-    /* 0x2cc and 0x2d4: the text box's scroll extent, whose difference is how
-       far it can still be scrolled. */
-    int scroll_top;
-    unsigned char unknown_2d0[4];
-    int scroll_bottom;
-    unsigned char unknown_2d8[4];
-    /* 0x2dc and 0x2e0: the two movement budgets, both filled to a hundred when
-       the party is put back under its own control. */
-    int move_budget_2dc;
-    int move_budget_2e0;
-    unsigned char unknown_2e4[4];
-    int value_2e8;                         /* 0x2e8 */
-    unsigned char unknown_2ec[4];
-    /* 0x2f0 and 0x2f8: what the interface currently has picked, and whether
-       the pick is settled. */
-    int selection_kind;
-    unsigned char unknown_2f4[4];
-    unsigned char selection_settled;
-    unsigned char unknown_2f9[3];
-    /* 0x2fc..0x30b: the hover tooltip - when the pointer settled, that it is
-       showing, and what it is over. Moving to anything else restarts the
-       clock, which is what groups the four. */
-    unsigned int tooltip_since;
-    unsigned char tooltip_pending;
-    unsigned char unknown_301[3];
-    int tooltip_subject;
-    int tooltip_kind;
-} W8LevelRuntimeBlock;
-
 #pragma pack(pop)
 
 #ifdef __cplusplus
@@ -805,7 +725,6 @@ wchar_t* ConvertStringToWide(const char* string);
 char* ConvertWideStringToString(const wchar_t* string);
 wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value);
 char* TitleCaseString(char* string);
-float NormalizeAngle(float angle);
 float ShortestAngleDistance(float first, float second);
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot);
 void FormatDebugMessage(int channel, const char* format, ...);

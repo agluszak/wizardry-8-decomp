@@ -3,6 +3,8 @@
 #include "surrender/srNode.h"
 #include "wiz8/engine_code/Object005EBCFC.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/game_state.h"
+#include "wiz8/utility.h"
 
 #include <math.h>
 
@@ -33,12 +35,19 @@ extern const float g_camera_velocity_stop_scale_005ec588;
 extern const float g_camera_negative_velocity_epsilon_005ec594;
 extern const float g_camera_velocity_factor_005ec55c;
 extern const float g_camera_step_factor_005ebc7c;
+extern const double g_camera_pi_005ec2a0;
+extern const float g_camera_horizontal_margin_005ec574;
+extern const float g_camera_vertical_margin_005ec570;
 extern float g_startup_depth_603ac8;
 extern float g_camera_transition_speed_65a0f4;
 extern float g_camera_max_yaw_velocity_609ea4;
 extern unsigned char g_flag_00683f97;
 extern unsigned char g_flag_006875a5;
 extern "C" void MarkRendererReady(void);
+extern float Function4BE420(
+    const W8Position* from, const W8Position* to);
+extern float Function4BE490(
+    const W8Position* from, const W8Position* to);
 
 // FUNCTION: WIZ8 0x00476140
 GDCamera::GDCamera()
@@ -319,6 +328,77 @@ unsigned char GDCamera::Method00476F90(
         angle = g_camera_angle_period_005ec014 - angle;
     }
     return Method00477440(pitch, angle, 0);
+}
+
+// FUNCTION: WIZ8 0x00477180
+unsigned char GDCamera::Method00477180(
+    const W8Position* target, float* angle, float* pitch)
+{
+    float lower_margin = -g_camera_vertical_margin_005ec570;
+    if (g_level_block->camera_mode_100 == 1
+        || g_level_block->camera_mode_100 == 2) {
+        lower_margin =
+            -g_camera_vertical_margin_005ec570 * g_camera_step_factor_005ebc7c;
+    }
+
+    float angle_delta =
+        (NormalizeAngle(Function4BE420(&m_position_08c, target))
+         + g_camera_angle_period_005ec014)
+        - (NormalizeAngle(m_angle_004) + g_camera_angle_period_005ec014);
+    float pitch_delta =
+        (Function4BE490(&m_position_08c, target)
+         + g_camera_angle_period_005ec014)
+        - (m_positional_008 + g_camera_angle_period_005ec014);
+    if ((double)fabs((double)angle_delta) > g_camera_pi_005ec2a0) {
+        if (angle_delta >= 0.0f) {
+            angle_delta -= g_camera_angle_period_005ec014;
+        } else {
+            angle_delta += g_camera_angle_period_005ec014;
+        }
+    }
+    if ((double)fabs((double)pitch_delta) > g_camera_pi_005ec2a0) {
+        if (pitch_delta >= 0.0f) {
+            pitch_delta -= g_camera_angle_period_005ec014;
+        } else {
+            pitch_delta += g_camera_angle_period_005ec014;
+        }
+    }
+
+    if ((target->x != m_position_08c.x || target->z != m_position_08c.z)
+        && ((float)fabs((double)angle_delta) > g_camera_horizontal_margin_005ec574
+            || pitch_delta >= g_camera_vertical_margin_005ec570
+            || pitch_delta <= lower_margin)) {
+        if ((float)fabs((double)angle_delta)
+            > g_camera_horizontal_margin_005ec574) {
+            float correction =
+                g_camera_horizontal_margin_005ec574
+                * g_camera_step_factor_005ebc7c;
+            angle_delta += angle_delta >= 0.0f ? -correction : correction;
+        }
+        if (pitch_delta < g_camera_vertical_margin_005ec570) {
+            float correction =
+                g_camera_vertical_margin_005ec570
+                * g_camera_step_factor_005ebc7c;
+            pitch_delta += pitch_delta >= 0.0f ? -correction : correction;
+        }
+        if (pitch_delta > lower_margin) {
+            float correction =
+                -lower_margin * g_camera_step_factor_005ebc7c;
+            pitch_delta += pitch_delta >= 0.0f ? -correction : correction;
+        }
+
+        *angle = NormalizeAngle(angle_delta + m_angle_004);
+        *pitch = pitch_delta + m_positional_008;
+        if (*pitch > g_camera_pitch_upper_005ec550
+            || *pitch < g_camera_pitch_lower_005ec554) {
+            *pitch = m_positional_008;
+        }
+        return 0;
+    }
+
+    *angle = m_angle_004;
+    *pitch = m_positional_008;
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x00477440
