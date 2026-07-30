@@ -3,10 +3,13 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srCore.h"
 #include "surrender/srHeap.h"
 #include "surrender/srNode.h"
+#include "FileMan.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 static const char ST_PARTICLE_CPP[] =
@@ -38,6 +41,85 @@ static const char ST_PARTICLE_CPP[] =
 
 // SYNTHETIC: WIZ8 0x00498150
 // stParticle::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x0049ADB0
+stParticle* FindRegisteredParticle0049ADB0(const char* name)
+{
+    stParticle* particle = 0;
+    char* uppercase_name = static_cast<char*>(malloc(strlen(name) + 1));
+
+    if (uppercase_name != 0) {
+        strcpy(uppercase_name, name);
+        _strupr(uppercase_name);
+        particle = static_cast<stParticle*>(srCore.getRegistry()->find(
+            stParticle::sGetClassNode(), uppercase_name, 0));
+    }
+    free(uppercase_name);
+    return particle;
+}
+
+// FUNCTION: WIZ8 0x0049B150
+void SaveParticleStates0049B150(HWFILE handle)
+{
+    unsigned char version = 1;
+    char name[0x80] = "";
+    int count = 0;
+
+    FileWrite(handle, &version, sizeof(version), 0);
+
+    stParticle* particle = static_cast<stParticle*>(
+        srCore.getRegistry()->find(
+            stParticle::sGetClassNode(),
+            static_cast<const srRuntimeClass*>(0)));
+    while (particle != 0) {
+        if (particle->trigger_flag_192 != 0) {
+            ++count;
+        }
+        particle = static_cast<stParticle*>(srCore.getRegistry()->find(
+            stParticle::sGetClassNode(), particle));
+    }
+
+    FileWrite(handle, &count, sizeof(count), 0);
+
+    particle = static_cast<stParticle*>(
+        srCore.getRegistry()->find(
+            stParticle::sGetClassNode(),
+            static_cast<const srRuntimeClass*>(0)));
+    while (particle != 0) {
+        if (particle->trigger_flag_192 != 0) {
+            strcpy(name, particle->getName());
+            FileWrite(handle, name, sizeof(name), 0);
+            FileWrite(handle, &particle->active_1a0,
+                      sizeof(particle->active_1a0), 0);
+        }
+        particle = static_cast<stParticle*>(srCore.getRegistry()->find(
+            stParticle::sGetClassNode(), particle));
+    }
+}
+
+// FUNCTION: WIZ8 0x0049B3B0
+void LoadParticleStates0049B3B0(int handle)
+{
+    unsigned char version;
+    int count = 0;
+    char name[0x80] = "";
+
+    ReadVirtualFile(handle, &version, sizeof(version), 0);
+    ReadVirtualFile(handle, &count, sizeof(count), 0);
+
+    for (int index = 0; index < count; ++index) {
+        unsigned char active;
+        ReadVirtualFile(handle, name, sizeof(name), 0);
+        ReadVirtualFile(handle, &active, sizeof(active), 0);
+
+        stParticle* particle = static_cast<stParticle*>(
+            srCore.getRegistry()->find(
+                stParticle::sGetClassNode(), name, 0));
+        if (particle != 0) {
+            particle->SetActive(active);
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x00497AF0
 stParticle::stParticle(srNode* parent, unsigned int count)

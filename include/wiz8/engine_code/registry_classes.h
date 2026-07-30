@@ -129,6 +129,10 @@ public:
 
 static_assert(sizeof(stParticle) == 0x280, "stParticle_size_must_be_0x280");
 
+stParticle* FindRegisteredParticle0049ADB0(const char* name);
+void SaveParticleStates0049B150(unsigned int handle);
+void LoadParticleStates0049B3B0(int handle);
+
 /*
  * The same slots for further host-registered classes whose owning translation
  * unit is not established. Their ids are in the 0x10000 range, so each names a
