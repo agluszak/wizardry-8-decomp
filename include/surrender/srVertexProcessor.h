@@ -95,6 +95,26 @@ public:
         const srVector3T<float>& center, float radius) const;
 
 private:
+    SR_DLL_IMPORT void finishDiffuseAlpha();
+    SR_DLL_IMPORT void finishSpecularFog();
+    SR_DLL_IMPORT void processVertexBuffer();
+    static SR_DLL_IMPORT unsigned long scanChangeIndexed(
+        const unsigned long* first,
+        unsigned long first_count,
+        const unsigned long* second,
+        unsigned long second_count);
+    SR_DLL_IMPORT void setMaterial(srMaterialIFace* material);
+    SR_DLL_IMPORT void setupAlpha();
+    SR_DLL_IMPORT void setupDepthCue();
+    SR_DLL_IMPORT void setupDiffuse();
+    SR_DLL_IMPORT void setupEyeSpaceDirAndDist();
+    SR_DLL_IMPORT void setupEyeSpaceNormal();
+    SR_DLL_IMPORT void setupEyeSpaceZDist();
+    SR_DLL_IMPORT void setupFog();
+    SR_DLL_IMPORT void setupQ(unsigned long index);
+    SR_DLL_IMPORT void setupST(unsigned long index);
+    SR_DLL_IMPORT void setupSpecular();
+
     unsigned char unknown_00_[0x9c];
 };
 

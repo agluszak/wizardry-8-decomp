@@ -419,6 +419,21 @@ EXPORTS
     ?process@srVertexPipe@@QAEXABUInput@1@@Z
     ?swapDiffuseAndSpecular@srVertexPipe@@QAEXXZ
     ?testEyeSpaceBounds@srVertexPipe@@QBEHABV?$srVector3T@M@@M@Z
+    ?finishDiffuseAlpha@srVertexPipe@@AAEXXZ
+    ?finishSpecularFog@srVertexPipe@@AAEXXZ
+    ?processVertexBuffer@srVertexPipe@@AAEXXZ
+    ?scanChangeIndexed@srVertexPipe@@CAKPBKK0K@Z
+    ?setMaterial@srVertexPipe@@AAEXPAVsrMaterialIFace@@@Z
+    ?setupAlpha@srVertexPipe@@AAEXXZ
+    ?setupDepthCue@srVertexPipe@@AAEXXZ
+    ?setupDiffuse@srVertexPipe@@AAEXXZ
+    ?setupEyeSpaceDirAndDist@srVertexPipe@@AAEXXZ
+    ?setupEyeSpaceNormal@srVertexPipe@@AAEXXZ
+    ?setupEyeSpaceZDist@srVertexPipe@@AAEXXZ
+    ?setupFog@srVertexPipe@@AAEXXZ
+    ?setupQ@srVertexPipe@@AAEXK@Z
+    ?setupST@srVertexPipe@@AAEXK@Z
+    ?setupSpecular@srVertexPipe@@AAEXXZ
     ?reset@srMaterial@@MAEXXZ
     ?sGetClassName@srMaterial@@SAPBDXZ
     ?setVector@srMaterial@@IAEXAAV?$srVector4T@M@@ABV2@@Z
