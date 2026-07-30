@@ -4,6 +4,8 @@
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srScene.h"
+#include "wiz8/engine_code/Camera.h"
+#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"

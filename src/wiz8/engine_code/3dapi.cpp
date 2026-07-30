@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"

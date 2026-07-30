@@ -7,6 +7,7 @@
 #include "surrender/srTexture.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/cursor.h"
+#include "wiz8/engine_code/Scene.h"
 #include "wiz8/render_state.h"
 #include "himage.h"
 #include "video.h"
@@ -40,22 +41,6 @@ srRegistry::ClassNode* class_node(unsigned long id, const char* name,
     }
     return node;
 }
-
-class CursorScene : public srScene {
-public:
-    CursorScene() : srScene(0) {
-        int index;
-        for (index = 0; index != 6; ++index) {
-            overlay_state_[index] = 0;
-        }
-    }
-
-    virtual const char* getClassName() const override { return "srScene"; }
-    virtual unsigned long getClassID() const override { return 0x1010; }
-    virtual srRegistry::ClassNode* getClassNode() const override {
-        return class_node(0x1010, "srScene", 0x1000, "srNode");
-    }
-};
 
 class CursorMeshModel : public srMeshModel {
 public:
@@ -367,7 +352,9 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
 // FUNCTION: WIZ8 0x004285c0
 extern "C" unsigned char Function4285C0(void)
 {
-    g_cursor_scene_659684 = new CursorScene;
+    W8Scene005EBE48* cursor_scene = new W8Scene005EBE48(0);
+    cursor_scene->ClearOverlayState();
+    g_cursor_scene_659684 = cursor_scene;
     g_cursor_scene_659684->setName("Mouse Cursor Scene");
     if (!g_mouse_surface_659688) {
         return 0;

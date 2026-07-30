@@ -1,5 +1,7 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Level.h"
+#include "wiz8/engine_code/Scene.h"
 
 /* Closed family of source-declared registry class methods. */
 

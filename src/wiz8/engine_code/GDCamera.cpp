@@ -1,9 +1,9 @@
 #include "wiz8/engine_code/GDCamera.h"
 
 #include "surrender/srNode.h"
+#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Object005EBCFC.h"
-#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/game_state.h"
 #include "wiz8/utility.h"
 
