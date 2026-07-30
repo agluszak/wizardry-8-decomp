@@ -122,7 +122,7 @@ class srZipOpener : public srIStreamOpener::Opener {
 public:
     virtual ~srZipOpener();
 
-    virtual srBinIStream* open(char* path);
+    virtual srBinIStream* open(const char* path);
     virtual const char* getDescription() const;
 
 private:
@@ -151,7 +151,7 @@ private:
 };
 
 // FUNCTION: SREXT_UNZIP 0x100106B0
-srBinIStream* srZipOpener::open(char* path)
+srBinIStream* srZipOpener::open(const char* path)
 {
     srInlineString requested;
     if (path != 0) {

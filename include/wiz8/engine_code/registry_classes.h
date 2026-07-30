@@ -142,13 +142,6 @@ private:
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
 
-/* Only the name slot is an owned body here; nothing in range supplies an id
-   half, so none is declared. */
-class stBinIStream {
-public:
-    const char* getClassName() const;     /* 0x0047CBA0 */
-};
-
 /*
  * Classes that present themselves to the scene graph under a SurRender base
  * name instead of one of their own.

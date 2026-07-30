@@ -39,7 +39,8 @@ extern "C" unsigned char ReadVirtualFile(
    The 0x20-byte size the sole caller of the constructor allocates is what the
    assertion below checks, and it holds only if the srBinIStream base really is
    vptr, vbptr and a virtual srBinStream subobject placed last. */
-W8VirtualFileBinIStream::W8VirtualFileBinIStream(char* path)
+// FUNCTION: WIZ8 0x0047CBD0
+W8VirtualFileBinIStream::W8VirtualFileBinIStream(const char* path)
     : m_hFile(0)
 {
     char* normalized;
@@ -61,6 +62,7 @@ W8VirtualFileBinIStream::W8VirtualFileBinIStream(char* path)
     setState(m_hFile == 0 ? SR_STREAM_ERROR : SR_STREAM_OK);
 }
 
+// FUNCTION: WIZ8 0x0047D490
 W8VirtualFileBinIStream::~W8VirtualFileBinIStream()
 {
     if (m_hFile) {
@@ -68,6 +70,7 @@ W8VirtualFileBinIStream::~W8VirtualFileBinIStream()
     }
 }
 
+// FUNCTION: WIZ8 0x0047D4D0
 srBinStream& W8VirtualFileBinIStream::seek(
     unsigned long position, e_seekDir direction)
 {
@@ -78,6 +81,7 @@ srBinStream& W8VirtualFileBinIStream::seek(
     return *this;
 }
 
+// FUNCTION: WIZ8 0x0047D560
 srBinStream& W8VirtualFileBinIStream::seek(unsigned long position)
 {
     if (!FileSeek(m_hFile, position, 1)) {
@@ -86,6 +90,7 @@ srBinStream& W8VirtualFileBinIStream::seek(unsigned long position)
     return *this;
 }
 
+// FUNCTION: WIZ8 0x0047D5B0
 unsigned long W8VirtualFileBinIStream::tell()
 {
     return FileGetPos(m_hFile);
@@ -106,17 +111,27 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
     return 0;
 }
 
-srBinIStream* W8VirtualFileStreamOpener::open(char* path)
+// FUNCTION: WIZ8 0x0047CB30
+srBinIStream* W8VirtualFileStreamOpener::open(const char* path)
 {
     return new W8VirtualFileBinIStream(path);
 }
 
+// FUNCTION: WIZ8 0x0047CBA0
 const char* W8VirtualFileStreamOpener::getDescription() const
 {
     return "stBinIStream";
 }
 
 W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
+
+// SYNTHETIC: WIZ8 0x0047CBB0
+// W8VirtualFileStreamOpener::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x0047DA10
+// vtordisp adjustor thunk for W8VirtualFileBinIStream destruction
+// SYNTHETIC: WIZ8 0x0047DA20
+// W8VirtualFileBinIStream::`scalar deleting destructor'
 
 /* Loads the image importers and routes their JPG/TGA reads through Wizardry's
    SLF-aware virtual file stream, which is the bridge the real menu assets use. */

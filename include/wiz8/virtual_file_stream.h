@@ -8,7 +8,7 @@
 #pragma vtordisp(off)
 class W8VirtualFileBinIStream : public srBinIStream {
 public:
-    explicit W8VirtualFileBinIStream(char* path);
+    explicit W8VirtualFileBinIStream(const char* path);
     virtual ~W8VirtualFileBinIStream() override;
 
     unsigned long vread(void* buffer, unsigned long size) override;
@@ -28,7 +28,7 @@ static_assert(sizeof(W8VirtualFileBinIStream) == 0x20,
 
 class W8VirtualFileStreamOpener : public srIStreamOpener::Opener {
 public:
-    srBinIStream* open(char* path) override;
+    srBinIStream* open(const char* path) override;
     const char* getDescription() const override;
 };
 

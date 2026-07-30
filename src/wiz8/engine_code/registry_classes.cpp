@@ -155,11 +155,6 @@ srNode* W8Node005EC208::vslot7()
     *copy = *this;
     return copy;
 }
-// FUNCTION: WIZ8 0x0047CBA0
-const char* stBinIStream::getClassName() const
-{
-    return "stBinIStream";
-}
 // FUNCTION: WIZ8 0x0047D650
 unsigned long W8Registered005EC5D8::getClassID() const
 {
