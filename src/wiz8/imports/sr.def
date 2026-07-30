@@ -109,8 +109,14 @@ EXPORTS
     ?setRotation@srNode@@QAEXNNN@Z
     ?getScale@srNode@@QBE?AV?$srVector3T@N@@XZ
     ?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ??0srHeap@@QAE@XZ
+    ??1srHeap@@QAE@XZ
     ?srHeap@@3V0@A
+    ?dump@srHeap@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?free@srHeap@@QAEXPAX@Z
+    ?free@srHeap@@QAEXPAXI@Z
+    ?freeAll@srHeap@@QAEXXZ
+    ?msize@srHeap@@QAEKPAX@Z
     ??4srClass@@QAEAAV0@ABV0@@Z
     ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
