@@ -47,7 +47,7 @@ public:
     virtual const char* getClassName() const override = 0;
     virtual unsigned long getClassID() const override = 0;
     virtual srRegistry::ClassNode* getClassNode() const override = 0;
-    virtual void dump(std::ostream& stream) = 0;
+    virtual SR_DLL_IMPORT void dump(std::ostream& stream);
     virtual SR_DLL_IMPORT void verify(srRuntimeClass::e_verify mode);
 
 protected:

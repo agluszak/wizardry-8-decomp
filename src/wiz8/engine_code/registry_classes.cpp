@@ -3,6 +3,8 @@
 #include "wiz8/engine_code/ClipPlane.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/stScript.h"
+#include "wiz8/engine_code/stSound3D.h"
 
 /* Closed family of source-declared registry class methods. */
 
@@ -374,6 +376,18 @@ srRegistry::ClassNode* stSound3D::getClassNode() const
     }
     return node;
 }
+
+extern unsigned char IsSoundHandleActive00408EF0(int handle);
+
+// FUNCTION: WIZ8 0x004AEC70
+unsigned char stSound3D::IsPlaying004AEC70()
+{
+    if (sound_handle_13c != -1 &&
+        IsSoundHandleActive00408EF0(sound_handle_13c) != 0) {
+        return 1;
+    }
+    return 0;
+}
 // FUNCTION: WIZ8 0x004BA1B0
 unsigned long stLevel::getClassID() const
 {
@@ -437,26 +451,4 @@ srNode* W8ClipPlane005ED180::vslot7()
     srClipPlane* copy = static_cast<srClipPlane*>(vInstance());
     *copy = *this;
     return copy;
-}
-// FUNCTION: WIZ8 0x004CF7C0
-unsigned long stScript::getClassID() const
-{
-    return 0x1000d;
-}
-// FUNCTION: WIZ8 0x004CF7D0
-const char* stScript::getClassName() const
-{
-    return "stScript";
-}
-// FUNCTION: WIZ8 0x004CF7E0
-srRegistry::ClassNode* stScript::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000d);
-
-    if (!node) {
-        node = registry->registerClass(
-            "stScript", srClass::sGetClassNode(), 0x1000d, 1);
-    }
-    return node;
 }

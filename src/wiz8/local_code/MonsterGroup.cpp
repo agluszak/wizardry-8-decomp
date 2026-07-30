@@ -868,7 +868,7 @@ void ApplyDefaultMonsterGroupSounds(void)
         lead = MonsterInfoFromID(
             0x501, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
         if (monster_group->flag_c3 != 0 &&
-            lead->monster->object_238 == 0) {
+            lead->monster->script_238 == 0) {
             Function4C7F10("Default.MSF", 1);
         }
     }

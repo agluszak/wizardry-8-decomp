@@ -14,6 +14,9 @@ struct W8AnimObj;
 struct W8PList;
 struct W8Item;
 class stModelInstance005EC7D0;
+class stScript;
+class stSound3D;
+class Trigger;
 
 typedef struct W8MonsterRep W8MonsterRep;
 
@@ -208,6 +211,10 @@ public:
     void SetShakeEventVisibility004BF9E0(signed char cycle);
     void UpdateAttachedObjects004C3F70();
     void ProcessScript004C80E0();
+    unsigned char CanContinueScript004CA0F0();
+    unsigned char SetScriptLabel004CA260(const char* label);
+    unsigned char GetFlag216004CA290() const;
+    unsigned char IsWithinWorldRange004CA2A0();
 
 public:
     W8MonsterRep* m_pRep;
@@ -244,12 +251,12 @@ public:
     typedef void (__cdecl *CycleCallback)(W8Monster* monster);
     CycleCallback cycle_callback_230;
     int callback_cycle_234;
-    srClass* object_238;
-    int value_23c;
-    int value_240;
-    W8GrowableVector<unsigned char> bytes_244;
+    stScript* script_238;
+    int script_line_23c;
+    int script_wait_240;
+    W8GrowableVector<unsigned char> script_conditions_244;
     W8Timer005EC0A4 timer_254;
-    int value_278;
+    Trigger* trigger_278;
     int registry_weight_27c;
     W8MonsterFormation formation;
     W8MonsterState28C state_28c;
@@ -259,7 +266,7 @@ public:
     W8MonsterState2FC state_2fc;
     W8Timer005EC0A4 timer_30c;
     W8MonsterFlags330 flags_330;
-    srNode* object_334;
+    stSound3D* sound_334;
     W8GrowableVector<int> values_338;
 };
 

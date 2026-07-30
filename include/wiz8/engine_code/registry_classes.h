@@ -201,21 +201,6 @@ private:
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
-class stSound3D {
-public:
-    const char* getClassName() const;     /* 0x004AF3E0 */
-    unsigned long getClassID() const;     /* 0x004AF3D0 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x004AF3F0 */
-};
-
-/* The only one of this group whose registry builder is also recovered. It takes
-   the one-level form, hanging straight off srClass with no intermediate base. */
-class stScript {
-public:
-    unsigned long getClassID() const;     /* 0x004CF7C0 */
-    const char* getClassName() const;     /* 0x004CF7D0 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x004CF7E0 */
-};
 
 /* Only the name slot is an owned body here; nothing in range supplies an id
    half, so none is declared. */

@@ -75,6 +75,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/game_timer.cpp
     src/wiz8/engine_code/materials.cpp
     src/wiz8/engine_code/Monster.cpp
+    src/wiz8/engine_code/stScript.cpp
     src/wiz8/local_code/DisplayList.cpp
     src/wiz8/local_code/SurfaceFill.cpp
     src/wiz8/local_code/Targeting.cpp

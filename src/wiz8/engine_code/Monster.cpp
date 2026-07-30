@@ -7,6 +7,8 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/engine_code/stScript.h"
+#include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_state_006598a4.h"
 #include "wiz8/grcycle.h"
@@ -59,7 +61,12 @@ extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
 extern void ReleaseSoundHandle00408F70(int handle);
 extern void GetPosition421070(W8Position* position);
+extern W8World* GetWorld(void);
 extern void __stdcall Function4A7BE0(const float* position);
+extern unsigned char Function525DF0(int value);
+extern unsigned char g_flag_00683f97;
+extern W8Navigator* g_startup_world_659c0c;
+extern const float g_monster_script_facing_tolerance_005ebc84;
 extern W8WideChar* GetMonsterName(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
@@ -301,15 +308,15 @@ W8Monster::W8Monster()
     value_1ec = 1.0f;
     value_1f0 = 1.0f;
     value_210 = -1;
-    object_238 = 0;
-    value_23c = 0;
-    value_240 = -1;
-    value_278 = 0;
+    script_238 = 0;
+    script_line_23c = 0;
+    script_wait_240 = -1;
+    trigger_278 = 0;
     registry_weight_27c = 0;
     formation.value_00 = 0;
     formation.value_04 = 0;
     formation.value_08 = 0;
-    object_334 = 0;
+    sound_334 = 0;
 
     m_pRep = new W8MonsterRep;
     m_pRep->linked_objects_5e8 = PListCreate();
@@ -342,11 +349,11 @@ W8Monster::W8Monster(const W8Monster& rhs)
       value_228(rhs.value_228),
       flag_22c(0),
       flag_22d(0),
-      object_238(0),
-      value_240(-1),
-      value_278(0),
+      script_238(0),
+      script_wait_240(-1),
+      trigger_278(0),
       registry_weight_27c(rhs.registry_weight_27c),
-      object_334(0)
+      sound_334(0)
 {
     formation.value_00 = 0;
     formation.value_04 = 0;
@@ -403,16 +410,16 @@ W8Monster::~W8Monster()
     }
     UnregisterGrCycle(this);
     delete m_pRep;
-    if (object_238 != 0) {
-        object_238->release();
-        object_238 = 0;
+    if (script_238 != 0) {
+        script_238->release();
+        script_238 = 0;
     }
     flags_1dc &= ~0x20;
-    value_23c = 0;
-    value_240 = -1;
-    if (object_334 != 0) {
-        object_334->release();
-        object_334 = 0;
+    script_line_23c = 0;
+    script_wait_240 = -1;
+    if (sound_334 != 0) {
+        sound_334->release();
+        sound_334 = 0;
     }
 }
 
@@ -614,7 +621,7 @@ void W8Monster::Update()
                 monster_info->condition_turns[5] != 0);
         }
 
-        if (cycle != 0x15 && object_238 != 0 &&
+        if (cycle != 0x15 && script_238 != 0 &&
             g_in_combat_00683f94 == 0) {
             ProcessScript004C80E0();
             cycle = Query(6);
@@ -782,13 +789,111 @@ void W8Monster::Update()
     }
     InitializeAnimatedTexture004C51D0();
 
-    if (object_334 != 0) {
+    if (sound_334 != 0) {
         srVector3T<float> position = GetPosition();
         srVector3T<double> location;
         location.x = position.x;
         location.y = position.y;
         location.z = position.z;
-        object_334->setLocation(location);
+        sound_334->setLocation(location);
+    }
+}
+
+/* A script command that requested blocking leaves its command number here.
+   Each command family has one concrete completion condition; commands without
+   a condition are immediately ready. */
+// FUNCTION: WIZ8 0x004CA0F0
+unsigned char W8Monster::CanContinueScript004CA0F0()
+{
+    switch (script_wait_240) {
+    case 1:
+        if (fields.flag_024 == 0) {
+            return 0;
+        }
+        break;
+    case 2:
+        if ((float)fabs(fields.movement_0c0.target_angle_018 -
+                        fields.movement_0c0.angle_014) >=
+            g_monster_script_facing_tolerance_005ebc84) {
+            return 0;
+        }
+        break;
+    case 3:
+        if (Function525DF0(0) != 0) {
+            return 0;
+        }
+        break;
+    case 4:
+        if (Query(2) == 0) {
+            return 0;
+        }
+        flags_1dc &= ~0x20;
+        return 1;
+    case 0x0e:
+        if (g_flag_00683f97 == 1) {
+            return 0;
+        }
+        break;
+    case 0x16:
+        if (trigger_278 != 0 &&
+            trigger_278->testFlag(static_cast<srNode::e_flag>(6)) != 0) {
+            return 0;
+        }
+        trigger_278 = 0;
+        return 1;
+    case 0x17:
+        if (timer_254.GetProgress() < g_light_scale_identity_005ebb38) {
+            return 0;
+        }
+        break;
+    case 0x29:
+        if (sound_334->IsPlaying004AEC70() != 0) {
+            return 0;
+        }
+        sound_334->release();
+        sound_334 = 0;
+        break;
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004CA260
+unsigned char W8Monster::SetScriptLabel004CA260(const char* label)
+{
+    int line;
+
+    if (script_238 != 0) {
+        line = script_238->FindLabelLine004CF730(label);
+        if (line >= 0) {
+            script_line_23c = line;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004CA290
+unsigned char W8Monster::GetFlag216004CA290() const
+{
+    return flag_216;
+}
+
+// FUNCTION: WIZ8 0x004CA2A0
+unsigned char W8Monster::IsWithinWorldRange004CA2A0()
+{
+    if (state_2fc.node_0c != 0) {
+        return state_2fc.node_0c->testFlag(srNode::FLAG_POSITIONAL_0) == 0;
+    }
+    else {
+        double far_clip = WorldGetFarClip(GetWorld());
+        srVector3T<float> position = GetPosition();
+        srVector3T<float> reference = g_startup_world_659c0c->GetPosition();
+        float dx = reference.x - position.x;
+        float dy = reference.y - position.y;
+        float dz = reference.z - position.z;
+
+        return dx * dx + dy * dy + dz * dz <=
+               (float)far_clip * (float)far_clip;
     }
 }
 
