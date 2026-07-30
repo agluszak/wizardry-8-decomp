@@ -101,6 +101,8 @@ EXPORTS
     ?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z
     ?srHeap@@3V0@A
     ?free@srHeap@@QAEXPAX@Z
+    ??4srClass@@QAEAAV0@ABV0@@Z
+    ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
     ??1srColorSurface@@MAE@XZ
     ?getPixel@srColorSurfaceIFace@@UAEKJJ@Z

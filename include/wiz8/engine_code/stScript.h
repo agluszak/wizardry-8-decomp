@@ -16,14 +16,16 @@ struct stScriptLabel {
 /* Engine Code\stScript.cpp. The two members at +0x18 and +0x28 are ordinary
    growable vectors: construction gives each capacity five, and destruction
    removes and frees every pointed-to line/label before the vector storage. */
-class stScript : public srClass {
+class stScript : public srClassSupport<stScript, srClass, 0, 0x1000d> {
 public:
-    unsigned long getClassID() const override;     /* 0x004CF7C0 */
-    const char* getClassName() const override;     /* 0x004CF7D0 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x004CF7E0 */
+    static const char* sGetClassName() { return "stScript"; }
+
+    virtual ~stScript() override;
+    virtual srClass* vInstance() override;
 
     int FindLabelLine004CF730(const char* label) const;
     int GetSourceLine004CF790(int line) const;
+    unsigned char Load004CF3B0(const char* path);
 
     W8GrowableVector<stScriptLine*> lines;       /* 0x18 */
     W8GrowableVector<stScriptLabel*> labels;     /* 0x28 */

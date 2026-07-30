@@ -16,3 +16,6 @@ unsigned char WriteVirtualFile(
     unsigned int* done);
 
 }
+
+unsigned char ReadTextLine004CEE40(
+    int handle, char* destination, int capacity, unsigned char* more);

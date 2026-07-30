@@ -10,6 +10,7 @@ class W8GrowableVector {
 public:
     explicit W8GrowableVector(int initial_capacity = 5);
     virtual ~W8GrowableVector();
+    W8GrowableVector& operator=(const W8GrowableVector& other);
 
     int Grow(int minimum_capacity);
 
@@ -106,6 +107,25 @@ template <class T>
 W8GrowableVector<T>::~W8GrowableVector()
 {
     ::operator delete(data);
+}
+
+template <class T>
+W8GrowableVector<T>& W8GrowableVector<T>::operator=(
+    const W8GrowableVector<T>& other)
+{
+    int index;
+
+    count = 0;
+    if (other.count > capacity && !Grow(other.count)) {
+        return *this;
+    }
+    for (index = 0; index < other.count; ++index) {
+        data[index] = other.data[index];
+    }
+    if (count <= other.count) {
+        count = other.count;
+    }
+    return *this;
 }
 
 template <class T>

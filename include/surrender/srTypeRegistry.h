@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "srCore.h"
 #include "srHeap.h"
 
 class srRuntimeClass;
@@ -43,6 +44,7 @@ public:
 class srClass : public srRuntimeClass {
 public:
     static SR_DLL_IMPORT srRegistry::ClassNode* sGetClassNode();
+    SR_DLL_IMPORT srClass& operator=(const srClass& other);
 
     virtual const char* getClassName() const override = 0;
     virtual unsigned long getClassID() const override = 0;
@@ -81,3 +83,59 @@ private:
 };
 
 static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
+
+/* SurRender's exported decorated vtable names establish this template's
+   parameter order. It contributes no storage: it supplies registry identity,
+   instance registration and the virtual half of srClass::clone() for a class
+   derived from an existing registry class. */
+template <class Derived, class Base, int Abstract, unsigned long ClassID>
+class srClassSupport : public Base {
+public:
+    static srRegistry::ClassNode* sGetClassNode()
+    {
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(ClassID);
+
+        if (node == 0) {
+            node = registry->registerClass(
+                Derived::sGetClassName(), Base::sGetClassNode(), ClassID,
+                Abstract == 0);
+        }
+        return node;
+    }
+
+    virtual const char* getClassName() const override
+    {
+        return Derived::sGetClassName();
+    }
+
+    virtual unsigned long getClassID() const override
+    {
+        return ClassID;
+    }
+
+    virtual srRegistry::ClassNode* getClassNode() const override
+    {
+        return sGetClassNode();
+    }
+
+protected:
+    srClassSupport()
+    {
+        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+    }
+
+    virtual ~srClassSupport() override
+    {
+        srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
+    }
+
+    /* srClass::clone() dispatches through slot 7. The export is non-virtual;
+       this is its unexported per-class implementation hook. */
+    virtual srClass* vClone()
+    {
+        Derived* copy = static_cast<Derived*>(this->vInstance());
+        *copy = *static_cast<const Derived*>(this);
+        return copy;
+    }
+};

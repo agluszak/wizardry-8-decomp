@@ -1,57 +1,7 @@
-#include "surrender/srTypeRegistry.h"
-#include "surrender/srCore.h"
-#include "wiz8/vector.h"
+#include "wiz8/engine_code/stScript.h"
 #include "wiz8/wiz8_windows.h"
 
-#include <ostream>
-
-/* The constructor at 0x004CF020 proves a 0x18-byte srClass prefix followed by
-   two ordinary five-element growable vectors. */
-class W8MusicPlaylist : public srClass {
-public:
-    W8MusicPlaylist();
-    virtual ~W8MusicPlaylist() override;
-
-    virtual const char* getClassName() const override { return "stScript"; }
-    virtual unsigned long getClassID() const override { return 0x1000d; }
-    virtual srRegistry::ClassNode* getClassNode() const override
-    { return classNode(); }
-    virtual void dump(std::ostream&) override {}
-    virtual void verify(srRuntimeClass::e_verify mode) override { srClass::verify(mode); }
-    virtual srClass* vInstance() override { return new W8MusicPlaylist(); }
-
-private:
-    static srRegistry::ClassNode* classNode();
-
-    W8GrowableVector<void*> entries_18;
-    W8GrowableVector<void*> entries_28;
-};
-
-static_assert(sizeof(W8MusicPlaylist) == 0x38, "W8MusicPlaylist_must_be_0x38");
-
-srRegistry::ClassNode* W8MusicPlaylist::classNode()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1000d);
-    if (!node) {
-        node = registry->registerClass(
-            "stScript", srClass::sGetClassNode(), 0x1000d, 1);
-    }
-    return node;
-}
-
-W8MusicPlaylist::W8MusicPlaylist()
-    : entries_18(5), entries_28(5)
-{
-    srCore.getRegistry()->registerInstance(classNode(), this);
-}
-
-W8MusicPlaylist::~W8MusicPlaylist()
-{
-    srCore.getRegistry()->unregisterInstance(classNode(), this);
-}
-
-W8MusicPlaylist* g_music_playlist_65ba74;
+stScript* g_music_playlist_65ba74;
 unsigned int g_music_playlist_tick_65ba78;
 int g_music_state_60aae8;
 int g_music_state_60aaec;
@@ -62,7 +12,7 @@ extern "C" unsigned char g_flag_650e50;
 // FUNCTION: WIZ8 0x0048f940
 extern "C" unsigned char InitializeMusicPlaylist(void)
 {
-    g_music_playlist_65ba74 = new W8MusicPlaylist();
+    g_music_playlist_65ba74 = new stScript();
     if (g_music_playlist_65ba74) {
         g_music_playlist_65ba74->setName("Music Playlist");
     }
