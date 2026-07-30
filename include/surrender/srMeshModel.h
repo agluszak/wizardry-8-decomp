@@ -2,6 +2,7 @@
 
 #include "srMaterial.h"
 #include "srMath.h"
+#include "srPtr.h"
 #include "srTexture.h"
 #include "srTypeRegistry.h"
 
@@ -43,6 +44,7 @@ public:
     virtual void render(class srGERD& renderer);
     virtual void reindexPolygons(const unsigned long* indices);
     virtual void reindexVertices(const unsigned long* indices);
+    srPtr<srTextureIFace>* getPolyTexture(long polygon, long layer, int table);
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);

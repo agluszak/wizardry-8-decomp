@@ -18,8 +18,8 @@ class W8MonsterShakeCallback;
  * assertion-bounded interval.
  *
  * Classes below remain positional until their constructor or vtable supplies
- * the complete inheritance evidence. stModelInstance is the exception now
- * closed by its destructor and both ordinary multiple-inheritance tables.
+ * the complete inheritance evidence. Closed classes move into their owned
+ * headers instead of accumulating here.
  */
 
 /* Engine Code\stModelInstance.cpp. The destructor writes both tables before
@@ -91,13 +91,6 @@ public:
  * presenting as. They remain together as the explicit closed registry-method
  * family in engine_code/registry_classes.cpp until original TU ownership is proved.
  */
-
-class stTextureAnim {
-public:
-    const char* getClassName() const;     /* 0x00485800 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x00485810 */
-    unsigned long getClassID() const;     /* 0x004857F0 */
-};
 
 class stTextureFile {
 public:

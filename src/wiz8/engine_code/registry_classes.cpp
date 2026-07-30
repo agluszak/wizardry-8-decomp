@@ -239,41 +239,6 @@ const char* W8Fog005EC94C::getClassName() const
 {
     return "srFog";
 }
-// FUNCTION: WIZ8 0x004857F0
-unsigned long stTextureAnim::getClassID() const
-{
-    return 0x10000;
-}
-// FUNCTION: WIZ8 0x00485800
-const char* stTextureAnim::getClassName() const
-{
-    return "stTextureAnim";
-}
-// FUNCTION: WIZ8 0x00485810
-srRegistry::ClassNode* stTextureAnim::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10000);
-
-    if (!node) {
-        srRegistry* texture_registry = srCore.getRegistry();
-        srRegistry::ClassNode* texture = texture_registry->getClassNode(0x2110);
-
-        if (!texture) {
-            srRegistry* iface_registry = srCore.getRegistry();
-            srRegistry::ClassNode* iface = iface_registry->getClassNode(0x2100);
-
-            if (!iface) {
-                iface = iface_registry->registerClass(
-                    "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
-            }
-            texture = texture_registry->registerClass(
-                srTexture::sGetClassName(), iface, 0x2110, 0);
-        }
-        node = registry->registerClass("stTextureAnim", texture, 0x10000, 0);
-    }
-    return node;
-}
 // FUNCTION: WIZ8 0x0049DB10
 unsigned long W8Illuminator005ECCD8::getClassID() const
 {

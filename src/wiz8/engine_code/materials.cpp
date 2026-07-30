@@ -1,5 +1,9 @@
 #include "surrender/srCore.h"
 #include "surrender/srMaterial.h"
+#include "surrender/srMeshModel.h"
+#include "surrender/srModelInstance.h"
+#include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/stTextureAnim.h"
 
 /* Engine Code\materials.cpp. Its canonical assertions name the pointer
    ppstMaterial, and the constructor at 0x004925B0 registers the class with
@@ -98,4 +102,52 @@ srMaterial* stMaterial::vslot7()
         instance->m_field_78 = m_field_78;
     }
     return instance;
+}
+
+/* getPolyTexture selects the layer and table up front, then returns one smart
+   pointer per polygon. Report whether any selected texture is animated. */
+// FUNCTION: WIZ8 0x004b9aa0
+unsigned char MeshHasAnimatedTexture004B9AA0(srMeshModel* model)
+{
+    if (model != 0) {
+        srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 0);
+
+        if (textures != 0) {
+            int polygon;
+
+            for (polygon = 0; polygon < model->polygon_count_230; ++polygon) {
+                srTextureIFace* texture = textures[polygon].get();
+
+                if (texture != 0 &&
+                    texture->getClassID() == stTextureAnim::CLASS_ID) {
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+/* The model instance's srModel::Client base supplies its mesh model. The first
+   polygon texture is the shared animation object whose frame is restarted. */
+// FUNCTION: WIZ8 0x004b9b00
+void SetModelAnimatedTextureFrame004B9B00(
+    srModelInstance* instance, int frame)
+{
+    if (instance != 0) {
+        srMeshModel* model = static_cast<srMeshModel*>(instance->model());
+
+        if (model != 0) {
+            srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 0);
+
+            if (textures != 0) {
+                srTextureIFace* texture = textures[0].get();
+
+                if (texture != 0 &&
+                    texture->getClassID() == stTextureAnim::CLASS_ID) {
+                    static_cast<stTextureAnim*>(texture)->SetFrame00485400(frame);
+                }
+            }
+        }
+    }
 }

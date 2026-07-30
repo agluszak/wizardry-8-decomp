@@ -3,6 +3,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/grcycle.h"
@@ -1830,6 +1831,42 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
         return monster_info->flag_2ab;
     }
     return monster_info->flag_24d;
+}
+
+/* Discover animated material state once, cache it in flags_1dc, and restart
+   the selected model's animated texture on frame zero when present. */
+// FUNCTION: WIZ8 0x004c51d0
+void W8Monster::InitializeAnimatedTexture004C51D0()
+{
+    srModelInstance* instance = 0;
+
+    if (m_pRep->flag_064 == 0) {
+        if ((flags_1dc & 2) == 0) {
+            srMeshModel* model;
+
+            instance = SelectCycleFrameLod004A8360(
+                m_pRep->selection.monster.current_cycle,
+                0,
+                m_pRep->setting_98);
+            model = static_cast<srMeshModel*>(instance->model());
+            if (MeshHasAnimatedTexture004B9AA0(model) == 0) {
+                flags_1dc &= ~4;
+            }
+            else {
+                flags_1dc |= 4;
+            }
+            flags_1dc |= 2;
+        }
+        if ((flags_1dc & 4) != 0) {
+            if (instance == 0) {
+                instance = SelectCycleFrameLod004A8360(
+                    m_pRep->selection.monster.current_cycle,
+                    0,
+                    m_pRep->setting_98);
+            }
+            SetModelAnimatedTextureFrame004B9B00(instance, 0);
+        }
+    }
 }
 
 /* Forward to the object's own vtable slot four. */

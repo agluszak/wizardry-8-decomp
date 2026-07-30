@@ -204,6 +204,7 @@ public:
     void SetDamageStage004C6990(int stage);
     int GetDamageStageCount004C6A50();
     unsigned char IsRenderable004C7C00(char alternate);
+    void InitializeAnimatedTexture004C51D0();
     void HandleAnimationThreshold004C75C0();
     void HandleAnimationFrame004C74D0(unsigned char frame);
     void UpdateShakeEvents004C3380(unsigned char frame);
