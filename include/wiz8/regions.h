@@ -51,6 +51,7 @@ void SetRegionHelpText(const wchar_t* text);
 void ResetRegionHelp(unsigned char delayed);
 void EnableRegionHelp(unsigned int region_index);
 void DisableRegionHelp(unsigned int region_index);
+unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 
 #ifdef __cplusplus
 }

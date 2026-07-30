@@ -1,5 +1,6 @@
-#include "wiz8/dialog_base.h"
-#include "wiz8/gameplay_boundaries.h"
+#include "wiz8/dialog_code/Dialog005A80A0.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/regions.h"
 
 /* Dialog Code. W8Dialog005A80A0 is a modal popup built on the unnamed base
    constructed by 0x005D25B0 and destroyed by 0x005D2610. Only members touched
@@ -9,33 +10,11 @@
    The base is the shared W8DialogBase005D25B0 in wiz8/dialog_base.h, whose
    fifteen slots this class inherits; it overrides only slot 9. */
 
-/* The object the dialog notifies when it closes. Only its first virtual slot
-   is reached, and only with these two arguments. */
-struct W8DialogNotifyTarget {
-    virtual void Notify(unsigned char reason, int value) = 0;
-};
-
 /* Table of message payloads the dialog is constructed against; the caller
    passes an index into it. */
 
 /* Registers the dialog's region set. */
 extern void ActivateDialogRegion(int region_set);  /* 0x004F2040 */
-
-class W8Dialog005A80A0 : public W8DialogBase005D25B0 {
-public:
-    W8Dialog005A80A0(int message_index, int caption_id, int notify_value);
-    virtual ~W8Dialog005A80A0() override;         /* 0x005A8190 */
-    /* The canonical table places this override at the inherited slot 9, whose
-       base body is BaseClose. The model cannot say so yet: overriding needs
-       the base slot's recovered signature, and only its return type is known
-       here - so the position is asserted in this comment rather than by the
-       type system, and the emitted body is unaffected either way. */
-    virtual unsigned char Close();       /* 0x005A81A0, canonical slot 9 */
-
-private:
-    int notify_value_98;                 /* 0x98 */
-    W8DialogNotifyTarget* notify_target; /* 0x9c */
-};                                       /* 0xa0 */
 
 /* The base constructor runs first and the vtable install follows it, so the
    body is just the two own fields and the dialog setup sequence. The /GX EH
