@@ -31,6 +31,42 @@ EXPORTS
     ?getUTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
     ?getRawTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z
     ?getRawTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
+    ??0srVariableTimer@@QAE@ABV0@@Z
+    ??0srVariableTimer@@QAE@ABVsrTimer@@@Z
+    ??0srVariableTimer@@QAE@HHHMK@Z
+    ??1srVariableTimer@@UAE@XZ
+    ??4srVariableTimer@@QAEAAV0@ABV0@@Z
+    ??4srVariableTimer@@QAEAAV0@ABVsrTimer@@@Z
+    ??6@YAAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@AAV01@ABVsrVariableTimer@@@Z
+    ??_7srVariableTimer@@6B@
+    ?addTime@srVariableTimer@@QAEXM@Z
+    ?getAscTime@srVariableTimer@@UAEPADPADW4e_timerReadControl@srTimer@@@Z
+    ?getBaseAscTime@srVariableTimer@@QAEPADPADW4e_timerReadControl@srTimer@@@Z
+    ?getBaseMsTime@srVariableTimer@@QAEKW4e_timerReadControl@srTimer@@@Z
+    ?getBaseRawTime@srVariableTimer@@QAEKAAVsrQuadWord@@W4e_timerReadControl@srTimer@@@Z
+    ?getBaseRawTime@srVariableTimer@@QAEKW4e_timerReadControl@srTimer@@@Z
+    ?getBaseTime@srVariableTimer@@QAENW4e_timerReadControl@srTimer@@@Z
+    ?getBaseUTime@srVariableTimer@@QAEKAAVsrQuadWord@@W4e_timerReadControl@srTimer@@@Z
+    ?getBaseUTime@srVariableTimer@@QAEKW4e_timerReadControl@srTimer@@@Z
+    ?getMsTime@srVariableTimer@@UAEKW4e_timerReadControl@srTimer@@@Z
+    ?getMultiplier@srVariableTimer@@QBEMXZ
+    ?getRawTime@srVariableTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@srTimer@@@Z
+    ?getRawTime@srVariableTimer@@UAEKW4e_timerReadControl@srTimer@@@Z
+    ?getTime@srVariableTimer@@UAENW4e_timerReadControl@srTimer@@@Z
+    ?getUTime@srVariableTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@srTimer@@@Z
+    ?getUTime@srVariableTimer@@UAEKW4e_timerReadControl@srTimer@@@Z
+    ?is_stepping@srVariableTimer@@QBEHXZ
+    ?pause@srVariableTimer@@UAEHXZ
+    ?reset@srVariableTimer@@QAEHMKHHH@Z
+    ?reset@srVariableTimer@@UAEHHHH@Z
+    ?resetMultiplier@srVariableTimer@@QAEXXZ
+    ?resume@srVariableTimer@@UAEKXZ
+    ?setMultiplier@srVariableTimer@@QAEXM@Z
+    ?setTime@srVariableTimer@@QAEXM@Z
+    ?stepBack@srVariableTimer@@QAEXK@Z
+    ?stepBegin@srVariableTimer@@QAEHK@Z
+    ?stepEnd@srVariableTimer@@QAEKXZ
+    ?stepForward@srVariableTimer@@QAEXK@Z
     ?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?srAssertFail@@YAXPBD0J0ZZ
     ?srAssertFail@@YAXPBD0J0@Z = ?srAssertFail@@YAXPBD0J0ZZ
