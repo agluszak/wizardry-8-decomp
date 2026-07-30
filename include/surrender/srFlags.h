@@ -1,0 +1,11 @@
+#pragma once
+
+template <class Enum>
+class srFlags {
+public:
+    explicit srFlags(unsigned long bits) : value(bits) {}
+
+    unsigned long value;
+};
+
+static_assert(sizeof(srFlags<int>) == 0x04, "srFlags_must_be_0x04");

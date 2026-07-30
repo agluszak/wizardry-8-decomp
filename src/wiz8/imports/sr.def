@@ -256,6 +256,16 @@ EXPORTS
     ?setWorldSpaceRotation@srNode@@QAEXABV?$srMatrix3T@N@@@Z
     ?yawAt@srNode@@QAEXABV?$srVector3T@N@@N@Z
     ?yawAt@srNode@@QAEXPBV1@N@Z
+    ?clearNotify@srNode@@IAEXW4e_notify@1@@Z
+    ?notifyChildren@srNode@@QAEXABV?$srFlags@W4e_notify@srNode@@@@@Z
+    ?notifyDependent@srNode@@QAEXXZ
+    ?notifyParents@srNode@@QAEXABV?$srFlags@W4e_notify@srNode@@@@@Z
+    ?sceneGraphCSect@srNode@@0VsrCriticalSection@@A
+    ?sceneGraphLockCount@srNode@@0JA
+    ?setNotify@srNode@@IAEXW4e_notify@1@@Z
+    ?signal@srNode@@QAEXKPAX@Z
+    ?signalInternal@srNode@@AAEXKPAX@Z
+    ?testNotify@srNode@@IBEHW4e_notify@1@@Z
     ??4srLight@@QAEAAV0@ABV0@@Z
     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ??0srTexture@@IAE@XZ

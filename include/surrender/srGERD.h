@@ -4,18 +4,12 @@
 #include "srTexture.h"
 #include "srTypeRegistry.h"
 #include "srMath.h"
+#include "srFlags.h"
 
 class srRendererDefs {
 public:
     enum e_primitive {};
     enum e_clip {};
-};
-
-template <class Enum>
-class srFlags {
-public:
-    explicit srFlags(unsigned long bits) : value(bits) {}
-    unsigned long value;
 };
 
 class SR_DLL_IMPORT srGERD : public srRuntimeClass {

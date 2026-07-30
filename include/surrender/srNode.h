@@ -1,11 +1,14 @@
 #pragma once
 
+#include "srFlags.h"
 #include "srMath.h"
 #include "srTypeRegistry.h"
 #include "srVertexProcessor.h"
 
 template <class T>
 class srMatrix4x3T;
+
+class srCriticalSection;
 
 /* Reconstructed from SR.DLL's export table and the reviewed 13-slot srNode
    vtable. First-party scene traversal establishes the two child-list links;
@@ -55,6 +58,8 @@ public:
         FLAG_POSITIONAL_2 = 2
     };
 
+    enum e_notify {};
+
     SR_DLL_IMPORT srNode(srNode* parent);
     SR_DLL_IMPORT srNode(const srNode& other);
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
@@ -89,6 +94,9 @@ public:
 
 protected:
     virtual SR_DLL_IMPORT int processSignal(unsigned long signal, void* value);
+    SR_DLL_IMPORT void clearNotify(e_notify notification);
+    SR_DLL_IMPORT void setNotify(e_notify notification);
+    SR_DLL_IMPORT int testNotify(e_notify notification) const;
 
 public:
     SR_DLL_IMPORT srNode* cloneHierarchy(srNode* parent);
@@ -193,6 +201,10 @@ public:
         const srMatrix3T<double>& rotation);
     SR_DLL_IMPORT void setFlag(e_flag flag);
     SR_DLL_IMPORT void clearFlag(e_flag flag);
+    SR_DLL_IMPORT void notifyChildren(const srFlags<e_notify>& notifications);
+    SR_DLL_IMPORT void notifyDependent();
+    SR_DLL_IMPORT void notifyParents(const srFlags<e_notify>& notifications);
+    SR_DLL_IMPORT void signal(unsigned long signal, void* value);
     SR_DLL_IMPORT int testFlag(e_flag flag) const;
     SR_DLL_IMPORT void yawAt(
         const srVector3T<double>& target, double amount);
@@ -202,6 +214,11 @@ public:
     srNode* firstChild() const { return first_child_; }
 
 private:
+    SR_DLL_IMPORT void signalInternal(unsigned long signal, void* value);
+
+    static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
+    static SR_DLL_IMPORT long sceneGraphLockCount;
+
     unsigned char unknown_18_[0x110];
     srNode* next_sibling_;                  /* 0x128 */
     srNode* previous_sibling_;              /* 0x12c */
