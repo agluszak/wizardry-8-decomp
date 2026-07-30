@@ -10,7 +10,25 @@ class srRuntimeClass;
 
 class srRegistry {
 public:
-    class ClassNode;
+    class ClassNode {
+        friend class srRegistry;
+
+        struct ChildLink;
+        struct NameIndex;
+        struct IDIndex;
+
+        unsigned long child_count_00;
+        ChildLink* first_child_04;
+        ChildLink* child_end_08;
+        ClassNode* parent_0c;
+        unsigned long class_id_10;
+        const char* class_name_14;
+        NameIndex* named_instances_18;
+        NameIndex* inherited_named_instances_1c;
+        IDIndex* instances_by_id_20;
+        IDIndex* inherited_instances_by_id_24;
+        long instance_count_28;
+    };
 
     SR_DLL_IMPORT srRegistry();
     SR_DLL_IMPORT ~srRegistry();
@@ -65,6 +83,8 @@ private:
     CRITICAL_SECTION* critical_section_0c;
 };
 
+static_assert(sizeof(srRegistry::ClassNode) == 0x2c,
+              "srRegistry_ClassNode_must_be_0x2c");
 static_assert(sizeof(srRegistry) == 0x10, "srRegistry_must_be_0x10");
 
 class srRuntimeClass {
