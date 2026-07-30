@@ -1,8 +1,11 @@
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ClipPlane.h"
+#include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
@@ -38,6 +41,122 @@ static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
 } // namespace
 
 extern const float g_world_scale_005ebc40;
+extern const float g_environment_distance_threshold_005ebcd0;
+extern const float g_environment_near_scale_005ec0b0;
+extern const float g_environment_far_scale_005ec3b8;
+extern srVector3T<float> g_environment_offset_00659cd0;
+extern float* RotateMatrixAroundAxis0042B910(
+    float* matrix, double sine, double cosine, float* axis);
+extern void WorldSetFarClip(W8World* world, float distance);
+extern void WorldSetValue74(W8World* world, float value);
+
+// FUNCTION: WIZ8 0x004BC9D0
+unsigned char ReadWorldEnvironment004BC9D0(
+    W8ReadLevelInfo* pInfo, W8World* pWorld)
+{
+    EnvironmentColour environment_colour;
+    EnvironmentColour white;
+    W8Position position;
+    srVector3T<float> axis;
+    srMatrix3T<float> rotation;
+    float intensity;
+    float view_distance;
+    float angle;
+    float distance_scale;
+    unsigned char camera_mode;
+    unsigned char has_light_colours;
+    unsigned char has_environment_colours;
+    unsigned char fog_enabled;
+    unsigned char success;
+
+    success =
+        ReadVirtualFile(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
+        ReadVirtualFile(pInfo->hFile, &environment_colour.red,
+                        sizeof(environment_colour.red), 0) &&
+        ReadVirtualFile(pInfo->hFile, &environment_colour.green,
+                        sizeof(environment_colour.green), 0) &&
+        ReadVirtualFile(pInfo->hFile, &environment_colour.blue,
+                        sizeof(environment_colour.blue), 0) &&
+        ReadVirtualFile(pInfo->hFile, &intensity, sizeof(intensity), 0) &&
+        ReadVirtualFile(pInfo->hFile, &view_distance,
+                        sizeof(view_distance), 0) &&
+        ReadVirtualFile(pInfo->hFile, &camera_mode, sizeof(camera_mode), 0);
+
+    if (camera_mode == 1) {
+        success = success && ReadVirtualFile(
+            pInfo->hFile, &position, sizeof(position), 0);
+        position.x *= g_world_scale_005ebc40;
+        position.y *= g_world_scale_005ebc40;
+        position.z *= g_world_scale_005ebc40;
+        SetWorldScenePosition004511D0(pWorld, &position);
+    }
+    else if (camera_mode == 2) {
+        success = success &&
+            ReadVirtualFile(pInfo->hFile, &position, sizeof(position), 0) &&
+            ReadVirtualFile(pInfo->hFile, &angle, sizeof(angle), 0) &&
+            ReadVirtualFile(pInfo->hFile, &axis.x, sizeof(axis.x), 0) &&
+            ReadVirtualFile(pInfo->hFile, &axis.y, sizeof(axis.y), 0) &&
+            ReadVirtualFile(pInfo->hFile, &axis.z, sizeof(axis.z), 0);
+        position.x *= g_world_scale_005ebc40;
+        position.y *= g_world_scale_005ebc40;
+        position.z *= g_world_scale_005ebc40;
+        SetWorldScenePosition004511D0(GetWorld(), &position);
+
+        rotation.vectors[0].method_00421680(1.0f, 0.0f, 0.0f);
+        rotation.vectors[1].method_00421680(0.0f, 1.0f, 0.0f);
+        rotation.vectors[2].method_00421680(0.0f, 0.0f, 1.0f);
+        if (angle != 0.0f) {
+            RotateMatrixAroundAxis0042B910(
+                &rotation.vectors[0].x, sin(angle), cos(angle), &axis.x);
+        }
+        Function421030(&rotation);
+    }
+
+    success = success && ReadVirtualFile(
+        pInfo->hFile, &has_light_colours, sizeof(has_light_colours), 0);
+    if (has_light_colours != 0) {
+        ReadLightColourTable00482F90(pInfo->hFile);
+    }
+    else {
+        BuildLightColourRamp00483360();
+    }
+
+    success = success && ReadVirtualFile(
+        pInfo->hFile, &has_environment_colours,
+        sizeof(has_environment_colours), 0);
+    if (has_environment_colours != 0) {
+        ReadEnvironmentColourTable004830D0(pInfo->hFile);
+    }
+    else {
+        BuildEnvironmentColourRamp00483210();
+    }
+
+    g_environment_offset_00659cd0.x = 0.0f;
+    g_environment_offset_00659cd0.y = 0.0f;
+    g_environment_offset_00659cd0.z = 0.0f;
+    pWorld->view_distance_020 = view_distance * g_world_scale_005ebc40;
+    white.red = 1.0f;
+    white.green = 1.0f;
+    white.blue = 1.0f;
+    SetWorldEnvironment00483BA0(pWorld, intensity, &white);
+    WorldSetFarClip(pWorld, pWorld->view_distance_020);
+    distance_scale = view_distance < g_environment_distance_threshold_005ebcd0
+        ? g_environment_near_scale_005ec0b0
+        : g_environment_far_scale_005ec3b8;
+    WorldSetValue74(pWorld, distance_scale * pWorld->view_distance_020);
+    pWorld->environment_range_start_014 = environment_colour.red;
+    pWorld->environment_range_end_018 = environment_colour.green;
+    pWorld->m_positional_01c = environment_colour.blue;
+
+    if (fog_enabled == 0) {
+        SetFogEnabled(0);
+    }
+    else {
+        SetFogEnabled(1);
+        UpdateEnvironmentLight004834B0();
+    }
+    return success;
+}
 
 // FUNCTION: WIZ8 0x004BCE20
 unsigned char ReadWorldClipPlanes004BCE20(

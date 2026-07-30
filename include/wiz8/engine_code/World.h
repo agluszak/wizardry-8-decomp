@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
@@ -63,10 +64,13 @@ struct W8World {
     W8PList* plsProps;
     W8PList* plsCameras;
     W8PList* plsAmbientSounds;
-    float m_positional_014;
-    float m_positional_018;
+    float environment_range_start_014;
+    float environment_range_end_018;
     float m_positional_01c;
-    unsigned char m_positional_020[0x18];
+    float view_distance_020;
+    float environment_intensity_024;
+    unsigned char m_positional_028[4];
+    EnvironmentColour environment_colour_02c;
     stLevel* level;
     W8Scene005EBE48* static_scene;
     W8Node005EC208* dynamic_scene;
@@ -97,7 +101,10 @@ struct W8World {
 
 };
 
-extern "C" W8World* g_world;
+extern "C" {
+extern W8World* g_world;
+W8World* GetWorld(void);
+}
 
 W8World* CreateWorld();
 unsigned char LoadWorld(

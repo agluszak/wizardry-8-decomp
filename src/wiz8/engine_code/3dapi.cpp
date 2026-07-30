@@ -285,9 +285,9 @@ W8World* CreateWorld()
     world->dynamic_scene->setName("Sir-Tech Dynamic Scene");
     Function46DC90(world->static_scene);
     ConstructWorldCollections(world);
-    world->m_positional_018 = 1.0f;
+    world->environment_range_end_018 = 1.0f;
     world->m_positional_01c = 1.0f;
-    world->m_positional_014 = 0.75f;
+    world->environment_range_start_014 = 0.75f;
     return world;
 }
 

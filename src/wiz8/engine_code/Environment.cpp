@@ -1,10 +1,14 @@
+#include <cstring>
+
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/Fog.h"
 #include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
@@ -36,6 +40,8 @@ extern int g_environment_value_0065a16c;
 extern int g_environment_value_0065a170;
 extern int g_dword_6874f7;
 extern unsigned long g_tick_65b9a8;
+extern "C" EnvironmentColour g_environment_colours_65a178[256];
+extern "C" EnvironmentColour g_environment_colours_65ad98[256];
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
    two bodies reach, and it is the same W8World the 3d code walks. */
 
@@ -45,6 +51,125 @@ extern W8Fog005EC94C* g_environment_object_0065b9b4;
 extern int g_environment_count_0065b99c;
 
 extern void PublishLightDirection(const int* direction);                 /* 0x00427380 */
+
+/* The same component clamp is expanded at every red, green and blue write in
+   all four table bodies below; it is source structure shared by those bodies,
+   not an optimizer-control annotation. */
+#define CLAMP_ENVIRONMENT_COMPONENT(component) \
+    do {                                         \
+        if (0.0f < (component)) {               \
+            if (1.0f <= (component)) {          \
+                (component) = 1.0f;             \
+            }                                    \
+        }                                        \
+        else {                                   \
+            (component) = 0.0f;                 \
+        }                                        \
+    } while (0)
+
+// FUNCTION: WIZ8 0x00482F90
+unsigned char ReadLightColourTable00482F90(int hFile)
+{
+    unsigned char components[256 * 3];
+    int index;
+
+    memset(components, 0xff, sizeof(components));
+    if (hFile == 0 ||
+        !ReadVirtualFile(hFile, components, sizeof(components), 0)) {
+        return 0;
+    }
+
+    for (index = 0; index < 256; ++index) {
+        g_environment_colours_65ad98[index].red =
+            components[index * 3] * (1.0f / 255.0f);
+        g_environment_colours_65ad98[index].green =
+            components[index * 3 + 1] * (1.0f / 255.0f);
+        g_environment_colours_65ad98[index].blue =
+            components[index * 3 + 2] * (1.0f / 255.0f);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004830D0
+unsigned char ReadEnvironmentColourTable004830D0(int hFile)
+{
+    unsigned char components[256 * 3];
+    int index;
+
+    memset(components, 0xff, sizeof(components));
+    if (hFile == 0 ||
+        !ReadVirtualFile(hFile, components, sizeof(components), 0)) {
+        return 0;
+    }
+
+    for (index = 0; index < 256; ++index) {
+        g_environment_colours_65a178[index].red =
+            components[index * 3] * (1.0f / 255.0f);
+        g_environment_colours_65a178[index].green =
+            components[index * 3 + 1] * (1.0f / 255.0f);
+        g_environment_colours_65a178[index].blue =
+            components[index * 3 + 2] * (1.0f / 255.0f);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00483210
+void BuildEnvironmentColourRamp00483210(void)
+{
+    int index;
+    float value;
+
+    for (index = 0; index < 128; ++index) {
+        value = index * (1.0f / 255.0f);
+        g_environment_colours_65a178[index].red = value;
+        g_environment_colours_65a178[index].green = value;
+        g_environment_colours_65a178[index].blue = value;
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
+    }
+    for (; index < 256; ++index) {
+        value = (255 - index) * (1.0f / 255.0f);
+        g_environment_colours_65a178[index].red = value;
+        g_environment_colours_65a178[index].green = value;
+        g_environment_colours_65a178[index].blue = value;
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
+    }
+}
+
+// FUNCTION: WIZ8 0x00483360
+void BuildLightColourRamp00483360(void)
+{
+    int index;
+    float value;
+
+    for (index = 0; index < 128; ++index) {
+        value = index * (1.0f / 255.0f);
+        g_environment_colours_65ad98[index].red = value;
+        g_environment_colours_65ad98[index].green = value;
+        g_environment_colours_65ad98[index].blue = value;
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+    }
+    for (; index < 256; ++index) {
+        value = (255 - index) * (1.0f / 255.0f);
+        g_environment_colours_65ad98[index].red = value;
+        g_environment_colours_65ad98[index].green = value;
+        g_environment_colours_65ad98[index].blue = value;
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+    }
+}
 
 // SYNTHETIC: WIZ8 0x00484840
 // W8Fog005EC94C::`scalar deleting destructor'
@@ -117,13 +242,13 @@ void SetSkyEnabled(unsigned char enabled)
 
         if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
             g_environment_object_0065b9b0->m_positional_double_20 =
-                WorldGetFarClip(g_world) * g_world->m_positional_018;
+                WorldGetFarClip(g_world) * g_world->environment_range_end_018;
             g_environment_object_0065b9b0->m_positional_double_18 =
-                WorldGetFarClip(g_world) * g_world->m_positional_014;
+                WorldGetFarClip(g_world) * g_world->environment_range_start_014;
             g_environment_object_0065b9b4->m_positional_double_18 =
-                WorldGetFarClip(g_world) * g_world->m_positional_014;
+                WorldGetFarClip(g_world) * g_world->environment_range_start_014;
             g_environment_object_0065b9b4->m_positional_double_20 =
-                WorldGetFarClip(g_world) * g_world->m_positional_018;
+                WorldGetFarClip(g_world) * g_world->environment_range_end_018;
         }
 
         PublishLightDirection(&g_light_direction_0065ad78);
@@ -131,8 +256,8 @@ void SetSkyEnabled(unsigned char enabled)
             return;
         }
         g_world->camera->setEnvironmentRange(
-            (float)WorldGetFarClip(g_world) * g_world->m_positional_014,
-            (float)WorldGetFarClip(g_world) * g_world->m_positional_018);
+            (float)WorldGetFarClip(g_world) * g_world->environment_range_start_014,
+            (float)WorldGetFarClip(g_world) * g_world->environment_range_end_018);
         return;
     }
 

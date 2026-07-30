@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 
@@ -31,14 +32,8 @@ void InitializeRenderQuality(void)
     quality[11] = 3;
 }
 
-struct EnvironmentColour {
-    float red;
-    float green;
-    float blue;
-};
-
-EnvironmentColour g_environment_colours_65a178[512];
-EnvironmentColour g_environment_colours_65ad98[512];
+EnvironmentColour g_environment_colours_65a178[256];
+EnvironmentColour g_environment_colours_65ad98[256];
 int g_environment_value_0065a168;
 int g_environment_value_0065a16c;
 unsigned char g_environment_flag_0060a394;

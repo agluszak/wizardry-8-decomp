@@ -4,6 +4,7 @@
 
 #include "wiz8/combat_state.h"
 #include "wiz8/engine_code/ClipPlane.h"
+#include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -30,9 +31,7 @@ extern unsigned char Function5B1740(void);
 extern void Function48DB30(void);
 extern void ClearValue689FAC(void);
 extern void Function4909C0(void);
-extern void DisableSky(void);
 extern void Function489920(void);
-extern void ReleaseEnvironmentObjects(void);
 extern void ClearValue6834D4(void);
 extern unsigned char SaveLevelStatus(const char* path);
 extern int Function4D9700(int level);
