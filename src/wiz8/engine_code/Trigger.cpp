@@ -1,10 +1,13 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/item_spawning.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "Random.h"
 #include "surrender/srCore.h"
@@ -35,6 +38,20 @@ extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern int PlaySound00408860(const char* path, int* options);
 extern unsigned char g_master_ambient_volume_6850f6;
+extern W8Navigator* g_startup_world_659c0c;
+extern unsigned int FindMonsterLocationsInBox0042F280(
+    int** locations, const srVector3T<float>* lower,
+    const srVector3T<float>* upper, int kind, int excluded_location);
+extern stLight* FindLightByName00445A10(
+    const char* name, const srRuntimeClass* relative_to);
+extern void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
+extern unsigned char g_trigger_action_active_006599c8;
+extern char g_trigger_parse_buffer_00659908[256];
+extern W8GrowableVector<int> g_location_variable_values_00659990;
+extern unsigned char g_flag_00606994;
+extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
+extern int OpenLockInteraction00587510(Trigger* trigger);
+extern int OpenTrapInteraction0058A470(Trigger* trigger);
 static int g_next_trigger_id_006874c6;
 
 Trigger* FindTriggerByName(const char* name)
@@ -71,6 +88,71 @@ W8TriggerEvent::W8TriggerEvent()
 // FUNCTION: WIZ8 0x004409a0
 W8TriggerEvent::~W8TriggerEvent()
 {
+}
+
+// FUNCTION: WIZ8 0x00444810
+unsigned char Trigger::HasActorWithinRadius(
+    float radius, unsigned char include_party)
+{
+    srVector3T<float> center;
+
+    if (flag_0a0_11 != 0 || m_pProp != 0) {
+        if (m_pProp == 0) {
+            center.x = position_118;
+            center.y = position_11c;
+            center.z = position_120;
+        }
+        else {
+            m_pProp->GetCenterPosition(&center);
+        }
+
+        srVector3T<float> lower;
+        srVector3T<float> upper;
+        int* locations = 0;
+        lower.x = center.x - radius;
+        lower.y = center.y - radius;
+        lower.z = center.z - radius;
+        upper.x = center.x + radius;
+        upper.y = center.y + radius;
+        upper.z = center.z + radius;
+
+        unsigned int count = FindMonsterLocationsInBox0042F280(
+            &locations, &lower, &upper, 0x0c, -1);
+        for (unsigned int index = 0; index < count; ++index) {
+            int location_id = locations[index];
+            if (location_id == 0) {
+                break;
+            }
+            unsigned int monster_index = MonsterGetIndexByLocationID(
+                0x1246,
+                "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                location_id, 1);
+            W8MonsterInfo* monster_info =
+                MonsterGetScriptPartByLocationIndex(monster_index);
+            if (monster_info != 0 && monster_info->monster != 0) {
+                srVector3T<float> monster_position =
+                    monster_info->monster->GetPosition();
+                float x = monster_position.x - center.x;
+                float y = monster_position.y - center.y;
+                float z = monster_position.z - center.z;
+                if (sqrt(x * x + y * y + z * z) <= radius) {
+                    return 1;
+                }
+            }
+        }
+    }
+
+    if (include_party != 0) {
+        srVector3T<float> party_position =
+            g_startup_world_659c0c->GetPosition();
+        float x = party_position.x - center.x;
+        float y = party_position.y - center.y;
+        float z = party_position.z - center.z;
+        if (sqrt(x * x + y * y + z * z) <= radius) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x004457c0
@@ -151,9 +233,9 @@ void W8TriggerEvent::Update()
 
     switch (action_004) {
     case 2:
-        if (trigger_030->m_pCountdown != 0 &&
-            trigger_030->m_pCountdown->type_004 == 10 &&
-            (trigger_030->m_pCountdown->flags_008 & 1) != 0) {
+        if (trigger_030->m_pActionData != 0 &&
+            trigger_030->m_pActionData->type_004 == 10 &&
+            (trigger_030->m_pActionData->flags_008 & 1) != 0) {
             trigger_030->Run(-1);
         }
         break;
@@ -224,7 +306,7 @@ void W8TriggerEvent::Update()
         break;
 
     case 0x3f: {
-        Trigger* target = FindTriggerByName(trigger_030->m_pActionData);
+        Trigger* target = FindTriggerByName(trigger_030->m_pacRecipients);
         if (target != 0) {
             target->Run(-1);
         }
@@ -232,7 +314,7 @@ void W8TriggerEvent::Update()
     }
 
     case 0x47: {
-        char* name = trigger_030->m_pActionData;
+        char* name = trigger_030->m_pacRecipients;
         while (name != 0) {
             char buffer[256];
             strcpy(buffer, name);
@@ -264,26 +346,43 @@ void W8TriggerEvent::Update()
 }
 
 // VTABLE: WIZ8 0x005ec138
-// class W8TriggerCountdown
+// class W8TriggerActionData
 
-W8TriggerCountdown::W8TriggerCountdown()
+W8TriggerActionData::W8TriggerActionData()
     : type_004(-1)
 {
 }
 
 // SYNTHETIC: WIZ8 0x0043c7f0
-// W8TriggerCountdown::`scalar deleting destructor'
+// W8TriggerActionData::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00445ee0
-W8TriggerCountdown::~W8TriggerCountdown()
+W8TriggerActionData::~W8TriggerActionData()
 {
 }
 
 // VTABLE: WIZ8 0x005ec148
-// class W8TriggerCountdown005EC148
+// class W8TriggerActionData005EC148
 
 // SYNTHETIC: WIZ8 0x00445ec0
-// W8TriggerCountdown005EC148::`scalar deleting destructor'
+// W8TriggerActionData005EC148::`scalar deleting destructor'
+
+// VTABLE: WIZ8 0x005ec134
+// class W8TriggerActionData005EC134
+
+// VTABLE: WIZ8 0x005ec158
+// class W8TriggerActionData005EC158
+
+// SYNTHETIC: WIZ8 0x00443730
+// W8TriggerActionData005EC158::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00443750
+W8TriggerActionData005EC158::~W8TriggerActionData005EC158()
+{
+    if (owned_string_008 != 0) {
+        delete[] owned_string_008;
+    }
+}
 
 // VTABLE: WIZ8 0x005ec0e4
 // class Trigger
@@ -316,8 +415,8 @@ Trigger::Trigger()
     fallback_action_22e = 0;
     action_230 = 0;
     action_state_232 = 1;
-    m_pCountdown = 0;
     m_pActionData = 0;
+    m_pacRecipients = 0;
     m_pacRequiredStates = 0;
     m_pacStateToMod = 0;
     m_pEvent = 0;
@@ -385,6 +484,391 @@ void Trigger::UpdateActionAnimation()
     PlayActionSound((const char*)action_data, value_229);
 }
 
+// FUNCTION: WIZ8 0x00441110
+void Trigger::FinishAction()
+{
+    unsigned char was_running = flag_0a0_06;
+    unsigned char action_completed = 0;
+    char* recipient;
+
+    flag_0a0_06 = 0;
+
+    if (trigger_kind_018 == 1) {
+        if (action_230 != 0x39) {
+            goto reactivate_linked_triggers;
+        }
+        if (m_pEvent != 0) {
+            m_pEvent->completed_035 = 1;
+        }
+        g_trigger_action_active_006599c8 = 0;
+        goto finish_linked_triggers;
+    }
+
+    if (trigger_kind_018 != 2) {
+        goto reactivate_linked_triggers;
+    }
+
+    switch (action_230) {
+    case 0x0c:
+        if (m_pEvent != 0 && m_lData2 > 0) {
+            m_pEvent->completed_035 = 1;
+        }
+        action_completed = 1;
+        break;
+
+    case 0x23: {
+        int index = g_timed_events_006599b8.IndexOf(m_pEvent);
+        if (index >= 0) {
+            g_timed_events_006599b8.RemoveAt(index);
+        }
+        action_completed = 1;
+        break;
+    }
+
+    case 0x39:
+        if (m_pEvent != 0) {
+            m_pEvent->completed_035 = 1;
+        }
+        g_trigger_action_active_006599c8 = 0;
+        action_completed = 1;
+        break;
+    }
+
+    if (flag_0a0_03 == 0 && action_230 != 0) {
+        if (action_230 == 4) {
+            recipient = m_pacRecipients;
+            action_completed = 0;
+            while (recipient != 0) {
+                strcpy(g_trigger_parse_buffer_00659908, recipient);
+                char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
+                if (comma == 0) {
+                    recipient = 0;
+                }
+                else {
+                    recipient = strchr(recipient, ',') + 1;
+                    *comma = '\0';
+                }
+
+                stLight* light = FindLightByName00445A10(
+                    g_trigger_parse_buffer_00659908, 0);
+                if (light != 0) {
+                    light->m_positional_23a = 1;
+                    if (light->testFlag(srNode::FLAG_POSITIONAL_0) == 0) {
+                        light->setFlag(srNode::FLAG_POSITIONAL_0);
+                    }
+                    else {
+                        light->clearFlag(srNode::FLAG_POSITIONAL_0);
+                    }
+                    action_completed = 1;
+                }
+            }
+        }
+        else if (action_230 == 0x22) {
+            if (m_pActionData == 0) {
+                srAssertFail(
+                    "m_pActionData",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    2822,
+                    "Trigger.cpp: Dark Area doesn't have action data");
+            }
+            SetWorldEnvironmentValue00483AE0(
+                g_world, m_pActionData->float_value_008);
+            delete m_pActionData;
+            m_pActionData = 0;
+            goto finish_linked_triggers;
+        }
+
+        if (action_completed == 0) {
+            goto reactivate_linked_triggers;
+        }
+    }
+
+finish_linked_triggers:
+    if (flag_0a0_07 != 0) {
+        recipient = m_pacRecipients;
+        while (recipient != 0) {
+            strcpy(g_trigger_parse_buffer_00659908, recipient);
+            char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
+            if (comma == 0) {
+                recipient = 0;
+            }
+            else {
+                recipient = strchr(recipient, ',') + 1;
+                *comma = '\0';
+            }
+
+            Trigger* trigger = FindTriggerByName(
+                g_trigger_parse_buffer_00659908);
+            if (trigger != 0) {
+                trigger->FinishAction();
+            }
+        }
+    }
+
+reactivate_linked_triggers:
+    if (was_running != 0 && flag_0a0_04 != 0 && flag_0a0_21 != 0) {
+        recipient = m_pacRecipients;
+        while (recipient != 0) {
+            strcpy(g_trigger_parse_buffer_00659908, recipient);
+            char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
+            if (comma == 0) {
+                recipient = 0;
+            }
+            else {
+                recipient = strchr(recipient, ',') + 1;
+                *comma = '\0';
+            }
+
+            Trigger* trigger = FindTriggerByName(
+                g_trigger_parse_buffer_00659908);
+            if (trigger != 0) {
+                trigger->Run(-1);
+            }
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x00445480
+static char* NextTriggerRecipient(char** cursor)
+{
+    char* comma;
+
+    if (*cursor == 0) {
+        return 0;
+    }
+    strcpy(g_trigger_parse_buffer_00659908, *cursor);
+    comma = strchr(g_trigger_parse_buffer_00659908, ',');
+    if (comma != 0) {
+        *cursor = strchr(*cursor, ',') + 1;
+        *comma = '\0';
+    }
+    else {
+        *cursor = 0;
+    }
+    return g_trigger_parse_buffer_00659908;
+}
+
+// FUNCTION: WIZ8 0x00444600
+unsigned char Trigger::CanRunLinkedTriggers()
+{
+    char* recipient;
+
+    if (m_pProp != 0 && m_pProp->m_owned_14->unknown_06d != 0) {
+        return 0;
+    }
+    recipient = m_pacRecipients;
+    while (recipient != 0) {
+        char* comma;
+        Trigger* trigger;
+
+        strcpy(g_trigger_parse_buffer_00659908, recipient);
+        comma = strchr(g_trigger_parse_buffer_00659908, ',');
+        if (comma != 0) {
+            recipient = strchr(recipient, ',') + 1;
+            *comma = '\0';
+        }
+        else {
+            recipient = 0;
+        }
+        trigger = FindTriggerByName(g_trigger_parse_buffer_00659908);
+        if (trigger != 0 && trigger->CanRunLinkedTriggers() == 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0043d340
+unsigned char Trigger::SelectAction()
+{
+    unsigned char fallback_selected = 0;
+    unsigned char result = 1;
+
+    if (g_flag_6081e4 == 0 && m_pActionData != 0 &&
+        m_pActionData->type_004 == 10 &&
+        (m_pActionData->flags_008 & 1) != 0) {
+        return 0;
+    }
+
+    if ((flag_0a0_06 != 0 && action_230 != 0x39) || flag_0a0_04 == 0 ||
+        (flag_0a0_18 != 0 && flag_0a0_19 != 0)) {
+        action_state_232 = 1;
+        return 0;
+    }
+
+    if (m_pacRequiredStates != 0) {
+        if (strchr(m_pacRequiredStates, ',') == 0) {
+            int state_id = GetLocationVarIDByName(m_pacRequiredStates);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    4317, 0);
+            }
+            if (*g_location_variable_values_00659990.GetAt(state_id) == 0) {
+                action_230 = fallback_action_22e;
+                action_state_232 = 4;
+                fallback_selected = 1;
+            }
+        }
+        else {
+            char* required_state = 0;
+            unsigned char more_states = 1;
+            char state_name[128];
+
+            while (more_states != 0) {
+                char* comma;
+                int state_id;
+
+                if (required_state == 0) {
+                    required_state = m_pacRequiredStates;
+                }
+                else {
+                    required_state = strchr(required_state, ',') + 1;
+                }
+                strcpy(state_name, required_state);
+                comma = strchr(state_name, ',');
+                if (comma == 0) {
+                    more_states = 0;
+                }
+                else {
+                    *comma = '\0';
+                }
+
+                state_id = GetLocationVarIDByName(state_name);
+                if (state_id == -1) {
+                    srAssertFail(
+                        "iVar != BAD_INDEX",
+                        "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                        4317, 0);
+                }
+                if (*g_location_variable_values_00659990.GetAt(state_id) == 0) {
+                    action_230 = fallback_action_22e;
+                    action_state_232 = 4;
+                    fallback_selected = 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (m_pActionData == 0 || m_pActionData->type_004 != 10) {
+        if (value_23c >= 0) {
+            if (GetItemInHand() == value_23c) {
+                if (flag_0a0_16 != 0) {
+                    RemovePartyItemByID005215D0(value_23c, 0);
+                    value_23c = -1;
+                }
+            }
+            else {
+                if (m_lData2 == 1 && activation_callback_360 != 0) {
+                    activation_callback_360(this);
+                }
+                action_230 = fallback_action_22e;
+                action_state_232 = 4;
+                fallback_selected = 1;
+            }
+        }
+    }
+    else {
+        W8TriggerActionData005EC134* action_data =
+            static_cast<W8TriggerActionData005EC134*>(m_pActionData);
+        unsigned char linked_trigger_blocked = 0;
+
+        if (m_pProp != 0 && m_pProp->m_owned_14->unknown_06d != 0) {
+            linked_trigger_blocked = 1;
+        }
+        else {
+            char* cursor = m_pacRecipients;
+            char* name;
+            while ((name = NextTriggerRecipient(&cursor)) != 0) {
+                Trigger* trigger = FindTriggerByName(name);
+                if (trigger != 0 && trigger->CanRunLinkedTriggers() == 0) {
+                    linked_trigger_blocked = 1;
+                    break;
+                }
+            }
+        }
+
+        if (linked_trigger_blocked != 0) {
+            if (m_pEvent == 0 || g_timed_events_006599b8.IndexOf(m_pEvent) == -1) {
+                return 0;
+            }
+            m_pEvent->timer_008.Restart();
+            if (m_pEvent->auxiliary_timer_02c != 0) {
+                m_pEvent->auxiliary_timer_02c->Restart();
+            }
+            if (flag_364 == 0) {
+                g_flag_00606994 = 1;
+            }
+            return 0;
+        }
+
+        if ((action_data->flags_008 & 4) != 0 && action_data->item_00a != -1) {
+            if (GetItemInHand() != action_data->item_00a) {
+                if (m_lData2 == 1 && activation_callback_360 != 0) {
+                    activation_callback_360(this);
+                }
+                action_230 = fallback_action_22e;
+                action_state_232 = 4;
+                fallback_selected = 1;
+            }
+            else {
+                state_370.state = 1;
+                action_data->flags_008 &= ~4;
+                if (action_data->linked_trigger_00c[0] != '\0') {
+                    Trigger* linked_trigger;
+                    action_state_232 = 1;
+                    result = 0;
+                    linked_trigger = FindTriggerByName(
+                        action_data->linked_trigger_00c);
+                    if (linked_trigger != 0) {
+                        linked_trigger->Run(-1);
+                        if (flag_364 == 0) {
+                            g_flag_00606994 = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (value_368 != 0 && state_370.state == 0 && flag_364 == 0) {
+        if (value_368 == 1) {
+            g_flag_00606994 = 1;
+            OpenLockInteraction00587510(this);
+            return 0;
+        }
+        if (value_368 == 2) {
+            g_flag_00606994 = 1;
+            OpenTrapInteraction0058A470(this);
+            return 0;
+        }
+    }
+
+    if (fallback_selected == 0) {
+        if (flag_0a0_14 == 0) {
+            action_230 = initial_action_22a;
+            action_state_232 = 2;
+            if (flag_0a0_13 != 0) {
+                flag_0a0_14 = 1;
+            }
+        }
+        else {
+            action_230 = value_22c;
+            action_state_232 = 3;
+            if (flag_0a0_15 != 0) {
+                flag_0a0_14 = 0;
+            }
+        }
+    }
+    else if (action_230 == 0) {
+        action_state_232 = 1;
+        return 0;
+    }
+    return result;
+}
+
 // FUNCTION: WIZ8 0x0043bc10
 srClass* Trigger::vInstance()
 {
@@ -397,8 +881,8 @@ srClass* Trigger::vInstance()
 // FUNCTION: WIZ8 0x0043bca0
 Trigger::~Trigger()
 {
-    if (m_pActionData != 0) {
-        delete[] m_pActionData;
+    if (m_pacRecipients != 0) {
+        delete[] m_pacRecipients;
     }
     if (m_pacRequiredStates != 0) {
         delete[] m_pacRequiredStates;
@@ -407,8 +891,8 @@ Trigger::~Trigger()
         delete[] m_pacStateToMod;
     }
 
-    if (m_pCountdown != 0) {
-        delete m_pCountdown;
+    if (m_pActionData != 0) {
+        delete m_pActionData;
     }
 
     if (m_pEvent != 0) {

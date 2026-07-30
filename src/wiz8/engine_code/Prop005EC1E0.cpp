@@ -20,43 +20,6 @@
    Nothing names the class or its members, so all keep positional names, and
    the gaps between the four members stay opaque. */
 
-/* Owned through a virtual destructor; two members share this shape and the
-   image does not say whether they share a type. */
-class W8PropOwnedPolymorphic {
-public:
-    virtual ~W8PropOwnedPolymorphic();
-
-    void ToggleAnimation(int argument);   /* 0x0044BA00 */
-    int FindSlotByCurrentTag();           /* 0x0044BAE0 */
-
-    unsigned char unknown_004[0x60];
-    /* 0x64: the argument the prop's own animation calls pass along. */
-    unsigned char setting_64;
-    unsigned char unknown_065;
-    /* 0x66..0x6f: four settings the prop reads and writes through this member.
-       0x6e cycles between one and three; 0x6f having the value two is a state
-       one predicate singles out. */
-    short setting_66;                     /* 0x66 */
-    unsigned char unknown_068[4];
-    unsigned char setting_6c;             /* 0x6c */
-    unsigned char unknown_06d;
-    unsigned char setting_6e;             /* 0x6e */
-    unsigned char setting_6f;             /* 0x6f */
-    unsigned char unknown_070[0x24];
-    /* 0x94: which of the slots below is current, matched against each slot's
-       own leading byte rather than used as an index. */
-    unsigned char current_tag;
-    unsigned char unknown_095[3];
-    /* 0x98: the animation the prop drives. */
-    W8AnimObj* animation;
-    unsigned char unknown_09c[0x18];
-    /* 0xb4 and 0xbc: the slot table, count first and data three dwords along -
-       the shared growable vector's shape. */
-    int slot_count;
-    unsigned char unknown_0b8[4];
-    unsigned char** slots;
-};
-
 /* Released with a null check and then a bare operator delete. A pointer to
    something trivially destructible skips the check entirely, so the check
    without a destructor call is what a declared-but-empty destructor emits. */

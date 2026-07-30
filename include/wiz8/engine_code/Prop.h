@@ -3,9 +3,39 @@
 #include "surrender/srMath.h"
 
 struct GDProp;
+struct W8AnimObj;
 struct W8World;
 class W8PropOwned0020;
-class W8PropOwnedPolymorphic;
+
+/* Prop.cpp owns this animation/state object through a virtual destructor.
+   Trigger.cpp also reads unknown_06d to decide whether a prop-backed trigger
+   can run, so the proven layout belongs in the shared Prop declaration rather
+   than in one consumer's translation unit. */
+class W8PropOwnedPolymorphic {
+public:
+    virtual ~W8PropOwnedPolymorphic();
+
+    void ToggleAnimation(int argument);   /* 0x0044BA00 */
+    int FindSlotByCurrentTag();           /* 0x0044BAE0 */
+
+    unsigned char unknown_004[0x60];
+    unsigned char setting_64;
+    unsigned char unknown_065;
+    short setting_66;
+    unsigned char unknown_068[4];
+    unsigned char setting_6c;
+    unsigned char unknown_06d;
+    unsigned char setting_6e;
+    unsigned char setting_6f;
+    unsigned char unknown_070[0x24];
+    unsigned char current_tag;
+    unsigned char unknown_095[3];
+    W8AnimObj* animation;
+    unsigned char unknown_09c[0x18];
+    int slot_count;
+    unsigned char unknown_0b8[4];
+    unsigned char** slots;
+};
 
 class W8PropBase004B6B60 {
 public:

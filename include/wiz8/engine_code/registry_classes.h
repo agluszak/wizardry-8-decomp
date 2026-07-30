@@ -5,6 +5,7 @@
 #include "surrender/srScene.h"
 
 class W8MonsterShakeCallback;
+class Trigger;
 struct W8Position;
 
 /*
@@ -145,6 +146,7 @@ static_assert(
 // VTABLE: WIZ8 0x005ecc64
 class stLight : public srLight {
     friend class W8GrCycle;
+    friend class Trigger;
 
 public:
     stLight();                                         /* 0x004CA8B0 */

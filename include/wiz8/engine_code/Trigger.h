@@ -1,5 +1,6 @@
 #pragma once
 
+#include "surrender/srMath.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -31,18 +32,22 @@ public:
 static_assert(sizeof(W8TriggerEvent) == 0x38,
               "W8TriggerEvent_must_be_0x38");
 
-/* m_pCountdown points at this base. The object created by Trigger::Run has a
-   distinct final vtable at 0x005EC148 and returns to the base table at
-   0x005EC138 during destruction, proving ordinary same-address inheritance. */
-class W8TriggerCountdown {
+/* Trigger's m_pActionData points at this polymorphic payload. The concrete
+   object created by Trigger::Run has a distinct final vtable at 0x005EC148
+   and returns to the base table at 0x005EC138 during destruction. The payload
+   is shared by multiple actions: type 5 stores the previous environment value
+   as a float, while type 10 uses the flag/item view. */
+class W8TriggerActionData {
 public:
-    W8TriggerCountdown();
-    virtual ~W8TriggerCountdown();
+    W8TriggerActionData();
+    virtual ~W8TriggerActionData();
 
     signed char type_004;
     unsigned char unknown_005[3];
     union {
         W8Dice value_008;
+        float float_value_008;
+        char* owned_string_008;
         struct {
             unsigned char flags_008;
             unsigned char flags_009;
@@ -51,14 +56,35 @@ public:
     };
 };
 
-static_assert(sizeof(W8TriggerCountdown) == 0x0c,
-              "W8TriggerCountdown_must_be_0x0c");
+static_assert(sizeof(W8TriggerActionData) == 0x0c,
+              "W8TriggerActionData_must_be_0x0c");
 
-class W8TriggerCountdown005EC148 : public W8TriggerCountdown {
+class W8TriggerActionData005EC148 : public W8TriggerActionData {
 };
 
-static_assert(sizeof(W8TriggerCountdown005EC148) == 0x0c,
-              "W8TriggerCountdown005EC148_must_be_0x0c");
+static_assert(sizeof(W8TriggerActionData005EC148) == 0x0c,
+              "W8TriggerActionData005EC148_must_be_0x0c");
+
+/* The level loader allocates 0x98 bytes for type 10. Its first twelve bytes
+   are the common polymorphic payload above; the remaining bytes are the
+   linked trigger name and optional world position read from the save. */
+class W8TriggerActionData005EC134 : public W8TriggerActionData {
+public:
+    char linked_trigger_00c[0x80];
+    srVector3T<float> position_08c;
+};
+
+static_assert(sizeof(W8TriggerActionData005EC134) == 0x98,
+              "W8TriggerActionData005EC134_must_be_0x98");
+
+/* Type 6 owns the string stored in the common payload's +8 union. */
+class W8TriggerActionData005EC158 : public W8TriggerActionData {
+public:
+    virtual ~W8TriggerActionData005EC158() override;
+};
+
+static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
+              "W8TriggerActionData005EC158_must_be_0x0c");
 
 #pragma pack(push, 1)
 struct W8TriggerState370 {
@@ -89,6 +115,7 @@ public:
     unsigned char PlayActionSound(const char* sound_name, int volume);
     void UpdateActionAnimation();
     void FinishAction();
+    unsigned char CanRunLinkedTriggers();
     unsigned char SelectAction();
     void Run(int source);
 
@@ -170,11 +197,8 @@ public:
     unsigned short action_230;
     unsigned char action_state_232;
     unsigned char unknown_233;
-    W8TriggerCountdown* m_pCountdown;
-    union {
-        char* m_pActionData;
-        char* m_pacRecipients;
-    };
+    W8TriggerActionData* m_pActionData;
+    char* m_pacRecipients;
     int value_23c;
     char* m_pacRequiredStates;
     char* m_pacStateToMod;
