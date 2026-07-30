@@ -265,6 +265,8 @@ unsigned char LoadLevel(
     if (!ForwardLoadWorld(
             GetWorld(), level_info.level_file_name, level_info.level_folder,
             level_info.level_bitmap_folder, 1)) {
+        /* This is the complete canonical rollback here: restore the level ID.
+           The already-installed replacement world is not destroyed. */
         g_current_level = previous_level;
         return 0;
     }

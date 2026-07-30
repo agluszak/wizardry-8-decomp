@@ -269,6 +269,8 @@ unsigned char ReadWorldProps004BC5E0(
     W8ReadLevelInfo* pInfo, W8World* pWorld,
     unsigned char mark_model_instances)
 {
+    /* CollectModelInstances appends. The canonical body deliberately keeps
+       this one vector across the complete prop loop. */
     W8GrowableVector<stModelInstance005EC7D0*> model_instances(5);
     W8Prop005EC1E0* prop;
     W8PropBounds004BC5E0 bounds;
@@ -450,6 +452,8 @@ unsigned char ReadMonsterPaths004BC140(
     W8Monster* monster;
     W8PathAI* path;
 
+    /* Canonical 0x004BC140 initializes this once, not once per record. A
+       colon-free record after an option-bearing one therefore reuses options. */
     has_options = 0;
     if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
         return 0;
@@ -501,6 +505,9 @@ unsigned char ReadMonsterPaths004BC140(
         if (LoadPathAI004A92A0(&path, pInfo->hFile)) {
             monster->SetPathAI(path);
         }
+        /* The image also leaves the option-controlled path calls outside the
+           successful-load branch. Preserve that behavior rather than adding
+           a speculative null guard. */
         if (has_options) {
             if (options[0] == '0' || options[0] == '\0') {
                 update_representation = 0;

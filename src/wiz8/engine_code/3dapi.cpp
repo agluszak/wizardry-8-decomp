@@ -238,6 +238,8 @@ unsigned char LoadWorld(
         srAssertFail("fSuccess", THREE_D_API_CPP, 0x1dd,
                      "Problem loading level, please check files and versions.");
     }
+    /* ReadLevel failure is assertion-only in the canonical body. LoadWorld
+       still performs the mesh update and returns success. */
 
     world->m_positional_0d4[0] = 0;
     if (world->octree != 0) {
@@ -551,12 +553,14 @@ void WorldSetCameraLocation(W8World* world, const float* location)
     if (world->camera != 0) {
         position.x = location[0];
         position.y = location[1];
+        position.z = location[2];
         ((srNode*)world->camera)->setLocation(position);
         Function421090(location);
     }
     if (world->camera_light != 0) {
         position.x = location[0];
         position.y = location[1];
+        position.z = location[2];
         ((srNode*)world->camera_light)->setLocation(position);
     }
 }
