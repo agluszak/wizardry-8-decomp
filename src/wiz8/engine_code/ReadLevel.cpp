@@ -2,10 +2,13 @@
 #include <cstring>
 
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/ClipPlane.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
@@ -35,6 +38,71 @@ static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
 } // namespace
 
 extern const float g_world_scale_005ebc40;
+
+// FUNCTION: WIZ8 0x004BCE20
+unsigned char ReadWorldClipPlanes004BCE20(
+    W8ReadLevelInfo* pInfo, W8World* pWorld)
+{
+    W8GrowableVector<W8ClipPlane005ED180*> clip_planes(5);
+    srVector4T<float> plane;
+    srVector4T<float> serialized_position;
+    srVector3T<double> position;
+    W8ClipPlane005ED180* clip_plane;
+    char name[64];
+    int count;
+    int index;
+    unsigned char version;
+    unsigned char success;
+
+    if (pInfo == 0) {
+        srAssertFail("pInfo", READ_LEVEL_CPP, 0x59b, 0);
+    }
+    if (pInfo->hFile == 0) {
+        srAssertFail("pInfo->hFile", READ_LEVEL_CPP, 0x59c, 0);
+    }
+    if (pWorld == 0) {
+        srAssertFail("pWorld", READ_LEVEL_CPP, 0x59d, 0);
+    }
+
+    success = ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    if (!success) {
+        srAssertFail("fSuccess", READ_LEVEL_CPP, 0x5a2,
+                     "Error reading num clipping planes");
+        return 0;
+    }
+    if (count == 0) {
+        return 1;
+    }
+
+    ReadVirtualFile(pInfo->hFile, &version, sizeof(version), 0);
+    plane.x = 0.0f;
+    plane.y = 1.0f;
+    plane.z = 0.0f;
+    plane.w = 0.0f;
+    for (index = 0; index < count; ++index) {
+        clip_plane = new W8ClipPlane005ED180(pWorld->dynamic_scene);
+        if (clip_plane == 0) {
+            srAssertFail("psrClipPlane", READ_LEVEL_CPP, 0x5ae,
+                         "out of memory creating clip plane");
+        }
+
+        ReadVirtualFile(pInfo->hFile, name, sizeof(name), 0);
+        ReadVirtualFile(pInfo->hFile, &serialized_position,
+                        sizeof(serialized_position), 0);
+        _strupr(name);
+        clip_plane->setName(name);
+        clip_plane->setClipPlane(plane);
+
+        position.x = serialized_position.x * g_world_scale_005ebc40;
+        position.y = serialized_position.y * g_world_scale_005ebc40;
+        position.z = serialized_position.z * g_world_scale_005ebc40;
+        clip_plane->setLocation(position);
+        clip_plane->setFlag(srNode::FLAG_POSITIONAL_2);
+        clip_plane->setClipType(srClipPlane::CLIP_POSITIONAL_0);
+        clip_plane->setFlag(srNode::FLAG_POSITIONAL_0);
+    }
+    return 1;
+}
 
 struct W8PropBounds004BC5E0 {
     srVector3T<float> minimum;

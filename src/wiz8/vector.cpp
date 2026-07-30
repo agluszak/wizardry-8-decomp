@@ -353,19 +353,19 @@ class W8VectorElement005ED018;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8VectorElement005ED1B8;
+class W8ClipPlane005ED180;
 
 // VTABLE: WIZ8 0x005ed1b8
-// class W8GrowableVector<W8VectorElement005ED1B8*>
+// class W8GrowableVector<W8ClipPlane005ED180*>
 
 // TEMPLATE: WIZ8 0x00585340
-// W8GrowableVector<W8VectorElement005ED1B8*>::W8GrowableVector
+// W8GrowableVector<W8ClipPlane005ED180*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004be030
-// W8GrowableVector<W8VectorElement005ED1B8*>::`scalar deleting destructor'
+// W8GrowableVector<W8ClipPlane005ED180*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004bdfe0
-// W8GrowableVector<W8VectorElement005ED1B8*>::~W8GrowableVector<W8VectorElement005ED1B8*>
+// W8GrowableVector<W8ClipPlane005ED180*>::~W8GrowableVector<W8ClipPlane005ED180*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
