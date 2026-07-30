@@ -49,6 +49,14 @@ struct W8EngineState006598A4 {
         const W8Position* from,
         W8Position* to,
         char allow_fallback);             /* 0x00434B60 */
+    short TraceLineOfSight00434F20(
+        const W8Position* from,
+        const W8Position* to,
+        char trace_world,
+        int from_location_id,
+        int to_location_id,
+        char visit_octree,
+        int trace_mode);                  /* 0x00434F20 */
     void AdjustPortalDestination00434A30(
         W8Position* destination,
         const W8Position* source);        /* 0x00434A30 */

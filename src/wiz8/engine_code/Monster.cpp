@@ -64,6 +64,7 @@ extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
 extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
 extern void ReleaseSoundHandle00408F70(int handle);
+extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern void GetPosition421070(W8Position* position);
 extern W8World* GetWorld(void);
 extern void __stdcall Function4A7BE0(const float* position);
@@ -97,6 +98,13 @@ extern unsigned char RemoveMonster(
 extern const float g_monster_script_time_scale_005ec128;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const float g_monster_script_direction_scale_005ec150;
+extern const double g_monster_facing_tolerance_005ec2b0;
+extern float BearingBetween(
+    const srVector3T<float>* from, const srVector3T<float>* to);
+extern unsigned char HasLineOfSightToBounds0046FD70(
+    const W8Position* origin,
+    W8Position* minimum,
+    W8Position* maximum);
 extern void Function577540();
 extern void Function50F720(W8MonsterGroup* monster_group);
 extern void* GetNPCItemListByID(int npc_record_id);
@@ -502,9 +510,9 @@ W8Monster::W8Monster()
     script_wait_240 = -1;
     trigger_278 = 0;
     registry_weight_27c = 0;
-    formation.value_00 = 0;
-    formation.value_04 = 0;
-    formation.value_08 = 0;
+    formation.x = 0.0f;
+    formation.y = 0.0f;
+    formation.z = 0.0f;
     sound_334 = 0;
 
     m_pRep = new W8MonsterRep;
@@ -544,9 +552,9 @@ W8Monster::W8Monster(const W8Monster& rhs)
       registry_weight_27c(rhs.registry_weight_27c),
       sound_334(0)
 {
-    formation.value_00 = 0;
-    formation.value_04 = 0;
-    formation.value_08 = 0;
+    formation.x = 0.0f;
+    formation.y = 0.0f;
+    formation.z = 0.0f;
     flags_330.flag_00 = 0;
     flags_330.flag_01 = 0;
     flags_330.copied_flag_02 = rhs.flags_330.copied_flag_02;
@@ -1340,7 +1348,7 @@ void W8Monster::ProcessScript004C80E0()
                     break;
                 }
                 if (_stricmp(token, "home") == 0) {
-                    memcpy(&position, &formation, sizeof(position));
+                    position = formation;
                 }
                 else if (_stricmp(token, "off_camera") == 0) {
                     position.x = position.y = position.z = -10000000.0f;
@@ -1370,7 +1378,7 @@ void W8Monster::ProcessScript004C80E0()
                     break;
                 }
                 if (_stricmp(token, "home") == 0) {
-                    memcpy(&position, &formation, sizeof(position));
+                    position = formation;
                 }
                 else if (_stricmp(token, "off_camera") == 0) {
                     position.x = position.y = position.z = -10000000.0f;
@@ -1460,7 +1468,7 @@ void W8Monster::ProcessScript004C80E0()
                     break;
                 }
                 if (_stricmp(token, "home") == 0) {
-                    memcpy(&target, &formation, sizeof(target));
+                    target = formation;
                 }
                 else if (_stricmp(token, "off_camera") == 0) {
                     target.x = target.y = target.z = -10000000.0f;
@@ -1490,7 +1498,7 @@ void W8Monster::ProcessScript004C80E0()
                 token = strtok(0, " \t");
                 if (token != 0) {
                     if (_stricmp(token, "home") == 0) {
-                        memcpy(&position, &formation, sizeof(position));
+                        position = formation;
                     }
                     else if (_stricmp(token, "off_camera") == 0) {
                         position.x = position.y = position.z = -10000000.0f;
@@ -1590,13 +1598,13 @@ void W8Monster::ProcessScript004C80E0()
                 token = strtok(0, " \t");
                 if (token == 0) break;
                 variation = (float)atof(token) * g_world_scale_005ebc40;
-                memcpy(&home, &formation, sizeof(home));
+                home = formation;
                 if (home.x == 0.0f && home.y == 0.0f && home.z == 0.0f) {
                     srVector3T<float> current = GetPosition();
                     home.x = current.x;
                     home.y = current.y;
                     home.z = current.z;
-                    memcpy(&formation, &home, sizeof(home));
+                    formation = home;
                 }
                 StartPatrol00453CC0(&home, distance, variation);
                 break;
@@ -1793,7 +1801,7 @@ void W8Monster::ProcessScript004C80E0()
                 while ((token = strtok(0, " \t")) != 0) {
                     W8Position position;
                     if (_stricmp(token, "home") == 0) {
-                        memcpy(&position, &formation, sizeof(position));
+                        position = formation;
                     }
                     else if (_stricmp(token, "off_camera") == 0) {
                         position.x = position.y = position.z = -10000000.0f;
@@ -1962,6 +1970,220 @@ unsigned char W8Monster::IsWithinWorldRange004CA2A0()
     }
 }
 
+/* The sight code keeps the engine trace's three outcomes as two independent
+   flags. A clear trace sets both false, the special -1 result sets only the
+   secondary flag, and every other obstructed result sets both. */
+// FUNCTION: WIZ8 0x004c4870
+void W8Monster::GetPlayerSightFlags004C4870(
+    unsigned char* primary, unsigned char* secondary)
+{
+    W8Position monster_position;
+    W8Position player_position;
+    short result;
+
+    monster_position.x = fields.movement_0c0.position_040.x;
+    monster_position.y = fields.movement_0c0.position_040.y +
+                         fields.movement_0c0.height_offset_0b8;
+    monster_position.z = fields.movement_0c0.position_040.z;
+    GetPosition421070(&player_position);
+    result = g_engine_state_6598a4->TraceLineOfSight00434F20(
+        &monster_position, &player_position, 1,
+        propagated_value_1e4, -1, 1, 0);
+    if (result == -1) {
+        *secondary = 1;
+        *primary = 0;
+    }
+    else if (result != 1) {
+        *secondary = 1;
+        *primary = 1;
+    }
+    else {
+        *secondary = 0;
+        *primary = 0;
+    }
+}
+
+/* The inexpensive visibility path tests the Monster's elevated origin. The
+   detailed path tests the translated animation bounds at their centre and
+   corners. */
+// FUNCTION: WIZ8 0x004c4920
+unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
+{
+    W8Position player_position;
+
+    GetPosition421070(&player_position);
+    if (use_bounds != 0) {
+        W8Position minimum;
+        W8Position maximum;
+
+        if (this != 0) {
+            srVector3T<float> position;
+
+            GetAnimationBounds(&minimum, &maximum);
+            position = GetPosition();
+            minimum.x += position.x;
+            minimum.y += position.y;
+            minimum.z += position.z;
+            position = GetPosition();
+            maximum.x += position.x;
+            maximum.y += position.y;
+            maximum.z += position.z;
+        }
+        return HasLineOfSightToBounds0046FD70(
+            &player_position, &minimum, &maximum);
+    }
+
+    W8Position monster_position;
+    monster_position.x = fields.movement_0c0.position_040.x;
+    monster_position.y = fields.movement_0c0.position_040.y +
+                         fields.movement_0c0.height_offset_0b8;
+    monster_position.z = fields.movement_0c0.position_040.z;
+    return g_engine_state_6598a4->HasLineOfSight00434B60(
+        &player_position, &monster_position, 1);
+}
+
+// FUNCTION: WIZ8 0x004c4a20
+void W8Monster::GetPlayerToMonsterSightFlags004C4A20(
+    unsigned char* primary,
+    unsigned char* secondary,
+    const W8Position* source)
+{
+    W8Position monster_position;
+    W8Position player_position;
+    short result;
+
+    monster_position.x = fields.movement_0c0.position_040.x;
+    monster_position.y = fields.movement_0c0.position_040.y +
+                         fields.movement_0c0.height_offset_0b8;
+    monster_position.z = fields.movement_0c0.position_040.z;
+    if (source == 0) {
+        GetPosition421070(&player_position);
+    }
+    else {
+        player_position = *source;
+    }
+    result = g_engine_state_6598a4->TraceLineOfSight00434F20(
+        &player_position, &monster_position, 1,
+        -1, propagated_value_1e4, 1, 0);
+    if (result == -1) {
+        *secondary = 1;
+        *primary = 0;
+    }
+    else if (result != 1) {
+        *secondary = 1;
+        *primary = 1;
+    }
+    else {
+        *secondary = 0;
+        *primary = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x004c4af0
+unsigned char W8Monster::HasLineOfSightToMonster004C4AF0(
+    W8Monster* monster)
+{
+    W8Position from;
+    W8Position to;
+
+    from.x = fields.movement_0c0.position_040.x;
+    from.y = fields.movement_0c0.position_040.y +
+             fields.movement_0c0.height_offset_0b8;
+    from.z = fields.movement_0c0.position_040.z;
+    to.x = monster->fields.movement_0c0.position_040.x;
+    to.y = monster->fields.movement_0c0.position_040.y +
+           monster->fields.movement_0c0.height_offset_0b8;
+    to.z = monster->fields.movement_0c0.position_040.z;
+    return g_engine_state_6598a4->HasLineOfSight00434B60(&from, &to, 1);
+}
+
+// FUNCTION: WIZ8 0x004c4b70
+void W8Monster::GetMonsterSightFlags004C4B70(
+    W8Monster* monster,
+    unsigned char* primary,
+    unsigned char* secondary)
+{
+    W8Position from;
+    W8Position to;
+    short result;
+
+    from.x = fields.movement_0c0.position_040.x;
+    from.y = fields.movement_0c0.position_040.y +
+             fields.movement_0c0.height_offset_0b8;
+    from.z = fields.movement_0c0.position_040.z;
+    to.x = monster->fields.movement_0c0.position_040.x;
+    to.y = monster->fields.movement_0c0.position_040.y +
+           monster->fields.movement_0c0.height_offset_0b8;
+    to.z = monster->fields.movement_0c0.position_040.z;
+    result = g_engine_state_6598a4->TraceLineOfSight00434F20(
+        &from, &to, 1,
+        propagated_value_1e4, monster->propagated_value_1e4, 1, 0);
+    if (result == -1) {
+        *secondary = 1;
+        *primary = 0;
+    }
+    else if (result != 1) {
+        *secondary = 1;
+        *primary = 1;
+    }
+    else {
+        *secondary = 0;
+        *primary = 0;
+    }
+}
+
+// FUNCTION: WIZ8 0x004c4c40
+unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(
+    W8Position point)
+{
+    W8Position monster_position;
+
+    monster_position.x = fields.movement_0c0.position_040.x;
+    monster_position.y = fields.movement_0c0.position_040.y +
+                         fields.movement_0c0.height_offset_0b8;
+    monster_position.z = fields.movement_0c0.position_040.z;
+    return g_engine_state_6598a4->TraceLineOfSight00434F20(
+        &point, &monster_position, 1, -3, -3, 1, 0) != 1;
+}
+
+// FUNCTION: WIZ8 0x004c4ca0
+int W8Monster::IsFacingMonster004C4CA0(W8Monster* monster)
+{
+    float bearing;
+    float facing;
+    srVector3T<float> from;
+    srVector3T<float> to;
+
+    if (monster == 0) {
+        srAssertFail("pMonsterB", MONSTER_CPP, 3812, 0);
+    }
+    to = monster->GetPosition();
+    from = GetPosition();
+    bearing = NormalizeAngle(BearingBetween(&from, &to));
+    facing = NormalizeAngle(GetAngleD400453970());
+    return fabs(bearing - facing) <=
+           g_monster_facing_tolerance_005ec2b0;
+}
+
+// FUNCTION: WIZ8 0x004c4d40
+int W8Monster::IsFacingPlayer004C4D40()
+{
+    float bearing;
+    float facing;
+    srVector3T<float> from;
+    srVector3T<float> to;
+
+    if (g_startup_world_659c0c == 0) {
+        srAssertFail("pPlayer", MONSTER_CPP, 3838, 0);
+    }
+    to = g_startup_world_659c0c->GetPosition();
+    from = GetPosition();
+    bearing = NormalizeAngle(BearingBetween(&from, &to));
+    facing = NormalizeAngle(GetAngleD400453970());
+    return fabs(bearing - facing) <=
+           g_monster_facing_tolerance_005ec2b0;
+}
+
 /* Start making the representation visible.  Reversing an active fade-out
    preserves its current scale by seeding the opposite timer at that progress;
    an idle monster starts from zero instead. */
@@ -2088,6 +2310,95 @@ void W8Monster::SetCycleCallback004CA340(
 {
     cycle_callback_230 = callback;
     callback_cycle_234 = cycle;
+}
+
+// FUNCTION: WIZ8 0x004ca360
+unsigned char W8Monster::GetPatrolPoint004CA360(W8Position* point)
+{
+    W8MonsterPatrolPoint* patrol_point;
+
+    if (state_28c.orders_finished == 0 || state_2ac.flag_00 < 0) {
+        return 0;
+    }
+    if (vector_29c.GetCount() == 0) {
+        if (formation.x == 0.0f &&
+            formation.y == 0.0f &&
+            formation.z == 0.0f) {
+            srVector3T<float> position = GetPosition();
+            formation.x = position.x;
+            formation.y = position.y;
+            formation.z = position.z;
+        }
+        vector_29c.Add(formation);
+    }
+
+    if (state_28c.order_mode == 0) {
+        patrol_point = vector_29c.GetAt(0);
+    }
+    else if (state_28c.order_mode > 1 && state_28c.order_mode < 4) {
+        if (state_2ac.flag_00 < vector_29c.GetCount()) {
+            patrol_point = vector_29c.GetAt(state_2ac.flag_00);
+        }
+        else {
+            patrol_point = vector_29c.GetAt(0);
+        }
+    }
+    else {
+        return 0;
+    }
+
+    *point = *patrol_point;
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004ca4f0
+unsigned char MonsterGetWorldAnimationBounds004CA4F0(
+    W8Monster* monster, W8Position* minimum, W8Position* maximum)
+{
+    if (monster != 0) {
+        srVector3T<float> position;
+
+        monster->GetAnimationBounds(minimum, maximum);
+        position = monster->GetPosition();
+        minimum->x += position.x;
+        minimum->y += position.y;
+        minimum->z += position.z;
+        position = monster->GetPosition();
+        maximum->x += position.x;
+        maximum->y += position.y;
+        maximum->z += position.z;
+        return 1;
+    }
+    return 0;
+}
+
+/* Keep only the short live-sound queue owned by the monster.  The growable
+   vector's normal Add/GetAt/RemoveAt methods reproduce the original inline
+   template operations; no address-shaped container wrapper is involved. */
+// FUNCTION: WIZ8 0x004ca6e0
+void W8Monster::TrackSoundHandle004CA6E0(int handle)
+{
+    int count;
+    int index;
+
+    if (values_338.GetCount() > 6) {
+        while (values_338.GetCount() != 0) {
+            ReleaseSoundHandle00408F70(*values_338.GetAt(0));
+            values_338.RemoveAt(0);
+        }
+    }
+    values_338.Add(handle);
+    count = values_338.GetCount();
+    index = 0;
+    if (count > 0) {
+        do {
+            if (IsSoundHandleActive00408EF0(*values_338.GetAt(index)) == 0) {
+                values_338.RemoveAt(index);
+                --count;
+            }
+            ++index;
+        } while (index < count);
+    }
 }
 
 // FUNCTION: WIZ8 0x004c7cb0

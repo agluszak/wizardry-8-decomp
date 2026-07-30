@@ -9,14 +9,9 @@ struct W8IList;
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
-/* The twelve formation bytes a group hands its members. Three dwords rather
-   than a byte block because 0x0050FF40 sets them one dword at a time from a
-   caller-supplied triple; what they mean is not established. */
-typedef struct W8MonsterFormation {
-    unsigned int value_00;
-    unsigned int value_04;
-    unsigned int value_08;
-} W8MonsterFormation;
+/* The group formation is the world-space home position copied onto each live
+   monster. Monster.cpp consumes the same twelve bytes as three floats. */
+typedef W8Position W8MonsterFormation;
 
 typedef struct W8MonsterGroup {
     int group_id;                         /* 0x00: GroupIndex ID lookup key */
@@ -86,4 +81,3 @@ W8MonsterGroup* FindNextExistingMonsterByID(
     int monster_id, W8MonsterGroup* previous);
 
 #endif
-

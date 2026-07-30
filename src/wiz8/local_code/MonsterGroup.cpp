@@ -468,9 +468,9 @@ void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
     if (monster_group == 0) {
         return;
     }
-    monster_group->formation.value_00 = formation->value_00;
-    monster_group->formation.value_04 = formation->value_04;
-    monster_group->formation.value_08 = formation->value_08;
+    monster_group->formation.x = formation->x;
+    monster_group->formation.y = formation->y;
+    monster_group->formation.z = formation->z;
     count = PListGetCount((W8PList*)monster_group->monsters);
     for (index = 0; index < static_cast<int>(count); ++index) {
         monster = MonsterGetScriptPartByLocationIndex(
@@ -480,9 +480,9 @@ void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
                           IListGetAt(monster_group->monsters, index),
                           1))
                       ->monster;
-        monster->formation.value_00 = formation->value_00;
-        monster->formation.value_04 = formation->value_04;
-        monster->formation.value_08 = formation->value_08;
+        monster->formation.x = formation->x;
+        monster->formation.y = formation->y;
+        monster->formation.z = formation->z;
     }
 }
 

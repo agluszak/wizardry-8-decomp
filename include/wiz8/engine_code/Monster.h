@@ -124,7 +124,7 @@ struct W8MonsterState28C {
 };
 
 struct W8MonsterState2AC {
-    unsigned char flag_00;
+    signed char flag_00;
     unsigned char unknown_01[3];
     float direction_x;
     float direction_y;
@@ -206,6 +206,8 @@ public:
     void StopTalking004C7470();
     void SetCycleCallback004CA340(
         int cycle, CycleCallback callback);
+    unsigned char GetPatrolPoint004CA360(W8Position* point);
+    void TrackSoundHandle004CA6E0(int handle);
     float GetDistanceToPlayer004C7CB0();
     float GetPointDistanceToPlayer004C7D50(float x, float y, float z);
     float GetDistanceToMonster004C7DD0(W8Monster* monster);
@@ -222,6 +224,21 @@ public:
     unsigned char SetScriptLabel004CA260(const char* label);
     unsigned char GetFlag216004CA290() const;
     unsigned char IsWithinWorldRange004CA2A0();
+    void GetPlayerSightFlags004C4870(
+        unsigned char* primary, unsigned char* secondary);
+    unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);
+    void GetPlayerToMonsterSightFlags004C4A20(
+        unsigned char* primary,
+        unsigned char* secondary,
+        const W8Position* source);
+    unsigned char HasLineOfSightToMonster004C4AF0(W8Monster* monster);
+    void GetMonsterSightFlags004C4B70(
+        W8Monster* monster,
+        unsigned char* primary,
+        unsigned char* secondary);
+    unsigned char HasLineOfSightFromPoint004C4C40(W8Position point);
+    int IsFacingMonster004C4CA0(W8Monster* monster);
+    int IsFacingPlayer004C4D40();
 
 public:
     W8MonsterRep* m_pRep;
@@ -278,6 +295,9 @@ public:
 
 int ParseMonsterCycleName004C2010(
     const char* name, signed char* subcycle = 0);
+
+unsigned char MonsterGetWorldAnimationBounds004CA4F0(
+    W8Monster* monster, W8Position* minimum, W8Position* maximum);
 
 unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(
