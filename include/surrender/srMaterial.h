@@ -49,7 +49,6 @@ protected:
     void setVector(srVector4T<float>& destination,
                    const srVector4T<float>& source);
 
-    unsigned char unknown_04_[0x14];
     srVector4T<float> vector_18;
     unsigned char unknown_28_[0x10];
     srVector4T<float> vector_38;

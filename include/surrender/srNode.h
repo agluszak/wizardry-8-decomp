@@ -99,7 +99,7 @@ public:
     srNode* firstChild() const { return first_child_; }
 
 private:
-    unsigned char unknown_04_[0x124];
+    unsigned char unknown_18_[0x110];
     srNode* next_sibling_;                  /* 0x128 */
     unsigned char unknown_12c_[0x04];
     srNode* parent_;                        /* 0x130 */

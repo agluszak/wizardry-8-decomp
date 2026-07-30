@@ -203,7 +203,7 @@ private:
     virtual SR_DLL_IMPORT void copyNoScaling(srColorSurfaceIFace& source) override;
     virtual SR_DLL_IMPORT void scaleFast(srColorSurfaceIFace& source) override;
 
-    unsigned char unknown_04_[0x18];
+    unsigned char unknown_18_[0x04];
     unsigned long width_; // +0x1c
     unsigned long height_; // +0x20
     long row_pitch_; // +0x24

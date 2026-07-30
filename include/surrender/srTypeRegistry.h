@@ -73,4 +73,11 @@ public:
 
 protected:
     SR_DLL_IMPORT srClass();
+
+private:
+    /* The imported srClass constructor owns this runtime bookkeeping. Direct
+       first-party subclasses begin their own storage at +0x18. */
+    unsigned char runtime_state_004_[0x14];
 };
+
+static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");

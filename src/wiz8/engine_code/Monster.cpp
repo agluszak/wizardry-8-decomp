@@ -25,6 +25,7 @@
 #include <windows.h>
 
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 
 extern srTimer* g_shared_timer_base;
@@ -67,6 +68,8 @@ extern unsigned char Function525DF0(int value);
 extern unsigned char g_flag_00683f97;
 extern W8Navigator* g_startup_world_659c0c;
 extern const float g_monster_script_facing_tolerance_005ebc84;
+extern const float g_world_scale_005ebc40;
+extern unsigned char g_force_encounter_culling; /* 0x00687500 */
 extern W8WideChar* GetMonsterName(
     W8MonsterInfo* monster_info,
     W8MonsterRecord* record,
@@ -82,6 +85,47 @@ static W8GrowableVector<stModelInstance005EC7D0*>
 
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
+
+// FUNCTION: WIZ8 0x004C2010
+int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
+{
+    int cycle;
+
+    if (name == 0) {
+        srAssertFail("pacName", MONSTER_CPP, 1937, 0);
+    }
+
+    cycle = -1;
+    for (int index = 0; index < W8_MONSTER_CYCLE_COUNT; ++index) {
+        if (strncmp(
+                name,
+                g_cycle_names[index].name,
+                g_cycle_names[index].prefix_length) == 0) {
+            cycle = index;
+            break;
+        }
+    }
+
+    /* The model format retains these older names for the first two cycles. */
+    if (cycle == -1) {
+        if (strncmp(name, "FLY", 3) == 0) {
+            cycle = 0;
+        }
+        else if (strncmp(name, "EXPLODE", 7) == 0) {
+            cycle = 1;
+        }
+    }
+
+    if (subcycle != 0) {
+        *subcycle = 1;
+        int suffix = g_cycle_names[cycle].prefix_length;
+        if ((int)strlen(name) > suffix &&
+            name[suffix] >= '0' && name[suffix] <= '9') {
+            *subcycle = (signed char)atoi(name + suffix);
+        }
+    }
+    return cycle;
+}
 
 // SYNTHETIC: WIZ8 0x004beba0
 // W8MonsterRep::`scalar deleting destructor'
@@ -797,6 +841,87 @@ void W8Monster::Update()
         location.z = position.z;
         sound_334->setLocation(location);
     }
+}
+
+/* Script IF expressions are deliberately small: a name followed by an
+   optional comma-separated float list. The retail interpreter supports the
+   two predicates below and treats every other name as false. */
+// FUNCTION: WIZ8 0x004C9DC0
+unsigned char W8Monster::EvaluateScriptCondition004C9DC0(
+    const char* expression)
+{
+    W8GrowableVector<float> parameters;
+    char buffer[512] = {0};
+    char* argument_list;
+    char* argument;
+
+    if (expression == 0) {
+        srAssertFail("pEvalVar", MONSTER_CPP, 7503, 0);
+    }
+    if (strlen(expression) >= sizeof(buffer)) {
+        srAssertFail("strlen(pEvalVar) < 512", MONSTER_CPP, 7504, 0);
+    }
+    strcpy(buffer, expression);
+
+    argument_list = strchr(buffer, '(');
+    if (argument_list != 0) {
+        argument = strtok(argument_list + 1, ",)");
+        while (argument != 0) {
+            parameters.Add((float)atof(argument));
+            argument = strtok(0, ",)");
+        }
+        *argument_list = 0;
+    }
+
+    if (_strnicmp(buffer, "PARTYNEAR", 9) == 0) {
+        W8Position party_position;
+        W8Position monster_position;
+
+        GetPosition421070(&party_position);
+        if (parameters.GetCount() == 0) {
+            srAssertFail(
+                "lsParmList.Length()",
+                MONSTER_CPP,
+                7526,
+                FormatString(
+                    "Monscr %s line %d: PARTYNEAR expects a parameter",
+                    script_238->getName(),
+                    script_line_23c));
+        }
+
+        srVector3T<float> current_position = GetPosition();
+        monster_position.x = current_position.x;
+        monster_position.y = current_position.y;
+        monster_position.z = current_position.z;
+        float dx = party_position.x - monster_position.x;
+        float dy = party_position.y - monster_position.y;
+        float dz = party_position.z - monster_position.z;
+        if (g_force_encounter_culling == 0 &&
+            sqrt(dx * dx + dy * dy + dz * dz) <
+                *parameters.GetAt(0) *
+                    g_world_scale_005ebc40 &&
+            MonsterInfoFromID(
+                7533, MONSTER_CPP, propagated_value_1e4, 1)
+                    ->unknown_358[0x18] != 0) {
+            return 1;
+        }
+    }
+    else if (_strnicmp(buffer, "RANDOM", 6) == 0) {
+        if (parameters.GetCount() == 0) {
+            srAssertFail(
+                "lsParmList.Length()",
+                MONSTER_CPP,
+                7542,
+                FormatString(
+                    "Monscr %s line %d: RANDOM expects a parameter",
+                    script_238->getName(),
+                    script_line_23c));
+        }
+        if (Chance((unsigned int)*parameters.GetAt(0)) != 0) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /* A script command that requested blocking leaves its command number here.

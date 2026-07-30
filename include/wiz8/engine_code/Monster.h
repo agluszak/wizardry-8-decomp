@@ -211,6 +211,7 @@ public:
     void SetShakeEventVisibility004BF9E0(signed char cycle);
     void UpdateAttachedObjects004C3F70();
     void ProcessScript004C80E0();
+    unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
     unsigned char CanContinueScript004CA0F0();
     unsigned char SetScriptLabel004CA260(const char* label);
     unsigned char GetFlag216004CA290() const;
@@ -269,6 +270,9 @@ public:
     stSound3D* sound_334;
     W8GrowableVector<int> values_338;
 };
+
+int ParseMonsterCycleName004C2010(
+    const char* name, signed char* subcycle = 0);
 
 static_assert(
     sizeof(W8Monster) == 0x348,

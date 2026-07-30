@@ -15,9 +15,7 @@ struct stScriptLabel {
 
 /* Engine Code\stScript.cpp. The two members at +0x18 and +0x28 are ordinary
    growable vectors: construction gives each capacity five, and destruction
-   removes and frees every pointed-to line/label before the vector storage.
-   The 0x14-byte prefix belongs to the SurRender class-support specialization;
-   it stays opaque until that published template is reconstructed globally. */
+   removes and frees every pointed-to line/label before the vector storage. */
 class stScript : public srClass {
 public:
     unsigned long getClassID() const override;     /* 0x004CF7C0 */
@@ -27,7 +25,6 @@ public:
     int FindLabelLine004CF730(const char* label) const;
     int GetSourceLine004CF790(int line) const;
 
-    unsigned char class_support_004[0x14];
     W8GrowableVector<stScriptLine*> lines;       /* 0x18 */
     W8GrowableVector<stScriptLabel*> labels;     /* 0x28 */
 };

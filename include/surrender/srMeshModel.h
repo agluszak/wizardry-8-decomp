@@ -65,7 +65,7 @@ protected:
     virtual void calculatePolygonNormals();
     virtual void calculateVertexNormals();
 public:
-    unsigned char unknown_04_[0x22c];
+    unsigned char unknown_18_[0x218];
     long polygon_count_230;
     unsigned char unknown_234_[0x15c];
     unsigned long control_state_390;

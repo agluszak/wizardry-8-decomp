@@ -8,11 +8,12 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/targeting.h"
 
-/* One eight-byte row per animation cycle at 0x0060EA08. The leading pointer
-   is the cycle's name; the second field has not yet been identified. */
+/* One eight-byte row per animation cycle at 0x0060EA08. The parser at
+   0x004C2010 compares exactly prefix_length characters and then uses the same
+   offset to read an optional numeric subcycle suffix. */
 struct W8CycleNameRow {
     const char* name;
-    void* unknown_04;
+    int prefix_length;
 };
 
 extern W8CycleNameRow g_cycle_names[];

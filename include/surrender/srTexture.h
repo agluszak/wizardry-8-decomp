@@ -74,7 +74,7 @@ protected:
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned char unknown_04_[0x1c];
+    unsigned char unknown_18_[0x08];
     unsigned long texture_width_;          /* 0x20 */
     unsigned long texture_height_;         /* 0x24 */
     srClass* texture_filter_;               /* 0x28 */

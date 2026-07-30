@@ -6,9 +6,7 @@
 #include <ostream>
 
 /* The constructor at 0x004CF020 proves a 0x18-byte srClass prefix followed by
-   two ordinary five-element growable vectors.  The prefix bytes are owned by
-   the imported srClass constructor; the explicit tail padding keeps the first
-   vector at its reviewed +0x18 offset without restating those hidden fields. */
+   two ordinary five-element growable vectors. */
 class W8MusicPlaylist : public srClass {
 public:
     W8MusicPlaylist();
@@ -25,7 +23,6 @@ public:
 private:
     static srRegistry::ClassNode* classNode();
 
-    unsigned char srclass_tail_04[0x14];
     W8GrowableVector<void*> entries_18;
     W8GrowableVector<void*> entries_28;
 };
