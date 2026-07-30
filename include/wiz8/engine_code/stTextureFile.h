@@ -20,6 +20,7 @@ public:
     void setFileName(const char* file_name);                /* 0x0047C830 */
     void setCached(int cached) { cached_54 = cached; }
     int isSurfaceLoaded() const { return surface_5c != 0; }
+    unsigned char hasAlpha() const { return has_alpha_64; }
     void loadSurface();                                    /* 0x0047BBF0 */
     void releaseSurface();
 

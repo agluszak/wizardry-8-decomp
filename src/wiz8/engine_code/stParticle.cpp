@@ -243,6 +243,36 @@ stParticle::~stParticle()
     setParent(0, 1);
 }
 
+// FUNCTION: WIZ8 0x0049AB00
+void stParticle::SetTexture0049AB00(srTextureIFace* texture)
+{
+    unsigned int i;
+
+    if (texture_154 != 0) {
+        if (texture_frames_178 != 0) {
+            for (i = 0; i < texture_frame_count_15c; i += 2) {
+                texture_frames_178[i]->release();
+            }
+            delete[] texture_frames_178;
+            texture_frames_178 = 0;
+        }
+        texture_154->release();
+    }
+
+    if (texture != 0 && texture->getClassID() == stTextureAnim::CLASS_ID) {
+        texture_frames_178 = new stTextureAnim*[texture_frame_count_15c];
+        for (i = 0; i < texture_frame_count_15c; i += 2) {
+            stTextureAnim* frame =
+                new stTextureAnim(*static_cast<stTextureAnim*>(texture));
+            texture_frames_178[i] = frame;
+            texture_frames_178[i + 1] = frame;
+        }
+    }
+
+    texture_154 = texture;
+    texture->addReference();
+}
+
 // FUNCTION: WIZ8 0x0049acd0
 void stParticle::SetActive(unsigned char active)
 {

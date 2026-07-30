@@ -9,7 +9,10 @@ class stSurface2D;
 
 class SR_DLL_IMPORT srTextureIFace : public srClass {
 public:
-    struct Dimensions;
+    struct Dimensions {
+        unsigned long width;
+        unsigned long height;
+    };
     struct MultiRequest {
         long mipmap_level;
         unsigned long unknown_04;
@@ -109,8 +112,7 @@ protected:
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
     unsigned char unknown_18_[0x08];
-    unsigned long texture_width_;          /* 0x20 */
-    unsigned long texture_height_;         /* 0x24 */
+    Dimensions texture_dimensions_;        /* 0x20 */
     srClass* texture_filter_;               /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
     unsigned char unknown_40_[0x10];

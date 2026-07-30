@@ -1,12 +1,101 @@
 #include "wiz8/engine_code/stTextureAnim.h"
 
-#include "surrender/srCore.h"
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/wiz8_windows.h"
 
-// SYNTHETIC: WIZ8 0x00485a10
+#include <stdlib.h>
+
+extern unsigned char Function489A80(const void* texture);
+extern void Function4881D0();
+extern float g_float_005ec128;
+
+// VTABLE: WIZ8 0x005EC9C0
+// class stTextureAnim
+
+// VTABLE: WIZ8 0x005ECA04
+// class srClassSupport<stTextureAnim,srTexture,0,65536>
+
+// TEMPLATE: WIZ8 0x004857F0
+// srClassSupport<stTextureAnim,srTexture,0,65536>::getClassID
+
+// TEMPLATE: WIZ8 0x00485800
+// srClassSupport<stTextureAnim,srTexture,0,65536>::getClassName
+
+// TEMPLATE: WIZ8 0x00485810
+// srClassSupport<stTextureAnim,srTexture,0,65536>::getClassNode
+
+// TEMPLATE: WIZ8 0x004858B0
+// srClassSupport<stTextureAnim,srTexture,0,65536>::clone
+
+// TEMPLATE: WIZ8 0x00485910
+// srClassSupport<stTextureAnim,srTexture,0,65536>::~srClassSupport<stTextureAnim,srTexture,0,65536>
+
+// SYNTHETIC: WIZ8 0x00485A10
+// srClassSupport<stTextureAnim,srTexture,0,65536>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00485040
 // stTextureAnim::`scalar deleting destructor'
 
-/* Restart playback from one frame and from the current wall-clock tick. */
+// FUNCTION: WIZ8 0x00484BE0
+stTextureAnim::stTextureAnim()
+{
+    textures_54 = 0;
+    frame_58 = 0;
+    value_5c = 1;
+    flag_60 = 0;
+    value_64 = 0;
+    frame_rate_68 = 15.0f;
+    frame_tick_6c = GetTickCount();
+    value_70 = 0;
+    value_74 = -1.0f;
+    flag_78 = 0;
+    textures_54 = new W8GrowableVector<srTextureIFace*>;
+}
+
+// FUNCTION: WIZ8 0x00484E60
+srClass* stTextureAnim::vInstance()
+{
+    return new stTextureAnim;
+}
+
+// FUNCTION: WIZ8 0x00485070
+stTextureAnim::stTextureAnim(const stTextureAnim& other)
+{
+    int i;
+
+    textures_54 = 0;
+    frame_58 = 0;
+    value_5c = 1;
+    flag_60 = other.flag_60;
+    value_64 = other.value_64;
+    frame_rate_68 = other.frame_rate_68;
+    frame_tick_6c = GetTickCount();
+    value_70 = other.value_70;
+    value_74 = other.value_74;
+    flag_78 = other.flag_78;
+    textures_54 = new W8GrowableVector<srTextureIFace*>;
+
+    for (i = 0; i < other.textures_54->GetCount(); ++i) {
+        srTextureIFace* texture = *other.textures_54->GetAt(i);
+        textures_54->Add(texture);
+        texture->addReference();
+    }
+}
+
+// FUNCTION: WIZ8 0x00485290
+stTextureAnim::~stTextureAnim()
+{
+    if (Function489A80(this) != 0) {
+        Function4881D0();
+    }
+
+    while (textures_54->GetCount() != 0) {
+        (*textures_54->GetAt(0))->release();
+        textures_54->RemoveAt(0);
+    }
+    delete textures_54;
+}
+
 // FUNCTION: WIZ8 0x00485400
 void stTextureAnim::SetFrame00485400(int frame)
 {
@@ -14,68 +103,152 @@ void stTextureAnim::SetFrame00485400(int frame)
     frame_tick_6c = GetTickCount();
 }
 
-// FUNCTION: WIZ8 0x004857f0
-unsigned long stTextureAnim::getClassID() const
+// FUNCTION: WIZ8 0x004854B0
+void stTextureAnim::UpdateFrame004854B0()
 {
-    return CLASS_ID;
-}
+    int frame_count;
+    int elapsed_frames;
 
-// FUNCTION: WIZ8 0x00485800
-const char* stTextureAnim::getClassName() const
-{
-    return "stTextureAnim";
-}
-
-// FUNCTION: WIZ8 0x00485810
-srRegistry::ClassNode* stTextureAnim::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(CLASS_ID);
-
-    if (node == 0) {
-        srRegistry* texture_registry = srCore.getRegistry();
-        srRegistry::ClassNode* texture = texture_registry->getClassNode(0x2110);
-
-        if (texture == 0) {
-            srRegistry* iface_registry = srCore.getRegistry();
-            srRegistry::ClassNode* iface = iface_registry->getClassNode(0x2100);
-
-            if (iface == 0) {
-                iface = iface_registry->registerClass(
-                    "srTextureIFace", srClass::sGetClassNode(), 0x2100, 1);
-            }
-            texture = texture_registry->registerClass(
-                srTexture::sGetClassName(), iface, 0x2110, 0);
-        }
-        node = registry->registerClass(
-            "stTextureAnim", texture, CLASS_ID, 0);
+    if (flag_60 == 3) {
+        return;
     }
-    return node;
+
+    frame_count = textures_54->GetCount();
+    if (value_70 == 1) {
+        if ((float)rand() / (float)RAND_MAX < value_74) {
+            frame_58 = (int)(((float)rand() / (float)RAND_MAX) * frame_count);
+        }
+        return;
+    }
+
+    if (value_70 == 2) {
+        if (flag_78 == 0 && (float)rand() / (float)RAND_MAX < value_74) {
+            flag_78 = 1;
+            value_5c = 0;
+            frame_58 = 0;
+            frame_tick_6c = GetTickCount();
+        }
+        if (flag_78 == 0 || frame_count == 0) {
+            return;
+        }
+    }
+    else if (frame_count == 0) {
+        return;
+    }
+
+    elapsed_frames = (int)((GetTickCount() - frame_tick_6c) *
+                           frame_rate_68 * g_float_005ec128);
+    if (flag_60 == 0) {
+        int frame = (value_5c * elapsed_frames) % frame_count;
+        if (frame < frame_58) {
+            frame_58 = 0;
+            flag_78 = 0;
+            return;
+        }
+        frame_58 = frame;
+    }
+    else if (flag_60 == 1) {
+        if ((elapsed_frames / frame_count & 1) != 0) {
+            value_5c = -1;
+            frame_58 = frame_count - elapsed_frames % frame_count - 1;
+        }
+        else {
+            if (value_5c == -1) {
+                flag_78 = 0;
+                return;
+            }
+            value_5c = 1;
+            frame_58 = elapsed_frames % frame_count;
+        }
+    }
+    else if (flag_60 == 2) {
+        if (elapsed_frames >= frame_count) {
+            flag_78 = 0;
+            frame_58 = frame_count > 0 ? frame_count - 1 : 0;
+        }
+        else {
+            frame_58 = elapsed_frames;
+        }
+    }
 }
 
-/* Clone through the concrete implementation's vInstance slot, then carry the
-   Wizardry playback state that srTexture's assignment cannot know about. */
-// FUNCTION: WIZ8 0x004858b0
-srTexture* stTextureAnim::clone()
+// FUNCTION: WIZ8 0x004856F0
+unsigned long stTextureAnim::getTextureFrameHandle()
 {
-    stTextureAnim* instance = static_cast<stTextureAnim*>(vInstance());
-
-    *static_cast<srTexture*>(instance) = *this;
-    instance->object_54 = object_54;
-    instance->frame_58 = frame_58;
-    instance->value_5c = value_5c;
-    instance->flag_60 = flag_60;
-    instance->value_64 = value_64;
-    instance->frame_rate_68 = frame_rate_68;
-    instance->frame_tick_6c = frame_tick_6c;
-    instance->value_70 = value_70;
-    instance->value_74 = value_74;
-    instance->flag_78 = flag_78;
-    return instance;
+    UpdateFrame004854B0();
+    if ((texture_flags_ & 2) != 0) {
+        setupDefaultValues();
+    }
+    return (*textures_54->GetAt(frame_58))->getTextureFrameHandle();
 }
 
-// FUNCTION: WIZ8 0x00485910
-stTextureAnim::~stTextureAnim()
+// FUNCTION: WIZ8 0x00484D60
+float stTextureAnim::getPriority()
 {
-    srCore.getRegistry()->unregisterInstance(getClassNode(), this);
+    return (*textures_54->GetAt(frame_58))->getPriority();
+}
+
+// FUNCTION: WIZ8 0x00484D80
+void stTextureAnim::getDimensions(Dimensions& dimensions)
+{
+    (*textures_54->GetAt(frame_58))->getDimensions(dimensions);
+}
+
+// FUNCTION: WIZ8 0x00484DB0
+void stTextureAnim::getMipmapData(MultiRequest& request)
+{
+    (*textures_54->GetAt(frame_58))->getMipmapData(request);
+}
+
+// FUNCTION: WIZ8 0x00484DE0
+void stTextureAnim::getMipmapLevelPartial(PartialRequest& request)
+{
+    (*textures_54->GetAt(frame_58))->getMipmapLevelPartial(request);
+}
+
+// FUNCTION: WIZ8 0x00484E10
+void stTextureAnim::getTextureParms(Parameters& parameters)
+{
+    (*textures_54->GetAt(frame_58))->getTextureParms(parameters);
+}
+
+// FUNCTION: WIZ8 0x00484E40
+const char* stTextureAnim::getTextureName()
+{
+    return (*textures_54->GetAt(frame_58))->getTextureName();
+}
+
+void stTextureAnim::invalidate()
+{
+}
+
+// FUNCTION: WIZ8 0x00485760
+void stTextureAnim::setupDefaultValues()
+{
+    srTextureIFace* texture = *textures_54->GetAt(0);
+
+    if (texture != 0) {
+        texture->getDimensions(texture_dimensions_);
+        texture_flags_ &= ~2U;
+    }
+    else {
+        texture_dimensions_.width = 1;
+        texture_dimensions_.height = 1;
+        if (texture_filter_ != 0) {
+            texture_filter_->release();
+            texture_filter_ = 0;
+        }
+    }
+}
+
+// FUNCTION: WIZ8 0x004857B0
+unsigned char stTextureAnim::Prepare004857B0()
+{
+    srTextureIFace* texture = *textures_54->GetAt(0);
+
+    if (texture != 0 && texture->getClassID() == 0x10001) {
+        texture->getTextureFrameHandle();
+        return static_cast<stTextureFile*>(texture)->hasAlpha();
+    }
+    return unknown_40_[2] != 0;
 }

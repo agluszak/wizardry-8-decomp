@@ -51,8 +51,8 @@ stTexture2D::stTexture2D()
     enableHint((e_hint)3);
     enableHint((e_hint)6);
     enableHint((e_hint)1);
-    texture_width_ = 128;
-    texture_height_ = 128;
+    texture_dimensions_.width = 128;
+    texture_dimensions_.height = 128;
 }
 
 // FUNCTION: WIZ8 0x0047e7e0
@@ -136,8 +136,8 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width,
         for (column = 0; column != columns; ++column) {
             stTexture2D* texture = new stTexture2D;
             texture->surface = source;
-            texture->texture_width_ = tile_extent;
-            texture->texture_height_ = tile_extent;
+            texture->texture_dimensions_.width = tile_extent;
+            texture->texture_dimensions_.height = tile_extent;
             texture->left = column * tile_extent;
             texture->top = row * tile_extent;
             texture->right = texture->left + tile_extent;
