@@ -2,11 +2,15 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/sr_api.h"
 #include "surrender/srCore.h"
 #include "surrender/srHeap.h"
 #include "surrender/srNode.h"
 
 #include <string.h>
+
+static const char ST_PARTICLE_CPP[] =
+    "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp";
 
 // VTABLE: WIZ8 0x005ECBD0
 // class stParticle
@@ -34,6 +38,152 @@
 
 // SYNTHETIC: WIZ8 0x00498150
 // stParticle::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x00497AF0
+stParticle::stParticle(srNode* parent, unsigned int count)
+    : srClassSupport<stParticle, srNode, 0, 0x10009>(
+          static_cast<srNode*>(0))
+{
+    trigger_flag_192 = 0;
+    allocation_250 = 0;
+    value_260 = -1;
+    start_frame_264 = -1;
+    end_frame_268 = -1;
+    callback_26c = 0;
+    value_278 = 1.0f;
+
+    setParent(parent, 1);
+
+    particle_count_180 = count;
+    allocation_148 = 0;
+    allocation_164 = 0;
+    allocation_160 = 0;
+    allocation_170 = 0;
+    allocation_168 = 0;
+    allocation_16c = 0;
+    texture_154 = 0;
+    value_138 = 0;
+    value_140 = 1.0;
+
+    if (count == 0) {
+        return;
+    }
+
+    if (count >= 10000) {
+        srAssertFail("cnt < 10000", ST_PARTICLE_CPP, 0x41, 0);
+    }
+
+    allocation_148 = static_cast<srVector3T<float>*>(
+        srHeap.allocate(count * sizeof(srVector3T<float>)));
+    unsigned int i;
+    for (i = 0; i < count; ++i) {
+        allocation_148[i].x = 0.0f;
+        allocation_148[i].y = 0.0f;
+        allocation_148[i].z = 0.0f;
+    }
+
+    vertex_count_158 = count * 4;
+    texture_frame_count_15c = count * 2;
+    allocation_164 = static_cast<srVector2T<float>*>(
+        srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
+    allocation_160 = static_cast<srVector3T<float>*>(
+        srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
+    allocation_168 = static_cast<unsigned int*>(
+        srHeap.allocate(count * 6 * sizeof(unsigned int)));
+    allocation_174 = new float[vertex_count_158];
+    texture_frames_178 = 0;
+
+    for (i = 0; i < count; ++i) {
+        unsigned int vertex = i * 4;
+        unsigned int index = i * 6;
+        allocation_168[index] = vertex;
+        allocation_168[index + 1] = vertex + 1;
+        allocation_168[index + 2] = vertex + 2;
+        allocation_168[index + 3] = vertex + 2;
+        allocation_168[index + 4] = vertex + 3;
+        allocation_168[index + 5] = vertex;
+
+        allocation_148[i].x = 0.0f;
+        allocation_148[i].y = 0.0f;
+        allocation_148[i].z = 0.0f;
+
+        allocation_164[vertex].x = 0.0f;
+        allocation_164[vertex].y = 0.0f;
+        allocation_164[vertex + 1].x = 1.0f;
+        allocation_164[vertex + 1].y = 0.0f;
+        allocation_164[vertex + 2].x = 1.0f;
+        allocation_164[vertex + 2].y = 1.0f;
+        allocation_164[vertex + 3].x = 0.0f;
+        allocation_164[vertex + 3].y = 1.0f;
+    }
+
+    for (i = 0; i < vertex_count_158; ++i) {
+        allocation_174[i] = 1.0f;
+    }
+
+    active_1a0 = 1;
+    flag_1a1 = 1;
+    retained_14c = 0;
+    state_184 = 0;
+    active_190 = 0;
+    unknown_191 = 0;
+    value_188 = 0;
+    allocation_254 = new float[texture_frame_count_15c];
+    node_18c = 0;
+    allocation_198 = static_cast<srVector3T<float>*>(
+        srHeap.allocate(count * sizeof(srVector3T<float>)));
+    allocation_19c = ::operator new(count * sizeof(void*));
+    allocation_194 = new unsigned char[count];
+    memset(allocation_194, 0, count);
+
+    value_1a8 = 0;
+    value_1ac = 0;
+    value_1b0 = 0;
+    value_1b4 = 0;
+    value_1b8 = 3;
+    value_1c4 = 0;
+    value_1c8 = 50;
+    value_1cc = 1500;
+    value_1a4 = 2;
+    value_1bc = 2;
+    minimum_1d0.x = -250.0f;
+    minimum_1d0.y = -250.0f;
+    minimum_1d0.z = -250.0f;
+    maximum_1dc.x = 250.0f;
+    maximum_1dc.y = 250.0f;
+    maximum_1dc.z = 250.0f;
+    value_1e8 = 0.0f;
+    value_1ec = -1.0f;
+    value_1f0 = 0.0f;
+    value_210 = 500.0f;
+    value_1f4 = 0.0f;
+    value_1f8 = -4905.0f;
+    value_1fc = 0.0f;
+    value_1c0 = 0;
+    allocation_17c = 0;
+    value_200 = 0.0f;
+    value_204 = 0.0f;
+    value_218 = 4000.0f;
+    value_208 = 0.39269906f;
+    value_20c = 0.39269906f;
+    value_214 = 1000.0f;
+    minimum_21c.x = -1000.0f;
+    minimum_21c.y = -1000.0f;
+    minimum_21c.z = -1000.0f;
+    maximum_228.x = 1000.0f;
+    maximum_228.y = 1000.0f;
+    maximum_228.z = 1000.0f;
+    value_234.x = 0.0f;
+    value_234.y = 0.0f;
+    value_234.z = 0.0f;
+    value_240 = 2000.0f;
+    allocation_250 = 0;
+    activated_at_258 = g_shared_timer_base->getMsTime(
+        srTimer::TIMER_READ_DEFAULT);
+    updated_at_25c = activated_at_258;
+    value_270 = 25;
+    value_274 = 0;
+}
 
 // FUNCTION: WIZ8 0x004980E0
 srClass* stParticle::vInstance()

@@ -32,6 +32,8 @@ struct W8Position;
 class stParticle
     : public srClassSupport<stParticle, srNode, 0, 0x10009> {
 public:
+    enum e_renderFlag {};
+
     static const char* sGetClassName() { return "stParticle"; }
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
     void SetActive(unsigned char active);
@@ -45,19 +47,21 @@ protected:
 
 public:
 
-    unsigned char unknown_138[0x10];
-    void* allocation_148;
+    unsigned int value_138;
+    unsigned char unknown_13c[4];
+    double value_140;
+    srVector3T<float>* allocation_148;
     srClass* retained_14c;
-    unsigned int value_150;
+    srFlags<e_renderFlag> render_flags_150;
     srTextureIFace* texture_154;
     unsigned int vertex_count_158;
     unsigned int texture_frame_count_15c;
-    void* allocation_160;
-    void* allocation_164;
-    void* allocation_168;
+    srVector3T<float>* allocation_160;
+    srVector2T<float>* allocation_164;
+    unsigned int* allocation_168;
     void* allocation_16c;
     void* allocation_170;
-    void* allocation_174;
+    float* allocation_174;
     stTextureAnim** texture_frames_178;
     void* allocation_17c;
     unsigned int particle_count_180;
@@ -68,16 +72,49 @@ public:
     unsigned char unknown_191;
     unsigned char trigger_flag_192;
     unsigned char unknown_193;
-    void* allocation_194;
-    void* allocation_198;
+    unsigned char* allocation_194;
+    srVector3T<float>* allocation_198;
     void* allocation_19c;
     unsigned char active_1a0;
-    unsigned char unknown_1a1[0xaf];
+    unsigned char flag_1a1;
+    unsigned char unknown_1a2[2];
+    int value_1a4;
+    int value_1a8;
+    int value_1ac;
+    int value_1b0;
+    int value_1b4;
+    int value_1b8;
+    int value_1bc;
+    int value_1c0;
+    int value_1c4;
+    int value_1c8;
+    int value_1cc;
+    srVector3T<float> minimum_1d0;
+    srVector3T<float> maximum_1dc;
+    float value_1e8;
+    float value_1ec;
+    float value_1f0;
+    float value_1f4;
+    float value_1f8;
+    float value_1fc;
+    float value_200;
+    float value_204;
+    float value_208;
+    float value_20c;
+    float value_210;
+    float value_214;
+    float value_218;
+    srVector3T<float> minimum_21c;
+    srVector3T<float> maximum_228;
+    srVector3T<float> value_234;
+    float value_240;
+    unsigned char unknown_244[0x0c];
     void* allocation_250;
-    void* allocation_254;
+    float* allocation_254;
     unsigned int activated_at_258;
     unsigned int updated_at_25c;
-    unsigned char unknown_260[4];
+    short value_260;
+    unsigned char unknown_262[2];
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
