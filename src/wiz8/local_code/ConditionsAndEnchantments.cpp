@@ -13,6 +13,46 @@
 
 #define CONDITIONS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp"
 
+/* Keep the live quantity in the byte selected by the database record. Stack
+   items use stack_count; charge and use-count items use uses_or_charges. */
+// FUNCTION: WIZ8 0x00522e80
+void NormalizeItemQuantityKind(W8ItemInstance* item)
+{
+    unsigned char quantity_kind;
+
+    if (item->item_id == -1) {
+        return;
+    }
+
+    quantity_kind = g_item_records[item->item_id].quantity_kind;
+    if (quantity_kind != 1) {
+        if (quantity_kind <= 1 || quantity_kind > 4 ||
+            item->stack_count <= 0) {
+            return;
+        }
+        if (item->uses_or_charges > 0) {
+            item->stack_count = 0;
+            return;
+        }
+        item->uses_or_charges = item->stack_count;
+        item->stack_count = 0;
+        return;
+    }
+
+    if (item->uses_or_charges > 0) {
+        if (item->stack_count > 0) {
+            item->uses_or_charges = 0;
+            return;
+        }
+        item->stack_count = item->uses_or_charges;
+        item->uses_or_charges = 0;
+        return;
+    }
+    if (item->stack_count == 0) {
+        item->stack_count = 1;
+    }
+}
+
 extern void SetMonsterCondition(
     int location_id, int condition, int duration, int argument, W8TargetSource* target_block, int quiet);
 /* 0x00523C00 */

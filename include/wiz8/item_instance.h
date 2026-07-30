@@ -18,3 +18,5 @@ typedef struct W8ItemInstance {
 } W8ItemInstance;                        /* 0x0c */
 
 #pragma pack(pop)
+
+void NormalizeItemQuantityKind(W8ItemInstance* item);

@@ -94,13 +94,6 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
     return index;
 }
 
-/* Move an item instance's quantity into whichever of its two counts the item's
-   quantity kind actually uses. The reviewed Ghidra project has a boundary for
-   this body, but it sits in an attribution gap between PC Item.cpp and
-   ConditionsAndEnchantments.cpp that needs an address-quarantine file with
-   assertion-backed bounds, so it is declared here and recovered separately. */
-extern void NormalizeItemQuantityKind(W8ItemInstance* item); /* 0x00522E80 */
-
 /* Keep an NPC's stock current. Three passes, each with its own trigger.
 
    First every entry is normalized: the quantity moves into the count its kind
