@@ -474,14 +474,14 @@ void UpdateMonsterDamageAppearance(W8MonsterInfo* monster_info)
     W8Monster* monster = monster_info->monster;
 
     if (monster != 0) {
-        int count = monster->Function4C6A50();
+        int count = monster->GetDamageStageCount004C6A50();
         if (count > 1) {
             int value = ((monster_info->hp_max - monster_info->hp_current) * count) /
                         monster_info->hp_max;
             if (value >= count - 1) {
                 value = count - 1;
             }
-            monster->Function4C6990(value);
+            monster->SetDamageStage004C6990(value);
         }
     }
 }

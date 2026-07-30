@@ -1,6 +1,7 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/World.h"
@@ -23,6 +24,8 @@ extern unsigned char FindEntityByName(
     int* value,
     W8Position* direction);
 extern void SetTriggerVariableByName00444030(const char* name, int value);
+extern void Function401920(const char* message);
+extern char* FormatString(const char* format, ...);
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
 
@@ -1675,6 +1678,158 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
             }
         }
     }
+}
+
+/* Flatten every model instance reachable from every cycle and subcycle. The
+   temporary vectors used by the damage-appearance accessors below prove the
+   element type: AniMesh's frame lookup returns stModelInstance objects and the
+   consumers read their first-party fields beyond the srModelInstance base. */
+// FUNCTION: WIZ8 0x004c6350
+void W8Monster::CollectModelInstances004C6350(
+    W8GrowableVector<stModelInstance*>* instances)
+{
+    int cycle;
+
+    GetTotalAnimationCount();
+    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        int subcycle;
+
+        for (subcycle = 0;
+             subcycle < m_pRep->GetNumSubsPerCycle((signed char)cycle);
+             ++subcycle) {
+            W8MonsterAnimationVector* cycle_animations =
+                &m_pRep->animations[cycle];
+            W8AnimObj* animation;
+
+            if (subcycle >= cycle_animations->GetCount()) {
+                Function401920(FormatString(
+                    "Monster %s: Missing CYCLE %s subcycle %d",
+                    m_pRep->name_5c0,
+                    g_cycle_names[cycle].name,
+                    subcycle));
+            }
+            animation = *cycle_animations->GetAt(subcycle);
+            if (animation == 0) {
+                continue;
+            }
+
+            if (AnimationIsRunning(animation) == 0) {
+                int list_index;
+
+                for (list_index = 0; list_index < 3; ++list_index) {
+                    W8AniMesh* mesh =
+                        static_cast<W8AniMesh*>(animation->entries_18[list_index]);
+                    if (mesh != 0) {
+                        int frame_count = AniMeshValue004B64F0(mesh);
+
+                        if ((mesh->flags_00 & 0x20) != 0) {
+                            instances->Add(GetAniMeshFrame004B6550(mesh, 0));
+                        }
+                        else {
+                            int frame;
+
+                            for (frame = 0; frame < frame_count; ++frame) {
+                                instances->Add(
+                                    GetAniMeshFrame004B6550(mesh, frame));
+                            }
+                        }
+                    }
+                }
+            }
+            else if (AnimationIsRunning(animation) == 1) {
+                int list_index;
+
+                for (list_index = 0; list_index < 3; ++list_index) {
+                    W8PList* list = animation->lists_28[list_index];
+                    if (list != 0) {
+                        int mesh_index;
+                        int mesh_count = PListGetCount(list);
+
+                        for (mesh_index = 0; mesh_index < mesh_count; ++mesh_index) {
+                            W8AniMesh* mesh = static_cast<W8AniMesh*>(
+                                PListGetAt(list, mesh_index));
+                            if (mesh != 0) {
+                                int frame;
+                                int frame_count = AniMeshValue004B64F0(mesh);
+
+                                for (frame = 0; frame < frame_count; ++frame) {
+                                    instances->Add(
+                                        GetAniMeshFrame004B6550(mesh, frame));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Select the damage-stage model on every frame instance owned by this
+   Monster. UpdateMonsterDamageAppearance supplies the HP-derived stage. */
+// FUNCTION: WIZ8 0x004c6990
+void W8Monster::SetDamageStage004C6990(int stage)
+{
+    W8GrowableVector<stModelInstance*> instances;
+    int index;
+
+    CollectModelInstances004C6350(&instances);
+    for (index = 0; index < instances.GetCount(); ++index) {
+        (*instances.GetAt(index))->damage_stage_184 = stage;
+    }
+}
+
+/* Every frame instance in one Monster carries the same number of available
+   damage stages, so the first instance supplies the count. */
+// FUNCTION: WIZ8 0x004c6a50
+int W8Monster::GetDamageStageCount004C6A50()
+{
+    W8GrowableVector<stModelInstance*> instances;
+
+    CollectModelInstances004C6350(&instances);
+    if (instances.GetCount() != 0) {
+        return (*instances.GetAt(0))->damage_stage_count_18c;
+    }
+    return 0;
+}
+
+/* Resolve the database-controlled render gate after the Monster's transient
+   runtime overrides. The alternate argument selects the secondary live-info
+   flag used by the world-update path. */
+// FUNCTION: WIZ8 0x004c7c00
+unsigned char W8Monster::IsRenderable004C7C00(char alternate)
+{
+    unsigned char disabled = flag_217;
+    int location_id = propagated_value_1e4;
+    W8MonsterInfo* monster_info;
+    W8MonsterRecord* record;
+
+    if (disabled != 0) {
+        return 0;
+    }
+    if (flag_215 != 0) {
+        return 1;
+    }
+    if (location_id == -1) {
+        return 1;
+    }
+    if (((flags_1dc >> 8) & 1) != 0) {
+        return 1;
+    }
+    if (flags_330.flag_00 != 0) {
+        return 1;
+    }
+
+    monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+        0x1977, MONSTER_CPP, location_id, 1));
+    record = GetMonsterDataForInfo(monster_info);
+    if (record->flag_248 > 0) {
+        return monster_info->flag_28d;
+    }
+    if (alternate != 0) {
+        return monster_info->flag_2ab;
+    }
+    return monster_info->flag_24d;
 }
 
 /* Forward to the object's own vtable slot four. */

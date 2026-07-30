@@ -12,6 +12,7 @@
 
 struct W8AnimObj;
 struct W8PList;
+class stModelInstance;
 
 typedef struct W8MonsterRep W8MonsterRep;
 
@@ -198,8 +199,11 @@ public:
     unsigned char IsDying();                           /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
     void ApplyRemovalStateEffects();
-    int Function4C6A50();
-    void Function4C6990(int value);
+    void CollectModelInstances004C6350(
+        W8GrowableVector<stModelInstance*>* instances);
+    void SetDamageStage004C6990(int stage);
+    int GetDamageStageCount004C6A50();
+    unsigned char IsRenderable004C7C00(char alternate);
     void HandleAnimationThreshold004C75C0();
     void HandleAnimationFrame004C74D0(unsigned char frame);
     void UpdateShakeEvents004C3380(unsigned char frame);

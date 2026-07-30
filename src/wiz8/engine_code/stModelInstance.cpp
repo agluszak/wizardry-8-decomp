@@ -94,6 +94,16 @@ srRegistry::ClassNode* stModelInstance::getClassNode() const
     return node;
 }
 
+/* The derived instance has no first-party resource to release here. Its
+   responsibility is the registry edge; srModelInstance performs the base
+   teardown automatically after this body. The registry helper is defined
+   first because its complete body is expanded into the original destructor. */
+// FUNCTION: WIZ8 0x00481940
+stModelInstance::~stModelInstance()
+{
+    srCore.getRegistry()->unregisterInstance(getClassNode(), this);
+}
+
 /* The 2D form takes the identical chain: both model-instance classes hang off
    srModelInstance, which is what pairs them beyond their adjacent ids. */
 // FUNCTION: WIZ8 0x00481a60

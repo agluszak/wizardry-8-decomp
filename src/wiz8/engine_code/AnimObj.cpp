@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AniMesh.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "surrender/srModelInstance.h"
 #include "wiz8/sr_api.h"
 
@@ -11,9 +12,6 @@
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
 extern int Function4B64F0(void* entry);                        /* 0x004B64F0 */
-extern srModelInstance* GetAniMeshFrame004B6550(
-    W8AniMesh* mesh, int frame);                               /* 0x004B6550 */
-
 // FUNCTION: WIZ8 0x004a01a0
 W8AnimObj* CreateAnimObj004A01A0()
 {

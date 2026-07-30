@@ -119,9 +119,12 @@ typedef struct W8MonsterInfo {
     /* 0x28a: at one the monster counts as a live threat for the group-level
        sight query, on top of being alive and not too far gone. */
     unsigned char threat_28a;
-    unsigned char unknown_28b[3];
+    unsigned char unknown_28b[2];
+    unsigned char flag_28d;
     int value_28e;                          /* 0x28e: cleared by the per-turn reset */
-    unsigned char unknown_292[0x24];
+    unsigned char unknown_292[0x19];
+    unsigned char flag_2ab;
+    unsigned char unknown_2ac[0x0a];
     /* 0x2b6: what this monster can see of other monsters, one heap record per
        other monster. The two release paths own it: one drops every record
        about a departing monster, the other empties and destroys the whole

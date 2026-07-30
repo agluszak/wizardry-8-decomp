@@ -1,6 +1,7 @@
 #pragma once
 
 #include "surrender/srLight.h"
+#include "surrender/srModelInstance.h"
 #include "surrender/srScene.h"
 
 class W8MonsterShakeCallback;
@@ -16,20 +17,33 @@ class W8MonsterShakeCallback;
  * registry name matches the unit name, and the body sits inside that unit's
  * assertion-bounded interval.
  *
- * The slots are declared as plain members rather than `virtual`. Nothing about
- * these classes' layout is recovered yet, and giving them virtuals would have
- * VC6 synthesize a vptr and a vtable that no evidence places, where the two
- * bodies themselves need neither. Their real slot indices stay an open
- * question the vtable evidence answers, not this header.
+ * Classes below remain positional until their constructor or vtable supplies
+ * the complete inheritance evidence. stModelInstance is the exception now
+ * closed by its destructor and both ordinary multiple-inheritance tables.
  */
 
-/* Engine Code\stModelInstance.cpp. */
-class stModelInstance {
+/* Engine Code\stModelInstance.cpp. The destructor writes both tables before
+   unregistering the instance and delegating to srModelInstance. The second
+   table is the ordinary srModel::Client base at srModelInstance +0x138. */
+// VTABLE: WIZ8 0x005ec814 stModelInstance
+// VTABLE: WIZ8 0x005ec804 srModel::Client
+class stModelInstance : public srModelInstance {
 public:
-    const char* getClassName() const;     /* 0x00481870 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x00481880 */
-    unsigned long getClassID() const;     /* 0x00481860 */
+    const char* getClassName() const override;     /* 0x00481870 */
+    srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
+    unsigned long getClassID() const override;     /* 0x00481860 */
+
+protected:
+    virtual ~stModelInstance() override;           /* 0x00481940 */
+
+public:
+    unsigned int frame_index_180;
+    int damage_stage_184;
+    int value_188;
+    int damage_stage_count_18c;
 };
+
+static_assert(sizeof(stModelInstance) == 0x190, "stModelInstance_size_must_be_0x190");
 
 /* Engine Code\stModelInstance.cpp, alongside the 3D form above. The two ids are
    adjacent, which is what pairs them. */

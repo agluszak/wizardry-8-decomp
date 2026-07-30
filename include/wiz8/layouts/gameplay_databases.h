@@ -199,7 +199,9 @@ typedef struct W8MonsterRecord {
     short record_id_187;                  /* 0x187: equals the zero-based database index */
     char cycle_name_189[0x31];             /* 0x189: GrCycle lookup key */
     float float_1ba;                      /* 0x1ba: scaled by 0x005ed4f0 */
-    unsigned char unknown_1be[0x8c];
+    unsigned char unknown_1be[0x8a];
+    unsigned char flag_248;
+    unsigned char unknown_249;
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers
        candidates drops it before any other test. */
     unsigned char untargetable_24a;
