@@ -79,7 +79,7 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     if (codec_.failed != 0) {
         ::operator delete(decoded);
         if (surface != 0) {
-            surface->asInterface()->release();
+            surface->release();
         }
         return 0;
     }
@@ -88,8 +88,8 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
     const unsigned char* source_row = decoded;
     for (unsigned long y = 0; y < height; ++y) {
         unsigned char* destination =
-            static_cast<unsigned char*>(surface->asInterface()->getDataPtr())
-            + surface->rowPitch() * y;
+            static_cast<unsigned char*>(surface->getDataPtr())
+            + surface->getPitch() * y;
         switch (components) {
         case 1:
             memcpy(destination, source_row, width);
@@ -125,7 +125,7 @@ srColorSurfaceIFace* srJPEGImporter::importSurface(
 
     srJPEG_active_input_stream = 0;
     ::operator delete(decoded);
-    return surface->asInterface();
+    return surface;
 }
 
 // FUNCTION: SREXT_JPEGIMPORTER 0x10015400
@@ -180,22 +180,21 @@ void srJPEGImporter::exportSurface(
         ::operator delete(option_string);
     }
 
-    srColorSurface* source_surface = srColorSurface::fromInterface(source);
     srJPEGColorSurface* copy = new srJPEGColorSurface(
         srPixelConvert::SURFACE_COPY,
-        source_surface->width(),
-        source_surface->height());
-    copy->asInterface()->copy(source);
+        source.getWidth(),
+        source.getHeight());
+    copy->copy(source);
 
     memset(&codec_, 0, sizeof(codec_));
-    codec_.pixels = static_cast<unsigned char*>(copy->asInterface()->getDataPtr());
-    codec_.width = source_surface->width();
-    codec_.height = source_surface->height();
+    codec_.pixels = static_cast<unsigned char*>(copy->getDataPtr());
+    codec_.width = source.getWidth();
+    codec_.height = source.getHeight();
     codec_.output_stdio_cookie = 0;
     codec_.arithmetic_coding = 0;
     codec_.ccir601_sampling = 0;
     codec_.smoothing_factor = export_options_.smoothing_factor;
     codec_.quality = export_options_.quality;
     srJPEG_encode_adapter(&codec_);
-    copy->asInterface()->release();
+    copy->release();
 }

@@ -135,7 +135,7 @@ static BOOLEAN BlitVideoObjectToColorSurface(
     }
     return BltVideoObjectToBuffer(
         static_cast<UINT16*>(destination->getDataPtr()),
-        destination->rowPitch(), object, region, x, y,
+        destination->getPitch(), object, region, x, y,
         VO_BLT_SRCTRANSPARENCY, 0);
 }
 
@@ -266,10 +266,10 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
         g_cursor_height_654ad4 = height < 481 ? height : 480;
         if (g_cursor_node_659694) {
             location.x = static_cast<double>(g_cursor_width_654ad0) / 640.0
-                       + static_cast<double>(g_mouse_surface_659688->width()) / 1280.0;
+                       + static_cast<double>(g_mouse_surface_659688->getWidth()) / 1280.0;
             location.y = 1.0
                        - static_cast<double>(g_cursor_height_654ad4) / 480.0
-                       - static_cast<double>(g_mouse_surface_659688->height()) / 960.0;
+                       - static_cast<double>(g_mouse_surface_659688->getHeight()) / 960.0;
             location.z = 0.0;
             g_cursor_node_659694->setLocation(location);
             if (reset_tick) {

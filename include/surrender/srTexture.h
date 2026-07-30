@@ -1,8 +1,8 @@
 #pragma once
 
+#include "srColorSurface.h"
 #include "srTypeRegistry.h"
 
-class srColorSurfaceIFace;
 class srFilter;
 class srTexture;
 class stSurface2D;
@@ -109,7 +109,7 @@ protected:
     unsigned long texture_width_;          /* 0x20 */
     unsigned long texture_height_;         /* 0x24 */
     srClass* texture_filter_;               /* 0x28 */
-    unsigned long surface_format_[5];       /* 0x2c */
+    srPixelConvert::PixelFormat surface_format_; /* 0x2c */
     unsigned char unknown_40_[0x10];
     unsigned long texture_flags_;           /* 0x50 */
 };

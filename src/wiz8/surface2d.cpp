@@ -87,17 +87,13 @@ unsigned long stTexture2D::getTextureFrameHandle() { return frame_handle; }
 
 void stTexture2D::getMipmapData(MultiRequest& request)
 {
-    srColorSurface* destination = srColorSurface::fromInterface(
-        *request.destinations[request.mipmap_level]);
-    destination->srColorSurface::blit(
+    request.destinations[request.mipmap_level]->blit(
         0, 0, *surface, left, top, right, bottom);
 }
 
 void stTexture2D::getMipmapLevelPartial(PartialRequest& request)
 {
-    srColorSurface* destination = srColorSurface::fromInterface(
-        *request.destination);
-    destination->srColorSurface::blit(
+    request.destination->blit(
         request.destination_x, request.destination_y, *surface,
         left + request.destination_x, top + request.destination_y,
         left + request.source_right, top + request.source_bottom);
@@ -107,12 +103,8 @@ void stTexture2D::invalidate() { invalidateFrameHandle(frame_handle); }
 
 void stTexture2D::setupDefaultValues()
 {
-    int index;
-
     if (surface) {
-        const unsigned long* format =
-            srColorSurface::fromInterface(*surface)->textureSurfaceFormat();
-        for (index = 0; index != 5; ++index) surface_format_[index] = format[index];
+        surface->getPixelFormat(surface_format_);
         if (texture_filter_) {
             texture_filter_->release();
             texture_filter_ = 0;
