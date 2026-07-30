@@ -140,11 +140,162 @@ W8Camera005EBE14* GDCamera::Method00476440(
     return g_game_camera_65a0fc;
 }
 
+// FUNCTION: WIZ8 0x004784C0
+void GDCamera::Method004784C0(float pitch)
+{
+    if (pitch > g_camera_pitch_upper_005ec550) {
+        pitch = g_camera_pitch_upper_005ec550;
+    }
+    if (pitch < g_camera_pitch_lower_005ec554) {
+        pitch = g_camera_pitch_lower_005ec554;
+    }
+    m_positional_008 = pitch;
+
+    m_matrix_00c.vectors[0].x = 1.0f;
+    m_matrix_00c.vectors[0].y = 0.0f;
+    m_matrix_00c.vectors[0].z = 0.0f;
+    m_matrix_00c.vectors[1].x = 0.0f;
+    m_matrix_00c.vectors[1].y = 1.0f;
+    m_matrix_00c.vectors[1].z = 0.0f;
+    m_matrix_00c.vectors[2].x = 0.0f;
+    m_matrix_00c.vectors[2].y = 0.0f;
+    m_matrix_00c.vectors[2].z = 1.0f;
+    if ((double)pitch != g_zero_005ebb40) {
+        m_matrix_00c.method_00478EB0(
+            sin((double)pitch), cos((double)pitch));
+    }
+    MarkRendererReady();
+}
+
+// FUNCTION: WIZ8 0x00478720
+void GDCamera::Method00478720(float angle)
+{
+    while (angle > g_camera_angle_period_005ec54c) {
+        angle -= g_camera_angle_period_005ec54c;
+    }
+    while (angle < g_camera_angle_lower_005ec548) {
+        angle += g_camera_angle_period_005ec54c;
+    }
+    m_angle_004 = angle;
+
+    m_matrix_030.vectors[0].x = 1.0f;
+    m_matrix_030.vectors[0].y = 0.0f;
+    m_matrix_030.vectors[0].z = 0.0f;
+    m_matrix_030.vectors[1].x = 0.0f;
+    m_matrix_030.vectors[1].y = 1.0f;
+    m_matrix_030.vectors[1].z = 0.0f;
+    m_matrix_030.vectors[2].x = 0.0f;
+    m_matrix_030.vectors[2].y = 0.0f;
+    m_matrix_030.vectors[2].z = 1.0f;
+    if ((double)angle != g_zero_005ebb40) {
+        m_matrix_030.method_00438F90(
+            sin((double)angle), cos((double)angle));
+    }
+    MarkRendererReady();
+}
+
+// FUNCTION: WIZ8 0x004788E0
+void GDCamera::Method004788E0(float angle, float pitch)
+{
+    while (angle > g_camera_angle_period_005ec54c) {
+        angle -= g_camera_angle_period_005ec54c;
+    }
+    while (angle < g_camera_angle_lower_005ec548) {
+        angle += g_camera_angle_period_005ec54c;
+    }
+    m_angle_004 = angle;
+    m_matrix_030.vectors[0].x = 1.0f;
+    m_matrix_030.vectors[0].y = 0.0f;
+    m_matrix_030.vectors[0].z = 0.0f;
+    m_matrix_030.vectors[1].x = 0.0f;
+    m_matrix_030.vectors[1].y = 1.0f;
+    m_matrix_030.vectors[1].z = 0.0f;
+    m_matrix_030.vectors[2].x = 0.0f;
+    m_matrix_030.vectors[2].y = 0.0f;
+    m_matrix_030.vectors[2].z = 1.0f;
+    if ((double)angle != g_zero_005ebb40) {
+        m_matrix_030.method_00438F90(
+            sin((double)angle), cos((double)angle));
+    }
+
+    if (pitch > g_camera_pitch_upper_005ec550) {
+        pitch = g_camera_pitch_upper_005ec550;
+    }
+    if (pitch < g_camera_pitch_lower_005ec554) {
+        pitch = g_camera_pitch_lower_005ec554;
+    }
+    m_positional_008 = pitch;
+    m_matrix_00c.vectors[0].x = 1.0f;
+    m_matrix_00c.vectors[0].y = 0.0f;
+    m_matrix_00c.vectors[0].z = 0.0f;
+    m_matrix_00c.vectors[1].x = 0.0f;
+    m_matrix_00c.vectors[1].y = 1.0f;
+    m_matrix_00c.vectors[1].z = 0.0f;
+    m_matrix_00c.vectors[2].x = 0.0f;
+    m_matrix_00c.vectors[2].y = 0.0f;
+    m_matrix_00c.vectors[2].z = 1.0f;
+    if ((double)pitch != g_zero_005ebb40) {
+        m_matrix_00c.method_00478EB0(
+            sin((double)pitch), cos((double)pitch));
+    }
+
+    m_matrix_054 = m_matrix_030;
+    m_matrix_054.method_00421A40(m_matrix_00c);
+    MarkRendererReady();
+}
+
+// FUNCTION: WIZ8 0x00478BD0
+void GDCamera::Method00478BD0(srMatrix3T<float>* output)
+{
+    m_matrix_054 = m_matrix_030;
+    m_matrix_054.method_00421A40(m_matrix_00c);
+    *output = m_matrix_054;
+}
+
 // FUNCTION: WIZ8 0x00478CC0
 void GDCamera::Method00478CC0()
 {
     m_positional_000 |= 0x20;
     Method00477440(0.0f, m_angle_004, 0);
+}
+
+// FUNCTION: WIZ8 0x00478CE0
+void GDCamera::Method00478CE0(float distance, W8Position* output)
+{
+    m_matrix_054 = m_matrix_030;
+    m_matrix_054.method_00421A40(m_matrix_00c);
+    m_direction_078.x = 0.0f;
+    m_direction_078.y = 0.0f;
+    m_direction_078.z = 1.0f;
+
+    float x = m_matrix_054.vectors[0].x * m_direction_078.x
+              + m_matrix_054.vectors[0].y * m_direction_078.y
+              + m_matrix_054.vectors[0].z * m_direction_078.z;
+    float y = m_matrix_054.vectors[1].x * m_direction_078.x
+              + m_matrix_054.vectors[1].y * m_direction_078.y
+              + m_matrix_054.vectors[1].z * m_direction_078.z;
+    float z = m_matrix_054.vectors[2].x * m_direction_078.x
+              + m_matrix_054.vectors[2].y * m_direction_078.y
+              + m_matrix_054.vectors[2].z * m_direction_078.z;
+    m_direction_078.x = x;
+    m_direction_078.y = y;
+    m_direction_078.z = z;
+    output->x = x;
+    output->y = y;
+    output->z = z;
+
+    float length_squared = output->x * output->x
+                           + output->y * output->y
+                           + output->z * output->z;
+    if ((double)length_squared != g_zero_005ebb40) {
+        float scale = distance / (float)sqrt((double)length_squared);
+        output->x *= scale;
+        output->y *= scale;
+        output->z *= scale;
+    }
+    output->x += m_position_08c.x;
+    output->y += m_position_08c.y;
+    output->z += m_position_08c.z;
 }
 
 // FUNCTION: WIZ8 0x00478E00
