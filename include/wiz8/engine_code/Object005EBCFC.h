@@ -12,6 +12,7 @@ public:
     virtual ~W8Object005EBCFC() override;               /* 0x004218D0 */
     void Method0043A530();                              /* 0x0043A530 */
     unsigned int Method0043A5D0();                      /* 0x0043A5D0 */
+    unsigned char IsFinished() const { return m_positional_024; }
 
 private:
     unsigned char m_positional_024;                     /* 0x024 */

@@ -40,7 +40,7 @@ public:
         srMatrix3T<float>* rotation, void* context); /* 0x00476610 */
     void Method00476950(const W8Position* target);   /* 0x00476950 */
     void Method00476C30(float pitch, float angle);   /* 0x00476C30 */
-    int Method00476F90(
+    unsigned char Method00476F90(
         const W8Position* target,
         unsigned char preserve_pitch);              /* 0x00476F90 */
     unsigned char Method00477180(
@@ -70,20 +70,20 @@ public:
     srMatrix3T<float> m_matrix_030;                   /* 0x030 */
     srMatrix3T<float> m_matrix_054;                   /* 0x054 */
     W8Position m_direction_078;                      /* 0x078 */
-    unsigned long m_positional_084;                  /* 0x084 */
+    float m_elapsed_084;                             /* 0x084 */
     unsigned char m_flag_088;                        /* 0x088 */
     unsigned char m_flag_089;                        /* 0x089 */
     unsigned char m_padding_08a[2];
     W8Position m_position_08c;                       /* 0x08c */
-    unsigned long m_positional_098;                  /* 0x098 */
-    unsigned long m_positional_09c;                  /* 0x09c */
-    unsigned long m_positional_0a0;                  /* 0x0a0 */
-    unsigned long m_positional_0a4;                  /* 0x0a4 */
-    unsigned long m_positional_0a8;                  /* 0x0a8 */
-    unsigned long m_positional_0ac;                  /* 0x0ac */
-    unsigned long m_positional_0b0;                  /* 0x0b0 */
-    unsigned long m_positional_0b4;                  /* 0x0b4 */
-    unsigned long m_positional_0b8;                  /* 0x0b8 */
+    float m_target_angle_098;                        /* 0x098 */
+    float m_target_pitch_09c;                        /* 0x09c */
+    float m_start_angle_0a0;                         /* 0x0a0 */
+    float m_start_pitch_0a4;                         /* 0x0a4 */
+    float m_angle_velocity_0a8;                      /* 0x0a8 */
+    float m_pitch_velocity_0ac;                      /* 0x0ac */
+    float m_angle_distance_0b0;                      /* 0x0b0 */
+    float m_pitch_distance_0b4;                      /* 0x0b4 */
+    float m_transition_duration_0b8;                 /* 0x0b8 */
     W8Object005EBCFC* m_owned_0bc;                   /* 0x0bc */
 };
 

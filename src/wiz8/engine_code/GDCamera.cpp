@@ -10,7 +10,10 @@ extern const double g_camera_view_factor_005ec300;
 extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
 extern const float g_zero_005ebb34;
+extern const float g_one_005ebb38;
 extern const double g_zero_005ebb40;
+extern const float g_negative_one_005ebc38;
+extern const float g_camera_angle_period_005ec014;
 extern const float g_camera_angle_period_005ec54c;
 extern const float g_camera_angle_lower_005ec548;
 extern const float g_camera_pitch_upper_005ec550;
@@ -31,8 +34,8 @@ GDCamera::GDCamera()
     float angle;
 
     m_positional_000 = 0;
-    m_positional_098 = 0;
-    m_positional_09c = 0;
+    m_target_angle_098 = 0.0f;
+    m_target_pitch_09c = 0.0f;
     m_position_08c.x = 0.0f;
     m_position_08c.y = 0.0f;
     m_position_08c.z = 0.0f;
@@ -76,18 +79,18 @@ GDCamera::GDCamera()
     }
     MarkRendererReady();
 
-    m_positional_084 = 0;
+    m_elapsed_084 = 0.0f;
     m_flag_088 = 0;
     m_flag_089 = 0;
-    m_positional_098 = 0;
-    m_positional_09c = 0;
-    m_positional_0a0 = 0;
-    m_positional_0a4 = 0;
-    m_positional_0a8 = 0;
-    m_positional_0ac = 0;
-    m_positional_0b0 = 0;
-    m_positional_0b4 = 0;
-    m_positional_0b8 = 0;
+    m_target_angle_098 = 0.0f;
+    m_target_pitch_09c = 0.0f;
+    m_start_angle_0a0 = 0.0f;
+    m_start_pitch_0a4 = 0.0f;
+    m_angle_velocity_0a8 = 0.0f;
+    m_pitch_velocity_0ac = 0.0f;
+    m_angle_distance_0b0 = 0.0f;
+    m_pitch_distance_0b4 = 0.0f;
+    m_transition_duration_0b8 = 0.0f;
     m_owned_0bc = new W8Object005EBCFC(1.0f, 0, 1);
 
     m_matrix_054 = *second_matrix;
@@ -138,6 +141,141 @@ W8Camera005EBE14* GDCamera::Method00476440(
     m_flag_089 = 0;
     g_game_camera_65a0fc->setRotation(m_matrix_054);
     return g_game_camera_65a0fc;
+}
+
+// FUNCTION: WIZ8 0x00476950
+void GDCamera::Method00476950(const W8Position* target)
+{
+    if (g_flag_00683f97 == 0) {
+        if ((m_positional_000 & 1) != 0) {
+            return;
+        }
+        W8Object005EBCFC* timer = m_owned_0bc;
+        if (timer->IsFinished() == 0) {
+            timer->Method0043A5D0();
+        }
+        if (timer->IsFinished() == 0) {
+            return;
+        }
+    }
+
+    float x = target->x - m_position_08c.x;
+    float y = target->y - m_position_08c.y;
+    float z = target->z - m_position_08c.z;
+    float length_squared = x * x + y * y + z * z;
+    float length = (float)sqrt((double)length_squared);
+    if (length < 1.0) {
+        return;
+    }
+    if ((double)length_squared != g_zero_005ebb40) {
+        float scale = (float)(1.0 / sqrt((double)length_squared));
+        x *= scale;
+        y *= scale;
+        z *= scale;
+    }
+
+    float horizontal_scale =
+        (float)(1.0 / sqrt((double)(x * x + z * z)));
+    x *= horizontal_scale;
+    z *= horizontal_scale;
+    if (y >= g_one_005ebb38) {
+        y = g_one_005ebb38;
+    } else if (y < g_negative_one_005ebc38) {
+        y = g_negative_one_005ebc38;
+    }
+    float pitch = (float)-asin((double)y);
+    if (z >= g_one_005ebb38) {
+        z = g_one_005ebb38;
+    } else if (z < g_negative_one_005ebc38) {
+        z = g_negative_one_005ebc38;
+    }
+    float angle = (float)acos((double)z);
+    if (x < g_zero_005ebb34) {
+        angle = g_camera_angle_period_005ec014 - angle;
+    }
+
+    m_target_pitch_09c = pitch;
+    m_target_angle_098 = angle;
+    if (g_flag_00683f97 == 0) {
+        if ((m_positional_000 & 1) != 0) {
+            return;
+        }
+        W8Object005EBCFC* timer = m_owned_0bc;
+        if (timer->IsFinished() == 0) {
+            timer->Method0043A5D0();
+        }
+        if (timer->IsFinished() == 0) {
+            return;
+        }
+    }
+
+    m_target_pitch_09c = pitch;
+    m_target_angle_098 = angle;
+    m_positional_000 = 0x80;
+    m_flag_088 = 0;
+    Method00478720(angle);
+    Method004784C0(pitch);
+    m_pitch_velocity_0ac = 0.0f;
+    m_angle_velocity_0a8 = 0.0f;
+}
+
+// FUNCTION: WIZ8 0x00476F90
+unsigned char GDCamera::Method00476F90(
+    const W8Position* target, unsigned char preserve_pitch)
+{
+    if (g_flag_00683f97 == 0) {
+        if ((m_positional_000 & 1) != 0) {
+            return 0;
+        }
+        W8Object005EBCFC* timer = m_owned_0bc;
+        if (timer->IsFinished() == 0) {
+            timer->Method0043A5D0();
+        }
+        if (timer->IsFinished() == 0) {
+            return 0;
+        }
+    }
+
+    float x = target->x - m_position_08c.x;
+    float y = target->y - m_position_08c.y;
+    float z = target->z - m_position_08c.z;
+    float length_squared = x * x + y * y + z * z;
+    float length = (float)sqrt((double)length_squared);
+    if (length < 1.0) {
+        return 0;
+    }
+    if ((double)length_squared != g_zero_005ebb40) {
+        float scale = (float)(1.0 / sqrt((double)length_squared));
+        x *= scale;
+        y *= scale;
+        z *= scale;
+    }
+
+    float horizontal_scale =
+        (float)(1.0 / sqrt((double)(x * x + z * z)));
+    x *= horizontal_scale;
+    z *= horizontal_scale;
+    float pitch;
+    if (preserve_pitch != 0) {
+        pitch = m_positional_008;
+    } else {
+        if (y >= g_one_005ebb38) {
+            y = g_one_005ebb38;
+        } else if (y < g_negative_one_005ebc38) {
+            y = g_negative_one_005ebc38;
+        }
+        pitch = (float)-asin((double)y);
+    }
+    if (z >= g_one_005ebb38) {
+        z = g_one_005ebb38;
+    } else if (z < g_negative_one_005ebc38) {
+        z = g_negative_one_005ebc38;
+    }
+    float angle = (float)acos((double)z);
+    if (x < g_zero_005ebb34) {
+        angle = g_camera_angle_period_005ec014 - angle;
+    }
+    return Method00477440(pitch, angle, 0);
 }
 
 // FUNCTION: WIZ8 0x004784C0
