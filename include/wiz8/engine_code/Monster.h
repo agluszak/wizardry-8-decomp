@@ -25,7 +25,6 @@ enum { W8_MONSTER_CYCLE_COUNT = 27 };
    Nothing observed so far types its contents. */
 typedef W8AnimRepValue4 W8MonsterRuntimeBlock4C;
 
-class W8VectorElement005ECDAC;
 class W8VectorElement005EC018 : public srClass {
 public:
     virtual ~W8VectorElement005EC018() override;
@@ -40,8 +39,8 @@ public:
    proven as AnimObj* by its consumers; the second element identity remains
    unknown; the third owns vectors of light nodes. */
 typedef W8GrowableVector<W8AnimObj*> W8MonsterAnimationVector;
-typedef W8GrowableVector<W8VectorElement005ECDAC*> W8MonsterVector005ECDAC;
-typedef W8GrowableVector<W8VectorElement005EC294*> W8MonsterLightVector;
+typedef W8GrowableVector<float> W8MonsterAnimationScaleVector;
+typedef W8LightVector W8MonsterLightVector;
 typedef W8GrowableVector<W8MonsterLightVector*> W8MonsterLightVectorList;
 
 /* W8MonsterRep's constructor calls the 0xac-byte W8EmitterHost constructor at
@@ -63,7 +62,7 @@ struct W8MonsterRep : public W8EmitterHost {
         signed char other_cycle);
 
     W8MonsterAnimationVector animations[W8_MONSTER_CYCLE_COUNT]; /* 0x0ac */
-    W8MonsterVector005ECDAC objects_25c[W8_MONSTER_CYCLE_COUNT];  /* 0x25c */
+    W8MonsterAnimationScaleVector animation_scales[W8_MONSTER_CYCLE_COUNT]; /* 0x25c */
     W8MonsterLightVectorList light_lists[W8_MONSTER_CYCLE_COUNT];/* 0x40c */
     unsigned char flag_5bc;                    /* 0x5bc */
     unsigned char unknown_5bd[3];
@@ -174,23 +173,24 @@ public:
     W8Monster(const W8Monster& rhs);
     virtual ~W8Monster() override;
 
-    virtual void vslot1() override;
+    virtual unsigned char CanEnterCycle(signed char cycle) override;
     virtual void vslot4() override;
-    virtual signed char vslot5() override;
+    virtual signed char GetNumSubCycles() override;
     virtual unsigned char IsCycleSupported(signed char cycle) override;
-    virtual void vslot7() override;
-    virtual void vslot8() override;
-    virtual W8EmitterHost* vslot9() override;
-    virtual void vslot10() override;
-    virtual void vslot11(void* value) override;
+    virtual signed char GetTotalAnimationCount() override;
+    virtual float GetCurrentAnimationScale() override;
+    virtual W8EmitterHost* GetRepresentation() override;
+    virtual unsigned char GetAnimationBounds(
+        W8Position* minimum, W8Position* maximum) override;
+    virtual unsigned char GetAnimationRadius(float* radius) override;
     virtual void vslot12() override;
-    virtual void vslot13() override;
-    virtual void vslot14() override;
-    virtual void SubmitCurrentAnimEntry004C3F00() override;
+    virtual W8AnimObj* GetCurrentAnimation() override;
+    virtual void AdvanceAnimationFrame(int value, int flags) override;
+    virtual W8AniMesh* GetCurrentAniMesh() override;
     virtual void vslot16();
-    virtual void vslot17();
+    virtual void SetCurrentAnimationScale(float scale);
     virtual void vslot18();
-    virtual void vslot19();
+    virtual unsigned char GetAnimationCenter(W8Position* center);
     virtual void SetPosition(const W8Position* position) override;
 
     int Query(int query);                              /* 0x004C4660 */
@@ -200,6 +200,9 @@ public:
     void Function4C50F0();
     int Function4C6A50();
     void Function4C6990(int value);
+    void HandleAnimationThreshold004C75C0();
+    void HandleAnimationFrame004C74D0(unsigned char frame);
+    void UpdateShakeEvents004C3380(unsigned char frame);
 
 public:
     W8MonsterRep* m_pRep;

@@ -2,6 +2,7 @@
 
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/vector.h"
+#include "wiz8/vector_005ec294.h"
 
 class srCamera;
 class srNode;
@@ -11,7 +12,7 @@ class W8Node005EC208;
 class W8Scene005EBE48;
 class W8Missile;
 class W8MonsterGenerator;
-class W8VectorElement005EC294;
+class stLight;
 class W8VectorElement005EC280;
 class W8CollidableProp;
 class Trigger;
@@ -51,7 +52,7 @@ struct W8World {
     W8PList m_list_0a8;
     W8GrowableVector<W8VectorElement005EC280*>* m_vector_b4;
     W8GrowableVector<W8Missile*>* missiles;
-    W8GrowableVector<W8VectorElement005EC294*>* lights_to_update;
+    W8LightVector* lights_to_update;
     W8GrowableVector<W8CollidableProp*>* collidable_props;
     W8GrowableVector<W8MonsterGenerator*>* monster_generators;
     W8GrowableVector<Trigger*>* triggers;

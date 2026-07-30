@@ -72,6 +72,12 @@ W8Navigator::W8Navigator()
     RegisterNavigator(this);
 }
 
+// FUNCTION: WIZ8 0x004534c0
+srVector3T<float> W8Navigator::GetPosition()
+{
+    return fields.position_100;
+}
+
 void W8Navigator::configureStartupRange(float range)
 {
     unknown_004[32] = float_bits(range);

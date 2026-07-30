@@ -155,13 +155,13 @@ class W8VectorElement005EC27C;
 /* Emitted lifecycle bodies belong directly to the template specialization. */
 
 // TEMPLATE: WIZ8 0x00484870
-// W8GrowableVector<W8VectorElement005EC294*>::W8GrowableVector
+// W8GrowableVector<stLight*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x00451d10
-// W8GrowableVector<W8VectorElement005EC294*>::`scalar deleting destructor'
+// W8GrowableVector<stLight*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00451d30
-// W8GrowableVector<W8VectorElement005EC294*>::~W8GrowableVector<W8VectorElement005EC294*>
+// W8GrowableVector<stLight*>::~W8GrowableVector<stLight*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

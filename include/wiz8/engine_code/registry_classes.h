@@ -80,6 +80,7 @@ public:
 // VTABLE: WIZ8 0x005ecc64
 class stLight : public srLight {
 public:
+    stLight();                                         /* 0x004CA8B0 */
     stLight(srNode* parent);                         /* 0x0049C2C0 */
     stLight& operator=(const stLight& other);         /* 0x0049C690 */
 
@@ -98,10 +99,21 @@ public:
         const srNode::ProcessInfo& info,
         srNode::e_processType type) override;       /* 0x0049C8D0 */
 
+    float positionalX() const { return m_positional_228; }
+    float positionalY() const { return m_positional_22c; }
+    float positionalZ() const { return m_positional_230; }
+    void* worldLink() const { return m_owned_234; }
+    void ConfigureMonsterCopy()
+    {
+        m_positional_18 = 2;
+        m_positional_flags_5c |= 0x10;
+        m_positional_flags_5c |= 4;
+    }
+
 private:
-    unsigned long m_positional_228;                 /* 0x228 */
-    unsigned long m_positional_22c;                 /* 0x22c */
-    unsigned long m_positional_230;                 /* 0x230 */
+    float m_positional_228;                         /* 0x228 */
+    float m_positional_22c;                         /* 0x22c */
+    float m_positional_230;                         /* 0x230 */
     void* m_owned_234;                              /* 0x234 */
     unsigned char m_positional_238;                 /* 0x238 */
     unsigned char m_positional_239;                 /* 0x239 */

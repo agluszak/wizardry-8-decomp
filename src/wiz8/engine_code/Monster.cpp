@@ -1,7 +1,9 @@
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/combat_state.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector_005ec294.h"
@@ -12,6 +14,9 @@
 extern srTimer* g_shared_timer_base;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"
+
+// VTABLE: WIZ8 0x005ecdac
+// class W8GrowableVector<float>
 
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
@@ -86,6 +91,7 @@ W8MonsterRep::W8MonsterRep(const W8MonsterRep& other)
 }
 
 extern void DestroyAnimObj004A01E0(W8AnimObj* animation);
+extern W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* animation);
 
 // FUNCTION: WIZ8 0x004bee50
 W8MonsterRep::~W8MonsterRep()
@@ -119,6 +125,80 @@ W8MonsterRep::~W8MonsterRep()
     delete[] name_5c0;
 }
 
+/* Deep-copy one cycle's animation objects and render lights while retaining
+   its per-subcycle scalar values.  The light copies are new scene objects:
+   they are registered with the world's light list and detached until the
+   owning GrCycle selects this cycle. */
+// FUNCTION: WIZ8 0x004bf0f0
+void W8MonsterRep::Method004BF0F0(
+    signed char cycle,
+    const W8MonsterRep* other,
+    signed char other_cycle)
+{
+    int index;
+
+    for (index = 0; index < other->animations[other_cycle].GetCount(); ++index) {
+        animations[cycle].Add(
+            CloneAnimObj004A0320(*other->animations[other_cycle].GetAt(index)));
+        animation_scales[cycle].Add(
+            *other->animation_scales[other_cycle].GetAt(index));
+    }
+
+    for (index = 0; index < other->light_lists[other_cycle].GetCount(); ++index) {
+        W8LightVector* source_lights =
+            *other->light_lists[other_cycle].GetAt(index);
+        W8LightVector* copied_lights = 0;
+
+        if (source_lights != 0) {
+            int light_index;
+
+            copied_lights = new W8LightVector;
+            if (copied_lights == 0) {
+                srAssertFail(
+                    "plsNewLights",
+                    MONSTER_CPP,
+                    0x1e5,
+                    "Out of memory creating monster light list");
+            }
+            for (light_index = 0;
+                 light_index < source_lights->GetCount();
+                 ++light_index) {
+                stLight* source_light = *source_lights->GetAt(light_index);
+                float x = source_light->positionalX();
+                float y = source_light->positionalY();
+                float z = source_light->positionalZ();
+                stLight* copied_light = new stLight;
+
+                if (copied_light != 0) {
+                    *copied_light = *source_light;
+                }
+                if (copied_light == 0) {
+                    srAssertFail(
+                        "pstNewLight",
+                        MONSTER_CPP,
+                        0x1ed,
+                        "Out of memory creating monster light");
+                }
+                copied_light->ConfigureMonsterCopy();
+                copied_light->setLocation(x, y, z);
+                copied_light->setParent(0, 0);
+                PListAdd(&g_world->m_list_0a8, copied_light);
+                copied_lights->Add(copied_light);
+            }
+        }
+        light_lists[cycle].Add(copied_lights);
+    }
+}
+
+/* The representation clone slot is an ordinary virtual copy operation.  The
+   allocation size and call to the copy constructor are both visible in the
+   emitted body; there is no separate representation wrapper involved. */
+// FUNCTION: WIZ8 0x004ca9e0
+W8AnimRepBase005EC1D8* W8MonsterRep::Clone()
+{
+    return new W8MonsterRep(*this);
+}
+
 struct W8Forwarded {
     void Method4C5290();
 };
@@ -145,6 +225,8 @@ extern void PrepareMonsterCycleForDestruction004ACF90(
     W8Monster* cycle);
 extern void __fastcall RefreshMonsterCycleRegistry004C6B10(
     W8Monster* cycle);
+extern unsigned char Function420E10(void);
+extern unsigned char g_flag_00689b32;
 
 // FUNCTION: WIZ8 0x004bfb00
 W8Monster::W8Monster()
@@ -282,10 +364,45 @@ W8Monster::~W8Monster()
 // FUNCTION: WIZ8 0x004ca840
 void W8Monster::SetPosition(const W8Position* position)
 {
-    vslot9()->SetLocation004B8850(position);
+    GetRepresentation()->SetLocation004B8850(position);
     m_pRep->SetLocation004B8850(position);
     SetPositionInternal00453590(position);
     fields.position_dirty_09c = 1;
+}
+
+/* Decide whether a requested cycle can replace the current one.  This is the
+   same virtual Navigator/GrCycle operation whose base implementation always
+   allows the transition; Monster adds combat, motionless, and death rules. */
+// FUNCTION: WIZ8 0x004c2bf0
+unsigned char W8Monster::CanEnterCycle(signed char cycle)
+{
+    unsigned int monster_index = MonsterGetIndexByLocationID(
+        0x969, MONSTER_CPP, propagated_value_1e4, 1);
+    W8MonsterInfo* monster_info =
+        MonsterGetScriptPartByLocationIndex(monster_index);
+
+    if (g_in_combat_00683f94 != 0 && Function420E10() != 0) {
+        return 0;
+    }
+    if (m_pRep->flag_06d == 0) {
+        if (cycle != 0x14 && cycle != 0x15 && cycle != 0 &&
+            monster_info->motionless != 0) {
+            if (g_flag_00689b32 == 0) {
+                return 0;
+            }
+            srAssertFail("FALSE", MONSTER_CPP, 0x97f, 0);
+            return 0;
+        }
+    } else {
+        if (Function4C2CF0((signed char)Query(6)) == 0 && Query(7) == 0) {
+            return 0;
+        }
+        if (cycle == 0x15 && monster_info->monster_species == 0x199 &&
+            Query(2) == 0) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 /* Engine Code\Monster.cpp. CYCLE_NUM_UNIQUE and the method name both come from
@@ -337,6 +454,25 @@ void W8MonsterRep::SetCycleFrameLod(
     }
 }
 
+/* Stop the selected subcycle for one animation cycle.  AnimObj's canonical
+   body takes the three stack arguments emitted here; keep that call-site ABI
+   local until the older four-parameter declaration is corrected as its own
+   bundle. */
+// FUNCTION: WIZ8 0x004bf920
+void W8MonsterRep::StopEmitter(char cycle)
+{
+    typedef void* (__cdecl *LegacyAnimObjEntryCall)(
+        W8AnimObj*, signed char, unsigned int);
+
+    W8AnimObj* animation =
+        *animations[cycle].GetAt(selection.monster.current_subcycle);
+
+    if (animation != 0) {
+        ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
+            animation, setting_98, 0);
+    }
+}
+
 /* The Monster vtable's slot-three method selects the active subcycle's
    AnimObj (falling back to entry zero) and submits the Monster's current
    animation index.  The assertion's `pao` spelling establishes the pointee's
@@ -366,6 +502,23 @@ void W8MonsterRep::ApplyEmitterSetting(char cycle)
         animation, setting_98);
 }
 
+// FUNCTION: WIZ8 0x004caa40
+signed char W8Monster::GetNumSubCycles()
+{
+    W8MonsterRep* representation = m_pRep;
+    W8MonsterAnimationVector* cycle = &representation->animations[
+        representation->selection.monster.current_cycle];
+    W8AnimObj** slot = cycle->data;
+    int subcycle = representation->selection.monster.current_subcycle;
+
+    if (subcycle < cycle->count) {
+        slot += subcycle;
+    }
+
+    return (signed char)AnimObjValue004A15D0(
+        *slot, representation->setting_98);
+}
+
 /* W8Monster stores its animation object immediately after the shared
    0x1d8-byte GrCycle base. */
 // FUNCTION: WIZ8 0x004c3740
@@ -381,10 +534,127 @@ unsigned char W8Monster::IsCycleSupported(signed char cycle)
     return m_pRep->animations[cycle].GetCount() != 0;
 }
 
+// FUNCTION: WIZ8 0x004c3dd0
+signed char W8Monster::GetTotalAnimationCount()
+{
+    signed char total = 0;
+    int cycle;
+
+    for (cycle = 0; cycle < W8_MONSTER_CYCLE_COUNT; ++cycle) {
+        total += (signed char)m_pRep->animations[cycle].GetCount();
+    }
+    return total;
+}
+
+// FUNCTION: WIZ8 0x004caa90
+float W8Monster::GetCurrentAnimationScale()
+{
+    W8MonsterRep* representation = m_pRep;
+
+    return *representation->animation_scales[
+        representation->selection.monster.current_cycle].GetAt(
+            representation->selection.monster.current_subcycle);
+}
+
+// FUNCTION: WIZ8 0x004cab00
+W8EmitterHost* W8Monster::GetRepresentation()
+{
+    return m_pRep;
+}
+
+// FUNCTION: WIZ8 0x004c3df0
+unsigned char W8Monster::GetAnimationBounds(
+    W8Position* minimum, W8Position* maximum)
+{
+    unsigned char result;
+    float scale;
+
+    result = W8GrCycle::GetAnimationBounds(minimum, maximum);
+    scale = m_pRep->scale_5f0;
+    minimum->x *= scale;
+    minimum->y *= scale;
+    minimum->z *= scale;
+    scale = m_pRep->scale_5f0;
+    maximum->x *= scale;
+    maximum->y *= scale;
+    maximum->z *= scale;
+    return result;
+}
+
+// FUNCTION: WIZ8 0x004c3ed0
+unsigned char W8Monster::GetAnimationRadius(float* radius)
+{
+    unsigned char result = W8GrCycle::GetAnimationRadius(radius);
+
+    *radius *= m_pRep->scale_5f0;
+    return result;
+}
+
+static const float g_monster_bounds_vertical_factor_005ecd88 = 0.66f;
+
+// FUNCTION: WIZ8 0x004c3e60
+unsigned char W8Monster::GetAnimationCenter(W8Position* center)
+{
+    W8Position minimum;
+    W8Position maximum;
+
+    if (GetAnimationBounds(&minimum, &maximum) != 0) {
+        srVector3T<float> position = GetPosition();
+
+        center->x = position.x;
+        center->y = position.y;
+        center->z = position.z;
+        center->y += (maximum.y - minimum.y) *
+            g_monster_bounds_vertical_factor_005ecd88;
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x004c32e0
+void W8Monster::AdvanceAnimationFrame(int value, int)
+{
+    unsigned char previous_frame = m_pRep->flag_064;
+
+    W8GrCycle::AdvanceAnimationFrame(value, 0);
+    if ((m_pRep->selection.monster.current_cycle == 7 ||
+         m_pRep->selection.monster.current_cycle == 13 ||
+         m_pRep->selection.monster.current_cycle == 17) &&
+        ((value_1f4 > 0 && previous_frame < value_1f4 &&
+          value_1f4 <= m_pRep->flag_064) ||
+         (value_1f4 == 0 && m_pRep->flag_064 == 1))) {
+        HandleAnimationThreshold004C75C0();
+    }
+    HandleAnimationFrame004C74D0(previous_frame);
+    if (m_shake_events != 0 && m_shake_events->GetCount() != 0) {
+        UpdateShakeEvents004C3380(previous_frame);
+    }
+}
+
+// FUNCTION: WIZ8 0x004cab10
+W8AnimObj* W8Monster::GetCurrentAnimation()
+{
+    W8MonsterRep* representation = m_pRep;
+
+    return *representation->animations[
+        representation->selection.monster.current_cycle].GetAt(
+            representation->selection.monster.current_subcycle);
+}
+
+// FUNCTION: WIZ8 0x004caac0
+void W8Monster::SetCurrentAnimationScale(float scale)
+{
+    W8MonsterRep* representation = m_pRep;
+
+    *representation->animation_scales[
+        representation->selection.monster.current_cycle].GetAt(
+            representation->selection.monster.current_subcycle) = scale;
+}
+
 /* Resolve the active cycle/subcycle AnimObj and submit entry zero using the
    Monster's animation index. */
 // FUNCTION: WIZ8 0x004c3f00
-void W8Monster::SubmitCurrentAnimEntry004C3F00()
+W8AniMesh* W8Monster::GetCurrentAniMesh()
 {
     typedef void* (__cdecl *LegacyAnimObjEntryCall)(
         W8AnimObj*, signed char, unsigned int);
@@ -414,10 +684,8 @@ void W8Monster::SubmitCurrentAnimEntry004C3F00()
        0x004A1660 even though that callee's own body has a four-slot prototype.
        Preserve the observed caller ABI locally rather than weakening the
        callee's reviewed declaration. */
-    ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
-        animation,
-        fields.animation_index_080,
-        0);
+    return (W8AniMesh*)((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
+        animation, fields.animation_index_080, 0);
 }
 
 /* Store one value in the two cycle records used as its compact mirrors, then

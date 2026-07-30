@@ -1,9 +1,12 @@
 #include "wiz8/grcycle.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/ground_shadow.h"
 #include "wiz8/mesh_model.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
@@ -139,16 +142,103 @@ extern W8TimeSource006598B8* g_time_source_006598b8;
 extern void Function4A9720(void* path);
 extern void Function4A9110(void* path);
 
-// FUNCTION: WIZ8 0x004a7140
-unsigned char W8GrCycle::ReturnTrue004A7140(int)
+// FUNCTION: WIZ8 0x004a7dd0
+unsigned char W8GrCycle::GetAnimationBounds(
+    W8Position* minimum, W8Position* maximum)
 {
-    return 1;
+    W8AnimObj* animation = GetCurrentAnimation();
+    W8EmitterHost* representation = GetRepresentation();
+
+    return AnimObjGetBounds004A1710(
+        animation,
+        representation->setting_98,
+        representation->flag_064,
+        minimum,
+        maximum);
+}
+
+// FUNCTION: WIZ8 0x004a7e10
+unsigned char W8GrCycle::GetAnimationRadius(float* radius)
+{
+    W8AniMesh* mesh = GetCurrentAniMesh();
+
+    if (mesh == 0) {
+        srAssertFail(
+            "0",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x541,
+            0);
+        return 0;
+    }
+    return AniMeshRadius004B66E0(mesh, radius);
+}
+
+// FUNCTION: WIZ8 0x004a72f0
+void W8GrCycle::AdvanceAnimationFrame(int, int)
+{
+    W8EmitterHost* representation = GetRepresentation();
+    W8AnimObj* animation = GetCurrentAnimation();
+    unsigned char frame;
+
+    if (representation->flag_070 == 1) {
+        if (representation->flag_06e == 1) {
+            frame = representation->flag_064;
+            if (frame < representation->counter_095) {
+                representation->flag_064 = frame + 1;
+            } else {
+                representation->flag_06d = 0;
+            }
+        } else if (representation->flag_06e == 3) {
+            frame = representation->flag_064;
+            if (frame > representation->counter_094) {
+                representation->flag_064 = frame - 1;
+            } else {
+                representation->flag_06d = 0;
+            }
+        }
+    } else if (representation->flag_06e == 1) {
+        frame = representation->flag_064;
+        if (frame != representation->counter_095) {
+            representation->flag_064 = frame + 1;
+        } else if (representation->flag_06f == 2) {
+            representation->flag_064 = frame - 1;
+            representation->flag_06e = 3;
+        } else if (representation->flag_06f == 1) {
+            representation->flag_064 = representation->counter_094;
+            unknown_1bc = 1;
+        }
+    } else if (representation->flag_06e == 3) {
+        frame = representation->flag_064;
+        if (frame > representation->counter_094) {
+            representation->flag_064 = frame - 1;
+        } else if (representation->flag_06f == 2) {
+            representation->flag_064 = representation->counter_094 + 1;
+            representation->flag_06e = 1;
+        } else if (representation->flag_06f == 1) {
+            representation->flag_064 = representation->counter_095;
+        }
+    }
+
+    if (AnimationIsRunning(animation) == 1) {
+        unsigned int count = AnimObjListCount004A1620(
+            animation, representation->setting_98);
+        unsigned int index;
+
+        for (index = 0; index < count; ++index) {
+            W8PathAI* path = (W8PathAI*)AnimObjListEntry004A16C0(
+                animation, representation->setting_98, (signed char)index);
+            if (path != 0) {
+                PathAISetValue004A9F60(
+                    path, (float)representation->flag_064);
+            }
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004a7420
 void W8GrCycle::ResetRepresentation004A7420()
 {
-    W8EmitterHost* target = vslot9();
+    W8EmitterHost* target = GetRepresentation();
 
     if (target == 0) {
         srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
@@ -179,11 +269,11 @@ void W8GrCycle::SelectCycleFrameLod004A8360(
         srAssertFail("bCycle >= 0", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x5f3, 0);
     }
     if (m_pAI != 0) {
-        target = vslot9();
+        target = GetRepresentation();
         PathAIApplyToRep004A91F0(
             (W8PathAI*)m_pAI, (W8PathRepresentation*)target);
     }
-    target = vslot9();
+    target = GetRepresentation();
     target->SetCycleFrameLod(cycle, frame, lod);
 }
 
@@ -200,9 +290,9 @@ unsigned char W8GrCycle::ReplacePath004A8400(void* path)
 // FUNCTION: WIZ8 0x004a84a0
 void W8GrCycle::SubmitTargetValue004A84A0()
 {
-    W8EmitterHost* target = vslot9();
+    W8EmitterHost* target = GetRepresentation();
 
-    vslot11(&target->value_0a8);
+    GetAnimationRadius((float*)&target->value_0a8);
 }
 
 /* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug
@@ -235,8 +325,8 @@ extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
 {
-    signed char count = vslot5();
-    W8EmitterHost* target = vslot9();
+    signed char count = GetNumSubCycles();
+    W8EmitterHost* target = GetRepresentation();
 
     if (subcycle < count) {
         target->flag_064 = subcycle;
@@ -246,7 +336,7 @@ void W8GrCycle::SetSubCycle(unsigned char subcycle)
 // FUNCTION: WIZ8 0x004a8460
 void W8GrCycle::SetBehaviour(signed char bBehaviour)
 {
-    W8EmitterHost* target = vslot9();
+    W8EmitterHost* target = GetRepresentation();
 
     if (bBehaviour < BEHAVIOUR_FIRST || bBehaviour > BEHAVIOUR_LAST) {
         srAssertFail(
@@ -259,7 +349,7 @@ void W8GrCycle::SetBehaviour(signed char bBehaviour)
 }
 
 // FUNCTION: WIZ8 0x004a84c0
-void W8GrCycle::SetLights(W8GrowableVector<W8VectorElement005EC294*>* lights)
+void W8GrCycle::SetLights(W8LightVector* lights)
 {
     if (m_fDeleteLights && m_plsLights != 0) {
         srAssertFail(
@@ -411,8 +501,7 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
 extern void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
 
 // FUNCTION: WIZ8 0x004a8c50
-void DestroyLightVector(
-    W8GrowableVector<W8VectorElement005EC294*>* vector)
+void DestroyLightVector(W8LightVector* vector)
 {
     int count;
     int index;
@@ -420,9 +509,9 @@ void DestroyLightVector(
     if (vector != 0) {
         count = vector->GetCount();
         for (index = 0; index < count; ++index) {
-            W8VectorElement005EC294* light = *vector->GetAt(index);
+            stLight* light = *vector->GetAt(index);
 
-            if (light->world_link_234() != 0) {
+            if (light->worldLink() != 0) {
                 int world_index = g_world->lights_to_update->IndexOf(light);
                 if (world_index != -1) {
                     g_world->lights_to_update->RemoveAt(world_index);

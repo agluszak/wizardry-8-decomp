@@ -21,14 +21,18 @@ public:
     virtual int isActive(srVertexPipe& pipe) = 0;
     virtual void process(srVertexPipe& pipe) = 0;
 
-private:
-    unsigned char unknown_04_[0x94];
+protected:
+    unsigned char unknown_04_[0x14];
+    int m_positional_18;
+    unsigned char unknown_1c_[0x40];
+    unsigned int m_positional_flags_5c;
+    unsigned char unknown_60_[0x38];
 
 protected:
     /* stLight::process temporarily scales this renderer-owned value. */
     float m_positional_98;
 
-private:
+protected:
     unsigned char unknown_9c_[0x54];
 };
 

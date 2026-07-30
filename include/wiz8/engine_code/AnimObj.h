@@ -3,6 +3,8 @@
 
 #include "wiz8/3d_code/PList.h"
 
+struct W8Position;
+
 /*
  * Engine Code\AnimObj.cpp.
  *
@@ -36,5 +38,11 @@ int AnimObjDispatchList004A1560(
     W8AnimObj* animation, signed char list_index, signed char entry_index);
 void* AnimObjEntry004A1660(
     W8AnimObj* animation, int unused_edx, signed char list_index, unsigned int entry_index);
+unsigned char AnimObjGetBounds004A1710(
+    W8AnimObj* animation,
+    signed char list_index,
+    unsigned char entry_index,
+    W8Position* minimum,
+    W8Position* maximum);
 
 #endif

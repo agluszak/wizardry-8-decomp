@@ -28,6 +28,16 @@ public:
         return result;
     }
 
+    const T* GetAt(int position) const
+    {
+        const T* result = data;
+
+        if (position < count) {
+            result = data + position;
+        }
+        return result;
+    }
+
     int Add(T value)
     {
         int position = count + 1;

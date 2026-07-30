@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/geometry.h"
 #include "wiz8/vector.h"
+#include "wiz8/vector_005ec294.h"
 
 class srNode;
 struct W8ItemRep;
@@ -56,7 +57,7 @@ public:
     virtual ~W8Navigator();               /* 0x00452120 */
     virtual void secondary_vslot1();
     virtual void secondary_vslot2();
-    virtual void secondary_vslot3();
+    virtual unsigned char secondary_vslot3(int) const { return 1; }
     virtual void SetPosition(const W8Position* position); /* 0x00456020 */
 
     void configureStartupRange(float range);
@@ -123,9 +124,11 @@ public:
 };                                      /* 0x190 */
 
 class W8VectorElement005ECED4;
-class W8VectorElement005EC294;
+class stLight;
 class W8GrCycleShakeEvent;
 class stGroundShadow;
+struct W8AnimObj;
+struct W8AniMesh;
 
 class W8GrCycle :
     public W8GrObject,
@@ -134,37 +137,38 @@ public:
     W8GrCycle();
     W8GrCycle(const W8GrCycle& other);
     virtual ~W8GrCycle() override;
-    virtual void vslot1();
+    // FUNCTION: WIZ8 0x004a7140
+    virtual unsigned char CanEnterCycle(signed char) { return 1; }
     virtual void vslot2();
     virtual void vslot3();
     virtual void vslot4();
-    virtual signed char vslot5() = 0;
+    virtual signed char GetNumSubCycles() = 0;
     virtual unsigned char IsCycleSupported(signed char cycle) = 0;
-    virtual void vslot7() = 0;
-    virtual void vslot8() = 0;
-    virtual W8EmitterHost* vslot9() = 0;
-    virtual void vslot10();
-    virtual void vslot11(void* value);
+    virtual signed char GetTotalAnimationCount() = 0;
+    virtual float GetCurrentAnimationScale() = 0;
+    virtual W8EmitterHost* GetRepresentation() = 0;
+    virtual unsigned char GetAnimationBounds(
+        W8Position* minimum, W8Position* maximum);
+    virtual unsigned char GetAnimationRadius(float* radius);
     virtual void vslot12() = 0;
-    virtual void vslot13() = 0;
-    virtual void vslot14();
-    virtual void SubmitCurrentAnimEntry004C3F00() = 0;
+    virtual W8AnimObj* GetCurrentAnimation() = 0;
+    virtual void AdvanceAnimationFrame(int value, int flags);
+    virtual W8AniMesh* GetCurrentAniMesh() = 0;
 
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
-    void SetLights(W8GrowableVector<W8VectorElement005EC294*>* lights);
+    void SetLights(W8LightVector* lights);
     void AddVectorElement005ECED4(W8VectorElement005ECED4* element);
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
-    unsigned char ReturnTrue004A7140(int unused);
     void SelectCycleFrameLod004A8360(signed char cycle, signed char frame, signed char lod);
     unsigned char ReplacePath004A8400(void* path);
     void SubmitTargetValue004A84A0();
 
 public:
     int unknown_1a8;
-    W8GrowableVector<W8VectorElement005EC294*>* m_plsLights; /* 0x1ac */
+    W8LightVector* m_plsLights; /* 0x1ac */
     W8GrowableVector<W8VectorElement005ECED4*>* m_vector_1b0; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5;
