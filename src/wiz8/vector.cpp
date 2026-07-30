@@ -20,6 +20,12 @@
 // TEMPLATE: WIZ8 0x00474ca0
 // W8GrowableVector<unsigned char>::Add
 
+// TEMPLATE: WIZ8 0x005c3490
+// W8GrowableVector<int>::SetAt
+
+// TEMPLATE: WIZ8 0x005c3790
+// W8GrowableVector<int>::GetAt
+
 // VTABLE: WIZ8 0x005ebfe0
 // class W8GrowableVector<int>
 

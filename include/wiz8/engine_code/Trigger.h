@@ -114,6 +114,7 @@ public:
     unsigned char HasActorWithinRadius(float radius, unsigned char include_party);
     unsigned char PlayActionSound(const char* sound_name, int volume);
     void UpdateActionAnimation();
+    void CommitActionResult(unsigned char apply_state_changes);
     void FinishAction();
     unsigned char CanRunLinkedTriggers();
     unsigned char SelectAction();

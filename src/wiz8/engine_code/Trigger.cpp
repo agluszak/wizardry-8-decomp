@@ -16,6 +16,7 @@
 #include <windows.h>
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -646,6 +647,112 @@ static char* NextTriggerRecipient(char** cursor)
         *cursor = 0;
     }
     return g_trigger_parse_buffer_00659908;
+}
+
+// FUNCTION: WIZ8 0x004409b0
+void Trigger::CommitActionResult(unsigned char apply_state_changes)
+{
+    char* recipient;
+
+    UpdateActionAnimation();
+
+    if (m_pacRecipients != 0 && flag_0a0_07 != 0 && flag_0a0_09 == 0) {
+        recipient = m_pacRecipients;
+        while (recipient != 0) {
+            Trigger* trigger = FindTriggerByName(
+                NextTriggerRecipient(&recipient));
+            if (trigger != 0) {
+                unsigned char was_running = flag_0a0_06;
+                flag_0a0_06 = 1;
+                trigger->Run(m_lData1);
+                flag_0a0_06 = was_running;
+            }
+        }
+    }
+
+    if (m_pacStateToMod != 0 && apply_state_changes != 0) {
+        int state_id;
+        int state_value;
+
+        if (value_0b4 == 1) {
+            state_id = GetLocationVarIDByName(m_pacStateToMod);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    4297, 0);
+            }
+            state_value = 1;
+        }
+        else if (value_0b4 == 2) {
+            state_id = GetLocationVarIDByName(m_pacStateToMod);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    4297, 0);
+            }
+            state_value = 0;
+        }
+        else if (value_0b4 == 3) {
+            state_id = GetLocationVarIDByName(m_pacStateToMod);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    4317, 0);
+            }
+            state_value =
+                *g_location_variable_values_00659990.GetAt(state_id) == 0;
+            state_id = GetLocationVarIDByName(m_pacStateToMod);
+            if (state_id == -1) {
+                srAssertFail(
+                    "iVar != BAD_INDEX",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    4297, 0);
+            }
+        }
+        else {
+            goto show_action_message;
+        }
+        g_location_variable_values_00659990.SetAt(state_id, state_value);
+    }
+
+show_action_message:
+    if (flag_0a0_17 != 0) {
+        const char* level_folder = LevelGetFolderNameByID(GetLoadedLevelID());
+        int message_id;
+
+        if (action_state_232 == 2) {
+            message_id = m_lData1;
+        }
+        else if (action_state_232 == 3) {
+            message_id = m_lData2;
+        }
+        else if (action_state_232 == 4) {
+            message_id = m_lData3;
+        }
+        else {
+            goto action_complete;
+        }
+
+        if (message_id != -1) {
+            char path[512];
+            W8WideChar text[1996];
+
+            if (level_folder == 0) {
+                level_folder = "";
+            }
+            sprintf(path, "Data\\Messages\\%s.msg", level_folder);
+            if (GetStringFromStringDatabase(
+                    path, message_id, text, 0, 0) != 0) {
+                ShowString(text);
+            }
+        }
+    }
+
+action_complete:
+    flag_0a0_19 = 1;
 }
 
 // FUNCTION: WIZ8 0x00444600

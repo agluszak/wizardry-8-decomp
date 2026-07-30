@@ -40,6 +40,18 @@ public:
         return result;
     }
 
+    T SetAt(int position, T value)
+    {
+        T previous;
+
+        if (position >= count) {
+            return 0;
+        }
+        previous = data[position];
+        data[position] = value;
+        return previous;
+    }
+
     int Add(T value)
     {
         int position = count + 1;

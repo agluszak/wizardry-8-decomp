@@ -743,6 +743,13 @@ W8World* GetWorld659AB8(void);                                           /* 0x00
 void MarkRendererReady(void);                                            /* 0x00451010 */
 int GetItemInHand(void);
 int GetLocationVarIDByName(const char* name);
+unsigned char GetStringFromStringDatabase(
+    const char* path,
+    int index,
+    W8WideChar* output,
+    unsigned int* metadata_04,
+    unsigned int* metadata_00);
+void ShowString(W8WideChar* text);
 W8NPCItemList* GetNPCItemListByID(int npc_record_id);
 void GetOriginOfCharacterItem(
     int character_index,
