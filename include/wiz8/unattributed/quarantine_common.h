@@ -233,17 +233,6 @@ extern unsigned char g_flag_68f105;
    srIlluminator level is the same one MonsterLight's reviewed row spells out
    as srClassSupport<srIlluminator,srNode,0,0x1200>. */
 
-/* Two vtable installs, seven bytes each. Written as members so the receiver
-   arrives in ECX the way the originals take it; the free-function form the
-   older MonsterInstallVtable5ED290 uses costs four bytes more because the
-   object has to come off the stack first. */
-
-extern "C" {
-extern void* g_vtable_005ebfd0;
-}
-
-
-
 extern "C" {
 extern void* g_vtable_005ecdb0;
 }

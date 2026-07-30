@@ -124,10 +124,12 @@ srNode* W8Scene005EBE48::vslot7()
     return copy;
 }
 // FUNCTION: WIZ8 0x0042A360
-void W8Object005EBFD0::InstallVtable()
+srVertexProcessor::~srVertexProcessor()
 {
-    *(void**)this = &g_vtable_005ebfd0;
 }
+
+// SYNTHETIC: WIZ8 0x0042B890
+// srVertexProcessor::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004519D0
 unsigned long W8Node005EC208::getClassID() const
 {

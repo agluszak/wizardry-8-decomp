@@ -16,7 +16,7 @@ public:
     struct MaterialInfo;
 
 protected:
-    virtual ~srVertexProcessor() {}
+    virtual ~srVertexProcessor();
 
 public:
     virtual int isActive(srVertexPipe& pipe) = 0;

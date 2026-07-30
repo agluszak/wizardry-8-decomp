@@ -243,20 +243,7 @@ public:
     unsigned long getClassID() const;     /* 0x0047D650 */
 };
 
-/*
- * Two remaining classes whose only recovered member is the vtable install itself. Each
- * body is seven bytes - one store through the receiver and a return - which is
- * what makes them member functions rather than free ones: the object arrives
- * in ECX, and a free function taking it on the stack costs four bytes more.
- * Nothing else about either class is established, so nothing else is declared;
- * the vtable address is the only identity they have.
- */
-
-class W8Object005EBFD0 {
-public:
-    void InstallVtable();                 /* 0x0042A360 */
-};
-
+/* The 0x005ECDB0 owner remains unresolved. */
 class W8Object005ECDB0 {
 public:
     void InstallVtable();                 /* 0x004A2220 */
