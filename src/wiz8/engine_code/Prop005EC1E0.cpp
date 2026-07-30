@@ -170,8 +170,25 @@ extern void AnimationStart(W8AnimObj* animation, int channel, int argument); /* 
 extern void AnimationStop(W8AnimObj* animation, int channel, int argument);  /* 0x004A1560 */
 extern void AnimationPlayFromTo(
     W8AnimObj* animation, int channel, unsigned char argument, int from, int to); /* 0x004A1710 */
+extern void GetAnimationBounds004A1710(
+    W8AnimObj* animation, int channel, unsigned char argument,
+    srVector3T<float>* first, srVector3T<float>* second);
 extern unsigned char Function4B75F0(int arg_1, int arg_2);
 extern void Function444750(void);
+
+// FUNCTION: WIZ8 0x0044d5f0
+void W8Prop005EC1E0::GetCenterPosition(srVector3T<float>* position)
+{
+    srVector3T<float> first;
+    srVector3T<float> second;
+
+    GetAnimationBounds004A1710(
+        m_owned_14->animation, 2, m_owned_14->setting_64,
+        &first, &second);
+    position->x = (first.x + second.x) * 0.5f;
+    position->y = (first.y + second.y) * 0.5f;
+    position->z = (first.z + second.z) * 0.5f;
+}
 
 /* Start or stop the prop's own animation, whichever it is not doing. */
 // FUNCTION: WIZ8 0x0044ba00

@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
 
@@ -8,6 +9,18 @@
  *
  * Only the class registry slots are recovered so far.
  */
+
+// FUNCTION: WIZ8 0x0049acd0
+void stParticle::SetActive(unsigned char active)
+{
+    if (active != 0 && active_1a0 == 0) {
+        unsigned int now = g_shared_timer_base->getMsTime(
+            srTimer::TIMER_READ_DEFAULT);
+        activated_at_258 = now;
+        updated_at_25c = now;
+    }
+    active_1a0 = active;
+}
 
 // FUNCTION: WIZ8 0x0049b550
 const char* stParticle::getClassName() const

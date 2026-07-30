@@ -20,10 +20,14 @@ unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
 int g_game_time_ms;                                  /* 0x006874F7 */
 int g_game_time_days;                                /* 0x00687595 */
 
-// Defined with forced inlining so VC6 folds the teardown into the deleting
-// destructor at 0x00439750; a normal out-of-line definition emits a call.
+// VTABLE: WIZ8 0x005ec0a4
+// class W8Timer005EC0A4
+
+// SYNTHETIC: WIZ8 0x00439750
+// W8Timer005EC0A4::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x00439a00
-__forceinline W8Timer005EC0A4::~W8Timer005EC0A4()
+W8Timer005EC0A4::~W8Timer005EC0A4()
 {
     srTimer* shared = m_shared;
 

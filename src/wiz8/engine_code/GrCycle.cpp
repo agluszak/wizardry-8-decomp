@@ -115,7 +115,7 @@ W8GrCycle::~W8GrCycle()
             else {
                 event->particle_08 = 0;
                 delete event;
-                owner->SetActive0049ACD0(1);
+                owner->SetActive(1);
                 owner->state_184 = 1;
                 owner->active_190 = 1;
             }

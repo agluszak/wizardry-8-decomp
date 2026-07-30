@@ -239,7 +239,6 @@ extern unsigned char g_flag_68f105;
    object has to come off the stack first. */
 
 extern "C" {
-extern void* g_vtable_005ec138;
 extern void* g_vtable_005ebfd0;
 }
 

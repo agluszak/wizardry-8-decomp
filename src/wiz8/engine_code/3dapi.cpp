@@ -8,6 +8,7 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
@@ -323,6 +324,25 @@ void DestroyWorld(W8World* world)
 void MarkRendererReady(void)
 {
     g_renderer_ready_00607d7c = 1;
+}
+
+/* Resolve a particle by its runtime name from the current world's particle
+   vector. Names are case-insensitive in the original registry-facing lookup. */
+// FUNCTION: WIZ8 0x00451080
+stParticle* FindParticleByName(W8World* world, const char* name)
+{
+    if (world != 0 && world->particles != 0) {
+        int count = world->particles->GetCount();
+
+        for (int index = 0; index < count; ++index) {
+            stParticle* particle = *world->particles->GetAt(index);
+
+            if (_stricmp(particle->getName(), name) == 0) {
+                return particle;
+            }
+        }
+    }
+    return 0;
 }
 
 /* Two forwarders that pass their arguments through unchanged. */

@@ -82,30 +82,27 @@ public:
     const char* getClassName() const override;     /* 0x0049B550 */
     unsigned long getClassID() const override;     /* 0x0049B540 */
     srRegistry::ClassNode* getClassNode() const override; /* 0x0049B560 */
-    void SetActive0049ACD0(int active);
+    void SetActive(unsigned char active);
 
     unsigned char unknown_138[0x4c];
     int state_184;
     int value_188;
     void* node_18c;
     unsigned char active_190;
-    unsigned char unknown_191[0xd3];
+    unsigned char unknown_191;
+    unsigned char trigger_flag_192;
+    unsigned char unknown_193[0x0d];
+    unsigned char active_1a0;
+    unsigned char unknown_1a1[0xb7];
+    unsigned int activated_at_258;
+    unsigned int updated_at_25c;
+    unsigned char unknown_260[4];
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
 };
 
 static_assert(sizeof(stParticle) == 0x270, "stParticle_size_must_be_0x270");
-
-/* Engine Code\Trigger.cpp. The registry name has no st prefix, which is what
-   separates the gameplay trigger from the renderer's own class family. */
-class Trigger : public srNode {
-public:
-    const char* getClassName() const override;     /* 0x00445AE0 */
-    unsigned long getClassID() const override;     /* 0x00445AD0 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x00445F30 */
-    void Run(int source);
-};
 
 /*
  * The same slots for further host-registered classes whose owning translation
@@ -329,18 +326,13 @@ public:
 };
 
 /*
- * Two classes whose only recovered member is the vtable install itself. Each
+ * Two remaining classes whose only recovered member is the vtable install itself. Each
  * body is seven bytes - one store through the receiver and a return - which is
  * what makes them member functions rather than free ones: the object arrives
  * in ECX, and a free function taking it on the stack costs four bytes more.
  * Nothing else about either class is established, so nothing else is declared;
  * the vtable address is the only identity they have.
  */
-
-class W8Object005EC138 {
-public:
-    void InstallVtable();                 /* 0x00445EE0 */
-};
 
 class W8Object005EBFD0 {
 public:

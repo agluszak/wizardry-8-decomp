@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
@@ -1898,8 +1899,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         }
         break;
     case 0x16:
-        if (trigger_278 != 0 &&
-            trigger_278->testFlag(static_cast<srNode::e_flag>(6)) != 0) {
+        if (trigger_278 != 0 && (trigger_278->flags_0a0 & 0x40) != 0) {
             return 0;
         }
         trigger_278 = 0;
@@ -2309,11 +2309,11 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
                     particle->start_frame_264 != particle->end_frame_268) {
                     continue;
                 }
-                particle->SetActive0049ACD0(1);
+                particle->SetActive(1);
             }
         }
         else {
-            event->particle_08->SetActive0049ACD0(0);
+            event->particle_08->SetActive(0);
         }
     }
 }
@@ -3141,7 +3141,7 @@ void W8MonsterShakeCallback::RestoreAnimation()
     }
 
     m_pParticles->callback_26c = 0;
-    m_pParticles->SetActive0049ACD0(0);
+    m_pParticles->SetActive(0);
     representation = m_pMonster->m_pRep;
     if (saved_behaviour < 1 || saved_behaviour > 3) {
         srAssertFail(
@@ -3194,7 +3194,7 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
             previous_frame < animation->start_frame_14 &&
             animation->start_frame_14 <= m_pRep->flag_064) {
             if (enabled_1bd != 0) {
-                particle->SetActive0049ACD0(1);
+                particle->SetActive(1);
                 particle->value_188 = 0;
                 if (index == 0) {
                     callback = new W8MonsterShakeCallback;
@@ -3228,12 +3228,12 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
             if ((unsigned int)previous_frame ==
                 (unsigned int)particle->start_frame_264) {
                 if (enabled_1bd != 0) {
-                    particle->SetActive0049ACD0(1);
+                    particle->SetActive(1);
                     particle->value_188 = 0;
                 }
             } else if ((unsigned int)m_pRep->flag_064 ==
                        (unsigned int)particle->end_frame_268) {
-                particle->SetActive0049ACD0(0);
+                particle->SetActive(0);
             }
         }
     }

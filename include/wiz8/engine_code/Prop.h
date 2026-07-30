@@ -1,5 +1,7 @@
 #pragma once
 
+#include "surrender/srMath.h"
+
 struct GDProp;
 struct W8World;
 class W8PropOwned0020;
@@ -32,6 +34,7 @@ public:
     void ToggleSetting6E();
     int GetValue18();
     int GetGDPropValue24();
+    void GetCenterPosition(srVector3T<float>* position);
 
     W8PropOwnedPolymorphic* m_owned_14;
     int value_18;
@@ -49,4 +52,3 @@ public:
 
 static_assert(sizeof(W8Prop005EC1E0) == 0x3c,
               "W8Prop005EC1E0_must_be_0x3c");
-
