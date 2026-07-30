@@ -294,7 +294,7 @@ float GetWorldValue24(const void* world)
 // FUNCTION: WIZ8 0x00483e30
 void SetSkyNodeValue1D0(int value)
 {
-    unsigned char* sky = (unsigned char*)g_world->sky_node;
+    unsigned char* sky = (unsigned char*)g_world->camera_light;
 
     if (sky != 0) {
         *(int*)(sky + 0x1d0) = value;
@@ -306,7 +306,7 @@ void SetSkyNodeValue1D0(int value)
 // FUNCTION: WIZ8 0x00483e50
 void SetSkyNodeVisible(char visible)
 {
-    srNode* sky = (srNode*)g_world->sky_node;
+    srNode* sky = (srNode*)g_world->camera_light;
 
     if (sky != 0) {
         if (visible) {

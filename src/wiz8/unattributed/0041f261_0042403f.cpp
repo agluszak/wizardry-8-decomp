@@ -10,12 +10,13 @@ extern const double g_double_005ebc18;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420D40
-void Function420D40(srNode* parent, W8Camera005EBE14* camera)
+W8Camera005EBE14* CreateOrSetGameCamera(
+    srNode* parent, W8Camera005EBE14* camera)
 {
     if (g_gd_camera_65a0f8 == 0) {
         g_gd_camera_65a0f8 = new GDCamera();
     }
-    g_gd_camera_65a0f8->Method00476440(parent, camera);
+    return g_gd_camera_65a0f8->Method00476440(parent, camera);
 }
 
 // FUNCTION: WIZ8 0x00420DD0

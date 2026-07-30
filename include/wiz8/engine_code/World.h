@@ -6,6 +6,7 @@
 #include "wiz8/vector_005ec294.h"
 
 class srCamera;
+class srLight;
 class srModelInstance;
 class srNode;
 class stLevel;
@@ -40,7 +41,7 @@ struct W8World {
     void** psrMeshes;
     void* m_owned_04c;
     W8Octree* octree;
-    srNode* sky_node;
+    srLight* camera_light;
     unsigned char m_positional_058[0x11];
     unsigned char m_loaded;
     unsigned char m_padding_06a[2];
@@ -66,6 +67,13 @@ struct W8World {
 extern "C" W8World* g_world;
 
 W8World* CreateWorld();
+unsigned char LoadWorld(
+    W8World* world, char* level_file_name, const char* level_folder,
+    const char* asset_folder, unsigned char use_octree);
+unsigned char ForwardLoadWorld(
+    W8World* world, char* level_file_name, const char* level_folder,
+    const char* asset_folder, unsigned char use_octree);
+void Forward44FAF0(W8World* world);
 void ConstructWorldCollections(W8World* world);
 void DestroyWorldCollections(W8World* world);
 void DestroyWorld(W8World* world);

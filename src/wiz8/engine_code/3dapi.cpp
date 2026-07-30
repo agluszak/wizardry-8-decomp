@@ -1,22 +1,29 @@
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Item.h"
+#include "wiz8/engine_code/Camera.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Scene.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srColorSurface.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
+
+#include "FileMan.h"
 
 /*
  * Engine Code\3dapi.cpp.
@@ -30,9 +37,17 @@
 
 extern void SetRendererReady(void);
 extern void Function421090(const float* location);
-extern void Function44F5F0(int a, int b, int c, int d, int e);
+extern void SetValue60DFAC(void);
 extern unsigned char g_renderer_ready_00607d7c;
 extern void Function46DC90(srScene* scene);
+extern void* ReadGameData00447570(const char* path, void* parent);
+extern unsigned char InitializeGameData004497C0(void* game_data);
+extern int CheckLevelAssetSet0042CCC0(const char* level_path);
+extern srLight* CreateWorldLight0046E140(
+    W8World* world, const char* name);
+extern void ConfigureWorldLight0046E300(srLight* light, float range);
+extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
+extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
 extern void Function449BB0(void* owner);
 extern void Function4BE0A0(void* owner);
 extern void Function426790(void);
@@ -46,8 +61,7 @@ extern void Function46E4A0(W8World* world);
 extern unsigned char Function4914C0(void);
 extern void Function490B90(void);
 extern unsigned char g_world_cleanup_flag_00659757;
-extern int g_world_count_00659a84;
-extern W8World** g_worlds_00659a8c;
+extern W8GrowableVector<W8World*> g_worlds_00659a80;
 
 namespace {
 struct W8WorldCameraEntry {
@@ -122,6 +136,126 @@ void ConstructWorldCollections(W8World* world)
         srAssertFail("pWorld->plsNamedPositions", THREE_D_API_CPP, 0x58b,
                      "Out of memory creating plsNamedPositions.");
     }
+}
+
+/* Load the renderer-facing half of one level. The subordinate OCT, game-data,
+   and ReadLevel parsers remain their original owners; this routine establishes
+   their order, inputs, and rollback-visible world fields. */
+// FUNCTION: WIZ8 0x0044F5F0
+unsigned char LoadWorld(
+    W8World* world, char* level_file_name, const char* level_folder,
+    const char* asset_folder, unsigned char use_octree)
+{
+    char extension[4];
+    char level_path[1024];
+    char pvl_path[1024];
+    char oct_path[1024];
+    char game_data_path[1024];
+    char material_path[1024];
+    char material_folder[1024];
+
+    if (world == 0) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 0x15f, 0);
+    }
+
+    SetValue60DFAC();
+    sprintf(level_path, "%s\\%s", level_folder, level_file_name);
+    strcpy(extension, level_file_name + strlen(level_file_name) - 3);
+    level_file_name[strlen(level_file_name) - 4] = '\0';
+
+    strcpy(pvl_path, level_path);
+    pvl_path[strlen(pvl_path) - 3] = 'p';
+    sprintf(game_data_path, "%s\\%s.wgd", asset_folder, level_file_name);
+    sprintf(oct_path, "%s\\%s.oct", asset_folder, level_file_name);
+    sprintf(material_path, "%s\\%s.mat", asset_folder, level_file_name);
+    sprintf(material_folder, "%s", asset_folder);
+
+    g_worlds_00659a80.Add(world);
+
+    world->m_loaded = 1;
+    PListInit(&world->m_list_09c);
+    PListInit(&world->m_list_0a8);
+    world->m_owned_04c = 0;
+
+    if (CheckLevelAssetSet0042CCC0(oct_path) >= 0) {
+        world->octree = new W8Octree(oct_path, &world->m_owned_04c);
+        if (world->octree != 0 && world->octree->HasLoadError()) {
+            delete world->octree;
+            world->octree = 0;
+        }
+        else if (world->octree != 0) {
+            use_octree = 0;
+        }
+    }
+
+    if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
+        world->m_owned_04c = ReadGameData00447570(game_data_path, 0);
+        if (world->m_owned_04c != 0 &&
+            InitializeGameData004497C0(world->m_owned_04c) == 0) {
+            return 0;
+        }
+    }
+
+    Function46DC90(world->static_scene);
+    world->camera = CreateOrSetGameCamera(world->static_scene, 0);
+    world->camera_light = CreateWorldLight0046E140(world, "CameraLight");
+    world->camera_light->m_direction_60.x = 0.0f;
+    world->camera_light->m_direction_60.y = 0.0f;
+    world->camera_light->m_direction_60.z = 0.0f;
+    world->camera_light->m_color_6c.x = 1.0f;
+    world->camera_light->m_color_6c.y = 0.85f;
+    world->camera_light->m_color_6c.z = 0.39f;
+    world->camera_light->m_position_78.x = 0.0f;
+    world->camera_light->m_position_78.y = 0.0f;
+    world->camera_light->m_position_78.z = 0.0f;
+    world->camera_light->m_positional_98 = 1.0f;
+    world->camera_light->setGroupMask(2);
+    ConfigureWorldLight0046E300(world->camera_light, 4000.0f);
+
+    if (world->octree == 0 || world->octree->GetMeshCount() == 0) {
+        world->psrMeshes = 0;
+    }
+    else {
+        unsigned long mesh_count = world->octree->GetMeshCount();
+        world->psrMeshes = static_cast<void**>(
+            malloc((mesh_count + 1) * sizeof(void*)));
+        if (world->psrMeshes == 0) {
+            srAssertFail("pWorld->psrMeshes", THREE_D_API_CPP, 0x1be,
+                         "LoadWorld: Couldn't allocate psrMeshes.");
+        }
+        for (unsigned long index = 0; index <= mesh_count; ++index) {
+            world->psrMeshes[index] = 0;
+        }
+        strcpy(level_path, pvl_path);
+    }
+
+    world->m_owned_06c = 0;
+    world->update_mesh_source = 0;
+    memset(world->m_positional_07c, 0, 0x10);
+
+    int handle = FileOpen(
+        level_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
+    if (handle == 0) {
+        srAssertFail("hFile", THREE_D_API_CPP, 0x1d8,
+                     "Could not open level file.");
+    }
+    unsigned char success =
+        ReadLevel(world, handle, use_octree, material_folder);
+    CloseVirtualFile(handle);
+    if (success == 0) {
+        srAssertFail("fSuccess", THREE_D_API_CPP, 0x1dd,
+                     "Problem loading level, please check files and versions.");
+    }
+
+    world->m_positional_0d4[0] = 0;
+    if (world->octree != 0) {
+        UpdateWorldMeshFromOctree004BAF50(world);
+    }
+    else if (world->m_owned_06c != 0) {
+        static_cast<unsigned long*>(world->m_owned_06c)[6] = 1;
+        UpdateWorldMeshFromQuads004BAD40(world);
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0044F1C0
@@ -303,14 +437,9 @@ void DestroyWorld(W8World* world)
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
     if (Function4914C0() != 0) Function490B90();
 
-    for (index = 0; index < g_world_count_00659a84; ++index) {
-        if (g_worlds_00659a8c[index] == world) {
-            for (; index < g_world_count_00659a84 - 1; ++index) {
-                g_worlds_00659a8c[index] = g_worlds_00659a8c[index + 1];
-            }
-            --g_world_count_00659a84;
-            break;
-        }
+    index = g_worlds_00659a80.IndexOf(world);
+    if (index >= 0) {
+        g_worlds_00659a80.RemoveAt(index);
     }
     if (world->static_scene != 0) {
         world->static_scene->release();
@@ -353,9 +482,12 @@ void Forward44FAF0(W8World* world)
 }
 
 // FUNCTION: WIZ8 0x00451110
-void Forward44F5F0(int a, int b, int c, int d, int e)
+unsigned char ForwardLoadWorld(
+    W8World* world, char* level_file_name, const char* level_folder,
+    const char* asset_folder, unsigned char use_octree)
 {
-    Function44F5F0(a, b, c, d, e);
+    return LoadWorld(
+        world, level_file_name, level_folder, asset_folder, use_octree);
 }
 
 /* Report a failed assertion with no message of its own, so the expression and
@@ -382,10 +514,8 @@ void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation)
     world->camera->getRotation(rotation);
 }
 
-/* Moves the camera and the sky together. Only the camera's move notifies the
-   level, which is what separates the two nodes: the sky follows the view but
-   nothing else depends on where it is. The pair of doubles is rebuilt for each
-   call rather than shared, so the two moves are independent statements. */
+/* Moves the camera and its camera light together. Only the camera's move
+   notifies the level; the light simply follows the view. */
 // FUNCTION: WIZ8 0x00450420
 void WorldSetCameraLocation(W8World* world, const float* location)
 {
@@ -400,10 +530,10 @@ void WorldSetCameraLocation(W8World* world, const float* location)
         ((srNode*)world->camera)->setLocation(position);
         Function421090(location);
     }
-    if (world->sky_node != 0) {
+    if (world->camera_light != 0) {
         position.x = location[0];
         position.y = location[1];
-        ((srNode*)world->sky_node)->setLocation(position);
+        ((srNode*)world->camera_light)->setLocation(position);
     }
 }
 

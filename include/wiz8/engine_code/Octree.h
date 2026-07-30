@@ -7,14 +7,21 @@
    0x0042DE60 and then operator delete separately. */
 class W8Octree {
 public:
+    W8Octree(const char* path, void** game_data);
     void Reset();
     void Initialize(const void* header);
     ~W8Octree();
     void AddLoadedProp(void* prop);
     void AddLoadedParticle(void* particle);
 
+    bool HasLoadError() const { return (m_flags_000 & 0x80000000) != 0; }
+    unsigned long GetMeshCount() const { return m_mesh_count_074; }
+
 private:
-    unsigned char m_positional_000[0x9c];
+    unsigned long m_flags_000;
+    unsigned char m_positional_004[0x70];
+    unsigned long m_mesh_count_074;
+    unsigned char m_positional_078[0x24];
     void* m_owned_09c;
     void* m_owned_0a0;
     unsigned long m_positional_0a4;

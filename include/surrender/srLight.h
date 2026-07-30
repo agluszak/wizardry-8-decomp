@@ -31,12 +31,13 @@ public:
     virtual SR_DLL_IMPORT int isActive(srVertexPipe& pipe) override;
     virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;
 
-protected:
+public:
     unsigned char unknown_168_[0x2c];
     unsigned int m_positional_flags_5c;              /* complete +0x194 */
-    unsigned char unknown_198_[0x0c];
+    srVector3T<float> m_direction_60;                 /* complete +0x198 */
     srVector3T<float> m_color_6c;                    /* complete +0x1a4 */
-    unsigned char unknown_1b0_[0x20];
+    srVector3T<float> m_position_78;                  /* complete +0x1b0 */
+    unsigned char unknown_1bc_[0x14];
     /* stLight::process temporarily scales this renderer-owned value. */
     float m_positional_98;                           /* complete +0x1d0 */
     unsigned char unknown_1d4_[0x54];

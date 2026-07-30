@@ -92,7 +92,8 @@ public:
 extern GDCamera* g_gd_camera_65a0f8;
 extern W8Camera005EBE14* g_game_camera_65a0fc;
 
-void Function420D40(srNode* parent, W8Camera005EBE14* camera);
+W8Camera005EBE14* CreateOrSetGameCamera(
+    srNode* parent, W8Camera005EBE14* camera);
 float GetCameraAngleRadians420DD0();
 void Function420E00();
 void Function420F70();
