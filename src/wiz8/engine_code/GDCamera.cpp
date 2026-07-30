@@ -1,12 +1,14 @@
 #include "wiz8/engine_code/GDCamera.h"
 
 #include "surrender/srNode.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Object005EBCFC.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/game_state.h"
 #include "wiz8/utility.h"
 
 #include <math.h>
+#include <float.h>
 
 extern const double g_camera_view_factor_005ec300;
 extern const double g_camera_view_factor_005ec538;
@@ -38,9 +40,11 @@ extern const float g_camera_step_factor_005ebc7c;
 extern const double g_camera_pi_005ec2a0;
 extern const float g_camera_horizontal_margin_005ec574;
 extern const float g_camera_vertical_margin_005ec570;
+extern const float g_camera_half_pi_005ec3fc;
 extern float g_startup_depth_603ac8;
 extern float g_camera_transition_speed_65a0f4;
 extern float g_camera_max_yaw_velocity_609ea4;
+extern float g_camera_level_forward_scale_603aac;
 extern unsigned char g_flag_00683f97;
 extern unsigned char g_flag_006875a5;
 extern "C" void MarkRendererReady(void);
@@ -167,6 +171,64 @@ W8Camera005EBE14* GDCamera::Method00476440(
     m_flag_089 = 0;
     g_game_camera_65a0fc->setRotation(m_matrix_054);
     return g_game_camera_65a0fc;
+}
+
+// FUNCTION: WIZ8 0x00476610
+void GDCamera::Method00476610(
+    srMatrix3T<float>* rotation, W8LevelDataRecord* context)
+{
+    float forward_x = rotation->vectors[0].z;
+    float forward_y = rotation->vectors[1].z;
+    float forward_z = rotation->vectors[2].z;
+    float angle = 0.0f;
+    float pitch = 0.0f;
+
+    if (forward_x != g_zero_005ebb34
+        || forward_y != g_zero_005ebb34
+        || forward_z != g_one_005ebb38) {
+        if (context != 0) {
+            context->camera_forward_4c.x =
+                forward_x * g_camera_level_forward_scale_603aac;
+            context->camera_forward_4c.y =
+                forward_y * g_camera_level_forward_scale_603aac;
+            context->camera_forward_4c.z =
+                forward_z * g_camera_level_forward_scale_603aac;
+            context->scaled_camera_forward_7c.x =
+                context->camera_forward_4c.x * context->camera_scale_14;
+            context->scaled_camera_forward_7c.y =
+                context->camera_forward_4c.y * context->camera_scale_14;
+            context->scaled_camera_forward_7c.z =
+                context->camera_forward_4c.z * context->camera_scale_14;
+        }
+
+        if (forward_y > g_one_005ebb38) {
+            forward_y = g_one_005ebb38;
+        } else if (forward_y < g_negative_one_005ebc38) {
+            forward_y = g_negative_one_005ebc38;
+        }
+        pitch = (float)acos((double)forward_y) - g_camera_half_pi_005ec3fc;
+
+        float horizontal_scale =
+            g_one_005ebb38
+            / (float)sqrt((double)(forward_x * forward_x
+                                   + forward_z * forward_z));
+        forward_x *= horizontal_scale;
+        forward_z *= horizontal_scale;
+        if (forward_z > g_one_005ebb38) {
+            forward_z = g_one_005ebb38;
+        } else if (forward_z < g_negative_one_005ebc38) {
+            forward_z = g_negative_one_005ebc38;
+        }
+        angle = (float)acos((double)forward_z);
+        if (forward_x < g_zero_005ebb34) {
+            angle = g_camera_angle_period_005ec54c - angle;
+        }
+    }
+
+    if (_finite((double)angle) != 0 && _finite((double)pitch) != 0) {
+        Method004788E0(angle, pitch);
+        *rotation = m_matrix_054;
+    }
 }
 
 // FUNCTION: WIZ8 0x00476950

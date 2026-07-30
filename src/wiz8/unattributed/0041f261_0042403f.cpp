@@ -1,5 +1,6 @@
 #include "wiz8/unattributed/quarantine_common.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GameData.h"
 
 /* Address quarantine 0041f261-0042403f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
@@ -44,6 +45,12 @@ void Function421000(float degrees)
     double scale = g_double_005ebc18 * g_float_005ebcf8;
     g_gd_camera_65a0f8->Method00476C30(
         0.0f, (float)(scale * degrees));
+}
+
+// FUNCTION: WIZ8 0x00421030
+void Function421030(srMatrix3T<float>* rotation)
+{
+    g_gd_camera_65a0f8->Method00476610(rotation, g_level_data_00652dac);
 }
 
 /* Two whole-body reads through the pointer at 0x0065A0F8. The first hands back

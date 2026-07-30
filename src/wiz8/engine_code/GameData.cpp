@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/GameData.h"
 
 /*
  * Engine Code\GameData.cpp.
@@ -10,21 +11,6 @@
  * bodies that do say something about the record.
  */
 
-#pragma pack(push, 1)
-
-/* The record 0x00652DAC points at, with only the fields these accessors reach
-   established. */
-typedef struct W8LevelDataRecord {
-    unsigned int flags;                   /* 0x00 */
-    unsigned char unknown_04[0x84];
-    /* 0x88: three floats that read as a default value when the level has none
-       of whatever they describe. */
-    float vector_88[3];
-    unsigned char unknown_94[4];
-} W8LevelDataRecord;
-
-#pragma pack(pop)
-
 enum {
     W8_LEVEL_FLAG_0 = 0x001,
     W8_LEVEL_FLAG_4 = 0x010,
@@ -34,7 +20,6 @@ enum {
     W8_LEVEL_FLAG_9 = 0x200
 };
 
-extern W8LevelDataRecord* g_level_data_00652dac;
 extern unsigned char g_level_override_00652dba;
 /* 0x005EBB34: one float constant with two independent readings - the level
    vector's "no value" here, and Controls.cpp's own range start. Neither is

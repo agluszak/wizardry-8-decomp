@@ -6,6 +6,7 @@
 class srNode;
 class W8Camera005EBE14;
 class W8Object005EBCFC;
+struct W8LevelDataRecord;
 
 /* The 12-byte empty-constructed row helper passed to VC6's three-element
    vector-constructor iterator by the camera rotation expressions. Nothing in
@@ -37,7 +38,8 @@ public:
     W8Camera005EBE14* Method00476440(
         srNode* parent, W8Camera005EBE14* camera);   /* 0x00476440 */
     void Method00476610(
-        srMatrix3T<float>* rotation, void* context); /* 0x00476610 */
+        srMatrix3T<float>* rotation,
+        W8LevelDataRecord* context);                /* 0x00476610 */
     void Method00476950(const W8Position* target);   /* 0x00476950 */
     void Method00476C30(float pitch, float angle);   /* 0x00476C30 */
     unsigned char Method00476F90(
@@ -95,6 +97,7 @@ void Function420E00();
 void Function420F70();
 void Function420FD0(float degrees);
 void Function421000(float degrees);
+void Function421030(srMatrix3T<float>* rotation);
 void Function421100(float distance, W8Position* output);
 void Function421150(float distance, W8Position* output);
 void Function4213E0(
