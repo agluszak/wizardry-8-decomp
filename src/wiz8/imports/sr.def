@@ -156,6 +156,26 @@ EXPORTS
     ?getSupport@srTriangleFilter@@UBENXZ
     ?getWeight@srTriangleFilter@@UBENN@Z
     ?srTriangleFilter@@3V0@A
+    ??0Path@srFileManager@@IAE@PBD@Z
+    ??0srFileManager@@QAE@ABV0@@Z
+    ??0srFileManager@@QAE@XZ
+    ??1Path@srFileManager@@IAE@XZ
+    ??1srFileManager@@UAE@XZ
+    ??4Path@srFileManager@@QAEAAV01@ABV01@@Z
+    ??4srFileManager@@QAEAAV0@ABV0@@Z
+    ??_7srFileManager@@6B@
+    ?addPath@srFileManager@@QAEXPBD@Z
+    ?allocate@srFileManager@@UAEPAXPBD@Z
+    ?dump@srFileManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?free@srFileManager@@UAEXPAX@Z
+    ?getFirstPath@srFileManager@@QBEPAVPath@1@XZ
+    ?getName@Path@srFileManager@@QBEPBDXZ
+    ?getNext@Path@srFileManager@@QBEPAV12@XZ
+    ?getSize@srFileManager@@UAEJPBD@Z
+    ?load@srFileManager@@UAEXPBDPAXK@Z
+    ?removePath@srFileManager@@QAEXPBD@Z
+    ?save@srFileManager@@UAEXPBDPAXK@Z
+    ?setPath@srFileManager@@QAEXPBD@Z
     ??0srBinStream@@IAE@XZ
     ??1srBinStream@@UAE@XZ
     ??_7srBinStream@@6B@

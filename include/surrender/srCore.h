@@ -2,10 +2,10 @@
 
 #include <iostream>
 
+#include "srFileManager.h"
 #include "srHeap.h"
 
 class srColorSurfaceIFace;
-class srFileManager;
 class srFilter;
 class srGlobalRecycler;
 class srHierarchyIOManager;
