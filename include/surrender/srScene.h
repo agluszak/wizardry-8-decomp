@@ -7,6 +7,18 @@ class srModeler;
 
 class SR_DLL_IMPORT srScene : public srNode {
 public:
+    enum e_enable {
+        ENABLE_POSITIONAL_0 = 0
+    };
+
+    struct Statistics {
+        double value_00;
+        unsigned long value_08;
+        unsigned long value_0c;
+        unsigned long value_10;
+        unsigned long value_14;
+    };
+
     srScene(srNode* parent);
     srScene& operator=(const srScene& other);
 
@@ -16,12 +28,31 @@ public:
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
+    void disable(e_enable option);
+    void enable(e_enable option);
+    void getAmbientLight(srVector3T<float>& color) const;
+    srVector3T<float> getAmbientLight() const;
+    void getFogColor(srVector3T<float>& color) const;
+    srVector3T<float> getFogColor() const;
+    void getStatistics(Statistics& statistics);
+    int isEnabled(e_enable option) const;
     void render(srGERD& renderer, class srCamera* camera);
+    void resetStatistics();
+    static const char* sGetClassName();
+    void setAmbientLight(float red, float green, float blue);
+    void setAmbientLight(const srVector3T<float>& color);
+    void setFogColor(float red, float green, float blue);
+    void setFogColor(const srVector3T<float>& color);
 
 protected:
-    unsigned char unknown_138_[0x3c];
-    unsigned long overlay_state_[6];       /* 0x174 */
-    unsigned char unknown_18c_[4];
+    srFlags<e_enable> enabled_138;          /* 0x138 */
+    unsigned long unknown_13c_;             /* 0x13c */
+    Statistics statistics_140;              /* 0x140 */
+    TraverseInfo traversal_158;              /* 0x158 */
+    ProcessInfo process_info_170;            /* 0x170 */
+    srVector3T<float> ambient_light_174;     /* 0x174 */
+    srVector3T<float> fog_color_180;         /* 0x180 */
+    unsigned long unknown_18c_;              /* 0x18c */
 };
 
 class SR_DLL_IMPORT srCamera : public srNode {
@@ -70,4 +101,7 @@ private:
 };
 
 static_assert((sizeof(srScene) == 0x190), "srScene_must_be_0x190");
+static_assert(
+    (sizeof(srScene::Statistics) == 0x18),
+    "srScene_Statistics_must_be_0x18");
 static_assert((sizeof(srCamera) == 0x188), "srCamera_must_be_0x188");

@@ -14,10 +14,12 @@ public:
 
     void ClearOverlayState()
     {
-        int index;
-        for (index = 0; index != 6; ++index) {
-            overlay_state_[index] = 0;
-        }
+        ambient_light_174.x = 0.0f;
+        ambient_light_174.y = 0.0f;
+        ambient_light_174.z = 0.0f;
+        fog_color_180.x = 0.0f;
+        fog_color_180.y = 0.0f;
+        fog_color_180.z = 0.0f;
     }
 };
 
