@@ -2,6 +2,7 @@
 
 #include "surrender/srModelInstance.h"
 
+class srMaterial;
 class stTextureAnim;
 
 srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00();
@@ -33,11 +34,40 @@ public:
     srRegistry::ClassNode* getClassNode() const override; /* 0x00481880 */
     unsigned long getClassID() const override;     /* 0x00481860 */
     stTextureAnim* FindMouthTexture00481080();     /* 0x00481080 */
+    unsigned char displayState() const { return state_170; }
+    void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
 
 protected:
     virtual ~stModelInstance() override;           /* 0x00481940 */
 
 public:
+    unsigned long state_160;
+    unsigned long render_depth_164;
+    union {
+        unsigned long state_168;
+        struct {
+            short left_168;
+            short top_16a;
+        };
+    };
+    union {
+        unsigned long state_16c;
+        struct {
+            short right_16c;
+            short bottom_16e;
+        };
+    };
+    union {
+        unsigned long state_170_173;
+        struct {
+            unsigned char state_170;
+            unsigned char state_171;
+            unsigned char padding_172[2];
+        };
+    };
+    srClass* retained_174;
+    unsigned long state_178;
+    unsigned long state_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
     void** damage_stage_tables_188;
@@ -63,6 +93,7 @@ public:
     int value_1a4;
     int value_1a8;
     float value_1ac;
+    virtual ~stModelInstance005EC7D0() override; /* 0x0047EF70 */
 };
 
 static_assert(sizeof(stModelInstance005EC7D0) == 0x1b0,
@@ -78,7 +109,31 @@ public:
     explicit W8ModelInstance2DRegistry005EC89C(srNode* parent)
         : srModelInstance(parent)
     {
-        srCore.getRegistry()->registerInstance(getClassNode(), this);
+        srRegistry* registry = srCore.getRegistry();
+        srRegistry::ClassNode* node = registry->getClassNode(0x10005);
+
+        if (node == 0) {
+            srRegistry* instance_registry = srCore.getRegistry();
+
+            node = instance_registry->getClassNode(0x1100);
+            if (node == 0) {
+                srRegistry* node_registry = srCore.getRegistry();
+
+                node = node_registry->getClassNode(0x1000);
+                if (node == 0) {
+                    node = node_registry->registerClass(
+                        srNode::sGetClassName(),
+                        srClass::sGetClassNode(),
+                        0x1000,
+                        1);
+                }
+                node = instance_registry->registerClass(
+                    "srModelInstance", node, 0x1100, 0);
+            }
+            node = registry->registerClass(
+                "stModelInstance2D", node, 0x10005, 0);
+        }
+        registry->registerInstance(node, this);
     }
 
     const char* getClassName() const override;     /* 0x00481A50 */
@@ -89,8 +144,8 @@ protected:
     virtual ~W8ModelInstance2DRegistry005EC89C() override; /* 0x00481B20 */
 };
 
-static_assert(sizeof(W8ModelInstance2DRegistry005EC89C) == 0x180,
-              "W8ModelInstance2DRegistry005EC89C_must_be_0x180");
+static_assert(sizeof(W8ModelInstance2DRegistry005EC89C) == 0x160,
+              "W8ModelInstance2DRegistry005EC89C_must_be_0x160");
 
 /* Concrete 2D model instance. Slot 5 and the secondary slot-0 adjustor are
    SYNTHETIC compiler-generated deleting destructors; no source body owns
@@ -99,12 +154,77 @@ static_assert(sizeof(W8ModelInstance2DRegistry005EC89C) == 0x180,
 // VTABLE: WIZ8 0x005ec848 srModel::Client
 class stModelInstance2D : public W8ModelInstance2DRegistry005EC89C {
 public:
-    explicit stModelInstance2D(srNode* parent);    /* 0x0047F0F0 */
+    // FUNCTION: WIZ8 0x0047F0F0
+    explicit stModelInstance2D(srNode* parent)
+        : W8ModelInstance2DRegistry005EC89C(0)
+    {
+        state_170 = 0;
+        left_168 = 0;
+        top_16a = 0;
+        right_16c = 0;
+        bottom_16e = 0;
+        state_160 = 0;
+        state_171 = 0;
+        render_depth_164 = 2000;
+        vector_174 = 0;
+        vector_178 = 0;
+        m_pGlowMaterial_17c = 0;
+        if (parent != 0) {
+            setParent(parent, 1);
+        }
+    }
+
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
 
     srClass* vInstance() override;                 /* 0x00481E30 */
     srNode* vslot7() override;                     /* 0x00481B00 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
+
+    unsigned char displayState() const { return state_170; }
+    void configure2D(short width, short height)
+    {
+        state_160 = 0;
+        render_depth_164 = 2000;
+        left_168 = width;
+        top_16a = height;
+        right_16c = 0;
+        bottom_16e = 0;
+        state_170 = 0;
+        state_171 = 0;
+        vector_174 = 0;
+        vector_178 = 0;
+        m_pGlowMaterial_17c = 0;
+    }
+    void setRenderDepth(unsigned long depth) { render_depth_164 = depth; }
+
+    unsigned long state_160;
+    unsigned long render_depth_164;
+    union {
+        unsigned long state_168;
+        struct {
+            short left_168;
+            short top_16a;
+        };
+    };
+    union {
+        unsigned long state_16c;
+        struct {
+            short right_16c;
+            short bottom_16e;
+        };
+    };
+    union {
+        unsigned long state_170_173;
+        struct {
+            unsigned char state_170;
+            unsigned char state_171;
+            unsigned char padding_172[2];
+        };
+    };
+    srVector4T<float>* vector_174;
+    srVector4T<float>* vector_178;
+    srMaterial* m_pGlowMaterial_17c;
+    virtual ~stModelInstance2D() override;         /* 0x0047F410 */
 };
 
 static_assert(sizeof(stModelInstance2D) == 0x180,

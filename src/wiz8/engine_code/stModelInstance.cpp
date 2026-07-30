@@ -3,6 +3,7 @@
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/mesh_model.h"
 #include "surrender/srCore.h"
+#include "surrender/srMaterial.h"
 #include "surrender/srNode.h"
 
 #include <new>
@@ -164,7 +165,31 @@ srRegistry::ClassNode* stModelInstance::getClassNode() const
 // FUNCTION: WIZ8 0x00481940
 stModelInstance::~stModelInstance()
 {
-    srCore.getRegistry()->unregisterInstance(getClassNode(), this);
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x10004);
+
+    if (node == 0) {
+        srRegistry* instance_registry = srCore.getRegistry();
+
+        node = instance_registry->getClassNode(0x1100);
+        if (node == 0) {
+            srRegistry* node_registry = srCore.getRegistry();
+
+            node = node_registry->getClassNode(0x1000);
+            if (node == 0) {
+                node = node_registry->registerClass(
+                    srNode::sGetClassName(),
+                    srClass::sGetClassNode(),
+                    0x1000,
+                    1);
+            }
+            node = instance_registry->registerClass(
+                "srModelInstance", node, 0x1100, 0);
+        }
+        node = registry->registerClass(
+            "stModelInstance", node, 0x10004, 0);
+    }
+    registry->unregisterInstance(node, this);
 }
 
 /* The 2D form takes the identical chain: both model-instance classes hang off
@@ -198,26 +223,44 @@ srRegistry::ClassNode* W8ModelInstance2DRegistry005EC89C::getClassNode() const
 // FUNCTION: WIZ8 0x00481B20
 W8ModelInstance2DRegistry005EC89C::~W8ModelInstance2DRegistry005EC89C()
 {
-    srCore.getRegistry()->unregisterInstance(getClassNode(), this);
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x10005);
+
+    if (node == 0) {
+        srRegistry* instance_registry = srCore.getRegistry();
+
+        node = instance_registry->getClassNode(0x1100);
+        if (node == 0) {
+            srRegistry* node_registry = srCore.getRegistry();
+
+            node = node_registry->getClassNode(0x1000);
+            if (node == 0) {
+                node = node_registry->registerClass(
+                    srNode::sGetClassName(),
+                    srClass::sGetClassNode(),
+                    0x1000,
+                    1);
+            }
+            node = instance_registry->registerClass(
+                "srModelInstance", node, 0x1100, 0);
+        }
+        node = registry->registerClass(
+            "stModelInstance2D", node, 0x10005, 0);
+    }
+    registry->unregisterInstance(node, this);
 }
 
-// FUNCTION: WIZ8 0x0047F0F0
-stModelInstance2D::stModelInstance2D(srNode* parent)
-    : W8ModelInstance2DRegistry005EC89C(0)
+// FUNCTION: WIZ8 0x0047F410
+stModelInstance2D::~stModelInstance2D()
 {
-    state_170 = 0;
-    left_168 = 0;
-    top_16a = 0;
-    right_16c = 0;
-    bottom_16e = 0;
-    state_160 = 0;
-    state_171 = 0;
-    render_depth_164 = 2000;
-    state_174 = 0;
-    state_178 = 0;
-    m_pGlowMaterial_17c = 0;
-    if (parent != 0) {
-        setParent(parent, 1);
+    if (vector_174 != 0) {
+        srHeap.free(vector_174);
+    }
+    if (vector_178 != 0) {
+        srHeap.free(vector_178);
+    }
+    if (m_pGlowMaterial_17c != 0) {
+        m_pGlowMaterial_17c->release();
     }
 }
 
@@ -307,7 +350,7 @@ stModelInstance005EC7D0::stModelInstance005EC7D0(srNode* parent)
         setParent(parent, 1);
     }
     damage_stage_184 = -1;
-    state_174 = 0;
+    retained_174 = 0;
     scale_194.x = 1.0f;
     scale_194.y = 1.0f;
     scale_194.z = 1.0f;
@@ -316,4 +359,17 @@ stModelInstance005EC7D0::stModelInstance005EC7D0(srNode* parent)
     flag_1a1 = 0;
     value_1a8 = 0;
     value_1ac = 0.0f;
+}
+
+// FUNCTION: WIZ8 0x0047EF70
+stModelInstance005EC7D0::~stModelInstance005EC7D0()
+{
+    if (retained_174 != 0) {
+        retained_174->release();
+    }
+    if (damage_stage_tables_188 != 0) {
+        srHeap.free(damage_stage_tables_188);
+    }
+    damage_stage_tables_188 = 0;
+    damage_stage_count_18c = 0;
 }

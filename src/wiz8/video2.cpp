@@ -1,6 +1,7 @@
 #include "surrender/srColorSurface.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
@@ -278,8 +279,15 @@ extern "C" void Function426500(srScene* scene)
         srNode* next = node->nextSibling();
         unsigned long class_id = node->getClassID();
         srModelInstance* instance = static_cast<srModelInstance*>(node);
+        unsigned char display_state = 0;
+        if (class_id == 0x10004) {
+            display_state = static_cast<stModelInstance*>(node)->displayState();
+        }
+        else if (class_id == 0x10005) {
+            display_state = static_cast<stModelInstance2D*>(node)->displayState();
+        }
         if ((class_id == 0x10004 || class_id == 0x10005) &&
-            instance->displayState() != 3) {
+            display_state != 3) {
             int index;
             for (index = 0; index != 0x12c0; ++index) {
                 if (g_surface_nodes_654adc[index] == node) {
