@@ -329,6 +329,35 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     return 1;
 }
 
+/* Zero a rectangle of the primary surface, one row at a time. The span is
+   doubled because the surface holds sixteen-bit pixels, and the row clear is an
+   ordinary memset that VC6 expands into a dword run with a byte remainder.
+
+   Unlike the other lock site in this unit, the descriptor is not cleared before
+   locking. That is the original's own sequence, reproduced. */
+// FUNCTION: WIZ8 0x004263f0
+extern "C" void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom)
+{
+    DDSURFACEDESC surface_description;
+    unsigned char* row;
+    int rows;
+
+    DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
+    if (surface_description.lpSurface != 0) {
+        if (top < bottom) {
+            row = reinterpret_cast<unsigned char*>(surface_description.lpSurface) +
+                  left * 2 + surface_description.lPitch * top;
+            rows = bottom - top;
+            do {
+                memset(row, 0, (right - left) * 2);
+                row = row + surface_description.lPitch;
+                --rows;
+            } while (rows != 0);
+        }
+        DDUnlockSurface(g_primary_surface_6596a8, 0);
+    }
+}
+
 // FUNCTION: WIZ8 0x00426500
 extern "C" void Function426500(srScene* scene)
 {
