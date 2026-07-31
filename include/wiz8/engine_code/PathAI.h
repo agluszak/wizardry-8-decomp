@@ -84,4 +84,12 @@ void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
 unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
 
+/* The two operations stLight applies to the path it owns at +0x244. The
+   release is DestroyPathAI004A9810's body behind an extra `kind_00 == 0`
+   guard; the clone allocates a fresh 0x40-byte record and deep-copies the
+   node vector and both trailing arrays. Their bodies are not recovered yet -
+   only the signatures stLight's lifecycle needs. */
+void DestroyOwnedPathAI004A9110(W8PathAI* path);
+W8PathAI* ClonePathAI004A98C0(const W8PathAI* path);
+
 #endif

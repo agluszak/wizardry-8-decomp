@@ -31,7 +31,13 @@ public:
     enum e_channel {};
 
 protected:
-    virtual ~srVertexProcessor();
+    /* Header-visible, like srIlluminator's and srLight's: the srIlluminator
+       level of 0x0049C430 stores this subobject's vptr through the guarded
+       pointer and falls straight into the registry teardown, with no call to
+       a secondary-base destructor in between. The out-of-line copy below is
+       the COMDAT the secondary vtables need, not a separate definition. */
+    // FUNCTION: WIZ8 0x0042A360
+    virtual ~srVertexProcessor() {}
 
 public:
     virtual int isActive(srVertexPipe& pipe) = 0;

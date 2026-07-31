@@ -592,6 +592,12 @@ void W8MonsterRep::Method004BF0F0(
     }
 }
 
+/* `new stLight` above is what forces this emission: VC6 inlines stLight's own
+   empty default constructor at the allocation site but leaves the registry
+   base's constructor out of line here. */
+// TEMPLATE: WIZ8 0x004CA8B0
+// srClassSupport<stLight,srLight,0,65542>::srClassSupport
+
 /* The representation clone slot is an ordinary virtual copy operation.  The
    allocation size and call to the copy constructor are both visible in the
    emitted body; there is no separate representation wrapper involved. */

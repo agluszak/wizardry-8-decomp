@@ -541,9 +541,14 @@ EXPORTS
     ?setWSDirty@srNode@@AAEXXZ
     ?unlink@srNode@@AAEXXZ
     ?updateTransformation@srNode@@ABEXXZ
+    ??0srLight@@QAE@PAVsrNode@@W4e_preset@0@@Z
     ??4srLight@@QAEAAV0@ABV0@@Z
+    ?dump@srLight@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?isActive@srLight@@UAEHAAVsrVertexPipe@@@Z
+    ?process@srLight@@UAEXAAVsrVertexPipe@@@Z
     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?setLinearAttenuation@srLight@@QAEXMM@Z
+    ?traverse@srLight@@UAEXAAVTraverseInfo@srNode@@@Z
     ??0srTexture@@IAE@XZ
     ??1srTexture@@MAE@XZ
     ??4srTexture@@QAEAAV0@ABV0@@Z
