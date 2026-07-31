@@ -8,6 +8,33 @@
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
 
+// FUNCTION: WIZ8 0x0046F510
+void ExpandBounds0046F510(
+    srVector3T<float>* minimum,
+    srVector3T<float>* maximum,
+    const srVector3T<float>* candidate_minimum,
+    const srVector3T<float>* candidate_maximum)
+{
+    minimum->x = minimum->x < candidate_minimum->x
+                     ? minimum->x
+                     : candidate_minimum->x;
+    minimum->y = minimum->y < candidate_minimum->y
+                     ? minimum->y
+                     : candidate_minimum->y;
+    minimum->z = minimum->z < candidate_minimum->z
+                     ? minimum->z
+                     : candidate_minimum->z;
+    maximum->x = maximum->x > candidate_maximum->x
+                     ? maximum->x
+                     : candidate_maximum->x;
+    maximum->y = maximum->y > candidate_maximum->y
+                     ? maximum->y
+                     : candidate_maximum->y;
+    maximum->z = maximum->z > candidate_maximum->z
+                     ? maximum->z
+                     : candidate_maximum->z;
+}
+
 // FUNCTION: WIZ8 0x0046F680
 stModelInstance005EC7D0* DuplicateModelInstance0046F680(
     stModelInstance005EC7D0* instance)

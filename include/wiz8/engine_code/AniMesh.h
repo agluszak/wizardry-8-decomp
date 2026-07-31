@@ -37,6 +37,7 @@ static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 
 W8AniMesh* CreateAniMesh004B57E0();
 W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other);
+float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame);
 unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force);
 stModelInstance005EC7D0* GetAniMeshFrame004B6550(
     W8AniMesh* mesh, unsigned char frame);
@@ -44,5 +45,6 @@ void DestroyAniMesh004B5880(W8AniMesh* mesh);
 unsigned char AniMeshValue004B64F0(W8AniMesh* mesh);
 unsigned char AniMeshRadius004B66E0(W8AniMesh* mesh, float* radius);
 void AniMeshSetFlag10004B6860(W8AniMesh* mesh, int unused, signed char enabled);
+void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current);
 
 #endif

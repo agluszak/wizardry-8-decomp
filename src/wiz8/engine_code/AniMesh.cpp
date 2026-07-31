@@ -1,7 +1,10 @@
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/3d_code/PList.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +14,17 @@
 extern stModelInstance005EC7D0* DuplicateModelInstance0046F680(
     stModelInstance005EC7D0* instance);
 extern unsigned char Function4B5D00(int file, W8AniMesh* mesh, int load);
+extern void ExpandBounds0046F510(
+    srVector3T<float>* minimum,
+    srVector3T<float>* maximum,
+    const srVector3T<float>* candidate_minimum,
+    const srVector3T<float>* candidate_maximum);
+extern double g_double_005ebe80;
+extern float g_float_005ebb34;
 extern "C" int g_storage_state_65be80;
 extern "C" int g_storage_state_65be84;
+extern "C" int g_storage_limit_65be88;
+extern "C" W8PList g_storage_list_65be90;
 
 // FUNCTION: WIZ8 0x004b57e0
 W8AniMesh* CreateAniMesh004B57E0()
@@ -96,6 +108,38 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
         }
     }
     return mesh;
+}
+
+// FUNCTION: WIZ8 0x004b5c10
+float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
+{
+    stModelInstance005EC7D0* instance = GetAniMeshFrame004B6550(mesh, frame);
+
+    if (instance != 0) {
+        stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+
+        if (model != 0) {
+            srVector3T<float> minimum = {0.0f, 0.0f, 0.0f};
+            srVector3T<float> maximum = {0.0f, 0.0f, 0.0f};
+
+            do {
+                srVector3T<float> model_minimum;
+                srVector3T<float> model_maximum;
+
+                model->getBoundingBox(model_minimum, model_maximum);
+                ExpandBounds0046F510(
+                    &minimum, &maximum, &model_minimum, &model_maximum);
+                model = model->next;
+            } while (model != 0);
+
+            float x = minimum.x - maximum.x;
+            float y = minimum.y - maximum.y;
+            float z = minimum.z - maximum.z;
+            return static_cast<float>(sqrt(x * x + y * y + z * z) *
+                                      g_double_005ebe80);
+        }
+    }
+    return g_float_005ebb34;
 }
 
 // FUNCTION: WIZ8 0x004b5880
@@ -230,4 +274,42 @@ void AniMeshSetFlag10004B6860(W8AniMesh* mesh, int, signed char enabled)
         return;
     }
     mesh->flags_00 &= ~W8_ANI_MESH_FLAG_10;
+}
+
+// FUNCTION: WIZ8 0x004b6770
+void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
+{
+    while (g_storage_state_65be84 > g_storage_limit_65be88 &&
+           PListGetCount(&g_storage_list_65be90) != 0) {
+        W8AniMesh* oldest = 0;
+        int oldest_index = -1;
+        unsigned int count = PListGetCount(&g_storage_list_65be90);
+
+        for (unsigned int index = 0; index < count; ++index) {
+            W8AniMesh* candidate = static_cast<W8AniMesh*>(
+                PListGetAt(&g_storage_list_65be90, index));
+
+            if (candidate != current) {
+                if (candidate == 0) {
+                    srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3d0, 0);
+                }
+                if ((candidate->flags_00 & W8_ANI_MESH_FLAG_10) == 0 &&
+                    (oldest_index == -1 ||
+                     static_cast<unsigned int>(candidate->last_used_3c) <
+                         static_cast<unsigned int>(oldest->last_used_3c))) {
+                    oldest = candidate;
+                    oldest_index = index;
+                }
+            }
+        }
+        if (oldest != current) {
+            UnloadAniMesh004B63F0(oldest, 0);
+            PListRemoveAt(&g_storage_list_65be90, oldest_index);
+        } else if (oldest_index == -1) {
+            srAssertFail(
+                "0", ANI_MESH_CPP, 0x39d,
+                "mimp.cpp -> Tell a programmer : running out of monster memory.");
+            return;
+        }
+    }
 }
