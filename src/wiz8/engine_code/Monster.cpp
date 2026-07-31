@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/3d_code/IList.h"

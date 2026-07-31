@@ -90,6 +90,13 @@ unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
    node vector and both trailing arrays. Their bodies are not recovered yet -
    only the signatures stLight's lifecycle needs. */
 void DestroyOwnedPathAI004A9110(W8PathAI* path);
+
+/* The AI records W8GrObject holds at +0x0c are a tagged family: the leading
+   byte selects the record type, kind 0 being W8PathAI and kind 3 being
+   Missile.cpp's W8AIMissile. This is the dispatcher every copy goes through, so
+   the pointer is deliberately untyped here - the tag, not the declaration,
+   decides which record it is. */
+void* CloneAIRecord004A91C0(void* record);
 W8PathAI* ClonePathAI004A98C0(const W8PathAI* path);
 
 #endif

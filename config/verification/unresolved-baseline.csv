@@ -1080,6 +1080,7 @@ _ShutdownFontManager
 _ShutdownInputManager
 _ShutdownWithErrorBox
 _StackSize
+_StopSoundHandle00408F70
 _String
 _StringPixLength
 _WriteGameLog
