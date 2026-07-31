@@ -84,10 +84,12 @@ void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
 unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
 
-/* Allocates a zeroed 0x40 record and its node vector. W8PathRecord004A9750 is
-   named after this factory and is the same 0x40 shape as W8PathAI, which the
-   two consumers below treat it as; whether they are one type is unresolved. */
-W8PathAI* CreatePathAI004A9750(int kind);
+/* 0x004A9750, defined in src/wiz8/vector.cpp next to the vector specialization
+   it builds. Every caller pushes an argument it never reads. The record it
+   returns is the same 0x40 shape W8PathAI has, and W8Navigator hands it
+   straight to SetPathAI, so the two models are almost certainly one type -
+   wiz8-542g tracks proving that and removing one of them. */
+W8PathRecord004A9750* CreateRecord004A9750(int unused);
 
 /* The two operations stLight applies to the path it owns at +0x244. The
    release is DestroyPathAI004A9810's body behind an extra `kind_00 == 0`

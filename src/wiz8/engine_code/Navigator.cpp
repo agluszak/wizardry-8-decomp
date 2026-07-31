@@ -204,7 +204,7 @@ void W8Navigator::SetNavigationMode00452E50(int mode)
     fields.navigation_mode_008 = mode;
     switch (mode) {
     case 1:
-        path = CreatePathAI004A9750(0);
+        path = reinterpret_cast<W8PathAI*>(CreateRecord004A9750(0));
         PathAISetFlag3A004A9B90(path, 1);
         SetPathAI(path);
         /* Falls into mode four's body: the retail block ends where mode four's
@@ -216,14 +216,14 @@ void W8Navigator::SetNavigationMode00452E50(int mode)
     case 2:
     case 3:
     case 5:
-        path = CreatePathAI004A9750(0);
+        path = reinterpret_cast<W8PathAI*>(CreateRecord004A9750(0));
         PathAISetFlag3A004A9B90(path, 1);
         SetPathAI(path);
         fields.movement_0c0.pitch_enabled_074 = 1;
         fields.movement_0c0.roll_enabled_075 = 0;
         break;
     case 6:
-        path = CreatePathAI004A9750(0);
+        path = reinterpret_cast<W8PathAI*>(CreateRecord004A9750(0));
         PathAISetFlag3A004A9B90(path, 1);
         SetPathAI(path);
         fields.movement_0c0.pitch_enabled_074 = 1;

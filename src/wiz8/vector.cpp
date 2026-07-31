@@ -322,7 +322,7 @@ typedef W8PathRecord004A9750 W8Record004A9750;
 // W8GrowableVector<W8VectorElement005ECF00*>::~W8GrowableVector<W8VectorElement005ECF00*>
 
 // FUNCTION: WIZ8 0x004a9750
-W8Record004A9750* CreateRecord004A9750(void)
+W8Record004A9750* CreateRecord004A9750(int unused)
 {
     W8Record004A9750* record;
 
