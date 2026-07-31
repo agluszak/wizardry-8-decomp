@@ -7,8 +7,12 @@
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
+#include "FileMan.h"
 
 #include <math.h>
+
+#define OCTREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp"
 
 extern W8Object0043A910* g_object_6598bc;
 
@@ -33,6 +37,22 @@ extern void ApplyPortalTransition0045F2D0(
 extern float g_rate_006068EC;
 extern float g_world_scale_005ebc40;
 extern const double g_zero_005ebb40;
+
+/* ReadOctFile's own direct callees. Their bodies are not recovered, so they
+   keep address-qualified names. */
+extern void PrepareOctreeLoad0046CCC0(int value);
+extern int CheckLevelAssetSet0042CCC0(const char* level_path);
+extern char BuildPreprocessedFiles00492E60(const char* level_path);
+extern void ReportStartupMessage004969D0(const char* message);
+extern unsigned char BitArrayLoad0043AEC0(BitArray* bits, int handle);
+extern void* CreateGameData00449010(int handle, int value);
+extern unsigned char ReadLevelName00432E90(const char* name);
+extern void ApplyLevelName00432B80(const char* name);
+extern void ReadWaypointFile0043A0F0(void);
+/* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
+   game-data block LoadWorld hands back through its out parameter. */
+extern unsigned long g_octree_bytes_read_00659888;
+extern void* g_octree_game_data_00652db0;
 
 namespace {
 
@@ -97,6 +117,503 @@ void WriteMember(W8Octree* octree, unsigned int offset, T value)
 }
 
 } // namespace
+
+/* Read one .oct file into a fresh octree.
+
+   The original name is the image's own: fourteen assertions in this body spell
+   it ReadOctFile. The shape is one block repeated for every table the file
+   carries - allocate, read, accumulate the byte count, and on either failure
+   copy a message into the local buffer and stop advancing. fSuccess threading
+   is what makes the failures cascade rather than each one returning; the flag
+   at +0x000 bit 31 is the load error the caller tests.
+
+   A null path builds an empty octree, and a level whose preprocessed files
+   cannot be built runs on the LVL file alone with the same error bit set. */
+// FUNCTION: WIZ8 0x0042bc10
+W8Octree::W8Octree(const char* path, void** game_data)
+{
+    unsigned char header[0xf5];
+    char acMessage[256];
+    int hOctFile;
+    unsigned int uiRead;
+    int uiTerminator;
+    unsigned char fSuccess;
+    unsigned char fLoaded;
+    void* block;
+    unsigned int index;
+    unsigned int limit;
+    unsigned int name_length;
+    char* extension;
+    void* pGameData = 0;
+
+    PrepareOctreeLoad0046CCC0(0);
+    Reset();
+    if (path == 0) {
+        Initialize(0);
+        return;
+    }
+    if (CheckLevelAssetSet0042CCC0(path) < 0) {
+        goto failed;
+    }
+    if (CheckLevelAssetSet0042CCC0(path) > 0 &&
+        BuildPreprocessedFiles00492E60(path) == 0) {
+        g_octree_6598a4 = 0;
+        m_flags_000 |= 0x80000000;
+        ReportStartupMessage004969D0("Cannot find or build current preprocessed files.");
+        ReportStartupMessage004969D0(
+            "Attempting to run with LVL file only -- SOME FEATURES DISABLED.");
+        ReportStartupMessage004969D0(0);
+        return;
+    }
+    hOctFile = FileOpen(const_cast<char*>(path), 1, 0);
+    if (hOctFile == 0) {
+        srAssertFail("hOctFile", OCTREE_CPP, 0xa3,
+                     "ReadOctFile: Couldn't open octree file.");
+    }
+    fSuccess = ReadVirtualFile(hOctFile, header, 0xf5, &uiRead);
+    g_octree_bytes_read_00659888 += uiRead;
+    fLoaded = 0;
+    if (fSuccess != 0) {
+        fSuccess = ReadVirtualFile(hOctFile, &uiTerminator, 4, &uiRead);
+        if (fSuccess == 0 || uiTerminator != -1) {
+            srAssertFail("fSuccess && (uiTerminator==0xffffffff)", OCTREE_CPP, 0xac,
+                         "ReadOctFile: Header of Oct file longer than expected.");
+        }
+        fLoaded = 0;
+        if (fSuccess != 0) {
+            Initialize(header);
+            name_length = strlen(path) + 1;
+            if (name_length != 1) {
+                if (m_owned_0c0 != 0) {
+                    free(m_owned_0c0);
+                }
+                m_owned_0c0 = malloc(name_length);
+                if (m_owned_0c0 != 0) {
+                    strcpy(static_cast<char*>(m_owned_0c0), path);
+                    extension = strrchr(static_cast<char*>(m_owned_0c0), '.');
+                    if (extension != 0 &&
+                        extension - static_cast<char*>(m_owned_0c0) >
+                            (int)(name_length - 7)) {
+                        *extension = '\0';
+                    }
+                }
+            }
+
+            block = malloc((ReadHeader<unsigned long>(header, 0x6a) * 9 + 0x12) * 4);
+            m_owned_09c = block;
+            if (block == 0) {
+                fSuccess = 0;
+                strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
+            } else {
+                fSuccess = ReadVirtualFile(
+                    hOctFile, block, ReadHeader<unsigned long>(header, 0x6a) * 0x24, &uiRead);
+                if (fSuccess == 0) {
+                    strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
+                }
+            }
+            g_octree_bytes_read_00659888 += uiRead;
+            fLoaded = 0;
+            if (fSuccess != 0) {
+                block = malloc((ReadHeader<unsigned long>(header, 0x6e) * 5 + 10) * 8);
+                m_owned_0a0 = block;
+                if (block == 0) {
+                    fSuccess = 0;
+                    strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
+                } else {
+                    fSuccess = ReadVirtualFile(
+                        hOctFile, block,
+                        ReadHeader<unsigned long>(header, 0x6e) * 0x28, &uiRead);
+                    if (fSuccess == 0) {
+                        strcpy(acMessage, "ReadOctFile: Couldn't read octree leaves.");
+                    }
+                }
+                g_octree_bytes_read_00659888 += uiRead;
+                fLoaded = 0;
+                if (fSuccess != 0) {
+                    block = malloc(ReadHeader<unsigned long>(header, 0x82) * 4 + 8);
+                    m_owned_0d0 = block;
+                    if (block == 0) {
+                        fLoaded = 0;
+                        strcpy(acMessage,
+                               "ReadOctFile: Couldn't allocate polygon index list for leaves.");
+                    } else {
+                        fLoaded = ReadVirtualFile(
+                            hOctFile, block,
+                            ReadHeader<unsigned long>(header, 0x82) * 4, &uiRead);
+                        if (fLoaded == 0) {
+                            strcpy(acMessage,
+                                   "ReadOctFile: Couldn't read polygon index list for leaves.");
+                        }
+                    }
+                    g_octree_bytes_read_00659888 += uiRead;
+                }
+            }
+        }
+    }
+
+    limit = m_positional_0a4 * m_positional_0a8 * m_positional_0ac;
+    if (fLoaded != 0 && limit < 250000) {
+        block = malloc(limit * 4);
+        m_owned_0b0 = block;
+        if (block == 0) {
+            strcpy(acMessage, "ReadOctFile: Couldn't allocate polygon index list for regions.");
+            goto finish;
+        }
+        fLoaded = ReadVirtualFile(
+            hOctFile, block,
+            m_positional_0a4 * m_positional_0a8 * m_positional_0ac * 4, &uiRead);
+        if (fLoaded == 0) {
+            strcpy(acMessage, "ReadOctFile: Couldn't read octree nodes.");
+        }
+        g_octree_bytes_read_00659888 += uiRead;
+    } else {
+        m_owned_0b0 = 0;
+    }
+
+    fSuccess = 0;
+    if (fLoaded != 0) {
+        block = malloc(ReadHeader<unsigned long>(header, 0x72) * 4 + 8);
+        m_owned_0d4 = block;
+        if (block == 0) {
+            fSuccess = 0;
+            strcpy(acMessage, "ReadOctFile: Couldn't allocate Poly Lookup table.");
+        } else {
+            fLoaded = ReadVirtualFile(
+                hOctFile, block, ReadHeader<unsigned long>(header, 0x72) * 4, &uiRead);
+            if (fLoaded == 0) {
+                strcpy(acMessage, "ReadOctFile: Couldn't read Poly Lookup table.");
+            }
+            g_octree_bytes_read_00659888 += uiRead;
+            fSuccess = 0;
+            if (fLoaded != 0) {
+                if (ReadHeader<unsigned long>(header, 0x92) != 0) {
+                    block = malloc(ReadHeader<unsigned long>(header, 0x92) * 2 + 4);
+                    m_owned_148 = block;
+                    if (block == 0) {
+                        fSuccess = 0;
+                        strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
+                        goto finish;
+                    }
+                    fLoaded = ReadVirtualFile(
+                        hOctFile, block,
+                        ReadHeader<unsigned long>(header, 0x92) * 2, &uiRead);
+                    if (fLoaded == 0) {
+                        strcpy(acMessage, "ReadOctFile: Couldn't read region list.");
+                    }
+                    g_octree_bytes_read_00659888 += uiRead;
+                }
+                fSuccess = 0;
+                if (fLoaded != 0) {
+                    if (ReadHeader<unsigned long>(header, 0x86) != 0) {
+                        block = malloc(ReadHeader<unsigned long>(header, 0x86) * 4 + 8);
+                        m_owned_12c = block;
+                        if (block == 0) {
+                            fSuccess = 0;
+                            strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
+                            goto finish;
+                        }
+                        fLoaded = ReadVirtualFile(
+                            hOctFile, block,
+                            ReadHeader<unsigned long>(header, 0x86) * 4, &uiRead);
+                        if (fLoaded == 0) {
+                            strcpy(acMessage, "ReadOctFile: Couldn't read GD Poly list.");
+                        }
+                        g_octree_bytes_read_00659888 += uiRead;
+                    }
+                    fSuccess = 0;
+                    if (fLoaded != 0) {
+                        if (ReadHeader<unsigned long>(header, 0x8a) != 0) {
+                            block = malloc(ReadHeader<unsigned long>(header, 0x8a) * 2 + 4);
+                            m_owned_130 = block;
+                            if (block == 0) {
+                                fSuccess = 0;
+                                strcpy(acMessage,
+                                       "ReadOctFile: Couldn't allocate Trigger list.");
+                                goto finish;
+                            }
+                            fLoaded = ReadVirtualFile(
+                                hOctFile, block,
+                                ReadHeader<unsigned long>(header, 0x8a) * 2, &uiRead);
+                            if (fLoaded == 0) {
+                                strcpy(acMessage, "ReadOctFile: Couldn't read Trigger list.");
+                            }
+                            g_octree_bytes_read_00659888 += uiRead;
+                        }
+                        fSuccess = 0;
+                        if (fLoaded != 0) {
+                            if (ReadHeader<unsigned short>(header, 0x96) > 1) {
+                                block = malloc(
+                                    (ReadHeader<unsigned short>(header, 0x96) + 2) * 0xe8);
+                                m_pRegions_05c = block;
+                                if (block == 0) {
+                                    fSuccess = 0;
+                                    strcpy(acMessage,
+                                           "ReadOctFile: Couldn't allocate region array.");
+                                    goto finish;
+                                }
+                                fLoaded = ReadVirtualFile(
+                                    hOctFile, block,
+                                    ReadHeader<unsigned short>(header, 0x96) * 0xe8, &uiRead);
+                                if (fLoaded == 0) {
+                                    strcpy(acMessage,
+                                           "ReadOctFile: Couldn't read region array.");
+                                }
+                                g_octree_bytes_read_00659888 += uiRead;
+                            }
+                            fSuccess = 0;
+                            if (fLoaded != 0) {
+                                fLoaded = ReadVirtualFile(
+                                    hOctFile, &uiTerminator, 4, &uiRead);
+                                if (fLoaded == 0 || uiTerminator != -1) {
+                                    srAssertFail(
+                                        "fSuccess && (uiTerminator==0xffffffff)",
+                                        OCTREE_CPP, 0x15f,
+                                        "ReadOctFile: PreRegions longer than expected.");
+                                }
+                                fSuccess = 0;
+                                if (fLoaded != 0) {
+                                    if (ReadHeader<unsigned long>(header, 0x66) != 0) {
+                                        block = malloc(
+                                            (ReadHeader<unsigned long>(header, 0x66) + 1) * 0x10);
+                                        m_owned_0d8 = block;
+                                        if (block == 0) {
+                                            fLoaded = 0;
+                                            strcpy(acMessage,
+                                                   "ReadOctFile: Couldn't allocate submesh array.");
+                                        } else {
+                                            fLoaded = ReadVirtualFile(
+                                                hOctFile, block,
+                                                (ReadHeader<unsigned long>(header, 0x66) + 1) * 0x10,
+                                                &uiRead);
+                                            if (fLoaded == 0) {
+                                                strcpy(acMessage,
+                                                       "ReadOctFile: Couldn't read submesh array.");
+                                            }
+                                            g_octree_bytes_read_00659888 += uiRead;
+                                            if (fLoaded != 0) {
+                                                unsigned int* scan;
+                                                unsigned int remaining;
+
+                                                limit = 0;
+                                                scan = reinterpret_cast<unsigned int*>(
+                                                    static_cast<unsigned char*>(m_owned_0d8) + 0xc);
+                                                remaining =
+                                                    ReadHeader<unsigned long>(header, 0x66) + 1;
+                                                do {
+                                                    if (limit < *scan) {
+                                                        limit = *scan;
+                                                    }
+                                                    scan += 4;
+                                                    --remaining;
+                                                } while (remaining != 0);
+                                                ++limit;
+                                                if (limit > 9999) {
+                                                    srAssertFail("(i2 < 10000)", OCTREE_CPP,
+                                                                 0x179, 0);
+                                                }
+                                                g_octree_storage_00659770 =
+                                                    reinterpret_cast<unsigned long>(
+                                                        malloc(limit * 4));
+                                                if (g_octree_storage_00659770 == 0) {
+                                                    fLoaded = 0;
+                                                    strcpy(acMessage,
+                                                           "ReadOctFile: Couldn't allocate polygon "
+                                                           "index list for regions.");
+                                                } else {
+                                                    for (index = 0; index < limit; ++index) {
+                                                        reinterpret_cast<unsigned int*>(
+                                                            g_octree_storage_00659770)[index] =
+                                                            index;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (m_positional_1b4 != 0) {
+                                            m_pAlphaBits = new BitArray(m_positional_1b4);
+                                            if (m_pAlphaBits == 0) {
+                                                srAssertFail(
+                                                    "m_pAlphaBits", OCTREE_CPP, 0x18a,
+                                                    "ReadOctFile: Failure allocating Alpha Bits.");
+                                            }
+                                            if (BitArrayLoad0043AEC0(m_pAlphaBits, hOctFile) == 0) {
+                                                srAssertFail(
+                                                    "m_pAlphaBits->Load(hOctFile)", OCTREE_CPP,
+                                                    0x18b,
+                                                    "ReadOctFile: Failure reading Alpha Bits.");
+                                            }
+                                        }
+                                        if (fLoaded != 0 && m_ulNumParticles != 0) {
+                                            m_pusMeshParticleLookup =
+                                                static_cast<unsigned short*>(
+                                                    malloc(m_positional_1b4 * 2 + 2));
+                                            if (m_pusMeshParticleLookup == 0) {
+                                                srAssertFail(
+                                                    "m_pusMeshParticleLookup", OCTREE_CPP, 0x191,
+                                                    "ReadOctFile: Couldn't allocate Mesh Particle "
+                                                    "Lookup Table.");
+                                            }
+                                            fLoaded = ReadVirtualFile(
+                                                hOctFile, m_pusMeshParticleLookup,
+                                                m_positional_1b4 * 2 + 2, &uiRead);
+                                            if (fLoaded == 0) {
+                                                strcpy(acMessage,
+                                                       "ReadOctFile: Couldn't read octree nodes.");
+                                            }
+                                            g_octree_bytes_read_00659888 += uiRead;
+                                            m_pusMeshParticles = static_cast<unsigned short*>(
+                                                malloc(m_positional_0e8 * 2));
+                                            if (m_pusMeshParticles == 0) {
+                                                srAssertFail(
+                                                    "m_pusMeshParticles", OCTREE_CPP, 0x198,
+                                                    "ReadOctFile: Couldn't allocate Mesh Particle "
+                                                    "Link Table.");
+                                            }
+                                            fLoaded = ReadVirtualFile(
+                                                hOctFile, m_pusMeshParticles,
+                                                m_positional_0e8 * 2, &uiRead);
+                                            if (fLoaded == 0) {
+                                                strcpy(acMessage,
+                                                       "ReadOctFile: Couldn't read octree nodes.");
+                                            }
+                                        }
+                                        if (fLoaded != 0 && m_ulNumProps != 0) {
+                                            m_pusMeshPropLookup = static_cast<unsigned short*>(
+                                                malloc(m_positional_1b4 * 2 + 2));
+                                            if (m_pusMeshPropLookup == 0) {
+                                                srAssertFail(
+                                                    "m_pusMeshPropLookup", OCTREE_CPP, 0x1a1,
+                                                    "ReadOctFile: Couldn't allocate Mesh Prop "
+                                                    "Lookup Table.");
+                                            }
+                                            fLoaded = ReadVirtualFile(
+                                                hOctFile, m_pusMeshPropLookup,
+                                                m_positional_1b4 * 2 + 2, &uiRead);
+                                            if (fLoaded == 0) {
+                                                strcpy(acMessage,
+                                                       "ReadOctFile: Couldn't read octree nodes.");
+                                            }
+                                            g_octree_bytes_read_00659888 += uiRead;
+                                            m_pusMeshProps = static_cast<unsigned short*>(
+                                                malloc(m_positional_0f4 * 2));
+                                            if (m_pusMeshProps == 0) {
+                                                srAssertFail(
+                                                    "m_pusMeshProps", OCTREE_CPP, 0x1a8,
+                                                    "ReadOctFile: Couldn't allocate Mesh Prop Link "
+                                                    "Table.");
+                                            }
+                                            fLoaded = ReadVirtualFile(
+                                                hOctFile, m_pusMeshProps,
+                                                m_positional_0f4 * 2, &uiRead);
+                                            if (fLoaded == 0) {
+                                                strcpy(acMessage,
+                                                       "ReadOctFile: Couldn't read octree nodes.");
+                                            }
+                                        }
+                                    }
+                                    fSuccess = 0;
+                                    if (fLoaded != 0) {
+                                        fLoaded = ReadVirtualFile(
+                                            hOctFile, &uiTerminator, 4, &uiRead);
+                                        if (fLoaded == 0 || uiTerminator != -1) {
+                                            srAssertFail(
+                                                "fSuccess && (uiTerminator==0xffffffff)",
+                                                OCTREE_CPP, 0x1b2,
+                                                "ReadOctFile: Mesh, Prop, and Particle data longer "
+                                                "than expected.");
+                                        }
+                                        fSuccess = 0;
+                                        if (fLoaded != 0) {
+                                            if (ReadHeader<unsigned long>(header, 0x7e) != 0) {
+                                                pathing_180 = new W8Pathing00457CF0();
+                                                if (pathing_180 == 0) {
+                                                    goto finish;
+                                                }
+                                                pathing_180->Configure00458A50(
+                                                    ReadHeader<unsigned long>(header, 0x7e),
+                                                    ReadHeader<unsigned long>(header, 0xac),
+                                                    ReadHeader<unsigned long>(header, 0xb4),
+                                                    header + 0x0e,
+                                                    static_cast<char*>(m_owned_0c0));
+                                                fLoaded = pathing_180->Load00458CE0(hOctFile);
+                                            }
+                                            fSuccess = 0;
+                                            if (fLoaded != 0) {
+                                                if (m_ulNumProps != 0 &&
+                                                    ReadHeader<char>(header, 0xb8) != 0) {
+                                                    m_pPropSunBits = new BitArray(m_ulNumProps);
+                                                    if (m_pPropSunBits == 0) {
+                                                        srAssertFail(
+                                                            "m_pPropSunBits", OCTREE_CPP, 0x1c5,
+                                                            "ReadOctFile: Couldn't allocate Prop "
+                                                            "Sun Bits.");
+                                                    }
+                                                    if (BitArrayLoad0043AEC0(
+                                                            m_pPropSunBits, hOctFile) == 0) {
+                                                        srAssertFail(
+                                                            "m_pPropSunBits->Load(hOctFile)",
+                                                            OCTREE_CPP, 0x1c6,
+                                                            "ReadOctFile: Failure reading Prop Sun "
+                                                            "Bits.");
+                                                    }
+                                                }
+                                                fSuccess = ReadVirtualFile(
+                                                    hOctFile, &uiTerminator, 4, &uiRead);
+                                                if (fSuccess == 0) {
+                                                    strcpy(acMessage,
+                                                           "ReadOctFile: Couldn't read octree file "
+                                                           "terminator.");
+                                                }
+                                                if (uiTerminator != -1) {
+                                                    strcpy(acMessage,
+                                                           "ReadOctFile: Octree file longer than "
+                                                           "expected.");
+                                                    fSuccess = 0;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+finish:
+    g_octree_game_data_00652db0 = 0;
+    *game_data = 0;
+    if (fSuccess != 0 && ReadHeader<unsigned long>(header, 0x86) != 0) {
+        pGameData = CreateGameData00449010(hOctFile, 0);
+        if (pGameData == 0) {
+            strcpy(acMessage, "ReadOctFile: Couldn't allocate submesh array.");
+            fSuccess = 0;
+        } else {
+            fSuccess = ReadVirtualFile(hOctFile, &uiTerminator, 4, &uiRead);
+            if (fSuccess == 0 || uiTerminator != -1) {
+                srAssertFail("fSuccess && (uiTerminator==0xffffffff)", OCTREE_CPP, 0x1e2,
+                             "ReadOctFile: GameData portion of Oct file longer than expected.");
+            }
+        }
+    }
+    CloseVirtualFile(hOctFile);
+    if (fSuccess != 0) {
+        g_octree_6598a4 = this;
+        *static_cast<W8Octree**>(pGameData) = this;
+        *game_data = pGameData;
+        g_octree_game_data_00652db0 = pGameData;
+        m_positional_169 = ReadLevelName00432E90(static_cast<char*>(m_owned_0c0));
+        ApplyLevelName00432B80(static_cast<char*>(m_owned_0c0));
+        if (pathing_180 != 0) {
+            ReadWaypointFile0043A0F0();
+        }
+        return;
+    }
+failed:
+    g_octree_6598a4 = 0;
+    m_flags_000 |= 0x80000000;
+}
 
 /* The raw 0x29c allocation is reset before ReadOctFile applies its header.
    The image spells the clears individually; memset expresses the same POD
