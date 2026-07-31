@@ -9,10 +9,13 @@
 
 extern "C" {
 
+// GLOBAL: WIZ8 0x0068EC78
 W8ScreenStateStorage g_screen_state_0068ec78 = { -1 };
+// GLOBAL: WIZ8 0x0068ED10
 W8ScreenStateStorage g_dword_68ed10 = { -1 };
 unsigned char g_flag_68edac;
 void* g_stack_68eda8;
+// GLOBAL: WIZ8 0x00686A70
 int g_dword_686a70 = -1;
 unsigned char g_flag_68ed14;
 int g_dword_68ed18;
@@ -23,10 +26,6 @@ unsigned char g_block_68f2d8[0xc4e0];
 unsigned char g_flag_65beaf;
 
 extern unsigned short g_selected_item_0069c4b4;
-// GLOBAL: WIZ8 0x0069B7D0
-unsigned char g_cd_marker_present_69b7d0;
-// GLOBAL: WIZ8 0x0069B7C0
-int g_level_load_font_69b7c0;
 // GLOBAL: WIZ8 0x0069C130
 void* g_small_subsystem_69c130;
 // GLOBAL: WIZ8 0x0069C0F4
@@ -70,6 +69,7 @@ const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
     { 0x16a, 0x17a, 0x1a, 0x3a, 0x14, 0x05, 0x165, 0x19f, 1 }
 };
 
+extern unsigned char PleaseWaitScreenInitialize(void);
 extern void InitializeCampScreenRegions(void);
 extern void Function5B7230(void);
 
@@ -156,23 +156,6 @@ W8ItemInstance g_item_in_hand = { -1 };
 unsigned char InitializeSubsystemFlag(void)
 {
     g_selected_item_0069c4b4 = 0;
-    return 1;
-}
-
-/* Lifecycle record 4's initializer: the loading screen. Its entry handler is the
-   body that allocates the 0x148-byte load descriptor, clears the fact state for a
-   new game and deletes Saves\CurrentGame.SAV, which is what places this record on
-   the load path and names the font it loads here.
-
-   The marker write is guarded, so a missing CD.ROM leaves the flag at its BSS
-   zero rather than storing a comparison result. */
-// FUNCTION: WIZ8 0x00590db0
-unsigned char InitializeLevelLoadScreen(void)
-{
-    if (FileExistsNoDB("CD.ROM")) {
-        g_cd_marker_present_69b7d0 = 1;
-    }
-    g_level_load_font_69b7c0 = LoadFontFile((UINT8*)"Data\\Level Load\\levelload_font.sti");
     return 1;
 }
 
@@ -305,7 +288,7 @@ unsigned char FreeSmallStartupSubsystem(void)
 unsigned char InitializeMenuStartupSubsystems(void)
 {
     if (!InitializeSubsystemFlag()) return 0;
-    if (!InitializeLevelLoadScreen()) return 0;
+    if (!PleaseWaitScreenInitialize()) return 0;
     InitializeCampScreenRegions();
     Function5B7230();
     if (!InitializeStartupGrid()) return 0;
