@@ -81,9 +81,9 @@ extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateWorldProps0044E010(W8World* world);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
-    W8Scene005EBE48* static_scene, W8Node005EC208* dynamic_scene);
+    W8Scene* static_scene, W8Node005EC208* dynamic_scene);
 extern void RefreshEnvironment00483560(void);
-extern void FinalizeStaticScene0046F3A0(W8Scene005EBE48* scene);
+extern void FinalizeStaticScene0046F3A0(W8Scene* scene);
 extern unsigned char ReadWorldParticles004BD0D0(
     W8ReadLevelInfo* info, W8Node005EC208* scene,
     W8GrowableVector<stParticle*>* particles);
@@ -108,11 +108,11 @@ void AssociateWorldLights004BC060(W8World* world)
             int prop_index;
 
             for (prop_index = 0; prop_index < prop_count; ++prop_index) {
-                W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
+                W8Prop* prop = static_cast<W8Prop*>(
                     PListGetAt(world->plsProps, prop_index));
 
-                if (prop->m_name_20 != 0 &&
-                    _stricmp(prop->m_name_20, light->getName()) == 0) {
+                if (prop->m_name != 0 &&
+                    _stricmp(prop->m_name, light->getName()) == 0) {
                     srModelInstance* instance =
                         prop->ToggleRepAnimationDefault();
                     light->m_prop_254 = prop;
@@ -313,7 +313,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
             RotateMatrixAroundAxis0042B910(
                 &rotation.vectors[0].x, sin(angle), cos(angle), &axis.x);
         }
-        Function421030(&rotation);
+        ApplyCameraRotation(&rotation);
     }
 
     success = success && ReadVirtualFile(
@@ -443,7 +443,7 @@ unsigned char ReadWorldProps004BC5E0(
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
     W8GrowableVector<stModelInstance005EC7D0*> model_instances(5);
-    W8Prop005EC1E0* prop;
+    W8Prop* prop;
     W8PropBounds004BC5E0 bounds;
     int count;
     int index;
@@ -481,7 +481,7 @@ unsigned char ReadWorldProps004BC5E0(
                 prop->GetBounds0044DD60(&bounds.minimum, &bounds.maximum);
                 pWorld->collidable_props->Add(prop);
                 if (pWorld->octree != 0) {
-                    pWorld->octree->AddCollidablePropBounds0042EAB0(
+                    pWorld->octree->AddCollidablePropBounds(
                         collidable_index, &bounds.minimum);
                     ++collidable_index;
                 }
@@ -994,9 +994,9 @@ unsigned char ReadLevel(
     g_environment_offset_00659cd0 = environment_offset;
     prop_count = PListGetCount(world->plsProps);
     for (index = 0; index < (int)prop_count; ++index) {
-        W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
+        W8Prop* prop = static_cast<W8Prop*>(
             PListGetAt(world->plsProps, index));
-        W8AnimObj* animation = prop->m_owned_14->animation;
+        W8AnimObj* animation = prop->m_pRep->animation;
 
         if ((prop->flags_1c & 0x40) != 0) {
             unsigned int animation_count = AnimObjListCount004A1620(

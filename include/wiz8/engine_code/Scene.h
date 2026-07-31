@@ -3,9 +3,9 @@
 #include "surrender/srScene.h"
 
 // VTABLE: WIZ8 0x005ebe48
-class W8Scene005EBE48 : public srScene {
+class W8Scene : public srScene {
 public:
-    explicit W8Scene005EBE48(srNode* parent) : srScene(parent) {}
+    explicit W8Scene(srNode* parent) : srScene(parent) {}
 
     void ClearOverlayState()
     {
@@ -18,5 +18,5 @@ public:
     }
 };
 
-static_assert(sizeof(W8Scene005EBE48) == 0x190,
-              "W8Scene005EBE48_must_be_0x190");
+static_assert(sizeof(W8Scene) == 0x190,
+              "W8Scene_must_be_0x190");

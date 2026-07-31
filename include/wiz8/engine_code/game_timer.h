@@ -11,14 +11,14 @@ extern int g_game_time_ms;
 extern int g_game_time_days;
 extern srTimer* g_shared_timer_base;
 
-class W8Timer005EC0A4 {
+class W8GameTimer {
 public:
-    W8Timer005EC0A4();
-    W8Timer005EC0A4(float duration, unsigned char raw_time);
-    virtual ~W8Timer005EC0A4();
-    __forceinline int Sample() const
+    W8GameTimer();
+    W8GameTimer(float duration, unsigned char raw_time);
+    virtual ~W8GameTimer();
+    __forceinline int ReadClock() const
     {
-        switch (m_mode) {
+        switch (m_clock_mode) {
         case 1:
             return (g_game_time_days * 86400000 + g_game_time_ms) * 10;
         }
@@ -38,14 +38,14 @@ public:
     float GetProgress();
     void SetProgress(float progress);
 
-    int m_mode;                          /* 0x04: 1 reads the game clock */
+    int m_clock_mode;                          /* 0x04: 1 reads the game clock */
     unsigned short m_flags;              /* 0x08: bit 0 reads the timer raw */
     srTimer* m_shared;                   /* 0x0c */
     int m_start;                         /* 0x10 */
     int m_end;                           /* 0x14: start + duration */
     int m_duration;                      /* 0x18: 10000 */
-    float m_speed;                       /* 0x1c */
-    float m_speed_2;                     /* 0x20 */
+    float m_duration_seconds;                       /* 0x1c */
+    float m_duration_scale;                     /* 0x20 */
 };
 
-static_assert(sizeof(W8Timer005EC0A4) == 0x24, "W8Timer005EC0A4_must_be_0x24");
+static_assert(sizeof(W8GameTimer) == 0x24, "W8GameTimer_must_be_0x24");

@@ -39,7 +39,7 @@
 
 extern float g_float_005ecf98;
 W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
-W8Timer005EC0A4* g_shake_timer_0065be30;
+W8GameTimer* g_shake_timer_0065be30;
 
 /* Everything except the timer's own pacing carries across, and bit zero of the
    flags is cleared so the copy is not treated as already started. The new timer
@@ -50,7 +50,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
       intensity_04(other.intensity_04),
       value_08(other.value_08),
       position_0c(other.position_0c),
-      timer_18(other.timer_18.m_speed, 0),
+      timer_18(other.timer_18.m_duration_seconds, 0),
       cycle_3c(other.cycle_3c),
       frame_40(other.frame_40),
       subcycle_44(other.subcycle_44),
@@ -78,7 +78,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(
 {
     if (g_shake_effects_0065be2c == 0) {
         g_shake_effects_0065be2c = new W8GrowableVector<W8CameraShakeEffect*>(5);
-        g_shake_timer_0065be30 = new W8Timer005EC0A4(g_float_005ecf98, 0);
+        g_shake_timer_0065be30 = new W8GameTimer(g_float_005ecf98, 0);
         g_shake_timer_0065be30->Restart();
     }
     if (preset != 0) {
@@ -767,7 +767,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         location.y = position.y;
         location.z = position.z;
         m_ground_shadow->setLocation(location);
-        m_ground_shadow->angle_138 = GetAngleD400453970();
+        m_ground_shadow->angle_138 = GetYaw();
         m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_1);
         m_ground_shadow->setParent(g_world->dynamic_scene, 0);
     }

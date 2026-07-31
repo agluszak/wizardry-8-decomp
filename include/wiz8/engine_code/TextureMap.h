@@ -8,14 +8,14 @@
    none of them. Do not reintroduce getClassName, getClassID, getClassNode or
    clone overrides here. */
 // VTABLE: WIZ8 0x005ebeec
-class W8TextureMap005EBEEC : public srTextureMap {
+class W8TextureMap : public srTextureMap {
 public:
-    explicit W8TextureMap005EBEEC(srColorSurfaceIFace* surface)
+    explicit W8TextureMap(srColorSurfaceIFace* surface)
         : srTextureMap(surface) {}
 
 protected:
-    virtual ~W8TextureMap005EBEEC() override {}
+    virtual ~W8TextureMap() override {}
 };
 
-static_assert(sizeof(W8TextureMap005EBEEC) == 0x5c,
-              "W8TextureMap005EBEEC_must_be_0x5c");
+static_assert(sizeof(W8TextureMap) == 0x5c,
+              "W8TextureMap_must_be_0x5c");

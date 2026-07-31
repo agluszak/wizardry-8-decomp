@@ -20,13 +20,13 @@ public:
     W8PathState004CAE40();               /* 0x004CAE40 */
 };
 struct W8Position;
-struct W8NavigatorMovement004572C0;
+struct W8NavigatorMovementState;
 
-class W8OctreeQueue00437000 {
+class W8OctreeObjectRegistry {
 public:
     /* Returns whether the pairing ended up recorded; every recovered caller
        discards it. */
-    unsigned char Queue00437000(int kind, int id, const int* point);
+    unsigned char RegisterObjectCell(int kind, int id, const int* point);
 };
 
 /* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
@@ -54,9 +54,9 @@ static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
    constructor at 0x004578E0 initialises through 0x238 and ReadOctFile allocates
    0x240, which is what fixes the extent; only the fields those two bodies and
    the path lookup reach are named. */
-class W8Pathing00457CF0 {
+class W8PathingService {
 public:
-    W8Pathing00457CF0();                  /* 0x004578E0 */
+    W8PathingService();                  /* 0x004578E0 */
     unsigned int FindPathHandle(
         const unsigned char* path_name,
         unsigned short* path_bounds,
@@ -67,14 +67,14 @@ public:
        the service into ecx before either call, so both are its methods and
        not the free functions they were declared as. */
     unsigned int StepAlongPath004669B0(
-        W8NavigatorMovement004572C0* movement, float radius, float separation);
+        W8NavigatorMovementState* movement, float radius, float separation);
     unsigned int StepMonsterAlongPath00467150(
-        W8NavigatorMovement004572C0* movement, float radius, float separation);
+        W8NavigatorMovementState* movement, float radius, float separation);
     void LinkSurfaces00460020();          /* 0x00460020 */
     void LinkEdges004600B0();             /* 0x004600B0 */
     /* Takes the size, two loose values, the six-float bounds block out of the
        octree header, and the level name the octree already owns. */
-    void Configure00458A50(
+    void ConfigureForLevel(
         int size, float grid_scale, int value_28, const float* bounds,
         const char* name);                /* 0x00458A50 */
     unsigned char Load00458CE0(int handle); /* 0x00458CE0 */
@@ -96,7 +96,7 @@ public:
     short cell_count_024;                /* 0x24 */
     unsigned short m_padding_026;
     int value_028;                       /* 0x28 */
-    float bounds_02c[6];                 /* 0x2c */
+    float level_bounds[6];                 /* 0x2c */
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
        deleting slot. */
@@ -113,7 +113,7 @@ public:
     /* Two hash indexes the loader builds and 0x00457B10 tears down the same
        way DestroyIndex does. */
     void* m_pIndex_064;                  /* 0x64 */
-    const char* name_068;                /* 0x68 */
+    const char* level_name;                /* 0x68 */
     void* m_owned_06c;                   /* 0x6c */
     unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
     void* m_pIndex_074;                  /* 0x74 */
@@ -165,8 +165,8 @@ public:
     int m_positional_23c;
 };
 
-static_assert(sizeof(W8Pathing00457CF0) == 0x240,
-              "W8Pathing00457CF0_must_be_0x240");
+static_assert(sizeof(W8PathingService) == 0x240,
+              "W8PathingService_must_be_0x240");
 
 /* Engine Code\Octree.cpp. LoadWorld allocates exactly 0x29c bytes. This object
    is deliberately non-polymorphic: every owner calls the complete teardown at
@@ -181,24 +181,24 @@ public:
     void AddLoadedParticle(void* particle);
     void SetVisitedSet0042E3E0(BitArray* visited);
     int MarkVisited0042E400(int offset);
-    void AddCollidablePropBounds0042EAB0(
+    void AddCollidablePropBounds(
         int index, const srVector3T<float>* bounds);
     void VisitPointCopy0042E620(
         unsigned short location_id, srVector3T<float>* position);
-    void UpdateMonsterLocation0042E540(
+    void UpdateMonsterLocation(
         unsigned short location_id, const W8Position* position);
-    bool HasLineOfSight00434B60(
+    bool HasLineOfSight(
         const W8Position* from, W8Position* to, char allow_fallback);
-    short TraceLineOfSight00434F20(
+    short TraceLineOfSight(
         const W8Position* from, const W8Position* to, char trace_world,
         int from_location_id, int to_location_id, char visit_octree,
         int trace_mode);
-    void AdjustPortalDestination00434A30(
+    void AdjustPortalDestination(
         W8Position* destination, const W8Position* source);
-    void BuildCellWalk004362D0(
+    void BuildCellWalk(
         const W8Position* from, const W8Position* to, W8OctreeWalk* walk);
-    unsigned int AdvanceNavigator00434620(
-        W8NavigatorMovement004572C0* movement,
+    unsigned int AdvanceNavigator(
+        W8NavigatorMovementState* movement,
         float radius, float separation);
     void QueueOctreeKind130042E810(
         int id, const srVector3T<float>* position);
@@ -229,7 +229,7 @@ public:
     void* m_owned_0b0;
     unsigned long m_positional_0b4;
     unsigned long m_positional_0b8;
-    W8OctreeQueue00437000* octree_queue_0bc;
+    W8OctreeObjectRegistry* object_registry;
     void* m_owned_0c0;
     unsigned char m_fAccumulating;
     unsigned char m_positional_0c5[3];
@@ -291,7 +291,7 @@ public:
     void* m_sr_owned_174;
     unsigned long m_positional_178;
     unsigned long m_positional_17c;
-    W8Pathing00457CF0* pathing_180;
+    W8PathingService* pathing_180;
     int mark_base_184;
     unsigned long m_ulNumProps;
     /* Named m_pPropSunBits by ReadOctFile's assertion at 0x0042CAA4. The
@@ -332,18 +332,18 @@ public:
 /* The shared spatial-service pointer at 0x006598A4 is the active W8Octree.
    Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves
    that the same receiver dispatches ordinary W8Octree methods. */
-/* The octree's open-chained hash map: bucket heads, {next, key, value} entries,
-   a free-list head threaded through the same next field, and a power-of-two
+/* The octree's open-chained hash map: bucket heads, {next_index, key, value}
+   entries, a free-list head threaded through the same next_index field, and a power-of-two
    bucket count. Both Octree.cpp and OctPath.cpp build and walk these. */
 struct W8OctreeIndex {
-    void* buckets;
+    void* bucket_heads;
     void* entries;
-    long last_entry;
+    long free_head;
     unsigned long bucket_count;
 };
 
 struct W8OctreeEntry {
-    int next;
+    int next_index;
     unsigned int key;
     int value;
 };

@@ -69,7 +69,7 @@ void ConstructWorldCollections(W8World* world)
     world->plsCameras = PListCreate();
     world->plsAmbientSounds = PListCreate();
     world->lights_to_update = new W8LightVector;
-    world->collidable_props = new W8GrowableVector<W8Prop005EC1E0*>;
+    world->collidable_props = new W8GrowableVector<W8Prop*>;
     world->monster_generators = new W8GrowableVector<W8MonsterGenerator*>;
     world->m_vector_b4 = new W8GrowableVector<W8VectorElement005EC280*>;
     world->missiles = new W8GrowableVector<W8Missile*>;
@@ -258,7 +258,7 @@ W8World* CreateWorld()
     }
     memset(world, 0, sizeof(*world));
 
-    world->static_scene = new W8Scene005EBE48(0);
+    world->static_scene = new W8Scene(0);
     if (world->static_scene == 0) {
         free(world);
         return 0;
@@ -327,7 +327,7 @@ void DestroyWorldCollections(W8World* world)
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
     if (world->plsProps != 0) {
         while (PListGetCount(world->plsProps) != 0) {
-            W8Prop005EC1E0* object = static_cast<W8Prop005EC1E0*>(
+            W8Prop* object = static_cast<W8Prop*>(
                 PListGetAt(world->plsProps, 0));
             PListRemoveAt(world->plsProps, 0);
             delete object;
@@ -565,11 +565,11 @@ void WorldSetCameraLocation(W8World* world, const float* location)
 // SYNTHETIC: WIZ8 0x00423e50
 // srMaterial::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423e80
-// W8Camera005EBE14::`scalar deleting destructor'
+// W8Camera::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423eb0
-// W8Scene005EBE48::`scalar deleting destructor'
+// W8Scene::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423f00
-// W8ColorSurface005EBD10::`scalar deleting destructor'
+// W8ColorSurface::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00424a50
 // W8MeshModel005EBE98::`scalar deleting destructor'
 

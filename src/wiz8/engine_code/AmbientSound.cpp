@@ -86,7 +86,7 @@ void W8AmbientSound::Update0047A310()
 {
     if (flag_c4 != 0) {
         if (sound_handle_bc != -1) {
-            W8Timer005EC0A4* timer = &timer_108;
+            W8GameTimer* timer = &timer_108;
 
             if (timer->GetProgress() >= 1.0f) {
                 if (value_9c > value_a0) {

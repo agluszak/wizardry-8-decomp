@@ -22,7 +22,7 @@
    FindPropByName independently proves that +0x20 is the owned prop name.
    Unresolved members and the gaps between them remain positional. */
 
-extern int Function443830(W8World* world, W8Prop005EC1E0* prop);
+extern int Function443830(W8World* world, W8Prop* prop);
 extern void Function4B7470(int value);
 
 /* Visit every prop attached to the world and activate those whose companion
@@ -38,10 +38,10 @@ void UpdateWorldProps0044E010(W8World* world)
     }
     count = PListGetCount(world->plsProps);
     for (index = 0; index < static_cast<int>(count); ++index) {
-        W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(PListGetAt(world->plsProps, index));
+        W8Prop* prop = static_cast<W8Prop*>(PListGetAt(world->plsProps, index));
         int value;
 
-        if (prop != 0 && (value = Function443830(world, prop)) != 0 && prop->m_owned_38 != 0) {
+        if (prop != 0 && (value = Function443830(world, prop)) != 0 && prop->m_gd_prop != 0) {
             prop->flags_1c |= 0x80;
             Function4B7470(value);
         }
@@ -51,17 +51,17 @@ void UpdateWorldProps0044E010(W8World* world)
 /* VC6 emits the scalar-deleting wrapper from this ordinary virtual
    destructor. */
 // SYNTHETIC: WIZ8 0x0044BEA0
-// W8Prop005EC1E0::`scalar deleting destructor'
-W8Prop005EC1E0::~W8Prop005EC1E0()
+// W8Prop::`scalar deleting destructor'
+W8Prop::~W8Prop()
 {
-    delete m_owned_14;
-    delete[] m_name_20;
-    delete m_owned_28;
-    delete m_owned_38;
+    delete m_pRep;
+    delete[] m_name;
+    delete m_animation_timer;
+    delete m_gd_prop;
 }
 
 // FUNCTION: WIZ8 0x0044db60
-W8Prop005EC1E0* FindPropByName(W8World* world, const char* name)
+W8Prop* FindPropByName(W8World* world, const char* name)
 {
     int index;
 
@@ -69,10 +69,10 @@ W8Prop005EC1E0* FindPropByName(W8World* world, const char* name)
         unsigned int count = PListGetCount(world->plsProps);
 
         for (index = 0; index < (int)count; ++index) {
-            W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
+            W8Prop* prop = static_cast<W8Prop*>(
                 PListGetAt(world->plsProps, index));
-            if (prop->m_name_20 != 0 &&
-                _stricmp(prop->m_name_20, name) == 0) {
+            if (prop->m_name != 0 &&
+                _stricmp(prop->m_name, name) == 0) {
                 return prop;
             }
         }
@@ -81,12 +81,12 @@ W8Prop005EC1E0* FindPropByName(W8World* world, const char* name)
 }
 
 // FUNCTION: WIZ8 0x0044e270
-void W8Prop005EC1E0::SetAnimationSpeed(float speed)
+void W8Prop::SetAnimationSpeed(float speed)
 {
     if (speed > 0.0f) {
-        m_owned_14->animation_speed_09c = speed;
-        if (m_owned_28 != 0) {
-            m_owned_28->SetDuration(1.0f / speed);
+        m_pRep->animation_speed = speed;
+        if (m_animation_timer != 0) {
+            m_animation_timer->SetDuration(1.0f / speed);
         }
     }
 }
@@ -95,34 +95,34 @@ extern void Function439D80(void);
 
 /* Four accessors reaching through the owned member at 0x14. */
 // FUNCTION: WIZ8 0x0044d4f0
-unsigned char W8Prop005EC1E0::GetSetting6C()
+unsigned char W8Prop::GetSetting6C()
 {
-    return this->m_owned_14->setting_6c;
+    return this->m_pRep->setting_6c;
 }
 
 // FUNCTION: WIZ8 0x0044d5b0
-void W8Prop005EC1E0::SetSetting66(char value)
+void W8Prop::SetSetting66(char value)
 {
-    this->m_owned_14->setting_66 = value;
+    this->m_pRep->setting_66 = value;
 }
 
 /* Whether the owned member is in the state the value two stands for. */
 // FUNCTION: WIZ8 0x0044e1c0
-bool W8Prop005EC1E0::IsSetting6FTwo()
+bool W8Prop::IsSetting6FTwo()
 {
-    return this->m_owned_14->setting_6f == 2;
+    return this->m_pRep->setting_6f == 2;
 }
 
 /* Flip the owned member between the only two values it takes: one and three. */
 // FUNCTION: WIZ8 0x0044e1d0
-void W8Prop005EC1E0::ToggleSetting6E()
+void W8Prop::ToggleSetting6E()
 {
-    this->m_owned_14->setting_6e = this->m_owned_14->setting_6e == 1 ? 3 : 1;
+    this->m_pRep->setting_6e = this->m_pRep->setting_6e == 1 ? 3 : 1;
 }
 
 /* The prop's own value at 0x18. */
 // FUNCTION: WIZ8 0x0044d5a0
-int W8Prop005EC1E0::GetValue18()
+int W8Prop::GetValue18()
 {
     return this->value_18;
 }
@@ -130,10 +130,10 @@ int W8Prop005EC1E0::GetValue18()
 /* One value out of the owned GDProp, but only once the flag that says it is
    there is up. */
 // FUNCTION: WIZ8 0x0044e0a0
-int W8Prop005EC1E0::GetGDPropValue24()
+int W8Prop::GetGDPropValue24()
 {
-    if ((this->flags_1c & 0x80) != 0 && this->m_owned_38 != 0) {
-        return *(int*)((char*)this->m_owned_38 + 0x24);
+    if ((this->flags_1c & 0x80) != 0 && this->m_gd_prop != 0) {
+        return *(int*)((char*)this->m_gd_prop + 0x24);
     }
     return 0;
 }
@@ -142,12 +142,12 @@ int W8Prop005EC1E0::GetGDPropValue24()
    costs an extra call first, so zero is the state that has to be left rather
    than a value like the others. */
 // FUNCTION: WIZ8 0x0044d4b0
-void W8Prop005EC1E0::SetSetting6C(unsigned char value)
+void W8Prop::SetSetting6C(unsigned char value)
 {
-    if (m_owned_14->setting_6c == 0) {
+    if (m_pRep->setting_6c == 0) {
         Function439D80();
     }
-    m_owned_14->setting_6c = value;
+    m_pRep->setting_6c = value;
 }
 
 /* Both of these were separate names for 0x004A1710, which AnimObj.h now owns as
@@ -160,13 +160,13 @@ extern unsigned char Function4B75F0(int arg_1, int arg_2);
 extern void Function444750(void);
 
 // FUNCTION: WIZ8 0x0044d5f0
-void W8Prop005EC1E0::GetCenterPosition(srVector3T<float>* position)
+void W8Prop::GetCenterPosition(srVector3T<float>* position)
 {
     srVector3T<float> first;
     srVector3T<float> second;
 
     ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
-        m_owned_14->animation, 2, m_owned_14->setting_64,
+        m_pRep->animation, 2, m_pRep->default_animation_tag,
         &first, &second);
     position->x = (first.x + second.x) * 0.5f;
     position->y = (first.y + second.y) * 0.5f;
@@ -175,7 +175,7 @@ void W8Prop005EC1E0::GetCenterPosition(srVector3T<float>* position)
 
 /* Start or stop the prop's own animation, whichever it is not doing. */
 // FUNCTION: WIZ8 0x0044ba00
-void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
+void W8PropRepresentation::ToggleAnimation(int argument)
 {
     if (AnimationIsRunning(animation)) {
         AnimObjDispatchList004A1560(animation, 2, 0);
@@ -188,7 +188,7 @@ void W8PropOwnedPolymorphic::ToggleAnimation(int argument)
    The slot's signed first byte is the new animation tag; the old and new
    values are retained as an ordered range for the transition state. */
 // FUNCTION: WIZ8 0x0044ba50
-unsigned char W8PropOwnedPolymorphic::SelectSlot0044BA50(unsigned char tag)
+unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 {
     int index;
 
@@ -211,7 +211,7 @@ unsigned char W8PropOwnedPolymorphic::SelectSlot0044BA50(unsigned char tag)
             else {
                 setting_6e = 1;
             }
-            unknown_06d = 1;
+            active = 1;
             return 1;
         }
     }
@@ -222,7 +222,7 @@ unsigned char W8PropOwnedPolymorphic::SelectSlot0044BA50(unsigned char tag)
    own leading byte rather than used as an index, so the slots need not be in
    tag order. */
 // FUNCTION: WIZ8 0x0044bae0
-int W8PropOwnedPolymorphic::FindSlotByCurrentTag()
+int W8PropRepresentation::FindCurrentAnimationSlot()
 {
     int index;
 
@@ -235,7 +235,7 @@ int W8PropOwnedPolymorphic::FindSlotByCurrentTag()
 }
 
 // FUNCTION: WIZ8 0x0044bb20
-unsigned char W8PropOwnedPolymorphic::AdvanceAnimationSegment()
+unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
     int segment;
 
@@ -265,16 +265,16 @@ unsigned char W8PropOwnedPolymorphic::AdvanceAnimationSegment()
     current_tag = slots[segment][0];
     unknown_095[0] = slots[segment + 1][0];
     setting_6e = 1;
-    unknown_06d = 1;
-    setting_64 = current_tag;
+    active = 1;
+    default_animation_tag = current_tag;
     return (unsigned char)segment;
 }
 
 /* The same toggle reached through the prop rather than through the member. */
 // FUNCTION: WIZ8 0x0044d500
-srModelInstance* W8Prop005EC1E0::ToggleRepAnimation(int argument)
+srModelInstance* W8Prop::ToggleRepAnimation(int argument)
 {
-    W8PropOwnedPolymorphic* rep = m_owned_14;
+    W8PropRepresentation* rep = m_pRep;
 
     if (!AnimationIsRunning(rep->animation)) {
         return AnimObjDispatch004A14D0(rep->animation, 2, argument);
@@ -285,10 +285,10 @@ srModelInstance* W8Prop005EC1E0::ToggleRepAnimation(int argument)
 /* And again with the member's own stored argument instead of a caller's -
    which is what makes 0x64 the animation's default argument. */
 // FUNCTION: WIZ8 0x0044d550
-srModelInstance* W8Prop005EC1E0::ToggleRepAnimationDefault()
+srModelInstance* W8Prop::ToggleRepAnimationDefault()
 {
-    W8PropOwnedPolymorphic* rep = m_owned_14;
-    unsigned char argument = rep->setting_64;
+    W8PropRepresentation* rep = m_pRep;
+    unsigned char argument = rep->default_animation_tag;
 
     if (!AnimationIsRunning(rep->animation)) {
         return AnimObjDispatch004A14D0(rep->animation, 2, argument);
@@ -299,10 +299,10 @@ srModelInstance* W8Prop005EC1E0::ToggleRepAnimationDefault()
 /* Play the prop's animation between two points, with the same default
    argument. */
 // FUNCTION: WIZ8 0x0044d5c0
-int W8Prop005EC1E0::PlayRepAnimation(int from, int to)
+int W8Prop::PlayRepAnimation(int from, int to)
 {
     ((LegacyAnimObjPlayCall)AnimObjGetBounds004A1710)(
-        m_owned_14->animation, 2, m_owned_14->setting_64, from, to);
+        m_pRep->animation, 2, m_pRep->default_animation_tag, from, to);
     return 1;
 }
 
@@ -310,56 +310,56 @@ int W8Prop005EC1E0::PlayRepAnimation(int from, int to)
    and the guarded store is written after the assertion rather than instead of
    it, so a null member writes through null on a build with assertions off. */
 // FUNCTION: WIZ8 0x0044e1f0
-void W8Prop005EC1E0::SetSetting6E(unsigned char value, unsigned char fallback)
+void W8Prop::SetSetting6E(unsigned char value, unsigned char fallback)
 {
-    if (m_owned_14 == 0) {
+    if (m_pRep == 0) {
         srAssertFail("m_pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 2698, 0);
-        m_owned_14->setting_6e = fallback;
+        m_pRep->setting_6e = fallback;
         return;
     }
-    m_owned_14->setting_6e = value;
+    m_pRep->setting_6e = value;
 }
 
 /* Set the live representation state. When requested, choose the direction
    and endpoint of the transition from the current and target animation tags. */
 // FUNCTION: WIZ8 0x0044da80
-void W8Prop005EC1E0::SetRepActive0044DA80(
+void W8Prop::SetRepresentationActive(
     unsigned char active, unsigned char update_animation)
 {
-    m_owned_14->unknown_06d = active;
+    m_pRep->active = active;
     if (active == 0) {
         return;
     }
 
-    m_owned_28->Restart();
+    m_animation_timer->Restart();
     if (update_animation == 0) {
         return;
     }
 
-    if (m_owned_14->unknown_070[0] == 1) {
-        if ((m_owned_14->setting_6e == 2 &&
-             m_owned_14->setting_6f != 2) ||
-            (m_owned_14->setting_6e != 2 &&
-             m_owned_14->setting_6f == 2)) {
-            m_owned_14->setting_6e = 1;
-            m_owned_14->setting_64 = m_owned_14->current_tag;
+    if (m_pRep->unknown_070[0] == 1) {
+        if ((m_pRep->setting_6e == 2 &&
+             m_pRep->setting_6f != 2) ||
+            (m_pRep->setting_6e != 2 &&
+             m_pRep->setting_6f == 2)) {
+            m_pRep->setting_6e = 1;
+            m_pRep->default_animation_tag = m_pRep->current_tag;
             return;
         }
-        m_owned_14->setting_6e = 3;
-        m_owned_14->setting_64 = m_owned_14->unknown_095[0];
+        m_pRep->setting_6e = 3;
+        m_pRep->default_animation_tag = m_pRep->unknown_095[0];
         return;
     }
-    if (m_owned_14->unknown_070[0] == 2) {
-        if ((m_owned_14->setting_6e == 2 &&
-             m_owned_14->setting_6f != 2) ||
-            (m_owned_14->setting_6e != 2 &&
-             m_owned_14->setting_6f == 2)) {
-            m_owned_14->setting_6e = 1;
-            m_owned_14->setting_64 = m_owned_14->current_tag;
+    if (m_pRep->unknown_070[0] == 2) {
+        if ((m_pRep->setting_6e == 2 &&
+             m_pRep->setting_6f != 2) ||
+            (m_pRep->setting_6e != 2 &&
+             m_pRep->setting_6f == 2)) {
+            m_pRep->setting_6e = 1;
+            m_pRep->default_animation_tag = m_pRep->current_tag;
             return;
         }
-        m_owned_14->setting_6e = 3;
-        m_owned_14->setting_64 = m_owned_14->unknown_095[0];
+        m_pRep->setting_6e = 3;
+        m_pRep->default_animation_tag = m_pRep->unknown_095[0];
     }
 }
 
@@ -367,15 +367,15 @@ void W8Prop005EC1E0::SetRepActive0044DA80(
    to be there, its own owner has to be, that owner must not be in the tenth
    state or hold either of two bits, and the reach test has to pass. */
 // FUNCTION: WIZ8 0x0044e0c0
-bool W8Prop005EC1E0::CanBeUsedFrom(int arg_2, int arg_3, char notify)
+bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
 {
     char* owner;
     char* state;
 
-    if ((flags_1c & 0x80) == 0 || m_owned_38 == 0) {
+    if ((flags_1c & 0x80) == 0 || m_gd_prop == 0) {
         return false;
     }
-    owner = *(char**)((char*)m_owned_38 + 0x24);
+    owner = *(char**)((char*)m_gd_prop + 0x24);
     if (owner == 0) {
         return false;
     }

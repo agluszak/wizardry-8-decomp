@@ -35,7 +35,7 @@ struct W8NavigatorAttachment {
 
     W8NavigatorAttachment();             /* 0x00456210 */
 
-    void RecordPosition00456AE0(const srVector3T<float>* position);
+    void RecordPosition(const srVector3T<float>* position);
 };
 
 class W8Navigator;
@@ -52,15 +52,15 @@ public:
 /* Navigator.cpp constructs the 0xCC-byte movement/collision tail at +0xC0
    independently. World collision routines receive this subobject, while the
    surrounding Navigator owns the path and group-following state. */
-struct W8NavigatorMovement004572C0 {
+struct W8NavigatorMovementState {
     unsigned int unknown_000;
     unsigned short location_id_004;
     unsigned short unknown_006;
     int value_008;
     int value_00c;
     int value_010;
-    float angle_014;
-    float target_angle_018;
+    float yaw;
+    float target_yaw;
     float unknown_01c;
     float pitch_020;
     float target_pitch_024;
@@ -99,16 +99,16 @@ struct W8NavigatorMovement004572C0 {
     unsigned char position_adjusted_0c8;
     unsigned char unknown_0c9[3];
 
-    W8NavigatorMovement004572C0();       /* 0x004572C0 */
+    W8NavigatorMovementState();       /* 0x004572C0 */
     /* A second, different set of defaults over the same subobject, run by
        W8Navigator's constructor immediately after this one. */
-    void ResetMovement004573D0();        /* 0x004573D0 */
-    ~W8NavigatorMovement004572C0();      /* 0x00457530 */
+    void Reset();        /* 0x004573D0 */
+    ~W8NavigatorMovementState();      /* 0x00457530 */
 
     /* Copies the eleven fields a navigator carries across from another's
        movement tail and invalidates value_010. It returns nothing, so it is a
        named member rather than an assignment operator. */
-    void Assign004574D0(const W8NavigatorMovement004572C0& other);
+    void CopySettingsFrom(const W8NavigatorMovementState& other);
 
 };
 
@@ -117,8 +117,8 @@ struct W8NavigatorMovement004572C0 {
    at 0x00457530 only proves it reaches +0x50. */
 static_assert(sizeof(W8NavigatorAttachment) == 0x60,
               "W8NavigatorAttachment_size_must_be_0x60");
-static_assert(sizeof(W8NavigatorMovement004572C0) == 0xcc,
-              "W8NavigatorMovement004572C0_size_must_be_0xcc");
+static_assert(sizeof(W8NavigatorMovementState) == 0xcc,
+              "W8NavigatorMovementState_size_must_be_0xcc");
 
 /* Navigator.cpp owns the path, position, orientation, and scene-node state
    below. It is GrCycle's ordinary second base, not a representation object. */
@@ -141,9 +141,9 @@ public:
     unsigned char UpdateTrackedPosition00454950();       /* 0x00454950 */
     void UpdateNavigation004553A0(int value, char condition); /* 0x004553A0 */
     void SetAngles004538F0(float angle);                    /* 0x004538F0 */
-    void SetPitch00453940(float pitch);                     /* 0x00453940 */
-    float GetAngleD400453970();                           /* 0x00453970 */
-    float GetAngleE000453980();                           /* 0x00453980 */
+    void SetPitch(float pitch);                     /* 0x00453940 */
+    float GetYaw();                           /* 0x00453970 */
+    float GetPitch();                           /* 0x00453980 */
     void SetValue120(float value);                         /* 0x00453C50 */
     float GetValue120();                                  /* 0x00453C60 */
     unsigned char Function452630(const W8Position* position); /* 0x00452630 */
@@ -163,27 +163,27 @@ public:
     unsigned short LinkToNavigator004527A0(
         W8Navigator* target, double separation);           /* 0x004527A0 */
     void Function454040(const W8Position* position);       /* 0x00454040 */
-    void AimAtPosition00453F30(const W8Position* position); /* 0x00453F30 */
-    void StartPatrol00453CC0(
+    void AimAtPosition(const W8Position* position); /* 0x00453F30 */
+    void StartPatrol(
         const W8Position* home, float distance, float variation);
     void SetFlag25(char value);                            /* 0x004531F0 */
     void SetMovementStopped00453880();                     /* 0x00453880 */
     void UpdateAngles00453990();                           /* 0x00453990 */
     unsigned char ConfigureMovement00453D20(
         float minimum, float maximum);                     /* 0x00453D20 */
-    unsigned char SetMovementTarget00454170(
+    unsigned char SetMovementTarget(
         const srVector3T<float>* target, char propagate);  /* 0x00454170 */
     srVector3T<float>* AdjustPosition00454440(
         srVector3T<float>* result,
         const srVector3T<float>* current,
         const srVector3T<float>* previous);                /* 0x00454440 */
-    void UpdateFacing00454780(char immediate);             /* 0x00454780 */
-    void UpdateLinkedNavigator00454D70();                  /* 0x00454D70 */
-    void CollectGroupNavigators00455140(
+    void UpdateFacing(char immediate);             /* 0x00454780 */
+    void UpdateLinkedNavigator();                  /* 0x00454D70 */
+    void CollectGroupNavigators(
         W8GrowableVector<W8Navigator*>* navigators);       /* 0x00455140 */
-    int ResolveMovement00455CC0();                         /* 0x00455CC0 */
-    void ClearMovement004537E0();                          /* 0x004537E0 */
-    void SetNavigationMode00452E50(int mode);              /* 0x00452E50 */
+    int ResolveMovement();                         /* 0x00455CC0 */
+    void ClearMovement();                          /* 0x004537E0 */
+    void SetNavigationMode(int mode);              /* 0x00452E50 */
 
     /* Monster.cpp's 0x004C3F00 reads a byte where maximum_078.z sits. */
     signed char animationIndex() const
@@ -250,7 +250,7 @@ public:
             unsigned char unknown_0b5[3];
             int linked_update_time_0b8;
             unsigned char unknown_0bc[4];
-            W8NavigatorMovement004572C0 movement_0c0;
+            W8NavigatorMovementState movement_0c0;
     };
 
     Fields fields;

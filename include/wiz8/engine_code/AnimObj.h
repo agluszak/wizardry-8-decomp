@@ -71,7 +71,7 @@ srModelInstance* AnimObjDispatchList004A1560(
 void* AnimObjEntry004A1660(
     W8AnimObj* animation, int unused_edx, signed char list_index, unsigned int entry_index);
 /* Six slots, not five. Both recovered callers - W8GrCycle::GetAnimationBounds
-   and W8Prop005EC1E0::GetCenterPosition - push only five and let the body read a
+   and W8Prop::GetCenterPosition - push only five and let the body read a
    stale slot for the frame, the same legacy call shape Monster.cpp documents for
    0x004A1660. The prototype follows the body; the callers keep their own ABI. */
 unsigned char AnimObjGetBounds004A1710(

@@ -35,13 +35,13 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_code/Strings.cpp
     src/wiz8/local_code/Configuration.cpp
     src/wiz8/local_code/ButtonSound.cpp
-    src/wiz8/dialog_code/Dialog005A80A0.cpp
-    src/wiz8/dialog_code/DialogBase005D25B0.cpp
+    src/wiz8/dialog_code/NotificationDialog.cpp
+    src/wiz8/dialog_code/ModalDialogBase.cpp
     src/wiz8/dialog_code/Object005EF894.cpp
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp
     src/wiz8/engine_code/Object0043A910.cpp
-    src/wiz8/engine_code/Object005EBCFC.cpp
+    src/wiz8/engine_code/IntervalGate.cpp
     src/wiz8/engine_code/BitArray.cpp
     src/wiz8/engine_code/GameData.cpp
     src/wiz8/engine_code/Octree.cpp
@@ -67,7 +67,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/SoundEvent.cpp
     src/wiz8/engine_code/AnimRep.cpp
     src/wiz8/engine_code/GDProp.cpp
-    src/wiz8/engine_code/Prop005EC1E0.cpp
+    src/wiz8/engine_code/Prop.cpp
     src/wiz8/engine_code/Navigator.cpp
     src/wiz8/engine_code/GrObject.cpp
     src/wiz8/local_code/RegionManager.cpp

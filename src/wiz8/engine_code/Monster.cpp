@@ -68,7 +68,7 @@ extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
 extern void ReleaseSoundHandle00408F70(int handle);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
-extern void GetPosition421070(W8Position* position);
+extern void GetCameraPosition(W8Position* position);
 extern W8World* GetWorld(void);
 extern unsigned char Function525DF0(int value);
 extern unsigned char g_flag_00683f97;
@@ -800,7 +800,7 @@ void W8Monster::Update()
         srAssertFail("m_pRep", MONSTER_CPP, 0x7f9, 0);
     }
 
-    GetPosition421070(&party_position);
+    GetCameraPosition(&party_position);
     {
         srVector3T<float> position = GetPosition();
         monster_position.x = position.x;
@@ -849,7 +849,7 @@ void W8Monster::Update()
                 sun_position.x = (float)sun_location.x;
                 sun_position.y = (float)sun_location.y;
                 sun_position.z = (float)sun_location.z;
-                if (g_octree_6598a4->HasLineOfSight00434B60(
+                if (g_octree_6598a4->HasLineOfSight(
                         &mapped_position, &sun_position, 1)) {
                     if (state_2ac.value_24 == 0) {
                         state_2fc.scale_00 = 0.75f;
@@ -1179,7 +1179,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(
         W8Position party_position;
         W8Position monster_position;
 
-        GetPosition421070(&party_position);
+        GetCameraPosition(&party_position);
         if (parameters.GetCount() == 0) {
             srAssertFail(
                 "lsParmList.Length()",
@@ -1560,7 +1560,7 @@ void W8Monster::ProcessScript004C80E0()
                 else if (FindEntityByName(token, &position, 0, 0) == 0) {
                     break;
                 }
-                AimAtPosition00453F30(&position);
+                AimAtPosition(&position);
                 token = strtok(0, " \t");
                 if (token == 0 || _stricmp(token, "NOBLOCK") != 0) {
                     script_wait_240 = MONSCR_FACE;
@@ -1780,7 +1780,7 @@ void W8Monster::ProcessScript004C80E0()
                     home.z = current.z;
                     formation = home;
                 }
-                StartPatrol00453CC0(&home, distance, variation);
+                StartPatrol(&home, distance, variation);
                 break;
             }
             case MONSCR_STOPPATROL:
@@ -1861,8 +1861,8 @@ void W8Monster::ProcessScript004C80E0()
                                 propagated_value_1e4, 1));
                         if (monster_info->control_state != 1) {
                             W8Position party;
-                            GetPosition421070(&party);
-                            AimAtPosition00453F30(&party);
+                            GetCameraPosition(&party);
+                            AimAtPosition(&party);
                         }
                     }
                 }
@@ -2060,8 +2060,8 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         }
         break;
     case 2:
-        if ((float)fabs(fields.movement_0c0.target_angle_018 -
-                        fields.movement_0c0.angle_014) >=
+        if ((float)fabs(fields.movement_0c0.target_yaw -
+                        fields.movement_0c0.yaw) >=
             g_monster_script_facing_tolerance_005ebc84) {
             return 0;
         }
@@ -2156,8 +2156,8 @@ void W8Monster::CheckLineOfSightToPlayer004C4810()
     monster_position.y = fields.movement_0c0.position_040.y +
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
-    GetPosition421070(&player_position);
-    g_octree_6598a4->HasLineOfSight00434B60(
+    GetCameraPosition(&player_position);
+    g_octree_6598a4->HasLineOfSight(
         &monster_position, &player_position, 1);
 }
 
@@ -2176,8 +2176,8 @@ void W8Monster::GetPlayerSightFlags004C4870(
     monster_position.y = fields.movement_0c0.position_040.y +
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
-    GetPosition421070(&player_position);
-    result = g_octree_6598a4->TraceLineOfSight00434F20(
+    GetCameraPosition(&player_position);
+    result = g_octree_6598a4->TraceLineOfSight(
         &monster_position, &player_position, 1,
         propagated_value_1e4, -1, 1, 0);
     if (result == -1) {
@@ -2202,7 +2202,7 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
 {
     W8Position player_position;
 
-    GetPosition421070(&player_position);
+    GetCameraPosition(&player_position);
     if (use_bounds != 0) {
         W8Position minimum;
         W8Position maximum;
@@ -2229,7 +2229,7 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
     monster_position.y = fields.movement_0c0.position_040.y +
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
-    return g_octree_6598a4->HasLineOfSight00434B60(
+    return g_octree_6598a4->HasLineOfSight(
         &player_position, &monster_position, 1);
 }
 
@@ -2248,12 +2248,12 @@ void W8Monster::GetPlayerToMonsterSightFlags004C4A20(
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
     if (source == 0) {
-        GetPosition421070(&player_position);
+        GetCameraPosition(&player_position);
     }
     else {
         player_position = *source;
     }
-    result = g_octree_6598a4->TraceLineOfSight00434F20(
+    result = g_octree_6598a4->TraceLineOfSight(
         &player_position, &monster_position, 1,
         -1, propagated_value_1e4, 1, 0);
     if (result == -1) {
@@ -2285,7 +2285,7 @@ unsigned char W8Monster::HasLineOfSightToMonster004C4AF0(
     to.y = monster->fields.movement_0c0.position_040.y +
            monster->fields.movement_0c0.height_offset_0b8;
     to.z = monster->fields.movement_0c0.position_040.z;
-    return g_octree_6598a4->HasLineOfSight00434B60(&from, &to, 1);
+    return g_octree_6598a4->HasLineOfSight(&from, &to, 1);
 }
 
 // FUNCTION: WIZ8 0x004c4b70
@@ -2306,7 +2306,7 @@ void W8Monster::GetMonsterSightFlags004C4B70(
     to.y = monster->fields.movement_0c0.position_040.y +
            monster->fields.movement_0c0.height_offset_0b8;
     to.z = monster->fields.movement_0c0.position_040.z;
-    result = g_octree_6598a4->TraceLineOfSight00434F20(
+    result = g_octree_6598a4->TraceLineOfSight(
         &from, &to, 1,
         propagated_value_1e4, monster->propagated_value_1e4, 1, 0);
     if (result == -1) {
@@ -2333,7 +2333,7 @@ unsigned char W8Monster::HasLineOfSightFromPoint004C4C40(
     monster_position.y = fields.movement_0c0.position_040.y +
                          fields.movement_0c0.height_offset_0b8;
     monster_position.z = fields.movement_0c0.position_040.z;
-    return g_octree_6598a4->TraceLineOfSight00434F20(
+    return g_octree_6598a4->TraceLineOfSight(
         &point, &monster_position, 1, -3, -3, 1, 0) != 1;
 }
 
@@ -2351,7 +2351,7 @@ int W8Monster::IsFacingMonster004C4CA0(W8Monster* monster)
     to = monster->GetPosition();
     from = GetPosition();
     bearing = NormalizeAngle(BearingBetween(&from, &to));
-    facing = NormalizeAngle(GetAngleD400453970());
+    facing = NormalizeAngle(GetYaw());
     return fabs(bearing - facing) <=
            g_monster_facing_tolerance_005ec2b0;
 }
@@ -2370,7 +2370,7 @@ int W8Monster::IsFacingPlayer004C4D40()
     to = g_startup_world_659c0c->GetPosition();
     from = GetPosition();
     bearing = NormalizeAngle(BearingBetween(&from, &to));
-    facing = NormalizeAngle(GetAngleD400453970());
+    facing = NormalizeAngle(GetYaw());
     return fabs(bearing - facing) <=
            g_monster_facing_tolerance_005ec2b0;
 }
@@ -2600,7 +2600,7 @@ void UpdateNearestMonsterGroupMembers004CA570()
     W8Position player_position;
     unsigned int group_index;
 
-    GetPosition421070(&player_position);
+    GetCameraPosition(&player_position);
     for (group_index = 0;
          group_index < PListGetCount(g_monster_group_list);
          ++group_index) {
@@ -2655,7 +2655,7 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
     float z;
     float distance;
 
-    GetPosition421070(&player_position);
+    GetCameraPosition(&player_position);
     x = position.x - player_position.x;
     y = position.y - (player_position.y - g_startup_depth_603ac8);
     z = position.z - player_position.z;
@@ -2678,7 +2678,7 @@ float W8Monster::GetPointDistanceToPlayer004C7D50(
     float delta_z;
     float distance;
 
-    GetPosition421070(&player_position);
+    GetCameraPosition(&player_position);
     delta_x = x - player_position.x;
     delta_y = y - (player_position.y - g_startup_depth_603ac8);
     delta_z = z - player_position.z;
@@ -2931,13 +2931,13 @@ void W8Monster::UpdateRepresentation(W8World* world)
     rotation.SetIdentity00467310();
     {
         float angle = NormalizeAngle(
-            GetAngleD400453970() + g_monster_rotation_offset_005ec04c);
+            GetYaw() + g_monster_rotation_offset_005ec04c);
         if (angle != 0.0f) {
             rotation.method_00438F90(sin((double)angle), cos((double)angle));
         }
     }
     {
-        float angle = GetAngleE000453980();
+        float angle = GetPitch();
         if (angle != g_float_005ebb34) {
             rotation.method_004A5AB0((double)angle);
         }
@@ -2992,7 +2992,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
 
     if (fields.position_dirty_09c != 0 ||
         fields.movement_0c0.position_adjusted_0c8 != 0) {
-        g_octree_6598a4->UpdateMonsterLocation0042E540(
+        g_octree_6598a4->UpdateMonsterLocation(
             (unsigned short)propagated_value_1e4, &position);
     }
 
@@ -3456,7 +3456,7 @@ void W8Monster::UpdateAttachedObjects004C3F70()
         fields.movement_0c0.vertical_amplitude_080;
     base_position.z = fields.movement_0c0.position_040.z;
 
-    GetPosition421070(&party_position);
+    GetCameraPosition(&party_position);
     party_position.x -= base_position.x;
     party_position.y -= base_position.y;
     party_position.z -= base_position.z;
@@ -4176,7 +4176,7 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
     }
 
     monster->SetAngles004538F0(NormalizeAngle(angle));
-    monster->SetPitch00453940(0.0f);
+    monster->SetPitch(0.0f);
 
     rotation.vectors[0].x = 1.0f;
     rotation.vectors[0].y = 0.0f;
@@ -4189,7 +4189,7 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
     rotation.vectors[2].z = 1.0f;
 
     angle = NormalizeAngle(
-        monster->GetAngleD400453970() +
+        monster->GetYaw() +
         g_monster_rotation_offset_005ec04c);
     if ((double)angle != g_zero_005ebb40) {
         cosine = cos((double)angle);
@@ -4201,7 +4201,7 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
         rotation.method_00421A40(adjustment);
     }
 
-    angle = monster->GetAngleE000453980();
+    angle = monster->GetPitch();
     if (angle != g_float_005ebb34 &&
         (double)angle != g_zero_005ebb40) {
         cosine = cos((double)angle);
@@ -4477,7 +4477,7 @@ extern void* CreateSpellEffect004AD8A0(
 
 /* 0x00421070, owned by the 0041F261-0042403F quarantine: the shared reference
    position every consumer of the object at 0x0065A0F8 reads. */
-extern void GetPosition421070(W8Position* position);
+extern void GetCameraPosition(W8Position* position);
 extern void Function4A84A0(W8GrCycle* monster);
 /* Spelled the way MonsterManager.cpp already declares it: the callee takes its
    receiver in ECX, which __fastcall is how a no-argument member call is
@@ -4569,7 +4569,7 @@ void* MonsterGetObject0C(W8Monster* monster)
 // FUNCTION: WIZ8 0x004c5770
 float MonsterGetAngleD4004C5770(W8Monster* monster)
 {
-    return monster->GetAngleD400453970();
+    return monster->GetYaw();
 }
 
 /* Two null-checked forwards that share one shape: a monster that is not there
@@ -4767,7 +4767,7 @@ unsigned short MonsterConfigureMovementToPlayer004C6070(
             value_2,
             position,
             value_3,
-            monster->GetAngleD400453970(),
+            monster->GetYaw(),
             value_4);
     }
     return 0;
@@ -4790,7 +4790,7 @@ unsigned short MonsterConfigureMovementToMonster004C60D0(
             value_2,
             position,
             value_3,
-            monster->GetAngleD400453970(),
+            monster->GetYaw(),
             value_4);
     }
     return 0;
@@ -4824,11 +4824,11 @@ void MonsterForwardReferencePosition(W8Monster* monster, char alternate)
         monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x14b3, MONSTER_CPP, monster->propagated_value_1e4, 1));
         if (monster_info->control_state != 1) {
-            GetPosition421070(&position);
+            GetCameraPosition(&position);
             if (alternate != 0) {
                 monster->Function454040(&position);
             } else {
-                monster->AimAtPosition00453F30(&position);
+                monster->AimAtPosition(&position);
             }
         }
     }
@@ -4858,7 +4858,7 @@ void MonsterAimAtMonster004C62C0(
                 monster->Function454040(&position);
             }
             else {
-                monster->AimAtPosition00453F30(&position);
+                monster->AimAtPosition(&position);
             }
         }
     }
