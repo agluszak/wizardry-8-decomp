@@ -22,20 +22,28 @@ class stGroundShadow;
 struct W8AnimObj;
 struct W8AniMesh;
 
+/* 0x004A5F20 allocates 0x3c for each of these and copies them field by field:
+   a leading dword, the byte after it, an owned stParticle rebuilt through
+   0x00498180, a vector at +0x0c, and the 0x24-byte tail wholesale. */
 class W8GrCycleShakeEvent {
 public:
     int cycle_00;
     signed char subcycle_04;
     unsigned char unknown_05[3];
     stParticle* particle_08;
+    srVector3T<float> position_0c;
+    unsigned char unknown_18[0x24];
 };
+
+static_assert(sizeof(W8GrCycleShakeEvent) == 0x3c,
+              "W8GrCycleShakeEvent_must_be_0x3c");
 
 class W8GrCycle :
     public W8GrObject,
     public W8Navigator {
 public:
     W8GrCycle();
-    W8GrCycle(const W8GrCycle& other);
+    W8GrCycle(const W8GrCycle& other);      /* 0x004A5F20 */
     virtual ~W8GrCycle() override;
     // FUNCTION: WIZ8 0x004a7140
     virtual unsigned char CanEnterCycle(signed char) { return 1; }
@@ -73,11 +81,11 @@ public:
 public:
     srModelInstance* current_model_instance_1a8;
     W8LightVector* m_plsLights; /* 0x1ac */
-    W8GrowableVector<W8VectorElement005ECED4*>* m_vector_1b0; /* 0x1b0 */
+    W8GrowableVector<W8VectorElement005ECED4*>* m_plsShakeEvents; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5;
     unsigned char unknown_1b6[2];
-    W8GrowableVector<W8GrCycleShakeEvent*>* m_shake_events; /* 0x1b8 */
+    W8GrowableVector<W8GrCycleShakeEvent*>* m_plsParticles; /* 0x1b8 */
     unsigned char unknown_1bc;
     unsigned char enabled_1bd;
     unsigned char unknown_1be;
