@@ -104,6 +104,7 @@ symbol
 ?CreateAndLoadProp0044BF50@@YAEPAUW8ReadLevelInfo@@PAPAVW8Prop005EC1E0@@@Z
 ?CreateCameraShakeEffect004AE080@@YAPAVW8CameraShakeEffect004AE080@@MHMHH@Z
 ?CreateGroup@@YAPAUW8MonsterGroup@@IIPBUW8Position@@EEE@Z
+?CreatePathAI004A9750@@YAPAUW8PathAI@@H@Z
 ?CreateSpellEffect004AD8A0@@YAPAXPBDHPAVW8Monster@@HH@Z
 ?DecideFacingForPosition@@YACHH@Z
 ?DeleteMonster004C5860@@YAXPAVW8Monster@@@Z

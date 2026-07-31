@@ -192,6 +192,48 @@ W8Navigator::~W8Navigator()
     fields.movement_0c0.Release00457530();
 }
 
+/* Six of the seven modes give the navigator a fresh path record; mode four only
+   resets the two movement enables. What the modes actually differ in is that
+   pair: mode one and four clear both, two, three and five enable pitch, and six
+   enables pitch and roll. */
+// FUNCTION: WIZ8 0x00452e50
+void W8Navigator::SetNavigationMode00452E50(int mode)
+{
+    W8PathAI* path;
+
+    fields.navigation_mode_008 = mode;
+    switch (mode) {
+    case 1:
+        path = CreatePathAI004A9750(0);
+        PathAISetFlag3A004A9B90(path, 1);
+        SetPathAI(path);
+        /* Falls into mode four's body: the retail block ends where mode four's
+           jump-table entry lands. */
+    case 4:
+        fields.movement_0c0.pitch_enabled_074 = 0;
+        fields.movement_0c0.roll_enabled_075 = 0;
+        break;
+    case 2:
+    case 3:
+    case 5:
+        path = CreatePathAI004A9750(0);
+        PathAISetFlag3A004A9B90(path, 1);
+        SetPathAI(path);
+        fields.movement_0c0.pitch_enabled_074 = 1;
+        fields.movement_0c0.roll_enabled_075 = 0;
+        break;
+    case 6:
+        path = CreatePathAI004A9750(0);
+        PathAISetFlag3A004A9B90(path, 1);
+        SetPathAI(path);
+        fields.movement_0c0.pitch_enabled_074 = 1;
+        fields.movement_0c0.roll_enabled_075 = 1;
+        break;
+    default:
+        break;
+    }
+}
+
 // FUNCTION: WIZ8 0x004534c0
 srVector3T<float> W8Navigator::GetPosition()
 {
