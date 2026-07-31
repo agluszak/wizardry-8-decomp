@@ -30,10 +30,6 @@ extern void Function439140(void);
 extern void Function457B10(void* value);
 extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
-extern unsigned int Function004669B0(
-    W8NavigatorMovement004572C0* movement, float radius, float separation);
-extern unsigned int Function00467150(
-    W8NavigatorMovement004572C0* movement, float radius, float separation);
 /* 0x0045F2D0 consumes the settled pair; its own body is not recovered. */
 extern void ApplyPortalTransition0045F2D0(
     const W8Position* destination, const W8Position* source);
@@ -1708,9 +1704,10 @@ unsigned int W8Octree::AdvanceNavigator00434620(
 
     if (pathing_180 != 0) {
         if (g_navigator_link_mode_00659c10 == 0) {
-            return Function004669B0(movement, radius, separation);
+            return pathing_180->StepAlongPath004669B0(movement, radius, separation);
         }
-        return Function00467150(movement, radius, separation);
+        return pathing_180->StepMonsterAlongPath00467150(
+            movement, radius, separation);
     }
     if (g_navigator_link_mode_00659c10 != 0) {
         return 1;

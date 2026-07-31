@@ -63,6 +63,13 @@ public:
         float* path_range);              /* 0x00457CF0 */
     /* Neither takes a prop: both walk the service's own surface and edge
        tables, and their receiver is the service. */
+    /* The two operations W8Octree::AdvanceNavigator delegates to: it loads
+       the service into ecx before either call, so both are its methods and
+       not the free functions they were declared as. */
+    unsigned int StepAlongPath004669B0(
+        W8NavigatorMovement004572C0* movement, float radius, float separation);
+    unsigned int StepMonsterAlongPath00467150(
+        W8NavigatorMovement004572C0* movement, float radius, float separation);
     void LinkSurfaces00460020();          /* 0x00460020 */
     void LinkEdges004600B0();             /* 0x004600B0 */
     /* Takes the size, two loose values, the six-float bounds block out of the

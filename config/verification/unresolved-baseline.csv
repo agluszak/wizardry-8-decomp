@@ -133,8 +133,6 @@ symbol
 ?FireMissileSourceToTarget@@YAXHPAUW8TargetSource@@PAUW8CombatSlot@@PAXEIH@Z
 ?FormatItemDisplayName@@YAPAGPBUW8ItemInstance@@H@Z
 ?FormatString@@YAPADPBDZZ
-?Function004669B0@@YAIPAUW8NavigatorMovement004572C0@@MM@Z
-?Function00467150@@YAIPAUW8NavigatorMovement004572C0@@MM@Z
 ?Function401920@@YAXPBD@Z
 ?Function4068E0@@YAXHH@Z
 ?Function406DE0@@YAHH@Z
@@ -577,6 +575,8 @@ symbol
 ?SpawnSpellEffect@@YAPAVW8VectorElement005EBFE4@@PBUW8Position@@PBDHHH@Z
 ?StartBreathCycle@@YAXHH@Z
 ?StartCombat@@YAXH@Z
+?StepAlongPath004669B0@W8Pathing00457CF0@@QAEIPAUW8NavigatorMovement004572C0@@MM@Z
+?StepMonsterAlongPath00467150@W8Pathing00457CF0@@QAEIPAUW8NavigatorMovement004572C0@@MM@Z
 ?StopSound@@YAEH@Z
 ?SwitchCharacterTo@@YAXHH@Z
 ?TargetIsInPlay@@YAEHHH@Z
