@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_screens/ScreenObject005EF224.h"
 #include "wiz8/screen_state.h"
 #include "Container.h"
 #include "sgp.h"
@@ -33,6 +34,7 @@ struct W8ScreenStateHandlers {
 
 extern unsigned char MainMenuScreenFunction005BC810(void);
 extern void MainMenuScreenFrame(void);
+extern unsigned char Function5B1740(void);
 
 static unsigned char ScreenReady(void) { return 1; }
 static void ScreenIdle(void) {}
@@ -47,11 +49,16 @@ static unsigned char EnterMainMenu(void)
 
 #define g_screen_state g_screen_state_0068ec78
 #define g_pending_state g_dword_68ed10
+
+// GLOBAL: WIZ8 0x00647BC8
 W8ScreenStateHandlers g_screen_handlers[13] = {
     { ScreenReady, EnterMainMenu, MainMenuScreenFrame, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    /* Record 3: character-review / level-up. Init/finalizer stay the shared
+       0x005B1740 ready stub; enter/finish/tick are the recovered bodies. */
+    { Function5B1740, EnterScreen005B1750, FinishScreen005B18E0,
+      TickScreen005B1840, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },

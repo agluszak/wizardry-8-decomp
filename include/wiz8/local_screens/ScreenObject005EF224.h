@@ -4,6 +4,7 @@
 
 #include "wiz8/compat/compiler.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/local_screens/ScreenPage005EF1E4.h"
 
 /*
  * Lifecycle record 3's screen object. Constructor 0x005B0040 installs the
@@ -11,20 +12,15 @@
  * enter 0x005B1750 allocates.
  *
  * Hierarchy: a size-4 primary interface (11 virtuals) plus
- * W8ControlBase005ED664 as the secondary base at +4. Retail writes the
- * secondary base vtable first, then derived fields, then replaces both
- * vptrs — classic MI, not a hand-stored member vptr. Mode at +8 overlays
- * the secondary base's m_value_4; context begins at +0x14 after the 0x10
- * secondary subobject. SetupWidgets stores the secondary subobject into each
- * text control's listener slot, which is why that base carries the one-arg
- * primary callback. The name stays address-qualified until a source path
- * names the class.
+ * W8ControlBase005ED664 as the secondary base at +4. Mode at +8 overlays
+ * m_value_4; the active tab at +0xc overlays m_value_8; the header-dirty
+ * flag at +0x10 overlays the low byte of m_index_c. Context begins at +0x14.
  */
 
 /* Primary base: vptr only. Slot targets are owned by the complete object. */
 class W8ScreenPrimary005EF224 {
 public:
-    virtual void VMethod00() = 0;
+    virtual void VMethod00(W8PageBase005EF1E4* page) = 0;
     virtual void VMethod01(int) = 0;
     virtual void VMethod02() = 0;
     virtual void VMethod03() = 0;
@@ -45,8 +41,12 @@ public:
     void SetupWidgets005B0140();                     /* 0x005B0140 */
     void ShowDialog005B1430(wchar_t* text, int a, int b); /* 0x005B1430 */
     void SelectOption005B0D50(int index);            /* 0x005B0D50 */
+    void SyncPagePayload005B0F30(int index);         /* 0x005B0F30 */
+    void AdvanceOption005B0B50(unsigned char forward); /* 0x005B0B50 */
+    void RefreshHeader005B1110();                    /* 0x005B1110 */
+    void UpdateDialog005B04B0();                     /* 0x005B04B0 */
 
-    virtual void VMethod00() override;
+    virtual void VMethod00(W8PageBase005EF1E4* page) override;
     virtual void VMethod01(int) override;
     virtual void VMethod02() override;
     virtual void VMethod03() override;
@@ -73,10 +73,7 @@ public:
     W8TextControl005ED604* text_1b00;        /* 0x1b00 */
     W8TextControl005ED604* text_1b04;        /* 0x1b04 */
     unsigned char option_flags_1b08[4];
-    unsigned int unknown_1b0c;
-    unsigned int unknown_1b10;
-    unsigned int unknown_1b14;
-    unsigned int unknown_1b18;
+    W8PageBase005EF1E4* page_1b0c[4];
     void* dialog_1b1c;
     unsigned int dialog_arg_1b20;
     unsigned char flag_1b24;
@@ -94,5 +91,10 @@ static_assert(offsetof(W8ScreenObject005EF224, controls_1af0) == 0x1af0,
               "W8ScreenObject005EF224_controls_at_0x1af0");
 static_assert(offsetof(W8ScreenObject005EF224, option_flags_1b08) == 0x1b08,
               "W8ScreenObject005EF224_flags_at_0x1b08");
+static_assert(offsetof(W8ScreenObject005EF224, page_1b0c) == 0x1b0c,
+              "W8ScreenObject005EF224_pages_at_0x1b0c");
 
 extern "C" W8ScreenObject005EF224* g_screen_object_0069c2e8;
+extern "C" unsigned char EnterScreen005B1750(void);
+extern "C" unsigned char TickScreen005B1840(int leaving);
+extern "C" void FinishScreen005B18E0(void);

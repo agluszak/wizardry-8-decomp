@@ -180,6 +180,15 @@ protected:
     int m_value_4; /* 0x04 */
     int m_value_8; /* 0x08 */
     int m_index_c; /* 0x0c: the -1 sentinel when unset */
+
+public:
+    /* Lifecycle record 3 overlays mode / active tab / header-dirty on these. */
+    int& ModeValue() { return m_value_4; }
+    int ModeValue() const { return m_value_4; }
+    int& TabIndex() { return m_value_8; }
+    int TabIndex() const { return m_value_8; }
+    int& HeaderDirty() { return m_index_c; }
+    int HeaderDirty() const { return m_index_c; }
 };             /* 0x10 */
 WIZ8_ASSERT_SIZE(W8ControlBase005ED664, 0x10);
 
@@ -224,6 +233,18 @@ public:
     void SetListener(Listener* listener)
     {
         m_listener = listener;
+    }
+
+    /* SelectOption rewrites the five button-art ids when the next-tab control
+       flips between "next page" and "done" artwork. */
+    __forceinline void SetButtonArt(int text_48, int text_4c, int text_54,
+                                    int text_50, int text_58)
+    {
+        m_text_48 = text_48;
+        m_text_4c = text_4c;
+        m_text_54 = text_54;
+        m_text_50 = text_50;
+        m_text_58 = text_58;
     }
 
 protected:
