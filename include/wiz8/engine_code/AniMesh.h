@@ -41,6 +41,8 @@ static_assert(sizeof(W8AniMesh) == 0x40, "W8AniMesh_minimum_size_must_be_0x40");
 W8AniMesh* CreateAniMesh004B57E0();
 W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other);
 float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame);
+unsigned char GetAniMeshBounds004B6640(
+    W8AniMesh* mesh, srVector3T<float>* minimum, srVector3T<float>* maximum);
 unsigned char LoadAniMesh004B5D00(
     int file, W8AniMesh* mesh, unsigned char load_all);
 unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force);

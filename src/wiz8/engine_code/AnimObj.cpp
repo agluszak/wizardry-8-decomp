@@ -89,7 +89,7 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
             }
         }
     }
-    if (source->allocation_40 != 0) {
+    if (source->pfKnownBBoxFrames != 0) {
         if (source == 0) {
             srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
         }
@@ -100,22 +100,272 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
             frames = source->value_16;
         }
         if (frames != 0) {
-            copy->allocation_40 = malloc(frames);
-            copy->allocation_44 =
-                srHeap.allocate(frames * sizeof(W8PathVector3));
-            copy->allocation_48 =
-                srHeap.allocate(frames * sizeof(W8PathVector3));
+            copy->pfKnownBBoxFrames =
+                static_cast<unsigned char*>(malloc(frames));
+            copy->pvecBoundMin = static_cast<srVector3T<float>*>(
+                srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            copy->pvecBoundMax = static_cast<srVector3T<float>*>(
+                srHeap.allocate(frames * sizeof(srVector3T<float>)));
             for (index = 0; index < frames; ++index) {
-                ((unsigned char*)copy->allocation_40)[index] =
-                    ((unsigned char*)source->allocation_40)[index];
-                ((W8PathVector3*)copy->allocation_44)[index] =
-                    ((W8PathVector3*)source->allocation_44)[index];
-                ((W8PathVector3*)copy->allocation_48)[index] =
-                    ((W8PathVector3*)source->allocation_48)[index];
+                copy->pfKnownBBoxFrames[index] =
+                    source->pfKnownBBoxFrames[index];
+                copy->pvecBoundMin[index] = source->pvecBoundMin[index];
+                copy->pvecBoundMax[index] = source->pvecBoundMax[index];
             }
         }
     }
     return copy;
+}
+
+extern "C" void PathAIApply004AA520(
+    W8PathAI* path, stModelInstance005EC7D0* instance);   /* 0x004AA520 */
+
+/* The animation's bounding box for one frame, cached per frame once computed.
+   The fast path is the cache; the single-mesh form defers to the mesh's own
+   box; the per-frame form walks every mesh in the list, places each through its
+   path, and takes the extent.
+
+   The transformed box goes into locals the body never reads back - the merge
+   below compares against the untransformed values instead. That is what the
+   original does. */
+// FUNCTION: WIZ8 0x004a1710
+unsigned char AnimObjGetBounds004A1710(
+    W8AnimObj* animation,
+    int channel,
+    signed char list_index,
+    unsigned int frame,
+    srVector3T<float>* minimum,
+    srVector3T<float>* maximum)
+{
+    srMatrix3T<float> rotation;
+    srVector3T<float> translation;
+    srVector3T<float> scale;
+    srVector3T<float> transformed_minimum;
+    srVector3T<float> transformed_maximum;
+    srVector3T<float> mesh_minimum;
+    srVector3T<float> mesh_maximum;
+    stModelInstance005EC7D0* instance;
+    W8AniMesh* mesh;
+    W8PathAI* path;
+    unsigned int count;
+    int index;
+    unsigned int frames;
+
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x2ff, 0);
+    }
+    if (animation->pfKnownBBoxFrames != 0 &&
+        animation->pfKnownBBoxFrames[frame & 0xff] != 0) {
+        *minimum = animation->pvecBoundMin[frame & 0xff];
+        *maximum = animation->pvecBoundMax[frame & 0xff];
+        return 1;
+    }
+    if (animation->flag_05 == 0) {
+        if (animation == 0) {
+            srAssertFail("pao", ANIM_OBJ_CPP, 0x2bd, 0);
+        }
+        if (animation->flag_05 == 0) {
+            mesh = animation->entries_18[list_index];
+        }
+        else {
+            mesh = (W8AniMesh*)PListGetAt(
+                animation->meshes_28[list_index], frame & 0xff);
+        }
+        return GetAniMeshBounds004B6640(mesh, minimum, maximum);
+    }
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
+    }
+    if (animation->flag_05 == 0) {
+        frames = AniMeshValue004B64F0(animation->entries_18[list_index]);
+    }
+    else {
+        frames = animation->value_16;
+    }
+    if (animation->pfKnownBBoxFrames == 0) {
+        animation->pfKnownBBoxFrames =
+            static_cast<unsigned char*>(malloc(frames));
+        animation->pvecBoundMin = static_cast<srVector3T<float>*>(
+            srHeap.allocate(frames * sizeof(srVector3T<float>)));
+        animation->pvecBoundMax = static_cast<srVector3T<float>*>(
+            srHeap.allocate(frames * sizeof(srVector3T<float>)));
+        if (animation->pfKnownBBoxFrames == 0 ||
+            animation->pvecBoundMin == 0 || animation->pvecBoundMax == 0) {
+            srAssertFail(
+                "pao->pfKnownBBoxFrames && pao->pvecBoundMin && "
+                "pao->pvecBoundMax",
+                ANIM_OBJ_CPP, 0x31e, 0);
+        }
+        memset(animation->pfKnownBBoxFrames, 0, frames);
+        for (index = 0; (unsigned int)index < frames; ++index) {
+            animation->pvecBoundMin[index].x = 0.0f;
+            animation->pvecBoundMin[index].y = 0.0f;
+            animation->pvecBoundMin[index].z = 0.0f;
+            animation->pvecBoundMax[index].x = 0.0f;
+            animation->pvecBoundMax[index].y = 0.0f;
+            animation->pvecBoundMax[index].z = 0.0f;
+        }
+    }
+    if (animation == 0) {
+        srAssertFail("pao", ANIM_OBJ_CPP, 0x2a7, 0);
+    }
+    if (animation->meshes_28[list_index] == 0) {
+        count = 0;
+    }
+    else {
+        count = PListGetCount(animation->meshes_28[list_index]);
+    }
+    if (PListGetAt(animation->meshes_28[list_index], 0) == 0) {
+        return 0;
+    }
+    GetAniMeshBounds004B6640(
+        (W8AniMesh*)PListGetAt(animation->meshes_28[list_index], 0),
+        minimum, maximum);
+    for (index = 0; (unsigned int)index < count; ++index) {
+        if (index != 0) {
+            GetAniMeshBounds004B6640(
+                (W8AniMesh*)PListGetAt(
+                    animation->meshes_28[list_index], index),
+                &mesh_minimum, &mesh_maximum);
+        }
+        if (animation == 0) {
+            srAssertFail("pao", ANIM_OBJ_CPP, 0x26c, 0);
+        }
+        if (animation->flag_05 == 1 &&
+            animation->meshes_28[list_index] != 0 &&
+            (mesh = (W8AniMesh*)PListGetAt(
+                 animation->meshes_28[list_index],
+                 (signed char)index)) != 0) {
+            mesh->list_index_28 = list_index;
+            instance = GetAniMeshFrame004B6550(mesh, 0);
+        }
+        else {
+            instance = 0;
+        }
+        if (animation == 0) {
+            srAssertFail("pao", ANIM_OBJ_CPP, 0x2d3, 0);
+        }
+        if (animation->flag_05 != 0 &&
+            (path = (W8PathAI*)PListGetAt(
+                 animation->paths_34[list_index],
+                 (signed char)index)) != 0) {
+            float saved = PathAIGetValue004A9E70(path);
+
+            PathAISetValue004A9F60(path, (float)index);
+            PathAIApply004AA520(path, instance);
+            PathAISetValue004A9F60(path, saved);
+        }
+        ((srNode*)instance)->getRotation(rotation);
+        translation.x = (float)((srNode*)instance)->getLocation().x;
+        translation.y = (float)((srNode*)instance)->getLocation().y;
+        translation.z = (float)((srNode*)instance)->getLocation().z;
+        scale.x = (float)((srNode*)instance)->getScale().x;
+        scale.y = (float)((srNode*)instance)->getScale().y;
+        scale.z = (float)((srNode*)instance)->getScale().z;
+        transformed_minimum = *minimum;
+        transformed_maximum = *maximum;
+        TransformBounds004A1DF0(&rotation, &translation, &scale,
+                                &transformed_minimum, &transformed_maximum);
+        if (index != 0) {
+            if (mesh_minimum.x < minimum->x) {
+                minimum->x = mesh_minimum.x;
+            }
+            if (mesh_minimum.y < minimum->y) {
+                minimum->y = mesh_minimum.y;
+            }
+            if (mesh_minimum.z < minimum->z) {
+                minimum->z = mesh_minimum.z;
+            }
+            if (maximum->x < mesh_maximum.x) {
+                maximum->x = mesh_maximum.x;
+            }
+            if (maximum->y < mesh_maximum.y) {
+                maximum->y = mesh_maximum.y;
+            }
+            if (maximum->z < mesh_maximum.z) {
+                maximum->z = mesh_maximum.z;
+            }
+        }
+    }
+    animation->pvecBoundMin[frame & 0xff] = *minimum;
+    animation->pvecBoundMax[frame & 0xff] = *maximum;
+    animation->pfKnownBBoxFrames[frame & 0xff] = 1;
+    return 1;
+}
+
+/* Rotate, translate and scale the eight corners of a box and take the extent of
+   the result. The first corner seeds both ends rather than starting from an
+   infinite box, which is why the loop carries the is-first test instead of
+   pre-filling. */
+// FUNCTION: WIZ8 0x004a1df0
+void TransformBounds004A1DF0(
+    const srMatrix3T<float>* rotation,
+    const srVector3T<float>* translation,
+    const srVector3T<float>* scale,
+    srVector3T<float>* minimum,
+    srVector3T<float>* maximum)
+{
+    float corner[6];
+    int i;
+    int j;
+    int k;
+
+    corner[0] = minimum->x;
+    corner[1] = minimum->y;
+    corner[2] = minimum->z;
+    corner[3] = maximum->x;
+    corner[5] = maximum->z;
+    corner[4] = maximum->y;
+    for (i = 0; i < 2; ++i) {
+        for (j = 0; j < 2; ++j) {
+            for (k = 0; k < 2; ++k) {
+                float x = corner[i * 3];
+                float y = corner[j * 3 + 1];
+                float z = corner[k * 3 + 2];
+                float tx = (x * rotation->vectors[0].x +
+                            y * rotation->vectors[0].y +
+                            z * rotation->vectors[0].z + translation->x) *
+                           scale->x;
+                float ty = (x * rotation->vectors[1].x +
+                            y * rotation->vectors[1].y +
+                            z * rotation->vectors[1].z + translation->y) *
+                           scale->y;
+                float tz = (y * rotation->vectors[2].y +
+                            z * rotation->vectors[2].z +
+                            x * rotation->vectors[2].x + translation->z) *
+                           scale->z;
+
+                if (i == 0 && j == 0 && k == 0) {
+                    maximum->x = tx;
+                    maximum->y = ty;
+                    maximum->z = tz;
+                    minimum->x = tx;
+                    minimum->y = ty;
+                    minimum->z = tz;
+                }
+                else {
+                    if (tx < minimum->x) {
+                        minimum->x = tx;
+                    }
+                    if (ty < minimum->y) {
+                        minimum->y = ty;
+                    }
+                    if (tz < minimum->z) {
+                        minimum->z = tz;
+                    }
+                    if (maximum->x < tx) {
+                        maximum->x = tx;
+                    }
+                    if (maximum->y < ty) {
+                        maximum->y = ty;
+                    }
+                    if (maximum->z < tz) {
+                        maximum->z = tz;
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* Everything an animation owns. The three mesh entries and the first list group
@@ -131,8 +381,8 @@ void DestroyAnimObj004A01E0(W8AnimObj* animation)
     int entry;
     int count;
 
-    if (animation->allocation_40 != 0) {
-        free(animation->allocation_40);
+    if (animation->pfKnownBBoxFrames != 0) {
+        free(animation->pfKnownBBoxFrames);
     }
     if (animation->entries_18 != 0) {
         if (animation->entries_18[0] != 0) {
@@ -178,11 +428,11 @@ void DestroyAnimObj004A01E0(W8AnimObj* animation)
             }
         }
     }
-    if (animation->allocation_44 != 0) {
-        srHeap.free(animation->allocation_44);
+    if (animation->pvecBoundMin != 0) {
+        srHeap.free(animation->pvecBoundMin);
     }
-    if (animation->allocation_48 != 0) {
-        srHeap.free(animation->allocation_48);
+    if (animation->pvecBoundMax != 0) {
+        srHeap.free(animation->pvecBoundMax);
     }
     free(animation);
 }
