@@ -8,6 +8,25 @@
 
 enum { W8_RIFF_CHUNK_ID = 0x46464952 };
 
+/* The two scalars are initialised, not assigned: retail sets them before any of
+   the four vectors is built, and they are declared first, so they can only come
+   from a member initialiser list. The vectors are ordinary members and build
+   themselves in declaration order after them. */
+// FUNCTION: WIZ8 0x0055bce0
+W8Chunk::W8Chunk()
+    : m_hFile(0), m_fWriting(0)
+{
+}
+
+/* Empty. The four member vectors release their own backing storage in reverse
+   declaration order and nothing else happens - in particular the heads are not
+   deleted here, because W8Chunk removes and deletes each one as it releases it
+   rather than at teardown. */
+// FUNCTION: WIZ8 0x0055bde0
+W8Chunk::~W8Chunk()
+{
+}
+
 // FUNCTION: WIZ8 0x0055ca20
 __forceinline unsigned char W8Chunk::Read(void* buffer, unsigned int size,
                                           unsigned int* transferred)
