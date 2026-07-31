@@ -57,6 +57,40 @@ that thunk, so emitting it is the more faithful shape; it currently matches at 6
 new imperfect row it lowers that target's reported accuracy average while making the class model
 closer to the original rather than further from it.
 
+## srClassSupport is a real base, and srNode proves it
+
+`srClassSupport<Derived, Base, RegistrationFlag, ClassID>` supplies slots 0, 1, 2 and 7 - the
+identity trio and clone - plus instance registration in its constructors and unregistration in its
+destructor. It contributes no storage. Classes derive from a specialization of it rather than
+declaring those members themselves.
+
+srNode is the load-bearing proof, because both sides of its lifecycle are exported and readable:
+
+- the constructor at `0x10050C10` calls `srClass::srClass`, installs an intermediate vtable at
+  `0x10077204`, looks up class `0x1000` through the generic `sGetClassNode` shape at `0x100556D0`
+  (registering with flag 1 on a miss), calls `registerInstance`, and only then installs srNode's own
+  vtable;
+- the destructor at `0x10050E20` mirrors it exactly: restore srNode's vtable, tear the children
+  down, restore `0x10077204`, repeat the `0x1000` lookup, `unregisterInstance`, then
+  `srClass::~srClass`.
+
+A plain `srClass` base cannot produce that distinct support phase.
+
+The intermediate table also settles who owns clone. It has eight slots, and slots 0, 1, 2, 4 and 7
+(clone, `0x10055510`) hold the same targets as srNode's own table; srNode overrides only 3 (dump),
+5 (destructor) and 6 (vInstance). So the support level introduces clone and srNode inherits it.
+
+### The clone slot returns srClass* at every level
+
+`srClass::clone` at `0x1000E860` is not a copy routine. Its whole body tail-calls vtable offset
+`0x1c` - slot 7 - and returns `srClass*`, so srClass itself types the slot that way.
+
+That uniform return is what makes the nested chain legal under VC6. Reconstructing the template's
+clone as `Base*` instead makes each level return its own base type, so every level below narrows and
+the compiler rejects the chain with C2555. That error is an artifact of the wrong reconstruction,
+not a property of the hierarchy: retyping clone to `srClass*` removes it everywhere and is
+byte-neutral, since a return type cannot change a pointer return in EAX.
+
 ## Sizes are the scarce evidence, and not every site has one
 
 Neither the export table nor the vftable data states a class size, so a size has to come from an
@@ -139,7 +173,7 @@ each - `0x005ECB6C`, then `0x005EBF68`, then `0x005EBF94` - before calling the i
 so this is single-inheritance vtable churn rather than subobjects, and the slot counts ascend 8, 11,
 13, 13 in construction order the way an inheritance ladder does.
 
-What the slots say is that the ladder is not stMaterial's:
+The slots:
 
 | Table | Slots | Slot 0 | Slots 3 and 4 |
 | --- | --- | --- | --- |
@@ -148,14 +182,30 @@ What the slots say is that the ladder is not stMaterial's:
 | `0x005ECB6C` | 13 | local, stMaterial's | `srMaterial::dump`, `srMaterial::verify` |
 | `0x005ECB38` | 13 | local, stMaterial's | `srMaterial::dump`, `srMaterial::verify` |
 
-The first two are first-party classes that borrow SurRender's names for themselves and leave three
-slots on the pure-virtual stub, so they are abstract stand-ins at the `0x2200` and `0x2210` registry
-ids. They cannot be bases of stMaterial: their slots 3 and 4 hold `srClass`'s implementations, and a
-derived class cannot replace an inherited method with a *different* class's. `0x005ECB38` is a
-sibling of stMaterial rather than another level - identical but for slots 5, 6 and 8.
+This page previously concluded that these could not be one ladder, on the grounds that a derived
+class cannot replace an inherited method with a *different* class's, and left the sequence
+unexplained. That reasoning was wrong, and the uniform `srClass*` clone return supersedes it.
 
-So the four stores are not one four-level chain, and what the constructor and destructor really walk
-is still open.
+The rule it applied holds only for a *final* vtable. These are construction and destruction tables,
+and during a base's phase the derived class's overrides are deliberately not yet installed, so slots
+3 and 4 legitimately still hold `srClass`'s implementations while the object is only an
+`srMaterialIFace` or an `srMaterial`. That is ordinary MSVC construction dispatch, not evidence of
+siblings.
+
+Read as nested `srClassSupport` levels the sequence is exactly what the ABI predicts. The ascending
+8, 11, 13, 13 slot counts in construction order, one registration and one unregistration per level,
+and a vtable restore before each, are the signature of
+
+```text
+srClassSupport<srMaterialIFace, srClass, true, 0x2200>
+  -> srClassSupport<srMaterial, srMaterialIFace, false, 0x2210>
+    -> srClassSupport<stMaterial, srMaterial, false, 0x10002>
+      -> final stMaterial
+```
+
+which is the same shape `srNode`'s own constructor and destructor prove directly at `0x10050C10`
+and `0x10050E20`. The levels borrowing SurRender's names for themselves are support specializations
+naming their `Derived`, not first-party stand-ins.
 
 ## What may be written into a header
 

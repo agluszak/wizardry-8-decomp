@@ -54,8 +54,13 @@ So when a candidate class appears to define the identity trio or `clone`:
   means an emission was mistaken for a hand-written method.
 
 `tests/repository/test_class_abi.py` enforces this: a class whose own base is
-`srClassSupport<ThatSameClass, ...>` may not declare `getClassName`, `getClassID`, `getClassNode`
-or `clone`, and no `srClassSupport<...>` address may carry a `FUNCTION` marker.
+`srClassSupport<ThatSameClass, ...>` may not declare `getClassName`, `getClassID` or
+`getClassNode`, and no `srClassSupport<...>` address may carry a `FUNCTION` marker.
+
+`clone` is deliberately outside that rule. The template's clone copies memberwise through `Derived`,
+which is wrong for a class holding state its base's assignment cannot carry, and such a class
+overrides it for real -- `stTextureAnim` assigns through `srTexture` and then copies each playback
+field, and is byte-exact that way. Decide clone per class from its retail body, not from the base.
 
 Do **not** conclude from this that every zero-storage wrapper is fake. The wrapper can be real and
 the methods still inherited; those are independent questions.
@@ -79,11 +84,15 @@ constructor   complete destructor        deleting destructor
 primary vtable            secondary vtable where applicable
 ```
 
-VC6 rejects covariant return narrowing through a template chain with **C2555**. Treat that as
-information about which declaration is wrong, not as proof the template is absent: each
-specialization's `clone` returns its own `Base*`, so a manually declared return type part-way up
-the chain can be what breaks the sequence. Change one layer, read which declaration the compiler
-names, and record the negative result.
+**The clone slot returns `srClass*` at every level.** `srClass::clone` at `0x1000E860` is a
+non-virtual forwarder that tail-calls vtable offset `0x1c`, that is slot 7, and returns `srClass*`,
+so srClass itself types the slot. Reconstructing the template's clone as `Base*` instead makes each
+level return its own base type, every level below narrows, and VC6 rejects the chain with **C2555**.
+
+So treat a C2555 here as a defect in the reconstruction rather than proof the template is absent,
+and check the return types before concluding a level cannot be a specialization. Changing them is
+byte-neutral: a return type cannot change a pointer return in EAX. Change one layer at a time, read
+which declaration the compiler names, and record the negative result.
 
 ## Lifecycle reading
 

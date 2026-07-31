@@ -278,9 +278,12 @@ public:
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #pragma clang diagnostic ignored "-Wsuggest-override"
 #endif
-    /* This introduces clone when Base is srClass and overrides the family
-       clone when Base is srNode or srTexture. It cannot truthfully carry an
-       unconditional override specifier. */
+    /* Slot 7 of every registry class. The return type is srClass* at every
+       level, which is what makes the nested chain legal under VC6: srClass's
+       own nonvirtual clone forwards through this slot and returns srClass*.
+       A specialization whose Base already declares it overrides it rather than
+       introducing it, so this cannot carry an unconditional override
+       specifier. */
     virtual srClass* clone()
     {
         Derived* copy = static_cast<Derived*>(this->vInstance());
