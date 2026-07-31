@@ -3,6 +3,7 @@ symbol
 ??0W8Chunk@@QAE@XZ
 ??0W8DialogBase005DC7A0@@QAE@XZ
 ??0W8GrCycle@@QAE@ABV0@@Z
+??0W8NavigatorAttachment@@QAE@XZ
 ??0W8ObjectBase00439550@@QAE@XZ
 ??0W8Octree@@QAE@PBDPAPAX@Z
 ??0W8ProfRaceInfoDialogBase005DEAF0@@QAE@XZ
@@ -515,6 +516,7 @@ symbol
 ?RequestLevelTransition005615F0@@YAXHHE@Z
 ?RequestRedraw@@YAXH@Z
 ?Reset@W8DialogMember005E0C40@@QAEXXZ
+?ResetMovement004573D0@W8NavigatorMovement004572C0@@QAEXXZ
 ?ResetSubobjectAndRefresh@W8DialogBase005D25B0@@UAEXXZ
 ?ResetSubobjectAndRefresh@W8DialogBase005DC7A0@@UAEXXZ
 ?RollRandomEncounters@@YAXXZ
@@ -1059,6 +1061,7 @@ _LeaveLocation0042E880
 _LoadFontFile
 _MSYS_SGP_Mouse_Handler_Hook
 _MakeFileManDirectory
+_NavigatorDefaultCallback00451EA0
 _PeekStack
 _Pop
 _PrepareVideoPlayback0048FF00
