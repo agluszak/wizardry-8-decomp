@@ -37,55 +37,131 @@
 // SYNTHETIC: WIZ8 0x004a5f00
 // W8GrCycle::`scalar deleting destructor'
 
-/* The event object owns a timer at +0x18. Its implicit destructor is the
-   eight-byte adjust-and-tail-jump body emitted at 0x004AE070. */
-/* 0x004AE080 allocates 0x4c and hands it to the constructor at 0x004ADED0; the
-   copy at 0x004AE000 establishes which of those fields carry across. The timer
-   is an ordinary member, which is why the destructor at 0x004AE070 is nothing
-   but its destruction. */
-class W8VectorElement005ECED4 {
-public:
-    W8VectorElement005ECED4(const W8VectorElement005ECED4& other);
-
-    unsigned int flags_00;               /* 0x00 */
-    int value_04;                        /* 0x04 */
-    int value_08;                        /* 0x08 */
-    srVector3T<float> position_0c;       /* 0x0c */
-    W8Timer005EC0A4 timer_18;            /* 0x18 */
-    int value_3c;                        /* 0x3c */
-    int value_40;                        /* 0x40 */
-    int value_44;                        /* 0x44 */
-    int value_48;                        /* 0x48 */
-};
-
-static_assert(sizeof(W8VectorElement005ECED4) == 0x4c,
-              "W8VectorElement005ECED4_must_be_0x4c");
+extern float g_float_005ecf98;
+W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
+W8Timer005EC0A4* g_shake_timer_0065be30;
 
 /* Everything except the timer's own pacing carries across, and bit zero of the
    flags is cleared so the copy is not treated as already started. The new timer
    is seeded from the source's speed rather than its remaining time. */
 // FUNCTION: WIZ8 0x004ae000
-W8VectorElement005ECED4::W8VectorElement005ECED4(
-    const W8VectorElement005ECED4& other)
+W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
     : flags_00(other.flags_00),
-      value_04(other.value_04),
+      intensity_04(other.intensity_04),
       value_08(other.value_08),
       position_0c(other.position_0c),
       timer_18(other.timer_18.m_speed, 0),
-      value_3c(other.value_3c),
-      value_40(other.value_40),
-      value_44(other.value_44),
+      cycle_3c(other.cycle_3c),
+      frame_40(other.frame_40),
+      subcycle_44(other.subcycle_44),
       value_48(other.value_48)
 {
     flags_00 &= ~1u;
 }
 
+/* The first effect built also builds the shared live list and its timer; every
+   later one finds them already there. The preset flag turns on the three bits
+   that go together, and a null position leaves the effect where the caller's
+   own default put it rather than at the origin. */
+// FUNCTION: WIZ8 0x004aded0
+W8CameraShakeEffect::W8CameraShakeEffect(
+    float duration, char preset, float intensity, int value_08_,
+    const srVector3T<float>* position)
+    : flags_00(0),
+      intensity_04(intensity),
+      value_08(value_08_),
+      timer_18(duration, 0),
+      cycle_3c(0),
+      frame_40(0),
+      subcycle_44(0),
+      value_48(0)
+{
+    if (g_shake_effects_0065be2c == 0) {
+        g_shake_effects_0065be2c = new W8GrowableVector<W8CameraShakeEffect*>(5);
+        g_shake_timer_0065be30 = new W8Timer005EC0A4(g_float_005ecf98, 0);
+        g_shake_timer_0065be30->Restart();
+    }
+    if (preset != 0) {
+        flags_00 |= 0x1c;
+    }
+    if (position != 0) {
+        position_0c = *position;
+    }
+}
+
+/* A shake made through the factory starts active and owned by the live list,
+   which is the pair of bits set here. Trigger.cpp clears the ownership bit
+   afterwards because it keeps its effect across frames and deletes it itself. */
+// FUNCTION: WIZ8 0x004ae080
+W8CameraShakeEffect* CreateCameraShakeEffect004AE080(
+    float duration, char preset, float intensity, int value_08,
+    const srVector3T<float>* position)
+{
+    W8CameraShakeEffect* effect = new W8CameraShakeEffect(
+        duration, preset, intensity, value_08, position);
+
+    effect->flags_00 |= 3;
+    effect->timer_18.Restart();
+    g_shake_effects_0065be2c->Add(effect);
+    return effect;
+}
+
+/* Fire the effects one animation event names. An effect already on the live
+   list is not added twice, but it is repositioned and restarted either way. */
+// FUNCTION: WIZ8 0x004ae170
+void TriggerShakeEffects004AE170(
+    W8GrowableVector<W8CameraShakeEffect*>* effects,
+    int cycle,
+    unsigned int frame,
+    int subcycle,
+    const srVector3T<float>* position)
+{
+    int index;
+
+    for (index = 0; index < effects->GetCount(); ++index) {
+        W8CameraShakeEffect* effect = *effects->GetAt(index);
+
+        if (effect->cycle_3c == cycle && effect->frame_40 == (int)frame &&
+            effect->subcycle_44 == subcycle) {
+            if ((effect->flags_00 & 1) == 0) {
+                g_shake_effects_0065be2c->Add(effect);
+            }
+            effect->position_0c = *position;
+            effect->flags_00 |= 1;
+            effect->timer_18.Restart();
+        }
+    }
+}
+
+/* Stop every active effect this cycle owns. Coming off the live list and losing
+   the active bit is unconditional; the delete is not, because Trigger.cpp's
+   effects have already cleared the bit that says the list owns them. */
+// FUNCTION: WIZ8 0x004ae270
+void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects)
+{
+    int index;
+
+    for (index = 0; index < effects->GetCount(); ++index) {
+        W8CameraShakeEffect* effect = *effects->GetAt(index);
+
+        if ((effect->flags_00 & 1) != 0) {
+            unsigned int flags;
+
+            g_shake_effects_0065be2c->RemoveAt(
+                g_shake_effects_0065be2c->IndexOf(effect));
+            flags = effect->flags_00;
+            effect->flags_00 = flags & ~1u;
+            if ((flags >> 1 & 1) != 0 && effect != 0) {
+                delete effect;
+            }
+        }
+    }
+}
+
 // SYNTHETIC: WIZ8 0x004ae070
-// W8VectorElement005ECED4::~W8VectorElement005ECED4
+// W8CameraShakeEffect::~W8CameraShakeEffect
 
 extern unsigned char UnregisterGrCycle(W8GrCycle* cycle);
-extern void PrepareGrCycleEvents004AE270(
-    W8GrowableVector<W8VectorElement005ECED4*>* events);
 extern int UpdateSoundEvents004D5890(
     W8GrowableVector<W8VectorElement005ED094*>* events,
     const srVector3T<float>* position,
@@ -93,12 +169,10 @@ extern int UpdateSoundEvents004D5890(
     int cycle,
     unsigned int frame,
     int subcycle);
-extern void UpdateGrCycleEvents004AE170(
-    W8GrowableVector<W8VectorElement005ECED4*>* events,
-    int cycle,
-    unsigned int frame,
-    int subcycle,
-    const srVector3T<float>* position);
+/* 0x004A90E0 widens one float row into the double row a world-space
+   rotation needs; its own body is not recovered. */
+extern void ConvertVector004A90E0(
+    srVector3T<double>* destination, const srVector3T<float>* source);
 extern float g_float_005ec128;
 extern float g_float_005ebc64;
 
@@ -179,12 +253,12 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
     if (other.m_plsShakeEvents != 0 &&
         other.m_plsShakeEvents->GetCount() != 0) {
         count = other.m_plsShakeEvents->GetCount();
-        m_plsShakeEvents = new W8GrowableVector<W8VectorElement005ECED4*>(5);
+        m_plsShakeEvents = new W8GrowableVector<W8CameraShakeEffect*>(5);
         if (m_plsShakeEvents == 0) {
             srAssertFail("m_plsShakeEvents", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xe3, 0);
         }
         for (index = 0; index < count; ++index) {
-            W8VectorElement005ECED4* event = new W8VectorElement005ECED4(
+            W8CameraShakeEffect* event = new W8CameraShakeEffect(
                 **other.m_plsShakeEvents->GetAt(index));
 
             if (event == 0) {
@@ -212,8 +286,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
                 event->particle_08 =
                     new stParticle(*source_event->particle_08);
                 event->position_0c = source_event->position_0c;
-                memcpy(event->unknown_18, source_event->unknown_18,
-                       sizeof(event->unknown_18));
+                event->rotation_18 = source_event->rotation_18;
                 if (event->particle_08 == 0) {
                     srAssertFail("pstParticle", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x66, 0);
                 }
@@ -236,7 +309,7 @@ W8GrCycle::~W8GrCycle()
     }
     if (m_plsShakeEvents != 0) {
         count = m_plsShakeEvents->GetCount();
-        PrepareGrCycleEvents004AE270(m_plsShakeEvents);
+        StopShakeEffects004AE270(m_plsShakeEvents);
         for (index = 0; index < count; ++index) {
             delete *m_plsShakeEvents->GetAt(index);
         }
@@ -321,7 +394,7 @@ void W8GrCycle::TickAnimation(float scale)
                             representation->selection.monster.current_subcycle);
                     }
                     if (m_plsShakeEvents != 0) {
-                        UpdateGrCycleEvents004AE170(
+                        TriggerShakeEffects004AE170(
                             m_plsShakeEvents,
                             representation->selection.monster.current_cycle,
                             representation->flag_064,
@@ -389,7 +462,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
                 representation->selection.monster.current_subcycle);
         }
         if (m_plsShakeEvents != 0) {
-            UpdateGrCycleEvents004AE170(
+            TriggerShakeEffects004AE170(
                 m_plsShakeEvents,
                 representation->selection.monster.current_cycle,
                 representation->flag_064,
@@ -686,7 +759,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         psrMesh->clearFlag(srNode::FLAG_POSITIONAL_1);
         psrMesh->setParent(pWorld->dynamic_scene, 0);
     }
-    Function4A7E50();
+    UpdateParticleAttachments004A7E50();
     if (m_ground_shadow != 0) {
         srVector3T<float> position = GetPosition();
 
@@ -726,6 +799,151 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 rotation.vectors[2].z * offset.z + origin.z;
             light->setLocation(location);
         }
+    }
+}
+
+/* Place every particle this cycle has attached to its model.
+
+   An attachment normally rides a named vertex of the model's mesh: the
+   particle's own key is looked up through the mesh-model chain, and the vertex
+   it maps to gives the offset. An attachment whose key resolves to nothing
+   falls back to the offset it carries itself. Either way the offset is scaled
+   and rotated into the model instance's frame and added to its location.
+
+   The particle's own mode then decides its orientation: mode three aims it
+   along the cycle's stored axis, mode four leaves the orientation alone, and
+   anything else composes the attachment's own rotation with the model's. */
+// FUNCTION: WIZ8 0x004a7e50
+void W8GrCycle::UpdateParticleAttachments004A7E50()
+{
+    int count;
+    int index;
+    srModelInstance* psrMesh;
+    W8EmitterHost* pRep;
+    stMeshModel* pMeshModel;
+    srMatrix3T<float> rotation;
+    srVector3T<double> scale;
+    srVector3T<double> location;
+    srVector3T<double> target;
+    srVector3T<double> axis;
+    srMatrix3T<float> combined;
+    srMatrix3T<double> world;
+    srVector3T<float> offset;
+    srVector3T<float> placed;
+    int vertex;
+    float scale_x;
+    float scale_y;
+    float scale_z;
+
+    if (m_plsParticles == 0) {
+        return;
+    }
+    count = m_plsParticles->GetCount();
+    if (count == 0) {
+        return;
+    }
+    psrMesh = current_model_instance_1a8;
+    if (psrMesh == 0) {
+        W8AnimObj* animation = GetCurrentAnimation();
+        W8EmitterHost* rep = GetRepresentation();
+
+        if (AnimationIsRunning(animation) == 1) {
+            psrMesh = AnimObjDispatchList004A1560(animation, rep->m_bLOD, 0);
+        } else {
+            psrMesh = SelectCycleFrameLod004A8360(
+                rep->selection.monster.current_cycle,
+                rep->flag_064,
+                (signed char)rep->m_bLOD);
+        }
+    }
+    pRep = GetRepresentation();
+    /* When there is no instance the mesh model is never read, and the original
+       leaves it holding whatever the count's slot did. */
+    pMeshModel = psrMesh != 0 ? (stMeshModel*)psrMesh->model() : (stMeshModel*)count;
+
+    current_model_instance_1a8->getRotation(rotation);
+    scale = current_model_instance_1a8->getScale();
+    scale_x = (float)scale.x;
+    scale_y = (float)scale.y;
+    scale_z = (float)scale.z;
+
+    for (index = 0; index < count; ++index) {
+        W8GrCycleShakeEvent* attachment = *m_plsParticles->GetAt(index);
+        stParticle* particle = attachment->particle_08;
+        if (particle->active_1a0 == 0) {
+            continue;
+        }
+        if (pMeshModel != 0) {
+            short key = particle->value_260;
+
+            if (key < 0) {
+                vertex = -1;
+            } else {
+                stMeshModel* scan = pMeshModel;
+
+                do {
+                    vertex = scan->FindMappedIndex(key);
+                    if (vertex != -1) {
+                        break;
+                    }
+                    scan = scan->next;
+                } while (scan != 0);
+                pMeshModel = scan;
+            }
+        } else {
+            vertex = -1;
+        }
+        if (pMeshModel == 0 || vertex == -1) {
+            offset = attachment->position_0c;
+        } else {
+            srVector3T<float>* locations;
+
+            if ((pMeshModel->flags_3a0 >> 2 & 1) == 0) {
+                locations = pMeshModel->getVertexLoc();
+            } else {
+                locations = pMeshModel->GetVertexLocations00471AD0(
+                    pRep->flag_064, 1, 0);
+            }
+            if (vertex >= pMeshModel->vertex_location_count_22c) {
+                vertex = 0;
+            }
+            offset = locations[vertex];
+        }
+        offset.x = offset.x * scale_x;
+        offset.y = offset.y * scale_y;
+        offset.z = offset.z * scale_z;
+        placed.x = rotation.vectors[0].x * offset.x +
+            rotation.vectors[0].y * offset.y +
+            rotation.vectors[0].z * offset.z;
+        placed.y = Function4218E0(rotation.vectors[1], offset);
+        placed.z = Function4218E0(rotation.vectors[2], offset);
+        location = current_model_instance_1a8->getLocation();
+        placed.x = placed.x + (float)location.x;
+        placed.y = (float)location.y + placed.y;
+        placed.z = (float)location.z + placed.z;
+
+        if (unknown_1bf != 0 && particle->value_1b8 == 3) {
+            target.x = placed.x;
+            target.y = placed.y;
+            target.z = placed.z;
+            axis.x = m_axis_1c0.x;
+            axis.y = m_axis_1c0.y;
+            axis.z = m_axis_1c0.z;
+            particle->setRotation(axis, target, 0.0);
+        } else if (particle->value_1b8 != 4) {
+            combined = rotation;
+            combined.method_00421A40(attachment->rotation_18);
+            world.vectors[0].x = combined.vectors[0].x;
+            world.vectors[0].y = combined.vectors[0].y;
+            world.vectors[0].z = combined.vectors[0].z;
+            ConvertVector004A90E0(&world.vectors[1], &combined.vectors[1]);
+            ConvertVector004A90E0(&world.vectors[2], &combined.vectors[2]);
+            particle->setWorldSpaceRotation(world);
+        }
+        location.x = placed.x;
+        location.y = placed.y;
+        location.z = placed.z;
+        particle->setLocation(location);
     }
 }
 
@@ -875,7 +1093,6 @@ void W8GrCycle::SubmitTargetValue004A84A0()
 
 /* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug
    witness names the element type, so it remains address-qualified. */
-class W8VectorElement005ECED4;
 
 /* Parallel registries: each name has one growable vector of cycle objects. */
 extern W8GrowableVector<char*> g_grcycle_names;                       /* 0x0065BDF0 */
@@ -892,13 +1109,13 @@ extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
                                                                     /* 0x0065BE00 */
 
 // VTABLE: WIZ8 0x005eced4
-// class W8GrowableVector<W8VectorElement005ECED4*>
+// class W8GrowableVector<W8CameraShakeEffect*>
 
 // SYNTHETIC: WIZ8 0x004a8f70
-// W8GrowableVector<W8VectorElement005ECED4*>::`scalar deleting destructor'
+// W8GrowableVector<W8CameraShakeEffect*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004a8f90
-// W8GrowableVector<W8VectorElement005ECED4*>::~W8GrowableVector<W8VectorElement005ECED4*>
+// W8GrowableVector<W8CameraShakeEffect*>::~W8GrowableVector<W8CameraShakeEffect*>
 
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)
@@ -941,12 +1158,12 @@ void W8GrCycle::SetLights(W8LightVector* lights)
 }
 
 // FUNCTION: WIZ8 0x004a8530
-void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
+void W8GrCycle::AddShakeEffect004A8530(W8CameraShakeEffect* effect)
 {
     if (m_plsShakeEvents == 0) {
-        m_plsShakeEvents = new W8GrowableVector<W8VectorElement005ECED4*>();
+        m_plsShakeEvents = new W8GrowableVector<W8CameraShakeEffect*>();
     }
-    m_plsShakeEvents->Add(element);
+    m_plsShakeEvents->Add(effect);
 }
 
 // FUNCTION: WIZ8 0x004a8650

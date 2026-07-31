@@ -94,15 +94,6 @@ extern void RemoveAllConditionsFromParty(void);
 extern unsigned char* g_message_table_68c09c;
 extern void GetPosition421070(W8Position* position);
 
-class W8CameraShakeEffect004AE080 {
-public:
-    ~W8CameraShakeEffect004AE080();
-
-    unsigned int flags_000;
-};
-
-extern W8CameraShakeEffect004AE080* CreateCameraShakeEffect004AE080(
-    float duration, int value_2, float intensity, int value_4, int value_5);
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
     unsigned int item_id, int character_filter, int value_3, int value_4);
 extern void AddPartyGold(int amount, char announce);
@@ -161,7 +152,7 @@ public:
     W8TriggerShakeEvent();
     virtual void Update() override;
 
-    W8CameraShakeEffect004AE080* effect_038;
+    W8CameraShakeEffect* effect_038;
     int intensity_03c;
     unsigned char reverse_040;
     unsigned char unknown_041[3];
@@ -189,13 +180,13 @@ void W8TriggerShakeEvent::Update()
         }
         effect_038 = CreateCameraShakeEffect004AE080(
             auxiliary_timer_02c->m_speed, 0, intensity, 0, 0);
-        effect_038->flags_000 &= ~2;
+        effect_038->flags_00 &= ~2;
         if (reverse_040 != 0) {
-            effect_038->flags_000 |= 0x10;
+            effect_038->flags_00 |= 0x10;
         }
     }
 
-    if ((effect_038->flags_000 & 1) == 0) {
+    if ((effect_038->flags_00 & 1) == 0) {
         delete effect_038;
         effect_038 = 0;
         if (trigger_030 != 0) {

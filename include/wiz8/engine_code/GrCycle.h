@@ -6,6 +6,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/Emitter.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/geometry.h"
@@ -15,12 +16,65 @@
 class srModelInstance;
 struct W8World;
 
-class W8VectorElement005ECED4;
 class stLight;
 class stParticle;
 class stGroundShadow;
 struct W8AnimObj;
 struct W8AniMesh;
+
+/* Engine Code\GrCycle.cpp's camera-shake effect. 0x004AE080 allocates 0x4c and
+   hands it to the constructor at 0x004ADED0.
+
+   One class, two consumers. GrCycle keeps a vector of them in m_plsShakeEvents
+   and fires the ones whose cycle/frame/subcycle key matches; Trigger.cpp's shake
+   event creates one directly. Trigger clears bit 1 so the effect is not released
+   by the live list and deletes it itself - the same bit 0x004AE270 tests before
+   deleting. That shared ownership bit, the shared factory and the shared 0x4c
+   allocation are what prove the two are one class rather than two of a size.
+
+   flags_00: bit 0 says the effect is in the live list, bit 1 that the live list
+   owns it. Bits 2, 3 and 4 are set together by the constructor's own flag, and
+   Trigger sets bit 4 on its own to reverse the shake. */
+class W8CameraShakeEffect {
+public:
+    W8CameraShakeEffect(
+        float duration, char preset, float intensity, int value_08,
+        const srVector3T<float>* position);   /* 0x004ADED0 */
+    W8CameraShakeEffect(const W8CameraShakeEffect& other); /* 0x004AE000 */
+
+    unsigned int flags_00;               /* 0x00 */
+    float intensity_04;                  /* 0x04 */
+    int value_08;                        /* 0x08 */
+    srVector3T<float> position_0c;       /* 0x0c */
+    W8Timer005EC0A4 timer_18;            /* 0x18 */
+    /* The key 0x004AE170 matches an animation event against. */
+    int cycle_3c;                        /* 0x3c */
+    int frame_40;                        /* 0x40 */
+    int subcycle_44;                     /* 0x44 */
+    int value_48;                        /* 0x48 */
+};
+
+static_assert(sizeof(W8CameraShakeEffect) == 0x4c,
+              "W8CameraShakeEffect_must_be_0x4c");
+
+/* The live list every active effect is on, and the timer the first effect
+   creates alongside it. Both are built lazily by the constructor. */
+extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
+extern W8Timer005EC0A4* g_shake_timer_0065be30;
+
+W8CameraShakeEffect* CreateCameraShakeEffect004AE080(
+    float duration, char preset, float intensity, int value_08,
+    const srVector3T<float>* position);
+/* Fire every effect in one cycle's vector whose key matches, moving it onto the
+   live list and restarting its timer. */
+void TriggerShakeEffects004AE170(
+    W8GrowableVector<W8CameraShakeEffect*>* effects,
+    int cycle, unsigned int frame, int subcycle,
+    const srVector3T<float>* position);
+/* Take every active effect in one cycle's vector back off the live list, and
+   release the ones that list owned. */
+void StopShakeEffects004AE270(
+    W8GrowableVector<W8CameraShakeEffect*>* effects);
 
 /* 0x004A5F20 allocates 0x3c for each of these and copies them field by field:
    a leading dword, the byte after it, an owned stParticle rebuilt through
@@ -32,7 +86,10 @@ public:
     unsigned char unknown_05[3];
     stParticle* particle_08;
     srVector3T<float> position_0c;
-    unsigned char unknown_18[0x24];
+    /* 0x004A7E50 composes this into the model instance's own rotation with
+       method_00421A40, which is what makes it a matrix rather than 0x24
+       opaque bytes. */
+    srMatrix3T<float> rotation_18;
 };
 
 static_assert(sizeof(W8GrCycleShakeEvent) == 0x3c,
@@ -66,13 +123,13 @@ public:
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
     void SetLights(W8LightVector* lights);
-    void AddVectorElement005ECED4(W8VectorElement005ECED4* element);
+    void AddShakeEffect004A8530(W8CameraShakeEffect* effect);
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
     /* Runs at the end of every representation update; its own body is the
        shake/particle event walk and is not recovered yet. */
-    void Function4A7E50();
+    void UpdateParticleAttachments004A7E50();
     void SelectLOD004A7BE0(const float* position);   /* 0x004A7BE0 */
     void UpdateLights004A7150();
     srModelInstance* SelectCycleFrameLod004A8360(
@@ -84,7 +141,7 @@ public:
 public:
     srModelInstance* current_model_instance_1a8;
     W8LightVector* m_plsLights; /* 0x1ac */
-    W8GrowableVector<W8VectorElement005ECED4*>* m_plsShakeEvents; /* 0x1b0 */
+    W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
     unsigned char m_fDeleteLights;        /* 0x1b4: named by GrCycle.cpp:1656 */
     unsigned char unknown_1b5;
     unsigned char unknown_1b6[2];
@@ -93,7 +150,8 @@ public:
     unsigned char enabled_1bd;
     unsigned char unknown_1be;
     unsigned char unknown_1bf;
-    unsigned char unknown_1c0[0xc];
+    /* The axis 0x004A7E50 aims a mode-three particle along. */
+    srVector3T<float> m_axis_1c0;
     float scale_1cc;
     stGroundShadow* m_ground_shadow;       /* 0x1d0: typed runtime class stGroundShadow */
     float unknown_1d4;

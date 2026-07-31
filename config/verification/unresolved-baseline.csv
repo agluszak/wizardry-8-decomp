@@ -10,7 +10,6 @@ symbol
 ??0stLight@@QAE@PAVsrNode@@@Z
 ??0stLight@@QAE@XZ
 ??0stParticle@@QAE@ABV0@@Z
-??1W8CameraShakeEffect004AE080@@QAE@XZ
 ??1W8Chunk@@QAE@XZ
 ??1W8DialogBase005DC7A0@@UAE@XZ
 ??1W8GrCycleBase00451EC0@@UAE@XZ
@@ -93,13 +92,13 @@ symbol
 ?CompatiblePartnerItems@@YAEHH@Z
 ?ConfigureMovement00453D20@W8Navigator@@QAEEMM@Z
 ?ConfigureMovementToNavigator004529A0@W8Navigator@@QAEGPAV1@HHUW8Position@@HMH@Z
+?ConvertVector004A90E0@@YAXPAV?$srVector3T@N@@PBV?$srVector3T@M@@@Z
 ?CopyItemInstance@@YAXPAUW8ItemInstance@@PBU1@HE@Z
 ?CountIdentifyAttemptsNeeded@@YAIPBUW8ItemInstance@@H@Z
 ?CountRowsBetween@@YADHH@Z
 ?CountSpellsOfKind@@YAHH@Z
 ?CreateAndLoadLevelTrigger@Trigger@@SAPAV1@HPAUW8World@@@Z
 ?CreateAndLoadProp0044BF50@@YAEPAUW8ReadLevelInfo@@PAPAVW8Prop005EC1E0@@@Z
-?CreateCameraShakeEffect004AE080@@YAPAVW8CameraShakeEffect004AE080@@MHMHH@Z
 ?CreateGroup@@YAPAUW8MonsterGroup@@IIPBUW8Position@@EEE@Z
 ?CreateSpellEffect004AD8A0@@YAPAXPBDHPAVW8Monster@@HH@Z
 ?DecideFacingForPosition@@YACHH@Z
@@ -237,7 +236,6 @@ symbol
 ?Function4A6E20@@YAXM@Z
 ?Function4A72F0@@YAXHH@Z
 ?Function4A7BE0@W8GrCycle@@QAEXPBM@Z
-?Function4A7E50@W8GrCycle@@QAEXXZ
 ?Function4A84A0@@YAXPAVW8GrCycle@@@Z
 ?Function4A9110@@YAXPAX@Z
 ?Function4A9720@@YAXPAX@Z
@@ -477,7 +475,6 @@ symbol
 ?PracticeCharacterSkill@@YAXPAUW8Character@@HHH@Z
 ?PracticeCharacterSkill@@YAXPAUW8Character@@IHH@Z
 ?Prepare004857B0@stTextureAnim@@QAEEXZ
-?PrepareGrCycleEvents004AE270@@YAXPAV?$W8GrowableVector@PAVW8VectorElement005ECED4@@@@@Z
 ?PrepareMonsterCycleForDestruction004ACF90@@YAXPAVW8Monster@@@Z
 ?PublishLightDirection@@YAXPBH@Z
 ?Queue00437000@W8OctreeQueue00437000@@QAEXHHPBH@Z
@@ -573,7 +570,6 @@ symbol
 ?UpdateCameraView00450080@@YAXPAVsrCamera@@H@Z
 ?UpdateEnvironmentLight004834B0@@YAXXZ
 ?UpdateFacing00454780@W8Navigator@@QAEXD@Z
-?UpdateGrCycleEvents004AE170@@YAXPAV?$W8GrowableVector@PAVW8VectorElement005ECED4@@@@HIHPBV?$srVector3T@M@@@Z
 ?UpdateHeldItemCursor@@YAXXZ
 ?UpdateLinkedNavigator00454D70@W8Navigator@@QAEXXZ
 ?UpdateMonsterAI@@YAXPAUW8MonsterInfo@@@Z
@@ -735,6 +731,7 @@ symbol
 ?g_float_005ebc64@@3MA
 ?g_float_005ebcf8@@3MB
 ?g_float_005ec128@@3MA
+?g_float_005ecf98@@3MA
 ?g_fog_enabled_0065b9ad@@3EA
 ?g_footstep_alternate_65a10a@@3EA
 ?g_footstep_fixed_name_609f44@@3PBDB

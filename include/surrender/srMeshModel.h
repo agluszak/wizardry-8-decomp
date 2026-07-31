@@ -112,7 +112,11 @@ protected:
     virtual void calculatePolygonNormals();
     virtual void calculateVertexNormals();
 public:
-    unsigned char unknown_1c_[0x214];
+    unsigned char unknown_1c_[0x210];
+    /* GrCycle.cpp's 0x004A7E50 clamps a vertex index against this before
+       indexing the location array, which is what makes it that array's
+       length rather than one more opaque dword. */
+    long vertex_location_count_22c;
     long polygon_count_230;
     unsigned char unknown_234_[0x15c];
     unsigned long control_state_390;
