@@ -122,6 +122,27 @@ W8Navigator::W8Navigator()
     RegisterNavigator(this);
 }
 
+/* Only these eleven fields survive a transfer between navigators; everything
+   else in the tail stays whatever the destination already had, and value_010 is
+   invalidated rather than copied. */
+// FUNCTION: WIZ8 0x004574d0
+void W8NavigatorMovement004572C0::Assign004574D0(
+    const W8NavigatorMovement004572C0& other)
+{
+    unknown_000 = other.unknown_000;
+    value_008 = other.value_008;
+    callback_threshold_058 = other.callback_threshold_058;
+    callback_progress_05c = other.callback_progress_05c;
+    movement_scale_060 = other.movement_scale_060;
+    turn_rate_068 = other.turn_rate_068;
+    pitch_enabled_074 = other.pitch_enabled_074;
+    roll_enabled_075 = other.roll_enabled_075;
+    unknown_076[0] = other.unknown_076[0];
+    vertical_base_07c = other.vertical_base_07c;
+    vertical_amplitude_080 = other.vertical_amplitude_080;
+    value_010 = -1;
+}
+
 /* The attachment and both allocations hanging off it. Each pointer is cleared
    before its storage goes back, and the two use different allocators. */
 // FUNCTION: WIZ8 0x00457530
