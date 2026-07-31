@@ -996,7 +996,7 @@ unsigned char ReadLevel(
     for (index = 0; index < (int)prop_count; ++index) {
         W8Prop005EC1E0* prop = static_cast<W8Prop005EC1E0*>(
             PListGetAt(world->plsProps, index));
-        W8AnimObj* animation = prop->m_owned_14->animation;
+        W8AnimObj* animation = prop->Rep()->animation;
 
         if ((prop->flags_1c & 0x40) != 0) {
             unsigned int animation_count = AnimObjListCount004A1620(

@@ -3,6 +3,8 @@ base,Trigger,,"srClassSupport<Trigger, srClass, false, 65544>",[]
 base,W8ColorSurface005EBD10,,srColorSurface,[]
 base,W8Monster,,W8GrCycle,[]
 base,W8MonsterRep,,W8EmitterHost,[]
+base,W8Prop005EC1E0,,W8GrObject,[]
+base,W8PropRep,,W8AnimRep005ED050,[]
 base,W8MonsterShakeCallback,,W8MonsterShakeCallbackBase,[]
 base,W8VirtualFileBinIStream,,srBinIStream,"[""srBinIStream_vbase_slim""]"
 base,stParticle,,srNode,[]
@@ -64,7 +66,7 @@ missing-ghidra-class,W8PathRepresentation,,,
 missing-ghidra-class,W8Pathing00457CF0,,,
 missing-ghidra-class,W8ProfRaceInfoDialogBase005DEAF0,,,
 missing-ghidra-class,W8ProfessionInfoDialog005EFBFC,,,
-missing-ghidra-class,W8PropOwnedPolymorphic,,,
+missing-ghidra-class,W8PropRep,,,
 missing-ghidra-class,W8RaceInfoDialog005EFC38,,,
 missing-ghidra-class,W8Scene005EBE48,,,
 missing-ghidra-class,W8SpellEmitterHost,,,

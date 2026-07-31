@@ -1214,7 +1214,7 @@ void Trigger::Run(int source)
             W8TriggerActionData005EC134* action_data = 0;
 
             if (m_bRepType != 2 || m_pProp == 0 || value_0b1 != 0 ||
-                m_pProp->m_owned_14->unknown_06d != 0) {
+                m_pProp->Rep()->flag_06d != 0) {
                 break;
             }
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
@@ -1268,7 +1268,7 @@ void Trigger::Run(int source)
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
-            active = m_pProp->m_owned_14->unknown_06d;
+            active = m_pProp->Rep()->flag_06d;
             if (active != 0) {
                 break;
             }
@@ -1322,7 +1322,7 @@ void Trigger::Run(int source)
                         "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                         0x592, 0);
                 }
-                animation = m_pProp->m_owned_14->animation;
+                animation = m_pProp->Rep()->animation;
                 if (AnimationIsRunning(animation) == 1) {
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
@@ -1359,7 +1359,7 @@ void Trigger::Run(int source)
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
-            was_active = m_pProp->m_owned_14->unknown_06d;
+            was_active = m_pProp->Rep()->flag_06d;
             m_pProp->SetRepActive0044DA80(was_active == 0, 1);
             value_0b1 = value_0b1 == 0;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
@@ -1382,7 +1382,7 @@ void Trigger::Run(int source)
             int tag = source == -1 ? m_lData1 : source;
 
             if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
-                m_pProp->m_owned_14->SelectSlot0044BA50((unsigned char)tag);
+                m_pProp->Rep()->SelectSlot0044BA50((unsigned char)tag);
                 m_pProp->SetRepActive0044DA80(1, 1);
                 value_0b1 = (unsigned char)tag;
                 goto commit_action;
@@ -1407,7 +1407,7 @@ void Trigger::Run(int source)
         if (m_bRepType != 2 || m_pProp == 0) {
             return;
         }
-        was_active = m_pProp->m_owned_14->unknown_06d;
+        was_active = m_pProp->Rep()->flag_06d;
 
         if (inline_action_data_24c[0] != '\0') {
             if (g_item_in_hand_shown_006874ca != 0) {
@@ -1441,7 +1441,7 @@ void Trigger::Run(int source)
                 int contained_items = 0;
 
                 if (item_count != 1 &&
-                    m_pProp->m_owned_14->setting_64 != 0) {
+                    m_pProp->Rep()->flag_064 != 0) {
                     action_succeeded = 0;
                 }
 
@@ -1463,7 +1463,7 @@ void Trigger::Run(int source)
                 }
 
                 if (item_count == 1) {
-                    if (m_pProp->m_owned_14->setting_64 == 0) {
+                    if (m_pProp->Rep()->flag_064 == 0) {
                         ApplyItemEffectToRandomCharacter0052E5C0(
                             Random(2) != 0 ? g_value_0068c548
                                            : g_value_0068c520,
@@ -1475,7 +1475,7 @@ void Trigger::Run(int source)
                     item = world_item_group_34c->next;
                     MoveItem(&g_item_in_hand, &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group_34c, item);
-                    if (m_pProp->m_owned_14->setting_64 != 0) {
+                    if (m_pProp->Rep()->flag_064 != 0) {
                         goto toggle_item_prop;
                     }
                 }
@@ -1807,9 +1807,9 @@ toggle_item_prop:
             return;
         }
         if ((action_230 == 0x32 &&
-             m_pProp->m_owned_14->unknown_06d != 0) ||
+             m_pProp->Rep()->flag_06d != 0) ||
             (action_230 == 0x33 &&
-             m_pProp->m_owned_14->unknown_06d == 0)) {
+             m_pProp->Rep()->flag_06d == 0)) {
             return;
         }
         m_pProp->SetRepActive0044DA80(action_230 == 0x32, 1);
@@ -1905,11 +1905,11 @@ toggle_item_prop:
 
     case 0x3b:
         if (m_pProp == 0 || source != m_lData1 ||
-            m_pProp->m_owned_14->unknown_06d == 0) {
+            m_pProp->Rep()->flag_06d == 0) {
             return;
         }
         m_pProp->SetRepActive0044DA80(
-            m_pProp->m_owned_14->unknown_06d == 0, 1);
+            m_pProp->Rep()->flag_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -1921,7 +1921,7 @@ toggle_item_prop:
             return;
         }
         m_pProp->SetRepActive0044DA80(
-            m_pProp->m_owned_14->unknown_06d == 0, 1);
+            m_pProp->Rep()->flag_06d == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -1992,7 +1992,7 @@ toggle_item_prop:
             }
             g_location_variable_values_00659990.SetAt(state_id, 0);
         }
-        value_0b1 = m_pProp->m_owned_14->AdvanceAnimationSegment();
+        value_0b1 = m_pProp->Rep()->AdvanceAnimationSegment();
         m_pProp->SetRepActive0044DA80(1, 0);
         if (m_pacStateToMod != 0) {
             char state_name[132];
@@ -2119,7 +2119,7 @@ toggle_item_prop:
         if (m_pProp == 0 || m_lData1 < 0) {
             return;
         }
-        count = AnimObjValue004A15D0(m_pProp->m_owned_14->animation, 2);
+        count = AnimObjValue004A15D0(m_pProp->Rep()->animation, 2);
         if ((int)count <= m_lData1) {
             return;
         }
@@ -2193,7 +2193,7 @@ unsigned char Trigger::CanRunLinkedTriggers()
 {
     char* recipient;
 
-    if (m_pProp != 0 && m_pProp->m_owned_14->unknown_06d != 0) {
+    if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {
         return 0;
     }
     recipient = m_pacRecipients;
@@ -2315,7 +2315,7 @@ unsigned char Trigger::SelectAction()
             static_cast<W8TriggerActionData005EC134*>(m_pActionData);
         unsigned char linked_trigger_blocked = 0;
 
-        if (m_pProp != 0 && m_pProp->m_owned_14->unknown_06d != 0) {
+        if (m_pProp != 0 && m_pProp->Rep()->flag_06d != 0) {
             linked_trigger_blocked = 1;
         }
         else {
