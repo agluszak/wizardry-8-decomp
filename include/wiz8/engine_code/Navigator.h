@@ -25,6 +25,9 @@ struct W8NavigatorAttachment {
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
     void* allocation_50;
+    unsigned char unknown_054[0x0c];
+
+    W8NavigatorAttachment();             /* 0x00456210 */
 
     void RecordPosition00456AE0(const srVector3T<float>* position);
 };
@@ -66,7 +69,8 @@ struct W8NavigatorMovement004572C0 {
     float movement_scale_060;
     float movement_speed_064;
     float turn_rate_068;
-    unsigned char unknown_06c[8];
+    unsigned short flag_06c;
+    unsigned char unknown_06e[6];
     unsigned char pitch_enabled_074;
     unsigned char roll_enabled_075;
     unsigned char unknown_076[2];
@@ -74,7 +78,9 @@ struct W8NavigatorMovement004572C0 {
     float vertical_base_07c;
     float vertical_amplitude_080;
     float vertical_phase_084;
-    unsigned char unknown_088[0x24];
+    srVector3T<float> vector_088;
+    srVector3T<float> vector_094;
+    srVector3T<float> vector_0a0;
     W8NavigatorAttachment* attachment_0ac;
     unsigned char unknown_0b0[4];
     float alternate_radius_0b4;
@@ -99,8 +105,11 @@ struct W8NavigatorMovement004572C0 {
     void Release00457530();
 };
 
-static_assert(sizeof(W8NavigatorAttachment) == 0x54,
-              "W8NavigatorAttachment_size_must_be_0x54");
+/* 0x004572C0 allocates one with operator new(0x60) before running its
+   constructor at 0x00456210, which is what fixes the size; the destructor
+   at 0x00457530 only proves it reaches +0x50. */
+static_assert(sizeof(W8NavigatorAttachment) == 0x60,
+              "W8NavigatorAttachment_size_must_be_0x60");
 static_assert(sizeof(W8NavigatorMovement004572C0) == 0xcc,
               "W8NavigatorMovement004572C0_size_must_be_0xcc");
 
