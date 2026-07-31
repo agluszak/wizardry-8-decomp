@@ -422,8 +422,12 @@ class W8VectorElement005EEA28;
 // VTABLE: WIZ8 0x005eea28
 // class W8GrowableVector<W8VectorElement005EEA28*>
 
-/* The list itself, reached through this pointer rather than through an owner. */
-static W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
+/* The list itself, reached through this pointer rather than through an owner.
+   Lifecycle record 8's finalizer at 0x0057FA20 releases it from another
+   translation unit, which is what makes it a global rather than the file-static
+   it was modelled as. */
+// GLOBAL: WIZ8 0x0068F258
+W8GrowableVector<W8VectorElement005EEA28*>* g_list_0068F258;
 
 // SYNTHETIC: WIZ8 0x00585420
 // W8GrowableVector<W8VectorElement005EEA28*>::`scalar deleting destructor'
