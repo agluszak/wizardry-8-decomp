@@ -89,6 +89,7 @@ symbol
 ?ClearMonsterTargetNotice@@YAXXZ
 ?ClearTargetCursor@@YAXXZ
 ?CloneAnimObj004A0320@@YAPAUW8AnimObj@@PBU1@@Z
+?ClonePathAI004A98C0@@YAPAUW8PathAI@@PBU1@@Z
 ?CollectModelInstances0044E570@W8Prop005EC1E0@@QAEXPAV?$W8GrowableVector@PAVstModelInstance005EC7D0@@@@@Z
 ?CompareSignedAscending@@YAHPBX0@Z
 ?CompareSpellPointDeficits@@YAHPBX0@Z

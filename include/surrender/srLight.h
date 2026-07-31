@@ -9,16 +9,30 @@ class srLight
     : public srClassSupport<srLight, srIlluminator, false, 0x1220> {
 public:
     enum e_preset {
-        PRESET_POSITIONAL_0 = 0
+        PRESET_POSITIONAL_0 = 0,
+        PRESET_POSITIONAL_1 = 1
     };
 
-    SR_DLL_IMPORT srLight(srNode* parent, e_preset preset);
+    /* stLight derives through srClassSupport, whose constructors name only
+       Base's parent parameter. Every emitted srClassSupport<stLight,srLight>
+       constructor - the out-of-line 0x004CA8B0 emission and the copies
+       inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
+       parameters carry those defaults here. */
+    SR_DLL_IMPORT srLight(
+        srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
+
+    /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
+       never called through SR.DLL's import table, so this level's name is
+       header-visible unlike srNode's and srIlluminator's. */
+    static const char* sGetClassName() { return "srLight"; }
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 protected:
-    virtual SR_DLL_IMPORT ~srLight() override;
+    /* Header-visible for the same reason srIlluminator's is: 0x0049C430
+       expands it rather than calling an import. */
+    virtual ~srLight() override {}
 
 public:
     virtual SR_DLL_IMPORT void traverse(srNode::TraverseInfo& info) override;

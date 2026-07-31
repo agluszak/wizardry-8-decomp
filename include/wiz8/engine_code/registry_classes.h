@@ -228,19 +228,31 @@ public:
 static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,
               "stLightDefinition005ECDA0_size_must_be_0x58");
 
-// VTABLE: WIZ8 0x005ecc64
-class stLight
-    : public srClassSupport<stLight, srLight, false, 0x10006> {
+/*
+ * stLight owns the 0x10006 registry identity, so the class that supplies it -
+ * and the registerInstance/unregisterInstance pair that identity implies - is
+ * srClassSupport rather than srLight itself. Both lifecycle bodies prove the
+ * intermediate base directly: 0x0049C2C0 writes 0x005ECCA4/0x005ECC98 between
+ * the srLight constructor and the 0x10006 registration and only then installs
+ * stLight's own pair, and 0x0049C430 unwinds through the same two levels with
+ * separate EH states.
+ *
+ * The default constructor stays implicit-shaped: the `new stLight` site inlined
+ * at 0x004BF329 is nothing but a call to the base emission at 0x004CA8B0
+ * followed by the two vptr stores, with no member initialisation at all.
+ */
+// VTABLE: WIZ8 0x005ecc64 stLight
+// VTABLE: WIZ8 0x005ecc58 srVertexProcessor
+class stLight : public srClassSupport<stLight, srLight, false, 0x10006> {
     friend class W8GrCycle;
     friend class Trigger;
 
 public:
     static const char* sGetClassName() { return "stLight"; }
 
-    stLight();                                         /* 0x004CA8B0 */
-    stLight(srNode* parent);                         /* 0x0049C2C0 */
+    stLight() {}
+    explicit stLight(srNode* parent);                /* 0x0049C2C0 */
     stLight& operator=(const stLight& other);         /* 0x0049C690 */
-
 
 protected:
     virtual ~stLight() override;                    /* 0x0049C430 */
@@ -254,9 +266,9 @@ public:
     void Reset0049D070();                           /* 0x0049D070 */
     void SetDefinitionTime0049C940(float time);      /* 0x0049C940 */
 
-    float positionalX() const { return m_positional_228; }
-    float positionalY() const { return m_positional_22c; }
-    float positionalZ() const { return m_positional_230; }
+    float positionalX() const { return m_positional_228.x; }
+    float positionalY() const { return m_positional_228.y; }
+    float positionalZ() const { return m_positional_228.z; }
     stLightDefinition* definition() const { return m_definition_234; }
     void ConfigureMonsterCopy()
     {
@@ -266,9 +278,10 @@ public:
     }
 
 public:
-    float m_positional_228;                         /* 0x228 */
-    float m_positional_22c;                         /* 0x22c */
-    float m_positional_230;                         /* 0x230 */
+    /* One value, not three floats: 0x0049C690 copies it through the base-pointer
+       form VC6 emits for a class type's memberwise assignment, not through three
+       independent displacement loads. */
+    srVector3T<float> m_positional_228;             /* 0x228 */
     stLightDefinition* m_definition_234;            /* 0x234: owned */
     unsigned char m_positional_238;                 /* 0x238 */
     unsigned char m_positional_239;                 /* 0x239 */

@@ -302,7 +302,13 @@ public:
     SR_DLL_IMPORT void setGroupMask(unsigned long mask);
 
 protected:
-    virtual SR_DLL_IMPORT ~srIlluminator() override;
+    /* Empty and header-visible, not exported: stLight's destructor at
+       0x0049C430 expands this level and srLight's inline instead of calling
+       either, and reaches SR.DLL only for srNode::~srNode. The registry
+       teardown at this level belongs to the srClassSupport base, and the
+       vptr store this body would make is dead-stored away by the base's own
+       store that immediately follows. */
+    virtual ~srIlluminator() override {}
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");

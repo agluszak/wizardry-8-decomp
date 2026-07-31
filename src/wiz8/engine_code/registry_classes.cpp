@@ -150,11 +150,11 @@ srClass* W8ClipPlane005ED180::clone()
 // TEMPLATE: WIZ8 0x004BA1D0
 // srClassSupport<stLevel,srNode,0,65543>::getClassNode
 
-/* Registry identity is srClassSupport<stLight,srLight,0,65542> output. These
-   addresses are not emitted yet: VC6 instantiates a template's members only
-   where they are odr-used, and stLight's constructor at 0x0049C2C0 and
-   destructor at 0x0049C430 are still unrecovered, so nothing in this image
-   instantiates the specialization. Porting that lifecycle restores them. */
+/* stLight's three registry slots are this base's generic bodies, not owned
+   overrides: the name and id both come from the template arguments and the node
+   walk is the generic parent chain with srLight's header-visible name inlined at
+   its level. Recovering the lifecycle at 0x0049C2C0 and 0x0049C430 is what
+   instantiates the specialization, so these are emitted and compared again. */
 // TEMPLATE: WIZ8 0x0049DC60
 // srClassSupport<stLight,srLight,0,65542>::getClassID
 

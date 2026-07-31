@@ -95,10 +95,9 @@ unsigned long W8Registered005EBF94::getClassID() const
 // TEMPLATE: WIZ8 0x0042A150
 // srClassSupport<srScene,srNode,0,4112>::clone
 
-// FUNCTION: WIZ8 0x0042A360
-srVertexProcessor::~srVertexProcessor()
-{
-}
+/* srVertexProcessor::~srVertexProcessor is defined in its own header - see
+   the marker there - because 0x0049C430 expands it rather than calling it.
+   0x0042A360 is the out-of-line COMDAT the secondary vtables reference. */
 
 // SYNTHETIC: WIZ8 0x0042B890
 // srVertexProcessor::`scalar deleting destructor'

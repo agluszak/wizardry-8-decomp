@@ -93,6 +93,37 @@ void DestroyPathAI004A9810(W8PathAI* path)
     }
 }
 
+/* The same release DestroyPathAI004A9810 performs, refused for any path whose
+   kind is not the plain node-list form. stLight's destructor at 0x0049C430
+   reaches the owned path through this guard rather than the general entry. */
+// FUNCTION: WIZ8 0x004a9110
+void DestroyOwnedPathAI004A9110(W8PathAI* path)
+{
+    W8GrowableVector<W8PathVector3*>* nodes;
+
+    if (path != 0 && path->kind_00 == 0) {
+        nodes = path->nodes_0c;
+        if (nodes != 0) {
+            while (nodes->count != 0) {
+                srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
+                nodes = path->nodes_0c;
+            }
+            if (path->allocation_14 != 0) {
+                free(path->allocation_14);
+                path->allocation_14 = 0;
+            }
+            delete path->nodes_0c;
+        }
+        if (path->allocation_14 != 0) {
+            free(path->allocation_14);
+        }
+        if (path->render_allocation_18 != 0) {
+            srHeap.free(path->render_allocation_18);
+        }
+        free(path);
+    }
+}
+
 // FUNCTION: WIZ8 0x004a9bb0
 void PathAIClearOwned004A9BB0(W8PathAI* path)
 {
