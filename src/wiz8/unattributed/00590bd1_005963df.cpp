@@ -8,3 +8,82 @@ int GetValue64C1C8(void)
 {
     return g_value_64c1c8;
 }
+
+/* 0x0069B7C8 is written by lifecycle record 4's entry handler at 0x00590DE0 and
+   released here, so the block is owned inside this interval. */
+// GLOBAL: WIZ8 0x0069B7C8
+void* g_load_descriptor_69b7c8;
+// GLOBAL: WIZ8 0x006F0628
+unsigned char g_flag_6f0628;
+// GLOBAL: WIZ8 0x006F04E8
+unsigned char g_flag_6f04e8;
+// GLOBAL: WIZ8 0x006F04ED
+unsigned char g_flag_6f04ed;
+
+/* Lifecycle record 4's tick - the loading screen. The leaving pass releases the
+   descriptor its entry handler allocated; the ordinary pass only tears the frame
+   down. Both passes run the teardown, which is why the release sits under the
+   flag rather than the whole body. */
+// FUNCTION: WIZ8 0x00591560
+unsigned char LevelLoadScreenTick(char leaving)
+{
+    if (leaving) {
+        free(g_load_descriptor_69b7c8);
+        g_load_descriptor_69b7c8 = 0;
+    }
+    NoOp();
+    ShutdownDisplayList();
+    ResetRegions();
+    SetFlag603C60();
+    return 1;
+}
+
+/* Lifecycle record 12's entry handler. It paints the whole 640x480 frame in the
+   near-black 0x010101 and puts one video-object frame over it, which is the
+   shape record 1's much larger main-menu entry starts with too. */
+// FUNCTION: WIZ8 0x00591790
+unsigned char Screen12Enter(void)
+{
+    unsigned short colour;
+
+    Function422B10();
+    UpdateHeldItemCursor();
+    colour = Get16BPPColor(0x10101);
+    FillSurfaceRect(-14, 0, 0, 0x280, 0x1e0, colour);
+    Function548F90(-14, 0x1e4, 0, 0, 0, 0, 2, 0);
+    Function422F10();
+    return 1;
+}
+
+/* Lifecycle record 12's frame close-out. It drains the input queue through the
+   region manager and lets a key press that the regions did not consume clear
+   0x006F0628; the screen then tears down unless that flag is still set and
+   neither of the two other flags is. The two trailing repeats of 0x00426790 are
+   the original's own. */
+// FUNCTION: WIZ8 0x005917e0
+void Screen12Finish(void)
+{
+    InputAtom input;
+
+    Function426790();
+    while (DequeueEvent(&input) == 1) {
+        if (!Function4F1910(&input)) {
+            switch (input.usEvent) {
+            case KEY_DOWN:
+                g_flag_6f0628 = 0;
+                break;
+            }
+        }
+    }
+    if (g_flag_6f04ed || g_flag_6f04e8) {
+        g_flag_6f0628 = 0;
+    }
+    else if (g_flag_6f0628) {
+        return;
+    }
+    ClearFlag603C60();
+    ClearPrimarySurface();
+    Function422F10();
+    Function426790();
+    Function426790();
+}
