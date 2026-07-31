@@ -1,8 +1,13 @@
 #include "wiz8/engine_code/AniMesh.h"
+#include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/mesh_model.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
 #include "wiz8/3d_code/PList.h"
+
+#include "DEBUG.H"
+#include "FileMan.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -13,7 +18,6 @@
 
 extern stModelInstance005EC7D0* DuplicateModelInstance0046F680(
     stModelInstance005EC7D0* instance);
-extern unsigned char Function4B5D00(int file, W8AniMesh* mesh, int load);
 extern void ExpandBounds0046F510(
     srVector3T<float>* minimum,
     srVector3T<float>* maximum,
@@ -64,13 +68,13 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
     memset(mesh, 0, sizeof(W8AniMesh));
     mesh->flags_00 = other->flags_00;
     mesh->frame_count_01 = other->frame_count_01;
-    memcpy(mesh->vector_08, other->vector_08, sizeof(mesh->vector_08));
-    memcpy(mesh->vector_14, other->vector_14, sizeof(mesh->vector_14));
+    mesh->bounds_minimum_08 = other->bounds_minimum_08;
+    mesh->bounds_maximum_14 = other->bounds_maximum_14;
     mesh->radius_20 = other->radius_20;
     mesh->loaded_bytes_24 = other->loaded_bytes_24;
     mesh->list_index_28 = other->list_index_28;
     mesh->file_offset_34 = other->file_offset_34;
-    mesh->load_value_38 = other->load_value_38;
+    mesh->world_38 = other->world_38;
     mesh->last_used_3c = other->last_used_3c;
 
     mesh->bitmap_directory_2c = static_cast<char*>(malloc(0x400));
@@ -142,6 +146,162 @@ float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
     return g_float_005ebb34;
 }
 
+// FUNCTION: WIZ8 0x004b5d00
+unsigned char LoadAniMesh004B5D00(
+    int file, W8AniMesh* mesh, unsigned char load_all)
+{
+    int handle = file;
+    char* instance_name = 0;
+    unsigned char frame_count;
+    unsigned char frame_index;
+    unsigned char loaded_count;
+    srModelInstance* loaded_instance = 0;
+    W8ReadLevelInfo info;
+
+    if (handle == 0) {
+        handle = FileOpen(mesh->filename_30, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+        if (handle == 0) {
+            srAssertFail(
+                "0", ANI_MESH_CPP, 0x199,
+                reinterpret_cast<const char*>(
+                    String("Couldn't open %s", mesh->filename_30)));
+            return 0;
+        }
+    }
+
+    info.world = mesh->world_38;
+    info.hFile = handle;
+    info.bitmap_folder = mesh->bitmap_directory_2c;
+    if (file == 0) {
+        FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
+    }
+
+    if (!ReadVirtualFile(handle, &frame_count, sizeof(frame_count), 0)) {
+        srAssertFail("fSuccess", ANI_MESH_CPP, 0x1ad, 0);
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    mesh->frame_count_01 = frame_count;
+    mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED;
+
+    if (mesh->filename_30[0] != '\0') {
+        instance_name = new char[strlen(mesh->filename_30) + 8];
+        sprintf(instance_name, "%s_%d_%d", mesh->filename_30, 0,
+                mesh->list_index_28);
+    }
+
+    if (!ReadVirtualFile(handle, &frame_index, sizeof(frame_index), 0) ||
+        !ReadSingleLevelMesh00485B20(
+            &info, &loaded_instance, 0, 0, instance_name, 1)) {
+        srAssertFail("fSuccess", ANI_MESH_CPP, 0x1c5, 0);
+        delete[] instance_name;
+        CloseVirtualFile(handle);
+        return 0;
+    }
+
+    loaded_instance->setName("AniMeshReallyReadFromFile");
+    stModelInstance005EC7D0* instance =
+        static_cast<stModelInstance005EC7D0*>(loaded_instance);
+    stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+
+    if (model->vertex_count > 1) {
+        mesh->flags_00 |= W8_ANI_MESH_SINGLE_INSTANCE;
+        mesh->meshes_04 = static_cast<stModelInstance005EC7D0**>(
+            malloc(sizeof(*mesh->meshes_04)));
+        if (mesh->meshes_04 == 0) {
+            srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1d0, 0);
+        }
+        mesh->meshes_04[0] = instance;
+    } else {
+        mesh->meshes_04 = static_cast<stModelInstance005EC7D0**>(
+            malloc(frame_count * sizeof(*mesh->meshes_04)));
+        if (mesh->meshes_04 == 0) {
+            srAssertFail("pAniMesh->ppsrMeshes", ANI_MESH_CPP, 0x1db, 0);
+        }
+        if (mesh->meshes_04 == 0) {
+            delete[] instance_name;
+            CloseVirtualFile(handle);
+            return 0;
+        }
+        memset(mesh->meshes_04, 0, frame_count * sizeof(*mesh->meshes_04));
+        mesh->meshes_04[0] = instance;
+
+        loaded_count = 1;
+        while (loaded_count < frame_count) {
+            loaded_instance = 0;
+            if (instance_name != 0) {
+                sprintf(instance_name, "%s_%d_%d", mesh->filename_30,
+                        loaded_count, mesh->list_index_28);
+            }
+            if (!load_all ||
+                !ReadVirtualFile(handle, &frame_index, sizeof(frame_index), 0) ||
+                !ReadSingleLevelMesh00485B20(
+                    &info, &loaded_instance, 0, 0, instance_name, load_all)) {
+                srAssertFail("fSuccess", ANI_MESH_CPP, 0x1f1, 0);
+                delete[] instance_name;
+                CloseVirtualFile(handle);
+                return 0;
+            }
+            if (frame_index >= frame_count) {
+                delete[] instance_name;
+                CloseVirtualFile(handle);
+                return 0;
+            }
+            loaded_instance->setName("AniMeshReallyReadFromFile");
+            mesh->meshes_04[frame_index] =
+                static_cast<stModelInstance005EC7D0*>(loaded_instance);
+            ++loaded_count;
+        }
+    }
+
+    mesh->flags_00 |= W8_ANI_MESH_LOADED;
+    mesh->last_used_3c = g_storage_state_65be80++;
+    g_storage_state_65be84 += mesh->loaded_bytes_24;
+
+    mesh->radius_20 = 0.0f;
+    for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
+        float radius = GetAniMeshFrameRadius004B5C10(mesh, frame_index);
+        if (mesh->radius_20 <= radius) {
+            mesh->radius_20 = radius;
+        }
+    }
+
+    mesh->bounds_minimum_08.x = 0.0f;
+    mesh->bounds_minimum_08.y = 0.0f;
+    mesh->bounds_minimum_08.z = 0.0f;
+    mesh->bounds_maximum_14.x = 0.0f;
+    mesh->bounds_maximum_14.y = 0.0f;
+    mesh->bounds_maximum_14.z = 0.0f;
+    for (frame_index = 0; frame_index < mesh->frame_count_01; ++frame_index) {
+        stModelInstance005EC7D0* frame =
+            GetAniMeshFrame004B6550(mesh, frame_index);
+        if (frame != 0) {
+            stMeshModel* frame_model = static_cast<stMeshModel*>(frame->model());
+            while (frame_model != 0) {
+                srVector3T<float> minimum;
+                srVector3T<float> maximum;
+
+                frame_model->getBoundingBox(minimum, maximum);
+                ExpandBounds0046F510(
+                    &mesh->bounds_minimum_08, &mesh->bounds_maximum_14,
+                    &minimum, &maximum);
+                frame_model = frame_model->next;
+            }
+        }
+    }
+    mesh->flags_00 |= W8_ANI_MESH_RADIUS_LOADED;
+
+    if (file == 0) {
+        CloseVirtualFile(handle);
+    }
+    delete[] instance_name;
+    if ((mesh->flags_00 & W8_ANI_MESH_KEEP_LOADED) != 0) {
+        PListAdd(&g_storage_list_65be90, mesh);
+    }
+    EnforceAniMeshMemoryLimit004B6770(mesh);
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x004b5880
 void DestroyAniMesh004B5880(W8AniMesh* mesh)
 {
@@ -173,7 +333,7 @@ unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force)
         mesh->meshes_04[0]->release();
     } else {
         if ((mesh->flags_00 & W8_ANI_MESH_FRAME_COUNT_LOADED) == 0) {
-            if (Function4B5D00(0, mesh, 1) == 0) {
+            if (LoadAniMesh004B5D00(0, mesh, 1) == 0) {
                 srAssertFail("0", ANI_MESH_CPP, 0x2c6, 0);
                 frame_count = 0xff;
             } else {
@@ -211,7 +371,7 @@ stModelInstance005EC7D0* GetAniMeshFrame004B6550(
         return 0;
     }
     if ((mesh->flags_00 & W8_ANI_MESH_LOADED) == 0 &&
-        Function4B5D00(0, mesh, 1) == 0) {
+        LoadAniMesh004B5D00(0, mesh, 1) == 0) {
         srAssertFail("0", ANI_MESH_CPP, 0x2ee, 0);
         return 0;
     }
@@ -234,7 +394,7 @@ unsigned char AniMeshValue004B64F0(W8AniMesh* mesh)
         return 0xff;
     }
     if ((mesh->flags_00 & W8_ANI_MESH_FRAME_COUNT_LOADED) == 0) {
-        if (Function4B5D00(0, mesh, 1) == 0) {
+        if (LoadAniMesh004B5D00(0, mesh, 1) == 0) {
             srAssertFail("0", ANI_MESH_CPP, 0x2c6, 0);
             return 0xff;
         }
@@ -250,7 +410,7 @@ unsigned char AniMeshRadius004B66E0(W8AniMesh* mesh, float* radius)
     }
     if (mesh != 0 && radius != 0) {
         if ((mesh->flags_00 & W8_ANI_MESH_RADIUS_LOADED) == 0) {
-            if (Function4B5D00(0, mesh, 1) == 0) {
+            if (LoadAniMesh004B5D00(0, mesh, 1) == 0) {
                 srAssertFail("0", ANI_MESH_CPP, 0x350, 0);
                 return 0;
             }
