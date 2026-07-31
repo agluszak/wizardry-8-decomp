@@ -3,6 +3,8 @@
 
 #include "wiz8/vector.h"
 
+class stModelInstance005EC7D0;
+
 /* Engine Code\PathAI.cpp.  The assertion-backed `pPathAI` identity and the
    five consumers below establish these offsets; unresolved members remain
    address-qualified rather than receiving speculative pathfinding names. */
@@ -68,6 +70,10 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction);
 void PathAIResetRecord004A9720(W8PathRecord004A9750* record);
 unsigned char PathAIRecordFlag004A9740(const W8PathRecord004A9750* record);
 void PathAIApplyToRep004A91F0(W8PathAI* path, W8PathRepresentation* representation);
+/* Places one model instance through a path. AnimObj.cpp and GrCycle.cpp are
+   both callers, so the declaration lives with the path's owner. */
+extern "C" void PathAIApply004AA520(
+    W8PathAI* path, stModelInstance005EC7D0* instance);   /* 0x004AA520 */
 void DestroyPathAI004A9810(W8PathAI* path);
 void PathAIClearOwned004A9BB0(W8PathAI* path);
 void PathAISetFlag3A004A9B90(W8PathAI* path, unsigned char value);

@@ -240,7 +240,7 @@ void* W8Missile::GetActiveEmitterEntry004A45F0()
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);
     }
-    return emitter->values_18[this->launcher->setting_98];
+    return emitter->values_18[this->launcher->m_bLOD];
 }
 
 /* How many emitters the launcher has, counted by testing each for null rather
@@ -268,7 +268,7 @@ void W8Missile::Release()
 // FUNCTION: WIZ8 0x004a4110
 void W8Missile::ApplyLauncherSetting98()
 {
-    AnimObjValue004A15D0(Method34(), this->launcher->setting_98);
+    AnimObjValue004A15D0(Method34(), this->launcher->m_bLOD);
 }
 
 /* Reset the launcher's two counters at 0x94 and 0x95. The second is one less

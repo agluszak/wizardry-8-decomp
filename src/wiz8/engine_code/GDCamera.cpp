@@ -4,6 +4,7 @@
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Object005EBCFC.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/game_state.h"
 #include "wiz8/utility.h"
 
@@ -14,7 +15,6 @@ extern const double g_camera_view_factor_005ec300;
 extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
 extern const float g_zero_005ebb34;
-extern const float g_one_005ebb38;
 extern const double g_zero_005ebb40;
 extern const float g_negative_one_005ebc38;
 extern const float g_camera_snap_epsilon_005ebc2c;
@@ -185,7 +185,7 @@ void GDCamera::Method00476610(
 
     if (forward_x != g_zero_005ebb34
         || forward_y != g_zero_005ebb34
-        || forward_z != g_one_005ebb38) {
+        || forward_z != g_float_005ebb38) {
         if (context != 0) {
             context->camera_forward_4c.x =
                 forward_x * g_camera_level_forward_scale_603aac;
@@ -201,21 +201,21 @@ void GDCamera::Method00476610(
                 context->camera_forward_4c.z * context->camera_scale_14;
         }
 
-        if (forward_y > g_one_005ebb38) {
-            forward_y = g_one_005ebb38;
+        if (forward_y > g_float_005ebb38) {
+            forward_y = g_float_005ebb38;
         } else if (forward_y < g_negative_one_005ebc38) {
             forward_y = g_negative_one_005ebc38;
         }
         pitch = (float)acos((double)forward_y) - g_camera_half_pi_005ec3fc;
 
         float horizontal_scale =
-            g_one_005ebb38
+            g_float_005ebb38
             / (float)sqrt((double)(forward_x * forward_x
                                    + forward_z * forward_z));
         forward_x *= horizontal_scale;
         forward_z *= horizontal_scale;
-        if (forward_z > g_one_005ebb38) {
-            forward_z = g_one_005ebb38;
+        if (forward_z > g_float_005ebb38) {
+            forward_z = g_float_005ebb38;
         } else if (forward_z < g_negative_one_005ebc38) {
             forward_z = g_negative_one_005ebc38;
         }
@@ -266,14 +266,14 @@ void GDCamera::Method00476950(const W8Position* target)
         (float)(1.0 / sqrt((double)(x * x + z * z)));
     x *= horizontal_scale;
     z *= horizontal_scale;
-    if (y >= g_one_005ebb38) {
-        y = g_one_005ebb38;
+    if (y >= g_float_005ebb38) {
+        y = g_float_005ebb38;
     } else if (y < g_negative_one_005ebc38) {
         y = g_negative_one_005ebc38;
     }
     float pitch = (float)-asin((double)y);
-    if (z >= g_one_005ebb38) {
-        z = g_one_005ebb38;
+    if (z >= g_float_005ebb38) {
+        z = g_float_005ebb38;
     } else if (z < g_negative_one_005ebc38) {
         z = g_negative_one_005ebc38;
     }
@@ -373,15 +373,15 @@ unsigned char GDCamera::Method00476F90(
     if (preserve_pitch != 0) {
         pitch = m_positional_008;
     } else {
-        if (y >= g_one_005ebb38) {
-            y = g_one_005ebb38;
+        if (y >= g_float_005ebb38) {
+            y = g_float_005ebb38;
         } else if (y < g_negative_one_005ebc38) {
             y = g_negative_one_005ebc38;
         }
         pitch = (float)-asin((double)y);
     }
-    if (z >= g_one_005ebb38) {
-        z = g_one_005ebb38;
+    if (z >= g_float_005ebb38) {
+        z = g_float_005ebb38;
     } else if (z < g_negative_one_005ebc38) {
         z = g_negative_one_005ebc38;
     }
@@ -586,19 +586,19 @@ void GDCamera::Method004776A0(float elapsed)
             doubled_progress =
                 (angle_traveled + angle_traveled) / m_angle_distance_0b0;
         }
-        float eased_input = g_one_005ebb38 - doubled_progress;
-        if (eased_input > g_one_005ebb38) {
-            eased_input = g_one_005ebb38;
+        float eased_input = g_float_005ebb38 - doubled_progress;
+        if (eased_input > g_float_005ebb38) {
+            eased_input = g_float_005ebb38;
         } else if (eased_input < g_negative_one_005ebc38) {
             eased_input = g_negative_one_005ebc38;
         }
         phase = (float)(acos((double)eased_input)
                             * g_camera_smoothing_scale_005ec580);
     } else if (m_angle_distance_0b0 <= m_pitch_distance_0b4) {
-        phase = g_one_005ebb38
+        phase = g_float_005ebb38
                 - pitch_traveled / m_pitch_distance_0b4;
     } else {
-        phase = g_one_005ebb38
+        phase = g_float_005ebb38
                 - angle_traveled / m_angle_distance_0b0;
     }
 
@@ -799,7 +799,7 @@ void GDCamera::Method00478290()
     }
     if (m_elapsed_084 <= braking_time) {
         float next_velocity =
-            (g_one_005ebb38 - m_elapsed_084 / braking_time)
+            (g_float_005ebb38 - m_elapsed_084 / braking_time)
             * m_pitch_velocity_0ac;
         m_positional_008 +=
             (next_velocity + m_pitch_velocity_0ac) * m_elapsed_084

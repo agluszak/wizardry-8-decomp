@@ -26,7 +26,7 @@ srTexture* LoadTexture004B95D0(
 stGroundShadow::stGroundShadow(srNode* parent)
     : W8GroundShadowRegistry005ED3F8(0)
 {
-    field_138 = 0;
+    angle_138 = 0;
     value_13c = 500;
     value_140 = 500;
     setParent(parent, 1);
@@ -58,7 +58,7 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
 {
     setParent(other.parentNode(), 1);
     setName(other.getName());
-    field_138 = other.field_138;
+    angle_138 = other.angle_138;
     value_13c = other.value_13c;
     value_140 = other.value_140;
 }
@@ -172,7 +172,7 @@ srClass* W8GroundShadowRegistry005ED3F8::clone()
     stGroundShadow* instance = static_cast<stGroundShadow*>(source->vInstance());
 
     *static_cast<srNode*>(instance) = *source;
-    instance->field_138 = source->field_138;
+    instance->angle_138 = source->angle_138;
     instance->value_13c = source->value_13c;
     instance->value_140 = source->value_140;
     return instance;

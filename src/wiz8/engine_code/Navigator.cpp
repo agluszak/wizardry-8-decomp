@@ -1,4 +1,5 @@
 #include "wiz8/grcycle.h"
+#include "wiz8/float_constants.h"
 
 #include "surrender/srNode.h"
 #include "wiz8/3d_code/IList.h"
@@ -598,7 +599,6 @@ extern unsigned char g_in_combat_00683f94;
 extern float g_navigator_default_turn_rate_005ec2f4;
 extern float g_frame_scale_006068ec;
 extern W8Object0043A910* g_object_6598bc;
-extern const float g_one_005ebb38;
 extern const float g_negative_one_005ebc38;
 extern float g_navigator_snap_angle_005ec2f0;
 extern float g_navigator_mode3_scale_005ebca4;
@@ -760,7 +760,7 @@ void W8Navigator::UpdateAngles00453990()
         direction = g_negative_one_005ebc38;
         if (reverse_distance < distance) {
             distance = reverse_distance;
-            direction = g_one_005ebb38;
+            direction = g_float_005ebb38;
         }
         if (step <= distance) {
             fields.movement_0c0.angle_014 = NormalizeAngle(
@@ -790,7 +790,7 @@ void W8Navigator::UpdateAngles00453990()
         direction = g_negative_one_005ebc38;
         if (reverse_distance < distance) {
             distance = reverse_distance;
-            direction = g_one_005ebb38;
+            direction = g_float_005ebb38;
         }
         if (step <= distance) {
             fields.movement_0c0.pitch_020 = NormalizeAngle(
@@ -809,7 +809,7 @@ void W8Navigator::UpdateAngles00453990()
         direction = g_negative_one_005ebc38;
         if (reverse_distance < distance) {
             distance = reverse_distance;
-            direction = g_one_005ebb38;
+            direction = g_float_005ebb38;
         }
         if (distance < step) {
             fields.movement_0c0.roll_028 = fields.movement_0c0.target_roll_02c;

@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/grcycle.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
@@ -9,11 +10,14 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/utility.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srCore.h"
+#include <math.h>
 #include <new>
 #include <string.h>
 
@@ -470,7 +474,7 @@ unsigned char W8GrCycle::GetAnimationBounds(
        the prototype in AnimObj.h. */
     return ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
         animation,
-        representation->setting_98,
+        representation->m_bLOD,
         representation->flag_064,
         (srVector3T<float>*)minimum,
         (srVector3T<float>*)maximum);
@@ -540,12 +544,12 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
 
     if (AnimationIsRunning(animation) == 1) {
         unsigned int count = AnimObjListCount004A1620(
-            animation, representation->setting_98);
+            animation, representation->m_bLOD);
         unsigned int index;
 
         for (index = 0; index < count; ++index) {
             W8PathAI* path = (W8PathAI*)AnimObjListEntry004A16C0(
-                animation, representation->setting_98, (signed char)index);
+                animation, representation->m_bLOD, (signed char)index);
             if (path != 0) {
                 PathAISetValue004A9F60(
                     path, (float)representation->flag_064);
@@ -569,6 +573,234 @@ void W8GrCycle::ResetRepresentation004A7420()
         g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
 }
 
+/* Push the cycle's animation state into the live scene.
+
+   A running animation places every model instance its current list holds; a
+   stopped one places the single instance the cycle/frame/LOD selector returns,
+   and then walks that instance's children when it has any. Either way the
+   representation's four-dword render block and its optional scale ride along,
+   and the last instance placed becomes the cached one.
+
+   The ground shadow and the owned lights follow. The shadow deliberately
+   reparents to the global world rather than to the pWorld argument, which is
+   why both appear in one body. */
+// FUNCTION: WIZ8 0x004a7470
+void W8GrCycle::UpdateRepresentation(W8World* pWorld)
+{
+    W8EmitterHost* pRep = GetRepresentation();
+    W8AnimObj* animation;
+    srMatrix3T<float> rotation;
+    srVector3T<double> location;
+    srVector3T<float> vecPos;
+    int index;
+
+    if (pWorld == 0) {
+        srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3d1, 0);
+    }
+    if (pRep->active == 0) {
+        return;
+    }
+    animation = GetCurrentAnimation();
+    if (AnimationIsRunning(animation) == 1) {
+        int count = (int)AnimObjListCount004A1620(animation, pRep->m_bLOD);
+
+        for (index = 0; index < count; ++index) {
+            stModelInstance005EC7D0* psrMesh =
+                (stModelInstance005EC7D0*)AnimObjDispatchList004A1560(
+                    animation, pRep->m_bLOD, (signed char)index);
+            W8PathAI* path;
+            srMatrix3T<float> current;
+
+            if (psrMesh == 0) {
+                srAssertFail(
+                    "psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3e4, 0);
+            }
+            *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
+            if (pRep->flag_061 != 0) {
+                if (pRep->value_05c == g_float_005ebb38) {
+                    psrMesh->flag_1a0 = 0;
+                } else {
+                    psrMesh->flag_1a0 = 1;
+                    psrMesh->scale_1a4 = pRep->value_05c;
+                }
+            }
+            psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+            psrMesh->setParent(pWorld->dynamic_scene, 0);
+            path = (W8PathAI*)AnimObjListEntry004A16C0(
+                animation, pRep->m_bLOD, (signed char)index);
+            if (path != 0) {
+                PathAIApply004AA520(path, psrMesh);
+            }
+            vecPos = fields.movement_0c0.position_040;
+            location.x = vecPos.x;
+            location.y = vecPos.y + fields.movement_0c0.vertical_offset_0c0;
+            location.z = vecPos.z;
+            psrMesh->setLocation(location);
+            pRep->GetRotation004B88F0(&rotation);
+            psrMesh->getRotation(current);
+            rotation.method_00421A40(current);
+            psrMesh->setRotation(rotation);
+            current_model_instance_1a8 = psrMesh;
+        }
+    } else {
+        stModelInstance005EC7D0* psrMesh =
+            (stModelInstance005EC7D0*)SelectCycleFrameLod004A8360(
+                pRep->selection.monster.current_cycle,
+                pRep->flag_064,
+                (signed char)pRep->m_bLOD);
+        srNode* child;
+
+        if (psrMesh == 0) {
+            srAssertFail(
+                "psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
+        }
+        AniMeshSetFlag10004B6860(
+            pRep->GetEmitterAniMesh(pRep->selection.monster.current_cycle), 1);
+        *(W8AnimRepValue4*)&psrMesh->render_depth_164 = pRep->value_04c;
+        if (pRep->flag_061 != 0) {
+            if (pRep->value_05c == g_float_005ebb38) {
+                psrMesh->flag_1a0 = 0;
+            } else {
+                psrMesh->flag_1a0 = 1;
+                psrMesh->scale_1a4 = pRep->value_05c;
+            }
+        }
+        vecPos = fields.movement_0c0.position_040;
+        location.x = vecPos.x;
+        location.y = vecPos.y + fields.movement_0c0.vertical_offset_0c0;
+        location.z = vecPos.z;
+        pRep->GetRotation004B88F0(&rotation);
+        child = psrMesh->firstChild();
+        if (child == 0) {
+            psrMesh->setLocation(location);
+            psrMesh->setRotation(rotation);
+            psrMesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+        } else {
+            do {
+                child->setLocation(location);
+                child->setRotation(rotation);
+                child = child->nextSibling();
+            } while (child != 0);
+        }
+        current_model_instance_1a8 = psrMesh;
+        psrMesh->clearFlag(srNode::FLAG_POSITIONAL_1);
+        psrMesh->setParent(pWorld->dynamic_scene, 0);
+    }
+    Function4A7E50();
+    if (m_ground_shadow != 0) {
+        srVector3T<float> position = GetPosition();
+
+        location.x = position.x;
+        location.y = position.y;
+        location.z = position.z;
+        m_ground_shadow->setLocation(location);
+        m_ground_shadow->angle_138 = GetAngleD400453970();
+        m_ground_shadow->clearFlag(srNode::FLAG_POSITIONAL_1);
+        m_ground_shadow->setParent(g_world->dynamic_scene, 0);
+    }
+    if (m_plsLights != 0) {
+        int count = m_plsLights->GetCount();
+        srVector3T<float> origin;
+
+        if (AnimationIsRunning(animation) == 1) {
+            pRep->GetLocation004B8890(&origin);
+        } else {
+            vecPos = fields.movement_0c0.position_040;
+            origin.x = vecPos.x;
+            origin.y = vecPos.y + fields.movement_0c0.vertical_offset_0c0;
+            origin.z = vecPos.z;
+        }
+        pRep->GetRotation004B88F0(&rotation);
+        for (index = 0; index < count; ++index) {
+            stLight* light = *m_plsLights->GetAt(index);
+            srVector3T<float> offset = light->m_positional_228;
+
+            location.x = rotation.vectors[0].x * offset.x +
+                rotation.vectors[0].y * offset.y +
+                rotation.vectors[0].z * offset.z + origin.x;
+            location.y = rotation.vectors[1].x * offset.x +
+                rotation.vectors[1].y * offset.y +
+                rotation.vectors[1].z * offset.z + origin.y;
+            location.z = rotation.vectors[2].x * offset.x +
+                rotation.vectors[2].y * offset.y +
+                rotation.vectors[2].z * offset.z + origin.z;
+            light->setLocation(location);
+        }
+    }
+}
+
+/* Choose the level of detail for the current cycle from the distance to the
+   listener and from which LODs the cycle actually has.
+
+   Availability is probed by asking the representation for each LOD's frame
+   zero; a cycle with none of the three is a content error and says so. The
+   distance thresholds are the representation's own pair scaled by the detail
+   slider, and LOD 2 is the near one. The tail then lets the fog/detail setting
+   override the distance choice in either direction, but only towards a LOD the
+   cycle has. */
+// FUNCTION: WIZ8 0x004a7be0
+void W8GrCycle::SelectLOD004A7BE0(const float* position)
+{
+    W8EmitterHost* pRep = GetRepresentation();
+    srVector3T<float> vecLoc = pRep->location_004;
+    float dx = vecLoc.x - position[0];
+    float dy = vecLoc.y - position[1];
+    float dz = vecLoc.z - position[2];
+    float distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
+    unsigned char has_lod_2 =
+        pRep->SetCycleFrameLod(pRep->selection.monster.current_cycle, 0, 2) != 0;
+    unsigned char has_lod_1 =
+        pRep->SetCycleFrameLod(pRep->selection.monster.current_cycle, 0, 1) != 0;
+    unsigned char has_lod_0 =
+        pRep->SetCycleFrameLod(pRep->selection.monster.current_cycle, 0, 0) != 0;
+
+    if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
+        ReportError00401920("Monster has no valid LODs!");
+    }
+    if (g_render_brightness_60a210 * pRep->lod_range_09c > distance) {
+        if (has_lod_2 != 0) {
+            pRep->m_bLOD = 2;
+        } else if (has_lod_1 != 0) {
+            pRep->m_bLOD = 1;
+        } else {
+            pRep->m_bLOD = 0;
+        }
+    } else if (g_render_brightness_60a210 * pRep->lod_range_0a0 > distance) {
+        if (has_lod_1 != 0) {
+            pRep->m_bLOD = 1;
+        } else if (has_lod_2 != 0) {
+            pRep->m_bLOD = 2;
+        } else {
+            pRep->m_bLOD = 0;
+        }
+    } else {
+        if (has_lod_0 != 0) {
+            pRep->m_bLOD = 0;
+        } else if (has_lod_1 != 0) {
+            pRep->m_bLOD = 1;
+        } else {
+            pRep->m_bLOD = 2;
+        }
+    }
+    if (g_render_fog_distance_60e610 <= g_float_005ebc3c && pRep->m_bLOD != 2) {
+        if (has_lod_2 != 0) {
+            pRep->m_bLOD = 2;
+        }
+        return;
+    }
+    if ((g_render_fog_distance_60e610 <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
+        (g_render_fog_distance_60e610 >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
+        if (has_lod_1 != 0) {
+            pRep->m_bLOD = 1;
+        }
+        return;
+    }
+    if (g_render_fog_distance_60e610 >= g_float_005ec390 && pRep->m_bLOD != 0 &&
+        has_lod_0 != 0) {
+        pRep->m_bLOD = 0;
+    }
+}
+
 /* Select the model instance for the representation's current cycle, frame,
    and LOD. AnimObj's frame lookup is the source of the returned instance; the
    callers immediately use it as an srNode/srModelInstance. */
@@ -586,13 +818,13 @@ srModelInstance* W8GrCycle::GetCurrentModelInstance004A8250()
     representation = GetRepresentation();
     if (AnimationIsRunning(animation) == 1) {
         return AnimObjDispatchList004A1560(
-            animation, representation->setting_98, 0);
+            animation, representation->m_bLOD, 0);
     }
 
     return SelectCycleFrameLod004A8360(
         representation->selection.monster.current_cycle,
         representation->flag_064,
-        (signed char)representation->setting_98);
+        (signed char)representation->m_bLOD);
 }
 
 // FUNCTION: WIZ8 0x004a8360

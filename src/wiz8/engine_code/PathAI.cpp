@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srHeap.h"
@@ -12,7 +13,6 @@ extern "C" void NoOp(W8PathAI* path, W8PathRepresentation* representation);
 extern unsigned char Function4A4CF0(W8PathAI* path);
 extern void Function4A9FE0(W8PathAI* path, float value);
 extern float g_float_005ebb34;
-extern float g_float_005ebb38;
 extern float g_float_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;

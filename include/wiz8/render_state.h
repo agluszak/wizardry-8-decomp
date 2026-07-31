@@ -27,6 +27,9 @@ extern unsigned char g_block_652ddc[0x12c0];
 extern IDirectDraw2* g_direct_draw2_6596a0;
 extern srModelInstance* g_current_model_instance_65962c;
 extern int g_renderer_mode_603d74;
+/* The two detail-slider values GrCycle.cpp's LOD selector reads. */
+extern float g_render_brightness_60a210;
+extern float g_render_fog_distance_60e610;
 /* The pair the mode-select bodies write together, promoted here for the same
    reason: renderer_window.cpp defines them and the recovered setters read them
    from outside it. */
