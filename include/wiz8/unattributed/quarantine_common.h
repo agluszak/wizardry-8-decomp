@@ -9,10 +9,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srNode.h"
 #include "surrender/srTexture.h"
-#include "himage.h"
-#include "input.h"
 
-#include <stdlib.h>
 #include <string.h>
 
 /* Shared declarations for address-interval quarantine units. Definitions live
@@ -36,46 +33,10 @@ struct W8Forwarded {
     void Method4C5290();
 };
 
-/* Screen-lifecycle helpers whose owning units define them with C++ linkage. The
-   spelling has to agree with the definition or the reference resolves nowhere,
-   which is why these three sit outside the block below. */
-void ResetRegions(void);
-unsigned char SetFlag603C60(void);
-unsigned char ClearFlag603C60(void);
-
 extern "C" {
 
 extern void Function4C4EF0(void);
 extern void Function4A7A70(int value);
-
-/* The screen-lifecycle helpers the record bodies in these units reach. Every one
-   is defined by whichever unit owns its address; these are declarations only. */
-extern void NoOp(void);
-extern void ShutdownDisplayList(void);
-extern unsigned char ClearPrimarySurface(void);
-extern void UpdateHeldItemCursor(void);
-extern void Function548F90(int target, int object, int frame, short y,
-                           int a5, int a6, int a7, int a8);
-extern unsigned char FillSurfaceRect(int surface_id, int left, int top, int right,
-                                     int bottom, int colour);
-/* 0x00422B10 clears the software frame and retires the transient 2D overlays;
-   0x00422F10 is the scene-side teardown the same frames are torn down through.
-   Only the first is recovered. */
-extern void Function422B10(void);
-extern void Function422F10(void);
-extern void Function426790(void);
-/* 0x004F1910, the region manager's own dispatch for one dequeued input atom.
-   It reports whether it consumed the atom, so a screen loop can fall through to
-   its own key handling. */
-extern unsigned char Function4F1910(InputAtom* input);
-
-/* 0x0069B7C8: the loading screen's descriptor, malloc'd by lifecycle record 4's
-   entry handler and released by its tick when the leaving flag is set. Nothing
-   in these units reads a field, so it stays an opaque block. */
-extern void* g_load_descriptor_69b7c8;
-extern unsigned char g_flag_6f0628;
-extern unsigned char g_flag_6f04e8;
-extern unsigned char g_flag_6f04ed;
 
 extern int g_clip_left_600078;
 extern int g_clip_top_60007c;

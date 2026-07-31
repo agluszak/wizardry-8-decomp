@@ -9,10 +9,13 @@
 
 extern "C" {
 
+// GLOBAL: WIZ8 0x0068EC78
 W8ScreenStateStorage g_screen_state_0068ec78 = { -1 };
+// GLOBAL: WIZ8 0x0068ED10
 W8ScreenStateStorage g_dword_68ed10 = { -1 };
 unsigned char g_flag_68edac;
 void* g_stack_68eda8;
+// GLOBAL: WIZ8 0x00686A70
 int g_dword_686a70 = -1;
 unsigned char g_flag_68ed14;
 int g_dword_68ed18;
