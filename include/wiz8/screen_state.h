@@ -17,3 +17,14 @@ extern "C" W8ScreenStateStorage g_screen_state_0068ec78;
 extern "C" W8ScreenStateStorage g_dword_68ed10;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
+
+/* 0x0069C0F4: the camp screen's state block, allocated while that screen is up.
+   Lifecycle record 6 - the camp record, which the screen enum's W8_SCREEN_CAMP
+   selects - clears the pointer from its initializer, and the redraw router reads
+   the flag word through it. Only that word is established. */
+struct W8CampScreenState0069C0F4 {
+    unsigned char m_positional_000[0xf8];
+    unsigned int redraw_flags;            /* 0xf8 */
+};
+
+extern "C" W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
