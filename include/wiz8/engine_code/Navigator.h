@@ -85,6 +85,11 @@ struct W8NavigatorMovement004572C0 {
     unsigned char position_adjusted_0c8;
     unsigned char unknown_0c9[3];
 
+    /* Copies the eleven fields a navigator carries across from another's
+       movement tail and invalidates value_010. It returns nothing, so it is a
+       named member rather than an assignment operator. */
+    void Assign004574D0(const W8NavigatorMovement004572C0& other);
+
     /* Releases the attachment at +0xac, which owns two further allocations of
        its own. Retail runs this as the member's destructor - 0x00452120 calls
        it last, on this+0xc0, exactly where a member destructor would go - but
