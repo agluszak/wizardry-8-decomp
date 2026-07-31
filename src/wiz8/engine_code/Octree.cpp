@@ -284,7 +284,7 @@ W8Octree::~W8Octree()
     free(m_owned_0a0);
     free(m_owned_0d0);
     free(m_owned_0d4);
-    DestroyBitArray(m_owned_0dc);
+    DestroyBitArray(m_pAlphaBits);
     free(m_owned_0b0);
     free(m_owned_12c);
     free(m_owned_148);
@@ -310,14 +310,14 @@ W8Octree::~W8Octree()
     DestroyBitArray(m_owned_160);
     DestroyBitArray(m_owned_164);
 
-    free(m_owned_0e0);
-    m_owned_0e0 = 0;
-    free(m_owned_0e4);
-    m_owned_0e4 = 0;
-    free(m_owned_0ec);
-    m_owned_0ec = 0;
-    free(m_owned_0f0);
-    m_owned_0f0 = 0;
+    free(m_pusMeshParticleLookup);
+    m_pusMeshParticleLookup = 0;
+    free(m_pusMeshParticles);
+    m_pusMeshParticles = 0;
+    free(m_pusMeshPropLookup);
+    m_pusMeshPropLookup = 0;
+    free(m_pusMeshProps);
+    m_pusMeshProps = 0;
     free(m_papProps);
     free(m_papParticles);
 
@@ -352,7 +352,7 @@ W8Octree::~W8Octree()
         operator delete(pathing_180);
         pathing_180 = 0;
     }
-    DestroyBitArray(visited_18c);
+    DestroyBitArray(m_pPropSunBits);
     Function46CDD0();
 }
 
@@ -367,7 +367,7 @@ extern void OctreeTraverse(
 void W8Octree::SetVisitedSet0042E3E0(BitArray* visited)
 {
     if (visited->puiIndex != 0) {
-        visited_18c = visited;
+        m_pPropSunBits = visited;
     }
 }
 
@@ -383,7 +383,7 @@ int W8Octree::MarkVisited0042E400(int offset)
         return 0;
     }
     g_shared_mark_006598ac = mark_base_184 + offset;
-    if (visited_18c != 0 && visited_18c->Test(g_shared_mark_006598ac)) {
+    if (m_pPropSunBits != 0 && m_pPropSunBits->Test(g_shared_mark_006598ac)) {
         return 1;
     }
     return 0;
