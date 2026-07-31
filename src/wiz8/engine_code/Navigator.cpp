@@ -9,8 +9,15 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/utility.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
+
+/* The world object the navigator notifies when it leaves a location, and
+   the notification itself. 0x0042E880 sits outside every assertion-backed
+   interval, so it keeps an address-qualified name. */
+extern void* g_object_6598a4;
+extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
 
 namespace {
 
@@ -50,6 +57,33 @@ void RegisterNavigator(W8Navigator* navigator)
     g_navigators_659b3c[g_navigator_count_659b34++] = navigator;
 }
 
+/* The removal counterpart, inlined into the destructor: find this navigator by
+   address, shift the tail down over it and drop the count. The array itself is
+   never shrunk, so the capacity survives the removal. */
+inline int FindNavigator(const W8Navigator* navigator)
+{
+    int index;
+
+    for (index = 0; index < g_navigator_count_659b34; ++index) {
+        if (g_navigators_659b3c[index] == navigator) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+inline void UnregisterNavigator(const W8Navigator* navigator)
+{
+    int index = FindNavigator(navigator);
+
+    if (index < g_navigator_count_659b34 && index >= 0) {
+        for (; index < g_navigator_count_659b34 - 1; ++index) {
+            g_navigators_659b3c[index] = g_navigators_659b3c[index + 1];
+        }
+        --g_navigator_count_659b34;
+    }
+}
+
 }
 
 // FUNCTION: WIZ8 0x00456ae0
@@ -86,6 +120,55 @@ W8Navigator::W8Navigator()
     unknown_004[96] = 0x3f800000;
     node_18c = new srNode(0);
     RegisterNavigator(this);
+}
+
+/* The attachment and both allocations hanging off it. Each pointer is cleared
+   before its storage goes back, and the two use different allocators. */
+// FUNCTION: WIZ8 0x00457530
+void W8NavigatorMovement004572C0::Release00457530()
+{
+    W8NavigatorAttachment* attachment = attachment_0ac;
+
+    if (attachment != 0) {
+        srVector3T<float>* position = attachment->position_4c;
+
+        if (position != 0) {
+            attachment->position_4c = 0;
+            srHeap.free(position);
+        }
+        if (attachment->allocation_50 != 0) {
+            void* allocation = attachment->allocation_50;
+
+            attachment->allocation_50 = 0;
+            free(allocation);
+        }
+        ::operator delete(attachment);
+    }
+    attachment_0ac = 0;
+}
+
+/* Everything this navigator owns, in the order the retail body releases it.
+   The path goes through the kind-guarded PathAI helper rather than the general
+   one; the object at +0xa0 is deleted through its own virtual slot; the scene
+   node is reference-counted down, not deleted, so whoever else holds it keeps
+   it alive; and the movement tail's own destructor releases the attachment.
+   Leaving the world's location index is a notification, not a release. */
+// FUNCTION: WIZ8 0x00452120
+W8Navigator::~W8Navigator()
+{
+    if (fields.path_ai_068 != 0) {
+        DestroyOwnedPathAI004A9110(fields.path_ai_068);
+    }
+    UnregisterNavigator(this);
+    delete fields.owned_object_0a0;
+    fields.owned_object_0a0 = 0;
+    if (fields.movement_0c0.location_id_004 != 0 && g_object_6598a4 != 0) {
+        LeaveLocation0042E880(fields.movement_0c0.location_id_004, 0xd);
+    }
+    if (node_18c != 0) {
+        node_18c->release();
+    }
+    fields.movement_0c0.Release00457530();
 }
 
 // FUNCTION: WIZ8 0x004534c0
