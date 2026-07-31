@@ -12,7 +12,8 @@ struct W8ScreenStateRuntime {
     int mode;                      /* 0x04 */
     int parameter;                 /* 0x08 */
     int parameter_2;               /* 0x0c */
-    int parameter_3;               /* 0x10 */
+    void* parameter_3;             /* 0x10, the save payload the Please Wait
+                                      screen's mode 2 hands to SaveGame */
     unsigned char unknown_14[4];   /* 0x14 */
     char name[0x80];               /* 0x18 */
 };
