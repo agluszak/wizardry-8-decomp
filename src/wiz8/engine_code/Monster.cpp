@@ -1052,9 +1052,11 @@ void W8Monster::Update()
             case 0x17:
                 if (Query(7) != 0) {
                     if ((signed char)fields.flags_00c != 0) {
-                        fields.values_018.value_020 = 0x17;
-                        fields.values_018.value_018 = GetTickCount();
-                        fields.values_018.value_01c = Random(2000) + 2000;
+                        *reinterpret_cast<unsigned int*>(
+                            &fields.movement_target_018.z) = 0x17;
+                        *reinterpret_cast<unsigned int*>(
+                            &fields.movement_target_018.x) = GetTickCount();
+                        *reinterpret_cast<unsigned int*>(&fields.movement_target_018.y) = Random(2000) + 2000;
                         m_pRep->selection.monster.pending_cycle = 0x18;
                         m_pRep->flag_06e = 1;
                         m_pRep->behaviour_071 = 1;
@@ -1070,8 +1072,8 @@ void W8Monster::Update()
                 break;
             case 0x18:
                 if (Query(7) != 0) {
-                    if (fields.values_018.value_01c <
-                            GetTickCount() - fields.values_018.value_018 &&
+                    if (*reinterpret_cast<unsigned int*>(&fields.movement_target_018.y) <
+                            GetTickCount() - *reinterpret_cast<unsigned int*>(&fields.movement_target_018.x) &&
                         IsCycleSupported(0x17) != 0) {
                         m_pRep->selection.monster.pending_cycle = 0x17;
                     }
@@ -4061,7 +4063,7 @@ W8AniMesh* W8Monster::GetCurrentAniMesh()
        Preserve the observed caller ABI locally rather than weakening the
        callee's reviewed declaration. */
     return (W8AniMesh*)((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
-        animation, fields.animation_index_080, 0);
+        animation, animationIndex(), 0);
 }
 
 /* Store one value in the two cycle records used as its compact mirrors, then

@@ -18,6 +18,7 @@
    interval, so it keeps an address-qualified name. */
 extern void* g_object_6598a4;
 extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
+extern "C" void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 namespace {
 
@@ -97,29 +98,113 @@ void W8NavigatorAttachment::RecordPosition00456AE0(
 // FUNCTION: WIZ8 0x00451ec0
 W8Navigator::W8Navigator()
 {
-    memset(unknown_004, 0, sizeof(unknown_004));
-    unknown_004[0] = 0;
-    unknown_004[3] = 0xffffffff;
-    unknown_004[8] = 0x00010001;
-    unknown_004[12] = 0x461c4000;
-    unknown_004[13] = 0x469c4000;
-    unknown_004[26] = 0xc3fa0000;
-    unknown_004[27] = 0xc3fa0000;
-    unknown_004[28] = 0xc3fa0000;
-    unknown_004[29] = 0x43fa0000;
-    unknown_004[30] = 0x43fa0000;
-    unknown_004[31] = 0x43fa0000;
-    unknown_004[32] = 0x43fa0000;
-    unknown_004[33] = 1;
-    unknown_004[43] = 0x43fa0000;
-    unknown_004[91] = 0x43fa0000;
-    unknown_004[92] = 0x43fa0000;
-    unknown_004[93] = 0x43fa0000;
-    unknown_004[94] = 0x43fa0000;
-    unknown_004[95] = 0;
-    unknown_004[96] = 0x3f800000;
+    fields.unknown_09d[0] = 0;
+    fields.navigation_mode_008 = 0;
+    fields.flags_00c = 0;
+    fields.collision_margin_010 = 0.0;
+    fields.movement_target_018.x = 0.0f;
+    fields.movement_target_018.y = 0.0f;
+    fields.movement_target_018.z = 0.0f;
+    fields.flag_024 = 1;
+    fields.flag_025 = 0;
+    fields.movement_complete_026 = 1;
+    fields.position_dirty_09c = 0;
+    fields.unknown_027 = 0;
+    fields.position_028.x = 0.0f;
+    fields.position_028.y = 0.0f;
+    fields.position_028.z = 0.0f;
+    fields.position_03c.x = 0.0f;
+    fields.position_03c.y = 0.0f;
+    fields.position_03c.z = 0.0f;
+    fields.unknown_048 = 0;
+    fields.linked_navigator_05c = 0;
+    fields.unknown_060 = 0;
+    fields.unknown_064 = 0;
+    fields.target_navigator_04c = 0;
+    fields.path_ai_068 = 0;
+    fields.minimum_06c.x = -500.0f;
+    fields.minimum_06c.y = -500.0f;
+    fields.minimum_06c.z = -500.0f;
+    fields.maximum_078.x = 500.0f;
+    fields.maximum_078.y = 500.0f;
+    fields.maximum_078.z = 500.0f;
+    fields.movement_0c0.vertical_offset_0c0 = 0.0f;
+    fields.state_088 = 1;
+    fields.unknown_090 = 0;
+    fields.target_last_position_050.x = 0.0f;
+    fields.target_last_position_050.y = 0.0f;
+    fields.target_last_position_050.z = 0.0f;
+    fields.minimum_height_034 = 10000.0f;
+    fields.maximum_height_038 = 20000.0f;
+    fields.movement_0c0.alternate_radius_0b4 = 500.0f;
+    fields.movement_0c0.value_0b0 = 500.0f;
+    fields.radius_084 = 500.0f;
+    fields.movement_0c0.height_offset_0b8 = 500.0f;
+    fields.movement_0c0.secondary_height_offset_0bc = 500.0f;
+    fields.movement_0c0.value_0c4 = 1.0f;
+    fields.movement_0c0.position_adjusted_0c8 = 0;
+    fields.movement_callback_08c = NavigatorDefaultCallback00451EA0;
+    fields.unknown_094 = 0;
+    fields.unknown_098 = 0;
+    fields.owned_object_0a0 = 0;
+    fields.tracked_distance_0b0 = 500.0f;
+    fields.unknown_0bc[1] = 0;
+    fields.tracked_dirty_0b4 = 0;
+    fields.unknown_0bc[0] = 0;
+    fields.linked_update_time_0b8 = 0;
+    fields.movement_0c0.ResetMovement004573D0();
+    fields.tracked_position_0a4.x = 0.0f;
     node_18c = new srNode(0);
     RegisterNavigator(this);
+}
+
+/* The whole 0xCC tail starts cleared apart from a unit movement speed, the byte
+   at +0x76, the invalidated value_010 and the attachment, which the tail
+   allocates and owns from construction rather than acquiring later. */
+// FUNCTION: WIZ8 0x004572c0
+W8NavigatorMovement004572C0::W8NavigatorMovement004572C0()
+{
+    unknown_000 = 0;
+    location_id_004 = 0;
+    value_008 = 0;
+    value_00c = 0;
+    angle_014 = 0.0f;
+    target_angle_018 = 0.0f;
+    unknown_01c = 0.0f;
+    pitch_020 = 0.0f;
+    target_pitch_024 = 0.0f;
+    roll_028 = 0.0f;
+    target_roll_02c = 0.0f;
+    unknown_030 = 0.0f;
+    velocity_034.x = 0.0f;
+    velocity_034.y = 0.0f;
+    velocity_034.z = 0.0f;
+    position_040.x = 0.0f;
+    position_040.y = 0.0f;
+    position_040.z = 0.0f;
+    target_position_04c.x = 0.0f;
+    target_position_04c.y = 0.0f;
+    target_position_04c.z = 0.0f;
+    callback_threshold_058 = 0.0f;
+    callback_progress_05c = 0.0f;
+    movement_scale_060 = 0.0f;
+    movement_speed_064 = 1.0f;
+    turn_rate_068 = 0.0f;
+    pitch_enabled_074 = 0;
+    roll_enabled_075 = 0;
+    unknown_076[0] = 1;
+    vertical_velocity_078 = 0.0f;
+    value_010 = -1;
+    vertical_base_07c = 0.0f;
+    vertical_amplitude_080 = 0.0f;
+    vertical_phase_084 = 0.0f;
+    vector_088.x = 0.0f;
+    vector_088.y = 0.0f;
+    vector_088.z = 0.0f;
+    vector_094 = vector_088;
+    vector_0a0 = vector_088;
+    attachment_0ac = new W8NavigatorAttachment();
+    flag_06c = 0;
 }
 
 /* Only these eleven fields survive a transfer between navigators; everything
@@ -146,7 +231,7 @@ void W8NavigatorMovement004572C0::Assign004574D0(
 /* The attachment and both allocations hanging off it. Each pointer is cleared
    before its storage goes back, and the two use different allocators. */
 // FUNCTION: WIZ8 0x00457530
-void W8NavigatorMovement004572C0::Release00457530()
+W8NavigatorMovement004572C0::~W8NavigatorMovement004572C0()
 {
     W8NavigatorAttachment* attachment = attachment_0ac;
 
@@ -189,7 +274,6 @@ W8Navigator::~W8Navigator()
     if (node_18c != 0) {
         node_18c->release();
     }
-    fields.movement_0c0.Release00457530();
 }
 
 /* Six of the seven modes give the navigator a fresh path record; mode four only
@@ -316,16 +400,16 @@ void W8Navigator::ResetPathAI()
 
 void W8Navigator::configureStartupRange(float range)
 {
-    unknown_004[32] = float_bits(range);
-    unknown_004[35] = 1;
-    unknown_004[91] = float_bits(range);
-    unknown_004[92] = float_bits(range);
+    fields.radius_084 = range;
+    fields.unknown_090 = 1;
+    fields.movement_0c0.value_0b0 = range;
+    fields.movement_0c0.alternate_radius_0b4 = range;
 }
 
 void W8Navigator::configureStartupDepth(float near_depth, float far_depth)
 {
-    unknown_004[93] = float_bits(near_depth);
-    unknown_004[94] = float_bits(far_depth);
+    fields.movement_0c0.height_offset_0b8 = near_depth;
+    fields.movement_0c0.secondary_height_offset_0bc = far_depth;
 }
 
 extern "C" {
