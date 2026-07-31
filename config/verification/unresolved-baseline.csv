@@ -4,7 +4,6 @@ symbol
 ??0W8DialogBase005DC7A0@@QAE@XZ
 ??0W8ObjectBase00439550@@QAE@XZ
 ??0W8Octree@@QAE@PBDPAPAX@Z
-??0W8Pathing00457CF0@@QAE@XZ
 ??0W8ProfRaceInfoDialogBase005DEAF0@@QAE@XZ
 ??0W8SpellEmitterHost@@QAE@ABV0@@Z
 ??0W8StatInfoDialogBase005DF880@@QAE@XZ
@@ -94,7 +93,6 @@ symbol
 ?CompareSignedAscending@@YAHPBX0@Z
 ?CompareSpellPointDeficits@@YAHPBX0@Z
 ?CompatiblePartnerItems@@YAEHH@Z
-?Configure00458A50@W8Pathing00457CF0@@QAEXHHHPBXPBD@Z
 ?ConfigureMovement00453D20@W8Navigator@@QAEEMM@Z
 ?ConfigureMovementToNavigator004529A0@W8Navigator@@QAEGPAV1@HHUW8Position@@HMH@Z
 ?ConvertVector004A90E0@@YAXPAV?$srVector3T@N@@PBV?$srVector3T@M@@@Z
@@ -106,6 +104,7 @@ symbol
 ?CreateAndLoadProp0044BF50@@YAEPAUW8ReadLevelInfo@@PAPAVW8Prop005EC1E0@@@Z
 ?CreateGameData00449010@@YAPAXHH@Z
 ?CreateGroup@@YAPAUW8MonsterGroup@@IIPBUW8Position@@EEE@Z
+?CreatePathState004CAE40@@YAPAXXZ
 ?CreateSpellEffect004AD8A0@@YAPAXPBDHPAVW8Monster@@HH@Z
 ?DecideFacingForPosition@@YACHH@Z
 ?DeleteMonster004C5860@@YAXPAVW8Monster@@@Z
@@ -870,6 +869,10 @@ symbol
 ?g_party_conditions@@3PAUW8ConditionSlot@@A
 ?g_party_facing@@3HA
 ?g_party_heading@@3IA
+?g_path_limit_006081e8@@3MA
+?g_path_reserve_0060827a@@3EA
+?g_path_span_scale_005ec344@@3MA
+?g_pathing_00659c60@@3PAVW8Pathing00457CF0@@A
 ?g_pending_move_location_00687417@@3UW8SavedLocation@@A
 ?g_position_facing@@3PACA
 ?g_position_height_epsilon_005ebfdc@@3MA
