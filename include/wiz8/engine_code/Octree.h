@@ -12,6 +12,27 @@ public:
     void Queue00437000(int kind, int id, const int* point);
 };
 
+/* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
+   ordinary 3D Bresenham over octree cells. One axis drives; the other two each
+   carry a delta, an accumulator and the reset the accumulator takes when it
+   goes negative, which is what makes the two triples symmetric. */
+struct W8OctreeWalk {
+    int cell_00[3];                      /* 0x00: the cell the walk starts in */
+    int step_0c[3];                      /* 0x0c: +1 or -1 per axis */
+    int major_axis_18;                   /* 0x18 */
+    int minor_axis_1c;                   /* 0x1c: (major + 1) % 3 */
+    int minor_axis_20;                   /* 0x20: (major + 2) % 3 */
+    int count_24;                        /* 0x24: cells to visit */
+    int error_delta_28;                  /* 0x28 */
+    int error_2c;                        /* 0x2c */
+    int error_reset_30;                  /* 0x30 */
+    int error_delta_34;                  /* 0x34 */
+    int error_38;                        /* 0x38 */
+    int error_reset_3c;                  /* 0x3c */
+};
+
+static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
+
 class W8Pathing00457CF0 {
 public:
     W8Pathing00457CF0();                  /* 0x004578E0 */
@@ -62,6 +83,8 @@ public:
         int trace_mode);
     void AdjustPortalDestination00434A30(
         W8Position* destination, const W8Position* source);
+    void BuildCellWalk004362D0(
+        const W8Position* from, const W8Position* to, W8OctreeWalk* walk);
     unsigned int AdvanceNavigator00434620(
         W8NavigatorMovement004572C0* movement,
         float radius, float separation);
@@ -174,8 +197,12 @@ public:
     unsigned long m_positional_1b0;
     unsigned long m_positional_1b4;
     unsigned long m_positional_1b8;
-    unsigned long* m_aulGDObjs;
-    unsigned char m_positional_1c0[0xbc];
+    /* The two line-of-sight bodies hand this pair to their result test
+       together with the byte at +0x134, so 0x1bc is storage rather than
+       the GD object table that used to be declared here. */
+    unsigned long m_positional_1bc;
+    unsigned long* m_aulGDObjs;          /* 0x1c0 */
+    unsigned char m_positional_1c4[0xb8];
     unsigned long m_positional_27c;
     unsigned long m_positional_280;
     unsigned long m_positional_284;
