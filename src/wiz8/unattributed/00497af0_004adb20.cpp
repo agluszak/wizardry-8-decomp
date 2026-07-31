@@ -196,13 +196,8 @@ srClass* MonsterLight::clone()
     return instance;
 }
 
-// FUNCTION: WIZ8 0x0049DD60
-srClass* stLight::clone()
-{
-    stLight* instance = static_cast<stLight*>(vInstance());
-    *instance = *this;
-    return instance;
-}
+// TEMPLATE: WIZ8 0x0049DD60
+// srClassSupport<stLight,srLight,0,65542>::clone
 
 // FUNCTION: WIZ8 0x0049E3A0
 srClass* stLight::vInstance()

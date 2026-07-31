@@ -229,25 +229,24 @@ static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,
               "stLightDefinition005ECDA0_size_must_be_0x58");
 
 // VTABLE: WIZ8 0x005ecc64
-class stLight : public srLight {
+class stLight
+    : public srClassSupport<stLight, srLight, false, 0x10006> {
     friend class W8GrCycle;
     friend class Trigger;
 
 public:
+    static const char* sGetClassName() { return "stLight"; }
+
     stLight();                                         /* 0x004CA8B0 */
     stLight(srNode* parent);                         /* 0x0049C2C0 */
     stLight& operator=(const stLight& other);         /* 0x0049C690 */
 
-    virtual const char* getClassName() const override; /* 0x0049DC70 */
-    virtual srRegistry::ClassNode* getClassNode() const override; /* 0x0049DC80 */
-    virtual unsigned long getClassID() const override; /* 0x0049DC60 */
 
 protected:
     virtual ~stLight() override;                    /* 0x0049C430 */
 
 public:
     virtual srClass* vInstance() override;          /* 0x0049E3A0 */
-    virtual srClass* clone() override;               /* 0x0049DD60 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x0049C7A0 */
     virtual void process(
         const srNode::ProcessInfo& info,

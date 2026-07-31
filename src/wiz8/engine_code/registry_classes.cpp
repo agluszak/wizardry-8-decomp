@@ -69,48 +69,6 @@ const char* MonsterLight::getClassName() const
 {
     return "srLight";
 }
-// FUNCTION: WIZ8 0x0049DC60
-unsigned long stLight::getClassID() const
-{
-    return 0x10006;
-}
-// FUNCTION: WIZ8 0x0049DC70
-const char* stLight::getClassName() const
-{
-    return "stLight";
-}
-// FUNCTION: WIZ8 0x0049DC80
-srRegistry::ClassNode* stLight::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10006);
-
-    if (!node) {
-        srRegistry* light_registry = srCore.getRegistry();
-        srRegistry::ClassNode* light = light_registry->getClassNode(0x1220);
-
-        if (!light) {
-            srRegistry* illuminator_registry = srCore.getRegistry();
-            srRegistry::ClassNode* illuminator =
-                illuminator_registry->getClassNode(0x1200);
-
-            if (!illuminator) {
-                srRegistry* node_registry = srCore.getRegistry();
-                srRegistry::ClassNode* base = node_registry->getClassNode(0x1000);
-
-                if (!base) {
-                    base = node_registry->registerClass(
-                        srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-                }
-                illuminator = illuminator_registry->registerClass(
-                    srIlluminator::sGetClassName(), base, 0x1200, 0);
-            }
-            light = light_registry->registerClass("srLight", illuminator, 0x1220, 0);
-        }
-        node = registry->registerClass("stLight", light, 0x10006, 0);
-    }
-    return node;
-}
 // FUNCTION: WIZ8 0x0049E300
 srRegistry::ClassNode* MonsterLight::getClassNode() const
 {
@@ -191,3 +149,17 @@ srClass* W8ClipPlane005ED180::clone()
 
 // TEMPLATE: WIZ8 0x004BA1D0
 // srClassSupport<stLevel,srNode,0,65543>::getClassNode
+
+/* Registry identity is srClassSupport<stLight,srLight,0,65542> output. These
+   addresses are not emitted yet: VC6 instantiates a template's members only
+   where they are odr-used, and stLight's constructor at 0x0049C2C0 and
+   destructor at 0x0049C430 are still unrecovered, so nothing in this image
+   instantiates the specialization. Porting that lifecycle restores them. */
+// TEMPLATE: WIZ8 0x0049DC60
+// srClassSupport<stLight,srLight,0,65542>::getClassID
+
+// TEMPLATE: WIZ8 0x0049DC70
+// srClassSupport<stLight,srLight,0,65542>::getClassName
+
+// TEMPLATE: WIZ8 0x0049DC80
+// srClassSupport<stLight,srLight,0,65542>::getClassNode
