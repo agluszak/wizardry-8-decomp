@@ -115,15 +115,18 @@ public:
     unsigned char m_positional_1da[0x3a];
     void* m_owned_214;                   /* 0x214 */
     int m_positional_218;
-    /* The path table FindPathHandle scans: 0x44-byte entries, count beside it. */
-    unsigned char* paths_21c;            /* 0x21c */
-    int path_count_220;                  /* 0x220 */
-    int m_positional_224;
-    int m_positional_228;
-    int m_positional_22c;
-    int m_positional_230;
-    int m_positional_234;
-    int m_positional_238;
+    /* The conditional path tables. ReadPathNodes at 0x00458CE0 asserts on the
+       first by name and names the other four in its own failure messages: a
+       lookup, a frame, a key and a value array, sized from the two counts. The
+       entries are 0x44 bytes and FindPathHandle scans them by name. */
+    unsigned char* m_pCondPaths;         /* 0x21c */
+    int m_ulNumCondPaths;                /* 0x220 */
+    int m_ulNumCondLookup;               /* 0x224 */
+    int m_ulNumCondKeys;                 /* 0x228 */
+    int* m_pCondLookup;                  /* 0x22c */
+    short* m_pCondFrames;                /* 0x230 */
+    int* m_pCondKeys;                    /* 0x234 */
+    int* m_pCondValues;                  /* 0x238 */
     int m_positional_23c;
 };
 
