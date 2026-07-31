@@ -95,6 +95,7 @@ symbol
 ?CompatiblePartnerItems@@YAEHH@Z
 ?ConfigureMovement00453D20@W8Navigator@@QAEEMM@Z
 ?ConfigureMovementToNavigator004529A0@W8Navigator@@QAEGPAV1@HHUW8Position@@HMH@Z
+?ConstructPathState004CCCB0@@YAXPAX@Z
 ?ConvertVector004A90E0@@YAXPAV?$srVector3T@N@@PBV?$srVector3T@M@@@Z
 ?CopyItemInstance@@YAXPAUW8ItemInstance@@PBU1@HE@Z
 ?CountIdentifyAttemptsNeeded@@YAIPBUW8ItemInstance@@H@Z
@@ -104,6 +105,7 @@ symbol
 ?CreateAndLoadProp0044BF50@@YAEPAUW8ReadLevelInfo@@PAPAVW8Prop005EC1E0@@@Z
 ?CreateGameData00449010@@YAPAXHH@Z
 ?CreateGroup@@YAPAUW8MonsterGroup@@IIPBUW8Position@@EEE@Z
+?CreateOctPathIndex@@YAPAXXZ
 ?CreatePathState004CAE40@@YAPAXXZ
 ?CreateSpellEffect004AD8A0@@YAPAXPBDHPAVW8Monster@@HH@Z
 ?DecideFacingForPosition@@YACHH@Z

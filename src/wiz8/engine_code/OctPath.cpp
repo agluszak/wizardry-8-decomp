@@ -13,12 +13,130 @@ extern unsigned char g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
 extern W8Pathing00457CF0* g_pathing_00659c60;
-extern void* CreatePathState004CAE40(void);
 extern void ConstructPathState004CCCB0(void* state);
+extern void* CreateOctPathIndex();
 extern void* g_path_scratch_00659c64;
 extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
 extern void RegisterPathVertex004B7830(
     unsigned int index, const int* point, const int* second);
+
+#define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
+
+/* Read the path graph out of the octree file.
+
+   Two parts. The hash array pairs a key with a value for every node the service
+   was sized for and goes straight into the first index. Then a four-dword block
+   gives the three conditional-table counts and one loose value, and a graph with
+   fewer than two lookup or key entries is treated as having none at all rather
+   than allocated. Every conditional table's allocation failure asserts against
+   m_pCondPaths rather than against itself, which is the original's own
+   shorthand and is reproduced. */
+// FUNCTION: WIZ8 0x00458ce0
+unsigned char W8Pathing00457CF0::Load00458CE0(int handle)
+{
+    char acMessage[256];
+    unsigned int block[4];
+    unsigned int uiRead;
+    unsigned int* buffer;
+    unsigned int* scan;
+    unsigned char fSuccess = 0;
+    unsigned int index;
+
+    if (size_004 != 0) {
+        m_pIndex_064 = CreateOctPathIndex();
+        m_pIndex_074 = CreateOctPathIndex();
+        buffer = static_cast<unsigned int*>(malloc(size_004 * 8));
+        if (m_pIndex_064 == 0 || buffer == 0) {
+            strcpy(acMessage, "ReadPathNodes: Couldn't allocate path hash array.");
+        } else {
+            fSuccess = ReadVirtualFile(handle, buffer, size_004 * 8, &uiRead);
+            if (fSuccess == 0) {
+                strcpy(acMessage, "ReadPathNodes: Couldn't read path hash array.");
+                free(buffer);
+            } else {
+                scan = buffer;
+                for (index = 0; index < (unsigned int)size_004; ++index) {
+                    InsertEntry0055DBB0(
+                        static_cast<W8OctreeIndex*>(m_pIndex_064),
+                        &scan[0], reinterpret_cast<const int*>(&scan[1]));
+                    scan += 2;
+                }
+                free(buffer);
+            }
+        }
+    }
+    fSuccess = ReadVirtualFile(handle, block, 0x10, &uiRead);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", OCTPATH_CPP, 0x8fa,
+                     "ReadPathNodes: Couldn't write Conditional Counts.\n");
+    }
+    m_ulNumCondPaths = block[0];
+    m_ulNumCondLookup = block[1];
+    m_ulNumCondKeys = block[2];
+    m_positional_000 = block[3];
+    if (m_ulNumCondLookup < 2 || m_ulNumCondKeys < 2) {
+        m_ulNumCondPaths = 0;
+        m_ulNumCondLookup = 0;
+        m_ulNumCondKeys = 0;
+        return fSuccess;
+    }
+    m_pCondPaths = static_cast<unsigned char*>(malloc(block[0] * 0x44));
+    if (m_pCondPaths == 0) {
+        srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x903,
+                     "ReadPathNodes: Couldn't allocate Conditional Prop array.\n");
+    }
+    m_pCondLookup = static_cast<int*>(malloc(m_ulNumCondLookup << 2));
+    if (m_pCondPaths == 0) {
+        srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x905,
+                     "ReadPathNodes: Couldn't allocate Conditional Lookup array.\n");
+    }
+    m_pCondFrames = static_cast<short*>(malloc(m_ulNumCondLookup << 1));
+    if (m_pCondPaths == 0) {
+        srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x907,
+                     "ReadPathNodes: Couldn't allocate Conditional Frame array.\n");
+    }
+    m_pCondKeys = static_cast<int*>(malloc(m_ulNumCondKeys << 2));
+    if (m_pCondPaths == 0) {
+        srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x909,
+                     "ReadPathNodes: Couldn't allocate Conditional Key array.\n");
+    }
+    m_pCondValues = static_cast<int*>(malloc(m_ulNumCondKeys << 2));
+    if (m_pCondPaths == 0) {
+        srAssertFail("m_pCondPaths", OCTPATH_CPP, 0x90b,
+                     "ReadPathNodes: Couldn't allocate Conditional Value array.\n");
+    }
+    fSuccess = ReadVirtualFile(
+        handle, m_pCondPaths, m_ulNumCondPaths * 0x44, &uiRead);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", OCTPATH_CPP, 0x90e,
+                     "ReadPathNodes: Couldn't write Conditional Prop array.\n");
+    }
+    fSuccess = ReadVirtualFile(
+        handle, m_pCondLookup, m_ulNumCondLookup << 2, &uiRead);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", OCTPATH_CPP, 0x910,
+                     "ReadPathNodes: Couldn't write Conditional Lookup array.\n");
+    }
+    fSuccess = ReadVirtualFile(
+        handle, m_pCondFrames, m_ulNumCondLookup << 1, &uiRead);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", OCTPATH_CPP, 0x912,
+                     "ReadPathNodes: Couldn't write Conditional Frame array.\n");
+    }
+    fSuccess = ReadVirtualFile(
+        handle, m_pCondKeys, m_ulNumCondKeys << 2, &uiRead);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", OCTPATH_CPP, 0x914,
+                     "ReadPathNodes: Couldn't write Conditional Frame array.\n");
+    }
+    fSuccess = ReadVirtualFile(
+        handle, m_pCondValues, m_ulNumCondKeys << 2, &uiRead);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", OCTPATH_CPP, 0x916,
+                     "ReadPathNodes: Couldn't write Conditional Value array.\n");
+    }
+    return fSuccess;
+}
 
 /* Offer every flagged surface to the path builder.
 
@@ -256,7 +374,7 @@ W8Pathing00457CF0::W8Pathing00457CF0()
     m_positional_0b8 = 0;
     m_positional_0bc = 0;
     m_positional_0c4 = 0;
-    m_owned_214 = CreatePathState004CAE40();
+    m_owned_214 = new W8PathState004CAE40();
     m_positional_218 = 0;
     m_pCondPaths = 0;
     m_ulNumCondPaths = 0;
@@ -372,3 +490,11 @@ unsigned int W8Pathing00457CF0::FindPathHandle(
     return 0;
 }
 
+
+/* The state object's whole constructor: it defers to the one at 0x004CCCB0 and
+   adds nothing of its own, which is why it has no members to clear here. */
+// FUNCTION: WIZ8 0x004cae40
+W8PathState004CAE40::W8PathState004CAE40()
+{
+    ConstructPathState004CCCB0(this);
+}
