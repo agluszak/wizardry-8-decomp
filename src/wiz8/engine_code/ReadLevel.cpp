@@ -748,7 +748,7 @@ unsigned char ReadMonsterPaths004BC140(
             }
             if (!active) {
                 group->flag_28 = 0;
-                monster->m_pRep->active = 0;
+                monster->m_pRep->flag_06d = 0;
             }
             if (!update_representation) {
                 continue;
@@ -1300,7 +1300,7 @@ unsigned char ReadLevel(
     for (index = 0; index < (int)prop_count; ++index) {
         W8Prop* prop = static_cast<W8Prop*>(
             PLGet(world->plsProps, index));
-        W8AnimObj* animation = prop->m_pRep->animation;
+        W8AnimObj* animation = prop->Rep()->animation;
 
         if ((prop->flags_1c & 0x40) != 0) {
             unsigned int animation_count = AnimObjListCount004A1620(
