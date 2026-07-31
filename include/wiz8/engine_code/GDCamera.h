@@ -4,8 +4,8 @@
 #include "wiz8/geometry.h"
 
 class srNode;
-class W8Camera005EBE14;
-class W8Object005EBCFC;
+class W8Camera;
+class W8IntervalGate;
 struct W8LevelDataRecord;
 
 /* The 12-byte empty-constructed row helper passed to VC6's three-element
@@ -35,46 +35,46 @@ class GDCamera {
 public:
     GDCamera();                                      /* 0x00476140 */
 
-    W8Camera005EBE14* Method00476440(
-        srNode* parent, W8Camera005EBE14* camera);   /* 0x00476440 */
-    void Method00476610(
+    W8Camera* CreateOrAttachCamera(
+        srNode* parent, W8Camera* camera);   /* 0x00476440 */
+    void ApplyRotationMatrix(
         srMatrix3T<float>* rotation,
         W8LevelDataRecord* context);                /* 0x00476610 */
-    void Method00476950(const W8Position* target);   /* 0x00476950 */
-    void Method00476C30(float pitch, float angle);   /* 0x00476C30 */
-    unsigned char Method00476F90(
+    void SnapToTarget(const W8Position* target);   /* 0x00476950 */
+    void SetOrientationImmediate(float pitch, float angle);   /* 0x00476C30 */
+    unsigned char LookAt(
         const W8Position* target,
         unsigned char preserve_pitch);              /* 0x00476F90 */
-    unsigned char Method00477180(
+    unsigned char ComputeTrackingOrientation(
         const W8Position* target,
         float* angle,
         float* pitch);                              /* 0x00477180 */
-    unsigned char Method00477440(
+    unsigned char BeginOrientationTransition(
         float target_pitch, float target_angle,
         unsigned char force);                       /* 0x00477440 */
-    void Method004776A0(float elapsed);              /* 0x004776A0 */
-    void Method00477B90(float input);                /* 0x00477B90 */
-    void Method00477EB0(float input);                /* 0x00477EB0 */
-    void Method00478290();                           /* 0x00478290 */
-    void Method004784C0(float pitch);                /* 0x004784C0 */
-    void Method00478720(float angle);                /* 0x00478720 */
-    void Method004788E0(float angle, float pitch);   /* 0x004788E0 */
-    void Method00478BD0(srMatrix3T<float>* output);  /* 0x00478BD0 */
-    void Method00478CC0();                          /* 0x00478CC0 */
-    void Method00478CE0(
+    void Update(float elapsed);              /* 0x004776A0 */
+    void ApplyYawInput(float input);                /* 0x00477B90 */
+    void ApplyPitchInput(float input);                /* 0x00477EB0 */
+    void BrakePitchAtLimit();                           /* 0x00478290 */
+    void SetPitch(float pitch);                /* 0x004784C0 */
+    void SetYaw(float angle);                /* 0x00478720 */
+    void SetOrientation(float angle, float pitch);   /* 0x004788E0 */
+    void GetRotationMatrix(srMatrix3T<float>* output);  /* 0x00478BD0 */
+    void BeginLeveling();                          /* 0x00478CC0 */
+    void GetForwardPoint(
         float distance, W8Position* output);         /* 0x00478CE0 */
-    void Method00478E00(unsigned char enabled);      /* 0x00478E00 */
+    void SetManualControlActive(unsigned char enabled);      /* 0x00478E00 */
 
     unsigned long m_positional_000;                  /* 0x000 */
-    float m_angle_004;                               /* 0x004 */
-    float m_positional_008;                          /* 0x008 */
-    srMatrix3T<float> m_matrix_00c;                   /* 0x00c */
-    srMatrix3T<float> m_matrix_030;                   /* 0x030 */
-    srMatrix3T<float> m_matrix_054;                   /* 0x054 */
+    float m_yaw;                               /* 0x004 */
+    float m_pitch;                          /* 0x008 */
+    srMatrix3T<float> m_pitch_rotation;                   /* 0x00c */
+    srMatrix3T<float> m_yaw_rotation;                   /* 0x030 */
+    srMatrix3T<float> m_rotation;                   /* 0x054 */
     srVector3T<float> m_direction_078;                /* 0x078 */
-    float m_elapsed_084;                             /* 0x084 */
-    unsigned char m_flag_088;                        /* 0x088 */
-    unsigned char m_flag_089;                        /* 0x089 */
+    float m_frame_elapsed;                             /* 0x084 */
+    unsigned char m_transition_active;                        /* 0x088 */
+    unsigned char m_forced_transition;                        /* 0x089 */
     unsigned char m_padding_08a[2];
     W8Position m_position_08c;                       /* 0x08c */
     float m_target_angle_098;                        /* 0x098 */
@@ -86,23 +86,23 @@ public:
     float m_angle_distance_0b0;                      /* 0x0b0 */
     float m_pitch_distance_0b4;                      /* 0x0b4 */
     float m_transition_duration_0b8;                 /* 0x0b8 */
-    W8Object005EBCFC* m_owned_0bc;                   /* 0x0bc */
+    W8IntervalGate* m_manual_input_timer;                   /* 0x0bc */
 };
 
 extern GDCamera* g_gd_camera_65a0f8;
-extern W8Camera005EBE14* g_game_camera_65a0fc;
+extern W8Camera* g_game_camera_65a0fc;
 
-W8Camera005EBE14* CreateOrSetGameCamera(
-    srNode* parent, W8Camera005EBE14* camera);
-float GetCameraAngleRadians420DD0();
-void Function420E00();
-void Function420F70();
-void Function420FD0(float degrees);
-void Function421000(float degrees);
-void Function421030(srMatrix3T<float>* rotation);
+W8Camera* CreateOrSetGameCamera(
+    srNode* parent, W8Camera* camera);
+float GetCameraYawRadians();
+void BeginManualCameraControl();
+void LevelCamera();
+void TurnCameraToDegrees(float degrees);
+void SetCameraYawDegrees(float degrees);
+void ApplyCameraRotation(srMatrix3T<float>* rotation);
 void Function421100(float distance, W8Position* output);
 void Function421150(float distance, W8Position* output);
-void Function4213E0(
+void SetCameraOrientation(
     float* angle, float* pitch, srMatrix3T<float>* rotation);
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");

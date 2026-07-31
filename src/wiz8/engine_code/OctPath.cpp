@@ -13,7 +13,7 @@
 extern unsigned char g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
-extern W8Pathing00457CF0* g_pathing_00659c60;
+extern W8PathingService* g_pathing_00659c60;
 extern void ConstructPathState004CCCB0(void* state);
 extern void* CreateOctPathIndex();
 extern void* g_path_scratch_00659c64;
@@ -33,7 +33,7 @@ extern void RegisterPathVertex004B7830(
    m_pCondPaths rather than against itself, which is the original's own
    shorthand and is reproduced. */
 // FUNCTION: WIZ8 0x00458ce0
-unsigned char W8Pathing00457CF0::Load00458CE0(int handle)
+unsigned char W8PathingService::Load00458CE0(int handle)
 {
     char acMessage[256];
     unsigned int block[4];
@@ -147,7 +147,7 @@ unsigned char W8Pathing00457CF0::Load00458CE0(int handle)
    third bound - and the two conversions happen in the order the point's fields
    do not. */
 // FUNCTION: WIZ8 0x00460020
-void W8Pathing00457CF0::LinkSurfaces00460020()
+void W8PathingService::LinkSurfaces00460020()
 {
     unsigned int index = 1;
     int offset = 0x28;
@@ -161,9 +161,9 @@ void W8Pathing00457CF0::LinkSurfaces00460020()
     do {
         surface = m_pSurfaces_048 + offset;
         if ((*surface & 0x40) != 0) {
-            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - bounds_02c[2]) /
+            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
                               grid_scale_01c);
-            point[0] = (int)((*reinterpret_cast<float*>(surface + 4) - bounds_02c[0]) /
+            point[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
                              grid_scale_01c);
             point[1] = converted;
             RegisterPathSurface004B7730(index, point);
@@ -178,7 +178,7 @@ void W8Pathing00457CF0::LinkSurfaces00460020()
    those surfaces contributes one converted point, so the builder receives the
    edge as a pair. */
 // FUNCTION: WIZ8 0x004600b0
-void W8Pathing00457CF0::LinkEdges004600B0()
+void W8PathingService::LinkEdges004600B0()
 {
     unsigned int index = 1;
     int offset = 0xe;
@@ -197,17 +197,17 @@ void W8Pathing00457CF0::LinkEdges004600B0()
         if ((*reinterpret_cast<unsigned int*>(edge) & 0x20000000) != 0) {
             surface_index = *reinterpret_cast<unsigned short*>(edge + 4);
             surface = m_pSurfaces_048 + surface_index * 0x28;
-            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - bounds_02c[2]) /
+            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
                               grid_scale_01c);
-            first[0] = (int)((*reinterpret_cast<float*>(surface + 4) - bounds_02c[0]) /
+            first[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
                              grid_scale_01c);
             first[1] = converted;
 
             surface_index = *reinterpret_cast<unsigned short*>(edge + 6);
             surface = m_pSurfaces_048 + surface_index * 0x28;
-            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - bounds_02c[2]) /
+            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - level_bounds[2]) /
                               grid_scale_01c);
-            second[0] = (int)((*reinterpret_cast<float*>(surface + 4) - bounds_02c[0]) /
+            second[0] = (int)((*reinterpret_cast<float*>(surface + 4) - level_bounds[0]) /
                               grid_scale_01c);
             second[1] = converted;
             RegisterPathVertex004B7830(index, first, second);
@@ -225,7 +225,7 @@ void W8Pathing00457CF0::LinkEdges004600B0()
    sets and the two hash indexes through their own teardown, and the global slot
    the constructor claimed is cleared last. */
 // FUNCTION: WIZ8 0x00457b10
-void W8Pathing00457CF0::Release00457B10()
+void W8PathingService::Release00457B10()
 {
     void** index;
 
@@ -323,14 +323,14 @@ void W8Pathing00457CF0::Release00457B10()
    itself in the global slot as it is built, which is what lets the rest of the
    engine reach it without the octree handing it over. */
 // FUNCTION: WIZ8 0x004578e0
-W8Pathing00457CF0::W8Pathing00457CF0()
+W8PathingService::W8PathingService()
 {
     int index;
 
     grid_scale_01c = 0;
     span_020 = 0;
     for (index = 0; index < 6; ++index) {
-        bounds_02c[index] = 0;
+        level_bounds[index] = 0;
     }
     m_owned_044 = 0;
     size_004 = 0;
@@ -348,7 +348,7 @@ W8Pathing00457CF0::W8Pathing00457CF0()
     m_owned_060 = new BitArray(100);
     m_pIndex_064 = 0;
     m_pIndex_074 = 0;
-    name_068 = 0;
+    level_name = 0;
     flag_08c = 0;
     m_owned_06c = 0;
     m_positional_070 = 0x501502f9;
@@ -392,21 +392,21 @@ W8Pathing00457CF0::W8Pathing00457CF0()
 /* Take the octree's own bounds and level name. The span is the vertical extent
    of that box scaled, and the cell count is that span plus one. */
 // FUNCTION: WIZ8 0x00458a50
-void W8Pathing00457CF0::Configure00458A50(
+void W8PathingService::ConfigureForLevel(
     int size, float grid_scale, int value_28, const float* bounds, const char* name)
 {
     size_004 = size;
     grid_scale_01c = grid_scale;
     value_028 = value_28;
-    bounds_02c[0] = bounds[0];
-    bounds_02c[1] = bounds[1];
-    bounds_02c[2] = bounds[2];
-    bounds_02c[3] = bounds[3];
-    bounds_02c[4] = bounds[4];
-    bounds_02c[5] = bounds[5];
-    span_020 = (bounds_02c[4] - bounds_02c[1]) * g_path_span_scale_005ec344;
+    level_bounds[0] = bounds[0];
+    level_bounds[1] = bounds[1];
+    level_bounds[2] = bounds[2];
+    level_bounds[3] = bounds[3];
+    level_bounds[4] = bounds[4];
+    level_bounds[5] = bounds[5];
+    span_020 = (level_bounds[4] - level_bounds[1]) * g_path_span_scale_005ec344;
     cell_count_024 = (short)(int)span_020 + 1;
-    name_068 = name;
+    level_name = name;
 }
 
 /* Look one named path up, and report the region and height range it spans.
@@ -417,7 +417,7 @@ void W8Pathing00457CF0::Configure00458A50(
    low and high halves of each entry, and the height from the entry's low half
    scaled by the service's own span and lifted by the bounds floor. */
 // FUNCTION: WIZ8 0x00457cf0
-unsigned int W8Pathing00457CF0::FindPathHandle(
+unsigned int W8PathingService::FindPathHandle(
     const unsigned char* path_name,
     unsigned short* path_bounds,
     float* path_range)
@@ -470,7 +470,7 @@ unsigned int W8Pathing00457CF0::FindPathHandle(
                     }
                     height = (float)(*reinterpret_cast<unsigned int*>(
                                          inner + reinterpret_cast<int>(m_pCondValues)) & 0xffff) *
-                            span_020 + bounds_02c[1];
+                            span_020 + level_bounds[1];
                     if (height < path_range[0]) {
                         path_range[0] = height;
                     }

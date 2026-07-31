@@ -320,7 +320,7 @@ unsigned char LoadLevel(
                         sin(trigger->angle_0fc), cos(trigger->angle_0fc),
                         &axis.x);
                 }
-                Function421030(&rotation);
+                ApplyCameraRotation(&rotation);
             }
         }
         else {

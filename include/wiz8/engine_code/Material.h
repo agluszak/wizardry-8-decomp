@@ -10,9 +10,9 @@
    emissions inherited from srMaterial; this class defines none of them. Do not
    reintroduce getClassName, getClassID, getClassNode or clone overrides here. */
 // VTABLE: WIZ8 0x005ebde0
-class W8Material005EBDE0 : public srMaterial {
+class W8Material : public srMaterial {
 public:
-    W8Material005EBDE0()
+    W8Material()
     {
     }
 
@@ -38,5 +38,5 @@ public:
     }
 };
 
-static_assert(sizeof(W8Material005EBDE0) == 0x78,
-              "W8Material005EBDE0_must_be_0x78");
+static_assert(sizeof(W8Material) == 0x78,
+              "W8Material_must_be_0x78");

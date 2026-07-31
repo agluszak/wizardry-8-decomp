@@ -112,7 +112,7 @@ extern unsigned char InitializeRendererSceneObjects(void);
 extern void Function56AAB0(void);
 extern unsigned char Function422800(void);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
-extern void Function426500(srScene* scene);
+extern void PurgeInactiveSceneInstances(srScene* scene);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern unsigned char Function44F060(void);
 extern "C" void EnableAllRenderOptions(void);
@@ -154,10 +154,10 @@ void Function422B10(void)
     g_flags_6596e8[active ^ 1] = 0;
     g_flags_6596e8[active] = 0;
     g_dword_6596d8 = 0;
-    Function426500(g_scene_prerender0_65964c);
-    Function426500(g_scene_overlay0_659654);
-    Function426500(g_scene_prerender1_659650);
-    Function426500(g_scene_overlay1_659658);
+    PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
+    PurgeInactiveSceneInstances(g_scene_overlay0_659654);
+    PurgeInactiveSceneInstances(g_scene_prerender1_659650);
+    PurgeInactiveSceneInstances(g_scene_overlay1_659658);
     MarkScreenRectDirty(0, 0, 640, 480, 0);
 }
 
@@ -216,10 +216,10 @@ unsigned char InitializeRenderer(void* instance, unsigned short show_command, vo
             g_flags_6596e8[g_index_6596e4 ^ 1] = 0;
             g_dword_6596d8 = 0;
             g_flags_6596e8[active] = 0;
-            Function426500(g_scene_prerender0_65964c);
-            Function426500(g_scene_overlay0_659654);
-            Function426500(g_scene_prerender1_659650);
-            Function426500(g_scene_overlay1_659658);
+            PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
+            PurgeInactiveSceneInstances(g_scene_overlay0_659654);
+            PurgeInactiveSceneInstances(g_scene_prerender1_659650);
+            PurgeInactiveSceneInstances(g_scene_overlay1_659658);
             MarkScreenRectDirty(0, 0, 0x280, 0x1e0, 0);
             g_dword_6596f0 = 2;
             g_dword_6596ec = 2;

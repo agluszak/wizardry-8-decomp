@@ -9,9 +9,9 @@
    bodies are what every derived dialog runs before and after its own. */
 
 // FUNCTION: WIZ8 0x005d25b0
-W8DialogBase005D25B0::W8DialogBase005D25B0()
-    : m_field_54(0),
-      m_field_55(1),
+W8ModalDialogBase::W8ModalDialogBase()
+    : close_result(0),
+      is_open(1),
       m_field_56(-1),
       m_field_58(-1),
       m_field_5c(-1),
@@ -26,38 +26,38 @@ W8DialogBase005D25B0::W8DialogBase005D25B0()
 /* A virtual called from a destructor has a fixed dynamic type, so the
    compiler dispatches it directly; that direct call is slot 2. */
 // FUNCTION: WIZ8 0x005d2610
-W8DialogBase005D25B0::~W8DialogBase005D25B0()
+W8ModalDialogBase::~W8ModalDialogBase()
 {
     ResetSubobjectAndRefresh();
 }
 
 // FUNCTION: WIZ8 0x005d3020
-unsigned char W8DialogBase005D25B0::HandleInput005D3020(
+unsigned char W8ModalDialogBase::HandleInput(
     const InputAtom* input)
 {
     if (input->usEvent != KEY_DOWN) {
-        return m_field_55;
+        return is_open;
     }
 
-    if (m_field_95 != 0) {
+    if (allow_cancel != 0) {
         int key = toupper(input->usParam);
         if (key == ESC) {
-            m_field_54 = 0;
-            m_field_55 = 0;
+            close_result = 0;
+            is_open = 0;
             return 0;
         }
         if (key != '\r') {
-            return m_field_55;
+            return is_open;
         }
     }
 
-    m_field_54 = 1;
-    m_field_55 = 0;
+    close_result = 1;
+    is_open = 0;
     return 0;
 }
 
 // FUNCTION: WIZ8 0x005d3080
-unsigned char W8DialogBase005D25B0::Close()
+unsigned char W8ModalDialogBase::Close()
 {
     SGPPoint mouse;
     InputAtom input;
@@ -88,7 +88,7 @@ unsigned char W8DialogBase005D25B0::Close()
             mouse_event = RIGHT_BUTTON_UP;
             break;
         default:
-            return HandleInput005D3020(&input);
+            return HandleInput(&input);
         }
 
         MSYS_SGP_Mouse_Handler_Hook(
@@ -99,5 +99,5 @@ unsigned char W8DialogBase005D25B0::Close()
             gfRightButtonState);
     }
 
-    return m_field_55;
+    return is_open;
 }

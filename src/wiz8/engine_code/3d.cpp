@@ -153,7 +153,7 @@ void WorldUpdateProps(W8World* world)
 {
     int count;
     int index;
-    W8Prop005EC1E0* prop;
+    W8Prop* prop;
 
     if (!world || !world->plsProps) {
         srAssertFail(
@@ -164,7 +164,7 @@ void WorldUpdateProps(W8World* world)
     }
     count = (int)PListGetCount(world->plsProps);
     for (index = 0; index < count; index++) {
-        prop = (W8Prop005EC1E0*)PListGetAt(world->plsProps, index);
+        prop = (W8Prop*)PListGetAt(world->plsProps, index);
         if (prop) {
             prop->Method44D360(world);
             prop->Method44C030();

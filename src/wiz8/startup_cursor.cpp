@@ -59,7 +59,7 @@ static srModelInstance* MakePolygonBrush(
     unsigned char overlay)
 {
     W8MeshModel005EBE98* model;
-    W8TextureMap005EBEEC* texture;
+    W8TextureMap* texture;
     stModelInstance2D* instance;
     srModeler::MappingInfo mapping;
     srVector3T<float> scale;
@@ -91,7 +91,7 @@ static srModelInstance* MakePolygonBrush(
     if (!surface) {
         shader.value &= 0xffff7fff;
     } else {
-        texture = new W8TextureMap005EBEEC(0);
+        texture = new W8TextureMap(0);
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
         texture->setSurfacePtr(surface);
@@ -283,7 +283,7 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
 // FUNCTION: WIZ8 0x004285c0
 extern "C" unsigned char Function4285C0(void)
 {
-    W8Scene005EBE48* cursor_scene = new W8Scene005EBE48(0);
+    W8Scene* cursor_scene = new W8Scene(0);
     cursor_scene->ClearOverlayState();
     g_cursor_scene_659684 = cursor_scene;
     g_cursor_scene_659684->setName("Mouse Cursor Scene");

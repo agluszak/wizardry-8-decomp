@@ -944,7 +944,7 @@ void InitializeGameplayRuntimeObjects(void)
 {
     memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
     g_startup_runtime_state = new W8StartupRuntimeState();
-    g_object_685067 = new W8Timer005EC0A4(300.0f, 0);
+    g_object_685067 = new W8GameTimer(300.0f, 0);
 }
 
 /* Stores the value the frame tick and the new-game reset both read back. */

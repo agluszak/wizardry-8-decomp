@@ -1,13 +1,13 @@
-#include "wiz8/dialog_code/Dialog005A80A0.h"
+#include "wiz8/dialog_code/NotificationDialog.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/regions.h"
 
-/* Dialog Code. W8Dialog005A80A0 is a modal popup built on the unnamed base
+/* Dialog Code. W8NotificationDialog is a modal popup built on the unnamed base
    constructed by 0x005D25B0 and destroyed by 0x005D2610. Only members touched
    by these bodies are modelled; base storage stays opaque, and the source owns
    the two proven fields at 0x98 and 0x9c.
 
-   The base is the shared W8DialogBase005D25B0 in wiz8/dialog_base.h, whose
+   The base is the shared W8ModalDialogBase in wiz8/dialog_base.h, whose
    fifteen slots this class inherits; it overrides only slot 9. */
 
 /* Table of message payloads the dialog is constructed against; the caller
@@ -21,8 +21,8 @@ extern void ActivateDialogRegion(int region_set);  /* 0x004F2040 */
    frame comes from the base having a destructor: an exception in any setup
    call has to unwind it. */
 // FUNCTION: WIZ8 0x005a80a0
-W8Dialog005A80A0::W8Dialog005A80A0(int message_index, int caption_id, int notify_value)
-    : notify_value_98(notify_value), notify_target(0)
+W8NotificationDialog::W8NotificationDialog(int message_index, int caption_id, int notify_value)
+    : notification_value(notify_value), notify_target(0)
 {
     SetExtent(0xf0, 0xbe);
     SetOrigin(0xa0, 100);
@@ -36,21 +36,21 @@ W8Dialog005A80A0::W8Dialog005A80A0(int message_index, int caption_id, int notify
    body; the compiler generates the scalar deleting destructor at 0x005A8170
    from this same declaration. */
 // FUNCTION: WIZ8 0x005a8190
-W8Dialog005A80A0::~W8Dialog005A80A0()
+W8NotificationDialog::~W8NotificationDialog()
 {
 }
 
 // FUNCTION: WIZ8 0x005a81a0
-unsigned char W8Dialog005A80A0::Close()
+unsigned char W8NotificationDialog::Close()
 {
     unsigned char handled;
 
-    W8DialogBase005D25B0::Close();
-    handled = m_field_55;
+    W8ModalDialogBase::Close();
+    handled = is_open;
     if (!handled) {
         ClearActiveRegionIfMatches(0x138);
         if (notify_target) {
-            notify_target->Notify(m_field_54, notify_value_98);
+            notify_target->OnDialogClosed(close_result, notification_value);
         }
     }
     return handled;

@@ -92,7 +92,7 @@ extern int PointCastSpell(
     float x, float y, float z, int spell_id, unsigned int power_level);
 extern void RemoveAllConditionsFromParty(void);
 extern unsigned char* g_message_table_68c09c;
-extern void GetPosition421070(W8Position* position);
+extern void GetCameraPosition(W8Position* position);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
     unsigned int item_id, int character_filter, int value_3, int value_4);
@@ -179,7 +179,7 @@ void W8TriggerShakeEvent::Update()
             intensity = 1.0f;
         }
         effect_038 = CreateCameraShakeEffect004AE080(
-            auxiliary_timer_02c->m_speed, 0, intensity, 0, 0);
+            auxiliary_timer_02c->m_duration_seconds, 0, intensity, 0, 0);
         effect_038->flags_00 &= ~2;
         if (reverse_040 != 0) {
             effect_038->flags_00 |= 0x10;
@@ -835,7 +835,7 @@ void Trigger::CommitActionResult(unsigned char apply_state_changes)
 
 show_action_message:
     if (flag_0a0_17 != 0) {
-        const char* level_folder = LevelGetFolderNameByID(GetLoadedLevelID());
+        const char* level_folder = GetLevelFolderName(GetLoadedLevelID());
         int message_id;
 
         if (action_state_232 == 2) {
@@ -907,7 +907,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
 
         strncpy(location_code, destination, 3);
         location_code[3] = '\0';
-        location_id = GetLocationIDFromCode(location_code);
+        location_id = FindLevelIdByLocationCode(location_code);
         if (location_id == -1) {
             return;
         }
@@ -942,7 +942,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
     source_position.x = position_118;
     source_position.y = position_11c;
     source_position.z = position_120;
-    g_octree_6598a4->AdjustPortalDestination00434A30(
+    g_octree_6598a4->AdjustPortalDestination(
         &destination_position, &source_position);
     SetWorldScenePosition004511D0(GetWorld(), &destination_position);
 
@@ -954,7 +954,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
             &rotation.vectors[0].x, sin(angle), cos(angle),
             &destination_direction.x);
     }
-    Function421030(&rotation);
+    ApplyCameraRotation(&rotation);
     SpawnSpellEffect004AD080("set_portal", 1, 0, 0);
 }
 
@@ -1214,7 +1214,7 @@ void Trigger::Run(int source)
             W8TriggerActionData005EC134* action_data = 0;
 
             if (m_bRepType != 2 || m_pProp == 0 || value_0b1 != 0 ||
-                m_pProp->m_owned_14->unknown_06d != 0) {
+                m_pProp->m_pRep->active != 0) {
                 break;
             }
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
@@ -1230,7 +1230,7 @@ void Trigger::Run(int source)
                 action_data->flags_008 &= ~4;
             }
 
-            m_pProp->SetRepActive0044DA80(1, 1);
+            m_pProp->SetRepresentationActive(1, 1);
             value_0b1 = 1;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 Function41C680(value_0b8, 1);
@@ -1268,12 +1268,12 @@ void Trigger::Run(int source)
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
-            active = m_pProp->m_owned_14->unknown_06d;
+            active = m_pProp->m_pRep->active;
             if (active != 0) {
                 break;
             }
             value_0b1 = value_0b1 == 1 ? 0 : 1;
-            m_pProp->SetRepActive0044DA80(value_0b1, 1);
+            m_pProp->SetRepresentationActive(value_0b1, 1);
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 Function41C680(value_0b8, value_0b1);
             }
@@ -1322,7 +1322,7 @@ void Trigger::Run(int source)
                         "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                         0x592, 0);
                 }
-                animation = m_pProp->m_owned_14->animation;
+                animation = m_pProp->m_pRep->animation;
                 if (AnimationIsRunning(animation) == 1) {
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
@@ -1359,8 +1359,8 @@ void Trigger::Run(int source)
             if (m_bRepType != 2 || m_pProp == 0) {
                 break;
             }
-            was_active = m_pProp->m_owned_14->unknown_06d;
-            m_pProp->SetRepActive0044DA80(was_active == 0, 1);
+            was_active = m_pProp->m_pRep->active;
+            m_pProp->SetRepresentationActive(was_active == 0, 1);
             value_0b1 = value_0b1 == 0;
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 Function41C680(value_0b8, value_0b1);
@@ -1382,8 +1382,8 @@ void Trigger::Run(int source)
             int tag = source == -1 ? m_lData1 : source;
 
             if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
-                m_pProp->m_owned_14->SelectSlot0044BA50((unsigned char)tag);
-                m_pProp->SetRepActive0044DA80(1, 1);
+                m_pProp->m_pRep->SelectAnimationSlot((unsigned char)tag);
+                m_pProp->SetRepresentationActive(1, 1);
                 value_0b1 = (unsigned char)tag;
                 goto commit_action;
             }
@@ -1407,7 +1407,7 @@ void Trigger::Run(int source)
         if (m_bRepType != 2 || m_pProp == 0) {
             return;
         }
-        was_active = m_pProp->m_owned_14->unknown_06d;
+        was_active = m_pProp->m_pRep->active;
 
         if (inline_action_data_24c[0] != '\0') {
             if (g_item_in_hand_shown_006874ca != 0) {
@@ -1441,7 +1441,7 @@ void Trigger::Run(int source)
                 int contained_items = 0;
 
                 if (item_count != 1 &&
-                    m_pProp->m_owned_14->setting_64 != 0) {
+                    m_pProp->m_pRep->default_animation_tag != 0) {
                     action_succeeded = 0;
                 }
 
@@ -1463,7 +1463,7 @@ void Trigger::Run(int source)
                 }
 
                 if (item_count == 1) {
-                    if (m_pProp->m_owned_14->setting_64 == 0) {
+                    if (m_pProp->m_pRep->default_animation_tag == 0) {
                         ApplyItemEffectToRandomCharacter0052E5C0(
                             Random(2) != 0 ? g_value_0068c548
                                            : g_value_0068c520,
@@ -1475,7 +1475,7 @@ void Trigger::Run(int source)
                     item = world_item_group_34c->next;
                     MoveItem(&g_item_in_hand, &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group_34c, item);
-                    if (m_pProp->m_owned_14->setting_64 != 0) {
+                    if (m_pProp->m_pRep->default_animation_tag != 0) {
                         goto toggle_item_prop;
                     }
                 }
@@ -1490,7 +1490,7 @@ void Trigger::Run(int source)
         }
 
 toggle_item_prop:
-        m_pProp->SetRepActive0044DA80(was_active == 0, 1);
+        m_pProp->SetRepresentationActive(was_active == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -1807,12 +1807,12 @@ toggle_item_prop:
             return;
         }
         if ((action_230 == 0x32 &&
-             m_pProp->m_owned_14->unknown_06d != 0) ||
+             m_pProp->m_pRep->active != 0) ||
             (action_230 == 0x33 &&
-             m_pProp->m_owned_14->unknown_06d == 0)) {
+             m_pProp->m_pRep->active == 0)) {
             return;
         }
-        m_pProp->SetRepActive0044DA80(action_230 == 0x32, 1);
+        m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -1838,7 +1838,7 @@ toggle_item_prop:
         W8Position party_position;
         W8TriggerShakeEvent* event;
 
-        GetPosition421070(&party_position);
+        GetCameraPosition(&party_position);
         if (m_pEvent == 0) {
             event = new W8TriggerShakeEvent;
             m_pEvent = event;
@@ -1857,7 +1857,7 @@ toggle_item_prop:
 
             if (m_lData3 != -1) {
                 delete event->auxiliary_timer_02c;
-                event->auxiliary_timer_02c = new W8Timer005EC0A4;
+                event->auxiliary_timer_02c = new W8GameTimer;
                 if (event->auxiliary_timer_02c == 0) {
                     srAssertFail(
                         "m_pCountdown",
@@ -1905,11 +1905,11 @@ toggle_item_prop:
 
     case 0x3b:
         if (m_pProp == 0 || source != m_lData1 ||
-            m_pProp->m_owned_14->unknown_06d == 0) {
+            m_pProp->m_pRep->active == 0) {
             return;
         }
-        m_pProp->SetRepActive0044DA80(
-            m_pProp->m_owned_14->unknown_06d == 0, 1);
+        m_pProp->SetRepresentationActive(
+            m_pProp->m_pRep->active == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -1920,8 +1920,8 @@ toggle_item_prop:
         if (m_pProp == 0 || source != m_lData1) {
             return;
         }
-        m_pProp->SetRepActive0044DA80(
-            m_pProp->m_owned_14->unknown_06d == 0, 1);
+        m_pProp->SetRepresentationActive(
+            m_pProp->m_pRep->active == 0, 1);
         value_0b1 = value_0b1 == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
             Function41C680(value_0b8, value_0b1);
@@ -1992,8 +1992,8 @@ toggle_item_prop:
             }
             g_location_variable_values_00659990.SetAt(state_id, 0);
         }
-        value_0b1 = m_pProp->m_owned_14->AdvanceAnimationSegment();
-        m_pProp->SetRepActive0044DA80(1, 0);
+        value_0b1 = m_pProp->m_pRep->AdvanceAnimationSegment();
+        m_pProp->SetRepresentationActive(1, 0);
         if (m_pacStateToMod != 0) {
             char state_name[132];
             int state_id;
@@ -2099,7 +2099,7 @@ toggle_item_prop:
         m_pEvent->trigger_030 = this;
         m_pEvent->action_004 = (short)action_230;
         delete m_pEvent->auxiliary_timer_02c;
-        m_pEvent->auxiliary_timer_02c = new W8Timer005EC0A4;
+        m_pEvent->auxiliary_timer_02c = new W8GameTimer;
         if (m_pEvent->auxiliary_timer_02c == 0) {
             srAssertFail(
                 "m_pCountdown",
@@ -2119,7 +2119,7 @@ toggle_item_prop:
         if (m_pProp == 0 || m_lData1 < 0) {
             return;
         }
-        count = AnimObjValue004A15D0(m_pProp->m_owned_14->animation, 2);
+        count = AnimObjValue004A15D0(m_pProp->m_pRep->animation, 2);
         if ((int)count <= m_lData1) {
             return;
         }
@@ -2141,7 +2141,7 @@ toggle_item_prop:
             return;
         }
         while (recipient != 0) {
-            W8Prop005EC1E0* prop = FindPropByName(
+            W8Prop* prop = FindPropByName(
                 g_world, NextTriggerRecipient(&recipient));
             if (prop != 0) {
                 prop->SetAnimationSpeed((float)m_lData1);
@@ -2193,7 +2193,7 @@ unsigned char Trigger::CanRunLinkedTriggers()
 {
     char* recipient;
 
-    if (m_pProp != 0 && m_pProp->m_owned_14->unknown_06d != 0) {
+    if (m_pProp != 0 && m_pProp->m_pRep->active != 0) {
         return 0;
     }
     recipient = m_pacRecipients;
@@ -2315,7 +2315,7 @@ unsigned char Trigger::SelectAction()
             static_cast<W8TriggerActionData005EC134*>(m_pActionData);
         unsigned char linked_trigger_blocked = 0;
 
-        if (m_pProp != 0 && m_pProp->m_owned_14->unknown_06d != 0) {
+        if (m_pProp != 0 && m_pProp->m_pRep->active != 0) {
             linked_trigger_blocked = 1;
         }
         else {

@@ -48,7 +48,7 @@ int g_value_69b7c4;
 // GLOBAL: WIZ8 0x0069B7C8
 W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
 // GLOBAL: WIZ8 0x0069B7CC
-W8DialogBase005D25B0* g_swap_disc_dialog_69b7cc;
+W8ModalDialogBase* g_swap_disc_dialog_69b7cc;
 // GLOBAL: WIZ8 0x0069B7D0
 unsigned char g_cd_marker_present_69b7d0;
 
@@ -208,7 +208,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             g_load_descriptor_69b7c8->parameter = level;
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
             if (!g_swap_disc_dialog_69b7cc) {
-                g_swap_disc_dialog_69b7cc = new W8DialogBase005D25B0;
+                g_swap_disc_dialog_69b7cc = new W8ModalDialogBase;
                 g_swap_disc_dialog_69b7cc->SetBackground(
                     "Data\\Dialogs\\DialogBackground.sti", 0);
                 g_swap_disc_dialog_69b7cc->SetExtent(0xf0, 0xbe);
@@ -255,10 +255,10 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 void PleaseWaitScreenFrame(void)
 {
     if (g_load_descriptor_69b7c8->waiting) {
-        if (g_swap_disc_dialog_69b7cc->m_field_55) {
+        if (g_swap_disc_dialog_69b7cc->is_open) {
             g_swap_disc_dialog_69b7cc->vslot3();
             if (!g_swap_disc_dialog_69b7cc->Close()) {
-                if (!g_swap_disc_dialog_69b7cc->m_field_54) {
+                if (!g_swap_disc_dialog_69b7cc->close_result) {
                     delete g_swap_disc_dialog_69b7cc;
                     g_swap_disc_dialog_69b7cc = 0;
                     RequestScreenTransition();
@@ -273,11 +273,11 @@ void PleaseWaitScreenFrame(void)
             if (!Function42B6F0(g_load_descriptor_69b7c8->parameter)) {
                 g_load_descriptor_69b7c8->waiting = 0;
                 RefreshSlfArchives();
-                g_swap_disc_dialog_69b7cc->m_field_55 = 0;
+                g_swap_disc_dialog_69b7cc->is_open = 0;
             }
-            else if (!g_swap_disc_dialog_69b7cc->m_field_55
+            else if (!g_swap_disc_dialog_69b7cc->is_open
                      && ++g_value_69b7c4 > 4) {
-                g_swap_disc_dialog_69b7cc->m_field_55 = 1;
+                g_swap_disc_dialog_69b7cc->is_open = 1;
                 g_value_69b7c4 = 0;
             }
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();

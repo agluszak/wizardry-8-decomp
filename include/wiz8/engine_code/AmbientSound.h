@@ -48,7 +48,7 @@ public:
     int value_ec;
     srVector3T<float> vector_f0;
     srVector3T<float> vector_fc;
-    W8Timer005EC0A4 timer_108;
+    W8GameTimer timer_108;
 };
 
 static_assert(sizeof(W8AmbientSound) == 0x12c,

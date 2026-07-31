@@ -710,13 +710,13 @@ void ResetTargetingState(void);
 void DestroyGameplayObjects(void);
 bool CheckCdPresent(void);
 int GetLoadedLevelID(void);
-const char* LevelGetFolderNameByID(int level_id);
-unsigned char LevelGetLocationCodeByID(int level_id, char* location_code);
+const char* GetLevelFolderName(int level_id);
+unsigned char GetLevelLocationCode(int level_id, char* location_code);
 W8MonsterRecord* MonsterDBFromSpecies(unsigned int monster_species);
 void WorldUpdateProps(W8World* world);
 /* 0x0054A8A0, reviewed in evidence/reviewed/wiz8/functions.csv. */
 unsigned char LoadMonsterDatabaseRecord(unsigned int monster_species, W8MonsterRecord* record);
-int GetLocationIDFromCode(const char* location_code);
+int FindLevelIdByLocationCode(const char* location_code);
 W8World* GetWorld(void);
 /* The second world the 3D API keeps, and the renderer's catch-up request.
    Both are defined in Engine Code\3dapi.cpp. */
@@ -737,7 +737,7 @@ void GetOriginOfCharacterItem(
     void* item,
     unsigned char* origin,
     unsigned short* slot);
-void AddLinesToMessageBox(int type, W8WideChar* text, void* extra);
+void AddMessageBoxLine(int type, W8WideChar* text, void* extra);
 
 #ifdef __cplusplus
 }

@@ -42,7 +42,7 @@ extern srNode* Function424BA0(
 // srClassSupport<srMeshModel,srModel,0,8208>::clone
 
 // SYNTHETIC: WIZ8 0x00424b70
-// W8TextureMap005EBEEC::`scalar deleting destructor'
+// W8TextureMap::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429BE0
 // srClassSupport<srTextureMap,srTexture,0,8465>::getClassID
@@ -110,7 +110,7 @@ srNode* VideoMakePoster(
     unsigned char positional_3)
 {
     srTextureIFace::e_hint hint;
-    W8TextureMap005EBEEC* texture = new W8TextureMap005EBEEC(0);
+    W8TextureMap* texture = new W8TextureMap(0);
     texture->setMipmapBias(-8.0f);
     texture->autoRelease();
     texture->setName("VideoMakePoster");
@@ -183,7 +183,7 @@ unsigned char InitializeMouseSurface(void)
         return 0;
     }
 
-    g_mouse_surface_659688 = new W8ColorSurface005EBD10(type, 128, 128);
+    g_mouse_surface_659688 = new W8ColorSurface(type, 128, 128);
     if (!g_mouse_surface_659688) {
         srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
                      0x635, 0);
@@ -193,18 +193,18 @@ unsigned char InitializeMouseSurface(void)
     return 1;
 }
 
-static W8Scene005EBE48* make_scene(const char* name)
+static W8Scene* make_scene(const char* name)
 {
-    W8Scene005EBE48* scene = new W8Scene005EBE48(0);
+    W8Scene* scene = new W8Scene(0);
     scene->setName(name);
     scene->ClearOverlayState();
     return scene;
 }
 
-static W8Camera005EBE14* make_camera(srNode* parent, const char* name,
+static W8Camera* make_camera(srNode* parent, const char* name,
                                     double view_top)
 {
-    W8Camera005EBE14* camera = new W8Camera005EBE14(parent);
+    W8Camera* camera = new W8Camera(parent);
     srCamera::Rect view;
     camera->setName(name);
     camera->setClipRange(0.01, 2.0);
@@ -223,7 +223,7 @@ static W8Camera005EBE14* make_camera(srNode* parent, const char* name,
 extern "C" unsigned char InitializeRendererSceneObjects(void)
 {
     DDSURFACEDESC surface_description;
-    W8Material005EBDE0* material;
+    W8Material* material;
     char renderer_name[128];
 
     InitializeMouseSurface();
@@ -241,7 +241,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     g_square_camera_659674 = make_camera(
         g_scene_square_65965c, "2D Square Overlay Camera", 0.75);
 
-    material = new W8Material005EBDE0;
+    material = new W8Material;
     g_blit_material_65967c = material;
     material->setName("Blit Rect Material");
     material->initializeBlitRect();
@@ -260,7 +260,7 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     surface_description.dwSize = sizeof(surface_description);
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_primary_color_surface_659660 = new W8ColorSurface005EBD10(
+    g_primary_color_surface_659660 = new W8ColorSurface(
         srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
         640, 480, surface_description.lPitch);
     if (!g_primary_color_surface_659660) return 0;
@@ -313,7 +313,7 @@ extern "C" void ClearSurfaceRect(int left, unsigned int top, int right, unsigned
 }
 
 // FUNCTION: WIZ8 0x00426500
-extern "C" void Function426500(srScene* scene)
+extern "C" void PurgeInactiveSceneInstances(srScene* scene)
 {
     srNode* node;
 

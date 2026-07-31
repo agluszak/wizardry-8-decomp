@@ -42,7 +42,7 @@ extern void DestroyEmitter(W8Emitter* emitter);                         /* 0x004
 extern void Function4A6E20(float value);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern void ReleaseSoundHandle00408F70(int handle);
-extern void GetPosition421070(W8Position* position);
+extern void GetCameraPosition(W8Position* position);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern unsigned char g_master_ambient_volume_6850f6;
 extern const double g_zero_005ebb40;
@@ -303,7 +303,7 @@ unsigned char stSound3D::Play004AEBF0(
     if (sound_name_148 == 0) {
         return 0;
     }
-    GetPosition421070(&listener);
+    GetCameraPosition(&listener);
     BuildSoundOptions004AECC0(&listener, &options);
     if (flatten != 0) {
         options.uiLoop = 0;
@@ -317,7 +317,7 @@ unsigned char stSound3D::Play004AEBF0(
 void stSound3D::BuildSoundOptions004AECC0(
     const W8Position* listener, SOUND3DPARMS* options)
 {
-    float angle = -GetCameraAngleRadians420DD0();
+    float angle = -GetCameraYawRadians();
     unsigned int volume =
         (value_140 * g_master_ambient_volume_6850f6) / 0x7f;
     srMatrix3T<float> rotation;

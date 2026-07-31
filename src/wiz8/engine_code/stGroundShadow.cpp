@@ -42,7 +42,7 @@ stGroundShadow::stGroundShadow(srNode* parent)
         g_ground_shadow_texture_006834cc->setWrapT(
             static_cast<srTextureIFace::e_wrap>(1));
 
-        W8Material005EBDE0* material = new W8Material005EBDE0;
+        W8Material* material = new W8Material;
         g_ground_shadow_material_006834d0 = material;
         material->setParameterSource(
             g_ground_shadow_material_parameters_00683430);

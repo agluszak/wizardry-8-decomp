@@ -66,7 +66,7 @@ extern float g_octree_cell_scale_005ebcd0;
 extern unsigned char g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
-extern W8Pathing00457CF0* g_pathing_00659c60;
+extern W8PathingService* g_pathing_00659c60;
 extern void* CreatePathState004CAE40(void);
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
@@ -87,7 +87,7 @@ void DestroyBitArray(BitArray*& bits)
 void DestroyIndex(W8OctreeIndex* index)
 {
     if (index != 0) {
-        operator delete(index->buckets);
+        operator delete(index->bucket_heads);
         operator delete(index->entries);
         operator delete(index);
     }
@@ -97,19 +97,19 @@ W8OctreeIndex* CreateIndex()
 {
     W8OctreeIndex* index = new W8OctreeIndex;
     long* entries = new long[12];
-    long* buckets = new long[4];
+    long* bucket_heads = new long[4];
     int position;
 
     for (position = 0; position < 4; ++position) {
-        buckets[position] = -1;
+        bucket_heads[position] = -1;
         entries[position * 3] = position + 1;
         entries[position * 3 + 1] = -1;
         entries[position * 3 + 2] = -1;
     }
     entries[9] = -1;
-    index->buckets = buckets;
+    index->bucket_heads = bucket_heads;
     index->entries = entries;
-    index->last_entry = 0;
+    index->free_head = 0;
     index->bucket_count = 4;
     return index;
 }
@@ -143,7 +143,7 @@ void WriteMember(W8Octree* octree, unsigned int offset, T value)
    trace; TraceLineOfSight additionally reports where the line was stopped and
    distinguishes a world hit from a prop hit by the sign of its answer. */
 // FUNCTION: WIZ8 0x00434b60
-bool W8Octree::HasLineOfSight00434B60(
+bool W8Octree::HasLineOfSight(
     const W8Position* from, W8Position* to, char allow_fallback)
 {
     W8OctreeWalk walk;
@@ -176,7 +176,7 @@ bool W8Octree::HasLineOfSight00434B60(
             blocked = TestProbeResult00435F00(result);
         }
     } else {
-        BuildCellWalk004362D0(from, to, &walk);
+        BuildCellWalk(from, to, &walk);
         cell[0] = walk.cell_00[0];
         cell[1] = walk.cell_00[1];
         cell[2] = walk.cell_00[2];
@@ -248,7 +248,7 @@ bool W8Octree::HasLineOfSight00434B60(
 }
 
 // FUNCTION: WIZ8 0x00434f20
-short W8Octree::TraceLineOfSight00434F20(
+short W8Octree::TraceLineOfSight(
     const W8Position* from, const W8Position* to, char trace_world,
     int from_location_id, int to_location_id, char visit_octree, int trace_mode)
 {
@@ -289,7 +289,7 @@ short W8Octree::TraceLineOfSight00434F20(
                     m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
             }
         } else {
-            BuildCellWalk004362D0(from, to, &walk);
+            BuildCellWalk(from, to, &walk);
             cell[1] = walk.cell_00[1];
             cell[0] = walk.cell_00[0];
             cell[2] = walk.cell_00[2];
@@ -392,7 +392,7 @@ resolve:
 void GrowIndex00439290(W8OctreeIndex* index)
 {
     W8OctreeEntry* entries;
-    int* buckets;
+    int* bucket_heads;
     W8OctreeEntry* fill;
     int* fill_bucket;
     W8OctreeEntry* source;
@@ -408,13 +408,13 @@ void GrowIndex00439290(W8OctreeIndex* index)
         capacity = 4;
     }
     entries = static_cast<W8OctreeEntry*>(::operator new(capacity * 0xc));
-    buckets = static_cast<int*>(::operator new(capacity * 4));
+    bucket_heads = static_cast<int*>(::operator new(capacity * 4));
     fill = entries;
-    fill_bucket = buckets;
+    fill_bucket = bucket_heads;
     remaining = capacity;
     if ((int)capacity > 0) {
         do {
-            fill->next = -1;
+            fill->next_index = -1;
             *fill_bucket = -1;
             --remaining;
             ++fill;
@@ -423,7 +423,7 @@ void GrowIndex00439290(W8OctreeIndex* index)
     }
     if (index->bucket_count != 0) {
         for (bucket = 0; bucket < (int)index->bucket_count; ++bucket) {
-            slot = static_cast<int*>(index->buckets)[bucket];
+            slot = static_cast<int*>(index->bucket_heads)[bucket];
             if (slot != -1) {
                 do {
                     source = static_cast<W8OctreeEntry*>(index->entries) + slot;
@@ -432,26 +432,26 @@ void GrowIndex00439290(W8OctreeIndex* index)
                         (capacity - 1);
                     entries[used].value =
                         (static_cast<W8OctreeEntry*>(index->entries) + slot)->value;
-                    entries[used].next = buckets[hash];
-                    buckets[hash] = used;
-                    slot = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next;
+                    entries[used].next_index = bucket_heads[hash];
+                    bucket_heads[hash] = used;
+                    slot = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next_index;
                     ++used;
                 } while (slot != -1);
             }
         }
-        ::operator delete(index->buckets);
+        ::operator delete(index->bucket_heads);
         ::operator delete(index->entries);
     }
     if (used < (int)capacity) {
         for (slot = used; slot < (int)capacity; ) {
             ++slot;
-            entries[slot - 1].next = slot;
+            entries[slot - 1].next_index = slot;
         }
     }
-    entries[capacity - 1].next = -1;
+    entries[capacity - 1].next_index = -1;
     index->bucket_count = capacity;
-    index->buckets = buckets;
-    index->last_entry = used;
+    index->bucket_heads = bucket_heads;
+    index->free_head = used;
     index->entries = entries;
 }
 
@@ -461,11 +461,11 @@ int AllocateEntry004393E0(W8OctreeIndex* index)
 {
     int slot;
 
-    if (index->last_entry == -1) {
+    if (index->free_head == -1) {
         GrowIndex00439290(index);
     }
-    slot = index->last_entry;
-    index->last_entry = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next;
+    slot = index->free_head;
+    index->free_head = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next_index;
     return slot;
 }
 
@@ -476,7 +476,7 @@ void RemoveEntry00438C90(
     W8OctreeIndex* index, const unsigned int* key, const int* value)
 {
     unsigned int wanted = *key;
-    int* bucket = static_cast<int*>(index->buckets) +
+    int* bucket = static_cast<int*>(index->bucket_heads) +
         (((wanted >> 10 ^ wanted) >> 10 ^ wanted) & (index->bucket_count - 1));
     int slot = *bucket;
     int previous = -1;
@@ -493,18 +493,18 @@ void RemoveEntry00438C90(
             break;
         }
         previous = slot;
-        slot = entry->next;
-        if (entry->next == -1) {
+        slot = entry->next_index;
+        if (entry->next_index == -1) {
             return;
         }
     }
     if (previous != -1) {
-        entries[previous].next = entry->next;
+        entries[previous].next_index = entry->next_index;
     } else {
-        *bucket = entry->next;
+        *bucket = entry->next_index;
     }
-    (static_cast<W8OctreeEntry*>(index->entries) + slot)->next = index->last_entry;
-    index->last_entry = slot;
+    (static_cast<W8OctreeEntry*>(index->entries) + slot)->next_index = index->free_head;
+    index->free_head = slot;
 }
 
 
@@ -521,19 +521,19 @@ void InsertEntry0055DBB0(
     int capacity;
     int slot;
 
-    if (index->last_entry == -1) {
+    if (index->free_head == -1) {
         GrowIndex00439290(index);
     }
-    slot = index->last_entry;
+    slot = index->free_head;
     capacity = index->bucket_count;
     entries = static_cast<W8OctreeEntry*>(index->entries);
-    index->last_entry = entries[slot].next;
+    index->free_head = entries[slot].next_index;
     stored = *key;
     entries[slot].key = stored;
     entries[slot].value = *value;
     hash = ((stored >> 10 ^ stored) >> 10 ^ stored) & (capacity - 1);
-    entries[slot].next = static_cast<int*>(index->buckets)[hash];
-    static_cast<int*>(index->buckets)[hash] = slot;
+    entries[slot].next_index = static_cast<int*>(index->bucket_heads)[hash];
+    static_cast<int*>(index->bucket_heads)[hash] = slot;
 }
 
 /* Record that one object now occupies one cell.
@@ -547,7 +547,7 @@ void InsertEntry0055DBB0(
    The two indexes are the same pair AddCollidablePropBounds keeps: one keyed by
    cell, one keyed by object. */
 // FUNCTION: WIZ8 0x00437000
-unsigned char W8OctreeQueue00437000::Queue00437000(
+unsigned char W8OctreeObjectRegistry::RegisterObjectCell(
     int kind, int id, const int* point)
 {
     W8OctreeIndex** pair = reinterpret_cast<W8OctreeIndex**>(this);
@@ -565,7 +565,7 @@ unsigned char W8OctreeQueue00437000::Queue00437000(
 
     object_key = (kind & 0xffff) * 0x10000 + (id & 0xffff);
     hash = (object_key >> 10 ^ object_key) >> 10 ^ object_key;
-    slot = static_cast<int*>(by_object->buckets)[hash & (by_object->bucket_count - 1)];
+    slot = static_cast<int*>(by_object->bucket_heads)[hash & (by_object->bucket_count - 1)];
     while (slot != -1) {
         entries = static_cast<W8OctreeEntry*>(by_object->entries);
         if (entries[slot].key == object_key) {
@@ -578,7 +578,7 @@ unsigned char W8OctreeQueue00437000::Queue00437000(
                 ((occupied - 1) & 0xff) == point[2]) {
                 return 1;
             }
-            bucket = static_cast<int*>(by_object->buckets) +
+            bucket = static_cast<int*>(by_object->bucket_heads) +
                 (hash & (by_object->bucket_count - 1));
             slot = *bucket;
             if (slot != -1) {
@@ -587,24 +587,24 @@ unsigned char W8OctreeQueue00437000::Queue00437000(
                 for (;;) {
                     if (entries[slot].key == object_key) {
                         if (previous == -1) {
-                            *bucket = entries[slot].next;
+                            *bucket = entries[slot].next_index;
                         } else {
-                            entries[previous].next = entries[slot].next;
+                            entries[previous].next_index = entries[slot].next_index;
                         }
-                        static_cast<W8OctreeEntry*>(by_object->entries)[slot].next =
-                            by_object->last_entry;
-                        by_object->last_entry = slot;
+                        static_cast<W8OctreeEntry*>(by_object->entries)[slot].next_index =
+                            by_object->free_head;
+                        by_object->free_head = slot;
                         break;
                     }
                     previous = slot;
-                    slot = entries[slot].next;
+                    slot = entries[slot].next_index;
                     if (slot == -1) {
                         break;
                     }
                 }
             }
             by_cell = pair[0];
-            bucket = static_cast<int*>(by_cell->buckets) +
+            bucket = static_cast<int*>(by_cell->bucket_heads) +
                 ((((unsigned int)occupied >> 10 ^ occupied) >> 10 ^ occupied) &
                  (by_cell->bucket_count - 1));
             if (*bucket != -1) {
@@ -615,22 +615,22 @@ unsigned char W8OctreeQueue00437000::Queue00437000(
                     if (entries[slot].key == (unsigned int)occupied &&
                         entries[slot].value == (int)object_key) {
                         if (previous == -1) {
-                            *bucket = entries[slot].next;
+                            *bucket = entries[slot].next_index;
                         } else {
-                            entries[previous].next = entries[slot].next;
+                            entries[previous].next_index = entries[slot].next_index;
                         }
-                        static_cast<W8OctreeEntry*>(by_cell->entries)[slot].next =
-                            by_cell->last_entry;
-                        by_cell->last_entry = slot;
+                        static_cast<W8OctreeEntry*>(by_cell->entries)[slot].next_index =
+                            by_cell->free_head;
+                        by_cell->free_head = slot;
                         break;
                     }
                     previous = slot;
-                    slot = entries[slot].next;
-                } while (entries[previous].next != -1);
+                    slot = entries[slot].next_index;
+                } while (entries[previous].next_index != -1);
             }
             goto record;
         }
-        slot = entries[slot].next;
+        slot = entries[slot].next_index;
     }
     if ((short)kind == 0xc) {
         cell_key = ((point[0] << 8) + point[1]) * 0x100 + 1 + point[2];
@@ -643,8 +643,8 @@ unsigned char W8OctreeQueue00437000::Queue00437000(
             (by_object->bucket_count - 1);
         entries[slot].key = tagged_key;
         entries[slot].value = cell_key;
-        entries[slot].next = static_cast<int*>(by_object->buckets)[hash];
-        static_cast<int*>(by_object->buckets)[hash] = slot;
+        entries[slot].next_index = static_cast<int*>(by_object->bucket_heads)[hash];
+        static_cast<int*>(by_object->bucket_heads)[hash] = slot;
         RemoveEntry00438C90(pair[0], (const unsigned int*)&cell_key, (const int*)&tagged_key);
         InsertEntry0055DBB0(pair[0], (const unsigned int*)&cell_key, (const int*)&tagged_key);
     }
@@ -667,7 +667,7 @@ record:
    into one dword a byte apart, and the prop key carries its id in the low half
    with a tag above it. */
 // FUNCTION: WIZ8 0x0042eab0
-void W8Octree::AddCollidablePropBounds0042EAB0(
+void W8Octree::AddCollidablePropBounds(
     int index, const srVector3T<float>* bounds)
 {
     int minimum[3];
@@ -700,7 +700,7 @@ void W8Octree::AddCollidablePropBounds0042EAB0(
         for (y = minimum[1]; y <= maximum[1]; ++y) {
             for (z = minimum[2]; z <= maximum[2]; ++z) {
                 cell_key = ((x << 8) + y) * 0x100 + 1 + z;
-                pair = reinterpret_cast<W8OctreeIndex**>(octree_queue_0bc);
+                pair = reinterpret_cast<W8OctreeIndex**>(object_registry);
                 by_prop = pair[1];
                 RemoveEntry00438C90(by_prop, &prop_key, (const int*)&cell_key);
                 slot = AllocateEntry004393E0(by_prop);
@@ -709,23 +709,23 @@ void W8Octree::AddCollidablePropBounds0042EAB0(
                     (by_prop->bucket_count - 1);
                 entries[slot].key = prop_key;
                 entries[slot].value = cell_key;
-                entries[slot].next = static_cast<int*>(by_prop->buckets)[hash];
-                static_cast<int*>(by_prop->buckets)[hash] = slot;
+                entries[slot].next_index = static_cast<int*>(by_prop->bucket_heads)[hash];
+                static_cast<int*>(by_prop->bucket_heads)[hash] = slot;
 
                 by_cell = pair[0];
                 RemoveEntry00438C90(by_cell, &cell_key, (const int*)&prop_key);
-                if (by_cell->last_entry == -1) {
+                if (by_cell->free_head == -1) {
                     GrowIndex00439290(by_cell);
                 }
-                slot = by_cell->last_entry;
+                slot = by_cell->free_head;
                 entries = static_cast<W8OctreeEntry*>(by_cell->entries);
-                by_cell->last_entry = entries[slot].next;
+                by_cell->free_head = entries[slot].next_index;
                 entries[slot].key = cell_key;
                 entries[slot].value = prop_key;
                 hash = ((cell_key >> 10 ^ cell_key) >> 10 ^ cell_key) &
                     (by_cell->bucket_count - 1);
-                entries[slot].next = static_cast<int*>(by_cell->buckets)[hash];
-                static_cast<int*>(by_cell->buckets)[hash] = slot;
+                entries[slot].next_index = static_cast<int*>(by_cell->bucket_heads)[hash];
+                static_cast<int*>(by_cell->bucket_heads)[hash] = slot;
             }
         }
     }
@@ -738,7 +738,7 @@ void W8Octree::AddCollidablePropBounds0042EAB0(
    starts. The step count covers the driving axis plus the partial cell at each
    end, which is why the remainder decides between one and two extra. */
 // FUNCTION: WIZ8 0x004362d0
-void W8Octree::BuildCellWalk004362D0(
+void W8Octree::BuildCellWalk(
     const W8Position* from, const W8Position* to, W8OctreeWalk* walk)
 {
     int from_cell[3];
@@ -811,7 +811,7 @@ void W8Octree::BuildCellWalk004362D0(
    A location the octree cannot resolve, or one whose submesh has no live model
    instance, clears the monster's cached mesh rather than leaving a stale one. */
 // FUNCTION: WIZ8 0x0042e540
-void W8Octree::UpdateMonsterLocation0042E540(
+void W8Octree::UpdateMonsterLocation(
     unsigned short location_id, const W8Position* position)
 {
     int queue_id = location_id + 1;
@@ -846,7 +846,7 @@ void W8Octree::UpdateMonsterLocation0042E540(
     point[0] = (int)((position->x - octree_origin_00c.x) / octree_cell_size_070);
     point[1] = (int)((position->y - octree_origin_00c.y) / octree_cell_size_070);
     point[2] = (int)((position->z - octree_origin_00c.z) / octree_cell_size_070);
-    octree_queue_0bc->Queue00437000(0xc, queue_id, point);
+    object_registry->RegisterObjectCell(0xc, queue_id, point);
 }
 
 /* Read one .oct file into a fresh octree.
@@ -1255,11 +1255,11 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                         fSuccess = 0;
                                         if (fLoaded != 0) {
                                             if (ReadHeader<unsigned long>(header, 0x7e) != 0) {
-                                                pathing_180 = new W8Pathing00457CF0();
+                                                pathing_180 = new W8PathingService();
                                                 if (pathing_180 == 0) {
                                                     goto finish;
                                                 }
-                                                pathing_180->Configure00458A50(
+                                                pathing_180->ConfigureForLevel(
                                                     ReadHeader<unsigned long>(header, 0x7e),
                                                     (float)ReadHeader<unsigned long>(header, 0xac),
                                                     ReadHeader<unsigned long>(header, 0xb4),
@@ -1451,7 +1451,7 @@ void W8Octree::Initialize(const void* raw_header)
         W8OctreeIndex** pair = new W8OctreeIndex*[2];
         pair[0] = CreateIndex();
         pair[1] = CreateIndex();
-        octree_queue_0bc = reinterpret_cast<W8OctreeQueue00437000*>(pair);
+        object_registry = reinterpret_cast<W8OctreeObjectRegistry*>(pair);
         m_owned_150 = CreateIndex();
 
         unsigned int visited_size = ReadHeader<unsigned short>(header, 0x64) + 1;
@@ -1540,11 +1540,11 @@ W8Octree::~W8Octree()
 
     if (m_owned_150 != 0) {
         W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_owned_150);
-        operator delete(index->buckets);
+        operator delete(index->bucket_heads);
         operator delete(index->entries);
-        index->buckets = 0;
+        index->bucket_heads = 0;
         index->entries = 0;
-        index->last_entry = -1;
+        index->free_head = -1;
         index->bucket_count = 0;
         Function439140();
         DestroyIndex(index);
@@ -1587,7 +1587,7 @@ W8Octree::~W8Octree()
     DestroyBitArray(m_owned_1a0);
     DestroyBitArray(m_owned_1a4);
 
-    pair = reinterpret_cast<W8OctreeIndex**>(octree_queue_0bc);
+    pair = reinterpret_cast<W8OctreeIndex**>(object_registry);
     if (pair != 0) {
         DestroyIndex(pair[0]);
         DestroyIndex(pair[1]);
@@ -1648,7 +1648,7 @@ void W8Octree::VisitPointCopy0042E620(
     copy.x = position->x;
     copy.y = position->y;
     copy.z = position->z;
-    UpdateMonsterLocation0042E540(location_id, &copy);
+    UpdateMonsterLocation(location_id, &copy);
 }
 
 /* Start a traversal of the twelfth kind. A limit of zero means no limit, which
@@ -1679,7 +1679,7 @@ void W8Octree::QueueOctreeKind130042E810(
                      octree_cell_size_070);
     point[2] = (int)((position->z - octree_origin_00c.z) /
                      octree_cell_size_070);
-    octree_queue_0bc->Queue00437000(0xd, id + 1, point);
+    object_registry->RegisterObjectCell(0xd, id + 1, point);
 }
 
 /* Step one navigator's movement tail towards its target.
@@ -1692,8 +1692,8 @@ void W8Octree::QueueOctreeKind130042E810(
    the return value reports. The new position is mirrored into the attachment's
    own three copies. */
 // FUNCTION: WIZ8 0x00434620
-unsigned int W8Octree::AdvanceNavigator00434620(
-    W8NavigatorMovement004572C0* movement, float radius, float separation)
+unsigned int W8Octree::AdvanceNavigator(
+    W8NavigatorMovementState* movement, float radius, float separation)
 {
     srVector3T<float> vecDir;
     srVector3T<float> vecPos;
@@ -1746,7 +1746,7 @@ unsigned int W8Octree::AdvanceNavigator00434620(
    settled height is only taken when the drop actually hit something. The pair
    is then handed on together, which is why one body carries both. */
 // FUNCTION: WIZ8 0x00434a30
-void W8Octree::AdjustPortalDestination00434A30(
+void W8Octree::AdjustPortalDestination(
     W8Position* destination, const W8Position* source)
 {
     W8Position local_destination;

@@ -46,7 +46,7 @@ public:
     float intensity_04;                  /* 0x04 */
     int value_08;                        /* 0x08 */
     srVector3T<float> position_0c;       /* 0x0c */
-    W8Timer005EC0A4 timer_18;            /* 0x18 */
+    W8GameTimer timer_18;            /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
     int cycle_3c;                        /* 0x3c */
     int frame_40;                        /* 0x40 */
@@ -60,7 +60,7 @@ static_assert(sizeof(W8CameraShakeEffect) == 0x4c,
 /* The live list every active effect is on, and the timer the first effect
    creates alongside it. Both are built lazily by the constructor. */
 extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
-extern W8Timer005EC0A4* g_shake_timer_0065be30;
+extern W8GameTimer* g_shake_timer_0065be30;
 
 W8CameraShakeEffect* CreateCameraShakeEffect004AE080(
     float duration, char preset, float intensity, int value_08,

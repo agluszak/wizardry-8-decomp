@@ -5,7 +5,7 @@
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/layouts/gameplay_databases.h"
 
-class W8Prop005EC1E0;
+class W8Prop;
 class Trigger;
 struct W8World;
 struct W8WorldItem;
@@ -21,8 +21,8 @@ public:
 
     short action_004;
     unsigned short unknown_006;
-    W8Timer005EC0A4 timer_008;
-    W8Timer005EC0A4* auxiliary_timer_02c;
+    W8GameTimer timer_008;
+    W8GameTimer* auxiliary_timer_02c;
     Trigger* trigger_030;
     unsigned char repeat_034;
     unsigned char completed_035;
@@ -187,7 +187,7 @@ public:
     float value_108;
     unsigned char m_bRepType;
     unsigned char unknown_10d[3];
-    W8Prop005EC1E0* m_pProp;
+    W8Prop* m_pProp;
     void* value_114;
     float position_118;
     float position_11c;
