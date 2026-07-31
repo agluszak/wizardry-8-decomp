@@ -19,16 +19,19 @@ public:
     virtual unsigned char HandleInput005D3020(
         const InputAtom* input);                         /* slot 14 */
 
-protected:
-    void SetExtent(int width, int height);           /* 0x005DC9C0 */
-    void SetOrigin(int x, int y);                    /* 0x005DC9F0 */
-    void SetBackground(const char* path, int flags); /* 0x005DCA70 */
-    void SetClientExtent(int width, int height);     /* 0x005D2CB0 */
+    /* Called on this object from outside the class by the Please Wait screen,
+       which is what puts it here rather than under protected. */
     void SetMessage(void* payload, int a, int b, int c, int d,
                     int e, int f, int g, int h);     /* 0x005D2800 */
 
+    /* Both are read and written on this object from outside the class by the
+       Please Wait screen's frame handler, which is what puts them here. */
     unsigned char m_field_54;            /* 0x54: cleared; a derived close passes it on */
     unsigned char m_field_55;            /* 0x55: set, and gates the close path */
+
+protected:
+    void SetClientExtent(int width, int height);     /* 0x005D2CB0 */
+
     short m_field_56;                    /* 0x56 */
     int m_field_58;                      /* 0x58 */
     int m_field_5c;                      /* 0x5c */

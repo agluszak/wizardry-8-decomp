@@ -1,11 +1,15 @@
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/dialog_base.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/sr_api.h"
 
 #include "Font.h"
 #include "FileMan.h"
 
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 /*
  * Local Screens\PleaseWaitScreen.cpp.
@@ -43,6 +47,8 @@ int g_level_load_font_69b7c0;
 int g_value_69b7c4;
 // GLOBAL: WIZ8 0x0069B7C8
 W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
+// GLOBAL: WIZ8 0x0069B7CC
+W8DialogBase005D25B0* g_swap_disc_dialog_69b7cc;
 // GLOBAL: WIZ8 0x0069B7D0
 unsigned char g_cd_marker_present_69b7d0;
 
@@ -53,6 +59,8 @@ extern int g_dword_686a70;
 void ResetRegions(void);
 unsigned char SetFlag603C60(void);
 unsigned char ClearFlag603C60(void);
+/* Engine Code\Levels.cpp owns this with C++ linkage. */
+unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game);
 
 extern "C" {
 
@@ -67,11 +75,53 @@ extern int Function40B290(void);
 extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
 extern void SetRenderClip00407220(int target, int left, int top, int right,
                                   int bottom, int flags);
+extern unsigned char Function42B6F0(int level);
+extern int Function42B720(int level);
 extern void Function425570(int value);
+/* 0x00412A10; the reviewed identity Ghidra carries. Nothing defines it yet. */
+extern void RefreshSlfArchives(void);
+/* Local Code\UtilityFunctions.cpp owns this; gameplay_boundaries.h declares it,
+   and the spelling is repeated here because that header is at its ceiling. */
+extern wchar_t* FormatWideString(const wchar_t* format, ...);
 extern int Function509750(void);
 extern void Function58FD30(void);
+extern void Function407650(int x, int y, const char* format, const wchar_t* text);
+extern unsigned char SetValue5FF5F0(int font);
+/* Local Code\VideoObjectManager.cpp defines the fourth parameter as short, but
+   the retail call below pushes the caption's y as a full dword and Local
+   Code\Controls.cpp already declares this position as int. */
+extern void Function548F90(int target, int object, int frame, int y,
+                           int a5, int a6, int a7, int a8);
+extern void Function422F10(void);
+extern void Function426790(void);
+extern void Function512C40(void);
+extern void Function5092F0(int* level, int* entrance);
+extern void Function5063E0(void);
+extern void Function58AC00(int channel, const wchar_t* text, int a, int b, int c);
+extern unsigned char Function42AF60(int level, int entrance);
+extern void Function5159E0(int value);
+extern int Function55EC10(void);
+extern unsigned int LoadGame(const char* slot_name);
+extern unsigned char SaveGame(const char* slot_name, void* screenshot);
+extern void RequestScreenTransition(void);
+extern void SetPendingScreenState(int value);
+extern void SetValue64D8AC(unsigned long value);
+class W8World;
+extern W8World* GetWorld(void);
+
+extern unsigned char g_flag_689b2c;
+
+/* 0x0064BF8C: one video-object id per level, the backdrop the Please Wait
+   screen shows while that level loads. 0x00605820 indexes the level's name in
+   the string list. Both are bounded by 0x2F, with 0xE4 as the backdrop the
+   frame handler falls back to. */
+extern int g_level_backdrops_64bf8c[];
+extern unsigned short g_level_name_indices_605820[];
 
 }
+
+/* The path the five assertions carry. */
+#define PLEASE_WAIT_SCREEN_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\PleaseWaitScreen.cpp"
 
 /* Lifecycle record 4's initializer. The marker write is guarded, so a missing
    CD.ROM leaves the flag at its BSS zero rather than storing a comparison
@@ -137,6 +187,205 @@ unsigned char PleaseWaitScreenEnter(void)
     g_load_descriptor_69b7c8->entered_tick = GetTickCount();
     g_value_69b7c4 = 0;
     return 1;
+}
+
+/* The gate the frame handler runs before every load. When the level archive is
+   not reachable and the CD marker says it should be, it parks the screen: it
+   records what was being waited for, raises the swap-disc dialog once, and
+   reports 0 so the caller does not proceed. A reachable archive, or a disc the
+   check clears, reports 1.
+
+   The dialog is built once and kept; the three setters go through the vtable
+   here because the receiver is a base pointer rather than a constructor's own
+   object, which is what separates these call sites from the derived
+   constructors that reach the same three addresses directly. */
+// FUNCTION: WIZ8 0x00591620
+unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
+{
+    if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present_69b7d0) {
+        if (Function42B6F0(level)) {
+            g_load_descriptor_69b7c8->waiting = 1;
+            g_load_descriptor_69b7c8->parameter = level;
+            g_load_descriptor_69b7c8->entered_tick = GetTickCount();
+            if (!g_swap_disc_dialog_69b7cc) {
+                g_swap_disc_dialog_69b7cc = new W8DialogBase005D25B0;
+                g_swap_disc_dialog_69b7cc->SetBackground(
+                    "Data\\Dialogs\\DialogBackground.sti", 0);
+                g_swap_disc_dialog_69b7cc->SetExtent(0xf0, 0xbe);
+                g_swap_disc_dialog_69b7cc->SetOrigin(0xa0, 100);
+            }
+            wchar_t* message = FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4],
+                                                Function42B720(level));
+            g_swap_disc_dialog_69b7cc->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
+            SetFlag603C60();
+            return 0;
+        }
+        RefreshSlfArchives();
+    }
+    return 1;
+}
+
+/* The screen's one drawn frame: the level's own backdrop, the progress bar's
+   two pieces and the caption. The frame handler emits it from two places - the
+   parked path and the ordinary path - and the retail body carries both copies,
+   which is why it is written out at each site rather than factored here. */
+#define PLEASE_WAIT_SCREEN_DRAW()                                             \
+    do {                                                                      \
+        int backdrop = (unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f \
+            ? g_level_backdrops_64bf8c[g_load_descriptor_69b7c8->parameter]   \
+            : 0xe4;                                                           \
+        Function548F90(-14, backdrop, 0, 0, 0, 0, 2, 0);                      \
+        Function548F90(-14, 0x1de, 0, 0, 0, 0x1be, 2, 0);                     \
+        SetValue5FF5F0(g_level_load_font_69b7c0);                             \
+        Function407650(0x6a, 0x1c7, "%",                                      \
+                       (const wchar_t*)g_load_descriptor_69b7c8);             \
+        Function548F90(-14, 0x1dd, 0, g_load_descriptor_69b7c8->caption_y,    \
+                       0, 0x185, 2, 0);                                       \
+        Function422F10();                                                     \
+    } while (0)
+
+/* The frame handler, and the body whose five assertions name this unit.
+   Two passes in one: while the screen is parked on a missing disc it polls the
+   swap-disc dialog and does nothing else, and otherwise it draws one frame,
+   performs the load the record was entered for, and queues the transition out.
+
+   Both passes fall through to the same trailing 0x00426790, which is why the
+   parked path returns through it rather than around it. */
+// FUNCTION: WIZ8 0x00590fa0
+void PleaseWaitScreenFrame(void)
+{
+    if (g_load_descriptor_69b7c8->waiting) {
+        if (g_swap_disc_dialog_69b7cc->m_field_55) {
+            g_swap_disc_dialog_69b7cc->vslot3();
+            if (!g_swap_disc_dialog_69b7cc->Close()) {
+                if (!g_swap_disc_dialog_69b7cc->m_field_54) {
+                    delete g_swap_disc_dialog_69b7cc;
+                    g_swap_disc_dialog_69b7cc = 0;
+                    RequestScreenTransition();
+                    return;
+                }
+                PLEASE_WAIT_SCREEN_DRAW();
+                Function426790();
+                return;
+            }
+        }
+        else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
+            if (!Function42B6F0(g_load_descriptor_69b7c8->parameter)) {
+                g_load_descriptor_69b7c8->waiting = 0;
+                RefreshSlfArchives();
+                g_swap_disc_dialog_69b7cc->m_field_55 = 0;
+            }
+            else if (!g_swap_disc_dialog_69b7cc->m_field_55
+                     && ++g_value_69b7c4 > 4) {
+                g_swap_disc_dialog_69b7cc->m_field_55 = 1;
+                g_value_69b7c4 = 0;
+            }
+            g_load_descriptor_69b7c8->entered_tick = GetTickCount();
+        }
+        Function426790();
+        return;
+    }
+
+    switch (g_load_descriptor_69b7c8->mode) {
+    case 0:
+        wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bbc / 4]);
+        break;
+    case 1:
+        {
+            wchar_t** strings = gppStringList;
+            wcscpy(g_load_descriptor_69b7c8->caption,
+                   strncmp(g_load_descriptor_69b7c8->name, "Quick",
+                           strlen("Quick")) == 0
+                       ? strings[0x1bc4 / 4]
+                       : strings[0x1bc0 / 4]);
+        }
+        break;
+    case 2:
+        wcscpy(g_load_descriptor_69b7c8->caption, gppStringList[0x1bc8 / 4]);
+        break;
+    case 3:
+        if ((unsigned int)g_load_descriptor_69b7c8->parameter < 0x2f) {
+            swprintf(g_load_descriptor_69b7c8->caption, L"%s %s...",
+                     gppStringList[0x1bcc / 4],
+                     gppStringList[g_level_name_indices_605820
+                                       [g_load_descriptor_69b7c8->parameter]]);
+        }
+        else if (g_load_descriptor_69b7c8->parameter == 0x38) {
+            wcscpy(g_load_descriptor_69b7c8->caption, L"Entering default level...");
+        }
+        else {
+            swprintf(g_load_descriptor_69b7c8->caption, L"Entering test level %c..",
+                     g_load_descriptor_69b7c8->parameter + 2);
+        }
+    }
+
+    PLEASE_WAIT_SCREEN_DRAW();
+    Function426790();
+    Function426790();
+    ClearFlag603C60();
+
+    switch (g_load_descriptor_69b7c8->mode) {
+    case 0:
+        if (PleaseWaitScreenEnsureLevelArchive(8)) {
+            Function512C40();
+            int level;
+            int entrance;
+            Function5092F0(&level, &entrance);
+            if (!LoadLevel(level, entrance, 0)) {
+                srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 279, 0);
+            }
+            Function5063E0();
+        }
+        break;
+    case 1:
+        if (PleaseWaitScreenEnsureLevelArchive(g_screen_state_0068ec78.state.parameter)) {
+            if (!LoadGame(g_load_descriptor_69b7c8->name)) {
+                srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
+            }
+            if (!LoadLevel(g_dword_686a70, -1, 1)) {
+                srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 296, 0);
+            }
+        }
+        break;
+    case 2: {
+        unsigned char saved = SaveGame(g_load_descriptor_69b7c8->name,
+                                       g_load_descriptor_69b7c8->save_payload);
+        Function58AC00(0xc,
+                       saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4],
+                       -1, -1, 0);
+        if (g_load_descriptor_69b7c8->save_payload) {
+            ::operator delete(g_load_descriptor_69b7c8->save_payload);
+        }
+        while (GetTickCount() - g_load_descriptor_69b7c8->entered_tick < 500) {
+        }
+        break;
+    }
+    case 3:
+        if (PleaseWaitScreenEnsureLevelArchive(g_load_descriptor_69b7c8->parameter)) {
+            if (!Function42AF60(g_load_descriptor_69b7c8->parameter,
+                                g_load_descriptor_69b7c8->parameter_2)) {
+                srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 320, 0);
+            }
+            Function5159E0(1);
+        }
+    }
+
+    if (!g_load_descriptor_69b7c8->waiting) {
+        if (!GetWorld()) {
+            srAssertFail("GetWorld()", PLEASE_WAIT_SCREEN_CPP, 332, 0);
+        }
+        delete g_swap_disc_dialog_69b7cc;
+        g_swap_disc_dialog_69b7cc = 0;
+        RequestScreenTransition();
+        if (g_load_descriptor_69b7c8->mode == 1 && g_flag_689b2c) {
+            SetValue64D8AC(4);
+            SetPendingScreenState(0);
+            return;
+        }
+        if (Function55EC10() != 7) {
+            SetPendingScreenState(7);
+        }
+    }
 }
 
 /* The leave. The leaving pass releases the descriptor the entry handler

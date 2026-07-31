@@ -14,9 +14,13 @@ public:
     virtual void vslot3();
     virtual void vslot4();
     virtual void vslot5();
-    virtual void vslot6();
-    virtual void vslot7();
-    virtual void vslot8();
+    /* Slots 6, 7 and 8 of the table at 0x005EF8B0 are 0x005DC9C0, 0x005DC9F0 and
+       0x005DCA70 - the three setters a derived constructor calls directly
+       because its dynamic type is fixed, and that a caller holding a base
+       pointer reaches through the table. */
+    virtual void SetExtent(int width, int height);   /* 0x005DC9C0 */
+    virtual void SetOrigin(int x, int y);            /* 0x005DC9F0 */
+    virtual void SetBackground(const char* path, int flags); /* 0x005DCA70 */
     virtual unsigned char Close();
     virtual void vslot10();
     virtual void vslot11();
