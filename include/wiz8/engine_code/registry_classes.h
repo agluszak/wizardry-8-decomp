@@ -37,6 +37,7 @@ public:
 
     static const char* sGetClassName() { return "stParticle"; }
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
+    stParticle(const stParticle& other);           /* 0x00498180 */
     void SetActive(unsigned char active);
     void SetTexture0049AB00(srTextureIFace* texture);
     void SetRetainedObject0049ACA0(srClass* object);

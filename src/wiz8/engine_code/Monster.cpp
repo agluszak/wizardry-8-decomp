@@ -3055,13 +3055,13 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
     int index;
     int count;
 
-    if (m_shake_events == 0 ||
-        (count = m_shake_events->GetCount()) == 0) {
+    if (m_plsParticles == 0 ||
+        (count = m_plsParticles->GetCount()) == 0) {
         return;
     }
 
     for (index = 0; index < count; ++index) {
-        W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
+        W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
 
         if (event->cycle_00 == cycle &&
             event->subcycle_04 ==
@@ -3704,7 +3704,7 @@ void W8Monster::AdvanceAnimationFrame(int value, int)
         HandleAnimationThreshold004C75C0();
     }
     HandleAnimationFrame004C74D0(previous_frame);
-    if (m_shake_events != 0 && m_shake_events->GetCount() != 0) {
+    if (m_plsParticles != 0 && m_plsParticles->GetCount() != 0) {
         UpdateShakeEvents004C3380(previous_frame);
     }
 }
@@ -3940,7 +3940,7 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
     int index;
     unsigned char animation_has_range;
 
-    count = m_shake_events->GetCount();
+    count = m_plsParticles->GetCount();
     animation = *m_pRep->animations[
         m_pRep->selection.monster.current_cycle].GetAt(
             m_pRep->selection.monster.current_subcycle);
@@ -3949,7 +3949,7 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
         animation->end_frame_15 >= animation->start_frame_14;
 
     for (index = 0; index < count; ++index) {
-        event = *m_shake_events->GetAt(index);
+        event = *m_plsParticles->GetAt(index);
         if (event->cycle_00 != m_pRep->selection.monster.current_cycle ||
             event->subcycle_04 !=
                 m_pRep->selection.monster.current_subcycle) {
@@ -4974,9 +4974,9 @@ unsigned char W8Monster::ReplaceSkinTexture004C6700(
         }
     }
 
-    if (replaced == 0 && m_shake_events != 0) {
-        for (int index = 0; index < m_shake_events->GetCount(); ++index) {
-            W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
+    if (replaced == 0 && m_plsParticles != 0) {
+        for (int index = 0; index < m_plsParticles->GetCount(); ++index) {
+            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
             if (event->particle_08->ReplaceTexture0049AC30(
                     old_name, texture) != 0) {
                 replaced = 1;

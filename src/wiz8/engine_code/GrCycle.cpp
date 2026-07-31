@@ -35,11 +35,46 @@
 
 /* The event object owns a timer at +0x18. Its implicit destructor is the
    eight-byte adjust-and-tail-jump body emitted at 0x004AE070. */
+/* 0x004AE080 allocates 0x4c and hands it to the constructor at 0x004ADED0; the
+   copy at 0x004AE000 establishes which of those fields carry across. The timer
+   is an ordinary member, which is why the destructor at 0x004AE070 is nothing
+   but its destruction. */
 class W8VectorElement005ECED4 {
 public:
-    unsigned char unknown_00[0x18];
-    W8Timer005EC0A4 timer_18;
+    W8VectorElement005ECED4(const W8VectorElement005ECED4& other);
+
+    unsigned int flags_00;               /* 0x00 */
+    int value_04;                        /* 0x04 */
+    int value_08;                        /* 0x08 */
+    srVector3T<float> position_0c;       /* 0x0c */
+    W8Timer005EC0A4 timer_18;            /* 0x18 */
+    int value_3c;                        /* 0x3c */
+    int value_40;                        /* 0x40 */
+    int value_44;                        /* 0x44 */
+    int value_48;                        /* 0x48 */
 };
+
+static_assert(sizeof(W8VectorElement005ECED4) == 0x4c,
+              "W8VectorElement005ECED4_must_be_0x4c");
+
+/* Everything except the timer's own pacing carries across, and bit zero of the
+   flags is cleared so the copy is not treated as already started. The new timer
+   is seeded from the source's speed rather than its remaining time. */
+// FUNCTION: WIZ8 0x004ae000
+W8VectorElement005ECED4::W8VectorElement005ECED4(
+    const W8VectorElement005ECED4& other)
+    : flags_00(other.flags_00),
+      value_04(other.value_04),
+      value_08(other.value_08),
+      position_0c(other.position_0c),
+      timer_18(other.timer_18.m_speed, 0),
+      value_3c(other.value_3c),
+      value_40(other.value_40),
+      value_44(other.value_44),
+      value_48(other.value_48)
+{
+    flags_00 &= ~1u;
+}
 
 // SYNTHETIC: WIZ8 0x004ae070
 // W8VectorElement005ECED4::~W8VectorElement005ECED4
@@ -68,10 +103,10 @@ W8GrCycle::W8GrCycle()
 {
     current_model_instance_1a8 = 0;
     m_plsLights = 0;
-    m_vector_1b0 = 0;
+    m_plsShakeEvents = 0;
     m_fDeleteLights = 0;
     unknown_1b5 = 0;
-    m_shake_events = 0;
+    m_plsParticles = 0;
     unknown_1bc = 0;
     enabled_1bd = 1;
     unknown_1be = 0;
@@ -79,6 +114,109 @@ W8GrCycle::W8GrCycle()
     m_ground_shadow = 0;
     unknown_1d4 = 0;
     scale_1cc = 1.0f;
+}
+
+/* A copy keeps none of the source's live scene state. The model instance, the
+   light vector and both event vectors start empty and are rebuilt; the ground
+   shadow is not carried over at all. What comes across is configuration: the
+   delete-lights flag, the two bytes beside it, and the scale.
+
+   Each of the three vectors is rebuilt the same way - a fresh growable vector at
+   capacity five, then one owned element per source element. The lights are only
+   rebuilt when this copy owns them, which is what m_fDeleteLights decides. */
+// FUNCTION: WIZ8 0x004a5f20
+W8GrCycle::W8GrCycle(const W8GrCycle& other)
+    : W8GrObject(other), W8Navigator(other)
+{
+    int count;
+    int index;
+
+    current_model_instance_1a8 = 0;
+    m_plsLights = 0;
+    m_plsShakeEvents = 0;
+    m_fDeleteLights = other.m_fDeleteLights;
+    unknown_1b5 = other.unknown_1b5;
+    m_plsParticles = 0;
+    unknown_1bc = 0;
+    enabled_1bd = 1;
+    unknown_1be = other.unknown_1be;
+    unknown_1bf = 0;
+    scale_1cc = other.scale_1cc;
+    m_ground_shadow = 0;
+    unknown_1d4 = 0;
+    if (other.m_plsLights != 0 && other.m_plsLights->GetCount() != 0 &&
+        m_fDeleteLights != 0) {
+        count = other.m_plsLights->GetCount();
+        m_plsLights = new W8LightVector(5);
+        for (index = 0; index < count; ++index) {
+            stLight* source_light = *other.m_plsLights->GetAt(index);
+            float x = source_light->positionalX();
+            float y = source_light->positionalY();
+            float z = source_light->positionalZ();
+            stLight* copied_light = new stLight;
+
+            if (copied_light != 0) {
+                *copied_light = *source_light;
+            }
+            if (copied_light == 0) {
+                srAssertFail("pstLight", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xcb,
+                             "Out of memory creating monster light");
+            }
+            copied_light->ConfigureMonsterCopy();
+            copied_light->setLocation(x, y, z);
+            copied_light->setFlag(srNode::FLAG_POSITIONAL_1);
+            PListAdd(&g_world->m_list_0a8, copied_light);
+            if (copied_light->definition() != 0) {
+                g_world->lights_to_update->Add(copied_light);
+            }
+            m_plsLights->Add(copied_light);
+        }
+    }
+    if (other.m_plsShakeEvents != 0 &&
+        other.m_plsShakeEvents->GetCount() != 0) {
+        count = other.m_plsShakeEvents->GetCount();
+        m_plsShakeEvents = new W8GrowableVector<W8VectorElement005ECED4*>(5);
+        if (m_plsShakeEvents == 0) {
+            srAssertFail("m_plsShakeEvents", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xe3, 0);
+        }
+        for (index = 0; index < count; ++index) {
+            W8VectorElement005ECED4* event = new W8VectorElement005ECED4(
+                **other.m_plsShakeEvents->GetAt(index));
+
+            if (event == 0) {
+                srAssertFail("pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xe9, 0);
+            }
+            m_plsShakeEvents->Add(event);
+        }
+    }
+    if (other.m_plsParticles != 0 && other.m_plsParticles->GetCount() != 0) {
+        count = other.m_plsParticles->GetCount();
+        m_plsParticles = new W8GrowableVector<W8GrCycleShakeEvent*>(5);
+        if (m_plsParticles == 0) {
+            srAssertFail("m_plsParticles", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0xf6, 0);
+        }
+        for (index = 0; index < count; ++index) {
+            W8GrCycleShakeEvent* event = static_cast<W8GrCycleShakeEvent*>(
+                ::operator new(sizeof(W8GrCycleShakeEvent)));
+
+            if (event != 0) {
+                W8GrCycleShakeEvent* source_event =
+                    *other.m_plsParticles->GetAt(index);
+
+                event->cycle_00 = source_event->cycle_00;
+                event->subcycle_04 = source_event->subcycle_04;
+                event->particle_08 =
+                    new stParticle(*source_event->particle_08);
+                event->position_0c = source_event->position_0c;
+                memcpy(event->unknown_18, source_event->unknown_18,
+                       sizeof(event->unknown_18));
+                if (event->particle_08 == 0) {
+                    srAssertFail("pstParticle", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x66, 0);
+                }
+            }
+            m_plsParticles->Add(event);
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x004a6610
@@ -92,19 +230,19 @@ W8GrCycle::~W8GrCycle()
         DestroyLightVector(m_plsLights);
         m_plsLights = 0;
     }
-    if (m_vector_1b0 != 0) {
-        count = m_vector_1b0->GetCount();
-        PrepareGrCycleEvents004AE270(m_vector_1b0);
+    if (m_plsShakeEvents != 0) {
+        count = m_plsShakeEvents->GetCount();
+        PrepareGrCycleEvents004AE270(m_plsShakeEvents);
         for (index = 0; index < count; ++index) {
-            delete *m_vector_1b0->GetAt(index);
+            delete *m_plsShakeEvents->GetAt(index);
         }
-        delete m_vector_1b0;
-        m_vector_1b0 = 0;
+        delete m_plsShakeEvents;
+        m_plsShakeEvents = 0;
     }
-    if (m_shake_events != 0) {
-        count = m_shake_events->GetCount();
+    if (m_plsParticles != 0) {
+        count = m_plsParticles->GetCount();
         for (index = 0; index < count; ++index) {
-            W8GrCycleShakeEvent* event = *m_shake_events->GetAt(index);
+            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
             stParticle* owner = event->particle_08;
 
             if (owner == 0 || owner->node_18c == 0) {
@@ -121,8 +259,8 @@ W8GrCycle::~W8GrCycle()
                 owner->active_190 = 1;
             }
         }
-        delete m_shake_events;
-        m_shake_events = 0;
+        delete m_plsParticles;
+        m_plsParticles = 0;
     }
     if (m_ground_shadow != 0) {
         m_ground_shadow->release();
@@ -178,9 +316,9 @@ void W8GrCycle::TickAnimation(float scale)
                             representation->flag_064,
                             representation->selection.monster.current_subcycle);
                     }
-                    if (m_vector_1b0 != 0) {
+                    if (m_plsShakeEvents != 0) {
                         UpdateGrCycleEvents004AE170(
-                            m_vector_1b0,
+                            m_plsShakeEvents,
                             representation->selection.monster.current_cycle,
                             representation->flag_064,
                             representation->selection.monster.current_subcycle,
@@ -246,9 +384,9 @@ unsigned char W8GrCycle::ApplyPendingCycle()
                 representation->flag_064,
                 representation->selection.monster.current_subcycle);
         }
-        if (m_vector_1b0 != 0) {
+        if (m_plsShakeEvents != 0) {
             UpdateGrCycleEvents004AE170(
-                m_vector_1b0,
+                m_plsShakeEvents,
                 representation->selection.monster.current_cycle,
                 representation->flag_064,
                 representation->selection.monster.current_subcycle,
@@ -573,10 +711,10 @@ void W8GrCycle::SetLights(W8LightVector* lights)
 // FUNCTION: WIZ8 0x004a8530
 void W8GrCycle::AddVectorElement005ECED4(W8VectorElement005ECED4* element)
 {
-    if (m_vector_1b0 == 0) {
-        m_vector_1b0 = new W8GrowableVector<W8VectorElement005ECED4*>();
+    if (m_plsShakeEvents == 0) {
+        m_plsShakeEvents = new W8GrowableVector<W8VectorElement005ECED4*>();
     }
-    m_vector_1b0->Add(element);
+    m_plsShakeEvents->Add(element);
 }
 
 // FUNCTION: WIZ8 0x004a8650

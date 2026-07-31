@@ -2,7 +2,6 @@ symbol
 ??0MonsterLight@@QAE@ABV0@@Z
 ??0W8Chunk@@QAE@XZ
 ??0W8DialogBase005DC7A0@@QAE@XZ
-??0W8GrCycle@@QAE@ABV0@@Z
 ??0W8ObjectBase00439550@@QAE@XZ
 ??0W8Octree@@QAE@PBDPAPAX@Z
 ??0W8ProfRaceInfoDialogBase005DEAF0@@QAE@XZ
@@ -10,6 +9,7 @@ symbol
 ??0W8StatInfoDialogBase005DF880@@QAE@XZ
 ??0stLight@@QAE@PAVsrNode@@@Z
 ??0stLight@@QAE@XZ
+??0stParticle@@QAE@ABV0@@Z
 ??1W8CameraShakeEffect004AE080@@QAE@XZ
 ??1W8Chunk@@QAE@XZ
 ??1W8DialogBase005DC7A0@@UAE@XZ
