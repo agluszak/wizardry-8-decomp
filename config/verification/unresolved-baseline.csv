@@ -403,6 +403,7 @@ symbol
 ?GetPartyPosition@@YAXPAV?$srVector3T@M@@@Z
 ?GetRenderOptionState@@YAEH@Z
 ?GetRendererFamily@@YAHXZ
+?GetSectorForPosition00430BF0@@YAHPBUW8Position@@@Z
 ?GetSightCondition37A@@YA_NPBX@Z
 ?GetSlotChosenAction@@YAXHIPAH0PAXPAPBTW8ActionDetailBlock@@@Z
 ?GetSpellbookForSpell@@YAHPBUW8Character@@HHHH@Z
@@ -484,6 +485,8 @@ symbol
 ?Prepare004857B0@stTextureAnim@@QAEEXZ
 ?PrepareMonsterCycleForDestruction004ACF90@@YAXPAVW8Monster@@@Z
 ?PrepareOctreeLoad0046CCC0@@YAXH@Z
+?ProbeCellForBlockers00435C40@@YAHPBH@Z
+?ProbeCellForTrace00435B00@@YAHPBH@Z
 ?PublishLightDirection@@YAXPBH@Z
 ?Queue00437000@W8OctreeQueue00437000@@QAEXHHPBH@Z
 ?QueueGameplayEvent@@YAXHH@Z
@@ -522,12 +525,14 @@ symbol
 ?Reset@W8DialogMember005E0C40@@QAEXXZ
 ?ResetSubobjectAndRefresh@W8DialogBase005D25B0@@UAEXXZ
 ?ResetSubobjectAndRefresh@W8DialogBase005DC7A0@@UAEXXZ
+?ResolveTraceHit004353F0@@YADPAXPAUW8Position@@HPAHHHH@Z
 ?RollRandomEncounters@@YAXXZ
 ?RotateMatrixAroundAxis0042B910@@YAPAMPAMNN0@Z
 ?RoundPhaseToStep@@YAXPAIH@Z
 ?SaveGame@@YAEPBDPAX@Z
 ?SaveLevelStatus@@YAEPBD@Z
 ?ScrollTextBoxTo@@YAXH@Z
+?SeedCellProbe00457640@@YAXPBUW8Position@@0@Z
 ?SetBackground@W8DialogBase005D25B0@@IAEXPBDH@Z
 ?SetCameraHeading@@YAIM@Z
 ?SetCharacterCondition@@YAXHHHHHH@Z
@@ -576,6 +581,9 @@ symbol
 ?TargetMatchesNeeded@@YAEPBUW8CombatSlot@@D@Z
 ?TargetSourceIsCharacter@@YAEHH@Z
 ?TargetSourceIsMonster@@YAEHH@Z
+?TestProbeResult00435F00@@YAEPAX@Z
+?TestTraceResult0041C330@@YADHHPAXEH@Z
+?TraceAgainstProps00436510@@YAHPBUW8Position@@PAU1@HH@Z
 ?TraceLineOfSight00434F20@W8Octree@@QAEFPBUW8Position@@0DHHDH@Z
 ?TraceToBounds@@YAEPAXPBM1@Z
 ?UpdateCameraView00450080@@YAXPAVsrCamera@@H@Z
@@ -851,6 +859,7 @@ symbol
 ?g_object_6598bc@@3PAVW8Object0043A910@@A
 ?g_octree_6598a4@@3PAVW8Octree@@A
 ?g_octree_bytes_read_00659888@@3KA
+?g_octree_cell_scale_005ebcd0@@3MA
 ?g_octree_game_data_00652db0@@3PAXA
 ?g_octree_state_00659890@@3KA
 ?g_octree_storage_00659770@@3KA

@@ -9,6 +9,9 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
+#include "wiz8/engine_code/Monster.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/engine_code/World.h"
 
 #include <math.h>
 
@@ -49,6 +52,21 @@ extern void* CreateGameData00449010(int handle, int value);
 extern unsigned char ReadLevelName00432E90(const char* name);
 extern void ApplyLevelName00432B80(const char* name);
 extern void ReadWaypointFile0043A0F0(void);
+/* The cell-walk probes and the trace helpers the two line-of-sight bodies use.
+   None of their bodies are recovered, so they keep address-qualified names. */
+extern void SeedCellProbe00457640(const W8Position* from, const W8Position* to);
+extern int ProbeCellForBlockers00435C40(const int* cell);
+extern unsigned char TestProbeResult00435F00(void* result);
+extern int ProbeCellForTrace00435B00(const int* cell);
+extern char TestTraceResult0041C330(
+    int value_1b8, int value_1bc, void* result, unsigned char value_134, int mode);
+extern int TraceAgainstProps00436510(
+    const W8Position* from, W8Position* to, int value_3, int value_4);
+extern char ResolveTraceHit004353F0(
+    void* result, W8Position* hit, int mode, int* out, int value_5, int value_6,
+    int value_7);
+extern int GetSectorForPosition00430BF0(const W8Position* position);
+extern float g_octree_cell_scale_005ebcd0;
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 extern unsigned long g_octree_bytes_read_00659888;
@@ -117,6 +135,377 @@ void WriteMember(W8Octree* octree, unsigned int offset, T value)
 }
 
 } // namespace
+
+/* Whether one point can see another, and where the line stops if it cannot.
+
+   Both of these walk the same cell line. A line inside one or two cells probes
+   those directly; anything longer builds a walk and steps it, advancing the
+   driving axis every iteration and each minor axis whenever its accumulator
+   goes negative - and probing after every one of those advances, so a blocker
+   in a diagonally-crossed cell is not stepped over. The walk stops at the first
+   blocker.
+
+   HasLineOfSight answers the question and lets the caller fall back to a prop
+   trace; TraceLineOfSight additionally reports where the line was stopped and
+   distinguishes a world hit from a prop hit by the sign of its answer. */
+// FUNCTION: WIZ8 0x00434b60
+bool W8Octree::HasLineOfSight00434B60(
+    const W8Position* from, W8Position* to, char allow_fallback)
+{
+    W8OctreeWalk walk;
+    int cell[5];
+    int step[4];
+    unsigned char result[12];
+    W8Position hit;
+    unsigned char blocked = 0;
+    int span;
+    int error_0;
+    int error_1;
+    int index;
+
+    SeedCellProbe00457640(from, to);
+    m_positional_1b8 = 0;
+    m_owned_190->ClearAll();
+    m_owned_160->ClearAll();
+    cell[0] = (int)((from->x - octree_origin_00c.x) / octree_cell_size_070);
+    step[3] = (int)((to->x - octree_origin_00c.x) / octree_cell_size_070);
+    cell[1] = (int)((from->y - octree_origin_00c.y) / octree_cell_size_070);
+    step[2] = (int)((to->y - octree_origin_00c.y) / octree_cell_size_070);
+    cell[2] = (int)((from->z - octree_origin_00c.z) / octree_cell_size_070);
+    step[1] = (int)((to->z - octree_origin_00c.z) / octree_cell_size_070);
+    span = abs(cell[2] - step[1]) + abs(cell[1] - step[2]) + abs(cell[0] - step[3]);
+    if (span < 2) {
+        ProbeCellForBlockers00435C40(cell);
+        blocked = TestProbeResult00435F00(result);
+        if (blocked == 0 && span != 0) {
+            ProbeCellForBlockers00435C40(&step[1]);
+            blocked = TestProbeResult00435F00(result);
+        }
+    } else {
+        BuildCellWalk004362D0(from, to, &walk);
+        cell[0] = walk.cell_00[0];
+        cell[1] = walk.cell_00[1];
+        cell[2] = walk.cell_00[2];
+        cell[4] = walk.minor_axis_20;
+        step[0] = walk.step_0c[0];
+        step[1] = walk.step_0c[1];
+        step[2] = walk.step_0c[2];
+        step[3] = walk.count_24;
+        cell[3] = 0;
+        error_1 = walk.error_38;
+        error_0 = walk.error_2c;
+        if (walk.count_24 > 0) {
+            do {
+                if (blocked != 0) {
+                    break;
+                }
+                if (ProbeCellForBlockers00435C40(cell) != 0) {
+                    blocked = TestProbeResult00435F00(result);
+                }
+                if (error_0 < error_1) {
+                    if (error_0 < 0 && blocked == 0) {
+                        error_0 += walk.error_reset_30;
+                        cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
+                        if (ProbeCellForBlockers00435C40(cell) != 0) {
+                            blocked = TestProbeResult00435F00(result);
+                        }
+                        if (error_1 < 0 && blocked == 0) {
+                            cell[cell[4]] += step[cell[4]];
+                            error_1 += walk.error_reset_3c;
+                            if (ProbeCellForBlockers00435C40(cell) != 0) {
+                                blocked = TestProbeResult00435F00(result);
+                            }
+                        }
+                    }
+                } else if (error_1 < 0 && blocked == 0) {
+                    cell[cell[4]] += step[cell[4]];
+                    error_1 += walk.error_reset_3c;
+                    if (ProbeCellForBlockers00435C40(cell) != 0) {
+                        blocked = TestProbeResult00435F00(result);
+                    }
+                    if (error_0 < 0 && blocked == 0) {
+                        error_0 += walk.error_reset_30;
+                        cell[walk.minor_axis_1c] += step[walk.minor_axis_1c];
+                        if (ProbeCellForBlockers00435C40(cell) != 0) {
+                            blocked = TestProbeResult00435F00(result);
+                        }
+                    }
+                }
+                cell[walk.major_axis_18] += step[walk.major_axis_18];
+                error_1 -= walk.error_delta_34;
+                error_0 -= walk.error_delta_28;
+                ++cell[3];
+            } while (cell[3] < step[3]);
+        }
+        if (blocked == 0) {
+            if (allow_fallback != 0 &&
+                TraceAgainstProps00436510(from, to, 1, 1) != 0) {
+                blocked = 1;
+            }
+            return blocked == 0;
+        }
+    }
+    if (blocked != 0) {
+        to->x = hit.x;
+        to->y = hit.y;
+        to->z = hit.z;
+    }
+    return blocked == 0;
+}
+
+// FUNCTION: WIZ8 0x00434f20
+short W8Octree::TraceLineOfSight00434F20(
+    const W8Position* from, const W8Position* to, char trace_world,
+    int from_location_id, int to_location_id, char visit_octree, int trace_mode)
+{
+    W8OctreeWalk walk;
+    int cell[5];
+    int step[4];
+    unsigned char result[12];
+    W8Position hit;
+    char blocked = 0;
+    char previous = 0;
+    int span;
+    int error_0;
+    int error_1;
+    int minor_0;
+    int minor_1;
+    int index;
+    int scratch;
+
+    SeedCellProbe00457640(from, to);
+    cell[3] = 0;
+    if (visit_octree != 0) {
+        m_positional_1b8 = 0;
+        m_owned_194->ClearAll();
+        cell[0] = (int)((from->x - octree_origin_00c.x) / octree_cell_size_070);
+        step[3] = (int)((to->x - octree_origin_00c.x) / octree_cell_size_070);
+        cell[1] = (int)((from->y - octree_origin_00c.y) / octree_cell_size_070);
+        step[1] = (int)((to->y - octree_origin_00c.y) / octree_cell_size_070);
+        cell[2] = (int)((from->z - octree_origin_00c.z) / octree_cell_size_070);
+        step[0] = (int)((to->z - octree_origin_00c.z) / octree_cell_size_070);
+        span = abs(cell[2] - step[0]) + abs(cell[1] - step[1]) + abs(cell[0] - step[3]);
+        if (span < 2) {
+            ProbeCellForTrace00435B00(cell);
+            blocked = TestTraceResult0041C330(
+                m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
+            if (blocked == 0 && span != 0) {
+                ProbeCellForTrace00435B00(&step[3]);
+                blocked = TestTraceResult0041C330(
+                    m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
+            }
+        } else {
+            BuildCellWalk004362D0(from, to, &walk);
+            cell[1] = walk.cell_00[1];
+            cell[0] = walk.cell_00[0];
+            cell[2] = walk.cell_00[2];
+            minor_0 = walk.minor_axis_1c;
+            scratch = walk.major_axis_18;
+            minor_1 = walk.minor_axis_20;
+            step[0] = walk.step_0c[0];
+            cell[4] = walk.count_24;
+            step[1] = walk.step_0c[1];
+            step[2] = walk.step_0c[2];
+            index = 0;
+            error_1 = walk.error_38;
+            error_0 = walk.error_2c;
+            previous = 0;
+            if (walk.count_24 > 0) {
+                do {
+                    blocked = previous;
+                    if (blocked != 0) {
+                        break;
+                    }
+                    if (ProbeCellForTrace00435B00(cell) != 0) {
+                        blocked = TestTraceResult0041C330(
+                            m_positional_1b8, m_positional_1bc, result, m_positional_134, 0);
+                    }
+                    if (error_0 < error_1) {
+                        if (error_0 < 0 && blocked == 0) {
+                            cell[minor_0] += step[minor_0];
+                            error_0 += walk.error_reset_30;
+                            if (ProbeCellForTrace00435B00(cell) != 0) {
+                                blocked = TestTraceResult0041C330(
+                                    m_positional_1b8, m_positional_1bc, result,
+                                    m_positional_134, 0);
+                            }
+                            if (error_1 < 0 && blocked == 0) {
+                                cell[minor_1] += step[minor_1];
+                                error_1 += walk.error_reset_3c;
+                                if (ProbeCellForTrace00435B00(cell) != 0) {
+                                    blocked = TestTraceResult0041C330(
+                                        m_positional_1b8, m_positional_1bc, result,
+                                        m_positional_134, 0);
+                                }
+                            }
+                        }
+                    } else if (error_1 < 0 && blocked == 0) {
+                        cell[minor_1] += step[minor_1];
+                        error_1 += walk.error_reset_3c;
+                        if (ProbeCellForTrace00435B00(cell) != 0) {
+                            blocked = TestTraceResult0041C330(
+                                m_positional_1b8, m_positional_1bc, result,
+                                m_positional_134, 0);
+                        }
+                        if (error_0 < 0 && blocked == 0) {
+                            cell[minor_0] += step[minor_0];
+                            error_0 += walk.error_reset_30;
+                            if (ProbeCellForTrace00435B00(cell) != 0) {
+                                blocked = TestTraceResult0041C330(
+                                    m_positional_1b8, m_positional_1bc, result,
+                                    m_positional_134, 0);
+                            }
+                        }
+                    }
+                    cell[scratch] += step[scratch];
+                    error_1 -= walk.error_delta_34;
+                    error_0 -= walk.error_delta_28;
+                    ++index;
+                    previous = blocked;
+                } while (index < cell[4]);
+            }
+        }
+        if (trace_world != 0 &&
+            TraceAgainstProps00436510(from, &hit, 0, 0) != 0) {
+            blocked = 1;
+        } else if (blocked == 0) {
+            goto resolve;
+        }
+        cell[3] = 1;
+        if (blocked != 0) {
+            to = &hit;
+            return 1;
+        }
+    }
+resolve:
+    if (from_location_id >= -2) {
+        cell[4] = to_location_id;
+        if (ResolveTraceHit004353F0(
+                result, &hit, from_location_id, &cell[4], to_location_id, 0,
+                trace_mode) != 0) {
+            return -1;
+        }
+    }
+    return (short)cell[3];
+}
+
+/* Build the cell walk between two world points.
+
+   The three axis deltas are taken in cells; the longest of them drives, and the
+   other two each get an error triple seeded from where inside its cell the line
+   starts. The step count covers the driving axis plus the partial cell at each
+   end, which is why the remainder decides between one and two extra. */
+// FUNCTION: WIZ8 0x004362d0
+void W8Octree::BuildCellWalk004362D0(
+    const W8Position* from, const W8Position* to, W8OctreeWalk* walk)
+{
+    int from_cell[3];
+    int to_cell[3];
+    float fraction[3];
+    float delta[3];
+    int step[3];
+    int extent[3];
+    float cell_size;
+    int cell;
+    int axis;
+    int longest = 0;
+    int major = 0;
+    int minor_0;
+    int minor_1;
+    int span;
+
+    cell_size = octree_cell_size_070 * g_octree_cell_scale_005ebcd0;
+    cell = (int)cell_size;
+    from_cell[0] = (int)((from->x - octree_origin_00c.x) * g_octree_cell_scale_005ebcd0);
+    to_cell[0] = (int)((to->x - octree_origin_00c.x) * g_octree_cell_scale_005ebcd0);
+    from_cell[1] = (int)((from->y - octree_origin_00c.y) * g_octree_cell_scale_005ebcd0);
+    to_cell[1] = (int)((to->y - octree_origin_00c.y) * g_octree_cell_scale_005ebcd0);
+    from_cell[2] = (int)((from->z - octree_origin_00c.z) * g_octree_cell_scale_005ebcd0);
+    to_cell[2] = (int)((to->z - octree_origin_00c.z) * g_octree_cell_scale_005ebcd0);
+
+    for (axis = 0; axis < 3; ++axis) {
+        span = to_cell[axis] - from_cell[axis];
+        fraction[axis] = (float)(from_cell[axis] % cell) / cell_size;
+        delta[axis] = (float)span;
+        if (span < 0) {
+            step[axis] = -1;
+            span = -span;
+        } else {
+            step[axis] = 1;
+            fraction[axis] = 1.0f - fraction[axis];
+        }
+        if (longest < span) {
+            major = axis;
+            longest = span;
+        }
+        extent[axis] = span;
+    }
+
+    minor_0 = (major + 1) % 3;
+    minor_1 = (major + 2) % 3;
+    walk->error_delta_28 = (int)((float)fabs(delta[minor_0] / delta[major]) * cell_size);
+    walk->error_2c = (int)(cell_size * fraction[minor_0] -
+                           (float)walk->error_delta_28 * fraction[major]);
+    walk->error_delta_34 = (int)((float)fabs(delta[minor_1] / delta[major]) * cell_size);
+    walk->error_38 = (int)(cell_size * fraction[minor_1] -
+                           (float)walk->error_delta_34 * fraction[major]);
+    walk->count_24 = longest % cell == 0 ? longest / cell + 1 : longest / cell + 2;
+
+    walk->minor_axis_1c = minor_0;
+    walk->error_reset_30 = cell;
+    walk->error_reset_3c = cell;
+    walk->minor_axis_20 = minor_1;
+    walk->major_axis_18 = major;
+    walk->cell_00[0] = from_cell[0] / cell;
+    walk->cell_00[1] = from_cell[1] / cell;
+    walk->cell_00[2] = from_cell[2] / cell;
+    walk->step_0c[0] = step[0];
+    walk->step_0c[1] = step[1];
+    walk->step_0c[2] = step[2];
+}
+
+/* Tell a monster which mesh it now stands on, then queue its move.
+
+   A location the octree cannot resolve, or one whose submesh has no live model
+   instance, clears the monster's cached mesh rather than leaving a stale one. */
+// FUNCTION: WIZ8 0x0042e540
+void W8Octree::UpdateMonsterLocation0042E540(
+    unsigned short location_id, const W8Position* position)
+{
+    int queue_id = location_id + 1;
+    unsigned int monster_list_index;
+    W8MonsterInfo* info;
+    W8Monster* monster;
+    int sector;
+    int mesh;
+    int point[3];
+
+    if (location_id == 0) {
+        return;
+    }
+    monster_list_index =
+        MonsterGetIndexByLocationID(0x4c4, OCTREE_CPP, location_id, 1);
+    info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+    if (info != 0 && info->monster != 0) {
+        monster = info->monster;
+        sector = GetSectorForPosition00430BF0(position);
+        if (sector == 0 ||
+            (mesh = reinterpret_cast<int*>(g_world->psrMeshes)
+                 [reinterpret_cast<int*>(m_owned_0d8)[sector * 4 + 1]]) == 0) {
+            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7c] = 0;
+            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7d] = 0;
+            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7e] = 0;
+            reinterpret_cast<unsigned char*>(&monster->state_28c)[0x7f] = 0;
+        } else {
+            *reinterpret_cast<int*>(
+                reinterpret_cast<unsigned char*>(&monster->state_28c) + 0x7c) = mesh;
+        }
+    }
+    point[0] = (int)((position->x - octree_origin_00c.x) / octree_cell_size_070);
+    point[1] = (int)((position->y - octree_origin_00c.y) / octree_cell_size_070);
+    point[2] = (int)((position->z - octree_origin_00c.z) / octree_cell_size_070);
+    octree_queue_0bc->Queue00437000(0xc, queue_id, point);
+}
 
 /* Read one .oct file into a fresh octree.
 
