@@ -828,6 +828,7 @@ symbol
 ?g_navigator_cycle_angle_005ec318@@3NA
 ?g_navigator_default_turn_rate_005ec2f4@@3MA
 ?g_navigator_group_659bf8@@3V?$W8GrowableVector@PAVW8Navigator@@@@A
+?g_navigator_largest_extent_6081e8@@3MA
 ?g_navigator_link_mode_00659c10@@3EA
 ?g_navigator_linked_radius_scale_005ebc98@@3MA
 ?g_navigator_minimum_speed_006081ec@@3MA

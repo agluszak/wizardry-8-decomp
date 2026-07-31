@@ -3,6 +3,7 @@
 #include "surrender/srLight.h"
 #include "surrender/srScene.h"
 #include "surrender/srTexture.h"
+#include "wiz8/engine_code/Node005EC208.h"
 #include "wiz8/engine_code/stModelInstance.h"
 
 class W8MonsterShakeCallback;
@@ -353,15 +354,8 @@ static_assert(sizeof(MonsterLight) == 0x250, "MonsterLight_must_be_0x250");
  * The rest stay vtable-qualified because nothing names their base.
  */
 
-class W8Node005EC208 : public srNode {
-public:
-    explicit W8Node005EC208(srNode* parent) : srNode(parent) {}
-    virtual ~W8Node005EC208() override;
-
-};
-
-static_assert(sizeof(W8Node005EC208) == 0x138,
-              "W8Node005EC208_must_be_0x138");
+/* W8Node005EC208 moved to engine_code/Node005EC208.h, which this header
+   includes so existing users are unaffected. */
 
 class W8Illuminator005ECCD8 {
 public:

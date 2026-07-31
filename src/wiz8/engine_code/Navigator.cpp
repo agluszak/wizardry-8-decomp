@@ -4,6 +4,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/Node005EC208.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -18,6 +19,8 @@
    interval, so it keeps an address-qualified name. */
 extern void* g_object_6598a4;
 extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
+/* Tracks the largest radius any navigator has been given. */
+extern float g_navigator_largest_extent_6081e8;
 
 namespace {
 
@@ -337,6 +340,92 @@ W8NavigatorMovement004572C0::~W8NavigatorMovement004572C0()
         ::operator delete(attachment);
     }
     attachment_0ac = 0;
+}
+
+/* A copy shares nothing that ties it to the original's navigation. The path is
+   DISCARDED rather than cloned or shared, both navigator links are cleared, the
+   owned object is not carried over, and the movement tail is default
+   constructed and then given only the eleven fields Assign004574D0 transfers.
+   What does come across is the geometry - the height band, the two bounding
+   corners, the radius - and the callback. The copy allocates its own scene node
+   and registers itself, so it is a live navigator from birth. */
+// FUNCTION: WIZ8 0x00452220
+W8Navigator::W8Navigator(const W8Navigator& other)
+{
+    fields.flags_00c = 0;
+    fields.collision_margin_010 = 0.0;
+    fields.movement_target_018.x = 0.0f;
+    fields.movement_target_018.y = 0.0f;
+    fields.movement_target_018.z = 0.0f;
+    fields.flag_024 = 1;
+    fields.flag_025 = 0;
+    fields.movement_complete_026 = 1;
+    fields.unknown_027 = 0;
+    fields.position_028.x = 0.0f;
+    fields.position_028.y = 0.0f;
+    fields.position_028.z = 0.0f;
+    fields.minimum_height_034 = other.fields.minimum_height_034;
+    fields.maximum_height_038 = other.fields.maximum_height_038;
+    fields.position_03c = other.fields.position_03c;
+    fields.unknown_048 = 0;
+    fields.target_navigator_04c = 0;
+    fields.target_last_position_050.x = 0.0f;
+    fields.target_last_position_050.y = 0.0f;
+    fields.target_last_position_050.z = 0.0f;
+    fields.linked_navigator_05c = 0;
+    fields.unknown_060 = 0;
+    fields.unknown_064 = 0;
+    fields.path_ai_068 = 0;
+    fields.radius_084 = other.fields.radius_084;
+    fields.state_088 = 1;
+    fields.movement_callback_08c = other.fields.movement_callback_08c;
+    fields.unknown_090 = other.fields.unknown_090;
+    fields.unknown_094 = other.fields.unknown_094;
+    fields.unknown_098 = 0;
+    fields.unknown_09d[0] = other.fields.unknown_09d[0];
+    fields.owned_object_0a0 = 0;
+    fields.tracked_distance_0b0 = other.fields.tracked_distance_0b0;
+    fields.unknown_0bc[1] = other.fields.unknown_0bc[1];
+    fields.movement_0c0.value_0b0 = other.fields.movement_0c0.value_0b0;
+    fields.movement_0c0.alternate_radius_0b4 =
+        other.fields.movement_0c0.alternate_radius_0b4;
+    fields.movement_0c0.height_offset_0b8 =
+        other.fields.movement_0c0.height_offset_0b8;
+    fields.movement_0c0.secondary_height_offset_0bc =
+        other.fields.movement_0c0.secondary_height_offset_0bc;
+    fields.movement_0c0.vertical_offset_0c0 =
+        other.fields.movement_0c0.vertical_offset_0c0;
+    fields.movement_0c0.value_0c4 = other.fields.movement_0c0.value_0c4;
+    fields.minimum_06c = other.fields.minimum_06c;
+    fields.maximum_078 = other.fields.maximum_078;
+    if (g_navigator_largest_extent_6081e8 < fields.movement_0c0.value_0b0) {
+        g_navigator_largest_extent_6081e8 = fields.movement_0c0.value_0b0;
+    }
+    if (g_navigator_largest_extent_6081e8 <
+        fields.movement_0c0.alternate_radius_0b4) {
+        g_navigator_largest_extent_6081e8 =
+            fields.movement_0c0.alternate_radius_0b4;
+    }
+    if (g_navigator_largest_extent_6081e8 < fields.radius_084) {
+        g_navigator_largest_extent_6081e8 = fields.radius_084;
+    }
+    fields.movement_0c0.Assign004574D0(other.fields.movement_0c0);
+    fields.movement_0c0.height_offset_0b8 -=
+        other.fields.movement_0c0.vertical_base_07c;
+    fields.movement_0c0.secondary_height_offset_0bc -=
+        other.fields.movement_0c0.vertical_base_07c;
+    SetNavigationMode00452E50(other.fields.navigation_mode_008);
+    fields.position_dirty_09c = 0;
+    fields.movement_0c0.position_adjusted_0c8 = 0;
+    fields.tracked_dirty_0b4 = 0;
+    fields.unknown_0bc[0] = 0;
+    fields.linked_update_time_0b8 = 0;
+    fields.tracked_position_0a4.x = 0.0f;
+    fields.tracked_position_0a4.y = 0.0f;
+    fields.tracked_position_0a4.z = 0.0f;
+    node_18c = new W8Node005EC208(0);
+    node_18c->setLocation(other.node_18c->getLocation());
+    RegisterNavigator(this);
 }
 
 /* Everything this navigator owns, in the order the retail body releases it.
