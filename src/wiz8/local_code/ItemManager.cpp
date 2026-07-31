@@ -455,8 +455,6 @@ extern unsigned char TraceToBounds(void* eye, const float* lower, const float* u
 /* 0x0046F820 */
 extern void WorldRemoveFromList04(W8World* world);
 extern void Function49F720(const float* position);
-extern unsigned char SettleItemOnGround(
-    float* position, void** out_hit, int arg_3, double limit);           /* 0x00433820 */
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
 extern void ReplaceOrCreateItem(
@@ -567,7 +565,7 @@ unsigned char IsWorldItemWithinReach(W8Item* owner, const float* from, float rad
 int SettleWorldItem(W8WorldItem* item)
 {
     float start[3];
-    void* hit;
+    unsigned char hit;
     int sector;
 
     start[0] = item->position.x;
@@ -577,7 +575,7 @@ int SettleWorldItem(W8WorldItem* item)
     item->flags &= ~2u;
     item->unknown_35 = 0;
 
-    if (!SettleItemOnGround(start, &hit, 1, 250.0)) {
+    if (!SettleToGround00433820(start, &hit, 1, 250.0f)) {
         return 0;
     }
 

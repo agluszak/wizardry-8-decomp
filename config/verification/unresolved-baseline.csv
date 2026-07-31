@@ -47,6 +47,7 @@ symbol
 ?ApplyHealthChangeToCharacter@@YAXHHHHHHH@Z
 ?ApplyItemEffectToRandomCharacter0052E5C0@@YAHIHHH@Z
 ?ApplyMonsterCondition@@YAXHHH@Z
+?ApplyPortalTransition0045F2D0@@YAXPBUW8Position@@0@Z
 ?ApplyPosition00479350@W8AmbientSound@@QAEXPBV?$srVector3T@M@@@Z
 ?ApplyTarget@@YAXPAUW8CombatSlot@@H@Z
 ?AudioUpdateBegin00409310@@YAXXZ
@@ -126,6 +127,8 @@ symbol
 ?FireMissileSourceToTarget@@YAXHPAUW8TargetSource@@PAUW8CombatSlot@@PAXEIH@Z
 ?FormatItemDisplayName@@YAPAGPBUW8ItemInstance@@H@Z
 ?FormatString@@YAPADPBDZZ
+?Function004669B0@@YAIPAUW8NavigatorMovement004572C0@@MM@Z
+?Function00467150@@YAIPAUW8NavigatorMovement004572C0@@MM@Z
 ?Function401920@@YAXPBD@Z
 ?Function4068E0@@YAXHH@Z
 ?Function406DE0@@YAHH@Z
@@ -546,7 +549,7 @@ symbol
 ?SetValue120@W8Navigator@@QAEXM@Z
 ?SetWorldEnvironment00483BA0@@YAXPAUW8World@@MPBUEnvironmentColour@@@Z
 ?SetWorldEnvironmentValue00483AE0@@YAXPAUW8World@@M@Z
-?SettleItemOnGround@@YAEPAMPAPAXHN@Z
+?SettleToGround00433820@@YAEPAMPAEHM@Z
 ?ShowNotice@@YAXHPAXHHH@Z
 ?ShowNotice@@YAXHPBXHHH@Z
 ?ShowNotice@@YAXPAXHHH@Z
