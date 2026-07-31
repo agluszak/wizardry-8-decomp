@@ -15,7 +15,11 @@ struct W8NavigatorAttachment {
     unsigned short value_04;
     unsigned short unknown_06;
     unsigned short value_08;
-    unsigned char unknown_0a[6];
+    /* 0x00456210 sets this to ten and allocates position_4c as ten
+       srVector3T<float>, so it is that array's capacity. */
+    unsigned short capacity_0a;
+    unsigned short value_0c;
+    unsigned short unknown_0e;
     srVector3T<float> position_10;
     srVector3T<float> position_1c;
     srVector3T<float> position_28;
@@ -25,7 +29,9 @@ struct W8NavigatorAttachment {
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
     void* allocation_50;
-    unsigned char unknown_054[0x0c];
+    unsigned int value_054;
+    unsigned int value_058;
+    unsigned char unknown_05c[4];
 
     W8NavigatorAttachment();             /* 0x00456210 */
 

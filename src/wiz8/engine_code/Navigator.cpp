@@ -18,7 +18,6 @@
    interval, so it keeps an address-qualified name. */
 extern void* g_object_6598a4;
 extern "C" void LeaveLocation0042E880(unsigned short location_id, int reason);
-extern "C" void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 namespace {
 
@@ -86,6 +85,8 @@ inline void UnregisterNavigator(const W8Navigator* navigator)
 }
 
 }
+
+void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 // FUNCTION: WIZ8 0x00456ae0
 void W8NavigatorAttachment::RecordPosition00456AE0(
@@ -156,6 +157,91 @@ W8Navigator::W8Navigator()
     fields.tracked_position_0a4.x = 0.0f;
     node_18c = new srNode(0);
     RegisterNavigator(this);
+}
+
+/* The callback a navigator starts with: mark it and stop it dead. */
+// FUNCTION: WIZ8 0x00451ea0
+void NavigatorDefaultCallback00451EA0(W8Navigator* navigator)
+{
+    navigator->fields.flag_025 = 1;
+    navigator->fields.movement_0c0.velocity_034.x = 0.0f;
+    navigator->fields.movement_0c0.velocity_034.y = 0.0f;
+    navigator->fields.movement_0c0.velocity_034.z = 0.0f;
+}
+
+/* The attachment owns two allocations from construction: ten srVector3T<float>
+   of recorded positions from srHeap, and a zeroed twenty-byte record. */
+// FUNCTION: WIZ8 0x00456210
+W8NavigatorAttachment::W8NavigatorAttachment()
+{
+    unsigned int* record;
+
+    flags_00 = 0;
+    value_08 = 0;
+    value_04 = 0;
+    value_0c = 0;
+    capacity_0a = 10;
+    position_4c = static_cast<srVector3T<float>*>(
+        srHeap.allocate(10 * sizeof(srVector3T<float>)));
+    record = static_cast<unsigned int*>(malloc(5 * sizeof(unsigned int)));
+    allocation_50 = record;
+    record[0] = 0;
+    record[1] = 0;
+    record[2] = 0;
+    record[3] = 0;
+    record[4] = 0;
+    value_058 = 0;
+    value_054 = 0;
+    position_10.x = 0.0f;
+    position_10.y = 0.0f;
+    position_10.z = 0.0f;
+    position_1c.x = 0.0f;
+    position_1c.y = 0.0f;
+    position_1c.z = 0.0f;
+}
+
+/* A second pass of defaults over the same tail, run straight after the
+   constructor. Where the constructor cleared the orientation, this one gives it
+   a facing of three quarter turns, a ten-thousand callback threshold, a turn
+   rate of a sixteenth turn, unit scale and speed, and an identity basis in the
+   three vectors at +0x88. */
+// FUNCTION: WIZ8 0x004573d0
+void W8NavigatorMovement004572C0::ResetMovement004573D0()
+{
+    unknown_000 = 0;
+    flag_06c = 0;
+    unknown_01c = 0.0f;
+    pitch_020 = 0.0f;
+    target_pitch_024 = 0.0f;
+    roll_028 = 0.0f;
+    target_roll_02c = 0.0f;
+    target_angle_018 = 4.712389f;
+    angle_014 = 4.712389f;
+    velocity_034.x = 0.0f;
+    velocity_034.y = 0.0f;
+    velocity_034.z = 0.0f;
+    position_040.x = 0.0f;
+    position_040.y = 0.0f;
+    position_040.z = 0.0f;
+    callback_progress_05c = 0.0f;
+    pitch_enabled_074 = 0;
+    roll_enabled_075 = 0;
+    vertical_velocity_078 = 0.0f;
+    callback_threshold_058 = 10000.0f;
+    turn_rate_068 = 0.19634955f;
+    unknown_076[0] = 1;
+    value_010 = -1;
+    movement_scale_060 = 1.0f;
+    movement_speed_064 = 1.0f;
+    vector_088.x = 1.0f;
+    vector_088.y = 0.0f;
+    vector_088.z = 0.0f;
+    vector_094.x = 0.0f;
+    vector_094.y = 1.0f;
+    vector_094.z = 0.0f;
+    vector_0a0.x = 0.0f;
+    vector_0a0.y = 0.0f;
+    vector_0a0.z = 1.0f;
 }
 
 /* The whole 0xCC tail starts cleared apart from a unit movement speed, the byte
