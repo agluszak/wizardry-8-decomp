@@ -633,12 +633,12 @@ unsigned short W8Navigator::Function4526C0(
     if (SetMovementTarget(
             &target->fields.movement_0c0.position_040, 0) == 0) {
         if (g_flag_006081e4 == 0) {
-            fields.navigation_mode_008 = 0;
+            fields.flags_00c = 0;
             fields.unknown_0bc[0] = 1;
         }
     }
     else {
-        fields.navigation_mode_008 = 5;
+        fields.flags_00c = 5;
         result = 1;
         if (g_flag_006081e4 == 0) {
             result = (unsigned short)(

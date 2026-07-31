@@ -2269,22 +2269,6 @@ void W8WidgetBase005ED5BC::SetBoundsFromRect(const W8ControlsRect* bounds)
    guards against that length, which is what it holds; the source does not name
    the member itself, so it keeps its positional name. */
 
-/* No destructor is declared here on purpose. Under /GX a user-declared base
-   destructor makes the derived constructor carry an unwind frame, because the
-   vector's operator new can throw after the base is built; the canonical body
-   has no frame, so the original base's destructor is implicit. */
-class W8ControlBase005ED664 {
-public:
-    W8ControlBase005ED664();
-    virtual void vslot0() = 0;
-    virtual void vslot1() {}
-
-protected:
-    int m_value_4;                       /* 0x04 */
-    int m_value_8;                       /* 0x08 */
-    int m_index_c;                       /* 0x0c: the -1 sentinel when unset */
-};                                       /* 0x10 */
-
 /* The embedded vector's element type is unproven, so it is named for the
    specialization vtable the image gives it. */
 /* The element type. 0x004F5540 calls two of its virtuals, at +0x48 and +0x4c,
@@ -2331,19 +2315,12 @@ public:
     W8Control005ED654();
 
     void SetSelected(int iSelected);
-    virtual void SelectEntry(W8VectorElement005ED65C* entry);
+    virtual void vslot0(void* entry) override;
 
 protected:
     W8GrowableVector<W8VectorElement005ED65C*> m_lsButtons; /* 0x10 */
     W8ControlListener* m_value_20;       /* 0x20: notified on a change */
 };                                       /* 0x24 established */
-
-__forceinline W8ControlBase005ED664::W8ControlBase005ED664()
-{
-    m_value_4 = 0;
-    m_value_8 = 0;
-    m_index_c = -1;
-}
 
 // SYNTHETIC: WIZ8 0x004f6910
 // W8GrowableVector<W8VectorElement005ED65C*>::`scalar deleting destructor'
@@ -2407,11 +2384,13 @@ void W8Control005ED654::SetSelected(int iSelected)
 }
 
 // FUNCTION: WIZ8 0x004f55c0
-void W8Control005ED654::SelectEntry(W8VectorElement005ED65C* entry)
+void W8Control005ED654::vslot0(void* entry)
 {
     int iIndex;
+    W8VectorElement005ED65C* element =
+        static_cast<W8VectorElement005ED65C*>(entry);
 
-    iIndex = m_lsButtons.IndexOf(entry);
+    iIndex = m_lsButtons.IndexOf(element);
     if (iIndex == -1) {
         srAssertFail("iIndex != -1",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Controls.cpp",

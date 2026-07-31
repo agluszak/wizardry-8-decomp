@@ -3,6 +3,7 @@
 
 #include <wchar.h>
 
+#include "wiz8/compat/compiler.h"
 #include "wiz8/vector.h"
 
 /*
@@ -149,6 +150,39 @@ public:
 };                                       /* 0x34 established */
 WIZ8_ASSERT_SIZE(W8WidgetBase005ED5BC, 0x34);
 
+/*
+ * Two-slot abstract control base at vtable 0x005ED664. Slot 0 stays pure on
+ * the base; slot 1 shares the empty Redraw body at 0x005B1BE0 with the widget
+ * family. Several screen objects also inherit it as a secondary base at +4,
+ * which is why mode/state lands at +8 on those complete objects.
+ *
+ * No destructor is declared on purpose. Under /GX a user-declared base
+ * destructor makes a derived constructor carry an unwind frame when a later
+ * member can throw; the canonical bodies that use this base have no frame.
+ */
+// VTABLE: WIZ8 0x005ed664
+class W8ControlBase005ED664 {
+public:
+    W8ControlBase005ED664()
+    {
+        m_value_4 = 0;
+        m_value_8 = 0;
+        m_index_c = -1;
+    }
+
+    /* Slot 0 is one pointer argument: SelectEntry on the primary-control
+       subclass, and the text-control listener primary callback when this base
+       sits as a secondary subobject on a screen object. */
+    virtual void vslot0(void* arg) = 0;
+    virtual void Redraw(int) {}
+
+protected:
+    int m_value_4; /* 0x04 */
+    int m_value_8; /* 0x08 */
+    int m_index_c; /* 0x0c: the -1 sentinel when unset */
+};             /* 0x10 */
+WIZ8_ASSERT_SIZE(W8ControlBase005ED664, 0x10);
+
 // VTABLE: WIZ8 0x005ed604
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
@@ -181,6 +215,17 @@ public:
     virtual void SetBounds(int left, int top, int right, int bottom) override;
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds) override;
 
+    class Listener {
+    public:
+        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
+        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
+    };
+
+    void SetListener(Listener* listener)
+    {
+        m_listener = listener;
+    }
+
 protected:
     unsigned int m_stateFlags;           /* 0x34: paired state masks */
     unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
@@ -197,11 +242,7 @@ protected:
     short m_measured_h;                  /* 0x5e */
     W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
     int m_field_b0;
-    class Listener {
-    public:
-        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
-        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
-    } *m_listener;                       /* 0xb4 */
+    Listener* m_listener;                /* 0xb4 */
 
     __forceinline void InvalidateCore(unsigned char immediate);
 };

@@ -23,6 +23,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/local_screens/PleaseWaitScreen.cpp
     src/wiz8/local_screens/Screens.cpp
     src/wiz8/local_screens/RCSCommon.cpp
+    src/wiz8/local_screens/ScreenObject005EF224.cpp
     src/wiz8/local_screens/MGSTextBox.cpp
     src/wiz8/local_screens/MainGameScreen.cpp
     src/wiz8/local_screens/MGSPortraits.cpp

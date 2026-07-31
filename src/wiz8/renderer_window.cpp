@@ -77,6 +77,7 @@ srScene* g_scene_overlay0_659654;
 srScene* g_scene_overlay1_659658;
 srScene* g_scene_square_65965c;
 srColorSurface* g_primary_color_surface_659660;
+// GLOBAL: WIZ8 0x00659664
 class stSurface2D* g_surface_node_659664;
 srCamera* g_overlay_camera_659670;
 srCamera* g_square_camera_659674;

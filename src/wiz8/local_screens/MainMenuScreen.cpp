@@ -38,6 +38,7 @@ extern unsigned char g_flag_68ed14;
 unsigned char g_flag_68517c;
 unsigned char g_flag_69c4ba;
 unsigned char g_flag_69c4b6;
+// GLOBAL: WIZ8 0x0069C4B4
 unsigned short g_selected_item_0069c4b4;
 unsigned char g_flag_69c4c4;
 int g_dword_69c4bc;

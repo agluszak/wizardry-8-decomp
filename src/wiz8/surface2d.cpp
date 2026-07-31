@@ -2,6 +2,7 @@
 
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
+#include "wiz8/render_state.h"
 
 
 static srRegistry::ClassNode* texture_class_node()
@@ -312,4 +313,51 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long,
 void stSurface2D::enableRendererFlag(unsigned int flag)
 {
     field_194 |= flag;
+}
+
+/* Screen enter handlers call this through Function425570 when the global
+   surface node exists. It flips the tile hint pair on every stTexture2D tile
+   and invalidates each one, toggling flags bit 0x800000 to match. The retail
+   loops test `0 < tile_count` and keep a separate early return on the enabled
+   branch after the last tile. */
+// FUNCTION: WIZ8 0x0047e370
+void stSurface2D::Function47E370(char mode)
+{
+    int index;
+
+    if (mode == 0) {
+        flags &= ~0x800000u;
+        index = 0;
+        if (0 < tile_count) {
+            do {
+                tiles[index]->disableHint(static_cast<srTextureIFace::e_hint>(2));
+                tiles[index]->enableHint(static_cast<srTextureIFace::e_hint>(1));
+                tiles[index]->invalidate();
+                index = index + 1;
+            } while (index < tile_count);
+        }
+    }
+    else {
+        flags |= 0x800000u;
+        index = 0;
+        if (0 < tile_count) {
+            do {
+                tiles[index]->disableHint(static_cast<srTextureIFace::e_hint>(1));
+                tiles[index]->enableHint(static_cast<srTextureIFace::e_hint>(2));
+                tiles[index]->invalidate();
+                index = index + 1;
+            } while (index < tile_count);
+            return;
+        }
+    }
+}
+
+/* The guard every lifecycle enter handler hits before SetViewport: only touch
+   the surface node when startup created one. */
+// FUNCTION: WIZ8 0x00425570
+void Function425570(char mode)
+{
+    if (g_surface_node_659664 != 0) {
+        g_surface_node_659664->Function47E370(mode);
+    }
 }

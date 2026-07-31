@@ -43,6 +43,7 @@ public:
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
     void enableRendererFlag(unsigned int flag);
+    void Function47E370(char mode);
     void invalidateTiles();
     void updateRectangle(srGERD* renderer, void* pixels, long pitch,
                          int left, int top, int right, int bottom);

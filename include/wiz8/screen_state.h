@@ -2,18 +2,21 @@
 
 /* The current and pending screen records begin at the two globals whose first
    dwords the reviewed setters address directly. One storage object preserves
-   that identity instead of mirroring the id into a synthetic runtime record. */
-/* The five leading dwords and the name are what lifecycle record 4's entry
+   that identity instead of mirroring the id into a synthetic runtime record.
+   The five leading dwords and the name are what lifecycle record 4's entry
    handler reads out of this record to fill its own descriptor; the four bytes
    before the name and everything past it stay positional, and the name's bound
-   is the record's end rather than a proved one. */
+   is the record's end rather than a proved one.
+
+   Lifecycle enter 0x005B1750 reads the mode dword at +0x04 and the context
+   pointer at +0x10 when constructing the screen object it parks at
+   0x0069C2E8; those are mode and parameter_3 below. */
 struct W8ScreenStateRuntime {
     int id;                        /* 0x00 */
     int mode;                      /* 0x04 */
     int parameter;                 /* 0x08 */
     int parameter_2;               /* 0x0c */
-    void* parameter_3;             /* 0x10, the save payload the Please Wait
-                                      screen's mode 2 hands to SaveGame */
+    void* parameter_3;             /* 0x10: save payload / screen-object context */
     unsigned char unknown_14[4];   /* 0x14 */
     char name[0x80];               /* 0x18 */
 };

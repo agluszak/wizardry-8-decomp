@@ -75,6 +75,7 @@ public:
     void setMipmap(e_mipmap mipmap);
     void setMipmapBias(float bias);
     void enableHint(e_hint hint);
+    void disableHint(e_hint hint);
     void setCorrection(e_correction correction);
     void setMagFilter(e_filter filter);
     void setMinFilter(e_filter filter);

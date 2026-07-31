@@ -17,6 +17,7 @@ extern srGERD* g_gerd_659634;
 extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
 extern stSurface2D* g_surface_node_659664;
 extern srMaterial* g_blit_material_65967c;
+extern void Function425570(char mode);
 extern srColorSurface* g_mouse_surface_659688;
 extern srNode* g_surface_nodes_654adc[0x12c0];
 extern unsigned char g_block_652ddc[0x12c0];
