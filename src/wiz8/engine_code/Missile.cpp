@@ -8,6 +8,7 @@
  */
 
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/sr_api.h"

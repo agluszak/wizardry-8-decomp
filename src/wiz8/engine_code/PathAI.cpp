@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srHeap.h"
 
@@ -121,6 +122,24 @@ void DestroyOwnedPathAI004A9110(W8PathAI* path)
             srHeap.free(path->render_allocation_18);
         }
         free(path);
+    }
+}
+
+/* Clone whichever AI record the tag selects. An unknown tag copies nothing and
+   returns null rather than aliasing the source. */
+// FUNCTION: WIZ8 0x004a91c0
+void* CloneAIRecord004A91C0(void* record)
+{
+    if (record == 0) {
+        return 0;
+    }
+    switch (*static_cast<const unsigned char*>(record)) {
+    case 0:
+        return ClonePathAI004A98C0(static_cast<const W8PathAI*>(record));
+    case 3:
+        return CopyAIMissile004A53A0(static_cast<const W8AIMissile*>(record));
+    default:
+        return 0;
     }
 }
 

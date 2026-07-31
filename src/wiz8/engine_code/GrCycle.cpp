@@ -1,3 +1,4 @@
+#include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/grcycle.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"

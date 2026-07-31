@@ -8,15 +8,10 @@
 
 struct W8ItemRep;
 
-/* GrObject.cpp calls these sound events `pse`/`m_plsSoundEvents`; no stronger
-   source witness for the concrete event class name is available yet. */
-class W8VectorElement005ED094 {
-public:
-    ~W8VectorElement005ED094();          /* 0x004D5770 */
-
-    unsigned char unknown_000[0x28];
-    int value_028;
-};
+/* The sound events GrObject.cpp calls `pse`/`m_plsSoundEvents`. The class
+   itself belongs to Engine Code\SoundEvent.cpp, which owns its whole
+   lifecycle; only the pointer is needed here. */
+class W8VectorElement005ED094;
 
 /* GrObject.cpp owns this base.  The original Item.cpp assertion
    `pMissile->GrObject::GetAI()` independently establishes the class name. */
