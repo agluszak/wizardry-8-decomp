@@ -94,13 +94,17 @@ public:
     void* m_owned_0d0;
     void* m_owned_0d4;
     void* m_owned_0d8;
-    BitArray* m_owned_0dc;
-    void* m_owned_0e0;
-    void* m_owned_0e4;
+    /* Six original member names, from ReadOctFile's own assertion text at
+       0x0042C68A, 0x0042C70C, 0x0042C7AB, 0x0042C850, 0x0042C8F5 and
+       0x0042CAA4. The us prefix is the image's own, so the four lookup and
+       link tables are unsigned short arrays. */
+    BitArray* m_pAlphaBits;              /* 0xdc */
+    unsigned short* m_pusMeshParticleLookup; /* 0xe0 */
+    unsigned short* m_pusMeshParticles;   /* 0xe4 */
     unsigned short m_positional_0e8;
     unsigned short m_padding_0ea;
-    void* m_owned_0ec;
-    void* m_owned_0f0;
+    unsigned short* m_pusMeshPropLookup;  /* 0xec */
+    unsigned short* m_pusMeshProps;       /* 0xf0 */
     unsigned short m_positional_0f4;
     unsigned short m_padding_0f6;
     unsigned long m_ulNumParticles;
@@ -146,7 +150,10 @@ public:
     W8Pathing00457CF0* pathing_180;
     int mark_base_184;
     unsigned long m_ulNumProps;
-    BitArray* visited_18c;
+    /* Named m_pPropSunBits by ReadOctFile's assertion at 0x0042CAA4. The
+       earlier `visited` reading came from 0x0042E3E0's parameter, not from
+       the image, and the assertion outranks it. */
+    BitArray* m_pPropSunBits;            /* 0x18c */
     BitArray* m_owned_190;
     BitArray* m_owned_194;
     BitArray* m_owned_198;
