@@ -9,7 +9,9 @@ struct W8NavigatorMovement004572C0;
 
 class W8OctreeQueue00437000 {
 public:
-    void Queue00437000(int kind, int id, const int* point);
+    /* Returns whether the pairing ended up recorded; every recovered caller
+       discards it. */
+    unsigned char Queue00437000(int kind, int id, const int* point);
 };
 
 /* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
