@@ -522,6 +522,153 @@ void RemoveEntry00438C90(
     index->last_entry = slot;
 }
 
+/* Link one key to one value, growing first when there is no free entry. */
+// FUNCTION: WIZ8 0x0055dbb0
+void InsertEntry0055DBB0(
+    W8OctreeIndex* index, const unsigned int* key, const int* value)
+{
+    W8OctreeEntry* entries;
+    unsigned int hash;
+    unsigned int stored;
+    int capacity;
+    int slot;
+
+    if (index->last_entry == -1) {
+        GrowIndex00439290(index);
+    }
+    slot = index->last_entry;
+    capacity = index->bucket_count;
+    entries = static_cast<W8OctreeEntry*>(index->entries);
+    index->last_entry = entries[slot].next;
+    stored = *key;
+    entries[slot].key = stored;
+    entries[slot].value = *value;
+    hash = ((stored >> 10 ^ stored) >> 10 ^ stored) & (capacity - 1);
+    entries[slot].next = static_cast<int*>(index->buckets)[hash];
+    static_cast<int*>(index->buckets)[hash] = slot;
+}
+
+/* Record that one object now occupies one cell.
+
+   The object's key is its kind in the high half and its id in the low half.
+   When it is already registered somewhere, the cell it was in is compared
+   against the one being queued and an unchanged pairing is left completely
+   alone; otherwise the old pairing comes out of both indexes first. A kind of
+   twelve additionally maintains a second pairing under its own tag.
+
+   The two indexes are the same pair AddCollidablePropBounds keeps: one keyed by
+   cell, one keyed by object. */
+// FUNCTION: WIZ8 0x00437000
+unsigned char W8OctreeQueue00437000::Queue00437000(
+    int kind, int id, const int* point)
+{
+    W8OctreeIndex** pair = reinterpret_cast<W8OctreeIndex**>(this);
+    W8OctreeIndex* by_object = pair[1];
+    W8OctreeIndex* by_cell;
+    W8OctreeEntry* entries;
+    unsigned int object_key;
+    unsigned int tagged_key;
+    unsigned int hash;
+    int cell_key;
+    int occupied;
+    int slot;
+    int previous;
+    int* bucket;
+
+    object_key = (kind & 0xffff) * 0x10000 + (id & 0xffff);
+    hash = (object_key >> 10 ^ object_key) >> 10 ^ object_key;
+    slot = static_cast<int*>(by_object->buckets)[hash & (by_object->bucket_count - 1)];
+    while (slot != -1) {
+        entries = static_cast<W8OctreeEntry*>(by_object->entries);
+        if (entries[slot].key == object_key) {
+            occupied = entries[slot].value;
+            if (occupied == 0) {
+                break;
+            }
+            if (point[0] == 0 &&
+                (int)(((occupied - 1) & 0xff00) << 8) == point[1] &&
+                ((occupied - 1) & 0xff) == point[2]) {
+                return 1;
+            }
+            bucket = static_cast<int*>(by_object->buckets) +
+                (hash & (by_object->bucket_count - 1));
+            slot = *bucket;
+            if (slot != -1) {
+                entries = static_cast<W8OctreeEntry*>(by_object->entries);
+                previous = -1;
+                for (;;) {
+                    if (entries[slot].key == object_key) {
+                        if (previous == -1) {
+                            *bucket = entries[slot].next;
+                        } else {
+                            entries[previous].next = entries[slot].next;
+                        }
+                        static_cast<W8OctreeEntry*>(by_object->entries)[slot].next =
+                            by_object->last_entry;
+                        by_object->last_entry = slot;
+                        break;
+                    }
+                    previous = slot;
+                    slot = entries[slot].next;
+                    if (slot == -1) {
+                        break;
+                    }
+                }
+            }
+            by_cell = pair[0];
+            bucket = static_cast<int*>(by_cell->buckets) +
+                ((((unsigned int)occupied >> 10 ^ occupied) >> 10 ^ occupied) &
+                 (by_cell->bucket_count - 1));
+            if (*bucket != -1) {
+                entries = static_cast<W8OctreeEntry*>(by_cell->entries);
+                slot = *bucket;
+                previous = -1;
+                do {
+                    if (entries[slot].key == (unsigned int)occupied &&
+                        entries[slot].value == (int)object_key) {
+                        if (previous == -1) {
+                            *bucket = entries[slot].next;
+                        } else {
+                            entries[previous].next = entries[slot].next;
+                        }
+                        static_cast<W8OctreeEntry*>(by_cell->entries)[slot].next =
+                            by_cell->last_entry;
+                        by_cell->last_entry = slot;
+                        break;
+                    }
+                    previous = slot;
+                    slot = entries[slot].next;
+                } while (entries[previous].next != -1);
+            }
+            goto record;
+        }
+        slot = entries[slot].next;
+    }
+    if ((short)kind == 0xc) {
+        cell_key = ((point[0] << 8) + point[1]) * 0x100 + 1 + point[2];
+        tagged_key = (id & 0xffff) + 0xd0000;
+        RemoveEntry00438C90(by_object, &tagged_key, &cell_key);
+        by_object = pair[1];
+        slot = AllocateEntry004393E0(by_object);
+        entries = static_cast<W8OctreeEntry*>(by_object->entries);
+        hash = ((tagged_key >> 10 ^ tagged_key) >> 10 ^ tagged_key) &
+            (by_object->bucket_count - 1);
+        entries[slot].key = tagged_key;
+        entries[slot].value = cell_key;
+        entries[slot].next = static_cast<int*>(by_object->buckets)[hash];
+        static_cast<int*>(by_object->buckets)[hash] = slot;
+        RemoveEntry00438C90(pair[0], (const unsigned int*)&cell_key, (const int*)&tagged_key);
+        InsertEntry0055DBB0(pair[0], (const unsigned int*)&cell_key, (const int*)&tagged_key);
+    }
+record:
+    cell_key = ((point[0] << 8) + point[1]) * 0x100 + 1 + point[2];
+    RemoveEntry00438C90(pair[1], &object_key, &cell_key);
+    InsertEntry0055DBB0(pair[1], &object_key, &cell_key);
+    RemoveEntry00438C90(pair[0], (const unsigned int*)&cell_key, (const int*)&object_key);
+    InsertEntry0055DBB0(pair[0], (const unsigned int*)&cell_key, (const int*)&object_key);
+    return 1;
+}
+
 /* Register one collidable prop against every octree cell its bounding box
    touches.
 
