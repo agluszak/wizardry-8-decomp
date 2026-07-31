@@ -35,28 +35,100 @@ struct W8OctreeWalk {
 
 static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
 
+/* The pathing service the octree builds when its file carries one. Its own
+   constructor at 0x004578E0 initialises through 0x238 and ReadOctFile allocates
+   0x240, which is what fixes the extent; only the fields those two bodies and
+   the path lookup reach are named. */
 class W8Pathing00457CF0 {
 public:
     W8Pathing00457CF0();                  /* 0x004578E0 */
-    void Configure00458A50(
-        int size, int value_2, int value_3, const void* header,
-        const char* name);                /* 0x00458A50 */
-    unsigned char Load00458CE0(int handle); /* 0x00458CE0 */
-
-    /* Only the two bytes 0x00434A30 tests are witnessed; the filler around them
-       records nothing beyond their offsets. */
-    unsigned char m_positional_000[0x0c];
-    int value_00c;                       /* 0x0c */
-    unsigned char m_positional_010[0x1b8];
-    unsigned char flag_1c8;              /* 0x1c8 */
-
     unsigned int FindPathHandle(
         const unsigned char* path_name,
         unsigned short* path_bounds,
         float* path_range);              /* 0x00457CF0 */
     void LinkPropSurfaces(GDProp* prop);  /* 0x00460020 */
     void LinkPropVertices(GDProp* prop);  /* 0x004600B0 */
+    /* Takes the size, two loose values, the six-float bounds block out of the
+       octree header, and the level name the octree already owns. */
+    void Configure00458A50(
+        int size, int value_1c, int value_28, const float* bounds,
+        const char* name);                /* 0x00458A50 */
+    unsigned char Load00458CE0(int handle); /* 0x00458CE0 */
+
+    unsigned int m_positional_000;
+    int size_004;                        /* 0x04 */
+    int m_positional_008;
+    /* ReadOctFile tests this beside flag_1c8 before settling a portal. */
+    int value_00c;                       /* 0x0c */
+    int m_positional_010;
+    int m_positional_014;
+    int m_positional_018;
+    int value_01c;                       /* 0x1c */
+    float span_020;                      /* 0x20 */
+    short cell_count_024;                /* 0x24 */
+    unsigned short m_padding_026;
+    int value_028;                       /* 0x28 */
+    float bounds_02c[6];                 /* 0x2c */
+    int m_positional_044;
+    int m_positional_048;
+    int m_positional_04c;
+    int m_positional_050;
+    int m_positional_054;
+    BitArray* m_owned_058;               /* 0x58 */
+    BitArray* m_owned_05c;               /* 0x5c */
+    BitArray* m_owned_060;               /* 0x60 */
+    int m_positional_064;
+    const char* name_068;                /* 0x68 */
+    int m_positional_06c;
+    unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
+    int m_positional_074;
+    unsigned char m_positional_078[0x14];
+    unsigned char flag_08c;              /* 0x8c */
+    unsigned char m_positional_08d[0xf];
+    unsigned char flag_09c;              /* 0x9c */
+    unsigned char m_positional_09d[7];
+    unsigned char flag_0a4;              /* 0xa4 */
+    unsigned char m_padding_0a5[3];
+    int m_positional_0a8;
+    int m_positional_0ac;
+    int m_positional_0b0;
+    int m_positional_0b4;
+    int m_positional_0b8;
+    int m_positional_0bc;
+    int m_positional_0c0;
+    int m_positional_0c4;
+    void* m_owned_0c8;                   /* 0xc8 */
+    int m_positional_0cc;
+    int m_positional_0d0;
+    unsigned char m_positional_0d4[0xf4];
+    unsigned char flag_1c8;              /* 0x1c8 */
+    unsigned char flag_1c9;
+    unsigned char flag_1ca;
+    unsigned char flag_1cb;
+    unsigned char flag_1cc;
+    unsigned char m_padding_1cd;
+    unsigned short value_1ce;            /* 0x1ce: starts 4 */
+    int m_positional_1d0;
+    unsigned short value_1d4;
+    unsigned short value_1d6;
+    unsigned short value_1d8;
+    unsigned char m_positional_1da[0x3a];
+    void* m_owned_214;                   /* 0x214 */
+    int m_positional_218;
+    /* The path table FindPathHandle scans: 0x44-byte entries, count beside it. */
+    unsigned char* paths_21c;            /* 0x21c */
+    int path_count_220;                  /* 0x220 */
+    int m_positional_224;
+    int m_positional_228;
+    int m_positional_22c;
+    int m_positional_230;
+    int m_positional_234;
+    int m_positional_238;
+    int m_positional_23c;
 };
+
+static_assert(sizeof(W8Pathing00457CF0) == 0x240,
+              "W8Pathing00457CF0_must_be_0x240");
 
 /* Engine Code\Octree.cpp. LoadWorld allocates exactly 0x29c bytes. This object
    is deliberately non-polymorphic: every owner calls the complete teardown at
