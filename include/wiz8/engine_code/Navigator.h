@@ -176,6 +176,7 @@ public:
         W8GrowableVector<W8Navigator*>* navigators);       /* 0x00455140 */
     int ResolveMovement00455CC0();                         /* 0x00455CC0 */
     void ClearMovement004537E0();                          /* 0x004537E0 */
+    void SetNavigationMode00452E50(int mode);              /* 0x00452E50 */
 
 public:
     /* The constructor clears this payload as 98 dwords, while Monster.cpp

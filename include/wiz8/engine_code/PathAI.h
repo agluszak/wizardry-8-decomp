@@ -84,6 +84,11 @@ void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
 unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
 
+/* Allocates a zeroed 0x40 record and its node vector. W8PathRecord004A9750 is
+   named after this factory and is the same 0x40 shape as W8PathAI, which the
+   two consumers below treat it as; whether they are one type is unresolved. */
+W8PathAI* CreatePathAI004A9750(int kind);
+
 /* The two operations stLight applies to the path it owns at +0x244. The
    release is DestroyPathAI004A9810's body behind an extra `kind_00 == 0`
    guard; the clone allocates a fresh 0x40-byte record and deep-copies the
