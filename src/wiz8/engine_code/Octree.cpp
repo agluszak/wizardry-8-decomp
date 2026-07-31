@@ -90,6 +90,15 @@ struct W8OctreeIndex {
     unsigned long bucket_count;
 };
 
+/* One chained entry. The bucket array holds a head index into this one, and
+   free entries thread through the same next field, which is why growing has to
+   rebuild both chains. */
+struct W8OctreeEntry {
+    int next;
+    unsigned int key;
+    int value;
+};
+
 void DestroyIndex(W8OctreeIndex* index)
 {
     if (index != 0) {
@@ -387,6 +396,204 @@ resolve:
         }
     }
     return (short)cell[3];
+}
+
+/* Double the index and rehash into it.
+
+   Every live entry is re-linked under its key's new bucket, and whatever is
+   left over becomes the free list, terminated at the last slot. The old two
+   allocations go back only when there was a table to begin with. */
+// FUNCTION: WIZ8 0x00439290
+void GrowIndex00439290(W8OctreeIndex* index)
+{
+    W8OctreeEntry* entries;
+    int* buckets;
+    W8OctreeEntry* fill;
+    int* fill_bucket;
+    W8OctreeEntry* source;
+    unsigned int capacity;
+    unsigned int remaining;
+    unsigned int hash;
+    int used = 0;
+    int bucket;
+    int slot;
+
+    capacity = index->bucket_count << 1;
+    if (capacity < 4) {
+        capacity = 4;
+    }
+    entries = static_cast<W8OctreeEntry*>(::operator new(capacity * 0xc));
+    buckets = static_cast<int*>(::operator new(capacity * 4));
+    fill = entries;
+    fill_bucket = buckets;
+    remaining = capacity;
+    if ((int)capacity > 0) {
+        do {
+            fill->next = -1;
+            *fill_bucket = -1;
+            --remaining;
+            ++fill;
+            ++fill_bucket;
+        } while (remaining != 0);
+    }
+    if (index->bucket_count != 0) {
+        for (bucket = 0; bucket < (int)index->bucket_count; ++bucket) {
+            slot = static_cast<int*>(index->buckets)[bucket];
+            if (slot != -1) {
+                do {
+                    source = static_cast<W8OctreeEntry*>(index->entries) + slot;
+                    entries[used].key = source->key;
+                    hash = ((source->key >> 10 ^ source->key) >> 10 ^ source->key) &
+                        (capacity - 1);
+                    entries[used].value =
+                        (static_cast<W8OctreeEntry*>(index->entries) + slot)->value;
+                    entries[used].next = buckets[hash];
+                    buckets[hash] = used;
+                    slot = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next;
+                    ++used;
+                } while (slot != -1);
+            }
+        }
+        ::operator delete(index->buckets);
+        ::operator delete(index->entries);
+    }
+    if (used < (int)capacity) {
+        for (slot = used; slot < (int)capacity; ) {
+            ++slot;
+            entries[slot - 1].next = slot;
+        }
+    }
+    entries[capacity - 1].next = -1;
+    index->bucket_count = capacity;
+    index->buckets = buckets;
+    index->last_entry = used;
+    index->entries = entries;
+}
+
+/* Take the next free entry, growing first when there is none. */
+// FUNCTION: WIZ8 0x004393e0
+int AllocateEntry004393E0(W8OctreeIndex* index)
+{
+    int slot;
+
+    if (index->last_entry == -1) {
+        GrowIndex00439290(index);
+    }
+    slot = index->last_entry;
+    index->last_entry = (static_cast<W8OctreeEntry*>(index->entries) + slot)->next;
+    return slot;
+}
+
+/* Unlink one key/value pair and put its entry back on the free list. A key that
+   is not there, or one whose chain holds a different value, is left alone. */
+// FUNCTION: WIZ8 0x00438c90
+void RemoveEntry00438C90(
+    W8OctreeIndex* index, const unsigned int* key, const int* value)
+{
+    unsigned int wanted = *key;
+    int* bucket = static_cast<int*>(index->buckets) +
+        (((wanted >> 10 ^ wanted) >> 10 ^ wanted) & (index->bucket_count - 1));
+    int slot = *bucket;
+    int previous = -1;
+    W8OctreeEntry* entries;
+    W8OctreeEntry* entry;
+
+    if (slot == -1) {
+        return;
+    }
+    entries = static_cast<W8OctreeEntry*>(index->entries);
+    for (;;) {
+        entry = entries + slot;
+        if (entry->key == wanted && entry->value == *value) {
+            break;
+        }
+        previous = slot;
+        slot = entry->next;
+        if (entry->next == -1) {
+            return;
+        }
+    }
+    if (previous != -1) {
+        entries[previous].next = entry->next;
+    } else {
+        *bucket = entry->next;
+    }
+    (static_cast<W8OctreeEntry*>(index->entries) + slot)->next = index->last_entry;
+    index->last_entry = slot;
+}
+
+/* Register one collidable prop against every octree cell its bounding box
+   touches.
+
+   Two indexes are kept in step: one keyed by cell so a cell can name its props,
+   one keyed by prop so a prop can name its cells. Each cell first drops any
+   stale pairing in both directions before the new one goes in, which is what
+   makes repeated calls for a moving prop safe. The cell key packs x, y and z
+   into one dword a byte apart, and the prop key carries its id in the low half
+   with a tag above it. */
+// FUNCTION: WIZ8 0x0042eab0
+void W8Octree::AddCollidablePropBounds0042EAB0(
+    int index, const srVector3T<float>* bounds)
+{
+    int minimum[3];
+    int maximum[3];
+    W8OctreeIndex** pair;
+    W8OctreeIndex* by_prop;
+    W8OctreeIndex* by_cell;
+    W8OctreeEntry* entries;
+    unsigned int prop_key;
+    unsigned int cell_key;
+    unsigned int hash;
+    int slot;
+    int axis;
+    int x;
+    int y;
+    int z;
+
+    for (axis = 0; axis < 3; ++axis) {
+        minimum[axis] = (int)((bounds[0].x - octree_origin_00c.x) / octree_cell_size_070);
+    }
+    minimum[0] = (int)((bounds[0].x - octree_origin_00c.x) / octree_cell_size_070);
+    minimum[1] = (int)((bounds[0].y - octree_origin_00c.y) / octree_cell_size_070);
+    minimum[2] = (int)((bounds[0].z - octree_origin_00c.z) / octree_cell_size_070);
+    maximum[0] = (int)((bounds[1].x - octree_origin_00c.x) / octree_cell_size_070);
+    maximum[1] = (int)((bounds[1].y - octree_origin_00c.y) / octree_cell_size_070);
+    maximum[2] = (int)((bounds[1].z - octree_origin_00c.z) / octree_cell_size_070);
+
+    prop_key = ((index + 1) & 0xffff) + 0x80000;
+    for (x = minimum[0]; x <= maximum[0]; ++x) {
+        for (y = minimum[1]; y <= maximum[1]; ++y) {
+            for (z = minimum[2]; z <= maximum[2]; ++z) {
+                cell_key = ((x << 8) + y) * 0x100 + 1 + z;
+                pair = reinterpret_cast<W8OctreeIndex**>(octree_queue_0bc);
+                by_prop = pair[1];
+                RemoveEntry00438C90(by_prop, &prop_key, (const int*)&cell_key);
+                slot = AllocateEntry004393E0(by_prop);
+                entries = static_cast<W8OctreeEntry*>(by_prop->entries);
+                hash = ((prop_key >> 10 ^ prop_key) >> 10 ^ prop_key) &
+                    (by_prop->bucket_count - 1);
+                entries[slot].key = prop_key;
+                entries[slot].value = cell_key;
+                entries[slot].next = static_cast<int*>(by_prop->buckets)[hash];
+                static_cast<int*>(by_prop->buckets)[hash] = slot;
+
+                by_cell = pair[0];
+                RemoveEntry00438C90(by_cell, &cell_key, (const int*)&prop_key);
+                if (by_cell->last_entry == -1) {
+                    GrowIndex00439290(by_cell);
+                }
+                slot = by_cell->last_entry;
+                entries = static_cast<W8OctreeEntry*>(by_cell->entries);
+                by_cell->last_entry = entries[slot].next;
+                entries[slot].key = cell_key;
+                entries[slot].value = prop_key;
+                hash = ((cell_key >> 10 ^ cell_key) >> 10 ^ cell_key) &
+                    (by_cell->bucket_count - 1);
+                entries[slot].next = static_cast<int*>(by_cell->buckets)[hash];
+                static_cast<int*>(by_cell->buckets)[hash] = slot;
+            }
+        }
+    }
 }
 
 /* Build the cell walk between two world points.
