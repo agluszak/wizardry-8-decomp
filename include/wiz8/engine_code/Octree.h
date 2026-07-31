@@ -14,6 +14,12 @@ public:
 
 class W8Pathing00457CF0 {
 public:
+    W8Pathing00457CF0();                  /* 0x004578E0 */
+    void Configure00458A50(
+        int size, int value_2, int value_3, const void* header,
+        const char* name);                /* 0x00458A50 */
+    unsigned char Load00458CE0(int handle); /* 0x00458CE0 */
+
     /* Only the two bytes 0x00434A30 tests are witnessed; the filler around them
        records nothing beyond their offsets. */
     unsigned char m_positional_000[0x0c];
@@ -73,7 +79,10 @@ public:
     /* 0x00434A30 clamps a world-space Y against this before settling it, which
        is what makes it a height ceiling rather than one more opaque dword. */
     float height_limit_034;              /* 0x34 */
-    unsigned char m_positional_038[0x38];
+    unsigned char m_positional_038[0x24];
+    /* ReadOctFile allocates the region array here. */
+    void* m_pRegions_05c;                /* 0x5c */
+    unsigned char m_positional_060[0x10];
     float octree_cell_size_070;
     unsigned long m_mesh_count_074;
     unsigned char m_positional_078[0x24];

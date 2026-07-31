@@ -4,6 +4,7 @@ symbol
 ??0W8DialogBase005DC7A0@@QAE@XZ
 ??0W8ObjectBase00439550@@QAE@XZ
 ??0W8Octree@@QAE@PBDPAPAX@Z
+??0W8Pathing00457CF0@@QAE@XZ
 ??0W8ProfRaceInfoDialogBase005DEAF0@@QAE@XZ
 ??0W8SpellEmitterHost@@QAE@ABV0@@Z
 ??0W8StatInfoDialogBase005DF880@@QAE@XZ
@@ -45,6 +46,7 @@ symbol
 ?ApplyEffectToTarget@@YAXPAHPAUW8CombatSlot@@HH@Z
 ?ApplyHealthChangeToCharacter@@YAXHHHHHHH@Z
 ?ApplyItemEffectToRandomCharacter0052E5C0@@YAHIHHH@Z
+?ApplyLevelName00432B80@@YAXPBD@Z
 ?ApplyMonsterCondition@@YAXHHH@Z
 ?ApplyPortalTransition0045F2D0@@YAXPBUW8Position@@0@Z
 ?ApplyPosition00479350@W8AmbientSound@@QAEXPBV?$srVector3T@M@@@Z
@@ -55,7 +57,9 @@ symbol
 ?BearingBetween@@YAMPBV?$srVector3T@M@@0@Z
 ?BeginLevelTransition@@YAXXZ
 ?BindCharacterItems@@YAXHH@Z
+?BitArrayLoad0043AEC0@@YAEPAVBitArray@@H@Z
 ?BuildLevelStatusPath@@YAXPADH@Z
+?BuildPreprocessedFiles00492E60@@YADPBD@Z
 ?CalcArmorClasses@@YAXPAUW8Character@@@Z
 ?CalcRangeCategoryToTarget@@YAHPBUW8Character@@H@Z
 ?CalcXPGoal@@YAXPAUW8Character@@@Z
@@ -90,6 +94,7 @@ symbol
 ?CompareSignedAscending@@YAHPBX0@Z
 ?CompareSpellPointDeficits@@YAHPBX0@Z
 ?CompatiblePartnerItems@@YAEHH@Z
+?Configure00458A50@W8Pathing00457CF0@@QAEXHHHPBXPBD@Z
 ?ConfigureMovement00453D20@W8Navigator@@QAEEMM@Z
 ?ConfigureMovementToNavigator004529A0@W8Navigator@@QAEGPAV1@HHUW8Position@@HMH@Z
 ?ConvertVector004A90E0@@YAXPAV?$srVector3T@N@@PBV?$srVector3T@M@@@Z
@@ -99,6 +104,7 @@ symbol
 ?CountSpellsOfKind@@YAHH@Z
 ?CreateAndLoadLevelTrigger@Trigger@@SAPAV1@HPAUW8World@@@Z
 ?CreateAndLoadProp0044BF50@@YAEPAUW8ReadLevelInfo@@PAPAVW8Prop005EC1E0@@@Z
+?CreateGameData00449010@@YAPAXHH@Z
 ?CreateGroup@@YAPAUW8MonsterGroup@@IIPBUW8Position@@EEE@Z
 ?CreateSpellEffect004AD8A0@@YAPAXPBDHPAVW8Monster@@HH@Z
 ?DecideFacingForPosition@@YACHH@Z
@@ -428,6 +434,7 @@ symbol
 ?LinkPropSurfaces@W8Pathing00457CF0@@QAEXPAVGDProp@@@Z
 ?LinkPropVertices@W8Pathing00457CF0@@QAEXPAVGDProp@@@Z
 ?LinkToNavigator004527A0@W8Navigator@@QAEGPAV1@N@Z
+?Load00458CE0@W8Pathing00457CF0@@QAEEH@Z
 ?LoadGameStatus@@YAXPAUW8Chunk@@PAUW8GlobalStatus@@@Z
 ?LoadLevelStatus@@YAEPBDH@Z
 ?LoadPathAI004A92A0@@YAEPAPAUW8PathAI@@H@Z
@@ -476,6 +483,7 @@ symbol
 ?PracticeCharacterSkill@@YAXPAUW8Character@@IHH@Z
 ?Prepare004857B0@stTextureAnim@@QAEEXZ
 ?PrepareMonsterCycleForDestruction004ACF90@@YAXPAVW8Monster@@@Z
+?PrepareOctreeLoad0046CCC0@@YAXH@Z
 ?PublishLightDirection@@YAXPBH@Z
 ?Queue00437000@W8OctreeQueue00437000@@QAEXHHPBH@Z
 ?QueueGameplayEvent@@YAXHH@Z
@@ -483,9 +491,11 @@ symbol
 ?Read@W8Chunk@@QAEEPAXIPAI@Z
 ?ReadAutomapNodes00584DD0@@YAEH@Z
 ?ReadGameData00447570@@YAPAXPBDPAX@Z
+?ReadLevelName00432E90@@YAEPBD@Z
 ?ReadMultipleLevelMeshes00488240@@YAEPAUW8ReadLevelInfo@@PAPAVsrModelInstance@@KI@Z
 ?ReadSingleLevelMesh00485B20@@YAEPAUW8ReadLevelInfo@@PAPAVsrModelInstance@@HHPBDE@Z
 ?ReadTextLine004CEE40@@YAEHPADHPAE@Z
+?ReadWaypointFile0043A0F0@@YAXXZ
 ?ReadWorldParticles004BD0D0@@YAEPAUW8ReadLevelInfo@@PAVW8Node005EC208@@PAV?$W8GrowableVector@PAVstParticle@@@@@Z
 ?RecordFactChangeForJournal@@YAXH@Z
 ?RecordItemOrigin@@YAXHEG@Z
@@ -506,6 +516,7 @@ symbol
 ?ReplaceOrCreateItem@@YAXPAUW8ItemInstance@@IHHH@Z
 ?ReportActionFailed@@YAXH@Z
 ?ReportBreathFailed@@YAXH@Z
+?ReportStartupMessage004969D0@@YAXPBD@Z
 ?RequestLevelTransition005615F0@@YAXHHE@Z
 ?RequestRedraw@@YAXH@Z
 ?Reset@W8DialogMember005E0C40@@QAEXXZ
@@ -839,6 +850,8 @@ symbol
 ?g_object_6598a4@@3PAXA
 ?g_object_6598bc@@3PAVW8Object0043A910@@A
 ?g_octree_6598a4@@3PAVW8Octree@@A
+?g_octree_bytes_read_00659888@@3KA
+?g_octree_game_data_00652db0@@3PAXA
 ?g_octree_state_00659890@@3KA
 ?g_octree_storage_00659770@@3KA
 ?g_panel_69b940@@3PAUControls@@A
