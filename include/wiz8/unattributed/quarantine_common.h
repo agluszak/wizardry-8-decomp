@@ -307,7 +307,6 @@ extern int g_value_6e4104;
 extern unsigned char g_flag_603c60;
 extern unsigned char g_flag_603c4c;
 extern int g_value_659668;
-extern int g_value_659ab4;
 extern int g_value_652db0;
 extern int g_value_60dfac;
 extern int g_value_6834d4;

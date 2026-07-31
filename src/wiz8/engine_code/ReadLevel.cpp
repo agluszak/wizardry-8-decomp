@@ -4,6 +4,8 @@
 #include <cstring>
 #include <windows.h>
 
+#include "wiz8/utility.h"
+
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ClipPlane.h"
@@ -86,7 +88,6 @@ extern unsigned char ReadWorldParticles004BD0D0(
     W8ReadLevelInfo* info, W8Node005EC208* scene,
     W8GrowableVector<stParticle*>* particles);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
-extern void ReportLevelLoadError00401920(const char* message);
 extern void SetChainValue15C(char* node, int value);
 
 // FUNCTION: WIZ8 0x004BC060
@@ -670,7 +671,7 @@ unsigned char ReadMonsterPaths004BC140(
             camera_position.y = static_cast<float>(camera_location.y);
             camera_position.z = static_cast<float>(camera_location.z);
         }
-        monster->Function4A7BE0(&camera_position.x);
+        monster->SelectLOD004A7BE0(&camera_position.x);
 
         if (LoadPathAI004A92A0(&path, pInfo->hFile)) {
             monster->SetPathAI(path);
@@ -815,7 +816,7 @@ unsigned char ReadNamedPositions004BDC90(
          section_end != -1)) {                                               \
         sprintf(error_message, "%s\nTry deleting .PVL file and reloading.", \
                 message);                                                    \
-        ReportLevelLoadError00401920(error_message);                         \
+        ReportError00401920(error_message);                         \
     }
 
 // FUNCTION: WIZ8 0x004BAFF0
@@ -876,7 +877,7 @@ unsigned char ReadLevel(
     else {
         if (!ReadMultipleLevelMeshes00488240(
                 &info, world->psrMeshes, world->octree->GetMeshCount(), 0)) {
-            ReportLevelLoadError00401920(
+            ReportError00401920(
                 "ReadLevel: Error reading multi-meshes.");
         }
         for (unsigned int mesh_index = 0;

@@ -234,6 +234,7 @@ symbol
 ?Function4A6E20@@YAXM@Z
 ?Function4A72F0@@YAXHH@Z
 ?Function4A7BE0@W8GrCycle@@QAEXPBM@Z
+?Function4A7E50@W8GrCycle@@QAEXXZ
 ?Function4A84A0@@YAXPAVW8GrCycle@@@Z
 ?Function4A9110@@YAXPAX@Z
 ?Function4A9720@@YAXPAX@Z
@@ -505,7 +506,6 @@ symbol
 ?ReplaceOrCreateItem@@YAXPAUW8ItemInstance@@IHHH@Z
 ?ReportActionFailed@@YAXH@Z
 ?ReportBreathFailed@@YAXH@Z
-?ReportLevelLoadError00401920@@YAXPBD@Z
 ?RequestLevelTransition005615F0@@YAXHHE@Z
 ?RequestRedraw@@YAXH@Z
 ?Reset@W8DialogMember005E0C40@@QAEXXZ
@@ -669,8 +669,6 @@ symbol
 ?g_effect_threshold_005ed900@@3IA
 ?g_effect_threshold_005ed904@@3IA
 ?g_effect_visual_table@@3QAY01$$CBHA
-?g_emitter_default_0060e608@@3IA
-?g_emitter_default_0060e60c@@3IA
 ?g_empty_ambient_name_65a110@@3GB
 ?g_enchantment_six_cleared_006840bb@@3EA
 ?g_encounter_culling_distance@@3MB
@@ -730,7 +728,6 @@ symbol
 ?g_flee_chance_005ed908@@3IA
 ?g_flee_hp_fraction_005ed8f8@@3IA
 ?g_float_005ebb34@@3MA
-?g_float_005ebb38@@3MA
 ?g_float_005ebc38@@3MA
 ?g_float_005ebc64@@3MA
 ?g_float_005ebcf8@@3MB
@@ -781,8 +778,9 @@ symbol
 ?g_light_direction_0065ad7c@@3HA
 ?g_light_direction_0065ad80@@3HA
 ?g_light_scale_0060bfe0@@3MA
-?g_light_scale_identity_005ebb38@@3MA
 ?g_location_variable_values_00659990@@3V?$W8GrowableVector@H@@A
+?g_lod_range_default_0060e608@@3MA
+?g_lod_range_default_0060e60c@@3MA
 ?g_map_loading_00659757@@3EA
 ?g_master_ambient_volume_6850f6@@3EA
 ?g_message_clocks@@3PAHA
@@ -806,7 +804,6 @@ symbol
 ?g_monster_poster_max_distance_005ec3d8@@3NB
 ?g_monster_poster_vertical_rate_005ed298@@3MB
 ?g_monster_rotation_offset_005ec04c@@3MB
-?g_monster_scale_step_005ebc3c@@3MB
 ?g_monster_scale_transition_step_005ebcf4@@3MA
 ?g_monster_script_direction_scale_005ec150@@3MB
 ?g_monster_script_direction_step_005ed2b8@@3NB
@@ -844,7 +841,6 @@ symbol
 ?g_octree_6598a4@@3PAVW8Octree@@A
 ?g_octree_state_00659890@@3KA
 ?g_octree_storage_00659770@@3KA
-?g_one_005ebb38@@3MB
 ?g_panel_69b940@@3PAUControls@@A
 ?g_panel_69b998@@3PAUControls@@A
 ?g_panel_69bf40@@3PAUControls@@A
@@ -1061,6 +1057,7 @@ _PrepareVideoPlayback0048FF00
 _ProcessCommandLine
 _Push
 _QueueEvent
+_ReportError00401920
 _RequestRedraw
 _RequestScreenTransition
 _SetFactNotificationsSuppressed
@@ -1129,6 +1126,11 @@ _g_flag_68f105
 _g_flag_69c808
 _g_flag_69da6c
 _g_float_005ebb34
+_g_float_005ebb38
+_g_float_005ebc3c
+_g_float_005ec390
+_g_float_005ec5c0
+_g_float_005ec5c4
 _g_float_60ab48
 _g_float_64b914
 _g_game_started
@@ -1143,7 +1145,6 @@ _g_level_block
 _g_level_folders
 _g_level_progress
 _g_light_scale_0060bfe0
-_g_light_scale_identity_005ebb38
 _g_light_time_scale_005ec128
 _g_loaded_level_id
 _g_location_variable_count
@@ -1162,7 +1163,6 @@ _g_monster_group_species_list
 _g_monster_info_iterator_index
 _g_monster_light_cycle_angle_005ec318
 _g_monster_light_cycle_rate_005ecd4c
-_g_monster_light_fade_rate_005ebc3c
 _g_monster_light_half_005ebc7c
 _g_monster_list
 _g_monster_name_buffer
@@ -1214,7 +1214,6 @@ _g_value_654ad4
 _g_value_659668
 _g_value_6596bc
 _g_value_6596c0
-_g_value_659ab4
 _g_value_659c14
 _g_value_65ba5c
 _g_value_65be60

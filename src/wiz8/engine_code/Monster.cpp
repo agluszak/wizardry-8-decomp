@@ -1,3 +1,4 @@
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/combat_state.h"
@@ -46,12 +47,10 @@ extern void Function401920(const char* message);
 extern char* FormatString(const char* format, ...);
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_zero_005ebb40;
-extern const float g_monster_scale_step_005ebc3c;
 extern float g_float_005ebb34;
 extern const float g_float_005ebcf8;
 extern const double g_monster_death_rotation_pi_005ed1f0;
 extern float g_light_scale_0060bfe0;
-extern float g_light_scale_identity_005ebb38;
 extern float g_monster_scale_transition_step_005ebcf4;
 extern float g_monster_condition_scale_005ebc7c;
 extern unsigned char g_monster_model_value_enabled_00685111;
@@ -344,8 +343,8 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
             else {
                 animation = *m_pRep->animations[1].GetAt(0);
             }
-            if (scale < g_light_scale_identity_005ebb38) {
-                scale = g_light_scale_identity_005ebb38;
+            if (scale < g_float_005ebb38) {
+                scale = g_float_005ebb38;
             }
             animation->playback_scale_08 = scale;
             if (subcycle < m_pRep->animation_scales[1].GetCount()) {
@@ -377,7 +376,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
     fields.movement_0c0.secondary_height_offset_0bc +=
         fields.movement_0c0.vertical_base_07c;
 
-    if (scale_1cc < g_light_scale_identity_005ebb38) {
+    if (scale_1cc < g_float_005ebb38) {
         m_pRep->value_05c = scale_1cc;
         m_pRep->flag_061 = 1;
     }
@@ -814,7 +813,7 @@ void W8Monster::Update()
     distance = (float)sqrt(dx * dx + dy * dy + dz * dz);
 
     if (state_2ac.value_24 == -1 ||
-        g_light_scale_0060bfe0 < g_light_scale_identity_005ebb38) {
+        g_light_scale_0060bfe0 < g_float_005ebb38) {
         state_2fc.scale_04 = 0.75f;
         g_monster_model_instances_682fd0.Clear();
         CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
@@ -870,7 +869,7 @@ void W8Monster::Update()
     }
 
     if (state_2fc.scale_04 != state_2fc.scale_00 &&
-        timer_2d8.GetProgress() >= g_light_scale_identity_005ebb38) {
+        timer_2d8.GetProgress() >= g_float_005ebb38) {
         if (state_2fc.scale_00 <= state_2fc.scale_04) {
             state_2fc.scale_04 -= g_monster_scale_transition_step_005ebcf4;
             if (state_2fc.scale_04 < state_2fc.scale_00) {
@@ -899,22 +898,22 @@ void W8Monster::Update()
 
     if (flags_330.flag_00 != 0) {
         float progress = timer_30c.GetProgress();
-        if (progress > g_light_scale_identity_005ebb38) {
-            progress = g_light_scale_identity_005ebb38;
+        if (progress > g_float_005ebb38) {
+            progress = g_float_005ebb38;
         }
         if (flags_330.flag_00 == -2) {
-            if (progress == g_light_scale_identity_005ebb38) {
+            if (progress == g_float_005ebb38) {
                 flags_330.flag_00 = 0;
                 timer_30c.SetDuration(3.0f);
                 timer_30c.Restart();
                 if ((signed char)flags_330.flag_00 < 1) {
-                    m_pRep->value_05c = g_light_scale_identity_005ebb38;
+                    m_pRep->value_05c = g_float_005ebb38;
                     m_pRep->flag_061 = 1;
                     flags_330.flag_00 = -1;
                 }
                 else {
                     timer_30c.SetProgress(
-                        g_light_scale_identity_005ebb38 - m_pRep->value_05c);
+                        g_float_005ebb38 - m_pRep->value_05c);
                     flags_330.flag_00 = -1;
                 }
             }
@@ -922,13 +921,13 @@ void W8Monster::Update()
         else {
             if ((signed char)flags_330.flag_00 < 1) {
                 m_pRep->value_05c =
-                    g_light_scale_identity_005ebb38 - progress;
+                    g_float_005ebb38 - progress;
             }
             else {
                 m_pRep->value_05c = progress;
             }
             m_pRep->flag_061 = 1;
-            if (progress == g_light_scale_identity_005ebb38) {
+            if (progress == g_float_005ebb38) {
                 if ((signed char)flags_330.flag_00 < 0) {
                     flags_1dc |= 0x400;
                 }
@@ -2090,7 +2089,7 @@ unsigned char W8Monster::CanContinueScript004CA0F0()
         trigger_278 = 0;
         return 1;
     case 0x17:
-        if (timer_254.GetProgress() < g_light_scale_identity_005ebb38) {
+        if (timer_254.GetProgress() < g_float_005ebb38) {
             return 0;
         }
         break;
@@ -2868,7 +2867,7 @@ unsigned char W8MonsterRep::GetNumSubsPerCycle(signed char bCycle)
    This is the concrete implementation behind AnimRep's third vtable slot. */
 // FUNCTION: WIZ8 0x004bf8c0
 srModelInstance* W8MonsterRep::SetCycleFrameLod(
-    signed char cycle, int frame, int lod)
+    signed char cycle, signed char frame, signed char lod)
 {
     int subcycle = selection.monster.current_subcycle;
     W8MonsterAnimationVector* selected_cycle = &animations[cycle];
@@ -2888,12 +2887,12 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(
     return AnimObjDispatchList004A1560(animation, (signed char)lod, 0);
 }
 
-/* Stop the selected subcycle for one animation cycle.  AnimObj's canonical
-   body takes the three stack arguments emitted here; keep that call-site ABI
-   local until the older four-parameter declaration is corrected as its own
-   bundle. */
+/* The selected subcycle's AniMesh for one animation cycle.  AnimObj's
+   canonical body takes the three stack arguments emitted here; keep that
+   call-site ABI local until the older four-parameter declaration is
+   corrected as its own bundle. */
 // FUNCTION: WIZ8 0x004bf920
-void W8MonsterRep::StopEmitter(char cycle)
+W8AniMesh* W8MonsterRep::GetEmitterAniMesh(char cycle)
 {
     typedef void* (__cdecl *LegacyAnimObjEntryCall)(
         W8AnimObj*, signed char, unsigned int);
@@ -2901,10 +2900,11 @@ void W8MonsterRep::StopEmitter(char cycle)
     W8AnimObj* animation =
         *animations[cycle].GetAt(selection.monster.current_subcycle);
 
-    if (animation != 0) {
-        ((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
-            animation, setting_98, 0);
+    if (animation == 0) {
+        return 0;
     }
+    return (W8AniMesh*)((LegacyAnimObjEntryCall)AnimObjEntry004A1660)(
+        animation, m_bLOD, 0);
 }
 
 /* Synchronize the live world representation with the Navigator state, update
@@ -2957,7 +2957,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         scale.y = (double)scale_y;
         scale.z = (double)scale_z;
         model->setScale(scale);
-        value_1ec -= g_monster_scale_step_005ebc3c;
+        value_1ec -= g_float_005ebc3c;
     }
 
     if (flag_1fc != 0 && flag_1fd != 0) {
@@ -3114,7 +3114,7 @@ unsigned int W8MonsterRep::ApplyEmitterSetting(char cycle)
             0);
     }
     return AnimObjValue004A15D0(
-        animation, setting_98);
+        animation, m_bLOD);
 }
 
 // FUNCTION: WIZ8 0x004caa40
@@ -3131,7 +3131,7 @@ signed char W8Monster::GetNumSubCycles()
     }
 
     return (signed char)AnimObjValue004A15D0(
-        *slot, representation->setting_98);
+        *slot, representation->m_bLOD);
 }
 
 /* W8Monster stores its animation object immediately after the shared
@@ -3268,7 +3268,7 @@ void W8Monster::SetCycle(signed char cycle)
         listener.x = (float)camera_location.x;
         listener.y = (float)camera_location.y;
         listener.z = (float)camera_location.z;
-        Function4A7BE0(&listener.x);
+        SelectLOD004A7BE0(&listener.x);
     }
 
     GetAnimationRadius(&m_pRep->value_0a8);
@@ -3336,7 +3336,7 @@ void W8Monster::SetCycle(signed char cycle)
         instance = SelectCycleFrameLod004A8360(
             m_pRep->selection.monster.current_cycle,
             0,
-            m_pRep->setting_98);
+            m_pRep->m_bLOD);
         if (instance != 0 && instance->model() != 0 &&
             strstr(instance->model()->getName(), "gib") != 0) {
             SetAngles004538F0(
@@ -3465,8 +3465,8 @@ void W8Monster::UpdateAttachedObjects004C3F70()
         party_position.y * party_position.y +
         party_position.z * party_position.z) *
         g_monster_attachment_distance_scale_005ed2a8;
-    if (flags_330.flag_01 == 0 && distance_scale > g_light_scale_identity_005ebb38) {
-        distance_scale = g_light_scale_identity_005ebb38;
+    if (flags_330.flag_01 == 0 && distance_scale > g_float_005ebb38) {
+        distance_scale = g_float_005ebb38;
     }
 
     if (attachment_layout != 0) {
@@ -4520,7 +4520,7 @@ void MonsterForward4A7BE0(W8Monster* monster, const W8Position* position)
         local.x = position->x;
         local.y = position->y;
         local.z = position->z;
-        monster->Function4A7BE0(&local.x);
+        monster->SelectLOD004A7BE0(&local.x);
     }
 }
 
@@ -5110,7 +5110,7 @@ void W8Monster::InitializeAnimatedTexture004C51D0()
             instance = SelectCycleFrameLod004A8360(
                 m_pRep->selection.monster.current_cycle,
                 0,
-                m_pRep->setting_98);
+                m_pRep->m_bLOD);
             model = static_cast<srMeshModel*>(instance->model());
             if (MeshHasAnimatedTexture004B9AA0(model) == 0) {
                 flags_1dc &= ~4;
@@ -5125,7 +5125,7 @@ void W8Monster::InitializeAnimatedTexture004C51D0()
                 instance = SelectCycleFrameLod004A8360(
                     m_pRep->selection.monster.current_cycle,
                     0,
-                    m_pRep->setting_98);
+                    m_pRep->m_bLOD);
             }
             SetModelAnimatedTextureFrame004B9B00(instance, 0);
         }

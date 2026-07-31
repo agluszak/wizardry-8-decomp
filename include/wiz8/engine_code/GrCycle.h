@@ -70,7 +70,10 @@ public:
     void CreateGroundShadow(int value_140, int value_13c);
     void SetGroundShadowVisible(char visible);
     void ResetRepresentation004A7420();
-    void Function4A7BE0(const float* position);
+    /* Runs at the end of every representation update; its own body is the
+       shake/particle event walk and is not recovered yet. */
+    void Function4A7E50();
+    void SelectLOD004A7BE0(const float* position);   /* 0x004A7BE0 */
     void UpdateLights004A7150();
     srModelInstance* SelectCycleFrameLod004A8360(
         signed char cycle, signed char frame, signed char lod);

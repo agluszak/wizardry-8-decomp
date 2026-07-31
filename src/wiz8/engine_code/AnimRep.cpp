@@ -4,8 +4,8 @@
 #include "wiz8/sr_api.h"
 
 extern srTimer* g_shared_timer_base;
-extern unsigned int g_emitter_default_0060e608;
-extern unsigned int g_emitter_default_0060e60c;
+extern float g_lod_range_default_0060e608;
+extern float g_lod_range_default_0060e60c;
 
 // FUNCTION: WIZ8 0x004b86e0
 W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
@@ -212,9 +212,9 @@ W8AnimRep005ED050::~W8AnimRep005ED050()
 W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
     : W8AnimRep005ED050(other)
 {
-    setting_98 = other.setting_98;
-    value_09c = other.value_09c;
-    value_0a0 = other.value_0a0;
+    m_bLOD = other.m_bLOD;
+    lod_range_09c = other.lod_range_09c;
+    lod_range_0a0 = other.lod_range_0a0;
     selection.emitter.emitter_index = 0;
     selection.emitter.emitter_subindex = 0;
     selection.emitter.emitter_value_a6 = 0xff;
@@ -225,9 +225,9 @@ W8EmitterHost::W8EmitterHost(const W8EmitterHost& other)
 // FUNCTION: WIZ8 0x004b5600
 W8EmitterHost::W8EmitterHost()
 {
-    setting_98 = 0;
-    value_09c = g_emitter_default_0060e608;
-    value_0a0 = g_emitter_default_0060e60c;
+    m_bLOD = 0;
+    lod_range_09c = g_lod_range_default_0060e608;
+    lod_range_0a0 = g_lod_range_default_0060e60c;
     selection.emitter.emitter_index = 0;
     selection.emitter.emitter_subindex = 0;
     selection.emitter.emitter_value_a6 = 0xff;

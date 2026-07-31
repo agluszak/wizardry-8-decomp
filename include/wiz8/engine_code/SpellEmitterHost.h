@@ -15,9 +15,9 @@ public:
     virtual ~W8SpellEmitterHost() override;
     virtual W8AnimRepBase005EC1D8* Clone() override;
     virtual srModelInstance* SetCycleFrameLod(
-        signed char cycle, int frame, int lod) override;
+        signed char cycle, signed char frame, signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
-    virtual void StopEmitter(char emitter) override;
+    virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
 
     unsigned char unknown_0ac[0x2c];
     W8Emitter* emitters[28];              /* 0x0d8 */

@@ -1,3 +1,4 @@
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/PathAI.h"
@@ -18,10 +19,8 @@
 
 extern "C" {
 extern float g_light_scale_0060bfe0;
-extern float g_light_scale_identity_005ebb38;
 extern double g_double_005ebc70;
 extern unsigned char g_byte_0060bfdc;
-extern float g_monster_light_fade_rate_005ebc3c;
 extern float g_monster_light_cycle_rate_005ecd4c;
 extern double g_monster_light_cycle_angle_005ec318;
 extern float g_monster_light_half_005ebc7c;
@@ -161,7 +160,7 @@ void stLight::process(
     srNode::e_processType type)
 {
     if ((type == 1 || type == 3) &&
-        g_light_scale_0060bfe0 != g_light_scale_identity_005ebb38) {
+        g_light_scale_0060bfe0 != g_float_005ebb38) {
         float saved_scale = m_positional_98;
         m_positional_98 = saved_scale * g_light_scale_0060bfe0;
         srLight::process(info, type);
@@ -228,21 +227,21 @@ void MonsterLight::Update0049D990(const W8Position* position)
     float elapsed = g_object_6598bc->GetValue30() - m_start_time_244;
 
     if (m_fade_out_249 != 0) {
-        float fade = elapsed * g_monster_light_fade_rate_005ebc3c;
-        if (fade > g_light_scale_identity_005ebb38) {
-            fade = g_light_scale_identity_005ebb38;
+        float fade = elapsed * g_float_005ebc3c;
+        if (fade > g_float_005ebb38) {
+            fade = g_float_005ebb38;
         }
-        m_positional_98 = g_light_scale_identity_005ebb38 - fade;
+        m_positional_98 = g_float_005ebb38 - fade;
     }
     else if (m_cycle_color_248 != 0) {
         float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
         double whole = floor((double)cycle);
         float first_weight = (float)(
             sin(((double)cycle - whole) * g_monster_light_cycle_angle_005ec318)
-            + g_light_scale_identity_005ebb38) *
+            + g_float_005ebb38) *
             g_monster_light_half_005ebc7c;
         float second_weight =
-            g_light_scale_identity_005ebb38 - first_weight;
+            g_float_005ebb38 - first_weight;
 
         m_color_6c.x =
             m_color_first_22c.x * first_weight +

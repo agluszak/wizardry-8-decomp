@@ -447,7 +447,7 @@ unsigned char AniMeshRadius004B66E0(W8AniMesh* mesh, float* radius)
 }
 
 // FUNCTION: WIZ8 0x004b6860
-void AniMeshSetFlag10004B6860(W8AniMesh* mesh, int, signed char enabled)
+void AniMeshSetFlag10004B6860(W8AniMesh* mesh, signed char enabled)
 {
     if (mesh == 0) {
         srAssertFail("pAniMesh", ANI_MESH_CPP, 0x3b7, 0);

@@ -98,7 +98,13 @@ public:
     unsigned char flag_1a0;
     unsigned char flag_1a1;
     unsigned char unknown_1a2[2];
-    int value_1a4;
+    /* stParticle's constructor stores the integer 2 here while GrCycle's
+       0x004A7470 stores a float; the storage carries both views, so name
+       both rather than pick one. */
+    union {
+        int value_1a4;
+        float scale_1a4;
+    };
     int value_1a8;
     float value_1ac;
     virtual ~stModelInstance005EC7D0() override; /* 0x0047EF70 */

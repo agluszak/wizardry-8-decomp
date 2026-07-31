@@ -6,6 +6,7 @@
  * bodies with 0x1e0 in place of 0x1dc.
  */
 
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -45,7 +46,6 @@ extern void GetPosition421070(W8Position* position);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern unsigned char g_master_ambient_volume_6850f6;
 extern const double g_zero_005ebb40;
-extern float g_light_scale_identity_005ebb38;
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
@@ -79,7 +79,7 @@ void* W8SpellVisual::GetActiveEmitterEntry004AC8A0()
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x653, 0);
     }
-    return emitter->values_18[this->host->setting_98];
+    return emitter->values_18[this->host->m_bLOD];
 }
 
 /* How many emitters the host has, counted by testing each for null. */
@@ -99,7 +99,7 @@ char W8SpellVisual::GetEmitterCount()
 // FUNCTION: WIZ8 0x004ac360
 void W8SpellVisual::ApplyHostSetting98()
 {
-    AnimObjValue004A15D0(Method34(), this->host->setting_98);
+    AnimObjValue004A15D0(Method34(), this->host->m_bLOD);
 }
 
 /* Start the visual, but only while the host is live. A spell of the seventh
@@ -121,7 +121,7 @@ void W8SpellVisual::StartIfHostActive()
    reverse of the order they arrive. */
 // FUNCTION: WIZ8 0x004ab290
 srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(
-    signed char emitter, int frame, int lod)
+    signed char emitter, signed char frame, signed char lod)
 {
     return AnimObjDispatch004A14D0(
         (W8AnimObj*)this->emitters[emitter], (signed char)lod, frame);
@@ -141,20 +141,21 @@ unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
             0x200,
             0);
     }
-    return AnimObjValue004A15D0((W8AnimObj*)target, this->setting_98);
+    return AnimObjValue004A15D0((W8AnimObj*)target, this->m_bLOD);
 }
 
-/* Stop one named emitter, passing the host's own setting; an empty slot is
-   left alone. */
+/* One named emitter's AniMesh, looked up with the host's own setting; an
+   empty slot yields none. */
 // FUNCTION: WIZ8 0x004ab310
-void W8SpellEmitterHost::StopEmitter(char emitter)
+W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(char emitter)
 {
     W8Emitter* target = this->emitters[emitter];
 
     if (target == 0) {
-        return;
+        return 0;
     }
-    AnimObjEntry004A1660((W8AnimObj*)target, 0, this->setting_98, 0);
+    return (W8AniMesh*)AnimObjEntry004A1660(
+        (W8AnimObj*)target, 0, this->m_bLOD, 0);
 }
 
 /* The clone slot owns both the 0x37c allocation and the copy-construction
@@ -357,7 +358,7 @@ void stSound3D::BuildSoundOptions004AECC0(
         listener->y - node_position.y,
         listener->z - node_position.z);
     options->uiVolume = static_cast<unsigned int>(
-        (g_light_scale_identity_005ebb38 -
+        (g_float_005ebb38 -
          listener_offset.method_00421700() / value_144) * volume);
     options->uiLoop = 1;
     options->Pos.flX = x;
@@ -370,7 +371,7 @@ void stSound3D::BuildSoundOptions004AECC0(
     options->Pos.flFaceY = -y;
     options->Pos.flFaceZ = -z;
     options->Pos.flUpX = 0.0f;
-    options->Pos.flUpY = g_light_scale_identity_005ebb38;
+    options->Pos.flUpY = g_float_005ebb38;
     options->Pos.flUpZ = 0.0f;
     options->Pos.flFalloffMin = value_144;
     options->Pos.flFalloffMax = value_144;

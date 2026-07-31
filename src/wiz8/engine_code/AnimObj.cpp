@@ -117,9 +117,6 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
     return copy;
 }
 
-extern "C" void PathAIApply004AA520(
-    W8PathAI* path, stModelInstance005EC7D0* instance);   /* 0x004AA520 */
-
 /* The animation's bounding box for one frame, cached per frame once computed.
    The fast path is the cache; the single-mesh form defers to the mesh's own
    box; the per-frame form walks every mesh in the list, places each through its
