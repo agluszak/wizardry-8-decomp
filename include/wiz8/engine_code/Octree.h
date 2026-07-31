@@ -4,6 +4,13 @@
 #include "wiz8/engine_code/BitArray.h"
 
 class GDProp;
+
+/* Released through its own deleting slot by 0x00457B10; nothing else about it
+   is established. */
+class W8PathOwned054 {
+public:
+    virtual ~W8PathOwned054();
+};
 struct W8Position;
 struct W8NavigatorMovement004572C0;
 
@@ -46,42 +53,55 @@ public:
         const unsigned char* path_name,
         unsigned short* path_bounds,
         float* path_range);              /* 0x00457CF0 */
-    void LinkPropSurfaces(GDProp* prop);  /* 0x00460020 */
-    void LinkPropVertices(GDProp* prop);  /* 0x004600B0 */
+    /* Neither takes a prop: both walk the service's own surface and edge
+       tables, and their receiver is the service. */
+    void LinkSurfaces00460020();          /* 0x00460020 */
+    void LinkEdges004600B0();             /* 0x004600B0 */
     /* Takes the size, two loose values, the six-float bounds block out of the
        octree header, and the level name the octree already owns. */
     void Configure00458A50(
-        int size, int value_1c, int value_28, const float* bounds,
+        int size, float grid_scale, int value_28, const float* bounds,
         const char* name);                /* 0x00458A50 */
     unsigned char Load00458CE0(int handle); /* 0x00458CE0 */
+    /* Not a destructor: nothing restores a vtable and the object is left
+       holding dangling pointers, exactly as BitArray::FreeIndex does. */
+    void Release00457B10();               /* 0x00457B10 */
 
     unsigned int m_positional_000;
     int size_004;                        /* 0x04 */
     int m_positional_008;
     /* ReadOctFile tests this beside flag_1c8 before settling a portal. */
-    int value_00c;                       /* 0x0c */
-    int m_positional_010;
+    unsigned int m_ulNumSurfaces;        /* 0x0c */
+    unsigned int m_ulNumEdges;           /* 0x10 */
     int m_positional_014;
     int m_positional_018;
-    int value_01c;                       /* 0x1c */
+    /* The grid divisor both linking walks divide by. */
+    float grid_scale_01c;                /* 0x1c */
     float span_020;                      /* 0x20 */
     short cell_count_024;                /* 0x24 */
     unsigned short m_padding_026;
     int value_028;                       /* 0x28 */
     float bounds_02c[6];                 /* 0x2c */
-    int m_positional_044;
-    int m_positional_048;
-    int m_positional_04c;
-    int m_positional_050;
-    int m_positional_054;
+    /* Four malloc'd tables and one polymorphic object, all released by
+       0x00457B10 - the first four with free, the last through its own
+       deleting slot. */
+    void* m_owned_044;                   /* 0x44 */
+    /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
+       index in its two shorts at +4 and +6. */
+    unsigned char* m_pSurfaces_048;      /* 0x48 */
+    unsigned char* m_pEdges_04c;         /* 0x4c */
+    void* m_owned_050;                   /* 0x50 */
+    class W8PathOwned054* m_owned_054;   /* 0x54 */
     BitArray* m_owned_058;               /* 0x58 */
     BitArray* m_owned_05c;               /* 0x5c */
     BitArray* m_owned_060;               /* 0x60 */
-    int m_positional_064;
+    /* Two hash indexes the loader builds and 0x00457B10 tears down the same
+       way DestroyIndex does. */
+    void* m_pIndex_064;                  /* 0x64 */
     const char* name_068;                /* 0x68 */
-    int m_positional_06c;
+    void* m_owned_06c;                   /* 0x6c */
     unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
-    int m_positional_074;
+    void* m_pIndex_074;                  /* 0x74 */
     unsigned char m_positional_078[0x14];
     unsigned char flag_08c;              /* 0x8c */
     unsigned char m_positional_08d[0xf];

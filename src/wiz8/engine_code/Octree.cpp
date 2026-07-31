@@ -1281,7 +1281,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                                                 }
                                                 pathing_180->Configure00458A50(
                                                     ReadHeader<unsigned long>(header, 0x7e),
-                                                    ReadHeader<unsigned long>(header, 0xac),
+                                                    (float)ReadHeader<unsigned long>(header, 0xac),
                                                     ReadHeader<unsigned long>(header, 0xb4),
                                                     reinterpret_cast<const float*>(header + 0x0e),
                                                     static_cast<char*>(m_owned_0c0));
@@ -1776,7 +1776,7 @@ void W8Octree::AdjustPortalDestination00434A30(
     if (pathing_180 == 0) {
         return;
     }
-    if (pathing_180->flag_1c8 == 0 && pathing_180->value_00c != 0) {
+    if (pathing_180->flag_1c8 == 0 && pathing_180->m_ulNumSurfaces != 0) {
         return;
     }
     local_destination = *destination;

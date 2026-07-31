@@ -2,6 +2,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 /* Engine Code\OctPath.cpp. The unit is named by its own assertions, which
@@ -13,6 +14,188 @@ extern float g_path_span_scale_005ec344;
 extern float g_path_limit_006081e8;
 extern W8Pathing00457CF0* g_pathing_00659c60;
 extern void* CreatePathState004CAE40(void);
+extern void ConstructPathState004CCCB0(void* state);
+extern void* g_path_scratch_00659c64;
+extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
+extern void RegisterPathVertex004B7830(
+    unsigned int index, const int* point, const int* second);
+
+/* Offer every flagged surface to the path builder.
+
+   Surfaces are 0x28 bytes apart and the walk starts at index one, so entry zero
+   is never a real surface. The point handed on is the surface's own position
+   converted to the graph's integer grid - x from the bounds floor, z from the
+   third bound - and the two conversions happen in the order the point's fields
+   do not. */
+// FUNCTION: WIZ8 0x00460020
+void W8Pathing00457CF0::LinkSurfaces00460020()
+{
+    unsigned int index = 1;
+    int offset = 0x28;
+    int point[2];
+    unsigned char* surface;
+    int converted;
+
+    if (m_ulNumSurfaces <= index) {
+        return;
+    }
+    do {
+        surface = m_pSurfaces_048 + offset;
+        if ((*surface & 0x40) != 0) {
+            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - bounds_02c[2]) /
+                              grid_scale_01c);
+            point[0] = (int)((*reinterpret_cast<float*>(surface + 4) - bounds_02c[0]) /
+                             grid_scale_01c);
+            point[1] = converted;
+            RegisterPathSurface004B7730(index, point);
+        }
+        offset += 0x28;
+        ++index;
+    } while (index < m_ulNumSurfaces);
+}
+
+/* The same for the edges, which are 0xe bytes apart, gated by a different flag,
+   and which name two surfaces by index in their shorts at +4 and +6. Each of
+   those surfaces contributes one converted point, so the builder receives the
+   edge as a pair. */
+// FUNCTION: WIZ8 0x004600b0
+void W8Pathing00457CF0::LinkEdges004600B0()
+{
+    unsigned int index = 1;
+    int offset = 0xe;
+    int first[2];
+    int second[2];
+    unsigned char* edge;
+    unsigned char* surface;
+    unsigned int surface_index;
+    int converted;
+
+    if (m_ulNumEdges <= index) {
+        return;
+    }
+    do {
+        edge = m_pEdges_04c + offset;
+        if ((*reinterpret_cast<unsigned int*>(edge) & 0x20000000) != 0) {
+            surface_index = *reinterpret_cast<unsigned short*>(edge + 4);
+            surface = m_pSurfaces_048 + surface_index * 0x28;
+            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - bounds_02c[2]) /
+                              grid_scale_01c);
+            first[0] = (int)((*reinterpret_cast<float*>(surface + 4) - bounds_02c[0]) /
+                             grid_scale_01c);
+            first[1] = converted;
+
+            surface_index = *reinterpret_cast<unsigned short*>(edge + 6);
+            surface = m_pSurfaces_048 + surface_index * 0x28;
+            converted = (int)((*reinterpret_cast<float*>(surface + 0xc) - bounds_02c[2]) /
+                              grid_scale_01c);
+            second[0] = (int)((*reinterpret_cast<float*>(surface + 4) - bounds_02c[0]) /
+                              grid_scale_01c);
+            second[1] = converted;
+            RegisterPathVertex004B7830(index, first, second);
+        }
+        offset += 0xe;
+        ++index;
+    } while (index < m_ulNumEdges);
+}
+
+/* Give everything the service owns back.
+
+   Not a destructor: nothing restores a vtable and the object is left holding
+   dangling pointers, which is the same shape BitArray::FreeIndex has. The four
+   malloc'd tables and the conditional path tables go back through free, the bit
+   sets and the two hash indexes through their own teardown, and the global slot
+   the constructor claimed is cleared last. */
+// FUNCTION: WIZ8 0x00457b10
+void W8Pathing00457CF0::Release00457B10()
+{
+    void** index;
+
+    if (m_owned_044 != 0) {
+        free(m_owned_044);
+    }
+    if (m_pSurfaces_048 != 0) {
+        free(m_pSurfaces_048);
+    }
+    if (m_pEdges_04c != 0) {
+        free(m_pEdges_04c);
+    }
+    if (m_owned_050 != 0) {
+        free(m_owned_050);
+    }
+    if (m_owned_054 != 0) {
+        delete m_owned_054;
+    }
+    if (m_owned_058 != 0) {
+        m_owned_058->FreeIndex();
+        ::operator delete(m_owned_058);
+    }
+    if (m_owned_05c != 0) {
+        m_owned_05c->FreeIndex();
+        ::operator delete(m_owned_05c);
+    }
+    if (m_owned_060 != 0) {
+        m_owned_060->FreeIndex();
+        ::operator delete(m_owned_060);
+    }
+    index = static_cast<void**>(m_pIndex_064);
+    if (index != 0) {
+        if (index[0] != 0) {
+            ::operator delete(index[0]);
+        }
+        if (index[1] != 0) {
+            ::operator delete(index[1]);
+        }
+        ::operator delete(index);
+    }
+    index = static_cast<void**>(m_pIndex_074);
+    if (index != 0) {
+        if (index[0] != 0) {
+            ::operator delete(index[0]);
+        }
+        if (index[1] != 0) {
+            ::operator delete(index[1]);
+        }
+        ::operator delete(index);
+    }
+    index = static_cast<void**>(m_owned_06c);
+    if (index != 0) {
+        void** held = static_cast<void**>(index[0]);
+
+        if (held != 0) {
+            if (held[1] == 0) {
+                ::operator delete(held[0]);
+            }
+            ::operator delete(held);
+        }
+        ::operator delete(index);
+    }
+    if (m_owned_0c8 != 0) {
+        ::operator delete(m_owned_0c8);
+    }
+    if (m_owned_214 != 0) {
+        ::operator delete(m_owned_214);
+    }
+    if (g_path_scratch_00659c64 != 0) {
+        free(g_path_scratch_00659c64);
+    }
+    g_path_scratch_00659c64 = 0;
+    if (m_pCondPaths != 0) {
+        free(m_pCondPaths);
+    }
+    if (m_pCondLookup != 0) {
+        free(m_pCondLookup);
+    }
+    if (m_pCondFrames != 0) {
+        free(m_pCondFrames);
+    }
+    if (m_pCondKeys != 0) {
+        free(m_pCondKeys);
+    }
+    if (m_pCondValues != 0) {
+        free(m_pCondValues);
+    }
+    g_pathing_00659c60 = 0;
+}
 
 /* Build the pathing service.
 
@@ -25,30 +208,30 @@ W8Pathing00457CF0::W8Pathing00457CF0()
 {
     int index;
 
-    value_01c = 0;
+    grid_scale_01c = 0;
     span_020 = 0;
     for (index = 0; index < 6; ++index) {
         bounds_02c[index] = 0;
     }
-    m_positional_044 = 0;
+    m_owned_044 = 0;
     size_004 = 0;
     m_positional_008 = 0;
-    value_00c = 0;
-    m_positional_010 = 0;
+    m_ulNumSurfaces = 0;
+    m_ulNumEdges = 0;
     m_positional_014 = 0;
     m_positional_018 = 0;
-    m_positional_048 = 0;
-    m_positional_04c = 0;
-    m_positional_050 = 0;
-    m_positional_054 = 0;
+    m_pSurfaces_048 = 0;
+    m_pEdges_04c = 0;
+    m_owned_050 = 0;
+    m_owned_054 = 0;
     m_owned_058 = new BitArray(100);
     m_owned_05c = new BitArray(100);
     m_owned_060 = new BitArray(100);
-    m_positional_064 = 0;
-    m_positional_074 = 0;
+    m_pIndex_064 = 0;
+    m_pIndex_074 = 0;
     name_068 = 0;
     flag_08c = 0;
-    m_positional_06c = 0;
+    m_owned_06c = 0;
     m_positional_070 = 0x501502f9;
     flag_1c8 = 0;
     flag_1c9 = 0;
@@ -91,10 +274,10 @@ W8Pathing00457CF0::W8Pathing00457CF0()
    of that box scaled, and the cell count is that span plus one. */
 // FUNCTION: WIZ8 0x00458a50
 void W8Pathing00457CF0::Configure00458A50(
-    int size, int value_1c, int value_28, const float* bounds, const char* name)
+    int size, float grid_scale, int value_28, const float* bounds, const char* name)
 {
     size_004 = size;
-    value_01c = value_1c;
+    grid_scale_01c = grid_scale;
     value_028 = value_28;
     bounds_02c[0] = bounds[0];
     bounds_02c[1] = bounds[1];

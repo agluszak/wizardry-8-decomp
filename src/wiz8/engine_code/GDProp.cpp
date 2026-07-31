@@ -45,8 +45,8 @@ GDProp::GDProp(
     if (instance != 0) {
         if (m_path_handle_04 != 0 &&
             g_octree_6598a4->pathing_180 != 0) {
-            g_octree_6598a4->pathing_180->LinkPropSurfaces(this);
-            g_octree_6598a4->pathing_180->LinkPropVertices(this);
+            g_octree_6598a4->pathing_180->LinkSurfaces00460020();
+            g_octree_6598a4->pathing_180->LinkEdges004600B0();
         }
         Initialize(instance, 1, prop_number, surface_flag, vertex_flag);
     }
