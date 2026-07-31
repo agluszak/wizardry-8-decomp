@@ -17,9 +17,11 @@ struct W8PathAI {
     unsigned char kind_00;               /* 0x00 */
     unsigned char unknown_01[3];
     float value_04;                      /* 0x04 */
-    unsigned char unknown_08[4];
+    unsigned int unknown_08;             /* 0x08 */
     W8GrowableVector<W8PathVector3*>* nodes_0c; /* 0x0c */
     int value_10;                        /* 0x10 */
+    /* 0x004A98C0 sizes both from the node count: 0x24 a record here, and a
+       W8PathVector3 each in the render array. */
     void* allocation_14;                 /* 0x14 */
     void* render_allocation_18;          /* 0x18 */
     unsigned char flag_1c;               /* 0x1c */
