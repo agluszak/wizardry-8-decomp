@@ -125,6 +125,82 @@ void DestroyOwnedPathAI004A9110(W8PathAI* path)
     }
 }
 
+/* A deep copy. Everything the source owns is rebuilt: each node point gets its
+   own srHeap allocation, and both trailing arrays are reallocated and copied
+   element by element at the node count. Nothing is shared, and flag_3c is the
+   one field the copy does not carry over. */
+// FUNCTION: WIZ8 0x004a98c0
+W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
+{
+    W8PathAI* copy = static_cast<W8PathAI*>(malloc(sizeof(W8PathAI)));
+    int count;
+    int index;
+
+    if (copy == 0) {
+        srAssertFail("pPathAI", PATH_AI_CPP, 0x1ef, 0);
+    }
+    copy->kind_00 = source->kind_00;
+    copy->unknown_01[0] = source->unknown_01[0];
+    copy->value_04 = source->value_04;
+    copy->unknown_08 = source->unknown_08;
+    copy->value_10 = source->value_10;
+    copy->flag_1c = source->flag_1c;
+    copy->value_20 = source->value_20;
+    copy->value_24 = source->value_24;
+    copy->tick_28 = source->tick_28;
+    copy->value_2c = source->value_2c;
+    copy->value_30 = source->value_30;
+    copy->scale_34 = source->scale_34;
+    copy->flag_38 = source->flag_38;
+    copy->flag_39 = source->flag_39;
+    copy->flag_3a = source->flag_3a;
+    copy->unknown_3b = source->unknown_3b;
+    if (source->nodes_0c != 0) {
+        count = source->nodes_0c->GetCount();
+    }
+    else {
+        count = 0;
+    }
+    copy->nodes_0c = 0;
+    if (source->nodes_0c != 0) {
+        copy->nodes_0c = new W8GrowableVector<W8PathVector3*>();
+        for (index = 0; index < count; ++index) {
+            W8PathVector3* allocated = static_cast<W8PathVector3*>(
+                srHeap.allocate(sizeof(W8PathVector3)));
+            W8PathVector3* point;
+
+            if (allocated != 0) {
+                *allocated = **source->nodes_0c->GetAt(index);
+                point = allocated;
+            }
+            else {
+                point = 0;
+            }
+            copy->nodes_0c->Add(point);
+        }
+    }
+    copy->allocation_14 = 0;
+    if (source->allocation_14 != 0) {
+        copy->allocation_14 = malloc(count * 0x24);
+        for (index = 0; index < count; ++index) {
+            memcpy(static_cast<unsigned char*>(copy->allocation_14) + index * 0x24,
+                   static_cast<unsigned char*>(source->allocation_14) + index * 0x24,
+                   0x24);
+        }
+    }
+    copy->render_allocation_18 = 0;
+    if (source->render_allocation_18 != 0) {
+        copy->render_allocation_18 =
+            srHeap.allocate(count * sizeof(W8PathVector3));
+        for (index = 0; index < count; ++index) {
+            static_cast<W8PathVector3*>(copy->render_allocation_18)[index] =
+                static_cast<W8PathVector3*>(
+                    source->render_allocation_18)[index];
+        }
+    }
+    return copy;
+}
+
 /* Clone whichever AI record the tag selects. An unknown tag copies nothing and
    returns null rather than aliasing the source. */
 // FUNCTION: WIZ8 0x004a91c0
