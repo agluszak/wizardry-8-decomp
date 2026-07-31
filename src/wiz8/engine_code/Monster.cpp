@@ -4924,7 +4924,7 @@ void W8Monster::CollectModelInstances004C6350(
                 int list_index;
 
                 for (list_index = 0; list_index < 3; ++list_index) {
-                    W8PList* list = animation->lists_28[list_index];
+                    W8PList* list = animation->meshes_28[list_index];
                     if (list != 0) {
                         int mesh_index;
                         int mesh_count = PListGetCount(list);
