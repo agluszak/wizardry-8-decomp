@@ -844,6 +844,7 @@ symbol
 ?g_npc_name_buffer@@3PADA
 ?g_npc_services@@3QBUW8NpcServiceRow@@B
 ?g_npc_states@@3PAV?$W8GrowableVector@PAUW8NpcState@@@@A
+?g_object_6598a4@@3PAXA
 ?g_object_6598bc@@3PAVW8Object0043A910@@A
 ?g_octree_6598a4@@3PAVW8Octree@@A
 ?g_octree_state_00659890@@3KA
@@ -1054,6 +1055,7 @@ _InitializeFileDatabase
 _InitializeFontManager
 _InitializeInputManager
 _InvalidateScreenRect004263F0
+_LeaveLocation0042E880
 _LoadFontFile
 _MSYS_SGP_Mouse_Handler_Hook
 _MakeFileManDirectory

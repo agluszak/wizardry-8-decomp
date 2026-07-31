@@ -22,11 +22,23 @@ struct W8NavigatorAttachment {
     srVector3T<float> position_34;
     srVector3T<float> position_40;
     srVector3T<float>* position_4c;
+    /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
+       so the two allocations do not share an owner. */
+    void* allocation_50;
 
     void RecordPosition00456AE0(const srVector3T<float>* position);
 };
 
 class W8Navigator;
+
+/* The polymorphic object the navigator owns at +0xa0. 0x00452120 deletes it
+   through its own virtual slot and nothing in Navigator.cpp ever assigns one,
+   so its identity is not established - only that the navigator owns it and that
+   it has a virtual destructor. The name is positional and claims nothing. */
+class W8NavigatorOwned0A0 {
+public:
+    virtual ~W8NavigatorOwned0A0();
+};
 
 /* Navigator.cpp constructs the 0xCC-byte movement/collision tail at +0xC0
    independently. World collision routines receive this subobject, while the
@@ -72,10 +84,18 @@ struct W8NavigatorMovement004572C0 {
     unsigned char unknown_0c4[4];
     unsigned char position_adjusted_0c8;
     unsigned char unknown_0c9[3];
+
+    /* Releases the attachment at +0xac, which owns two further allocations of
+       its own. Retail runs this as the member's destructor - 0x00452120 calls
+       it last, on this+0xc0, exactly where a member destructor would go - but
+       it cannot be declared as one while W8Navigator still models its payload
+       as a union, because C++98 forbids a union member with a destructor. The
+       call shape is identical either way. */
+    void Release00457530();
 };
 
-static_assert(sizeof(W8NavigatorAttachment) == 0x50,
-              "W8NavigatorAttachment_size_must_be_0x50");
+static_assert(sizeof(W8NavigatorAttachment) == 0x54,
+              "W8NavigatorAttachment_size_must_be_0x54");
 static_assert(sizeof(W8NavigatorMovement004572C0) == 0xcc,
               "W8NavigatorMovement004572C0_size_must_be_0xcc");
 
@@ -190,7 +210,7 @@ public:
             unsigned int unknown_098;
             unsigned char position_dirty_09c;
             unsigned char unknown_09d[3];
-            void* owned_object_0a0;
+            W8NavigatorOwned0A0* owned_object_0a0;
             srVector3T<float> tracked_position_0a4;
             float tracked_distance_0b0;
             unsigned char tracked_dirty_0b4;
