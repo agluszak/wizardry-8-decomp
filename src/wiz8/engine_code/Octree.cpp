@@ -4,7 +4,13 @@
 #include "surrender/srHeap.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/geometry.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/sr_api.h"
+
+#include <math.h>
+
+extern W8Object0043A910* g_object_6598bc;
 
 extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
@@ -16,6 +22,17 @@ extern void Function459400(int value);
 extern void Function439140(void);
 extern void Function457B10(void* value);
 extern void Function434020(int value);
+extern unsigned char g_navigator_link_mode_00659c10;
+extern unsigned int Function004669B0(
+    W8NavigatorMovement004572C0* movement, float radius, float separation);
+extern unsigned int Function00467150(
+    W8NavigatorMovement004572C0* movement, float radius, float separation);
+/* 0x0045F2D0 consumes the settled pair; its own body is not recovered. */
+extern void ApplyPortalTransition0045F2D0(
+    const W8Position* destination, const W8Position* source);
+extern float g_rate_006068EC;
+extern float g_world_scale_005ebc40;
+extern const double g_zero_005ebb40;
 
 namespace {
 
@@ -415,6 +432,108 @@ void W8Octree::QueueOctreeKind130042E810(
     point[2] = (int)((position->z - octree_origin_00c.z) /
                      octree_cell_size_070);
     octree_queue_0bc->Queue00437000(0xd, id + 1, point);
+}
+
+/* Step one navigator's movement tail towards its target.
+
+   With a pathing service present the work belongs to that service, and which of
+   its two entry points runs is the link mode's decision. Without one this walks
+   the target itself. The direction is the full vector to the target with its
+   height component dropped, so the step stays in the horizontal plane; its
+   length is clamped to the distance remaining, and reaching the target is what
+   the return value reports. The new position is mirrored into the attachment's
+   own three copies. */
+// FUNCTION: WIZ8 0x00434620
+unsigned int W8Octree::AdvanceNavigator00434620(
+    W8NavigatorMovement004572C0* movement, float radius, float separation)
+{
+    srVector3T<float> vecDir;
+    srVector3T<float> vecPos;
+    W8NavigatorAttachment* attachment;
+    float distance;
+    float step;
+    unsigned char reached = 1;
+
+    if (pathing_180 != 0) {
+        if (g_navigator_link_mode_00659c10 == 0) {
+            return Function004669B0(movement, radius, separation);
+        }
+        return Function00467150(movement, radius, separation);
+    }
+    if (g_navigator_link_mode_00659c10 != 0) {
+        return 1;
+    }
+    vecDir.x = movement->target_position_04c.x - movement->position_040.x;
+    vecDir.y = movement->target_position_04c.y - movement->position_040.y;
+    vecDir.z = movement->target_position_04c.z - movement->position_040.z;
+    vecDir.y = 0.0f;
+    distance = (float)sqrt(vecDir.x * vecDir.x + vecDir.z * vecDir.z);
+    step = g_object_6598bc->GetValue28() * movement->movement_scale_060 *
+        g_rate_006068EC * g_world_scale_005ebc40;
+    if (step >= distance) {
+        step = distance;
+    } else {
+        reached = 0;
+    }
+    if ((double)(vecDir.x * vecDir.x + vecDir.z * vecDir.z) != g_zero_005ebb40) {
+        vecDir.y = 0.0f;
+        step = step / (float)sqrt(vecDir.x * vecDir.x + vecDir.z * vecDir.z);
+        vecDir.x = vecDir.x * step;
+        vecDir.z = vecDir.z * step;
+    }
+    vecPos.x = vecDir.x + movement->position_040.x;
+    vecPos.y = vecDir.y + movement->position_040.y;
+    vecPos.z = vecDir.z + movement->position_040.z;
+    movement->position_040 = vecPos;
+    attachment = movement->attachment_0ac;
+    *attachment->position_4c = vecPos;
+    attachment->position_34 = *attachment->position_4c;
+    attachment->position_10 = *attachment->position_4c;
+    return reached;
+}
+
+/* Settle both ends of a portal transition onto the ground before the move is
+   applied. Each end is capped at the octree's height ceiling first, and its
+   settled height is only taken when the drop actually hit something. The pair
+   is then handed on together, which is why one body carries both. */
+// FUNCTION: WIZ8 0x00434a30
+void W8Octree::AdjustPortalDestination00434A30(
+    W8Position* destination, const W8Position* source)
+{
+    W8Position local_destination;
+    W8Position local_source;
+    W8Position probe;
+    unsigned char hit;
+
+    if (pathing_180 == 0) {
+        return;
+    }
+    if (pathing_180->flag_1c8 == 0 && pathing_180->value_00c != 0) {
+        return;
+    }
+    local_destination = *destination;
+    local_source = *source;
+
+    hit = 0;
+    if (local_destination.y > height_limit_034) {
+        local_destination.y = height_limit_034;
+    }
+    probe = local_destination;
+    SettleToGround00433820(&probe.x, &hit, 1, 500.0f);
+    if (hit != 0) {
+        local_destination.y = probe.y;
+    }
+
+    hit = 0;
+    if (local_source.y > height_limit_034) {
+        local_source.y = height_limit_034;
+    }
+    probe = local_source;
+    SettleToGround00433820(&probe.x, &hit, 1, 500.0f);
+    if (hit != 0) {
+        local_source.y = probe.y;
+    }
+    ApplyPortalTransition0045F2D0(&local_destination, &local_source);
 }
 
 /* Engine Code\Trigger.cpp lives in the same interval. Its list of live

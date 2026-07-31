@@ -14,6 +14,13 @@ public:
 
 class W8Pathing00457CF0 {
 public:
+    /* Only the two bytes 0x00434A30 tests are witnessed; the filler around them
+       records nothing beyond their offsets. */
+    unsigned char m_positional_000[0x0c];
+    int value_00c;                       /* 0x0c */
+    unsigned char m_positional_010[0x1b8];
+    unsigned char flag_1c8;              /* 0x1c8 */
+
     unsigned int FindPathHandle(
         const unsigned char* path_name,
         unsigned short* path_bounds,
@@ -62,7 +69,11 @@ public:
     unsigned long m_flags_000;
     unsigned char m_positional_004[8];
     srVector3T<float> octree_origin_00c;
-    unsigned char m_positional_018[0x58];
+    unsigned char m_positional_018[0x1c];
+    /* 0x00434A30 clamps a world-space Y against this before settling it, which
+       is what makes it a height ceiling rather than one more opaque dword. */
+    float height_limit_034;              /* 0x34 */
+    unsigned char m_positional_038[0x38];
     float octree_cell_size_070;
     unsigned long m_mesh_count_074;
     unsigned char m_positional_078[0x24];
@@ -167,5 +178,13 @@ public:
    Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves
    that the same receiver dispatches ordinary W8Octree methods. */
 extern W8Octree* g_octree_6598a4;
+
+/* Drops one world-space position onto the ground below it, reporting through
+   the second argument whether anything was hit - a byte, and a float limit:
+   0x00434A30 stores zero into that slot with a byte move and pushes its 500 as
+   a single. ItemManager.cpp settles dropped items with it and Octree.cpp
+   settles portal endpoints, so the name stays neutral. */
+unsigned char SettleToGround00433820(
+    float* position, unsigned char* out_hit, int mode, float limit);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
