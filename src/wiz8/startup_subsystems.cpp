@@ -23,8 +23,55 @@ unsigned char g_block_68f2d8[0xc4e0];
 unsigned char g_flag_65beaf;
 
 extern unsigned short g_selected_item_0069c4b4;
+// GLOBAL: WIZ8 0x0069B7D0
 unsigned char g_cd_marker_present_69b7d0;
+// GLOBAL: WIZ8 0x0069B7C0
+int g_level_load_font_69b7c0;
+// GLOBAL: WIZ8 0x0069C130
 void* g_small_subsystem_69c130;
+// GLOBAL: WIZ8 0x0069C0F4
+W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
+
+// GLOBAL: WIZ8 0x0069C4CC
+int g_journal_font_69c4cc;
+// GLOBAL: WIZ8 0x0069C4D0
+unsigned short* g_journal_font_palette_69c4d0;
+// GLOBAL: WIZ8 0x0069C4D8
+unsigned short* g_journal_font_original_palette_69c4d8;
+
+/* 0x0064CBF0: the twelve camp-screen regions the layout rules do not cover,
+   given as explicit rectangles. The region initializer reads the first four
+   fields; the trailing five are never touched there and stay positional. */
+struct W8CampScreenRegion {
+    int x;                 /* 0x00 */
+    int y;                 /* 0x04 */
+    int width;             /* 0x08 */
+    int height;            /* 0x0c */
+    int unknown_10;
+    int unknown_14;
+    int unknown_18;
+    int unknown_1c;
+    int unknown_20;
+};
+
+// GLOBAL: WIZ8 0x0064CBF0
+const W8CampScreenRegion g_camp_screen_regions_64cbf0[12] = {
+    { 0x0bc, 0x0b0, 0x2d, 0x39, 0x00, 0x01, 0x0ee, 0x0c1, 0 },
+    { 0x1af, 0x0c6, 0x28, 0x28, 0x28, 0x08, 0x1aa, 0x0de, 1 },
+    { 0x1af, 0x0f1, 0x28, 0x28, 0x24, 0x08, 0x1aa, 0x0f1, 1 },
+    { 0x178, 0x0b0, 0x26, 0x49, 0x2c, 0x09, 0x173, 0x0b0, 1 },
+    { 0x086, 0x0f1, 0x39, 0x3a, 0x04, 0x02, 0x0c4, 0x11c, 0 },
+    { 0x183, 0x101, 0x23, 0x2b, 0x20, 0x07, 0x17e, 0x10b, 1 },
+    { 0x09e, 0x134, 0x22, 0x65, 0x0c, 0x03, 0x0a0, 0x134, 0 },
+    { 0x190, 0x134, 0x22, 0x48, 0x18, 0x06, 0x1b0, 0x134, 1 },
+    { 0x079, 0x134, 0x22, 0x65, 0x08, 0x03, 0x07b, 0x154, 0 },
+    { 0x1b5, 0x134, 0x22, 0x48, 0x1c, 0x06, 0x1d1, 0x154, 1 },
+    { 0x0cb, 0x167, 0x22, 0x4d, 0x10, 0x04, 0x0f2, 0x18f, 0 },
+    { 0x16a, 0x17a, 0x1a, 0x3a, 0x14, 0x05, 0x165, 0x19f, 1 }
+};
+
+extern void InitializeCampScreenRegions(void);
+extern void Function5B7230(void);
 
 struct W8StartupGridRow {
     int x1;
@@ -112,38 +159,102 @@ unsigned char InitializeSubsystemFlag(void)
     return 1;
 }
 
-static unsigned char InitializeCdMarker(void)
+/* Lifecycle record 4's initializer: the loading screen. Its entry handler is the
+   body that allocates the 0x148-byte load descriptor, clears the fact state for a
+   new game and deletes Saves\CurrentGame.SAV, which is what places this record on
+   the load path and names the font it loads here.
+
+   The marker write is guarded, so a missing CD.ROM leaves the flag at its BSS
+   zero rather than storing a comparison result. */
+// FUNCTION: WIZ8 0x00590db0
+unsigned char InitializeLevelLoadScreen(void)
 {
-    g_cd_marker_present_69b7d0 = FileExistsNoDB("CD.ROM") != 0;
+    if (FileExistsNoDB("CD.ROM")) {
+        g_cd_marker_present_69b7d0 = 1;
+    }
+    g_level_load_font_69b7c0 = LoadFontFile((UINT8*)"Data\\Level Load\\levelload_font.sti");
     return 1;
 }
 
-/* The review and inventory screens share these two regular grids.  The third
-   irregular grid in the complete lifecycle initializer remains tracked by
-   wiz8-a69; it is not touched by the main-menu screen. */
-static unsigned char InitializeMenuRegionGrids(void)
+/* Lifecycle record 11's initializer and finalizer. The initializer loads the
+   journal font, saves the palette the font arrived with, and takes a second
+   palette from frame 0 of video object 0x1B9; the finalizer puts the original
+   palette back and releases the one it took. The two together are the second
+   proof that a record's fifth slot is its finalizer rather than a second
+   initializer - record 10's allocate/free pair is the first. */
+// FUNCTION: WIZ8 0x005bddd0
+unsigned char InitializeJournalFont(void)
+{
+    g_journal_font_69c4cc = LoadFontFile((UINT8*)"Data\\Journal\\journal_font.sti");
+    g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
+    g_journal_font_palette_69c4d0 = Function5492E0(0x1b9, 0);
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x005bde10
+unsigned char FinalizeJournalFont(void)
+{
+    SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_original_palette_69c4d8);
+    free(g_journal_font_palette_69c4d0);
+    return 1;
+}
+
+/* Lifecycle record 6's initializer - the camp record, which is what
+   W8_SCREEN_CAMP selects. It drops the camp screen's state pointer rather than
+   releasing it; the block is owned by the enter/leave pair. */
+// FUNCTION: WIZ8 0x005a3500
+unsigned char InitializeCampScreen(void)
+{
+    g_camp_screen_0069c0f4 = 0;
+    InitializeCampScreenRegions();
+    Function5B7230();
+    return 1;
+}
+
+/* The four region blocks the camp screen lays out by rule, and the twelve it
+   lays out from the explicit table below. Only the leading four fields of each
+   record are read here, so the remaining five stay positional. */
+// FUNCTION: WIZ8 0x005a4090
+void InitializeCampScreenRegions(void)
 {
     unsigned int index;
-    for (index = 0; index != 8; ++index) {
-        unsigned short x = static_cast<unsigned short>((index & 1) * 0x30);
-        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x27);
-        SetRegionBounds(index + 0xea, x + 6, y + 5, x + 0x33, y + 0x29);
+    for (index = 0; index < 8; ++index) {
+        unsigned short x = static_cast<unsigned short>((index & 1) * 0x30 + 6);
+        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x27 + 5);
+        SetRegionBounds(index + 0xea, x, y, x + 0x2d, y + 0x24);
     }
-    for (index = 0; index != 8; ++index) {
-        unsigned short x = static_cast<unsigned short>((index & 1) * 0x31);
-        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x39);
-        SetRegionBounds(index + 0xf4, x + 0xb, y + 0xc0,
-                        x + 0x39, y + 0xf6);
-        SetRegionBounds(index + 0x108, x + 0x200, y + 0xc0,
-                        x + 0x22e, y + 0xf6);
+    for (index = 0; index < 8; ++index) {
+        unsigned short x = static_cast<unsigned short>((index & 1) * 0x31 + 0xb);
+        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x39 + 0xc0);
+        SetRegionBounds(index + 0xf4, x, y, x + 0x2e, y + 0x36);
     }
-    for (index = 0; index != 6; ++index) {
-        unsigned short x = static_cast<unsigned short>((index % 3) * 0xd5);
-        unsigned short y = static_cast<unsigned short>((index / 3) * 0x8c);
-        SetRegionBounds(index + 0x119, x + 0x1d, y + 0xc3,
-                        x + 0xb6, y + 0x128);
+    for (index = 0; index < 12; ++index) {
+        const W8CampScreenRegion& region = g_camp_screen_regions_64cbf0[index];
+        SetRegionBounds(index + 0xfc,
+                        static_cast<unsigned short>(region.x),
+                        static_cast<unsigned short>(region.y),
+                        static_cast<unsigned short>(region.x + region.width),
+                        static_cast<unsigned short>(region.y + region.height));
     }
-    return 1;
+    for (index = 0; index < 8; ++index) {
+        unsigned short x = static_cast<unsigned short>((index & 1) * 0x31 + 0x200);
+        unsigned short y = static_cast<unsigned short>((index >> 1) * 0x39 + 0xc0);
+        SetRegionBounds(index + 0x108, x, y, x + 0x2e, y + 0x36);
+    }
+}
+
+/* The camp screen's remaining six regions, three across and two down. The
+   initializer calls this immediately after the block above; nothing else
+   reaches it, and nothing here names what the six cells hold. */
+// FUNCTION: WIZ8 0x005b7230
+void Function5B7230(void)
+{
+    unsigned int index;
+    for (index = 0; index < 6; ++index) {
+        unsigned short x = static_cast<unsigned short>((index % 3) * 0xd5 + 0x1d);
+        unsigned short y = static_cast<unsigned short>((index / 3) * 0x8c + 0xc3);
+        SetRegionBounds(index + 0x119, x, y, x + 0x99, y + 0x65);
+    }
 }
 
 // FUNCTION: WIZ8 0x0055f7b0
@@ -185,11 +296,18 @@ unsigned char FreeSmallStartupSubsystem(void)
     return 1;
 }
 
+/* The menu bring-up subset of the thirteen lifecycle records, called in place of
+   the walk over the real table. The camp record's region pair is called directly
+   rather than through its own initializer: the review and inventory screens the
+   menu reaches read those regions, and the initializer around them also drops the
+   camp state pointer, which bring-up has no reason to do. Records whose remaining
+   slots reach unrecovered bodies stay out until the table drives itself. */
 unsigned char InitializeMenuStartupSubsystems(void)
 {
     if (!InitializeSubsystemFlag()) return 0;
-    if (!InitializeCdMarker()) return 0;
-    if (!InitializeMenuRegionGrids()) return 0;
+    if (!InitializeLevelLoadScreen()) return 0;
+    InitializeCampScreenRegions();
+    Function5B7230();
     if (!InitializeStartupGrid()) return 0;
     if (!InitializeVector005EEA28()) return 0;
     if (!AllocateSmallStartupSubsystem()) return 0;

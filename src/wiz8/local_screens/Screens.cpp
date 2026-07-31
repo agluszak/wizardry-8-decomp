@@ -88,13 +88,6 @@ unsigned char Function55EC70(void)
     return 1;
 }
 
-struct W8CampScreenState0069C0F4 {
-    unsigned char m_positional_000[0xf8];
-    unsigned int redraw_flags;            /* 0xf8 */
-};
-
-extern W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
-
 /* Route one redraw bit to the active camp or main-game screen state. */
 // FUNCTION: WIZ8 0x0055EE30
 void Function55EE30(unsigned char bit)
