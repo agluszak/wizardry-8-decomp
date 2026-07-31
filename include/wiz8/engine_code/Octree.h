@@ -11,6 +11,14 @@ class W8PathOwned054 {
 public:
     virtual ~W8PathOwned054();
 };
+
+/* The 0x58-byte state object the pathing constructor builds and 0x00457B10
+   gives back with a plain operator delete, so it has no destructor of its own.
+   Its constructor does nothing but run the one at 0x004CCCB0. */
+class W8PathState004CAE40 {
+public:
+    W8PathState004CAE40();               /* 0x004CAE40 */
+};
 struct W8Position;
 struct W8NavigatorMovement004572C0;
 
@@ -317,6 +325,25 @@ public:
 /* The shared spatial-service pointer at 0x006598A4 is the active W8Octree.
    Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves
    that the same receiver dispatches ordinary W8Octree methods. */
+/* The octree's open-chained hash map: bucket heads, {next, key, value} entries,
+   a free-list head threaded through the same next field, and a power-of-two
+   bucket count. Both Octree.cpp and OctPath.cpp build and walk these. */
+struct W8OctreeIndex {
+    void* buckets;
+    void* entries;
+    long last_entry;
+    unsigned long bucket_count;
+};
+
+struct W8OctreeEntry {
+    int next;
+    unsigned int key;
+    int value;
+};
+
+void InsertEntry0055DBB0(
+    W8OctreeIndex* index, const unsigned int* key, const int* value);
+
 extern W8Octree* g_octree_6598a4;
 
 /* Drops one world-space position onto the ground below it, reporting through

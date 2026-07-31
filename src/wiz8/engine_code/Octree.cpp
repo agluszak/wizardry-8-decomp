@@ -88,22 +88,6 @@ void DestroyBitArray(BitArray*& bits)
     }
 }
 
-struct W8OctreeIndex {
-    void* buckets;
-    void* entries;
-    long last_entry;
-    unsigned long bucket_count;
-};
-
-/* One chained entry. The bucket array holds a head index into this one, and
-   free entries thread through the same next field, which is why growing has to
-   rebuild both chains. */
-struct W8OctreeEntry {
-    int next;
-    unsigned int key;
-    int value;
-};
-
 void DestroyIndex(W8OctreeIndex* index)
 {
     if (index != 0) {
