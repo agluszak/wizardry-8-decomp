@@ -150,11 +150,12 @@ void W8Prop005EC1E0::SetSetting6C(unsigned char value)
     m_owned_14->setting_6c = value;
 }
 
-extern void AnimationPlayFromTo(
-    W8AnimObj* animation, int channel, unsigned char argument, int from, int to); /* 0x004A1710 */
-extern void GetAnimationBounds004A1710(
-    W8AnimObj* animation, int channel, unsigned char argument,
-    srVector3T<float>* first, srVector3T<float>* second);
+/* Both of these were separate names for 0x004A1710, which AnimObj.h now owns as
+   AnimObjGetBounds004A1710. Its body reads six slots; every recovered caller
+   pushes five, so each site keeps its own call shape through a cast rather than
+   the prototype being weakened. */
+typedef void (*LegacyAnimObjPlayCall)(
+    W8AnimObj* animation, int channel, unsigned char argument, int from, int to);
 extern unsigned char Function4B75F0(int arg_1, int arg_2);
 extern void Function444750(void);
 
@@ -164,7 +165,7 @@ void W8Prop005EC1E0::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> first;
     srVector3T<float> second;
 
-    GetAnimationBounds004A1710(
+    ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
         m_owned_14->animation, 2, m_owned_14->setting_64,
         &first, &second);
     position->x = (first.x + second.x) * 0.5f;
@@ -300,7 +301,8 @@ srModelInstance* W8Prop005EC1E0::ToggleRepAnimationDefault()
 // FUNCTION: WIZ8 0x0044d5c0
 int W8Prop005EC1E0::PlayRepAnimation(int from, int to)
 {
-    AnimationPlayFromTo(m_owned_14->animation, 2, m_owned_14->setting_64, from, to);
+    ((LegacyAnimObjPlayCall)AnimObjGetBounds004A1710)(
+        m_owned_14->animation, 2, m_owned_14->setting_64, from, to);
     return 1;
 }
 

@@ -328,12 +328,14 @@ unsigned char W8GrCycle::GetAnimationBounds(
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();
 
-    return AnimObjGetBounds004A1710(
+    /* Five slots against the callee's six, preserved as found: see the note on
+       the prototype in AnimObj.h. */
+    return ((LegacyAnimObjBoundsCall)AnimObjGetBounds004A1710)(
         animation,
         representation->setting_98,
         representation->flag_064,
-        minimum,
-        maximum);
+        (srVector3T<float>*)minimum,
+        (srVector3T<float>*)maximum);
 }
 
 // FUNCTION: WIZ8 0x004a7e10

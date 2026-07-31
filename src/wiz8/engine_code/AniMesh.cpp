@@ -302,6 +302,29 @@ unsigned char LoadAniMesh004B5D00(
     return 1;
 }
 
+/* Hands back the mesh's cached bounding box, loading the mesh first if it has
+   not been. Touching it also stamps the storage clock, so asking for bounds
+   counts as a use for the memory-pressure walk. */
+// FUNCTION: WIZ8 0x004b6640
+unsigned char GetAniMeshBounds004B6640(
+    W8AniMesh* mesh, srVector3T<float>* minimum, srVector3T<float>* maximum)
+{
+    if (mesh == 0) {
+        srAssertFail("pAniMesh", ANI_MESH_CPP, 0x317, 0);
+        return 0;
+    }
+    if ((mesh->flags_00 & 4) == 0) {
+        if (LoadAniMesh004B5D00(0, mesh, 1) == 0) {
+            srAssertFail("0", ANI_MESH_CPP, 0x31f, 0);
+            return 0;
+        }
+    }
+    *minimum = mesh->bounds_minimum_08;
+    *maximum = mesh->bounds_maximum_14;
+    mesh->last_used_3c = g_storage_state_65be80++;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x004b5880
 void DestroyAniMesh004B5880(W8AniMesh* mesh)
 {

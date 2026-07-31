@@ -42,8 +42,6 @@ symbol
 ?AimCombatSlotAtParty@@YAXPAUW8CombatSlot@@H@Z
 ?AimMonsterAtSpellTarget@@YAEPAUW8MonsterInfo@@H@Z
 ?AngleFromPartyTo@@YAMPBUW8Position@@PBV?$srVector3T@M@@@Z
-?AnimObjGetBounds004A1710@@YAEPAUW8AnimObj@@CEPAUW8Position@@1@Z
-?AnimationPlayFromTo@@YAXPAUW8AnimObj@@HEHH@Z
 ?ApplyCharacterEffect@@YAXPAUW8Character@@PAXHHH@Z
 ?ApplyEffectToTarget@@YAXPAHPAUW8CombatSlot@@HH@Z
 ?ApplyHealthChangeToCharacter@@YAXHHHHHHH@Z
@@ -88,7 +86,6 @@ symbol
 ?ClearMonsterCondition@@YAXHH@Z
 ?ClearMonsterTargetNotice@@YAXXZ
 ?ClearTargetCursor@@YAXXZ
-?CloneAnimObj004A0320@@YAPAUW8AnimObj@@PBU1@@Z
 ?CollectModelInstances0044E570@W8Prop005EC1E0@@QAEXPAV?$W8GrowableVector@PAVstModelInstance005EC7D0@@@@@Z
 ?CompareSignedAscending@@YAHPBX0@Z
 ?CompareSpellPointDeficits@@YAHPBX0@Z
@@ -106,7 +103,6 @@ symbol
 ?CreateSpellEffect004AD8A0@@YAPAXPBDHPAVW8Monster@@HH@Z
 ?DecideFacingForPosition@@YACHH@Z
 ?DeleteMonster004C5860@@YAXPAVW8Monster@@@Z
-?DestroyAnimObj004A01E0@@YAXPAUW8AnimObj@@@Z
 ?DestroyEmitter@@YAXPAVW8Emitter@@@Z
 ?DestroyEncounterTable@@YAXPAUW8EncounterTableRuntime@@@Z
 ?DestroyMonsterGroup@@YAXPAUW8MonsterGroup@@PAUW8MonsterInfo@@@Z
@@ -380,7 +376,6 @@ symbol
 ?Function5B2200@@YAXXZ
 ?GenerateEncounter@@YAXPAX@Z
 ?GetAniMeshFrame004B6550@@YAPAVstModelInstance005EC7D0@@PAUW8AniMesh@@E@Z
-?GetAnimationBounds004A1710@@YAXPAUW8AnimObj@@HEPAV?$srVector3T@M@@1@Z
 ?GetBounds0044DD60@W8Prop005EC1E0@@QAEXPAV?$srVector3T@M@@0@Z
 ?GetCameraHeading@@YAIXZ
 ?GetCurrentTargetingContext@@YAHH@Z
@@ -1059,6 +1054,7 @@ _LeaveLocation0042E880
 _LoadFontFile
 _MSYS_SGP_Mouse_Handler_Hook
 _MakeFileManDirectory
+_PathAIApply004AA520
 _PeekStack
 _Pop
 _PrepareVideoPlayback0048FF00
