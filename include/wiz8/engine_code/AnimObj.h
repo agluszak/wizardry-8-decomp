@@ -22,7 +22,9 @@ struct W8AnimObj {
     unsigned char flag_05;               /* 0x05 */
     unsigned char unknown_06[2];
     float playback_scale_08;             /* 0x08 */
-    unsigned char unknown_0c[8];
+    unsigned char unknown_0c[4];
+    /* 0x004A0320 copies this as a dword. */
+    int value_10;                        /* 0x10 */
     unsigned char start_frame_14;
     unsigned char end_frame_15;
     unsigned char value_16;              /* 0x16 */
@@ -44,6 +46,7 @@ static_assert(sizeof(W8AnimObj) == 0x4c, "W8AnimObj_size_must_be_0x4c");
 
 W8AnimObj* CreateAnimObj004A01A0();
 void DestroyAnimObj004A01E0(W8AnimObj* animation);
+W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source);
 unsigned int AnimObjValue004A15D0(W8AnimObj* animation, signed char index);
 unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index);
 void* AnimObjListEntry004A16C0(
