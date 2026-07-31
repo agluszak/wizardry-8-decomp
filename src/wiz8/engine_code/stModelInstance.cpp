@@ -459,6 +459,46 @@ stModelInstance005EC7D0::stModelInstance005EC7D0(srNode* parent)
     value_1ac = 0.0f;
 }
 
+// FUNCTION: WIZ8 0x0047EDF0
+stModelInstance005EC7D0& stModelInstance005EC7D0::operator=(
+    const stModelInstance005EC7D0& other)
+{
+    stModelInstance::operator=(other);
+    render_depth_164 = 0;
+    state_168 = 0;
+    state_16c = 0;
+    state_170_173 = 0;
+    state_178 = other.state_178;
+    state_17c = other.state_17c;
+    frame_index_180 = other.frame_index_180;
+
+    if (this != &other) {
+        if (damage_stage_tables_188 != 0) {
+            srHeap.free(damage_stage_tables_188);
+        }
+        damage_stage_tables_188 = 0;
+        damage_stage_count_18c = 0;
+        if (other.damage_stage_count_18c != 0) {
+            damage_stage_tables_188 = static_cast<int*>(
+                srHeap.allocate(other.damage_stage_count_18c * sizeof(int)));
+            damage_stage_count_18c = other.damage_stage_count_18c;
+            for (int stage = 0; stage < damage_stage_count_18c; ++stage) {
+                damage_stage_tables_188[stage] = other.damage_stage_tables_188[stage];
+            }
+        }
+    }
+    damage_stage_184 = other.damage_stage_184;
+    value_190 = other.value_190;
+    retained_174 = 0;
+    scale_194 = other.scale_194;
+    value_1a4 = 0;
+    flag_1a0 = 0;
+    flag_1a1 = other.flag_1a1;
+    value_1a8 = other.value_1a8;
+    value_1ac = 0.0f;
+    return *this;
+}
+
 // FUNCTION: WIZ8 0x0047EF70
 stModelInstance005EC7D0::~stModelInstance005EC7D0()
 {

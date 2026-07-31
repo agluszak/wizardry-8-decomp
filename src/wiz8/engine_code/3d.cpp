@@ -1,11 +1,31 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srScene.h"
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
+
+// FUNCTION: WIZ8 0x0046F680
+stModelInstance005EC7D0* DuplicateModelInstance0046F680(
+    stModelInstance005EC7D0* instance)
+{
+    stModelInstance005EC7D0* copy;
+
+    if (instance == 0) {
+        srAssertFail("pstModelInstance", THREE_D_CPP, 0x5ce, 0);
+    }
+    copy = new stModelInstance005EC7D0(0);
+    if (copy == 0) {
+        srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5d1, 0);
+    }
+    *copy = *instance;
+    copy->setName("ST CreateInstance");
+    copy->assignModel(instance->model());
+    return copy;
+}
 
 // FUNCTION: WIZ8 0x0046DF90
 stLight* CreateLight0046DF90(srNode* parent, const char* name)

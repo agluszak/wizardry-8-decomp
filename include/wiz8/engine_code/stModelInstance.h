@@ -90,6 +90,8 @@ static_assert(sizeof(stModelInstance) == 0x190,
 class stModelInstance005EC7D0 : public stModelInstance {
 public:
     explicit stModelInstance005EC7D0(srNode* parent); /* 0x0047EC80 */
+    stModelInstance005EC7D0& operator=(
+        const stModelInstance005EC7D0& other);         /* 0x0047EDF0 */
 
     int value_190;
     srVector3T<float> scale_194;
