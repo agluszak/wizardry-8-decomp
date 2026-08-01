@@ -182,24 +182,19 @@ final class Wiz8ClassPrinter {
 
 	private String methodSignature(Function target) {
 		StringBuilder signature = new StringBuilder();
-		signature.append(fieldTypeName(target.getReturnType())).append(' ')
+		signature.append(fieldTypeName(target.getReturn().getFormalDataType())).append(' ')
 				.append(target.getName()).append('(');
 		boolean first = true;
 		for (int i = 0; i < target.getParameterCount(); i++) {
 			var parameter = target.getParameter(i);
-			if (i == 0 && ("this".equals(parameter.getName()) ||
-				"__thiscall".equals(target.getCallingConventionName()))) {
-				continue;
+			if (parameter.isAutoParameter()) {
+				continue; // hidden this / return storage: ABI, not source
 			}
 			if (!first) {
 				signature.append(", ");
 			}
 			first = false;
-			signature.append(fieldTypeName(parameter.getDataType()));
-			String parameterName = parameter.getName();
-			if (parameterName != null && !parameterName.isEmpty()) {
-				signature.append(' ').append(parameterName);
-			}
+			signature.append(CxxTypePrinter.printParameter(parameter));
 		}
 		return signature.append(')').toString();
 	}

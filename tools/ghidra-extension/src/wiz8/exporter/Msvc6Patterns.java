@@ -28,8 +28,10 @@ import ghidra.program.model.data.DataTypeComponent;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.TypeDef;
+import ghidra.program.model.listing.AutoParameterType;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
+import ghidra.program.model.listing.Parameter;
 import ghidra.program.model.pcode.HighFunction;
 import ghidra.program.model.pcode.HighSymbol;
 import ghidra.program.model.pcode.HighVariable;
@@ -427,16 +429,6 @@ final class Msvc6Patterns {
 		}
 	}
 
-	private String tokenText(ClangNode node) {
-		List<ClangToken> tokens = new ArrayList<>();
-		leafTokens(node, tokens);
-		StringBuilder text = new StringBuilder();
-		for (ClangToken token : tokens) {
-			text.append(effectiveTokenText(token));
-		}
-		return text.toString();
-	}
-
 	/** The text a token contributes after claims and type mapping. */
 	private String effectiveTokenText(ClangToken token) {
 		String replacement = analysis.replaced.get(token);
@@ -581,20 +573,7 @@ final class Msvc6Patterns {
 
 	/** The index of the matching close paren in the significant list, or -1. */
 	private static int matchingParen(List<ClangToken> sig, int open) {
-		int depth = 0;
-		for (int i = open; i < sig.size(); i++) {
-			String text = sig.get(i).getText();
-			if ("(".equals(text)) {
-				depth++;
-			}
-			else if (")".equals(text)) {
-				depth--;
-				if (depth == 0) {
-					return i;
-				}
-			}
-		}
-		return -1;
+		return SyntaxPairs.matchingClose(sig, open);
 	}
 
 	// ------------------------------------------------------------------
@@ -1311,8 +1290,7 @@ final class Msvc6Patterns {
 	// ------------------------------------------------------------------
 
 	private boolean analyzeLifecycle(Set<ClangNode> dropped, List<String> initializers) {
-		List<ClangVariableDecl> params = protoParameters();
-		if (params.isEmpty() || !tokenText(params.get(0)).endsWith("this")) {
+		if (!hasThisParameter(function)) {
 			trace("declined", currentPass, "prototype does not carry the this parameter");
 			return false;
 		}
@@ -1429,68 +1407,15 @@ final class Msvc6Patterns {
 	 * p-code disagree.
 	 */
 	private List<String> callArgumentsAfterReceiver(ClangStatement statement, PcodeOp op) {
-		List<ClangToken> tokens = new ArrayList<>();
-		leafTokens(statement, tokens);
-		int open = -1;
-		for (int i = 0; i < tokens.size(); i++) {
-			if (tokens.get(i) instanceof ClangFuncNameToken) {
-				for (int j = i + 1; j < tokens.size(); j++) {
-					if ("(".equals(tokens.get(j).getText())) {
-						open = j;
-						break;
-					}
-				}
-				break;
-			}
-		}
-		if (open < 0) {
+		List<List<ClangToken>> arguments = callArgumentTokens(statement, op);
+		if (arguments == null || arguments.isEmpty()) {
 			return null;
 		}
-		List<String> arguments = new ArrayList<>();
-		StringBuilder current = new StringBuilder();
-		int depth = 1;
-		for (int i = open + 1; i < tokens.size() && depth > 0; i++) {
-			ClangToken token = tokens.get(i);
-			String text = token.getText();
-			if (text == null) {
-				continue;
-			}
-			switch (text) {
-				case "(":
-					depth++;
-					current.append(effectiveTokenText(token));
-					break;
-				case ")":
-					depth--;
-					if (depth > 0) {
-						current.append(effectiveTokenText(token));
-					}
-					break;
-				case ",":
-					if (depth == 1) {
-						arguments.add(finishArgument(current));
-						current.setLength(0);
-					}
-					else {
-						current.append(effectiveTokenText(token));
-					}
-					break;
-				default:
-					current.append(effectiveTokenText(token));
-			}
+		List<String> rendered = new ArrayList<>();
+		for (int i = 1; i < arguments.size(); i++) {
+			rendered.add(argumentText(arguments.get(i)));
 		}
-		if (current.length() > 0 || !arguments.isEmpty()) {
-			arguments.add(finishArgument(current));
-		}
-		if (arguments.size() != op.getNumInputs() - 1) {
-			return null;
-		}
-		return arguments.subList(1, arguments.size());
-	}
-
-	private String finishArgument(StringBuilder text) {
-		String argument = text.toString().trim();
-		return upcasts.getOrDefault(argument, argument);
+		return rendered;
 	}
 
 	/**
@@ -2475,21 +2400,21 @@ final class Msvc6Patterns {
 			int close) {
 		List<List<ClangToken>> arguments = new ArrayList<>();
 		List<ClangToken> current = new ArrayList<>();
-		int depth = 1;
+		int depth = 0;
 		for (int i = open + 1; i < close; i++) {
-			String text = text(sig, i);
-			if ("(".equals(text)) {
+			ClangToken token = sig.get(i);
+			if (SyntaxPairs.opensPair(token)) {
 				depth++;
 			}
-			else if (")".equals(text)) {
+			else if (SyntaxPairs.closesPair(token)) {
 				depth--;
 			}
-			else if (",".equals(text) && depth == 1) {
+			else if (",".equals(text(sig, i)) && depth == 0) {
 				arguments.add(current);
 				current = new ArrayList<>();
 				continue;
 			}
-			current.add(sig.get(i));
+			current.add(token);
 		}
 		if (!current.isEmpty() || !arguments.isEmpty()) {
 			arguments.add(current);
@@ -2684,7 +2609,9 @@ final class Msvc6Patterns {
 
 	private static int returnStorageParameterIndex(Function target) {
 		for (int i = 0; i < target.getParameterCount(); i++) {
-			if ("__return_storage_ptr__".equals(target.getParameter(i).getName())) {
+			Parameter parameter = target.getParameter(i);
+			if (parameter.isAutoParameter() &&
+				parameter.getAutoParameterType() == AutoParameterType.RETURN_STORAGE_PTR) {
 				return i;
 			}
 		}
@@ -2692,8 +2619,15 @@ final class Msvc6Patterns {
 	}
 
 	private static boolean hasReturnStorageParameter(Function target) {
+		return returnStorageParameterIndex(target) >= 0;
+	}
+
+	/** Whether the function receives a hidden {@code this}, by ABI identity. */
+	private static boolean hasThisParameter(Function target) {
 		for (int i = 0; i < target.getParameterCount(); i++) {
-			if ("__return_storage_ptr__".equals(target.getParameter(i).getName())) {
+			Parameter parameter = target.getParameter(i);
+			if (parameter.isAutoParameter() &&
+				parameter.getAutoParameterType() == AutoParameterType.THIS) {
 				return true;
 			}
 		}
@@ -2715,27 +2649,40 @@ final class Msvc6Patterns {
 			!"__thiscall".equals(function.getCallingConventionName())) {
 			return;
 		}
+		List<ClangVariableDecl> parameters = protoParameters();
+		if (parameters.isEmpty() || !isThisSymbol(parameters.get(0).getHighVariable())) {
+			return;
+		}
 		TokenLine line = tokenLine(findProto(root));
 		List<ClangToken> sig = line.sig;
+		// The API names the convention; the token scan only finds where that
+		// known keyword was printed.
 		int convention = -1;
-		int open = -1;
 		for (int i = 0; i < sig.size(); i++) {
 			if ("__thiscall".equals(text(sig, i))) {
 				convention = i;
-			}
-			if ("(".equals(text(sig, i))) {
-				open = i;
 				break;
 			}
 		}
-		if (convention < 0 || open < 0) {
+		if (convention < 0) {
 			return;
 		}
-		int end = open + 1;
-		while (end < sig.size() && !",".equals(text(sig, end)) && !")".equals(text(sig, end))) {
-			end++;
+		// The this parameter's own declaration node bounds its token span.
+		ClangVariableDecl thisDecl = parameters.get(0);
+		int declFirst = -1;
+		int declLast = -1;
+		for (int i = 0; i < sig.size(); i++) {
+			for (ClangNode ancestor = sig.get(i); ancestor != null; ancestor = ancestor.Parent()) {
+				if (ancestor == thisDecl) {
+					if (declFirst < 0) {
+						declFirst = i;
+					}
+					declLast = i;
+					break;
+				}
+			}
 		}
-		if (end >= sig.size() || !"this".equals(text(sig, end - 1))) {
+		if (declFirst < 0) {
 			return;
 		}
 		claimRange(line, convention, convention, "");
@@ -2746,12 +2693,9 @@ final class Msvc6Patterns {
 				dropToken(line.raw.get(blankAfter));
 			}
 		}
-		if (",".equals(text(sig, end))) {
-			claimRange(line, open + 1, end, "");
-		}
-		else {
-			claimRange(line, open + 1, end - 1, "");
-		}
+		int end = declLast + 1 < sig.size() && ",".equals(text(sig, declLast + 1))
+				? declLast + 1 : declLast;
+		claimRange(line, declFirst, end, "");
 	}
 
 	// ------------------------------------------------------------------
@@ -2781,10 +2725,13 @@ final class Msvc6Patterns {
 		if (kind == FunctionKind.DESTRUCTOR) {
 			name = "~" + name;
 		}
-		List<ClangVariableDecl> parameters = protoParameters();
 		List<String> rendered = new ArrayList<>();
-		for (int i = 1; i < parameters.size(); i++) {
-			rendered.add(tokenText(parameters.get(i)));
+		for (int i = 0; i < function.getParameterCount(); i++) {
+			Parameter parameter = function.getParameter(i);
+			if (parameter.isAutoParameter()) {
+				continue; // hidden this / return storage: ABI, not source
+			}
+			rendered.add(CxxTypePrinter.printParameter(parameter));
 		}
 		StringBuilder signature = new StringBuilder();
 		signature.append(owner).append("::").append(name).append('(')
@@ -2965,6 +2912,9 @@ final class Msvc6Patterns {
 
 	/**
 	 * The call's significant argument tokens, split at top-level commas.
+	 * The function-name token must carry the same p-code operation, so the
+	 * rendered argument list belongs to exactly the call being analyzed;
+	 * the list scope comes from the decompiler's own delimiter pairing.
 	 * Returns null when the token shape and the p-code operand count
 	 * disagree.
 	 */
@@ -2974,7 +2924,8 @@ final class Msvc6Patterns {
 		leafTokens(statement, tokens);
 		int open = -1;
 		for (int i = 0; i < tokens.size(); i++) {
-			if (tokens.get(i) instanceof ClangFuncNameToken) {
+			if (tokens.get(i) instanceof ClangFuncNameToken name &&
+				(name.getPcodeOp() == null || name.getPcodeOp() == op)) {
 				for (int j = i + 1; j < tokens.size(); j++) {
 					if ("(".equals(tokens.get(j).getText())) {
 						open = j;
@@ -2987,22 +2938,23 @@ final class Msvc6Patterns {
 		if (open < 0) {
 			return null;
 		}
+		int close = SyntaxPairs.matchingClose(tokens, open);
+		if (close < 0) {
+			return null;
+		}
 		List<List<ClangToken>> arguments = new ArrayList<>();
 		List<ClangToken> current = new ArrayList<>();
-		int depth = 1;
-		for (int i = open + 1; i < tokens.size() && depth > 0; i++) {
+		int depth = 0;
+		for (int i = open + 1; i < close; i++) {
 			ClangToken token = tokens.get(i);
 			String text = token.getText();
-			if ("(".equals(text)) {
+			if (SyntaxPairs.opensPair(token)) {
 				depth++;
 			}
-			else if (")".equals(text)) {
+			else if (SyntaxPairs.closesPair(token)) {
 				depth--;
-				if (depth == 0) {
-					break;
-				}
 			}
-			else if (",".equals(text) && depth == 1) {
+			else if (",".equals(text) && depth == 0) {
 				arguments.add(current);
 				current = new ArrayList<>();
 				continue;

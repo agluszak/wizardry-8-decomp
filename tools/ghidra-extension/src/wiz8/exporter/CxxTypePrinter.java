@@ -6,6 +6,7 @@ import ghidra.program.model.data.FunctionDefinition;
 import ghidra.program.model.data.ParameterDefinition;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.TypeDef;
+import ghidra.program.model.listing.Parameter;
 
 /**
  * One recursive C++ declarator printer over Ghidra {@link DataType} objects,
@@ -15,10 +16,13 @@ import ghidra.program.model.data.TypeDef;
  * The declarator grammar is honored rather than string-edited: array bounds
  * bind tighter than pointers, so a pointer-to-array parenthesizes
  * ({@code int (*name)[4]}), and a function pointer prints its full
- * parameter list ({@code int (__stdcall *name)(char*)}). Template bracket
- * encodings and primitive aliases go through {@link TypeNames}. Ghidra's
- * type system carries no const/volatile or reference types, so those
- * spellings can only come from source-owned declarations, not from here.
+ * parameter list ({@code int (__stdcall *name)(char*)}). A named typedef is
+ * preserved as the base spelling rather than unwrapped: the alias may be the
+ * original source spelling, and the underlying type is always recoverable
+ * while a discarded alias is not. Template bracket encodings and primitive
+ * aliases go through {@link TypeNames}. Ghidra's type system carries no
+ * const/volatile or reference types, so those spellings can only come from
+ * source-owned declarations, not from here.
  */
 final class CxxTypePrinter {
 
@@ -32,12 +36,27 @@ final class CxxTypePrinter {
 
 	/** The full declaration of {@code name} with the given type. */
 	static String printDeclaration(DataType type, String name) {
-		return declare(resolve(type), name);
+		return declare(type, name);
+	}
+
+	/**
+	 * One parameter's declaration. The formal type is the source-level
+	 * spelling; {@code getDataType()} may be the effective ABI type after
+	 * an indirect-passing adjustment.
+	 */
+	static String printParameter(Parameter parameter) {
+		String name = parameter.getName();
+		return printDeclaration(parameter.getFormalDataType(), name == null ? "" : name);
 	}
 
 	private static String declare(DataType type, String inner) {
+		if (type instanceof TypeDef typedef) {
+			// The alias is a simple identifier, so no pointer/array binding
+			// below it ever needs parentheses.
+			return attach(TypeNames.map(typedef.getDisplayName()), inner);
+		}
 		if (type instanceof Pointer pointer) {
-			DataType pointed = resolve(pointer.getDataType());
+			DataType pointed = pointer.getDataType();
 			String star = "*" + inner;
 			if (pointed instanceof Array || pointed instanceof FunctionDefinition) {
 				// Arrays and function types bind tighter than the pointer.
@@ -46,7 +65,7 @@ final class CxxTypePrinter {
 			return declare(pointed, star);
 		}
 		if (type instanceof Array array) {
-			return declare(resolve(array.getDataType()),
+			return declare(array.getDataType(),
 				inner + "[" + array.getNumElements() + "]");
 		}
 		if (type instanceof FunctionDefinition function) {
@@ -65,10 +84,13 @@ final class CxxTypePrinter {
 			if (convention != null && convention.startsWith("__") && head.startsWith("(")) {
 				head = "(" + convention + " " + head.substring(1);
 			}
-			return declare(resolve(function.getReturnType()),
+			return declare(function.getReturnType(),
 				head + "(" + parameters + ")");
 		}
-		String base = TypeNames.map(type == null ? "void" : type.getDisplayName());
+		return attach(TypeNames.map(type == null ? "void" : type.getDisplayName()), inner);
+	}
+
+	private static String attach(String base, String inner) {
 		if (inner.isEmpty()) {
 			return base;
 		}
@@ -83,18 +105,5 @@ final class CxxTypePrinter {
 			return base + "*".repeat(stars) + (rest.isEmpty() ? "" : " " + rest);
 		}
 		return base + " " + inner;
-	}
-
-	/**
-	 * Look through typedefs to the base type. Ghidra typedefs in the
-	 * reviewed project are import artifacts, not source spellings; the
-	 * source-owned declaration is the authority for a meaningful alias.
-	 */
-	private static DataType resolve(DataType type) {
-		DataType current = type;
-		while (current instanceof TypeDef typedef) {
-			current = typedef.getBaseDataType();
-		}
-		return current;
 	}
 }

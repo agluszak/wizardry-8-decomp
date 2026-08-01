@@ -159,8 +159,9 @@ text:
   syntax — bare `Method(args)` on `this` or a base subobject,
   `field.Method(args)` on a member, `v->Method(args)` /
   `x->f.Method(args)` / `((T *)expr)->Method(args)` on external receivers.
-  Callees with a `__return_storage_ptr__` parameter decline (struct-return
-  lowering is later work).
+  Callees with a hidden return-storage parameter
+  (`AutoParameterType.RETURN_STORAGE_PTR`) decline here; the
+  `call.struct-return` pass owns them.
 - **Virtual dispatch**: `(**(code **)((int)recv.vftable + 0xNN))(args)`
   resolves the receiver's static class, picks its vftable symbol (the
   complete-object table only for offset 0; a `{for_'Base'}` table only via
@@ -183,14 +184,29 @@ from the vtable (it stores `purecall`), and unnamed slot functions
 spelling goes through (class fields, virtual signatures, data definitions):
 it honors the declarator grammar — array bounds bind tighter than pointers
 (`int (*name)[4]`), function pointers print their parameter lists and
-calling conventions — instead of string-editing trailing stars. Ghidra's
-type system carries no const/volatile or reference types, so those
-spellings can only come from source-owned declarations.
+calling conventions — instead of string-editing trailing stars. A named
+typedef is preserved as the base spelling rather than unwrapped: the alias
+may be the original source spelling, and the underlying type stays
+recoverable while a discarded alias is not. Parameters print their formal
+type (`Parameter.getFormalDataType()`), and hidden ABI parameters are
+skipped by identity (`Parameter.isAutoParameter()`), never by their
+rendered names or positions. Ghidra's type system carries no
+const/volatile or reference types, so those spellings can only come from
+source-owned declarations.
+
+Token-tree navigation follows the same rule — Ghidra objects decide
+meaning, tokens only locate where that meaning was printed:
+`SyntaxPairs.java` matches parentheses through the decompiler's own
+`ClangSyntaxToken` pair ids instead of counting `(` strings, and the call
+argument splitter accepts a rendered argument list only when its
+function-name token carries the analyzed p-code call and its slice count
+agrees with the operation's operand count.
 
 The `call.struct-return` pass lifts MSVC structure-return lowering: a call
-whose callee prototype names a `__return_storage_ptr__` parameter and whose
-storage argument renders as `&local` becomes `local = Method(args)` in
-member syntax. Ghidra usually keeps the returned storage pointer as an
+whose callee carries the hidden storage parameter — identified by
+`Parameter.isAutoParameter()` and `AutoParameterType.RETURN_STORAGE_PTR`,
+not by its rendered name — and whose storage argument renders as `&local`
+becomes `local = Method(args)` in member syntax. Ghidra usually keeps the returned storage pointer as an
 alias for later reads; every alias use is by construction a use of the
 storage, so `alias->f` rewrites to `local.f` and a bare alias to `&local`.
 An alias with any unclaimable use declines, because dropping it would lose

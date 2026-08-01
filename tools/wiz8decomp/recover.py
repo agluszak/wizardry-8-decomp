@@ -2,11 +2,13 @@
 
 ``wiz8 recover regress`` measures how much of a recovered function the
 Ghidra exporter can regenerate with zero manual edits: for each selected
-address it exports the function, splices the emitted block over the existing
-recovered body in its owning translation unit, builds the product, runs the
-relocation-masked reccmp comparison for that address, and always restores
-the file afterwards. Nothing is written permanently; the deliverable is the
-per-function report.
+address it exports the function, grafts the exported body under the
+source-owned declaration (the declaration's compiler-owned spellings are
+evidence the exporter must not overwrite), splices the result over the
+existing recovered block in its owning translation unit, builds the product,
+runs the relocation-masked reccmp comparison for that address, and always
+restores the file afterwards. Nothing is written permanently; the
+deliverable is the per-function report.
 
 The harness needs the live Ghidra project and the pinned VC6 toolchain, so it
 is a manual/milestone gate, not part of ``just check`` or ``just test``.
@@ -182,162 +184,49 @@ def insert_lines(original: str, after_line: int, block: str) -> str:
     return "".join(lines[:after_line]) + "\n" + block + "".join(lines[after_line:])
 
 
-_INITIALIZER_HEAD = re.compile(r"^\s{4}: ")
-_INITIALIZER = re.compile(r"^([A-Za-z_][A-Za-z0-9_:<>]*)\((.*)\)$")
-_CONSTRUCTOR_OWNER = re.compile(
-    r"^(?P<owner>[A-Za-z_][A-Za-z0-9_:<>]*)::(?P<name>[A-Za-z_][A-Za-z0-9_]*)\("
-)
+def graft_source_signature(source_block: str, exported_block: str) -> str:
+    """Keep the source-owned declaration head; take the exported body.
 
-
-def constructor_store_alternative(
-    block: str, *, member_names: set[str] | None = None
-) -> str | None:
-    """The bounded initializer-vs-body-store alternative for a constructor.
-
-    Member initializers the exporter lifted move back into leading body
-    assignments; base initializers cannot move and stay. Only single-argument
-    member initializers convert (a multi-argument one is a real constructor
-    call, not an assignment). No convertible member initializer means no
-    alternative.
+    The recovered declaration carries compiler-owned spellings — return
+    type, parameter types and names, reference versus pointer — that
+    Ghidra's type model cannot always represent; regenerating them from
+    Ghidra would overwrite better evidence with a weaker projection. The
+    exported block therefore contributes only the regenerated body: the
+    constructor initializer list (when present) and everything from the
+    opening brace onward. A block without the repository's column-0 opening
+    brace keeps the exported text whole rather than guessing a boundary.
     """
 
-    # Case is not ownership evidence: Wizardry has lowercase base classes
-    # such as srNode. Without the owning declaration's field inventory there
-    # is no safe way to distinguish a base initializer from a member.
-    if not member_names:
-        return None
-
-    lines = block.split("\n")
-    start = next((i for i, line in enumerate(lines) if _INITIALIZER_HEAD.match(line)), None)
-    if start is None:
-        return None
-    end = start
-    while end + 1 < len(lines) and lines[end + 1].startswith("      "):
-        end += 1
-    text = " ".join(line.strip() for line in lines[start : end + 1])[2:]
-    initializers: list[str] = []
-    depth = 0
-    current = ""
-    for char in text:
-        if char == "," and depth == 0:
-            initializers.append(current.strip())
-            current = ""
-            continue
-        depth += char in "(<"
-        depth -= char in ")>"
-        current += char
-    initializers.append(current.strip())
-
-    kept: list[str] = []
-    stores: list[str] = []
-    for initializer in initializers:
-        match = _INITIALIZER.match(initializer)
-        if (
-            match is not None
-            and match.group(1) in member_names
-            and match.group(2)
-            and not _splits_at_top_level(match.group(2))
-        ):
-            stores.append(f"  {match.group(1)} = {match.group(2)};")
-        else:
-            kept.append(initializer)
-    if not stores:
-        return None
-
-    brace = next((i for i in range(end + 1, len(lines)) if lines[i].strip() == "{"), None)
-    if brace is None:
-        return None
-    rebuilt = lines[:start]
-    if kept:
-        rebuilt.append("    : " + ", ".join(kept))
-    rebuilt.extend(lines[end + 1 : brace + 1])
-    rebuilt.extend(stores)
-    rebuilt.extend(lines[brace + 1 :])
-    return "\n".join(rebuilt)
+    source_lines = source_block.splitlines()
+    exported_lines = exported_block.splitlines()
+    source_body = _body_start(source_lines)
+    exported_body = _body_start(exported_lines)
+    if source_body is None or exported_body is None:
+        return exported_block
+    return "\n".join(source_lines[:source_body] + exported_lines[exported_body:]) + "\n"
 
 
-def constructor_member_names(block: str, classes: list[dict[str, Any]]) -> set[str]:
-    """Fields of the class whose constructor definition begins ``block``."""
+def _body_start(lines: list[str]) -> int | None:
+    """Index of the first body line: the ``: initializer`` head when one
+    precedes the column-0 opening brace, else the brace itself.
 
-    owner = None
-    for line in block.splitlines():
-        match = _CONSTRUCTOR_OWNER.match(line.strip())
-        if match is not None:
-            candidate = match.group("owner")
-            if candidate.rsplit("::", 1)[-1] == match.group("name"):
-                owner = candidate
-                break
-    if owner is None:
-        return set()
-    record = next(
-        (item for item in classes if item.get("qualified_name") == owner),
+    Blank lines may sit between the initializer list and the brace (the
+    exporter renders one), so the walk back skips them; it stops at the
+    first column-0 content line, which belongs to the declaration.
+    """
+
+    brace = next(
+        (i for i, line in enumerate(lines) if line.strip() == "{" and line.startswith("{")),
         None,
     )
-    if record is None:
-        return set()
-    return {
-        str(field["name"])
-        for field in record.get("fields", [])
-        if isinstance(field, dict) and field.get("name")
-    }
-
-
-def _splits_at_top_level(text: str) -> bool:
-    depth = 0
-    for char in text:
-        if char == "," and depth == 0:
-            return True
-        depth += char in "(<"
-        depth -= char in ")>"
-    return False
-
-
-_RETURN_DECLARATION = re.compile(
-    r"^(?P<indent>\s*)(?P<type>unsigned char|signed char|unsigned int|int)"
-    r"(?P<tail>\s+[A-Za-z_][^;{}]*\()"
-)
-
-
-def return_width_alternatives(block: str) -> list[tuple[str, str]]:
-    """Bounded return-width candidates for a ``return_value`` divergence.
-
-    Only the definition's leading return type changes. Compilation against
-    the canonical declaration falsifies a wrong spelling before comparison.
-    """
-
-    replacements = {
-        "unsigned char": ["int"],
-        "signed char": ["int"],
-        "unsigned int": ["int"],
-        "int": ["unsigned char", "unsigned int"],
-    }
-    lines = block.splitlines(keepends=True)
-    for index, line in enumerate(lines):
-        match = _RETURN_DECLARATION.match(line)
-        if match is None:
-            continue
-        alternatives: list[tuple[str, str]] = []
-        original = match.group("type")
-        for replacement in replacements[original]:
-            changed = lines.copy()
-            changed[index] = line[: match.start("type")] + replacement + line[match.end("type") :]
-            alternatives.append((f"return-{replacement.replace(' ', '-')}", "".join(changed)))
-        return alternatives
-    return []
-
-
-def mismatch_alternatives(block: str, finding: dict[str, Any]) -> list[tuple[str, str]]:
-    """At most two local source-shape alternatives for a structured mismatch."""
-
-    difference = finding.get("difference")
-    kind = difference.get("kind") if isinstance(difference, dict) else None
-    if kind == "return_value":
-        return return_width_alternatives(block)[:2]
-    # branch_condition needs the compared operand mapped back to a declaration;
-    # branch_target needs a proven source region; preserved_state needs an EH
-    # lifetime. The current reccmp finding does not carry those identities, so
-    # synthesizing generic signedness/switch/scope rewrites would invent code.
-    return []
+    if brace is None:
+        return None
+    scan = brace - 1
+    while scan > 0 and (not lines[scan].strip() or lines[scan][:1].isspace()):
+        if lines[scan].lstrip().startswith(": "):
+            return scan
+        scan -= 1
+    return brace
 
 
 _UNDECLARED = re.compile(r"error C2065: '([A-Za-z_][A-Za-z0-9_]*)' : undeclared identifier")
@@ -418,21 +307,16 @@ def recover_function(
     path = settings.repo_dir / source_file
     original = path.read_text(encoding="utf-8")
 
+    # One verbatim candidate only. Source-shape alternatives that mutate the
+    # rendered C++ with regexes were removed deliberately: shape hypotheses
+    # belong in the exporter's recognizers, where Ghidra's structural model
+    # backs them, not in textual rewrites of its output.
     candidates: list[tuple[str, str]] = [("as-exported", block)]
-    alternative = constructor_store_alternative(
-        block,
-        member_names=constructor_member_names(block, source_index.get("classes", [])),
-    )
-    if alternative is not None:
-        candidates.append(("member-stores", alternative))
 
     rows: list[dict[str, Any]] = []
     product_dirty = False
     try:
-        candidate_index = 0
-        while candidate_index < len(candidates):
-            name, candidate = candidates[candidate_index]
-            candidate_index += 1
+        for name, candidate in candidates:
             row: dict[str, Any] = {"candidate": name}
             rows.append(row)
             path.write_text(insert_lines(original, after_line, candidate), encoding="utf-8")
@@ -457,12 +341,6 @@ def recover_function(
                 findings = triage.get("functions") or []
                 if findings:
                     row["first_divergence"] = findings[0]
-                    if candidate_index == 1 and len(candidates) < 3:
-                        for generated in mismatch_alternatives(block, findings[0]):
-                            if generated[1] not in {text for _, text in candidates}:
-                                candidates.append(generated)
-                            if len(candidates) == 3:
-                                break
     finally:
         path.write_text(original, encoding="utf-8")
 
@@ -577,6 +455,8 @@ def regress(
             row["status"] = "unplaced"
             row["reason"] = "index span does not start at the address's marker line"
             continue
+        source_block = "".join(original.splitlines(keepends=True)[first_line - 1 : last_line])
+        block = graft_source_signature(source_block, block)
         try:
             path.write_text(splice_lines(original, first_line, last_line, block), encoding="utf-8")
             product_dirty = True
@@ -836,8 +716,11 @@ def sweep(
             outcome["status"] = "unplaced"
             outcome["reason"] = "index span does not start at the marker line"
             continue
+        source_block = "".join(
+            originals[marker["source_file"]].splitlines(keepends=True)[span[1] - 1 : span[2]]
+        )
         plan_by_file.setdefault(marker["source_file"], []).append(
-            (span[1], span[2], address, block)
+            (span[1], span[2], address, graft_source_signature(source_block, block))
         )
 
     product_dirty = False
