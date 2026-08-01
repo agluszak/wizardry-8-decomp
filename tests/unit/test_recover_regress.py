@@ -251,3 +251,95 @@ def test_regress_command_reports_the_summary(monkeypatch: pytest.MonkeyPatch) ->
     result = CliRunner().invoke(app, ["recover", "regress", "0x004a5e50"])
     assert result.exit_code == 0
     assert "exact" in result.stdout
+
+
+def test_verify_marker_adjacency_proves_the_span_start() -> None:
+    from wiz8decomp.recover import verify_marker_adjacency
+
+    original = "prose\n// FUNCTION: WIZ8 0x004a5e50\nvoid f()\n{\n}\n"
+    assert verify_marker_adjacency(original, 2, 0x4A5E50)
+    assert not verify_marker_adjacency(original, 1, 0x4A5E50)
+    assert not verify_marker_adjacency(original, 99, 0x4A5E50)
+
+
+def test_exporter_defects_extracts_flagged_lines() -> None:
+    from wiz8decomp.recover import exporter_defects
+
+    block = (
+        "// exporter-defect: call.virtual: java.lang.NullPointerException\n"
+        "// FUNCTION: WIZ8 0x00000010\nvoid f()\n{\n}\n"
+    )
+    assert exporter_defects(block) == ["call.virtual: java.lang.NullPointerException"]
+    assert exporter_defects("// FUNCTION: WIZ8 0x00000010\nvoid f()\n{\n}\n") == []
+
+
+def test_candidate_rank_prefers_status_then_divergence_position() -> None:
+    from wiz8decomp.recover import _candidate_rank
+
+    exact = {"status": "exact", "raw_matching": 0.5}
+    late = {
+        "status": "mismatch",
+        "raw_matching": 0.7,
+        "first_divergence": {"difference": {"orig": {"instruction_index": 40}}},
+    }
+    early_high_raw = {
+        "status": "mismatch",
+        "raw_matching": 0.99,
+        "first_divergence": {"difference": {"orig": {"instruction_index": 3}}},
+    }
+    ranked = sorted([early_high_raw, late, exact], key=_candidate_rank, reverse=True)
+    assert ranked[0] is exact
+    assert ranked[1] is late  # later first divergence beats higher raw score
+
+
+def test_splice_unit_applies_many_spans_and_reports_ranges() -> None:
+    from wiz8decomp.recover import splice_unit
+
+    original = "l1\nl2\nl3\nl4\nl5\nl6\n"
+    text, ranges = splice_unit(
+        original,
+        [(2, 3, 0x10, "A1\nA2\nA3\n"), (5, 5, 0x20, "B1\n")],
+    )
+    assert text == "l1\nA1\nA2\nA3\nl4\nB1\nl6\n"
+    assert ranges == {0x10: (2, 4), 0x20: (6, 6)}
+    import pytest as _pytest
+
+    with _pytest.raises(ValueError):
+        splice_unit(original, [(2, 4, 0x10, "X\n"), (3, 5, 0x20, "Y\n")])
+
+
+def test_attribute_diagnostics_maps_lines_to_blocks() -> None:
+    from wiz8decomp.recover import attribute_diagnostics
+
+    ranges = {"src/wiz8/engine_code/GrCycle.cpp": {0x10: (100, 120), 0x20: (200, 210)}}
+    per_address, unattributed = attribute_diagnostics(
+        [
+            "Z:\\repo\\src\\wiz8\\engine_code\\GrCycle.cpp(105) : error C2065: 'x'",
+            "Z:\\repo\\src\\wiz8\\engine_code\\GrCycle.cpp(300) : error C2065: 'y'",
+            "no location at all",
+        ],
+        ranges,
+    )
+    assert set(per_address) == {0x10}
+    assert len(per_address[0x10]) == 1
+    assert len(unattributed) == 2
+
+
+def test_categorize_failure_orders_by_evidence_strength() -> None:
+    from wiz8decomp.recover import categorize_failure
+
+    assert (
+        categorize_failure(["a.cpp(1) : error C2065: 'SBORROW4' : undeclared identifier"])
+        == "unsupported-intrinsic"
+    )
+    assert (
+        categorize_failure(["a.cpp(1) : error C2065: 'DAT_0065be2c' : undeclared identifier"])
+        == "unresolved-identity"
+    )
+    assert (
+        categorize_failure(["a.cpp(1) : error C2511: 'W8GrCycle::W8GrCycle' : overloaded member"])
+        == "declaration-or-type"
+    )
+    assert categorize_failure(["a.cpp(1) : fatal error C1004: unexpected"]) == (
+        "other-compile-failure"
+    )

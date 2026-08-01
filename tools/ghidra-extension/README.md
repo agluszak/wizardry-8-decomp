@@ -48,8 +48,14 @@ uv run wiz8 ghidra export-cpp 0x004a5e50:0x004a6610 --output build/export-cpp/gr
 ```
 
 With `--output` the command prints the usual summary record instead of the
-text. Note the default `DecompileOptions()` are used, so rendering can differ
-slightly from a CodeBrowser window whose tool options were customized.
+text. Decompiler options are taken from the program's saved options
+(`DecompileOptions.grabFromProgram`, as Ghidra's own CppExporter does), so
+rendering matches what a reviewer sees in the CodeBrowser.
+
+The jar attaches to the long-lived JVM once per process; the loaded digest
+is remembered, and a jar rebuilt after that is a hard error demanding a
+fresh process — `addPath` cannot replace classes the JVM already loaded,
+and silently running stale code would corrupt measurements.
 
 ## Manual corpus check
 
@@ -90,13 +96,40 @@ C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
 
 Every rule declines on ambiguity: a constructor or destructor whose
 subobject lifecycle calls cannot all be proven prints fully verbatim, and a
-recognizer failure never blocks the batch. The transformed token stream is
-also checked for balanced syntax, dangling literal statements, and lost
-statement terminators; a failed structural check discards all transformations
-for that function and prints Ghidra's identity-token rendering with an
-explicit decline comment. Guarded allocation forms and
+recognizer failure never blocks the batch. Guarded allocation forms and
 member-store initializer placement are later-milestone work; expect them
 verbatim.
+
+## Passes, containment, and the transformation trace
+
+The recognizers run as named passes (`call.virtual`,
+`expression.array-index`, `expression.member-access`,
+`expression.null-cast`, `call.direct-member`, `literal.narrow-string`,
+`eh.registration-frame`, `eh.stack-local`, `lifecycle.constructor` /
+`lifecycle.destructor`, `allocation.pairs`, `signature.thiscall`). Each pass
+is contained three ways:
+
+- **Defects are never swallowed.** An exception inside one pass rolls back
+  only that pass's claims and is recorded; the exported block ends with
+  `// exporter-defect: <pass>: <exception>` lines, `wiz8 recover regress`
+  fails when it sees one, and `wiz8 recover sweep` counts them as their own
+  category. A named decline (ambiguity, missing evidence) is a trace
+  record, not a defect.
+- **Per-pass structural validation.** After every pass that changed claims,
+  the whole body is re-rendered and checked (balanced brackets/quotes,
+  dangling artifacts on claim-touched lines only — Ghidra's own wrapped
+  rendering is never judged); a failed check rolls back just that pass with
+  a `rolled-back` trace record instead of discarding the whole function.
+- **Owned claims.** Every dropped or replaced node records its owning pass.
+  Statement-scope passes (lifecycle, EH, allocation) may supersede
+  token-scope rewrites on the same nodes — that priority is declared in
+  `passPriority` — while equal-priority cross-pass claims are rejected with
+  a trace record, and range claims are all-or-nothing.
+
+`uv run wiz8 recover explain 0x<address>` prints the per-function trace:
+every `applied` rewrite with its site, every `declined` recognizer with its
+reason, plus rollbacks and defects. The trace is ephemeral diagnostic
+output, never part of exported source.
 
 ## Typed member access, dispatch, and type spellings (M3)
 

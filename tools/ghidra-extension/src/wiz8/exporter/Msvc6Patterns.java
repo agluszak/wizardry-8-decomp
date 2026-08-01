@@ -45,16 +45,48 @@ import ghidra.program.model.symbol.SymbolType;
  *
  * Every recognizer works on positive evidence and declines otherwise. The
  * result only records which nodes to suppress or replace; the token writer
- * reproduces everything else verbatim. Any internal error downgrades the
- * whole analysis to the empty (fully verbatim) result.
+ * reproduces everything else verbatim.
+ *
+ * The recognizers run as named passes. Each pass is contained: a defect
+ * inside one pass rolls back only that pass's claims and is recorded as a
+ * defect (never silently), and after every pass the rendered body must
+ * still satisfy the structural validator or the pass's claims are rolled
+ * back with a trace record. Claims are owned: one pass may supersede
+ * another only by claiming an enclosing node (the renderer's declared
+ * outermost-wins rule); claiming a node another pass already claimed, or a
+ * node inside another pass's replacement text, is a conflict and is
+ * rejected with a trace record.
  */
 final class Msvc6Patterns {
+
+	/** One trace record: what a recognizer did, or why it did not. */
+	static final class TraceEvent {
+		final String pass;
+		final String status; // applied | declined | rolled-back | failed
+		final String detail;
+
+		TraceEvent(String pass, String status, String detail) {
+			this.pass = pass;
+			this.status = status;
+			this.detail = detail;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%-11s %s%s", status, pass,
+				detail == null || detail.isEmpty() ? "" : ": " + detail);
+		}
+	}
 
 	/** What the printer should do differently from verbatim output. */
 	static final class Analysis {
 		final Set<ClangNode> dropped = new HashSet<>();
 		final Map<ClangNode, String> replaced = new HashMap<>();
 		boolean liftSignature = false;
+		/** Ephemeral per-function transformation trace, in pass order. */
+		final List<TraceEvent> trace = new ArrayList<>();
+		/** Unexpected exporter defects: {@code pass: exception}. */
+		final List<String> defects = new ArrayList<>();
 	}
 
 	/** One meaningful element of the linearized body: a statement or a loose token. */
@@ -92,6 +124,10 @@ final class Msvc6Patterns {
 	private final Map<String, String> upcasts = new HashMap<>();
 	/** Rendered names of the three proven VC6 EH registration-frame slots. */
 	private final Set<String> ehSlotNames = new HashSet<>();
+	/** Which pass owns each claimed node; drives conflict rejection. */
+	private final Map<ClangNode, String> claimOwner = new HashMap<>();
+	/** The pass currently running; claims and trace records attach to it. */
+	private String currentPass;
 
 	private Msvc6Patterns(Function function, FunctionKind kind, DecompileResults results) {
 		this.function = function;
@@ -99,15 +135,24 @@ final class Msvc6Patterns {
 		this.results = results;
 	}
 
+	/**
+	 * Run every recognizer pass. Preparation failures (no markup, no
+	 * linearizable body) are the only whole-function bailouts and yield the
+	 * empty analysis with a defect record; pass failures are contained per
+	 * pass inside {@link #runPass}.
+	 */
 	static Analysis analyze(Function function, FunctionKind kind, DecompileResults results) {
 		Msvc6Patterns patterns = new Msvc6Patterns(function, kind, results);
 		try {
 			patterns.run();
-			return patterns.analysis;
 		}
 		catch (Exception e) {
-			return new Analysis();
+			patterns.analysis.defects.add("prepare: " + e);
+			patterns.analysis.dropped.clear();
+			patterns.analysis.replaced.clear();
+			patterns.analysis.liftSignature = false;
 		}
+		return patterns.analysis;
 	}
 
 	private void run() {
@@ -120,30 +165,171 @@ final class Msvc6Patterns {
 
 		// Statement-local token rewrites run first so the lifecycle and
 		// allocation recognizers read their effective (already lifted) text.
-		rewriteVirtualCalls();
-		rewriteArrayIndexing();
-		normalizeMemberAccess();
-		rewriteNullPointerCasts();
-		rewriteMethodCalls();
-		rewriteStringLiterals();
+		runPass("call.virtual", this::rewriteVirtualCalls);
+		runPass("expression.array-index", this::rewriteArrayIndexing);
+		runPass("expression.member-access", this::normalizeMemberAccess);
+		runPass("expression.null-cast", this::rewriteNullPointerCasts);
+		runPass("call.direct-member", this::rewriteMethodCalls);
+		runPass("literal.narrow-string", this::rewriteStringLiterals);
 
-		analyzeExceptionHandling();
+		runPass("eh.registration-frame", this::analyzeExceptionHandling);
+		runPass("eh.stack-local", this::liftStackLocalsPass);
 
+		if (kind == FunctionKind.CONSTRUCTOR || kind == FunctionKind.DESTRUCTOR) {
+			runPass(kind == FunctionKind.CONSTRUCTOR ? "lifecycle.constructor"
+					: "lifecycle.destructor",
+				this::lifecyclePass);
+		}
+		runPass("allocation.pairs", this::rewriteAllocationPairs);
+		if (kind == FunctionKind.ORDINARY) {
+			runPass("signature.thiscall", this::liftOrdinarySignature);
+		}
+	}
+
+	private void lifecyclePass() {
 		Set<ClangNode> lifecycleDropped = new HashSet<>();
 		List<String> initializers = new ArrayList<>();
-		boolean lifted = false;
-		if (kind == FunctionKind.CONSTRUCTOR || kind == FunctionKind.DESTRUCTOR) {
-			lifted = analyzeLifecycle(lifecycleDropped, initializers);
+		if (!analyzeLifecycle(lifecycleDropped, initializers)) {
+			return;
 		}
-		if (lifted) {
-			analysis.dropped.addAll(lifecycleDropped);
-			analysis.liftSignature = true;
-			analysis.replaced.put(findProto(root), liftedSignature(initializers));
+		for (ClangNode node : lifecycleDropped) {
+			claimDrop(node);
 		}
-		rewriteAllocationPairs();
-		if (kind == FunctionKind.ORDINARY) {
-			liftOrdinarySignature();
+		analysis.liftSignature = true;
+		claimReplace(findProto(root), liftedSignature(initializers));
+		trace("applied", currentPass, "signature lifted with " + initializers.size() +
+			" explicit initializer(s)");
+	}
+
+	// ------------------------------------------------------------------
+	// Pass containment, claims, and trace
+	// ------------------------------------------------------------------
+
+	/**
+	 * Run one pass with containment: a thrown defect rolls back only this
+	 * pass's claims and records the failure; a pass whose claims break the
+	 * structural validator is rolled back with a trace record. Trace events
+	 * the pass produced stay visible in both cases.
+	 */
+	private void runPass(String name, Runnable body) {
+		currentPass = name;
+		Set<ClangNode> droppedBefore = new HashSet<>(analysis.dropped);
+		Map<ClangNode, String> replacedBefore = new HashMap<>(analysis.replaced);
+		Map<ClangNode, String> ownersBefore = new HashMap<>(claimOwner);
+		boolean liftBefore = analysis.liftSignature;
+		try {
+			body.run();
+			if (claimsChanged(droppedBefore, replacedBefore, liftBefore)) {
+				Set<Integer> touched = new HashSet<>();
+				String rendered = Wiz8CxxPrinter.render(root, analysis, touched);
+				if (!Wiz8CxxPrinter.structurallySound(rendered, touched)) {
+					restoreClaims(droppedBefore, replacedBefore, ownersBefore, liftBefore);
+					trace("rolled-back", name, "structural validation failed");
+				}
+			}
 		}
+		catch (Exception e) {
+			restoreClaims(droppedBefore, replacedBefore, ownersBefore, liftBefore);
+			analysis.defects.add(name + ": " + e);
+			trace("failed", name, String.valueOf(e));
+		}
+		finally {
+			currentPass = null;
+		}
+	}
+
+	private boolean claimsChanged(Set<ClangNode> dropped, Map<ClangNode, String> replaced,
+			boolean liftSignature) {
+		return !analysis.dropped.equals(dropped) || !analysis.replaced.equals(replaced) ||
+			analysis.liftSignature != liftSignature;
+	}
+
+	private void restoreClaims(Set<ClangNode> dropped, Map<ClangNode, String> replaced,
+			Map<ClangNode, String> owners, boolean liftSignature) {
+		analysis.dropped.clear();
+		analysis.dropped.addAll(dropped);
+		analysis.replaced.clear();
+		analysis.replaced.putAll(replaced);
+		claimOwner.clear();
+		claimOwner.putAll(owners);
+		analysis.liftSignature = liftSignature;
+	}
+
+	/**
+	 * Claim a node as dropped. A node already claimed by another pass, or
+	 * sitting inside another pass's replacement text, is a conflict: the new
+	 * claim is rejected and traced. A pass may re-claim and refine its own
+	 * claims freely, and may supersede other passes only by claiming an
+	 * enclosing node (the renderer's outermost-wins rule).
+	 */
+	private boolean claimDrop(ClangNode node) {
+		if (conflicts(node)) {
+			return false;
+		}
+		analysis.replaced.remove(node);
+		analysis.dropped.add(node);
+		claimOwner.put(node, currentPass);
+		return true;
+	}
+
+	/** Claim a node as replaced by text; same conflict rules as drops. */
+	private boolean claimReplace(ClangNode node, String replacement) {
+		if (conflicts(node)) {
+			return false;
+		}
+		analysis.dropped.remove(node);
+		analysis.replaced.put(node, replacement);
+		claimOwner.put(node, currentPass);
+		return true;
+	}
+
+	/**
+	 * Declared claim priority: statement-scope recognizers (lifecycle, EH,
+	 * allocation) supersede token-scope rewrites (expression, literal, call,
+	 * signature) on the same nodes, because they remove or replace whole
+	 * compiler-owned constructs the token rewrites were polishing. Equal
+	 * priority never overwrites across passes.
+	 */
+	private static int passPriority(String pass) {
+		return pass != null && (pass.startsWith("lifecycle") || pass.startsWith("eh.") ||
+			pass.startsWith("allocation")) ? 2 : 1;
+	}
+
+	private boolean conflicts(ClangNode node) {
+		String owner = claimOwner.get(node);
+		if (owner != null && !owner.equals(currentPass)) {
+			if (passPriority(currentPass) > passPriority(owner)) {
+				return false; // declared supersede: statement scope over token scope
+			}
+			trace("declined", currentPass,
+				"claim conflict: node already claimed by " + owner);
+			return true;
+		}
+		for (ClangNode ancestor = node.Parent(); ancestor != null;
+				ancestor = ancestor.Parent()) {
+			String ancestorOwner = claimOwner.get(ancestor);
+			if (ancestorOwner != null && !ancestorOwner.equals(currentPass) &&
+				analysis.replaced.containsKey(ancestor) &&
+				passPriority(currentPass) <= passPriority(ancestorOwner)) {
+				trace("declined", currentPass,
+					"claim conflict: inside a node replaced by " + ancestorOwner);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void trace(String status, String pass, String detail) {
+		analysis.trace.add(new TraceEvent(pass == null ? "?" : pass, status, detail));
+	}
+
+	/** The listing address a statement's root operation executes at. */
+	private static String statementAddress(ClangStatement statement) {
+		PcodeOp op = statement.getPcodeOp();
+		if (op == null || op.getSeqnum() == null) {
+			return "?";
+		}
+		return "0x" + op.getSeqnum().getTarget().toString();
 	}
 
 	// ------------------------------------------------------------------
@@ -345,25 +531,51 @@ final class Msvc6Patterns {
 	 * Claim the raw token span between two significant tokens: the whole span
 	 * disappears and the replacement text prints once in its place.
 	 */
-	private void claimRange(TokenLine line, int sigFrom, int sigTo, String replacement) {
+	/**
+	 * Claim a whole token span atomically: every token disappears and the
+	 * replacement prints once in the first token's place. The claim is
+	 * all-or-nothing — if the anchor token or any other pass's replacement
+	 * sits inside the span, the whole range declines, because a partial
+	 * claim would print duplicated or orphaned text.
+	 */
+	private boolean claimRange(TokenLine line, int sigFrom, int sigTo, String replacement) {
 		int rawFrom = line.rawIndex.get(sigFrom);
 		int rawTo = line.rawIndex.get(sigTo);
+		ClangToken first = line.raw.get(rawFrom);
+		String firstOwner = claimOwner.get(first);
+		if (firstOwner != null && !firstOwner.equals(currentPass) &&
+			passPriority(currentPass) <= passPriority(firstOwner)) {
+			trace("declined", currentPass,
+				"claim conflict: range anchor already claimed by " + firstOwner);
+			return false;
+		}
 		for (int i = rawFrom; i <= rawTo; i++) {
 			ClangToken token = line.raw.get(i);
-			analysis.replaced.remove(token);
-			analysis.dropped.add(token);
+			String owner = claimOwner.get(token);
+			if (owner != null && !owner.equals(currentPass) &&
+				analysis.replaced.containsKey(token) &&
+				passPriority(currentPass) <= passPriority(owner)) {
+				trace("declined", currentPass,
+					"claim conflict: range contains a replacement owned by " + owner);
+				return false;
+			}
 		}
-		ClangToken first = line.raw.get(rawFrom);
+		for (int i = rawFrom; i <= rawTo; i++) {
+			ClangToken token = line.raw.get(i);
+			String owner = claimOwner.get(token);
+			if (owner == null || owner.equals(currentPass) ||
+				passPriority(currentPass) > passPriority(owner)) {
+				claimDrop(token);
+			}
+		}
 		if (replacement.isEmpty()) {
-			return;
+			return true;
 		}
-		analysis.dropped.remove(first);
-		analysis.replaced.put(first, replacement);
+		return claimReplace(first, replacement);
 	}
 
 	private void dropToken(ClangToken token) {
-		analysis.replaced.remove(token);
-		analysis.dropped.add(token);
+		claimDrop(token);
 	}
 
 	/** The index of the matching close paren in the significant list, or -1. */
@@ -548,12 +760,17 @@ final class Msvc6Patterns {
 		}
 		ehModel = resolveEhModel();
 		if (ehModel != null && ehModel.tryBlockCount > 0) {
+			trace("declined", currentPass, "FuncInfo declares " + ehModel.tryBlockCount +
+				" try block(s); the registration carries source semantics");
 			ehLinkOffset = null;
 			ehModel = null;
 			return;
 		}
 		if (ehModel == null && kind != FunctionKind.CONSTRUCTOR &&
 			kind != FunctionKind.DESTRUCTOR) {
+			trace("declined", currentPass,
+				"EH frame detected but FuncInfo unresolved; only lifecycle bodies " +
+					"use the frame-shape fallback");
 			ehLinkOffset = null;
 			return;
 		}
@@ -584,14 +801,25 @@ final class Msvc6Patterns {
 			// A slot access the statement pass cannot claim (for example a
 			// state store folded into a condition) would print as a dangling
 			// reference; keep the whole frame verbatim instead.
+			trace("declined", currentPass,
+				"an EH slot reference survives outside the claimable statements");
 			ehLinkOffset = null;
 			ehModel = null;
 			return;
 		}
-		analysis.dropped.addAll(ehDropped);
-		if (ehModel != null) {
-			liftStackLocals();
+		for (ClangNode node : ehDropped) {
+			claimDrop(node);
 		}
+		trace("applied", currentPass, ehDropped.size() + " scaffolding statement(s)/" +
+			"declaration(s) suppressed" + (ehModel == null ? " (frame-shape fallback)" : ""));
+	}
+
+	/** The eh.stack-local pass: runs only when the model survived the frame pass. */
+	private void liftStackLocalsPass() {
+		if (ehModel == null || ehLinkOffset == null) {
+			return;
+		}
+		liftStackLocals();
 	}
 
 	/**
@@ -786,7 +1014,9 @@ final class Msvc6Patterns {
 			}
 			if (targetKind == FunctionKind.CONSTRUCTOR) {
 				if (constructorStatement != null) {
-					return; // two constructions of one slot: not one lifetime
+					trace("declined", currentPass, "slot " + stackOffset +
+						": two constructions of one slot are not one lifetime");
+					return;
 				}
 				constructorStatement = statement;
 				constructorOp = op;
@@ -797,25 +1027,37 @@ final class Msvc6Patterns {
 			}
 		}
 		if (constructorStatement == null || destructorCalls.isEmpty()) {
+			trace("declined", currentPass, "slot " + stackOffset + " (~" +
+				destructor.getName() + "): " +
+				(constructorStatement == null
+						? "no direct same-class constructor call on the slot"
+						: "no direct destructor call on the slot"));
 			return;
 		}
 		List<String> arguments = callArgumentsAfterReceiver(constructorStatement, constructorOp);
 		if (arguments == null) {
+			trace("declined", currentPass, "slot " + stackOffset +
+				": constructor argument tokens disagree with the p-code operands");
 			return;
 		}
 		String name = local.getText();
 		ClangVariableDecl declaration = localDeclaration(name, stackOffset);
 		if (declaration == null) {
+			trace("declined", currentPass, "slot " + stackOffset +
+				": no hoisted declaration found for " + name);
 			return;
 		}
 		String type = TypeNames.map(owner.getName());
 		String definition = arguments.isEmpty() ? type + " " + name
 				: type + " " + name + "(" + String.join(", ", arguments) + ")";
-		analysis.replaced.put(constructorStatement, definition);
-		analysis.dropped.add(declaration);
+		claimReplace(constructorStatement, definition);
+		claimDrop(declaration);
 		for (ClangStatement call : destructorCalls) {
-			analysis.dropped.add(call);
+			claimDrop(call);
 		}
+		trace("applied", currentPass, type + " " + name + " @ " +
+			statementAddress(constructorStatement) + ", " + destructorCalls.size() +
+			" scope-end destructor call(s) dropped");
 	}
 
 	/**
@@ -1070,13 +1312,19 @@ final class Msvc6Patterns {
 	private boolean analyzeLifecycle(Set<ClangNode> dropped, List<String> initializers) {
 		List<ClangVariableDecl> params = protoParameters();
 		if (params.isEmpty() || !tokenText(params.get(0)).endsWith("this")) {
+			trace("declined", currentPass, "prototype does not carry the this parameter");
 			return false;
 		}
+		int vptrStores = 0;
 		for (Item item : items) {
 			if (item.isStatement() && !isClaimed(item.node) &&
 				isVftableStore((ClangStatement) item.node)) {
 				dropped.add(item.node);
+				vptrStores++;
 			}
+		}
+		if (vptrStores > 0) {
+			trace("applied", "lifecycle.vptr-store", "x" + vptrStores);
 		}
 		if (kind == FunctionKind.CONSTRUCTOR) {
 			consumeConstructorPrefix(dropped, initializers);
@@ -1084,7 +1332,12 @@ final class Msvc6Patterns {
 		else {
 			consumeDestructorTail(dropped);
 		}
-		return noSubobjectLifecycleCallsRemain(dropped);
+		if (!noSubobjectLifecycleCallsRemain(dropped)) {
+			trace("declined", currentPass, "an unproven subobject lifecycle call " +
+				"remains in the body; the whole lift is withdrawn");
+			return false;
+		}
+		return true;
 	}
 
 	private void consumeConstructorPrefix(Set<ClangNode> dropped, List<String> initializers) {
@@ -1153,9 +1406,12 @@ final class Msvc6Patterns {
 		if (arguments == null) {
 			return null;
 		}
-		String name = isBaseField(component.getFieldName())
-				? TypeNames.map(target.getParentNamespace().getName())
+		boolean base = isBaseField(component.getFieldName());
+		String name = base ? TypeNames.map(target.getParentNamespace().getName())
 				: component.getFieldName();
+		trace("applied", base ? "lifecycle.base-initializer" : "lifecycle.member-initializer",
+			name + " @ this+0x" + Long.toHexString(offset.getAsLong()) + ", " +
+				statementAddress(statement));
 		if (arguments.isEmpty()) {
 			return "";
 		}
@@ -1510,14 +1766,21 @@ final class Msvc6Patterns {
 				!"(".equals(line.sig.get(close + 1).getText())) {
 				continue;
 			}
+			String site = "@ 0x" + (op.getSeqnum() == null ? "?"
+					: op.getSeqnum().getTarget().toString());
 			VirtualCall call = resolveVirtualCall(op);
 			if (call == null) {
+				trace("declined", currentPass, site +
+					": receiver class, vftable, or slot function unresolved");
 				continue;
 			}
 			FunctionKind slotKind = FunctionKind.classify(call.slot);
 			if (slotKind == FunctionKind.ORDINARY) {
 				String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
-				claimRange(line, start, close, prefix + call.slot.getName());
+				if (claimRange(line, start, close, prefix + call.slot.getName())) {
+					trace("applied", currentPass,
+						prefix + call.slot.getName() + " " + site);
+				}
 				continue;
 			}
 			if (slotKind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
@@ -1529,12 +1792,14 @@ final class Msvc6Patterns {
 				}
 				String flag = text(line.sig, close + 2);
 				String object = call.receiver.isEmpty() ? "this" : call.receiver;
-				if ("1".equals(flag)) {
-					claimRange(line, start, argsClose, "delete " + object);
+				String form = "1".equals(flag) ? "delete " : "3".equals(flag) ? "delete[] " : null;
+				if (form != null && claimRange(line, start, argsClose, form + object)) {
+					trace("applied", currentPass, form + object + " " + site);
 				}
-				else if ("3".equals(flag)) {
-					claimRange(line, start, argsClose, "delete[] " + object);
-				}
+			}
+			else {
+				trace("declined", currentPass, site + ": slot holds " +
+					call.slot.getName(true) + " (" + slotKind + "), not a callable rewrite");
 			}
 		}
 	}
@@ -2021,6 +2286,7 @@ final class Msvc6Patterns {
 	 */
 	private void rewriteStringLiterals() {
 		TokenLine line = bodyTokenLine();
+		int literals = 0;
 		for (ClangToken token : line.sig) {
 			if (!(token instanceof ClangVariableToken variable) || isClaimed(token)) {
 				continue;
@@ -2030,9 +2296,12 @@ final class Msvc6Patterns {
 				continue;
 			}
 			String value = stringDatumAt(address);
-			if (value != null) {
-				analysis.replaced.put(token, cStringLiteral(value));
+			if (value != null && claimReplace(token, cStringLiteral(value))) {
+				literals++;
 			}
+		}
+		if (literals > 0) {
+			trace("applied", currentPass, literals + " string literal(s) recovered");
 		}
 	}
 
@@ -2467,7 +2736,11 @@ final class Msvc6Patterns {
 			return false; // no deallocation: not a source-level delete
 		}
 		String form = (flags & 2) != 0 ? "delete[] " : "delete ";
-		analysis.replaced.put(statement, form + object);
+		if (!claimReplace(statement, form + object)) {
+			return false;
+		}
+		trace("applied", "allocation.scalar-delete",
+			form.trim() + " " + object + " @ " + statementAddress(statement));
 		return true;
 	}
 
@@ -2489,10 +2762,19 @@ final class Msvc6Patterns {
 		String object = singleVariableArgument(first, destructorOp, 1);
 		String deleted = singleVariableArgument(second, deleteOp, 1);
 		if (object == null || !object.equals(deleted)) {
+			if (object != null || deleted != null) {
+				trace("declined", "allocation.scalar-delete", "@ " +
+					statementAddress(first) +
+					": destructor receiver and deallocated pointer differ");
+			}
 			return false;
 		}
-		analysis.replaced.put(first, "delete " + object);
-		analysis.dropped.add(second);
+		if (!claimReplace(first, "delete " + object)) {
+			return false;
+		}
+		claimDrop(second);
+		trace("applied", "allocation.scalar-delete",
+			"delete " + object + " @ " + statementAddress(first));
 		return true;
 	}
 
@@ -2519,16 +2801,24 @@ final class Msvc6Patterns {
 		}
 		String receiver = singleVariableArgument(second, constructorOp, 1);
 		if (receiver == null || !receiver.equals(result)) {
+			trace("declined", "allocation.scalar-new", "@ " + statementAddress(first) +
+				": construction receiver is not the allocation result");
 			return false;
 		}
 		List<String> arguments = callArgumentsAfterReceiver(second, constructorOp);
 		if (arguments == null) {
+			trace("declined", "allocation.scalar-new", "@ " + statementAddress(first) +
+				": constructor argument tokens disagree with the p-code operands");
 			return false;
 		}
 		String type = TypeNames.map(constructor.getParentNamespace().getName(true));
-		analysis.replaced.put(first,
-			result + " = new " + type + "(" + String.join(", ", arguments) + ")");
-		analysis.dropped.add(second);
+		if (!claimReplace(first,
+			result + " = new " + type + "(" + String.join(", ", arguments) + ")")) {
+			return false;
+		}
+		claimDrop(second);
+		trace("applied", "allocation.scalar-new",
+			result + " = new " + type + "(...) @ " + statementAddress(first));
 		return true;
 	}
 

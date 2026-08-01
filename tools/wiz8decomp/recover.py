@@ -55,7 +55,14 @@ def split_export_blocks(text: str) -> dict[int, str]:
 
 def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
     """The (source_file, first_line, last_line) 1-based inclusive span the
-    exported block replaces: the marker line through the declaration's end."""
+    exported block replaces.
+
+    The source index records the declaration's own line span; the marker
+    policy (enforced by ``just check``) places ``// FUNCTION:`` on the line
+    immediately above the declaration, so the block's span is exactly
+    ``declaration line - 1`` through ``end_line``. ``verify_marker_adjacency``
+    proves that assumption against the file before any splice trusts it.
+    """
 
     declaration = marker.get("declaration") or {}
     end_line = declaration.get("end_line")
@@ -63,6 +70,15 @@ def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
     if not isinstance(line, int) or not isinstance(end_line, int) or end_line < line:
         return None
     return str(marker["source_file"]), line - 1, end_line
+
+
+def verify_marker_adjacency(original: str, first_line: int, address: int) -> bool:
+    """Whether the span's first line really is the address's marker line."""
+
+    lines = original.splitlines()
+    if not 1 <= first_line <= len(lines):
+        return False
+    return lines[first_line - 1].strip() == f"// FUNCTION: WIZ8 0x{address:08x}"
 
 
 def splice_lines(original: str, first_line: int, last_line: int, block: str) -> str:
@@ -411,6 +427,7 @@ def recover_function(
         candidates.append(("member-stores", alternative))
 
     rows: list[dict[str, Any]] = []
+    product_dirty = False
     try:
         candidate_index = 0
         while candidate_index < len(candidates):
@@ -419,6 +436,7 @@ def recover_function(
             row: dict[str, Any] = {"candidate": name}
             rows.append(row)
             path.write_text(insert_lines(original, after_line, candidate), encoding="utf-8")
+            product_dirty = True
             try:
                 build_target(settings, target)
             except RuntimeError as error:
@@ -466,15 +484,38 @@ def recover_function(
     elif apply:
         result["status"] = "previewed"
         result["note"] = "no candidate compiled; nothing applied"
+    # The last temporary build may reflect a candidate other than the final
+    # tree (restored or applied); rebuild so products match the sources.
+    result["product_restored"] = _restore_product(settings, target, product_dirty)
     return result
 
 
-def _candidate_rank(row: dict[str, Any]) -> tuple[int, float]:
+def _candidate_rank(row: dict[str, Any]) -> tuple[int, int, float]:
+    """Rank candidates: exact beats effective beats any mismatch; among real
+    mismatches a later structured first divergence wins, and raw similarity
+    is only the final diagnostic tie-breaker."""
+
     order = {"exact": 4, "effective": 3, "mismatch": 2, "not-compared": 1}
     return (
         order.get(str(row.get("status")), 0),
+        divergence_position(row.get("first_divergence")),
         float(row.get("raw_matching") or 0.0),
     )
+
+
+def divergence_position(finding: Any) -> int:
+    """The retail instruction index of a structured first divergence, or 0."""
+
+    if not isinstance(finding, dict):
+        return 0
+    difference = finding.get("difference")
+    if not isinstance(difference, dict):
+        return 0
+    orig = difference.get("orig")
+    if not isinstance(orig, dict):
+        return 0
+    index = orig.get("instruction_index")
+    return index if isinstance(index, int) and index >= 0 else 0
 
 
 def regress(
@@ -504,6 +545,8 @@ def regress(
     )
     blocks = split_export_blocks(exported["text"])
 
+    defects: list[str] = []
+    product_dirty = False
     rows: list[dict[str, Any]] = []
     for address in addresses:
         row: dict[str, Any] = {"address": f"0x{address:08x}"}
@@ -511,6 +554,15 @@ def regress(
         block = blocks.get(address)
         if block is None:
             row["status"] = "not-exported"
+            continue
+        block_defects = exporter_defects(block)
+        if block_defects:
+            # A defect is a bug in the exporter, not a property of the
+            # function; measuring its verbatim fallback as exporter output
+            # would silently launder the bug into a score.
+            row["status"] = "exporter-defect"
+            row["defects"] = block_defects
+            defects.extend(f"0x{address:08x}: {defect}" for defect in block_defects)
             continue
         marker = markers.get(address)
         span = marker_span(marker) if marker is not None else None
@@ -521,8 +573,13 @@ def regress(
         row["source_file"] = source_file
         path = settings.repo_dir / source_file
         original = path.read_text(encoding="utf-8")
+        if not verify_marker_adjacency(original, first_line, address):
+            row["status"] = "unplaced"
+            row["reason"] = "index span does not start at the address's marker line"
+            continue
         try:
             path.write_text(splice_lines(original, first_line, last_line, block), encoding="utf-8")
+            product_dirty = True
             try:
                 build_target(settings, target)
             except RuntimeError as error:
@@ -547,6 +604,337 @@ def regress(
         "effective": sum(row.get("status") == "effective" for row in rows),
         "compile_failed": sum(row.get("status") == "compile-failed" for row in rows),
         "functions": rows,
-        "note": "sources restored; build products still reflect the last splice",
+        "product_restored": _restore_product(settings, target, product_dirty),
     }
+    if defects:
+        raise RuntimeError(
+            "exporter defects detected (sources and build restored):\n  " + "\n  ".join(defects)
+        )
     return summary
+
+
+def exporter_defects(block: str) -> list[str]:
+    """The defect records the exporter flagged inside a block."""
+
+    return [
+        line.removeprefix("// exporter-defect: ").strip()
+        for line in block.splitlines()
+        if line.startswith("// exporter-defect:")
+    ]
+
+
+def _restore_product(settings: Settings, target: str, product_dirty: bool) -> bool:
+    """Rebuild the restored tree so build products match the sources again.
+
+    A temporary splice that reached the build leaves objects and the linked
+    image reflecting text that no longer exists; a later comparison against
+    them would be measuring a ghost. Returns True when products are known
+    to match the restored tree.
+    """
+
+    if not product_dirty:
+        return True
+    from .build import build_target
+
+    try:
+        build_target(settings, target)
+        return True
+    except RuntimeError:
+        return False
+
+
+# ----------------------------------------------------------------------
+# Sweep: repository-wide zero-edit regeneration measurement
+# ----------------------------------------------------------------------
+
+_DIAGNOSTIC_LINE = re.compile(r"([^\s(\\/]+\.cpp)\((\d+)\)\s*:")
+_IDENTITY_GAP = re.compile(r"'(?:FUN_|DAT_|LAB_|PTR_|s_|u_|switchD)[A-Za-z0-9_.:\\]*'")
+_INTRINSIC_GAP = re.compile(
+    r"'(?:SBORROW\d|CARRY\d|SUB\d\d?|CONCAT\d\d?|ZEXT\d\d?|SEXT\d\d?|POPCOUNT|"
+    r"ftol|NAN|ROUND|extraout_[A-Za-z0-9_]*|unaff_[A-Za-z0-9_]*|in_[A-Za-z0-9_]*|"
+    r"undefined\d?)'"
+)
+_DECLARATION_GAP = re.compile(r"error C(?:2511|2440|2660|2661|2653|2039|2065)")
+
+
+def categorize_failure(diagnostics: list[str]) -> str:
+    """One failure category for a compile-failed function's diagnostics.
+
+    Precedence is evidence strength: an unnamed Ghidra identity or an
+    unlowered decompiler intrinsic explains the failure completely, while a
+    declaration/type mismatch is the residual category for real ABI or
+    spelling gaps.
+    """
+
+    text = "\n".join(diagnostics)
+    if _INTRINSIC_GAP.search(text):
+        return "unsupported-intrinsic"
+    if _IDENTITY_GAP.search(text):
+        return "unresolved-identity"
+    if _DECLARATION_GAP.search(text):
+        return "declaration-or-type"
+    return "other-compile-failure"
+
+
+def splice_unit(
+    original: str, plan: list[tuple[int, int, int, str]]
+) -> tuple[str, dict[int, tuple[int, int]]]:
+    """Apply many block splices to one file in ascending line order.
+
+    ``plan`` rows are ``(first_line, last_line, address, block)`` with
+    non-overlapping 1-based inclusive spans. Returns the new text plus each
+    address's line range inside it, which is what maps a compiler
+    diagnostic back to the block that caused it.
+    """
+
+    lines = original.splitlines(keepends=True)
+    ordered = sorted(plan)
+    result: list[str] = []
+    ranges: dict[int, tuple[int, int]] = {}
+    cursor = 0  # 0-based index into lines, next unconsumed original line
+    emitted = 0
+    for first_line, last_line, address, block in ordered:
+        if first_line <= cursor or last_line > len(lines):
+            raise ValueError(f"overlapping or out-of-range span {first_line}..{last_line}")
+        result.extend(lines[cursor : first_line - 1])
+        emitted += first_line - 1 - cursor
+        if not block.endswith("\n"):
+            block += "\n"
+        block_lines = block.splitlines(keepends=True)
+        ranges[address] = (emitted + 1, emitted + len(block_lines))
+        result.extend(block_lines)
+        emitted += len(block_lines)
+        cursor = last_line
+    result.extend(lines[cursor:])
+    return "".join(result), ranges
+
+
+def attribute_diagnostics(
+    diagnostics: list[str], ranges_by_file: dict[str, dict[int, tuple[int, int]]]
+) -> tuple[dict[int, list[str]], list[str]]:
+    """Map compiler diagnostics onto the spliced blocks that own their lines.
+
+    Returns per-address diagnostics plus the diagnostics that hit no spliced
+    block (cascades into untouched code, or lines outside any splice).
+    """
+
+    per_address: dict[int, list[str]] = {}
+    unattributed: list[str] = []
+    for diagnostic in diagnostics:
+        match = _DIAGNOSTIC_LINE.search(diagnostic.replace("\\", "/"))
+        owner = None
+        if match is not None:
+            file_name = match.group(1)
+            line = int(match.group(2))
+            for source_file, ranges in ranges_by_file.items():
+                if not source_file.endswith(file_name):
+                    continue
+                for address, (first, last) in ranges.items():
+                    if first <= line <= last:
+                        owner = address
+                        break
+                break
+        if owner is None:
+            unattributed.append(diagnostic)
+        else:
+            per_address.setdefault(owner, []).append(diagnostic)
+    return per_address, unattributed
+
+
+def _sweep_selection(
+    settings: Settings, source_file: str | None, class_name: str | None
+) -> list[dict[str, Any]]:
+    from .source_model import load_source_index
+
+    markers = [
+        marker
+        for marker in load_source_index(settings.repo_dir)["markers"]
+        if marker["marker_kind"] == "FUNCTION"
+    ]
+    if source_file is not None:
+        markers = [marker for marker in markers if marker["source_file"] == source_file]
+    if class_name is not None:
+        import json
+
+        index_path = settings.repo_dir / "build" / "ghidra-index" / "functions.json"
+        if not index_path.is_file():
+            raise RuntimeError(
+                "class filtering needs build/ghidra-index/functions.json; "
+                "run `uv run wiz8 ghidra index` first"
+            )
+        functions = json.loads(index_path.read_text(encoding="utf-8"))["functions"]
+        wanted = {
+            int(record["entry"], 16)
+            for record in functions
+            if record["qualified_name"].startswith(class_name + "::")
+        }
+        markers = [marker for marker in markers if marker["address"] in wanted]
+    if not markers:
+        raise ValueError("no recovered FUNCTION markers match the selection")
+    return markers
+
+
+def sweep(
+    settings: Settings,
+    *,
+    source_file: str | None = None,
+    class_name: str | None = None,
+    target: str = "WIZ8",
+    program_selector: str = "wiz8",
+    rounds: int = 10,
+) -> dict[str, Any]:
+    """Classify zero-edit regeneration for every selected recovered function.
+
+    All selected blocks are spliced at once and built together; compile
+    diagnostics are attributed to the owning block, the failing blocks are
+    restored, and the build repeats until it is clean (bounded rounds).
+    The surviving splices are then compared in one batch. Sources are always
+    restored and the product is rebuilt from the restored tree.
+    """
+
+    from .build import build_target
+    from .ghidra.export_cpp import export_cpp
+    from .reccmp_workflows import compare_selected, triage_selected
+
+    markers = _sweep_selection(settings, source_file, class_name)
+    addresses = [marker["address"] for marker in markers]
+    exported = export_cpp(
+        settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
+    )
+    blocks = split_export_blocks(exported["text"])
+
+    outcomes: dict[int, dict[str, Any]] = {}
+    plan_by_file: dict[str, list[tuple[int, int, int, str]]] = {}
+    originals: dict[str, str] = {}
+    for marker in markers:
+        address = marker["address"]
+        outcome: dict[str, Any] = {
+            "address": f"0x{address:08x}",
+            "source_file": marker["source_file"],
+        }
+        outcomes[address] = outcome
+        block = blocks.get(address)
+        if block is None:
+            outcome["status"] = "not-exported"
+            continue
+        if "/* Unable to decompile" in block or "/* No instruction at" in block:
+            outcome["status"] = "decompiler-failure"
+            continue
+        defects = exporter_defects(block)
+        if defects:
+            outcome["status"] = "exporter-defect"
+            outcome["defects"] = defects
+            continue
+        span = marker_span(marker)
+        if span is None:
+            outcome["status"] = "unplaced"
+            continue
+        path = settings.repo_dir / marker["source_file"]
+        if marker["source_file"] not in originals:
+            originals[marker["source_file"]] = path.read_text(encoding="utf-8")
+        if not verify_marker_adjacency(originals[marker["source_file"]], span[1], address):
+            outcome["status"] = "unplaced"
+            outcome["reason"] = "index span does not start at the marker line"
+            continue
+        plan_by_file.setdefault(marker["source_file"], []).append(
+            (span[1], span[2], address, block)
+        )
+
+    product_dirty = False
+    try:
+        live: dict[str, dict[int, tuple[int, int]]] = {}
+        for source_file_name, plan in plan_by_file.items():
+            text, ranges = splice_unit(originals[source_file_name], plan)
+            (settings.repo_dir / source_file_name).write_text(text, encoding="utf-8")
+            live[source_file_name] = ranges
+            product_dirty = True
+
+        for _ in range(rounds):
+            if not any(live.values()):
+                break
+            try:
+                build_target(settings, target)
+                break
+            except RuntimeError as error:
+                diagnostics = compile_diagnostics(
+                    _failed_build_output(settings, str(error)), limit=400
+                )
+                per_address, _ = attribute_diagnostics(diagnostics, live)
+                if not per_address:
+                    # Nothing attributable: restore every remaining splice and
+                    # classify them as blocked rather than guessing.
+                    for source_file_name, ranges in live.items():
+                        for address in ranges:
+                            outcomes[address]["status"] = "unit-blocked"
+                        (settings.repo_dir / source_file_name).write_text(
+                            originals[source_file_name], encoding="utf-8"
+                        )
+                    live = {}
+                    break
+                for address, owned in per_address.items():
+                    outcome = outcomes[address]
+                    outcome["status"] = categorize_failure(owned)
+                    outcome["diagnostics"] = owned[:8]
+                for source_file_name, plan in plan_by_file.items():
+                    remaining = [row for row in plan if "status" not in outcomes[row[2]]]
+                    if len(remaining) == len(live.get(source_file_name, {})):
+                        continue
+                    text, ranges = splice_unit(originals[source_file_name], remaining)
+                    (settings.repo_dir / source_file_name).write_text(text, encoding="utf-8")
+                    live[source_file_name] = ranges
+        else:
+            # Rounds exhausted without a clean build: the survivors are
+            # unmeasurable this run.
+            for source_file_name, ranges in live.items():
+                for address in ranges:
+                    outcomes[address].setdefault("status", "unit-blocked")
+                (settings.repo_dir / source_file_name).write_text(
+                    originals[source_file_name], encoding="utf-8"
+                )
+            live = {}
+
+        survivors = [address for ranges in live.values() for address in ranges]
+        if survivors:
+            comparison = compare_selected(settings.repo_dir, target, sorted(survivors))
+            for entity in comparison.get("functions") or []:
+                address = (
+                    int(str(entity.get("address", "0x0")), 16) if "address" in entity else None
+                )
+                # reccmp reports entities in selection order; fall back to that
+                # pairing when the record carries no address field.
+                if address is None or address not in outcomes:
+                    continue
+                outcomes[address]["status"] = entity["status"]
+                outcomes[address]["raw_matching"] = entity.get("raw_matching")
+            paired = comparison.get("functions") or []
+            if paired and all("address" not in entity for entity in paired):
+                for address, entity in zip(sorted(survivors), paired):
+                    outcomes[address]["status"] = entity["status"]
+                    outcomes[address]["raw_matching"] = entity.get("raw_matching")
+            mismatched = sorted(
+                address for address in survivors if outcomes[address].get("status") == "mismatch"
+            )
+            if mismatched:
+                triage = triage_selected(settings.repo_dir, target, mismatched)
+                for finding in triage.get("functions") or []:
+                    address = finding.get("address")
+                    parsed = int(str(address), 16) if address else None
+                    if parsed in outcomes:
+                        outcomes[parsed]["first_divergence"] = finding
+        for address in survivors:
+            outcomes[address].setdefault("status", "not-compared")
+    finally:
+        for source_file_name, original in originals.items():
+            (settings.repo_dir / source_file_name).write_text(original, encoding="utf-8")
+
+    grouped: dict[str, int] = {}
+    for outcome in outcomes.values():
+        grouped[outcome.get("status", "unknown")] = (
+            grouped.get(outcome.get("status", "unknown"), 0) + 1
+        )
+    return {
+        "selected": len(outcomes),
+        "summary": dict(sorted(grouped.items(), key=lambda kv: -kv[1])),
+        "functions": [outcomes[address] for address in addresses],
+        "product_restored": _restore_product(settings, target, product_dirty),
+    }

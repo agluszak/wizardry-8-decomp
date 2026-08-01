@@ -63,10 +63,15 @@ public final class Wiz8CxxPrinter {
 	 * adjacency — so any leading decompiler comments print above the marker.
 	 */
 	public String print(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
-		String rendered = render(markup, analysis);
-		if (!structurallySound(rendered)) {
-			rendered = "/* Recovery transform declined: structural validation failed. */\n" +
-				renderVerbatim(markup);
+		Set<Integer> touched = new HashSet<>();
+		String rendered = render(markup, analysis, touched);
+		if (!structurallySound(rendered, touched)) {
+			// Every pass validated its own claims, so reaching this final
+			// check means the renderer or validator itself is wrong; that is
+			// a defect to surface, not a decline.
+			analysis.defects.add(
+				"print: final structural validation failed after per-pass checks");
+			rendered = renderVerbatim(markup);
 		}
 		return insertMarker(rendered);
 	}
@@ -115,12 +120,13 @@ public final class Wiz8CxxPrinter {
 	}
 
 	/**
-	 * Cheap syntax invariants for transformed output. This is intentionally
-	 * conservative: a failed check discards every claim and prints Ghidra's
-	 * verbatim token stream instead of allowing a partial rewrite to corrupt a
-	 * function. It is not a C++ parser.
+	 * Cheap syntax invariants for transformed output; not a C++ parser.
+	 * Balance checks cover the whole text, while the dangling-artifact
+	 * heuristics apply only to lines the analysis touched: Ghidra's own
+	 * wrapped rendering legitimately splits an assignment after a cast, and
+	 * a line no claim altered cannot carry a claim-induced defect.
 	 */
-	static boolean structurallySound(String rendered) {
+	static boolean structurallySound(String rendered, Set<Integer> touchedLines) {
 		int parens = 0;
 		int braces = 0;
 		int brackets = 0;
@@ -129,10 +135,12 @@ public final class Wiz8CxxPrinter {
 		for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 			String line = lines[lineIndex];
 			String trimmed = line.trim();
-			if (trimmed.matches("[-+]?(?:0x[0-9a-fA-F]+|[0-9]+(?:\\.[0-9]*)?[fFlL]?)")) {
+			boolean touched = touchedLines == null || touchedLines.contains(lineIndex + 1);
+			if (touched &&
+				trimmed.matches("[-+]?(?:0x[0-9a-fA-F]+|[0-9]+(?:\\.[0-9]*)?[fFlL]?)")) {
 				return false;
 			}
-			if (trimmed.contains("=") && trimmed.endsWith(")") &&
+			if (touched && trimmed.contains("=") && trimmed.endsWith(")") &&
 				!nextLineContinuesExpression(lines, lineIndex + 1)) {
 				return false;
 			}
@@ -210,6 +218,17 @@ public final class Wiz8CxxPrinter {
 	}
 
 	static String render(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
+		return render(markup, analysis, null);
+	}
+
+	/**
+	 * Render the markup with the analysis applied. When {@code touchedLines}
+	 * is given, it receives the 1-based numbers of every emitted line whose
+	 * content a claim altered — the only lines the dangling-artifact
+	 * heuristics may judge.
+	 */
+	static String render(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis,
+			Set<Integer> touchedLines) {
 		List<ClangNode> nodes = new ArrayList<>();
 		markup.flatten(nodes);
 		Set<ClangNode> emittedReplacements = new HashSet<>();
@@ -217,6 +236,7 @@ public final class Wiz8CxxPrinter {
 		StringBuilder text = new StringBuilder();
 		StringBuilder line = new StringBuilder();
 		boolean lineTouched = false;
+		int[] emittedCount = {0};
 		int start = 0;
 		if (!nodes.isEmpty() && nodes.get(0) instanceof ClangBreak brk) {
 			appendIndent(line, brk.getIndent());
@@ -233,13 +253,11 @@ public final class Wiz8CxxPrinter {
 				if (replacement != null && emittedReplacements.add(recognized)) {
 					line.append(replacement);
 				}
-				else {
-					lineTouched = true;
-				}
+				lineTouched = true;
 				continue;
 			}
 			if (node instanceof ClangBreak brk) {
-				flushLine(text, line, lineTouched);
+				flushLine(text, line, lineTouched, emittedCount, touchedLines);
 				lineTouched = false;
 				appendIndent(line, brk.getIndent());
 				continue;
@@ -260,7 +278,7 @@ public final class Wiz8CxxPrinter {
 				}
 			}
 		}
-		flushLine(text, line, lineTouched);
+		flushLine(text, line, lineTouched, emittedCount, touchedLines);
 		if (text.length() == 0 || text.charAt(text.length() - 1) != '\n') {
 			text.append('\n');
 		}
@@ -288,12 +306,16 @@ public final class Wiz8CxxPrinter {
 	 * nothing but whitespace or a stray semicolon disappear entirely.
 	 */
 	private static void flushLine(StringBuilder text, StringBuilder line,
-			boolean lineTouched) {
+			boolean lineTouched, int[] emittedCount, Set<Integer> touchedLines) {
 		String rendered = line.toString();
 		line.setLength(0);
 		String trimmed = rendered.trim();
 		if (lineTouched && (trimmed.isEmpty() || trimmed.equals(";"))) {
 			return;
+		}
+		emittedCount[0]++;
+		if (lineTouched && touchedLines != null) {
+			touchedLines.add(emittedCount[0]);
 		}
 		text.append(rendered).append('\n');
 	}

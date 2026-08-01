@@ -25,6 +25,31 @@ from ..paths import atomic_json, atomic_write
 _EXPORTER_CLASS = "wiz8.exporter.Wiz8RecoveryExporter"
 _MINIMUM_JDK_MAJOR = 21
 
+# GhidraClassLoader.addPath cannot replace classes the long-lived JVM already
+# loaded: rebuilding the jar and adding it again would silently keep running
+# the old code. The digest of the jar this process attached is therefore
+# remembered, and a rebuild inside one process is a hard error demanding a
+# fresh process instead of a wrong measurement.
+_loaded_jar_digest: str | None = None
+
+
+def _attach_jar(jar_path: Path) -> None:
+    global _loaded_jar_digest
+
+    digest = hashlib.sha256(jar_path.read_bytes()).hexdigest()
+    if _loaded_jar_digest == digest:
+        return
+    if _loaded_jar_digest is not None:
+        raise RuntimeError(
+            "the exporter jar changed after this process already loaded an "
+            "earlier build; the JVM cannot reload classes in place. Rerun the "
+            "command in a fresh process."
+        )
+    from java.lang import ClassLoader
+
+    ClassLoader.getSystemClassLoader().addPath(str(jar_path))
+    _loaded_jar_digest = digest
+
 
 def parse_selection(text: str) -> tuple[int, int | None]:
     """Parse ``0xADDR`` or an inclusive ``0xSTART:0xEND`` entry range."""
@@ -69,9 +94,10 @@ def _sources_digest(settings: Settings, sources: list[Path]) -> str:
 def _find_javac() -> Path:
     java_home = os.environ.get("JAVA_HOME")
     if java_home:
-        candidate = Path(java_home) / "bin" / "javac"
-        if candidate.is_file():
-            return candidate
+        for name in ("javac", "javac.exe"):
+            candidate = Path(java_home) / "bin" / name
+            if candidate.is_file():
+                return candidate
     found = shutil.which("javac")
     if found:
         return Path(found)
@@ -247,10 +273,7 @@ def export_cpp(
 
     program_name = ensure_seed(settings, program_selector)
     start_pyghidra(settings)
-
-    from java.lang import ClassLoader
-
-    ClassLoader.getSystemClassLoader().addPath(str(jar_path))
+    _attach_jar(jar_path)
 
     import jpype
     import pyghidra
@@ -324,6 +347,42 @@ def export_cpp(
         atomic_write(output, text)
         result["outputs"] = [str(output)]
     return result
+
+
+def explain_function(
+    settings: Settings,
+    selection: str,
+    *,
+    program_selector: str = "wiz8",
+) -> dict[str, Any]:
+    """The per-pass transformation trace for one function."""
+
+    jar_path = ensure_exporter_jar(settings)
+
+    from .environment import start_pyghidra
+    from .workspace import ensure_seed
+
+    program_name = ensure_seed(settings, program_selector)
+    start_pyghidra(settings)
+    _attach_jar(jar_path)
+
+    import jpype
+    import pyghidra
+
+    start, end = parse_selection(selection)
+    if end is not None:
+        raise ValueError("explain takes one plain address")
+
+    project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
+    try:
+        with pyghidra.program_context(project, "/" + program_name) as program:
+            exporter = jpype.JClass(_EXPORTER_CLASS)
+            from ghidra.util.task import TaskMonitor
+
+            text = str(exporter.explain(program, start, TaskMonitor.DUMMY))
+    finally:
+        project.close()
+    return {"program": program_name, "address": f"0x{start:08x}", "text": text}
 
 
 def _kind_name(program: Any, entry: int) -> str:
