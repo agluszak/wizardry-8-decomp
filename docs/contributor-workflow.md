@@ -72,6 +72,23 @@ jj describe -m "<next coherent change>"
 jj bookmark set agent/<bead>-<topic> -r @
 ```
 
+## Exporting recovered-style C++ from the reviewed project
+
+`uv run wiz8 ghidra export-cpp 0x<address>` prints recovered-style C++ with reccmp markers for
+selected functions; `--class NAME` exports a generated class declaration plus the class's ABI
+family (marker-only blocks for template classes). `uv run wiz8 recover regress 0x<address>...`
+measures how much of an already-recovered body the exporter regenerates with zero manual edits.
+`just recover 0x<address>` drafts a new function into its owning translation unit: source-owner
+lookup and address-order insertion from the source index, duplicate refusal, a focused build with
+`compare`/`triage`, a bounded candidate set with the best non-regressing kept, and diagnostics
+with include suggestions on failure. Constructor placement alternatives use the source index's
+actual field inventory (case is never used to guess base-vs-member ownership), and a structured
+`return_value` divergence can add at most two compiler-falsified return-width candidates. Other
+structured differences decline until reccmp identifies the affected source declaration or region.
+The default previews and restores the tree; `--apply` writes
+it. All of these need the live Ghidra project; the recover/regress loops also need the pinned VC6
+toolchain.
+
 ## Work and checkpoint publication
 
 Use the narrow change-specific gates while iterating. Inspect every meaningful source change and

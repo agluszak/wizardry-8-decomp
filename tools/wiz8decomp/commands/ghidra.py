@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -46,6 +47,65 @@ def index_command(program: str = "wiz8") -> None:
     from ..ghidra.index import export_index
 
     cli.run_action(lambda: export_index(cli.settings(), program))
+
+
+@app.command("export-cpp")
+def export_cpp_command(
+    selections: Annotated[
+        list[str] | None,
+        typer.Argument(help="Function addresses or inclusive 0xSTART:0xEND entry ranges."),
+    ] = None,
+    program: str = typer.Option("wiz8", "--program"),
+    class_name: Annotated[
+        str | None,
+        typer.Option(
+            "--class",
+            help="Export one class: its generated declaration plus its ABI family "
+            "in address order (marker-only blocks for template classes).",
+        ),
+    ] = None,
+    unit: Annotated[
+        str | None,
+        typer.Option(
+            "--unit",
+            help="Export every marker a translation unit owns, in file order "
+            "(LIBRARY markers stay address-only and are skipped).",
+        ),
+    ] = None,
+    data: bool = typer.Option(
+        False,
+        "--data",
+        help="Treat the selections as global data addresses and export typed "
+        "definitions with GLOBAL markers.",
+    ),
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", help="Write the C++ to this file instead of stdout."),
+    ] = None,
+) -> None:
+    """Export recovered-style C++ for the selected definitions."""
+    import sys
+
+    from .. import command_support as cli
+    from ..ghidra.export_cpp import export_cpp
+
+    def action() -> dict | None:
+        result = export_cpp(
+            cli.settings(),
+            list(selections or []),
+            program_selector=program,
+            class_name=class_name,
+            unit=unit,
+            data=data,
+            output=output,
+        )
+        if output is None:
+            sys.stdout.write(result["text"])
+            sys.stdout.flush()
+            return None
+        return {key: value for key, value in result.items() if key != "text"}
+
+    cli.run_action(action)
 
 
 @app.command("import-source")
