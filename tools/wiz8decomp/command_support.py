@@ -45,7 +45,9 @@ def emit(value: Any, *, force_json: bool = False) -> None:
 
 def run_action(action: Any, *, force_json: bool = False) -> None:
     try:
-        emit(action(), force_json=force_json)
+        value = action()
+        if value is not None:
+            emit(value, force_json=force_json)
     except Exception as error:
         if logger.isEnabledFor(logging.DEBUG):
             logger.exception("command failed")

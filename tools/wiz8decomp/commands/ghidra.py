@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -46,6 +47,37 @@ def index_command(program: str = "wiz8") -> None:
     from ..ghidra.index import export_index
 
     cli.run_action(lambda: export_index(cli.settings(), program))
+
+
+@app.command("export-cpp")
+def export_cpp_command(
+    selections: Annotated[
+        list[str],
+        typer.Argument(help="Function addresses or inclusive 0xSTART:0xEND entry ranges."),
+    ],
+    program: str = typer.Option("wiz8", "--program"),
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", help="Write the C++ to this file instead of stdout."),
+    ] = None,
+) -> None:
+    """Export recovered-style C++ for the selected definitions."""
+    import sys
+
+    from .. import command_support as cli
+    from ..ghidra.export_cpp import export_cpp
+
+    def action() -> dict | None:
+        result = export_cpp(
+            cli.settings(), list(selections), program_selector=program, output=output
+        )
+        if output is None:
+            sys.stdout.write(result["text"])
+            sys.stdout.flush()
+            return None
+        return {key: value for key, value in result.items() if key != "text"}
+
+    cli.run_action(action)
 
 
 @app.command("import-source")
