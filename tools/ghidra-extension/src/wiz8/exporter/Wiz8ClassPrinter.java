@@ -3,12 +3,9 @@ package wiz8.exporter;
 import java.util.ArrayList;
 import java.util.List;
 
-import ghidra.program.model.address.Address;
-import ghidra.program.model.data.Array;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
 import ghidra.program.model.data.Structure;
-import ghidra.program.model.data.TypeDef;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Program;
@@ -16,9 +13,10 @@ import ghidra.program.model.symbol.Symbol;
 
 /**
  * Prints one class declaration from live Ghidra state: base classes from the
- * repository's {@code base}/{@code base_*} field convention, virtual methods
- * in vtable order read from the primary vftable in program memory, and data
- * fields at their exact offsets with explicit gap padding.
+ * shared {@link VtableResolver} discovery (the {@code base}/{@code base_*}
+ * convention plus for-clause vftable evidence), virtual methods in vtable
+ * order read from the primary vftable in program memory, and data fields at
+ * their exact offsets with explicit gap padding.
  *
  * The output is a generated projection for review and porting; it never
  * becomes evidence on its own. Anything the project state cannot prove is
@@ -32,11 +30,13 @@ final class Wiz8ClassPrinter {
 	private final Program program;
 	private final GhidraClass ghidraClass;
 	private final Structure structure;
+	private final VtableResolver vtables;
 
 	Wiz8ClassPrinter(Program program, GhidraClass ghidraClass) {
 		this.program = program;
 		this.ghidraClass = ghidraClass;
 		this.structure = findStructure();
+		this.vtables = new VtableResolver(program);
 	}
 
 	String print() {
@@ -77,20 +77,10 @@ final class Wiz8ClassPrinter {
 	}
 
 	private List<DataTypeComponent> baseComponents() {
-		List<DataTypeComponent> bases = new ArrayList<>();
 		if (structure == null) {
-			return bases;
+			return new ArrayList<>();
 		}
-		for (DataTypeComponent component : structure.getDefinedComponents()) {
-			String field = component.getFieldName();
-			if (field != null && (field.equals("base") || field.startsWith("base_"))) {
-				bases.add(component);
-			}
-			else {
-				break; // bases are the leading components only
-			}
-		}
-		return bases;
+		return vtables.baseComponents(structure);
 	}
 
 	// ------------------------------------------------------------------
@@ -98,30 +88,14 @@ final class Wiz8ClassPrinter {
 	// ------------------------------------------------------------------
 
 	private void appendVirtuals(StringBuilder out, String className) {
-		Symbol table = primaryVftable();
+		Symbol table = vtables.primaryVftable(ghidraClass);
 		if (table == null) {
 			return;
 		}
 		out.append(String.format("    // vftable 0x%08x\n", table.getAddress().getOffset()));
-		Address bound = nextSymbolAfter(table.getAddress());
-		for (long slot = 0;; slot += 4) {
-			Address slotAddress = table.getAddress().add(slot);
-			if (bound != null && slotAddress.compareTo(bound) >= 0) {
-				break;
-			}
-			Function target;
-			try {
-				long stored = Integer.toUnsignedLong(program.getMemory().getInt(slotAddress));
-				target = program.getFunctionManager().getFunctionAt(
-					program.getAddressFactory().getDefaultAddressSpace().getAddress(stored));
-			}
-			catch (Exception e) {
-				break;
-			}
-			if (target == null) {
-				break;
-			}
-			appendSlot(out, className, slot, target);
+		List<Function> targets = vtables.slots(table);
+		for (int i = 0; i < targets.size(); i++) {
+			appendSlot(out, className, i * 4L, targets.get(i));
 		}
 		out.append('\n');
 	}
@@ -160,48 +134,21 @@ final class Wiz8ClassPrinter {
 				.append(comment).append('\n');
 	}
 
-	/** The primary (for-clause-free) vftable symbol of the class, else null. */
-	private Symbol primaryVftable() {
-		Symbol primary = null;
-		for (Symbol symbol : program.getSymbolTable().getSymbols(ghidraClass)) {
-			if (FunctionKind.normalizeSpecialName(symbol.getName()).equals("vftable")) {
-				if (primary != null) {
-					return null;
-				}
-				primary = symbol;
-			}
-		}
-		return primary;
-	}
-
-	private Address nextSymbolAfter(Address start) {
-		for (Symbol symbol : (Iterable<Symbol>) () -> program.getSymbolTable()
-				.getSymbolIterator(start.add(1), true)) {
-			return symbol.getAddress();
-		}
-		return null;
-	}
-
 	private String methodSignature(Function target) {
 		StringBuilder signature = new StringBuilder();
-		signature.append(fieldTypeName(target.getReturnType())).append(' ')
+		signature.append(fieldTypeName(target.getReturn().getFormalDataType())).append(' ')
 				.append(target.getName()).append('(');
 		boolean first = true;
 		for (int i = 0; i < target.getParameterCount(); i++) {
 			var parameter = target.getParameter(i);
-			if (i == 0 && ("this".equals(parameter.getName()) ||
-				"__thiscall".equals(target.getCallingConventionName()))) {
-				continue;
+			if (parameter.isAutoParameter()) {
+				continue; // hidden this / return storage: ABI, not source
 			}
 			if (!first) {
 				signature.append(", ");
 			}
 			first = false;
-			signature.append(fieldTypeName(parameter.getDataType()));
-			String parameterName = parameter.getName();
-			if (parameterName != null && !parameterName.isEmpty()) {
-				signature.append(' ').append(parameterName);
-			}
+			signature.append(CxxTypePrinter.printParameter(parameter));
 		}
 		return signature.append(')').toString();
 	}
@@ -248,28 +195,12 @@ final class Wiz8ClassPrinter {
 			offset, length, offset));
 	}
 
-	/** A component's C declarator, unwrapping array types onto the name. */
+	/** A component's C declarator, through the shared declarator printer. */
 	private String fieldDeclaration(DataType type, String name) {
-		StringBuilder suffix = new StringBuilder();
-		DataType current = type;
-		while (current instanceof Array array) {
-			suffix.append('[').append(array.getNumElements()).append(']');
-			current = array.getDataType();
-		}
-		return fieldTypeName(current) + " " + name + suffix;
+		return CxxTypePrinter.printDeclaration(type, name);
 	}
 
 	private String fieldTypeName(DataType type) {
-		DataType current = type;
-		while (current instanceof TypeDef typedef) {
-			current = typedef.getBaseDataType();
-		}
-		String display = current.getDisplayName().trim();
-		StringBuilder stars = new StringBuilder();
-		while (display.endsWith("*")) {
-			stars.append('*');
-			display = display.substring(0, display.length() - 1).trim();
-		}
-		return TypeNames.map(display) + stars;
+		return CxxTypePrinter.printType(type);
 	}
 }

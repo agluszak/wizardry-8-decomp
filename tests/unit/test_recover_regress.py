@@ -13,11 +13,9 @@ from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     compile_diagnostics,
-    constructor_member_names,
-    constructor_store_alternative,
+    graft_source_signature,
     insert_lines,
     marker_span,
-    mismatch_alternatives,
     place_address,
     splice_lines,
     split_export_blocks,
@@ -153,63 +151,59 @@ def test_insert_lines_adds_a_separating_blank_line() -> None:
         insert_lines(original, 99, "X\n")
 
 
-def test_constructor_store_alternative_moves_member_initializers() -> None:
-    block = (
-        "// FUNCTION: WIZ8 0x004aded0\n"
-        "W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset)\n"
-        "    : W8Base(other), flags_00(0),\n"
-        "      timer_18(duration, 0), value_48(0)\n"
-        "\n"
+def test_graft_keeps_the_source_declaration_and_takes_the_exported_body() -> None:
+    source = (
+        "// FUNCTION: WIZ8 0x004a6e20\n"
+        "/* prose the source owns */\n"
+        "void W8GrCycle::TickAnimation(const W8Timer& timer)\n"
         "{\n"
-        "  cycle_3c = 0;\n"
+        "    old_body();\n"
         "}\n"
     )
-    alternative = constructor_store_alternative(
-        block, member_names={"flags_00", "timer_18", "value_48"}
+    exported = (
+        "// FUNCTION: WIZ8 0x004a6e20\n"
+        "void __thiscall W8GrCycle::TickAnimation(W8GrCycle *this, W8Timer *param_1)\n"
+        "{\n"
+        "  new_body();\n"
+        "}\n"
     )
-    assert alternative is not None
-    assert "    : W8Base(other), timer_18(duration, 0)" in alternative
-    assert "  flags_00 = 0;\n  value_48 = 0;\n  cycle_3c = 0;" in alternative
+    grafted = graft_source_signature(source, exported)
+    assert "const W8Timer& timer" in grafted
+    assert "__thiscall" not in grafted
+    assert "new_body();" in grafted
+    assert "old_body();" not in grafted
 
 
-def test_constructor_store_alternative_declines_without_movable_members() -> None:
-    assert (
-        constructor_store_alternative(
-            "// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n", member_names={"value"}
-        )
-        is None
+def test_graft_takes_the_exported_initializer_list() -> None:
+    source = (
+        "// FUNCTION: WIZ8 0x004ae000\n"
+        "W8Effect::W8Effect(const W8Effect& other)\n"
+        "    : old_init(other.a),\n"
+        "      old_more(other.b)\n"
+        "{\n"
+        "    old_body();\n"
+        "}\n"
     )
-    base_only = "X::X()\n    : W8Base(other)\n\n{\n}\n"
-    assert constructor_store_alternative(base_only, member_names={"value"}) is None
+    exported = (
+        "// FUNCTION: WIZ8 0x004ae000\n"
+        "W8Effect::W8Effect(W8Effect *param_1)\n"
+        "    : new_init(param_1->a)\n"
+        "{\n"
+        "  new_body();\n"
+        "}\n"
+    )
+    grafted = graft_source_signature(source, exported)
+    assert "const W8Effect& other" in grafted
+    assert "new_init(param_1->a)" in grafted
+    assert "old_init" not in grafted
+    assert "old_more" not in grafted
 
 
-def test_constructor_store_alternative_never_guesses_lowercase_bases() -> None:
-    block = "X::X()\n    : srNode(0), value(1)\n\n{\n}\n"
-    alternative = constructor_store_alternative(block, member_names={"value"})
-    assert alternative is not None
-    assert "    : srNode(0)" in alternative
-    assert "  value = 1;" in alternative
-    assert "srNode =" not in alternative
-
-
-def test_constructor_member_names_uses_the_source_class_inventory() -> None:
-    classes = [
-        {
-            "qualified_name": "stSurface2D",
-            "fields": [{"name": "state"}, {"name": "source_surface"}],
-        }
-    ]
-    block = "stSurface2D::stSurface2D()\n    : srNode(0), state(1)\n\n{\n}\n"
-    assert constructor_member_names(block, classes) == {"state", "source_surface"}
-
-
-def test_return_width_candidates_are_bounded_and_structurally_driven() -> None:
-    block = "// FUNCTION: WIZ8 0x00000001\nint f(int value)\n{\n  return value;\n}\n"
-    finding = {"difference": {"kind": "return_value"}}
-    alternatives = mismatch_alternatives(block, finding)
-    assert [name for name, _ in alternatives] == ["return-unsigned-char", "return-unsigned-int"]
-    assert alternatives[0][1].startswith("// FUNCTION: WIZ8 0x00000001\nunsigned char f(int value)")
-    assert mismatch_alternatives(block, {"difference": {"kind": "branch_condition"}}) == []
+def test_graft_falls_back_when_a_block_lacks_the_body_brace() -> None:
+    exported = "// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n"
+    assert graft_source_signature("// FUNCTION: WIZ8 0x1\nno brace here\n", exported) == exported
+    one_line = "// FUNCTION: WIZ8 0x1\nvoid f() { body(); }\n"
+    assert graft_source_signature("// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n", one_line) == one_line
 
 
 def test_suggest_includes_names_declaring_headers(tmp_path) -> None:
@@ -251,3 +245,95 @@ def test_regress_command_reports_the_summary(monkeypatch: pytest.MonkeyPatch) ->
     result = CliRunner().invoke(app, ["recover", "regress", "0x004a5e50"])
     assert result.exit_code == 0
     assert "exact" in result.stdout
+
+
+def test_verify_marker_adjacency_proves_the_span_start() -> None:
+    from wiz8decomp.recover import verify_marker_adjacency
+
+    original = "prose\n// FUNCTION: WIZ8 0x004a5e50\nvoid f()\n{\n}\n"
+    assert verify_marker_adjacency(original, 2, 0x4A5E50)
+    assert not verify_marker_adjacency(original, 1, 0x4A5E50)
+    assert not verify_marker_adjacency(original, 99, 0x4A5E50)
+
+
+def test_exporter_defects_extracts_flagged_lines() -> None:
+    from wiz8decomp.recover import exporter_defects
+
+    block = (
+        "// exporter-defect: call.virtual: java.lang.NullPointerException\n"
+        "// FUNCTION: WIZ8 0x00000010\nvoid f()\n{\n}\n"
+    )
+    assert exporter_defects(block) == ["call.virtual: java.lang.NullPointerException"]
+    assert exporter_defects("// FUNCTION: WIZ8 0x00000010\nvoid f()\n{\n}\n") == []
+
+
+def test_candidate_rank_prefers_status_then_divergence_position() -> None:
+    from wiz8decomp.recover import _candidate_rank
+
+    exact = {"status": "exact", "raw_matching": 0.5}
+    late = {
+        "status": "mismatch",
+        "raw_matching": 0.7,
+        "first_divergence": {"difference": {"orig": {"instruction_index": 40}}},
+    }
+    early_high_raw = {
+        "status": "mismatch",
+        "raw_matching": 0.99,
+        "first_divergence": {"difference": {"orig": {"instruction_index": 3}}},
+    }
+    ranked = sorted([early_high_raw, late, exact], key=_candidate_rank, reverse=True)
+    assert ranked[0] is exact
+    assert ranked[1] is late  # later first divergence beats higher raw score
+
+
+def test_splice_unit_applies_many_spans_and_reports_ranges() -> None:
+    from wiz8decomp.recover import splice_unit
+
+    original = "l1\nl2\nl3\nl4\nl5\nl6\n"
+    text, ranges = splice_unit(
+        original,
+        [(2, 3, 0x10, "A1\nA2\nA3\n"), (5, 5, 0x20, "B1\n")],
+    )
+    assert text == "l1\nA1\nA2\nA3\nl4\nB1\nl6\n"
+    assert ranges == {0x10: (2, 4), 0x20: (6, 6)}
+    import pytest as _pytest
+
+    with _pytest.raises(ValueError):
+        splice_unit(original, [(2, 4, 0x10, "X\n"), (3, 5, 0x20, "Y\n")])
+
+
+def test_attribute_diagnostics_maps_lines_to_blocks() -> None:
+    from wiz8decomp.recover import attribute_diagnostics
+
+    ranges = {"src/wiz8/engine_code/GrCycle.cpp": {0x10: (100, 120), 0x20: (200, 210)}}
+    per_address, unattributed = attribute_diagnostics(
+        [
+            "Z:\\repo\\src\\wiz8\\engine_code\\GrCycle.cpp(105) : error C2065: 'x'",
+            "Z:\\repo\\src\\wiz8\\engine_code\\GrCycle.cpp(300) : error C2065: 'y'",
+            "no location at all",
+        ],
+        ranges,
+    )
+    assert set(per_address) == {0x10}
+    assert len(per_address[0x10]) == 1
+    assert len(unattributed) == 2
+
+
+def test_categorize_failure_orders_by_evidence_strength() -> None:
+    from wiz8decomp.recover import categorize_failure
+
+    assert (
+        categorize_failure(["a.cpp(1) : error C2065: 'SBORROW4' : undeclared identifier"])
+        == "unsupported-intrinsic"
+    )
+    assert (
+        categorize_failure(["a.cpp(1) : error C2065: 'DAT_0065be2c' : undeclared identifier"])
+        == "unresolved-identity"
+    )
+    assert (
+        categorize_failure(["a.cpp(1) : error C2511: 'W8GrCycle::W8GrCycle' : overloaded member"])
+        == "declaration-or-type"
+    )
+    assert categorize_failure(["a.cpp(1) : fatal error C1004: unexpected"]) == (
+        "other-compile-failure"
+    )

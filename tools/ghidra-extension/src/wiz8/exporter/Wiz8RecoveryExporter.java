@@ -35,6 +35,7 @@ import ghidra.program.model.listing.FunctionManager;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Instruction;
 import ghidra.program.model.listing.Program;
+import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 
 /**
@@ -55,7 +56,8 @@ public final class Wiz8RecoveryExporter {
 	 * Export the functions whose entry points are given, in the given order,
 	 * separated by blank lines.
 	 */
-	public static String export(Program program, long[] entryPoints, TaskMonitor monitor) {
+	public static String export(Program program, long[] entryPoints, TaskMonitor monitor)
+			throws CancelledException {
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = openDecompiler(program, options);
 		try {
@@ -63,6 +65,7 @@ public final class Wiz8RecoveryExporter {
 			AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
 			FunctionManager functionManager = program.getFunctionManager();
 			for (long entryPoint : entryPoints) {
+				monitor.checkCancelled();
 				if (output.length() > 0) {
 					output.append('\n');
 				}
@@ -89,13 +92,15 @@ public final class Wiz8RecoveryExporter {
 	 * body under a TEMPLATE marker would mistake an emission for authored
 	 * code.
 	 */
-	public static String exportClass(Program program, String className, TaskMonitor monitor) {
+	public static String exportClass(Program program, String className, TaskMonitor monitor)
+			throws CancelledException {
 		GhidraClass ghidraClass = findClass(program, className);
 		if (ghidraClass == null) {
 			return String.format("// error: no class named %s%n", className);
 		}
 		List<Function> family = new ArrayList<>();
 		for (Function function : program.getFunctionManager().getFunctions(true)) {
+			monitor.checkCancelled();
 			if (ghidraClass.equals(function.getParentNamespace())) {
 				family.add(function);
 			}
@@ -109,6 +114,7 @@ public final class Wiz8RecoveryExporter {
 		DecompInterface decompiler = template ? null : openDecompiler(program, options);
 		try {
 			for (Function function : family) {
+				monitor.checkCancelled();
 				output.append('\n');
 				if (template) {
 					output.append(templateEmissionBlock(function));
@@ -154,6 +160,10 @@ public final class Wiz8RecoveryExporter {
 	}
 
 	private static DecompInterface openDecompiler(Program program, DecompileOptions options) {
+		// Take the program's saved decompiler options rather than compiled-in
+		// defaults, exactly as Ghidra's own CppExporter does, so rendering is
+		// deterministic and matches what a reviewer sees in the CodeBrowser.
+		options.grabFromProgram(program);
 		options.setCommentStyle(DecompileOptions.CommentStyleEnum.CPPStyle);
 		DecompInterface decompiler = new DecompInterface();
 		decompiler.setOptions(options);
@@ -166,11 +176,13 @@ public final class Wiz8RecoveryExporter {
 	 * Export the data at the given addresses as recovered-style global
 	 * definitions with {@code // GLOBAL:} markers, in the given order.
 	 */
-	public static String exportData(Program program, long[] addresses, TaskMonitor monitor) {
+	public static String exportData(Program program, long[] addresses, TaskMonitor monitor)
+			throws CancelledException {
 		Wiz8DataPrinter printer = new Wiz8DataPrinter(program);
 		StringBuilder output = new StringBuilder();
 		AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
 		for (long address : addresses) {
+			monitor.checkCancelled();
 			if (output.length() > 0) {
 				output.append('\n');
 			}
@@ -214,13 +226,79 @@ public final class Wiz8RecoveryExporter {
 
 		try {
 			Msvc6Patterns.Analysis analysis = Msvc6Patterns.analyze(function, kind, results);
-			return printer.print(markup, analysis);
+			String text = printer.print(markup, analysis);
+			if (!analysis.defects.isEmpty()) {
+				// A defect in one pass is contained (only that pass's claims
+				// were rolled back), but it must never disappear: the block
+				// names it so measurement tooling can distinguish a bug from
+				// a decline and fail loudly. The lines sit at the end of the
+				// block so per-block splitters attribute them to this
+				// function, never to its predecessor.
+				StringBuilder flagged = new StringBuilder(text);
+				if (!text.endsWith("\n")) {
+					flagged.append('\n');
+				}
+				for (String defect : analysis.defects) {
+					flagged.append("// exporter-defect: ").append(defect).append('\n');
+				}
+				text = flagged.toString();
+			}
+			return text;
 		}
 		catch (Exception e) {
 			// A printer defect must never block the batch; fall back to the
-			// decompiler's own flat rendering.
-			return printer.marker() + "\n/* printer error: " + e + " */\n" +
-				results.getDecompiledFunction().getC();
+			// decompiler's own flat rendering, flagged as the defect it is.
+			return printer.marker() + "\n" + results.getDecompiledFunction().getC() +
+				"// exporter-defect: print: " + e + "\n";
+		}
+	}
+
+	/**
+	 * The per-pass transformation trace for one function: what each
+	 * recognizer applied, declined (and why), rolled back, or failed on.
+	 * Ephemeral diagnostic text; never part of exported source.
+	 */
+	public static String explain(Program program, long entryPoint, TaskMonitor monitor) {
+		Address entry = program.getAddressFactory().getDefaultAddressSpace()
+				.getAddress(entryPoint);
+		Function function = program.getFunctionManager().getFunctionAt(entry);
+		if (function == null) {
+			return String.format("error: no function at 0x%08x%n", entryPoint);
+		}
+		FunctionKind kind = FunctionKind.classify(function);
+		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+			return "synthetic deleting destructor: marker-only block, no analysis\n";
+		}
+		DecompileOptions options = new DecompileOptions();
+		DecompInterface decompiler = openDecompiler(program, options);
+		try {
+			DecompileResults results =
+				decompiler.decompileFunction(function, options.getDefaultTimeout(), monitor);
+			if (!results.decompileCompleted() || results.getCCodeMarkup() == null) {
+				String error = results.getErrorMessage();
+				return "decompiler failure: " +
+					(error == null ? "no result" : error.trim()) + "\n";
+			}
+			Msvc6Patterns.Analysis analysis =
+				Msvc6Patterns.analyze(function, kind, results);
+			StringBuilder out = new StringBuilder();
+			out.append(String.format("%s %s (%s)%n", function.getName(true),
+				"0x" + entry, kind.name().toLowerCase()));
+			for (Msvc6Patterns.TraceEvent event : analysis.trace) {
+				out.append(event).append('\n');
+			}
+			if (analysis.trace.isEmpty()) {
+				out.append("no recognizer applied or declined; verbatim rendering\n");
+			}
+			for (String defect : analysis.defects) {
+				out.append("defect      ").append(defect).append('\n');
+			}
+			out.append(String.format("claims: %d dropped node(s), %d replacement(s)%n",
+				analysis.dropped.size(), analysis.replaced.size()));
+			return out.toString();
+		}
+		finally {
+			decompiler.dispose();
 		}
 	}
 }

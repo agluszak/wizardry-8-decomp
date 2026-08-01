@@ -48,8 +48,14 @@ uv run wiz8 ghidra export-cpp 0x004a5e50:0x004a6610 --output build/export-cpp/gr
 ```
 
 With `--output` the command prints the usual summary record instead of the
-text. Note the default `DecompileOptions()` are used, so rendering can differ
-slightly from a CodeBrowser window whose tool options were customized.
+text. Decompiler options are taken from the program's saved options
+(`DecompileOptions.grabFromProgram`, as Ghidra's own CppExporter does), so
+rendering matches what a reviewer sees in the CodeBrowser.
+
+The jar attaches to the long-lived JVM once per process; the loaded digest
+is remembered, and a jar rebuilt after that is a hard error demanding a
+fresh process — `addPath` cannot replace classes the JVM already loaded,
+and silently running stale code would corrupt measurements.
 
 ## Manual corpus check
 
@@ -90,13 +96,40 @@ C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
 
 Every rule declines on ambiguity: a constructor or destructor whose
 subobject lifecycle calls cannot all be proven prints fully verbatim, and a
-recognizer failure never blocks the batch. The transformed token stream is
-also checked for balanced syntax, dangling literal statements, and lost
-statement terminators; a failed structural check discards all transformations
-for that function and prints Ghidra's identity-token rendering with an
-explicit decline comment. Guarded allocation forms and
+recognizer failure never blocks the batch. Guarded allocation forms and
 member-store initializer placement are later-milestone work; expect them
 verbatim.
+
+## Passes, containment, and the transformation trace
+
+The recognizers run as named passes (`call.virtual`,
+`expression.array-index`, `expression.member-access`,
+`expression.null-cast`, `call.direct-member`, `literal.narrow-string`,
+`eh.registration-frame`, `eh.stack-local`, `lifecycle.constructor` /
+`lifecycle.destructor`, `allocation.pairs`, `signature.thiscall`). Each pass
+is contained three ways:
+
+- **Defects are never swallowed.** An exception inside one pass rolls back
+  only that pass's claims and is recorded; the exported block ends with
+  `// exporter-defect: <pass>: <exception>` lines, `wiz8 recover regress`
+  fails when it sees one, and `wiz8 recover sweep` counts them as their own
+  category. A named decline (ambiguity, missing evidence) is a trace
+  record, not a defect.
+- **Per-pass structural validation.** After every pass that changed claims,
+  the whole body is re-rendered and checked (balanced brackets/quotes,
+  dangling artifacts on claim-touched lines only — Ghidra's own wrapped
+  rendering is never judged); a failed check rolls back just that pass with
+  a `rolled-back` trace record instead of discarding the whole function.
+- **Owned claims.** Every dropped or replaced node records its owning pass.
+  Statement-scope passes (lifecycle, EH, allocation) may supersede
+  token-scope rewrites on the same nodes — that priority is declared in
+  `passPriority` — while equal-priority cross-pass claims are rejected with
+  a trace record, and range claims are all-or-nothing.
+
+`uv run wiz8 recover explain 0x<address>` prints the per-function trace:
+every `applied` rewrite with its site, every `declined` recognizer with its
+reason, plus rollbacks and defects. The trace is ephemeral diagnostic
+output, never part of exported source.
 
 ## Typed member access, dispatch, and type spellings (M3)
 
@@ -126,23 +159,74 @@ text:
   syntax — bare `Method(args)` on `this` or a base subobject,
   `field.Method(args)` on a member, `v->Method(args)` /
   `x->f.Method(args)` / `((T *)expr)->Method(args)` on external receivers.
-  Callees with a `__return_storage_ptr__` parameter decline (struct-return
-  lowering is later work).
+  Callees with a hidden return-storage parameter
+  (`AutoParameterType.RETURN_STORAGE_PTR`) decline here; the
+  `call.struct-return` pass owns them.
 - **Virtual dispatch**: `(**(code **)((int)recv.vftable + 0xNN))(args)`
   resolves the receiver's static class, picks its vftable symbol (the
-  complete-object table only for offset 0; a `{for_'Base'}` table only via
-  the matching base subobject), reads the slot from program memory, and
-  prints the named call. Slot reads are bounded by the next vftable symbol
-  so an off-table slot never borrows a neighbour's entry. A slot that holds
-  a purecall, an unnamed function, or anything outside a class namespace
-  declines. A slot holding a scalar deleting destructor with flag `1`/`3`
-  prints the source-level `delete`/`delete[] receiver`.
+  complete-object table only for offset 0; a `{for_'Base'}` table via the
+  subobject whose component *type* the for-clause names — the type is the
+  evidence, so the field name does not gate the match), reads the slot from
+  program memory, and prints the named call. A table is bounded by the next
+  curated (user-defined or imported) symbol or the next vftable symbol;
+  dynamic analysis labels inside a table do not end it, and an off-table
+  slot never borrows a neighbour's entry. A slot that holds a purecall, an
+  unnamed function, or anything outside a class namespace declines. A slot
+  holding a scalar deleting destructor with flag `1`/`3` prints the
+  source-level `delete`/`delete[] receiver`.
+
+## Shared vtable resolution and base discovery (Phase 2)
+
+`VtableResolver.java` is the one owner of vftable symbol recognition,
+per-class table enumeration, subobject table selection, table bounds, and
+slot reads — shared by the class printer's virtual section and the
+recognizers' virtual-call, base-initializer, and receiver-folding logic,
+which previously carried two divergent walks. Base-subobject discovery is
+also single-owner and evidence-based: a leading structure component is a
+base either by the repository's `base`/`base_*` naming convention or by the
+positive evidence of a `vftable{for_'Type'}` symbol naming the component's
+type. Composition at offset 0 with neither ground stays a member; absence
+of evidence never promotes it.
 - **Ordinary method signatures**: `void __thiscall Class::M(Class *this, …)`
   loses the convention and the `this` parameter.
 
 Naming comes from the live project only. A pure-virtual slot cannot be named
 from the vtable (it stores `purecall`), and unnamed slot functions
 (`FUN_…`) decline until the project names them.
+
+## Declarators and structure returns (Phase 1)
+
+`CxxTypePrinter.java` is the one recursive declarator printer every type
+spelling goes through (class fields, virtual signatures, data definitions):
+it honors the declarator grammar — array bounds bind tighter than pointers
+(`int (*name)[4]`), function pointers print their parameter lists and
+calling conventions — instead of string-editing trailing stars. A named
+typedef is preserved as the base spelling rather than unwrapped: the alias
+may be the original source spelling, and the underlying type stays
+recoverable while a discarded alias is not. Parameters print their formal
+type (`Parameter.getFormalDataType()`), and hidden ABI parameters are
+skipped by identity (`Parameter.isAutoParameter()`), never by their
+rendered names or positions. Ghidra's type system carries no
+const/volatile or reference types, so those spellings can only come from
+source-owned declarations.
+
+Token-tree navigation follows the same rule — Ghidra objects decide
+meaning, tokens only locate where that meaning was printed:
+`SyntaxPairs.java` matches parentheses through the decompiler's own
+`ClangSyntaxToken` pair ids instead of counting `(` strings, and the call
+argument splitter accepts a rendered argument list only when its
+function-name token carries the analyzed p-code call and its slice count
+agrees with the operation's operand count.
+
+The `call.struct-return` pass lifts MSVC structure-return lowering: a call
+whose callee carries the hidden storage parameter — identified by
+`Parameter.isAutoParameter()` and `AutoParameterType.RETURN_STORAGE_PTR`,
+not by its rendered name — and whose storage argument renders as `&local`
+becomes `local = Method(args)` in member syntax. Ghidra usually keeps the returned storage pointer as an
+alias for later reads; every alias use is by construction a use of the
+storage, so `alias->f` rewrites to `local.f` and a bare alias to `&local`.
+An alias with any unclaimable use declines, because dropping it would lose
+real dataflow.
 
 ## Exception-handling lifetimes (M4)
 
