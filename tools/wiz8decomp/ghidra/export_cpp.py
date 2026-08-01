@@ -185,9 +185,12 @@ def export_cpp(
     selections: list[str],
     *,
     program_selector: str = "wiz8",
+    class_name: str | None = None,
     output: Path | None = None,
 ) -> dict[str, Any]:
-    if not selections:
+    if class_name is not None and selections:
+        raise ValueError("pass either address selections or --class, not both")
+    if class_name is None and not selections:
         raise ValueError("at least one address or range selection is required")
     jar_path = ensure_exporter_jar(settings)
 
@@ -207,24 +210,28 @@ def export_cpp(
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     try:
         with pyghidra.program_context(project, "/" + program_name) as program:
-            entries = _resolve_entries(program, selections)
             exporter = jpype.JClass(_EXPORTER_CLASS)
             from ghidra.util.task import TaskMonitor
 
-            text = str(
-                exporter.export(
-                    program,
-                    jpype.JArray(jpype.JLong)(entries),
-                    TaskMonitor.DUMMY,
+            if class_name is not None:
+                text = str(exporter.exportClass(program, class_name, TaskMonitor.DUMMY))
+                functions = []
+            else:
+                entries = _resolve_entries(program, selections)
+                text = str(
+                    exporter.export(
+                        program,
+                        jpype.JArray(jpype.JLong)(entries),
+                        TaskMonitor.DUMMY,
+                    )
                 )
-            )
-            functions = [
-                {
-                    "entry": f"0x{entry:08x}",
-                    "kind": _kind_name(program, entry),
-                }
-                for entry in entries
-            ]
+                functions = [
+                    {
+                        "entry": f"0x{entry:08x}",
+                        "kind": _kind_name(program, entry),
+                    }
+                    for entry in entries
+                ]
     finally:
         project.close()
 
@@ -233,6 +240,8 @@ def export_cpp(
         "functions": functions,
         "text": text,
     }
+    if class_name is not None:
+        result["class"] = class_name
     if output is not None:
         atomic_write(output, text)
         result["outputs"] = [str(output)]

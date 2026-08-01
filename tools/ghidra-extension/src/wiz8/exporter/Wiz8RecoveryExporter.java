@@ -20,6 +20,9 @@
  */
 package wiz8.exporter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileOptions;
@@ -29,6 +32,7 @@ import ghidra.program.model.address.AddressSpace;
 import ghidra.program.model.listing.CodeUnit;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionManager;
+import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Instruction;
 import ghidra.program.model.listing.Program;
 import ghidra.util.task.TaskMonitor;
@@ -53,11 +57,7 @@ public final class Wiz8RecoveryExporter {
 	 */
 	public static String export(Program program, long[] entryPoints, TaskMonitor monitor) {
 		DecompileOptions options = new DecompileOptions();
-		options.setCommentStyle(DecompileOptions.CommentStyleEnum.CPPStyle);
-		DecompInterface decompiler = new DecompInterface();
-		decompiler.setOptions(options);
-		decompiler.openProgram(program);
-		decompiler.toggleSyntaxTree(true);
+		DecompInterface decompiler = openDecompiler(program, options);
 		try {
 			StringBuilder output = new StringBuilder();
 			AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
@@ -80,6 +80,86 @@ public final class Wiz8RecoveryExporter {
 		finally {
 			decompiler.dispose();
 		}
+	}
+
+	/**
+	 * Export one class: its generated declaration, then its ABI family in
+	 * address order. A bracket-encoded template class emits emission markers
+	 * only — the generic definition lives once in its owning header, so a
+	 * body under a TEMPLATE marker would mistake an emission for authored
+	 * code.
+	 */
+	public static String exportClass(Program program, String className, TaskMonitor monitor) {
+		GhidraClass ghidraClass = findClass(program, className);
+		if (ghidraClass == null) {
+			return String.format("// error: no class named %s%n", className);
+		}
+		List<Function> family = new ArrayList<>();
+		for (Function function : program.getFunctionManager().getFunctions(true)) {
+			if (ghidraClass.equals(function.getParentNamespace())) {
+				family.add(function);
+			}
+		}
+		family.sort((a, b) -> a.getEntryPoint().compareTo(b.getEntryPoint()));
+
+		StringBuilder output = new StringBuilder();
+		output.append(new Wiz8ClassPrinter(program, ghidraClass).print());
+		boolean template = className.indexOf('[') >= 0;
+		DecompileOptions options = new DecompileOptions();
+		DecompInterface decompiler = template ? null : openDecompiler(program, options);
+		try {
+			for (Function function : family) {
+				output.append('\n');
+				if (template) {
+					output.append(templateEmissionBlock(function));
+				}
+				else {
+					output.append(exportFunction(function, decompiler, options, monitor));
+				}
+			}
+			return output.toString();
+		}
+		finally {
+			if (decompiler != null) {
+				decompiler.dispose();
+			}
+		}
+	}
+
+	/**
+	 * The marker-only block recording that a template member was emitted at
+	 * this address: SYNTHETIC for the compiler-generated deleting destructor,
+	 * TEMPLATE for every other member, each followed by the specialization
+	 * symbol it records.
+	 */
+	private static String templateEmissionBlock(Function function) {
+		FunctionKind kind = FunctionKind.classify(function);
+		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+			return new Wiz8CxxPrinter(function, kind).printSynthetic();
+		}
+		String owner = TypeNames.map(function.getParentNamespace().getName(true));
+		String name = TypeNames.map(function.getName());
+		return String.format("// TEMPLATE: WIZ8 0x%08x%n// %s::%s%n",
+			function.getEntryPoint().getOffset(), owner, name);
+	}
+
+	private static GhidraClass findClass(Program program, String className) {
+		for (ghidra.program.model.symbol.Symbol symbol : program.getSymbolTable()
+				.getSymbols(className)) {
+			if (symbol.getObject() instanceof GhidraClass ghidraClass) {
+				return ghidraClass;
+			}
+		}
+		return null;
+	}
+
+	private static DecompInterface openDecompiler(Program program, DecompileOptions options) {
+		options.setCommentStyle(DecompileOptions.CommentStyleEnum.CPPStyle);
+		DecompInterface decompiler = new DecompInterface();
+		decompiler.setOptions(options);
+		decompiler.openProgram(program);
+		decompiler.toggleSyntaxTree(true);
+		return decompiler;
 	}
 
 	private static String exportFunction(Function function, DecompInterface decompiler,

@@ -104,9 +104,10 @@ def test_missing_javac_names_the_jdk_requirement(
 def test_export_cpp_command_streams_raw_text_to_stdout(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(command_support, "settings", lambda: object())
 
-    def fake_export(settings, selections, *, program_selector, output):
+    def fake_export(settings, selections, *, program_selector, class_name, output):
         assert selections == ["0x004a5e50"]
         assert program_selector == "wiz8"
+        assert class_name is None
         assert output is None
         return {"program": "wiz8", "functions": [], "text": "// FUNCTION: WIZ8 0x004a5e50\n"}
 
@@ -125,7 +126,7 @@ def test_export_cpp_command_reports_a_summary_for_file_output(
     monkeypatch.setattr(command_support, "settings", lambda: object())
     target = tmp_path / "out.cpp"
 
-    def fake_export(settings, selections, *, program_selector, output):
+    def fake_export(settings, selections, *, program_selector, class_name, output):
         assert output == target
         return {
             "program": "wiz8",
@@ -143,3 +144,28 @@ def test_export_cpp_command_reports_a_summary_for_file_output(
     summary = json.loads(result.stdout)
     assert summary["outputs"] == [str(target)]
     assert "text" not in summary
+
+
+def test_export_cpp_command_passes_the_class_selector(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(command_support, "settings", lambda: object())
+
+    def fake_export(settings, selections, *, program_selector, class_name, output):
+        assert selections == []
+        assert class_name == "W8GrCycle"
+        return {"program": "wiz8", "functions": [], "text": "class W8GrCycle {\n};\n"}
+
+    monkeypatch.setattr("wiz8decomp.ghidra.export_cpp.export_cpp", fake_export)
+    result = CliRunner().invoke(app, ["ghidra", "export-cpp", "--class", "W8GrCycle"])
+    assert result.exit_code == 0
+    assert result.stdout == "class W8GrCycle {\n};\n"
+
+
+def test_export_cpp_rejects_mixed_class_and_address_selection() -> None:
+    from wiz8decomp.ghidra.export_cpp import export_cpp
+
+    with pytest.raises(ValueError, match="not both"):
+        export_cpp(object(), ["0x004a5e50"], class_name="W8GrCycle")
+    with pytest.raises(ValueError, match="at least one"):
+        export_cpp(object(), [])

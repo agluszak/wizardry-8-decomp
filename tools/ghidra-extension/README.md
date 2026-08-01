@@ -184,6 +184,29 @@ transactional Ghidra write-back is the plan's optional M5 slice and stays
 future work; the recovered literals already carry the expression, file, and
 line into the exported source.
 
+## Class and family export (M6)
+
+`uv run wiz8 ghidra export-cpp --class W8GrCycle` prints a generated class
+declaration followed by the class's ABI family in address order.
+
+The declaration (`Wiz8ClassPrinter.java`) is a projection for review and
+porting, never evidence: bases come from the repository's `base`/`base_*`
+leading-field convention, virtual methods print in vtable order read from
+the primary (for-clause-free) vftable in program memory, and data fields
+print at their exact offsets with explicit `unknown_XX[N]` gap padding. What
+the project cannot prove stays a comment instead of an invention: a purecall
+slot keeps its offset but no name, a slot pointing outside the class names
+the inherited method or the unnamed `FUN_…`, and a missing structure or
+vftable simply omits its section.
+
+A bracket-encoded template class (`srClassSupport[stParticle,srNode,0,65545]`)
+emits marker-only emission blocks — `// TEMPLATE:` plus the specialization
+symbol, `// SYNTHETIC:` for the deleting destructor — matching the
+repository's marker policy: the generic definition lives once in its owning
+header, and a body under a `TEMPLATE` marker would mistake an emission for
+authored code. Multi-argument specializations spell without a space after
+the comma, byte-identical to the recovered markers.
+
 ## Regression harness
 
 `uv run wiz8 recover regress 0x004a5e50 …` measures zero-edit

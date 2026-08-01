@@ -49,7 +49,7 @@ public final class Wiz8CxxPrinter {
 	 * The deleting destructor is compiler output; only its address is recorded.
 	 */
 	public String printSynthetic() {
-		String owner = function.getParentNamespace().getName(true);
+		String owner = TypeNames.map(function.getParentNamespace().getName(true));
 		return marker() + "\n// " + owner + "::" +
 			FunctionKind.decorateSpecialName(function.getName()) + "\n";
 	}

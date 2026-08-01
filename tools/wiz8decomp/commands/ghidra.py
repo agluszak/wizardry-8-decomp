@@ -52,10 +52,18 @@ def index_command(program: str = "wiz8") -> None:
 @app.command("export-cpp")
 def export_cpp_command(
     selections: Annotated[
-        list[str],
+        list[str] | None,
         typer.Argument(help="Function addresses or inclusive 0xSTART:0xEND entry ranges."),
-    ],
+    ] = None,
     program: str = typer.Option("wiz8", "--program"),
+    class_name: Annotated[
+        str | None,
+        typer.Option(
+            "--class",
+            help="Export one class: its generated declaration plus its ABI family "
+            "in address order (marker-only blocks for template classes).",
+        ),
+    ] = None,
     output: Annotated[
         Path | None,
         typer.Option("--output", help="Write the C++ to this file instead of stdout."),
@@ -69,7 +77,11 @@ def export_cpp_command(
 
     def action() -> dict | None:
         result = export_cpp(
-            cli.settings(), list(selections), program_selector=program, output=output
+            cli.settings(),
+            list(selections or []),
+            program_selector=program,
+            class_name=class_name,
+            output=output,
         )
         if output is None:
             sys.stdout.write(result["text"])

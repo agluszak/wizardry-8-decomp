@@ -87,10 +87,12 @@ final class TypeNames {
 		if (open > 0 && text.endsWith("]")) {
 			String name = text.substring(0, open);
 			List<String> arguments = splitTopLevel(text.substring(open + 1, text.length() - 1));
+			// The repository spells multi-argument specializations without a
+			// space after the comma: srClassSupport<srMeshModel,srModel,0,8208>.
 			StringBuilder mapped = new StringBuilder(mapName(name)).append('<');
 			for (int i = 0; i < arguments.size(); i++) {
 				if (i > 0) {
-					mapped.append(", ");
+					mapped.append(',');
 				}
 				mapped.append(mapType(arguments.get(i).trim()));
 			}
