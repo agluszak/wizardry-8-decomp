@@ -13,9 +13,13 @@ from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     compile_diagnostics,
+    constructor_store_alternative,
+    insert_lines,
     marker_span,
+    place_address,
     splice_lines,
     split_export_blocks,
+    suggest_includes,
 )
 
 EXPORT_TEXT = """\
@@ -87,6 +91,113 @@ def test_compile_diagnostics_extracts_compiler_errors() -> None:
         "GrCycle.cpp(363) : error C2065: 'code' : undeclared identifier"
     ]
     assert compile_diagnostics("no compiler lines at all") == ["no compiler lines at all"]
+
+
+_MARKERS = [
+    {
+        "address": 0x100,
+        "marker_kind": "FUNCTION",
+        "source_file": "src/a.cpp",
+        "line": 10,
+        "declaration": {"end_line": 20},
+    },
+    {
+        "address": 0x200,
+        "marker_kind": "SYNTHETIC",
+        "source_file": "src/a.cpp",
+        "line": 30,
+        "declaration": None,
+    },
+    {
+        "address": 0x300,
+        "marker_kind": "FUNCTION",
+        "source_file": "src/b.cpp",
+        "line": 5,
+        "declaration": {"end_line": 9},
+    },
+]
+
+
+def test_place_address_chooses_the_shared_file_after_the_earlier_block() -> None:
+    placement = place_address(_MARKERS, 0x180)
+    assert placement == {
+        "status": "placed",
+        "source_file": "src/a.cpp",
+        "after_line": 20,
+    }
+
+
+def test_place_address_refuses_between_translation_units_and_outside_ranges() -> None:
+    between = place_address(_MARKERS, 0x280)
+    assert between["status"] == "unplaced"
+    assert "src/a.cpp" in between["reason"] and "src/b.cpp" in between["reason"]
+    assert place_address(_MARKERS, 0x50)["status"] == "unplaced"
+    assert place_address(_MARKERS, 0x400)["status"] == "unplaced"
+
+
+def test_place_address_counts_the_synthetic_symbol_comment_line() -> None:
+    placement = place_address(_MARKERS, 0x250)
+    assert placement["status"] == "unplaced"  # between units
+    inside = place_address(
+        [_MARKERS[0], _MARKERS[1], {**_MARKERS[2], "source_file": "src/a.cpp"}], 0x250
+    )
+    assert inside == {"status": "placed", "source_file": "src/a.cpp", "after_line": 31}
+
+
+def test_insert_lines_adds_a_separating_blank_line() -> None:
+    original = "a\nb\nc\n"
+    assert insert_lines(original, 2, "X\n") == "a\nb\n\nX\nc\n"
+    with pytest.raises(ValueError):
+        insert_lines(original, 99, "X\n")
+
+
+def test_constructor_store_alternative_moves_member_initializers() -> None:
+    block = (
+        "// FUNCTION: WIZ8 0x004aded0\n"
+        "W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset)\n"
+        "    : W8Base(other), flags_00(0),\n"
+        "      timer_18(duration, 0), value_48(0)\n"
+        "\n"
+        "{\n"
+        "  cycle_3c = 0;\n"
+        "}\n"
+    )
+    alternative = constructor_store_alternative(block)
+    assert alternative is not None
+    assert "    : W8Base(other), timer_18(duration, 0)" in alternative
+    assert "  flags_00 = 0;\n  value_48 = 0;\n  cycle_3c = 0;" in alternative
+
+
+def test_constructor_store_alternative_declines_without_movable_members() -> None:
+    assert constructor_store_alternative("// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n") is None
+    base_only = "X::X()\n    : W8Base(other)\n\n{\n}\n"
+    assert constructor_store_alternative(base_only) is None
+
+
+def test_suggest_includes_names_declaring_headers(tmp_path) -> None:
+    header = tmp_path / "include" / "wiz8" / "chunk.h"
+    header.parent.mkdir(parents=True)
+    header.write_text("#pragma once\nclass W8Chunk {\n};\n", encoding="utf-8")
+    diagnostics = [
+        "GrCycle.cpp(10) : error C2065: 'W8Chunk' : undeclared identifier",
+        "GrCycle.cpp(11) : error C2065: 'SBORROW4' : undeclared identifier",
+    ]
+    suggestions = suggest_includes(tmp_path, diagnostics)
+    assert suggestions == {"W8Chunk": ["include/wiz8/chunk.h"]}
+
+
+def test_recover_function_command_previews(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(command_support, "settings", lambda: object())
+
+    def fake_recover(settings, address, *, apply, target, program_selector):
+        assert address == "0x004a6970"
+        assert apply is False
+        return {"address": "0x004a6970", "status": "previewed", "chosen": "as-exported"}
+
+    monkeypatch.setattr("wiz8decomp.recover.recover_function", fake_recover)
+    result = CliRunner().invoke(app, ["recover", "function", "0x004a6970"])
+    assert result.exit_code == 0
+    assert "previewed" in result.stdout
 
 
 def test_regress_command_reports_the_summary(monkeypatch: pytest.MonkeyPatch) -> None:

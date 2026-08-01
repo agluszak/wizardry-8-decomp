@@ -51,6 +51,10 @@ speculative experiment, clone or version the project, use undo, or use a tempora
 `ghidra sync-source` applies source-owned names and resolvable prototypes transactionally;
 unresolved source types are reported explicitly rather than replaced with guessed Ghidra types.
 There is no generic `just ghidra query` command.
+`just recover 0x<address>` drafts a first-pass port from the reviewed project state: it exports
+the function, inserts it in address order in its owning translation unit, builds, compares, and
+reports per-candidate results with diagnostics and include suggestions; the default previews and
+restores, and `--apply` keeps the best non-regressing candidate for the normal recovery workflow.
 
 Recover the immediate call graph needed for the next visible product transition. Tooling is retained
 only when it repeatedly saves recovery work, proves emitted code or runtime behavior, or preserves
