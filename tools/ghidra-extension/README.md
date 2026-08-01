@@ -166,6 +166,24 @@ direct object shape (`lea ecx, [ebp+disp]` + `jmp`/`call` destructor).
   expressions), vector `__ehvec` helpers, and receivers that do not render
   as `&local` all stay verbatim.
 
+## Assertion strings (M5)
+
+A reference to a defined narrow-string datum prints as the quoted literal
+the source contained — `srAssertFail("pInfo",
+"C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1ba, 0)` — instead
+of Ghidra's synthetic `s_…_00607cf0` identifier, whose embedded path
+characters cannot even lex. The bytes come from program memory, so the full
+text survives Ghidra's symbol-name truncation. Only the canonical
+address-of reference shape (`PTRSUB(0, address)` with no varnode) is
+claimed; assignment targets and loaded values never match. Wide strings
+decline. Escaping is VC6-exact, including splitting the literal when a hex
+escape would swallow a following hex digit.
+
+Deterministic renaming from assertion/alloc-failure strings with
+transactional Ghidra write-back is the plan's optional M5 slice and stays
+future work; the recovered literals already carry the expression, file, and
+line into the exported source.
+
 ## Regression harness
 
 `uv run wiz8 recover regress 0x004a5e50 …` measures zero-edit

@@ -122,6 +122,7 @@ final class Msvc6Patterns {
 		normalizeMemberAccess();
 		rewriteNullPointerCasts();
 		rewriteMethodCalls();
+		rewriteStringLiterals();
 
 		analyzeExceptionHandling();
 
@@ -1906,6 +1907,120 @@ final class Msvc6Patterns {
 	private static boolean nextFieldIsVftable(List<ClangToken> sig, int index) {
 		return index < sig.size() &&
 			FunctionKind.normalizeSpecialName(text(sig, index)).startsWith("vftable");
+	}
+
+	// ------------------------------------------------------------------
+	// String literals
+	// ------------------------------------------------------------------
+
+	/**
+	 * A reference to a defined string datum prints as the quoted literal the
+	 * source contained, not as Ghidra's synthetic identifier (whose embedded
+	 * path characters cannot even lex). The bytes come from program memory,
+	 * so the full text survives Ghidra's name truncation.
+	 */
+	private void rewriteStringLiterals() {
+		TokenLine line = bodyTokenLine();
+		for (ClangToken token : line.sig) {
+			if (!(token instanceof ClangVariableToken variable) || isClaimed(token)) {
+				continue;
+			}
+			Address address = referencedDataAddress(variable);
+			if (address == null) {
+				continue;
+			}
+			String value = stringDatumAt(address);
+			if (value != null) {
+				analysis.replaced.put(token, cStringLiteral(value));
+			}
+		}
+	}
+
+	/** The ram address a global-reference token resolves to, else null. */
+	private Address referencedDataAddress(ClangVariableToken variable) {
+		Varnode varnode = variable.getVarnode();
+		if (varnode != null && varnode.getAddress() != null &&
+			varnode.getAddress().isMemoryAddress() &&
+			!varnode.getAddress().isStackAddress()) {
+			return varnode.getAddress();
+		}
+		// A global datum's reference renders with no varnode; the token's own
+		// op is the canonical address-of, PTRSUB(0, address). Anything else
+		// (an assignment target, a loaded value) must not be treated as one.
+		if (varnode != null) {
+			return null;
+		}
+		PcodeOp op = variable.getPcodeOp();
+		if (op == null || op.getOpcode() != PcodeOp.PTRSUB ||
+			!op.getInput(0).isConstant() || op.getInput(0).getOffset() != 0 ||
+			!op.getInput(1).isConstant()) {
+			return null;
+		}
+		long folded = op.getInput(1).getOffset();
+		if (folded <= 0) {
+			return null;
+		}
+		Address address = function.getProgram().getAddressFactory()
+				.getDefaultAddressSpace().getAddress(folded);
+		return function.getProgram().getMemory().contains(address) ? address : null;
+	}
+
+	/** The narrow string defined at the address, else null. */
+	private String stringDatumAt(Address address) {
+		var data = function.getProgram().getListing().getDataAt(address);
+		if (data == null) {
+			return null;
+		}
+		Object value = data.getValue();
+		if (!(value instanceof String text)) {
+			return null;
+		}
+		// A wide string would need the L prefix and byte-order care; only
+		// plain char data is claimed.
+		DataType type = data.getBaseDataType();
+		String typeName = type == null ? "" : type.getName().toLowerCase();
+		if (typeName.contains("unicode") || typeName.contains("wchar")) {
+			return null;
+		}
+		return text;
+	}
+
+	/**
+	 * The C source spelling of a narrow string. A hex escape eats every
+	 * following hex digit, so a literal is split after one whenever the next
+	 * character would extend it.
+	 */
+	static String cStringLiteral(String value) {
+		StringBuilder text = new StringBuilder("\"");
+		boolean pendingHexEscape = false;
+		for (int i = 0; i < value.length(); i++) {
+			char c = value.charAt(i);
+			if (pendingHexEscape && isHexDigit(c)) {
+				text.append("\" \"");
+			}
+			pendingHexEscape = false;
+			switch (c) {
+				case '\\' -> text.append("\\\\");
+				case '"' -> text.append("\\\"");
+				case '\n' -> text.append("\\n");
+				case '\r' -> text.append("\\r");
+				case '\t' -> text.append("\\t");
+				default -> {
+					if (c < 0x20 || c > 0x7e) {
+						text.append(String.format("\\x%02x", (int) c));
+						pendingHexEscape = true;
+					}
+					else {
+						text.append(c);
+					}
+				}
+			}
+		}
+		return text.append('"').toString();
+	}
+
+	private static boolean isHexDigit(char c) {
+		return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 	}
 
 	/** {@code (T *)0x0} is the source-level null constant {@code 0}. */
