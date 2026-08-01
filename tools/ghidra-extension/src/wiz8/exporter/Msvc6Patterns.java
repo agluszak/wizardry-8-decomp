@@ -86,6 +86,8 @@ final class Msvc6Patterns {
 	private Structure structure;
 	/** Stack offset of the VC6 EH registration link slot, when the frame is proven. */
 	private Long ehLinkOffset;
+	/** The function's FuncInfo-derived exception model, when it resolved. */
+	private EhModel ehModel;
 	/** Compiler-computed null-preserving upcasts: local name -> replacement text. */
 	private final Map<String, String> upcasts = new HashMap<>();
 
@@ -120,6 +122,8 @@ final class Msvc6Patterns {
 		normalizeMemberAccess();
 		rewriteNullPointerCasts();
 		rewriteMethodCalls();
+
+		analyzeExceptionHandling();
 
 		Set<ClangNode> lifecycleDropped = new HashSet<>();
 		List<String> initializers = new ArrayList<>();
@@ -519,6 +523,362 @@ final class Msvc6Patterns {
 	// EH frame and vftable stores
 	// ------------------------------------------------------------------
 
+	/**
+	 * Recover MSVC exception-handling lifetimes from the registration frame
+	 * and the FuncInfo record it installs.
+	 *
+	 * When the record resolves and declares no {@code try} blocks, every EH
+	 * statement in the body is compiler scaffolding regardless of the
+	 * function's kind, and each unwind state that destroys a directly
+	 * addressed frame object marks a source-level local whose constructor
+	 * call becomes its definition. A record with {@code try} blocks means
+	 * the registration carries source semantics, so everything stays
+	 * verbatim. An unresolvable record falls back to the frame-shape-only
+	 * suppression that constructors and destructors used before the model
+	 * existed.
+	 */
+	private void analyzeExceptionHandling() {
+		detectEhFrame();
+		if (ehLinkOffset == null) {
+			return;
+		}
+		ehModel = resolveEhModel();
+		if (ehModel != null && ehModel.tryBlockCount > 0) {
+			ehLinkOffset = null;
+			ehModel = null;
+			return;
+		}
+		if (ehModel == null && kind != FunctionKind.CONSTRUCTOR &&
+			kind != FunctionKind.DESTRUCTOR) {
+			ehLinkOffset = null;
+			return;
+		}
+		Set<ClangNode> ehDropped = new HashSet<>();
+		for (Item item : items) {
+			if (item.isStatement()) {
+				ClangStatement statement = (ClangStatement) item.node;
+				if (isEhScaffolding(statement)) {
+					ehDropped.add(statement);
+				}
+			}
+			else if (item.node instanceof ClangVariableDecl declaration &&
+				isEhSlotDeclaration(declaration)) {
+				ehDropped.add(declaration);
+			}
+		}
+		if (ehSlotReferencesSurvive(ehDropped)) {
+			// A slot access the statement pass cannot claim (for example a
+			// state store folded into a condition) would print as a dangling
+			// reference; keep the whole frame verbatim instead.
+			ehLinkOffset = null;
+			ehModel = null;
+			return;
+		}
+		analysis.dropped.addAll(ehDropped);
+		if (ehModel != null) {
+			liftStackLocals();
+		}
+	}
+
+	/**
+	 * Resolve the FuncInfo model from the handler thunk the prolog stores
+	 * into the slot above the registration link.
+	 */
+	private EhModel resolveEhModel() {
+		Long thunk = null;
+		for (Item item : items) {
+			if (!item.isStatement()) {
+				continue;
+			}
+			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
+			if (op == null) {
+				continue;
+			}
+			Varnode output = op.getOutput();
+			if (output == null || output.getAddress() == null ||
+				!output.getAddress().isStackAddress() ||
+				output.getAddress().getOffset() != ehLinkOffset + 4) {
+				continue;
+			}
+			Long value = storedConstant(op);
+			if (value == null) {
+				continue;
+			}
+			if (thunk != null && !thunk.equals(value)) {
+				return null;
+			}
+			thunk = value;
+		}
+		if (thunk == null) {
+			return null;
+		}
+		return EhModel.resolve(function.getProgram(), thunk);
+	}
+
+	/**
+	 * The constant value a defining op stores, when the whole expression
+	 * folds to one. An address-of prints as {@code PTRSUB(0, offset)}, so
+	 * constant-folding the pointer arithmetic recovers label addresses too.
+	 */
+	private static Long storedConstant(PcodeOp op) {
+		return storedConstantAt(op, 0);
+	}
+
+	/** The constant a varnode carries, folding copies, casts, and adds. */
+	private static Long tracedConstant(Varnode varnode, int depth) {
+		if (varnode == null || depth > 8) {
+			return null;
+		}
+		if (varnode.isConstant()) {
+			return varnode.getOffset();
+		}
+		if (varnode.isAddress()) {
+			return varnode.getAddress().getOffset();
+		}
+		PcodeOp def = varnode.getDef();
+		return def == null ? null : storedConstantAt(def, depth + 1);
+	}
+
+	private static Long storedConstantAt(PcodeOp op, int depth) {
+		switch (op.getOpcode()) {
+			case PcodeOp.COPY:
+			case PcodeOp.CAST:
+			case PcodeOp.INDIRECT:
+				return tracedConstant(op.getInput(0), depth);
+			case PcodeOp.PTRSUB:
+			case PcodeOp.INT_ADD: {
+				Long left = tracedConstant(op.getInput(0), depth);
+				Long right = tracedConstant(op.getInput(1), depth);
+				return left == null || right == null ? null : left + right;
+			}
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * Whether any body token still reaches an EH slot after the planned
+	 * drops. The declarations and statement claims must account for every
+	 * reference, or the printed body would name a variable that no longer
+	 * exists.
+	 */
+	private boolean ehSlotReferencesSurvive(Set<ClangNode> ehDropped) {
+		List<ClangToken> tokens = new ArrayList<>();
+		for (ClangNode node : bodyNodes(root)) {
+			leafTokens(node, tokens);
+		}
+		for (ClangToken token : tokens) {
+			if (!isEhSlotReference(token)) {
+				continue;
+			}
+			boolean claimed = false;
+			for (ClangNode current = token; current != null; current = current.Parent()) {
+				if (ehDropped.contains(current) || isClaimed(current)) {
+					claimed = true;
+					break;
+				}
+			}
+			if (!claimed) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isEhSlotReference(ClangToken token) {
+		if (!(token instanceof ClangVariableToken variable)) {
+			return false;
+		}
+		if ("ExceptionList".equals(token.getText())) {
+			return true;
+		}
+		HighVariable high = variable.getHighVariable();
+		Varnode representative = high == null ? null : high.getRepresentative();
+		if (representative == null || representative.getAddress() == null ||
+			!representative.getAddress().isStackAddress()) {
+			return false;
+		}
+		long offset = representative.getAddress().getOffset();
+		return offset >= ehLinkOffset && offset < ehLinkOffset + 12;
+	}
+
+	// ------------------------------------------------------------------
+	// Stack-local object lifetimes
+	// ------------------------------------------------------------------
+
+	/**
+	 * Turn each proven frame object back into a local definition. The
+	 * unwind map names the slot and the destructor; the body must contain
+	 * exactly one constructor call of the same class on that slot and at
+	 * least one direct destructor call, which the source never spelled.
+	 * The registration link sits at {@code ebp-12} in every VC6 EH frame,
+	 * which anchors the ebp-to-decompiler offset conversion.
+	 */
+	private void liftStackLocals() {
+		long delta = ehLinkOffset + 12;
+		for (EhModel.UnwindState state : ehModel.states) {
+			if (state.destructor == null || state.objectEbpOffset == null) {
+				continue;
+			}
+			liftStackLocal(state.objectEbpOffset + delta, state.destructor);
+		}
+	}
+
+	private void liftStackLocal(long stackOffset, Function destructor) {
+		Namespace owner = destructor.getParentNamespace();
+		ClangStatement constructorStatement = null;
+		PcodeOp constructorOp = null;
+		ClangVariableToken local = null;
+		List<ClangStatement> destructorCalls = new ArrayList<>();
+		for (Item item : items) {
+			if (!item.isStatement() || isClaimed(item.node)) {
+				continue;
+			}
+			ClangStatement statement = (ClangStatement) item.node;
+			PcodeOp op = statement.getPcodeOp();
+			Function target = callee(op);
+			if (target == null || op.getNumInputs() < 2 ||
+				!owner.equals(target.getParentNamespace())) {
+				continue;
+			}
+			FunctionKind targetKind = FunctionKind.classify(target);
+			ClangVariableToken receiver = addressOfLocalReceiver(statement, op, stackOffset);
+			if (receiver == null) {
+				continue;
+			}
+			if (targetKind == FunctionKind.CONSTRUCTOR) {
+				if (constructorStatement != null) {
+					return; // two constructions of one slot: not one lifetime
+				}
+				constructorStatement = statement;
+				constructorOp = op;
+				local = receiver;
+			}
+			else if (targetKind == FunctionKind.DESTRUCTOR) {
+				destructorCalls.add(statement);
+			}
+		}
+		if (constructorStatement == null || destructorCalls.isEmpty()) {
+			return;
+		}
+		List<String> arguments = callArgumentsAfterReceiver(constructorStatement, constructorOp);
+		if (arguments == null) {
+			return;
+		}
+		String name = local.getText();
+		ClangVariableDecl declaration = localDeclaration(name, stackOffset);
+		if (declaration == null) {
+			return;
+		}
+		String type = TypeNames.map(owner.getName());
+		String definition = arguments.isEmpty() ? type + " " + name
+				: type + " " + name + "(" + String.join(", ", arguments) + ")";
+		analysis.replaced.put(constructorStatement, definition);
+		analysis.dropped.add(declaration);
+		for (ClangStatement call : destructorCalls) {
+			analysis.dropped.add(call);
+		}
+	}
+
+	/**
+	 * The call's receiver argument when it is exactly {@code &local} for the
+	 * stack slot at the given decompiler offset; null otherwise.
+	 */
+	private ClangVariableToken addressOfLocalReceiver(ClangStatement statement, PcodeOp op,
+			long stackOffset) {
+		List<List<ClangToken>> arguments = callArgumentTokens(statement, op);
+		if (arguments == null || arguments.isEmpty()) {
+			return null;
+		}
+		List<ClangToken> receiver = arguments.get(0);
+		if (receiver.size() != 2 || !"&".equals(receiver.get(0).getText()) ||
+			!(receiver.get(1) instanceof ClangVariableToken variable)) {
+			return null;
+		}
+		Long traced = stackAddressOffset(op.getInput(1));
+		if (traced == null || traced != stackOffset) {
+			return null;
+		}
+		return variable;
+	}
+
+	/**
+	 * The frame offset a pointer varnode addresses, when it is a plain
+	 * address-of-stack-slot: {@code PTRSUB(stack pointer, #offset)} behind
+	 * any number of copies and casts. The constant is sign-extended from
+	 * its storage size, matching the decompiler's rendering.
+	 */
+	private Long stackAddressOffset(Varnode varnode) {
+		Varnode current = varnode;
+		for (int step = 0; current != null && step < 8; step++) {
+			PcodeOp def = current.getDef();
+			if (def == null) {
+				return null;
+			}
+			switch (def.getOpcode()) {
+				case PcodeOp.COPY:
+				case PcodeOp.CAST:
+				case PcodeOp.INDIRECT:
+					current = def.getInput(0);
+					break;
+				case PcodeOp.PTRSUB: {
+					Varnode base = def.getInput(0);
+					Varnode offset = def.getInput(1);
+					if (!base.isRegister() || !offset.isConstant() ||
+						!isStackPointer(base)) {
+						return null;
+					}
+					long value = offset.getOffset();
+					if (offset.getSize() == 4) {
+						value = (int) value;
+					}
+					return value;
+				}
+				default:
+					return null;
+			}
+		}
+		return null;
+	}
+
+	private boolean isStackPointer(Varnode varnode) {
+		var register = function.getProgram().getCompilerSpec().getStackPointer();
+		return register != null && varnode.getAddress().equals(register.getAddress()) &&
+			varnode.getSize() == register.getNumBytes();
+	}
+
+	/**
+	 * The declaration of the local at the given stack slot. Storage decides
+	 * where the decompiler exposed it; an aggregate whose uses are all
+	 * address-of carries no high variable on its declaration token, so its
+	 * unique rendered name identifies it instead.
+	 */
+	private ClangVariableDecl localDeclaration(String name, long stackOffset) {
+		for (Item item : items) {
+			if (!(item.node instanceof ClangVariableDecl declaration)) {
+				continue;
+			}
+			List<ClangToken> tokens = new ArrayList<>();
+			leafTokens(declaration, tokens);
+			for (ClangToken token : tokens) {
+				if (!(token instanceof ClangVariableToken variable)) {
+					continue;
+				}
+				HighVariable high = variable.getHighVariable();
+				Varnode representative = high == null ? null : high.getRepresentative();
+				if (representative != null && representative.getAddress() != null &&
+					representative.getAddress().isStackAddress() &&
+					representative.getAddress().getOffset() == stackOffset) {
+					return declaration;
+				}
+				if (representative == null && name.equals(variable.getText())) {
+					return declaration;
+				}
+			}
+		}
+		return null;
+	}
+
 	private static boolean mentionsExceptionList(ClangNode statement) {
 		List<ClangToken> tokens = new ArrayList<>();
 		leafTokens(statement, tokens);
@@ -674,18 +1034,10 @@ final class Msvc6Patterns {
 		if (params.isEmpty() || !tokenText(params.get(0)).endsWith("this")) {
 			return false;
 		}
-		detectEhFrame();
-
 		for (Item item : items) {
-			if (item.isStatement()) {
-				ClangStatement statement = (ClangStatement) item.node;
-				if (isEhScaffolding(statement) || isVftableStore(statement)) {
-					dropped.add(statement);
-				}
-			}
-			else if (item.node instanceof ClangVariableDecl declaration &&
-				isEhSlotDeclaration(declaration)) {
-				dropped.add(declaration);
+			if (item.isStatement() && !isClaimed(item.node) &&
+				isVftableStore((ClangStatement) item.node)) {
+				dropped.add(item.node);
 			}
 		}
 		if (kind == FunctionKind.CONSTRUCTOR) {
@@ -710,7 +1062,7 @@ final class Msvc6Patterns {
 			}
 			if (item.isStatement()) {
 				ClangStatement statement = (ClangStatement) item.node;
-				if (dropped.contains(statement)) {
+				if (dropped.contains(statement) || isClaimed(statement)) {
 					index++;
 					continue;
 				}
@@ -1025,7 +1377,7 @@ final class Msvc6Patterns {
 				break;
 			}
 			ClangStatement statement = (ClangStatement) item.node;
-			if (dropped.contains(statement)) {
+			if (dropped.contains(statement) || isClaimed(statement)) {
 				continue;
 			}
 			PcodeOp op = statement.getPcodeOp();
@@ -1073,7 +1425,8 @@ final class Msvc6Patterns {
 			kind == FunctionKind.CONSTRUCTOR ? FunctionKind.CONSTRUCTOR
 					: FunctionKind.DESTRUCTOR;
 		for (Item item : items) {
-			if (!item.isStatement() || dropped.contains(item.node)) {
+			if (!item.isStatement() || dropped.contains(item.node) ||
+				analysis.dropped.contains(item.node)) {
 				continue;
 			}
 			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
@@ -1963,10 +2316,12 @@ final class Msvc6Patterns {
 	}
 
 	/**
-	 * The rendered argument at the given call operand position, accepted
-	 * only when it is one plain variable token, so text identity is safe.
+	 * The call's significant argument tokens, split at top-level commas.
+	 * Returns null when the token shape and the p-code operand count
+	 * disagree.
 	 */
-	private String singleVariableArgument(ClangStatement statement, PcodeOp op, int input) {
+	private static List<List<ClangToken>> callArgumentTokens(ClangStatement statement,
+			PcodeOp op) {
 		List<ClangToken> tokens = new ArrayList<>();
 		leafTokens(statement, tokens);
 		int open = -1;
@@ -2011,7 +2366,19 @@ final class Msvc6Patterns {
 		if (!current.isEmpty() || !arguments.isEmpty()) {
 			arguments.add(current);
 		}
-		if (arguments.size() != op.getNumInputs() - 1 || input - 1 >= arguments.size()) {
+		if (arguments.size() != op.getNumInputs() - 1) {
+			return null;
+		}
+		return arguments;
+	}
+
+	/**
+	 * The rendered argument at the given call operand position, accepted
+	 * only when it is one plain variable token, so text identity is safe.
+	 */
+	private String singleVariableArgument(ClangStatement statement, PcodeOp op, int input) {
+		List<List<ClangToken>> arguments = callArgumentTokens(statement, op);
+		if (arguments == null || input - 1 >= arguments.size()) {
 			return null;
 		}
 		List<ClangToken> argument = arguments.get(input - 1);

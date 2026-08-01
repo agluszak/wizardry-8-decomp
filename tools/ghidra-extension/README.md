@@ -134,6 +134,38 @@ Naming comes from the live project only. A pure-virtual slot cannot be named
 from the vtable (it stores `purecall`), and unnamed slot functions
 (`FUN_…`) decline until the project names them.
 
+## Exception-handling lifetimes (M4)
+
+`EhModel.java` re-derives the function's MSVC exception model from program
+memory: the prolog's handler-thunk store names the `__ehhandler` thunk
+(`mov eax, &FuncInfo`), and the FuncInfo record supplies the try-block count
+and the unwind map, whose cleanup funclets are decoded when they have the
+direct object shape (`lea ecx, [ebp+disp]` + `jmp`/`call` destructor).
+
+- **Scaffolding suppression** runs for every function kind once the model
+  resolves with zero try blocks: the registration statements
+  (`ExceptionList` link/handler/state slots), their declarations, and every
+  state-slot update disappear. A function whose FuncInfo declares try blocks
+  keeps everything verbatim — that registration carries source semantics. An
+  unresolvable model falls back to the frame-shape-only suppression that
+  constructors and destructors used in M2. A completeness gate reverts the
+  suppression whenever any body token would still reference a dropped slot
+  (for example a state store folded into a condition).
+- **Stack-local lifetimes**: an unwind state that destroys a directly
+  addressed frame object places a typed local there. When the body contains
+  exactly one same-class constructor call on that slot (`T::T(&local, …)`)
+  and at least one direct destructor call, the constructor call becomes the
+  local's definition (`T local(…);` — argument-free construction prints
+  `T local;`), the hoisted untyped declaration disappears, and every direct
+  destructor call on the slot disappears (source never spells the
+  scope-end destructor). The registration link always sits at `ebp-12`,
+  which anchors the ebp-to-decompiler stack-offset conversion.
+- **Declines**: inlined constructor/destructor expansions (the common VC6
+  outcome for small classes — vftable stores and member stores appear
+  instead of a call), `pointer`-kind funclets (heap cleanups for `new`
+  expressions), vector `__ehvec` helpers, and receivers that do not render
+  as `&local` all stay verbatim.
+
 ## Regression harness
 
 `uv run wiz8 recover regress 0x004a5e50 …` measures zero-edit
