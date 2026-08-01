@@ -22,6 +22,7 @@ from typing import Any
 
 from .config import Settings
 
+
 def exported_blocks(result: dict[str, Any]) -> dict[int, str]:
     """The Java exporter's independently bounded per-entry results."""
 
@@ -32,6 +33,18 @@ def exported_blocks(result: dict[str, Any]) -> dict[int, str]:
         if isinstance(entry, str) and isinstance(text, str):
             blocks[int(entry, 0)] = text
     return blocks
+
+
+def exported_bodies(result: dict[str, Any]) -> dict[int, str]:
+    """The Java renderer's structurally bounded generated bodies."""
+
+    bodies: dict[int, str] = {}
+    for item in result.get("exports", []):
+        entry = item.get("entry")
+        body = item.get("body")
+        if isinstance(entry, str) and isinstance(body, str):
+            bodies[int(entry, 0)] = body
+    return bodies
 
 
 def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
@@ -163,49 +176,18 @@ def insert_lines(original: str, after_line: int, block: str) -> str:
     return "".join(lines[:after_line]) + "\n" + block + "".join(lines[after_line:])
 
 
-def graft_source_signature(source_block: str, exported_block: str) -> str:
-    """Keep the source-owned declaration head; take the exported body.
+def graft_source_signature(marker: dict[str, Any], exported_body: str) -> str | None:
+    """Combine compiler-indexed source spelling with Java-bounded body text."""
 
-    The recovered declaration carries compiler-owned spellings — return
-    type, parameter types and names, reference versus pointer — that
-    Ghidra's type model cannot always represent; regenerating them from
-    Ghidra would overwrite better evidence with a weaker projection. The
-    exported block therefore contributes only the regenerated body: the
-    constructor initializer list (when present) and everything from the
-    opening brace onward. A block without the repository's column-0 opening
-    brace keeps the exported text whole rather than guessing a boundary.
-    """
-
-    source_lines = source_block.splitlines()
-    exported_lines = exported_block.splitlines()
-    source_body = _body_start(source_lines)
-    exported_body = _body_start(exported_lines)
-    if source_body is None or exported_body is None:
-        return exported_block
-    return "\n".join(source_lines[:source_body] + exported_lines[exported_body:]) + "\n"
-
-
-def _body_start(lines: list[str]) -> int | None:
-    """Index of the first body line: the ``: initializer`` head when one
-    precedes the column-0 opening brace, else the brace itself.
-
-    Blank lines may sit between the initializer list and the brace (the
-    exporter renders one), so the walk back skips them; it stops at the
-    first column-0 content line, which belongs to the declaration.
-    """
-
-    brace = next(
-        (i for i, line in enumerate(lines) if line.strip() == "{" and line.startswith("{")),
-        None,
-    )
-    if brace is None:
+    declaration = marker.get("declaration") or {}
+    signature = declaration.get("source_signature")
+    address = marker.get("address")
+    if not isinstance(signature, str) or not isinstance(address, int):
         return None
-    scan = brace - 1
-    while scan > 0 and (not lines[scan].strip() or lines[scan][:1].isspace()):
-        if lines[scan].lstrip().startswith(": "):
-            return scan
-        scan -= 1
-    return brace
+    body = exported_body.lstrip("\n")
+    if body and not body.endswith("\n"):
+        body += "\n"
+    return f"// FUNCTION: WIZ8 0x{address:08x}\n{signature}\n{body}"
 
 
 _UNDECLARED = re.compile(r"error C2065: '([A-Za-z_][A-Za-z0-9_]*)' : undeclared identifier")
@@ -215,8 +197,8 @@ def suggest_includes(repo_dir: Path, diagnostics: list[str]) -> dict[str, list[s
     """Headers declaring the undeclared identifiers a failed build names.
 
     A deterministic suggestion list for the human (or a later milestone), not
-    an automatic edit: the scan finds headers whose own text declares the
-    class or struct.
+    an automatic edit. The compiler-backed source index owns declaration
+    identity; header text is never regex-parsed as a substitute.
     """
 
     names = sorted(
@@ -224,16 +206,24 @@ def suggest_includes(repo_dir: Path, diagnostics: list[str]) -> dict[str, list[s
     )
     if not names:
         return {}
+    try:
+        import json
+
+        index = json.loads((repo_dir / "build/source-index.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
     wanted = set(names)
     found: dict[str, list[str]] = {}
-    for header in sorted((repo_dir / "include").rglob("*.h")):
-        try:
-            text = header.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+    for item in [*index.get("classes", []), *index.get("declarations", [])]:
+        qualified = item.get("qualified_name")
+        source_file = item.get("source_file")
+        if not isinstance(qualified, str) or not isinstance(source_file, str):
             continue
-        for name in wanted:
-            if re.search(rf"\b(?:class|struct)\s+{name}\b", text):
-                found.setdefault(name, []).append(header.relative_to(repo_dir).as_posix())
+        leaf = qualified.rsplit("::", 1)[-1]
+        if leaf in wanted and source_file.endswith((".h", ".hpp", ".inc")):
+            found.setdefault(leaf, []).append(source_file)
+    for headers in found.values():
+        headers[:] = sorted(set(headers))
     return found
 
 
@@ -401,6 +391,7 @@ def regress(
         settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
     )
     blocks = exported_blocks(exported)
+    bodies = exported_bodies(exported)
 
     defects: list[str] = []
     product_dirty = False
@@ -422,7 +413,10 @@ def regress(
             defects.extend(f"0x{address:08x}: {defect}" for defect in block_defects)
             continue
         marker = markers.get(address)
-        span = marker_span(marker) if marker is not None else None
+        if marker is None:
+            row["status"] = "unplaced"
+            continue
+        span = marker_span(marker)
         if span is None:
             row["status"] = "unplaced"
             continue
@@ -434,8 +428,12 @@ def regress(
             row["status"] = "unplaced"
             row["reason"] = "index span does not start at the address's marker line"
             continue
-        source_block = "".join(original.splitlines(keepends=True)[first_line - 1 : last_line])
-        block = graft_source_signature(source_block, block)
+        body = bodies.get(address)
+        grafted = graft_source_signature(marker, body) if body is not None else None
+        if grafted is None:
+            row["status"] = "source-signature-unavailable"
+            continue
+        block = grafted
         try:
             path.write_text(splice_lines(original, first_line, last_line, block), encoding="utf-8")
             product_dirty = True
@@ -688,6 +686,7 @@ def sweep(
         settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
     )
     blocks = exported_blocks(exported)
+    bodies = exported_bodies(exported)
 
     outcomes: dict[int, dict[str, Any]] = {}
     plan_by_file: dict[str, list[tuple[int, int, int, str]]] = {}
@@ -722,11 +721,13 @@ def sweep(
             outcome["status"] = "unplaced"
             outcome["reason"] = "index span does not start at the marker line"
             continue
-        source_block = "".join(
-            originals[marker["source_file"]].splitlines(keepends=True)[span[1] - 1 : span[2]]
-        )
+        body = bodies.get(address)
+        grafted = graft_source_signature(marker, body) if body is not None else None
+        if grafted is None:
+            outcome["status"] = "source-signature-unavailable"
+            continue
         plan_by_file.setdefault(marker["source_file"], []).append(
-            (span[1], span[2], address, graft_source_signature(source_block, block))
+            (span[1], span[2], address, grafted)
         )
 
     product_dirty = False

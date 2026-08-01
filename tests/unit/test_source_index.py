@@ -13,6 +13,8 @@ DECLARATION = {
     "calling_convention": "__thiscall",
     "return_type": "int",
     "parameter_types": ["int"],
+    "source_signature": "int Vector::Grow(int value)",
+    "parameter_references": [False],
     "owning_class": "Vector",
     "has_this": True,
     "is_virtual": False,
@@ -56,6 +58,10 @@ def test_definition_replaces_a_declaration_from_another_unit() -> None:
     assert kept.is_definition
     assert (kept.line, kept.end_line) == (105, 118)
     assert kept.parameter_types == ("int",)
+    assert collector.source_metadata["?Grow@Vector@@QAEHH@Z"] == {
+        "source_signature": "int Vector::Grow(int value)",
+        "parameter_references": [False],
+    }
 
 
 def test_class_is_kept_from_the_first_unit_that_located_it() -> None:

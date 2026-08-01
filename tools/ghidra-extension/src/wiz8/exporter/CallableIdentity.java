@@ -53,6 +53,11 @@ final class CallableIdentity {
 		if (kind == FunctionKind.CONSTRUCTOR || kind == FunctionKind.DESTRUCTOR) {
 			return head;
 		}
-		return CxxTypePrinter.printType(function.getReturnType()) + " " + head;
+		String convention = function.getCallingConventionName();
+		String renderedConvention = convention != null && convention.startsWith("__") &&
+			!"__cdecl".equals(convention) && !"__thiscall".equals(convention)
+				? convention + " " : "";
+		return CxxTypePrinter.printType(function.getReturnType()) + " " +
+			renderedConvention + head;
 	}
 }

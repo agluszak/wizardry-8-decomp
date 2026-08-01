@@ -25,6 +25,30 @@ def test_parse_selection_accepts_addresses_and_ranges() -> None:
     assert parse_selection(" 0x10:0x10 ") == (0x10, 0x10)
 
 
+def test_reference_masks_come_from_compiler_index_metadata(tmp_path: Path) -> None:
+    from wiz8decomp.ghidra.export_cpp import _reference_masks
+
+    index = tmp_path / "build/source-index.json"
+    index.parent.mkdir()
+    index.write_text(
+        json.dumps(
+            {
+                "schema": "reccmp-source-index-v1",
+                "declarations": [],
+                "classes": [],
+                "markers": [
+                    {
+                        "address": 0x10,
+                        "declaration": {"parameter_references": [True, False, True]},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert _reference_masks(tmp_path, [0x10, 0x20]) == [0b101, 0]
+
+
 @pytest.mark.parametrize("text", ["", "0x20:0x10", "nonsense", "0x10:", "-0x10"])
 def test_parse_selection_rejects_malformed_input(text: str) -> None:
     with pytest.raises(ValueError):

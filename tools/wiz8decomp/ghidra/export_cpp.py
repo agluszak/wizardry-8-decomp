@@ -242,6 +242,27 @@ def assemble_unit(markers: list[dict[str, Any]], blocks: dict[int, str]) -> str:
     return "\n".join(parts)
 
 
+def _reference_masks(repo_dir: Path, entries: list[int]) -> list[int]:
+    """Compiler-indexed lvalue/rvalue-reference parameter slots by entry."""
+
+    from ..source_model import load_source_index
+
+    declarations = {
+        marker["address"]: marker.get("declaration") or {}
+        for marker in load_source_index(repo_dir)["markers"]
+    }
+    masks: list[int] = []
+    for entry in entries:
+        mask = 0
+        for index, reference in enumerate(
+            declarations.get(entry, {}).get("parameter_references", [])
+        ):
+            if reference and index < 63:
+                mask |= 1 << index
+        masks.append(mask)
+    return masks
+
+
 def _resolve_data_addresses(selections: list[str]) -> list[int]:
     addresses: list[int] = []
     for selection in selections:
@@ -309,13 +330,9 @@ def export_cpp(
                     program, jpype.JArray(jpype.JLong)(entries), TaskMonitor.DUMMY
                 )
                 blocks = {
-                    entry: str(block)
-                    for entry, block in zip(entries, java_blocks, strict=True)
+                    entry: str(block) for entry, block in zip(entries, java_blocks, strict=True)
                 }
-                exports = [
-                    {"entry": f"0x{entry:08x}", "text": blocks[entry]}
-                    for entry in entries
-                ]
+                exports = [{"entry": f"0x{entry:08x}", "text": blocks[entry]} for entry in entries]
                 text = assemble_unit(markers, blocks)
                 functions = [
                     {
@@ -335,6 +352,14 @@ def export_cpp(
                     {"entry": f"0x{entry:08x}", "text": str(block)}
                     for entry, block in zip(entries, java_blocks, strict=True)
                 ]
+                java_bodies = exporter.exportBodies(
+                    program,
+                    jpype.JArray(jpype.JLong)(entries),
+                    jpype.JArray(jpype.JLong)(_reference_masks(settings.repo_dir, entries)),
+                    TaskMonitor.DUMMY,
+                )
+                for item, body in zip(exports, java_bodies, strict=True):
+                    item["body"] = str(body)
                 text = "\n".join(item["text"] for item in exports)
                 functions = [
                     {

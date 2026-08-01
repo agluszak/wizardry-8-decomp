@@ -51,7 +51,7 @@ final class RenderedCall {
 				opener = syntax;
 				break;
 			}
-			if (token instanceof ClangFuncNameToken || token.getPcodeOp() != operation) {
+			if (token instanceof ClangFuncNameToken) {
 				return null;
 			}
 		}

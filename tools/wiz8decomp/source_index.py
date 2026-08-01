@@ -168,6 +168,10 @@ class _RecordCollector(_AstCollector):
     last-one-wins.
     """
 
+    def __init__(self, repository: Path) -> None:
+        super().__init__(repository)
+        self.source_metadata: dict[str, dict[str, Any]] = {}
+
     def collect_records(self, records: str) -> None:
         for line in records.splitlines():
             if line:
@@ -176,12 +180,19 @@ class _RecordCollector(_AstCollector):
     def _collect(self, record: dict[str, Any]) -> None:
         kind = record.pop("record")
         if kind == "declaration":
+            source_signature = record.pop("source_signature", None)
+            parameter_references = record.pop("parameter_references", None)
             declaration = SourceDeclaration(
                 **{**record, "parameter_types": tuple(record["parameter_types"])}
             )
             previous = self.declarations.get(declaration.semantic_id)
             if previous is None or (declaration.is_definition and not previous.is_definition):
                 self.declarations[declaration.semantic_id] = declaration
+                if isinstance(source_signature, str):
+                    self.source_metadata[declaration.semantic_id] = {
+                        "source_signature": source_signature,
+                        "parameter_references": parameter_references or [],
+                    }
         elif kind == "class":
             source_class = SourceClass(
                 **{
@@ -269,7 +280,7 @@ def _emit_batch(
     subprocess.run(command, check=False, capture_output=True)
 
 
-def build_source_index(settings: Settings) -> SourceIndex:
+def build_source_index(settings: Settings) -> tuple[SourceIndex, dict[str, dict[str, Any]]]:
     """Replay clang-cl compile commands and join their records with the markers."""
 
     repository = settings.repo_dir.resolve()
@@ -311,11 +322,12 @@ def build_source_index(settings: Settings) -> SourceIndex:
         SourceIndex._from_collector(repository, target, paths, collector)
         for target, paths in targets.items()
     ]
-    return SourceIndex(
+    index = SourceIndex(
         declarations=(item for index in indexes for item in index.declarations),
         classes=(item for index in indexes for item in index.classes),
         markers=(item for index in indexes for item in index.markers),
     )
+    return index, collector.source_metadata
 
 
 def _summary(settings: Settings, index: SourceIndex) -> dict[str, Any]:
@@ -327,7 +339,9 @@ def _summary(settings: Settings, index: SourceIndex) -> dict[str, Any]:
     }
 
 
-def _index_document(repository: Path, index: SourceIndex) -> dict[str, Any]:
+def _index_document(
+    repository: Path, index: SourceIndex, source_metadata: dict[str, dict[str, Any]]
+) -> dict[str, Any]:
     """Retain marker properties that reccmp's v1 projection omits.
 
     A `folded` marker names another compiler emission whose original body shares
@@ -339,6 +353,16 @@ def _index_document(repository: Path, index: SourceIndex) -> dict[str, Any]:
     """
 
     document = index.to_dict()
+    for declaration in document["declarations"]:
+        metadata = source_metadata.get(declaration["semantic_id"])
+        if metadata is not None:
+            declaration.update(metadata)
+    for marker in document["markers"]:
+        declaration = marker.get("declaration")
+        if declaration:
+            metadata = source_metadata.get(declaration["semantic_id"])
+            if metadata is not None:
+                declaration.update(metadata)
     source_lines: dict[str, list[str]] = {}
     for item in document["markers"]:
         source_file = item["source_file"]
@@ -406,10 +430,10 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
             "reused": True,
         }
 
-    index = build_source_index(settings)
+    index, source_metadata = build_source_index(settings)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(
-        json.dumps(_index_document(repository, index), indent=2) + "\n",
+        json.dumps(_index_document(repository, index, source_metadata), indent=2) + "\n",
         encoding="utf-8",
     )
     stamp.parent.mkdir(parents=True, exist_ok=True)

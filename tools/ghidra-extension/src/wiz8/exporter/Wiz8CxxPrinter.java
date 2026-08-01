@@ -12,6 +12,7 @@ import ghidra.app.decompiler.ClangNode;
 import ghidra.app.decompiler.ClangToken;
 import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.decompiler.ClangTypeToken;
+import ghidra.app.decompiler.ClangFuncProto;
 import ghidra.app.decompiler.PrettyPrinter;
 import ghidra.app.decompiler.component.DecompilerUtils;
 import ghidra.program.model.listing.Function;
@@ -72,43 +73,57 @@ public final class Wiz8CxxPrinter {
 			// a defect to surface, not a decline.
 			analysis.defects.add(
 				"print: final structural validation failed after per-pass checks");
-			rendered = renderVerbatim(markup);
+			return insertMarkerStructurally(markup, new Msvc6Patterns.Analysis());
 		}
-		return insertMarker(rendered);
+		return insertMarkerStructurally(markup, analysis);
 	}
 
-	private String insertMarker(String rendered) {
-		String[] lines = rendered.split("\n", -1);
-		int declaration = 0;
-		boolean inBlockComment = false;
-		while (declaration < lines.length) {
-			String trimmed = lines[declaration].trim();
-			if (inBlockComment) {
-				inBlockComment = !trimmed.endsWith("*/");
+	/**
+	 * Generated initializer suffix and compound statement, with the prototype
+	 * excluded by markup ancestry rather than by parsing rendered C++.
+	 */
+	public String printBody(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
+		List<ClangNode> nodes = new ArrayList<>();
+		markup.flatten(nodes);
+		int start = 0;
+		for (int i = 0; i < nodes.size(); i++) {
+			if (hasAncestor(nodes.get(i), ClangFuncProto.class)) {
+				start = i + 1;
 			}
-			else if (trimmed.startsWith("/*")) {
-				inBlockComment = !trimmed.endsWith("*/");
+		}
+		String body = renderNodes(nodes, start, analysis, null);
+		return analysis.initializerSuffix.isEmpty() ? body
+			: analysis.initializerSuffix + "\n" + body;
+	}
+
+	private static boolean hasAncestor(ClangNode node, Class<?> type) {
+		for (ClangNode current = node; current != null; current = current.Parent()) {
+			if (type.isInstance(current)) {
+				return true;
 			}
-			else if (!trimmed.isEmpty() && !trimmed.startsWith("//")) {
+		}
+		return false;
+	}
+
+	private String insertMarkerStructurally(ClangTokenGroup markup,
+			Msvc6Patterns.Analysis analysis) {
+		List<ClangNode> nodes = new ArrayList<>();
+		markup.flatten(nodes);
+		int declaration = -1;
+		for (int i = 0; i < nodes.size(); i++) {
+			if (hasAncestor(nodes.get(i), ClangFuncProto.class)) {
+				declaration = i;
 				break;
 			}
-			declaration++;
 		}
-		StringBuilder out = new StringBuilder();
-		for (int i = 0; i < declaration; i++) {
-			String trimmed = lines[i].trim();
-			if (!trimmed.isEmpty()) {
-				out.append(lines[i]).append('\n');
-			}
+		if (declaration < 0) {
+			return marker() + "\n" + renderNodes(nodes, 0, analysis, null);
 		}
-		out.append(marker()).append('\n');
-		for (int i = declaration; i < lines.length; i++) {
-			out.append(lines[i]);
-			if (i < lines.length - 1) {
-				out.append('\n');
-			}
-		}
-		return out.toString();
+		String prefix = renderNodes(new ArrayList<>(nodes.subList(0, declaration)), 0,
+			analysis, null).stripTrailing();
+		String definition = renderNodes(
+			new ArrayList<>(nodes.subList(declaration, nodes.size())), 0, analysis, null);
+		return (prefix.isEmpty() ? "" : prefix + "\n") + marker() + "\n" + definition;
 	}
 
 	/** Ghidra's own identity-token rendering: the permanent safe fallback. */
@@ -232,16 +247,21 @@ public final class Wiz8CxxPrinter {
 			Set<Integer> touchedLines) {
 		List<ClangNode> nodes = new ArrayList<>();
 		markup.flatten(nodes);
+		return renderNodes(nodes, 0, analysis, touchedLines);
+	}
+
+	private static String renderNodes(List<ClangNode> nodes, int requestedStart,
+			Msvc6Patterns.Analysis analysis, Set<Integer> touchedLines) {
 		Set<ClangNode> emittedReplacements = new HashSet<>();
 
 		StringBuilder text = new StringBuilder();
 		StringBuilder line = new StringBuilder();
 		boolean lineTouched = false;
 		int[] emittedCount = {0};
-		int start = 0;
-		if (!nodes.isEmpty() && nodes.get(0) instanceof ClangBreak brk) {
+		int start = requestedStart;
+		if (start < nodes.size() && nodes.get(start) instanceof ClangBreak brk) {
 			appendIndent(line, brk.getIndent());
-			start = 1;
+			start++;
 		}
 		for (int i = start; i < nodes.size(); i++) {
 			ClangNode node = nodes.get(i);
