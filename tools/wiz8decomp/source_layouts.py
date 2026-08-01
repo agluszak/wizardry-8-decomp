@@ -29,6 +29,49 @@ def _pointer_depth(spelling: str) -> int:
     return depth
 
 
+def canonical_type_spelling(text: str) -> str:
+    """One comparable spelling for a template type name.
+
+    Ghidra cannot store ``<>`` in type names, so the project and the reccmp
+    PDB import both use the bracket encoding (``srClassSupport[stLevel,
+    srNode,0,65543]``) while source declarations spell real C++
+    (``srClassSupport<stLevel, srNode, false, 65543>``). Both sides
+    canonicalize to angle brackets, no spaces, ``_#`` as ``*``, and numeric
+    booleans, so identical types compare equal regardless of origin.
+    """
+
+    spelling = text.replace(" ", "")
+    if spelling.endswith("_#"):
+        return canonical_type_spelling(spelling[:-2]) + "*"
+    for open_char, close_char in (("[", "]"), ("<", ">")):
+        start = spelling.find(open_char)
+        if start > 0 and spelling.endswith(close_char):
+            arguments = _split_template_arguments(spelling[start + 1 : -1])
+            return (
+                spelling[:start]
+                + "<"
+                + ",".join(canonical_type_spelling(argument) for argument in arguments)
+                + ">"
+            )
+    return {"false": "0", "true": "1"}.get(spelling, spelling)
+
+
+def _split_template_arguments(text: str) -> list[str]:
+    parts: list[str] = []
+    depth = 0
+    start = 0
+    for index, char in enumerate(text):
+        if char in "[<":
+            depth += 1
+        elif char in "]>":
+            depth -= 1
+        elif char == "," and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    parts.append(text[start:])
+    return parts
+
+
 def _is_base_component(component: dict[str, Any]) -> bool:
     field = str(component.get("field") or "")
     return field == "base" or field.startswith("base_")
@@ -66,13 +109,13 @@ def compare_source_layouts(
             )
 
         actual_bases = {
-            str(component["type"])
+            canonical_type_spelling(str(component["type"]))
             for component in rebuilt.get("components", [])
             if _is_base_component(component)
         }
         for expected_base in source_class.get("bases", []):
             checks["bases"] += 1
-            if expected_base not in actual_bases:
+            if canonical_type_spelling(expected_base) not in actual_bases:
                 failures.append(
                     {
                         "kind": "base",

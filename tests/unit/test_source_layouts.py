@@ -1,5 +1,6 @@
 import pytest
 from wiz8decomp.source_layouts import (
+    canonical_type_spelling,
     compare_source_layout_reports,
     compare_source_layouts,
     layout_failure_key,
@@ -8,6 +9,49 @@ from wiz8decomp.source_layouts import (
     require_source_layouts,
     write_source_layout_baseline,
 )
+
+
+def test_canonical_type_spelling_equates_bracket_and_template_forms() -> None:
+    assert canonical_type_spelling(
+        "srClassSupport[stLevel,srNode,0,65543]"
+    ) == canonical_type_spelling("srClassSupport<stLevel, srNode, false, 65543>")
+    assert canonical_type_spelling("W8GrowableVector[stLight_#]") == canonical_type_spelling(
+        "W8GrowableVector<stLight*>"
+    )
+    assert canonical_type_spelling("srClassSupport[a,b,1,5]") == canonical_type_spelling(
+        "srClassSupport<a, b, true, 5>"
+    )
+    assert canonical_type_spelling("srNode") != canonical_type_spelling("srLight")
+
+
+def test_source_layout_audit_matches_bracket_encoded_base_components() -> None:
+    source = [
+        {
+            "qualified_name": "stLevel",
+            "asserted_size": 8,
+            "bases": ["srClassSupport<stLevel, srNode, false, 65543>"],
+            "fields": [],
+        }
+    ]
+    ghidra = {
+        "/stLevel": {
+            "length": 8,
+            "components": [
+                {
+                    "field": "base",
+                    "offset": 0,
+                    "length": 8,
+                    "type": "srClassSupport[stLevel,srNode,0,65543]",
+                }
+            ],
+        },
+        "/wiz8/classes/stLevel": {"components": []},
+    }
+
+    report = compare_source_layouts(source, ghidra)
+
+    assert report["ok"] is True
+    assert report["checks"]["bases"] == 1
 
 
 def test_source_layout_audit_checks_exact_size_fields_and_bases() -> None:
