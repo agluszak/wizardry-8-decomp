@@ -1,7 +1,9 @@
 package wiz8.exporter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import ghidra.app.decompiler.ClangBreak;
 import ghidra.app.decompiler.ClangNode;
@@ -13,10 +15,12 @@ import ghidra.program.model.listing.Function;
  * Renders one decompiled function as recovered-style C++ text.
  *
  * The renderer walks Ghidra's marked-up decompiler tree; it never parses the
- * flat pseudo-C string. The verbatim path below reproduces Ghidra's own line
- * layout byte for byte (flatten the token tree, split at {@link ClangBreak},
- * indent with the decompiler's single-space unit) and is the permanent
- * fallback for every construct no recognizer positively claims.
+ * flat pseudo-C string. Tokens print verbatim (reproducing Ghidra's own line
+ * layout byte for byte) unless a recognizer claimed their subtree: dropped
+ * subtrees vanish, replaced subtrees print their replacement text once. A
+ * line whose recognized content vanished entirely is removed rather than
+ * left blank, so suppressed statements take their trailing semicolons and
+ * line breaks with them.
  */
 public final class Wiz8CxxPrinter {
 
@@ -49,22 +53,19 @@ public final class Wiz8CxxPrinter {
 			FunctionKind.decorateSpecialName(function.getName()) + "\n";
 	}
 
-	/** Marker plus the verbatim decompiler text for the whole function. */
-	public String print(ClangTokenGroup markup) {
-		return marker() + "\n" + renderVerbatim(markup);
+	/** Marker plus the function text with the analysis applied. */
+	public String print(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
+		return marker() + "\n" + render(markup, analysis);
 	}
 
-	/**
-	 * Reproduce Ghidra's rendering of a token tree. Mirrors the line-splitting
-	 * in DecompilerUtils.toLines without the GUI module dependency: a leading
-	 * break sets the first line's indent, every later break ends a line.
-	 */
-	static String renderVerbatim(ClangTokenGroup markup) {
+	static String render(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
 		List<ClangNode> nodes = new ArrayList<>();
 		markup.flatten(nodes);
+		Set<ClangNode> emittedReplacements = new HashSet<>();
 
 		StringBuilder text = new StringBuilder();
 		StringBuilder line = new StringBuilder();
+		boolean lineTouched = false;
 		int start = 0;
 		if (!nodes.isEmpty() && nodes.get(0) instanceof ClangBreak brk) {
 			appendIndent(line, brk.getIndent());
@@ -72,9 +73,20 @@ public final class Wiz8CxxPrinter {
 		}
 		for (int i = start; i < nodes.size(); i++) {
 			ClangNode node = nodes.get(i);
+			ClangNode recognized = recognizedAncestor(node, analysis);
+			if (recognized != null) {
+				String replacement = analysis.replaced.get(recognized);
+				if (replacement != null && emittedReplacements.add(recognized)) {
+					line.append(replacement);
+				}
+				else {
+					lineTouched = true;
+				}
+				continue;
+			}
 			if (node instanceof ClangBreak brk) {
-				text.append(line).append('\n');
-				line.setLength(0);
+				flushLine(text, line, lineTouched);
+				lineTouched = false;
 				appendIndent(line, brk.getIndent());
 				continue;
 			}
@@ -85,11 +97,37 @@ public final class Wiz8CxxPrinter {
 				}
 			}
 		}
-		text.append(line);
+		flushLine(text, line, lineTouched);
 		if (text.length() == 0 || text.charAt(text.length() - 1) != '\n') {
 			text.append('\n');
 		}
 		return text.toString();
+	}
+
+	/** The nearest enclosing node a recognizer dropped or replaced, if any. */
+	private static ClangNode recognizedAncestor(ClangNode node,
+			Msvc6Patterns.Analysis analysis) {
+		for (ClangNode current = node; current != null; current = current.Parent()) {
+			if (analysis.replaced.containsKey(current) || analysis.dropped.contains(current)) {
+				return current;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Ends the current line. Lines that lost recognized content and kept
+	 * nothing but whitespace or a stray semicolon disappear entirely.
+	 */
+	private static void flushLine(StringBuilder text, StringBuilder line,
+			boolean lineTouched) {
+		String rendered = line.toString();
+		line.setLength(0);
+		String trimmed = rendered.trim();
+		if (lineTouched && (trimmed.isEmpty() || trimmed.equals(";"))) {
+			return;
+		}
+		text.append(rendered).append('\n');
 	}
 
 	private static void appendIndent(StringBuilder line, int indent) {

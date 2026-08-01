@@ -109,7 +109,8 @@ public final class Wiz8RecoveryExporter {
 		}
 
 		try {
-			return printer.print(markup);
+			Msvc6Patterns.Analysis analysis = Msvc6Patterns.analyze(function, kind, results);
+			return printer.print(markup, analysis);
 		}
 		catch (Exception e) {
 			// A printer defect must never block the batch; fall back to the

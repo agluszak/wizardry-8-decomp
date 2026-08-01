@@ -64,6 +64,30 @@ uv run wiz8 ghidra export-cpp 0x004a5e50 0x004a5f00 0x004a5f20 0x004a6610 \
 Expected: every body carries its `// FUNCTION: WIZ8 0x…` marker; the scalar
 deleting destructor 0x004a5f00 prints exactly the two-line `SYNTHETIC` block
 from `src/wiz8/engine_code/GrCycle.cpp` and no body; ordinary functions match
-Ghidra's decompiler text byte for byte. Lifecycle lifting (constructor
-initializer lists, destructor tails, typed `new`/`delete`) lands in the next
-milestone; until then constructors and destructors print verbatim.
+Ghidra's decompiler text byte for byte.
+
+## Lifecycle lifting
+
+Constructors and destructors are lifted from the MSVC lowering back into
+C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
+
+- `Class::Class(params)` / `Class::~Class()` signatures without the explicit
+  `this` parameter or the lowered return type;
+- leading base/member subobject constructions become initializers (base
+  classes by the repository's `base`/`base_*` field convention); empty
+  argument lists stay implicit;
+- the compiler's null-preserving derived-to-base conversion
+  (`p == 0 ? 0 : &p->base_X`) collapses back into the `(X *)p` cast;
+- vftable-pointer stores into `this`, the VC6 `ExceptionList` registration
+  frame (link/handler/state slots, their declarations, and every state-slot
+  update), and trailing automatic member/base destructor calls disappear;
+- `T::~T(x); operator_delete(x);` and a direct
+  `'scalar_deleting_destructor'(x, flags)` call collapse to typed
+  `delete`/`delete[]`; `x = operator_new(n); T::T(x, …);` collapses to
+  `x = new T(…)`.
+
+Every rule declines on ambiguity: a constructor or destructor whose
+subobject lifecycle calls cannot all be proven prints fully verbatim, and a
+recognizer failure never blocks the batch. Virtual deleting-destructor
+dispatch, guarded allocation forms, member-store initializer placement, and
+`this->`/type-name cleanup are later-milestone work; expect them verbatim.
