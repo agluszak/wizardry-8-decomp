@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ghidra.app.decompiler.ClangFieldToken;
+import ghidra.app.decompiler.ClangToken;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
@@ -56,6 +58,27 @@ final class VtableResolver {
 	/** The repository's base-subobject field naming convention. */
 	static boolean isBaseFieldName(String fieldName) {
 		return fieldName.equals("base") || fieldName.startsWith("base_");
+	}
+
+	/**
+	 * Whether a field token denotes a proved base subobject. Structure/offset
+	 * evidence is preferred; the reviewed {@code base_*} codec is the one
+	 * isolated fallback when the project has not yet materialized richer
+	 * inheritance state.
+	 */
+	boolean isBaseField(ClangFieldToken field) {
+		DataType composite = resolve(field.getDataType());
+		if (composite instanceof Structure owner && isBaseOffset(owner, field.getOffset())) {
+			return true;
+		}
+		String name = field.getText();
+		return name != null && isBaseFieldName(name);
+	}
+
+	/** The isolated displayed-name fallback for Ghidra's vftable field token. */
+	boolean isVftableField(ClangToken token) {
+		return token instanceof ClangFieldToken && token.getText() != null &&
+			isVftableName(token.getText());
 	}
 
 	/** The class namespace with this name, else null. */

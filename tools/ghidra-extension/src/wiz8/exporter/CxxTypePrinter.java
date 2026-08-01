@@ -1,11 +1,22 @@
 package wiz8.exporter;
 
 import ghidra.program.model.data.Array;
+import ghidra.program.model.data.ArrayDataType;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.FunctionDefinition;
+import ghidra.program.model.data.FunctionDefinitionDataType;
+import ghidra.program.model.data.BitFieldDataType;
+import ghidra.program.model.data.IntegerDataType;
+import ghidra.program.model.data.InvalidDataTypeException;
 import ghidra.program.model.data.ParameterDefinition;
+import ghidra.program.model.data.ParameterDefinitionImpl;
 import ghidra.program.model.data.Pointer;
+import ghidra.program.model.data.PointerDataType;
+import ghidra.program.model.data.StructureDataType;
 import ghidra.program.model.data.TypeDef;
+import ghidra.program.model.data.TypedefDataType;
+import ghidra.program.model.data.Undefined;
+import ghidra.program.model.data.VoidDataType;
 import ghidra.program.model.listing.Parameter;
 
 /**
@@ -29,6 +40,53 @@ final class CxxTypePrinter {
 	private CxxTypePrinter() {
 	}
 
+	/**
+	 * Executable regression cases for declarator binding. They run when the
+	 * exporter class loads, so every supported live export lane verifies the
+	 * pointer/array/function/typedef cases that rendered-star parsing cannot
+	 * represent safely.
+	 */
+	static void verifyRegressionCases() {
+		DataType integer = IntegerDataType.dataType;
+		DataType object = new StructureDataType("W8Object", 1);
+		DataType objectPointer = new PointerDataType(object, 4);
+		FunctionDefinitionDataType callback = new FunctionDefinitionDataType("callback");
+		callback.setReturnType(VoidDataType.dataType);
+		callback.setArguments(new ParameterDefinitionImpl("object", objectPointer, null));
+		StructureDataType bitFieldHolder = new StructureDataType("BitFieldHolder", 0);
+		DataType bitField;
+		try {
+			bitField = bitFieldHolder.addBitField(integer, 3, "flags", null).getDataType();
+		}
+		catch (InvalidDataTypeException error) {
+			throw new IllegalStateException("cannot construct declarator bit-field fixture", error);
+		}
+		DataType[] cases = {
+			new PointerDataType(new PointerDataType(integer, 4), 4),
+			new ArrayDataType(new PointerDataType(integer, 4), 4, 4),
+			new PointerDataType(new ArrayDataType(integer, 4, 4), 4),
+			new ArrayDataType(new PointerDataType(callback, 4), 8, 4),
+			new TypedefDataType("SomeTypedef", integer),
+			bitField,
+		};
+		String[] names = {"value", "values", "values", "callbacks", "value", "flags"};
+		String[] expected = {
+			"int** value",
+			"int* values[4]",
+			"int (*values)[4]",
+			"void (*callbacks[8])(W8Object*)",
+			"SomeTypedef value",
+			"int flags",
+		};
+		for (int i = 0; i < cases.length; i++) {
+			String actual = printDeclaration(cases[i], names[i]);
+			if (!expected[i].equals(actual)) {
+				throw new IllegalStateException("declarator regression: expected " +
+					expected[i] + ", got " + actual);
+			}
+		}
+	}
+
 	/** The abstract type spelling, without a declared name. */
 	static String printType(DataType type) {
 		return printDeclaration(type, "").trim();
@@ -50,6 +108,16 @@ final class CxxTypePrinter {
 	}
 
 	private static String declare(DataType type, String inner) {
+		if (type != null && (Undefined.isUndefined(type) || "float10".equals(type.getName()))) {
+			String unresolved = "/* unresolved " + type.getName() + " */ unsigned char";
+			if (!inner.isEmpty() && type.getLength() > 1 && isPlainName(inner)) {
+				return unresolved + " " + inner + "[" + type.getLength() + "]";
+			}
+			return attach(unresolved, inner);
+		}
+		if (type instanceof BitFieldDataType bitField) {
+			return declare(bitField.getBaseDataType(), inner);
+		}
 		if (type instanceof TypeDef typedef) {
 			// The alias is a simple identifier, so no pointer/array binding
 			// below it ever needs parentheses.
@@ -88,6 +156,16 @@ final class CxxTypePrinter {
 				head + "(" + parameters + ")");
 		}
 		return attach(TypeNames.map(type == null ? "void" : type.getDisplayName()), inner);
+	}
+
+	private static boolean isPlainName(String inner) {
+		for (int i = 0; i < inner.length(); i++) {
+			char c = inner.charAt(i);
+			if (!Character.isJavaIdentifierPart(c)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private static String attach(String base, String inner) {

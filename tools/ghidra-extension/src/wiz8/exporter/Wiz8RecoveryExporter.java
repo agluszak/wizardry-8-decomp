@@ -48,6 +48,9 @@ import ghidra.util.task.TaskMonitor;
  * decompiled is reported inline as a comment; it never aborts the batch.
  */
 public final class Wiz8RecoveryExporter {
+	static {
+		CxxTypePrinter.verifyRegressionCases();
+	}
 
 	private Wiz8RecoveryExporter() {
 	}
@@ -58,27 +61,69 @@ public final class Wiz8RecoveryExporter {
 	 */
 	public static String export(Program program, long[] entryPoints, TaskMonitor monitor)
 			throws CancelledException {
+		return String.join("\n", exportFunctions(program, entryPoints, monitor));
+	}
+
+	/**
+	 * Export one independently bounded string per requested entry, preserving
+	 * request order.  This is the Java/Python protocol; callers never need to
+	 * split concatenated C++ by marker regex.
+	 */
+	public static String[] exportFunctions(Program program, long[] entryPoints,
+			TaskMonitor monitor) throws CancelledException {
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = openDecompiler(program, options);
 		try {
-			StringBuilder output = new StringBuilder();
+			String[] output = new String[entryPoints.length];
 			AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
 			FunctionManager functionManager = program.getFunctionManager();
-			for (long entryPoint : entryPoints) {
+			for (int i = 0; i < entryPoints.length; i++) {
 				monitor.checkCancelled();
-				if (output.length() > 0) {
-					output.append('\n');
-				}
+				long entryPoint = entryPoints[i];
 				Address entry = space.getAddress(entryPoint);
 				Function function = functionManager.getFunctionAt(entry);
 				if (function == null) {
-					output.append(String.format(
-						"// error: no function at 0x%08x%n", entryPoint));
+					output[i] = String.format(
+						"// error: no function at 0x%08x%n", entryPoint);
 					continue;
 				}
-				output.append(exportFunction(function, decompiler, options, monitor));
+				output[i] = exportFunction(function, decompiler, options, monitor);
 			}
-			return output.toString();
+			return output;
+		}
+		finally {
+			decompiler.dispose();
+		}
+	}
+
+	/**
+	 * Export the generated initializer suffix plus compound statement for each
+	 * requested function.  Prototype/body separation is performed on Clang
+	 * markup in Java, so regression tooling never parses C++ braces.
+	 */
+	public static String[] exportBodies(Program program, long[] entryPoints,
+			TaskMonitor monitor) throws CancelledException {
+		return exportBodies(program, entryPoints, new long[entryPoints.length], monitor);
+	}
+
+	public static String[] exportBodies(Program program, long[] entryPoints,
+			long[] referenceMasks, TaskMonitor monitor) throws CancelledException {
+		if (referenceMasks.length != entryPoints.length) {
+			throw new IllegalArgumentException("reference mask count must match entries");
+		}
+		DecompileOptions options = new DecompileOptions();
+		DecompInterface decompiler = openDecompiler(program, options);
+		try {
+			String[] output = new String[entryPoints.length];
+			AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
+			FunctionManager functions = program.getFunctionManager();
+			for (int i = 0; i < entryPoints.length; i++) {
+				monitor.checkCancelled();
+				Function function = functions.getFunctionAt(space.getAddress(entryPoints[i]));
+				output[i] = function == null ? ""
+					: exportFunctionBody(function, referenceMasks[i], decompiler, options, monitor);
+			}
+			return output;
 		}
 		finally {
 			decompiler.dispose();
@@ -248,8 +293,46 @@ public final class Wiz8RecoveryExporter {
 		catch (Exception e) {
 			// A printer defect must never block the batch; fall back to the
 			// decompiler's own flat rendering, flagged as the defect it is.
-			return printer.marker() + "\n" + results.getDecompiledFunction().getC() +
+			String decompiled = results.getDecompiledFunction().getC();
+			return printer.marker() + "\n" + decompiled +
+				(decompiled.endsWith("\n") ? "" : "\n") +
 				"// exporter-defect: print: " + e + "\n";
+		}
+	}
+
+	private static String exportFunctionBody(Function function, long referenceMask,
+			DecompInterface decompiler,
+			DecompileOptions options, TaskMonitor monitor) {
+		FunctionKind kind = FunctionKind.classify(function);
+		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR ||
+			!(function.getProgram().getListing().getCodeUnitAt(function.getEntryPoint())
+				instanceof Instruction)) {
+			return "";
+		}
+		DecompileResults results = decompiler.decompileFunction(function,
+			options.getDefaultTimeout(), monitor);
+		ClangTokenGroup markup = results.getCCodeMarkup();
+		if (!results.decompileCompleted() || markup == null) {
+			return "";
+		}
+		try {
+			Msvc6Patterns.Analysis analysis =
+				Msvc6Patterns.analyze(function, kind, results, referenceMask);
+			String body = new Wiz8CxxPrinter(function, kind).printBody(markup, analysis);
+			if (analysis.defects.isEmpty()) {
+				return body;
+			}
+			StringBuilder flagged = new StringBuilder(body);
+			if (!body.endsWith("\n")) {
+				flagged.append('\n');
+			}
+			for (String defect : analysis.defects) {
+				flagged.append("// exporter-defect: ").append(defect).append('\n');
+			}
+			return flagged.toString();
+		}
+		catch (Exception error) {
+			return "// exporter-defect: body: " + error + "\n";
 		}
 	}
 

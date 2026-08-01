@@ -223,6 +223,40 @@ class Indexer {
     return hasThis(semanticKind) ? "__thiscall" : "__cdecl";
   }
 
+  std::string sourceSignature(const FunctionDecl* function, llvm::StringRef qualifiedName,
+                              llvm::StringRef semanticKind, llvm::StringRef returnType,
+                              llvm::StringRef convention) const {
+    std::string signature;
+    if (semanticKind != "constructor" && semanticKind != "destructor") {
+      signature += returnType.str();
+      signature += " ";
+      if (convention != "__cdecl" && convention != "__thiscall") {
+        signature += convention.str();
+        signature += " ";
+      }
+    }
+    signature += qualifiedName.str();
+    signature += "(";
+    for (unsigned index = 0; index < function->getNumParams(); ++index) {
+      if (index) signature += ", ";
+      const ParmVarDecl* parameter = function->getParamDecl(index);
+      signature += typeName(parameter->getOriginalType());
+      if (!parameter->getName().empty()) {
+        signature += " ";
+        signature += parameter->getNameAsString();
+      }
+    }
+    if (function->isVariadic()) {
+      if (function->getNumParams()) signature += ", ";
+      signature += "...";
+    }
+    signature += ")";
+    if (const auto* method = dyn_cast<CXXMethodDecl>(function); method && method->isConst()) {
+      signature += " const";
+    }
+    return signature;
+  }
+
   void emitDeclaration(const FunctionDecl* function, const Location& location) {
     const DeclContext* context = function->getDeclContext();
     bool isMember = isa<CXXRecordDecl>(context);
@@ -252,13 +286,21 @@ class Indexer {
     std::vector<std::string> parameters = parameterTypes(function);
     llvm::json::Array parameterTypes;
     for (const std::string& parameter : parameters) parameterTypes.push_back(parameter);
+	llvm::json::Array parameterReferences;
+	for (const ParmVarDecl* parameter : function->parameters()) {
+	  parameterReferences.push_back(parameter->getOriginalType()->isReferenceType());
+	}
 
+	std::string convention = callingConvention(functionType, semanticKind);
     llvm::json::Object record{
         {"record", "declaration"},
         {"semantic_id", semanticId(function, qualifiedName, parameters)},
         {"qualified_name", qualifiedName},
         {"semantic_kind", semanticKind},
-        {"calling_convention", callingConvention(functionType, semanticKind)},
+		{"calling_convention", convention},
+		{"source_signature",
+		 sourceSignature(function, qualifiedName, semanticKind, returnType, convention)},
+		{"parameter_references", std::move(parameterReferences)},
         {"return_type", returnType},
         {"parameter_types", std::move(parameterTypes)},
         {"owning_class", isMember ? llvm::json::Value(scope) : llvm::json::Value(nullptr)},

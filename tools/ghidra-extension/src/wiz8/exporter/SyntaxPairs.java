@@ -22,9 +22,8 @@ final class SyntaxPairs {
 
 	/**
 	 * The index in {@code tokens} of the token closing the pair opened at
-	 * {@code open}, or -1. Falls back to depth counting when the markup
-	 * carries no pair id for the opener, so a caller never loses the match
-	 * it would have found before.
+	 * {@code open}, or -1. Missing pair identity is ambiguous and therefore
+	 * declines; semantic transformations never restore textual depth parsing.
 	 */
 	static int matchingClose(List<ClangToken> tokens, int open) {
 		if (tokens.get(open) instanceof ClangSyntaxToken opener && opener.getOpen() >= 0) {
@@ -36,19 +35,6 @@ final class SyntaxPairs {
 				}
 			}
 			return -1;
-		}
-		int depth = 0;
-		for (int i = open; i < tokens.size(); i++) {
-			String text = tokens.get(i).getText();
-			if ("(".equals(text)) {
-				depth++;
-			}
-			else if (")".equals(text)) {
-				depth--;
-				if (depth == 0) {
-					return i;
-				}
-			}
 		}
 		return -1;
 	}

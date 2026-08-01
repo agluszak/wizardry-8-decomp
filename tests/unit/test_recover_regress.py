@@ -13,46 +13,35 @@ from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     compile_diagnostics,
+    exported_blocks,
     graft_source_signature,
     insert_lines,
     marker_span,
     place_address,
     splice_lines,
-    split_export_blocks,
     suggest_includes,
 )
 
-EXPORT_TEXT = """\
-// FUNCTION: WIZ8 0x004a5e50
 
-W8GrCycle::W8GrCycle()
-
-{
-  m_plsLights = 0;
-}
-
-// SYNTHETIC: WIZ8 0x004a5f00
-// W8GrCycle::`scalar deleting destructor'
-
-// FUNCTION: WIZ8 0x004a6e20
-void W8GrCycle::TickAnimation(float scale)
-{
-}
-"""
-
-
-def test_split_export_blocks_keys_blocks_by_address() -> None:
-    blocks = split_export_blocks(EXPORT_TEXT)
+def test_exported_blocks_uses_structured_per_entry_results() -> None:
+    blocks = exported_blocks(
+        {
+            "exports": [
+                {"entry": "0x004a5e50", "text": "constructor\n"},
+                {"entry": "0x004a5f00", "text": "destructor\n"},
+                {"entry": "0x004a6e20", "text": "method\n"},
+            ]
+        }
+    )
     assert sorted(blocks) == [0x4A5E50, 0x4A5F00, 0x4A6E20]
-    assert blocks[0x4A5E50].startswith("// FUNCTION: WIZ8 0x004a5e50\n")
-    assert blocks[0x4A5E50].endswith("}\n")
-    assert "scalar deleting destructor" in blocks[0x4A5F00]
-    assert blocks[0x4A6E20].endswith("{\n}\n")
+    assert blocks[0x4A5E50] == "constructor\n"
+    assert blocks[0x4A5F00] == "destructor\n"
+    assert blocks[0x4A6E20] == "method\n"
 
 
-def test_split_export_blocks_drops_trailing_blank_lines() -> None:
-    blocks = split_export_blocks("// FUNCTION: WIZ8 0x00000010\nbody\n\n\n")
-    assert blocks[0x10] == "// FUNCTION: WIZ8 0x00000010\nbody\n"
+def test_exported_blocks_does_not_parse_or_normalize_cpp_text() -> None:
+    text = "body\n\n\n"
+    assert exported_blocks({"exports": [{"entry": "0x10", "text": text}]}) == {0x10: text}
 
 
 def test_marker_span_covers_marker_line_through_end_line() -> None:
@@ -152,22 +141,18 @@ def test_insert_lines_adds_a_separating_blank_line() -> None:
 
 
 def test_graft_keeps_the_source_declaration_and_takes_the_exported_body() -> None:
-    source = (
-        "// FUNCTION: WIZ8 0x004a6e20\n"
-        "/* prose the source owns */\n"
-        "void W8GrCycle::TickAnimation(const W8Timer& timer)\n"
-        "{\n"
-        "    old_body();\n"
-        "}\n"
-    )
-    exported = (
-        "// FUNCTION: WIZ8 0x004a6e20\n"
-        "void __thiscall W8GrCycle::TickAnimation(W8GrCycle *this, W8Timer *param_1)\n"
-        "{\n"
-        "  new_body();\n"
-        "}\n"
-    )
-    grafted = graft_source_signature(source, exported)
+    marker = {
+        "address": 0x4A6E20,
+        "declaration": {
+            "source_signature": (
+                "void W8GrCycle::TickAnimation(const W8Object* const* objects, "
+                "const W8Timer& timer)"
+            )
+        },
+    }
+    grafted = graft_source_signature(marker, "{\n  new_body();\n}\n")
+    assert grafted is not None
+    assert "const W8Object* const* objects" in grafted
     assert "const W8Timer& timer" in grafted
     assert "__thiscall" not in grafted
     assert "new_body();" in grafted
@@ -175,41 +160,41 @@ def test_graft_keeps_the_source_declaration_and_takes_the_exported_body() -> Non
 
 
 def test_graft_takes_the_exported_initializer_list() -> None:
-    source = (
-        "// FUNCTION: WIZ8 0x004ae000\n"
-        "W8Effect::W8Effect(const W8Effect& other)\n"
-        "    : old_init(other.a),\n"
-        "      old_more(other.b)\n"
-        "{\n"
-        "    old_body();\n"
-        "}\n"
-    )
-    exported = (
-        "// FUNCTION: WIZ8 0x004ae000\n"
-        "W8Effect::W8Effect(W8Effect *param_1)\n"
-        "    : new_init(param_1->a)\n"
-        "{\n"
-        "  new_body();\n"
-        "}\n"
-    )
-    grafted = graft_source_signature(source, exported)
+    marker = {
+        "address": 0x4AE000,
+        "declaration": {"source_signature": "W8Effect::W8Effect(const W8Effect& other)"},
+    }
+    grafted = graft_source_signature(marker, "    : new_init(param_1->a)\n{\n  new_body();\n}\n")
+    assert grafted is not None
     assert "const W8Effect& other" in grafted
     assert "new_init(param_1->a)" in grafted
     assert "old_init" not in grafted
     assert "old_more" not in grafted
 
 
-def test_graft_falls_back_when_a_block_lacks_the_body_brace() -> None:
-    exported = "// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n"
-    assert graft_source_signature("// FUNCTION: WIZ8 0x1\nno brace here\n", exported) == exported
-    one_line = "// FUNCTION: WIZ8 0x1\nvoid f() { body(); }\n"
-    assert graft_source_signature("// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n", one_line) == one_line
+def test_graft_declines_without_compiler_indexed_signature() -> None:
+    assert graft_source_signature({"address": 1, "declaration": {}}, "{\n}\n") is None
 
 
 def test_suggest_includes_names_declaring_headers(tmp_path) -> None:
-    header = tmp_path / "include" / "wiz8" / "chunk.h"
-    header.parent.mkdir(parents=True)
-    header.write_text("#pragma once\nclass W8Chunk {\n};\n", encoding="utf-8")
+    import json
+
+    index = tmp_path / "build" / "source-index.json"
+    index.parent.mkdir(parents=True)
+    index.write_text(
+        json.dumps(
+            {
+                "classes": [
+                    {
+                        "qualified_name": "W8Chunk",
+                        "source_file": "include/wiz8/chunk.h",
+                    }
+                ],
+                "declarations": [],
+            }
+        ),
+        encoding="utf-8",
+    )
     diagnostics = [
         "GrCycle.cpp(10) : error C2065: 'W8Chunk' : undeclared identifier",
         "GrCycle.cpp(11) : error C2065: 'SBORROW4' : undeclared identifier",
