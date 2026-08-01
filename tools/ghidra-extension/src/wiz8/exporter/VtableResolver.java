@@ -52,7 +52,7 @@ final class VtableResolver {
 
 	/** Whether the symbol name is a vftable spelling (any for-clause). */
 	static boolean isVftableName(String symbolName) {
-		return FunctionKind.normalizeSpecialName(symbolName).startsWith("vftable");
+		return SpecialNames.normalize(symbolName).startsWith("vftable");
 	}
 
 	/** The repository's base-subobject field naming convention. */
@@ -109,7 +109,7 @@ final class VtableResolver {
 	Symbol primaryVftable(Namespace namespace) {
 		Symbol primary = null;
 		for (Symbol symbol : vftables(namespace)) {
-			if (FunctionKind.normalizeSpecialName(symbol.getName()).equals("vftable")) {
+			if (SpecialNames.normalize(symbol.getName()).equals("vftable")) {
 				if (primary != null) {
 					return null; // ambiguous
 				}
@@ -155,7 +155,7 @@ final class VtableResolver {
 		String wanted = squeeze("vftable{for" + TypeNames.map(typeName) + "}");
 		Symbol match = null;
 		for (Symbol symbol : vftables(namespace)) {
-			if (squeeze(FunctionKind.normalizeSpecialName(symbol.getName())).equals(wanted)) {
+			if (squeeze(SpecialNames.normalize(symbol.getName())).equals(wanted)) {
 				if (match != null) {
 					return null; // ambiguous
 				}

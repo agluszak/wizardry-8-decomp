@@ -76,6 +76,20 @@ comment.
 
 ## Lifecycle lifting
 
+`FunctionRoleResolver` separates the source entity from the binary emission.
+Reviewed `wiz8:source:*`, `wiz8:role:*`, and `wiz8:origin:*` Ghidra tags take
+precedence, followed by original Microsoft decorated symbols, thunk/call-graph
+metadata, and one centralized special-symbol fallback. Scalar and vector
+deleting destructors are distinct emissions and never print authored bodies.
+`LifecycleFamilyResolver` adds namespace members, vftable slots, canonical
+thunk targets, and structurally proved deleting wrappers to class export;
+`wiz8 recover explain --class T` reports the evidence for the whole family.
+
+The pinned `lifecycle_probe.cpp` fixture is built by
+`wiz8 ghidra fid probe-toolchain`; it retains ordinary, multiple-inheritance,
+virtual-base, array, class-allocator, static, template, inline, and EH lifetime
+families for disposable-project exporter tests.
+
 Constructors and destructors are lifted from the MSVC lowering back into
 C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
 
@@ -89,16 +103,15 @@ C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
 - vftable-pointer stores into `this`, the VC6 `ExceptionList` registration
   frame (link/handler/state slots, their declarations, and every state-slot
   update), and trailing automatic member/base destructor calls disappear;
-- `T::~T(x); operator_delete(x);` and a direct
-  `'scalar_deleting_destructor'(x, flags)` call collapse to typed
-  `delete`/`delete[]`; `x = operator_new(n); T::T(x, …);` collapses to
+- `T::~T(x); operator_delete(x);` and direct scalar/vector deleting-wrapper
+  calls collapse to typed `delete`/`delete[]` only for the ABI-valid flag
+  values of that exact wrapper role; `x = operator_new(n); T::T(x, …);` collapses to
   `x = new T(…)`.
 
 Every rule declines on ambiguity: a constructor or destructor whose
 subobject lifecycle calls cannot all be proven prints fully verbatim, and a
-recognizer failure never blocks the batch. Guarded allocation forms and
-member-store initializer placement are later-milestone work; expect them
-verbatim.
+recognizer failure never blocks the batch. Scalar member-store placement may
+remain in the body where initializer-list placement is not uniquely proved.
 
 ## Passes, containment, and the transformation trace
 

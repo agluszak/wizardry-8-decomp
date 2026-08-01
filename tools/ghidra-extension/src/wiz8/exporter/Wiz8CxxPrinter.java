@@ -35,16 +35,19 @@ public final class Wiz8CxxPrinter {
 
 	private final Function function;
 	private final FunctionKind kind;
+	private final FunctionRole role;
 
 	public Wiz8CxxPrinter(Function function, FunctionKind kind) {
 		this.function = function;
 		this.kind = kind;
+		this.role = FunctionRoleResolver.resolve(function);
 	}
 
 	/** The reccmp entity marker line for this function. */
 	public String marker() {
-		String prefix =
-			kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR ? "SYNTHETIC" : "FUNCTION";
+		String prefix = role.sourceKind() == SourceKind.LIBRARY_ENTITY ? "LIBRARY"
+			: role.sourceKind() == SourceKind.TEMPLATE_MEMBER ? "TEMPLATE"
+				: role.hasAuthoredBody() ? "FUNCTION" : "SYNTHETIC";
 		return String.format("// %s: WIZ8 0x%08x", prefix,
 			function.getEntryPoint().getOffset());
 	}
@@ -54,9 +57,33 @@ public final class Wiz8CxxPrinter {
 	 * The deleting destructor is compiler output; only its address is recorded.
 	 */
 	public String printSynthetic() {
-		String owner = TypeNames.map(function.getParentNamespace().getName(true));
-		return marker() + "\n// " + owner + "::" +
-			FunctionKind.decorateSpecialName(function.getName()) + "\n";
+		if (role.sourceKind() == SourceKind.LIBRARY_ENTITY) {
+			return marker() + "\n";
+		}
+		Function canonical = role.canonicalFunction();
+		String owner = TypeNames.map((canonical != null
+			? canonical.getParentNamespace() : function.getParentNamespace()).getName(true));
+		if (role.sourceKind() == SourceKind.TEMPLATE_MEMBER) {
+			return marker() + "\n// " + owner + "::" +
+				TypeNames.map(function.getName()) + "\n";
+		}
+		if ((role.emissionKind() == EmissionKind.ADJUSTOR_THUNK ||
+			role.emissionKind() == EmissionKind.COVARIANT_RETURN_THUNK) &&
+			canonical != null) {
+			String source = CallableIdentity.sourceName(canonical,
+				FunctionKind.classify(canonical));
+			return marker() + "\n// " + owner + "::" + source + " (" +
+				role.emissionKind().name().toLowerCase().replace('_', ' ') +
+				" emission)\n";
+		}
+		String normalized = SpecialNames.normalize(function.getName());
+		String special = role.emissionKind() == EmissionKind.SCALAR_DELETING_DESTRUCTOR
+			? "`scalar deleting destructor'"
+			: role.emissionKind() == EmissionKind.VECTOR_DELETING_DESTRUCTOR
+				? normalized.contains("adjustor{") ? SpecialNames.decorate(function.getName())
+					: "`vector deleting destructor'"
+				: SpecialNames.decorate(role.emissionKind().name().toLowerCase());
+		return marker() + "\n// " + owner + "::" + special + "\n";
 	}
 
 	/**
@@ -328,7 +355,7 @@ public final class Wiz8CxxPrinter {
 		if (text.matches("'(?:[^'\\\\]|\\\\.|\\\\x[0-9a-fA-F]{1,2}|\\\\[0-7]{1,3})'")) {
 			return text; // a real single-character literal
 		}
-		return FunctionKind.normalizeSpecialName(text).replace(' ', '_');
+		return SpecialNames.normalize(text).replace(' ', '_');
 	}
 
 	/**

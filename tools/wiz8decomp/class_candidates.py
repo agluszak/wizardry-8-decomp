@@ -19,10 +19,12 @@ def classify_candidates(
 ) -> list[dict[str, Any]]:
     """One candidate per zero-displacement vftable write, writers classified.
 
-    A writer that is also the vtable's slot 0 target is MSVC's scalar
-    deleting destructor writing the vtable during destruction; every other
-    writer is a constructor or the complete destructor, which this evidence
-    alone cannot separate. Other tables installed by the same writer remain
+    A writer that is also the vtable's slot 0 target is a deleting-destructor
+    candidate writing the vtable during destruction. This observation cannot
+    distinguish the scalar and vector wrapper roles; that needs an original
+    Microsoft symbol or a reviewed Ghidra tag. Every other writer is a
+    constructor or complete destructor, which this evidence alone also cannot
+    separate. Other tables installed by the same writer remain
     co-installation observations: their raw store displacements do not prove
     root-relative placement, composition, or inheritance.
 
@@ -91,14 +93,16 @@ def classify_candidates(
                     for value in (row.get("allocation_sizes") or "").split("|")
                     if value
                 ),
-                # MSVC places the scalar deleting destructor in slot 0 of a
-                # class with a virtual destructor, but slot 0 is an ordinary
-                # virtual otherwise - so the strict claim needs the slot 0
-                # target to write the vtable itself, and the bare target is
-                # recorded separately as the hedged pointer for review.
+                # MSVC places a deleting wrapper in slot 0 of a class with a
+                # virtual destructor, but this observation cannot prove which
+                # wrapper variant it is. The strict candidate still requires
+                # the slot target to write the vtable itself.
                 "slot0_target": deleting,
-                "scalar_deleting_destructor": (
+                "deleting_destructor": (
                     deleting if deleting in zero_displacement_writers else None
+                ),
+                "deleting_destructor_role": (
+                    "unresolved" if deleting in zero_displacement_writers else None
                 ),
                 "constructor_or_destructor": constructors,
                 "co_installed_vtables": co_installed,

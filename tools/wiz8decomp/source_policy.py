@@ -7,7 +7,10 @@ from pathlib import Path
 from typing import Any
 
 SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".h", ".hpp"})
-SCALAR_DELETING_DECORATED = "`scalar deleting destructor'"
+DELETING_DESTRUCTOR_DECORATED = (
+    "`scalar deleting destructor'",
+    "`vector deleting destructor'",
+)
 IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
@@ -93,9 +96,9 @@ def validate_source_policy(repository: Path) -> dict[str, Any]:
                 problems.append(
                     f"{relative}:{line}: InstallVtable methods manually model compiler vptr writes"
                 )
-            elif normalized.endswith("scalardeletingdestructor"):
+            elif normalized.endswith(("scalardeletingdestructor", "vectordeletingdestructor")):
                 problems.append(
-                    f"{relative}:{line}: scalar-deleting destructors must be compiler-generated"
+                    f"{relative}:{line}: deleting destructors must be compiler-generated"
                 )
             elif identifier.casefold().startswith("g_vtable_"):
                 problems.append(
@@ -104,12 +107,12 @@ def validate_source_policy(repository: Path) -> dict[str, Any]:
 
         lines = source.splitlines()
         for index, line in enumerate(lines):
-            if SCALAR_DELETING_DECORATED not in line:
+            if not any(spelling in line for spelling in DELETING_DESTRUCTOR_DECORATED):
                 continue
             previous = lines[index - 1].strip() if index else ""
             if not previous.startswith("// SYNTHETIC:"):
                 problems.append(
-                    f"{relative}:{index + 1}: scalar-deleting wrapper evidence requires "
+                    f"{relative}:{index + 1}: deleting-wrapper evidence requires "
                     "an immediately preceding // SYNTHETIC: marker"
                 )
 

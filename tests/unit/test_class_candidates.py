@@ -63,7 +63,8 @@ def test_classify_separates_deleting_destructor_from_constructors() -> None:
     assert len(candidates) == 1
     candidate = candidates[0]
     assert candidate["vtable"] == 0x00500000
-    assert candidate["scalar_deleting_destructor"] == 0x00400100
+    assert candidate["deleting_destructor"] == 0x00400100
+    assert candidate["deleting_destructor_role"] == "unresolved"
     assert candidate["constructor_or_destructor"] == [0x00400200]
     assert candidate["co_installed_vtables"] == [(0x00500200, 0x18)]
     assert candidate["store_displacements"] == "0x0"

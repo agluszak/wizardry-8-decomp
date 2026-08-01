@@ -199,6 +199,15 @@ def test_export_cpp_rejects_mixed_or_empty_selection() -> None:
         export_cpp(object(), [], data=True)
 
 
+def test_explain_requires_one_function_or_class_selector() -> None:
+    from wiz8decomp.ghidra.export_cpp import explain_function
+
+    with pytest.raises(ValueError, match="exactly one"):
+        explain_function(object())
+    with pytest.raises(ValueError, match="exactly one"):
+        explain_function(object(), "0x401000", class_name="Example")
+
+
 def test_assemble_unit_reconstructs_marker_blocks_in_file_order() -> None:
     from wiz8decomp.ghidra.export_cpp import assemble_unit
 

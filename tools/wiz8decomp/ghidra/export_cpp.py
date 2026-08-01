@@ -389,11 +389,15 @@ def export_cpp(
 
 def explain_function(
     settings: Settings,
-    selection: str,
+    selection: str | None = None,
     *,
     program_selector: str = "wiz8",
+    class_name: str | None = None,
 ) -> dict[str, Any]:
-    """The per-pass transformation trace for one function."""
+    """Trace one function's passes or report a class's complete ABI family."""
+
+    if (selection is None) == (class_name is None):
+        raise ValueError("pass one function address or --class (exactly one)")
 
     jar_path = ensure_exporter_jar(settings)
 
@@ -407,9 +411,11 @@ def explain_function(
     import jpype
     import pyghidra
 
-    start, end = parse_selection(selection)
-    if end is not None:
-        raise ValueError("explain takes one plain address")
+    start: int | None = None
+    if selection is not None:
+        start, end = parse_selection(selection)
+        if end is not None:
+            raise ValueError("explain takes one plain address")
 
     project = pyghidra.open_project(settings.project_dir, settings.project_name, create=False)
     try:
@@ -417,10 +423,20 @@ def explain_function(
             exporter = jpype.JClass(_EXPORTER_CLASS)
             from ghidra.util.task import TaskMonitor
 
-            text = str(exporter.explain(program, start, TaskMonitor.DUMMY))
+            text = str(
+                exporter.explainClass(program, class_name, TaskMonitor.DUMMY)
+                if class_name is not None
+                else exporter.explain(program, start, TaskMonitor.DUMMY)
+            )
     finally:
         project.close()
-    return {"program": program_name, "address": f"0x{start:08x}", "text": text}
+    result = {"program": program_name, "text": text}
+    if class_name is not None:
+        result["class"] = class_name
+    else:
+        assert start is not None
+        result["address"] = f"0x{start:08x}"
+    return result
 
 
 def _kind_name(program: Any, entry: int) -> str:
@@ -431,5 +447,5 @@ def _kind_name(program: Any, entry: int) -> str:
     )
     if function is None:
         return "missing"
-    kind = jpype.JClass("wiz8.exporter.FunctionKind").classify(function)
-    return str(kind.name()).lower()
+    exporter = jpype.JClass(_EXPORTER_CLASS)
+    return str(exporter.emissionKind(program, entry))

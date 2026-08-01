@@ -1001,6 +1001,9 @@ def probe_toolchains(settings: Settings, toolchain_ids: list[str] | None = None)
         executable = output / "rich_probe.exe"
         if not executable.is_file():
             raise RuntimeError(f"{toolchain.id} did not produce rich_probe.exe")
+        lifecycle = output / "lifecycle_probe.exe"
+        if not lifecycle.is_file():
+            raise RuntimeError(f"{toolchain.id} did not produce lifecycle_probe.exe")
         records.append(
             {
                 "id": toolchain.id,
@@ -1009,6 +1012,10 @@ def probe_toolchains(settings: Settings, toolchain_ids: list[str] | None = None)
                 "commit": toolchain.commit,
                 "sha256": sha256_file(executable),
                 "rich_header": parse_rich_header(executable),
+                "lifecycle_fixture": {
+                    "sha256": sha256_file(lifecycle),
+                    "rich_header": parse_rich_header(lifecycle),
+                },
             }
         )
     result = {

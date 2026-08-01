@@ -34,4 +34,12 @@ def import_reccmp_source(settings: Settings, selector: str = "wiz8") -> dict[str
         ],
         cwd=settings.repo_dir / "build/decomp",
     )
-    return {"program": program_name, "importer": "reccmp", "command": asdict(result)}
+    from .function_roles import apply_source_role_tags
+
+    roles = apply_source_role_tags(settings, program_name)
+    return {
+        "program": program_name,
+        "importer": "reccmp",
+        "command": asdict(result),
+        "function_roles": roles,
+    }

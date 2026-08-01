@@ -104,7 +104,7 @@ final class Wiz8ClassPrinter {
 		String comment = String.format(" /* slot 0x%02x, 0x%08x */", slot,
 			target.getEntryPoint().getOffset());
 		Function resolved = target.isThunk() ? target.getThunkedFunction(true) : target;
-		if ("purecall".equals(FunctionKind.normalizeSpecialName(resolved.getName()))) {
+		if ("purecall".equals(SpecialNames.normalize(resolved.getName()))) {
 			out.append(String.format(
 				"    // slot 0x%02x: pure virtual; the vftable stores purecall and\n" +
 				"    // cannot name the original declaration.\n", slot));
@@ -118,10 +118,10 @@ final class Wiz8ClassPrinter {
 			return;
 		}
 		FunctionKind kind = FunctionKind.classify(target);
-		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+		if (kind.isDeletingDestructor()) {
 			out.append("    virtual ~").append(bareName(className)).append("();")
 					.append(String.format(" /* slot 0x%02x: %s 0x%08x */%n", slot,
-						FunctionKind.normalizeSpecialName(target.getName()),
+						SpecialNames.normalize(target.getName()),
 						target.getEntryPoint().getOffset()));
 			return;
 		}
