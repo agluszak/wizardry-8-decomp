@@ -112,6 +112,7 @@ public:
     virtual signed char GetTotalAnimationCount() = 0;
     virtual float GetCurrentAnimationScale() = 0;
     virtual W8EmitterHost* GetRepresentation() = 0;
+    void SetPosition004A6DF0(W8Position* position);
     virtual unsigned char GetAnimationBounds(
         W8Position* minimum, W8Position* maximum);
     virtual unsigned char GetAnimationRadius(float* radius);

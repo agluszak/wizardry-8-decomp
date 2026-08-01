@@ -35,6 +35,8 @@ final class MarkupIndex {
 	private final Map<PcodeOp, ClangStatement> statementByOp = new IdentityHashMap<>();
 	private final Map<HighSymbol, ClangVariableDecl> declarationBySymbol =
 		new IdentityHashMap<>();
+	private final Map<HighVariable, ClangVariableDecl> declarationByVariable =
+		new IdentityHashMap<>();
 	private final Map<HighVariable, List<ClangVariableToken>> usesByVariable =
 		new IdentityHashMap<>();
 	private final Map<Integer, ClangSyntaxToken> openerByPair = new LinkedHashMap<>();
@@ -45,7 +47,7 @@ final class MarkupIndex {
 		this.highFunction = highFunction;
 		this.blocks = BlockView.build(root);
 		List<ClangToken> all = new ArrayList<>();
-		index(root, null, all);
+		index(root, null, null, all);
 		this.tokens = Collections.unmodifiableList(all);
 	}
 
@@ -59,6 +61,10 @@ final class MarkupIndex {
 
 	ClangVariableDecl declarationFor(HighSymbol symbol) {
 		return declarationBySymbol.get(symbol);
+	}
+
+	ClangVariableDecl declarationFor(HighVariable variable) {
+		return declarationByVariable.get(variable);
 	}
 
 	List<ClangVariableToken> usesOf(HighVariable variable) {
@@ -79,8 +85,11 @@ final class MarkupIndex {
 	}
 
 	private void index(ClangNode node, ClangStatement containing,
+			ClangVariableDecl containingDeclaration,
 			List<ClangToken> all) {
 		ClangStatement statement = node instanceof ClangStatement current ? current : containing;
+		ClangVariableDecl activeDeclaration = node instanceof ClangVariableDecl current
+			? current : containingDeclaration;
 		if (node instanceof ClangStatement current && current.getPcodeOp() != null) {
 			statementByOp.putIfAbsent(current.getPcodeOp(), current);
 		}
@@ -103,6 +112,9 @@ final class MarkupIndex {
 				HighVariable high = variable.getHighVariable();
 				if (high != null) {
 					usesByVariable.computeIfAbsent(high, ignored -> new ArrayList<>()).add(variable);
+					if (activeDeclaration != null) {
+						declarationByVariable.putIfAbsent(high, activeDeclaration);
+					}
 				}
 			}
 			if (token instanceof ClangSyntaxToken syntax) {
@@ -116,7 +128,7 @@ final class MarkupIndex {
 		}
 		if (node instanceof ClangTokenGroup group) {
 			for (int i = 0; i < group.numChildren(); i++) {
-				index(group.Child(i), statement, all);
+				index(group.Child(i), statement, activeDeclaration, all);
 			}
 		}
 	}

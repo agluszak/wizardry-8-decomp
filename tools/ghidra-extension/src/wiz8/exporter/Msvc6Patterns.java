@@ -1,9 +1,11 @@
 package wiz8.exporter;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
@@ -195,12 +197,13 @@ final class Msvc6Patterns {
 		// Statement-local token rewrites run first so the lifecycle and
 		// allocation recognizers read their effective (already lifted) text.
 		runPass("call.virtual", this::rewriteVirtualCalls);
+		runPass("call.result-local", this::materializeCallResultLocals);
+		runPass("call.direct-member", this::rewriteMethodCalls);
 		runPass("expression.array-index", this::rewriteArrayIndexing);
 		runPass("expression.member-access", this::normalizeMemberAccess);
 		runPass("expression.source-reference", this::normalizeSourceReferences);
 		runPass("expression.null-cast", this::rewriteNullPointerCasts);
 		runPass("expression.null-upcast", this::rewriteNullPreservingUpcasts);
-		runPass("call.direct-member", this::rewriteMethodCalls);
 		runPass("literal.narrow-string", this::rewriteStringLiterals);
 		runPass("call.struct-return", this::rewriteStructReturns);
 
@@ -334,7 +337,7 @@ final class Msvc6Patterns {
 	 */
 	private static int passPriority(String pass) {
 		return pass != null && (pass.startsWith("lifecycle") || pass.startsWith("eh.") ||
-			pass.startsWith("allocation")) ? 2 : 1;
+			pass.startsWith("allocation") || pass.equals("call.result-local")) ? 2 : 1;
 	}
 
 	private boolean conflicts(ClangNode node) {
@@ -1806,12 +1809,13 @@ final class Msvc6Patterns {
 					": receiver class, vftable, or slot function unresolved");
 				continue;
 			}
-			FunctionKind slotKind = FunctionKind.classify(call.slot);
+			FunctionKind slotKind = call.slot.function == null ? FunctionKind.ORDINARY
+				: FunctionKind.classify(call.slot.function);
 			if (slotKind == FunctionKind.ORDINARY) {
 				String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
-				if (claimRange(line, start, close, prefix + call.slot.getName())) {
+				if (claimRange(line, start, close, prefix + call.slot.name)) {
 					trace("applied", currentPass,
-						prefix + call.slot.getName() + " " + site);
+						prefix + call.slot.name + " " + site);
 				}
 				continue;
 			}
@@ -1836,9 +1840,174 @@ final class Msvc6Patterns {
 			}
 			else {
 				trace("declined", currentPass, site + ": slot holds " +
-					call.slot.getName(true) + " (" + slotKind + "), not a callable rewrite");
+					call.slot.name + " (" + slotKind + "), not a callable rewrite");
 			}
 		}
+	}
+
+	/**
+	 * Preserve a virtual call result as a typed local when SSA proves that the
+	 * result is subsequently consumed only as a member-call receiver. The slot's
+	 * compiler-owned declaration supplies the type and source method identity;
+	 * HighVariable identity binds every rendered use. Token spellings contribute
+	 * neither meaning nor matching evidence.
+	 */
+	private void materializeCallResultLocals() {
+		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp operation = operations.next();
+			if (operation.getOpcode() != PcodeOp.CALLIND) {
+				continue;
+			}
+			if (operation.getNumInputs() < 1 || operation.getNumInputs() > 2 ||
+				operation.getOutput() == null) {
+				trace("declined", currentPass, "CALLIND @ " + operation.getSeqnum() +
+					": inputs=" + operation.getNumInputs() + ", output=" +
+					(operation.getOutput() != null));
+				continue;
+			}
+			VirtualCall call = resolveVirtualCall(operation);
+			HighVariable result = declaredCallResult(operation.getOutput());
+			HighSymbol symbol = result == null ? null : result.getSymbol();
+			ClangVariableDecl declaration = symbol == null ? null : markup.declarationFor(symbol);
+			if (declaration == null && result != null) {
+				declaration = markup.declarationFor(result);
+			}
+			ClangStatement definition = markup.statementFor(operation);
+			String localName = call == null ? null : callResultLocalName(call.slot.name);
+			if (call == null || call.slot.returnType == null ||
+				Undefined.isUndefined(call.slot.returnType) || result == null ||
+				declaration == null || definition == null || localName == null) {
+				if (call != null) {
+					trace("declined", currentPass, "CALLIND @ " + operation.getSeqnum() +
+						": return=" + call.slot.returnType + ", high=" + (result != null) +
+						", symbol=" + (symbol != null) + ", declaration=" +
+						(declaration != null) + ", statement=" + (definition != null));
+				}
+				continue;
+			}
+
+			Map<ClangStatement, String> receiverUses = new LinkedHashMap<>();
+			boolean unsupportedUse = false;
+			for (ClangVariableToken use : markup.usesOf(result)) {
+				if (isInside(use, declaration) || isInside(use, definition)) {
+					continue;
+				}
+				ClangStatement statement = containingStatement(use);
+				PcodeOp useOp = statement == null ? null : statement.getPcodeOp();
+				Function target = callee(useOp);
+				if (target == null || !(target.getParentNamespace() instanceof GhidraClass) ||
+					useOp.getNumInputs() < 2 ||
+					!traceableToHigh(useOp.getInput(1), result) || isClaimed(use)) {
+					unsupportedUse = true;
+					break;
+				}
+				List<String> arguments = callArgumentsAfterReceiver(statement, useOp);
+				if (arguments == null || receiverUses.containsKey(statement)) {
+					unsupportedUse = true;
+					break;
+				}
+				receiverUses.put(statement, localName + "->" + target.getName() + "(" +
+					String.join(", ", arguments) + ")");
+			}
+			if (unsupportedUse || receiverUses.isEmpty() || localNameInUse(localName, result)) {
+				trace("declined", currentPass, "CALLIND @ " + operation.getSeqnum() +
+					": result is ambiguous or has a non-receiver use");
+				continue;
+			}
+
+			String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
+			String initializer = CxxTypePrinter.printDeclaration(call.slot.returnType,
+				localName) + " = " + prefix + call.slot.name + "()";
+			if (conflicts(declaration) || conflicts(definition) ||
+				receiverUses.keySet().stream().anyMatch(this::conflicts)) {
+				continue;
+			}
+			claimReplace(declaration, initializer);
+			claimDrop(definition);
+			for (Map.Entry<ClangStatement, String> use : receiverUses.entrySet()) {
+				claimReplace(use.getKey(), use.getValue());
+			}
+			trace("applied", currentPass, initializer + " @ " + operation.getSeqnum() +
+				", " + receiverUses.size() + " receiver use(s)");
+		}
+	}
+
+	private boolean localNameInUse(String name, HighVariable except) {
+		for (ClangToken token : markup.tokens) {
+			if (token instanceof ClangVariableToken variable) {
+				HighVariable high = variable.getHighVariable();
+				if (high != null && high != except && name.equals(high.getName())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/** Follow the call-induced copy/cast chain to one rendered local variable. */
+	private HighVariable declaredCallResult(Varnode output) {
+		ArrayDeque<Varnode> pending = new ArrayDeque<>();
+		Set<Varnode> visited = new HashSet<>();
+		Set<HighVariable> candidates = new HashSet<>();
+		pending.add(output);
+		while (!pending.isEmpty()) {
+			Varnode current = pending.removeFirst();
+			if (!visited.add(current)) {
+				continue;
+			}
+			HighVariable high = current.getHigh();
+			if (high != null && markup.declarationFor(high) != null) {
+				candidates.add(high);
+			}
+			Iterator<PcodeOp> descendants = current.getDescendants();
+			while (descendants.hasNext()) {
+				PcodeOp descendant = descendants.next();
+				if (descendant.getOutput() == null ||
+					(descendant.getOpcode() != PcodeOp.COPY &&
+						descendant.getOpcode() != PcodeOp.CAST &&
+						descendant.getOpcode() != PcodeOp.INDIRECT)) {
+					continue;
+				}
+				pending.add(descendant.getOutput());
+			}
+		}
+		return candidates.size() == 1 ? candidates.iterator().next() : null;
+	}
+
+	private static String callResultLocalName(String method) {
+		if (method == null || !method.startsWith("Get") || method.length() <= 3) {
+			return null;
+		}
+		String stem = method.substring(3);
+		String name = Character.toLowerCase(stem.charAt(0)) + stem.substring(1);
+		if (!Character.isJavaIdentifierStart(name.charAt(0))) {
+			return null;
+		}
+		for (int i = 1; i < name.length(); i++) {
+			if (!Character.isJavaIdentifierPart(name.charAt(i))) {
+				return null;
+			}
+		}
+		return name;
+	}
+
+	private static boolean isInside(ClangNode node, ClangNode ancestor) {
+		for (ClangNode current = node; current != null; current = current.Parent()) {
+			if (current == ancestor) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static ClangStatement containingStatement(ClangNode node) {
+		for (ClangNode current = node; current != null; current = current.Parent()) {
+			if (current instanceof ClangStatement statement) {
+				return statement;
+			}
+		}
+		return null;
 	}
 
 	/** Locate the presentation pair around an exact CALLIND target token. */
@@ -1871,9 +2040,9 @@ final class Msvc6Patterns {
 	/** A resolved virtual call site: the receiver's spelling and the slot. */
 	private static final class VirtualCall {
 		final String receiver; // empty = implicit this
-		final Function slot;
+		final VtableResolver.Slot slot;
 
-		VirtualCall(String receiver, Function slot) {
+		VirtualCall(String receiver, VtableResolver.Slot slot) {
 			this.receiver = receiver;
 			this.slot = slot;
 		}
@@ -2010,8 +2179,9 @@ final class Msvc6Patterns {
 			}
 		}
 
-		Function slot = vtableSlotFunction(receiverClass, subobjectOffset, slotOffset);
-		if (slot == null || !(slot.getParentNamespace() instanceof GhidraClass)) {
+		VtableResolver.Slot slot = vtableSlot(receiverClass, subobjectOffset, slotOffset);
+		if (slot == null || (slot.function != null &&
+			!(slot.function.getParentNamespace() instanceof GhidraClass))) {
 			return null;
 		}
 		return new VirtualCall(receiver, slot);
@@ -2021,7 +2191,7 @@ final class Msvc6Patterns {
 	 * The function installed at byte offset {@code slotOffset} of the class's
 	 * vftable for the given subobject, through the shared resolver.
 	 */
-	private Function vtableSlotFunction(Structure receiverClass, long subobjectOffset,
+	private VtableResolver.Slot vtableSlot(Structure receiverClass, long subobjectOffset,
 			long slotOffset) {
 		if (slotOffset < 0 || slotOffset > 0x1000) {
 			return null;
@@ -2030,7 +2200,7 @@ final class Msvc6Patterns {
 		if (table == null) {
 			return null;
 		}
-		return vtables.slotFunction(table, slotOffset);
+		return vtables.slot(table, slotOffset);
 	}
 
 	/** The structure a pointer type points at, through typedefs; else null. */
@@ -2696,6 +2866,10 @@ final class Msvc6Patterns {
 				continue;
 			}
 			PcodeOp op = sig.get(i).getPcodeOp();
+			ClangStatement containing = markup.statementFor(op);
+			if (containing != null && isClaimed(containing)) {
+				continue;
+			}
 			Function target = callee(op);
 			if (target == null || op.getNumInputs() < 2 ||
 				!(target.getParentNamespace() instanceof GhidraClass) ||
@@ -2715,7 +2889,6 @@ final class Msvc6Patterns {
 			if (close < 0) {
 				continue;
 			}
-			ClangStatement containing = markup.statementFor(op);
 			List<List<ClangToken>> arguments = containing == null ? null
 				: callArgumentTokens(containing, op);
 			if (arguments == null) {
