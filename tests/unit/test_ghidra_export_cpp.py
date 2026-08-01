@@ -104,7 +104,7 @@ def test_missing_javac_names_the_jdk_requirement(
 def test_export_cpp_command_streams_raw_text_to_stdout(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(command_support, "settings", lambda: object())
 
-    def fake_export(settings, selections, *, program_selector, class_name, output):
+    def fake_export(settings, selections, *, program_selector, class_name, unit, data, output):
         assert selections == ["0x004a5e50"]
         assert program_selector == "wiz8"
         assert class_name is None
@@ -126,7 +126,7 @@ def test_export_cpp_command_reports_a_summary_for_file_output(
     monkeypatch.setattr(command_support, "settings", lambda: object())
     target = tmp_path / "out.cpp"
 
-    def fake_export(settings, selections, *, program_selector, class_name, output):
+    def fake_export(settings, selections, *, program_selector, class_name, unit, data, output):
         assert output == target
         return {
             "program": "wiz8",
@@ -151,7 +151,7 @@ def test_export_cpp_command_passes_the_class_selector(
 ) -> None:
     monkeypatch.setattr(command_support, "settings", lambda: object())
 
-    def fake_export(settings, selections, *, program_selector, class_name, output):
+    def fake_export(settings, selections, *, program_selector, class_name, unit, data, output):
         assert selections == []
         assert class_name == "W8GrCycle"
         return {"program": "wiz8", "functions": [], "text": "class W8GrCycle {\n};\n"}
@@ -162,10 +162,59 @@ def test_export_cpp_command_passes_the_class_selector(
     assert result.stdout == "class W8GrCycle {\n};\n"
 
 
-def test_export_cpp_rejects_mixed_class_and_address_selection() -> None:
+def test_export_cpp_rejects_mixed_or_empty_selection() -> None:
     from wiz8decomp.ghidra.export_cpp import export_cpp
 
-    with pytest.raises(ValueError, match="not both"):
+    with pytest.raises(ValueError, match="exactly one"):
         export_cpp(object(), ["0x004a5e50"], class_name="W8GrCycle")
-    with pytest.raises(ValueError, match="at least one"):
+    with pytest.raises(ValueError, match="exactly one"):
+        export_cpp(object(), ["0x004a5e50"], unit="src/wiz8/engine_code/GrCycle.cpp")
+    with pytest.raises(ValueError, match="exactly one"):
         export_cpp(object(), [])
+    with pytest.raises(ValueError, match="exactly one"):
+        export_cpp(object(), [], data=True)
+
+
+def test_assemble_unit_reconstructs_marker_blocks_in_file_order() -> None:
+    from wiz8decomp.ghidra.export_cpp import assemble_unit
+
+    markers = [
+        {"address": 0x20, "marker_kind": "FUNCTION", "line": 5},
+        {
+            "address": 0x30,
+            "marker_kind": "SYNTHETIC",
+            "line": 9,
+            "marker_name": "W8GrCycle::`scalar deleting destructor'",
+        },
+        {
+            "address": 0x40,
+            "marker_kind": "TEMPLATE",
+            "line": 12,
+            "marker_name": "W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>",
+        },
+        {"address": 0x50, "marker_kind": "LIBRARY", "line": 15},
+    ]
+    blocks = {0x20: "// FUNCTION: WIZ8 0x00000020\nvoid f()\n{\n}\n"}
+    text = assemble_unit(markers, blocks)
+    assert text == (
+        "// FUNCTION: WIZ8 0x00000020\nvoid f()\n{\n}\n"
+        "\n// SYNTHETIC: WIZ8 0x00000030\n// W8GrCycle::`scalar deleting destructor'\n"
+        "\n// TEMPLATE: WIZ8 0x00000040\n"
+        "// W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>\n"
+        "\n// LIBRARY: WIZ8 0x00000050\n"
+    )
+
+
+def test_assemble_unit_reports_a_missing_function_export() -> None:
+    from wiz8decomp.ghidra.export_cpp import assemble_unit
+
+    text = assemble_unit([{"address": 0x20, "marker_kind": "FUNCTION", "line": 1}], {})
+    assert text == "// error: no export for 0x00000020\n"
+
+
+def test_data_selections_reject_ranges() -> None:
+    from wiz8decomp.ghidra.export_cpp import _resolve_data_addresses
+
+    assert _resolve_data_addresses(["0x10", "0x0065be2c"]) == [0x10, 0x65BE2C]
+    with pytest.raises(ValueError, match="plain addresses"):
+        _resolve_data_addresses(["0x10:0x20"])

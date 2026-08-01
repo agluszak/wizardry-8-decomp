@@ -162,11 +162,35 @@ public final class Wiz8RecoveryExporter {
 		return decompiler;
 	}
 
+	/**
+	 * Export the data at the given addresses as recovered-style global
+	 * definitions with {@code // GLOBAL:} markers, in the given order.
+	 */
+	public static String exportData(Program program, long[] addresses, TaskMonitor monitor) {
+		Wiz8DataPrinter printer = new Wiz8DataPrinter(program);
+		StringBuilder output = new StringBuilder();
+		AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
+		for (long address : addresses) {
+			if (output.length() > 0) {
+				output.append('\n');
+			}
+			output.append(printer.print(space.getAddress(address)));
+		}
+		return output.toString();
+	}
+
 	private static String exportFunction(Function function, DecompInterface decompiler,
 			DecompileOptions options, TaskMonitor monitor) {
 		FunctionKind kind = FunctionKind.classify(function);
 		Wiz8CxxPrinter printer = new Wiz8CxxPrinter(function, kind);
 
+		if (function.getParentNamespace() instanceof GhidraClass owner &&
+			owner.getName().indexOf('[') >= 0 &&
+			kind != FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+			// A bracket-encoded namespace marks a template specialization
+			// member: record the emission, never print a body for it.
+			return templateEmissionBlock(function);
+		}
 		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
 			return printer.printSynthetic();
 		}

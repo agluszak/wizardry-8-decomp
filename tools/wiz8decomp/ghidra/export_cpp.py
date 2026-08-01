@@ -180,18 +180,66 @@ def _resolve_entries(program: Any, selections: list[str]) -> list[int]:
     return ordered
 
 
+def unit_markers(repo_dir: Path, unit: str) -> list[dict[str, Any]]:
+    """The unit's markers in file order.
+
+    Git owns the matching markers, so for whole-unit export the source
+    index's marker kinds override Ghidra's name-based classification:
+    SYNTHETIC/TEMPLATE blocks are reconstructed from the recorded symbol and
+    only FUNCTION-marked addresses are decompiled.
+    """
+
+    from ..source_model import load_source_index
+
+    markers = [
+        marker for marker in load_source_index(repo_dir)["markers"] if marker["source_file"] == unit
+    ]
+    if not markers:
+        raise ValueError(f"no markers recorded for translation unit {unit}")
+    markers.sort(key=lambda marker: marker["line"])
+    return markers
+
+
+def assemble_unit(markers: list[dict[str, Any]], blocks: dict[int, str]) -> str:
+    """Join per-marker blocks in file order into the unit's export text."""
+
+    parts: list[str] = []
+    for marker in markers:
+        address = marker["address"]
+        kind = marker["marker_kind"]
+        if kind == "FUNCTION":
+            parts.append(blocks.get(address, f"// error: no export for 0x{address:08x}\n"))
+        elif kind in {"SYNTHETIC", "TEMPLATE"}:
+            parts.append(f"// {kind}: WIZ8 0x{address:08x}\n// {marker['marker_name']}\n")
+        else:
+            parts.append(f"// {kind}: WIZ8 0x{address:08x}\n")
+    return "\n".join(parts)
+
+
+def _resolve_data_addresses(selections: list[str]) -> list[int]:
+    addresses: list[int] = []
+    for selection in selections:
+        start, end = parse_selection(selection)
+        if end is not None:
+            raise ValueError(f"--data takes plain addresses, not ranges: {selection!r}")
+        addresses.append(start)
+    return addresses
+
+
 def export_cpp(
     settings: Settings,
     selections: list[str],
     *,
     program_selector: str = "wiz8",
     class_name: str | None = None,
+    unit: str | None = None,
+    data: bool = False,
     output: Path | None = None,
 ) -> dict[str, Any]:
-    if class_name is not None and selections:
-        raise ValueError("pass either address selections or --class, not both")
-    if class_name is None and not selections:
-        raise ValueError("at least one address or range selection is required")
+    if sum([class_name is not None, unit is not None, bool(selections)]) != 1:
+        raise ValueError("pass address selections, --class, or --unit (exactly one)")
+    if data and not selections:
+        raise ValueError("--data takes plain addresses only")
     jar_path = ensure_exporter_jar(settings)
 
     from .environment import start_pyghidra
@@ -216,6 +264,32 @@ def export_cpp(
             if class_name is not None:
                 text = str(exporter.exportClass(program, class_name, TaskMonitor.DUMMY))
                 functions = []
+            elif data:
+                entries = _resolve_data_addresses(selections)
+                text = str(
+                    exporter.exportData(
+                        program, jpype.JArray(jpype.JLong)(entries), TaskMonitor.DUMMY
+                    )
+                )
+                functions = [{"entry": f"0x{entry:08x}", "kind": "data"} for entry in entries]
+            elif unit is not None:
+                from ..recover import split_export_blocks
+
+                markers = unit_markers(settings.repo_dir, unit)
+                entries = [
+                    marker["address"] for marker in markers if marker["marker_kind"] == "FUNCTION"
+                ]
+                raw = str(
+                    exporter.export(program, jpype.JArray(jpype.JLong)(entries), TaskMonitor.DUMMY)
+                )
+                text = assemble_unit(markers, split_export_blocks(raw))
+                functions = [
+                    {
+                        "entry": f"0x{marker['address']:08x}",
+                        "kind": marker["marker_kind"].lower(),
+                    }
+                    for marker in markers
+                ]
             else:
                 entries = _resolve_entries(program, selections)
                 text = str(
@@ -242,6 +316,8 @@ def export_cpp(
     }
     if class_name is not None:
         result["class"] = class_name
+    if unit is not None:
+        result["unit"] = unit
     if output is not None:
         atomic_write(output, text)
         result["outputs"] = [str(output)]

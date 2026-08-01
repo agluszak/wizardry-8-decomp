@@ -64,6 +64,20 @@ def export_cpp_command(
             "in address order (marker-only blocks for template classes).",
         ),
     ] = None,
+    unit: Annotated[
+        str | None,
+        typer.Option(
+            "--unit",
+            help="Export every marker a translation unit owns, in file order "
+            "(LIBRARY markers stay address-only and are skipped).",
+        ),
+    ] = None,
+    data: bool = typer.Option(
+        False,
+        "--data",
+        help="Treat the selections as global data addresses and export typed "
+        "definitions with GLOBAL markers.",
+    ),
     output: Annotated[
         Path | None,
         typer.Option("--output", help="Write the C++ to this file instead of stdout."),
@@ -81,6 +95,8 @@ def export_cpp_command(
             list(selections or []),
             program_selector=program,
             class_name=class_name,
+            unit=unit,
+            data=data,
             output=output,
         )
         if output is None:

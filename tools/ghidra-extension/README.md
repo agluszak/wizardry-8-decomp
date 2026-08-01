@@ -207,6 +207,29 @@ header, and a body under a `TEMPLATE` marker would mistake an emission for
 authored code. Multi-argument specializations spell without a space after
 the comma, byte-identical to the recovered markers.
 
+## Whole-unit export and typed data (M8)
+
+`--unit src/wiz8/engine_code/GrCycle.cpp` exports every marker the
+translation unit owns, in file order. Git owns the matching markers, so the
+source index's marker kinds override Ghidra's name-based classification:
+FUNCTION-marked addresses are decompiled, SYNTHETIC/TEMPLATE blocks are
+reconstructed byte-for-byte from the recorded symbol (so an unnamed
+`FUN_…` deleting destructor still prints its correct marker block), and
+LIBRARY markers stay address-only lines.
+
+`--data 0xADDR…` exports globals as typed definitions under `// GLOBAL:`
+markers (`Wiz8DataPrinter.java`). Only image-proven shapes are lifted:
+integer/float scalars (a zero value in an initialized block prints without
+an initializer, matching the recovered sources), narrow strings, pointers
+to named symbols or null, flat arrays/structures of scalars. A defined
+string datum prints as a comment naming the literal — it is anonymous in
+source and its synthetic Ghidra name is not an identifier. Undefined data,
+nested composites, and unnamed pointer targets decline to a comment.
+
+Additionally, a plain address export of a function whose owning namespace
+is a bracket-encoded template class prints the TEMPLATE emission block
+instead of a body.
+
 ## Regression harness
 
 `uv run wiz8 recover regress 0x004a5e50 …` measures zero-edit
