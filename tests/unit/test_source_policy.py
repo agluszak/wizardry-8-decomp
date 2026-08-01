@@ -17,6 +17,7 @@ def _write_source(repository: Path, source: str) -> None:
         "void Example::install_vtable() {}",
         "void Example_ScalarDeletingDestructor(Example*) {}",
         "void scalar_deleting_destructor(Example*) {}",
+        "void vector_deleting_destructor(Example*) {}",
         "void* g_vtable_005ecdb0;",
     ),
 )
@@ -52,6 +53,20 @@ def test_source_policy_requires_synthetic_marker_for_scalar_wrapper(
         tmp_path,
         """// FUNCTION: WIZ8 0x00401020
 // Example::`scalar deleting destructor'
+""",
+    )
+
+    with pytest.raises(SourcePolicyError, match="SYNTHETIC"):
+        validate_source_policy(tmp_path)
+
+
+def test_source_policy_requires_synthetic_marker_for_vector_wrapper(
+    tmp_path: Path,
+) -> None:
+    _write_source(
+        tmp_path,
+        """// FUNCTION: WIZ8 0x00401030
+// Example::`vector deleting destructor'`adjustor{4}'
 """,
     )
 

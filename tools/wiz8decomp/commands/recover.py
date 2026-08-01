@@ -67,19 +67,25 @@ def sweep_command(
 @app.command("explain")
 def explain_command(
     address: Annotated[
-        str,
+        str | None,
         typer.Argument(help="Function entry address to trace, e.g. 0x004a5f20."),
-    ],
+    ] = None,
+    class_name: Annotated[
+        str | None,
+        typer.Option("--class", help="Report a class's complete lifecycle ABI family."),
+    ] = None,
     program: str = typer.Option("wiz8", "--program"),
 ) -> None:
-    """Show which exporter passes applied, declined, or failed for a function."""
+    """Trace a function or report a class's complete lifecycle ABI family."""
     import sys
 
     from .. import command_support as cli
     from ..ghidra.export_cpp import explain_function
 
     def action() -> None:
-        result = explain_function(cli.settings(), address, program_selector=program)
+        result = explain_function(
+            cli.settings(), address, program_selector=program, class_name=class_name
+        )
         sys.stdout.write(result["text"])
         sys.stdout.flush()
 

@@ -28,7 +28,10 @@ copies each playback field individually, and it compares byte-exact against
 """
 IDENTITY_METHODS = ("getClassName", "getClassID", "getClassNode")
 SUPPORT_BASE = "srClassSupport<"
-DELETING_DESTRUCTOR = "`scalar deleting destructor'"
+DELETING_DESTRUCTORS = (
+    "`scalar deleting destructor'",
+    "`vector deleting destructor'",
+)
 
 
 def _index() -> dict[str, Any]:
@@ -121,12 +124,14 @@ def test_template_specializations_are_never_function_markers() -> None:
 
 
 def test_deleting_destructors_are_synthetic_and_unbound() -> None:
-    """MSVC generates the scalar deleting destructor. It must never bind to an
+    """MSVC generates scalar and vector deleting destructors. Neither may bind to an
     authored declaration, because authoring one means someone hand-wrote the
     flag test and operator delete that the compiler owns."""
     offenders = []
     for marker in _index()["markers"]:
-        if DELETING_DESTRUCTOR not in (marker.get("marker_name") or ""):
+        if not any(
+            spelling in (marker.get("marker_name") or "") for spelling in DELETING_DESTRUCTORS
+        ):
             continue
         location = f"{marker['source_file']}:{marker['line']} {marker['marker_name']}"
         if marker["marker_kind"] != "SYNTHETIC":
@@ -171,7 +176,7 @@ def test_no_manual_vptr_writes_or_deleting_destructor_methods() -> None:
     deleting flag, means the source is imitating compiler output instead of
     declaring the C++ entity that produces it."""
     vptr_write = re.compile(r"^\s*(?:\*\s*)?\(?[\w.\->\[\]]*v(?:f|)(?:table|ptr)\w*\)?\s*=")
-    flag_destructor = re.compile(r"\b\w*[Ss]calarDeletingDestructor\w*\s*\(")
+    flag_destructor = re.compile(r"\b\w*(?:[Ss]calar|[Vv]ector)DeletingDestructor\w*\s*\(")
 
     offenders = []
     for root in ("src/wiz8", "include/wiz8", "include/surrender"):

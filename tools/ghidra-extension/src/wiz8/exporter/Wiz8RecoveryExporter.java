@@ -50,6 +50,7 @@ import ghidra.util.task.TaskMonitor;
 public final class Wiz8RecoveryExporter {
 	static {
 		CxxTypePrinter.verifyRegressionCases();
+		DeletingDestructorSemantics.verifyRegressionCases();
 	}
 
 	private Wiz8RecoveryExporter() {
@@ -143,14 +144,8 @@ public final class Wiz8RecoveryExporter {
 		if (ghidraClass == null) {
 			return String.format("// error: no class named %s%n", className);
 		}
-		List<Function> family = new ArrayList<>();
-		for (Function function : program.getFunctionManager().getFunctions(true)) {
-			monitor.checkCancelled();
-			if (ghidraClass.equals(function.getParentNamespace())) {
-				family.add(function);
-			}
-		}
-		family.sort((a, b) -> a.getEntryPoint().compareTo(b.getEntryPoint()));
+		LifecycleFamilyResolver.LifecycleFamily family =
+			new LifecycleFamilyResolver(program).resolve(ghidraClass, monitor);
 
 		StringBuilder output = new StringBuilder();
 		output.append(new Wiz8ClassPrinter(program, ghidraClass).print());
@@ -158,8 +153,9 @@ public final class Wiz8RecoveryExporter {
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = template ? null : openDecompiler(program, options);
 		try {
-			for (Function function : family) {
+			for (LifecycleFamilyResolver.Member member : family.members()) {
 				monitor.checkCancelled();
+				Function function = member.function();
 				output.append('\n');
 				if (template) {
 					output.append(templateEmissionBlock(function));
@@ -177,6 +173,43 @@ public final class Wiz8RecoveryExporter {
 		}
 	}
 
+	/** Explain the complete constructor/destructor/vtable family for one class. */
+	public static String explainClass(Program program, String className, TaskMonitor monitor)
+			throws CancelledException {
+		GhidraClass ghidraClass = findClass(program, className);
+		if (ghidraClass == null) {
+			return String.format("error: no class named %s%n", className);
+		}
+		LifecycleFamilyResolver.LifecycleFamily family =
+			new LifecycleFamilyResolver(program).resolve(ghidraClass, monitor);
+		StringBuilder out = new StringBuilder("class ").append(className)
+			.append(" lifecycle family\n");
+		for (var table : family.vftables()) {
+			out.append(String.format("vftable     0x%08x %s%n",
+				table.getAddress().getOffset(), table.getName()));
+		}
+		for (LifecycleFamilyResolver.Member member : family.members()) {
+			Function function = member.function();
+			FunctionRole role = member.role();
+			out.append(String.format("0x%08x %-30s %-22s %s%n",
+				function.getEntryPoint().getOffset(),
+				role.emissionKind().name().toLowerCase(),
+				role.sourceKind().name().toLowerCase(), function.getName(true)));
+			out.append("             role: ").append(role.evidence())
+				.append("; family: ").append(member.familyEvidence()).append('\n');
+		}
+		return out.toString();
+	}
+
+	/** Stable machine-facing emission name used by the Python interface. */
+	public static String emissionKind(Program program, long entryPoint) {
+		Address entry = program.getAddressFactory().getDefaultAddressSpace()
+			.getAddress(entryPoint);
+		Function function = program.getFunctionManager().getFunctionAt(entry);
+		return function == null ? "missing"
+			: FunctionRoleResolver.resolve(function).emissionKind().name().toLowerCase();
+	}
+
 	/**
 	 * The marker-only block recording that a template member was emitted at
 	 * this address: SYNTHETIC for the compiler-generated deleting destructor,
@@ -185,7 +218,7 @@ public final class Wiz8RecoveryExporter {
 	 */
 	private static String templateEmissionBlock(Function function) {
 		FunctionKind kind = FunctionKind.classify(function);
-		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+		if (kind.isDeletingDestructor()) {
 			return new Wiz8CxxPrinter(function, kind).printSynthetic();
 		}
 		String owner = TypeNames.map(function.getParentNamespace().getName(true));
@@ -238,17 +271,18 @@ public final class Wiz8RecoveryExporter {
 
 	private static String exportFunction(Function function, DecompInterface decompiler,
 			DecompileOptions options, TaskMonitor monitor) {
+		FunctionRole role = FunctionRoleResolver.resolve(function);
 		FunctionKind kind = FunctionKind.classify(function);
 		Wiz8CxxPrinter printer = new Wiz8CxxPrinter(function, kind);
 
 		if (function.getParentNamespace() instanceof GhidraClass owner &&
 			owner.getName().indexOf('[') >= 0 &&
-			kind != FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+			!kind.isDeletingDestructor()) {
 			// A bracket-encoded namespace marks a template specialization
 			// member: record the emission, never print a body for it.
 			return templateEmissionBlock(function);
 		}
-		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+		if (!role.hasAuthoredBody()) {
 			return printer.printSynthetic();
 		}
 
@@ -304,7 +338,7 @@ public final class Wiz8RecoveryExporter {
 			DecompInterface decompiler,
 			DecompileOptions options, TaskMonitor monitor) {
 		FunctionKind kind = FunctionKind.classify(function);
-		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR ||
+		if (!FunctionRoleResolver.resolve(function).hasAuthoredBody() ||
 			!(function.getProgram().getListing().getCodeUnitAt(function.getEntryPoint())
 				instanceof Instruction)) {
 			return "";
@@ -349,8 +383,10 @@ public final class Wiz8RecoveryExporter {
 			return String.format("error: no function at 0x%08x%n", entryPoint);
 		}
 		FunctionKind kind = FunctionKind.classify(function);
-		if (kind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
-			return "synthetic deleting destructor: marker-only block, no analysis\n";
+		FunctionRole role = FunctionRoleResolver.resolve(function);
+		if (!role.hasAuthoredBody()) {
+			return role.emissionKind().name().toLowerCase() +
+				": marker-only block, no analysis (" + role.evidence() + ")\n";
 		}
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = openDecompiler(program, options);

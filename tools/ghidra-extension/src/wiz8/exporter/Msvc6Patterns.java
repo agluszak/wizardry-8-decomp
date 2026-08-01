@@ -23,6 +23,8 @@ import ghidra.app.decompiler.ClangTypeToken;
 import ghidra.app.decompiler.ClangVariableDecl;
 import ghidra.app.decompiler.ClangVariableToken;
 import ghidra.app.decompiler.DecompileResults;
+import ghidra.app.decompiler.DecompInterface;
+import ghidra.app.decompiler.DecompileOptions;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
@@ -34,6 +36,8 @@ import ghidra.program.model.listing.AutoParameterType;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Parameter;
+import ghidra.program.model.listing.Program;
+import ghidra.program.model.listing.VariableStorage;
 import ghidra.program.model.pcode.HighFunction;
 import ghidra.program.model.pcode.HighSymbol;
 import ghidra.program.model.pcode.HighVariable;
@@ -135,6 +139,8 @@ final class Msvc6Patterns {
 
 	/** Shared vftable and base-subobject resolution over the program. */
 	private final VtableResolver vtables;
+	private final CallTargetResolver callTargets = new CallTargetResolver();
+	private final Map<Long, String> structuralConstructorOwners = new HashMap<>();
 
 	private Msvc6Patterns(Function function, FunctionKind kind, DecompileResults results,
 			long sourceReferenceMask) {
@@ -397,9 +403,17 @@ final class Msvc6Patterns {
 	 * body is depth zero from its first item to its last.
 	 */
 	private static List<Item> linearize(ClangFunction root, BlockView.Tree blocks) {
-		List<Item> flat = new ArrayList<>();
+		List<Item> raw = new ArrayList<>();
 		for (ClangNode child : bodyNodes(root)) {
-			collect(child, flat, blocks);
+			collect(child, raw, blocks);
+		}
+		int bodyDepth = raw.stream()
+			.filter(item -> item.node instanceof ClangStatement ||
+				item.node instanceof ClangVariableDecl)
+			.mapToInt(item -> item.depth).min().orElse(0);
+		List<Item> flat = new ArrayList<>();
+		for (Item item : raw) {
+			flat.add(new Item(item.node, Math.max(0, item.depth - bodyDepth)));
 		}
 		return flat;
 	}
@@ -429,11 +443,11 @@ final class Msvc6Patterns {
 	}
 
 	private static int lexicalDepth(BlockView block) {
-		int depth = -1; // the function compound statement is source depth zero
+		int depth = 0;
 		for (BlockView current = block; current != null; current = current.parent) {
 			depth++;
 		}
-		return Math.max(depth, 0);
+		return depth;
 	}
 
 	private static ClangFuncProto findProto(ClangFunction root) {
@@ -615,7 +629,10 @@ final class Msvc6Patterns {
 		if (!target.isAddress()) {
 			return null;
 		}
-		return function.getProgram().getFunctionManager().getFunctionAt(target.getAddress());
+		Function referenced = function.getProgram().getFunctionManager()
+			.getFunctionAt(target.getAddress());
+		CallTargetResolver.Target resolved = callTargets.resolve(referenced);
+		return resolved == null ? null : resolved.canonical();
 	}
 
 	private static boolean isThisSymbol(HighVariable high) {
@@ -1301,8 +1318,22 @@ final class Msvc6Patterns {
 	}
 
 	private boolean isVftableStore(ClangStatement statement) {
-		PcodeOp op = statement.getPcodeOp();
-		if (op == null || op.getOpcode() != PcodeOp.STORE) {
+		PcodeOp rootOp = statement.getPcodeOp();
+		if (rootOp != null && vftableStore(rootOp)) {
+			return true;
+		}
+		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp operation = operations.next();
+			if (markup.statementFor(operation) == statement && vftableStore(operation)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean vftableStore(PcodeOp op) {
+		if (op.getOpcode() != PcodeOp.STORE || op.getNumInputs() < 3) {
 			return false;
 		}
 		OptionalLong destination = thisOffset(op.getInput(1));
@@ -1330,11 +1361,20 @@ final class Msvc6Patterns {
 				return symbol != null && VtableResolver.isVftableName(symbol.getName());
 			}
 			PcodeOp def = current.getDef();
-			if (def == null || (def.getOpcode() != PcodeOp.COPY &&
-				def.getOpcode() != PcodeOp.CAST)) {
+			if (def == null) {
 				return false;
 			}
-			current = def.getInput(0);
+			if (def.getOpcode() == PcodeOp.COPY || def.getOpcode() == PcodeOp.CAST) {
+				current = def.getInput(0);
+			}
+			else if (def.getOpcode() == PcodeOp.PTRSUB &&
+				def.getInput(0).isConstant() && def.getInput(0).getOffset() == 0 &&
+				def.getInput(1).isConstant()) {
+				current = def.getInput(1); // constant-space address materialization
+			}
+			else {
+				return false;
+			}
 		}
 		return false;
 	}
@@ -1349,7 +1389,14 @@ final class Msvc6Patterns {
 			return false;
 		}
 		int vptrStores = 0;
+		int parameterPadding = 0;
 		for (Item item : items) {
+			if (item.node instanceof ClangVariableDecl declaration &&
+				isParameterSlotPadding(declaration)) {
+				dropped.add(declaration);
+				parameterPadding++;
+				continue;
+			}
 			if (item.isStatement() && !isClaimed(item.node) &&
 				isVftableStore((ClangStatement) item.node)) {
 				dropped.add(item.node);
@@ -1359,6 +1406,10 @@ final class Msvc6Patterns {
 		if (vptrStores > 0) {
 			trace("applied", "lifecycle.vptr-store", "x" + vptrStores);
 		}
+		if (parameterPadding > 0) {
+			trace("applied", "lifecycle.parameter-padding", "x" + parameterPadding);
+		}
+		dropTerminalLifecycleReturn(dropped);
 		if (kind == FunctionKind.CONSTRUCTOR) {
 			consumeConstructorPrefix(dropped, initializers);
 		}
@@ -1373,15 +1424,68 @@ final class Msvc6Patterns {
 		return true;
 	}
 
+	private boolean isParameterSlotPadding(ClangVariableDecl declaration) {
+		HighSymbol symbol = declaration.getHighSymbol();
+		VariableStorage storage = symbol == null ? null : symbol.getStorage();
+		if (storage == null || !storage.isStackStorage()) {
+			return false;
+		}
+		long start = storage.getStackOffset();
+		long end = start + storage.size();
+		for (Parameter parameter : function.getParameters()) {
+			VariableStorage formal = parameter.getVariableStorage();
+			if (parameter.isAutoParameter() || !formal.isStackStorage()) {
+				continue;
+			}
+			long formalStart = formal.getStackOffset();
+			long valueEnd = formalStart + formal.size();
+			long slotEnd = (valueEnd + 3) & ~3L;
+			if (start >= valueEnd && end <= slotEnd) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void dropTerminalLifecycleReturn(Set<ClangNode> dropped) {
+		ClangStatement onlyReturn = null;
+		int returnCount = 0;
+		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp operation = operations.next();
+			if (operation.getOpcode() != PcodeOp.RETURN) {
+				continue;
+			}
+			returnCount++;
+			onlyReturn = markup.statementFor(operation);
+		}
+		if (returnCount == 1 && onlyReturn != null) {
+			dropped.add(onlyReturn);
+			return;
+		}
+		for (int i = items.size() - 1; i >= 0; i--) {
+			Item item = items.get(i);
+			if (item.depth != 0 || !item.isStatement()) {
+				continue;
+			}
+			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
+			if (op != null && op.getOpcode() == PcodeOp.RETURN) {
+				dropped.add(item.node);
+			}
+			return;
+		}
+	}
+
 	private void consumeConstructorPrefix(Set<ClangNode> dropped, List<String> initializers) {
 		int index = 0;
 		while (index < items.size()) {
 			Item item = items.get(index);
-			if (item.depth != 0) {
-				break;
-			}
 			if (item.node instanceof ClangVariableDecl) {
 				index++;
+				continue;
+			}
+			if (!item.isStatement()) {
+				index++; // markup punctuation is not a semantic body item
 				continue;
 			}
 			if (item.isStatement()) {
@@ -1414,11 +1518,18 @@ final class Msvc6Patterns {
 	private String subobjectConstructorInitializer(ClangStatement statement) {
 		PcodeOp op = statement.getPcodeOp();
 		Function target = callee(op);
-		if (target == null || FunctionKind.classify(target) != FunctionKind.CONSTRUCTOR ||
-			op.getNumInputs() < 2 || structure == null) {
+		if (target == null || op == null || structure == null) {
 			return null;
 		}
-		OptionalLong offset = thisOffset(op.getInput(1));
+		boolean modeled = FunctionKind.classify(target) == FunctionKind.CONSTRUCTOR;
+		String structuralOwner = modeled ? null : structuralConstructorOwner(target);
+		if (!modeled && structuralOwner == null) {
+			trace("declined", "lifecycle.constructor-candidate",
+				target.getName(true) + " has no unique entry-ECX vftable store");
+			return null;
+		}
+		OptionalLong offset = modeled && op.getNumInputs() >= 2
+			? thisOffset(op.getInput(1)) : OptionalLong.of(0);
 		if (offset.isEmpty() || offset.getAsLong() < 0 ||
 			offset.getAsLong() > Integer.MAX_VALUE) {
 			return null;
@@ -1429,14 +1540,21 @@ final class Msvc6Patterns {
 			return null;
 		}
 		boolean base = vtables.isBaseOffset(structure, offset.getAsLong());
+		if (!modeled && (!base || !sameTypeName(component.getDataType(), structuralOwner))) {
+			trace("declined", "lifecycle.constructor-candidate",
+				structuralOwner + " does not match the offset-zero base component");
+			return null;
+		}
 		if (!base && component.getFieldName() == null) {
 			return null; // a member initializer needs the field's name
 		}
-		List<String> arguments = callArgumentsAfterReceiver(statement, op);
+		List<String> arguments = modeled ? callArgumentsAfterReceiver(statement, op)
+			: callArguments(statement, op, 0);
 		if (arguments == null) {
 			return null;
 		}
-		String name = base ? TypeNames.map(target.getParentNamespace().getName())
+		String name = base ? TypeNames.map(modeled
+			? target.getParentNamespace().getName() : structuralOwner)
 				: component.getFieldName();
 		trace("applied", base ? "lifecycle.base-initializer" : "lifecycle.member-initializer",
 			name + " @ this+0x" + Long.toHexString(offset.getAsLong()) + ", " +
@@ -1447,38 +1565,146 @@ final class Msvc6Patterns {
 		return name + "(" + String.join(", ", arguments) + ")";
 	}
 
+	private static boolean sameTypeName(DataType type, String name) {
+		DataType current = type;
+		while (current instanceof TypeDef typedef) {
+			current = typedef.getBaseDataType();
+		}
+		return current.getName().equals(name);
+	}
+
+	/**
+	 * Bounded fallback for a callee whose prototype has not yet materialized:
+	 * a unique STORE through entry ECX of a class-owned vftable proves the
+	 * constructed type. This is P-code and symbol identity, never call text.
+	 */
+	private String structuralConstructorOwner(Function target) {
+		long entry = target.getEntryPoint().getOffset();
+		if (structuralConstructorOwners.containsKey(entry)) {
+			return structuralConstructorOwners.get(entry);
+		}
+		String owner = decompiledConstructorOwner(target);
+		structuralConstructorOwners.put(entry, owner);
+		return owner;
+	}
+
+	private String decompiledConstructorOwner(Function target) {
+		Program program = target.getProgram();
+		DecompileOptions options = new DecompileOptions();
+		options.grabFromProgram(program);
+		DecompInterface decompiler = new DecompInterface();
+		decompiler.setOptions(options);
+		decompiler.openProgram(program);
+		try {
+			DecompileResults candidate = decompiler.decompileFunction(target,
+				options.getDefaultTimeout(), ghidra.util.task.TaskMonitor.DUMMY);
+			HighFunction high = candidate.getHighFunction();
+			if (!candidate.decompileCompleted() || high == null) {
+				return null;
+			}
+			Address ecx = program.getRegister("ECX").getAddress();
+			String found = null;
+			Iterator<? extends PcodeOp> operations = high.getPcodeOps();
+			while (operations.hasNext()) {
+				PcodeOp operation = operations.next();
+				if (operation.getOpcode() != PcodeOp.STORE || operation.getNumInputs() < 3 ||
+					!tracesToRegister(operation.getInput(1), ecx)) {
+					continue;
+				}
+				Symbol table = vftableSymbol(program, operation.getInput(2));
+				if (table == null || !(table.getParentNamespace() instanceof GhidraClass owner)) {
+					continue;
+				}
+				if (found != null && !found.equals(owner.getName())) {
+					return null;
+				}
+				found = owner.getName();
+			}
+			return found;
+		}
+		finally {
+			decompiler.dispose();
+		}
+	}
+
+	private static boolean tracesToRegister(Varnode value, Address register) {
+		Varnode current = value;
+		for (int step = 0; current != null && step < 16; step++) {
+			if (current.isRegister() && current.getAddress().equals(register)) {
+				return true;
+			}
+			PcodeOp def = current.getDef();
+			if (def == null) return false;
+			if (def.getOpcode() == PcodeOp.COPY || def.getOpcode() == PcodeOp.CAST ||
+				(def.getOpcode() == PcodeOp.PTRSUB && def.getInput(1).isConstant() &&
+					def.getInput(1).getOffset() == 0)) {
+				current = def.getInput(0);
+			}
+			else {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	private static Symbol vftableSymbol(Program program, Varnode value) {
+		Varnode current = value;
+		for (int step = 0; current != null && step < 8; step++) {
+			Address address = current.isAddress() ? current.getAddress()
+				: current.isConstant() ? program.getAddressFactory().getDefaultAddressSpace()
+					.getAddress(current.getOffset()) : null;
+			if (address != null) {
+				Symbol symbol = program.getSymbolTable().getPrimarySymbol(address);
+				return symbol != null && VtableResolver.isVftableName(symbol.getName())
+					? symbol : null;
+			}
+			PcodeOp def = current.getDef();
+			if (def == null) return null;
+			if (def.getOpcode() == PcodeOp.COPY || def.getOpcode() == PcodeOp.CAST) {
+				current = def.getInput(0);
+			}
+			else if (def.getOpcode() == PcodeOp.PTRSUB &&
+				def.getInput(0).isConstant() && def.getInput(0).getOffset() == 0) {
+				current = def.getInput(1);
+			}
+			else return null;
+		}
+		return null;
+	}
+
 	/**
 	 * The call's rendered arguments, minus the receiver, with compiler
 	 * upcast locals substituted. Returns null when the token shape and the
 	 * p-code disagree.
 	 */
 	private List<String> callArgumentsAfterReceiver(ClangStatement statement, PcodeOp op) {
+		return callArguments(statement, op, 1);
+	}
+
+	private List<String> callArguments(ClangStatement statement, PcodeOp op, int skip) {
 		List<List<ClangToken>> arguments = callArgumentTokens(statement, op);
-		if (arguments == null || arguments.isEmpty()) {
+		if (arguments == null || arguments.size() < skip) {
 			return null;
 		}
 		List<String> rendered = new ArrayList<>();
-		for (int i = 1; i < arguments.size(); i++) {
+		for (int i = skip; i < arguments.size(); i++) {
 			rendered.add(argumentText(arguments.get(i)));
 		}
 		return rendered;
 	}
 
 	private void consumeDestructorTail(Set<ClangNode> dropped) {
-		for (int i = items.size() - 1; i >= 0; i--) {
-			Item item = items.get(i);
-			if (item.depth != 0) {
-				break;
-			}
-			if (!item.isStatement()) {
-				break;
-			}
+		List<Item> topLevelStatements = items.stream()
+			.filter(item -> item.depth == 0 && item.isStatement()).toList();
+		for (int i = topLevelStatements.size() - 1; i >= 0; i--) {
+			Item item = topLevelStatements.get(i);
 			ClangStatement statement = (ClangStatement) item.node;
 			if (dropped.contains(statement) || isClaimed(statement)) {
 				continue;
 			}
 			PcodeOp op = statement.getPcodeOp();
 			if (op != null && op.getOpcode() == PcodeOp.RETURN) {
+				dropped.add(statement);
 				continue;
 			}
 			if (isSubobjectDestructorCall(statement)) {
@@ -1492,12 +1718,18 @@ final class Msvc6Patterns {
 	private boolean isSubobjectDestructorCall(ClangStatement statement) {
 		PcodeOp op = statement.getPcodeOp();
 		Function target = callee(op);
-		if (target == null || FunctionKind.classify(target) != FunctionKind.DESTRUCTOR ||
-			op.getNumInputs() < 2) {
+		if (target == null || op == null || op.getNumInputs() < 2) {
+			return false;
+		}
+		if (FunctionKind.classify(target) != FunctionKind.DESTRUCTOR) {
+			trace("declined", "lifecycle.subobject-destructor",
+				target.getName(true) + " is not classified as a destructor");
 			return false;
 		}
 		OptionalLong offset = thisOffset(op.getInput(1));
 		if (offset.isEmpty() || offset.getAsLong() < 0) {
+			trace("declined", "lifecycle.subobject-destructor",
+				target.getName(true) + " receiver does not trace to this");
 			return false;
 		}
 		if (offset.getAsLong() == 0) {
@@ -1583,7 +1815,7 @@ final class Msvc6Patterns {
 				}
 				continue;
 			}
-			if (slotKind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+			if (slotKind.isDeletingDestructor()) {
 				// Virtual dispatch of the deleting destructor is the compiled
 				// form of a source-level polymorphic delete.
 				int argsClose = matchingParen(line.sig, argsOpen);
@@ -1592,10 +1824,14 @@ final class Msvc6Patterns {
 				}
 				Varnode flag = op.getInput(op.getNumInputs() - 1);
 				String object = call.receiver.isEmpty() ? "this" : call.receiver;
-				String form = flag.isConstant() && flag.getOffset() == 1 ? "delete "
-					: flag.isConstant() && flag.getOffset() == 3 ? "delete[] " : null;
+				String form = flag.isConstant()
+					? deletingForm(slotKind, flag.getOffset()) : null;
 				if (form != null && claimRange(line, start, argsClose, form + object)) {
 					trace("applied", currentPass, form + object + " " + site);
+				}
+				else if (form == null) {
+					trace("declined", currentPass, site + ": " + slotKind +
+						" flag is not a source-level delete form");
 				}
 			}
 			else {
@@ -2501,6 +2737,17 @@ final class Msvc6Patterns {
 	}
 
 	private String argumentText(List<ClangToken> tokens) {
+		if (tokens.size() == 1 && tokens.get(0) instanceof ClangVariableToken variable) {
+			HighVariable high = variable.getHighVariable();
+			HighSymbol symbol = high == null ? null : high.getSymbol();
+			if (symbol != null && symbol.getStorage() != null) {
+				for (Parameter parameter : function.getParameters()) {
+					if (parameter.getVariableStorage().equals(symbol.getStorage())) {
+						return parameter.getName();
+					}
+				}
+			}
+		}
 		StringBuilder text = new StringBuilder();
 		for (ClangToken token : tokens) {
 			text.append(effectiveTokenText(token));
@@ -2829,12 +3076,13 @@ final class Msvc6Patterns {
 		return null;
 	}
 
-	/** `T::'scalar_deleting_destructor'(x, flags)` with a constant flag. */
+	/** A scalar/vector deleting wrapper call with an ABI-proven constant flag. */
 	private boolean rewriteScalarDeletingCall(ClangStatement statement) {
 		PcodeOp op = statement.getPcodeOp();
 		Function target = callee(op);
-		if (target == null ||
-			FunctionKind.classify(target) != FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR ||
+		FunctionKind targetKind = target == null ? FunctionKind.ORDINARY
+			: FunctionKind.classify(target);
+		if (target == null || !targetKind.isDeletingDestructor() ||
 			op.getNumInputs() != 3 || !op.getInput(2).isConstant()) {
 			return false;
 		}
@@ -2843,16 +3091,26 @@ final class Msvc6Patterns {
 			return false;
 		}
 		long flags = op.getInput(2).getOffset();
-		if ((flags & 1) == 0) {
-			return false; // no deallocation: not a source-level delete
+		String form = deletingForm(targetKind, flags);
+		if (form == null) {
+			trace("declined", "allocation.delete", targetKind + " flag " + flags +
+				" is compiler-internal, not a source-level delete");
+			return false;
 		}
-		String form = (flags & 2) != 0 ? "delete[] " : "delete ";
 		if (!claimReplace(statement, form + object)) {
 			return false;
 		}
-		trace("applied", "allocation.scalar-delete",
+		trace("applied", "allocation.delete",
 			form.trim() + " " + object + " @ " + statementAddress(statement));
 		return true;
+	}
+
+	private static String deletingForm(FunctionKind kind, long flags) {
+		EmissionKind emission = kind == FunctionKind.SCALAR_DELETING_DESTRUCTOR
+			? EmissionKind.SCALAR_DELETING_DESTRUCTOR
+			: kind == FunctionKind.VECTOR_DELETING_DESTRUCTOR
+				? EmissionKind.VECTOR_DELETING_DESTRUCTOR : EmissionKind.AUTHORED_BODY;
+		return DeletingDestructorSemantics.sourceOperator(emission, flags);
 	}
 
 	/** `T::~T(x); operator_delete(x);` collapses to `delete x`. */
