@@ -15,6 +15,7 @@ import ghidra.app.decompiler.ClangFuncNameToken;
 import ghidra.app.decompiler.ClangFuncProto;
 import ghidra.app.decompiler.ClangFunction;
 import ghidra.app.decompiler.ClangNode;
+import ghidra.app.decompiler.ClangOpToken;
 import ghidra.app.decompiler.ClangStatement;
 import ghidra.app.decompiler.ClangToken;
 import ghidra.app.decompiler.ClangTokenGroup;
@@ -2674,6 +2675,11 @@ final class Msvc6Patterns {
 	// ------------------------------------------------------------------
 
 	private void rewriteAllocationPairs() {
+		for (int i = 0; i < items.size(); i++) {
+			if (items.get(i).isStatement() && !isClaimed(items.get(i).node)) {
+				rewriteGuardedNew(i);
+			}
+		}
 		List<Item> statements = new ArrayList<>();
 		for (Item item : items) {
 			if (item.node instanceof ClangVariableDecl) {
@@ -2782,6 +2788,315 @@ final class Msvc6Patterns {
 		trace("applied", "allocation.scalar-delete",
 			"delete " + object + " @ " + statementAddress(first));
 		return true;
+	}
+
+	/**
+	 * VC6 lowers a source-level {@code r = new T(args)} with the compiler's
+	 * own null guard around the construction:
+	 *
+	 * <pre>
+	 *   x = operator_new(N);
+	 *   r = 0;                  // optional failure-path value
+	 *   if (x != 0) {
+	 *     T::T(x, args...);
+	 *     r = extraout_EAX;     // optional: the constructor returns this
+	 *   }
+	 * </pre>
+	 *
+	 * The whole shape collapses back to the one source expression — ordinary
+	 * typed construction, so the compiler re-emits the same lowering. The
+	 * guard must test exactly the allocation result against null and contain
+	 * nothing but the construction and the result copy; when the emission
+	 * rebinds a separate result variable, the raw allocation pointer must
+	 * have no uses outside the matched shape.
+	 */
+	private boolean rewriteGuardedNew(int start) {
+		ClangStatement alloc = (ClangStatement) items.get(start).node;
+		PcodeOp newOp = alloc.getPcodeOp();
+		Function allocator = callee(newOp);
+		if (allocator == null || !allocator.getName().startsWith("operator_new") ||
+			newOp.getOutput() == null || newOp.getOutput().getHigh() == null) {
+			return false;
+		}
+		HighVariable allocated = newOp.getOutput().getHigh();
+		int depth = items.get(start).depth;
+		int j = nextUndropped(start + 1);
+
+		// Optional failure-path zeroing of the result variable.
+		ClangStatement zero = null;
+		HighVariable result = null;
+		if (j < items.size() && items.get(j).isStatement() && !isClaimed(items.get(j).node)) {
+			HighVariable target = zeroAssignmentTarget((ClangStatement) items.get(j).node);
+			if (target != null && target != allocated) {
+				zero = (ClangStatement) items.get(j).node;
+				result = target;
+				j = nextUndropped(j + 1);
+			}
+		}
+
+		// if ( x != 0 ) {
+		List<ClangNode> guard = new ArrayList<>();
+		if (j >= items.size() || !"if".equals(items.get(j).text()) ||
+			items.get(j).depth != depth) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": no null guard follows the allocation");
+			return false;
+		}
+		guard.add(items.get(j).node);
+		j++;
+		if (j >= items.size() || !"(".equals(items.get(j).text()) ||
+			!(items.get(j).node instanceof ClangToken openParen)) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the guard does not open with a parenthesis");
+			return false;
+		}
+		guard.add(openParen);
+		j++;
+		// The guard's own close paren by the decompiler's pair identity;
+		// a cast inside the condition carries parens of its own.
+		int close = -1;
+		if (SyntaxPairs.opensPair(openParen)) {
+			for (int k = j; k < items.size(); k++) {
+				if (items.get(k).node instanceof ClangToken candidate &&
+					SyntaxPairs.closesPair(candidate) &&
+					((ghidra.app.decompiler.ClangSyntaxToken) candidate).getClose() ==
+						((ghidra.app.decompiler.ClangSyntaxToken) openParen).getOpen()) {
+					close = k;
+					break;
+				}
+			}
+		}
+		if (close < 0 || !conditionIsNullTest(j, close, allocated)) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the condition is not a null test of the allocation result");
+			return false;
+		}
+		for (int k = j; k <= close; k++) {
+			guard.add(items.get(k).node);
+		}
+		j = close + 1;
+		if (j >= items.size() || !"{".equals(items.get(j).text()) ||
+			items.get(j).depth != depth + 1) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the guard block does not open");
+			return false;
+		}
+		guard.add(items.get(j).node);
+		j = nextUndropped(j + 1);
+
+		// T::T(x, args...);
+		if (j >= items.size() || !items.get(j).isStatement() ||
+			items.get(j).depth != depth + 1 || isClaimed(items.get(j).node)) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the guard body does not start with a statement");
+			return false;
+		}
+		ClangStatement construction = (ClangStatement) items.get(j).node;
+		PcodeOp constructorOp = construction.getPcodeOp();
+		Function constructor = callee(constructorOp);
+		if (constructor == null ||
+			FunctionKind.classify(constructor) != FunctionKind.CONSTRUCTOR ||
+			constructorOp.getNumInputs() < 2 ||
+			!traceableToHigh(constructorOp.getInput(1), allocated)) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the guarded call is not a constructor of the allocation result");
+			return false;
+		}
+		j = nextUndropped(j + 1);
+
+		// Optional r = extraout_EAX; then the closing brace, nothing else.
+		ClangStatement copyOut = null;
+		if (j < items.size() && items.get(j).isStatement()) {
+			if (isClaimed(items.get(j).node)) {
+				return false;
+			}
+			HighVariable target = extraoutCopyTarget((ClangStatement) items.get(j).node);
+			if (target == null || (result != null && target != result)) {
+				return false; // the guard holds more than the construction
+			}
+			copyOut = (ClangStatement) items.get(j).node;
+			result = target;
+			j = nextUndropped(j + 1);
+		}
+		if (j >= items.size() || !"}".equals(items.get(j).text()) ||
+			items.get(j).depth != depth + 1) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": a guarded statement is already claimed");
+			return false;
+		}
+		guard.add(items.get(j).node);
+
+		ClangStatement spellingSource = zero != null ? zero : copyOut;
+		if (result != null) {
+			// Rebinding to r drops the x binding, so x must not outlive the
+			// matched shape (INDIRECT is decompiler bookkeeping, not a use).
+			var uses = newOp.getOutput().getDescendants();
+			while (uses.hasNext()) {
+				PcodeOp use = uses.next();
+				if (use == constructorOp || use.getOpcode() == PcodeOp.INDIRECT ||
+					use.getOpcode() == PcodeOp.INT_NOTEQUAL ||
+					use.getOpcode() == PcodeOp.INT_EQUAL ||
+					use.getOpcode() == PcodeOp.MULTIEQUAL) {
+					continue;
+				}
+				trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+					": the allocation pointer is used outside the guarded construction");
+				return false;
+			}
+		}
+		String spelled = leadingVariable(spellingSource != null ? spellingSource : alloc);
+		if (spelled == null) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the guard holds more than the construction");
+			return false;
+		}
+		List<String> arguments = callArgumentsAfterReceiver(construction, constructorOp);
+		if (arguments == null) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": constructor argument tokens disagree with the p-code operands");
+			return false;
+		}
+		String type = TypeNames.map(constructor.getParentNamespace().getName(true));
+		if (!claimReplace(alloc,
+			spelled + " = new " + type + "(" + String.join(", ", arguments) + ")")) {
+			trace("declined", "allocation.guarded-new", "@ " + statementAddress(alloc) +
+				": the guard block does not close after the construction");
+			return false;
+		}
+		if (zero != null) {
+			claimDrop(zero);
+		}
+		claimDrop(construction);
+		if (copyOut != null) {
+			claimDrop(copyOut);
+		}
+		for (ClangNode node : guard) {
+			claimDrop(node);
+		}
+		trace("applied", "allocation.guarded-new",
+			spelled + " = new " + type + "(...) @ " + statementAddress(alloc));
+		return true;
+	}
+
+	/** The next item index that is not an already-dropped statement. */
+	private int nextUndropped(int index) {
+		int i = index;
+		while (i < items.size() && items.get(i).isStatement() &&
+			analysis.dropped.contains(items.get(i).node)) {
+			i++;
+		}
+		return i;
+	}
+
+	/** The high assigned by `target = 0;`, else null. */
+	private static HighVariable zeroAssignmentTarget(ClangStatement statement) {
+		PcodeOp op = statement.getPcodeOp();
+		if (op == null ||
+			(op.getOpcode() != PcodeOp.COPY && op.getOpcode() != PcodeOp.CAST) ||
+			!op.getInput(0).isConstant() || op.getInput(0).getOffset() != 0 ||
+			op.getOutput() == null) {
+			return null;
+		}
+		return op.getOutput().getHigh();
+	}
+
+	/**
+	 * Whether the condition between the guard's parentheses is exactly a
+	 * null test of the allocation result. The condition may arrive as one
+	 * condition statement or as loose tokens; either way its rendered
+	 * {@code !=} operator token carries the comparison op, and the whole
+	 * condition must be that comparison alone (three significant tokens).
+	 */
+	private boolean conditionIsNullTest(int start, int end, HighVariable tested) {
+		List<ClangToken> tokens = new ArrayList<>();
+		for (int i = start; i < end; i++) {
+			leafTokens(items.get(i).node, tokens);
+		}
+		// Earlier passes may have lifted parts of the condition (the null
+		// cast); the significant tokens are the effective ones.
+		tokens.removeIf(token -> {
+			String effective = effectiveTokenText(token);
+			return effective == null || effective.isBlank();
+		});
+		if (tokens.size() != 3) {
+			trace("declined", "allocation.guarded-new",
+				"condition is not one comparison: " + tokens.size() + " token(s)");
+			return false;
+		}
+		for (ClangToken token : tokens) {
+			if (token instanceof ClangOpToken op && isNullTestOp(op.getPcodeOp(), tested)) {
+				return true;
+			}
+			if (token instanceof ClangOpToken op) {
+				trace("declined", "allocation.guarded-new", "operator token " +
+					op.getText() + " carries " +
+					(op.getPcodeOp() == null ? "no op"
+							: op.getPcodeOp().getMnemonic()) +
+					", or its operand is not the allocation result");
+			}
+		}
+		return false;
+	}
+
+	/** Whether the op is the rendered `x != 0` comparison testing the high. */
+	private static boolean isNullTestOp(PcodeOp op, HighVariable tested) {
+		if (op == null || op.getOpcode() != PcodeOp.INT_NOTEQUAL) {
+			return false;
+		}
+		Varnode left = op.getInput(0);
+		Varnode right = op.getInput(1);
+		if (left.isConstant() && left.getOffset() == 0) {
+			return traceableToHigh(right, tested);
+		}
+		if (right.isConstant() && right.getOffset() == 0) {
+			return traceableToHigh(left, tested);
+		}
+		return false;
+	}
+
+	/**
+	 * The high assigned by `target = extraout_REG;`, else null. The
+	 * decompiler models the register a void-typed constructor call leaves
+	 * behind only as this named artifact; there is no structural API for it.
+	 */
+	private static HighVariable extraoutCopyTarget(ClangStatement statement) {
+		PcodeOp op = statement.getPcodeOp();
+		if (op == null || op.getOpcode() != PcodeOp.COPY || op.getOutput() == null) {
+			return null;
+		}
+		HighVariable source = op.getInput(0).getHigh();
+		if (source == null || source.getName() == null ||
+			!source.getName().startsWith("extraout_")) {
+			return null;
+		}
+		return op.getOutput().getHigh();
+	}
+
+	/** Whether the varnode is the high, looking through copies and casts. */
+	private static boolean traceableToHigh(Varnode varnode, HighVariable high) {
+		Varnode current = varnode;
+		for (int step = 0; current != null && step < 8; step++) {
+			if (current.getHigh() == high) {
+				return true;
+			}
+			PcodeOp def = current.getDef();
+			if (def == null || (def.getOpcode() != PcodeOp.COPY &&
+				def.getOpcode() != PcodeOp.CAST && def.getOpcode() != PcodeOp.INDIRECT)) {
+				return false;
+			}
+			current = def.getInput(0);
+		}
+		return false;
+	}
+
+	/** The leading variable token's rendered name, else null. */
+	private String leadingVariable(ClangStatement statement) {
+		List<ClangToken> tokens = new ArrayList<>();
+		leafTokens(statement, tokens);
+		if (tokens.isEmpty() || !(tokens.get(0) instanceof ClangVariableToken)) {
+			return null;
+		}
+		return sanitizeReservedName(tokens.get(0), tokens.get(0).getText());
 	}
 
 	/** `x = operator_new(N); T::T(x, args...);` collapses to `x = new T(args...)`. */
