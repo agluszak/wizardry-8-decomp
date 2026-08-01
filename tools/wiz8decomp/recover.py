@@ -556,6 +556,29 @@ def categorize_failure(diagnostics: list[str]) -> str:
     return "other-compile-failure"
 
 
+_CORRUPTION_ERROR = re.compile(r"error C(?:2059|2143|2146|2015|2589|2654|1004|2001)")
+
+
+def _earliest_corruption_line(diagnostics: list[str], source_file: str) -> int | None:
+    """The first line of the file carrying a parse-corrupting diagnostic
+    (syntax errors, malformed constants, member access outside any
+    function). Corruption propagates forward across block boundaries, so
+    diagnostics before this line are honest and diagnostics at or after it
+    may be cascade noise."""
+
+    earliest = None
+    for diagnostic in diagnostics:
+        if not _CORRUPTION_ERROR.search(diagnostic):
+            continue
+        match = _DIAGNOSTIC_LINE.search(diagnostic.replace("\\", "/"))
+        if match is None or not source_file.endswith(match.group(1)):
+            continue
+        line = int(match.group(2))
+        if earliest is None or line < earliest:
+            earliest = line
+    return earliest
+
+
 def splice_unit(
     original: str, plan: list[tuple[int, int, int, str]]
 ) -> tuple[str, dict[int, tuple[int, int]]]:
@@ -661,13 +684,17 @@ def sweep(
     class_name: str | None = None,
     target: str = "WIZ8",
     program_selector: str = "wiz8",
-    rounds: int = 10,
+    rounds: int = 40,
 ) -> dict[str, Any]:
     """Classify zero-edit regeneration for every selected recovered function.
 
     All selected blocks are spliced at once and built together; compile
     diagnostics are attributed to the owning block, the failing blocks are
     restored, and the build repeats until it is clean (bounded rounds).
+    Attribution is cascade-aware: parse corruption flows forward through a
+    unit, so of the blocks carrying corruption-class diagnostics only the
+    file's earliest is categorized and restored per round — the later ones
+    stay spliced and are re-measured once the corrupting block is gone.
     The surviving splices are then compared in one batch. Sources are always
     restored and the product is rebuilt from the restored tree.
     """
@@ -754,10 +781,40 @@ def sweep(
                         )
                     live = {}
                     break
-                for address, owned in per_address.items():
-                    outcome = outcomes[address]
-                    outcome["status"] = categorize_failure(owned)
-                    outcome["diagnostics"] = owned[:8]
+                # Parse corruption flows forward through the unit, so the
+                # earliest corruption-class diagnostic line splits each file:
+                # blocks ending before it carry honest diagnostics, the
+                # spliced block owning (or last preceding) it is the guilty
+                # source, and every diagnosed block at or after it may be an
+                # innocent victim — those stay spliced and are re-measured
+                # once the corrupting block is gone.
+                for source_file_name, ranges in live.items():
+                    file_addresses = [a for a in per_address if a in ranges]
+                    if not file_addresses:
+                        continue
+                    corruption = _earliest_corruption_line(diagnostics, source_file_name)
+                    guilty = None
+                    if corruption is not None:
+                        preceding = [a for a in ranges if ranges[a][0] <= corruption]
+                        if preceding:
+                            guilty = max(preceding, key=lambda a: ranges[a][0])
+                    for address in file_addresses:
+                        past_corruption = (
+                            corruption is not None and ranges[address][1] >= corruption
+                        )
+                        if past_corruption and address != guilty:
+                            continue
+                        outcome = outcomes[address]
+                        outcome["status"] = categorize_failure(per_address[address])
+                        outcome["diagnostics"] = per_address[address][:8]
+                    if guilty is not None and "status" not in outcomes[guilty]:
+                        fallback = (
+                            f"parse corruption first surfaces at line {corruption}, "
+                            "inside or directly after this block"
+                        )
+                        owned = per_address.get(guilty) or [fallback]
+                        outcomes[guilty]["status"] = categorize_failure(owned)
+                        outcomes[guilty]["diagnostics"] = owned[:8]
                 for source_file_name, plan in plan_by_file.items():
                     remaining = [row for row in plan if "status" not in outcomes[row[2]]]
                     if len(remaining) == len(live.get(source_file_name, {})):

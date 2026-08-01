@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import ghidra.app.decompiler.ClangBreak;
+import ghidra.app.decompiler.ClangCommentToken;
 import ghidra.app.decompiler.ClangLine;
 import ghidra.app.decompiler.ClangNode;
 import ghidra.app.decompiler.ClangToken;
@@ -273,6 +274,7 @@ public final class Wiz8CxxPrinter {
 					tokenText = TypeNames.mapTemplateSpelling(tokenText);
 				}
 				tokenText = Msvc6Patterns.sanitizeReservedName(node, tokenText);
+				tokenText = lexSafeSpelling(token, tokenText);
 				if (tokenText != null) {
 					line.append(tokenText);
 				}
@@ -283,6 +285,30 @@ public final class Wiz8CxxPrinter {
 			text.append('\n');
 		}
 		return text.toString();
+	}
+
+	/**
+	 * Exporter output may be semantically invalid where recovery declined —
+	 * visible junk marks the declined construct — but it must always lex. A
+	 * symbol spelling that carries quote or backtick characters (a decorated
+	 * special name such as {@code `vftable'}) would read as a malformed
+	 * character constant and corrupt the parse of every function after it,
+	 * so its measurable damage would land on innocent neighbours. Genuine
+	 * string and character literals pass through untouched; comments may
+	 * contain anything.
+	 */
+	private static String lexSafeSpelling(ClangToken token, String text) {
+		if (text == null || token instanceof ClangCommentToken ||
+			(text.indexOf('\'') < 0 && text.indexOf('`') < 0)) {
+			return text;
+		}
+		if (text.startsWith("\"")) {
+			return text; // a string literal; embedded apostrophes are legal
+		}
+		if (text.matches("'(?:[^'\\\\]|\\\\.|\\\\x[0-9a-fA-F]{1,2}|\\\\[0-7]{1,3})'")) {
+			return text; // a real single-character literal
+		}
+		return FunctionKind.normalizeSpecialName(text).replace(' ', '_');
 	}
 
 	/**
