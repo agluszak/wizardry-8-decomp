@@ -88,6 +88,57 @@ C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
 
 Every rule declines on ambiguity: a constructor or destructor whose
 subobject lifecycle calls cannot all be proven prints fully verbatim, and a
-recognizer failure never blocks the batch. Virtual deleting-destructor
-dispatch, guarded allocation forms, member-store initializer placement, and
-`this->`/type-name cleanup are later-milestone work; expect them verbatim.
+recognizer failure never blocks the batch. Guarded allocation forms and
+member-store initializer placement are later-milestone work; expect them
+verbatim.
+
+## Typed member access, dispatch, and type spellings (M3)
+
+Statement-local rewrites run over the whole body — conditions and loop heads
+included — before the lifecycle recognizers, which therefore read the lifted
+text:
+
+- **Type spellings** (`TypeNames.java`): the project's bracket-template
+  encoding becomes C++ (`W8GrowableVector[stLight_#]` →
+  `W8GrowableVector<stLight*>`, nested arguments and multi-word primitives
+  included), and Ghidra primitive aliases are spelled out (`uint`,
+  `undefined4` → `unsigned int`, `byte`/`undefined1` → `unsigned char`,
+  `float10` → `long double`, …). `code` is deliberately left alone: a
+  surviving `code` cast marks dispatch the recognizers declined.
+- **Member access**: Ghidra's base-subobject navigation returns to the C++
+  inheritance model — `(x->base).f` → `x->f`, `this->f` → bare `f`,
+  `&this->base_X` → `this` (the implicit upcast). Only the real `this`
+  parameter qualifies (`HighSymbol.isThisPointer`); a local that Ghidra
+  happened to name `this` keeps its explicit accesses. `vftable` accesses
+  are never rewritten — a surviving one marks declined dispatch.
+- **Null constants**: `(T *)0x0` prints as `0`.
+- **Direct method calls**: `Class::Method(receiver, args)` becomes member
+  syntax — bare `Method(args)` on `this` or a base subobject,
+  `field.Method(args)` on a member, `v->Method(args)` /
+  `x->f.Method(args)` / `((T *)expr)->Method(args)` on external receivers.
+  Callees with a `__return_storage_ptr__` parameter decline (struct-return
+  lowering is later work).
+- **Virtual dispatch**: `(**(code **)((int)recv.vftable + 0xNN))(args)`
+  resolves the receiver's static class, picks its vftable symbol (the
+  complete-object table only for offset 0; a `{for_'Base'}` table only via
+  the matching base subobject), reads the slot from program memory, and
+  prints the named call. Slot reads are bounded by the next vftable symbol
+  so an off-table slot never borrows a neighbour's entry. A slot that holds
+  a purecall, an unnamed function, or anything outside a class namespace
+  declines. A slot holding a scalar deleting destructor with flag `1`/`3`
+  prints the source-level `delete`/`delete[] receiver`.
+- **Ordinary method signatures**: `void __thiscall Class::M(Class *this, …)`
+  loses the convention and the `this` parameter.
+
+Naming comes from the live project only. A pure-virtual slot cannot be named
+from the vtable (it stores `purecall`), and unnamed slot functions
+(`FUN_…`) decline until the project names them.
+
+## Regression harness
+
+`uv run wiz8 recover regress 0x004a5e50 …` measures zero-edit
+regenerability: it exports each function, splices the block over the
+recovered body in its owning TU (span from the source index), builds the
+product, runs the relocation-masked comparison for that address, and always
+restores the file. It needs the live project plus the VC6 toolchain, so it
+is a manual/milestone gate, not part of `just check`/`just test`.

@@ -9,6 +9,7 @@ import ghidra.app.decompiler.ClangBreak;
 import ghidra.app.decompiler.ClangNode;
 import ghidra.app.decompiler.ClangToken;
 import ghidra.app.decompiler.ClangTokenGroup;
+import ghidra.app.decompiler.ClangTypeToken;
 import ghidra.program.model.listing.Function;
 
 /**
@@ -53,9 +54,44 @@ public final class Wiz8CxxPrinter {
 			FunctionKind.decorateSpecialName(function.getName()) + "\n";
 	}
 
-	/** Marker plus the function text with the analysis applied. */
+	/**
+	 * The function text with the analysis applied. The marker sits
+	 * immediately above the declaration — reccmp's pairing requires that
+	 * adjacency — so any leading decompiler comments print above the marker.
+	 */
 	public String print(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
-		return marker() + "\n" + render(markup, analysis);
+		String rendered = render(markup, analysis);
+		String[] lines = rendered.split("\n", -1);
+		int declaration = 0;
+		boolean inBlockComment = false;
+		while (declaration < lines.length) {
+			String trimmed = lines[declaration].trim();
+			if (inBlockComment) {
+				inBlockComment = !trimmed.endsWith("*/");
+			}
+			else if (trimmed.startsWith("/*")) {
+				inBlockComment = !trimmed.endsWith("*/");
+			}
+			else if (!trimmed.isEmpty() && !trimmed.startsWith("//")) {
+				break;
+			}
+			declaration++;
+		}
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < declaration; i++) {
+			String trimmed = lines[i].trim();
+			if (!trimmed.isEmpty()) {
+				out.append(lines[i]).append('\n');
+			}
+		}
+		out.append(marker()).append('\n');
+		for (int i = declaration; i < lines.length; i++) {
+			out.append(lines[i]);
+			if (i < lines.length - 1) {
+				out.append('\n');
+			}
+		}
+		return out.toString();
 	}
 
 	static String render(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
@@ -92,6 +128,15 @@ public final class Wiz8CxxPrinter {
 			}
 			if (node instanceof ClangToken token) {
 				String tokenText = token.getText();
+				if (token instanceof ClangTypeToken) {
+					tokenText = TypeNames.map(tokenText);
+				}
+				else {
+					// Namespace qualifiers of template classes print as plain
+					// syntax tokens but still carry the bracket encoding.
+					tokenText = TypeNames.mapTemplateSpelling(tokenText);
+				}
+				tokenText = Msvc6Patterns.sanitizeReservedName(node, tokenText);
 				if (tokenText != null) {
 					line.append(tokenText);
 				}
@@ -104,15 +149,20 @@ public final class Wiz8CxxPrinter {
 		return text.toString();
 	}
 
-	/** The nearest enclosing node a recognizer dropped or replaced, if any. */
+	/**
+	 * The outermost enclosing node a recognizer dropped or replaced, if any.
+	 * The outermost claim wins so a statement-level drop silences token-level
+	 * rewrites recorded inside it.
+	 */
 	private static ClangNode recognizedAncestor(ClangNode node,
 			Msvc6Patterns.Analysis analysis) {
+		ClangNode outermost = null;
 		for (ClangNode current = node; current != null; current = current.Parent()) {
 			if (analysis.replaced.containsKey(current) || analysis.dropped.contains(current)) {
-				return current;
+				outermost = current;
 			}
 		}
-		return null;
+		return outermost;
 	}
 
 	/**

@@ -351,6 +351,7 @@ def build_target(
         result = run(
             build.build_command(resolved_target, jobs or max(1, os.cpu_count() or 1)),
             cwd=settings.repo_dir,
+            log_path=settings.repo_dir / "build" / "logs" / "product-build.json",
         )
         return {
             "target": resolved_target,

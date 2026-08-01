@@ -29,12 +29,15 @@ import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.TypeDef;
 import ghidra.program.model.listing.Function;
+import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.pcode.HighFunction;
 import ghidra.program.model.pcode.HighSymbol;
 import ghidra.program.model.pcode.HighVariable;
 import ghidra.program.model.pcode.PcodeOp;
 import ghidra.program.model.pcode.Varnode;
+import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.Symbol;
+import ghidra.program.model.symbol.SymbolType;
 
 /**
  * Recognition of MSVC/VC6 compiler-owned C++ lowering in the decompiled
@@ -111,6 +114,13 @@ final class Msvc6Patterns {
 		items = linearize(root);
 		structure = classStructure();
 
+		// Statement-local token rewrites run first so the lifecycle and
+		// allocation recognizers read their effective (already lifted) text.
+		rewriteVirtualCalls();
+		normalizeMemberAccess();
+		rewriteNullPointerCasts();
+		rewriteMethodCalls();
+
 		Set<ClangNode> lifecycleDropped = new HashSet<>();
 		List<String> initializers = new ArrayList<>();
 		boolean lifted = false;
@@ -123,6 +133,9 @@ final class Msvc6Patterns {
 			analysis.replaced.put(findProto(root), liftedSignature(initializers));
 		}
 		rewriteAllocationPairs();
+		if (kind == FunctionKind.ORDINARY) {
+			liftOrdinarySignature();
+		}
 	}
 
 	// ------------------------------------------------------------------
@@ -219,16 +232,148 @@ final class Msvc6Patterns {
 		}
 	}
 
-	private static String tokenText(ClangNode node) {
+	private String tokenText(ClangNode node) {
 		List<ClangToken> tokens = new ArrayList<>();
 		leafTokens(node, tokens);
 		StringBuilder text = new StringBuilder();
 		for (ClangToken token : tokens) {
-			if (token.getText() != null) {
-				text.append(token.getText());
-			}
+			text.append(effectiveTokenText(token));
 		}
 		return text.toString();
+	}
+
+	/** The text a token contributes after claims and type mapping. */
+	private String effectiveTokenText(ClangToken token) {
+		String replacement = analysis.replaced.get(token);
+		if (replacement != null) {
+			return replacement;
+		}
+		if (analysis.dropped.contains(token)) {
+			return "";
+		}
+		String text = token.getText();
+		if (token instanceof ClangTypeToken) {
+			text = TypeNames.map(text);
+		}
+		else {
+			text = TypeNames.mapTemplateSpelling(text);
+		}
+		text = sanitizeReservedName(token, text);
+		return text == null ? "" : text;
+	}
+
+	/**
+	 * Ghidra names the receiver local of inlined method code {@code this}
+	 * even inside a plain function, where the reserved word can never
+	 * compile. The real this parameter is untouched.
+	 */
+	static String sanitizeReservedName(ClangNode node, String text) {
+		if ("this".equals(text) && node instanceof ClangVariableToken variable &&
+			!isThisSymbol(variable.getHighVariable())) {
+			return "this_";
+		}
+		return text;
+	}
+
+	private boolean isClaimed(ClangNode node) {
+		return analysis.dropped.contains(node) || analysis.replaced.containsKey(node);
+	}
+
+	/**
+	 * One statement's leaf tokens, plus the non-blank subsequence the pattern
+	 * matchers work on and its mapping back into the full list.
+	 */
+	private static final class TokenLine {
+		final List<ClangToken> raw = new ArrayList<>();
+		final List<ClangToken> sig = new ArrayList<>();
+		final List<Integer> rawIndex = new ArrayList<>();
+	}
+
+	private static TokenLine tokenLine(ClangNode statement) {
+		TokenLine line = new TokenLine();
+		leafTokens(statement, line.raw);
+		index(line);
+		return line;
+	}
+
+	/**
+	 * The whole function body as one token line. Conditions and loop heads
+	 * are not statements in the markup, so expression-level rewrites must
+	 * see every body token, not just statement tokens.
+	 */
+	private TokenLine bodyTokenLine() {
+		TokenLine line = new TokenLine();
+		for (ClangNode node : bodyNodes(root)) {
+			leafTokens(node, line.raw);
+		}
+		index(line);
+		return line;
+	}
+
+	private static void index(TokenLine line) {
+		for (int i = 0; i < line.raw.size(); i++) {
+			String text = line.raw.get(i).getText();
+			if (text != null && !text.isBlank()) {
+				line.sig.add(line.raw.get(i));
+				line.rawIndex.add(i);
+			}
+		}
+	}
+
+	/** The line's significant tokens that no recognizer has claimed yet. */
+	private TokenLine liveView(TokenLine line) {
+		TokenLine live = new TokenLine();
+		live.raw.addAll(line.raw);
+		for (int i = 0; i < line.sig.size(); i++) {
+			if (!isClaimed(line.sig.get(i))) {
+				live.sig.add(line.sig.get(i));
+				live.rawIndex.add(line.rawIndex.get(i));
+			}
+		}
+		return live;
+	}
+
+	/**
+	 * Claim the raw token span between two significant tokens: the whole span
+	 * disappears and the replacement text prints once in its place.
+	 */
+	private void claimRange(TokenLine line, int sigFrom, int sigTo, String replacement) {
+		int rawFrom = line.rawIndex.get(sigFrom);
+		int rawTo = line.rawIndex.get(sigTo);
+		for (int i = rawFrom; i <= rawTo; i++) {
+			ClangToken token = line.raw.get(i);
+			analysis.replaced.remove(token);
+			analysis.dropped.add(token);
+		}
+		ClangToken first = line.raw.get(rawFrom);
+		if (replacement.isEmpty()) {
+			return;
+		}
+		analysis.dropped.remove(first);
+		analysis.replaced.put(first, replacement);
+	}
+
+	private void dropToken(ClangToken token) {
+		analysis.replaced.remove(token);
+		analysis.dropped.add(token);
+	}
+
+	/** The index of the matching close paren in the significant list, or -1. */
+	private static int matchingParen(List<ClangToken> sig, int open) {
+		int depth = 0;
+		for (int i = open; i < sig.size(); i++) {
+			String text = sig.get(i).getText();
+			if ("(".equals(text)) {
+				depth++;
+			}
+			else if (")".equals(text)) {
+				depth--;
+				if (depth == 0) {
+					return i;
+				}
+			}
+		}
+		return -1;
 	}
 
 	// ------------------------------------------------------------------
@@ -619,7 +764,7 @@ final class Msvc6Patterns {
 			return null;
 		}
 		String name = isBaseField(component.getFieldName())
-				? target.getParentNamespace().getName()
+				? TypeNames.map(target.getParentNamespace().getName())
 				: component.getFieldName();
 		if (arguments.isEmpty()) {
 			return "";
@@ -658,19 +803,20 @@ final class Msvc6Patterns {
 		StringBuilder current = new StringBuilder();
 		int depth = 1;
 		for (int i = open + 1; i < tokens.size() && depth > 0; i++) {
-			String text = tokens.get(i).getText();
+			ClangToken token = tokens.get(i);
+			String text = token.getText();
 			if (text == null) {
 				continue;
 			}
 			switch (text) {
 				case "(":
 					depth++;
-					current.append(text);
+					current.append(effectiveTokenText(token));
 					break;
 				case ")":
 					depth--;
 					if (depth > 0) {
-						current.append(text);
+						current.append(effectiveTokenText(token));
 					}
 					break;
 				case ",":
@@ -679,11 +825,11 @@ final class Msvc6Patterns {
 						current.setLength(0);
 					}
 					else {
-						current.append(text);
+						current.append(effectiveTokenText(token));
 					}
 					break;
 				default:
-					current.append(text);
+					current.append(effectiveTokenText(token));
 			}
 		}
 		if (current.length() > 0 || !arguments.isEmpty()) {
@@ -944,6 +1090,691 @@ final class Msvc6Patterns {
 	}
 
 	// ------------------------------------------------------------------
+	// Virtual dispatch
+	// ------------------------------------------------------------------
+
+	/**
+	 * Replace the decompiler's raw vtable dispatch expression with the named
+	 * virtual call the source contained. The slot function is read from the
+	 * receiver's static class vftable in program memory; the rendered argument
+	 * list stays verbatim. Any unresolved step declines the call site.
+	 */
+	private void rewriteVirtualCalls() {
+		TokenLine line = bodyTokenLine();
+		for (int i = 1; i < line.sig.size(); i++) {
+			ClangToken star = line.sig.get(i);
+			if (!"*".equals(star.getText()) || isClaimed(star)) {
+				continue;
+			}
+			PcodeOp op = star.getPcodeOp();
+			if (op == null || op.getOpcode() != PcodeOp.CALLIND) {
+				continue;
+			}
+			if (!"(".equals(line.sig.get(i - 1).getText())) {
+				continue;
+			}
+			int start = i - 1;
+			int close = matchingParen(line.sig, start);
+			if (close < 0 || close + 1 >= line.sig.size() ||
+				!"(".equals(line.sig.get(close + 1).getText())) {
+				continue;
+			}
+			VirtualCall call = resolveVirtualCall(op);
+			if (call == null) {
+				continue;
+			}
+			FunctionKind slotKind = FunctionKind.classify(call.slot);
+			if (slotKind == FunctionKind.ORDINARY) {
+				String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
+				claimRange(line, start, close, prefix + call.slot.getName());
+				continue;
+			}
+			if (slotKind == FunctionKind.SYNTHETIC_DELETING_DESTRUCTOR) {
+				// Virtual dispatch of the deleting destructor is the compiled
+				// form of a source-level polymorphic delete.
+				int argsClose = matchingParen(line.sig, close + 1);
+				if (argsClose != close + 3) {
+					continue;
+				}
+				String flag = text(line.sig, close + 2);
+				String object = call.receiver.isEmpty() ? "this" : call.receiver;
+				if ("1".equals(flag)) {
+					claimRange(line, start, argsClose, "delete " + object);
+				}
+				else if ("3".equals(flag)) {
+					claimRange(line, start, argsClose, "delete[] " + object);
+				}
+			}
+		}
+	}
+
+	/** A resolved virtual call site: the receiver's spelling and the slot. */
+	private static final class VirtualCall {
+		final String receiver; // empty = implicit this
+		final Function slot;
+
+		VirtualCall(String receiver, Function slot) {
+			this.receiver = receiver;
+			this.slot = slot;
+		}
+	}
+
+	private VirtualCall resolveVirtualCall(PcodeOp callind) {
+		PcodeOp slotLoad = definingLoad(callind.getInput(0));
+		if (slotLoad == null) {
+			return null;
+		}
+		long slotOffset = 0;
+		Varnode current = slotLoad.getInput(1);
+		for (int step = 0; current != null && step < 16; step++) {
+			PcodeOp def = current.getDef();
+			if (def == null) {
+				return null;
+			}
+			int opcode = def.getOpcode();
+			if (opcode == PcodeOp.LOAD) {
+				break;
+			}
+			switch (opcode) {
+				case PcodeOp.COPY:
+				case PcodeOp.CAST:
+				case PcodeOp.INDIRECT:
+					current = def.getInput(0);
+					break;
+				case PcodeOp.PTRSUB:
+				case PcodeOp.INT_ADD:
+					if (!def.getInput(1).isConstant()) {
+						return null;
+					}
+					slotOffset += def.getInput(1).getOffset();
+					current = def.getInput(0);
+					break;
+				case PcodeOp.PTRADD:
+					if (!def.getInput(1).isConstant() || !def.getInput(2).isConstant()) {
+						return null;
+					}
+					slotOffset += def.getInput(1).getOffset() * def.getInput(2).getOffset();
+					current = def.getInput(0);
+					break;
+				default:
+					return null;
+			}
+		}
+		PcodeOp vptrLoad = current == null ? null : current.getDef();
+		if (vptrLoad == null || vptrLoad.getOpcode() != PcodeOp.LOAD) {
+			return null;
+		}
+		Varnode object = vptrLoad.getInput(1);
+
+		Structure receiverClass = null;
+		long subobjectOffset = 0;
+		String receiver = null;
+		OptionalLong thisOff = thisOffset(object);
+		if (thisOff.isPresent()) {
+			if (structure == null) {
+				return null;
+			}
+			receiverClass = structure;
+			subobjectOffset = thisOff.getAsLong();
+			receiver = "";
+		}
+		else {
+			// Walk to the receiver's root: a named pointer variable or a
+			// pointer member of this, with any constant subobject adjustment.
+			long sub = 0;
+			Varnode cursor = object;
+			for (int step = 0; cursor != null && step < 16; step++) {
+				HighVariable high = cursor.getHigh();
+				if (high != null && high.getSymbol() != null) {
+					Structure pointed = pointedStructure(high.getDataType());
+					if (pointed == null) {
+						return null;
+					}
+					receiverClass = pointed;
+					subobjectOffset = sub;
+					receiver = high.getName();
+					break;
+				}
+				PcodeOp def = cursor.getDef();
+				if (def == null) {
+					return null;
+				}
+				switch (def.getOpcode()) {
+					case PcodeOp.COPY:
+					case PcodeOp.CAST:
+					case PcodeOp.INDIRECT:
+						cursor = def.getInput(0);
+						break;
+					case PcodeOp.PTRSUB:
+					case PcodeOp.INT_ADD:
+						if (!def.getInput(1).isConstant()) {
+							return null;
+						}
+						sub += def.getInput(1).getOffset();
+						cursor = def.getInput(0);
+						break;
+					case PcodeOp.LOAD: {
+						// A pointer member of this: value = LOAD(this + off).
+						if (structure == null) {
+							return null;
+						}
+						OptionalLong fieldOff = thisOffset(def.getInput(1));
+						if (fieldOff.isEmpty() || fieldOff.getAsLong() < 0 ||
+							fieldOff.getAsLong() > Integer.MAX_VALUE) {
+							return null;
+						}
+						DataTypeComponent component = structure
+								.getComponentContaining((int) fieldOff.getAsLong());
+						if (component == null ||
+							component.getOffset() != fieldOff.getAsLong() ||
+							component.getFieldName() == null ||
+							isBaseField(component.getFieldName())) {
+							return null;
+						}
+						Structure pointed = pointedStructure(component.getDataType());
+						if (pointed == null) {
+							return null;
+						}
+						receiverClass = pointed;
+						subobjectOffset = sub;
+						receiver = component.getFieldName();
+						cursor = null;
+						break;
+					}
+					default:
+						return null;
+				}
+			}
+			if (receiver == null) {
+				return null;
+			}
+		}
+
+		Function slot = vtableSlotFunction(receiverClass, subobjectOffset, slotOffset);
+		if (slot == null || !(slot.getParentNamespace() instanceof GhidraClass)) {
+			return null;
+		}
+		return new VirtualCall(receiver, slot);
+	}
+
+	/** The structure a pointer type points at, through typedefs; else null. */
+	private static Structure pointedStructure(DataType type) {
+		DataType current = type;
+		while (current instanceof TypeDef typedef) {
+			current = typedef.getBaseDataType();
+		}
+		if (!(current instanceof Pointer pointer)) {
+			return null;
+		}
+		DataType pointed = pointer.getDataType();
+		while (pointed instanceof TypeDef typedef) {
+			pointed = typedef.getBaseDataType();
+		}
+		return pointed instanceof Structure structure ? structure : null;
+	}
+
+	/** The LOAD op producing the varnode, looking through copies and casts. */
+	private static PcodeOp definingLoad(Varnode varnode) {
+		Varnode current = varnode;
+		for (int step = 0; current != null && step < 8; step++) {
+			PcodeOp def = current.getDef();
+			if (def == null) {
+				return null;
+			}
+			switch (def.getOpcode()) {
+				case PcodeOp.LOAD:
+					return def;
+				case PcodeOp.COPY:
+				case PcodeOp.CAST:
+				case PcodeOp.INDIRECT:
+					current = def.getInput(0);
+					break;
+				default:
+					return null;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * The function installed at byte offset {@code slotOffset} of the class's
+	 * vftable for the given subobject, read from program memory.
+	 */
+	private Function vtableSlotFunction(Structure receiverClass, long subobjectOffset,
+			long slotOffset) {
+		if (slotOffset < 0 || slotOffset > 0x1000) {
+			return null;
+		}
+		Namespace namespace = classNamespace(receiverClass.getName());
+		if (namespace == null) {
+			return null;
+		}
+		List<Symbol> candidates = new ArrayList<>();
+		for (Symbol symbol : function.getProgram().getSymbolTable().getSymbols(namespace)) {
+			if (FunctionKind.normalizeSpecialName(symbol.getName()).startsWith("vftable")) {
+				candidates.add(symbol);
+			}
+		}
+		Symbol chosen = chooseVftable(candidates, receiverClass, subobjectOffset);
+		if (chosen == null || !slotInsideTable(chosen.getAddress(), slotOffset)) {
+			return null;
+		}
+		try {
+			int stored = function.getProgram().getMemory()
+					.getInt(chosen.getAddress().add(slotOffset));
+			Address target = function.getProgram().getAddressFactory()
+					.getDefaultAddressSpace().getAddress(Integer.toUnsignedLong(stored));
+			return function.getProgram().getFunctionManager().getFunctionAt(target);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Vftables have no length record; the next vftable symbol in the address
+	 * space bounds the table. A slot read past that bound would silently
+	 * name a slot of an unrelated class.
+	 */
+	private boolean slotInsideTable(Address tableStart, long slotOffset) {
+		Address slotEnd = tableStart.add(slotOffset + 4);
+		for (Symbol symbol : (Iterable<Symbol>) () -> function.getProgram().getSymbolTable()
+				.getSymbolIterator(tableStart.add(1), true)) {
+			Address address = symbol.getAddress();
+			if (address.compareTo(slotEnd) >= 0) {
+				return true;
+			}
+			if (FunctionKind.normalizeSpecialName(symbol.getName()).startsWith("vftable")) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private Namespace classNamespace(String className) {
+		for (Symbol symbol : function.getProgram().getSymbolTable()
+				.getSymbols(className)) {
+			if (symbol.getSymbolType() == SymbolType.CLASS &&
+				symbol.getObject() instanceof GhidraClass ghidraClass) {
+				return ghidraClass;
+			}
+		}
+		return null;
+	}
+
+	private Symbol chooseVftable(List<Symbol> candidates, Structure receiverClass,
+			long subobjectOffset) {
+		if (candidates.isEmpty()) {
+			return null;
+		}
+		if (subobjectOffset == 0) {
+			// The complete-object table only: a {for_'Base'} candidate is a
+			// different subobject's table and must never stand in for it.
+			Symbol primary = null;
+			for (Symbol symbol : candidates) {
+				if (FunctionKind.normalizeSpecialName(symbol.getName()).equals("vftable")) {
+					if (primary != null) {
+						return null;
+					}
+					primary = symbol;
+				}
+			}
+			return primary;
+		}
+		if (subobjectOffset > Integer.MAX_VALUE) {
+			return null;
+		}
+		DataTypeComponent component =
+			receiverClass.getComponentContaining((int) subobjectOffset);
+		if (component == null || component.getOffset() != subobjectOffset ||
+			component.getFieldName() == null || !isBaseField(component.getFieldName())) {
+			return null;
+		}
+		DataType componentType = component.getDataType();
+		while (componentType instanceof TypeDef typedef) {
+			componentType = typedef.getBaseDataType();
+		}
+		String wanted = squeeze("vftable{for" + TypeNames.map(componentType.getName()) + "}");
+		Symbol match = null;
+		for (Symbol symbol : candidates) {
+			if (squeeze(FunctionKind.normalizeSpecialName(symbol.getName())).equals(wanted)) {
+				if (match != null) {
+					return null;
+				}
+				match = symbol;
+			}
+		}
+		return match;
+	}
+
+	private static String squeeze(String text) {
+		return text.replace(" ", "");
+	}
+
+	// ------------------------------------------------------------------
+	// Typed member access
+	// ------------------------------------------------------------------
+
+	/**
+	 * Rewrite Ghidra's base-subobject navigation onto the C++ inheritance
+	 * model: {@code (x->base).f} becomes {@code x->f}, {@code this->f}
+	 * becomes the bare member, and {@code &this->base_X} becomes {@code this}
+	 * (the source-level implicit upcast). {@code vftable} accesses are left
+	 * alone; a surviving one marks dispatch the recognizers declined.
+	 */
+	private void normalizeMemberAccess() {
+		TokenLine full = bodyTokenLine();
+		for (int pass = 0; pass < 16; pass++) {
+			TokenLine live = liveView(full);
+			if (applyBaseAccessPatterns(live) == 0) {
+				break;
+			}
+		}
+	}
+
+	/** One sweep applying every non-overlapping match; returns the count. */
+	private int applyBaseAccessPatterns(TokenLine live) {
+		int applied = 0;
+		List<ClangToken> sig = live.sig;
+		for (int i = 0; i < sig.size(); i++) {
+			// ( X -> base ) . f   =>   X -> f       (and X . base variant)
+			if (i + 5 < sig.size() && "(".equals(text(sig, i)) &&
+				sig.get(i + 1) instanceof ClangVariableToken &&
+				isAccessOperator(text(sig, i + 2)) && isBaseFieldToken(sig.get(i + 3)) &&
+				")".equals(text(sig, i + 4)) && ".".equals(text(sig, i + 5)) &&
+				!nextFieldIsVftable(sig, i + 6)) {
+				dropToken(sig.get(i));
+				dropToken(sig.get(i + 3));
+				dropToken(sig.get(i + 4));
+				dropToken(sig.get(i + 5));
+				applied++;
+				i += 5;
+				continue;
+			}
+			// X . base . f  /  X -> base . f   =>   X . f  /  X -> f
+			if (i + 1 < sig.size() && isBaseFieldToken(sig.get(i)) &&
+				".".equals(text(sig, i + 1)) && i > 0 && isAccessOperator(text(sig, i - 1)) &&
+				!nextFieldIsVftable(sig, i + 2)) {
+				dropToken(sig.get(i));
+				dropToken(sig.get(i + 1));
+				applied++;
+				i += 1;
+				continue;
+			}
+			// & this -> base_X   =>   this        (implicit upcast)
+			// & v -> base_X      =>   v
+			if (i + 3 < sig.size() && "&".equals(text(sig, i)) &&
+				sig.get(i + 1) instanceof ClangVariableToken &&
+				"->".equals(text(sig, i + 2)) && isBaseFieldToken(sig.get(i + 3)) &&
+				!isAccessOperator(text(sig, i + 4)) && !"[".equals(text(sig, i + 4))) {
+				claimRange(live, i, i + 3,
+					sanitizeReservedName(sig.get(i + 1), sig.get(i + 1).getText()));
+				applied++;
+				i += 3;
+				continue;
+			}
+			// this -> f   =>   f                  (implicit receiver). Only the
+			// real this parameter qualifies; a local Ghidra happened to name
+			// "this" (a plain function receiving an object) must keep its
+			// explicit access.
+			if (i + 2 < sig.size() && sig.get(i) instanceof ClangVariableToken thisToken &&
+				"this".equals(text(sig, i)) &&
+				isThisSymbol(thisToken.getHighVariable()) &&
+				"->".equals(text(sig, i + 1)) &&
+				sig.get(i + 2) instanceof ClangFieldToken &&
+				!isBaseFieldToken(sig.get(i + 2)) && !nextFieldIsVftable(sig, i + 2)) {
+				dropToken(sig.get(i));
+				dropToken(sig.get(i + 1));
+				applied++;
+				i += 1;
+				continue;
+			}
+		}
+		return applied;
+	}
+
+	private static String text(List<ClangToken> sig, int index) {
+		if (index < 0 || index >= sig.size()) {
+			return "";
+		}
+		String text = sig.get(index).getText();
+		return text == null ? "" : text;
+	}
+
+	private static boolean isAccessOperator(String text) {
+		return "->".equals(text) || ".".equals(text);
+	}
+
+	private static boolean isBaseFieldToken(ClangToken token) {
+		return token instanceof ClangFieldToken && token.getText() != null &&
+			isBaseField(token.getText());
+	}
+
+	private static boolean nextFieldIsVftable(List<ClangToken> sig, int index) {
+		return index < sig.size() &&
+			FunctionKind.normalizeSpecialName(text(sig, index)).startsWith("vftable");
+	}
+
+	/** {@code (T *)0x0} is the source-level null constant {@code 0}. */
+	private void rewriteNullPointerCasts() {
+		TokenLine live = liveView(bodyTokenLine());
+		List<ClangToken> sig = live.sig;
+		for (int i = 0; i + 3 < sig.size(); i++) {
+			if (!"(".equals(text(sig, i)) || !(sig.get(i + 1) instanceof ClangTypeToken)) {
+				continue;
+			}
+			int j = i + 2;
+			while (j < sig.size() && "*".equals(text(sig, j))) {
+				j++;
+			}
+			if (j == i + 2 || j + 1 >= sig.size() || !")".equals(text(sig, j)) ||
+				!"0x0".equals(text(sig, j + 1))) {
+				continue;
+			}
+			claimRange(live, i, j + 1, "0");
+			i = j + 1;
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Direct method calls
+	// ------------------------------------------------------------------
+
+	/**
+	 * Rewrite {@code Class::Method(receiver, args)} into the member-call
+	 * syntax the source used: bare {@code Method(args)} on {@code this} or a
+	 * base subobject, {@code f.Method(args)} on a member, {@code v->Method(args)}
+	 * or {@code x.f.Method(args)} on an external receiver.
+	 */
+	private void rewriteMethodCalls() {
+		TokenLine live = liveView(bodyTokenLine());
+		List<ClangToken> sig = live.sig;
+		for (int i = 0; i < sig.size(); i++) {
+			if (!(sig.get(i) instanceof ClangFuncNameToken) || isClaimed(sig.get(i))) {
+				continue;
+			}
+			PcodeOp op = sig.get(i).getPcodeOp();
+			Function target = callee(op);
+			if (target == null || op.getNumInputs() < 2 ||
+				!(target.getParentNamespace() instanceof GhidraClass) ||
+				FunctionKind.classify(target) != FunctionKind.ORDINARY ||
+				!"__thiscall".equals(target.getCallingConventionName()) ||
+				hasReturnStorageParameter(target)) {
+				continue;
+			}
+			int start = i;
+			while (start >= 2 && "::".equals(text(sig, start - 1))) {
+				start -= 2;
+			}
+			if (i + 1 >= sig.size() || !"(".equals(text(sig, i + 1))) {
+				continue;
+			}
+			int close = matchingParen(sig, i + 1);
+			if (close < 0) {
+				continue;
+			}
+			List<List<ClangToken>> arguments = splitArguments(sig, i + 1, close);
+			if (arguments.size() != op.getNumInputs() - 1) {
+				continue;
+			}
+			String prefix = receiverPrefix(op.getInput(1), arguments.get(0));
+			if (prefix == null) {
+				continue;
+			}
+			List<String> rendered = new ArrayList<>();
+			for (int argument = 1; argument < arguments.size(); argument++) {
+				rendered.add(argumentText(arguments.get(argument)));
+			}
+			claimRange(live, start, close,
+				prefix + target.getName() + "(" + String.join(", ", rendered) + ")");
+		}
+	}
+
+	/** Top-level argument token slices between an open and close paren. */
+	private static List<List<ClangToken>> splitArguments(List<ClangToken> sig, int open,
+			int close) {
+		List<List<ClangToken>> arguments = new ArrayList<>();
+		List<ClangToken> current = new ArrayList<>();
+		int depth = 1;
+		for (int i = open + 1; i < close; i++) {
+			String text = text(sig, i);
+			if ("(".equals(text)) {
+				depth++;
+			}
+			else if (")".equals(text)) {
+				depth--;
+			}
+			else if (",".equals(text) && depth == 1) {
+				arguments.add(current);
+				current = new ArrayList<>();
+				continue;
+			}
+			current.add(sig.get(i));
+		}
+		if (!current.isEmpty() || !arguments.isEmpty()) {
+			arguments.add(current);
+		}
+		return arguments;
+	}
+
+	private String argumentText(List<ClangToken> tokens) {
+		StringBuilder text = new StringBuilder();
+		for (ClangToken token : tokens) {
+			text.append(effectiveTokenText(token));
+		}
+		return upcasts.getOrDefault(text.toString(), text.toString());
+	}
+
+	/**
+	 * How the receiver spells in member-call syntax; null declines. The
+	 * p-code decides for this-relative receivers, the rendered tokens for
+	 * external ones.
+	 */
+	private String receiverPrefix(Varnode receiver, List<ClangToken> rendered) {
+		OptionalLong offset = thisOffset(receiver);
+		if (offset.isPresent()) {
+			long value = offset.getAsLong();
+			if (value == 0) {
+				return "";
+			}
+			if (structure == null || value < 0 || value > Integer.MAX_VALUE) {
+				return null;
+			}
+			DataTypeComponent component = structure.getComponentContaining((int) value);
+			if (component == null || component.getOffset() != value ||
+				component.getFieldName() == null) {
+				return null;
+			}
+			if (isBaseField(component.getFieldName())) {
+				return "";
+			}
+			return component.getFieldName() + ".";
+		}
+		String text = argumentText(rendered);
+		if (text.isEmpty()) {
+			return null;
+		}
+		if (text.startsWith("&") && text.length() > 1) {
+			return text.substring(1) + ".";
+		}
+		List<ClangToken> live = new ArrayList<>();
+		for (ClangToken token : rendered) {
+			if (!effectiveTokenText(token).isEmpty()) {
+				live.add(token);
+			}
+		}
+		if (live.size() == 1 && live.get(0) instanceof ClangVariableToken &&
+			!analysis.replaced.containsKey(live.get(0))) {
+			return text + "->";
+		}
+		// A composite receiver expression, e.g. a cast: parenthesize it.
+		return "(" + text + ")->";
+	}
+
+	private static boolean hasReturnStorageParameter(Function target) {
+		for (int i = 0; i < target.getParameterCount(); i++) {
+			if ("__return_storage_ptr__".equals(target.getParameter(i).getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// ------------------------------------------------------------------
+	// Ordinary method signatures
+	// ------------------------------------------------------------------
+
+	/**
+	 * A class method's exported definition must not carry the ABI spelling:
+	 * {@code void __thiscall Class::M(Class *this, int x)} becomes
+	 * {@code void Class::M(int x)}. Applied only when the prototype has
+	 * exactly the expected shape.
+	 */
+	private void liftOrdinarySignature() {
+		if (!(function.getParentNamespace() instanceof GhidraClass) ||
+			!"__thiscall".equals(function.getCallingConventionName())) {
+			return;
+		}
+		TokenLine line = tokenLine(findProto(root));
+		List<ClangToken> sig = line.sig;
+		int convention = -1;
+		int open = -1;
+		for (int i = 0; i < sig.size(); i++) {
+			if ("__thiscall".equals(text(sig, i))) {
+				convention = i;
+			}
+			if ("(".equals(text(sig, i))) {
+				open = i;
+				break;
+			}
+		}
+		if (convention < 0 || open < 0) {
+			return;
+		}
+		int end = open + 1;
+		while (end < sig.size() && !",".equals(text(sig, end)) && !")".equals(text(sig, end))) {
+			end++;
+		}
+		if (end >= sig.size() || !"this".equals(text(sig, end - 1))) {
+			return;
+		}
+		claimRange(line, convention, convention, "");
+		int blankAfter = line.rawIndex.get(convention) + 1;
+		if (blankAfter < line.raw.size()) {
+			String blankText = line.raw.get(blankAfter).getText();
+			if (blankText != null && blankText.isBlank()) {
+				dropToken(line.raw.get(blankAfter));
+			}
+		}
+		if (",".equals(text(sig, end))) {
+			claimRange(line, open + 1, end, "");
+		}
+		else {
+			claimRange(line, open + 1, end - 1, "");
+		}
+	}
+
+	// ------------------------------------------------------------------
 	// Signature construction
 	// ------------------------------------------------------------------
 
@@ -959,8 +1790,14 @@ final class Msvc6Patterns {
 	}
 
 	private String liftedSignature(List<String> initializers) {
-		String owner = function.getParentNamespace().getName(true);
+		String owner = TypeNames.map(function.getParentNamespace().getName(true));
 		String name = function.getParentNamespace().getName();
+		// The constructor of a template specialization is spelled with the
+		// bare template name: W8GrowableVector<int>::W8GrowableVector(...).
+		int bracket = name.indexOf('[');
+		if (bracket > 0) {
+			name = name.substring(0, bracket);
+		}
 		if (kind == FunctionKind.DESTRUCTOR) {
 			name = "~" + name;
 		}
@@ -1118,7 +1955,7 @@ final class Msvc6Patterns {
 		if (arguments == null) {
 			return false;
 		}
-		String type = constructor.getParentNamespace().getName(true);
+		String type = TypeNames.map(constructor.getParentNamespace().getName(true));
 		analysis.replaced.put(first,
 			result + " = new " + type + "(" + String.join(", ", arguments) + ")");
 		analysis.dropped.add(second);
@@ -1181,6 +2018,6 @@ final class Msvc6Patterns {
 		if (argument.size() != 1 || !(argument.get(0) instanceof ClangVariableToken)) {
 			return null;
 		}
-		return argument.get(0).getText();
+		return sanitizeReservedName(argument.get(0), argument.get(0).getText());
 	}
 }
