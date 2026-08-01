@@ -6,10 +6,13 @@ import java.util.List;
 import java.util.Set;
 
 import ghidra.app.decompiler.ClangBreak;
+import ghidra.app.decompiler.ClangLine;
 import ghidra.app.decompiler.ClangNode;
 import ghidra.app.decompiler.ClangToken;
 import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.decompiler.ClangTypeToken;
+import ghidra.app.decompiler.PrettyPrinter;
+import ghidra.app.decompiler.component.DecompilerUtils;
 import ghidra.program.model.listing.Function;
 
 /**
@@ -61,6 +64,14 @@ public final class Wiz8CxxPrinter {
 	 */
 	public String print(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
 		String rendered = render(markup, analysis);
+		if (!structurallySound(rendered)) {
+			rendered = "/* Recovery transform declined: structural validation failed. */\n" +
+				renderVerbatim(markup);
+		}
+		return insertMarker(rendered);
+	}
+
+	private String insertMarker(String rendered) {
 		String[] lines = rendered.split("\n", -1);
 		int declaration = 0;
 		boolean inBlockComment = false;
@@ -94,6 +105,110 @@ public final class Wiz8CxxPrinter {
 		return out.toString();
 	}
 
+	/** Ghidra's own identity-token rendering: the permanent safe fallback. */
+	private static String renderVerbatim(ClangTokenGroup markup) {
+		StringBuilder out = new StringBuilder();
+		for (ClangLine line : DecompilerUtils.toLines(markup)) {
+			out.append(line.getIndentString()).append(PrettyPrinter.getText(line)).append('\n');
+		}
+		return out.toString();
+	}
+
+	/**
+	 * Cheap syntax invariants for transformed output. This is intentionally
+	 * conservative: a failed check discards every claim and prints Ghidra's
+	 * verbatim token stream instead of allowing a partial rewrite to corrupt a
+	 * function. It is not a C++ parser.
+	 */
+	static boolean structurallySound(String rendered) {
+		int parens = 0;
+		int braces = 0;
+		int brackets = 0;
+		boolean blockComment = false;
+		String[] lines = rendered.split("\n", -1);
+		for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+			String line = lines[lineIndex];
+			String trimmed = line.trim();
+			if (trimmed.matches("[-+]?(?:0x[0-9a-fA-F]+|[0-9]+(?:\\.[0-9]*)?[fFlL]?)")) {
+				return false;
+			}
+			if (trimmed.contains("=") && trimmed.endsWith(")") &&
+				!nextLineContinuesExpression(lines, lineIndex + 1)) {
+				return false;
+			}
+			boolean string = false;
+			boolean character = false;
+			boolean escaped = false;
+			for (int i = 0; i < line.length(); i++) {
+				char c = line.charAt(i);
+				char next = i + 1 < line.length() ? line.charAt(i + 1) : '\0';
+				if (blockComment) {
+					if (c == '*' && next == '/') {
+						blockComment = false;
+						i++;
+					}
+					continue;
+				}
+				if (!string && !character && c == '/' && next == '/') {
+					break;
+				}
+				if (!string && !character && c == '/' && next == '*') {
+					blockComment = true;
+					i++;
+					continue;
+				}
+				if (escaped) {
+					escaped = false;
+					continue;
+				}
+				if ((string || character) && c == '\\') {
+					escaped = true;
+					continue;
+				}
+				if (!character && c == '"') {
+					string = !string;
+					continue;
+				}
+				if (!string && c == '\'') {
+					character = !character;
+					continue;
+				}
+				if (string || character) {
+					continue;
+				}
+				switch (c) {
+					case '(' -> parens++;
+					case ')' -> parens--;
+					case '{' -> braces++;
+					case '}' -> braces--;
+					case '[' -> brackets++;
+					case ']' -> brackets--;
+					default -> { }
+				}
+				if (parens < 0 || braces < 0 || brackets < 0) {
+					return false;
+				}
+			}
+			if (string || character) {
+				return false;
+			}
+		}
+		return !blockComment && parens == 0 && braces == 0 && brackets == 0;
+	}
+
+	private static boolean nextLineContinuesExpression(String[] lines, int index) {
+		for (int i = index; i < lines.length; i++) {
+			String next = lines[i].trim();
+			if (next.isEmpty()) {
+				continue;
+			}
+			return next.startsWith(";") || next.startsWith(",") || next.startsWith(")") ||
+				next.startsWith("&&") || next.startsWith("||") || next.startsWith("?") ||
+				next.startsWith(":") || next.startsWith("{");
+		}
+		return false;
+	}
+
 	static String render(ClangTokenGroup markup, Msvc6Patterns.Analysis analysis) {
 		List<ClangNode> nodes = new ArrayList<>();
 		markup.flatten(nodes);
@@ -111,7 +226,10 @@ public final class Wiz8CxxPrinter {
 			ClangNode node = nodes.get(i);
 			ClangNode recognized = recognizedAncestor(node, analysis);
 			if (recognized != null) {
-				String replacement = analysis.replaced.get(recognized);
+				// A later, wider semantic drop always wins over an earlier
+				// token replacement inside the same compiler-owned construct.
+				String replacement = analysis.dropped.contains(recognized) ? null
+						: analysis.replaced.get(recognized);
 				if (replacement != null && emittedReplacements.add(recognized)) {
 					line.append(replacement);
 				}

@@ -13,9 +13,11 @@ from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     compile_diagnostics,
+    constructor_member_names,
     constructor_store_alternative,
     insert_lines,
     marker_span,
+    mismatch_alternatives,
     place_address,
     splice_lines,
     split_export_blocks,
@@ -162,16 +164,52 @@ def test_constructor_store_alternative_moves_member_initializers() -> None:
         "  cycle_3c = 0;\n"
         "}\n"
     )
-    alternative = constructor_store_alternative(block)
+    alternative = constructor_store_alternative(
+        block, member_names={"flags_00", "timer_18", "value_48"}
+    )
     assert alternative is not None
     assert "    : W8Base(other), timer_18(duration, 0)" in alternative
     assert "  flags_00 = 0;\n  value_48 = 0;\n  cycle_3c = 0;" in alternative
 
 
 def test_constructor_store_alternative_declines_without_movable_members() -> None:
-    assert constructor_store_alternative("// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n") is None
+    assert (
+        constructor_store_alternative(
+            "// FUNCTION: WIZ8 0x1\nvoid f()\n{\n}\n", member_names={"value"}
+        )
+        is None
+    )
     base_only = "X::X()\n    : W8Base(other)\n\n{\n}\n"
-    assert constructor_store_alternative(base_only) is None
+    assert constructor_store_alternative(base_only, member_names={"value"}) is None
+
+
+def test_constructor_store_alternative_never_guesses_lowercase_bases() -> None:
+    block = "X::X()\n    : srNode(0), value(1)\n\n{\n}\n"
+    alternative = constructor_store_alternative(block, member_names={"value"})
+    assert alternative is not None
+    assert "    : srNode(0)" in alternative
+    assert "  value = 1;" in alternative
+    assert "srNode =" not in alternative
+
+
+def test_constructor_member_names_uses_the_source_class_inventory() -> None:
+    classes = [
+        {
+            "qualified_name": "stSurface2D",
+            "fields": [{"name": "state"}, {"name": "source_surface"}],
+        }
+    ]
+    block = "stSurface2D::stSurface2D()\n    : srNode(0), state(1)\n\n{\n}\n"
+    assert constructor_member_names(block, classes) == {"state", "source_surface"}
+
+
+def test_return_width_candidates_are_bounded_and_structurally_driven() -> None:
+    block = "// FUNCTION: WIZ8 0x00000001\nint f(int value)\n{\n  return value;\n}\n"
+    finding = {"difference": {"kind": "return_value"}}
+    alternatives = mismatch_alternatives(block, finding)
+    assert [name for name, _ in alternatives] == ["return-unsigned-char", "return-unsigned-int"]
+    assert alternatives[0][1].startswith("// FUNCTION: WIZ8 0x00000001\nunsigned char f(int value)")
+    assert mismatch_alternatives(block, {"difference": {"kind": "branch_condition"}}) == []
 
 
 def test_suggest_includes_names_declaring_headers(tmp_path) -> None:

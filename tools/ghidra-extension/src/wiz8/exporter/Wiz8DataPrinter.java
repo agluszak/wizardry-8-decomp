@@ -18,8 +18,9 @@ import ghidra.program.model.symbol.Symbol;
  *
  * The value comes from program memory through the applied data type. Only
  * shapes the image proves are lifted: integer and floating scalars, narrow
- * strings, pointers to named symbols or null, arrays of scalars, and flat
- * all-scalar structures. A datum in an uninitialized block prints without
+ * strings, pointers to named symbols or null, and bounded aggregate tables
+ * whose leaves all have those supported scalar shapes. A datum in an
+ * uninitialized block prints without
  * an initializer, matching the recovered sources' spelling of {@code .bss}
  * state. Anything richer declines to a marker plus a comment naming what
  * stopped it.
@@ -27,6 +28,9 @@ import ghidra.program.model.symbol.Symbol;
 final class Wiz8DataPrinter {
 
 	private static final int MAX_ARRAY_VALUES = 256;
+	private static final int MAX_COMPOSITE_DEPTH = 8;
+	private static final String CXX_QUALIFIED_IDENTIFIER =
+		"[A-Za-z_][A-Za-z0-9_]*(?:::[A-Za-z_][A-Za-z0-9_]*)*";
 
 	private final Program program;
 
@@ -49,8 +53,11 @@ final class Wiz8DataPrinter {
 				"\n";
 		}
 		Symbol symbol = program.getSymbolTable().getPrimarySymbol(address);
-		String name = symbol != null ? symbol.getName()
+		String name = symbol != null ? TypeNames.map(symbol.getName(true))
 				: String.format("DAT_%08x", address.getOffset());
+		if (!name.matches(CXX_QUALIFIED_IDENTIFIER)) {
+			return marker + "// data name is not a C++ identifier: " + name + "\n";
+		}
 		String declaration = declarator(data.getDataType(), name);
 		MemoryBlock block = program.getMemory().getBlock(address);
 		if (block == null || !block.isInitialized()) {
@@ -100,7 +107,7 @@ final class Wiz8DataPrinter {
 	private String renderValue(Data data) {
 		DataType type = resolve(data.getDataType());
 		if (type instanceof Array || type instanceof Structure) {
-			return renderComposite(data);
+			return renderComposite(data, 0, new int[] { MAX_ARRAY_VALUES });
 		}
 		Object value = data.getValue();
 		if (value instanceof String text) {
@@ -115,15 +122,41 @@ final class Wiz8DataPrinter {
 					: String.format("0x%x", scalar.getUnsignedValue());
 		}
 		if (value instanceof Float || value instanceof Double) {
-			double number = ((Number) value).doubleValue();
-			if (number == 0.0) {
-				return "";
-			}
-			String text = String.valueOf(value);
-			return value instanceof Float ? text + "f" : text;
+			return renderFloating((Number) value);
 		}
 		if (type instanceof Pointer || value instanceof Address) {
 			return renderPointer(value);
+		}
+		return null;
+	}
+
+	/** A VC6-accepted, bit-preserving finite floating initializer. */
+	static String renderFloating(Number value) {
+		if (value instanceof Float number) {
+			if (!Float.isFinite(number)) {
+				return null;
+			}
+			int bits = Float.floatToRawIntBits(number);
+			if (bits == 0) {
+				return "";
+			}
+			if (bits == 0x80000000) {
+				return "-0.0f";
+			}
+			return Float.toString(number) + "f";
+		}
+		if (value instanceof Double number) {
+			if (!Double.isFinite(number)) {
+				return null;
+			}
+			long bits = Double.doubleToRawLongBits(number);
+			if (bits == 0) {
+				return "";
+			}
+			if (bits == 0x8000000000000000L) {
+				return "-0.0";
+			}
+			return Double.toString(number);
 		}
 		return null;
 	}
@@ -143,15 +176,20 @@ final class Wiz8DataPrinter {
 		if (pointed != null && pointed.getValue() instanceof String text) {
 			return Msvc6Patterns.cStringLiteral(text);
 		}
-		return "&" + symbol.getName();
+		String name = TypeNames.map(symbol.getName(true));
+		return name.matches(CXX_QUALIFIED_IDENTIFIER) ? "&" + name : null;
 	}
 
-	/** A brace initializer for an array or flat structure of lifted values. */
-	private String renderComposite(Data data) {
-		int count = data.getNumComponents();
-		if (count == 0 || count > MAX_ARRAY_VALUES) {
+	/** A bounded brace initializer whose leaves are all proven scalar values. */
+	private String renderComposite(Data data, int depth, int[] remaining) {
+		if (depth >= MAX_COMPOSITE_DEPTH) {
 			return null;
 		}
+		int count = data.getNumComponents();
+		if (count == 0 || count > remaining[0]) {
+			return null;
+		}
+		remaining[0] -= count;
 		// A char array holding a defined string lifts as the literal itself.
 		if (data.getValue() instanceof String text) {
 			return Msvc6Patterns.cStringLiteral(text);
@@ -164,15 +202,15 @@ final class Wiz8DataPrinter {
 				return null;
 			}
 			DataType componentType = resolve(component.getDataType());
-			if (componentType instanceof Array || componentType instanceof Structure) {
-				return null; // nested composites stay unproven in v1
-			}
-			String value = renderValue(component);
+			boolean composite = componentType instanceof Array || componentType instanceof Structure;
+			String value = composite
+					? renderComposite(component, depth + 1, remaining)
+					: renderValue(component);
 			if (value == null) {
 				return null;
 			}
 			if (value.isEmpty()) {
-				value = "0";
+				value = composite ? "{ 0 }" : "0";
 			}
 			else {
 				allZero = false;

@@ -63,8 +63,10 @@ uv run wiz8 ghidra export-cpp 0x004a5e50 0x004a5f00 0x004a5f20 0x004a6610 \
 
 Expected: every body carries its `// FUNCTION: WIZ8 0x…` marker; the scalar
 deleting destructor 0x004a5f00 prints exactly the two-line `SYNTHETIC` block
-from `src/wiz8/engine_code/GrCycle.cpp` and no body; ordinary functions match
-Ghidra's decompiler text byte for byte.
+from `src/wiz8/engine_code/GrCycle.cpp` and no body. Every transformed body is
+structurally sound; an unproved construct stays in Ghidra's identity-token
+form, and a failed whole-body structural check carries an explicit decline
+comment.
 
 ## Lifecycle lifting
 
@@ -88,7 +90,11 @@ C++ when every recognizer finds positive evidence (`Msvc6Patterns.java`):
 
 Every rule declines on ambiguity: a constructor or destructor whose
 subobject lifecycle calls cannot all be proven prints fully verbatim, and a
-recognizer failure never blocks the batch. Guarded allocation forms and
+recognizer failure never blocks the batch. The transformed token stream is
+also checked for balanced syntax, dangling literal statements, and lost
+statement terminators; a failed structural check discards all transformations
+for that function and prints Ghidra's identity-token rendering with an
+explicit decline comment. Guarded allocation forms and
 member-store initializer placement are later-milestone work; expect them
 verbatim.
 
@@ -112,6 +118,10 @@ text:
   happened to name `this` keeps its explicit accesses. `vftable` accesses
   are never rewritten — a surviving one marks declined dispatch.
 - **Null constants**: `(T *)0x0` prints as `0`.
+- **Array indexing**: the exact lowering
+  `*(T *)(base + index * sizeof(T))` becomes `((T *)base)[index]`; both the
+  applied element width and the constant stride must agree, while composite
+  bases or extra byte offsets decline.
 - **Direct method calls**: `Class::Method(receiver, args)` becomes member
   syntax — bare `Method(args)` on `this` or a base subobject,
   `field.Method(args)` on a member, `v->Method(args)` /
@@ -190,7 +200,9 @@ line into the exported source.
 declaration followed by the class's ABI family in address order.
 
 The declaration (`Wiz8ClassPrinter.java`) is a projection for review and
-porting, never evidence: bases come from the repository's `base`/`base_*`
+porting, never evidence and never an automatic header overwrite: Git owns the
+curated declaration, while incomplete pure-virtual or inherited slots make a
+generated replacement unsafe. Bases come from the repository's `base`/`base_*`
 leading-field convention, virtual methods print in vtable order read from
 the primary (for-clause-free) vftable in program memory, and data fields
 print at their exact offsets with explicit `unknown_XX[N]` gap padding. What
@@ -219,12 +231,17 @@ LIBRARY markers stay address-only lines.
 
 `--data 0xADDR…` exports globals as typed definitions under `// GLOBAL:`
 markers (`Wiz8DataPrinter.java`). Only image-proven shapes are lifted:
-integer/float scalars (a zero value in an initialized block prints without
-an initializer, matching the recovered sources), narrow strings, pointers
-to named symbols or null, flat arrays/structures of scalars. A defined
-string datum prints as a comment naming the literal — it is anonymous in
-source and its synthetic Ghidra name is not an identifier. Undefined data,
-nested composites, and unnamed pointer targets decline to a comment.
+integer/finite-float scalars (positive zero in an initialized block prints
+without an initializer, while negative zero keeps its sign bit), narrow
+strings, pointers to valid named symbols or null, and bounded nested
+arrays/structures whose leaves all have those scalar shapes. Non-finite
+floating values decline because VC6 has no direct accepted literal spelling.
+A defined string datum prints as a comment naming the literal — it is
+anonymous in source and its synthetic Ghidra name is not an identifier.
+Unsupported or over-large composites and unnamed pointer targets decline to a
+comment. These are image/static initial values; dynamic initialization remains
+executable code and is recovered through its owning function rather than
+guessed from the pre-initialization bytes.
 
 Additionally, a plain address export of a function whose owning namespace
 is a bracket-encoded template class prints the TEMPLATE emission block

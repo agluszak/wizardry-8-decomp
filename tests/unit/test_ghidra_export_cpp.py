@@ -218,3 +218,4 @@ def test_data_selections_reject_ranges() -> None:
     assert _resolve_data_addresses(["0x10", "0x0065be2c"]) == [0x10, 0x65BE2C]
     with pytest.raises(ValueError, match="plain addresses"):
         _resolve_data_addresses(["0x10:0x20"])
+    assert _resolve_data_addresses(["0x10", "0x10"]) == [0x10]

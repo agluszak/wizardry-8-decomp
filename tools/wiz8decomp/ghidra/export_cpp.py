@@ -223,7 +223,7 @@ def _resolve_data_addresses(selections: list[str]) -> list[int]:
         if end is not None:
             raise ValueError(f"--data takes plain addresses, not ranges: {selection!r}")
         addresses.append(start)
-    return addresses
+    return list(dict.fromkeys(addresses))
 
 
 def export_cpp(
@@ -263,6 +263,8 @@ def export_cpp(
 
             if class_name is not None:
                 text = str(exporter.exportClass(program, class_name, TaskMonitor.DUMMY))
+                if text.startswith("// error:"):
+                    raise ValueError(text.strip().removeprefix("// error: "))
                 functions = []
             elif data:
                 entries = _resolve_data_addresses(selections)

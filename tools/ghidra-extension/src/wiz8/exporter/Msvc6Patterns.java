@@ -90,6 +90,8 @@ final class Msvc6Patterns {
 	private EhModel ehModel;
 	/** Compiler-computed null-preserving upcasts: local name -> replacement text. */
 	private final Map<String, String> upcasts = new HashMap<>();
+	/** Rendered names of the three proven VC6 EH registration-frame slots. */
+	private final Set<String> ehSlotNames = new HashSet<>();
 
 	private Msvc6Patterns(Function function, FunctionKind kind, DecompileResults results) {
 		this.function = function;
@@ -119,6 +121,7 @@ final class Msvc6Patterns {
 		// Statement-local token rewrites run first so the lifecycle and
 		// allocation recognizers read their effective (already lifted) text.
 		rewriteVirtualCalls();
+		rewriteArrayIndexing();
 		normalizeMemberAccess();
 		rewriteNullPointerCasts();
 		rewriteMethodCalls();
@@ -564,7 +567,17 @@ final class Msvc6Patterns {
 			}
 			else if (item.node instanceof ClangVariableDecl declaration &&
 				isEhSlotDeclaration(declaration)) {
+				rememberEhSlotNames(declaration);
 				ehDropped.add(declaration);
+			}
+		}
+		// Subpiece stores such as local_4._0_1_ = 1 can have a p-code
+		// output in unique space even though the rendered lvalue is the proven
+		// state slot. Drop the complete statement by its remembered declaration
+		// name; otherwise token-level rewrites can leave a dangling literal.
+		for (Item item : items) {
+			if (item.isStatement() && mentionsEhSlotName(item.node)) {
+				ehDropped.add(item.node);
 			}
 		}
 		if (ehSlotReferencesSurvive(ehDropped)) {
@@ -669,7 +682,7 @@ final class Msvc6Patterns {
 			leafTokens(node, tokens);
 		}
 		for (ClangToken token : tokens) {
-			if (!isEhSlotReference(token)) {
+			if (!isEhSlotReference(token) && !ehSlotNames.contains(token.getText())) {
 				continue;
 			}
 			boolean claimed = false;
@@ -680,6 +693,30 @@ final class Msvc6Patterns {
 				}
 			}
 			if (!claimed) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void rememberEhSlotNames(ClangVariableDecl declaration) {
+		List<ClangToken> tokens = new ArrayList<>();
+		leafTokens(declaration, tokens);
+		for (ClangToken token : tokens) {
+			if (token instanceof ClangVariableToken && token.getText() != null) {
+				ehSlotNames.add(token.getText());
+			}
+		}
+	}
+
+	private boolean mentionsEhSlotName(ClangNode node) {
+		if (ehSlotNames.isEmpty()) {
+			return false;
+		}
+		List<ClangToken> tokens = new ArrayList<>();
+		leafTokens(node, tokens);
+		for (ClangToken token : tokens) {
+			if (ehSlotNames.contains(token.getText())) {
 				return true;
 			}
 		}
@@ -1806,6 +1843,69 @@ final class Msvc6Patterns {
 	}
 
 	// ------------------------------------------------------------------
+	// Typed array indexing
+	// ------------------------------------------------------------------
+
+	/**
+	 * Recover the exact pointer-arithmetic lowering
+	 * {@code *(T *)(base + index * sizeof(T))} as
+	 * {@code ((T *)base)[index]}. The cast type and stride are both required;
+	 * a byte offset that does not equal the applied element width declines.
+	 */
+	private void rewriteArrayIndexing() {
+		TokenLine full = bodyTokenLine();
+		for (int pass = 0; pass < 8; pass++) {
+			TokenLine live = liveView(full);
+			List<ClangToken> sig = live.sig;
+			boolean changed = false;
+			for (int i = 0; i + 11 < sig.size(); i++) {
+				if (!"*".equals(text(sig, i)) || !"(".equals(text(sig, i + 1)) ||
+					!(sig.get(i + 2) instanceof ClangTypeToken typeToken) ||
+					!"*".equals(text(sig, i + 3)) || !")".equals(text(sig, i + 4)) ||
+					!"(".equals(text(sig, i + 5)) || !"+".equals(text(sig, i + 7)) ||
+					!"*".equals(text(sig, i + 9)) || !")".equals(text(sig, i + 11))) {
+					continue;
+				}
+				Long stride = integerToken(sig.get(i + 10));
+				DataType element = typeToken.getDataType();
+				if (stride == null || element == null || element.getLength() <= 0 ||
+					stride != element.getLength() || !simpleValueToken(sig.get(i + 6)) ||
+					!simpleValueToken(sig.get(i + 8))) {
+					continue;
+				}
+				String type = TypeNames.map(typeToken.getText());
+				String base = effectiveTokenText(sig.get(i + 6));
+				String index = effectiveTokenText(sig.get(i + 8));
+				claimRange(live, i, i + 11,
+					"((" + type + " *)" + base + ")[" + index + "]");
+				changed = true;
+				i += 11;
+			}
+			if (!changed) {
+				break;
+			}
+		}
+	}
+
+	private static boolean simpleValueToken(ClangToken token) {
+		return token instanceof ClangVariableToken || integerToken(token) != null;
+	}
+
+	private static Long integerToken(ClangToken token) {
+		String text = token.getText();
+		if (text == null) {
+			return null;
+		}
+		String normalized = text.replaceFirst("(?i)[uUlL]+$", "");
+		try {
+			return Long.decode(normalized);
+		}
+		catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	// ------------------------------------------------------------------
 	// Typed member access
 	// ------------------------------------------------------------------
 
@@ -2093,8 +2193,10 @@ final class Msvc6Patterns {
 			for (int argument = 1; argument < arguments.size(); argument++) {
 				rendered.add(argumentText(arguments.get(argument)));
 			}
-			claimRange(live, start, close,
-				prefix + target.getName() + "(" + String.join(", ", rendered) + ")");
+			boolean statementCall = close + 1 < sig.size() && ";".equals(text(sig, close + 1));
+			claimRange(live, start, statementCall ? close + 1 : close,
+				prefix + target.getName() + "(" + String.join(", ", rendered) + ")" +
+					(statementCall ? ";" : ""));
 		}
 	}
 
