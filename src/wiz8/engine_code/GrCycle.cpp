@@ -344,6 +344,18 @@ W8GrCycle::~W8GrCycle()
     }
 }
 
+// FUNCTION: WIZ8 0x004a6df0
+void W8GrCycle::SetPosition004A6DF0(W8Position* position)
+
+{
+  W8EmitterHost* representation = GetRepresentation();
+  
+  representation->SetLocation004B8850(position);
+  SetPositionInternal00453590(position);
+  return;
+}
+
+
 // FUNCTION: WIZ8 0x004a6e20
 void W8GrCycle::TickAnimation(float scale)
 {

@@ -1,4 +1,4 @@
-from wiz8decomp.ghidra.function_roles import source_role_tags
+from wiz8decomp.ghidra.function_roles import source_role_tags, source_virtual_slots
 from wiz8decomp.source_model import SourceFunction
 
 
@@ -47,3 +47,25 @@ def test_source_roles_split_scalar_and_vector_deleting_emissions() -> None:
     )
     assert "wiz8:role:scalar-deleting-destructor" in source_role_tags(scalar, target="WIZ8")
     assert "wiz8:role:vector-deleting-destructor" in source_role_tags(vector, target="WIZ8")
+
+
+def test_source_virtual_slots_preserve_decorated_identity_and_order() -> None:
+    document = {
+        "classes": [
+            {
+                "source_file": "include/wiz8/example.h",
+                "vtable_address": 0x500000,
+                "virtual_declarations": ["??_DExample@@QAEXXZ", "?value@Example@@UAEHXZ"],
+            },
+            {
+                "source_file": "include/surrender/example.h",
+                "vtable_address": 0x600000,
+                "virtual_declarations": ["?other@Example@@UAEXXZ"],
+            },
+        ]
+    }
+
+    assert source_virtual_slots(document, target="WIZ8") == {
+        0x500000: "??_DExample@@QAEXXZ",
+        0x500004: "?value@Example@@UAEHXZ",
+    }

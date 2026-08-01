@@ -7,6 +7,9 @@ import java.util.Map;
 
 import ghidra.app.decompiler.ClangFieldToken;
 import ghidra.app.decompiler.ClangToken;
+import ghidra.app.util.demangler.DemangledFunction;
+import ghidra.app.util.demangler.DemangledObject;
+import ghidra.app.util.demangler.microsoft.MicrosoftDemangler;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
@@ -41,6 +44,20 @@ import ghidra.program.model.symbol.SymbolType;
  * ground stays a member; absence of evidence never promotes it.
  */
 final class VtableResolver {
+	private static final String VIRTUAL_SLOT_PROPERTY = "wiz8.virtual-slot.decorated";
+
+	/** A source virtual identity, with an optional concrete binary emission. */
+	static final class Slot {
+		final String name;
+		final DataType returnType;
+		final Function function;
+
+		Slot(String name, DataType returnType, Function function) {
+			this.name = name;
+			this.returnType = returnType;
+			this.function = function;
+		}
+	}
 
 	private final Program program;
 	private final Map<String, List<Symbol>> tablesByNamespace = new HashMap<>();
@@ -181,6 +198,48 @@ final class VtableResolver {
 				program.getAddressFactory().getDefaultAddressSpace().getAddress(stored));
 		}
 		catch (Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Resolve one virtual slot. A real function body wins. When the table stores
+	 * the shared {@code _purecall} helper, the compiler-backed decorated
+	 * declaration projected into the reviewed Ghidra property map supplies the
+	 * source method identity and return type instead. The Microsoft demangler is
+	 * the type parser; displayed token text is never consulted.
+	 */
+	Slot slot(Symbol table, long slotOffset) {
+		Function concrete = slotFunction(table, slotOffset);
+		if (concrete != null && !SpecialNames.normalize(concrete.getName()).equals("purecall")) {
+			return new Slot(concrete.getName(), concrete.getReturnType(), concrete);
+		}
+		var properties = program.getUsrPropertyManager()
+			.getStringPropertyMap(VIRTUAL_SLOT_PROPERTY);
+		if (properties == null) {
+			return concrete == null ? null
+				: new Slot(concrete.getName(), concrete.getReturnType(), concrete);
+		}
+		Address slotAddress = table.getAddress().add(slotOffset);
+		String decorated = properties.getString(slotAddress);
+		if (decorated == null) {
+			return concrete == null ? null
+				: new Slot(concrete.getName(), concrete.getReturnType(), concrete);
+		}
+		try {
+			MicrosoftDemangler demangler = new MicrosoftDemangler();
+			var options = demangler.createDefaultOptions();
+			var context = demangler.createMangledContext(decorated, options, program,
+				slotAddress);
+			DemangledObject object = demangler.demangle(context);
+			if (!(object instanceof DemangledFunction method) ||
+				method.getReturnType() == null) {
+				return null;
+			}
+			DataType result = method.getReturnType().getDataType(program.getDataTypeManager());
+			return result == null ? null : new Slot(method.getName(), result, null);
+		}
+		catch (Exception ignored) {
 			return null;
 		}
 	}
