@@ -22,36 +22,15 @@ from typing import Any
 
 from .config import Settings
 
-MARKER_LINE = re.compile(r"^// (?:FUNCTION|SYNTHETIC): WIZ8 0x(?P<address>[0-9a-f]{8})$")
-
-
-def split_export_blocks(text: str) -> dict[int, str]:
-    """Split exporter output into per-address blocks keyed by entry address.
-
-    A block runs from its marker line to the line before the next marker.
-    Trailing blank lines are not part of the block.
-    """
+def exported_blocks(result: dict[str, Any]) -> dict[int, str]:
+    """The Java exporter's independently bounded per-entry results."""
 
     blocks: dict[int, str] = {}
-    current: int | None = None
-    lines: list[str] = []
-
-    def flush() -> None:
-        if current is None:
-            return
-        while lines and not lines[-1].strip():
-            lines.pop()
-        blocks[current] = "\n".join(lines) + "\n"
-
-    for line in text.splitlines():
-        match = MARKER_LINE.match(line)
-        if match:
-            flush()
-            current = int(match.group("address"), 16)
-            lines = [line]
-        elif current is not None:
-            lines.append(line)
-    flush()
+    for item in result.get("exports", []):
+        entry = item.get("entry")
+        text = item.get("text")
+        if isinstance(entry, str) and isinstance(text, str):
+            blocks[int(entry, 0)] = text
     return blocks
 
 
@@ -294,7 +273,7 @@ def recover_function(
         }
 
     exported = export_cpp(settings, [f"0x{address:08x}"], program_selector=program_selector)
-    block = split_export_blocks(exported["text"]).get(address)
+    block = exported_blocks(exported).get(address)
     if block is None:
         return {"address": f"0x{address:08x}", "status": "not-exported"}
 
@@ -421,7 +400,7 @@ def regress(
     exported = export_cpp(
         settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
     )
-    blocks = split_export_blocks(exported["text"])
+    blocks = exported_blocks(exported)
 
     defects: list[str] = []
     product_dirty = False
@@ -708,7 +687,7 @@ def sweep(
     exported = export_cpp(
         settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
     )
-    blocks = split_export_blocks(exported["text"])
+    blocks = exported_blocks(exported)
 
     outcomes: dict[int, dict[str, Any]] = {}
     plan_by_file: dict[str, list[tuple[int, int, int, str]]] = {}

@@ -23,15 +23,17 @@ public enum FunctionKind {
 		if (!(namespace instanceof GhidraClass)) {
 			return ORDINARY;
 		}
-		String normalized = normalizeSpecialName(function.getName());
+		String name = function.getName();
+		String normalized = normalizeSpecialName(name);
 		if (normalized.equals("scalar deleting destructor") ||
 			normalized.equals("vector deleting destructor")) {
 			return SYNTHETIC_DELETING_DESTRUCTOR;
 		}
-		if (function.getName().equals(namespace.getName())) {
+		String owner = CallableIdentity.classLeaf(namespace.getName());
+		if (CallableIdentity.classLeaf(name).equals(owner)) {
 			return CONSTRUCTOR;
 		}
-		if (function.getName().equals("~" + namespace.getName())) {
+		if (name.equals("~" + owner) || name.equals("~" + namespace.getName())) {
 			return DESTRUCTOR;
 		}
 		return ORDINARY;

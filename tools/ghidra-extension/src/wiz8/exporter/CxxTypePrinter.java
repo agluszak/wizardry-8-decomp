@@ -3,6 +3,7 @@ package wiz8.exporter;
 import ghidra.program.model.data.Array;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.FunctionDefinition;
+import ghidra.program.model.data.BitFieldDataType;
 import ghidra.program.model.data.ParameterDefinition;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.TypeDef;
@@ -50,6 +51,9 @@ final class CxxTypePrinter {
 	}
 
 	private static String declare(DataType type, String inner) {
+		if (type instanceof BitFieldDataType bitField) {
+			return declare(bitField.getBaseDataType(), inner);
+		}
 		if (type instanceof TypeDef typedef) {
 			// The alias is a simple identifier, so no pointer/array binding
 			// below it ever needs parentheses.

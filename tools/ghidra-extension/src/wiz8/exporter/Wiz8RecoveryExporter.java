@@ -58,27 +58,35 @@ public final class Wiz8RecoveryExporter {
 	 */
 	public static String export(Program program, long[] entryPoints, TaskMonitor monitor)
 			throws CancelledException {
+		return String.join("\n", exportFunctions(program, entryPoints, monitor));
+	}
+
+	/**
+	 * Export one independently bounded string per requested entry, preserving
+	 * request order.  This is the Java/Python protocol; callers never need to
+	 * split concatenated C++ by marker regex.
+	 */
+	public static String[] exportFunctions(Program program, long[] entryPoints,
+			TaskMonitor monitor) throws CancelledException {
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = openDecompiler(program, options);
 		try {
-			StringBuilder output = new StringBuilder();
+			String[] output = new String[entryPoints.length];
 			AddressSpace space = program.getAddressFactory().getDefaultAddressSpace();
 			FunctionManager functionManager = program.getFunctionManager();
-			for (long entryPoint : entryPoints) {
+			for (int i = 0; i < entryPoints.length; i++) {
 				monitor.checkCancelled();
-				if (output.length() > 0) {
-					output.append('\n');
-				}
+				long entryPoint = entryPoints[i];
 				Address entry = space.getAddress(entryPoint);
 				Function function = functionManager.getFunctionAt(entry);
 				if (function == null) {
-					output.append(String.format(
-						"// error: no function at 0x%08x%n", entryPoint));
+					output[i] = String.format(
+						"// error: no function at 0x%08x%n", entryPoint);
 					continue;
 				}
-				output.append(exportFunction(function, decompiler, options, monitor));
+				output[i] = exportFunction(function, decompiler, options, monitor);
 			}
-			return output.toString();
+			return output;
 		}
 		finally {
 			decompiler.dispose();
@@ -248,7 +256,9 @@ public final class Wiz8RecoveryExporter {
 		catch (Exception e) {
 			// A printer defect must never block the batch; fall back to the
 			// decompiler's own flat rendering, flagged as the defect it is.
-			return printer.marker() + "\n" + results.getDecompiledFunction().getC() +
+			String decompiled = results.getDecompiledFunction().getC();
+			return printer.marker() + "\n" + decompiled +
+				(decompiled.endsWith("\n") ? "" : "\n") +
 				"// exporter-defect: print: " + e + "\n";
 		}
 	}

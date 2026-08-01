@@ -13,12 +13,12 @@ from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.recover import (
     compile_diagnostics,
+    exported_blocks,
     graft_source_signature,
     insert_lines,
     marker_span,
     place_address,
     splice_lines,
-    split_export_blocks,
     suggest_includes,
 )
 
@@ -41,18 +41,25 @@ void W8GrCycle::TickAnimation(float scale)
 """
 
 
-def test_split_export_blocks_keys_blocks_by_address() -> None:
-    blocks = split_export_blocks(EXPORT_TEXT)
+def test_exported_blocks_uses_structured_per_entry_results() -> None:
+    blocks = exported_blocks(
+        {
+            "exports": [
+                {"entry": "0x004a5e50", "text": "constructor\n"},
+                {"entry": "0x004a5f00", "text": "destructor\n"},
+                {"entry": "0x004a6e20", "text": "method\n"},
+            ]
+        }
+    )
     assert sorted(blocks) == [0x4A5E50, 0x4A5F00, 0x4A6E20]
-    assert blocks[0x4A5E50].startswith("// FUNCTION: WIZ8 0x004a5e50\n")
-    assert blocks[0x4A5E50].endswith("}\n")
-    assert "scalar deleting destructor" in blocks[0x4A5F00]
-    assert blocks[0x4A6E20].endswith("{\n}\n")
+    assert blocks[0x4A5E50] == "constructor\n"
+    assert blocks[0x4A5F00] == "destructor\n"
+    assert blocks[0x4A6E20] == "method\n"
 
 
-def test_split_export_blocks_drops_trailing_blank_lines() -> None:
-    blocks = split_export_blocks("// FUNCTION: WIZ8 0x00000010\nbody\n\n\n")
-    assert blocks[0x10] == "// FUNCTION: WIZ8 0x00000010\nbody\n"
+def test_exported_blocks_does_not_parse_or_normalize_cpp_text() -> None:
+    text = "body\n\n\n"
+    assert exported_blocks({"exports": [{"entry": "0x10", "text": text}]}) == {0x10: text}
 
 
 def test_marker_span_covers_marker_line_through_end_line() -> None:

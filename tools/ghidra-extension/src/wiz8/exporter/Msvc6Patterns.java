@@ -116,6 +116,9 @@ final class Msvc6Patterns {
 	private final Analysis analysis = new Analysis();
 
 	private ClangFunction root;
+	private HighFunction highFunction;
+	private MarkupIndex markup;
+	private BlockView.Tree blocks;
 	private List<Item> items;
 	private Structure structure;
 	/** Stack offset of the VC6 EH registration link slot, when the frame is proven. */
@@ -166,7 +169,13 @@ final class Msvc6Patterns {
 			return;
 		}
 		root = clangFunction;
-		items = linearize(root);
+		highFunction = results.getHighFunction();
+		if (highFunction == null) {
+			throw new IllegalStateException("decompilation has no HighFunction");
+		}
+		markup = new MarkupIndex(root, highFunction);
+		blocks = markup.blocks;
+		items = linearize(root, blocks);
 		structure = classStructure();
 
 		// Statement-local token rewrites run first so the lifecycle and
@@ -367,23 +376,23 @@ final class Msvc6Patterns {
 	 * function's own outermost braces are excluded so the top level of the
 	 * body is depth zero from its first item to its last.
 	 */
-	private static List<Item> linearize(ClangFunction root) {
+	private static List<Item> linearize(ClangFunction root, BlockView.Tree blocks) {
 		List<Item> flat = new ArrayList<>();
-		int[] depth = {-1}; // the function's own '{' brings the body to depth 0
 		for (ClangNode child : bodyNodes(root)) {
-			collect(child, flat, depth);
+			collect(child, flat, blocks);
 		}
 		return flat;
 	}
 
-	private static void collect(ClangNode node, List<Item> flat, int[] depth) {
+	private static void collect(ClangNode node, List<Item> flat, BlockView.Tree blocks) {
+		int depth = lexicalDepth(blocks.ownerOf(node));
 		if (node instanceof ClangStatement || node instanceof ClangVariableDecl) {
-			flat.add(new Item(node, Math.max(depth[0], 0)));
+			flat.add(new Item(node, depth));
 			return;
 		}
 		if (node instanceof ClangTokenGroup group) {
 			for (int i = 0; i < group.numChildren(); i++) {
-				collect(group.Child(i), flat, depth);
+				collect(group.Child(i), flat, blocks);
 			}
 			return;
 		}
@@ -395,22 +404,16 @@ final class Msvc6Patterns {
 			if (text == null || text.isBlank() || text.equals(";")) {
 				return;
 			}
-			if (text.equals("{")) {
-				depth[0]++;
-				if (depth[0] > 0) {
-					flat.add(new Item(node, depth[0]));
-				}
-				return;
-			}
-			if (text.equals("}")) {
-				if (depth[0] > 0) {
-					flat.add(new Item(node, depth[0]));
-				}
-				depth[0]--;
-				return;
-			}
-			flat.add(new Item(node, Math.max(depth[0], 0)));
+			flat.add(new Item(node, depth));
 		}
+	}
+
+	private static int lexicalDepth(BlockView block) {
+		int depth = -1; // the function compound statement is source depth zero
+		for (BlockView current = block; current != null; current = current.parent) {
+			depth++;
+		}
+		return Math.max(depth, 0);
 	}
 
 	private static ClangFuncProto findProto(ClangFunction root) {
@@ -603,8 +606,7 @@ final class Msvc6Patterns {
 		if (symbol == null) {
 			return false;
 		}
-		return symbol.isThisPointer() ||
-			(symbol.isParameter() && "this".equals(symbol.getName()));
+		return symbol.isThisPointer();
 	}
 
 	/** Trace a varnode to a constant offset from the current `this`. */
@@ -2568,53 +2570,20 @@ final class Msvc6Patterns {
 			!"__thiscall".equals(function.getCallingConventionName())) {
 			return;
 		}
-		List<ClangVariableDecl> parameters = protoParameters();
-		if (parameters.isEmpty() || !isThisSymbol(parameters.get(0).getHighVariable())) {
-			return;
-		}
-		TokenLine line = tokenLine(findProto(root));
-		List<ClangToken> sig = line.sig;
-		// The API names the convention; the token scan only finds where that
-		// known keyword was printed.
-		int convention = -1;
-		for (int i = 0; i < sig.size(); i++) {
-			if ("__thiscall".equals(text(sig, i))) {
-				convention = i;
+		boolean hasThis = false;
+		for (Parameter parameter : function.getParameters()) {
+			if (parameter.isAutoParameter() &&
+				parameter.getAutoParameterType() == AutoParameterType.THIS) {
+				hasThis = true;
 				break;
 			}
 		}
-		if (convention < 0) {
+		if (!hasThis) {
 			return;
 		}
-		// The this parameter's own declaration node bounds its token span.
-		ClangVariableDecl thisDecl = parameters.get(0);
-		int declFirst = -1;
-		int declLast = -1;
-		for (int i = 0; i < sig.size(); i++) {
-			for (ClangNode ancestor = sig.get(i); ancestor != null; ancestor = ancestor.Parent()) {
-				if (ancestor == thisDecl) {
-					if (declFirst < 0) {
-						declFirst = i;
-					}
-					declLast = i;
-					break;
-				}
-			}
-		}
-		if (declFirst < 0) {
-			return;
-		}
-		claimRange(line, convention, convention, "");
-		int blankAfter = line.rawIndex.get(convention) + 1;
-		if (blankAfter < line.raw.size()) {
-			String blankText = line.raw.get(blankAfter).getText();
-			if (blankText != null && blankText.isBlank()) {
-				dropToken(line.raw.get(blankAfter));
-			}
-		}
-		int end = declLast + 1 < sig.size() && ",".equals(text(sig, declLast + 1))
-				? declLast + 1 : declLast;
-		claimRange(line, declFirst, end, "");
+		claimReplace(findProto(root), CallableIdentity.prototype(function, kind));
+		analysis.liftSignature = true;
+		trace("applied", currentPass, "complete source-level prototype rendered from Function");
 	}
 
 	// ------------------------------------------------------------------
@@ -2633,28 +2602,8 @@ final class Msvc6Patterns {
 	}
 
 	private String liftedSignature(List<String> initializers) {
-		String owner = TypeNames.map(function.getParentNamespace().getName(true));
-		String name = function.getParentNamespace().getName();
-		// The constructor of a template specialization is spelled with the
-		// bare template name: W8GrowableVector<int>::W8GrowableVector(...).
-		int bracket = name.indexOf('[');
-		if (bracket > 0) {
-			name = name.substring(0, bracket);
-		}
-		if (kind == FunctionKind.DESTRUCTOR) {
-			name = "~" + name;
-		}
-		List<String> rendered = new ArrayList<>();
-		for (int i = 0; i < function.getParameterCount(); i++) {
-			Parameter parameter = function.getParameter(i);
-			if (parameter.isAutoParameter()) {
-				continue; // hidden this / return storage: ABI, not source
-			}
-			rendered.add(CxxTypePrinter.printParameter(parameter));
-		}
-		StringBuilder signature = new StringBuilder();
-		signature.append(owner).append("::").append(name).append('(')
-				.append(String.join(", ", rendered)).append(')');
+		StringBuilder signature = new StringBuilder(
+			CallableIdentity.prototype(function, kind));
 		if (!initializers.isEmpty()) {
 			String single = "\n    : " + String.join(", ", initializers);
 			if (single.length() <= 100) {
@@ -3151,56 +3100,15 @@ final class Msvc6Patterns {
 	 * Returns null when the token shape and the p-code operand count
 	 * disagree.
 	 */
-	private static List<List<ClangToken>> callArgumentTokens(ClangStatement statement,
+	private List<List<ClangToken>> callArgumentTokens(ClangStatement statement,
 			PcodeOp op) {
-		List<ClangToken> tokens = new ArrayList<>();
-		leafTokens(statement, tokens);
-		int open = -1;
-		for (int i = 0; i < tokens.size(); i++) {
-			if (tokens.get(i) instanceof ClangFuncNameToken name &&
-				(name.getPcodeOp() == null || name.getPcodeOp() == op)) {
-				for (int j = i + 1; j < tokens.size(); j++) {
-					if ("(".equals(tokens.get(j).getText())) {
-						open = j;
-						break;
-					}
-				}
-				break;
-			}
-		}
-		if (open < 0) {
-			return null;
-		}
-		int close = SyntaxPairs.matchingClose(tokens, open);
-		if (close < 0) {
+		RenderedCall call = RenderedCall.bind(markup, op);
+		if (call == null || blocks.ownerOf(call.functionName) != blocks.ownerOf(statement)) {
 			return null;
 		}
 		List<List<ClangToken>> arguments = new ArrayList<>();
-		List<ClangToken> current = new ArrayList<>();
-		int depth = 0;
-		for (int i = open + 1; i < close; i++) {
-			ClangToken token = tokens.get(i);
-			String text = token.getText();
-			if (SyntaxPairs.opensPair(token)) {
-				depth++;
-			}
-			else if (SyntaxPairs.closesPair(token)) {
-				depth--;
-			}
-			else if (",".equals(text) && depth == 0) {
-				arguments.add(current);
-				current = new ArrayList<>();
-				continue;
-			}
-			if (text != null && !text.isBlank()) {
-				current.add(token);
-			}
-		}
-		if (!current.isEmpty() || !arguments.isEmpty()) {
-			arguments.add(current);
-		}
-		if (arguments.size() != op.getNumInputs() - 1) {
-			return null;
+		for (RenderedCall.Span argument : call.arguments) {
+			arguments.add(argument.tokens());
 		}
 		return arguments;
 	}
