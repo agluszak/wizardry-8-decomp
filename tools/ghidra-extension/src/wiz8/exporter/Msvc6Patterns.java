@@ -39,7 +39,6 @@ import ghidra.program.model.pcode.PcodeOp;
 import ghidra.program.model.pcode.Varnode;
 import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.Symbol;
-import ghidra.program.model.symbol.SymbolType;
 
 /**
  * Recognition of MSVC/VC6 compiler-owned C++ lowering in the decompiled
@@ -131,10 +130,14 @@ final class Msvc6Patterns {
 	/** The pass currently running; claims and trace records attach to it. */
 	private String currentPass;
 
+	/** Shared vftable and base-subobject resolution over the program. */
+	private final VtableResolver vtables;
+
 	private Msvc6Patterns(Function function, FunctionKind kind, DecompileResults results) {
 		this.function = function;
 		this.kind = kind;
 		this.results = results;
+		this.vtables = new VtableResolver(function.getProgram());
 	}
 
 	/**
@@ -1250,8 +1253,7 @@ final class Msvc6Patterns {
 				afterAssign = true;
 				continue;
 			}
-			if (afterAssign && text != null &&
-				FunctionKind.normalizeSpecialName(text).startsWith("vftable")) {
+			if (afterAssign && text != null && VtableResolver.isVftableName(text)) {
 				return true;
 			}
 		}
@@ -1272,8 +1274,7 @@ final class Msvc6Patterns {
 			if (address != null) {
 				Symbol symbol =
 					function.getProgram().getSymbolTable().getPrimarySymbol(address);
-				return symbol != null &&
-					FunctionKind.normalizeSpecialName(symbol.getName()).startsWith("vftable");
+				return symbol != null && VtableResolver.isVftableName(symbol.getName());
 			}
 			PcodeOp def = current.getDef();
 			if (def == null || (def.getOpcode() != PcodeOp.COPY &&
@@ -1360,8 +1361,9 @@ final class Msvc6Patterns {
 
 	/**
 	 * A subobject construction becomes an initializer: base classes by the
-	 * repository's base/base_* field convention, members by field name.
-	 * Empty argument lists are implicit C++ and produce no initializer text.
+	 * shared discovery (the base/base_* convention plus for-clause vftable
+	 * evidence), members by field name. Empty argument lists are implicit
+	 * C++ and produce no initializer text.
 	 */
 	private String subobjectConstructorInitializer(ClangStatement statement) {
 		PcodeOp op = statement.getPcodeOp();
@@ -1377,15 +1379,17 @@ final class Msvc6Patterns {
 		}
 		DataTypeComponent component =
 			structure.getComponentContaining((int) offset.getAsLong());
-		if (component == null || component.getOffset() != offset.getAsLong() ||
-			component.getFieldName() == null) {
+		if (component == null || component.getOffset() != offset.getAsLong()) {
 			return null;
+		}
+		boolean base = vtables.isBaseOffset(structure, offset.getAsLong());
+		if (!base && component.getFieldName() == null) {
+			return null; // a member initializer needs the field's name
 		}
 		List<String> arguments = callArgumentsAfterReceiver(statement, op);
 		if (arguments == null) {
 			return null;
 		}
-		boolean base = isBaseField(component.getFieldName());
 		String name = base ? TypeNames.map(target.getParentNamespace().getName())
 				: component.getFieldName();
 		trace("applied", base ? "lifecycle.base-initializer" : "lifecycle.member-initializer",
@@ -1395,10 +1399,6 @@ final class Msvc6Patterns {
 			return "";
 		}
 		return name + "(" + String.join(", ", arguments) + ")";
-	}
-
-	private static boolean isBaseField(String fieldName) {
-		return fieldName.equals("base") || fieldName.startsWith("base_");
 	}
 
 	/**
@@ -1561,12 +1561,12 @@ final class Msvc6Patterns {
 	}
 
 	/** For `t = &src->base_X` with the tested variable as src, the source text. */
-	private static String baseFieldSource(ClangStatement statement, String tested) {
+	private String baseFieldSource(ClangStatement statement, String tested) {
 		List<ClangToken> tokens = new ArrayList<>();
 		leafTokens(statement, tokens);
 		boolean sawAmp = false;
 		String source = null;
-		String field = null;
+		ClangToken field = null;
 		for (int i = 1; i < tokens.size(); i++) {
 			ClangToken token = tokens.get(i);
 			String text = token.getText();
@@ -1577,11 +1577,11 @@ final class Msvc6Patterns {
 				source = text;
 			}
 			else if (token instanceof ClangFieldToken) {
-				field = text;
+				field = token;
 			}
 		}
 		if (!sawAmp || source == null || field == null || !source.equals(tested) ||
-			!isBaseField(field)) {
+			!isBaseFieldToken(field)) {
 			return null;
 		}
 		return source;
@@ -1850,7 +1850,7 @@ final class Msvc6Patterns {
 						if (component == null ||
 							component.getOffset() != fieldOff.getAsLong() ||
 							component.getFieldName() == null ||
-							isBaseField(component.getFieldName())) {
+							vtables.isBaseOffset(structure, fieldOff.getAsLong())) {
 							return null;
 						}
 						Structure pointed = pointedStructure(component.getDataType());
@@ -1877,6 +1877,22 @@ final class Msvc6Patterns {
 			return null;
 		}
 		return new VirtualCall(receiver, slot);
+	}
+
+	/**
+	 * The function installed at byte offset {@code slotOffset} of the class's
+	 * vftable for the given subobject, through the shared resolver.
+	 */
+	private Function vtableSlotFunction(Structure receiverClass, long subobjectOffset,
+			long slotOffset) {
+		if (slotOffset < 0 || slotOffset > 0x1000) {
+			return null;
+		}
+		Symbol table = vtables.tableFor(receiverClass, subobjectOffset);
+		if (table == null) {
+			return null;
+		}
+		return vtables.slotFunction(table, slotOffset);
 	}
 
 	/** The structure a pointer type points at, through typedefs; else null. */
@@ -1916,121 +1932,6 @@ final class Msvc6Patterns {
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * The function installed at byte offset {@code slotOffset} of the class's
-	 * vftable for the given subobject, read from program memory.
-	 */
-	private Function vtableSlotFunction(Structure receiverClass, long subobjectOffset,
-			long slotOffset) {
-		if (slotOffset < 0 || slotOffset > 0x1000) {
-			return null;
-		}
-		Namespace namespace = classNamespace(receiverClass.getName());
-		if (namespace == null) {
-			return null;
-		}
-		List<Symbol> candidates = new ArrayList<>();
-		for (Symbol symbol : function.getProgram().getSymbolTable().getSymbols(namespace)) {
-			if (FunctionKind.normalizeSpecialName(symbol.getName()).startsWith("vftable")) {
-				candidates.add(symbol);
-			}
-		}
-		Symbol chosen = chooseVftable(candidates, receiverClass, subobjectOffset);
-		if (chosen == null || !slotInsideTable(chosen.getAddress(), slotOffset)) {
-			return null;
-		}
-		try {
-			int stored = function.getProgram().getMemory()
-					.getInt(chosen.getAddress().add(slotOffset));
-			Address target = function.getProgram().getAddressFactory()
-					.getDefaultAddressSpace().getAddress(Integer.toUnsignedLong(stored));
-			return function.getProgram().getFunctionManager().getFunctionAt(target);
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
-
-	/**
-	 * Vftables have no length record; the next vftable symbol in the address
-	 * space bounds the table. A slot read past that bound would silently
-	 * name a slot of an unrelated class.
-	 */
-	private boolean slotInsideTable(Address tableStart, long slotOffset) {
-		Address slotEnd = tableStart.add(slotOffset + 4);
-		for (Symbol symbol : (Iterable<Symbol>) () -> function.getProgram().getSymbolTable()
-				.getSymbolIterator(tableStart.add(1), true)) {
-			Address address = symbol.getAddress();
-			if (address.compareTo(slotEnd) >= 0) {
-				return true;
-			}
-			if (FunctionKind.normalizeSpecialName(symbol.getName()).startsWith("vftable")) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private Namespace classNamespace(String className) {
-		for (Symbol symbol : function.getProgram().getSymbolTable()
-				.getSymbols(className)) {
-			if (symbol.getSymbolType() == SymbolType.CLASS &&
-				symbol.getObject() instanceof GhidraClass ghidraClass) {
-				return ghidraClass;
-			}
-		}
-		return null;
-	}
-
-	private Symbol chooseVftable(List<Symbol> candidates, Structure receiverClass,
-			long subobjectOffset) {
-		if (candidates.isEmpty()) {
-			return null;
-		}
-		if (subobjectOffset == 0) {
-			// The complete-object table only: a {for_'Base'} candidate is a
-			// different subobject's table and must never stand in for it.
-			Symbol primary = null;
-			for (Symbol symbol : candidates) {
-				if (FunctionKind.normalizeSpecialName(symbol.getName()).equals("vftable")) {
-					if (primary != null) {
-						return null;
-					}
-					primary = symbol;
-				}
-			}
-			return primary;
-		}
-		if (subobjectOffset > Integer.MAX_VALUE) {
-			return null;
-		}
-		DataTypeComponent component =
-			receiverClass.getComponentContaining((int) subobjectOffset);
-		if (component == null || component.getOffset() != subobjectOffset ||
-			component.getFieldName() == null || !isBaseField(component.getFieldName())) {
-			return null;
-		}
-		DataType componentType = component.getDataType();
-		while (componentType instanceof TypeDef typedef) {
-			componentType = typedef.getBaseDataType();
-		}
-		String wanted = squeeze("vftable{for" + TypeNames.map(componentType.getName()) + "}");
-		Symbol match = null;
-		for (Symbol symbol : candidates) {
-			if (squeeze(FunctionKind.normalizeSpecialName(symbol.getName())).equals(wanted)) {
-				if (match != null) {
-					return null;
-				}
-				match = symbol;
-			}
-		}
-		return match;
-	}
-
-	private static String squeeze(String text) {
-		return text.replace(" ", "");
 	}
 
 	// ------------------------------------------------------------------
@@ -2190,14 +2091,29 @@ final class Msvc6Patterns {
 		return "->".equals(text) || ".".equals(text);
 	}
 
-	private static boolean isBaseFieldToken(ClangToken token) {
-		return token instanceof ClangFieldToken && token.getText() != null &&
-			isBaseField(token.getText());
+	/**
+	 * A field token accessing a base subobject: by the naming convention,
+	 * or by the token's own composite type and offset through the shared
+	 * discovery (the field token carries which structure it reads and
+	 * where — the evidence, independent of the field's name).
+	 */
+	private boolean isBaseFieldToken(ClangToken token) {
+		if (!(token instanceof ClangFieldToken field) || token.getText() == null) {
+			return false;
+		}
+		if (VtableResolver.isBaseFieldName(token.getText())) {
+			return true;
+		}
+		DataType composite = field.getDataType();
+		while (composite instanceof TypeDef typedef) {
+			composite = typedef.getBaseDataType();
+		}
+		return composite instanceof Structure owner &&
+			vtables.isBaseOffset(owner, field.getOffset());
 	}
 
 	private static boolean nextFieldIsVftable(List<ClangToken> sig, int index) {
-		return index < sig.size() &&
-			FunctionKind.normalizeSpecialName(text(sig, index)).startsWith("vftable");
+		return index < sig.size() && VtableResolver.isVftableName(text(sig, index));
 	}
 
 	// ------------------------------------------------------------------
@@ -2446,12 +2362,14 @@ final class Msvc6Patterns {
 				return null;
 			}
 			DataTypeComponent component = structure.getComponentContaining((int) value);
-			if (component == null || component.getOffset() != value ||
-				component.getFieldName() == null) {
+			if (component == null || component.getOffset() != value) {
 				return null;
 			}
-			if (isBaseField(component.getFieldName())) {
+			if (vtables.isBaseOffset(structure, value)) {
 				return "";
+			}
+			if (component.getFieldName() == null) {
+				return null;
 			}
 			return component.getFieldName() + ".";
 		}

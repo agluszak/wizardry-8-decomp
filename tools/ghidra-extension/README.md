@@ -164,13 +164,29 @@ text:
   `call.struct-return` pass owns them.
 - **Virtual dispatch**: `(**(code **)((int)recv.vftable + 0xNN))(args)`
   resolves the receiver's static class, picks its vftable symbol (the
-  complete-object table only for offset 0; a `{for_'Base'}` table only via
-  the matching base subobject), reads the slot from program memory, and
-  prints the named call. Slot reads are bounded by the next vftable symbol
-  so an off-table slot never borrows a neighbour's entry. A slot that holds
-  a purecall, an unnamed function, or anything outside a class namespace
-  declines. A slot holding a scalar deleting destructor with flag `1`/`3`
-  prints the source-level `delete`/`delete[] receiver`.
+  complete-object table only for offset 0; a `{for_'Base'}` table via the
+  subobject whose component *type* the for-clause names — the type is the
+  evidence, so the field name does not gate the match), reads the slot from
+  program memory, and prints the named call. A table is bounded by the next
+  curated (user-defined or imported) symbol or the next vftable symbol;
+  dynamic analysis labels inside a table do not end it, and an off-table
+  slot never borrows a neighbour's entry. A slot that holds a purecall, an
+  unnamed function, or anything outside a class namespace declines. A slot
+  holding a scalar deleting destructor with flag `1`/`3` prints the
+  source-level `delete`/`delete[] receiver`.
+
+## Shared vtable resolution and base discovery (Phase 2)
+
+`VtableResolver.java` is the one owner of vftable symbol recognition,
+per-class table enumeration, subobject table selection, table bounds, and
+slot reads — shared by the class printer's virtual section and the
+recognizers' virtual-call, base-initializer, and receiver-folding logic,
+which previously carried two divergent walks. Base-subobject discovery is
+also single-owner and evidence-based: a leading structure component is a
+base either by the repository's `base`/`base_*` naming convention or by the
+positive evidence of a `vftable{for_'Type'}` symbol naming the component's
+type. Composition at offset 0 with neither ground stays a member; absence
+of evidence never promotes it.
 - **Ordinary method signatures**: `void __thiscall Class::M(Class *this, …)`
   loses the convention and the `this` parameter.
 
