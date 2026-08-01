@@ -41,6 +41,20 @@ struct ClassDelete {
     static void operator delete[](void* value) { ::operator delete(value); }
 };
 
+struct DeletesMember {
+    DeletesMember() : owned(new Base) {}
+    virtual ~DeletesMember() { delete owned; }
+    Base* owned;
+};
+
+// Negative role fixture: this is an authored ownership helper, not a deleting
+// destructor wrapper. The call graph alone (destructor plus deallocator) is
+// deliberately indistinguishable from the old unsafe structural heuristic.
+void destroy_and_free(Base* value) {
+    value->~Base();
+    ::operator delete(value);
+}
+
 template <typename T>
 struct Holder {
     Holder() : value() {}
@@ -71,12 +85,16 @@ static void exercise_lifetimes(int count) {
     Derived* vector = new Derived[count];
     ClassDelete* owned = new ClassDelete;
     ClassDelete* owned_vector = new ClassDelete[count];
+    DeletesMember deletes_member;
     lifecycle_sink += inline_helper(local);
     local_static_object();
     delete scalar;
     delete[] vector;
     delete owned;
     delete[] owned_vector;
+    if (count == -1) {
+        destroy_and_free(new Base);
+    }
 }
 
 int main(int argc, char**) {

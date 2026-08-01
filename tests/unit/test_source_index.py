@@ -61,6 +61,7 @@ def test_definition_replaces_a_declaration_from_another_unit() -> None:
     assert collector.source_metadata["?Grow@Vector@@QAEHH@Z"] == {
         "source_signature": "int Vector::Grow(int value)",
         "parameter_references": [False],
+        "parameter_reference_forms": [],
     }
 
 

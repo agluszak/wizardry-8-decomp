@@ -2,6 +2,7 @@ package wiz8.exporter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +63,8 @@ final class VtableResolver {
 	private final Program program;
 	private final Map<String, List<Symbol>> tablesByNamespace = new HashMap<>();
 	private final Map<String, List<DataTypeComponent>> basesByStructure = new HashMap<>();
+	private final Map<Address, Address> tableBounds = new HashMap<>();
+	private final Map<Address, Boolean> unboundedTables = new HashMap<>();
 
 	VtableResolver(Program program) {
 		this.program = program;
@@ -98,27 +101,39 @@ final class VtableResolver {
 			isVftableName(token.getText());
 	}
 
-	/** The class namespace with this name, else null. */
-	GhidraClass classNamespace(String className) {
-		for (Symbol symbol : program.getSymbolTable().getSymbols(className)) {
+	/** The class namespace structurally associated with this data type, else null. */
+	GhidraClass classNamespace(Structure structure) {
+		String category = structure.getCategoryPath().getPath();
+		String qualified = (category == null || category.equals("/"))
+			? structure.getName()
+			: category.substring(1).replace("/", "::") + "::" + structure.getName();
+		GhidraClass match = null;
+		for (Symbol symbol : program.getSymbolTable().getSymbols(structure.getName())) {
 			if (symbol.getSymbolType() == SymbolType.CLASS &&
-				symbol.getObject() instanceof GhidraClass ghidraClass) {
-				return ghidraClass;
+				symbol.getObject() instanceof GhidraClass ghidraClass &&
+				ghidraClass.getName(true).equals(qualified)) {
+				if (match != null) {
+					return null;
+				}
+				match = ghidraClass;
 			}
 		}
-		return null;
+		return match;
 	}
 
 	/** Every vftable symbol the class namespace owns. */
 	List<Symbol> vftables(Namespace namespace) {
 		return tablesByNamespace.computeIfAbsent(namespace.getName(true), key -> {
-			List<Symbol> tables = new ArrayList<>();
+			Map<Address, Symbol> byAddress = new LinkedHashMap<>();
 			for (Symbol symbol : program.getSymbolTable().getSymbols(namespace)) {
 				if (isVftableName(symbol.getName())) {
-					tables.add(symbol);
+					Symbol previous = byAddress.get(symbol.getAddress());
+					if (previous == null || symbol.getSource() == SourceType.USER_DEFINED) {
+						byAddress.put(symbol.getAddress(), symbol);
+					}
 				}
 			}
-			return tables;
+			return new ArrayList<>(byAddress.values());
 		});
 	}
 
@@ -127,10 +142,12 @@ final class VtableResolver {
 		Symbol primary = null;
 		for (Symbol symbol : vftables(namespace)) {
 			if (SpecialNames.normalize(symbol.getName()).equals("vftable")) {
-				if (primary != null) {
+				if (primary != null && !primary.getAddress().equals(symbol.getAddress())) {
 					return null; // ambiguous
 				}
-				primary = symbol;
+				if (primary == null || symbol.getSource() == SourceType.USER_DEFINED) {
+					primary = symbol;
+				}
 			}
 		}
 		return primary;
@@ -145,7 +162,7 @@ final class VtableResolver {
 	 * name does not gate the match. Null declines.
 	 */
 	Symbol tableFor(Structure receiverClass, long subobjectOffset) {
-		Namespace namespace = classNamespace(receiverClass.getName());
+		Namespace namespace = classNamespace(receiverClass);
 		if (namespace == null) {
 			return null;
 		}
@@ -268,15 +285,21 @@ final class VtableResolver {
 	 */
 	private boolean slotInsideTable(Address tableStart, long slotOffset) {
 		Address slotEnd = tableStart.add(slotOffset + 4);
+		Address bound = tableBounds.get(tableStart);
+		if (bound != null) {
+			return slotEnd.compareTo(bound) <= 0;
+		}
+		if (unboundedTables.containsKey(tableStart)) {
+			return true;
+		}
 		for (Symbol symbol : (Iterable<Symbol>) () -> program.getSymbolTable()
 				.getSymbolIterator(tableStart.add(1), true)) {
-			if (symbol.getAddress().compareTo(slotEnd) >= 0) {
-				return true;
-			}
 			if (boundsTable(symbol)) {
-				return false;
+				tableBounds.put(tableStart, symbol.getAddress());
+				return slotEnd.compareTo(symbol.getAddress()) <= 0;
 			}
 		}
+		unboundedTables.put(tableStart, Boolean.TRUE);
 		return true;
 	}
 
@@ -319,7 +342,7 @@ final class VtableResolver {
 		if (!(componentType instanceof Structure)) {
 			return false;
 		}
-		Namespace namespace = classNamespace(structure.getName());
+		Namespace namespace = classNamespace(structure);
 		return namespace != null &&
 			forClauseTable(namespace, componentType.getName()) != null;
 	}

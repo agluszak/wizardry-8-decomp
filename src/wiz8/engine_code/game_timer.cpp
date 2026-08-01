@@ -101,6 +101,7 @@ W8GameTimer::W8GameTimer()
 /* The startup status object uses the duration-bearing constructor at
    0x004397F0.  It differs from the default constructor only in the raw-time
    flag and in converting seconds to the timer's 1/10000-second units. */
+// FUNCTION: WIZ8 0x004397f0
 W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
 {
     m_clock_mode = 0;

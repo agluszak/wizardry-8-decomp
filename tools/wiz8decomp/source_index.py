@@ -182,6 +182,7 @@ class _RecordCollector(_AstCollector):
         if kind == "declaration":
             source_signature = record.pop("source_signature", None)
             parameter_references = record.pop("parameter_references", None)
+            parameter_reference_forms = record.pop("parameter_reference_forms", None)
             declaration = SourceDeclaration(
                 **{**record, "parameter_types": tuple(record["parameter_types"])}
             )
@@ -192,6 +193,7 @@ class _RecordCollector(_AstCollector):
                     self.source_metadata[declaration.semantic_id] = {
                         "source_signature": source_signature,
                         "parameter_references": parameter_references or [],
+                        "parameter_reference_forms": parameter_reference_forms or [],
                     }
         elif kind == "class":
             source_class = SourceClass(

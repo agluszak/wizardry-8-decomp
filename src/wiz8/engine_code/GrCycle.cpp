@@ -37,8 +37,11 @@
 // SYNTHETIC: WIZ8 0x004a5f00
 // W8GrCycle::`scalar deleting destructor'
 
+// GLOBAL: WIZ8 0x005ecf98
 extern float g_float_005ecf98;
+// GLOBAL: WIZ8 0x0065be2c
 W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
+// GLOBAL: WIZ8 0x0065be30
 W8GameTimer* g_shake_timer_0065be30;
 
 /* Everything except the timer's own pacing carries across, and bit zero of the
@@ -1128,6 +1131,15 @@ extern W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 
 // TEMPLATE: WIZ8 0x004a8f90
 // W8GrowableVector<W8CameraShakeEffect*>::~W8GrowableVector<W8CameraShakeEffect*>
+
+// VTABLE: WIZ8 0x005ececc
+// class W8GrowableVector<W8GrCycleShakeEvent*>
+
+// SYNTHETIC: WIZ8 0x004a8fe0
+// W8GrowableVector<W8GrCycleShakeEvent*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004a8fb0
+// W8GrowableVector<W8GrCycleShakeEvent*>::~W8GrowableVector<W8GrCycleShakeEvent*>
 
 // FUNCTION: WIZ8 0x004a8430
 void W8GrCycle::SetSubCycle(unsigned char subcycle)

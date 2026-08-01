@@ -41,9 +41,11 @@ final class CallableIdentity {
 
 	static String prototype(Function function, FunctionKind kind) {
 		List<String> parameters = new ArrayList<>();
-		for (Parameter parameter : function.getParameters()) {
-			if (!parameter.isAutoParameter()) {
-				parameters.add(CxxTypePrinter.printParameter(parameter));
+		if (kind != FunctionKind.DESTRUCTOR) {
+			for (Parameter parameter : function.getParameters()) {
+				if (!parameter.isAutoParameter()) {
+					parameters.add(CxxTypePrinter.printParameter(parameter));
+				}
 			}
 		}
 		if (function.hasVarArgs()) {
@@ -57,7 +59,16 @@ final class CallableIdentity {
 		String renderedConvention = convention != null && convention.startsWith("__") &&
 			!"__cdecl".equals(convention) && !"__thiscall".equals(convention)
 				? convention + " " : "";
-		return CxxTypePrinter.printType(function.getReturnType()) + " " +
+		return CxxTypePrinter.printReturn(function) + " " +
 			renderedConvention + head;
+	}
+
+	static String prototypeOrNull(Function function, FunctionKind kind) {
+		try {
+			return prototype(function, kind);
+		}
+		catch (CxxTypePrinter.UnresolvedTypeException unresolved) {
+			return null;
+		}
 	}
 }

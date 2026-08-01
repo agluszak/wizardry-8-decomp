@@ -3,6 +3,7 @@ package wiz8.exporter;
 import ghidra.program.model.data.Array;
 import ghidra.program.model.data.ArrayDataType;
 import ghidra.program.model.data.DataType;
+import ghidra.program.model.data.DataTypeComponent;
 import ghidra.program.model.data.FunctionDefinition;
 import ghidra.program.model.data.FunctionDefinitionDataType;
 import ghidra.program.model.data.BitFieldDataType;
@@ -16,7 +17,9 @@ import ghidra.program.model.data.StructureDataType;
 import ghidra.program.model.data.TypeDef;
 import ghidra.program.model.data.TypedefDataType;
 import ghidra.program.model.data.Undefined;
+import ghidra.program.model.data.Undefined4DataType;
 import ghidra.program.model.data.VoidDataType;
+import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Parameter;
 
 /**
@@ -36,6 +39,12 @@ import ghidra.program.model.listing.Parameter;
  * source-owned declarations, not from here.
  */
 final class CxxTypePrinter {
+	static final class UnresolvedTypeException extends IllegalArgumentException {
+		UnresolvedTypeException(String context, DataType type) {
+			super(context + " has unresolved ABI type " +
+				(type == null ? "<null>" : type.getPathName()));
+		}
+	}
 
 	private CxxTypePrinter() {
 	}
@@ -85,6 +94,17 @@ final class CxxTypePrinter {
 					expected[i] + ", got " + actual);
 			}
 		}
+		String storage = printLocal(Undefined4DataType.dataType, "value");
+		if (!"/* unresolved undefined4 */ unsigned char value[4]".equals(storage)) {
+			throw new IllegalStateException("undefined storage regression: " + storage);
+		}
+		try {
+			requireResolved(Undefined4DataType.dataType, "parameter value");
+			throw new IllegalStateException("undefined parameter did not decline");
+		}
+		catch (UnresolvedTypeException expectedFailure) {
+			// An array spelling would decay and silently change the parameter ABI.
+		}
 	}
 
 	/** The abstract type spelling, without a declared name. */
@@ -104,7 +124,61 @@ final class CxxTypePrinter {
 	 */
 	static String printParameter(Parameter parameter) {
 		String name = parameter.getName();
-		return printDeclaration(parameter.getFormalDataType(), name == null ? "" : name);
+		DataType type = parameter.getFormalDataType();
+		requireResolved(type, "parameter " + (name == null ? "" : name));
+		return printDeclaration(type, name == null ? "" : name);
+	}
+
+	static String printReturn(Function function) {
+		DataType type = function.getReturn().getFormalDataType();
+		requireResolved(type, "return of " + function.getName(true));
+		return printType(type);
+	}
+
+	static String printField(DataTypeComponent component, String name) {
+		DataType type = component.getDataType();
+		if (type instanceof BitFieldDataType bitField) {
+			return printDeclaration(bitField.getBaseDataType(), name) + " : " +
+				bitField.getDeclaredBitSize();
+		}
+		return printDeclaration(type, name);
+	}
+
+	static String printLocal(DataType type, String name) {
+		return printDeclaration(type, name);
+	}
+
+	static String printPointee(DataType type) {
+		requireResolved(type, "pointer pointee");
+		return printType(type);
+	}
+
+	private static void requireResolved(DataType type, String context) {
+		if (hasUnresolvedAbiType(type)) {
+			throw new UnresolvedTypeException(context, type);
+		}
+	}
+
+	private static boolean hasUnresolvedAbiType(DataType type) {
+		if (type == null || Undefined.isUndefined(type) || "float10".equals(type.getName())) {
+			return true;
+		}
+		if (type instanceof TypeDef) {
+			return false; // the named source spelling is itself usable evidence
+		}
+		if (type instanceof Pointer pointer) {
+			return hasUnresolvedAbiType(pointer.getDataType());
+		}
+		if (type instanceof Array array) {
+			return hasUnresolvedAbiType(array.getDataType());
+		}
+		if (type instanceof FunctionDefinition function) {
+			if (hasUnresolvedAbiType(function.getReturnType())) return true;
+			for (ParameterDefinition parameter : function.getArguments()) {
+				if (hasUnresolvedAbiType(parameter.getDataType())) return true;
+			}
+		}
+		return false;
 	}
 
 	private static String declare(DataType type, String inner) {

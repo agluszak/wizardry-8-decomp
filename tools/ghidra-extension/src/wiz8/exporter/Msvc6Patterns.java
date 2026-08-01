@@ -2,8 +2,10 @@ package wiz8.exporter;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +27,6 @@ import ghidra.app.decompiler.ClangTypeToken;
 import ghidra.app.decompiler.ClangVariableDecl;
 import ghidra.app.decompiler.ClangVariableToken;
 import ghidra.app.decompiler.DecompileResults;
-import ghidra.app.decompiler.DecompInterface;
-import ghidra.app.decompiler.DecompileOptions;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
@@ -38,7 +38,6 @@ import ghidra.program.model.listing.AutoParameterType;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Parameter;
-import ghidra.program.model.listing.Program;
 import ghidra.program.model.listing.VariableStorage;
 import ghidra.program.model.pcode.HighFunction;
 import ghidra.program.model.pcode.HighSymbol;
@@ -117,9 +116,11 @@ final class Msvc6Patterns {
 	}
 
 	private final Function function;
+	private final RecoverySession session;
+	private final FunctionRole role;
 	private final FunctionKind kind;
 	private final DecompileResults results;
-	private final long sourceReferenceMask;
+	private final SourceReferenceForm[] sourceReferenceForms;
 	private final Analysis analysis = new Analysis();
 
 	private ClangFunction root;
@@ -138,19 +139,28 @@ final class Msvc6Patterns {
 	private final Map<ClangNode, String> claimOwner = new HashMap<>();
 	/** The pass currently running; claims and trace records attach to it. */
 	private String currentPass;
+	/** Staged all-or-nothing claims for the semantic pass currently running. */
+	private ClaimTransaction currentClaims;
 
 	/** Shared vftable and base-subobject resolution over the program. */
 	private final VtableResolver vtables;
-	private final CallTargetResolver callTargets = new CallTargetResolver();
-	private final Map<Long, String> structuralConstructorOwners = new HashMap<>();
+	private final CallTargetResolver callTargets;
 
-	private Msvc6Patterns(Function function, FunctionKind kind, DecompileResults results,
-			long sourceReferenceMask) {
+	private Msvc6Patterns(RecoverySession session, Function function, FunctionRole role,
+			FunctionKind kind,
+			DecompileResults results,
+			String[] sourceReferenceForms) {
+		this.session = session;
 		this.function = function;
+		this.role = role;
 		this.kind = kind;
 		this.results = results;
-		this.sourceReferenceMask = sourceReferenceMask;
-		this.vtables = new VtableResolver(function.getProgram());
+		this.sourceReferenceForms = new SourceReferenceForm[sourceReferenceForms.length];
+		for (int i = 0; i < sourceReferenceForms.length; i++) {
+			this.sourceReferenceForms[i] = SourceReferenceForm.parse(sourceReferenceForms[i]);
+		}
+		this.vtables = session.vtables;
+		this.callTargets = session.calls;
 	}
 
 	/**
@@ -159,14 +169,15 @@ final class Msvc6Patterns {
 	 * empty analysis with a defect record; pass failures are contained per
 	 * pass inside {@link #runPass}.
 	 */
-	static Analysis analyze(Function function, FunctionKind kind, DecompileResults results) {
-		return analyze(function, kind, results, 0);
+	static Analysis analyze(RecoverySession session, Function function, FunctionRole role,
+			FunctionKind kind, DecompileResults results) {
+		return analyze(session, function, role, kind, results, new String[0]);
 	}
 
-	static Analysis analyze(Function function, FunctionKind kind, DecompileResults results,
-			long sourceReferenceMask) {
+	static Analysis analyze(RecoverySession session, Function function, FunctionRole role,
+			FunctionKind kind, DecompileResults results, String[] sourceReferenceForms) {
 		Msvc6Patterns patterns =
-			new Msvc6Patterns(function, kind, results, sourceReferenceMask);
+			new Msvc6Patterns(session, function, role, kind, results, sourceReferenceForms);
 		try {
 			patterns.run();
 		}
@@ -196,14 +207,20 @@ final class Msvc6Patterns {
 
 		// Statement-local token rewrites run first so the lifecycle and
 		// allocation recognizers read their effective (already lifted) text.
-		runPass("call.virtual", this::rewriteVirtualCalls);
 		runPass("call.result-local", this::materializeCallResultLocals);
+		runPass("call.virtual", this::rewriteVirtualCalls);
+		runPass("call.library", this::rewriteCanonicalLibraryCalls);
 		runPass("call.direct-member", this::rewriteMethodCalls);
+		runPass("lifecycle.vptr-store", this::suppressCompilerVptrStores);
+		runPass("render.qualified-type", this::qualifyDemangledTypeTokens);
+		runPass("signature.parameter-padding", this::suppressParameterPadding);
+		runPass("expression.pcode-intrinsic", this::rewritePcodeIntrinsics);
+		runPass("expression.null-upcast", this::rewriteNullPreservingUpcasts);
 		runPass("expression.array-index", this::rewriteArrayIndexing);
+		runPass("expression.void-pointer-conversion", this::rewriteVoidPointerConversions);
 		runPass("expression.member-access", this::normalizeMemberAccess);
 		runPass("expression.source-reference", this::normalizeSourceReferences);
 		runPass("expression.null-cast", this::rewriteNullPointerCasts);
-		runPass("expression.null-upcast", this::rewriteNullPreservingUpcasts);
 		runPass("literal.narrow-string", this::rewriteStringLiterals);
 		runPass("call.struct-return", this::rewriteStructReturns);
 
@@ -220,6 +237,11 @@ final class Msvc6Patterns {
 	}
 
 	private void lifecyclePass() {
+		String prototype = CallableIdentity.prototypeOrNull(function, kind);
+		if (prototype == null) {
+			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
+			return;
+		}
 		Set<ClangNode> lifecycleDropped = new HashSet<>();
 		List<String> initializers = new ArrayList<>();
 		if (!analyzeLifecycle(lifecycleDropped, initializers)) {
@@ -230,8 +252,7 @@ final class Msvc6Patterns {
 		}
 		analysis.liftSignature = true;
 		analysis.initializerSuffix = initializerSuffix(initializers);
-		claimReplace(findProto(root),
-			CallableIdentity.prototype(function, kind) + analysis.initializerSuffix);
+		claimReplace(findProto(root), prototype + analysis.initializerSuffix);
 		trace("applied", currentPass, "signature lifted with " + initializers.size() +
 			" explicit initializer(s)");
 	}
@@ -248,13 +269,24 @@ final class Msvc6Patterns {
 	 */
 	private void runPass(String name, Runnable body) {
 		currentPass = name;
+		currentClaims = new ClaimTransaction(name);
 		Set<ClangNode> droppedBefore = new HashSet<>(analysis.dropped);
 		Map<ClangNode, String> replacedBefore = new HashMap<>(analysis.replaced);
 		Map<ClangNode, String> ownersBefore = new HashMap<>(claimOwner);
 		boolean liftBefore = analysis.liftSignature;
 		String initializerBefore = analysis.initializerSuffix;
+		int traceBefore = analysis.trace.size();
 		try {
 			body.run();
+			if (!currentClaims.validate()) {
+				restoreClaims(droppedBefore, replacedBefore, ownersBefore, liftBefore,
+					initializerBefore);
+				analysis.trace.subList(traceBefore, analysis.trace.size())
+					.removeIf(event -> "applied".equals(event.status));
+				trace("declined", name, "atomic claim set rejected: " + currentClaims.failure);
+				return;
+			}
+			currentClaims.commit();
 			if (claimsChanged(droppedBefore, replacedBefore, liftBefore, initializerBefore)) {
 				Set<Integer> touched = new HashSet<>();
 				String rendered = Wiz8CxxPrinter.render(root, analysis, touched);
@@ -277,7 +309,71 @@ final class Msvc6Patterns {
 			trace("failed", name, String.valueOf(e));
 		}
 		finally {
+			currentClaims = null;
 			currentPass = null;
+		}
+	}
+
+	/**
+	 * Pass-local claim transaction.  Recognizers may stage any number of node
+	 * drops/replacements, but the shared analysis is untouched until every claim
+	 * has proved conflict-free.  A single ignored claim failure therefore
+	 * declines the complete semantic rewrite instead of leaking a valid-looking
+	 * subset into the renderer.
+	 */
+	private final class ClaimTransaction {
+		final String owner;
+		final Set<ClangNode> dropped = new HashSet<>();
+		final Map<ClangNode, String> replaced = new HashMap<>();
+		String failure;
+
+		ClaimTransaction(String owner) {
+			this.owner = owner;
+		}
+
+		boolean drop(ClangNode node) {
+			if (conflicts(node)) {
+				failure = failure == null ? "drop conflict" : failure;
+				return false;
+			}
+			replaced.remove(node);
+			dropped.add(node);
+			return true;
+		}
+
+		boolean replace(ClangNode node, String text) {
+			if (conflicts(node)) {
+				failure = failure == null ? "replacement conflict" : failure;
+				return false;
+			}
+			dropped.remove(node);
+			replaced.put(node, text);
+			return true;
+		}
+
+		boolean contains(ClangNode node) {
+			return dropped.contains(node) || replaced.containsKey(node);
+		}
+
+		String replacement(ClangNode node) {
+			return replaced.get(node);
+		}
+
+		boolean validate() {
+			return failure == null;
+		}
+
+		void commit() {
+			for (ClangNode node : dropped) {
+				analysis.replaced.remove(node);
+				analysis.dropped.add(node);
+				claimOwner.put(node, owner);
+			}
+			for (Map.Entry<ClangNode, String> entry : replaced.entrySet()) {
+				analysis.dropped.remove(entry.getKey());
+				analysis.replaced.put(entry.getKey(), entry.getValue());
+				claimOwner.put(entry.getKey(), owner);
+			}
 		}
 	}
 
@@ -308,24 +404,18 @@ final class Msvc6Patterns {
 	 * enclosing node (the renderer's outermost-wins rule).
 	 */
 	private boolean claimDrop(ClangNode node) {
-		if (conflicts(node)) {
-			return false;
+		if (currentClaims == null) {
+			throw new IllegalStateException("claim outside pass transaction");
 		}
-		analysis.replaced.remove(node);
-		analysis.dropped.add(node);
-		claimOwner.put(node, currentPass);
-		return true;
+		return currentClaims.drop(node);
 	}
 
 	/** Claim a node as replaced by text; same conflict rules as drops. */
 	private boolean claimReplace(ClangNode node, String replacement) {
-		if (conflicts(node)) {
-			return false;
+		if (currentClaims == null) {
+			throw new IllegalStateException("claim outside pass transaction");
 		}
-		analysis.dropped.remove(node);
-		analysis.replaced.put(node, replacement);
-		claimOwner.put(node, currentPass);
-		return true;
+		return currentClaims.replace(node, replacement);
 	}
 
 	/**
@@ -475,16 +565,20 @@ final class Msvc6Patterns {
 
 	/** The text a token contributes after claims and type mapping. */
 	private String effectiveTokenText(ClangToken token) {
-		String replacement = analysis.replaced.get(token);
+		String replacement = currentClaims == null ? null : currentClaims.replacement(token);
+		if (replacement == null) {
+			replacement = analysis.replaced.get(token);
+		}
 		if (replacement != null) {
 			return replacement;
 		}
-		if (analysis.dropped.contains(token)) {
+		if (analysis.dropped.contains(token) ||
+			(currentClaims != null && currentClaims.dropped.contains(token))) {
 			return "";
 		}
 		String text = token.getText();
-		if (token instanceof ClangTypeToken) {
-			text = TypeNames.map(text);
+		if (token instanceof ClangTypeToken type) {
+			text = TypeNames.mapToken(type);
 		}
 		else {
 			text = TypeNames.mapTemplateSpelling(text);
@@ -507,7 +601,13 @@ final class Msvc6Patterns {
 	}
 
 	private boolean isClaimed(ClangNode node) {
-		return analysis.dropped.contains(node) || analysis.replaced.containsKey(node);
+		for (ClangNode current = node; current != null; current = current.Parent()) {
+			if (analysis.dropped.contains(current) || analysis.replaced.containsKey(current) ||
+				(currentClaims != null && currentClaims.contains(current))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -625,6 +725,209 @@ final class Msvc6Patterns {
 	// ------------------------------------------------------------------
 
 	private Function callee(PcodeOp op) {
+		CallTargetResolver.Target resolved = callTarget(op);
+		if (resolved == null) {
+			return null;
+		}
+		return resolved.safelyErasable() ? resolved.canonical() : resolved.referenced();
+	}
+
+	/** Render the source spelling for a proved raw-storage allocation call. */
+	private void rewriteCanonicalLibraryCalls() {
+		for (ClangToken token : markup.tokens) {
+			if (!(token instanceof ClangFuncNameToken name) || isClaimed(name)) {
+				continue;
+			}
+			CallTargetResolver.Target target = callTarget(name.getPcodeOp());
+			if (target == null) {
+				continue;
+			}
+			String normalized = SpecialNames.normalize(target.canonical().getName());
+			String source = normalized.startsWith("operator new") ? "::operator new"
+				: normalized.startsWith("operator delete") && rawStorageDelete(name.getPcodeOp())
+					? "::operator delete" : null;
+			DataType destination = source == null ? null : typedPointerDestination(name.getPcodeOp());
+			if (destination != null) {
+				source = "(" + CxxTypePrinter.printType(destination) + ")" + source;
+			}
+			if (source != null && claimReplace(name, source)) {
+				trace("applied", currentPass, source + " @ " +
+					name.getPcodeOp().getSeqnum().getTarget());
+			}
+		}
+	}
+
+	/** True when raw deallocation receives storage rather than a T object. */
+	private static boolean rawStorageDelete(PcodeOp call) {
+		if (call == null || call.getNumInputs() != 2) {
+			return false;
+		}
+		HighVariable high = call.getInput(1).getHigh();
+		DataType type = resolvedType(high == null ? null : high.getDataType());
+		if (!(type instanceof Pointer pointer)) {
+			return false;
+		}
+		return !(resolvedType(pointer.getDataType()) instanceof Structure);
+	}
+
+	/**
+	 * Follow only representation-preserving copies/casts from a call result to
+	 * the typed pointer receiving raw {@code void*} storage. This is the C++
+	 * cast the source must carry; the type comes from HighVariable, never text.
+	 */
+	private static DataType typedPointerDestination(PcodeOp call) {
+		if (call == null || call.getOutput() == null) {
+			return null;
+		}
+		ArrayDeque<Varnode> pending = new ArrayDeque<>();
+		Set<Varnode> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+		pending.add(call.getOutput());
+		while (!pending.isEmpty()) {
+			Varnode value = pending.removeFirst();
+			if (!seen.add(value)) {
+				continue;
+			}
+			HighVariable high = value.getHigh();
+			DataType type = high == null ? null : high.getDataType();
+			if (isTypedPointer(type)) {
+				return type;
+			}
+			Iterator<PcodeOp> uses = value.getDescendants();
+			while (uses.hasNext()) {
+				PcodeOp use = uses.next();
+				if ((use.getOpcode() == PcodeOp.COPY || use.getOpcode() == PcodeOp.CAST) &&
+					use.getOutput() != null) {
+					pending.add(use.getOutput());
+				}
+			}
+		}
+		return null;
+	}
+
+	/** Recover a nested demangler namespace for a declaration's base type. */
+	private void qualifyDemangledTypeTokens() {
+		for (ClangToken token : markup.tokens) {
+			if (!(token instanceof ClangTypeToken typeToken) || isClaimed(token)) {
+				continue;
+			}
+			DataType type = typeToken.getDataType();
+			if (type == null) {
+				for (ClangNode owner = token.Parent(); owner != null; owner = owner.Parent()) {
+					if (owner instanceof ClangVariableDecl declaration) {
+						type = declaration.getDataType();
+						break;
+					}
+				}
+			}
+			while (type instanceof TypeDef typedef) {
+				type = typedef.getDataType();
+			}
+			while (type instanceof Pointer pointer) {
+				type = pointer.getDataType();
+			}
+			String qualified = TypeNames.qualifiedBase(type, TypeNames.map(typeToken.getText()));
+			if (qualified == null) {
+				qualified = programQualifiedBase(type, TypeNames.map(typeToken.getText()));
+			}
+			if (qualified != null && claimReplace(token, qualified)) {
+				trace("applied", currentPass, qualified);
+			}
+		}
+	}
+
+	/** Qualify a category path only when every segment is a live Ghidra namespace. */
+	private String programQualifiedBase(DataType type, String rendered) {
+		if (type == null || rendered == null) {
+			return null;
+		}
+		String path = type.getCategoryPath().getPath();
+		if (path == null || path.equals("/") || path.startsWith("/Demangler")) {
+			return null;
+		}
+		Namespace parent = function.getProgram().getGlobalNamespace();
+		List<String> names = new ArrayList<>();
+		for (String segment : path.substring(1).split("/")) {
+			Namespace found = null;
+			for (Symbol symbol : function.getProgram().getSymbolTable().getSymbols(segment, parent)) {
+				if (symbol.getObject() instanceof Namespace namespace) {
+					found = namespace;
+					break;
+				}
+			}
+			if (found == null) {
+				return null;
+			}
+			names.add(segment);
+			parent = found;
+		}
+		return String.join("::", names) + "::" + rendered;
+	}
+
+	/**
+	 * Ghidra occasionally prints an internal P-code primitive as though it were
+	 * a C function. Render the proved operation itself so exported C++ never
+	 * depends on undeclared decompiler helpers. Delimiter text only binds the
+	 * exact operation's presentation span.
+	 */
+	private void rewritePcodeIntrinsics() {
+		TokenLine line = bodyTokenLine();
+		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp operation = operations.next();
+			if (operation.getOpcode() != PcodeOp.INT_SBORROW ||
+				operation.getNumInputs() != 2 || operation.getInput(0).getSize() != 4 ||
+				operation.getInput(1).getSize() != 4) {
+				continue;
+			}
+			String left = sourceValue(operation.getInput(0));
+			String right = sourceValue(operation.getInput(1));
+			int[] span = operationCallSpan(line, operation);
+			if (left == null || right == null || span == null) {
+				trace("declined", currentPass, operation.getSeqnum() +
+					": exact operands or markup span unavailable");
+				continue;
+			}
+			String a = "(unsigned int)(" + left + ")";
+			String b = "(unsigned int)(" + right + ")";
+			String rendered = "(((" + a + " ^ " + b + ") & (" + a + " ^ (" + a +
+				" - " + b + "))) >> 31)";
+			if (claimRange(line, span[0], span[1], rendered)) {
+				trace("applied", currentPass, "INT_SBORROW @ " + operation.getSeqnum());
+			}
+		}
+	}
+
+	private int[] operationCallSpan(TokenLine line, PcodeOp operation) {
+		Set<ClangToken> anchors = Collections.newSetFromMap(new IdentityHashMap<>());
+		anchors.addAll(markup.tokensFor(operation));
+		for (int i = 0; i < line.sig.size(); i++) {
+			if (!anchors.contains(line.sig.get(i))) {
+				continue;
+			}
+			int open = i + 1;
+			if (open < line.sig.size() && "(".equals(text(line.sig, open))) {
+				int close = SyntaxPairs.matchingClose(line.sig, open);
+				if (close >= 0) {
+					return new int[] { i, close };
+				}
+			}
+		}
+		return null;
+	}
+
+	private static String sourceValue(Varnode value) {
+		if (value.isConstant()) {
+			long raw = value.getOffset();
+			if (value.getSize() == 4) {
+				return Integer.toString((int) raw);
+			}
+			return Long.toString(raw);
+		}
+		HighVariable high = value.getHigh();
+		return sanitizeHighName(high);
+	}
+
+	private CallTargetResolver.Target callTarget(PcodeOp op) {
 		if (op == null || op.getOpcode() != PcodeOp.CALL || op.getNumInputs() < 1) {
 			return null;
 		}
@@ -632,10 +935,8 @@ final class Msvc6Patterns {
 		if (!target.isAddress()) {
 			return null;
 		}
-		Function referenced = function.getProgram().getFunctionManager()
-			.getFunctionAt(target.getAddress());
-		CallTargetResolver.Target resolved = callTargets.resolve(referenced);
-		return resolved == null ? null : resolved.canonical();
+		Function referenced = callTargets.referencedAt(function.getProgram(), target.getAddress());
+		return callTargets.resolve(referenced);
 	}
 
 	private static boolean isThisSymbol(HighVariable high) {
@@ -1335,6 +1636,32 @@ final class Msvc6Patterns {
 		return false;
 	}
 
+	/**
+	 * A store of a reviewed vftable address is compiler-owned object-lifetime
+	 * machinery even when the object is a local/inlined subobject rather than
+	 * this function's {@code this}. Suppress the complete statement only when
+	 * its exact STORE operation carries that symbol.
+	 */
+	private void suppressCompilerVptrStores() {
+		Set<ClangStatement> proved = Collections.newSetFromMap(new IdentityHashMap<>());
+		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp operation = operations.next();
+			if (operation.getOpcode() == PcodeOp.STORE && operation.getNumInputs() >= 3 &&
+				valueIsVftableSymbol(operation.getInput(2))) {
+				ClangStatement statement = markup.statementFor(operation);
+				if (statement != null) {
+					proved.add(statement);
+				}
+			}
+		}
+		for (ClangStatement statement : proved) {
+			if (!isClaimed(statement) && claimDrop(statement)) {
+				trace("applied", currentPass, statementAddress(statement));
+			}
+		}
+	}
+
 	private boolean vftableStore(PcodeOp op) {
 		if (op.getOpcode() != PcodeOp.STORE || op.getNumInputs() < 3) {
 			return false;
@@ -1391,6 +1718,13 @@ final class Msvc6Patterns {
 			trace("declined", currentPass, "prototype does not carry the this parameter");
 			return false;
 		}
+		if (role.hasAuthoredBody() &&
+			FunctionRoleResolver.resolve(function).isDeletingDestructor() &&
+			!suppressSelectedDeletingWrapperEpilogue(dropped)) {
+			trace("declined", currentPass,
+				"selected deleting-wrapper carrier has no fully proved compiler epilogue");
+			return false;
+		}
 		int vptrStores = 0;
 		int parameterPadding = 0;
 		for (Item item : items) {
@@ -1427,7 +1761,144 @@ final class Msvc6Patterns {
 		return true;
 	}
 
+	/**
+	 * VC6 may inline the only observable source destructor body into a deleting
+	 * wrapper.  Family resolution may select that emission as the body's
+	 * carrier, but the wrapper's flag-controlled deallocation is still compiler
+	 * output.  Remove it only after proving the exact hidden flag, the same
+	 * complete-object receiver, the controlling bit-one branch, and an otherwise
+	 * empty lexical guard.  Decorated/tagged role identity authorizes considering
+	 * the emission; this P-code proof authorizes the source-span claim.
+	 */
+	private boolean suppressSelectedDeletingWrapperEpilogue(Set<ClangNode> dropped) {
+		HighVariable thisHigh = null;
+		HighVariable flagHigh = null;
+		int explicitParameters = 0;
+		for (Parameter parameter : function.getParameters()) {
+			HighSymbol symbol = highFunction.getLocalSymbolMap()
+					.getParamSymbol(parameter.getOrdinal());
+			if (parameter.isAutoParameter() &&
+				parameter.getAutoParameterType() == AutoParameterType.THIS) {
+				thisHigh = symbol == null ? null : symbol.getHighVariable();
+			}
+			else if (!parameter.isAutoParameter()) {
+				explicitParameters++;
+				flagHigh = symbol == null ? null : symbol.getHighVariable();
+			}
+		}
+		if (thisHigh == null || flagHigh == null || explicitParameters != 1) {
+			return false;
+		}
+
+		PcodeOp deallocation = null;
+		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp operation = operations.next();
+			if (operation.getOpcode() != PcodeOp.CALL || operation.getNumInputs() != 2) {
+				continue;
+			}
+			Function target = callee(operation);
+			OptionalLong receiverOffset = thisOffset(operation.getInput(1));
+			if (target == null || !target.getName().startsWith("operator_delete") ||
+				receiverOffset.isEmpty()) {
+				continue;
+			}
+			if (deallocation != null) {
+				return false;
+			}
+			deallocation = operation;
+		}
+		if (deallocation == null || deallocation.getParent() == null) {
+			return false;
+		}
+
+		PcodeOp controllingBranch = null;
+		operations = highFunction.getPcodeOps();
+		while (operations.hasNext()) {
+			PcodeOp candidate = operations.next();
+			if (candidate.getOpcode() != PcodeOp.CBRANCH || candidate.getParent() == null ||
+				candidate.getNumInputs() < 2 ||
+				!testsFlagBitOne(candidate.getInput(1), flagHigh) ||
+				!isSuccessor(candidate.getParent(), deallocation.getParent())) {
+				continue;
+			}
+			if (controllingBranch != null) {
+				return false;
+			}
+			controllingBranch = candidate;
+		}
+		ClangStatement statement = markup.statementFor(deallocation);
+		BlockView guard = statement == null ? null : blocks.ownerOf(statement);
+		if (controllingBranch == null || guard == null || guard.parent == null) {
+			return false;
+		}
+		for (ClangStatement contained : guard.statements) {
+			if (contained != statement && !isClaimed(contained)) {
+				return false;
+			}
+		}
+		List<ClangToken> guardSpan = boundGuardSpan(guard, controllingBranch);
+		if (guardSpan == null) {
+			return false;
+		}
+		dropped.addAll(guardSpan);
+		dropped.add(statement);
+		trace("applied", "lifecycle.deleting-wrapper-epilogue",
+			"proved flag-bit-one deallocation of this @ " + statementAddress(statement));
+		return true;
+	}
+
+	/** True only for a boolean expression derived from {@code flag & 1}. */
+	private static boolean testsFlagBitOne(Varnode value, HighVariable flag) {
+		Varnode current = value;
+		for (int depth = 0; current != null && depth < 8; depth++) {
+			PcodeOp definition = current.getDef();
+			if (definition == null) {
+				return false;
+			}
+			switch (definition.getOpcode()) {
+				case PcodeOp.COPY, PcodeOp.CAST, PcodeOp.INT_ZEXT, PcodeOp.INT_SEXT,
+					PcodeOp.BOOL_NEGATE:
+					current = definition.getInput(0);
+					break;
+				case PcodeOp.INT_EQUAL, PcodeOp.INT_NOTEQUAL:
+					if (definition.getInput(0).isConstant() &&
+						definition.getInput(0).getOffset() == 0) {
+						current = definition.getInput(1);
+					}
+					else if (definition.getInput(1).isConstant() &&
+						definition.getInput(1).getOffset() == 0) {
+						current = definition.getInput(0);
+					}
+					else {
+						return false;
+					}
+					break;
+				case PcodeOp.INT_AND:
+					for (int i = 0; i < 2; i++) {
+						Varnode mask = definition.getInput(i);
+						Varnode operand = definition.getInput(1 - i);
+						if (mask.isConstant() && mask.getOffset() == 1 &&
+							traceableToHigh(operand, flag)) {
+							return true;
+						}
+					}
+					return false;
+				default:
+					return false;
+			}
+		}
+		return false;
+	}
+
 	private boolean isParameterSlotPadding(ClangVariableDecl declaration) {
+		DataType declaredType = declaration.getDataType();
+		while (declaredType instanceof ghidra.program.model.data.Array array) {
+			declaredType = array.getDataType();
+		}
+		if (declaredType == null || !Undefined.isUndefined(declaredType)) {
+			return false;
+		}
 		HighSymbol symbol = declaration.getHighSymbol();
 		VariableStorage storage = symbol == null ? null : symbol.getStorage();
 		if (storage == null || !storage.isStackStorage()) {
@@ -1435,6 +1906,30 @@ final class Msvc6Patterns {
 		}
 		long start = storage.getStackOffset();
 		long end = start + storage.size();
+		HighVariable padding = declaration.getHighVariable();
+		if (padding == null) {
+			return false;
+		}
+		for (ClangVariableToken use : markup.usesOf(padding)) {
+			if (!isInside(use, declaration) && !isClaimed(use)) {
+				return false;
+			}
+		}
+		for (ClangToken token : markup.tokens) {
+			if (!(token instanceof ClangVariableToken variable)) {
+				continue;
+			}
+			HighSymbol other = variable.getHighSymbol(highFunction);
+			VariableStorage otherStorage = other == null ? null : other.getStorage();
+			if (other == symbol || otherStorage == null || !otherStorage.isStackStorage()) {
+				continue;
+			}
+			long otherStart = otherStorage.getStackOffset();
+			long otherEnd = otherStart + otherStorage.size();
+			if (otherStart < end && start < otherEnd) {
+				return false; // the rounded slot is reused by a meaningful symbol
+			}
+		}
 		for (Parameter parameter : function.getParameters()) {
 			VariableStorage formal = parameter.getVariableStorage();
 			if (parameter.isAutoParameter() || !formal.isStackStorage()) {
@@ -1448,6 +1943,20 @@ final class Msvc6Patterns {
 			}
 		}
 		return false;
+	}
+
+	/** Drop proved unused bytes in a rounded stack parameter slot in any function. */
+	private void suppressParameterPadding() {
+		int count = 0;
+		for (Item item : items) {
+			if (item.node instanceof ClangVariableDecl declaration &&
+				isParameterSlotPadding(declaration) && claimDrop(declaration)) {
+				count++;
+			}
+		}
+		if (count > 0) {
+			trace("applied", currentPass, "x" + count);
+		}
 	}
 
 	private void dropTerminalLifecycleReturn(Set<ClangNode> dropped) {
@@ -1480,35 +1989,27 @@ final class Msvc6Patterns {
 	}
 
 	private void consumeConstructorPrefix(Set<ClangNode> dropped, List<String> initializers) {
-		int index = 0;
-		while (index < items.size()) {
-			Item item = items.get(index);
-			if (item.node instanceof ClangVariableDecl) {
-				index++;
-				continue;
-			}
+		for (Item item : items) {
 			if (!item.isStatement()) {
-				index++; // markup punctuation is not a semantic body item
 				continue;
 			}
-			if (item.isStatement()) {
-				ClangStatement statement = (ClangStatement) item.node;
-				if (dropped.contains(statement) || isClaimed(statement)) {
-					index++;
-					continue;
-				}
-				String initializer = subobjectConstructorInitializer(statement);
-				if (initializer == null) {
-					break;
-				}
+			ClangStatement statement = (ClangStatement) item.node;
+			if (dropped.contains(statement) || isClaimed(statement)) {
+				continue;
+			}
+			String initializer = subobjectConstructorInitializer(statement);
+			if (initializer != null) {
 				if (!initializer.isEmpty()) {
 					initializers.add(initializer);
 				}
 				dropped.add(statement);
-				index++;
 				continue;
 			}
-			break;
+			PcodeOp operation = statement.getPcodeOp();
+			if (operation != null && (operation.getOpcode() == PcodeOp.CALL ||
+				operation.getOpcode() == PcodeOp.CALLIND)) {
+				break; // the first authored call ends the construction prefix
+			}
 		}
 	}
 
@@ -1524,40 +2025,38 @@ final class Msvc6Patterns {
 		if (target == null || op == null || structure == null) {
 			return null;
 		}
-		boolean modeled = FunctionKind.classify(target) == FunctionKind.CONSTRUCTOR;
-		String structuralOwner = modeled ? null : structuralConstructorOwner(target);
-		if (!modeled && structuralOwner == null) {
+		if (FunctionKind.classify(target) != FunctionKind.CONSTRUCTOR) {
 			trace("declined", "lifecycle.constructor-candidate",
-				target.getName(true) + " has no unique entry-ECX vftable store");
+				target.getName(true) + " has no reviewed constructor identity");
 			return null;
 		}
-		OptionalLong offset = modeled && op.getNumInputs() >= 2
-			? thisOffset(op.getInput(1)) : OptionalLong.of(0);
+		OptionalLong offset = op.getNumInputs() >= 2
+			? thisOffset(op.getInput(1)) : OptionalLong.empty();
 		if (offset.isEmpty() || offset.getAsLong() < 0 ||
 			offset.getAsLong() > Integer.MAX_VALUE) {
+			trace("declined", "lifecycle.constructor-candidate",
+				target.getName(true) + " receiver does not trace to this");
 			return null;
 		}
 		DataTypeComponent component =
 			structure.getComponentContaining((int) offset.getAsLong());
 		if (component == null || component.getOffset() != offset.getAsLong()) {
+			trace("declined", "lifecycle.constructor-candidate",
+				target.getName(true) + " offset 0x" + Long.toHexString(offset.getAsLong()) +
+					" is not an exact component");
 			return null;
 		}
 		boolean base = vtables.isBaseOffset(structure, offset.getAsLong());
-		if (!modeled && (!base || !sameTypeName(component.getDataType(), structuralOwner))) {
-			trace("declined", "lifecycle.constructor-candidate",
-				structuralOwner + " does not match the offset-zero base component");
-			return null;
-		}
 		if (!base && component.getFieldName() == null) {
 			return null; // a member initializer needs the field's name
 		}
-		List<String> arguments = modeled ? callArgumentsAfterReceiver(statement, op)
-			: callArguments(statement, op, 0);
+		List<String> arguments = callArgumentsAfterReceiver(statement, op);
 		if (arguments == null) {
+			trace("declined", "lifecycle.constructor-candidate",
+				target.getName(true) + " rendered arguments do not bind to p-code");
 			return null;
 		}
-		String name = base ? TypeNames.map(modeled
-			? target.getParentNamespace().getName() : structuralOwner)
+		String name = base ? TypeNames.map(target.getParentNamespace().getName())
 				: component.getFieldName();
 		trace("applied", base ? "lifecycle.base-initializer" : "lifecycle.member-initializer",
 			name + " @ this+0x" + Long.toHexString(offset.getAsLong()) + ", " +
@@ -1566,113 +2065,6 @@ final class Msvc6Patterns {
 			return "";
 		}
 		return name + "(" + String.join(", ", arguments) + ")";
-	}
-
-	private static boolean sameTypeName(DataType type, String name) {
-		DataType current = type;
-		while (current instanceof TypeDef typedef) {
-			current = typedef.getBaseDataType();
-		}
-		return current.getName().equals(name);
-	}
-
-	/**
-	 * Bounded fallback for a callee whose prototype has not yet materialized:
-	 * a unique STORE through entry ECX of a class-owned vftable proves the
-	 * constructed type. This is P-code and symbol identity, never call text.
-	 */
-	private String structuralConstructorOwner(Function target) {
-		long entry = target.getEntryPoint().getOffset();
-		if (structuralConstructorOwners.containsKey(entry)) {
-			return structuralConstructorOwners.get(entry);
-		}
-		String owner = decompiledConstructorOwner(target);
-		structuralConstructorOwners.put(entry, owner);
-		return owner;
-	}
-
-	private String decompiledConstructorOwner(Function target) {
-		Program program = target.getProgram();
-		DecompileOptions options = new DecompileOptions();
-		options.grabFromProgram(program);
-		DecompInterface decompiler = new DecompInterface();
-		decompiler.setOptions(options);
-		decompiler.openProgram(program);
-		try {
-			DecompileResults candidate = decompiler.decompileFunction(target,
-				options.getDefaultTimeout(), ghidra.util.task.TaskMonitor.DUMMY);
-			HighFunction high = candidate.getHighFunction();
-			if (!candidate.decompileCompleted() || high == null) {
-				return null;
-			}
-			Address ecx = program.getRegister("ECX").getAddress();
-			String found = null;
-			Iterator<? extends PcodeOp> operations = high.getPcodeOps();
-			while (operations.hasNext()) {
-				PcodeOp operation = operations.next();
-				if (operation.getOpcode() != PcodeOp.STORE || operation.getNumInputs() < 3 ||
-					!tracesToRegister(operation.getInput(1), ecx)) {
-					continue;
-				}
-				Symbol table = vftableSymbol(program, operation.getInput(2));
-				if (table == null || !(table.getParentNamespace() instanceof GhidraClass owner)) {
-					continue;
-				}
-				if (found != null && !found.equals(owner.getName())) {
-					return null;
-				}
-				found = owner.getName();
-			}
-			return found;
-		}
-		finally {
-			decompiler.dispose();
-		}
-	}
-
-	private static boolean tracesToRegister(Varnode value, Address register) {
-		Varnode current = value;
-		for (int step = 0; current != null && step < 16; step++) {
-			if (current.isRegister() && current.getAddress().equals(register)) {
-				return true;
-			}
-			PcodeOp def = current.getDef();
-			if (def == null) return false;
-			if (def.getOpcode() == PcodeOp.COPY || def.getOpcode() == PcodeOp.CAST ||
-				(def.getOpcode() == PcodeOp.PTRSUB && def.getInput(1).isConstant() &&
-					def.getInput(1).getOffset() == 0)) {
-				current = def.getInput(0);
-			}
-			else {
-				return false;
-			}
-		}
-		return false;
-	}
-
-	private static Symbol vftableSymbol(Program program, Varnode value) {
-		Varnode current = value;
-		for (int step = 0; current != null && step < 8; step++) {
-			Address address = current.isAddress() ? current.getAddress()
-				: current.isConstant() ? program.getAddressFactory().getDefaultAddressSpace()
-					.getAddress(current.getOffset()) : null;
-			if (address != null) {
-				Symbol symbol = program.getSymbolTable().getPrimarySymbol(address);
-				return symbol != null && VtableResolver.isVftableName(symbol.getName())
-					? symbol : null;
-			}
-			PcodeOp def = current.getDef();
-			if (def == null) return null;
-			if (def.getOpcode() == PcodeOp.COPY || def.getOpcode() == PcodeOp.CAST) {
-				current = def.getInput(0);
-			}
-			else if (def.getOpcode() == PcodeOp.PTRSUB &&
-				def.getInput(0).isConstant() && def.getInput(0).getOffset() == 0) {
-				current = def.getInput(1);
-			}
-			else return null;
-		}
-		return null;
 	}
 
 	/**
@@ -1691,14 +2083,47 @@ final class Msvc6Patterns {
 		}
 		List<String> rendered = new ArrayList<>();
 		for (int i = skip; i < arguments.size(); i++) {
-			rendered.add(argumentText(arguments.get(i)));
+			String structural = i + 1 < op.getNumInputs()
+				? nullPreservingSource(op.getInput(i + 1)) : null;
+			rendered.add(structural != null ? structural : argumentText(arguments.get(i)));
 		}
 		return rendered;
 	}
 
+	/** The source root behind a proved MULTIEQUAL(0, root+baseOffset). */
+	private static String nullPreservingSource(Varnode value) {
+		Varnode current = value;
+		for (int step = 0; current != null && step < 16; step++) {
+			PcodeOp definition = current.getDef();
+			if (definition == null) {
+				return null;
+			}
+			if (definition.getOpcode() == PcodeOp.COPY ||
+				definition.getOpcode() == PcodeOp.CAST ||
+				definition.getOpcode() == PcodeOp.INDIRECT) {
+				current = definition.getInput(0);
+				continue;
+			}
+			if (definition.getOpcode() != PcodeOp.MULTIEQUAL ||
+				definition.getNumInputs() != 2) {
+				return null;
+			}
+			int zero = tracedConstant(definition.getInput(0), 0) != null &&
+				tracedConstant(definition.getInput(0), 0) == 0 ? 0
+					: tracedConstant(definition.getInput(1), 0) != null &&
+						tracedConstant(definition.getInput(1), 0) == 0 ? 1 : -1;
+			if (zero < 0) {
+				return null;
+			}
+			PointerValue adjusted = pointerValue(definition.getInput(1 - zero));
+			return adjusted == null ? null : sanitizeHighName(adjusted.root);
+		}
+		return null;
+	}
+
 	private void consumeDestructorTail(Set<ClangNode> dropped) {
 		List<Item> topLevelStatements = items.stream()
-			.filter(item -> item.depth == 0 && item.isStatement()).toList();
+			.filter(Item::isStatement).toList();
 		for (int i = topLevelStatements.size() - 1; i >= 0; i--) {
 			Item item = topLevelStatements.get(i);
 			ClangStatement statement = (ClangStatement) item.node;
@@ -1801,6 +2226,9 @@ final class Msvc6Patterns {
 			int start = span[0];
 			int close = span[1];
 			int argsOpen = span[2];
+			if (rangeConflicts(line.sig, start, matchingParen(line.sig, argsOpen))) {
+				continue;
+			}
 			String site = "@ 0x" + (op.getSeqnum() == null ? "?"
 					: op.getSeqnum().getTarget().toString());
 			VirtualCall call = resolveVirtualCall(op);
@@ -1813,6 +2241,20 @@ final class Msvc6Patterns {
 				: FunctionKind.classify(call.slot.function);
 			if (slotKind == FunctionKind.ORDINARY) {
 				String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
+				int argsClose = matchingParen(line.sig, argsOpen);
+				List<int[]> argumentSpans = argsClose < 0 ? null
+					: renderedArgumentSpans(line.sig, argsOpen, argsClose);
+				if (argumentSpans == null || argumentSpans.size() != op.getNumInputs() - 1) {
+					trace("declined", currentPass, site + ": rendered argument span mismatch");
+					continue;
+				}
+				for (int i = 0; i < argumentSpans.size(); i++) {
+					String parameter = sourceParameterExpression(op.getInput(i + 1));
+					if (parameter != null) {
+						int[] argument = argumentSpans.get(i);
+						claimRange(line, argument[0], argument[1], parameter);
+					}
+				}
 				if (claimRange(line, start, close, prefix + call.slot.name)) {
 					trace("applied", currentPass,
 						prefix + call.slot.name + " " + site);
@@ -1823,7 +2265,7 @@ final class Msvc6Patterns {
 				// Virtual dispatch of the deleting destructor is the compiled
 				// form of a source-level polymorphic delete.
 				int argsClose = matchingParen(line.sig, argsOpen);
-				if (argsClose < 0 || op.getNumInputs() < 3) {
+				if (argsClose < 0 || op.getNumInputs() < 2) {
 					continue;
 				}
 				Varnode flag = op.getInput(op.getNumInputs() - 1);
@@ -1843,6 +2285,18 @@ final class Msvc6Patterns {
 					call.slot.name + " (" + slotKind + "), not a callable rewrite");
 			}
 		}
+	}
+
+	private boolean rangeConflicts(List<ClangToken> tokens, int start, int end) {
+		if (start < 0 || end < start || end >= tokens.size()) {
+			return true;
+		}
+		for (int i = start; i <= end; i++) {
+			if (isClaimed(tokens.get(i))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -1895,20 +2349,28 @@ final class Msvc6Patterns {
 				}
 				ClangStatement statement = containingStatement(use);
 				PcodeOp useOp = statement == null ? null : statement.getPcodeOp();
-				Function target = callee(useOp);
-				if (target == null || !(target.getParentNamespace() instanceof GhidraClass) ||
-					useOp.getNumInputs() < 2 ||
-					!traceableToHigh(useOp.getInput(1), result) || isClaimed(use)) {
+				if (useOp == null || isClaimed(use)) {
 					unsupportedUse = true;
 					break;
 				}
-				List<String> arguments = callArgumentsAfterReceiver(statement, useOp);
-				if (arguments == null || receiverUses.containsKey(statement)) {
+				String renderedUse = directResultReceiverUse(useOp, statement, result, localName);
+				if (renderedUse == null) {
+					renderedUse = virtualResultFieldUse(useOp, result,
+						call.slot.returnType, localName);
+				}
+				if (renderedUse == null) {
+					trace("declined", currentPass, "CALLIND @ " + operation.getSeqnum() +
+						": unsupported result use op=" +
+						(useOp == null ? "null" : useOp.getMnemonic()) + " @ " +
+						(statement == null ? "null" : statementAddress(statement)));
 					unsupportedUse = true;
 					break;
 				}
-				receiverUses.put(statement, localName + "->" + target.getName() + "(" +
-					String.join(", ", arguments) + ")");
+				String previous = receiverUses.putIfAbsent(statement, renderedUse);
+				if (previous != null && !previous.equals(renderedUse)) {
+					unsupportedUse = true;
+					break;
+				}
 			}
 			if (unsupportedUse || receiverUses.isEmpty() || localNameInUse(localName, result)) {
 				trace("declined", currentPass, "CALLIND @ " + operation.getSeqnum() +
@@ -1931,6 +2393,121 @@ final class Msvc6Patterns {
 			trace("applied", currentPass, initializer + " @ " + operation.getSeqnum() +
 				", " + receiverUses.size() + " receiver use(s)");
 		}
+	}
+
+	private String directResultReceiverUse(PcodeOp useOp, ClangStatement statement,
+			HighVariable result, String localName) {
+		Function target = callee(useOp);
+		if (target == null || !(target.getParentNamespace() instanceof GhidraClass) ||
+			useOp.getNumInputs() < 2 || !traceableToHigh(useOp.getInput(1), result)) {
+			return null;
+		}
+		List<String> arguments = callArgumentsAfterReceiver(statement, useOp);
+		return arguments == null ? null : localName + "->" + target.getName() + "(" +
+			String.join(", ", arguments) + ")";
+	}
+
+	/**
+	 * Render a virtual call argument that SSA proves is the address of a field
+	 * in a typed virtual-call result. Token punctuation only binds the remaining
+	 * arguments; the returned structure and field offset determine meaning.
+	 */
+	private String virtualResultFieldUse(PcodeOp useOp, HighVariable result,
+			DataType resultType, String localName) {
+		if (useOp.getOpcode() != PcodeOp.CALLIND) {
+			return null;
+		}
+		VirtualCall call = resolveVirtualCall(useOp);
+		TokenLine line = bodyTokenLine();
+		int[] target = virtualTargetSpan(line, useOp);
+		if (call == null || target == null) {
+			trace("declined", currentPass, "result field use: virtual=" + (call != null) +
+				", span=" + (target != null));
+			return null;
+		}
+		int argsClose = matchingParen(line.sig, target[2]);
+		List<int[]> spans = argsClose < 0 ? null
+			: renderedArgumentSpans(line.sig, target[2], argsClose);
+		if (spans == null || spans.size() != useOp.getNumInputs() - 1) {
+			trace("declined", currentPass, "result field use: arguments=" +
+				(spans == null ? "null" : spans.size()) + ", inputs=" + useOp.getNumInputs());
+			return null;
+		}
+		List<String> arguments = new ArrayList<>();
+		boolean usedResult = false;
+		for (int i = 0; i < spans.size(); i++) {
+			String field = resultFieldAddress(useOp.getInput(i + 1), result,
+				resultType, localName);
+			if (field != null) {
+				if (usedResult) {
+					return null;
+				}
+				usedResult = true;
+				arguments.add(field);
+			}
+			else {
+				Long offset = offsetFromHigh(useOp.getInput(i + 1), result);
+				if (offset != null) {
+					trace("declined", currentPass, "result field use: unresolved offset 0x" +
+						Long.toHexString(offset) + " in " + resultType);
+					return null;
+				}
+				int[] span = spans.get(i);
+				arguments.add(argumentText(line.sig.subList(span[0], span[1] + 1)));
+			}
+		}
+		if (!usedResult) {
+			trace("declined", currentPass, "result field use: no operand rooted at " +
+				result.getName());
+			return null;
+		}
+		String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
+		return prefix + call.slot.name + "(" + String.join(", ", arguments) + ")";
+	}
+
+	private static String resultFieldAddress(Varnode argument, HighVariable result,
+			DataType resultType, String localName) {
+		Long offset = offsetFromHigh(argument, result);
+		Structure pointed = pointedStructure(resultType);
+		if (offset == null || pointed == null || offset < 0 || offset > Integer.MAX_VALUE) {
+			return null;
+		}
+		DataTypeComponent component = pointed.getComponentContaining(offset.intValue());
+		if (component == null || component.getOffset() != offset ||
+			component.getFieldName() == null) {
+			return null;
+		}
+		return "&" + localName + "->" + component.getFieldName();
+	}
+
+	/** Constant byte offset from one SSA high through copies and pointer adds. */
+	private static Long offsetFromHigh(Varnode value, HighVariable root) {
+		Varnode current = value;
+		long offset = 0;
+		for (int i = 0; current != null && i < 32; i++) {
+			PcodeOp definition = current.getDef();
+			if (definition != null) {
+				switch (definition.getOpcode()) {
+					case PcodeOp.PTRSUB:
+					case PcodeOp.INT_ADD:
+						if (!definition.getInput(1).isConstant()) {
+							return null;
+						}
+						offset += definition.getInput(1).getOffset();
+						current = definition.getInput(0);
+						continue;
+					case PcodeOp.COPY:
+					case PcodeOp.CAST:
+					case PcodeOp.INDIRECT:
+						current = definition.getInput(0);
+						continue;
+					default:
+						break;
+				}
+			}
+			return current.getHigh() == root ? offset : null;
+		}
+		return null;
 	}
 
 	private boolean localNameInUse(String name, HighVariable except) {
@@ -2010,31 +2587,160 @@ final class Msvc6Patterns {
 		return null;
 	}
 
-	/** Locate the presentation pair around an exact CALLIND target token. */
+	/**
+	 * Locate the paired target and argument spans of one exact CALLIND. The
+	 * output variable and assignment operator may also carry the CALLIND, so an
+	 * arbitrary token with the operation is not a valid anchor. Instead, bind
+	 * the adjacent syntax pairs whose target span contains the operation and
+	 * whose argument count agrees with the P-code inputs.
+	 */
 	private static int[] virtualTargetSpan(TokenLine line, PcodeOp operation) {
-		int anchor = -1;
-		for (int i = 0; i < line.sig.size(); i++) {
-			if (line.sig.get(i).getPcodeOp() == operation) {
-				anchor = i;
-				break;
-			}
-		}
-		if (anchor < 0) {
-			return null;
-		}
-		for (int open = anchor; open >= 0; open--) {
-			if (!SyntaxPairs.opensPair(line.sig.get(open))) {
+		for (int argsOpen = 0; argsOpen < line.sig.size(); argsOpen++) {
+			ClangToken candidate = line.sig.get(argsOpen);
+			if (!SyntaxPairs.opensPair(candidate) || !"(".equals(candidate.getText())) {
 				continue;
 			}
-			int close = SyntaxPairs.matchingClose(line.sig, open);
-			if (close < anchor || close + 1 >= line.sig.size() ||
-				!SyntaxPairs.opensPair(line.sig.get(close + 1)) ||
-				!"(".equals(line.sig.get(close + 1).getText())) {
+			int argsClose = SyntaxPairs.matchingClose(line.sig, argsOpen);
+			int targetClose = argsOpen - 1;
+			if (argsClose < 0 || targetClose < 0 ||
+				!SyntaxPairs.closesPair(line.sig.get(targetClose))) {
 				continue;
 			}
-			return new int[] {open, close, close + 1};
+			int targetOpen = SyntaxPairs.matchingOpen(line.sig, targetClose);
+			if (targetOpen < 0 || !containsOperation(line.sig, targetOpen, targetClose,
+				operation) || renderedArgumentCount(line.sig, argsOpen, argsClose) !=
+				operation.getNumInputs() - 1) {
+				continue;
+			}
+			return new int[] {targetOpen, targetClose, argsOpen};
 		}
 		return null;
+	}
+
+	private static boolean containsOperation(List<ClangToken> tokens, int start, int end,
+			PcodeOp operation) {
+		for (int i = start; i <= end; i++) {
+			if (tokens.get(i).getPcodeOp() == operation) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Argument punctuation is markup binding; P-code supplies the expected count. */
+	private static int renderedArgumentCount(List<ClangToken> tokens, int open, int close) {
+		if (close == open + 1) {
+			return 0;
+		}
+		int count = 1;
+		int nested = 0;
+		for (int i = open + 1; i < close; i++) {
+			ClangToken token = tokens.get(i);
+			if (SyntaxPairs.opensPair(token)) {
+				nested++;
+			}
+			else if (SyntaxPairs.closesPair(token)) {
+				nested--;
+			}
+			else if (nested == 0 && ",".equals(token.getText())) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	private static List<int[]> renderedArgumentSpans(List<ClangToken> tokens, int open,
+			int close) {
+		List<int[]> spans = new ArrayList<>();
+		if (close == open + 1) {
+			return spans;
+		}
+		int start = open + 1;
+		int nested = 0;
+		for (int i = start; i < close; i++) {
+			ClangToken token = tokens.get(i);
+			if (SyntaxPairs.opensPair(token)) {
+				nested++;
+			}
+			else if (SyntaxPairs.closesPair(token)) {
+				nested--;
+			}
+			else if (nested == 0 && ",".equals(token.getText())) {
+				spans.add(new int[] {start, i - 1});
+				start = i + 1;
+			}
+		}
+		spans.add(new int[] {start, close - 1});
+		return spans;
+	}
+
+	/**
+	 * Recover one source parameter from a P-code value assembled with ABI slot
+	 * padding. Every non-parameter leaf must be undefined storage in the rounded
+	 * bytes belonging to that same formal parameter.
+	 */
+	private String sourceParameterExpression(Varnode value) {
+		Set<HighSymbol> parameters = new HashSet<>();
+		Set<HighVariable> otherLeaves = new HashSet<>();
+		collectParameterLeaves(value, new HashSet<>(), parameters, otherLeaves, 0);
+		if (parameters.size() != 1) {
+			return null;
+		}
+		HighSymbol parameter = parameters.iterator().next();
+		for (HighVariable other : otherLeaves) {
+			if (!isRoundedParameterPadding(other, parameter)) {
+				return null;
+			}
+		}
+		return parameter.getName();
+	}
+
+	private static void collectParameterLeaves(Varnode value, Set<Varnode> visited,
+			Set<HighSymbol> parameters, Set<HighVariable> otherLeaves, int depth) {
+		if (value == null || depth > 16 || !visited.add(value) || value.isConstant()) {
+			return;
+		}
+		HighVariable high = value.getHigh();
+		HighSymbol symbol = high == null ? null : high.getSymbol();
+		if (symbol != null && symbol.isParameter()) {
+			parameters.add(symbol);
+			return;
+		}
+		PcodeOp definition = value.getDef();
+		if (definition != null) {
+			switch (definition.getOpcode()) {
+				case PcodeOp.COPY, PcodeOp.CAST, PcodeOp.INT_ZEXT, PcodeOp.INT_SEXT,
+					PcodeOp.SUBPIECE, PcodeOp.PIECE:
+					for (int i = 0; i < definition.getNumInputs(); i++) {
+						collectParameterLeaves(definition.getInput(i), visited, parameters,
+							otherLeaves, depth + 1);
+					}
+					return;
+				default:
+					break;
+			}
+		}
+		if (high != null) {
+			otherLeaves.add(high);
+		}
+	}
+
+	private boolean isRoundedParameterPadding(HighVariable high, HighSymbol parameter) {
+		DataType type = high.getDataType();
+		if (type == null || !Undefined.isUndefined(type)) {
+			return false;
+		}
+		HighSymbol symbol = high.getSymbol();
+		VariableStorage storage = symbol == null ? null : symbol.getStorage();
+		VariableStorage formal = parameter.getStorage();
+		if (storage == null || formal == null || !storage.isStackStorage() ||
+			!formal.isStackStorage()) {
+			return false;
+		}
+		long valueEnd = formal.getStackOffset() + formal.size();
+		long slotEnd = (valueEnd + 3) & ~3L;
+		long start = storage.getStackOffset();
+		return start >= valueEnd && start + storage.size() <= slotEnd;
 	}
 
 	/** A resolved virtual call site: the receiver's spelling and the slot. */
@@ -2181,7 +2887,8 @@ final class Msvc6Patterns {
 
 		VtableResolver.Slot slot = vtableSlot(receiverClass, subobjectOffset, slotOffset);
 		if (slot == null || (slot.function != null &&
-			!(slot.function.getParentNamespace() instanceof GhidraClass))) {
+			!(slot.function.getParentNamespace() instanceof GhidraClass) &&
+			!session.role(slot.function).isDeletingDestructor())) {
 			return null;
 		}
 		return new VirtualCall(receiver, slot);
@@ -2253,7 +2960,6 @@ final class Msvc6Patterns {
 	 * a byte offset that does not equal the applied element width declines.
 	 */
 	private void rewriteArrayIndexing() {
-		TokenLine full = bodyTokenLine();
 		Iterator<? extends PcodeOp> operations = highFunction.getPcodeOps();
 		while (operations.hasNext()) {
 			PcodeOp load = operations.next();
@@ -2261,27 +2967,15 @@ final class Msvc6Patterns {
 			if (access == null) {
 				continue;
 			}
-			TokenLine live = liveView(full);
-			int anchor = -1;
-			for (int i = 0; i < live.sig.size(); i++) {
-				if (live.sig.get(i).getPcodeOp() == load) {
-					anchor = i;
-					break;
-				}
-			}
-			// The semantic shape is proved above. This fixed presentation shape
-			// only binds the exact characters Ghidra printed for that LOAD.
-			if (anchor < 0 || anchor + 11 >= live.sig.size() ||
-				!(live.sig.get(anchor + 2) instanceof ClangTypeToken) ||
-				!(live.sig.get(anchor + 6) instanceof ClangVariableToken) ||
-				!(live.sig.get(anchor + 8) instanceof ClangVariableToken)) {
+			ArraySpan span = bindArraySpan(access);
+			if (span == null) {
 				trace("declined", currentPass, "LOAD @ " + load.getSeqnum() +
-					": no contiguous rendered expression span");
+					": operands do not bind one exact rendered expression span");
 				continue;
 			}
-			String base = effectiveTokenText(live.sig.get(anchor + 6));
-			String index = effectiveTokenText(live.sig.get(anchor + 8));
-			if (claimRange(live, anchor, anchor + 11,
+			String base = effectiveTokenText(span.base);
+			String index = effectiveTokenText(span.index);
+			if (claimRange(span.line, span.start, span.end,
 				"((" + CxxTypePrinter.printType(access.element) + "*)" + base + ")[" +
 					index + "]")) {
 				trace("applied", currentPass, "LOAD(PTRADD) stride " + access.stride);
@@ -2289,13 +2983,119 @@ final class Msvc6Patterns {
 		}
 	}
 
+	/**
+	 * C accepts an implicit conversion from {@code void*}; C++ does not. When a
+	 * LOAD from a reviewed void-pointer field feeds a typed pointer local, retain
+	 * the decompiler's data flow with the explicit cast required by the source
+	 * language. Field offset and both types come from Ghidra objects.
+	 */
+	private void rewriteVoidPointerConversions() {
+		if (structure == null) {
+			return;
+		}
+		for (Item item : items) {
+			if (!(item.node instanceof ClangStatement statement)) {
+				continue;
+			}
+			PcodeOp operation = statement.getPcodeOp();
+			if (operation == null || operation.getOpcode() != PcodeOp.LOAD ||
+				operation.getOutput() == null || operation.getNumInputs() < 2) {
+				continue;
+			}
+			HighVariable destination = operation.getOutput().getHigh();
+			DataType destinationType = destination == null ? null : destination.getDataType();
+			OptionalLong offset = thisOffset(operation.getInput(1));
+			DataTypeComponent field = offset.isEmpty() ? null
+				: sourceFieldAtOffset(structure, offset.getAsLong());
+			if (destination == null || sanitizeHighName(destination) == null ||
+				!isTypedPointer(destinationType) || field == null ||
+				!isVoidPointer(field.getDataType()) || field.getFieldName() == null) {
+				continue;
+			}
+			String rendered = sanitizeHighName(destination) + " = (" +
+				CxxTypePrinter.printType(destinationType) + ")" + field.getFieldName();
+			if (claimReplace(statement, rendered)) {
+				trace("applied", currentPass, rendered + " @ " + statementAddress(statement));
+			}
+		}
+	}
+
+	private DataTypeComponent sourceFieldAtOffset(Structure owner, long absoluteOffset) {
+		if (absoluteOffset < 0 || absoluteOffset > Integer.MAX_VALUE) {
+			return null;
+		}
+		Structure current = owner;
+		int relative = (int) absoluteOffset;
+		for (int depth = 0; depth < 16; depth++) {
+			DataTypeComponent component = current.getComponentContaining(relative);
+			if (component == null) {
+				return null;
+			}
+			DataType nested = resolvedType(component.getDataType());
+			if (nested instanceof Structure base &&
+				vtables.isBaseOffset(current, component.getOffset())) {
+				relative -= component.getOffset();
+				current = base;
+				continue;
+			}
+			return component.getOffset() == relative ? component : null;
+		}
+		return null;
+	}
+
+	private static boolean isTypedPointer(DataType type) {
+		DataType resolved = resolvedType(type);
+		return resolved instanceof Pointer pointer &&
+			!"void".equals(resolvedType(pointer.getDataType()).getName());
+	}
+
+	private static boolean isVoidPointer(DataType type) {
+		DataType resolved = resolvedType(type);
+		return resolved instanceof Pointer pointer &&
+			"void".equals(resolvedType(pointer.getDataType()).getName());
+	}
+
+	private static DataType resolvedType(DataType type) {
+		DataType current = type;
+		while (current instanceof TypeDef typedef) {
+			current = typedef.getBaseDataType();
+		}
+		return current;
+	}
+
 	private static final class ArrayAccess {
+		final PcodeOp load;
+		final Varnode base;
+		final Varnode index;
 		final DataType element;
 		final long stride;
+		final Set<PcodeOp> operations;
 
-		ArrayAccess(DataType element, long stride) {
+		ArrayAccess(PcodeOp load, Varnode base, Varnode index, DataType element,
+				long stride, Set<PcodeOp> operations) {
+			this.load = load;
+			this.base = base;
+			this.index = index;
 			this.element = element;
 			this.stride = stride;
+			this.operations = operations;
+		}
+	}
+
+	private static final class ArraySpan {
+		final TokenLine line;
+		final int start;
+		final int end;
+		final ClangVariableToken base;
+		final ClangVariableToken index;
+
+		ArraySpan(TokenLine line, int start, int end, ClangVariableToken base,
+				ClangVariableToken index) {
+			this.line = line;
+			this.start = start;
+			this.end = end;
+			this.base = base;
+			this.index = index;
 		}
 	}
 
@@ -2308,9 +3108,16 @@ final class Msvc6Patterns {
 		Varnode address = stripCopies(load.getInput(1));
 		PcodeOp addressOp = address == null ? null : address.getDef();
 		Long stride = null;
+		Varnode base = null;
+		Varnode index = null;
+		Set<PcodeOp> semanticOps = Collections.newSetFromMap(new IdentityHashMap<>());
+		semanticOps.add(load);
 		if (addressOp != null && addressOp.getOpcode() == PcodeOp.PTRADD &&
 			addressOp.getNumInputs() >= 3 && addressOp.getInput(2).isConstant()) {
 			stride = addressOp.getInput(2).getOffset();
+			base = stripCopies(addressOp.getInput(0));
+			index = stripCopies(addressOp.getInput(1));
+			semanticOps.add(addressOp);
 		}
 		else if (addressOp != null && addressOp.getOpcode() == PcodeOp.INT_ADD) {
 			for (int i = 0; i < 2; i++) {
@@ -2322,16 +3129,102 @@ final class Msvc6Patterns {
 				for (int j = 0; j < 2; j++) {
 					if (multiply.getInput(j).isConstant()) {
 						stride = multiply.getInput(j).getOffset();
+						index = stripCopies(multiply.getInput(1 - j));
 					}
 				}
+				base = stripCopies(addressOp.getInput(1 - i));
+				semanticOps.add(addressOp);
+				semanticOps.add(multiply);
 			}
 		}
 		DataType element = load.getOutput().getHigh().getDataType();
-		if (stride == null || element == null || element.getLength() <= 0 ||
+		if (stride == null || base == null || index == null || base.isConstant() ||
+			index.isConstant() || element == null || element.getLength() <= 0 ||
 			stride != element.getLength() || Undefined.isUndefined(element)) {
 			return null;
 		}
-		return new ArrayAccess(element, stride);
+		return new ArrayAccess(load, base, index, element, stride, semanticOps);
+	}
+
+	/** Bind the proved LOAD and its exact base/index varnodes to one paired span. */
+	private ArraySpan bindArraySpan(ArrayAccess access) {
+		ClangStatement statement = markup.statementFor(access.load);
+		if (statement == null) {
+			return null;
+		}
+		TokenLine line = liveView(tokenLine(statement));
+		int anchor = -1;
+		ClangVariableToken base = null;
+		ClangVariableToken index = null;
+		int baseCount = 0;
+		int indexCount = 0;
+		for (int i = 0; i < line.sig.size(); i++) {
+			ClangToken token = line.sig.get(i);
+			if (token.getPcodeOp() == access.load) {
+				if (anchor >= 0) return null;
+				anchor = i;
+			}
+			if (token instanceof ClangVariableToken variable) {
+				if (sameValue(variable.getVarnode(), access.base)) {
+					base = variable;
+					baseCount++;
+				}
+				if (sameValue(variable.getVarnode(), access.index)) {
+					index = variable;
+					indexCount++;
+				}
+			}
+		}
+		if (anchor < 0 || baseCount != 1 || indexCount != 1 || base == null || index == null) {
+			return null;
+		}
+		int castOpen = anchor + 1;
+		if (castOpen >= line.sig.size() || !SyntaxPairs.opensPair(line.sig.get(castOpen))) {
+			return null;
+		}
+		int castClose = SyntaxPairs.matchingClose(line.sig, castOpen);
+		int expressionOpen = castClose + 1;
+		if (castClose <= castOpen || expressionOpen >= line.sig.size() ||
+			!SyntaxPairs.opensPair(line.sig.get(expressionOpen))) {
+			return null;
+		}
+		int expressionClose = SyntaxPairs.matchingClose(line.sig, expressionOpen);
+		int baseIndex = line.sig.indexOf(base);
+		int indexIndex = line.sig.indexOf(index);
+		if (expressionClose <= expressionOpen || baseIndex <= expressionOpen ||
+			baseIndex >= expressionClose || indexIndex <= expressionOpen ||
+			indexIndex >= expressionClose) {
+			return null;
+		}
+		boolean typedElement = false;
+		boolean pointerDeclarator = false;
+		for (int i = castOpen + 1; i < castClose; i++) {
+			if (line.sig.get(i) instanceof ClangTypeToken type &&
+				type.getDataType() != null && type.getDataType().isEquivalent(access.element)) {
+				typedElement = true;
+			}
+			if ("*".equals(line.sig.get(i).getText())) {
+				pointerDeclarator = true;
+			}
+		}
+		if (!typedElement || !pointerDeclarator) {
+			return null;
+		}
+		for (int i = expressionOpen + 1; i < expressionClose; i++) {
+			ClangToken token = line.sig.get(i);
+			PcodeOp operation = token.getPcodeOp();
+			if (operation != null && !access.operations.contains(operation)) {
+				return null;
+			}
+			if (token instanceof ClangVariableToken variable && variable != base &&
+				variable != index) {
+				var scalar = variable.getScalar();
+				if (scalar == null || scalar.getUnsignedValue() != access.stride) {
+					return null;
+				}
+			}
+		}
+		return new ArraySpan(line, anchor, expressionClose, base, index);
 	}
 
 	private static Varnode stripCopies(Varnode value) {
@@ -2377,7 +3270,7 @@ final class Msvc6Patterns {
 	 * HighSymbol identity decide the meaning.
 	 */
 	private void normalizeSourceReferences() {
-		if (sourceReferenceMask == 0) {
+		if (sourceReferenceForms.length == 0) {
 			return;
 		}
 		Set<HighSymbol> references = new HashSet<>();
@@ -2386,7 +3279,8 @@ final class Msvc6Patterns {
 			if (parameter.isAutoParameter()) {
 				continue;
 			}
-			if (sourceIndex < Long.SIZE && (sourceReferenceMask & (1L << sourceIndex)) != 0) {
+			if (sourceIndex < sourceReferenceForms.length &&
+				sourceReferenceForms[sourceIndex].rendersObjectMemberAccess()) {
 				HighSymbol symbol = highFunction.getLocalSymbolMap()
 						.getParamSymbol(parameter.getOrdinal());
 				if (symbol != null) {
@@ -2727,11 +3621,22 @@ final class Msvc6Patterns {
 			String cast = "(" + CxxTypePrinter.printType(destination.getDataType()) + ")" + source;
 			int replacedUses = 0;
 			for (ClangVariableToken use : markup.usesOf(destination)) {
-				if (!isClaimed(use) && claimReplace(use, cast)) {
+				boolean declarationUse = false;
+				for (ClangNode ancestor = use; ancestor != null; ancestor = ancestor.Parent()) {
+					if (ancestor instanceof ClangVariableDecl) {
+						declarationUse = true;
+						break;
+					}
+				}
+				if (!declarationUse && !isClaimed(use) && claimReplace(use, cast)) {
 					replacedUses++;
 				}
 			}
 			if (replacedUses > 0) {
+				ClangVariableDecl declaration = markup.declarationFor(destination);
+				if (declaration != null) {
+					claimDrop(declaration);
+				}
 				trace("applied", currentPass, "MULTIEQUAL null/base pointer -> " + cast);
 			}
 		}
@@ -2969,6 +3874,7 @@ final class Msvc6Patterns {
 			}
 		}
 		if (live.size() == 1 && live.get(0) instanceof ClangVariableToken &&
+			(currentClaims == null || currentClaims.replacement(live.get(0)) == null) &&
 			!analysis.replaced.containsKey(live.get(0))) {
 			return text + "->";
 		}
@@ -3152,7 +4058,12 @@ final class Msvc6Patterns {
 		if (isClaimed(prototype)) {
 			return;
 		}
-		if (claimReplace(prototype, CallableIdentity.prototype(function, kind))) {
+		String rendered = CallableIdentity.prototypeOrNull(function, kind);
+		if (rendered == null) {
+			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
+			return;
+		}
+		if (claimReplace(prototype, rendered)) {
 			analysis.liftSignature = true;
 			trace("applied", currentPass, "complete prototype rendered from Function");
 		}
@@ -3217,11 +4128,13 @@ final class Msvc6Patterns {
 		List<ClangStatement> statements = block.statements;
 		for (int i = 0; i < statements.size(); i++) {
 			ClangStatement statement = statements.get(i);
-			if (analysis.dropped.contains(statement) ||
-				analysis.replaced.containsKey(statement)) {
+			if (isClaimed(statement)) {
 				continue;
 			}
 			if (rewriteScalarDeletingCall(statement)) {
+				continue;
+			}
+			if (rewriteTypedObjectDelete(statement)) {
 				continue;
 			}
 			ClangStatement next = nextLiveStatement(statements, i);
@@ -3236,6 +4149,34 @@ final class Msvc6Patterns {
 		for (BlockView child : block.children) {
 			rewriteAllocationPairs(child);
 		}
+	}
+
+	/**
+	 * A global deallocator receiving a typed object pointer is the trivial-
+	 * destructor lowering of {@code delete object}. Pointer buffers (T**) and
+	 * void/primitive storage remain explicit raw-storage deallocation calls.
+	 */
+	private boolean rewriteTypedObjectDelete(ClangStatement statement) {
+		PcodeOp op = statement.getPcodeOp();
+		Function deallocator = callee(op);
+		if (deallocator == null || op == null || op.getNumInputs() != 2 ||
+			!SpecialNames.normalize(deallocator.getName()).startsWith("operator delete")) {
+			return false;
+		}
+		Varnode argument = op.getInput(1);
+		HighVariable high = argument.getHigh();
+		DataType type = resolvedType(high == null ? null : high.getDataType());
+		if (!(type instanceof Pointer pointer) ||
+			!(resolvedType(pointer.getDataType()) instanceof Structure)) {
+			return false;
+		}
+		String object = singleVariableArgument(statement, op, 1);
+		if (object == null || !claimReplace(statement, "delete " + object)) {
+			return false;
+		}
+		trace("applied", "allocation.trivial-delete",
+			"delete " + object + " @ " + statementAddress(statement));
+		return true;
 	}
 
 	private ClangStatement nextLiveStatement(List<ClangStatement> statements, int index) {
@@ -3444,10 +4385,22 @@ final class Msvc6Patterns {
 
 	/** Bind the complete if/compound-statement presentation after CFG proof. */
 	private boolean claimGuardSpan(BlockView guardBlock, PcodeOp branch) {
+		List<ClangToken> span = boundGuardSpan(guardBlock, branch);
+		if (span == null) {
+			return false;
+		}
+		for (ClangToken token : span) {
+			claimDrop(token);
+		}
+		return true;
+	}
+
+	/** Locate, but do not claim, a complete rendered guard span. */
+	private List<ClangToken> boundGuardSpan(BlockView guardBlock, PcodeOp branch) {
 		Varnode condition = branch.getNumInputs() > 1 ? stripCopies(branch.getInput(1)) : null;
 		PcodeOp comparison = condition == null ? null : condition.getDef();
 		if (comparison == null) {
-			return false;
+			return null;
 		}
 		TokenLine line = liveView(bodyTokenLine());
 		int conditionToken = -1;
@@ -3458,7 +4411,7 @@ final class Msvc6Patterns {
 			}
 		}
 		if (conditionToken < 0) {
-			return false;
+			return null;
 		}
 		int start = -1;
 		for (int i = conditionToken - 1; i >= 0 && i >= conditionToken - 32; i--) {
@@ -3470,7 +4423,7 @@ final class Msvc6Patterns {
 		List<ClangToken> blockTokens = new ArrayList<>();
 		leafTokens(guardBlock.markup, blockTokens);
 		if (start < 0 || blockTokens.isEmpty()) {
-			return false;
+			return null;
 		}
 		int firstBlock = -1;
 		for (ClangToken token : blockTokens) {
@@ -3508,7 +4461,23 @@ final class Msvc6Patterns {
 				}
 			}
 		}
-		return end >= conditionToken && claimRange(line, start, end, "");
+		if (end < conditionToken) {
+			return null;
+		}
+		int rawFrom = line.rawIndex.get(start);
+		int rawTo = line.rawIndex.get(end);
+		List<ClangToken> span = new ArrayList<>();
+		for (int i = rawFrom; i <= rawTo; i++) {
+			ClangToken token = line.raw.get(i);
+			String owner = claimOwner.get(token);
+			if (owner != null && !owner.equals(currentPass) &&
+				analysis.replaced.containsKey(token) &&
+				passPriority(currentPass) <= passPriority(owner)) {
+				return null;
+			}
+			span.add(token);
+		}
+		return span;
 	}
 
 	private static boolean isSuccessor(ghidra.program.model.pcode.PcodeBlock from,

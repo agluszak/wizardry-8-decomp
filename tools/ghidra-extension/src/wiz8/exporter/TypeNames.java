@@ -2,6 +2,9 @@ package wiz8.exporter;
 
 import java.util.Map;
 
+import ghidra.app.decompiler.ClangTypeToken;
+import ghidra.program.model.data.DataType;
+
 /**
  * Maps Ghidra's data-type spellings onto the repository's C++ spellings.
  *
@@ -48,6 +51,26 @@ final class TypeNames {
 			return text;
 		}
 		return mapType(trimmed);
+	}
+
+	/** Preserve a namespace encoded structurally in a demangler data-type path. */
+	static String mapToken(ClangTypeToken token) {
+		String rendered = map(token.getText());
+		String qualified = qualifiedBase(token.getDataType(), rendered);
+		return qualified == null ? rendered : qualified;
+	}
+
+	static String qualifiedBase(DataType type, String rendered) {
+		if (type == null || rendered == null) {
+			return null;
+		}
+		String category = type.getCategoryPath().getPath();
+		String prefix = "/Demangler/";
+		if (!category.startsWith(prefix) || category.length() == prefix.length()) {
+			return null;
+		}
+		String namespace = category.substring(prefix.length()).replace("/", "::");
+		return namespace + "::" + rendered;
 	}
 
 	/**
