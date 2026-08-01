@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ghidra.program.model.address.Address;
-import ghidra.program.model.data.Array;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
 import ghidra.program.model.data.Structure;
-import ghidra.program.model.data.TypeDef;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
 import ghidra.program.model.listing.Program;
@@ -248,28 +246,12 @@ final class Wiz8ClassPrinter {
 			offset, length, offset));
 	}
 
-	/** A component's C declarator, unwrapping array types onto the name. */
+	/** A component's C declarator, through the shared declarator printer. */
 	private String fieldDeclaration(DataType type, String name) {
-		StringBuilder suffix = new StringBuilder();
-		DataType current = type;
-		while (current instanceof Array array) {
-			suffix.append('[').append(array.getNumElements()).append(']');
-			current = array.getDataType();
-		}
-		return fieldTypeName(current) + " " + name + suffix;
+		return CxxTypePrinter.printDeclaration(type, name);
 	}
 
 	private String fieldTypeName(DataType type) {
-		DataType current = type;
-		while (current instanceof TypeDef typedef) {
-			current = typedef.getBaseDataType();
-		}
-		String display = current.getDisplayName().trim();
-		StringBuilder stars = new StringBuilder();
-		while (display.endsWith("*")) {
-			stars.append('*');
-			display = display.substring(0, display.length() - 1).trim();
-		}
-		return TypeNames.map(display) + stars;
+		return CxxTypePrinter.printType(type);
 	}
 }

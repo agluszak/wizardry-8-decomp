@@ -171,6 +171,7 @@ final class Msvc6Patterns {
 		runPass("expression.null-cast", this::rewriteNullPointerCasts);
 		runPass("call.direct-member", this::rewriteMethodCalls);
 		runPass("literal.narrow-string", this::rewriteStringLiterals);
+		runPass("call.struct-return", this::rewriteStructReturns);
 
 		runPass("eh.registration-frame", this::analyzeExceptionHandling);
 		runPass("eh.stack-local", this::liftStackLocalsPass);
@@ -2548,6 +2549,146 @@ final class Msvc6Patterns {
 		}
 		// A composite receiver expression, e.g. a cast: parenthesize it.
 		return "(" + text + ")->";
+	}
+
+	/**
+	 * Lift MSVC structure-return lowering back to a value return:
+	 * {@code p = Class::Method(this, &storage, args)} becomes
+	 * {@code storage = Method(args)}. The callee's own prototype names the
+	 * hidden storage parameter, the storage argument must render as
+	 * {@code &local}, and the returned alias pointer must be unused — a used
+	 * alias would lose real dataflow, so it declines.
+	 */
+	private void rewriteStructReturns() {
+		for (Item item : items) {
+			if (!item.isStatement() || isClaimed(item.node)) {
+				continue;
+			}
+			ClangStatement statement = (ClangStatement) item.node;
+			PcodeOp op = statement.getPcodeOp();
+			Function target = callee(op);
+			if (target == null) {
+				continue;
+			}
+			int storageIndex = returnStorageParameterIndex(target);
+			if (storageIndex < 0 || FunctionKind.classify(target) != FunctionKind.ORDINARY) {
+				continue;
+			}
+			String site = "@ " + statementAddress(statement);
+			List<List<ClangToken>> arguments = callArgumentTokens(statement, op);
+			if (arguments == null || storageIndex >= arguments.size()) {
+				trace("declined", currentPass, site +
+					": argument tokens disagree with the p-code operands");
+				continue;
+			}
+			List<ClangToken> storage = arguments.get(storageIndex);
+			if (storage.size() != 2 || !"&".equals(storage.get(0).getText()) ||
+				!(storage.get(1) instanceof ClangVariableToken destination)) {
+				trace("declined", currentPass, site +
+					": storage argument does not render as &local");
+				continue;
+			}
+			// The callee returns the storage pointer; Ghidra often keeps that
+			// alias for later uses. Every alias use is by construction a use
+			// of &storage, so the uses are rewritten; an alias whose uses
+			// cannot all be claimed declines.
+			Varnode output = op.getOutput();
+			List<ClangToken[]> aliasUses = new ArrayList<>();
+			if (output != null && output.getDescendants().hasNext()) {
+				HighVariable alias = output.getHigh();
+				if (alias == null || !collectAliasUses(statement, alias, aliasUses)) {
+					trace("declined", currentPass, site +
+						": the returned storage alias has unclaimable uses");
+					continue;
+				}
+			}
+			boolean member = target.getParentNamespace() instanceof GhidraClass &&
+				"__thiscall".equals(target.getCallingConventionName());
+			int receiverIndex = -1;
+			String prefix = "";
+			if (member) {
+				receiverIndex = storageIndex == 0 ? 1 : 0;
+				if (receiverIndex >= arguments.size()) {
+					continue;
+				}
+				prefix = receiverPrefix(op.getInput(1 + receiverIndex),
+					arguments.get(receiverIndex));
+				if (prefix == null) {
+					trace("declined", currentPass, site + ": receiver unresolved");
+					continue;
+				}
+			}
+			List<String> rendered = new ArrayList<>();
+			for (int i = 0; i < arguments.size(); i++) {
+				if (i == storageIndex || i == receiverIndex) {
+					continue;
+				}
+				rendered.add(argumentText(arguments.get(i)));
+			}
+			String name = sanitizeReservedName(destination, destination.getText());
+			if (claimReplace(statement, name + " = " + prefix + target.getName() +
+				"(" + String.join(", ", rendered) + ")")) {
+				for (ClangToken[] use : aliasUses) {
+					if (use[1] != null) {
+						// alias->field is storage.field
+						claimReplace(use[0], name);
+						claimReplace(use[1], ".");
+					}
+					else {
+						claimReplace(use[0], "&" + name);
+					}
+				}
+				trace("applied", currentPass, name + " = " + prefix + target.getName() +
+					"(...) " + site + (aliasUses.isEmpty() ? ""
+							: ", " + aliasUses.size() + " alias use(s) rewritten"));
+			}
+		}
+	}
+
+	/**
+	 * Collect every rendered use of the alias variable outside the defining
+	 * statement and its own declaration, paired with the {@code ->} operator
+	 * that follows it when one does ({@code alias->f} rewrites to
+	 * {@code storage.f}; a bare alias rewrites to {@code &storage}). True
+	 * only when each use is a plain, unclaimed variable token.
+	 */
+	private boolean collectAliasUses(ClangStatement definition, HighVariable alias,
+			List<ClangToken[]> uses) {
+		TokenLine line = bodyTokenLine();
+		for (int i = 0; i < line.sig.size(); i++) {
+			ClangToken token = line.sig.get(i);
+			if (!(token instanceof ClangVariableToken variable) ||
+				variable.getHighVariable() != alias) {
+				continue;
+			}
+			boolean skip = false;
+			for (ClangNode ancestor = token; ancestor != null; ancestor = ancestor.Parent()) {
+				if (ancestor == definition || ancestor instanceof ClangVariableDecl) {
+					skip = true;
+					break;
+				}
+			}
+			if (skip) {
+				continue;
+			}
+			if (isClaimed(token)) {
+				return false;
+			}
+			ClangToken arrow = i + 1 < line.sig.size() &&
+				"->".equals(text(line.sig, i + 1)) && !isClaimed(line.sig.get(i + 1))
+						? line.sig.get(i + 1) : null;
+			uses.add(new ClangToken[] {token, arrow});
+		}
+		return !uses.isEmpty();
+	}
+
+	private static int returnStorageParameterIndex(Function target) {
+		for (int i = 0; i < target.getParameterCount(); i++) {
+			if ("__return_storage_ptr__".equals(target.getParameter(i).getName())) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	private static boolean hasReturnStorageParameter(Function target) {

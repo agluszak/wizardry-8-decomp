@@ -74,21 +74,9 @@ final class Wiz8DataPrinter {
 		return marker + declaration + " = " + value + ";\n";
 	}
 
-	/** The C declarator with array bounds unwrapped onto the name. */
+	/** The C declarator, through the shared declarator printer. */
 	private String declarator(DataType type, String name) {
-		StringBuilder suffix = new StringBuilder();
-		DataType current = resolve(type);
-		while (current instanceof Array array) {
-			suffix.append('[').append(array.getNumElements()).append(']');
-			current = resolve(array.getDataType());
-		}
-		String display = current.getDisplayName().trim();
-		StringBuilder stars = new StringBuilder();
-		while (display.endsWith("*")) {
-			stars.append('*');
-			display = display.substring(0, display.length() - 1).trim();
-		}
-		return TypeNames.map(display) + stars + " " + name + suffix;
+		return CxxTypePrinter.printDeclaration(type, name);
 	}
 
 	private static DataType resolve(DataType type) {

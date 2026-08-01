@@ -177,6 +177,25 @@ Naming comes from the live project only. A pure-virtual slot cannot be named
 from the vtable (it stores `purecall`), and unnamed slot functions
 (`FUN_…`) decline until the project names them.
 
+## Declarators and structure returns (Phase 1)
+
+`CxxTypePrinter.java` is the one recursive declarator printer every type
+spelling goes through (class fields, virtual signatures, data definitions):
+it honors the declarator grammar — array bounds bind tighter than pointers
+(`int (*name)[4]`), function pointers print their parameter lists and
+calling conventions — instead of string-editing trailing stars. Ghidra's
+type system carries no const/volatile or reference types, so those
+spellings can only come from source-owned declarations.
+
+The `call.struct-return` pass lifts MSVC structure-return lowering: a call
+whose callee prototype names a `__return_storage_ptr__` parameter and whose
+storage argument renders as `&local` becomes `local = Method(args)` in
+member syntax. Ghidra usually keeps the returned storage pointer as an
+alias for later reads; every alias use is by construction a use of the
+storage, so `alias->f` rewrites to `local.f` and a bare alias to `&local`.
+An alias with any unclaimable use declines, because dropping it would lose
+real dataflow.
+
 ## Exception-handling lifetimes (M4)
 
 `EhModel.java` re-derives the function's MSVC exception model from program
