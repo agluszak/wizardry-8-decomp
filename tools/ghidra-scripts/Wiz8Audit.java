@@ -287,6 +287,7 @@ public class Wiz8Audit extends GhidraScript {
 		int depth = 0;
 		DataType current = unwrap(type);
 		while (current instanceof Pointer pointer) {
+			if (pointer.getDataType() == null) return 0;
 			depth++;
 			current = unwrap(pointer.getDataType());
 		}
