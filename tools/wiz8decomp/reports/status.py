@@ -10,7 +10,6 @@ from ..source_model import build_source_model, load_source_index
 from .translation_units import (
     derive_intervals,
     function_inventory,
-    load_call_site_anchors,
     render_gameplay_map_csv,
 )
 
@@ -64,11 +63,8 @@ def derive_status(repo_dir: Path, ghidra_functions: list[dict[str, str]]) -> dic
     source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
     assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
     gameplay = function_inventory(repo_dir, ghidra_functions)
-    extra_anchors = load_call_site_anchors(repo_dir)
-    intervals = derive_intervals(assertions, extra_anchors)
-    gameplay_map, attribution = render_gameplay_map_csv(
-        assertions, gameplay, intervals, extra_anchors
-    )
+    intervals = derive_intervals(assertions)
+    gameplay_map, attribution = render_gameplay_map_csv(assertions, gameplay, intervals)
     attributed_rows = list(csv.DictReader(gameplay_map.splitlines()))
     attributed_units = {row["source_path"] for row in attributed_rows if row["source_path"]}
 

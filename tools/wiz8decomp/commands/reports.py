@@ -7,6 +7,45 @@ import typer
 app = typer.Typer(help="Generate reports from collected evidence.", no_args_is_help=True)
 
 
+@app.command("class")
+def class_command(name: Annotated[str, typer.Argument(help="Reviewed Ghidra class name")]) -> None:
+    """Report class fields, vtables, and binary references from live Ghidra."""
+    from .. import command_support as cli
+    from ..ghidra.audits import class_facts, class_fields
+    from ..paths import atomic_json
+
+    def action() -> dict[str, object]:
+        settings = cli.settings()
+        result = {
+            **class_facts(settings, {name}),
+            "schema": "wiz8.class-report",
+            "classes": class_fields(settings, {name}),
+        }
+        output = settings.build_dir / "reports" / "classes" / f"{name.replace('::', '_')}.json"
+        atomic_json(output, result)
+        return {**result, "outputs": [str(output.relative_to(settings.repo_dir))]}
+
+    cli.run_action(action)
+
+
+@app.command("data")
+def data_command(address: Annotated[str, typer.Argument(help="Data address")]) -> None:
+    """Report one typed datum and its live Ghidra references."""
+    from .. import command_support as cli
+    from ..ghidra.audits import data_facts
+    from ..paths import atomic_json
+
+    def action() -> dict[str, object]:
+        settings = cli.settings()
+        entry = int(address, 0)
+        result = {"schema": "wiz8.data-report", "data": data_facts(settings, {entry})}
+        output = settings.build_dir / "reports" / "data" / f"{entry:08x}.json"
+        atomic_json(output, result)
+        return {**result, "outputs": [str(output.relative_to(settings.repo_dir))]}
+
+    cli.run_action(action)
+
+
 @app.command("status")
 def status_command() -> None:
     """Summarize canonical identities, ownership, matching, and source-unit coverage."""

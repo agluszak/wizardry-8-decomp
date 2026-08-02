@@ -101,14 +101,11 @@ editor label are not interchangeable evidence. Every reviewed identity therefore
 name came from and how far that may be trusted, validated against a closed vocabulary. The model is
 [docs/wiz8-evidence-model.md](docs/wiz8-evidence-model.md).
 
-No Wiz8 build carries debug information, and the game was linked without RTTI, so class and type
-evidence comes from what survived anyway: C++ exception metadata, the SurRender export tables, the
-literals passed to diagnostic calls, and what the relocation table says about vtables and globals.
-`wiz8 evidence refresh eh-metadata`, `surrender-abi`, `call-sites`, `polymorphism`, `globals`, and
-`function-census`
-produce those snapshots. How they are refreshed, what each can and cannot establish, and how to join
-them to find a function's translation unit, the type in a frame slot, or the next function worth
-porting are in [docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md).
+No Wiz8 build carries first-party debug information, and the game was linked without RTTI. The
+reviewed Ghidra project therefore owns surviving exception, call, vtable, global, and function
+facts. Focused read-only Java reports project only what a workflow needs under `build/`; only
+external debug artifacts and the SurRender ABI retain snapshot producers. The authority and
+extension rules are in [docs/wiz8-symbol-evidence.md](docs/wiz8-symbol-evidence.md).
 
 Variant materialization and PE inventory intentionally produce separate validated documents:
 

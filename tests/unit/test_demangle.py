@@ -73,7 +73,7 @@ def test_real_demangler_decodes_the_shapes_this_corpus_depends_on() -> None:
     """Runs against the real tool, which is a hard requirement, not an option.
 
     `docs/wiz8-symbol-evidence.md` requires `llvm-undname` on `PATH` for the
-    `surrender-abi`, `polymorphism`, and `eh-metadata` lanes, and
+    the `surrender-abi` lane, and
     `demangle.tool_path` raises without it. Skipping here would report a green
     lane on a toolchain that cannot produce those tables at all.
     """

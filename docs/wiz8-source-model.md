@@ -46,8 +46,8 @@ and the optional fourth-argument **message**. All but one direct site decode the
 arguments. They span 128 files; 789 distinct functions contain at least one site, and 84 sites
 fall outside any function the canonical Ghidra program currently defines and record an empty
 containing function. The containing function is resolved through the reviewed canonical
-program, and the cross-build raw harvest behind this table is
-`evidence/snapshots/call-sites/assertions.csv`.
+program. The reviewed table is the durable interpretation; focused Ghidra
+queries provide current call and function facts without a parallel raw harvest.
 
 The message argument is usually null, but 349 sites pass one, and messages are a different naming
 channel from expressions: expressions name members, parameters and constants, while messages tend

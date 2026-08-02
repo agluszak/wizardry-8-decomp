@@ -9,7 +9,6 @@ from typing import Any
 from ..ghidra.unit_intervals import (
     TranslationUnitInterval,
     _address,
-    call_site_anchors,
     derive_intervals,
 )
 from ..ghidra.unit_intervals import source_path as _source_path
@@ -17,10 +16,8 @@ from ..paths import atomic_write
 
 __all__ = [
     "TranslationUnitInterval",
-    "call_site_anchors",
     "derive_intervals",
     "function_inventory",
-    "load_call_site_anchors",
     "render_gameplay_map_csv",
     "render_interval_csv",
     "translation_unit_report",
@@ -222,45 +219,6 @@ def render_gameplay_map_csv(
     )
 
 
-def _canonical_program(repo_dir: Path) -> str | None:
-    """The program name whose addresses this report is written in terms of.
-
-    Other builds carry the same source paths at different addresses, so mixing
-    them would corrupt the interval map rather than extend it.
-    """
-    import yaml
-
-    variants = repo_dir / "config" / "variants.yml"
-    inventory = repo_dir / "build" / "manifests" / "modules.json"
-    if not variants.is_file() or not inventory.is_file():
-        return None
-    import json
-
-    variant = yaml.safe_load(variants.read_text(encoding="utf-8"))["canonical_matching_target"][
-        "variant"
-    ]
-    from ..ghidra.project import program_name
-
-    for module in json.loads(inventory.read_text(encoding="utf-8"))["modules"]:
-        if module["variant"] == variant and module.get("classification") == "first-party-game":
-            return program_name(module)
-    return None
-
-
-def load_call_site_anchors(repo_dir: Path) -> dict[int, str]:
-    """Anchors contributed by the call-site snapshot, if it is available.
-
-    Optional by design: the report predates the snapshot and still works without
-    it. Shared so that every consumer of the attribution counts derives them from
-    the same anchor set rather than reporting two numbers for one fact.
-    """
-    snapshot = repo_dir / "evidence" / "snapshots" / "call-sites" / "assertions.csv"
-    program = _canonical_program(repo_dir)
-    if not snapshot.is_file() or not program:
-        return {}
-    return call_site_anchors(_read_rows(snapshot), program)
-
-
 def translation_unit_report(settings: Any) -> dict[str, Any]:
     from ..ghidra.audits import function_inventory as ghidra_function_inventory
 
@@ -268,11 +226,9 @@ def translation_unit_report(settings: Any) -> dict[str, Any]:
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
     )
     gameplay = function_inventory(settings.repo_dir, ghidra_function_inventory(settings))
-    extra_anchors = load_call_site_anchors(settings.repo_dir)
-
-    intervals = derive_intervals(assertions, extra_anchors)
+    intervals = derive_intervals(assertions)
     interval_csv = render_interval_csv(intervals)
-    gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals, extra_anchors)
+    gameplay_csv, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
 
     report_dir = settings.build_dir / "reports" / "translation-units"
     interval_path = report_dir / "translation-unit-intervals.csv"
@@ -291,8 +247,6 @@ def translation_unit_report(settings: Any) -> dict[str, Any]:
         "attribution": counts,
         "anchors": {
             "reviewed": len(reviewed_anchors),
-            "call_site_snapshot": len(extra_anchors),
-            "added_by_snapshot": len(set(extra_anchors) - reviewed_anchors),
         },
         "outputs": [
             str(interval_path.relative_to(settings.repo_dir)),

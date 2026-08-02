@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import csv
-import os
-import tempfile
-from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -62,87 +59,3 @@ def read_table(
             )
         seen[identity] = line
     return EvidenceTable(path=path, schema=schema, rows=selected)
-
-
-_CONFIDENCE_RANK = {
-    "": 0,
-    "not-built": 0,
-    "structurally-strong": 1,
-    "strong": 2,
-    "high": 3,
-    "exact": 4,
-}
-
-
-def merge_monotonic(left: dict[str, str], right: dict[str, str]) -> dict[str, str]:
-    merged: dict[str, str] = {}
-    conflicts: list[str] = []
-    for field, old in left.items():
-        new = right[field]
-        if field == "confidence":
-            merged[field] = (
-                new if _CONFIDENCE_RANK.get(new, -1) > _CONFIDENCE_RANK.get(old, -1) else old
-            )
-        elif not old:
-            merged[field] = new
-        elif not new or old == new:
-            merged[field] = old
-        else:
-            conflicts.append(f"{field}: {old!r} != {new!r}")
-    if conflicts:
-        raise ValueError("semantic evidence conflict: " + "; ".join(conflicts))
-    return merged
-
-
-def _sort_key(row: dict[str, str], schema: TableSchema) -> tuple[tuple[int, int | str], ...]:
-    key: list[tuple[int, int | str]] = []
-    for column in schema.identity:
-        value = row[column].strip()
-        if column in {"address", "offset", "slot_index"}:
-            try:
-                key.append((0, int(value, 0 if value.lower().startswith("0x") else 16)))
-                continue
-            except ValueError:
-                pass
-        key.append((1, value.casefold()))
-    return tuple(key)
-
-
-def _write_atomic(path: Path, schema: TableSchema, rows: Iterable[dict[str, str]]) -> None:
-    handle, temporary = tempfile.mkstemp(dir=str(path.parent), suffix=".csv")
-    try:
-        with os.fdopen(handle, "w", newline="", encoding="utf-8") as stream:
-            writer = csv.DictWriter(stream, fieldnames=schema.columns, lineterminator="\n")
-            writer.writeheader()
-            writer.writerows(rows)
-        os.replace(temporary, path)
-    except BaseException:
-        try:
-            os.unlink(temporary)
-        except FileNotFoundError:
-            pass
-        raise
-
-
-def upsert_row(path: Path, row: dict[str, str]) -> dict[str, object]:
-    table = read_table(path)
-    missing = set(table.schema.columns) - set(row)
-    extra = set(row) - set(table.schema.columns)
-    if missing or extra:
-        raise ValueError(
-            f"{path}: row columns differ; missing={sorted(missing)}, extra={sorted(extra)}"
-        )
-    normalized = {column: str(row[column]) for column in table.schema.columns}
-    identity = identity_of(normalized, table.schema, path=path)
-    by_identity = {
-        identity_of(existing, table.schema, path=path): existing for existing in table.rows
-    }
-    action = "inserted"
-    if identity in by_identity:
-        by_identity[identity] = merge_monotonic(by_identity[identity], normalized)
-        action = "updated"
-    else:
-        by_identity[identity] = normalized
-    rows = sorted(by_identity.values(), key=lambda item: _sort_key(item, table.schema))
-    _write_atomic(path, table.schema, rows)
-    return {"path": str(path), "identity": list(identity), "action": action, "rows": len(rows)}

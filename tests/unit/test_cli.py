@@ -29,16 +29,10 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
 
     evidence = CliRunner().invoke(app, ["evidence", "refresh", "--help"])
     assert evidence.exit_code == 0
-    assert "function-census" in evidence.stdout
-    upsert = CliRunner().invoke(
-        app,
-        ["evidence", "upsert", "--help"],
-        terminal_width=120,
-    )
-    assert upsert.exit_code == 0
-    upsert_help = re.sub(r"\x1b\[[0-9;]*m", "", upsert.stdout)
-    assert "--row-file" in upsert_help
-    assert "--field" in upsert_help
+    assert "debug-artifacts" in evidence.stdout
+    assert "surrender-abi" in evidence.stdout
+    assert "function-census" not in evidence.stdout
+    assert CliRunner().invoke(app, ["evidence", "upsert", "--help"]).exit_code != 0
 
     analyze = CliRunner().invoke(app, ["analyze", "--help"])
     assert analyze.exit_code == 0

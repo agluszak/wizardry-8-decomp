@@ -2,8 +2,8 @@
 
 This is the pure core behind the translation-units report. It lives under
 ``ghidra/`` because recovery reports derive bounded unit attribution from it. The
-inputs are tracked: the reviewed assertion observations and the call-sites
-snapshot.
+sole input is the reviewed assertion observation table. Ghidra owns each call
+site's containing function; no byte-scanned boundary projection is merged.
 """
 
 from __future__ import annotations
@@ -35,31 +35,7 @@ def source_path(value: str) -> str | None:
     return value[len(SOURCE_PREFIX) :]
 
 
-def call_site_anchors(rows: list[dict[str, str]], program: str) -> dict[int, str]:
-    """Function-to-unit anchors recovered statically from assertion call sites.
-
-    The reviewed assertion table resolves its containing function through Ghidra
-    and so covers only what has been imported; the call-site snapshot derives the
-    enclosing function from inter-function padding and therefore covers the whole
-    image. A function whose assertions name two units has been inlined into, so
-    it anchors neither.
-    """
-    units_by_anchor: dict[int, set[str]] = defaultdict(set)
-    for row in rows:
-        if row.get("program") != program or not row.get("function_start"):
-            continue
-        unit = source_path(row["source_path"])
-        if unit is None:
-            continue
-        units_by_anchor[int(row["function_start"], 16)].add(unit)
-    return {
-        anchor: next(iter(units)) for anchor, units in units_by_anchor.items() if len(units) == 1
-    }
-
-
-def derive_intervals(
-    assertions: list[dict[str, str]], extra_anchors: dict[int, str] | None = None
-) -> list[TranslationUnitInterval]:
+def derive_intervals(assertions: list[dict[str, str]]) -> list[TranslationUnitInterval]:
     anchors_by_unit: dict[str, set[int]] = defaultdict(set)
     owners_by_anchor: dict[int, set[str]] = defaultdict(set)
     for row in assertions:
@@ -71,10 +47,6 @@ def derive_intervals(
         anchor = int(row["containing_function"], 16)
         anchors_by_unit[unit].add(anchor)
         owners_by_anchor[anchor].add(unit)
-    for anchor, unit in (extra_anchors or {}).items():
-        anchors_by_unit[unit].add(anchor)
-        owners_by_anchor[anchor].add(unit)
-
     conflicting = {anchor: owners for anchor, owners in owners_by_anchor.items() if len(owners) > 1}
     if conflicting:
         formatted = ", ".join(
@@ -102,3 +74,56 @@ def derive_intervals(
                 f"{current.source_path} starts at {_address(current.lower)}"
             )
     return intervals
+
+
+class TranslationUnitResolver:
+    """Resolve one function entry to a source owner and explicit provenance."""
+
+    def __init__(self, assertions: list[dict[str, str]]) -> None:
+        self.assertions = assertions
+        units_by_anchor: dict[int, set[str]] = defaultdict(set)
+        for row in assertions:
+            unit = source_path(row["source_path"])
+            if unit is not None and row.get("containing_function"):
+                units_by_anchor[int(row["containing_function"], 16)].add(unit)
+        unambiguous = {anchor for anchor, units in units_by_anchor.items() if len(units) == 1}
+        self.intervals = derive_intervals(
+            [
+                row
+                for row in assertions
+                if row.get("containing_function")
+                and int(row["containing_function"], 16) in unambiguous
+            ]
+        )
+
+    def resolve(self, entry: int) -> dict[str, object]:
+        direct = sorted(
+            {
+                unit
+                for row in self.assertions
+                if row.get("containing_function")
+                and int(row["containing_function"], 16) == entry
+                and (unit := source_path(row["source_path"])) is not None
+            },
+            key=str.casefold,
+        )
+        if len(direct) == 1:
+            return {"source_path": direct[0], "attribution": "direct", "alternatives": []}
+        if len(direct) > 1:
+            return {
+                "source_path": "",
+                "attribution": "inlined-or-conflicting",
+                "alternatives": direct,
+            }
+        interval = next(
+            (value for value in self.intervals if value.lower <= entry <= value.upper), None
+        )
+        if interval is None:
+            return {"source_path": "", "attribution": "gap", "alternatives": []}
+        return {
+            "source_path": interval.source_path,
+            "attribution": "interval-inference",
+            "alternatives": [],
+            "interval_lower": _address(interval.lower),
+            "interval_upper": _address(interval.upper),
+        }

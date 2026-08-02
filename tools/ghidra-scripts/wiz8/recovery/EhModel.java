@@ -23,7 +23,7 @@ import ghidra.program.model.mem.Memory;
  * slot is a local-object definition, not an arbitrary call).
  *
  * The record layout is the published MSVC one ({@code ehdata.h}); this
- * mirrors the proven parser in {@code tools/wiz8decomp/eh_metadata.py},
+ * reads the same VC6 metadata directly from the reviewed program,
  * reading the live Program instead of the (protected) PE file.
  */
 final class EhModel {

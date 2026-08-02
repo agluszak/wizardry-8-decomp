@@ -113,7 +113,7 @@ final class Msvc6Patterns {
 	private MarkupIndex markup;
 	private RecoveryContext context;
 	private BlockView.Tree blocks;
-	private List<MarkupIndex.Item> items;
+	private List<ClangNode> bodyEntries;
 	private Structure structure;
 	/** Stack offset of the VC6 EH registration link slot, when the frame is proven. */
 	private Long ehLinkOffset;
@@ -194,7 +194,7 @@ final class Msvc6Patterns {
 		context = new RecoveryContext(session, function, entity, emission,
 			sourceHints, results, highFunction, markup);
 		blocks = markup.blocks;
-		items = markup.items;
+		bodyEntries = markup.bodyEntries;
 		structure = classStructure();
 
 		// Domain order is retained for stable diagnostics. Each recognizer sees
@@ -307,14 +307,6 @@ final class Msvc6Patterns {
 			return true;
 		}
 
-		boolean contains(ClangNode node) {
-			return dropped.contains(node) || replaced.containsKey(node);
-		}
-
-		String replacement(ClangNode node) {
-			return replaced.get(node);
-		}
-
 		ProposedRewrite proposal() {
 			List<NodeEdit> edits = new ArrayList<>();
 			for (ClangNode node : dropped) edits.add(new NodeEdit.Drop(node));
@@ -422,14 +414,7 @@ final class Msvc6Patterns {
 	}
 
 	/** The token's source spelling, independent of every other recovery pass. */
-	private String effectiveTokenText(ClangToken token) {
-		String replacement = currentClaims == null ? null : currentClaims.replacement(token);
-		if (replacement != null) {
-			return replacement;
-		}
-		if (currentClaims != null && currentClaims.dropped.contains(token)) {
-			return "";
-		}
+	private String sourceTokenText(ClangToken token) {
 		String text = token.getText();
 		if (token instanceof ClangTypeToken type) {
 			text = TypeNames.mapToken(type);
@@ -454,15 +439,6 @@ final class Msvc6Patterns {
 		return text;
 	}
 
-	private boolean isClaimed(ClangNode node) {
-		for (ClangNode current = node; current != null; current = current.Parent()) {
-			if (currentClaims != null && currentClaims.contains(current)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 	 * Claim the raw token span between two significant tokens: the whole span
 	 * disappears and the replacement text prints once in its place.
@@ -474,11 +450,11 @@ final class Msvc6Patterns {
 	 * sits inside the span, the whole range declines, because a partial
 	 * claim would print duplicated or orphaned text.
 	 */
-	private boolean claimRange(MarkupIndex.TokenSpan line, int sigFrom, int sigTo,
+	private boolean replaceSpan(MarkupIndex.TokenSpan line, int sigFrom, int sigTo,
 			String replacement) {
-		int rawFrom = line.rawIndex.get(sigFrom);
-		int rawTo = line.rawIndex.get(sigTo);
-		ClangToken first = line.raw.get(rawFrom);
+		List<ClangToken> region = line.region(sigFrom, sigTo);
+		if (region.isEmpty()) return false;
+		ClangToken first = region.get(0);
 		String firstOwner = claimOwner.get(first);
 		if (firstOwner != null && !firstOwner.equals(currentPass) &&
 			passPriority(currentPass) <= passPriority(firstOwner)) {
@@ -486,8 +462,7 @@ final class Msvc6Patterns {
 				"claim conflict: range anchor already claimed by " + firstOwner);
 			return false;
 		}
-		for (int i = rawFrom; i <= rawTo; i++) {
-			ClangToken token = line.raw.get(i);
+		for (ClangToken token : region) {
 			String owner = claimOwner.get(token);
 			if (owner != null && !owner.equals(currentPass) &&
 				analysis.replaced.containsKey(token) &&
@@ -497,8 +472,7 @@ final class Msvc6Patterns {
 				return false;
 			}
 		}
-		for (int i = rawFrom; i <= rawTo; i++) {
-			ClangToken token = line.raw.get(i);
+		for (ClangToken token : region) {
 			String owner = claimOwner.get(token);
 			if (owner == null || owner.equals(currentPass) ||
 				passPriority(currentPass) > passPriority(owner)) {
@@ -535,7 +509,7 @@ final class Msvc6Patterns {
 	/** Render the source spelling for a proved raw-storage allocation call. */
 	void rewriteCanonicalLibraryCalls() {
 		for (ClangToken token : markup.tokens) {
-			if (!(token instanceof ClangFuncNameToken name) || isClaimed(name)) {
+			if (!(token instanceof ClangFuncNameToken name)) {
 				continue;
 			}
 			CallTargetResolver.Target target = callTarget(name.getPcodeOp());
@@ -607,7 +581,7 @@ final class Msvc6Patterns {
 	/** Recover a nested demangler namespace for a declaration's base type. */
 	void qualifyDemangledTypeTokens() {
 		for (ClangToken token : markup.tokens) {
-			if (!(token instanceof ClangTypeToken typeToken) || isClaimed(token)) {
+			if (!(token instanceof ClangTypeToken typeToken)) {
 				continue;
 			}
 			DataType type = typeToken.getDataType();
@@ -691,7 +665,7 @@ final class Msvc6Patterns {
 			String b = "(unsigned int)(" + right + ")";
 			String rendered = "(((" + a + " ^ " + b + ") & (" + a + " ^ (" + a +
 				" - " + b + "))) >> 31)";
-			if (claimRange(line, span[0], span[1], rendered)) {
+			if (replaceSpan(line, span[0], span[1], rendered)) {
 				trace("applied", currentPass, "INT_SBORROW @ " + operation.getSeqnum());
 			}
 		}
@@ -901,23 +875,22 @@ final class Msvc6Patterns {
 			return;
 		}
 		Set<ClangNode> ehDropped = new HashSet<>();
-		for (MarkupIndex.Item item : items) {
-			if (item.isStatement()) {
-				ClangStatement statement = (ClangStatement) item.node;
+		for (ClangNode node : bodyEntries) {
+			if (node instanceof ClangStatement statement) {
 				if (isEhScaffolding(statement)) {
 					ehDropped.add(statement);
 				}
 			}
-			else if (item.node instanceof ClangVariableDecl declaration &&
+			else if (node instanceof ClangVariableDecl declaration &&
 				isEhSlotDeclaration(declaration)) {
 				ehDropped.add(declaration);
 			}
 		}
 		// Subpiece stores can have a unique-space output even though their high
 		// symbol storage overlaps the proven state slot.
-		for (MarkupIndex.Item item : items) {
-			if (item.isStatement() && mentionsEhSlot(item.node)) {
-				ehDropped.add(item.node);
+		for (ClangNode node : bodyEntries) {
+			if (node instanceof ClangStatement && mentionsEhSlot(node)) {
+				ehDropped.add(node);
 			}
 		}
 		if (ehSlotReferencesSurvive(ehDropped)) {
@@ -951,11 +924,11 @@ final class Msvc6Patterns {
 	 */
 	private EhModel resolveEhModel() {
 		Long thunk = null;
-		for (MarkupIndex.Item item : items) {
-			if (!item.isStatement()) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement)) {
 				continue;
 			}
-			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
+			PcodeOp op = statement.getPcodeOp();
 			if (op == null) {
 				continue;
 			}
@@ -1030,7 +1003,7 @@ final class Msvc6Patterns {
 	private boolean ehSlotReferencesSurvive(Set<ClangNode> ehDropped) {
 		List<ClangToken> tokens = new ArrayList<>();
 		for (ClangNode node : markup.bodyNodes()) {
-			tokens.addAll(MarkupIndex.leafTokens(node));
+			tokens.addAll(markup.tokenSpan(node).sig);
 		}
 		for (ClangToken token : tokens) {
 			if (!isEhSlotReference(token)) {
@@ -1038,7 +1011,7 @@ final class Msvc6Patterns {
 			}
 			boolean claimed = false;
 			for (ClangNode current = token; current != null; current = current.Parent()) {
-				if (ehDropped.contains(current) || isClaimed(current)) {
+				if (ehDropped.contains(current)) {
 					claimed = true;
 					break;
 				}
@@ -1052,7 +1025,7 @@ final class Msvc6Patterns {
 
 	private boolean mentionsEhSlot(ClangNode node) {
 		List<ClangToken> tokens = new ArrayList<>();
-		tokens.addAll(MarkupIndex.leafTokens(node));
+		tokens.addAll(markup.tokenSpan(node).sig);
 		for (ClangToken token : tokens) {
 			if (isEhSlotReference(token)) {
 				return true;
@@ -1113,11 +1086,10 @@ final class Msvc6Patterns {
 		PcodeOp constructorOp = null;
 		ClangVariableToken local = null;
 		List<ClangStatement> destructorCalls = new ArrayList<>();
-		for (MarkupIndex.Item item : items) {
-			if (!item.isStatement() || isClaimed(item.node)) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement)) {
 				continue;
 			}
-			ClangStatement statement = (ClangStatement) item.node;
 			PcodeOp op = statement.getPcodeOp();
 			Function target = callee(op);
 			if (target == null || op.getNumInputs() < 2 ||
@@ -1261,12 +1233,12 @@ final class Msvc6Patterns {
 				return indexed;
 			}
 		}
-		for (MarkupIndex.Item item : items) {
-			if (!(item.node instanceof ClangVariableDecl declaration)) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangVariableDecl declaration)) {
 				continue;
 			}
 			List<ClangToken> tokens = new ArrayList<>();
-			tokens.addAll(MarkupIndex.leafTokens(declaration));
+			tokens.addAll(markup.tokenSpan(declaration).sig);
 			for (ClangToken token : tokens) {
 				if (!(token instanceof ClangVariableToken variable)) {
 					continue;
@@ -1320,11 +1292,11 @@ final class Msvc6Patterns {
 			return;
 		}
 		boolean registered = false;
-		for (MarkupIndex.Item item : items) {
-			if (!item.isStatement() || !mentionsExceptionList(item.node)) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement) || !mentionsExceptionList(node)) {
 				continue;
 			}
-			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
+			PcodeOp op = statement.getPcodeOp();
 			if (op == null) {
 				continue;
 			}
@@ -1400,7 +1372,7 @@ final class Msvc6Patterns {
 			return false;
 		}
 		List<ClangToken> tokens = new ArrayList<>();
-		tokens.addAll(MarkupIndex.leafTokens(declaration));
+		tokens.addAll(markup.tokenSpan(declaration).sig);
 		for (ClangToken token : tokens) {
 			if (!(token instanceof ClangVariableToken variable)) {
 				continue;
@@ -1455,7 +1427,7 @@ final class Msvc6Patterns {
 			}
 		}
 		for (ClangStatement statement : proved) {
-			if (!isClaimed(statement) && claimDrop(statement)) {
+			if (claimDrop(statement)) {
 				trace("applied", currentPass, statementAddress(statement));
 			}
 		}
@@ -1526,16 +1498,16 @@ final class Msvc6Patterns {
 		}
 		int vptrStores = 0;
 		int parameterPadding = 0;
-		for (MarkupIndex.Item item : items) {
-			if (item.node instanceof ClangVariableDecl declaration &&
+		for (ClangNode node : bodyEntries) {
+			if (node instanceof ClangVariableDecl declaration &&
 				isParameterSlotPadding(declaration)) {
 				dropped.add(declaration);
 				parameterPadding++;
 				continue;
 			}
-			if (item.isStatement() && !isClaimed(item.node) &&
-				isVftableStore((ClangStatement) item.node)) {
-				dropped.add(item.node);
+			if (node instanceof ClangStatement statement &&
+				isVftableStore(statement)) {
+				dropped.add(node);
 				vptrStores++;
 			}
 		}
@@ -1632,7 +1604,7 @@ final class Msvc6Patterns {
 			return false;
 		}
 		for (ClangStatement contained : guard.statements) {
-			if (contained != statement && !isClaimed(contained)) {
+			if (contained != statement) {
 				return false;
 			}
 		}
@@ -1710,7 +1682,7 @@ final class Msvc6Patterns {
 			return false;
 		}
 		for (ClangVariableToken use : markup.usesOf(padding)) {
-			if (!isInside(use, declaration) && !isClaimed(use)) {
+			if (!isInside(use, declaration)) {
 				return false;
 			}
 		}
@@ -1747,8 +1719,8 @@ final class Msvc6Patterns {
 	/** Drop proved unused bytes in a rounded stack parameter slot in any function. */
 	void suppressParameterPadding() {
 		int count = 0;
-		for (MarkupIndex.Item item : items) {
-			if (item.node instanceof ClangVariableDecl declaration &&
+		for (ClangNode node : bodyEntries) {
+			if (node instanceof ClangVariableDecl declaration &&
 				isParameterSlotPadding(declaration) && claimDrop(declaration)) {
 				count++;
 			}
@@ -1774,26 +1746,25 @@ final class Msvc6Patterns {
 			dropped.add(onlyReturn);
 			return;
 		}
-		for (int i = items.size() - 1; i >= 0; i--) {
-			MarkupIndex.Item item = items.get(i);
-			if (item.depth != 0 || !item.isStatement()) {
+		for (int i = bodyEntries.size() - 1; i >= 0; i--) {
+			ClangNode node = bodyEntries.get(i);
+			if (!markup.isTopLevel(node) || !(node instanceof ClangStatement statement)) {
 				continue;
 			}
-			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
+			PcodeOp op = statement.getPcodeOp();
 			if (op != null && op.getOpcode() == PcodeOp.RETURN) {
-				dropped.add(item.node);
+				dropped.add(node);
 			}
 			return;
 		}
 	}
 
 	private void consumeConstructorPrefix(Set<ClangNode> dropped, List<String> initializers) {
-		for (MarkupIndex.Item item : items) {
-			if (!item.isStatement()) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement)) {
 				continue;
 			}
-			ClangStatement statement = (ClangStatement) item.node;
-			if (dropped.contains(statement) || isClaimed(statement)) {
+			if (dropped.contains(statement)) {
 				continue;
 			}
 			String initializer = subobjectConstructorInitializer(statement);
@@ -1921,12 +1892,11 @@ final class Msvc6Patterns {
 	}
 
 	private void consumeDestructorTail(Set<ClangNode> dropped) {
-		List<MarkupIndex.Item> topLevelStatements = items.stream()
-			.filter(MarkupIndex.Item::isStatement).toList();
+		List<ClangNode> topLevelStatements = bodyEntries.stream()
+			.filter(node -> node instanceof ClangStatement && markup.isTopLevel(node)).toList();
 		for (int i = topLevelStatements.size() - 1; i >= 0; i--) {
-			MarkupIndex.Item item = topLevelStatements.get(i);
-			ClangStatement statement = (ClangStatement) item.node;
-			if (dropped.contains(statement) || isClaimed(statement)) {
+			ClangStatement statement = (ClangStatement) topLevelStatements.get(i);
+			if (dropped.contains(statement)) {
 				continue;
 			}
 			PcodeOp op = statement.getPcodeOp();
@@ -1978,11 +1948,11 @@ final class Msvc6Patterns {
 	 */
 	private boolean noSubobjectLifecycleCallsRemain(Set<ClangNode> dropped) {
 		boolean constructor = entity.isConstructor();
-		for (MarkupIndex.Item item : items) {
-			if (!item.isStatement() || dropped.contains(item.node)) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement) || dropped.contains(node)) {
 				continue;
 			}
-			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
+			PcodeOp op = statement.getPcodeOp();
 			Function target = callee(op);
 			SourceKind targetKind = target == null ? null : session.sourceKey(target).kind();
 			if (targetKind == null ||
@@ -2059,10 +2029,10 @@ final class Msvc6Patterns {
 					String parameter = sourceParameterExpression(op.getInput(i + 1));
 					if (parameter != null) {
 						int[] argument = argumentSpans.get(i);
-						claimRange(line, argument[0], argument[1], parameter);
+						replaceSpan(line, argument[0], argument[1], parameter);
 					}
 				}
-				if (claimRange(line, start, close, prefix + call.slot.name)) {
+				if (replaceSpan(line, start, close, prefix + call.slot.name)) {
 					trace("applied", currentPass,
 						prefix + call.slot.name + " " + site);
 				}
@@ -2079,7 +2049,7 @@ final class Msvc6Patterns {
 				String object = call.receiver.isEmpty() ? "this" : call.receiver;
 				String form = flag.isConstant()
 					? deletingForm(slotEmission.kind(), flag.getOffset()) : null;
-				if (form != null && claimRange(line, start, argsClose, form + object)) {
+				if (form != null && replaceSpan(line, start, argsClose, form + object)) {
 					trace("applied", currentPass, form + object + " " + site);
 				}
 				else if (form == null) {
@@ -2097,11 +2067,6 @@ final class Msvc6Patterns {
 	private boolean rangeConflicts(List<ClangToken> tokens, int start, int end) {
 		if (start < 0 || end < start || end >= tokens.size()) {
 			return true;
-		}
-		for (int i = start; i <= end; i++) {
-			if (isClaimed(tokens.get(i))) {
-				return true;
-			}
 		}
 		return false;
 	}
@@ -2156,7 +2121,7 @@ final class Msvc6Patterns {
 				}
 				ClangStatement statement = containingStatement(use);
 				PcodeOp useOp = statement == null ? null : statement.getPcodeOp();
-				if (useOp == null || isClaimed(use)) {
+				if (useOp == null) {
 					unsupportedUse = true;
 					break;
 				}
@@ -2780,9 +2745,9 @@ final class Msvc6Patterns {
 					": operands do not bind one exact rendered expression span");
 				continue;
 			}
-			String base = effectiveTokenText(span.base);
-			String index = effectiveTokenText(span.index);
-			if (claimRange(span.line, span.start, span.end,
+			String base = sourceTokenText(span.base);
+			String index = sourceTokenText(span.index);
+			if (replaceSpan(span.line, span.start, span.end,
 				"((" + CxxTypePrinter.printType(access.element) + "*)" + base + ")[" +
 					index + "]")) {
 				trace("applied", currentPass, "LOAD(PTRADD) stride " + access.stride);
@@ -2800,8 +2765,8 @@ final class Msvc6Patterns {
 		if (structure == null) {
 			return;
 		}
-		for (MarkupIndex.Item item : items) {
-			if (!(item.node instanceof ClangStatement statement)) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement)) {
 				continue;
 			}
 			PcodeOp operation = statement.getPcodeOp();
@@ -2959,7 +2924,7 @@ final class Msvc6Patterns {
 		if (statement == null) {
 			return null;
 		}
-		MarkupIndex.TokenSpan line = markup.liveView(markup.tokenSpan(statement), this::isClaimed);
+		MarkupIndex.TokenSpan line = markup.tokenSpan(statement);
 		int anchor = -1;
 		ClangVariableToken base = null;
 		ClangVariableToken index = null;
@@ -3060,13 +3025,7 @@ final class Msvc6Patterns {
 	 * alone; a surviving one marks dispatch the recognizers declined.
 	 */
 	void normalizeMemberAccess() {
-		MarkupIndex.TokenSpan full = markup.bodySpan();
-		for (int pass = 0; pass < 16; pass++) {
-			MarkupIndex.TokenSpan live = markup.liveView(full, this::isClaimed);
-			if (applyBaseAccessPatterns(live) == 0) {
-				break;
-			}
-		}
+		applyBaseAccessPatterns(markup.bodySpan());
 	}
 
 	/**
@@ -3099,7 +3058,7 @@ final class Msvc6Patterns {
 		if (references.isEmpty()) {
 			return;
 		}
-		MarkupIndex.TokenSpan line = markup.liveView(markup.bodySpan(), this::isClaimed);
+		MarkupIndex.TokenSpan line = markup.bodySpan();
 		for (int i = 0; i + 1 < line.sig.size(); i++) {
 			if (!(line.sig.get(i) instanceof ClangVariableToken variable) ||
 				!references.contains(variable.getHighSymbol(highFunction)) ||
@@ -3148,7 +3107,7 @@ final class Msvc6Patterns {
 				sig.get(i + 1) instanceof ClangVariableToken &&
 				"->".equals(text(sig, i + 2)) && isBaseFieldToken(sig.get(i + 3)) &&
 				!isAccessOperator(text(sig, i + 4)) && !"[".equals(text(sig, i + 4))) {
-				claimRange(live, i, i + 3,
+				replaceSpan(live, i, i + 3,
 					sanitizeReservedName(sig.get(i + 1), sig.get(i + 1).getText()));
 				applied++;
 				i += 3;
@@ -3214,7 +3173,7 @@ final class Msvc6Patterns {
 		MarkupIndex.TokenSpan line = markup.bodySpan();
 		int literals = 0;
 		for (ClangToken token : line.sig) {
-			if (!(token instanceof ClangVariableToken variable) || isClaimed(token)) {
+			if (!(token instanceof ClangVariableToken variable)) {
 				continue;
 			}
 			Address address = referencedDataAddress(variable);
@@ -3320,7 +3279,7 @@ final class Msvc6Patterns {
 
 	/** {@code (T *)0x0} is the source-level null constant {@code 0}. */
 	void rewriteNullPointerCasts() {
-		MarkupIndex.TokenSpan live = markup.liveView(markup.bodySpan(), this::isClaimed);
+		MarkupIndex.TokenSpan live = markup.bodySpan();
 		List<ClangToken> sig = live.sig;
 		for (int zero = 0; zero < sig.size(); zero++) {
 			if (!(sig.get(zero) instanceof ClangVariableToken token) ||
@@ -3344,7 +3303,7 @@ final class Msvc6Patterns {
 					break;
 				}
 			}
-			if (claimRange(live, from, zero, "0")) {
+			if (replaceSpan(live, from, zero, "0")) {
 				trace("applied", currentPass,
 					"typed zero pointer" + (from == zero ? "" : " with rendered cast"));
 			}
@@ -3435,7 +3394,7 @@ final class Msvc6Patterns {
 						break;
 					}
 				}
-				if (!declarationUse && !isClaimed(use) && claimReplace(use, cast)) {
+				if (!declarationUse && claimReplace(use, cast)) {
 					replacedUses++;
 				}
 			}
@@ -3516,7 +3475,7 @@ final class Msvc6Patterns {
 	private boolean claimConditionalRegion(PcodeOp branch, BlockView first, BlockView second) {
 		Varnode condition = branch.getNumInputs() > 1 ? stripCopies(branch.getInput(1)) : null;
 		PcodeOp comparison = condition == null ? null : condition.getDef();
-		MarkupIndex.TokenSpan line = markup.liveView(markup.bodySpan(), this::isClaimed);
+		MarkupIndex.TokenSpan line = markup.bodySpan();
 		int conditionIndex = -1;
 		for (int i = 0; comparison != null && i < line.sig.size(); i++) {
 			if (line.sig.get(i).getPcodeOp() == comparison) {
@@ -3532,10 +3491,10 @@ final class Msvc6Patterns {
 			}
 		}
 		int end = Math.max(blockCloseIndex(first, line), blockCloseIndex(second, line));
-		return start >= 0 && end > conditionIndex && claimRange(line, start, end, "");
+		return start >= 0 && end > conditionIndex && replaceSpan(line, start, end, "");
 	}
 
-	private static int blockCloseIndex(BlockView block, MarkupIndex.TokenSpan line) {
+	private int blockCloseIndex(BlockView block, MarkupIndex.TokenSpan line) {
 		if (!(block.markup.Parent() instanceof ClangTokenGroup parent)) {
 			return -1;
 		}
@@ -3550,7 +3509,7 @@ final class Msvc6Patterns {
 				continue;
 			}
 			List<ClangToken> tokens = new ArrayList<>();
-			tokens.addAll(MarkupIndex.leafTokens(node));
+			tokens.addAll(markup.tokenSpan(node).sig);
 			for (ClangToken token : tokens) {
 				if ("}".equals(token.getText())) {
 					return line.sig.indexOf(token);
@@ -3571,17 +3530,14 @@ final class Msvc6Patterns {
 	 * or {@code x.f.Method(args)} on an external receiver.
 	 */
 	void rewriteMethodCalls() {
-		MarkupIndex.TokenSpan live = markup.liveView(markup.bodySpan(), this::isClaimed);
+		MarkupIndex.TokenSpan live = markup.bodySpan();
 		List<ClangToken> sig = live.sig;
 		for (int i = 0; i < sig.size(); i++) {
-			if (!(sig.get(i) instanceof ClangFuncNameToken) || isClaimed(sig.get(i))) {
+			if (!(sig.get(i) instanceof ClangFuncNameToken)) {
 				continue;
 			}
 			PcodeOp op = sig.get(i).getPcodeOp();
 			ClangStatement containing = markup.statementFor(op);
-			if (containing != null && isClaimed(containing)) {
-				continue;
-			}
 			Function target = callee(op);
 			if (target == null || op.getNumInputs() < 2 ||
 				!(target.getParentNamespace() instanceof GhidraClass) ||
@@ -3615,7 +3571,7 @@ final class Msvc6Patterns {
 				rendered.add(argumentText(arguments.get(argument)));
 			}
 			boolean statementCall = close + 1 < sig.size() && ";".equals(text(sig, close + 1));
-			claimRange(live, start, statementCall ? close + 1 : close,
+			replaceSpan(live, start, statementCall ? close + 1 : close,
 				prefix + target.getName() + "(" + String.join(", ", rendered) + ")" +
 					(statementCall ? ";" : ""));
 		}
@@ -3635,7 +3591,7 @@ final class Msvc6Patterns {
 		}
 		StringBuilder text = new StringBuilder();
 		for (ClangToken token : tokens) {
-			text.append(effectiveTokenText(token));
+			text.append(sourceTokenText(token));
 		}
 		return text.toString();
 	}
@@ -3676,12 +3632,11 @@ final class Msvc6Patterns {
 		}
 		List<ClangToken> live = new ArrayList<>();
 		for (ClangToken token : rendered) {
-			if (!effectiveTokenText(token).isEmpty()) {
+			if (!sourceTokenText(token).isEmpty()) {
 				live.add(token);
 			}
 		}
-		if (live.size() == 1 && live.get(0) instanceof ClangVariableToken &&
-			(currentClaims == null || currentClaims.replacement(live.get(0)) == null)) {
+		if (live.size() == 1 && live.get(0) instanceof ClangVariableToken) {
 			return text + "->";
 		}
 		// A composite receiver expression, e.g. a cast: parenthesize it.
@@ -3698,11 +3653,10 @@ final class Msvc6Patterns {
 	 * alias would lose real dataflow, so it declines.
 	 */
 	void rewriteStructReturns() {
-		for (MarkupIndex.Item item : items) {
-			if (!item.isStatement() || isClaimed(item.node)) {
+		for (ClangNode node : bodyEntries) {
+			if (!(node instanceof ClangStatement statement)) {
 				continue;
 			}
-			ClangStatement statement = (ClangStatement) item.node;
 			PcodeOp op = statement.getPcodeOp();
 			Function target = callee(op);
 			if (target == null) {
@@ -3821,11 +3775,8 @@ final class Msvc6Patterns {
 			if (skip) {
 				continue;
 			}
-			if (isClaimed(token)) {
-				return false;
-			}
 			ClangToken arrow = i + 1 < line.sig.size() &&
-				"->".equals(text(line.sig, i + 1)) && !isClaimed(line.sig.get(i + 1))
+				"->".equals(text(line.sig, i + 1))
 						? line.sig.get(i + 1) : null;
 			uses.add(new ClangToken[] {token, arrow});
 		}
@@ -3861,9 +3812,6 @@ final class Msvc6Patterns {
 
 	void renderCompletePrototype() {
 		ClangFuncProto prototype = findProto(root);
-		if (isClaimed(prototype)) {
-			return;
-		}
 		String rendered = CallableIdentity.prototypeOrNull(function, entity.kind());
 		if (rendered == null) {
 			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
@@ -3920,7 +3868,7 @@ final class Msvc6Patterns {
 				continue;
 			}
 			ClangStatement statement = markup.statementFor(operation);
-			if (statement != null && !isClaimed(statement)) {
+			if (statement != null) {
 				rewriteGuardedNew(statement, operation);
 			}
 		}
@@ -3934,9 +3882,6 @@ final class Msvc6Patterns {
 		List<ClangStatement> statements = block.statements;
 		for (int i = 0; i < statements.size(); i++) {
 			ClangStatement statement = statements.get(i);
-			if (isClaimed(statement)) {
-				continue;
-			}
 			if (rewriteScalarDeletingCall(statement)) {
 				continue;
 			}
@@ -4125,7 +4070,7 @@ final class Msvc6Patterns {
 		ClangStatement copyOut = null;
 		HighVariable result = null;
 		for (ClangStatement statement : guardBlock.statements) {
-			if (statement == construction || isClaimed(statement)) {
+			if (statement == construction) {
 				continue;
 			}
 			HighVariable target = constructorResultCopyTarget(statement);
@@ -4200,7 +4145,7 @@ final class Msvc6Patterns {
 		if (comparison == null) {
 			return null;
 		}
-		MarkupIndex.TokenSpan line = markup.liveView(markup.bodySpan(), this::isClaimed);
+		MarkupIndex.TokenSpan line = markup.bodySpan();
 		int conditionToken = -1;
 		for (int i = 0; i < line.sig.size(); i++) {
 			if (line.sig.get(i).getPcodeOp() == comparison) {
@@ -4219,7 +4164,7 @@ final class Msvc6Patterns {
 			}
 		}
 		List<ClangToken> blockTokens = new ArrayList<>();
-		blockTokens.addAll(MarkupIndex.leafTokens(guardBlock.markup));
+		blockTokens.addAll(markup.tokenSpan(guardBlock.markup).sig);
 		if (start < 0 || blockTokens.isEmpty()) {
 			return null;
 		}
@@ -4250,7 +4195,7 @@ final class Msvc6Patterns {
 					continue;
 				}
 				List<ClangToken> sibling = new ArrayList<>();
-				sibling.addAll(MarkupIndex.leafTokens(node));
+				sibling.addAll(markup.tokenSpan(node).sig);
 				for (ClangToken token : sibling) {
 					if ("}".equals(token.getText())) {
 						end = line.sig.indexOf(token);
@@ -4262,14 +4207,7 @@ final class Msvc6Patterns {
 		if (end < conditionToken) {
 			return null;
 		}
-		int rawFrom = line.rawIndex.get(start);
-		int rawTo = line.rawIndex.get(end);
-		List<ClangToken> span = new ArrayList<>();
-		for (int i = rawFrom; i <= rawTo; i++) {
-			ClangToken token = line.raw.get(i);
-			span.add(token);
-		}
-		return span;
+		return line.region(start, end);
 	}
 
 	private static boolean isSuccessor(ghidra.program.model.pcode.PcodeBlock from,

@@ -1,12 +1,9 @@
 import csv
 import shutil
-from itertools import pairwise
 from pathlib import Path
 from types import SimpleNamespace
 
 from wiz8decomp.reports.translation_units import (
-    call_site_anchors,
-    derive_intervals,
     translation_unit_report,
 )
 
@@ -14,44 +11,6 @@ from wiz8decomp.reports.translation_units import (
 def _rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
-
-
-def test_call_site_anchors_agree_with_the_reviewed_table_where_both_know_a_function() -> None:
-    """The two sources resolve the enclosing function independently.
-
-    The reviewed table takes it from Ghidra; the snapshot derives it from
-    inter-function padding. A disagreement means one of them is wrong, so this
-    is the check that lets the derived anchors be trusted as `direct`.
-    """
-    repository = Path(__file__).resolve().parents[2]
-    assertions = _rows(repository / "evidence/observations/wiz8/assertions.csv")
-    snapshot = _rows(repository / "evidence/snapshots/call-sites/assertions.csv")
-    program = next(row["program"] for row in snapshot if "--gog-base--" in row["program"])
-
-    derived = call_site_anchors(snapshot, program)
-    reviewed = {
-        int(row["containing_function"], 16): row["source_path"][len("C:\\Projects\\Wizardry 8\\") :]
-        for row in assertions
-        if row["containing_function"]
-        and row["source_path"].startswith("C:\\Projects\\Wizardry 8\\")
-        and row["source_path"].casefold().endswith(".cpp")
-    }
-
-    shared = set(derived) & set(reviewed)
-    assert len(shared) > 300
-    assert {anchor for anchor in shared if derived[anchor] != reviewed[anchor]} == set()
-
-
-def test_snapshot_anchors_extend_the_interval_map_without_overlapping() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    assertions = _rows(repository / "evidence/observations/wiz8/assertions.csv")
-    snapshot = _rows(repository / "evidence/snapshots/call-sites/assertions.csv")
-    program = next(row["program"] for row in snapshot if "--gog-base--" in row["program"])
-
-    merged = derive_intervals(assertions, call_site_anchors(snapshot, program))
-
-    assert len(merged) > len(derive_intervals(assertions))
-    assert all(left.upper < right.lower for left, right in pairwise(merged))
 
 
 def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: Path) -> None:

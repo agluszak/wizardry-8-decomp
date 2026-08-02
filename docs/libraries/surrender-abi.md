@@ -94,9 +94,8 @@ byte-neutral, since a return type cannot change a pointer return in EAX.
 ## Sizes are the scarce evidence, and not every site has one
 
 Neither the export table nor the vftable data states a class size, so a size has to come from an
-allocation. `evidence/snapshots/polymorphism/vptr-writes.csv` now carries `allocation_size` on every
-offset-`0` store, read back from the store rather than from a call to a constructor - which is what
-makes an inlined construction, the common shape here, yield one at all.
+allocation. Reviewed Ghidra instructions and P-code bind each allocation to its vtable reference;
+focused reports expose that live relationship without preserving a second vptr-write inventory.
 
 Two call forms reach an allocator, and only one was recognised at first. The global `operator new`
 is called through a jump thunk; `srHeap::allocate` is called straight through its import slot, which

@@ -298,10 +298,6 @@ def execute_query(program: Any, command: str, arguments: list[str]) -> dict[str,
         from .semantic import condition_accesses
 
         return condition_accesses(program, arguments[0])
-    if command == "observation-audit":
-        from .observation_evidence import audit_observation_evidence
-
-        return audit_observation_evidence(program)
     raise ValueError(f"unsupported query command: {command}")
 
 
@@ -323,7 +319,6 @@ def validate_query_arguments(command: str, arguments: list[str]) -> None:
         "imports": 0,
         "exports": 0,
         "sections": 0,
-        "observation-audit": 0,
         "high-function": 1,
         "field-accesses": 2,
         "callsite": 1,

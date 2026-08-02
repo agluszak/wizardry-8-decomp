@@ -2,14 +2,6 @@ from pathlib import Path
 
 import pytest
 from wiz8decomp.evidence.validate import _validate_function_catalogs, validate_source_entries
-from wiz8decomp.evidence_merge import EvidenceMergeConflict, stronger
-
-
-def test_conflicting_semantic_merge_is_rejected() -> None:
-    with pytest.raises(EvidenceMergeConflict, match="semantic evidence conflict"):
-        stronger(
-            {"address": "00401000", "symbol": "Entry"}, {"address": "00401000", "symbol": "Other"}
-        )
 
 
 def test_source_validator_rejects_duplicate_entry(tmp_path: Path) -> None:

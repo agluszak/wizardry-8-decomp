@@ -13,7 +13,7 @@ recovered names it positionally rather than erasing it to `void*`, because one e
 shared by unrelated owners would merge element types the consumers keep apart.
 
 The vtable a constructor installs identifies one emitted copy, not necessarily one specialization.
-`evidence/snapshots/polymorphism/vptr-writes.csv` records those copies per site. Targeting's local
+Reviewed Ghidra references identify those copies per site. Targeting's local
 integer vectors and the `W8MonsterManagerEntry` vector at `+0xd8` install `0x005EBFE0`; their
 consumers store and retrieve monster location IDs. `GenerateItemsFromTable` also builds a
 `W8GrowableVector<int>` but installs `0x005EC0E0`. VC6 emitted separate vtable and destructor

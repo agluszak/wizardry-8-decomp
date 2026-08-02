@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import csv
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 from ..evidence.claims import load_claims
-from ..ghidra.observation_evidence import load_observation_bundle
 from ..ghidra.session import query_many
+from ..ghidra.unit_intervals import TranslationUnitResolver
 from ..ghidra.workspace import resolve_seed_program
 from ..paths import atomic_json, atomic_write
 from ..source_model import build_source_model, load_source_index
@@ -20,54 +19,11 @@ def _read(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(stream))
 
 
-def _in_body(row: dict[str, str], field: str, instruction_addresses: set[int]) -> bool:
-    return bool(row.get(field)) and int(row[field], 16) in instruction_addresses
-
-
 def _source_unit(path: str) -> str:
     marker = "wizardry 8\\"
     folded = path.casefold()
     index = folded.find(marker)
     return path[index + len(marker) :] if index >= 0 else path
-
-
-def _translation_unit(
-    assertions: list[dict[str, str]], intervals: list[dict[str, str]], entry: int
-) -> dict[str, Any]:
-    direct = sorted(
-        {
-            _source_unit(row["source_path"])
-            for row in assertions
-            if row["source_path"].casefold().endswith(".cpp")
-        },
-        key=str.casefold,
-    )
-    interval = next(
-        (
-            row
-            for row in intervals
-            if row["record_type"] == "translation-unit"
-            and int(row["lower_address"], 16) <= entry <= int(row["upper_address"], 16)
-        ),
-        None,
-    )
-    if len(direct) == 1:
-        return {"source_path": direct[0], "attribution": "direct", "alternatives": []}
-    if len(direct) > 1:
-        return {
-            "source_path": "",
-            "attribution": "inlined-or-conflicting",
-            "alternatives": direct,
-        }
-    if interval is not None:
-        return {
-            "source_path": interval["source_path"],
-            "attribution": "interval-inference",
-            "alternatives": [],
-            "interval_lower": interval["lower_address"],
-            "interval_upper": interval["upper_address"],
-        }
-    return {"source_path": "", "attribution": "gap", "alternatives": []}
 
 
 def _markdown(context: dict[str, Any]) -> str:
@@ -226,7 +182,6 @@ def recovery_context_report(
     by_command = {item["command"]: item["result"] for item in results}
     function = by_command["function"]["function"]
     entry = int(function["entry"], 16)
-    instruction_addresses = {int(value, 16) for value in function.get("instruction_addresses", [])}
     semantic_facts: dict[str, Any] = {}
     high = by_command.get("high-function", {})
     semantic_fields: dict[str, Any] = {}
@@ -255,40 +210,34 @@ def recovery_context_report(
         )
         indirect_calls = [item["result"] for item in call_results]
 
-    bundle = load_observation_bundle(program_name, settings.repo_dir)
+    reviewed_assertions = _read(
+        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
+    )
     assertions = [
-        row for row in bundle["assertions"] if _in_body(row, "call_site", instruction_addresses)
-    ]
-    runtime_names = [
         row
-        for row in bundle["runtime_class_names"]
-        if _in_body(row, "call_site", instruction_addresses)
+        for row in reviewed_assertions
+        if row.get("containing_function") and int(row["containing_function"], 16) == entry
     ]
-    eh_functions = [
-        row for row in bundle["eh_functions"] if _in_body(row, "frame_setup", instruction_addresses)
-    ]
-    funcinfos = {row["funcinfo"] for row in eh_functions}
-    unwind = [row for row in bundle["eh_unwind"] if row["funcinfo"] in funcinfos]
+    from ..ghidra.audits import function_facts
 
-    global_observations = {row["address"]: row for row in bundle["globals"]}
-    global_references = function.get("data_references", [])
-    globals_joined = []
-    for row in global_references:
-        globals_joined.append({**row, **global_observations.get(row["target"], {})})
-
+    focused = function_facts(settings, {entry})
+    function_fact = (
+        focused[0]
+        if focused
+        else {"calls": [], "data_references": [], "vptr_references": [], "exception_metadata": []}
+    )
+    runtime_names: list[dict[str, str]] = []
+    unwind: list[dict[str, str]] = []
+    globals_joined = list(function_fact["data_references"])
     vptr_writes = [
-        row for row in bundle["vptr_writes"] if _in_body(row, "site", instruction_addresses)
+        {**row, "vtable": row["target"], "store_displacement": ""}
+        for row in function_fact["vptr_references"]
     ]
-    table_addresses = {row["vtable"] for row in vptr_writes}
-    slots_by_table: dict[str, list[dict[str, str]]] = defaultdict(list)
-    for row in bundle["vtable_slots"]:
-        if row["vtable"] in table_addresses:
-            slots_by_table[row["vtable"]].append(row)
     tables = {
-        row["address"]: {**row, "slots": slots_by_table[row["address"]]}
-        for row in bundle["vtables"]
-        if row["address"] in table_addresses
+        row["target"]: {"address": row["target"], "name": row["name"], "slot_count": ""}
+        for row in function_fact["vptr_references"]
     }
+    table_addresses = set(tables)
 
     source_function = (
         build_source_model(settings.repo_dir).functions.get(entry)
@@ -345,10 +294,7 @@ def recovery_context_report(
         for item in class_fields(settings, class_names)
         for field in item["fields"]
     ]
-    interval_path = (
-        settings.build_dir / "reports" / "translation-units" / "translation-unit-intervals.csv"
-    )
-    intervals = _read(interval_path) if interval_path.is_file() else []
+    unit = TranslationUnitResolver(reviewed_assertions).resolve(entry)
 
     context = {
         "schema": "wiz8.recovery-context",
@@ -359,9 +305,9 @@ def recovery_context_report(
         "deep": deep,
         "discovered": discover,
         "root": root if deep else None,
-        "translation_unit": _translation_unit(
-            assertions, intervals if has_canonical_addresses else [], entry
-        ),
+        "translation_unit": unit
+        if has_canonical_addresses
+        else {"source_path": "", "attribution": "non-canonical", "alternatives": []},
         "reviewed": {
             "function": reviewed_function,
             "signature": reviewed_signature,
@@ -373,7 +319,7 @@ def recovery_context_report(
         },
         "assertions": assertions,
         "runtime_class_names": runtime_names,
-        "eh": {"functions": eh_functions, "unwind": unwind},
+        "eh": {"metadata": function_fact["exception_metadata"], "unwind": unwind},
         "globals": globals_joined,
         "polymorphism": {"vptr_writes": vptr_writes, "tables": tables},
         "semantic": {

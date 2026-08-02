@@ -6,7 +6,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Set;
 
 import ghidra.app.decompiler.ClangFuncNameToken;
 import ghidra.app.decompiler.ClangFuncProto;
@@ -30,31 +30,24 @@ import ghidra.program.model.pcode.PcodeOp;
  * It is disposable and contains no recovered meaning of its own.
  */
 final class MarkupIndex {
-	static final class Item {
-		final ClangNode node;
-		final int depth;
-
-		Item(ClangNode node, int depth) {
-			this.node = node;
-			this.depth = depth;
-		}
-
-		boolean isStatement() {
-			return node instanceof ClangStatement;
-		}
-	}
-
 	static final class TokenSpan {
-		final List<ClangToken> raw = new ArrayList<>();
+		private final List<ClangToken> raw = new ArrayList<>();
 		final List<ClangToken> sig = new ArrayList<>();
-		final List<Integer> rawIndex = new ArrayList<>();
+		private final List<Integer> rawIndex = new ArrayList<>();
+
+		List<ClangToken> region(int from, int to) {
+			if (from < 0 || to < from || to >= sig.size()) return List.of();
+			return List.copyOf(raw.subList(rawIndex.get(from), rawIndex.get(to) + 1));
+		}
 	}
 
 	final ClangTokenGroup root;
 	final HighFunction highFunction;
 	final BlockView.Tree blocks;
 	final List<ClangToken> tokens;
-	final List<Item> items;
+	final List<ClangNode> bodyEntries;
+	private final Set<ClangNode> topLevelEntries =
+		Collections.newSetFromMap(new IdentityHashMap<>());
 
 	private final Map<PcodeOp, List<ClangToken>> tokensByOp = new IdentityHashMap<>();
 	private final Map<PcodeOp, ClangStatement> statementByOp = new IdentityHashMap<>();
@@ -74,7 +67,7 @@ final class MarkupIndex {
 		List<ClangToken> all = new ArrayList<>();
 		index(root, null, null, all);
 		this.tokens = Collections.unmodifiableList(all);
-		this.items = Collections.unmodifiableList(linearize((ClangFunction) root, blocks));
+		this.bodyEntries = Collections.unmodifiableList(indexBody((ClangFunction) root));
 	}
 
 	List<ClangNode> bodyNodes() {
@@ -91,8 +84,8 @@ final class MarkupIndex {
 		return nodes;
 	}
 
-	private static List<Item> linearize(ClangFunction root, BlockView.Tree blocks) {
-		List<Item> raw = new ArrayList<>();
+	private List<ClangNode> indexBody(ClangFunction root) {
+		List<ClangNode> entries = new ArrayList<>();
 		boolean seenPrototype = false;
 		for (int i = 0; i < root.numChildren(); i++) {
 			ClangNode child = root.Child(i);
@@ -100,36 +93,38 @@ final class MarkupIndex {
 				seenPrototype = true;
 				continue;
 			}
-			if (seenPrototype) collect(child, raw, blocks);
+			if (seenPrototype) collectBody(child, entries);
 		}
-		int bodyDepth = raw.stream()
-			.filter(item -> item.node instanceof ClangStatement ||
-				item.node instanceof ClangVariableDecl)
-			.mapToInt(item -> item.depth).min().orElse(0);
-		List<Item> flat = new ArrayList<>();
-		for (Item item : raw) {
-			flat.add(new Item(item.node, Math.max(0, item.depth - bodyDepth)));
+		int bodyDepth = entries.stream()
+			.mapToInt(node -> lexicalDepth(blocks.ownerOf(node))).min().orElse(0);
+		for (ClangNode entry : entries) {
+			if (lexicalDepth(blocks.ownerOf(entry)) == bodyDepth) {
+				topLevelEntries.add(entry);
+			}
 		}
-		return flat;
+		return entries;
 	}
 
-	private static void collect(ClangNode node, List<Item> flat, BlockView.Tree blocks) {
-		int depth = lexicalDepth(blocks.ownerOf(node));
+	private static void collectBody(ClangNode node, List<ClangNode> entries) {
 		if (node instanceof ClangStatement || node instanceof ClangVariableDecl) {
-			flat.add(new Item(node, depth));
+			entries.add(node);
 			return;
 		}
 		if (node instanceof ClangTokenGroup group) {
-			for (int i = 0; i < group.numChildren(); i++) collect(group.Child(i), flat, blocks);
+			for (int i = 0; i < group.numChildren(); i++) collectBody(group.Child(i), entries);
 			return;
 		}
 		if (node instanceof ClangBreak || node instanceof ClangCommentToken) return;
 		if (node instanceof ClangToken token) {
 			String text = token.getText();
 			if (text != null && !text.isBlank() && !text.equals(";")) {
-				flat.add(new Item(node, depth));
+				entries.add(node);
 			}
 		}
+	}
+
+	boolean isTopLevel(ClangNode node) {
+		return topLevelEntries.contains(node);
 	}
 
 	private static int lexicalDepth(BlockView block) {
@@ -160,7 +155,7 @@ final class MarkupIndex {
 
 	TokenSpan tokenSpan(ClangNode node) {
 		TokenSpan span = new TokenSpan();
-		leafTokens(node, span.raw);
+		collectTokens(node, span.raw);
 		index(span);
 		return span;
 	}
@@ -174,22 +169,10 @@ final class MarkupIndex {
 				seenPrototype = true;
 				continue;
 			}
-			if (seenPrototype) leafTokens(child, span.raw);
+			if (seenPrototype) collectTokens(child, span.raw);
 		}
 		index(span);
 		return span;
-	}
-
-	TokenSpan liveView(TokenSpan source, Predicate<ClangNode> claimed) {
-		TokenSpan live = new TokenSpan();
-		live.raw.addAll(source.raw);
-		for (int i = 0; i < source.sig.size(); i++) {
-			if (!claimed.test(source.sig.get(i))) {
-				live.sig.add(source.sig.get(i));
-				live.rawIndex.add(source.rawIndex.get(i));
-			}
-		}
-		return live;
 	}
 
 	private static void index(TokenSpan span) {
@@ -202,16 +185,10 @@ final class MarkupIndex {
 		}
 	}
 
-	static List<ClangToken> leafTokens(ClangNode node) {
-		List<ClangToken> tokens = new ArrayList<>();
-		leafTokens(node, tokens);
-		return tokens;
-	}
-
-	private static void leafTokens(ClangNode node, List<ClangToken> out) {
+	private static void collectTokens(ClangNode node, List<ClangToken> out) {
 		if (node instanceof ClangTokenGroup group) {
 			for (int i = 0; i < group.numChildren(); i++) {
-				leafTokens(group.Child(i), out);
+				collectTokens(group.Child(i), out);
 			}
 		}
 		else if (node instanceof ClangToken token &&

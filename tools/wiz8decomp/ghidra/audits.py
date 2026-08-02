@@ -43,3 +43,18 @@ def class_fields(settings: Settings, names: set[str]) -> list[dict[str, Any]]:
 def validate_function_entries(settings: Settings, entries: set[int]) -> dict[str, Any]:
     arguments = [value for entry in sorted(entries) for value in ("--entry", f"0x{entry:08x}")]
     return run_audit(settings, "function-exists", arguments)
+
+
+def function_facts(settings: Settings, entries: set[int]) -> list[dict[str, Any]]:
+    arguments = [value for entry in sorted(entries) for value in ("--entry", f"0x{entry:08x}")]
+    return list(run_audit(settings, "function-facts", arguments)["functions"])
+
+
+def class_facts(settings: Settings, names: set[str]) -> dict[str, Any]:
+    arguments = [value for name in sorted(names, key=str.casefold) for value in ("--class", name)]
+    return run_audit(settings, "class-facts", arguments)
+
+
+def data_facts(settings: Settings, entries: set[int]) -> list[dict[str, Any]]:
+    arguments = [value for entry in sorted(entries) for value in ("--entry", f"0x{entry:08x}")]
+    return list(run_audit(settings, "data-facts", arguments)["data"])

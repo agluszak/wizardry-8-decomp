@@ -28,8 +28,8 @@ extern "C" unsigned char ReadVirtualFile(
 /* The SurRender-facing stream adapter that carries the SLF virtual file system
    into the SR stream hierarchy. It is declared as what it is rather than as an
    opaque prefix: the two vtables the constructor at 0x0047CBD0 installs are the
-   two this declaration produces, and every slot in them is accounted for by
-   evidence/snapshots/polymorphism/slots.csv.
+   two this declaration produces; their reviewed symbols and slots live in
+   Ghidra rather than a parallel generated inventory.
 
    Primary 0x005EC6A0, at offset 0, has vget imported from SR.DLL in slot 0 and
    Read in slot 1 - the slot srBinIStream leaves pure. Secondary 0x005EC68C, the

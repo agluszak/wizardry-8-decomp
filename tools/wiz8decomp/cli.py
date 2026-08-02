@@ -8,7 +8,6 @@ from . import command_support
 from .commands.core import register as register_core
 from .commands.core import toolchain_app
 from .commands.evidence import app as evidence_app
-from .commands.evidence import register_root as register_evidence_root
 from .commands.ghidra import app as ghidra_app
 from .commands.inputs import app as corpus_app
 from .commands.recover import app as recover_app
@@ -28,7 +27,6 @@ app.add_typer(toolchain_app, name="toolchain")
 app.add_typer(evidence_app, name="evidence")
 app.add_typer(sgp_app, name="sgp", hidden=True)
 register_core(app)
-register_evidence_root(app)
 
 
 class CliState:
