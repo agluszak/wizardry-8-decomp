@@ -135,7 +135,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
           static_cast<srNode*>(0))
 {
     trigger_flag_192 = 0;
-    allocation_250 = 0;
+    update_flags_250 = 0;
     value_260 = -1;
     start_frame_264 = -1;
     end_frame_268 = -1;
@@ -219,7 +219,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     unknown_191 = 0;
     value_188 = 0;
     allocation_254 = new float[texture_frame_count_15c];
-    node_18c = 0;
+    active_particle_count_18c = 0;
     allocation_198 = static_cast<srVector3T<float>*>(
         srHeap.allocate(count * sizeof(srVector3T<float>)));
     allocation_19c = ::operator new(count * sizeof(void*));
@@ -267,12 +267,23 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     value_234.y = 0.0f;
     value_234.z = 0.0f;
     value_240 = 2000.0f;
-    allocation_250 = 0;
+    update_flags_250 = 0;
     activated_at_258 = g_shared_timer_base->getMsTime(
         srTimer::TIMER_READ_DEFAULT);
     updated_at_25c = activated_at_258;
     value_270 = 25;
     value_274 = 0;
+}
+
+// FUNCTION: WIZ8 0x00499F70
+void stParticle::DeactivateParticle00499F70(unsigned int index)
+{
+    unsigned char* active = allocation_194 + index;
+    if (*active != 0) {
+        *active = 0;
+        update_flags_250 |= 2;
+        --active_particle_count_18c;
+    }
 }
 
 // FUNCTION: WIZ8 0x004980E0
@@ -289,7 +300,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_POSITIONAL_0)) {
-        if ((active_1a0 != 0 || node_18c != 0) && flag_1a1 != 0) {
+        if ((active_1a0 != 0 || active_particle_count_18c != 0) && flag_1a1 != 0) {
             if (info.entries.capacity <= info.entry_count) {
                 info.entries.setCapacity(
                     info.entries.capacity + 8 + info.entry_count);

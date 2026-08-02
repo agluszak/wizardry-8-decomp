@@ -1,8 +1,15 @@
 #include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Octree.h"
 #include "wiz8/sr_api.h"
 
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
+
+// FUNCTION: WIZ8 0x004BAF50
+void UpdateWorldOctree004BAF50(W8World* world)
+{
+    world->octree->Function0042F7E0();
+}
 
 /* Rebuild the active-polygon table for the world's mesh and raise the control
    bit consumed by SurRender. The original redundantly computes and stores the

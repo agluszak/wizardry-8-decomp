@@ -39,6 +39,7 @@ public:
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
     stParticle(const stParticle& other);           /* 0x00498180 */
     void SetActive(unsigned char active);
+    void DeactivateParticle00499F70(unsigned int index);
     void SetTexture0049AB00(srTextureIFace* texture);
     void SetRetainedObject0049ACA0(srClass* object);
     void SetFlutter0049AD10(int enabled);
@@ -73,7 +74,7 @@ public:
     unsigned int particle_count_180;
     int state_184;
     int value_188;
-    void* node_18c;
+    unsigned int active_particle_count_18c;
     unsigned char active_190;
     unsigned char unknown_191;
     unsigned char trigger_flag_192;
@@ -115,7 +116,7 @@ public:
     srVector3T<float> value_234;
     float value_240;
     unsigned char unknown_244[0x0c];
-    void* allocation_250;
+    unsigned int update_flags_250;
     float* allocation_254;
     unsigned int activated_at_258;
     unsigned int updated_at_25c;

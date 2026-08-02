@@ -117,6 +117,7 @@ public:
     unsigned char PlayActionSound(const char* sound_name, int volume);
     void UpdateActionAnimation();
     void CommitActionResult(unsigned char apply_state_changes);
+    void CompleteItemInteraction004447F0();
     void FinishAction();
     void GetPosition(W8Position* position) const;
     unsigned char CanRunLinkedTriggers();

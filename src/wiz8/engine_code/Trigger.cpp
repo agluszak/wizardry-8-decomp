@@ -198,6 +198,16 @@ void W8TriggerShakeEvent::Update()
     }
 }
 
+// FUNCTION: WIZ8 0x004447F0
+void Trigger::CompleteItemInteraction004447F0()
+{
+    W8TriggerActionData* action_data = m_pActionData;
+    state_370.state = 1;
+    if (action_data != 0 && action_data->type_004 == 10) {
+        action_data->flags_008 &= ~4;
+    }
+}
+
 // FUNCTION: WIZ8 0x00444810
 unsigned char Trigger::HasActorWithinRadius(
     float radius, unsigned char include_party)

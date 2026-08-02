@@ -87,7 +87,9 @@ typedef struct W8StatusBuffers {
    the whole block - pointers included - before allocating fresh ones. */
 typedef struct W8GlobalStatus {
     W8StatusBuffers buffers;             /* 0x0000 */
-    unsigned char unknown_000c[0x18f4];
+    unsigned char unknown_000c[0x11];
+    int active_party_slot_001d;           /* 0x001d */
+    unsigned char unknown_0021[0x18df];
     int saved_level;                     /* 0x1900 */
     unsigned char unknown_1904[0x30be];
 } W8GlobalStatus;                        /* 0x49c2 */

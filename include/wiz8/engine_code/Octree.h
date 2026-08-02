@@ -202,6 +202,7 @@ public:
         float radius, float separation);
     void QueueOctreeKind130042E810(
         int id, const srVector3T<float>* position);
+    void Function0042F7E0();
 
     bool HasLoadError() const { return (m_flags_000 & 0x80000000) != 0; }
     unsigned long GetMeshCount() const { return m_mesh_count_074; }

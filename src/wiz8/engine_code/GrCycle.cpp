@@ -325,7 +325,7 @@ W8GrCycle::~W8GrCycle()
             W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
             stParticle* owner = event->particle_08;
 
-            if (owner == 0 || owner->node_18c == 0) {
+            if (owner == 0 || owner->active_particle_count_18c == 0) {
                 if (event->particle_08 != 0) {
                     event->particle_08->release();
                 }
