@@ -316,6 +316,18 @@ void stParticle::traverse(srNode::TraverseInfo& info)
     }
 }
 
+/* Traversal is gated separately from particle activity.  Starting a new
+   enabled interval resets the update timestamp; repeated enables do not. */
+// FUNCTION: WIZ8 0x00498D90
+void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
+{
+    if (enabled != 0 && flag_1a1 == 0) {
+        updated_at_25c = g_shared_timer_base->getMsTime(
+            srTimer::TIMER_READ_DEFAULT);
+    }
+    flag_1a1 = enabled;
+}
+
 // FUNCTION: WIZ8 0x00498A20
 stParticle::~stParticle()
 {

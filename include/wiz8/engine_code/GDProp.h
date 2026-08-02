@@ -18,6 +18,8 @@ public:
         unsigned char surface_flag,
         unsigned char vertex_flag);      /* 0x004B6E00 */
     ~GDProp();                            /* 0x004B6ED0 */
+    unsigned char ContainsPathCoordinate004B75F0(
+        unsigned short x, unsigned short y) const;
     unsigned char HasListEntries004B7BA0();
 
 private:

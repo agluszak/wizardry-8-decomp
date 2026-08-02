@@ -72,6 +72,19 @@ GDProp::~GDProp()
     }
 }
 
+/* The pathing record supplies inclusive unsigned coordinate bounds at
+   +0x4c..+0x52. */
+// FUNCTION: WIZ8 0x004B75F0
+unsigned char GDProp::ContainsPathCoordinate004B75F0(
+    unsigned short x, unsigned short y) const
+{
+    if (x >= m_path_bound_4c && x <= m_path_bound_4e &&
+        y >= m_path_bound_50 && y <= m_path_bound_52) {
+        return 1;
+    }
+    return 0;
+}
+
 /* Whether the optional owned list currently contains an entry. */
 // FUNCTION: WIZ8 0x004B7BA0
 unsigned char GDProp::HasListEntries004B7BA0()

@@ -137,3 +137,20 @@ extern "C" void ReleaseHitSoundDatabase(void)
         }
     }
 }
+
+/* Look up a material/weapon impact sound.  Missing material-specific entries
+   inherit material zero; invalid indices use the retail "HIT" fallback. */
+// FUNCTION: WIZ8 0x00549EB0
+const char* GetMaterialImpactSound00549EB0(int material, int weapon)
+{
+    char* sound;
+
+    if (material < 0 || material >= 28 || weapon < 0 || weapon >= 12) {
+        return "HIT";
+    }
+    sound = g_material_impact_sounds_68d850[material][weapon];
+    if (sound == 0) {
+        sound = g_material_impact_sounds_68d850[0][weapon];
+    }
+    return sound;
+}

@@ -695,6 +695,24 @@ W8TextControl005ED604::W8TextControl005ED604(
     m_textBuffer.MarkGeometryDirty(10);
 }
 
+/* Refresh the cached extent from the preferred text handle, falling back to
+   the alternate handle. */
+// FUNCTION: WIZ8 0x004F4800
+unsigned char W8TextControl005ED604::MeasureText004F4800()
+{
+    int handle;
+
+    if (m_text_40 != -1 && m_text_44 != -1 &&
+        ((handle = m_text_48) != -1 || (handle = m_text_4c) != -1)) {
+        Function549660(m_text_40, m_text_44, handle,
+                       &m_measured_w, &m_measured_h);
+        return 1;
+    }
+    m_measured_w = -1;
+    m_measured_h = -1;
+    return 0;
+}
+
 /* Where the text should be drawn: the panel origin plus either the widget's
    corner or an alignment computed from its cached measured extent. */
 // FUNCTION: WIZ8 0x004f4850

@@ -157,6 +157,7 @@ public:
                           int text_40, int text_44, int text_48, int text_4c,
                           int text_54, int text_50, int text_58);
     virtual ~W8TextControl005ED604() override;
+    unsigned char MeasureText004F4800();
     void GetTextOrigin(int unused, int* px, int* py);
     void Invalidate(unsigned char immediate);
     virtual void SetVisible(unsigned char visible) override;
