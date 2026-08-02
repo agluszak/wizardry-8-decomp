@@ -210,7 +210,7 @@ final class Msvc6Patterns {
 	}
 
 	void lifecyclePass() {
-		String prototype = CallableIdentity.prototypeOrNull(function, entity.kind());
+		String prototype = CallableIdentity.prototypeOrNull(function, entity.key());
 		if (prototype == null) {
 			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
 			return;
@@ -3812,14 +3812,16 @@ final class Msvc6Patterns {
 
 	void renderCompletePrototype() {
 		ClangFuncProto prototype = findProto(root);
-		String rendered = CallableIdentity.prototypeOrNull(function, entity.kind());
+		String rendered = CallableIdentity.prototypeOrNull(function, entity.key());
 		if (rendered == null) {
 			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
 			return;
 		}
 		if (claimReplace(prototype, rendered)) {
 			analysis.liftSignature = true;
-			trace("applied", currentPass, "complete prototype rendered from Function");
+			trace("applied", currentPass, entity.key().hasSourceSignature()
+				? "complete prototype rendered from transient source hints"
+				: "complete prototype rendered from Function");
 		}
 	}
 

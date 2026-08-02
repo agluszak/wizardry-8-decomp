@@ -71,4 +71,11 @@ final class CallableIdentity {
 			return null;
 		}
 	}
+
+	static String prototypeOrNull(Function function, SourceEntityKey entity) {
+		if (entity.hasSourceSignature()) {
+			return entity.formalSignature();
+		}
+		return prototypeOrNull(function, entity.kind());
+	}
 }

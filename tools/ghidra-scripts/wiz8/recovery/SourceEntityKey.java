@@ -15,7 +15,7 @@ import ghidra.program.model.listing.Parameter;
  * ABI mechanics, not distinct source entities.
  */
 public record SourceEntityKey(GhidraClass owner, SourceKind kind,
-		String formalSignature) {
+		String formalSignature, boolean sourceOwnedSignature) {
 
 	static SourceEntityKey of(Function emission, Function canonical, SourceKind kind) {
 		Function identity = canonical != null ? canonical : emission;
@@ -37,15 +37,20 @@ public record SourceEntityKey(GhidraClass owner, SourceKind kind,
 		}
 		String qualified = ownerName.isEmpty() ? name : ownerName + "::" + name;
 		return new SourceEntityKey(owner, kind,
-			qualified + "(" + String.join(",", parameters) + ")");
+			qualified + "(" + String.join(",", parameters) + ")", false);
 	}
 
 	static SourceEntityKey fromHint(Function function, SourceKind kind, String signature) {
 		GhidraClass owner = function.getParentNamespace() instanceof GhidraClass clazz
 			? clazz : null;
-		return new SourceEntityKey(owner, kind,
-			signature == null || signature.isBlank()
-				? of(function, function, kind).formalSignature() : signature);
+		boolean sourceOwned = signature != null && !signature.isBlank();
+		return new SourceEntityKey(owner, kind, sourceOwned
+			? signature : of(function, function, kind).formalSignature(), sourceOwned);
+	}
+
+	/** Whether the complete formal signature came from the transient source index. */
+	boolean hasSourceSignature() {
+		return sourceOwnedSignature;
 	}
 
 	private static String typeIdentity(DataType type) {

@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from wiz8decomp import reccmp_workflows
 from wiz8decomp.reccmp_workflows import (
+    _sr_assert_alias_mismatch,
     addresses_from_files,
     compare_rows,
     compare_vtables,
@@ -24,6 +25,22 @@ def _entity(address: int, status: str, **comparison):
         "matching": 0.75,
         "comparison": {"status": status, **comparison},
     }
+
+
+def test_sr_assert_import_alias_requires_the_exact_known_pair() -> None:
+    row = _entity(
+        0x451160,
+        "mismatch",
+        difference={
+            "kind": "call_target",
+            "orig": {"facts": {"target_name": "SR.DLL::?srAssertFail@@YAXPBD0J0ZZ (IMPORT)"}},
+            "recomp": {"facts": {"target_name": "SR.dll::?srAssertFail@@YAXPBD0J0@Z (IMPORT)"}},
+        },
+    )
+
+    assert _sr_assert_alias_mismatch(row)
+    row["comparison"]["difference"]["orig"]["facts"]["target_name"] = "someOtherCall"
+    assert not _sr_assert_alias_mismatch(row)
 
 
 def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:

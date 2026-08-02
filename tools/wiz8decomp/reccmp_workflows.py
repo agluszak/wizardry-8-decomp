@@ -4,14 +4,19 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import tempfile
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 from .subprocesses import run
 
 VTABLE_COUNT = re.compile(r"Vtables found:\s*(?P<count>\d+)\.")
+SR_ASSERT_FIXED = b"?srAssertFail@@YAXPBD0J0@Z"
+SR_ASSERT_VARIADIC = b"?srAssertFail@@YAXPBD0J0ZZ"
 
 
 def parse_address(value: str) -> int:
@@ -74,9 +79,76 @@ def run_report(
             command.extend(("--recomp-address", hex(address)))
         run(command, cwd=repository / "build" / "decomp")
         payload = json.loads(report.read_text(encoding="utf-8"))
+        if target == "WIZ8":
+            payload["data"] = _normalize_sr_assert_comparisons(
+                repository, Path(temporary), payload["data"]
+            )
     if payload.get("format") != 1 or not isinstance(payload.get("data"), list):
         raise ValueError("reccmp report does not use the supported structured schema")
     return payload["data"]
+
+
+def _sr_assert_alias_mismatch(entity: dict[str, Any]) -> bool:
+    comparison = entity.get("comparison") or {}
+    difference = comparison.get("difference") or {}
+    if comparison.get("status") != "mismatch" or difference.get("kind") != "call_target":
+        return False
+    original = str(((difference.get("orig") or {}).get("facts") or {}).get("target_name") or "")
+    recompiled = str(((difference.get("recomp") or {}).get("facts") or {}).get("target_name") or "")
+    return SR_ASSERT_VARIADIC.decode() in original and SR_ASSERT_FIXED.decode() in recompiled
+
+
+def _normalize_sr_assert_comparisons(
+    repository: Path, temporary: Path, rows: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    addresses = [
+        address
+        for row in rows
+        if _sr_assert_alias_mismatch(row) and (address := _entity_address(row)) is not None
+    ]
+    if not addresses:
+        return rows
+
+    user = yaml.safe_load((repository / "reccmp-user.yml").read_text(encoding="utf-8")) or {}
+    original = Path(str(user["targets"]["WIZ8"]["path"]).strip())
+    executable = repository / "build" / "decomp" / "Wiz8.exe"
+    pdb = repository / "build" / "decomp" / "Wiz8.pdb"
+    normalized_executable = temporary / "Wiz8-srAssert-normalized.exe"
+    normalized_pdb = temporary / "Wiz8-srAssert-normalized.pdb"
+    shutil.copyfile(executable, normalized_executable)
+    shutil.copyfile(pdb, normalized_pdb)
+    for path in (normalized_executable, normalized_pdb):
+        content = path.read_bytes()
+        if SR_ASSERT_FIXED not in content:
+            raise ValueError(f"expected srAssertFail import spelling is absent from {path.name}")
+        path.write_bytes(content.replace(SR_ASSERT_FIXED, SR_ASSERT_VARIADIC))
+
+    normalized_report = temporary / "srAssert-normalized.json"
+    command = [
+        "reccmp-reccmp",
+        "--paths",
+        str(original),
+        str(normalized_executable),
+        str(normalized_pdb),
+        str(repository / "src" / "wiz8"),
+        "--json",
+        str(normalized_report),
+        "--json-diet",
+        "--silent",
+        "--no-cache",
+    ]
+    for address in sorted(set(addresses)):
+        command.extend(("--orig-address", hex(address)))
+    run(command, cwd=repository / "build" / "decomp")
+    normalized = json.loads(normalized_report.read_text(encoding="utf-8"))["data"]
+    replacements = {
+        address: row for row in normalized if (address := _entity_address(row)) is not None
+    }
+    result: list[dict[str, Any]] = []
+    for row in rows:
+        address = _entity_address(row)
+        result.append(replacements.get(address, row) if address is not None else row)
+    return result
 
 
 def _entity_address(entity: dict[str, Any], key: str = "address") -> int | None:

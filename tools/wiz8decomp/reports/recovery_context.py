@@ -26,6 +26,32 @@ def _source_unit(path: str) -> str:
     return path[index + len(marker) :] if index >= 0 else path
 
 
+def _assertion_boundary_defects(
+    assertions: list[dict[str, str]], containing: dict[int, int | None]
+) -> list[dict[str, str | None]]:
+    defects: list[dict[str, str | None]] = []
+    for row in assertions:
+        expected = int(row["containing_function"], 16)
+        site = int(row["call_site"], 16)
+        actual_anchor = containing.get(expected)
+        actual_site = containing.get(site)
+        if actual_anchor != expected or actual_site != expected:
+            defects.append(
+                {
+                    "kind": "invalid-assertion-function-boundary",
+                    "containing_function": f"0x{expected:08x}",
+                    "call_site": f"0x{site:08x}",
+                    "anchor_owner": (
+                        f"0x{actual_anchor:08x}" if actual_anchor is not None else None
+                    ),
+                    "call_site_owner": (
+                        f"0x{actual_site:08x}" if actual_site is not None else None
+                    ),
+                }
+            )
+    return defects
+
+
 def _markdown(context: dict[str, Any]) -> str:
     function = context["ghidra"]["function"]
     unit = context["translation_unit"]
@@ -160,6 +186,25 @@ def recovery_context_report(
     program_name = resolve_seed_program(settings, selector)
     canonical_program = resolve_seed_program(settings, "wiz8")
     has_canonical_addresses = program_name == canonical_program
+    reviewed_assertions = _read(
+        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
+    )
+    requested_assertions = [
+        row
+        for row in reviewed_assertions
+        if row.get("containing_function") and int(row["containing_function"], 16) == requested
+    ]
+    boundary_addresses = {requested}
+    boundary_addresses.update(int(row["call_site"], 16) for row in requested_assertions)
+    boundary_argument = ",".join(f"0x{item:08x}" for item in sorted(boundary_addresses))
+    boundary_results, _ = query_many(settings, selector, [("function-of", [boundary_argument])])
+    raw_boundaries = boundary_results[0]["result"]["functions"]
+    boundaries = {
+        int(address, 0): int(owner, 16) if owner is not None else None
+        for address, owner in raw_boundaries.items()
+    }
+    boundary_defects = _assertion_boundary_defects(requested_assertions, boundaries)
+    auto_discover = boundaries.get(requested) is None and bool(requested_assertions)
     queries = [
         ("function", [f"0x{requested:08x}"]),
         ("decompile", [f"0x{requested:08x}"]),
@@ -172,7 +217,7 @@ def recovery_context_report(
                 ("pcode", [f"0x{requested:08x}", "normalize"]),
             ]
         )
-    function_seeds = [f"0x{requested:08x}"] if discover else None
+    function_seeds = [f"0x{requested:08x}"] if discover or auto_discover else None
     results, transport = query_many(
         settings,
         selector,
@@ -210,9 +255,6 @@ def recovery_context_report(
         )
         indirect_calls = [item["result"] for item in call_results]
 
-    reviewed_assertions = _read(
-        settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
-    )
     assertions = [
         row
         for row in reviewed_assertions
@@ -303,7 +345,8 @@ def recovery_context_report(
         "entry": entry,
         "transport": transport,
         "deep": deep,
-        "discovered": discover,
+        "discovered": discover or auto_discover,
+        "boundary_defects": boundary_defects,
         "root": root if deep else None,
         "translation_unit": unit
         if has_canonical_addresses
@@ -346,7 +389,8 @@ def recovery_context_report(
         "program": program_name,
         "entry": f"0x{entry:08x}",
         "transport": transport,
-        "discovered": discover,
+        "discovered": discover or auto_discover,
+        "boundary_defects": boundary_defects,
         "translation_unit": context["translation_unit"],
         "counts": {
             "assertions": len(assertions),

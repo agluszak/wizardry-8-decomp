@@ -24,6 +24,7 @@ from wiz8decomp.recover import (
     resolve_source_placement,
     splice_lines,
     suggest_includes,
+    verify_marker_adjacency,
 )
 
 
@@ -89,6 +90,10 @@ def test_marker_span_covers_marker_line_through_end_line() -> None:
 def test_marker_span_declines_without_a_declaration_end() -> None:
     assert marker_span({"line": 10, "source_file": "a.cpp", "declaration": {}}) is None
     assert marker_span({"line": 10, "source_file": "a.cpp", "declaration": {"end_line": 9}}) is None
+
+
+def test_marker_adjacency_accepts_canonical_uppercase_address_digits() -> None:
+    assert verify_marker_adjacency("// FUNCTION: WIZ8 0x004B7BA0\nvoid body();\n", 1, 0x004B7BA0)
 
 
 def test_splice_lines_replaces_the_span_and_round_trips() -> None:

@@ -111,7 +111,9 @@ def verify_marker_adjacency(original: str, first_line: int, address: int) -> boo
     lines = original.splitlines()
     if not 1 <= first_line <= len(lines):
         return False
-    return lines[first_line - 1].strip() == f"// FUNCTION: WIZ8 0x{address:08x}"
+    return lines[first_line - 1].strip().casefold() == (
+        f"// FUNCTION: WIZ8 0x{address:08x}".casefold()
+    )
 
 
 def splice_lines(original: str, first_line: int, last_line: int, block: str) -> str:

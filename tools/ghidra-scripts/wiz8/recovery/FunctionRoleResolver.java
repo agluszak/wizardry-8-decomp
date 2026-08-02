@@ -34,6 +34,15 @@ final class FunctionRoleResolver {
 	}
 
 	Result resolve(Function function, SourceHints hints) {
+		Function deletingTarget = CompilerEmissionClassifier
+			.scalarDeletingDestructorTarget(function);
+		if (deletingTarget != null) {
+			Result result = role(function, SourceKind.DESTRUCTOR,
+				EmissionKind.SCALAR_DELETING_DESTRUCTOR, deletingTarget, false,
+				Origin.FIRST_PARTY, "VC6 scalar deleting-wrapper instruction shape");
+			cache.put(function, result);
+			return result;
+		}
 		if (hints != null && hints.sourceKind() != null) {
 			EmissionKind emission = switch (hints.markerKind()) {
 				case TEMPLATE -> EmissionKind.TEMPLATE_EMISSION;
