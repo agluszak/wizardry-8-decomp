@@ -18,6 +18,7 @@ public:
         unsigned char surface_flag,
         unsigned char vertex_flag);      /* 0x004B6E00 */
     ~GDProp();                            /* 0x004B6ED0 */
+    unsigned char HasListEntries004B7BA0();
 
 private:
     void Initialize(

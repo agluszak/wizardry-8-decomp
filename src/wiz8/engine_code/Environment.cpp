@@ -427,6 +427,21 @@ float GetWorldValue24(const void* world)
     return *(const float*)((const char*)world + 0x24);
 }
 
+/* Retain the world's current intensity while replacing its environment
+   colour. Retail takes the colour triple by value and forwards its address to
+   SetWorldEnvironment. */
+// FUNCTION: WIZ8 0x00483a60
+void SetWorldEnvironmentColour00483A60(
+    W8World* world, EnvironmentColour colour)
+{
+    if (world == 0) {
+        srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
+        srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
+    }
+    SetWorldEnvironment00483BA0(
+        world, world->environment_intensity_024, &colour);
+}
+
 /* Write one field of the sky node, if the sky has one. */
 // FUNCTION: WIZ8 0x00483e30
 void SetSkyNodeValue1D0(int value)

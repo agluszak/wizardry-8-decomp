@@ -42,6 +42,7 @@ public:
     void SetTexture0049AB00(srTextureIFace* texture);
     void SetRetainedObject0049ACA0(srClass* object);
     void SetFlutter0049AD10(int enabled);
+    srFlags<e_renderFlag> GetRenderFlags00498A10() const;
     unsigned char ReplaceTexture0049AC30(
         const char* old_name, srTextureIFace* replacement);
     virtual srClass* vInstance() override;         /* 0x004980E0 */

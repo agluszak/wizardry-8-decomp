@@ -125,6 +125,8 @@ float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
 void WorldGetCameraLocation(W8World* world, W8Position* location);
+void WorldGetCameraLocation00451160(
+    W8World* world, W8Position* location);
 void SetWorldScenePosition004511D0(
     W8World* world, const W8Position* position);
 stParticle* FindParticleByName(W8World* world, const char* name);

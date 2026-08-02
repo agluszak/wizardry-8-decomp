@@ -485,6 +485,26 @@ void Forward44FAF0(W8World* world)
     DestroyWorld(world);
 }
 
+/* Read the camera position when one is attached to the world. The sole
+   caller preserves this value across a level reload, so a world without a
+   camera contributes the zero position. */
+// FUNCTION: WIZ8 0x00451160
+void WorldGetCameraLocation00451160(W8World* world, W8Position* location)
+{
+    if (!world) {
+        srAssertFail("pWorld", THREE_D_API_CPP, 1014, 0);
+    }
+    if (world->camera != 0) {
+        location->x = (float)world->camera->getLocationX();
+        location->y = (float)world->camera->getLocationY();
+        location->z = (float)world->camera->getLocationZ();
+        return;
+    }
+    location->x = 0.0f;
+    location->y = 0.0f;
+    location->z = 0.0f;
+}
+
 /* Set the view position after loading or traversing a portal. The camera light
    follows the camera, while only the camera move publishes the new game-space
    position. */

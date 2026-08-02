@@ -26,6 +26,8 @@ void BuildLightColourRamp00483360(void);
 void UpdateEnvironmentLight004834B0(void);
 void SetWorldEnvironment00483BA0(
     W8World* world, float intensity, const EnvironmentColour* colour);
+void SetWorldEnvironmentColour00483A60(
+    W8World* world, EnvironmentColour colour);
 
 void SetSkyEnabled(unsigned char enabled);
 void SetFogEnabled(unsigned char enabled);

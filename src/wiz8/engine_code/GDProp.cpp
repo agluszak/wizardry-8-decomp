@@ -71,3 +71,13 @@ GDProp::~GDProp()
         PListDestroy(m_list_54);
     }
 }
+
+/* Whether the optional owned list currently contains an entry. */
+// FUNCTION: WIZ8 0x004B7BA0
+unsigned char GDProp::HasListEntries004B7BA0()
+{
+    if (m_list_54 != 0 && (int)PListGetCount(m_list_54) > 0) {
+        return 1;
+    }
+    return 0;
+}

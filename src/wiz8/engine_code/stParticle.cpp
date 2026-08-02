@@ -42,6 +42,14 @@ static const char ST_PARTICLE_CPP[] =
 // SYNTHETIC: WIZ8 0x00498150
 // stParticle::`scalar deleting destructor'
 
+/* Return the renderer flags as a value. VC6 lowers the four-byte class return
+   through its hidden result pointer. */
+// FUNCTION: WIZ8 0x00498A10
+srFlags<stParticle::e_renderFlag> stParticle::GetRenderFlags00498A10() const
+{
+    return render_flags_150;
+}
+
 // FUNCTION: WIZ8 0x0049ADB0
 stParticle* FindRegisteredParticle0049ADB0(const char* name)
 {
