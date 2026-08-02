@@ -263,6 +263,34 @@ def _reference_masks(repo_dir: Path, entries: list[int]) -> list[int]:
     return masks
 
 
+def _reference_forms(repo_dir: Path, entries: list[int]) -> list[list[str]]:
+    """Compiler-owned full reference form for every source parameter slot."""
+
+    from ..source_model import load_source_index
+
+    declarations = {
+        marker["address"]: marker.get("declaration") or {}
+        for marker in load_source_index(repo_dir)["markers"]
+    }
+    result: list[list[str]] = []
+    for entry in entries:
+        declaration = declarations.get(entry, {})
+        forms = declaration.get("parameter_reference_forms")
+        if isinstance(forms, list) and forms:
+            result.append(
+                [
+                    str(form.get("kind", "value")) if isinstance(form, dict) else "value"
+                    for form in forms
+                ]
+            )
+            continue
+        # Backward-compatible checked-tree indexes are conservative: a legacy
+        # true bit proves only that some reference existed, not what it referred
+        # to, so it cannot authorize pointer-to-object syntax rewriting.
+        result.append(["value" for _ in declaration.get("parameter_references", [])])
+    return result
+
+
 def _resolve_data_addresses(selections: list[str]) -> list[int]:
     addresses: list[int] = []
     for selection in selections:
@@ -271,6 +299,68 @@ def _resolve_data_addresses(selections: list[str]) -> list[int]:
             raise ValueError(f"--data takes plain addresses, not ranges: {selection!r}")
         addresses.append(start)
     return list(dict.fromkeys(addresses))
+
+
+def _packet_result(entry: int, packet: Any) -> dict[str, Any]:
+    """Convert one Java single-decompile packet into stable Python data."""
+
+    body_owner = int(packet.getBodyOwner())
+    canonical = int(packet.getCanonicalTarget())
+    passes = [
+        {
+            "status": str(item.getStatus()),
+            "pass": str(item.getPass()),
+            "detail": str(item.getDetail()),
+        }
+        for item in packet.getPasses()
+    ]
+    calls = [
+        {
+            "site": None if int(item.getSite()) < 0 else f"0x{int(item.getSite()):08x}",
+            "referenced": f"0x{int(item.getReferenced()):08x}",
+            "canonical": f"0x{int(item.getCanonical()):08x}",
+            "referenced_name": str(item.getReferencedName()),
+            "canonical_name": str(item.getCanonicalName()),
+            "origin": str(item.getOrigin()),
+            "thunk_kind": str(item.getThunkKind()),
+            "this_adjustment": int(item.getThisAdjustment()),
+            "return_adjustment": int(item.getReturnAdjustment()),
+            "evidence": str(item.getEvidence()),
+        }
+        for item in packet.getCalls()
+    ]
+    vtables = []
+    for table in packet.getVtables():
+        slots = [int(value) for value in table.getSlots()]
+        names = [str(value) for value in table.getSlotNames()]
+        vtables.append(
+            {
+                "address": f"0x{int(table.getAddress()):08x}",
+                "name": str(table.getName()),
+                "slots": [
+                    {"address": f"0x{address:08x}", "name": name}
+                    for address, name in zip(slots, names, strict=True)
+                ],
+            }
+        )
+    return {
+        "entry": f"0x{entry:08x}",
+        "text": str(packet.getText()),
+        "body": str(packet.getBody()),
+        "recovery": {
+            "source_kind": str(packet.getSourceKind()),
+            "emission_kind": str(packet.getEmissionKind()),
+            "body_owner": None if body_owner < 0 else f"0x{body_owner:08x}",
+            "canonical_target": None if canonical < 0 else f"0x{canonical:08x}",
+            "origin": str(packet.getOrigin()),
+            "evidence": str(packet.getEvidence()),
+            "trace": [str(item) for item in packet.getTrace()],
+            "passes": passes,
+            "calls": calls,
+            "vtables": vtables,
+            "defects": [str(item) for item in packet.getDefects()],
+        },
+    }
 
 
 def export_cpp(
@@ -326,13 +416,21 @@ def export_cpp(
                 entries = [
                     marker["address"] for marker in markers if marker["marker_kind"] == "FUNCTION"
                 ]
-                java_blocks = exporter.exportFunctions(
-                    program, jpype.JArray(jpype.JLong)(entries), TaskMonitor.DUMMY
+                string_array = jpype.JArray(jpype.JString)
+                reference_forms = jpype.JArray(string_array)(
+                    [string_array(forms) for forms in _reference_forms(settings.repo_dir, entries)]
                 )
-                blocks = {
-                    entry: str(block) for entry, block in zip(entries, java_blocks, strict=True)
-                }
-                exports = [{"entry": f"0x{entry:08x}", "text": blocks[entry]} for entry in entries]
+                java_packets = exporter.exportFunctionPackets(
+                    program,
+                    jpype.JArray(jpype.JLong)(entries),
+                    reference_forms,
+                    TaskMonitor.DUMMY,
+                )
+                exports = [
+                    _packet_result(entry, packet)
+                    for entry, packet in zip(entries, java_packets, strict=True)
+                ]
+                blocks = {entry: item["text"] for entry, item in zip(entries, exports, strict=True)}
                 text = assemble_unit(markers, blocks)
                 functions = [
                     {
@@ -343,30 +441,27 @@ def export_cpp(
                 ]
             else:
                 entries = _resolve_entries(program, selections)
-                java_blocks = exporter.exportFunctions(
+                string_array = jpype.JArray(jpype.JString)
+                reference_forms = jpype.JArray(string_array)(
+                    [string_array(forms) for forms in _reference_forms(settings.repo_dir, entries)]
+                )
+                java_packets = exporter.exportFunctionPackets(
                     program,
                     jpype.JArray(jpype.JLong)(entries),
+                    reference_forms,
                     TaskMonitor.DUMMY,
                 )
                 exports = [
-                    {"entry": f"0x{entry:08x}", "text": str(block)}
-                    for entry, block in zip(entries, java_blocks, strict=True)
+                    _packet_result(entry, packet)
+                    for entry, packet in zip(entries, java_packets, strict=True)
                 ]
-                java_bodies = exporter.exportBodies(
-                    program,
-                    jpype.JArray(jpype.JLong)(entries),
-                    jpype.JArray(jpype.JLong)(_reference_masks(settings.repo_dir, entries)),
-                    TaskMonitor.DUMMY,
-                )
-                for item, body in zip(exports, java_bodies, strict=True):
-                    item["body"] = str(body)
                 text = "\n".join(item["text"] for item in exports)
                 functions = [
                     {
                         "entry": f"0x{entry:08x}",
-                        "kind": _kind_name(program, entry),
+                        "kind": item["recovery"]["emission_kind"],
                     }
-                    for entry in entries
+                    for entry, item in zip(entries, exports, strict=True)
                 ]
     finally:
         project.close()

@@ -3,15 +3,25 @@ package wiz8.exporter;
 import ghidra.program.model.listing.Function;
 
 /** Pass-local classification of one source entity and one binary emission. */
-public record FunctionRole(SourceKind sourceKind, EmissionKind emissionKind,
-		Function canonicalFunction, boolean adjustorThunk, String origin, String evidence) {
+public record FunctionRole(SourceEntityKey sourceEntity, EmissionKind emissionKind,
+		Function bodyOwner, Function canonicalTarget, boolean adjustorThunk,
+		String origin, String evidence) {
+
+	public SourceKind sourceKind() {
+		return sourceEntity.kind();
+	}
+
+	/** Compatibility name for callers not yet interested in thunk metadata. */
+	public Function canonicalFunction() {
+		return canonicalTarget;
+	}
 
 	public boolean isConstructor() {
-		return sourceKind == SourceKind.CONSTRUCTOR;
+		return sourceKind() == SourceKind.CONSTRUCTOR;
 	}
 
 	public boolean isDestructor() {
-		return sourceKind == SourceKind.DESTRUCTOR;
+		return sourceKind() == SourceKind.DESTRUCTOR;
 	}
 
 	public boolean isDeletingDestructor() {
@@ -20,9 +30,14 @@ public record FunctionRole(SourceKind sourceKind, EmissionKind emissionKind,
 	}
 
 	public boolean hasAuthoredBody() {
-		return emissionKind == EmissionKind.AUTHORED_BODY ||
-			emissionKind == EmissionKind.CONSTRUCTOR_BODY ||
-			emissionKind == EmissionKind.BASE_DESTRUCTOR ||
-			emissionKind == EmissionKind.COMPLETE_DESTRUCTOR;
+		return bodyOwner != null;
+	}
+
+	FunctionRole withBodyOwner(Function owner) {
+		if (isDeletingDestructor()) {
+			owner = null;
+		}
+		return new FunctionRole(sourceEntity, emissionKind, owner, canonicalTarget,
+			adjustorThunk, origin, evidence);
 	}
 }

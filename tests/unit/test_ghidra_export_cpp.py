@@ -26,7 +26,7 @@ def test_parse_selection_accepts_addresses_and_ranges() -> None:
 
 
 def test_reference_masks_come_from_compiler_index_metadata(tmp_path: Path) -> None:
-    from wiz8decomp.ghidra.export_cpp import _reference_masks
+    from wiz8decomp.ghidra.export_cpp import _reference_forms, _reference_masks
 
     index = tmp_path / "build/source-index.json"
     index.parent.mkdir()
@@ -39,7 +39,14 @@ def test_reference_masks_come_from_compiler_index_metadata(tmp_path: Path) -> No
                 "markers": [
                     {
                         "address": 0x10,
-                        "declaration": {"parameter_references": [True, False, True]},
+                        "declaration": {
+                            "parameter_references": [True, False, True],
+                            "parameter_reference_forms": [
+                                {"kind": "lvalue-reference-to-object", "const": True},
+                                {"kind": "value", "const": False},
+                                {"kind": "lvalue-reference-to-pointer", "const": False},
+                            ],
+                        },
                     }
                 ],
             }
@@ -47,6 +54,10 @@ def test_reference_masks_come_from_compiler_index_metadata(tmp_path: Path) -> No
         encoding="utf-8",
     )
     assert _reference_masks(tmp_path, [0x10, 0x20]) == [0b101, 0]
+    assert _reference_forms(tmp_path, [0x10, 0x20]) == [
+        ["lvalue-reference-to-object", "value", "lvalue-reference-to-pointer"],
+        [],
+    ]
 
 
 @pytest.mark.parametrize("text", ["", "0x20:0x10", "nonsense", "0x10:", "-0x10"])

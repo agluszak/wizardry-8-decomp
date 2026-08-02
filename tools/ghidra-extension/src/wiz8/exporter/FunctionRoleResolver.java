@@ -1,19 +1,20 @@
 package wiz8.exporter;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import ghidra.app.util.demangler.DemangledObject;
 import ghidra.app.util.demangler.microsoft.MicrosoftDemangler;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionTag;
 import ghidra.program.model.listing.GhidraClass;
-import ghidra.program.model.listing.Instruction;
+import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.Symbol;
-import ghidra.util.task.TaskMonitor;
 
 /**
  * Sole Java authority for mapping a Ghidra function onto a source entity and
@@ -29,6 +30,13 @@ public final class FunctionRoleResolver {
 
 	private static final Map<String, EmissionKind> ROLE_TAGS = new LinkedHashMap<>();
 	private static final Map<String, SourceKind> SOURCE_TAGS = new LinkedHashMap<>();
+	private static final Set<String> ORIGIN_TAGS = Set.of("first-party", "library",
+		"surrender", "sgp", "msvc-crt", "zlib", "jpeg", "info-zip", "win32",
+		"directx", "mfc", "platform", "import", "unknown");
+	private static final Map<Program, Map<Function, FunctionRole>> CACHE =
+		Collections.synchronizedMap(new WeakHashMap<>());
+	private static final ThreadLocal<Set<Function>> RESOLVING =
+		ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
 	static {
 		for (EmissionKind kind : EmissionKind.values()) {
 			ROLE_TAGS.put(kebab(kind.name()), kind);
@@ -42,6 +50,30 @@ public final class FunctionRoleResolver {
 	}
 
 	public static FunctionRole resolve(Function function) {
+		Map<Function, FunctionRole> programCache;
+		synchronized (CACHE) {
+			programCache = CACHE.computeIfAbsent(function.getProgram(),
+				ignored -> Collections.synchronizedMap(new IdentityHashMap<>()));
+		}
+		FunctionRole cached = programCache.get(function);
+		if (cached != null) {
+			return cached;
+		}
+		Set<Function> resolving = RESOLVING.get();
+		if (!resolving.add(function)) {
+			return ordinaryRole(function, "role recursion guard");
+		}
+		try {
+			FunctionRole role = resolveUncached(function);
+			programCache.put(function, role);
+			return role;
+		}
+		finally {
+			resolving.remove(function);
+		}
+	}
+
+	private static FunctionRole resolveUncached(Function function) {
 		Tagged tagged = tags(function);
 		if (tagged.emission != null || tagged.source != null) {
 			EmissionKind emission = tagged.emission != null ? tagged.emission
@@ -68,22 +100,13 @@ public final class FunctionRoleResolver {
 		if (named != null) {
 			return named;
 		}
-		FunctionRole wrapper = structuralDeletingWrapper(function);
-		if (wrapper != null) {
-			return wrapper;
-		}
-		FunctionRole adjustor = structuralDestructorAdjustor(function);
-		if (adjustor != null) {
-			return adjustor;
-		}
-
 		if (function.isThunk()) {
 			Function canonical = function.getThunkedFunction(true);
 			FunctionRole target = canonical == null || canonical.equals(function) ? null
 				: resolve(canonical);
 			SourceKind source = target == null ? SourceKind.NONE : target.sourceKind();
 			String origin = target == null ? "unknown" : target.origin();
-			return new FunctionRole(source, EmissionKind.ADJUSTOR_THUNK, canonical,
+			return role(function, source, EmissionKind.ADJUSTOR_THUNK, canonical,
 				true, origin, "Ghidra thunk metadata");
 		}
 
@@ -97,12 +120,12 @@ public final class FunctionRoleResolver {
 			String owner = CallableIdentity.classLeaf(namespace.getName());
 			String name = CallableIdentity.classLeaf(function.getName());
 			if (name.equals(owner)) {
-				return role(function, SourceKind.CONSTRUCTOR, EmissionKind.CONSTRUCTOR_BODY,
+				return role(function, SourceKind.CONSTRUCTOR, EmissionKind.AUTHORED_BODY,
 					"first-party", "class namespace identity");
 			}
 			if (function.getName().equals("~" + owner) ||
 				function.getName().equals("~" + namespace.getName())) {
-				return role(function, SourceKind.DESTRUCTOR, EmissionKind.COMPLETE_DESTRUCTOR,
+				return role(function, SourceKind.DESTRUCTOR, EmissionKind.AUTHORED_BODY,
 					"first-party", "class namespace identity");
 			}
 			return role(function, SourceKind.MEMBER_FUNCTION, EmissionKind.AUTHORED_BODY,
@@ -110,133 +133,6 @@ public final class FunctionRoleResolver {
 		}
 		return role(function, SourceKind.FREE_FUNCTION, EmissionKind.AUTHORED_BODY,
 			"first-party", "ordinary Ghidra function");
-	}
-
-	private static FunctionRole structuralDeletingWrapper(Function function) {
-		Function destructor = null;
-		boolean deallocator = false;
-		boolean vectorIterator = false;
-		for (Function called : function.getCalledFunctions(TaskMonitor.DUMMY)) {
-			String name = SpecialNames.normalize(called.getName());
-			if (name.equals("operator delete") || name.startsWith("operator delete ")) {
-				deallocator = true;
-				continue;
-			}
-			FunctionRole role = directLifecycleIdentity(called);
-			if (role == null) {
-				continue;
-			}
-			if (role.emissionKind() == EmissionKind.VECTOR_DESTRUCTOR_ITERATOR) {
-				vectorIterator = true;
-			}
-			else if (role.isDestructor() && !role.isDeletingDestructor()) {
-				if (destructor != null && !destructor.equals(called)) {
-					return null;
-				}
-				destructor = called;
-			}
-		}
-		if (!deallocator || (destructor == null && !vectorIterator)) {
-			return null;
-		}
-		EmissionKind emission = vectorIterator
-			? EmissionKind.VECTOR_DELETING_DESTRUCTOR
-			: EmissionKind.SCALAR_DELETING_DESTRUCTOR;
-		return new FunctionRole(SourceKind.DESTRUCTOR, emission, destructor,
-			function.isThunk(), "first-party",
-			"direct destructor/iterator plus deallocator call graph");
-	}
-
-	private static FunctionRole directLifecycleIdentity(Function function) {
-		Tagged tagged = tags(function);
-		if (tagged.emission != null || tagged.source != null) {
-			EmissionKind emission = tagged.emission != null ? tagged.emission
-				: defaultEmission(function, tagged.source);
-			return role(function, tagged.source != null ? tagged.source
-				: sourceFor(function, emission), emission, tagged.origin,
-				"reviewed Ghidra tag");
-		}
-		FunctionRole special = fromSpecialIdentity(function, function.getName(),
-			"Ghidra special-name identity");
-		if (special != null) {
-			return special;
-		}
-		Namespace namespace = function.getParentNamespace();
-		if (namespace instanceof GhidraClass) {
-			String owner = CallableIdentity.classLeaf(namespace.getName());
-			if (function.getName().equals("~" + owner) ||
-				function.getName().equals("~" + namespace.getName())) {
-				return role(function, SourceKind.DESTRUCTOR,
-					EmissionKind.COMPLETE_DESTRUCTOR, "first-party",
-					"class namespace identity");
-			}
-		}
-		return null;
-	}
-
-	private static FunctionRole structuralDestructorAdjustor(Function function) {
-		if (function.getParentNamespace() instanceof GhidraClass) {
-			return null; // the class-owned source body wins
-		}
-		Function baseDestructor = soleDirectDestructor(function);
-		Set<Long> tables = referencedVftables(function);
-		if (baseDestructor == null || tables.size() != 1) {
-			return null;
-		}
-		Function match = null;
-		for (Function candidate : function.getProgram().getFunctionManager()
-				.getFunctions(true)) {
-			if (candidate.equals(function) ||
-				!(candidate.getParentNamespace() instanceof GhidraClass)) {
-				continue;
-			}
-			FunctionRole identity = directLifecycleIdentity(candidate);
-			if (identity == null || !identity.isDestructor() ||
-				!baseDestructor.equals(soleDirectDestructor(candidate)) ||
-				!tables.equals(referencedVftables(candidate))) {
-				continue;
-			}
-			if (match != null) {
-				return null;
-			}
-			match = candidate;
-		}
-		return match == null ? null : new FunctionRole(SourceKind.DESTRUCTOR,
-			EmissionKind.ADJUSTOR_THUNK, match, true, "first-party",
-			"same vftable and base-destructor calls as class-owned destructor");
-	}
-
-	private static Function soleDirectDestructor(Function function) {
-		Function found = null;
-		for (Function called : function.getCalledFunctions(TaskMonitor.DUMMY)) {
-			FunctionRole identity = directLifecycleIdentity(called);
-			if (identity == null || !identity.isDestructor() ||
-				identity.isDeletingDestructor()) {
-				continue;
-			}
-			if (found != null && !found.equals(called)) {
-				return null;
-			}
-			found = called;
-		}
-		return found;
-	}
-
-	private static Set<Long> referencedVftables(Function function) {
-		Set<Long> tables = new HashSet<>();
-		var instructions = function.getProgram().getListing()
-			.getInstructions(function.getBody(), true);
-		while (instructions.hasNext()) {
-			Instruction instruction = instructions.next();
-			for (var reference : instruction.getReferencesFrom()) {
-				Symbol symbol = function.getProgram().getSymbolTable()
-					.getPrimarySymbol(reference.getToAddress());
-				if (symbol != null && VtableResolver.isVftableName(symbol.getName())) {
-					tables.add(symbol.getAddress().getOffset());
-				}
-			}
-		}
-		return tables;
 	}
 
 	private static FunctionRole fromDecorated(Function function, String decorated) {
@@ -255,7 +151,7 @@ public final class FunctionRoleResolver {
 				return special;
 			}
 			if (object.isThunk()) {
-				return new FunctionRole(sourceForNamespace(function),
+				return role(function, sourceForNamespace(function),
 					EmissionKind.ADJUSTOR_THUNK, function.getThunkedFunction(true), true,
 					"first-party", "Microsoft demangler thunk: " + decorated);
 			}
@@ -272,12 +168,12 @@ public final class FunctionRoleResolver {
 		String name = SpecialNames.normalize(spelling);
 		boolean adjustor = name.contains("adjustor{");
 		if (name.startsWith("scalar deleting destructor")) {
-			return new FunctionRole(SourceKind.DESTRUCTOR,
+			return role(function, SourceKind.DESTRUCTOR,
 				EmissionKind.SCALAR_DELETING_DESTRUCTOR, function, adjustor,
 				"first-party", evidence);
 		}
 		if (name.startsWith("vector deleting destructor")) {
-			return new FunctionRole(SourceKind.DESTRUCTOR,
+			return role(function, SourceKind.DESTRUCTOR,
 				EmissionKind.VECTOR_DELETING_DESTRUCTOR, function, adjustor,
 				"first-party", evidence);
 		}
@@ -310,8 +206,21 @@ public final class FunctionRoleResolver {
 
 	private static FunctionRole role(Function function, SourceKind source,
 			EmissionKind emission, String origin, String evidence) {
-		return new FunctionRole(source, emission, function, function.isThunk(),
-			origin, evidence);
+		return role(function, source, emission, function, function.isThunk(), origin, evidence);
+	}
+
+	private static FunctionRole role(Function function, SourceKind source,
+			EmissionKind emission, Function canonical, boolean adjustor, String origin,
+			String evidence) {
+		Function bodyOwner = emission == EmissionKind.AUTHORED_BODY ||
+			emission == EmissionKind.CONSTRUCTOR_BODY ? function : null;
+		return new FunctionRole(SourceEntityKey.of(function, canonical, source), emission,
+			bodyOwner, canonical, adjustor, origin, evidence);
+	}
+
+	private static FunctionRole ordinaryRole(Function function, String evidence) {
+		SourceKind source = sourceForNamespace(function);
+		return role(function, source, EmissionKind.AUTHORED_BODY, "unknown", evidence);
 	}
 
 	private static SourceKind sourceForNamespace(Function function) {
@@ -321,7 +230,8 @@ public final class FunctionRoleResolver {
 
 	private static SourceKind sourceFor(Function function, EmissionKind emission) {
 		return switch (emission) {
-			case CONSTRUCTOR_BODY, DEFAULT_CONSTRUCTOR_CLOSURE -> SourceKind.CONSTRUCTOR;
+			case CONSTRUCTOR_BODY, BASE_CONSTRUCTOR, COMPLETE_CONSTRUCTOR,
+				VBASE_CONSTRUCTOR, DEFAULT_CONSTRUCTOR_CLOSURE -> SourceKind.CONSTRUCTOR;
 			case BASE_DESTRUCTOR, COMPLETE_DESTRUCTOR, SCALAR_DELETING_DESTRUCTOR,
 				VECTOR_DELETING_DESTRUCTOR, VBASE_DESTRUCTOR -> SourceKind.DESTRUCTOR;
 			case TEMPLATE_EMISSION -> SourceKind.TEMPLATE_MEMBER;
@@ -333,8 +243,7 @@ public final class FunctionRoleResolver {
 
 	private static EmissionKind defaultEmission(Function function, SourceKind source) {
 		return switch (source) {
-			case CONSTRUCTOR -> EmissionKind.CONSTRUCTOR_BODY;
-			case DESTRUCTOR -> EmissionKind.COMPLETE_DESTRUCTOR;
+			case CONSTRUCTOR, DESTRUCTOR -> EmissionKind.AUTHORED_BODY;
 			case TEMPLATE_MEMBER -> EmissionKind.TEMPLATE_EMISSION;
 			case LIBRARY_ENTITY -> EmissionKind.LIBRARY_BODY;
 			default -> function.isThunk() ? EmissionKind.ADJUSTOR_THUNK
@@ -345,20 +254,49 @@ public final class FunctionRoleResolver {
 	private static Tagged tags(Function function) {
 		SourceKind source = null;
 		EmissionKind emission = null;
-		String origin = "first-party";
+		String origin = null;
 		for (FunctionTag tag : function.getTags()) {
 			String name = tag.getName();
 			if (name.startsWith(ROLE_PREFIX)) {
-				emission = ROLE_TAGS.get(name.substring(ROLE_PREFIX.length()));
+				String value = name.substring(ROLE_PREFIX.length());
+				EmissionKind parsed = ROLE_TAGS.get(value);
+				if (parsed == null) {
+					throw new IllegalStateException("unknown function role tag " + name +
+						" on " + function.getName(true));
+				}
+				if (emission != null && emission != parsed) {
+					throw new IllegalStateException("conflicting function role tags on " +
+						function.getName(true));
+				}
+				emission = parsed;
 			}
 			else if (name.startsWith(SOURCE_PREFIX)) {
-				source = SOURCE_TAGS.get(name.substring(SOURCE_PREFIX.length()));
+				String value = name.substring(SOURCE_PREFIX.length());
+				SourceKind parsed = SOURCE_TAGS.get(value);
+				if (parsed == null) {
+					throw new IllegalStateException("unknown source role tag " + name +
+						" on " + function.getName(true));
+				}
+				if (source != null && source != parsed) {
+					throw new IllegalStateException("conflicting source role tags on " +
+						function.getName(true));
+				}
+				source = parsed;
 			}
 			else if (name.startsWith(ORIGIN_PREFIX)) {
-				origin = name.substring(ORIGIN_PREFIX.length());
+				String parsed = name.substring(ORIGIN_PREFIX.length());
+				if (!ORIGIN_TAGS.contains(parsed)) {
+					throw new IllegalStateException("unknown function origin tag " + name +
+						" on " + function.getName(true));
+				}
+				if (origin != null && !origin.equals(parsed)) {
+					throw new IllegalStateException("conflicting function origin tags on " +
+						function.getName(true));
+				}
+				origin = parsed;
 			}
 		}
-		return new Tagged(source, emission, origin);
+		return new Tagged(source, emission, origin == null ? "first-party" : origin);
 	}
 
 	private static String kebab(String name) {

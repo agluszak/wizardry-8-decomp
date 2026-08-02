@@ -176,6 +176,16 @@ def fid_probe_toolchain_command(
     cli.run_action(lambda: probe_toolchains(cli.settings(), toolchain))
 
 
+@fid_app.command("verify-lifecycle-fixture")
+def fid_verify_lifecycle_fixture_command() -> None:
+    """Round-trip the pinned VC6 lifecycle fixture through transient Ghidra."""
+
+    from .. import command_support as cli
+    from ..ghidra.lifecycle_fixture import verify_lifecycle_fixture
+
+    cli.run_action(lambda: verify_lifecycle_fixture(cli.settings()))
+
+
 @fid_app.command("build-seeds")
 def fid_build_seeds_command(
     toolchain: Annotated[

@@ -39,6 +39,20 @@ final class SyntaxPairs {
 		return -1;
 	}
 
+	/** The index of the opener paired with {@code close}, or -1. */
+	static int matchingOpen(List<ClangToken> tokens, int close) {
+		if (tokens.get(close) instanceof ClangSyntaxToken closer && closer.getClose() >= 0) {
+			int id = closer.getClose();
+			for (int i = close - 1; i >= 0; i--) {
+				if (tokens.get(i) instanceof ClangSyntaxToken candidate &&
+					candidate.getOpen() == id) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
 	/** Whether the token opens a syntax pair (any delimiter kind). */
 	static boolean opensPair(ClangToken token) {
 		return token instanceof ClangSyntaxToken syntax && syntax.getOpen() >= 0;

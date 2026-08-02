@@ -14,10 +14,23 @@ public enum FunctionKind {
 	VECTOR_DELETING_DESTRUCTOR;
 
 	public static FunctionKind classify(Function function) {
-		FunctionRole role = FunctionRoleResolver.resolve(function);
+		return classify(FunctionRoleResolver.resolve(function));
+	}
+
+	static FunctionKind classify(FunctionRole role) {
+		if (role.emissionKind() == EmissionKind.SCALAR_DELETING_DESTRUCTOR) {
+			return SCALAR_DELETING_DESTRUCTOR;
+		}
+		if (role.emissionKind() == EmissionKind.VECTOR_DELETING_DESTRUCTOR) {
+			return VECTOR_DELETING_DESTRUCTOR;
+		}
+		if (role.hasAuthoredBody() && role.isDestructor()) {
+			return DESTRUCTOR;
+		}
+		if (role.hasAuthoredBody() && role.isConstructor()) {
+			return CONSTRUCTOR;
+		}
 		return switch (role.emissionKind()) {
-			case SCALAR_DELETING_DESTRUCTOR -> SCALAR_DELETING_DESTRUCTOR;
-			case VECTOR_DELETING_DESTRUCTOR -> VECTOR_DELETING_DESTRUCTOR;
 			default -> role.isConstructor() ? CONSTRUCTOR
 				: role.isDestructor() ? DESTRUCTOR : ORDINARY;
 		};

@@ -1,7 +1,9 @@
 package wiz8.exporter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeComponent;
@@ -15,7 +17,7 @@ import ghidra.program.model.symbol.Symbol;
  * Prints one class declaration from live Ghidra state: base classes from the
  * shared {@link VtableResolver} discovery (the {@code base}/{@code base_*}
  * convention plus for-clause vftable evidence), virtual methods in vtable
- * order read from the primary vftable in program memory, and data fields at
+	 * order read from every primary/secondary vftable in program memory, and data fields at
  * their exact offsets with explicit gap padding.
  *
  * The output is a generated projection for review and porting; it never
@@ -31,12 +33,18 @@ final class Wiz8ClassPrinter {
 	private final GhidraClass ghidraClass;
 	private final Structure structure;
 	private final VtableResolver vtables;
+	private final RecoverySession session;
 
 	Wiz8ClassPrinter(Program program, GhidraClass ghidraClass) {
-		this.program = program;
+		this(new RecoverySession(program), ghidraClass);
+	}
+
+	Wiz8ClassPrinter(RecoverySession session, GhidraClass ghidraClass) {
+		this.session = session;
+		this.program = session.program;
 		this.ghidraClass = ghidraClass;
 		this.structure = findStructure();
-		this.vtables = new VtableResolver(program);
+		this.vtables = session.vtables;
 	}
 
 	String print() {
@@ -88,36 +96,53 @@ final class Wiz8ClassPrinter {
 	// ------------------------------------------------------------------
 
 	private void appendVirtuals(StringBuilder out, String className) {
-		Symbol table = vtables.primaryVftable(ghidraClass);
-		if (table == null) {
-			return;
+		Set<SourceEntityKey> emitted = new HashSet<>();
+		for (Symbol table : vtables.vftables(ghidraClass)) {
+			out.append(String.format("    // vftable 0x%08x %s\n",
+				table.getAddress().getOffset(), table.getName()));
+			List<Function> targets = vtables.slots(table);
+			for (int i = 0; i < targets.size(); i++) {
+				appendSlot(out, className, i * 4L, vtables.slot(table, i * 4L), emitted);
+			}
+			out.append('\n');
 		}
-		out.append(String.format("    // vftable 0x%08x\n", table.getAddress().getOffset()));
-		List<Function> targets = vtables.slots(table);
-		for (int i = 0; i < targets.size(); i++) {
-			appendSlot(out, className, i * 4L, targets.get(i));
-		}
-		out.append('\n');
 	}
 
-	private void appendSlot(StringBuilder out, String className, long slot, Function target) {
+	private void appendSlot(StringBuilder out, String className, long slot,
+			VtableResolver.Slot sourceSlot, Set<SourceEntityKey> emitted) {
+		if (sourceSlot == null) {
+			return;
+		}
+		Function target = sourceSlot.function;
+		if (target == null) {
+			out.append(String.format(
+				"    // slot 0x%02x: pure virtual %s; parameter spelling unresolved.\n",
+				slot, sourceSlot.name));
+			return;
+		}
 		String comment = String.format(" /* slot 0x%02x, 0x%08x */", slot,
 			target.getEntryPoint().getOffset());
-		Function resolved = target.isThunk() ? target.getThunkedFunction(true) : target;
+		FunctionRole role = session.role(target);
+		Function resolved = role.canonicalTarget() != null ? role.canonicalTarget() : target;
 		if ("purecall".equals(SpecialNames.normalize(resolved.getName()))) {
 			out.append(String.format(
 				"    // slot 0x%02x: pure virtual; the vftable stores purecall and\n" +
 				"    // cannot name the original declaration.\n", slot));
 			return;
 		}
-		if (!ghidraClass.equals(target.getParentNamespace())) {
-			String relation = target.getParentNamespace() instanceof GhidraClass
+		if (!ghidraClass.equals(resolved.getParentNamespace())) {
+			String relation = resolved.getParentNamespace() instanceof GhidraClass
 					? "inherited" : "unnamed slot function";
 			out.append("    //").append(comment).append(' ')
-					.append(relation).append(' ').append(target.getName(true)).append('\n');
+					.append(relation).append(' ').append(resolved.getName(true)).append('\n');
 			return;
 		}
-		FunctionKind kind = FunctionKind.classify(target);
+		if (!emitted.add(role.sourceEntity())) {
+			out.append("    //").append(comment).append(" duplicate/adjustor emission of ")
+				.append(role.sourceEntity().formalSignature()).append('\n');
+			return;
+		}
+		FunctionKind kind = FunctionKind.classify(role);
 		if (kind.isDeletingDestructor()) {
 			out.append("    virtual ~").append(bareName(className)).append("();")
 					.append(String.format(" /* slot 0x%02x: %s 0x%08x */%n", slot,
@@ -130,13 +155,19 @@ final class Wiz8ClassPrinter {
 					.append(comment).append('\n');
 			return;
 		}
-		out.append("    virtual ").append(methodSignature(target)).append(';')
-				.append(comment).append('\n');
+		try {
+			out.append("    virtual ").append(methodSignature(resolved)).append(';')
+					.append(comment).append('\n');
+		}
+		catch (CxxTypePrinter.UnresolvedTypeException unresolved) {
+			out.append("    //").append(comment).append(" signature declined: ")
+				.append(unresolved.getMessage()).append('\n');
+		}
 	}
 
 	private String methodSignature(Function target) {
 		StringBuilder signature = new StringBuilder();
-		signature.append(fieldTypeName(target.getReturn().getFormalDataType())).append(' ')
+		signature.append(CxxTypePrinter.printReturn(target)).append(' ')
 				.append(target.getName()).append('(');
 		boolean first = true;
 		for (int i = 0; i < target.getParameterCount(); i++) {
@@ -181,7 +212,7 @@ final class Wiz8ClassPrinter {
 			if (field == null) {
 				field = String.format("field_%x", component.getOffset());
 			}
-			out.append("    ").append(fieldDeclaration(component.getDataType(), field))
+			out.append("    ").append(CxxTypePrinter.printField(component, field))
 					.append(';').append(String.format(" /* 0x%02x */%n", component.getOffset()));
 			cursor = component.getEndOffset() + 1;
 		}
@@ -193,11 +224,6 @@ final class Wiz8ClassPrinter {
 	private static void appendGap(StringBuilder out, int offset, int length) {
 		out.append(String.format("    unsigned char unknown_%x[%d]; /* 0x%02x */%n",
 			offset, length, offset));
-	}
-
-	/** A component's C declarator, through the shared declarator printer. */
-	private String fieldDeclaration(DataType type, String name) {
-		return CxxTypePrinter.printDeclaration(type, name);
 	}
 
 	private String fieldTypeName(DataType type) {

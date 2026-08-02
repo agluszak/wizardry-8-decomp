@@ -38,9 +38,13 @@ public final class Wiz8CxxPrinter {
 	private final FunctionRole role;
 
 	public Wiz8CxxPrinter(Function function, FunctionKind kind) {
+		this(function, kind, FunctionRoleResolver.resolve(function));
+	}
+
+	Wiz8CxxPrinter(Function function, FunctionKind kind, FunctionRole role) {
 		this.function = function;
 		this.kind = kind;
-		this.role = FunctionRoleResolver.resolve(function);
+		this.role = role;
 	}
 
 	/** The reccmp entity marker line for this function. */
@@ -312,8 +316,8 @@ public final class Wiz8CxxPrinter {
 			}
 			if (node instanceof ClangToken token) {
 				String tokenText = token.getText();
-				if (token instanceof ClangTypeToken) {
-					tokenText = TypeNames.map(tokenText);
+				if (token instanceof ClangTypeToken type) {
+					tokenText = TypeNames.mapToken(type);
 				}
 				else {
 					// Namespace qualifiers of template classes print as plain

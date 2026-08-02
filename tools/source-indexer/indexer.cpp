@@ -287,8 +287,29 @@ class Indexer {
     llvm::json::Array parameterTypes;
     for (const std::string& parameter : parameters) parameterTypes.push_back(parameter);
 	llvm::json::Array parameterReferences;
+	llvm::json::Array parameterReferenceForms;
 	for (const ParmVarDecl* parameter : function->parameters()) {
-	  parameterReferences.push_back(parameter->getOriginalType()->isReferenceType());
+	  QualType original = parameter->getOriginalType();
+	  parameterReferences.push_back(original->isReferenceType());
+	  std::string kind = "value";
+	  QualType referred;
+	  if (const auto* reference = original->getAs<LValueReferenceType>()) {
+	    referred = reference->getPointeeType();
+	    if (referred->isPointerType()) kind = "lvalue-reference-to-pointer";
+	    else if (referred->isArrayType()) kind = "lvalue-reference-to-array";
+	    else if (referred->isFunctionType()) kind = "lvalue-reference-to-function";
+	    else kind = "lvalue-reference-to-object";
+	  } else if (const auto* reference = original->getAs<RValueReferenceType>()) {
+	    referred = reference->getPointeeType();
+	    if (referred->isPointerType()) kind = "rvalue-reference-to-pointer";
+	    else if (referred->isArrayType()) kind = "rvalue-reference-to-array";
+	    else if (referred->isFunctionType()) kind = "rvalue-reference-to-function";
+	    else kind = "rvalue-reference-to-object";
+	  }
+	  parameterReferenceForms.push_back(llvm::json::Object{
+	      {"kind", kind},
+	      {"const", !referred.isNull() && referred.isConstQualified()},
+	  });
 	}
 
 	std::string convention = callingConvention(functionType, semanticKind);
@@ -300,7 +321,8 @@ class Indexer {
 		{"calling_convention", convention},
 		{"source_signature",
 		 sourceSignature(function, qualifiedName, semanticKind, returnType, convention)},
-		{"parameter_references", std::move(parameterReferences)},
+		 {"parameter_references", std::move(parameterReferences)},
+		 {"parameter_reference_forms", std::move(parameterReferenceForms)},
         {"return_type", returnType},
         {"parameter_types", std::move(parameterTypes)},
         {"owning_class", isMember ? llvm::json::Value(scope) : llvm::json::Value(nullptr)},
