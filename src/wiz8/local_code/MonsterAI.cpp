@@ -33,12 +33,12 @@ extern unsigned char Function53C630(W8CombatSlot* slot, int arg_2);
 extern unsigned char Function5474B0(int spell_id);
 extern unsigned char Function5353E0(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot);
 extern short Function4526C0(void* position, int arg_2, double radius);
-extern void Function453F30(const W8Position* position);
+extern void Function453F30(const srVector3T<float>* position);
 extern float Function4C7CB0(W8MonsterInfo* monster_info);
 struct W8SpellEffectEntry;
 extern struct W8SpellEffectEntry* FindMonsterControlSpellEffect(void);   /* 0x00500F30 */
 extern void ResetCombatSlot(W8CombatSlot* slot);                        /* 0x00536170 */
-extern void GetPartyPosition(W8Position* position);                     /* 0x00421070 */
+extern void GetPartyPosition(srVector3T<float>* position);                     /* 0x00421070 */
 /* 0x0061EEFC: two bytes per AI kind; only the leading byte is read. */
 extern const unsigned char g_ai_kind_table[][2];
 
@@ -48,7 +48,7 @@ void DestroyMonsterActionQueue(W8MonsterInfo* monster_info)
 {
     W8PList* queue = monster_info->pCombat->pending_actions;
 
-    if (queue != 0 && PListDestroy(queue)) {
+    if (queue != 0 && PLDestroy(queue)) {
         monster_info->pCombat->pending_actions = 0;
     }
 }
@@ -60,7 +60,7 @@ void UpdateAllMonsterAI(void)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0) {
             UpdateMonsterAI(monster_info);
@@ -101,7 +101,7 @@ void QueueMonsterAction(
         entry[5] = target_value;
     }
     *(char*)(entry + 0xb) = (char)Random(100) + 1;
-    PListAdd(monster_info->pCombat->pending_actions, entry);
+    PLAdoptAppend(monster_info->pCombat->pending_actions, entry);
 }
 
 /* Whether a monster can aim the spell it wants to cast. The two area target
@@ -126,7 +126,7 @@ unsigned char CanMonsterAimSpell(W8MonsterInfo* monster_info, int spell_id)
 // FUNCTION: WIZ8 0x00534cb0
 unsigned char AimFleeingMonster(W8MonsterInfo* monster_info, const W8MonsterRecord* record)
 {
-    W8Position party;
+    srVector3T<float> party;
 
     if (g_ai_kind_table[record->ai_kind][0] == W8_AI_KIND_ROW_SPECIAL) {
         GetPartyPosition(&party);
@@ -192,7 +192,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group, float furthest)
         srAssertFail("pMonsterGroup", MONSTER_AI_CPP, 1840, 0);
     }
 
-    for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+    for (index = 0; index < ILLength(group->monsters); ++index) {
         location_id = IListGetAt(group->monsters, index);
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(1845, MONSTER_AI_CPP, location_id, 1));
@@ -213,7 +213,7 @@ short IsMonsterControlPointInRange(void)
     W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
     void** anchor;
     short in_range;
-    W8Position party;
+    srVector3T<float> party;
 
     if (effect == 0) {
         return 0;

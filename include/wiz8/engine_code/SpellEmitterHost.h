@@ -20,7 +20,7 @@ public:
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
 
     unsigned char unknown_0ac[0x2c];
-    W8Emitter* emitters[28];              /* 0x0d8 */
+    W8AnimObj* emitters[28];              /* 0x0d8 */
     float emitter_values[28];             /* 0x148 */
     W8GrowableVector<W8VectorElement005ECE60*> light_lists[28]; /* 0x1b8 */
     unsigned char flag_378;

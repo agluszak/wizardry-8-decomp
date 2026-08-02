@@ -132,7 +132,7 @@ public:
     virtual W8PathAI* GetPathAI();
     void ResetPathAI();
     virtual unsigned char Function4A7140(int) const { return 1; }
-    virtual void SetPosition(const W8Position* position); /* 0x00456020 */
+    virtual void SetPosition(const srVector3T<float>* position); /* 0x00456020 */
 
     void configureStartupRange(float range);
     void configureStartupDepth(float near_depth, float far_depth);
@@ -146,26 +146,26 @@ public:
     float GetPitch();                           /* 0x00453980 */
     void SetValue120(float value);                         /* 0x00453C50 */
     float GetValue120();                                  /* 0x00453C60 */
-    unsigned char Function452630(const W8Position* position); /* 0x00452630 */
+    unsigned char Function452630(const srVector3T<float>* position); /* 0x00452630 */
     unsigned short Function4526C0(
         W8Navigator* target, double separation); /* 0x004526C0 */
     unsigned short ConfigureMovementToNavigator004529A0(
         W8Navigator* target,
         int value_1,
         int value_2,
-        W8Position position,
+        srVector3T<float> position,
         int value_3,
         float facing,
         int value_4);                                  /* 0x004529A0 */
     void Function453690(void* argument);                   /* 0x00453690 */
-    void SetPositionInternal00453590(const W8Position* position);
+    void SetPositionInternal00453590(const srVector3T<float>* position);
     void SetObject68Flag38(char value);                    /* 0x004537C0 */
     unsigned short LinkToNavigator004527A0(
         W8Navigator* target, double separation);           /* 0x004527A0 */
-    void Function454040(const W8Position* position);       /* 0x00454040 */
-    void AimAtPosition(const W8Position* position); /* 0x00453F30 */
+    void Function454040(const srVector3T<float>* position);       /* 0x00454040 */
+    void AimAtPosition(const srVector3T<float>* position); /* 0x00453F30 */
     void StartPatrol(
-        const W8Position* home, float distance, float variation);
+        const srVector3T<float>* home, float distance, float variation);
     void SetFlag25(char value);                            /* 0x004531F0 */
     void SetMovementStopped00453880();                     /* 0x00453880 */
     void UpdateAngles00453990();                           /* 0x00453990 */

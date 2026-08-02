@@ -8,12 +8,61 @@
 template <class T>
 class W8GrowableVector {
 public:
-    W8GrowableVector();
-    explicit W8GrowableVector(int initial_capacity);
-    virtual ~W8GrowableVector();
+    W8GrowableVector()
+    {
+        data = new T[5];
+        count = 0;
+        if (data != 0) {
+            capacity = 5;
+        }
+        else {
+            capacity = 0;
+        }
+    }
+
+    explicit W8GrowableVector(int initial_capacity)
+    {
+        if (initial_capacity < 1) {
+            initial_capacity = 1;
+        }
+        data = new T[initial_capacity];
+        count = 0;
+        if (data != 0) {
+            capacity = initial_capacity;
+        }
+        else {
+            capacity = 0;
+        }
+    }
+
+    virtual ~W8GrowableVector()
+    {
+        delete[] data;
+    }
     W8GrowableVector& operator=(const W8GrowableVector& other);
 
-    int Grow(int minimum_capacity);
+    int Grow(int minimum_capacity)
+    {
+        int index;
+        T* previous_data;
+        T* replacement;
+
+        if (minimum_capacity > capacity) {
+            previous_data = data;
+            replacement = new T[minimum_capacity];
+            data = replacement;
+            if (replacement == 0) {
+                data = previous_data;
+                return 0;
+            }
+            capacity = minimum_capacity;
+            for (index = 0; index < count; ++index) {
+                data[index] = previous_data[index];
+            }
+            delete[] previous_data;
+        }
+        return 1;
+    }
 
     int GetCount() const
     {
@@ -112,47 +161,6 @@ public:
     T* data;                             /* 0x0c */
 };                                      /* 0x10 in the 32-bit target */
 
-/* The initial capacity is a parameter, clamped to at least one. Every site that
-   constructs with the default folds both the clamp and the multiply away, which
-   is why the inlined copies show only `operator new(20)`; the out-of-line
-   constructor emissions keep the parameter and are what proves it. Whether the
-   original spelled a default argument or a separate default constructor the
-   image cannot say, because every capacity-5 site is inlined. */
-template <class T>
-W8GrowableVector<T>::W8GrowableVector()
-{
-    data = static_cast<T*>(::operator new(5 * sizeof(T)));
-    count = 0;
-    if (data != 0) {
-        capacity = 5;
-    }
-    else {
-        capacity = 0;
-    }
-}
-
-template <class T>
-W8GrowableVector<T>::W8GrowableVector(int initial_capacity)
-{
-    if (initial_capacity < 1) {
-        initial_capacity = 1;
-    }
-    data = static_cast<T*>(::operator new(initial_capacity * sizeof(T)));
-    count = 0;
-    if (data != 0) {
-        capacity = initial_capacity;
-    }
-    else {
-        capacity = 0;
-    }
-}
-
-template <class T>
-W8GrowableVector<T>::~W8GrowableVector()
-{
-    ::operator delete(data);
-}
-
 template <class T>
 W8GrowableVector<T>& W8GrowableVector<T>::operator=(
     const W8GrowableVector<T>& other)
@@ -170,30 +178,6 @@ W8GrowableVector<T>& W8GrowableVector<T>::operator=(
         count = other.count;
     }
     return *this;
-}
-
-template <class T>
-int W8GrowableVector<T>::Grow(int minimum_capacity)
-{
-    int index;
-    T* previous_data;
-    T* replacement;
-
-    if (minimum_capacity > capacity) {
-        previous_data = data;
-        replacement = static_cast<T*>(::operator new(minimum_capacity * sizeof(T)));
-        data = replacement;
-        if (replacement == 0) {
-            data = previous_data;
-            return 0;
-        }
-        capacity = minimum_capacity;
-        for (index = 0; index < count; ++index) {
-            data[index] = previous_data[index];
-        }
-        ::operator delete(previous_data);
-    }
-    return 1;
 }
 
 template <class T>

@@ -12,7 +12,6 @@ set(WIZ8_SGP_RUNTIME_PARTIAL_SOURCES
     "${SGP_SOURCE}/LibraryDataBase.c"
     "${SGP_SOURCE}/Container.c"
     "${SGP_SOURCE}/Button System.c"
-    "${SGP_SOURCE}/vsurface.c"
     "${SGP_SOURCE}/Font.c"
     "${SGP_SOURCE}/vobject.c"
     "${SGP_SOURCE}/himage.c"
@@ -78,5 +77,6 @@ function(wiz8_add_sgp_objects target)
 endfunction()
 
 wiz8_add_sgp_objects(WIZ8_SGP_WHOLE ${WIZ8_SGP_WHOLE_SOURCES})
+wiz8_add_sgp_objects(WIZ8_SGP_VSURFACE "${SGP_SOURCE}/vsurface.c")
 wiz8_add_sgp_objects(WIZ8_SGP_RUNTIME ${WIZ8_SGP_RUNTIME_PARTIAL_SOURCES})
 wiz8_add_sgp_objects(WIZ8_SGP_ANALYSIS ${WIZ8_SGP_ANALYSIS_ONLY_SOURCES})

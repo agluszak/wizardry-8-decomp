@@ -6,9 +6,6 @@
 #include "surrender/srTexture.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/cursor.h"
-#include "wiz8/engine_code/Scene.h"
-#include "wiz8/engine_code/MeshModel.h"
-#include "wiz8/engine_code/TextureMap.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/render_state.h"
 #include "himage.h"
@@ -50,6 +47,9 @@ extern unsigned char g_fullscreen_603c39;
 
 }
 
+// SYNTHETIC: WIZ8 0x00424A50
+// srClassSupport<srMeshModel,srMeshModel,0,8208>::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x00424EB0
 static srModelInstance* MakePolygonBrush(
     srNode* parent, srColorSurfaceIFace* surface,
@@ -58,14 +58,15 @@ static srModelInstance* MakePolygonBrush(
     float mapping_width, float mapping_height,
     unsigned char overlay)
 {
-    W8MeshModel005EBE98* model;
-    W8TextureMap* texture;
+    srMeshModel* model;
+    srTextureMap* texture;
     stModelInstance2D* instance;
     srModeler::MappingInfo mapping;
     srVector3T<float> scale;
     srShader shader;
 
-    model = new W8MeshModel005EBE98(0, 0);
+    model =
+        new srClassSupport<srMeshModel, srMeshModel, false, 0x2010>(0L, 0L);
     if (!model) {
         return 0;
     }
@@ -91,7 +92,9 @@ static srModelInstance* MakePolygonBrush(
     if (!surface) {
         shader.value &= 0xffff7fff;
     } else {
-        texture = new W8TextureMap(0);
+        texture =
+            new srClassSupport<srTextureMap, srTextureMap, false, 0x2111>(
+                static_cast<srColorSurfaceIFace*>(0));
         texture->autoRelease();
         texture->setName("Video2DMakePolygonBrush");
         texture->setSurfacePtr(surface);
@@ -283,8 +286,11 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
 // FUNCTION: WIZ8 0x004285c0
 extern "C" unsigned char Function4285C0(void)
 {
-    W8Scene* cursor_scene = new W8Scene(0);
-    cursor_scene->ClearOverlayState();
+    srScene* cursor_scene =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    cursor_scene->setAmbientLight(0.0f, 0.0f, 0.0f);
+    cursor_scene->setFogColor(0.0f, 0.0f, 0.0f);
     g_cursor_scene_659684 = cursor_scene;
     g_cursor_scene_659684->setName("Mouse Cursor Scene");
     if (!g_mouse_surface_659688) {

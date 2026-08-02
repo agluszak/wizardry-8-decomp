@@ -427,7 +427,7 @@ void TickSpellEffects(void)
             if (effect->turns_remaining == 0 &&
                 effect->kind == W8_SPELL_EFFECT_KIND_MONSTER_CONTROL) {
                 for (monster_index = 0;
-                     monster_index < PListGetCount(g_active_monster_list_00683fad);
+                     monster_index < PLLength(g_active_monster_list_00683fad);
                      ++monster_index) {
                     monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
                     if (monster_info != 0 && !monster_info->monster->IsDying()) {
@@ -1750,7 +1750,8 @@ wchar_t* SpellTargetString(int unused, const W8CombatSlot* target)
         if (target->iChar == -1) {
             srAssertFail("pTarget->iChar != BAD_INDEX", MAGIC_CPP, 0xad, 0);
         }
-        if (!TargetSourceIsCharacter((const W8TargetSource*)target, 0) || target->described.name_known != 0) {
+        if (!TargetSourceIsCharacter((const W8TargetSource*)target, 0)
+            || reinterpret_cast<const unsigned char*>(&target->point)[9] != 0) {
             return FormatWideString(
                 gppStringList[W8_MESSAGE_TARGET_AT / 4],
                 g_party_characters[target->iChar].name);
@@ -1872,18 +1873,8 @@ unsigned int MonsterCastsSpell(
     return SpellCastFatigueCost(spell_id, result);
 }
 
-class W8VectorElement005EBFE4;
-
-/* The object a running cast hangs its spawned effects off. */
-typedef struct W8CastEffectOwner {
-    unsigned char unknown_000[0x100];
-    W8GrowableVector<W8VectorElement005EBFE4*> effects; /* 0x100 */
-} W8CastEffectOwner;
-
-static_assert(sizeof(W8CastEffectOwner) == 0x110, "W8CastEffectOwner_must_be_0x110");
-
 extern W8VectorElement005EBFE4* SpawnSpellEffect(
-    const W8Position* position, const char* resource_name, int arg_3, int arg_4, int arg_5);
+    const srVector3T<float>* position, const char* resource_name, int arg_3, int arg_4, int arg_5);
 
 /* The lure spell, and how far under the target the first of its two effects is
    placed. */
@@ -1895,9 +1886,9 @@ enum { W8_SPELL_LURE = 0x26 };
    its mode set. Both are appended to whatever the cast hangs its effects off,
    and an effect that failed to spawn is simply not appended. */
 // FUNCTION: WIZ8 0x004fb360
-void SpawnLureEffects(W8CastEffectOwner* owner, int arg_2, const W8CombatSlot* target)
+void SpawnLureEffects(W8SpellEffectEntry* owner, int arg_2, const W8CombatSlot* target)
 {
-    W8Position position;
+    srVector3T<float> position;
     W8VectorElement005EBFE4* effect;
 
     position.x = target->point.x;

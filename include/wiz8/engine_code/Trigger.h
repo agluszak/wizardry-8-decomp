@@ -119,7 +119,7 @@ public:
     void CommitActionResult(unsigned char apply_state_changes);
     void CompleteItemInteraction004447F0();
     void FinishAction();
-    void GetPosition(W8Position* position) const;
+    void GetPosition(srVector3T<float>* position) const;
     unsigned char CanRunLinkedTriggers();
     unsigned char SelectAction();
     void GenerateItemGroup();

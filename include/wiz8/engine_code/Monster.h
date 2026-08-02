@@ -100,17 +100,6 @@ static_assert(sizeof(W8MonsterRep) == 0x628, "W8MonsterRep_size_must_be_0x628");
 
 static_assert(sizeof(W8MonsterAnimationVector) == 0x10, "W8MonsterAnimationVector_size_must_be_0x10");
 
-/* ProcessScript's POINTPATROL and RANDOMPOINTPATROL commands establish the
-   embedded vector at +0x29c as ordinary world-space patrol positions. */
-typedef W8Position W8MonsterPatrolPoint;
-
-template <>
-W8GrowableVector<W8MonsterPatrolPoint>::W8GrowableVector();
-template <>
-W8GrowableVector<W8MonsterPatrolPoint>::~W8GrowableVector();
-template <>
-int W8GrowableVector<W8MonsterPatrolPoint>::Grow(int minimum_capacity);
-
 struct W8MonsterState28C {
     unsigned char defining_orders;
     unsigned char orders_finished;
@@ -170,7 +159,7 @@ public:
     virtual float GetCurrentAnimationScale() override;
     virtual W8EmitterHost* GetRepresentation() override;
     virtual unsigned char GetAnimationBounds(
-        W8Position* minimum, W8Position* maximum) override;
+        srVector3T<float>* minimum, srVector3T<float>* maximum) override;
     virtual unsigned char GetAnimationRadius(float* radius) override;
     virtual void SetCycle(signed char cycle) override;
     virtual W8AnimObj* GetCurrentAnimation() override;
@@ -178,9 +167,9 @@ public:
     virtual W8AniMesh* GetCurrentAniMesh() override;
     virtual void Update();
     virtual void SetCurrentAnimationScale(float scale);
-    virtual void GetMappedPosition004C72A0(W8Position* position);
-    virtual unsigned char GetAnimationCenter(W8Position* center);
-    virtual void SetPosition(const W8Position* position) override;
+    virtual void GetMappedPosition004C72A0(srVector3T<float>* position);
+    virtual unsigned char GetAnimationCenter(srVector3T<float>* center);
+    virtual void SetPosition(const srVector3T<float>* position) override;
 
     int Query(int query);                              /* 0x004C4660 */
     void SetRuntimeValueA6(signed char value);         /* 0x004C6C00 */
@@ -211,7 +200,7 @@ public:
     void StopTalking004C7470();
     void SetCycleCallback004CA340(
         int cycle, CycleCallback callback);
-    unsigned char GetPatrolPoint004CA360(W8Position* point);
+    unsigned char GetPatrolPoint004CA360(srVector3T<float>* point);
     void TrackSoundHandle004CA6E0(int handle);
     float GetDistanceToPlayer004C7CB0();
     float GetPointDistanceToPlayer004C7D50(float x, float y, float z);
@@ -221,10 +210,10 @@ public:
     unsigned char SetScript004C7F10(
         const char* script_name, unsigned char reset_orders);
     void ProcessScript004C80E0();
-    unsigned char GetProjectilePosition004C77F0(W8Position* position);
-    unsigned char GetSpellPosition004C78E0(W8Position* position);
+    unsigned char GetProjectilePosition004C77F0(srVector3T<float>* position);
+    unsigned char GetSpellPosition004C78E0(srVector3T<float>* position);
     unsigned char GetCycleMappedPosition004C7960(
-        signed char cycle, int mapped_index, W8Position* position);
+        signed char cycle, int mapped_index, srVector3T<float>* position);
     unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
     unsigned char CanContinueScript004CA0F0();
     unsigned char SetScriptLabel004CA260(const char* label);
@@ -237,15 +226,16 @@ public:
     void GetPlayerToMonsterSightFlags004C4A20(
         unsigned char* primary,
         unsigned char* secondary,
-        const W8Position* source);
+        const srVector3T<float>* source);
     unsigned char HasLineOfSightToMonster004C4AF0(W8Monster* monster);
     void GetMonsterSightFlags004C4B70(
         W8Monster* monster,
         unsigned char* primary,
         unsigned char* secondary);
-    unsigned char HasLineOfSightFromPoint004C4C40(W8Position point);
+    unsigned char HasLineOfSightFromPoint004C4C40(srVector3T<float> point);
     int IsFacingMonster004C4CA0(W8Monster* monster);
     int IsFacingPlayer004C4D40();
+    void Method4C5290();
 
 public:
     W8MonsterRep* m_pRep;
@@ -288,9 +278,9 @@ public:
     W8GameTimer timer_254;
     Trigger* trigger_278;
     int registry_weight_27c;
-    W8MonsterFormation formation;
+    srVector3T<float> formation;
     W8MonsterState28C state_28c;
-    W8GrowableVector<W8MonsterPatrolPoint> vector_29c;
+    W8GrowableVector<srVector3T<float> > vector_29c;
     W8MonsterState2AC state_2ac;
     W8GameTimer timer_2d8;
     W8MonsterState2FC state_2fc;
@@ -306,7 +296,7 @@ unsigned short ChooseDifferentMonsterDirection004C2E00(
     unsigned short previous_direction);
 
 unsigned char MonsterGetWorldAnimationBounds004CA4F0(
-    W8Monster* monster, W8Position* minimum, W8Position* maximum);
+    W8Monster* monster, srVector3T<float>* minimum, srVector3T<float>* maximum);
 
 unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(
@@ -321,7 +311,7 @@ unsigned char MonsterGetAnimationRadius(
     W8Monster* monster, float* radius);
 void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
 void MonsterSetAdjustedPosition004C5F00(
-    W8Monster* monster, const W8Position* position);
+    W8Monster* monster, const srVector3T<float>* position);
 unsigned short MonsterApproachStartupNavigator004C5FF0(
     W8Monster* monster, double separation);
 unsigned short MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
@@ -329,7 +319,7 @@ unsigned short MonsterConfigureMovementToPlayer004C6070(
     W8Monster* monster,
     int value_1,
     int value_2,
-    W8Position position,
+    srVector3T<float> position,
     int value_3,
     int value_4);
 unsigned short MonsterConfigureMovementToMonster004C60D0(
@@ -337,13 +327,14 @@ unsigned short MonsterConfigureMovementToMonster004C60D0(
     W8Monster* target,
     int value_1,
     int value_2,
-    W8Position position,
+    srVector3T<float> position,
     int value_3,
     int value_4);
 void MonsterAimAtMonster004C62C0(
     W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void UpdateNearestMonsterGroupMembers004CA570();
+extern "C" void Function4C5810(W8Monster* monster);
 
 static_assert(
     sizeof(W8Monster) == 0x348,

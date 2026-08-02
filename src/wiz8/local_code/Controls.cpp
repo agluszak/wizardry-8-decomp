@@ -3,6 +3,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "Font.h"
+#include "vsurface.h"
 
 #include <wchar.h>
 
@@ -62,28 +63,8 @@ Controls::Controls()
 }
 
 // FUNCTION: WIZ8 0x004f2ca0
-Controls::Controls(int left, int top, int right_bound, int bottom_bound,
-                   int render_target, int render_arg_1c, int render_arg_20)
-{
-    origin_x = left;
-    right = right_bound;
-    m_fEnabled = 0;
-    m_fDirty = 0;
-    m_fLayoutDirty = 0;
-    m_renderTarget = render_target;
-    m_renderArg_1c = render_arg_1c;
-    m_renderArg_20 = render_arg_20;
-    origin_y = top;
-    bottom = bottom_bound;
-    m_dirtyRect.left = -1;
-    m_fWholeAreaDirty = 1;
-    m_uiRegionSetId = 0;
-}
-
-__forceinline Controls::Controls(
-    W8RangeControlConstruction005ED74C,
-    int left, int top, int right_bound, int bottom_bound,
-    int render_target, int render_arg_1c, int render_arg_20)
+__inline Controls::Controls(int left, int top, int right_bound, int bottom_bound,
+                            int render_target, int render_arg_1c, int render_arg_20)
 {
     origin_x = left;
     right = right_bound;
@@ -127,8 +108,6 @@ extern void SetRenderClip00407220(int target, int left, int top, int right,
 extern void Function407A10(int a, int b, int font, int x, int y,
                            const wchar_t* format, const wchar_t* text);
 extern void Function407B80(int a, int b, int font, int x, int y);
-extern unsigned char FillSurfaceRect(int surface_id, int left, int top, int right,
-                                     int bottom, int colour);
 extern const wchar_t g_W8EmptyText0060CC74[];
 extern const wchar_t g_W8EmptyHelpText00689B34[];
 extern const wchar_t g_W8TextBreakCharacters00617C88[];
@@ -535,8 +514,8 @@ void W8TextBuffer005ED5B8::SetLineHeight(unsigned int height)
 // FUNCTION: WIZ8 0x004f3d50
 void W8TextBuffer005ED5B8::FillBounds(int colour)
 {
-    FillSurfaceRect(-14, m_layoutBounds.left, m_layoutBounds.top,
-                    m_layoutBounds.right, m_layoutBounds.bottom, colour);
+    ColorFillVideoSurfaceArea(-14, m_layoutBounds.left, m_layoutBounds.top,
+                              m_layoutBounds.right, m_layoutBounds.bottom, colour);
     MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
                    m_layoutBounds.right, m_layoutBounds.bottom, 0);
 }
@@ -1387,8 +1366,7 @@ __forceinline W8RangeButton005ED6FC::W8RangeButton005ED6FC(
 W8RangeControl005ED74C::W8RangeControl005ED74C(
     int left, int top, int right, int bottom,
     unsigned int* shared_region_set)
-    : Controls(W8RangeControlConstruction005ED74C(),
-               left, top, right, bottom, -1, -1, -1),
+    : Controls(left, top, right, bottom, -1, -1, -1),
       m_minimum(0), m_maximum(1), m_value(0),
       m_listener(0)
 {
@@ -1654,7 +1632,7 @@ void W8VerticalRangeThumb005ED6B4::Redraw(int full_redraw)
     int right = m_pPanel->origin_x + m_right;
     int bottom = m_pPanel->origin_y + m_bottom;
     MarkScreenRectDirty(left, top, right, bottom, 0);
-    FillSurfaceRect(-14, left, top, right, bottom, 0x8000);
+    ColorFillVideoSurfaceArea(-14, left, top, right, bottom, 0x8000);
 
     int sprite;
     if (m_flag_4 == 0) {

@@ -12,6 +12,11 @@
 #include "vobject_blitters.h"
 #include "vsurface.h"
 
+/* Exact relocation-masked match in every comparable Wizardry build. The body
+   is owned by the pinned SFI SGP vsurface.c source, not a Wizardry restatement. */
+// LIBRARY: WIZ8 0x00402FA0
+// ColorFillVideoSurfaceArea
+
 // LIBRARY: WIZ8 0x0040ABF0
 // Sound3DPlay
 

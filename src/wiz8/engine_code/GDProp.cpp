@@ -68,7 +68,7 @@ GDProp::~GDProp()
         free(m_allocation_10);
     }
     if (m_list_54 != 0) {
-        PListDestroy(m_list_54);
+        PLDestroy(m_list_54);
     }
 }
 
@@ -89,7 +89,7 @@ unsigned char GDProp::ContainsPathCoordinate004B75F0(
 // FUNCTION: WIZ8 0x004B7BA0
 unsigned char GDProp::HasListEntries004B7BA0()
 {
-    if (m_list_54 != 0 && (int)PListGetCount(m_list_54) > 0) {
+    if (m_list_54 != 0 && (int)PLLength(m_list_54) > 0) {
         return 1;
     }
     return 0;

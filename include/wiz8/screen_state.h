@@ -18,13 +18,8 @@ struct W8ScreenStateRuntime {
     char name[0x80];               /* 0x18 */
 };
 
-union W8ScreenStateStorage {
-    int id;
-    W8ScreenStateRuntime state;
-};
-
-extern "C" W8ScreenStateStorage g_screen_state_0068ec78;
-extern "C" W8ScreenStateStorage g_dword_68ed10;
+extern "C" W8ScreenStateRuntime g_screen_state_0068ec78;
+extern "C" W8ScreenStateRuntime g_dword_68ed10;
 
 static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_be_0x98");
 

@@ -295,7 +295,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         return 0;
     }
     if (record->deleted == 0) {
-        group->monsters = IListCreate();
+        group->monsters = ILCreate();
         if (group->monsters == 0) {
             free(group);
             return 0;
@@ -305,9 +305,9 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         group->flag_28 = 0;
         group->flag_29 = 0;
         if (is_encounter) {
-            index = PListAdd(g_monster_group_encounter_list, group);
+            index = PLAdoptAppend(g_monster_group_encounter_list, group);
         } else {
-            index = PListAdd(g_monster_group_species_list, group);
+            index = PLAdoptAppend(g_monster_group_species_list, group);
         }
         if (index == -1) {
             free(group);
@@ -437,7 +437,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         }
         if (previous != 0) {
             previous->next = item;
-        } else if (add_to_list && PListAdd(g_world_item_list, item) == -1) {
+        } else if (add_to_list && PLAdoptAppend(g_world_item_list, item) == -1) {
             return 0;
         }
         if (g_flag_659756 != 0) {

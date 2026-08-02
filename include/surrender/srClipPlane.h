@@ -4,7 +4,10 @@
 
 /* Reconstructed declaration surface for the closed SurRender class. The
    exported constructor and virtual methods establish the ABI; Wiz8's level
-   reader establishes the four-float plane, clip mode, and complete size. */
+   reader establishes the four-float plane, clip mode, and complete size. Wiz8
+   constructs an ordinary srClassSupport<srClipPlane, srClipPlane, ...>
+   instantiation over this imported base; its client-emitted registry slots
+   and vtable are not evidence for another authored class. */
 class SR_DLL_IMPORT srClipPlane : public srNode {
 public:
     enum e_clip {
@@ -13,6 +16,11 @@ public:
 
     srClipPlane(srNode* parent);
     srClipPlane& operator=(const srClipPlane& other);
+
+    static const char* sGetClassName()
+    {
+        return "srClipPlane";
+    }
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srClipPlane() override;

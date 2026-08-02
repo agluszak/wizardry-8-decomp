@@ -154,7 +154,7 @@ unsigned char PleaseWaitScreenEnter(void)
             return 0;
         }
         memset(g_load_descriptor_69b7c8, 0, sizeof(W8LevelLoadDescriptor));
-        g_load_descriptor_69b7c8->mode = g_screen_state_0068ec78.state.mode;
+        g_load_descriptor_69b7c8->mode = g_screen_state_0068ec78.mode;
         switch (g_load_descriptor_69b7c8->mode) {
         case 0:
             InitializeFactState();
@@ -163,17 +163,17 @@ unsigned char PleaseWaitScreenEnter(void)
             DeleteFileA("Saves\\CurrentGame.SAV");
             break;
         case 1:
-            g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.state.parameter;
-            strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.state.name);
+            g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.parameter;
+            strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
             break;
         case 2:
             g_load_descriptor_69b7c8->parameter = g_dword_686a70;
-            strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.state.name);
-            g_load_descriptor_69b7c8->save_payload = g_screen_state_0068ec78.state.parameter_3;
+            strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
+            g_load_descriptor_69b7c8->save_payload = g_screen_state_0068ec78.parameter_3;
             break;
         case 3:
-            g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.state.parameter;
-            g_load_descriptor_69b7c8->parameter_2 = g_screen_state_0068ec78.state.parameter_2;
+            g_load_descriptor_69b7c8->parameter = g_screen_state_0068ec78.parameter;
+            g_load_descriptor_69b7c8->parameter_2 = g_screen_state_0068ec78.parameter_2;
             break;
         }
     }
@@ -338,7 +338,7 @@ void PleaseWaitScreenFrame(void)
         }
         break;
     case 1:
-        if (PleaseWaitScreenEnsureLevelArchive(g_screen_state_0068ec78.state.parameter)) {
+        if (PleaseWaitScreenEnsureLevelArchive(g_screen_state_0068ec78.parameter)) {
             if (!LoadGame(g_load_descriptor_69b7c8->name)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
             }

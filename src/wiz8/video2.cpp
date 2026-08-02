@@ -1,18 +1,12 @@
 #include "surrender/srColorSurface.h"
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
-#include "wiz8/engine_code/ColorSurface.h"
-#include "wiz8/engine_code/Material.h"
-#include "wiz8/engine_code/MeshModel.h"
 #include "wiz8/engine_code/stModelInstance.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srScene.h"
 #include "surrender/srVertexProcessor.h"
-#include "wiz8/engine_code/Camera.h"
-#include "wiz8/engine_code/Scene.h"
-#include "wiz8/engine_code/TextureMap.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"
@@ -29,71 +23,92 @@ extern srNode* Function424BA0(
     float height,
     unsigned char positional_3);
 
+// VTABLE: WIZ8 0x005EBE98
+// class srClassSupport<srMeshModel, class srMeshModel, 0, 8208>
+
 // TEMPLATE: WIZ8 0x00429B30
-// srClassSupport<srMeshModel,srModel,0,8208>::getClassID
+// srClassSupport<srMeshModel,srMeshModel,0,8208>::getClassID
 
 // TEMPLATE: WIZ8 0x00429B40
-// srClassSupport<srMeshModel,srModel,0,8208>::getClassName
+// srClassSupport<srMeshModel,srMeshModel,0,8208>::getClassName
 
 // TEMPLATE: WIZ8 0x00429B50
-// srClassSupport<srMeshModel,srModel,0,8208>::getClassNode
+// srClassSupport<srMeshModel,srMeshModel,0,8208>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429BC0
-// srClassSupport<srMeshModel,srModel,0,8208>::clone
+// srClassSupport<srMeshModel,srMeshModel,0,8208>::clone
 
-// SYNTHETIC: WIZ8 0x00424b70
-// W8TextureMap::`scalar deleting destructor'
+/* CVDUMP includes the class tag on the repeated self-type argument in each
+   vftable symbol below. These remain ordinary self-support instantiations. */
+// VTABLE: WIZ8 0x005EBEEC
+// class srClassSupport<srTextureMap, class srTextureMap, 0, 8465>
+
+// SYNTHETIC: WIZ8 0x00424B70
+// srClassSupport<srTextureMap,srTextureMap,0,8465>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429BE0
-// srClassSupport<srTextureMap,srTexture,0,8465>::getClassID
+// srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassID
 
 // TEMPLATE: WIZ8 0x00429BF0
-// srClassSupport<srTextureMap,srTexture,0,8465>::getClassName
+// srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassName
 
 // TEMPLATE: WIZ8 0x00429C00
-// srClassSupport<srTextureMap,srTexture,0,8465>::getClassNode
+// srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429CA0
-// srClassSupport<srTextureMap,srTexture,0,8465>::clone
+// srClassSupport<srTextureMap,srTextureMap,0,8465>::clone
+
+// VTABLE: WIZ8 0x005EBDE0
+// class srClassSupport<srMaterial, class srMaterial, 0, 8720>
 
 // TEMPLATE: WIZ8 0x00429CC0
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassID
+// srClassSupport<srMaterial,srMaterial,0,8720>::getClassID
+
+// TEMPLATE: WIZ8 0x00429CD0
+// srClassSupport<srMaterial,srMaterial,0,8720>::getClassName
 
 // TEMPLATE: WIZ8 0x00429CE0
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassNode
+// srClassSupport<srMaterial,srMaterial,0,8720>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429D50
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::clone
+// srClassSupport<srMaterial,srMaterial,0,8720>::clone
 
-// FUNCTION: WIZ8 0x00429E80
-unsigned long W8Registered005EBF94::getClassID() const
-{
-    return 0x2200;
-}
+// TEMPLATE: WIZ8 0x00429E80
+// srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID
+
+/* CVDUMP includes the class tag on the repeated self-type argument in the
+   vftable symbol.  It is still the ordinary srCamera self-support template. */
+// VTABLE: WIZ8 0x005EBE14
+// class srClassSupport<srCamera, class srCamera, 0, 5120>
 
 // TEMPLATE: WIZ8 0x0042A010
-// srClassSupport<srCamera,srNode,0,5120>::getClassID
+// srClassSupport<srCamera,srCamera,0,5120>::getClassID
 
 // TEMPLATE: WIZ8 0x0042A020
-// srClassSupport<srCamera,srNode,0,5120>::getClassName
+// srClassSupport<srCamera,srCamera,0,5120>::getClassName
 
 // TEMPLATE: WIZ8 0x0042A030
-// srClassSupport<srCamera,srNode,0,5120>::getClassNode
+// srClassSupport<srCamera,srCamera,0,5120>::getClassNode
 
 // TEMPLATE: WIZ8 0x0042A0A0
-// srClassSupport<srCamera,srNode,0,5120>::clone
+// srClassSupport<srCamera,srCamera,0,5120>::clone
+
+/* CVDUMP includes the class tag on the repeated self-type argument in the
+   vftable symbol.  It is still the ordinary srScene self-support template. */
+// VTABLE: WIZ8 0x005EBE48
+// class srClassSupport<srScene, class srScene, 0, 4112>
 
 // TEMPLATE: WIZ8 0x0042A0C0
-// srClassSupport<srScene,srNode,0,4112>::getClassID
+// srClassSupport<srScene,srScene,0,4112>::getClassID
 
 // TEMPLATE: WIZ8 0x0042A0D0
-// srClassSupport<srScene,srNode,0,4112>::getClassName
+// srClassSupport<srScene,srScene,0,4112>::getClassName
 
 // TEMPLATE: WIZ8 0x0042A0E0
-// srClassSupport<srScene,srNode,0,4112>::getClassNode
+// srClassSupport<srScene,srScene,0,4112>::getClassNode
 
 // TEMPLATE: WIZ8 0x0042A150
-// srClassSupport<srScene,srNode,0,4112>::clone
+// srClassSupport<srScene,srScene,0,4112>::clone
 
 /* srVertexProcessor::~srVertexProcessor is defined in its own header - see
    the marker there - because 0x0049C430 expands it rather than calling it.
@@ -110,7 +125,9 @@ srNode* VideoMakePoster(
     unsigned char positional_3)
 {
     srTextureIFace::e_hint hint;
-    W8TextureMap* texture = new W8TextureMap(0);
+    srTextureMap* texture =
+        new srClassSupport<srTextureMap, srTextureMap, false, 0x2111>(
+            static_cast<srColorSurfaceIFace*>(0));
     texture->setMipmapBias(-8.0f);
     texture->autoRelease();
     texture->setName("VideoMakePoster");
@@ -126,17 +143,20 @@ srNode* VideoMakePoster(
     return Function424BA0(texture, width, height, positional_3);
 }
 
+// VTABLE: WIZ8 0x005EBD10
+// class srClassSupport<srColorSurface, class srColorSurface, 0, 12560>
+
 // TEMPLATE: WIZ8 0x00429A40
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassID
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassID
 
 // TEMPLATE: WIZ8 0x00429A50
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassName
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassName
 
 // TEMPLATE: WIZ8 0x00429A60
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::getClassNode
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429AD0
-// srClassSupport<srColorSurface,srColorSurfaceIFace,0,12560>::clone
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::clone
 
 extern "C" {
 extern int g_pixel_format_603c48;
@@ -183,7 +203,9 @@ unsigned char InitializeMouseSurface(void)
         return 0;
     }
 
-    g_mouse_surface_659688 = new W8ColorSurface(type, 128, 128);
+    g_mouse_surface_659688 =
+        new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+            type, 128UL, 128UL);
     if (!g_mouse_surface_659688) {
         srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp",
                      0x635, 0);
@@ -193,58 +215,117 @@ unsigned char InitializeMouseSurface(void)
     return 1;
 }
 
-static W8Scene* make_scene(const char* name)
-{
-    W8Scene* scene = new W8Scene(0);
-    scene->setName(name);
-    scene->ClearOverlayState();
-    return scene;
-}
-
-static W8Camera* make_camera(srNode* parent, const char* name,
-                                    double view_top)
-{
-    W8Camera* camera = new W8Camera(parent);
-    srCamera::Rect view;
-    camera->setName(name);
-    camera->setClipRange(0.01, 2.0);
-    camera->setLocation(0.0, 0.0, -1.0);
-    camera->setRotation(0.0, 0.0, 0.0);
-    view.left = 0.0;
-    view.bottom = 0.0;
-    view.right = 1.0;
-    view.top = view_top;
-    camera->setViewPlane(view, 1.0);
-    camera->setEnvironmentRange(0.0f, 0.0f);
-    return camera;
-}
-
 // FUNCTION: WIZ8 0x00423500
 extern "C" unsigned char InitializeRendererSceneObjects(void)
 {
     DDSURFACEDESC surface_description;
-    W8Material* material;
+    srCamera::Rect view;
+    srMaterial* material;
+    srVector4T<float> material_value;
     char renderer_name[128];
 
     InitializeMouseSurface();
     g_modeler_65963c = new srModeler;
-    g_scene_permanent_659648 = make_scene("2D Permanent Overlay Scene");
-    g_scene_user_659640 = make_scene("2D User Overlay Scene");
-    g_scene_fullscreen_659644 = make_scene("Full Screen Overlay Scene");
-    g_scene_overlay0_659654 = make_scene("2D Overlay Scene (0)");
-    g_scene_overlay1_659658 = make_scene("2D Overlay Scene (1)");
-    g_scene_square_65965c = make_scene("2D Square Overlay Scene");
-    g_scene_prerender0_65964c = make_scene("2D Pre-render Overlay Scene (0)");
-    g_scene_prerender1_659650 = make_scene("2D Pre-render Overlay Scene (1)");
+    g_scene_permanent_659648 =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_permanent_659648->setName("2D Permanent Overlay Scene");
+    g_scene_permanent_659648->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_permanent_659648->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_overlay_camera_659670 = make_camera(0, "2D Overlay Camera", 1.0);
-    g_square_camera_659674 = make_camera(
-        g_scene_square_65965c, "2D Square Overlay Camera", 0.75);
+    g_scene_user_659640 =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_user_659640->setName("2D User Overlay Scene");
+    g_scene_user_659640->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_user_659640->setFogColor(0.0f, 0.0f, 0.0f);
 
-    material = new W8Material;
+    g_scene_fullscreen_659644 =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_fullscreen_659644->setName("Full Screen Overlay Scene");
+    g_scene_fullscreen_659644->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_fullscreen_659644->setFogColor(0.0f, 0.0f, 0.0f);
+
+    g_scene_overlay0_659654 =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_overlay0_659654->setName("2D Overlay Scene (0)");
+    g_scene_overlay0_659654->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_overlay0_659654->setFogColor(0.0f, 0.0f, 0.0f);
+
+    g_scene_overlay1_659658 =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_overlay1_659658->setName("2D Overlay Scene (1)");
+    g_scene_overlay1_659658->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_overlay1_659658->setFogColor(0.0f, 0.0f, 0.0f);
+
+    g_scene_square_65965c =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_square_65965c->setName("2D Square Overlay Scene");
+    g_scene_square_65965c->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_square_65965c->setFogColor(0.0f, 0.0f, 0.0f);
+
+    g_scene_prerender0_65964c =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_prerender0_65964c->setName("2D Pre-render Overlay Scene (0)");
+    g_scene_prerender0_65964c->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_prerender0_65964c->setFogColor(0.0f, 0.0f, 0.0f);
+
+    g_scene_prerender1_659650 =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
+    g_scene_prerender1_659650->setName("2D Pre-render Overlay Scene (1)");
+    g_scene_prerender1_659650->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_prerender1_659650->setFogColor(0.0f, 0.0f, 0.0f);
+
+    g_overlay_camera_659670 =
+        new srClassSupport<srCamera, srCamera, false, 0x1400>(
+            static_cast<srNode*>(0));
+    g_overlay_camera_659670->setName("2D Overlay Camera");
+    g_overlay_camera_659670->setClipRange(0.01, 2.0);
+    g_overlay_camera_659670->setLocation(0.0, 0.0, -1.0);
+    g_overlay_camera_659670->setRotation(0.0, 0.0, 0.0);
+    view.left = 0.0;
+    view.bottom = 0.0;
+    view.right = 1.0;
+    view.top = 1.0;
+    g_overlay_camera_659670->setViewPlane(view, 1.0);
+    g_overlay_camera_659670->setEnvironmentRange(0.0f, 0.0f);
+
+    g_square_camera_659674 =
+        new srClassSupport<srCamera, srCamera, false, 0x1400>(
+            g_scene_square_65965c);
+    g_square_camera_659674->setName("2D Square Overlay Camera");
+    g_square_camera_659674->setClipRange(0.01, 2.0);
+    g_square_camera_659674->setLocation(0.0, 0.0, -1.0);
+    g_square_camera_659674->setRotation(0.0, 0.0, 0.0);
+    view.left = 0.0;
+    view.bottom = 0.0;
+    view.right = 1.0;
+    view.top = 0.75;
+    g_square_camera_659674->setViewPlane(view, 1.0);
+    g_square_camera_659674->setEnvironmentRange(0.0f, 0.0f);
+
+    material =
+        new srClassSupport<srMaterial, srMaterial, false, 0x2210>;
     g_blit_material_65967c = material;
     material->setName("Blit Rect Material");
-    material->initializeBlitRect();
+    material_value.x = 1.0f;
+    material_value.y = 1.0f;
+    material_value.z = 1.0f;
+    material_value.w = 1.0f;
+    material->setEmissive(material_value);
+    material_value.x = 0.0f;
+    material_value.y = 0.0f;
+    material_value.z = 0.0f;
+    material_value.w = 0.0f;
+    material->setDiffuse(material_value);
+    material->setSpecular(material_value);
+    material->setOpacity(1.0);
 
     memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
     memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
@@ -260,9 +341,11 @@ extern "C" unsigned char InitializeRendererSceneObjects(void)
     surface_description.dwSize = sizeof(surface_description);
     DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
     DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_primary_color_surface_659660 = new W8ColorSurface(
-        srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
-        640, 480, surface_description.lPitch);
+    g_primary_color_surface_659660 =
+        new srClassSupport<srColorSurface, srColorSurface, false, 0x3110>(
+            srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface,
+            640UL, 480UL,
+            static_cast<unsigned long>(surface_description.lPitch));
     if (!g_primary_color_surface_659660) return 0;
 
     g_surface_node_659664 = new stSurface2D(

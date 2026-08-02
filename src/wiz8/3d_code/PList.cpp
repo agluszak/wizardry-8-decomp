@@ -11,7 +11,7 @@
    no vptr, and the accessors are free functions rather than methods. */
 
 // FUNCTION: WIZ8 0x005e22c0
-W8PList* PListCreate(void)
+W8PList* PLCreate(void)
 {
     W8PList* ppl;
     void** data;
@@ -66,7 +66,7 @@ unsigned char PListInit(W8PList* ppl)
 }
 
 // FUNCTION: WIZ8 0x005e23e0
-unsigned char PListDestroy(W8PList* ppl)
+unsigned char PLDestroy(W8PList* ppl)
 {
     /* The second assertion is PListFreeData's, retained after inlining. */
     if (!ppl) {
@@ -95,7 +95,7 @@ unsigned char PListFreeData(W8PList* ppl)
 }
 
 // FUNCTION: WIZ8 0x005e2480
-int PListAdd(W8PList* ppl, void* pEntry)
+int PLAdoptAppend(W8PList* ppl, void* pEntry)
 {
     void** pTemp;
     int index;
@@ -214,7 +214,7 @@ void* PListRemove(W8PList* ppl, void* pEntry)
 }
 
 // FUNCTION: WIZ8 0x005e27c0
-void* PListRemoveAt(W8PList* ppl, int position)
+void* PLRemoveAt(W8PList* ppl, int position)
 {
     void* entry;
     int index;
@@ -237,7 +237,7 @@ void* PListRemoveAt(W8PList* ppl, int position)
 }
 
 // FUNCTION: WIZ8 0x005e2870
-void* PListGetAt(W8PList* ppl, int index)
+void* PLGet(W8PList* ppl, int index)
 {
     if (ppl && index < ppl->count) {
         return ppl->data[index];
@@ -269,9 +269,9 @@ done:
     return index;
 }
 
-/* Emitted later as a folded COMDAT at 0x005e2c70, but owned by PList.cpp. */
-// FUNCTION: WIZ8 0x005e2c70
-unsigned int PListGetCount(W8PList* ppl)
+/* The retail linker folds this ordinary PList.cpp function with ILLength. The
+   retained body and address marker belong to the IList.cpp contribution. */
+unsigned int PLLength(W8PList* ppl)
 {
     if (!ppl) {
         return 0;

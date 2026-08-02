@@ -26,7 +26,7 @@ public:
     virtual W8AnimObj* Method34();
 
     W8EmitterHost* GetHost();            /* 0x004AC890 */
-    W8Emitter* GetActiveEmitter();       /* 0x004AC820 */
+    W8AnimObj* GetActiveEmitter();       /* 0x004AC820 */
     float GetActiveEmitterValue();       /* 0x004AC870 */
     char GetEmitterCount();              /* 0x004AC840 */
     void ApplyHostSetting98();           /* 0x004AC360 */
@@ -38,14 +38,12 @@ public:
     unsigned char started;               /* 0x1e4 */
 };
 
-extern void DestroyEmitter(W8Emitter* emitter);                         /* 0x004A01E0 */
 extern void Function4A6E20(float value);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
 extern void ReleaseSoundHandle00408F70(int handle);
-extern void GetCameraPosition(W8Position* position);
+extern void GetCameraPosition(srVector3T<float>* position);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern unsigned char g_master_ambient_volume_6850f6;
-extern const double g_zero_005ebb40;
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
@@ -58,7 +56,7 @@ W8EmitterHost* W8SpellVisual::GetHost()
 
 /* The emitter it is currently coming out of. */
 // FUNCTION: WIZ8 0x004ac820
-W8Emitter* W8SpellVisual::GetActiveEmitter()
+W8AnimObj* W8SpellVisual::GetActiveEmitter()
 {
     return this->host->emitters[this->host->selection.emitter.emitter_index];
 }
@@ -67,26 +65,31 @@ W8Emitter* W8SpellVisual::GetActiveEmitter()
 // FUNCTION: WIZ8 0x004ac870
 float W8SpellVisual::GetActiveEmitterValue()
 {
-    return this->host->emitters[this->host->selection.emitter.emitter_index]->value_08;
+    return this->host->emitters[
+        this->host->selection.emitter.emitter_index]->playback_scale_08;
 }
 
 // FUNCTION: WIZ8 0x004ac8a0
 void* W8SpellVisual::GetActiveEmitterEntry004AC8A0()
 {
-    W8Emitter* emitter = this->host->emitters[
+    W8AnimObj* emitter = this->host->emitters[
         this->host->selection.emitter.emitter_index];
 
     if (emitter == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x653, 0);
     }
-    return emitter->values_18[this->host->m_bLOD];
+    return emitter->entries_18[this->host->m_bLOD];
 }
 
 /* How many emitters the host has, counted by testing each for null. */
 // FUNCTION: WIZ8 0x004ac840
 char W8SpellVisual::GetEmitterCount()
 {
-    char count = this->host->emitters[0] != 0;
+    char count = 0;
+
+    if (this->host->emitters[0] != 0) {
+        count = 1;
+    }
 
     if (this->host->emitters[1] != 0) {
         ++count;
@@ -124,7 +127,7 @@ srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(
     signed char emitter, signed char frame, signed char lod)
 {
     return AnimObjDispatch004A14D0(
-        (W8AnimObj*)this->emitters[emitter], (signed char)lod, frame);
+        this->emitters[emitter], (signed char)lod, frame);
 }
 
 /* Apply the host setting to one required emitter.  The source assertion names
@@ -132,7 +135,7 @@ srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(
 // FUNCTION: WIZ8 0x004ab2c0
 unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
 {
-    W8Emitter* target = this->emitters[emitter];
+    W8AnimObj* target = this->emitters[emitter];
 
     if (target == 0) {
         srAssertFail(
@@ -141,7 +144,7 @@ unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
             0x200,
             0);
     }
-    return AnimObjValue004A15D0((W8AnimObj*)target, this->m_bLOD);
+    return AnimObjValue004A15D0(target, this->m_bLOD);
 }
 
 /* One named emitter's AniMesh, looked up with the host's own setting; an
@@ -149,13 +152,13 @@ unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
 // FUNCTION: WIZ8 0x004ab310
 W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(char emitter)
 {
-    W8Emitter* target = this->emitters[emitter];
+    W8AnimObj* target = this->emitters[emitter];
 
     if (target == 0) {
         return 0;
     }
     return (W8AniMesh*)AnimObjEntry004A1660(
-        (W8AnimObj*)target, 0, this->m_bLOD, 0);
+        target, 0, this->m_bLOD, 0);
 }
 
 /* The clone slot owns both the 0x37c allocation and the copy-construction
@@ -179,7 +182,7 @@ W8SpellEmitterHost::~W8SpellEmitterHost()
 
     for (emitter = 0; emitter < 28; ++emitter) {
         if (emitters[emitter] != 0) {
-            DestroyEmitter(emitters[emitter]);
+            DestroyAnimObj004A01E0(emitters[emitter]);
             emitters[emitter] = 0;
         }
     }
@@ -298,7 +301,7 @@ unsigned char stSound3D::Play004AEBF0(
     unsigned char flatten, unsigned char flag)
 {
     SOUND3DPARMS options;
-    W8Position listener;
+    srVector3T<float> listener;
 
     if (sound_name_148 == 0) {
         return 0;
@@ -315,7 +318,7 @@ unsigned char stSound3D::Play004AEBF0(
 
 // FUNCTION: WIZ8 0x004AECC0
 void stSound3D::BuildSoundOptions004AECC0(
-    const W8Position* listener, SOUND3DPARMS* options)
+    const srVector3T<float>* listener, SOUND3DPARMS* options)
 {
     float angle = -GetCameraYawRadians();
     unsigned int volume =
@@ -343,7 +346,7 @@ void stSound3D::BuildSoundOptions004AECC0(
     }
 
     getLocation(node_position);
-    offset.method_00421650(
+    offset = srVector3T<float>(
         node_position.x - listener->x,
         node_position.y - listener->y,
         node_position.z - listener->z);
@@ -352,8 +355,7 @@ void stSound3D::BuildSoundOptions004AECC0(
     float z = Function4218E0(rotation.vectors[2], offset);
 
     memset(options, 0xff, sizeof(*options));
-    srVector3T<float> listener_offset;
-    listener_offset.method_00421650(
+    srVector3T<float> listener_offset(
         listener->x - node_position.x,
         listener->y - node_position.y,
         listener->z - node_position.z);

@@ -90,7 +90,7 @@ void RefreshOutwardSightForAllMonsters(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
     }
     if (g_in_combat_00683f94 != 0) {
@@ -105,7 +105,7 @@ void RefreshInwardSightForAllMonsters(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
     }
 }
@@ -118,14 +118,14 @@ void RefreshAllSight(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 1, 0);
     }
     if (g_in_combat_00683f94 != 0) {
         Function593330();
         Function53BF80();
     }
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         UpdateMonsterSight(MonsterGetScriptPartByLocationIndex(index), 0, 0);
     }
 }
@@ -139,22 +139,22 @@ void ReleaseMonToMonVisibilityInfoAbout(int location_id)
     W8MonsterInfo* monster_info;
     W8MonToMonVisibility* visibility;
 
-    for (monster_index = 0; monster_index < PListGetCount(g_active_monster_list_00683fad);
+    for (monster_index = 0; monster_index < PLLength(g_active_monster_list_00683fad);
          ++monster_index) {
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->flag_14 == 0) {
             continue;
         }
         for (index = 0;
-             index < (int)PListGetCount(monster_info->mon_to_mon_visibility);
+             index < (int)PLLength(monster_info->mon_to_mon_visibility);
              ++index) {
             visibility =
-                (W8MonToMonVisibility*)PListGetAt(monster_info->mon_to_mon_visibility, index);
+                (W8MonToMonVisibility*)PLGet(monster_info->mon_to_mon_visibility, index);
             if (visibility == 0) {
                 return;
             }
             if (visibility->about_location_id == location_id) {
-                visibility = (W8MonToMonVisibility*)PListRemoveAt(
+                visibility = (W8MonToMonVisibility*)PLRemoveAt(
                     monster_info->mon_to_mon_visibility, index);
                 if (visibility == 0) {
                     srAssertFail(
@@ -177,9 +177,9 @@ void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
 {
     W8MonToMonVisibility* visibility;
 
-    while ((int)PListGetCount(monster_info->mon_to_mon_visibility) > 0) {
+    while ((int)PLLength(monster_info->mon_to_mon_visibility) > 0) {
         visibility =
-            (W8MonToMonVisibility*)PListRemoveAt(monster_info->mon_to_mon_visibility, 0);
+            (W8MonToMonVisibility*)PLRemoveAt(monster_info->mon_to_mon_visibility, 0);
         if (visibility == 0) {
             srAssertFail(
                 "pVisibility != NULL", SIGHT_CPP, 990,
@@ -187,7 +187,7 @@ void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info)
         }
         free(visibility);
     }
-    if (PListDestroy(monster_info->mon_to_mon_visibility)) {
+    if (PLDestroy(monster_info->mon_to_mon_visibility)) {
         monster_info->mon_to_mon_visibility = 0;
         ReleaseMonToMonVisibilityInfoAbout(monster_info->location_id);
     }
@@ -201,7 +201,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+    for (index = 0; index < ILLength(group->monsters); ++index) {
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
         if (monster_info->flag_14 != 0 && !monster_info->monster->IsDying() &&
             monster_info->hp_current != 0 && (unsigned int)monster_info->value_107 < 0xc &&
@@ -275,13 +275,13 @@ unsigned int AgeAllMonsterSight(void)
     if (steps == 0) {
         return 0;
     }
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if ((unsigned int)monster_info->value_107 < 0x12) {
             AgeMonsterSight(monster_info, steps, 1);
         }
     }
-    return PListGetCount(g_active_monster_list_00683fad);
+    return PLLength(g_active_monster_list_00683fad);
 }
 
 /* What one monster has recorded about another, if anything. Both monsters have
@@ -301,9 +301,9 @@ W8MonToMonVisibility* FindMonToMonVisibility(
         srAssertFail("pTargetMonsterInfo->fActive", SIGHT_CPP, 1021, 0);
     }
 
-    for (index = 0; index < (int)PListGetCount(source->mon_to_mon_visibility); ++index) {
+    for (index = 0; index < (int)PLLength(source->mon_to_mon_visibility); ++index) {
         visibility =
-            (W8MonToMonVisibility*)PListGetAt(source->mon_to_mon_visibility, index);
+            (W8MonToMonVisibility*)PLGet(source->mon_to_mon_visibility, index);
         if (visibility == 0) {
             srAssertFail("FALSE", SIGHT_CPP, 1030, 0);
         }

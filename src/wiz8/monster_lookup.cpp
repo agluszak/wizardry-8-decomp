@@ -8,14 +8,14 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id)
     unsigned int index;
     W8MonsterGroup* group;
 
-    for (index = 0; index < PListGetCount(g_monster_group_species_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_group_species_list); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->monster_id == monster_id) {
             goto found;
         }
     }
-    for (index = 0; index < PListGetCount(g_monster_group_encounter_list); ++index) {
-        group = (W8MonsterGroup*)PListGetAt(g_monster_group_encounter_list, index);
+    for (index = 0; index < PLLength(g_monster_group_encounter_list); ++index) {
+        group = (W8MonsterGroup*)PLGet(g_monster_group_encounter_list, index);
         if (group->monster_id == monster_id) {
             goto found;
         }
@@ -37,7 +37,7 @@ W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* prev
 
     if (previous != 0) {
         index = PListIndexOf(g_monster_group_species_list, previous);
-        if (index >= (int)PListGetCount(g_monster_group_species_list) - 1) {
+        if (index >= (int)PLLength(g_monster_group_species_list) - 1) {
             goto reset_encounter;
         }
         if (index == -1) {
@@ -51,7 +51,7 @@ W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* prev
         }
         ++index;
     }
-    for (; (unsigned int)index < PListGetCount(g_monster_group_species_list); ++index) {
+    for (; (unsigned int)index < PLLength(g_monster_group_species_list); ++index) {
         group = GetMonsterGroupByListIndex((unsigned int)index);
         if (group->monster_id == monster_id) {
             goto done;
@@ -62,8 +62,8 @@ reset_encounter:
     index = 0;
 
 search_encounter:
-    for (; (unsigned int)index < PListGetCount(g_monster_group_encounter_list); ++index) {
-        group = (W8MonsterGroup*)PListGetAt(g_monster_group_encounter_list, (unsigned int)index);
+    for (; (unsigned int)index < PLLength(g_monster_group_encounter_list); ++index) {
+        group = (W8MonsterGroup*)PLGet(g_monster_group_encounter_list, (unsigned int)index);
         if (group->monster_id == monster_id) {
             goto done;
         }

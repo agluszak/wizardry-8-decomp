@@ -123,8 +123,8 @@ float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
         stMeshModel* model = static_cast<stMeshModel*>(instance->model());
 
         if (model != 0) {
-            srVector3T<float> minimum = {0.0f, 0.0f, 0.0f};
-            srVector3T<float> maximum = {0.0f, 0.0f, 0.0f};
+            srVector3T<float> minimum(0.0f, 0.0f, 0.0f);
+            srVector3T<float> maximum(0.0f, 0.0f, 0.0f);
 
             do {
                 srVector3T<float> model_minimum;
@@ -296,7 +296,7 @@ unsigned char LoadAniMesh004B5D00(
     }
     delete[] instance_name;
     if ((mesh->flags_00 & W8_ANI_MESH_KEEP_LOADED) != 0) {
-        PListAdd(&g_storage_list_65be90, mesh);
+        PLAdoptAppend(&g_storage_list_65be90, mesh);
     }
     EnforceAniMeshMemoryLimit004B6770(mesh);
     return 1;
@@ -463,14 +463,14 @@ void AniMeshSetFlag10004B6860(W8AniMesh* mesh, signed char enabled)
 void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
 {
     while (g_storage_state_65be84 > g_storage_limit_65be88 &&
-           PListGetCount(&g_storage_list_65be90) != 0) {
+           PLLength(&g_storage_list_65be90) != 0) {
         W8AniMesh* oldest = 0;
         int oldest_index = -1;
-        unsigned int count = PListGetCount(&g_storage_list_65be90);
+        unsigned int count = PLLength(&g_storage_list_65be90);
 
         for (unsigned int index = 0; index < count; ++index) {
             W8AniMesh* candidate = static_cast<W8AniMesh*>(
-                PListGetAt(&g_storage_list_65be90, index));
+                PLGet(&g_storage_list_65be90, index));
 
             if (candidate != current) {
                 if (candidate == 0) {
@@ -487,7 +487,7 @@ void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
         }
         if (oldest != current) {
             UnloadAniMesh004B63F0(oldest, 0);
-            PListRemoveAt(&g_storage_list_65be90, oldest_index);
+            PLRemoveAt(&g_storage_list_65be90, oldest_index);
         } else if (oldest_index == -1) {
             srAssertFail(
                 "0", ANI_MESH_CPP, 0x39d,

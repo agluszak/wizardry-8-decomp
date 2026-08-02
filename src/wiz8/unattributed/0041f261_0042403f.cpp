@@ -10,8 +10,8 @@ extern const double g_double_005ebc18;
 extern const float g_float_005ebcf8;
 
 // FUNCTION: WIZ8 0x00420D40
-W8Camera* CreateOrSetGameCamera(
-    srNode* parent, W8Camera* camera)
+srCamera* CreateOrSetGameCamera(
+    srNode* parent, srCamera* camera)
 {
     if (g_gd_camera_65a0f8 == 0) {
         g_gd_camera_65a0f8 = new GDCamera();
@@ -68,21 +68,21 @@ void ApplyCameraRotation(srMatrix3T<float>* rotation)
    spelled it as a decimal literal rather than computing it from a pi constant;
    the literal here is the shortest decimal that reproduces the stored bytes. */
 // FUNCTION: WIZ8 0x00421070
-void GetCameraPosition(W8Position* position)
+void GetCameraPosition(srVector3T<float>* position)
 {
     *position = g_gd_camera_65a0f8->m_position_08c;
 }
 
 // FUNCTION: WIZ8 0x00421100
-void Function421100(float distance, W8Position* output)
+void Function421100(float distance, srVector3T<float>* output)
 {
-    W8Position result = *output;
+    srVector3T<float> result = *output;
     g_gd_camera_65a0f8->GetForwardPoint(distance, &result);
     *output = result;
 }
 
 // FUNCTION: WIZ8 0x00421150
-void Function421150(float distance, W8Position* output)
+void Function421150(float distance, srVector3T<float>* output)
 {
     g_gd_camera_65a0f8->GetForwardPoint(distance, output);
 }

@@ -32,16 +32,6 @@ W8MonsterGenerator* FindMonGenByName(const char* name)
     return 0;
 }
 
-/* One 0x21-byte runtime row per level, at 0x00686B74. Only the timestamp the
-   encounter budget measures elapsed time from is established. */
-struct W8LevelRuntimeRow {
-    unsigned char flag_00;                  /* 0x00 */
-    unsigned char unknown_01[0xc];
-    int last_budget_update;                 /* 0x0d */
-    unsigned char unknown_11[0x10];
-};                                          /* 0x21 */
-
-extern W8LevelRuntimeRow g_level_runtime[]; /* 0x00686B74 */
 extern int g_random_encounter_budget;
 extern int g_random_encounter_limit;
 extern int g_active_group_count;            /* 0x0065BA14 */
@@ -80,20 +70,6 @@ static unsigned int g_encounter_name_capacity;
 static unsigned int g_encounter_table_capacity;
 
 void UnloadEncounterTables(void);
-
-struct W8EncounterTableLayout {
-    W8GrowableVector<unsigned short> species_ids;
-    W8GrowableVector<unsigned char> rarity_class;
-    W8GrowableVector<unsigned char> time_condition;
-    W8GrowableVector<unsigned char> challenge_level;
-    W8GrowableVector<W8EncounterScriptName*> script_names;
-    char name[256];
-    unsigned int unknown_150;
-    unsigned char version_two_flags;
-    unsigned char padding_155[3];
-};
-
-static_assert(sizeof(W8EncounterTableLayout) == 0x158, "W8EncounterTableLayout_must_be_0x158");
 
 static unsigned char GrowPointerArray(void*** values, unsigned int* capacity,
                                       unsigned int wanted)
@@ -170,7 +146,7 @@ extern "C" unsigned int InitializeEncounterTables(void)
         unsigned char rarity[256];
         unsigned char time[256];
         unsigned char challenge[256];
-        W8EncounterTableLayout* table;
+        W8EncounterTableRuntime* table;
         int entry;
 
         if (!ReadVirtualFile(handle, &record_kind, 1, 0) ||
@@ -181,7 +157,7 @@ extern "C" unsigned int InitializeEncounterTables(void)
             CloseVirtualFile(handle);
             return 0;
         }
-        table = new W8EncounterTableLayout;
+        table = new W8EncounterTableRuntime;
         if (!table) {
             CloseVirtualFile(handle);
             return 0;
@@ -225,8 +201,7 @@ extern "C" unsigned int InitializeEncounterTables(void)
             CloseVirtualFile(handle);
             return 0;
         }
-        g_encounter_tables[g_encounter_table_count++] =
-            reinterpret_cast<W8EncounterTableRuntime*>(table);
+        g_encounter_tables[g_encounter_table_count++] = table;
         (void)record_kind;
     }
     g_encounter_tables_level = g_current_level;
@@ -263,7 +238,8 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
     int index;
 
     if (reset_budget == 0) {
-        elapsed = g_world_clock_00686a48 - g_level_runtime[g_current_level].last_budget_update;
+        elapsed = g_world_clock_00686a48 -
+                  g_level_progress[g_current_level].sight_clock;
         g_random_encounter_budget +=
             elapsed / g_level_records[g_current_level].encounter_budget_period;
     } else {
@@ -710,13 +686,13 @@ W8MonsterGenerator::~W8MonsterGenerator()
 /* Moves the generator. The scene is only told when the generator is armed and
    therefore actually has something placed. */
 // FUNCTION: WIZ8 0x0048b730
-void W8MonsterGenerator::SetState(const W8Position* state)
+void W8MonsterGenerator::SetState(const srVector3T<float>* state)
 {
     state_0c = *reinterpret_cast<const int*>(&state->x);
     state_10 = *reinterpret_cast<const int*>(&state->y);
     state_14 = *reinterpret_cast<const int*>(&state->z);
     if (node_18 != 0) {
-        Function49F720(const_cast<W8Position*>(state));
+        Function49F720(const_cast<srVector3T<float>*>(state));
         Function49FAA0();
     }
 }

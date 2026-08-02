@@ -29,7 +29,10 @@ class SR_DLL_IMPORT srMaterial
 public:
     enum e_oper {};
 
-    srMaterial();
+    inline srMaterial()
+    {
+        reset();
+    }
     srMaterial(const srMaterial& other);
     static const char* sGetClassName();
 
@@ -65,12 +68,28 @@ public:
     int isEnabled(e_oper operation) const;
     void setAmbient(const srVector4T<float>& ambient);
     void setAmbientAndDiffuse(const srVector4T<float>& color);
-    void setDiffuse(const srVector4T<float>& diffuse);
-    void setEmissive(const srVector4T<float>& emissive);
-    void setMapper(srVertexProcessor* mapper);
-    void setOpacity(double opacity);
+    inline void setDiffuse(const srVector4T<float>& diffuse)
+    {
+        setVector(parms_18.diffuse, diffuse);
+    }
+    inline void setEmissive(const srVector4T<float>& emissive)
+    {
+        setVector(parms_18.emissive, emissive);
+    }
+    inline void setMapper(srVertexProcessor* mapper)
+    {
+        mapper_70 = mapper;
+    }
+    inline void setOpacity(double opacity)
+    {
+        parms_18.diffuse.w = static_cast<float>(opacity);
+        dirty_74 = 1;
+    }
     void setShininess(double shininess);
-    void setSpecular(const srVector4T<float>& specular);
+    inline void setSpecular(const srVector4T<float>& specular)
+    {
+        setVector(parms_18.specular, specular);
+    }
     void setTranslucency(double translucency);
 
 protected:

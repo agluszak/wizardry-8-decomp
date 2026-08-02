@@ -72,7 +72,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(
    these as vectors rather than opaque twelve-byte values. */
 // FUNCTION: WIZ8 0x004b8850
 void W8AnimRepBase005EC1D8::SetLocation004B8850(
-    const W8Position* location)
+    const srVector3T<float>* location)
 {
     local_location_010.x = location->x;
     local_location_010.y = location->y;

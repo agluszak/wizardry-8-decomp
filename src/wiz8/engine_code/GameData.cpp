@@ -65,18 +65,10 @@ void CopyLevelDataHandle(int* destination, const int* source)
     *destination = *source;
 }
 
-/* Call one function a fixed number of times. The guard is written against the
-   count less one, so a count of zero runs nothing. */
-// FUNCTION: WIZ8 0x0041e880
-void RepeatLevelDataCallback(int arg_1, int arg_2, int count, void (*callback)(void))
-{
-    if (count - 1 >= 0) {
-        do {
-            callback();
-            --count;
-        } while (count != 0);
-    }
-}
+/* VC6 vector constructor iterator, emitted for an ordinary array construction.
+   This is compiler support, not an authored Wizardry callback wrapper. */
+// LIBRARY: WIZ8 0x0041e880
+// vector constructor iterator
 
 // FUNCTION: WIZ8 0x0041ef50
 void Function41EF50(void)

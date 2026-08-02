@@ -3,8 +3,8 @@
 
 #include "surrender/srMath.h"
 
-struct W8Position;
 struct W8AniMesh;
+struct W8AnimObj;
 class srModelInstance;
 
 /*
@@ -16,16 +16,6 @@ class srModelInstance;
  */
 
 #pragma pack(push, 1)
-
-/* One emitter. Only the field the reach-through accessors read is
-   established. */
-class W8Emitter {
-public:
-    unsigned char unknown_00[8];
-    float value_08;                      /* 0x08 */
-    unsigned char unknown_0c[0x0c];
-    void* values_18[4];                  /* 0x18 */
-};
 
 /* Copy constructors establish these aggregate boundaries, but no independent
    witness yet establishes their original semantic types.  Keep their names
@@ -44,18 +34,6 @@ struct W8AnimRepValue4 {
     unsigned int value_0c;
 };
 
-struct W8AnimRepValue9 {
-    unsigned int value_00;
-    unsigned int value_04;
-    unsigned int value_08;
-    unsigned int value_0c;
-    unsigned int value_10;
-    unsigned int value_14;
-    unsigned int value_18;
-    unsigned int value_1c;
-    unsigned int value_20;
-};
-
 /* The copy path at 0x004B87C0 and clone slot at 0x0044EDF0 establish the
    0x64-byte polymorphic root below.  Its original name is not available. */
 class W8AnimRepBase005EC1D8 {
@@ -65,7 +43,7 @@ public:
     virtual ~W8AnimRepBase005EC1D8();
     virtual W8AnimRepBase005EC1D8* Clone();
 
-    void SetLocation004B8850(const W8Position* location);
+    void SetLocation004B8850(const srVector3T<float>* location);
     void GetLocation004B8890(srVector3T<float>* location) const;
     void GetLocalLocation004B88B0(srVector3T<float>* location) const;
     void SetRotation004B88D0(const srMatrix3T<float>* rotation);
@@ -135,7 +113,7 @@ public:
        "bLOD >= 0 && bLOD < NUM_LODS" assertion and written 0, 1 or 2 by the
        selector at 0x004A7BE0. It doubles as the AnimObj list index, which is
        what makes one animation list per LOD. */
-    unsigned char m_bLOD;
+    signed char m_bLOD;
     unsigned char unknown_099[3];
     /* Two LOD switch distances, scaled by the detail slider before they
        are compared. 0x004A7BE0 reads both with fmul, which types them. */
@@ -162,23 +140,11 @@ public:
     float value_0a8;
 };                                       /* 0xac */
 
-/* Both recovered consumers directly address the first two emitters at 0xd8;
-   the concrete host families may extend the table beyond those two entries. */
-class W8EmitterTableHost : public W8EmitterHost {
-public:
-    unsigned char unknown_0ac[0x2c];
-    /* 0xd8: the emitters. The count is derived rather than stored - both
-       counters test exactly these two for null, which is what bounds it. */
-    W8Emitter* emitters[2];              /* 0xd8 */
-};                                       /* 0xe0 */
-
 static_assert(sizeof(W8AnimRepValue3) == 0x0c, "W8AnimRepValue3_size_must_be_0x0c");
 static_assert(sizeof(W8AnimRepValue4) == 0x10, "W8AnimRepValue4_size_must_be_0x10");
-static_assert(sizeof(W8AnimRepValue9) == 0x24, "W8AnimRepValue9_size_must_be_0x24");
 static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep005ED050) == 0x98, "W8AnimRep005ED050_size_must_be_0x98");
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");
-static_assert(sizeof(W8EmitterTableHost) == 0xe0, "W8EmitterTableHost_size_must_be_0xe0");
 
 #pragma pack(pop)
 

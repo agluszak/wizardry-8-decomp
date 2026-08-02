@@ -1,9 +1,10 @@
 #pragma once
 
 #include "surrender/srLight.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srMeshModel.h"
 #include "surrender/srScene.h"
 #include "surrender/srTexture.h"
-#include "wiz8/engine_code/Node005EC208.h"
 #include "wiz8/engine_code/stModelInstance.h"
 
 class W8MonsterShakeCallback;
@@ -11,7 +12,6 @@ class W8Prop;
 class Trigger;
 class stTextureAnim;
 struct W8PathAI;
-struct W8Position;
 
 /*
  * Classes whose only recovered members so far are the two SurRender class
@@ -33,19 +33,24 @@ struct W8Position;
 class stParticle
     : public srClassSupport<stParticle, srNode, 0, 0x10009> {
 public:
-    enum e_renderFlag {};
-
     static const char* sGetClassName() { return "stParticle"; }
     stParticle(srNode* parent, unsigned int count); /* 0x00497AF0 */
     stParticle(const stParticle& other);           /* 0x00498180 */
     void SetActive(unsigned char active);
     void SetTraversalEnabled00498D90(unsigned char enabled);
     void DeactivateParticle00499F70(unsigned int index);
+    unsigned char ActivateParticle00499A50(
+        unsigned int* out_index, unsigned char replace_when_full);
+    void InitializeParticlePosition0049A990(srVector3T<float>* output);
     void SetTexture0049AB00(srTextureIFace* texture);
-    void SetRetainedObject0049ACA0(srClass* object);
+    void SetRetainedObject0049ACA0(srMaterialIFace* material);
     void SetFlutter0049AD10(int enabled);
     void Function4994D0(srGERD* renderer);
-    srFlags<e_renderFlag> GetRenderFlags00498A10() const;
+    /* The per-particle age/cull/move step and billboard-corner expansion used
+       by the submitted batch. Their retail names remain unavailable. */
+    void Update00499FA0();                          /* 0x00499FA0 */
+    void PrepareRenderer00498DD0(srMatrix4T<float>& view); /* 0x00498DD0 */
+    srShader GetRenderFlags00498A10() const;
     unsigned char ReplaceTexture0049AC30(
         const char* old_name, srTextureIFace* replacement);
     virtual srClass* vInstance() override;         /* 0x004980E0 */
@@ -62,22 +67,24 @@ public:
     unsigned char unknown_13c[4];
     double value_140;
     srVector3T<float>* allocation_148;
-    srClass* retained_14c;
-    srFlags<e_renderFlag> render_flags_150;
+    srMaterialIFace* retained_14c;
+    srShader render_flags_150;
     srTextureIFace* texture_154;
     unsigned int vertex_count_158;
     unsigned int texture_frame_count_15c;
     srVector3T<float>* allocation_160;
     srVector2T<float>* allocation_164;
-    unsigned int* allocation_168;
+    srVector3i* allocation_168;
     void* allocation_16c;
     void* allocation_170;
     float* allocation_174;
     stTextureAnim** texture_frames_178;
     float* m_pflFlutterAngle;                     /* 0x17c */
     unsigned int particle_count_180;
-    int state_184;
-    int value_188;
+    /* Both unsigned: 0x004994D0 gates the particle off with the unsigned
+       `state_184 != 0 && state_184 <= value_188` pair. */
+    unsigned int state_184;
+    unsigned int value_188;
     unsigned int active_particle_count_18c;
     unsigned char active_190;
     unsigned char unknown_191;
@@ -85,7 +92,8 @@ public:
     unsigned char unknown_193;
     unsigned char* allocation_194;
     srVector3T<float>* allocation_198;
-    void* allocation_19c;
+    /* Unsigned millisecond birth ticks, one per particle. */
+    unsigned int* allocation_19c;
     unsigned char active_1a0;
     unsigned char flag_1a1;
     unsigned char unknown_1a2[2];
@@ -98,18 +106,17 @@ public:
     int value_1bc;
     int value_1c0;
     int value_1c4;
-    int value_1c8;
-    int value_1cc;
+    /* Emission interval; elapsed comparisons use unsigned subtraction. */
+    unsigned int value_1c8;
+    /* Lifetime added to each absolute unsigned birth tick. */
+    unsigned int value_1cc;
     srVector3T<float> minimum_1d0;
     srVector3T<float> maximum_1dc;
-    float value_1e8;
-    float value_1ec;
-    float value_1f0;
-    float value_1f4;
-    float value_1f8;
-    float value_1fc;
+    srVector3T<float> direction_1e8;
+    srVector3T<float> acceleration_1f4;
     float value_200;
-    float value_204;
+    /* 0x00498DD0 uses this as an unsigned modulus period. */
+    unsigned int value_204;
     float value_208;
     float value_20c;
     float value_210;
@@ -119,18 +126,24 @@ public:
     srVector3T<float> maximum_228;
     srVector3T<float> value_234;
     float value_240;
-    unsigned char unknown_244[0x0c];
+    /* Added to the camera position when value_1c4 selects camera-relative
+       placement. */
+    srVector3T<float> camera_offset_244;
     unsigned int update_flags_250;
-    float* allocation_254;
+    /* Index pairs, two per still-active particle, rebuilt whenever
+       update_flags_250 carries bit 1. */
+    unsigned long* allocation_254;
+    /* Last accepted particle-integration tick. */
     unsigned int activated_at_258;
+    /* Emission schedule tick. */
     unsigned int updated_at_25c;
     short value_260;
     unsigned char unknown_262[2];
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
-    int value_270;
-    int value_274;
+    unsigned int value_270;
+    unsigned int value_274;
     float value_278;
     unsigned char unknown_27c[4];
 };
@@ -328,7 +341,7 @@ class MonsterLight : public srLight {
 public:
     MonsterLight(const MonsterLight& other);          /* 0x0049D660 */
     void SetVisible0049D970(char visible);
-    void Update0049D990(const W8Position* position);
+    void Update0049D990(const srVector3T<float>* position);
     void StartFadeOut0049DAF0();
 
     virtual const char* getClassName() const override; /* 0x0049DC30 */
@@ -352,26 +365,3 @@ private:
 };
 
 static_assert(sizeof(MonsterLight) == 0x250, "MonsterLight_must_be_0x250");
-
-/*
- * Six more classes that present under a SurRender base, but whose name slot is
- * an import thunk straight to SR.DLL rather than an owned body - so only the
- * id half of the pair exists here to recover. Two of the ids are named by the
- * reviewed model: 0x1000 is srNode and 0x1200 is srIlluminator, both spelled
- * out in MonsterLight's srClassSupport<srIlluminator,srNode,0,0x1200> base.
- * The rest stay vtable-qualified because nothing names their base.
- */
-
-/* W8Node005EC208 moved to engine_code/Node005EC208.h, which this header
-   includes so existing users are unaffected. */
-
-class W8Illuminator005ECCD8 {
-public:
-    unsigned long getClassID() const;     /* 0x0049DB10, base id 0x1200 */
-    srRegistry::ClassNode* getClassNode() const;        /* 0x0049DB30 */
-};
-
-class W8Registered005EBF94 {
-public:
-    unsigned long getClassID() const;     /* 0x00429E80 */
-};

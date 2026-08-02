@@ -227,9 +227,9 @@ struct W8SpellQueueEntry {
    point, so it is the same shape the character carries. */
 extern W8SavedLocation g_pending_move_location_00687417;
 
-extern void MoveWorldToPoint(W8World* destination, W8World* source, const W8Position* point);
+extern void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
 /* 0x00450610 */
-extern void PlacePartyAtPoint(const W8Position* point);                  /* 0x00421090 */
+extern void PlacePartyAtPoint(const srVector3T<float>* point);                  /* 0x00421090 */
 extern void BeginLevelTransition(void);                                  /* 0x005611A0 */
 
 /* Return the casting character to the anchor they set earlier. Nothing happens
@@ -241,7 +241,7 @@ extern void BeginLevelTransition(void);                                  /* 0x00
 void RecallCasterToSavedLocation(W8SpellQueueEntry* pQueue)
 {
     W8Character* caster;
-    W8Position point;
+    srVector3T<float> point;
 
     if (!TargetSourceIsCharacter(&pQueue->Source, 0)) {
         srAssertFail("SourceIsCharacter(&(pQueue->Source))", MAGIC_EFFECTS_CPP, 2685, 0);

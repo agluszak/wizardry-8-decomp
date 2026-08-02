@@ -19,7 +19,6 @@ class W8PathState004CAE40 {
 public:
     W8PathState004CAE40();               /* 0x004CAE40 */
 };
-struct W8Position;
 struct W8NavigatorMovementState;
 
 class W8OctreeObjectRegistry {
@@ -186,17 +185,17 @@ public:
     void VisitPointCopy0042E620(
         unsigned short location_id, srVector3T<float>* position);
     void UpdateMonsterLocation(
-        unsigned short location_id, const W8Position* position);
+        unsigned short location_id, const srVector3T<float>* position);
     bool HasLineOfSight(
-        const W8Position* from, W8Position* to, char allow_fallback);
+        const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback);
     short TraceLineOfSight(
-        const W8Position* from, const W8Position* to, char trace_world,
+        const srVector3T<float>* from, const srVector3T<float>* to, char trace_world,
         int from_location_id, int to_location_id, char visit_octree,
         int trace_mode);
     void AdjustPortalDestination(
-        W8Position* destination, const W8Position* source);
+        srVector3T<float>* destination, const srVector3T<float>* source);
     void BuildCellWalk(
-        const W8Position* from, const W8Position* to, W8OctreeWalk* walk);
+        const srVector3T<float>* from, const srVector3T<float>* to, W8OctreeWalk* walk);
     unsigned int AdvanceNavigator(
         W8NavigatorMovementState* movement,
         float radius, float separation);

@@ -247,7 +247,6 @@ protected:
 WIZ8_ASSERT_SIZE(W8RangeButton005ED6FC, 0xc0);
 
 class W8WidgetBase005ED5BC;
-struct W8RangeControlConstruction005ED74C {};
 
 // VTABLE: WIZ8 0x005ed5b0
 // class W8GrowableVector<W8WidgetBase005ED5BC*>
@@ -262,12 +261,8 @@ extern void Function4F3140(const W8RegionEvent* event, struct W8Region* region);
    it starts unioning rather than intersecting. */
 struct Controls {
     Controls();
-    Controls(int left, int top, int right, int bottom,
-             int render_target, int render_arg_1c, int render_arg_20);
-    __forceinline Controls(W8RangeControlConstruction005ED74C,
-                           int left, int top, int right, int bottom,
-                           int render_target, int render_arg_1c,
-                           int render_arg_20);
+    __inline Controls(int left, int top, int right, int bottom,
+                      int render_target, int render_arg_1c, int render_arg_20);
     __forceinline ~Controls();
 
     virtual void SetEnabled(unsigned char enable);

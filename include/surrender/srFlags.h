@@ -3,7 +3,7 @@
 template <class Enum>
 class srFlags {
 public:
-    srFlags() : value(0x0100241b) {}
+    srFlags() : value(0) {}
     explicit srFlags(unsigned long bits) : value(bits) {}
 
     unsigned long value;

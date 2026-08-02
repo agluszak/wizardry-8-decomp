@@ -172,6 +172,20 @@ void stTextureAnim::UpdateFrame004854B0()
     }
 }
 
+// FUNCTION: WIZ8 0x00485730
+int stTextureAnim::IsFinished00485730() const
+{
+    if (flag_60 != 2) {
+        return 0;
+    }
+
+    int final_frame = textures_54->GetCount() - 1;
+    if (final_frame < 0) {
+        final_frame = 0;
+    }
+    return frame_58 == final_frame;
+}
+
 // FUNCTION: WIZ8 0x004856F0
 unsigned long stTextureAnim::getTextureFrameHandle()
 {

@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/sr_api.h"
 #include <math.h>
@@ -119,7 +120,7 @@ W8MonsterInfo* CreateMonsterInfo(
     memset(monster_info->runtime_values_338, 0,
            sizeof(monster_info->runtime_values_338));
 
-    if (PListAdd(
+    if (PLAdoptAppend(
             record->flag_26a != 0 ? g_unborn_monster_list : g_monster_list,
             monster_info) == -1) {
         free(monster_info);
@@ -150,7 +151,6 @@ void Function509EA0(int value);
 void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
 float MonsterGetScale(W8Monster* monster);
 void MonsterSetScale(W8Monster* monster, float scale);
-void Function4C5810(W8Monster* monster);
 void Function4C5ED0(W8Monster* monster);
 void __cdecl Function58AC00(int channel, void* message, int first, int second,
                             int flag);
@@ -165,39 +165,6 @@ extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
 extern int g_dword_683fa5;
 extern unsigned char g_flag_683f97;
-
-/* The global constructed at 0x006836b8 contains eight 0x118-byte records.
-   Targeting.cpp reads each record's +0xd8 vector as monster location IDs, and
-   local vectors with the same 0x005EBFE0 vtable carry the same integer IDs.
-   0x005EC0E0 is another emitted W8GrowableVector<int> vtable, not a different
-   specialization identity. */
-#pragma pack(push, 1)
-class W8MonsterManagerEntry {
-public:
-    W8MonsterManagerEntry();
-    ~W8MonsterManagerEntry();
-
-private:
-    unsigned char unknown_000[0xd8];
-    W8GrowableVector<int> vector_d8; /* 0x0d8 */
-    unsigned char unknown_0e8[0x30];
-};                                       /* 0x118 */
-
-class W8MonsterManagerState {
-public:
-    W8MonsterManagerState();
-    ~W8MonsterManagerState();
-
-private:
-    W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
-    unsigned char unknown_8c0[0xf7];
-    W8GrowableVector<int> vector_9b7; /* 0x9b7 */
-};                                       /* 0x9c7 */
-#pragma pack(pop)
-
-static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
-static_assert(sizeof(W8MonsterManagerEntry) == 0x118, "W8MonsterManagerEntry_size_must_be_0x118");
-static_assert(sizeof(W8MonsterManagerState) == 0x9c7, "W8MonsterManagerState_size_must_be_0x9c7");
 
 // FUNCTION: WIZ8 0x004e4600
 void Function4E4600(W8MonsterInfo* monster_info)
@@ -246,15 +213,15 @@ unsigned int MonsterGetIndexByLocationID(
     unsigned int index;
     W8MonsterInfo* monster;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->location_id == location_id) {
             return index;
         }
     }
 
-    for (index = 0; index < PListGetCount(g_unborn_monster_list); ++index) {
-        monster = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+    for (index = 0; index < PLLength(g_unborn_monster_list); ++index) {
+        monster = (W8MonsterInfo*)PLGet(g_unborn_monster_list, index);
         if (monster->location_id == location_id) {
             return index + 10000;
         }
@@ -282,14 +249,14 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
     int line;
 
     if (monster_list_index < 10000 || monster_list_index >= 20000) {
-        if (monster_list_index >= PListGetCount(g_monster_list)) {
+        if (monster_list_index >= PLLength(g_monster_list)) {
             srAssertFail(
                 "uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
                 MONSTER_MANAGER_CPP,
                 0x5da,
                 0);
         }
-        result = (W8MonsterInfo*)PListGetAt(g_monster_list, monster_list_index);
+        result = (W8MonsterInfo*)PLGet(g_monster_list, monster_list_index);
         if (result != 0) {
             return result;
         }
@@ -300,14 +267,14 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         line = 0x5de;
     }
     else {
-        if (monster_list_index - 10000 >= PListGetCount(g_unborn_monster_list)) {
+        if (monster_list_index - 10000 >= PLLength(g_unborn_monster_list)) {
             srAssertFail(
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
                 MONSTER_MANAGER_CPP,
                 0x5d1,
                 0);
         }
-        result = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, monster_list_index - 10000);
+        result = (W8MonsterInfo*)PLGet(g_unborn_monster_list, monster_list_index - 10000);
         if (result != 0) {
             return result;
         }
@@ -495,9 +462,9 @@ W8MonsterInfo* GetNextMonsterInfo(unsigned char reset_iterator)
     if (reset_iterator != 0) {
         g_monster_info_iterator_index = 0;
     }
-    if (g_monster_info_iterator_index < (int)PListGetCount(g_monster_list)) {
+    if (g_monster_info_iterator_index < (int)PLLength(g_monster_list)) {
         index = g_monster_info_iterator_index++;
-        result = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
+        result = (W8MonsterInfo*)PLGet(g_monster_list, index);
     }
     return result;
 }
@@ -534,7 +501,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->flag_14 != 0 &&
@@ -639,7 +606,7 @@ W8MonsterInfo* FindMonsterInfoBySpecies(unsigned int monster_species)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->monster_species == monster_species) {
             return monster_info;
@@ -653,7 +620,7 @@ void ResetLivingMonstersAfterCombat(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (static_cast<unsigned int>(monster_info->hp_current) > 0) {
@@ -670,7 +637,7 @@ void DestroyUngroupedMonsters(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
         if (monster_info->monster_group_id == 0) {
@@ -698,7 +665,7 @@ void DestroyUngroupedMonsters(void)
             (void)g_octree_6598a4;
             Function42E650(static_cast<unsigned short>(monster_info->location_id));
             Function509EA0(monster_info->runtime_value_2f1);
-            void* removed = PListRemoveAt(g_monster_list, index);
+            void* removed = PLRemoveAt(g_monster_list, index);
             if (removed != 0) {
                 free(removed);
             }
@@ -771,7 +738,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
         return;
     }
 
-    PListAdd(g_monster_list, monster_info);
+    PLAdoptAppend(g_monster_list, monster_info);
     if (MonsterIsCycleSupported(monster_info->monster, 0) != 0) {
         MonsterSetCycle(monster_info->monster, 0);
         MonsterSetBehaviour(monster_info->monster, 1);
@@ -805,8 +772,8 @@ W8MonsterInfo* FindNearestMonsterInfo(
     double nearest_distance = 1.0e11;
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_monster_list, index);
         double distance = DistanceBetweenPositions(
             position,
             monster_info->monster->GetPosition());
@@ -818,8 +785,8 @@ W8MonsterInfo* FindNearestMonsterInfo(
         }
     }
 
-    for (index = 0; index < PListGetCount(g_unborn_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+    for (index = 0; index < PLLength(g_unborn_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_unborn_monster_list, index);
         double distance = DistanceBetweenPositions(
             position,
             monster_info->monster->GetPosition());
@@ -838,8 +805,8 @@ void InitializeMonsterRuntimeStats(void)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_monster_list, index);
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_monster_list, index);
         W8MonsterRecord* record;
         int value;
 
@@ -864,8 +831,8 @@ void InitializeMonsterRuntimeStats(void)
         Function4C5ED0(monster_info->monster);
     }
 
-    for (index = 0; index < PListGetCount(g_unborn_monster_list); ++index) {
-        W8MonsterInfo* monster_info = (W8MonsterInfo*)PListGetAt(g_unborn_monster_list, index);
+    for (index = 0; index < PLLength(g_unborn_monster_list); ++index) {
+        W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(g_unborn_monster_list, index);
         W8MonsterRecord* record;
         int value;
 
@@ -985,7 +952,7 @@ unsigned char AnyMonsterDying(void)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info != 0 && monster_info->monster->IsDying() != 0) {
             return 1;
@@ -1010,24 +977,24 @@ unsigned char ShutdownMonsterManager(void)
     if (g_monster_list == 0) {
         srAssertFail("gXStatus.plsMonsterList != NULL", MONSTER_MANAGER_CPP, 0x5d, 0);
     }
-    while (static_cast<int>(PListGetCount(g_monster_list)) > 0) {
+    while (static_cast<int>(PLLength(g_monster_list)) > 0) {
         if (RemoveMonster(0, 1) == 0) {
             return 0;
         }
     }
-    if (PListDestroy(g_monster_list) == 0) {
+    if (PLDestroy(g_monster_list) == 0) {
         return 0;
     }
     g_monster_list = 0;
-    if (PListDestroy(g_monster_group_list) == 0) {
+    if (PLDestroy(g_monster_group_list) == 0) {
         return 0;
     }
     g_monster_group_list = 0;
-    if (PListDestroy(g_monster_group_species_list) == 0) {
+    if (PLDestroy(g_monster_group_species_list) == 0) {
         return 0;
     }
     g_monster_group_species_list = 0;
-    if (PListDestroy(g_monster_group_encounter_list) == 0) {
+    if (PLDestroy(g_monster_group_encounter_list) == 0) {
         return 0;
     }
     g_monster_group_encounter_list = 0;
@@ -1089,7 +1056,7 @@ unsigned char RemoveMonster(
         (void)g_octree_6598a4;
         Function42E650(static_cast<unsigned short>(monster_info->location_id));
         Function509EA0(monster_info->runtime_value_2f1);
-        void* removed = PListRemoveAt(g_monster_list, monster_list_index);
+        void* removed = PLRemoveAt(g_monster_list, monster_list_index);
         if (removed != 0) {
             free(removed);
         }
@@ -1306,7 +1273,7 @@ void ToggleCombatMode(void)
             return;
         }
         for (group_list_index = 0;
-             group_list_index < PListGetCount(g_monster_group_list);
+             group_list_index < PLLength(g_monster_group_list);
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
             if (monster_group->flag_28 != 0 && monster_group->flag_29 != 0 &&
@@ -1451,7 +1418,8 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     return record->name_60 + name_form * 24;
 }
 
-static W8MonsterManagerState g_monster_manager_state;
+// GLOBAL: WIZ8 0x006836B8
+W8MonsterManagerState g_monster_manager_state;
 
 // FUNCTION: WIZ8 0x004e6940
 W8MonsterManagerState::~W8MonsterManagerState()

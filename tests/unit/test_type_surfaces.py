@@ -49,10 +49,17 @@ def test_item_fields_keep_offsets_widths_and_array_extents() -> None:
     assert re.search(r"}\s*W8ItemDatabaseRecord;\s*/\*\s*0x10d\s*\*/", text)
 
 
-def test_encounter_vector_starts_with_exact_vtable_identity() -> None:
+def test_encounter_runtime_uses_the_canonical_vector_template() -> None:
     text = _text("encounter_tables.h")
-    assert re.search(r"^\s*void\s*\*vtable;\s*/\*\s*0x00\s*\*/", text, re.MULTILINE)
-    assert _field(text, "count") == ("int", None, 0x04)
-    assert _field(text, "capacity") == ("int", None, 0x08)
-    assert re.search(r"^\s*unsigned char\s*\*values;\s*/\*\s*0x0c\s*\*/", text, re.MULTILINE)
-    assert re.search(r"}\s*W8EncounterByteVector;\s*/\*\s*0x10\s*\*/", text)
+    assert '#include "wiz8/vector.h"' in text
+    assert re.search(
+        r"^\s*W8GrowableVector<unsigned short>\s+species_ids;\s*/\*\s*0x000\s*\*/",
+        text,
+        re.MULTILINE,
+    )
+    assert re.search(
+        r"^\s*W8GrowableVector<unsigned char>\s+rarity_class;\s*/\*\s*0x010",
+        text,
+        re.MULTILINE,
+    )
+    assert "W8EncounterByteVector" not in text

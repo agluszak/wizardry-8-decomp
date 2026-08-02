@@ -24,6 +24,7 @@ public:
     virtual void invalidate() override;                    /* 0x004023A0 */
 
     void SetFrame00485400(int frame);
+    int IsFinished00485730() const;
     unsigned char Prepare004857B0();
 
 protected:

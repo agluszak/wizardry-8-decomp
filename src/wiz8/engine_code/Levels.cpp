@@ -3,7 +3,7 @@
 #include <cstring>
 
 #include "wiz8/combat_state.h"
-#include "wiz8/engine_code/ClipPlane.h"
+#include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Levels.h"
@@ -46,11 +46,11 @@ extern void Function443A50(void);
 extern void Function5817D0(void);
 extern unsigned char LoadLevelStatus(const char* path, int level);
 extern void BuildLevelStatusPath(char* path, int level);
-extern float Function420BD0(const W8Position* position, unsigned char* hit);
+extern float Function420BD0(const srVector3T<float>* position, unsigned char* hit);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern void MoveWorldToPoint(
-    W8World* destination, W8World* source, const W8Position* point);
+    W8World* destination, W8World* source, const srVector3T<float>* point);
 extern void Function5115B0(void);
 extern void ResetMonsterGroupTurnState(void);
 extern unsigned char LoadAmbientSoundList0047AB40(char* filename);
@@ -73,55 +73,21 @@ extern void Function451020(void);
 extern void Function4881D0(void);
 extern void SetSkyNodeVisible(char visible);
 
-struct W8CastEffectOwner;
-extern void SpawnLureEffects(
-    W8CastEffectOwner* owner, int argument, const W8CombatSlot* target);
-
 extern unsigned char g_world_cleanup_flag_00659757;
 extern float g_runtime_world_scale_6081e8;
 extern unsigned char g_flag_00659756;
 extern float g_default_world_height_00603ac8;
 extern float g_position_height_epsilon_005ebfdc;
-extern W8Position g_saved_world_position_00687417;
+// GLOBAL: WIZ8 0x00687417
+srVector3T<float> g_saved_world_position_00687417;
 extern unsigned char g_environment_load_flag_00603ad0;
 extern unsigned char g_level_runtime_flag_0065ba70;
 extern unsigned char g_value_0068f0fd;
 extern int g_value_006850b0;
 extern unsigned char g_flag_00687607;
 
-struct W8LevelNameRecord {
-    char music_name[0x32];
-    char entrance_prefix[0x39];
-};
-
-static_assert(sizeof(W8LevelNameRecord) == 0x6b,
-              "W8LevelNameRecord_must_be_0x6b");
-
-extern W8LevelNameRecord g_level_names_006044aa[57];
 extern char g_ambient_sound_filename_006059e0[];
 extern const char* g_sky_names_00605880[];
-
-namespace {
-
-srRegistry::ClassNode* GetClipPlaneClassNode()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1500);
-
-    if (node == 0) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
-
-        if (parent == 0) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("srClipPlane", parent, 0x1500, 0);
-    }
-    return node;
-}
-
-} // namespace
 
 /* Resolve a database level number into all level and sky resource paths. The
    regular forty-seven levels use the database row directly; the ten test
@@ -244,11 +210,11 @@ unsigned char LoadLevel(
     g_current_level = level;
     sprintf(
         music_path, "Data\\Music\\%s.MPL",
-        g_level_names_006044aa[level].music_name);
+        g_level_folders[level].folder_name);
     if (FileExists(music_path)) {
         sprintf(
             music_path, "%s.MPL",
-            g_level_names_006044aa[g_current_level].music_name);
+            g_level_folders[g_current_level].folder_name);
         Function48FC10(music_path, 1, 1);
     }
     else {
@@ -287,12 +253,12 @@ unsigned char LoadLevel(
             char trigger_name[8];
             sprintf(
                 trigger_name, "%3s%02d",
-                g_level_names_006044aa[level].entrance_prefix, entrance);
+                g_level_folders[level].level_name, entrance);
             trigger = FindTriggerByName(trigger_name);
         }
         if (trigger != 0 && trigger->flag_0a0_11) {
-            W8Position trigger_position;
-            W8Position position;
+            srVector3T<float> trigger_position;
+            srVector3T<float> position;
 
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
@@ -324,7 +290,7 @@ unsigned char LoadLevel(
             }
         }
         else {
-            W8Position position;
+            srVector3T<float> position;
 
             position.x = 0.0f;
             position.y = g_default_world_height_00603ac8;
@@ -385,14 +351,7 @@ unsigned char LoadLevel(
         W8SpellEffectEntry* effect = FindMonsterControlSpellEffect();
 
         if (effect != 0) {
-            /* The full cast-effect layout is still owned by the Magic
-               campaign. LoadLevel proves these two positional views. */
-            SpawnLureEffects(
-                reinterpret_cast<W8CastEffectOwner*>(effect),
-                *reinterpret_cast<int*>(
-                    reinterpret_cast<unsigned char*>(effect) + 0xd0),
-                reinterpret_cast<W8CombatSlot*>(
-                    reinterpret_cast<unsigned char*>(effect) + 0x90));
+            SpawnLureEffects(effect, effect->argument, &effect->target);
         }
     }
 
@@ -477,12 +436,16 @@ unsigned char UnloadLevel(const char* save_directory)
     ClearValue6834D4();
 
     srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = GetClipPlaneClassNode();
+    srRegistry::ClassNode* node =
+        srClassSupport<srClipPlane, srClipPlane, false, 0x1500>::sGetClassNode();
     srClass* clip_plane = static_cast<srClass*>(registry->find(node, 0, 0));
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(GetClipPlaneClassNode(), 0, clip_plane));
+            registry->find(
+                srClassSupport<
+                    srClipPlane, srClipPlane, false, 0x1500>::sGetClassNode(),
+                0, clip_plane));
         clip_plane->release();
         clip_plane = next;
     }

@@ -56,7 +56,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
     if (g_world == 0) {
         return 0;
     }
-    count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
+    count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     if (previous == 0) {
         index = 0;
     }
@@ -71,7 +71,7 @@ W8AmbientSound* W8AmbientSound::FindNextMatching0047A260(
     }
     do {
         W8AmbientSound* candidate = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world->plsAmbientSounds, index));
+            PLGet(g_world->plsAmbientSounds, index));
         if (candidate != 0 && candidate != this && candidate->flag_c4 != 0 &&
             _stricmp(candidate->config_004.match_name, match_name) == 0) {
             return candidate;
@@ -118,10 +118,10 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
 
         AudioUpdateBegin00409310();
         AudioUpdateStage004095B0();
-        count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PListGetAt(world->plsAmbientSounds, index));
+                PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 sound->SetState00479970(0);
                 sound->Update0047A310();
@@ -223,10 +223,10 @@ void RepositionAmbientSounds0047A600(W8World* world)
         int index;
 
         AudioUpdateBegin00409310();
-        count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PListGetAt(world->plsAmbientSounds, index));
+                PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
                 GetPartyPosition(&position);
@@ -313,19 +313,19 @@ unsigned char AddAmbientSound0047A790(
     sound->flag_b9 = flag_b9;
     sound->flag_c5 = flag_c5;
     sound->flag_c4 = flag_c4;
-    PListAdd(world->plsAmbientSounds, sound);
+    PLAdoptAppend(world->plsAmbientSounds, sound);
     return 1;
 }
 
 // FUNCTION: WIZ8 0x0047a950
 void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
+    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world->plsAmbientSounds, index));
+            PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             srVector3T<float> position;
             GetPartyPosition(&position);
@@ -339,12 +339,12 @@ void PositionAmbientSoundByName0047A950(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047a9e0
 void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
+    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world->plsAmbientSounds, index));
+            PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             ReleaseSoundHandle00408F70(sound->sound_handle_bc);
             sound->flag_b8 = 0;
@@ -358,12 +358,12 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
 // FUNCTION: WIZ8 0x0047aa70
 void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
 {
-    int count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
+    int count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
     int index;
 
     for (index = 0; index < count; ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world->plsAmbientSounds, index));
+            PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
             if (sound->flag_84 != 0) {
                 srVector3T<float> position;
@@ -452,10 +452,10 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     g_master_ambient_volume_6850f6 = volume;
     SetMasterSoundVolume(volume);
     if (g_world != 0 && g_world->plsAmbientSounds != 0) {
-        count = static_cast<int>(PListGetCount(g_world->plsAmbientSounds));
+        count = static_cast<int>(PLLength(g_world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PListGetAt(g_world->plsAmbientSounds, index));
+                PLGet(g_world->plsAmbientSounds, index));
             if (sound != 0) {
                 if (sound->sound_handle_bc != -1) {
                     unsigned int adjusted =
@@ -472,10 +472,10 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
     world = GetWorld();
     if (world != 0) {
         AudioUpdateBegin00409310();
-        count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PListGetAt(world->plsAmbientSounds, index));
+                PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 srVector3T<float> position;
                 GetPartyPosition(&position);
@@ -484,10 +484,10 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
         }
         AudioUpdateBegin00409310();
         AudioUpdateStage004095B0();
-        count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+        count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                PListGetAt(world->plsAmbientSounds, index));
+                PLGet(world->plsAmbientSounds, index));
             if (sound != 0) {
                 sound->SetState00479970(0);
                 sound->Update0047A310();
@@ -511,10 +511,10 @@ void SetAmbientSoundMuted0047AE90(char muted)
             if (g_world != 0 &&
                 g_world->plsAmbientSounds != 0) {
                 count = static_cast<int>(
-                    PListGetCount(g_world->plsAmbientSounds));
+                    PLLength(g_world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PListGetAt(g_world->plsAmbientSounds, index));
+                        PLGet(g_world->plsAmbientSounds, index));
                     if (sound != 0) {
                         if (sound->sound_handle_bc != -1) {
                             unsigned int adjusted =
@@ -532,10 +532,10 @@ void SetAmbientSoundMuted0047AE90(char muted)
             world = GetWorld();
             if (world != 0) {
                 AudioUpdateBegin00409310();
-                count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+                count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PListGetAt(world->plsAmbientSounds, index));
+                        PLGet(world->plsAmbientSounds, index));
                     if (sound != 0) {
                         srVector3T<float> position;
                         GetPartyPosition(&position);
@@ -544,10 +544,10 @@ void SetAmbientSoundMuted0047AE90(char muted)
                 }
                 AudioUpdateBegin00409310();
                 AudioUpdateStage004095B0();
-                count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+                count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                        PListGetAt(world->plsAmbientSounds, index));
+                        PLGet(world->plsAmbientSounds, index));
                     if (sound != 0) {
                         sound->SetState00479970(0);
                         sound->Update0047A310();
@@ -565,10 +565,10 @@ void SetAmbientSoundMuted0047AE90(char muted)
         if (g_world != 0 &&
             g_world->plsAmbientSounds != 0) {
             count = static_cast<int>(
-                PListGetCount(g_world->plsAmbientSounds));
+                PLLength(g_world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                    PListGetAt(g_world->plsAmbientSounds, index));
+                    PLGet(g_world->plsAmbientSounds, index));
                 if (sound != 0) {
                     if (sound->sound_handle_bc != -1) {
                         unsigned int adjusted =
@@ -586,10 +586,10 @@ void SetAmbientSoundMuted0047AE90(char muted)
         world = GetWorld();
         if (world != 0) {
             AudioUpdateBegin00409310();
-            count = static_cast<int>(PListGetCount(world->plsAmbientSounds));
+            count = static_cast<int>(PLLength(world->plsAmbientSounds));
             for (index = 0; index < count; ++index) {
                 W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-                    PListGetAt(world->plsAmbientSounds, index));
+                    PLGet(world->plsAmbientSounds, index));
                 if (sound != 0) {
                     srVector3T<float> position;
                     GetPartyPosition(&position);
@@ -619,11 +619,11 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
         FileWrite(handle, &count, 4, 0);
         return;
     }
-    count = PListGetCount(g_world->plsAmbientSounds);
+    count = PLLength(g_world->plsAmbientSounds);
     ok = ok && FileWrite(handle, &count, 4, 0);
     for (index = 0; index < static_cast<int>(count); ++index) {
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
-            PListGetAt(g_world->plsAmbientSounds, index));
+            PLGet(g_world->plsAmbientSounds, index));
         if (sound != 0) {
             if (sound->pacSoundName == 0) {
                 if (ok) {

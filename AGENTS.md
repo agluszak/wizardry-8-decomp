@@ -71,6 +71,43 @@ emits the expected calls. Treat special calling conventions, explicit allocation
 calls, custom lifecycle helpers, and novel container abstractions as claims that require positive
 evidence, not as starting assumptions.
 
+Never invent a wrapper type or wrapper API. In particular, do not replace an ordinary array,
+vector, list, other familiar object, canonical call, or inlined operation with a bespoke struct,
+class, helper, accessor, or aggregate convenience method merely to reproduce initialization
+guards, cleanup thunks, constructor/destructor calls, compiler code shape, or a better comparison
+score. A wrapper may be recovered only when positive type, layout, and usage evidence establishes
+that it existed in the original source. If the ordinary source model leaves an emission mismatch,
+record the mismatch; do not manufacture a type or API to remove it.
+
+Apply that evidence requirement to every type, not only newly introduced types or obvious
+wrappers. A matching byte layout, a convenient cast, an address-qualified name, or compiler output
+alone does not establish an original class, struct, union, enum, typedef, specialization, nested
+type, or inheritance boundary. Before declaring or retaining one, establish its identity, extent,
+ownership, and use from source, symbols/exports, added storage, non-template behavior, or repeated
+typed operations that require that boundary. Model one object with one canonical type; do not
+preserve parallel partial views of the same storage. When the evidence does not establish a type
+boundary, keep the storage expressed through the proven ordinary type and record the uncertainty
+instead of naming a speculative type.
+
+A distinct vtable, vptr write, deleting destructor, construction-phase table, or registry bundle
+does not by itself establish a distinct authored class. Templates such as `srClassSupport` and
+ordinary container instantiations emit distinct tables and lifecycle machinery for each set of
+template arguments.
+Require evidence independent of those template effects before declaring a zero-storage wrapper or
+derived class. When all observed behavior belongs to a canonical template instantiation, model
+that instantiation directly and record its addresses with `TEMPLATE`; never invent an
+address-qualified subclass merely to own its vtable or emitted methods.
+
+An emitted address for a container constructor, growth operation, resize, copy, or teardown does
+not make it an authored address-qualified helper, a bespoke nested container class, or an explicit
+template specialization. Recover the ordinary primary-template operation once in its canonical
+header and record each emitted instantiation with `TEMPLATE`. Do not write `template <>` merely
+because different element types produce different emitted bodies. When the same operation is
+expanded inside another function, model it as ordinary inlining or template initialization, not as
+a second wrapper API. If the canonical template name or its type arguments are not established,
+record the layout and emission as unresolved; do not create a provisional nested type,
+address-qualified method, or explicit specialization merely to make a caller compile.
+
 Load the task's skill before starting: porting or near-matching a function body uses
 `matching-decomp`; promoting candidate classes or deciding what an unnamed
 constructor/destructor constructs uses `class-triage`.
@@ -121,12 +158,13 @@ were a symptom and the shape is the bug.
 Marker policy follows reccmp's entity conventions (enforced by `just check`):
 
 - `// FUNCTION:` must sit immediately above its C++ declaration.
-- `// TEMPLATE:` must be followed immediately by a comment naming the specialization symbol.
+- `// TEMPLATE:` must be followed immediately by a comment naming the emitted instantiation symbol.
   Nothing else has to follow it. The generic definition lives once in the header that owns the
-  template; a `TEMPLATE` marker in a `.cpp` records only that the specialization was emitted into
+  template; a `TEMPLATE` marker in a `.cpp` records only that the instantiation was emitted into
   that translation unit at that address, so emission-only markers with no adjacent definition are
   the normal case, not a defect. A body written under a `TEMPLATE` marker is the defect: it means
-  a template emission was mistaken for a hand-written method.
+  a template emission was mistaken for a hand-written method. Never convert a `TEMPLATE` emission
+  into a hand-written `FUNCTION` merely because the latter produces a better comparison result.
 - `// LIBRARY:` is address-only and has no owned declaration adjacency requirement.
 
 Put explanatory prose above the marker sequence.

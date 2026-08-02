@@ -2,13 +2,12 @@
 
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Environment.h"
-#include "wiz8/engine_code/Fog.h"
-#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
+#include "surrender/srFog.h"
 #include "surrender/srNode.h"
 #include "surrender/srScene.h"
 #include "surrender/srTypeRegistry.h"
@@ -46,8 +45,10 @@ extern "C" EnvironmentColour g_environment_colours_65ad98[256];
    two bodies reach, and it is the same W8World the 3d code walks. */
 
 /* The static and dynamic scene fogs owned by the environment. */
-extern W8Fog005EC94C* g_environment_object_0065b9b0;
-extern W8Fog005EC94C* g_environment_object_0065b9b4;
+// GLOBAL: WIZ8 0x0065B9B0
+srFog* g_environment_object_0065b9b0;
+// GLOBAL: WIZ8 0x0065B9B4
+srFog* g_environment_object_0065b9b4;
 // SYNTHETIC: WIZ8 0x00482250
 // `dynamic initializer for 'g_environment_lights_0065b998''
 // SYNTHETIC: WIZ8 0x00482270
@@ -175,58 +176,23 @@ void BuildLightColourRamp00483360(void)
     }
 }
 
+// VTABLE: WIZ8 0x005EC94C
+// class srClassSupport<srFog,srFog,0,4624>
+
+// TEMPLATE: WIZ8 0x00484700
+// srClassSupport<srFog,srFog,0,4624>::getClassID
+
+// TEMPLATE: WIZ8 0x00484710
+// srClassSupport<srFog,srFog,0,4624>::getClassName
+
+// TEMPLATE: WIZ8 0x00484720
+// srClassSupport<srFog,srFog,0,4624>::getClassNode
+
+// TEMPLATE: WIZ8 0x004847C0
+// srClassSupport<srFog,srFog,0,4624>::clone
+
 // SYNTHETIC: WIZ8 0x00484840
-// W8Fog005EC94C::`scalar deleting destructor'
-
-// FUNCTION: WIZ8 0x00484700
-unsigned long W8Fog005EC94C::getClassID() const
-{
-    return 0x1210;
-}
-
-// FUNCTION: WIZ8 0x00484710
-const char* W8Fog005EC94C::getClassName() const
-{
-    return "srFog";
-}
-
-// FUNCTION: WIZ8 0x00484720
-srRegistry::ClassNode* W8Fog005EC94C::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1210);
-
-    if (node == 0) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1200);
-
-        if (parent == 0) {
-            srRegistry* node_registry = srCore.getRegistry();
-            srRegistry::ClassNode* node_parent =
-                node_registry->getClassNode(0x1000);
-
-            if (node_parent == 0) {
-                node_parent = node_registry->registerClass(
-                    srNode::sGetClassName(),
-                    srClass::sGetClassNode(),
-                    0x1000,
-                    1);
-            }
-            parent = parent_registry->registerClass(
-                srIlluminator::sGetClassName(), node_parent, 0x1200, 0);
-        }
-        node = registry->registerClass("srFog", parent, 0x1210, 0);
-    }
-    return node;
-}
-
-// FUNCTION: WIZ8 0x004847C0
-srClass* W8Fog005EC94C::clone()
-{
-    srFog* copy = static_cast<srFog*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// srClassSupport<srFog,srFog,0,4624>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00483750
 void SetSkyEnabled(unsigned char enabled)
@@ -238,9 +204,11 @@ void SetSkyEnabled(unsigned char enabled)
         }
 
         g_environment_object_0065b9b0 =
-            new W8Fog005EC94C(g_world->static_scene);
+            new srClassSupport<srFog, srFog, false, 0x1210>(
+                g_world->static_scene);
         g_environment_object_0065b9b4 =
-            new W8Fog005EC94C(g_world->dynamic_scene);
+            new srClassSupport<srFog, srFog, false, 0x1210>(
+                g_world->dynamic_scene);
         g_environment_object_0065b9b0->m_positional_28 = 1.0f;
         g_environment_object_0065b9b4->m_positional_28 = 1.0f;
 

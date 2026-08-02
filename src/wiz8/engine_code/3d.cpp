@@ -8,6 +8,23 @@
 
 #define THREE_D_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3d.cpp"
 
+/* Put static-scene illuminators in group one and the world's camera light in
+   group two.  The scene graph access is the ordinary srNode hierarchy API. */
+// FUNCTION: WIZ8 0x0046F3A0
+void FinalizeStaticScene0046F3A0(srScene* scene)
+{
+    srNode* node;
+
+    for (node = scene->firstChild(); node != 0; node = node->nextSibling()) {
+        if (node->getClassID() == 0x1220) {
+            static_cast<srIlluminator*>(node)->setGroupMask(1);
+        }
+    }
+    if (g_world != 0 && g_world->camera_light != 0) {
+        g_world->camera_light->setGroupMask(2);
+    }
+}
+
 // FUNCTION: WIZ8 0x0046F510
 void ExpandBounds0046F510(
     srVector3T<float>* minimum,
@@ -93,7 +110,7 @@ stLight* CreateWorldLight0046E030(W8World* world, const char* name)
     light->m_positional_flags_5c |= 4;
 
     if (world != 0) {
-        PListAdd(&world->m_list_0a8, light);
+        PLAdoptAppend(&world->m_list_0a8, light);
     }
     return light;
 }
@@ -128,7 +145,7 @@ stLight* CreateWorldLight0046E140(W8World* world, const char* name)
     light->m_range_170 = 1500.0;
     light->m_positional_1d4 = 5000.0f;
     light->setLinearAttenuation(1500.0f, 0.0019569471f);
-    PListAdd(&world->m_list_0a8, light);
+    PLAdoptAppend(&world->m_list_0a8, light);
     return light;
 }
 
@@ -162,9 +179,9 @@ void WorldUpdateProps(W8World* world)
             0x158,
             0);
     }
-    count = (int)PListGetCount(world->plsProps);
+    count = (int)PLLength(world->plsProps);
     for (index = 0; index < count; index++) {
-        prop = (W8Prop*)PListGetAt(world->plsProps, index);
+        prop = (W8Prop*)PLGet(world->plsProps, index);
         if (prop) {
             prop->Method44D360(world);
             prop->Method44C030();
@@ -199,13 +216,13 @@ extern void Function46E640(void* target, int argument);
 // FUNCTION: WIZ8 0x0046e580
 void WorldAddToList00(W8World* unused, void* entry)
 {
-    PListAdd(g_world->plsMonsters, entry);
+    PLAdoptAppend(g_world->plsMonsters, entry);
 }
 
 // FUNCTION: WIZ8 0x0046e5c0
 void WorldAddToList04(W8World* unused, void* entry)
 {
-    PListAdd(g_world->plsItems, entry);
+    PLAdoptAppend(g_world->plsItems, entry);
 }
 
 // FUNCTION: WIZ8 0x0046e5e0
@@ -220,13 +237,13 @@ void WorldRemoveFromList04(W8World* unused, void* entry)
 // FUNCTION: WIZ8 0x0046e600
 void WorldGetPropCount(void)
 {
-    PListGetCount(g_world->plsProps);
+    PLLength(g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620
 void WorldGetPropAt(W8World* unused, int index)
 {
-    PListGetAt(g_world->plsProps, index);
+    PLGet(g_world->plsProps, index);
 }
 
 /* Two wrappers that reach one member along before forwarding, which is what

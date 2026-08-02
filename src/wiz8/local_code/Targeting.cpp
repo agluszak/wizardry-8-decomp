@@ -516,7 +516,7 @@ void SetGroupHighlight(int party_slot, int group_id, char on)
         return;
     }
     group = GetMonsterGroupByListIndex(group_index);
-    for (member = 0; member < PListGetCount((W8PList*)group->monsters); ++member) {
+    for (member = 0; member < ILLength(group->monsters); ++member) {
         location_id = IListGetAt(group->monsters, member);
         index = MonsterGetIndexByLocationID(1879, TARGETING_CPP, location_id, 0);
         if (index == -1) {
@@ -555,7 +555,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
         owner = g_level_block->highlight_override;
     }
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->flag_14 == 0) {
             continue;
@@ -645,7 +645,7 @@ int CompareMonsterTargetCandidates(const void* left, const void* right)
 // FUNCTION: WIZ8 0x0053c720
 int ChooseMonsterTarget(int party_slot, int group_id, int context)
 {
-    unsigned int monster_count = PListGetCount(g_active_monster_list_00683fad);
+    unsigned int monster_count = PLLength(g_active_monster_list_00683fad);
     W8MonsterTargetCandidate* candidates;
     W8MonsterTargetCandidate* next;
     size_t found = 0;
@@ -888,8 +888,6 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     return valid;
 }
 
-extern W8MonsterSlot g_monster_slots_6836b8[];
-
 /* Take down whatever one party slot was highlighting. A slot with a highlight
    list of its own empties that and nothing else; only a slot with none falls
    through to the target it was given, and then a monster and a group are
@@ -902,7 +900,7 @@ extern W8MonsterSlot g_monster_slots_6836b8[];
 // FUNCTION: WIZ8 0x0053ac30
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
 {
-    W8MonsterSlot* slot = &g_monster_slots_6836b8[party_slot];
+    W8MonsterManagerEntry* slot = &g_monster_manager_state.entries[party_slot];
     unsigned int index;
 
     if (slot->highlighted_monsters.count > 0) {
@@ -924,7 +922,7 @@ void ClearTargetHighlights(int party_slot, const W8CombatSlot* target)
         if (group_list_index != 0xffffffff) {
             W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
 
-            for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+            for (index = 0; index < ILLength(group->monsters); ++index) {
                 SetMonsterHighlight(party_slot, IListGetAt(group->monsters, index), 0, 0);
             }
         }
@@ -949,7 +947,7 @@ enum { W8_SIDE_ANY = 3 };
    monster in range still has to be visible from the given eye point. */
 // FUNCTION: WIZ8 0x00539e70
 void CollectMonstersWithinRadius(
-    const W8Position* centre, const W8Position* eye, W8GrowableVector<int>* found, float radius,
+    const srVector3T<float>* centre, const srVector3T<float>* eye, W8GrowableVector<int>* found, float radius,
     char side, char highlighting)
 {
     unsigned int index;
@@ -958,7 +956,7 @@ void CollectMonstersWithinRadius(
         return;
     }
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
         W8MonsterRecord* record;
@@ -1209,9 +1207,11 @@ unsigned int Function53A8D0(int party_slot, unsigned int context)
 extern void Function4ADD30(int enabled);
 extern void Function56AA30(void);
 extern void Function56AAB0(void);
-extern void Function53B660(const W8Position* position, W8Position* target, int enabled);
-extern W8Position g_target_position_0068406f;
-extern W8Position g_target_position_0068407f;
+extern void Function53B660(const srVector3T<float>* position, srVector3T<float>* target, int enabled);
+// GLOBAL: WIZ8 0x0068406F
+srVector3T<float> g_target_position_0068406f;
+// GLOBAL: WIZ8 0x0068407F
+srVector3T<float> g_target_position_0068407f;
 
 /* Select the cursor and renderer-side targeting mode for one targeting state,
    then clear the cached world point so the following refresh recomputes it. */
@@ -1269,7 +1269,7 @@ void Function53AEB0(unsigned int party_slot)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
 
@@ -1299,7 +1299,7 @@ void Function53B160(void)
 // FUNCTION: WIZ8 0x0053B170
 void Function53B170(void)
 {
-    W8Position position;
+    srVector3T<float> position;
 
     Function492500(&position);
     if (position.x != g_target_position_0068407f.x ||
@@ -1393,7 +1393,7 @@ unsigned char CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group)
     }
 
     reachable = 0;
-    for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+    for (index = 0; index < ILLength(group->monsters); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x37a, TARGETING_CPP, IListGetAt(group->monsters, index), 1));
 
@@ -1513,7 +1513,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
     switch (action) {
     case 0:
     case 1:
-        for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
             if (CanTargetMonster(
                     party_slot, MonsterGetScriptPartByLocationIndex(index)->location_id, 0, 0)) {
                 return 1;
@@ -1535,7 +1535,7 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
                 return 1;
             }
         }
-        for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
             memset(&target, 0, sizeof(target));
             target.iChar = BAD_INDEX;
             target.iGroupID = BAD_INDEX;
@@ -1599,7 +1599,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
         if (g_targeting_flag_00685116 != 0) {
             return 1;
         }
-        for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+        for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
             if (CanTargetMonster(
                     party_slot, MonsterGetScriptPartByLocationIndex(index)->location_id, 0, 0)) {
                 return 1;
@@ -1608,7 +1608,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
         return 0;
 
     case W8_SPELL_TARGET_MONSTER_GROUP:
-        for (index = 0; index < PListGetCount(g_monster_group_list_00683fb1); ++index) {
+        for (index = 0; index < PLLength(g_monster_group_list_00683fb1); ++index) {
             W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
 
             if (group->flag_28 != 0 && CanTargetMonsterGroup(party_slot, group)) {
@@ -1633,8 +1633,8 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
     }
 }
 
-extern void GetPartyPosition(W8Position* position);                      /* 0x00421070 */
-extern float AngleFromPartyTo(const W8Position* from, const srVector3T<float>* to);
+extern void GetPartyPosition(srVector3T<float>* position);                      /* 0x00421070 */
+extern float AngleFromPartyTo(const srVector3T<float>* from, const srVector3T<float>* to);
 /* 0x004BE420 */
 extern float NormalizeAngle(float radians);
 extern int CompareSignedAscending(const void* left, const void* right);  /* 0x004534C0 */
@@ -1666,7 +1666,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
 {
     unsigned int count = (unsigned int)candidates->GetCount();
     W8GroupMemberByAngle* sorted;
-    W8Position party;
+    srVector3T<float> party;
     unsigned int index;
     int result;
 
@@ -1714,7 +1714,7 @@ int PickNextTargetableGroupMember(int party_slot, W8MonsterGroup* group)
     W8GrowableVector<int> targetable;
     unsigned int index;
 
-    for (index = 0; index < PListGetCount((W8PList*)group->monsters); ++index) {
+    for (index = 0; index < ILLength(group->monsters); ++index) {
         int location_id = IListGetAt(group->monsters, index);
 
         MonsterGetScriptPartByLocationIndex(
@@ -1808,7 +1808,7 @@ extern int g_picked_group_006840b7;
 // FUNCTION: WIZ8 0x00537ed0
 int PickNextTargetableGroup(int party_slot)
 {
-    unsigned int count = PListGetCount(g_monster_group_list_00683fb1);
+    unsigned int count = PLLength(g_monster_group_list_00683fb1);
     unsigned int start;
     unsigned int index;
 
@@ -1827,7 +1827,7 @@ int PickNextTargetableGroup(int party_slot)
         }
         else {
             ++start;
-            if (start == PListGetCount(g_monster_group_list_00683fb1)) {
+            if (start == PLLength(g_monster_group_list_00683fb1)) {
                 start = 0;
             }
         }
@@ -1841,7 +1841,7 @@ int PickNextTargetableGroup(int party_slot)
             return group->group_id;
         }
         ++index;
-        if (index == PListGetCount(g_monster_group_list_00683fb1)) {
+        if (index == PLLength(g_monster_group_list_00683fb1)) {
             index = 0;
         }
     } while (index != start);

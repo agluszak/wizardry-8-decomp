@@ -1,7 +1,7 @@
 #include "wiz8/engine_code/Item.h"
 
+#include "surrender/srNode.h"
 #include "wiz8/gameplay_boundaries.h"
-#include "wiz8/engine_code/Node005EC208.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 
@@ -121,7 +121,7 @@ unsigned int W8ItemRep::SetFlags(unsigned int mask, unsigned char enabled)
 
 /* Forward a new item location to the representation owned at +0x14. */
 // FUNCTION: WIZ8 0x0049F720
-void W8Item::Function49F720(const W8Position* location)
+void W8Item::Function49F720(const srVector3T<float>* location)
 {
     m_pRep->SetLocation004B8850(location);
 }

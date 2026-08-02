@@ -27,7 +27,7 @@ public:
     SR_DLL_IMPORT void dump(
         std::ostream& stream, const Statistics& statistics);
 
-private:
+    /* SurRender's submission pipeline updates these counters directly. */
     Statistics statistics_00;
 };
 

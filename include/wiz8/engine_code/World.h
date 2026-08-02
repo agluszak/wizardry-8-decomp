@@ -11,10 +11,9 @@ class srCamera;
 class srLight;
 class srModelInstance;
 class srNode;
+class srScene;
 class stLevel;
 class W8Octree;
-class W8Node005EC208;
-class W8Scene;
 struct W8Quad;
 class W8Missile;
 class W8MonsterGenerator;
@@ -38,7 +37,7 @@ struct W8NamedPosition {
     }
 
     char name[0x80];
-    W8Position position;
+    srVector3T<float> position;
     float value_08c;
     float value_090;
     float value_094;
@@ -73,8 +72,8 @@ struct W8World {
     unsigned char m_positional_028[4];
     EnvironmentColour environment_colour_02c;
     stLevel* level;
-    W8Scene* static_scene;
-    W8Node005EC208* dynamic_scene;
+    srScene* static_scene;
+    srNode* dynamic_scene;
     srCamera* camera;
     srModelInstance** psrMeshes;
     void* m_owned_04c;
@@ -124,11 +123,11 @@ void WorldUpdateLights(W8World* world);
 float WorldGetValue78(W8World* world);
 double WorldGetFarClip(W8World* world);
 void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation);
-void WorldGetCameraLocation(W8World* world, W8Position* location);
+void WorldGetCameraLocation(W8World* world, srVector3T<float>* location);
 void WorldGetCameraLocation00451160(
-    W8World* world, W8Position* location);
+    W8World* world, srVector3T<float>* location);
 void SetWorldScenePosition004511D0(
-    W8World* world, const W8Position* position);
+    W8World* world, const srVector3T<float>* position);
 stParticle* FindParticleByName(W8World* world, const char* name);
 stLight* CreateLight0046DF90(srNode* parent, const char* name);
 stLight* CreateWorldLight0046E030(W8World* world, const char* name);
