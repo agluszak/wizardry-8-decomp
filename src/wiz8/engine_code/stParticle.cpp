@@ -5,6 +5,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srCore.h"
+#include "surrender/srGERD.h"
 #include "surrender/srHeap.h"
 #include "surrender/srNode.h"
 #include "FileMan.h"
@@ -326,6 +327,14 @@ void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
             srTimer::TIMER_READ_DEFAULT);
     }
     flag_1a1 = enabled;
+}
+
+// FUNCTION: WIZ8 0x00498D60
+void stParticle::process(const ProcessInfo& info, e_processType)
+{
+    info.renderer->pushMatrix();
+    Function4994D0(info.renderer);
+    info.renderer->popMatrix();
 }
 
 // FUNCTION: WIZ8 0x00498A20

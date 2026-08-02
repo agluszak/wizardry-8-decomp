@@ -44,11 +44,14 @@ public:
     void SetTexture0049AB00(srTextureIFace* texture);
     void SetRetainedObject0049ACA0(srClass* object);
     void SetFlutter0049AD10(int enabled);
+    void Function4994D0(srGERD* renderer);
     srFlags<e_renderFlag> GetRenderFlags00498A10() const;
     unsigned char ReplaceTexture0049AC30(
         const char* old_name, srTextureIFace* replacement);
     virtual srClass* vInstance() override;         /* 0x004980E0 */
     virtual void traverse(srNode::TraverseInfo& info) override; /* 0x00498C40 */
+    virtual void process(
+        const srNode::ProcessInfo& info, srNode::e_processType type) override; /* 0x00498D60 */
 
 protected:
     virtual ~stParticle() override;                /* 0x00498A20 */
