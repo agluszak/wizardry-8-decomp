@@ -30,6 +30,7 @@ struct W8Item : public W8GrObject {
 
     void DetachMesh0049FA30(W8World* world);
     void ApplyRepTransform0049FAA0();
+    void Function49F900(W8World* world);
     void Function49F720(const W8Position* location);
     srNode* GetMesh();
 };

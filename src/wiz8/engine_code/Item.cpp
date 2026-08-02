@@ -1,6 +1,8 @@
 #include "wiz8/engine_code/Item.h"
 
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Node005EC208.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/sr_api.h"
 
 /* VC6 emits the scalar-deleting wrapper at 0x0049F420 from this ordinary
@@ -51,6 +53,50 @@ void W8Item::ApplyRepTransform0049FAA0()
     mesh->setLocation(widened);
     m_pRep->GetRotation004B88F0(&rotation);
     mesh->setRotation(rotation);
+}
+
+// FUNCTION: WIZ8 0x0049F900
+void W8Item::Function49F900(W8World* world)
+{
+    srNode* mesh;
+    srNode* child;
+    srVector3T<float> location;
+    srVector3T<double> widened;
+    srMatrix3T<float> rotation;
+
+    if (world == 0) {
+        srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x211, 0);
+    }
+    if ((m_pRep->flags & 0x40) == 0) {
+        return;
+    }
+    mesh = m_pRep->m_psrMesh;
+    if (mesh == 0) {
+        srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\Item.cpp", 0x219, 0);
+    }
+    if (mesh->firstChild() == 0) {
+        mesh->clearFlag(srNode::FLAG_POSITIONAL_0);
+    }
+    mesh->setParent(world->dynamic_scene, 0);
+    m_pRep->GetLocation004B8890(&location);
+    m_pRep->GetRotation004B88F0(&rotation);
+    child = mesh->firstChild();
+    if (child == 0) {
+        widened.x = location.x;
+        widened.y = location.y;
+        widened.z = location.z;
+        mesh->setLocation(widened);
+        mesh->setRotation(rotation);
+        return;
+    }
+    do {
+        widened.x = location.x;
+        widened.y = location.y;
+        widened.z = location.z;
+        child->setLocation(widened);
+        child->setRotation(rotation);
+        child = child->nextSibling();
+    } while (child != 0);
 }
 
 // FUNCTION: WIZ8 0x0049fb20
