@@ -328,6 +328,7 @@ def _packet_result(entry: int, packet: Any) -> dict[str, Any]:
         "body": str(packet.getBody()),
         "recovery": {
             "source_kind": str(packet.getSourceKind()),
+            "source_entity": str(packet.getSourceEntity()),
             "emission_kind": str(packet.getEmissionKind()),
             "body_owner": None if body_owner < 0 else f"0x{body_owner:08x}",
             "canonical_target": None if canonical < 0 else f"0x{canonical:08x}",

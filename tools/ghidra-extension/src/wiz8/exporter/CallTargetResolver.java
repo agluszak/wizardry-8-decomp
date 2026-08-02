@@ -6,7 +6,6 @@ import java.util.Map;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
-import ghidra.program.model.listing.FunctionTag;
 import ghidra.program.model.listing.Instruction;
 import ghidra.program.model.pcode.PcodeOp;
 import ghidra.program.model.pcode.Varnode;
@@ -35,21 +34,16 @@ final class CallTargetResolver {
 		}
 		return match;
 	}
-	enum Origin {
-		FIRST_PARTY, SURRENDER, SGP, MSVC_RUNTIME, PLATFORM,
-		ZLIB, JPEG, INFO_ZIP, IMPORT, LIBRARY, UNKNOWN
-	}
-	enum ThunkKind {
-		NONE, IMPORT, THIS_ADJUSTOR, RETURN_ADJUSTOR,
-		THIS_AND_RETURN_ADJUSTOR, UNKNOWN
-	}
-
 	record Target(Function referenced, Function canonical, Origin origin,
-			ThunkKind thunkKind, long thisAdjustment, long returnAdjustment,
+			ThunkInfo thunk,
 			String evidence) {
 		boolean safelyErasable() {
-			return thunkKind == ThunkKind.NONE || thunkKind == ThunkKind.IMPORT;
+			return thunk.kind() == ThunkInfo.ThunkKind.NONE ||
+				thunk.kind() == ThunkInfo.ThunkKind.IMPORT;
 		}
+		ThunkInfo.ThunkKind thunkKind() { return thunk.kind(); }
+		long thisAdjustment() { return thunk.thisAdjustment(); }
+		long returnAdjustment() { return thunk.returnAdjustment(); }
 	}
 
 	Target resolve(Function referenced) {
@@ -61,48 +55,46 @@ final class CallTargetResolver {
 
 	private Target resolveUncached(Function referenced) {
 		Function canonical = referenced;
-		ThunkKind thunkKind = ThunkKind.NONE;
+		ThunkInfo.ThunkKind thunkKind = ThunkInfo.ThunkKind.NONE;
 		if (referenced.isThunk()) {
 			Function resolved = referenced.getThunkedFunction(true);
 			if (resolved != null) {
 				canonical = resolved;
 				if (!resolved.equals(referenced)) {
-					thunkKind = resolved.isExternal() ? ThunkKind.IMPORT : ThunkKind.UNKNOWN;
+					thunkKind = resolved.isExternal() ? ThunkInfo.ThunkKind.IMPORT
+						: ThunkInfo.ThunkKind.UNKNOWN;
 				}
 			}
 		}
-		ThunkAdjustment adjustment = thunkKind == ThunkKind.IMPORT ||
-			thunkKind == ThunkKind.NONE ? new ThunkAdjustment(thunkKind, 0, 0)
+		ThunkInfo adjustment = thunkKind == ThunkInfo.ThunkKind.IMPORT ||
+			thunkKind == ThunkInfo.ThunkKind.NONE ? new ThunkInfo(thunkKind, 0, 0)
 				: thunkAdjustment(referenced);
-		thunkKind = adjustment.kind;
-		Origin tagged = taggedOrigin(referenced);
+		Origin tagged = ReviewedFunctionMetadata.read(referenced).origin();
 		if (tagged == Origin.UNKNOWN && canonical != referenced) {
-			tagged = taggedOrigin(canonical);
+			tagged = ReviewedFunctionMetadata.read(canonical).origin();
 		}
 		if (tagged != Origin.UNKNOWN) {
-			return new Target(referenced, canonical, tagged, thunkKind,
-				adjustment.thisAdjustment, adjustment.returnAdjustment,
+			return new Target(referenced, canonical, tagged, adjustment,
 				"reviewed Ghidra origin tag");
 		}
 		if (canonical.isExternal()) {
 			String library = canonical.getExternalLocation() == null ? ""
 				: canonical.getExternalLocation().getLibraryName();
-			return new Target(referenced, canonical, libraryOrigin(library),
-				thunkKind == ThunkKind.NONE ? ThunkKind.IMPORT : thunkKind,
-				adjustment.thisAdjustment, adjustment.returnAdjustment,
+			ThunkInfo externalThunk = thunkKind == ThunkInfo.ThunkKind.NONE
+				? new ThunkInfo(ThunkInfo.ThunkKind.IMPORT, 0, 0) : adjustment;
+			return new Target(referenced, canonical, libraryOrigin(library), externalThunk,
 				"Ghidra external location " + library);
 		}
 		String identity = (canonical.getParentNamespace().getName(true) + "::" +
 			canonical.getName()).toLowerCase();
 		Origin origin = identityOrigin(identity);
-		return new Target(referenced, canonical, origin, thunkKind,
-			adjustment.thisAdjustment, adjustment.returnAdjustment,
+		return new Target(referenced, canonical, origin, adjustment,
 			origin == Origin.UNKNOWN ? "unclassified internal function"
 				: "centralized symbol-identity codec");
 	}
 
 	/** Prove constant ECX/EAX adjustments from the thunk's instruction P-code. */
-	private static ThunkAdjustment thunkAdjustment(Function thunk) {
+	private static ThunkInfo thunkAdjustment(Function thunk) {
 		long thisAdjustment = 0;
 		long returnAdjustment = 0;
 		boolean adjustsThis = false;
@@ -140,10 +132,12 @@ final class CallTargetResolver {
 				}
 			}
 		}
-		ThunkKind kind = adjustsThis && adjustsReturn ? ThunkKind.THIS_AND_RETURN_ADJUSTOR
-			: adjustsThis ? ThunkKind.THIS_ADJUSTOR
-				: adjustsReturn ? ThunkKind.RETURN_ADJUSTOR : ThunkKind.UNKNOWN;
-		return new ThunkAdjustment(kind, thisAdjustment, returnAdjustment);
+		ThunkInfo.ThunkKind kind = adjustsThis && adjustsReturn
+			? ThunkInfo.ThunkKind.THIS_AND_RETURN_ADJUSTOR
+			: adjustsThis ? ThunkInfo.ThunkKind.THIS_ADJUSTOR
+				: adjustsReturn ? ThunkInfo.ThunkKind.RETURN_ADJUSTOR
+					: ThunkInfo.ThunkKind.UNKNOWN;
+		return new ThunkInfo(kind, thisAdjustment, returnAdjustment);
 	}
 
 	private static boolean sameRegister(Function function, Varnode left, Varnode right) {
@@ -159,39 +153,6 @@ final class CallTargetResolver {
 			value |= -1L << bits;
 		}
 		return value;
-	}
-
-	private record ThunkAdjustment(ThunkKind kind, long thisAdjustment,
-			long returnAdjustment) {
-	}
-
-	private static Origin taggedOrigin(Function function) {
-		Origin found = null;
-		for (FunctionTag tag : function.getTags()) {
-			String name = tag.getName();
-			if (!name.startsWith("wiz8:origin:")) {
-				continue;
-			}
-			Origin parsed = switch (name.substring("wiz8:origin:".length())) {
-				case "first-party" -> Origin.FIRST_PARTY;
-				case "library" -> Origin.LIBRARY;
-				case "surrender" -> Origin.SURRENDER;
-				case "sgp" -> Origin.SGP;
-				case "msvc-crt" -> Origin.MSVC_RUNTIME;
-				case "zlib" -> Origin.ZLIB;
-				case "jpeg" -> Origin.JPEG;
-				case "info-zip" -> Origin.INFO_ZIP;
-				case "win32", "directx", "mfc", "platform" -> Origin.PLATFORM;
-				case "import" -> Origin.IMPORT;
-				default -> Origin.UNKNOWN;
-			};
-			if (found != null && found != parsed) {
-				throw new IllegalStateException("conflicting origin tags on " +
-					function.getName(true));
-			}
-			found = parsed;
-		}
-		return found == null ? Origin.UNKNOWN : found;
 	}
 
 	private static Origin libraryOrigin(String library) {

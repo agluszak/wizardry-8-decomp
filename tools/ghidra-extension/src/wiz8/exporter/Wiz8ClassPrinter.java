@@ -118,8 +118,10 @@ final class Wiz8ClassPrinter {
 		}
 		String comment = String.format(" /* slot 0x%02x, 0x%08x */", slot,
 			target.getEntryPoint().getOffset());
-		FunctionRole role = session.role(target);
-		Function resolved = role.canonicalTarget() != null ? role.canonicalTarget() : target;
+		Emission emission = session.emission(target);
+		SourceEntityKey sourceEntity = session.sourceKey(target);
+		Function resolved = emission.canonicalTarget() != null
+			? emission.canonicalTarget() : target;
 		if ("purecall".equals(SpecialNames.normalize(resolved.getName()))) {
 			out.append(String.format(
 				"    // slot 0x%02x: pure virtual; the vftable stores purecall and\n" +
@@ -133,19 +135,19 @@ final class Wiz8ClassPrinter {
 					.append(relation).append(' ').append(resolved.getName(true)).append('\n');
 			return;
 		}
-		if (!emitted.add(role.sourceEntity())) {
+		if (!emitted.add(sourceEntity)) {
 			out.append("    //").append(comment).append(" duplicate/adjustor emission of ")
-				.append(role.sourceEntity().formalSignature()).append('\n');
+				.append(sourceEntity.formalSignature()).append('\n');
 			return;
 		}
-		if (role.isDeletingDestructor()) {
+		if (emission.isDeletingWrapper()) {
 			out.append("    virtual ~").append(bareName(className)).append("();")
 					.append(String.format(" /* slot 0x%02x: %s 0x%08x */%n", slot,
 						SpecialNames.normalize(target.getName()),
 						target.getEntryPoint().getOffset()));
 			return;
 		}
-		if (role.isDestructor()) {
+		if (sourceEntity.kind() == SourceKind.DESTRUCTOR) {
 			out.append("    virtual ~").append(bareName(className)).append("();")
 					.append(comment).append('\n');
 			return;

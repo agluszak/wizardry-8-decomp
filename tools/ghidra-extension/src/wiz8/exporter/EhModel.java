@@ -107,7 +107,8 @@ final class EhModel {
 					objectOffset = decoded[0];
 					destructor = program.getFunctionManager()
 							.getFunctionAt(address(program, decoded[1]));
-					if (destructor == null || !session.role(destructor).isDestructor() ||
+					if (destructor == null ||
+						session.sourceKey(destructor).kind() != SourceKind.DESTRUCTOR ||
 						!(destructor.getParentNamespace() instanceof GhidraClass)) {
 						objectOffset = null;
 						destructor = null;

@@ -34,18 +34,22 @@ public final class Wiz8CxxPrinter {
 	private static final String INDENT_UNIT = " ";
 
 	private final Function function;
-	private final FunctionRole role;
+	private final SourceEntity entity;
+	private final Emission emission;
 
-	Wiz8CxxPrinter(Function function, FunctionRole role) {
+	Wiz8CxxPrinter(Function function, SourceEntity entity, Emission emission) {
 		this.function = function;
-		this.role = role;
+		this.entity = entity;
+		this.emission = emission;
 	}
 
 	/** The reccmp entity marker line for this function. */
 	public String marker() {
-		String prefix = role.sourceKind() == SourceKind.LIBRARY_ENTITY ? "LIBRARY"
-			: role.sourceKind() == SourceKind.TEMPLATE_MEMBER ? "TEMPLATE"
-				: role.hasAuthoredBody() ? "FUNCTION" : "SYNTHETIC";
+		boolean direct = entity.bodyCarrier() instanceof BodyCarrier.Direct carrier &&
+			carrier.emission().equals(emission);
+		String prefix = entity.kind() == SourceKind.LIBRARY_ENTITY ? "LIBRARY"
+			: entity.kind() == SourceKind.TEMPLATE_MEMBER ? "TEMPLATE"
+				: direct ? "FUNCTION" : "SYNTHETIC";
 		return String.format("// %s: WIZ8 0x%08x", prefix,
 			function.getEntryPoint().getOffset());
 	}
@@ -55,31 +59,31 @@ public final class Wiz8CxxPrinter {
 	 * The deleting destructor is compiler output; only its address is recorded.
 	 */
 	public String printSynthetic() {
-		if (role.sourceKind() == SourceKind.LIBRARY_ENTITY) {
+		if (entity.kind() == SourceKind.LIBRARY_ENTITY) {
 			return marker() + "\n";
 		}
-		Function canonical = role.canonicalFunction();
+		Function canonical = emission.canonicalTarget();
 		String owner = TypeNames.map((canonical != null
 			? canonical.getParentNamespace() : function.getParentNamespace()).getName(true));
-		if (role.sourceKind() == SourceKind.TEMPLATE_MEMBER) {
+		if (entity.kind() == SourceKind.TEMPLATE_MEMBER) {
 			return marker() + "\n// " + owner + "::" +
 				TypeNames.map(function.getName()) + "\n";
 		}
-		if ((role.emissionKind() == EmissionKind.ADJUSTOR_THUNK ||
-			role.emissionKind() == EmissionKind.COVARIANT_RETURN_THUNK) &&
+		if ((emission.kind() == EmissionKind.ADJUSTOR_THUNK ||
+			emission.kind() == EmissionKind.COVARIANT_RETURN_THUNK) &&
 			canonical != null) {
-			String source = CallableIdentity.sourceName(canonical, role.sourceKind());
+			String source = CallableIdentity.sourceName(canonical, entity.kind());
 			return marker() + "\n// " + owner + "::" + source + " (" +
-				role.emissionKind().name().toLowerCase().replace('_', ' ') +
+				emission.kind().name().toLowerCase().replace('_', ' ') +
 				" emission)\n";
 		}
 		String normalized = SpecialNames.normalize(function.getName());
-		String special = role.emissionKind() == EmissionKind.SCALAR_DELETING_DESTRUCTOR
+		String special = emission.kind() == EmissionKind.SCALAR_DELETING_DESTRUCTOR
 			? "`scalar deleting destructor'"
-			: role.emissionKind() == EmissionKind.VECTOR_DELETING_DESTRUCTOR
+			: emission.kind() == EmissionKind.VECTOR_DELETING_DESTRUCTOR
 				? normalized.contains("adjustor{") ? SpecialNames.decorate(function.getName())
 					: "`vector deleting destructor'"
-				: SpecialNames.decorate(role.emissionKind().name().toLowerCase());
+				: SpecialNames.decorate(emission.kind().name().toLowerCase());
 		return marker() + "\n// " + owner + "::" + special + "\n";
 	}
 

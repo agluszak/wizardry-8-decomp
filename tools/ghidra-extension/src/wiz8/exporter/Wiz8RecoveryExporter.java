@@ -59,23 +59,26 @@ public final class Wiz8RecoveryExporter {
 	public static final class FunctionExport {
 		private final String text;
 		private final String body;
-		private final FunctionRole role;
+		private final SourceEntity entity;
+		private final Emission emission;
 		private final String[] defects;
 		private final PassFact[] passes;
 		private final CallFact[] calls;
 		private final VtableFact[] vtables;
 
-		FunctionExport(String text, String body, FunctionRole role, String[] defects) {
-			this(text, body, role, defects, new PassFact[0],
+		FunctionExport(String text, String body, SourceEntity entity, Emission emission,
+				String[] defects) {
+			this(text, body, entity, emission, defects, new PassFact[0],
 				new CallFact[0], new VtableFact[0]);
 		}
 
-		FunctionExport(String text, String body, FunctionRole role,
+		FunctionExport(String text, String body, SourceEntity entity, Emission emission,
 				String[] defects, PassFact[] passes,
 				CallFact[] calls, VtableFact[] vtables) {
 			this.text = text;
 			this.body = body;
-			this.role = role;
+			this.entity = entity;
+			this.emission = emission;
 			this.defects = defects;
 			this.passes = passes;
 			this.calls = calls;
@@ -85,21 +88,34 @@ public final class Wiz8RecoveryExporter {
 		public String getText() { return text; }
 		public String getBody() { return body; }
 		public String getEmissionKind() {
-			return role == null ? "missing" : role.emissionKind().name().toLowerCase();
+			return emission == null ? "missing" : emission.kind().name().toLowerCase();
 		}
 		public String getSourceKind() {
-			return role == null ? "none" : role.sourceKind().name().toLowerCase();
+			return entity == null ? "none" : entity.kind().name().toLowerCase();
+		}
+		public String getSourceEntity() {
+			return entity == null ? "" : entity.key().formalSignature();
 		}
 		public long getBodyOwner() {
-			return role == null || role.bodyOwner() == null ? -1
-				: role.bodyOwner().getEntryPoint().getOffset();
+			if (entity == null) return -1;
+			return switch (entity.bodyCarrier()) {
+				case BodyCarrier.Direct direct -> direct.emission().function()
+					.getEntryPoint().getOffset();
+				case BodyCarrier.Extracted extracted -> extracted.carrier().function()
+					.getEntryPoint().getOffset();
+				case BodyCarrier.None ignored -> -1;
+			};
 		}
 		public long getCanonicalTarget() {
-			return role == null || role.canonicalTarget() == null ? -1
-				: role.canonicalTarget().getEntryPoint().getOffset();
+			return emission == null || emission.canonicalTarget() == null ? -1
+				: emission.canonicalTarget().getEntryPoint().getOffset();
 		}
-		public String getOrigin() { return role == null ? "unknown" : role.origin(); }
-		public String getEvidence() { return role == null ? "missing function" : role.evidence(); }
+		public String getOrigin() {
+			return emission == null ? "unknown" : emission.origin().name().toLowerCase();
+		}
+		public String getEvidence() {
+			return emission == null ? "missing function" : emission.evidence();
+		}
 		public String[] getDefects() { return defects.clone(); }
 		public PassFact[] getPasses() { return passes.clone(); }
 		public CallFact[] getCalls() { return calls.clone(); }
@@ -204,12 +220,12 @@ public final class Wiz8RecoveryExporter {
 				Function function = functions.getFunctionAt(space.getAddress(entryPoints[i]));
 				if (function == null) {
 					output[i] = new FunctionExport(String.format(
-						"// error: no function at 0x%08x%n", entryPoints[i]), "", null,
+						"// error: no function at 0x%08x%n", entryPoints[i]), "", null, null,
 						new String[] {"missing function"});
 					continue;
 				}
-				output[i] = renderFunction(session, function,
-					session.exportRole(function, monitor), referenceForms[i], decompiler,
+				output[i] = renderFunction(session, function, session.entity(function, monitor),
+					session.emission(function), referenceForms[i], decompiler,
 					options, monitor);
 			}
 			return output;
@@ -233,8 +249,8 @@ public final class Wiz8RecoveryExporter {
 			return String.format("// error: no class named %s%n", className);
 		}
 		RecoverySession session = new RecoverySession(program);
-		LifecycleFamilyResolver.LifecycleFamily family =
-			session.family(ghidraClass, monitor);
+		ClassEntityResolver.ClassEntities entities =
+			session.classEntities(ghidraClass, monitor);
 
 		StringBuilder output = new StringBuilder();
 		output.append(new Wiz8ClassPrinter(session, ghidraClass).print());
@@ -242,23 +258,28 @@ public final class Wiz8RecoveryExporter {
 		DecompileOptions options = new DecompileOptions();
 		DecompInterface decompiler = template ? null : openDecompiler(program, options);
 		try {
-			if (!template) {
-				for (LifecycleFamilyResolver.SourceBody sourceBody : family.sourceBodies()) {
-					monitor.checkCancelled();
-					output.append('\n').append(exportUnmarkedSourceBody(session, sourceBody,
+			for (SourceEntity entity : entities.sourceEntities()) {
+				monitor.checkCancelled();
+				Emission direct = entity.bodyCarrier() instanceof BodyCarrier.Direct carrier
+					? carrier.emission() : null;
+				if (!template && entity.bodyCarrier() instanceof BodyCarrier.Extracted extracted) {
+					output.append('\n').append(exportUnmarkedSourceBody(session, entity,
+						extracted, decompiler, options, monitor));
+				}
+				if (!template && direct != null) {
+					output.append('\n').append(exportFunction(session, entity, direct,
 						decompiler, options, monitor));
 				}
-			}
-			for (LifecycleFamilyResolver.Member member : family.members()) {
-				monitor.checkCancelled();
-				Function function = member.function();
-				output.append('\n');
-				if (template) {
-					output.append(templateEmissionBlock(function, member.role()));
-				}
-				else {
-					output.append(exportFunction(session, function, member.role(), decompiler, options,
-						monitor));
+				for (Emission emission : entity.emissions()) {
+					if (emission.equals(direct)) continue;
+					output.append('\n');
+					if (template) {
+						output.append(templateEmissionBlock(entity, emission));
+					}
+					else {
+						output.append(exportFunction(session, entity, emission,
+							decompiler, options, monitor));
+					}
 				}
 			}
 			return output.toString();
@@ -278,28 +299,24 @@ public final class Wiz8RecoveryExporter {
 			return String.format("error: no class named %s%n", className);
 		}
 		RecoverySession session = new RecoverySession(program);
-		LifecycleFamilyResolver.LifecycleFamily family =
-			session.family(ghidraClass, monitor);
+		ClassEntityResolver.ClassEntities entities =
+			session.classEntities(ghidraClass, monitor);
 		StringBuilder out = new StringBuilder("class ").append(className)
 			.append(" lifecycle family\n");
-		for (var table : family.vftables()) {
+		for (var table : entities.vftables()) {
 			out.append(String.format("vftable     0x%08x %s%n",
 				table.getAddress().getOffset(), table.getName()));
 		}
-		for (LifecycleFamilyResolver.Member member : family.members()) {
-			Function function = member.function();
-			FunctionRole role = member.role();
-			out.append(String.format("0x%08x %-30s %-22s %s%n",
-				function.getEntryPoint().getOffset(),
-				role.emissionKind().name().toLowerCase(),
-				role.sourceKind().name().toLowerCase(), function.getName(true)));
-			out.append("             role: ").append(role.evidence())
-				.append("; family: ").append(member.familyEvidence()).append('\n');
-		}
-		for (LifecycleFamilyResolver.SourceBody body : family.sourceBodies()) {
-			out.append(String.format("source body  0x%08x %-22s %s%n",
-				body.carrier().getEntryPoint().getOffset(),
-				body.role().sourceKind().name().toLowerCase(), body.evidence()));
+		for (SourceEntity entity : entities.sourceEntities()) {
+			out.append("entity       ").append(entity.key().formalSignature()).append('\n');
+			for (Emission emission : entity.emissions()) {
+				out.append(String.format("0x%08x %-30s %-22s %s%n",
+					emission.function().getEntryPoint().getOffset(),
+					emission.kind().name().toLowerCase(),
+					entity.kind().name().toLowerCase(), emission.function().getName(true)));
+				out.append("             evidence: ").append(emission.evidence()).append('\n');
+			}
+			out.append("             carrier: ").append(entity.bodyCarrier()).append('\n');
 		}
 		return out.toString();
 	}
@@ -311,9 +328,10 @@ public final class Wiz8RecoveryExporter {
 	 * marker in the ordinary family member list.
 	 */
 	private static String exportUnmarkedSourceBody(RecoverySession session,
-			LifecycleFamilyResolver.SourceBody sourceBody, DecompInterface decompiler,
+			SourceEntity entity, BodyCarrier.Extracted extracted, DecompInterface decompiler,
 			DecompileOptions options, TaskMonitor monitor) {
-		Function function = sourceBody.carrier();
+		Emission emission = extracted.carrier();
+		Function function = emission.function();
 		DecompileResults results = decompiler.decompileFunction(function,
 			options.getDefaultTimeout(), monitor);
 		ClangTokenGroup markup = results.getCCodeMarkup();
@@ -321,15 +339,14 @@ public final class Wiz8RecoveryExporter {
 			return "// source destructor extraction declined: decompilation failed\n";
 		}
 		try {
-			FunctionRole role = sourceBody.role();
-			Msvc6Patterns.Analysis analysis = Msvc6Patterns.analyze(session, function, role,
-				results, new String[0]);
+			Msvc6Patterns.Analysis analysis = Msvc6Patterns.analyze(session, function,
+				entity, emission, results, new String[0]);
 			if (!analysis.liftSignature || !analysis.defects.isEmpty()) {
 				return "// source destructor extraction declined: wrapper epilogue or " +
 					"lifecycle body was not fully proved\n";
 			}
 			String prototype = CallableIdentity.prototype(function, SourceKind.DESTRUCTOR);
-			String body = new Wiz8CxxPrinter(function, role)
+			String body = new Wiz8CxxPrinter(function, entity, emission)
 				.printBody(markup, analysis);
 			return prototype + "\n" + body;
 		}
@@ -344,9 +361,10 @@ public final class Wiz8RecoveryExporter {
 	 * TEMPLATE for every other member, each followed by the specialization
 	 * symbol it records.
 	 */
-	private static String templateEmissionBlock(Function function, FunctionRole role) {
-		if (role.isDeletingDestructor()) {
-			return new Wiz8CxxPrinter(function, role).printSynthetic();
+	private static String templateEmissionBlock(SourceEntity entity, Emission emission) {
+		Function function = emission.function();
+		if (emission.isDeletingWrapper()) {
+			return new Wiz8CxxPrinter(function, entity, emission).printSynthetic();
 		}
 		String owner = TypeNames.map(function.getParentNamespace().getName(true));
 		String name = TypeNames.map(function.getName());
@@ -396,26 +414,31 @@ public final class Wiz8RecoveryExporter {
 		return output.toString();
 	}
 
-	private static String exportFunction(RecoverySession session, Function function,
-			FunctionRole role,
+	private static String exportFunction(RecoverySession session, SourceEntity entity,
+			Emission emission,
 			DecompInterface decompiler, DecompileOptions options, TaskMonitor monitor) {
-		return renderFunction(session, function, role, new String[0], decompiler,
+		return renderFunction(session, emission.function(), entity, emission,
+			new String[0], decompiler,
 			options, monitor).getText();
 	}
 
 	private static FunctionExport renderFunction(RecoverySession session, Function function,
-			FunctionRole role, String[] referenceForms, DecompInterface decompiler,
+			SourceEntity entity, Emission emission, String[] referenceForms,
+			DecompInterface decompiler,
 			DecompileOptions options, TaskMonitor monitor) {
-		Wiz8CxxPrinter printer = new Wiz8CxxPrinter(function, role);
+		Wiz8CxxPrinter printer = new Wiz8CxxPrinter(function, entity, emission);
 
 		if (function.getParentNamespace() instanceof GhidraClass owner &&
 			owner.getName().indexOf('[') >= 0 &&
-			!role.isDeletingDestructor()) {
-			return new FunctionExport(templateEmissionBlock(function, role), "", role,
-				new String[0]);
+			!emission.isDeletingWrapper()) {
+			return new FunctionExport(templateEmissionBlock(entity, emission), "", entity,
+				emission, new String[0]);
 		}
-		if (!role.hasAuthoredBody()) {
-			return new FunctionExport(printer.printSynthetic(), "", role, new String[0]);
+		boolean direct = entity.bodyCarrier() instanceof BodyCarrier.Direct carrier &&
+			carrier.emission().equals(emission);
+		if (!direct) {
+			return new FunctionExport(printer.printSynthetic(), "", entity, emission,
+				new String[0]);
 		}
 
 		Address entry = function.getEntryPoint();
@@ -424,7 +447,8 @@ public final class Wiz8RecoveryExporter {
 			String defect = "no instruction at entry point";
 			return new FunctionExport(printer.marker() +
 				"\n/* No instruction at the entry point; cannot decompile " +
-				function.getName() + ". */\n", "", role, new String[] {defect});
+				function.getName() + ". */\n", "", entity, emission,
+				new String[] {defect});
 		}
 
 		monitor.setMessage("Decompiling " + function.getName());
@@ -436,13 +460,14 @@ public final class Wiz8RecoveryExporter {
 			String defect = "decompile: " + (error == null ? "no result" : error.trim());
 			return new FunctionExport(printer.marker() + "\n/* Unable to decompile '" +
 				function.getName() + "': " +
-				(error == null ? "no result" : error.trim()) + " */\n", "", role,
+				(error == null ? "no result" : error.trim()) + " */\n", "", entity, emission,
 				new String[] {defect});
 		}
 
 		try {
 			Msvc6Patterns.Analysis analysis =
-				Msvc6Patterns.analyze(session, function, role, results, referenceForms);
+				Msvc6Patterns.analyze(session, function, entity, emission, results,
+					referenceForms);
 			String text = printer.print(markup, analysis);
 			String body = printer.printBody(markup, analysis);
 			String[] defects = analysis.defects.toArray(String[]::new);
@@ -450,7 +475,7 @@ public final class Wiz8RecoveryExporter {
 			body = appendDefects(body, defects);
 			PassFact[] passes = analysis.trace.stream().map(PassFact::new)
 				.toArray(PassFact[]::new);
-			return new FunctionExport(text, body, role, defects, passes,
+			return new FunctionExport(text, body, entity, emission, defects, passes,
 				callFacts(session, results), vtableFacts(session, function));
 		}
 		catch (Exception e) {
@@ -460,7 +485,7 @@ public final class Wiz8RecoveryExporter {
 				(decompiled.endsWith("\n") ? "" : "\n") +
 				"// exporter-defect: " + defect + "\n";
 			return new FunctionExport(text, "// exporter-defect: body: " + e + "\n",
-				role, new String[] {defect});
+				entity, emission, new String[] {defect});
 		}
 	}
 

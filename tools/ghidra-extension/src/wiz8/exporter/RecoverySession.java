@@ -1,6 +1,7 @@
 package wiz8.exporter;
 
 import java.util.IdentityHashMap;
+import java.util.List;
 
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
@@ -18,50 +19,55 @@ import ghidra.util.task.TaskMonitor;
  */
 final class RecoverySession {
 	final Program program;
-	final FunctionRoleResolver roles = new FunctionRoleResolver();
-	final CallTargetResolver calls = new CallTargetResolver();
+	final CallTargetResolver calls;
+	final FunctionRoleResolver roles;
 	final VtableResolver vtables;
-	private final IdentityHashMap<GhidraClass, LifecycleFamilyResolver.LifecycleFamily> families =
+	private final IdentityHashMap<GhidraClass, ClassEntityResolver.ClassEntities> classes =
 		new IdentityHashMap<>();
 
 	RecoverySession(Program program) {
 		this.program = program;
+		this.calls = new CallTargetResolver();
+		this.roles = new FunctionRoleResolver(calls);
 		this.vtables = new VtableResolver(program);
 	}
 
-	FunctionRole role(Function function) {
+	private FunctionRoleResolver.Result classification(Function function) {
 		return roles.resolve(function);
 	}
 
-	/** The family-normalized role used when one binary address is exported alone. */
-	FunctionRole exportRole(Function function, TaskMonitor monitor) throws CancelledException {
-		FunctionRole raw = role(function);
-		if (!(function.getParentNamespace() instanceof GhidraClass owner) ||
-			(!raw.isConstructor() && !raw.isDestructor())) {
-			return raw;
-		}
-		for (LifecycleFamilyResolver.Member member : family(owner, monitor).members()) {
-			if (member.function().equals(function)) {
-				FunctionRole normalized = member.role();
-				// An address-selected deleting wrapper remains marker-only.  A class
-				// family may use its instructions as the only carrier from which to
-				// recover the source destructor, but that does not turn the wrapper
-				// emission itself into an authored callable.
-				return normalized.isDeletingDestructor() ? raw : normalized;
-			}
-		}
-		return raw;
+	Emission emission(Function function) {
+		return classification(function).emission();
 	}
 
-	LifecycleFamilyResolver.LifecycleFamily family(GhidraClass owner, TaskMonitor monitor)
+	SourceEntityKey sourceKey(Function function) {
+		return classification(function).sourceEntity();
+	}
+
+	SourceEntity entity(Function function, TaskMonitor monitor) throws CancelledException {
+		SourceEntityKey key = sourceKey(function);
+		if (function.getParentNamespace() instanceof GhidraClass owner &&
+			(key.kind() == SourceKind.CONSTRUCTOR || key.kind() == SourceKind.DESTRUCTOR)) {
+			for (SourceEntity entity : classEntities(owner, monitor).sourceEntities()) {
+				if (entity.key().equals(key)) return entity;
+			}
+		}
+		Emission emission = emission(function);
+		BodyCarrier carrier = emission.kind() == EmissionKind.AUTHORED_BODY ||
+			emission.kind() == EmissionKind.CONSTRUCTOR_BODY
+				? new BodyCarrier.Direct(emission) : new BodyCarrier.None();
+		return new SourceEntity(key, List.of(emission), carrier);
+	}
+
+	ClassEntityResolver.ClassEntities classEntities(GhidraClass owner, TaskMonitor monitor)
 			throws CancelledException {
-		LifecycleFamilyResolver.LifecycleFamily cached = families.get(owner);
+		ClassEntityResolver.ClassEntities cached = classes.get(owner);
 		if (cached != null) {
 			return cached;
 		}
-		LifecycleFamilyResolver.LifecycleFamily resolved =
-			new LifecycleFamilyResolver(this).resolve(owner, monitor);
-		families.put(owner, resolved);
+		ClassEntityResolver.ClassEntities resolved =
+			new ClassEntityResolver(this).resolve(owner, monitor);
+		classes.put(owner, resolved);
 		return resolved;
 	}
 }
