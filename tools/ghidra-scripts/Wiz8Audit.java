@@ -34,6 +34,7 @@ public class Wiz8Audit extends GhidraScript {
 			case "function-inventory" -> functionInventory();
 			case "class-fields" -> classFields(arguments.classes());
 			case "function-exists" -> functionExists(arguments.entries());
+			case "lifecycle-symbols" -> lifecycleSymbols(arguments.classes());
 			default -> throw new IllegalArgumentException("unknown audit " + arguments.audit());
 		};
 		Path parent = arguments.output().toAbsolutePath().getParent();
@@ -99,6 +100,21 @@ public class Wiz8Audit extends GhidraScript {
 		result.addProperty("schema", "wiz8.function-existence-audit");
 		result.addProperty("ok", missing.isEmpty());
 		result.add("missing", missing);
+		return result;
+	}
+
+	private JsonObject lifecycleSymbols(List<String> classes) {
+		JsonArray vtables = new JsonArray();
+		var symbols = currentProgram.getSymbolTable().getAllSymbols(true);
+		while (symbols.hasNext()) {
+			String name = symbols.next().getName(true);
+			if (!name.toLowerCase().contains("vftable")) continue;
+			if (classes.stream().noneMatch(value -> name.contains(value + "::"))) continue;
+			vtables.add(name);
+		}
+		JsonObject result = new JsonObject();
+		result.addProperty("schema", "wiz8.lifecycle-symbols");
+		result.add("vtables", vtables);
 		return result;
 	}
 

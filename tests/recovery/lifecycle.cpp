@@ -41,6 +41,24 @@ struct ClassDelete {
     static void operator delete[](void* value) { ::operator delete(value); }
 };
 
+// Round-trip family: these explicit source entities are intentionally simple
+// enough that recovered bodies must be directly compilable, while virtual
+// destruction still forces VC6 to emit deleting-wrapper and vtable families.
+struct EmptyLifecycleA {
+    EmptyLifecycleA();
+    virtual ~EmptyLifecycleA();
+};
+
+struct EmptyLifecycleB {
+    EmptyLifecycleB();
+    virtual ~EmptyLifecycleB();
+};
+
+EmptyLifecycleA::EmptyLifecycleA() { lifecycle_sink += 10; }
+EmptyLifecycleA::~EmptyLifecycleA() { lifecycle_sink -= 10; }
+EmptyLifecycleB::EmptyLifecycleB() { lifecycle_sink += 20; }
+EmptyLifecycleB::~EmptyLifecycleB() { lifecycle_sink -= 20; }
+
 struct DeletesMember {
     DeletesMember() : owned(new Base) {}
     virtual ~DeletesMember() { delete owned; }
@@ -85,6 +103,8 @@ static void exercise_lifetimes(int count) {
     Derived* vector = new Derived[count];
     ClassDelete* owned = new ClassDelete;
     ClassDelete* owned_vector = new ClassDelete[count];
+    EmptyLifecycleA* empty_a = new EmptyLifecycleA;
+    EmptyLifecycleB* empty_b = new EmptyLifecycleB;
     DeletesMember deletes_member;
     lifecycle_sink += inline_helper(local);
     local_static_object();
@@ -92,6 +112,8 @@ static void exercise_lifetimes(int count) {
     delete[] vector;
     delete owned;
     delete[] owned_vector;
+    delete empty_a;
+    delete empty_b;
     if (count == -1) {
         destroy_and_free(new Base);
     }
