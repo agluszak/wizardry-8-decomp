@@ -33,6 +33,8 @@ struct W8Forwarded {
     void Method4C5290();
 };
 
+bool IsCharacterReadyToAdvance(int party_slot);
+
 extern "C" {
 
 extern void Function4C4EF0(void);
@@ -257,6 +259,7 @@ extern Controls* g_panel_69b940;
 extern Controls* g_panel_69b998;
 extern Controls* g_panel_69bf4c;
 extern Controls* g_panel_69bf40;
+extern W8TextControl005ED604* g_portrait_controls_0069b920[8];
 
 
 
@@ -291,6 +294,7 @@ extern unsigned char g_table_647ccc[128];
 extern unsigned char g_table_650434[][8];
 extern int g_value_69da68;
 extern int g_value_69b9a4;
+extern int g_value_69b9a0;
 extern int g_value_62a518;
 extern int g_value_69c1cc;
 extern int g_screen_transition_object_count_654aac;
