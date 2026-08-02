@@ -33,7 +33,7 @@ runtime-test:
     uv run wiz8 runtime-test
 
 lifecycle-fixture:
-    uv run wiz8 ghidra fid verify-lifecycle-fixture
+    uv run wiz8 recover self-test
 
 recover address *args:
     uv run wiz8 recover function {{address}} {{args}}

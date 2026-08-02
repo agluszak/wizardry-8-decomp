@@ -104,13 +104,13 @@ def validate_command(program: str = typer.Option("wiz8", "--program")) -> None:
     cli.run_action(lambda: require_valid_repository(cli.settings().repo_dir, program))
 
 
-@app.command("validate-index")
-def validate_index_command(program: str = typer.Option("wiz8", "--program")) -> None:
-    """Resolve every provenance claim against a generated Ghidra index."""
+@app.command("validate-ghidra")
+def validate_ghidra_command(program: str = typer.Option("wiz8", "--program")) -> None:
+    """Resolve every provenance claim against focused live Ghidra queries."""
     from .. import command_support as cli
-    from ..evidence.claims import validate_claims_against_index
+    from ..evidence.claims import validate_claims_against_ghidra
 
-    cli.run_action(lambda: validate_claims_against_index(cli.settings().repo_dir, program))
+    cli.run_action(lambda: validate_claims_against_ghidra(cli.settings(), program))
 
 
 @app.command("upsert")

@@ -88,7 +88,7 @@ default type.
 - Recovered identity and signature: the address-marked C++ declaration.
 - Identity provenance and atomic supporting facts: `evidence/reviewed/wiz8/claims.csv`.
 - Class relationships, fields, virtuals, and layout ownership: C++ declarations with compiler gates.
-- Native layouts and fields: the canonical Ghidra project, reviewed through `build/ghidra-index/types.json`.
+- Native layouts and fields: the canonical Ghidra project, checked by focused read-only Java audits.
 - Current pairing and exact/effective status: live reccmp results under `build/`.
 - Current totals, ownership, and source-unit coverage:
   `build/reports/status.md`.

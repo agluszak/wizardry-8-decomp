@@ -19,6 +19,18 @@ from wiz8decomp.reports.status import derive_status, render_status_markdown, sta
 _UNIT = r"C:\Projects\Wizardry 8\Local Code\A.cpp"
 
 
+def _ghidra_functions() -> list[dict[str, str]]:
+    return [
+        {"entry": f"0x{address:08x}", "name": name}
+        for address, name in (
+            (0x00401000, "Owned"),
+            (0x00402000, "Foo"),
+            (0x00403000, "Baz"),
+            (0x00404000, "Bar"),
+        )
+    ]
+
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -81,29 +93,11 @@ def repository(tmp_path: Path) -> Path:
             }
         ),
     )
-    _write(
-        repo / "build/ghidra-index/functions.json",
-        json.dumps(
-            {
-                "schema": "wiz8.ghidra-function-index",
-                "program": "wiz8",
-                "functions": [
-                    {"entry": f"{address:08x}", "name": name, "qualified_name": name}
-                    for address, name in (
-                        (0x00401000, "Owned"),
-                        (0x00402000, "Foo"),
-                        (0x00403000, "Baz"),
-                        (0x00404000, "Bar"),
-                    )
-                ],
-            }
-        ),
-    )
     return repo
 
 
 def test_every_reviewed_catalog_becomes_a_program_row(repository: Path) -> None:
-    report = derive_status(repository)
+    report = derive_status(repository, _ghidra_functions())
 
     assert report["schema"] == "wiz8.recovery-status"
     assert [item["program"] for item in report["programs"]] == [
@@ -122,7 +116,7 @@ def test_canonical_identities_union_source_markers_with_accepted_identity_claims
 ) -> None:
     """0x401000 is source-owned only, 0x402000 is both, 0x404000 is claim-only."""
 
-    report = derive_status(repository)
+    report = derive_status(repository, _ghidra_functions())
 
     assert report["wiz8"]["source_functions"] == 1
     assert report["wiz8"]["function_identities"] == 3
@@ -133,7 +127,7 @@ def test_canonical_identities_union_source_markers_with_accepted_identity_claims
 
 
 def test_source_inventory_counts_come_from_the_observation_tables(repository: Path) -> None:
-    report = derive_status(repository)
+    report = derive_status(repository, _ghidra_functions())
 
     assert report["wiz8"]["classes"] == 1
     assert report["wiz8"]["source_units"] == 2
@@ -143,7 +137,7 @@ def test_source_inventory_counts_come_from_the_observation_tables(repository: Pa
 def test_gameplay_attribution_separates_markers_assertions_and_gaps(repository: Path) -> None:
     """Ghidra owns the inventory; markers and assertion anchors attribute it."""
 
-    gameplay = derive_status(repository)["wiz8"]["gameplay"]
+    gameplay = derive_status(repository, _ghidra_functions())["wiz8"]["gameplay"]
 
     assert gameplay["functions"] == 4
     assert gameplay["owners"] == {"source": 1, "unassigned": 3}
@@ -162,7 +156,7 @@ def test_gameplay_attribution_separates_markers_assertions_and_gaps(repository: 
 
 
 def test_markdown_renders_the_report_it_is_given(repository: Path) -> None:
-    markdown = render_status_markdown(derive_status(repository))
+    markdown = render_status_markdown(derive_status(repository, _ghidra_functions()))
 
     assert markdown.startswith("# Wizardry recovery status")
     assert "| `cfagent-128` | 2 |" in markdown
@@ -176,8 +170,11 @@ def test_status_report_writes_json_and_markdown_under_build(
     repository: Path,
 ) -> None:
     settings = SimpleNamespace(repo_dir=repository, build_dir=tmp_path / "build")
-    report = derive_status(repository)
-    monkeypatch.setattr(status_module, "derive_status", lambda _repository: report)
+    report = derive_status(repository, _ghidra_functions())
+    monkeypatch.setattr(status_module, "derive_status", lambda _repository, _functions: report)
+    monkeypatch.setattr(
+        "wiz8decomp.ghidra.audits.function_inventory", lambda _settings: _ghidra_functions()
+    )
 
     result = status_report(settings)
 

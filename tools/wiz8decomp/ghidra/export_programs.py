@@ -80,7 +80,7 @@ def export_project(settings: Settings, selector: str | None = None) -> dict[str,
         "total_seconds": round(pack_seconds, 3),
     }
     atomic_json(
-        settings.build_dir / "reports" / "ghidra-index" / f"seed-{program_name}.json",
+        settings.build_dir / "reports" / "ghidra-seed-refresh" / f"seed-{program_name}.json",
         report,
     )
     return report

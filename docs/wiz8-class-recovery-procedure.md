@@ -40,11 +40,10 @@ Use Ghidra undo/versioning, a cloned project, or a temporary GZF for speculative
 create overlay plans or candidate databases. Refresh the tracked checkpoint only after review:
 
 ```sh
-uv run wiz8 ghidra index
 uv run wiz8 ghidra seed refresh wiz8
 ```
 
-The normalized export under `build/ghidra-index/` is disposable and reviewable. The tracked GZF is
+Focused reports under `build/reports/` are disposable and reviewable. The tracked GZF is
 the canonical analysis checkpoint, while provenance remains the explanation of accepted claims.
 
 ## Acceptance

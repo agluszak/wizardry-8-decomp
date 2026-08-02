@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 from pathlib import Path
 from typing import Any
 
@@ -28,20 +27,19 @@ __all__ = [
 ]
 
 
-def function_inventory(repo_dir: Path) -> list[dict[str, str]]:
+def function_inventory(
+    repo_dir: Path, ghidra_functions: list[dict[str, str]]
+) -> list[dict[str, str]]:
     """Generated original-function inventory with source marker ownership overlaid."""
 
-    ghidra_path = repo_dir / "build" / "ghidra-index" / "functions.json"
-    if not ghidra_path.is_file():
-        raise ValueError(f"Ghidra function index does not exist: {ghidra_path}")
     values = [
         {
             "address": item["entry"],
-            "symbol": item.get("qualified_name") or item["name"],
+            "symbol": item["name"],
             "owner": "",
             "source_path": "",
         }
-        for item in json.loads(ghidra_path.read_text(encoding="utf-8"))["functions"]
+        for item in ghidra_functions
     ]
     from ..source_model import build_source_model
 
@@ -264,10 +262,12 @@ def load_call_site_anchors(repo_dir: Path) -> dict[int, str]:
 
 
 def translation_unit_report(settings: Any) -> dict[str, Any]:
+    from ..ghidra.audits import function_inventory as ghidra_function_inventory
+
     assertions = _read_rows(
         settings.repo_dir / "evidence" / "observations" / "wiz8" / "assertions.csv"
     )
-    gameplay = function_inventory(settings.repo_dir)
+    gameplay = function_inventory(settings.repo_dir, ghidra_function_inventory(settings))
     extra_anchors = load_call_site_anchors(settings.repo_dir)
 
     intervals = derive_intervals(assertions, extra_anchors)

@@ -1,7 +1,5 @@
 import csv
-import io
 import shutil
-from collections import Counter
 from itertools import pairwise
 from pathlib import Path
 from types import SimpleNamespace
@@ -9,9 +7,6 @@ from types import SimpleNamespace
 from wiz8decomp.reports.translation_units import (
     call_site_anchors,
     derive_intervals,
-    function_inventory,
-    render_gameplay_map_csv,
-    render_interval_csv,
     translation_unit_report,
 )
 
@@ -19,39 +14,6 @@ from wiz8decomp.reports.translation_units import (
 def _rows(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as stream:
         return list(csv.DictReader(stream))
-
-
-def test_translation_unit_map_is_current_and_non_overlapping() -> None:
-    repository = Path(__file__).resolve().parents[2]
-    assertions = _rows(repository / "evidence/observations/wiz8/assertions.csv")
-    gameplay = function_inventory(repository)
-    intervals = derive_intervals(assertions)
-
-    assert len(intervals) == 117
-    assert all(left.upper < right.lower for left, right in pairwise(intervals))
-
-    rendered_intervals = render_interval_csv(intervals)
-    rendered_gameplay, counts = render_gameplay_map_csv(assertions, gameplay, intervals)
-    assert counts["direct"] + counts["inferred"] >= 25
-    assert counts["direct"] >= len(
-        __import__("wiz8decomp.source_model", fromlist=["build_source_model"])
-        .build_source_model(repository)
-        .functions
-    )
-
-    mapped = list(csv.DictReader(io.StringIO(rendered_gameplay)))
-    assert Counter(row["attribution"] for row in mapped) == {
-        name: count for name, count in counts.items() if count
-    }
-    assert len(list(csv.DictReader(io.StringIO(rendered_intervals)))) == 233
-    assert (
-        next(row for row in mapped if row["symbol"] == "MonsterDBFromSpecies")["source_path"]
-        == "src/wiz8/local_code/MonsterManager.cpp"
-    )
-    assert (
-        next(row for row in mapped if row["symbol"] == "GetRandomCharacter")["source_path"]
-        == "src/wiz8/local_code/UtilityFunctions.cpp"
-    )
 
 
 def test_call_site_anchors_agree_with_the_reviewed_table_where_both_know_a_function() -> None:
@@ -100,15 +62,22 @@ def test_translation_unit_report_writes_generated_outputs_under_build(tmp_path: 
         repository / "evidence/observations/wiz8/assertions.csv",
         observations / "assertions.csv",
     )
-    (tmp_path / "build/ghidra-index").mkdir(parents=True)
+    (tmp_path / "build").mkdir()
     shutil.copyfile(repository / "build/source-index.json", tmp_path / "build/source-index.json")
-    shutil.copyfile(
-        repository / "build/ghidra-index/functions.json",
-        tmp_path / "build/ghidra-index/functions.json",
-    )
 
     settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
-    result = translation_unit_report(settings)
+    from wiz8decomp.ghidra import audits
+    from wiz8decomp.source_model import build_source_model
+
+    original = audits.function_inventory
+    audits.function_inventory = lambda _settings: [
+        {"entry": f"0x{address:08x}", "name": function.name}
+        for address, function in build_source_model(tmp_path).functions.items()
+    ]
+    try:
+        result = translation_unit_report(settings)
+    finally:
+        audits.function_inventory = original
 
     assert result["outputs"] == [
         "build/reports/translation-units/translation-unit-intervals.csv",

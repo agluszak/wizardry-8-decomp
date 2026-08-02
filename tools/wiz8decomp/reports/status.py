@@ -24,7 +24,7 @@ def _counts(rows: list[dict[str, str]], field: str) -> dict[str, int]:
     return dict(sorted(Counter(row[field] or "unassigned" for row in rows).items()))
 
 
-def derive_status(repo_dir: Path) -> dict[str, Any]:
+def derive_status(repo_dir: Path, ghidra_functions: list[dict[str, str]]) -> dict[str, Any]:
     catalogs = sorted((repo_dir / "evidence" / "reviewed").glob("*/functions.csv"))
     programs = []
     for path in catalogs:
@@ -63,7 +63,7 @@ def derive_status(repo_dir: Path) -> dict[str, Any]:
     classes = load_source_index(repo_dir)["classes"]
     source_units = _rows(repo_dir / "evidence/observations/wiz8/source-tree.csv")
     assertions = _rows(repo_dir / "evidence/observations/wiz8/assertions.csv")
-    gameplay = function_inventory(repo_dir)
+    gameplay = function_inventory(repo_dir, ghidra_functions)
     extra_anchors = load_call_site_anchors(repo_dir)
     intervals = derive_intervals(assertions, extra_anchors)
     gameplay_map, attribution = render_gameplay_map_csv(
@@ -149,7 +149,9 @@ def render_status_markdown(report: dict[str, Any]) -> str:
 
 
 def status_report(settings: Any) -> dict[str, Any]:
-    report = derive_status(settings.repo_dir)
+    from ..ghidra.audits import function_inventory as ghidra_function_inventory
+
+    report = derive_status(settings.repo_dir, ghidra_function_inventory(settings))
     report_dir = settings.build_dir / "reports"
     json_path = report_dir / "status.json"
     markdown_path = report_dir / "status.md"

@@ -72,19 +72,19 @@ jj describe -m "<next coherent change>"
 jj bookmark set agent/<bead>-<topic> -r @
 ```
 
-## Exporting recovered-style C++ from the reviewed project
+## Recovering C++ from the reviewed project
 
-`uv run wiz8 ghidra export-cpp 0x<address>` prints recovered-style C++ with reccmp markers for
-selected functions; `--class NAME` exports a generated class declaration plus the class's ABI
-family (marker-only blocks for template classes). `uv run wiz8 recover regress 0x<address>...`
-measures how much of an already-recovered body the exporter regenerates with zero manual edits.
+`uv run wiz8 recover explain 0x<address>` reports structured recovery facts, while
+`uv run wiz8 recover regress 0x<address>...` measures how much of an already-recovered body the
+headless recovery engine regenerates with zero manual edits. Recovery opens the reviewed Ghidra
+project read-only and receives source-index facts transiently; it does not generate class,
+translation-unit, or global-data source products.
 `just recover 0x<address>` drafts a new function into its owning translation unit: source-owner
 lookup and address-order insertion from the source index, duplicate refusal, a focused build with
-`compare`/`triage`, a bounded candidate set with the best non-regressing kept, and diagnostics
+`compare`/`triage`, one structurally recovered definition, and diagnostics
 with include suggestions on failure. Constructor placement alternatives use the source index's
-actual field inventory (case is never used to guess base-vs-member ownership), and a structured
-`return_value` divergence can add at most two compiler-falsified return-width candidates. Other
-structured differences decline until reccmp identifies the affected source declaration or region.
+actual field inventory; other structured differences decline until reccmp identifies the affected
+source declaration or region.
 The default previews and restores the tree; `--apply` writes
 it. All of these need the live Ghidra project; the recover/regress loops also need the pinned VC6
 toolchain.

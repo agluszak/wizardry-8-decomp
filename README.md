@@ -65,18 +65,14 @@ query daemon, or speculative overlay layer.
 
 ```sh
 uv run wiz8 ghidra restore
-uv run wiz8 ghidra import-source
 just context 0x0044bec0
-uv run wiz8 ghidra index
 ```
 
 `just context` is the supported joined recovery view: it combines the current decompilation and
 call graph with provenance, source ownership, match state, cross-build mappings, strings, and
-relevant fields. `ghidra index` writes disposable normalized review views to
-`build/ghidra-index/` and refuses provenance claims whose function/type/vtable entity no longer
-exists. `ghidra import-source` is the only source-to-Ghidra projection: reccmp imports rebuilt
-PDB names, types, globals, and vtables into the paired original program. Source indexing never
-parses declarations for Ghidra independently.
+relevant fields. Focused read-only Java audits validate provenance claims and source layouts
+against live Ghidra objects without exporting a normalized function/type/vtable database.
+Rebuilt PDB metadata is imported only into disposable verification projects.
 Ghidra-to-source remains a review workflow through `just context`; no generator rewrites C++.
 `ghidra seed refresh` is an intentional checkpoint operation, not a routine consequence of editing
 evidence.

@@ -1,7 +1,7 @@
 """Recovery-compiler regression harness.
 
 ``wiz8 recover regress`` measures how much of a recovered function the
-Ghidra exporter can regenerate with zero manual edits: for each selected
+Ghidra engine can regenerate with zero manual edits: for each selected
 address it exports the function, grafts the exported body under the
 source-owned declaration (the declaration's compiler-owned spellings are
 evidence the exporter must not overwrite), splices the result over the
@@ -24,7 +24,7 @@ from .config import Settings
 
 
 def exported_blocks(result: dict[str, Any]) -> dict[int, str]:
-    """The Java exporter's independently bounded per-entry results."""
+    """The recovery engine's independently bounded per-entry results."""
 
     blocks: dict[int, str] = {}
     for item in result.get("exports", []):
@@ -45,6 +45,19 @@ def exported_bodies(result: dict[str, Any]) -> dict[int, str]:
         if isinstance(entry, str) and isinstance(body, str):
             bodies[int(entry, 0)] = body
     return bodies
+
+
+def exported_defects(result: dict[str, Any]) -> dict[int, list[str]]:
+    """Structured recovery-engine defects by entry address."""
+
+    defects: dict[int, list[str]] = {}
+    for item in result.get("exports", []):
+        entry = item.get("entry")
+        recovery = item.get("recovery")
+        values = recovery.get("defects") if isinstance(recovery, dict) else None
+        if isinstance(entry, str) and isinstance(values, list):
+            defects[int(entry, 0)] = [str(value) for value in values]
+    return defects
 
 
 def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
@@ -238,13 +251,13 @@ def recover_function(
     """Recover one function into its owning translation unit.
 
     Export the function, place it in address order between its recovered
-    neighbours, then build/compare/triage a bounded candidate set and keep
-    the best non-regressing shape. The default previews and restores the
-    tree; ``--apply`` leaves the chosen candidate in place.
+    neighbours, then build/compare/triage the recovered definition. The
+    default previews and restores the tree; ``--apply`` leaves a compiling
+    definition in place.
     """
 
     from .build import build_target
-    from .ghidra.export_cpp import export_cpp
+    from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected, parse_address, triage_selected
     from .source_model import load_source_index
 
@@ -262,7 +275,7 @@ def recover_function(
             "to measure regeneration of a recovered body",
         }
 
-    exported = export_cpp(settings, [f"0x{address:08x}"], program_selector=program_selector)
+    exported = recover_functions(settings, [f"0x{address:08x}"], program_selector=program_selector)
     block = exported_blocks(exported).get(address)
     if block is None:
         return {"address": f"0x{address:08x}", "status": "not-exported"}
@@ -276,93 +289,55 @@ def recover_function(
     path = settings.repo_dir / source_file
     original = path.read_text(encoding="utf-8")
 
-    # One verbatim candidate only. Source-shape alternatives that mutate the
-    # rendered C++ with regexes were removed deliberately: shape hypotheses
-    # belong in the exporter's recognizers, where Ghidra's structural model
-    # backs them, not in textual rewrites of its output.
-    candidates: list[tuple[str, str]] = [("as-exported", block)]
-
-    rows: list[dict[str, Any]] = []
+    outcome: dict[str, Any] = {}
     product_dirty = False
     try:
-        for name, candidate in candidates:
-            row: dict[str, Any] = {"candidate": name}
-            rows.append(row)
-            path.write_text(insert_lines(original, after_line, candidate), encoding="utf-8")
-            product_dirty = True
-            try:
-                build_target(settings, target)
-            except RuntimeError as error:
-                row["status"] = "compile-failed"
-                row["diagnostics"] = compile_diagnostics(_failed_build_output(settings, str(error)))
-                row["suggested_includes"] = suggest_includes(settings.repo_dir, row["diagnostics"])
-                continue
+        path.write_text(insert_lines(original, after_line, block), encoding="utf-8")
+        product_dirty = True
+        try:
+            build_target(settings, target)
+        except RuntimeError as error:
+            outcome["status"] = "compile-failed"
+            outcome["diagnostics"] = compile_diagnostics(_failed_build_output(settings, str(error)))
+            outcome["suggested_includes"] = suggest_includes(
+                settings.repo_dir, outcome["diagnostics"]
+            )
+        else:
             comparison = compare_selected(settings.repo_dir, target, [address])
             functions = comparison.get("functions") or []
             if not functions:
-                row["status"] = "not-compared"
-                continue
-            entity = functions[0]
-            row["status"] = entity["status"]
-            row["raw_matching"] = entity.get("raw_matching")
-            if entity["status"] not in {"exact", "effective"}:
-                triage = triage_selected(settings.repo_dir, target, [address])
-                findings = triage.get("functions") or []
-                if findings:
-                    row["first_divergence"] = findings[0]
+                outcome["status"] = "not-compared"
+            else:
+                entity = functions[0]
+                outcome["status"] = entity["status"]
+                outcome["raw_matching"] = entity.get("raw_matching")
+                if entity["status"] not in {"exact", "effective"}:
+                    triage = triage_selected(settings.repo_dir, target, [address])
+                    findings = triage.get("functions") or []
+                    if findings:
+                        outcome["first_divergence"] = findings[0]
     finally:
         path.write_text(original, encoding="utf-8")
 
-    ranked = sorted(rows, key=_candidate_rank, reverse=True)
-    chosen = ranked[0] if ranked and _candidate_rank(ranked[0])[0] > 0 else None
+    compiling = outcome.get("status") not in {"compile-failed", "not-compared", None}
     result: dict[str, Any] = {
         "address": f"0x{address:08x}",
         "status": "previewed",
         "source_file": source_file,
         "after_line": after_line,
-        "candidates": rows,
-        "chosen": chosen["candidate"] if chosen else None,
+        "recovery": outcome,
     }
-    if apply and chosen is not None:
-        chosen_block = dict(candidates)[chosen["candidate"]]
-        path.write_text(insert_lines(original, after_line, chosen_block), encoding="utf-8")
+    if apply and compiling:
+        path.write_text(insert_lines(original, after_line, block), encoding="utf-8")
         result["status"] = "applied"
         result["note"] = "source updated; rerun the applicable validation lane"
     elif apply:
         result["status"] = "previewed"
         result["note"] = "no candidate compiled; nothing applied"
-    # The last temporary build may reflect a candidate other than the final
-    # tree (restored or applied); rebuild so products match the sources.
+    # The temporary build may reflect a restored tree; rebuild so products
+    # match the final sources.
     result["product_restored"] = _restore_product(settings, target, product_dirty)
     return result
-
-
-def _candidate_rank(row: dict[str, Any]) -> tuple[int, int, float]:
-    """Rank candidates: exact beats effective beats any mismatch; among real
-    mismatches a later structured first divergence wins, and raw similarity
-    is only the final diagnostic tie-breaker."""
-
-    order = {"exact": 4, "effective": 3, "mismatch": 2, "not-compared": 1}
-    return (
-        order.get(str(row.get("status")), 0),
-        divergence_position(row.get("first_divergence")),
-        float(row.get("raw_matching") or 0.0),
-    )
-
-
-def divergence_position(finding: Any) -> int:
-    """The retail instruction index of a structured first divergence, or 0."""
-
-    if not isinstance(finding, dict):
-        return 0
-    difference = finding.get("difference")
-    if not isinstance(difference, dict):
-        return 0
-    orig = difference.get("orig")
-    if not isinstance(orig, dict):
-        return 0
-    index = orig.get("instruction_index")
-    return index if isinstance(index, int) and index >= 0 else 0
 
 
 def regress(
@@ -373,7 +348,7 @@ def regress(
     program_selector: str = "wiz8",
 ) -> dict[str, Any]:
     from .build import build_target
-    from .ghidra.export_cpp import export_cpp
+    from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected, parse_address, triage_selected
     from .source_model import load_source_index
 
@@ -387,11 +362,12 @@ def regress(
         if marker["marker_kind"] == "FUNCTION"
     }
 
-    exported = export_cpp(
+    exported = recover_functions(
         settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
     )
     blocks = exported_blocks(exported)
     bodies = exported_bodies(exported)
+    packet_defects = exported_defects(exported)
 
     defects: list[str] = []
     product_dirty = False
@@ -403,12 +379,12 @@ def regress(
         if block is None:
             row["status"] = "not-exported"
             continue
-        block_defects = exporter_defects(block)
+        block_defects = packet_defects.get(address, [])
         if block_defects:
-            # A defect is a bug in the exporter, not a property of the
+            # A defect is a bug in recovery, not a property of the
             # function; measuring its verbatim fallback as exporter output
             # would silently launder the bug into a score.
-            row["status"] = "exporter-defect"
+            row["status"] = "recovery-defect"
             row["defects"] = block_defects
             defects.extend(f"0x{address:08x}: {defect}" for defect in block_defects)
             continue
@@ -465,19 +441,9 @@ def regress(
     }
     if defects:
         raise RuntimeError(
-            "exporter defects detected (sources and build restored):\n  " + "\n  ".join(defects)
+            "recovery defects detected (sources and build restored):\n  " + "\n  ".join(defects)
         )
     return summary
-
-
-def exporter_defects(block: str) -> list[str]:
-    """The defect records the exporter flagged inside a block."""
-
-    return [
-        line.removeprefix("// exporter-defect: ").strip()
-        for line in block.splitlines()
-        if line.startswith("// exporter-defect:")
-    ]
 
 
 def _restore_product(settings: Settings, target: str, product_dirty: bool) -> bool:
@@ -634,21 +600,11 @@ def _sweep_selection(
     if source_file is not None:
         markers = [marker for marker in markers if marker["source_file"] == source_file]
     if class_name is not None:
-        import json
-
-        index_path = settings.repo_dir / "build" / "ghidra-index" / "functions.json"
-        if not index_path.is_file():
-            raise RuntimeError(
-                "class filtering needs build/ghidra-index/functions.json; "
-                "run `uv run wiz8 ghidra index` first"
-            )
-        functions = json.loads(index_path.read_text(encoding="utf-8"))["functions"]
-        wanted = {
-            int(record["entry"], 16)
-            for record in functions
-            if record["qualified_name"].startswith(class_name + "::")
-        }
-        markers = [marker for marker in markers if marker["address"] in wanted]
+        markers = [
+            marker
+            for marker in markers
+            if (marker.get("declaration") or {}).get("owning_class") == class_name
+        ]
     if not markers:
         raise ValueError("no recovered FUNCTION markers match the selection")
     return markers
@@ -677,16 +633,17 @@ def sweep(
     """
 
     from .build import build_target
-    from .ghidra.export_cpp import export_cpp
+    from .ghidra.recovery import recover_functions
     from .reccmp_workflows import compare_selected, triage_selected
 
     markers = _sweep_selection(settings, source_file, class_name)
     addresses = [marker["address"] for marker in markers]
-    exported = export_cpp(
+    exported = recover_functions(
         settings, [f"0x{a:08x}" for a in addresses], program_selector=program_selector
     )
     blocks = exported_blocks(exported)
     bodies = exported_bodies(exported)
+    packet_defects = exported_defects(exported)
 
     outcomes: dict[int, dict[str, Any]] = {}
     plan_by_file: dict[str, list[tuple[int, int, int, str]]] = {}
@@ -705,9 +662,9 @@ def sweep(
         if "/* Unable to decompile" in block or "/* No instruction at" in block:
             outcome["status"] = "decompiler-failure"
             continue
-        defects = exporter_defects(block)
+        defects = packet_defects.get(address, [])
         if defects:
-            outcome["status"] = "exporter-defect"
+            outcome["status"] = "recovery-defect"
             outcome["defects"] = defects
             continue
         span = marker_span(marker)

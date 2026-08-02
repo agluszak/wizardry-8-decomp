@@ -15,8 +15,6 @@ from wiz8decomp.build import (
     build_lock,
 )
 from wiz8decomp.config import Settings
-from wiz8decomp.ghidra import index as ghidra_index
-from wiz8decomp.ghidra import reccmp_import
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -173,12 +171,13 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
     settings = _settings(tmp_path)
     built: list[str] = []
 
-    monkeypatch.setattr(build_module, "lint", lambda _settings: {"lint": "ok"})
-    monkeypatch.setattr(
-        build_module,
-        "build_target",
-        lambda _settings, target: built.append(target),
-    )
+    monkeypatch.setattr(build_module, "check", lambda _repository: {"check": "ok"})
+
+    def fake_build(_settings: object, target: str) -> dict[str, str]:
+        built.append(target)
+        return {"target": target}
+
+    monkeypatch.setattr(build_module, "build_target", fake_build)
     monkeypatch.setattr(build_module, "build_analysis_target", lambda *_args: None)
     monkeypatch.setattr(
         build_module,
@@ -196,12 +195,6 @@ def test_verify_builds_and_runs_the_runtime_semantic_suite(
     monkeypatch.setattr(build_module, "compare", lambda *_args, **_kwargs: {"match": "ok"})
 
     monkeypatch.setattr(source_index, "write_source_index", lambda *_args: {"index": "ok"})
-    monkeypatch.setattr(
-        reccmp_import,
-        "import_reccmp_source",
-        lambda *_args: {"import": "ok"},
-    )
-    monkeypatch.setattr(ghidra_index, "export_index", lambda *_args: {"index": "ok"})
     monkeypatch.setattr(
         reccmp_workflows,
         "compare_vtables",

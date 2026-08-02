@@ -597,11 +597,8 @@ def verify(
     compare_image: bool = True,
     against: Path | None = None,
 ) -> dict[str, Any]:
-    from .ghidra.index import export_index
-    from .ghidra.reccmp_import import import_reccmp_source
     from .reccmp_workflows import compare_vtables
     from .runtime import run_runtime_suite
-    from .source_index import write_source_index
     from .source_layouts import (
         require_source_layout_delta,
         verify_source_layout_delta,
@@ -609,52 +606,67 @@ def verify(
     )
     from .unresolved import require_unresolved_delta, unresolved_report, verify_unresolved_delta
 
-    lint_result = lint(settings)
-    source_index = write_source_index(settings)
-    build_target(settings, "WIZ8")
-    current_unresolved = unresolved_report(
-        settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
-        settings.repo_dir / "build/decomp/Wiz8.map",
-    )
-    unresolved = require_unresolved_delta(verify_unresolved_delta(settings, current_unresolved))
-    build_target(settings, "SURRENDER")
-    build_target(settings, "WIZ8_RUNTIME_TEST")
-    source_import = import_reccmp_source(settings, "wiz8")
-    surrender_source_import = import_reccmp_source(settings, "wiz8--gog-base--sr--")
-    ghidra_index = export_index(settings, "wiz8")
-    surrender_ghidra_index = export_index(settings, "wiz8--gog-base--sr--")
-    current_source_layouts = verify_source_layouts(settings)
-    source_layouts = require_source_layout_delta(
-        verify_source_layout_delta(settings, current_source_layouts, against)
-    )
-    vtables = compare_vtables(settings.repo_dir, "WIZ8", None)
-    if not vtables["ok"]:
-        raise ValueError("source-owned vtable slots differ from the paired original")
-    comparison = (
-        {
-            "wiz8": compare(settings, "WIZ8", build_first=False),
-            "surrender": compare(settings, "SURRENDER", build_first=False),
-        }
-        if compare_image
-        else None
-    )
-    decomplint = run(["wiz8", "check-reccmp"], cwd=settings.repo_dir)
-    tests = run(["pytest", "tests/unit", "tests/repository"], cwd=settings.repo_dir)
-    runtime_tests = run_runtime_suite(settings)
-    return {
-        "lint": lint_result,
-        "source_index": source_index,
-        "current_unresolved": current_unresolved,
-        "unresolved": unresolved,
-        "source_import": source_import,
-        "surrender_source_import": surrender_source_import,
-        "ghidra_index": ghidra_index,
-        "surrender_ghidra_index": surrender_ghidra_index,
-        "current_source_layouts": current_source_layouts,
-        "source_layouts": source_layouts,
-        "vtables": vtables,
-        "compare": comparison,
-        "decomplint": _result(decomplint),
-        "tests": _result(tests),
-        "runtime_tests": runtime_tests,
-    }
+    results: dict[str, Any] = {"schema": "wiz8.verification", "failures": []}
+
+    def gate(name: str, action: Any) -> Any:
+        try:
+            value = action()
+        except Exception as error:  # noqa: BLE001 - every independent gate must still run
+            results["failures"].append({"gate": name, "error": f"{type(error).__name__}: {error}"})
+            return None
+        results[name] = value
+        return value
+
+    gate("check", lambda: check(settings.repo_dir))
+    wiz8_build = gate("build_wiz8", lambda: build_target(settings, "WIZ8"))
+    surrender_build = gate("build_surrender", lambda: build_target(settings, "SURRENDER"))
+    runtime_build = gate("build_runtime_test", lambda: build_target(settings, "WIZ8_RUNTIME_TEST"))
+
+    if wiz8_build is not None:
+        current_unresolved = gate(
+            "current_unresolved",
+            lambda: unresolved_report(
+                settings.repo_dir / "build/decomp/CMakeFiles/wiz8_recovered_objects.dir",
+                settings.repo_dir / "build/decomp/Wiz8.map",
+            ),
+        )
+        if current_unresolved is not None:
+            gate(
+                "unresolved",
+                lambda: require_unresolved_delta(
+                    verify_unresolved_delta(settings, current_unresolved)
+                ),
+            )
+        current_source_layouts = gate(
+            "current_source_layouts", lambda: verify_source_layouts(settings)
+        )
+        if current_source_layouts is not None:
+            gate(
+                "source_layouts",
+                lambda: require_source_layout_delta(
+                    verify_source_layout_delta(settings, current_source_layouts, against)
+                ),
+            )
+
+        def vtable_gate() -> dict[str, Any]:
+            value = compare_vtables(settings.repo_dir, "WIZ8", None)
+            if not value["ok"]:
+                raise ValueError("source-owned vtable slots differ from the paired original")
+            return value
+
+        gate("vtables", vtable_gate)
+        if compare_image:
+            gate("compare_wiz8", lambda: compare(settings, "WIZ8", build_first=False))
+    if surrender_build is not None and compare_image:
+        gate("compare_surrender", lambda: compare(settings, "SURRENDER", build_first=False))
+    if runtime_build is not None:
+        gate("runtime_tests", lambda: run_runtime_suite(settings))
+
+    report = settings.build_dir / "reports" / "verify.json"
+    results["ok"] = not results["failures"]
+    results["report"] = str(report)
+    atomic_json(report, results)
+    if results["failures"]:
+        names = ", ".join(item["gate"] for item in results["failures"])
+        raise ValueError(f"verification failed at {names}; see {report}")
+    return results

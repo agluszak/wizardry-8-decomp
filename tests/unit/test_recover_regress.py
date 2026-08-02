@@ -209,7 +209,7 @@ def test_recover_function_command_previews(monkeypatch: pytest.MonkeyPatch) -> N
     def fake_recover(settings, address, *, apply, target, program_selector):
         assert address == "0x004a6970"
         assert apply is False
-        return {"address": "0x004a6970", "status": "previewed", "chosen": "as-exported"}
+        return {"address": "0x004a6970", "status": "previewed"}
 
     monkeypatch.setattr("wiz8decomp.recover.recover_function", fake_recover)
     result = CliRunner().invoke(app, ["recover", "function", "0x004a6970"])
@@ -239,36 +239,6 @@ def test_verify_marker_adjacency_proves_the_span_start() -> None:
     assert verify_marker_adjacency(original, 2, 0x4A5E50)
     assert not verify_marker_adjacency(original, 1, 0x4A5E50)
     assert not verify_marker_adjacency(original, 99, 0x4A5E50)
-
-
-def test_exporter_defects_extracts_flagged_lines() -> None:
-    from wiz8decomp.recover import exporter_defects
-
-    block = (
-        "// exporter-defect: call.virtual: java.lang.NullPointerException\n"
-        "// FUNCTION: WIZ8 0x00000010\nvoid f()\n{\n}\n"
-    )
-    assert exporter_defects(block) == ["call.virtual: java.lang.NullPointerException"]
-    assert exporter_defects("// FUNCTION: WIZ8 0x00000010\nvoid f()\n{\n}\n") == []
-
-
-def test_candidate_rank_prefers_status_then_divergence_position() -> None:
-    from wiz8decomp.recover import _candidate_rank
-
-    exact = {"status": "exact", "raw_matching": 0.5}
-    late = {
-        "status": "mismatch",
-        "raw_matching": 0.7,
-        "first_divergence": {"difference": {"orig": {"instruction_index": 40}}},
-    }
-    early_high_raw = {
-        "status": "mismatch",
-        "raw_matching": 0.99,
-        "first_divergence": {"difference": {"orig": {"instruction_index": 3}}},
-    }
-    ranked = sorted([early_high_raw, late, exact], key=_candidate_rank, reverse=True)
-    assert ranked[0] is exact
-    assert ranked[1] is late  # later first divergence beats higher raw score
 
 
 def test_splice_unit_applies_many_spans_and_reports_ranges() -> None:

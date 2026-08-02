@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import csv
-import json
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -339,17 +338,13 @@ def recovery_context_report(
     if source_function is not None and source_function.owning_class:
         class_names.add(source_function.owning_class)
     selected_classes = [row for row in source_classes if row["qualified_name"] in class_names]
-    selected_fields = []
-    types_index = settings.build_dir / "ghidra-index/types.json"
-    if types_index.is_file():
-        indexed_types = json.loads(types_index.read_text(encoding="utf-8"))["types"]
-        selected_fields = [
-            {"class_name": row["name"], **component}
-            for row in indexed_types
-            if row["path"].startswith("/wiz8/classes/") and row["name"] in class_names
-            for component in row.get("components", [])
-            if component.get("field")
-        ]
+    from ..ghidra.audits import class_fields
+
+    selected_fields = [
+        {"class_name": item["name"], **field}
+        for item in class_fields(settings, class_names)
+        for field in item["fields"]
+    ]
     interval_path = (
         settings.build_dir / "reports" / "translation-units" / "translation-unit-intervals.csv"
     )
