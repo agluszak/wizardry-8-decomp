@@ -21,6 +21,10 @@ decompiler markup. Domain recoverers propose node edits from an immutable
 the accepted plan once. Structured pass facts and defects are written to the
 transient JSON result beside the recovered definition and body.
 
+`MatchShaping` is a separate stage for source-equivalent choices that affect
+pinned VC6 emission. It is not ABI unlowering and follows the stricter admission
+policy below.
+
 The public product is function recovery. Class lifecycle resolution remains an
 internal ABI service; this bundle does not generate class declarations,
 translation units, or global-data definitions.

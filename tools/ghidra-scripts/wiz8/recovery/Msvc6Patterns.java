@@ -200,6 +200,7 @@ final class Msvc6Patterns {
 		// Domain order is retained for stable diagnostics. Each recognizer sees
 		// the immutable decompiler/source context; only the planner observes and
 		// resolves claims accepted from another domain.
+		MatchShaping.recover(this);
 		CallRecovery.recoverEarly(this);
 		LifecycleRecovery.recoverScaffolding(this);
 		ExpressionRecovery.recover(this);
@@ -367,7 +368,7 @@ final class Msvc6Patterns {
 	 */
 	private static int passPriority(String pass) {
 		return pass != null && (pass.startsWith("lifecycle") || pass.startsWith("eh.") ||
-			pass.startsWith("allocation") || pass.equals("call.result-local")) ? 2 : 1;
+			pass.startsWith("allocation") || pass.equals("shape.call-result-local")) ? 2 : 1;
 	}
 
 	private boolean conflicts(ClangNode node) {
