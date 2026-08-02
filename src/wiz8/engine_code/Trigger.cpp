@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
@@ -69,7 +70,6 @@ extern unsigned char FindEntityByName(
     W8Position* position,
     int* location_id,
     W8Position* direction);
-extern void Function41EF50(void);
 extern void RequestLevelTransition005615F0(
     int location_id, int entrance, unsigned char show_message);
 extern void* SpawnSpellEffect004AD080(

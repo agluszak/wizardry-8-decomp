@@ -78,6 +78,33 @@ void RepeatLevelDataCallback(int arg_1, int arg_2, int count, void (*callback)(v
     }
 }
 
+// FUNCTION: WIZ8 0x0041ef50
+void Function41EF50(void)
+{
+    W8LevelDataRecord* data = g_level_data_00652dac;
+
+    if (data != 0 && (data->flags & W8_LEVEL_FLAG_0) == 0) {
+        data->vector_40.x = 0;
+        data->vector_40.y = 0;
+        data->vector_40.z = 0;
+        data->camera_forward_4c.x = 0;
+        data->camera_forward_4c.y = 0;
+        data->camera_forward_4c.z = 0;
+        data->scaled_camera_forward_7c.x = 0;
+        data->scaled_camera_forward_7c.y = 0;
+        data->scaled_camera_forward_7c.z = 0;
+        data->vector_64.x = 0;
+        data->vector_64.y = 0;
+        data->vector_64.z = 0;
+        data->vector_70.x = 0;
+        data->vector_70.y = 0;
+        data->vector_70.z = 0;
+        data->vector_a0.x = 0;
+        data->vector_a0.y = 0;
+        data->vector_a0.z = 0;
+    }
+}
+
 /* Bit eight: read, cleared and set by three neighbouring bodies. */
 // FUNCTION: WIZ8 0x0041efb0
 unsigned int GetLevelDataFlag8(void)
