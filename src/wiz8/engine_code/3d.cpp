@@ -173,6 +173,18 @@ void WorldUpdateProps(W8World* world)
     }
 }
 
+/* Advance each light queued by this world. */
+// FUNCTION: WIZ8 0x0046df50
+void WorldUpdateLights(W8World* world)
+{
+    int count = world->lights_to_update->GetCount();
+
+    for (int index = 0; index < count; ++index) {
+        stLight** light = world->lights_to_update->GetAt(index);
+        (*light)->Update0049C960();
+    }
+}
+
 /* 0x00659AB4: the world being rendered, which the list wrappers below reach
    through. Every one of them ignores the caller's own first argument and uses
    this global instead. */

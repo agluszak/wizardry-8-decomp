@@ -59,6 +59,7 @@ extern unsigned char Function4914C0(void);
 extern void Function490B90(void);
 extern unsigned char g_world_cleanup_flag_00659757;
 extern W8GrowableVector<W8World*> g_worlds_00659a80;
+extern void Function46DE40(W8World* world);
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -294,6 +295,18 @@ W8World* CreateWorld()
 // W8Node005EC208::`scalar deleting destructor'
 W8Node005EC208::~W8Node005EC208()
 {
+}
+
+/* Detach the item meshes in every registered world before the renderer-side
+   resource transition. */
+// FUNCTION: WIZ8 0x0044f5b0
+void DetachAllWorldItems(void)
+{
+    int count = g_worlds_00659a80.GetCount();
+
+    for (int index = 0; index < count; ++index) {
+        Function46DE40(*g_worlds_00659a80.GetAt(index));
+    }
 }
 
 // FUNCTION: WIZ8 0x004507A0
@@ -560,6 +573,16 @@ void WorldSetCameraLocation(W8World* world, const float* location)
         position.z = location[2];
         ((srNode*)world->camera_light)->setLocation(position);
     }
+}
+
+/* Read the camera node's double-precision renderer position back into the
+   world's float position type. */
+// FUNCTION: WIZ8 0x00450750
+void WorldGetCameraLocation(W8World* world, W8Position* location)
+{
+    location->x = (float)world->camera->getLocationX();
+    location->y = (float)world->camera->getLocationY();
+    location->z = (float)world->camera->getLocationZ();
 }
 
 // SYNTHETIC: WIZ8 0x00423e50
