@@ -16,6 +16,7 @@ is a manual/milestone gate, not part of ``just check`` or ``just test``.
 
 from __future__ import annotations
 
+import csv
 import re
 from pathlib import Path
 from typing import Any
@@ -58,6 +59,31 @@ def exported_defects(result: dict[str, Any]) -> dict[int, list[str]]:
         if isinstance(entry, str) and isinstance(values, list):
             defects[int(entry, 0)] = [str(value) for value in values]
     return defects
+
+
+def exported_declines(result: dict[str, Any]) -> dict[int, list[dict[str, str]]]:
+    """Source-entity blockers which make an unattended write unsafe."""
+
+    declines: dict[int, list[dict[str, str]]] = {}
+    for item in result.get("exports", []):
+        entry = item.get("entry")
+        recovery = item.get("recovery")
+        passes = recovery.get("passes") if isinstance(recovery, dict) else None
+        if not isinstance(entry, str) or not isinstance(passes, list):
+            continue
+        blockers = [
+            {
+                "pass": str(value.get("pass", "")),
+                "detail": str(value.get("detail", "")),
+            }
+            for value in passes
+            if isinstance(value, dict)
+            and value.get("status") == "declined"
+            and value.get("pass") == "signature.prototype"
+        ]
+        if blockers:
+            declines[int(entry, 0)] = blockers
+    return declines
 
 
 def marker_span(marker: dict[str, Any]) -> tuple[str, int, int] | None:
@@ -136,12 +162,13 @@ def block_end_line(marker: dict[str, Any]) -> int:
     symbol comment that must follow SYNTHETIC/TEMPLATE markers.
     """
 
+    line = int(marker["line"])
+    kind = marker["marker_kind"]
+    if kind in {"SYNTHETIC", "TEMPLATE"}:
+        return line + 1
     declaration = marker.get("declaration") or {}
     end_line = declaration.get("end_line")
-    if isinstance(end_line, int):
-        return end_line
-    line = int(marker["line"])
-    return line + 1 if marker["marker_kind"] in {"SYNTHETIC", "TEMPLATE"} else line
+    return end_line if isinstance(end_line, int) else line
 
 
 def place_address(markers: list[dict[str, Any]], address: int) -> dict[str, Any]:
@@ -178,6 +205,91 @@ def place_address(markers: list[dict[str, Any]], address: int) -> dict[str, Any]
     }
 
 
+_UNIT_DIRECTORIES = {
+    "3d code": "3d_code",
+    "dialog code": "dialog_code",
+    "engine code": "engine_code",
+    "level specific code": "level_specific_code",
+    "local code": "local_code",
+    "local screens": "local_screens",
+}
+
+
+def repository_source_file(repo_dir: Path, unit: str, markers: list[dict[str, Any]]) -> str | None:
+    """Map one reviewed original unit to its unique recovered physical file."""
+
+    normalized = unit.replace("\\", "/")
+    basename = normalized.rsplit("/", 1)[-1]
+    candidates = sorted(
+        {
+            str(marker["source_file"])
+            for marker in markers
+            if Path(str(marker["source_file"])).name.casefold() == basename.casefold()
+            and (repo_dir / str(marker["source_file"])).is_file()
+        }
+    )
+    if len(candidates) == 1:
+        return candidates[0]
+    directory, separator, name = normalized.partition("/")
+    if not separator:
+        return None
+    mapped = _UNIT_DIRECTORIES.get(directory.casefold())
+    if mapped is None:
+        return None
+    candidate = Path("src/wiz8") / mapped / name
+    return candidate.as_posix() if (repo_dir / candidate).is_file() else None
+
+
+def resolve_source_placement(
+    repo_dir: Path, markers: list[dict[str, Any]], address: int
+) -> dict[str, Any]:
+    """Resolve ownership with the same assertion-backed authority as context."""
+
+    from .ghidra.unit_intervals import TranslationUnitResolver
+
+    assertion_path = repo_dir / "evidence/observations/wiz8/assertions.csv"
+    with assertion_path.open(newline="", encoding="utf-8") as stream:
+        assertions = list(csv.DictReader(stream))
+    ownership = TranslationUnitResolver(assertions).resolve(address)
+    unit = str(ownership.get("source_path") or "")
+    if not unit:
+        return {
+            "status": "unplaced",
+            **ownership,
+            "reason": "translation-unit resolver did not prove a source owner",
+        }
+    source_file = repository_source_file(repo_dir, unit, markers)
+    if source_file is None:
+        return {
+            "status": "unplaced",
+            **ownership,
+            "reason": f"translation unit {unit} has no recovered physical source file",
+        }
+    owned = sorted(
+        (marker for marker in markers if marker["source_file"] == source_file),
+        key=lambda marker: marker["address"],
+    )
+    previous = next((marker for marker in reversed(owned) if marker["address"] < address), None)
+    following = next((marker for marker in owned if marker["address"] > address), None)
+    if previous is None and following is None:
+        return {
+            "status": "unplaced",
+            **ownership,
+            "reason": f"translation unit {unit} has no recovered insertion anchor",
+        }
+    if previous is not None:
+        after_line = block_end_line(previous)
+    else:
+        assert following is not None
+        after_line = max(int(following["line"]) - 1, 0)
+    return {
+        "status": "placed",
+        **ownership,
+        "source_file": source_file,
+        "after_line": after_line,
+    }
+
+
 def insert_lines(original: str, after_line: int, block: str) -> str:
     """Insert the block after the 1-based line, separated by a blank line."""
 
@@ -201,6 +313,57 @@ def graft_source_signature(marker: dict[str, Any], exported_body: str) -> str | 
     if body and not body.endswith("\n"):
         body += "\n"
     return f"// FUNCTION: WIZ8 0x{address:08x}\n{signature}\n{body}"
+
+
+_GENERATED_ADDRESS_NAME = re.compile(r"\b(?:_?DAT|PTR|UNK|LAB)_([0-9A-Fa-f]{8})\b")
+_SOURCE_ADDRESS_NAME = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*_([0-9A-Fa-f]{8}))\b")
+_FTOL_ASSIGNMENT = re.compile(
+    r"(?m)^(?P<indent>[ \t]*)(?P<temp>[A-Za-z_][A-Za-z0-9_]*) = ftol\(\);\n"
+    r"(?P=indent)(?P<lhs>[A-Za-z_][A-Za-z0-9_]*(?:\[[^\n;]+\])?) = "
+    r"(?P=temp)(?P<tail>[^;]*);"
+)
+
+
+def project_source_forms(
+    generated: str, source_file: str, source_block: str = ""
+) -> tuple[str, list[dict[str, str]], list[str]]:
+    """Project only unique source-owned spellings into generated C++."""
+
+    by_address: dict[str, set[str]] = {}
+    for match in _SOURCE_ADDRESS_NAME.finditer(source_file):
+        by_address.setdefault(match.group(2).casefold(), set()).add(match.group(1))
+    projections: list[dict[str, str]] = []
+
+    def replace_address(match: re.Match[str]) -> str:
+        candidates = by_address.get(match.group(1).casefold(), set())
+        if len(candidates) != 1:
+            return match.group(0)
+        replacement = next(iter(candidates))
+        projections.append({"kind": "identifier", "from": match.group(0), "to": replacement})
+        return replacement
+
+    projected = _GENERATED_ADDRESS_NAME.sub(replace_address, generated)
+    for match in list(_FTOL_ASSIGNMENT.finditer(projected)):
+        lhs = match.group("lhs")
+        statements = re.findall(
+            rf"(?m)^[ \t]*{re.escape(lhs)}[ \t]*=[ \t]*([^;\n]+);", source_block
+        )
+        cast_statements = [value for value in statements if "(int)" in value]
+        if len(cast_statements) != 1:
+            continue
+        replacement = f"{match.group('indent')}{lhs} = {cast_statements[0]};"
+        temp = match.group("temp")
+        projected = projected[: match.start()] + replacement + projected[match.end() :]
+        if len(re.findall(rf"\b{re.escape(temp)}\b", projected)) == 1:
+            projected = re.sub(
+                rf"(?m)^[ \t]*(?:short|int|long) {re.escape(temp)};[ \t]*\n", "", projected
+            )
+        projections.append({"kind": "source-cast", "from": "ftol", "to": lhs})
+        break
+    blockers = sorted(set(_GENERATED_ADDRESS_NAME.findall(projected)))
+    if "ftol()" in projected:
+        blockers.append("ftol")
+    return projected, projections, blockers
 
 
 _UNDECLARED = re.compile(r"error C2065: '([A-Za-z_][A-Za-z0-9_]*)' : undeclared identifier")
@@ -275,12 +438,27 @@ def recover_function(
             "to measure regeneration of a recovered body",
         }
 
+    placement = resolve_source_placement(settings.repo_dir, markers, address)
     exported = recover_functions(settings, [f"0x{address:08x}"], program_selector=program_selector)
+    declines = exported_declines(exported).get(address, [])
+    if declines:
+        decline_result: dict[str, Any] = {
+            "address": f"0x{address:08x}",
+            "status": "declined",
+            "reason": "source entity has an unresolved formal prototype",
+            "blockers": declines,
+            "placement": placement["status"],
+        }
+        for key in ("source_path", "attribution", "source_file", "after_line"):
+            if placement.get(key) is not None:
+                decline_result[key] = placement[key]
+        if placement["status"] != "placed" and placement.get("reason"):
+            decline_result["placement_reason"] = placement["reason"]
+        return decline_result
     block = exported_blocks(exported).get(address)
     if block is None:
         return {"address": f"0x{address:08x}", "status": "not-exported"}
 
-    placement = place_address(markers, address)
     if placement["status"] != "placed":
         return {"address": f"0x{address:08x}", **placement, "block": block}
 
@@ -288,6 +466,16 @@ def recover_function(
     after_line = placement["after_line"]
     path = settings.repo_dir / source_file
     original = path.read_text(encoding="utf-8")
+    block, projections, blockers = project_source_forms(block, original)
+    if blockers:
+        return {
+            "address": f"0x{address:08x}",
+            "status": "declined",
+            "reason": "generated source contains unresolved source forms",
+            "source_file": source_file,
+            "projections": projections,
+            "blockers": blockers,
+        }
 
     outcome: dict[str, Any] = {}
     product_dirty = False
@@ -325,6 +513,9 @@ def recover_function(
         "status": "previewed",
         "source_file": source_file,
         "after_line": after_line,
+        "translation_unit": placement.get("source_path"),
+        "attribution": placement.get("attribution"),
+        "projections": projections,
         "recovery": outcome,
     }
     if apply and compiling:
@@ -409,7 +600,15 @@ def regress(
         if grafted is None:
             row["status"] = "source-signature-unavailable"
             continue
-        block = grafted
+        source_lines = original.splitlines(keepends=True)
+        source_block = "".join(source_lines[first_line - 1 : last_line])
+        block, projections, blockers = project_source_forms(grafted, original, source_block)
+        if projections:
+            row["projections"] = projections
+        if blockers:
+            row["status"] = "source-form-unavailable"
+            row["blockers"] = blockers
+            continue
         try:
             path.write_text(splice_lines(original, first_line, last_line, block), encoding="utf-8")
             product_dirty = True

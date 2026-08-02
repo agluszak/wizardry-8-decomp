@@ -12,12 +12,16 @@ from typer.testing import CliRunner
 from wiz8decomp import command_support
 from wiz8decomp.cli import app
 from wiz8decomp.recover import (
+    block_end_line,
     compile_diagnostics,
     exported_blocks,
+    exported_declines,
     graft_source_signature,
     insert_lines,
     marker_span,
     place_address,
+    project_source_forms,
+    resolve_source_placement,
     splice_lines,
     suggest_includes,
 )
@@ -42,6 +46,34 @@ def test_exported_blocks_uses_structured_per_entry_results() -> None:
 def test_exported_blocks_does_not_parse_or_normalize_cpp_text() -> None:
     text = "body\n\n\n"
     assert exported_blocks({"exports": [{"entry": "0x10", "text": text}]}) == {0x10: text}
+
+
+def test_exported_declines_blocks_unresolved_formal_prototypes() -> None:
+    result = {
+        "exports": [
+            {
+                "entry": "0x0046a490",
+                "recovery": {
+                    "passes": [
+                        {
+                            "status": "declined",
+                            "pass": "signature.prototype",
+                            "detail": "formal signature contains an unresolved ABI type",
+                        },
+                        {"status": "declined", "pass": "other", "detail": "not a blocker"},
+                    ]
+                },
+            }
+        ]
+    }
+    assert exported_declines(result) == {
+        0x46A490: [
+            {
+                "pass": "signature.prototype",
+                "detail": "formal signature contains an unresolved ABI type",
+            }
+        ]
+    }
 
 
 def test_marker_span_covers_marker_line_through_end_line() -> None:
@@ -133,6 +165,24 @@ def test_place_address_counts_the_synthetic_symbol_comment_line() -> None:
     assert inside == {"status": "placed", "source_file": "src/a.cpp", "after_line": 31}
 
 
+def test_synthetic_insertion_never_splits_the_following_destructor() -> None:
+    marker = {
+        "address": 0x44F3D0,
+        "marker_kind": "SYNTHETIC",
+        "source_file": "src/a.cpp",
+        "line": 2,
+        # The source index may bind the following declaration's signature to
+        # the emission marker. It must not become this marker's insertion end.
+        "declaration": {"end_line": 4},
+    }
+    assert block_end_line(marker) == 3
+    original = (
+        "before\n// SYNTHETIC: WIZ8 0x0044F3D0\n// C::`scalar deleting destructor'\nC::~C()\n{\n}\n"
+    )
+    inserted = insert_lines(original, block_end_line(marker), "void recovered() {}\n")
+    assert "void recovered() {}\nC::~C()\n{\n}" in inserted
+
+
 def test_insert_lines_adds_a_separating_blank_line() -> None:
     original = "a\nb\nc\n"
     assert insert_lines(original, 2, "X\n") == "a\nb\n\nX\nc\n"
@@ -174,6 +224,51 @@ def test_graft_takes_the_exported_initializer_list() -> None:
 
 def test_graft_declines_without_compiler_indexed_signature() -> None:
     assert graft_source_signature({"address": 1, "declaration": {}}, "{\n}\n") is None
+
+
+def test_source_forms_project_unique_address_names_and_authored_casts() -> None:
+    generated = (
+        "{\n"
+        "  short sVar1;\n"
+        "  span = value * _DAT_005ec344;\n"
+        "  sVar1 = ftol();\n"
+        "  cell_count_024 = sVar1 + 1;\n"
+        "}\n"
+    )
+    source_file = "extern float g_path_span_scale_005ec344;\n"
+    source_block = "cell_count_024 = (short)(int)span_020 + 1;\n"
+    projected, facts, blockers = project_source_forms(generated, source_file, source_block)
+    assert "g_path_span_scale_005ec344" in projected
+    assert "ftol" not in projected
+    assert "sVar1" not in projected
+    assert "cell_count_024 = (short)(int)span_020 + 1;" in projected
+    assert {fact["kind"] for fact in facts} == {"identifier", "source-cast"}
+    assert blockers == []
+
+
+def test_source_forms_decline_ambiguous_or_unowned_spellings() -> None:
+    generated = "value = _DAT_005ec344;\nresult = ftol();\n"
+    source = "float first_005ec344; float second_005ec344;\n"
+    projected, facts, blockers = project_source_forms(generated, source)
+    assert projected == generated
+    assert facts == []
+    assert blockers == ["005ec344", "ftol"]
+
+
+def test_recovery_placement_uses_assertion_backed_unit_owner(tmp_path) -> None:
+    assertion_path = tmp_path / "evidence/observations/wiz8/assertions.csv"
+    assertion_path.parent.mkdir(parents=True)
+    assertion_path.write_text(
+        "source_path,containing_function\n"
+        "C:\\Projects\\Wizardry 8\\Engine Code\\stCube.cpp,0048d080\n"
+        "C:\\Projects\\Wizardry 8\\Engine Code\\stCube.cpp,0048e7b0\n",
+        encoding="utf-8",
+    )
+    placement = resolve_source_placement(tmp_path, [], 0x48DCA0)
+    assert placement["status"] == "unplaced"
+    assert placement["source_path"] == "Engine Code\\stCube.cpp"
+    assert placement["attribution"] == "interval-inference"
+    assert "no recovered physical source file" in placement["reason"]
 
 
 def test_suggest_includes_names_declaring_headers(tmp_path) -> None:
