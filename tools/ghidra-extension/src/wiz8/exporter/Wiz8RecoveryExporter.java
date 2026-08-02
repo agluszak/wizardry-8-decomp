@@ -52,11 +52,6 @@ import ghidra.util.task.TaskMonitor;
  * decompiled is reported inline as a comment; it never aborts the batch.
  */
 public final class Wiz8RecoveryExporter {
-	static {
-		CxxTypePrinter.verifyRegressionCases();
-		DeletingDestructorSemantics.verifyRegressionCases();
-	}
-
 	private Wiz8RecoveryExporter() {
 	}
 
@@ -65,25 +60,22 @@ public final class Wiz8RecoveryExporter {
 		private final String text;
 		private final String body;
 		private final FunctionRole role;
-		private final String[] trace;
 		private final String[] defects;
 		private final PassFact[] passes;
 		private final CallFact[] calls;
 		private final VtableFact[] vtables;
 
-		FunctionExport(String text, String body, FunctionRole role,
-				String[] trace, String[] defects) {
-			this(text, body, role, trace, defects, new PassFact[0],
+		FunctionExport(String text, String body, FunctionRole role, String[] defects) {
+			this(text, body, role, defects, new PassFact[0],
 				new CallFact[0], new VtableFact[0]);
 		}
 
 		FunctionExport(String text, String body, FunctionRole role,
-				String[] trace, String[] defects, PassFact[] passes,
+				String[] defects, PassFact[] passes,
 				CallFact[] calls, VtableFact[] vtables) {
 			this.text = text;
 			this.body = body;
 			this.role = role;
-			this.trace = trace;
 			this.defects = defects;
 			this.passes = passes;
 			this.calls = calls;
@@ -108,7 +100,6 @@ public final class Wiz8RecoveryExporter {
 		}
 		public String getOrigin() { return role == null ? "unknown" : role.origin(); }
 		public String getEvidence() { return role == null ? "missing function" : role.evidence(); }
-		public String[] getTrace() { return trace.clone(); }
 		public String[] getDefects() { return defects.clone(); }
 		public PassFact[] getPasses() { return passes.clone(); }
 		public CallFact[] getCalls() { return calls.clone(); }
@@ -214,7 +205,7 @@ public final class Wiz8RecoveryExporter {
 				if (function == null) {
 					output[i] = new FunctionExport(String.format(
 						"// error: no function at 0x%08x%n", entryPoints[i]), "", null,
-						new String[0], new String[] {"missing function"});
+						new String[] {"missing function"});
 					continue;
 				}
 				output[i] = renderFunction(session, function,
@@ -226,52 +217,6 @@ public final class Wiz8RecoveryExporter {
 		finally {
 			decompiler.dispose();
 		}
-	}
-
-	/**
-	 * Export the functions whose entry points are given, in the given order,
-	 * separated by blank lines.
-	 */
-	public static String export(Program program, long[] entryPoints, TaskMonitor monitor)
-			throws CancelledException {
-		return String.join("\n", exportFunctions(program, entryPoints, monitor));
-	}
-
-	/**
-	 * Export one independently bounded string per requested entry, preserving
-	 * request order.  This is the Java/Python protocol; callers never need to
-	 * split concatenated C++ by marker regex.
-	 */
-	public static String[] exportFunctions(Program program, long[] entryPoints,
-			TaskMonitor monitor) throws CancelledException {
-		String[][] references = new String[entryPoints.length][0];
-		FunctionExport[] packets = exportFunctionPackets(program, entryPoints, references, monitor);
-		String[] output = new String[packets.length];
-		for (int i = 0; i < packets.length; i++) {
-			output[i] = packets[i].getText();
-		}
-		return output;
-	}
-
-	/**
-	 * Export the generated initializer suffix plus compound statement for each
-	 * requested function.  Prototype/body separation is performed on Clang
-	 * markup in Java, so regression tooling never parses C++ braces.
-	 */
-	public static String[] exportBodies(Program program, long[] entryPoints,
-			TaskMonitor monitor) throws CancelledException {
-		return exportBodies(program, entryPoints, new String[entryPoints.length][0], monitor);
-	}
-
-	public static String[] exportBodies(Program program, long[] entryPoints,
-			String[][] referenceForms, TaskMonitor monitor) throws CancelledException {
-		FunctionExport[] packets = exportFunctionPackets(program, entryPoints,
-			referenceForms, monitor);
-		String[] output = new String[packets.length];
-		for (int i = 0; i < packets.length; i++) {
-			output[i] = packets[i].getBody();
-		}
-		return output;
 	}
 
 	/**
@@ -309,7 +254,7 @@ public final class Wiz8RecoveryExporter {
 				Function function = member.function();
 				output.append('\n');
 				if (template) {
-					output.append(templateEmissionBlock(function));
+					output.append(templateEmissionBlock(function, member.role()));
 				}
 				else {
 					output.append(exportFunction(session, function, member.role(), decompiler, options,
@@ -378,13 +323,13 @@ public final class Wiz8RecoveryExporter {
 		try {
 			FunctionRole role = sourceBody.role();
 			Msvc6Patterns.Analysis analysis = Msvc6Patterns.analyze(session, function, role,
-				FunctionKind.DESTRUCTOR, results, new String[0]);
+				results, new String[0]);
 			if (!analysis.liftSignature || !analysis.defects.isEmpty()) {
 				return "// source destructor extraction declined: wrapper epilogue or " +
 					"lifecycle body was not fully proved\n";
 			}
-			String prototype = CallableIdentity.prototype(function, FunctionKind.DESTRUCTOR);
-			String body = new Wiz8CxxPrinter(function, FunctionKind.DESTRUCTOR, role)
+			String prototype = CallableIdentity.prototype(function, SourceKind.DESTRUCTOR);
+			String body = new Wiz8CxxPrinter(function, role)
 				.printBody(markup, analysis);
 			return prototype + "\n" + body;
 		}
@@ -393,25 +338,15 @@ public final class Wiz8RecoveryExporter {
 		}
 	}
 
-	/** Stable machine-facing emission name used by the Python interface. */
-	public static String emissionKind(Program program, long entryPoint) {
-		Address entry = program.getAddressFactory().getDefaultAddressSpace()
-			.getAddress(entryPoint);
-		Function function = program.getFunctionManager().getFunctionAt(entry);
-		return function == null ? "missing"
-			: FunctionRoleResolver.resolve(function).emissionKind().name().toLowerCase();
-	}
-
 	/**
 	 * The marker-only block recording that a template member was emitted at
 	 * this address: SYNTHETIC for the compiler-generated deleting destructor,
 	 * TEMPLATE for every other member, each followed by the specialization
 	 * symbol it records.
 	 */
-	private static String templateEmissionBlock(Function function) {
-		FunctionKind kind = FunctionKind.classify(function);
-		if (kind.isDeletingDestructor()) {
-			return new Wiz8CxxPrinter(function, kind).printSynthetic();
+	private static String templateEmissionBlock(Function function, FunctionRole role) {
+		if (role.isDeletingDestructor()) {
+			return new Wiz8CxxPrinter(function, role).printSynthetic();
 		}
 		String owner = TypeNames.map(function.getParentNamespace().getName(true));
 		String name = TypeNames.map(function.getName());
@@ -471,18 +406,16 @@ public final class Wiz8RecoveryExporter {
 	private static FunctionExport renderFunction(RecoverySession session, Function function,
 			FunctionRole role, String[] referenceForms, DecompInterface decompiler,
 			DecompileOptions options, TaskMonitor monitor) {
-		FunctionKind kind = FunctionKind.classify(role);
-		Wiz8CxxPrinter printer = new Wiz8CxxPrinter(function, kind, role);
+		Wiz8CxxPrinter printer = new Wiz8CxxPrinter(function, role);
 
 		if (function.getParentNamespace() instanceof GhidraClass owner &&
 			owner.getName().indexOf('[') >= 0 &&
-			!kind.isDeletingDestructor()) {
-			return new FunctionExport(templateEmissionBlock(function), "", role,
-				new String[0], new String[0]);
+			!role.isDeletingDestructor()) {
+			return new FunctionExport(templateEmissionBlock(function, role), "", role,
+				new String[0]);
 		}
 		if (!role.hasAuthoredBody()) {
-			return new FunctionExport(printer.printSynthetic(), "", role,
-				new String[0], new String[0]);
+			return new FunctionExport(printer.printSynthetic(), "", role, new String[0]);
 		}
 
 		Address entry = function.getEntryPoint();
@@ -491,8 +424,7 @@ public final class Wiz8RecoveryExporter {
 			String defect = "no instruction at entry point";
 			return new FunctionExport(printer.marker() +
 				"\n/* No instruction at the entry point; cannot decompile " +
-				function.getName() + ". */\n", "", role, new String[0],
-				new String[] {defect});
+				function.getName() + ". */\n", "", role, new String[] {defect});
 		}
 
 		monitor.setMessage("Decompiling " + function.getName());
@@ -505,21 +437,20 @@ public final class Wiz8RecoveryExporter {
 			return new FunctionExport(printer.marker() + "\n/* Unable to decompile '" +
 				function.getName() + "': " +
 				(error == null ? "no result" : error.trim()) + " */\n", "", role,
-				new String[0], new String[] {defect});
+				new String[] {defect});
 		}
 
 		try {
 			Msvc6Patterns.Analysis analysis =
-				Msvc6Patterns.analyze(session, function, role, kind, results, referenceForms);
+				Msvc6Patterns.analyze(session, function, role, results, referenceForms);
 			String text = printer.print(markup, analysis);
 			String body = printer.printBody(markup, analysis);
 			String[] defects = analysis.defects.toArray(String[]::new);
 			text = appendDefects(text, defects);
 			body = appendDefects(body, defects);
-			String[] trace = analysis.trace.stream().map(Object::toString).toArray(String[]::new);
 			PassFact[] passes = analysis.trace.stream().map(PassFact::new)
 				.toArray(PassFact[]::new);
-			return new FunctionExport(text, body, role, trace, defects, passes,
+			return new FunctionExport(text, body, role, defects, passes,
 				callFacts(session, results), vtableFacts(session, function));
 		}
 		catch (Exception e) {
@@ -529,7 +460,7 @@ public final class Wiz8RecoveryExporter {
 				(decompiled.endsWith("\n") ? "" : "\n") +
 				"// exporter-defect: " + defect + "\n";
 			return new FunctionExport(text, "// exporter-defect: body: " + e + "\n",
-				role, new String[0], new String[] {defect});
+				role, new String[] {defect});
 		}
 	}
 
@@ -584,98 +515,4 @@ public final class Wiz8RecoveryExporter {
 		return flagged.toString();
 	}
 
-	private static String exportFunctionBody(RecoverySession session, Function function,
-			FunctionRole role, String[] referenceForms,
-			DecompInterface decompiler,
-			DecompileOptions options, TaskMonitor monitor) {
-		FunctionKind kind = FunctionKind.classify(role);
-		if (!role.hasAuthoredBody() ||
-			!(function.getProgram().getListing().getCodeUnitAt(function.getEntryPoint())
-				instanceof Instruction)) {
-			return "";
-		}
-		DecompileResults results = decompiler.decompileFunction(function,
-			options.getDefaultTimeout(), monitor);
-		ClangTokenGroup markup = results.getCCodeMarkup();
-		if (!results.decompileCompleted() || markup == null) {
-			return "";
-		}
-		try {
-			Msvc6Patterns.Analysis analysis =
-				Msvc6Patterns.analyze(session, function, role, kind, results, referenceForms);
-			String body = new Wiz8CxxPrinter(function, kind).printBody(markup, analysis);
-			if (analysis.defects.isEmpty()) {
-				return body;
-			}
-			StringBuilder flagged = new StringBuilder(body);
-			if (!body.endsWith("\n")) {
-				flagged.append('\n');
-			}
-			for (String defect : analysis.defects) {
-				flagged.append("// exporter-defect: ").append(defect).append('\n');
-			}
-			return flagged.toString();
-		}
-		catch (Exception error) {
-			return "// exporter-defect: body: " + error + "\n";
-		}
-	}
-
-	/**
-	 * The per-pass transformation trace for one function: what each
-	 * recognizer applied, declined (and why), rolled back, or failed on.
-	 * Ephemeral diagnostic text; never part of exported source.
-	 */
-	public static String explain(Program program, long entryPoint, TaskMonitor monitor) {
-		RecoverySession session = new RecoverySession(program);
-		Address entry = program.getAddressFactory().getDefaultAddressSpace()
-				.getAddress(entryPoint);
-		Function function = program.getFunctionManager().getFunctionAt(entry);
-		if (function == null) {
-			return String.format("error: no function at 0x%08x%n", entryPoint);
-		}
-		FunctionRole role;
-		try {
-			role = session.exportRole(function, monitor);
-		}
-		catch (CancelledException cancelled) {
-			return "cancelled\n";
-		}
-		FunctionKind kind = FunctionKind.classify(role);
-		if (!role.hasAuthoredBody()) {
-			return role.emissionKind().name().toLowerCase() +
-				": marker-only block, no analysis (" + role.evidence() + ")\n";
-		}
-		DecompileOptions options = new DecompileOptions();
-		DecompInterface decompiler = openDecompiler(program, options);
-		try {
-			DecompileResults results =
-				decompiler.decompileFunction(function, options.getDefaultTimeout(), monitor);
-			if (!results.decompileCompleted() || results.getCCodeMarkup() == null) {
-				String error = results.getErrorMessage();
-				return "decompiler failure: " +
-					(error == null ? "no result" : error.trim()) + "\n";
-			}
-			Msvc6Patterns.Analysis analysis =
-				Msvc6Patterns.analyze(session, function, role, kind, results);
-			StringBuilder out = new StringBuilder();
-			out.append(String.format("%s %s (%s)%n", function.getName(true),
-				"0x" + entry, kind.name().toLowerCase()));
-			for (Msvc6Patterns.TraceEvent event : analysis.trace) {
-				out.append(event).append('\n');
-			}
-			if (analysis.trace.isEmpty()) {
-				out.append("no recognizer applied or declined; verbatim rendering\n");
-			}
-			for (String defect : analysis.defects) {
-				out.append("defect      ").append(defect).append('\n');
-			}
-			out.append(String.format("claims: %d dropped node(s), %d replacement(s)%n",
-				analysis.dropped.size(), analysis.replaced.size()));
-			return out.toString();
-		}
-		finally {
-			decompiler.dispose();
-		}
-	}
 }

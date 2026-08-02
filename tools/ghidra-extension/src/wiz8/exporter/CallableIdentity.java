@@ -18,20 +18,20 @@ final class CallableIdentity {
 		return bracket < 0 ? className : className.substring(0, bracket);
 	}
 
-	static String sourceName(Function function, FunctionKind kind) {
+	static String sourceName(Function function, SourceKind kind) {
 		if (function.getParentNamespace() instanceof GhidraClass owner) {
 			String leaf = classLeaf(owner.getName());
-			if (kind == FunctionKind.CONSTRUCTOR) {
+			if (kind == SourceKind.CONSTRUCTOR) {
 				return leaf;
 			}
-			if (kind == FunctionKind.DESTRUCTOR) {
+			if (kind == SourceKind.DESTRUCTOR) {
 				return "~" + leaf;
 			}
 		}
 		return TypeNames.map(function.getName());
 	}
 
-	static String qualifiedName(Function function, FunctionKind kind) {
+	static String qualifiedName(Function function, SourceKind kind) {
 		String name = sourceName(function, kind);
 		if (function.getParentNamespace() instanceof GhidraClass owner) {
 			return TypeNames.map(owner.getName(true)) + "::" + name;
@@ -39,9 +39,9 @@ final class CallableIdentity {
 		return TypeNames.map(function.getName(true));
 	}
 
-	static String prototype(Function function, FunctionKind kind) {
+	static String prototype(Function function, SourceKind kind) {
 		List<String> parameters = new ArrayList<>();
-		if (kind != FunctionKind.DESTRUCTOR) {
+		if (kind != SourceKind.DESTRUCTOR) {
 			for (Parameter parameter : function.getParameters()) {
 				if (!parameter.isAutoParameter()) {
 					parameters.add(CxxTypePrinter.printParameter(parameter));
@@ -52,7 +52,7 @@ final class CallableIdentity {
 			parameters.add("...");
 		}
 		String head = qualifiedName(function, kind) + "(" + String.join(", ", parameters) + ")";
-		if (kind == FunctionKind.CONSTRUCTOR || kind == FunctionKind.DESTRUCTOR) {
+		if (kind == SourceKind.CONSTRUCTOR || kind == SourceKind.DESTRUCTOR) {
 			return head;
 		}
 		String convention = function.getCallingConventionName();
@@ -63,7 +63,7 @@ final class CallableIdentity {
 			renderedConvention + head;
 	}
 
-	static String prototypeOrNull(Function function, FunctionKind kind) {
+	static String prototypeOrNull(Function function, SourceKind kind) {
 		try {
 			return prototype(function, kind);
 		}

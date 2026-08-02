@@ -1,7 +1,6 @@
 package wiz8.exporter;
 
 import java.util.IdentityHashMap;
-import java.util.Map;
 
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.GhidraClass;
@@ -19,10 +18,10 @@ import ghidra.util.task.TaskMonitor;
  */
 final class RecoverySession {
 	final Program program;
+	final FunctionRoleResolver roles = new FunctionRoleResolver();
 	final CallTargetResolver calls = new CallTargetResolver();
 	final VtableResolver vtables;
-	private final Map<Function, FunctionRole> roles = new IdentityHashMap<>();
-	private final Map<GhidraClass, LifecycleFamilyResolver.LifecycleFamily> families =
+	private final IdentityHashMap<GhidraClass, LifecycleFamilyResolver.LifecycleFamily> families =
 		new IdentityHashMap<>();
 
 	RecoverySession(Program program) {
@@ -31,7 +30,7 @@ final class RecoverySession {
 	}
 
 	FunctionRole role(Function function) {
-		return roles.computeIfAbsent(function, FunctionRoleResolver::resolve);
+		return roles.resolve(function);
 	}
 
 	/** The family-normalized role used when one binary address is exported alone. */

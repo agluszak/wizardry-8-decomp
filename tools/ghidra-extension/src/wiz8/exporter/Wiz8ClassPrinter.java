@@ -35,10 +35,6 @@ final class Wiz8ClassPrinter {
 	private final VtableResolver vtables;
 	private final RecoverySession session;
 
-	Wiz8ClassPrinter(Program program, GhidraClass ghidraClass) {
-		this(new RecoverySession(program), ghidraClass);
-	}
-
 	Wiz8ClassPrinter(RecoverySession session, GhidraClass ghidraClass) {
 		this.session = session;
 		this.program = session.program;
@@ -142,15 +138,14 @@ final class Wiz8ClassPrinter {
 				.append(role.sourceEntity().formalSignature()).append('\n');
 			return;
 		}
-		FunctionKind kind = FunctionKind.classify(role);
-		if (kind.isDeletingDestructor()) {
+		if (role.isDeletingDestructor()) {
 			out.append("    virtual ~").append(bareName(className)).append("();")
 					.append(String.format(" /* slot 0x%02x: %s 0x%08x */%n", slot,
 						SpecialNames.normalize(target.getName()),
 						target.getEntryPoint().getOffset()));
 			return;
 		}
-		if (kind == FunctionKind.DESTRUCTOR) {
+		if (role.isDestructor()) {
 			out.append("    virtual ~").append(bareName(className)).append("();")
 					.append(comment).append('\n');
 			return;

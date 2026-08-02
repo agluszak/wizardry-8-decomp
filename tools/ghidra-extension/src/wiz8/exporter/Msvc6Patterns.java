@@ -118,7 +118,6 @@ final class Msvc6Patterns {
 	private final Function function;
 	private final RecoverySession session;
 	private final FunctionRole role;
-	private final FunctionKind kind;
 	private final DecompileResults results;
 	private final SourceReferenceForm[] sourceReferenceForms;
 	private final Analysis analysis = new Analysis();
@@ -147,13 +146,11 @@ final class Msvc6Patterns {
 	private final CallTargetResolver callTargets;
 
 	private Msvc6Patterns(RecoverySession session, Function function, FunctionRole role,
-			FunctionKind kind,
 			DecompileResults results,
 			String[] sourceReferenceForms) {
 		this.session = session;
 		this.function = function;
 		this.role = role;
-		this.kind = kind;
 		this.results = results;
 		this.sourceReferenceForms = new SourceReferenceForm[sourceReferenceForms.length];
 		for (int i = 0; i < sourceReferenceForms.length; i++) {
@@ -170,14 +167,14 @@ final class Msvc6Patterns {
 	 * pass inside {@link #runPass}.
 	 */
 	static Analysis analyze(RecoverySession session, Function function, FunctionRole role,
-			FunctionKind kind, DecompileResults results) {
-		return analyze(session, function, role, kind, results, new String[0]);
+			DecompileResults results) {
+		return analyze(session, function, role, results, new String[0]);
 	}
 
 	static Analysis analyze(RecoverySession session, Function function, FunctionRole role,
-			FunctionKind kind, DecompileResults results, String[] sourceReferenceForms) {
+			DecompileResults results, String[] sourceReferenceForms) {
 		Msvc6Patterns patterns =
-			new Msvc6Patterns(session, function, role, kind, results, sourceReferenceForms);
+			new Msvc6Patterns(session, function, role, results, sourceReferenceForms);
 		try {
 			patterns.run();
 		}
@@ -227,8 +224,8 @@ final class Msvc6Patterns {
 		runPass("eh.registration-frame", this::analyzeExceptionHandling);
 		runPass("eh.stack-local", this::liftStackLocalsPass);
 
-		if (kind == FunctionKind.CONSTRUCTOR || kind == FunctionKind.DESTRUCTOR) {
-			runPass(kind == FunctionKind.CONSTRUCTOR ? "lifecycle.constructor"
+		if (role.isConstructor() || role.isDestructor()) {
+			runPass(role.isConstructor() ? "lifecycle.constructor"
 					: "lifecycle.destructor",
 				this::lifecyclePass);
 		}
@@ -237,7 +234,7 @@ final class Msvc6Patterns {
 	}
 
 	private void lifecyclePass() {
-		String prototype = CallableIdentity.prototypeOrNull(function, kind);
+		String prototype = CallableIdentity.prototypeOrNull(function, role.sourceKind());
 		if (prototype == null) {
 			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
 			return;
@@ -1093,8 +1090,7 @@ final class Msvc6Patterns {
 			ehModel = null;
 			return;
 		}
-		if (ehModel == null && kind != FunctionKind.CONSTRUCTOR &&
-			kind != FunctionKind.DESTRUCTOR) {
+		if (ehModel == null && !role.isConstructor() && !role.isDestructor()) {
 			trace("declined", currentPass,
 				"EH frame detected but FuncInfo unresolved; only lifecycle bodies " +
 					"use the frame-shape fallback");
@@ -1178,7 +1174,7 @@ final class Msvc6Patterns {
 		if (thunk == null) {
 			return null;
 		}
-		return EhModel.resolve(function.getProgram(), thunk);
+		return EhModel.resolve(session, thunk);
 	}
 
 	/**
@@ -1325,12 +1321,12 @@ final class Msvc6Patterns {
 				!owner.equals(target.getParentNamespace())) {
 				continue;
 			}
-			FunctionKind targetKind = FunctionKind.classify(target);
+			FunctionRole targetRole = session.role(target);
 			ClangVariableToken receiver = addressOfLocalReceiver(statement, op, stackOffset);
 			if (receiver == null) {
 				continue;
 			}
-			if (targetKind == FunctionKind.CONSTRUCTOR) {
+			if (targetRole.isConstructor()) {
 				if (constructorStatement != null) {
 					trace("declined", currentPass, "slot " + stackOffset +
 						": two constructions of one slot are not one lifetime");
@@ -1340,7 +1336,7 @@ final class Msvc6Patterns {
 				constructorOp = op;
 				local = receiver;
 			}
-			else if (targetKind == FunctionKind.DESTRUCTOR) {
+			else if (targetRole.isDestructor()) {
 				destructorCalls.add(statement);
 			}
 		}
@@ -1719,7 +1715,7 @@ final class Msvc6Patterns {
 			return false;
 		}
 		if (role.hasAuthoredBody() &&
-			FunctionRoleResolver.resolve(function).isDeletingDestructor() &&
+			role.isDeletingDestructor() &&
 			!suppressSelectedDeletingWrapperEpilogue(dropped)) {
 			trace("declined", currentPass,
 				"selected deleting-wrapper carrier has no fully proved compiler epilogue");
@@ -1747,7 +1743,7 @@ final class Msvc6Patterns {
 			trace("applied", "lifecycle.parameter-padding", "x" + parameterPadding);
 		}
 		dropTerminalLifecycleReturn(dropped);
-		if (kind == FunctionKind.CONSTRUCTOR) {
+		if (role.isConstructor()) {
 			consumeConstructorPrefix(dropped, initializers);
 		}
 		else {
@@ -2025,7 +2021,7 @@ final class Msvc6Patterns {
 		if (target == null || op == null || structure == null) {
 			return null;
 		}
-		if (FunctionKind.classify(target) != FunctionKind.CONSTRUCTOR) {
+		if (!session.role(target).isConstructor()) {
 			trace("declined", "lifecycle.constructor-candidate",
 				target.getName(true) + " has no reviewed constructor identity");
 			return null;
@@ -2149,7 +2145,7 @@ final class Msvc6Patterns {
 		if (target == null || op == null || op.getNumInputs() < 2) {
 			return false;
 		}
-		if (FunctionKind.classify(target) != FunctionKind.DESTRUCTOR) {
+		if (!session.role(target).isDestructor()) {
 			trace("declined", "lifecycle.subobject-destructor",
 				target.getName(true) + " is not classified as a destructor");
 			return false;
@@ -2178,9 +2174,7 @@ final class Msvc6Patterns {
 	 * function to verbatim output.
 	 */
 	private boolean noSubobjectLifecycleCallsRemain(Set<ClangNode> dropped) {
-		FunctionKind lifecycle =
-			kind == FunctionKind.CONSTRUCTOR ? FunctionKind.CONSTRUCTOR
-					: FunctionKind.DESTRUCTOR;
+		boolean constructor = role.isConstructor();
 		for (Item item : items) {
 			if (!item.isStatement() || dropped.contains(item.node) ||
 				analysis.dropped.contains(item.node)) {
@@ -2188,7 +2182,9 @@ final class Msvc6Patterns {
 			}
 			PcodeOp op = ((ClangStatement) item.node).getPcodeOp();
 			Function target = callee(op);
-			if (target == null || FunctionKind.classify(target) != lifecycle ||
+			FunctionRole targetRole = target == null ? null : session.role(target);
+			if (targetRole == null ||
+				(constructor ? !targetRole.isConstructor() : !targetRole.isDestructor()) ||
 				op.getNumInputs() < 2) {
 				continue;
 			}
@@ -2197,6 +2193,11 @@ final class Msvc6Patterns {
 			}
 		}
 		return true;
+	}
+
+	private boolean isLifecycle(Function target) {
+		FunctionRole targetRole = session.role(target);
+		return targetRole.isConstructor() || targetRole.isDestructor();
 	}
 
 	// ------------------------------------------------------------------
@@ -2237,9 +2238,9 @@ final class Msvc6Patterns {
 					": receiver class, vftable, or slot function unresolved");
 				continue;
 			}
-			FunctionKind slotKind = call.slot.function == null ? FunctionKind.ORDINARY
-				: FunctionKind.classify(call.slot.function);
-			if (slotKind == FunctionKind.ORDINARY) {
+			FunctionRole slotRole = call.slot.function == null ? null
+				: session.role(call.slot.function);
+			if (slotRole == null || (!slotRole.isConstructor() && !slotRole.isDestructor())) {
 				String prefix = call.receiver.isEmpty() ? "" : call.receiver + "->";
 				int argsClose = matchingParen(line.sig, argsOpen);
 				List<int[]> argumentSpans = argsClose < 0 ? null
@@ -2261,7 +2262,7 @@ final class Msvc6Patterns {
 				}
 				continue;
 			}
-			if (slotKind.isDeletingDestructor()) {
+			if (slotRole.isDeletingDestructor()) {
 				// Virtual dispatch of the deleting destructor is the compiled
 				// form of a source-level polymorphic delete.
 				int argsClose = matchingParen(line.sig, argsOpen);
@@ -2271,18 +2272,18 @@ final class Msvc6Patterns {
 				Varnode flag = op.getInput(op.getNumInputs() - 1);
 				String object = call.receiver.isEmpty() ? "this" : call.receiver;
 				String form = flag.isConstant()
-					? deletingForm(slotKind, flag.getOffset()) : null;
+					? deletingForm(slotRole.emissionKind(), flag.getOffset()) : null;
 				if (form != null && claimRange(line, start, argsClose, form + object)) {
 					trace("applied", currentPass, form + object + " " + site);
 				}
 				else if (form == null) {
-					trace("declined", currentPass, site + ": " + slotKind +
+					trace("declined", currentPass, site + ": " + slotRole.emissionKind() +
 						" flag is not a source-level delete form");
 				}
 			}
 			else {
 				trace("declined", currentPass, site + ": slot holds " +
-					call.slot.name + " (" + slotKind + "), not a callable rewrite");
+					call.slot.name + " (" + slotRole.emissionKind() + "), not a callable rewrite");
 			}
 		}
 	}
@@ -3778,7 +3779,7 @@ final class Msvc6Patterns {
 			Function target = callee(op);
 			if (target == null || op.getNumInputs() < 2 ||
 				!(target.getParentNamespace() instanceof GhidraClass) ||
-				FunctionKind.classify(target) != FunctionKind.ORDINARY ||
+				isLifecycle(target) ||
 				!"__thiscall".equals(target.getCallingConventionName()) ||
 				hasReturnStorageParameter(target)) {
 				continue;
@@ -3903,7 +3904,7 @@ final class Msvc6Patterns {
 				continue;
 			}
 			int storageIndex = returnStorageParameterIndex(target);
-			if (storageIndex < 0 || FunctionKind.classify(target) != FunctionKind.ORDINARY) {
+			if (storageIndex < 0 || isLifecycle(target)) {
 				continue;
 			}
 			String site = "@ " + statementAddress(statement);
@@ -4058,7 +4059,7 @@ final class Msvc6Patterns {
 		if (isClaimed(prototype)) {
 			return;
 		}
-		String rendered = CallableIdentity.prototypeOrNull(function, kind);
+		String rendered = CallableIdentity.prototypeOrNull(function, role.sourceKind());
 		if (rendered == null) {
 			trace("declined", currentPass, "formal signature contains an unresolved ABI type");
 			return;
@@ -4194,9 +4195,8 @@ final class Msvc6Patterns {
 	private boolean rewriteScalarDeletingCall(ClangStatement statement) {
 		PcodeOp op = statement.getPcodeOp();
 		Function target = callee(op);
-		FunctionKind targetKind = target == null ? FunctionKind.ORDINARY
-			: FunctionKind.classify(target);
-		if (target == null || !targetKind.isDeletingDestructor() ||
+		FunctionRole targetRole = target == null ? null : session.role(target);
+		if (targetRole == null || !targetRole.isDeletingDestructor() ||
 			op.getNumInputs() != 3 || !op.getInput(2).isConstant()) {
 			return false;
 		}
@@ -4205,9 +4205,9 @@ final class Msvc6Patterns {
 			return false;
 		}
 		long flags = op.getInput(2).getOffset();
-		String form = deletingForm(targetKind, flags);
+		String form = deletingForm(targetRole.emissionKind(), flags);
 		if (form == null) {
-			trace("declined", "allocation.delete", targetKind + " flag " + flags +
+			trace("declined", "allocation.delete", targetRole.emissionKind() + " flag " + flags +
 				" is compiler-internal, not a source-level delete");
 			return false;
 		}
@@ -4219,11 +4219,7 @@ final class Msvc6Patterns {
 		return true;
 	}
 
-	private static String deletingForm(FunctionKind kind, long flags) {
-		EmissionKind emission = kind == FunctionKind.SCALAR_DELETING_DESTRUCTOR
-			? EmissionKind.SCALAR_DELETING_DESTRUCTOR
-			: kind == FunctionKind.VECTOR_DELETING_DESTRUCTOR
-				? EmissionKind.VECTOR_DELETING_DESTRUCTOR : EmissionKind.AUTHORED_BODY;
+	private static String deletingForm(EmissionKind emission, long flags) {
 		return DeletingDestructorSemantics.sourceOperator(emission, flags);
 	}
 
@@ -4232,7 +4228,7 @@ final class Msvc6Patterns {
 		PcodeOp destructorOp = first.getPcodeOp();
 		Function destructor = callee(destructorOp);
 		if (destructor == null ||
-			FunctionKind.classify(destructor) != FunctionKind.DESTRUCTOR ||
+			!session.role(destructor).isDestructor() ||
 			destructorOp.getNumInputs() != 2) {
 			return false;
 		}
@@ -4291,7 +4287,7 @@ final class Msvc6Patterns {
 		while (operations.hasNext()) {
 			PcodeOp candidate = operations.next();
 			Function target = callee(candidate);
-			if (target == null || FunctionKind.classify(target) != FunctionKind.CONSTRUCTOR ||
+			if (target == null || !session.role(target).isConstructor() ||
 				candidate.getNumInputs() < 2 ||
 				!traceableToHigh(candidate.getInput(1), allocated)) {
 				continue;
@@ -4607,7 +4603,7 @@ final class Msvc6Patterns {
 		PcodeOp constructorOp = second.getPcodeOp();
 		Function constructor = callee(constructorOp);
 		if (constructor == null ||
-			FunctionKind.classify(constructor) != FunctionKind.CONSTRUCTOR ||
+			!session.role(constructor).isConstructor() ||
 			constructorOp.getNumInputs() < 2) {
 			return false;
 		}

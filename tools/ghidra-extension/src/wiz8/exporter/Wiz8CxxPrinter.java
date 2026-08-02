@@ -34,16 +34,10 @@ public final class Wiz8CxxPrinter {
 	private static final String INDENT_UNIT = " ";
 
 	private final Function function;
-	private final FunctionKind kind;
 	private final FunctionRole role;
 
-	public Wiz8CxxPrinter(Function function, FunctionKind kind) {
-		this(function, kind, FunctionRoleResolver.resolve(function));
-	}
-
-	Wiz8CxxPrinter(Function function, FunctionKind kind, FunctionRole role) {
+	Wiz8CxxPrinter(Function function, FunctionRole role) {
 		this.function = function;
-		this.kind = kind;
 		this.role = role;
 	}
 
@@ -74,8 +68,7 @@ public final class Wiz8CxxPrinter {
 		if ((role.emissionKind() == EmissionKind.ADJUSTOR_THUNK ||
 			role.emissionKind() == EmissionKind.COVARIANT_RETURN_THUNK) &&
 			canonical != null) {
-			String source = CallableIdentity.sourceName(canonical,
-				FunctionKind.classify(canonical));
+			String source = CallableIdentity.sourceName(canonical, role.sourceKind());
 			return marker() + "\n// " + owner + "::" + source + " (" +
 				role.emissionKind().name().toLowerCase().replace('_', ' ') +
 				" emission)\n";

@@ -43,7 +43,6 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
     from ghidra.util.task import TaskMonitor
 
     exporter = jpype.JClass("wiz8.exporter.Wiz8RecoveryExporter")
-    role_resolver = jpype.JClass("wiz8.exporter.FunctionRoleResolver")
 
     settings.build_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="lifecycle-ghidra-", dir=settings.build_dir) as raw:
@@ -64,15 +63,32 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
         ) as flat_api:
             program = flat_api.getCurrentProgram()
             functions = list(program.getFunctionManager().getFunctions(True))
+            entries = [function.getEntryPoint().getOffset() for function in functions]
+            string_array = jpype.JArray(jpype.JString)
+            packets = list(
+                exporter.exportFunctionPackets(
+                    program,
+                    jpype.JArray(jpype.JLong)(entries),
+                    jpype.JArray(string_array)([string_array([]) for _ in entries]),
+                    TaskMonitor.DUMMY,
+                )
+            )
+            packet_by_entry = dict(zip(entries, packets, strict=True))
             atomic_json(
                 settings.build_dir / "reports/lifecycle-fixture/functions.json",
                 [
                     {
                         "address": function.getEntryPoint().getOffset(),
                         "name": str(function.getName(True)),
-                        "role": str(role_resolver.resolve(function).emissionKind()),
-                        "source": str(role_resolver.resolve(function).sourceKind()),
-                        "body": bool(role_resolver.resolve(function).hasAuthoredBody()),
+                        "role": str(
+                            packet_by_entry[function.getEntryPoint().getOffset()].getEmissionKind()
+                        ),
+                        "source": str(
+                            packet_by_entry[function.getEntryPoint().getOffset()].getSourceKind()
+                        ),
+                        "body": bool(
+                            packet_by_entry[function.getEntryPoint().getOffset()].getBody()
+                        ),
                     }
                     for function in functions
                 ],
@@ -106,42 +122,36 @@ def verify_lifecycle_fixture(settings: Settings) -> dict[str, Any]:
             authored_destroy = [
                 function
                 for function in destroy
-                if str(role_resolver.resolve(function).emissionKind()) == "AUTHORED_BODY"
-                and role_resolver.resolve(function).hasAuthoredBody()
+                if str(
+                    packet_by_entry[function.getEntryPoint().getOffset()].getEmissionKind()
+                ).lower()
+                == "authored_body"
+                and bool(packet_by_entry[function.getEntryPoint().getOffset()].getBody())
             ]
             if len(authored_destroy) != 1:
                 raise RuntimeError(
                     f"expected one authored destroy_and_free, found {len(authored_destroy)}"
                 )
             destroy_function = authored_destroy[0]
-            destroy_role = role_resolver.resolve(destroy_function)
-            if str(destroy_role.emissionKind()) != "AUTHORED_BODY":
+            destroy_packet = packet_by_entry[destroy_function.getEntryPoint().getOffset()]
+            if str(destroy_packet.getEmissionKind()).lower() != "authored_body":
                 raise RuntimeError(
                     "destroy_and_free was incorrectly suppressed as a deleting wrapper"
                 )
-            block = str(
-                exporter.exportFunctions(
-                    program,
-                    jpype.JArray(jpype.JLong)([destroy_function.getEntryPoint().getOffset()]),
-                    TaskMonitor.DUMMY,
-                )[0]
-            )
+            block = str(destroy_packet.getText())
             if "// FUNCTION:" not in block:
                 raise RuntimeError("destroy_and_free did not retain an authored FUNCTION block")
 
             wrappers = []
             for function in functions:
-                role = role_resolver.resolve(function)
-                emission = str(role.emissionKind())
-                if emission not in {"SCALAR_DELETING_DESTRUCTOR", "VECTOR_DELETING_DESTRUCTOR"}:
+                packet = packet_by_entry[function.getEntryPoint().getOffset()]
+                emission = str(packet.getEmissionKind()).upper()
+                if emission not in {
+                    "SCALAR_DELETING_DESTRUCTOR",
+                    "VECTOR_DELETING_DESTRUCTOR",
+                }:
                     continue
-                wrapper = str(
-                    exporter.exportFunctions(
-                        program,
-                        jpype.JArray(jpype.JLong)([function.getEntryPoint().getOffset()]),
-                        TaskMonitor.DUMMY,
-                    )[0]
-                )
+                wrapper = str(packet.getText())
                 if "// SYNTHETIC:" not in wrapper:
                     raise RuntimeError(f"{function.getName(True)} owns a deleting-wrapper body")
                 wrappers.append(emission)

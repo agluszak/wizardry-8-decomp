@@ -242,27 +242,6 @@ def assemble_unit(markers: list[dict[str, Any]], blocks: dict[int, str]) -> str:
     return "\n".join(parts)
 
 
-def _reference_masks(repo_dir: Path, entries: list[int]) -> list[int]:
-    """Compiler-indexed lvalue/rvalue-reference parameter slots by entry."""
-
-    from ..source_model import load_source_index
-
-    declarations = {
-        marker["address"]: marker.get("declaration") or {}
-        for marker in load_source_index(repo_dir)["markers"]
-    }
-    masks: list[int] = []
-    for entry in entries:
-        mask = 0
-        for index, reference in enumerate(
-            declarations.get(entry, {}).get("parameter_references", [])
-        ):
-            if reference and index < 63:
-                mask |= 1 << index
-        masks.append(mask)
-    return masks
-
-
 def _reference_forms(repo_dir: Path, entries: list[int]) -> list[list[str]]:
     """Compiler-owned full reference form for every source parameter slot."""
 
@@ -354,7 +333,6 @@ def _packet_result(entry: int, packet: Any) -> dict[str, Any]:
             "canonical_target": None if canonical < 0 else f"0x{canonical:08x}",
             "origin": str(packet.getOrigin()),
             "evidence": str(packet.getEvidence()),
-            "trace": [str(item) for item in packet.getTrace()],
             "passes": passes,
             "calls": calls,
             "vtables": vtables,
@@ -518,11 +496,33 @@ def explain_function(
             exporter = jpype.JClass(_EXPORTER_CLASS)
             from ghidra.util.task import TaskMonitor
 
-            text = str(
-                exporter.explainClass(program, class_name, TaskMonitor.DUMMY)
-                if class_name is not None
-                else exporter.explain(program, start, TaskMonitor.DUMMY)
-            )
+            if class_name is not None:
+                text = str(exporter.explainClass(program, class_name, TaskMonitor.DUMMY))
+            else:
+                assert start is not None
+                string_array = jpype.JArray(jpype.JString)
+                packets = exporter.exportFunctionPackets(
+                    program,
+                    jpype.JArray(jpype.JLong)([start]),
+                    jpype.JArray(string_array)(
+                        [
+                            string_array(forms)
+                            for forms in _reference_forms(settings.repo_dir, [start])
+                        ]
+                    ),
+                    TaskMonitor.DUMMY,
+                )
+                packet = _packet_result(start, packets[0])
+                recovery = packet["recovery"]
+                facts = recovery["passes"]
+                lines = [f"0x{start:08x} {recovery['emission_kind']} ({recovery['source_kind']})"]
+                lines.extend(
+                    f"{fact['status']:<12} {fact['pass']}: {fact['detail']}" for fact in facts
+                )
+                if not facts:
+                    lines.append("no recognizer applied or declined; verbatim rendering")
+                lines.extend(f"defect      {defect}" for defect in recovery["defects"])
+                text = "\n".join(lines) + "\n"
     finally:
         project.close()
     result = {"program": program_name, "text": text}
@@ -532,15 +532,3 @@ def explain_function(
         assert start is not None
         result["address"] = f"0x{start:08x}"
     return result
-
-
-def _kind_name(program: Any, entry: int) -> str:
-    import jpype
-
-    function = program.getFunctionManager().getFunctionAt(
-        program.getAddressFactory().getDefaultAddressSpace().getAddress(entry)
-    )
-    if function is None:
-        return "missing"
-    exporter = jpype.JClass(_EXPORTER_CLASS)
-    return str(exporter.emissionKind(program, entry))

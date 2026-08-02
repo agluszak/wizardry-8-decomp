@@ -25,8 +25,8 @@ def test_parse_selection_accepts_addresses_and_ranges() -> None:
     assert parse_selection(" 0x10:0x10 ") == (0x10, 0x10)
 
 
-def test_reference_masks_come_from_compiler_index_metadata(tmp_path: Path) -> None:
-    from wiz8decomp.ghidra.export_cpp import _reference_forms, _reference_masks
+def test_reference_forms_come_from_compiler_index_metadata(tmp_path: Path) -> None:
+    from wiz8decomp.ghidra.export_cpp import _reference_forms
 
     index = tmp_path / "build/source-index.json"
     index.parent.mkdir()
@@ -53,7 +53,6 @@ def test_reference_masks_come_from_compiler_index_metadata(tmp_path: Path) -> No
         ),
         encoding="utf-8",
     )
-    assert _reference_masks(tmp_path, [0x10, 0x20]) == [0b101, 0]
     assert _reference_forms(tmp_path, [0x10, 0x20]) == [
         ["lvalue-reference-to-object", "value", "lvalue-reference-to-pointer"],
         [],

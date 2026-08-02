@@ -69,8 +69,9 @@ final class EhModel {
 	 * the thunk is not {@code mov eax, imm32}, the record's magic or counts
 	 * are implausible, or a table read leaves the mapped image.
 	 */
-	static EhModel resolve(Program program, long thunkAddress) {
+	static EhModel resolve(RecoverySession session, long thunkAddress) {
 		try {
+			Program program = session.program;
 			Memory memory = program.getMemory();
 			Address thunk = address(program, thunkAddress);
 			if ((memory.getByte(thunk) & 0xff) != 0xb8) {
@@ -106,8 +107,7 @@ final class EhModel {
 					objectOffset = decoded[0];
 					destructor = program.getFunctionManager()
 							.getFunctionAt(address(program, decoded[1]));
-					if (destructor == null ||
-						FunctionKind.classify(destructor) != FunctionKind.DESTRUCTOR ||
+					if (destructor == null || !session.role(destructor).isDestructor() ||
 						!(destructor.getParentNamespace() instanceof GhidraClass)) {
 						objectOffset = null;
 						destructor = null;

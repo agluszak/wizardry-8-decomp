@@ -1,11 +1,9 @@
 package wiz8.exporter;
 
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import ghidra.app.util.demangler.DemangledObject;
 import ghidra.app.util.demangler.microsoft.MicrosoftDemangler;
@@ -33,10 +31,9 @@ public final class FunctionRoleResolver {
 	private static final Set<String> ORIGIN_TAGS = Set.of("first-party", "library",
 		"surrender", "sgp", "msvc-crt", "zlib", "jpeg", "info-zip", "win32",
 		"directx", "mfc", "platform", "import", "unknown");
-	private static final Map<Program, Map<Function, FunctionRole>> CACHE =
-		Collections.synchronizedMap(new WeakHashMap<>());
-	private static final ThreadLocal<Set<Function>> RESOLVING =
-		ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
+	private final Map<Function, FunctionRole> cache = new IdentityHashMap<>();
+	private final Set<Function> resolving = java.util.Collections.newSetFromMap(
+		new IdentityHashMap<>());
 	static {
 		for (EmissionKind kind : EmissionKind.values()) {
 			ROLE_TAGS.put(kebab(kind.name()), kind);
@@ -46,26 +43,20 @@ public final class FunctionRoleResolver {
 		}
 	}
 
-	private FunctionRoleResolver() {
+	FunctionRoleResolver() {
 	}
 
-	public static FunctionRole resolve(Function function) {
-		Map<Function, FunctionRole> programCache;
-		synchronized (CACHE) {
-			programCache = CACHE.computeIfAbsent(function.getProgram(),
-				ignored -> Collections.synchronizedMap(new IdentityHashMap<>()));
-		}
-		FunctionRole cached = programCache.get(function);
+	FunctionRole resolve(Function function) {
+		FunctionRole cached = cache.get(function);
 		if (cached != null) {
 			return cached;
 		}
-		Set<Function> resolving = RESOLVING.get();
 		if (!resolving.add(function)) {
 			return ordinaryRole(function, "role recursion guard");
 		}
 		try {
 			FunctionRole role = resolveUncached(function);
-			programCache.put(function, role);
+			cache.put(function, role);
 			return role;
 		}
 		finally {
@@ -73,7 +64,7 @@ public final class FunctionRoleResolver {
 		}
 	}
 
-	private static FunctionRole resolveUncached(Function function) {
+	private FunctionRole resolveUncached(Function function) {
 		Tagged tagged = tags(function);
 		if (tagged.emission != null || tagged.source != null) {
 			EmissionKind emission = tagged.emission != null ? tagged.emission

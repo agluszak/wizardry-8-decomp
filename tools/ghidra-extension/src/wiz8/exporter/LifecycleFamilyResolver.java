@@ -19,10 +19,6 @@ final class LifecycleFamilyResolver {
 	private final VtableResolver vtables;
 	private final RecoverySession session;
 
-	LifecycleFamilyResolver(Program program) {
-		this(new RecoverySession(program));
-	}
-
 	LifecycleFamilyResolver(RecoverySession session) {
 		this.session = session;
 		this.program = session.program;
