@@ -19,8 +19,6 @@ int g_shared_timer_refs;                             /* 0x006598CC */
 unsigned char g_shared_timer_paused;                 /* 0x006598D0 */
 unsigned char g_shared_timer_flag_d1;                /* 0x006598D1 */
 unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
-int g_game_time_ms;                                  /* 0x006874F7 */
-int g_game_time_days;                                /* 0x00687595 */
 
 // GLOBAL: WIZ8 0x005ec0a8
 extern "C" const float g_float_005ec0a8 = 10000.0f;

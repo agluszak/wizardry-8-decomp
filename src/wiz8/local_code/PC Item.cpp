@@ -619,7 +619,7 @@ bool AnyPartyMemberCanUseItem(int item_id)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_party_slot_rows[slot].flag_00 != 0 &&
+        if (g_party_slot_rows[slot].occupied != 0 &&
             g_party_characters[slot].hp_current != 0 &&
             g_party_characters[slot].unknown_0b01 < 0x12) {
             if (CanCharacterUseItem(&g_party_characters[slot], item_id)) {
@@ -775,10 +775,10 @@ bool StoreItemWithCharacterOrParty(
 // FUNCTION: WIZ8 0x0051bf40
 void SpendPartyGold(unsigned int amount)
 {
-    if (amount > g_party_gold) {
-        g_party_gold = 0;
+    if (amount > g_status_685170.party_gold) {
+        g_status_685170.party_gold = 0;
     } else {
-        g_party_gold -= amount;
+        g_status_685170.party_gold -= amount;
     }
 }
 
@@ -914,7 +914,7 @@ void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
     g_held_item_slot_006840c5 = 0xffff;
     ClearHeldItemDisplay();
     ReplaceOrCreateItem(&created, item_id, 1, quality, 0);
-    if (g_status_685170.item_in_hand_shown_235a != 0) {
+    if (g_status_685170.item_in_cursor != 0) {
         AddItemToParty(&created, 0, 0);
         return;
     }
@@ -1005,7 +1005,7 @@ void AddPartyGold(int amount, char announce)
 
     strcpy(sound_path, "Data\Sound\Misc\ChaChing.wav");
 
-    g_party_gold += amount;
+    g_status_685170.party_gold += amount;
     if (g_current_level < 0x2f) {
         g_level_progress[g_current_level].gold_collected += amount;
     }
@@ -1171,7 +1171,7 @@ char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2)
         return 0;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].hp_current != 0 &&
             g_party_characters[party_slot].unknown_0b01 < 0xb) {
             if (result == 0) {
@@ -1459,7 +1459,7 @@ bool EveryCharacterHasItem(int item_id, int include_backpack)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0) {
+        if (g_party_slot_rows[party_slot].occupied != 0) {
             if (!FindItemOnCharacter(&g_party_characters[party_slot], item_id, 0,
                                      include_backpack, 0)) {
                 return false;
@@ -1893,7 +1893,7 @@ void Function520D10(
                 [party_slot * 0xd4 + 0x99] ^= 1;
             if (party_slot ==
                 static_cast<unsigned int>(
-                    g_status_685170.active_party_slot_001d)) {
+                    g_status_685170.selected_character)) {
                 RequestRefreshPartyState();
             }
         }
@@ -1983,9 +1983,9 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
         if (GetFact(0x167)) {
             SetFact(0x167, 0, 0);
         }
-        g_status_685170.unknown_2425[0x65] = 1;
-        memcpy(&g_status_685170.unknown_2425[0x6e],
-               &g_status_685170.unknown_1795[0x143], 4);
+        g_status_685170.unknown_2429[0x61] = 1;
+        memcpy(&g_status_685170.unknown_2429[0x6a],
+               &g_status_685170.world_clock, 4);
         break;
     case 0x264:
         if (!GetFact(0x182)) {

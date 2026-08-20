@@ -77,8 +77,6 @@ extern float g_runtime_world_scale_6081e8;
 extern unsigned char g_flag_00659756;
 extern float g_default_world_height_00603ac8;
 extern float g_position_height_epsilon_005ebfdc;
-// GLOBAL: WIZ8 0x00687417
-srVector3T<float> g_saved_world_position_00687417;
 extern unsigned char g_environment_load_flag_00603ad0;
 extern unsigned char g_level_runtime_flag_0065ba70;
 extern unsigned char g_value_0068f0fd;

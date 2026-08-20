@@ -1473,7 +1473,7 @@ void Trigger::Run(int source)
         was_active = m_pProp->Rep()->flag_06d;
 
         if (inline_action_data_24c[0] != '\0') {
-            if (g_status_685170.item_in_hand_shown_235a != 0) {
+            if (g_status_685170.item_in_cursor != 0) {
                 srVector3T<float> item_position;
                 W8WorldItem* item = CreateWorldItem(
                     &g_status_685170.item_in_hand_235b, &item_position, 3, 0);
@@ -1534,7 +1534,7 @@ void Trigger::Run(int source)
                     }
                 }
                 else if (item_count == 2 &&
-                         g_status_685170.item_in_hand_shown_235a == 0) {
+                         g_status_685170.item_in_cursor == 0) {
                     item = world_item_group_34c->next;
                     MoveItem(&g_status_685170.item_in_hand_235b,
                              &item->item, 0, 1);

@@ -210,7 +210,7 @@ void RemoveConditionFromParty(int condition)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].condition_turns[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 1);
         }
@@ -228,7 +228,7 @@ void RemoveConditionFromEveryone(int condition)
     W8MonsterInfo* monster_info;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].condition_turns[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 1);
         }
@@ -257,7 +257,7 @@ void RemoveAllConditionsFromParty(void)
             continue;
         }
         for (party_slot = 0; party_slot < 8; ++party_slot) {
-            if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+            if (g_party_slot_rows[party_slot].occupied != 0 &&
                 g_party_characters[party_slot].condition_turns[condition] != 0) {
                 RemoveCharacterCondition(party_slot, condition, 1);
             }

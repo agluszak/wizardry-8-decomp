@@ -42,8 +42,6 @@ extern float g_range_constant_005ec35c;
    position's own row number at 0x00687525 with a twelve-byte stride. -1 marks
    an empty place. Both live inside the block Formation & Facing.cpp saves and
    restores whole. */
-extern const signed char g_formation_rows[][W8_FORMATION_ROW_WIDTH];     /* 0x00687511 */
-extern const unsigned char g_position_row[];                             /* 0x00687525 */
 
 /* The furthest range category any of this character's hands can reach at. */
 // FUNCTION: WIZ8 0x00519ba0
@@ -192,7 +190,7 @@ bool AnyoneStandsAhead(unsigned char position)
     signed char slot;
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
-        slot = g_formation_rows[position][index];
+        slot = g_status_685170.formation.rows[position].slots[index];
         if (slot != -1 && g_party_characters[slot].out_of_formation == 0) {
             ++found;
         }
@@ -205,8 +203,10 @@ bool AnyoneStandsAhead(unsigned char position)
 // FUNCTION: WIZ8 0x0051b000
 bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 {
-    unsigned char from_row = g_position_row[from_position * 0xc];
-    unsigned char to_row = g_position_row[to_position * 0xc];
+    unsigned char from_row =
+        g_status_685170.formation.positions[from_position].row;
+    unsigned char to_row =
+        g_status_685170.formation.positions[to_position].row;
     int rows_apart;
     int found;
     unsigned int index;
@@ -228,7 +228,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
 
     found = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
-        slot = g_formation_rows[4][index];
+        slot = g_status_685170.formation.rows[4].slots[index];
         if (slot != -1 && g_party_characters[slot].out_of_formation == 0) {
             ++found;
         }

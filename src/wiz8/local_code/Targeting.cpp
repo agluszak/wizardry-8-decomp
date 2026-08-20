@@ -745,7 +745,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x6c, 0);
         }
-        if (g_party_slot_rows[target->iChar].flag_00 == 0 ||
+        if (g_party_slot_rows[target->iChar].occupied == 0 ||
             g_party_characters[target->iChar].hp_current == 0 ||
             g_party_characters[target->iChar].unknown_0b01 > 0x11) {
             return 0;
@@ -756,7 +756,7 @@ unsigned char IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x75, 0);
         }
-        if (g_party_slot_rows[target->iChar].flag_00 == 0 ||
+        if (g_party_slot_rows[target->iChar].occupied == 0 ||
             g_party_characters[target->iChar].hp_current != 0 ||
             g_party_characters[target->iChar].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0 ||
             g_party_characters[target->iChar].condition_turns[W8_CONDITION_BEYOND_REACH] != 0) {
@@ -1024,7 +1024,7 @@ unsigned char GetCurrentTargetingContext(int party_slot)
         }
         return W8_TARGETING_CONTEXT_DIALOGUE;
     }
-    if (party_slot == g_status_685170.active_party_slot_001d &&
+    if (party_slot == g_status_685170.selected_character &&
         (g_flag_00683f95 != 0 || g_flag_00683f96 != 0)) {
         return W8_TARGETING_CONTEXT_SHARED;
     }
@@ -1311,7 +1311,7 @@ void Function53B170(void)
 // FUNCTION: WIZ8 0x0053C270
 unsigned char Function53C270(int party_slot)
 {
-    return g_party_slot_rows[party_slot].flag_00 != 0 &&
+    return g_party_slot_rows[party_slot].occupied != 0 &&
            g_party_characters[party_slot].hp_current != 0 &&
            g_party_characters[party_slot].unknown_0b01 < 0x12;
 }
@@ -1614,7 +1614,7 @@ unsigned char SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char
 
     case W8_SPELL_TARGET_DEAD_CHARACTER:
         for (index = 0; index < 8; ++index) {
-            if (g_party_slot_rows[index].flag_00 != 0 &&
+            if (g_party_slot_rows[index].occupied != 0 &&
                 g_party_characters[index].hp_current == 0 &&
                 g_party_characters[index].condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 &&
                 g_party_characters[index].condition_turns[W8_CONDITION_BEYOND_REACH] == 0) {

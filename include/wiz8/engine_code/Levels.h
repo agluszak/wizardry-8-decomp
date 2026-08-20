@@ -46,7 +46,6 @@ static_assert(sizeof(W8LevelInfo) == 0x458,
 
 extern "C" {
 extern W8LevelFolderRecord g_level_folders[47];
-extern W8LevelProgressRow g_level_progress[47];
 
 int GetLoadedLevelID(void);
 const char* GetLevelFolderName(int level_id);

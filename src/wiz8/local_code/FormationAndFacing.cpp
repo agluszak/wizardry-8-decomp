@@ -8,7 +8,6 @@ extern void GetPartyPosition(srVector3T<float>* position);          /* 0x0042107
 extern float BearingBetween(const srVector3T<float>* from,
                             const srVector3T<float>* to);           /* 0x004BE420 */
 /* The party's current facing in degrees. */
-extern int g_party_facing;                                          /* 0x00686A40 */
 
 /* A full turn, and the half-quadrant the bearing is biased by so that a
    quadrant is centred on its facing rather than starting at it. */
@@ -45,10 +44,6 @@ int GetQuadrantForPosition(srVector3T<float> position)
    of the three positions standing in each of the five rows. */
 enum { W8_FORMATION_BLOCK_DWORDS = 0x21, W8_FORMATION_ROWS = 5, W8_POSITIONS_PER_ROW = 3 };
 
-extern int g_formation[W8_FORMATION_BLOCK_DWORDS];          /* 0x00687511 */
-extern unsigned char g_position_row[];                      /* 0x00687525 */
-extern signed char g_position_facing[];                     /* 0x00687528 */
-
 /* The facing answer that means "no preference", which never disagrees with
    whatever a position is already facing. */
 enum { W8_FACING_ANY = 4 };
@@ -57,7 +52,6 @@ enum { W8_FACING_ANY = 4 };
    Tighter than the eligibility window the party sweeps use. */
 enum { W8_FORMATION_ELIGIBLE_LIMIT = 0xd };
 
-extern unsigned int g_party_heading;                        /* 0x00686A44 */
 extern signed char DecideFacingForPosition(int position, int arg_2);  /* 0x00555E70 */
 extern void Function5B1C80(void);
 extern void Function5A24A0(void);
@@ -93,7 +87,8 @@ void SaveCombatFormation(void)
     }
     saved = (int*)((char*)g_combat_state + 0x920);
     for (index = 0; index < W8_FORMATION_BLOCK_DWORDS; ++index) {
-        saved[index] = g_formation[index];
+        saved[index] =
+            reinterpret_cast<int*>(&g_status_685170.formation)[index];
     }
 }
 
@@ -111,7 +106,9 @@ void RestoreCombatFormation(void)
     }
     saved = (const int*)((char*)g_combat_state + 0x920);
     for (index = 0; index < W8_FORMATION_BLOCK_DWORDS; ++index) {
-        unchanged = g_formation[index] == saved[index];
+        unchanged =
+            reinterpret_cast<int*>(&g_status_685170.formation)[index] ==
+            saved[index];
         if (!unchanged) {
             break;
         }
@@ -119,7 +116,8 @@ void RestoreCombatFormation(void)
 
     if (!unchanged) {
         for (index = 0; index < W8_FORMATION_BLOCK_DWORDS; ++index) {
-            g_formation[index] = saved[index];
+            reinterpret_cast<int*>(&g_status_685170.formation)[index] =
+                saved[index];
         }
         Function5B1C80();
         Function5A24A0();
@@ -175,8 +173,9 @@ void FacePositionAsDecided(int position, int arg_2)
 {
     signed char facing = DecideFacingForPosition(position, arg_2);
 
-    if (facing != W8_FACING_ANY && g_position_facing[position * 0xc] != facing) {
-        g_position_facing[position * 0xc] = facing;
+    if (facing != W8_FACING_ANY &&
+        g_status_685170.formation.positions[position].facing != facing) {
+        g_status_685170.formation.positions[position].facing = facing;
         Function5B1C80();
     }
 }
@@ -191,7 +190,8 @@ bool PositionFacesAsDecided(int position, int arg_2)
     if (facing == W8_FACING_ANY) {
         return true;
     }
-    return facing == g_position_facing[position * 0xc];
+    return facing ==
+           g_status_685170.formation.positions[position].facing;
 }
 
 /* Whether a position is facing exactly away from where the rules want it -
@@ -205,7 +205,8 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
     if (facing == W8_FACING_ANY) {
         return false;
     }
-    difference = facing - g_position_facing[position * 0xc];
+    difference =
+        facing - g_status_685170.formation.positions[position].facing;
     if (difference < 0) {
         difference = -difference;
     }

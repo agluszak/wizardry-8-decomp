@@ -410,29 +410,33 @@ void FreeIfNotNull(void* block)
 // FUNCTION: WIZ8 0x0054b4c0
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
 {
-    status->buffer_04 = malloc(0xc310);
-    if (!status->buffer_04) {
+    status->characters = static_cast<W8Character*>(
+        malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+    if (!status->characters) {
         return 0;
     }
-    status->buffer_08 = malloc(0x830);
-    if (!status->buffer_08) {
+    status->party_rows = static_cast<W8PartySlotRow*>(
+        malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+    if (!status->party_rows) {
         return 0;
     }
-    memset(status->buffer_04, 0, 0xc310);
-    memset(status->buffer_08, 0, 0x830);
+    memset(status->characters, 0,
+           sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(status->party_rows, 0,
+           sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
     return 1;
 }
 
 // FUNCTION: WIZ8 0x0054b520
 void FreeStatusBuffers(W8StatusBuffers* status)
 {
-    if (status->buffer_04) {
-        free(status->buffer_04);
-        status->buffer_04 = 0;
+    if (status->characters) {
+        free(status->characters);
+        status->characters = 0;
     }
-    if (status->buffer_08) {
-        free(status->buffer_08);
-        status->buffer_08 = 0;
+    if (status->party_rows) {
+        free(status->party_rows);
+        status->party_rows = 0;
     }
 }
 
@@ -442,7 +446,7 @@ void ResetPartySlotRow(int slot)
     W8PartySlotRow* row = &g_party_slot_rows[slot];
 
     memset(row, 0, sizeof(W8PartySlotRow));
-    row->flag_00 = 1;
+    row->occupied = 1;
     row->spell_id = 0;
     row->flag_0d0 = 0xff;
     SetSlotAction(slot, 0, -1);
@@ -539,26 +543,32 @@ void Function54B250(unsigned char notify, void* target)
 void Function54AF30(unsigned char release)
 {
     if (release) {
-        if (g_status_685170.buffers.buffer_04) {
-            free(g_status_685170.buffers.buffer_04);
-            g_status_685170.buffers.buffer_04 = 0;
+        if (g_status_685170.buffers.characters) {
+            free(g_status_685170.buffers.characters);
+            g_status_685170.buffers.characters = 0;
         }
-        if (g_status_685170.buffers.buffer_08) {
-            free(g_status_685170.buffers.buffer_08);
-            g_status_685170.buffers.buffer_08 = 0;
+        if (g_status_685170.buffers.party_rows) {
+            free(g_status_685170.buffers.party_rows);
+            g_status_685170.buffers.party_rows = 0;
         }
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
-    g_status_685170.buffers.buffer_04 = malloc(0xc310);
-    if (!g_status_685170.buffers.buffer_04) {
+    g_status_685170.buffers.characters =
+        static_cast<W8Character*>(
+            malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+    if (!g_status_685170.buffers.characters) {
         return;
     }
-    g_status_685170.buffers.buffer_08 = malloc(0x830);
-    if (!g_status_685170.buffers.buffer_08) {
+    g_status_685170.buffers.party_rows =
+        static_cast<W8PartySlotRow*>(
+            malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+    if (!g_status_685170.buffers.party_rows) {
         return;
     }
-    memset(g_status_685170.buffers.buffer_04, 0, 0xc310);
-    memset(g_status_685170.buffers.buffer_08, 0, 0x830);
+    memset(g_status_685170.buffers.characters, 0,
+           sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.party_rows, 0,
+           sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
 }
 
 /* Reads MONSTERS.DBS whole: the count into gXStatus, then - only when the
@@ -649,21 +659,27 @@ void Function54B100(void)
     unsigned int* id;
     unsigned int index;
 
-    if (g_status_685170.buffers.buffer_04) {
-        free(g_status_685170.buffers.buffer_04);
-        g_status_685170.buffers.buffer_04 = 0;
+    if (g_status_685170.buffers.characters) {
+        free(g_status_685170.buffers.characters);
+        g_status_685170.buffers.characters = 0;
     }
-    if (g_status_685170.buffers.buffer_08) {
-        free(g_status_685170.buffers.buffer_08);
-        g_status_685170.buffers.buffer_08 = 0;
+    if (g_status_685170.buffers.party_rows) {
+        free(g_status_685170.buffers.party_rows);
+        g_status_685170.buffers.party_rows = 0;
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
-    g_status_685170.buffers.buffer_04 = malloc(0xc310);
-    if (g_status_685170.buffers.buffer_04) {
-        g_status_685170.buffers.buffer_08 = malloc(0x830);
-        if (g_status_685170.buffers.buffer_08) {
-            memset(g_status_685170.buffers.buffer_04, 0, 0xc310);
-            memset(g_status_685170.buffers.buffer_08, 0, 0x830);
+    g_status_685170.buffers.characters =
+        static_cast<W8Character*>(
+            malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+    if (g_status_685170.buffers.characters) {
+        g_status_685170.buffers.party_rows =
+            static_cast<W8PartySlotRow*>(
+                malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
+        if (g_status_685170.buffers.party_rows) {
+            memset(g_status_685170.buffers.characters, 0,
+                   sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+            memset(g_status_685170.buffers.party_rows, 0,
+                   sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
         }
     }
     Function58FD30();
@@ -682,10 +698,10 @@ void Function54B100(void)
         }
         ++id;
     } while (id < g_starting_item_ids + 6);
-    g_status_685170.party_item_capacity_0019 = 500;
-    g_status_685170.active_party_slot_001d = GetNextCharacter(1, 1, -1);
+    g_status_685170.party_gold = 500;
+    g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
     g_current_level = -1;
-    Function554580((unsigned char*)&g_status_685170.party_status_23a1);
+    Function554580((unsigned char*)&g_status_685170.formation);
     for (index = 0; index < 8; ++index) {
         g_status_685170.dwords_18e0[index] = 0xffffffff;
     }
@@ -771,7 +787,7 @@ void Function54B300(unsigned int slot)
     record->field_079 = 6;
     record->field_099 = 0;
     tier = 1;
-    if (((W8Character*)g_status_685170.buffers.buffer_04)[slot].unknown_0b01 >= 0xf) {
+    if (g_status_685170.buffers.characters[slot].unknown_0b01 >= 0xf) {
         tier = 2;
     }
     record->field_089 = tier;

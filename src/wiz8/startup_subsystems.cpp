@@ -17,8 +17,6 @@ W8ScreenStateRuntime g_screen_state_0068ec78 = { -1 };
 W8ScreenStateRuntime g_dword_68ed10 = { -1 };
 unsigned char g_flag_68edac;
 void* g_stack_68eda8;
-// GLOBAL: WIZ8 0x00686A70
-int g_current_level = -1;
 unsigned short g_word_6850ed;
 W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 unsigned char g_flag_65beaf;

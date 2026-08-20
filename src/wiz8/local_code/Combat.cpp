@@ -71,7 +71,7 @@ int IsPartyEngaged(void)
     }
     if (g_combat_state->movement_mode == 0) {
         for (party_slot = 0; party_slot < 8; ++party_slot) {
-            if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+            if (g_party_slot_rows[party_slot].occupied != 0 &&
                 g_party_characters[party_slot].hp_current != 0 &&
                 g_party_characters[party_slot].unknown_0b01 < 0xf &&
                 g_combat_character_rows[party_slot].flag_4c != 0) {
@@ -177,7 +177,7 @@ void DropCharacterFromRound(int party_slot)
     }
     ResetCombatSlot(&row->target_in_combat);
     NotifySpellPointsChanged(party_slot);
-    if (party_slot == g_status_685170.active_party_slot_001d) {
+    if (party_slot == g_status_685170.selected_character) {
         RequestRedrawParty();
     }
     Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);
@@ -219,7 +219,7 @@ int PartyAvoidsSurprise(void)
     if (g_surprise_possible_00683fc5 == 0) {
         return 0;
     }
-    while (g_party_slot_rows[party_slot].flag_00 == 0 ||
+    while (g_party_slot_rows[party_slot].occupied == 0 ||
            g_party_characters[party_slot].hp_current == 0 ||
            g_party_characters[party_slot].unknown_0b01 > 10) {
         ++party_slot;

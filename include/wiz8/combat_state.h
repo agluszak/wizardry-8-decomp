@@ -11,7 +11,7 @@ struct W8MonsterInfo;
 /* One party slot row. Only the fields reached by recovered combat and
    targeting code are named. */
 typedef struct W8PartySlotRow {
-    unsigned char flag_00;
+    unsigned char occupied;               /* 0x00: gStatus.XChar[slot].fOccupied */
     int pending_action;
     int attack_mode[4];
     unsigned char unknown_015[8];
@@ -40,6 +40,11 @@ typedef struct W8PartySlotRow {
     unsigned char action_is_kind_one;
     unsigned char flag_105;
 } W8PartySlotRow;
+
+#ifdef __cplusplus
+static_assert(sizeof(W8PartySlotRow) == 0x106,
+              "W8PartySlotRow_must_be_0x106");
+#endif
 
 /* One record per character class, 0x1e5 bytes, indexed by the class index a
    combat actor carries at its +0x1d8. Only the flag the combat toggle reads is
@@ -117,8 +122,8 @@ extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 /* These are the two heap-buffer fields at the head of gXStatus, not separate
    globals.  Their retail addresses are the addresses of those pointer fields. */
 #define g_party_characters \
-    ((W8Character*)g_status_685170.buffers.buffer_04)
+    (g_status_685170.buffers.characters)
 #define g_party_slot_rows \
-    ((W8PartySlotRow*)g_status_685170.buffers.buffer_08)
+    (g_status_685170.buffers.party_rows)
 
 #endif

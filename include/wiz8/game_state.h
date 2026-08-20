@@ -13,8 +13,17 @@
 
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/character.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/item_instance.h"
 #include "wiz8/xstatus.h"
+
+#include <stddef.h>
+
+struct W8Character;
+struct W8PartySlotRow;
+
+enum { W8_PARTY_SLOT_COUNT = 8 };
 
 #pragma pack(push, 1)
 
@@ -80,28 +89,34 @@ typedef struct W8GameSettings {
    these on the stack, reads through it and tears it down again; only the two
    pointers this pair manages are established, not the block's full extent. */
 typedef struct W8StatusBuffers {
-    unsigned char unknown_00[4];
-    void* buffer_04;                     /* 0x04: 0xc310 bytes */
-    void* buffer_08;                     /* 0x08: 0x830 bytes */
+    /* Serialized as the leading field of W8GlobalStatus. LoadGameStatus uses
+       1.1 as the boundary for its one retained compatibility migration. */
+    float save_version;                  /* 0x00 */
+    W8Character* characters;             /* 0x04: Char[8], 0xc310 bytes */
+    W8PartySlotRow* party_rows;          /* 0x08: XChar[8], 0x830 bytes */
 } W8StatusBuffers;
 
-typedef struct W8PartyStatusSelection {
-    unsigned short index;
-    unsigned char kind;
-} W8PartyStatusSelection;                 /* 0x03 */
+enum {
+    W8_CHARACTER_SERIALIZED_SIZE = 0x1862
+};
 
-typedef struct W8PartyStatusRow {
-    unsigned char indices[3];
-    unsigned char mode;
+typedef struct W8PartyFormationRow {
+    signed char slots[3];
+} W8PartyFormationRow;                    /* 0x03 */
+
+typedef struct W8PartyFormationPosition {
+    unsigned char row;
+    unsigned char unknown_01[2];
+    signed char facing;
     unsigned char unknown_04[8];
-} W8PartyStatusRow;                       /* 0x0c */
+} W8PartyFormationPosition;               /* 0x0c */
 
-typedef struct W8PartyStatusState {
-    W8PartyStatusSelection selections[5]; /* 0x00 */
+typedef struct W8PartyFormationState {
+    W8PartyFormationRow rows[5];          /* 0x00: 0x00687511 */
     unsigned char flags_0f[5];            /* 0x0f */
-    W8PartyStatusRow rows_14[8];          /* 0x14 */
+    W8PartyFormationPosition positions[8]; /* 0x14: 0x00687525 */
     unsigned char unknown_74[0x10];
-} W8PartyStatusState;                     /* 0x84 */
+} W8PartyFormationState;                  /* 0x84 */
 
 /* The global status block. It opens with the same two heap buffers
    AllocateStatusBuffers manages on a caller-supplied one, and 0x0054AF30 clears
@@ -110,27 +125,92 @@ typedef struct W8GlobalStatus {
     W8StatusBuffers buffers;             /* 0x0000 */
     unsigned char game_started_000c;
     unsigned char unknown_000d[0x0c];
-    int party_item_capacity_0019;         /* 0x0019 */
-    int active_party_slot_001d;           /* 0x001d */
+    unsigned int party_gold;              /* 0x0019: gStatus.uiPartyGold */
+    int selected_character;               /* 0x001d: gStatus.iSelectedCharacter */
     W8ItemInstance party_item_pool_0021[500]; /* 0x0021 */
     int party_item_count_1791;            /* 0x1791 */
-    unsigned char unknown_1795[0x14b];
+    unsigned char unknown_1795[2];
+    /* Saves older than 1.1 carried these six words contiguously. The loader
+       expands them into two four-word groups at +0x4997. */
+    unsigned int legacy_text_box_lines_1797[2][3];
+    unsigned char unknown_17af[0x121];
+    int party_facing;                     /* 0x18d0: 0x00686A40 */
+    unsigned int party_heading;           /* 0x18d4: 0x00686A44 */
+    int world_clock;                      /* 0x18d8: 0x00686A48 */
+    unsigned char unknown_18dc[4];
     unsigned int dwords_18e0[8];          /* 0x18e0 */
-    int saved_level;                     /* 0x1900 */
-    unsigned char unknown_1904[0xa56];
-    unsigned char item_in_hand_shown_235a;
+    int current_level;                    /* 0x1900: 0x00686A70 */
+    unsigned char unknown_1904[0x100];
+    W8LevelProgressRow level_progress[47]; /* 0x1a04: 0x00686B74 */
+    unsigned char unknown_2013[0x294];
+    W8SavedLocation pending_move_location; /* 0x22a7: 0x00687417 */
+    unsigned char unknown_22e3[0x77];
+    unsigned char item_in_cursor;         /* 0x235a: gStatus.fItemInCursor */
     W8ItemInstance item_in_hand_235b;
-    unsigned char unknown_2367[0x3a];
-    W8PartyStatusState party_status_23a1;
-    unsigned char unknown_2425[0x72];
+    unsigned char unknown_2367[0x20];
+    int game_time_ms;                     /* 0x2387: 0x006874F7 */
+    unsigned char unknown_238b[0x16];
+    W8PartyFormationState formation;      /* 0x23a1: 0x00687511 */
+    int game_time_days;                   /* 0x2425: 0x00687595 */
+    unsigned char unknown_2429[0x6e];
     unsigned char flag_2497;
-    unsigned char unknown_2498[0x252a];
+    unsigned char unknown_2498[0x24ff];
+    unsigned int text_box_lines_used_4997[4];
+    unsigned int text_box_lines_shown_49a7[4];
+    unsigned char unknown_49b7[0x0b];
 } W8GlobalStatus;                        /* 0x49c2 */
+
+#ifdef __cplusplus
+static_assert(sizeof(W8StatusBuffers) == 0x0c,
+              "W8StatusBuffers_must_be_0x0c");
+static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19,
+              "W8GlobalStatus_party_gold_offset");
+static_assert(offsetof(W8GlobalStatus, selected_character) == 0x1d,
+              "W8GlobalStatus_selected_character_offset");
+static_assert(offsetof(W8GlobalStatus, legacy_text_box_lines_1797) == 0x1797,
+              "W8GlobalStatus_legacy_values_offset");
+static_assert(offsetof(W8GlobalStatus, party_facing) == 0x18d0,
+              "W8GlobalStatus_party_facing_offset");
+static_assert(offsetof(W8GlobalStatus, world_clock) == 0x18d8,
+              "W8GlobalStatus_world_clock_offset");
+static_assert(offsetof(W8GlobalStatus, current_level) == 0x1900,
+              "W8GlobalStatus_current_level_offset");
+static_assert(offsetof(W8GlobalStatus, level_progress) == 0x1a04,
+              "W8GlobalStatus_level_progress_offset");
+static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
+              "W8GlobalStatus_pending_move_location_offset");
+static_assert(offsetof(W8GlobalStatus, item_in_cursor) == 0x235a,
+              "W8GlobalStatus_item_in_cursor_offset");
+static_assert(offsetof(W8GlobalStatus, game_time_ms) == 0x2387,
+              "W8GlobalStatus_game_time_ms_offset");
+static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1,
+              "W8GlobalStatus_formation_offset");
+static_assert(offsetof(W8GlobalStatus, game_time_days) == 0x2425,
+              "W8GlobalStatus_game_time_days_offset");
+static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
+              "W8GlobalStatus_migrated_values_offset");
+static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,
+              "W8GlobalStatus_migrated_shown_values_offset");
+static_assert(sizeof(W8GlobalStatus) == 0x49c2,
+              "W8GlobalStatus_must_be_0x49c2");
+#endif
 
 /* Defined by GameplayDatabase.cpp, which carries the address marker. Declared
    here beside its type so consumers share one declaration instead of repeating
    a local extern each time. */
 extern W8GlobalStatus g_status_685170;
+
+#define g_party_facing (g_status_685170.party_facing)
+#define g_party_heading (g_status_685170.party_heading)
+#define g_world_clock_00686a48 (g_status_685170.world_clock)
+#define g_current_level (g_status_685170.current_level)
+#define g_level_progress (g_status_685170.level_progress)
+#define g_pending_move_location_00687417 \
+    (g_status_685170.pending_move_location)
+#define g_saved_world_position_00687417 \
+    (g_status_685170.pending_move_location.point)
+#define g_game_time_ms (g_status_685170.game_time_ms)
+#define g_game_time_days (g_status_685170.game_time_days)
 
 /* 0x0058FD30 walks this storage as four runs of 0x15e records, always with a
    0x24-byte stride.  Each record owns one allocation and an optional PList;
@@ -222,7 +302,6 @@ static_assert(sizeof(W8LevelRuntimeBlock) == 0x328,
 extern "C" {
 
 extern W8LevelRuntimeBlock* g_level_block; /* 0x0068EDCC */
-extern int g_current_level;                /* 0x00686A70 */
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 extern W8GameSettings g_settings_6850c8;   /* 0x006850C8 */
 

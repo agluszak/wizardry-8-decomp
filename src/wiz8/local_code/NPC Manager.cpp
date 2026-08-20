@@ -176,15 +176,15 @@ char WillNpcTradeForItem(W8NpcState* npc, const W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0050b9b0
 unsigned char CountLeadingPartySlots(void)
 {
-    if (g_party_slot_rows[0].flag_00 != 0) {
-        if (g_party_slot_rows[1].flag_00 != 0) {
+    if (g_party_slot_rows[0].occupied != 0) {
+        if (g_party_slot_rows[1].occupied != 0) {
             return 2;
         }
-        if (g_party_slot_rows[0].flag_00 != 0) {
+        if (g_party_slot_rows[0].occupied != 0) {
             return 1;
         }
     }
-    if (g_party_slot_rows[1].flag_00 != 0) {
+    if (g_party_slot_rows[1].occupied != 0) {
         return 1;
     }
     return 0;

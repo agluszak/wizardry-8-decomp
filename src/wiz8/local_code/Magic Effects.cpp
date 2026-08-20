@@ -222,11 +222,6 @@ struct W8SpellQueueEntry {
     W8TargetSource Source;               /* 0x5c */
 };
 
-/* 0x00687417: where a staged cross-level move parks the destination anchor
-   until the transition runs. The whole 0x3c-byte block travels, not just its
-   point, so it is the same shape the character carries. */
-extern W8SavedLocation g_pending_move_location_00687417;
-
 extern void MoveWorldToPoint(W8World* destination, W8World* source, const srVector3T<float>* point);
 /* 0x00450610 */
 extern void PlacePartyAtPoint(const srVector3T<float>* point);                  /* 0x00421090 */

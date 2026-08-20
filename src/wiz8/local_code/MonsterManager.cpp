@@ -227,7 +227,7 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
 
     if (monster_info->scale_24f < g_float_005ebb34 ||
         g_status_685170.unknown_1904[
-            g_status_685170.saved_level * 0x21 + 0x100] == 0) {
+            g_status_685170.current_level * 0x21 + 0x100] == 0) {
         monster_info->unknown_301[0] =
             MonsterGetCycle17State(monster_info->monster);
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
