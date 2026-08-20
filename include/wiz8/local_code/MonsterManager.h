@@ -256,6 +256,7 @@ static_assert(sizeof(W8MonsterRuntimeBlock1DB) == 0x67, "W8MonsterRuntimeBlock1D
 
 
 W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_index);
+bool InitializeMonsterManagerState(void);
 void ActivateMonster(W8MonsterInfo* monster_info, int mode);
 void Function4E4600(W8MonsterInfo* monster_info);
 void MonsterStartsDying(W8MonsterInfo* monster_info, int display_message);
@@ -295,6 +296,7 @@ void TryStartMonsterCycle2(
     W8MonsterInfo* monster_info,
     W8Monster* monster,
     int query_state);
+void ProcessMonsterManagerFrame(void);
 unsigned int GetMonsterCombatValue(const W8MonsterRecord* record);
 unsigned char AnyMonsterDying(void);
 

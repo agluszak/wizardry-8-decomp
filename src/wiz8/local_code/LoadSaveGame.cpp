@@ -65,7 +65,6 @@ extern void Function48C750(W8MonsterGroup* group);
    as elsewhere in src/wiz8. All three take no argument and return nothing, and
    run before the header is read, so they read as teardown of whatever the
    previous level left behind. */
-extern void Function4E3720(void);
 extern void InitializeItemManagerState(void);
 extern void Function443A50(void);
 
@@ -260,7 +259,7 @@ unsigned char LoadStatusHeader(W8Chunk* chunk)
     unsigned int transferred;
     W8StatusHeader header;
 
-    Function4E3720();
+    InitializeMonsterManagerState();
     InitializeItemManagerState();
     Function443A50();
     if (!chunk->Read(&header, sizeof(header), &transferred)) {

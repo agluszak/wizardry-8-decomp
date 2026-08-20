@@ -15,6 +15,7 @@
 
 unsigned char GetRenderOptionState(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
+unsigned char MonsterIsAnimating(W8Monster* monster);
 unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 void Function4C5B10(W8Monster* monster, int value);
@@ -39,6 +40,8 @@ void ResetCombatSlot(W8CombatSlot* combat_slot);   /* 0x00536170 */
 void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
 void EndMonsterTurn(W8MonsterInfo* monster_info);
 extern int g_status_count_6874be;
+extern int g_status_count_6874ba;
+extern int g_dword_6850be;
 void DeactivateMonster(W8MonsterInfo* monster_info);
 void Function4ACF90(W8Monster* monster);
 void ReleaseMonToMonVisibilityList(W8MonsterInfo* monster_info);
@@ -146,6 +149,8 @@ void DeleteMonster004C5860(W8Monster* monster);
    clean only three of the four dwords they push across the tail. */
 void __stdcall Function42E650(unsigned short location_id);
 void Function509EA0(int value);
+void Function508D70(unsigned int monster_list_index);
+void Function4F8CB0(W8MonsterInfo* monster_info, int value);
 void Function4C5ED0(W8Monster* monster);
 void __cdecl Function58AC00(int channel, void* message, int first, int second,
                             int flag);
@@ -1035,6 +1040,56 @@ unsigned char AnyMonsterDying(void)
     return 0;
 }
 
+/* Reset the two generated runtime IDs and the live manager counts, then create
+   or clear the four lists owned by gXStatus. The final two success checks are
+   deliberately asymmetric: retail rechecks plsMonsterList after initializing
+   plsUnbornMonsterList, and plsMonsterGroupList after the encounter list. */
+// FUNCTION: WIZ8 0x004e3720
+bool InitializeMonsterManagerState(void)
+{
+    g_status_count_6874be = 1;
+    g_status_count_6874ba = 1;
+    gXStatus.active_monster_count = 0;
+    gXStatus.field_02d = 0;
+    g_dword_6850be = 0;
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+        g_level_block->selected_item = -1;
+    }
+    if (gXStatus.plsMonsterList == 0) {
+        gXStatus.plsMonsterList = PLCreate();
+    }
+    else {
+        PListClear(gXStatus.plsMonsterList);
+    }
+    if (gXStatus.plsMonsterList == 0) {
+        return false;
+    }
+    if (gXStatus.plsMonsterGroupList == 0) {
+        gXStatus.plsMonsterGroupList = PLCreate();
+    }
+    else {
+        PListClear(gXStatus.plsMonsterGroupList);
+    }
+    if (gXStatus.plsMonsterGroupList == 0) {
+        return false;
+    }
+    if (gXStatus.plsUnbornMonsterList == 0) {
+        gXStatus.plsUnbornMonsterList = PLCreate();
+    }
+    else {
+        PListClear(gXStatus.plsUnbornMonsterList);
+    }
+    if (gXStatus.plsMonsterList == 0) {
+        return false;
+    }
+    if (gXStatus.plsMonsterGroupEncounterList != 0) {
+        PListClear(gXStatus.plsMonsterGroupEncounterList);
+        return gXStatus.plsMonsterGroupList != 0;
+    }
+    gXStatus.plsMonsterGroupEncounterList = PLCreate();
+    return gXStatus.plsMonsterGroupList != 0;
+}
+
 /* The manager teardown: it drains the monster list by repeatedly destroying
    entry zero rather than walking it, then releases the four gXStatus lists and
    the species-indexed record cache. The cache walk is a pointer sweep against
@@ -1439,6 +1494,101 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
         line = 0x4a4;
     }
     srAssertFail("FALSE", MONSTER_MANAGER_CPP, line, detail);
+}
+
+/* Advance every live monster once. Removal is done in place, so each branch
+   that shortens the PList decrements the unsigned index before the common
+   increment. A delayed-removal monster is first detached from combat and the
+   world; an ordinary monster advances its cycle state or stops animating while
+   motionless. */
+// FUNCTION: WIZ8 0x004e4ee0
+void ProcessMonsterManagerFrame(void)
+{
+    unsigned int monster_list_index;
+
+    for (monster_list_index = 0;
+         monster_list_index < PLLength(gXStatus.plsMonsterList);
+         ++monster_list_index) {
+        W8MonsterInfo* monster_info =
+            MonsterGetScriptPartByLocationIndex(monster_list_index);
+        W8Monster* monster = monster_info->monster;
+
+        if ((monster->flags_1dc & 0x100) != 0) {
+            if (monster->flags_330.flag_00 == 0) {
+                if (monster->state_22e != 0) {
+                    monster->ApplyRemovalStateEffects();
+                }
+                monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+                DeactivateMonster(monster_info);
+                if (monster_info == 0) {
+                    srAssertFail("pMonsterInfo", MONSTER_MANAGER_CPP, 0x282, 0);
+                }
+                if (monster_info->monster != 0) {
+                    Function4C59C0(monster_info->monster, GetWorld());
+                    Function46E5A0(GetWorld(monster_info->monster));
+                    DeleteMonster004C5860(monster_info->monster);
+                    monster_info->monster = 0;
+                }
+                Function42E650(static_cast<unsigned short>(monster_info->location_id));
+                Function509EA0(monster_info->runtime_value_2f1);
+                void* removed = PLRemoveAt(gXStatus.plsMonsterList, monster_list_index);
+                if (removed != 0) {
+                    free(removed);
+                }
+                --monster_list_index;
+            }
+        }
+        else if ((monster->flags_1dc & 0x200) != 0) {
+            RemoveMonster(monster_list_index, 1);
+            --monster_list_index;
+        }
+        else if ((monster->flags_1dc & 0x20) == 0) {
+            if ((monster->flags_1dc & 0x40) == 0) {
+                int query_state = MonsterQuery(monster, 6);
+                TryStartMonsterCycle2(monster_info, monster, query_state);
+                if (MonsterQuery(monster, 7) != 0) {
+                    if (gXStatus.fCombatMode != 0 && query_state == 0x12) {
+                        monster_info->pCombat->unknown_13d[8] = 1;
+                    }
+                    switch (query_state) {
+                    case 1:
+                    case 3:
+                    case 4:
+                    case 0x17:
+                    case 0x18:
+                        break;
+                    case 0x15:
+                        if ((monster->flags_1dc & 0x100) == 0) {
+                            monster_info =
+                                MonsterGetScriptPartByLocationIndex(monster_list_index);
+                            Function508D70(monster_list_index);
+                            if (monster_info->monster_group_id != 0) {
+                                RemoveMonster(monster_list_index, 0);
+                            }
+                            Function4F8CB0(monster_info, -1);
+                            monster_info->monster->BeginDelayedRemoval004C5000();
+                        }
+                        break;
+                    default:
+                        if (monster_info->motionless == 0) {
+                            if (monster_info->monster->m_pRep->selection.monster.pending_cycle ==
+                                W8_CYCLE_NONE) {
+                                StartMonsterCycle(monster_info, 1, 3);
+                            }
+                        }
+                        else if (MonsterIsAnimating(monster) != 0) {
+                            MonsterSetAnimating(monster, 0);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            RemoveMonster(monster_list_index, 1);
+            --monster_list_index;
+        }
+    }
 }
 
 /* The display name for one monster. Three things decide it.

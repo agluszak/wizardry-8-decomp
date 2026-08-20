@@ -39,7 +39,6 @@ extern unsigned char SaveLevelStatus(const char* path);
 extern int Function4D9700(int level);
 extern void Function427440(void);
 extern unsigned char Function42B020(int level, W8LevelInfo* info);
-extern void Function4E3720(void);
 extern void InitializeItemManagerState(void);
 extern void Function443A50(void);
 extern void Function5817D0(void);
@@ -223,7 +222,7 @@ unsigned char LoadLevel(
     if (!Function42B020(level, &level_info)) {
         return 0;
     }
-    Function4E3720();
+    InitializeMonsterManagerState();
     InitializeItemManagerState();
     Function443A50();
     if (!ForwardLoadWorld(
