@@ -27,11 +27,13 @@
 #include "wiz8/targeting.h"
 #include "wiz8/utility.h"
 #include "wiz8/vector_005ec294.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srTimer.h"
 #include "surrender/srScene.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srCore.h"
 #include "Random.h"
+#include "FileMan.h"
 #include <windows.h>
 
 #include <string.h>
@@ -119,6 +121,17 @@ extern void Function523C00(
     W8TargetSource* source, int value_6);
 extern srTextureIFace* LoadTexture004B9460(
     const char* path, unsigned char cached, unsigned char required);
+extern unsigned char GetRenderOptionState(int option);
+extern int NormalizeAttackMode(int attack_mode);
+extern void Function439BC0(void);
+extern void Function439CA0(void);
+extern void __fastcall Function452F10(
+    W8Navigator* navigator,
+    const srVector3T<float>* minimum,
+    const srVector3T<float>* maximum);
+extern void __fastcall Function453C90(W8Navigator* navigator, float value);
+extern unsigned char g_monster_gib_option_0060e614;
+extern const double g_monster_light_color_scale_005ed280;
 
 static W8GrowableVector<stModelInstance005EC7D0*>
     g_monster_model_instances_682fd0;
@@ -199,6 +212,576 @@ const char* g_monster_script_commands[MONSCR_COUNT] = {
 
 // VTABLE: WIZ8 0x005ed200
 // class W8MonsterRep
+
+/* Read the text-side monster representation. A named representation is shared
+   by cloning its first live cycle; otherwise the MLS file supplies scalar
+   movement settings, visual flags, sound/shake events, skin stages, lights,
+   and the list of binary .mon cycles. */
+// FUNCTION: WIZ8 0x004c0300
+unsigned char MonsterReadAllCycles004C0300(
+    const W8GrCycleLoadContext* context,
+    const char* monster_name,
+    W8Monster** monster,
+    int load_value,
+    int location_id)
+{
+    W8Monster* shared = static_cast<W8Monster*>(
+        FindFirstGrCycleByName(monster_name));
+    if (shared != 0) {
+        *monster = new W8Monster(*shared);
+        if (*monster == 0) {
+            srAssertFail("*ppMonster", MONSTER_CPP, 0x4d3, 0);
+        }
+        (*monster)->RandomizeAppearanceAndMotion004C1D20();
+        RegisterGrCycle(monster_name, *monster);
+        return 1;
+    }
+
+    Function439BC0();
+
+    unsigned char more = 1;
+    unsigned char success = 1;
+    unsigned char flies = 0;
+    unsigned char swims = 0;
+    unsigned char crawls = 0;
+    unsigned char quadruped = 0;
+    unsigned char full_transition = 0;
+    unsigned char spice_monster = 0;
+    int left_handed = 45;
+    unsigned char has_light = 0;
+    unsigned char light_pulsing = 0;
+    unsigned char random_idle_range = 0;
+    unsigned char has_lod_range = 0;
+    float movement_rate = 3.0f;
+    float rotation_rate = 0.7f;
+    float scale_factor = 1.0f;
+    float walk_radius = 0.0f;
+    float fight_radius = 0.0f;
+    float target_height = 0.0f;
+    float camera_height = 0.0f;
+    float scale_range_start = -1.0f;
+    float scale_range_end = -1.0f;
+    float hover_range_start = 0.0f;
+    float hover_range_end = 0.0f;
+    float bob_range_start = 0.0f;
+    float bob_range_end = 0.0f;
+    float idle_fps_start = 0.0f;
+    float idle_fps_end = 0.0f;
+    float lod_range_start = 0.0f;
+    float lod_range_end = 0.0f;
+    float opacity = -1.0f;
+    float glow = -1.0f;
+    float death_scale = 1.0f;
+    float sound_falloff = -1.0f;
+    float shadow_width = -1.0f;
+    float shadow_depth = 0.0f;
+    int missile_start = -1;
+    int spell_start = -1;
+    int footstep_volume = 0;
+    int footstep_falloff = 0;
+    srVector3T<float> light_first;
+    srVector3T<float> light_second;
+    W8VectorElement005ED094* last_sound = 0;
+    int damage_stage = -1;
+    int skin_stage = 0;
+
+    char path[256];
+    sprintf(path, "data\\Monsters\\%s.mls", monster_name);
+    int handle = FileOpen(path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+    if (handle == 0) {
+        srAssertFail(
+            "hFile", MONSTER_CPP, 0x50f,
+            reinterpret_cast<char*>(String("Couldn't open %s", path)));
+    }
+    *monster = 0;
+
+    if (handle == 0) {
+        success = LoadGrCycle004A67E0(
+            context, monster_name,
+            reinterpret_cast<W8GrCycle**>(monster),
+            -1, load_value, "data\\monsters", 0);
+        if ((*monster)->m_plsParticles != 0) {
+            for (int index = 0;
+                 index < (*monster)->m_plsParticles->GetCount();
+                 ++index) {
+                W8GrCycleShakeEvent* event =
+                    *(*monster)->m_plsParticles->GetAt(index);
+                if (event->cycle_00 == -1 && event->subcycle_04 == -1) {
+                    event->subcycle_04 =
+                        (*monster)->m_pRep->selection.monster.current_subcycle;
+                }
+            }
+        }
+    }
+    else {
+        char line[250];
+        while (more != 0) {
+            ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+            while (line[0] == '\0' && more != 0) {
+                ReadTextLine004CEE40(handle, line, sizeof(line), &more);
+            }
+            if (line[0] == '\0' || line[0] == '#') {
+                continue;
+            }
+
+            char command[256];
+            char argument[256];
+            command[0] = '\0';
+            argument[0] = '\0';
+            sscanf(line, "%s %s", command, argument);
+
+            if (_stricmp(command, "movementrate") == 0) {
+                sscanf(line, "%s %f", command, &movement_rate);
+            }
+            else if (_stricmp(command, "RotationRate") == 0) {
+                sscanf(line, "%s %f", command, &rotation_rate);
+            }
+            else if (_stricmp(command, "scalefactor") == 0) {
+                sscanf(line, "%s %f", command, &scale_factor);
+            }
+            else if (_stricmp(command, "walkradius") == 0) {
+                sscanf(line, "%s %f", command, &walk_radius);
+            }
+            else if (_stricmp(command, "fightradius") == 0) {
+                sscanf(line, "%s %f", command, &fight_radius);
+            }
+            else if (_stricmp(command, "targetheight") == 0) {
+                sscanf(line, "%s %f", command, &target_height);
+            }
+            else if (_stricmp(command, "cameraheight") == 0) {
+                sscanf(line, "%s %f", command, &camera_height);
+            }
+            else if (_stricmp(command, "deathscale") == 0) {
+                sscanf(line, "%s %f", command, &death_scale);
+            }
+            else if (_stricmp(command, "scalerangestart") == 0) {
+                sscanf(line, "%s %f", command, &scale_range_start);
+            }
+            else if (_stricmp(command, "scalerangeend") == 0) {
+                sscanf(line, "%s %f", command, &scale_range_end);
+            }
+            else if (_stricmp(command, "hoverrangestart") == 0) {
+                sscanf(line, "%s %f", command, &hover_range_start);
+            }
+            else if (_stricmp(command, "hoverrangeend") == 0) {
+                sscanf(line, "%s %f", command, &hover_range_end);
+            }
+            else if (_stricmp(command, "bobrangestart") == 0) {
+                sscanf(line, "%s %f", command, &bob_range_start);
+            }
+            else if (_stricmp(command, "bobrangeend") == 0) {
+                sscanf(line, "%s %f", command, &bob_range_end);
+            }
+            else if (_stricmp(command, "missilestart") == 0) {
+                sscanf(line, "%s %d", command, &missile_start);
+            }
+            else if (_stricmp(command, "spellstart") == 0) {
+                sscanf(line, "%s %d", command, &spell_start);
+            }
+            else if (_stricmp(command, "flies") == 0) {
+                flies = 1;
+            }
+            else if (_stricmp(command, "swims") == 0) {
+                swims = 1;
+            }
+            else if (_stricmp(command, "crawls") == 0) {
+                crawls = 1;
+            }
+            else if (_stricmp(command, "quadruped") == 0) {
+                quadruped = 1;
+            }
+            else if (_stricmp(command, "spicemonster") == 0) {
+                spice_monster = 1;
+            }
+            else if (_stricmp(command, "randomidlefps") == 0) {
+                sscanf(
+                    line, "%s %f %f", command,
+                    &idle_fps_start, &idle_fps_end);
+                random_idle_range = 1;
+            }
+            else if (_stricmp(command, "loddistance") == 0) {
+                sscanf(
+                    line, "%s %f %f", command,
+                    &lod_range_start, &lod_range_end);
+                has_lod_range = 1;
+            }
+            else if (_stricmp(command, "pitch") == 0) {
+                int pitch;
+                if (last_sound == 0) {
+                    srAssertFail(
+                        "pSndEvent", MONSTER_CPP, 0x58e,
+                        "mls pitch: Must specify a sound before pitch");
+                }
+                sscanf(line, "%s %d", command, &pitch);
+                last_sound->value_014 = pitch;
+            }
+            else if (_stricmp(command, "volume") == 0) {
+                if (last_sound == 0) {
+                    srAssertFail(
+                        "pSndEvent", MONSTER_CPP, 0x595,
+                        "mls volume: Must specify a sound before volume");
+                }
+                sscanf(
+                    line, "%s %d %d", command,
+                    &last_sound->value_018, &last_sound->value_01c);
+            }
+            else if (_stricmp(command, "sound_falloff") == 0) {
+                sscanf(line, "%s %f", command, &sound_falloff);
+            }
+            else if (_stricmp(command, "footstep_vol") == 0) {
+                sscanf(
+                    line, "%s %d %d", command,
+                    &footstep_volume, &footstep_falloff);
+            }
+            else if (_stricmp(command, "probability") == 0) {
+                int probability;
+                if (last_sound == 0) {
+                    srAssertFail(
+                        "pSndEvent", MONSTER_CPP, 0x5a5,
+                        "mls frequency: Must specify a sound before frequency");
+                }
+                sscanf(line, "%s %d", command, &probability);
+                last_sound->value_024 = (unsigned char)probability;
+            }
+            else if (_stricmp(command, "animscript") == 0) {
+            }
+            else if (_stricmp(command, "script") == 0) {
+                sscanf(line, "%s %s", command, argument);
+                (*monster)->SetScript004C7F10(argument, 1);
+            }
+            else if (_stricmp(command, "opacity") == 0) {
+                sscanf(line, "%s %f", command, &opacity);
+            }
+            else if (_stricmp(command, "glow") == 0) {
+                sscanf(line, "%s %f", command, &glow);
+            }
+            else if (_stricmp(command, "shadow") == 0) {
+                sscanf(
+                    line, "%s %f %f", command,
+                    &shadow_width, &shadow_depth);
+            }
+            else if (_stricmp(command, "lefthanded") == 0) {
+                sscanf(line, "%s %d", command, &left_handed);
+            }
+            else if (_stricmp(command, "fulltransition") == 0) {
+                full_transition = 1;
+            }
+            else if (_stricmp(command, "addlight") == 0) {
+                char light_mode[256];
+                sscanf(
+                    line, "%*s %s ( %f %f %f ) ( %f %f %f )",
+                    light_mode,
+                    &light_first.x, &light_first.y, &light_first.z,
+                    &light_second.x, &light_second.y, &light_second.z);
+                light_first.x *= (float)g_monster_light_color_scale_005ed280;
+                light_first.y *= (float)g_monster_light_color_scale_005ed280;
+                light_first.z *= (float)g_monster_light_color_scale_005ed280;
+                light_second.x *= (float)g_monster_light_color_scale_005ed280;
+                light_second.y *= (float)g_monster_light_color_scale_005ed280;
+                light_second.z *= (float)g_monster_light_color_scale_005ed280;
+                light_pulsing = _stricmp(light_mode, "pulsing") == 0;
+                has_light = 1;
+            }
+            else if (_stricmp(command, "skin") == 0) {
+                if (damage_stage == -1) {
+                    damage_stage = (*monster)->AddDamageStage004C6880(
+                        monster_name, 0);
+                    W8GrowableVector<stModelInstance005EC7D0*> instances;
+                    (*monster)->CollectModelInstances004C6350(&instances);
+                    for (int index = 0; index < instances.GetCount(); ++index) {
+                        (*instances.GetAt(index))->damage_stage_184 =
+                            damage_stage;
+                    }
+                    skin_stage = 0;
+                }
+                if (_stricmp(argument, "default") != 0) {
+                    ++skin_stage;
+                    damage_stage = (*monster)->AddDamageStage004C6880(
+                        monster_name, skin_stage);
+                }
+            }
+            else if (_stricmp(command, "skinswap") == 0) {
+                char old_name[64];
+                char new_name[64];
+                sscanf(line, "%s %s %s", command, old_name, new_name);
+                if (damage_stage != -1 &&
+                    (*monster)->ReplaceSkinTexture004C6700(
+                        damage_stage, old_name, new_name) == 0) {
+                    Function401920(reinterpret_cast<const char*>(String(
+                        "The skin texture %s not found in %s",
+                        old_name, monster_name)));
+                }
+            }
+            else {
+                if (strlen(argument) <= 2) {
+                    continue;
+                }
+                signed char subcycle;
+                int cycle = ParseMonsterCycleName004C2010(command, &subcycle);
+                if (cycle != -1) {
+                    if (_strnicmp(argument, "gib", 3) != 0 ||
+                        g_monster_gib_option_0060e614 != 0) {
+                        if (GetRenderOptionState(0xe) == 0) {
+                            cycle = NormalizeAttackMode(cycle);
+                        }
+                        if (*monster == 0 ||
+                            (*monster)->IsCycleSupported((signed char)cycle) == 0 ||
+                            GetRenderOptionState(0xe) != 0) {
+                            float animation_scale = -1.0f;
+                            sscanf(
+                                line, "%s %s %f",
+                                command, argument, &animation_scale);
+                            success = LoadGrCycle004A67E0(
+                                context, argument,
+                                reinterpret_cast<W8GrCycle**>(monster),
+                                cycle, load_value,
+                                "data\\monsters", 0);
+                            if ((*monster)->m_plsParticles != 0) {
+                                for (int index = 0;
+                                     index < (*monster)->m_plsParticles->GetCount();
+                                     ++index) {
+                                    W8GrCycleShakeEvent* event =
+                                        *(*monster)->m_plsParticles->GetAt(index);
+                                    if (event->cycle_00 == cycle &&
+                                        event->subcycle_04 == -1) {
+                                        event->subcycle_04 =
+                                            (*monster)->m_pRep->selection.monster.current_subcycle;
+                                    }
+                                }
+                            }
+                            if (animation_scale > 0.0f) {
+                                int current =
+                                    (*monster)->m_pRep->selection.monster.current_subcycle;
+                                W8AnimObj* animation =
+                                    *(*monster)->m_pRep->animations[cycle].GetAt(current);
+                                animation->playback_scale_08 = animation_scale;
+                                *(*monster)->m_pRep->animation_scales[cycle].GetAt(current) =
+                                    animation_scale;
+                            }
+                        }
+                    }
+                }
+                else {
+                    int sound_type = -1;
+                    if (_stricmp(command, "SOUND_FRAME") == 0) sound_type = 1;
+                    else if (_stricmp(command, "SOUND_CYCLE") == 0) sound_type = 2;
+                    else if (_stricmp(command, "SOUND_FOOTSTEP") == 0) sound_type = 0x100;
+
+                    if (sound_type != -1) {
+                        char cycle_name[256];
+                        char wave_name[256];
+                        char loop_name[64];
+                        int frame = 0;
+                        cycle_name[0] = wave_name[0] = loop_name[0] = '\0';
+                        if (sound_type == 0x100) {
+                            sscanf(
+                                line, "%s %s %d",
+                                command, cycle_name, &frame);
+                        }
+                        else {
+                            sscanf(
+                                line, "%s %s %d %s %s",
+                                command, cycle_name, &frame,
+                                wave_name, loop_name);
+                        }
+                        int sound_cycle = ParseMonsterCycleName004C2010(
+                            cycle_name, &subcycle);
+                        char wave_path[256];
+                        wave_path[0] = '\0';
+                        if (sound_type != 0x100) {
+                            sprintf(
+                                wave_path,
+                                "Data\\Sound\\Monsters\\%s.WAV",
+                                wave_name);
+                        }
+                        last_sound = CreateSoundEvent004D57A0(
+                            sound_type, sound_cycle, frame,
+                            subcycle - 1, wave_path,
+                            _stricmp(loop_name, "LOOP") == 0);
+                        if (last_sound != 0) {
+                            (*monster)->AddSoundEvent(last_sound);
+                            last_sound->value_028 = location_id;
+                            last_sound->value_018 =
+                                sound_type == 0x100 ? 0x23 : 0x7f;
+                            last_sound->value_01c = last_sound->value_018;
+                            if (sound_falloff > 0.0f) {
+                                last_sound->value_02c =
+                                    (unsigned int)(sound_falloff * g_world_scale_005ebc40);
+                            }
+                            if (footstep_volume != 0 || footstep_falloff != 0) {
+                                last_sound->value_030 = footstep_volume;
+                                last_sound->value_034 = footstep_falloff;
+                            }
+                        }
+                    }
+                    else if (_stricmp(command, "SHAKE_FRAME") == 0) {
+                        char cycle_name[256];
+                        int frame;
+                        float duration = 1.0f;
+                        float intensity = 1.0f;
+                        float value = 10.0f;
+                        sscanf(
+                            line, "%s %s %d %f %f %f",
+                            command, cycle_name, &frame,
+                            &duration, &intensity, &value);
+                        int shake_cycle = ParseMonsterCycleName004C2010(
+                            cycle_name, &subcycle);
+                        W8CameraShakeEffect* effect = new W8CameraShakeEffect(
+                            duration, 1, intensity,
+                            (int)(value * g_world_scale_005ebc40), 0);
+                        if (effect != 0) {
+                            effect->frame_40 = frame;
+                            effect->cycle_3c = shake_cycle;
+                            effect->subcycle_44 = subcycle - 1;
+                            (*monster)->AddShakeEffect004A8530(effect);
+                        }
+                    }
+                    else {
+                        srAssertFail(
+                            "FALSE", MONSTER_CPP, 0x636,
+                            FormatString(
+                                "Monster::ReadAllCycles: ERROR - Unknown command %s in %s",
+                                command, path));
+                    }
+                }
+            }
+        }
+        CloseVirtualFile(handle);
+    }
+
+    W8MonsterRep* representation = (*monster)->m_pRep;
+    delete[] representation->name_5c0;
+    representation->name_5c0 = 0;
+    if (monster_name != 0) {
+        representation->name_5c0 = new char[strlen(monster_name) + 1];
+        if (representation->name_5c0 != 0) {
+            strcpy(representation->name_5c0, monster_name);
+        }
+    }
+    if (scale_range_start != -1.0f && scale_range_end != -1.0f) {
+        representation->minimum_scale_5f4 = scale_range_start;
+        representation->maximum_scale_5f8 = scale_range_end;
+        scale_factor =
+            (scale_range_end - scale_range_start) *
+                ((float)Random(1000) * 0.001f) +
+            scale_range_start;
+    }
+    representation->scale_5f0 = scale_factor;
+    representation->value_5fc = death_scale;
+
+    if (walk_radius != 0.0f) {
+        walk_radius *= g_world_scale_005ebc40;
+        (*monster)->fields.movement_0c0.value_0b0 = walk_radius;
+    }
+    if (fight_radius != 0.0f) {
+        fight_radius *= g_world_scale_005ebc40;
+        (*monster)->fields.movement_0c0.alternate_radius_0b4 = fight_radius;
+    }
+    if (target_height != 0.0f) {
+        target_height *= g_world_scale_005ebc40;
+        if (target_height < 250.0f) target_height = 250.0f;
+        (*monster)->fields.movement_0c0.height_offset_0b8 = target_height;
+    }
+    if (camera_height != 0.0f) {
+        (*monster)->fields.movement_0c0.secondary_height_offset_0bc =
+            camera_height * g_world_scale_005ebc40;
+    }
+
+    if (random_idle_range == 0) {
+        idle_fps_start = -3.0f;
+        idle_fps_end = 3.0f;
+    }
+    if (representation->animations[1].GetCount() < 1) {
+        Function401920(reinterpret_cast<const char*>(String(
+            "Monster %s: Missing CYCLE %s sub %d",
+            representation->name_5c0, "IDLE", 0)));
+    }
+    W8AnimObj* idle = *representation->animations[1].GetAt(0);
+    if (idle != 0) {
+        representation->flag_600 = 1;
+        representation->value_604 = idle->playback_scale_08;
+        representation->value_608 = idle_fps_start;
+        representation->value_60c = idle_fps_end;
+    }
+    if (missile_start > 0) (*monster)->value_1f4 = missile_start;
+    if (spell_start > 0) (*monster)->value_1f8 = spell_start;
+    if (has_lod_range != 0) {
+        representation->lod_range_09c =
+            lod_range_start * g_world_scale_005ebc40;
+        representation->lod_range_0a0 =
+            lod_range_end * g_world_scale_005ebc40;
+    }
+    if (opacity >= 0.0f && opacity < 1.0f) {
+        (*monster)->scale_1cc = opacity;
+    }
+    if (glow > 0.0f) {
+        W8GrowableVector<stModelInstance005EC7D0*> instances;
+        (*monster)->CollectModelInstances004C6350(&instances);
+        for (int index = 0; index < instances.GetCount(); ++index) {
+            stModelInstance005EC7D0* instance = *instances.GetAt(index);
+            instance->flag_1a1 = 1;
+            instance->value_1a8 = glow;
+        }
+    }
+
+    (*monster)->value_21c = hover_range_start;
+    (*monster)->value_220 = hover_range_end;
+    (*monster)->value_224 = bob_range_start;
+    (*monster)->value_228 = bob_range_end;
+    if (shadow_width != 0.0f) {
+        if (shadow_width < 0.0f) {
+            shadow_width =
+                (*monster)->fields.movement_0c0.value_0b0 * 0.75f;
+        }
+        if (shadow_depth == 0.0f) shadow_depth = shadow_width;
+        (*monster)->CreateGroundShadow(
+            (int)(shadow_width * g_world_scale_005ebc40),
+            (int)(shadow_depth * g_world_scale_005ebc40));
+    }
+    representation->value_610 = left_handed;
+    representation->flag_601 =
+        (flies != 0 || swims != 0 || full_transition != 0) ? 1 : 0;
+
+    if (has_light != 0 && representation->monster_light_624 == 0) {
+        representation->monster_light_624 = new MonsterLight(
+            g_world->dynamic_scene,
+            light_pulsing,
+            (*monster)->fields.movement_0c0.value_0b0 * 0.1f,
+            &light_first,
+            &light_second);
+        representation->monster_light_624->m_vertical_offset_228 =
+            (*monster)->fields.movement_0c0.height_offset_0b8;
+    }
+
+    representation->selection.monster.current_subcycle = 0;
+    (*monster)->SetCycle(1);
+    (*monster)->SetSubCycle(0);
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    (*monster)->GetAnimationBounds(&minimum, &maximum);
+    Function452F10(*monster, &minimum, &maximum);
+    if (movement_rate < 2.0f) movement_rate = 2.0f;
+    (*monster)->SetValue120(movement_rate);
+    Function453C90(*monster, rotation_rate * (float)g_monster_vertical_cycle_angle_005ec318);
+
+    int navigation_mode = 1;
+    if (flies != 0) navigation_mode = 2;
+    else if (swims != 0) navigation_mode = 3;
+    else if (quadruped != 0) navigation_mode = 5;
+    else if (crawls != 0) navigation_mode = 6;
+    (*monster)->SetNavigationMode(navigation_mode);
+    if (spice_monster != 0) {
+        (*monster)->flags_330.copied_flag_02 = 1;
+        (*monster)->fields.owned_object_0a0 = 0;
+        (*monster)->fields.movement_0c0.pitch_enabled_074 = 0;
+    }
+
+    (*monster)->RandomizeAppearanceAndMotion004C1D20();
+    RegisterGrCycle(monster_name, *monster);
+    Function439CA0();
+    ReleaseReadMeshScratch004881D0();
+    return success;
+}
 
 /* Select one of the four directional states without immediately repeating the
    caller's current state. Random values four and five fold back to zero in the

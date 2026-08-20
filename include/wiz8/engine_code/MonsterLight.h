@@ -25,7 +25,7 @@ public:
     virtual ~MonsterLight() override;                 /* 0x0049E0D0 */
     virtual srClass* clone() override;                 /* 0x0049DC40 */
 
-private:
+public:
     float m_vertical_offset_228;                      /* 0x228 */
     srVector3T<float> m_color_first_22c;              /* 0x22c */
     srVector3T<float> m_color_second_238;             /* 0x238 */
