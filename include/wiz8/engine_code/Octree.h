@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/BitArray.h"
+#include "wiz8/engine_code/stHeap.hpp"
 
 class GDProp;
 class stModelInstance005EC7D0;
@@ -127,9 +128,9 @@ struct W8PathSearchNode {
     unsigned short path_height_08;
     unsigned short parent_node_0a;
     float base_score_0c;
-    unsigned char positional_10[4];
+    float path_cost_10;
     float distance_14;
-    unsigned char positional_18[4];
+    float clearance_18;
     float score_1c;
     srVector3T<float> position_20;
 };
@@ -137,17 +138,14 @@ struct W8PathSearchNode {
 struct W8PathHeapEntry {
     unsigned int node_00;
     unsigned int priority_04;
+
+    bool operator<=(const W8PathHeapEntry& other) const
+    {
+        return priority_04 <= other.priority_04;
+    }
 };
 
-struct W8PathHeap {
-    W8PathHeapEntry* entries_00;
-    unsigned int external_storage_04;
-    unsigned int capacity_08;
-    unsigned int size_0c;
-
-    void Insert004675B0(const W8PathHeapEntry* entry);
-    void SiftUp00467990(unsigned int index);
-};
+typedef stHeap<W8PathHeapEntry> W8PathHeap;
 
 struct W8PathHeapHandle {
     W8PathHeap* heap_00;
@@ -201,6 +199,16 @@ public:
         const float* radius,
         const srVector3T<float>* position);
     unsigned short AllocateSearchNode00465A00();
+    unsigned char CanReachSearchNode00465AF0(
+        const srVector3T<float>* position,
+        unsigned short target_node,
+        float clearance);
+    void AdjustFinalPathEndpoint00465D70(
+        W8NavigatorMovementState* movement,
+        float radius,
+        float separation);
+    int ProcessSearchNodeProps004663D0(
+        unsigned int node_index, unsigned char first_only);
     unsigned int CollectPathProbes004656A0(
         W8NavigatorMovementState* movement, float radius);
     unsigned short PlanMovement00463460(
@@ -371,7 +379,8 @@ public:
     srVector3T<float> probe_position_07c; /* 0x7c */
     unsigned int probe_limit_088;        /* 0x88 */
     unsigned char flag_08c;              /* 0x8c */
-    unsigned char m_positional_08d[7];
+    unsigned char m_positional_08d[3];
+    unsigned int planner_location_090;
     unsigned int path_candidate_count_094;
     int* path_candidates_098;
     unsigned char flag_09c;              /* 0x9c */

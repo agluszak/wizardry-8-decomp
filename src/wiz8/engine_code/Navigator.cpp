@@ -2,6 +2,7 @@
 #include "wiz8/float_constants.h"
 
 #include "surrender/srNode.h"
+#include "surrender/srHeap.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/PathAI.h"
@@ -100,6 +101,33 @@ void W8NavigatorAttachment::RecordPosition(
     position_40 = *position;
 }
 
+/* Grow the attachment's parallel route-position and per-position value arrays
+   by ten slots. Both arrays retain every entry through the current index. */
+// FUNCTION: WIZ8 0x00456BD0
+void W8NavigatorAttachment::GrowPathStorage00456BD0()
+{
+    unsigned short new_capacity = capacity_0a + 10;
+    srVector3T<float>* new_positions = static_cast<srVector3T<float>*>(
+        srHeap.allocate(new_capacity * sizeof(srVector3T<float>)));
+    unsigned int index;
+
+    for (index = 0; index <= path_position_index_08; ++index) {
+        new_positions[index] = position_4c[index];
+    }
+    srHeap.free(position_4c);
+    position_4c = new_positions;
+
+    unsigned short* new_values = static_cast<unsigned short*>(
+        malloc(new_capacity * sizeof(unsigned short)));
+    memset(new_values, 0, new_capacity * sizeof(unsigned short));
+    for (index = 0; index <= path_position_index_08; ++index) {
+        new_values[index] = path_values_50[index];
+    }
+    free(path_values_50);
+    path_values_50 = new_values;
+    capacity_0a = new_capacity;
+}
+
 // FUNCTION: WIZ8 0x00451ec0
 W8Navigator::W8Navigator()
 {
@@ -178,22 +206,16 @@ void NavigatorDefaultCallback00451EA0(W8Navigator* navigator)
 // FUNCTION: WIZ8 0x00456210
 W8NavigatorAttachment::W8NavigatorAttachment()
 {
-    unsigned int* record;
-
     flags_00 = 0;
-    value_08 = 0;
+    path_position_index_08 = 0;
     value_04 = 0;
     value_0c = 0;
     capacity_0a = 10;
     position_4c = static_cast<srVector3T<float>*>(
         srHeap.allocate(10 * sizeof(srVector3T<float>)));
-    record = static_cast<unsigned int*>(malloc(5 * sizeof(unsigned int)));
-    allocation_50 = record;
-    record[0] = 0;
-    record[1] = 0;
-    record[2] = 0;
-    record[3] = 0;
-    record[4] = 0;
+    path_values_50 = static_cast<unsigned short*>(
+        malloc(capacity_0a * sizeof(unsigned short)));
+    memset(path_values_50, 0, capacity_0a * sizeof(unsigned short));
     value_058 = 0;
     separation_54 = 0.0f;
     position_10.x = 0.0f;
@@ -332,10 +354,10 @@ W8NavigatorMovementState::~W8NavigatorMovementState()
             attachment->position_4c = 0;
             srHeap.free(position);
         }
-        if (attachment->allocation_50 != 0) {
-            void* allocation = attachment->allocation_50;
+        if (attachment->path_values_50 != 0) {
+            void* allocation = attachment->path_values_50;
 
-            attachment->allocation_50 = 0;
+            attachment->path_values_50 = 0;
             free(allocation);
         }
         ::operator delete(attachment);
@@ -1000,7 +1022,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
 
     if (fields.movement_0c0.attachment_0ac != 0 &&
         fields.movement_0c0.attachment_0ac->value_04 >=
-            fields.movement_0c0.attachment_0ac->value_08 &&
+            fields.movement_0c0.attachment_0ac->path_position_index_08 &&
         (fields.movement_0c0.attachment_0ac->flags_00 & 0x80000) == 0 &&
         PathAIIsComplete004A9EF0(fields.path_ai_068) != 0) {
         fields.radius_084 = fields.movement_0c0.alternate_radius_0b4;

@@ -14,7 +14,7 @@ struct W8NavigatorAttachment {
     unsigned int flags_00;
     unsigned short value_04;
     unsigned short unknown_06;
-    unsigned short value_08;
+    unsigned short path_position_index_08;
     /* 0x00456210 sets this to ten and allocates position_4c as ten
        srVector3T<float>, so it is that array's capacity. */
     unsigned short capacity_0a;
@@ -28,7 +28,7 @@ struct W8NavigatorAttachment {
     srVector3T<float>* position_4c;
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
-    void* allocation_50;
+    unsigned short* path_values_50;
     float separation_54;
     unsigned int value_058;
     unsigned char unknown_05c[4];
@@ -36,6 +36,7 @@ struct W8NavigatorAttachment {
     W8NavigatorAttachment();             /* 0x00456210 */
 
     void RecordPosition(const srVector3T<float>* position);
+    void GrowPathStorage00456BD0();
     void InitializeSegment004563E0(
         const srVector3T<float>* source,
         const srVector3T<float>* destination);

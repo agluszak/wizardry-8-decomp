@@ -74,8 +74,35 @@ extern void SortPathCandidates004677A0(
 extern unsigned char g_flag_006081e4;
 extern unsigned int g_path_visualization_cell_00659c6c;
 extern float g_path_search_visualization_limit_005ec380;
+extern float g_path_endpoint_scale_005ec1a4;
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
+
+/* The path-search heap specialization is emitted after OctPath.cpp's ordinary
+   bodies. The generic definitions live once in stHeap.hpp. */
+// TEMPLATE: WIZ8 0x004675B0
+// stHeap<W8PathHeapEntry>::Insert004675B0
+
+// TEMPLATE: WIZ8 0x00467910
+// stHeap<W8PathHeapEntry>::SiftDown00467910
+
+// TEMPLATE: WIZ8 0x00467990
+// stHeap<W8PathHeapEntry>::SiftUp00467990
+
+/* Advance the search queue and mark the node that was just expanded. The
+   generic heap delete is visible here as the assertion and sift-down sequence
+   in the retail body; an empty queue publishes node zero. */
+// FUNCTION: WIZ8 0x004577F0
+void W8PathHeapHandle::DeleteRoot004577F0(W8PathSearchNode* node)
+{
+    if (heap_00->size_0c == 0) {
+        root_node_04 = 0;
+    }
+    else {
+        root_node_04 = heap_00->Delete().node_00;
+    }
+    node->flags_00 |= 4;
+}
 
 /* Write the path hash serialization and its five conditional tables. Counts
    smaller than the two sentinel entries are normalized to an empty set before
@@ -725,9 +752,9 @@ unsigned char W8PathingService::HandlePathEdgeTransition00460350(
     unsigned int flags = 0;
     unsigned short destination;
 
-    if (cursor < attachment->value_08) {
+    if (cursor < attachment->path_position_index_08) {
         unsigned short* pairs =
-            static_cast<unsigned short*>(attachment->allocation_50);
+            attachment->path_values_50;
         unsigned short source = pairs[cursor];
         destination = pairs[cursor + 1];
         unsigned short edge_index = m_pSurfaces_048[source].first_edge_24;
@@ -850,7 +877,7 @@ unsigned char W8PathingService::AdvanceAttachmentWaypoint00462DE0(
     attachment->unknown_06 = cursor;
     ++attachment->unknown_06;
 
-    if (attachment->unknown_06 < attachment->value_08) {
+    if (attachment->unknown_06 < attachment->path_position_index_08) {
         srVector3T<float> destination =
             attachment->position_4c[attachment->unknown_06];
         if (TestWaypointSpan0045A1B0(source, &destination, 0, 0) != 0) {
@@ -919,6 +946,172 @@ unsigned short W8PathingService::AllocateSearchNode00465A00()
     }
     m_owned_0c8 = new_nodes;
     return (unsigned short)node_index;
+}
+
+/* Walk grid-sized steps from a position toward a search node. Every crossed
+   cell must resolve through the visited-node index to a live, unblocked node
+   whose recorded clearance exceeds the caller's limit. */
+// FUNCTION: WIZ8 0x00465AF0
+unsigned char W8PathingService::CanReachSearchNode00465AF0(
+    const srVector3T<float>* position,
+    unsigned short target_node,
+    float clearance)
+{
+    W8PathSearchNode* target = &m_owned_0c8[target_node];
+    float delta_x = target->position_20.x - position->x;
+    float delta_z = target->position_20.z - position->z;
+    float scale;
+    if ((float)fabs(delta_x) > (float)fabs(delta_z)) {
+        scale = (float)fabs(grid_scale_01c / delta_x);
+    }
+    else {
+        scale = (float)fabs(grid_scale_01c / delta_z);
+    }
+
+    srVector3T<float> probe = *position;
+    float step_x = delta_x * scale;
+    float step_z = delta_z * scale;
+    W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
+    unsigned char blocked = 0;
+
+    while (1) {
+        int cell_x = (int)((probe.x - level_bounds[0]) / grid_scale_01c);
+        int cell_z = (int)((probe.z - level_bounds[2]) / grid_scale_01c);
+        unsigned int key = cell_z * 0x10000 + cell_x;
+        unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+        int slot = static_cast<int*>(visited->bucket_heads)[
+            hash & (visited->bucket_count - 1)];
+        unsigned int node_index = 0;
+        W8OctreeEntry* entries =
+            static_cast<W8OctreeEntry*>(visited->entries);
+        while (slot != -1) {
+            if (entries[slot].key == key) {
+                node_index = (unsigned int)entries[slot].value;
+                break;
+            }
+            slot = entries[slot].next_index;
+        }
+
+        if ((unsigned short)node_index == target_node || blocked != 0) {
+            return blocked == 0;
+        }
+        if ((unsigned short)node_index == 0 ||
+            (m_owned_0c8[node_index & 0xffff].flags_00 & 0x100) != 0 ||
+            m_owned_0c8[node_index & 0xffff].clearance_18 <= clearance) {
+            blocked = 1;
+        }
+        else {
+            probe.x += step_x;
+            probe.z += step_z;
+        }
+    }
+}
+
+/* Pull the last planned point onto the requested contact shell when it only
+   overshoots that shell by less than half a path cell. The adjusted point is
+   also made the attachment's current point and republished to the octree. */
+// FUNCTION: WIZ8 0x00465D70
+void W8PathingService::AdjustFinalPathEndpoint00465D70(
+    W8NavigatorMovementState* movement,
+    float radius,
+    float separation)
+{
+    int target_location = movement->value_010;
+    if (target_location < 0 || flag_09c != 0) {
+        return;
+    }
+
+    float target_radius;
+    srVector3T<float> target_position;
+    if (target_location <= 0) {
+        target_radius = g_startup_world_659c0c->
+            fields.movement_0c0.alternate_radius_0b4;
+        target_position = g_startup_world_659c0c->GetPosition();
+    }
+    else {
+        unsigned int monster_index = MonsterGetIndexByLocationID(
+            0x27b0, OCTPATH_CPP, target_location, 1);
+        W8MonsterInfo* info =
+            MonsterGetScriptPartByLocationIndex(monster_index);
+        if (info != 0 && info->monster != 0) {
+            target_radius = info->monster->
+                fields.movement_0c0.alternate_radius_0b4;
+            target_position = info->monster->GetPosition();
+        }
+    }
+
+    W8NavigatorAttachment* attachment = movement->attachment_0ac;
+    srVector3T<float>* endpoint =
+        &attachment->position_4c[attachment->path_position_index_08];
+    srVector3T<float> direction;
+    direction.x = endpoint->x - target_position.x;
+    direction.y = endpoint->y - target_position.y;
+    direction.z = endpoint->z - target_position.z;
+    float length_squared =
+        direction.x * direction.x +
+        direction.y * direction.y +
+        direction.z * direction.z;
+    float excess =
+        (float)sqrt(length_squared) - (target_radius + radius);
+    if (separation < excess &&
+        excess - separation < grid_scale_01c * g_float_005ebc7c) {
+        if ((double)length_squared != g_zero_005ebb40) {
+            float scale =
+                (target_radius + radius + separation) *
+                g_path_endpoint_scale_005ec1a4 /
+                (float)sqrt(length_squared);
+            direction.x *= scale;
+            direction.y *= scale;
+            direction.z *= scale;
+        }
+
+        srVector3T<float> adjusted;
+        adjusted.x = target_position.x + direction.x;
+        adjusted.y = target_position.y + direction.y;
+        adjusted.z = target_position.z + direction.z;
+        *endpoint = adjusted;
+        attachment->position_1c = *endpoint;
+
+        if ((attachment->flags_00 & 0x08000000) == 0) {
+            attachment->flags_00 |= 0x02000000;
+            attachment->position_40 = adjusted;
+            g_octree_6598a4->QueueOctreeKind130042E810(
+                movement->location_id_004, &adjusted);
+        }
+    }
+}
+
+/* Notify every collidable prop overlapping the search cell. The planner's
+   single-result form stops after the first notification and returns that
+   prop's collection index; the ordinary form visits the complete query. */
+// FUNCTION: WIZ8 0x004663D0
+int W8PathingService::ProcessSearchNodeProps004663D0(
+    unsigned int node_index, unsigned char first_only)
+{
+    W8PathSearchNode* node = &m_owned_0c8[node_index & 0xffff];
+    float half_cell = grid_scale_01c * g_float_005ebc7c;
+
+    srVector3T<float> lower;
+    lower.x = node->position_20.x - half_cell;
+    lower.y = node->position_20.y;
+    lower.z = node->position_20.z - half_cell;
+
+    srVector3T<float> upper;
+    upper.x = node->position_20.x + half_cell;
+    upper.y = node->position_20.y + grid_scale_01c + grid_scale_01c;
+    upper.z = node->position_20.z + half_cell;
+
+    int* candidates = 0;
+    unsigned int count = g_octree_6598a4->QueryObjects0042F280(
+        &candidates, &lower, &upper, 8, -1);
+    for (unsigned int index = 0; index < count; ++index) {
+        W8Prop* prop = *g_world->collidable_props->GetAt(candidates[index]);
+        prop->CanBeUsedFrom(node->cell_x_04, node->cell_z_06, 1);
+        if (first_only != 0) {
+            return candidates[index];
+        }
+    }
+    return 0;
 }
 
 /* Collect the player and nearby active monsters whose collision volumes can
@@ -1011,6 +1204,584 @@ unsigned int W8PathingService::CollectPathProbes004656A0(
         }
     }
     return path_probe_count_0d4;
+}
+
+/* Build a bounded grid route from the navigator's current position to its
+   active attachment target. The open-chain index owns one search node per
+   cell, the fixed-capacity minimum heap chooses the next node to expand, and
+   the selected parent chain is collapsed into the attachment's route array. */
+// FUNCTION: WIZ8 0x00463460
+unsigned short W8PathingService::PlanMovement00463460(
+    W8NavigatorMovementState* movement,
+    float radius,
+    float separation)
+{
+    float diagonal_step = grid_scale_01c * g_path_cardinal_scale_005ec358;
+    unsigned short result = 0;
+    unsigned char stop_search = 0;
+
+    if (flag_0a4 == 0) {
+        trace_offset_0ac.x = 0.0f;
+        trace_offset_0ac.y = 500.0f;
+        trace_offset_0ac.z = 0.0f;
+        trace_mode_0b8 = 0;
+        trace_height_offset_0bc = 500.0f;
+    }
+
+    search_node_count_0cc = 0;
+    planner_location_090 = movement->location_id_004;
+    memset(
+        m_owned_0c8, 0,
+        search_node_capacity_0d0 * sizeof(W8PathSearchNode));
+    probe_cell_key_078 = 0;
+    probe_limit_088 = (unsigned int)-1;
+    path_heap_06c->heap_00->size_0c = 0;
+
+    W8NavigatorAttachment* attachment = movement->attachment_0ac;
+    attachment->flags_00 &= 0xfffffff0;
+    W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
+    if (visited->bucket_count != 0) {
+        ::operator delete(visited->bucket_heads);
+        ::operator delete(visited->entries);
+    }
+    visited->bucket_count = 0;
+    visited->bucket_heads = 0;
+    visited->entries = 0;
+    visited->free_head = -1;
+    GrowIndex00439290(visited);
+    attachment->flags_00 &= 0xfdffffff;
+
+    unsigned char allow_dynamic =
+        (unsigned char)(movement->unknown_000 >> 28 & 1);
+    srVector3T<float> start = movement->position_040;
+    srVector3T<float> target;
+    if (flag_09c != 0) {
+        target = movement->target_position_04c;
+    }
+    else if ((attachment->flags_00 & 0x00080000) != 0) {
+        target = attachment->position_28;
+    }
+    else if (attachment->value_04 < attachment->path_position_index_08) {
+        target = attachment->position_4c[attachment->value_04];
+    }
+    else {
+        target = attachment->position_1c;
+    }
+
+    float target_dx = target.x - start.x;
+    float target_dy = target.y - start.y;
+    float target_dz = target.z - start.z;
+    float target_distance = (float)sqrt(
+        target_dx * target_dx + target_dy * target_dy +
+        target_dz * target_dz);
+    float remaining_callback =
+        movement->callback_threshold_058 - movement->callback_progress_05c;
+
+    if ((attachment->flags_00 & 0x04000000) == 0) {
+        float search_extent = target_distance;
+        if (search_extent < remaining_callback) {
+            search_extent = remaining_callback;
+        }
+        search_extent += g_path_limit_006081e8 + radius;
+        srVector3T<float> lower;
+        srVector3T<float> upper;
+        lower.x = start.x - search_extent;
+        lower.y = start.y - search_extent;
+        lower.z = start.z - search_extent;
+        upper.x = start.x + search_extent;
+        upper.y = start.y + search_extent;
+        upper.z = start.z + search_extent;
+        CollectPathProbes004656A0(movement, radius);
+        path_candidates_098 = 0;
+        path_candidate_count_094 = OctreeTraverseKind12(
+            &path_candidates_098, &lower, &upper,
+            movement->location_id_004);
+    }
+    else {
+        path_probe_count_0d4 = 0;
+        if (movement->value_010 < 1) {
+            path_candidate_count_094 = 0;
+        }
+        else {
+            path_candidate_count_094 = 1;
+            path_candidates_098 = &movement->value_010;
+        }
+    }
+
+    int root_x = (int)((start.x - level_bounds[0]) / grid_scale_01c);
+    int root_z = (int)((start.z - level_bounds[2]) / grid_scale_01c);
+    unsigned short root_index = AllocateSearchNode00465A00();
+    W8PathSearchNode* root = &m_owned_0c8[root_index];
+    root->flags_00 = 0;
+    root->node_index_02 = root_index;
+    root->cell_x_04 = (unsigned short)root_x;
+    root->cell_z_06 = (unsigned short)root_z;
+    root->path_height_08 = (unsigned short)(
+        (int)((start.y - level_bounds[1]) / span_020) + 1);
+    root->parent_node_0a = 0;
+    root->base_score_0c = 0.0f;
+    root->path_cost_10 = 0.0f;
+    root->distance_14 = target_distance;
+    root->position_20 = start;
+
+    unsigned int root_key = root_z * 0x10000 + root_x;
+    if (visited->free_head == -1) {
+        GrowIndex00439290(visited);
+    }
+    int root_slot = visited->free_head;
+    W8OctreeEntry* visited_entries =
+        static_cast<W8OctreeEntry*>(visited->entries);
+    visited->free_head = visited_entries[root_slot].next_index;
+    unsigned int root_hash =
+        (root_key >> 10 ^ root_key) >> 10 ^ root_key;
+    int* visited_buckets = static_cast<int*>(visited->bucket_heads);
+    visited_entries[root_slot].key = root_key;
+    visited_entries[root_slot].value = root_index;
+    visited_entries[root_slot].next_index =
+        visited_buckets[root_hash & (visited->bucket_count - 1)];
+    visited_buckets[root_hash & (visited->bucket_count - 1)] = root_slot;
+
+    unsigned int root_height = root->path_height_08;
+    float root_clearance = radius;
+    float root_vertical = 0.0f;
+    unsigned char root_dynamic = 0;
+    ResolvePathCell004648D0(
+        root_key, 1, &root_height, &root_clearance,
+        &root_vertical, &root_dynamic);
+    UpdateSearchNodeScore00464FF0(
+        root_index, &target, root_clearance, radius);
+    unsigned int root_score = (unsigned int)root->score_1c;
+    if (root_score < probe_limit_088) {
+        probe_limit_088 = root_score;
+        probe_cell_key_078 = root_index;
+    }
+    probe_cell_key_078 = 0;
+
+    W8PathHeap* heap = path_heap_06c->heap_00;
+    W8PathHeapEntry entry;
+    entry.node_00 = root_index;
+    entry.priority_04 = (unsigned int)root->score_1c;
+    heap->Insert004675B0(&entry);
+    path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
+
+    unsigned int best_node = path_heap_06c->root_node_04;
+    while (best_node != 0 && stop_search == 0 &&
+           search_node_count_0cc < g_path_reserve_0060827a) {
+        W8PathSearchNode* current = &m_owned_0c8[best_node];
+        unsigned short current_x = current->cell_x_04;
+        unsigned short current_z = current->cell_z_06;
+        unsigned int current_height = current->path_height_08;
+
+        for (int direction = 0; direction < 8; ++direction) {
+            unsigned int neighbor_x = current_x;
+            unsigned int neighbor_z = current_z;
+            if (direction >= 1 && direction <= 3) {
+                ++neighbor_x;
+            }
+            else if (direction > 4) {
+                --neighbor_x;
+            }
+            if (direction < 2 || direction > 6) {
+                ++neighbor_z;
+            }
+            else if (direction > 2 && direction < 6) {
+                --neighbor_z;
+            }
+
+            unsigned int key = neighbor_z * 0x10000 + neighbor_x;
+            float step = (direction & 1) == 0
+                ? grid_scale_01c : diagonal_step;
+            float path_cost = current->path_cost_10 + step;
+            float base_score = current->base_score_0c + step;
+
+            visited_entries =
+                static_cast<W8OctreeEntry*>(visited->entries);
+            visited_buckets = static_cast<int*>(visited->bucket_heads);
+            unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+            int slot = visited_buckets[hash & (visited->bucket_count - 1)];
+            unsigned int existing_index = 0;
+            while (slot != -1) {
+                if (visited_entries[slot].key == key) {
+                    existing_index =
+                        (unsigned int)visited_entries[slot].value;
+                    break;
+                }
+                slot = visited_entries[slot].next_index;
+            }
+
+            if (existing_index != 0) {
+                W8PathSearchNode* existing =
+                    &m_owned_0c8[existing_index & 0xffff];
+                if ((existing->flags_00 & 0x0100) != 0) {
+                    continue;
+                }
+                int height_delta =
+                    (int)current->path_height_08 -
+                    (int)existing->path_height_08;
+                if (height_delta < 0) {
+                    height_delta = -height_delta;
+                }
+                base_score +=
+                    (float)height_delta * span_020 * g_float_005ec3b8;
+                if (existing->base_score_0c <= base_score) {
+                    continue;
+                }
+                existing->base_score_0c = base_score;
+                existing->path_cost_10 = path_cost;
+                existing->parent_node_0a = (unsigned short)best_node;
+                UpdateSearchNodeScore00464FF0(
+                    existing_index, &target,
+                    existing->clearance_18, radius);
+                if ((existing->flags_00 & 0x0400) != 0) {
+                    existing->flags_00 &= 0xfbff;
+                    entry.node_00 = existing->node_index_02;
+                    entry.priority_04 = (unsigned int)existing->score_1c;
+                    heap->Insert004675B0(&entry);
+                    path_heap_06c->root_node_04 =
+                        heap->entries_00[0].node_00;
+                }
+                continue;
+            }
+
+            unsigned int height = current_height;
+            float clearance = radius;
+            float vertical = base_score;
+            unsigned char dynamic = 0;
+            if (ResolvePathCell004648D0(
+                    key, allow_dynamic, &height, &clearance,
+                    &vertical, &dynamic) == 0) {
+                continue;
+            }
+
+            unsigned short node_index = AllocateSearchNode00465A00();
+            if (visited->free_head == -1) {
+                GrowIndex00439290(visited);
+            }
+            visited_entries =
+                static_cast<W8OctreeEntry*>(visited->entries);
+            visited_buckets = static_cast<int*>(visited->bucket_heads);
+            int new_slot = visited->free_head;
+            visited->free_head = visited_entries[new_slot].next_index;
+            visited_entries[new_slot].key = key;
+            visited_entries[new_slot].value = node_index;
+            visited_entries[new_slot].next_index =
+                visited_buckets[hash & (visited->bucket_count - 1)];
+            visited_buckets[hash & (visited->bucket_count - 1)] = new_slot;
+
+            W8PathSearchNode* node = &m_owned_0c8[node_index];
+            node->flags_00 = dynamic != 0 ? 0x0800 : 0;
+            node->node_index_02 = node_index;
+            node->cell_x_04 = (unsigned short)neighbor_x;
+            node->cell_z_06 = (unsigned short)neighbor_z;
+            node->path_height_08 = (unsigned short)height;
+            node->parent_node_0a = (unsigned short)best_node;
+            node->base_score_0c = vertical;
+            node->path_cost_10 = path_cost;
+            node->clearance_18 = clearance;
+            node->position_20.x =
+                ((float)node->cell_x_04 + g_float_005ebc7c) *
+                    grid_scale_01c + level_bounds[0];
+            node->position_20.y =
+                (float)(node->path_height_08 - 1) * span_020 +
+                level_bounds[1];
+            node->position_20.z =
+                ((float)node->cell_z_06 + g_float_005ebc7c) *
+                    grid_scale_01c + level_bounds[2];
+
+            unsigned short collision = ResolveSearchNodeCollisions00465130(
+                movement, node_index, radius, separation);
+            UpdateSearchNodeScore00464FF0(
+                node_index, &target, clearance, radius);
+            if (collision == 1) {
+                node->flags_00 |= 0x0100;
+                continue;
+            }
+            if (collision == 3 &&
+                (current->flags_00 & 0x0100) == 0) {
+                stop_search = 1;
+                result = 1;
+                probe_cell_key_078 = node_index;
+                continue;
+            }
+            if (collision == 2) {
+                node->flags_00 |= 0x0100;
+            }
+
+            float node_dx = target.x - node->position_20.x;
+            float node_dy = target.y - node->position_20.y;
+            float node_dz = target.z - node->position_20.z;
+            float distance = (float)sqrt(
+                node_dx * node_dx + node_dy * node_dy +
+                node_dz * node_dz);
+            if (flag_09c == 0) {
+                if (distance < diagonal_step || distance < separation) {
+                    stop_search = 1;
+                    result = 1;
+                }
+            }
+            else if (separation < distance) {
+                stop_search = 1;
+                result = 1;
+            }
+
+            if (collision == 0) {
+                unsigned int score = (unsigned int)node->score_1c;
+                if (score < probe_limit_088) {
+                    probe_limit_088 = score;
+                    probe_cell_key_078 = node_index;
+                }
+            }
+            entry.node_00 = node->node_index_02;
+            entry.priority_04 = (unsigned int)node->score_1c;
+            heap->Insert004675B0(&entry);
+            path_heap_06c->root_node_04 = heap->entries_00[0].node_00;
+        }
+
+        if (heap->size_0c == 0) {
+            path_heap_06c->root_node_04 = 0;
+        }
+        else {
+            path_heap_06c->root_node_04 = heap->Delete().node_00;
+        }
+        current->flags_00 |= 4;
+        best_node = path_heap_06c->root_node_04;
+        if (best_node > search_node_count_0cc) {
+            char message[80];
+            sprintf(
+                message, "A:  Invalid node index %d from Queue.",
+                best_node);
+            srAssertFail(
+                "(ulBestNode <= m_ulSearchNodesUsed)",
+                OCTPATH_CPP, 0x22ad, message);
+        }
+    }
+
+    if ((attachment->flags_00 & 0x00001000) != 0) {
+        if (stop_search == 0) {
+            result = 3;
+        }
+        attachment->flags_00 &= 0xfffffff0;
+        attachment->flags_00 |= result;
+        return result;
+    }
+
+    unsigned char direct_path = 0;
+    unsigned short direct_visibility_node = 0;
+    if (probe_cell_key_078 != 0) {
+        unsigned short walk = (unsigned short)probe_cell_key_078;
+        unsigned short walk_parent = m_owned_0c8[walk].parent_node_0a;
+        while (walk_parent != 0) {
+            if (flag_09c == 0 && direct_visibility_node == 0) {
+                srVector3T<float> trace_target = movement->target_position_04c;
+                trace_target.y += trace_height_offset_0bc;
+                float bearing = NormalizeAngle(Function4BE420(
+                    &m_owned_0c8[walk].position_20, &trace_target));
+                float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
+                srMatrix3T<float> rotation;
+                rotation.SetIdentity00467310();
+                float angle = bearing - target_yaw;
+                if ((double)angle != g_zero_005ebb40) {
+                    rotation.method_00438F90(sin(angle), cos(angle));
+                }
+                srVector3T<float> transformed;
+                transformed.x = Function4218E0(
+                    rotation.vectors[0], trace_offset_0ac);
+                transformed.y = Function4218E0(
+                    rotation.vectors[1], trace_offset_0ac);
+                transformed.z = Function4218E0(
+                    rotation.vectors[2], trace_offset_0ac);
+                srVector3T<float> trace_source;
+                trace_source.x = m_owned_0c8[walk].position_20.x + transformed.x;
+                trace_source.y = m_owned_0c8[walk].position_20.y + transformed.y;
+                trace_source.z = m_owned_0c8[walk].position_20.z + transformed.z;
+                short trace = g_octree_6598a4->TraceLineOfSight(
+                    &trace_source, &trace_target, 1, -3, -3, 1, 0);
+                if (trace != 0) {
+                    m_owned_0c8[walk].flags_00 |= 4;
+                }
+                else {
+                    direct_visibility_node = walk;
+                }
+            }
+            walk = walk_parent;
+            walk_parent = m_owned_0c8[walk].parent_node_0a;
+        }
+        if (flag_09c == 0 && direct_visibility_node == 0) {
+            srVector3T<float> trace_target = movement->target_position_04c;
+            trace_target.y += trace_height_offset_0bc;
+            float bearing = NormalizeAngle(Function4BE420(
+                &m_owned_0c8[walk].position_20, &trace_target));
+            float target_yaw = NormalizeAngle(trace_target_yaw_0c4);
+            srMatrix3T<float> rotation;
+            rotation.SetIdentity00467310();
+            float angle = bearing - target_yaw;
+            if ((double)angle != g_zero_005ebb40) {
+                rotation.method_00438F90(sin(angle), cos(angle));
+            }
+            srVector3T<float> transformed;
+            transformed.x = Function4218E0(
+                rotation.vectors[0], trace_offset_0ac);
+            transformed.y = Function4218E0(
+                rotation.vectors[1], trace_offset_0ac);
+            transformed.z = Function4218E0(
+                rotation.vectors[2], trace_offset_0ac);
+            srVector3T<float> trace_source;
+            trace_source.x = m_owned_0c8[walk].position_20.x + transformed.x;
+            trace_source.y = m_owned_0c8[walk].position_20.y + transformed.y;
+            trace_source.z = m_owned_0c8[walk].position_20.z + transformed.z;
+            short trace = g_octree_6598a4->TraceLineOfSight(
+                &trace_source, &trace_target, 1, -3, -3, 1, 0);
+            if (trace == 0) {
+                direct_path = 1;
+            }
+            else {
+                m_owned_0c8[walk].flags_00 |= 4;
+            }
+        }
+    }
+
+    if ((probe_cell_key_078 == 0 && result == 0) || direct_path != 0) {
+        attachment->flags_00 |= 0x02000000;
+        attachment->position_40 = movement->position_040;
+        attachment->position_4c[attachment->path_position_index_08] =
+            movement->position_040;
+        attachment->position_1c =
+            attachment->position_4c[attachment->path_position_index_08];
+        g_octree_6598a4->QueueOctreeKind130042E810(
+            movement->location_id_004, &movement->position_040);
+        g_startup_world_659c0c->fields.radius_084 =
+            g_startup_world_659c0c->
+                fields.movement_0c0.alternate_radius_0b4;
+        attachment->flags_00 &= 0xfffffff0;
+        if (flag_1cb != 0 && m_owned_054 != 0) {
+            BuildSearchVisualization0045CFD0();
+        }
+        return 0;
+    }
+
+    if (search_node_count_0cc >= g_path_reserve_0060827a ||
+        best_node == 0) {
+        result = 3;
+    }
+
+    unsigned short selected = (unsigned short)probe_cell_key_078;
+    m_owned_0c8[selected].flags_00 |= 2;
+    unsigned short previous = selected;
+    unsigned short parent = m_owned_0c8[selected].parent_node_0a;
+    while (parent != 0) {
+        W8PathSearchNode* parent_node = &m_owned_0c8[parent];
+        parent_node->flags_00 |= 2;
+        unsigned short next_parent = parent_node->parent_node_0a;
+        parent_node->parent_node_0a = previous;
+        previous = parent;
+        parent = next_parent;
+    }
+    m_owned_0c8[selected].parent_node_0a = 0;
+
+    if (flag_1cb != 0 && m_owned_054 != 0) {
+        BuildSearchVisualization0045CFD0();
+    }
+
+    unsigned short route_node = previous;
+    attachment->path_position_index_08 = 1;
+    unsigned int prop_count = 0;
+    unsigned short anchor_node = previous;
+    unsigned short route_parent = m_owned_0c8[route_node].parent_node_0a;
+    while (route_parent != 0) {
+        W8PathSearchNode* node = &m_owned_0c8[route_parent];
+        if ((node->flags_00 & 0x0800) != 0) {
+            if ((attachment->flags_00 & 0x08000000) == 0) {
+                int prop = ProcessSearchNodeProps004663D0(route_parent, 0);
+                if (prop != 0) {
+                    attachment->path_values_50[prop_count++] =
+                        (unsigned short)prop;
+                }
+            }
+            else {
+                ProcessSearchNodeProps004663D0(route_parent, 1);
+            }
+        }
+
+        if (CanReachSearchNode00465AF0(
+                &m_owned_0c8[anchor_node].position_20,
+                route_parent, radius) == 0) {
+            if ((unsigned int)attachment->path_position_index_08 + 1 >=
+                attachment->capacity_0a) {
+                attachment->GrowPathStorage00456BD0();
+            }
+            attachment->position_4c[
+                attachment->path_position_index_08] =
+                m_owned_0c8[route_node].position_20;
+            attachment->path_values_50[
+                attachment->path_position_index_08] = 0;
+            ++attachment->path_position_index_08;
+            attachment->flags_00 &= 0xffbfffff;
+            anchor_node = route_node;
+        }
+
+        unsigned short next = node->parent_node_0a;
+        if (flag_0a4 != 0) {
+            if ((node->flags_00 & 4) != 0) {
+                node->flags_00 |= 8;
+            }
+            else if (TestSearchPositionVisibility00464CC0(
+                         &node->position_20, movement) == 0) {
+                node->flags_00 |= 8;
+            }
+            else {
+                next = 0;
+                result = 1;
+                probe_cell_key_078 = route_parent;
+            }
+        }
+
+        route_node = route_parent;
+        route_parent = next;
+        if (direct_visibility_node != 0 &&
+            route_node == direct_visibility_node) {
+            probe_cell_key_078 = route_node;
+            break;
+        }
+        if (route_node == 0 ||
+            m_owned_0c8[route_node].path_cost_10 > remaining_callback) {
+            continue;
+        }
+        probe_cell_key_078 = route_node;
+        break;
+    }
+
+    if ((unsigned int)attachment->path_position_index_08 + 1 >=
+        attachment->capacity_0a) {
+        attachment->GrowPathStorage00456BD0();
+    }
+    attachment->position_4c[attachment->path_position_index_08] =
+        m_owned_0c8[anchor_node].position_20;
+    attachment->path_values_50[attachment->path_position_index_08] = 0;
+    ++attachment->path_position_index_08;
+    attachment->flags_00 &= 0xffbfffff;
+    attachment->path_values_50[prop_count] = 0;
+
+    if (attachment->path_position_index_08 > 1) {
+        --attachment->path_position_index_08;
+        attachment->position_1c =
+            attachment->position_4c[attachment->path_position_index_08];
+    }
+    if ((attachment->flags_00 & 0x08000000) == 0) {
+        attachment->flags_00 |= 0x02000000;
+        attachment->position_40 =
+            m_owned_0c8[probe_cell_key_078].position_20;
+        g_octree_6598a4->QueueOctreeKind130042E810(
+            movement->location_id_004,
+            &m_owned_0c8[probe_cell_key_078].position_20);
+    }
+    if (movement->value_010 >= 0 && flag_09c == 0) {
+        AdjustFinalPathEndpoint00465D70(movement, radius, separation);
+    }
+    attachment->flags_00 &= 0xfffffff0;
+    attachment->flags_00 |= result;
+    g_startup_world_659c0c->fields.radius_084 =
+        g_startup_world_659c0c->fields.movement_0c0.alternate_radius_0b4;
+    return result;
 }
 
 /* Plan with an explicit target position. The service flag suppresses the core
@@ -3105,9 +3876,9 @@ void W8PathingService::ActivateMovementTrigger0045B880(
         /* Retail reaches the shared query with the local bounds untouched
            when this cursor is exhausted. Keep that source-level fallthrough;
            callers normally enter edge mode only while a pair remains. */
-        if (attachment->value_04 < attachment->value_08) {
+        if (attachment->value_04 < attachment->path_position_index_08) {
             unsigned short* pairs =
-                static_cast<unsigned short*>(attachment->allocation_50);
+                attachment->path_values_50;
             unsigned short source = pairs[attachment->value_04];
             unsigned short destination = pairs[attachment->value_04 + 1];
             W8PathSurface* source_surface = &m_pSurfaces_048[source];
