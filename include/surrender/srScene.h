@@ -44,9 +44,22 @@ public:
     {
         return "srScene";
     }
-    void setAmbientLight(float red, float green, float blue);
+    /* The overlay builders expand these component stores at every call site.
+       They are the ordinary header-visible SurRender setters, not a Wizardry
+       aggregate helper around the scene object. */
+    inline void setAmbientLight(float red, float green, float blue)
+    {
+        ambient_light_174.x = red;
+        ambient_light_174.y = green;
+        ambient_light_174.z = blue;
+    }
     void setAmbientLight(const srVector3T<float>& color);
-    void setFogColor(float red, float green, float blue);
+    inline void setFogColor(float red, float green, float blue)
+    {
+        fog_color_180.x = red;
+        fog_color_180.y = green;
+        fog_color_180.z = blue;
+    }
     void setFogColor(const srVector3T<float>& color);
 
 protected:

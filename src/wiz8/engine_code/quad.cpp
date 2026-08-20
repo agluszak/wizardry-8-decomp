@@ -22,10 +22,10 @@ void DestroyWorldQuad004BE0A0(W8Quad* quad)
 
         if (cells != 0) {
             if (cells->polygon_indices != 0) {
-                IListDestroy(cells->polygon_indices);
+                ILDestroy(cells->polygon_indices);
             }
             if (cells->objects != 0) {
-                PListDestroy(cells->objects);
+                PLDestroy(cells->objects);
             }
             free(cells);
         }
@@ -43,7 +43,7 @@ static W8QuadCell* GetPolygonQuadCell004BE100(
     srMeshModel* model = static_cast<srMeshModel*>(instance->model());
     srVector3i* polygon_vertices = model->getPolyVertex();
     srVector3T<float>* vertices = model->getVertexLoc();
-    srVector3T<float> center = {0.0f, 0.0f, 0.0f};
+    srVector3T<float> center(0.0f, 0.0f, 0.0f);
     int vertex;
 
     for (vertex = 0; vertex < 3; ++vertex) {
@@ -120,7 +120,7 @@ W8Quad* BuildWorldQuad004BE200(
 
         cell->occupied = 1;
         if (cell->polygon_indices == 0) {
-            cell->polygon_indices = IListCreate();
+            cell->polygon_indices = ILCreate();
         }
         IListAdd(cell->polygon_indices, polygon);
     }

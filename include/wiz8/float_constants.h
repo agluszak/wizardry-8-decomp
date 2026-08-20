@@ -16,10 +16,21 @@
 
 extern "C" {
 extern float g_float_005ebb38;
+extern double g_double_005ebc30;
 extern float g_float_005ebc3c;
+extern float g_float_005ebc60;
+extern float g_float_005ebc7c;
 extern float g_float_005ec390;
+extern float g_float_005ec438;
 extern float g_float_005ec5c0;
 extern float g_float_005ec5c4;
+extern double g_double_005ec8d0;
+extern float g_float_005ecc38;
+extern float g_float_005ecc3c;
+extern float g_float_005ecc40;
 }
+
+extern const double g_zero_005ebb40;
+extern const float g_camera_angle_period_005ec014;
 
 #endif

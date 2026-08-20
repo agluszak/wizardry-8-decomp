@@ -24,13 +24,15 @@ UI/API for ordinary listing, symbol, type and xref work.
 
 Before inventing a class for a vtable, decide which of these it is.
 
-1. **A real class with its own storage.** It has fields past its base's extent. Declare it.
-2. **A real zero-storage subclass.** It adds no field and no override, but the retail image has a
-   distinct vtable for it and a constructor that installs it. These exist and are legitimate --
-   `W8Camera005EBE14` over `srCamera` is one. Declare it, but give it *only* what it really owns,
-   which is usually just a constructor.
-3. **Not a class.** The "methods" are emissions of a template its base instantiates. Declare
-   nothing; record `// TEMPLATE:` markers.
+1. **A real class with its own storage or independently evidenced behavior.** It has fields past
+   its base's extent, a non-template operation that requires the boundary, or an exact source or
+   exported symbol that names the class. Declare only what that evidence establishes.
+2. **A real zero-storage subclass proved independently of compiler emissions.** This is possible,
+   but a distinct vtable, final vptr write, deleting destructor, construction-phase table, registry
+   bundle, or constructor that only installs a table is not proof. Require a source/export name or
+   non-template behavior that cannot belong to the base/template instantiation before declaring it.
+3. **Not a class.** The apparent boundary and "methods" are emissions of a template the canonical
+   type instantiates. Declare nothing; record `// TEMPLATE:` markers.
 
 Case 3 is the one that has cost this repository the most rework, so check it first.
 
@@ -46,10 +48,10 @@ So when a candidate class appears to define the identity trio or `clone`:
 - Read the retail `getClassNode` body. If it is the generic shape -- look up `ClassID`, and on miss
   register `(Derived::sGetClassName(), Base::sGetClassNode(), ClassID, flag)` with the base chain
   inlined -- it is a template emission, whatever address-qualified name the candidate carries.
-- The decorated vtable base names prove the specialization outright. SR.DLL exports, for example,
+- The decorated vtable base names prove the instantiation outright. SR.DLL exports, for example,
   ``srLight::`vftable'{for_`srClassSupport<srIlluminator,srNode,0,4608>'}``. When a name like that
-  exists, the specialization is not a hypothesis.
-- Give the emissions `// TEMPLATE:` markers plus the specialization-symbol comment. Nothing needs to
+  exists, the instantiation is not a hypothesis.
+- Give the emissions `// TEMPLATE:` markers plus the instantiation-symbol comment. Nothing needs to
   follow them; the generic definition lives once in the header. A *body* under a `TEMPLATE` marker
   means an emission was mistaken for a hand-written method.
 
@@ -62,8 +64,9 @@ which is wrong for a class holding state its base's assignment cannot carry, and
 overrides it for real -- `stTextureAnim` assigns through `srTexture` and then copies each playback
 field, and is byte-exact that way. Decide clone per class from its retail body, not from the base.
 
-Do **not** conclude from this that every zero-storage wrapper is fake. The wrapper can be real and
-the methods still inherited; those are independent questions.
+Do **not** preserve a zero-storage wrapper on lifecycle or vtable evidence alone. The wrapper can
+be real only when evidence independent of those compiler effects establishes its authored
+boundary; inherited template emissions and a distinct final table do not do so.
 
 ### The registration flag
 
@@ -90,7 +93,7 @@ so srClass itself types the slot. Reconstructing the template's clone as `Base*`
 level return its own base type, every level below narrows, and VC6 rejects the chain with **C2555**.
 
 So treat a C2555 here as a defect in the reconstruction rather than proof the template is absent,
-and check the return types before concluding a level cannot be a specialization. Changing them is
+and check the return types before concluding a level cannot be an instantiation. Changing them is
 byte-neutral: a return type cannot change a pointer return in EAX. Change one layer at a time, read
 which declaration the compiler names, and record the negative result.
 
@@ -159,14 +162,17 @@ delete `Wiz8.exe` and `Wiz8.pdb` and rebuild if a number looks implausible. Chec
 
 - **VC6 emits a class's vtable and destructors only in units that construct it.** A destructor-only
   port compiles to nothing and its addresses go missing. Keep a constructing site in the same unit.
-- **An empty derived destructor over a correctly sized base** still emits the canonical vtable
-  restore and tail jump, so a body with no user code proves the vptr offset and base extent.
+- **An empty derived-destructor-shaped body over a correctly sized base** can prove the vptr offset
+  and base extent, but it does not by itself prove that the original source authored a derived
+  class; a template instantiation can emit the same lifecycle shape.
 - **Member initializers versus body assignments is visible in the output.** Same size and
   instruction count with one instruction misplaced usually means the vptr store landed in the wrong
   scheduling group; move field stores into the initializer list.
-- **A complete destructor that stores another class's vtable is an empty derived class**, not a
-  misattribution: the derived store is dead against the inlined base destructor and VC6 drops it.
-  Count a hierarchy from constructors.
+- **A destructor-side vtable store does not prove an authored derived class.** It establishes the
+  vptr offset and a lifecycle phase, but an ordinary template instantiation can emit the same
+  store and table. Count a hierarchy only from independently proved storage, behavior, or source
+  identity; constructors and destructors are compiler-emission evidence, not sufficient identity
+  evidence by themselves.
 - **No EH frame in the canonical is a hard constraint.** Under `/GX` VC6 adds an unwind frame the
   moment something that can throw runs while a subobject still needs destroying. If your port grows
   a frame the target lacks, you are modelling subobject destructors the original does not have.

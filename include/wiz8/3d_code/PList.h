@@ -13,32 +13,17 @@ typedef struct W8PList {
     int count;                            /* 0x08 */
 } W8PList;
 
-W8PList* PListCreate(void);
+W8PList* PLCreate(void);
 unsigned char PListInit(W8PList* ppl);
-unsigned char PListDestroy(W8PList* ppl);
+unsigned char PLDestroy(W8PList* ppl);
 unsigned char PListFreeData(W8PList* ppl);
-int PListAdd(W8PList* ppl, void* pEntry);
+int PLAdoptAppend(W8PList* ppl, void* pEntry);
 int PListInsert(W8PList* ppl, int position, void* pEntry);
 void PListClear(W8PList* ppl);
 void* PListRemove(W8PList* ppl, void* pEntry);
-void* PListRemoveAt(W8PList* ppl, int position);
-unsigned int PListGetCount(W8PList* ppl);
-void* PListGetAt(W8PList* ppl, int index);
+void* PLRemoveAt(W8PList* ppl, int position);
+unsigned int PLLength(W8PList* ppl);
+void* PLGet(W8PList* ppl, int index);
 int PListIndexOf(W8PList* ppl, void* pEntry);
-
-/* The general owning-list teardown: delete every typed element, release the
-   pointer array, then the list itself. The body lives here because two
-   translation units instantiate it - GameplayDatabase.cpp emits the stock-rule
-   specialization out of line at 0x0055ADA0, and the NPC item unit has the
-   W8NpcItemEntry instantiation inlined at 0x0055A5D0. */
-template <class T>
-void PListDestructor(W8PList* list)
-{
-    while (PListGetCount(list) != 0) {
-        delete static_cast<T*>(PListRemoveAt(list, 0));
-    }
-    PListFreeData(list);
-    PListDestroy(list);
-}
 
 #endif

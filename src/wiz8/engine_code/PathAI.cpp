@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/Emitter.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"
@@ -9,7 +10,8 @@
 
 #define PATH_AI_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\PathAI.CPP"
 
-extern "C" void NoOp(W8PathAI* path, W8PathRepresentation* representation);
+extern "C" void NoOp(
+    W8PathAI* path, W8AnimRepBase005EC1D8* representation);
 extern unsigned char Function4A4CF0(W8PathAI* path);
 extern void Function4A9FE0(W8PathAI* path, float value);
 extern float g_float_005ebb34;
@@ -37,21 +39,22 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
 }
 
 // FUNCTION: WIZ8 0x004a9720
-void PathAIResetRecord004A9720(W8PathRecord004A9750* record)
+void PathAIResetRecord004A9720(W8PathAI* path)
 {
-    if (record != 0 && record->flag_00 == 0) {
-        record->value_04 = 0;
+    if (path != 0 && path->kind_00 == 0) {
+        path->value_04 = 0;
     }
 }
 
 // FUNCTION: WIZ8 0x004a9740
-unsigned char PathAIRecordFlag004A9740(const W8PathRecord004A9750* record)
+unsigned char PathAIRecordFlag004A9740(const W8PathAI* path)
 {
-    return record->flag_00;
+    return path->kind_00;
 }
 
 // FUNCTION: WIZ8 0x004a91f0
-void PathAIApplyToRep004A91F0(W8PathAI* path, W8PathRepresentation* representation)
+void PathAIApplyToRep004A91F0(
+    W8PathAI* path, W8AnimRepBase005EC1D8* representation)
 {
     if (path->kind_00 != 0) {
         if (path->kind_00 == 3) {
@@ -62,14 +65,14 @@ void PathAIApplyToRep004A91F0(W8PathAI* path, W8PathRepresentation* representati
     if (path == 0 || representation == 0) {
         srAssertFail("pPathAI&&pRep", PATH_AI_CPP, 0x595, 0);
     }
-    PathAIPosition004AA370(path, &representation->value_1c);
-    representation->value_04 = representation->value_1c;
+    PathAIPosition004AA370(path, &representation->parent_location_01c);
+    representation->location_004 = representation->parent_location_01c;
 }
 
 // FUNCTION: WIZ8 0x004a9810
 void DestroyPathAI004A9810(W8PathAI* path)
 {
-    W8GrowableVector<W8PathVector3*>* nodes;
+    W8GrowableVector<srVector3T<float>*>* nodes;
 
     if (path != 0) {
         nodes = path->nodes_0c;
@@ -100,7 +103,7 @@ void DestroyPathAI004A9810(W8PathAI* path)
 // FUNCTION: WIZ8 0x004a9110
 void DestroyOwnedPathAI004A9110(W8PathAI* path)
 {
-    W8GrowableVector<W8PathVector3*>* nodes;
+    W8GrowableVector<srVector3T<float>*>* nodes;
 
     if (path != 0 && path->kind_00 == 0) {
         nodes = path->nodes_0c;
@@ -163,11 +166,11 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     }
     copy->nodes_0c = 0;
     if (source->nodes_0c != 0) {
-        copy->nodes_0c = new W8GrowableVector<W8PathVector3*>();
+        copy->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
         for (index = 0; index < count; ++index) {
-            W8PathVector3* allocated = static_cast<W8PathVector3*>(
-                srHeap.allocate(sizeof(W8PathVector3)));
-            W8PathVector3* point;
+            srVector3T<float>* allocated = static_cast<srVector3T<float>*>(
+                srHeap.allocate(sizeof(srVector3T<float>)));
+            srVector3T<float>* point;
 
             if (allocated != 0) {
                 *allocated = **source->nodes_0c->GetAt(index);
@@ -191,10 +194,10 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     copy->render_allocation_18 = 0;
     if (source->render_allocation_18 != 0) {
         copy->render_allocation_18 =
-            srHeap.allocate(count * sizeof(W8PathVector3));
+            srHeap.allocate(count * sizeof(srVector3T<float>));
         for (index = 0; index < count; ++index) {
-            static_cast<W8PathVector3*>(copy->render_allocation_18)[index] =
-                static_cast<W8PathVector3*>(
+            static_cast<srVector3T<float>*>(copy->render_allocation_18)[index] =
+                static_cast<srVector3T<float>*>(
                     source->render_allocation_18)[index];
         }
     }
@@ -222,7 +225,7 @@ void* CloneAIRecord004A91C0(void* record)
 // FUNCTION: WIZ8 0x004a9bb0
 void PathAIClearOwned004A9BB0(W8PathAI* path)
 {
-    W8GrowableVector<W8PathVector3*>* nodes;
+    W8GrowableVector<srVector3T<float>*>* nodes;
 
     if (path != 0) {
         nodes = path->nodes_0c;
@@ -268,9 +271,9 @@ float PathAIGetValue004A9E70(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9e90
-unsigned char PathAINextPoint004A9E90(W8PathAI* path, W8PathVector3* point)
+unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
 {
-    W8PathVector3* source;
+    srVector3T<float>* source;
 
     if (path == 0 || path->nodes_0c == 0) {
         return 0;
@@ -281,7 +284,7 @@ unsigned char PathAINextPoint004A9E90(W8PathAI* path, W8PathVector3* point)
         }
         path->value_20 = 0;
     }
-    W8PathVector3** slot = path->nodes_0c->data;
+    srVector3T<float>** slot = path->nodes_0c->data;
     if (path->value_20 < path->nodes_0c->count) {
         slot += path->value_20;
     }
@@ -421,11 +424,11 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
 }
 
 // FUNCTION: WIZ8 0x004aa370
-void PathAIPosition004AA370(W8PathAI* path, W8PathVector3* value)
+void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
 {
     int index;
-    W8PathVector3* first;
-    W8PathVector3* second;
+    srVector3T<float>* first;
+    srVector3T<float>* second;
     float first_weight;
 
     if (path == 0) {
@@ -447,7 +450,9 @@ void PathAIPosition004AA370(W8PathAI* path, W8PathVector3* value)
         if (index >= 0) {
             first = *path->nodes_0c->GetAt(index);
             if (first != 0) {
-                *value = *first;
+                value->x = first->x;
+                value->y = first->y;
+                value->z = first->z;
             }
         }
         return;
@@ -465,7 +470,9 @@ void PathAIPosition004AA370(W8PathAI* path, W8PathVector3* value)
     }
     first = *path->nodes_0c->GetAt(index);
     if (first != 0) {
-        *value = *first;
+        value->x = first->x;
+        value->y = first->y;
+        value->z = first->z;
     }
 }
 

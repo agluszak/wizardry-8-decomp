@@ -5,13 +5,11 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Item.h"
-#include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Trigger.h"
@@ -64,11 +62,11 @@ extern void Function46DE40(W8World* world);
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
 {
-    world->plsMonsters = PListCreate();
-    world->plsItems = PListCreate();
-    world->plsProps = PListCreate();
-    world->plsCameras = PListCreate();
-    world->plsAmbientSounds = PListCreate();
+    world->plsMonsters = PLCreate();
+    world->plsItems = PLCreate();
+    world->plsProps = PLCreate();
+    world->plsCameras = PLCreate();
+    world->plsAmbientSounds = PLCreate();
     world->lights_to_update = new W8LightVector;
     world->collidable_props = new W8GrowableVector<W8Prop*>;
     world->monster_generators = new W8GrowableVector<W8MonsterGenerator*>;
@@ -259,7 +257,9 @@ W8World* CreateWorld()
     }
     memset(world, 0, sizeof(*world));
 
-    world->static_scene = new W8Scene(0);
+    world->static_scene =
+        new srClassSupport<srScene, srScene, false, 0x1010>(
+            static_cast<srNode*>(0));
     if (world->static_scene == 0) {
         free(world);
         return 0;
@@ -275,7 +275,8 @@ W8World* CreateWorld()
     world->level->setName("Sir-Tech Level");
     world->level->m_active = 1;
 
-    world->dynamic_scene = new W8Node005EC208(world->static_scene);
+    world->dynamic_scene =
+        new srClassSupport<srNode, srNode, false, 0x1000>(world->static_scene);
     if (world->dynamic_scene == 0) {
         delete world->static_scene;
         delete world->level;
@@ -291,11 +292,11 @@ W8World* CreateWorld()
     return world;
 }
 
+// VTABLE: WIZ8 0x005EC208
+// class srClassSupport<srNode, class srNode, 0, 4096>
+
 // SYNTHETIC: WIZ8 0x0044F3D0
-// W8Node005EC208::`scalar deleting destructor'
-W8Node005EC208::~W8Node005EC208()
-{
-}
+// srClassSupport<srNode,srNode,0,4096>::`scalar deleting destructor'
 
 /* Detach the item meshes in every registered world before the renderer-side
    resource transition. */
@@ -317,35 +318,35 @@ void DestroyWorldCollections(W8World* world)
     }
 
     if (world->plsMonsters != 0) {
-        while (PListGetCount(world->plsMonsters) != 0) {
+        while (PLLength(world->plsMonsters) != 0) {
             W8Monster* object = static_cast<W8Monster*>(
-                PListGetAt(world->plsMonsters, 0));
-            PListRemoveAt(world->plsMonsters, 0);
+                PLGet(world->plsMonsters, 0));
+            PLRemoveAt(world->plsMonsters, 0);
             delete object;
         }
-        PListDestroy(world->plsMonsters);
+        PLDestroy(world->plsMonsters);
         world->plsMonsters = 0;
     }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
     if (world->plsItems != 0) {
-        while (PListGetCount(world->plsItems) != 0) {
+        while (PLLength(world->plsItems) != 0) {
             W8Item* object = static_cast<W8Item*>(
-                PListGetAt(world->plsItems, 0));
-            PListRemoveAt(world->plsItems, 0);
+                PLGet(world->plsItems, 0));
+            PLRemoveAt(world->plsItems, 0);
             delete object;
         }
-        PListDestroy(world->plsItems);
+        PLDestroy(world->plsItems);
         world->plsItems = 0;
     }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
     if (world->plsProps != 0) {
-        while (PListGetCount(world->plsProps) != 0) {
+        while (PLLength(world->plsProps) != 0) {
             W8Prop* object = static_cast<W8Prop*>(
-                PListGetAt(world->plsProps, 0));
-            PListRemoveAt(world->plsProps, 0);
+                PLGet(world->plsProps, 0));
+            PLRemoveAt(world->plsProps, 0);
             delete object;
         }
-        PListDestroy(world->plsProps);
+        PLDestroy(world->plsProps);
         world->plsProps = 0;
     }
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
@@ -358,25 +359,25 @@ void DestroyWorldCollections(W8World* world)
     if (g_world_cleanup_flag_00659757 != 0) Function426790();
 
     if (world->plsCameras != 0) {
-        while (PListGetCount(world->plsCameras) != 0) {
+        while (PLLength(world->plsCameras) != 0) {
             W8WorldCameraEntry* entry = static_cast<W8WorldCameraEntry*>(
-                PListGetAt(world->plsCameras, 0));
-            PListRemoveAt(world->plsCameras, 0);
+                PLGet(world->plsCameras, 0));
+            PLRemoveAt(world->plsCameras, 0);
             DestroyPathAI004A9810(entry->path);
             free(entry);
         }
-        PListDestroy(world->plsCameras);
+        PLDestroy(world->plsCameras);
         world->plsCameras = 0;
     }
 
     Function479030();
     if (world->plsAmbientSounds != 0) {
-        while (PListGetCount(world->plsAmbientSounds) != 0) {
-            void* ambient_sound = PListGetAt(world->plsAmbientSounds, 0);
-            PListRemoveAt(world->plsAmbientSounds, 0);
+        while (PLLength(world->plsAmbientSounds) != 0) {
+            void* ambient_sound = PLGet(world->plsAmbientSounds, 0);
+            PLRemoveAt(world->plsAmbientSounds, 0);
             Function47A700(ambient_sound);
         }
-        PListDestroy(world->plsAmbientSounds);
+        PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
     }
 
@@ -489,7 +490,7 @@ void Forward44FAF0(W8World* world)
    caller preserves this value across a level reload, so a world without a
    camera contributes the zero position. */
 // FUNCTION: WIZ8 0x00451160
-void WorldGetCameraLocation00451160(W8World* world, W8Position* location)
+void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
 {
     if (!world) {
         srAssertFail("pWorld", THREE_D_API_CPP, 1014, 0);
@@ -510,7 +511,7 @@ void WorldGetCameraLocation00451160(W8World* world, W8Position* location)
    position. */
 // FUNCTION: WIZ8 0x004511D0
 void SetWorldScenePosition004511D0(
-    W8World* world, const W8Position* location)
+    W8World* world, const srVector3T<float>* location)
 {
     srVector3T<float> position;
     srVector3T<double> render_position;
@@ -598,7 +599,7 @@ void WorldSetCameraLocation(W8World* world, const float* location)
 /* Read the camera node's double-precision renderer position back into the
    world's float position type. */
 // FUNCTION: WIZ8 0x00450750
-void WorldGetCameraLocation(W8World* world, W8Position* location)
+void WorldGetCameraLocation(W8World* world, srVector3T<float>* location)
 {
     location->x = (float)world->camera->getLocationX();
     location->y = (float)world->camera->getLocationY();
@@ -606,16 +607,13 @@ void WorldGetCameraLocation(W8World* world, W8Position* location)
 }
 
 // SYNTHETIC: WIZ8 0x00423e50
-// srMaterial::`scalar deleting destructor'
+// srClassSupport<srMaterial,srMaterial,0,8720>::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423e80
-// W8Camera::`scalar deleting destructor'
+// srClassSupport<srCamera,srCamera,0,5120>::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423eb0
-// W8Scene::`scalar deleting destructor'
+// srClassSupport<srScene,srScene,0,4112>::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00423f00
-// W8ColorSurface::`scalar deleting destructor'
-// SYNTHETIC: WIZ8 0x00424a50
-// W8MeshModel005EBE98::`scalar deleting destructor'
-
+// srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
 /* The second world, read straight out of the global with no guard. Its type is
    settled by the viewport, which reads a camera member through the same
    object. */

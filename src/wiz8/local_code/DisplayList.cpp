@@ -1,78 +1,18 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "Types.h"
+#include "mousesystem.h"
 
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * Teardown for the display list headed at 0x00650E94, called by the main menu
- * entry on the way in.
- *
- * The node layout is not guessed. The destruction path frees a pointer at
- * +0x38, follows a link at +0x44, and finishes by clearing 0x4c bytes with a
- * rep stosd of 0x13 dwords, which fixes the size. The template at 0x005FF7D0
- * that the tail resets is then exactly 0x4c bytes wide and writes at the same
- * offsets - a pointer slot at +0x38 and a link at +0x44 - so it is a node, and
- * the two together give the field widths without any appeal to a caller.
- *
- * The pair of shorts at +0x08 and the pair at +0x0c are set to 0x8001 and
- * 0x7fff, which is -32767 and 32767. 0x0040B900 hit-tests the cursor against
- * them as left, top, right, bottom, so they are the node's rectangle and the
- * template is a catch-all that every position falls inside.
- */
-
 extern "C" {
-
-typedef struct W8DisplayNode {
-    /* 0x00: the insert widens this with a zero extension before comparing it
-       against the identifier counter, so it is unsigned. */
-    unsigned short id;
-    /* 0x02: the insert orders the list on this, descending, with a signed
-       comparison. The template's -1 therefore sorts last. */
-    signed char sort_key;
-    unsigned char pad_03;
-    /* 0x04: the reset writes all four bytes at once while every test reads
-       only the low one, so the member is wider than the flags it carries.
-       0x10 selects a node for destruction, 0x80 wants the help hidden. */
-    union {
-        unsigned int all;
-        unsigned char low;
-    } flags;
-    short left;                     /* 0x08: 0x0040B900 hit-tests the cursor */
-    short top;                      /* 0x0a */
-    short right;                    /* 0x0c */
-    short bottom;                   /* 0x0e */
-    short cursor_x;                 /* 0x10: cursor position captured on a hit */
-    short cursor_y;                 /* 0x12 */
-    short offset_x;                 /* 0x14: cursor_x - left */
-    short offset_y;                 /* 0x16: cursor_y - top */
-    short word_18;                  /* 0x18: taken from the global at 0x00650E84 */
-    short cursor_shape;             /* 0x1a: passed to 0x005A1140; -2 means none */
-    /* 0x1c and 0x20: two callbacks, both invoked as (node, code). 0x0040B900
-       sends state changes to the first and input events to the second. */
-    void (*on_state)(struct W8DisplayNode*, int);
-    void (*on_input)(struct W8DisplayNode*, unsigned int);
-    int dword_24;
-    int dword_28;
-    int dword_2c;
-    int dword_30;
-    short word_34;
-    short pad_36;                   /* 0x36: never written by the reset */
-    void* buffer;                   /* 0x38: freed on destruction */
-    int dword_3c;                   /* 0x3c: -1 in the template */
-    int dword_40;                   /* 0x40: never written by the reset */
-    struct W8DisplayNode* next;     /* 0x44 */
-    struct W8DisplayNode* prev;     /* 0x48: 0x0040B830 unlinks through both directions */
-} W8DisplayNode;                    /* 0x4c */
-
-
-
-void Function40B830(W8DisplayNode* node);
+void Function40B830(MOUSE_REGION* node);
 extern void HideRegionHelp(void);
 extern void Function5A1140(short shape);
 
 short g_word_5ff7c8;
-W8DisplayNode* g_display_ptr_650e6c;
-W8DisplayNode* g_display_ptr_650e70;
+MOUSE_REGION* g_display_ptr_650e6c;
+MOUSE_REGION* g_display_ptr_650e70;
 unsigned int g_time_650e74;
 
 /* The buffer is not released with a direct call to free: the body loads a
@@ -80,10 +20,10 @@ unsigned int g_time_650e74;
    for every node. */
 void (*g_deallocator_5eb224)(void*) = free;
 
-W8DisplayNode g_display_template_5ff7d0;
-W8DisplayNode* g_display_head_650e94;
-W8DisplayNode* g_display_ptr_650e98;
-W8DisplayNode* g_display_ptr_650e9c;
+MOUSE_REGION g_display_template_5ff7d0;
+MOUSE_REGION* g_display_head_650e94;
+MOUSE_REGION* g_display_ptr_650e98;
+MOUSE_REGION* g_display_ptr_650e9c;
 unsigned char g_display_flag_650ea0;
 unsigned char g_display_flag_650e90;
 unsigned short g_display_id_6e4100;
@@ -97,7 +37,7 @@ unsigned short g_word_650e86;
 unsigned char g_byte_650e88;
 unsigned char g_byte_650e89;
 unsigned char g_byte_650e8a;
-W8DisplayNode* g_display_ptr_650e8c;
+MOUSE_REGION* g_display_ptr_650e8c;
 
 /*
  * Inserts a node into the display list, ordered on the key at +0x02 with
@@ -118,10 +58,10 @@ W8DisplayNode* g_display_ptr_650e8c;
  * increment, so the search updates the global and never the node.
  */
 // FUNCTION: WIZ8 0x0040b720
-void Function40B720(W8DisplayNode* node)
+void Function40B720(MOUSE_REGION* node)
 {
-    W8DisplayNode* scan;
-    W8DisplayNode* cursor;
+    MOUSE_REGION* scan;
+    MOUSE_REGION* cursor;
     int assigned;
     int candidate;
     int found;
@@ -141,7 +81,7 @@ void Function40B720(W8DisplayNode* node)
                 break;
             }
             while (!found) {
-                if (scan->id == candidate) {
+                if (scan->IDNumber == candidate) {
                     found = 1;
                 }
             }
@@ -155,14 +95,14 @@ void Function40B720(W8DisplayNode* node)
         }
         g_dword_650e7c = candidate;
     }
-    node->id = (short)assigned;
+    node->IDNumber = (short)assigned;
     node->next = 0;
     node->prev = 0;
 
     cursor = g_display_head_650e94;
     if (cursor != 0) {
-        W8DisplayNode* ahead;
-        W8DisplayNode* pick;
+        MOUSE_REGION* ahead;
+        MOUSE_REGION* pick;
 
         found = 0;
         ahead = cursor->next;
@@ -171,14 +111,14 @@ void Function40B720(W8DisplayNode* node)
             if (pick == 0 || found) {
                 break;
             }
-            if (cursor->sort_key <= node->sort_key) {
+            if (cursor->PriorityLevel <= node->PriorityLevel) {
                 found = 1;
                 pick = cursor;
             }
             ahead = pick->next;
             cursor = pick;
         }
-        if (node->sort_key < cursor->sort_key) {
+        if (node->PriorityLevel < cursor->PriorityLevel) {
             node->next = cursor->next;
             cursor->next = node;
             node->prev = cursor;
@@ -207,9 +147,9 @@ void Function40B720(W8DisplayNode* node)
  * its id is on the list, not only when that exact node is.
  */
 // FUNCTION: WIZ8 0x0040b830
-void Function40B830(W8DisplayNode* node)
+void Function40B830(MOUSE_REGION* node)
 {
-    W8DisplayNode* scan;
+    MOUSE_REGION* scan;
     int found;
 
     if (g_display_head_650e94 == 0) {
@@ -218,7 +158,7 @@ void Function40B830(W8DisplayNode* node)
     found = 0;
     scan = g_display_head_650e94;
     while (scan != 0 && !found) {
-        if (scan->id == node->id) {
+        if (scan->IDNumber == node->IDNumber) {
             found = 1;
         }
         scan = scan->next;
@@ -263,23 +203,23 @@ void Function40B830(W8DisplayNode* node)
 // FUNCTION: WIZ8 0x0040b290
 int Function40B290(void)
 {
-    W8DisplayNode* node;
+    MOUSE_REGION* node;
     void (*deallocate)(void*);
 
     node = g_display_head_650e94;
     deallocate = g_deallocator_5eb224;
     while (node != 0) {
-        if ((node->flags.low & 0x10) != 0) {
+        if ((node->uiFlags & 0x10) != 0) {
             if (node == 0) {
                 break;
             }
-            if (node->buffer != 0) {
-                if ((node->flags.low & 0x80) != 0) {
+            if (node->FastHelpText != 0) {
+                if ((node->uiFlags & 0x80) != 0) {
                     HideRegionHelp();
                 }
-                (*deallocate)(node->buffer);
+                (*deallocate)(node->FastHelpText);
             }
-            node->buffer = 0;
+            node->FastHelpText = 0;
             Function40B830(node);
             if (g_display_ptr_650e98 == node) {
                 g_display_ptr_650e98 = 0;
@@ -288,7 +228,7 @@ int Function40B290(void)
                 g_display_ptr_650e9c = 0;
             }
             g_display_flag_650ea0 = 1;
-            if (g_display_flag_650e90 != 0 && g_display_id_6e4100 == node->id) {
+            if (g_display_flag_650e90 != 0 && g_display_id_6e4100 == node->IDNumber) {
                 g_display_flag_650e90 = 0;
             }
             memset(node, 0, sizeof(*node));
@@ -299,8 +239,8 @@ int Function40B290(void)
         }
     }
 
-    g_display_template_5ff7d0.left = (short)0x8001;
-    g_display_template_5ff7d0.top = (short)0x8001;
+    g_display_template_5ff7d0.RegionTopLeftX = (short)0x8001;
+    g_display_template_5ff7d0.RegionTopLeftY = (short)0x8001;
     g_dword_650e7c = 0;
     g_dword_650e78 = 0;
     g_word_650e80 = 0;
@@ -312,26 +252,26 @@ int Function40B290(void)
     g_byte_650e89 = 0;
     g_byte_650e8a = 0;
     g_display_ptr_650e8c = 0;
-    g_display_template_5ff7d0.id = 0;
-    g_display_template_5ff7d0.sort_key = -1;
-    g_display_template_5ff7d0.flags.all = 0x40;
-    g_display_template_5ff7d0.right = 0x7fff;
-    g_display_template_5ff7d0.bottom = 0x7fff;
-    g_display_template_5ff7d0.cursor_x = 0;
-    g_display_template_5ff7d0.cursor_y = 0;
-    g_display_template_5ff7d0.offset_x = 0;
-    g_display_template_5ff7d0.offset_y = 0;
-    g_display_template_5ff7d0.word_18 = 0;
-    g_display_template_5ff7d0.cursor_shape = 0;
-    g_display_template_5ff7d0.dword_24 = 0;
-    g_display_template_5ff7d0.dword_28 = 0;
-    g_display_template_5ff7d0.dword_2c = 0;
-    g_display_template_5ff7d0.dword_30 = 0;
-    g_display_template_5ff7d0.on_state = 0;
-    g_display_template_5ff7d0.on_input = 0;
-    g_display_template_5ff7d0.word_34 = 0;
-    g_display_template_5ff7d0.buffer = 0;
-    g_display_template_5ff7d0.dword_3c = -1;
+    g_display_template_5ff7d0.IDNumber = 0;
+    g_display_template_5ff7d0.PriorityLevel = -1;
+    g_display_template_5ff7d0.uiFlags = 0x40;
+    g_display_template_5ff7d0.RegionBottomRightX = 0x7fff;
+    g_display_template_5ff7d0.RegionBottomRightY = 0x7fff;
+    g_display_template_5ff7d0.MouseXPos = 0;
+    g_display_template_5ff7d0.MouseYPos = 0;
+    g_display_template_5ff7d0.RelativeXPos = 0;
+    g_display_template_5ff7d0.RelativeYPos = 0;
+    g_display_template_5ff7d0.ButtonState = 0;
+    g_display_template_5ff7d0.Cursor = 0;
+    g_display_template_5ff7d0.UserData[0] = 0;
+    g_display_template_5ff7d0.UserData[1] = 0;
+    g_display_template_5ff7d0.UserData[2] = 0;
+    g_display_template_5ff7d0.UserData[3] = 0;
+    g_display_template_5ff7d0.MovementCallback = 0;
+    g_display_template_5ff7d0.ButtonCallback = 0;
+    g_display_template_5ff7d0.FastHelpTimer = 0;
+    g_display_template_5ff7d0.FastHelpText = 0;
+    g_display_template_5ff7d0.FastHelpRect = -1;
     g_display_template_5ff7d0.next = 0;
     g_display_template_5ff7d0.prev = 0;
     Function40B720(&g_display_template_5ff7d0);
@@ -348,7 +288,7 @@ int Function40B290(void)
 // FUNCTION: WIZ8 0x0040b450
 void ShutdownDisplayList(void)
 {
-    W8DisplayNode* node;
+    MOUSE_REGION* node;
     void (*deallocate)(void*);
 
     node = g_display_head_650e94;
@@ -356,15 +296,15 @@ void ShutdownDisplayList(void)
     g_byte_650e89 = 0;
     deallocate = g_deallocator_5eb224;
     while (node != 0) {
-        if ((node->flags.low & 0x10) != 0) {
+        if ((node->uiFlags & 0x10) != 0) {
             g_display_head_650e94 = node;
-            if (node->buffer != 0) {
-                if ((node->flags.low & 0x80) != 0) {
+            if (node->FastHelpText != 0) {
+                if ((node->uiFlags & 0x80) != 0) {
                     HideRegionHelp();
                 }
-                (*deallocate)(node->buffer);
+                (*deallocate)(node->FastHelpText);
             }
-            node->buffer = 0;
+            node->FastHelpText = 0;
             Function40B830(node);
             if (g_display_ptr_650e98 == node) {
                 g_display_ptr_650e98 = 0;
@@ -373,7 +313,7 @@ void ShutdownDisplayList(void)
                 g_display_ptr_650e9c = 0;
             }
             g_display_flag_650ea0 = 1;
-            if (g_display_flag_650e90 != 0 && g_display_id_6e4100 == node->id) {
+            if (g_display_flag_650e90 != 0 && g_display_id_6e4100 == node->IDNumber) {
                 g_display_flag_650e90 = 0;
             }
             memset(node, 0, sizeof(*node));
@@ -405,8 +345,8 @@ void ShutdownDisplayList(void)
 // FUNCTION: WIZ8 0x0040b900
 void Function40B900(void)
 {
-    W8DisplayNode* node;
-    W8DisplayNode* child;
+    MOUSE_REGION* node;
+    MOUSE_REGION* child;
     int hit;
     int child_hit;
     unsigned short mask;
@@ -418,11 +358,11 @@ void Function40B900(void)
     g_display_ptr_650e9c = g_display_head_650e94;
     if (g_byte_650e8a == 0) {
         for (; g_display_ptr_650e9c != 0; g_display_ptr_650e9c = g_display_ptr_650e9c->next) {
-            if ((g_display_ptr_650e9c->flags.all & 0x840) != 0
-                && g_display_ptr_650e9c->left <= g_word_650e80
-                && g_display_ptr_650e9c->top <= g_word_650e82
-                && g_word_650e80 <= g_display_ptr_650e9c->right
-                && g_word_650e82 <= g_display_ptr_650e9c->bottom) {
+            if ((g_display_ptr_650e9c->uiFlags & 0x840) != 0
+                && g_display_ptr_650e9c->RegionTopLeftX <= g_word_650e80
+                && g_display_ptr_650e9c->RegionTopLeftY <= g_word_650e82
+                && g_word_650e80 <= g_display_ptr_650e9c->RegionBottomRightX
+                && g_word_650e82 <= g_display_ptr_650e9c->RegionBottomRightY) {
                 hit = 1;
                 break;
             }
@@ -433,17 +373,17 @@ void Function40B900(void)
     }
 
     if (g_display_ptr_650e98 != 0) {
-        g_display_ptr_650e98->flags.all = g_display_ptr_650e98->flags.all & 0xfffffffe;
+        g_display_ptr_650e98->uiFlags = g_display_ptr_650e98->uiFlags & 0xfffffffe;
         if (g_display_ptr_650e98 != g_display_ptr_650e9c) {
-            if (g_display_ptr_650e98->buffer != 0) {
-                g_display_ptr_650e98->flags.all = g_display_ptr_650e98->flags.all & 0xfffffeff;
-                g_display_ptr_650e98->flags.all = g_display_ptr_650e98->flags.all & 0xfffffbff;
+            if (g_display_ptr_650e98->FastHelpText != 0) {
+                g_display_ptr_650e98->uiFlags = g_display_ptr_650e98->uiFlags & 0xfffffeff;
+                g_display_ptr_650e98->uiFlags = g_display_ptr_650e98->uiFlags & 0xfffffbff;
                 HideRegionHelp();
             }
-            g_display_ptr_650e9c->cursor_shape = g_word_5ff7c8;
-            if ((g_display_ptr_650e98->flags.all & 4) != 0
-                && (g_display_ptr_650e98->flags.all & 0x40) != 0) {
-                (*g_display_ptr_650e98->on_state)(g_display_ptr_650e98, 0x40);
+            g_display_ptr_650e9c->Cursor = g_word_5ff7c8;
+            if ((g_display_ptr_650e98->uiFlags & 4) != 0
+                && (g_display_ptr_650e98->uiFlags & 0x40) != 0) {
+                (*g_display_ptr_650e98->MovementCallback)(g_display_ptr_650e98, 0x40);
             }
         }
     }
@@ -455,47 +395,47 @@ void Function40B900(void)
 
     node = g_display_ptr_650e9c;
     if (g_display_ptr_650e9c != g_display_ptr_650e98) {
-        if ((g_display_ptr_650e9c->flags.all & 4) != 0) {
-            if (g_display_ptr_650e9c->buffer != 0
-                && (g_display_ptr_650e9c->flags.all & 0x400) == 0) {
-                g_display_ptr_650e9c->cursor_shape = g_word_5ff7c8;
-                g_display_ptr_650e9c->flags.all = g_display_ptr_650e9c->flags.all & 0xfffffeff;
-                g_display_ptr_650e9c->flags.all = g_display_ptr_650e9c->flags.all | 0x400;
+        if ((g_display_ptr_650e9c->uiFlags & 4) != 0) {
+            if (g_display_ptr_650e9c->FastHelpText != 0
+                && (g_display_ptr_650e9c->uiFlags & 0x400) == 0) {
+                g_display_ptr_650e9c->Cursor = g_word_5ff7c8;
+                g_display_ptr_650e9c->uiFlags = g_display_ptr_650e9c->uiFlags & 0xfffffeff;
+                g_display_ptr_650e9c->uiFlags = g_display_ptr_650e9c->uiFlags | 0x400;
                 HideRegionHelp();
             }
-            if ((g_display_ptr_650e9c->flags.low & 0x40) != 0) {
-                (*g_display_ptr_650e9c->on_state)(g_display_ptr_650e9c, 0x80);
+            if ((g_display_ptr_650e9c->uiFlags & 0x40) != 0) {
+                (*g_display_ptr_650e9c->MovementCallback)(g_display_ptr_650e9c, 0x80);
             }
         }
-        if ((g_display_ptr_650e9c->flags.all & 0x40) == 0
-            || (g_display_ptr_650e9c->flags.all & 2) == 0
-            || g_display_ptr_650e9c->cursor_shape == -2) {
+        if ((g_display_ptr_650e9c->uiFlags & 0x40) == 0
+            || (g_display_ptr_650e9c->uiFlags & 2) == 0
+            || g_display_ptr_650e9c->Cursor == -2) {
             child = g_display_ptr_650e9c->next;
             node = g_display_ptr_650e9c;
             while (child != 0 && !child_hit) {
                 child_hit = 0;
-                if ((child->flags.all & 0x40) != 0
-                    && child->left <= g_word_650e80
-                    && child->top <= g_word_650e82
-                    && g_word_650e80 <= child->right
-                    && g_word_650e82 <= child->bottom
-                    && (child->flags.all & 2) != 0) {
+                if ((child->uiFlags & 0x40) != 0
+                    && child->RegionTopLeftX <= g_word_650e80
+                    && child->RegionTopLeftY <= g_word_650e82
+                    && g_word_650e80 <= child->RegionBottomRightX
+                    && g_word_650e82 <= child->RegionBottomRightY
+                    && (child->uiFlags & 2) != 0) {
                     child_hit = 1;
-                    if (child->cursor_shape != -2) {
-                        Function5A1140(child->cursor_shape);
+                    if (child->Cursor != -2) {
+                        Function5A1140(child->Cursor);
                         node = g_display_ptr_650e9c;
                     }
                 }
                 child = child->next;
             }
         } else {
-            Function5A1140(g_display_ptr_650e9c->cursor_shape);
+            Function5A1140(g_display_ptr_650e9c->Cursor);
             node = g_display_ptr_650e9c;
         }
     }
 
-    if (g_display_flag_650e90 != 0 && g_display_id_6e4100 != node->id) {
-        if ((node->flags.low & 0x40) == 0) {
+    if (g_display_flag_650e90 != 0 && g_display_id_6e4100 != node->IDNumber) {
+        if ((node->uiFlags & 0x40) == 0) {
             g_display_ptr_650e98 = node;
             return;
         }
@@ -505,34 +445,34 @@ void Function40B900(void)
         if ((g_word_650e86 & 4) != 0) {
             g_display_flag_650e90 = 0;
         }
-        node->flags.all = node->flags.all | 1;
-        g_display_ptr_650e9c->cursor_x = g_word_650e80;
-        g_display_ptr_650e9c->cursor_y = g_word_650e82;
-        g_display_ptr_650e9c->offset_x = g_word_650e80 - g_display_ptr_650e9c->left;
-        g_display_ptr_650e9c->offset_y = g_word_650e82 - g_display_ptr_650e9c->top;
-        if ((g_display_ptr_650e9c->flags.low & 4) != 0 && (g_word_650e86 & 1) != 0) {
-            (*g_display_ptr_650e9c->on_state)(g_display_ptr_650e9c, 2);
+        node->uiFlags = node->uiFlags | 1;
+        g_display_ptr_650e9c->MouseXPos = g_word_650e80;
+        g_display_ptr_650e9c->MouseYPos = g_word_650e82;
+        g_display_ptr_650e9c->RelativeXPos = g_word_650e80 - g_display_ptr_650e9c->RegionTopLeftX;
+        g_display_ptr_650e9c->RelativeYPos = g_word_650e82 - g_display_ptr_650e9c->RegionTopLeftY;
+        if ((g_display_ptr_650e9c->uiFlags & 4) != 0 && (g_word_650e86 & 1) != 0) {
+            (*g_display_ptr_650e9c->MovementCallback)(g_display_ptr_650e9c, 2);
         }
         g_word_650e86 = g_word_650e86 & 0xfffe;
         g_display_ptr_650e98 = g_display_ptr_650e9c;
         return;
     }
 
-    node->flags.all = node->flags.all | 1;
-    g_display_ptr_650e9c->cursor_x = g_word_650e80;
-    g_display_ptr_650e9c->cursor_y = g_word_650e82;
-    g_display_ptr_650e9c->offset_x = g_word_650e80 - g_display_ptr_650e9c->left;
-    g_display_ptr_650e9c->offset_y = g_word_650e82 - g_display_ptr_650e9c->top;
-    g_display_ptr_650e9c->word_18 = g_word_650e84;
-    if ((g_display_ptr_650e9c->flags.all & 0x40) != 0
-        && (g_display_ptr_650e9c->flags.all & 4) != 0
+    node->uiFlags = node->uiFlags | 1;
+    g_display_ptr_650e9c->MouseXPos = g_word_650e80;
+    g_display_ptr_650e9c->MouseYPos = g_word_650e82;
+    g_display_ptr_650e9c->RelativeXPos = g_word_650e80 - g_display_ptr_650e9c->RegionTopLeftX;
+    g_display_ptr_650e9c->RelativeYPos = g_word_650e82 - g_display_ptr_650e9c->RegionTopLeftY;
+    g_display_ptr_650e9c->ButtonState = g_word_650e84;
+    if ((g_display_ptr_650e9c->uiFlags & 0x40) != 0
+        && (g_display_ptr_650e9c->uiFlags & 4) != 0
         && (g_word_650e86 & 1) != 0) {
-        (*g_display_ptr_650e9c->on_state)(g_display_ptr_650e9c, 2);
+        (*g_display_ptr_650e9c->MovementCallback)(g_display_ptr_650e9c, 2);
     }
     mask = g_word_650e86 & 0xfffe;
-    if ((g_display_ptr_650e9c->flags.all & 8) == 0
+    if ((g_display_ptr_650e9c->uiFlags & 8) == 0
         || (g_word_650e86 & 0x7e) == 0
-        || (g_display_ptr_650e9c->flags.all & 0x40) == 0) {
+        || (g_display_ptr_650e9c->uiFlags & 0x40) == 0) {
         g_word_650e86 = mask & 0xff81;
         g_display_ptr_650e98 = g_display_ptr_650e9c;
         return;
@@ -541,7 +481,7 @@ void Function40B900(void)
     events = 0;
     if ((g_word_650e86 & 2) != 0) {
         g_display_flag_650e90 = 1;
-        g_display_id_6e4100 = g_display_ptr_650e9c->id;
+        g_display_id_6e4100 = g_display_ptr_650e9c->IDNumber;
         events = 4;
     }
     if ((g_word_650e86 & 4) != 0) {
@@ -550,7 +490,7 @@ void Function40B900(void)
     }
     if ((g_word_650e86 & 8) != 0) {
         g_display_flag_650e90 = 1;
-        g_display_id_6e4100 = g_display_ptr_650e9c->id;
+        g_display_id_6e4100 = g_display_ptr_650e9c->IDNumber;
         events = events | 0x10;
     }
     if ((g_word_650e86 & 0x10) != 0) {
@@ -570,11 +510,11 @@ void Function40B900(void)
     }
 
     g_word_650e86 = mask;
-    if ((g_display_ptr_650e9c->flags.all & 0x80) != 0) {
-        g_display_ptr_650e9c->flags.all = g_display_ptr_650e9c->flags.all & 0xffffff7f;
-        g_display_ptr_650e9c->flags.all = g_display_ptr_650e9c->flags.all & 0xfffffeff;
-        g_display_ptr_650e9c->cursor_shape = g_word_5ff7c8;
-        g_display_ptr_650e9c->flags.all = g_display_ptr_650e9c->flags.all & 0xfffffbff;
+    if ((g_display_ptr_650e9c->uiFlags & 0x80) != 0) {
+        g_display_ptr_650e9c->uiFlags = g_display_ptr_650e9c->uiFlags & 0xffffff7f;
+        g_display_ptr_650e9c->uiFlags = g_display_ptr_650e9c->uiFlags & 0xfffffeff;
+        g_display_ptr_650e9c->Cursor = g_word_5ff7c8;
+        g_display_ptr_650e9c->uiFlags = g_display_ptr_650e9c->uiFlags & 0xfffffbff;
         HideRegionHelp();
     }
     if (events == 4) {
@@ -599,7 +539,7 @@ void Function40B900(void)
             g_time_650e74 = 0;
         }
     }
-    (*g_display_ptr_650e9c->on_input)(g_display_ptr_650e9c, events);
+    (*g_display_ptr_650e9c->ButtonCallback)(g_display_ptr_650e9c, events);
     g_word_650e86 = g_word_650e86 & 0xff81;
     g_display_ptr_650e98 = g_display_ptr_650e9c;
 }
@@ -614,16 +554,16 @@ void Function40B900(void)
  * does not displace the first.
  */
 // FUNCTION: WIZ8 0x0040bfc0
-int Function40BFC0(W8DisplayNode* node)
+int Function40BFC0(MOUSE_REGION* node)
 {
-    W8DisplayNode* scan;
+    MOUSE_REGION* scan;
     int found;
 
     found = 0;
     scan = g_display_head_650e94;
     if (scan != 0) {
         while (scan != 0 && !found) {
-            if (scan->id == node->id) {
+            if (scan->IDNumber == node->IDNumber) {
                 found = 1;
             }
             scan = scan->next;

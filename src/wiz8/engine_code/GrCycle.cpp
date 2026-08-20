@@ -246,7 +246,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other)
             copied_light->ConfigureMonsterCopy();
             copied_light->setLocation(x, y, z);
             copied_light->setFlag(srNode::FLAG_POSITIONAL_1);
-            PListAdd(&g_world->m_list_0a8, copied_light);
+            PLAdoptAppend(&g_world->m_list_0a8, copied_light);
             if (copied_light->definition() != 0) {
                 g_world->lights_to_update->Add(copied_light);
             }
@@ -348,7 +348,7 @@ W8GrCycle::~W8GrCycle()
 }
 
 // FUNCTION: WIZ8 0x004a6df0
-void W8GrCycle::SetPosition004A6DF0(W8Position* position)
+void W8GrCycle::SetPosition004A6DF0(srVector3T<float>* position)
 
 {
   W8EmitterHost* representation = GetRepresentation();
@@ -553,7 +553,7 @@ extern void Function4A9110(void* path);
 
 // FUNCTION: WIZ8 0x004a7dd0
 unsigned char W8GrCycle::GetAnimationBounds(
-    W8Position* minimum, W8Position* maximum)
+    srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();
@@ -1082,7 +1082,7 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(
     if (m_pAI != 0) {
         target = GetRepresentation();
         PathAIApplyToRep004A91F0(
-            (W8PathAI*)m_pAI, (W8PathRepresentation*)target);
+            (W8PathAI*)m_pAI, target);
     }
     target = GetRepresentation();
     return target->SetCycleFrameLod(cycle, frame, lod);

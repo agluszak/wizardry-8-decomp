@@ -4,7 +4,6 @@
 #include "wiz8/3d_code/PList.h"
 #include "surrender/srMath.h"
 
-struct W8Position;
 struct W8AniMesh;
 class srModelInstance;
 

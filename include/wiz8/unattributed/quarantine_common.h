@@ -28,11 +28,6 @@ struct W8Releasable {
     virtual ~W8Releasable();
 };
 
-/* Only that one method is established, and nothing here shows a field. */
-struct W8Forwarded {
-    void Method4C5290();
-};
-
 bool IsCharacterReadyToAdvance(int party_slot);
 
 extern "C" {

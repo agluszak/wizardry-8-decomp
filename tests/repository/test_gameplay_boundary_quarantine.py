@@ -36,7 +36,6 @@ ALLOWED_INCLUDES = {
 }
 
 EXTRACTED_DEFINITIONS = (
-    r"typedef struct W8Position\s*\{",
     r"typedef struct W8TargetSource\s*\{",
     r"typedef struct W8CombatSlot\s*\{",
     r"typedef struct W8PartySlotRow\s*\{",

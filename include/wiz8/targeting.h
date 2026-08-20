@@ -30,7 +30,7 @@ typedef struct W8TargetSource {
        somebody. Note that this is not where the combat slot keeps its own
        point - that one has a group id at 0x0c and the point at 0x10 - so the
        two blocks are related but not the same shape. */
-    W8Position point;
+    srVector3T<float> point;
     unsigned char unknown_18[3];
     unsigned char fReflection;            /* 0x1b */
     unsigned char fBackfire;              /* 0x1c */
@@ -48,19 +48,10 @@ typedef struct W8CombatSlot {
     int iChar;                            /* 0x04, -1 when empty */
     int iMonsterID;                       /* 0x08, -1 when empty */
     int iGroupID;                         /* 0x0c, -1 when empty */
-    /* 0x10 through 0x1b means different things by kind, which is what the two
-       readings of it are: a place-kind target keeps the world point there,
-       while a character- or monster-kind target keeps a flag at 0x19 that
-       decides whether it is described by name or by its faction's word for it.
-       They are alternatives, not neighbours. */
-    union {
-        W8Position point;                 /* 0x10 */
-        struct {
-            unsigned char unknown_10[9];
-            unsigned char name_known;     /* 0x19 */
-            unsigned char unknown_1a[2];
-        } described;
-    };
+    /* Place targets store the ordinary world vector here. Other target kinds
+       reuse byte +0x19 as the "name known" flag; that overlapping byte use
+       does not establish a second source type or union boundary. */
+    srVector3T<float> point;               /* 0x10 */
     /* 0x1c: the item aimed at, for the one kind that aims at one. */
     W8ItemInstance* pPCItem;
 } W8CombatSlot;                           /* 0x20 */
@@ -111,4 +102,3 @@ unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_in
 unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 
 #endif
-

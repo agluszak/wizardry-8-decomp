@@ -44,7 +44,7 @@ typedef struct W8MonsterGenerator {
     void Save(int handle);
     unsigned char Load(int handle);
     /* Moves the generator, notifying the scene when it is armed. */
-    void SetState(const W8Position* state);
+    void SetState(const srVector3T<float>* state);
     /* Loads the marker unconditionally, then applies the armed state. */
     void Reload(int unused, unsigned char active);
     ~W8MonsterGenerator();

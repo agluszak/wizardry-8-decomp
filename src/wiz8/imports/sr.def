@@ -10,6 +10,7 @@ LIBRARY SR
 ; original imports the variadic one; only a hand-built long-form import
 ; object could close that, not a .def.
 EXPORTS
+    ?vp@srVectorProcessor@@0PAVsrVP@@A
     ??4srModelInstance@@QAEAAV0@ABV0@@Z
     ??0srFog@@QAE@PAVsrNode@@@Z
     ??1srFog@@UAE@XZ
@@ -19,6 +20,13 @@ EXPORTS
     ?process@srFog@@UAEXAAVsrVertexPipe@@@Z
     ?vInstance@srFog@@UAEPAVsrClass@@XZ
     ?verify@srFog@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ??0srClipPlane@@QAE@PAVsrNode@@@Z
+    ??1srClipPlane@@UAE@XZ
+    ??4srClipPlane@@QAEAAV0@ABV0@@Z
+    ?dump@srClipPlane@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?process@srClipPlane@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?traverse@srClipPlane@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?vInstance@srClipPlane@@UAEPAVsrClass@@XZ
     ??0srTimer@@QAE@HHH@Z
     ??1srTimer@@UAE@XZ
     ?getAscTime@srTimer@@UAEPADPADW4e_timerReadControl@1@@Z
@@ -361,6 +369,32 @@ EXPORTS
     ?setSwapInterval@srGERD@@QAEXK@Z
     ?popPick@srGERD@@QAEXAAUPick@1@@Z
     ?pushPick@srGERD@@QAEXABUPick@1@@Z
+    ?pushEnable@srGERD@@QAEXXZ
+    ?popEnable@srGERD@@QAEXXZ
+    ?setPickKey@srGERD@@QAEXK@Z
+    ?getMatrix@srGERD@@QAEXW4e_matrixMode@1@AAV?$srMatrix4T@M@@@Z
+    ?getEyeSpaceBounds@srGERD@@QAEXAAV?$srVector3T@M@@AAMABV2@M@Z
+    ?getInverseModelViewMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
+    ?getClipPlanes@srGERD@@QAEXAAUClipPlanes@1@@Z
+    ?getProjectClipNearMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
+    ?getNormalMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
+    ?getModelViewScaleType@srGERD@@QAE?AW4e_scaleType@?$srMatrix4T@M@@XZ
+    ?getCullMode@srGERD@@QBE?AW4e_cullMode@1@XZ
+    ?getWinding@srGERD@@QBE?AW4e_winding@1@XZ
+    ?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ
+    ?unlockRenderer@srGERD@@QAEXPAVRenderer@1@H@Z
+    ?getVertexProcessorCount@srGERD@@QBEKXZ
+    ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
+    ?getAmbientLight@srGERD@@QAEXAAV?$srVector4T@M@@@Z
+    ?getEnvironmentRange@srGERD@@QBEXAAM0@Z
+    ?getEnvironmentScaleFactor@srGERD@@QAEXAAM0@Z
+    ?getExclusionMask@srGERD@@QBEKXZ
+    ?allocVertexArray@Renderer@srGERD@@QAEXAAUsrVertexArray@@K@Z
+    ?render@Renderer@srGERD@@QAEXABUTriInput@12@@Z
+    ?cull@srTriangleCuller@@SAHAAUOutput@1@ABUInput@1@@Z
+    ?getClipMask@srTriangleCuller@@SAKABV?$srVector3T@M@@MPBV?$srVector4T@M@@KAAM@Z
+    ?testBoundingSphere@srGERD@@QAE?AW4e_visibility@1@ABV?$srVector3T@M@@M@Z
+    ?testBoundingBox@srGERD@@QAE?AW4e_visibility@1@ABV?$srVector3T@M@@0@Z
     ?setLocation@srNode@@QAEXNNN@Z
     ?getLocation@srNode@@QBE?AV?$srVector3T@N@@XZ
     ?setRotation@srNode@@QAEXNNN@Z

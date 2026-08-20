@@ -32,7 +32,7 @@ W8AnimObj* CreateAnimObj004A01A0()
    itself is a fresh PList. The three trailing allocations are sized from the
    frame count, which comes from the third mesh entry unless flag_05 says to use
    value_16 instead; +0x40 is one byte a frame and the other two a
-   W8PathVector3 each. */
+   srVector3T<float> each. */
 // FUNCTION: WIZ8 0x004a0320
 W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
 {
@@ -69,22 +69,22 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
     }
     for (index = 0; index < 3; ++index) {
         if (source->meshes_28[index] != 0) {
-            copy->meshes_28[index] = PListCreate();
-            count = (int)PListGetCount(source->meshes_28[index]);
+            copy->meshes_28[index] = PLCreate();
+            count = (int)PLLength(source->meshes_28[index]);
             for (entry = 0; entry < count; ++entry) {
-                PListAdd(copy->meshes_28[index],
-                         CopyAniMesh004B58D0((W8AniMesh*)PListGetAt(
+                PLAdoptAppend(copy->meshes_28[index],
+                         CopyAniMesh004B58D0((W8AniMesh*)PLGet(
                              source->meshes_28[index], entry)));
             }
         }
     }
     for (index = 0; index < 3; ++index) {
         if (source->paths_34[index] != 0) {
-            copy->paths_34[index] = PListCreate();
-            count = (int)PListGetCount(source->paths_34[index]);
+            copy->paths_34[index] = PLCreate();
+            count = (int)PLLength(source->paths_34[index]);
             for (entry = 0; entry < count; ++entry) {
-                PListAdd(copy->paths_34[index],
-                         ClonePathAI004A98C0((W8PathAI*)PListGetAt(
+                PLAdoptAppend(copy->paths_34[index],
+                         ClonePathAI004A98C0((W8PathAI*)PLGet(
                              source->paths_34[index], entry)));
             }
         }
@@ -165,7 +165,7 @@ unsigned char AnimObjGetBounds004A1710(
             mesh = animation->entries_18[list_index];
         }
         else {
-            mesh = (W8AniMesh*)PListGetAt(
+            mesh = (W8AniMesh*)PLGet(
                 animation->meshes_28[list_index], frame & 0xff);
         }
         return GetAniMeshBounds004B6640(mesh, minimum, maximum);
@@ -210,18 +210,18 @@ unsigned char AnimObjGetBounds004A1710(
         count = 0;
     }
     else {
-        count = PListGetCount(animation->meshes_28[list_index]);
+        count = PLLength(animation->meshes_28[list_index]);
     }
-    if (PListGetAt(animation->meshes_28[list_index], 0) == 0) {
+    if (PLGet(animation->meshes_28[list_index], 0) == 0) {
         return 0;
     }
     GetAniMeshBounds004B6640(
-        (W8AniMesh*)PListGetAt(animation->meshes_28[list_index], 0),
+        (W8AniMesh*)PLGet(animation->meshes_28[list_index], 0),
         minimum, maximum);
     for (index = 0; (unsigned int)index < count; ++index) {
         if (index != 0) {
             GetAniMeshBounds004B6640(
-                (W8AniMesh*)PListGetAt(
+                (W8AniMesh*)PLGet(
                     animation->meshes_28[list_index], index),
                 &mesh_minimum, &mesh_maximum);
         }
@@ -230,7 +230,7 @@ unsigned char AnimObjGetBounds004A1710(
         }
         if (animation->flag_05 == 1 &&
             animation->meshes_28[list_index] != 0 &&
-            (mesh = (W8AniMesh*)PListGetAt(
+            (mesh = (W8AniMesh*)PLGet(
                  animation->meshes_28[list_index],
                  (signed char)index)) != 0) {
             mesh->list_index_28 = list_index;
@@ -243,7 +243,7 @@ unsigned char AnimObjGetBounds004A1710(
             srAssertFail("pao", ANIM_OBJ_CPP, 0x2d3, 0);
         }
         if (animation->flag_05 != 0 &&
-            (path = (W8PathAI*)PListGetAt(
+            (path = (W8PathAI*)PLGet(
                  animation->paths_34[list_index],
                  (signed char)index)) != 0) {
             float saved = PathAIGetValue004A9E70(path);
@@ -398,30 +398,30 @@ void DestroyAnimObj004A01E0(W8AnimObj* animation)
             W8PList* paths;
 
             if (meshes != 0) {
-                count = (int)PListGetCount(meshes);
+                count = (int)PLLength(meshes);
                 for (entry = 0; entry < count; ++entry) {
                     W8AniMesh* mesh =
-                        (W8AniMesh*)PListGetAt(meshes, entry);
+                        (W8AniMesh*)PLGet(meshes, entry);
 
                     if (mesh != 0) {
                         DestroyAniMesh004B5880(mesh);
                     }
-                    count = (int)PListGetCount(meshes);
+                    count = (int)PLLength(meshes);
                 }
-                PListDestroy(meshes);
+                PLDestroy(meshes);
             }
             paths = animation->paths_34[index];
             if (paths != 0) {
-                count = (int)PListGetCount(paths);
+                count = (int)PLLength(paths);
                 for (entry = 0; entry < count; ++entry) {
-                    W8PathAI* path = (W8PathAI*)PListGetAt(paths, entry);
+                    W8PathAI* path = (W8PathAI*)PLGet(paths, entry);
 
                     if (path != 0) {
                         DestroyPathAI004A9810(path);
                     }
-                    count = (int)PListGetCount(paths);
+                    count = (int)PLLength(paths);
                 }
-                PListDestroy(paths);
+                PLDestroy(paths);
             }
         }
     }
@@ -458,7 +458,7 @@ unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index)
     }
     list = animation->meshes_28[index];
     if (list != 0) {
-        return PListGetCount(list);
+        return PLLength(list);
     }
     return 0;
 }
@@ -473,7 +473,7 @@ void* AnimObjListEntry004A16C0(
     if (animation->flag_05 == 0) {
         return 0;
     }
-    return PListGetAt(animation->paths_34[list_index], entry_index);
+    return PLGet(animation->paths_34[list_index], entry_index);
 }
 
 // FUNCTION: WIZ8 0x004a1dc0
@@ -502,7 +502,7 @@ srModelInstance* AnimObjDispatch004A14D0(
         }
     }
     else {
-        entry = (W8AniMesh*)PListGetAt(animation->meshes_28[list_index], 0);
+        entry = (W8AniMesh*)PLGet(animation->meshes_28[list_index], 0);
         if (entry != 0) {
             entry->list_index_28 = list_index;
             return GetAniMeshFrame004B6550(entry, value);
@@ -524,7 +524,7 @@ srModelInstance* AnimObjDispatchList004A1560(
     if (animation->flag_05 == 1) {
         list = animation->meshes_28[list_index];
         if (list != 0) {
-            entry = (W8AniMesh*)PListGetAt(list, entry_index);
+            entry = (W8AniMesh*)PLGet(list, entry_index);
             if (entry != 0) {
                 entry->list_index_28 = list_index;
                 return GetAniMeshFrame004B6550(entry, 0);
@@ -544,5 +544,5 @@ void* AnimObjEntry004A1660(
     if (animation->flag_05 == 0) {
         return animation->entries_18[list_index];
     }
-    return PListGetAt(animation->meshes_28[list_index], entry_index & 0xff);
+    return PLGet(animation->meshes_28[list_index], entry_index & 0xff);
 }

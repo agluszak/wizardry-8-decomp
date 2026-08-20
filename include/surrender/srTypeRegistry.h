@@ -7,6 +7,8 @@
 #include "srHeap.h"
 
 class srRuntimeClass;
+class srNode;
+class srColorSurfaceIFace;
 
 class srRegistry {
 public:
@@ -223,9 +225,27 @@ static_assert(sizeof(srClass) == 0x18, "srClass_must_be_0x18");
    derived from an existing registry class. */
 template <class Derived, class Base, bool RegistrationFlag, unsigned long ClassID>
 class srClassSupport : public Base {
+private:
+    /* VC6 has no partial class-template specialization. Overload resolution
+       still gives the primary template its evidenced Derived == Base case.
+       Base* reaches the typed overload only when both arguments name the same
+       class; otherwise it falls back to the ellipsis overload. The sizeof is
+       compile-time only, and /O2 removes the imported self-support class's
+       already-owned registry lifecycle. */
+    static char selfType(Derived*);
+    static long selfType(...);
+    enum { IsSelfType = sizeof(selfType(static_cast<Base*>(0))) == sizeof(char) };
+
 public:
     static srRegistry::ClassNode* sGetClassNode()
     {
+        /* A self-support instantiation reuses the canonical class's registry
+           body. Retail's emitted self-type functions contain that body once;
+           recursively registering the same ClassID a second time is absent. */
+        if (IsSelfType) {
+            return Base::sGetClassNode();
+        }
+
         srRegistry* registry = srCore.getRegistry();
         srRegistry::ClassNode* node = registry->getClassNode(ClassID);
 
@@ -252,24 +272,86 @@ public:
         return sGetClassNode();
     }
 
-protected:
+public:
+    /* Public because Wiz8 directly constructs the zero-argument self-support
+       instantiation over srMaterial; this is not only a base-class hook. */
     srClassSupport()
     {
-        srRegistry* registry = srCore.getRegistry();
-        registry->registerInstance(sGetClassNode(), this);
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->registerInstance(sGetClassNode(), this);
+        }
     }
 
-    explicit srClassSupport(Base* parent)
+public:
+    /* Scene-graph instantiations forward the canonical node parent to their
+       Base constructor. The previous Base* parameter was a guessed shape and
+       cannot express the client-side srClassSupport<srFog,srFog> construction
+       that calls the imported srFog(srNode*) constructor. */
+    explicit srClassSupport(srNode* parent)
         : Base(parent)
     {
-        srRegistry* registry = srCore.getRegistry();
-        registry->registerInstance(sGetClassNode(), this);
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->registerInstance(sGetClassNode(), this);
+        }
     }
 
+    /* Wiz8's client-side srTextureMap support construction calls the exported
+       srTextureMap(srColorSurfaceIFace*) constructor, then installs the
+       support instantiation's table. This is the canonical texture argument,
+       not a wrapper-only forwarding API. */
+    explicit srClassSupport(srColorSurfaceIFace* surface)
+        : Base(surface)
+    {
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->registerInstance(sGetClassNode(), this);
+        }
+    }
+
+    /* Client-emitted self-support constructions forward the canonical base
+       constructor before installing the instantiation's table. Keep these
+       forwarding forms on the primary template: the two-argument form is
+       emitted for srMeshModel, while srColorSurface uses the three- and
+       five-argument forms. */
+    template <class A0, class A1>
+    srClassSupport(A0 a0, A1 a1)
+        : Base(a0, a1)
+    {
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->registerInstance(sGetClassNode(), this);
+        }
+    }
+
+    template <class A0, class A1, class A2>
+    srClassSupport(A0 a0, A1 a1, A2 a2)
+        : Base(a0, a1, a2)
+    {
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->registerInstance(sGetClassNode(), this);
+        }
+    }
+
+    template <class A0, class A1, class A2, class A3, class A4>
+    srClassSupport(A0 a0, A1 a1, A2 a2, A3 a3, A4 a4)
+        : Base(a0, a1, a2, a3, a4)
+    {
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->registerInstance(sGetClassNode(), this);
+        }
+    }
+
+protected:
     virtual ~srClassSupport() override
     {
-        srRegistry* registry = srCore.getRegistry();
-        registry->unregisterInstance(sGetClassNode(), this);
+        if (!IsSelfType) {
+            srRegistry* registry = srCore.getRegistry();
+            registry->unregisterInstance(sGetClassNode(), this);
+        }
     }
 
 public:

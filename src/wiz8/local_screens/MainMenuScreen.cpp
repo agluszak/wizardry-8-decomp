@@ -8,6 +8,7 @@
 #include "Font.h"
 #include "himage.h"
 #include "sgp.h"
+#include "vsurface.h"
 
 #include <wchar.h>
 
@@ -51,8 +52,6 @@ extern unsigned short gfShiftState;
 extern void Function422B10(void);
 extern void Function40B290(void);
 extern unsigned char ClearPrimarySurface(void);
-extern unsigned char FillSurfaceRect(int id, int x, int y, int width, int height,
-                                     int colour);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function548F90(int id, int a, int b, int c, int d, int e, int f, int g);
 extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
@@ -328,7 +327,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     g_flag_69c4b6 = 1;
     ClearPrimarySurface();
     colour = Get16BPPColor(0x10101);
-    FillSurfaceRect(-14, 0, 0, 0x280, 0x1e0, colour);
+    ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
     SetViewport(0, 0, 0x280, 0x1e0);
     g_selected_item_0069c4b4 = 0;
     Function548F90(-14, 0xe8, 0, 0, 0, 0, 2, 0);

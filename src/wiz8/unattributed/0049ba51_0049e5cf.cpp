@@ -23,7 +23,6 @@ extern double g_double_005ebc70;
 extern unsigned char g_byte_0060bfdc;
 extern float g_monster_light_cycle_rate_005ecd4c;
 extern double g_monster_light_cycle_angle_005ec318;
-extern float g_monster_light_half_005ebc7c;
 }
 
 extern W8Object0043A910* g_object_6598bc;
@@ -120,20 +119,14 @@ void stLight::traverse(srNode::TraverseInfo& info)
         }
         else if (m_definition_234 != 0) {
             if (!testFlag(FLAG_POSITIONAL_2)) {
-                if (info.entries.capacity <= info.entry_count) {
-                    info.entries.setCapacity(
-                        info.entries.capacity + 8 + info.entry_count);
-                }
-                info.entries.data[info.entry_count].node = this;
-                info.entries.data[info.entry_count].value = 1;
+                srNode::TraverseInfo::Entry& entry =
+                    info.entries[info.entry_count];
+                entry.node = this;
+                entry.value = 1;
                 ++info.entry_count;
             }
             else {
-                if (info.nodes.capacity <= info.node_count) {
-                    info.nodes.setCapacity(
-                        info.nodes.capacity + 8 + info.node_count);
-                }
-                info.nodes.data[info.node_count] = this;
+                info.nodes[info.node_count] = this;
                 ++info.node_count;
             }
 
@@ -142,12 +135,10 @@ void stLight::traverse(srNode::TraverseInfo& info)
             }
 
             if (!testFlag(FLAG_POSITIONAL_2)) {
-                if (info.entries.capacity <= info.entry_count) {
-                    info.entries.setCapacity(
-                        info.entries.capacity + 8 + info.entry_count);
-                }
-                info.entries.data[info.entry_count].node = this;
-                info.entries.data[info.entry_count].value = 2;
+                srNode::TraverseInfo::Entry& entry =
+                    info.entries[info.entry_count];
+                entry.node = this;
+                entry.value = 2;
                 ++info.entry_count;
             }
         }
@@ -222,7 +213,7 @@ void MonsterLight::SetVisible0049D970(char visible)
 }
 
 // FUNCTION: WIZ8 0x0049D990
-void MonsterLight::Update0049D990(const W8Position* position)
+void MonsterLight::Update0049D990(const srVector3T<float>* position)
 {
     float elapsed = g_object_6598bc->GetValue30() - m_start_time_244;
 
@@ -239,7 +230,7 @@ void MonsterLight::Update0049D990(const W8Position* position)
         float first_weight = (float)(
             sin(((double)cycle - whole) * g_monster_light_cycle_angle_005ec318)
             + g_float_005ebb38) *
-            g_monster_light_half_005ebc7c;
+            g_float_005ebc7c;
         float second_weight =
             g_float_005ebb38 - first_weight;
 

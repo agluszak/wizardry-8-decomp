@@ -10,10 +10,29 @@
 #include <new>
 #include <string.h>
 
+// VTABLE: WIZ8 0x005ec89c srClassSupport<srModelInstance, class srNode, 0, 4352>
+// VTABLE: WIZ8 0x005ec88c srModel::Client
+// class srClassSupport<stModelInstance2D, class srModelInstance, 0, 65541>
+
 // SYNTHETIC: WIZ8 0x0047F260
 // stModelInstance2D::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00481C50
-// W8ModelInstance2DRegistry005EC89C::`scalar deleting destructor'
+// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00481A40
+// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassID
+
+// TEMPLATE: WIZ8 0x00481A50
+// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassName
+
+// TEMPLATE: WIZ8 0x00481A60
+// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassNode
+
+// TEMPLATE: WIZ8 0x00481B00
+// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::clone
+
+// TEMPLATE: WIZ8 0x00481B20
+// srClassSupport<stModelInstance2D,srModelInstance,0,65541>::~srClassSupport<stModelInstance2D,srModelInstance,0,65541>
 
 /*
  * Engine Code\stModelInstance.cpp.
@@ -205,18 +224,6 @@ unsigned long stModelInstance::getClassID() const
     return 0x10004;
 }
 
-// FUNCTION: WIZ8 0x00481a50
-const char* W8ModelInstance2DRegistry005EC89C::getClassName() const
-{
-    return "stModelInstance2D";
-}
-
-// FUNCTION: WIZ8 0x00481a40
-unsigned long W8ModelInstance2DRegistry005EC89C::getClassID() const
-{
-    return 0x10005;
-}
-
 /* Three-level registry builder: the class registers under srModelInstance,
    which registers under srNode, which registers under srClass. Only srNode
    supplies its name through a static getter; the two below it are literals,
@@ -281,64 +288,6 @@ stModelInstance::~stModelInstance()
     registry->unregisterInstance(node, this);
 }
 
-/* The 2D form takes the identical chain: both model-instance classes hang off
-   srModelInstance, which is what pairs them beyond their adjacent ids. */
-// FUNCTION: WIZ8 0x00481a60
-srRegistry::ClassNode* W8ModelInstance2DRegistry005EC89C::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10005);
-
-    if (!node) {
-        srRegistry* instance_registry = srCore.getRegistry();
-        srRegistry::ClassNode* instance = instance_registry->getClassNode(0x1100);
-
-        if (!instance) {
-            srRegistry* node_registry = srCore.getRegistry();
-            srRegistry::ClassNode* base = node_registry->getClassNode(0x1000);
-
-            if (!base) {
-                base = node_registry->registerClass(
-                    srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-            }
-            instance = instance_registry->registerClass(
-                "srModelInstance", base, 0x1100, 0);
-        }
-        node = registry->registerClass("stModelInstance2D", instance, 0x10005, 0);
-    }
-    return node;
-}
-
-// FUNCTION: WIZ8 0x00481B20
-W8ModelInstance2DRegistry005EC89C::~W8ModelInstance2DRegistry005EC89C()
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x10005);
-
-    if (node == 0) {
-        srRegistry* instance_registry = srCore.getRegistry();
-
-        node = instance_registry->getClassNode(0x1100);
-        if (node == 0) {
-            srRegistry* node_registry = srCore.getRegistry();
-
-            node = node_registry->getClassNode(0x1000);
-            if (node == 0) {
-                node = node_registry->registerClass(
-                    srNode::sGetClassName(),
-                    srClass::sGetClassNode(),
-                    0x1000,
-                    1);
-            }
-            node = instance_registry->registerClass(
-                "srModelInstance", node, 0x1100, 0);
-        }
-        node = registry->registerClass(
-            "stModelInstance2D", node, 0x10005, 0);
-    }
-    registry->unregisterInstance(node, this);
-}
-
 // FUNCTION: WIZ8 0x0047F410
 stModelInstance2D::~stModelInstance2D()
 {
@@ -396,13 +345,8 @@ srClass* stModelInstance2D::vInstance()
     return new stModelInstance2D(0);
 }
 
-// FUNCTION: WIZ8 0x00481B00
-srClass* stModelInstance2D::clone()
-{
-    stModelInstance2D* copy = static_cast<stModelInstance2D*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x00481C80
+// srArray<srNode::TraverseInfo::Entry>::setCapacity
 
 /* Shared parent class-node builder used by the inlined stModelInstance
    construction layer. */
@@ -428,6 +372,12 @@ srRegistry::ClassNode* GetSrModelInstanceClassNode00481D00()
     }
     return node;
 }
+
+// TEMPLATE: WIZ8 0x00481D70
+// srArray<srTriMeshPipeline::Record>::operator[]
+
+// TEMPLATE: WIZ8 0x00481DA0
+// srArray<srTriMeshPipeline::Pass>::operator[]
 
 // SYNTHETIC: WIZ8 0x0047EDC0
 // stModelInstance005EC7D0::`scalar deleting destructor'

@@ -2,7 +2,6 @@
 
 #include "surrender/srTexture.h"
 
-class W8ColorSurface;
 class stTextureFile;
 
 /* Wizardry's virtual-file-backed texture. The method names are corroborated
@@ -41,12 +40,12 @@ private:
         DEFAULTS_PENDING = 0x02
     };
 
-    W8ColorSurface* LoadSurface0047C090(
+    srColorSurface* LoadSurface0047C090(
         int handle, int* image_type);
 
     int cached_54;
     char* file_name_58;
-    W8ColorSurface* surface_5c;
+    srColorSurface* surface_5c;
     unsigned long frame_handle_60;
     unsigned char has_alpha_64;
     unsigned char padding_65[3];

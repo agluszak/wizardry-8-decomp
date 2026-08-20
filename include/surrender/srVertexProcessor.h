@@ -8,6 +8,22 @@ class srMaterialIFace;
 class srShader;
 class srVertexPipe;
 
+/* Exact exported renderer APIs pass this 0x20-byte value by reference, and
+   srTriMeshPipeline's array instantiation advances by the same 0x20 stride. */
+struct srVertexArray {
+    srVector4T<float>* values_00;
+    srVector4T<float>* values_04;
+    srVector4T<float>* values_08;
+    srVector2T<float>* values_0c;
+    srVector2T<float>* values_10;
+    float* values_14;
+    float* values_18;
+    unsigned char* values_1c;
+};
+
+static_assert(sizeof(srVertexArray) == 0x20,
+              "srVertexArray_must_be_0x20");
+
 /* SR.DLL exports secondary vtables qualified as srVertexProcessor for
    srIlluminator, srFog and srLight. Each has exactly three slots: a destructor,
    isActive and process. Wiz8's concrete fog allocation proves that this base
@@ -17,6 +33,9 @@ class srVertexPipe;
 class srVertexProcessor {
 public:
     struct MaterialInfo {
+// FUNCTION: WIZ8 0x00424A80
+        inline MaterialInfo() : flags(0) {}
+
         srVector4T<float> diffuse;           /* 0x00 */
         srVector4T<float> ambient;           /* 0x10 */
         srVector4T<float> specular;          /* 0x20 */
@@ -70,7 +89,28 @@ static_assert(
 
 class srVertexPipe {
 public:
-    struct Input;
+    struct Input {
+        unsigned long record_count_00;
+        unsigned long vertex_count_04;
+        const unsigned long* indices_08;
+        int position_is_float3_0c;
+        const srVector3T<float>* positions_10;
+        const void* values_14;
+        srVector3T<float> eye_center_18;
+        float eye_radius_24;
+        const srMatrix4T<float>* model_view_28;
+        const srMatrix4T<float>* normal_matrix_2c;
+        srVertexArray* vertex_arrays_30;
+        unsigned long exclusion_mask_34;
+        srVector4T<float> ambient_light_38;
+        const void* records_48;
+        srVertexProcessor** processors_4c;
+        unsigned long processor_count_50;
+        float environment_minimum_54;
+        float environment_maximum_58;
+        float environment_scale_5c;
+        float environment_inverse_scale_60;
+    };
 
     SR_DLL_IMPORT srVertexPipe();
     SR_DLL_IMPORT ~srVertexPipe();
@@ -144,3 +184,5 @@ private:
 };
 
 static_assert(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
+static_assert(sizeof(srVertexPipe::Input) == 0x64,
+              "srVertexPipe_Input_must_be_0x64");

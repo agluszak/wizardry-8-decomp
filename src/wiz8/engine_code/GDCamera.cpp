@@ -1,7 +1,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 
 #include "surrender/srNode.h"
-#include "wiz8/engine_code/Camera.h"
+#include "surrender/srScene.h"
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/float_constants.h"
@@ -15,11 +15,9 @@ extern const double g_camera_view_factor_005ec300;
 extern const double g_camera_view_factor_005ec538;
 extern const double g_camera_view_factor_005ec568;
 extern const float g_zero_005ebb34;
-extern const double g_zero_005ebb40;
 extern const float g_negative_one_005ebc38;
 extern const float g_camera_snap_epsilon_005ebc2c;
 extern const float g_camera_transition_epsilon_005ebc84;
-extern const float g_camera_angle_period_005ec014;
 extern const float g_camera_angle_period_005ec54c;
 extern const float g_camera_angle_lower_005ec548;
 extern const float g_camera_pitch_upper_005ec550;
@@ -36,7 +34,6 @@ extern const float g_camera_negative_input_deceleration_005ec58c;
 extern const float g_camera_velocity_stop_scale_005ec588;
 extern const float g_camera_negative_velocity_epsilon_005ec594;
 extern const float g_camera_velocity_factor_005ec55c;
-extern const float g_camera_step_factor_005ebc7c;
 extern const double g_camera_pi_005ec2a0;
 extern const float g_camera_horizontal_margin_005ec574;
 extern const float g_camera_vertical_margin_005ec570;
@@ -49,9 +46,12 @@ extern unsigned char g_flag_00683f97;
 extern unsigned char g_flag_006875a5;
 extern "C" void MarkRendererReady(void);
 extern float Function4BE420(
-    const W8Position* from, const W8Position* to);
+    const srVector3T<float>* from, const srVector3T<float>* to);
 extern float Function4BE490(
-    const W8Position* from, const W8Position* to);
+    const srVector3T<float>* from, const srVector3T<float>* to);
+
+// GLOBAL: WIZ8 0x0065A0FC
+srCamera* g_game_camera_65a0fc;
 
 // FUNCTION: WIZ8 0x00476140
 GDCamera::GDCamera()
@@ -131,13 +131,14 @@ GDCamera::GDCamera()
    updates a caller-provided camera. Both paths finish by applying the game
    camera owner's current rotation. */
 // FUNCTION: WIZ8 0x00476440
-W8Camera* GDCamera::CreateOrAttachCamera(
-    srNode* parent, W8Camera* camera)
+srCamera* GDCamera::CreateOrAttachCamera(
+    srNode* parent, srCamera* camera)
 {
     if (parent != 0) {
         srVector3T<double> position;
 
-        g_game_camera_65a0fc = new W8Camera(parent);
+        g_game_camera_65a0fc =
+            new srClassSupport<srCamera, srCamera, false, 0x1400>(parent);
         g_game_camera_65a0fc->setName("Sirtech Camera");
         position.x = m_position_08c.x;
         position.y = m_position_08c.y;
@@ -232,7 +233,7 @@ void GDCamera::ApplyRotationMatrix(
 }
 
 // FUNCTION: WIZ8 0x00476950
-void GDCamera::SnapToTarget(const W8Position* target)
+void GDCamera::SnapToTarget(const srVector3T<float>* target)
 {
     if (g_flag_00683f97 == 0) {
         if ((m_positional_000 & 1) != 0) {
@@ -335,7 +336,7 @@ void GDCamera::SetOrientationImmediate(float pitch, float angle)
 
 // FUNCTION: WIZ8 0x00476F90
 unsigned char GDCamera::LookAt(
-    const W8Position* target, unsigned char preserve_pitch)
+    const srVector3T<float>* target, unsigned char preserve_pitch)
 {
     if (g_flag_00683f97 == 0) {
         if ((m_positional_000 & 1) != 0) {
@@ -394,13 +395,13 @@ unsigned char GDCamera::LookAt(
 
 // FUNCTION: WIZ8 0x00477180
 unsigned char GDCamera::ComputeTrackingOrientation(
-    const W8Position* target, float* angle, float* pitch)
+    const srVector3T<float>* target, float* angle, float* pitch)
 {
     float lower_margin = -g_camera_vertical_margin_005ec570;
     if (g_level_block->camera_mode_100 == 1
         || g_level_block->camera_mode_100 == 2) {
         lower_margin =
-            -g_camera_vertical_margin_005ec570 * g_camera_step_factor_005ebc7c;
+            -g_camera_vertical_margin_005ec570 * g_float_005ebc7c;
     }
 
     float angle_delta =
@@ -434,18 +435,18 @@ unsigned char GDCamera::ComputeTrackingOrientation(
             > g_camera_horizontal_margin_005ec574) {
             float correction =
                 g_camera_horizontal_margin_005ec574
-                * g_camera_step_factor_005ebc7c;
+                * g_float_005ebc7c;
             angle_delta += angle_delta >= 0.0f ? -correction : correction;
         }
         if (pitch_delta < g_camera_vertical_margin_005ec570) {
             float correction =
                 g_camera_vertical_margin_005ec570
-                * g_camera_step_factor_005ebc7c;
+                * g_float_005ebc7c;
             pitch_delta += pitch_delta >= 0.0f ? -correction : correction;
         }
         if (pitch_delta > lower_margin) {
             float correction =
-                -lower_margin * g_camera_step_factor_005ebc7c;
+                -lower_margin * g_float_005ebc7c;
             pitch_delta += pitch_delta >= 0.0f ? -correction : correction;
         }
 
@@ -758,7 +759,7 @@ void GDCamera::ApplyPitchInput(float input)
     float stopping_distance =
         m_pitch_velocity_0ac * g_camera_velocity_stop_scale_005ec588
         * g_camera_velocity_factor_005ec55c * m_pitch_velocity_0ac
-        * g_camera_step_factor_005ebc7c;
+        * g_float_005ebc7c;
     if (m_pitch_velocity_0ac < g_zero_005ebb34) {
         stopping_distance = -stopping_distance;
     }
@@ -803,7 +804,7 @@ void GDCamera::BrakePitchAtLimit()
             * m_pitch_velocity_0ac;
         m_pitch +=
             (next_velocity + m_pitch_velocity_0ac) * m_frame_elapsed
-            * g_camera_step_factor_005ebc7c;
+            * g_float_005ebc7c;
         m_pitch_velocity_0ac = next_velocity;
     } else {
         if (m_pitch < g_zero_005ebb34) {
@@ -850,7 +851,7 @@ void GDCamera::SetPitch(float pitch)
         rotation[2].y = sine;
         rotation[2].z = cosine;
 
-        W8CameraMatrixRow004D6930 result[3];
+        srVector3T<float> result[3];
         float* result_values = &result[0].x;
         const float* rotation_values = &rotation[0].x;
         for (int index = 0; index != 3; ++index) {
@@ -961,7 +962,7 @@ void GDCamera::GetRotationMatrix(srMatrix3T<float>* output)
     srMatrix3T<float>* composed = &m_rotation;
     *composed = m_yaw_rotation;
     const float* right_values = &m_pitch_rotation.vectors[0].x;
-    W8CameraMatrixRow004D6930 result[3];
+    srVector3T<float> result[3];
     float* result_values = &result[0].x;
     const float* left_values = &composed->vectors[0].x;
     for (int index = 0; index != 3; ++index) {
@@ -998,7 +999,7 @@ void GDCamera::BeginLeveling()
 }
 
 // FUNCTION: WIZ8 0x00478CE0
-void GDCamera::GetForwardPoint(float distance, W8Position* output)
+void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 {
     m_rotation = m_yaw_rotation;
     m_rotation.method_00421A40(m_pitch_rotation);
@@ -1046,31 +1047,5 @@ void GDCamera::SetManualControlActive(unsigned char enabled)
     m_positional_000 &= ~1UL;
 }
 
-// FUNCTION: WIZ8 0x00478EB0
-srMatrix3T<float>* srMatrix3T<float>::method_00478EB0(
-    double sine, double cosine)
-{
-    W8CameraMatrixRow004D6930 basis[3];
-    srMatrix3T<float> rotation;
-
-    basis[0].x = 1.0f;
-    basis[0].y = 0.0f;
-    basis[0].z = 0.0f;
-    basis[1].x = 0.0f;
-    basis[1].y = (float)cosine;
-    basis[1].z = -(float)sine;
-    basis[2].x = 0.0f;
-    basis[2].y = (float)sine;
-    basis[2].z = (float)cosine;
-    rotation.vectors[0].x = basis[0].x;
-    rotation.vectors[0].y = basis[0].y;
-    rotation.vectors[0].z = basis[0].z;
-    rotation.vectors[1].x = basis[1].x;
-    rotation.vectors[1].y = basis[1].y;
-    rotation.vectors[1].z = basis[1].z;
-    rotation.vectors[2].x = basis[2].x;
-    rotation.vectors[2].y = basis[2].y;
-    rotation.vectors[2].z = basis[2].z;
-    method_00421A40(rotation);
-    return this;
-}
+// TEMPLATE: WIZ8 0x00478EB0
+// srMatrix3T<float>::method_00478EB0

@@ -113,64 +113,20 @@ public:
 static_assert(sizeof(stModelInstance005EC7D0) == 0x1b0,
               "stModelInstance005EC7D0_size_must_be_0x1b0");
 
-/* The destructor-phase table at 0x005EC89C is the no-storage registry layer
-   between imported srModelInstance and the concrete 2D implementation. Its
-   methods all present the public runtime identity stModelInstance2D. */
-// VTABLE: WIZ8 0x005ec89c stModelInstance2D registry base
-// VTABLE: WIZ8 0x005ec88c srModel::Client
-class W8ModelInstance2DRegistry005EC89C : public srModelInstance {
-public:
-    explicit W8ModelInstance2DRegistry005EC89C(srNode* parent)
-        : srModelInstance(parent)
-    {
-        srRegistry* registry = srCore.getRegistry();
-        srRegistry::ClassNode* node = registry->getClassNode(0x10005);
-
-        if (node == 0) {
-            srRegistry* instance_registry = srCore.getRegistry();
-
-            node = instance_registry->getClassNode(0x1100);
-            if (node == 0) {
-                srRegistry* node_registry = srCore.getRegistry();
-
-                node = node_registry->getClassNode(0x1000);
-                if (node == 0) {
-                    node = node_registry->registerClass(
-                        srNode::sGetClassName(),
-                        srClass::sGetClassNode(),
-                        0x1000,
-                        1);
-                }
-                node = instance_registry->registerClass(
-                    "srModelInstance", node, 0x1100, 0);
-            }
-            node = registry->registerClass(
-                "stModelInstance2D", node, 0x10005, 0);
-        }
-        registry->registerInstance(node, this);
-    }
-
-    const char* getClassName() const override;     /* 0x00481A50 */
-    unsigned long getClassID() const override;     /* 0x00481A40 */
-    srRegistry::ClassNode* getClassNode() const override; /* 0x00481A60 */
-
-protected:
-    virtual ~W8ModelInstance2DRegistry005EC89C() override; /* 0x00481B20 */
-};
-
-static_assert(sizeof(W8ModelInstance2DRegistry005EC89C) == 0x160,
-              "W8ModelInstance2DRegistry005EC89C_must_be_0x160");
-
 /* Concrete 2D model instance. Slot 5 and the secondary slot-0 adjustor are
    SYNTHETIC compiler-generated deleting destructors; no source body owns
    either address. */
-// VTABLE: WIZ8 0x005ec858 stModelInstance2D
+// VTABLE: WIZ8 0x005ec858 srClassSupport<srModelInstance, class srNode, 0, 4352>
 // VTABLE: WIZ8 0x005ec848 srModel::Client
-class stModelInstance2D : public W8ModelInstance2DRegistry005EC89C {
+class stModelInstance2D
+    : public srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005> {
 public:
+    static const char* sGetClassName() { return "stModelInstance2D"; }
+
     // FUNCTION: WIZ8 0x0047F0F0
     explicit stModelInstance2D(srNode* parent)
-        : W8ModelInstance2DRegistry005EC89C(0)
+        : srClassSupport<stModelInstance2D, srModelInstance, false, 0x10005>(
+              static_cast<srNode*>(0))
     {
         state_170 = 0;
         left_168 = 0;
@@ -192,7 +148,6 @@ public:
     void SetModel0047F3A0(srModel* model);              /* 0x0047F3A0 */
 
     srClass* vInstance() override;                 /* 0x00481E30 */
-    srClass* clone() override;                      /* 0x00481B00 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
 
     unsigned char displayState() const { return state_170; }

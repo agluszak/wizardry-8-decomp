@@ -127,8 +127,8 @@ recovered function that appears to need a `try`/`catch` has been misread.
    returning call and every site falls through into the guarded code, which is load-bearing for
    byte-exact ports. `GetMonsterDataByID` asserts its index and then indexes anyway; port the
    fall-through, never an abort.
-2. **Null and sentinel returns, checked defensively at the container boundary.** `PListGetCount`
-   (13 bytes, 609 call sites) maps a null list to 0; `PListGetAt` (26 bytes, 178 sites) maps null
+2. **Null and sentinel returns, checked defensively at the container boundary.** `PLLength`
+   (13 bytes, 572 direct callers) maps a null list to 0; `PLGet` (26 bytes, 178 sites) maps null
    or out-of-range to 0; `PListIndexOf` returns `BAD_INDEX`, which the byte-proven Targeting pair
    pins to `-1`. Callers routinely pass unvalidated indices and test the result — that is the
    idiom, not a bug, and the ported PList accessors reproduce it.

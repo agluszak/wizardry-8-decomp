@@ -8,11 +8,11 @@
 /* 3D Code\IList.cpp, the integer sibling of 3D Code\PList.cpp. Same shape -
    elements at +0x00, capacity at +0x04, count at +0x08, and free functions -
    but the elements are ints, which is why a failed lookup returns -1 where
-   PListGetAt returns null. Every assertion in the unit names the parameter
+   PLGet returns null. Every assertion in the unit names the parameter
    pls. */
 
 // FUNCTION: WIZ8 0x005e2900
-W8IList* IListCreate(void)
+W8IList* ILCreate(void)
 {
     W8IList* pls;
     int* data;
@@ -67,7 +67,7 @@ unsigned char IListInit(W8IList* pls)
 }
 
 // FUNCTION: WIZ8 0x005e2a00
-unsigned char IListDestroy(W8IList* pls)
+unsigned char ILDestroy(W8IList* pls)
 {
     /* The 0x9a assertion is IListFreeData's, inlined here; VC6 merges the two
        null tests into one. */
@@ -158,6 +158,15 @@ int IListRemove(W8IList* pls, int value)
         }
     }
     return -1;
+}
+
+// FUNCTION: WIZ8 0x005e2c70
+unsigned int ILLength(W8IList* pls)
+{
+    if (!pls) {
+        return 0;
+    }
+    return pls->count;
 }
 
 // FUNCTION: WIZ8 0x005e2c80

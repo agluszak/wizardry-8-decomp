@@ -6,7 +6,6 @@
 #include "wiz8/grcycle.h"
 
 struct W8World;
-struct W8Position;
 class Trigger;
 
 /* Engine Code\Item.cpp. The assertion expressions establish the original
@@ -31,7 +30,7 @@ struct W8Item : public W8GrObject {
     void DetachMesh0049FA30(W8World* world);
     void ApplyRepTransform0049FAA0();
     void Function49F900(W8World* world);
-    void Function49F720(const W8Position* location);
+    void Function49F720(const srVector3T<float>* location);
     srNode* GetMesh();
 };
 

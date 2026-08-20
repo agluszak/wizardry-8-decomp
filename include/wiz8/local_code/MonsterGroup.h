@@ -9,10 +9,6 @@ struct W8IList;
 /* The stride is the record LoadMonsterGroup allocates, zeroes and reads whole,
    and which its own assertion spells sizeof(*pMonsterGroup). Only the fields
    that loader establishes are named; the rest stays opaque. */
-/* The group formation is the world-space home position copied onto each live
-   monster. Monster.cpp consumes the same twelve bytes as three floats. */
-typedef W8Position W8MonsterFormation;
-
 typedef struct W8MonsterGroup {
     int group_id;                         /* 0x00: GroupIndex ID lookup key */
     int member_count;                     /* 0x04: decremented when members leave */
@@ -21,7 +17,7 @@ typedef struct W8MonsterGroup {
     int active_member_count;              /* 0x14: recomputed from member conditions */
     int monster_id;                       /* 0x18 */
     /* 0x1c: the mean of the live members' positions, recomputed on demand. */
-    W8Position centre;
+    srVector3T<float> centre;
     unsigned char flag_28;                /* 0x28: cleared after the record loads */
     /* 0x29: fInCombat, named by the MonsterGroup.cpp:492 assertion. Cleared
        after the record loads and again when the group leaves combat. */
@@ -53,7 +49,7 @@ typedef struct W8MonsterGroup {
     /* 0xb7: copied verbatim onto every member's live Monster when the formation
        is re-applied. Unaligned inside this packed record, which is why the copy
        comes out as twelve byte moves rather than three dword ones. */
-    W8MonsterFormation formation;
+    srVector3T<float> formation;
     unsigned char flag_c3;                /* 0xc3: gates the trailing notification */
     /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
        byte, and below 3 it clears flag_ca that older saves never wrote. */
@@ -82,7 +78,7 @@ W8MonsterGroup* FindNextExistingMonsterByID(
 W8MonsterGroup* CreateGroup(
     unsigned int monster_id,
     unsigned int count,
-    const W8Position* position,
+    const srVector3T<float>* position,
     unsigned char flag_1,
     unsigned char flag_2,
     unsigned char flag_3);

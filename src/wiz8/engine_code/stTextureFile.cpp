@@ -2,7 +2,6 @@
 
 #include "FileMan.h"
 #include "surrender/srPalette.h"
-#include "wiz8/engine_code/ColorSurface.h"
 #include "wiz8/virtual_file.h"
 
 #include <string.h>

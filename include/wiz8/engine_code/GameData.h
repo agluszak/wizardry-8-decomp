@@ -12,15 +12,15 @@ struct W8LevelDataRecord {
     unsigned char unknown_04[0x10];
     float camera_scale_14;                /* 0x14 */
     unsigned char unknown_18[0x28];
-    W8Position vector_40;                 /* 0x40 */
-    W8Position camera_forward_4c;         /* 0x4c */
+    srVector3T<float> vector_40;                 /* 0x40 */
+    srVector3T<float> camera_forward_4c;         /* 0x4c */
     unsigned char unknown_58[0x0c];
-    W8Position vector_64;                 /* 0x64 */
-    W8Position vector_70;                 /* 0x70 */
-    W8Position scaled_camera_forward_7c;  /* 0x7c */
+    srVector3T<float> vector_64;                 /* 0x64 */
+    srVector3T<float> vector_70;                 /* 0x70 */
+    srVector3T<float> scaled_camera_forward_7c;  /* 0x7c */
     float vector_88[3];                   /* 0x88 */
     unsigned char unknown_94[0x0c];
-    W8Position vector_a0;                 /* 0xa0 */
+    srVector3T<float> vector_a0;                 /* 0xa0 */
 };
 
 #pragma pack(pop)

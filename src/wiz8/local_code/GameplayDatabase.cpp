@@ -1,5 +1,6 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/sr_api.h"
@@ -62,8 +63,6 @@ extern W8GameSettings g_settings_6850c8;
 extern "C" unsigned char g_flag_68edac;
 void SetPendingScreenState(int value);
 void RequestScreenTransition(void);
-unsigned char g_monster_slot_block[0x1a0a];
-extern W8MonsterSlot g_monster_slots_6836b8[];
 extern void EnableAllRenderOptions(void);
 extern void DisableRenderOption(int id);
 extern unsigned int GetTotalPhysicalMemory(void);
@@ -299,7 +298,7 @@ unsigned char InitializeNpcDatabase(void)
                 return 0;
             }
             if (entry_count > 0) {
-                g_npc_records[index].item_stock_rules = PListCreate();
+                g_npc_records[index].item_stock_rules = PLCreate();
                 for (entry = 0; entry < entry_count; ++entry) {
                     element = ::operator new(6);
                     if (!element) {
@@ -322,20 +321,12 @@ unsigned char InitializeNpcDatabase(void)
     return 1;
 }
 
-/* The general typed PList destructor deletes every element before releasing
-   the pointer array and the list itself. This is the six-byte NPC item-stock
-   specialization, not an NPC-specific lifecycle helper. */
-// TEMPLATE: WIZ8 0x0055ada0
-// PListDestructor
-template <>
-void PListDestructor<W8NpcItemStockRule>(W8PList* list)
-{
-    while (PListGetCount(list) != 0) {
-        delete static_cast<W8NpcItemStockRule*>(PListRemoveAt(list, 0));
-    }
-    PListFreeData(list);
-    PListDestroy(list);
-}
+/* Retail emits this owning-list teardown out of line here and expands the same
+   operation at the NPC-item sites.  The exact source boundary remains
+   unresolved; it is neither an authored specialization nor a W8PList member
+   destructor under the VC6 ABI. */
+// TEMPLATE: WIZ8 0x0055ADA0
+// unresolved owning PL teardown emission
 
 // FUNCTION: WIZ8 0x0054ac90
 void DestroyNpcDatabase(void)
@@ -345,7 +336,12 @@ void DestroyNpcDatabase(void)
     if (g_npc_records) {
         for (index = 0; index < g_npc_record_count; ++index) {
             if (g_npc_records[index].item_stock_rules) {
-                PListDestructor<W8NpcItemStockRule>(g_npc_records[index].item_stock_rules);
+                W8PList* rules = g_npc_records[index].item_stock_rules;
+                while (PLLength(rules) != 0) {
+                    delete static_cast<W8NpcItemStockRule*>(PLRemoveAt(rules, 0));
+                }
+                PListFreeData(rules);
+                PLDestroy(rules);
                 g_npc_records[index].item_stock_rules = 0;
             }
         }
@@ -774,10 +770,10 @@ void Function54B560(void)
 // FUNCTION: WIZ8 0x0054b300
 void Function54B300(unsigned int slot)
 {
-    W8MonsterSlot* record = &g_monster_slots_6836b8[slot];
+    W8MonsterManagerEntry* record = &g_monster_manager_state.entries[slot];
     int tier;
 
-    memset(record, 0, sizeof(W8MonsterSlot));
+    memset(static_cast<void*>(record), 0, sizeof(W8MonsterManagerEntry));
     record->field_000 = 0;
     record->field_001 = -1;
     record->field_075 = -1;
@@ -898,12 +894,12 @@ void W8StartupRuntimeState::ProcessNextPendingEntry()
 // FUNCTION: WIZ8 0x0052ced0
 void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
 {
-    W8MonsterSlot* slot;
+    W8MonsterManagerEntry* slot;
     int party_slot;
     unsigned char sound_was_active;
 
     party_slot = CharacterPointerToPartySlot(entry->character_04);
-    slot = &g_monster_slots_6836b8[party_slot];
+    slot = &g_monster_manager_state.entries[party_slot];
     sound_was_active = slot->field_000;
     slot->field_071 = 0;
     if (sound_was_active != 0) {
@@ -934,15 +930,17 @@ void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
     }
 }
 
-/* The block 0x0054AF30 and 0x0054B300 also work through; cleared here as bytes,
-   which is why it is reached by a second, byte-wide declaration. */
+/* The manager constructor establishes the non-trivial members inside this
+   object; this full-size clear deliberately wipes them along with the rest of
+   its runtime state. */
 W8StartupRuntimeState* g_startup_runtime_state;
 void* g_object_685067;
 
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
-    memset(g_monster_slot_block, 0, sizeof(g_monster_slot_block));
+    memset(static_cast<void*>(&g_monster_manager_state), 0,
+           sizeof(W8MonsterManagerState));
     g_startup_runtime_state = new W8StartupRuntimeState();
     g_object_685067 = new W8GameTimer(300.0f, 0);
 }

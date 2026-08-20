@@ -8,7 +8,7 @@
 
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/PathAI.h"
-#include "wiz8/engine_code/ClipPlane.h"
+#include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Environment.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Level.h"
@@ -16,7 +16,6 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/ReadLevel.h"
-#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/registry_classes.h"
@@ -53,7 +52,7 @@ struct W8LevelLightRecord004BBAD0 {
     unsigned char create;
     unsigned char visible;
     unsigned int flags;
-    W8Position location;
+    srVector3T<float> location;
     srVector3T<float> colour;
     float intensity;
     float range;
@@ -81,11 +80,11 @@ extern void FinalizeWorldTriggers00448840(void);
 extern void UpdateWorldProps0044E010(W8World* world);
 extern void UpdateCameraView00450080(srCamera* camera, int mode);
 extern void FinalizeWorldScenes0046F410(
-    W8Scene* static_scene, W8Node005EC208* dynamic_scene);
+    srScene* static_scene, srNode* dynamic_scene);
 extern void RefreshEnvironment00483560(void);
-extern void FinalizeStaticScene0046F3A0(W8Scene* scene);
+extern void FinalizeStaticScene0046F3A0(srScene* scene);
 extern unsigned char ReadWorldParticles004BD0D0(
-    W8ReadLevelInfo* info, W8Node005EC208* scene,
+    W8ReadLevelInfo* info, srNode* scene,
     W8GrowableVector<stParticle*>* particles);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 extern void SetChainValue15C(char* node, int value);
@@ -104,12 +103,12 @@ void AssociateWorldLights004BC060(W8World* world)
         if (definition != 0 && definition->type_04 == 1 &&
             (static_cast<stLightDefinition005ECDBC*>(definition)->flags_08 &
              1) != 0) {
-            int prop_count = PListGetCount(world->plsProps);
+            int prop_count = PLLength(world->plsProps);
             int prop_index;
 
             for (prop_index = 0; prop_index < prop_count; ++prop_index) {
                 W8Prop* prop = static_cast<W8Prop*>(
-                    PListGetAt(world->plsProps, prop_index));
+                    PLGet(world->plsProps, prop_index));
 
                 if (prop->m_name != 0 &&
                     _stricmp(prop->m_name, light->getName()) == 0) {
@@ -260,7 +259,7 @@ unsigned char ReadWorldEnvironment004BC9D0(
 {
     EnvironmentColour environment_colour;
     EnvironmentColour white;
-    W8Position position;
+    srVector3T<float> position;
     srVector3T<float> axis;
     srMatrix3T<float> rotation;
     float intensity;
@@ -366,11 +365,12 @@ unsigned char ReadWorldEnvironment004BC9D0(
 unsigned char ReadWorldClipPlanes004BCE20(
     W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
-    W8GrowableVector<W8ClipPlane005ED180*> clip_planes(5);
+    W8GrowableVector<
+        srClassSupport<srClipPlane, srClipPlane, false, 0x1500>*> clip_planes(5);
     srVector4T<float> plane;
     srVector4T<float> serialized_position;
     srVector3T<double> position;
-    W8ClipPlane005ED180* clip_plane;
+    srClassSupport<srClipPlane, srClipPlane, false, 0x1500>* clip_plane;
     char name[64];
     int count;
     int index;
@@ -403,7 +403,9 @@ unsigned char ReadWorldClipPlanes004BCE20(
     plane.z = 0.0f;
     plane.w = 0.0f;
     for (index = 0; index < count; ++index) {
-        clip_plane = new W8ClipPlane005ED180(pWorld->dynamic_scene);
+        clip_plane =
+            new srClassSupport<srClipPlane, srClipPlane, false, 0x1500>(
+                pWorld->dynamic_scene);
         if (clip_plane == 0) {
             srAssertFail("psrClipPlane", READ_LEVEL_CPP, 0x5ae,
                          "out of memory creating clip plane");
@@ -476,7 +478,7 @@ unsigned char ReadWorldProps004BC5E0(
                 }
                 g_octree_6598a4->AddLoadedProp(prop);
             }
-            PListAdd(pWorld->plsProps, prop);
+            PLAdoptAppend(pWorld->plsProps, prop);
             if ((prop->flags_1c & 1) != 0) {
                 prop->GetBounds0044DD60(&bounds.minimum, &bounds.maximum);
                 pWorld->collidable_props->Add(prop);
@@ -613,8 +615,8 @@ unsigned char ReadMonsterPaths004BC140(
     char monster_name[20];
     char options[12];
     char* separator;
-    W8Position origin;
-    W8Position camera_position;
+    srVector3T<float> origin;
+    srVector3T<float> camera_position;
     W8MonsterGroup* group;
     int monster_id;
     int location_id;
@@ -753,7 +755,7 @@ unsigned char ReadWorldCameras004BC850(
         entry->path = 0;
         success = success && LoadPathAI004A92A0(&entry->path, pInfo->hFile);
         PathAIEnableTimedMode004A9BA0(entry->path);
-        PListAdd(pWorld->plsCameras, entry);
+        PLAdoptAppend(pWorld->plsCameras, entry);
         entry->path->value_10 = index;
         PathAISetScale004AA9C0(entry->path, scale);
     }
@@ -992,10 +994,10 @@ unsigned char ReadLevel(
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after automap nodes.");
 
     g_environment_offset_00659cd0 = environment_offset;
-    prop_count = PListGetCount(world->plsProps);
+    prop_count = PLLength(world->plsProps);
     for (index = 0; index < (int)prop_count; ++index) {
         W8Prop* prop = static_cast<W8Prop*>(
-            PListGetAt(world->plsProps, index));
+            PLGet(world->plsProps, index));
         W8AnimObj* animation = prop->m_pRep->animation;
 
         if ((prop->flags_1c & 0x40) != 0) {

@@ -234,7 +234,7 @@ void RemoveConditionFromEveryone(int condition)
         }
     }
 
-    for (monster_index = 0; monster_index < PListGetCount(g_active_monster_list_00683fad);
+    for (monster_index = 0; monster_index < PLLength(g_active_monster_list_00683fad);
          ++monster_index) {
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         if (monster_info->condition_turns[condition] != 0) {

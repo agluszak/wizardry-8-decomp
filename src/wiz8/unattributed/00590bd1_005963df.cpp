@@ -2,6 +2,7 @@
 
 #include "himage.h"
 #include "input.h"
+#include "vsurface.h"
 
 /* Address quarantine 00590bd1-005963df; bounds come from adjacent
    assertion-backed original translation-unit intervals.
@@ -23,8 +24,6 @@ extern unsigned char ClearPrimarySurface(void);
 extern void UpdateHeldItemCursor(void);
 extern void Function548F90(int target, int object, int frame, short y,
                            int a5, int a6, int a7, int a8);
-extern unsigned char FillSurfaceRect(int surface_id, int left, int top, int right,
-                                     int bottom, int colour);
 /* 0x00422B10 clears the software frame and retires the transient 2D overlays;
    0x00422F10 is the scene-side teardown the same frames are torn down through.
    Only the first is recovered. */
@@ -62,7 +61,7 @@ unsigned char Screen12Enter(void)
     Function422B10();
     UpdateHeldItemCursor();
     colour = Get16BPPColor(0x10101);
-    FillSurfaceRect(-14, 0, 0, 0x280, 0x1e0, colour);
+    ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
     Function548F90(-14, 0x1e4, 0, 0, 0, 0, 2, 0);
     Function422F10();
     return 1;

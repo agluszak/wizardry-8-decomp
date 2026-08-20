@@ -2,6 +2,7 @@
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stSound3D.h"
@@ -42,10 +43,6 @@ extern W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
 extern unsigned char g_flag_6081e4;
 extern void ApplyRolledHealthChangeToParty(
     const W8Dice* dice, int argument_2, int argument_3);
-extern void Function4A2D30(
-    unsigned int owner, unsigned int source, unsigned int target,
-    unsigned int argument_4, unsigned int argument_5,
-    unsigned int argument_6, unsigned int argument_7);
 extern float* RotateMatrixAroundAxis0042B910(
     float* matrix, double sine, double cosine, float* axis);
 extern int PlaySound00408860(const char* path, int* options);
@@ -67,9 +64,9 @@ extern int OpenTrapInteraction0058A470(Trigger* trigger);
 extern void* g_modal_owner_0068edd0;
 extern unsigned char FindEntityByName(
     const char* name,
-    W8Position* position,
+    srVector3T<float>* position,
     int* location_id,
-    W8Position* direction);
+    srVector3T<float>* direction);
 extern void RequestLevelTransition005615F0(
     int location_id, int entrance, unsigned char show_message);
 extern void* SpawnSpellEffect004AD080(
@@ -92,7 +89,7 @@ extern int PointCastSpell(
     float x, float y, float z, int spell_id, unsigned int power_level);
 extern void RemoveAllConditionsFromParty(void);
 extern unsigned char* g_message_table_68c09c;
-extern void GetCameraPosition(W8Position* position);
+extern void GetCameraPosition(srVector3T<float>* position);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
     unsigned int item_id, int character_filter, int value_3, int value_4);
@@ -398,7 +395,7 @@ void W8TriggerEvent::Update()
             transformed.z = Function4218E0(row_3, target);
             Function4A2D30(
                 (unsigned int)trigger_030->m_lData1,
-                (unsigned int)&source, (unsigned int)&transformed,
+                &source, &transformed,
                 0, 1, 1, 0x47435000);
         }
         break;
@@ -506,7 +503,7 @@ W8TriggerActionData005EC158::~W8TriggerActionData005EC158()
 // class Trigger
 
 // FUNCTION: WIZ8 0x00441750
-void Trigger::GetPosition(W8Position* position) const
+void Trigger::GetPosition(srVector3T<float>* position) const
 {
     position->x = position_118;
     position->y = position_11c;
@@ -887,9 +884,9 @@ action_complete:
 // FUNCTION: WIZ8 0x00440dd0
 void Trigger::RunDestination00440DD0(const char* destination)
 {
-    W8Position destination_position;
-    W8Position destination_direction;
-    W8Position source_position;
+    srVector3T<float> destination_position;
+    srVector3T<float> destination_direction;
+    srVector3T<float> source_position;
     srMatrix3T<float> rotation;
     int location_id;
     int entrance;
@@ -1563,10 +1560,10 @@ toggle_item_prop:
         }
         monster_id = atoi(m_pacRecipients);
         for (index = 0;
-             index < (int)PListGetCount(g_monster_group_list);
+             index < (int)PLLength(g_monster_group_list);
              ++index) {
             group = static_cast<W8MonsterGroup*>(
-                PListGetAt(g_monster_group_list, index));
+                PLGet(g_monster_group_list, index));
             if (group->monster_id == monster_id) {
                 int location_id = IListGetAt(group->monsters, 0);
                 unsigned int monster_index = MonsterGetIndexByLocationID(
@@ -1649,8 +1646,8 @@ toggle_item_prop:
             transformed.z = Function4218E0(
                 rotation.vectors[2], target_position);
             Function4A2D30(
-                (unsigned int)m_lData1, (unsigned int)&source_position,
-                (unsigned int)&transformed, 0, 1, 1, 0x47435000);
+                (unsigned int)m_lData1, &source_position,
+                &transformed, 0, 1, 1, 0x47435000);
         }
         else if (m_pEvent == 0) {
             float duration = (float)abs(m_lData2) * 0.001f;
@@ -1845,7 +1842,7 @@ toggle_item_prop:
         return;
 
     case 0x39: {
-        W8Position party_position;
+        srVector3T<float> party_position;
         W8TriggerShakeEvent* event;
 
         GetCameraPosition(&party_position);

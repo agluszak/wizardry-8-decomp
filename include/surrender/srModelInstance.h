@@ -11,7 +11,7 @@ public:
     srModelInstance(const srModelInstance& other);
     srModelInstance& operator=(const srModelInstance& other);
 
-    static const char* sGetClassName();
+    static const char* sGetClassName() { return "srModelInstance"; }
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;

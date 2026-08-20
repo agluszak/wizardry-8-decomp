@@ -308,31 +308,29 @@ class W8VectorElement005ECEE4;
 // TEMPLATE: WIZ8 0x004a8ed0
 // W8GrowableVector<W8VectorElement005ECEE4*>::~W8GrowableVector<W8VectorElement005ECEE4*>
 
-/* Direct W8GrowableVector specialization identified by its vtable. */
+/* Emitted W8GrowableVector instantiation identified by its vtable. */
 
 // VTABLE: WIZ8 0x005ecf00
-// class W8GrowableVector<W8VectorElement005ECF00*>
-
-typedef W8PathRecord004A9750 W8Record004A9750;
+// class W8GrowableVector<srVector3T<float>*>
 
 // SYNTHETIC: WIZ8 0x004aaaf0
-// W8GrowableVector<W8VectorElement005ECF00*>::`scalar deleting destructor'
+// W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004aab10
-// W8GrowableVector<W8VectorElement005ECF00*>::~W8GrowableVector<W8VectorElement005ECF00*>
+// W8GrowableVector<srVector3T<float>*>::~W8GrowableVector<srVector3T<float>*>
 
 // FUNCTION: WIZ8 0x004a9750
-W8Record004A9750* CreateRecord004A9750(int unused)
+W8PathAI* CreateRecord004A9750(int unused)
 {
-    W8Record004A9750* record;
+    W8PathAI* path;
 
-    record = (W8Record004A9750*)malloc(sizeof(W8Record004A9750));
-    if (!record) {
+    path = (W8PathAI*)malloc(sizeof(W8PathAI));
+    if (!path) {
         return 0;
     }
-    memset(record, 0, sizeof(W8Record004A9750));
-    record->list_0c = new W8GrowableVector<W8VectorElement005ECF00*>();
-    return record;
+    memset(path, 0, sizeof(W8PathAI));
+    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>();
+    return path;
 }
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
@@ -353,19 +351,19 @@ class W8VectorElement005ED018;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-class W8ClipPlane005ED180;
+class srClipPlane;
 
 // VTABLE: WIZ8 0x005ed1b8
-// class W8GrowableVector<W8ClipPlane005ED180*>
+// class W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
 
 // TEMPLATE: WIZ8 0x00585340
-// W8GrowableVector<W8ClipPlane005ED180*>::W8GrowableVector
+// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004be030
-// W8GrowableVector<W8ClipPlane005ED180*>::`scalar deleting destructor'
+// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004bdfe0
-// W8GrowableVector<W8ClipPlane005ED180*>::~W8GrowableVector<W8ClipPlane005ED180*>
+// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

@@ -3,6 +3,7 @@
 
 #include "surrender/srHeap.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Object0043A910.h"
@@ -32,10 +33,9 @@ extern void Function434020(int value);
 extern unsigned char g_navigator_link_mode_00659c10;
 /* 0x0045F2D0 consumes the settled pair; its own body is not recovered. */
 extern void ApplyPortalTransition0045F2D0(
-    const W8Position* destination, const W8Position* source);
+    const srVector3T<float>* destination, const srVector3T<float>* source);
 extern float g_rate_006068EC;
 extern float g_world_scale_005ebc40;
-extern const double g_zero_005ebb40;
 
 /* ReadOctFile's own direct callees. Their bodies are not recovered, so they
    keep address-qualified names. */
@@ -50,18 +50,18 @@ extern void ApplyLevelName00432B80(const char* name);
 extern void ReadWaypointFile0043A0F0(void);
 /* The cell-walk probes and the trace helpers the two line-of-sight bodies use.
    None of their bodies are recovered, so they keep address-qualified names. */
-extern void SeedCellProbe00457640(const W8Position* from, const W8Position* to);
+extern void SeedCellProbe00457640(const srVector3T<float>* from, const srVector3T<float>* to);
 extern int ProbeCellForBlockers00435C40(const int* cell);
 extern unsigned char TestProbeResult00435F00(void* result);
 extern int ProbeCellForTrace00435B00(const int* cell);
 extern char TestTraceResult0041C330(
     int value_1b8, int value_1bc, void* result, unsigned char value_134, int mode);
 extern int TraceAgainstProps00436510(
-    const W8Position* from, W8Position* to, int value_3, int value_4);
+    const srVector3T<float>* from, srVector3T<float>* to, int value_3, int value_4);
 extern char ResolveTraceHit004353F0(
-    void* result, W8Position* hit, int mode, int* out, int value_5, int value_6,
+    void* result, srVector3T<float>* hit, int mode, int* out, int value_5, int value_6,
     int value_7);
-extern int GetSectorForPosition00430BF0(const W8Position* position);
+extern int GetSectorForPosition00430BF0(const srVector3T<float>* position);
 extern float g_octree_cell_scale_005ebcd0;
 extern unsigned char g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
@@ -144,13 +144,13 @@ void WriteMember(W8Octree* octree, unsigned int offset, T value)
    distinguishes a world hit from a prop hit by the sign of its answer. */
 // FUNCTION: WIZ8 0x00434b60
 bool W8Octree::HasLineOfSight(
-    const W8Position* from, W8Position* to, char allow_fallback)
+    const srVector3T<float>* from, srVector3T<float>* to, char allow_fallback)
 {
     W8OctreeWalk walk;
     int cell[5];
     int step[4];
     unsigned char result[12];
-    W8Position hit;
+    srVector3T<float> hit;
     unsigned char blocked = 0;
     int span;
     int error_0;
@@ -249,14 +249,14 @@ bool W8Octree::HasLineOfSight(
 
 // FUNCTION: WIZ8 0x00434f20
 short W8Octree::TraceLineOfSight(
-    const W8Position* from, const W8Position* to, char trace_world,
+    const srVector3T<float>* from, const srVector3T<float>* to, char trace_world,
     int from_location_id, int to_location_id, char visit_octree, int trace_mode)
 {
     W8OctreeWalk walk;
     int cell[5];
     int step[4];
     unsigned char result[12];
-    W8Position hit;
+    srVector3T<float> hit;
     char blocked = 0;
     char previous = 0;
     int span;
@@ -739,7 +739,7 @@ void W8Octree::AddCollidablePropBounds(
    end, which is why the remainder decides between one and two extra. */
 // FUNCTION: WIZ8 0x004362d0
 void W8Octree::BuildCellWalk(
-    const W8Position* from, const W8Position* to, W8OctreeWalk* walk)
+    const srVector3T<float>* from, const srVector3T<float>* to, W8OctreeWalk* walk)
 {
     int from_cell[3];
     int to_cell[3];
@@ -812,7 +812,7 @@ void W8Octree::BuildCellWalk(
    instance, clears the monster's cached mesh rather than leaving a stale one. */
 // FUNCTION: WIZ8 0x0042e540
 void W8Octree::UpdateMonsterLocation(
-    unsigned short location_id, const W8Position* position)
+    unsigned short location_id, const srVector3T<float>* position)
 {
     int queue_id = location_id + 1;
     unsigned int monster_list_index;
@@ -1643,7 +1643,7 @@ int W8Octree::MarkVisited0042E400(int offset)
 void W8Octree::VisitPointCopy0042E620(
     unsigned short location_id, srVector3T<float>* position)
 {
-    W8Position copy;
+    srVector3T<float> copy;
 
     copy.x = position->x;
     copy.y = position->y;
@@ -1747,11 +1747,11 @@ unsigned int W8Octree::AdvanceNavigator(
    is then handed on together, which is why one body carries both. */
 // FUNCTION: WIZ8 0x00434a30
 void W8Octree::AdjustPortalDestination(
-    W8Position* destination, const W8Position* source)
+    srVector3T<float>* destination, const srVector3T<float>* source)
 {
-    W8Position local_destination;
-    W8Position local_source;
-    W8Position probe;
+    srVector3T<float> local_destination;
+    srVector3T<float> local_source;
+    srVector3T<float> probe;
     unsigned char hit;
 
     if (pathing_180 == 0) {

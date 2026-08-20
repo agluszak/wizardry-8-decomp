@@ -40,13 +40,19 @@ public:
     SR_DLL_IMPORT srFilter* getFilter() const;
     SR_DLL_IMPORT srGlobalRecycler* getGlobalRecycler() const;
     SR_DLL_IMPORT srHierarchyIOManager* getHierarchyIOManager() const;
-    SR_DLL_IMPORT srMaterial* getMaterial() const;
+    /* Inline like getRegistry: pipeline reset/get paths load material as a
+       direct [srCore + 0x170] read rather than an import thunk. */
+    srMaterial* getMaterial() const { return material_170; }
     SR_DLL_IMPORT srMemoryAllocator* getMemoryAllocator() const;
     SR_DLL_IMPORT srModelIOManager* getModelIOManager() const;
     SR_DLL_IMPORT srPalette* getPalette() const;
     SR_DLL_IMPORT srNode* getRootNode() const;
     SR_DLL_IMPORT srScheduler* getScheduler() const;
-    SR_DLL_IMPORT srStatisticsManager* getStatisticsManager() const;
+    /* Header-visible in the triangle pipeline: its statistics updates load
+       the manager directly from srCore +0x28. */
+    srStatisticsManager* getStatisticsManager() const {
+        return statistics_manager_28;
+    }
     SR_DLL_IMPORT srColorSurfaceIFace* getSurface() const;
     SR_DLL_IMPORT srTexture* getTexture() const;
     SR_DLL_IMPORT srVariableTimer* getTimer() const;

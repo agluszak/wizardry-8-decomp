@@ -198,7 +198,7 @@ void NotifyNearbyMonsters(int what)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount(g_active_monster_list_00683fad); ++index) {
+    for (index = 0; index < PLLength(g_active_monster_list_00683fad); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             (unsigned int)monster_info->value_107 < 0xe &&

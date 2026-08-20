@@ -36,9 +36,9 @@ void UpdateWorldProps0044E010(W8World* world)
     if (world == 0 || world->plsProps == 0) {
         srAssertFail("pWorld && pWorld->plsProps", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x969, 0);
     }
-    count = PListGetCount(world->plsProps);
+    count = PLLength(world->plsProps);
     for (index = 0; index < static_cast<int>(count); ++index) {
-        W8Prop* prop = static_cast<W8Prop*>(PListGetAt(world->plsProps, index));
+        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         int value;
 
         if (prop != 0 && (value = Function443830(world, prop)) != 0 && prop->m_gd_prop != 0) {
@@ -66,11 +66,11 @@ W8Prop* FindPropByName(W8World* world, const char* name)
     int index;
 
     if (world != 0 && name != 0) {
-        unsigned int count = PListGetCount(world->plsProps);
+        unsigned int count = PLLength(world->plsProps);
 
         for (index = 0; index < (int)count; ++index) {
             W8Prop* prop = static_cast<W8Prop*>(
-                PListGetAt(world->plsProps, index));
+                PLGet(world->plsProps, index));
             if (prop->m_name != 0 &&
                 _stricmp(prop->m_name, name) == 0) {
                 return prop;

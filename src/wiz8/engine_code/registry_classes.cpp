@@ -1,9 +1,6 @@
 #include "wiz8/unattributed/quarantine_common.h"
-#include "wiz8/engine_code/Camera.h"
-#include "wiz8/engine_code/ClipPlane.h"
+#include "surrender/srClipPlane.h"
 #include "wiz8/engine_code/Level.h"
-#include "wiz8/engine_code/Material.h"
-#include "wiz8/engine_code/Scene.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stScript.h"
 
@@ -35,30 +32,11 @@ stLevel::~stLevel()
 
 
 
-// FUNCTION: WIZ8 0x0049DB10
-unsigned long W8Illuminator005ECCD8::getClassID() const
-{
-    return 0x1200;
-}
-// FUNCTION: WIZ8 0x0049DB30
-srRegistry::ClassNode* W8Illuminator005ECCD8::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1200);
+// TEMPLATE: WIZ8 0x0049DB10
+// srClassSupport<srIlluminator,srNode,0,4608>::getClassID
 
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
-
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass(
-            srIlluminator::sGetClassName(), parent, 0x1200, 0);
-    }
-    return node;
-}
+// TEMPLATE: WIZ8 0x0049DB30
+// srClassSupport<srIlluminator,srNode,0,4608>::getClassNode
 // FUNCTION: WIZ8 0x0049DC20
 unsigned long MonsterLight::getClassID() const
 {
@@ -95,51 +73,32 @@ srRegistry::ClassNode* MonsterLight::getClassNode() const
     }
     return light;
 }
-// FUNCTION: WIZ8 0x004BDF00
-unsigned long W8ClipPlane005ED180::getClassID() const
-{
-    return 0x1500;
-}
-// FUNCTION: WIZ8 0x004BDF10
-const char* W8ClipPlane005ED180::getClassName() const
-{
-    return "srClipPlane";
-}
-// FUNCTION: WIZ8 0x004BDF20
-srRegistry::ClassNode* W8ClipPlane005ED180::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x1500);
+// VTABLE: WIZ8 0x005ED180
+// class srClassSupport<srClipPlane,srClipPlane,0,5376>
 
-    if (!node) {
-        srRegistry* parent_registry = srCore.getRegistry();
-        srRegistry::ClassNode* parent = parent_registry->getClassNode(0x1000);
+// TEMPLATE: WIZ8 0x004BDF00
+// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassID
 
-        if (!parent) {
-            parent = parent_registry->registerClass(
-                srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-        }
-        node = registry->registerClass("srClipPlane", parent, 0x1500, 0);
-    }
-    return node;
-}
+// TEMPLATE: WIZ8 0x004BDF10
+// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassName
 
-// FUNCTION: WIZ8 0x004BDF90
-srClass* W8ClipPlane005ED180::clone()
-{
-    srClipPlane* copy = static_cast<srClipPlane*>(vInstance());
-    *copy = *this;
-    return copy;
-}
+// TEMPLATE: WIZ8 0x004BDF20
+// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassNode
+
+// TEMPLATE: WIZ8 0x004BDF90
+// srClassSupport<srClipPlane,srClipPlane,0,5376>::clone
+
+// SYNTHETIC: WIZ8 0x004BDFB0
+// srClassSupport<srClipPlane,srClipPlane,0,5376>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004519D0
-// srClassSupport<srNode,srClass,1,4096>::getClassID
+// srClassSupport<srNode,srNode,0,4096>::getClassID
 
 // TEMPLATE: WIZ8 0x00445EF0
-// srClassSupport<srNode,srClass,1,4096>::getClassNode
+// srClassSupport<srNode,srNode,0,4096>::getClassNode
 
 // TEMPLATE: WIZ8 0x004519F0
-// srClassSupport<srNode,srClass,1,4096>::clone
+// srClassSupport<srNode,srNode,0,4096>::clone
 
 // TEMPLATE: WIZ8 0x004BA1B0
 // srClassSupport<stLevel,srNode,0,65543>::getClassID

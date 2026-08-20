@@ -23,7 +23,7 @@ extern void Function452630(int value);                       /* 0x00452630 */
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
 extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
 extern void Function4E3C70(W8MonsterInfo* monster_info);     /* 0x004E3C70 */
-extern void Function4C5730(W8Monster* monster, W8Position* position); /* 0x004C5730 */
+extern void Function4C5730(W8Monster* monster, srVector3T<float>* position); /* 0x004C5730 */
 extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
 extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
 extern void Function547570(W8MonsterGroup* monster_group, unsigned char flag,
@@ -62,7 +62,7 @@ unsigned char MonsterGroupAllMembersDying00511850(
             0);
     }
     for (index = 0;
-         index < PListGetCount((W8PList*)monster_group->monsters);
+         index < ILLength(monster_group->monsters);
          ++index) {
         location_id = IListGetAt(monster_group->monsters, index);
         monster_list_index = MonsterGetIndexByLocationID(
@@ -178,10 +178,10 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
 
     if (group_list_index < W8_ENCOUNTER_GROUP_INDEX_BIAS ||
         group_list_index >= 2 * W8_ENCOUNTER_GROUP_INDEX_BIAS) {
-        if (group_list_index >= PListGetCount(g_monster_group_list)) {
+        if (group_list_index >= PLLength(g_monster_group_list)) {
             return 0;
         }
-        result = (W8MonsterGroup*)PListGetAt(g_monster_group_list, group_list_index);
+        result = (W8MonsterGroup*)PLGet(g_monster_group_list, group_list_index);
         if (result != 0) {
             return result;
         }
@@ -192,10 +192,10 @@ W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index)
         line = 0x3dc;
     } else {
         if (group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS >=
-            PListGetCount(g_monster_group_encounter_list)) {
+            PLLength(g_monster_group_encounter_list)) {
             return 0;
         }
-        result = (W8MonsterGroup*)PListGetAt(
+        result = (W8MonsterGroup*)PLGet(
             g_monster_group_encounter_list,
             group_list_index - W8_ENCOUNTER_GROUP_INDEX_BIAS);
         if (result != 0) {
@@ -225,15 +225,15 @@ unsigned int GetMonsterGroupIndexByID(
     unsigned int index;
     W8MonsterGroup* group;
 
-    for (index = 0; index < PListGetCount(g_monster_group_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_group_list); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->group_id == group_id) {
             return index;
         }
     }
 
-    for (index = 0; index < PListGetCount(g_monster_group_encounter_list); ++index) {
-        group = (W8MonsterGroup*)PListGetAt(g_monster_group_encounter_list, index);
+    for (index = 0; index < PLLength(g_monster_group_encounter_list); ++index) {
+        group = (W8MonsterGroup*)PLGet(g_monster_group_encounter_list, index);
         if (group->group_id == group_id) {
             return index + W8_ENCOUNTER_GROUP_INDEX_BIAS;
         }
@@ -266,11 +266,7 @@ W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* monster_group)
 
 /* Recounts how many of a group's members are still active and, only if that
    changed, publishes the new count. The list length is re-read every iteration
-   because removing a member during the walk is possible.
- 
-   The member list is an IList, but its length is taken through PListGetCount -
-   the two share a layout and the original really does call the P-list one here.
-   Preserved as found. */
+   because removing a member during the walk is possible. */
 // FUNCTION: WIZ8 0x00510350
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
 {
@@ -278,7 +274,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
     int active = 0;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(
                 0x412,
@@ -309,7 +305,7 @@ static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monste
     unsigned char removed;
     int location_id;
 
-    index = PListGetCount((W8PList*)monster_group->monsters);
+    index = ILLength(monster_group->monsters);
     do {
         --index;
         if (static_cast<int>(index) < 0) {
@@ -341,7 +337,7 @@ void ActivateGroupMembers(W8MonsterGroup* monster_group, int mode)
 {
     unsigned int index;
 
-    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         ActivateMonster(
             MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(
@@ -445,7 +441,7 @@ void ReapplyMonsterGroupFormations(void)
     W8MonsterInfo* monster_info;
 
     for (group_list_index = 0;
-         group_list_index < PListGetCount(g_monster_group_list);
+         group_list_index < PLLength(g_monster_group_list);
          ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         monster_info = MonsterInfoFromID(
@@ -458,7 +454,7 @@ void ReapplyMonsterGroupFormations(void)
    Monster, so the group record and the members never disagree. */
 // FUNCTION: WIZ8 0x0050ff40
 void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
-                              const W8MonsterFormation* formation)
+                              const srVector3T<float>* formation)
 {
     unsigned int count;
     int index;
@@ -470,7 +466,7 @@ void SetMonsterGroupFormation(W8MonsterGroup* monster_group,
     monster_group->formation.x = formation->x;
     monster_group->formation.y = formation->y;
     monster_group->formation.z = formation->z;
-    count = PListGetCount((W8PList*)monster_group->monsters);
+    count = ILLength(monster_group->monsters);
     for (index = 0; index < static_cast<int>(count); ++index) {
         monster = MonsterGetScriptPartByLocationIndex(
                       MonsterGetIndexByLocationID(
@@ -569,7 +565,7 @@ void MonsterGroupLeaveCombat(int unused, W8MonsterGroup* monster_group)
     if (monster_group->flag_29 == 0) {
         srAssertFail("pMonsterGroup->fInCombat", MONSTER_GROUP_CPP, 0x1ec, 0);
     }
-    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         MonsterInfoLeaveCombat(MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(
                 0x1f1,
@@ -615,7 +611,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
     W8MonsterInfo* monster_info;
 
     monster_group->highlighted_member = -1;
-    for (index = 0; index < PListGetCount((W8PList*)monster_group->monsters); ++index) {
+    for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(
                 0x12d,
@@ -637,10 +633,10 @@ void ResetMonsterGroupTurnState(void)
     unsigned int index;
     W8MonsterInfo* monster_info;
 
-    for (index = 0; index < PListGetCount(g_monster_group_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_group_list); ++index) {
         GetMonsterGroupByListIndex(index)->value_cb = 0;
     }
-    for (index = 0; index < PListGetCount(g_monster_list); ++index) {
+    for (index = 0; index < PLLength(g_monster_list); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster_info->value_354 = 0;
         monster_info->value_28e = 0;
@@ -656,11 +652,11 @@ void ResetMonsterGroupTurnState(void)
    it, which is what makes a member added during the walk skew the average
    rather than divide by the wrong count. Preserved as found. */
 // FUNCTION: WIZ8 0x0050ffd0
-void GetMonsterGroupCentre(W8MonsterGroup* monster_group, W8Position* centre)
+void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* centre)
 {
     unsigned int count;
     unsigned int index;
-    W8Position position;
+    srVector3T<float> position;
     float divisor;
 
     if (monster_group == 0) {
@@ -670,7 +666,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, W8Position* centre)
         monster_group->centre.x = 0;
         monster_group->centre.y = 0;
         monster_group->centre.z = 0;
-        count = PListGetCount((W8PList*)monster_group->monsters);
+        count = ILLength(monster_group->monsters);
         for (index = 0; index < count; ++index) {
             Function4C5730(
                 MonsterGetScriptPartByLocationIndex(
@@ -713,7 +709,7 @@ void RepairMonsterGroupLeaderLinks(void)
     W8MonsterGroup* monster_group;
     int ally;
 
-    count = PListGetCount(g_monster_group_list);
+    count = PLLength(g_monster_group_list);
     for (group_list_index = 0; group_list_index < count; ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         if (monster_group->leader_group_id == monster_group->group_id) {
@@ -832,7 +828,7 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
     } else {
         Function510590(UnlinkMonsterGroupFromLeaderInline(monster_group));
     }
-    if (IListDestroy(monster_group->monsters) != 0) {
+    if (ILDestroy(monster_group->monsters) != 0) {
         group_list_index = GetMonsterGroupIndexByID(
             0xf3, MONSTER_GROUP_CPP, monster_group->group_id, 1);
         list = g_monster_group_list;
@@ -840,7 +836,7 @@ unsigned char DestroyMonsterGroup(W8MonsterGroup* monster_group, int value)
             group_list_index -= W8_ENCOUNTER_GROUP_INDEX_BIAS;
             list = g_monster_group_encounter_list;
         }
-        removed = PListRemoveAt(list, group_list_index);
+        removed = PLRemoveAt(list, group_list_index);
         if (removed != 0) {
             free(removed);
             return 1;
@@ -860,7 +856,7 @@ void ApplyDefaultMonsterGroupSounds(void)
     W8MonsterGroup* monster_group;
     W8MonsterInfo* lead;
 
-    count = PListGetCount(g_monster_group_list);
+    count = PLLength(g_monster_group_list);
     for (group_list_index = 0; group_list_index < count; ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
         lead = MonsterInfoFromID(

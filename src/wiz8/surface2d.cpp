@@ -205,7 +205,14 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
     renderer->pushMatrix();
     renderer->loadIdentity();
     renderer->ortho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
-    renderer->configure2DSurface(state, flags, coordinates);
+    renderer->setVertexArrayMask(
+        srFlags<srRendererDefs::e_vertexArray>(state));
+    renderer->setCullMode(srGERD::CULL_MODE_POSITIONAL_2);
+    srShader shader;
+    shader.value = flags;
+    renderer->setShader(shader);
+    renderer->setTexCoordPointer(
+        2, srRendererDefs::TYPE_POSITIONAL_1, 8, coordinates, 0);
     renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f));
     renderer->setAntiAlias((srGERD::e_antiAlias)0);
 
@@ -231,7 +238,8 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
             vertices[11] = -0.1f;
 
             renderer->setTexture(tiles[index++], 0);
-            renderer->configure2DQuad(vertices);
+            renderer->setVertexPointer(
+                3, srRendererDefs::TYPE_POSITIONAL_1, 0xc, vertices, 4);
             renderer->drawArrays((srRendererDefs::e_primitive)3, 0, 4);
         }
     }

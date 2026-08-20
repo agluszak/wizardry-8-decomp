@@ -29,9 +29,6 @@ enum { W8_NPC_DISPOSITION_HOSTILE = 0x21, W8_NPC_DISPOSITION_FRIENDLY = 0x42 };
 /* 0x00689F94: every NPC state, held in the shared growable vector. */
 // GLOBAL: WIZ8 0x00689F94
 extern W8GrowableVector<W8NpcState*>* g_npc_states;
-/* 0x006836B8: the monster manager's eight entries, 0x118 bytes each. */
-// GLOBAL: WIZ8 0x006836B8
-extern unsigned char g_monster_manager_entries[];
 
 extern char GetNpcDisposition(W8NpcState* npc);                          /* 0x0050A280 */
 extern unsigned int GetItemStackValue(const W8ItemInstance* item);       /* 0x0051B840 */
@@ -148,7 +145,7 @@ W8MonsterInfo* GetNpcMonsterInfo(W8NpcState* npc)
 /* The monster manager entry this NPC's group occupies, if its database entry
    says it has a group and it is in one. */
 // FUNCTION: WIZ8 0x0050b870
-unsigned char* GetNpcGroupEntry(W8NpcState* npc)
+W8MonsterManagerEntry* GetNpcGroupEntry(W8NpcState* npc)
 {
     if (npc->record->has_group == 0) {
         return 0;
@@ -156,7 +153,7 @@ unsigned char* GetNpcGroupEntry(W8NpcState* npc)
     if (npc->is_grouped == 0) {
         return 0;
     }
-    return g_monster_manager_entries + npc->group_index * 0x118;
+    return &g_monster_manager_state.entries[npc->group_index];
 }
 
 /* Whether an NPC would take one item in trade. The kind that trades in nothing

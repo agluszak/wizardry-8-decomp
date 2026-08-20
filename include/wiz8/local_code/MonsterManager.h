@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/targeting.h"
+#include "wiz8/vector.h"
 
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
    0x004C2010 compares exactly prefix_length characters and then uses the same
@@ -17,6 +18,84 @@ struct W8CycleNameRow {
 };
 
 extern W8CycleNameRow g_cycle_names[];
+
+/* The object constructed at 0x006836B8 begins with eight of these records.
+   Its generated element constructor and destructor at 0x004E6A30 and
+   0x004E6A10 exist because the record owns the ordinary vector at +0x0D8.
+   The reset at 0x0054B300 clears the record wholesale despite that non-trivial
+   member; that source behavior does not turn the vector into a second layout
+   projection. */
+#pragma pack(push, 1)
+struct W8MonsterManagerEntry {
+    W8MonsterManagerEntry();
+    ~W8MonsterManagerEntry();
+
+    unsigned char field_000;
+    int field_001;
+    unsigned char unknown_005[0x6c];
+    int field_071;
+    int field_075;
+    int field_079;
+    int field_07d;
+    int field_081;
+    int field_085;
+    int field_089;
+    int field_08d;
+    int field_091;
+    int field_095;
+    unsigned char field_099;
+    unsigned char field_09a;
+    unsigned char field_09b;
+    unsigned char field_09c;
+    unsigned char field_09d;
+    unsigned char field_09e;
+    int field_09f;
+    int field_0a3;
+    int field_0a7;
+    unsigned char field_0ab;
+    int field_0ac;
+    int field_0b0;
+    int field_0b4;
+    int field_0b8;
+    unsigned char field_0bc;
+    unsigned char field_0bd;
+    int field_0be;
+    int field_0c2;
+    int field_0c6;
+    int field_0ca;
+    unsigned char field_0ce;
+    unsigned char field_0cf;
+    unsigned char field_0d0;
+    unsigned char field_0d1;
+    int field_0d2;
+    unsigned short field_0d6;
+    W8GrowableVector<int> highlighted_monsters; /* 0x0d8 */
+    unsigned char field_0e8;
+    unsigned char unknown_0e9[0x2f];
+};                                       /* 0x118 */
+
+/* 0x004E6900 passes 0x006836B8 as this constructor's receiver. The constructor
+   builds the entry array and the vector at +0x9B7; 0x0054AFD0 then clears the
+   full 0x1A0A-byte object from that same address. That clear proves the
+   remaining extent, but not any internal boundaries in the trailing storage. */
+struct W8MonsterManagerState {
+    W8MonsterManagerState();
+    ~W8MonsterManagerState();
+
+    W8MonsterManagerEntry entries[8];     /* 0x000 .. 0x8c0 */
+    unsigned char unknown_8c0[0xf7];
+    W8GrowableVector<int> vector_9b7;      /* 0x9b7 */
+    unsigned char unknown_9c7[0x1043];
+};                                       /* 0x1a0a */
+#pragma pack(pop)
+
+static_assert(sizeof(W8GrowableVector<int>) == 0x10, "W8GrowableVector_int_size_must_be_0x10");
+static_assert(sizeof(W8MonsterManagerEntry) == 0x118,
+              "W8MonsterManagerEntry_size_must_be_0x118");
+static_assert(sizeof(W8MonsterManagerState) == 0x1a0a,
+              "W8MonsterManagerState_size_must_be_0x1a0a");
+
+extern W8MonsterManagerState g_monster_manager_state;
 
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */

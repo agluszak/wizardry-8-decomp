@@ -43,7 +43,7 @@
    Only the leading point is read field by field; the rest travels as one
    block, so nothing beyond it is named. */
 typedef struct W8SavedLocation {
-    W8Position point;                    /* 0x00 */
+    srVector3T<float> point;                    /* 0x00 */
     unsigned char unknown_0c[0x30];
 } W8SavedLocation;                       /* 0x3c */
 
@@ -285,75 +285,6 @@ typedef struct W8LevelFolderRecord {
     signed char unknown_69;
     signed char unknown_6a;
 } W8LevelFolderRecord;                   /* 0x6b */
-
-/* One 0x118-byte slot in the block at 0x006836B8 that 0x0054B300 resets.
-   Only the offsets that reset touches are established, so the fields keep
-   positional names. */
-typedef struct W8MonsterSlot {
-    unsigned char field_000;
-    int field_001;
-    unsigned char unknown_005[0x6c];
-    int field_071;
-    int field_075;
-    int field_079;
-    int field_07d;
-    int field_081;
-    int field_085;
-    int field_089;
-    int field_08d;
-    int field_091;
-    int field_095;
-    unsigned char field_099;
-    unsigned char field_09a;
-    unsigned char field_09b;
-    unsigned char field_09c;
-    unsigned char field_09d;
-    unsigned char field_09e;
-    int field_09f;
-    int field_0a3;
-    int field_0a7;
-    unsigned char field_0ab;
-    int field_0ac;
-    int field_0b0;
-    int field_0b4;
-    int field_0b8;
-    unsigned char field_0bc;
-    unsigned char field_0bd;
-    int field_0be;
-    int field_0c2;
-    int field_0c6;
-    int field_0ca;
-    unsigned char field_0ce;
-    unsigned char field_0cf;
-    unsigned char field_0d0;
-    unsigned char field_0d1;
-    int field_0d2;
-    unsigned short field_0d6;
-    /* 0x0d8: the monsters this party slot currently has highlighted, held in a
-       growable vector's storage. Clearing the highlight walks it and zeroes the
-       count without releasing the buffer, which is what makes it a vector
-       rather than a fixed array.
-
-       Spelled as the layout rather than as W8GrowableVector<int> on purpose:
-       that class has a virtual destructor, and naming it here would have VC6
-       dynamically initialise the whole slot array and change two neighbouring
-       bodies that only memset it. */
-    struct {
-        void* vptr;                       /* 0x0d8 */
-        int count;                        /* 0x0dc */
-        int capacity;                     /* 0x0e0 */
-        int* data;                        /* 0x0e4 */
-    } highlighted_monsters;
-    unsigned char field_0e8;
-    unsigned char unknown_0e9[0x2f];
-} W8MonsterSlot;                         /* 0x118 */
-
-
-
-
-
-
-
 
 struct W8World;
 

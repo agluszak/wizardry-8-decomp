@@ -5,7 +5,7 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/engine_code/PathAI.h"
-#include "wiz8/engine_code/Node005EC208.h"
+#include "surrender/srNode.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
@@ -424,7 +424,9 @@ W8Navigator::W8Navigator(const W8Navigator& other)
     fields.tracked_position_0a4.x = 0.0f;
     fields.tracked_position_0a4.y = 0.0f;
     fields.tracked_position_0a4.z = 0.0f;
-    node_18c = new W8Node005EC208(0);
+    node_18c =
+        new srClassSupport<srNode, srNode, false, 0x1000>(
+            static_cast<srNode*>(0));
     node_18c->setLocation(other.node_18c->getLocation());
     RegisterNavigator(this);
 }
@@ -464,7 +466,7 @@ void W8Navigator::SetNavigationMode(int mode)
     fields.navigation_mode_008 = mode;
     switch (mode) {
     case 1:
-        path = reinterpret_cast<W8PathAI*>(CreateRecord004A9750(0));
+        path = CreateRecord004A9750(0);
         PathAISetFlag3A004A9B90(path, 1);
         SetPathAI(path);
         /* Falls into mode four's body: the retail block ends where mode four's
@@ -476,14 +478,14 @@ void W8Navigator::SetNavigationMode(int mode)
     case 2:
     case 3:
     case 5:
-        path = reinterpret_cast<W8PathAI*>(CreateRecord004A9750(0));
+        path = CreateRecord004A9750(0);
         PathAISetFlag3A004A9B90(path, 1);
         SetPathAI(path);
         fields.movement_0c0.pitch_enabled_074 = 1;
         fields.movement_0c0.roll_enabled_075 = 0;
         break;
     case 6:
-        path = reinterpret_cast<W8PathAI*>(CreateRecord004A9750(0));
+        path = CreateRecord004A9750(0);
         PathAISetFlag3A004A9B90(path, 1);
         SetPathAI(path);
         fields.movement_0c0.pitch_enabled_074 = 1;
@@ -650,7 +652,7 @@ unsigned short W8Navigator::Function4526C0(
 
 // FUNCTION: WIZ8 0x00453cc0
 void W8Navigator::StartPatrol(
-    const W8Position* home, float distance, float variation)
+    const srVector3T<float>* home, float distance, float variation)
 {
     W8Navigator* navigator = this;
 
@@ -668,7 +670,6 @@ void W8Navigator::StartPatrol(
 extern unsigned char g_navigator_vertical_enabled_006081f8;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_speed_006850ff;
-extern float g_navigator_condition_scale_005ebc7c;
 extern float g_navigator_linked_radius_scale_005ebc98;
 extern float g_navigator_vertical_phase_step_005ebcc8;
 extern double g_navigator_cycle_angle_005ec318;
@@ -679,12 +680,12 @@ extern float g_navigator_minimum_speed_mode23_006081f0;
 extern const float g_world_scale_005ebc40;
 extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 extern float Function4BE420(
-    const W8Position* from, const W8Position* to);
+    const srVector3T<float>* from, const srVector3T<float>* to);
 extern float Function4BE490(
-    const W8Position* from, const W8Position* to);
+    const srVector3T<float>* from, const srVector3T<float>* to);
 
 // FUNCTION: WIZ8 0x00453590
-void W8Navigator::SetPositionInternal00453590(const W8Position* position)
+void W8Navigator::SetPositionInternal00453590(const srVector3T<float>* position)
 {
     srVector3T<double> widened;
 
@@ -821,9 +822,9 @@ void W8Navigator::UpdateAngles00453990()
 }
 
 // FUNCTION: WIZ8 0x00453f30
-void W8Navigator::AimAtPosition(const W8Position* target)
+void W8Navigator::AimAtPosition(const srVector3T<float>* target)
 {
-    W8Position current;
+    srVector3T<float> current;
 
     current.x = fields.movement_0c0.position_040.x;
     current.y = fields.movement_0c0.position_040.y +
@@ -970,7 +971,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
         fields.movement_0c0.movement_speed_064 = g_navigator_speed_006850ff;
         if (slowed != 0) {
             fields.movement_0c0.movement_speed_064 *=
-                g_navigator_condition_scale_005ebc7c;
+                g_float_005ebc7c;
         }
     }
     if ((fields.flags_00c & 0x20000000) != 0 &&
@@ -1005,7 +1006,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
 
     case 6:
     case 10: {
-        W8PathVector3 next;
+        srVector3T<float> next;
 
         movement_result = g_octree_6598a4->AdvanceNavigator(
             &fields.movement_0c0, fields.radius_084, 0.0f);
@@ -1073,8 +1074,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     case 0x201:
         if (fields.linked_navigator_05c != 0 && g_flag_006081e4 != 0) {
             if (fields.linked_navigator_05c->fields.flag_024 != 0) {
-                srVector3T<float> delta;
-                delta.method_00421650(
+                srVector3T<float> delta(
                     fields.linked_navigator_05c->fields.movement_0c0.position_040.x -
                         fields.movement_0c0.position_040.x,
                     fields.linked_navigator_05c->fields.movement_0c0.position_040.y -
@@ -1170,7 +1170,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
                     fields.movement_0c0.position_040.y ||
                 fields.movement_0c0.target_position_04c.z !=
                     fields.movement_0c0.position_040.z) {
-                W8Position target;
+                srVector3T<float> target;
                 target.x = fields.movement_0c0.target_position_04c.x;
                 target.y = fields.movement_0c0.target_position_04c.y;
                 target.z = fields.movement_0c0.target_position_04c.z;

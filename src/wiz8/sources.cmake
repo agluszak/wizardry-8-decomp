@@ -84,7 +84,6 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Monster.cpp
     src/wiz8/engine_code/stScript.cpp
     src/wiz8/local_code/DisplayList.cpp
-    src/wiz8/local_code/SurfaceFill.cpp
     src/wiz8/local_code/Targeting.cpp
     src/wiz8/local_code/Viewport.cpp
     src/wiz8/3d_code/PList.cpp
@@ -135,6 +134,7 @@ set(WIZ8_ADDRESS_QUARANTINE_UNITS
     src/wiz8/unattributed/0049ba51_0049e5cf.cpp
     src/wiz8/unattributed/004adb21_004b19ef.cpp
     src/wiz8/unattributed/004b6bd1_004b6f2f.cpp
+    src/wiz8/unattributed/004be201_004bf0ef.cpp
     src/wiz8/unattributed/004e34b1_004e381f.cpp
     src/wiz8/unattributed/004f0c81_004f203f.cpp
     src/wiz8/unattributed/00516f01_00517c5f.cpp

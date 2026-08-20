@@ -57,11 +57,15 @@ W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
 
 #pragma pack(push, 1)
 struct W8MissileTableRecord {
-    unsigned char bytes[0x1e5];
+    unsigned char unknown_000[0x140];
+    float value_140;
+    unsigned char unknown_144[0xa1];
 };
 #pragma pack(pop)
 
+// GLOBAL: WIZ8 0x0065bde0
 W8MissileTableRecord* g_missile_table_65bde0;
+// GLOBAL: WIZ8 0x0065bddc
 unsigned int g_missile_table_count_65bddc;
 
 static_assert(sizeof(W8MissileTableRecord) == 0x1e5, "W8MissileTableRecord_must_be_0x1e5");
@@ -124,27 +128,10 @@ extern "C" void ReleaseMissileDatabase(void)
     }
 }
 
-class W8Missile {
-public:
-    virtual ~W8Missile();
-
-    W8EmitterTableHost* GetLauncher();    /* 0x004A45E0 */
-    W8Emitter* GetActiveEmitter();/* 0x004A4570 */
-    float GetActiveEmitterValue();       /* 0x004A45C0 */
-    char GetEmitterCount();              /* 0x004A4590 */
-    void Release();                      /* 0x004A4100 */
-    virtual W8AnimObj* Method34();
-    virtual char Method14();
-    void ApplyLauncherSetting98();       /* 0x004A4110 */
-    void ResetLauncherCounters(int arg_1, int arg_2);   /* 0x004A4140 */
-    void* GetActiveEmitterEntry004A45F0();
-
-    unsigned char unknown_004[0x1d8];
-    W8EmitterTableHost* launcher;        /* 0x1dc */
-};
-
-extern void ReleaseMissile(W8Missile* missile);                          /* 0x004A7470 */
-extern void Function4A72F0(int arg_1, int arg_2);
+// VTABLE: WIZ8 0x005ece08 W8Missile
+// VTABLE: WIZ8 0x005ecdf4 W8Navigator
+// VTABLE: WIZ8 0x005ecde0 W8MissileRep
+// class W8Missile
 
 static int g_missile_iterator_0065bde4;
 
@@ -168,119 +155,183 @@ W8Missile* Function4A2760(char restart)
 }
 
 extern float Function4BE490(
-    unsigned int arg_1, unsigned int arg_2, unsigned int arg_3,
-    unsigned int arg_4, unsigned int arg_5, unsigned int arg_6);
-extern float Function4BE420(unsigned int arg_1, unsigned int arg_2, float value);
-extern void Function4A28D0(unsigned int owner, unsigned int value, float result);
+    const srVector3T<float>* source, const srVector3T<float>* target);
+extern float Function4BE420(
+    const srVector3T<float>* source, const srVector3T<float>* target);
+extern W8Missile* Function4A28D0(
+    unsigned int missile_table_index,
+    srVector3T<float>* source,
+    float value_3,
+    float value_4,
+    unsigned int value_5,
+    unsigned int value_6,
+    unsigned int value_7,
+    unsigned int value_8);
 
-/* Preserve the still-untyped six-word missile calculation as a typed float
-   pipeline instead of reconstructing names for its forwarded values. */
+/* Derive the two launch angles from the source and target, then forward the
+   remaining launch values to the missile factory. */
 // FUNCTION: WIZ8 0x004A2D30
-void Function4A2D30(
-    unsigned int owner, unsigned int arg_2, unsigned int arg_3,
-    unsigned int arg_4, unsigned int arg_5, unsigned int arg_6,
-    unsigned int arg_7)
+W8Missile* Function4A2D30(
+    unsigned int missile_table_index, srVector3T<float>* source,
+    srVector3T<float>* target, unsigned int value_4,
+    unsigned int value_5, unsigned int value_6,
+    unsigned int value_7)
 {
-    Function4A28D0(
-        owner, arg_2,
-        Function4BE420(
-            arg_2, arg_3,
-            Function4BE490(arg_2, arg_3, arg_4, arg_5, arg_6, arg_7)));
+    return Function4A28D0(
+        missile_table_index, source,
+        Function4BE420(source, target), Function4BE490(source, target),
+        value_4, value_5, value_6, value_7);
 }
 
-class W8MissileState004A5410 {
-public:
-    void Function4A5410(const unsigned int* values);
+/* The missile and spell representations use the same ordinary AnimObj
+   operations for these two vtable slots.  Retail points both final tables at
+   the corresponding bodies at 0x004AB290 and 0x004AB310. */
+srModelInstance* W8MissileRep::SetCycleFrameLod(
+    signed char emitter, signed char frame, signed char lod)
+{
+    return AnimObjDispatch004A14D0(emitters[emitter], lod, frame);
+}
 
-private:
-    unsigned char m_positional_000[0x1d8];
-    int m_missile_table_index;            /* 0x1d8 */
-    unsigned char m_positional_1dc[0x20];
-    unsigned int m_values_1fc[12];         /* 0x1fc */
-};
+W8AniMesh* W8MissileRep::GetEmitterAniMesh(char emitter)
+{
+    W8AnimObj* target = emitters[emitter];
+
+    if (target == 0) {
+        return 0;
+    }
+    return static_cast<W8AniMesh*>(
+        AnimObjEntry004A1660(target, 0, m_bLOD, 0));
+}
+
+/* Apply the representation's current LOD to one required animation. */
+// FUNCTION: WIZ8 0x004A2710
+unsigned int W8MissileRep::ApplyEmitterSetting(char emitter)
+{
+    W8AnimObj* target = emitters[emitter];
+
+    if (target == 0) {
+        srAssertFail(
+            "pao",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+            0x7e,
+            0);
+    }
+    return AnimObjValue004A15D0(target, m_bLOD);
+}
+
+/* Release the two owned animations and every light vector before the ordinary
+   vector members and W8EmitterHost base tear themselves down. */
+// FUNCTION: WIZ8 0x004A3230
+W8MissileRep::~W8MissileRep()
+{
+    int emitter;
+
+    for (emitter = 0; emitter < 2; ++emitter) {
+        if (emitters[emitter] != 0) {
+            DestroyAnimObj004A01E0(emitters[emitter]);
+            emitters[emitter] = 0;
+        }
+    }
+
+    for (emitter = 0; emitter < 2; ++emitter) {
+        int light_list;
+
+        for (light_list = 0; light_list < light_lists[emitter].GetCount();
+             ++light_list) {
+            DestroyLightVector(*light_lists[emitter].GetAt(light_list));
+        }
+        light_lists[emitter].Clear();
+    }
+}
 
 /* Copy the twelve-word state block, then replace its first float from the
    selected 0x1e5-byte missile database row. */
 // FUNCTION: WIZ8 0x004A5410
-void W8MissileState004A5410::Function4A5410(const unsigned int* values)
+void W8Missile::Function4A5410(const float* values)
 {
-    memcpy(m_values_1fc, values, sizeof(m_values_1fc));
-    m_values_1fc[0] = *reinterpret_cast<const unsigned int*>(
-        reinterpret_cast<const unsigned char*>(g_missile_table_65bde0) +
-        m_missile_table_index * sizeof(W8MissileTableRecord) + 0x140);
+    memcpy(values_1fc, values, sizeof(values_1fc));
+    values_1fc[0] = g_missile_table_65bde0[missile_table_index_1d8].value_140;
 }
 
-/* The launcher a missile was fired from. */
+/* The representation a missile was fired from. */
 // FUNCTION: WIZ8 0x004a45e0
-W8EmitterTableHost* W8Missile::GetLauncher()
+W8EmitterHost* W8Missile::GetRepresentation()
 {
-    return this->launcher;
+    return m_pRep;
 }
 
-/* The emitter the launcher is currently firing from. */
+/* The animation the representation is currently firing from. */
 // FUNCTION: WIZ8 0x004a4570
-W8Emitter* W8Missile::GetActiveEmitter()
+W8AnimObj* W8Missile::GetCurrentAnimation()
 {
-    return this->launcher->emitters[this->launcher->selection.emitter.emitter_index];
+    return m_pRep->emitters[
+        m_pRep->selection.emitter.emitter_index];
 }
 
-/* That emitter's own value. */
+/* That animation's own playback scale. */
 // FUNCTION: WIZ8 0x004a45c0
-float W8Missile::GetActiveEmitterValue()
+float W8Missile::GetCurrentAnimationScale()
 {
-    return this->launcher->emitters[this->launcher->selection.emitter.emitter_index]->value_08;
+    return m_pRep->emitters[
+        m_pRep->selection.emitter.emitter_index]->playback_scale_08;
 }
 
 // FUNCTION: WIZ8 0x004a45f0
-void* W8Missile::GetActiveEmitterEntry004A45F0()
+W8AniMesh* W8Missile::GetCurrentAniMesh()
 {
-    W8Emitter* emitter = this->launcher->emitters[
-        this->launcher->selection.emitter.emitter_index];
+    W8AnimObj* animation = m_pRep->emitters[
+        m_pRep->selection.emitter.emitter_index];
 
-    if (emitter == 0) {
+    if (animation == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp", 0x55e, 0);
     }
-    return emitter->values_18[this->launcher->m_bLOD];
+    return animation->entries_18[m_pRep->m_bLOD];
 }
 
 /* How many emitters the launcher has, counted by testing each for null rather
    than read from a stored count. */
 // FUNCTION: WIZ8 0x004a4590
-char W8Missile::GetEmitterCount()
+signed char W8Missile::GetTotalAnimationCount()
 {
-    char count = this->launcher->emitters[0] != 0;
+    signed char count = 0;
 
-    if (this->launcher->emitters[1] != 0) {
+    if (m_pRep->emitters[0] != 0) {
+        count = 1;
+    }
+
+    if (m_pRep->emitters[1] != 0) {
         ++count;
     }
     return count;
 }
 
-/* Thirteen-byte forwarder onto the release path. */
+/* The missile adds no work around the ordinary GrCycle update. */
 // FUNCTION: WIZ8 0x004a4100
-void W8Missile::Release()
+void W8Missile::UpdateRepresentation(W8World* world)
 {
-    ReleaseMissile(this);
+    W8GrCycle::UpdateRepresentation(world);
 }
 
-/* Hand the launcher's setting at 0x98 to whatever the missile's own virtual
-   accessor answers with. */
+/* Hand the representation's LOD to the current animation. */
 // FUNCTION: WIZ8 0x004a4110
-void W8Missile::ApplyLauncherSetting98()
+signed char W8Missile::GetNumSubCycles()
 {
-    AnimObjValue004A15D0(Method34(), this->launcher->m_bLOD);
+    W8AnimObj* animation = GetCurrentAnimation();
+
+    return static_cast<signed char>(
+        AnimObjValue004A15D0(animation, m_pRep->m_bLOD));
 }
 
 /* Reset the launcher's two counters at 0x94 and 0x95. The second is one less
    than the missile's own virtual answer, and the launcher pointer is taken
    before the virtual call rather than after. */
 // FUNCTION: WIZ8 0x004a4140
-void W8Missile::ResetLauncherCounters(int arg_1, int arg_2)
+void W8Missile::AdvanceAnimationFrame(int value, int flags)
 {
-    W8EmitterTableHost* launcher_before;
+    W8MissileRep* representation_before;
 
-    *(unsigned char*)((char*)this->launcher + 0x94) = 0;
-    launcher_before = this->launcher;
-    *(char*)((char*)launcher_before + 0x95) = Method14() - 1;
-    Function4A72F0(arg_1, arg_2);
+    m_pRep->counter_094 = 0;
+    representation_before = m_pRep;
+    representation_before->counter_095 = GetNumSubCycles() - 1;
+    W8GrCycle::AdvanceAnimationFrame(value, flags);
 }
