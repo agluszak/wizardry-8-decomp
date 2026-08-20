@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/sr_api.h"
 

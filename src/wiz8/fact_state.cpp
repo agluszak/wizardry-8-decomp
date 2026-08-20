@@ -1,6 +1,10 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/npc_item_lists.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/xstatus.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
@@ -14,6 +18,81 @@ extern void Function58AAD0(int channel, const wchar_t* format, const char* name,
                            const wchar_t* text);
 extern void Function55A0A0(int handle);
 extern void Function524CA0(W8NPCItemList* list);
+/* Provisional semantic name for the journal/notification path at 0x005588f0. */
+extern void RecordFactChangeForJournal(int fact_id);
+extern void HandleFactChange(int fact_id, unsigned char value);
+
+// FUNCTION: WIZ8 0x00506280
+unsigned char GetFact(int fact_id)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+
+    if (fact_id > 1000) {
+        return 0;
+    }
+
+    value = EvaluateFact(fact_id);
+    if (g_log_fact_checks) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        }
+        else {
+            wcscpy(display_value, L"FALSE");
+        }
+        WriteGameLog(
+            5,
+            L"Checking fact %S which is %s",
+            g_fact_records[fact_id].symbolic_name,
+            display_value);
+    }
+    return value;
+}
+
+// FUNCTION: WIZ8 0x005061a0
+void SetFact(
+    int fact_id, unsigned char value, unsigned char suppress_side_effects)
+{
+    unsigned char previous_value;
+    wchar_t display_value[10];
+
+    if (fact_id > 1000) {
+        return;
+    }
+
+    previous_value = g_fact_values[fact_id];
+    g_fact_values[fact_id] = value;
+
+    if (fact_id < (int)gXStatus.uiFactsInDatabase) {
+        if (value) {
+            sprintf((char*)display_value, "TRUE");
+        }
+        else {
+            sprintf((char*)display_value, "FALSE");
+        }
+    }
+
+    if (!suppress_side_effects) {
+        if (g_fact_values[fact_id] != previous_value) {
+            RecordFactChangeForJournal(fact_id);
+        }
+        HandleFactChange(fact_id, value);
+
+        if (g_log_fact_checks) {
+            if (value) {
+                wcscpy(display_value, L"TRUE");
+            }
+            else {
+                wcscpy(display_value, L"FALSE");
+            }
+            WriteGameLog(
+                5,
+                L"%S set to %s",
+                g_fact_records[fact_id].symbolic_name,
+                display_value);
+        }
+    }
+}
 
 /* The whole 1001-byte fact array minus its last entry goes to the save file in
    one write. The original passes the address of its own parameter as the

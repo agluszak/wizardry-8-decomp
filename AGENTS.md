@@ -26,6 +26,9 @@ durable task state and `just` for the supported daily workflow.
 - Search before declaring anything. A function, global, class, field, vtable, import, or constant
   has one canonical owner. Extend it; do not add duplicate externs, raw vtable calls, wrappers,
   guessed aliases, or parallel inventories.
+- All repository-owned Wizardry and SurRender code is C++. Never add `__cplusplus` conditionals,
+  C fallback declarations, or parallel C/C++ API shapes. Write unconditional C++ declarations;
+  retain `extern "C"` only where the recovered or external ABI requires C linkage.
 - Preserve proven original translation-unit ownership and the explicit matching-sensitive order in
   `src/wiz8/sources.cmake`. Keep address-qualified template emissions separate until ownership is
   proved.

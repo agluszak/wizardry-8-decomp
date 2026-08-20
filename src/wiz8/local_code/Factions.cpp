@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/factions.h"
 #include "wiz8/sr_api.h"
 
 /* Local Code\Factions.cpp. The unit is named by the two assertions this body

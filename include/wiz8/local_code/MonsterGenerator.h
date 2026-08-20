@@ -33,7 +33,6 @@ typedef struct W8MonsterGenerator {
     char name[32];                        /* 0x24 */
     unsigned char flag_44;                /* 0x44: written to the save after the name */
 
-#ifdef __cplusplus
     /* Named by the assertion message above. Rearms the generator's timer,
        creating it on first use, with a delay jittered around the configured
        interval. */
@@ -48,11 +47,9 @@ typedef struct W8MonsterGenerator {
     /* Loads the marker unconditionally, then applies the armed state. */
     void Reload(int unused, unsigned char active);
     ~W8MonsterGenerator();
-#endif
 } W8MonsterGenerator;
 #pragma pack(pop)
 
 W8MonsterGenerator* FindMonGenByName(const char* name);
 
 #endif
-

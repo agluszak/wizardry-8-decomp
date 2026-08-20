@@ -15,13 +15,7 @@ enum {
 
 void InvalidateRegion(INT32 left, INT32 top, INT32 right, INT32 bottom,
                       UINT32 flags);
-#ifdef __cplusplus
-extern "C" {
-#endif
 BOOLEAN VideoIsFullScreen(void);
 void VideoGetClientRect(RECT* rect);
-#ifdef __cplusplus
-}
-#endif
 
 #endif

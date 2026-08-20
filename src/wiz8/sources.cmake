@@ -116,7 +116,6 @@ set(WIZ8_PROVISIONAL_PREFIX_UNITS
     src/wiz8/video2.cpp
     src/wiz8/window_proc.cpp
     src/wiz8/character_skills.cpp
-    src/wiz8/gameplay_boundaries.cpp
     src/wiz8/fact_state.cpp
     src/wiz8/dirty_tiles.cpp
     src/wiz8/render_options.cpp

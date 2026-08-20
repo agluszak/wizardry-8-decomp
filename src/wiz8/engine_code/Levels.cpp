@@ -12,6 +12,8 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/game_state.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/fact_state.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"

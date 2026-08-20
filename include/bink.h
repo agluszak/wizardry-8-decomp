@@ -56,9 +56,7 @@ struct BINK {
 
 #define BINKSURFACE555 9
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 __declspec(dllimport) S32 __stdcall BinkDDSurfaceType(void* surface);
 __declspec(dllimport) S32 __stdcall BinkCopyToBuffer(
@@ -76,8 +74,6 @@ __declspec(dllimport) S32 __stdcall BinkDoFrame(HBINK bink);
 __declspec(dllimport) S32 __stdcall BinkWait(HBINK bink);
 __declspec(dllimport) void __stdcall BinkNextFrame(HBINK bink);
 
-#ifdef __cplusplus
 }
-#endif
 
 #endif

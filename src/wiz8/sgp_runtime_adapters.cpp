@@ -8,7 +8,6 @@
 #include "wiz8/sgp_video.h"
 #include "Font.h"
 #include "himage.h"
-#include "sgp.h"
 #include "vobject.h"
 #include "vobject_blitters.h"
 #include "vsurface.h"
@@ -141,12 +140,12 @@ unsigned char InitializeWiz8FontManager(
         0xfffffff2u, 0, 0, g_screen_width_603c3c, g_screen_height_603c40, 0);
 }
 
-unsigned char VideoIsFullScreen(void)
+extern "C" unsigned char VideoIsFullScreen(void)
 {
     return g_fullscreen_603c39;
 }
 
-void VideoGetClientRect(RECT* bounds)
+extern "C" void VideoGetClientRect(RECT* bounds)
 {
     POINT origin;
 

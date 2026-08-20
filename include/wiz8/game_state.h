@@ -142,10 +142,8 @@ typedef struct W8MessageStorageRecord {
     unsigned char unknown_1c[8];
 } W8MessageStorageRecord;
 
-#ifdef __cplusplus
 static_assert(sizeof(W8MessageStorageRecord) == 0x24,
               "W8MessageStorageRecord_must_be_0x24");
-#endif
 
 typedef struct W8LevelRuntimeBlock {
     unsigned char unknown_000[0xf4];
@@ -216,24 +214,18 @@ typedef struct W8LevelRuntimeBlock {
     unsigned char flag_327;
 } W8LevelRuntimeBlock;
 
-#ifdef __cplusplus
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x328,
               "W8LevelRuntimeBlock_must_be_0x328");
-#endif
 
 #pragma pack(pop)
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 extern W8LevelRuntimeBlock* g_level_block; /* 0x0068EDCC */
 extern int g_current_level;                /* 0x00686A70 */
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 extern W8GameSettings g_settings_6850c8;   /* 0x006850C8 */
 
-#ifdef __cplusplus
 }
-#endif
 
 #endif

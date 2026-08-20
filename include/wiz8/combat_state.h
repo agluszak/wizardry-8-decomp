@@ -106,17 +106,13 @@ typedef struct W8CombatState {
 } W8CombatState;
 #pragma pack(pop)
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
 extern W8CombatCharacterRow* g_combat_character_rows;
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 
-#ifdef __cplusplus
 }
-#endif
 
 /* These are the two heap-buffer fields at the head of gXStatus, not separate
    globals.  Their retail addresses are the addresses of those pointer fields. */

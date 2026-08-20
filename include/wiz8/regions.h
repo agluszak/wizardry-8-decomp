@@ -37,9 +37,7 @@ typedef struct W8Region {
     void* owner;
 } W8Region;                              /* 0x1c */
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 extern unsigned int g_region_set_count;  /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];
@@ -55,6 +53,31 @@ extern unsigned int g_dword_689b50;
 extern wchar_t* g_default_help_text;
 
 unsigned int GetForcedRegion(void);
+void RegionSetEnable(unsigned int region_set_index);
+void RegionSetDisable(unsigned int region_set_index);
+void ClearRegionSetModeBits(unsigned int region_set_index);
+void SetRegionSetMode4(unsigned int region_set_index);
+void ClearRegionModeBits(unsigned int region_index);
+void SetRegionMode4(unsigned int region_index);
+void SetRegionBounds(
+    unsigned int region_index,
+    unsigned short x1,
+    unsigned short y1,
+    unsigned short x2,
+    unsigned short y2);
+bool RegionContainsPoint(
+    unsigned int region_index, unsigned short x, unsigned short y);
+bool RegionHasFlags(unsigned int region_index, unsigned int flags);
+unsigned int CreateRegionSet(void);
+void ResetRegionSet(unsigned int region_set_index);
+unsigned int AddRegionToSet(unsigned int region_set_index);
+void SetRegionCallback(
+    unsigned int region_index,
+    W8RegionCallback callback,
+    unsigned short callback_id);
+void SetRegionOwner(unsigned int region_index, void* owner);
+void SetRegionHelp(
+    unsigned int region_index, unsigned char enabled, int help_text_id);
 void UpdateRegionHelp(void);
 void ShowRegionHelp(unsigned int region_index);
 void SetRegionHelpText(const wchar_t* text);
@@ -64,8 +87,6 @@ void DisableRegionHelp(unsigned int region_index);
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index);
 void ActivateDialogRegion(unsigned int region_index); /* 0x004F2040 */
 
-#ifdef __cplusplus
 }
-#endif
 
 #endif

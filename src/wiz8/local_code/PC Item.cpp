@@ -1,4 +1,8 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/fact_state.h"
+#include "wiz8/factions.h"
+#include "wiz8/npc_item_lists.h"
 #include "wiz8/item_video_object_vector.h"
 #include "wiz8/sr_api.h"
 

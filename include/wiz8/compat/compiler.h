@@ -2,7 +2,7 @@
 
 // Keep modern structural annotations visible to the lint compiler while
 // making them syntax-neutral for the C++98 matching toolchain.
-#if __cplusplus < 201103L
+#if !defined(WIZ8_CLANG_LINT)
 #define override
 
 /* Keep source-level layout contracts in standard static_assert form while

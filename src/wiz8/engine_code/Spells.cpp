@@ -46,6 +46,49 @@ extern float Function4BE490(
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
+static __inline int MinimumCasterLevel(int spell_level)
+{
+    switch (spell_level) {
+    case 2:
+        return 3;
+    case 3:
+        return 5;
+    case 4:
+        return 8;
+    case 5:
+        return 11;
+    case 6:
+        return 14;
+    case 7:
+        return 18;
+    default:
+        return 1;
+    }
+}
+
+// FUNCTION: WIZ8 0x004ac9d0
+int GetSpellTargetType(int spell_id, unsigned char normalize_single_target)
+{
+    int target_type = g_spell_records[spell_id].target_type;
+
+    if (target_type == 1 && normalize_single_target) {
+        target_type = 0;
+    }
+    return target_type;
+}
+
+// FUNCTION: WIZ8 0x004acb40
+int MinimumCasterLevelForSpellLevel(int spell_level)
+{
+    return MinimumCasterLevel(spell_level);
+}
+
+// FUNCTION: WIZ8 0x004acba0
+int GetMinimumCasterLevelForSpell(int spell_id)
+{
+    return MinimumCasterLevel(g_spell_records[spell_id].spell_level);
+}
+
 /* The emitter record a spell's visual hangs off. */
 // FUNCTION: WIZ8 0x004ac890
 W8EmitterHost* W8SpellVisual::GetRepresentation()

@@ -54,7 +54,6 @@ typedef struct W8XStatus {
 } W8XStatus;
 #pragma pack(pop)
 
-#ifdef __cplusplus
 static_assert(offsetof(W8XStatus, uiMonstersInDatabase) == 0x0c,
               "W8XStatus_monster_count_offset");
 static_assert(offsetof(W8XStatus, fCombatMode) == 0x1c,
@@ -74,7 +73,6 @@ static_assert(offsetof(W8XStatus, flPartyMoveDistLimit) == 0x57,
 static_assert(offsetof(W8XStatus, iCurrentCursor) == 0x63,
               "W8XStatus_cursor_offset");
 static_assert(sizeof(W8XStatus) == 0x73, "W8XStatus_recovered_prefix_size");
-#endif
 
 extern W8XStatus gXStatus;
 

@@ -15,9 +15,7 @@ typedef struct W8MessageBoxLine {
     int sequence;                         /* 0x20: running global counter */
 } W8MessageBoxLine;                       /* 0x24 */
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 extern W8MessageBoxLine** g_message_box_lines;
 extern int g_message_box_line_count;
@@ -25,8 +23,6 @@ extern int g_message_box_line_capacity;
 extern int g_message_sequence;
 extern unsigned char* g_main_game_screen_0068f2d4;
 
-#ifdef __cplusplus
 }
-#endif
 
 #endif
