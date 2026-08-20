@@ -98,6 +98,16 @@ derived class. When all observed behavior belongs to a canonical template instan
 that instantiation directly and record its addresses with `TEMPLATE`; never invent an
 address-qualified subclass merely to own its vtable or emitted methods.
 
+Before adding any derived override, address-qualified method, specialization, or new class
+boundary, compare the body against every canonical base and primary-template algorithm already in
+the repository. If its complete behavior is explained by inheritance, template instantiation, or
+ordinary compiler emission, keep the source only in that canonical owner. A distinct address,
+vtable target, construction phase, or exact compiler match does not make the emitted copy authored
+source. Record a proved instantiation with `TEMPLATE`, or leave it unresolved until the complete
+template arguments are established. Add derived source only when independent evidence proves
+behavior, storage, or an API contract that the canonical owner cannot explain. This applies to
+clone, registry, lifecycle, container, thunk, and other repeated compiler-emitted families.
+
 An emitted address for a container constructor, growth operation, resize, copy, or teardown does
 not make it an authored address-qualified helper, a bespoke nested container class, or an explicit
 template specialization. Recover the ordinary primary-template operation once in its canonical
