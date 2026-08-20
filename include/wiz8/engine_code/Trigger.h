@@ -230,6 +230,8 @@ public:
     int value_388;
 };
 
+void Function445200(Trigger* trigger);
+
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
 Trigger* FindTriggerByName(const char* name);

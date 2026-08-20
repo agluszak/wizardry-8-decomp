@@ -4,12 +4,15 @@
 #include "wiz8/3d_code/PList.h"
 
 class srNode;
+class W8Prop;
 
 /* Engine Code\GDProp.cpp. Prop.cpp allocates 0x58 bytes for this object,
    constructs it at 0x004B6E00, and owns it at Prop+0x38. Assertions in the
    same-object method at 0x004B6F30 retain the original m_pGDSurfaces and
    m_pVertices member names and establish their offsets. */
 class GDProp {
+    friend class W8Prop;
+
 public:
     GDProp(
         srNode* instance,

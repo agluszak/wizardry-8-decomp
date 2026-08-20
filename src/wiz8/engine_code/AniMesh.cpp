@@ -114,6 +114,30 @@ W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other)
     return mesh;
 }
 
+static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh);
+
+// FUNCTION: WIZ8 0x004b5b30
+unsigned char LoadAniMeshFromInfo004B5B30(
+    W8ReadLevelInfo* info, W8AniMesh* mesh, unsigned char load_all)
+{
+    if (info == 0 || mesh == 0) {
+        srAssertFail("pInfo&&pAniMesh", ANI_MESH_CPP, 0x105, 0);
+    }
+    if (info == 0 || mesh == 0) return 0;
+    strcpy(mesh->bitmap_directory_2c, info->bitmap_folder);
+    mesh->world_38 = info->world;
+    mesh->flags_00 = 0;
+    mesh->last_used_3c = 0;
+    if (info->mesh_filename != 0) strcpy(mesh->filename_30, info->mesh_filename);
+    mesh->file_offset_34 = FileGetPos(info->hFile);
+    if (load_all == 0) {
+        unsigned char result = LoadAniMeshFrameCount004B6290(info->hFile, mesh);
+        mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED | W8_ANI_MESH_KEEP_LOADED;
+        return result;
+    }
+    return LoadAniMesh004B5D00(info->hFile, mesh, 1);
+}
+
 // FUNCTION: WIZ8 0x004b5c10
 float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame)
 {
@@ -337,6 +361,43 @@ void DestroyAniMesh004B5880(W8AniMesh* mesh)
     free(mesh->bitmap_directory_2c);
     free(mesh->filename_30);
     free(mesh);
+}
+
+// FUNCTION: WIZ8 0x004b6290
+static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh)
+{
+    int handle = file;
+    unsigned char frame_count, frame_index, loaded_count, success;
+    W8ReadLevelInfo info;
+    if (handle == 0) {
+        handle = FileOpen(mesh->filename_30, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+        if (handle == 0) {
+            srAssertFail(
+                "fi.hFile", ANI_MESH_CPP, 0x23f,
+                reinterpret_cast<const char*>(
+                    String("Couldn't open %s", mesh->filename_30)));
+            return 0;
+        }
+    }
+    info.world = mesh->world_38;
+    info.hFile = handle;
+    info.bitmap_folder = mesh->bitmap_directory_2c;
+    info.mesh_filename = mesh->filename_30;
+    if (file == 0) FileSeek(handle, mesh->file_offset_34, FILE_SEEK_FROM_START);
+    success = ReadVirtualFile(handle, &frame_count, 1, 0);
+    if (success == 0) {
+        srAssertFail("fSuccess", ANI_MESH_CPP, 0x253, 0);
+        CloseVirtualFile(handle);
+        return 0;
+    }
+    mesh->flags_00 |= W8_ANI_MESH_FRAME_COUNT_LOADED;
+    mesh->frame_count_01 = frame_count;
+    for (loaded_count = 0; loaded_count < frame_count; ++loaded_count) {
+        if (success != 0) success = ReadVirtualFile(handle, &frame_index, 1, 0);
+        if (success != 0 && SkipSingleLevelMesh00487BD0(&info) == 2) break;
+    }
+    if (file == 0) CloseVirtualFile(handle);
+    return success;
 }
 
 // FUNCTION: WIZ8 0x004b63f0

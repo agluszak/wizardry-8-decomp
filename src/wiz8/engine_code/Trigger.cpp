@@ -56,7 +56,9 @@ extern stLight* FindLightByName00445A10(
 extern void SetWorldEnvironmentValue00483AE0(W8World* world, float value);
 extern unsigned char g_trigger_action_active_006599c8;
 extern char g_trigger_parse_buffer_00659908[256];
-extern W8GrowableVector<int> g_location_variable_values_00659990;
+W8GrowableVector<int> g_location_variable_levels_006598e0;
+W8GrowableVector<char*> g_location_variable_names_006598f8;
+W8GrowableVector<int> g_location_variable_values_00659990;
 extern unsigned char g_flag_00606994;
 extern unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 extern int OpenLockInteraction00587510(Trigger* trigger);
@@ -457,6 +459,60 @@ void W8TriggerEvent::Update()
 
     if (repeat_034 != 0) {
         completed_035 = 1;
+    }
+}
+
+/* A state-driven Prop has one location variable per animation slot.  Ensure
+   the complete set exists for the loaded level and select slot zero as the
+   initial active state. */
+// FUNCTION: WIZ8 0x00445200
+void Function445200(Trigger* trigger)
+{
+    int slot;
+
+    if (trigger->m_pacStateToMod == 0) {
+        return;
+    }
+    for (slot = 0;
+         slot < static_cast<signed char>(trigger->m_pProp->Rep()->slots.GetCount());
+         ++slot) {
+        char name[132];
+        int variable_id;
+
+        if (trigger->m_bRepType != 2) {
+            srAssertFail(
+                "m_bRepType == TRIGGER_REP_PROP",
+                "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
+        }
+        sprintf(name, "%s%d", trigger->m_pacStateToMod, slot);
+        if (name == 0) {
+            srAssertFail("pacName", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1094, 0);
+        }
+
+        variable_id = 0;
+        while (variable_id < g_location_variable_names_006598f8.GetCount()) {
+            if (_stricmp(
+                    *g_location_variable_names_006598f8.GetAt(variable_id),
+                    name) == 0 &&
+                *g_location_variable_levels_006598e0.GetAt(variable_id) ==
+                    g_loaded_level_id) {
+                break;
+            }
+            ++variable_id;
+        }
+        if (variable_id == g_location_variable_names_006598f8.GetCount()) {
+            char* variable_name = new char[strlen(name) + 1];
+            if (variable_name == 0) {
+                srAssertFail(
+                    "pacVariableName",
+                    "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                    0x109c, 0);
+            }
+            strcpy(variable_name, name);
+            g_location_variable_names_006598f8.Add(variable_name);
+            g_location_variable_values_00659990.Add(slot == 0);
+            g_location_variable_levels_006598e0.Add(g_loaded_level_id);
+        }
     }
 }
 

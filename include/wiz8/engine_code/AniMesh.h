@@ -4,6 +4,7 @@
 #include "surrender/srMath.h"
 
 class stModelInstance005EC7D0;
+struct W8ReadLevelInfo;
 struct W8World;
 
 enum W8AniMeshFlags {
@@ -45,6 +46,8 @@ unsigned char GetAniMeshBounds004B6640(
     W8AniMesh* mesh, srVector3T<float>* minimum, srVector3T<float>* maximum);
 unsigned char LoadAniMesh004B5D00(
     int file, W8AniMesh* mesh, unsigned char load_all);
+unsigned char LoadAniMeshFromInfo004B5B30(
+    W8ReadLevelInfo* info, W8AniMesh* mesh, unsigned char load_all);
 unsigned char UnloadAniMesh004B63F0(W8AniMesh* mesh, unsigned char force);
 stModelInstance005EC7D0* GetAniMeshFrame004B6550(
     W8AniMesh* mesh, unsigned char frame);

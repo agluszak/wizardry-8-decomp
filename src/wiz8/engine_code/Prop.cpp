@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
@@ -13,8 +14,10 @@
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/Trigger.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/mesh_model.h"
+#include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srNode.h"
@@ -43,7 +46,11 @@ extern int Function443830(W8World* world, W8Prop* prop);
 extern void Function4B7470(int value);
 extern int IncrementValue60DFAC(void);
 extern const double g_zero_005ebb40;
-extern const double g_one_005ebc30;
+
+/* This byte is reset before the world Prop update and set when a collidable
+   Prop rebuilds its pathing geometry.  Its three retail references establish
+   the process-wide storage; no broader state model is yet proved. */
+unsigned char g_byte_00659a64;
 
 /* Same-TU access to srModelInstance's protected alignment fields so the
    loader can write them the way the image does, without going through the
@@ -65,7 +72,7 @@ struct PropModelInstanceAccess : srModelInstance {
             align_axis_14c.y * align_axis_14c.y +
             align_axis_14c.x * align_axis_14c.x;
         if ((double)length_squared != g_zero_005ebb40) {
-            scale = (float)(g_one_005ebc30 / sqrt((double)length_squared));
+            scale = (float)(g_double_005ebc30 / sqrt((double)length_squared));
             align_axis_14c.x *= scale;
             align_axis_14c.y *= scale;
             align_axis_14c.z *= scale;
@@ -572,16 +579,9 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
     return true;
 }
 
-extern void Function44DEA0(W8Prop* prop);
-extern unsigned char LoadAniMeshFromInfo004B5B30(
-    W8ReadLevelInfo* info, W8AniMesh* mesh, int positional,
-    unsigned char load_all);
 extern unsigned char AnimObjReadFromFile004A05C0(
     W8ReadLevelInfo* info, W8AnimObj* animation, int a, int b, int c);
-extern void* Function441A20(int hFile, W8World* world);
-extern void Function445200(void* object);
 
-extern float g_camera_step_factor_005ebc7c;
 extern const float g_monster_script_direction_scale_005ec150;
 
 /* After a successful load, bind the current animation frame's mesh to its
@@ -658,7 +658,53 @@ void W8Prop::Method44C670()
         }
     }
     flags_1c |= 0x20;
-    Function44DEA0(this);
+    Function44DEA0();
+}
+
+/* Build or refresh the pathing representation for a collidable Prop.  Retail
+   requires a transitive animation with one mesh, then either constructs the
+   owned GDProp or reinitializes it for the current animation frame. */
+// FUNCTION: WIZ8 0x0044dea0
+int W8Prop::Function44DEA0()
+{
+    srModelInstance* instance;
+
+    if ((flags_1c & 1) == 0) {
+        return 0;
+    }
+    if (AnimationIsRunning(Rep()->animation) != 1) {
+        ReportError00401920(
+            "Collidable props can be of Transitive animation type only.");
+    }
+    if (AnimObjListCount004A1620(Rep()->animation, 2) != 1) {
+        ReportError00401920("Collideable props should have a single mesh.");
+    }
+    instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
+    if (instance == 0) {
+        srAssertFail("pstInstance", PROP_CPP, 0x939, 0);
+    }
+
+    if (m_gd_prop == 0) {
+        m_gd_prop = new GDProp(
+            instance, reinterpret_cast<unsigned char*>(m_name),
+            static_cast<unsigned short>(Rep()->flag_064), Rep()->flag_0c0,
+            Rep()->flag_0c1);
+    }
+    else {
+        if ((flags_1c & 0x20) != 0) {
+            m_gd_prop->Initialize(
+                instance, 1, static_cast<unsigned short>(Rep()->flag_064),
+                Rep()->flag_0c0, Rep()->flag_0c1);
+        }
+        else {
+            m_gd_prop->Initialize(
+                instance, 0, 0, Rep()->flag_0c0, Rep()->flag_0c1);
+        }
+        if (Rep()->flag_070 == 1) {
+            g_byte_00659a64 = 1;
+        }
+    }
+    return m_gd_prop->m_surface_count_14;
 }
 
 // FUNCTION: WIZ8 0x0044bf50
@@ -747,12 +793,12 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 goto fail;
             }
         }
-        info->unknown_00c = 0;
+        info->mesh_filename = 0;
         mesh = CreateAniMesh004B57E0();
         if (mesh == 0) {
             srAssertFail("pAniMesh", PROP_CPP, 0xd5, 0);
         }
-        result = LoadAniMeshFromInfo004B5B30(info, mesh, 1, 1);
+        result = LoadAniMeshFromInfo004B5B30(info, mesh, 1);
         if (result == 0) {
             fail_line = 0xd8;
             result = 0;
@@ -776,7 +822,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         int slot_i;
 
         flag_bits = 0.0f;
-        info->unknown_00c = 0;
+        info->mesh_filename = 0;
         if (success != 0) {
             ReadVirtualFile(hFile, &frame_count, 1, 0);
         }
@@ -990,7 +1036,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             extent = maximum.z - minimum.z;
         }
         *reinterpret_cast<float*>(&this->value_08c) =
-            extent * g_camera_step_factor_005ebc7c;
+            extent * g_float_005ebc7c;
     }
 
     if (version > 2) {
@@ -1002,23 +1048,18 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             result = success != 0 ? 1 : 0;
         }
         if (attach_flag != 0) {
-            void* trigger;
+            Trigger* trigger;
 
-            trigger = Function441A20(hFile, info->world);
+            trigger = Trigger::CreateAndLoadLevelTrigger(hFile, info->world);
             /* Retail writes the attach fields first, then tests type at +0x22a
                (the stores do not touch that word). */
-            *reinterpret_cast<unsigned char*>(
-                reinterpret_cast<char*>(trigger) + 0x10c) = 2;
-            *reinterpret_cast<W8Prop**>(
-                reinterpret_cast<char*>(trigger) + 0x110) = prop;
-            if (*reinterpret_cast<unsigned short*>(
-                    reinterpret_cast<char*>(trigger) + 0x22a) == 0x40) {
+            trigger->m_bRepType = 2;
+            trigger->m_pProp = prop;
+            if (trigger->initial_action_22a == 0x40) {
                 Function445200(trigger);
             }
-            if (*reinterpret_cast<int*>(
-                    reinterpret_cast<char*>(trigger) + 0x18) == 1 &&
-                *reinterpret_cast<short*>(
-                    reinterpret_cast<char*>(trigger) + 0x22a) == 8) {
+            if (trigger->trigger_kind_018 == 1 &&
+                trigger->initial_action_22a == 8) {
                 unsigned int path_count;
                 unsigned int path_i;
 
@@ -1035,8 +1076,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                     }
                 }
             }
-            switch (*reinterpret_cast<unsigned short*>(
-                reinterpret_cast<char*>(trigger) + 0x22a)) {
+            switch (trigger->initial_action_22a) {
             case 1:
             case 2:
             case 3:

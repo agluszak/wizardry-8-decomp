@@ -86,6 +86,7 @@ public:
     void Method44D360(W8World* world);
     void Method44C030();
     void Method44C670();                 /* 0x0044C670 */
+    int Function44DEA0();                /* 0x0044DEA0 */
     void Method44C830(W8World* world);
     unsigned char GetSetting6C();
     srModelInstance* ToggleRepAnimation(int argument);
