@@ -3,6 +3,9 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/npc_item_lists.h"
 #include "wiz8/sr_api.h"
 #include <math.h>
 #include <new>
@@ -161,11 +164,162 @@ unsigned char Function4A5790(void);
 void StartCombat(int surprise);
 void EndCombat(unsigned char reason);
 void Function595570(void);
+int Function428E20(void);
+void Function50E8C0(int location_id);
+void Function51B420(W8MonsterInfo* monster_info, W8MonsterRecord* record);
+void Function509CD0(unsigned char value, int enabled, int location_id);
+void WorldAddToList00(W8World* world, void* entry);
+void MonsterPropagateValue004C5870(W8Monster* monster, int value);
+void MonsterForward4A7BE0(
+    W8Monster* monster,
+    const srVector3T<float>* position);
+void MonsterCallSlot10(void* object, int argument);
+void RequestRefreshPartyState(void);
+unsigned char GetFlag68F105(void);
+void Function58AAD0(int channel, const W8WideChar* format, ...);
+extern int g_monster_cycle_registry_weight_0065ba4c;
+extern float g_float_005ec52c;
+extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
     unsigned int monster_species);
+
+/* Materialize one inactive script record in the world. Existing engine
+   Monsters are reattached without rebuilding their representation; absent or
+   reset ones are activated first and choose either the birth cycle or a random
+   idle subcycle according to membership in the unborn list. */
+// FUNCTION: WIZ8 0x004e3c70
+void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
+{
+    W8MonsterRecord* record;
+    int registry_before;
+    int registry_after;
+    srVector3T<float> camera_position;
+
+    if (monster_info == 0) {
+        srAssertFail("pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x174, 0);
+    }
+    if (monster_info->flag_14 != 0) {
+        return;
+    }
+
+    record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    if (monster_info->monster == 0 ||
+        monster_info->monster->GetFlag216004CA290() != 0) {
+        registry_before = Function428E20();
+        ActivateMonster(monster_info, 0);
+        MonsterPropagateValue004C5870(
+            monster_info->monster, monster_info->location_id);
+        MonsterSetAdjustedPosition004C5F00(
+            monster_info->monster, &monster_info->position_17);
+
+        if (PListIndexOf(gXStatus.plsUnbornMonsterList, monster_info) != -1) {
+            if (MonsterIsCycleSupported(monster_info->monster, 0) == 0) {
+                srAssertFail(
+                    "MonsterIsCycleSupported(pMonsterInfo->p3D, CYCLE_BIRTH)",
+                    MONSTER_MANAGER_CPP,
+                    0x190,
+                    "Unborn monsters must have CYCLE_BIRTH!");
+            }
+            MonsterSetBehaviour(monster_info->monster, 1);
+            MonsterSetCycle(monster_info->monster, 0);
+            if (MonsterQuery(monster_info->monster, 0) == -1) {
+                srAssertFail(
+                    "MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
+                    MONSTER_MANAGER_CPP,
+                    0x196,
+                    0);
+            }
+            MonsterSetSubCycle(monster_info->monster, 0);
+            MonsterSetAnimating(monster_info->monster, 0);
+            monster_info->monster->fields.state_088 = 0;
+            monster_info->monster->flag_215 = 1;
+        }
+        else {
+            MonsterSetCycle(monster_info->monster, 1);
+            MonsterSetBehaviour(monster_info->monster, 3);
+            if (MonsterQuery(monster_info->monster, 0) == -1) {
+                srAssertFail(
+                    "MonsterQuery(pMonsterInfo->p3D, QUERY_NUM_FRAMES) != -1",
+                    MONSTER_MANAGER_CPP,
+                    0x1a4,
+                    0);
+            }
+            MonsterSetSubCycle(
+                monster_info->monster,
+                Random(MonsterQuery(monster_info->monster, 0)));
+            MonsterSetAnimating(
+                monster_info->monster, monster_info->motionless == 0);
+        }
+
+        WorldAddToList00(GetWorld(), monster_info->monster);
+        MonsterSetFacing004C5B60(
+            monster_info->monster, monster_info->derived_23);
+        Function50E8C0(monster_info->location_id);
+        monster_info->monster->fields.movement_0c0.value_008 =
+            static_cast<unsigned int>(record->missile_value_24f) * 0x10000U +
+            monster_info->location_id;
+        MonsterPropagateValue004C5870(
+            monster_info->monster, monster_info->location_id);
+        monster_info->monster->flag_216 = 0;
+
+        registry_after = Function428E20();
+        monster_info->monster->registry_weight_27c =
+            registry_after - registry_before;
+        g_monster_cycle_registry_weight_0065ba4c +=
+            registry_after - registry_before;
+        if (GetFlag68F105() != 0) {
+            Function58AAD0(
+                7,
+                L"%dK\n",
+                static_cast<unsigned int>(registry_after - registry_before) >> 10);
+        }
+        Function51B420(
+            monster_info,
+            MonsterDBFromSpeciesInline(monster_info->monster_species));
+    }
+
+    WorldGetCameraLocation(GetWorld(), &camera_position);
+    MonsterForward4A7BE0(monster_info->monster, &camera_position);
+    MonsterCallSlot10(
+        monster_info->monster, reinterpret_cast<int>(GetWorld()));
+    g_octree_6598a4->VisitPointCopy0042E620(
+        static_cast<unsigned short>(monster_info->location_id),
+        &monster_info->position_17);
+    monster_info->flag_14 = 1;
+    ++gXStatus.active_monster_count;
+    if (monster_info->monster != 0) {
+        int damage_stage_count =
+            monster_info->monster->GetDamageStageCount004C6A50();
+        if (damage_stage_count > 1) {
+            int damage_stage =
+                ((monster_info->hp_max - monster_info->hp_current) *
+                 damage_stage_count) /
+                monster_info->hp_max;
+            if (damage_stage >= damage_stage_count - 1) {
+                damage_stage = damage_stage_count - 1;
+            }
+            monster_info->monster->SetDamageStage004C6990(damage_stage);
+        }
+    }
+    monster_info->mon_to_mon_visibility = PLCreate();
+    if (monster_info->mon_to_mon_visibility == 0) {
+        srAssertFail(
+            "pMonsterInfo->plsVisMonToMon != NULL",
+            MONSTER_MANAGER_CPP,
+            0x1de,
+            0);
+    }
+    RequestRefreshPartyState();
+    Function593330();
+    if (record->unknown_0c0[0] != 0) {
+        monster_info->monster->fields.movement_0c0.unknown_000 |= 0x10000000;
+    }
+    Function509CD0(
+        record->unknown_0cd[0], 1, monster_info->location_id);
+}
 
 /* Activate the representation lazily. The mode selects whether all available
    cycles are loaded or only the startup cycle; both paths share the world
@@ -1640,6 +1794,88 @@ W8WideChar* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         }
     }
     return record->name_60 + name_form * 24;
+}
+
+float Function4EFB60(void);
+unsigned int Function554490(int skill_index, int* party_slot);
+
+/* Format the health knowledge the party has earned for one monster. NPC-backed
+   records can suppress exact values, and ordinary monsters expose current and
+   maximum HP independently at knowledge thresholds ten and five. */
+// FUNCTION: WIZ8 0x004e52c0
+void FormatMonsterHealth(
+    W8MonsterInfo* monster_info,
+    W8WideChar* health_text)
+{
+    unsigned char suppress_exact_health = 0;
+    unsigned int health_knowledge;
+
+    if (monster_info->flag_16 != 1) {
+        W8MonsterRecord* record;
+        W8NPCItemList* npc_item_list;
+
+        if (monster_info == 0) {
+            srAssertFail(
+                "pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
+        }
+        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        if ((record->flags_0d0 & 1) != 0) {
+            npc_item_list = GetNPCItemListByID(record->unknown_0cd[0]);
+            if (npc_item_list != 0 &&
+                npc_item_list->npc_record->unknown_00[0x57] != 0) {
+                suppress_exact_health = 1;
+            }
+        }
+    }
+
+    if (monster_info->value_2da == 1) {
+        health_knowledge = 125;
+    }
+    else {
+        float average_party_level = Function4EFB60();
+        W8MonsterRecord* record;
+        int best_party_slot;
+        int monster_level;
+
+        if (monster_info == 0) {
+            srAssertFail(
+                "pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x5e9, 0);
+        }
+        record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+        monster_level = record->unknown_250[1];
+        health_knowledge = Function554490(0x15, &best_party_slot);
+        if (static_cast<int>(average_party_level) < monster_level) {
+            float adjusted_knowledge =
+                static_cast<float>(health_knowledge) -
+                (static_cast<float>(monster_level) - average_party_level) *
+                    g_float_005ec52c +
+                g_float_005ebc7c;
+            if (adjusted_knowledge < g_float_005ebb34) {
+                adjusted_knowledge = g_float_005ebb34;
+            }
+            health_knowledge = static_cast<unsigned int>(adjusted_knowledge);
+        }
+    }
+
+    if (g_flag_689b32 != 0) {
+        wcscpy(
+            health_text,
+            FormatWideString(
+                L"%d/%d", monster_info->hp_current, monster_info->hp_max));
+        return;
+    }
+    if (health_knowledge < 10 || suppress_exact_health != 0) {
+        wcscpy(health_text, L"");
+    }
+    else {
+        wcscpy(health_text, FormatWideString(L"%d", monster_info->hp_current));
+    }
+    wcscat(health_text, L"/");
+    if (health_knowledge > 4 && suppress_exact_health == 0) {
+        wcscat(health_text, FormatWideString(L"%d", monster_info->hp_max));
+        return;
+    }
+    wcscat(health_text, L"");
 }
 
 // GLOBAL: WIZ8 0x006836B8

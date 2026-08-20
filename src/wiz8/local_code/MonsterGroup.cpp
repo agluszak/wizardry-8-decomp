@@ -23,7 +23,6 @@ extern unsigned char Function547510(void);                   /* 0x00547510 */
 extern void Function452630(int value);                       /* 0x00452630 */
 extern void Function48C670(W8MonsterGroup* monster_group);   /* 0x0048C670 */
 extern void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info);
-extern void Function4E3C70(W8MonsterInfo* monster_info);     /* 0x004E3C70 */
 extern void Function4C5730(W8Monster* monster, srVector3T<float>* position); /* 0x004C5730 */
 extern void Function48C750(W8MonsterGroup* monster_group);   /* 0x0048C750 */
 extern void Function50FD40(W8MonsterGroup* monster_group, int value); /* 0x0050FD40 */
@@ -620,7 +619,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
                 IListGetAt(monster_group->monsters, index),
                 1));
         if (monster_info->flag_14 == 0) {
-            Function4E3C70(monster_info);
+            ActivateMonsterInWorld(monster_info);
         }
     }
     monster_group->flag_28 = 1;
