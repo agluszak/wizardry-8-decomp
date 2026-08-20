@@ -1,5 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
+#include "input.h"
+#include "timer.h"
 
 #include <new>
 #include <wchar.h>
@@ -39,6 +41,11 @@ unsigned int g_hot_region_689b4c;
 unsigned short g_dword_689b48;
 unsigned int g_dword_689b50;
 unsigned short g_word_6850ed;
+
+extern unsigned short gfAltState;
+extern unsigned short gfCtrlState;
+extern unsigned short gfShiftState;
+extern void ReleaseScreenTransitionObjects(void);
 
 /* Raises the help box for one region, taking a stale one down first. The
    selected text comes either from the region's indexed notice entry or the
@@ -93,6 +100,48 @@ void ShowRegionHelp(unsigned int region_index)
     }
     PlaceHelpBox(anchor.x, anchor.y);
     region->flags |= W8_REGION_HELP_SHOWN;
+}
+
+/* Force one region to the front of modal dispatch. If another region owned
+   that role, send its ordinary mouse-leave callback first and release any
+   transition object it still owns. */
+// FUNCTION: WIZ8 0x004f2040
+void ActivateDialogRegion(unsigned int region_index)
+{
+    if (region_index >= g_region_count) {
+        srAssertFail(
+            "uiRegionIndex < guiRegionCount",
+            "C:\\Projects\\Wizardry 8\\Local Code\\RegionManager.cpp",
+            0x1d6,
+            0);
+    }
+
+    g_hot_region_689b44 = region_index;
+    g_hot_region_689b3c = region_index;
+    if (g_hot_region_689b4c == region_index) {
+        return;
+    }
+
+    if (g_hot_region_689b4c != 0) {
+        W8RegionEvent event;
+        event.time = GetClock();
+        event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+        event.reason = MOUSE_POS;
+
+        W8Region* previous = &g_regions[g_hot_region_689b4c];
+        previous->flags = (previous->flags & 0xff0f) | 0x20;
+        previous->callback(&event, previous);
+        unsigned int previous_index = g_hot_region_689b4c;
+        if ((g_regions[previous_index].flags & 0x200) != 0) {
+            ReleaseScreenTransitionObjects();
+            g_regions[previous_index].flags &= ~0x200u;
+        }
+        g_dword_689b48 = g_word_6850ed;
+        g_regions[g_hot_region_689b4c].flags &= 0xff0f;
+        g_dword_689b50 = 0;
+        g_hot_region_689b4c = 0;
+    }
+    g_regions[g_hot_region_689b44].flags &= 0xff0f;
 }
 
 // FUNCTION: WIZ8 0x004f21b0
@@ -466,8 +515,6 @@ void DisableRegionHelp(unsigned int region_index)
     }
     g_regions[region_index].help_enabled = 0;
 }
-
-extern void ReleaseScreenTransitionObjects(void);
 
 /* Drops every region back to its resting state. The three tracked regions are
    released first - each only if it still carries bit 0x200 - then every region

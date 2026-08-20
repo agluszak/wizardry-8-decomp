@@ -39,6 +39,7 @@ public:
     void FillBounds(int colour);
     void RenderText(int a, int b, int x_offset, int y_offset,
                     unsigned char force);
+    void Function4F39B0(int offset, unsigned char force, int target);
     void UpdateLayout();                  /* 0x004F35B0 */
     void SetLayoutMode(unsigned int layout_mode);
     void SetText(const wchar_t* text, int font);
@@ -76,6 +77,10 @@ protected:
     wchar_t* m_buffer;                   /* 0x34: freed on teardown */
     int m_layoutMode;                    /* 0x38: 10 initially */
     unsigned int m_maxLineWidth;
+
+public:
+    /* State-5's controller raises the alternate-renderer byte directly when
+       it changes modes; retain that observed public storage access. */
     unsigned char m_geometryDirty;
     unsigned char m_alternateRenderer;
     unsigned char pad_42[2];
@@ -152,6 +157,14 @@ WIZ8_ASSERT_SIZE(W8WidgetBase005ED5BC, 0x34);
 // VTABLE: WIZ8 0x005ed604
 class W8TextControl005ED604 : public W8WidgetBase005ED5BC {
 public:
+    friend class W8Control005ED654;
+
+    class Listener {
+    public:
+        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
+        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
+    };
+
     W8TextControl005ED604(Controls* panel, unsigned int region,
                           int left, int top, int right, int bottom,
                           int text_40, int text_44, int text_48, int text_4c,
@@ -181,7 +194,10 @@ public:
     virtual void SetBounds(int left, int top, int right, int bottom) override;
     virtual void SetBoundsFromRect(const W8ControlsRect* bounds) override;
 
-protected:
+public:
+    /* The state-5 controller persists two option bits by directly masking the
+       controls' state words.  This is observed storage access, not an accessor
+       API inferred for convenience. */
     unsigned int m_stateFlags;           /* 0x34: paired state masks */
     unsigned int m_flags_38;             /* 0x38: 0x02 builds layout, 0x04 pins left */
     unsigned char m_alternateTextEnabled;/* 0x3c: alternate text-selection flag */
@@ -195,14 +211,15 @@ protected:
     int m_text_58;
     short m_measured_w;                  /* 0x5c: -1 until measured */
     short m_measured_h;                  /* 0x5e */
+
+public:
     W8TextBuffer005ED5B8 m_textBuffer;   /* 0x60: complete typed subobject */
     int m_field_b0;
-    class Listener {
-    public:
-        virtual void OnPrimary(W8TextControl005ED604* control) = 0;
-        virtual void OnSecondary(W8TextControl005ED604* control) = 0;
-    } *m_listener;                       /* 0xb4 */
+    /* Several owning panels install their listener immediately after
+       construction; the pointer is the shared callback attachment point. */
+    Listener* m_listener;                /* 0xb4 */
 
+protected:
     __forceinline void InvalidateCore(unsigned char immediate);
 };
 WIZ8_ASSERT_SIZE(W8TextControl005ED604, 0xb8);
@@ -307,5 +324,73 @@ struct Controls {
         return m_controls.data[0];
     }
 };
+
+class W8VerticalRangeThumb005ED6B4;
+
+class W8RangeListener {
+public:
+    virtual void OnRangeChanged(W8RangeControl005ED74C* control) = 0;
+};
+
+/* The range panel is shared by Controls.cpp and the state-5 party-selection
+   controls. Its listener, value and child ownership are therefore part of the
+   common Controls surface rather than a translation-unit-local sketch. */
+class W8RangeControl005ED74C : public Controls {
+public:
+    friend class W8VerticalRangeThumb005ED6B4;
+
+    W8RangeControl005ED74C(int left, int top, int right, int bottom,
+                           unsigned int* shared_region_set);
+    ~W8RangeControl005ED74C();
+
+    void SetRange(int first, int second);
+    void SetValue(int value);
+    void Decrement();
+    void Increment();
+    void SetEnabled(unsigned char enabled) override;
+
+    int m_minimum;                       /* 0x4c */
+    int m_maximum;                       /* 0x50 */
+    int m_value;                         /* 0x54 */
+    W8WidgetBase005ED5BC* m_decrement;   /* 0x58 */
+    W8WidgetBase005ED5BC* m_increment;   /* 0x5c */
+    W8VerticalRangeThumb005ED6B4* m_thumb; /* 0x60 */
+    W8RangeListener* m_listener;         /* 0x64 */
+    unsigned char m_enabled;             /* 0x68 */
+};
+WIZ8_ASSERT_SIZE(W8RangeControl005ED74C, 0x6c);
+
+class W8Control005ED654;
+
+class W8ControlSelectionListener {
+public:
+    virtual void vslot00(W8Control005ED654* control, int selected) = 0;
+};
+
+// VTABLE: WIZ8 0x005ed65c
+// class W8GrowableVector<W8TextControl005ED604*>
+
+/* W8Control is itself the ordinary two-slot text-control listener. The same
+   W8TextControl pointer is laid out, registered in the vector and dispatched
+   for selected/deselected state; there is no parallel vector-element object. */
+class W8Control005ED654 : public W8TextControl005ED604::Listener {
+public:
+    W8Control005ED654();
+    int AddEntry(W8TextControl005ED604* entry);
+    void SetSelected(int iSelected);
+    virtual void OnPrimary(W8TextControl005ED604* entry) override;
+    virtual void OnSecondary(W8TextControl005ED604*) override {}
+
+public:
+    /* State-5's option owner reads the selected index from its embedded
+       W8Control directly.  Keep the recovered storage public rather than
+       manufacturing an accessor that is absent from the retail call site. */
+    int m_value_4;
+    int m_value_8;
+    int m_index_c;
+    W8GrowableVector<W8TextControl005ED604*> m_lsButtons;
+    W8ControlSelectionListener* m_value_20;
+};
+WIZ8_ASSERT_SIZE(W8Control005ED654, 0x24);
 
 #endif

@@ -133,7 +133,8 @@ typedef struct W8Character {
        "%ls.CHR" from. The extent below partitions the unknown run up to the
        profession at 0x0069; it is not proven, and only the fact that a wide
        string starts here is. */
-    wchar_t name[0x10];
+    wchar_t name[10];
+    wchar_t name_part_2[6];              /* 0x0019: rendered as the parenthesized name */
     unsigned char unknown_0025[0x44];
     /* 0x0069 and 0x006d: iProfession, named by the GameplayCode.cpp:399
        assertion that bounds it against PROF_COUNT, and the profession the
@@ -149,7 +150,9 @@ typedef struct W8Character {
        the disposition code reads or the table is sparse; the disagreement is
        recorded rather than resolved. */
     int table_value_0079;
-    unsigned char unknown_007d[0xc];
+    unsigned char unknown_007d[4];
+    int personality_0081;               /* indexes the state-5 descriptor text */
+    unsigned char unknown_0085[4];
     unsigned int level;                   /* 0x0089: averaged across occupied slots */
     int profession_levels[15];            /* 0x008d */
     unsigned char unknown_00c9[0x14];
@@ -208,7 +211,8 @@ typedef struct W8Character {
     int sp_max[W8_SPELL_REALM_COUNT];     /* 0x0b25 */
     unsigned char unknown_0b3d[8];
     int sp_left[W8_SPELL_REALM_COUNT];    /* 0x0b45 */
-    unsigned char unknown_0b5d[0x6c];
+    unsigned char unknown_0b5d[0x68];
+    int value_0bc5;                     /* state-5 summary displays value / 10 */
     /* 0x0bc9: the load category, zero through four, which scales what an
        action costs in fatigue. FatigueCharacter's error text calls it that. */
     int load_category;
@@ -669,6 +673,7 @@ void GetOriginOfCharacterItem(
     unsigned char* origin,
     unsigned short* slot);
 void AddMessageBoxLine(int type, W8WideChar* text, void* extra);
+int SumCharacterSpellPoints(const W8Character* character);
 
 #ifdef __cplusplus
 }

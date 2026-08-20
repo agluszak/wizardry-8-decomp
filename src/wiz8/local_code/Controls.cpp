@@ -108,6 +108,7 @@ extern void SetRenderClip00407220(int target, int left, int top, int right,
 extern void Function407A10(int a, int b, int font, int x, int y,
                            const wchar_t* format, const wchar_t* text);
 extern void Function407B80(int a, int b, int font, int x, int y);
+extern unsigned char SetValue5FF5F0(int font);
 extern const wchar_t g_W8EmptyText0060CC74[];
 extern const wchar_t g_W8EmptyHelpText00689B34[];
 extern const wchar_t g_W8TextBreakCharacters00617C88[];
@@ -580,6 +581,68 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
 done:
     SetFontObjectPalette16BPP(m_font, (unsigned short*)previous_state);
     Function407140();
+    m_geometryDirty = 0;
+}
+
+/* The state-5 option and summary panels use the simpler surface renderer. It
+   shares the buffer's layout and palette state but prints directly to the
+   selected target, then restores the full-screen clip. */
+// FUNCTION: WIZ8 0x004f39b0
+void W8TextBuffer005ED5B8::Function4F39B0(
+    int offset, unsigned char force, int target)
+{
+    wchar_t* line = m_buffer;
+    if (line == 0 || (!force && !m_geometryDirty)) {
+        return;
+    }
+
+    SetValue5FF5F0(m_font);
+    int font_context = Function406DF0(m_font);
+    if (font_context == 0) {
+        return;
+    }
+    Function4068E0(font_context, m_renderMode);
+    SetRenderClip00407220(target,
+                         m_pendingBounds.left, m_pendingBounds.top,
+                         m_pendingBounds.right, m_pendingBounds.bottom, 0);
+    int previous_state = Function406DE0(m_font);
+    if (m_fontStateIndex != -1) {
+        SetFontObjectPalette16BPP(
+            m_font,
+            (unsigned short*)g_W8FontStateTable0068EE1C[m_fontStateIndex]);
+    }
+    if (m_flag_4c) {
+        SetFontObjectPalette16BPP(
+            m_font, (unsigned short*)g_W8FontStateTable0068EE1C[1]);
+    }
+
+    int y = GetVerticalPosition();
+    size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    while (line[span] != L'\0') {
+        line[span] = L'\0';
+        int x = GetHorizontalPosition(Function407010(line, m_font));
+        mprintf(x + offset, y + offset,
+                (unsigned short*)g_W8TextFormat006068E4, line);
+        y += GetLineHeight();
+        line[span] = L'\n';
+        if (m_layoutBounds.bottom <= y) {
+            goto done;
+        }
+        line += span + 1;
+        span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    }
+
+    {
+        int x = GetHorizontalPosition(Function407010(line, m_font));
+        mprintf(x + offset, y + offset,
+                (unsigned short*)g_W8TextFormat006068E4, line);
+    }
+
+done:
+    SetFontObjectPalette16BPP(m_font, (unsigned short*)previous_state);
+    MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
+                        m_layoutBounds.right, m_layoutBounds.bottom, 0);
+    SetRenderClip00407220(-14, 0, 0, 640, 480, 0);
     m_geometryDirty = 0;
 }
 
@@ -1313,36 +1376,6 @@ protected:
 
     void ClampPositionAndInvalidate();
     void SynchronizeRangeValue();
-};
-
-class W8RangeListener {
-public:
-    virtual void OnRangeChanged(W8RangeControl005ED74C* control) = 0;
-};
-
-class W8RangeControl005ED74C : public Controls {
-public:
-    friend class W8VerticalRangeThumb005ED6B4;
-
-    W8RangeControl005ED74C(int left, int top, int right, int bottom,
-                           unsigned int* shared_region_set);
-    ~W8RangeControl005ED74C();
-
-    void SetRange(int first, int second);
-    void SetValue(int value);
-    void Decrement();
-    void Increment();
-    void SetEnabled(unsigned char enabled) override;
-
-protected:
-    int m_minimum;                       /* 0x4c */
-    int m_maximum;                       /* 0x50 */
-    int m_value;                         /* 0x54 */
-    W8WidgetBase005ED5BC* m_decrement;   /* 0x58 */
-    W8WidgetBase005ED5BC* m_increment;   /* 0x5c */
-    W8VerticalRangeThumb005ED6B4* m_thumb; /* 0x60 */
-    W8RangeListener* m_listener;         /* 0x64 */
-    unsigned char m_enabled;             /* 0x68 */
 };
 
 __forceinline W8RangeButton005ED6FC::W8RangeButton005ED6FC(
@@ -2273,88 +2306,27 @@ void W8WidgetBase005ED5BC::SetBoundsFromRect(const W8ControlsRect* bounds)
    destructor makes the derived constructor carry an unwind frame, because the
    vector's operator new can throw after the base is built; the canonical body
    has no frame, so the original base's destructor is implicit. */
-class W8ControlBase005ED664 {
-public:
-    W8ControlBase005ED664();
-    virtual void vslot0() = 0;
-    virtual void vslot1() {}
-
-protected:
-    int m_value_4;                       /* 0x04 */
-    int m_value_8;                       /* 0x08 */
-    int m_index_c;                       /* 0x0c: the -1 sentinel when unset */
-};                                       /* 0x10 */
-
-/* The embedded vector's element type is unproven, so it is named for the
-   specialization vtable the image gives it. */
-/* The element type. 0x004F5540 calls two of its virtuals, at +0x48 and +0x4c,
-   which puts them at slots 18 and 19 and forces the eighteen before them to be
-   declared for the slots to land. Only the two that are called are described;
-   the rest are placeholders and carry no claim beyond occupying a slot. Both
-   take one argument and every recovered call site passes zero. */
-class W8VectorElement005ED65C {
-public:
-    virtual void vslot00();
-    virtual void vslot01();
-    virtual void vslot02();
-    virtual void vslot03();
-    virtual void vslot04();
-    virtual void vslot05();
-    virtual void vslot06();
-    virtual void vslot07();
-    virtual void vslot08();
-    virtual void vslot09();
-    virtual void vslot10();
-    virtual void vslot11();
-    virtual void vslot12();
-    virtual void vslot13();
-    virtual void vslot14();
-    virtual void vslot15();
-    virtual void vslot16();
-    virtual void vslot17();
-    virtual void OnSelected(int reason);     /* slot 18, +0x48 */
-    virtual void OnDeselected(int reason);   /* slot 19, +0x4c */
-};
-
-/* Whatever the control reports a selection change to. Only slot 0 is
-   established, and only that it takes the control and the new index. */
-class W8ControlListener {
-public:
-    virtual void vslot00(class W8Control005ED654* control, int selected);
-};
-
-// VTABLE: WIZ8 0x005ed65c
-// class W8GrowableVector<W8VectorElement005ED65C*>
-
-class W8Control005ED654 : public W8ControlBase005ED664 {
-public:
-    W8Control005ED654();
-
-    void SetSelected(int iSelected);
-    virtual void SelectEntry(W8VectorElement005ED65C* entry);
-
-protected:
-    W8GrowableVector<W8VectorElement005ED65C*> m_lsButtons; /* 0x10 */
-    W8ControlListener* m_value_20;       /* 0x20: notified on a change */
-};                                       /* 0x24 established */
-
-__forceinline W8ControlBase005ED664::W8ControlBase005ED664()
-{
-    m_value_4 = 0;
-    m_value_8 = 0;
-    m_index_c = -1;
-}
-
 // SYNTHETIC: WIZ8 0x004f6910
-// W8GrowableVector<W8VectorElement005ED65C*>::`scalar deleting destructor'
+// W8GrowableVector<W8TextControl005ED604*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x004f6930
-// W8GrowableVector<W8VectorElement005ED65C*>::~W8GrowableVector<W8VectorElement005ED65C*>
+// W8GrowableVector<W8TextControl005ED604*>::~W8GrowableVector<W8TextControl005ED604*>
 
 // FUNCTION: WIZ8 0x004f5450
 W8Control005ED654::W8Control005ED654()
 {
+    m_value_4 = 0;
+    m_value_8 = 0;
+    m_index_c = -1;
     m_value_20 = 0;
+}
+
+// FUNCTION: WIZ8 0x004f54b0
+int W8Control005ED654::AddEntry(W8TextControl005ED604* entry)
+{
+    entry->AddLayoutFlags(0x19);
+    entry->m_listener = this;
+    return m_lsButtons.Add(entry);
 }
 
 /*
@@ -2379,7 +2351,7 @@ W8Control005ED654::W8Control005ED654()
 // FUNCTION: WIZ8 0x004f5540
 void W8Control005ED654::SetSelected(int iSelected)
 {
-    W8VectorElement005ED65C** entry;
+    W8TextControl005ED604** entry;
     int previous;
 
     if (iSelected >= m_lsButtons.GetCount()) {
@@ -2394,12 +2366,12 @@ void W8Control005ED654::SetSelected(int iSelected)
     }
     if (previous != -1) {
         entry = m_lsButtons.GetAt(previous);
-        (*entry)->OnDeselected(0);
+        (*entry)->DisableSecondaryState(0);
     }
     m_index_c = iSelected;
     if (iSelected != -1) {
         entry = m_lsButtons.GetAt(iSelected);
-        (*entry)->OnSelected(0);
+        (*entry)->EnableSecondaryState(0);
     }
     if (m_value_20 != 0) {
         m_value_20->vslot00(this, m_index_c);
@@ -2407,7 +2379,7 @@ void W8Control005ED654::SetSelected(int iSelected)
 }
 
 // FUNCTION: WIZ8 0x004f55c0
-void W8Control005ED654::SelectEntry(W8VectorElement005ED65C* entry)
+void W8Control005ED654::OnPrimary(W8TextControl005ED604* entry)
 {
     int iIndex;
 

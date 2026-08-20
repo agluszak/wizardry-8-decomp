@@ -83,3 +83,13 @@ void RecalculateCharacterHitPoints(W8Character* character)
         }
     }
 }
+
+// FUNCTION: WIZ8 0x0052a760
+int SumCharacterSpellPoints(const W8Character* character)
+{
+    int total = 0;
+    for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
+        total += character->sp_max[realm];
+    }
+    return total;
+}

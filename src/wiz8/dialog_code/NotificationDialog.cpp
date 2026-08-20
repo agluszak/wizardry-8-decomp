@@ -13,9 +13,6 @@
 /* Table of message payloads the dialog is constructed against; the caller
    passes an index into it. */
 
-/* Registers the dialog's region set. */
-extern void ActivateDialogRegion(int region_set);  /* 0x004F2040 */
-
 /* The base constructor runs first and the vtable install follows it, so the
    body is just the two own fields and the dialog setup sequence. The /GX EH
    frame comes from the base having a destructor: an exception in any setup

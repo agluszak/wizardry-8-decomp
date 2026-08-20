@@ -109,6 +109,50 @@ extern unsigned char g_flag_68517c;
 extern unsigned char g_flags_6874d7[];
 extern int g_small_font_683678;
 
+/* Build the loose character/NPC path in the two forms used by the save code.
+   The first accepts an already formatted filename or wildcard; the second
+   appends the canonical CHR extension to a character's wide name first.  When
+   characters are being supplied by an archive, a flagged slot or the external
+   character sentinel keeps the caller's name unqualified. */
+// FUNCTION: WIZ8 0x00514fa0
+void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
+                                    int slot)
+{
+    char directory[260];
+
+    if (!g_flag_68517c) {
+        strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
+        sprintf(destination, "%s\\%s", directory, filename);
+        return;
+    }
+    if (slot != -1 && !g_flags_6874d7[slot]) {
+        sprintf(destination, "%s\\%s", "Saves\\NPCs", filename);
+        return;
+    }
+    strcpy(destination, filename);
+}
+
+// FUNCTION: WIZ8 0x00514ec0
+void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
+                                int slot)
+{
+    char filename[16];
+    char directory[260];
+
+    sprintf(filename, "%ls.%s", name, "CHR");
+    if (!g_flag_68517c) {
+        strcpy(directory, slot == -1 ? "Saves\\Characters" : "Saves\\NPCs");
+    }
+    else if (slot == -1 || g_flags_6874d7[slot]) {
+        strcpy(destination, filename);
+        return;
+    }
+    else {
+        strcpy(directory, "Saves\\NPCs");
+    }
+    sprintf(destination, "%s\\%s", directory, filename);
+}
+
 /* Loads one character record, either from a loose file under Saves\Characters
    or Saves\NPCs, or through 0x005156C0 when 0x0068517C says characters are not
    loose. The two spellings of the path share one sprintf: the branch that

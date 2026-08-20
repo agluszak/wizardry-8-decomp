@@ -23,6 +23,9 @@ public:
        which is what puts it here rather than under protected. */
     void SetMessage(void* payload, int a, int b, int c, int d,
                     int e, int f, int g, int h);     /* 0x005D2800 */
+    /* State 5 calls this centering helper on a freshly allocated base dialog,
+       so it is part of the public surface rather than a derived-only helper. */
+    void SetClientExtent(int width, int height);     /* 0x005D2CB0 */
 
     /* Both are read and written on this object from outside the class by the
        Please Wait screen's frame handler, which is what puts them here. */
@@ -30,8 +33,6 @@ public:
     unsigned char is_open;            /* 0x55: set, and gates the close path */
 
 protected:
-    void SetClientExtent(int width, int height);     /* 0x005D2CB0 */
-
     short m_field_56;                    /* 0x56 */
     int m_field_58;                      /* 0x58 */
     int m_field_5c;                      /* 0x5c */
