@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/combat_state.h"
 #include "wiz8/dialog_base.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/game_state.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/regions.h"
@@ -34,7 +35,6 @@ bool IsCharacterReadyToAdvance(int party_slot);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
 char* ConvertWideStringToString(const wchar_t* string);
 void GetScreenPoint004284F0(W8ScreenPoint* point);
-void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 void Function5497C0(int target, int left, int top, int right, int bottom,
                     int object, int frame, int flags);
 void SetRenderClip00407220(int target, int left, int top, int right,

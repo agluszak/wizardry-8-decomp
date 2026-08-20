@@ -1,4 +1,5 @@
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Environment.h"
@@ -133,7 +134,6 @@ extern unsigned char InitializeVideoDevice(void);
 extern unsigned char InitializeRendererSceneObjects(void);
 extern void Function402750(void);
 extern unsigned char Function422800(void);
-extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void PurgeInactiveSceneInstances(srScene* scene);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern unsigned char Function44F060(void);

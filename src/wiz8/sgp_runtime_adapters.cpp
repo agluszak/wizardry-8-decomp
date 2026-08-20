@@ -3,6 +3,7 @@
    source; these names preserve the first-party callers' recovered ABI. */
 
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/render_state.h"
 #include "wiz8/sgp_video.h"
 #include "Font.h"
@@ -52,7 +53,6 @@ extern unsigned short g_alpha_mask_650f48;
 extern int g_screen_width_603c3c;
 extern int g_screen_height_603c40;
 extern int g_screen_depth_603c44;
-extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 unsigned char InitializeWiz8FontManager(
     unsigned short pixel_depth, FontTranslationTable* translation)
 {

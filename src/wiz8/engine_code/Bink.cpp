@@ -1,4 +1,5 @@
 #include "wiz8/bink_video.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/sgp_video.h"
 
 #include "DirectDraw Calls.h"
@@ -11,7 +12,6 @@ static_assert(offsetof(BINK, FrameRects) == 0x34, "BINK_FrameRects_at_0x34");
 extern "C" {
 
 extern int GetMilesDigitalDriver0040A8A0(void);
-extern void MarkScreenRectDirty(int left, int top, int right, int bottom, int flags);
 extern void NoOp(int result, int line, const char* source);
 
 // FUNCTION: WIZ8 0x005e2f90

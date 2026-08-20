@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/dirty_tiles.h"
 
 #include "Font.h"
 #include "himage.h"
@@ -81,8 +82,6 @@ extern wchar_t g_no_target_text[];
 extern unsigned char SetValue5FF5F0(int font);
 extern unsigned char FillSurfaceRect(int surface_id, int left, int top,
                                      int right, int bottom, int colour);
-extern void MarkScreenRectDirty(int left, int top, int right, int bottom,
-                                int flags);
 extern void* Function402B90(int surface_id, unsigned int* pitch);
 extern void Function402C30(int surface_id);
 extern int Function4124A0(void* pixels, unsigned int pitch, int* rectangle);

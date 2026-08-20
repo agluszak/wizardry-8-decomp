@@ -9,6 +9,8 @@ void Function549660(int object, int frame, int image,
                     short* width, short* height);
 void Function548F90(int target, int object, int frame, short y,
                     int left, int top, int mode, int flags);
+void Function5494F0(int object, int frame, int image,
+                    int left, int top, int flags);
 void Function549600(int target, int object, int frame, int y,
                     int left, int top, int mode, int flags);
 

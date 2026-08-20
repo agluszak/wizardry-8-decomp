@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 
@@ -116,6 +117,18 @@ void InitializeMenuVideoObjectCatalog(void)
         "Data\\Fonts\\PaletteOptGreen.sti",
         "Data\\Fonts\\PaletteOptWhite.sti"
     };
+    static const char* const party_generation_paths[10] = {
+        "Data\\Party Generation\\back.sti",
+        "Data\\Party Generation\\listboxes.sti",
+        "Data\\Party Generation\\detailbox.sti",
+        "Data\\Party Generation\\bottombuttons.sti",
+        "Data\\Party Generation\\listbuttons.sti",
+        "Data\\Party Generation\\scrollbuttons.sti",
+        "Data\\Party Generation\\portraitborder.sti",
+        "Data\\Party Generation\\portraithighlight.sti",
+        "Data\\Party Generation\\options_back.sti",
+        "Data\\Party Generation\\import_addon.sti"
+    };
     unsigned int index;
 
     strcpy(g_video_frames_62c430[0].path, "Data\\Cursors\\2D-Cursors.sti");
@@ -149,6 +162,15 @@ void InitializeMenuVideoObjectCatalog(void)
     for (index = 0; index != 15; ++index) {
         strcpy(g_video_frames_62c430[0x227 + index].path,
                font_palette_paths[index]);
+    }
+
+    /* The contiguous object range 0xfa..0x103 is the Party Generation screen
+       catalog consumed by the recovered state-5 controller.  Retail maps it
+       one-for-one onto frame records 0x1d7..0x1e0; all ten are ETRLE objects. */
+    for (index = 0; index != 10; ++index) {
+        g_video_slots_6448c8[0xfa + index].first_frame = 0x1d7 + index;
+        strcpy(g_video_frames_62c430[0x1d7 + index].path,
+               party_generation_paths[index]);
     }
 }
 
@@ -286,6 +308,57 @@ short GetCatalogVideoObjectYOffset(int object)
     return g_video_slots_6448c8[object].y_offset;
 }
 
+/* Mark the complete rectangle covered by one catalog image. ETRLE-backed
+   objects supply subimage dimensions through the canonical SGP object API;
+   surface-backed objects expose the dimensions on the canonical SGP surface
+   record returned by GetVideoSurface. */
+// FUNCTION: WIZ8 0x005494f0
+void Function5494F0(int object, int frame, int image,
+                    int left, int top, int flags)
+{
+    W8VideoObjectSlot* slot;
+    W8VideoFrame* record;
+    short subimage;
+    unsigned short width = 0;
+    unsigned short height = 0;
+
+    Function549090(object, frame);
+    slot = &g_video_slots_6448c8[object];
+    subimage = slot->y_offset + image;
+    record = &g_video_frames_62c430[slot->first_frame + frame];
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xdd, 0);
+    }
+    if (record->mode == 0) {
+        GetVideoObjectETRLESubregionProperties(
+            record->handle, subimage, &width, &height);
+    }
+    else {
+        HVSURFACE surface;
+        if (GetVideoSurface(&surface, record->handle)) {
+            height = surface->usHeight;
+            width = surface->usWidth;
+        }
+    }
+
+    if (width != 0 && height != 0) {
+        MarkScreenRectDirty(
+            left, top, left + width, top + height, flags);
+    }
+}
+
+/* Draw a catalog video object, then mark the area it covered. The vertical
+   argument is truncated to a short for the draw and passed whole to the mark,
+   and the seventh reaches the mark only as whether it equals two. */
+// FUNCTION: WIZ8 0x00549600
+void Function549600(int target, int object, int frame, int y,
+                    int a5, int a6, int a7, int a8)
+{
+    Function548F90(target, object, frame, (short)y, a5, a6, a7, a8);
+    Function5494F0(object, frame, y, a5, a6, a7 == 2);
+}
+
 /* Loads the selected catalog frame and returns the dimensions of one of its
    ETRLE subimages. Surface-backed records have no ETRLE table, so the retail
    body intentionally leaves the caller's outputs untouched for them. */
@@ -310,23 +383,6 @@ void Function549660(int object, int frame, int image,
             record->handle, subimage,
             (unsigned short*)width, (unsigned short*)height);
     }
-}
-
-/* Defined later in this unit at 0x005494F0 and not yet recovered. Its parameter
-   list is taken from this call site: Ghidra's inference for that body is
-   degraded, showing an unresolved return-address value and a stack-address
-   argument, and the list it infers disagrees with what is actually pushed here. */
-void Function5494F0(int object, int frame, int y, int a5, int a6, int flag);
-
-/* Draw a catalog video object, then mark the area it covered. The vertical
-   argument is truncated to a short for the draw and passed whole to the mark,
-   and the seventh reaches the mark only as whether it equals two. */
-// FUNCTION: WIZ8 0x00549600
-void Function549600(int target, int object, int frame, int y,
-                    int a5, int a6, int a7, int a8)
-{
-    Function548F90(target, object, frame, (short)y, a5, a6, a7, a8);
-    Function5494F0(object, frame, y, a5, a6, a7 == 2);
 }
 
 }

@@ -6,7 +6,6 @@
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/wiz8_windows.h"

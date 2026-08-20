@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/dirty_tiles.h"
 #include "wiz8/game_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/combat_state.h"
@@ -62,8 +63,6 @@ extern void ClearLevelDataFlag6(void);
 extern void Function5A1950(void);
 extern "C" void ClearSurfaceRect(
     int left, unsigned int top, int right, unsigned int bottom);
-extern void MarkScreenRectDirty(
-    int left, int top, int right, int bottom, int flags);
 
 // FUNCTION: WIZ8 0x0056aa30
 void Function56AA30(void)
