@@ -7,10 +7,12 @@
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/engine_code/quad.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/World.h"
@@ -50,8 +52,6 @@ extern void Function426790(void);
 extern void Function443A60(W8World* world);
 extern void Function479030(void);
 extern void Function47A700(void* ambient_sound);
-extern void Function4A4210(W8World* world);
-extern void Function4AC3D0(W8World* world);
 extern void Function46E4A0(W8World* world);
 extern unsigned char Function4914C0(void);
 extern void Function490B90(void);
@@ -70,7 +70,7 @@ void ConstructWorldCollections(W8World* world)
     world->lights_to_update = new W8LightVector;
     world->collidable_props = new W8GrowableVector<W8Prop*>;
     world->monster_generators = new W8GrowableVector<W8MonsterGenerator*>;
-    world->m_vector_b4 = new W8GrowableVector<W8VectorElement005EC280*>;
+    world->spell_visuals = new W8GrowableVector<W8SpellVisual*>;
     world->missiles = new W8GrowableVector<W8Missile*>;
     world->triggers = new W8GrowableVector<Trigger*>;
     world->particles = new W8GrowableVector<stParticle*>;
@@ -394,8 +394,8 @@ void DestroyWorldCollections(W8World* world)
         }
     }
 
-    Function4A4210(world);
-    Function4AC3D0(world);
+    DestroyAllMissiles(world);
+    DestroyAllSpellVisuals(world);
     Function46E4A0(world);
     PListFreeData(&world->m_list_0a8);
     PListFreeData(&world->m_list_09c);
@@ -403,7 +403,7 @@ void DestroyWorldCollections(W8World* world)
     delete world->lights_to_update;
     delete world->collidable_props;
     delete world->monster_generators;
-    delete world->m_vector_b4;
+    delete world->spell_visuals;
     delete world->missiles;
     delete world->particles;
     delete world->named_positions;

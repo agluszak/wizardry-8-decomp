@@ -22,11 +22,10 @@ public:
     virtual void AdvanceAnimationFrame(int value, int flags) override;
     virtual W8AniMesh* GetCurrentAniMesh() override;
 
-    void ApplyHostSetting98();           /* 0x004AC360 */
     void StartIfHostActive();            /* 0x004ABDC0 */
 
     int value_1d8;
-    unsigned char unknown_1dc[4];
+    int target_location_id_1dc;
     W8SpellEmitterHost* host;            /* 0x1e0 */
     unsigned char started;               /* 0x1e4 */
     unsigned char flag_1e5;
@@ -39,3 +38,5 @@ public:
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8,
               "W8SpellVisual_size_must_be_0x1f8");
+
+void DestroyAllSpellVisuals(W8World* world);        /* 0x004AC3D0 */

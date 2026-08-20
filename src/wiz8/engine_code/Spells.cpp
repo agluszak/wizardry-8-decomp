@@ -10,11 +10,17 @@
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/SpellEmitterHost.h"
 #include "wiz8/engine_code/SpellVisual.h"
 #include "wiz8/engine_code/stSound3D.h"
+#include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/render_state.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "surrender/srTimer.h"
@@ -31,6 +37,12 @@ extern void GetCameraPosition(srVector3T<float>* position);
 extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern unsigned char g_master_ambient_volume_6850f6;
 extern srTimer* g_shared_timer_base;
+extern const float g_monster_rotation_offset_005ec04c;
+extern const double g_camera_pi_005ec2a0;
+extern float Function4BE420(
+    const srVector3T<float>* from, const srVector3T<float>* to);
+extern float Function4BE490(
+    const srVector3T<float>* from, const srVector3T<float>* to);
 
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
@@ -84,12 +96,234 @@ signed char W8SpellVisual::GetTotalAnimationCount()
     return count;
 }
 
-/* Hand the host's setting to whatever the visual's own virtual accessor
-   answers with - the missile's body one offset along. */
+/* Hand the host's LOD to the current animation. */
 // FUNCTION: WIZ8 0x004ac360
-void W8SpellVisual::ApplyHostSetting98()
+signed char W8SpellVisual::GetNumSubCycles()
 {
-    AnimObjValue004A15D0(GetCurrentAnimation(), this->host->m_bLOD);
+    W8AnimObj* animation = GetCurrentAnimation();
+
+    return static_cast<signed char>(
+        AnimObjValue004A15D0(animation, host->m_bLOD));
+}
+
+// FUNCTION: WIZ8 0x004ac4e0
+unsigned char W8SpellVisual::IsCycleSupported(signed char cycle)
+{
+    if (cycle >= 28) {
+        srAssertFail(
+            "bCycle<SPELL_NUM_CYCLES",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x55a,
+            0);
+    }
+    return host->emitters[cycle] != 0;
+}
+
+/* Reset the host's two frame counters before the ordinary GrCycle step. */
+// FUNCTION: WIZ8 0x004ac390
+void W8SpellVisual::AdvanceAnimationFrame(int value, int flags)
+{
+    W8SpellEmitterHost* representation_before;
+
+    host->counter_094 = 0;
+    representation_before = host;
+    representation_before->counter_095 = GetNumSubCycles() - 1;
+    W8GrCycle::AdvanceAnimationFrame(value, flags);
+}
+
+/* Select one of the spell host's 28 emitters and rebuild its light and
+   particle attachment state. */
+// FUNCTION: WIZ8 0x004ac580
+void W8SpellVisual::SetCycle(signed char cycle)
+{
+    W8LightVector* lights;
+    W8AnimObj* animation;
+    int index;
+
+    if (cycle < 0 || cycle >= 28) {
+        srAssertFail(
+            "bCycle >= SPELL_CYCLE_FIRST && bCycle <= SPELL_CYCLE_LAST",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+            0x5c1,
+            0);
+    }
+
+    lights = *host->light_lists[
+        host->selection.emitter.emitter_index].GetAt(0);
+    if (lights != 0) {
+        for (index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(0, 1);
+            if (light->definition() != 0) {
+                int world_index = g_world->lights_to_update->IndexOf(light);
+                if (world_index != -1) {
+                    g_world->lights_to_update->RemoveAt(world_index);
+                }
+            }
+        }
+    }
+
+    host->selection.emitter.emitter_index = cycle;
+    animation = host->emitters[cycle];
+    host->active = 1;
+    host->flag_06e = 1;
+    if (host->SetCycleFrameLod(cycle, 0, 2) != 0) {
+        host->m_bLOD = 2;
+    }
+    else if (host->SetCycleFrameLod(cycle, 0, 1) != 0) {
+        host->m_bLOD = 1;
+    }
+    else {
+        host->m_bLOD = 0;
+    }
+    host->timer_068 =
+        g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    host->flag_06f = animation->value_02;
+    host->flag_06d = animation->unknown_00[1];
+    host->flag_064 = 0;
+
+    lights = *host->light_lists[cycle].GetAt(0);
+    SetLights(lights);
+    if (g_render_flag_60a20c != 0 && lights != 0) {
+        for (index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(g_world->dynamic_scene, 1);
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Add(light);
+            }
+        }
+    }
+
+    if (m_plsParticles != 0) {
+        for (index = 0; index < m_plsParticles->GetCount(); ++index) {
+            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
+
+            if (event->cycle_00 == cycle) {
+                event->particle_08->SetActive(1);
+                event->particle_08->value_188 = 0;
+            }
+            else {
+                event->particle_08->SetActive(0);
+            }
+        }
+    }
+}
+
+/* Position and orient each live spell visual according to its attachment
+   mode, then let the common GrCycle update submit the resulting state. */
+// FUNCTION: WIZ8 0x004abe00
+void W8SpellVisual::UpdateRepresentation(W8World* world)
+{
+    srMatrix3T<float> rotation;
+    srVector3T<float> camera_position;
+    srVector3T<float> position;
+    bool apply_rotation = false;
+
+    if (value_1d8 == 0) {
+        float angle;
+        float pitch;
+
+        GetCameraPosition(&position);
+        SetPosition004A6DF0(&position);
+        rotation.SetIdentity00467310();
+        angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
+        if ((double)angle != g_zero_005ebb40) {
+            rotation.method_00438F90(sin((double)angle), cos((double)angle));
+        }
+        pitch = -GetCameraPitchRadians();
+        if ((double)pitch != g_zero_005ebb40) {
+            rotation.method_00478EB0(sin((double)pitch), cos((double)pitch));
+        }
+        apply_rotation = true;
+    }
+    else if (value_1d8 == 2) {
+        W8Monster* monster = GetMonsterByLocationID(
+            target_location_id_1dc);
+
+        if (monster != 0) {
+            srModelInstance* instance = GetCurrentModelInstance004A8250();
+
+            while (instance != 0) {
+                srVector3T<double> scale(
+                    value_1e8, value_1e8, value_1e8);
+                instance->setScale(scale);
+                instance = static_cast<srModelInstance*>(instance->firstChild());
+            }
+
+            srVector3T<float> minimum;
+            srVector3T<float> maximum;
+            srVector3T<float> monster_position = monster->GetPosition();
+
+            monster->GetAnimationBounds(&minimum, &maximum);
+            position.x = monster_position.x;
+            position.y = monster_position.y +
+                (maximum.y - minimum.y) * g_float_005ebc7c;
+            position.z = monster_position.z;
+            SetPosition004A6DF0(&position);
+        }
+    }
+    else if (value_1d8 == 3) {
+        GetCurrentModelInstance004A8250();
+        if (flag_1e7 == 0) {
+            GetCameraPosition(&camera_position);
+            if (value_1ec == 0) {
+                SetPosition004A6DF0(&camera_position);
+                g_gd_camera_65a0f8->GetRotationMatrix(&rotation);
+                apply_rotation = true;
+            }
+            else {
+                W8Monster* monster = GetMonsterByLocationID(value_1ec);
+
+                if (monster != 0) {
+                    if (monster->Query(6) == 0x19 &&
+                        monster->GetSpellPosition004C78E0(&position) != 0) {
+                        SetPosition004A6DF0(&position);
+                    }
+
+                    rotation.SetIdentity00467310();
+                    float angle = monster->GetYaw();
+                    if ((double)angle != g_zero_005ebb40) {
+                        rotation.method_00438F90(
+                            sin((double)angle), cos((double)angle));
+                    }
+                    float pitch = Function4BE490(&position, &camera_position);
+                    if ((double)pitch != g_zero_005ebb40) {
+                        rotation.method_00478EB0(
+                            sin((double)pitch), cos((double)pitch));
+                    }
+                    apply_rotation = true;
+                }
+            }
+        }
+    }
+
+    if (apply_rotation) {
+        host->SetRotation004B88D0(&rotation);
+    }
+
+    if (host->flag_378 != 0) {
+        srMatrix3T<float> billboard;
+        srVector3T<float> visual_position = GetPosition();
+        float angle;
+
+        billboard.SetIdentity00467310();
+        camera_position = g_gd_camera_65a0f8->m_position_08c;
+        angle = Function4BE420(&visual_position, &camera_position) +
+            (float)g_camera_pi_005ec2a0;
+        if ((double)angle != g_zero_005ebb40) {
+            billboard.method_00438F90(
+                sin((double)angle), cos((double)angle));
+        }
+        host->SetRotation004B88D0(&billboard);
+    }
+
+    srModelInstance* instance = GetCurrentModelInstance004A8250();
+    if (instance != 0) {
+        static_cast<stModelInstance*>(instance)->state_178 |= 0x10;
+    }
+    W8GrCycle::UpdateRepresentation(world);
 }
 
 W8SpellEmitterHost::W8SpellEmitterHost()
@@ -183,6 +417,52 @@ W8SpellVisual::W8SpellVisual()
             "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
             0x3c0,
             0);
+    }
+}
+
+/* Release the emitter host, leave the world's spell collection, and unregister
+   the common GrCycle identity before the base classes tear down. */
+// FUNCTION: WIZ8 0x004abd00
+W8SpellVisual::~W8SpellVisual()
+{
+    SetLights(0);
+    delete host;
+    host = 0;
+
+    int index = g_world->spell_visuals->IndexOf(this);
+    if (index != -1) {
+        g_world->spell_visuals->RemoveAt(index);
+    }
+    UnregisterGrCycle(this);
+}
+
+/* Delete every spell visual owned by a world. Its light list is first handed
+   back through the world light boundary, exactly as the retail teardown does. */
+// FUNCTION: WIZ8 0x004ac3d0
+void DestroyAllSpellVisuals(W8World* world)
+{
+    while (world->spell_visuals->GetCount() != 0) {
+        W8SpellVisual* spell = *world->spell_visuals->GetAt(0);
+
+        if (spell == 0) {
+            srAssertFail(
+                "pSpell",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp",
+                0x51c,
+                0);
+        }
+        g_world->spell_visuals->RemoveAt(
+            g_world->spell_visuals->IndexOf(spell));
+        if (spell->m_plsLights != 0) {
+            int count = spell->m_plsLights->GetCount();
+
+            while (count != 0) {
+                stLight* light = spell->m_plsLights->RemoveAt(0);
+                WorldRemoveLight(g_world, light);
+                --count;
+            }
+        }
+        delete spell;
     }
 }
 
@@ -306,7 +586,10 @@ void ReleaseSpellDatabase(void)
 }
 
 // SYNTHETIC: WIZ8 0x004abce0
-// SpellObject005ECF40::`scalar deleting destructor'
+// W8SpellVisual::`scalar deleting destructor'
+
+// VTABLE: WIZ8 0x005ecf40 W8SpellVisual
+// VTABLE: WIZ8 0x005ecf2c W8Navigator
 
 // VTABLE: WIZ8 0x005ecfb0
 // class stSound3D

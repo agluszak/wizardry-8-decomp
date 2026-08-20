@@ -1519,8 +1519,6 @@ void RegisterGrCycle(const char* name, W8GrCycle* cycle)
     g_grcycles_by_name.Add(cycles);
 }
 
-extern void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
-
 // FUNCTION: WIZ8 0x004a8c50
 void DestroyLightVector(W8LightVector* vector)
 {

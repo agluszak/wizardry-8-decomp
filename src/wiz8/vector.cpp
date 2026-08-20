@@ -29,6 +29,12 @@
 // VTABLE: WIZ8 0x005ebfe0
 // class W8GrowableVector<int>
 
+// VTABLE: WIZ8 0x005ec280
+// class W8GrowableVector<W8SpellVisual*>
+
+// SYNTHETIC: WIZ8 0x00451ac0
+// W8GrowableVector<W8SpellVisual*>::`scalar deleting destructor'
+
 // SYNTHETIC: WIZ8 0x0042bb70
 // W8GrowableVector<int>::`scalar deleting destructor'
 

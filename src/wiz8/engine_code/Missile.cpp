@@ -10,9 +10,11 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Emitter.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/render_state.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "surrender/srTimer.h"
@@ -24,6 +26,7 @@ extern int IncrementValue60DFAC(void);
 extern void ResetCombatSlot(W8CombatSlot* slot);
 extern float g_navigator_largest_extent_6081e8;
 extern srTimer* g_shared_timer_base;
+extern void DetachMissileReferences005019A0(W8Missile* missile);
 
 /* The copy body establishes only these fields. Padding remains explicit: the
    source leaves it uninitialized in the freshly allocated result. */
@@ -348,6 +351,58 @@ W8Missile::W8Missile()
     ResetCombatSlot(&combat_slot_260);
 }
 
+/* Release the representation and every external reference before ordinary
+   vector and GrCycle teardown. */
+// FUNCTION: WIZ8 0x004a3fc0
+W8Missile::~W8Missile()
+{
+    SetLights(0);
+    delete m_pRep;
+    m_pRep = 0;
+    DetachMissileReferences005019A0(this);
+    UnregisterGrCycle(this);
+}
+
+/* Remove a missile's world lights and AI allocation, then release the object. */
+// FUNCTION: WIZ8 0x004a4180
+void DestroyMissile(W8Missile* missile)
+{
+    if (missile->m_plsLights != 0) {
+        int count = missile->m_plsLights->GetCount();
+
+        while (count != 0) {
+            stLight* light = missile->m_plsLights->RemoveAt(0);
+            WorldRemoveLight(g_world, light);
+            --count;
+        }
+    }
+    if (missile->m_pAI != 0) {
+        free(missile->m_pAI);
+        missile->m_pAI = 0;
+    }
+    delete missile;
+}
+
+/* Delete every missile owned by one world, unlinking the vector entry before
+   its ordinary object teardown. */
+// FUNCTION: WIZ8 0x004a4210
+void DestroyAllMissiles(W8World* world)
+{
+    while (world->missiles->GetCount() != 0) {
+        W8Missile* missile = *world->missiles->GetAt(0);
+
+        if (missile == 0) {
+            srAssertFail(
+                "pMissile",
+                "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+                0x4ab,
+                0);
+        }
+        g_world->missiles->RemoveAt(g_world->missiles->IndexOf(missile));
+        DestroyMissile(missile);
+    }
+}
+
 /* Release the two owned animations and every light vector before the ordinary
    vector members and W8EmitterHost base tear themselves down. */
 // FUNCTION: WIZ8 0x004A3230
@@ -449,6 +504,99 @@ signed char W8Missile::GetNumSubCycles()
 
     return static_cast<signed char>(
         AnimObjValue004A15D0(animation, m_pRep->m_bLOD));
+}
+
+// FUNCTION: WIZ8 0x004a42b0
+unsigned char W8Missile::IsCycleSupported(signed char cycle)
+{
+    if (cycle >= 2) {
+        srAssertFail(
+            "bCycle<MISSILE_NUM_CYCLES",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+            0x4bf,
+            0);
+    }
+    return m_pRep->emitters[cycle] != 0;
+}
+
+/* Select one of the missile representation's two emitters and rebuild its
+   light and particle attachment state. */
+// FUNCTION: WIZ8 0x004a4300
+void W8Missile::SetCycle(signed char cycle)
+{
+    W8LightVector* lights;
+    W8AnimObj* animation;
+    int index;
+
+    if (cycle < 0 || cycle >= 2) {
+        srAssertFail(
+            "bCycle >= MISSILE_CYCLE_FIRST && bCycle <= MISSILE_CYCLE_LAST",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\Missile.cpp",
+            0x4d6,
+            0);
+    }
+
+    lights = *m_pRep->light_lists[
+        m_pRep->selection.emitter.emitter_index].GetAt(0);
+    if (lights != 0) {
+        for (index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(0, 1);
+            if (light->definition() != 0) {
+                int world_index = g_world->lights_to_update->IndexOf(light);
+                if (world_index != -1) {
+                    g_world->lights_to_update->RemoveAt(world_index);
+                }
+            }
+        }
+    }
+
+    m_pRep->selection.emitter.emitter_index = cycle;
+    animation = m_pRep->emitters[cycle];
+    m_pRep->active = 1;
+    m_pRep->flag_06e = 1;
+    if (m_pRep->SetCycleFrameLod(cycle, 0, 2) != 0) {
+        m_pRep->m_bLOD = 2;
+    }
+    else if (m_pRep->SetCycleFrameLod(cycle, 0, 1) != 0) {
+        m_pRep->m_bLOD = 1;
+    }
+    else {
+        m_pRep->m_bLOD = 0;
+    }
+    m_pRep->timer_068 =
+        g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    m_pRep->flag_06f = animation->value_02;
+    m_pRep->flag_06d = animation->unknown_00[1];
+    m_pRep->flag_064 = 0;
+
+    lights = *m_pRep->light_lists[cycle].GetAt(0);
+    SetLights(lights);
+    if (g_render_flag_60a20c != 0 && lights != 0) {
+        for (index = 0; index < lights->GetCount(); ++index) {
+            stLight* light = *lights->GetAt(index);
+
+            light->setParent(g_world->dynamic_scene, 1);
+            if (light->definition() != 0) {
+                g_world->lights_to_update->Add(light);
+            }
+        }
+    }
+
+    if (m_plsParticles != 0) {
+        for (index = 0; index < m_plsParticles->GetCount(); ++index) {
+            W8GrCycleShakeEvent* event = *m_plsParticles->GetAt(index);
+
+            if (event->cycle_00 == cycle) {
+                event->particle_08->SetActive(1);
+                event->particle_08->value_188 = 0;
+            }
+            else {
+                event->particle_08->SetActive(0);
+            }
+        }
+    }
 }
 
 /* Reset the launcher's two counters at 0x94 and 0x95. The second is one less

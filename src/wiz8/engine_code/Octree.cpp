@@ -18,7 +18,6 @@
 
 #define OCTREE_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp"
 
-extern W8Object0043A910* g_object_6598bc;
 
 extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;

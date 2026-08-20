@@ -79,6 +79,7 @@ extern srCamera* g_game_camera_65a0fc;
 srCamera* CreateOrSetGameCamera(
     srNode* parent, srCamera* camera);
 float GetCameraYawRadians();
+float GetCameraPitchRadians();
 void BeginManualCameraControl();
 void LevelCamera();
 void TurnCameraToDegrees(float degrees);

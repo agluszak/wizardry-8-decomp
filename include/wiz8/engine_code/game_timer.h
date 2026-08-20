@@ -11,6 +11,9 @@ extern int g_game_time_ms;
 extern int g_game_time_days;
 extern srTimer* g_shared_timer_base;
 
+void Function439BC0(void);
+void Function439CA0(void);
+
 class W8GameTimer {
 public:
     W8GameTimer();

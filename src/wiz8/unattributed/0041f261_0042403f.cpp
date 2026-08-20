@@ -25,6 +25,12 @@ float GetCameraYawRadians()
     return g_gd_camera_65a0f8->m_yaw;
 }
 
+// FUNCTION: WIZ8 0x00420DF0
+float GetCameraPitchRadians()
+{
+    return g_gd_camera_65a0f8->m_pitch;
+}
+
 // FUNCTION: WIZ8 0x00420E00
 void BeginManualCameraControl()
 {

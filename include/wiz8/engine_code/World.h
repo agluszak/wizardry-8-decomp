@@ -16,9 +16,9 @@ class stLevel;
 class W8Octree;
 struct W8Quad;
 class W8Missile;
+class W8SpellVisual;
 class W8MonsterGenerator;
 class stLight;
-class W8VectorElement005EC280;
 class W8Prop;
 class Trigger;
 class stParticle;
@@ -89,7 +89,7 @@ struct W8World {
     unsigned char m_positional_07c[0x20];
     W8PList m_list_09c;
     W8PList m_list_0a8;
-    W8GrowableVector<W8VectorElement005EC280*>* m_vector_b4;
+    W8GrowableVector<W8SpellVisual*>* spell_visuals;
     W8GrowableVector<W8Missile*>* missiles;
     W8LightVector* lights_to_update;
     W8GrowableVector<W8Prop*>* collidable_props;
@@ -133,5 +133,6 @@ stLight* CreateLight0046DF90(srNode* parent, const char* name);
 stLight* CreateWorldLight0046E030(W8World* world, const char* name);
 stLight* CreateWorldLight0046E140(W8World* world, const char* name);
 void ConfigureWorldLight0046E300(srLight* light, float range);
+void WorldRemoveLight(W8World* world, srNode* light); /* 0x0046E250 */
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

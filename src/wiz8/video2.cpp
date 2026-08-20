@@ -7,7 +7,6 @@
 #include "surrender/srModelInstance.h"
 #include "surrender/srScene.h"
 #include "surrender/srVertexProcessor.h"
-#include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/render_state.h"
 #include "wiz8/surface2d.h"

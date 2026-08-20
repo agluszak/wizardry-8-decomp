@@ -496,6 +496,18 @@ void W8Navigator::SetNavigationMode(int mode)
     }
 }
 
+/* Replace the collision bounds and keep the broad-phase radius synchronized
+   with the movement state's alternate radius. */
+// FUNCTION: WIZ8 0x00452f10
+void W8Navigator::SetBounds(
+    const srVector3T<float>* minimum,
+    const srVector3T<float>* maximum)
+{
+    fields.minimum_06c = *minimum;
+    fields.maximum_078 = *maximum;
+    fields.radius_084 = fields.movement_0c0.alternate_radius_0b4;
+}
+
 // FUNCTION: WIZ8 0x004534c0
 srVector3T<float> W8Navigator::GetPosition()
 {
@@ -554,6 +566,12 @@ float W8Navigator::GetPitch()
     return fields.movement_0c0.pitch_020;
 }
 
+// FUNCTION: WIZ8 0x00453c90
+void W8Navigator::SetTurnRate(float turn_rate)
+{
+    fields.movement_0c0.turn_rate_068 = turn_rate;
+}
+
 // FUNCTION: WIZ8 0x004538b0
 void W8Navigator::SetPathAI(W8PathAI* path_ai)
 {
@@ -600,7 +618,6 @@ extern void Function454780(int changed);
 extern unsigned char g_in_combat_00683f94;
 extern float g_navigator_default_turn_rate_005ec2f4;
 extern float g_frame_scale_006068ec;
-extern W8Object0043A910* g_object_6598bc;
 extern const float g_negative_one_005ebc38;
 extern float g_navigator_snap_angle_005ec2f0;
 extern float g_navigator_mode3_scale_005ebca4;
@@ -672,7 +689,6 @@ extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_speed_006850ff;
 extern float g_navigator_linked_radius_scale_005ebc98;
 extern float g_navigator_vertical_phase_step_005ebcc8;
-extern double g_navigator_cycle_angle_005ec318;
 extern float g_navigator_target_refresh_distance_005ec030;
 extern float g_navigator_startup_refresh_distance_005ec150;
 extern float g_navigator_minimum_speed_006081ec;
@@ -943,7 +959,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
             phase -= (float)floor((double)phase);
             fields.movement_0c0.vertical_phase_084 = phase;
             fields.movement_0c0.vertical_offset_0c0 =
-                (float)sin((double)phase * g_navigator_cycle_angle_005ec318) *
+                (float)sin((double)phase * g_double_005ec318) *
                     fields.movement_0c0.vertical_amplitude_080 +
                 fields.movement_0c0.vertical_base_07c;
         }

@@ -91,3 +91,5 @@ W8Missile* Function4A2D30(
     srVector3T<float>* target, unsigned int value_4,
     unsigned int value_5, unsigned int value_6,
     unsigned int value_7);
+void DestroyMissile(W8Missile* missile);            /* 0x004A4180 */
+void DestroyAllMissiles(W8World* world);             /* 0x004A4210 */

@@ -1,4 +1,5 @@
 #include "wiz8/engine_code/game_timer.h"
+#include "wiz8/engine_code/Object0043A910.h"
 
 /* The game-timer unit: a small timer object over one shared, reference-counted
    srTimer-derived singleton. The image names neither the unit nor the classes -
@@ -19,6 +20,47 @@ unsigned char g_shared_timer_flag_d1;                /* 0x006598D1 */
 unsigned char g_shared_timer_flag_d2;                /* 0x006598D2 */
 int g_game_time_ms;                                  /* 0x006874F7 */
 int g_game_time_days;                                /* 0x00687595 */
+
+// FUNCTION: WIZ8 0x00439bc0
+void Function439BC0(void)
+{
+    g_shared_timer_paused = 1;
+    if (g_shared_timer == 0) {
+        return;
+    }
+
+    g_shared_timer_pause_time =
+        g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT)
+        - g_shared_timer_pause_base;
+
+    if (g_object_6598bc != 0 && (g_object_6598bc->m_flags & 8) == 0) {
+        unsigned short flags = g_object_6598bc->m_flags;
+        g_object_6598bc->m_flags = flags | 8;
+        if (g_object_6598bc->m_clock_mode != 1) {
+            if ((flags & 1) != 0) {
+                g_object_6598bc->m_start =
+                    g_object_6598bc->m_shared->getUTime(
+                        srTimer::TIMER_READ_DEFAULT)
+                    - g_object_6598bc->m_start;
+            }
+            else if (g_shared_timer_paused != 0) {
+                g_object_6598bc->m_start =
+                    g_shared_timer_pause_time - g_object_6598bc->m_start;
+            }
+            else {
+                g_object_6598bc->m_start =
+                    g_object_6598bc->m_shared->getUTime(
+                        srTimer::TIMER_READ_DEFAULT)
+                    - g_shared_timer_pause_base - g_object_6598bc->m_start;
+            }
+        }
+        else {
+            g_object_6598bc->m_start =
+                (g_game_time_days * 86400000 + g_game_time_ms) * 10
+                - g_object_6598bc->m_start;
+        }
+    }
+}
 
 // VTABLE: WIZ8 0x005ec0a4
 // class W8GameTimer

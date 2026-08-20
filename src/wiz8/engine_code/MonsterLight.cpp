@@ -6,9 +6,10 @@
 
 #include <math.h>
 
-extern W8Object0043A910* g_object_6598bc;
-extern float g_monster_light_cycle_rate_005ecd4c;
-extern double g_monster_light_cycle_angle_005ec318;
+// GLOBAL: WIZ8 0x005ecd4c
+float g_monster_light_cycle_rate_005ecd4c = 0.025f;
+// GLOBAL: WIZ8 0x005ec318
+extern "C" double g_double_005ec318 = 6.2831852;
 
 /* Monster's fixed light is a regular srLight specialization.  Its two colours
    are retained for the optional cycle, while the first colour is also the
@@ -50,6 +51,13 @@ MonsterLight::MonsterLight(
     m_start_time_244 = g_object_6598bc->GetValue30();
 }
 
+/* The concrete class owns no allocation beyond its regular srLight base.
+   VC6 emits the registry teardown for the ordinary empty derived body. */
+// FUNCTION: WIZ8 0x0049E0D0
+MonsterLight::~MonsterLight()
+{
+}
+
 // FUNCTION: WIZ8 0x0049D970
 void MonsterLight::SetVisible0049D970(char visible)
 {
@@ -77,7 +85,7 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
         float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
         double whole = floor((double)cycle);
         float first_weight = (float)(
-            sin(((double)cycle - whole) * g_monster_light_cycle_angle_005ec318)
+            sin(((double)cycle - whole) * g_double_005ec318)
             + g_float_005ebb38) *
             g_float_005ebc7c;
         float second_weight = g_float_005ebb38 - first_weight;

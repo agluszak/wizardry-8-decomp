@@ -184,6 +184,10 @@ public:
     int ResolveMovement();                         /* 0x00455CC0 */
     void ClearMovement();                          /* 0x004537E0 */
     void SetNavigationMode(int mode);              /* 0x00452E50 */
+    void SetBounds(
+        const srVector3T<float>* minimum,
+        const srVector3T<float>* maximum);          /* 0x00452F10 */
+    void SetTurnRate(float turn_rate);              /* 0x00453C90 */
 
     /* Monster.cpp's 0x004C3F00 reads a byte where maximum_078.z sits. */
     signed char animationIndex() const

@@ -25,8 +25,6 @@ enum {
 
 extern unsigned char g_level_override_00652dba;
 extern unsigned char g_flag_00652dce;
-extern W8Object0043A910* g_object_6598bc;
-extern void Function439CA0();
 extern void Function43AAD0();
 
 // FUNCTION: WIZ8 0x0041F260

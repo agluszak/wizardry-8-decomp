@@ -11,6 +11,7 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/MonsterLight.h"
 #include "wiz8/engine_code/registry_classes.h"
+#include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/stTextureAnim.h"
@@ -98,7 +99,6 @@ extern void Function48F650(
 extern unsigned char RemoveMonster(
     unsigned int monster_list_index, unsigned char destroy_monster);
 extern const float g_monster_script_time_scale_005ec128;
-extern const double g_monster_vertical_cycle_angle_005ec318;
 extern const double g_monster_script_direction_step_005ed2b8;
 extern const float g_monster_script_direction_scale_005ec150;
 extern const double g_monster_facing_tolerance_005ec2b0;
@@ -123,15 +123,11 @@ extern srTextureIFace* LoadTexture004B9460(
     const char* path, unsigned char cached, unsigned char required);
 extern unsigned char GetRenderOptionState(int option);
 extern int NormalizeAttackMode(int attack_mode);
-extern void Function439BC0(void);
-extern void Function439CA0(void);
-extern void __fastcall Function452F10(
-    W8Navigator* navigator,
-    const srVector3T<float>* minimum,
-    const srVector3T<float>* maximum);
-extern void __fastcall Function453C90(W8Navigator* navigator, float value);
-extern unsigned char g_monster_gib_option_0060e614;
-extern const double g_monster_light_color_scale_005ed280;
+// GLOBAL: WIZ8 0x0060e614
+unsigned char g_monster_gib_option_0060e614 = 1;
+// GLOBAL: WIZ8 0x005ed280
+extern const double g_monster_light_color_scale_005ed280 =
+    0.00392156862745098;
 
 static W8GrowableVector<stModelInstance005EC7D0*>
     g_monster_model_instances_682fd0;
@@ -759,10 +755,11 @@ unsigned char MonsterReadAllCycles004C0300(
     srVector3T<float> minimum;
     srVector3T<float> maximum;
     (*monster)->GetAnimationBounds(&minimum, &maximum);
-    Function452F10(*monster, &minimum, &maximum);
+    (*monster)->SetBounds(&minimum, &maximum);
     if (movement_rate < 2.0f) movement_rate = 2.0f;
     (*monster)->SetValue120(movement_rate);
-    Function453C90(*monster, rotation_rate * (float)g_monster_vertical_cycle_angle_005ec318);
+    (*monster)->SetTurnRate(
+        rotation_rate * (float)g_double_005ec318);
 
     int navigation_mode = 1;
     if (flies != 0) navigation_mode = 2;
@@ -905,7 +902,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
     fields.movement_0c0.vertical_offset_0c0 =
         (float)sin(
             (double)fields.movement_0c0.vertical_phase_084 *
-            g_monster_vertical_cycle_angle_005ec318) *
+            g_double_005ec318) *
             fields.movement_0c0.vertical_amplitude_080 +
         fields.movement_0c0.vertical_base_07c;
     fields.movement_0c0.height_offset_0b8 +=
