@@ -118,6 +118,11 @@ public:
     void LinkEdges004600B0();             /* 0x004600B0 */
     unsigned short FindWaypoint0045B120(
         const srVector3T<float>* position, unsigned char exhaustive);
+    void SnapPathHeight0045B5A0(srVector3T<float>* position);
+    void GetPathSurfaceNormal0045B730(
+        const srVector3T<float>* position, srVector3T<float>* normal);
+    void ActivateMovementTrigger0045B880(
+        W8NavigatorMovementState* movement, unsigned char use_path_edge);
     void AddWaypoint0045DDB0(const srVector3T<float>* position);
     unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
     unsigned char SnapWaypointPosition00462E60(
@@ -297,6 +302,12 @@ public:
         float radius, float separation);
     void QueueOctreeKind130042E810(
         int id, const srVector3T<float>* position);
+    int QueryObjects0042F280(
+        int** objects,
+        const srVector3T<float>* lower,
+        const srVector3T<float>* upper,
+        int kind,
+        int excluded);
     void Function0042F7E0();
 
     bool HasLoadError() const { return (m_flags_000 & 0x80000000) != 0; }

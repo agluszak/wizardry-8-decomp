@@ -1,5 +1,8 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/Trigger.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/sr_api.h"
@@ -32,6 +35,11 @@ extern float g_path_direction_threshold_1_005ec34c;
 extern float g_path_direction_threshold_2_005ec350;
 extern float g_path_direction_threshold_3_005ec354;
 extern float g_path_cardinal_scale_005ec358;
+extern float g_path_waypoint_query_vertical_005ec35c;
+extern float g_path_waypoint_query_horizontal_005ec360;
+extern double g_path_waypoint_exact_distance_005ebc64;
+extern float g_float_005ebb34;
+extern double g_double_005ebe80;
 extern void Function58AAD0(int channel, const char* format, ...);
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
@@ -1450,6 +1458,368 @@ float W8PathingService::MeasureDirectionalPath0045AC70(
         return distance;
     }
     return distance - remaining;
+}
+
+/* Find a waypoint surface near a world position.
+
+   Nearby kind-nine octree objects are ordered by integer three-dimensional
+   distance. A very close horizontal match wins immediately; otherwise the
+   first candidate connected by the ordinary span test is selected. Exhaustive
+   mode retries the ordered candidates with paired arc probes, rebuilding the
+   temporary visitation index for every attempt. */
+// FUNCTION: WIZ8 0x0045b120
+unsigned short W8PathingService::FindWaypoint0045B120(
+    const srVector3T<float>* position,
+    unsigned char exhaustive)
+{
+    srVector3T<float> query = *position;
+    unsigned short result = 0;
+    value_1d4 = 0;
+
+    if (SnapWaypointPosition00462E60(&query, 0) == 0) {
+        return 0;
+    }
+
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    lower.x = query.x - g_path_waypoint_query_horizontal_005ec360;
+    lower.y = query.y - g_path_waypoint_query_vertical_005ec35c;
+    lower.z = query.z - g_path_waypoint_query_horizontal_005ec360;
+    upper.x = query.x + g_path_waypoint_query_horizontal_005ec360;
+    upper.y = query.y + g_path_waypoint_query_vertical_005ec35c;
+    upper.z = query.z + g_path_waypoint_query_horizontal_005ec360;
+
+    int* candidates = 0;
+    int count = g_octree_6598a4->QueryObjects0042F280(
+        &candidates, &lower, &upper, 9, -1);
+    if (count == 0) {
+        return result;
+    }
+    if ((unsigned int)count >= 200) {
+        srAssertFail(
+            "s_ulCount<200", OCTPATH_CPP, 0xe0c, "Too many nodes in list");
+    }
+
+    unsigned int distances[199];
+    int index;
+    if (count > 1) {
+        for (index = 0; index < count; ++index) {
+            const srVector3T<float>* candidate =
+                &m_pSurfaces_048[candidates[index]].position_04;
+            float delta_x = query.x - candidate->x;
+            float delta_y = query.y - candidate->y;
+            float delta_z = query.z - candidate->z;
+            distances[index] = (unsigned int)(int)sqrt(
+                delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+
+            if ((double)distances[index] <
+                    g_path_waypoint_exact_distance_005ebc64 &&
+                sqrt(delta_x * delta_x + delta_z * delta_z) <
+                    g_path_waypoint_snap_distance_005ec150) {
+                result = (unsigned short)candidates[index];
+            }
+        }
+
+        if (result == 0) {
+            for (index = 1; index < count; ++index) {
+                unsigned int distance = distances[index];
+                int candidate = candidates[index];
+                int insertion = index;
+
+                while (insertion > 0 &&
+                       distance < distances[insertion - 1]) {
+                    distances[insertion] = distances[insertion - 1];
+                    candidates[insertion] = candidates[insertion - 1];
+                    --insertion;
+                }
+                distances[insertion] = distance;
+                candidates[insertion] = candidate;
+            }
+        }
+    }
+
+    for (index = 0; index < count; ++index) {
+        if (result != 0) {
+            return result;
+        }
+        if (TestWaypointSpan0045A1B0(
+                &query, &m_pSurfaces_048[candidates[index]].position_04, 0, 0) !=
+            0) {
+            result = (unsigned short)candidates[index];
+        }
+    }
+
+    if (result == 0 && exhaustive != 0) {
+        probe_position_07c.x = 0.0f;
+        probe_position_07c.y = 0.0f;
+        probe_position_07c.z = 0.0f;
+
+        W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
+        if (visited->bucket_count != 0) {
+            ::operator delete(visited->bucket_heads);
+            ::operator delete(visited->entries);
+        }
+        visited->bucket_count = 0;
+        visited->bucket_heads = 0;
+        visited->entries = 0;
+        visited->free_head = -1;
+        GrowIndex00439290(visited);
+        value_1d4 = 0;
+        flag_08c = 0;
+
+        for (index = 0; index < count; ++index) {
+            if (value_1d4 != 0) {
+                return result;
+            }
+
+            unsigned char saved_flag = flag_08c;
+            visited = static_cast<W8OctreeIndex*>(m_pIndex_074);
+            flag_08c = 0;
+            if (visited->bucket_count != 0) {
+                ::operator delete(visited->bucket_heads);
+                ::operator delete(visited->entries);
+            }
+            visited->bucket_count = 0;
+            visited->bucket_heads = 0;
+            visited->entries = 0;
+            visited->free_head = -1;
+            GrowIndex00439290(visited);
+
+            probe_cell_key_078 = 0;
+            probe_limit_088 = 0;
+            srVector3T<float>* candidate =
+                &m_pSurfaces_048[candidates[index]].position_04;
+            ProbeWaypointArc00462570(&query, candidate);
+            flag_08c = saved_flag;
+            probe_limit_088 = 0xffffffff;
+            ProbeWaypointArc00462570(candidate, &query);
+            if (probe_cell_key_078 != 0) {
+                value_1d4 = (unsigned short)candidates[index];
+            }
+        }
+    }
+
+    return result;
+}
+
+/* Snap only the vertical component of a position to the first path-index
+   record in the same horizontal cell and inside the service's vertical band.
+
+   Unlike SnapWaypointPosition00462E60, this operation leaves X and Z exactly
+   as supplied. The one-based height stored in the index is converted back to
+   the level's world-space Y coordinate. */
+// FUNCTION: WIZ8 0x0045b5a0
+void W8PathingService::SnapPathHeight0045B5A0(
+    srVector3T<float>* position)
+{
+    int cell_x = (int)((position->x - level_bounds[0]) / grid_scale_01c);
+    int cell_z = (int)((position->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int key = cell_z * 0x10000 + cell_x;
+
+    if (key == 0) {
+        return;
+    }
+
+    W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+    W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(index->entries);
+    unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+    int slot = static_cast<int*>(index->bucket_heads)[
+        hash & (index->bucket_count - 1)];
+    int height =
+        (int)((position->y - level_bounds[1]) / span_020) + 1;
+
+    while (slot != -1) {
+        W8OctreeEntry* entry = &entries[slot];
+        if (entry->key == key) {
+            unsigned int matched_height = entry->value & 0xffff;
+            int difference = (int)matched_height - height;
+            if (-cell_count_024 < difference &&
+                difference < cell_count_024) {
+                position->y =
+                    (float)(matched_height - 1) * span_020 + level_bounds[1];
+                return;
+            }
+        }
+        slot = entry->next_index;
+    }
+}
+
+/* Derive the path surface normal from the retail three-point construction.
+
+   The middle point is height-snapped before receiving the same X offset as
+   the second sample. This unusual order is intentional: it is the exact
+   construction in the retail body, not a conventionalized terrain sampler. */
+// FUNCTION: WIZ8 0x0045b730
+void W8PathingService::GetPathSurfaceNormal0045B730(
+    const srVector3T<float>* position,
+    srVector3T<float>* normal)
+{
+    srVector3T<float> first = *position;
+    srVector3T<float> middle = *position;
+    srVector3T<float> second = *position;
+
+    SnapPathHeight0045B5A0(&middle);
+    second.x += grid_scale_01c;
+    middle.x += grid_scale_01c;
+    SnapPathHeight0045B5A0(&second);
+    SnapPathHeight0045B5A0(&first);
+
+    normal->x =
+        (second.z - middle.z) * (first.y - middle.y) -
+        (second.y - middle.y) * (first.z - middle.z);
+    normal->y =
+        (second.y - middle.y) * (first.x - middle.x) -
+        (second.x - middle.x) * (first.y - middle.y);
+    normal->z =
+        (second.x - middle.x) * (first.z - middle.z) -
+        (second.z - middle.z) * (first.x - middle.x);
+
+    float length_squared =
+        normal->x * normal->x + normal->y * normal->y + normal->z * normal->z;
+    if (length_squared != (float)g_zero_005ebb40) {
+        float scale = (float)(g_double_005ebc30 / sqrt(length_squared));
+        normal->x *= scale;
+        normal->y *= scale;
+        normal->z *= scale;
+    }
+}
+
+/* Activate the eligible trigger prop intersecting a navigator's next path
+   segment.
+
+   Ordinary movement supplies a box from the current position to twice the
+   velocity. Edge mode instead resolves the attachment's current waypoint pair
+   and accepts only an edge carrying both dynamic bits. Kind-eight octree hits
+   are filtered to active props whose trigger owner permits this activation;
+   when several remain, the owner nearest the segment midpoint wins. */
+// FUNCTION: WIZ8 0x0045b880
+void W8PathingService::ActivateMovementTrigger0045B880(
+    W8NavigatorMovementState* movement,
+    unsigned char use_path_edge)
+{
+    if ((movement->unknown_000 & 0x10000000) == 0) {
+        return;
+    }
+
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+
+    if (use_path_edge == 0) {
+        if (movement->velocity_034.x == g_float_005ebb34 &&
+            movement->velocity_034.y == g_float_005ebb34 &&
+            movement->velocity_034.z == g_float_005ebb34) {
+            return;
+        }
+        lower = movement->position_040;
+        upper.x = movement->position_040.x + movement->velocity_034.x * 2.0f;
+        upper.y = movement->position_040.y + movement->velocity_034.y * 2.0f;
+        upper.z = movement->position_040.z + movement->velocity_034.z * 2.0f;
+    }
+    else {
+        W8NavigatorAttachment* attachment = movement->attachment_0ac;
+
+        /* Retail reaches the shared query with the local bounds untouched
+           when this cursor is exhausted. Keep that source-level fallthrough;
+           callers normally enter edge mode only while a pair remains. */
+        if (attachment->value_04 < attachment->value_08) {
+            unsigned short* pairs =
+                static_cast<unsigned short*>(attachment->allocation_50);
+            unsigned short source = pairs[attachment->value_04];
+            unsigned short destination = pairs[attachment->value_04 + 1];
+            W8PathSurface* source_surface = &m_pSurfaces_048[source];
+            unsigned short edge_index = source_surface->first_edge_24;
+
+            if (edge_index == 0) {
+                return;
+            }
+            while (m_pEdges_04c[edge_index].destination_06 != destination) {
+                edge_index = m_pEdges_04c[edge_index].next_0c;
+                if (edge_index == 0) {
+                    return;
+                }
+            }
+
+            unsigned int flags = m_pEdges_04c[edge_index].flags_00;
+            if ((flags & 0x10000000) == 0 ||
+                (flags & 0x80000000) == 0) {
+                return;
+            }
+            lower = source_surface->position_04;
+            upper = m_pSurfaces_048[destination].position_04;
+        }
+    }
+
+    if (upper.x < lower.x) {
+        float temporary = lower.x;
+        lower.x = upper.x;
+        upper.x = temporary;
+    }
+    if (upper.y < lower.y) {
+        float temporary = lower.y;
+        lower.y = upper.y;
+        upper.y = temporary;
+    }
+    if (upper.z < lower.z) {
+        float temporary = lower.z;
+        lower.z = upper.z;
+        upper.z = temporary;
+    }
+
+    int* candidates = 0;
+    int count = g_octree_6598a4->QueryObjects0042F280(
+        &candidates, &lower, &upper, 8, -1);
+    if (count <= 0) {
+        return;
+    }
+
+    Trigger* selected = 0;
+    if (count == 1) {
+        W8Prop* prop = *g_world->collidable_props->GetAt(candidates[0]);
+        Trigger* trigger =
+            reinterpret_cast<Trigger*>(prop->GetGDPropValue24());
+        if (prop->GetSetting6C() == 0 || trigger == 0 ||
+            (trigger->flags_0a0 & 0x100) == 0) {
+            return;
+        }
+        selected = trigger;
+    }
+    else {
+        srVector3T<float> midpoint;
+        midpoint.x =
+            (float)((upper.x - lower.x) * g_double_005ebe80) + lower.x;
+        midpoint.y =
+            (float)((upper.y - lower.y) * g_double_005ebe80) + lower.y;
+        midpoint.z =
+            (float)((upper.z - lower.z) * g_double_005ebe80) + lower.z;
+        double nearest_distance = 1e32;
+
+        for (int index = 0; index < count; ++index) {
+            W8Prop* prop =
+                *g_world->collidable_props->GetAt(candidates[index]);
+            Trigger* trigger =
+                reinterpret_cast<Trigger*>(prop->GetGDPropValue24());
+            if (prop->GetSetting6C() != 0 && trigger != 0 &&
+                (trigger->flags_0a0 & 0x100) != 0) {
+                srVector3T<float> center;
+                prop->GetCenterPosition(&center);
+                float difference_x = center.x - midpoint.x;
+                float difference_y = center.y - midpoint.y;
+                float difference_z = center.z - midpoint.z;
+                double distance =
+                    difference_x * difference_x +
+                    difference_y * difference_y +
+                    difference_z * difference_z;
+                if (distance < nearest_distance) {
+                    nearest_distance = distance;
+                    selected = trigger;
+                }
+            }
+        }
+    }
+
+    if (selected != 0) {
+        selected->Activate00444750();
+    }
 }
 
 /* Append one waypoint surface and keep every capacity-coupled side table sized
