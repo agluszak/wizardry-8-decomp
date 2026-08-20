@@ -4577,6 +4577,43 @@ void MonsterForward4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5)
     Function4C0300(arg_1, arg_2, arg_3, arg_4, arg_5);
 }
 
+/* Load one monster cycle through GrCycle's polymorphic factory boundary, then
+   fill in any particle event whose cycle matches but whose subcycle was left
+   at the -1 sentinel.  The factory accepts the base-class output slot; object
+   type zero is what proves the resulting object is a W8Monster here. */
+// FUNCTION: WIZ8 0x004C5910
+unsigned char LoadMonsterCycle004C5910(
+    const char* name,
+    const char* mon_name,
+    W8Monster** monster,
+    int cycle,
+    int value)
+{
+    unsigned char success = LoadGrCycle004A67E0(
+        name,
+        mon_name,
+        reinterpret_cast<W8GrCycle**>(monster),
+        cycle,
+        value,
+        "data\\monsters",
+        0);
+
+    if ((*monster)->m_plsParticles != 0) {
+        int count = (*monster)->m_plsParticles->GetCount();
+        if (count != 0) {
+            for (int index = 0; index < count; ++index) {
+                W8GrCycleShakeEvent* event =
+                    *(*monster)->m_plsParticles->GetAt(index);
+                if (event->cycle_00 == cycle && event->subcycle_04 == -1) {
+                    event->subcycle_04 =
+                        (*monster)->m_pRep->selection.monster.current_subcycle;
+                }
+            }
+        }
+    }
+    return success;
+}
+
 /* Two whole-body tail calls. Neither wrapper takes an argument and neither
    callee touches ECX - both read only the pair of globals at 0x00659B34 and
    0x00659B3C - so the wrappers pass nothing on and VC6 lowers each to a bare

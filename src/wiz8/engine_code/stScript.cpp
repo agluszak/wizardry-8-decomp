@@ -7,6 +7,54 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Read one byte at a time through the virtual-file layer.  End-of-file after
+   at least one byte still returns a line, while an empty end-of-file clears
+   `more`.  The terminator is not retained and CRLF is normalised by removing
+   the CR after the loop. */
+// FUNCTION: WIZ8 0x004CEE40
+unsigned char ReadTextLine004CEE40(
+    int handle, char* destination, int capacity, unsigned char* more)
+{
+    unsigned char result;
+    unsigned int transferred;
+    char character;
+    int length = 0;
+
+    destination[0] = 0;
+    *more = 1;
+
+    for (;;) {
+        result = ReadVirtualFile(handle, &character, 1, &transferred);
+        if (transferred == 0) {
+            result = length != 0;
+            *more = 0;
+            break;
+        }
+        if (result == 0) {
+            *more = 0;
+        }
+        else {
+            if (character == '\n') {
+                break;
+            }
+            destination[length++] = character;
+        }
+        if (length >= capacity - 1) {
+            result = 0;
+            break;
+        }
+        if (result == 0) {
+            break;
+        }
+    }
+
+    destination[length] = 0;
+    if (length != 0 && destination[length - 1] == '\r') {
+        destination[length - 1] = 0;
+    }
+    return result;
+}
+
 // VTABLE: WIZ8 0x005ED328
 // class stScript
 

@@ -297,6 +297,12 @@ unsigned short ChooseDifferentMonsterDirection004C2E00(
 
 unsigned char MonsterGetWorldAnimationBounds004CA4F0(
     W8Monster* monster, srVector3T<float>* minimum, srVector3T<float>* maximum);
+unsigned char LoadMonsterCycle004C5910(
+    const char* name,
+    const char* mon_name,
+    W8Monster** monster,
+    int cycle,
+    int value);
 
 unsigned char MonsterUsesCurrentModelInstance(W8GrCycle* cycle);
 void MonsterGetLocation(

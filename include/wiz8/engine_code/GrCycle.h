@@ -163,3 +163,12 @@ static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 const char* __fastcall GetGrCycleName(W8GrCycle* cycle);
+unsigned char LoadGrCycle004A67E0(
+    const char* name,
+    const char* mon_name,
+    W8GrCycle** cycle,
+    int cycle_index,
+    int value,
+    const char* directory,
+    unsigned char object_type,
+    const char* bitmap_directory = 0);

@@ -15,10 +15,13 @@
 #include "wiz8/utility.h"
 #include "wiz8/vector.h"
 #include "wiz8/vector_005ec294.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srCore.h"
+#include "FileMan.h"
 #include <math.h>
 #include <new>
+#include <stdio.h>
 #include <string.h>
 
 /* Engine Code\GrCycle.cpp. BEHAVIOUR_FIRST and BEHAVIOUR_LAST come from the
@@ -178,6 +181,89 @@ extern void ConvertVector004A90E0(
     srVector3T<double>* destination, const srVector3T<float>* source);
 extern float g_float_005ec128;
 extern float g_float_005ebc64;
+extern void Function401920(const char* message);
+
+struct W8GrCycleReadInfo004A6970 {
+    unsigned int name_prefix_00;
+    int handle_04;
+    const char* bitmap_directory_08;
+    const char* mon_path_0c;
+};
+
+extern unsigned char ReadGrCycleData004A6970(
+    W8GrCycleReadInfo004A6970* info,
+    W8GrCycle** cycle,
+    int cycle_index,
+    int value,
+    unsigned char object_type);
+
+/* Build the two paths used while reading a .mon resource, verify its one-byte
+   version, and hand the open file plus its resource context to the typed cycle
+   reader.  The first four bytes of the owning name are copied into the read
+   record exactly as the retail body does; they are not a pointer. */
+// FUNCTION: WIZ8 0x004A67E0
+unsigned char LoadGrCycle004A67E0(
+    const char* name,
+    const char* mon_name,
+    W8GrCycle** cycle,
+    int cycle_index,
+    int value,
+    const char* directory,
+    unsigned char object_type,
+    const char* bitmap_directory)
+{
+    W8GrCycleReadInfo004A6970 info;
+    char mon_path[128];
+    char bitmap_path[1024];
+    unsigned char version;
+    unsigned char success;
+
+    if (mon_name == 0 || cycle == 0) {
+        srAssertFail(
+            "pacName && ppCycle",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x176,
+            0);
+    }
+
+    sprintf(mon_path, "%s\\%s.mon", directory, mon_name);
+    if (bitmap_directory == 0) {
+        sprintf(bitmap_path, "%s\\Bitmaps", directory);
+    }
+    else {
+        strcpy(bitmap_path, bitmap_directory);
+    }
+
+    int handle = FileOpen(mon_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+    if (handle == 0) {
+        Function401920(FormatString("Couldn't open %s", mon_path));
+    }
+
+    info.name_prefix_00 = *reinterpret_cast<const unsigned int*>(name);
+    info.handle_04 = handle;
+    info.bitmap_directory_08 = bitmap_path;
+    info.mon_path_0c = mon_path;
+    success = 1;
+
+    if (ReadVirtualFile(handle, &version, 1, 0) == 0 || version != 1 ||
+        ReadGrCycleData004A6970(
+            &info, cycle, cycle_index, value, object_type) == 0) {
+        success = 0;
+    }
+
+    CloseVirtualFile(handle);
+    if (success == 0) {
+        srAssertFail(
+            "fSuccess",
+            "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
+            0x198,
+            FormatString(
+                "GrCycle::Read: ERROR - Read %s in %s failed",
+                mon_path,
+                bitmap_path));
+    }
+    return success;
+}
 
 // FUNCTION: WIZ8 0x004a5e50
 W8GrCycle::W8GrCycle()
