@@ -29,13 +29,16 @@ struct W8NavigatorAttachment {
     /* 0x00457530 releases this one with free while +0x4c goes back to srHeap,
        so the two allocations do not share an owner. */
     void* allocation_50;
-    unsigned int value_054;
+    float separation_54;
     unsigned int value_058;
     unsigned char unknown_05c[4];
 
     W8NavigatorAttachment();             /* 0x00456210 */
 
     void RecordPosition(const srVector3T<float>* position);
+    void InitializeSegment004563E0(
+        const srVector3T<float>* source,
+        const srVector3T<float>* destination);
 };
 
 class W8Navigator;

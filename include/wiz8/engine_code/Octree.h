@@ -20,6 +20,7 @@ public:
     W8PathState004CAE40();               /* 0x004CAE40 */
 };
 struct W8NavigatorMovementState;
+struct W8NavigatorAttachment;
 
 /* OctPath.cpp's two compact graph records. Surface zero and edge zero are
    sentinels; live records are addressed by their unsigned-short indices. */
@@ -35,6 +36,15 @@ struct W8PathSurface {
     unsigned short positional_26;
 };
 
+/* The compact surface record written to a .WPT file. It retains only the
+   persistent flags, first edge and world position from the live 0x28-byte
+   surface. */
+struct W8FileWaypoint {
+    unsigned short flags_00;
+    unsigned short first_edge_02;
+    srVector3T<float> position_04;
+};
+
 #pragma pack(push, 1)
 struct W8PathEdge {
     unsigned int flags_00;
@@ -47,6 +57,7 @@ struct W8PathEdge {
 
 static_assert(sizeof(W8PathSurface) == 0x28, "W8PathSurface_must_be_0x28");
 static_assert(sizeof(W8PathEdge) == 0x0e, "W8PathEdge_must_be_0x0e");
+static_assert(sizeof(W8FileWaypoint) == 0x10, "W8FileWaypoint_must_be_0x10");
 
 class W8OctreeObjectRegistry {
 public:
@@ -54,6 +65,7 @@ public:
        discards it. */
     unsigned char RegisterObjectCell(int kind, int id, const int* point);
     unsigned char UpdateObjectCell00436B90(int kind, int id, const int* point);
+    unsigned char RemoveObjectCell00436DC0(int kind, int id);
 };
 
 /* The cell walk 0x004362D0 builds and both line-of-sight bodies step: an
@@ -183,6 +195,29 @@ public:
         unsigned int node,
         float radius,
         float separation);
+    unsigned char TestSearchPositionVisibility00464CC0(
+        const srVector3T<float>* position,
+        W8NavigatorMovementState* movement);
+    unsigned short ConfigureMovementSearch00464B00(
+        W8NavigatorMovementState* movement,
+        int target_location,
+        float radius,
+        float separation,
+        float maximum_distance,
+        float offset_x,
+        float offset_y,
+        float offset_z,
+        int trace_mode,
+        float target_height_offset,
+        float target_yaw,
+        unsigned char* probe_result);
+    unsigned char ResolvePathCell004648D0(
+        unsigned int key,
+        unsigned char allow_dynamic,
+        unsigned int* height,
+        float* direction,
+        float* vertical,
+        unsigned char* dynamic);
     unsigned short FindWaypoint0045B120(
         const srVector3T<float>* position, unsigned char exhaustive);
     void SnapPathHeight0045B5A0(srVector3T<float>* position);
@@ -207,6 +242,14 @@ public:
     unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
     unsigned char SnapWaypointPosition00462E60(
         srVector3T<float>* position, unsigned char snap_to_cell);
+    unsigned char TestPathCellClearance00463040(
+        srVector3T<float>* position,
+        float clearance,
+        unsigned char snap_to_cell);
+    unsigned char SnapToLowerPathCell00463290(
+        srVector3T<float>* position, unsigned char allow_directional);
+    unsigned char ProbeAttachmentPath00462360(
+        W8NavigatorAttachment* attachment);
     void ProbeWaypointArc00462570(
         const srVector3T<float>* from, const srVector3T<float>* to);
     void GetPathGridStepDirections0045AEE0(
@@ -253,6 +296,10 @@ public:
         int size, float grid_scale, int value_28, const float* bounds,
         const char* name);                /* 0x00458A50 */
     unsigned char Load00458CE0(int handle); /* 0x00458CE0 */
+    unsigned char WritePathNodes00458AD0(unsigned int handle);
+    unsigned char SaveWaypointSnapshot00459400(unsigned char force);
+    unsigned char WriteWaypointFile00459540();
+    void BuildWaypointFileData0045E440();
     /* Not a destructor: nothing restores a vtable and the object is left
        holding dangling pointers, exactly as BitArray::FreeIndex does. */
     void Release00457B10();               /* 0x00457B10 */
@@ -275,12 +322,12 @@ public:
     /* Four malloc'd tables and one polymorphic object, all released by
        0x00457B10 - the first four with free, the last through its own
        deleting slot. */
-    void* m_owned_044;                   /* 0x44 */
+    unsigned int* path_nodes_044;        /* 0x44: serialized key/value pairs */
     /* Surfaces are 0x28 bytes apart, edges 0xe; an edge names two surfaces by
        index in its two shorts at +4 and +6. */
     W8PathSurface* m_pSurfaces_048;      /* 0x48 */
     W8PathEdge* m_pEdges_04c;            /* 0x4c */
-    void* m_owned_050;                   /* 0x50 */
+    W8FileWaypoint* file_waypoints_050; /* 0x50 */
     class W8PathOwned054* m_owned_054;   /* 0x54 */
     BitArray* m_owned_058;               /* 0x58 */
     BitArray* m_owned_05c;               /* 0x5c */
@@ -304,14 +351,12 @@ public:
     unsigned int waypoint_neighbor_mask_0a0; /* 0xa0 */
     unsigned char flag_0a4;              /* 0xa4 */
     unsigned char m_padding_0a5[3];
-    int m_positional_0a8;
-    int m_positional_0ac;
-    int m_positional_0b0;
-    int m_positional_0b4;
-    int m_positional_0b8;
-    int m_positional_0bc;
-    int m_positional_0c0;
-    int m_positional_0c4;
+    float trace_max_distance_0a8;
+    srVector3T<float> trace_offset_0ac;
+    int trace_mode_0b8;
+    float trace_height_offset_0bc;
+    int trace_target_location_0c0;
+    float trace_target_yaw_0c4;
     W8PathSearchNode* m_owned_0c8;       /* 0xc8 */
     int m_positional_0cc;
     int m_positional_0d0;

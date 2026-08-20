@@ -195,7 +195,7 @@ W8NavigatorAttachment::W8NavigatorAttachment()
     record[3] = 0;
     record[4] = 0;
     value_058 = 0;
-    value_054 = 0;
+    separation_54 = 0.0f;
     position_10.x = 0.0f;
     position_10.y = 0.0f;
     position_10.z = 0.0f;
