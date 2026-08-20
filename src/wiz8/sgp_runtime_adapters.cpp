@@ -69,6 +69,20 @@
 // LIBRARY: WIZ8 0x00412570
 // Blt16BPPBufferShadowRectAlternateTable
 
+/* Wizardry extends the LibraryDataBase record layouts and patch selection,
+   while these four released SGP bodies remain exact in the retail image. */
+// LIBRARY: WIZ8 0x00412B10
+// ShutDownFileDatabase
+
+// LIBRARY: WIZ8 0x00413680
+// CreateRealFileHandle
+
+// LIBRARY: WIZ8 0x00413730
+// GetLibraryAndFileIDFromLibraryFileHandle
+
+// LIBRARY: WIZ8 0x00413D00
+// CompareDirEntryFileNames
+
 /* The FileMan implementation is likewise owned by the pinned SFI SGP oracle.
    The match image currently consumes it through the runtime-shared boundary,
    so retain its original linked identity without cloning its declaration or

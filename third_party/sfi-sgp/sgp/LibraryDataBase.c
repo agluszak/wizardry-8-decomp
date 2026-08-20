@@ -482,6 +482,8 @@ BOOLEAN CheckIfFileExistInLibrary( STR pFileName )
 INT16 GetLibraryIDFromFileName( STR pFileName )
 {
 INT16 sLoop1, sBestMatch=-1;
+	CHAR8 sFileNameWithPath[ FILENAME_SIZE ];
+	FileHeaderStruct **ppFileHeader;
 
 	//loop through all the libraries to check which library the file is in
 	for( sLoop1=0; sLoop1<gFileDataBase.usNumberOfLibraries; sLoop1++)
@@ -490,7 +492,7 @@ INT16 sLoop1, sBestMatch=-1;
 		if( IsLibraryOpened( sLoop1 ) )
 		{
 			//if the library path name is of size zero, ( the library is for the default path )
-			if( strlen( gFileDataBase.pLibraries[ sLoop1 ].sLibraryPath ) == 0 )
+			if( !gFileDataBase.pLibraries[ sLoop1 ].fPatchLibrary && strlen( gFileDataBase.pLibraries[ sLoop1 ].sLibraryPath ) == 0 )
 			{
 				//determine if there is a directory in the file name
 				if( strchr( pFileName, '\\' ) == NULL && strchr( pFileName, '//' ) == NULL )
@@ -509,6 +511,15 @@ INT16 sLoop1, sBestMatch=-1;
 					// if we've never matched, or this match's path is longer than the previous match (meaning it's more exact)
 					if((sBestMatch==(-1)) || (strlen(gFileDataBase.pLibraries[ sLoop1 ].sLibraryPath) > strlen(gFileDataBase.pLibraries[ sBestMatch ].sLibraryPath)))
 						sBestMatch = sLoop1;
+					else if( gFileDataBase.pLibraries[ sLoop1 ].fPatchLibrary )
+					{
+						strcpy( sFileNameWithPath, pFileName );
+						gsCurrentLibrary = sLoop1;
+						ppFileHeader = (FileHeaderStruct **) bsearch( (char *) &sFileNameWithPath, (FileHeaderStruct *) gFileDataBase.pLibraries[ sLoop1 ].pFileHeader, gFileDataBase.pLibraries[ sLoop1 ].usNumberOfEntries,
+																sizeof( FileHeaderStruct ), (int (*)(const void*, const void*))CompareFileNames );
+						if( ppFileHeader )
+							sBestMatch = sLoop1;
+					}
 				}
 			}
 		}
@@ -1121,4 +1132,3 @@ INT32 CompareDirEntryFileNames( CHAR8 *arg1[], DIRENTRY **arg2 )
    /* Compare all of both strings: */
    return _stricmp( sSearchKey, sFileNameWithPath );
 }
-

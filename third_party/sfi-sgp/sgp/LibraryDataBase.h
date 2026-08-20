@@ -34,6 +34,7 @@ typedef struct
 	CHAR8 sLibraryName[ FILENAME_SIZE ];					// The name of the library file on the disk
 	BOOLEAN fOnCDrom;															// A flag specifying if its a cdrom library ( not implemented yet )
 	BOOLEAN fInitOnStart;													// Flag specifying if the library is to Initialized at the begining of the game
+	BOOLEAN fMapFile;														// Wizardry can memory map selected libraries
 
 } LibraryInitHeader;
 
@@ -50,7 +51,13 @@ typedef struct
 #endif
 
 extern LibraryInitHeader gGameLibaries[];
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern	CHAR8	gzCdDirectory[ SGPFILENAME_LEN ];
+#ifdef __cplusplus
+}
+#endif
 
 
 #define		REAL_LIBRARY_FILE	"RealFiles.slf"
@@ -87,12 +94,15 @@ typedef struct
 	HANDLE	hLibraryHandle;
 	UINT16	usNumberOfEntries;
 	BOOLEAN	fLibraryOpen;
+	BOOLEAN	fPatchLibrary;
 //	BOOLEAN	fAnotherFileAlreadyOpenedLibrary;				//this variable is set when a file is opened from the library and reset when the file is close.  No 2 files can have access to the library at 1 time.
 	UINT32	uiIdOfOtherFileAlreadyOpenedLibrary;				//this variable is set when a file is opened from the library and reset when the file is close.  No 2 files can have access to the library at 1 time.
 	INT32		iNumFilesOpen;
 	INT32		iSizeOfOpenFileArray;
 	FileHeaderStruct *pFileHeader;
 	FileOpenStruct	*pOpenFiles;
+	HANDLE	hFileMapping;
+	PTR		pFileMapping;
 
 //
 //	Temp:	Total memory used for each library ( all memory allocated

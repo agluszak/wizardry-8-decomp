@@ -3,7 +3,9 @@
 #include "wiz8/wiz8_windows.h"
 
 #include "english.h"
+#include "FileMan.h"
 #include "input.h"
+#include "LibraryDataBase.h"
 #include "shading.h"
 
 #include <stdio.h>
@@ -44,6 +46,9 @@ struct RuntimeObservation {
     int playlist_pause_min;
     int playlist_pause_max;
     int playlist_pause_chance;
+    int patch_catalog_count;
+    unsigned char patch_precedence_ok;
+    unsigned char physical_fallback_ok;
 };
 
 static RuntimeObservation g_observation;
@@ -128,6 +133,47 @@ static bool WaitForMainMenu(unsigned int timeout_ms)
     return false;
 }
 
+static bool VerifyPatchPrecedence(void)
+{
+    for (int library_id = NUMBER_OF_LIBRARIES;
+         library_id < gFileDataBase.usNumberOfLibraries; ++library_id) {
+        LibraryHeaderStruct* library = &gFileDataBase.pLibraries[library_id];
+        if (!library->fPatchLibrary) {
+            continue;
+        }
+        for (unsigned int entry = 0; entry < library->usNumberOfEntries; ++entry) {
+            char path[512];
+            sprintf(path, "%s%s", library->sLibraryPath,
+                    library->pFileHeader[entry].pFileName);
+            if (GetLibraryIDFromFileName(path) == library_id) {
+                HWFILE handle = FileOpen(path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+                short selected_library = -1;
+                unsigned int file_id = 0;
+                if (handle != 0) {
+                    GetLibraryAndFileIDFromLibraryFileHandle(
+                        handle, &selected_library, &file_id);
+                    FileClose(handle);
+                }
+                return selected_library == library_id;
+            }
+        }
+    }
+    return false;
+}
+
+static bool VerifyPhysicalFileFallback(void)
+{
+    HWFILE handle = FileOpen("3DVideo.CFG", FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
+    short library_id = -1;
+    unsigned int file_id = 0;
+    if (handle == 0) {
+        return false;
+    }
+    GetLibraryAndFileIDFromLibraryFileHandle(handle, &library_id, &file_id);
+    FileClose(handle);
+    return library_id == REAL_FILE_LIBRARY_ID;
+}
+
 static DWORD WINAPI DriveScenario(void*)
 {
     if (!WaitForMainMenu(30000)) {
@@ -158,6 +204,10 @@ static DWORD WINAPI DriveScenario(void*)
     g_observation.playlist_pause_min = g_music_state_60aae8;
     g_observation.playlist_pause_max = g_music_state_60aaec;
     g_observation.playlist_pause_chance = g_music_state_60aaf0;
+    g_observation.patch_catalog_count =
+        gFileDataBase.usNumberOfLibraries - NUMBER_OF_LIBRARIES;
+    g_observation.patch_precedence_ok = VerifyPatchPrecedence();
+    g_observation.physical_fallback_ok = VerifyPhysicalFileFallback();
     const bool initial_table = VerifyShadeTable((FLOAT)0.66);
     SetShadeTablePercent((FLOAT)0.50);
     const bool changed_table = VerifyShadeTable((FLOAT)0.50);
@@ -168,7 +218,8 @@ static DWORD WINAPI DriveScenario(void*)
     fprintf(
         stderr,
         "runtime-test menu: scenario=%s state=%d regions=%u first=%u last=%u "
-        "selected=%u playlist=%u tracks=%d weight=%d pause=%d..%d@%d\n",
+        "selected=%u playlist=%u tracks=%d weight=%d pause=%d..%d@%d "
+        "patches=%d patch_precedence=%u physical_fallback=%u\n",
         g_scenario,
         g_observation.menu_state,
         g_observation.region_set_enabled,
@@ -180,7 +231,10 @@ static DWORD WINAPI DriveScenario(void*)
         g_observation.playlist_weight,
         g_observation.playlist_pause_min,
         g_observation.playlist_pause_max,
-        g_observation.playlist_pause_chance);
+        g_observation.playlist_pause_chance,
+        g_observation.patch_catalog_count,
+        g_observation.patch_precedence_ok,
+        g_observation.physical_fallback_ok);
     fflush(stderr);
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -257,6 +311,7 @@ int main(int argc, char** argv)
         "regions_enabled=%u first_region=%u last_region=%u "
         "playlist_active=%u playlist_tracks=%d playlist_weight=%d "
         "playlist_pause_min=%d playlist_pause_max=%d playlist_pause_chance=%d "
+        "patch_catalog_count=%d patch_precedence_ok=%u physical_fallback_ok=%u "
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
         "teardown=%u timed_out=%u\n",
         g_scenario,
@@ -271,6 +326,9 @@ int main(int argc, char** argv)
         g_observation.playlist_pause_min,
         g_observation.playlist_pause_max,
         g_observation.playlist_pause_chance,
+        g_observation.patch_catalog_count,
+        g_observation.patch_precedence_ok,
+        g_observation.physical_fallback_ok,
         g_observation.shade_table_ok,
         g_observation.exit_observed,
         g_observation.transition_observed,
@@ -281,7 +339,10 @@ int main(int argc, char** argv)
         g_observation.menu_seen && g_observation.menu_state == 0 &&
         g_observation.region_set_enabled && g_observation.first_region == 0 &&
         g_observation.last_region == 6 && g_observation.playlist_active &&
-        g_observation.playlist_tracks > 0 && g_observation.shade_table_ok;
+        g_observation.playlist_tracks > 0 &&
+        g_observation.patch_catalog_count > 0 &&
+        g_observation.patch_precedence_ok &&
+        g_observation.physical_fallback_ok && g_observation.shade_table_ok;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
     const bool transition_ok =
