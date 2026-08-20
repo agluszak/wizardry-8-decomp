@@ -5,6 +5,10 @@
 #include "surrender/srMath.h"
 
 struct W8AniMesh;
+struct W8PathAI;
+struct W8ReadLevelInfo;
+class stLight;
+template <class T> class W8GrowableVector;
 class srModelInstance;
 
 /*
@@ -23,15 +27,14 @@ struct W8AnimObj {
     unsigned char unknown_06[2];
     float playback_scale_08;             /* 0x08 */
     unsigned char unknown_0c[4];
-    /* 0x004A0320 copies this as a dword. */
-    int value_10;                        /* 0x10 */
+    /* Serialized as a float; 0x004A0320 copies its four-byte representation. */
+    float value_10;                      /* 0x10 */
     unsigned char start_frame_14;
     unsigned char end_frame_15;
     unsigned char value_16;              /* 0x16 */
     unsigned char unknown_17;
-    /* 0x004A01E0 releases the first three through DestroyAniMesh004B5880, which
-       types them; the fourth slot it never touches. */
-    W8AniMesh* entries_18[4];            /* 0x18 */
+    W8AniMesh* entries_18[3];            /* 0x18 */
+    W8PathAI* path_24;                   /* 0x24 */
     /* Six lists in two groups of three, not nine. The first group's entries are
        meshes, released the same way; the second group's are paths, released
        through DestroyPathAI004A9810. */
@@ -63,6 +66,12 @@ unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index);
 void* AnimObjListEntry004A16C0(
     W8AnimObj* animation, signed char list_index, signed char entry_index);
 unsigned char AnimationIsRunning(W8AnimObj* animation);
+unsigned char AnimObjReadFromFile004A05C0(
+    W8ReadLevelInfo* info,
+    W8AnimObj* animation,
+    int load_all,
+    W8GrowableVector<stLight*>* light_list,
+    int unused);
 srModelInstance* AnimObjDispatch004A14D0(
     W8AnimObj* animation, signed char list_index, unsigned char value);
 srModelInstance* AnimObjDispatchList004A1560(

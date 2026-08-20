@@ -20,8 +20,8 @@ struct W8PathAI {
     int value_10;                        /* 0x10 */
     /* 0x004A98C0 sizes both from the node count: 0x24 a record here, and a
        srVector3T<float> each in the render array. */
-    void* allocation_14;                 /* 0x14 */
-    void* render_allocation_18;          /* 0x18 */
+    srMatrix3T<float>* rotations_14;     /* 0x14 */
+    srVector3T<float>* scales_18;        /* 0x18 */
     unsigned char flag_1c;               /* 0x1c */
     unsigned char unknown_1d[3];
     unsigned int value_20;               /* 0x20 */
@@ -68,6 +68,8 @@ void PathAISetFlag38004AA9D0(W8PathAI* path, unsigned char value);
 void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetFlag1C004AAA10(W8PathAI* path, unsigned char value);
 unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
+unsigned char PathAIAddPoint004A9C30(
+    W8PathAI* path, const srVector3T<float>* point);
 
 /* Build a zeroed 0x40-byte path and its position-pointer vector. Every caller
    pushes an argument the factory never reads. */

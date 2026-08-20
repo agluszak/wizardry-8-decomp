@@ -579,9 +579,6 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
     return true;
 }
 
-extern unsigned char AnimObjReadFromFile004A05C0(
-    W8ReadLevelInfo* info, W8AnimObj* animation, int a, int b, int c);
-
 extern const float g_monster_script_direction_scale_005ec150;
 
 /* After a successful load, bind the current animation frame's mesh to its
@@ -610,7 +607,7 @@ void W8Prop::Method44C670()
             srAssertFail("psrMesh", PROP_CPP, 0x581, 0);
         }
         path = reinterpret_cast<W8PathAI*>(
-            reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation->entries_18[3]);
+            reinterpret_cast<W8PropRepresentation*>(m_pRep)->animation->path_24);
         if (path != 0) {
             PathAISetValue004A9F60(
                 path,
@@ -618,7 +615,7 @@ void W8Prop::Method44C670()
             PathAIApply004AA520(
                 reinterpret_cast<W8PathAI*>(
                     reinterpret_cast<W8PropRepresentation*>(m_pRep)
-                        ->animation->entries_18[3]),
+                        ->animation->path_24),
                 reinterpret_cast<stModelInstance005EC7D0*>(mesh));
         }
         return;

@@ -6,6 +6,7 @@
 #include "surrender/srScene.h"
 #include "surrender/srTexture.h"
 #include "wiz8/engine_code/stModelInstance.h"
+#include "wiz8/vector.h"
 
 class W8MonsterShakeCallback;
 class W8Prop;
@@ -237,14 +238,25 @@ static_assert(sizeof(stLightDefinition005ECDBC) == 0x44,
 // VTABLE: WIZ8 0x005ecda0
 class stLightDefinition005ECDA0 : public stLightDefinition {
 public:
+    stLightDefinition005ECDA0()
+        : values_08(5), values_18(5), values_28(5), values_38(5),
+          value_48(0), time_4c(0.0f)
+    {
+        type_04 = 2;
+    }
+    virtual ~stLightDefinition005ECDA0() override;
     virtual stLightDefinition* Clone() const override;
     virtual unsigned char IsEnabledForSubcycle(
         unsigned char subcycle) override;
 
-    unsigned char unknown_08[0x40];
+    W8GrowableVector<int> values_08;
+    W8GrowableVector<int> values_18;
+    W8GrowableVector<float> values_28;
+    W8GrowableVector<srVector3T<float> > values_38;
     int value_48;
     float time_4c;
-    unsigned char unknown_50[8];
+    int value_50;
+    float value_54;
 };
 
 static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,

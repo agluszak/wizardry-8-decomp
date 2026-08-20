@@ -3,8 +3,10 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
 #include "surrender/srHeap.h"
 
+#include <math.h>
 #include <windows.h>
 #include <stdlib.h>
 
@@ -19,6 +21,9 @@ extern float g_float_005ebc38;
 extern double g_double_005ebe80;
 extern float g_float_005ec128;
 extern double g_double_005ec3b0;
+extern const double g_path_ai_world_scale_005ec150;
+extern float* RotateMatrixAroundAxis0042B910(
+    float* matrix, double sine, double cosine, float* axis);
 
 // FUNCTION: WIZ8 0x004a9260
 unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
@@ -36,6 +41,92 @@ unsigned char PathAIUpdate004A9260(W8PathAI* path, signed char direction)
     default:
         return 0;
     }
+}
+
+// FUNCTION: WIZ8 0x004a92a0
+unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
+{
+    unsigned char version;
+    unsigned char success;
+    W8PathAI* path;
+    int point_count;
+    int index;
+
+    if (output == 0) {
+        return 0;
+    }
+    if (!ReadVirtualFile(handle, &version, 1, 0) || version != 0) {
+        return 0;
+    }
+
+    point_count = 0;
+    path = static_cast<W8PathAI*>(malloc(sizeof(W8PathAI)));
+    if (path == 0) {
+        return 0;
+    }
+    memset(path, 0, sizeof(W8PathAI));
+    path->nodes_0c = new W8GrowableVector<srVector3T<float>*>(5);
+
+    success = ReadVirtualFile(handle, &path->unknown_01[0], 1, 0);
+    success = success && ReadVirtualFile(handle, &path->value_04, 4, 0);
+    success = success && ReadVirtualFile(handle, &path->unknown_08, 4, 0);
+    success = success && ReadVirtualFile(handle, &point_count, 4, 0);
+
+    if (point_count == 0) {
+        DestroyPathAI004A9810(path);
+        path = 0;
+    }
+    else {
+        path->rotations_14 = static_cast<srMatrix3T<float>*>(
+            malloc(point_count * sizeof(srMatrix3T<float>)));
+        if (path->rotations_14 == 0) {
+            srAssertFail("pPathAI->pRotations", PATH_AI_CPP, 0x104, 0);
+        }
+        if (path->unknown_01[0] == 2) {
+            path->scales_18 = static_cast<srVector3T<float>*>(
+                srHeap.allocate(point_count * sizeof(srVector3T<float>)));
+            if (path->scales_18 == 0) {
+                srAssertFail("pPathAI->pvecScales", PATH_AI_CPP, 0x10a, 0);
+            }
+        }
+
+        for (index = 0; index < point_count; ++index) {
+            srVector3T<float>* point = static_cast<srVector3T<float>*>(
+                srHeap.allocate(sizeof(srVector3T<float>)));
+            float angle;
+            srVector3T<float> axis;
+            srMatrix3T<float> rotation;
+
+            ReadVirtualFile(handle, &point->x, 4, 0);
+            ReadVirtualFile(handle, &point->y, 4, 0);
+            ReadVirtualFile(handle, &point->z, 4, 0);
+            point->x = static_cast<float>(point->x * g_path_ai_world_scale_005ec150);
+            point->y = static_cast<float>(point->y * g_path_ai_world_scale_005ec150);
+            point->z = static_cast<float>(point->z * g_path_ai_world_scale_005ec150);
+            PathAIAddPoint004A9C30(path, point);
+
+            ReadVirtualFile(handle, &angle, 4, 0);
+            ReadVirtualFile(handle, &axis.x, 4, 0);
+            ReadVirtualFile(handle, &axis.y, 4, 0);
+            ReadVirtualFile(handle, &axis.z, 4, 0);
+            rotation.SetIdentity00467310();
+            if ((double)angle != g_zero_005ebb40) {
+                RotateMatrixAroundAxis0042B910(
+                    &rotation.vectors[0].x,
+                    sin(angle), cos(angle), &axis.x);
+            }
+            path->rotations_14[index] = rotation;
+            if (path->unknown_01[0] == 2) {
+                success = success && ReadVirtualFile(
+                    handle, &path->scales_18[index],
+                    sizeof(srVector3T<float>), 0);
+            }
+            srHeap.free(point);
+        }
+    }
+
+    *output = path;
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x004a9720
@@ -81,17 +172,17 @@ void DestroyPathAI004A9810(W8PathAI* path)
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes_0c;
             }
-            if (path->allocation_14 != 0) {
-                free(path->allocation_14);
-                path->allocation_14 = 0;
+            if (path->rotations_14 != 0) {
+                free(path->rotations_14);
+                path->rotations_14 = 0;
             }
             delete path->nodes_0c;
         }
-        if (path->allocation_14 != 0) {
-            free(path->allocation_14);
+        if (path->rotations_14 != 0) {
+            free(path->rotations_14);
         }
-        if (path->render_allocation_18 != 0) {
-            srHeap.free(path->render_allocation_18);
+        if (path->scales_18 != 0) {
+            srHeap.free(path->scales_18);
         }
         free(path);
     }
@@ -112,17 +203,17 @@ void DestroyOwnedPathAI004A9110(W8PathAI* path)
                 srHeap.free(nodes->RemoveAt(nodes->GetCount() - 1));
                 nodes = path->nodes_0c;
             }
-            if (path->allocation_14 != 0) {
-                free(path->allocation_14);
-                path->allocation_14 = 0;
+            if (path->rotations_14 != 0) {
+                free(path->rotations_14);
+                path->rotations_14 = 0;
             }
             delete path->nodes_0c;
         }
-        if (path->allocation_14 != 0) {
-            free(path->allocation_14);
+        if (path->rotations_14 != 0) {
+            free(path->rotations_14);
         }
-        if (path->render_allocation_18 != 0) {
-            srHeap.free(path->render_allocation_18);
+        if (path->scales_18 != 0) {
+            srHeap.free(path->scales_18);
         }
         free(path);
     }
@@ -182,23 +273,20 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
             copy->nodes_0c->Add(point);
         }
     }
-    copy->allocation_14 = 0;
-    if (source->allocation_14 != 0) {
-        copy->allocation_14 = malloc(count * 0x24);
+    copy->rotations_14 = 0;
+    if (source->rotations_14 != 0) {
+        copy->rotations_14 = static_cast<srMatrix3T<float>*>(
+            malloc(count * sizeof(srMatrix3T<float>)));
         for (index = 0; index < count; ++index) {
-            memcpy(static_cast<unsigned char*>(copy->allocation_14) + index * 0x24,
-                   static_cast<unsigned char*>(source->allocation_14) + index * 0x24,
-                   0x24);
+            copy->rotations_14[index] = source->rotations_14[index];
         }
     }
-    copy->render_allocation_18 = 0;
-    if (source->render_allocation_18 != 0) {
-        copy->render_allocation_18 =
-            srHeap.allocate(count * sizeof(srVector3T<float>));
+    copy->scales_18 = 0;
+    if (source->scales_18 != 0) {
+        copy->scales_18 = static_cast<srVector3T<float>*>(
+            srHeap.allocate(count * sizeof(srVector3T<float>)));
         for (index = 0; index < count; ++index) {
-            static_cast<srVector3T<float>*>(copy->render_allocation_18)[index] =
-                static_cast<srVector3T<float>*>(
-                    source->render_allocation_18)[index];
+            copy->scales_18[index] = source->scales_18[index];
         }
     }
     return copy;
@@ -235,11 +323,55 @@ void PathAIClearOwned004A9BB0(W8PathAI* path)
                 nodes = path->nodes_0c;
             }
         }
-        if (path->allocation_14 != 0) {
-            free(path->allocation_14);
-            path->allocation_14 = 0;
+        if (path->rotations_14 != 0) {
+            free(path->rotations_14);
+            path->rotations_14 = 0;
         }
     }
+}
+
+// FUNCTION: WIZ8 0x004a9c30
+unsigned char PathAIAddPoint004A9C30(
+    W8PathAI* path, const srVector3T<float>* point)
+{
+    srVector3T<float>* copy = static_cast<srVector3T<float>*>(
+        srHeap.allocate(sizeof(srVector3T<float>)));
+    float total_length;
+    int index;
+
+    if (path == 0) {
+        srAssertFail("pPathAI", PATH_AI_CPP, 0x296, 0);
+    }
+    if (path->nodes_0c == 0) {
+        srAssertFail("pPathAI->plsPoints", PATH_AI_CPP, 0x297, 0);
+    }
+    *copy = *point;
+    if (path->nodes_0c->count == 0) {
+        path->value_04 = 0;
+        path->value_24 = 0;
+        path->value_30 = 0;
+        path->value_20 = 0;
+    }
+    path->nodes_0c->Add(copy);
+    if (path->nodes_0c->count < 2) {
+        path->scale_34 = 0;
+        return 1;
+    }
+
+    total_length = g_float_005ebb34;
+    for (index = 0; index < path->nodes_0c->count - 1; ++index) {
+        const srVector3T<float>* first = *path->nodes_0c->GetAt(index);
+        const srVector3T<float>* second = *path->nodes_0c->GetAt(index + 1);
+        float x = first->x - second->x;
+        float y = first->y - second->y;
+        float z = first->z - second->z;
+        total_length += static_cast<float>(sqrt(x * x + y * y + z * z));
+    }
+    path->scale_34 = total_length;
+    if (path->value_04 > g_float_005ebb34 && total_length > g_float_005ebb34) {
+        PathAISetValue004A9F60(path, path->value_30 / total_length);
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x004a9b90

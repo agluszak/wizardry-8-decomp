@@ -1,10 +1,13 @@
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/AniMesh.h"
 #include "wiz8/engine_code/PathAI.h"
+#include "wiz8/engine_code/ReadLevel.h"
+#include "wiz8/engine_code/World.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "surrender/srModelInstance.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/virtual_file.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +17,9 @@
 /* The callee returns its byte value in an int-sized result; this wrapper is
    the narrowing boundary, as shown by its explicit `and eax, 0xff`. */
 extern int Function4B64F0(void* entry);                        /* 0x004B64F0 */
+extern const double g_anim_obj_world_scale_005ec150;
+extern const float g_world_scale_005ebc40;
+
 // FUNCTION: WIZ8 0x004a01a0
 W8AnimObj* CreateAnimObj004A01A0()
 {
@@ -24,6 +30,314 @@ W8AnimObj* CreateAnimObj004A01A0()
     }
     memset(animation, 0, sizeof(W8AnimObj));
     return animation;
+}
+
+// FUNCTION: WIZ8 0x004a05c0
+unsigned char AnimObjReadFromFile004A05C0(
+    W8ReadLevelInfo* info,
+    W8AnimObj* animation,
+    int load_all,
+    W8GrowableVector<stLight*>* light_list,
+    int unused)
+{
+    unsigned char version = 0;
+    unsigned char success;
+    unsigned char discarded[50];
+    unsigned char channel_bytes[8];
+    int handle;
+    int index;
+
+    (void)unused;
+    if (info == 0 || info->hFile == 0 || animation == 0) {
+        srAssertFail("pInfo && pInfo->hFile && pao", ANIM_OBJ_CPP, 0xef, 0);
+    }
+    handle = info->hFile;
+    success = ReadVirtualFile(handle, &version, 1, 0);
+    success = success && ReadVirtualFile(handle, &animation->unknown_00[0], 1, 0);
+    success = success && ReadVirtualFile(handle, &animation->unknown_00[1], 1, 0);
+    success = success && ReadVirtualFile(handle, &animation->value_02, 1, 0);
+    success = success && ReadVirtualFile(handle, &animation->unknown_03[0], 1, 0);
+    success = success && ReadVirtualFile(handle, &animation->unknown_03[1], 1, 0);
+    success = success && ReadVirtualFile(handle, &animation->flag_05, 1, 0);
+
+    if (version < 3) {
+        animation->playback_scale_08 = 15.0f;
+    }
+    else {
+        success = success && ReadVirtualFile(
+            handle, &animation->playback_scale_08, 4, 0);
+    }
+    if (version < 5) {
+        animation->start_frame_14 = 0;
+    }
+    else {
+        success = success && ReadVirtualFile(
+            handle, &animation->start_frame_14, 1, 0);
+    }
+    if (version < 11) {
+        animation->end_frame_15 = 0;
+    }
+    else {
+        success = success && ReadVirtualFile(
+            handle, &animation->end_frame_15, 1, 0);
+    }
+    if (version < 6) {
+        animation->unknown_0c[0] = 0;
+        animation->value_10 = 1.0f;
+    }
+    else {
+        success = success && ReadVirtualFile(
+            handle, &animation->unknown_0c[0], 1, 0);
+        success = success && ReadVirtualFile(handle, &animation->value_10, 4, 0);
+    }
+    success = success && ReadVirtualFile(handle, discarded, sizeof(discarded), 0);
+    if (!success) {
+        srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x117, 0);
+    }
+    for (index = 0; index < (signed char)animation->unknown_00[0]; ++index) {
+        success = success && ReadVirtualFile(handle, &channel_bytes[index], 1, 0);
+    }
+
+    if (version > 6) {
+        unsigned char frames;
+        ReadVirtualFile(handle, &frames, 1, 0);
+        if (animation->pfKnownBBoxFrames == 0 && frames != 0) {
+            animation->pfKnownBBoxFrames =
+                static_cast<unsigned char*>(malloc(frames));
+            animation->pvecBoundMin = static_cast<srVector3T<float>*>(
+                srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            animation->pvecBoundMax = static_cast<srVector3T<float>*>(
+                srHeap.allocate(frames * sizeof(srVector3T<float>)));
+            if (animation->pfKnownBBoxFrames == 0 ||
+                animation->pvecBoundMin == 0 || animation->pvecBoundMax == 0) {
+                srAssertFail(
+                    "pao->pfKnownBBoxFrames && pao->pvecBoundMin && "
+                    "pao->pvecBoundMax",
+                    ANIM_OBJ_CPP, 300, 0);
+            }
+            memset(animation->pfKnownBBoxFrames, 1, frames);
+            for (index = 0; index < frames; ++index) {
+                ReadVirtualFile(handle, &animation->pvecBoundMin[index],
+                                sizeof(srVector3T<float>), 0);
+                ReadVirtualFile(handle, &animation->pvecBoundMax[index],
+                                sizeof(srVector3T<float>), 0);
+                animation->pvecBoundMin[index] *=
+                    static_cast<float>(g_anim_obj_world_scale_005ec150);
+                animation->pvecBoundMax[index] *=
+                    static_cast<float>(g_anim_obj_world_scale_005ec150);
+            }
+        }
+    }
+
+    if (version > 7) {
+        unsigned char light_count;
+        srVector3T<float> color(1.0f, 1.0f, 1.0f);
+        ReadVirtualFile(handle, &light_count, 1, 0);
+        for (index = 0; index < (signed char)light_count; ++index) {
+            unsigned char light_version;
+            unsigned char definition_kind = 0;
+            unsigned char ignored;
+            srVector3T<float> position;
+            float range;
+            float intensity;
+            stLightDefinition* definition = 0;
+
+            ReadVirtualFile(handle, &light_version, 1, 0);
+            ReadVirtualFile(handle, &position, sizeof(position), 0);
+            ReadVirtualFile(handle, &color, sizeof(color), 0);
+            ReadVirtualFile(handle, &intensity, 4, 0);
+            ReadVirtualFile(handle, &range, 4, 0);
+            position *= static_cast<float>(g_anim_obj_world_scale_005ec150);
+            if (light_version < 3) {
+                definition_kind = light_version == 2 ? 1 : 0;
+            }
+            else {
+                ReadVirtualFile(handle, &definition_kind, 1, 0);
+            }
+
+            if (definition_kind == 1) {
+                stLightDefinition005ECDBC* typed =
+                    new stLightDefinition005ECDBC;
+                ReadVirtualFile(handle, &typed->flags_08, 4, 0);
+                ReadVirtualFile(handle, &typed->value_0c, 4, 0);
+                ReadVirtualFile(handle, &typed->color_10, 12, 0);
+                ReadVirtualFile(handle, &typed->value_1c, 4, 0);
+                ReadVirtualFile(handle, &typed->value_20, 4, 0);
+                ReadVirtualFile(handle, &typed->value_24, 4, 0);
+                ReadVirtualFile(handle, &typed->intensity_28, 4, 0);
+                ReadVirtualFile(handle, &typed->value_2c, 4, 0);
+                ReadVirtualFile(handle, &typed->value_30, 4, 0);
+                ReadVirtualFile(handle, &typed->value_34, 4, 0);
+                ReadVirtualFile(handle, &typed->path_value_38, 4, 0);
+                ReadVirtualFile(handle, &typed->value_3c, 4, 0);
+                ReadVirtualFile(handle, &typed->value_40, 4, 0);
+                definition = typed;
+            }
+            else if (definition_kind == 2) {
+                stLightDefinition005ECDA0* typed =
+                    new stLightDefinition005ECDA0;
+                int previous = 0;
+                int key;
+
+                ReadVirtualFile(handle, &ignored, 1, 0);
+                ReadVirtualFile(handle, &typed->value_50, 4, 0);
+                ReadVirtualFile(handle, &typed->value_54, 4, 0);
+                for (key = 0; key < 6; ++key) {
+                    int frame;
+                    float value;
+                    srVector3T<float> vector;
+
+                    ReadVirtualFile(handle, &frame, 4, 0);
+                    ReadVirtualFile(handle, &value, 4, 0);
+                    ReadVirtualFile(handle, &vector, sizeof(vector), 0);
+                    if (frame < previous) {
+                        frame = previous + 1;
+                    }
+                    if (typed->value_54 <= frame) {
+                        frame = static_cast<int>(typed->value_54);
+                    }
+                    previous = frame;
+                    typed->values_18.Add(frame);
+                    typed->values_28.Add(value);
+                    typed->values_38.Add(vector);
+                    if (typed->values_18.count == 1) {
+                        typed->values_08.Add(frame);
+                    }
+                    else {
+                        typed->values_08.Add(
+                            *typed->values_08.GetAt(typed->values_08.count - 1) +
+                            frame);
+                    }
+                }
+                definition = typed;
+            }
+
+            if (light_list == 0) {
+                srAssertFail(
+                    "0", ANIM_OBJ_CPP, 0x1b2,
+                    "AnimObjReadFromFile: Where is the light list?");
+            }
+            else {
+                stLight* light = CreateWorldLight0046E030(0, "MonsterLight");
+                light->m_color_6c = color;
+                light->m_position_78 = srVector3T<float>(0.0f, 0.0f, 0.0f);
+                ConfigureWorldLight0046E300(light, range * g_world_scale_005ebc40);
+                light->m_positional_98 = intensity;
+                light->setLocation(position.x, position.y, position.z);
+                light->m_positional_228 = position;
+                light->m_definition_234 = definition;
+                light->setGroupMask(2);
+                light_list->Add(light);
+            }
+        }
+    }
+
+    if (animation->flag_05 == 0 && version > 8) {
+        unsigned char has_path;
+        ReadVirtualFile(handle, &has_path, 1, 0);
+        if (has_path != 0) {
+            W8PathAI* path = 0;
+            success = LoadPathAI004A92A0(&path, handle);
+            if (!success) {
+                srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x1c5, 0);
+            }
+            path->flag_1c = 1;
+            path->flag_3a = 0;
+            path->value_2c = animation->playback_scale_08;
+            animation->path_24 = path;
+            animation->value_16 =
+                static_cast<unsigned char>(path->nodes_0c->count);
+        }
+    }
+    if (version > 9) {
+        unsigned char ignored;
+        success = success && ReadVirtualFile(handle, &ignored, 1, 0);
+    }
+
+    if (animation->flag_05 == 0) {
+        int mesh_index;
+        for (mesh_index = 0;
+             mesh_index < (signed char)animation->unknown_00[0]; ++mesh_index) {
+            W8AniMesh* mesh = CreateAniMesh004B57E0();
+            signed char channel;
+
+            success = success && ReadVirtualFile(handle, &channel, 1, 0);
+            mesh->list_index_28 = channel;
+            if (!LoadAniMeshFromInfo004B5B30(info, mesh, load_all)) {
+                animation->entries_18[channel] = 0;
+            }
+            else {
+                animation->entries_18[channel] = mesh;
+            }
+        }
+    }
+    else {
+        int group;
+        for (index = 0; index < 3; ++index) {
+            animation->meshes_28[index] = PLCreate();
+            animation->paths_34[index] = PLCreate();
+        }
+        for (group = 0;
+             group < (signed char)animation->unknown_00[0]; ++group) {
+            signed char entry_count;
+            int entry;
+            success = ReadVirtualFile(handle, &entry_count, 1, 0);
+            if (!success) {
+                srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x200, 0);
+            }
+            for (entry = 0; entry < entry_count; ++entry) {
+                W8AniMesh* mesh = CreateAniMesh004B57E0();
+                W8PathAI* path = 0;
+                signed char channel;
+                const char* saved_filename;
+
+                if (!ReadVirtualFile(handle, &channel, 1, 0)) {
+                    srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x208, 0);
+                }
+                mesh->list_index_28 = channel;
+                saved_filename = info->mesh_filename;
+                info->mesh_filename = 0;
+                success = LoadAniMeshFromInfo004B5B30(info, mesh, 1);
+                info->mesh_filename = saved_filename;
+                if (!success) {
+                    srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x20f, 0);
+                }
+                PListInsert(animation->meshes_28[channel], entry, mesh);
+                success = LoadPathAI004A92A0(&path, handle);
+                if (!success) {
+                    srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x217, 0);
+                }
+                PListInsert(animation->paths_34[channel], entry, path);
+                path->flag_1c = 1;
+                path->flag_3a = 0;
+                path->value_2c = animation->playback_scale_08;
+                animation->value_16 =
+                    static_cast<unsigned char>(path->nodes_0c->count);
+            }
+        }
+    }
+
+    if (animation->end_frame_15 == 0) {
+        if (animation->entries_18[2] != 0) {
+            animation->end_frame_15 = static_cast<unsigned char>(
+                AniMeshValue004B64F0(animation->entries_18[2]) - 1);
+        }
+        else if (animation->entries_18[1] != 0) {
+            animation->end_frame_15 = static_cast<unsigned char>(
+                AniMeshValue004B64F0(animation->entries_18[1]) - 1);
+        }
+        else if (animation->entries_18[0] != 0) {
+            animation->end_frame_15 = static_cast<unsigned char>(
+                AniMeshValue004B64F0(animation->entries_18[0]) - 1);
+        }
+        else if (animation->flag_05 == 0) {
+            animation->end_frame_15 = animation->start_frame_14;
+        }
+        else {
+            animation->end_frame_15 = animation->value_16 - 1;
+        }
+    }
+    return success;
 }
 
 /* A deep copy of everything the record owns. Every mesh - the three entries and
@@ -545,4 +859,49 @@ void* AnimObjEntry004A1660(
         return animation->entries_18[list_index];
     }
     return PLGet(animation->meshes_28[list_index], entry_index & 0xff);
+}
+
+/* Type-two light definitions own four synchronized keyframe vectors.  The
+   clone iterates the second vector's count, which is the retail authority for
+   the shared extent, then copies the four scalar playback fields. */
+// FUNCTION: WIZ8 0x004a2230
+stLightDefinition* stLightDefinition005ECDA0::Clone() const
+{
+    stLightDefinition005ECDA0* copy = new stLightDefinition005ECDA0;
+    int index;
+
+    if (copy == 0) {
+        srAssertFail("pNew", "..\\Engine Code\\Include\\stLight.hpp", 0x93, 0);
+    }
+    for (index = 0; index < values_18.GetCount(); ++index) {
+        copy->values_08.Add(*values_08.GetAt(index));
+        copy->values_18.Add(*values_18.GetAt(index));
+        copy->values_28.Add(*values_28.GetAt(index));
+        copy->values_38.Add(*values_38.GetAt(index));
+    }
+    copy->value_48 = value_48;
+    copy->time_4c = time_4c;
+    copy->value_50 = value_50;
+    copy->value_54 = value_54;
+    return copy;
+}
+
+// FUNCTION: WIZ8 0x004a2580
+unsigned char stLightDefinition005ECDA0::IsEnabledForSubcycle(
+    unsigned char subcycle)
+{
+    if (static_cast<float>(*values_18.GetAt(0)) <= time_4c &&
+        time_4c <= static_cast<float>(
+            *values_18.GetAt(values_18.GetCount() - 1))) {
+        return 1;
+    }
+    return 0;
+}
+
+// SYNTHETIC: WIZ8 0x004a25c0
+// stLightDefinition005ECDA0::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x004a25e0
+stLightDefinition005ECDA0::~stLightDefinition005ECDA0()
+{
 }
