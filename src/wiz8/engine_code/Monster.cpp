@@ -9,6 +9,7 @@
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/materials.h"
+#include "wiz8/engine_code/MonsterLight.h"
 #include "wiz8/engine_code/registry_classes.h"
 #include "wiz8/engine_code/Trigger.h"
 #include "wiz8/engine_code/stTextureAnim.h"

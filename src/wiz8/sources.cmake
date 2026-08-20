@@ -118,6 +118,7 @@ set(WIZ8_PROVISIONAL_PREFIX_UNITS
     src/wiz8/dirty_tiles.cpp
     src/wiz8/render_options.cpp
     src/wiz8/engine_code/registry_classes.cpp
+    src/wiz8/engine_code/MonsterLight.cpp
     src/wiz8/engine_code/GDCamera.cpp
 )
 

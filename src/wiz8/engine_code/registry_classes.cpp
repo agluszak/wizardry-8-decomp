@@ -3,7 +3,6 @@
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/stScript.h"
-
 // SYNTHETIC: WIZ8 0x004A2200
 // stLightDefinition005ECDBC::`scalar deleting destructor'
 
@@ -37,42 +36,6 @@ stLevel::~stLevel()
 
 // TEMPLATE: WIZ8 0x0049DB30
 // srClassSupport<srIlluminator,srNode,0,4608>::getClassNode
-// FUNCTION: WIZ8 0x0049DC20
-unsigned long MonsterLight::getClassID() const
-{
-    return 0x1220;
-}
-// FUNCTION: WIZ8 0x0049DC30
-const char* MonsterLight::getClassName() const
-{
-    return "srLight";
-}
-// FUNCTION: WIZ8 0x0049E300
-srRegistry::ClassNode* MonsterLight::getClassNode() const
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* light = registry->getClassNode(0x1220);
-
-    if (!light) {
-        srRegistry* illuminator_registry = srCore.getRegistry();
-        srRegistry::ClassNode* illuminator =
-            illuminator_registry->getClassNode(0x1200);
-
-        if (!illuminator) {
-            srRegistry* node_registry = srCore.getRegistry();
-            srRegistry::ClassNode* node = node_registry->getClassNode(0x1000);
-
-            if (!node) {
-                node = node_registry->registerClass(
-                    srNode::sGetClassName(), srClass::sGetClassNode(), 0x1000, 1);
-            }
-            illuminator = illuminator_registry->registerClass(
-                srIlluminator::sGetClassName(), node, 0x1200, 0);
-        }
-        light = registry->registerClass("srLight", illuminator, 0x1220, 0);
-    }
-    return light;
-}
 // VTABLE: WIZ8 0x005ED180
 // class srClassSupport<srClipPlane,srClipPlane,0,5376>
 
