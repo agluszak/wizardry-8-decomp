@@ -4497,7 +4497,6 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
    slots are for, so each is named for what it reaches. */
 
 extern void Function4C4DE0(int arg_1, int arg_2, int arg_3);
-extern void Function4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5);
 /* Neither takes an argument nor reads ECX: both work entirely over the pair of
    globals at 0x00659B34 and 0x00659B3C, which is what makes them free
    functions rather than the Navigator methods their neighbours in the same
@@ -4669,14 +4668,18 @@ void MonsterForward4C4DE0(int arg_1, int arg_2, int arg_3)
     Function4C4DE0(arg_1, arg_2, arg_3);
 }
 
-/* The same unguarded cdecl pass-through with five arguments. Like its
-   three-argument sibling it re-pushes its own stack slots and makes a real
-   call rather than jumping: caller-cleanup cdecl cannot tail-jump when there
-   are stack arguments to account for. */
+/* The public forwarding boundary preserves the loader's AL result. Both
+   MonsterManager callers assert that result immediately after this call. */
 // FUNCTION: WIZ8 0x004c58e0
-void MonsterForward4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5)
+unsigned char MonsterReadAllCycles004C58E0(
+    const W8GrCycleLoadContext* context,
+    const char* monster_name,
+    W8Monster** monster,
+    int load_value,
+    int location_id)
 {
-    Function4C0300(arg_1, arg_2, arg_3, arg_4, arg_5);
+    return MonsterReadAllCycles004C0300(
+        context, monster_name, monster, load_value, location_id);
 }
 
 /* Load one monster cycle through GrCycle's polymorphic factory boundary, then
@@ -4685,14 +4688,14 @@ void MonsterForward4C0300(int arg_1, int arg_2, int arg_3, int arg_4, int arg_5)
    type zero is what proves the resulting object is a W8Monster here. */
 // FUNCTION: WIZ8 0x004C5910
 unsigned char LoadMonsterCycle004C5910(
-    const char* name,
+    const W8GrCycleLoadContext* context,
     const char* mon_name,
     W8Monster** monster,
     int cycle,
     int value)
 {
     unsigned char success = LoadGrCycle004A67E0(
-        name,
+        context,
         mon_name,
         reinterpret_cast<W8GrCycle**>(monster),
         cycle,

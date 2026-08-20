@@ -16,8 +16,16 @@
 class srModelInstance;
 struct W8World;
 
+/* Callers build this pair as `{ GetWorld(), 0 }` before loading a .mon file.
+   The loader carries the world into its four-field read record; the second
+   dword is retained because both independent callers allocate and clear it. */
+struct W8GrCycleLoadContext {
+    W8World* world_00;
+    int value_04;
+};
+
 struct W8GrCycleReadInfo004A6970 {
-    unsigned int name_prefix_00;
+    W8World* world_00;
     int handle_04;
     const char* bitmap_directory_08;
     const char* mon_path_0c;
@@ -168,10 +176,12 @@ public:
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
 
 unsigned char __fastcall IsSoleGrCycleForName(W8GrCycle* cycle);
+W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
+void RegisterGrCycle(const char* name, W8GrCycle* cycle);
 const char* __fastcall GetGrCycleName(W8GrCycle* cycle);
 unsigned char LoadGrCycle004A67E0(
-    const char* name,
+    const W8GrCycleLoadContext* context,
     const char* mon_name,
     W8GrCycle** cycle,
     int cycle_index,

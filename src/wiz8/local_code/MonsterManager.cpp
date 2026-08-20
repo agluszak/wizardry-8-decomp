@@ -13,7 +13,6 @@
 #define MONSTER_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\MonsterManager.cpp"
 #define MAX_MONSTERS_IN_DATABASE 1000
 
-int FindFirstGrCycleByName(const char* name);
 unsigned char GetRenderOptionState(int index);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsCycleSupported(W8Monster* monster, int cycle);
@@ -148,9 +147,6 @@ void DeleteMonster004C5860(W8Monster* monster);
    clean only three of the four dwords they push across the tail. */
 void __stdcall Function42E650(unsigned short location_id);
 void Function509EA0(int value);
-void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
-float MonsterGetScale(W8Monster* monster);
-void MonsterSetScale(W8Monster* monster, float scale);
 void Function4C5ED0(W8Monster* monster);
 void __cdecl Function58AC00(int channel, void* message, int first, int second,
                             int flag);
@@ -165,6 +161,86 @@ extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
 extern int g_dword_683fa5;
 extern unsigned char g_flag_683f97;
+
+static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
+    unsigned int monster_species);
+
+/* Activate the representation lazily. The mode selects whether all available
+   cycles are loaded or only the startup cycle; both paths share the world
+   context and preserve the loader's success result for the source assertion. */
+// FUNCTION: WIZ8 0x004e4050
+void ActivateMonster(W8MonsterInfo* monster_info, int mode)
+{
+    W8MonsterRecord* record;
+    W8GrCycleLoadContext context;
+    unsigned char success;
+
+    if (monster_info == 0) {
+        srAssertFail(
+            "pMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x1f5, 0);
+    }
+    if (monster_info->flag_14 != 0) {
+        srAssertFail(
+            "!pMonsterInfo->fActive", MONSTER_MANAGER_CPP, 0x1f6, 0);
+    }
+    if (monster_info->monster != 0) {
+        return;
+    }
+
+    record = MonsterDBFromSpeciesInline(monster_info->monster_species);
+    context.world_00 = GetWorld();
+    context.value_04 = 0;
+
+    if (mode == 0) {
+        success = MonsterReadAllCycles004C58E0(
+            &context,
+            record->cycle_name_189,
+            &monster_info->monster,
+            1,
+            monster_info->location_id);
+        if (success == 0) {
+            srAssertFail(
+                "fSuccess",
+                MONSTER_MANAGER_CPP,
+                0x20a,
+                "ActivateMonster: ERROR - MonsterReadAllCycles failed");
+        }
+    }
+    else if (mode == 1) {
+        success = MonsterReadAllCycles004C58E0(
+            &context,
+            record->cycle_name_189,
+            &monster_info->monster,
+            0,
+            monster_info->location_id);
+        if (success == 0) {
+            srAssertFail(
+                "fSuccess",
+                MONSTER_MANAGER_CPP,
+                0x20f,
+                "ActivateMonster: ERROR - MonsterReadAllCycles failed");
+        }
+        MonsterSetCycle(monster_info->monster, 1);
+    }
+
+    if (monster_info->scale_24f < g_float_005ebb34 ||
+        g_status_685170.unknown_1904[
+            g_status_685170.saved_level * 0x21 + 0x100] == 0) {
+        monster_info->unknown_301[0] =
+            MonsterGetCycle17State(monster_info->monster);
+        monster_info->scale_24f = CalculateMonsterScale(monster_info);
+        MonsterSetScale(monster_info->monster, monster_info->scale_24f);
+    }
+    else {
+        MonsterSetScale(monster_info->monster, monster_info->scale_24f);
+        MonsterSetCycle17State(
+            monster_info->monster, monster_info->unknown_301[0]);
+    }
+
+    Function4C5810(monster_info->monster);
+    MonsterSetCycle(monster_info->monster, 1);
+    Function4C5ED0(monster_info->monster);
+}
 
 // FUNCTION: WIZ8 0x004e4600
 void Function4E4600(W8MonsterInfo* monster_info)

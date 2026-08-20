@@ -171,7 +171,6 @@ void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects)
 // SYNTHETIC: WIZ8 0x004ae070
 // W8CameraShakeEffect::~W8CameraShakeEffect
 
-extern unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 extern int UpdateSoundEvents004D5890(
     W8GrowableVector<W8VectorElement005ED094*>* events,
     const srVector3T<float>* position,
@@ -190,11 +189,10 @@ extern int IncrementValue60DFAC(void);
 
 /* Build the two paths used while reading a .mon resource, verify its one-byte
    version, and hand the open file plus its resource context to the typed cycle
-   reader.  The first four bytes of the owning name are copied into the read
-   record exactly as the retail body does; they are not a pointer. */
+   reader. */
 // FUNCTION: WIZ8 0x004A67E0
 unsigned char LoadGrCycle004A67E0(
-    const char* name,
+    const W8GrCycleLoadContext* context,
     const char* mon_name,
     W8GrCycle** cycle,
     int cycle_index,
@@ -230,7 +228,7 @@ unsigned char LoadGrCycle004A67E0(
         Function401920(FormatString("Couldn't open %s", mon_path));
     }
 
-    info.name_prefix_00 = *reinterpret_cast<const unsigned int*>(name);
+    info.world_00 = context->world_00;
     info.handle_04 = handle;
     info.bitmap_directory_08 = bitmap_path;
     info.mon_path_0c = mon_path;

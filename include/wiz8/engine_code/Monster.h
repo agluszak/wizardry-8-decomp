@@ -299,13 +299,25 @@ public:
 
 int ParseMonsterCycleName004C2010(
     const char* name, signed char* subcycle = 0);
+unsigned char MonsterReadAllCycles004C0300(
+    const W8GrCycleLoadContext* context,
+    const char* monster_name,
+    W8Monster** monster,
+    int load_value,
+    int location_id);
+unsigned char MonsterReadAllCycles004C58E0(
+    const W8GrCycleLoadContext* context,
+    const char* monster_name,
+    W8Monster** monster,
+    int load_value,
+    int location_id);
 unsigned short ChooseDifferentMonsterDirection004C2E00(
     unsigned short previous_direction);
 
 unsigned char MonsterGetWorldAnimationBounds004CA4F0(
     W8Monster* monster, srVector3T<float>* minimum, srVector3T<float>* maximum);
 unsigned char LoadMonsterCycle004C5910(
-    const char* name,
+    const W8GrCycleLoadContext* context,
     const char* mon_name,
     W8Monster** monster,
     int cycle,
@@ -323,6 +335,12 @@ unsigned char MonsterReplacePath(W8Monster* monster, void* path);
 unsigned char MonsterGetAnimationRadius(
     W8Monster* monster, float* radius);
 void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
+unsigned char MonsterGetCycle17State(W8Monster* monster);
+void MonsterSetCycle17State(W8Monster* monster, unsigned char state);
+float MonsterGetScale(W8Monster* monster);
+void MonsterSetScale(W8Monster* monster, float scale);
+void MonsterGetScaleRange(
+    W8Monster* monster, float* minimum, float* maximum);
 void MonsterSetAdjustedPosition004C5F00(
     W8Monster* monster, const srVector3T<float>* position);
 unsigned short MonsterApproachStartupNavigator004C5FF0(
