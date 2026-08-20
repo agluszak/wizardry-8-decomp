@@ -26,6 +26,7 @@ public:
     int FindLabelLine004CF730(const char* label) const;
     int GetSourceLine004CF790(int line) const;
     unsigned char Load004CF3B0(const char* path);
+    void Clear004CF690();
 
     W8GrowableVector<stScriptLine*> lines;       /* 0x18 */
     W8GrowableVector<stScriptLabel*> labels;     /* 0x28 */

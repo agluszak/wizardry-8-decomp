@@ -3,11 +3,13 @@
 #include "wiz8/screen_state.h"
 #include "wiz8/dialog_base.h"
 #include "wiz8/local_code/Strings.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/video_object_catalog.h"
 
 #include "Font.h"
 #include "FileMan.h"
+#include "soundman.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -88,8 +90,6 @@ extern void Function407650(int x, int y, const char* format, const wchar_t* text
 extern unsigned char SetValue5FF5F0(int font);
 extern void Function422F10(void);
 extern void Function426790(void);
-extern void Function4095B0(void);
-extern void Function48F9E0(void);
 extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
@@ -410,7 +410,7 @@ void UpdatePleaseWaitLoadFrame005915A0(void)
 {
     unsigned long tick;
 
-    Function4095B0();
+    SoundServiceStreams();
     Function48F9E0();
     tick = GetTickCount();
     if (tick - g_load_descriptor_69b7c8->entered_tick > 499) {

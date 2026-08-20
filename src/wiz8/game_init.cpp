@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sgp_video.h"
 #include "Container.h"
@@ -54,7 +55,6 @@ extern void Function479010(void);
 extern void InitializeEncounterTables(void);
 extern unsigned char LoadMissileDatabase(void);
 extern unsigned char LoadHitSoundDatabase(void);
-extern unsigned char InitializeMusicPlaylist(void);
 extern unsigned int GetTotalPhysicalMemory(void);
 
 extern void* g_stack_68eda8;

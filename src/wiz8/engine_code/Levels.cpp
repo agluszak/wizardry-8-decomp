@@ -15,6 +15,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/monster_runtime.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/spell_effect.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/targeting.h"
@@ -37,9 +38,6 @@ extern void ClearValue6834D4(void);
 extern unsigned char SaveLevelStatus(const char* path);
 extern int Function4D9700(int level);
 extern void Function427440(void);
-extern "C" unsigned char Function48FC10(
-    const char* playlist, int immediate, int replace);
-extern void Function48F9E0(void);
 extern unsigned char Function42B020(int level, W8LevelInfo* info);
 extern void Function4E3720(void);
 extern void InitializeItemManagerState(void);

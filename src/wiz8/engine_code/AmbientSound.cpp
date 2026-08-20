@@ -6,17 +6,15 @@
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "random.h"
+#include "soundman.h"
 
 #include <string.h>
 #include <stdio.h>
 
-extern void ReleaseSoundHandle00408F70(int handle);
 extern void ReleaseAmbientChannel0040A8E0(int handle, int channel);
 extern void GetPartyPosition(srVector3T<float>* position); /* 0x00421070 */
 extern void AudioUpdateBegin00409310();
-extern void AudioUpdateStage004095B0();
 extern void AudioUpdateFinish004AEFD0();
-extern void SetSoundValue00409210(int handle, unsigned int value);
 
 // FUNCTION: WIZ8 0x00479040
 W8AmbientSound::W8AmbientSound()
@@ -99,11 +97,11 @@ void W8AmbientSound::Update0047A310()
                     timer->m_flags |= 8;
                     timer->m_start = timer->Method00439A60() - timer->m_start;
                 }
-                SetSoundValue00409210(sound_handle_bc, value_a0);
+                SoundSetVolume(sound_handle_bc, value_a0);
             }
         }
         if (flag_b8 == 0 && value_9c == value_a0 && sound_handle_bc != -1) {
-            ReleaseSoundHandle00408F70(sound_handle_bc);
+            SoundStop(sound_handle_bc);
             sound_handle_bc = -1;
         }
     }
@@ -117,7 +115,7 @@ void UpdateAmbientSounds0047A3E0(W8World* world)
         int index;
 
         AudioUpdateBegin00409310();
-        AudioUpdateStage004095B0();
+        SoundServiceStreams();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
@@ -255,7 +253,7 @@ void DestroyAmbientSound0047A700(W8AmbientSound* ambient)
         srAssertFail("pAmbient", "C:\\Projects\\Wizardry 8\\Engine Code\\AmbientSound.cpp", 0x2fd, 0);
     }
     if (ambient->sound_handle_bc != -1) {
-        ReleaseSoundHandle00408F70(ambient->sound_handle_bc);
+        SoundStop(ambient->sound_handle_bc);
     }
     if (ambient->sound_handle_c0 != -1) {
         ReleaseAmbientChannel0040A8E0(ambient->sound_handle_c0, 6);
@@ -346,7 +344,7 @@ void StopAmbientSoundByName0047A9E0(int /* unused */, const char* name)
         W8AmbientSound* sound = static_cast<W8AmbientSound*>(
             PLGet(g_world->plsAmbientSounds, index));
         if (sound->pacSoundName != 0 && _stricmp(sound->pacSoundName, name) == 0) {
-            ReleaseSoundHandle00408F70(sound->sound_handle_bc);
+            SoundStop(sound->sound_handle_bc);
             sound->flag_b8 = 0;
             sound->flag_84 = 1;
             sound->sound_handle_bc = -1;
@@ -372,7 +370,7 @@ void ToggleAmbientSoundByName0047AA70(int /* unused */, const char* name)
                 sound->ApplyPosition00479350(&position);
                 return;
             }
-            ReleaseSoundHandle00408F70(sound->sound_handle_bc);
+            SoundStop(sound->sound_handle_bc);
             sound->flag_b8 = 0;
             sound->flag_84 = 1;
             sound->sound_handle_bc = -1;
@@ -462,7 +460,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
                         (sound->value_98 * g_master_ambient_volume_6850f6) / 0x7f;
                     sound->value_9c = adjusted;
                     sound->value_a0 = adjusted;
-                    SetSoundValue00409210(sound->sound_handle_bc, adjusted);
+                    SoundSetVolume(sound->sound_handle_bc, adjusted);
                 }
                 sound->flag_b8 = 0;
             }
@@ -483,7 +481,7 @@ void SetAmbientSoundVolume0047AD00(unsigned char volume)
             }
         }
         AudioUpdateBegin00409310();
-        AudioUpdateStage004095B0();
+        SoundServiceStreams();
         count = static_cast<int>(PLLength(world->plsAmbientSounds));
         for (index = 0; index < count; ++index) {
             W8AmbientSound* sound = static_cast<W8AmbientSound*>(
@@ -522,7 +520,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                                 0x7f;
                             sound->value_9c = adjusted;
                             sound->value_a0 = adjusted;
-                            SetSoundValue00409210(sound->sound_handle_bc, adjusted);
+                            SoundSetVolume(sound->sound_handle_bc, adjusted);
                         }
                         sound->flag_b8 = 0;
                     }
@@ -543,7 +541,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                     }
                 }
                 AudioUpdateBegin00409310();
-                AudioUpdateStage004095B0();
+                SoundServiceStreams();
                 count = static_cast<int>(PLLength(world->plsAmbientSounds));
                 for (index = 0; index < count; ++index) {
                     W8AmbientSound* sound = static_cast<W8AmbientSound*>(
@@ -576,7 +574,7 @@ void SetAmbientSoundMuted0047AE90(char muted)
                             0x7f;
                         sound->value_9c = adjusted;
                         sound->value_a0 = adjusted;
-                        SetSoundValue00409210(sound->sound_handle_bc, adjusted);
+                        SoundSetVolume(sound->sound_handle_bc, adjusted);
                     }
                     sound->flag_b8 = 0;
                 }

@@ -25,6 +25,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
 #include "surrender/srTimer.h"
+#include "soundman.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -33,9 +34,7 @@
 extern void Function4A6E20(float value);
 extern int IncrementValue60DFAC(void);
 extern int CountSpellsOfKind(int kind);                      /* 0x004AC8F0 */
-extern void ReleaseSoundHandle00408F70(int handle);
 extern void GetCameraPosition(srVector3T<float>* position);
-extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern unsigned char g_master_ambient_volume_6850f6;
 extern srTimer* g_shared_timer_base;
 extern const float g_monster_rotation_offset_005ec04c;
@@ -732,7 +731,7 @@ stSound3D::~stSound3D()
         free(sound_name_148);
     }
     if (sound_handle_13c != -1) {
-        ReleaseSoundHandle00408F70(sound_handle_13c);
+        SoundStop(sound_handle_13c);
     }
     int index = g_sound3d_instances_65be40.IndexOf(this);
     if (index != -1) {
@@ -834,7 +833,7 @@ void stSound3D::BuildSoundOptions004AECC0(
 unsigned char stSound3D::IsPlaying004AEC70()
 {
     if (sound_handle_13c != -1 &&
-        IsSoundHandleActive00408EF0(sound_handle_13c) != 0) {
+        SoundIsPlaying(sound_handle_13c) != 0) {
         return 1;
     }
     return 0;

@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/screen_state.h"
 #include "Container.h"
 #include "sgp.h"
@@ -72,12 +73,6 @@ int g_dword_647bc0;
 int g_dword_647bc4;
 extern void* g_stack_68eda8;
 
-extern void Function4095B0(void);
-extern void Function48F9E0(void);
-
-void Function4095B0(void) {}
-void Function48F9E0(void) {}
-
 int g_screen_transition_object_count_654aac;
 srClass** g_screen_transition_objects_654ab4;
 
@@ -105,7 +100,7 @@ void Function4E3340(void)
 {
     int state;
 
-    Function4095B0();
+    SoundServiceStreams();
     Function48F9E0();
     state = g_screen_state.id;
     if (g_flag_68edac) {

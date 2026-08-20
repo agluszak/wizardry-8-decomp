@@ -106,6 +106,21 @@ stScript::~stScript()
     }
 }
 
+// FUNCTION: WIZ8 0x004CF690
+void stScript::Clear004CF690()
+{
+    while (lines.GetCount() != 0) {
+        stScriptLine* line = lines.RemoveAt(0);
+        if (line != 0) {
+            free(line->text);
+            delete line;
+        }
+    }
+    while (labels.GetCount() != 0) {
+        delete labels.RemoveAt(0);
+    }
+}
+
 // FUNCTION: WIZ8 0x004CF3B0
 unsigned char stScript::Load004CF3B0(const char* path)
 {

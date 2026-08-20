@@ -4,6 +4,7 @@
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/game_state.h"
 #include "wiz8/local_code/Controls.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/vector.h"
@@ -48,8 +49,6 @@ extern "C" void NoOp(void);
 extern "C" void ShutdownDisplayList(void);
 void ResetRegions(void);
 extern "C" void UpdateHeldItemCursor(void);
-extern "C" unsigned char Function48FC10(const char* playlist, int immediate,
-                                          int replace);
 void Function591780(void);
 void Function40B510(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);

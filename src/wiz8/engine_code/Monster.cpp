@@ -35,6 +35,7 @@
 #include "surrender/srCore.h"
 #include "Random.h"
 #include "FileMan.h"
+#include "soundman.h"
 #include <windows.h>
 
 #include <string.h>
@@ -71,8 +72,6 @@ extern const double g_monster_poster_max_distance_005ec3d8;
 extern srVector3T<float> g_monster_attachment_offsets_0060e618[][8];
 extern float g_monster_attachment_scales_0060e914[];
 extern void SetChainValue15C(char* node, int value);
-extern void ReleaseSoundHandle00408F70(int handle);
-extern unsigned char IsSoundHandleActive00408EF0(int handle);
 extern void GetCameraPosition(srVector3T<float>* position);
 extern W8World* GetWorld(void);
 extern unsigned char Function525DF0(int value);
@@ -1657,7 +1656,7 @@ void W8Monster::Update()
                     }
                     if (transition) {
                         while (values_338.GetCount() != 0) {
-                            ReleaseSoundHandle00408F70(*values_338.GetAt(0));
+                            SoundStop(*values_338.GetAt(0));
                             values_338.RemoveAt(0);
                         }
                         if (IsCycleSupported(3) == 0) {
@@ -3203,7 +3202,7 @@ void W8Monster::TrackSoundHandle004CA6E0(int handle)
 
     if (values_338.GetCount() > 6) {
         while (values_338.GetCount() != 0) {
-            ReleaseSoundHandle00408F70(*values_338.GetAt(0));
+            SoundStop(*values_338.GetAt(0));
             values_338.RemoveAt(0);
         }
     }
@@ -3212,7 +3211,7 @@ void W8Monster::TrackSoundHandle004CA6E0(int handle)
     index = 0;
     if (count > 0) {
         do {
-            if (IsSoundHandleActive00408EF0(*values_338.GetAt(index)) == 0) {
+            if (SoundIsPlaying(*values_338.GetAt(index)) == 0) {
                 values_338.RemoveAt(index);
                 --count;
             }

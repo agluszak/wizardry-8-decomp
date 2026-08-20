@@ -2,6 +2,7 @@
 #include "wiz8/game_state.h"
 #include "wiz8/render_state.h"
 #include "wiz8/wiz8_windows.h"
+#include "soundman.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -46,14 +47,12 @@ void SetMasterSoundVolume(unsigned int volume)
     g_master_sound_volume_5ff644 = volume > 0x7f ? 0x7f : volume;
 }
 
-extern void Function409210(int sample, unsigned int volume);
-
 // FUNCTION: WIZ8 0x0048fe50
 void SetMusicVolume(unsigned char volume)
 {
     g_settings_6850c8.field_02f = volume;
     if (g_music_sample_handle_60aae0 != -1) {
-        Function409210(g_music_sample_handle_60aae0, volume);
+        SoundSetVolume(g_music_sample_handle_60aae0, volume);
     }
 }
 

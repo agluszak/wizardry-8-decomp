@@ -24,6 +24,30 @@
 // LIBRARY: WIZ8 0x004048A0
 // ShadowVideoSurfaceRect
 
+// LIBRARY: WIZ8 0x00408AD0
+// SoundPlayStreamedFile
+
+// LIBRARY: WIZ8 0x00408EF0
+// SoundIsPlaying
+
+// LIBRARY: WIZ8 0x00408F70
+// SoundStop
+
+// LIBRARY: WIZ8 0x00409140
+// SoundSetFadeVolume
+
+// LIBRARY: WIZ8 0x00409210
+// SoundSetVolume
+
+/* Wizardry polls the released SGP stream manager from the frame, load-screen,
+   and ambient-sound paths.  Keep the linked body in soundman.c rather than
+   restating it as a first-party bridge. */
+// LIBRARY: WIZ8 0x004095B0
+// SoundServiceStreams
+
+// LIBRARY: WIZ8 0x0040A9A0
+// SoundSetMusic
+
 // LIBRARY: WIZ8 0x0040ABF0
 // Sound3DPlay
 

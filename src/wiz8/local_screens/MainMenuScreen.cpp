@@ -1,4 +1,5 @@
 #include "wiz8/gameplay_boundaries.h"
+#include "wiz8/music_playlist.h"
 #include "wiz8/dirty_tiles.h"
 #include "wiz8/sgp_video.h"
 #include "wiz8/sr_api.h"
@@ -59,7 +60,6 @@ extern void Function40B290(void);
 extern unsigned char ClearPrimarySurface(void);
 extern void SetViewport(int left, int top, int right, int bottom);
 extern void Function4E3620(char* text, int a, int b, int c);
-extern unsigned char Function48FC10(const char* playlist, int immediate, int replace);
 extern void UpdateHeldItemCursor(void);
 extern void* Function5CF300(int a);
 extern void Function5D2CB0(int a, int b);
