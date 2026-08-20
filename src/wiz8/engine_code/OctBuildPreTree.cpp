@@ -437,3 +437,27 @@ int GetValue65BE60(void)
 {
     return g_value_65be60;
 }
+
+/* Two value specializations of the same 16-bit-key open hash table are
+   emitted at the end of OctBuildPreTree.cpp. The generic definition lives in
+   stHash.hpp; callers inline the same grow and allocation operations. */
+// TEMPLATE: WIZ8 0x004b4bd0
+// W8UShortHashTable<W8OctBuildNode00446330*>::Lookup
+
+// TEMPLATE: WIZ8 0x004b4c30
+// W8UShortHashTable<short>::Insert
+
+// TEMPLATE: WIZ8 0x004b4dd0
+// W8UShortHashTable<short>::Remove
+
+// TEMPLATE: WIZ8 0x004b4e70
+// W8UShortHashTable<W8OctBuildNode00446330*>::Grow
+
+// TEMPLATE: WIZ8 0x004b4fc0
+// W8UShortHashTable<W8OctBuildNode00446330*>::AllocateEntry
+
+// TEMPLATE: WIZ8 0x004b5130
+// W8UShortHashTable<short>::Grow
+
+// TEMPLATE: WIZ8 0x004b5270
+// W8UShortHashTable<short>::AllocateEntry

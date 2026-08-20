@@ -4,10 +4,12 @@
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/stHeap.hpp"
+#include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/vector.h"
 
 class GDProp;
 class stModelInstance005EC7D0;
+struct W8OctBuildNode00446330;
 
 /* The 0x58-byte state object the pathing constructor builds and 0x00457B10
    gives back with a plain operator delete, so it has no destructor of its own.
@@ -641,7 +643,7 @@ class W8OctPreTree004679E0 : public W8Octree {
 public:
     W8OctPreTree004679E0();
 
-    void* positional_29c;
+    W8UShortHashTable<W8OctBuildNode00446330*>* positional_29c;
     unsigned long positional_2a0;
     unsigned char positional_2a4[0xfc];
     unsigned long polygon_cursor_3a0;

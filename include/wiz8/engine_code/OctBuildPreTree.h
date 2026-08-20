@@ -2,6 +2,9 @@
 #define WIZ8_ENGINE_CODE_OCT_BUILD_PRE_TREE_H
 
 #include "wiz8/engine_code/OctBuildTree.h"
+#include "wiz8/engine_code/stHash.hpp"
+
+struct W8OctreeIndex;
 
 extern "C" {
 extern int g_value_65be60;
@@ -41,10 +44,10 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
     unsigned short padding_11a;
     unsigned long positional_11c;
     unsigned long positional_120;
-    void* positional_124;
-    void* positional_128;
-    unsigned long positional_12c;
-    unsigned long positional_130;
+    W8UShortHashTable<W8OctBuildNode00446330*>* positional_124;
+    W8OctreeIndex* positional_128;
+    W8UShortHashTable<short>* positional_12c;
+    W8UShortHashTable<short>* positional_130;
     void* game_data_134;
     unsigned long positional_138;
     unsigned long positional_13c;
