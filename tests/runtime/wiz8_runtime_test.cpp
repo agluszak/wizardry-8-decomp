@@ -29,11 +29,27 @@ struct RuntimeObservation {
     unsigned char menu_seen;
     unsigned char shade_table_ok;
     unsigned char exit_observed;
+    unsigned char transition_observed;
     unsigned char timed_out;
 };
 
 static RuntimeObservation g_observation;
 static const char* g_scenario;
+
+static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
+{
+    CONTEXT* context = exception->ContextRecord;
+    const unsigned long* stack = (const unsigned long*)context->Esp;
+    fprintf(stderr,
+            "runtime-test exception: code=%08lx address=%p eip=%08lx esp=%08lx "
+            "stack=%08lx,%08lx,%08lx,%08lx\n",
+            exception->ExceptionRecord->ExceptionCode,
+            exception->ExceptionRecord->ExceptionAddress,
+            context->Eip, context->Esp,
+            stack[0], stack[1], stack[2], stack[3]);
+    fflush(stderr);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 
 static bool VerifyShadeTable(FLOAT coefficient)
 {
@@ -136,6 +152,24 @@ static DWORD WINAPI DriveScenario(void*)
         return 0;
     }
 
+    if (strcmp(g_scenario, "main-menu-new-game") == 0) {
+        QueueEvent(KEY_DOWN, HOME, 0);
+        QueueEvent(KEY_DOWN, DNARROW, 0);
+        QueueEvent(KEY_DOWN, ENTER, 0);
+        unsigned int started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            if (*(volatile int*)&g_screen_state_0068ec78.id == 5) {
+                g_observation.transition_observed = 1;
+                gfProgramIsRunning = 0;
+                return 0;
+            }
+            Sleep(10);
+        }
+        g_observation.timed_out = 1;
+        PostMessage(ghWindow, WM_CLOSE, 0, 0);
+        return 2;
+    }
+
     QueueEvent(KEY_DOWN, KEY_END, 0);
     QueueEvent(KEY_DOWN, ENTER, 0);
     unsigned int started = GetTickCount();
@@ -153,10 +187,12 @@ static DWORD WINAPI DriveScenario(void*)
 
 int main(int argc, char** argv)
 {
+    SetUnhandledExceptionFilter(ReportUnhandledException);
     if (argc != 3 || strcmp(argv[1], "--scenario") != 0 ||
         (strcmp(argv[2], "main-menu-startup") != 0 &&
-         strcmp(argv[2], "main-menu-exit") != 0)) {
-        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario main-menu-startup|main-menu-exit\n");
+         strcmp(argv[2], "main-menu-exit") != 0 &&
+         strcmp(argv[2], "main-menu-new-game") != 0)) {
+        fprintf(stderr, "usage: Wiz8RuntimeTest --scenario main-menu-startup|main-menu-exit|main-menu-new-game\n");
         return 64;
     }
 
@@ -183,7 +219,8 @@ int main(int argc, char** argv)
     printf(
         "WIZ8_RUNTIME_TEST scenario=%s menu_seen=%u menu_state=%d "
         "regions_enabled=%u first_region=%u last_region=%u "
-        "shade_table_ok=%u exit_observed=%u teardown=%u timed_out=%u\n",
+        "shade_table_ok=%u exit_observed=%u transition_observed=%u "
+        "teardown=%u timed_out=%u\n",
         g_scenario,
         g_observation.menu_seen,
         g_observation.menu_state,
@@ -192,6 +229,7 @@ int main(int argc, char** argv)
         g_observation.last_region,
         g_observation.shade_table_ok,
         g_observation.exit_observed,
+        g_observation.transition_observed,
         g_teardown_done_650db4 ? 1 : 0,
         g_observation.timed_out);
 
@@ -201,8 +239,13 @@ int main(int argc, char** argv)
         g_observation.last_region == 6 && g_observation.shade_table_ok;
     const bool exit_ok =
         strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
+    const bool transition_ok =
+        strcmp(g_scenario, "main-menu-new-game") != 0 ||
+        g_observation.transition_observed;
     const int result =
-        driver_status == 0 && startup_ok && exit_ok && g_teardown_done_650db4 ? 0 : 1;
+        driver_status == 0 && startup_ok &&
+        (strcmp(g_scenario, "main-menu-new-game") == 0 || exit_ok) &&
+        transition_ok && g_teardown_done_650db4 ? 0 : 1;
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;

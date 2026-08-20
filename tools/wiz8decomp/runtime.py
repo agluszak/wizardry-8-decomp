@@ -23,7 +23,7 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
-RUNTIME_SCENARIOS = ("main-menu-startup", "main-menu-exit")
+RUNTIME_SCENARIOS = ("main-menu-startup", "main-menu-new-game", "main-menu-exit")
 
 
 def stage_runtime(settings: Settings, executable_name: str = "Wiz8Runtime.exe") -> dict[str, Any]:

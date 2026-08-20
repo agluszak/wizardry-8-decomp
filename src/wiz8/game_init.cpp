@@ -59,9 +59,6 @@ extern unsigned int GetTotalPhysicalMemory(void);
 
 extern void* g_stack_68eda8;
 extern int g_dword_686a70;
-extern unsigned char g_flag_68ed14;
-extern int g_dword_68ed18;
-extern unsigned char g_save_slot_68ed28[];
 extern unsigned char g_flag_6850d4;
 extern unsigned short g_word_6850ed;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
@@ -138,9 +135,9 @@ unsigned char InitializeGameData(void)
     Function479010();
     SetPendingScreenState(0);
     g_dword_686a70 = -1;
-    if (gfLoadAtStartup && FindStartupQuickSave((char*)g_save_slot_68ed28)) {
-        g_flag_68ed14 = 1;
-        g_dword_68ed18 = GetSaveGameLevel((const char*)g_save_slot_68ed28);
+    if (gfLoadAtStartup && FindStartupQuickSave(g_dword_68ed10.name)) {
+        g_dword_68ed10.mode = 1;
+        g_dword_68ed10.parameter = GetSaveGameLevel(g_dword_68ed10.name);
         SetPendingScreenState(4);
     }
     InitializeEncounterTables();

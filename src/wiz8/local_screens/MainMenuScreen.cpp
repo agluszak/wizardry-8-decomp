@@ -15,6 +15,9 @@
 unsigned char SaveGameExists(void);
 void ResetRegions(void);
 void ShutdownDisplayList(void);
+void SetPendingScreenState(int state);
+void RequestScreenTransition(void);
+void SetValue64D8AC(unsigned long value);
 
 /*
  * Local Screens\MainMenuScreen.cpp.
@@ -31,7 +34,7 @@ extern W8RegionSet g_region_sets[];
 extern W8Region g_regions[];
 extern unsigned int g_hot_region_689b3c;
 extern unsigned int g_hot_region_689b4c;
-extern unsigned char g_flag_68ed14;
+extern unsigned char g_flag_68510e;
 
 
 /* The screen's own state. */
@@ -65,7 +68,6 @@ extern void Function5CF580(void* a, int b);
 extern unsigned char Function4298F0(void);
 extern wchar_t* ConvertStringToWide(const char* text);
 unsigned char Function5BCAB0(short item, short state);
-extern void SetPendingScreenState(int state);
 extern void PresentMenuOverlayFrame(void);
 extern void ReleaseLoadedVideoFrames(void);
 
@@ -102,12 +104,32 @@ static void MainMenuRegionEvent(
         return;
     }
     region->flags &= ~0x40u;
-    if (item == 4) {
-        /* Options uses screen 10 with the load-game flag clear in retail. */
-        g_flag_68ed14 = 0;
+    switch (item) {
+    case 0:
+        RequestScreenTransition();
+        g_flag_68510e = 0;
+        SetValue64D8AC(0);
+        SetPendingScreenState(0);
+        break;
+    case 1:
+        SetPendingScreenState(5);
+        break;
+    case 2:
+        if (g_flag_69c4ba) {
+            g_dword_68ed10.mode = 1;
+            SetPendingScreenState(10);
+        }
+        break;
+    case 3:
+        SetPendingScreenState(9);
+        break;
+    case 4:
+        g_dword_68ed10.mode = 0;
         SetPendingScreenState(10);
-    } else if (item == 5) {
+        break;
+    case 5:
         gfProgramIsRunning = 0;
+        break;
     }
 }
 

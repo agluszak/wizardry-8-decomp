@@ -19,9 +19,6 @@ unsigned char g_flag_68edac;
 void* g_stack_68eda8;
 // GLOBAL: WIZ8 0x00686A70
 int g_dword_686a70 = -1;
-unsigned char g_flag_68ed14;
-int g_dword_68ed18;
-unsigned char g_save_slot_68ed28[0x100];
 unsigned char g_flag_6850d4;
 unsigned short g_word_6850ed;
 unsigned char g_block_68f2d8[0xc4e0];

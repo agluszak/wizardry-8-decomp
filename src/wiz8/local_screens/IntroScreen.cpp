@@ -16,7 +16,6 @@ extern "C" {
 
 extern unsigned char g_flag_68510e;
 extern unsigned char g_flag_689b2c;
-extern unsigned char g_flag_68ed14;
 extern char g_path_6e0fa0[];
 
 extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
@@ -166,7 +165,7 @@ cleared:
     case 3:
     case 4:
         if (!g_flag_689b2c) {
-            g_flag_68ed14 = 0;
+            g_dword_68ed10.mode = 0;
             SetPendingScreenState(4);
         } else {
             g_flag_689b2c = 0;
