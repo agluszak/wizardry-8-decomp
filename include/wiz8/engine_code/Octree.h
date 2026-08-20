@@ -346,9 +346,9 @@ public:
     W8PathEdge* m_pEdges_04c;            /* 0x4c */
     W8FileWaypoint* file_waypoints_050; /* 0x50 */
     stModelInstance005EC7D0* m_owned_054; /* 0x54 */
-    BitArray* m_owned_058;               /* 0x58 */
-    BitArray* m_owned_05c;               /* 0x5c */
-    BitArray* m_owned_060;               /* 0x60 */
+    BitArray* visible_waypoints_058;     /* 0x58 */
+    BitArray* rendered_waypoints_05c;    /* 0x5c */
+    BitArray* collected_waypoints_060;   /* 0x60 */
     /* Two hash indexes the loader builds and 0x00457B10 tears down the same
        way DestroyIndex does. */
     void* m_pIndex_064;                  /* 0x64 */

@@ -66,6 +66,11 @@ extern stModelInstance005EC7D0* CreateModelInstance0046F5C0(
 extern srShader g_path_shader_00652dc4;
 extern srTextureIFace* g_path_texture_00652dc0;
 extern srMaterialIFace* g_path_material_00652dbc;
+extern void SortPathCandidates004677A0(
+    unsigned short* waypoints,
+    unsigned int* distances,
+    int first,
+    int last);
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
 
@@ -316,9 +321,9 @@ unsigned char W8PathingService::ReadWaypointFile00459650()
         if ((destination->flags_00 & 0xf000) == 0)
             destination->flags_00 |= 0x2000;
     }
-    m_owned_058->SetSize(surface_capacity);
-    m_owned_05c->SetSize(surface_capacity);
-    m_owned_060->SetSize(surface_capacity);
+    visible_waypoints_058->SetSize(surface_capacity);
+    rendered_waypoints_05c->SetSize(surface_capacity);
+    collected_waypoints_060->SetSize(surface_capacity);
     CloseVirtualFile(handle);
     g_path_scratch_00659c64 = malloc(surface_capacity * sizeof(unsigned short));
 
@@ -773,7 +778,7 @@ void W8PathingService::ReduceWaypointCosts00462220(
         while (edge_index != 0) {
             W8PathEdge* edge = &m_pEdges_04c[edge_index];
             unsigned short child = edge->destination_06;
-            if (child != 0 && m_owned_058->Test(child) != 0 &&
+            if (child != 0 && visible_waypoints_058->Test(child) != 0 &&
                 m_pSurfaces_048[child].parent_10 == waypoint) {
                 ReduceWaypointCosts00462220(child, amount);
             }
@@ -1451,17 +1456,17 @@ void W8PathingService::Release00457B10()
     if (m_owned_054 != 0) {
         delete m_owned_054;
     }
-    if (m_owned_058 != 0) {
-        m_owned_058->FreeIndex();
-        ::operator delete(m_owned_058);
+    if (visible_waypoints_058 != 0) {
+        visible_waypoints_058->FreeIndex();
+        ::operator delete(visible_waypoints_058);
     }
-    if (m_owned_05c != 0) {
-        m_owned_05c->FreeIndex();
-        ::operator delete(m_owned_05c);
+    if (rendered_waypoints_05c != 0) {
+        rendered_waypoints_05c->FreeIndex();
+        ::operator delete(rendered_waypoints_05c);
     }
-    if (m_owned_060 != 0) {
-        m_owned_060->FreeIndex();
-        ::operator delete(m_owned_060);
+    if (collected_waypoints_060 != 0) {
+        collected_waypoints_060->FreeIndex();
+        ::operator delete(collected_waypoints_060);
     }
     index = static_cast<void**>(m_pIndex_064);
     if (index != 0) {
@@ -1550,9 +1555,9 @@ W8PathingService::W8PathingService()
     m_pEdges_04c = 0;
     file_waypoints_050 = 0;
     m_owned_054 = 0;
-    m_owned_058 = new BitArray(100);
-    m_owned_05c = new BitArray(100);
-    m_owned_060 = new BitArray(100);
+    visible_waypoints_058 = new BitArray(100);
+    rendered_waypoints_05c = new BitArray(100);
+    collected_waypoints_060 = new BitArray(100);
     m_pIndex_064 = 0;
     m_pIndex_074 = 0;
     level_name = 0;
@@ -3247,6 +3252,272 @@ void W8PathingService::UpdatePathVisualization0045BC40(
         srNode::FLAG_POSITIONAL_0);
 }
 
+/* Populate the editor mesh from the currently visible waypoint set. Marker
+   geometry occupies the first hundred six-polygon groups; directed links use
+   the following groups and are emitted once when a visible reverse edge
+   exists. */
+// FUNCTION: WIZ8 0x0045BE30
+stModelInstance005EC7D0* W8PathingService::BuildPathVisualization0045BE30()
+{
+    static srVector3T<float> marker_offsets[5] = {
+        srVector3T<float>(0.0f, 0.5f, 0.0f),
+        srVector3T<float>(-0.25f, 0.0f, -0.25f),
+        srVector3T<float>(-0.25f, 0.0f, 0.25f),
+        srVector3T<float>(0.25f, 0.0f, 0.25f),
+        srVector3T<float>(0.25f, 0.0f, -0.25f)
+    };
+    static unsigned char marker_offsets_scaled = 0;
+    int index;
+
+    if (marker_offsets_scaled == 0) {
+        for (index = 0; index < 5; ++index) {
+            marker_offsets[index].x *=
+                (float)g_path_waypoint_snap_distance_005ec150;
+            marker_offsets[index].y *=
+                (float)g_path_waypoint_snap_distance_005ec150;
+            marker_offsets[index].z *=
+                (float)g_path_waypoint_snap_distance_005ec150;
+        }
+        marker_offsets_scaled = 1;
+    }
+    if (m_owned_054 == 0) {
+        EnsurePathVisualization0045D530();
+    }
+
+    stMeshModel* model = static_cast<stMeshModel*>(m_owned_054->model());
+    srVector3T<float>* colors = model->getVertexDIG(0, 1);
+    srVector3T<float>* vertices = model->getVertexLoc();
+    srVector3i* polygons = model->getPolyVertex();
+    int marker_count = 0;
+    int link_count = 0;
+    int next = visible_waypoints_058->NextSetBit(1);
+
+    rendered_waypoints_05c->ClearAll();
+    while (next != 0 && marker_count < 100) {
+        unsigned short source_index = (unsigned short)(next - 1);
+        W8PathSurface* source = &m_pSurfaces_048[source_index];
+        srVector3T<float> marker_color;
+        float marker_scale =
+            (float)(source->flags_00 >> 12) * (float)g_double_005ec378;
+        int marker_vertex = marker_count * 5;
+
+        rendered_waypoints_05c->SetAndGrow(source_index);
+        GetWaypointVisualizationColor0045D490(source_index, &marker_color);
+        for (index = 0; index < 5; ++index) {
+            vertices[marker_vertex + index].x =
+                source->position_04.x + marker_offsets[index].x * marker_scale;
+            vertices[marker_vertex + index].y =
+                source->position_04.y +
+                (float)g_path_waypoint_snap_distance_005ec150 +
+                marker_offsets[index].y *
+                    (float)(source->flags_00 >> 12) * 0.5f;
+            vertices[marker_vertex + index].z =
+                source->position_04.z + marker_offsets[index].z * marker_scale;
+            colors[marker_vertex + index] = marker_color;
+        }
+        if ((source->flags_00 & 2) != 0) {
+            colors[marker_vertex].x =
+                colors[marker_vertex].x <= g_float_005ebb34 ? 1.0f : 0.0f;
+            colors[marker_vertex].y =
+                colors[marker_vertex].y <= g_float_005ebb34 ? 1.0f : 0.0f;
+            colors[marker_vertex].z =
+                colors[marker_vertex].z <= g_float_005ebb34 ? 1.0f : 0.0f;
+        }
+        else if ((source->flags_00 & 0x40) != 0) {
+            colors[marker_vertex].x = 0.0f;
+            colors[marker_vertex].y = 0.0f;
+            colors[marker_vertex].z = 0.0f;
+        }
+
+        unsigned short edge_index = source->first_edge_24;
+        while (edge_index != 0 && link_count * 6 + 504 <= 0x30d1) {
+            W8PathEdge* edge = &m_pEdges_04c[edge_index];
+            unsigned short destination_index = edge->destination_06;
+            W8PathSurface* destination = &m_pSurfaces_048[destination_index];
+            unsigned short reverse_index = destination->first_edge_24;
+            unsigned char reverse_found = 0;
+
+            while (reverse_index != 0 && reverse_found == 0) {
+                if (m_pEdges_04c[reverse_index].destination_06 == source_index) {
+                    reverse_found = 1;
+                }
+                else {
+                    reverse_index = m_pEdges_04c[reverse_index].next_0c;
+                }
+            }
+
+            if (!rendered_waypoints_05c->Test(destination_index) &&
+                !visible_waypoints_058->Test(destination_index) &&
+                marker_count + 1 < 100) {
+                srVector3T<float> destination_color;
+                float destination_scale =
+                    (float)(destination->flags_00 >> 12) *
+                    (float)g_double_005ec378;
+                int destination_vertex = (marker_count + 1) * 5;
+
+                GetWaypointVisualizationColor0045D490(
+                    destination_index, &destination_color);
+                for (index = 0; index < 5; ++index) {
+                    vertices[destination_vertex + index].x =
+                        destination->position_04.x +
+                        marker_offsets[index].x * destination_scale;
+                    vertices[destination_vertex + index].y =
+                        destination->position_04.y +
+                        (float)g_path_waypoint_snap_distance_005ec150 +
+                        marker_offsets[index].y *
+                            (float)(destination->flags_00 >> 12) * 0.5f;
+                    vertices[destination_vertex + index].z =
+                        destination->position_04.z +
+                        marker_offsets[index].z * destination_scale;
+                    colors[destination_vertex + index] = destination_color;
+                }
+                if ((source->flags_00 & 2) != 0) {
+                    colors[destination_vertex].x =
+                        colors[destination_vertex].x <= g_float_005ebb34
+                            ? 1.0f : 0.0f;
+                    colors[destination_vertex].y =
+                        colors[destination_vertex].y <= g_float_005ebb34
+                            ? 1.0f : 0.0f;
+                    colors[destination_vertex].z =
+                        colors[destination_vertex].z <= g_float_005ebb34
+                            ? 1.0f : 0.0f;
+                }
+                else if ((source->flags_00 & 0x40) != 0) {
+                    colors[destination_vertex].x = 0.0f;
+                    colors[destination_vertex].y = 0.0f;
+                    colors[destination_vertex].z = 0.0f;
+                }
+                rendered_waypoints_05c->SetAndGrow(destination_index);
+                ++marker_count;
+            }
+
+            if (source_index < destination_index ||
+                !visible_waypoints_058->Test(destination_index) ||
+                reverse_found == 0) {
+                int base_vertex = 500 + link_count * 6;
+                int base_polygon = 600 + link_count * 6;
+                float perpendicular_x =
+                    -(destination->position_04.z - source->position_04.z);
+                float perpendicular_z =
+                    destination->position_04.x - source->position_04.x;
+                float length_squared =
+                    perpendicular_x * perpendicular_x +
+                    perpendicular_z * perpendicular_z;
+
+                if ((double)length_squared != g_zero_005ebb40) {
+                    float scale = (float)(
+                        g_double_005ec368 / sqrt(length_squared));
+                    perpendicular_x *= scale;
+                    perpendicular_z *= scale;
+                }
+
+                polygons[base_polygon].x = base_vertex;
+                polygons[base_polygon].y = base_vertex + 1;
+                polygons[base_polygon].z = base_vertex + 3;
+                polygons[base_polygon + 1].x = base_vertex + 1;
+                polygons[base_polygon + 1].y = base_vertex + 2;
+                polygons[base_polygon + 1].z = base_vertex + 4;
+                polygons[base_polygon + 2].x = base_vertex + 2;
+                polygons[base_polygon + 2].y = base_vertex;
+                polygons[base_polygon + 2].z = base_vertex + 5;
+                polygons[base_polygon + 3].x = base_vertex + 4;
+                polygons[base_polygon + 3].y = base_vertex + 3;
+                polygons[base_polygon + 3].z = base_vertex + 1;
+                polygons[base_polygon + 4].x = base_vertex + 5;
+                polygons[base_polygon + 4].y = base_vertex + 4;
+                polygons[base_polygon + 4].z = base_vertex + 2;
+                polygons[base_polygon + 5].x = base_vertex + 3;
+                polygons[base_polygon + 5].y = base_vertex + 5;
+                polygons[base_polygon + 5].z = base_vertex;
+
+                vertices[base_vertex] = source->position_04;
+                vertices[base_vertex].y += g_float_005ec370;
+                vertices[base_vertex + 3] = destination->position_04;
+                vertices[base_vertex + 3].y += g_float_005ec370;
+                vertices[base_vertex + 1].x =
+                    source->position_04.x + perpendicular_x;
+                vertices[base_vertex + 1].y =
+                    source->position_04.y + g_world_scale_005ebc40;
+                vertices[base_vertex + 1].z =
+                    source->position_04.z + perpendicular_z;
+                vertices[base_vertex + 2].x =
+                    source->position_04.x - perpendicular_x;
+                vertices[base_vertex + 2].y =
+                    source->position_04.y + g_world_scale_005ebc40;
+                vertices[base_vertex + 2].z =
+                    source->position_04.z - perpendicular_z;
+                vertices[base_vertex + 4].x =
+                    destination->position_04.x + perpendicular_x;
+                vertices[base_vertex + 4].y =
+                    destination->position_04.y + g_world_scale_005ebc40;
+                vertices[base_vertex + 4].z =
+                    destination->position_04.z + perpendicular_z;
+                vertices[base_vertex + 5].x =
+                    destination->position_04.x - perpendicular_x;
+                vertices[base_vertex + 5].y =
+                    destination->position_04.y + g_world_scale_005ebc40;
+                vertices[base_vertex + 5].z =
+                    destination->position_04.z - perpendicular_z;
+
+                for (index = 0; index < 6; ++index) {
+                    colors[base_vertex + index].x = 0.0f;
+                    colors[base_vertex + index].y = 0.0f;
+                    colors[base_vertex + index].z = 0.0f;
+                }
+                if ((edge->flags_00 & 0x80000000) == 0) {
+                    for (index = 0; index < 3; ++index) {
+                        colors[base_vertex + index].z = 1.0f;
+                        if ((edge->flags_00 & 0x20000000) != 0) {
+                            colors[base_vertex + index].y = 1.0f;
+                        }
+                    }
+                }
+                if (reverse_found != 0 &&
+                    (m_pEdges_04c[reverse_index].flags_00 & 0x80000000) == 0) {
+                    for (index = 3; index < 6; ++index) {
+                        colors[base_vertex + index].z = 1.0f;
+                    }
+                }
+                if (reverse_found == 0 ||
+                    (m_pEdges_04c[reverse_index].flags_00 & 0x20000000) != 0) {
+                    for (index = 3; index < 6; ++index) {
+                        colors[base_vertex + index].y = 1.0f;
+                    }
+                }
+                ++link_count;
+            }
+            edge_index = edge->next_0c;
+        }
+
+        ++marker_count;
+        next = visible_waypoints_058->NextSetBit(0);
+    }
+
+    unsigned long* active_polygons = model->getActivePolygonTable(1);
+    unsigned long active_count = 0;
+    for (index = 0; index < marker_count * 6; ++index) {
+        active_polygons[active_count++] = index;
+    }
+    for (index = 0; index < link_count * 6; ++index) {
+        active_polygons[active_count++] = 600 + index;
+    }
+    model->setActivePolygonCount(active_count);
+    if ((model->control_state_390 & 1) == 0) {
+        unsigned long state = model->control_state_390;
+        model->control_state_390 = state | 9;
+        model->reindexPolygons(0);
+    }
+    if ((model->control_state_390 & 2) == 0) {
+        model->control_state_390 |= 10;
+    }
+    if ((model->control_state_390 & 4) == 0) {
+        model->control_state_390 |= 12;
+    }
+    model->control_state_390 |= 8;
+    model->flags_3a0 &= ~2U;
+    return m_owned_054;
+}
+
 /* Select the editor color for one waypoint. Disabled surfaces are black; the
    two current selection slots take yellow and either green or red; every other
    surface is blue. */
@@ -3399,6 +3670,126 @@ stModelInstance005EC7D0* W8PathingService::EnsurePathVisualization0045D530()
     return m_owned_054;
 }
 
+/* Collect nearby waypoint surfaces and mark the subset directly visible from
+   the editor position. The near query also admits every outgoing neighbor;
+   the wider query contributes only its own surfaces. Candidates are deduped,
+   sorted by integer distance, and span-tested nearest first. */
+// FUNCTION: WIZ8 0x0045D880
+short W8PathingService::CollectPathVisualization0045D880(
+    const srVector3T<float>* position)
+{
+    unsigned short waypoints[500];
+    unsigned int distances[500];
+    unsigned int waypoint_count = 0;
+    int* query_results = 0;
+    int query_count;
+    int index;
+
+    if (value_1d4 == 0) {
+        return 0;
+    }
+
+    visible_waypoints_058->ClearAll();
+    collected_waypoints_060->ClearAll();
+    if (value_1d6 != 0 && path_direction_valid_1da == 0) {
+        visible_waypoints_058->Set(value_1d6);
+        collected_waypoints_060->Set(value_1d6);
+    }
+
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    lower.x = position->x - g_path_waypoint_query_vertical_005ec35c;
+    lower.y = position->y - g_float_005ec2f8;
+    lower.z = position->z - g_path_waypoint_query_vertical_005ec35c;
+    upper.x = position->x + g_path_waypoint_query_vertical_005ec35c;
+    upper.y = position->y + g_float_005ec2f8;
+    upper.z = position->z + g_path_waypoint_query_vertical_005ec35c;
+    query_count = g_octree_6598a4->QueryObjects0042F280(
+        &query_results, &lower, &upper, 9, -1);
+
+    for (index = 0; index < query_count; ++index) {
+        unsigned short waypoint = (unsigned short)query_results[index];
+        unsigned short edge_index;
+
+        if (!collected_waypoints_060->Set(waypoint)) {
+            waypoints[waypoint_count++] = waypoint;
+        }
+        edge_index = m_pSurfaces_048[waypoint].first_edge_24;
+        while (edge_index != 0) {
+            W8PathEdge* edge = &m_pEdges_04c[edge_index];
+            unsigned short neighbor = edge->destination_06;
+
+            if (!collected_waypoints_060->Set(neighbor)) {
+                waypoints[waypoint_count++] = neighbor;
+            }
+            edge_index = edge->next_0c;
+        }
+    }
+
+    query_results = 0;
+    lower.x = position->x - g_float_005ec384;
+    lower.y = position->y - g_path_waypoint_query_vertical_005ec35c;
+    lower.z = position->z - g_float_005ec384;
+    upper.x = position->x + g_float_005ec384;
+    upper.y = position->y + g_path_waypoint_query_vertical_005ec35c;
+    upper.z = position->z + g_float_005ec384;
+    query_count = g_octree_6598a4->QueryObjects0042F280(
+        &query_results, &lower, &upper, 9, -1);
+
+    for (index = 0; index < query_count; ++index) {
+        unsigned short waypoint = (unsigned short)query_results[index];
+        if (!collected_waypoints_060->Set(waypoint)) {
+            waypoints[waypoint_count++] = waypoint;
+        }
+    }
+
+    if (waypoint_count > 1) {
+        unsigned int sort_index;
+
+        for (sort_index = 0; sort_index < waypoint_count; ++sort_index) {
+            const srVector3T<float>* candidate =
+                &m_pSurfaces_048[waypoints[sort_index]].position_04;
+            float delta_x = position->x - candidate->x;
+            float delta_y = position->y - candidate->y;
+            float delta_z = position->z - candidate->z;
+            distances[sort_index] = (unsigned int)(int)sqrt(
+                delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+        }
+
+        if (waypoint_count <= 10) {
+            for (sort_index = 1; sort_index < waypoint_count; ++sort_index) {
+                unsigned short waypoint = waypoints[sort_index];
+                unsigned int distance = distances[sort_index];
+                unsigned int insertion = sort_index;
+
+                while (insertion != 0 &&
+                       distance < distances[insertion - 1]) {
+                    distances[insertion] = distances[insertion - 1];
+                    waypoints[insertion] = waypoints[insertion - 1];
+                    --insertion;
+                }
+                distances[insertion] = distance;
+                waypoints[insertion] = waypoint;
+            }
+        }
+        else {
+            SortPathCandidates004677A0(
+                waypoints, distances, 0, (int)waypoint_count - 1);
+        }
+    }
+
+    for (unsigned int visible_index = 0;
+         visible_index < waypoint_count;
+         ++visible_index) {
+        unsigned short waypoint = waypoints[visible_index];
+        if (TestWaypointSpan0045A1B0(
+                position, &m_pSurfaces_048[waypoint].position_04, 0, 0) != 0) {
+            visible_waypoints_058->Set(waypoint);
+        }
+    }
+    return value_1d4;
+}
+
 /* Append one waypoint surface and keep every capacity-coupled side table sized
    to the same hundred-record block.
 
@@ -3431,21 +3822,21 @@ void W8PathingService::AddWaypoint0045DDB0(
         }
         m_pSurfaces_048 = new_surfaces;
 
-        if (m_owned_058 != 0) {
-            m_owned_058->FreeIndex();
-            ::operator delete(m_owned_058);
+        if (visible_waypoints_058 != 0) {
+            visible_waypoints_058->FreeIndex();
+            ::operator delete(visible_waypoints_058);
         }
-        m_owned_058 = new BitArray(capacity);
-        if (m_owned_05c != 0) {
-            m_owned_05c->FreeIndex();
-            ::operator delete(m_owned_05c);
+        visible_waypoints_058 = new BitArray(capacity);
+        if (rendered_waypoints_05c != 0) {
+            rendered_waypoints_05c->FreeIndex();
+            ::operator delete(rendered_waypoints_05c);
         }
-        m_owned_05c = new BitArray(capacity);
-        if (m_owned_060 != 0) {
-            m_owned_060->FreeIndex();
-            ::operator delete(m_owned_060);
+        rendered_waypoints_05c = new BitArray(capacity);
+        if (collected_waypoints_060 != 0) {
+            collected_waypoints_060->FreeIndex();
+            ::operator delete(collected_waypoints_060);
         }
-        m_owned_060 = new BitArray(capacity);
+        collected_waypoints_060 = new BitArray(capacity);
 
         free(g_path_scratch_00659c64);
         g_path_scratch_00659c64 = malloc(capacity * sizeof(unsigned short));
