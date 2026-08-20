@@ -5,8 +5,36 @@
 #include "wiz8/engine_code/stHash.hpp"
 
 class BitArray;
-struct W8OctRegionGameData;
 struct W8VersionedLevelParticleRecord;
+
+struct W8OctRegionVertex004B2A20 {
+    unsigned char positional_00[0x0c];
+    srVector3T<float> position_0c;
+};
+
+struct W8OctRegionPolygon {
+    unsigned char positional_00[0x18];
+    srVector3T<float> position_18;
+    unsigned char positional_24[0x0e];
+    unsigned short region_32;
+    W8OctRegionVertex004B2A20* vertices_34[3];
+    unsigned char positional_40[0x34];
+
+    unsigned char ContainsPoint004CFB30(
+        const srVector3T<float>* bounds) const;
+};
+
+struct W8OctRegionGameData {
+    unsigned long positional_00;
+    void* positional_04;
+    unsigned long polygon_count_08;
+    W8OctRegionPolygon* polygons_0c;
+};
+
+static_assert(sizeof(W8OctRegionVertex004B2A20) == 0x18,
+              "W8OctRegionVertex004B2A20_must_be_0x18");
+static_assert(sizeof(W8OctRegionPolygon) == 0x74,
+              "W8OctRegionPolygon_must_be_0x74");
 
 extern "C" {
 extern int g_value_65be60;
@@ -53,7 +81,8 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
         int base_index,
         unsigned char finalize);
 
-    void Function004B1D90(const W8OctSpatialState0046CCC0* spatial);
+    void AssignInitialRegions004B1D90(
+        const W8OctSpatialState0046CCC0* spatial);
     unsigned char UpdateRegionForGeometry004B06E0(
         const srVector3T<float>* geometry,
         short value,
@@ -64,13 +93,16 @@ struct W8OctBuildPreTree004AFDA0 : W8OctBuildTree00446390 {
         short value,
         short mode);
     W8OctBuildNode00446330* FindNode004B23F0(unsigned int path);
-    unsigned char Function004B2450(
+    unsigned char MergeAdjacentRegion004B2450(
         W8OctBuildNode00446330* node, unsigned int path);
     unsigned char MergeRegion004B25C0(
         W8OctBuildNode00446330* node, const int* cell);
-    void Function004B2A20();
-    void Function004B3050(const W8OctSpatialState0046CCC0* spatial);
-    void Function004B3330();
+    void FinalizeRegionMapping004B2A20();
+    void AssignRegionFromSurfaces004B3050(
+        const W8OctSpatialState0046CCC0* spatial);
+    void ValidatePolygonRegions004B3330();
+    void ValidateRegionBounds004B35B0(
+        const srVector3T<float>* region_bounds);
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;

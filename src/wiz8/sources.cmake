@@ -139,6 +139,7 @@ set(WIZ8_ADDRESS_QUARANTINE_UNITS
     src/wiz8/unattributed/0049ba51_0049e5cf.cpp
     src/wiz8/unattributed/004b6bd1_004b6f2f.cpp
     src/wiz8/unattributed/004be201_004bf0ef.cpp
+    src/wiz8/unattributed/004cfb30_004cfb6a.cpp
     src/wiz8/unattributed/004e34b1_004e381f.cpp
     src/wiz8/unattributed/004edd20_004edff4.cpp
     src/wiz8/unattributed/004f0c81_004f203f.cpp

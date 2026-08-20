@@ -5,7 +5,8 @@
    unused slot while free. */
 inline unsigned int W8HashValue(unsigned short key)
 {
-    return (key >> 10) ^ key;
+    unsigned int mixed = (key >> 10) ^ key;
+    return (mixed >> 10) ^ mixed;
 }
 
 inline unsigned int W8HashValue(unsigned int key)

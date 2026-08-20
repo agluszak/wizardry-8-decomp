@@ -8,7 +8,14 @@ struct W8GDSurface {
     unsigned int index_04;
     unsigned char positional_08[0x10];
     int vertex_indices_18[3];
-    float plane_24[4];
+    union {
+        float plane_24[4];
+        struct {
+            float normal_24[3];
+            unsigned short positional_30;
+            unsigned short region_32;
+        };
+    };
     unsigned int positional_34;
     unsigned int value_38;
     unsigned char surface_flag_3c;
