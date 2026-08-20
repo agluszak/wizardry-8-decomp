@@ -9,6 +9,8 @@ struct W8OctBuildLink {
     W8OctBuildLink* next_04;
 };
 
+class W8OctPreTree004679E0;
+
 struct W8OctBuildLinkLists {
     W8OctBuildLinkLists();
     W8OctBuildLink* GetNewLink00446250(W8GDSurface* surface);
@@ -23,9 +25,19 @@ struct W8OctBuildNode00446330 {
     W8OctBuildNode00446330();
     ~W8OctBuildNode00446330();
 
+    unsigned char RearrangeNodePolys004AF7B0(
+        short current_depth, short target_depth);
+    int CollectLinkedSurfaces004AF8F0(
+        short current_depth, short target_depth, short mode);
+    int CollectSurfaceArray004AF9B0(short mode);
+    unsigned long ConvertToOctPreTree004AFA30(
+        unsigned short depth, W8OctPreTree004679E0* tree);
+
     union {
         W8OctBuildNode00446330* children_00[8];
         W8OctBuildLink* links_00[8];
+        W8GDSurface** surface_arrays_00[8];
+        unsigned short* region_arrays_00[8];
     };
     unsigned long positional_20;
     unsigned long positional_24;

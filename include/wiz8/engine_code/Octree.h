@@ -442,6 +442,28 @@ public:
 static_assert(sizeof(W8PathingService) == 0x240,
               "W8PathingService_must_be_0x240");
 
+/* The two compact records stored in an OCT file.  A branch is its two shorts
+   followed by eight child indices; a leaf retains offsets into the region and
+   two polygon-index streams.  The rest of the leaf is still positional. */
+struct W8OctPreTreeBranch {
+    unsigned short positional_00;
+    unsigned short positional_02;
+    unsigned long children_04[8];
+};
+
+struct W8OctPreTreeLeaf {
+    unsigned long positional_00;
+    unsigned long region_offset_04;
+    unsigned long polygon_offset_08;
+    unsigned long gd_polygon_offset_0c;
+    unsigned char positional_10[0x18];
+};
+
+static_assert(sizeof(W8OctPreTreeBranch) == 0x24,
+              "W8OctPreTreeBranch_must_be_0x24");
+static_assert(sizeof(W8OctPreTreeLeaf) == 0x28,
+              "W8OctPreTreeLeaf_must_be_0x28");
+
 /* Engine Code\Octree.cpp. LoadWorld allocates exactly 0x29c bytes. This object
    is deliberately non-polymorphic: every owner calls the complete teardown at
    0x0042DE60 and then operator delete separately. */
@@ -499,8 +521,8 @@ public:
        not distinguish first-member composition from inheritance, so the
        declaration makes the narrower composition claim. */
     W8OctSpatialState0046CCC0 spatial_000;
-    void* m_owned_09c;
-    void* m_owned_0a0;
+    W8OctPreTreeBranch* m_owned_09c;
+    W8OctPreTreeLeaf* m_owned_0a0;
     unsigned long m_positional_0a4;
     unsigned long m_positional_0a8;
     unsigned long m_positional_0ac;
@@ -513,7 +535,7 @@ public:
     unsigned char m_positional_0c5[3];
     unsigned long m_positional_0c8;
     unsigned long m_positional_0cc;
-    void* m_owned_0d0;
+    unsigned long* m_owned_0d0;
     void* m_owned_0d4;
     void* m_owned_0d8;
     /* Six original member names, from ReadOctFile's own assertion text at
@@ -543,14 +565,14 @@ public:
     int current_sector;
     unsigned long m_positional_124;
     unsigned long m_positional_128;
-    void* m_owned_12c;
+    unsigned long* m_owned_12c;
     void* m_owned_130;
     unsigned long m_positional_134;
     unsigned long m_positional_138;
     unsigned long m_positional_13c;
     unsigned long m_positional_140;
     unsigned long m_positional_144;
-    void* m_owned_148;
+    unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
     void* m_owned_150;
     BitArray* m_owned_154;
@@ -606,6 +628,27 @@ public:
     unsigned char m_positional_299;
     unsigned char m_padding_29a[2];
 };
+
+static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
+
+/* Engine Code\OctPreTree.cpp's build-time runtime tree.  The constructor at
+   0x004679E0 invokes W8Octree's constructor at offset zero, and its sole
+   caller allocates 0x3bc bytes before invoking it.  Only the suffix reached by
+   the destructive OctBuildPreTree conversion is named here. */
+class W8OctPreTree004679E0 : public W8Octree {
+public:
+    unsigned char positional_29c[0x104];
+    unsigned long polygon_cursor_3a0;
+    void* positional_3a4;
+    unsigned long positional_3a8;
+    unsigned long positional_3ac;
+    unsigned long positional_3b0;
+    unsigned long positional_3b4;
+    void* positional_3b8;
+};
+
+static_assert(sizeof(W8OctPreTree004679E0) == 0x3bc,
+              "W8OctPreTree004679E0_must_be_0x3bc");
 
 /* The shared spatial-service pointer at 0x006598A4 is the active W8Octree.
    Its callers reach fields at +0x70/+0x120/+0x180, while 0x0042E620 proves

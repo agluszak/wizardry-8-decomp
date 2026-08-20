@@ -1202,6 +1202,8 @@ _g_plane_5ebcf8
 _g_plane_5ebd00
 _g_plane_5ebf48
 _g_plane_5ebf4c
+_g_pointer_65be64
+_g_pointer_65be68
 _g_pointer_689b40
 _g_profession_bonus_skills
 _g_profession_hit_point_factors
@@ -1235,6 +1237,7 @@ _g_value_6596bc
 _g_value_6596c0
 _g_value_659c14
 _g_value_65ba5c
+_g_value_65be58
 _g_value_65be60
 _g_value_6834d4
 _g_value_689fac

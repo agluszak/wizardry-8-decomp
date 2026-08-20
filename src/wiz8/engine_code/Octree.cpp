@@ -948,7 +948,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
             }
 
             block = malloc((ReadHeader<unsigned long>(header, 0x6a) * 9 + 0x12) * 4);
-            m_owned_09c = block;
+            m_owned_09c = static_cast<W8OctPreTreeBranch*>(block);
             if (block == 0) {
                 fSuccess = 0;
                 strcpy(acMessage, "ReadOctFile: Couldn't allocate octree nodes.");
@@ -963,7 +963,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
             fLoaded = 0;
             if (fSuccess != 0) {
                 block = malloc((ReadHeader<unsigned long>(header, 0x6e) * 5 + 10) * 8);
-                m_owned_0a0 = block;
+                m_owned_0a0 = static_cast<W8OctPreTreeLeaf*>(block);
                 if (block == 0) {
                     fSuccess = 0;
                     strcpy(acMessage, "ReadOctFile: Couldn't allocate octree leaves.");
@@ -979,7 +979,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                 fLoaded = 0;
                 if (fSuccess != 0) {
                     block = malloc(ReadHeader<unsigned long>(header, 0x82) * 4 + 8);
-                    m_owned_0d0 = block;
+                    m_owned_0d0 = static_cast<unsigned long*>(block);
                     if (block == 0) {
                         fLoaded = 0;
                         strcpy(acMessage,
@@ -1036,7 +1036,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
             if (fLoaded != 0) {
                 if (ReadHeader<unsigned long>(header, 0x92) != 0) {
                     block = malloc(ReadHeader<unsigned long>(header, 0x92) * 2 + 4);
-                    m_owned_148 = block;
+                    m_owned_148 = static_cast<unsigned short*>(block);
                     if (block == 0) {
                         fSuccess = 0;
                         strcpy(acMessage, "ReadOctFile: Couldn't allocate region list.");
@@ -1054,7 +1054,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                 if (fLoaded != 0) {
                     if (ReadHeader<unsigned long>(header, 0x86) != 0) {
                         block = malloc(ReadHeader<unsigned long>(header, 0x86) * 4 + 8);
-                        m_owned_12c = block;
+                        m_owned_12c = static_cast<unsigned long*>(block);
                         if (block == 0) {
                             fSuccess = 0;
                             strcpy(acMessage, "ReadOctFile: Couldn't allocate GD Poly list.");
