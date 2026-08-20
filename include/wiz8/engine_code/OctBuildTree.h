@@ -41,6 +41,7 @@ struct W8OctBuildNode00446330 {
    still unresolved. */
 struct W8CountedOctBuildNode004AF760 : W8OctBuildNode00446330 {
     W8CountedOctBuildNode004AF760();
+    ~W8CountedOctBuildNode004AF760();
 };
 
 /* Original owner: Engine Code\OctBuildTree.cpp.  The source path proves the

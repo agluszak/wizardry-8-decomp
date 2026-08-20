@@ -169,7 +169,6 @@ extern unsigned long g_tick_65b9a8;
 
 extern "C" {
 extern int g_value_65ba5c;
-extern int g_value_65be60;
 extern int g_value_64c1c8;
 extern unsigned char g_flag_6850f6;
 extern unsigned char g_flag_68c4fa;

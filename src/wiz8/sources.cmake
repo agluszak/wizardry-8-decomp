@@ -67,6 +67,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/Missile.cpp
     src/wiz8/engine_code/PathAI.cpp
     src/wiz8/engine_code/Spells.cpp
+    src/wiz8/engine_code/OctBuildPreTree.cpp
     src/wiz8/engine_code/SoundEvent.cpp
     src/wiz8/engine_code/AnimRep.cpp
     src/wiz8/engine_code/GDProp.cpp

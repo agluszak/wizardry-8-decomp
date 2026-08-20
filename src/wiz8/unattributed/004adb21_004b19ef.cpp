@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
 
 /* Address quarantine 004adb21-004b19ef; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
