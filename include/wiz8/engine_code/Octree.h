@@ -2,6 +2,7 @@
 
 #include "surrender/srMath.h"
 #include "wiz8/engine_code/BitArray.h"
+#include "wiz8/engine_code/OctPreTree.h"
 #include "wiz8/engine_code/stHeap.hpp"
 
 class GDProp;
@@ -487,24 +488,17 @@ public:
         srVector3T<float>* position, unsigned int mode);
     void Function0042F7E0();
 
-    bool HasLoadError() const { return (m_flags_000 & 0x80000000) != 0; }
-    unsigned long GetMeshCount() const { return m_mesh_count_074; }
+    bool HasLoadError() const {
+        return (spatial_000.flags_00 & 0x80000000) != 0;
+    }
+    unsigned long GetMeshCount() const { return spatial_000.positional_74; }
 
 public:
-    unsigned long m_flags_000;
-    unsigned char m_positional_004[8];
-    srVector3T<float> octree_origin_00c;
-    unsigned char m_positional_018[0x1c];
-    /* 0x00434A30 clamps a world-space Y against this before settling it, which
-       is what makes it a height ceiling rather than one more opaque dword. */
-    float height_limit_034;              /* 0x34 */
-    unsigned char m_positional_038[0x24];
-    /* ReadOctFile allocates the region array here. */
-    void* m_pRegions_05c;                /* 0x5c */
-    unsigned char m_positional_060[0x10];
-    float octree_cell_size_070;
-    unsigned long m_mesh_count_074;
-    unsigned char m_positional_078[0x24];
+    /* Same proven 0x9c value used by the level build tree.  Construction and
+       teardown operate on the offset-zero subobject, but current evidence does
+       not distinguish first-member composition from inheritance, so the
+       declaration makes the narrower composition claim. */
+    W8OctSpatialState0046CCC0 spatial_000;
     void* m_owned_09c;
     void* m_owned_0a0;
     unsigned long m_positional_0a4;

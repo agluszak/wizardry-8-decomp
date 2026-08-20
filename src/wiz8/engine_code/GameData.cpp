@@ -1,6 +1,7 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/Object0043A910.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
@@ -31,6 +32,26 @@ extern unsigned char g_flag_00652dce;
 extern const float g_world_scale_005ebc40;
 extern float g_path_endpoint_scale_005ec1a4;
 extern void Function43AAD0();
+
+/* Resolve one surface's three vertex indices through the active processed
+   GameData vertex table.  The retail comparison is signed and accepts an index
+   equal to vertex_count, so that historical boundary behavior is preserved. */
+// FUNCTION: WIZ8 0x004214d0
+unsigned char LoadSurfaceVertices004214D0(
+    srVector3T<float>* output, const int* vertex_indices)
+{
+    short index = 0;
+    do {
+        if (g_octree_game_data_00652db0->vertex_count_20 <
+            vertex_indices[index]) {
+            return 0;
+        }
+        output[index] = g_octree_game_data_00652db0
+                            ->vertices_24[vertex_indices[index]];
+        ++index;
+    } while (index < 3);
+    return 1;
+}
 
 /* Rebuild one indexed surface plane and derive the runtime classification
    carried by the level-geometry record. Bit 0x80 requests dominant-axis
@@ -150,6 +171,32 @@ void BuildTrianglePlane00449A40(
     }
     plane[3] =
         (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
+}
+
+/* Build the processed level's spatial index once and publish every surface
+   from its primary 0x4c-byte bank.  The constructor expands only local bounds,
+   leaving the serialized GameData limits unchanged. */
+// FUNCTION: WIZ8 0x004497c0
+unsigned char InitializeGameData004497C0(W8GameData* game_data)
+{
+    if (game_data == 0) {
+        return 0;
+    }
+
+    srVector3T<float> minimum = game_data->minimum_08;
+    srVector3T<float> maximum = game_data->maximum_14;
+    if (game_data->geometry_index_00 == 0) {
+        game_data->geometry_index_00 = new W8OctBuildTree00446390(
+            2000.0f, &minimum, &maximum, 0x40, 0);
+    }
+
+    for (int index = 0; index < game_data->surface_count_28; ++index) {
+        if (game_data->geometry_index_00->InsertSurface00446820(
+                &game_data->surfaces_38[index], 3) == 0) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0041F260

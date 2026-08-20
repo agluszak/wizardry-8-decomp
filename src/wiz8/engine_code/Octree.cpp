@@ -3,6 +3,7 @@
 
 #include "surrender/srHeap.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -21,8 +22,6 @@
 
 extern unsigned long g_octree_storage_00659770;
 extern unsigned long g_octree_state_00659890;
-extern void Function46CDC0(void);
-extern void Function46CDD0(void);
 extern void Function4331F0(void* value);
 extern void Function432D60(void* value);
 extern void Function459400(int value);
@@ -35,7 +34,6 @@ extern float g_world_scale_005ebc40;
 
 /* ReadOctFile's own direct callees. Their bodies are not recovered, so they
    keep address-qualified names. */
-extern void PrepareOctreeLoad0046CCC0(int value);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern char BuildPreprocessedFiles00492E60(const char* level_path);
 extern void ReportStartupMessage004969D0(const char* message);
@@ -67,7 +65,7 @@ extern void* CreatePathState004CAE40(void);
 /* 0x00659888 accumulates every byte the loader reads, and 0x00652DB0 caches the
    game-data block LoadWorld hands back through its out parameter. */
 extern unsigned long g_octree_bytes_read_00659888;
-extern void* g_octree_game_data_00652db0;
+extern W8GameData* g_octree_game_data_00652db0;
 
 namespace {
 
@@ -157,12 +155,12 @@ bool W8Octree::HasLineOfSight(
     m_positional_1b8 = 0;
     m_owned_190->ClearAll();
     m_owned_160->ClearAll();
-    cell[0] = (int)((from->x - octree_origin_00c.x) / octree_cell_size_070);
-    step[3] = (int)((to->x - octree_origin_00c.x) / octree_cell_size_070);
-    cell[1] = (int)((from->y - octree_origin_00c.y) / octree_cell_size_070);
-    step[2] = (int)((to->y - octree_origin_00c.y) / octree_cell_size_070);
-    cell[2] = (int)((from->z - octree_origin_00c.z) / octree_cell_size_070);
-    step[1] = (int)((to->z - octree_origin_00c.z) / octree_cell_size_070);
+    cell[0] = (int)((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+    step[3] = (int)((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+    cell[1] = (int)((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+    step[2] = (int)((to->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+    cell[2] = (int)((from->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
+    step[1] = (int)((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
     span = abs(cell[2] - step[1]) + abs(cell[1] - step[2]) + abs(cell[0] - step[3]);
     if (span < 2) {
         ProbeCellForBlockers00435C40(cell);
@@ -268,12 +266,12 @@ short W8Octree::TraceLineOfSight(
     if (visit_octree != 0) {
         m_positional_1b8 = 0;
         m_owned_194->ClearAll();
-        cell[0] = (int)((from->x - octree_origin_00c.x) / octree_cell_size_070);
-        step[3] = (int)((to->x - octree_origin_00c.x) / octree_cell_size_070);
-        cell[1] = (int)((from->y - octree_origin_00c.y) / octree_cell_size_070);
-        step[1] = (int)((to->y - octree_origin_00c.y) / octree_cell_size_070);
-        cell[2] = (int)((from->z - octree_origin_00c.z) / octree_cell_size_070);
-        step[0] = (int)((to->z - octree_origin_00c.z) / octree_cell_size_070);
+        cell[0] = (int)((from->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+        step[3] = (int)((to->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+        cell[1] = (int)((from->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+        step[1] = (int)((to->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+        cell[2] = (int)((from->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
+        step[0] = (int)((to->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
         span = abs(cell[2] - step[0]) + abs(cell[1] - step[1]) + abs(cell[0] - step[3]);
         if (span < 2) {
             ProbeCellForTrace00435B00(cell);
@@ -706,14 +704,14 @@ void W8Octree::AddCollidablePropBounds(
     int z;
 
     for (axis = 0; axis < 3; ++axis) {
-        minimum[axis] = (int)((bounds[0].x - octree_origin_00c.x) / octree_cell_size_070);
+        minimum[axis] = (int)((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
     }
-    minimum[0] = (int)((bounds[0].x - octree_origin_00c.x) / octree_cell_size_070);
-    minimum[1] = (int)((bounds[0].y - octree_origin_00c.y) / octree_cell_size_070);
-    minimum[2] = (int)((bounds[0].z - octree_origin_00c.z) / octree_cell_size_070);
-    maximum[0] = (int)((bounds[1].x - octree_origin_00c.x) / octree_cell_size_070);
-    maximum[1] = (int)((bounds[1].y - octree_origin_00c.y) / octree_cell_size_070);
-    maximum[2] = (int)((bounds[1].z - octree_origin_00c.z) / octree_cell_size_070);
+    minimum[0] = (int)((bounds[0].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+    minimum[1] = (int)((bounds[0].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+    minimum[2] = (int)((bounds[0].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
+    maximum[0] = (int)((bounds[1].x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+    maximum[1] = (int)((bounds[1].y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+    maximum[2] = (int)((bounds[1].z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
 
     prop_key = ((index + 1) & 0xffff) + 0x80000;
     for (x = minimum[0]; x <= maximum[0]; ++x) {
@@ -776,14 +774,14 @@ void W8Octree::BuildCellWalk(
     int minor_1;
     int span;
 
-    cell_size = octree_cell_size_070 * g_octree_cell_scale_005ebcd0;
+    cell_size = spatial_000.node_extent_70 * g_octree_cell_scale_005ebcd0;
     cell = (int)cell_size;
-    from_cell[0] = (int)((from->x - octree_origin_00c.x) * g_octree_cell_scale_005ebcd0);
-    to_cell[0] = (int)((to->x - octree_origin_00c.x) * g_octree_cell_scale_005ebcd0);
-    from_cell[1] = (int)((from->y - octree_origin_00c.y) * g_octree_cell_scale_005ebcd0);
-    to_cell[1] = (int)((to->y - octree_origin_00c.y) * g_octree_cell_scale_005ebcd0);
-    from_cell[2] = (int)((from->z - octree_origin_00c.z) * g_octree_cell_scale_005ebcd0);
-    to_cell[2] = (int)((to->z - octree_origin_00c.z) * g_octree_cell_scale_005ebcd0);
+    from_cell[0] = (int)((from->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0);
+    to_cell[0] = (int)((to->x - spatial_000.minimum_0c.x) * g_octree_cell_scale_005ebcd0);
+    from_cell[1] = (int)((from->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0);
+    to_cell[1] = (int)((to->y - spatial_000.minimum_0c.y) * g_octree_cell_scale_005ebcd0);
+    from_cell[2] = (int)((from->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0);
+    to_cell[2] = (int)((to->z - spatial_000.minimum_0c.z) * g_octree_cell_scale_005ebcd0);
 
     for (axis = 0; axis < 3; ++axis) {
         span = to_cell[axis] - from_cell[axis];
@@ -863,9 +861,9 @@ void W8Octree::UpdateMonsterLocation(
                 reinterpret_cast<unsigned char*>(&monster->state_28c) + 0x7c) = mesh;
         }
     }
-    point[0] = (int)((position->x - octree_origin_00c.x) / octree_cell_size_070);
-    point[1] = (int)((position->y - octree_origin_00c.y) / octree_cell_size_070);
-    point[2] = (int)((position->z - octree_origin_00c.z) / octree_cell_size_070);
+    point[0] = (int)((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70);
+    point[1] = (int)((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70);
+    point[2] = (int)((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70);
     object_registry->RegisterObjectCell(0xc, queue_id, point);
 }
 
@@ -897,7 +895,6 @@ W8Octree::W8Octree(const char* path, void** game_data)
     char* extension;
     void* pGameData = 0;
 
-    PrepareOctreeLoad0046CCC0(0);
     Reset();
     if (path == 0) {
         Initialize(0);
@@ -909,7 +906,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
     if (CheckLevelAssetSet0042CCC0(path) > 0 &&
         BuildPreprocessedFiles00492E60(path) == 0) {
         g_octree_6598a4 = 0;
-        m_flags_000 |= 0x80000000;
+        spatial_000.flags_00 |= 0x80000000;
         ReportStartupMessage004969D0("Cannot find or build current preprocessed files.");
         ReportStartupMessage004969D0(
             "Attempting to run with LVL file only -- SOME FEATURES DISABLED.");
@@ -1095,7 +1092,7 @@ W8Octree::W8Octree(const char* path, void** game_data)
                             if (ReadHeader<unsigned short>(header, 0x96) > 1) {
                                 block = malloc(
                                     (ReadHeader<unsigned short>(header, 0x96) + 2) * 0xe8);
-                                m_pRegions_05c = block;
+                                spatial_000.owned_5c = block;
                                 if (block == 0) {
                                     fSuccess = 0;
                                     strcpy(acMessage,
@@ -1353,7 +1350,7 @@ finish:
         g_octree_6598a4 = this;
         *static_cast<W8Octree**>(pGameData) = this;
         *game_data = pGameData;
-        g_octree_game_data_00652db0 = pGameData;
+        g_octree_game_data_00652db0 = static_cast<W8GameData*>(pGameData);
         m_positional_169 = ReadLevelName00432E90(static_cast<char*>(m_owned_0c0));
         ApplyLevelName00432B80(static_cast<char*>(m_owned_0c0));
         if (pathing_180 != 0) {
@@ -1363,7 +1360,7 @@ finish:
     }
 failed:
     g_octree_6598a4 = 0;
-    m_flags_000 |= 0x80000000;
+    spatial_000.flags_00 |= 0x80000000;
 }
 
 /* The raw 0x29c allocation is reset before ReadOctFile applies its header.
@@ -1374,7 +1371,7 @@ void W8Octree::Reset()
 {
     g_octree_storage_00659770 = 0;
     g_octree_state_00659890 = 0;
-    Function46CDC0();
+    spatial_000.Reset0046CDC0();
     memset(this, 0, sizeof(*this));
     current_sector = -1;
 }
@@ -1621,7 +1618,6 @@ W8Octree::~W8Octree()
         pathing_180 = 0;
     }
     DestroyBitArray(m_pPropSunBits);
-    Function46CDD0();
 }
 
 /* The node whose 0x1c is non-null is the only kind worth attaching. */
@@ -1694,12 +1690,12 @@ void W8Octree::QueueOctreeKind130042E810(
 {
     int point[3];
 
-    point[0] = (int)((position->x - octree_origin_00c.x) /
-                     octree_cell_size_070);
-    point[1] = (int)((position->y - octree_origin_00c.y) /
-                     octree_cell_size_070);
-    point[2] = (int)((position->z - octree_origin_00c.z) /
-                     octree_cell_size_070);
+    point[0] = (int)((position->x - spatial_000.minimum_0c.x) /
+                     spatial_000.node_extent_70);
+    point[1] = (int)((position->y - spatial_000.minimum_0c.y) /
+                     spatial_000.node_extent_70);
+    point[2] = (int)((position->z - spatial_000.minimum_0c.z) /
+                     spatial_000.node_extent_70);
     object_registry->RegisterObjectCell(0xd, id + 1, point);
 }
 
@@ -1785,8 +1781,8 @@ void W8Octree::AdjustPortalDestination(
     local_source = *source;
 
     hit = 0;
-    if (local_destination.y > height_limit_034) {
-        local_destination.y = height_limit_034;
+    if (local_destination.y > spatial_000.clipped_maximum_30.y) {
+        local_destination.y = spatial_000.clipped_maximum_30.y;
     }
     probe = local_destination;
     SettleToGround00433820(&probe.x, &hit, 1, 500.0f);
@@ -1795,8 +1791,8 @@ void W8Octree::AdjustPortalDestination(
     }
 
     hit = 0;
-    if (local_source.y > height_limit_034) {
-        local_source.y = height_limit_034;
+    if (local_source.y > spatial_000.clipped_maximum_30.y) {
+        local_source.y = spatial_000.clipped_maximum_30.y;
     }
     probe = local_source;
     SettleToGround00433820(&probe.x, &hit, 1, 500.0f);

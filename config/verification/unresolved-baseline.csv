@@ -194,8 +194,6 @@ symbol
 ?Function454C80@@YAXXZ
 ?Function457B10@@YAXPAX@Z
 ?Function459400@@YAXH@Z
-?Function46CDC0@@YAXXZ
-?Function46CDD0@@YAXXZ
 ?Function46DC90@@YAXPAVsrScene@@@Z
 ?Function46E4A0@@YAXPAUW8World@@@Z
 ?Function46E5A0@@YAXPAUW8World@@@Z
@@ -478,7 +476,6 @@ symbol
 ?PracticeCharacterSkill@@YAXPAUW8Character@@IHH@Z
 ?Prepare004857B0@stTextureAnim@@QAEEXZ
 ?PrepareMonsterCycleForDestruction004ACF90@@YAXPAVW8Monster@@@Z
-?PrepareOctreeLoad0046CCC0@@YAXH@Z
 ?ProbeCellForBlockers00435C40@@YAHPBH@Z
 ?ProbeCellForTrace00435B00@@YAHPBH@Z
 ?PublishLightDirection@@YAXPBH@Z

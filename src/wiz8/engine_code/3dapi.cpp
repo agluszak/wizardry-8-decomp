@@ -7,6 +7,7 @@
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/Octree.h"
@@ -44,7 +45,7 @@ extern void SetValue60DFAC(void);
 extern unsigned char g_renderer_ready_00607d7c;
 extern void Function46DC90(srScene* scene);
 extern void* ReadGameData00447570(const char* path, void* parent);
-extern unsigned char InitializeGameData004497C0(void* game_data);
+extern unsigned char InitializeGameData004497C0(W8GameData* game_data);
 extern int CheckLevelAssetSet0042CCC0(const char* level_path);
 extern void UpdateWorldMeshFromQuads004BAD40(W8World* world);
 extern void UpdateWorldMeshFromOctree004BAF50(W8World* world);
@@ -180,7 +181,8 @@ unsigned char LoadWorld(
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
         world->m_owned_04c = ReadGameData00447570(game_data_path, 0);
         if (world->m_owned_04c != 0 &&
-            InitializeGameData004497C0(world->m_owned_04c) == 0) {
+            InitializeGameData004497C0(
+                static_cast<W8GameData*>(world->m_owned_04c)) == 0) {
             return 0;
         }
     }

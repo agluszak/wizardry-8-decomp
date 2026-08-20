@@ -46,6 +46,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/GameData.cpp
     src/wiz8/engine_code/Octree.cpp
     src/wiz8/engine_code/OctPath.cpp
+    src/wiz8/engine_code/OctPreTree.cpp
     src/wiz8/engine_code/Levels.cpp
     src/wiz8/engine_code/ReadLevel.cpp
     src/wiz8/engine_code/ReadMesh.cpp
@@ -57,6 +58,7 @@ set(WIZ8_ORIGINAL_UNITS
     src/wiz8/engine_code/stTextureFile.cpp
     src/wiz8/engine_code/stParticle.cpp
     src/wiz8/engine_code/Trigger.cpp
+    src/wiz8/engine_code/OctBuildTree.cpp
     src/wiz8/engine_code/Environment.cpp
     src/wiz8/engine_code/AmbientSound.cpp
     src/wiz8/engine_code/AnimObj.cpp
