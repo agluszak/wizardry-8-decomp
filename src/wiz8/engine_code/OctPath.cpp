@@ -25,6 +25,8 @@ extern void RegisterPathSurface004B7730(unsigned int index, const int* point);
 extern void RegisterPathVertex004B7830(
     unsigned int index, const int* point, const int* second);
 extern const double g_path_waypoint_snap_distance_005ec150;
+extern double g_double_005ec3a8;
+extern double g_double_005ec3b0;
 extern void Function58AAD0(int channel, const char* format, ...);
 
 #define OCTPATH_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\OctPath.cpp"
@@ -413,6 +415,517 @@ void W8PathingService::ConfigureForLevel(
     span_020 = (level_bounds[4] - level_bounds[1]) * g_path_span_scale_005ec344;
     cell_count_024 = (short)(int)span_020 + 1;
     level_name = name;
+}
+
+/* Classify a waypoint from the path index cell beneath it.
+
+   X and Z form the hash key. Entries with that key carry a one-based vertical
+   cell in their low half; among candidates inside the service's vertical span,
+   the closest height wins and its complete packed value is returned. */
+// FUNCTION: WIZ8 0x00459c00
+unsigned int W8PathingService::ClassifyWaypoint00459C00(
+    const srVector3T<float>* position)
+{
+    int cell_x = (int)((position->x - level_bounds[0]) / grid_scale_01c);
+    int cell_z = (int)((position->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int key = cell_z * 0x10000 + cell_x;
+    unsigned int result = 0;
+
+    if (key != 0) {
+        W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+        W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(index->entries);
+        unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+        int slot = static_cast<int*>(index->bucket_heads)[hash & (index->bucket_count - 1)];
+        int height = (int)((position->y - level_bounds[1]) / span_020) + 1;
+        int nearest = 0x0fffffff;
+
+        while (slot != -1) {
+            W8OctreeEntry* entry = &entries[slot];
+
+            if (entry->key == key) {
+                int delta = (entry->value & 0xffff) - height;
+
+                if (delta < 0) {
+                    delta = -delta;
+                }
+                if (delta < cell_count_024 && delta < nearest) {
+                    nearest = delta;
+                    result = entry->value;
+                }
+            }
+            slot = entry->next_index;
+        }
+    }
+    return result;
+}
+
+/* Test whether a position lies in the vertical neighborhood represented by its
+   X/Z path-index cell, optionally snapping it onto that indexed cell.
+
+   The accepted vertical window is twice the service's cell count in either
+   direction. X and Z snap to the horizontal cell centers; Y snaps to the exact
+   one-based height carried by the matching packed index value. */
+// FUNCTION: WIZ8 0x00462e60
+unsigned char W8PathingService::SnapWaypointPosition00462E60(
+    srVector3T<float>* position,
+    unsigned char snap_to_cell)
+{
+    int vertical_window = cell_count_024 * 2;
+    unsigned int height =
+        (unsigned int)(int)((position->y - level_bounds[1]) / span_020) + 1;
+    unsigned int cell_x =
+        (unsigned int)(int)((position->x - level_bounds[0]) / grid_scale_01c);
+    unsigned int cell_z =
+        (unsigned int)(int)((position->z - level_bounds[2]) / grid_scale_01c);
+    unsigned int key = cell_z * 0x10000 + cell_x;
+    unsigned int matched_height = height;
+    unsigned char found = 0;
+    W8OctreeIndex* index = static_cast<W8OctreeIndex*>(m_pIndex_064);
+    W8OctreeEntry* entries = static_cast<W8OctreeEntry*>(index->entries);
+    unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
+    int slot = static_cast<int*>(index->bucket_heads)[hash & (index->bucket_count - 1)];
+
+    while (slot != -1 && found == 0) {
+        W8OctreeEntry* entry = &entries[slot];
+
+        if (entry->key == key) {
+            matched_height = entry->value & 0xffff;
+            int delta = (int)(height - matched_height);
+
+            if (-vertical_window < delta && delta < vertical_window) {
+                found = 1;
+                break;
+            }
+        }
+        slot = entry->next_index;
+    }
+
+    if (snap_to_cell != 0 && found != 0) {
+        position->y = (float)(matched_height - 1) * span_020 + level_bounds[1];
+        position->x = ((float)cell_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
+        position->z = ((float)cell_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+    }
+    return found;
+}
+
+/* Sweep probes around the arc defined by a pair of waypoint positions.
+
+   The accumulator starts perpendicular to the pair's horizontal direction.
+   Every iteration probes that offset, advances by one grid-scale tangent step,
+   and renormalizes to the pair's original radius. The dot product identifies
+   when the sweep has passed its forward threshold and the walk stops after it
+   subsequently crosses behind the starting direction. */
+// FUNCTION: WIZ8 0x00462570
+void W8PathingService::ProbeWaypointArc00462570(
+    const srVector3T<float>* from,
+    const srVector3T<float>* to)
+{
+    srVector3T<float> direction;
+    srVector3T<float> arc;
+    float radius;
+    unsigned char passed_forward = 0;
+    unsigned int iteration;
+
+    direction.x = to->x - from->x;
+    direction.y = to->y - from->y;
+    direction.z = to->z - from->z;
+    radius = (float)sqrt(
+        direction.x * direction.x + direction.y * direction.y +
+        direction.z * direction.z);
+    arc.x = -direction.z;
+    arc.y = 0.0f;
+    arc.z = direction.x;
+
+    for (iteration = 0; iteration < 50000; ++iteration) {
+        srVector3T<float> probe;
+        srVector3T<float> step;
+        float length_squared;
+        float scale;
+        float dot;
+
+        probe.x = from->x + arc.x;
+        probe.y = from->y + arc.y;
+        probe.z = from->z + arc.z;
+        ProbeWaypointSegment00462750(from, &probe);
+
+        step.x = arc.z;
+        step.y = arc.y;
+        step.z = -arc.x;
+        length_squared = step.x * step.x + step.y * step.y + step.z * step.z;
+        if ((double)length_squared != g_zero_005ebb40) {
+            scale = grid_scale_01c / (float)sqrt(length_squared);
+            step.x *= scale;
+            step.y *= scale;
+            step.z *= scale;
+        }
+        arc.x += step.x;
+        arc.y += step.y;
+        arc.z += step.z;
+
+        length_squared = arc.x * arc.x + arc.y * arc.y + arc.z * arc.z;
+        if ((double)length_squared != g_zero_005ebb40) {
+            scale = radius / (float)sqrt(length_squared);
+            arc.x *= scale;
+            arc.y *= scale;
+            arc.z *= scale;
+        }
+
+        dot = direction.x * arc.x + direction.y * arc.y + direction.z * arc.z;
+        if (dot > g_float_005ec390) {
+            passed_forward = 1;
+        }
+        else if (passed_forward == 0) {
+            continue;
+        }
+        if (dot < g_float_005ebb34) {
+            return;
+        }
+    }
+}
+
+/* Convert the signed steps on the walk's driving and secondary axes into the
+   four horizontal direction codes consumed by the segment probe. */
+// FUNCTION: WIZ8 0x0045aee0
+void W8PathingService::GetPathGridStepDirections0045AEE0(
+    const W8PathGridWalk* walk,
+    int* directions)
+{
+    if (walk->major_axis_18 != 0) {
+        if (walk->step_0c[1] < 1) {
+            directions[0] = 4;
+            if (walk->step_0c[0] > 0) {
+                directions[1] = 2;
+                return;
+            }
+        }
+        else {
+            directions[0] = 0;
+            if (walk->step_0c[0] > 0) {
+                directions[1] = 2;
+                return;
+            }
+        }
+        directions[1] = 6;
+        return;
+    }
+
+    if (walk->step_0c[0] < 1) {
+        directions[0] = 6;
+    }
+    else {
+        directions[0] = 2;
+    }
+    if (walk->step_0c[1] > 0) {
+        directions[1] = 0;
+    }
+    else {
+        directions[1] = 4;
+    }
+}
+
+/* Build the two-dimensional Bresenham record used to walk path-index cells.
+
+   Coordinates are first converted to integer distances from the level origin.
+   The larger absolute delta drives the walk; the start-cell remainder fixes
+   how far each axis is from its next boundary and therefore the initial error. */
+// FUNCTION: WIZ8 0x0045af60
+void W8PathingService::BuildPathGridWalk0045AF60(
+    const float* from,
+    const float* to,
+    const float* origin,
+    W8PathGridWalk* walk)
+{
+    int cell_size = (int)grid_scale_01c;
+    int coordinate[2];
+    int destination[2];
+    int step[2];
+    int absolute_delta[2];
+    float boundary_offset[2];
+    float signed_delta[2];
+    int major_axis = 0;
+    int largest_delta = 0;
+    int axis;
+
+    for (axis = 0; axis < 2; ++axis) {
+        coordinate[axis] = (int)(from[axis] - origin[axis]);
+        destination[axis] = (int)(to[axis] - origin[axis]);
+
+        int delta = destination[axis] - coordinate[axis];
+        boundary_offset[axis] =
+            (float)(coordinate[axis] % cell_size) / grid_scale_01c;
+        signed_delta[axis] = (float)delta;
+
+        if (delta < 0) {
+            step[axis] = -1;
+            delta = -delta;
+        }
+        else {
+            step[axis] = 1;
+            boundary_offset[axis] = g_float_005ebb38 - boundary_offset[axis];
+        }
+        if (largest_delta < delta) {
+            largest_delta = delta;
+            major_axis = axis;
+        }
+        absolute_delta[axis] = delta;
+    }
+
+    int minor_axis = (major_axis + 1) % 2;
+    float ratio = signed_delta[minor_axis] / signed_delta[major_axis];
+    int error_delta = (int)((ratio < 0.0f ? -ratio : ratio) * grid_scale_01c);
+    int error = (int)(
+        (float)cell_size * boundary_offset[minor_axis] -
+        (float)error_delta * boundary_offset[major_axis]);
+    int count;
+
+    if (largest_delta % cell_size == 0) {
+        count = largest_delta / cell_size;
+    }
+    else {
+        count = largest_delta / cell_size + 1;
+    }
+
+    walk->major_axis_18 = major_axis;
+    walk->minor_axis_1c = minor_axis;
+    walk->cell_size_30 = cell_size;
+    walk->count_24 = count;
+    walk->cell_00[0] = destination[0] / cell_size;
+    walk->step_0c[0] = step[0];
+    walk->step_0c[1] = step[1];
+    walk->error_28 = error_delta;
+    walk->error_2c = error;
+    walk->cell_00[1] = destination[1] / cell_size;
+    walk->value_08 = 0;
+    walk->value_14 = 0;
+    walk->value_20 = 0;
+    walk->value_34[0] = 0;
+    walk->value_34[1] = 0;
+    walk->value_34[2] = 0;
+}
+
+/* Walk every horizontal path cell crossed by a short waypoint segment.
+
+   Each cell chooses the first vertically compatible path record. The secondary
+   index carries the accumulated low-half cost and the most recent high-half
+   step cost; when a bounded probe is active, the cheapest reached cell and its
+   world-space center are retained on the service. Direction bits on the chosen
+   path record can terminate the walk after the corresponding grid step. */
+// FUNCTION: WIZ8 0x00462750
+unsigned char W8PathingService::ProbeWaypointSegment00462750(
+    const srVector3T<float>* from,
+    const srVector3T<float>* to)
+{
+    float delta_x = to->x - from->x;
+    float delta_y = to->y - from->y;
+    float delta_z = to->z - from->z;
+    float distance = (float)sqrt(
+        delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+
+    if (grid_scale_01c + grid_scale_01c > distance) {
+        return 1;
+    }
+
+    int cell[2];
+    float walk_from[2];
+    float walk_to[2];
+    float origin[2];
+    W8PathGridWalk walk;
+    int directions[2];
+
+    cell[0] = (int)((from->x - level_bounds[0]) / grid_scale_01c);
+    cell[1] = (int)((from->z - level_bounds[2]) / grid_scale_01c);
+    walk_from[0] = from->x;
+    walk_from[1] = from->z;
+    walk_to[0] = to->x;
+    walk_to[1] = to->z;
+    origin[0] = level_bounds[0];
+    origin[1] = level_bounds[2];
+    BuildPathGridWalk0045AF60(walk_from, walk_to, origin, &walk);
+    GetPathGridStepDirections0045AEE0(&walk, directions);
+
+    int error = walk.error_2c;
+    unsigned char bounded_probe = flag_08c != 0 && probe_limit_088 != 0;
+    unsigned int height =
+        (unsigned int)(int)((from->y - level_bounds[1]) / span_020) + 1;
+    unsigned char blocked = 0;
+    int iteration = 0;
+
+    while (iteration < walk.count_24 && blocked == 0) {
+        unsigned int cell_key = cell[1] * 0x10000 + cell[0];
+        unsigned int hash = (cell_key >> 10 ^ cell_key) >> 10 ^ cell_key;
+        W8OctreeIndex* visited_index =
+            static_cast<W8OctreeIndex*>(m_pIndex_074);
+        W8OctreeEntry* visited_entries =
+            static_cast<W8OctreeEntry*>(visited_index->entries);
+        int slot = static_cast<int*>(visited_index->bucket_heads)[
+            hash & (visited_index->bucket_count - 1)];
+        unsigned int visited = 0;
+
+        while (slot != -1) {
+            W8OctreeEntry* entry = &visited_entries[slot];
+            if (entry->key == cell_key) {
+                visited = entry->value;
+                break;
+            }
+            slot = entry->next_index;
+        }
+
+        if (bounded_probe != 0 && (visited & 0xffff) != 0xffff) {
+            bounded_probe = 0;
+        }
+
+        unsigned int direction_mask = 0;
+        unsigned int path_value = 0;
+        unsigned char found = 0;
+
+        if (iteration == 0 || (visited & 0xffff0000) != 0xffff0000 ||
+            bounded_probe != 0) {
+            W8OctreeIndex* path_index =
+                static_cast<W8OctreeIndex*>(m_pIndex_064);
+            W8OctreeEntry* path_entries =
+                static_cast<W8OctreeEntry*>(path_index->entries);
+            slot = static_cast<int*>(path_index->bucket_heads)[
+                hash & (path_index->bucket_count - 1)];
+
+            while (slot != -1) {
+                W8OctreeEntry* entry = &path_entries[slot];
+
+                if (entry->key == cell_key) {
+                    path_value = entry->value;
+                    int height_delta = (path_value & 0xffff) - height;
+
+                    if ((path_value & 0x10000000) == 0 &&
+                        -cell_count_024 < height_delta &&
+                        height_delta < cell_count_024) {
+                        if ((path_value & 0x01000000) != 0) {
+                            direction_mask = path_value >> 16 & 0xff;
+                        }
+                        found = 1;
+                        height = path_value & 0xffff;
+                        break;
+                    }
+                }
+                slot = entry->next_index;
+            }
+
+            if (found == 0) {
+                blocked = 1;
+            }
+            else if (bounded_probe == 0 &&
+                     ((probe_limit_088 == 0 && visited == 0) ||
+                      (probe_limit_088 != 0 && (visited & 0xffff) != 0 &&
+                       (visited & 0xffff0000) == 0))) {
+                srVector3T<float> position;
+                unsigned int initial_cost;
+
+                position.x =
+                    ((float)cell[0] + g_float_005ebc7c) * grid_scale_01c +
+                    level_bounds[0];
+                position.y =
+                    (float)(height - 1) * span_020 + level_bounds[1];
+                position.z =
+                    ((float)cell[1] + g_float_005ebc7c) * grid_scale_01c +
+                    level_bounds[2];
+
+                delta_x = position.x - to->x;
+                delta_y = position.y - to->y;
+                delta_z = position.z - to->z;
+                initial_cost = (unsigned int)(int)(
+                    sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z) *
+                    g_double_005ec3b0);
+
+                if (probe_limit_088 == 0) {
+                    if (visited_index->free_head == -1) {
+                        GrowIndex00439290(visited_index);
+                    }
+                    int inserted = visited_index->free_head;
+                    W8OctreeEntry* entries =
+                        static_cast<W8OctreeEntry*>(visited_index->entries);
+                    visited_index->free_head = entries[inserted].next_index;
+                    entries[inserted].key = cell_key;
+                    entries[inserted].value = initial_cost;
+                    unsigned int bucket =
+                        hash & (visited_index->bucket_count - 1);
+                    entries[inserted].next_index =
+                        static_cast<int*>(visited_index->bucket_heads)[bucket];
+                    static_cast<int*>(visited_index->bucket_heads)[bucket] = inserted;
+                }
+                else {
+                    unsigned int step_cost = (unsigned int)(int)(
+                        (double)initial_cost * g_double_005ec3a8);
+                    unsigned int total_cost = (visited & 0xffff) + step_cost;
+
+                    if (total_cost < probe_limit_088) {
+                        probe_limit_088 = total_cost;
+                        probe_cell_key_078 = cell_key;
+                        probe_position_07c = position;
+                    }
+
+                    int* bucket = static_cast<int*>(visited_index->bucket_heads) +
+                        (hash & (visited_index->bucket_count - 1));
+                    int removed = *bucket;
+                    int previous = -1;
+                    W8OctreeEntry* entries =
+                        static_cast<W8OctreeEntry*>(visited_index->entries);
+
+                    while (removed != -1) {
+                        W8OctreeEntry* entry = &entries[removed];
+                        if (entry->key == cell_key &&
+                            (unsigned int)entry->value == visited) {
+                            if (previous == -1) {
+                                *bucket = entry->next_index;
+                            }
+                            else {
+                                entries[previous].next_index = entry->next_index;
+                            }
+                            entry->next_index = visited_index->free_head;
+                            visited_index->free_head = removed;
+                            break;
+                        }
+                        previous = removed;
+                        removed = entry->next_index;
+                    }
+
+                    if (visited_index->free_head == -1) {
+                        GrowIndex00439290(visited_index);
+                    }
+                    int inserted = visited_index->free_head;
+                    entries = static_cast<W8OctreeEntry*>(visited_index->entries);
+                    visited_index->free_head = entries[inserted].next_index;
+                    entries[inserted].key = cell_key;
+                    entries[inserted].value = step_cost << 16 | visited;
+                    unsigned int bucket_index =
+                        hash & (visited_index->bucket_count - 1);
+                    entries[inserted].next_index =
+                        static_cast<int*>(visited_index->bucket_heads)[bucket_index];
+                    static_cast<int*>(visited_index->bucket_heads)[bucket_index] = inserted;
+                }
+            }
+        }
+        else {
+            blocked = 1;
+        }
+
+        unsigned int direction;
+        if (error >= 0 || blocked != 0) {
+            direction = directions[0];
+            cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+            error -= walk.error_28;
+        }
+        else {
+            direction = directions[1];
+            --iteration;
+            cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+            error += walk.cell_size_30;
+        }
+        if (direction_mask != 0 &&
+            (direction_mask & 1 << (direction & 0x1f)) == 0) {
+            blocked = 1;
+        }
+        ++iteration;
+    }
+
+    return blocked == 0;
 }
 
 /* Append one waypoint surface and keep every capacity-coupled side table sized

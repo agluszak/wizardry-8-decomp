@@ -74,6 +74,26 @@ struct W8OctreeWalk {
 
 static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
 
+/* The two-dimensional cell walk used by path-surface probing. It retains the
+   three-component shape of the octree walker, but only X and Z participate in
+   its Bresenham step; the remaining slots are zeroed by the builder. */
+struct W8PathGridWalk {
+    int cell_00[2];                      /* 0x00: starting X/Z path cells */
+    int value_08;                        /* 0x08: zero */
+    int step_0c[2];                      /* 0x0c: +1 or -1 per axis */
+    int value_14;                        /* 0x14: zero */
+    int major_axis_18;                   /* 0x18: 0 for X, 1 for Z */
+    int minor_axis_1c;                   /* 0x1c: (major + 1) % 2 */
+    int value_20;                        /* 0x20: zero */
+    int count_24;                        /* 0x24: cells to visit */
+    int error_28;                        /* 0x28 */
+    int error_2c;                        /* 0x2c */
+    int cell_size_30;                    /* 0x30 */
+    int value_34[3];                     /* 0x34: zero */
+};
+
+static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
+
 /* The pathing service the octree builds when its file carries one. Its own
    constructor at 0x004578E0 initialises through 0x238 and ReadOctFile allocates
    0x240, which is what fixes the extent; only the fields those two bodies and
@@ -100,6 +120,19 @@ public:
         const srVector3T<float>* position, unsigned char exhaustive);
     void AddWaypoint0045DDB0(const srVector3T<float>* position);
     unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
+    unsigned char SnapWaypointPosition00462E60(
+        srVector3T<float>* position, unsigned char snap_to_cell);
+    void ProbeWaypointArc00462570(
+        const srVector3T<float>* from, const srVector3T<float>* to);
+    void GetPathGridStepDirections0045AEE0(
+        const W8PathGridWalk* walk, int* directions);
+    void BuildPathGridWalk0045AF60(
+        const float* from,
+        const float* to,
+        const float* origin,
+        W8PathGridWalk* walk);
+    unsigned char ProbeWaypointSegment00462750(
+        const srVector3T<float>* from, const srVector3T<float>* to);
     void SetWaypointLinkFlags0045E030(unsigned short waypoint, unsigned int direction);
     void AddWaypointLink0045EC30(
         unsigned short source, unsigned short destination, unsigned int flags);
@@ -162,7 +195,9 @@ public:
     void* m_owned_06c;                   /* 0x6c */
     unsigned int m_positional_070;       /* 0x70: starts 0x501502f9 */
     void* m_pIndex_074;                  /* 0x74 */
-    unsigned char m_positional_078[0x14];
+    unsigned int probe_cell_key_078;     /* 0x78 */
+    srVector3T<float> probe_position_07c; /* 0x7c */
+    unsigned int probe_limit_088;        /* 0x88 */
     unsigned char flag_08c;              /* 0x8c */
     unsigned char m_positional_08d[0xf];
     unsigned char flag_09c;              /* 0x9c */
@@ -399,6 +434,7 @@ struct W8OctreeEntry {
 
 void InsertEntry0055DBB0(
     W8OctreeIndex* index, const unsigned int* key, const int* value);
+void GrowIndex00439290(W8OctreeIndex* index);
 
 extern W8Octree* g_octree_6598a4;
 
