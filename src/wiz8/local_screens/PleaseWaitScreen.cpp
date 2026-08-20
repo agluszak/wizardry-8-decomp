@@ -92,8 +92,12 @@ extern unsigned char SetValue5FF5F0(int font);
    Code\Controls.cpp already declares this position as int. */
 extern void Function548F90(int target, int object, int frame, int y,
                            int a5, int a6, int a7, int a8);
+extern void Function549600(int target, int object, int frame, int y,
+                           int a5, int a6, int a7, int a8);
 extern void Function422F10(void);
 extern void Function426790(void);
+extern void Function4095B0(void);
+extern void Function48F9E0(void);
 extern void Function512C40(void);
 extern void Function5092F0(int* level, int* entrance);
 extern void Function5063E0(void);
@@ -404,4 +408,26 @@ unsigned char PleaseWaitScreenLeave(char leaving)
     ResetRegions();
     SetFlag603C60();
     return 1;
+}
+
+/* Texture loads performed while screen four is active keep audio and the
+   animated please-wait glyph moving. The descriptor fields and the draw call
+   are the same private state used by PleaseWaitScreenFrame above. */
+// FUNCTION: WIZ8 0x005915A0
+void UpdatePleaseWaitLoadFrame005915A0(void)
+{
+    unsigned long tick;
+
+    Function4095B0();
+    Function48F9E0();
+    tick = GetTickCount();
+    if (tick - g_load_descriptor_69b7c8->entered_tick > 499) {
+        g_load_descriptor_69b7c8->caption_y =
+            (g_load_descriptor_69b7c8->caption_y + 1) % 0x18;
+        g_load_descriptor_69b7c8->entered_tick = tick;
+        Function549600(-0xe, 0x1dd, 0,
+                       g_load_descriptor_69b7c8->caption_y,
+                       0, 0x185, 2, 0);
+        Function426790();
+    }
 }

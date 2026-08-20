@@ -242,6 +242,24 @@ protected:
        vptr store this body would make is dead-stored away by the base's own
        store that immediately follows. */
     virtual ~srIlluminator() override {}
+
+public:
+    /* srIlluminator's renderer-owned tail begins after the four-byte
+       srVertexProcessor secondary base at complete-object offset 0x13c. */
+    unsigned char unknown_13c_[0x14];
+    union {
+        int m_positional_18;
+        double m_positional_double_18;
+    };
+    union {
+        double m_positional_double_20;
+        struct {
+            float m_positional_20;
+            float m_positional_24;
+        };
+    };
+    float m_positional_28;
+    unsigned int unknown_2c;
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");

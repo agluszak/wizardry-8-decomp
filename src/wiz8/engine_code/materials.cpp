@@ -3,9 +3,12 @@
 #include "surrender/srMaterial.h"
 #include "surrender/srMeshModel.h"
 #include "surrender/srModelInstance.h"
+#include "surrender/srStatisticsManager.h"
+#include "surrender/srVertexProcessor.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/stTextureFile.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/render_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/sr_api.h"
@@ -21,9 +24,65 @@
 
 #define MATERIALS_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\materials.cpp"
 
-extern unsigned char g_flag_65beaf;
-extern unsigned char g_material_mapper_0065bea8[];
+extern "C" unsigned char g_flag_65beaf;
 extern void UpdatePleaseWaitLoadFrame005915A0(void);
+
+/* The global at 0x0065BEA8 is a real zero-storage srVertexProcessor subclass:
+   its non-template process body establishes the boundary independently of its
+   constructor and vtable. No source or export name survives, so the class
+   remains address-qualified. */
+// VTABLE: WIZ8 0x005ED0D0
+// class W8MaterialMapper004B89A0
+class W8MaterialMapper004B89A0 : public srVertexProcessor {
+public:
+    W8MaterialMapper004B89A0();
+    virtual ~W8MaterialMapper004B89A0() override {}
+    // FUNCTION: WIZ8 0x004D6190
+    virtual int isActive(srVertexPipe&) override { return 1; }
+    virtual void process(srVertexPipe& pipe) override;
+};
+
+static_assert(sizeof(W8MaterialMapper004B89A0) == 4,
+              "W8MaterialMapper004B89A0_must_be_4");
+
+// GLOBAL: WIZ8 0x0065BEA8
+W8MaterialMapper004B89A0 g_material_mapper_0065bea8;
+
+// FUNCTION: WIZ8 0x004B89A0
+W8MaterialMapper004B89A0::W8MaterialMapper004B89A0()
+{
+}
+
+/* Convert eye-space normals to the material's first texture-coordinate set.
+   The exported srVertexPipe queries preserve the closed renderer's ownership
+   of its internal workspace while expressing every operation in this body. */
+// FUNCTION: WIZ8 0x004B89B0
+void W8MaterialMapper004B89A0::process(srVertexPipe& pipe)
+{
+    const srVector3T<float>* normals;
+    srVector2T<float>* coordinates;
+    unsigned long count;
+    unsigned long index;
+
+    if (!pipe.isChannelAvailable(
+            static_cast<srVertexProcessor::e_channel>(5))) {
+        return;
+    }
+    normals = pipe.getEyeSpaceNormal();
+    coordinates = pipe.getST(0, 0);
+    count = pipe.getVertexCount();
+    srCore.getStatisticsManager()->statistics_00
+        .texture_coordinate_operations_34 += count;
+    for (index = 0; index < count; ++index) {
+        coordinates[index].x =
+            (normals[index].x + g_float_005ebb38) * g_float_005ebc7c;
+        coordinates[index].y =
+            (normals[index].y + g_float_005ebb38) * g_float_005ebc7c;
+    }
+}
+
+// SYNTHETIC: WIZ8 0x004B8A50
+// W8MaterialMapper004B89A0::`scalar deleting destructor'
 
 /* Engine Code\materials.cpp. Its canonical assertions name the pointer
    ppstMaterial, and the constructor at 0x004925B0 registers the class with
@@ -308,8 +367,7 @@ unsigned char LoadMaterial004B8A70(
             concrete->dirty_74 = 1;
             concrete->m_field_78 = source->shader_flags_116;
             if ((source->shader_flags_116 & 0x1fe) != 0) {
-                concrete->setMapper(reinterpret_cast<srVertexProcessor*>(
-                    g_material_mapper_0065bea8));
+                concrete->setMapper(&g_material_mapper_0065bea8);
             }
         }
     }

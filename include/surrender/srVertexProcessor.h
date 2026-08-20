@@ -26,9 +26,11 @@ static_assert(sizeof(srVertexArray) == 0x20,
 
 /* SR.DLL exports secondary vtables qualified as srVertexProcessor for
    srIlluminator, srFog and srLight. Each has exactly three slots: a destructor,
-   isActive and process. Wiz8's concrete fog allocation proves that this base
-   begins at +0x138 and occupies 0x30 bytes; the larger light-only tail belongs
-   to srLight rather than to this common base. */
+   isActive and process. Wizardry's four-byte global processor at 0x0065BEA8 is
+   followed by independently used storage at 0x0065BEAF, and its constructor at
+   0x004B89A0 writes only the vptr. That complete-object allocation proves this
+   interface has no data beyond its vptr. The 0x2c-byte tail previously placed
+   here belongs to srIlluminator, whose secondary base starts at +0x138. */
 #pragma pack(push, 4)
 class srVertexProcessor {
 public:
@@ -63,26 +65,12 @@ public:
     virtual void process(srVertexPipe& pipe) = 0;
 
 public:
-    unsigned char unknown_04_[0x14];
-    union {
-        int m_positional_18;
-        double m_positional_double_18;
-    };
-    union {
-        double m_positional_double_20;
-        struct {
-            float m_positional_20;
-            float m_positional_24;
-        };
-    };
-    float m_positional_28;
-    unsigned int unknown_2c;
 };
 #pragma pack(pop)
 
 static_assert(
-    sizeof(srVertexProcessor) == 0x30,
-    "srVertexProcessor_must_be_0x30");
+    sizeof(srVertexProcessor) == 0x04,
+    "srVertexProcessor_must_be_0x04");
 static_assert(
     sizeof(srVertexProcessor::MaterialInfo) == 0x54,
     "srVertexProcessor_MaterialInfo_must_be_0x54");
