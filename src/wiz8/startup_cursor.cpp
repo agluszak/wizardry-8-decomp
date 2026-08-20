@@ -43,6 +43,7 @@ int g_cursor_image_width_6596b4;
 int g_cursor_image_height_6596b8;
 int g_cursor_hotspot_x_6596bc;
 int g_cursor_hotspot_y_6596c0;
+unsigned char g_system_cursor_visible_6596c4;
 extern unsigned char g_fullscreen_603c39;
 
 }
@@ -278,6 +279,69 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
             if (reset_tick) {
                 g_cursor_move_tick_659698 = GetTickCount();
             }
+        }
+    }
+}
+
+/* Keep the rendered cursor synchronized with the OS cursor. In windowed mode
+   the OS cursor is visible outside the client area and hidden while the game
+   owns it; fullscreen coordinates are clamped to the 640x480 game surface. */
+// FUNCTION: WIZ8 0x00428340
+extern "C" void Function00428340(void)
+{
+    POINT cursor;
+    RECT client;
+    POINT top_left;
+    POINT bottom_right;
+
+    GetCursorPos(&cursor);
+    if (!g_fullscreen_603c39) {
+        GetClientRect(ghWindow, &client);
+        top_left.x = client.left;
+        top_left.y = client.top;
+        bottom_right.x = client.right;
+        bottom_right.y = client.bottom;
+        ClientToScreen(ghWindow, &top_left);
+        ClientToScreen(ghWindow, &bottom_right);
+        if (cursor.x < top_left.x || cursor.x >= bottom_right.x ||
+            cursor.y < top_left.y || cursor.y >= bottom_right.y) {
+            if (g_system_cursor_visible_6596c4 != 1) {
+                g_system_cursor_visible_6596c4 = 1;
+                ShowCursor(TRUE);
+            }
+            return;
+        }
+        cursor.x -= top_left.x;
+        cursor.y -= top_left.y;
+        if (cursor.x != g_cursor_width_654ad0 ||
+            cursor.y != g_cursor_height_654ad4) {
+            PositionMouseCursor(cursor.x, cursor.y, 1);
+        }
+        if (g_system_cursor_visible_6596c4 != 0) {
+            g_system_cursor_visible_6596c4 = 0;
+            ShowCursor(FALSE);
+        }
+        return;
+    }
+
+    if (cursor.x < 1) cursor.x = 0;
+    else if (cursor.x >= 640) cursor.x = 640;
+    if (cursor.y < 1) cursor.y = 0;
+    else if (cursor.y >= 480) cursor.y = 480;
+    if (cursor.x != g_cursor_width_654ad0 ||
+        cursor.y != g_cursor_height_654ad4) {
+        PositionMouseCursor(cursor.x, cursor.y, 1);
+        if (!g_fullscreen_603c39) {
+            GetClientRect(ghWindow, &client);
+            top_left.x = client.left;
+            top_left.y = client.top;
+            bottom_right.x = client.right;
+            bottom_right.y = client.bottom;
+            ClientToScreen(ghWindow, &top_left);
+            ClientToScreen(ghWindow, &bottom_right);
+            SetCursorPos(top_left.x + cursor.x, top_left.y + cursor.y);
+        } else {
+            SetCursorPos(cursor.x, cursor.y);
         }
     }
 }

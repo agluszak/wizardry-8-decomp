@@ -23,7 +23,6 @@ extern unsigned char CharacterHasCondition(const W8Character* character, int con
    run 0xd4 bytes apart, so the state's leading fields are the first row's. */
 extern unsigned char g_combat_log_enabled_0068d810;
 extern const wchar_t g_combat_log_format_00617664;
-extern int g_active_party_slot_0068518d;
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void RoundPhaseToStep(unsigned int* actor, int round);
 extern int GetCurrentTargetingContext(int party_slot);
@@ -178,7 +177,7 @@ void DropCharacterFromRound(int party_slot)
     }
     ResetCombatSlot(&row->target_in_combat);
     NotifySpellPointsChanged(party_slot);
-    if (party_slot == g_active_party_slot_0068518d) {
+    if (party_slot == g_status_685170.active_party_slot_001d) {
         RequestRedrawParty();
     }
     Function4E8000(party_slot, row->action_kind, row->action_detail, 0, 0);

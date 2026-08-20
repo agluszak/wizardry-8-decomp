@@ -48,7 +48,7 @@ extern int g_next_world_item_id;
 extern W8PList* g_world_item_list;
 
 W8WorldItem* CreateWorldItem(
-    const W8ItemInstance* item,
+    W8ItemInstance* item,
     const srVector3T<float>* position,
     int unknown,
     unsigned char add_to_world);
@@ -63,9 +63,9 @@ W8WorldItem* SpawnItem(
 void ReplaceOrCreateItem(
     W8ItemInstance* item,
     int item_id,
-    int quantity,
-    int charges,
-    int identified);
+    unsigned char maximum_quantity,
+    unsigned char force_identified,
+    unsigned char mark_special);
 
 bool ItemHasFlags(W8WorldItem* item, unsigned int mask);
 void SetItemFlags(W8WorldItem* item, unsigned int mask, unsigned char enabled);

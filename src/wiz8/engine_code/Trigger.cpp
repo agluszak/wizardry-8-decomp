@@ -90,7 +90,6 @@ extern void RestorePartySpellPoints(int amount);
 extern int PointCastSpell(
     float x, float y, float z, int spell_id, unsigned int power_level);
 extern void RemoveAllConditionsFromParty(void);
-extern unsigned char* g_message_table_68c09c;
 extern void GetCameraPosition(srVector3T<float>* position);
 
 extern int ApplyItemEffectToRandomCharacter0052E5C0(
@@ -101,7 +100,6 @@ extern char PartyAttemptsToIdentifyItem(
 extern void MoveItem(
     W8ItemInstance* destination, W8ItemInstance* source,
     int argument_3, int argument_4);
-extern unsigned char g_item_in_hand_shown_006874ca;
 extern unsigned char g_flag_0068506e;
 extern int g_value_0068c520;
 extern int g_value_0068c548;
@@ -1473,10 +1471,10 @@ void Trigger::Run(int source)
         was_active = m_pProp->Rep()->flag_06d;
 
         if (inline_action_data_24c[0] != '\0') {
-            if (g_item_in_hand_shown_006874ca != 0) {
+            if (g_status_685170.item_in_hand_shown_235a != 0) {
                 srVector3T<float> item_position;
                 W8WorldItem* item = CreateWorldItem(
-                    &g_item_in_hand, &item_position, 3, 0);
+                    &g_status_685170.item_in_hand_235b, &item_position, 3, 0);
 
                 if (item != 0) {
                     if (world_item_group_34c == 0) {
@@ -1534,9 +1532,10 @@ void Trigger::Run(int source)
                     }
                 }
                 else if (item_count == 2 &&
-                         g_item_in_hand_shown_006874ca == 0) {
+                         g_status_685170.item_in_hand_shown_235a == 0) {
                     item = world_item_group_34c->next;
-                    MoveItem(&g_item_in_hand, &item->item, 0, 1);
+                    MoveItem(&g_status_685170.item_in_hand_235b,
+                             &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group_34c, item);
                     if (m_pProp->Rep()->flag_064 != 0) {
                         goto toggle_item_prop;
@@ -1776,8 +1775,7 @@ toggle_item_prop:
             }
             else if (action_230 == 0x27) {
                 RestorePartySpellPoints(m_lData3);
-                ShowString(*reinterpret_cast<W8WideChar**>(
-                    g_message_table_68c09c + 0x1c88));
+                ShowString(gppStringList[0x1c88 / 4]);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
             }
             else {

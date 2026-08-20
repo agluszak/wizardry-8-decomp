@@ -286,6 +286,32 @@ short GetCatalogVideoObjectYOffset(int object)
     return g_video_slots_6448c8[object].y_offset;
 }
 
+/* Loads the selected catalog frame and returns the dimensions of one of its
+   ETRLE subimages. Surface-backed records have no ETRLE table, so the retail
+   body intentionally leaves the caller's outputs untouched for them. */
+// FUNCTION: WIZ8 0x00549660
+void Function549660(int object, int frame, int image,
+                    short* width, short* height)
+{
+    W8VideoObjectSlot* slot;
+    W8VideoFrame* record;
+    short subimage;
+
+    Function549090(object, frame);
+    slot = &g_video_slots_6448c8[object];
+    subimage = slot->y_offset + image;
+    record = &g_video_frames_62c430[slot->first_frame + frame];
+    if (!g_video_objects_ready_650e20) {
+        srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP,
+                     0xdd, 0);
+    }
+    if (record->mode == 0) {
+        GetVideoObjectETRLESubregionProperties(
+            record->handle, subimage,
+            (unsigned short*)width, (unsigned short*)height);
+    }
+}
+
 /* Defined later in this unit at 0x005494F0 and not yet recovered. Its parameter
    list is taken from this call site: Ghidra's inference for that body is
    degraded, showing an unresolved return-address value and a stack-address

@@ -458,7 +458,11 @@ extern void Function49F720(const float* position);
 extern void RemoveItemFromSector(int sector, W8WorldItem* item);         /* 0x004B7B50 */
 extern void AddItemToSector(int sector, W8WorldItem* item);              /* 0x004B7AD0 */
 extern void ReplaceOrCreateItem(
-    W8ItemInstance* item, int item_id, int count, unsigned char quality, int arg_5);
+    W8ItemInstance* item,
+    int item_id,
+    unsigned char maximum_quantity,
+    unsigned char force_identified,
+    unsigned char mark_special);
 extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */

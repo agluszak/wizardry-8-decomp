@@ -87,8 +87,8 @@ W8World* GetWorld(void)
 // FUNCTION: WIZ8 0x0051b9e0
 int GetItemInHand(void)
 {
-    if (!g_item_in_hand_valid) {
+    if (!g_status_685170.item_in_hand_shown_235a) {
         return -1;
     }
-    return g_item_in_hand.item_id;
+    return g_status_685170.item_in_hand_235b.item_id;
 }

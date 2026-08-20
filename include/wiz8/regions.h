@@ -1,6 +1,8 @@
 #ifndef WIZ8_REGIONS_H
 #define WIZ8_REGIONS_H
 
+#include <stddef.h>
+
 typedef struct W8RegionSet {
     unsigned int enabled;
     unsigned int first_region;
@@ -43,6 +45,14 @@ extern unsigned int g_region_set_count;  /* guiRegsetCount */
 extern W8RegionSet g_region_sets[];
 extern unsigned int g_region_count;      /* guiRegionCount */
 extern W8Region g_regions[];
+extern int g_region_help_delay;
+extern int g_region_help_clock;
+extern unsigned int g_hot_region_689b3c;
+extern unsigned int g_hot_region_689b44;
+extern unsigned int g_hot_region_689b4c;
+extern unsigned short g_dword_689b48;
+extern unsigned int g_dword_689b50;
+extern wchar_t* g_default_help_text;
 
 unsigned int GetForcedRegion(void);
 void UpdateRegionHelp(void);

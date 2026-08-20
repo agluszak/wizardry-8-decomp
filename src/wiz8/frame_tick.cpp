@@ -6,6 +6,10 @@
 
 #include <string.h>
 
+unsigned char State5Enter005C2DE0(void);
+void State5Frame005C3120(void);
+unsigned char State5Tick005C30B0(int leaving);
+
 /*
  * The per-frame tick WinMain calls when no message is waiting and the
  * application is active. It drives a screen-state stack: the current state
@@ -53,7 +57,8 @@ W8ScreenStateHandlers g_screen_handlers[13] = {
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
-    { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
+    { ScreenReady, State5Enter005C2DE0, State5Frame005C3120,
+      State5Tick005C30B0, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },
     { ScreenReady, ScreenReady, ScreenIdle, ScreenLeave, 0 },

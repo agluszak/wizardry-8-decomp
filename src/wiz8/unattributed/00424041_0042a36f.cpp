@@ -1,4 +1,5 @@
 #include "wiz8/unattributed/quarantine_common.h"
+#include "wiz8/cursor.h"
 
 /* Address quarantine 00424041-0042a36f; bounds come from adjacent
    assertion-backed original translation-unit intervals. */
@@ -114,7 +115,7 @@ void GetScreenPoint004284F0(W8ScreenPoint* point)
 {
     if (point != 0) {
         Function00428340();
-        point->x = g_value_6596bc + g_value_654ad0;
-        point->y = g_value_6596c0 + g_value_654ad4;
+        point->x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
+        point->y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
     }
 }

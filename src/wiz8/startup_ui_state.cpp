@@ -1,4 +1,5 @@
 #include "wiz8/game_state.h"
+#include "wiz8/regions.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -14,11 +15,6 @@ extern short g_word_5ff7c8;
 
 int g_region_help_delay;
 int g_region_help_clock;
-void* g_region_help_text;
-unsigned int g_active_region_index;
-unsigned int g_forced_region_index;
-unsigned int g_dword_689b50;
-void* g_default_help_text;
 
 /* The buffer and selector state are independent of the four STI button
    objects.  Those source-backed SGP video objects are part of wiz8-xb9. */
@@ -33,8 +29,9 @@ void InitializeRegionHelpState(void)
 {
     g_region_help_delay = g_settings_6850c8.field_025;
     g_region_help_clock = 0;
-    g_active_region_index = 0;
-    g_forced_region_index = 0;
+    g_hot_region_689b3c = 0;
+    g_hot_region_689b44 = 0;
+    g_hot_region_689b4c = 0;
     g_dword_689b50 = 0;
     if (g_default_help_text) {
         free(g_default_help_text);

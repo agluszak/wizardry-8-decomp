@@ -1,4 +1,5 @@
 #include "wiz8/wiz8_windows.h"
+#include "wiz8/game_state.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/dialog_base.h"
 #include "wiz8/local_code/Strings.h"
@@ -52,7 +53,6 @@ W8ModalDialogBase* g_swap_disc_dialog_69b7cc;
 // GLOBAL: WIZ8 0x0069B7D0
 unsigned char g_cd_marker_present_69b7d0;
 
-extern int g_dword_686a70;
 
 }
 
@@ -171,7 +171,7 @@ unsigned char PleaseWaitScreenEnter(void)
             strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
             break;
         case 2:
-            g_load_descriptor_69b7c8->parameter = g_dword_686a70;
+            g_load_descriptor_69b7c8->parameter = g_current_level;
             strcpy(g_load_descriptor_69b7c8->name, g_screen_state_0068ec78.name);
             g_load_descriptor_69b7c8->save_payload = g_screen_state_0068ec78.parameter_3;
             break;
@@ -346,7 +346,7 @@ void PleaseWaitScreenFrame(void)
             if (!LoadGame(g_load_descriptor_69b7c8->name)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 293, 0);
             }
-            if (!LoadLevel(g_dword_686a70, -1, 1)) {
+            if (!LoadLevel(g_current_level, -1, 1)) {
                 srAssertFail("fVerify", PLEASE_WAIT_SCREEN_CPP, 296, 0);
             }
         }

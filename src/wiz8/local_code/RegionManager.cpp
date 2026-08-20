@@ -6,17 +6,9 @@
 #include <new>
 #include <wchar.h>
 
-extern int g_region_help_clock;
-extern unsigned int g_active_region_index;
-extern wchar_t* g_region_help_text;
-extern unsigned int g_forced_region_index;
-extern int g_region_help_delay;
 extern unsigned char g_region_help_force_enabled;
-extern unsigned char g_flag_6850d4;
 extern unsigned short g_word_6850ed;
 extern void HideRegionHelp(void);                           /* 0x00429770 */
-extern unsigned int g_dword_689b50;
-extern void* g_default_help_text;                           /* 0x00689B40 */
 extern int g_help_box_width;                                /* 0x006548A0 */
 extern int g_help_box_height;                               /* 0x00654ACC */
 extern void SetHelpBoxText(void* text);                     /* 0x00429290 */
@@ -26,26 +18,123 @@ extern void PlaceHelpBox(int x, int y);                     /* 0x00429210 */
 enum { W8_SCREEN_WIDTH = 640, W8_SCREEN_HEIGHT = 480, W8_HELP_MARGIN = 2 };
 enum { W8_REGION_MODE_MASK = 0xf, W8_REGION_HELP_SHOWN = 0x200 };
 
-/* The complete screen-lifecycle initializer owns the catalog.  Its reviewed
-   main-menu path addresses set one, so retain that bounded prefix while
-   wiz8-a69 restores all records and their exact region ranges. */
-unsigned int g_region_set_count = 2;
+/* The retail catalog contains 51 statically declared sets and 313 statically
+   declared regions.  Dynamically constructed controls append after that
+   catalog; region zero is the template copied into each appended record. */
+unsigned int g_region_set_count = 51;
 W8RegionSet g_region_sets[300];
-unsigned int g_region_count = 1500;
-W8Region g_regions[1500];
-extern "C" unsigned int g_hot_region_689b3c;
+unsigned int g_region_count = 313;
+W8Region g_regions[1500] = {
+    { 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 }
+};
 unsigned int g_hot_region_689b3c;
+wchar_t* g_default_help_text;
 unsigned int g_hot_region_689b44;
-extern "C" unsigned int g_hot_region_689b4c;
 unsigned int g_hot_region_689b4c;
 unsigned short g_dword_689b48;
 unsigned int g_dword_689b50;
 unsigned short g_word_6850ed;
 
+// GLOBAL: WIZ8 0x00689B32
+unsigned char g_flag_689b32;
+
 extern unsigned short gfAltState;
 extern unsigned short gfCtrlState;
 extern unsigned short gfShiftState;
 extern void ReleaseScreenTransitionObjects(void);
+extern void Function558720(int sound_id);
+
+/* Dispatch one mouse-position event through the enabled region sets. A forced
+   modal region bypasses hit testing; otherwise the first containing region
+   receives leave/enter transitions, hover help timing, and the ordinary
+   position callback as one transaction. */
+// FUNCTION: WIZ8 0x004f1360
+void Function4F1360(int x, int y)
+{
+    W8RegionMouseEvent event;
+    unsigned int set_index;
+    unsigned int region_index;
+
+    event.event.time = GetClock();
+    event.event.modifiers = gfAltState | gfCtrlState | gfShiftState;
+    event.event.reason = MOUSE_POS;
+    event.mouse_position =
+        (static_cast<unsigned int>(static_cast<unsigned short>(y)) << 16) |
+        static_cast<unsigned short>(x);
+
+    if (g_hot_region_689b44 != 0) {
+        W8Region* forced = &g_regions[g_hot_region_689b44];
+        forced->callback(&event.event, forced);
+        return;
+    }
+
+    for (set_index = 0; set_index < g_region_set_count; ++set_index) {
+        W8RegionSet* set = &g_region_sets[set_index];
+        if (set->enabled != 1 || set->first_region > set->last_region) {
+            continue;
+        }
+        for (region_index = set->first_region;
+             region_index <= set->last_region; ++region_index) {
+            if (!RegionContainsPoint(region_index,
+                                     static_cast<unsigned short>(x),
+                                     static_cast<unsigned short>(y))) {
+                continue;
+            }
+
+            W8Region* region = &g_regions[region_index];
+            unsigned int previous_index = g_hot_region_689b4c;
+            g_hot_region_689b3c = region_index;
+            if (previous_index != 0 && previous_index != region_index) {
+                W8Region* previous = &g_regions[previous_index];
+                previous->flags = (previous->flags & 0xff0f) | 0x20;
+                previous->callback(&event.event, previous);
+                if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
+                    ReleaseScreenTransitionObjects();
+                    previous->flags &= ~W8_REGION_HELP_SHOWN;
+                }
+                Function558720(1);
+                g_dword_689b48 = g_word_6850ed;
+                previous->flags &= 0xff0f;
+                g_dword_689b50 = 0;
+            }
+            if (previous_index != region_index) {
+                region->flags |= 0x10;
+                SetRegionHelpText(
+                    FormatWideString(L"Region %d", region_index));
+            }
+            region->callback(&event.event, region);
+            if (g_hot_region_689b3c != previous_index) {
+                if (region->help_enabled != 0 &&
+                    (g_settings_6850c8.field_00c != 0 ||
+                     g_dword_689b50 != 0)) {
+                    g_region_help_clock =
+                        SetCountdownClock(g_dword_689b48);
+                }
+                Function558720(0);
+            }
+            region->flags &= 0xffcf;
+            g_hot_region_689b4c = g_hot_region_689b3c;
+            return;
+        }
+    }
+
+    g_hot_region_689b3c = 0;
+    if (g_hot_region_689b4c != 0) {
+        unsigned int previous_index = g_hot_region_689b4c;
+        W8Region* previous = &g_regions[previous_index];
+        previous->flags = (previous->flags & 0xff0f) | 0x20;
+        previous->callback(&event.event, previous);
+        if ((previous->flags & W8_REGION_HELP_SHOWN) != 0) {
+            ReleaseScreenTransitionObjects();
+            previous->flags &= ~W8_REGION_HELP_SHOWN;
+        }
+        Function558720(1);
+        g_dword_689b48 = g_word_6850ed;
+        g_dword_689b50 = 0;
+        previous->flags &= 0xff0f;
+    }
+    g_hot_region_689b4c = g_hot_region_689b3c;
+}
 
 /* Raises the help box for one region, taking a stale one down first. The
    selected text comes either from the region's indexed notice entry or the
@@ -61,7 +150,7 @@ void ShowRegionHelp(unsigned int region_index)
     int width;
     int height;
 
-    if (g_flag_6850d4 == 0 && g_dword_689b50 == 0) {
+    if (g_settings_6850c8.field_00c == 0 && g_dword_689b50 == 0) {
         return;
     }
     region = &g_regions[region_index];
@@ -147,9 +236,9 @@ void ActivateDialogRegion(unsigned int region_index)
 // FUNCTION: WIZ8 0x004f21b0
 unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
 {
-    if (g_forced_region_index == region_index) {
-        g_forced_region_index = 0;
-        g_active_region_index = 0;
+    if (g_hot_region_689b44 == region_index) {
+        g_hot_region_689b44 = 0;
+        g_hot_region_689b3c = 0;
         return 1;
     }
     return 0;
@@ -158,7 +247,7 @@ unsigned char ClearActiveRegionIfMatches(unsigned int region_index)
 // FUNCTION: WIZ8 0x004f21d0
 unsigned int GetForcedRegion(void)
 {
-    return g_forced_region_index;
+    return g_hot_region_689b44;
 }
 
 // FUNCTION: WIZ8 0x004f21e0
@@ -346,17 +435,17 @@ bool RegionHasFlags(unsigned int region_index, unsigned int flags)
 // FUNCTION: WIZ8 0x004f25a0
 void UpdateRegionHelp(void)
 {
-    if (g_forced_region_index == 0) {
-        if (g_active_region_index != 0 &&
-            g_regions[g_active_region_index].help_enabled != 0 &&
-            (g_flag_6850d4 != 0 || g_region_help_force_enabled != 0) &&
+    if (g_hot_region_689b44 == 0) {
+        if (g_hot_region_689b3c != 0 &&
+            g_regions[g_hot_region_689b3c].help_enabled != 0 &&
+            (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0) &&
             ClockIsTicking(g_region_help_clock) == 0) {
-            ShowRegionHelp(g_active_region_index);
+            ShowRegionHelp(g_hot_region_689b3c);
         }
-    } else if (g_regions[g_forced_region_index].help_enabled != 0 &&
-               (g_flag_6850d4 != 0 || g_region_help_force_enabled != 0) &&
+    } else if (g_regions[g_hot_region_689b44].help_enabled != 0 &&
+               (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0) &&
                ClockIsTicking(g_region_help_clock) == 0) {
-        ShowRegionHelp(g_forced_region_index);
+        ShowRegionHelp(g_hot_region_689b44);
     }
 }
 
@@ -364,29 +453,29 @@ void UpdateRegionHelp(void)
 // FUNCTION: WIZ8 0x004f2750
 void SetRegionHelpText(const wchar_t* text)
 {
-    if (g_region_help_text != 0) {
-        ::operator delete(g_region_help_text);
+    if (g_default_help_text != 0) {
+        ::operator delete(g_default_help_text);
     }
     if (text != 0) {
-        g_region_help_text = static_cast<wchar_t*>(
+        g_default_help_text = static_cast<wchar_t*>(
             ::operator new((wcslen(text) + 1) * sizeof(wchar_t)));
-        wcscpy(g_region_help_text, text);
+        wcscpy(g_default_help_text, text);
     } else {
-        g_region_help_text = 0;
+        g_default_help_text = 0;
     }
 }
 
 // FUNCTION: WIZ8 0x004f27f0
 void ResetRegionHelp(unsigned char delayed)
 {
-    unsigned int region_index = g_active_region_index;
+    unsigned int region_index = g_hot_region_689b3c;
 
     HideRegionHelp();
     g_regions[region_index].flags &= 0xfffffdff;
     if (delayed == 0) {
-        ShowRegionHelp(g_active_region_index);
-    } else if (g_regions[g_active_region_index].help_enabled != 0 &&
-               (g_flag_6850d4 != 0 || g_region_help_force_enabled != 0)) {
+        ShowRegionHelp(g_hot_region_689b3c);
+    } else if (g_regions[g_hot_region_689b3c].help_enabled != 0 &&
+               (g_settings_6850c8.field_00c != 0 || g_region_help_force_enabled != 0)) {
         g_region_help_clock = SetCountdownClock(g_region_help_delay);
     }
 }

@@ -1,6 +1,9 @@
 #include "wiz8/gameplay_boundaries.h"
 #include "wiz8/local_code/Controls.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 /*
  * Local Screens\MGSTextBox.cpp.
  *
@@ -23,6 +26,35 @@ extern void ScrollTextBoxTo(int line);                                  /* 0x005
 /* 0x0068F2D4: the screen the text box belongs to; its two panels sit at 0x0c
    and 0x14. */
 extern void RedrawTextBoxBody(void);                                    /* 0x00588E60 */
+
+/* Release every heap object owned by the four-by-350 message store, then
+   return each record to its all-zero initial state.  The retail body walks
+   the same record boundary twice: 0x15e records per run and four runs up to
+   the next global at 0x0069B7D0. */
+// FUNCTION: WIZ8 0x0058fd30
+void Function58FD30(void)
+{
+    for (int row = 0; row < 4; ++row) {
+        for (int index = 0; index < 0x15e; ++index) {
+            W8MessageStorageRecord* record =
+                &g_message_storage_68f2d8[row][index];
+            if (record->allocation_00) {
+                free(record->allocation_00);
+            }
+            W8PList* entries = record->entries_18;
+            if (entries) {
+                unsigned int count = PLLength(entries);
+                for (unsigned int entry = 0; entry < count; ++entry) {
+                    free(PLGet(entries, entry));
+                }
+                PListClear(entries);
+                PLDestroy(entries);
+                record->entries_18 = 0;
+            }
+            memset(record, 0, sizeof(*record));
+        }
+    }
+}
 
 /* How many lines the text box can still be scrolled through. */
 // FUNCTION: WIZ8 0x0058fb30

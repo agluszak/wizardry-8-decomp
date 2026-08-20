@@ -2,6 +2,7 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/vector.h"
+#include "wiz8/video_object_catalog.h"
 #include "Font.h"
 #include "vsurface.h"
 
@@ -29,6 +30,27 @@
    for by the assertion - so they are spelled in the file's style without
    claiming that style is evidence. */
 #define REGSET_NULL 0
+
+// GLOBAL: WIZ8 0x005ED548
+extern const unsigned int g_W8TextBufferLayoutMask005ED548 = 0x01;
+// GLOBAL: WIZ8 0x005ED54C
+extern const unsigned int g_W8TextBufferLayoutMask005ED54C = 0x02;
+// GLOBAL: WIZ8 0x005ED550
+extern const unsigned int g_W8TextBufferLayoutMask005ED550 = 0x04;
+// GLOBAL: WIZ8 0x005ED554
+extern const unsigned int g_W8TextBufferLayoutMask005ED554 = 0x08;
+// GLOBAL: WIZ8 0x005ED558
+extern const unsigned int g_W8TextBufferLayoutMask005ED558 = 0x10;
+// GLOBAL: WIZ8 0x005ED55C
+extern const unsigned int g_W8TextBufferLayoutMask005ED55C = 0x20;
+// GLOBAL: WIZ8 0x005ED56C
+extern const unsigned int g_W8TextControlMask005ED56C = 0x01;
+// GLOBAL: WIZ8 0x005ED570
+extern const unsigned int g_W8TextControlMask005ED570 = 0x02;
+// GLOBAL: WIZ8 0x005ED578
+extern const unsigned int g_W8TextControlMask005ED578 = 0x01;
+// GLOBAL: WIZ8 0x005ED588
+extern const unsigned int g_W8TextControlMask005ED588 = 0x10;
 
 
 // SYNTHETIC: WIZ8 0x004f68a0
@@ -95,8 +117,6 @@ extern void Function5494F0(int target, int arg_1c, int arg_20,
                            int left, int top, int mode);
 extern void Function549600(int operation, int target, int arg_1c, int arg_20,
                            int left, int top, int mode, int flags);
-extern unsigned short Function4071F0(int font);             /* font line height */
-extern short Function407010(const wchar_t* text, int font);
 extern void Function407210(int font);
 extern int Function406DF0(int font);
 extern void Function4068E0(int font_context, int render_mode);
@@ -109,18 +129,14 @@ extern void Function407A10(int a, int b, int font, int x, int y,
                            const wchar_t* format, const wchar_t* text);
 extern void Function407B80(int a, int b, int font, int x, int y);
 extern unsigned char SetValue5FF5F0(int font);
-extern const wchar_t g_W8EmptyText0060CC74[];
-extern const wchar_t g_W8EmptyHelpText00689B34[];
-extern const wchar_t g_W8TextBreakCharacters00617C88[];
+const wchar_t g_W8TextSeparator0060CC74[] = L" ";
+const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
 extern const wchar_t g_W8LineBreakCharacters00617C90[];
-extern const wchar_t g_W8TextFormat006068E4[];
 extern int g_W8TextClipTarget005FF5F4;
 extern int g_W8TextClipFlags00650E38;
 extern int g_W8FontStateTable0068EE1C[];
 extern float g_W8RangeEnd005EBB38;
 extern float g_W8RangeHalfStep005EBC7C;
-extern unsigned int g_W8TextControlMask005ED56C;
-extern unsigned int g_W8TextControlMask005ED570;
 extern void Function558720(int sound_id);
 extern void Function5587C0(int a, int b);
 extern void Function4284F0(int* coordinates);
@@ -261,11 +277,6 @@ void W8WidgetBase005ED5BC::SetRegion(unsigned int region)
     }
 }
 
-/* Measures a string, returning its extent through the last two arguments. Not
-   recovered, and not first-party as far as this file can tell - declared only
-   so the caller below can be. */
-extern void Function549660(int a, int b, int c, short* width, short* height);
-
 /*
  * The class at vtable 0x005ED5B8. It owns a wide-string buffer at +0x34, which
  * is the one field the encodings name for themselves: the destructor frees it
@@ -399,7 +410,8 @@ void W8TextBuffer005ED5B8::UpdateLayout()
     wchar_t* line = m_buffer;
     unsigned int accumulated_width = 0;
     wchar_t* previous_break = 0;
-    short separator_width = Function407010(g_W8EmptyText0060CC74, m_font);
+    short separator_width = StringPixLength(
+        (unsigned short*)g_W8TextSeparator0060CC74, m_font);
 
     m_lineCount = 1;
     if ((m_layoutMode & 0x40) == 0) {
@@ -408,7 +420,7 @@ void W8TextBuffer005ED5B8::UpdateLayout()
         wchar_t* break_at = line + span;
         while (*break_at != L'\0') {
             *break_at = L'\0';
-            short word_width = Function407010(line, m_font);
+            short word_width = StringPixLength((unsigned short*)line, m_font);
             if ((unsigned int)((int)word_width + accumulated_width) < available_width) {
                 accumulated_width += (int)separator_width + (int)word_width;
                 previous_break = break_at;
@@ -429,7 +441,7 @@ void W8TextBuffer005ED5B8::UpdateLayout()
             span = wcscspn(line, g_W8TextBreakCharacters00617C88);
             break_at = line + span;
         }
-        short final_width = Function407010(line, m_font);
+        short final_width = StringPixLength((unsigned short*)line, m_font);
         unsigned int total_width = (int)final_width + accumulated_width;
         if (available_width <= total_width) {
             if (previous_break != 0) {
@@ -476,7 +488,7 @@ int W8TextBuffer005ED5B8::GetHorizontalPosition(int width)
 int W8TextBuffer005ED5B8::GetVerticalPosition()
 {
     unsigned int line_height = m_lineHeight;
-    unsigned int font_height = Function4071F0(m_font);
+    unsigned int font_height = GetFontHeight(m_font);
     unsigned int first_line_inset;
     if (line_height == 0) {
         line_height = font_height;
@@ -503,7 +515,7 @@ int W8TextBuffer005ED5B8::GetVerticalPosition()
 // FUNCTION: WIZ8 0x004f3cf0
 void W8TextBuffer005ED5B8::SetLineHeight(unsigned int height)
 {
-    if (height < Function4071F0(m_font)) {
+    if (height < GetFontHeight(m_font)) {
         m_lineHeight = 0;
         return;
     }
@@ -552,10 +564,11 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
     while (line[span] != L'\0') {
         line[span] = L'\0';
-        int x = GetHorizontalPosition(Function407010(line, m_font));
+        int x = GetHorizontalPosition(
+            StringPixLength((unsigned short*)line, m_font));
         if (m_alternateRenderer == 0) {
             Function407A10(a, b, m_font, x + x_offset, y + y_offset,
-                           g_W8TextFormat006068E4, line);
+                           L"%s", line);
         } else {
             Function407B80(a, b, m_font, x + x_offset, y + y_offset);
         }
@@ -569,10 +582,11 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
     }
 
     {
-        int x = GetHorizontalPosition(Function407010(line, m_font));
+        int x = GetHorizontalPosition(
+            StringPixLength((unsigned short*)line, m_font));
         if (m_alternateRenderer == 0) {
             Function407A10(a, b, m_font, x + x_offset, y + y_offset,
-                           g_W8TextFormat006068E4, line);
+                           L"%s", line);
         } else {
             Function407B80(a, b, m_font, x + x_offset, y + y_offset);
         }
@@ -620,9 +634,10 @@ void W8TextBuffer005ED5B8::Function4F39B0(
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
     while (line[span] != L'\0') {
         line[span] = L'\0';
-        int x = GetHorizontalPosition(Function407010(line, m_font));
+        int x = GetHorizontalPosition(
+            StringPixLength((unsigned short*)line, m_font));
         mprintf(x + offset, y + offset,
-                (unsigned short*)g_W8TextFormat006068E4, line);
+                (unsigned short*)L"%s", line);
         y += GetLineHeight();
         line[span] = L'\n';
         if (m_layoutBounds.bottom <= y) {
@@ -633,9 +648,10 @@ void W8TextBuffer005ED5B8::Function4F39B0(
     }
 
     {
-        int x = GetHorizontalPosition(Function407010(line, m_font));
+        int x = GetHorizontalPosition(
+            StringPixLength((unsigned short*)line, m_font));
         mprintf(x + offset, y + offset,
-                (unsigned short*)g_W8TextFormat006068E4, line);
+                (unsigned short*)L"%s", line);
     }
 
 done:
@@ -661,7 +677,7 @@ unsigned int W8TextBuffer005ED5B8::GetLineHeight()
 {
     unsigned int height = m_lineHeight;
     if (height == 0) {
-        height = Function4071F0(m_font);
+        height = GetFontHeight(m_font);
     }
     return height;
 }
@@ -1319,7 +1335,7 @@ W8HelpTextControl005ED758::W8HelpTextControl005ED758(
     : W8TextControl005ED604(panel, region, left, top, right, bottom,
                            -1, -1, -1, -1, -1, -1, -1)
 {
-    wcscpy(m_regionHelp, g_W8EmptyHelpText00689B34);
+    wcscpy(m_regionHelp, L"");
 }
 
 class W8RangeControl005ED74C;

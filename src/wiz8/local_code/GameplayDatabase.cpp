@@ -19,7 +19,6 @@ extern void Function52F890(int party_slot, int value_1, int value_2, int value_3
 extern void QueueGameplayEvent(int event_type, int party_slot);
 extern void PostCharacterMessage(int party_slot, const W8WideChar* format, ...);
 extern W8WideChar* GetItemDisplayName(const W8ItemInstance* item);
-extern unsigned char* g_message_table_68c09c;
 /* 0x0054B300 resets one of eight slots. */
 extern void Function54B300(unsigned int slot);
 /* The gStatus object owned by GameplayDatabase.cpp. */
@@ -37,6 +36,9 @@ int g_fact_record_count;
 W8ItemDatabaseRecord* g_item_records;
 // GLOBAL: WIZ8 0x00683F78
 int g_item_record_count;
+/* The six item stacks granted by the new-game status reset. */
+// GLOBAL: WIZ8 0x006164DC
+unsigned int g_starting_item_ids[6] = {0x14f, 0x14f, 0x15a, 0x15a, 0x15b, 0x155};
 // GLOBAL: WIZ8 0x006836A4
 W8LevelDatabaseRecord* g_level_records;
 // GLOBAL: WIZ8 0x00683F90
@@ -67,18 +69,18 @@ extern void EnableAllRenderOptions(void);
 extern void DisableRenderOption(int id);
 extern unsigned int GetTotalPhysicalMemory(void);
 extern int GetRendererFamily(void);
-extern int g_dword_685189;
-extern int g_active_party_slot_0068518d;
-extern int g_dword_686a70;
-extern unsigned int g_dwords_686a50[8];
-extern unsigned char g_flag_687511;
 extern void Function58FD30(void);
-extern void Function520070(W8ItemInstance* item, int a, int b);
+extern void Function520070(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern void Function554580(unsigned char* target);
-extern void ReplaceOrCreateItem(W8ItemInstance* item, unsigned int id, int a, int b, int c);
+extern void ReplaceOrCreateItem(
+    W8ItemInstance* item,
+    int item_id,
+    unsigned char maximum_quantity,
+    unsigned char force_identified,
+    unsigned char mark_special);
 extern bool g_flag_68517c;
 extern bool g_flag_683fa0;
-extern int g_combat_difficulty_006850d5;
 extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);
@@ -525,7 +527,7 @@ void Function54B250(unsigned char notify, void* target)
         g_save_flag_00687599 = 1;
         Function5A9E70(target);
     }
-    g_dword_6875b7 = g_combat_difficulty_006850d5;
+    g_dword_6875b7 = g_settings_6850c8.field_00d;
     g_flag_683fa0 = true;
     Function482720(0x2932e00);
     Function482740(1);
@@ -676,12 +678,12 @@ void Function54B100(void)
         }
     }
     Function58FD30();
-    Function520070(&g_item_in_hand, 0, 1);
-    slot = g_party_item_pool;
+    Function520070(&g_status_685170.item_in_hand_235b, 0, 1);
+    slot = g_status_685170.party_item_pool_0021;
     do {
         Function520070(slot, 0, 1);
         ++slot;
-    } while (slot < (W8ItemInstance*)&g_party_item_count);
+    } while (slot < (W8ItemInstance*)&g_status_685170.party_item_count_1791);
     id = g_starting_item_ids;
     do {
         if (*id != 0xffffffff) {
@@ -690,13 +692,13 @@ void Function54B100(void)
             AddItemToParty(&item, 0, 0);
         }
         ++id;
-    } while (id < g_starting_item_ids_end);
-    g_dword_685189 = 500;
-    g_active_party_slot_0068518d = GetNextCharacter(1, 1, -1);
-    g_dword_686a70 = -1;
-    Function554580(&g_flag_687511);
+    } while (id < g_starting_item_ids + 6);
+    g_status_685170.party_item_capacity_0019 = 500;
+    g_status_685170.active_party_slot_001d = GetNextCharacter(1, 1, -1);
+    g_current_level = -1;
+    Function554580((unsigned char*)&g_status_685170.party_status_23a1);
     for (index = 0; index < 8; ++index) {
-        g_dwords_686a50[index] = 0xffffffff;
+        g_status_685170.dwords_18e0[index] = 0xffffffff;
     }
 }
 
@@ -914,12 +916,12 @@ void __fastcall ProcessStartupStateEntry(W8StartupStateElement005EE748* entry)
             if (entry->item_id_24 == -1) {
                 PostCharacterMessage(
                     party_slot,
-                    *reinterpret_cast<W8WideChar**>(g_message_table_68c09c + 0x1dc4));
+                    gppStringList[0x1dc4 / 4]);
             }
             else {
                 PostCharacterMessage(
                     party_slot,
-                    *reinterpret_cast<W8WideChar**>(g_message_table_68c09c + 0x1dc8),
+                    gppStringList[0x1dc8 / 4],
                     GetItemDisplayName(
                         reinterpret_cast<const W8ItemInstance*>(&entry->item_id_24)));
             }

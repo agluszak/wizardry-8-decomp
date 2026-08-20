@@ -44,7 +44,9 @@ typedef struct W8ItemDatabaseRecord {
     unsigned char unknown_064[2];
     unsigned char quantity_kind;          /* 0x066 */
     W8Dice initial_quantity;              /* 0x067 */
-    unsigned char unknown_06b[0xb];
+    /* The stack merge path clamps quantity-kind 1 items to this byte. */
+    unsigned char maximum_quantity;      /* 0x06b */
+    unsigned char unknown_06c[0xa];
     unsigned short profession_mask;       /* 0x076 */
     unsigned int race_mask;               /* 0x078 */
     unsigned char faction_mask;           /* 0x07c */

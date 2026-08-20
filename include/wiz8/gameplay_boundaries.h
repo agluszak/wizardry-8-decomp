@@ -410,14 +410,6 @@ extern W8PList* g_active_monster_list_00683fad;
    vector reads as its absent value too. */
 extern float g_float_005ebb34;
 
-/* Which screen is up, as g_screen_state_0068ec78.id holds it. Only the two the
-   recovered bodies test are named. */
-enum {
-    W8_SCREEN_CAMP = 6,
-    W8_SCREEN_MAIN_GAME = 7
-};
-
-
 extern W8FactionRuntimeRecord g_factions[21];
 extern W8RaceResistanceProfile g_race_resistance_profiles[];
 /* 0x00685178: one 0x106-byte row per party slot; only the leading byte is
@@ -462,7 +454,7 @@ extern const int g_equip_slot_icons[];
 /* 0x0068517C: gStatus.fGameStarted, named by the PC Item.cpp assertion at line
    3795 that guards the party-pool sort. Item placement consults it because the
    character-creation screens fill different slots than play does. */
-extern unsigned char g_game_started;
+#define g_game_started (g_status_685170.game_started_000c)
 /* 0x00685189: the party's purse. AddPartyGold plays Data\Sound\Misc\ChaChing.wav
    and posts the pickup message when it is told to announce; SpendPartyGold is
    the matching debit and floors at zero rather than wrapping. */
@@ -496,6 +488,7 @@ extern unsigned int g_encounter_name_count;
 extern int g_encounter_tables_level;
 extern unsigned int g_encounter_table_count;
 extern int g_loaded_level_id;
+/* Current party level, -1 while no level is loaded. */
 /* 0x00659AB8: the second world. It was spelled `void*` where it is defined and
    `W8World*` where the viewport reaches through it, which is two claims about
    one object; the viewport's is the one a body proves, since it reads the
@@ -505,16 +498,9 @@ extern W8World* g_world_659ab8;
    clear at 0x0040C220 reads it from outside that unit, so the declaration sits
    here rather than being spelled a second time where it is used. */
 extern unsigned char g_display_flag_650e90;
-extern unsigned char g_item_in_hand_valid;
-extern W8ItemInstance g_item_in_hand;
-/* The party's carried pool, bounded by the count that follows it in memory;
-   0x0054B100 walks it by address rather than by index. */
-extern W8ItemInstance g_party_item_pool[];
-extern int g_party_item_count;
 /* Starting item ids, terminated by the address after the last, with 0xffffffff
    marking an empty slot. */
 extern unsigned int g_starting_item_ids[];
-extern unsigned int g_starting_item_ids_end[];
 extern W8LevelFolderRecord g_level_folders[47];
 /* 0x00686A70: the level the party is on. The save loader compares it against
    the level id in an LVLS chunk, and it indexes the per-level rows below -
@@ -575,7 +561,8 @@ int MinimumCasterLevelForSpellLevel(int spell_level);
 int GetMinimumCasterLevelForSpell(int spell_id);
 /* 0x00521EF0, the address CFAgent seeds. Answers whether the item found a
    home, which one of its two callers tests and the other ignores. */
-bool AddItemToParty(W8ItemInstance* item, int arg_2, int arg_3);
+bool AddItemToParty(
+    W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking);
 W8FactionDisposition GetFactionDisposition(signed char faction);
 void RegionSetEnable(unsigned int region_set_index);
 void RegionSetDisable(unsigned int region_set_index);

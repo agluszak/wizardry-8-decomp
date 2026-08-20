@@ -6,6 +6,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/screen_state.h"
 #include "wiz8/vector.h"
+#include "wiz8/video_object_catalog.h"
 #include "wiz8/virtual_file.h"
 #include "FileMan.h"
 #include "Font.h"
@@ -67,8 +68,6 @@ void Function548F90(int target, int object, int frame, short y,
                     int left, int top, int mode, int flags);
 void Function549600(int target, int object, int frame, int y,
                     int left, int top, int mode, int flags);
-void Function549660(int object, int frame, int image,
-                    short* width, short* height);
 unsigned int Function568950(const InputAtom* input);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned int Function5D3F50(const InputAtom* input);
@@ -93,7 +92,6 @@ extern "C" int g_wiz_text_bold_font_683664;
 extern "C" unsigned short* g_colour_68ee08;
 extern "C" unsigned short* g_font_palette_wiz_text_bold_68ee0c;
 extern "C" unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned char* g_message_table_68c09c;
 extern "C" int g_dword_647bc0;
 extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6f04e8;
@@ -101,24 +99,11 @@ extern unsigned char g_flag_6f04ed;
 extern "C" int g_wiz_text_font_secondary_object_683680;
 extern "C" int g_options_title_font_68368c;
 extern "C" int g_options_detail_font_683614;
-extern const wchar_t g_W8TextFormat006068E4[];
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];
 extern unsigned short g_faction_name_message_rows_61e430[][4];
 extern unsigned short g_personality_message_ids_61e674[];
 extern int g_portrait_render_modes_6483dc[][4];
-extern int g_combat_difficulty_006850d5;
-extern unsigned char g_flag_00685118;
-extern unsigned int g_W8TextControlMask005ED578;
-extern unsigned int g_W8TextControlMask005ED588;
-extern unsigned int g_W8TextControlMask005ED570;
-extern unsigned int g_W8TextBufferLayoutMask005ED54C;
-extern unsigned int g_W8TextBufferLayoutMask005ED554;
-extern unsigned int g_W8TextBufferLayoutMask005ED55C;
-extern unsigned int g_W8TextBufferLayoutMask005ED548;
-extern unsigned int g_W8TextBufferLayoutMask005ED550;
-extern unsigned int g_W8TextBufferLayoutMask005ED558;
-extern const wchar_t g_W8EmptyHelpText00689B34[];
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
    bytes allocated at state-5 entry. The second vector supplies the names this
@@ -730,21 +715,16 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
     left += 0x36;
     SetValue5FF5F0(g_font_683660);
     mprintf(left, top + 4,
-            const_cast<wchar_t*>(g_W8TextFormat006068E4), character->name);
+            const_cast<wchar_t*>(L"%s"), character->name);
     mprintf(left, top + 0x0e, L"%s %d %s",
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1ae4),
+            gppStringList[0x1ae4 / 4],
             character->level,
-            *reinterpret_cast<wchar_t**>(
-                g_message_table_68c09c
-                + g_profession_name_message_ids_61e3f0[
-                    character->current_profession] * 4));
+            gppStringList[g_profession_name_message_ids_61e3f0[
+                character->current_profession]]);
     mprintf(left, top + 0x18, L"%s %s",
-            *reinterpret_cast<wchar_t**>(
-                g_message_table_68c09c
-                + g_faction_name_message_rows_61e430[character->faction][0] * 4),
-            *reinterpret_cast<wchar_t**>(
-                g_message_table_68c09c
-                + g_race_name_message_ids_61e3d0[character->race] * 4));
+            gppStringList[
+                g_faction_name_message_rows_61e430[character->faction][0]],
+            gppStringList[g_race_name_message_ids_61e3d0[character->race]]);
     Function4068E0(g_wiz_text_font_secondary_object_683680, 4);
 }
 
@@ -1122,7 +1102,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
         W8ControlsRect bounds = { 0x85, 0x30, 0x139, 0xba };
         W8TextBuffer005ED5B8 overlay(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1ae0),
+            gppStringList[0x1ae0 / 4],
             g_options_title_font_68368c,
             g_W8TextBufferLayoutMask005ED55C |
                 g_W8TextBufferLayoutMask005ED54C,
@@ -1143,11 +1123,9 @@ void W8State5PlainPanel005EF4E0::Redraw()
     SetValue5FF5F0(g_font_683660);
     Function4068E0(g_wiz_text_font_secondary_object_683680, 4);
 
-    const wchar_t* level_text =
-        *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1ae4);
-    const wchar_t* profession = *reinterpret_cast<wchar_t**>(
-        g_message_table_68c09c +
-        g_profession_name_message_ids_61e3f0[character->current_profession] * 4);
+    const wchar_t* level_text = gppStringList[0x1ae4 / 4];
+    const wchar_t* profession = gppStringList[
+        g_profession_name_message_ids_61e3f0[character->current_profession]];
     wchar_t* level_line = FormatWideString(
         L"%s %d %s", level_text, character->level, profession);
     int width = StringPixLength(
@@ -1155,58 +1133,55 @@ void W8State5PlainPanel005EF4E0::Redraw()
     mprintf((0xbf - width) / 2 + 0x78, 0xef,
             L"%s %d %s", level_text, character->level, profession);
 
-    const wchar_t* faction = *reinterpret_cast<wchar_t**>(
-        g_message_table_68c09c +
-        g_faction_name_message_rows_61e430[character->faction][0] * 4);
-    const wchar_t* race = *reinterpret_cast<wchar_t**>(
-        g_message_table_68c09c +
-        g_race_name_message_ids_61e3d0[character->race] * 4);
+    const wchar_t* faction = gppStringList[
+        g_faction_name_message_rows_61e430[character->faction][0]];
+    const wchar_t* race =
+        gppStringList[g_race_name_message_ids_61e3d0[character->race]];
     wchar_t* race_line = FormatWideString(L"%s %s", faction, race);
     width = StringPixLength(
         reinterpret_cast<unsigned short*>(race_line), g_font_683660);
     mprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", faction, race);
 
-    const wchar_t* personality = *reinterpret_cast<wchar_t**>(
-        g_message_table_68c09c +
-        g_personality_message_ids_61e674[character->personality_0081] * 4);
+    const wchar_t* personality = gppStringList[
+        g_personality_message_ids_61e674[character->personality_0081]];
     width = StringPixLength(
         const_cast<unsigned short*>(personality), g_font_683660);
     mprintf((0xbf - width) / 2 + 0x82, 0x10b,
-            const_cast<wchar_t*>(g_W8TextFormat006068E4), personality);
+            const_cast<wchar_t*>(L"%s"), personality);
 
     mprintf(0x96, 0x127,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1ae8));
+            gppStringList[0x1ae8 / 4]);
     mprintf(0xbf, 0x127, L"%d", character->attributes[0].value);
     mprintf(0x96, 0x135,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1aec));
+            gppStringList[0x1aec / 4]);
     mprintf(0xbf, 0x135, L"%d", character->attributes[1].value);
     mprintf(0x96, 0x143,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1af0));
+            gppStringList[0x1af0 / 4]);
     mprintf(0xbf, 0x143, L"%d", character->attributes[2].value);
     mprintf(0x96, 0x151,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1af4));
+            gppStringList[0x1af4 / 4]);
     mprintf(0xbf, 0x151, L"%d", character->attributes[3].value);
     mprintf(0x96, 0x15f,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1af8));
+            gppStringList[0x1af8 / 4]);
     mprintf(0xbf, 0x15f, L"%d", character->attributes[4].value);
     mprintf(0x96, 0x16d,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1afc));
+            gppStringList[0x1afc / 4]);
     mprintf(0xbf, 0x16d, L"%d", character->attributes[5].value);
     mprintf(0x96, 0x17b,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b00));
+            gppStringList[0x1b00 / 4]);
     mprintf(0xbf, 0x17b, L"%d", character->attributes[6].value);
 
     mprintf(0xe3, 0x127,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b04));
+            gppStringList[0x1b04 / 4]);
     mprintf(0x115, 0x127, L"%d", character->hp_max);
     mprintf(0xe3, 0x135,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b08));
+            gppStringList[0x1b08 / 4]);
     mprintf(0x115, 0x135, L"%d", SumCharacterSpellPoints(character));
     mprintf(0xe3, 0x143,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b0c));
+            gppStringList[0x1b0c / 4]);
     mprintf(0x115, 0x143, L"%d", character->stamina_max);
     mprintf(0xe3, 0x151,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b10));
+            gppStringList[0x1b10 / 4]);
     mprintf(0x115, 0x151, L"%d", character->value_0bc5 / 10);
 }
 
@@ -1247,7 +1222,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
                                       0xf1, 0, 4, 6, 5, 7, -1));
         top += 0x16;
     }
-    m_options_50.SetSelected(g_combat_difficulty_006850d5);
+    m_options_50.SetSelected(g_settings_6850c8.field_00d);
 
     top += 0x16;
     m_toggle_78 =
@@ -1256,7 +1231,7 @@ W8State5OptionPanel005EF4AC::W8State5OptionPanel005EF4AC()
                                   0xf1, 0, 2, 0, 3, 1, -1);
     m_toggle_78->AddLayoutFlags(
         g_W8TextControlMask005ED588 | g_W8TextControlMask005ED578);
-    if (g_flag_00685118) {
+    if (g_settings_6850c8.field_050) {
         m_toggle_78->ActivatePrimary(0);
     }
 
@@ -1366,7 +1341,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
     if (mode == 0) {
         m_entries_7c.Add(new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1fdc),
+            gppStringList[0x1fdc / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED558 |
                 g_W8TextBufferLayoutMask005ED548,
@@ -1375,7 +1350,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.right = origin_x + 0x155;
         m_entries_7c.Add(new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1fe0),
+            gppStringList[0x1fe0 / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED550 |
                 g_W8TextBufferLayoutMask005ED558,
@@ -1383,7 +1358,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x16;
         m_entries_7c.Add(new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1fe4),
+            gppStringList[0x1fe4 / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED550 |
                 g_W8TextBufferLayoutMask005ED558,
@@ -1391,7 +1366,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x16;
         m_entries_7c.Add(new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1fe8),
+            gppStringList[0x1fe8 / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED550 |
                 g_W8TextBufferLayoutMask005ED558,
@@ -1401,7 +1376,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x2c;
         m_entries_7c.Add(new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x202c),
+            gppStringList[0x202c / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED558 |
                 g_W8TextBufferLayoutMask005ED548,
@@ -1410,7 +1385,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x2c;
         W8TextBuffer005ED5B8* text = new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b34),
+            gppStringList[0x1b34 / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED54C |
                 g_W8TextBufferLayoutMask005ED558,
@@ -1421,7 +1396,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x42;
         m_entries_7c.Add(new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b38),
+            gppStringList[0x1b38 / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED558 |
                 g_W8TextBufferLayoutMask005ED548,
@@ -1430,7 +1405,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x2c;
         text = new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b3c),
+            gppStringList[0x1b3c / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED54C |
                 g_W8TextBufferLayoutMask005ED558,
@@ -1444,7 +1419,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         bounds.top += 0x2c;
         W8TextBuffer005ED5B8* text = new W8TextBuffer005ED5B8(
             &bounds,
-            *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b40),
+            gppStringList[0x1b40 / 4],
             g_options_detail_font_683614,
             g_W8TextBufferLayoutMask005ED54C |
                 g_W8TextBufferLayoutMask005ED558,
@@ -1462,7 +1437,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
     bounds.right = origin_x + 0x164;
     W8TextBuffer005ED5B8* text = new W8TextBuffer005ED5B8(
         &bounds,
-        *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b44),
+        gppStringList[0x1b44 / 4],
         g_options_detail_font_683614,
         g_W8TextBufferLayoutMask005ED54C |
             g_W8TextBufferLayoutMask005ED558,
@@ -1481,7 +1456,7 @@ void W8State5OptionPanel005EF4AC::Function5C05F0(int mode)
         m_render_left_8c + 2, m_render_top_90 + 2,
         static_cast<unsigned short>(m_image_width_94) - 4,
         static_cast<unsigned short>(m_image_height_96) - 4,
-        0x7f, g_W8EmptyHelpText00689B34, 0x28, 0x0f, 1);
+        0x7f, L"", 0x28, 0x0f, 1);
     Function5D3D20(0);
     controller->m_input_handler_64 = input_handler;
     input_handler->m_listener = controller;
@@ -1517,7 +1492,7 @@ void W8State5Controller005EF4CC::Setup()
                                   0, 0, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_40->m_textBuffer.SetText(
-        *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b14),
+        gppStringList[0x1b14 / 4],
         g_wiz_text_bold_font_683664);
     m_text_40->m_listener = this;
 
@@ -1532,7 +1507,7 @@ void W8State5Controller005EF4CC::Setup()
                                   0, 0x34, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_48->m_textBuffer.SetText(
-        *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b20),
+        gppStringList[0x1b20 / 4],
         g_wiz_text_bold_font_683664);
     m_text_48->m_listener = this;
 
@@ -1541,7 +1516,7 @@ void W8State5Controller005EF4CC::Setup()
                                   0, 0x4e, 0, 0,
                                   0xfe, 0, 0, 2, 1, 2, 3);
     m_text_4c->m_textBuffer.SetText(
-        *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b24),
+        gppStringList[0x1b24 / 4],
         g_wiz_text_bold_font_683664);
     m_text_4c->m_listener = this;
 
@@ -1700,8 +1675,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_control_30->SetEnabled(0);
         m_control_30->EnableRegionSet(0);
         m_text_54->SetVisible(CountActiveCharacters() != 0);
-        label = *reinterpret_cast<wchar_t**>(
-            g_message_table_68c09c + 0x1ad0);
+        label = gppStringList[0x1ad0 / 4];
         break;
     }
     case 1: {
@@ -1759,8 +1733,7 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_control_2c->SetEnabled(1);
         m_control_30->SetEnabled(0);
         m_control_30->EnableRegionSet(0);
-        label = *reinterpret_cast<wchar_t**>(
-            g_message_table_68c09c + 0x1ad4);
+        label = gppStringList[0x1ad4 / 4];
         break;
     }
     case 2:
@@ -1780,20 +1753,17 @@ void W8State5Controller005EF4CC::SetMode(int mode)
         m_control_30->SetEnabled(1);
         m_control_30->EnableRegionSet(1);
         m_control_30->Function5C05F0(0);
-        label = *reinterpret_cast<wchar_t**>(
-            g_message_table_68c09c + 0x1ad8);
+        label = gppStringList[0x1ad8 / 4];
         break;
     case 3:
         m_text_50->SetEnabled(0);
         m_control_30->Function5C05F0(1);
-        label = *reinterpret_cast<wchar_t**>(
-            g_message_table_68c09c + 0x1adc);
+        label = gppStringList[0x1adc / 4];
         break;
     case 4:
         m_text_50->SetEnabled(0);
         m_control_30->Function5C05F0(2);
-        label = *reinterpret_cast<wchar_t**>(
-            g_message_table_68c09c + 0x1adc);
+        label = gppStringList[0x1adc / 4];
         break;
     default:
         return;
@@ -1861,10 +1831,10 @@ void W8State5Controller005EF4CC::SetSelection(
 
     m_control_2c->m_character_4c = m_character_18;
     m_control_2c->Invalidate(0);
-    wchar_t* text = *reinterpret_cast<wchar_t**>(
-        g_message_table_68c09c
-        + ((!m_character_18 || !m_character_18->in_party)
-            ? 0x1b18 : 0x1b1c));
+    wchar_t* text = gppStringList[
+        ((!m_character_18 || !m_character_18->in_party)
+             ? 0x1b18
+             : 0x1b1c) / 4];
     m_text_44->m_textBuffer.SetText(text, g_font_683660);
     unsigned char have_character = m_character_18 != 0;
     m_text_44->SetVisible(have_character);
@@ -1897,8 +1867,7 @@ void W8State5Controller005EF4CC::OnPrimary(
         case 1:
             if (CountActiveCharacters() != 0) {
                 OpenNotification(
-                    *reinterpret_cast<wchar_t**>(
-                        g_message_table_68c09c + 0x1b4c),
+                    gppStringList[0x1b4c / 4],
                     1, 5);
                 return;
             }
@@ -1923,11 +1892,9 @@ void W8State5Controller005EF4CC::OnPrimary(
         OpenNotification(
             FormatWideString(
                 L"%s %s %s",
-                *reinterpret_cast<wchar_t**>(
-                    g_message_table_68c09c + 0x1b50),
+                gppStringList[0x1b50 / 4],
                 m_character_18->name,
-                *reinterpret_cast<wchar_t**>(
-                    g_message_table_68c09c + 0x1b54)),
+                gppStringList[0x1b54 / 4]),
             1, 1);
         return;
     }
@@ -1958,8 +1925,7 @@ void W8State5Controller005EF4CC::OnPrimary(
             if ((unsigned int)CountActiveCharacters() < 6) {
                 OpenNotification(
                     FormatWideString(
-                        *reinterpret_cast<wchar_t**>(
-                            g_message_table_68c09c + 0x1b64),
+                        gppStringList[0x1b64 / 4],
                         CountActiveCharacters()),
                     1, 3);
                 return;
@@ -1971,8 +1937,8 @@ void W8State5Controller005EF4CC::OnPrimary(
             SetMode(2);
             return;
         case 2:
-            g_combat_difficulty_006850d5 = m_control_30->m_options_50.m_index_c;
-            g_flag_00685118 =
+            g_settings_6850c8.field_00d = m_control_30->m_options_50.m_index_c;
+            g_settings_6850c8.field_050 =
                 (unsigned char)(m_control_30->m_toggle_78->m_stateFlags &
                                 g_W8TextControlMask005ED570);
             if ((m_control_30->m_toggle_74->m_stateFlags &
@@ -2005,8 +1971,7 @@ void W8State5Controller005EF4CC::OnPrimary(
     }
     if (CountActiveCharacters() != 0) {
         OpenNotification(
-            *reinterpret_cast<wchar_t**>(
-                g_message_table_68c09c + 0x1b58),
+            gppStringList[0x1b58 / 4],
             1, 4);
         return;
     }
@@ -2050,7 +2015,7 @@ void W8State5Controller005EF4CC::OnDecision(
         GetSaveSlotName005D3CC0(0, slot_name);
         if (SaveSlotFileExists(ConvertWideStringToString(slot_name))) {
             OpenNotification(
-                *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x20a4),
+                gppStringList[0x20a4 / 4],
                 1, 2);
             return;
         }
@@ -2072,7 +2037,7 @@ void W8State5Controller005EF4CC::OnDecision(
                 return;
             }
             OpenNotification(
-                *reinterpret_cast<wchar_t**>(g_message_table_68c09c + 0x1b4c),
+                gppStringList[0x1b4c / 4],
                 1, 5);
             return;
         case 2:
@@ -2264,9 +2229,7 @@ void W8State5Controller005EF4CC::Function5C2C60(int selection)
         if (result != 0) {
             Function54B100();
             OpenNotification(
-                *reinterpret_cast<wchar_t**>(
-                    g_message_table_68c09c +
-                    (result == 2 ? 0x1b60 : 0x1b5c)),
+                gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4],
                 0, 0);
         }
     }
@@ -2503,8 +2466,7 @@ void State5Frame005C3120(void)
                     }
                     else {
                         controller->OpenNotification(
-                            *reinterpret_cast<wchar_t**>(
-                                g_message_table_68c09c + 0x1b4c),
+                            gppStringList[0x1b4c / 4],
                             1, 5);
                     }
                     break;

@@ -12,6 +12,8 @@
  */
 
 #include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/3d_code/PList.h"
+#include "wiz8/item_instance.h"
 
 #pragma pack(push, 1)
 
@@ -82,22 +84,65 @@ typedef struct W8StatusBuffers {
     void* buffer_08;                     /* 0x08: 0x830 bytes */
 } W8StatusBuffers;
 
+typedef struct W8PartyStatusSelection {
+    unsigned short index;
+    unsigned char kind;
+} W8PartyStatusSelection;                 /* 0x03 */
+
+typedef struct W8PartyStatusRow {
+    unsigned char indices[3];
+    unsigned char mode;
+    unsigned char unknown_04[8];
+} W8PartyStatusRow;                       /* 0x0c */
+
+typedef struct W8PartyStatusState {
+    W8PartyStatusSelection selections[5]; /* 0x00 */
+    unsigned char flags_0f[5];            /* 0x0f */
+    W8PartyStatusRow rows_14[8];          /* 0x14 */
+    unsigned char unknown_74[0x10];
+} W8PartyStatusState;                     /* 0x84 */
+
 /* The global status block. It opens with the same two heap buffers
    AllocateStatusBuffers manages on a caller-supplied one, and 0x0054AF30 clears
    the whole block - pointers included - before allocating fresh ones. */
 typedef struct W8GlobalStatus {
     W8StatusBuffers buffers;             /* 0x0000 */
-    unsigned char unknown_000c[0x11];
+    unsigned char game_started_000c;
+    unsigned char unknown_000d[0x0c];
+    int party_item_capacity_0019;         /* 0x0019 */
     int active_party_slot_001d;           /* 0x001d */
-    unsigned char unknown_0021[0x18df];
+    W8ItemInstance party_item_pool_0021[500]; /* 0x0021 */
+    int party_item_count_1791;            /* 0x1791 */
+    unsigned char unknown_1795[0x14b];
+    unsigned int dwords_18e0[8];          /* 0x18e0 */
     int saved_level;                     /* 0x1900 */
-    unsigned char unknown_1904[0x30be];
+    unsigned char unknown_1904[0xa56];
+    unsigned char item_in_hand_shown_235a;
+    W8ItemInstance item_in_hand_235b;
+    unsigned char unknown_2367[0x3a];
+    W8PartyStatusState party_status_23a1;
+    unsigned char unknown_2425[0x259d];
 } W8GlobalStatus;                        /* 0x49c2 */
 
 /* Defined by GameplayDatabase.cpp, which carries the address marker. Declared
    here beside its type so consumers share one declaration instead of repeating
    a local extern each time. */
 extern W8GlobalStatus g_status_685170;
+
+/* 0x0058FD30 walks this storage as four runs of 0x15e records, always with a
+   0x24-byte stride.  Each record owns one allocation and an optional PList;
+   the other fields have no established meaning yet. */
+typedef struct W8MessageStorageRecord {
+    void* allocation_00;
+    unsigned char unknown_04[0x14];
+    W8PList* entries_18;
+    unsigned char unknown_1c[8];
+} W8MessageStorageRecord;
+
+#ifdef __cplusplus
+static_assert(sizeof(W8MessageStorageRecord) == 0x24,
+              "W8MessageStorageRecord_must_be_0x24");
+#endif
 
 typedef struct W8LevelRuntimeBlock {
     unsigned char unknown_000[0xf4];
@@ -178,6 +223,8 @@ extern "C" {
 
 extern W8LevelRuntimeBlock* g_level_block; /* 0x0068EDCC */
 extern int g_current_level;                /* 0x00686A70 */
+extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
+extern W8GameSettings g_settings_6850c8;   /* 0x006850C8 */
 
 #ifdef __cplusplus
 }

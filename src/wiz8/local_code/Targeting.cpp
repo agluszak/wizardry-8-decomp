@@ -993,7 +993,6 @@ void CollectMonstersWithinRadius(
         }
     }
 }
-extern int g_active_party_slot_0068518d;
 extern unsigned char g_flag_00683f95;
 extern unsigned char g_flag_00683f96;
 /* 0x0068408B: the target block context two answers with, shared by the whole
@@ -1028,7 +1027,7 @@ unsigned char GetCurrentTargetingContext(int party_slot)
         }
         return W8_TARGETING_CONTEXT_DIALOGUE;
     }
-    if (party_slot == g_active_party_slot_0068518d &&
+    if (party_slot == g_status_685170.active_party_slot_001d &&
         (g_flag_00683f95 != 0 || g_flag_00683f96 != 0)) {
         return W8_TARGETING_CONTEXT_SHARED;
     }

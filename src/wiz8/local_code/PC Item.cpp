@@ -148,10 +148,15 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 enum { W8_GENERIC_ITEM_NAME_COUNT = 147 };
 W8WideChar* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 extern const unsigned short g_generic_item_name_notice[];
-extern unsigned char g_item_in_hand_shown_006874ca;
-extern int g_held_item_source_006840c0;
-extern unsigned char g_held_item_origin_006840c4;
-extern unsigned short g_held_item_slot_006840c5;
+/* Shared scratch returned by the item-name formatter. */
+// GLOBAL: WIZ8 0x0068C0B4
+W8WideChar g_item_display_name_buffer[42];
+// GLOBAL: WIZ8 0x006840C0
+int g_held_item_source_006840c0;
+// GLOBAL: WIZ8 0x006840C4
+unsigned char g_held_item_origin_006840c4;
+// GLOBAL: WIZ8 0x006840C5
+unsigned short g_held_item_slot_006840c5;
 
 static_assert(sizeof(W8ItemVideoObjectEntry) == 8,
               "W8ItemVideoObjectEntry_must_be_8");
@@ -190,9 +195,13 @@ void W8ItemVideoObjectVector::Clear()
 
 extern void DropHeldItem(int arg_1);                         /* 0x004F7610 */
 extern void ShowNotice(void* notice, int a, int b, int c);   /* 0x0055F260 */
-extern void ClearHeldItemDisplay(void);                      /* 0x0055F1E0 */
+extern "C" void ClearHeldItemDisplay(void);                  /* 0x0055F1E0 */
 extern void ReplaceOrCreateItem(
-    W8ItemInstance* item, int item_id, int count, unsigned char quality, int arg_5);
+    W8ItemInstance* item,
+    int item_id,
+    unsigned char maximum_quantity,
+    unsigned char force_identified,
+    unsigned char mark_special);
 extern void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 /* 0x0051FE30 */
 extern unsigned char CanCharacterActivateItem(
@@ -201,11 +210,94 @@ extern void AddPartyGoldNotice(int channel, const wchar_t* notice, ...);
 extern int Function40A910(const char* path);
 extern void PlaySound(const char* path, int flags);
 extern void Function58AC00(int channel, void* message);
+extern void Function58AAD0(int channel, const wchar_t* format, W8WideChar* item_name);
+extern int GetRandomCharacter(int value_1, int value_2, int value_3, int value_4);
+extern signed char GetFactionDispositionScore(signed char faction);
+extern unsigned char Function50B8F0(int npc_id);
+extern void Function52E690(
+    W8Character* character,
+    void* message,
+    int value,
+    void* value_2,
+    void* value_3);
+extern void* g_item_message_005ee6fc;
+extern void* g_item_message_005ee640;
+extern void* g_item_message_005ee644;
+extern void* g_item_message_005ee648;
+extern void* g_item_message_005ee64c;
+extern void* g_item_message_005ee690;
+extern void* g_item_message_005ee68c;
+extern void* g_item_message_005ee664;
+extern void* g_item_message_arg_005ed8c8;
+extern void* g_item_message_arg_005ed914;
 
 
 /* Whether a weapon and an off-hand item go together, named by its own error
    text at 0x0051C8F0. */
 extern unsigned char CompatiblePartnerItems(int weapon_item_id, int off_hand_item_id);
+
+extern void Function5201B0(W8Character* character, int equip_slot);
+extern void Function4EE220(W8Character* character);
+extern unsigned char Function521060(
+    int item_id, int value_1, int value_2, int value_3, int value_4);
+extern void Function50E5C0(int party_slot);
+extern void DropCharacterFromRound(int party_slot);
+extern unsigned char Function5458A0(int party_slot);
+extern unsigned char Function4E79A0(
+    int party_slot, int value_1, int value_2, int value_3);
+extern void AimByKind(int actor, int kind, int context);
+extern unsigned char Function536F60(int party_slot, int value);
+extern void Function536570(int party_slot, int value_1, int value_2);
+extern void RequestRefreshPartyState(void);
+extern void RequestRedraw(unsigned int mask);
+extern void Function595600(void);
+extern void Function593330(void);
+extern void Function4EDD20(void);
+void Function520D10(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void Function520070(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
+void CopyItemInstance(
+    W8ItemInstance* destination,
+    W8ItemInstance* source,
+    W8Character* character,
+    unsigned char refresh);
+extern void Function55F160(int value);                       /* 0x0055F160 */
+extern unsigned char g_byte_652da6;
+
+/* Build the stable display form used by notices and inventory controls.  The
+   generic unidentified names are allocated once, while this returned buffer
+   is shared by the quantity and plain-name forms. */
+// FUNCTION: WIZ8 0x0051b5c0
+W8WideChar* FormatItemDisplayName(
+    const W8ItemInstance* item, unsigned char include_quantity)
+{
+    W8WideChar* name;
+    unsigned int name_index;
+
+    if (item->identified != 0) {
+        name = g_item_records[item->item_id].display_name;
+    }
+    else {
+        name_index = g_item_records[item->item_id].unidentified_name_index;
+        if (g_generic_item_names[name_index] == 0) {
+            name = (W8WideChar*)malloc(0x78);
+            g_generic_item_names[name_index] = name;
+            swprintf((wchar_t*)name, (const wchar_t*)gppStringList[0x79c / 4],
+                     gppStringList[g_generic_item_name_notice[name_index]]);
+        }
+        name = g_generic_item_names[name_index];
+    }
+
+    if (include_quantity && item->stack_count > 1) {
+        swprintf((wchar_t*)g_item_display_name_buffer, L"%s (%d)", name,
+                 (unsigned int)item->stack_count);
+    }
+    else {
+        swprintf((wchar_t*)g_item_display_name_buffer, L"%s", name);
+    }
+    return g_item_display_name_buffer;
+}
 
 /* The equipment class an item belongs to, or zero when the caller has no
    item - which is indistinguishable from the first real class, so callers
@@ -798,7 +890,7 @@ W8WideChar* GetItemDisplayName(const W8ItemInstance* item)
 // FUNCTION: WIZ8 0x0051be50
 bool DropItemInHand(int arg_1)
 {
-    if ((g_item_records[g_item_in_hand.item_id].flags_041 & W8_ITEM_FLAG_NO_DISCARD) != 0) {
+    if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 & W8_ITEM_FLAG_NO_DISCARD) != 0) {
         ShowNotice(gppStringList[0x13bc / 4], 0, 1, 0);
         return false;
     }
@@ -818,11 +910,11 @@ void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
     g_held_item_slot_006840c5 = 0xffff;
     ClearHeldItemDisplay();
     ReplaceOrCreateItem(&created, item_id, 1, quality, 0);
-    if (g_item_in_hand_shown_006874ca != 0) {
+    if (g_status_685170.item_in_hand_shown_235a != 0) {
         AddItemToParty(&created, 0, 0);
         return;
     }
-    MoveItem(&g_item_in_hand, &created, 0, 1);
+    MoveItem(&g_status_685170.item_in_hand_235b, &created, 0, 1);
 }
 
 /* How many of a character's twenty item slots hold something they could use
@@ -925,7 +1017,97 @@ void AddPartyGold(int amount, char announce)
     }
 }
 
-extern W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, int form);
+/* Initialize one live item from its database record.  Reusing a packed party-
+   pool slot first removes that slot from the pool; the new instance then gets
+   its rolled (or maximum) quantity and the record's identification policy. */
+// FUNCTION: WIZ8 0x0051c020
+void ReplaceOrCreateItem(
+    W8ItemInstance* item,
+    int item_id,
+    unsigned char maximum_quantity,
+    unsigned char force_identified,
+    unsigned char mark_special)
+{
+    W8ItemInstance shifted[500];
+    unsigned int index;
+
+    if ((unsigned int)item_id >= (unsigned int)g_item_record_count) {
+        srAssertFail(
+            "uiItemNo < gXStatus.uiItemsInDatabase",
+            PC_ITEM_CPP,
+            564,
+            FormatString("InitNewItem: error: invalid item %d", item_id));
+    }
+
+    if (item == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    }
+    else {
+        memset(item, 0, sizeof(*item));
+        item->item_id = -1;
+        Function520D10(item, 0, 1);
+    }
+
+    if (item >= g_status_685170.party_item_pool_0021 &&
+        item <= &g_status_685170.party_item_pool_0021[499]) {
+        index = 0;
+        while (index < (unsigned int)g_status_685170.party_item_count_1791 &&
+               item != &g_status_685170.party_item_pool_0021[index]) {
+            ++index;
+        }
+        if (index < (unsigned int)g_status_685170.party_item_count_1791 &&
+            g_status_685170.party_item_pool_0021[index].item_id == -1) {
+            unsigned int bytes =
+                (g_status_685170.party_item_count_1791 - index - 1) *
+                sizeof(W8ItemInstance);
+            memcpy(&shifted[index],
+                   &g_status_685170.party_item_pool_0021[index + 1], bytes);
+            memcpy(&g_status_685170.party_item_pool_0021[index],
+                   &shifted[index], bytes);
+            memset(&g_status_685170.party_item_pool_0021
+                        [g_status_685170.party_item_count_1791 - 1],
+                   0, sizeof(W8ItemInstance));
+            g_status_685170.party_item_pool_0021
+                [g_status_685170.party_item_count_1791 - 1]
+                    .item_id = -1;
+            --g_status_685170.party_item_count_1791;
+            Function4EDD20();
+        }
+    }
+
+    item->item_id = item_id;
+    const W8ItemDatabaseRecord* record = &g_item_records[item_id];
+    if (record->quantity_kind != 0) {
+        int maximum = record->initial_quantity.sides * record->initial_quantity.count +
+                      record->initial_quantity.base;
+        if (maximum >= 256) {
+            srAssertFail("uiMAX_DICE(pMulti) < 256", PC_ITEM_CPP, 578, 0);
+        }
+        unsigned char quantity = maximum_quantity
+                                     ? (unsigned char)maximum
+                                     : (unsigned char)RollDice(&record->initial_quantity);
+        if (record->quantity_kind == 1) {
+            item->stack_count = quantity;
+        }
+        else if (record->quantity_kind >= 2 && record->quantity_kind <= 4) {
+            item->uses_or_charges = quantity;
+        }
+        else {
+            srAssertFail("FALSE", PC_ITEM_CPP, 599,
+                         "InitNewItem: ERROR - Invalid multi code");
+        }
+    }
+    if (force_identified || (record->flags_041 & 1) != 0) {
+        item->identified = 1;
+    }
+    if (mark_special) {
+        item->bound = 1;
+    }
+}
+
 extern unsigned char TryIdentifyItemFor(W8Character* character, W8ItemInstance* item);
 /* 0x005208F0 */
 
@@ -1105,12 +1287,12 @@ bool ItemHasHiddenProperties(int item_id)
         return true;
     }
     for (index = 0; index < 6; ++index) {
-        if (record->unknown_06b[4 + index] != 0) {
+        if (record->unknown_06c[3 + index] != 0) {
             return true;
         }
     }
-    if (record->binds_on_equip != 0 || record->unknown_06b[1] != 0 ||
-        record->unknown_06b[2] != 0 || record->unknown_06b[3] != 0) {
+    if (record->binds_on_equip != 0 || record->unknown_06c[0] != 0 ||
+        record->unknown_06c[1] != 0 || record->unknown_06c[2] != 0) {
         return true;
     }
     return false;
@@ -1437,8 +1619,520 @@ void SortPartyItemPool(void)
     if (g_game_started == 0) {
         srAssertFail("gStatus.fGameStarted", PC_ITEM_CPP, 3795, 0);
     }
-    if (g_party_item_count > 1) {
-        qsort(g_party_item_pool, g_party_item_count, sizeof(W8ItemInstance),
+    if (g_status_685170.party_item_count_1791 > 1) {
+        qsort(g_status_685170.party_item_pool_0021,
+              g_status_685170.party_item_count_1791, sizeof(W8ItemInstance),
               CompareItemsForPool);
     }
+}
+
+/* Normalize a stack and split every full overflow stack into the party pool.
+   Quantity kinds two through four live in uses_or_charges instead. */
+// FUNCTION: WIZ8 0x0051fb40
+void Function51FB40(W8ItemInstance* item)
+{
+    if (item->item_id == -1) {
+        return;
+    }
+
+    const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+    if (record->quantity_kind == 1) {
+        if (item->uses_or_charges != 0) {
+            if (item->stack_count == 0) {
+                item->stack_count = item->uses_or_charges;
+            }
+            item->uses_or_charges = 0;
+        }
+    }
+    else if (record->quantity_kind >= 2 && record->quantity_kind <= 4 &&
+             item->stack_count != 0) {
+        if (item->uses_or_charges == 0) {
+            item->uses_or_charges = item->stack_count;
+        }
+        item->stack_count = 0;
+    }
+
+    if (record->quantity_kind != 1) {
+        return;
+    }
+    if (record->maximum_quantity == 0) {
+        item->stack_count = 0;
+        return;
+    }
+    while (item->stack_count > record->maximum_quantity) {
+        W8ItemInstance split = *item;
+        unsigned char quantity = item->stack_count - record->maximum_quantity;
+        if (quantity > record->maximum_quantity) {
+            quantity = record->maximum_quantity;
+        }
+        split.stack_count = quantity;
+
+        if (g_status_685170.party_item_count_1791 >= 500) {
+            item->stack_count = record->maximum_quantity;
+            return;
+        }
+        W8ItemInstance* destination =
+            &g_status_685170.party_item_pool_0021
+                [g_status_685170.party_item_count_1791];
+        memset(destination, 0, sizeof(*destination));
+        destination->item_id = -1;
+        CopyItemInstance(destination, &split, 0, 1);
+        ++g_status_685170.party_item_count_1791;
+        Function4EDD20();
+        item->stack_count -= quantity;
+        record = &g_item_records[item->item_id];
+    }
+}
+
+/* Merge as much of one stack as fits in another.  A completely consumed
+   source is removed from its owner; a partial merge is reported separately so
+   the caller can refresh carrying capacity before placing the remainder. */
+// FUNCTION: WIZ8 0x0051f900
+unsigned char Function51F900(
+    W8ItemInstance* destination,
+    W8ItemInstance* source,
+    unsigned char* partially_merged)
+{
+    if (destination->item_id == -1) {
+        return 0;
+    }
+
+    Function51FB40(destination);
+    const W8ItemDatabaseRecord* record =
+        &g_item_records[destination->item_id];
+    if (record->quantity_kind != 1) {
+        return 0;
+    }
+    if (destination->stack_count > record->maximum_quantity) {
+        srAssertFail(
+            "FALSE", PC_ITEM_CPP, 3371,
+            FormatString(
+                "StackItemsIfPossible: ERROR - slot quantity %d exceeds maximum %d for item %d %S",
+                destination->stack_count, record->maximum_quantity,
+                destination->item_id, FormatItemDisplayName(destination, 1)));
+        destination->stack_count = record->maximum_quantity;
+    }
+    if (destination->item_id != source->item_id ||
+        destination->identified != source->identified) {
+        return 0;
+    }
+
+    unsigned char room = record->maximum_quantity - destination->stack_count;
+    if (room == 0) {
+        return 0;
+    }
+    unsigned char moved = source->stack_count < room ? source->stack_count : room;
+    destination->stack_count += moved;
+    source->stack_count -= moved;
+    if (source->stack_count == 0) {
+        Function520070(source, 0, 1);
+        return 1;
+    }
+    if (partially_merged != 0) {
+        *partially_merged = 1;
+    }
+    return 0;
+}
+
+/* Move a complete live item into an empty destination and clear its old slot.
+   Moving into the held-item slot also remembers the character/slot origin so
+   the cursor can return it later. */
+// FUNCTION: WIZ8 0x0051fe30
+void CopyItemInstance(
+    W8ItemInstance* destination,
+    W8ItemInstance* source,
+    W8Character* character,
+    unsigned char refresh)
+{
+    W8ItemInstance shifted[500];
+    unsigned int held_character = (unsigned int)-1;
+    unsigned char held_origin = 0xff;
+    unsigned short held_slot = 0xffff;
+
+    if (destination == source) {
+        srAssertFail("pToPCItem != pFromPCItem", PC_ITEM_CPP, 3558, 0);
+    }
+    if (destination->item_id != -1) {
+        srAssertFail("pToPCItem->iItemNo == -1", PC_ITEM_CPP, 3560, 0);
+    }
+    if (source->item_id == -1) {
+        srAssertFail("pFromPCItem->iItemNo != -1", PC_ITEM_CPP, 3561, 0);
+    }
+    if (source->bind_announced != 0) {
+        source->bind_announced = 0;
+    }
+    memmove(destination, source, sizeof(*destination));
+
+    if (destination == &g_status_685170.item_in_hand_235b && character != 0) {
+        held_character = CharacterPointerToPartySlot(character);
+        GetOriginOfCharacterItem(
+            held_character, source, &held_origin, &held_slot);
+    }
+
+    if (source == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    }
+    else {
+        memset(source, 0, sizeof(*source));
+        source->item_id = -1;
+        Function520D10(source, character, refresh);
+    }
+
+    if (source >= g_status_685170.party_item_pool_0021 &&
+        source <= &g_status_685170.party_item_pool_0021[499]) {
+        unsigned int index = 0;
+        unsigned int count = g_status_685170.party_item_count_1791;
+        while (index < count && source != &g_status_685170.party_item_pool_0021[index]) {
+            ++index;
+        }
+        if (index < count &&
+            g_status_685170.party_item_pool_0021[index].item_id == -1) {
+            unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
+            memcpy(&shifted[index],
+                   &g_status_685170.party_item_pool_0021[index + 1], bytes);
+            memcpy(&g_status_685170.party_item_pool_0021[index],
+                   &shifted[index], bytes);
+            memset(&g_status_685170.party_item_pool_0021[count - 1], 0,
+                   sizeof(W8ItemInstance));
+            g_status_685170.party_item_pool_0021[count - 1].item_id = -1;
+            --g_status_685170.party_item_count_1791;
+            Function4EDD20();
+        }
+    }
+
+    Function520D10(destination, character, refresh);
+    if (destination == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = held_character;
+        g_held_item_origin_006840c4 = held_origin;
+        g_held_item_slot_006840c5 = held_slot;
+        Function55F160(0);
+    }
+}
+
+/* Reconcile the character and combat state after one equipment record has
+   been emptied.  With no character owner this intentionally does nothing;
+   that is the path used while the new-game reset clears the carried pool. */
+// FUNCTION: WIZ8 0x00520d10
+void Function520D10(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh)
+{
+    if (!character) {
+        return;
+    }
+
+    unsigned char primary_right =
+        item == &character->equipment[W8_EQUIP_SLOT_PRIMARY_RIGHT];
+    if (primary_right) {
+        Function5201B0(character, W8_EQUIP_SLOT_PRIMARY_RIGHT);
+    }
+    unsigned char primary_left =
+        item == &character->equipment[W8_EQUIP_SLOT_PRIMARY_LEFT];
+    if (primary_left) {
+        Function5201B0(character, W8_EQUIP_SLOT_PRIMARY_LEFT);
+    }
+
+    if (!character->in_party || !g_status_685170.game_started_000c) {
+        return;
+    }
+
+    unsigned int party_slot = CharacterPointerToPartySlot(character);
+    if (primary_right || primary_left) {
+        Function4EE220(character);
+    }
+    if (!refresh) {
+        return;
+    }
+
+    if (item == &character->equipment[11]) {
+        g_byte_652da6 = Function521060(0x254, 0, 0, 0, 0);
+    }
+    Function50E5C0(party_slot);
+
+    unsigned char* state =
+        reinterpret_cast<unsigned char*>(&g_party_slot_rows[party_slot]);
+    if (*reinterpret_cast<int*>(state + 0x3d) == 8 &&
+        *reinterpret_cast<W8ItemInstance**>(state + 0x49) == item) {
+        DropCharacterFromRound(party_slot);
+    }
+
+    if (primary_right || primary_left) {
+        int hand_state = *reinterpret_cast<int*>(state + 0x6d);
+        if (hand_state == 1) {
+            if (!Function5458A0(party_slot)) {
+                *reinterpret_cast<int*>(state + 0x6d) = 0;
+                if (*reinterpret_cast<int*>(state + 0x3d) == 1) {
+                    *reinterpret_cast<int*>(state + 0x3d) = 0;
+                }
+            }
+        }
+        else if (hand_state == 0 && state[0x104] &&
+                 Function5458A0(party_slot)) {
+            *reinterpret_cast<int*>(state + 0x6d) = 1;
+            if (*reinterpret_cast<int*>(state + 0x3d) == 0) {
+                *reinterpret_cast<int*>(state + 0x3d) = 1;
+            }
+        }
+
+        if (g_in_combat_00683f94) {
+            int action = *reinterpret_cast<int*>(state + 0x3d);
+            if (action == 0 || action == 1) {
+                if (!Function4E79A0(party_slot, 1, 1, 0)) {
+                    AimByKind(party_slot, 0, 1);
+                }
+                else if (!Function536F60(party_slot, 2)) {
+                    Function536570(party_slot, 1, 0);
+                }
+            }
+            reinterpret_cast<unsigned char*>(g_combat_character_rows)
+                [party_slot * 0xd4 + 0x99] ^= 1;
+            if (party_slot ==
+                static_cast<unsigned int>(
+                    g_status_685170.active_party_slot_001d)) {
+                RequestRefreshPartyState();
+            }
+        }
+        RequestRedraw(1 << (party_slot & 0x1f));
+    }
+
+    if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block) {
+        if (g_level_block->combat_end_notification != -1) {
+            Function595600();
+        }
+        Function593330();
+    }
+}
+
+/* Empty one live item record.  A held item also resets the mouse cursor; a
+   carried-pool item is removed from the packed 500-entry array and the tail is
+   shifted down exactly once. */
+// FUNCTION: WIZ8 0x00520070
+void Function520070(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh)
+{
+    W8ItemInstance shifted[500];
+
+    if (item == &g_status_685170.item_in_hand_235b) {
+        g_held_item_source_006840c0 = -1;
+        g_held_item_origin_006840c4 = 0xff;
+        g_held_item_slot_006840c5 = 0xffff;
+        ClearHeldItemDisplay();
+    }
+    else {
+        memset(item, 0, sizeof(*item));
+        item->item_id = -1;
+        Function520D10(item, character, refresh);
+    }
+
+    W8ItemInstance* pool = g_status_685170.party_item_pool_0021;
+    if (item < pool || item > &pool[499]) {
+        return;
+    }
+
+    unsigned int count = g_status_685170.party_item_count_1791;
+    unsigned int index = 0;
+    while (index < count && item != &pool[index]) {
+        ++index;
+    }
+    if (index == count) {
+        return;
+    }
+    if (pool[index].item_id != -1 || index >= count) {
+        return;
+    }
+
+    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
+    memcpy(&shifted[index], &pool[index + 1], bytes);
+    memcpy(&pool[index], &shifted[index], bytes);
+    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
+    pool[count - 1].item_id = -1;
+    --g_status_685170.party_item_count_1791;
+    Function4EDD20();
+}
+
+/* Acquisition of a handful of plot items updates their paired facts. */
+// FUNCTION: WIZ8 0x00522640
+void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
+{
+    switch (item->item_id) {
+    case 0x243:
+        if (!GetFact(0x30)) {
+            SetFact(0x30, 1, 0);
+        }
+        if (GetFact(0x166)) {
+            SetFact(0x166, 0, 0);
+        }
+        break;
+    case 0x242:
+        if (!GetFact(0x22)) {
+            SetFact(0x22, 1, 0);
+        }
+        if (GetFact(0x165)) {
+            SetFact(0x165, 0, 0);
+        }
+        break;
+    case 0x244:
+        if (!GetFact(0x31)) {
+            SetFact(0x31, 1, 0);
+        }
+        if (GetFact(0x167)) {
+            SetFact(0x167, 0, 0);
+        }
+        g_status_685170.unknown_2425[0x65] = 1;
+        memcpy(&g_status_685170.unknown_2425[0x6e],
+               &g_status_685170.unknown_1795[0x143], 4);
+        break;
+    case 0x264:
+        if (!GetFact(0x182)) {
+            SetFact(0x182, 1, 0);
+            SetFact(0x31e, 1, 0);
+        }
+        break;
+    case 0x201:
+        SetFact(0x242, 0, 0);
+        break;
+    case 0x27c:
+        SetFact(0x24e, 0, 0);
+        break;
+    case 0x1d2:
+        if (GetFact(0x24f)) {
+            SetFact(0x24f, 0, 0);
+        }
+        break;
+    }
+}
+
+/* Deliver the one-time character reaction associated with exceptional items.
+   Character creation (screen 5) deliberately suppresses every reaction. */
+// FUNCTION: WIZ8 0x005227d0
+void Function5227D0(
+    W8ItemInstance* item, unsigned char choose_character, W8Character* character)
+{
+    void* message;
+
+    if (g_screen_state_0068ec78.id == 5) {
+        return;
+    }
+    if (choose_character) {
+        int party_slot = GetRandomCharacter(0, 0, -1, -1);
+        if (party_slot == -1) {
+            return;
+        }
+        character = &g_party_characters[party_slot];
+    }
+    if ((item->unknown_07[2] & 1) != 0) {
+        return;
+    }
+
+    switch (item->item_id) {
+    case 0x239:
+        message = g_item_message_005ee6fc;
+        break;
+    case 0x242:
+        message = g_item_message_005ee640;
+        break;
+    case 0x243:
+        message = g_item_message_005ee644;
+        break;
+    case 0x244:
+        message = GetFactionDispositionScore(6) != 0
+                      ? g_item_message_005ee648
+                      : g_item_message_005ee64c;
+        break;
+    case 0x264:
+        message = g_item_message_005ee690;
+        break;
+    case 0x27c: {
+        SetFact(0xe5, 1, 0);
+        if (!Function50B8F0(7) || !GetFact(0x24e)) {
+            return;
+        }
+        W8NPCItemList* list = GetNPCItemListByID(7);
+        if (list == 0) {
+            return;
+        }
+        signed char npc_slot =
+            *(signed char*)((unsigned char*)list + sizeof(W8NPCItemList) + 0x10);
+        Function52E690(
+            &g_party_characters[npc_slot], g_item_message_005ee68c, 0,
+            g_item_message_arg_005ed8c8, g_item_message_arg_005ed914);
+        return;
+    }
+    default:
+        if (choose_character || !CanCharacterUseItem(character, item->item_id) ||
+            g_item_records[item->item_id].value / character->level < 500 ||
+            item->identified == 0) {
+            return;
+        }
+        message = g_item_message_005ee664;
+        break;
+    }
+
+    Function52E690(character, message, 0, g_item_message_arg_005ed8c8,
+                   g_item_message_arg_005ed914);
+    item->unknown_07[2] |= 1;
+}
+
+/* Insert one item into the packed party pool, first coalescing compatible
+   stacks unless requested otherwise. */
+// FUNCTION: WIZ8 0x00521ef0
+bool AddItemToParty(
+    W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking)
+{
+    W8ItemInstance shifted[500];
+    W8WideChar* display_name = FormatItemDisplayName(item, 1);
+    unsigned char partially_merged = 0;
+    unsigned int index = 0;
+    bool stored = false;
+
+    if (g_item_records[item->item_id].quantity_kind == 1 && !skip_stacking) {
+        while (index < (unsigned int)g_status_685170.party_item_count_1791) {
+            if (Function51F900(
+                    &g_status_685170.party_item_pool_0021[index], item,
+                    &partially_merged)) {
+                stored = true;
+                break;
+            }
+            ++index;
+        }
+        if (partially_merged) {
+            Function4EDD20();
+        }
+    }
+
+    if (!stored) {
+        if (g_status_685170.party_item_count_1791 >= 500) {
+            return false;
+        }
+        index = 0;
+        if (g_status_685170.party_item_count_1791 != 0) {
+            unsigned int bytes =
+                g_status_685170.party_item_count_1791 * sizeof(W8ItemInstance);
+            memcpy(shifted, g_status_685170.party_item_pool_0021, bytes);
+            memcpy(&g_status_685170.party_item_pool_0021[1], shifted, bytes);
+        }
+        memset(&g_status_685170.party_item_pool_0021[0], 0,
+               sizeof(W8ItemInstance));
+        g_status_685170.party_item_pool_0021[0].item_id = -1;
+        CopyItemInstance(
+            &g_status_685170.party_item_pool_0021[0], item, 0, 1);
+        ++g_status_685170.party_item_count_1791;
+        Function4EDD20();
+        stored = true;
+    }
+
+    if (g_screen_state_0068ec78.id == W8_SCREEN_CAMP &&
+        g_camp_screen_0069c0f4 != 0) {
+        g_camp_screen_0069c0f4->item_redraw_flags |= 0x7fc00000;
+    }
+    if (announce) {
+        Function58AAD0(8, (const wchar_t*)gppStringList[0x7a4 / 4], display_name);
+    }
+    W8ItemInstance* stored_item =
+        &g_status_685170.party_item_pool_0021[index];
+    UpdateFactsAfterAcquiringItem(stored_item);
+    Function5227D0(stored_item, 1, 0);
+    return stored;
 }

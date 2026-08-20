@@ -4,6 +4,8 @@
 #include "wiz8/video_object_catalog.h"
 #include "Container.h"
 
+#include <string.h>
+
 /*
  * Local Screens\Screens.cpp.
  *
@@ -14,7 +16,6 @@
  */
 
 extern "C" {
-extern unsigned char g_item_in_hand_shown_006874ca;
 extern int g_cursor_state_00683fdb;
 extern int g_dword_683fdf;
 extern int g_dword_683fe3;
@@ -105,11 +106,12 @@ void UpdateHeldItemCursor(void)
 {
     int object;
 
-    if ((g_screen_state_0068ec78.id == 7 || g_screen_state_0068ec78.id == 6) && g_item_in_hand_shown_006874ca) {
-        if (g_item_in_hand.item_id != -1) {
-            g_item_in_hand_shown_006874ca = 1;
+    if ((g_screen_state_0068ec78.id == 7 || g_screen_state_0068ec78.id == 6) &&
+        g_status_685170.item_in_hand_shown_235a) {
+        if (g_status_685170.item_in_hand_235b.item_id != -1) {
+            g_status_685170.item_in_hand_shown_235a = 1;
             object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-                g_item_in_hand.item_id);
+                g_status_685170.item_in_hand_235b.item_id);
             SetMouseCursorFromVideoObject(
                 GetCatalogVideoObjectHandle(object, 0), 0, 0,
                 GetCatalogVideoObjectYOffset(object));
@@ -122,6 +124,28 @@ void UpdateHeldItemCursor(void)
         }
     }
     else if (g_cursor_state_00683fdb != -1) {
+        SetMouseCursorFromVideoObject(
+            GetCatalogVideoObjectHandle(0, 0), 0, 0,
+            GetCatalogVideoObjectYOffset(0));
+        RefreshMouseCursorTexture();
+        g_cursor_state_00683fdb = -1;
+        g_dword_683fdf = 0;
+        g_dword_683fe3 = 0;
+    }
+}
+
+/* Empty the item-in-hand record and restore the normal cursor.  The held item
+   is the 0x0c-byte record embedded in gXStatus at 0x006874CB; the byte directly
+   before it is the cursor-visible flag. */
+// FUNCTION: WIZ8 0x0055f1e0
+void ClearHeldItemDisplay(void)
+{
+    memset(&g_status_685170.item_in_hand_235b, 0,
+           sizeof(g_status_685170.item_in_hand_235b));
+    g_status_685170.item_in_hand_shown_235a = 0;
+    g_status_685170.item_in_hand_235b.item_id = -1;
+
+    if (g_cursor_state_00683fdb != -1) {
         SetMouseCursorFromVideoObject(
             GetCatalogVideoObjectHandle(0, 0), 0, 0,
             GetCatalogVideoObjectYOffset(0));

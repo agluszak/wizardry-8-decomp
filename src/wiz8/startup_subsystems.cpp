@@ -18,10 +18,9 @@ W8ScreenStateRuntime g_dword_68ed10 = { -1 };
 unsigned char g_flag_68edac;
 void* g_stack_68eda8;
 // GLOBAL: WIZ8 0x00686A70
-int g_dword_686a70 = -1;
-unsigned char g_flag_6850d4;
+int g_current_level = -1;
 unsigned short g_word_6850ed;
-unsigned char g_block_68f2d8[0xc4e0];
+W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 unsigned char g_flag_65beaf;
 
 extern unsigned short g_selected_item_0069c4b4;
@@ -147,8 +146,6 @@ unsigned short* g_font_state_palettes_68ee1c[15];
 int g_cursor_state_00683fdb;
 int g_dword_683fdf;
 int g_dword_683fe3;
-unsigned char g_item_in_hand_shown_006874ca;
-W8ItemInstance g_item_in_hand = { -1 };
 
 // FUNCTION: WIZ8 0x005bc800
 unsigned char InitializeSubsystemFlag(void)

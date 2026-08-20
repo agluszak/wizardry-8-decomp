@@ -542,7 +542,6 @@ extern void AimAtTarget(int actor, W8CombatSlot* target, int context);   /* 0x00
 extern void StartBreathCycle(int party_slot, int arg_2);                 /* 0x0052FE80 */
 extern void ReportBreathFailed(int party_slot);                          /* 0x0056A770 */
 extern bool IsSpellTargetStillValidIn(int party_slot, int spell_id, int context);
-extern int g_combat_difficulty_006850d5;
 /* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
    monster power-level chooser reads the same table as a spell-point budget
    cost, so the one table serves both. */
@@ -589,14 +588,14 @@ unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
         return g_in_combat_00683f94;
     }
 
-    if (g_combat_difficulty_006850d5 == 0) {
+    if (g_settings_6850c8.field_00d == 0) {
         pace = 0x50;
     }
-    else if (g_combat_difficulty_006850d5 == 1) {
+    else if (g_settings_6850c8.field_00d == 1) {
         pace = 0x3c;
     }
     else {
-        if (g_combat_difficulty_006850d5 != 2) {
+        if (g_settings_6850c8.field_00d != 2) {
             srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
         }
         pace = 0x28;
@@ -906,7 +905,8 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     ShowNoticeLine(line, 0, 1, 0);
 }
 
-extern void Function520070(void* arg_1, W8Character* character, int arg_3);  /* 0x00520070 */
+extern void Function520070(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern void Function52E690(
     W8Character* character, int sound, int arg_3, float arg_4, float arg_5); /* 0x0052E690 */
 extern int g_learn_sound_0068c510;
@@ -947,7 +947,7 @@ void LearnSpellFromItem(void* origin, W8Character* character, const W8ItemInstan
             PracticeCharacterSkill(character, skill_id, usage_points, 0);
         }
     }
-    Function520070(origin, character, 1);
+    Function520070(static_cast<W8ItemInstance*>(origin), character, 1);
     Function52E690(
         character, g_learn_sound_0068c510, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 }
@@ -1702,7 +1702,8 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
 extern unsigned char TargetSourceIsCharacter(const W8TargetSource* source, int allow_indirect);
 extern unsigned char TargetSourceIsMonster(const W8TargetSource* source, int allow_indirect);
 extern wchar_t* GetMonsterGroupName(W8MonsterGroup* group);              /* 0x00510280 */
-extern W8WideChar* FormatItemDisplayName(const W8ItemInstance* item, int arg_2);
+extern W8WideChar* FormatItemDisplayName(
+    const W8ItemInstance* item, unsigned char include_quantity);
 /* 0x0068C09C is indexed here by byte offset; 0x610 is the "at %s" wrapper every
    named target goes through and the rest are the fixed words. */
 enum {

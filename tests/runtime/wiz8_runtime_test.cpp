@@ -47,6 +47,16 @@ static LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
             exception->ExceptionRecord->ExceptionAddress,
             context->Eip, context->Esp,
             stack[0], stack[1], stack[2], stack[3]);
+    fprintf(stderr, "runtime-test module-stack=");
+    unsigned int found = 0;
+    for (unsigned int index = 0; index < 256 && found < 24; ++index) {
+        if (stack[index] >= 0x00400000 && stack[index] < 0x00500000) {
+            fprintf(stderr, "%s%08lx@+%x", found ? "," : "",
+                    stack[index], index * sizeof(*stack));
+            ++found;
+        }
+    }
+    fprintf(stderr, "\n");
     fflush(stderr);
     return EXCEPTION_CONTINUE_SEARCH;
 }

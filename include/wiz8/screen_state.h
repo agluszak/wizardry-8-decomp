@@ -1,5 +1,10 @@
 #pragma once
 
+enum {
+    W8_SCREEN_CAMP = 6,
+    W8_SCREEN_MAIN_GAME = 7
+};
+
 /* The current and pending screen records begin at the two globals whose first
    dwords the reviewed setters address directly. One storage object preserves
    that identity instead of mirroring the id into a synthetic runtime record. */
@@ -30,6 +35,7 @@ static_assert(sizeof(W8ScreenStateRuntime) == 0x98, "W8ScreenStateRuntime_must_b
 struct W8CampScreenState0069C0F4 {
     unsigned char m_positional_000[0xf8];
     unsigned int redraw_flags;            /* 0xf8 */
+    unsigned int item_redraw_flags;       /* 0xfc */
 };
 
 extern "C" W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;

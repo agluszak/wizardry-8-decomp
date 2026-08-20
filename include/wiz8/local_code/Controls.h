@@ -26,6 +26,20 @@ struct W8ControlsRect {
     int bottom;                             /* 0x0c */
 };
 
+/* Controls.cpp's contiguous read-only layout and state bits.  Callers combine
+   these stored powers of two; retaining the data objects preserves that
+   original load shape instead of replacing them with invented accessor APIs. */
+extern const unsigned int g_W8TextBufferLayoutMask005ED548;
+extern const unsigned int g_W8TextBufferLayoutMask005ED54C;
+extern const unsigned int g_W8TextBufferLayoutMask005ED550;
+extern const unsigned int g_W8TextBufferLayoutMask005ED554;
+extern const unsigned int g_W8TextBufferLayoutMask005ED558;
+extern const unsigned int g_W8TextBufferLayoutMask005ED55C;
+extern const unsigned int g_W8TextControlMask005ED56C;
+extern const unsigned int g_W8TextControlMask005ED570;
+extern const unsigned int g_W8TextControlMask005ED578;
+extern const unsigned int g_W8TextControlMask005ED588;
+
 class W8TextBuffer005ED5B8 {
 public:
     W8TextBuffer005ED5B8();

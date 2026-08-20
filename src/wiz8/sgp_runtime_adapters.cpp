@@ -35,6 +35,13 @@
 // LIBRARY: WIZ8 0x00405630
 // GetFileManFileTime
 
+/* These are the released Font.c string-width and font-height operations. */
+// LIBRARY: WIZ8 0x00407010
+// StringPixLength
+
+// LIBRARY: WIZ8 0x004071F0
+// GetFontHeight
+
 extern "C" {
 
 extern unsigned char g_fullscreen_603c39;

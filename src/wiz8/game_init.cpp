@@ -58,11 +58,8 @@ extern unsigned char InitializeMusicPlaylist(void);
 extern unsigned int GetTotalPhysicalMemory(void);
 
 extern void* g_stack_68eda8;
-extern int g_dword_686a70;
-extern unsigned char g_flag_6850d4;
 extern unsigned short g_word_6850ed;
 extern unsigned short* g_font_state_palettes_68ee1c[15];
-extern unsigned char g_block_68f2d8[0xc4e0];
 extern unsigned char g_flag_65beaf;
 
 // FUNCTION: WIZ8 0x004e2f40
@@ -101,7 +98,7 @@ unsigned char InitializeGameData(void)
     }
     InitializeMessageBoxState();
     InitializeRegionHelpState();
-    if (g_flag_6850d4) {
+    if (g_settings_6850c8.field_00c) {
         SetMessageBoxModeEnabled();
     } else {
         SetMessageBoxModeDisabled();
@@ -134,7 +131,7 @@ unsigned char InitializeGameData(void)
     InitializeItemVideoObjects();
     Function479010();
     SetPendingScreenState(0);
-    g_dword_686a70 = -1;
+    g_current_level = -1;
     if (gfLoadAtStartup && FindStartupQuickSave(g_dword_68ed10.name)) {
         g_dword_68ed10.mode = 1;
         g_dword_68ed10.parameter = GetSaveGameLevel(g_dword_68ed10.name);
@@ -150,7 +147,7 @@ unsigned char InitializeGameData(void)
     if (!LoadHitSoundDatabase()) {
         ShutdownWithErrorBox("Could not load hit sound database!");
     }
-    memset(g_block_68f2d8, 0, sizeof(g_block_68f2d8));
+    memset(g_message_storage_68f2d8, 0, sizeof(g_message_storage_68f2d8));
     if (!InitializeMusicPlaylist()) {
         return 0;
     }

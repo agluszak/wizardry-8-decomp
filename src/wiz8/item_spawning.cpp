@@ -4,22 +4,21 @@
 #include <malloc.h>
 #include <string.h>
 
-/* Provisional semantic names for item helpers at the stated canonical addresses. */
-extern void InitializeItemInstance( /* 0x00520070 */
-    W8ItemInstance* item,
-    int item_id,
-    unsigned char initialize_defaults);
+struct W8Character;
+
+extern void Function520070(
+    W8ItemInstance* item, W8Character* character, unsigned char refresh);
 extern void CopyItemInstance( /* 0x0051FE30 */
     W8ItemInstance* destination,
-    const W8ItemInstance* source,
-    int unknown,
-    unsigned char copy_runtime_state);
+    W8ItemInstance* source,
+    W8Character* character,
+    unsigned char refresh);
 extern void InitializeWorldItemPlacement(W8WorldItem* item); /* 0x004F93D0 */
 extern int AddWorldItemToList(void* list, W8WorldItem* item); /* 0x005E2480 */
 
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(
-    const W8ItemInstance* item,
+    W8ItemInstance* item,
     const srVector3T<float>* position,
     int unknown,
     unsigned char add_to_world)
@@ -31,7 +30,7 @@ W8WorldItem* CreateWorldItem(
     }
 
     memset(result, 0, sizeof(W8WorldItem));
-    InitializeItemInstance(&result->item, 0, 1);
+    Function520070(&result->item, 0, 1);
     result->runtime_id = g_next_world_item_id++;
     result->unknown_08 = 0;
     result->owner = 0;

@@ -2,6 +2,7 @@
 #define WIZ8_COMBAT_STATE_H
 
 #include "wiz8/targeting.h"
+#include "wiz8/game_state.h"
 
 struct W8Character;
 struct W8MonsterInfo;
@@ -110,14 +111,19 @@ extern "C" {
 #endif
 
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
-extern W8Character* g_party_characters;  /* 0x00685174 */
 extern unsigned char g_in_combat_00683f94;
-extern W8PartySlotRow* g_party_slot_rows; /* 0x00684938 */
 extern W8CombatCharacterRow* g_combat_character_rows;
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 
 #ifdef __cplusplus
 }
 #endif
+
+/* These are the two heap-buffer fields at the head of gXStatus, not separate
+   globals.  Their retail addresses are the addresses of those pointer fields. */
+#define g_party_characters \
+    ((W8Character*)g_status_685170.buffers.buffer_04)
+#define g_party_slot_rows \
+    ((W8PartySlotRow*)g_status_685170.buffers.buffer_08)
 
 #endif
