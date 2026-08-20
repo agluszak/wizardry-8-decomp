@@ -18,6 +18,12 @@
 // LIBRARY: WIZ8 0x00402FA0
 // ColorFillVideoSurfaceArea
 
+// LIBRARY: WIZ8 0x004045B0
+// InternalShadowVideoSurfaceRect
+
+// LIBRARY: WIZ8 0x004048A0
+// ShadowVideoSurfaceRect
+
 // LIBRARY: WIZ8 0x0040ABF0
 // Sound3DPlay
 
@@ -33,6 +39,12 @@
 // LIBRARY: WIZ8 0x00411730
 // Blt8BPPDataSubTo16BPPBuffer
 
+// LIBRARY: WIZ8 0x004124A0
+// Blt16BPPBufferShadowRect
+
+// LIBRARY: WIZ8 0x00412570
+// Blt16BPPBufferShadowRectAlternateTable
+
 /* The FileMan implementation is likewise owned by the pinned SFI SGP oracle.
    The match image currently consumes it through the runtime-shared boundary,
    so retain its original linked identity without cloning its declaration or
@@ -41,11 +53,35 @@
 // GetFileManFileTime
 
 /* These are the released Font.c string-width and font-height operations. */
+// LIBRARY: WIZ8 0x004068E0
+// SetObjectShade
+
+// LIBRARY: WIZ8 0x00406DE0
+// GetFontObjectPalette16BPP
+
+// LIBRARY: WIZ8 0x00406DF0
+// GetFontObject
+
 // LIBRARY: WIZ8 0x00407010
 // StringPixLength
 
+// LIBRARY: WIZ8 0x00407090
+// SaveFontSettings
+
+// LIBRARY: WIZ8 0x00407140
+// RestoreFontSettings
+
 // LIBRARY: WIZ8 0x004071F0
 // GetFontHeight
+
+// LIBRARY: WIZ8 0x00407220
+// SetFontDestBuffer
+
+// LIBRARY: WIZ8 0x00407A10
+// gprintf_buffer
+
+// LIBRARY: WIZ8 0x00407B80
+// mprintf_buffer
 
 extern "C" {
 

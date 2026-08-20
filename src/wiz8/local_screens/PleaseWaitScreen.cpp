@@ -74,8 +74,6 @@ extern void NoOp(void);
 extern void ShutdownDisplayList(void);
 extern int Function40B290(void);
 extern void ConfigurePresentation00413FD0(int a, int b, int c, int d, int e);
-extern void SetRenderClip00407220(int target, int left, int top, int right,
-                                  int bottom, int flags);
 extern unsigned char Function42B6F0(int level);
 extern int Function42B720(int level);
 extern void Function425570(int value);
@@ -178,7 +176,7 @@ unsigned char PleaseWaitScreenEnter(void)
     Function40B290();
     ResetRegions();
     ConfigurePresentation00413FD0(0x500, 0, 0, 0x280, 0x1e0);
-    SetRenderClip00407220(-14, 0, 0, 0x280, 0x1e0, 0);
+    SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     Function425570(0);
     ClearFlag603C60();
     g_load_descriptor_69b7c8->caption_y = 0;

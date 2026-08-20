@@ -111,17 +111,6 @@ __forceinline Controls::~Controls()
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 extern void RequestRedraw(unsigned int mask);
-extern void Function407210(int font);
-extern int Function406DF0(int font);
-extern void Function4068E0(int font_context, int render_mode);
-extern int Function406DE0(int font);
-extern void Function407090();
-extern void Function407140();
-extern void SetRenderClip00407220(int target, int left, int top, int right,
-                                 int bottom, int flags);
-extern void Function407A10(int a, int b, int font, int x, int y,
-                           const wchar_t* format, const wchar_t* text);
-extern void Function407B80(int a, int b, int font, int x, int y);
 extern unsigned char SetValue5FF5F0(int font);
 const wchar_t g_W8TextSeparator0060CC74[] = L" ";
 const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
@@ -538,21 +527,21 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
         return;
     }
 
-    Function407210(m_font);
-    int font_context = Function406DF0(m_font);
-    if (font_context == 0) {
+    SetValue5FF5F0(m_font);
+    HVOBJECT font_object = GetFontObject(m_font);
+    if (font_object == 0) {
         return;
     }
-    Function4068E0(font_context, m_renderMode);
-    int previous_state = Function406DE0(m_font);
+    SetObjectShade(font_object, m_renderMode);
+    unsigned short* previous_state = GetFontObjectPalette16BPP(m_font);
     if (m_fontStateIndex != -1) {
         SetFontObjectPalette16BPP(m_font, (unsigned short*)g_W8FontStateTable0068EE1C[m_fontStateIndex]);
     }
-    Function407090();
-    SetRenderClip00407220(g_W8TextClipTarget005FF5F4,
-                         m_pendingBounds.left, m_pendingBounds.top,
-                         m_pendingBounds.right, m_pendingBounds.bottom,
-                         g_W8TextClipFlags00650E38);
+    SaveFontSettings();
+    SetFontDestBuffer(g_W8TextClipTarget005FF5F4,
+                      m_pendingBounds.left, m_pendingBounds.top,
+                      m_pendingBounds.right, m_pendingBounds.bottom,
+                      g_W8TextClipFlags00650E38);
 
     int y = GetVerticalPosition();
     size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
@@ -561,10 +550,13 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
         int x = GetHorizontalPosition(
             StringPixLength((unsigned short*)line, m_font));
         if (m_alternateRenderer == 0) {
-            Function407A10(a, b, m_font, x + x_offset, y + y_offset,
-                           L"%s", line);
+            gprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font,
+                           x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         } else {
-            Function407B80(a, b, m_font, x + x_offset, y + y_offset);
+            mprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font,
+                           x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         }
         y += GetLineHeight();
         line[span] = L'\n';
@@ -579,16 +571,19 @@ void W8TextBuffer005ED5B8::RenderText(int a, int b, int x_offset, int y_offset,
         int x = GetHorizontalPosition(
             StringPixLength((unsigned short*)line, m_font));
         if (m_alternateRenderer == 0) {
-            Function407A10(a, b, m_font, x + x_offset, y + y_offset,
-                           L"%s", line);
+            gprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font,
+                           x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         } else {
-            Function407B80(a, b, m_font, x + x_offset, y + y_offset);
+            mprintf_buffer(reinterpret_cast<unsigned char*>(a), b, m_font,
+                           x + x_offset, y + y_offset,
+                           (unsigned short*)L"%s", line);
         }
     }
 
 done:
-    SetFontObjectPalette16BPP(m_font, (unsigned short*)previous_state);
-    Function407140();
+    SetFontObjectPalette16BPP(m_font, previous_state);
+    RestoreFontSettings();
     m_geometryDirty = 0;
 }
 
@@ -605,15 +600,15 @@ void W8TextBuffer005ED5B8::Function4F39B0(
     }
 
     SetValue5FF5F0(m_font);
-    int font_context = Function406DF0(m_font);
-    if (font_context == 0) {
+    HVOBJECT font_object = GetFontObject(m_font);
+    if (font_object == 0) {
         return;
     }
-    Function4068E0(font_context, m_renderMode);
-    SetRenderClip00407220(target,
-                         m_pendingBounds.left, m_pendingBounds.top,
-                         m_pendingBounds.right, m_pendingBounds.bottom, 0);
-    int previous_state = Function406DE0(m_font);
+    SetObjectShade(font_object, m_renderMode);
+    SetFontDestBuffer(target,
+                      m_pendingBounds.left, m_pendingBounds.top,
+                      m_pendingBounds.right, m_pendingBounds.bottom, 0);
+    unsigned short* previous_state = GetFontObjectPalette16BPP(m_font);
     if (m_fontStateIndex != -1) {
         SetFontObjectPalette16BPP(
             m_font,
@@ -649,10 +644,10 @@ void W8TextBuffer005ED5B8::Function4F39B0(
     }
 
 done:
-    SetFontObjectPalette16BPP(m_font, (unsigned short*)previous_state);
+    SetFontObjectPalette16BPP(m_font, previous_state);
     MarkScreenRectDirty(m_layoutBounds.left, m_layoutBounds.top,
                         m_layoutBounds.right, m_layoutBounds.bottom, 0);
-    SetRenderClip00407220(-14, 0, 0, 640, 480, 0);
+    SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
     m_geometryDirty = 0;
 }
 
@@ -845,22 +840,41 @@ void W8TextControl005ED604::Redraw(int full_redraw)
 
     if (full_redraw == 0 && m_flag_6 == 0) {
         if (m_textBuffer.HasBuffer()) {
-            m_textBuffer.RenderText(text_state, full_redraw, 0, 0, 1);
+            m_textBuffer.Function4F39B0(text_state, 0, -14);
         }
         return;
     }
 
-    int sprite = -1;
-    if (m_text_40 != -1 && m_text_44 != -1) {
-        if (m_flag_4 == 0) {
-            sprite = m_text_58;
-        } else if ((m_stateFlags & 1) == 0) {
-            sprite = m_alternateTextEnabled != 0 && m_text_54 != -1
-                ? m_text_54 : m_text_48;
-        } else {
-            sprite = m_alternateTextEnabled != 0 && m_text_50 != -1
-                ? m_text_50 : m_text_4c;
+    if (m_text_40 == -1 || m_text_44 == -1) {
+        if (m_textBuffer.HasBuffer()) {
+            m_textBuffer.Function4F39B0(
+                text_state, static_cast<unsigned char>(full_redraw), -14);
         }
+        return;
+    }
+
+    int sprite;
+    if (m_flag_4 == 0) {
+        sprite = m_text_58;
+        if (sprite == -1) {
+            if (m_textBuffer.HasBuffer()) {
+                m_textBuffer.Function4F39B0(
+                    text_state, static_cast<unsigned char>(full_redraw), -14);
+            }
+            ShadowVideoSurfaceRect(-14,
+                                   m_pPanel->origin_x + m_left,
+                                   m_pPanel->origin_y + m_top,
+                                   m_pPanel->origin_x + m_right,
+                                   m_pPanel->origin_y + m_bottom);
+            m_flag_6 = 0;
+            return;
+        }
+    } else if ((m_stateFlags & 1) == 0) {
+        sprite = m_alternateTextEnabled != 0 && m_text_54 != -1
+            ? m_text_54 : m_text_48;
+    } else {
+        sprite = m_alternateTextEnabled != 0 && m_text_50 != -1
+            ? m_text_50 : m_text_4c;
     }
 
     int x;
@@ -884,7 +898,9 @@ void W8TextControl005ED604::Redraw(int full_redraw)
     }
 
     if (m_textBuffer.HasBuffer()) {
-        m_textBuffer.RenderText(text_state, full_redraw, 0, 0, 1);
+        m_textBuffer.Function4F39B0(text_state,
+                                   static_cast<unsigned char>(full_redraw),
+                                   -14);
     }
     m_flag_6 = 0;
 }

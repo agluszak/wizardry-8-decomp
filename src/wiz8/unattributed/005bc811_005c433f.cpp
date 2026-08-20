@@ -35,8 +35,6 @@ bool IsCharacterReadyToAdvance(int party_slot);
 unsigned int FindFreePartySlot(unsigned int first, unsigned int last);
 char* ConvertWideStringToString(const wchar_t* string);
 void GetScreenPoint004284F0(W8ScreenPoint* point);
-void SetRenderClip00407220(int target, int left, int top, int right,
-                           int bottom, int flags);
 unsigned char SetValue5FF5F0(int font);
 unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);
@@ -60,8 +58,6 @@ unsigned char DispatchScreenInput004F1910(const void* event);
 int Function52E750(void);
 void Function426790(void);
 void Function5D5390(void);
-void Function4048A0(int target, int left, int top, int right, int bottom);
-void Function4068E0(int font_context, int render_mode);
 unsigned int Function568950(const InputAtom* input);
 unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned int Function5D3F50(const InputAtom* input);
@@ -90,7 +86,7 @@ extern "C" int g_dword_647bc0;
 extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6f04e8;
 extern unsigned char g_flag_6f04ed;
-extern "C" int g_wiz_text_font_secondary_object_683680;
+extern "C" HVOBJECT g_wiz_text_font_secondary_object_683680;
 extern "C" int g_options_title_font_68368c;
 extern "C" int g_options_detail_font_683614;
 extern unsigned short g_profession_name_message_ids_61e3f0[];
@@ -392,7 +388,7 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
 
         MarkScreenRectDirty(left, top, right, bottom, 0);
         Function5497C0(-14, left, top, right, bottom, 0x1b6, 0, 0);
-        SetRenderClip00407220(-14, left, top, right, bottom, 0);
+        SetFontDestBuffer(-14, left, top, right, bottom, 0);
 
         int end = m_first_visible + m_visible_rows;
         if (g_state5_party_collection_69c4ec->names.count <= end) {
@@ -414,7 +410,7 @@ void W8State5ListControl005EF464::Redraw(int full_redraw)
             top += 0x0e;
         }
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-        SetRenderClip00407220(-14, 0, 0, 0x280, 0x1e0, 0);
+        SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
         m_flag_6 = 0;
     }
 }
@@ -702,8 +698,9 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
     Function548F90(-14, 0x13, character->table_value_0079, 0,
                    left + 2, top + 2, 2, 0);
     if (character->in_party) {
-        Function4048A0(-14, left + 2, top + 2, left + 0x2e, top + 0x25);
-        Function4068E0(g_wiz_text_font_secondary_object_683680, 6);
+        ShadowVideoSurfaceRect(-14, left + 2, top + 2,
+                               left + 0x2e, top + 0x25);
+        SetObjectShade(g_wiz_text_font_secondary_object_683680, 6);
     }
 
     left += 0x36;
@@ -719,7 +716,7 @@ void W8State5CharacterRow005EF364::Redraw(int full_redraw)
             gppStringList[
                 g_faction_name_message_rows_61e430[character->faction][0]],
             gppStringList[g_race_name_message_ids_61e3d0[character->race]]);
-    Function4068E0(g_wiz_text_font_secondary_object_683680, 4);
+    SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 }
 
 // FUNCTION: WIZ8 0x005beb90
@@ -1115,7 +1112,7 @@ void W8State5PlainPanel005EF4E0::Redraw()
     name.Function4F39B0(0, 0, -14);
 
     SetValue5FF5F0(g_font_683660);
-    Function4068E0(g_wiz_text_font_secondary_object_683680, 4);
+    SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 
     const wchar_t* level_text = gppStringList[0x1ae4 / 4];
     const wchar_t* profession = gppStringList[
