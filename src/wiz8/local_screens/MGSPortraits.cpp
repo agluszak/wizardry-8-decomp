@@ -22,7 +22,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
     int party_slot = 0;
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
-            static_cast<unsigned char*>(g_status_685170.buffers.buffer_08)[state_offset + 0x103] == 0) {
+            reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows)[state_offset + 0x103] == 0) {
             SetRegionMode4(party_slot + 0x12);
         } else {
             ClearRegionModeBits(party_slot + 0x12);
@@ -35,7 +35,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
 // FUNCTION: WIZ8 0x0059BBD0
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
 {
-    unsigned char* state = static_cast<unsigned char*>(g_status_685170.buffers.buffer_08);
+    unsigned char* state = reinterpret_cast<unsigned char*>(g_status_685170.buffers.party_rows);
     if (party_slot < 8 && state[party_slot * 0x106]) {
         g_portrait_controls_0069b920[party_slot]->Invalidate(0);
     }

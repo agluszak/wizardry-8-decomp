@@ -70,10 +70,10 @@ unsigned char IsPartySlotEligible00524A10(int slot)
     if (slot >= 8) {
         return 0;
     }
-    if (static_cast<unsigned char*>(g_status_685170.buffers.buffer_08)[slot * 0x106] == 0) {
+    if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
         return 0;
     }
-    character = &static_cast<W8Character*>(g_status_685170.buffers.buffer_04)[slot];
+    character = &g_status_685170.buffers.characters[slot];
     if (character->hp_current == 0) {
         return 0;
     }

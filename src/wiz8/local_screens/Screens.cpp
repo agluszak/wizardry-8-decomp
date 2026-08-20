@@ -106,9 +106,9 @@ void UpdateHeldItemCursor(void)
     int object;
 
     if ((g_screen_state_0068ec78.id == 7 || g_screen_state_0068ec78.id == 6) &&
-        g_status_685170.item_in_hand_shown_235a) {
+        g_status_685170.item_in_cursor) {
         if (g_status_685170.item_in_hand_235b.item_id != -1) {
-            g_status_685170.item_in_hand_shown_235a = 1;
+            g_status_685170.item_in_cursor = 1;
             object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
                 g_status_685170.item_in_hand_235b.item_id);
             SetMouseCursorFromVideoObject(
@@ -141,7 +141,7 @@ void ClearHeldItemDisplay(void)
 {
     memset(&g_status_685170.item_in_hand_235b, 0,
            sizeof(g_status_685170.item_in_hand_235b));
-    g_status_685170.item_in_hand_shown_235a = 0;
+    g_status_685170.item_in_cursor = 0;
     g_status_685170.item_in_hand_235b.item_id = -1;
 
     if (g_cursor_state_00683fdb != -1) {

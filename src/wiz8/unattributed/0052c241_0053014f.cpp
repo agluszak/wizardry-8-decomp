@@ -272,7 +272,7 @@ int Function52E750(void)
         W8MonsterManagerEntry* record = &g_monster_manager_state.entries[party_slot];
         unsigned char sound_active = 0;
 
-        if (g_party_slot_rows[party_slot].flag_00 == 0) {
+        if (g_party_slot_rows[party_slot].occupied == 0) {
             continue;
         }
         if (record->field_000 != 0) {
@@ -295,7 +295,7 @@ int Function52E750(void)
         if (record->field_000 == 0) {
             unsigned int scan;
             for (scan = 0; scan < 8; ++scan) {
-                if (g_party_slot_rows[scan].flag_00 != 0 &&
+                if (g_party_slot_rows[scan].occupied != 0 &&
                     g_monster_manager_state.entries[scan].field_000 != 0) {
                     break;
                 }
@@ -313,7 +313,7 @@ int Function52E750(void)
             if (record->field_000 == 0) {
                 unsigned int scan;
                 for (scan = 0; scan < 8; ++scan) {
-                    if (g_party_slot_rows[scan].flag_00 != 0 &&
+                    if (g_party_slot_rows[scan].occupied != 0 &&
                         g_monster_manager_state.entries[scan].field_000 != 0) {
                         break;
                     }

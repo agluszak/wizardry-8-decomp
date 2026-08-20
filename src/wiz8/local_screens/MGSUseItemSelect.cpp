@@ -26,7 +26,7 @@ void RedrawPanel69B998(void)
 void CloseUseItemSelection0059D950(void)
 {
     Function0059CAC0();
-    ClearTargetingMode0053B050(g_status_685170.active_party_slot_001d);
+    ClearTargetingMode0053B050(g_status_685170.selected_character);
 }
 
 // FUNCTION: WIZ8 0x0059E0D0

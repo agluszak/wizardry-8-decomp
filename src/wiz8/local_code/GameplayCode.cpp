@@ -53,7 +53,7 @@ int CountActiveCharacters(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].hp_current != 0 &&
             g_party_characters[party_slot].unknown_0b01 < 0x12) {
             ++count;
@@ -70,7 +70,7 @@ bool AnyCharacterActive(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].hp_current != 0 &&
             g_party_characters[party_slot].unknown_0b01 < 0x12) {
             ++count;
@@ -104,7 +104,7 @@ bool IsCharacterReadyToAdvance(int party_slot)
 {
     const W8Character* character = &g_party_characters[party_slot];
 
-    if (g_party_slot_rows[party_slot].flag_00 == 0) {
+    if (g_party_slot_rows[party_slot].occupied == 0) {
         return false;
     }
     if (character->hp_current == 0) {
@@ -123,7 +123,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     unsigned int slot;
 
     for (slot = first; slot < last; ++slot) {
-        if (g_party_slot_rows[slot].flag_00 == 0) {
+        if (g_party_slot_rows[slot].occupied == 0) {
             return slot;
         }
     }

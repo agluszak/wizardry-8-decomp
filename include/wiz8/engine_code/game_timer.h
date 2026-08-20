@@ -1,5 +1,6 @@
 #pragma once
 
+#include "wiz8/game_state.h"
 #include "surrender/srTimer.h"
 
 extern int g_shared_timer_pause_base;
@@ -7,8 +8,6 @@ extern int g_shared_timer_pause_time;
 extern unsigned char g_shared_timer_paused;
 extern unsigned char g_shared_timer_flag_d1;
 extern unsigned char g_shared_timer_flag_d2;
-extern int g_game_time_ms;
-extern int g_game_time_days;
 extern srTimer* g_shared_timer_base;
 
 void Function439BC0(void);

@@ -122,7 +122,7 @@ unsigned int GetAveragePartyLevel(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_party_slot_rows[slot].flag_00 != 0) {
+        if (g_party_slot_rows[slot].occupied != 0) {
             total_level += g_party_characters[slot].level;
             ++occupied_slots;
         }

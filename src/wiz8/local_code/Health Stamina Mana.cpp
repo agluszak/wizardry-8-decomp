@@ -42,7 +42,7 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, int arg_2, int arg_3)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].unknown_0b01 < W8_CHARACTER_ELIGIBLE_LIMIT) {
             ApplyHealthChangeToCharacter(
                 party_slot, RollDice(dice), 0, arg_3, 0, arg_2, 0);
@@ -63,7 +63,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
     dice.count = count;
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0) {
+        if (g_party_slot_rows[party_slot].occupied != 0) {
             HealCharacter(party_slot, RollDice(&dice), 1);
         }
     }
@@ -80,7 +80,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
     dice.count = count;
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0) {
+        if (g_party_slot_rows[party_slot].occupied != 0) {
             RestoreCharacterStamina(party_slot, RollDice(&dice), 0);
         }
     }
@@ -125,7 +125,7 @@ void DrainPartySpellPoints(int arg_1, int arg_2)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0) {
+        if (g_party_slot_rows[party_slot].occupied != 0) {
             DrainCharacterSpellPoints(party_slot, arg_1, arg_2);
         }
     }
@@ -142,7 +142,7 @@ void RestorePartySpellPoints(int amount)
     int granted;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_party_slot_rows[party_slot].flag_00 != 0 &&
+        if (g_party_slot_rows[party_slot].occupied != 0 &&
             g_party_characters[party_slot].unknown_0b01 < W8_CHARACTER_ELIGIBLE_LIMIT &&
             g_party_characters[party_slot].hp_current != 0) {
             granted = amount;
@@ -311,7 +311,7 @@ void HealCharacter(int party_slot, int amount, char announce)
     unsigned int hp_max;
     unsigned int fraction;
 
-    if (g_party_slot_rows[party_slot].flag_00 == 0) {
+    if (g_party_slot_rows[party_slot].occupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 661, 0);
     }
 
@@ -504,7 +504,7 @@ void DamageCharacter(int party_slot, int unused, int damage, char announce)
 {
     W8Character* character = &g_party_characters[party_slot];
 
-    if (g_party_slot_rows[party_slot].flag_00 == 0) {
+    if (g_party_slot_rows[party_slot].occupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 1186, 0);
     }
 
@@ -863,7 +863,7 @@ void CharacterDies(int party_slot)
     unsigned int condition;
     int animation;
 
-    if (row->flag_00 == 0) {
+    if (row->occupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 561, 0);
     }
 

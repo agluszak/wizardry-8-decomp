@@ -101,7 +101,10 @@ extern char Function5155B0(const char* path, int slot, W8Character* character);
    vendored SGP FileMan.h already on this target's include path, so they are not
    restated here. */
 extern void Function518510(void* notice);
-extern void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);    /* 0x00515CF0 */
+extern W8ItemInstance* FindCharacterItemAt(
+    int party_slot, unsigned char origin, unsigned short slot);          /* 0x00522180 */
+extern void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
+void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);            /* 0x00515CF0 */
 
 /* 0x0068517C selects where characters live, and 0x006874D7 is a per-slot byte
    consulted only when it is set. The failure notice comes out of the shared
@@ -240,7 +243,7 @@ int GetSaveGameLevel(const char* slot_name)
                 LoadGameStatus(&chunks, &status);
                 FreeStatusBuffers(&status.buffers);
                 chunks.Close();
-                return status.saved_level;
+                return status.current_level;
             }
             chunks.SkipCurrentChunk();
             chunks.ReleaseCurrentChunk();
@@ -861,6 +864,95 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
     }
 }
 
+/* Read the complete GSTA payload and its two eight-record collections. The
+   pointers at the head of the fixed block are process ownership, so they are
+   preserved across the serialized read. Old status blocks get the one retail
+   compatibility migration retained by this build. Character records repair
+   the pre-v2 profession field, while live global party rows rebuild or clear
+   every transient pointer rather than trusting saved addresses. */
+// FUNCTION: WIZ8 0x00515cf0
+void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
+{
+    W8Character* characters = status->buffers.characters;
+    W8PartySlotRow* party_rows = status->buffers.party_rows;
+    unsigned int size;
+    unsigned int slot;
+
+    if (characters == 0) {
+        srAssertFail("pStatus->Char != NULL", LOADSAVEGAME_CPP, 0xcc6, 0);
+    }
+    if (party_rows == 0) {
+        srAssertFail("pStatus->XChar != NULL", LOADSAVEGAME_CPP, 0xcc7, 0);
+    }
+
+    memset(status, 0, sizeof(*status));
+    chunks->Read(&size, sizeof(size), 0);
+    if (size > sizeof(*status)) {
+        srAssertFail("uiSize <= sizeof(*pStatus)", LOADSAVEGAME_CPP, 0xccd, 0);
+    }
+    chunks->Read(status, size, 0);
+
+    if (status->buffers.save_version < 1.1f) {
+        for (slot = 0; slot != 3; ++slot) {
+            status->text_box_lines_used_4997[slot] =
+                status->legacy_text_box_lines_1797[0][slot];
+            status->text_box_lines_shown_49a7[slot] =
+                status->legacy_text_box_lines_1797[1][slot];
+        }
+        status->text_box_lines_used_4997[3] = 0;
+        status->text_box_lines_shown_49a7[3] = 0;
+    }
+
+    status->buffers.characters = characters;
+    status->buffers.party_rows = party_rows;
+
+    W8Character* character = characters;
+    for (slot = 0; slot != 8; ++slot, ++character) {
+        memset(character, 0, sizeof(*character));
+        chunks->Read(&size, sizeof(size), 0);
+        if (size > sizeof(*character)) {
+            srAssertFail("uiSize <= sizeof(*&pStatus->Char[uiChar])",
+                         LOADSAVEGAME_CPP, 0xce4, 0);
+        }
+        chunks->Read(character, size, 0);
+        if (character->record_version < 2 &&
+            character->original_profession == 0 &&
+            character->profession_levels[0] == 0) {
+            character->original_profession = character->current_profession;
+        }
+    }
+
+    W8PartySlotRow* party_row = party_rows;
+    for (slot = 0; slot != 8; ++slot, ++party_row) {
+        unsigned char* row = reinterpret_cast<unsigned char*>(party_row);
+        memset(row, 0, sizeof(W8PartySlotRow));
+        chunks->Read(&size, sizeof(size), 0);
+        if (size > sizeof(W8PartySlotRow)) {
+            srAssertFail("uiSize <= sizeof(*&pStatus->XChar[uiChar])",
+                         LOADSAVEGAME_CPP, 0xcf2, 0);
+        }
+        chunks->Read(row, size, 0);
+
+        if (status == &g_status_685170) {
+            W8ItemInstance* item = 0;
+            signed char origin = *reinterpret_cast<signed char*>(row + 0xcd);
+            short item_slot = *reinterpret_cast<short*>(row + 0xce);
+            if (row[0] != 0 && *reinterpret_cast<int*>(row + 1) == 8 &&
+                origin != -1 && item_slot != -1) {
+                item = FindCharacterItemAt(
+                    slot, static_cast<unsigned char>(origin),
+                    static_cast<unsigned short>(item_slot));
+            }
+            *reinterpret_cast<W8ItemInstance**>(row + 0x19) = item;
+            *reinterpret_cast<void**>(row + 0x49) = 0;
+            *reinterpret_cast<void**>(row + 0x9d) = 0;
+            *reinterpret_cast<void**>(row + 0xc5) = 0;
+            *reinterpret_cast<void**>(row + 0xed) = 0;
+        }
+    }
+    RebuildPartyStatus00555FA0(&status->formation);
+}
+
 /* Write the global status as one GSTA chunk. The two pointed-to collections
    follow the fixed status object in record-sized pieces so each record remains
    an independently sized save field. */
@@ -868,21 +960,21 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
 void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status)
 {
     unsigned int size;
-    unsigned int offset;
+    unsigned int slot;
 
     chunks->OpenChunk(0x41545347, 0);
     size = sizeof(*status);
     chunks->Write(&size, sizeof(size), 0);
     chunks->Write(status, size, 0);
-    for (offset = 0; offset < 0xc310; offset += sizeof(W8Character)) {
+    for (slot = 0; slot != 8; ++slot) {
         size = sizeof(W8Character);
         chunks->Write(&size, sizeof(size), 0);
-        chunks->Write(static_cast<unsigned char*>(status->buffers.buffer_04) + offset, size, 0);
+        chunks->Write(&status->buffers.characters[slot], size, 0);
     }
-    for (offset = 0; offset < 0x830; offset += sizeof(W8PartySlotRow)) {
+    for (slot = 0; slot != 8; ++slot) {
         size = sizeof(W8PartySlotRow);
         chunks->Write(&size, sizeof(size), 0);
-        chunks->Write(static_cast<unsigned char*>(status->buffers.buffer_08) + offset, size, 0);
+        chunks->Write(&status->buffers.party_rows[slot], size, 0);
     }
     chunks->ReleaseCurrentChunk();
 }

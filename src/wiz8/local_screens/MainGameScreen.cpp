@@ -284,7 +284,7 @@ unsigned int HitTestPartyPortrait(const void* event)
     int slot = 0;
     unsigned int kind;
 
-    while (g_party_slot_rows[slot].flag_00 == 0 ||
+    while (g_party_slot_rows[slot].occupied == 0 ||
            (g_level_block->hover_region != region &&
             g_level_block->hover_region != (unsigned int)(slot + 0x5a))) {
         region += 6;

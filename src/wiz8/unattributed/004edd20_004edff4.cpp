@@ -19,10 +19,9 @@ void Function4EDD20(void)
     int capacity[8];
     int unassigned[8];
     float load_ratio[8];
-    unsigned char* characters =
-        (unsigned char*)g_status_685170.buffers.buffer_04;
-    unsigned char* active =
-        (unsigned char*)g_status_685170.buffers.buffer_08;
+    unsigned char* characters = reinterpret_cast<unsigned char*>(
+        g_status_685170.buffers.characters);
+    W8PartySlotRow* active = g_status_685170.buffers.party_rows;
 
     if (!g_status_685170.game_started_000c) {
         return;
@@ -34,12 +33,13 @@ void Function4EDD20(void)
 
     unsigned int slot;
     for (slot = 0; slot < 8; ++slot) {
-        unsigned char* character = characters + slot * 0x1862;
+        unsigned char* character =
+            characters + slot * W8_CHARACTER_SERIALIZED_SIZE;
         character[0xbbd] = 0;
         character[0xbbe] = 0;
         character[0xbbf] = 0;
         character[0xbc0] = 0;
-        if (active[slot * 0x106] != 0 &&
+        if (active[slot].occupied != 0 &&
             *(unsigned int*)(character + 0xb01) < 0x12) {
             capacity[slot] = *(int*)(character + 0xbc5);
             unassigned[slot] =
@@ -61,8 +61,9 @@ void Function4EDD20(void)
         unsigned int best_slot = (unsigned int)-1;
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
-            unsigned char* character = characters + slot * 0x1862;
-            if (active[slot * 0x106] != 0 &&
+            unsigned char* character =
+                characters + slot * W8_CHARACTER_SERIALIZED_SIZE;
+            if (active[slot].occupied != 0 &&
                 *(unsigned int*)(character + 0xb01) < 0x12 &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
@@ -72,7 +73,8 @@ void Function4EDD20(void)
         if (best_slot == (unsigned int)-1) {
             return;
         }
-        unsigned char* character = characters + best_slot * 0x1862;
+        unsigned char* character =
+            characters + best_slot * W8_CHARACTER_SERIALIZED_SIZE;
         ++*(int*)(character + 0xbbd);
         --unassigned[best_slot];
         load_ratio[best_slot] =
@@ -81,10 +83,11 @@ void Function4EDD20(void)
     }
 
     for (slot = 0; slot < 8; ++slot) {
-        if (active[slot * 0x106] == 0) {
+        if (active[slot].occupied == 0) {
             continue;
         }
-        unsigned char* character = characters + slot * 0x1862;
+        unsigned char* character =
+            characters + slot * W8_CHARACTER_SERIALIZED_SIZE;
         int carried = *(int*)(character + 0xbb9) +
                       *(int*)(character + 0xbbd);
         *(int*)(character + 0xbc1) = carried;

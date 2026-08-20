@@ -371,7 +371,7 @@ retry:
     slot = 0;
     do {
         matched = 0;
-        if (g_party_slot_rows[slot].flag_00 != 0 && (int)slot != excluded_slot) {
+        if (g_party_slot_rows[slot].occupied != 0 && (int)slot != excluded_slot) {
             character = &g_party_characters[slot];
             if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
                 || require_primary == 2) {
@@ -422,7 +422,7 @@ retry:
     scanned = 0;
 
     do {
-        if (rows[slot].flag_00 != 0) {
+        if (rows[slot].occupied != 0) {
             W8Character* character = &characters[slot];
 
             if ((character->hp_current > 0 && character->unknown_0b01 < 0x12)
