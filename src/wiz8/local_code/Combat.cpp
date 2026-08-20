@@ -186,7 +186,6 @@ void DropCharacterFromRound(int party_slot)
 extern float MonsterDistanceToParty(W8MonsterInfo* monster_info);        /* 0x004C7CB0 */
 extern float CalcRangeDistance(int range_category);                      /* 0x0051A9A0 */
 extern void NotifyMonsterOfSound(W8Monster* monster, int arg_2);      /* 0x004C6240 */
-extern unsigned char g_surprise_possible_00683fc5;
 
 /* Tell every monster within short range about something. A monster has to be
    in combat, alive, not on its way out, free of whatever 0x087 records, and

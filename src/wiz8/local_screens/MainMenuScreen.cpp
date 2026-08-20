@@ -375,7 +375,7 @@ unsigned char MainMenuScreenFunction005BC810(void)
     InitializeMainMenuRegions();
     RegionSetEnable(1);
 
-    if (g_monster_record_count > 1000) {
+    if (gXStatus.uiMonstersInDatabase > 1000) {
         srAssertFail(
             "gXStatus.uiMonstersInDatabase <= MAX_MONSTERS_IN_DATABASE",
             "C:\\Projects\\Wizardry 8\\Local Screens\\MainMenuScreen.cpp",

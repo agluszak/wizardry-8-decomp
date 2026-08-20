@@ -839,7 +839,7 @@ void GetOriginOfCharacterItem(
 // FUNCTION: WIZ8 0x0051b560
 void InitializeItemVideoObjects(void)
 {
-    g_item_video_objects_68ec68.Initialize(g_item_record_count);
+    g_item_video_objects_68ec68.Initialize(gXStatus.uiItemsInDatabase);
 }
 
 /* Throw away the item-video-object vector and every lazily built generic name.
@@ -1031,7 +1031,7 @@ void ReplaceOrCreateItem(
     W8ItemInstance shifted[500];
     unsigned int index;
 
-    if ((unsigned int)item_id >= (unsigned int)g_item_record_count) {
+    if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
         srAssertFail(
             "uiItemNo < gXStatus.uiItemsInDatabase",
             PC_ITEM_CPP,
@@ -1146,7 +1146,7 @@ unsigned char GetItemSpell(const W8ItemInstance* item)
     if (item->item_id == -1) {
         srAssertFail("pPCItem->iItemNo != -1", PC_ITEM_CPP, 4003, 0);
     }
-    if (item->item_id >= g_item_record_count) {
+    if (item->item_id >= (int)gXStatus.uiItemsInDatabase) {
         srAssertFail("pPCItem->iItemNo < (INT32) gXStatus.uiItemsInDatabase",
                      PC_ITEM_CPP, 4004, 0);
     }
@@ -1306,7 +1306,6 @@ extern void PracticeCharacterSkill(W8Character* character, int skill, int amount
 extern void RemoveCharacterItem(int party_slot, W8ItemInstance* item, int arg_3);
 extern void BindCharacterItems(int party_slot, int arg_2);              /* 0x0051D2C0 */
 extern void ShowNotice(int channel, void* notice, int a, int b, int c);
-extern unsigned char g_flag_00683fce;
 
 /* The most of one item a character can hold at once: the record's own quantity
    dice taken at their maximum. */
@@ -1477,7 +1476,7 @@ int GetItemSpellRange(const W8ItemInstance* item)
     if (item->item_id == -1) {
         srAssertFail("pPCItem->iItemNo != -1", PC_ITEM_CPP, 4003, 0);
     }
-    if (item->item_id >= g_item_record_count) {
+    if (item->item_id >= (int)gXStatus.uiItemsInDatabase) {
         srAssertFail("pPCItem->iItemNo < (INT32) gXStatus.uiItemsInDatabase",
                      PC_ITEM_CPP, 4004, 0);
     }

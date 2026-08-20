@@ -12,8 +12,6 @@ extern void Function4EE000(void* character);
 extern void Function4EE220(void* character);
 extern void Function4EE9D0(void* character);
 extern void RequestRedraw(unsigned int mask);
-extern unsigned char g_flag_00683f97;
-extern bool g_flag_683fa0;
 
 // FUNCTION: WIZ8 0x004edd20
 void Function4EDD20(void)

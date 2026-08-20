@@ -389,7 +389,6 @@ extern unsigned int GetMonsterGroupIndexByID(
     int caller_line, const char* caller_file, int group_id, unsigned char assert_on_failure);
 extern W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int index);
 extern unsigned char ItemClassNormalizesTarget(const W8ItemDatabaseRecord* record);
-extern int g_highlight_suppressed_00683fe7;
 
 /* What the interface has to ask the player to pick for one action. Most
    actions answer a fixed kind; casting asks the spell and using an item asks
@@ -831,7 +830,6 @@ extern void SetTargetCursor(int cursor);                                 /* 0x00
 extern void ClearTargetCursor(void);                                     /* 0x0055EF90 */
 extern int IsScreenIdle(void);
 extern void* g_modal_owner_0068edd0;
-extern int g_cursor_state_00683fdb;
 
 /* The two cursors this body cares about: the one it puts up for a monster it
    can act on, and the one it takes down for a monster it cannot. */
@@ -993,8 +991,6 @@ void CollectMonstersWithinRadius(
         }
     }
 }
-extern unsigned char g_flag_00683f95;
-extern unsigned char g_flag_00683f96;
 /* 0x0068408B: the target block context two answers with, shared by the whole
    party rather than kept per slot - which is what makes it the odd one out
    among the six. */
@@ -1569,7 +1565,6 @@ unsigned char SlotHasAnyValidTarget(int party_slot)
 }
 
 /* 0x00683FB1: every monster group in the level. */
-extern W8PList* g_monster_group_list_00683fb1;
 
 /* The spell target kinds this has an opinion about. Everything else is
    answered yes outright, so the question only ever narrows. */

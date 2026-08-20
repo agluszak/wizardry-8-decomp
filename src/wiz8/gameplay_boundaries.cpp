@@ -93,7 +93,7 @@ void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effec
     previous_value = g_fact_values[fact_id];
     g_fact_values[fact_id] = (unsigned char)value;
 
-    if (fact_id < g_fact_record_count) {
+    if (fact_id < (int)gXStatus.uiFactsInDatabase) {
         if (value) {
             sprintf((char*)display_value, "TRUE");
         } else {

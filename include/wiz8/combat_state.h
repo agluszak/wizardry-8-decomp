@@ -111,7 +111,6 @@ extern "C" {
 #endif
 
 extern W8CombatState* g_combat_state;    /* 0x006836A8 */
-extern unsigned char g_in_combat_00683f94;
 extern W8CombatCharacterRow* g_combat_character_rows;
 extern W8CharacterClassRecord* g_character_class_records; /* 0x0065BDE0 */
 

@@ -111,8 +111,6 @@ enum {
     W8_SPELL_USABLE_WHILE_CAMPED = 3,
     W8_SPELL_USABLE_WHILE_SHOPPING = 4
 };
-extern unsigned char g_flag_00683f9c;
-extern unsigned char g_flag_00683f9d;
 extern int Function53A2C0(W8MonsterInfo* monster_info, int location_id);
 extern unsigned char Function53A300(W8MonsterInfo* monster_info, int spell_id);
 extern unsigned char Function519F80(

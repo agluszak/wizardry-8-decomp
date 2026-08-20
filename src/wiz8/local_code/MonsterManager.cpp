@@ -48,7 +48,6 @@ void Function4C5750(W8Monster* monster, srVector3T<float>* position);
 void RefreshAllSight(void);
 void SetTargetToMonster(int location_id, int value);
 void Function593330(void);
-extern int g_active_monster_count_683fa1;
 void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior);
 void MonsterSetRuntimeBehaviour(W8Monster* monster, signed char behaviour);
 void MonsterForward4A84A0(W8Monster* monster);
@@ -159,8 +158,6 @@ void EndCombat(unsigned char reason);
 void Function595570(void);
 extern unsigned char g_flag_68517c;
 extern unsigned char g_flag_6850d2;
-extern int g_dword_683fa5;
-extern unsigned char g_flag_683f97;
 
 static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(
     unsigned int monster_species);
@@ -325,39 +322,40 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
     int line;
 
     if (monster_list_index < 10000 || monster_list_index >= 20000) {
-        if (monster_list_index >= PLLength(g_monster_list)) {
+        if (monster_list_index >= PLLength(gXStatus.plsMonsterList)) {
             srAssertFail(
                 "uiMonsterListIndex < (UINT32) PLLength(gXStatus.plsMonsterList)",
                 MONSTER_MANAGER_CPP,
                 0x5da,
                 0);
         }
-        result = (W8MonsterInfo*)PLGet(g_monster_list, monster_list_index);
+        result = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, monster_list_index);
         if (result != 0) {
             return result;
         }
         detail = reinterpret_cast<const char*>(String(
             "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
             monster_list_index,
-            g_monster_list));
+            gXStatus.plsMonsterList));
         line = 0x5de;
     }
     else {
-        if (monster_list_index - 10000 >= PLLength(g_unborn_monster_list)) {
+        if (monster_list_index - 10000 >= PLLength(gXStatus.plsUnbornMonsterList)) {
             srAssertFail(
                 "(uiMonsterListIndex-10000) < (UINT32) PLLength(gXStatus.plsUnbornMonsterList)",
                 MONSTER_MANAGER_CPP,
                 0x5d1,
                 0);
         }
-        result = (W8MonsterInfo*)PLGet(g_unborn_monster_list, monster_list_index - 10000);
+        result = (W8MonsterInfo*)PLGet(
+            gXStatus.plsUnbornMonsterList, monster_list_index - 10000);
         if (result != 0) {
             return result;
         }
         detail = reinterpret_cast<const char*>(String(
             "MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
             monster_list_index,
-            g_monster_list));
+            gXStatus.plsMonsterList));
         line = 0x5d5;
     }
     /* One tail, reached from both branches with only the line number differing.
@@ -1046,34 +1044,34 @@ unsigned char ShutdownMonsterManager(void)
 {
     W8MonsterRecord** slot;
 
-    if (g_monster_group_list == 0) {
+    if (gXStatus.plsMonsterGroupList == 0) {
         srAssertFail(
             "gXStatus.plsMonsterGroupList != NULL", MONSTER_MANAGER_CPP, 0x5c, 0);
     }
-    if (g_monster_list == 0) {
+    if (gXStatus.plsMonsterList == 0) {
         srAssertFail("gXStatus.plsMonsterList != NULL", MONSTER_MANAGER_CPP, 0x5d, 0);
     }
-    while (static_cast<int>(PLLength(g_monster_list)) > 0) {
+    while (static_cast<int>(PLLength(gXStatus.plsMonsterList)) > 0) {
         if (RemoveMonster(0, 1) == 0) {
             return 0;
         }
     }
-    if (PLDestroy(g_monster_list) == 0) {
+    if (PLDestroy(gXStatus.plsMonsterList) == 0) {
         return 0;
     }
-    g_monster_list = 0;
-    if (PLDestroy(g_monster_group_list) == 0) {
+    gXStatus.plsMonsterList = 0;
+    if (PLDestroy(gXStatus.plsMonsterGroupList) == 0) {
         return 0;
     }
-    g_monster_group_list = 0;
-    if (PLDestroy(g_monster_group_species_list) == 0) {
+    gXStatus.plsMonsterGroupList = 0;
+    if (PLDestroy(gXStatus.plsUnbornMonsterList) == 0) {
         return 0;
     }
-    g_monster_group_species_list = 0;
-    if (PLDestroy(g_monster_group_encounter_list) == 0) {
+    gXStatus.plsUnbornMonsterList = 0;
+    if (PLDestroy(gXStatus.plsMonsterGroupEncounterList) == 0) {
         return 0;
     }
-    g_monster_group_encounter_list = 0;
+    gXStatus.plsMonsterGroupEncounterList = 0;
     for (slot = g_monster_record_cache;
          slot < g_monster_record_cache + MAX_MONSTERS_IN_DATABASE;
          ++slot) {

@@ -265,7 +265,7 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
             rule = static_cast<W8NpcItemStockRule*>(
                 PLGet(npc->record->item_stock_rules, rule_index));
             item_id = rule->item_id;
-            if (item_id < g_item_record_count) {
+            if (item_id < (int)gXStatus.uiItemsInDatabase) {
                 persistent = rule->persistent;
                 added = 0;
                 if (rule->quantity != 0) {

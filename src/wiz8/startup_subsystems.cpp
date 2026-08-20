@@ -143,9 +143,6 @@ unsigned short* g_font_state_palettes_68ee1c[15];
 
 /* Zero is the retail BSS state. The first screen synchronization replaces it
    with the default cursor and then records the normal -1 state. */
-int g_cursor_state_00683fdb;
-int g_dword_683fdf;
-int g_dword_683fe3;
 
 // FUNCTION: WIZ8 0x005bc800
 unsigned char InitializeSubsystemFlag(void)

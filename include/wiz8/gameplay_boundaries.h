@@ -388,7 +388,6 @@ extern int giStringListLen;
    declared separately in every file that used it, which is how two of them
    ended up with two names and two more with two types; one declaration each is
    what keeps that from happening again. */
-extern unsigned char g_camp_open_00683f9b;
 /* 0x00687599: one byte, and the image proves it. All 16 relocation sites that
    name the address touch it a byte at a time - fifteen `mov r8, byte ptr [..]`
    reads across seven functions and the single write `mov byte ptr [..], 1` in
@@ -402,7 +401,6 @@ extern unsigned char g_camp_open_00683f9b;
    stays positional until the meaning behind that pairing is established. */
 extern unsigned char g_save_flag_00687599;
 /* 0x00683FAD: every monster currently in the level. */
-extern W8PList* g_active_monster_list_00683fad;
 /* 0x0068EC78: which screen is up. The whole 0x98-byte block lives there; the
    leading id is what everything outside the screen code reads, which is why
    this is a union rather than two globals. */
@@ -459,13 +457,6 @@ extern const int g_equip_slot_icons[];
    and posts the pickup message when it is told to announce; SpendPartyGold is
    the matching debit and floors at zero rather than wrapping. */
 extern unsigned int g_party_gold;
-/* gXStatus.uiMonstersInDatabase, named by the assertion at GameplayDatabase.cpp
-   line 320. It sits immediately below the NPC count, so the database counts are
-   fields of one gXStatus structure rather than separate globals; they are kept
-   separate here until that structure is recovered. */
-/* Two gXStatus members named by the MonsterManager.cpp assertions at lines 92
-   and 93. Recovering the whole structure is tracked separately; until then its
-   members stay separate externs. */
 /* Reset together by ResetGameplayStatusBlock; their meaning is not established,
    so they keep address-positional names. The object at 0x00683FD7 is torn down
    by 0x0054B0B0 through operator delete after the same method's sibling. */
@@ -477,7 +468,6 @@ extern void* g_startup_runtime_state;
 #endif
 extern void* g_object_685067;
 extern unsigned char g_party_moving_006850b5;
-extern unsigned char g_surprise_possible_00683fc5;
 /* Written by Targeting.cpp and reset to -1 here; meaning not established. */
 extern int g_target_state_6840b3;
 extern int g_picked_group_006840b7;

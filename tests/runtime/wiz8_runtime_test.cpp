@@ -47,6 +47,9 @@ struct RuntimeObservation {
     int playlist_pause_max;
     int playlist_pause_chance;
     int patch_catalog_count;
+    unsigned int item_database_count;
+    unsigned int monster_database_count;
+    unsigned int npc_database_count;
     unsigned char patch_precedence_ok;
     unsigned char physical_fallback_ok;
 };
@@ -206,6 +209,9 @@ static DWORD WINAPI DriveScenario(void*)
     g_observation.playlist_pause_chance = g_music_state_60aaf0;
     g_observation.patch_catalog_count =
         gFileDataBase.usNumberOfLibraries - NUMBER_OF_LIBRARIES;
+    g_observation.item_database_count = gXStatus.uiItemsInDatabase;
+    g_observation.monster_database_count = gXStatus.uiMonstersInDatabase;
+    g_observation.npc_database_count = gXStatus.uiNpcsInDatabase;
     g_observation.patch_precedence_ok = VerifyPatchPrecedence();
     g_observation.physical_fallback_ok = VerifyPhysicalFileFallback();
     const bool initial_table = VerifyShadeTable((FLOAT)0.66);
@@ -311,7 +317,9 @@ int main(int argc, char** argv)
         "regions_enabled=%u first_region=%u last_region=%u "
         "playlist_active=%u playlist_tracks=%d playlist_weight=%d "
         "playlist_pause_min=%d playlist_pause_max=%d playlist_pause_chance=%d "
-        "patch_catalog_count=%d patch_precedence_ok=%u physical_fallback_ok=%u "
+        "patch_catalog_count=%d item_database_count=%u "
+        "monster_database_count=%u npc_database_count=%u "
+        "patch_precedence_ok=%u physical_fallback_ok=%u "
         "shade_table_ok=%u exit_observed=%u transition_observed=%u "
         "teardown=%u timed_out=%u\n",
         g_scenario,
@@ -327,6 +335,9 @@ int main(int argc, char** argv)
         g_observation.playlist_pause_max,
         g_observation.playlist_pause_chance,
         g_observation.patch_catalog_count,
+        g_observation.item_database_count,
+        g_observation.monster_database_count,
+        g_observation.npc_database_count,
         g_observation.patch_precedence_ok,
         g_observation.physical_fallback_ok,
         g_observation.shade_table_ok,
@@ -341,6 +352,9 @@ int main(int argc, char** argv)
         g_observation.last_region == 6 && g_observation.playlist_active &&
         g_observation.playlist_tracks > 0 &&
         g_observation.patch_catalog_count > 0 &&
+        g_observation.item_database_count > 0 &&
+        g_observation.monster_database_count > 0 &&
+        g_observation.npc_database_count > 0 &&
         g_observation.patch_precedence_ok &&
         g_observation.physical_fallback_ok && g_observation.shade_table_ok;
     const bool exit_ok =

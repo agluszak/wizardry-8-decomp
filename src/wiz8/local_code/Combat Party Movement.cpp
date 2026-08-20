@@ -18,7 +18,6 @@ enum { W8_PHASES_PER_ROUND = 100 };
 /* The turn phase in which the party has its own movement back. */
 enum { W8_TURN_PHASE_FREE = 3 };
 extern unsigned char g_party_moving_006850b5;
-extern unsigned char g_flag_00683fce;
 extern float g_movement_speed_step_005ed490;
 extern void ClampUnsignedInteger(unsigned int* value, unsigned int base, unsigned int span);
 extern void SetPartyMoving(int moving);                                 /* 0x00420B40 */

@@ -666,7 +666,6 @@ extern unsigned char g_navigator_position_changed_659c11;
 
 extern void Function454780(int changed);
 
-extern unsigned char g_in_combat_00683f94;
 extern float g_navigator_default_turn_rate_005ec2f4;
 extern float g_frame_scale_006068ec;
 extern const float g_negative_one_005ebc38;

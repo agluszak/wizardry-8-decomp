@@ -6,7 +6,6 @@
 
 #include <string.h>
 
-extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
@@ -15,16 +14,16 @@ extern int g_item_manager_pending_00683FA9;
 bool InitializeItemManagerState()
 {
     g_next_world_item_id = 1;
-    g_item_manager_pending_00683FA9 = 0;
+    gXStatus.item_manager_pending = 0;
     if (g_screen_state_0068ec78.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
     }
-    if (g_world_item_list != 0) {
-        PListClear(g_world_item_list);
-        return g_world_item_list != 0;
+    if (gXStatus.plsItemList != 0) {
+        PListClear(gXStatus.plsItemList);
+        return gXStatus.plsItemList != 0;
     }
-    g_world_item_list = PLCreate();
-    return g_world_item_list != 0;
+    gXStatus.plsItemList = PLCreate();
+    return gXStatus.plsItemList != 0;
 }
 
 // FUNCTION: WIZ8 0x004f8130
@@ -135,7 +134,7 @@ int FindItemTableByName(const char* name)
 {
     int index;
 
-    for (index = 0; index < (int)g_item_table_count; ++index) {
+    for (index = 0; index < (int)gXStatus.uiItemTablesInDatabase; ++index) {
         if (_stricmp(name, g_item_tables[index]->name) == 0) {
             return index;
         }
@@ -289,7 +288,7 @@ int FindItemRecordByName(const char* name)
     int index;
     const char* internal_name;
 
-    for (index = 0; index < g_item_record_count; ++index) {
+    for (index = 0; index < (int)gXStatus.uiItemsInDatabase; ++index) {
         internal_name = g_item_records[index].internal_name;
         if (internal_name[0] == 0) {
             if (_stricmp(ConvertWideStringToString(g_item_records[index].display_name), name) ==
@@ -463,7 +462,6 @@ extern void ReplaceOrCreateItem(
     unsigned char maximum_quantity,
     unsigned char force_identified,
     unsigned char mark_special);
-extern int g_item_manager_pending_00683FA9;
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
 extern float g_world_scale_005ebc40;

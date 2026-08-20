@@ -4,6 +4,8 @@ from pathlib import Path
 REPOSITORY = Path(__file__).resolve().parents[2]
 QUARANTINE = REPOSITORY / "include/wiz8/gameplay_boundaries.h"
 ITEM_SPAWNING = REPOSITORY / "include/wiz8/item_spawning.h"
+XSTATUS = REPOSITORY / "include/wiz8/xstatus.h"
+GAMEPLAY_DATABASE = REPOSITORY / "src/wiz8/local_code/GameplayDatabase.cpp"
 RENDERER_WINDOW = REPOSITORY / "src/wiz8/renderer_window.cpp"
 
 # This is intentionally a ceiling, not an expected size: the quarantine may
@@ -71,8 +73,12 @@ def test_monster_owner_does_not_include_quarantine() -> None:
 
 def test_extracted_globals_keep_address_markers_on_their_canonical_owners() -> None:
     item_spawning = ITEM_SPAWNING.read_text()
+    xstatus = XSTATUS.read_text()
+    gameplay_database = GAMEPLAY_DATABASE.read_text()
     renderer_window = RENDERER_WINDOW.read_text()
 
     assert "// GLOBAL: WIZ8 0x006874C2\nextern int g_next_world_item_id;" in item_spawning
-    assert "// GLOBAL: WIZ8 0x00683FB5\nextern W8PList* g_world_item_list;" in item_spawning
+    assert "W8PList* plsItemList;                         /* 0x3d */" in xstatus
+    assert "extern W8XStatus gXStatus;" in xstatus
+    assert "// GLOBAL: WIZ8 0x00683F78\nW8XStatus gXStatus;" in gameplay_database
     assert "// GLOBAL: WIZ8 0x00659AB4\nW8World* g_world;" in renderer_window

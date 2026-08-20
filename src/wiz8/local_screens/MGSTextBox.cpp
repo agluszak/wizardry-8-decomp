@@ -164,7 +164,6 @@ void RedrawTextBoxComplete(void)
 /* 0x0068F2E0: one clock per message, nine dwords apart, in per-line runs of
    0x15e. */
 extern int g_message_clocks[];
-extern unsigned char g_flag_00683f99;
 extern void Function558810(void);
 extern void Function558720(int arg_1);
 extern void ShowNotice(int channel, const void* text, int a, int b, int c);

@@ -3,6 +3,7 @@
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/item_instance.h"
+#include "wiz8/xstatus.h"
 #include "surrender/srMath.h"
 
 #pragma pack(push, 1)
@@ -42,10 +43,6 @@ extern "C" {
    item, with zero normalized to the first valid id during initialization. */
 // GLOBAL: WIZ8 0x006874C2
 extern int g_next_world_item_id;
-/* gXStatus.plsItemList, named by the ItemInfo assertion that bounds an index
-   against PLLength(gXStatus.plsItemList). */
-// GLOBAL: WIZ8 0x00683FB5
-extern W8PList* g_world_item_list;
 
 W8WorldItem* CreateWorldItem(
     W8ItemInstance* item,

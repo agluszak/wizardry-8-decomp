@@ -24,39 +24,29 @@ extern void Function54B300(unsigned int slot);
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
 W8GlobalStatus g_status_685170;
+/* The packed runtime status prefix named by the database and manager
+   assertions. Record arrays remain separate roots at their own addresses. */
+// GLOBAL: WIZ8 0x00683F78
+W8XStatus gXStatus;
 /* Persistent database roots owned by this translation unit.  Leaving these as
    unresolved externals made the runnable image relocate every load/store to
    the PE image base; the first four-byte count read consequently targeted a
    read-only header instead of game state. */
 // GLOBAL: WIZ8 0x006836AC
 W8FactDatabaseRecord* g_fact_records;
-// GLOBAL: WIZ8 0x00683F8C
-int g_fact_record_count;
 // GLOBAL: WIZ8 0x0068516C
 W8ItemDatabaseRecord* g_item_records;
-// GLOBAL: WIZ8 0x00683F78
-int g_item_record_count;
 /* The six item stacks granted by the new-game status reset. */
 // GLOBAL: WIZ8 0x006164DC
 unsigned int g_starting_item_ids[6] = {0x14f, 0x14f, 0x15a, 0x15a, 0x15b, 0x155};
 // GLOBAL: WIZ8 0x006836A4
 W8LevelDatabaseRecord* g_level_records;
-// GLOBAL: WIZ8 0x00683F90
-int g_level_record_count;
 // GLOBAL: WIZ8 0x006836A0
 W8NpcDatabaseRecord* g_npc_records;
-// GLOBAL: WIZ8 0x00683F88
-unsigned int g_npc_record_count;
-// GLOBAL: WIZ8 0x00683F84
-unsigned int g_monster_record_count;
 // GLOBAL: WIZ8 0x006836B0
 W8ItemTableRecord** g_item_tables;
-// GLOBAL: WIZ8 0x00683F7C
-unsigned int g_item_table_count;
 // GLOBAL: WIZ8 0x006836B4
 char** g_item_table_category_names;
-// GLOBAL: WIZ8 0x00683F80
-unsigned int g_item_table_category_count;
 // GLOBAL: WIZ8 0x0065BE1C
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
@@ -80,7 +70,6 @@ extern void ReplaceOrCreateItem(
     unsigned char force_identified,
     unsigned char mark_special);
 extern bool g_flag_68517c;
-extern bool g_flag_683fa0;
 extern int g_dword_6875b7;
 extern void Function5A9E70(void* target);
 extern void Function482720(int value);
@@ -114,15 +103,15 @@ unsigned char InitializeFactDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &g_fact_record_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiFactsInDatabase, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
-    g_fact_records = (W8FactDatabaseRecord*)malloc(g_fact_record_count * 0x1d8);
+    g_fact_records = (W8FactDatabaseRecord*)malloc(gXStatus.uiFactsInDatabase * 0x1d8);
     if (!g_fact_records) {
         return 0;
     }
-    for (index = 0; index < (unsigned int)g_fact_record_count; ++index) {
+    for (index = 0; index < gXStatus.uiFactsInDatabase; ++index) {
         if (!ReadVirtualFile(handle, &g_fact_records[index], 0x1d8, &transferred)) {
             CloseVirtualFile(handle);
             return 0;
@@ -152,15 +141,15 @@ unsigned char InitializeItemDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &g_item_record_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiItemsInDatabase, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
-    g_item_records = (W8ItemDatabaseRecord*)malloc(g_item_record_count * 0x10d);
+    g_item_records = (W8ItemDatabaseRecord*)malloc(gXStatus.uiItemsInDatabase * 0x10d);
     if (!g_item_records) {
         return 0;
     }
-    for (index = 0; index < (unsigned int)g_item_record_count; ++index) {
+    for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
         if (!ReadVirtualFile(handle, &g_item_records[index], 0x10d, &transferred)) {
             CloseVirtualFile(handle);
             return 0;
@@ -183,15 +172,15 @@ unsigned char InitializeLevelDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &g_level_record_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiLevelsInDatabase, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
-    g_level_records = (W8LevelDatabaseRecord*)malloc(g_level_record_count * 0xd8);
+    g_level_records = (W8LevelDatabaseRecord*)malloc(gXStatus.uiLevelsInDatabase * 0xd8);
     if (!g_level_records) {
         return 0;
     }
-    for (index = 0; index < (unsigned int)g_level_record_count; ++index) {
+    for (index = 0; index < gXStatus.uiLevelsInDatabase; ++index) {
         if (!ReadVirtualFile(handle, &g_level_records[index], 0xd8, &transferred)) {
             CloseVirtualFile(handle);
             return 0;
@@ -219,32 +208,32 @@ unsigned char InitializeItemTables(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &g_item_table_category_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiItemTableCategories, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
-    if (g_item_table_category_count) {
-        g_item_table_category_names = (char**)malloc(g_item_table_category_count * 4);
+    if (gXStatus.uiItemTableCategories) {
+        g_item_table_category_names = (char**)malloc(gXStatus.uiItemTableCategories * 4);
         if (!g_item_table_category_names) {
             return 0;
         }
-        memset(g_item_table_category_names, 0, g_item_table_category_count * 4);
-        for (index = 0; index < g_item_table_category_count; ++index) {
+        memset(g_item_table_category_names, 0, gXStatus.uiItemTableCategories * 4);
+        for (index = 0; index < gXStatus.uiItemTableCategories; ++index) {
             g_item_table_category_names[index] = (char*)malloc(0x100);
             ReadVirtualFile(handle, g_item_table_category_names[index], 0x100, &transferred);
         }
     }
-    if (!ReadVirtualFile(handle, &g_item_table_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiItemTablesInDatabase, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
-    if (g_item_table_count) {
-        g_item_tables = (W8ItemTableRecord**)malloc(g_item_table_count * 4);
+    if (gXStatus.uiItemTablesInDatabase) {
+        g_item_tables = (W8ItemTableRecord**)malloc(gXStatus.uiItemTablesInDatabase * 4);
         if (!g_item_tables) {
             return 0;
         }
-        memset(g_item_tables, 0, g_item_table_count * 4);
-        for (index = 0; index < g_item_table_count; ++index) {
+        memset(g_item_tables, 0, gXStatus.uiItemTablesInDatabase * 4);
+        for (index = 0; index < gXStatus.uiItemTablesInDatabase; ++index) {
             g_item_tables[index] = (W8ItemTableRecord*)malloc(0x1f1);
             memset(g_item_tables[index], 0, 0x1f1);
             if (!g_item_tables[index]) {
@@ -279,15 +268,15 @@ unsigned char InitializeNpcDatabase(void)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &g_npc_record_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiNpcsInDatabase, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
-    g_npc_records = (W8NpcDatabaseRecord*)malloc(g_npc_record_count * 0x309);
+    g_npc_records = (W8NpcDatabaseRecord*)malloc(gXStatus.uiNpcsInDatabase * 0x309);
     if (!g_npc_records) {
         return 0;
     }
-    for (index = 0; index < g_npc_record_count; ++index) {
+    for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
         if (!ReadVirtualFile(handle, &g_npc_records[index], 0x309, &transferred)) {
             CloseVirtualFile(handle);
             return 0;
@@ -336,7 +325,7 @@ void DestroyNpcDatabase(void)
     unsigned int index;
 
     if (g_npc_records) {
-        for (index = 0; index < g_npc_record_count; ++index) {
+        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
             if (g_npc_records[index].item_stock_rules) {
                 W8PList* rules = g_npc_records[index].item_stock_rules;
                 while (PLLength(rules) != 0) {
@@ -364,7 +353,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     unsigned int index = uiMonsterIndex;
     int handle;
 
-    if (!(index < g_monster_record_count)) {
+    if (!(index < gXStatus.uiMonstersInDatabase)) {
         srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase",
                      GAMEPLAY_DATABASE_CPP, 0x140, 0);
     }
@@ -489,7 +478,7 @@ void DestroyItemTables(void)
     unsigned int index;
 
     if (g_item_table_category_names) {
-        for (index = 0; index < g_item_table_category_count; ++index) {
+        for (index = 0; index < gXStatus.uiItemTableCategories; ++index) {
             if (g_item_table_category_names[index]) {
                 free(g_item_table_category_names[index]);
             }
@@ -497,7 +486,7 @@ void DestroyItemTables(void)
         free(g_item_table_category_names);
     }
     if (g_item_tables) {
-        for (index = 0; index < g_item_table_count; ++index) {
+        for (index = 0; index < gXStatus.uiItemTablesInDatabase; ++index) {
             if (g_item_tables[index]) {
                 free(g_item_tables[index]);
             }
@@ -590,16 +579,16 @@ unsigned char Function54A760(W8MonsterRecord** records)
     if (!handle) {
         return 0;
     }
-    if (!ReadVirtualFile(handle, &g_monster_record_count, 4, &transferred)) {
+    if (!ReadVirtualFile(handle, &gXStatus.uiMonstersInDatabase, 4, &transferred)) {
         CloseVirtualFile(handle);
         return 0;
     }
     if (records) {
-        block = (unsigned char*)malloc(g_monster_record_count * 0x297);
+        block = (unsigned char*)malloc(gXStatus.uiMonstersInDatabase * 0x297);
         if (!block) {
             return 0;
         }
-        for (index = 0, cursor = block; index < g_monster_record_count; ++index) {
+        for (index = 0, cursor = block; index < gXStatus.uiMonstersInDatabase; ++index) {
             if (!ReadVirtualFile(handle, cursor, 0x297, &transferred)) {
                 CloseVirtualFile(handle);
                 free(block);
@@ -626,7 +615,7 @@ unsigned char Function54A9A0(unsigned int uiStartIndex, unsigned int uiEndIndex,
     char path[56];
     int handle;
 
-    if (!(uiEndIndex < g_monster_record_count)) {
+    if (!(uiEndIndex < gXStatus.uiMonstersInDatabase)) {
         srAssertFail("uiEndIndex < gXStatus.uiMonstersInDatabase",
                      GAMEPLAY_DATABASE_CPP, 0x17a, 0);
     }

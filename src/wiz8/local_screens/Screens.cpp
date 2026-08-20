@@ -16,9 +16,6 @@
  */
 
 extern "C" {
-extern int g_cursor_state_00683fdb;
-extern int g_dword_683fdf;
-extern int g_dword_683fe3;
 extern unsigned char g_flag_68edac;
 extern void* g_stack_68eda8;
 

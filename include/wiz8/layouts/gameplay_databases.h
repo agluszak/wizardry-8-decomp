@@ -2,6 +2,7 @@
 #define WIZ8_LAYOUTS_GAMEPLAY_DATABASES_H
 
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/xstatus.h"
 
 /*
  * The on-disk gameplay records, as the matching source compiles them.
@@ -270,11 +271,7 @@ typedef struct W8RaceResistanceProfile {
    owns their storage; consumers reach it through this one declaration surface
    instead of the gameplay-boundary quarantine. */
 extern W8FactDatabaseRecord* g_fact_records;
-extern int g_fact_record_count;
 extern W8LevelDatabaseRecord* g_level_records;
-extern int g_level_record_count;
 extern W8NpcDatabaseRecord* g_npc_records;
-extern unsigned int g_npc_record_count;
-extern unsigned int g_monster_record_count;
 
 #endif

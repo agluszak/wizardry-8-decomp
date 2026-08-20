@@ -42,15 +42,6 @@ unsigned int Function568950(const InputAtom* input)
     }
 }
 
-extern unsigned char g_flag_00683fcd;
-extern unsigned char g_flag_00683f95;
-extern unsigned char g_flag_00683f96;
-extern unsigned char g_flag_00683f97;
-extern unsigned char g_flag_00683f98;
-extern unsigned char g_flag_00683f99;
-extern unsigned char g_flag_00683f9a;
-extern unsigned char g_flag_00683f9c;
-extern unsigned char g_flag_00683f9d;
 extern unsigned char g_flag_006840bd;
 extern "C" unsigned char g_flag_6840bc;
 extern void DisableRegionSet1C(void);

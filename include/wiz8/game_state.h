@@ -14,6 +14,7 @@
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_instance.h"
+#include "wiz8/xstatus.h"
 
 #pragma pack(push, 1)
 

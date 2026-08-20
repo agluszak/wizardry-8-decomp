@@ -661,7 +661,6 @@ extern unsigned char g_flag_0068510d;
    combat_state.h and gameplay_boundaries.h, so they are used rather than
    redeclared. 0x00683F97 has no header owner and is declared here under the
    name MainGameScreen.cpp already gives it. */
-extern unsigned char g_flag_00683f97;
 extern unsigned char IsSightRangeOverridden(void);                      /* 0x00504910 */
 extern int IsLevelDataFlag4EffectivelySet(void);                        /* 0x0041F090 */
 /* Byte-sized, not int: the refusal below returns through `mov al,1` and the
