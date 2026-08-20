@@ -27,7 +27,10 @@ struct W8PathSurface {
     unsigned short flags_00;
     unsigned short index_02;
     srVector3T<float> position_04;
-    unsigned char positional_10[0x14];
+    unsigned short parent_10;
+    unsigned char positional_12[0x0a];
+    float cost_1c;
+    float remaining_cost_20;
     unsigned short first_edge_24;
     unsigned short positional_26;
 };
@@ -94,6 +97,18 @@ struct W8PathGridWalk {
 
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
 
+/* One of the fixed probe volumes assembled by 0x004656A0. The matcher at
+   0x00465970 proves the tag, outer and inner radii, and center. */
+struct W8PathProbeVolume {
+    unsigned int tag_00;
+    float outer_radius_04;
+    float inner_radius_08;
+    srVector3T<float> center_0c;
+};
+
+static_assert(sizeof(W8PathProbeVolume) == 0x18,
+              "W8PathProbeVolume_must_be_0x18");
+
 /* The pathing service the octree builds when its file carries one. Its own
    constructor at 0x004578E0 initialises through 0x238 and ReadOctFile allocates
    0x240, which is what fixes the extent; only the fields those two bodies and
@@ -116,6 +131,21 @@ public:
         W8NavigatorMovementState* movement, float radius, float separation);
     void LinkSurfaces00460020();          /* 0x00460020 */
     void LinkEdges004600B0();             /* 0x004600B0 */
+    void CheckConditionalWaypointStatus004601B0(
+        unsigned short count, unsigned short* waypoints);
+    void CheckConditionalLinkStatus00460250(
+        unsigned short count, unsigned short* edges);
+    unsigned char HandlePathEdgeTransition00460350(
+        W8NavigatorMovementState* movement);
+    void ReduceWaypointCosts00462220(
+        unsigned int waypoint, float amount);
+    unsigned char AdvanceAttachmentWaypoint00462DE0(
+        const srVector3T<float>* source,
+        struct W8NavigatorAttachment* attachment);
+    unsigned char MatchesPathProbe00465970(
+        unsigned int tag,
+        const float* radius,
+        const srVector3T<float>* position);
     unsigned short FindWaypoint0045B120(
         const srVector3T<float>* position, unsigned char exhaustive);
     void SnapPathHeight0045B5A0(srVector3T<float>* position);
@@ -123,6 +153,19 @@ public:
         const srVector3T<float>* position, srVector3T<float>* normal);
     void ActivateMovementTrigger0045B880(
         W8NavigatorMovementState* movement, unsigned char use_path_edge);
+    void UpdatePathVisualization0045BC40(
+        const srVector3T<float>* source,
+        const srVector3T<float>* destination);
+    void DrawPathPosition0045C9A0(
+        srVector3T<float> position, unsigned char mode);
+    W8PathOwned054* BuildPathVisualization0045BE30();
+    void EnsurePathVisualization0045D530();
+    void GetWaypointVisualizationColor0045D490(
+        unsigned short waypoint, srVector3T<float>* color);
+    short CollectPathVisualization0045D880(
+        const srVector3T<float>* position);
+    void PreparePathVisualization0045E840(
+        srVector3T<float>* source, const srVector3T<float>* destination);
     void AddWaypoint0045DDB0(const srVector3T<float>* position);
     unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
     unsigned char SnapWaypointPosition00462E60(
@@ -150,6 +193,7 @@ public:
         const srVector3T<float>* direction,
         float distance);
     void SetWaypointLinkFlags0045E030(unsigned short waypoint, unsigned int direction);
+    void RemoveWaypointLink0045E360(unsigned short edge);
     void AddWaypointLink0045EC30(
         unsigned short source, unsigned short destination, unsigned int flags);
     unsigned char UpdateWaypointLink0045F200(
@@ -232,7 +276,8 @@ public:
     void* m_owned_0c8;                   /* 0xc8 */
     int m_positional_0cc;
     int m_positional_0d0;
-    unsigned char m_positional_0d4[0xf4];
+    unsigned int path_probe_count_0d4;
+    W8PathProbeVolume path_probes_0d8[10];
     unsigned char flag_1c8;              /* 0x1c8 */
     unsigned char flag_1c9;
     unsigned char flag_1ca;
@@ -308,6 +353,8 @@ public:
         const srVector3T<float>* upper,
         int kind,
         int excluded);
+    void AdjustPosition00431DA0(
+        srVector3T<float>* position, unsigned int mode);
     void Function0042F7E0();
 
     bool HasLoadError() const { return (m_flags_000 & 0x80000000) != 0; }

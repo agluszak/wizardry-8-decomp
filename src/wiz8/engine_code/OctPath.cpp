@@ -8,6 +8,8 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
 
+#include "surrender/srNode.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -236,6 +238,252 @@ void W8PathingService::LinkEdges004600B0()
         offset += 0xe;
         ++index;
     } while (index < m_ulNumEdges);
+}
+
+/* Refresh the disabled bit for a conditional list of waypoints. */
+// FUNCTION: WIZ8 0x004601b0
+void W8PathingService::CheckConditionalWaypointStatus004601B0(
+    unsigned short count,
+    unsigned short* waypoints)
+{
+    while (count != 0) {
+        unsigned short waypoint = *waypoints;
+        if (waypoint >= (unsigned short)m_ulNumSurfaces) {
+            srAssertFail(
+                "pusWayPts[i] < (UINT16)m_ulNumWayPoints",
+                OCTPATH_CPP,
+                0x1a4e,
+                "Pathing::CheckConditionalWayPtStatus: WayPt Index out of range.");
+        }
+
+        W8PathSurface* surface = &m_pSurfaces_048[waypoint];
+        if ((ClassifyWaypoint00459C00(&surface->position_04) & 0x10000000) == 0) {
+            surface->flags_00 &= 0xffdf;
+        }
+        else {
+            surface->flags_00 |= 0x20;
+        }
+        ++waypoints;
+        --count;
+    }
+}
+
+/* Refresh the disabled bit for conditional path edges. Only edges carrying
+   the conditional-span flag participate. A disabled source always disables
+   its edge; otherwise the current span test decides the bit. */
+// FUNCTION: WIZ8 0x00460250
+void W8PathingService::CheckConditionalLinkStatus00460250(
+    unsigned short count,
+    unsigned short* edges)
+{
+    while (count != 0) {
+        unsigned short edge_index = *edges;
+        if (edge_index >= (unsigned short)m_ulNumEdges) {
+            srAssertFail(
+                "pusLinks[i] < (UINT16)m_ulNumWayPtLinks",
+                OCTPATH_CPP,
+                0x1a6c,
+                "Pathing::CheckConditionalLinkStatus: Link Index out of range.");
+        }
+
+        W8PathEdge* edge = &m_pEdges_04c[edge_index];
+        if ((edge->flags_00 & 0x20000000) != 0) {
+            if ((m_pSurfaces_048[edge->source_04].flags_00 & 0x20) != 0 ||
+                TestWaypointSpan0045A1B0(
+                    &m_pSurfaces_048[edge->source_04].position_04,
+                    &m_pSurfaces_048[edge->destination_06].position_04,
+                    0,
+                    0) == 0) {
+                edge->flags_00 |= 0x80000000;
+            }
+            else {
+                edge->flags_00 &= 0x7fffffff;
+            }
+        }
+        ++edges;
+        --count;
+    }
+}
+
+/* Resolve the navigator attachment's current directed edge and apply the
+   transition encoded by its flags.
+
+   Disabled ordinary edges stop movement. Teleportal edges consume the current
+   pair, move both live and attachment positions to its destination, and toggle
+   the attachment's transition mode. */
+// FUNCTION: WIZ8 0x00460350
+unsigned char W8PathingService::HandlePathEdgeTransition00460350(
+    W8NavigatorMovementState* movement)
+{
+    W8NavigatorAttachment* attachment = movement->attachment_0ac;
+    unsigned short cursor = attachment->value_04;
+    unsigned int flags = 0;
+    unsigned short destination;
+
+    if (cursor < attachment->value_08) {
+        unsigned short* pairs =
+            static_cast<unsigned short*>(attachment->allocation_50);
+        unsigned short source = pairs[cursor];
+        destination = pairs[cursor + 1];
+        unsigned short edge_index = m_pSurfaces_048[source].first_edge_24;
+
+        while (edge_index != 0) {
+            W8PathEdge* edge = &m_pEdges_04c[edge_index];
+            if (edge->destination_06 == destination) {
+                flags = edge->flags_00;
+                break;
+            }
+            edge_index = edge->next_0c;
+        }
+    }
+
+    if ((flags & 0x80000000) != 0 &&
+        ((flags & 0x10000000) == 0 ||
+         (movement->unknown_000 & 0x10000000) == 0)) {
+        return 0;
+    }
+    if ((flags & 0x01000000) == 0) {
+        return 1;
+    }
+
+    attachment->value_04 += 2;
+    movement->position_040 = m_pSurfaces_048[destination].position_04;
+    attachment->position_34 = m_pSurfaces_048[destination].position_04;
+    if ((attachment->flags_00 & 0x01000000) == 0) {
+        attachment->flags_00 |= 0x01000000;
+    }
+    else {
+        attachment->flags_00 &= 0xfeffffff;
+    }
+    return 2;
+}
+
+/* Reduce both accumulated costs for one accepted waypoint and continue down
+   the selected parent tree. A child participates only while it remains in the
+   active waypoint bit set and names the current waypoint as its parent. The
+   cost reaching zero is the retail recursion boundary. */
+// FUNCTION: WIZ8 0x00462220
+void W8PathingService::ReduceWaypointCosts00462220(
+    unsigned int waypoint,
+    float amount)
+{
+    W8PathSurface* surface = &m_pSurfaces_048[waypoint];
+    surface->cost_1c -= amount;
+    if (surface->cost_1c >= g_float_005ebb34) {
+        surface->remaining_cost_20 -= amount;
+
+        unsigned short edge_index = surface->first_edge_24;
+        while (edge_index != 0) {
+            W8PathEdge* edge = &m_pEdges_04c[edge_index];
+            unsigned short child = edge->destination_06;
+            if (child != 0 && m_owned_058->Test(child) != 0 &&
+                m_pSurfaces_048[child].parent_10 == waypoint) {
+                ReduceWaypointCosts00462220(child, amount);
+            }
+            edge_index = edge->next_0c;
+        }
+    }
+}
+
+/* Move an integer path cell one compass step. Directions immediately outside
+   the eight-value range wrap once; values still outside it leave the cell
+   untouched. The jump-table order is north through north-west. */
+// FUNCTION: WIZ8 0x004622d0
+void __stdcall StepPathCell004622D0(int* x, int* z, int direction)
+{
+    if (direction < 0) {
+        direction += 8;
+    }
+    else if (direction > 7) {
+        direction -= 8;
+    }
+
+    switch (direction) {
+    case 0:
+        ++*z;
+        break;
+    case 1:
+        ++*x;
+        ++*z;
+        break;
+    case 2:
+        ++*x;
+        break;
+    case 3:
+        ++*x;
+        --*z;
+        break;
+    case 4:
+        --*z;
+        break;
+    case 5:
+        --*x;
+        --*z;
+        break;
+    case 6:
+        --*x;
+        break;
+    case 7:
+        --*x;
+        ++*z;
+        break;
+    }
+}
+
+/* Advance the attachment's probe cursor and accept its next stored waypoint
+   only when the live path grid permits the span from the supplied position.
+   Flag 0x80000 makes the first probe repeat the current path index. */
+// FUNCTION: WIZ8 0x00462de0
+unsigned char W8PathingService::AdvanceAttachmentWaypoint00462DE0(
+    const srVector3T<float>* source,
+    W8NavigatorAttachment* attachment)
+{
+    unsigned short cursor = attachment->value_04;
+    if ((attachment->flags_00 & 0x00080000) != 0) {
+        --cursor;
+    }
+    attachment->unknown_06 = cursor;
+    ++attachment->unknown_06;
+
+    if (attachment->unknown_06 < attachment->value_08) {
+        srVector3T<float> destination =
+            attachment->position_4c[attachment->unknown_06];
+        if (TestWaypointSpan0045A1B0(source, &destination, 0, 0) != 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* Match a tag against the path probes collected for the current search. A
+   tag-only query succeeds immediately. A spatial query must lie strictly
+   outside the probe's inner radius and strictly inside its outer radius plus
+   the caller's own radius. */
+// FUNCTION: WIZ8 0x00465970
+unsigned char W8PathingService::MatchesPathProbe00465970(
+    unsigned int tag,
+    const float* radius,
+    const srVector3T<float>* position)
+{
+    for (unsigned int index = 0; index < path_probe_count_0d4; ++index) {
+        W8PathProbeVolume* probe = &path_probes_0d8[index];
+        if (probe->tag_00 == tag) {
+            if (radius == 0) {
+                return 1;
+            }
+
+            float delta_x = probe->center_0c.x - position->x;
+            float delta_y = probe->center_0c.y - position->y;
+            float delta_z = probe->center_0c.z - position->z;
+            float distance = (float)sqrt(
+                delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+            if (distance < probe->outer_radius_04 + *radius &&
+                probe->inner_radius_08 < distance) {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 /* Give everything the service owns back.
@@ -1822,6 +2070,122 @@ void W8PathingService::ActivateMovementTrigger0045B880(
     }
 }
 
+/* Drive the path editor's owned scene node from the service's mode flags.
+
+   The ordinary mode draws one adjusted position or hides the existing node.
+   Active path mode prepares the source/destination pair and rebuilds the
+   visualization when the collector reports content. The alternate editor
+   mode lazily creates and attaches its node before drawing the adjusted point.
+   Visibility flag order follows the retail exits exactly. */
+// FUNCTION: WIZ8 0x0045bc40
+void W8PathingService::UpdatePathVisualization0045BC40(
+    const srVector3T<float>* source,
+    const srVector3T<float>* destination)
+{
+    W8World* world = GetWorld();
+    srNode* node = reinterpret_cast<srNode*>(m_owned_054);
+
+    if (flag_1c8 != 0) {
+        srVector3T<float> adjusted = *source;
+        srVector3T<float> endpoint = *destination;
+        g_octree_6598a4->AdjustPosition00431DA0(&adjusted, 1);
+        PreparePathVisualization0045E840(&adjusted, &endpoint);
+
+        if (CollectPathVisualization0045D880(&adjusted) != 0) {
+            if (m_owned_054 != 0) {
+                BuildPathVisualization0045BE30();
+                reinterpret_cast<srNode*>(m_owned_054)->clearFlag(
+                    srNode::FLAG_POSITIONAL_0);
+                return;
+            }
+
+            m_owned_054 = BuildPathVisualization0045BE30();
+            node = reinterpret_cast<srNode*>(m_owned_054);
+            if (node != 0) {
+                node->setParent(world->dynamic_scene, 1);
+                node->clearFlag(srNode::FLAG_POSITIONAL_0);
+                return;
+            }
+            node->clearFlag(srNode::FLAG_POSITIONAL_0);
+            return;
+        }
+
+        node = reinterpret_cast<srNode*>(m_owned_054);
+        if (node != 0) {
+            node->setFlag(srNode::FLAG_POSITIONAL_0);
+            node->setFlag(srNode::FLAG_POSITIONAL_1);
+        }
+        return;
+    }
+
+    if (flag_1c9 == 0 && flag_1cb == 0) {
+        DrawPathPosition0045C9A0(*source, 0);
+        node = reinterpret_cast<srNode*>(m_owned_054);
+        if (node != 0) {
+            node->setFlag(srNode::FLAG_POSITIONAL_0);
+            node->setFlag(srNode::FLAG_POSITIONAL_1);
+        }
+        return;
+    }
+
+    if (flag_1cb != 0) {
+        if (m_owned_054 == 0) {
+            EnsurePathVisualization0045D530();
+            node = reinterpret_cast<srNode*>(m_owned_054);
+            node->setParent(world->dynamic_scene, 1);
+            node->setFlag(srNode::FLAG_POSITIONAL_1);
+            if (m_owned_054 == 0) {
+                node->clearFlag(srNode::FLAG_POSITIONAL_0);
+                return;
+            }
+        }
+
+        srVector3T<float> adjusted = *source;
+        g_octree_6598a4->AdjustPosition00431DA0(&adjusted, 1);
+        DrawPathPosition0045C9A0(adjusted, 1);
+    }
+
+    reinterpret_cast<srNode*>(m_owned_054)->clearFlag(
+        srNode::FLAG_POSITIONAL_0);
+}
+
+/* Select the editor color for one waypoint. Disabled surfaces are black; the
+   two current selection slots take yellow and either green or red; every other
+   surface is blue. */
+// FUNCTION: WIZ8 0x0045d490
+void W8PathingService::GetWaypointVisualizationColor0045D490(
+    unsigned short waypoint,
+    srVector3T<float>* color)
+{
+    if ((m_pSurfaces_048[waypoint].flags_00 & 0x20) != 0) {
+        color->x = 0.0f;
+        color->y = 0.0f;
+        color->z = 0.0f;
+        return;
+    }
+    if (waypoint == value_1d4) {
+        color->x = 1.0f;
+        color->y = 1.0f;
+        color->z = 0.0f;
+        return;
+    }
+    if (waypoint != value_1d6) {
+        color->x = 0.0f;
+        color->y = 0.0f;
+        color->z = 1.0f;
+        return;
+    }
+    if (m_positional_1da[0] != 0) {
+        color->x = 0.0f;
+        color->y = 1.0f;
+        color->z = 0.0f;
+        return;
+    }
+    color->x = 1.0f;
+    color->y = 0.0f;
+    color->z = 0.0f;
+}
+
 /* Append one waypoint surface and keep every capacity-coupled side table sized
    to the same hundred-record block.
 
@@ -1887,6 +2251,41 @@ void W8PathingService::AddWaypoint0045DDB0(
     g_octree_6598a4->object_registry->UpdateObjectCell00436B90(
         9, (unsigned short)m_ulNumSurfaces + 1, point);
     ++m_ulNumSurfaces;
+}
+
+/* Unlink and clear one edge record.
+
+   The owning surface or predecessor edge is redirected to the removed edge's
+   successor. The retail scans stop after the first owner is found, then clear
+   the packed record and increment the service's free-record count. */
+// FUNCTION: WIZ8 0x0045e360
+void W8PathingService::RemoveWaypointLink0045E360(
+    unsigned short edge_index)
+{
+    if (m_ulNumSurfaces > 2) {
+        unsigned char found = 0;
+        unsigned int index;
+        for (index = 1; index < m_ulNumSurfaces && found == 0; ++index) {
+            if (m_pSurfaces_048[index].first_edge_24 == edge_index) {
+                m_pSurfaces_048[index].first_edge_24 =
+                    m_pEdges_04c[edge_index].next_0c;
+                found = 1;
+            }
+        }
+
+        for (index = 1; index < m_ulNumEdges && found == 0; ++index) {
+            if (m_pEdges_04c[index].next_0c == edge_index) {
+                m_pEdges_04c[index].next_0c =
+                    m_pEdges_04c[edge_index].next_0c;
+                found = 1;
+            }
+        }
+
+        memset(&m_pEdges_04c[edge_index], 0, sizeof(W8PathEdge));
+        ++m_positional_018;
+        MarkRendererReady();
+        flag_1cc = 1;
+    }
 }
 
 /* Add one directed edge to the waypoint graph, or update the matching edge
