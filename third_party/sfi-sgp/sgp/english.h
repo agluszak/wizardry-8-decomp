@@ -130,4 +130,14 @@
 #define ENTER               13
 #define SPACE               32
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern UINT16 gsKeyTranslationTable[1024];
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

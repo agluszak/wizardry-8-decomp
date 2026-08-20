@@ -120,7 +120,7 @@ void Function5D5C40(void);
 void Function5D4970(unsigned short character);
 void Function5D4B70(unsigned short character);
 void Function5D5BF0(unsigned char cursor);
-unsigned short Function402780(unsigned short key, unsigned short modifiers);
+unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned short Function402800(unsigned short character);
 unsigned short Function402820(unsigned short character);
 unsigned short Function402840(unsigned short character);

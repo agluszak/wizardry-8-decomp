@@ -45,13 +45,14 @@ void BuildCharacterFilePath00514FA0(char* destination, const char* filename,
                                     int slot);
 void BuildCharacterPath00514EC0(char* destination, const wchar_t* name,
                                 int slot);
-void SetViewport(int left, int top, int right, int bottom);
-int Function40B290(void);
-void NoOp(void);
-void ShutdownDisplayList(void);
+extern "C" void SetViewport(int left, int top, int right, int bottom);
+extern "C" int Function40B290(void);
+extern "C" void NoOp(void);
+extern "C" void ShutdownDisplayList(void);
 void ResetRegions(void);
-void UpdateHeldItemCursor(void);
-unsigned char Function48FC10(const char* playlist, int immediate, int replace);
+extern "C" void UpdateHeldItemCursor(void);
+extern "C" unsigned char Function48FC10(const char* playlist, int immediate,
+                                          int replace);
 void Function591780(void);
 void Function40B510(unsigned short event, unsigned short x, unsigned short y,
                     char right_button, char left_button);
@@ -69,7 +70,7 @@ void Function549600(int target, int object, int frame, int y,
 void Function549660(int object, int frame, int image,
                     short* width, short* height);
 unsigned int Function568950(const InputAtom* input);
-unsigned short Function402780(unsigned short key, unsigned short modifiers);
+unsigned short Function402780(unsigned short key, unsigned char modifiers);
 unsigned int Function5D3F50(const InputAtom* input);
 unsigned char Function5D3D00(int index);
 void Function55EE70(int value);
@@ -87,19 +88,19 @@ int Function4EF4A0(W8Character* character, int slot);
 void DeleteFileByName(const char* path);
 int Function558C40(const char* path);
 
-extern int g_font_683660;
-extern int g_wiz_text_bold_font_683664;
-extern unsigned short* g_colour_68ee08;
-extern unsigned short* g_font_palette_wiz_text_bold_68ee0c;
-extern unsigned short* g_font_state_palettes_68ee1c[15];
+extern "C" int g_font_683660;
+extern "C" int g_wiz_text_bold_font_683664;
+extern "C" unsigned short* g_colour_68ee08;
+extern "C" unsigned short* g_font_palette_wiz_text_bold_68ee0c;
+extern "C" unsigned short* g_font_state_palettes_68ee1c[15];
 extern unsigned char* g_message_table_68c09c;
-extern int g_dword_647bc0;
+extern "C" int g_dword_647bc0;
 extern unsigned char g_flag_689b32;
 extern unsigned char g_flag_6f04e8;
 extern unsigned char g_flag_6f04ed;
-extern int g_wiz_text_font_secondary_object_683680;
-extern int g_options_title_font_68368c;
-extern int g_options_detail_font_683614;
+extern "C" int g_wiz_text_font_secondary_object_683680;
+extern "C" int g_options_title_font_68368c;
+extern "C" int g_options_detail_font_683614;
 extern const wchar_t g_W8TextFormat006068E4[];
 extern unsigned short g_profession_name_message_ids_61e3f0[];
 extern unsigned short g_race_name_message_ids_61e3d0[];

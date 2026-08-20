@@ -20,6 +20,7 @@ set(WIZ8_SGP_RUNTIME_PARTIAL_SOURCES
     "${SGP_SOURCE}/impTGA.c"
     "${SGP_SOURCE}/vobject_blitters.c"
     "${SGP_SOURCE}/DEBUG.C"
+    "${SGP_SOURCE}/English.c"
     "${SGP_SOURCE}/input.c"
     "${SGP_SOURCE}/sgp.c"
 )

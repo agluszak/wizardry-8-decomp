@@ -278,8 +278,8 @@ extern void Function4F3140(const W8RegionEvent* event, struct W8Region* region);
    it starts unioning rather than intersecting. */
 struct Controls {
     Controls();
-    __inline Controls(int left, int top, int right, int bottom,
-                      int render_target, int render_arg_1c, int render_arg_20);
+    Controls(int left, int top, int right, int bottom,
+             int render_target, int render_arg_1c, int render_arg_20);
     __forceinline ~Controls();
 
     virtual void SetEnabled(unsigned char enable);

@@ -63,8 +63,8 @@ Controls::Controls()
 }
 
 // FUNCTION: WIZ8 0x004f2ca0
-__inline Controls::Controls(int left, int top, int right_bound, int bottom_bound,
-                            int render_target, int render_arg_1c, int render_arg_20)
+Controls::Controls(int left, int top, int right_bound, int bottom_bound,
+                   int render_target, int render_arg_1c, int render_arg_20)
 {
     origin_x = left;
     right = right_bound;
