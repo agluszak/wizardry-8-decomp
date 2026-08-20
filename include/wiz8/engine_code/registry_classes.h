@@ -44,6 +44,7 @@ public:
     void InitializeParticlePosition0049A990(srVector3T<float>* output);
     void SetTexture0049AB00(srTextureIFace* texture);
     void SetRetainedObject0049ACA0(srMaterialIFace* material);
+    void SetRenderFlags004925A0(srShader flags);
     void SetFlutter0049AD10(int enabled);
     void Function4994D0(srGERD* renderer);
     /* The per-particle age/cull/move step and billboard-corner expansion used

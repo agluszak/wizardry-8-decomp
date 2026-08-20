@@ -61,6 +61,57 @@ struct W8LevelLightRecord004BBAD0 {
 static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
               "W8LevelLightRecord004BBAD0_size_must_be_0x28");
 
+#pragma pack(push, 1)
+
+/* ReadWorldParticles reads this record as one of four growing on-disk
+   versions. The 0x225-byte extent and every named offset below come directly
+   from the version-sized reads and subsequent uses in 0x004BD0D0. */
+struct W8LevelParticleRecord004BD0D0 {
+    char name[64];                         /* 0x000 */
+    srVector3T<float> location;            /* 0x040 */
+    float rotation_angle;                  /* 0x04c */
+    srVector3T<float> rotation_axis;        /* 0x050 */
+    unsigned char positional_05c[0x0c];    /* 0x05c */
+    unsigned int particle_count;           /* 0x068 */
+    float source_06c;                      /* 0x06c */
+    float source_070;                      /* 0x070 */
+    float source_074;                      /* 0x074 */
+    int has_acceleration;                  /* 0x078 */
+    srVector3T<float> acceleration;        /* 0x07c */
+    int positional_088;                    /* 0x088 */
+    int bounds_mode;                       /* 0x08c */
+    srVector3T<float> bounds_origin;        /* 0x090 */
+    float bounds_radius;                   /* 0x09c */
+    srVector3T<float> bounds_extent;        /* 0x0a0 */
+    unsigned int lifetime;                 /* 0x0ac */
+    int velocity_mode;                     /* 0x0b0 */
+    unsigned int emission_interval;        /* 0x0b4 */
+    int positional_0b8;                    /* 0x0b8 */
+    int placement_mode;                    /* 0x0bc */
+    float placement_0c0;                   /* 0x0c0 */
+    float placement_0c4;                   /* 0x0c4 */
+    float placement_0c8;                   /* 0x0c8 */
+    float particle_value;                  /* 0x0cc */
+    int flutter_mode;                      /* 0x0d0 */
+    float flutter_value;                   /* 0x0d4 */
+    float flutter_period;                  /* 0x0d8 */
+    int direction_mode;                    /* 0x0dc */
+    float direction_0e0;                   /* 0x0e0 */
+    float direction_0e4;                   /* 0x0e4 */
+    int initially_active;                  /* 0x0e8 */
+    unsigned char material[0x12a];         /* 0x0ec */
+    short value_216;                       /* 0x216 */
+    int state_218;                         /* 0x218 */
+    unsigned char value_21c;               /* 0x21c */
+    int start_frame_21d;                   /* 0x21d, unaligned */
+    int end_frame_221;                     /* 0x221 */
+};
+
+#pragma pack(pop)
+
+static_assert(sizeof(W8LevelParticleRecord004BD0D0) == 0x225,
+              "W8LevelParticleRecord004BD0D0_size_must_be_0x225");
+
 } // namespace
 
 extern const float g_world_scale_005ebc40;
@@ -83,9 +134,10 @@ extern void FinalizeWorldScenes0046F410(
     srScene* static_scene, srNode* dynamic_scene);
 extern void RefreshEnvironment00483560(void);
 extern void FinalizeStaticScene0046F3A0(srScene* scene);
-extern unsigned char ReadWorldParticles004BD0D0(
-    W8ReadLevelInfo* info, srNode* scene,
-    W8GrowableVector<stParticle*>* particles);
+extern unsigned char Function4B8A70(
+    const char* bitmap_folder, const unsigned char* source,
+    srMaterialIFace** material, srTextureIFace** texture,
+    unsigned long* render_flags, int load_texture);
 extern unsigned char ReadAutomapNodes00584DD0(int hFile);
 extern void SetChainValue15C(char* node, int value);
 
@@ -758,6 +810,256 @@ unsigned char ReadWorldCameras004BC850(
         PLAdoptAppend(pWorld->plsCameras, entry);
         entry->path->value_10 = index;
         PathAISetScale004AA9C0(entry->path, scale);
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x004BD0D0
+unsigned char ReadWorldParticles004BD0D0(
+    W8ReadLevelInfo* pInfo, srNode* pScene,
+    W8GrowableVector<stParticle*>* pParticles)
+{
+    W8LevelParticleRecord004BD0D0 record;
+    srMaterialIFace* material;
+    srTextureIFace* texture;
+    srShader render_flags;
+    int count;
+    int index;
+
+    material = 0;
+    texture = 0;
+    ReadVirtualFile(pInfo->hFile, &count, sizeof(count), 0);
+    for (index = 0; index < count; ++index) {
+        unsigned char version;
+        stParticle* particle;
+        srVector3T<double> axis;
+        srVector3T<double> location;
+
+        ReadVirtualFile(pInfo->hFile, &version, sizeof(version), 0);
+        if (version == 4) {
+            ReadVirtualFile(pInfo->hFile, &record, 0x225, 0);
+        }
+        else if (version == 3) {
+            ReadVirtualFile(pInfo->hFile, &record, 0x21d, 0);
+            record.start_frame_21d = -1;
+            record.end_frame_221 = -1;
+        }
+        else if (version == 2) {
+            ReadVirtualFile(pInfo->hFile, &record, 0x218, 0);
+            record.state_218 = 0;
+            record.value_21c = 0;
+            record.start_frame_21d = -1;
+            record.end_frame_221 = -1;
+        }
+        else if (version == 1) {
+            ReadVirtualFile(pInfo->hFile, &record, 0x216, 0);
+            record.value_216 = -1;
+            record.state_218 = 0;
+            record.value_21c = 0;
+            record.start_frame_21d = -1;
+            record.end_frame_221 = -1;
+        }
+        else {
+            srAssertFail("0", READ_LEVEL_CPP, 0x5fe,
+                         "Unknown particle structure version");
+        }
+
+        particle = new stParticle(pScene, record.particle_count);
+        if (particle == 0) {
+            srAssertFail("pParticle", READ_LEVEL_CPP, 0x603,
+                         "Error creating particle in ReadParticles()");
+        }
+
+        _strupr(record.name);
+        particle->setName(record.name);
+        axis.x = record.rotation_axis.x;
+        axis.y = record.rotation_axis.y;
+        axis.z = record.rotation_axis.z;
+        particle->rotate(record.rotation_angle, axis);
+        location.x = record.location.x * g_world_scale_005ebc40;
+        location.y = record.location.y * g_world_scale_005ebc40;
+        location.z = record.location.z * g_world_scale_005ebc40;
+        particle->setLocation(location);
+        particle->rotateX(1.5707963267948966);
+
+        if (record.bounds_origin.x != 0.0f) {
+            particle->unknown_191 = 1;
+            record.bounds_origin.x = 0.0f;
+        }
+        if (record.bounds_mode == 1) {
+            srVector3T<float> center;
+            srVector3T<float> extent;
+
+            center.x = record.bounds_origin.x * g_world_scale_005ebc40;
+            center.y = record.bounds_origin.y * g_world_scale_005ebc40;
+            center.z = record.bounds_origin.z * g_world_scale_005ebc40;
+            extent.x = record.bounds_extent.x * 250.0f;
+            extent.y = record.bounds_extent.y * 250.0f;
+            extent.z = record.bounds_extent.z * 250.0f;
+            particle->value_1a4 = 1;
+            particle->minimum_21c.x = center.x - extent.x;
+            particle->minimum_21c.y = center.y - extent.y;
+            particle->minimum_21c.z = center.z - extent.z;
+            particle->maximum_228.x = center.x + extent.x;
+            particle->maximum_228.y = center.y + extent.y;
+            particle->maximum_228.z = center.z + extent.z;
+        }
+        else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
+            particle->value_1a4 = 2;
+            particle->value_234.x =
+                record.bounds_origin.x * g_world_scale_005ebc40;
+            particle->value_234.y =
+                record.bounds_origin.y * g_world_scale_005ebc40;
+            particle->value_234.z =
+                record.bounds_origin.z * g_world_scale_005ebc40;
+            particle->value_240 =
+                record.bounds_radius * g_world_scale_005ebc40;
+        }
+        else {
+            particle->value_1a4 = 0;
+        }
+
+        if (record.initially_active == 0) {
+            particle->SetActive(0);
+        }
+        particle->value_140 = record.particle_value;
+        particle->value_1ac = record.positional_088 != 0;
+        particle->value_1cc = record.lifetime;
+        particle->value_1b4 = record.positional_0b8 != 0;
+        particle->value_1c8 = record.emission_interval < 2
+            ? 1 : record.emission_interval;
+        particle->start_frame_264 = record.start_frame_21d;
+        particle->end_frame_268 = record.end_frame_221;
+
+        if (record.has_acceleration != 0) {
+            particle->value_1a8 = 1;
+            particle->acceleration_1f4.x =
+                record.acceleration.x * g_world_scale_005ebc40;
+            particle->acceleration_1f4.y =
+                record.acceleration.y * g_world_scale_005ebc40;
+            particle->acceleration_1f4.z =
+                record.acceleration.z * g_world_scale_005ebc40;
+        }
+
+        if (record.velocity_mode == 0) {
+            particle->value_1b0 = 0;
+        }
+        else if (record.velocity_mode == 1) {
+            particle->value_1b0 = 1;
+        }
+        else {
+            particle->value_1b0 = 2;
+            particle->minimum_1d0.x = -record.source_06c * 250.0f;
+            particle->minimum_1d0.y = -record.source_070 * 250.0f;
+            particle->minimum_1d0.z = 0.0f;
+            particle->maximum_1dc.x = record.source_06c * 250.0f;
+            particle->maximum_1dc.y = record.source_070 * 250.0f;
+            particle->maximum_1dc.z =
+                record.source_074 * g_world_scale_005ebc40;
+        }
+
+        if (record.direction_mode == 0) {
+            particle->value_1b8 = 0;
+        }
+        else if (record.direction_mode == 1) {
+            srMatrix3T<float> rotation;
+            srMatrix3T<float> adjustment;
+            srVector3T<float> direction;
+            srVector3T<float> first;
+            srVector3T<float> second;
+            srVector3T<float> third;
+            srVector3T<float> transformed;
+            float length;
+            double angle = -1.5707963267948966;
+
+            rotation.vectors[0].method_00421680(1.0, 0.0, 0.0);
+            rotation.vectors[1].method_00421680(0.0, 1.0, 0.0);
+            rotation.vectors[2].method_00421680(0.0, 0.0, 1.0);
+            if (record.rotation_angle != 0.0f) {
+                RotateMatrixAroundAxis0042B910(
+                    &rotation.vectors[0].x,
+                    sin(record.rotation_angle), cos(record.rotation_angle),
+                    &record.rotation_axis.x);
+            }
+            first.method_00421680(1.0, 0.0, 0.0);
+            second.method_00421680(0.0, cos(angle), -sin(angle));
+            third.method_00421680(0.0, sin(angle), cos(angle));
+            adjustment.method_004219F0(first, second, third);
+            rotation.method_00421A40(adjustment);
+            direction.method_00421680(0.0, 0.0, -1.0);
+            transformed.x = Function4218E0(rotation.vectors[0], direction);
+            transformed.y = Function4218E0(rotation.vectors[1], direction);
+            transformed.z = Function4218E0(rotation.vectors[2], direction);
+            length = transformed.method_00421700();
+            if (length != 0.0f) {
+                transformed /= length;
+            }
+            particle->value_1b8 = 1;
+            particle->direction_1e8 = transformed;
+        }
+        else if (record.direction_mode == 2) {
+            particle->value_1b8 = 2;
+        }
+        else if (record.direction_mode == 3) {
+            particle->value_1b8 = 3;
+            particle->value_208 = record.direction_0e0 * 0.017453292519943295f;
+            particle->value_20c = record.direction_0e4 * 0.017453292519943295f;
+        }
+        else {
+            particle->value_1b8 = 4;
+        }
+
+        if (record.placement_mode == 0) {
+            particle->value_1bc = 0;
+        }
+        else if (record.placement_mode == 1) {
+            particle->value_1bc = 1;
+            particle->value_210 =
+                record.placement_0c0 * g_world_scale_005ebc40;
+        }
+        else {
+            particle->value_1bc = 2;
+            particle->value_214 =
+                record.placement_0c4 * g_world_scale_005ebc40;
+            particle->value_218 =
+                record.placement_0c8 * g_world_scale_005ebc40;
+        }
+
+        if (record.flutter_mode == 0) {
+            particle->SetFlutter0049AD10(0);
+        }
+        else {
+            particle->SetFlutter0049AD10(2);
+            particle->value_200 = record.flutter_value;
+            particle->value_204 = static_cast<unsigned int>(
+                record.flutter_period);
+        }
+        if (record.value_216 >= 0) {
+            particle->value_260 = record.value_216;
+        }
+        particle->value_138 = record.value_21c;
+        particle->state_184 = record.state_218;
+        particle->active_190 = 0;
+
+        Function4B8A70(
+            pInfo->bitmap_folder, record.material, &material, &texture,
+            &render_flags.value, 1);
+        particle->SetRetainedObject0049ACA0(material);
+        particle->SetRenderFlags004925A0(render_flags);
+        particle->SetTexture0049AB00(texture);
+
+        if (strncmp(record.name, "CLOUD", 5) == 0) {
+            srVector3T<double> current = particle->getLocation();
+            particle->camera_offset_244.x = static_cast<float>(current.x);
+            particle->camera_offset_244.y = static_cast<float>(current.y);
+            particle->camera_offset_244.z = static_cast<float>(current.z);
+            particle->value_1c4 = 1;
+            particle->SetActive(1);
+        }
+        else if (g_octree_6598a4 != 0) {
+            g_octree_6598a4->AddLoadedParticle(particle);
+        }
+        pParticles->Add(particle);
     }
     return 1;
 }
