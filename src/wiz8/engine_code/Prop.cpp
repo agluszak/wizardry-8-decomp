@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/float_constants.h"
 #include "wiz8/engine_code/AnimObj.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/sr_api.h"
@@ -43,7 +44,6 @@ extern int Function443830(W8World* world, W8Prop* prop);
 extern void Function4B7470(int value);
 extern int IncrementValue60DFAC(void);
 extern const double g_zero_005ebb40;
-extern const double g_one_005ebc30;
 
 /* Same-TU access to srModelInstance's protected alignment fields so the
    loader can write them the way the image does, without going through the
@@ -65,7 +65,7 @@ struct PropModelInstanceAccess : srModelInstance {
             align_axis_14c.y * align_axis_14c.y +
             align_axis_14c.x * align_axis_14c.x;
         if ((double)length_squared != g_zero_005ebb40) {
-            scale = (float)(g_one_005ebc30 / sqrt((double)length_squared));
+            scale = (float)(g_double_005ebc30 / sqrt((double)length_squared));
             align_axis_14c.x *= scale;
             align_axis_14c.y *= scale;
             align_axis_14c.z *= scale;
@@ -573,15 +573,11 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
 }
 
 extern void Function44DEA0(W8Prop* prop);
-extern unsigned char LoadAniMeshFromInfo004B5B30(
-    W8ReadLevelInfo* info, W8AniMesh* mesh, int positional,
-    unsigned char load_all);
 extern unsigned char AnimObjReadFromFile004A05C0(
     W8ReadLevelInfo* info, W8AnimObj* animation, int a, int b, int c);
 extern void* Function441A20(int hFile, W8World* world);
 extern void Function445200(void* object);
 
-extern float g_camera_step_factor_005ebc7c;
 extern const float g_monster_script_direction_scale_005ec150;
 
 /* After a successful load, bind the current animation frame's mesh to its
@@ -747,12 +743,12 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
                 goto fail;
             }
         }
-        info->unknown_00c = 0;
+        info->mesh_filename = 0;
         mesh = CreateAniMesh004B57E0();
         if (mesh == 0) {
             srAssertFail("pAniMesh", PROP_CPP, 0xd5, 0);
         }
-        result = LoadAniMeshFromInfo004B5B30(info, mesh, 1, 1);
+        result = LoadAniMeshFromInfo004B5B30(info, mesh, 1);
         if (result == 0) {
             fail_line = 0xd8;
             result = 0;
@@ -776,7 +772,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
         int slot_i;
 
         flag_bits = 0.0f;
-        info->unknown_00c = 0;
+        info->mesh_filename = 0;
         if (success != 0) {
             ReadVirtualFile(hFile, &frame_count, 1, 0);
         }
@@ -990,7 +986,7 @@ unsigned char W8PropRepresentation::LoadProp0044AEE0(
             extent = maximum.z - minimum.z;
         }
         *reinterpret_cast<float*>(&this->value_08c) =
-            extent * g_camera_step_factor_005ebc7c;
+            extent * g_float_005ebc7c;
     }
 
     if (version > 2) {
